@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="com.example.kpkn.data.db.WorkoutMediaMigration27To28FullRoomTest" tests="1" skipped="0" failures="0" errors="0" timestamp="2026-10-10T05:51:04.401Z" hostname="VF" time="0.269">
-  <properties/>
-  <testcase name="full_exported_room_27_database_upgrades_to_28_without_losing_session_history_or_media" classname="com.example.kpkn.data.db.WorkoutMediaMigration27To28FullRoomTest" time="0.269"/>
-  <system-out><![CDATA[]]></system-out>
-  <system-err><![CDATA[]]></system-err>
-</testsuite>

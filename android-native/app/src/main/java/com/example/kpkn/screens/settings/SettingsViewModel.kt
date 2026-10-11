@@ -11,7 +11,6 @@ import com.example.kpkn.data.db.dbJson
 import com.example.kpkn.data.db.KpknDatabase
 import com.example.kpkn.data.db.DatabaseBackupHelper
 import com.example.kpkn.data.db.LearnedResolutionEntity
-import com.example.kpkn.data.db.toEntity
 import com.example.kpkn.data.db.toMealTemplate
 import com.example.kpkn.data.db.toPantryItem
 import com.example.kpkn.data.settings.LearnedResolutionBackup
@@ -45,7 +44,6 @@ import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
 class SettingsViewModel : ViewModel() {
-    private val personalWrites = com.example.kpkn.data.backup.DataSessionWriter("settings-view-model")
     private val programRepository = ProgramRepository.getInstance()
     private val nutritionRepository = NutritionRepository.getInstance()
     private var appContext: Context? = null
@@ -57,7 +55,7 @@ class SettingsViewModel : ViewModel() {
         this.appContext = appContext
     }
 
-    fun update(transform: (Settings) -> Settings) = personalWrites.immediate {
+    fun update(transform: (Settings) -> Settings) {
         val oldSettings = programRepository.settings.value
         val newSettings = transform(oldSettings)
         programRepository.updateSettings { newSettings }
@@ -151,28 +149,82 @@ class SettingsViewModel : ViewModel() {
         programRepository.updateSettings { current -> current.copy(tourSeen = emptySet()) }
     }
 
-    /** Old share callers now use the same complete portable archive as SAF exports. */
+    /** Legacy share entry point kept for old callers; the new Settings UI uses SAF below. */
     fun exportData(context: Context) {
-        var exportFile: File? = null
-        com.example.kpkn.data.backup.AppDataSessions.launch(context, "export-portable-share",
-            onSuccess = { exportFile?.let { shareExportFile(context, it) } },
-            onError = { error -> Toast.makeText(context,
-                context.getString(com.example.kpkn.R.string.msg_export_failed, error), Toast.LENGTH_LONG).show() },
-            requiresInactiveWorkout = false) {
-            val fileName = "kpkn-export-${LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss"))}.zip"
-            val exportDir = File(context.cacheDir, "exports").apply { check(isDirectory || mkdirs()) }
-            val target = File(exportDir, fileName)
-            target.outputStream().use { com.example.kpkn.data.backup.PortableBackup.export(context, it) }
-            exportFile = target
+        viewModelScope.launch {
+            runCatching {
+                val payload = buildExportPayload(context)
+                val exportJson = dbJson.encodeToString(payload)
+                val fileName = "kpkn-export-${LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss"))}.json"
+                val exportDir = File(context.cacheDir, "exports").apply { mkdirs() }
+                val exportFile = File(exportDir, fileName)
+                exportFile.writeText(exportJson)
+                shareExportFile(context, exportFile)
+            }.onFailure { error ->
+                Toast.makeText(
+                    context,
+                    context.getString(com.example.kpkn.R.string.msg_export_failed, error.message ?: context.getString(com.example.kpkn.R.string.common_error_unknown)),
+                    Toast.LENGTH_LONG,
+                ).show()
+            }
         }
     }
 
     fun exportData(context: Context, destination: Uri, onSuccess: () -> Unit, onError: (String) -> Unit) {
-        com.example.kpkn.data.backup.AppDataSessions.launch(context, "export-portable", onSuccess, onError, requiresInactiveWorkout = false) {
-            context.contentResolver.openOutputStream(destination)?.use { output ->
-                com.example.kpkn.data.backup.PortableBackup.export(context, output)
-            } ?: error("No se pudo abrir el archivo de destino")
+        viewModelScope.launch(Dispatchers.IO) {
+            runCatching {
+                val exportJson = dbJson.encodeToString(buildExportPayload(context))
+                context.contentResolver.openOutputStream(destination)?.use { output ->
+                    output.bufferedWriter(Charsets.UTF_8).use { it.write(exportJson) }
+                } ?: error("No se pudo abrir el archivo de destino")
+            }.onSuccess {
+                withContext(Dispatchers.Main) { onSuccess() }
+            }.onFailure { error ->
+                withContext(Dispatchers.Main) { onError(error.message ?: "Error desconocido") }
+            }
         }
+    }
+
+    private suspend fun buildExportPayload(context: Context): SettingsExportPayload {
+        val appContext = context.applicationContext
+        val augeRepository = AugeRepository.getInstance(appContext)
+        val bodyRepository = BodyProgressRepository.getInstance(appContext)
+        bodyRepository.awaitReady()
+        val db = KpknDatabase.getInstance(appContext)
+        val profilePhotoJpegBase64 = ProfilePhotoStore.readBase64(
+            appContext,
+            programRepository.settings.value.profilePicture,
+        )
+        return SettingsJsonBackup.buildPayload(
+            context = appContext,
+            settings = programRepository.settings.value,
+            profilePhotoJpegBase64 = profilePhotoJpegBase64,
+            programs = programRepository.programs.value,
+            workoutLogs = programRepository.history.value,
+            activeProgramState = programRepository.activeProgramState.value,
+            ongoingWorkout = programRepository.ongoingWorkout.value,
+            nutritionLogs = nutritionRepository.nutritionLogs.value,
+            nutritionPlans = nutritionRepository.nutritionPlans.value,
+            activeNutritionPlanId = nutritionRepository.activeNutritionPlanId.value,
+            pantryItems = db.nutritionDao().getAllPantryItems().map { it.toPantryItem() },
+            mealTemplates = db.nutritionDao().getAllTemplates().map { it.toMealTemplate() },
+            customFoods = nutritionRepository.getCustomFoodsForBackup(),
+            learnedResolutions = db.learnedResolutionDao().getAll().map(::toBackup),
+            foodCatalogMeta = nutritionRepository.getFoodCatalogMetaForBackup(),
+            bodyObservations = bodyRepository.observations.value,
+            bodyGoals = bodyRepository.goals.value,
+            measurementSchedule = bodyRepository.measurementSchedule.value,
+            calibrationProfile = NutritionCalibrationRepository.getInstance(appContext).get(),
+            dailyGoalSnapshots = nutritionRepository.getDailyGoalSnapshots(),
+            wellbeingLogs = augeRepository.getWellbeingLogs(),
+            sleepLogs = augeRepository.getLastNSleepLogs(30),
+            sleepLogsExtended = augeRepository.getAllSleepLogsExtended(),
+            postSessionFeedback = augeRepository.getPostSessionFeedbacks(),
+            adaptiveCache = augeRepository.getAdaptiveCache(),
+            sessionTemplates = SessionTemplateRepository.getInstance(appContext).userTemplates.value,
+            customExercises = CustomExerciseRepository.customExercises.value,
+            db = db,
+        )
     }
 
     private fun shareExportFile(context: Context, file: File) {
@@ -182,7 +234,7 @@ class SettingsViewModel : ViewModel() {
             file,
         )
         val intent = Intent(Intent.ACTION_SEND).apply {
-            type = "application/zip"
+            type = "application/json"
             putExtra(Intent.EXTRA_STREAM, uri)
             addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
         }
@@ -193,31 +245,61 @@ class SettingsViewModel : ViewModel() {
     }
 
     fun importBackupJson(context: Context, uri: Uri, onSuccess: () -> Unit, onError: (String) -> Unit) {
-        com.example.kpkn.data.backup.AppDataSessions.launch(context, "import-json", onSuccess, onError) {
-            var portable = false
-            val jsonString = context.contentResolver.openInputStream(uri)?.buffered()?.use { inputStream ->
-                inputStream.mark(4)
-                val first = inputStream.read(); val second = inputStream.read()
-                inputStream.reset()
-                if (first == 0x50 && second == 0x4b) {
-                    com.example.kpkn.data.backup.PortableBackup.restore(context, inputStream); portable = true; ""
-                } else com.example.kpkn.data.backup.BoundedInput.bytes(inputStream,
-                    com.example.kpkn.data.backup.BoundedInput.MAX_JSON_BYTES).toString(Charsets.UTF_8)
-            } ?: throw Exception("No se pudo leer el archivo")
-            if (portable) return@launch
+        viewModelScope.launch(Dispatchers.IO) {
+            runCatching {
+                val jsonString = context.contentResolver.openInputStream(uri)?.use { inputStream ->
+                    inputStream.bufferedReader().use { it.readText() }
+                } ?: throw Exception("No se pudo leer el archivo")
 
-            val payload = dbJson.decodeFromString<SettingsExportPayload>(jsonString)
-            val db = KpknDatabase.getInstance(context)
-            com.example.kpkn.data.backup.PortableBackup.transaction(context) {
-                SettingsJsonBackup.importPayload(
-                    context = context,
-                    payload = payload,
-                    db = db,
-                    nutritionRepository = nutritionRepository,
-                    onMeasurementSchedule = { schedule ->
-                        BodyProgressRepository.persistImportedSchedule(context, schedule)
-                    },
-                )
+                val payload = dbJson.decodeFromString<SettingsExportPayload>(jsonString)
+                val db = KpknDatabase.getInstance(context)
+                val rollbackName = DatabaseBackupHelper.createSnapshot(context)
+                val rollbackFile = File(context.filesDir, "snapshots/$rollbackName")
+                try {
+                    SettingsJsonBackup.importPayload(
+                        context = context,
+                        payload = payload,
+                        db = db,
+                        nutritionRepository = nutritionRepository,
+                        onMeasurementSchedule = { schedule ->
+                            val bodyRepository = BodyProgressRepository.getInstance(context.applicationContext)
+                            bodyRepository.refreshFromStorage()
+                            bodyRepository.updateMeasurementSchedule(schedule)
+                            val calibrationRepository = NutritionCalibrationRepository.getInstance(context.applicationContext)
+                            if (payload.calibrationProfile != null) {
+                                calibrationRepository.save(payload.calibrationProfile)
+                            } else if (payload.schemaVersion >= SettingsJsonBackup.EXPORT_SCHEMA_VERSION && payload.includesCalibrationSection) {
+                                calibrationRepository.clear()
+                            } else if (payload.schemaVersion < SettingsJsonBackup.EXPORT_SCHEMA_VERSION && payload.calibrationProfile == null) {
+                                calibrationRepository.clear()
+                            }
+                        },
+                    )
+                    DatabaseBackupHelper.deleteSnapshot(rollbackFile)
+                } catch (error: Throwable) {
+                    if (rollbackFile.exists()) {
+                        DatabaseBackupHelper.restoreSnapshot(context, rollbackFile)
+                        programRepository.refreshData()
+                        nutritionRepository.refreshData(context)
+                        SessionTemplateRepository.getInstance(context.applicationContext).refreshFromStorage()
+                        CustomExerciseRepository.refreshFromStorage()
+                        DatabaseBackupHelper.deleteSnapshot(rollbackFile)
+                    }
+                    throw error
+                }
+
+                programRepository.refreshData()
+                nutritionRepository.refreshData(context)
+                SessionTemplateRepository.getInstance(context.applicationContext).refreshFromStorage()
+                CustomExerciseRepository.refreshFromStorage()
+            }.onSuccess {
+                withContext(Dispatchers.Main) {
+                    onSuccess()
+                }
+            }.onFailure { error ->
+                withContext(Dispatchers.Main) {
+                    onError(error.message ?: "Error al importar el JSON de respaldo")
+                }
             }
         }
     }
@@ -243,41 +325,94 @@ class SettingsViewModel : ViewModel() {
         )
 
     fun clearAllAppData(context: Context, onSuccess: () -> Unit, onError: (String) -> Unit) {
-        com.example.kpkn.data.backup.AppDataSessions.launch(context, "clear-device", onSuccess, onError) {
-            com.example.kpkn.data.backup.PersonalDataErasure.erase(context)
-            LegacyAiCredentialCleanup.clear(context)
+        viewModelScope.launch(Dispatchers.IO) {
+            runCatching {
+                val db = KpknDatabase.getInstance(context)
+                db.clearAllTables()
+                LegacyAiCredentialCleanup.clear(context)
 
-            KpknDatabase.getInstance(context).settingsDao().upsert(Settings().toEntity())
+                context.getSharedPreferences("nutrition_food_catalog", Context.MODE_PRIVATE).edit().clear().commit()
+                BodyProgressRepository.getInstance(context.applicationContext).clearAllDataAndAwait()
+                ProfilePhotoStore.delete(context.applicationContext)
+                KpknDiagnosticStorage.clear(context.applicationContext)
+                File(context.applicationContext.filesDir, "kpkn_logs").deleteRecursively()
+                File(context.applicationContext.filesDir, "nutrition_telemetry").deleteRecursively()
 
-            val workoutReminder = WorkoutReminderManager(context)
-            val nutritionReminder = NutritionNotificationManager(context)
-            workoutReminder.cancelWorkoutReminder()
-            workoutReminder.cancelSleepReminder()
-            nutritionReminder.cancelMealReminders()
+                programRepository.updateSettings { Settings() }
+                programRepository.refreshData()
+                nutritionRepository.refreshData(context)
+                SessionTemplateRepository.getInstance(context.applicationContext).refreshFromStorage()
+                CustomExerciseRepository.refreshFromStorage()
+
+                val workoutReminder = WorkoutReminderManager(context)
+                val nutritionReminder = NutritionNotificationManager(context)
+                workoutReminder.cancelWorkoutReminder()
+                workoutReminder.cancelSleepReminder()
+                nutritionReminder.cancelMealReminders()
+            }.onSuccess {
+                withContext(Dispatchers.Main) {
+                    onSuccess()
+                }
+            }.onFailure { error ->
+                withContext(Dispatchers.Main) {
+                    onError(error.message ?: "Error al borrar datos")
+                }
+            }
         }
     }
 
     fun createSnapshot(context: Context, onSuccess: (String) -> Unit, onError: (String) -> Unit) {
-        var filename: String? = null
-        com.example.kpkn.data.backup.AppDataSessions.launch(context, "export-local-snapshot",
-            onSuccess = { onSuccess(requireNotNull(filename)) }, onError = onError, requiresInactiveWorkout = false) {
-            filename = DatabaseBackupHelper.createSnapshot(context)
+        viewModelScope.launch(Dispatchers.IO) {
+            runCatching {
+                DatabaseBackupHelper.createSnapshot(context)
+            }.onSuccess { filename ->
+                withContext(Dispatchers.Main) {
+                    onSuccess(filename)
+                }
+            }.onFailure { error ->
+                withContext(Dispatchers.Main) {
+                    onError(error.message ?: "Error al crear snapshot")
+                }
+            }
         }
     }
 
     fun restoreSnapshot(context: Context, file: File, onSuccess: () -> Unit, onError: (String) -> Unit) {
-        com.example.kpkn.data.backup.AppDataSessions.launch(context, "restore-snapshot", onSuccess, onError) {
-            DatabaseBackupHelper.restoreSnapshot(context, file)
+        viewModelScope.launch(Dispatchers.IO) {
+            runCatching {
+                DatabaseBackupHelper.restoreSnapshot(context, file)
+                programRepository.refreshData()
+                nutritionRepository.refreshData(context)
+                SessionTemplateRepository.getInstance(context.applicationContext).refreshFromStorage()
+                CustomExerciseRepository.refreshFromStorage()
+            }.onSuccess {
+                withContext(Dispatchers.Main) {
+                    onSuccess()
+                }
+            }.onFailure { error ->
+                withContext(Dispatchers.Main) {
+                    onError(error.message ?: "Error al restaurar el snapshot")
+                }
+            }
         }
     }
 
-    fun exportWorkoutMediaZip(context: Context, destination: Uri, onSuccess: (Int) -> Unit, onError: (String) -> Unit) {
-        var count = 0
-        com.example.kpkn.data.backup.AppDataSessions.launch(context, "export-media",
-            onSuccess = { onSuccess(count) }, onError = onError, requiresInactiveWorkout = false) {
-            count = context.contentResolver.openOutputStream(destination)?.use { output ->
-                com.example.kpkn.data.media.WorkoutMediaZipExporter.writeZip(context.filesDir, output)
-            } ?: error("No se pudo abrir el archivo de destino")
+    fun exportWorkoutMediaZip(
+        context: Context,
+        destination: Uri,
+        onSuccess: (Int) -> Unit,
+        onError: (String) -> Unit,
+    ) {
+        viewModelScope.launch(Dispatchers.IO) {
+            runCatching {
+                context.contentResolver.openOutputStream(destination)?.use { output ->
+                    com.example.kpkn.data.media.WorkoutMediaZipExporter.writeZip(context.filesDir, output)
+                } ?: error("No se pudo abrir el archivo de destino")
+            }.onSuccess { count ->
+                withContext(Dispatchers.Main) { onSuccess(count) }
+            }.onFailure { error ->
+                withContext(Dispatchers.Main) { onError(error.message ?: "Error desconocido") }
+            }
         }
     }
 
@@ -286,19 +421,28 @@ class SettingsViewModel : ViewModel() {
     }
 
     fun deleteSnapshot(file: File): Boolean {
-        return personalWrites.immediate { DatabaseBackupHelper.deleteSnapshot(file) }
+        return DatabaseBackupHelper.deleteSnapshot(file)
     }
 
-    fun exportDatabaseSnapshot(context: Context, destination: Uri, onSuccess: () -> Unit, onError: (String) -> Unit) {
-        com.example.kpkn.data.backup.AppDataSessions.launch(context, "export-database",
-            onSuccess = onSuccess, onError = onError, requiresInactiveWorkout = false) {
-            val snapshotName = DatabaseBackupHelper.createSnapshot(context)
-            val snapshotFile = File(context.filesDir, "snapshots/$snapshotName")
-            try {
+    fun exportDatabaseSnapshot(
+        context: Context,
+        destination: Uri,
+        onSuccess: () -> Unit,
+        onError: (String) -> Unit,
+    ) {
+        viewModelScope.launch(Dispatchers.IO) {
+            runCatching {
+                val snapshotName = DatabaseBackupHelper.createSnapshot(context)
+                val snapshotFile = File(context.filesDir, "snapshots/$snapshotName")
                 context.contentResolver.openOutputStream(destination)?.use { output ->
                     snapshotFile.inputStream().use { input -> input.copyTo(output) }
                 } ?: error("No se pudo abrir el archivo de destino")
-            } finally { DatabaseBackupHelper.deleteSnapshot(snapshotFile) }
+                DatabaseBackupHelper.deleteSnapshot(snapshotFile)
+            }.onSuccess {
+                withContext(Dispatchers.Main) { onSuccess() }
+            }.onFailure { error ->
+                withContext(Dispatchers.Main) { onError(error.message ?: "Error desconocido") }
+            }
         }
     }
 
@@ -308,29 +452,39 @@ class SettingsViewModel : ViewModel() {
         onSuccess: () -> Unit,
         onError: (String) -> Unit,
     ) {
-        com.example.kpkn.data.backup.AppDataSessions.launch(context, "import-database", onSuccess, onError) {
-            val rollbackName = DatabaseBackupHelper.createSnapshot(context)
-            val rollbackFile = File(context.filesDir, "snapshots/$rollbackName")
-            val tempImport = File(context.cacheDir, "import_snapshot_${System.currentTimeMillis()}.db")
-            try {
-                context.contentResolver.openInputStream(uri)?.use { input ->
-                    tempImport.outputStream().use { output ->
-                        com.example.kpkn.data.backup.BoundedInput.copy(input, output,
-                            com.example.kpkn.data.backup.BoundedInput.MAX_DATABASE_BYTES)
-                    }
-                } ?: error("No se pudo leer el archivo")
-                DatabaseBackupHelper.restoreSnapshot(context, tempImport)
-                DatabaseBackupHelper.deleteSnapshot(rollbackFile)
-            } catch (error: Throwable) {
-                if (rollbackFile.exists()) {
-                    DatabaseBackupHelper.restoreSnapshot(context, rollbackFile)
+        viewModelScope.launch(Dispatchers.IO) {
+            runCatching {
+                val rollbackName = DatabaseBackupHelper.createSnapshot(context)
+                val rollbackFile = File(context.filesDir, "snapshots/$rollbackName")
+                val tempImport = File(context.cacheDir, "import_snapshot_${System.currentTimeMillis()}.db")
+                try {
+                    context.contentResolver.openInputStream(uri)?.use { input ->
+                        tempImport.outputStream().use { output -> input.copyTo(output) }
+                    } ?: error("No se pudo leer el archivo")
+                    DatabaseBackupHelper.restoreSnapshot(context, tempImport)
+                    programRepository.refreshData()
+                    nutritionRepository.refreshData(context)
+                    SessionTemplateRepository.getInstance(context.applicationContext).refreshFromStorage()
+                    CustomExerciseRepository.refreshFromStorage()
                     DatabaseBackupHelper.deleteSnapshot(rollbackFile)
+                } catch (error: Throwable) {
+                    if (rollbackFile.exists()) {
+                        DatabaseBackupHelper.restoreSnapshot(context, rollbackFile)
+                        programRepository.refreshData()
+                        nutritionRepository.refreshData(context)
+                        SessionTemplateRepository.getInstance(context.applicationContext).refreshFromStorage()
+                        CustomExerciseRepository.refreshFromStorage()
+                        DatabaseBackupHelper.deleteSnapshot(rollbackFile)
+                    }
+                    throw error
+                } finally {
+                    tempImport.delete()
                 }
-                throw error
-            } finally {
-                tempImport.delete()
+            }.onSuccess {
+                withContext(Dispatchers.Main) { onSuccess() }
+            }.onFailure { error ->
+                withContext(Dispatchers.Main) { onError(error.message ?: "Error al importar snapshot") }
             }
         }
     }
-
 }

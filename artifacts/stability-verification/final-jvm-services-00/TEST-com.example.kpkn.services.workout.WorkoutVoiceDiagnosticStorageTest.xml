@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="com.example.kpkn.services.workout.WorkoutVoiceDiagnosticStorageTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-10-10T06:40:38.452Z" hostname="VF" time="0.001">
-  <properties/>
-  <testcase name="diagnostic filename removes provider-invalid characters and keeps jsonl extension" classname="com.example.kpkn.services.workout.WorkoutVoiceDiagnosticStorageTest" time="0.001"/>
-  <testcase name="diagnostic filename is bounded for document providers" classname="com.example.kpkn.services.workout.WorkoutVoiceDiagnosticStorageTest" time="0.0"/>
-  <testcase name="blank diagnostic filename gets a stable fallback" classname="com.example.kpkn.services.workout.WorkoutVoiceDiagnosticStorageTest" time="0.0"/>
-  <system-out><![CDATA[]]></system-out>
-  <system-err><![CDATA[]]></system-err>
-</testsuite>

@@ -90,17 +90,10 @@ class NutritionPlanCommitCoordinator(
     private val db: KpknDatabase,
     private val nutritionRepository: NutritionRepository? = null,
     private val programRepository: ProgramRepository? = null,
-    private val accessLevel: () -> com.example.kpkn.domain.entitlements.PlanLevel = {
-        nutritionRepository?.accessLevel?.invoke() ?: programRepository?.planLevel() ?:
-            com.example.kpkn.data.account.AccountGraph.entitlement.value.effectiveLevel
-    },
 ) {
-    private val writeOwner = com.example.kpkn.data.backup.DataSessionWriter("nutrition-plan-commit-coordinator")
     private val mutex = Mutex()
 
-    suspend fun commit(request: NutritionPlanCommitRequest): NutritionPlanCommitResult = writeOwner.write { commitAccepted(request) }
-
-    private suspend fun commitAccepted(request: NutritionPlanCommitRequest): NutritionPlanCommitResult = mutex.withLock {
+    suspend fun commit(request: NutritionPlanCommitRequest): NutritionPlanCommitResult = mutex.withLock {
         PersistenceWriteCoordinator.mutex.withLock {
             require(request.commitId.isNotBlank()) { "Falta el identificador de idempotencia del guardado" }
             programRepository?.isReady?.first { it }
@@ -122,7 +115,6 @@ class NutritionPlanCommitCoordinator(
                         )
                     }
 
-                    com.example.kpkn.domain.entitlements.ProgramAccessPolicy.requireCapability(accessLevel(), com.example.kpkn.domain.entitlements.Capability.NUTRITION)
                     val currentSettings = db.settingsDao().get()?.toSettings() ?: Settings()
                     val withMode = currentSettings.copy(nutritionTrackingOnly = request.trackingOnly)
                     val updatedSettings = request.settingsGoalMirror?.let { mirror ->

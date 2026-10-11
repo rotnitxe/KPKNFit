@@ -1,4 +1,0 @@
-10-10 08:01:11.325   662   697 I am_kill : [0,3649,com.example.kpkn.stability,0,stop com.example.kpkn.stability due to installPackageLI,197328]
-10-10 08:01:56.472   662  5432 I am_anr  : [0,5149,com.example.kpkn.stability,553139782,Process ProcessRecord{29dba60 5149:com.example.kpkn.stability/u0a217} failed to complete startup]
-10-10 08:01:58.945   662  5432 I am_kill : [0,5149,com.example.kpkn.stability,0,bg anr,255796]
-10-10 08:02:00.531   662  2165 I am_proc_died: [0,5149,com.example.kpkn.stability,0,19]

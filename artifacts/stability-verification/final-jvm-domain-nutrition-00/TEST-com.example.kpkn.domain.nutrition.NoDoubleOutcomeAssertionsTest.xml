@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="com.example.kpkn.domain.nutrition.NoDoubleOutcomeAssertionsTest" tests="2" skipped="0" failures="0" errors="0" timestamp="2026-10-10T05:57:41.063Z" hostname="VF" time="0.118">
-  <properties/>
-  <testcase name="no assertion of domain nutrition accepts two outcomes" classname="com.example.kpkn.domain.nutrition.NoDoubleOutcomeAssertionsTest" time="0.118"/>
-  <testcase name="the scanner flags the patterns it exists to forbid and spares the rest" classname="com.example.kpkn.domain.nutrition.NoDoubleOutcomeAssertionsTest" time="0.0"/>
-  <system-out><![CDATA[assertions scanned in 106 files; '||' choices found: 2, allowed: 2
-]]></system-out>
-  <system-err><![CDATA[]]></system-err>
-</testsuite>

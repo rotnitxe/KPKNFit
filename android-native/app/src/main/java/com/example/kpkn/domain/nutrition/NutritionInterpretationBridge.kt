@@ -80,17 +80,15 @@ object NutritionInterpretationBridge {
         )
     }
 
-    fun enrich(tag: ResolvedTag, rawDescription: String, requireEstimatedPortionConfirmation: Boolean = false): ResolvedTag =
-        enrich(tag, ParsedMealDescription(rawDescription = rawDescription, verbatimDescription = rawDescription), requireEstimatedPortionConfirmation)
+    fun enrich(tag: ResolvedTag, rawDescription: String): ResolvedTag =
+        enrich(tag, ParsedMealDescription(rawDescription = rawDescription, verbatimDescription = rawDescription))
 
-    fun refresh(tag: ResolvedTag, requireEstimatedPortionConfirmation: Boolean =
-        tag.interpretationV2?.pendingQuestions?.any { it.requestId == "estimated_portion" } == true): ResolvedTag = enrich(tag, ParsedMealDescription(
+    fun refresh(tag: ResolvedTag): ResolvedTag = enrich(tag, ParsedMealDescription(
         items = listOf(ParsedMealItem(tag = tag.tag, amountGrams = tag.amountGrams, amountIntent = tag.amountIntent, cookingMethod = tag.cookingMethod)),
         rawDescription = tag.tag, verbatimDescription = tag.tag,
-    ), requireEstimatedPortionConfirmation)
+    ))
 
-    /** Resolution can suggest amounts; the logger enables the explicit review gate before saving. */
-    fun enrich(tag: ResolvedTag, parsed: ParsedMealDescription, requireEstimatedPortionConfirmation: Boolean = false): ResolvedTag {
+    fun enrich(tag: ResolvedTag, parsed: ParsedMealDescription): ResolvedTag {
         val item = parsed.items.firstOrNull {
             FoodIdentity.normalize(it.tag) == FoodIdentity.normalize(tag.tag) && it.cookingMethod == tag.cookingMethod
         } ?: parsed.items.singleOrNull()
@@ -123,10 +121,6 @@ object NutritionInterpretationBridge {
             tag.learnedOilGramsPer100g == null && tag.oilLevel == "medio" && shouldAskOil(tag)
         val packageGrams = tag.ambiguousPackageGrams?.takeIf { it.isFinite() && it > 0.0 }
         val packagePending = packageGrams != null && !acceptedEstimate && !tag.isExcluded && "portion" !in tag.confirmedDimensions
-        val portionPending = requireEstimatedPortionConfirmation && !acceptedEstimate && !tag.isExcluded && !tag.unresolvedDeclaredAmount && !packagePending &&
-            "portion" !in tag.confirmedDimensions && (tag.amountIntent in setOf(AmountIntent.UNSPECIFIED, AmountIntent.INFERRED_CONTEXT) ||
-                tag.amountIntent == AmountIntent.RESOLVED_SUBJECTIVE &&
-                (tag.portionMinGrams?.let { it < grams } == true || tag.portionMaxGrams?.let { it > grams } == true))
         val questions = buildList {
             if (!acceptedEstimate && !tag.isExcluded && "identity" !in tag.confirmedDimensions) {
                 when {
@@ -163,9 +157,6 @@ object NutritionInterpretationBridge {
                 )))
             }
             if (tag.unresolvedDeclaredAmount && !tag.isExcluded) add(ClarificationRequest.Portion("declared_amount", emptyList()))
-            if (portionPending) add(ClarificationRequest.Portion("estimated_portion", listOf(
-                PortionOption("Confirmar esta porción estimada", grams, tag.portionMinGrams ?: grams * 0.75, tag.portionMaxGrams ?: grams * 1.25),
-            )))
         }
         val updated = tag.copy(
             needsCutClarification = questions.any { it.requestId == "cut" },

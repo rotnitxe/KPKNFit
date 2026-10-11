@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="com.example.kpkn.data.sessions.SessionTemplateRepositoryTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-10-09T10:17:11.407Z" hostname="VF" time="0.434">
-  <properties/>
-  <testcase name="durableCrudPublishesOnlyAfterDaoAndRestoresArchivedRows" classname="com.example.kpkn.data.sessions.SessionTemplateRepositoryTest" time="0.16"/>
-  <testcase name="invalidSystemWriteFailsWithoutFlowMutation" classname="com.example.kpkn.data.sessions.SessionTemplateRepositoryTest" time="0.142"/>
-  <testcase name="generationCatalogIncludesOnlyOptInEligibleVisibleUsers" classname="com.example.kpkn.data.sessions.SessionTemplateRepositoryTest" time="0.131"/>
-  <system-out><![CDATA[]]></system-out>
-  <system-err><![CDATA[]]></system-err>
-</testsuite>

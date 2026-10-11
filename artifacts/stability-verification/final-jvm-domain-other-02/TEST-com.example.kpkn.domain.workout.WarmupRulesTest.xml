@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="com.example.kpkn.domain.workout.WarmupRulesTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-10-10T06:25:46.847Z" hostname="VF" time="0.001">
-  <properties/>
-  <testcase name="percentage_below_editor_floor_keeps_warning" classname="com.example.kpkn.domain.workout.WarmupRulesTest" time="0.001"/>
-  <testcase name="percentage_near_working_load_warns_about_effective_series" classname="com.example.kpkn.domain.workout.WarmupRulesTest" time="0.0"/>
-  <testcase name="legacy_percentage_value_is_validated_as_a_percentage" classname="com.example.kpkn.domain.workout.WarmupRulesTest" time="0.0"/>
-  <system-out><![CDATA[]]></system-out>
-  <system-err><![CDATA[]]></system-err>
-</testsuite>

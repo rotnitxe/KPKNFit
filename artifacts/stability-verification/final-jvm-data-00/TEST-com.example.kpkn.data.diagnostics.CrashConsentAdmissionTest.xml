@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="com.example.kpkn.data.diagnostics.CrashConsentAdmissionTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-10-10T05:51:05.625Z" hostname="VF" time="0.238">
-  <properties/>
-  <testcase name="anAcceptedConsentChangeDrainsBeforeMaintenanceReturns" classname="com.example.kpkn.data.diagnostics.CrashConsentAdmissionTest" time="0.125"/>
-  <testcase name="maintenanceCannotBeFollowedByAnUnadmittedConsentWrite" classname="com.example.kpkn.data.diagnostics.CrashConsentAdmissionTest" time="0.051"/>
-  <testcase name="anOldEditorCannotOverwriteRestoredConsentAfterReopen" classname="com.example.kpkn.data.diagnostics.CrashConsentAdmissionTest" time="0.061"/>
-  <system-out><![CDATA[]]></system-out>
-  <system-err><![CDATA[]]></system-err>
-</testsuite>

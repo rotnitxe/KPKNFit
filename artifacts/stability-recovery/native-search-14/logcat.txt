@@ -1,2 +1,0 @@
---------- beginning of main
-10-09 17:59:03.411 16949 16994 W .kpkn.stability: JNI critical lock held for 19.420ms on Thread[38,tid=16994,Runnable,Thread*=0x7e9a72958c70,peer=0x2409df8,"DefaultDispatcher-worker-10"]

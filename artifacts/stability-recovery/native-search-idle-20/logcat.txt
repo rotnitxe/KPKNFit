@@ -1,2 +1,0 @@
---------- beginning of main
-10-10 02:40:36.728  4331  4331 W dumpsys : Thread Pool max thread count is 0. Cannot cache binder as linkToDeath cannot be implemented. serviceName: activity

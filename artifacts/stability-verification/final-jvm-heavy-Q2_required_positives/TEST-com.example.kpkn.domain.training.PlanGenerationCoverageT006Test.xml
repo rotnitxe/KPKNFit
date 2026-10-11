@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="com.example.kpkn.domain.training.PlanGenerationCoverageT006Test" tests="1" skipped="0" failures="0" errors="0" timestamp="2026-10-10T06:52:53.184Z" hostname="VF" time="4.887">
-  <properties/>
-  <testcase name="Q2_required_positives" classname="com.example.kpkn.domain.training.PlanGenerationCoverageT006Test" time="4.528"/>
-  <system-out><![CDATA[[T006][Q2-required] totalInputs=58 publishedCandidates=58 evaluatedCandidates=58 viableCandidates=58 rejectedByReason={} rowsByWitness={#1=8, #2=6, #3=8, #4=6, #5=12, #8=18} readyByWitness={#1=8, #2=6, #3=8, #4=6, #5=12, #8=18} (fuera de las 2.304 filas de Q2) elapsedMs=4076
-]]></system-out>
-  <system-err><![CDATA[]]></system-err>
-</testsuite>

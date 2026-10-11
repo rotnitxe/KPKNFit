@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="com.example.kpkn.screens.onboarding.design.entreno.plan.PlanOverlayWindowTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-10-10T06:37:39.524Z" hostname="VF" time="0.147">
-  <properties/>
-  <testcase name="withoutAnOverrideTheSystemDecidesAndRobolectricHasNoWindowBlur" classname="com.example.kpkn.screens.onboarding.design.entreno.plan.PlanOverlayWindowTest" time="0.052"/>
-  <testcase name="theHarnessCanForceTheBlurBranch" classname="com.example.kpkn.screens.onboarding.design.entreno.plan.PlanOverlayWindowTest" time="0.051"/>
-  <testcase name="theHarnessCanForceTheOpaqueVeilBranch" classname="com.example.kpkn.screens.onboarding.design.entreno.plan.PlanOverlayWindowTest" time="0.044"/>
-  <system-out><![CDATA[]]></system-out>
-  <system-err><![CDATA[]]></system-err>
-</testsuite>

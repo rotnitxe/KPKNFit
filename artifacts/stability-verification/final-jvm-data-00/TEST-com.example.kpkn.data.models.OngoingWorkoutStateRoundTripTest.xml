@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="com.example.kpkn.data.models.OngoingWorkoutStateRoundTripTest" tests="1" skipped="0" failures="0" errors="0" timestamp="2026-10-10T05:51:23.268Z" hostname="VF" time="0.055">
-  <properties/>
-  <testcase name="newDraftFields_surviveEncodeDecode" classname="com.example.kpkn.data.models.OngoingWorkoutStateRoundTripTest" time="0.055"/>
-  <system-out><![CDATA[]]></system-out>
-  <system-err><![CDATA[]]></system-err>
-</testsuite>

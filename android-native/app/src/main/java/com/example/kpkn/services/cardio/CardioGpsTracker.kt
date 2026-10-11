@@ -145,23 +145,6 @@ object CardioGpsTracker {
     private var restoreGeneration = 0L
     private var activeExecutionToken: CardioGpsExecutionToken? = null
     private var tickerJob: Job? = null
-    private var personalWritesPaused = false
-
-    suspend fun pausePersonalWrites() = withContext(Dispatchers.IO) {
-        synchronized(lock) { personalWritesPaused = true }
-        persistenceQueue.submit { Unit }.get(30, java.util.concurrent.TimeUnit.SECONDS)
-    }
-    fun resumePersonalWrites() = synchronized(lock) {
-        personalWritesPaused = false
-        persistLocked()
-    }
-    /** Clears only process memory after an inactive profile is replaced; persisted routes stay owned. */
-    fun releaseProfileMemory() = synchronized(lock) {
-        invalidateExecutionTokenLocked(); restoreGeneration += 1
-        stopLocationUpdatesLocked(); tickerJob?.cancel(); tickerJob = null
-        snapshot = null; snapshotFiles.clear(); legacyFilesBySessionKey.clear(); appContext = null
-        _state.value = CardioGpsState()
-    }
 
     private data class RestoreTicket(
         val generation: Long,
@@ -580,7 +563,6 @@ object CardioGpsTracker {
     }
 
     private fun persistLocked(deleteLegacyAfterSuccess: File? = null) {
-        if (personalWritesPaused) return
         val current = snapshot ?: return
         val file = snapshotFiles[current.sessionKey] ?: return
         persistenceQueue.execute {

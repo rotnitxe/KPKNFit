@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="com.example.kpkn.data.programs.ProgramTemplateCompositionContractTest" tests="2" skipped="0" failures="0" errors="0" timestamp="2026-10-10T05:53:11.870Z" hostname="VF" time="0.119">
-  <properties/>
-  <testcase name="every_complex_visible_template_has_recipe_without_exemptions" classname="com.example.kpkn.data.programs.ProgramTemplateCompositionContractTest" time="0.114"/>
-  <testcase name="example_a_b_c_are_literal_cases" classname="com.example.kpkn.data.programs.ProgramTemplateCompositionContractTest" time="0.001"/>
-  <system-out><![CDATA[]]></system-out>
-  <system-err><![CDATA[]]></system-err>
-</testsuite>

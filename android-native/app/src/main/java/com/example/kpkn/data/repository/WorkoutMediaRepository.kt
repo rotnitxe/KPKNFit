@@ -28,8 +28,11 @@ import com.example.kpkn.data.models.CompletedSet
 import com.example.kpkn.data.models.SessionMilestone
 import com.example.kpkn.data.models.WorkoutMedia
 import com.example.kpkn.data.models.WorkoutMediaKind
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.async
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -58,21 +61,6 @@ class WorkoutMediaRepository(
     private val db: KpknDatabase = KpknDatabase.getInstance(context),
     store: WorkoutMediaStore? = null,
 ) {
-    @Volatile private var closed = false
-    private val writeSession = MediaPersistenceOwner.writes.session()
-
-    private suspend fun <T> withMediaWrite(block: suspend () -> T): T {
-        if (closed) throw IOException("El repositorio de multimedia ya está cerrado.")
-        return MediaPersistenceOwner.writes.write(writeSession, block)
-    }
-
-    private fun <T> submitMediaWrite(start: CoroutineStart = CoroutineStart.DEFAULT, block: suspend () -> T): Deferred<T> {
-        if (closed) return kotlinx.coroutines.CompletableDeferred<T>().also {
-            it.completeExceptionally(IOException("El repositorio de multimedia ya está cerrado."))
-        }
-        return MediaPersistenceOwner.writes.submit(writeSession, start, block)
-    }
-
     private val appContext = context.applicationContext
     private val injectedStore = store
     private val store: WorkoutMediaStore by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
@@ -89,7 +77,7 @@ class WorkoutMediaRepository(
     private val pendingUriRequestsLock = Any()
     private val pendingUriRequests = linkedMapOf<String, PendingUriCaptureRequest>()
     private val startupRecovery: Deferred<WorkoutMediaCaptureRecoveryResult> =
-        submitMediaWrite { recoverJournalEntries() }
+        MediaPersistenceOwner.scope.async(Dispatchers.IO) { recoverJournalEntries() }
 
     /** Process-owned retry state remains observable after the workout ViewModel is cleared. */
     val pendingCaptureRetryState: StateFlow<WorkoutMediaPendingCaptureState> =
@@ -99,7 +87,7 @@ class WorkoutMediaRepository(
         id: String,
         kind: WorkoutMediaKind,
         createdAtMs: Long,
-    ): File = withMediaWrite {
+    ): File = withContext(Dispatchers.IO) {
         store.destinationFile(id, kind, createdAtMs).also { file ->
             if (file.parentFile?.isDirectory != true) {
                 throw IOException("No se pudo preparar el almacenamiento privado de la captura.")
@@ -108,20 +96,20 @@ class WorkoutMediaRepository(
     }
 
     suspend fun pendingCaptureSourceFile(id: String, extension: String): File =
-        withMediaWrite { captureJournal.pendingSourceFile(id, extension) }
+        withContext(Dispatchers.IO) { captureJournal.pendingSourceFile(id, extension) }
 
     suspend fun isManagedPath(file: File): Boolean =
         withContext(Dispatchers.IO) { store.isManagedPath(file) }
 
     suspend fun poseSidecarFile(id: String, createdAtMs: Long): File =
-        withMediaWrite { store.poseSidecarFile(id, createdAtMs) }
+        withContext(Dispatchers.IO) { store.poseSidecarFile(id, createdAtMs) }
 
-    suspend fun journalCapture(entry: WorkoutMediaCaptureJournalEntry) = withMediaWrite {
+    suspend fun journalCapture(entry: WorkoutMediaCaptureJournalEntry) = withContext(Dispatchers.IO) {
         captureJournal.writeCapturing(entry)
     }
 
     /** Reserve the UUID before its durable marker becomes visible to recovery. */
-    suspend fun beginCameraCapture(entry: WorkoutMediaCaptureJournalEntry) = withMediaWrite {
+    suspend fun beginCameraCapture(entry: WorkoutMediaCaptureJournalEntry) = withContext(Dispatchers.IO) {
         check(entry.sourceUri == null) { "Camera captures must use an app-owned source file" }
         MediaPersistenceOwner.activeCameraCaptures.add(entry.media.id)
         try {
@@ -133,10 +121,7 @@ class WorkoutMediaRepository(
     }
 
     /** Prevent a retry from ingesting a file while CameraX still owns its writer. */
-    fun markCameraCaptureStarted(id: String) = MediaPersistenceOwner.writes.immediate(writeSession) {
-        check(!closed) { "El repositorio de multimedia ya está cerrado." }
-        MediaPersistenceOwner.activeCameraCaptures.add(id)
-    }
+    fun markCameraCaptureStarted(id: String) = MediaPersistenceOwner.activeCameraCaptures.add(id)
 
     fun markCameraCaptureCompleted(id: String) {
         MediaPersistenceOwner.activeCameraCaptures.remove(id)
@@ -148,7 +133,7 @@ class WorkoutMediaRepository(
      * when the journal still describes an app-owned session PHOTO.
      */
     suspend fun externalCameraPhotoForResult(id: String): WorkoutMediaCaptureJournalEntry? =
-        withMediaWrite {
+        withContext(Dispatchers.IO) {
             // Do not race startup recovery for this UUID. A process restored from
             // an external camera launch must keep the capturing marker until
             // this ActivityResult or an explicit retry resolves it.
@@ -157,7 +142,7 @@ class WorkoutMediaRepository(
             if (canonicalId == null || canonicalId != id) {
                 throw IOException("El identificador de captura no es válido.")
             }
-            val entry = captureJournal.read(id) ?: return@withMediaWrite null
+            val entry = captureJournal.read(id) ?: return@withContext null
             val media = entry.media
             if (
                 media.id != id ||
@@ -197,14 +182,14 @@ class WorkoutMediaRepository(
     ): Deferred<WorkoutMedia?> = synchronized(MediaPersistenceOwner.externalCameraResultLock) {
         MediaPersistenceOwner.externalCameraResults[id]?.let { return@synchronized it }
         lateinit var work: Deferred<WorkoutMedia?>
-        work = submitMediaWrite(start = CoroutineStart.LAZY) {
+        work = MediaPersistenceOwner.scope.async(Dispatchers.IO, start = CoroutineStart.LAZY) {
             try {
                 // Startup recovery must settle first, preserving and publishing
                 // any non-READY camera entry before this result resolves it.
                 startupRecovery.await()
                 val entry = externalCameraPhotoForResult(id)
                 if (entry == null) {
-                    return@submitMediaWrite getById(id)
+                    return@async getById(id)
                         ?: throw IOException("La captura pendiente ya no está disponible.")
                 }
                 markCameraCaptureCompleted(id)
@@ -223,13 +208,6 @@ class WorkoutMediaRepository(
             }
         }
         MediaPersistenceOwner.externalCameraResults[id] = work
-        work.invokeOnCompletion {
-            synchronized(MediaPersistenceOwner.externalCameraResultLock) {
-                if (MediaPersistenceOwner.externalCameraResults[id] === work) {
-                    MediaPersistenceOwner.externalCameraResults.remove(id)
-                }
-            }
-        }
         work.start()
         work
     }
@@ -314,9 +292,9 @@ class WorkoutMediaRepository(
 
     fun recoverPendingCaptures(): Deferred<WorkoutMediaCaptureRecoveryResult> = startupRecovery
 
-    suspend fun abandonEmptyCapture(entry: WorkoutMediaCaptureJournalEntry) = withMediaWrite {
+    suspend fun abandonEmptyCapture(entry: WorkoutMediaCaptureJournalEntry) = withContext(Dispatchers.IO) {
         val source = File(entry.sourceFilePath)
-        if (source.isFile && source.length() > 0L) return@withMediaWrite false
+        if (source.isFile && source.length() > 0L) return@withContext false
         if (source.isFile && source.length() == 0L) {
             when {
                 store.isManagedPath(source) -> store.deleteManaged(source.absolutePath)
@@ -335,14 +313,14 @@ class WorkoutMediaRepository(
             }
             null
         }
-        return submitMediaWrite {
+        return MediaPersistenceOwner.scope.async(Dispatchers.IO) {
             ingest.await()
             Unit
         }
     }
 
     /** Used only when CameraX's retention policy rejects the finalized file. */
-    suspend fun discardRejectedCapture(entry: WorkoutMediaCaptureJournalEntry) = withMediaWrite {
+    suspend fun discardRejectedCapture(entry: WorkoutMediaCaptureJournalEntry) = withContext(Dispatchers.IO) {
         val source = File(entry.sourceFilePath)
         when {
             store.isManagedPath(source) -> store.deleteManaged(source.absolutePath)
@@ -352,10 +330,10 @@ class WorkoutMediaRepository(
     }
 
     fun discardRejectedCaptureAsync(entry: WorkoutMediaCaptureJournalEntry): Deferred<Unit> =
-        submitMediaWrite { discardRejectedCapture(entry) }
+        MediaPersistenceOwner.scope.async(Dispatchers.IO) { discardRejectedCapture(entry) }
 
     /** One bounded retry pass; a later user retry or next process start may try again. */
-    suspend fun retryPendingCapturesForSession(sessionKey: String) = withMediaWrite {
+    suspend fun retryPendingCapturesForSession(sessionKey: String) = withContext(Dispatchers.IO) {
         val entries = captureJournal.readAll().filter { it.media.sessionKey == sessionKey }
         val journalIds = entries.mapTo(hashSetOf()) { it.media.id }
         val memoryOnlyRequests = synchronized(pendingUriRequestsLock) {
@@ -432,9 +410,9 @@ class WorkoutMediaRepository(
     }
 
     suspend fun importLegacyIfNeeded(force: Boolean = false): WorkoutMediaImportResult =
-        withMediaWrite { importer.importIfNeeded(force) }
+        withContext(Dispatchers.IO) { importer.importIfNeeded(force) }
 
-    suspend fun upsert(media: WorkoutMedia) = withMediaWrite {
+    suspend fun upsert(media: WorkoutMedia) = withContext(Dispatchers.IO) {
         persistWithAssociation(media)
         Unit
     }
@@ -473,18 +451,18 @@ class WorkoutMediaRepository(
         db.workoutMediaDao().getPrHighlights(fromMs, toMs).map { it.toWorkoutMedia() }
     }
 
-    suspend fun attachToLog(sessionKey: String, workoutLogId: String) = withMediaWrite {
+    suspend fun attachToLog(sessionKey: String, workoutLogId: String) = withContext(Dispatchers.IO) {
         db.withTransaction {
             db.workoutMediaSessionAssociationDao().bind(sessionKey, workoutLogId)
             db.workoutMediaDao().attachSessionKeyToLog(sessionKey, workoutLogId)
         }
     }
 
-    suspend fun markPr(id: String, isPr: Boolean) = withMediaWrite {
+    suspend fun markPr(id: String, isPr: Boolean) = withContext(Dispatchers.IO) {
         db.workoutMediaDao().setPr(id, isPr)
     }
 
-    suspend fun updateCaption(id: String, caption: String?) = withMediaWrite {
+    suspend fun updateCaption(id: String, caption: String?) = withContext(Dispatchers.IO) {
         db.workoutMediaDao().setCaption(id, caption)
     }
 
@@ -492,7 +470,7 @@ class WorkoutMediaRepository(
         sessionKey: String,
         completedSets: Map<String, CompletedSet>,
         milestones: List<SessionMilestone>,
-    ) = withMediaWrite {
+    ) = withContext(Dispatchers.IO) {
         val media = db.workoutMediaDao().getBySessionKey(sessionKey).map { it.toWorkoutMedia() }
         WorkoutMediaPrFlags.idsToMark(media, completedSets, milestones).forEach { id ->
             db.workoutMediaDao().setPr(id, true)
@@ -505,14 +483,14 @@ class WorkoutMediaRepository(
         seed: WorkoutMedia,
         moveIfUnmanaged: Boolean = false,
         destinationExtension: String? = null,
-    ): WorkoutMedia? = withMediaWrite {
+    ): WorkoutMedia? = withContext(Dispatchers.IO) {
         if (!source.isFile || source.length() <= 0L) throw IOException("El archivo de captura todavía no está disponible.")
         val createdAtMs = seed.createdAtMs.takeIf { it > 0L }
             ?: source.lastModified().takeIf { it > 0L }
             ?: System.currentTimeMillis()
         val id = seed.id.ifBlank { UUID.randomUUID().toString() }
         db.workoutMediaDao().getById(id)?.let { existing ->
-            return@withMediaWrite persistWithAssociation(existing.toWorkoutMedia())
+            return@withContext persistWithAssociation(existing.toWorkoutMedia())
         }
         val dest = if (store.isManagedPath(source)) {
             source
@@ -553,16 +531,9 @@ class WorkoutMediaRepository(
             inFlight[id]?.let { return@synchronized it }
             // Reserve before creating/starting the worker and install all terminal
             // state updates inside that worker, before its Deferred is completed.
-            val attempt = try {
-                if (closed) throw IOException("El repositorio de multimedia ya está cerrado.")
-                MediaPersistenceOwner.writes.immediate(writeSession) { MediaPersistenceOwner.reserveAttempt(id) }
-            } catch (error: IOException) {
-                return@synchronized kotlinx.coroutines.CompletableDeferred<WorkoutMedia?>().also {
-                    it.completeExceptionally(error)
-                }
-            }
+            val attempt = MediaPersistenceOwner.reserveAttempt(id)
             lateinit var deferred: Deferred<WorkoutMedia?>
-            deferred = submitMediaWrite(start = CoroutineStart.LAZY) {
+            deferred = MediaPersistenceOwner.scope.async(start = CoroutineStart.LAZY) {
                 try {
                     work().also { MediaPersistenceOwner.clearPendingIfCurrent(id, attempt) }
                 } catch (cancelled: CancellationException) {
@@ -578,12 +549,6 @@ class WorkoutMediaRepository(
                 }
             }
             inFlight[id] = deferred
-            deferred.invokeOnCompletion {
-                MediaPersistenceOwner.releaseAttemptIfCurrent(id, attempt)
-                synchronized(inFlightLock) {
-                    if (inFlight[id] === deferred) inFlight.remove(id)
-                }
-            }
             deferred.start()
             deferred
         }
@@ -967,7 +932,7 @@ class WorkoutMediaRepository(
         else -> "No se pudo guardar la foto. Podés reintentar."
     }
 
-    suspend fun delete(id: String) = withMediaWrite {
+    suspend fun delete(id: String) = withContext(Dispatchers.IO) {
         val existing = db.workoutMediaDao().getById(id)
         db.workoutMediaDao().delete(id)
         existing?.filePath?.let { store.deleteManaged(it) }
@@ -1011,7 +976,6 @@ class WorkoutMediaRepository(
             INSTANCE ?: error("WorkoutMediaRepository not initialized — call init(context) first.")
 
         fun closeInstance() {
-            INSTANCE?.closed = true
             INSTANCE = null
         }
     }
@@ -1031,7 +995,7 @@ private object AtomicUriSourceMove {
 
 /** Process-owned IO survives WorkoutViewModel cancellation; the journal survives process death. */
 internal object MediaPersistenceOwner {
-    val writes = com.example.kpkn.data.media.MediaWriteBarrier()
+    val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     val externalCameraResultLock = Any()
     val externalCameraResults = mutableMapOf<String, Deferred<WorkoutMedia?>>()
     val activeCameraCaptures = java.util.concurrent.ConcurrentHashMap.newKeySet<String>()

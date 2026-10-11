@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="com.example.kpkn.domain.nutrition.FoodIndexBrandHintTest" tests="2" skipped="0" failures="0" errors="0" timestamp="2026-10-09T10:19:28.124Z" hostname="VF" time="0.095">
-  <properties/>
-  <testcase name="a brand added after the first lookup is picked up" classname="com.example.kpkn.domain.nutrition.FoodIndexBrandHintTest" time="0.049"/>
-  <testcase name="the longest brand named in the query wins and generic or food-class brands are ignored" classname="com.example.kpkn.domain.nutrition.FoodIndexBrandHintTest" time="0.045"/>
-  <system-out><![CDATA[]]></system-out>
-  <system-err><![CDATA[]]></system-err>
-</testsuite>

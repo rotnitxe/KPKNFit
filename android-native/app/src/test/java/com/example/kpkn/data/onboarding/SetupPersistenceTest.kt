@@ -94,7 +94,7 @@ class SetupPersistenceTest {
         context.deleteDatabase(name)
         val first = Room.databaseBuilder(context, KpknDatabase::class.java, name).build()
         try {
-            SetupCommitCoordinator(first, accessLevel = { com.example.kpkn.domain.entitlements.PlanLevel.PRO }).commit(
+            SetupCommitCoordinator(first).commit(
                 SetupCommitRequest("disk-commit", "disk-draft", Settings(), null, null, false, false),
             )
         } finally {
@@ -111,7 +111,7 @@ class SetupPersistenceTest {
 
     @Test
     fun commitIsIdempotent() = runBlocking {
-        val coordinator = SetupCommitCoordinator(db, accessLevel = { com.example.kpkn.domain.entitlements.PlanLevel.PRO })
+        val coordinator = SetupCommitCoordinator(db)
         val request = SetupCommitRequest("commit-1", "draft-1", Settings(), null, null, false, false)
         val first = coordinator.commit(request)
         val second = coordinator.commit(request.copy(settings = Settings().copy(username = "different")))
@@ -150,7 +150,7 @@ class SetupPersistenceTest {
             volumeCalibrationProfile = profile,
         )
 
-        SetupCommitCoordinator(db, accessLevel = { com.example.kpkn.domain.entitlements.PlanLevel.PRO }).commit(
+        SetupCommitCoordinator(db).commit(
             SetupCommitRequest(
                 commitId = "global-calibration-only",
                 draftId = null,
@@ -183,7 +183,7 @@ class SetupPersistenceTest {
 
         assertThrows<Throwable> {
             runBlocking {
-                SetupCommitCoordinator(db, accessLevel = { com.example.kpkn.domain.entitlements.PlanLevel.PRO }).commit(
+                SetupCommitCoordinator(db).commit(
                     SetupCommitRequest("corrupt-receipt", null, Settings(), null, null, false, false),
                 )
             }
@@ -202,7 +202,7 @@ class SetupPersistenceTest {
 
         val replacement = executableProgram("new-program")
         val plan = NutritionPlan(id = "new-plan", name = "New", isActive = true)
-        SetupCommitCoordinator(db, accessLevel = { com.example.kpkn.domain.entitlements.PlanLevel.PRO }).commit(
+        SetupCommitCoordinator(db).commit(
             SetupCommitRequest(
                 commitId = "commit-activation",
                 draftId = null,
@@ -223,7 +223,7 @@ class SetupPersistenceTest {
 
     @Test
     fun editedNutritionPlanReplacesOnlyItsDerivedGoal() = runBlocking {
-        val coordinator = SetupCommitCoordinator(db, accessLevel = { com.example.kpkn.domain.entitlements.PlanLevel.PRO })
+        val coordinator = SetupCommitCoordinator(db)
         val goal = BodyGoal("plan:existing:WEIGHT", BodyMetric.WEIGHT, 75.0, "kg",
             CalculationOrigin.PLAN, "existing", 1L, 1L)
         coordinator.commit(SetupCommitRequest("first-goal", null, Settings(), null,
@@ -241,7 +241,7 @@ class SetupPersistenceTest {
         db.settingsDao().upsert(Settings(dailyCalorieGoal = 2050).toEntity())
         db.nutritionDao().upsertPlan(NutritionPlan("previous", "Previous", isActive = true).toEntity())
         db.nutritionDao().upsertActiveState(com.example.kpkn.data.db.NutritionActiveStateEntity(activePlanId = "previous"))
-        SetupCommitCoordinator(db, accessLevel = { com.example.kpkn.domain.entitlements.PlanLevel.PRO }).commit(SetupCommitRequest("inactive-plan", null,
+        SetupCommitCoordinator(db).commit(SetupCommitRequest("inactive-plan", null,
             Settings(), null, NutritionPlan("new", "New"), false, false,
             settingsPatch = SetupSettingsPatch()))
         assertEquals("previous", db.nutritionDao().getActiveState()?.activePlanId)
@@ -263,7 +263,7 @@ class SetupPersistenceTest {
             manualBatteryAnchorMs = 1_800_000L,
             source = com.example.kpkn.data.models.WellbeingSource.ONBOARDING_INITIAL,
             capturedFields = setOf("muscle_batteries"))
-        SetupCommitCoordinator(db, accessLevel = { com.example.kpkn.domain.entitlements.PlanLevel.PRO }).commit(SetupCommitRequest("wellbeing-merge", null,
+        SetupCommitCoordinator(db).commit(SetupCommitRequest("wellbeing-merge", null,
             Settings(), null, null, false, false, initialWellbeing = incoming))
         val saved = db.augeDao().getWellbeingForDate("2026-09-23")?.toWellbeingLog()
         assertEquals("daily-check-in", saved?.id)
@@ -292,7 +292,7 @@ class SetupPersistenceTest {
     fun failedSettingsWriteRollsBackProgramAndReceipt() = runBlocking {
         db.openHelper.writableDatabase.execSQL("CREATE TRIGGER reject_setup_settings BEFORE INSERT ON settings BEGIN SELECT RAISE(ABORT, 'test rollback'); END")
         val result = runCatching {
-            SetupCommitCoordinator(db, accessLevel = { com.example.kpkn.domain.entitlements.PlanLevel.PRO }).commit(SetupCommitRequest("failed", null, Settings(), executableProgram("rollback-program"), NutritionPlan(id = "rollback-plan", name = "Rollback"), true, true))
+            SetupCommitCoordinator(db).commit(SetupCommitRequest("failed", null, Settings(), executableProgram("rollback-program"), NutritionPlan(id = "rollback-plan", name = "Rollback"), true, true))
         }
         org.junit.Assert.assertTrue(result.isFailure)
         assertNull(db.programDao().getById("rollback-program"))
@@ -313,7 +313,7 @@ class SetupPersistenceTest {
             catalogRevision = "catalog-7",
         )
 
-        SetupCommitCoordinator(db, accessLevel = { com.example.kpkn.domain.entitlements.PlanLevel.PRO }).commit(
+        SetupCommitCoordinator(db).commit(
             SetupCommitRequest(
                 commitId = "commit-1",
                 draftId = "main-draft",
@@ -345,7 +345,7 @@ class SetupPersistenceTest {
         db.openHelper.writableDatabase.execSQL("CREATE TRIGGER reject_pending_settings BEFORE INSERT ON settings BEGIN SELECT RAISE(ABORT, 'test rollback'); END")
 
         val result = runCatching {
-            SetupCommitCoordinator(db, accessLevel = { com.example.kpkn.domain.entitlements.PlanLevel.PRO }).commit(
+            SetupCommitCoordinator(db).commit(
                 SetupCommitRequest(
                     commitId = "fail-commit",
                     draftId = "main-draft-fail",
@@ -367,7 +367,7 @@ class SetupPersistenceTest {
 
     @Test
     fun idempotentCommitKeepsPendingNutritionDraft() = runBlocking {
-        val coordinator = SetupCommitCoordinator(db, accessLevel = { com.example.kpkn.domain.entitlements.PlanLevel.PRO })
+        val coordinator = SetupCommitCoordinator(db)
         val pending = PendingNutritionDraft(
             draftId = "setup-wizard:pending_nutrition:commit-idem",
             payloadJson = "{\"draftScope\":\"nutrition_only\"}",

@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="com.example.kpkn.data.profile.ProfilePhotoStoreTest" tests="2" skipped="0" failures="0" errors="0" timestamp="2026-10-09T10:16:28.715Z" hostname="VF" time="0.22">
-  <properties/>
-  <testcase name="base64 round trip normalizes avatar to private 512px jpeg" classname="com.example.kpkn.data.profile.ProfilePhotoStoreTest" time="0.189"/>
-  <testcase name="external token and invalid image never resolve as avatar" classname="com.example.kpkn.data.profile.ProfilePhotoStoreTest" time="0.03"/>
-  <system-out><![CDATA[]]></system-out>
-  <system-err><![CDATA[]]></system-err>
-</testsuite>

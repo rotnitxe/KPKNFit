@@ -1290,14 +1290,12 @@ class NativeWorkoutProgressionRuntimeTest {
             workoutLog(
                 cycleTwoProgram.id, session, "recycle-c1-${index + 1}", "w${index + 1}",
                 weekInstanceId = "inst_c1_w${index + 1}", cycleNumber = 1,
-                programRunId = "recycle-run",
             )
         }
         val cycleTwo = (0..1).map { index ->
             workoutLog(
                 cycleTwoProgram.id, sessions[index], "recycle-c2-${index + 10}", "w${index + 1}",
                 weekInstanceId = "inst_c2_w${index + 1}", cycleNumber = 1,
-                programRunId = "recycle-run",
             )
         }
 
@@ -1322,43 +1320,6 @@ class NativeWorkoutProgressionRuntimeTest {
         }
         assertEquals("sesiones del ciclo 2 ya entrenadas conservan su carga", listOf(20.0, 20.0), weights.take(2))
         assertEquals("sesiones 3..5 del ciclo 2 reciben la propuesta (carga por elegir)", listOf(null, null, null), weights.drop(2))
-    }
-
-    @Test fun evidenceBelongsToOneRun() {
-        val sessions = (1..3).map { nativeSession("owned-$it") }
-        val first = nativeProgram(sessions).copy(runState = ProgramRunState(runId = "run-A"))
-        val oldLogs = sessions.take(2).mapIndexed { i, session ->
-            workoutLog(first.id, session, "old-${i + 1}", "w${i + 1}", programRunId = "run-A")
-        }
-        val old = observe(first, oldLogs)
-        val pending = old.nativeProgressionProposals.single()
-        val second = old.copy(runState = ProgramRunState(runId = "run-B"), nativeProgressionProposals = emptyList())
-        val legacy = oldLogs.map { it.copy(id = "legacy-${it.id}", programRunId = null) }
-        assertTrue(observe(second, oldLogs + legacy).nativeProgressionProposals.isEmpty())
-        val current = sessions.take(2).mapIndexed { i, session ->
-            workoutLog(second.id, session, "new-${i + 1}", "w${i + 1}", programRunId = "run-B")
-        }
-        val proposal = observe(second, oldLogs + legacy + current).nativeProgressionProposals.single()
-        assertEquals("run-B", proposal.identity.programRunId)
-        assertEquals(listOf("new-1", "new-2"), proposal.sourceLogIds)
-        assertTrue(proposal.proposalId != pending.proposalId)
-    }
-
-    @Test fun oldRunProposalOnlyExpires() {
-        val sessions = (1..3).map { nativeSession("expired-$it") }
-        val first = nativeProgram(sessions).copy(runState = ProgramRunState(runId = "run-A"))
-        val logs = sessions.take(2).mapIndexed { i, session ->
-            workoutLog(first.id, session, "expired-${i + 1}", "w${i + 1}", programRunId = "run-A")
-        }
-        val proposed = observe(first, logs)
-        val second = proposed.copy(runState = ProgramRunState(runId = "run-B"))
-        val resolved = NativeWorkoutProgressionRuntime.resolveProposal(second, proposed.nativeProgressionProposals.single().proposalId,
-            true, logs, emptySet(), emptyMap(), nowMs = 5000L)
-        assertEquals(second.macrocycles, resolved.macrocycles)
-        assertEquals(second.exerciseLoadReferences, resolved.exerciseLoadReferences)
-        assertTrue(resolved.nativeProgressionProposals.isEmpty())
-        assertEquals(NativeProgressionResolutionStatus.EXPIRED, resolved.nativeProgressionAudit.single().status)
-        assertEquals("run-A", resolved.nativeProgressionAudit.single().programRunId)
     }
 
     private fun observe(

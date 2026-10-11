@@ -15,8 +15,6 @@ object FoodKnowledgeStore {
 
     /** Reads and validates the asset; throws when it is missing, unreadable or invalid (the caller keeps the Kotlin default). */
     suspend fun load(context: Context): FoodKnowledgeSnapshot = withContext(Dispatchers.IO) {
-        parseFoodKnowledge(context.assets.open(ASSET_PATH).use {
-            com.example.kpkn.data.backup.BoundedInput.bytes(it, 512 * 1024).toString(Charsets.UTF_8)
-        })
+        parseFoodKnowledge(context.assets.open(ASSET_PATH).use { it.readBytes().toString(Charsets.UTF_8) })
     }
 }

@@ -59,7 +59,7 @@ class SetupRingsHomeCoverageTest {
         )
         assertEquals(RingsCalibration.PARTIAL_CHECK_IN, mapping.calibration)
         val staged = SetupRingsResponseMapping.stageCheckIn(checkIn = mapping.previewCheckIn())
-        SetupCommitCoordinator(db, accessLevel = { com.example.kpkn.domain.entitlements.PlanLevel.PRO }).commit(
+        SetupCommitCoordinator(db).commit(
             SetupCommitRequest("commit-partial-home", null, Settings(), null, null, false, false,
                 initialWellbeing = staged.toWellbeingLog("onboarding-check-in", date, 1_000L)),
         )

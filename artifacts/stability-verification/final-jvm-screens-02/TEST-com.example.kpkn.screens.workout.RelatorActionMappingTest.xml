@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="com.example.kpkn.screens.workout.RelatorActionMappingTest" tests="2" skipped="0" failures="0" errors="0" timestamp="2026-10-10T06:38:57.426Z" hostname="VF" time="0.003">
-  <properties/>
-  <testcase name="new_action_kinds_round_trip_through_spec" classname="com.example.kpkn.screens.workout.RelatorActionMappingTest" time="0.003"/>
-  <testcase name="capture_and_album_are_documented_hooks" classname="com.example.kpkn.screens.workout.RelatorActionMappingTest" time="0.0"/>
-  <system-out><![CDATA[]]></system-out>
-  <system-err><![CDATA[]]></system-err>
-</testsuite>

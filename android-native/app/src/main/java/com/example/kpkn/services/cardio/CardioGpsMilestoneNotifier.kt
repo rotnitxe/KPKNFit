@@ -56,8 +56,8 @@ class CardioGpsMilestoneNotifier(context: Context) {
                         .setCategory(NotificationCompat.CATEGORY_PROGRESS)
                         .setPriority(NotificationCompat.PRIORITY_DEFAULT)
                         .build()
-                    if (com.example.kpkn.services.notifications.PermissionAwareNotifications.post(appContext, notificationId(sessionKey, kilometre), notification))
-                        editor.putBoolean(key(sessionKey, kilometre), true)
+                    runCatching { NotificationManagerCompat.from(appContext).notify(notificationId(sessionKey, kilometre), notification) }
+                    editor.putBoolean(key(sessionKey, kilometre), true)
                 }
                 editor.apply()
             }

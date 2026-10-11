@@ -859,25 +859,26 @@ object HouseholdPortions {
     /**
      * Grams eaten after tapping [identity] while searching for [query].
      *
-     * - A measured amount in the query wins over the row's portion or pack mass.
-     *   Volumes use the selected food's density, just as the description parser does.
+     * - Explicit kilograms in the query keep the row's declared mass (`portionGrams`, else `servingSize`).
      * - Otherwise only a household-sized declared portion applies: the 100 g of a per-100 g basis is a
      *   nutrient denominator, never a portion, and a pack mass is never what a person ate.
      * - Everything else falls back to the family defaults (milk 200 g, yogurt 125 g, egg 50 g, ...).
      */
-    data class SearchPickAmount(val grams: Double, val intent: AmountIntent, val unitId: String? = null)
-    fun eatenGramsForSearchPick(identity: FoodItem, query: String): Double = amountForSearchPick(identity, query).grams
-
-    fun amountForSearchPick(identity: FoodItem, query: String): SearchPickAmount {
-        measuredAmountForSearchPick(query, identity.name)?.let { return SearchPickAmount(it.first, AmountIntent.EXPLICIT_MASS, it.second) }
-        val parsed = declaredPortionGrams(identity)?.takeIf { isHouseholdHint(it, identity, query) }
-        return SearchPickAmount(resolveEatenGrams(
-            intent = AmountIntent.UNSPECIFIED,
+    fun eatenGramsForSearchPick(identity: FoodItem, query: String): Double {
+        val kg = isExplicitKilogram(query)
+        val parsed = if (kg) {
+            identity.portionGrams.positiveOrNull() ?: identity.servingSize.positiveOrNull()
+        } else {
+            declaredPortionGrams(identity)?.takeIf { isHouseholdHint(it, identity, query) }
+        }
+        return resolveEatenGrams(
+            intent = if (kg) AmountIntent.EXPLICIT_MASS else AmountIntent.UNSPECIFIED,
             quantity = 1.0,
             food = identity,
             parsedGrams = parsed,
             query = query,
-        ), AmountIntent.UNSPECIFIED)
+            explicitKilogram = kg,
+        )
     }
 
     /**

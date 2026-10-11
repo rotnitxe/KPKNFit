@@ -59,7 +59,7 @@ internal object WorkoutVoiceAudioSourcePolicy {
 }
 
 internal object AndroidWorkoutVoiceAudioRecordFactory : WorkoutVoiceAudioRecordFactory {
-    override fun create(bufferBytes: Int, audioSource: Int): WorkoutVoiceAudioRecord = try {
+    override fun create(bufferBytes: Int, audioSource: Int): WorkoutVoiceAudioRecord =
         AndroidWorkoutVoiceAudioRecord(
             AudioRecord(
                 audioSource,
@@ -69,9 +69,6 @@ internal object AndroidWorkoutVoiceAudioRecordFactory : WorkoutVoiceAudioRecordF
                 bufferBytes,
             ),
         )
-    } catch (denied: SecurityException) {
-        throw IllegalStateException("Microphone permission is unavailable", denied)
-    }
 }
 
 private class AndroidWorkoutVoiceAudioRecord(

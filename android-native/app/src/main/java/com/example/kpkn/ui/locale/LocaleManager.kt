@@ -46,9 +46,6 @@ object LocaleManager {
      */
     @Volatile
     private var cachedLanguage: String? = null
-    @Volatile private var cachedProfile: String? = null
-    private fun profile(context: Context): String = (context as? com.example.kpkn.data.account.ProfileContext)?.profile?.key
-        ?: if (com.example.kpkn.data.account.ProfileStorage.initialized()) com.example.kpkn.data.account.ProfileStorage.current().key else "platform"
 
     /**
      * Emite un evento cuando la Activity debe recrearse (solo API ≤ 32).
@@ -88,17 +85,12 @@ object LocaleManager {
      * Útil al inicializar desde Room antes de que la UI cargue.
      */
     fun persist(context: Context, language: String) {
-        val owner = com.example.kpkn.data.backup.DataSessionWriter("locale-preference")
-        val fixed = com.example.kpkn.data.backup.capturedPersonalContext(context)
-        owner.immediate {
-            val prefs = fixed.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-            prefs.edit().putString(KEY_LANGUAGE, language).apply()
-            owner.launch(kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.SupervisorJob() + kotlinx.coroutines.Dispatchers.IO)) {
-                prefs.edit().commit()
-            }
-            cachedLanguage = language
-            cachedProfile = profile(fixed)
-        }
+        context.applicationContext
+            .getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            .edit()
+            .putString(KEY_LANGUAGE, language)
+            .apply()
+        cachedLanguage = language
     }
 
     /**
@@ -106,18 +98,16 @@ object LocaleManager {
      * Seguro de called desde [attachBaseContext] antes de que Room esté listo.
      */
     fun getSavedLanguage(context: Context): String {
-        cachedLanguage?.takeIf { cachedProfile == profile(context) }?.let { return it }
+        cachedLanguage?.let { return it }
         val saved = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
             .getString(KEY_LANGUAGE, LANGUAGE_SYSTEM) ?: LANGUAGE_SYSTEM
         cachedLanguage = saved
-        cachedProfile = profile(context)
         return saved
     }
 
     /** Solo para tests: simula un proceso nuevo (sin idioma en memoria). */
     internal fun clearCachedLanguageForTests() {
         cachedLanguage = null
-        cachedProfile = null
     }
 
     /**

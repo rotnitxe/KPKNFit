@@ -44,15 +44,13 @@ class BodyProgressRepository private constructor(
     context: Context,
     private val db: KpknDatabase,
 ) {
-    private val writeOwner = com.example.kpkn.data.backup.DataSessionWriter("body-progress-repository")
-    private val appContext = com.example.kpkn.data.backup.capturedPersonalContext(context)
+    private val appContext = context.applicationContext
     private val prefs = appContext.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-    private val scope = com.example.kpkn.data.backup.DataSessionWriterScope(CoroutineScope(SupervisorJob() + Dispatchers.IO), writeOwner)
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     /** Serialises Room writes so a delete cannot be overtaken by a later reload. */
     private val writeMutex = Mutex()
     private val dao: BodyProgressDao = db.bodyProgressDao()
     private val ready = CompletableDeferred<Unit>()
-    @Volatile private var pendingWriteError: Throwable? = null
 
     private val _observations = MutableStateFlow<List<BodyObservation>>(emptyList())
     val observations: StateFlow<List<BodyObservation>> = _observations.asStateFlow()
@@ -68,26 +66,27 @@ class BodyProgressRepository private constructor(
 
     init {
         scope.launch {
-            try { load(); ready.complete(Unit) } catch (error: Throwable) { ready.completeExceptionally(error) }
+            load()
+            ready.complete(Unit)
         }
     }
 
-    fun addObservation(observation: BodyObservation): Boolean = writeOwner.immediate accepted@ {
+    fun addObservation(observation: BodyObservation): Boolean {
         val validation = validateBodyValue(observation.metric, observation.valueSi)
         if (!validation.valid) {
             _lastError.value = validation.reason
-            return@accepted false
+            return false
         }
-        if (observation.externalId != null && _observations.value.any { it.externalId == observation.externalId }) return@accepted true
+        if (observation.externalId != null && _observations.value.any { it.externalId == observation.externalId }) return true
         _lastError.value = null
         _observations.update { current ->
             (current.filterNot { it.id == observation.id } + observation).sortedBy { it.timestampEpochMs }
         }
         scope.launch {
             runCatching { writeMutex.withLock { dao.upsertObservation(observation.toEntity()) } }
-                .onFailure { pendingWriteError = it; _lastError.value = it.message ?: "No se pudo guardar la medición" }
+                .onFailure { _lastError.value = it.message ?: "No se pudo guardar la medición" }
         }
-        return@accepted true
+        return true
     }
 
     fun addObservations(observations: List<BodyObservation>): Int = observations.count { addObservation(it) }
@@ -127,37 +126,40 @@ class BodyProgressRepository private constructor(
         }
     }
 
-    fun deleteObservation(id: String): Unit = writeOwner.immediate accepted@ {
+    fun deleteObservation(id: String) {
         _observations.update { it.filterNot { observation -> observation.id == id } }
         scope.launch { writeMutex.withLock { dao.deleteObservation(id) } }
     }
 
-    fun upsertGoal(goal: BodyGoal): Boolean = writeOwner.immediate accepted@ {
-        if (!goal.targetValueSi.isFinite()) return@accepted false
+    fun upsertGoal(goal: BodyGoal): Boolean {
+        if (!goal.targetValueSi.isFinite()) return false
         _goals.update { current -> current.filterNot { it.id == goal.id } + goal }
         scope.launch { writeMutex.withLock { dao.upsertGoal(goal.toEntity()) } }
-        return@accepted true
+        return true
     }
 
-    fun deleteGoal(id: String): Unit = writeOwner.immediate accepted@ {
+    fun deleteGoal(id: String) {
         _goals.update { it.filterNot { goal -> goal.id == id } }
         scope.launch { writeMutex.withLock { dao.deleteGoal(id) } }
     }
 
-    fun deletePlanGoals(planId: String): Unit = writeOwner.immediate accepted@ {
+    fun deletePlanGoals(planId: String) {
         _goals.update { it.filterNot { goal -> goal.linkedPlanId == planId && goal.origin.name == "PLAN" } }
         scope.launch { writeMutex.withLock { dao.deletePlanGoals(planId) } }
     }
 
-    fun updateMeasurementSchedule(schedule: MeasurementSchedule): Unit = writeOwner.immediate accepted@ {
-        val normalized = normalizeSchedule(schedule)
+    fun updateMeasurementSchedule(schedule: MeasurementSchedule) {
+        val normalized = schedule.copy(
+            intervalDays = schedule.intervalDays.coerceIn(1, 365),
+            reminderHour = schedule.reminderHour.coerceIn(0, 23),
+            reminderMinute = schedule.reminderMinute.coerceIn(0, 59),
+            nextDate = if (schedule.enabled) {
+                schedule.nextDate?.takeIf { runCatching { LocalDate.parse(it) }.isSuccess }
+                    ?: LocalDate.now().plusDays(schedule.intervalDays.coerceIn(1, 365).toLong()).toString()
+            } else null,
+        )
         _measurementSchedule.value = normalized
         prefs.edit().putString(KEY_SCHEDULE, Json.encodeToString(normalized)).apply()
-        // Keep immediate reminder semantics; retain the apply disk queue until it finishes.
-        scope.launch {
-            runCatching { check(prefs.edit().commit()) { "Unable to persist measurement schedule" } }
-                .onFailure { pendingWriteError = it; _lastError.value = it.message }
-        }
         val notifier = NutritionNotificationManager(appContext)
         if (normalized.enabled && normalized.nextDate != null) {
             notifier.scheduleMeasurementReminder(normalized.nextDate, normalized.reminderHour, normalized.reminderMinute)
@@ -167,16 +169,17 @@ class BodyProgressRepository private constructor(
     }
 
     /** Deletes observations, goals and the recurring reminder; used by "borrar todo". */
-    fun clearAllData(): Unit = writeOwner.immediate accepted@ {
+    fun clearAllData() {
         _observations.value = emptyList()
         _goals.value = emptyList()
         _measurementSchedule.value = MeasurementSchedule()
+        prefs.edit().clear().apply()
         NutritionNotificationManager(appContext).cancelMeasurementReminder()
         scope.launch { clearAllDataAndAwait() }
     }
 
     /** Synchronous-at-the-call-site variant used by export/reset flows. */
-    suspend fun clearAllDataAndAwait() = writeOwner.write {
+    suspend fun clearAllDataAndAwait() {
         awaitReady()
         prefs.edit().clear().commit()
         NutritionNotificationManager(appContext).cancelMeasurementReminder()
@@ -188,7 +191,7 @@ class BodyProgressRepository private constructor(
     }
 
     suspend fun awaitPersistence() {
-        writeOwner.write {
+        kotlinx.coroutines.withContext(Dispatchers.IO) {
             ready.await()
             writeMutex.withLock { dao.getAllObservations() }
         }
@@ -199,7 +202,7 @@ class BodyProgressRepository private constructor(
         ready.await()
     }
 
-    suspend fun refreshFromStorage() = writeOwner.write {
+    suspend fun refreshFromStorage() {
         awaitReady()
         load()
     }
@@ -209,7 +212,7 @@ class BodyProgressRepository private constructor(
         observations: List<BodyObservation>,
         goals: List<BodyGoal>,
         schedule: MeasurementSchedule?,
-    ) = writeOwner.write {
+    ) {
         awaitReady()
         val validObservations = observations.filter {
             validateBodyValue(it.metric, it.valueSi).valid
@@ -229,10 +232,10 @@ class BodyProgressRepository private constructor(
         load()
     }
 
-    private suspend fun load() = writeOwner.write {
+    private suspend fun load() {
         runCatching {
-            val rows = dao.getAllObservations().map { requireNotNull(it.toBodyObservation()) { "A stored measurement requires recovery" } }
-            val goals = dao.getAllGoals().map { requireNotNull(it.toBodyGoal()) { "A stored goal requires recovery" } }
+            val rows = dao.getAllObservations().mapNotNull { it.toBodyObservation() }
+            val goals = dao.getAllGoals().mapNotNull { it.toBodyGoal() }
             val imported = importLegacyIfNeeded(rows)
             _observations.value = (rows + imported).distinctBy { it.id }.sortedBy { it.timestampEpochMs }
             _goals.value = goals
@@ -249,20 +252,15 @@ class BodyProgressRepository private constructor(
             }
         }.onFailure {
             _lastError.value = it.message ?: "No se pudieron cargar las mediciones"
-        }.getOrThrow()
+        }
     }
 
     private suspend fun importLegacyIfNeeded(existing: List<BodyObservation>): List<BodyObservation> {
         if (prefs.getBoolean(KEY_MIGRATED, false)) return emptyList()
         val json = prefs.getString(KEY_LEGACY_MEASUREMENTS, null) ?: return emptyList()
-        val recovery = android.util.AtomicFile(java.io.File(appContext.noBackupFilesDir, "legacy-body-recovery.json"))
-        if (!recovery.baseFile.exists()) {
-            val output = recovery.startWrite()
-            try { output.write(json.toByteArray()); recovery.finishWrite(output) } catch (error: Throwable) { recovery.failWrite(output); throw error }
-        }
-        val legacy = Json.decodeFromString<List<BodyMeasurementEntry>>(json)
+        val legacy = runCatching { Json.decodeFromString<List<BodyMeasurementEntry>>(json) }.getOrDefault(emptyList())
         if (legacy.isEmpty()) {
-            check(prefs.edit().putBoolean(KEY_MIGRATED, true).remove(KEY_LEGACY_MEASUREMENTS).commit())
+            prefs.edit().putBoolean(KEY_MIGRATED, true).remove(KEY_LEGACY_MEASUREMENTS).apply()
             return emptyList()
         }
         val converted = legacy.flatMap(::legacyToObservations)
@@ -271,7 +269,7 @@ class BodyProgressRepository private constructor(
         if (newRows.isNotEmpty()) dao.upsertObservations(newRows.map { it.toEntity() })
         val persistedIds = dao.getAllObservations().map { it.id }.toSet()
         val verified = converted.count { it.id in persistedIds } == converted.size
-        if (verified) check(prefs.edit().putBoolean(KEY_MIGRATED, true).remove(KEY_LEGACY_MEASUREMENTS).commit())
+        if (verified) prefs.edit().putBoolean(KEY_MIGRATED, true).remove(KEY_LEGACY_MEASUREMENTS).apply()
         return newRows
     }
 
@@ -309,29 +307,6 @@ class BodyProgressRepository private constructor(
     }
 
     companion object {
-        private fun normalizeSchedule(schedule: MeasurementSchedule): MeasurementSchedule = schedule.copy(
-            intervalDays = schedule.intervalDays.coerceIn(1, 365),
-            reminderHour = schedule.reminderHour.coerceIn(0, 23),
-            reminderMinute = schedule.reminderMinute.coerceIn(0, 59),
-            nextDate = if (schedule.enabled) {
-                schedule.nextDate?.takeIf { runCatching { LocalDate.parse(it) }.isSuccess }
-                    ?: LocalDate.now().plusDays(schedule.intervalDays.coerceIn(1, 365).toLong()).toString()
-            } else null,
-        )
-
-        /** The coordinator owns this import; it must not construct a second repository graph. */
-        internal fun persistImportedSchedule(context: Context, schedule: MeasurementSchedule) {
-            check(com.example.kpkn.data.backup.AppDataSessions.coordinator.state.value is
-                com.example.kpkn.data.backup.DataSessionCoordinator.State.Maintaining)
-            val normalized = normalizeSchedule(schedule)
-            check(context.applicationContext.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE).edit()
-                .putString(KEY_SCHEDULE, Json.encodeToString(normalized)).commit()) { "Unable to persist imported measurement schedule" }
-            val notifier = NutritionNotificationManager(context)
-            if (normalized.enabled && normalized.nextDate != null) {
-                notifier.scheduleMeasurementReminder(normalized.nextDate, normalized.reminderHour, normalized.reminderMinute)
-            } else notifier.cancelMeasurementReminder()
-        }
-
         private const val PREFS_NAME = "body_measurements"
         private const val KEY_LEGACY_MEASUREMENTS = "measurements"
         private const val KEY_SCHEDULE = "schedule"
@@ -347,20 +322,9 @@ class BodyProgressRepository private constructor(
         }
 
         fun closeInstance() {
-            INSTANCE?.writeOwner?.closeAdmission()
             synchronized(this) {
-                INSTANCE?.scope?.coroutineContext?.get(kotlinx.coroutines.Job)?.let { job ->
-                    job.cancel(); kotlinx.coroutines.runBlocking { job.join() }
-                }
                 INSTANCE = null
             }
-        }
-        internal suspend fun closeForDataSession() {
-            val instance = INSTANCE ?: return
-            instance.writeOwner.closeAdmission()
-            kotlinx.coroutines.withTimeout(30_000) { instance.scope.coroutineContext[kotlinx.coroutines.Job]?.children?.toList()?.forEach { it.join() } }
-            instance.pendingWriteError?.let { throw IllegalStateException("A pending body measurement could not be persisted", it) }
-            closeInstance()
         }
     }
 }

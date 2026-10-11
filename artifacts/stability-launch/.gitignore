@@ -1,8 +1,0 @@
-resource-optimization-preview/
-voice-model-preview/
-private-signing/
-sdk-qa/
-.test-tmp/
-*.jks
-*.keystore
-**/qa-backup.kpkn.zip

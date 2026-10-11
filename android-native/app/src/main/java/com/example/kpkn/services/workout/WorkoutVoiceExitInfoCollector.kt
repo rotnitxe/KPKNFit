@@ -17,27 +17,15 @@ object WorkoutVoiceExitInfoCollector {
     private val started = AtomicBoolean(false)
     private var ready = false
     private var files: List<File> = emptyList()
-    @Volatile private var collector: Thread? = null
-    @Volatile private var pausedForDataSession = false
 
-    fun initialize(context: Context) { synchronized(lock) {
-        if (pausedForDataSession) return
+    fun initialize(context: Context) {
         if (!started.compareAndSet(false, true)) return
-        val appContext = if (com.example.kpkn.data.account.ProfileStorage.initialized())
-            com.example.kpkn.data.account.ProfileStorage.context(context) else context.applicationContext
+        val appContext = context.applicationContext
         Thread({ collect(appContext) }, "kpkn-voice-exit-info").apply {
             isDaemon = true
-            collector = this
             start()
         }
-    } }
-
-    fun pauseForDataSession() {
-        val pending = synchronized(lock) { pausedForDataSession = true; collector }
-        pending?.let { it.join(5_000); check(!it.isAlive) { "Voice exit diagnostics did not stop" } }
-        synchronized(lock) { collector = null; files = emptyList(); ready = false; started.set(false) }
     }
-    fun resumeForDataSession(context: Context) { pausedForDataSession = false; initialize(context) }
 
     fun hasPendingBundle(): Boolean = synchronized(lock) { ready && files.any(File::exists) }
 
@@ -76,7 +64,6 @@ object WorkoutVoiceExitInfoCollector {
         WorkoutVoiceDiagnosticStorage.mirrorRecoveryFiles(context, produced)
     }
 
-    @androidx.annotation.RequiresApi(Build.VERSION_CODES.R)
     private fun writeBundleParts(context: Context, exits: List<ApplicationExitInfo>): List<File> {
         // Historical exit information is an event in the central voice stream.
         // Do not recreate voice_diagnostics/ with ad-hoc JSON, trace or device

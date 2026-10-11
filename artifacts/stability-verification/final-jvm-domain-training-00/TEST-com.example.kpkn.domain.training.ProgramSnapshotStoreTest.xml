@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="com.example.kpkn.domain.training.ProgramSnapshotStoreTest" tests="2" skipped="0" failures="0" errors="0" timestamp="2026-10-10T06:29:39.750Z" hostname="VF" time="0.192">
-  <properties/>
-  <testcase name="push_list_and_restore_round_trip_with_a_single_preferences_lookup" classname="com.example.kpkn.domain.training.ProgramSnapshotStoreTest" time="0.136"/>
-  <testcase name="construction_does_not_touch_preferences_until_first_use" classname="com.example.kpkn.domain.training.ProgramSnapshotStoreTest" time="0.056"/>
-  <system-out><![CDATA[]]></system-out>
-  <system-err><![CDATA[]]></system-err>
-</testsuite>

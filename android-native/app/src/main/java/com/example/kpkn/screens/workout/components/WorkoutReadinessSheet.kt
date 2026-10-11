@@ -135,10 +135,10 @@ fun WorkoutReadinessSheet(
             },
         ),
     ) { mutableStateMapOf<String, Int>() }
-    val derivedMuscular by remember(readinessMuscularStart) { derivedStateOf {
+    val derivedMuscular by derivedStateOf {
         if (muscleAdjustments.isEmpty()) readinessMuscularStart.coerceIn(0, 100)
         else muscleAdjustments.values.average().toInt().coerceIn(0, 100)
-    } }
+    }
     var userEditedNeural by rememberSaveable { mutableStateOf(false) }
     var userEditedSpinal by rememberSaveable { mutableStateOf(false) }
     val userEditedMuscles = remember { mutableStateMapOf<String, Boolean>() }

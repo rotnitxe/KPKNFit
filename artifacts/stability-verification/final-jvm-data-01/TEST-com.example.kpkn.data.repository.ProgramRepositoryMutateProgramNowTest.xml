@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="com.example.kpkn.data.repository.ProgramRepositoryMutateProgramNowTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-10-10T05:53:55.302Z" hostname="VF" time="0.415">
-  <properties/>
-  <testcase name="real_room_failure_propagates_without_publishing_the_candidate" classname="com.example.kpkn.data.repository.ProgramRepositoryMutateProgramNowTest" time="0.134"/>
-  <testcase name="superseded_mutation_returns_false_and_never_publishes_its_candidate" classname="com.example.kpkn.data.repository.ProgramRepositoryMutateProgramNowTest" time="0.135"/>
-  <testcase name="rapid_mutations_accumulate_in_room_and_cache_before_returning" classname="com.example.kpkn.data.repository.ProgramRepositoryMutateProgramNowTest" time="0.146"/>
-  <system-out><![CDATA[]]></system-out>
-  <system-err><![CDATA[]]></system-err>
-</testsuite>

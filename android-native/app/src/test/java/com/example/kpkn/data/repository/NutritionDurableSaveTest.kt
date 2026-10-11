@@ -24,7 +24,7 @@ class NutritionDurableSaveTest {
     private fun repository(db: KpknDatabase): NutritionRepository {
         val ctor = NutritionRepository::class.java.getDeclaredConstructor(Context::class.java, KpknDatabase::class.java, Boolean::class.javaPrimitiveType)
         ctor.isAccessible = true
-        return ctor.newInstance(context, db, false).also { it.accessLevel = { com.example.kpkn.domain.entitlements.PlanLevel.PRO }; repositories += it }
+        return ctor.newInstance(context, db, false).also { repositories += it }
     }
     private suspend fun closeDatabase(db: KpknDatabase) {
         val field = NutritionRepository::class.java.getDeclaredField("repositoryJob").apply { isAccessible = true }

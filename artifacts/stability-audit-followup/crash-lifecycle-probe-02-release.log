@@ -1,8 +1,0 @@
-To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/9.4.1/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
-Daemon will be stopped at the end of the build 
-
-> Configure project :app
-WARNING: The option setting 'android.disallowKotlinSourceSets=false' is experimental.
-The current default is 'true'.
-
-[Incubating] Problems report is available at: file:///C:/kw/msi/android-native/build/reports/problems/problems-report.html

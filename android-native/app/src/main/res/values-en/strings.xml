@@ -222,9 +222,9 @@
     <string name="widget_volume_title">Calibrate Volume</string>
     <string name="widget_volume_subtitle">Configure the recommended volume per muscle for this program.</string>
     <string name="widget_increase_title">Increase Volume</string>
-    <string name="widget_increase_subtitle" formatted="false">Increase this week\'s volume by 20%, muscle by muscle.</string>
+    <string name="widget_increase_subtitle">Increase this week\'s volume by 20%, muscle by muscle.</string>
     <string name="widget_reduce_title">Reduce Volume</string>
-    <string name="widget_reduce_subtitle" formatted="false">Decrease this week\'s volume by 20%, muscle by muscle.</string>
+    <string name="widget_reduce_subtitle">Decrease this week\'s volume by 20%, muscle by muscle.</string>
     <string name="widget_verified">Verified</string>
     <string name="widget_blocked">Blocked</string>
     <string name="widget_limit">Limit</string>
@@ -238,10 +238,10 @@
     <string name="widget_needs_calibration_body">We need a baseline calibration before applying volume automations.</string>
     <string name="widget_calibrate_now">Calibrate Now</string>
     <string name="widget_increase_confirm_title">Increase Weekly Volume</string>
-    <string name="widget_increase_confirm_body" formatted="false">This will increase the current week\'s volume by 20%, muscle by muscle. Do you want to continue?</string>
+    <string name="widget_increase_confirm_body">This will increase the current week\'s volume by 20%, muscle by muscle. Do you want to continue?</string>
     <string name="widget_confirm_increase">Yes, increase</string>
     <string name="widget_decrease_confirm_title">Decrease Weekly Volume</string>
-    <string name="widget_decrease_confirm_body" formatted="false">This will decrease the current week\'s volume by 20%, muscle by muscle. Do you want to continue?</string>
+    <string name="widget_decrease_confirm_body">This will decrease the current week\'s volume by 20%, muscle by muscle. Do you want to continue?</string>
     <string name="widget_confirm_decrease">Yes, decrease</string>
 
     <!-- ═══════════════════════════════════════════════════════════════
@@ -354,11 +354,4 @@
     <string name="macro_default_week1_name">Week 1</string>
     <string name="macro_default_week_n_name">Week %1$d</string>
 
-    <string name="data_session_active_title">An activity is still in progress</string>
-    <string name="data_session_active_workout_description">Finish and save the workout, or explicitly discard it. Then return to confirm the data operation.</string>
-    <string name="data_session_active_capture_description">Finish the location recording or capture before changing your data.</string>
-    <string name="data_session_finish_workout">Finish workout</string>
-    <string name="data_session_discard_workout">Discard workout</string>
-    <string name="data_session_discard_title">Discard this workout?</string>
-    <string name="data_session_discard_description">The sets in this session will be discarded without saving. Your previous workouts are kept.</string>
 </resources>

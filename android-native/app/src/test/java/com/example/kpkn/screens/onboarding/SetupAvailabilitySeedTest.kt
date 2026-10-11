@@ -789,7 +789,7 @@ class SetupAvailabilitySeedTest {
             )
             assertEquals(SetupPatchField.Set(expected), patch.equipmentAvailability)
 
-            SetupCommitCoordinator(db, accessLevel = { com.example.kpkn.domain.entitlements.PlanLevel.PRO }).commit(
+            SetupCommitCoordinator(db).commit(
                 SetupCommitRequest(
                     commitId = commitId,
                     draftId = null,

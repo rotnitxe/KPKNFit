@@ -1,5 +1,0 @@
-<resources>
-    <string name="data_session_preparing">Preparando tus datos…</string>
-    <string name="data_session_error">No se pudo completar la operación con tus datos. Puedes volver a intentar abrirlos.</string>
-    <string name="data_session_retry">Volver a intentar</string>
-</resources>

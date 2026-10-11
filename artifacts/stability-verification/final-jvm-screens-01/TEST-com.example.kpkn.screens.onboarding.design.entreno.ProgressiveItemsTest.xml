@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="com.example.kpkn.screens.onboarding.design.entreno.ProgressiveItemsTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-10-10T06:37:25.439Z" hostname="VF" time="0.137">
-  <properties/>
-  <testcase name="theFirstItemsComeAtOnceAndTheRestFrameByFrame" classname="com.example.kpkn.screens.onboarding.design.entreno.ProgressiveItemsTest" time="0.046"/>
-  <testcase name="withNothingToSplitItReturnsTheTotalAndNeverMore" classname="com.example.kpkn.screens.onboarding.design.entreno.ProgressiveItemsTest" time="0.045"/>
-  <testcase name="whenTheTotalGrowsItKeepsWhatWasAlreadyShownAndSplitsTheNewOnes" classname="com.example.kpkn.screens.onboarding.design.entreno.ProgressiveItemsTest" time="0.045"/>
-  <system-out><![CDATA[]]></system-out>
-  <system-err><![CDATA[]]></system-err>
-</testsuite>

@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="com.example.kpkn.screens.workout.RelatorLivePlanContextTest" tests="2" skipped="0" failures="0" errors="0" timestamp="2026-10-10T06:38:57.443Z" hostname="VF" time="0.096">
-  <properties/>
-  <testcase name="hydrator_copies_protocol_block_week_and_recipe" classname="com.example.kpkn.screens.workout.RelatorLivePlanContextTest" time="0.096"/>
-  <testcase name="hydrator_without_protocol_leaves_name_null" classname="com.example.kpkn.screens.workout.RelatorLivePlanContextTest" time="0.0"/>
-  <system-out><![CDATA[]]></system-out>
-  <system-err><![CDATA[]]></system-err>
-</testsuite>

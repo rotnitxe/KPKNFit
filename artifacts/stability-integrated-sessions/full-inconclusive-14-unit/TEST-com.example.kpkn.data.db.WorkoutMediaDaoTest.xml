@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="com.example.kpkn.data.db.WorkoutMediaDaoTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-10-09T10:16:01.106Z" hostname="VF" time="0.435">
-  <properties/>
-  <testcase name="insertIgnore_does_not_overwrite_and_attach_links_open_session" classname="com.example.kpkn.data.db.WorkoutMediaDaoTest" time="0.139"/>
-  <testcase name="upsert_and_queries_by_indexes_and_pr_range" classname="com.example.kpkn.data.db.WorkoutMediaDaoTest" time="0.13"/>
-  <testcase name="markPrFlags_sets_isPr_for_matching_set" classname="com.example.kpkn.data.db.WorkoutMediaDaoTest" time="0.166"/>
-  <system-out><![CDATA[]]></system-out>
-  <system-err><![CDATA[]]></system-err>
-</testsuite>

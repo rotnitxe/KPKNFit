@@ -49,23 +49,6 @@ class SearchPickContractTest {
         return identity to HouseholdPortions.eatenGramsForSearchPick(identity, query)
     }
 
-    @Test fun `the search logger keeps measured intent and grams through the clarification bridge`() {
-        val oil = off("off_explicit_oil", "Aceite vegetal", "Chef", 884.0, 0.0, 0.0, 100.0, portionGrams = 5000.0)
-        listOf("250 g de aceite", "500 ml").forEach { query ->
-            val amount = HouseholdPortions.amountForSearchPick(oil, query)
-            assertEquals(AmountIntent.EXPLICIT_MASS, amount.intent)
-            assertEquals(if (query.contains("ml")) "ml" else null, amount.unitId)
-            val status = HouseholdPortions.operationalAutoStatus(oil, amount.grams, null, false, amount.intent, explicitPick = true)
-            assertEquals(FoodResolutionStatus.AUTO, status)
-            val result = NutritionInterpretationBridge.refresh(ResolvedTag(tag = oil.name, foodQuery = query,
-                foodItem = oil, loggedFood = scaleFoodByPortion(oil, amountGrams = amount.grams), amountGrams = amount.grams,
-                amountIntent = amount.intent, unitId = amount.unitId, hasManualEdits = true, origin = TagOrigin.SEARCH,
-                confirmedDimensions = setOf("identity")))
-            assertEquals(amount.grams, result.amountGrams!!, 0.001)
-            assertEquals(amount.grams, result.loggedFood!!.amount, 0.001)
-        }
-    }
-
     @Test
     fun `leche plus Leche descremada Colun keeps the tapped row at a glass of milk`() {
         val colun = off("off_1", "Leche descremada", "Colun", 35.0, 3.4, 4.9, 0.1)
@@ -127,7 +110,7 @@ class SearchPickContractTest {
     }
 
     @Test
-    fun `an explicit kilogram query keeps the row and measured mass`() {
+    fun `an explicit kilogram query keeps the row and its declared pack mass`() {
         val pack = off("off_hallulla_kg", "Hallulla Ideal 1kg", "Ideal", 400.0, 8.0, 70.0, 8.0, portionGrams = 1000.0)
         val query = "Hallulla Ideal 1kg"
         val (identity, grams) = pick(pack, query)
@@ -225,7 +208,8 @@ class SearchPickContractTest {
     }
 
     @Test
-    fun `explicit mass and volume override pack mass while a plain query keeps a household portion`() {
+    fun `an explicit kilogram or litre keeps the pack mass while the same food typed plainly eats the household portion`() {
+        // The new defaults belong to the portion of a plain tap; a query that names a bulk unit still keeps the declared pack mass.
         val ricePack = off("off_arroz_1kg", "Arroz grado 1 Tucapel 1 kg", "Tucapel", 350.0, 7.0, 78.0, 0.6, portionGrams = 1000.0)
         val milkPack = off("off_leche_semi_1l", "Leche semidescremada Colun 1 litro", "Colun", 46.0, 3.2, 4.8, 1.5, portionGrams = 1000.0)
         val oilPack = off("off_aceite_1l", "Aceite vegetal Chef 1 litro", "Chef", 884.0, 0.0, 0.0, 100.0, portionGrams = 1000.0)
@@ -236,43 +220,12 @@ class SearchPickContractTest {
         )
         packs.forEach { (pack, bulkQuery, catalog) ->
             val (id, plainQuery) = catalog
-            val expected = if (bulkQuery.contains("kg")) 1000.0
-                else SubjectivePortionEngine.massFromVolumeMl(1000.0, pack.name)
-            assertEquals("$bulkQuery measured amount", expected, pick(pack, bulkQuery).second, 0.0)
+            assertEquals("$bulkQuery keeps the pack", 1000.0, pick(pack, bulkQuery).second, 0.0)
             // Typed plainly, the pack and the catalog row of the same food eat the same household portion (never the 1000 g).
             val household = pick(checkNotNull(findStaticFoodById(id)) { id }, plainQuery).second
             assertEquals("$plainQuery on the pack", household, pick(pack, plainQuery).second, 0.0)
             assertTrue("$plainQuery household grams $household", household in 10.0..200.0)
         }
-    }
-
-    @Test
-    fun `search measures static and global identities independently of serving and pack sizes`() {
-        val staticRice = checkNotNull(findStaticFoodById("gen005"))
-        val packRice = off("off_rice_5kg", "Arroz 5kg", "Marca", 350.0, 7.0, 78.0, 0.6, portionGrams = 5000.0)
-        listOf(staticRice, packRice).forEach { row ->
-            listOf("250 g de arroz" to 250.0, "arroz 0,5 kg" to 500.0,
-                "1.25 kilos de arroz" to 1250.0, "medio kilo de arroz" to 500.0).forEach { (query, expected) ->
-                val (identity, grams) = pick(row, query)
-                assertSame(row, identity)
-                assertEquals("${row.id}: $query", expected, grams, 0.001)
-            }
-        }
-    }
-
-    @Test
-    fun `search volume uses the selected food even when the query omits its name`() {
-        val oil = off("off_oil_5l", "Aceite vegetal", "Chef", 884.0, 0.0, 0.0, 100.0, portionGrams = 5000.0)
-        val milk = checkNotNull(findStaticFoodById("gen085"))
-        listOf(oil, milk).forEach { row ->
-            listOf("250 ml" to 250.0, "0,5 litros" to 500.0, "medio litro" to 500.0,
-                "1 lt" to 1000.0, "500 cc" to 500.0).forEach { (query, volume) ->
-                assertEquals("${row.id}: $query", SubjectivePortionEngine.massFromVolumeMl(volume, row.name),
-                    pick(row, query).second, 0.001)
-            }
-        }
-        assertEquals(SubjectivePortionEngine.massFromVolumeMl(500.0, oil.name), pick(oil, "500 ml").second, 0.001)
-        assertTrue(pick(oil, "500 ml").second != 500.0)
     }
 
     @Test

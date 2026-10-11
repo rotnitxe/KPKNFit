@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="com.example.kpkn.screens.workout.WorkoutFinishEmptySessionTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-10-10T06:39:01.729Z" hostname="VF" time="0.189">
-  <properties/>
-  <testcase name="emptySessionFinishIsStillBlockedAndReportedWithoutPersistingALog" classname="com.example.kpkn.screens.workout.WorkoutFinishEmptySessionTest" time="0.122"/>
-  <testcase name="guidanceIsShownOnlyWhenTheGuardWouldBlock" classname="com.example.kpkn.screens.workout.WorkoutFinishEmptySessionTest" time="0.03"/>
-  <testcase name="guidanceTextIsTheAgreedSpanishCopy" classname="com.example.kpkn.screens.workout.WorkoutFinishEmptySessionTest" time="0.037"/>
-  <system-out><![CDATA[]]></system-out>
-  <system-err><![CDATA[]]></system-err>
-</testsuite>

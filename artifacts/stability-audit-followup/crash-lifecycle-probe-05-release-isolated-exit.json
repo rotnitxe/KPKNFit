@@ -1,8 +1,0 @@
-{
-  "ExitCode": 1,
-  "Variant": "release",
-  "Sources": "src/testRelease probe only; shared test source directories excluded for this invocation",
-  "AssertionsChanged": false,
-  "ProductChanged": false,
-  "Utc": "2026-10-10T09:48:13.7832098Z"
-}

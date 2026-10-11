@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="com.example.kpkn.domain.nutrition.SubjectivePortionEngineTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-10-09T10:19:46.813Z" hostname="VF" time="0.0">
-  <properties/>
-  <testcase name="IT3 override de utensilio cambia los gramos escalando el volumen" classname="com.example.kpkn.domain.nutrition.SubjectivePortionEngineTest" time="0.0"/>
-  <testcase name="IT3 override invalido o nulo se ignora y usa la base" classname="com.example.kpkn.domain.nutrition.SubjectivePortionEngineTest" time="0.0"/>
-  <testcase name="IT3 sin overrides los valores base se mantienen" classname="com.example.kpkn.domain.nutrition.SubjectivePortionEngineTest" time="0.0"/>
-  <system-out><![CDATA[]]></system-out>
-  <system-err><![CDATA[]]></system-err>
-</testsuite>

@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="com.example.kpkn.domain.nutrition.PhoneticIdentityEvidenceTest" tests="2" skipped="0" failures="0" errors="0" timestamp="2026-10-09T10:19:40.252Z" hostname="VF" time="0.001">
-  <properties/>
-  <testcase name="a variant spelling of one sound is still evidence of identity" classname="com.example.kpkn.domain.nutrition.PhoneticIdentityEvidenceTest" time="0.0"/>
-  <testcase name="a different vowel is not evidence of identity" classname="com.example.kpkn.domain.nutrition.PhoneticIdentityEvidenceTest" time="0.001"/>
-  <system-out><![CDATA[]]></system-out>
-  <system-err><![CDATA[]]></system-err>
-</testsuite>

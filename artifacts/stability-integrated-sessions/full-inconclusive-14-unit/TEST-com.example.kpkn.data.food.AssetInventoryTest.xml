@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="com.example.kpkn.data.food.AssetInventoryTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-10-09T10:16:02.858Z" hostname="VF" time="0.008">
-  <properties/>
-  <testcase name="food_data holds exactly the allow-listed files" classname="com.example.kpkn.data.food.AssetInventoryTest" time="0.002"/>
-  <testcase name="allow-listed files are not empty" classname="com.example.kpkn.data.food.AssetInventoryTest" time="0.001"/>
-  <testcase name="every asset the importer reads is allow-listed and present" classname="com.example.kpkn.data.food.AssetInventoryTest" time="0.004"/>
-  <system-out><![CDATA[]]></system-out>
-  <system-err><![CDATA[]]></system-err>
-</testsuite>

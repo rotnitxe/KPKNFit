@@ -80,9 +80,9 @@ class NutritionMetricsContractTest {
         Env(foods, resolver, RealPort(resolver, foods))
     }
 
-    private suspend fun resolve(description: String, reviewAmounts: Boolean = false): List<ResolvedTag> {
+    private suspend fun resolve(description: String): List<ResolvedTag> {
         val parsed = parseMealDescription(description)
-        val (tags, _) = TagResolver(env.port, requireEstimatedPortionConfirmation = reviewAmounts).resolveAll(parsed)
+        val (tags, _) = TagResolver(env.port).resolveAll(parsed)
         return tags
     }
 
@@ -165,7 +165,7 @@ class NutritionMetricsContractTest {
             val ok = first != null &&
                 first.tag == case.expectedTag &&
                 (case.expectedId == null || first.foodItem?.id == case.expectedId) &&
-                identityStatusMatches(first, case.expectedStatus) &&
+                (case.expectedStatus == null || first.resolutionStatus == case.expectedStatus) &&
                 (case.expectedStatus != FoodResolutionStatus.NEEDS_REVIEW ||
                     (first.foodItem == null && first.loggedFood?.foodName?.contains(case.expectedTag, ignoreCase = true) == true)) &&
                 (case.nameContains == null || first.foodItem?.name?.contains(case.nameContains, ignoreCase = true) == true)
@@ -181,24 +181,6 @@ class NutritionMetricsContractTest {
         println("BASELINE precision@1 identidad = $hits/${identityCorpus.size} = ${"%.1f".format(precision * 100)}%")
         misses.forEach { println("  MISS $it") }
         assertTrue("precision@1 ≥ $MIN_IDENTITY_HITS/${identityCorpus.size} (fue $hits, ${"%.1f".format(precision * 100)}%): $misses", hits >= MIN_IDENTITY_HITS)
-    }
-
-    /** G04 adds a quantity gate without changing identity accuracy; every other review reason remains strict. */
-    private fun identityStatusMatches(tag: ResolvedTag, expected: FoodResolutionStatus?): Boolean {
-        if (expected == null || tag.resolutionStatus == expected) return true
-        val questions = tag.interpretationV2?.pendingQuestions.orEmpty()
-        return expected == FoodResolutionStatus.AUTO && tag.foodItem != null &&
-            tag.resolutionStatus == FoodResolutionStatus.NEEDS_CONFIRMATION && questions.isNotEmpty() &&
-            questions.all { it is ClarificationRequest.Portion && it.requestId == "estimated_portion" }
-    }
-    @Test fun `quantity confirmation is separate from identity review without relaxing identity requirements`() = runBlocking {
-        val quantity = resolve("arroz cocido", reviewAmounts = true).single()
-        assertTrue(identityStatusMatches(quantity, FoodResolutionStatus.AUTO))
-        assertTrue(quantity.interpretationV2!!.pendingQuestions.any { it.requestId == "estimated_portion" })
-        assertTrue(!quantity.isResolved)
-        val identity = resolve("ensalada", reviewAmounts = true).single()
-        assertTrue(!identityStatusMatches(identity, FoodResolutionStatus.AUTO))
-        assertTrue(identity.interpretationV2!!.pendingQuestions.any { it is ClarificationRequest.Identity })
     }
 
     @Test

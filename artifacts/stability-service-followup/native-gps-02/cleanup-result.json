@@ -1,7 +1,0 @@
-{
-  "state": "OWN_INCOMPLETE_QA_RUNNER_RETIRED_AND_MAIN_REOPENED",
-  "originalResultUnchanged": true,
-  "originalSha256": "08c70a902dd4b26ef3ae99e285e27b53c21799b75199369eb26dd1498edbf1cf",
-  "mainTopResumed": true,
-  "limits": "Cleanup after the host timeout, not a passing GPS test; other apps and devices untouched."
-}

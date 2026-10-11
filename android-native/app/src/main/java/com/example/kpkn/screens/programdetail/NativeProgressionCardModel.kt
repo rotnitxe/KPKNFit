@@ -57,7 +57,7 @@ object NativeProgressionCardModel {
         nowMs: Long,
         displayNameOf: (String) -> String? = { null },
     ): NativeProgressionCardUi {
-        val proposals = program.nativeProgressionProposals.filter { it.identity.programRunId == program.runState?.runId }.map { proposal ->
+        val proposals = program.nativeProgressionProposals.map { proposal ->
             NativeProgressionItemUi(
                 id = proposal.proposalId,
                 title = exerciseName(program, proposal.identity, displayNameOf),
@@ -65,7 +65,7 @@ object NativeProgressionCardModel {
             )
         }
         val notices = program.nativeProgressionAudit
-            .filter { it.programRunId == program.runState?.runId && it.userFacingNotice && nowMs - it.resolvedAtMs <= NOTICE_VISIBLE_MS }
+            .filter { it.userFacingNotice && nowMs - it.resolvedAtMs <= NOTICE_VISIBLE_MS }
             .sortedByDescending { it.resolvedAtMs }
             .take(MAX_VISIBLE_NOTICES)
             .map { notice ->

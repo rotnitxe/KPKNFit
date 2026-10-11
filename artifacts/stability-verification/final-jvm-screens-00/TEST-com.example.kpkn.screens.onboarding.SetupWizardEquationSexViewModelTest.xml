@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="com.example.kpkn.screens.onboarding.SetupWizardEquationSexViewModelTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-10-10T06:36:24.650Z" hostname="VF" time="0.1">
-  <properties/>
-  <testcase name="unknownAloneKeepsContinueBlockedUntilTheHormonalQuestionIsAnswered" classname="com.example.kpkn.screens.onboarding.SetupWizardEquationSexViewModelTest" time="0.044"/>
-  <testcase name="eachHormonalAnswerUnlocksContinueWithItsEquationBase" classname="com.example.kpkn.screens.onboarding.SetupWizardEquationSexViewModelTest" time="0.029"/>
-  <testcase name="aGlyphAfterTheHormonalPanelReplacesTheHormonalAnswer" classname="com.example.kpkn.screens.onboarding.SetupWizardEquationSexViewModelTest" time="0.027"/>
-  <system-out><![CDATA[]]></system-out>
-  <system-err><![CDATA[]]></system-err>
-</testsuite>

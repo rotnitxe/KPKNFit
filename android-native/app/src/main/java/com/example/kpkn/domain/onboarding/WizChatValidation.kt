@@ -16,7 +16,7 @@ object WizChatValidation {
                 else -> null
             }
         }
-        WizChatQuestionId.P_AGE -> range(number, 18.0, 100.0, "La edad debe estar entre 18 y 100 años", false)
+        WizChatQuestionId.P_AGE -> range(number, 13.0, 100.0, "La edad debe estar entre 13 y 100 años", false)
         WizChatQuestionId.P_HEIGHT -> range(number, 100.0, 250.0, "La estatura debe estar entre 100 y 250 cm", false)
         WizChatQuestionId.P_WEIGHT -> range(number, 20.0, 500.0, "El peso debe estar entre 20 y 500 kg", false)
         // Pregunta heredada del chat: nunca acepta menos del mínimo del reloj del asistente (el mismo que valida SESSION_TIME).

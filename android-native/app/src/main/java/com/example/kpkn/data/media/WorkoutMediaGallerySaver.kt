@@ -12,22 +12,15 @@ import java.io.File
 import java.io.IOException
 
 object WorkoutMediaGallerySaver {
-    internal fun verifiedExportType(source: File): Pair<String, String>? =
-        com.example.kpkn.data.sync.MediaFiles.detectedType(source)?.let { type ->
-            val suffix = com.example.kpkn.data.sync.MediaFiles.extension(type)
-            source.nameWithoutExtension + "." + suffix to type
-        }
     fun save(context: Context, media: WorkoutMedia): Boolean {
         val source = File(media.filePath)
         if (!source.isFile || source.length() <= 0L) return false
         val resolver = context.contentResolver
         val isVideo = media.kind == WorkoutMediaKind.VIDEO
-        val verified = verifiedExportType(source)
-        if (verified != null && verified.second.startsWith("video/") != isVideo) return false
-        val displayName = verified?.first ?: source.name.ifBlank {
+        val displayName = source.name.ifBlank {
             if (isVideo) "kpkn_${media.id}.mp4" else "kpkn_${media.id}.jpg"
         }
-        val mime = verified?.second ?: if (isVideo) {
+        val mime = if (isVideo) {
             when (source.extension.lowercase()) {
                 "webm" -> "video/webm"
                 "3gp" -> "video/3gpp"

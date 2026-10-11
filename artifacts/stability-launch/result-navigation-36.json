@@ -1,9 +1,0 @@
-{
-  "state": "PASS",
-  "tests": 26,
-  "failures": 0,
-  "skipped": 0,
-  "scope": "Navigation Application extras and captured-profile isolation API26/API34; debug/AndroidTest build",
-  "apkSha256": "791dd6fab9a734e0dfec8764f3e98c4308e990a91270c7d58dbcdbd3f2140a24",
-  "apkBytes": 437021263
-}

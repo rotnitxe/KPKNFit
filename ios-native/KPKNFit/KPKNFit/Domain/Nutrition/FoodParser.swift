@@ -16,7 +16,7 @@ public func getGramsForReference(_ refType: String, _ foodItem: FoodItem? = nil)
 /// Mirrors domain/nutrition/FoodParser.kt from Android.
 enum FoodParser {
 
-    private static let gramPattern = try! NSRegularExpression(pattern: #"(\d+(?:[.,]\d+)?)\s*(?:g|gr|gramos?|kg|kilogramos?|kilos?|ml|cc|cm3|mililitros?|lts?|l|litros?|oz|onzas?|lb|libras?)\b(?:\s+de)?\s*"#, options: .caseInsensitive)
+    private static let gramPattern = try! NSRegularExpression(pattern: #"(\d+(?:[.,]\d+)?)\s*(?:g|gr|gramos?|kg|ml|mililitros?|l|litros?|oz|onzas?|lb|libras?)\b(?:\s+de)?\s*"#, options: .caseInsensitive)
 
     private static let commaOrPlus = try! NSRegularExpression(pattern: #"(,\s*|\s+\+\s+)"#)
     private static let connectorY = try! NSRegularExpression(pattern: #"\s+(?:y|e|mas|más)\s+"#, options: .caseInsensitive)
@@ -98,8 +98,8 @@ enum FoodParser {
     private static let groupPattern = try! NSRegularExpression(pattern: "^(.+?)\\s*\\((.+)\\)\\s*$")
     private static let startsWithDigit = try! NSRegularExpression(pattern: "^\\d")
     private static let negationPattern = try! NSRegularExpression(pattern: #"\b(?:sin|menos|no)\b"#, options: .caseInsensitive)
-    private static let gramUnitPattern = try! NSRegularExpression(pattern: #"(\d+(?:[.,]\d+)?)\s*(g|gr|gramos?|kg|kilogramos?|kilos?|ml|cc|cm3|mililitros?|lts?|l|litros?|oz|onzas?|lb|libras?)\b"#, options: .caseInsensitive)
-    private static let kgLiterPattern = try! NSRegularExpression(pattern: "kg|kilogramos?|kilos?|l$|lts?|litros?")
+    private static let gramUnitPattern = try! NSRegularExpression(pattern: #"(\d+(?:[.,]\d+)?)\s*(g|gr|gramos?|kg|ml|mililitros?|l|litros?|oz|onzas?|lb|libras?)\b"#, options: .caseInsensitive)
+    private static let kgLiterPattern = try! NSRegularExpression(pattern: "kg|l$|litros?")
     private static let ozPattern = try! NSRegularExpression(pattern: "oz|onzas?")
     private static let lbPattern = try! NSRegularExpression(pattern: "lb|libras?")
     private static let halfPattern = try! NSRegularExpression(pattern: #"\b1/2\b"#)
@@ -347,13 +347,7 @@ enum FoodParser {
 
     // ─── Extract Grams ───────────────────────────────────────────────────────
 
-    /// Search can choose a different row from the typed name. Its density owns the volume conversion.
-    static func measuredGramsForSearchPick(query: String, foodName: String) -> Double? {
-        let grams = extractGramsFromFragment(TextNormalizer.normalize(query), measuredFoodName: foodName).0
-        return grams.flatMap { $0.isFinite && $0 > 0 ? $0 : nil }
-    }
-
-    private static func extractGramsFromFragment(_ text: String, measuredFoodName: String? = nil) -> (Double?, String) {
+    private static func extractGramsFromFragment(_ text: String) -> (Double?, String) {
         guard let match = gramPattern.firstMatch(in: text, range: NSRange(text.startIndex..., in: text)) else {
             return (nil, text)
         }
@@ -381,8 +375,7 @@ enum FoodParser {
             .replacingOccurrences(of: matchValue, with: " ")
             .replacingOccurrences(of: "\\s{2,}", with: " ", options: .regularExpression)
             .trimmingCharacters(in: .whitespacesAndNewlines)
-        let isVolume = ["ml", "cc", "cm3", "l", "lt", "lts"].contains(unit) || unit.hasPrefix("mililitro") || unit.hasPrefix("litro")
-        return (isVolume ? SubjectivePortionEngine.massFromVolumeMl(value, foodTag: measuredFoodName ?? cleaned) : value, cleaned)
+        return (value, cleaned)
     }
 
     // ─── Extract Portion Reference ───────────────────────────────────────────

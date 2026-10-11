@@ -36,10 +36,6 @@ class WorkoutMediaGallerySaverTest {
         val fixtures = listOf(
             FormatFixture("png", "image/png", pngSignature()),
             FormatFixture("webp", "image/webp", webpSignature()),
-            FormatFixture("jpg", "image/jpeg", fixture("sample.jpg")),
-            FormatFixture("heic", "image/heic", fixture("sample.heic")),
-            FormatFixture("heif", "image/heif", fixture("sample.heif")),
-            FormatFixture("avif", "image/avif", fixture("sample.avif")),
         )
 
         try {
@@ -96,8 +92,6 @@ class WorkoutMediaGallerySaverTest {
         val mime: String,
         val bytes: ByteArray,
     )
-
-    private fun fixture(name: String): ByteArray = requireNotNull(javaClass.getResourceAsStream("/media-formats/$name")).use { it.readBytes() }
 
     private fun pngSignature() = byteArrayOf(
         0x89.toByte(), 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A,

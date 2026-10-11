@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="com.example.kpkn.screens.onboarding.design.entreno.EntrenoSymbolDrawTest" tests="2" skipped="0" failures="0" errors="0" timestamp="2026-10-10T06:37:17.636Z" hostname="VF" time="1.616">
-  <properties/>
-  <testcase name="theDoneBadgeDrawsItsCheckmarkProgressively" classname="com.example.kpkn.screens.onboarding.design.entreno.EntrenoSymbolDrawTest" time="0.115"/>
-  <testcase name="everySymbolDrawsAtEveryInstantAndSelection" classname="com.example.kpkn.screens.onboarding.design.entreno.EntrenoSymbolDrawTest" time="1.501"/>
-  <system-out><![CDATA[]]></system-out>
-  <system-err><![CDATA[]]></system-err>
-</testsuite>

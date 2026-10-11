@@ -187,15 +187,15 @@ fun FoodLoggerDrawer(
     val vm: FoodLoggerViewModel = viewModel(key = FOOD_LOGGER_VIEW_MODEL_KEY) {
         FoodLoggerViewModel(createSavedStateHandle())
     }
-    LaunchedEffect(vm) {
+    remember(vm) {
         // WP-U11: a registered meal opened to edit seeds the draft with its cards (once, like any seed); otherwise the
         // host's values seed a new meal.
         val seededFromLog = initialLog != null && vm.seedFromLog(initialLog)
         if (!seededFromLog) {
             vm.seedIfEmpty(date = initialDate, meal = initialMealType, description = initialDescription.orEmpty(), tab = initialTab)
         }
-        vm.persistSeed()
     }
+    LaunchedEffect(vm) { vm.persistSeed() }
     val draft = vm.draft
     // The work (analysis, search, save) outlives the composition, so it runs in the ViewModel scope; scrolling stays in effects.
     val scope = vm.viewModelScope
@@ -333,7 +333,7 @@ fun FoodLoggerDrawer(
             ) {
                 // Resolution is read-only. Confirmed dimensions are committed after save.
             }
-        }, calibrationProfile = calibrationProfile, requireEstimatedPortionConfirmation = true)
+        }, calibrationProfile = calibrationProfile)
 
     }
 
@@ -359,7 +359,7 @@ fun FoodLoggerDrawer(
             // parse (and were enriched when they were created), so they stay as they are.
             val freshIds = newTags.mapTo(HashSet()) { it.id }
             result.second to merged.map {
-                if (it.id in freshIds || it.origin.isPinned) it else NutritionInterpretationBridge.enrich(it, parsed, requireEstimatedPortionConfirmation = true)
+                if (it.id in freshIds || it.origin.isPinned) it else NutritionInterpretationBridge.enrich(it, parsed)
             }
         }
         detectedContext = resolvedContext
@@ -1638,15 +1638,14 @@ fun FoodLoggerDrawer(
                         }
                         // The tapped row IS the eaten identity; a pack or per-100 g row only changes the portion.
                         val identity = HouseholdPortions.identityForSearchPick(selectedFood, queryUsed)
-                        val amount = HouseholdPortions.amountForSearchPick(identity, queryUsed)
-                        val grams = amount.grams
+                        val grams = HouseholdPortions.eatenGramsForSearchPick(identity, queryUsed)
                         val logged = scaleFoodByPortion(identity, amountGrams = grams)
                         val status = HouseholdPortions.operationalAutoStatus(
                             food = identity,
                             grams = grams,
                             brandHint = null,
                             explicitKilogram = HouseholdPortions.isExplicitKilogram(queryUsed),
-                            amountIntent = amount.intent,
+                            amountIntent = AmountIntent.UNSPECIFIED,
                             explicitPick = true,
                         )
                         val tag = ResolvedTag(
@@ -1654,8 +1653,6 @@ fun FoodLoggerDrawer(
                             portion = PortionPreset.MEDIUM,
                             quantity = 1.0,
                             amountGrams = grams,
-                            amountIntent = amount.intent,
-                            unitId = amount.unitId,
                             foodItem = identity,
                             loggedFood = logged,
                             isResolved = status == FoodResolutionStatus.AUTO,

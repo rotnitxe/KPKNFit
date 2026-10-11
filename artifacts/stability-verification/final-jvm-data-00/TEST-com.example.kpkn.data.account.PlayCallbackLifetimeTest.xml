@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="com.example.kpkn.data.account.PlayCallbackLifetimeTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-10-10T05:50:37.491Z" hostname="VF" time="5.396">
-  <properties/>
-  <testcase name="graphStop" classname="com.example.kpkn.data.account.PlayCallbackLifetimeTest" time="5.153"/>
-  <testcase name="lateOffers" classname="com.example.kpkn.data.account.PlayCallbackLifetimeTest" time="0.161"/>
-  <testcase name="latePurchase" classname="com.example.kpkn.data.account.PlayCallbackLifetimeTest" time="0.081"/>
-  <system-out><![CDATA[]]></system-out>
-  <system-err><![CDATA[]]></system-err>
-</testsuite>

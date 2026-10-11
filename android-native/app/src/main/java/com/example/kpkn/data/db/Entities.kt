@@ -545,12 +545,11 @@ data class GlobalFoodEntity(
     val qualityFlagsJson: String = "[]",
 )
 
-@Fts4(contentEntity = GlobalFoodEntity::class, tokenizer = "unicode61")
+@Fts4(contentEntity = GlobalFoodEntity::class)
 @Entity(tableName = "global_foods_fts")
 data class GlobalFoodFtsEntity(
-    val normalizedName: String,
-    val normalizedBrand: String?,
-    val aliasesJson: String,
+    val name: String,
+    val brand: String?
 )
 
 fun GlobalFoodEntity.toFoodItem() = FoodItem(

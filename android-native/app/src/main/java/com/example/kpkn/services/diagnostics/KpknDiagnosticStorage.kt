@@ -9,10 +9,6 @@ import android.util.Log
 import com.example.kpkn.data.diagnostics.KpknDiagnosticLogger
 import java.io.File
 import java.util.concurrent.Executors
-import java.util.concurrent.ThreadPoolExecutor
-import java.util.concurrent.ArrayBlockingQueue
-import java.util.concurrent.TimeUnit
-import java.util.concurrent.atomic.AtomicLong
 
 /**
  * Single SAF mirror for the diagnostic bus.
@@ -33,33 +29,14 @@ object KpknDiagnosticStorage {
     private const val MAX_MIRROR_TOTAL_BYTES = 50L * 1024L * 1024L
     private const val PRUNE_EVERY_EVENTS = 32
     private const val SYNC_EVERY_EVENTS = 25
-    val droppedMirrorTasks = AtomicLong()
-    private val writer = ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS,
-        ArrayBlockingQueue<Runnable>(64),
-        { runnable -> Thread(runnable, "kpkn-jsonl-mirror").apply { isDaemon = true } },
-        { _, _ -> droppedMirrorTasks.incrementAndGet() })
+    private val writer = Executors.newSingleThreadExecutor { runnable ->
+        Thread(runnable, "kpkn-jsonl-mirror").apply { isDaemon = true }
+    }
 
     private val fileUris = mutableMapOf<String, Uri>()
     private var eventsSincePrune = 0
     private var eventsSinceSync = 0
     private val mirroredRecoveryFiles = mutableSetOf<String>()
-    @Volatile private var paused = false
-    private val generation = AtomicLong()
-    private fun submit(action: () -> Unit) {
-        val captured = generation.get()
-        if (paused) return
-        writer.execute { if (!paused && captured == generation.get()) action() }
-    }
-
-    fun pauseForDataSession() {
-        paused = true
-        generation.incrementAndGet()
-        writer.queue.clear()
-        val idle = java.util.concurrent.CountDownLatch(1)
-        writer.execute { idle.countDown() }
-        check(idle.await(5, TimeUnit.SECONDS)) { "Diagnostic mirror did not stop" }
-    }
-    fun resumeForDataSession() { paused = false }
 
     fun configure(context: Context, treeUri: Uri): Result<String> = runCatching {
         require(DocumentsContract.isTreeUri(treeUri)) { "La ubicación seleccionada no es una carpeta válida" }
@@ -69,21 +46,21 @@ object KpknDiagnosticStorage {
             Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION,
         )
         val label = resolveTreeLabel(appContext, treeUri)
-        check(appContext.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+        appContext.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
             .edit()
             .putString(KEY_TREE_URI, treeUri.toString())
             .putString(KEY_TREE_LABEL, label)
-            .commit()) { "Could not persist diagnostic folder" }
+            .commit()
         synchronized(fileUris) {
             fileUris.clear()
             mirroredRecoveryFiles.clear()
             eventsSincePrune = 0
             eventsSinceSync = 0
         }
-        checkNotNull(ensureDirectoryPath(appContext, listOf(LOGS_NAME)))
+        ensureDirectoryPath(appContext, listOf(LOGS_NAME))
         val today = UTC_DAY_FORMAT.format(java.time.Instant.now())
         OFFICIAL_AREAS.forEach { area ->
-            checkNotNull(ensureDirectoryPath(appContext, listOf(LOGS_NAME, area, today)))
+            ensureDirectoryPath(appContext, listOf(LOGS_NAME, area, today))
         }
         mirrorRecoveryFiles(appContext)
         label
@@ -99,7 +76,7 @@ object KpknDiagnosticStorage {
                 )
             }
         }
-        check(appContext.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().clear().commit())
+        appContext.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().clear().commit()
         synchronized(fileUris) {
             fileUris.clear()
             mirroredRecoveryFiles.clear()
@@ -123,10 +100,9 @@ object KpknDiagnosticStorage {
     }
 
     fun enqueueMirror(context: Context, namespace: String, source: File, line: String) {
-        if (paused) return
         if (!isConfigured(context)) return
         val appContext = context.applicationContext
-        submit {
+        writer.execute {
             val area = officialArea(namespace)
             val date = source.parentFile?.name?.takeIf { it.matches(Regex("\\d{8}")) }
                 ?: UTC_DAY_FORMAT.format(java.time.Instant.now())
@@ -158,10 +134,9 @@ object KpknDiagnosticStorage {
 
     /** Mirrors a local artifact below the configured KPKN tree without opening a picker. */
     fun mirrorFile(context: Context, source: File, relativePath: String) {
-        if (paused) return
         if (!source.isFile || !isConfigured(context)) return
         val appContext = context.applicationContext
-        submit {
+        writer.execute {
             runCatching {
                 val segments = relativePath.replace('\\', '/').split('/').filter(String::isNotBlank)
                 val name = segments.lastOrNull() ?: source.name
@@ -179,7 +154,6 @@ object KpknDiagnosticStorage {
 
     /** Recovers both the new layout and legacy roots after a grant is configured. */
     fun mirrorRecoveryFiles(context: Context) {
-        if (paused) return
         val appContext = context.applicationContext
         if (!isConfigured(appContext)) return
         val candidates = buildList {
@@ -193,7 +167,7 @@ object KpknDiagnosticStorage {
             }
         }.distinctBy(File::getAbsolutePath)
         if (candidates.isEmpty()) return
-        submit {
+        writer.execute {
             candidates.filter(File::exists).forEach { source ->
                 if (!mirroredRecoveryFiles.add(source.absolutePath)) return@forEach
                 runCatching { mirrorRecoveryFile(appContext, source) }
@@ -203,37 +177,6 @@ object KpknDiagnosticStorage {
                     }
             }
         }
-    }
-
-    /** Explicit user export waits for provider writes, instead of announcing queue submission as success. */
-    fun mirrorRecoveryFilesAndWait(context: Context) {
-        check(Thread.currentThread().name != "kpkn-jsonl-mirror")
-        val appContext = context.applicationContext
-        check(!paused && isConfigured(appContext))
-        val captured = generation.get()
-        val task = java.util.concurrent.FutureTask(java.util.concurrent.Callable {
-            check(!paused && generation.get() == captured)
-            val candidates = buildList {
-                listOf(KpknDiagnosticLogger.LOG_ROOT, "kpkn_diagnostics", "voice_diagnostics", "nutrition_telemetry").forEach { name ->
-                    File(appContext.filesDir, name).takeIf(File::isDirectory)?.walkTopDown()
-                        ?.filter { it.isFile && it.extension in setOf("jsonl", "md", "json") && it.length() <= 8L * 1024 * 1024 }
-                        ?.forEach(::add)
-                }
-            }.distinctBy(File::getAbsolutePath).sortedByDescending(File::lastModified).take(MAX_MIRROR_FILES)
-            var bytes = 0L
-            candidates.forEach { source ->
-                check(!paused && generation.get() == captured)
-                if (bytes + source.length() <= MAX_MIRROR_TOTAL_BYTES) {
-                    mirrorRecoveryFile(appContext, source)
-                    bytes += source.length()
-                }
-            }
-            check(!paused && generation.get() == captured)
-            Unit
-        })
-        writer.prestartCoreThread()
-        check(writer.queue.offer(task)) { "Diagnostic export queue is full" }
-        try { task.get(30, TimeUnit.SECONDS) } catch (error: Exception) { task.cancel(false); throw error }
     }
 
     private fun mirrorRecoveryFile(context: Context, source: File) {

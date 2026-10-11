@@ -17,8 +17,7 @@ import java.util.concurrent.ConcurrentHashMap
  */
 class TrainedSessionVersionStore(context: Context) {
 
-    private val writeOwner = com.example.kpkn.data.backup.DataSessionWriter("trained-session-version-store")
-    private val appContext = com.example.kpkn.data.backup.capturedPersonalContext(context)
+    private val appContext = context.applicationContext
     @Volatile
     private var prefs: SharedPreferences? = null
     private val appendLocks = ConcurrentHashMap<String, Any>()
@@ -47,7 +46,7 @@ class TrainedSessionVersionStore(context: Context) {
 
     /** Main-safe facade for editor and lifecycle callers. */
     suspend fun loadForSessionOnIo(sessionId: String): List<SessionDraftSnapshot> =
-        writeOwner.write { loadForSession(sessionId) }
+        withContext(Dispatchers.IO) { loadForSession(sessionId) }
 
     private fun decodeSnapshots(raw: String): Result<List<SessionDraftSnapshot>> =
         runCatching {
@@ -119,13 +118,13 @@ class TrainedSessionVersionStore(context: Context) {
         session: Session,
         trainedAtMs: Long = System.currentTimeMillis(),
         reason: String = "Sesión entrenada",
-    ): List<SessionDraftSnapshot> = writeOwner.write {
+    ): List<SessionDraftSnapshot> = withContext(Dispatchers.IO) {
         maybeAppendAfterTraining(sessionId, session, trainedAtMs, reason)
     }
 
     private fun persist(sessionId: String, snapshots: List<SessionDraftSnapshot>) {
         val encoded = snapshots.map { PersistedTrainedVersion.from(it) }
-        val committed = writeOwner.immediate { preferences().edit().putString(keyFor(sessionId), json.encodeToString(encoded)).commit() }
+        val committed = preferences().edit().putString(keyFor(sessionId), json.encodeToString(encoded)).commit()
         check(committed) { "No se pudo confirmar el historial de versiones entrenadas" }
     }
 
@@ -139,10 +138,6 @@ class TrainedSessionVersionStore(context: Context) {
     private fun lockFor(sessionId: String): Any = appendLocks.computeIfAbsent(sessionId) { Any() }
 
     companion object {
-        internal fun closeForDataSession() = synchronized(this) {
-            instance?.writeOwner?.closeAdmission()
-            instance = null
-        }
         private const val PREFS_NAME = "trained_session_versions"
         private const val MAX_VERSIONS = 20
 

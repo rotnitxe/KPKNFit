@@ -157,7 +157,7 @@ class FoodImporterUsageTest {
         db.openHelper.writableDatabase.execSQL("PRAGMA recursive_triggers = OFF")
         dao.insertGlobalFoods(listOf(food("off_1", "Leche entera"), food("off_2", "Yogur natural")))
         dao.insertGlobalFoods(listOf(food("off_1", "Leche entera colun")))
-        db.openHelper.writableDatabase.execSQL("INSERT INTO global_foods_fts(docid, normalizedName, normalizedBrand, aliasesJson) VALUES (424242, 'fantasma', 'huerfano', '[]')")
+        db.openHelper.writableDatabase.execSQL("INSERT INTO global_foods_fts(docid, name, brand) VALUES (424242, 'fantasma', 'huerfano')")
         assertTrue("premise: REPLACE leaves an orphan entry", orphanDocids("leche").isNotEmpty())
         assertEquals("premise: a planted orphan is found as one", listOf(424242L), orphanDocids("fantasma"))
 

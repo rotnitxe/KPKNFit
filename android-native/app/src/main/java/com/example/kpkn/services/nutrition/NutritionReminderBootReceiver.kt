@@ -32,17 +32,16 @@ class NutritionReminderBootReceiver : BroadcastReceiver() {
         val appContext = context.applicationContext
         val now = ZonedDateTime.now(zoneFor(intent))
         // goAsync() devuelve null si alguien invoca onReceive a mano (pruebas): finish() es opcional.
-        val writer = runCatching { com.example.kpkn.data.backup.DataSessionWriter("nutrition-reminder-receiver") }.getOrNull() ?: return
-        val capturedContext = if (com.example.kpkn.data.account.ProfileStorage.initialized()) com.example.kpkn.data.account.ProfileStorage.context(context.applicationContext) else context.applicationContext
         val pendingResult: BroadcastReceiver.PendingResult? = goAsync()
-        val work = writer.launch(CoroutineScope(Dispatchers.IO)) {
+        CoroutineScope(Dispatchers.IO).launch {
             try {
-                restoreReminders(capturedContext, now = now)
+                restoreReminders(appContext, now = now)
             } catch (t: Throwable) {
                 Log.e(TAG, "Failed to restore the nutrition reminders after $action", t)
+            } finally {
+                pendingResult?.finish()
             }
         }
-        work.invokeOnCompletion { pendingResult?.finish() }
     }
 
     companion object {

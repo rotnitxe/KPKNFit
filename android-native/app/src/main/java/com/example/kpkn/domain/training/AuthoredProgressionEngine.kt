@@ -531,7 +531,7 @@ object AuthoredProgressionEngine {
         )
 
     private fun withNotice(program: Program, noticeId: String, text: String, nowMs: Long): Program {
-        if (program.nativeProgressionAudit.any { it.proposalId == noticeId && it.programRunId == program.runState?.runId }) return program
+        if (program.nativeProgressionAudit.any { it.proposalId == noticeId }) return program
         return program.copy(
             nativeProgressionAudit = program.nativeProgressionAudit + NativeProgressionResolution(
                 proposalId = noticeId,
@@ -540,7 +540,6 @@ object AuthoredProgressionEngine {
                 resolvedAtMs = nowMs,
                 reason = text,
                 userFacingNotice = true,
-                programRunId = program.runState?.runId,
             ),
         )
     }

@@ -20,13 +20,12 @@ import java.time.LocalDate
  */
 class AugeRepository private constructor(context: Context) {
 
-    private val writeOwner = com.example.kpkn.data.backup.DataSessionWriter("auge-repository")
     private val dao = KpknDatabase.getInstance(context).augeDao()
     @Volatile private var muscularResetDiagnosticEmitted = false
 
     // ─── DailyWellbeingLog ────────────────────────────────────────────────────
 
-    suspend fun getWellbeingLogs(): List<DailyWellbeingLog> = writeOwner.write {
+    suspend fun getWellbeingLogs(): List<DailyWellbeingLog> = withContext(Dispatchers.IO) {
         dao.getAllWellbeing().mapNotNull { it.toWellbeingLog() }
     }
 
@@ -34,7 +33,7 @@ class AugeRepository private constructor(context: Context) {
      * Upserts wellbeing for a calendar date, reusing the existing row id when present
      * so the unique(date) constraint is respected.
      */
-    suspend fun saveWellbeingLog(log: DailyWellbeingLog) = writeOwner.write {
+    suspend fun saveWellbeingLog(log: DailyWellbeingLog) = withContext(Dispatchers.IO) {
         val existing = dao.getWellbeingForDate(log.date)?.toWellbeingLog()
         val toSave = if (existing != null && existing.id != log.id) {
             log.copy(id = existing.id)
@@ -44,11 +43,11 @@ class AugeRepository private constructor(context: Context) {
         dao.upsertWellbeing(toSave.toEntity())
     }
 
-    suspend fun getTodayWellbeing(): DailyWellbeingLog? = writeOwner.write {
+    suspend fun getTodayWellbeing(): DailyWellbeingLog? = withContext(Dispatchers.IO) {
         dao.getWellbeingForDate(LocalDate.now().toString())?.toWellbeingLog()
     }
 
-    suspend fun getActiveWellbeingWithManualOverrides(): DailyWellbeingLog? = writeOwner.write {
+    suspend fun getActiveWellbeingWithManualOverrides(): DailyWellbeingLog? = withContext(Dispatchers.IO) {
         val today = LocalDate.now()
         val todayStr = today.toString()
         val now = System.currentTimeMillis()
@@ -69,8 +68,8 @@ class AugeRepository private constructor(context: Context) {
     }
 
     /** Clears all manual battery overrides on today's wellbeing (or a no-op if none). */
-    suspend fun clearManualBatteryOverrides() = writeOwner.write {
-        val today = getTodayWellbeing() ?: return@write
+    suspend fun clearManualBatteryOverrides() = withContext(Dispatchers.IO) {
+        val today = getTodayWellbeing() ?: return@withContext
         saveWellbeingLog(
             today.copy(
                 manualNeuralBattery = null,
@@ -85,50 +84,50 @@ class AugeRepository private constructor(context: Context) {
 
     // ─── SleepLog (engine projection — prefer saveSleepLogExtended) ───────────
 
-    suspend fun getLastNSleepLogs(n: Int): List<SleepLog> = writeOwner.write {
+    suspend fun getLastNSleepLogs(n: Int): List<SleepLog> = withContext(Dispatchers.IO) {
         val limit = n.coerceAtLeast(1)
         dao.getLastNSleepLogs(limit).mapNotNull { it.toSleepLog() }
     }
 
     // ─── SleepLogExtended (canonical rich sleep source) ───────────────────────
 
-    suspend fun saveSleepLogExtended(log: SleepLogExtended) = writeOwner.write {
+    suspend fun saveSleepLogExtended(log: SleepLogExtended) = withContext(Dispatchers.IO) {
         dao.upsertSleepLogExtendedAtomic(
             extended = log.toExtendedEntity(),
             basic = log.toSleepLog().toEntity(),
         )
     }
 
-    suspend fun getLastNSleepLogsExtended(n: Int): List<SleepLogExtended> = writeOwner.write {
+    suspend fun getLastNSleepLogsExtended(n: Int): List<SleepLogExtended> = withContext(Dispatchers.IO) {
         val limit = n.coerceAtLeast(1)
         dao.getLastNSleepLogsExtended(limit).mapNotNull { it.toSleepLogExtended() }
     }
 
-    suspend fun getAllSleepLogsExtended(): List<SleepLogExtended> = writeOwner.write {
+    suspend fun getAllSleepLogsExtended(): List<SleepLogExtended> = withContext(Dispatchers.IO) {
         dao.getAllSleepLogsExtended().mapNotNull { it.toSleepLogExtended() }
     }
 
-    suspend fun deleteSleepLogExtended(id: String) = writeOwner.write {
+    suspend fun deleteSleepLogExtended(id: String) = withContext(Dispatchers.IO) {
         dao.deleteSleepLogBoth(id)
     }
 
     // ─── PostSessionFeedback ──────────────────────────────────────────────────
 
-    suspend fun getPostSessionFeedbacks(): List<PostSessionFeedback> = writeOwner.write {
+    suspend fun getPostSessionFeedbacks(): List<PostSessionFeedback> = withContext(Dispatchers.IO) {
         dao.getAllFeedback().mapNotNull { it.toFeedback() }
     }
 
-    suspend fun savePostSessionFeedback(fb: PostSessionFeedback) = writeOwner.write {
+    suspend fun savePostSessionFeedback(fb: PostSessionFeedback) = withContext(Dispatchers.IO) {
         dao.upsertFeedback(fb.toEntity())
     }
 
-    suspend fun getFeedbackForLog(logId: String): PostSessionFeedback? = writeOwner.write {
+    suspend fun getFeedbackForLog(logId: String): PostSessionFeedback? = withContext(Dispatchers.IO) {
         dao.getFeedbackForLog(logId)?.toFeedback()
     }
 
     // ─── Adaptive Cache ─────────────────────────────────────────────────────
 
-    suspend fun getAdaptiveCache(): AugeAdaptiveCache = writeOwner.write {
+    suspend fun getAdaptiveCache(): AugeAdaptiveCache = withContext(Dispatchers.IO) {
         val entity = dao.getAdaptiveCache()
         val rawVersion = entity?.data?.let { raw ->
             runCatching {
@@ -147,11 +146,11 @@ class AugeRepository private constructor(context: Context) {
         entity?.toAdaptiveCache() ?: AugeAdaptiveCache()
     }
 
-    suspend fun saveAdaptiveCache(cache: AugeAdaptiveCache) = writeOwner.write {
+    suspend fun saveAdaptiveCache(cache: AugeAdaptiveCache) = withContext(Dispatchers.IO) {
         dao.upsertAdaptiveCache(cache.toEntity())
     }
 
-    suspend fun resetAdaptiveCache() = writeOwner.write {
+    suspend fun resetAdaptiveCache() = withContext(Dispatchers.IO) {
         dao.upsertAdaptiveCache(AugeAdaptiveCache().toEntity())
     }
 
@@ -163,7 +162,7 @@ class AugeRepository private constructor(context: Context) {
         sleepLogsExtended: List<SleepLogExtended>,
         postSessionFeedback: List<PostSessionFeedback>,
         adaptiveCache: AugeAdaptiveCache?,
-    ) = writeOwner.write {
+    ) = withContext(Dispatchers.IO) {
         wellbeingLogs.forEach { saveWellbeingLog(it) }
         sleepLogsExtended.forEach { saveSleepLogExtended(it) }
         // Basic sleep only for entries without an extended counterpart
@@ -179,7 +178,6 @@ class AugeRepository private constructor(context: Context) {
 
     companion object {
         @Volatile private var INSTANCE: AugeRepository? = null
-        internal fun closeForDataSession() { synchronized(this) { INSTANCE?.writeOwner?.closeAdmission(); INSTANCE = null } }
 
         fun getInstance(context: Context): AugeRepository =
             INSTANCE ?: synchronized(this) {

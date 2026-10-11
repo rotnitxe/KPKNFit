@@ -42,7 +42,6 @@ class KpknTelemetry private constructor(context: Context) {
     }
 
     fun logException(exception: Throwable, fatal: Boolean = false) {
-        com.example.kpkn.data.diagnostics.CrashReportingController.record(exception)
         KpknDiagnosticLogger.exception(
             namespace = "app",
             name = if (fatal) "fatal_exception" else "exception",
@@ -62,7 +61,6 @@ class KpknTelemetry private constructor(context: Context) {
     fun startTrace(name: String): Trace = Trace(name)
 
     fun setCrashlyticsEnabled(enabled: Boolean) {
-        com.example.kpkn.data.diagnostics.CrashReportingController.setEnabled(enabled)
         KpknDiagnosticLogger.event("app", "crash_reporting_changed", mapOf("enabled" to enabled))
     }
 

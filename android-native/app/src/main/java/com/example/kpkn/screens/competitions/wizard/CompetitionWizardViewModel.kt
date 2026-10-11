@@ -45,7 +45,6 @@ class CompetitionWizardViewModel(
     private val repository: CompetitionRepository = CompetitionRepository.getInstance(),
 ) : ViewModel() {
 
-    private val mediaWrites = com.example.kpkn.data.backup.DataSessionWriter("competition-media-view-model")
     private val isNew = competitionId.isNullOrBlank() || competitionId == "new"
 
     private val _draft = MutableStateFlow(PowerliftingWizardDraft.createEmpty())
@@ -185,9 +184,11 @@ class CompetitionWizardViewModel(
     }
 
     fun addMedia(context: Context, uri: Uri) {
-        mediaWrites.launch(viewModelScope, Dispatchers.IO) {
-            val copied = CompetitionMediaStore.copyIntoApp(context, uri, _draft.value.id) ?: return@launch
-            withContext(Dispatchers.Main) { update { it.copy(photos = it.photos + copied) } }
+        viewModelScope.launch {
+            val copied = withContext(Dispatchers.IO) {
+                CompetitionMediaStore.copyIntoApp(context, uri, _draft.value.id)
+            } ?: return@launch
+            update { it.copy(photos = it.photos + copied) }
         }
     }
 

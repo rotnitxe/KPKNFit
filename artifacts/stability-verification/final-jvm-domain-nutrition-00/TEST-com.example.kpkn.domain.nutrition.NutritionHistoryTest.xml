@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="com.example.kpkn.domain.nutrition.NutritionHistoryTest" tests="2" skipped="0" failures="0" errors="0" timestamp="2026-10-10T05:57:41.355Z" hostname="VF" time="0.011">
-  <properties/>
-  <testcase name="series keeps gaps and computes coverage on registered days only" classname="com.example.kpkn.domain.nutrition.NutritionHistoryTest" time="0.011"/>
-  <testcase name="historical snapshot stays attached to its day and uncertain range is separate" classname="com.example.kpkn.domain.nutrition.NutritionHistoryTest" time="0.0"/>
-  <system-out><![CDATA[]]></system-out>
-  <system-err><![CDATA[]]></system-err>
-</testsuite>
