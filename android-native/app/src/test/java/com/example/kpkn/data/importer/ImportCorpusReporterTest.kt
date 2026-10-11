@@ -1,0 +1,171 @@
+package com.example.kpkn.data.importer
+
+import com.example.kpkn.domain.exercises.catalogv2.ExerciseCatalogV2Loader
+import com.example.kpkn.domain.training.importer.ExerciseNameMatcher
+import com.example.kpkn.domain.training.importer.ProgramImportParser
+import java.io.ByteArrayOutputStream
+import java.io.File
+import java.util.zip.ZipEntry
+import java.util.zip.ZipOutputStream
+import kotlinx.serialization.json.Json
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
+import org.junit.Rule
+import org.junit.Test
+import org.junit.rules.TemporaryFolder
+
+/** Pruebas del informe sobre un corpus sintético que se crea aquí, en una carpeta temporal (nada del corpus real). */
+class ImportCorpusReporterTest {
+
+    @Rule
+    @JvmField
+    val temporaryFolder = TemporaryFolder()
+
+    private val matcher by lazy {
+        ExerciseNameMatcher(ExerciseCatalogV2Loader.decodeApproved(File("src/main/assets/exercise_catalog_v2.json").readText()))
+    }
+
+    @Test
+    fun `escribe report json y report md, una hoja por archivo, y el json se vuelve a leer igual`() {
+        val out = temporaryFolder.newFolder("informe")
+
+        val report = ImportCorpusReporter(matcher).run(syntheticCorpus(), out)
+
+        assertTrue(File(out, "report.md").isFile)
+        assertEquals(report.files.size, File(out, "sheets").listFiles()!!.count { it.extension == "md" })
+        val decoded = Json.decodeFromString(CorpusReport.serializer(), File(out, "report.json").readText())
+        assertEquals(report, decoded)
+    }
+
+    @Test
+    fun `cada archivo sale con su resultado en orden de gravedad y lo que no es hoja se ignora`() {
+        val report = ImportCorpusReporter(matcher).run(syntheticCorpus(), temporaryFolder.newFolder("informe"))
+
+        assertEquals(
+            listOf(
+                "003-no-xlsx/003-no-xlsx.xlsx" to CorpusOutcome.RECHAZO,
+                "004-veintiuna/004-veintiuna.xlsx" to CorpusOutcome.RECHAZO,
+                "006-vacio/006-vacio.csv" to CorpusOutcome.NADA,
+                "005-pobre/005-pobre.csv" to CorpusOutcome.POBRE,
+                "001-valido/001-valido.xlsx" to CorpusOutcome.BIEN,
+                "002-csv/002-csv.csv" to CorpusOutcome.BIEN,
+            ),
+            report.files.map { it.path to it.outcome },
+        )
+        assertEquals("No es un libro de Excel (.xlsx) válido", report.files[0].note)
+        assertEquals("El libro tiene más de 20 hojas", report.files[1].note)
+        assertEquals(1, report.summary.ignored)
+    }
+
+    @Test
+    fun `recorta las celdas a 24 caracteres y escapa barras verticales y saltos de linea`() {
+        val out = temporaryFolder.newFolder("informe")
+        val report = ImportCorpusReporter(matcher).run(syntheticCorpus(), out)
+
+        assertEquals("corta", ImportCorpusReporter.cutCell("corta"))
+        assertEquals("a".repeat(24), ImportCorpusReporter.cutCell("a".repeat(24)))
+        val cut = ImportCorpusReporter.cutCell("b".repeat(30))
+        assertEquals(24, cut.length)
+        assertTrue(cut.endsWith("…"))
+        assertEquals("uno\\|dos\\ntres", ImportCorpusReporter.mdCell("uno|dos\r\ntres"))
+
+        val sheetFile = report.files.single { it.path == "001-valido/001-valido.xlsx" }.sheetFile
+        val sheet = File(out, "sheets/$sheetFile").readText()
+        assertTrue(sheet.contains("| 2 | Press banca | 4 | 8 | 80 |"))
+        assertTrue(sheet.contains("Notas \\| variante con un… |"))
+    }
+
+    @Test
+    fun `un fallo inesperado queda como FALLO y el informe se escribe igual`() {
+        val out = temporaryFolder.newFolder("informe")
+        val reporter = ImportCorpusReporter(matcher, parse = { sheets, title ->
+            if (title == "002-csv") throw IllegalStateException("prueba") else ProgramImportParser.parseSheets(sheets, title)
+        })
+
+        val report = reporter.run(syntheticCorpus(), out)
+
+        assertEquals(CorpusOutcome.FALLO, report.files.single { it.path == "002-csv/002-csv.csv" }.outcome)
+        assertEquals(listOf("002-csv/002-csv.csv: análisis: java.lang.IllegalStateException: prueba"), report.summary.failures)
+        assertTrue(File(out, "report.md").isFile)
+    }
+
+    /** Corpus mínimo: un xlsx de dos hojas, un csv bueno, un no-xlsx, uno con 21 hojas, un csv pobre y uno vacío. */
+    private fun syntheticCorpus(): File {
+        val root = temporaryFolder.newFolder("corpus")
+        fun write(path: String, bytes: ByteArray) {
+            File(root, path).apply { parentFile?.mkdirs() }.writeBytes(bytes)
+        }
+        write("001-valido/001-valido.xlsx", workbook(listOf("Día 1" to sheetXml(DAY_ONE), "Día 2" to sheetXml(DAY_TWO))))
+        write("002-csv/002-csv.csv", CSV_OK.toByteArray(Charsets.UTF_8))
+        write("003-no-xlsx/003-no-xlsx.xlsx", "esto no es un libro".toByteArray(Charsets.UTF_8))
+        write("004-veintiuna/004-veintiuna.xlsx", workbook((1..21).map { "Hoja $it" to sheetXml(emptyList()) }))
+        write("005-pobre/005-pobre.csv", CSV_POBRE.toByteArray(Charsets.UTF_8))
+        write("006-vacio/006-vacio.csv", ByteArray(0))
+        write("007-notas/leeme.txt", "no se lee".toByteArray(Charsets.UTF_8))
+        return root
+    }
+
+    private fun workbook(sheets: List<Pair<String, String>>): ByteArray {
+        val out = ByteArrayOutputStream()
+        ZipOutputStream(out).use { zip ->
+            val entries = sheets.mapIndexed { index, (name, _) ->
+                """<sheet name="$name" sheetId="${index + 1}" r:id="rId${index + 1}"/>"""
+            }.joinToString("")
+            zip.entry(
+                "xl/workbook.xml",
+                """<?xml version="1.0" encoding="UTF-8"?>""" +
+                    """<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" """ +
+                    """xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets>$entries</sheets></workbook>""",
+            )
+            zip.entry("xl/_rels/workbook.xml.rels", relationships(sheets.size))
+            sheets.forEachIndexed { index, (_, xml) -> zip.entry("xl/worksheets/sheet${index + 1}.xml", xml) }
+        }
+        return out.toByteArray()
+    }
+
+    private fun relationships(count: Int): String =
+        """<?xml version="1.0" encoding="UTF-8"?>""" +
+            """<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">""" +
+            (1..count).joinToString("") {
+                """<Relationship Id="rId$it" """ +
+                    """Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" """ +
+                    """Target="worksheets/sheet$it.xml"/>"""
+            } +
+            "</Relationships>"
+
+    /** Hoja con celdas de texto en línea y números; las filas se numeran desde la 1. */
+    private fun sheetXml(rows: List<List<String>>): String {
+        val body = rows.mapIndexed { rowIndex, cells ->
+            val cellsXml = cells.mapIndexed { column, text ->
+                val ref = "${'A' + column}${rowIndex + 1}"
+                if (text.toDoubleOrNull() != null) {
+                    """<c r="$ref"><v>$text</v></c>"""
+                } else {
+                    """<c r="$ref" t="inlineStr"><is><t>$text</t></is></c>"""
+                }
+            }.joinToString("")
+            """<row r="${rowIndex + 1}">$cellsXml</row>"""
+        }.joinToString("")
+        return """<?xml version="1.0" encoding="UTF-8"?>""" +
+            """<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetData>$body</sheetData></worksheet>"""
+    }
+
+    private fun ZipOutputStream.entry(name: String, content: String) {
+        putNextEntry(ZipEntry(name))
+        write(content.toByteArray(Charsets.UTF_8))
+        closeEntry()
+    }
+
+    private companion object {
+        val DAY_ONE = listOf(
+            listOf("Ejercicio", "Series", "Reps", "Peso"),
+            listOf("Press banca", "4", "8", "80"),
+        )
+        val DAY_TWO = listOf(
+            listOf("Ejercicio", "Series", "Reps", "Peso", "Notas | variante con una descripción larga"),
+            listOf("Press banca", "3", "10", "75"),
+        )
+        const val CSV_OK = "Ejercicio;Series;Reps;Peso\nPress banca;4;8-10;80\n"
+        const val CSV_POBRE = "Ejercicio;Series;Reps\nejercicio inventado xyz;3;10\nejercicio inventado xyz;3;10\n"
+    }
+}
