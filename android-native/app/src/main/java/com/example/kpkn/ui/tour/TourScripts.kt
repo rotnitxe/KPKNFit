@@ -171,7 +171,7 @@ object TourScripts {
         TourStep(
             anchorId = TourAnchors.TRAINING_EMPEZAR,
             title = "Empezar sesión",
-            body = "Cuando estés listo, empieza aquí.",
+            body = "Empieza aquí cuando quieras.",
         ),
     )
 }

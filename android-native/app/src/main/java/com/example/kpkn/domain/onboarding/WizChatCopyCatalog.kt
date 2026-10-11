@@ -142,7 +142,7 @@ object WizChatCopyCatalog {
                 value == "from-scratch" -> "Hecho: tus sesiones se montarán tal como las has preparado. Revísalo en el siguiente paso."
                 else -> "Hecho: preparo ese plan para que lo revises antes de activarlo."
             }
-            WizChatQuestionId.T_REVIEW -> "Pásate por el resumen cuando quieras y actívalo cuando estés listo."
+            WizChatQuestionId.T_REVIEW -> "Pásate por el resumen y actívalo cuando quieras."
             WizChatQuestionId.N_START -> when {
                 value.contains("profesional") -> "Perfecto: guardaremos tus indicaciones tal cual, sin sustituirlas por un cálculo propio."
                 value.contains("después") -> "De acuerdo, lo dejamos preparado para más adelante."

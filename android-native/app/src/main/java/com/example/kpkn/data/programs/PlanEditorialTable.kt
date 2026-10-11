@@ -339,7 +339,7 @@ internal object PlanEditorialTable {
             generatedVariant(
                 displayName = "Escalera de carga",
                 summary = "Seis semanas en dos bloques: tres de acumulación con más volumen, dos de intensificación con " +
-                    "cargas más altas y una de descarga para llegar fresco. Se arma con tu material, tus días y tu tiempo.",
+                    "cargas más altas y una de descarga para recuperarte. Se arma con tu material, tus días y tu tiempo.",
                 rank = 710,
             ),
         )
@@ -378,7 +378,7 @@ internal object PlanEditorialTable {
             generatedVariant(
                 displayName = "Fuerza para la vida",
                 summary = "Seis semanas en dos bloques: tres de acumulación con más repeticiones, dos de intensificación " +
-                    "con cargas más altas y una de descarga para llegar fresco. Se arma con tu material, tus días y tu " +
+                    "con cargas más altas y una de descarga para recuperarte. Se arma con tu material, tus días y tu " +
                     "tiempo.",
                 rank = 712,
             ),
@@ -438,7 +438,7 @@ internal object PlanEditorialTable {
             generatedVariant(
                 displayName = "Carga y acarreo",
                 summary = "Seis semanas en dos bloques: tres de acumulación con más volumen de básicos y acarreos, dos de " +
-                    "intensificación con cargas más altas y una de descarga para llegar fresco. Se arma con tu material, " +
+                    "intensificación con cargas más altas y una de descarga para recuperarte. Se arma con tu material, " +
                     "tus días y tu tiempo.",
                 rank = 715,
             ),
@@ -458,7 +458,7 @@ internal object PlanEditorialTable {
             generatedVariant(
                 displayName = "Ondas olímpicas",
                 summary = "Seis semanas en dos bloques: tres de acumulación con más volumen de levantamientos olímpicos, " +
-                    "dos de intensificación con cargas más altas y una de descarga para llegar fresco. Se arma con tu " +
+                    "dos de intensificación con cargas más altas y una de descarga para recuperarte. Se arma con tu " +
                     "material, tus días y tu tiempo.",
                 rank = 716,
             ),
@@ -478,7 +478,7 @@ internal object PlanEditorialTable {
             generatedVariant(
                 displayName = "Ondas de fuerza",
                 summary = "Seis semanas en dos bloques: tres de acumulación con más volumen, dos de intensificación con " +
-                    "cargas más altas y una de descarga para llegar fresco. Si declaraste tus marcas, las cargas de los " +
+                    "cargas más altas y una de descarga para recuperarte. Si declaraste tus marcas, las cargas de los " +
                     "básicos salen de ellas.",
                 rank = 717,
             ),
@@ -486,7 +486,7 @@ internal object PlanEditorialTable {
         add(
             "generated:powerlifting:periodized",
             generatedVariant(
-                displayName = "Camino al pico",
+                displayName = "Camino a la gloria",
                 summary = "Doce semanas de sentadilla, banca y peso muerto: cinco de acumulación, tres de intensificación, " +
                     "dos de realización solo con los básicos, una de descarga y una de prueba a una serie. Si declaraste " +
                     "tus marcas, las cargas de los básicos salen de ellas.",

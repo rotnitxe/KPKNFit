@@ -184,12 +184,6 @@ fun WorkoutReadinessSheet(
         stableHeightFraction = 0.86f,
         hazeState = hazeState,
     ) {
-        val preparedWord = when (gender) {
-            Gender.FEMALE -> "preparada"
-            Gender.MALE -> "preparado"
-            else -> "preparado(a)"
-        }
-
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -228,7 +222,7 @@ fun WorkoutReadinessSheet(
                 )
 
                 Text(
-                    text = "¿Qué tan $preparedWord te sientes?",
+                    text = "¿Cómo llegas a entrenar hoy?",
                     modifier = Modifier.fillMaxWidth(),
                     textAlign = TextAlign.Center,
                     style = MaterialTheme.typography.headlineSmall,

@@ -187,7 +187,7 @@ private fun sampleDetail(card: PlanCardModel): PlanDetailModel = PlanDetailModel
     blocks = listOf(
         PlanBlockModel("Volumen", "Semanas 1–4", "Más series y repeticiones con el 80 % de tu marca."),
         PlanBlockModel("Intensidad", "Semanas 5–8", "Menos volumen y cargas más cercanas a tu máximo."),
-        PlanBlockModel("Descarga", "Semana 9", "Bajamos la carga para llegar fresco al siguiente ciclo."),
+        PlanBlockModel("Descarga", "Semana 9", "Bajamos la carga para recuperarte al siguiente ciclo."),
     ),
     week = listOf(
         PlanDayModel(1, "Volumen", 75, 6, true),

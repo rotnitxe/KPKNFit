@@ -32,6 +32,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -833,14 +834,9 @@ private fun HomeTopBar(
                         nutritionSlide = 0f
                     }
                     Box(modifier = Modifier.height(48.dp).weight(1f), contentAlignment = Alignment.CenterStart) {
-                        Text(
-                            "$greeting, $userName!",
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Black,
-                            fontSize = 16.sp,
-                            color = Color.White,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
+                        HomeGreetingLine(
+                            greeting = greeting,
+                            userName = userName,
                             modifier = Modifier.graphicsLayer { alpha = greetingAlpha; translationY = greetingSlide },
                         )
                         MiniSessionCard(
@@ -875,6 +871,67 @@ private fun HomeTopBar(
             }
         }
     }
+}
+
+/**
+ * Saludo de la cabecera con el nombre entero: el completo de 16 a 12 sp; si no cabe, «¡Hola, …!» (también de 16 a 12 sp);
+ * y solo si ni así cabe, se corta con «…». Siempre en una línea y con la tipografía de la barra.
+ */
+@Composable
+private fun HomeGreetingLine(greeting: String, userName: String, modifier: Modifier = Modifier) {
+    val measurer = rememberTextMeasurer()
+    val style = MaterialTheme.typography.titleMedium
+    val density = LocalDensity.current
+    BoxWithConstraints(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.CenterStart) {
+        val widthPx = constraints.maxWidth.toFloat()
+        val fit = remember(greeting, userName, widthPx, style, density.density, density.fontScale) {
+            fitHomeGreeting(
+                full = "$greeting, $userName!",
+                short = "¡Hola, $userName!",
+                widthPx = widthPx,
+            ) { text, sp ->
+                measurer.measure(
+                    text = text,
+                    style = style.copy(fontWeight = FontWeight.Black, fontSize = sp.sp),
+                    maxLines = 1,
+                    softWrap = false,
+                ).size.width.toFloat()
+            }
+        }
+        Text(
+            text = fit.text,
+            style = style,
+            fontWeight = FontWeight.Black,
+            fontSize = fit.sp.sp,
+            color = Color.White,
+            maxLines = 1,
+            softWrap = false,
+            overflow = TextOverflow.Ellipsis,
+            modifier = modifier,
+        )
+    }
+}
+
+/** Saludo elegido para una cabecera: su texto, su tamaño en sp y si va cortado con «…» (ni a 12 sp cabe). */
+internal data class HomeGreetingFit(val text: String, val sp: Float, val truncated: Boolean)
+
+private val homeGreetingSizesSp = listOf(16f, 15f, 14f, 13f, 12f)
+
+/**
+ * Elige el saludo para un ancho de [widthPx] píxeles: el [full] en el mayor tamaño de 16 a 12 sp (de uno en uno) que quepa
+ * en una línea; si no cabe, el [short] con la misma bajada; y si ni así, el [short] a 12 sp (la pantalla lo corta con «…»).
+ * [measureWidthPx] da el ancho de una línea de texto a un tamaño en sp.
+ */
+internal fun fitHomeGreeting(
+    full: String,
+    short: String,
+    widthPx: Float,
+    measureWidthPx: (text: String, sp: Float) -> Float,
+): HomeGreetingFit {
+    fun sizeFor(text: String): Float? = homeGreetingSizesSp.firstOrNull { measureWidthPx(text, it) <= widthPx }
+    sizeFor(full)?.let { return HomeGreetingFit(full, it, truncated = false) }
+    sizeFor(short)?.let { return HomeGreetingFit(short, it, truncated = false) }
+    return HomeGreetingFit(short, homeGreetingSizesSp.last(), truncated = true)
 }
 
 @Composable
