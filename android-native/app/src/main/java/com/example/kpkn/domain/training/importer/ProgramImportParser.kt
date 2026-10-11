@@ -392,7 +392,8 @@ object ProgramImportParser {
     private val PERCENT_WORDS = setOf("porcentaje", "percent", "percentage", "1rm")
     private val LOAD_WORDS = setOf("peso", "pesos", "carga", "cargas", "kg", "kgs", "kilos", "load", "weight")
     private val SET_WORDS = setOf("series", "serie", "sets", "set")
-    private val REP_WORDS = setOf("reps", "rep", "repeticiones", "repeticion")
+    /** «SxR» (series por repeticiones) es la columna de la notación «5x3+», como «Reps». */
+    private val REP_WORDS = setOf("reps", "rep", "repeticiones", "repeticion", "sxr")
     private val NOTE_WORDS = setOf("notas", "nota", "notes", "note", "observaciones", "comentarios")
 
     // ---- Notación compacta -------------------------------------------------------------------------------
@@ -603,10 +604,10 @@ object ProgramImportParser {
     /** «Día 1», «Dia 2 — Pierna», «Day 3», «D4» (texto normalizado), con o sin texto detrás. */
     private val DAY_NUMBERED = Regex("""(?:dia|day|d)\s?\d{1,2}(?:\s.*)?""")
 
-    /** Un día de la semana, en inglés o en español, con o sin foco detrás («Mon Pull», «Lunes: Pierna»). */
+    /** Un día de la semana, en inglés o en español, con o sin foco detrás pero sin cifras («Mon Pull», «Lunes: Pierna»). */
     private val WEEKDAY_LABEL = Regex(
         """(?:lunes|martes|miercoles|jueves|viernes|sabado|domingo|monday|tuesday|wednesday|thursday|friday|saturday|sunday""" +
-            """|mon|tues|tue|wed|thurs|thur|thu|fri|sat|sun|lun|mar|mie|jue|vie|sab|dom)(?:\s.*)?""",
+            """|mon|tues|tue|wed|thurs|thur|thu|fri|sat|sun|lun|mar|mie|jue|vie|sab|dom)(?:\s[^0-9]*)?""",
     )
 
     /** «Session 2», «Sesión 4», «Workout B», «Entreno A/B»: el número o la letra, y un texto de foco sin cifras. */

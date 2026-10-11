@@ -323,6 +323,37 @@ class ProgramImportParserNoiseTest {
         assertUniqueIds(draft)
     }
 
+    @Test
+    fun `una columna SxR de notacion se lee como repeticiones, con series y AMRAP`() {
+        val sheet = ImportSheet(
+            name = "Week 1",
+            rows = listOf(
+                listOf("Day 1"),
+                listOf("Exercise", "Lbs", "SxR", "Set 1", "Set 2"),
+                listOf("Squat", "100", "5x3+", "", ""),
+                listOf("Bench", "80", "3x10", "", ""),
+            ),
+        )
+
+        val draft = ProgramImportParser.parseSheets(listOf(sheet), title = "SxR")
+
+        val exercises = draft.weeks.single().days.single().exercises
+        assertEquals(listOf("Squat", "Bench"), exercises.map { it.rawName })
+        assertEquals(listOf(5, 3), exercises.map { it.sets })
+        assertEquals(listOf(3, 10), exercises.map { it.repsMin })
+        assertEquals("AMRAP: última serie, 3 o más repeticiones.", exercises[0].notes)
+        assertEquals(emptyList<String>(), draft.warningMessages)
+    }
+
+    @Test
+    fun `un dia de la semana seguido de cifras no es etiqueta de dia, es una fila que no se entiende`() {
+        val draft = ProgramImportParser.parseText("Día 1\nSentadilla 4x6\nMiércoles 75 90 90 0 7 5 0.75", title = "Datos")
+
+        assertEquals(listOf("Sentadilla"), draft.weeks.single().days.single().exercises.map { it.rawName })
+        assertEquals(listOf("Línea 3: no se entiende «Miércoles 75 90 90 0 7 5 0.75»"), draft.warningMessages)
+        assertEquals(ImportWarningKind.SKIPPED_ROW, draft.warnings.single().kind)
+    }
+
     /** Invariante: ningún día ni ejercicio se queda sin id y todos los ids del borrador son distintos entre sí. */
     private fun assertUniqueIds(draft: ImportedProgramDraft) {
         val ids = draft.weeks.flatMap { week -> week.days.flatMap { day -> listOf(day.id) + day.exercises.map { it.id } } }
