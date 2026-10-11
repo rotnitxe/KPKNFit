@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="com.example.kpkn.domain.training.LoopTriplicationTest" tests="1" skipped="0" failures="0" errors="0" timestamp="2026-10-10T06:26:36.891Z" hostname="VF" time="0.003">
-  <properties/>
-  <testcase name="validate detects loop mutation without occurrence reconciliation" classname="com.example.kpkn.domain.training.LoopTriplicationTest" time="0.003"/>
-  <system-out><![CDATA[]]></system-out>
-  <system-err><![CDATA[]]></system-err>
-</testsuite>

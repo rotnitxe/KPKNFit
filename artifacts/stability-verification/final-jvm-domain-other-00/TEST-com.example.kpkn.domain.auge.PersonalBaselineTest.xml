@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="com.example.kpkn.domain.auge.PersonalBaselineTest" tests="1" skipped="0" failures="0" errors="0" timestamp="2026-10-10T05:59:18.688Z" hostname="VF" time="0.001">
-  <properties/>
-  <testcase name="p25p75RequiresFourSnapshots" classname="com.example.kpkn.domain.auge.PersonalBaselineTest" time="0.001"/>
-  <system-out><![CDATA[]]></system-out>
-  <system-err><![CDATA[]]></system-err>
-</testsuite>

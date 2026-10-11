@@ -1494,11 +1494,11 @@ object SetupWizardValidation {
         when (chapter) {
             SetupWizardChapter.PROFILE -> {
                 if (draft.ageYears == null && draft.birthDateIso == null) put("age", "Añade tu edad o fecha de nacimiento")
-                draft.ageYears?.let { if (it !in 18..100) put("age", "La edad debe estar entre 18 y 100 años") }
+                draft.ageYears?.let { if (it !in 13..100) put("age", "La edad debe estar entre 13 y 100 años") }
                 draft.birthDateIso?.let { value ->
                     val date = runCatching { LocalDate.parse(value) }.getOrNull()
                     if (date == null || date.isAfter(LocalDate.now())) put("birthDate", "Usa una fecha válida")
-                    else if (date.plusYears(18).isAfter(LocalDate.now())) put("birthDate", "Debes tener al menos 18 años")
+                    else if (date.plusYears(13).isAfter(LocalDate.now())) put("birthDate", "Debes tener al menos 13 años")
                 }
                 if (draft.experience == null) put("experience", "Elige tu experiencia")
             }
@@ -1535,7 +1535,7 @@ object SetupWizardValidation {
 
     fun validateDate(value: String?, today: LocalDate = LocalDate.now()): Boolean {
         val date = runCatching { value?.let(LocalDate::parse) }.getOrNull() ?: return false
-        return !date.isAfter(today) && !date.plusYears(18).isAfter(today)
+        return !date.isAfter(today) && !date.plusYears(13).isAfter(today)
     }
 
     /**

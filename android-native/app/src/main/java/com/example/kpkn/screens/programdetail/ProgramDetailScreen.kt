@@ -79,7 +79,6 @@ fun ProgramDetailScreen(
     onCreateSession: (String, String, Int, Int, Int) -> Unit,
     onOpenProgram: (String) -> Unit = {},
     viewModel: ProgramDetailViewModel = viewModel(factory = ProgramDetailViewModel.factory(programId)),
-    onPro: () -> Unit = {},
 ) {
     val augeViewModel = rememberAugeViewModel()
     val program by viewModel.program.collectAsState()
@@ -155,9 +154,10 @@ fun ProgramDetailScreen(
         return
     }
 
-    val advancedAccess = com.example.kpkn.ui.entitlements.LocalPlan.current == com.example.kpkn.domain.entitlements.PlanLevel.PRO
-    LaunchedEffect(p.id, p.volumeSetupPromptSeen, advancedAccess) {
-        showVolumeSetupNotice = advancedAccess && !p.volumeSetupPromptSeen
+    LaunchedEffect(p.id, p.volumeSetupPromptSeen) {
+        if (!p.volumeSetupPromptSeen) {
+            showVolumeSetupNotice = true
+        }
     }
     // Recorrido de Entreno: la primera vez que se entra en un programa ya cargado (visto = el controlador no arranca).
     val tourHost = LocalKpknOverlayHost.current
@@ -236,10 +236,6 @@ fun ProgramDetailScreen(
                                 "Primero calibra el volumen del programa.",
                                 SnackbarType.SUGGESTION,
                             )
-                            VolumeAdjustmentResult.REQUIRES_PRO -> snackbarHostState.showKpknSnackbar(
-                                com.example.kpkn.ui.entitlements.capabilityErrorText("advanced_program_requires_pro"),
-                                SnackbarType.SUGGESTION,
-                            )
                             VolumeAdjustmentResult.NO_WEEK_SELECTED -> snackbarHostState.showKpknSnackbar(
                                 "No encontramos una semana activa para ajustar.",
                                 SnackbarType.SUGGESTION,
@@ -261,10 +257,6 @@ fun ProgramDetailScreen(
                             )
                             VolumeAdjustmentResult.REQUIRES_CALIBRATION -> snackbarHostState.showKpknSnackbar(
                                 "Primero calibra el volumen del programa.",
-                                SnackbarType.SUGGESTION,
-                            )
-                            VolumeAdjustmentResult.REQUIRES_PRO -> snackbarHostState.showKpknSnackbar(
-                                com.example.kpkn.ui.entitlements.capabilityErrorText("advanced_program_requires_pro"),
                                 SnackbarType.SUGGESTION,
                             )
                             VolumeAdjustmentResult.NO_WEEK_SELECTED -> snackbarHostState.showKpknSnackbar(
@@ -306,7 +298,6 @@ fun ProgramDetailScreen(
                 onOpenSplitPage = { showSplitPage = true },
                 onOpenOneRmDialog = { showOneRmDialog = true },
                 onOpenTmEditor = { showTmEditor = true },
-                onPro = onPro,
             )
         }
         }
@@ -515,7 +506,6 @@ private fun TrainingPanel(
     onOpenSplitPage: () -> Unit = {},
     onOpenOneRmDialog: () -> Unit = {},
     onOpenTmEditor: () -> Unit = {},
-    onPro: () -> Unit = {},
 ) {
     val currentWeekId by viewModel.activeProgramState.collectAsState()
     val editorUiState by viewModel.uiState.collectAsState()
@@ -556,13 +546,12 @@ private fun TrainingPanel(
         viewModel.setStructureSubTab(StructureSubTab.SEMANA)
         val sessionId = java.util.UUID.randomUUID().toString()
         val session = createBlankRoadmapSession(sessionId, suggestedDay)
-        val created = viewModel.addSession(
+        viewModel.addSession(
             macroIndex = located.macroIndex,
             mesoIndex = located.mesoIndex,
             weekId = located.weekId,
             session = session,
         )
-        if (!created) return
         onCreateSession(
             sessionId,
             located.weekId,
@@ -758,21 +747,19 @@ private fun TrainingPanel(
                         val weekId = selectedWeekId
                         if (block != null && weekMeta != null && weekId != null) {
                             val sessionId = java.util.UUID.randomUUID().toString()
-                            val created = viewModel.addSession(
+                            viewModel.addSession(
                                 macroIndex = block.macroIndex,
                                 mesoIndex = weekMeta.mesoIndex,
                                 weekId = weekId,
                                 session = createBlankRoadmapSession(sessionId, dayId),
                             )
-                            if (created) {
-                                onCreateSession(
-                                    sessionId,
-                                    weekId,
-                                    block.macroIndex,
-                                    weekMeta.mesoIndex,
-                                    dayId,
-                                )
-                            }
+                            onCreateSession(
+                                sessionId,
+                                weekId,
+                                block.macroIndex,
+                                weekMeta.mesoIndex,
+                                dayId,
+                            )
                         }
                     },
                     onDeleteSession = { sessionId ->
@@ -850,63 +837,57 @@ private fun TrainingPanel(
                 },
             )
             StructureSubTab.VOLUMEN -> {
-                com.example.kpkn.ui.entitlements.CapabilityGate(
-                    capability = com.example.kpkn.domain.entitlements.Capability.MUSCLE_RING,
-                    onPro = onPro,
-                    onBack = { viewModel.setStructureSubTab(StructureSubTab.SEMANA) },
-                ) {
-                    val progLogs by viewModel.programLogs.collectAsState()
-                    val isActiveProg by viewModel.isActiveProgram.collectAsState()
-                    val muscleCdbs by viewModel.muscleCdbsStatus.collectAsState()
-                    val discomforts by viewModel.programDiscomforts.collectAsState()
-                    val exDiscomfortAssoc by viewModel.exerciseDiscomfortAssociations.collectAsState()
-                    val analyticsReport = remember(program, progLogs) {
-                        ProgramAnalyticsEngine.analyze(
-                            program = program,
-                            logs = progLogs,
-                            exerciseCatalog = exerciseCatalogSnapshot(),
-                        )
-                    }
-                    val hasCreatedSessions = remember(program) {
-                        program.macrocycles
-                            .flatMap { it.blocks }
-                            .flatMap { it.mesocycles }
-                            .flatMap { it.weeks }
-                            .any { it.sessions.isNotEmpty() }
-                    }
-                    VolumeView(
+                val progLogs by viewModel.programLogs.collectAsState()
+                val isActiveProg by viewModel.isActiveProgram.collectAsState()
+                val muscleCdbs by viewModel.muscleCdbsStatus.collectAsState()
+                val discomforts by viewModel.programDiscomforts.collectAsState()
+                val exDiscomfortAssoc by viewModel.exerciseDiscomfortAssociations.collectAsState()
+                val analyticsReport = remember(program, progLogs) {
+                    ProgramAnalyticsEngine.analyze(
                         program = program,
-                        isProgramActive = isActiveProg,
-                        hasCreatedSessions = hasCreatedSessions,
-                        onActivateProgram = { viewModel.activateOrResume() },
-                        onGoCreateSession = {
-                            val firstBlock = program.macrocycles.firstOrNull()?.blocks?.firstOrNull()
-                            val firstWeek = firstBlock?.mesocycles?.firstOrNull()?.weeks?.firstOrNull()
-                            if (firstBlock != null && firstWeek != null) {
-                                viewModel.selectBlock(firstBlock.id)
-                                viewModel.selectWeek(firstWeek.id)
-                                viewModel.setStructureSubTab(StructureSubTab.SEMANA)
-                            } else {
-                                viewModel.setStructureSubTab(StructureSubTab.MACROCICLO)
-                            }
-                        },
-                        onApplyVolumeCalibration = { mode, athleteScore, recommendations ->
-                            viewModel.updateProgram(
-                                program.copy(
-                                    mode = mode,
-                                    volumeSystem = com.example.kpkn.data.models.VolumeSystem.KPNK,
-                                    athleteProfileScore = athleteScore,
-                                    volumeRecommendations = recommendations,
-                                )
-                            )
-                        },
-                        programDiscomforts = discomforts,
-                        exerciseDiscomfortAssociations = exDiscomfortAssoc,
-                        analyticsReport = analyticsReport,
-                        muscleCdbsStatus = muscleCdbs,
-                        programLogs = progLogs,
+                        logs = progLogs,
+                        exerciseCatalog = exerciseCatalogSnapshot(),
                     )
                 }
+                val hasCreatedSessions = remember(program) {
+                    program.macrocycles
+                        .flatMap { it.blocks }
+                        .flatMap { it.mesocycles }
+                        .flatMap { it.weeks }
+                        .any { it.sessions.isNotEmpty() }
+                }
+                VolumeView(
+                    program = program,
+                    isProgramActive = isActiveProg,
+                    hasCreatedSessions = hasCreatedSessions,
+                    onActivateProgram = { viewModel.activateOrResume() },
+                    onGoCreateSession = {
+                        val firstBlock = program.macrocycles.firstOrNull()?.blocks?.firstOrNull()
+                        val firstWeek = firstBlock?.mesocycles?.firstOrNull()?.weeks?.firstOrNull()
+                        if (firstBlock != null && firstWeek != null) {
+                            viewModel.selectBlock(firstBlock.id)
+                            viewModel.selectWeek(firstWeek.id)
+                            viewModel.setStructureSubTab(StructureSubTab.SEMANA)
+                        } else {
+                            viewModel.setStructureSubTab(StructureSubTab.MACROCICLO)
+                        }
+                    },
+                    onApplyVolumeCalibration = { mode, athleteScore, recommendations ->
+                        viewModel.updateProgram(
+                            program.copy(
+                                mode = mode,
+                                volumeSystem = com.example.kpkn.data.models.VolumeSystem.KPNK,
+                                athleteProfileScore = athleteScore,
+                                volumeRecommendations = recommendations,
+                            )
+                        )
+                    },
+                    programDiscomforts = discomforts,
+                    exerciseDiscomfortAssociations = exDiscomfortAssoc,
+                    analyticsReport = analyticsReport,
+                    muscleCdbsStatus = muscleCdbs,
+                    programLogs = progLogs,
+                )
             }
         }
 

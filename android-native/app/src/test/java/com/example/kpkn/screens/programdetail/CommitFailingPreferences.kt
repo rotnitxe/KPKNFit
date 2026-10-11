@@ -12,9 +12,6 @@ import android.content.SharedPreferences
 internal class CommitFailingContext(base: Context) : ContextWrapper(base) {
     val preferences = CommitFailingPreferences()
 
-    // Preserve the injected failing store when the adapter captures applicationContext.
-    override fun getApplicationContext(): Context = this
-
     override fun getSharedPreferences(name: String?, mode: Int): SharedPreferences = preferences
 }
 

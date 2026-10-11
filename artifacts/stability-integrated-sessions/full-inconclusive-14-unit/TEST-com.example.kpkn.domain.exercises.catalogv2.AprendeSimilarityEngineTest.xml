@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="com.example.kpkn.domain.exercises.catalogv2.AprendeSimilarityEngineTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-10-09T10:19:11.222Z" hostname="VF" time="0.05">
-  <properties/>
-  <testcase name="role_aware_anatomy_prioritizes_primary_matches_over_stabilizer_matches" classname="com.example.kpkn.domain.exercises.catalogv2.AprendeSimilarityEngineTest" time="0.048"/>
-  <testcase name="ordering_is_deterministic_by_score_then_display_name" classname="com.example.kpkn.domain.exercises.catalogv2.AprendeSimilarityEngineTest" time="0.0"/>
-  <testcase name="bands_use_only_explicit_intent_pattern_and_anatomy_metadata" classname="com.example.kpkn.domain.exercises.catalogv2.AprendeSimilarityEngineTest" time="0.001"/>
-  <system-out><![CDATA[]]></system-out>
-  <system-err><![CDATA[]]></system-err>
-</testsuite>

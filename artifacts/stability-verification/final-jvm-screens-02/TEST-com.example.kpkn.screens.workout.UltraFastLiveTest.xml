@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="com.example.kpkn.screens.workout.UltraFastLiveTest" tests="2" skipped="0" failures="0" errors="0" timestamp="2026-10-10T06:38:57.780Z" hostname="VF" time="0.005">
-  <properties/>
-  <testcase name="applyDoesNotCutLoggedSetIds" classname="com.example.kpkn.screens.workout.UltraFastLiveTest" time="0.005"/>
-  <testcase name="previewDoesNotMutateSession" classname="com.example.kpkn.screens.workout.UltraFastLiveTest" time="0.0"/>
-  <system-out><![CDATA[]]></system-out>
-  <system-err><![CDATA[]]></system-err>
-</testsuite>

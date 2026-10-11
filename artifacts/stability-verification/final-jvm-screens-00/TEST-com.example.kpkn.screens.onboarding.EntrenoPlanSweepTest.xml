@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="com.example.kpkn.screens.onboarding.EntrenoPlanSweepTest" tests="2" skipped="0" failures="0" errors="0" timestamp="2026-10-10T06:35:23.111Z" hostname="VF" time="1.196">
-  <properties/>
-  <testcase name="the_draft_material_reaches_the_generator_as_declared" classname="com.example.kpkn.screens.onboarding.EntrenoPlanSweepTest" time="0.001"/>
-  <testcase name="every_profile_always_gets_an_executable_tailored_program_that_the_evaluator_accepts" classname="com.example.kpkn.screens.onboarding.EntrenoPlanSweepTest" time="1.195"/>
-  <system-out><![CDATA[]]></system-out>
-  <system-err><![CDATA[]]></system-err>
-</testsuite>

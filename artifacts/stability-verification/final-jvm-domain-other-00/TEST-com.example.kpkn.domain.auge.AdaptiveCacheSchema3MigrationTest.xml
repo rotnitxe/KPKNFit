@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="com.example.kpkn.domain.auge.AdaptiveCacheSchema3MigrationTest" tests="1" skipped="0" failures="0" errors="0" timestamp="2026-10-10T05:59:17.767Z" hostname="VF" time="0.015">
-  <properties/>
-  <testcase name="schema2ResetsSystemTauAndKeepsMuscles" classname="com.example.kpkn.domain.auge.AdaptiveCacheSchema3MigrationTest" time="0.015"/>
-  <system-out><![CDATA[]]></system-out>
-  <system-err><![CDATA[]]></system-err>
-</testsuite>

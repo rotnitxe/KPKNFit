@@ -114,7 +114,7 @@ class AuthoredPlansActivationParityTest {
     }
 
     private fun commit(program: Program): SetupCommitResult = room {
-        SetupCommitCoordinator(db, accessLevel = { com.example.kpkn.domain.entitlements.PlanLevel.PRO }).commit(
+        SetupCommitCoordinator(db).commit(
             SetupCommitRequest(
                 commitId = program.id,
                 draftId = null,

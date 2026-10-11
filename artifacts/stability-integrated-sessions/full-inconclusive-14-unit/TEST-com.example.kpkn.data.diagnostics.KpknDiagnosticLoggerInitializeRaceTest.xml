@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="com.example.kpkn.data.diagnostics.KpknDiagnosticLoggerInitializeRaceTest" tests="1" skipped="0" failures="0" errors="0" timestamp="2026-10-09T10:16:02.586Z" hostname="VF" time="0.084">
-  <properties/>
-  <testcase name="liveVoiceRegistrationAfterContextPublicationSurvivesDelayedRootSwitch" classname="com.example.kpkn.data.diagnostics.KpknDiagnosticLoggerInitializeRaceTest" time="0.084"/>
-  <system-out><![CDATA[]]></system-out>
-  <system-err><![CDATA[]]></system-err>
-</testsuite>

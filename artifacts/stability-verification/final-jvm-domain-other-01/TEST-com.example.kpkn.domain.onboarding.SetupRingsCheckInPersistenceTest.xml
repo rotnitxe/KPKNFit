@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="com.example.kpkn.domain.onboarding.SetupRingsCheckInPersistenceTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-10-10T06:25:03.776Z" hostname="VF" time="0.599">
-  <properties/>
-  <testcase name="unreportedDiscomfortsDoNotTouchExistingDiscomfortsOnFieldMerge" classname="com.example.kpkn.domain.onboarding.SetupRingsCheckInPersistenceTest" time="0.22"/>
-  <testcase name="explicitNoDiscomfortsReplacesExistingDiscomfortsOnFieldMerge" classname="com.example.kpkn.domain.onboarding.SetupRingsCheckInPersistenceTest" time="0.174"/>
-  <testcase name="partialCalibrationCommitsRealCheckInAndKeepsPreviousEvidenceTimestamp" classname="com.example.kpkn.domain.onboarding.SetupRingsCheckInPersistenceTest" time="0.205"/>
-  <system-out><![CDATA[]]></system-out>
-  <system-err><![CDATA[]]></system-err>
-</testsuite>

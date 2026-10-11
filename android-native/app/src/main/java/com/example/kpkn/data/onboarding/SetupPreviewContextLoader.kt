@@ -16,12 +16,11 @@ data class SetupPreviewContext(
 
 /** Loads persisted context once for deterministic previews and commit review. */
 class SetupPreviewContextLoader(private val db: KpknDatabase) {
-    private val owner = com.example.kpkn.data.backup.DataSessionWriter("setup-preview-reader")
-    suspend fun load(): SetupPreviewContext = owner.write {
+    suspend fun load(): SetupPreviewContext {
         val settings = db.settingsDao().get()?.toSettings() ?: Settings()
         val activeProgram = db.stateDao().getActiveProgram()?.toActiveProgramState()
         val activePlanId = db.nutritionDao().getActiveState()?.activePlanId
         val activePlan = activePlanId?.let { id -> db.nutritionDao().getAllPlans().firstOrNull { it.id == id }?.toNutritionPlan() }
-        SetupPreviewContext(settings, activeProgram, activePlan)
+        return SetupPreviewContext(settings, activeProgram, activePlan)
     }
 }

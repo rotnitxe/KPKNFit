@@ -113,15 +113,14 @@ data class SetupCommitResult(
 )
 
 class SetupDraftRepository(private val db: KpknDatabase) {
-    private val writeOwner = com.example.kpkn.data.backup.DataSessionWriter("setup-draft-repository")
     private val writeMutex = Mutex()
 
-    suspend fun load(draftId: String): SetupDraft? = writeOwner.write withContext@ {
+    suspend fun load(draftId: String): SetupDraft? = withContext(Dispatchers.IO) {
         db.setupDraftDao().getDraft(draftId)?.toModel()
     }
 
     suspend fun save(draftId: String, payloadJson: String, revision: Long, catalogRevision: String? = null): SetupDraft = writeMutex.withLock {
-        writeOwner.write withContext@ {
+        withContext(Dispatchers.IO) {
             require(draftId.isNotBlank())
             require(revision >= 0)
             db.withTransaction {
@@ -150,7 +149,7 @@ class SetupDraftRepository(private val db: KpknDatabase) {
     }
 
     suspend fun discard(draftId: String) = writeMutex.withLock {
-        writeOwner.write withContext@ { db.setupDraftDao().deleteDraft(draftId) }
+        withContext(Dispatchers.IO) { db.setupDraftDao().deleteDraft(draftId) }
     }
 }
 
@@ -158,21 +157,15 @@ class SetupCommitCoordinator(
     private val db: KpknDatabase,
     private val programRepository: ProgramRepository? = null,
     private val nutritionRepository: NutritionRepository? = null,
-    private val accessLevel: () -> com.example.kpkn.domain.entitlements.PlanLevel = {
-        programRepository?.planLevel() ?: nutritionRepository?.accessLevel?.invoke() ?:
-            com.example.kpkn.data.account.AccountGraph.entitlement.value.effectiveLevel
-    },
+    private val accessLevel: () -> com.example.kpkn.domain.entitlements.PlanLevel = { com.example.kpkn.domain.entitlements.PlanLevel.PRO },
 ) {
-    private val writeOwner = com.example.kpkn.data.backup.DataSessionWriter("setup-commit-coordinator")
     private val mutex = Mutex()
 
-    suspend fun commit(request: SetupCommitRequest): SetupCommitResult = writeOwner.write { commitAccepted(request) }
-
-    private suspend fun commitAccepted(request: SetupCommitRequest): SetupCommitResult = mutex.withLock {
+    suspend fun commit(request: SetupCommitRequest): SetupCommitResult = mutex.withLock {
         PersistenceWriteCoordinator.mutex.withLock {
             require(request.commitId.isNotBlank())
             programRepository?.isReady?.first { it }
-            writeOwner.write withContext@ {
+            withContext(Dispatchers.IO) {
             var result: SetupCommitResult? = null
             var shouldPublish = false
             var committedSettings: Settings? = null
@@ -200,8 +193,6 @@ class SetupCommitCoordinator(
                     shouldPublish = true
                 } else {
                     request.program?.let { com.example.kpkn.domain.entitlements.ProgramAccessPolicy.requireWrite(accessLevel(), it) }
-                    if (request.nutritionPlan != null || request.activateNutrition || request.derivedBodyGoals.isNotEmpty() || request.dailyGoalSnapshot != null)
-                        com.example.kpkn.domain.entitlements.ProgramAccessPolicy.requireCapability(accessLevel(), com.example.kpkn.domain.entitlements.Capability.NUTRITION)
                     val currentSettings = db.settingsDao().get()?.toSettings() ?: request.settings
                     // Valida TODAS las observaciones antes de tocar nada: una fila
                     // inválida, futura o contradictoria rechaza el alta sin efectos

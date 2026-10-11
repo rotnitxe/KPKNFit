@@ -19,25 +19,18 @@ class SharedPreferencesKeyValueStore(
     private val fileName: String,
 ) : KeyValueStore {
 
-    private val writeOwner = com.example.kpkn.data.backup.DataSessionWriter("key-value-preferences")
-    private val capturedContext = com.example.kpkn.data.backup.capturedPersonalContext(context)
-    private val scope = com.example.kpkn.data.backup.DataSessionWriterScope(
-        kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.SupervisorJob() + kotlinx.coroutines.Dispatchers.IO), writeOwner)
     private val prefs: SharedPreferences by lazy {
-        capturedContext.getSharedPreferences(fileName, Context.MODE_PRIVATE)
+        context.getSharedPreferences(fileName, Context.MODE_PRIVATE)
     }
 
-    override fun getString(key: String): String? = writeOwner.immediate { prefs.getString(key, null) }
+    override fun getString(key: String): String? = prefs.getString(key, null)
 
-    override fun putString(key: String, value: String) = writeOwner.immediate {
+    override fun putString(key: String, value: String) {
         prefs.edit().putString(key, value).apply()
-        // commit waits behind the apply disk queue; the retained child fences that queue.
-        scope.launch { prefs.edit().commit() }
-        Unit
     }
 
     override fun putStringDurably(key: String, value: String): Boolean =
-        writeOwner.immediate { prefs.edit().putString(key, value).commit() }
+        prefs.edit().putString(key, value).commit()
 }
 
 /**
@@ -61,7 +54,6 @@ fun variantPreferenceStore(context: Context): VariantPreferenceStore =
 
 /** Instancia compartida de la app (misma semántica que el antiguo `getInstance`). */
 object PreferenceStores {
-    internal fun closeForDataSession() = synchronized(this) { snapshots = null; variants = null }
     @Volatile
     private var snapshots: ProgramSnapshotStore? = null
 

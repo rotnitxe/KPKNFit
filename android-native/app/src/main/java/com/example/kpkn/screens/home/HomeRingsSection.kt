@@ -71,10 +71,6 @@ fun HomeRingsSection(
     onModelNoticeShown: () -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
-    if (com.example.kpkn.ui.entitlements.LocalPlan.current == com.example.kpkn.domain.entitlements.PlanLevel.FREE) {
-        EnergyOnlyRing(sncProgress, isLoading, coverage ?: snapshot?.coverage ?: RingsCoverage.NO_DATA, modifier)
-        return
-    }
     val progressValues = remember(muscularProgress, sncProgress, columnaProgress, isLoading) {
         if (isLoading) listOf(0f, 0f, 0f)
         else listOf(muscularProgress, sncProgress, columnaProgress)
@@ -171,32 +167,6 @@ fun HomeRingsSection(
             onDismissAdvisory = onDismissAdvisory,
             onModelNoticeShown = onModelNoticeShown,
         )
-    }
-}
-
-@Composable private fun EnergyOnlyRing(progress: Float, loading: Boolean, coverage: RingsCoverage, modifier: Modifier) {
-    val label = androidx.compose.ui.res.stringResource(com.example.kpkn.R.string.free_energy_ring)
-    val noData = androidx.compose.ui.res.stringResource(com.example.kpkn.R.string.free_ring_no_data)
-    val estimated = androidx.compose.ui.res.stringResource(com.example.kpkn.R.string.free_ring_estimate)
-    val hasData = coverage.channel(RecoveryChannelId.SYSTEM).hasData
-    val score = if (!loading && hasData) progress.coerceIn(0f, 1f) else 0f
-    // Sin datos no hay valor: el anillo sale con pista discontinua («sin calibrar»), no como un 0 % lleno de vacío.
-    val energy: Int? = when {
-        loading -> 0
-        hasData -> (score * 100).toInt()
-        else -> null
-    }
-    Column(modifier.fillMaxWidth().padding(24.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        Text(label, style = MaterialTheme.typography.titleMedium)
-        Box(Modifier.size(170.dp).semantics(mergeDescendants = true) { contentDescription = "$label: ${if (hasData) "${(score * 100).toInt()}%" else noData}" }, contentAlignment = Alignment.Center) {
-            KpknTowerRings(
-                values = TowerRingValues(columna = null, musculos = null, energia = energy),
-                modifier = Modifier.fillMaxSize(),
-                visible = setOf(RingChannel.ENERGIA),
-            )
-            if (loading) CircularProgressIndicator() else Text(if (hasData) "${(score * 100).toInt()}%" else noData, style = MaterialTheme.typography.headlineSmall)
-        }
-        Text(estimated, style = MaterialTheme.typography.bodySmall)
     }
 }
 

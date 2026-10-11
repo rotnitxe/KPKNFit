@@ -1,9 +1,0 @@
-{
-  "state": "PASS",
-  "testedFiles": 2604,
-  "stagedSourceDrift": [],
-  "existingMixedLineEndingBlobsPreservedByteForByte": [
-    "android-native/app/src/main/java/com/example/kpkn/services/workout/WorkoutVoiceEnginePort.kt",
-    "android-native/app/src/main/java/com/example/kpkn/services/workout/WorkoutVoiceGrammarBuilder.kt"
-  ]
-}

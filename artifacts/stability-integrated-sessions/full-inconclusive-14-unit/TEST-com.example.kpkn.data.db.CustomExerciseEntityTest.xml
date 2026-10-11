@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="com.example.kpkn.data.db.CustomExerciseEntityTest" tests="1" skipped="0" failures="0" errors="0" timestamp="2026-10-09T10:15:47.413Z" hostname="VF" time="0.004">
-  <properties/>
-  <testcase name="toEntity_preserves_created_at_on_update" classname="com.example.kpkn.data.db.CustomExerciseEntityTest" time="0.004"/>
-  <system-out><![CDATA[]]></system-out>
-  <system-err><![CDATA[]]></system-err>
-</testsuite>

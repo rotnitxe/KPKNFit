@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="com.example.kpkn.domain.training.generator.RoutineGeneratorLowMinutesTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-10-10T06:30:46.747Z" hostname="VF" time="2.415">
-  <properties/>
-  <testcase name="the_disciplines_never_fail_and_give_an_executable_week_with_twenty_and_twenty_five_minutes" classname="com.example.kpkn.domain.training.generator.RoutineGeneratorLowMinutesTest" time="1.481"/>
-  <testcase name="the_generator_keeps_twenty_as_its_own_floor_whatever_the_wizard_offers" classname="com.example.kpkn.domain.training.generator.RoutineGeneratorLowMinutesTest" time="0.001"/>
-  <testcase name="the_general_modes_never_fail_and_meet_the_contract_with_twenty_and_twenty_five_minutes" classname="com.example.kpkn.domain.training.generator.RoutineGeneratorLowMinutesTest" time="0.932"/>
-  <system-out><![CDATA[]]></system-out>
-  <system-err><![CDATA[]]></system-err>
-</testsuite>

@@ -124,7 +124,7 @@ class NutritionRepositoryStartupTest {
             FoodCatalogImporter::class.java,
         )
         ctor.isAccessible = true
-        return ctor.newInstance(context, db, false, importer).also { it.accessLevel = { com.example.kpkn.domain.entitlements.PlanLevel.PRO }; repositories += it }
+        return ctor.newInstance(context, db, false, importer).also { repositories += it }
     }
 
     private fun scheduledAlarms(): Int =

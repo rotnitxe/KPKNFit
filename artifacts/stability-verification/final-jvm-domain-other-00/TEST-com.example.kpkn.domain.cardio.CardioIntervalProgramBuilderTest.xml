@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="com.example.kpkn.domain.cardio.CardioIntervalProgramBuilderTest" tests="2" skipped="0" failures="0" errors="0" timestamp="2026-10-10T05:59:18.941Z" hostname="VF" time="0.008">
-  <properties/>
-  <testcase name="nonSpeedModalitiesReceivePowerOrLevelGuidance" classname="com.example.kpkn.domain.cardio.CardioIntervalProgramBuilderTest" time="0.006"/>
-  <testcase name="patternsScaleToRequestedDurationAndKeepSafeBlockMinimum" classname="com.example.kpkn.domain.cardio.CardioIntervalProgramBuilderTest" time="0.002"/>
-  <system-out><![CDATA[]]></system-out>
-  <system-err><![CDATA[]]></system-err>
-</testsuite>

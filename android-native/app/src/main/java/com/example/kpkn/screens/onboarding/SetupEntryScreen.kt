@@ -36,30 +36,16 @@ import kotlinx.coroutines.withContext
 fun SetupEntryScreen(
     onStart: (mode: String, draftId: String?) -> Unit,
     onCompleted: () -> Unit,
-    onPro: () -> Unit = {},
 ) {
     val context = androidx.compose.ui.platform.LocalContext.current
     val settings by ProgramRepository.getInstance().settings.collectAsStateWithLifecycle()
-    val repository = ProgramRepository.getInstance()
-    val starter: SetupEntryViewModel = androidx.lifecycle.viewmodel.compose.viewModel(factory = remember(repository) {
-        object : androidx.lifecycle.ViewModelProvider.Factory {
-            @Suppress("UNCHECKED_CAST")
-            override fun <T : androidx.lifecycle.ViewModel> create(modelClass: Class<T>): T {
-                require(modelClass == SetupEntryViewModel::class.java)
-                return SetupEntryViewModel(repository) as T
-            }
-        }
-    })
-    val starterState by starter.state.collectAsStateWithLifecycle()
-    val free = com.example.kpkn.ui.entitlements.LocalPlan.current == com.example.kpkn.domain.entitlements.PlanLevel.FREE
     var candidates by remember { mutableStateOf<List<SetupDraftCandidate>>(emptyList()) }
     var loading by remember { mutableStateOf(true) }
     var loadError by remember { mutableStateOf(false) }
     var retry by remember { mutableStateOf(0) }
     var pendingStart by remember { mutableStateOf(false) }
-    LaunchedEffect(settings.onboardingCompleted, retry, free) {
+    LaunchedEffect(settings.onboardingCompleted, retry) {
         if (settings.onboardingCompleted) { onCompleted(); return@LaunchedEffect }
-        if (free) { loading = false; loadError = false; return@LaunchedEffect }
         loading = true
         val recovered = runCatching { withContext(Dispatchers.IO) { SetupDraftResolver(persistenceFactory(context).database).listRecoverable() } }
         loadError = recovered.isFailure
@@ -86,13 +72,5 @@ fun SetupEntryScreen(
         }
         return
     }
-    if (free) {
-        androidx.compose.foundation.layout.Box(Modifier.fillMaxSize()) {
-            SetupWelcomeScreen(onStart = { starter.startFree() },
-                actionLabel = androidx.compose.ui.res.stringResource(if (starterState.busy) com.example.kpkn.R.string.free_intro_saving else com.example.kpkn.R.string.free_intro_start),
-                secondaryLabel = androidx.compose.ui.res.stringResource(com.example.kpkn.R.string.free_intro_pro), onSecondary = onPro)
-            if (starterState.failed) Text(androidx.compose.ui.res.stringResource(com.example.kpkn.R.string.free_intro_error),
-                modifier = Modifier.windowInsetsPadding(WindowInsets.safeDrawing).padding(24.dp), color = WizardColors.text)
-        }
-    } else SetupWelcomeScreen(onStart = { pendingStart = true })
+    SetupWelcomeScreen(onStart = { pendingStart = true })
 }

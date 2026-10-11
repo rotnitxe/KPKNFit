@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="com.example.kpkn.screens.sessioneditor.components.InlineSetRowStateTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-10-10T06:38:57.285Z" hostname="VF" time="0.011">
-  <properties/>
-  <testcase name="emptySetKeepsIntensitySelectorOptional" classname="com.example.kpkn.screens.sessioneditor.components.InlineSetRowStateTest" time="0.009"/>
-  <testcase name="unilateralSelectorUsesOnlyTheRenderedSide" classname="com.example.kpkn.screens.sessioneditor.components.InlineSetRowStateTest" time="0.002"/>
-  <testcase name="rulesIntensityActivatesRegularSetSelector" classname="com.example.kpkn.screens.sessioneditor.components.InlineSetRowStateTest" time="0.0"/>
-  <system-out><![CDATA[]]></system-out>
-  <system-err><![CDATA[]]></system-err>
-</testsuite>

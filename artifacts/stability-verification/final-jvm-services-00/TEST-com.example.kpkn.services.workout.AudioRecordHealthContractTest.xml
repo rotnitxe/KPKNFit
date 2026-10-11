@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="com.example.kpkn.services.workout.AudioRecordHealthContractTest" tests="1" skipped="0" failures="0" errors="0" timestamp="2026-10-10T06:40:35.747Z" hostname="VF" time="0.0">
-  <properties/>
-  <testcase name="startRecordingFailureMustNotReportSuccess" classname="com.example.kpkn.services.workout.AudioRecordHealthContractTest" time="0.0"/>
-  <system-out><![CDATA[]]></system-out>
-  <system-err><![CDATA[]]></system-err>
-</testsuite>

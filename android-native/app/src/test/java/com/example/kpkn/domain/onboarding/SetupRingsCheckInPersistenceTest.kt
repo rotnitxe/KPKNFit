@@ -51,7 +51,7 @@ class SetupRingsCheckInPersistenceTest {
             discomforts = SetupRingsResponseMapping.discomfortField(RingsDiscomfortResponse.NONE, emptyList()),
         )
 
-        SetupCommitCoordinator(db, accessLevel = { com.example.kpkn.domain.entitlements.PlanLevel.PRO }).commit(
+        SetupCommitCoordinator(db).commit(
             SetupCommitRequest("commit-none", null, Settings(), null, null, false, false,
                 initialWellbeing = staged.toWellbeingLog("onboarding-check-in", date, 1_000L)))
 
@@ -74,7 +74,7 @@ class SetupRingsCheckInPersistenceTest {
         )
         assertNull(staged.preWorkoutDiscomforts)
 
-        SetupCommitCoordinator(db, accessLevel = { com.example.kpkn.domain.entitlements.PlanLevel.PRO }).commit(
+        SetupCommitCoordinator(db).commit(
             SetupCommitRequest("commit-unreported", null, Settings(), null, null, false, false,
                 initialWellbeing = staged.toWellbeingLog("onboarding-check-in", date, 1_000L)))
 
@@ -104,7 +104,7 @@ class SetupRingsCheckInPersistenceTest {
         val date = LocalDate.now().toString()
         val staged = SetupRingsResponseMapping.stageCheckIn(checkIn = mapping.previewCheckIn())
 
-        SetupCommitCoordinator(db, accessLevel = { com.example.kpkn.domain.entitlements.PlanLevel.PRO }).commit(
+        SetupCommitCoordinator(db).commit(
             SetupCommitRequest("commit-partial", null, Settings(), null, null, false, false,
                 initialWellbeing = staged.toWellbeingLog("onboarding-check-in", date, 9_999_999L),
                 settingsPatch = SetupSettingsPatch(initialRecoveryEvidence = mapping.toEvidencePatchField())))

@@ -366,11 +366,7 @@ class WorkoutMediaCaptureController(
                 val pendingRecording = videoCapture.output
                     .prepareRecording(appContext, FileOutputOptions.Builder(dest).build())
                     .apply {
-                        if (audioGranted && ContextCompat.checkSelfPermission(appContext,
-                                android.Manifest.permission.RECORD_AUDIO) == android.content.pm.PackageManager.PERMISSION_GRANTED) {
-                            try { withAudioEnabled() }
-                            catch (_: SecurityException) { /* A revoked microphone still permits a silent video. */ }
-                        }
+                        if (audioGranted) withAudioEnabled()
                     }
                 val pending = pendingRecording.start(ContextCompat.getMainExecutor(appContext)) { event ->
                         if (event is VideoRecordEvent.Finalize) {

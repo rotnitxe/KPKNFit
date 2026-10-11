@@ -22,10 +22,7 @@ data class RuleTemplate(
  */
 class RuleTemplateStore(context: Context) {
 
-    private val writeOwner = com.example.kpkn.data.backup.DataSessionWriter("rule-template-store")
-    private val scope = com.example.kpkn.data.backup.DataSessionWriterScope(
-        kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.SupervisorJob() + kotlinx.coroutines.Dispatchers.IO), writeOwner)
-    private val appContext = com.example.kpkn.data.backup.capturedPersonalContext(context)
+    private val appContext = context.applicationContext
     private val prefs: SharedPreferences by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
         appContext.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
     }
@@ -99,17 +96,10 @@ class RuleTemplateStore(context: Context) {
     }
 
     private fun persist(templates: List<RuleTemplate>) {
-        writeOwner.immediate {
-            prefs.edit().putString(KEY_TEMPLATES, json.encodeToString(templates)).apply()
-            scope.launch { prefs.edit().commit() }
-        }
+        prefs.edit().putString(KEY_TEMPLATES, json.encodeToString(templates)).apply()
     }
 
     companion object {
-        internal fun closeForDataSession() = synchronized(this) {
-            instance?.writeOwner?.closeAdmission()
-            instance = null
-        }
         private const val PREFS_NAME = "session_editor_rule_templates"
         private const val KEY_TEMPLATES = "templates_v1"
 

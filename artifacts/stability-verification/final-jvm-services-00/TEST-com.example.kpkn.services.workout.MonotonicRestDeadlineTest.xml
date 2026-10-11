@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="com.example.kpkn.services.workout.MonotonicRestDeadlineTest" tests="2" skipped="0" failures="0" errors="0" timestamp="2026-10-10T06:40:35.752Z" hostname="VF" time="0.001">
-  <properties/>
-  <testcase name="rebootCanOnlyShortenDeadlineAndExpiredTimersStayExpired" classname="com.example.kpkn.services.workout.MonotonicRestDeadlineTest" time="0.001"/>
-  <testcase name="wallClockChangesDoNotMoveCurrentBootDeadline" classname="com.example.kpkn.services.workout.MonotonicRestDeadlineTest" time="0.0"/>
-  <system-out><![CDATA[]]></system-out>
-  <system-err><![CDATA[]]></system-err>
-</testsuite>

@@ -252,9 +252,9 @@
     <string name="widget_volume_title">Calibrar volumen</string>
     <string name="widget_volume_subtitle">Configura el volumen recomendado por músculo para este programa.</string>
     <string name="widget_increase_title">Aumentar volumen</string>
-    <string name="widget_increase_subtitle" formatted="false">Sube 20% el volumen de la semana actual, músculo por músculo.</string>
+    <string name="widget_increase_subtitle">Sube 20% el volumen de la semana actual, músculo por músculo.</string>
     <string name="widget_reduce_title">Disminuir volumen</string>
-    <string name="widget_reduce_subtitle" formatted="false">Baja 20% el volumen de la semana actual, músculo por músculo.</string>
+    <string name="widget_reduce_subtitle">Baja 20% el volumen de la semana actual, músculo por músculo.</string>
     <string name="widget_verified">Verificado</string>
     <string name="widget_blocked">Bloqueado</string>
     <string name="widget_limit">Límite</string>
@@ -269,10 +269,10 @@
     <string name="widget_needs_calibration_body">Necesitamos una calibración base antes de aplicar automatizaciones sobre el volumen.</string>
     <string name="widget_calibrate_now">Calibrar ahora</string>
     <string name="widget_increase_confirm_title">Aumentar volumen semanal</string>
-    <string name="widget_increase_confirm_body" formatted="false">Esto aumentará en 20% el volumen de la semana actual, músculo por músculo. ¿Deseas continuar?</string>
+    <string name="widget_increase_confirm_body">Esto aumentará en 20% el volumen de la semana actual, músculo por músculo. ¿Deseas continuar?</string>
     <string name="widget_confirm_increase">Sí, aumentar</string>
     <string name="widget_decrease_confirm_title">Disminuir volumen semanal</string>
-    <string name="widget_decrease_confirm_body" formatted="false">Esto reducirá en 20% el volumen de la semana actual, músculo por músculo. ¿Deseas continuar?</string>
+    <string name="widget_decrease_confirm_body">Esto reducirá en 20% el volumen de la semana actual, músculo por músculo. ¿Deseas continuar?</string>
     <string name="widget_confirm_decrease">Sí, reducir</string>
 
     <!-- ═══════════════════════════════════════════════════════════════
@@ -389,11 +389,4 @@
     <!-- %1$d = número de semana -->
     <string name="macro_default_week_n_name">Semana %1$d</string>
 
-    <string name="data_session_active_title">Hay una actividad en curso</string>
-    <string name="data_session_active_workout_description">Termina y guarda el entrenamiento, o descártalo expresamente. Después vuelve para confirmar la operación de datos.</string>
-    <string name="data_session_active_capture_description">Finaliza el registro de ubicación o la captura antes de cambiar los datos.</string>
-    <string name="data_session_finish_workout">Finalizar entrenamiento</string>
-    <string name="data_session_discard_workout">Descartar entrenamiento</string>
-    <string name="data_session_discard_title">¿Descartar el entrenamiento?</string>
-    <string name="data_session_discard_description">Se descartarán las series de esta sesión sin guardarlas. Tus entrenamientos anteriores se conservan.</string>
 </resources>

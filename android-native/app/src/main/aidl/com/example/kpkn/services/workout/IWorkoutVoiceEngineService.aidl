@@ -14,6 +14,4 @@ interface IWorkoutVoiceEngineService {
     boolean requestNativeFallback(long generation, String transcript);
     void completePrompt(long generation, long requestId);
     void forceKillSelf();
-    // Maintenance waits for binder death, not for this asynchronous request to return.
-    oneway void quiesceForDataSession();
 }

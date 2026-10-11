@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="com.example.kpkn.screens.workout.ParseCompletedSetKeyTest" tests="2" skipped="0" failures="0" errors="0" timestamp="2026-10-10T06:38:57.355Z" hostname="VF" time="0.009">
-  <properties/>
-  <testcase name="parsesBilateralAndUnilateralKeys" classname="com.example.kpkn.screens.workout.ParseCompletedSetKeyTest" time="0.008"/>
-  <testcase name="keepsUnderscoresInsideExerciseId" classname="com.example.kpkn.screens.workout.ParseCompletedSetKeyTest" time="0.0"/>
-  <system-out><![CDATA[]]></system-out>
-  <system-err><![CDATA[]]></system-err>
-</testsuite>

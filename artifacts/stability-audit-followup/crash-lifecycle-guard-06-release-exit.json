@@ -1,8 +1,0 @@
-{
-  "ExitCode": 0,
-  "Variant": "release",
-  "Sources": "src/testRelease probe only",
-  "BaselineAssertionsUnchanged": true,
-  "ProductSourceSha256": "89F2089CB947F3DABD313A77E073F44DB69ED4818EFF536E514F7688DD3DF4FC",
-  "Utc": "2026-10-10T10:00:23.7747062Z"
-}

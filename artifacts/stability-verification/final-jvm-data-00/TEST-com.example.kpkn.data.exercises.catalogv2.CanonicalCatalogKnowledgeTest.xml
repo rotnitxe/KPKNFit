@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="com.example.kpkn.data.exercises.catalogv2.CanonicalCatalogKnowledgeTest" tests="2" skipped="0" failures="0" errors="0" timestamp="2026-10-10T05:51:06.320Z" hostname="VF" time="0.009">
-  <properties/>
-  <testcase name="ambiguousOrUnknownIdsFailClosed" classname="com.example.kpkn.data.exercises.catalogv2.CanonicalCatalogKnowledgeTest" time="0.006"/>
-  <testcase name="explicitCatalogMappingsExposeOnlyCanonicalIntro" classname="com.example.kpkn.data.exercises.catalogv2.CanonicalCatalogKnowledgeTest" time="0.003"/>
-  <system-out><![CDATA[]]></system-out>
-  <system-err><![CDATA[]]></system-err>
-</testsuite>

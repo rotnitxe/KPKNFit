@@ -303,7 +303,7 @@ class NutritionNotificationManager(private val context: Context) {
             .build()
 
         try {
-            com.example.kpkn.services.notifications.PermissionAwareNotifications.post(appCtx, NOTIF_MACRO_DEFICIT, notification)
+            notifManager.notify(NOTIF_MACRO_DEFICIT, notification)
         } catch (e: Exception) {
             android.util.Log.w("NutritionNotif", "Could not send macro deficit alert", e)
         }
@@ -330,7 +330,7 @@ class NutritionNotificationManager(private val context: Context) {
             .build()
 
         try {
-            com.example.kpkn.services.notifications.PermissionAwareNotifications.post(appCtx, NOTIF_MEASUREMENT, notification)
+            notifManager.notify(NOTIF_MEASUREMENT, notification)
         } catch (e: Exception) {
             android.util.Log.w("NutritionNotif", "Could not send measurement reminder", e)
         }
@@ -360,7 +360,7 @@ class NutritionNotificationManager(private val context: Context) {
             .build()
 
         try {
-            com.example.kpkn.services.notifications.PermissionAwareNotifications.post(appCtx, notifId, notification)
+            notifManager.notify(notifId, notification)
         } catch (e: Exception) {
             android.util.Log.w("NutritionNotif", "Could not send $type reminder", e)
         }

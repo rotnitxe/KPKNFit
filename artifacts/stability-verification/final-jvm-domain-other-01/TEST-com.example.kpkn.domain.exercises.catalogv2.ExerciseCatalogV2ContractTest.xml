@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="com.example.kpkn.domain.exercises.catalogv2.ExerciseCatalogV2ContractTest" tests="2" skipped="0" failures="0" errors="0" timestamp="2026-10-10T06:24:46.728Z" hostname="VF" time="0.003">
-  <properties/>
-  <testcase name="selection_round_trips_without_reconstructing_options" classname="com.example.kpkn.domain.exercises.catalogv2.ExerciseCatalogV2ContractTest" time="0.001"/>
-  <testcase name="invalid_selection_is_represented_as_error_not_default" classname="com.example.kpkn.domain.exercises.catalogv2.ExerciseCatalogV2ContractTest" time="0.002"/>
-  <system-out><![CDATA[]]></system-out>
-  <system-err><![CDATA[]]></system-err>
-</testsuite>

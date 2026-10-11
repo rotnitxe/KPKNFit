@@ -285,7 +285,6 @@ internal object RepairBenchmarkTrace {
      * benchmark gate is disabled.
      */
     private object Api28StrictMode {
-        @androidx.annotation.RequiresApi(Build.VERSION_CODES.P)
         fun addViolationListener(
             builder: StrictMode.ThreadPolicy.Builder,
             executor: java.util.concurrent.Executor,

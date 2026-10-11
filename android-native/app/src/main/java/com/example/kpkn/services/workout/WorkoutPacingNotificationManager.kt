@@ -37,7 +37,7 @@ class WorkoutPacingNotificationManager(context: Context) {
             .setCategory(NotificationCompat.CATEGORY_STATUS)
             .setSilent(false)
             .build()
-        com.example.kpkn.services.notifications.PermissionAwareNotifications.post(appContext, NOTIFICATION_ID, notification)
+        notificationManager.notify(NOTIFICATION_ID, notification)
     }
 
     fun cancel() {

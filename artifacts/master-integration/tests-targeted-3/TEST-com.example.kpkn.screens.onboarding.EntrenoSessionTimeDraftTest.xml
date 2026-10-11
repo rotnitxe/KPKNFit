@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="com.example.kpkn.screens.onboarding.EntrenoSessionTimeDraftTest" tests="2" skipped="0" failures="0" errors="0" timestamp="2026-10-08T23:09:38.944Z" hostname="VF" time="0.251">
-  <properties/>
-  <testcase name="aStoredDraftWithTwentyOrTwentyFiveMinutesOpensAtTheTimeStepReadAsThirtyAndConfirmingItKeepsTheRest" classname="com.example.kpkn.screens.onboarding.EntrenoSessionTimeDraftTest" time="0.167"/>
-  <testcase name="aStoredDraftWithThirtyMinutesOrMoreOpensWhereItWasLeft" classname="com.example.kpkn.screens.onboarding.EntrenoSessionTimeDraftTest" time="0.084"/>
-  <system-out><![CDATA[]]></system-out>
-  <system-err><![CDATA[]]></system-err>
-</testsuite>

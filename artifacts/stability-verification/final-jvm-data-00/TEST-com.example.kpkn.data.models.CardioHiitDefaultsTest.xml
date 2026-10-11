@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="com.example.kpkn.data.models.CardioHiitDefaultsTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-10-10T05:51:23.051Z" hostname="VF" time="0.002">
-  <properties/>
-  <testcase name="explicitRpeStillOverridesTheProtocolDefault" classname="com.example.kpkn.data.models.CardioHiitDefaultsTest" time="0.0"/>
-  <testcase name="hiitAndSitUseTheirProtocolDefaultRpe" classname="com.example.kpkn.data.models.CardioHiitDefaultsTest" time="0.001"/>
-  <testcase name="legacyJsonWithoutTargetRpeUsesProtocolDefault" classname="com.example.kpkn.data.models.CardioHiitDefaultsTest" time="0.001"/>
-  <system-out><![CDATA[]]></system-out>
-  <system-err><![CDATA[]]></system-err>
-</testsuite>

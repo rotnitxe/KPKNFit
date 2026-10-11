@@ -57,7 +57,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -71,7 +70,6 @@ import com.example.kpkn.services.diagnostics.KpknDiagnosticStorage
 import com.example.kpkn.services.workout.PermissionGuideHelper
 import com.example.kpkn.services.workout.WorkoutVoicePermissionHelper
 import com.example.kpkn.ui.components.KpknAlertDialog
-import com.example.kpkn.R
 import java.io.File
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -81,18 +79,18 @@ import kotlinx.coroutines.withContext
 @Composable
 fun SettingsScreen(
     onBack: () -> Unit,
-    onAccount: () -> Unit = {},
+    healthConnectAvailable: Boolean = false,
+    onOpenHealthConnect: () -> Unit = {},
     viewModel: SettingsViewModel = viewModel { SettingsViewModel() },
-    dataControlsOnly: Boolean = false,
 ) {
     val context = LocalContext.current
-    val resources = androidx.compose.ui.platform.LocalResources.current
     val lifecycleOwner = LocalLifecycleOwner.current
     val ioScope = rememberCoroutineScope()
     var refreshToken by remember { mutableStateOf(0) }
     var telemetryFolder by remember { mutableStateOf(KpknDiagnosticStorage.configuredLabel(context)) }
     var pendingImport by remember { mutableStateOf<android.net.Uri?>(null) }
     var showDeleteDialog by remember { mutableStateOf(false) }
+    val localTelemetryPath = remember(context) { File(context.filesDir, "kpkn_logs").absolutePath }
 
     LaunchedEffect(context) {
         viewModel.setContext(context)
@@ -109,11 +107,11 @@ fun SettingsScreen(
     val permissionLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) {
         refreshToken++
     }
-    val backupExportLauncher = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/zip")) { uri ->
+    val backupExportLauncher = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/json")) { uri ->
         uri ?: return@rememberLauncherForActivityResult
         viewModel.exportData(context, uri,
-            onSuccess = { Toast.makeText(context, R.string.settings_export_success, Toast.LENGTH_LONG).show() },
-            onError = { Toast.makeText(context, R.string.settings_export_failed, Toast.LENGTH_LONG).show() },
+            onSuccess = { Toast.makeText(context, "Backup exportado correctamente", Toast.LENGTH_LONG).show() },
+            onError = { error -> Toast.makeText(context, "No se pudo exportar: $error", Toast.LENGTH_LONG).show() },
         )
     }
     val backupImportLauncher = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
@@ -126,8 +124,8 @@ fun SettingsScreen(
         viewModel.exportDatabaseSnapshot(
             context = context,
             destination = uri,
-            onSuccess = { Toast.makeText(context, R.string.settings_export_success, Toast.LENGTH_LONG).show() },
-            onError = { Toast.makeText(context, R.string.settings_export_failed, Toast.LENGTH_LONG).show() },
+            onSuccess = { Toast.makeText(context, "Copia .db exportada correctamente", Toast.LENGTH_LONG).show() },
+            onError = { error -> Toast.makeText(context, "No se pudo exportar: $error", Toast.LENGTH_LONG).show() },
         )
     }
     val dbSnapshotImportLauncher = rememberLauncherForActivityResult(
@@ -137,22 +135,20 @@ fun SettingsScreen(
         viewModel.importDatabaseSnapshot(
             context = context,
             uri = uri,
-            onSuccess = { Toast.makeText(context, R.string.settings_import_success, Toast.LENGTH_LONG).show() },
-            onError = { Toast.makeText(context, R.string.settings_import_failed, Toast.LENGTH_LONG).show() },
+            onSuccess = { Toast.makeText(context, "Base de datos restaurada", Toast.LENGTH_LONG).show() },
+            onError = { error -> Toast.makeText(context, "No se pudo importar: $error", Toast.LENGTH_LONG).show() },
         )
     }
     val telemetryFolderLauncher = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocumentTree()) { uri ->
         uri ?: return@rememberLauncherForActivityResult
-        ioScope.launch {
-        withContext(Dispatchers.IO) { KpknDiagnosticStorage.configure(context, uri) }
+        KpknDiagnosticStorage.configure(context, uri)
             .onSuccess { label ->
                 telemetryFolder = label
-                Toast.makeText(context, R.string.settings_folder_success, Toast.LENGTH_LONG).show()
+                Toast.makeText(context, "Ruta JSONL configurada en $label", Toast.LENGTH_LONG).show()
             }
-            .onFailure {
-                Toast.makeText(context, R.string.settings_folder_failed, Toast.LENGTH_LONG).show()
+            .onFailure { error ->
+                Toast.makeText(context, "No se pudo configurar la ruta: ${error.message ?: "error desconocido"}", Toast.LENGTH_LONG).show()
             }
-        }
     }
     val mediaZipLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.CreateDocument("application/zip"),
@@ -164,11 +160,11 @@ fun SettingsScreen(
             onSuccess = { count ->
                 Toast.makeText(
                     context,
-                    if (count == 0) resources.getString(R.string.settings_media_empty) else resources.getString(R.string.settings_media_exported, count),
+                    if (count == 0) "No había medios para exportar" else "ZIP exportado ($count archivos)",
                     Toast.LENGTH_LONG,
                 ).show()
             },
-            onError = { Toast.makeText(context, R.string.settings_export_failed, Toast.LENGTH_LONG).show() },
+            onError = { error -> Toast.makeText(context, "No se pudo exportar: $error", Toast.LENGTH_LONG).show() },
         )
     }
     val diagnosticsExportLauncher = rememberLauncherForActivityResult(
@@ -181,23 +177,23 @@ fun SettingsScreen(
             withContext(Dispatchers.Main) {
                 Toast.makeText(
                     context,
-                    if (exported) resources.getString(R.string.settings_diagnostics_exported) else resources.getString(R.string.settings_diagnostics_failed),
+                    if (exported) "ZIP JSONL exportado" else "No se pudo exportar el JSONL",
                     Toast.LENGTH_LONG,
                 ).show()
             }
         }
     }
 
-    val runtimePermissions = remember(refreshToken, context) { permissionRows(context) }
+    val runtimePermissions = remember(refreshToken, context) { permissionRows(context, healthConnectAvailable) }
     val systemPermissionState = remember(refreshToken, context) { PermissionGuideHelper.getPermissionState(context) }
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(stringResource(R.string.settings_title), fontWeight = FontWeight.Black) },
+                title = { Text("Ajustes", fontWeight = FontWeight.Black) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.common_back))
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver")
                     }
                 },
             )
@@ -212,10 +208,7 @@ fun SettingsScreen(
                 SettingsIntroCard()
             }
             item {
-                Button(onClick = onAccount, modifier = Modifier.fillMaxWidth()) { Text(androidx.compose.ui.res.stringResource(com.example.kpkn.R.string.account_title)) }
-            }
-            if (!dataControlsOnly) item {
-                SettingsBlockTitle(stringResource(R.string.settings_permissions))
+                SettingsBlockTitle("Permisos")
                 SettingsCard {
                     runtimePermissions.forEach { row ->
                         PermissionRow(
@@ -224,14 +217,17 @@ fun SettingsScreen(
                             description = row.description,
                             granted = row.granted,
                             onClick = {
-                                permissionLauncher.launch(row.permissions)
+                                when (row.action) {
+                                    PermissionAction.REQUEST -> permissionLauncher.launch(row.permissions)
+                                    PermissionAction.HEALTH_CONNECT -> onOpenHealthConnect()
+                                }
                             },
                         )
                     }
                     PermissionRow(
                         icon = Icons.Default.Timer,
-                        title = stringResource(R.string.settings_timer_title),
-                        description = stringResource(R.string.settings_timer_description),
+                        title = "Recordatorios y temporizadores",
+                        description = "Permite alarmas precisas y evita que el sistema detenga los avisos.",
                         granted = systemPermissionState.allOk,
                         onClick = {
                             if (!systemPermissionState.exactAlarmOk) PermissionGuideHelper.openExactAlarmSettings(context)
@@ -240,7 +236,7 @@ fun SettingsScreen(
                     )
                 }
             }
-            if (!dataControlsOnly) item {
+            item {
                 SettingsBlockTitle("Recorridos")
                 SettingsCard {
                     SettingsActionRow(
@@ -256,52 +252,52 @@ fun SettingsScreen(
                 }
             }
             item {
-                SettingsBlockTitle(stringResource(R.string.settings_data))
+                SettingsBlockTitle("Datos")
                 SettingsCard {
                     SettingsActionRow(
                         icon = Icons.Default.Folder,
-                        title = stringResource(R.string.settings_media_title),
-                        description = stringResource(R.string.settings_media_description),
-                        actionLabel = stringResource(R.string.settings_export),
+                        title = "Exportar álbumes (ZIP)",
+                        description = "Copia las fotos y vídeos privados de entrenamiento a un archivo ZIP.",
+                        actionLabel = "Exportar",
                         onClick = { mediaZipLauncher.launch("kpkn-workout-media.zip") },
                     )
                 }
             }
             item {
-                SettingsBlockTitle(stringResource(R.string.settings_backup))
+                SettingsBlockTitle("Backup")
                 SettingsCard {
                     SettingsActionRow(
                         icon = Icons.Default.Backup,
-                        title = androidx.compose.ui.res.stringResource(com.example.kpkn.R.string.portable_export_title),
-                        description = androidx.compose.ui.res.stringResource(com.example.kpkn.R.string.portable_export_description),
-                        actionLabel = stringResource(R.string.settings_export),
-                        onClick = { backupExportLauncher.launch("kpkn-backup.kpkn.zip") },
+                        title = "Exportar backup (JSON)",
+                        description = "Rutinas, historial, nutrición, AUGE, competiciones, tags de contexto, rendimiento y metadatos de medios. No incluye el catálogo global de alimentos ni WikiLab (se regeneran).",
+                        actionLabel = "Exportar",
+                        onClick = { backupExportLauncher.launch("kpkn-backup.json") },
                     )
-                    if (!dataControlsOnly) SettingsActionRow(
+                    SettingsActionRow(
                         icon = Icons.Default.Restore,
-                        title = androidx.compose.ui.res.stringResource(com.example.kpkn.R.string.portable_import_title),
-                        description = stringResource(R.string.settings_restore_description),
-                        actionLabel = stringResource(R.string.settings_import),
-                        onClick = { backupImportLauncher.launch(arrayOf("application/zip", "application/json", "text/plain")) },
+                        title = "Importar backup (JSON)",
+                        description = "Restaura lo que trae el archivo. Datos no incluidos en backups antiguos (competiciones, tags, etc.) se conservan. Antes de importar se guarda un snapshot local para deshacer si falla.",
+                        actionLabel = "Importar",
+                        onClick = { backupImportLauncher.launch(arrayOf("application/json", "text/plain")) },
                     )
                     SettingsActionRow(
                         icon = Icons.Default.SettingsBackupRestore,
-                        title = stringResource(R.string.settings_database_export_title),
-                        description = stringResource(R.string.settings_database_export_description),
-                        actionLabel = stringResource(R.string.settings_database_export_action),
+                        title = "Copia completa (.db)",
+                        description = "Snapshot binario de toda la base Room (incluye catálogo global y WikiLab). Recomendado para migrar de dispositivo.",
+                        actionLabel = "Exportar .db",
                         onClick = { dbSnapshotExportLauncher.launch("kpkn-backup.db") },
                     )
-                    if (!dataControlsOnly) SettingsActionRow(
+                    SettingsActionRow(
                         icon = Icons.Default.SettingsBackupRestore,
-                        title = stringResource(R.string.settings_database_import_title),
-                        description = stringResource(R.string.settings_database_import_description),
-                        actionLabel = stringResource(R.string.settings_database_import_action),
+                        title = "Restaurar copia (.db)",
+                        description = "Reemplaza la base local por un archivo .db exportado antes. Crea un snapshot de rollback automático.",
+                        actionLabel = "Importar .db",
                         onClick = { dbSnapshotImportLauncher.launch(arrayOf("application/x-sqlite3", "application/octet-stream", "*/*")) },
                     )
                 }
             }
-            if (!dataControlsOnly) item {
-                SettingsBlockTitle(stringResource(R.string.settings_diagnostics))
+            item {
+                SettingsBlockTitle("Telemetría JSONL")
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.72f)),
@@ -310,12 +306,13 @@ fun SettingsScreen(
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Icon(Icons.Default.Security, contentDescription = null, tint = MaterialTheme.colorScheme.error)
                             Spacer(Modifier.size(8.dp))
-                            Text(stringResource(R.string.settings_diagnostics_folder_title), fontWeight = FontWeight.Black, color = MaterialTheme.colorScheme.onErrorContainer)
+                            Text("Ruta especial de JSONL", fontWeight = FontWeight.Black, color = MaterialTheme.colorScheme.onErrorContainer)
                         }
                         Text(
-                            stringResource(R.string.settings_diagnostics_description) + "\n" +
-                                (telemetryFolder?.let { stringResource(R.string.settings_diagnostics_external, it) }
-                                    ?: stringResource(R.string.settings_diagnostics_private)),
+                            (telemetryFolder?.let { "Espejo externo: $it\n" } ?: "Sin carpeta externa.\n") +
+                                "Copia local: $localTelemetryPath\n" +
+                                "Áreas: workout, voice, nutrition y app (cada una con su JSONL diario).\n" +
+                                "Escritura asíncrona en lotes cada 250 ms para no bloquear la sesión.",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onErrorContainer,
                         )
@@ -323,52 +320,47 @@ fun SettingsScreen(
                             Button(onClick = { telemetryFolderLauncher.launch(null) }) {
                                 Icon(Icons.Default.Folder, contentDescription = null)
                                 Spacer(Modifier.size(4.dp))
-                                Text(stringResource(R.string.settings_folder_select))
+                                Text("Configurar ruta")
                             }
                             if (telemetryFolder != null) {
                                 TextButton(onClick = {
-                                    ioScope.launch {
-                                        val saved = withContext(Dispatchers.IO) { runCatching {
-                                            KpknDiagnosticLogger.flushSync()
-                                            KpknDiagnosticStorage.mirrorRecoveryFilesAndWait(context)
-                                        }.isSuccess }
-                                        Toast.makeText(context, if (saved) R.string.settings_mirror_success else R.string.settings_mirror_failed, Toast.LENGTH_SHORT).show()
+                                    ioScope.launch(Dispatchers.IO) {
+                                        KpknDiagnosticLogger.flushSync()
+                                        KpknDiagnosticStorage.mirrorRecoveryFiles(context)
                                     }
+                                    Toast.makeText(context, "Sincronización iniciada", Toast.LENGTH_SHORT).show()
                                 }) {
                                     Icon(Icons.Default.Sync, contentDescription = null)
                                     Spacer(Modifier.size(4.dp))
-                                    Text(stringResource(R.string.settings_mirror))
+                                    Text("Sincronizar")
                                 }
                                 TextButton(onClick = {
-                                    ioScope.launch {
-                                        runCatching { withContext(Dispatchers.IO) { KpknDiagnosticStorage.clear(context) } }
-                                            .onSuccess { telemetryFolder = null }
-                                            .onFailure { Toast.makeText(context, R.string.settings_folder_failed, Toast.LENGTH_LONG).show() }
-                                    }
-                                }) { Text(stringResource(R.string.settings_unlink)) }
+                                    KpknDiagnosticStorage.clear(context)
+                                    telemetryFolder = null
+                                }) { Text("Desvincular") }
                             }
                             TextButton(onClick = {
                                 diagnosticsExportLauncher.launch(KpknDiagnosticLogger.suggestedFileName())
                             }) {
                                 Icon(Icons.Default.Backup, contentDescription = null)
                                 Spacer(Modifier.size(4.dp))
-                                Text(stringResource(R.string.settings_diagnostics_export))
+                                Text("Exportar ZIP")
                             }
                         }
                     }
                 }
             }
             item {
-                SettingsBlockTitle(stringResource(R.string.settings_delete_heading))
+                SettingsBlockTitle("Eliminar todos los datos")
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.44f)),
                 ) {
                     SettingsActionRow(
                         icon = Icons.Default.DeleteForever,
-                        title = stringResource(R.string.settings_delete_title),
-                        description = stringResource(R.string.settings_delete_description),
-                        actionLabel = stringResource(R.string.settings_delete_action),
+                        title = "Volver a empezar",
+                        description = "Borra tu progreso, rutinas, nutrición, foto y configuraciones de la app.",
+                        actionLabel = "Eliminar todo",
                         destructive = true,
                         onClick = { showDeleteDialog = true },
                     )
@@ -381,10 +373,12 @@ fun SettingsScreen(
     pendingImport?.let { uri ->
         KpknAlertDialog(
             onDismissRequest = { pendingImport = null },
-            title = { Text(stringResource(R.string.settings_import_confirm_title)) },
+            title = { Text("¿Importar este backup?") },
             text = {
                 Text(
-                    stringResource(R.string.settings_import_confirm_description),
+                    "Se restaurarán rutinas, historial, nutrición y AUGE según el JSON. " +
+                        "Si el archivo es antiguo, competiciones y datos de contexto no listados se mantienen. " +
+                        "Se crea un snapshot local antes de importar por si algo falla.",
                 )
             },
             confirmButton = {
@@ -393,20 +387,20 @@ fun SettingsScreen(
                     viewModel.importBackupJson(
                         context = context,
                         uri = uri,
-                        onSuccess = { Toast.makeText(context, R.string.settings_import_success, Toast.LENGTH_LONG).show() },
-                        onError = { Toast.makeText(context, R.string.settings_import_failed, Toast.LENGTH_LONG).show() },
+                        onSuccess = { Toast.makeText(context, "Backup importado correctamente", Toast.LENGTH_LONG).show() },
+                        onError = { error -> Toast.makeText(context, "No se pudo importar: $error", Toast.LENGTH_LONG).show() },
                     )
-                }) { Text(stringResource(R.string.settings_import)) }
+                }) { Text("Importar") }
             },
-            dismissButton = { TextButton(onClick = { pendingImport = null }) { Text(stringResource(R.string.settings_cancel)) } },
+            dismissButton = { TextButton(onClick = { pendingImport = null }) { Text("Cancelar") } },
         )
     }
 
     if (showDeleteDialog) {
         KpknAlertDialog(
             onDismissRequest = { showDeleteDialog = false },
-            title = { Text(stringResource(R.string.settings_delete_confirm_title)) },
-            text = { Text(stringResource(R.string.settings_delete_confirm_description)) },
+            title = { Text("¿Eliminar todos los datos?") },
+            text = { Text("Se borrarán de forma irreversible tus rutinas, historial, nutrición, progreso, foto y configuraciones. Los archivos de backup guardados fuera de la app no se tocarán.") },
             confirmButton = {
                 TextButton(onClick = {
                     viewModel.clearAllAppData(
@@ -414,13 +408,13 @@ fun SettingsScreen(
                         onSuccess = {
                             showDeleteDialog = false
                             telemetryFolder = null
-                            Toast.makeText(context, R.string.settings_delete_success, Toast.LENGTH_LONG).show()
+                            Toast.makeText(context, "La app volvió a cero", Toast.LENGTH_LONG).show()
                         },
-                        onError = { Toast.makeText(context, R.string.settings_delete_failed, Toast.LENGTH_LONG).show() },
+                        onError = { error -> Toast.makeText(context, "No se pudo borrar todo: $error", Toast.LENGTH_LONG).show() },
                     )
-                }) { Text(stringResource(R.string.settings_delete_action), color = MaterialTheme.colorScheme.error) }
+                }) { Text("Eliminar todo", color = MaterialTheme.colorScheme.error) }
             },
-            dismissButton = { TextButton(onClick = { showDeleteDialog = false }) { Text(stringResource(R.string.settings_cancel)) } },
+            dismissButton = { TextButton(onClick = { showDeleteDialog = false }) { Text("Cancelar") } },
         )
     }
 }
@@ -429,8 +423,8 @@ fun SettingsScreen(
 private fun SettingsIntroCard() {
     Card(modifier = Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.48f))) {
         Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-            Text(stringResource(R.string.settings_intro_title), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Black)
-            Text(stringResource(R.string.settings_intro_description), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text("Lo esencial para que KPKN funcione", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Black)
+            Text("Aquí puedes conceder accesos, guardar tus datos y configurar la carpeta de telemetría. No hay ajustes técnicos ocultos en esta pantalla.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
     }
 }
@@ -453,7 +447,7 @@ private fun PermissionRow(icon: ImageVector, title: String, description: String,
         icon = icon,
         title = title,
         description = description,
-        actionLabel = stringResource(if (granted) R.string.settings_granted else R.string.settings_enable),
+        actionLabel = if (granted) "Concedido" else "Activar",
         onClick = onClick,
         destructive = !granted,
     )
@@ -472,20 +466,26 @@ private fun SettingsActionRow(icon: ImageVector, title: String, description: Str
     }
 }
 
+private enum class PermissionAction { REQUEST, HEALTH_CONNECT }
+
 private data class PermissionRowModel(
     val icon: ImageVector,
     val title: String,
     val description: String,
     val granted: Boolean,
     val permissions: Array<String> = emptyArray(),
+    val action: PermissionAction = PermissionAction.REQUEST,
 )
 
-private fun permissionRows(context: Context): List<PermissionRowModel> = buildList {
-    add(PermissionRowModel(Icons.Default.Notifications, context.getString(R.string.settings_notification_title), context.getString(R.string.settings_notification_description), hasPermission(context, Manifest.permission.POST_NOTIFICATIONS, Build.VERSION_CODES.TIRAMISU), arrayOf(Manifest.permission.POST_NOTIFICATIONS)))
-    add(PermissionRowModel(Icons.Default.Mic, context.getString(R.string.settings_microphone_title), context.getString(R.string.settings_microphone_description), hasPermission(context, Manifest.permission.RECORD_AUDIO), arrayOf(Manifest.permission.RECORD_AUDIO)))
-    add(PermissionRowModel(Icons.Default.LocationOn, context.getString(R.string.settings_location_title), context.getString(R.string.settings_location_description), hasAnyPermission(context, Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION), arrayOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION)))
-    add(PermissionRowModel(Icons.Default.Bluetooth, context.getString(R.string.settings_bluetooth_title), context.getString(R.string.settings_bluetooth_description), WorkoutVoicePermissionHelper.hasBluetoothConnectPermission(context), if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) arrayOf(Manifest.permission.BLUETOOTH_CONNECT) else emptyArray()))
-    add(PermissionRowModel(Icons.Default.CameraAlt, context.getString(R.string.settings_camera_title), context.getString(R.string.settings_camera_description), hasPermission(context, Manifest.permission.CAMERA), arrayOf(Manifest.permission.CAMERA)))
+private fun permissionRows(context: Context, healthConnectAvailable: Boolean): List<PermissionRowModel> = buildList {
+    add(PermissionRowModel(Icons.Default.Notifications, "Notificaciones", "Recordatorios, avisos de descanso y estado de la sesión.", hasPermission(context, Manifest.permission.POST_NOTIFICATIONS, Build.VERSION_CODES.TIRAMISU), arrayOf(Manifest.permission.POST_NOTIFICATIONS)))
+    add(PermissionRowModel(Icons.Default.Mic, "Micrófono", "Control por voz durante el entrenamiento.", hasPermission(context, Manifest.permission.RECORD_AUDIO), arrayOf(Manifest.permission.RECORD_AUDIO)))
+    add(PermissionRowModel(Icons.Default.LocationOn, "Ubicación", "Rastreo GPS para sesiones de cardio.", hasAnyPermission(context, Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION), arrayOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION)))
+    add(PermissionRowModel(Icons.Default.Bluetooth, "Bluetooth", "Conexión con audífonos y accesorios compatibles.", WorkoutVoicePermissionHelper.hasBluetoothConnectPermission(context), if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) arrayOf(Manifest.permission.BLUETOOTH_CONNECT) else emptyArray()))
+    add(PermissionRowModel(Icons.Default.CameraAlt, "Cámara", "Fotos opcionales de ejercicios y seguimiento.", hasPermission(context, Manifest.permission.CAMERA), arrayOf(Manifest.permission.CAMERA)))
+    if (healthConnectAvailable) {
+        add(PermissionRowModel(Icons.Default.SettingsBackupRestore, "Health Connect", "Sincronización opcional de salud y medidas corporales.", false, action = PermissionAction.HEALTH_CONNECT))
+    }
     return@buildList
 }
 

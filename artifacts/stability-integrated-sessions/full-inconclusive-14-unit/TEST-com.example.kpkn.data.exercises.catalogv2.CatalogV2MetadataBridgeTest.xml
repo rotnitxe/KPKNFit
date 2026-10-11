@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="com.example.kpkn.data.exercises.catalogv2.CatalogV2MetadataBridgeTest" tests="1" skipped="0" failures="0" errors="0" timestamp="2026-10-09T10:16:02.818Z" hostname="VF" time="0.009">
-  <properties/>
-  <testcase name="completed_snapshot_requires_exact_selection_and_keeps_typed_metadata" classname="com.example.kpkn.data.exercises.catalogv2.CatalogV2MetadataBridgeTest" time="0.009"/>
-  <system-out><![CDATA[]]></system-out>
-  <system-err><![CDATA[]]></system-err>
-</testsuite>

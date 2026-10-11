@@ -70,7 +70,7 @@ class SetupRingsMergeTest {
         // Nivel 3 → 50; la sensación muscular global se conserva por canal existente.
         assertEquals(50, staged.manualMuscularBattery)
 
-        SetupCommitCoordinator(db, accessLevel = { com.example.kpkn.domain.entitlements.PlanLevel.PRO }).commit(
+        SetupCommitCoordinator(db).commit(
             SetupCommitRequest("commit-merge", null, Settings(), null, null, false, false,
                 initialWellbeing = staged.toWellbeingLog("onboarding-check-in", date, 2_000L)),
         )
@@ -102,7 +102,7 @@ class SetupRingsMergeTest {
         assertEquals(0, staged.manualSpinalBattery)
         assertTrue(staged.capturedFields.contains("structure"))
 
-        SetupCommitCoordinator(db, accessLevel = { com.example.kpkn.domain.entitlements.PlanLevel.PRO }).commit(
+        SetupCommitCoordinator(db).commit(
             SetupCommitRequest("commit-zero", null, Settings(), null, null, false, false,
                 initialWellbeing = staged.toWellbeingLog("onboarding-check-in", date, 1_000L)),
         )
@@ -125,7 +125,7 @@ class SetupRingsMergeTest {
         )
         val staged = SetupRingsResponseMapping.stageCheckIn(checkIn = SetupRingsCheckIn(muscular = 2))
 
-        SetupCommitCoordinator(db, accessLevel = { com.example.kpkn.domain.entitlements.PlanLevel.PRO }).commit(
+        SetupCommitCoordinator(db).commit(
             SetupCommitRequest("commit-partial", null, Settings(), null, null, false, false,
                 initialWellbeing = staged.toWellbeingLog("onboarding-check-in", date, 1_000L)),
         )
@@ -152,7 +152,7 @@ class SetupRingsMergeTest {
         assertEquals(75, staged.manualMuscularBattery)
         assertEquals(setOf("muscular", "energy", "structure"), staged.capturedFields)
 
-        SetupCommitCoordinator(db, accessLevel = { com.example.kpkn.domain.entitlements.PlanLevel.PRO }).commit(
+        SetupCommitCoordinator(db).commit(
             SetupCommitRequest("commit-partial-global", null, Settings(), null, null, false, false,
                 initialWellbeing = staged.toWellbeingLog("onboarding-check-in", date, 1_000L),
                 settingsPatch = SetupSettingsPatch(initialRecoveryEvidence = mapping.toEvidencePatchField())),
@@ -192,7 +192,7 @@ class SetupRingsMergeTest {
         // la fila de hoy como base: el canal muscular global debe coincidir.
         val previewMerge = mergeSetupWellbeing(existing, incoming)
 
-        SetupCommitCoordinator(db, accessLevel = { com.example.kpkn.domain.entitlements.PlanLevel.PRO }).commit(
+        SetupCommitCoordinator(db).commit(
             SetupCommitRequest("commit-unknown-muscle", null, Settings(), null, null, false, false,
                 initialWellbeing = incoming),
         )
@@ -216,7 +216,7 @@ class SetupRingsMergeTest {
         )
         val staged = SetupRingsResponseMapping.stageCheckIn(checkIn = mapping.previewCheckIn())
 
-        SetupCommitCoordinator(db, accessLevel = { com.example.kpkn.domain.entitlements.PlanLevel.PRO }).commit(
+        SetupCommitCoordinator(db).commit(
             SetupCommitRequest("commit-no-synth", null, Settings(), null, null, false, false,
                 initialWellbeing = staged.toWellbeingLog("onboarding-check-in", date, 1_000L)),
         )
@@ -247,7 +247,7 @@ class SetupRingsMergeTest {
         val staged = SetupRingsResponseMapping.stageCheckIn(checkIn = mapping.previewCheckIn())
         assertEquals(setOf("muscular"), staged.capturedFields)
 
-        SetupCommitCoordinator(db, accessLevel = { com.example.kpkn.domain.entitlements.PlanLevel.PRO }).commit(
+        SetupCommitCoordinator(db).commit(
             SetupCommitRequest("commit-absent-partial", null, Settings(), null, null, false, false,
                 initialWellbeing = staged.toWellbeingLog("onboarding-check-in", date, 1_000L),
                 settingsPatch = SetupSettingsPatch(initialRecoveryEvidence = mapping.toEvidencePatchField())),
@@ -286,7 +286,7 @@ class SetupRingsMergeTest {
         assertEquals(InitialRecoverySensations(muscular = 3, energy = null, structure = 4), evidence.sensations)
 
         val staged = SetupRingsResponseMapping.stageCheckIn(checkIn = mapping.previewCheckIn())
-        SetupCommitCoordinator(db, accessLevel = { com.example.kpkn.domain.entitlements.PlanLevel.PRO }).commit(
+        SetupCommitCoordinator(db).commit(
             SetupCommitRequest("commit-known-partial", null, Settings(), null, null, false, false,
                 initialWellbeing = staged.toWellbeingLog("onboarding-check-in", date, 2_000L),
                 settingsPatch = SetupSettingsPatch(initialRecoveryEvidence = mapping.toEvidencePatchField())),
@@ -314,7 +314,7 @@ class SetupRingsMergeTest {
         val staged = SetupRingsResponseMapping.stageCheckIn(checkIn = mapping.previewCheckIn())
         assertEquals(setOf("muscular", "energy", "structure"), staged.capturedFields)
 
-        SetupCommitCoordinator(db, accessLevel = { com.example.kpkn.domain.entitlements.PlanLevel.PRO }).commit(
+        SetupCommitCoordinator(db).commit(
             SetupCommitRequest("commit-full-single-source", null, Settings(), null, null, false, false,
                 initialWellbeing = staged.toWellbeingLog("onboarding-check-in", date, 1_000L),
                 settingsPatch = SetupSettingsPatch(initialRecoveryEvidence = mapping.toEvidencePatchField())),

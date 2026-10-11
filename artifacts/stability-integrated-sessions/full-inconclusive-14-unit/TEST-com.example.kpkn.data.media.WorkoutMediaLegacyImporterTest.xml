@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="com.example.kpkn.data.media.WorkoutMediaLegacyImporterTest" tests="2" skipped="0" failures="0" errors="0" timestamp="2026-10-09T10:16:11.166Z" hostname="VF" time="0.292">
-  <properties/>
-  <testcase name="import_copies_three_silos_without_deleting_sources_or_mutating_log_json" classname="com.example.kpkn.data.media.WorkoutMediaLegacyImporterTest" time="0.268"/>
-  <testcase name="closest_log_picks_nearest_date" classname="com.example.kpkn.data.media.WorkoutMediaLegacyImporterTest" time="0.024"/>
-  <system-out><![CDATA[]]></system-out>
-  <system-err><![CDATA[]]></system-err>
-</testsuite>

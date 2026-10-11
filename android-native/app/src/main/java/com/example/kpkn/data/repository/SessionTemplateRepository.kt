@@ -23,7 +23,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -45,18 +44,12 @@ import java.time.Instant
  */
 class SessionTemplateRepository private constructor(context: Context) {
 
-    private val writeOwner = com.example.kpkn.data.backup.DataSessionWriter("session-template-repository")
-    private suspend fun <T> withDurableWrite(block: suspend () -> T): T = writeOwner.durableWrite(block)
-    private val appContext = com.example.kpkn.data.backup.capturedPersonalContext(context)
+    private val appContext = context.applicationContext
     private var db = KpknDatabase.getInstance(appContext)
-    private val scope = com.example.kpkn.data.backup.DataSessionWriterScope(CoroutineScope(SupervisorJob() + Dispatchers.IO), writeOwner)
-    private val userWrites = com.example.kpkn.data.backup.DataSessionWriterScope(CoroutineScope(SupervisorJob() + Dispatchers.IO), writeOwner)
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     private val _userTemplates = MutableStateFlow<List<SessionTemplate>>(emptyList())
     private val _isReady = MutableStateFlow(false)
-    private val _loadFailure = MutableStateFlow<Throwable?>(null)
-    val requiresRecovery: StateFlow<Boolean> = _loadFailure.map { it != null }
-        .stateIn(scope, SharingStarted.Eagerly, false)
     private val templateWriteMutex = Mutex()
     private val _corruptTemplateIds = MutableStateFlow<List<String>>(emptyList())
     val corruptTemplateIds: StateFlow<List<String>> = _corruptTemplateIds.asStateFlow()
@@ -91,21 +84,12 @@ class SessionTemplateRepository private constructor(context: Context) {
         .stateIn(scope, SharingStarted.Eagerly, emptyList())
 
     init {
-        scope.launch {
-            try { refreshFromStorage() }
-            catch (cancelled: kotlinx.coroutines.CancellationException) { throw cancelled }
-            catch (failure: Exception) {
-                // A failed background hydration is a recovery state, never an uncaught
-                // process exception or a successful empty catalog. Explicit refresh still throws.
-                Log.w("SessionTemplateRepo", "User template hydration requires recovery: ${failure.javaClass.simpleName}")
-            }
-        }
+        scope.launch { refreshFromStorage() }
     }
 
-    suspend fun refreshFromStorage() = writeOwner.write {
+    suspend fun refreshFromStorage() {
+        db = KpknDatabase.getInstance(appContext)
         templateWriteMutex.withLock {
-            try {
-            db = KpknDatabase.getInstance(appContext)
             val corrupt = mutableListOf<String>()
             val persisted = db.sessionTemplateDao().getAll().mapNotNull {
                 it.toSessionTemplateOrNull() ?: run {
@@ -116,14 +100,7 @@ class SessionTemplateRepository private constructor(context: Context) {
             }
             _corruptTemplateIds.value = corrupt
             _userTemplates.value = persisted
-            _loadFailure.value = null
             _isReady.value = true
-            } catch (cancelled: kotlinx.coroutines.CancellationException) { throw cancelled }
-            catch (failure: Exception) {
-                _isReady.value = false
-                _loadFailure.value = failure
-                throw failure
-            }
         }
     }
 
@@ -131,10 +108,9 @@ class SessionTemplateRepository private constructor(context: Context) {
         SESSION_TEMPLATES_SYSTEM.firstOrNull { it.id == id }
             ?: _userTemplates.value.firstOrNull { it.id == id }
 
-    suspend fun getByIdAfterReady(id: String): SessionTemplate? = writeOwner.write {
-        combine(isReady, _loadFailure) { ready, failure -> ready to failure }.first { it.first || it.second != null }
-            .second?.let { throw IllegalStateException("User templates require recovery", it) }
-        getById(id) ?: db.sessionTemplateDao().getById(id)?.toSessionTemplateOrNull()
+    suspend fun getByIdAfterReady(id: String): SessionTemplate? {
+        isReady.filter { it }.first()
+        return getById(id) ?: db.sessionTemplateDao().getById(id)?.toSessionTemplateOrNull()
     }
 
     // ─── Write ────────────────────────────────────────────────────────────────
@@ -148,7 +124,7 @@ class SessionTemplateRepository private constructor(context: Context) {
         require(template.sourceType == SessionTemplateSourceType.USER) {
             "Only USER templates can be saved via SessionTemplateRepository."
         }
-        userWrites.launch { saveUserTemplateNow(template) }
+        scope.launch { saveUserTemplateNow(template) }
     }
 
     /** Durable write used by editor commands before confirming success to the user. */
@@ -157,7 +133,7 @@ class SessionTemplateRepository private constructor(context: Context) {
             "Only USER templates can be saved via SessionTemplateRepository."
         }
         return runCatching {
-            withDurableWrite withContext@ {
+            withContext(NonCancellable) {
                 templateWriteMutex.withLock {
                     db.sessionTemplateDao().upsert(template.toEntity())
                     // Publish only after durable success; a failed DAO write must
@@ -177,12 +153,12 @@ class SessionTemplateRepository private constructor(context: Context) {
      */
     fun deleteUserTemplate(id: String) {
         if (SESSION_TEMPLATES_SYSTEM.any { it.id == id }) return
-        userWrites.launch { deleteUserTemplateNow(id) }
+        scope.launch { deleteUserTemplateNow(id) }
     }
 
     suspend fun deleteUserTemplateNow(id: String): Result<Unit> = runCatching {
         if (SESSION_TEMPLATES_SYSTEM.any { it.id == id }) return@runCatching
-        withDurableWrite withContext@ {
+        withContext(NonCancellable) {
             templateWriteMutex.withLock {
                 db.sessionTemplateDao().delete(id)
                 _userTemplates.update { it.filterNot { template -> template.id == id } }
@@ -195,7 +171,7 @@ class SessionTemplateRepository private constructor(context: Context) {
      * Archived templates are hidden from [allTemplates] but remain in the database.
      */
     fun archiveUserTemplate(id: String) {
-        userWrites.launch { archiveUserTemplateNow(id) }
+        scope.launch { archiveUserTemplateNow(id) }
     }
 
     suspend fun archiveUserTemplateNow(id: String): Result<Unit> {
@@ -208,7 +184,7 @@ class SessionTemplateRepository private constructor(context: Context) {
      * Restores an archived user template so it shows up in [allTemplates] again.
      */
     fun restoreUserTemplate(id: String) {
-        userWrites.launch { restoreUserTemplateNow(id) }
+        scope.launch { restoreUserTemplateNow(id) }
     }
 
     suspend fun restoreUserTemplateNow(id: String): Result<Unit> {
@@ -251,21 +227,10 @@ class SessionTemplateRepository private constructor(context: Context) {
          * this repository too so its StateFlow never points at a closed DAO.
          */
         internal fun resetForTests() {
-            INSTANCE?.writeOwner?.closeAdmission()
             synchronized(this) {
-                INSTANCE?.scope?.coroutineContext?.get(kotlinx.coroutines.Job)?.let { job ->
-                    job.cancel(); kotlinx.coroutines.runBlocking { job.join() }
-                }
-                INSTANCE?.userWrites?.coroutineContext?.get(kotlinx.coroutines.Job)?.cancel()
+                INSTANCE?.scope?.cancel()
                 INSTANCE = null
             }
-        }
-        internal suspend fun closeForDataSession() {
-            INSTANCE?.writeOwner?.closeAdmission()
-            INSTANCE?.let { instance -> kotlinx.coroutines.withTimeout(30_000) {
-                instance.userWrites.coroutineContext[kotlinx.coroutines.Job]?.children?.toList()?.forEach { it.join() }
-            } }
-            resetForTests()
         }
     }
 }

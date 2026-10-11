@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="com.example.kpkn.domain.training.ProgramTemporalPolicyTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-10-10T06:29:40.665Z" hostname="VF" time="0.002">
-  <properties/>
-  <testcase name="three week calendar break pauses loop cadence and restores cycle" classname="com.example.kpkn.domain.training.ProgramTemporalPolicyTest" time="0.001"/>
-  <testcase name="migration makes schedule plan anchor authoritative" classname="com.example.kpkn.domain.training.ProgramTemporalPolicyTest" time="0.001"/>
-  <testcase name="calendarizeSimpleCycle demotes loop weeks so they are not orphaned" classname="com.example.kpkn.domain.training.ProgramTemporalPolicyTest" time="0.0"/>
-  <system-out><![CDATA[]]></system-out>
-  <system-err><![CDATA[]]></system-err>
-</testsuite>

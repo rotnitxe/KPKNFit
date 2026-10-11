@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="com.example.kpkn.data.diagnostics.KpknDiagnosticLoggerPersistenceTest" tests="2" skipped="0" failures="0" errors="0" timestamp="2026-10-09T10:16:02.673Z" hostname="VF" time="0.098">
-  <properties/>
-  <testcase name="event_is_written_to_local_jsonl_and_all_canonical_roots_exist" classname="com.example.kpkn.data.diagnostics.KpknDiagnosticLoggerPersistenceTest" time="0.052"/>
-  <testcase name="live_session_voice_mode_routes_workout_and_voice_to_separate_areas" classname="com.example.kpkn.data.diagnostics.KpknDiagnosticLoggerPersistenceTest" time="0.046"/>
-  <system-out><![CDATA[]]></system-out>
-  <system-err><![CDATA[]]></system-err>
-</testsuite>

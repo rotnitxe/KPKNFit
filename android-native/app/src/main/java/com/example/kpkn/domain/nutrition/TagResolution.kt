@@ -126,7 +126,6 @@ interface FoodResolutionPort {
 class TagResolver(
     private val port: FoodResolutionPort,
     private val calibrationProfile: NutritionCalibrationProfile? = null,
-    private val requireEstimatedPortionConfirmation: Boolean = false,
 ) {
 
     /**
@@ -208,7 +207,7 @@ class TagResolver(
         // The resolver result was enriched before the identity declaration was
         // attached. Rebuild V2 so its pending identity question cannot keep the
         // Save action blocked after the user has answered it.
-        return NutritionInterpretationBridge.refresh(declared, requireEstimatedPortionConfirmation)
+        return NutritionInterpretationBridge.refresh(declared)
     }
 
     suspend fun resolveAll(
@@ -923,7 +922,7 @@ class TagResolver(
                 }
             }
         }
-        val clarified = resolvedTags.map { NutritionInterpretationBridge.enrich(it, parsed, requireEstimatedPortionConfirmation) }
+        val clarified = resolvedTags.map { NutritionInterpretationBridge.enrich(it, parsed) }
         Pair(clarified, contextResult)
     }
 

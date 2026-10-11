@@ -23,8 +23,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
-import kotlinx.coroutines.async
-import kotlinx.coroutines.yield
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
@@ -72,8 +70,6 @@ class WorkoutMediaUriDurabilityInstrumentedTest {
             runCatching { providerCall(WorkoutMediaTestContentProvider.METHOD_RESET) }
         }
         controllerScope?.cancel()
-        runBlocking { MediaPersistenceOwner.writes.pauseAndAwait() }
-        MediaPersistenceOwner.writes.resume()
         if (::db.isInitialized) runCatching { db.close() }
         if (::mediaFilesDir.isInitialized) mediaFilesDir.deleteRecursively()
     }
@@ -263,40 +259,6 @@ class WorkoutMediaUriDurabilityInstrumentedTest {
             delay(20L)
         }
         error("unreachable")
-    }
-
-    @Test
-    fun dataMaintenanceDrainsAcceptedUriAndRejectsLateAdmissions(): Unit = runBlocking {
-        configureProvider("image/png", pngBytes(), blockMime = true)
-        repository.recoverPendingCaptures().await()
-        val id = "accepted-$suffix"
-        val accepted = repository.submitUriCapture(testUri(id), mediaSeed(id, sessionMeta("accepted-session")))
-        assertTrue(awaitProviderMimeCall(15_000))
-        val pause = async { MediaPersistenceOwner.writes.pauseAndAwait() }
-        yield()
-        assertFalse(pause.isCompleted)
-        val denied = runCatching {
-            repository.submitUriCapture(testUri("late-$suffix"), mediaSeed("late-$suffix", sessionMeta("late-session"))).await()
-        }
-        assertTrue(denied.isFailure)
-        assertEquals(1, providerMimeCalls())
-        providerCall(WorkoutMediaTestContentProvider.METHOD_RELEASE)
-        val saved = requireNotNull(withTimeout(10_000) { accepted.await() })
-        withTimeout(10_000) { pause.await() }
-        assertEquals(id, saved.id)
-        assertEquals("accepted-session", saved.sessionKey)
-        org.junit.Assert.assertArrayEquals(pngBytes(), File(saved.filePath).readBytes())
-        assertEquals(1, db.workoutMediaDao().count())
-        assertTrue(WorkoutMediaCaptureJournal(mediaFilesDir).readAll().isEmpty())
-        MediaPersistenceOwner.writes.resume()
-        assertTrue(runCatching { repository.updateCaption(id, "stale edit") }.isFailure)
-        val reopened = WorkoutMediaRepository.forDatabase(object : ContextWrapper(context) {
-            override fun getApplicationContext(): Context = this
-            override fun getFilesDir(): File = mediaFilesDir
-        }, db)
-        reopened.recoverPendingCaptures().await()
-        reopened.updateCaption(id, "accepted edit")
-        assertEquals("accepted edit", reopened.getById(id)!!.caption)
     }
 
     private fun sessionMeta(session: String) = WorkoutMediaSessionMeta(

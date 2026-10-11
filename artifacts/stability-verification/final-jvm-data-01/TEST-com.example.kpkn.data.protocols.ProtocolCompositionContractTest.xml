@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="com.example.kpkn.data.protocols.ProtocolCompositionContractTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-10-10T05:53:13.471Z" hostname="VF" time="0.241">
-  <properties/>
-  <testcase name="every_template_recipe_and_authored_recipe_passes_hard_rules_with_declared_exemptions" classname="com.example.kpkn.data.protocols.ProtocolCompositionContractTest" time="0.108"/>
-  <testcase name="every_visible_protocol_session_passes_hard_rules_with_declared_exemptions" classname="com.example.kpkn.data.protocols.ProtocolCompositionContractTest" time="0.126"/>
-  <testcase name="every_published_peak_or_realization_reaches_the_effective_one_rm_floor" classname="com.example.kpkn.data.protocols.ProtocolCompositionContractTest" time="0.002"/>
-  <system-out><![CDATA[]]></system-out>
-  <system-err><![CDATA[]]></system-err>
-</testsuite>

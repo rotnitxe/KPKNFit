@@ -12,7 +12,6 @@ import java.util.concurrent.atomic.AtomicLong
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -232,7 +231,6 @@ internal class WorkoutRemoteVoiceEngineClient(context: Context) : WorkoutVoiceEn
     }
 
     override fun start(scope: CoroutineScope, holdMicRouteAcrossPause: Boolean, captureMode: VoiceCaptureMode) {
-        if (WorkoutVoiceRuntime.dataSessionPaused) return
         this.holdMicRouteAcrossPause = holdMicRouteAcrossPause
         this.captureMode = captureMode
         if (!activeRequested) generation = generationCounter.incrementAndGet()
@@ -311,7 +309,6 @@ internal class WorkoutRemoteVoiceEngineClient(context: Context) : WorkoutVoiceEn
      * (todos los comandos ignorados → give-up espurio, fix F2).
      */
     override fun recover() {
-        if (WorkoutVoiceRuntime.dataSessionPaused) return
         failedTerminal = false
         activeRequested = true
         binding = false
@@ -364,7 +361,6 @@ internal class WorkoutRemoteVoiceEngineClient(context: Context) : WorkoutVoiceEn
             .getOrDefault(false)
 
     private fun ensureBound() {
-        if (WorkoutVoiceRuntime.dataSessionPaused) return
         if (binding || remote != null) return
         binding = true
         // Garantizar el primer plano ANTES del bind: un proceso :voice sin FGS es
@@ -433,15 +429,6 @@ internal class WorkoutRemoteVoiceEngineClient(context: Context) : WorkoutVoiceEn
         remote = null
         binding = false
         runCatching { appContext.unbindService(connection) }
-    }
-
-    internal fun disposeForDataSession() {
-        activeRequested = false
-        failedTerminal = true
-        generation = generationCounter.incrementAndGet()
-        unbind()
-        clientScope.cancel()
-        publishStopped()
     }
 
     private fun publishStopped() {

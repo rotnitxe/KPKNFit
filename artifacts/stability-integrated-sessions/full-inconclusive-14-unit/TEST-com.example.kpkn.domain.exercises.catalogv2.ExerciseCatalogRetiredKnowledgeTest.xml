@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="com.example.kpkn.domain.exercises.catalogv2.ExerciseCatalogRetiredKnowledgeTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-10-09T10:19:11.463Z" hostname="VF" time="0.249">
-  <properties/>
-  <testcase name="runtime_asset_decodes_and_materializes_without_retired_knowledge" classname="com.example.kpkn.domain.exercises.catalogv2.ExerciseCatalogRetiredKnowledgeTest" time="0.049"/>
-  <testcase name="runtime_asset_carries_no_retired_field" classname="com.example.kpkn.domain.exercises.catalogv2.ExerciseCatalogRetiredKnowledgeTest" time="0.048"/>
-  <testcase name="scanner_flags_each_retired_path_so_the_guard_cannot_go_blind" classname="com.example.kpkn.domain.exercises.catalogv2.ExerciseCatalogRetiredKnowledgeTest" time="0.152"/>
-  <system-out><![CDATA[]]></system-out>
-  <system-err><![CDATA[]]></system-err>
-</testsuite>

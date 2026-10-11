@@ -13,7 +13,6 @@ import com.example.kpkn.screens.sessioneditor.CatalogLaunchRequest
 sealed class KpknRoute(val route: String) {
     // Bottom nav destinations
     object Home : KpknRoute("home")
-    object Account : KpknRoute("account")
     object Training : KpknRoute("training")
     object Nutrition : KpknRoute("nutrition")
     object BodyProgress : KpknRoute("nutrition/body-progress")

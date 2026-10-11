@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="com.example.kpkn.domain.training.ProgramAnalyticsEngineTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-10-10T06:29:39.091Z" hostname="VF" time="0.02">
-  <properties/>
-  <testcase name="deadlift_rdl_pendlay_fixture_detects_high_lumbar_fatigue" classname="com.example.kpkn.domain.training.ProgramAnalyticsEngineTest" time="0.018"/>
-  <testcase name="low_adherence_diagnosis_blames_execution_before_program" classname="com.example.kpkn.domain.training.ProgramAnalyticsEngineTest" time="0.002"/>
-  <testcase name="balanced_fixture_has_push_pull_sources_and_real_coverage" classname="com.example.kpkn.domain.training.ProgramAnalyticsEngineTest" time="0.0"/>
-  <system-out><![CDATA[]]></system-out>
-  <system-err><![CDATA[]]></system-err>
-</testsuite>

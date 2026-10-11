@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="com.example.kpkn.domain.auge.AugeMuscleAttributionTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-10-10T05:59:17.997Z" hostname="VF" time="0.013">
-  <properties/>
-  <testcase name="reorderingLegExercises_doesNotChangeUpperBodyImpact" classname="com.example.kpkn.domain.auge.AugeMuscleAttributionTest" time="0.007"/>
-  <testcase name="harderExecution_neverDrainsLess" classname="com.example.kpkn.domain.auge.AugeMuscleAttributionTest" time="0.004"/>
-  <testcase name="chestAndTricepsReceivePositiveLocalImpact_once" classname="com.example.kpkn.domain.auge.AugeMuscleAttributionTest" time="0.002"/>
-  <system-out><![CDATA[]]></system-out>
-  <system-err><![CDATA[]]></system-err>
-</testsuite>

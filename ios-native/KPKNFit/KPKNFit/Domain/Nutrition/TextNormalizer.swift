@@ -169,7 +169,7 @@ public enum TextNormalizer {
 
     private static let FRACTION_PATTERN: NSRegularExpression = {
         try! NSRegularExpression(
-            pattern: #"\b(medio\s+kilo|cuarto\s+kilo|un\s+kilo\s+y\s+medio|medio\s+litro)\b"#,
+            pattern: #"\b(medio\s+kilo|cuarto\s+kilo|un\s+kilo\s+y\s+medio)\b"#,
             options: .caseInsensitive
         )
     }()
@@ -323,7 +323,6 @@ public enum TextNormalizer {
             case "medio kilo": return "500 g"
             case "cuarto kilo": return "250 g"
             case "un kilo y medio": return "1500 g"
-            case "medio litro": return "500 ml"
             default: return match
             }
         }

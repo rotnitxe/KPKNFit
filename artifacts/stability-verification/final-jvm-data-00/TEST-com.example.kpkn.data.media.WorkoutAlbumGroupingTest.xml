@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="com.example.kpkn.data.media.WorkoutAlbumGroupingTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-10-10T05:51:16.438Z" hostname="VF" time="0.011">
-  <properties/>
-  <testcase name="prFilterAndExerciseQueryReduceItemsBeforeGrouping" classname="com.example.kpkn.data.media.WorkoutAlbumGroupingTest" time="0.005"/>
-  <testcase name="groupsByWorkoutLogThenSessionKeyThenSessionDate" classname="com.example.kpkn.data.media.WorkoutAlbumGroupingTest" time="0.005"/>
-  <testcase name="formatsDuration" classname="com.example.kpkn.data.media.WorkoutAlbumGroupingTest" time="0.001"/>
-  <system-out><![CDATA[]]></system-out>
-  <system-err><![CDATA[]]></system-err>
-</testsuite>

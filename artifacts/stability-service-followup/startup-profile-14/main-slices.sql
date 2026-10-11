@@ -1,1 +1,0 @@
-SELECT s.name,ROUND(SUM(s.dur)/1e6,2) AS inclusive_ms,ROUND(MAX(s.dur)/1e6,2) AS max_ms,COUNT(*) AS count FROM slice s JOIN thread_track tt ON s.track_id=tt.id JOIN thread t ON tt.utid=t.utid JOIN process p USING(upid) WHERE p.pid=4022 AND t.tid=4022 AND s.dur>0 GROUP BY s.name ORDER BY max_ms DESC LIMIT 25;

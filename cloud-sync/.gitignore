@@ -1,7 +1,0 @@
-node_modules/
-.env*
-functions/.env*
-.toolchain/
-*-debug.log
-.cache/
-emulator-export/

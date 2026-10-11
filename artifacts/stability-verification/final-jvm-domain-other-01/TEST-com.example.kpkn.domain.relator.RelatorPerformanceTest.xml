@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="com.example.kpkn.domain.relator.RelatorPerformanceTest" tests="1" skipped="0" failures="0" errors="0" timestamp="2026-10-10T06:25:06.328Z" hostname="VF" time="0.024">
-  <properties/>
-  <testcase name="resolve_median_under_one_millisecond" classname="com.example.kpkn.domain.relator.RelatorPerformanceTest" time="0.024"/>
-  <system-out><![CDATA[]]></system-out>
-  <system-err><![CDATA[]]></system-err>
-</testsuite>

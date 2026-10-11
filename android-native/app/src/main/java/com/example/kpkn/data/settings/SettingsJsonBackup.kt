@@ -6,7 +6,6 @@ import com.example.kpkn.data.db.KpknDatabase
 import com.example.kpkn.data.db.LearnedResolutionEntity
 import com.example.kpkn.data.db.SetupCommitReceiptEntity
 import com.example.kpkn.data.db.SetupDraftEntity
-import com.example.kpkn.data.db.WorkoutMediaSessionAssociationEntity
 import com.example.kpkn.data.db.NutritionActiveStateEntity
 import com.example.kpkn.data.db.NutritionCalibrationProfileEntity
 import com.example.kpkn.data.db.dbJson
@@ -147,10 +146,6 @@ object SettingsJsonBackup {
             performanceRanges = performanceRanges,
             performanceSnapshots = performanceSnapshots,
             workoutMedia = workoutMedia,
-            workoutMediaAssociations = db.openHelper.readableDatabase.query(
-                "SELECT sessionKey, workoutLogId FROM workout_media_session_associations",
-            ).use { cursor -> buildList { while (cursor.moveToNext()) add(WorkoutMediaAssociationBackup(cursor.getString(0), cursor.getString(1))) } },
-            includesMediaAssociationsSection = true,
             includesCompetitionSection = true,
             includesWorkoutV2Section = true,
             includesPerformanceSection = true,
@@ -177,16 +172,6 @@ object SettingsJsonBackup {
         }
         val v5 = payload.schemaVersion >= 5
         val hasSetup = payload.schemaVersion >= 6 && payload.includesSetupSection
-        val hasAssociations = payload.schemaVersion >= 7 && payload.includesMediaAssociationsSection
-        if (hasAssociations) {
-            val logIds = payload.workoutLogs.map { it.id }.toSet()
-            require(payload.workoutMediaAssociations.all { it.sessionKey.isNotBlank() && it.workoutLogId in logIds }) {
-                "El respaldo contiene relaciones multimedia inválidas"
-            }
-            require(payload.workoutMediaAssociations.map { it.sessionKey }.distinct().size == payload.workoutMediaAssociations.size) {
-                "El respaldo contiene relaciones multimedia duplicadas"
-            }
-        }
         val tablesToClear = BackupTableManifest.tablesToClearForImport(
             schemaVersion = payload.schemaVersion,
             hasCompetitionSection = v5 && payload.includesCompetitionSection,
@@ -195,7 +180,6 @@ object SettingsJsonBackup {
             hasWorkoutMediaSection = v5 && payload.includesWorkoutMediaSection,
             hasCalibrationSection = v5 && payload.includesCalibrationSection,
             hasSetupSection = hasSetup,
-            hasMediaAssociationsSection = hasAssociations,
         )
         val settingsProfileToken = when {
             payload.profilePhotoJpegBase64 != null -> ProfilePhotoStore.STORAGE_TOKEN
@@ -204,9 +188,6 @@ object SettingsJsonBackup {
         }
         db.withTransaction {
             val sqlite = db.openHelper.writableDatabase
-            val retainedAssociations = if (hasAssociations) emptyList() else sqlite.query(
-                "SELECT sessionKey, workoutLogId FROM workout_media_session_associations",
-            ).use { cursor -> buildList { while (cursor.moveToNext()) add(WorkoutMediaAssociationBackup(cursor.getString(0), cursor.getString(1))) } }
             BackupTableManifest.deleteRows(sqlite, tablesToClear)
             db.settingsDao().upsert(
                 payload.settings.copy(
@@ -217,11 +198,6 @@ object SettingsJsonBackup {
             )
             payload.programs.forEach { db.programDao().upsert(it.toEntity()) }
             payload.workoutLogs.forEach { db.workoutLogDao().insert(it.toEntity()) }
-            (if (hasAssociations) payload.workoutMediaAssociations else retainedAssociations).forEach {
-                if (db.workoutLogDao().getById(it.workoutLogId) != null) {
-                    db.workoutMediaSessionAssociationDao().bind(it.sessionKey, it.workoutLogId)
-                }
-            }
             payload.activeProgramState?.let { db.stateDao().upsertActiveProgram(it.toEntity()) }
             payload.ongoingWorkout?.let { db.stateDao().upsertOngoingWorkout(it.toEntity()) }
             payload.nutritionLogs.forEach { db.nutritionDao().upsertLog(it.toEntity()) }
@@ -367,8 +343,6 @@ data class SettingsExportPayload(
     val performanceRanges: List<PerformanceRangeData>? = null,
     val performanceSnapshots: List<PerformanceSnapshotData>? = null,
     val workoutMedia: List<WorkoutMedia>? = null,
-    val workoutMediaAssociations: List<WorkoutMediaAssociationBackup> = emptyList(),
-    val includesMediaAssociationsSection: Boolean = false,
     val includesCompetitionSection: Boolean = false,
     val includesWorkoutV2Section: Boolean = false,
     val includesPerformanceSection: Boolean = false,
@@ -379,9 +353,6 @@ data class SettingsExportPayload(
     val setupDrafts: List<SetupDraftBackup> = emptyList(),
     val setupCommitReceipts: List<SetupCommitReceiptBackup> = emptyList(),
 )
-
-@Serializable
-data class WorkoutMediaAssociationBackup(val sessionKey: String, val workoutLogId: String)
 
 @Serializable
 data class SetupDraftBackup(

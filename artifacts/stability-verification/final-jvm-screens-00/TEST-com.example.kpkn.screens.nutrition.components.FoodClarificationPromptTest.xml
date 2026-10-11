@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="com.example.kpkn.screens.nutrition.components.FoodClarificationPromptTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-10-10T06:33:02.313Z" hostname="VF" time="0.004">
-  <properties/>
-  <testcase name="generic identity asks if the match is right and names it" classname="com.example.kpkn.screens.nutrition.components.FoodClarificationPromptTest" time="0.004"/>
-  <testcase name="declared amount failure asks to review grams" classname="com.example.kpkn.screens.nutrition.components.FoodClarificationPromptTest" time="0.0"/>
-  <testcase name="salad composition keeps a specific question without match hint" classname="com.example.kpkn.screens.nutrition.components.FoodClarificationPromptTest" time="0.0"/>
-  <system-out><![CDATA[]]></system-out>
-  <system-err><![CDATA[]]></system-err>
-</testsuite>

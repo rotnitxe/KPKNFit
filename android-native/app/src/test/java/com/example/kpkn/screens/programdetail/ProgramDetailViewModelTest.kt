@@ -309,7 +309,6 @@ class ProgramDetailViewModelTest {
     private fun siblingWorkoutLog(programId: String, fixture: ManualRestoreFixture, sessionId: String) = WorkoutLog(
         id = "restore-log-$programId",
         programId = programId,
-        programRunId = repository.getProgramById(programId)?.runState?.runId,
         sessionId = sessionId,
         sessionName = sessionId,
         date = "2026-09-29T10:00:00Z",

@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="com.example.kpkn.services.workout.VoiceFinishKeywordsTest" tests="2" skipped="0" failures="0" errors="0" timestamp="2026-10-10T06:40:35.872Z" hostname="VF" time="0.028">
-  <properties/>
-  <testcase name="sessionFinishedPhraseIsFinishSession" classname="com.example.kpkn.services.workout.VoiceFinishKeywordsTest" time="0.018"/>
-  <testcase name="looseTerminarIsNotFinishSession" classname="com.example.kpkn.services.workout.VoiceFinishKeywordsTest" time="0.01"/>
-  <system-out><![CDATA[]]></system-out>
-  <system-err><![CDATA[]]></system-err>
-</testsuite>

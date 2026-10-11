@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="com.example.kpkn.screens.onboarding.SetupWizardOneDayCopyTest" tests="1" skipped="0" failures="0" errors="0" timestamp="2026-10-10T06:36:26.872Z" hostname="VF" time="0.054">
-  <properties/>
-  <testcase name="oneDayWeekExplainsTheFitWithTheSingularPhraseAndNeverSaysOneDays" classname="com.example.kpkn.screens.onboarding.SetupWizardOneDayCopyTest" time="0.054"/>
-  <system-out><![CDATA[]]></system-out>
-  <system-err><![CDATA[]]></system-err>
-</testsuite>

@@ -127,19 +127,19 @@ class GlobalFoodsFtsTriggerHygieneTest {
     fun upgrade_path_recreates_room_triggers_before_the_cleanup_runs() {
         createCurrentDatabase()
         val rowId = withRawDatabase { db ->
-            assertEquals("Revisit this normalized FTS migration fixture when the schema changes", 30, db.version)
+            assertEquals("This test rewinds a v28 database to 27: revisit it when the schema version changes", 28, db.version)
             // A database that reached v27 from v<=5: legacy triggers and, until Room's onPostMigrate, no Room ones.
             ROOM_TRIGGERS.forEach { db.execSQL("DROP TRIGGER `$it`") }
             plantLegacyTriggers(db)
             insertRawGlobalFood(db, "hallulla-1", "Hallulla amasada").also {
-                db.version = 29 // The separate full-schema fixture covers a real v29 file; this exercises trigger recreation.
+                db.version = 27 // MIGRATION_27_28 is idempotent, so a v28 file can be rewound to exercise onUpgrade.
             }
         }
 
-        val room = openRoom() // onPreMigrate -> MIGRATION_29_30 -> onPostMigrate -> onOpen.
+        val room = openRoom() // onPreMigrate -> MIGRATION_27_28 -> onPostMigrate -> onOpen (hygiene)
         assertEquals(ROOM_TRIGGERS, triggerNames(room))
         assertEquals(listOf(rowId), matchDocids(room, "hallulla"))
-        assertEquals(0, hygieneLogLines('I').size) // Migration already removed the duplicate legacy set.
+        assertEquals(1, hygieneLogLines('I').size)
     }
 
     @Test
@@ -238,7 +238,7 @@ class GlobalFoodsFtsTriggerHygieneTest {
     private fun plantLegacyTriggers(db: SQLiteDatabase) = LEGACY_TRIGGER_SQL.forEach { db.execSQL(it) }
 
     private fun insertOrphanFtsEntry(db: SQLiteDatabase) =
-        db.execSQL("INSERT INTO global_foods_fts(docid, normalizedName, normalizedBrand, aliasesJson) VALUES ($ORPHAN_DOCID, 'fantasma', 'huerfano', '[]')")
+        db.execSQL("INSERT INTO global_foods_fts(docid, name, brand) VALUES ($ORPHAN_DOCID, 'fantasma', 'huerfano')")
 
     /**
      * Inserts a row with plain SQL. Only the identifying columns are set; every other NOT NULL column gets a
@@ -292,29 +292,29 @@ class GlobalFoodsFtsTriggerHygieneTest {
         val LEGACY_TRIGGERS = listOf("global_foods_ad", "global_foods_ai", "global_foods_au")
         val ALL_TRIGGERS = (ROOM_TRIGGERS + LEGACY_TRIGGERS).sorted()
 
-        // Same legacy duplicate names / invalid FTS5 delete command, adapted to the current indexed columns.
+        // Verbatim from MIGRATION_5_6, step 4.
         val LEGACY_TRIGGER_SQL = listOf(
             """
             CREATE TRIGGER IF NOT EXISTS `global_foods_ai`
             AFTER INSERT ON `global_foods` BEGIN
-              INSERT INTO `global_foods_fts`(`rowid`, `normalizedName`, `normalizedBrand`, `aliasesJson`)
-              VALUES (new.`rowid`, new.`normalizedName`, new.`normalizedBrand`, new.`aliasesJson`);
+              INSERT INTO `global_foods_fts`(`rowid`, `name`, `brand`)
+              VALUES (new.`rowid`, new.`name`, new.`brand`);
             END
             """.trimIndent(),
             """
             CREATE TRIGGER IF NOT EXISTS `global_foods_ad`
             AFTER DELETE ON `global_foods` BEGIN
-              INSERT INTO `global_foods_fts`(`global_foods_fts`, `rowid`, `normalizedName`, `normalizedBrand`, `aliasesJson`)
-              VALUES ('delete', old.`rowid`, old.`normalizedName`, old.`normalizedBrand`, old.`aliasesJson`);
+              INSERT INTO `global_foods_fts`(`global_foods_fts`, `rowid`, `name`, `brand`)
+              VALUES ('delete', old.`rowid`, old.`name`, old.`brand`);
             END
             """.trimIndent(),
             """
             CREATE TRIGGER IF NOT EXISTS `global_foods_au`
             AFTER UPDATE ON `global_foods` BEGIN
-              INSERT INTO `global_foods_fts`(`global_foods_fts`, `rowid`, `normalizedName`, `normalizedBrand`, `aliasesJson`)
-              VALUES ('delete', old.`rowid`, old.`normalizedName`, old.`normalizedBrand`, old.`aliasesJson`);
-              INSERT INTO `global_foods_fts`(`rowid`, `normalizedName`, `normalizedBrand`, `aliasesJson`)
-              VALUES (new.`rowid`, new.`normalizedName`, new.`normalizedBrand`, new.`aliasesJson`);
+              INSERT INTO `global_foods_fts`(`global_foods_fts`, `rowid`, `name`, `brand`)
+              VALUES ('delete', old.`rowid`, old.`name`, old.`brand`);
+              INSERT INTO `global_foods_fts`(`rowid`, `name`, `brand`)
+              VALUES (new.`rowid`, new.`name`, new.`brand`);
             END
             """.trimIndent(),
         )

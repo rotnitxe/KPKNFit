@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="com.example.kpkn.data.programs.ProgramTemplateClaimsTest" tests="2" skipped="0" failures="0" errors="0" timestamp="2026-10-09T10:16:38.514Z" hostname="VF" time="0.006">
-  <properties/>
-  <testcase name="explicit_block_semantics_define_the_composition_contract" classname="com.example.kpkn.data.programs.ProgramTemplateClaimsTest" time="0.003"/>
-  <testcase name="name_and_weeks_match_recipe" classname="com.example.kpkn.data.programs.ProgramTemplateClaimsTest" time="0.003"/>
-  <system-out><![CDATA[]]></system-out>
-  <system-err><![CDATA[]]></system-err>
-</testsuite>

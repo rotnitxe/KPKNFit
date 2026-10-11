@@ -24,7 +24,4 @@ object ProgramAccessPolicy {
     fun requireWrite(level: PlanLevel, program: Program) {
         rejection(level, program)?.let { throw CapabilityRequiredException(it) }
     }
-    fun requireCapability(level: PlanLevel, capability: Capability) {
-        if (!CapabilityCatalog.permits(capability, level)) throw CapabilityRequiredException("${capability.name.lowercase()}_requires_pro")
-    }
 }

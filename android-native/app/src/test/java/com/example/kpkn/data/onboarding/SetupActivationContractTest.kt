@@ -57,7 +57,7 @@ class SetupActivationContractTest {
         val weightHistory = observation("obs:active:WEIGHT:2024", BodyMetric.WEIGHT, 87.0, 1_690_000_000_000L)
         val fatToday = observation("obs:active:BODY_FAT:today", BodyMetric.BODY_FAT_PERCENT, 21.5, 1_700_000_000_000L)
 
-        val result = SetupCommitCoordinator(db, accessLevel = { com.example.kpkn.domain.entitlements.PlanLevel.PRO }).commit(
+        val result = SetupCommitCoordinator(db).commit(
             SetupCommitRequest(
                 commitId = "commit-full",
                 draftId = null,
@@ -112,7 +112,7 @@ class SetupActivationContractTest {
         )
         db.settingsDao().upsert(latest.toEntity())
 
-        SetupCommitCoordinator(db, accessLevel = { com.example.kpkn.domain.entitlements.PlanLevel.PRO }).commit(
+        SetupCommitCoordinator(db).commit(
             SetupCommitRequest(
                 commitId = "commit-availability-empty",
                 draftId = null,
@@ -162,7 +162,7 @@ class SetupActivationContractTest {
                 equipmentAvailability = EquipmentAvailability(setOf(EquipmentCategory.DUMBBELLS)),
             ).toEntity(),
         )
-        val coordinator = SetupCommitCoordinator(db, accessLevel = { com.example.kpkn.domain.entitlements.PlanLevel.PRO })
+        val coordinator = SetupCommitCoordinator(db)
         val request = SetupCommitRequest(
             commitId = "commit-availability-replay",
             draftId = null,
@@ -211,7 +211,7 @@ class SetupActivationContractTest {
                 CalculationOrigin.PLAN, "previous-plan", 1L, 1L).toEntity(),
         )
 
-        val result = SetupCommitCoordinator(db, accessLevel = { com.example.kpkn.domain.entitlements.PlanLevel.PRO }).commit(
+        val result = SetupCommitCoordinator(db).commit(
             SetupCommitRequest(
                 commitId = "commit-tracking-only",
                 draftId = null,
@@ -246,7 +246,7 @@ class SetupActivationContractTest {
         db.nutritionDao().upsertPlan(NutritionPlan(id = "old", name = "Old", isActive = true).toEntity())
         db.nutritionDao().upsertActiveState(NutritionActiveStateEntity(activePlanId = "old"))
 
-        SetupCommitCoordinator(db, accessLevel = { com.example.kpkn.domain.entitlements.PlanLevel.PRO }).commit(
+        SetupCommitCoordinator(db).commit(
             SetupCommitRequest(
                 commitId = "commit-patch-tracking",
                 draftId = null,
@@ -265,7 +265,7 @@ class SetupActivationContractTest {
 
     @Test
     fun trackingOnlyIsExclusiveWithNutritionPlanAndActivation() = runBlocking {
-        val coordinator = SetupCommitCoordinator(db, accessLevel = { com.example.kpkn.domain.entitlements.PlanLevel.PRO })
+        val coordinator = SetupCommitCoordinator(db)
         assertThrows<IllegalArgumentException> {
             runBlocking {
                 coordinator.commit(
@@ -291,7 +291,7 @@ class SetupActivationContractTest {
         db.openHelper.writableDatabase.execSQL("CREATE TRIGGER reject_contract_settings BEFORE INSERT ON settings BEGIN SELECT RAISE(ABORT, 'test rollback'); END")
 
         val result = runCatching {
-            SetupCommitCoordinator(db, accessLevel = { com.example.kpkn.domain.entitlements.PlanLevel.PRO }).commit(
+            SetupCommitCoordinator(db).commit(
                 SetupCommitRequest(
                     commitId = "commit-fail",
                     draftId = "draft-contract",
@@ -319,7 +319,7 @@ class SetupActivationContractTest {
 
     @Test
     fun retryWithSameReceiptDoesNotDuplicateObservations() = runBlocking {
-        val coordinator = SetupCommitCoordinator(db, accessLevel = { com.example.kpkn.domain.entitlements.PlanLevel.PRO })
+        val coordinator = SetupCommitCoordinator(db)
         val observations = listOf(
             observation("obs:retry:WEIGHT:today", BodyMetric.WEIGHT, 83.0, 1_700_000_000_000L),
             observation("obs:retry:BODY_FAT:today", BodyMetric.BODY_FAT_PERCENT, 20.0, 1_700_000_000_000L),
@@ -346,7 +346,7 @@ class SetupActivationContractTest {
 
     @Test
     fun sameObservationIdWithIdenticalContentAcrossCommitsIsIdempotent() = runBlocking {
-        val coordinator = SetupCommitCoordinator(db, accessLevel = { com.example.kpkn.domain.entitlements.PlanLevel.PRO })
+        val coordinator = SetupCommitCoordinator(db)
         val sameId = observation("obs:stable:WEIGHT:2026-09-01", BodyMetric.WEIGHT, 86.0, 1_690_000_000_000L)
         coordinator.commit(
             SetupCommitRequest("commit-a", null, Settings(), null, null, false, false,
@@ -364,7 +364,7 @@ class SetupActivationContractTest {
 
     @Test
     fun sameObservationIdWithDifferentContentAcrossCommitsIsRejectedAndFirstRowIntact() = runBlocking {
-        val coordinator = SetupCommitCoordinator(db, accessLevel = { com.example.kpkn.domain.entitlements.PlanLevel.PRO })
+        val coordinator = SetupCommitCoordinator(db)
         coordinator.commit(
             SetupCommitRequest("commit-a-conflict", null, Settings(), null, null, false, false,
                 bodyObservations = listOf(observation("obs:stable:WEIGHT:2026-09-01", BodyMetric.WEIGHT, 86.0, 1_690_000_000_000L))),
@@ -386,7 +386,7 @@ class SetupActivationContractTest {
     @Test
     fun duplicateIdenticalObservationIdsWithinSameCommitCommitOnce() = runBlocking {
         val same = observation("obs:dup-same:WEIGHT", BodyMetric.WEIGHT, 84.0, 1_700_000_000_000L)
-        SetupCommitCoordinator(db, accessLevel = { com.example.kpkn.domain.entitlements.PlanLevel.PRO }).commit(
+        SetupCommitCoordinator(db).commit(
             SetupCommitRequest("commit-dup-same", null, Settings(), null, null, false, false,
                 bodyObservations = listOf(same, same)),
         )
@@ -398,7 +398,7 @@ class SetupActivationContractTest {
     @Test
     fun duplicateObservationIdWithDifferentContentWithinSameCommitIsRejected() = runBlocking {
         val result = runCatching {
-            SetupCommitCoordinator(db, accessLevel = { com.example.kpkn.domain.entitlements.PlanLevel.PRO }).commit(
+            SetupCommitCoordinator(db).commit(
                 SetupCommitRequest("commit-dup-conflict", null, Settings(), null, null, false, false,
                     bodyObservations = listOf(
                         observation("obs:dup:WEIGHT", BodyMetric.WEIGHT, 84.0, 1_700_000_000_000L),
@@ -416,7 +416,7 @@ class SetupActivationContractTest {
     fun invalidDeclaredObservationRejectsAndRollsBackProgramPlanSettingsReceiptAndDraft() = runBlocking {
         db.setupDraftDao().upsertDraft(com.example.kpkn.data.db.SetupDraftEntity("draft-obsinvalid", "{\"step\":5}", 5, null, 5L))
         val result = runCatching {
-            SetupCommitCoordinator(db, accessLevel = { com.example.kpkn.domain.entitlements.PlanLevel.PRO }).commit(
+            SetupCommitCoordinator(db).commit(
                 SetupCommitRequest(
                     commitId = "commit-obsinvalid",
                     draftId = "draft-obsinvalid",
@@ -443,7 +443,7 @@ class SetupActivationContractTest {
     @Test
     fun futureDatedObservationRejectsAndRollsBack() = runBlocking {
         val result = runCatching {
-            SetupCommitCoordinator(db, accessLevel = { com.example.kpkn.domain.entitlements.PlanLevel.PRO }).commit(
+            SetupCommitCoordinator(db).commit(
                 SetupCommitRequest("commit-future", null, Settings(), null, null, false, false,
                     bodyObservations = listOf(observation("obs:future:WEIGHT", BodyMetric.WEIGHT, 84.0,
                         System.currentTimeMillis() + 86_400_000L))),
@@ -458,7 +458,7 @@ class SetupActivationContractTest {
     @Test
     fun emptyObservationIdRejectsAndRollsBack() = runBlocking {
         val result = runCatching {
-            SetupCommitCoordinator(db, accessLevel = { com.example.kpkn.domain.entitlements.PlanLevel.PRO }).commit(
+            SetupCommitCoordinator(db).commit(
                 SetupCommitRequest("commit-empty-id", null, Settings(), null, null, false, false,
                     bodyObservations = listOf(observation("   ", BodyMetric.WEIGHT, 84.0, 1_700_000_000_000L))),
             )
@@ -480,7 +480,7 @@ class SetupActivationContractTest {
             method = BodyObservationMethod.UNKNOWN,
             quality = BodyObservationQuality.ESTIMATED,
         )
-        SetupCommitCoordinator(db, accessLevel = { com.example.kpkn.domain.entitlements.PlanLevel.PRO }).commit(
+        SetupCommitCoordinator(db).commit(
             SetupCommitRequest("commit-est", null, Settings(), null, null, false, false,
                 bodyObservations = listOf(estimate)),
         )
@@ -501,7 +501,7 @@ class SetupActivationContractTest {
         db.nutritionDao().upsertActiveState(NutritionActiveStateEntity(activePlanId = "previous-plan"))
 
         val result = runCatching {
-            SetupCommitCoordinator(db, accessLevel = { com.example.kpkn.domain.entitlements.PlanLevel.PRO }).commit(
+            SetupCommitCoordinator(db).commit(
                 SetupCommitRequest(
                     commitId = "commit-conflict-patch-tracking",
                     draftId = null,
@@ -534,13 +534,13 @@ class SetupActivationContractTest {
         val patch = SetupSettingsPatch(nutritionTrackingOnly = SetupPatchField.Set(true))
 
         val withGoals = runCatching {
-            SetupCommitCoordinator(db, accessLevel = { com.example.kpkn.domain.entitlements.PlanLevel.PRO }).commit(
+            SetupCommitCoordinator(db).commit(
                 SetupCommitRequest("commit-tracking-goals", null, Settings(), null, null, false, false,
                     derivedBodyGoals = listOf(goal), settingsPatch = patch),
             )
         }
         val withSnapshot = runCatching {
-            SetupCommitCoordinator(db, accessLevel = { com.example.kpkn.domain.entitlements.PlanLevel.PRO }).commit(
+            SetupCommitCoordinator(db).commit(
                 SetupCommitRequest("commit-tracking-snapshot", null, Settings(), null, null, false, false,
                     dailyGoalSnapshot = snapshot, settingsPatch = patch),
             )
@@ -561,7 +561,7 @@ class SetupActivationContractTest {
         db.nutritionDao().upsertPlan(NutritionPlan(id = "previous-plan", name = "Previous", isActive = true).toEntity())
         db.nutritionDao().upsertActiveState(NutritionActiveStateEntity(activePlanId = "previous-plan"))
 
-        SetupCommitCoordinator(db, accessLevel = { com.example.kpkn.domain.entitlements.PlanLevel.PRO }).commit(
+        SetupCommitCoordinator(db).commit(
             SetupCommitRequest("commit-reactivate", null, Settings(), null,
                 NutritionPlan(id = "reactivated-plan", name = "Reactivated"), false, true,
                 settingsPatch = SetupSettingsPatch()),
@@ -579,7 +579,7 @@ class SetupActivationContractTest {
 
     @Test
     fun replayOfReceiptDoesNotReactivateSupersededProgramOrPlan() = runBlocking {
-        val coordinator = SetupCommitCoordinator(db, accessLevel = { com.example.kpkn.domain.entitlements.PlanLevel.PRO })
+        val coordinator = SetupCommitCoordinator(db)
         coordinator.commit(SetupCommitRequest("commit-first", null, Settings(),
             executableProgram("first-program"), null, true, false))
         coordinator.commit(SetupCommitRequest("commit-second", null, Settings(),
@@ -626,7 +626,7 @@ class SetupActivationContractTest {
             activateNutrition = false,
             pendingNutritionDraft = pending,
         )
-        val coordinator = SetupCommitCoordinator(db, accessLevel = { com.example.kpkn.domain.entitlements.PlanLevel.PRO })
+        val coordinator = SetupCommitCoordinator(db)
         val first = coordinator.commit(request)
         assertNull(db.setupDraftDao().getDraft("main-draft-replay"))
 

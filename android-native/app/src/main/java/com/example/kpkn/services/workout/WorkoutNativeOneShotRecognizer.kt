@@ -25,8 +25,7 @@ class WorkoutNativeOneShotRecognizer(
         }
     },
     private val createOnDevice: (Context) -> SpeechRecognizer = { ctx ->
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) SpeechRecognizer.createOnDeviceSpeechRecognizer(ctx)
-        else throw IllegalStateException("On-device recognition is unavailable")
+        SpeechRecognizer.createOnDeviceSpeechRecognizer(ctx)
     },
 ) {
     /** Prevalidación barata: llamar antes del prompt TTS del fallback. */

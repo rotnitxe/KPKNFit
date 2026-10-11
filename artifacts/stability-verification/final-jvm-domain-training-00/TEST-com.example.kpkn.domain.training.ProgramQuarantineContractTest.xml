@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="com.example.kpkn.domain.training.ProgramQuarantineContractTest" tests="2" skipped="0" failures="0" errors="0" timestamp="2026-10-10T06:29:39.705Z" hostname="VF" time="0.002">
-  <properties/>
-  <testcase name="loadProgramsSafely_isolates_null_decodes" classname="com.example.kpkn.domain.training.ProgramQuarantineContractTest" time="0.002"/>
-  <testcase name="loadProgramsSafely_does_not_promote_corrupt_ids_into_valid_list" classname="com.example.kpkn.domain.training.ProgramQuarantineContractTest" time="0.0"/>
-  <system-out><![CDATA[]]></system-out>
-  <system-err><![CDATA[]]></system-err>
-</testsuite>

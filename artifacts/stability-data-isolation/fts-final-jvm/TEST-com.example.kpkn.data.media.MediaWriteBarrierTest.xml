@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="com.example.kpkn.data.media.MediaWriteBarrierTest" tests="2" skipped="0" failures="0" errors="0" timestamp="2026-10-09T05:20:24.542Z" hostname="VF" time="0.203">
-  <properties/>
-  <testcase name="cancelledMaintenanceCannotReopenBeforeAnAcceptedWriterActuallyStops" classname="com.example.kpkn.data.media.MediaWriteBarrierTest" time="0.175"/>
-  <testcase name="acceptedNestedIngestionFinishesWhileLateAdmissionsAndOldSessionsAreRejected" classname="com.example.kpkn.data.media.MediaWriteBarrierTest" time="0.022"/>
-  <system-out><![CDATA[]]></system-out>
-  <system-err><![CDATA[]]></system-err>
-</testsuite>

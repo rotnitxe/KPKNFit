@@ -95,7 +95,7 @@ import kotlin.math.floor
 
 enum class StructureSubTab { SEMANA, MACROCICLO, VOLUMEN }
 
-enum class VolumeAdjustmentResult { SUCCESS, REQUIRES_CALIBRATION, NO_WEEK_SELECTED, NO_ADJUSTABLE_VOLUME, REQUIRES_PRO }
+enum class VolumeAdjustmentResult { SUCCESS, REQUIRES_CALIBRATION, NO_WEEK_SELECTED, NO_ADJUSTABLE_VOLUME }
 
 data class ProgramDetailUiState(
     val structureSubTab: StructureSubTab = StructureSubTab.SEMANA,
@@ -162,13 +162,13 @@ class ProgramDetailViewModel(
     // ─── UI State ─────────────────────────────────────────────────────────
 
     private val _uiState = MutableStateFlow(ProgramDetailUiState())
-    val uiState: StateFlow<ProgramDetailUiState> = _uiState.asStateFlow()
+    val uiState: StateFlow<ProgramDetailUiState> = _uiState
 
     private val _blockTransitionBanner = MutableStateFlow<BlockTransitionBanner?>(null)
-    val blockTransitionBanner: StateFlow<BlockTransitionBanner?> = _blockTransitionBanner.asStateFlow()
+    val blockTransitionBanner: StateFlow<BlockTransitionBanner?> = _blockTransitionBanner
 
     private val _programSnapshots = MutableStateFlow<List<com.example.kpkn.domain.training.ProgramSnapshot>>(emptyList())
-    val programSnapshots: StateFlow<List<com.example.kpkn.domain.training.ProgramSnapshot>> = _programSnapshots.asStateFlow()
+    val programSnapshots: StateFlow<List<com.example.kpkn.domain.training.ProgramSnapshot>> = _programSnapshots
 
     private var snapshotStore: com.example.kpkn.domain.training.ProgramSnapshotStore? = null
 
@@ -661,14 +661,8 @@ class ProgramDetailViewModel(
         _uiState.update { it.copy(pendingOpenProgramId = null) }
     }
 
-    fun updateProgram(updated: Program): Boolean {
-        return try {
-            repository.updateProgram(updated)
-            true
-        } catch (error: com.example.kpkn.domain.entitlements.CapabilityRequiredException) {
-            _uiState.update { it.copy(snackbarMessage = com.example.kpkn.ui.entitlements.capabilityErrorText(error.code)) }
-            false
-        }
+    fun updateProgram(updated: Program) {
+        repository.updateProgram(updated)
     }
 
     /**
@@ -781,9 +775,9 @@ class ProgramDetailViewModel(
             result.fold(
                 onSuccess = { applied ->
                     if (applied.createdCopy) {
-                        if (!addProgramCopy(applied.program)) return@fold
+                        addProgramCopy(applied.program)
                     } else {
-                        if (!updateProgram(applied.program)) return@fold
+                        updateProgram(applied.program)
                         selectFirstRoadmapPosition(applied.program)
                     }
                     refreshProgramSnapshots(applied.program.id)
@@ -830,12 +824,8 @@ class ProgramDetailViewModel(
         updateProgram(cleared)
     }
 
-    fun addProgramCopy(copy: Program): Boolean = try {
+    fun addProgramCopy(copy: Program) {
         repository.addProgram(ProgramCalendarEngine.materializeWeekDates(copy))
-        true
-    } catch (error: com.example.kpkn.domain.entitlements.CapabilityRequiredException) {
-        _uiState.update { it.copy(snackbarMessage = com.example.kpkn.ui.entitlements.capabilityErrorText(error.code)) }
-        false
     }
 
     private var protocolApplyJob: kotlinx.coroutines.Job? = null
@@ -870,7 +860,7 @@ class ProgramDetailViewModel(
                     }
                     repository.replaceProgramSafely(applied)
                 } else {
-                    if (!addProgramCopy(applied)) throw com.example.kpkn.domain.entitlements.CapabilityRequiredException("advanced_program_requires_pro")
+                    addProgramCopy(applied)
                     repository.flushPendingWrites()
                 }
                 repository.getProgramById(applied.id) ?: applied
@@ -926,7 +916,7 @@ class ProgramDetailViewModel(
             val snapshot = withContext(kotlinx.coroutines.Dispatchers.IO) {
                 store.restore(current.id, snapshotId)
             } ?: return@launch
-            if (!updateProgram(snapshot)) return@launch
+            updateProgram(snapshot)
             selectFirstRoadmapPosition(snapshot)
             _uiState.update { it.copy(snackbarMessage = "Copia previa restaurada.") }
         }
@@ -950,12 +940,12 @@ class ProgramDetailViewModel(
 
     fun markVolumeSetupPromptSeen() {
         val current = program.value ?: return
-        updateProgram(current.copy(volumeSetupPromptSeen = true))
+        repository.updateProgram(current.copy(volumeSetupPromptSeen = true))
     }
 
     fun updateStartDay(day: Int) {
         val current = program.value ?: return
-        updateProgram(current.copy(startDay = day))
+        repository.updateProgram(current.copy(startDay = day))
     }
 
     fun updateStartDay(
@@ -964,7 +954,7 @@ class ProgramDetailViewModel(
         sessionMode: StartDaySessionMode,
     ) {
         val current = program.value ?: return
-        updateProgram(
+        repository.updateProgram(
             SplitApplicationEngine.applyStartDayChange(
                 program = current,
                 selectedWeekId = _uiState.value.selectedWeekId,
@@ -1033,7 +1023,7 @@ class ProgramDetailViewModel(
                 },
             ).normalizedTemporalStructure()
 
-            if (!updateProgram(updated)) return
+            updateProgram(updated)
             _uiState.update { it.copy(selectedBlockId = fallbackBlock.id, selectedWeekId = newWeek.id, structureSubTab = StructureSubTab.SEMANA) }
             return
         }
@@ -1063,7 +1053,7 @@ class ProgramDetailViewModel(
             }
         ).normalizedTemporalStructure()
 
-        if (!updateProgram(updated)) return
+        updateProgram(updated)
         _uiState.update { it.copy(selectedBlockId = block.id, selectedWeekId = newWeek.id) }
     }
 
@@ -1102,7 +1092,7 @@ class ProgramDetailViewModel(
             }
         ).normalizedTemporalStructure()
 
-        if (!updateProgram(updated)) return
+        updateProgram(updated)
         _uiState.update {
             it.copy(
                 selectedBlockId = target.id,
@@ -1131,7 +1121,7 @@ class ProgramDetailViewModel(
             }
         ).normalizedTemporalStructure()
 
-        if (!updateProgram(updated)) return
+        updateProgram(updated)
         _uiState.update {
             it.copy(
                 selectedBlockId = newBlock.id,
@@ -1215,7 +1205,7 @@ class ProgramDetailViewModel(
                 )
             }
         )
-        updateProgram(updated)
+        repository.updateProgram(updated)
     }
 
     fun replaceWeekSessions(weekId: String, sessions: List<Session>) {
@@ -1243,7 +1233,7 @@ class ProgramDetailViewModel(
                 )
             },
         )
-        updateProgram(updated)
+        repository.updateProgram(updated)
     }
 
     fun updateWeekTrainingDayDate(weekId: String, dayOfWeek: Int, isoDate: String?) {
@@ -1312,7 +1302,7 @@ class ProgramDetailViewModel(
                 )
             }
         )
-        updateProgram(updated)
+        repository.updateProgram(updated)
     }
 
     fun dismissBlockTransitionBanner() {
@@ -1667,7 +1657,7 @@ class ProgramDetailViewModel(
             inventory = currentEquipmentInventory(),
         )
         if (result.program == current) return
-        if (!updateProgram(result.program)) return
+        updateProgram(result.program)
         result.activeState?.let(repository::updateActiveProgramState)
         _blockTransitionBanner.value = null
     }
@@ -1702,7 +1692,7 @@ class ProgramDetailViewModel(
         } else {
             null
         }
-        if (!updateProgram(rebuilt?.takeUnless { it.failed }?.program ?: result.program)) return
+        updateProgram(rebuilt?.takeUnless { it.failed }?.program ?: result.program)
         result.activeState?.let(repository::updateActiveProgramState)
         _blockTransitionBanner.value = null
         if (profileChanged) {
@@ -1724,7 +1714,7 @@ class ProgramDetailViewModel(
             inventory = currentEquipmentInventory(),
         )
         if (result.program == current) return
-        if (!updateProgram(result.program)) return
+        updateProgram(result.program)
         result.activeState?.let(repository::updateActiveProgramState)
         _blockTransitionBanner.value = null
     }
@@ -1777,7 +1767,7 @@ class ProgramDetailViewModel(
             }.filter { macro -> macro.blocks.isNotEmpty() }
         ).normalizedTemporalStructure()
 
-        if (!updateProgram(updated)) return
+        updateProgram(updated)
         val blocks = ProgramDetailHelpers.buildRoadmapBlocks(updated)
         val selectedBlock = blocks.firstOrNull { it.id == _uiState.value.selectedBlockId } ?: blocks.firstOrNull()
         val nextWeek = ProgramDetailHelpers.getWeeksForBlock(selectedBlock?.id, blocks, updated).firstOrNull()
@@ -1807,7 +1797,7 @@ class ProgramDetailViewModel(
             }.filter { it.blocks.isNotEmpty() }
         ).normalizedTemporalStructure()
 
-        if (!updateProgram(updated)) return
+        updateProgram(updated)
         val blocks = ProgramDetailHelpers.buildRoadmapBlocks(updated)
         val selectedBlock = blocks.firstOrNull()
         val nextWeek = ProgramDetailHelpers.getWeeksForBlock(selectedBlock?.id, blocks, updated).firstOrNull()
@@ -1873,7 +1863,7 @@ class ProgramDetailViewModel(
         )
 
         if (!changed) return VolumeAdjustmentResult.NO_ADJUSTABLE_VOLUME
-        if (!updateProgram(updated)) return VolumeAdjustmentResult.REQUIRES_PRO
+        repository.updateProgram(updated)
         return VolumeAdjustmentResult.SUCCESS
     }
 
@@ -1921,7 +1911,7 @@ class ProgramDetailViewModel(
             }
         )
         if (!changed) return
-        if (!updateProgram(updated)) return
+        repository.updateProgram(updated)
         // Un record de competición nunca debe quedar apuntando a una sesión eliminada.
         // Se desvincula (no se borra) para preservar intentos/bitácora ya registrados: el
         // record sigue siendo consultable desde CompetitionScreen como historial standalone.
@@ -1933,19 +1923,14 @@ class ProgramDetailViewModel(
         }
     }
 
-    fun addSession(macroIndex: Int, mesoIndex: Int, weekId: String, session: Session): Boolean {
-        return try {
-            repository.upsertSessionInProgram(
-                programId = programId,
-                weekId = weekId,
-                macroIndex = macroIndex,
-                mesoIndex = mesoIndex,
-                session = session,
-            )
-        } catch (error: com.example.kpkn.domain.entitlements.CapabilityRequiredException) {
-            _uiState.update { it.copy(snackbarMessage = com.example.kpkn.ui.entitlements.capabilityErrorText(error.code)) }
-            false
-        }
+    fun addSession(macroIndex: Int, mesoIndex: Int, weekId: String, session: Session) {
+        repository.upsertSessionInProgram(
+            programId = programId,
+            weekId = weekId,
+            macroIndex = macroIndex,
+            mesoIndex = mesoIndex,
+            session = session,
+        )
     }
 
     fun reorderSessions(weekId: String, fromIndex: Int, toIndex: Int) {
@@ -1973,7 +1958,7 @@ class ProgramDetailViewModel(
                 )
             }
         )
-        updateProgram(updated)
+        repository.updateProgram(updated)
     }
 
     fun reorderSessions(weekId: String, sessions: List<Session>) {
@@ -1996,7 +1981,7 @@ class ProgramDetailViewModel(
                 )
             }
         )
-        updateProgram(updated)
+        repository.updateProgram(updated)
     }
 
     fun previewWeekCopyConflicts(sourceWeekId: String, targetWeekIds: Set<String>): List<WeekCopyConflict> {
@@ -2054,7 +2039,8 @@ class ProgramDetailViewModel(
             }
         ).normalizedTemporalStructure()
 
-        return updateProgram(updated)
+        updateProgram(updated)
+        return true
     }
 
     private fun normalizeMainSessions(sessions: List<Session>): List<Session> {
@@ -2376,7 +2362,7 @@ class ProgramDetailViewModel(
                 idProvider = idProvider,
             )
         ).normalizedTemporalStructure()
-        if (!updateProgram(updated)) return
+        repository.updateProgram(updated)
 
         val newBlockId = updated.macrocycles.firstOrNull()?.blocks?.firstOrNull()?.id
         val newWeekId = updated.macrocycles
@@ -2403,7 +2389,7 @@ class ProgramDetailViewModel(
                 idProvider = idProvider,
             )
         ).normalizedTemporalStructure()
-        if (!updateProgram(updated)) return
+        repository.updateProgram(updated)
         selectFirstRoadmapPosition(updated)
         setShowSimpleCalendarizationSheet(false)
     }
@@ -2413,7 +2399,7 @@ class ProgramDetailViewModel(
         val updated = current.restorePausedCyclicProgram()
             .withFallbackSimpleWeekIfEmpty()
             .normalizedTemporalStructure()
-        if (!updateProgram(updated)) return
+        repository.updateProgram(updated)
         selectFirstRoadmapPosition(updated)
         setShowSimpleCalendarizationSheet(false)
     }
@@ -2423,7 +2409,7 @@ class ProgramDetailViewModel(
         val updated = current.startFreshSimpleCycle(idProvider)
             .withFallbackSimpleWeekIfEmpty()
             .normalizedTemporalStructure()
-        if (!updateProgram(updated)) return
+        repository.updateProgram(updated)
         selectFirstRoadmapPosition(updated)
         setShowSimpleCalendarizationSheet(false)
     }

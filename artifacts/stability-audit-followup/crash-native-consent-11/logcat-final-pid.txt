@@ -1,2 +1,0 @@
---------- beginning of main
-10-10 10:29:55.609 17740 17746 I .kpkn.stability: Background concurrent mark compact GC freed 39MB AllocSpace bytes, 0(0B) LOS objects, 22% free, 80MB/104MB, paused 4.081ms,3.660ms total 335.364ms

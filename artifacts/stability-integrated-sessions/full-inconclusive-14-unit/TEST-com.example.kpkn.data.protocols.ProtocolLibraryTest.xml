@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="com.example.kpkn.data.protocols.ProtocolLibraryTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-10-09T10:16:40.675Z" hostname="VF" time="0.001">
-  <properties/>
-  <testcase name="declared_defaultSplit_resolves_to_a_real_split_template" classname="com.example.kpkn.data.protocols.ProtocolLibraryTest" time="0.001"/>
-  <testcase name="library_has_unique_ids_and_at_least_one_block_each" classname="com.example.kpkn.data.protocols.ProtocolLibraryTest" time="0.0"/>
-  <testcase name="f4_expands_library_with_new_powerlifting_powerbuilding_and_bodybuilding_entries" classname="com.example.kpkn.data.protocols.ProtocolLibraryTest" time="0.0"/>
-  <system-out><![CDATA[]]></system-out>
-  <system-err><![CDATA[]]></system-err>
-</testsuite>

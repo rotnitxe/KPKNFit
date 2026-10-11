@@ -118,8 +118,7 @@ fun HomeScreen(
 
     val programsVm: ProgramsViewModel = viewModel()
     val settings by ProgramRepository.getInstance().settings.collectAsState()
-    val pro = com.example.kpkn.ui.entitlements.LocalPlan.current == com.example.kpkn.domain.entitlements.PlanLevel.PRO
-    val showNutrition = pro && settings.nutritionTrackingChoice != com.example.kpkn.data.models.NutritionTrackingChoice.SKIPPED
+    val showNutrition = settings.nutritionTrackingChoice != com.example.kpkn.data.models.NutritionTrackingChoice.SKIPPED
     val showCreateProgramSheet by viewModel.showCreateProgramSheet.collectAsState()
     val pendingProgramName by viewModel.pendingProgramName.collectAsState()
     val pendingVolumeTemplateId by viewModel.pendingVolumeTemplateId.collectAsState()
@@ -144,11 +143,10 @@ fun HomeScreen(
     var showFoodLogger by rememberSaveable { mutableStateOf(false) }
     var showNutritionOverlay by remember { mutableStateOf(false) }
     var showAugeRecommendations by remember { mutableStateOf(false) }
-    LaunchedEffect(pro) { if (!pro) { showFoodLogger = false; showNutritionOverlay = false; showAugeRecommendations = false } }
     // Recorrido de Inicio: solo cuando los RINGS ya cargaron (si no, esperaría a sus anclas). Lo decide el controlador: visto = no arranca.
     val tourHost = LocalKpknOverlayHost.current
     LaunchedEffect(augeLoading) {
-        if (!augeLoading) tourHost?.startTour(TourIds.HOME, TourScripts.home(conTorre = pro))
+        if (!augeLoading) tourHost?.startTour(TourIds.HOME, TourScripts.home(conTorre = true))
     }
     val nutritionLogs by nutritionRepo.nutritionLogs.collectAsState()
     val context = LocalContext.current
@@ -256,7 +254,6 @@ fun HomeScreen(
             onNavigateToProfile = onNavigateToProfile,
             hazeState = rootHazeState,
             onBottomPositionChanged = { headerBottomY = it },
-            ringsCoverage = augeSnapshot.coverage ?: com.example.kpkn.domain.onboarding.RingsCoverage.NO_DATA,
         )
     }
     val latestHeaderOverlayChange by rememberUpdatedState(onHeaderOverlayChange)
@@ -322,7 +319,7 @@ fun HomeScreen(
                 onDismissAdvisory = augeViewModel::dismissAdvisory,
                 onModelNoticeShown = augeViewModel::markModelUpdateNoticeShown,
                 autoDeloadMessage = augeSnapshot.autoDeloadMessage,
-                overtrainedMuscles = if (pro) uiState.overtrainedMuscles else emptyList(),
+                overtrainedMuscles = uiState.overtrainedMuscles,
                  onAddMeal = { if (showNutrition) showFoodLogger = true },
                  onOpenNutritionOverlay = { if (showNutrition) showNutritionOverlay = true },
                  showNutrition = showNutrition,
@@ -331,7 +328,7 @@ fun HomeScreen(
                      .navigationBarsPadding(),
              )
 
-        if (showFoodLogger && pro) {
+        if (showFoodLogger) {
             // C12: la misma regla horaria que Nutrición, resuelta cada vez que se abre el logger. WP-U7: se guarda con el
             // resto del estado (la semilla del borrador manda de todos modos al restaurar).
             val loggerMeal by rememberSaveable(stateSaver = MealTypeSaver) {
@@ -343,7 +340,7 @@ fun HomeScreen(
                 onDismiss = { showFoodLogger = false },
             )
         }
-        if (showAugeRecommendations && pro) {
+        if (showAugeRecommendations) {
             KpknAlertDialog(
                 onDismissRequest = { showAugeRecommendations = false },
                 title = { Text("Recomendación de recuperación", fontWeight = FontWeight.Black) },
@@ -576,7 +573,6 @@ private fun HomeWithProgram(
     val isCatalogReady by exerciseCatalogReady.collectAsState()
     // «Añadir la fecha de tu competición» (C4c): id del programa activo que aún no tiene fecha clave, o null.
     val competitionDatePromptProgramId by viewModel.competitionDatePromptProgramId.collectAsState()
-    val pro = com.example.kpkn.ui.entitlements.LocalPlan.current == com.example.kpkn.domain.entitlements.PlanLevel.PRO
     val homeAdvisory = remember(augeSnapshot, todaySessions, isCatalogReady) {
         val raw = augeSnapshot?.advisories
             ?.filter { LoadAdvisoryEngine.rank(it.level) >= LoadAdvisoryEngine.rank(LoadAdvisoryLevel.ADJUST) }
@@ -633,7 +629,7 @@ private fun HomeWithProgram(
                 modifier = Modifier.onGloballyPositioned { onRingsAnchorPositionChanged(it.positionInRoot().y) },
             )
         }
-        if (homeAdvisory != null && pro) {
+        if (homeAdvisory != null) {
             item(key = "auto-deload") {
                 AlertActionCard(
                     title = homeAdvisory.title,
@@ -750,7 +746,6 @@ private fun HomeTopBar(
     onNavigateToProfile: () -> Unit,
     hazeState: HazeState,
     onBottomPositionChanged: (Float) -> Unit,
-    ringsCoverage: com.example.kpkn.domain.onboarding.RingsCoverage = com.example.kpkn.domain.onboarding.RingsCoverage.NO_DATA,
 ) {
     Box(
         modifier = modifier
@@ -861,7 +856,6 @@ private fun HomeTopBar(
                             sncProgress = sncProgress,
                             columnaProgress = columnaProgress,
                             hasActiveProgram = hasPrograms,
-                            coverage = ringsCoverage,
                             modifier = Modifier.graphicsLayer { alpha = ringsAlpha; translationY = ringsSlide },
                         )
                         MiniNutritionCard(
@@ -887,21 +881,12 @@ private fun MiniRingsWidget(
     columnaProgress: Float,
     modifier: Modifier = Modifier,
     hasActiveProgram: Boolean = true,
-    coverage: com.example.kpkn.domain.onboarding.RingsCoverage = com.example.kpkn.domain.onboarding.RingsCoverage.NO_DATA,
 ) {
-    val free = com.example.kpkn.ui.entitlements.LocalPlan.current == com.example.kpkn.domain.entitlements.PlanLevel.FREE
-    val channels = listOf(RecoveryChannelId.MUSCULAR, RecoveryChannelId.SYSTEM, RecoveryChannelId.STRUCTURE)
-    val allProgress = listOf(muscularProgress, sncProgress, columnaProgress)
-    // Sin datos el canal queda sin calibrar (pista discontinua), sin afirmar un valor.
-    fun percent(i: Int): Int? = if (coverage.channel(channels[i]).hasData) {
-        (allProgress[i] * 100).toInt().coerceIn(0, 100)
-    } else {
-        null
-    }
+    val progressValues = listOf(muscularProgress, sncProgress, columnaProgress)
+    fun percent(i: Int): Int? = if (hasActiveProgram) (progressValues[i] * 100).toInt().coerceIn(0, 100) else null
     KpknTowerRings(
         values = TowerRingValues(columna = percent(2), musculos = percent(0), energia = percent(1)),
         modifier = modifier.fillMaxWidth().height(40.dp).alpha(if (hasActiveProgram) 1f else 0.5f),
-        visible = if (free) setOf(RingChannel.ENERGIA) else RingChannel.entries.toSet(),
     )
 }
 

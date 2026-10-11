@@ -1,1 +1,0 @@
-SELECT t.name,t.tid,ROUND(SUM(s.dur)/1e6,2) AS running_ms,COUNT(*) AS intervals FROM sched s JOIN thread t USING(utid) JOIN process p USING(upid) WHERE p.pid=4022 AND s.dur>0 GROUP BY t.utid ORDER BY running_ms DESC LIMIT 15;

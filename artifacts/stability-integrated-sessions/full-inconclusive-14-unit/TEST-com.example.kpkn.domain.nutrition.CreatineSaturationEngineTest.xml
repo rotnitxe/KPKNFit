@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="com.example.kpkn.domain.nutrition.CreatineSaturationEngineTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-10-09T10:19:21.805Z" hostname="VF" time="0.004">
-  <properties/>
-  <testcase name="loadingDose70kg_is21gPerDay" classname="com.example.kpkn.domain.nutrition.CreatineSaturationEngineTest" time="0.002"/>
-  <testcase name="progressIncreasesWithLoggedCreatine" classname="com.example.kpkn.domain.nutrition.CreatineSaturationEngineTest" time="0.002"/>
-  <testcase name="gradualProtocol_28dayEstimate" classname="com.example.kpkn.domain.nutrition.CreatineSaturationEngineTest" time="0.0"/>
-  <system-out><![CDATA[]]></system-out>
-  <system-err><![CDATA[]]></system-err>
-</testsuite>

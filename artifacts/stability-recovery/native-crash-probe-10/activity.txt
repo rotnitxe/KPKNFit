@@ -1,1 +1,0 @@
-    topResumedActivity=ActivityRecord{120618618 u0 com.example.kpkn.stability/com.example.kpkn.MainActivity t1218}

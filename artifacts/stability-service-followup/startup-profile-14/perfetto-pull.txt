@@ -1,1 +1,0 @@
-/data/misc/perfetto-traces/kpkn-own-startup-14.pftrace: 1 file pulled, 0 skipped. 28.4 MB/s (9753315 bytes in 0.327s)

@@ -63,11 +63,8 @@ import androidx.sqlite.db.SupportSQLiteDatabase
         WorkoutMediaSessionAssociationEntity::class,
         SetupDraftEntity::class,
         SetupCommitReceiptEntity::class,
-        SyncConfigurationEntity::class,
-        SyncMutationEntity::class,
-        SyncShadowEntity::class,
     ],
-    version = 30,
+    version = 28,
     exportSchema = true,
 )
 abstract class KpknDatabase : RoomDatabase() {
@@ -91,12 +88,9 @@ abstract class KpknDatabase : RoomDatabase() {
     abstract fun workoutMediaSessionAssociationDao(): WorkoutMediaSessionAssociationDao
     abstract fun setupDraftDao(): SetupDraftDao
     abstract fun setupCommitReceiptDao(): SetupCommitReceiptDao
-    abstract fun syncJournalDao(): SyncJournalDao
 
     companion object {
         @Volatile private var INSTANCE: KpknDatabase? = null
-        @Volatile private var instancePath: String? = null
-        const val DATABASE_VERSION = 30
 
         val MIGRATION_1_2 = object : Migration(1, 2) {
             override fun migrate(db: SupportSQLiteDatabase) {
@@ -745,39 +739,10 @@ abstract class KpknDatabase : RoomDatabase() {
             }
         }
 
-        val MIGRATION_28_29 = object : Migration(28, 29) {
-            override fun migrate(db: SupportSQLiteDatabase) = SyncJournalSchema.migrate(db)
-        }
-        val MIGRATION_29_30 = object : Migration(29, 30) {
-            override fun migrate(db: SupportSQLiteDatabase) {
-                // Catalog rows, identities and usage history stay in the content table.
-                listOf("global_foods_ai", "global_foods_ad", "global_foods_au").forEach {
-                    db.execSQL("DROP TRIGGER IF EXISTS `$it`")
-                }
-                db.execSQL("DROP TABLE IF EXISTS `global_foods_fts`")
-                db.execSQL("CREATE VIRTUAL TABLE `global_foods_fts` USING FTS4(`normalizedName` TEXT NOT NULL, `normalizedBrand` TEXT, `aliasesJson` TEXT NOT NULL, tokenize=unicode61, content=`global_foods`)")
-                db.execSQL("INSERT INTO `global_foods_fts`(`global_foods_fts`) VALUES('rebuild')")
-            }
-        }
-
-        fun getInstance(context: Context): KpknDatabase {
-            val supplied = context.applicationContext
-            val profileBound = supplied is com.example.kpkn.data.account.ProfileContext || supplied is com.example.kpkn.KpknApplication
-            val scoped = if (profileBound && com.example.kpkn.data.account.ProfileStorage.initialized())
-                com.example.kpkn.data.account.ProfileStorage.context(context.applicationContext,
-                    (context.applicationContext as? com.example.kpkn.data.account.ProfileContext)?.profile
-                        ?: com.example.kpkn.data.account.ProfileStorage.current()) else context.applicationContext
-            val expectedPath = scoped.getDatabasePath("kpkn.db").canonicalPath
-            INSTANCE?.let {
-                // Test repositories deliberately inject a Room in-memory database. It has no
-                // profile-owned file; a named production database must always match its owner.
-                check(instancePath == expectedPath || it.openHelper.databaseName == null) { "A profile switch must close the previous data session first" }
-                return it
-            }
-            return synchronized(this) {
-                check(INSTANCE == null || instancePath == expectedPath || INSTANCE?.openHelper?.databaseName == null) { "A profile switch must close the previous data session first" }
+        fun getInstance(context: Context): KpknDatabase =
+            INSTANCE ?: synchronized(this) {
                 INSTANCE ?: Room.databaseBuilder(
-                    scoped,
+                    context.applicationContext,
                     KpknDatabase::class.java,
                     "kpkn.db",
                 )
@@ -809,31 +774,18 @@ abstract class KpknDatabase : RoomDatabase() {
                     MIGRATION_25_26,
                     MIGRATION_26_27,
                     MIGRATION_27_28,
-                    MIGRATION_28_29,
-                    MIGRATION_29_30,
                 )
                 .addCallback(GlobalFoodsFtsHygiene)
-                .addCallback(SyncJournalSchema)
                 .build()
-                .also { instancePath = expectedPath; INSTANCE = it }
+                .also { INSTANCE = it }
             }
-        }
 
         fun closeInstance() {
             synchronized(this) {
                 INSTANCE?.close()
                 INSTANCE = null
-                instancePath = null
             }
         }
-
-        /** Opens only a caller-owned staged file; it never changes the live singleton. */
-        internal fun openIsolated(context: Context, name: String): KpknDatabase =
-            Room.databaseBuilder(context.applicationContext, KpknDatabase::class.java, name)
-                .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7, MIGRATION_7_8, MIGRATION_8_9, MIGRATION_9_10, MIGRATION_10_11, MIGRATION_11_12, MIGRATION_12_13, MIGRATION_13_14, MIGRATION_14_15, MIGRATION_15_16, MIGRATION_16_17, MIGRATION_17_18, MIGRATION_18_19, MIGRATION_19_20, MIGRATION_20_21, MIGRATION_21_22, MIGRATION_22_23, MIGRATION_23_24, MIGRATION_24_25, MIGRATION_25_26, MIGRATION_26_27, MIGRATION_27_28, MIGRATION_28_29, MIGRATION_29_30)
-                .addCallback(GlobalFoodsFtsHygiene)
-                .addCallback(SyncJournalSchema)
-                .build()
 
         /** In-memory Room for unit tests — avoids Robolectric SQLite file races on Windows. */
         fun createInMemory(context: Context): KpknDatabase =
@@ -843,7 +795,6 @@ abstract class KpknDatabase : RoomDatabase() {
             )
                 .allowMainThreadQueries()
                 .addCallback(GlobalFoodsFtsHygiene)
-                .addCallback(SyncJournalSchema)
                 .build()
     }
 }

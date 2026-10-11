@@ -72,7 +72,7 @@ class NutritionRepositorySearchTest {
             FoodCatalogImporter::class.java,
         )
         ctor.isAccessible = true
-        val repo = ctor.newInstance(context, db, false, noImport).also { it.accessLevel = { com.example.kpkn.domain.entitlements.PlanLevel.PRO }; repositories += it }
+        val repo = ctor.newInstance(context, db, false, noImport).also { repositories += it }
         repo.refreshData(context)
         withTimeout(TIMEOUT_MS) { repo.awaitStartupLoadForTests() }
         repo
