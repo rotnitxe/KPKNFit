@@ -56,6 +56,7 @@ object ImportedProgramBuilder {
                         dayIndex = dayIndex,
                         day = day,
                         weekday = weekdayPerSession[dayIndex],
+                        loadUnit = draft.loadUnit,
                         resolved = resolved,
                         configurations = configurations,
                         revision = revision,
@@ -108,6 +109,7 @@ object ImportedProgramBuilder {
         dayIndex: Int,
         day: ImportedDay,
         weekday: Int?,
+        loadUnit: ImportLoadUnit,
         resolved: Map<String, String?>,
         configurations: Map<String, Pair<ExerciseDefinitionV2, ExerciseConfigurationV2>>,
         revision: String?,
@@ -116,11 +118,13 @@ object ImportedProgramBuilder {
         return Session(
             id = sessionId,
             name = day.name.ifBlank { "Día ${dayIndex + 1}" },
-            exercises = day.exercises.mapIndexed { exerciseIndex, exercise ->
+            // Los ejercicios seguidos con el mismo nombre son un solo ejercicio de la app (varios grupos de series).
+            exercises = groupConsecutive(day.exercises).mapIndexed { exerciseIndex, members ->
                 buildExercise(
                     id = "$sessionId-e${exerciseIndex + 1}",
-                    exercise = exercise,
-                    configurationId = resolved[exercise.rawName],
+                    members = members,
+                    loadUnit = loadUnit,
+                    configurationId = resolved[members.first().rawName],
                     configurations = configurations,
                     revision = revision,
                 )
@@ -131,9 +135,11 @@ object ImportedProgramBuilder {
         )
     }
 
+    /** Ejercicio de la app a partir de uno o varios grupos de series seguidos (en orden, con sus propias cifras). */
     private fun buildExercise(
         id: String,
-        exercise: ImportedExercise,
+        members: List<ImportedExercise>,
+        loadUnit: ImportLoadUnit,
         configurationId: String?,
         configurations: Map<String, Pair<ExerciseDefinitionV2, ExerciseConfigurationV2>>,
         revision: String?,
@@ -144,7 +150,7 @@ object ImportedProgramBuilder {
         val catalogConfigurationId = configuration?.id
         return Exercise(
             id = id,
-            name = definition?.canonicalName ?: exercise.rawName,
+            name = definition?.canonicalName ?: members.first().rawName,
             exerciseDbId = catalogConfigurationId,
             exerciseId = catalogConfigurationId,
             canonicalExerciseId = catalogConfigurationId?.lowercase(),
@@ -154,13 +160,18 @@ object ImportedProgramBuilder {
             catalogConfigurationId = catalogConfigurationId,
             performanceProfileId = configuration?.profile?.performanceProfileId,
             trainingMode = TrainingMode.REPS,
-            restTime = exercise.restSeconds,
-            sets = buildSets(id, exercise),
-            executionCues = listOfNotNull(exercise.notes),
+            restTime = members.firstNotNullOfOrNull { it.restSeconds },
+            sets = buildSets(id, members, loadUnit),
+            executionCues = members.mapNotNull { it.notes }.distinct(),
         )
     }
 
-    private fun buildSets(exerciseId: String, exercise: ImportedExercise): List<ExerciseSet> {
+    private fun buildSets(exerciseId: String, members: List<ImportedExercise>, loadUnit: ImportLoadUnit): List<ExerciseSet> =
+        members.flatMap { exercise -> setsOf(exercise, loadUnit) }
+            .mapIndexed { index, set -> set.copy(id = "$exerciseId-s${index + 1}") }
+
+    /** Series de un grupo, sin id (lo pone [buildSets]); la carga pasa a kilos según la unidad del borrador. */
+    private fun setsOf(exercise: ImportedExercise, loadUnit: ImportLoadUnit): List<ExerciseSet> {
         val low = exercise.repsMin.coerceAtLeast(1)
         val high = exercise.repsMax.coerceAtLeast(low)
         val percent = exercise.percent1Rm
@@ -171,20 +182,41 @@ object ImportedProgramBuilder {
             exercise.loadKg != null -> IntensityMode.LOAD
             else -> null
         }
-        return List(exercise.sets.coerceAtLeast(1)) { index ->
+        val weight = exercise.loadKg?.let { kilograms(it, loadUnit) }
+        return List(exercise.sets.coerceAtLeast(1)) {
             ExerciseSet(
-                id = "$exerciseId-s${index + 1}",
+                id = "",
                 targetReps = high,
                 targetRepsRange = RepRange(low, high),
                 targetRPE = exercise.rpe,
                 targetRIR = exercise.rir,
                 intensityMode = intensity,
                 targetPercentageRM = percent,
-                weight = exercise.loadKg,
+                weight = weight,
                 loadBasis = if (percent != null) LoadBasis.PERCENT_1RM else null,
             )
         }
     }
+
+    /** Carga en kilos: con libras, al 0,5 kg más cercano (135 lb → 61 kg). */
+    internal fun kilograms(value: Double, unit: ImportLoadUnit): Double =
+        if (unit == ImportLoadUnit.LB) (value * LB_TO_KG * 2).roundToInt() / 2.0 else value
+
+    /** Agrupa los ejercicios seguidos con el mismo nombre; si el nombre vuelve más abajo, separado por otro, es otro grupo. */
+    internal fun groupConsecutive(exercises: List<ImportedExercise>): List<List<ImportedExercise>> {
+        val groups = mutableListOf<MutableList<ImportedExercise>>()
+        for (exercise in exercises) {
+            val last = groups.lastOrNull()
+            if (last != null && last.first().rawName == exercise.rawName) {
+                last += exercise
+            } else {
+                groups += mutableListOf(exercise)
+            }
+        }
+        return groups
+    }
+
+    private const val LB_TO_KG = 0.45359237
 
     private fun configurationIndex(
         catalog: ExerciseCatalogV2,
