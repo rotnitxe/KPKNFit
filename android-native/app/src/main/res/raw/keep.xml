@@ -1,0 +1,3 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:tools="http://schemas.android.com/tools"
+    tools:keep="@raw/welcome_entreno,@raw/welcome_nutricion,@raw/welcome_rings,@drawable/welcome_entreno_poster,@drawable/welcome_nutricion_poster,@drawable/welcome_rings_poster" />

@@ -40,9 +40,9 @@ class WelcomeShellCopyTest {
     }
 
     @Test
-    fun `la descripcion para TalkBack es una frase que empieza por Demostracion animada`() {
+    fun `la descripcion para TalkBack es una frase que empieza por Video de demostracion`() {
         WelcomePages.forEach { page ->
-            assertTrue(page.demoDescription, page.demoDescription.startsWith("Demostración animada: "))
+            assertTrue(page.demoDescription, page.demoDescription.startsWith("Vídeo de demostración: "))
             assertTrue(page.demoDescription, page.demoDescription.endsWith("."))
             assertEquals(page.demoDescription, 1, page.demoDescription.count { it == '.' })
         }

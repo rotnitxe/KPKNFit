@@ -1,5 +1,6 @@
 package com.example.kpkn.screens.onboarding.welcome
 
+import android.content.Context
 import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Modifier
@@ -7,11 +8,13 @@ import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.unit.dp
+import androidx.test.core.app.ApplicationProvider
 import com.example.kpkn.R
 import com.example.kpkn.screens.onboarding.SetupWelcomeScreen
 import com.example.kpkn.screens.onboarding.design.LocalWizardReducedMotion
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Rule
@@ -44,6 +47,17 @@ class WelcomeVideoPlayerTest {
     fun `sin recursos en la app ninguna pagina tiene video`() {
         WelcomePages.forEach { page ->
             assertNull(page.id, welcomeVideoAssetsOf(page.id) { _, _ -> 0 })
+        }
+    }
+
+    @Test
+    fun `con los recursos de la app las tres paginas tienen video y poster`() {
+        val context = ApplicationProvider.getApplicationContext<Context>()
+        WelcomePages.forEach { page ->
+            val assets = welcomeVideoAssetsOf(page.id) { name, type ->
+                context.resources.getIdentifier(name, type, context.packageName)
+            }
+            assertNotNull(page.id, assets)
         }
     }
 
@@ -81,8 +95,10 @@ class WelcomeVideoPlayerTest {
 
     @Test
     fun `sin video en la app se pinta la escena de hoy y no aparece el reproductor`() {
+        // Con los recursos reales la página tendría vídeo; la búsqueda que devuelve 0 simula una app sin ellos.
+        val sinVideo = welcomeVideoAssetsOf(WelcomePages[0].id) { _, _ -> 0 }
         rule.setContent {
-            WelcomeSceneOf(page = 0, t = 1f, playing = true, modifier = Modifier.size(300.dp, 620.dp))
+            WelcomeSceneOf(page = 0, t = 1f, playing = true, modifier = Modifier.size(300.dp, 620.dp), video = sinVideo)
         }
         rule.waitForIdle()
         rule.onNodeWithTag("welcome-video", useUnmergedTree = true).assertDoesNotExist()
