@@ -736,7 +736,7 @@ class WorkoutVoiceCommandHandler(
                 val currentExercise = ports.visibleExercises(state).getOrNull(state.currentExerciseIdx)
                 if (currentExercise != null) {
                     ports.resetMobilityGlobalTimer(currentExercise.id)
-                    voiceController.speakFeedbackUpdated("Temporizador de movilidad reiniciado. Di iniciar cuando estés listo.")
+                    voiceController.speakFeedbackUpdated("Temporizador de movilidad reiniciado. Di iniciar para empezar.")
                 }
             }
             is VoiceSessionCommand.CompleteMobilityItem -> {
