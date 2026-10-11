@@ -100,7 +100,10 @@ Cuándo sale cada paso condicional:
 
 ## 6. Pendientes conocidos
 
-- Vídeos de la bienvenida: falta grabarlos (el código cae a las escenas Canvas mientras no existan).
+- Vídeos de la bienvenida: grabados el 2026-10-11 en el teléfono real (app `.dbg`, datos de demostración, Pro de depuración) e integrados en F3d.
+  - Formato: 720 × 1488 (la proporción del lienzo de las escenas), H.264, sin audio y menos de 1 MB cada uno. Sin la barra de estado ni la del sistema.
+  - RINGS: el deslizador solo existe en la hoja previa al entreno, así que el vídeo muestra una vista recortada de esa hoja, sin su título (ver abajo), y después el detalle del anillo en Inicio.
+  - Si hay que volver a grabar: `phone_run.py --supervised` con `rec:`/`recwait:`/`pull:`, y el montaje con `C:\kw\tools\build_welcome_videos.py <crf>` (tomas en `C:\kw\shots\v3\videos\`).
 - Semanas repetidas por `MeetRecipeFitter`: copian la carga de su semana de origen (sin escalón propio).
 - La Columna del resultado está acotada por la mezcla de Inicio (`50 + (articular + guardianes)/4`), igual que en la app.
 - El detalle del anillo en Inicio es una hoja modal aparte: el recorrido no puede resaltarla.
@@ -116,6 +119,13 @@ Cuándo sale cada paso condicional:
   - En «¿Compites?», los dos «Sí» usan el mismo dibujo.
   - La ✕ del detalle del programa tapa el «Cambiar» de la primera fila al desplazar.
 - Inicio, el recorrido guiado y los vídeos no se pueden ver con el teléfono bloqueado: `MainActivity` no pide `showWhenLocked`.
+- Visto al grabar los vídeos (2026-10-11). Son textos y maquetación de la app, fuera de la ola:
+  - La hoja previa al entreno (`WorkoutReadinessSheet`) se titula «¿Qué tan preparado(a) te sientes?», que no es neutro.
+  - En su análisis se lee «tus pantorrillas vienen frescos».
+  - Editor del plan de nutrición a 360 dp: «Superávit» y «Muy activo» se parten en varias líneas.
+  - La cabecera de Inicio corta el nombre («¡Buenos días, …»).
+  - La hoja del anillo en Inicio no tiene deslizador: el ajuste manual solo está en la hoja previa al entreno y al terminarlo.
+  - La persona `qa` del arnés no trae plan de nutrición. Para el vídeo se creó a mano en la `.dbg`.
 - Fallos que no son de la ola:
-  - `ProgramSnapshotStoreTest` ×2 y `ProgramDetailViewModelTest` ×2 (copias de seguridad del programa): vienen de `master` 11aff1778.
+  - `ProgramSnapshotStoreTest` ×2 y `ProgramDetailViewModelTest` ×2 (copias de seguridad del programa): venían de `master` 11aff1778. Ya pasan con `master` 6899fe9cb (comprobado el 2026-10-10).
   - `ExerciseDatabaseLoadTest` y `CanonicalJsonTest`: necesitan `catalog/` y `cloud-sync/`, que el checkout parcial no trae.
