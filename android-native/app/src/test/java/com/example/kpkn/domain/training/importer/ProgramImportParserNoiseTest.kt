@@ -354,6 +354,25 @@ class ProgramImportParserNoiseTest {
         assertEquals(ImportWarningKind.SKIPPED_ROW, draft.warnings.single().kind)
     }
 
+    @Test
+    fun `las notas que el lector deja en una hoja salen como avisos SHEET_NOTE con el nombre de la hoja`() {
+        val sheet = ImportSheet(
+            name = "Día 1",
+            rows = listOf(listOf("Ejercicio", "Series", "Reps"), listOf("Press banca", "4", "8")),
+            notes = listOf("Solo se leyeron las primeras 40 columnas."),
+        )
+
+        val draft = ProgramImportParser.parseSheets(listOf(sheet), title = "Recortado")
+
+        val note = draft.warnings.single()
+        assertEquals(ImportWarningKind.SHEET_NOTE, note.kind)
+        assertEquals("Hoja «Día 1»", note.location)
+        assertEquals("Hoja «Día 1»: Solo se leyeron las primeras 40 columnas.", note.message)
+        assertNull(note.dayId)
+        assertNull(note.exerciseId)
+        assertEquals(listOf("Press banca"), draft.weeks.single().days.single().exercises.map { it.rawName })
+    }
+
     /** Invariante: ningún día ni ejercicio se queda sin id y todos los ids del borrador son distintos entre sí. */
     private fun assertUniqueIds(draft: ImportedProgramDraft) {
         val ids = draft.weeks.flatMap { week -> week.days.flatMap { day -> listOf(day.id) + day.exercises.map { it.id } } }

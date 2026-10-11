@@ -47,19 +47,47 @@ class OdsReaderTest {
     }
 
     @Test
-    fun `más de 40 columnas con datos, más de 20 hojas o un hueco de filas que pasa el tope se rechazan`() {
+    fun `mas de 40 columnas, un hueco de filas que pasa el tope y mas de 20 hojas se recortan con una nota`() {
         val wide = odsRow(odsCell("table:number-columns-repeated='100' office:value-type='string'", "x"))
         val gap = odsRow(odsCell(text = "A")) +
             odsRow(odsCell(), attributes = "table:number-rows-repeated='2000'") +
             odsRow(odsCell(text = "B"))
         val manySheets = Array(21) { "Hoja ${it + 1}" to odsRow(odsCell(text = "A")) }
 
-        assertEquals("La hoja «Hoja 1» tiene más de 40 columnas", rejectionOf { OdsReader.read(odsFile("Hoja 1" to wide)) })
-        assertEquals("La hoja «Hueco» tiene más de 2000 filas", rejectionOf { OdsReader.read(odsFile("Hueco" to gap)) })
-        assertEquals("El libro tiene más de 20 hojas", rejectionOf { OdsReader.read(odsFile(*manySheets)) })
+        val wideSheet = OdsReader.read(odsFile("Hoja 1" to wide)).single()
+        assertEquals(listOf(List(40) { "x" }), wideSheet.rows)
+        assertEquals(listOf(TrimNotes.COLUMNS), wideSheet.notes)
+
+        val gapSheet = OdsReader.read(odsFile("Hueco" to gap)).single()
+        assertEquals(listOf(listOf("A")), gapSheet.rows)
+        assertEquals(listOf(TrimNotes.ROWS), gapSheet.notes)
+
+        val many = OdsReader.read(odsFile(*manySheets))
+        assertEquals((1..20).map { "Hoja $it" }, many.map { it.name })
+        assertEquals(listOf("El libro tiene 21 hojas; se leyeron las 20 primeras."), many.first().notes)
         assertEquals(
             "No es una hoja de cálculo OpenDocument (.ods) válida",
             rejectionOf { OdsReader.read(zipFile("notas.txt" to "hola")) },
         )
+    }
+
+    @Test
+    fun `una hoja oculta de un ods no se devuelve`() {
+        val content = """<?xml version="1.0" encoding="UTF-8"?>""" +
+            "<office:document-content xmlns:office='urn:oasis:names:tc:opendocument:xmlns:office:1.0' " +
+            "xmlns:table='urn:oasis:names:tc:opendocument:xmlns:table:1.0' " +
+            "xmlns:style='urn:oasis:names:tc:opendocument:xmlns:style:1.0' " +
+            "xmlns:text='urn:oasis:names:tc:opendocument:xmlns:text:1.0'><office:automatic-styles>" +
+            "<style:style style:name='ta_oculta' style:family='table'><style:table-properties table:display='false'/></style:style>" +
+            "<style:style style:name='ta_visible' style:family='table'><style:table-properties table:display='true'/></style:style>" +
+            "</office:automatic-styles><office:body><office:spreadsheet>" +
+            "<table:table table:name='Oculta' table:style-name='ta_oculta'>" + odsRow(odsCell(text = "secreto")) + "</table:table>" +
+            "<table:table table:name='Visible' table:style-name='ta_visible'>" + odsRow(odsCell(text = "Press banca")) + "</table:table>" +
+            "</office:spreadsheet></office:body></office:document-content>"
+
+        val sheets = OdsReader.read(zipFile("mimetype" to "application/vnd.oasis.opendocument.spreadsheet", "content.xml" to content))
+
+        assertEquals(listOf("Visible"), sheets.map { it.name })
+        assertEquals(listOf(listOf("Press banca")), sheets.single().rows)
     }
 }

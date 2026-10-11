@@ -45,4 +45,23 @@ class CsvReaderTest {
         assertEquals("80,5", sheet.rows[1][3])
         assertEquals("", sheet.rows[2][3])
     }
+
+    @Test
+    fun `mas de 2000 filas o de 40 columnas se recortan con una nota`() {
+        val tall = CsvReader.parse((1..2_100).joinToString("\n") { "fila $it" }, "Larga")
+        assertEquals(2_000, tall.rows.size)
+        assertEquals(listOf(TrimNotes.ROWS), tall.notes)
+
+        val wide = CsvReader.parse(List(45) { "c${it + 1}" }.joinToString(";") + "\n", "Ancha")
+        assertEquals(listOf(List(40) { "c${it + 1}" }), wide.rows)
+        assertEquals(listOf(TrimNotes.COLUMNS), wide.notes)
+    }
+
+    @Test
+    fun `el relleno vacío más allá de los topes no genera nota`() {
+        val padded = CsvReader.parse("a;b" + ";".repeat(60) + "\nc;d\n", "Relleno")
+
+        assertEquals(listOf("a", "b"), padded.rows[0].take(2))
+        assertEquals(emptyList<String>(), padded.notes)
+    }
 }
