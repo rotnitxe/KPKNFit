@@ -104,8 +104,15 @@ Cuándo sale cada paso condicional:
   - Formato: 720 × 1488 (la proporción del lienzo de las escenas), H.264, sin audio y menos de 1 MB cada uno. Sin la barra de estado ni la del sistema.
   - RINGS: el deslizador solo existe en la hoja previa al entreno, así que el vídeo muestra una vista recortada de esa hoja, sin su título (ver abajo), y después el detalle del anillo en Inicio.
   - Si hay que volver a grabar: `phone_run.py --supervised` con `rec:`/`recwait:`/`pull:`, y el montaje con `C:\kw\tools\build_welcome_videos.py <crf>` (tomas en `C:\kw\shots\v3\videos\`).
-- Semanas repetidas por `MeetRecipeFitter`: copian la carga de su semana de origen (sin escalón propio).
-- La Columna del resultado está acotada por la mezcla de Inicio (`50 + (articular + guardianes)/4`), igual que en la app.
+- Semanas repetidas por `MeetRecipeFitter` (G2, decisión del usuario del 2026-10-11):
+  - La n-ésima repetición sube un escalón de +2,5 %, con un tope de +10 %; las descargas no lo cuentan ni lo reinician.
+  - Se escalan `weight`, redondeado a 0,5 kg, y `targetPercentageRM`, redondeado a 0,5 puntos y como mucho 100. Ninguno baja nunca del valor de origen.
+  - No se tocan `plannedTargetV2` (es una meta de repeticiones, tiempo o distancia), las series de asistido, lastre o peso corporal, ni las descargas.
+  - El nombre de la semana lo dice: «(repetida, +5 %)».
+- La Columna del resultado está acotada por la mezcla de Inicio (`50 + (articular + guardianes)/4`), igual que en la app. Decisión del usuario (2026-10-11): se queda así, para que el alta e Inicio coincidan.
+- Decisiones de contenido cerradas por el usuario el 2026-10-11:
+  - Se quedan como estaban: los nombres que se encogen a 320 dp con letra al 130 %, la tabla de 30 nombres, el énfasis de armwrestling, la regla del 50–70 % de calistenia, «Importa tu programa», «Quiero ajustar mis músculos a mano», la revisión E5 sin la lista de la 1.ª semana y los pasos que F2 quitó del recorrido.
+  - Cambia un nombre: «Camino al pico» pasa a «Camino a la gloria» (G1). «Pico» como nombre técnico de fase no se tocó.
 - El detalle del anillo en Inicio es una hoja modal aparte: el recorrido no puede resaltarla.
 - Marcas olímpicas (decisión del usuario, 2026-10-10: se acepta).
   - Qué pasa: con marcas, la serie de trabajo lleva `%1RM` y `ApproachPlanner.heaviestPercent()` la clasifica como muy pesada. Eso añade un *single* a la rampa, y el tiempo extra puede quitar el último elemento de una sesión. Hoy, en Halterofilia avanzada, es la caminata final de la 5.ª sesión.
@@ -119,13 +126,17 @@ Cuándo sale cada paso condicional:
   - En «¿Compites?», los dos «Sí» usan el mismo dibujo.
   - La ✕ del detalle del programa tapa el «Cambiar» de la primera fila al desplazar.
 - Inicio, el recorrido guiado y los vídeos no se pueden ver con el teléfono bloqueado: `MainActivity` no pide `showWhenLocked`.
-- Visto al grabar los vídeos (2026-10-11). Son textos y maquetación de la app, fuera de la ola:
-  - La hoja previa al entreno (`WorkoutReadinessSheet`) se titula «¿Qué tan preparado(a) te sientes?», que no es neutro.
-  - En su análisis se lee «tus pantorrillas vienen frescos».
-  - Editor del plan de nutrición a 360 dp: «Superávit» y «Muy activo» se parten en varias líneas.
-  - La cabecera de Inicio corta el nombre («¡Buenos días, …»).
-  - La hoja del anillo en Inicio no tiene deslizador: el ajuste manual solo está en la hoja previa al entreno y al terminarlo.
-  - La persona `qa` del arnés no trae plan de nutrición. Para el vídeo se creó a mano en la `.dbg`.
+- Visto al grabar los vídeos (2026-10-11). Arreglado en G1, por decisión del usuario:
+  - La hoja previa al entreno se titula, para todo el mundo, «¿Cómo llegas a entrenar hoy?». Antes era «¿Qué tan preparado(a) te sientes?».
+  - En su análisis: «y la recuperación de pantorrillas está al 99 %» y «La recuperación de X está al N %». Antes decía «tus pantorrillas vienen frescos» y fallaba en género y en número.
+  - En el editor del plan de nutrición, todas las filas de chips usan `FlowRow` y ninguna palabra se parte. Antes «Superávit» y «Muy activo» se partían y «Profesional» quedaba fuera de la pantalla.
+  - La cabecera de Inicio baja de 16 a 12 sp para que quepa el nombre entero. Si no cabe, usa «¡Hola, nombre!» y solo al final corta con «…».
+  - Fichas de 6 semanas: «para recuperarte» en lugar de «para llegar fresco».
+  - Tres «cuando estés listo» quedan neutros: el resumen del chat, la voz del entreno y el recorrido.
+  - Sin probar en el teléfono: la cabecera y los chips solo se comprobaron con pruebas JVM y Robolectric.
+- Sigue igual: la hoja del anillo en Inicio no tiene deslizador. El ajuste manual solo está en la hoja previa al entreno y al terminarlo.
+- La persona `qa` del arnés no trae plan de nutrición. Para el vídeo se creó a mano en la `.dbg`.
+- `src/debug/.../EntrenoPlanPreviewActivity.kt:185` (solo depuración) aún dice «para que llegues fresco».
 - Fallos que no son de la ola:
   - `ProgramSnapshotStoreTest` ×2 y `ProgramDetailViewModelTest` ×2 (copias de seguridad del programa): venían de `master` 11aff1778. Ya pasan con `master` 6899fe9cb (comprobado el 2026-10-10).
   - `ExerciseDatabaseLoadTest` y `CanonicalJsonTest`: necesitan `catalog/` y `cloud-sync/`, que el checkout parcial no trae.
