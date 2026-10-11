@@ -7,17 +7,18 @@ import kotlin.math.roundToInt
  * Analizador puro de programas importados (hojas de cálculo o texto pegado). Convierte las filas en semanas, días
  * y ejercicios: reconoce semanas y días por nombre de hoja o por fila de encabezado («Semana 2», «Día 1 — Pierna»,
  * «Lunes:»), columnas por cabecera en español e inglés y notación compacta («4x8», «3×10 RPE8», «5x5 @100kg»,
- * «4 series de 6», «3x12 @75%», «2' descanso»). Lo que no entiende va a `warnings`; nunca lanza excepciones por
- * contenido raro.
+ * «4 series de 6», «3x12 @75%», «2' descanso»). Lo que no entiende va a `warnings`, con su tipo, semana y día; nunca
+ * lanza excepciones por contenido raro. Los ids de días y ejercicios son `w<semana>-d<n>` y `w<semana>-d<n>-e<m>`,
+ * contando desde 1 sobre el borrador final.
  */
 object ProgramImportParser {
 
     private const val MAX_SETS = 20
-    private const val MAX_REPS = 100
-    private const val MAX_LOAD_KG = 1000.0
-    private const val MAX_PERCENT = 100.0
-    private const val MAX_REST_SECONDS = 1800
-    private const val MAX_NOTE_CHARS = 200
+    internal const val MAX_REPS = 100
+    internal const val MAX_LOAD_KG = 1000.0
+    internal const val MAX_PERCENT = 100.0
+    internal const val MAX_REST_SECONDS = 1800
+    internal const val MAX_NOTE_CHARS = 200
 
     /** Convierte hojas (una por día, una por semana o una sola con encabezados) en un borrador. */
     fun parseSheets(sheets: List<ImportSheet>, title: String): ImportedProgramDraft {
@@ -58,7 +59,7 @@ object ProgramImportParser {
             val cells = row.map { it.trim() }
             val filled = cells.filter { it.isNotEmpty() }
             if (filled.isEmpty()) return@forEachIndexed
-            val location = where(index)
+            val context = RowContext(where(index), filled.joinToString(" · "), builder)
             val header = detectColumns(cells)
             val table = columns
             val line: Line? = when {
@@ -66,27 +67,34 @@ object ProgramImportParser {
                     columns = header
                     null
                 }
-                filled.size == 1 -> classify(filled.first(), location, builder)
-                table != null -> tableRow(cells, table, location, builder)
-                else -> classify(filled.joinToString(" "), location, builder)
+                filled.size == 1 -> classify(filled.first(), context)
+                table != null -> tableRow(cells, table, context)
+                else -> classify(filled.joinToString(" "), context)
             }
-            when (line) {
-                is Line.Week -> builder.openWeek(line.number)
-                is Line.Day -> builder.startDay(line.name)
-                is Line.Exercise -> builder.addExercise(line.exercise)
-                null -> Unit
+            val exercise = when (line) {
+                is Line.Week -> {
+                    builder.openWeek(line.number)
+                    null
+                }
+                is Line.Day -> {
+                    builder.startDay(line.name, context)
+                    null
+                }
+                is Line.Exercise -> builder.addExercise(line.exercise, context)
+                null -> null
             }
+            builder.endRow(exercise)
         }
     }
 
     /** Una línea o una fila sin cabecera: semana, día, ejercicio con notación o aviso (null si no aporta nada). */
-    private fun classify(raw: String, where: String, builder: DraftBuilder): Line? {
+    private fun classify(raw: String, row: RowContext): Line? {
         val text = raw.trim()
         if (text.isEmpty() || isColumnHeaderText(text)) return null
         val notation = parseNotation(text)
         if (notation != null) {
             if (notation.name.isBlank()) {
-                builder.warn("$where: falta el nombre del ejercicio («$text»)")
+                row.warn(ImportWarningKind.SKIPPED_ROW, "falta el nombre del ejercicio («$text»)")
                 return null
             }
             return validate(
@@ -100,8 +108,7 @@ object ProgramImportParser {
                 rir = notation.rir,
                 rest = notation.rest,
                 notes = notation.notes,
-                where = where,
-                builder = builder,
+                row = row,
             )?.let { Line.Exercise(it) }
         }
         weekNumber(text)?.let { return Line.Week(it) }
@@ -109,19 +116,19 @@ object ProgramImportParser {
             val name = cleanHeader(text)
             return if (name.isEmpty()) null else Line.Day(name)
         }
-        builder.warn("$where: no se entiende «$text»")
+        row.warn(ImportWarningKind.SKIPPED_ROW, "no se entiende «$text»")
         return null
     }
 
     /** Fila de tabla con cabecera: cada celda según su columna; el nombre puede traer notación («Sentadilla 4x6»). */
-    private fun tableRow(cells: List<String>, columns: Columns, where: String, builder: DraftBuilder): Line? {
+    private fun tableRow(cells: List<String>, columns: Columns, row: RowContext): Line? {
         fun cell(role: ColumnRole): String = columns.indexOf(role)?.let { cells.getOrNull(it) }.orEmpty()
 
         val nameCell = cell(ColumnRole.NAME)
         val inline = if (nameCell.isEmpty()) null else parseNotation(nameCell)
         val name = inline?.name ?: nameCell
         if (name.isBlank()) {
-            builder.warn("$where: fila sin nombre de ejercicio; se omite")
+            row.warn(ImportWarningKind.SKIPPED_ROW, "fila sin nombre de ejercicio; se omite")
             return null
         }
 
@@ -146,11 +153,11 @@ object ProgramImportParser {
         val rir = leadingInt(rirCell)
         val rest = parseRest(restCell, columns.restInMinutes)
 
-        unreadable(builder, where, loadCell, load ?: percent, "carga")
-        unreadable(builder, where, percentCell, firstNumber(percentCell), "porcentaje")
-        unreadable(builder, where, rpeCell, rpe, "RPE")
-        unreadable(builder, where, rirCell, rir, "RIR")
-        unreadable(builder, where, restCell, rest, "descanso")
+        unreadable(row, loadCell, load ?: percent, "carga")
+        unreadable(row, percentCell, firstNumber(percentCell), "porcentaje")
+        unreadable(row, rpeCell, rpe, "RPE")
+        unreadable(row, rirCell, rir, "RIR")
+        unreadable(row, restCell, rest, "descanso")
 
         val notes = listOfNotNull(notesCell.takeIf { it.isNotEmpty() }, inline?.notes)
             .joinToString(" ")
@@ -166,18 +173,20 @@ object ProgramImportParser {
             rir = rir ?: inline?.rir,
             rest = rest ?: inline?.rest,
             notes = notes,
-            where = where,
-            builder = builder,
+            row = row,
         )?.let { Line.Exercise(it) }
     }
 
-    private fun unreadable(builder: DraftBuilder, where: String, cell: String, parsed: Any?, label: String) {
+    private fun unreadable(row: RowContext, cell: String, parsed: Any?, label: String) {
         if (cell.isNotEmpty() && parsed == null) {
-            builder.warn("$where: «$cell» no se entiende como $label; se ignora")
+            row.warn(ImportWarningKind.IGNORED_VALUE, "«$cell» no se entiende como $label; se ignora")
         }
     }
 
-    /** Valida un ejercicio: series y repeticiones son obligatorias; el resto, opcional y con rango. */
+    /**
+     * Valida un ejercicio: series y repeticiones son obligatorias; el resto, opcional y con rango. El id es provisional:
+     * [DraftBuilder.finish] le asigna el definitivo.
+     */
     private fun validate(
         name: String,
         sets: Int?,
@@ -189,53 +198,53 @@ object ProgramImportParser {
         rir: Int?,
         rest: Int?,
         notes: String?,
-        where: String,
-        builder: DraftBuilder,
+        row: RowContext,
     ): ImportedExercise? {
         if (sets == null) {
-            builder.warn("$where: «$name» sin series; se omite")
+            row.warn(ImportWarningKind.SKIPPED_ROW, "«$name» sin series; se omite")
             return null
         }
         if (sets !in 1..MAX_SETS) {
-            builder.warn("$where: «$name» tiene $sets series, fuera de rango; se omite")
+            row.warn(ImportWarningKind.SKIPPED_ROW, "«$name» tiene $sets series, fuera de rango; se omite")
             return null
         }
         if (repsMin == null) {
-            builder.warn("$where: «$name» sin repeticiones; se omite")
+            row.warn(ImportWarningKind.SKIPPED_ROW, "«$name» sin repeticiones; se omite")
             return null
         }
         val high = repsMax ?: repsMin
         val low = minOf(repsMin, high)
         val top = maxOf(repsMin, high)
         if (low < 1 || top > MAX_REPS) {
-            builder.warn("$where: «$name» tiene repeticiones fuera de rango; se omite")
+            row.warn(ImportWarningKind.SKIPPED_ROW, "«$name» tiene repeticiones fuera de rango; se omite")
             return null
         }
         return ImportedExercise(
+            id = "",
             rawName = name,
             sets = sets,
             repsMin = low,
             repsMax = top,
-            loadKg = checked(load, "la carga", where, name, builder) { it in 0.5..MAX_LOAD_KG },
-            percent1Rm = checked(percent, "el porcentaje", where, name, builder) { it in 1.0..MAX_PERCENT },
-            rpe = checked(rpe, "el RPE", where, name, builder) { it in 1.0..10.0 },
-            rir = checked(rir, "las RIR", where, name, builder) { it in 0..10 },
-            restSeconds = checked(rest, "el descanso", where, name, builder) { it in 5..MAX_REST_SECONDS },
+            loadKg = checked(load, "la carga", name, row) { it in 0.5..MAX_LOAD_KG },
+            percent1Rm = checked(percent, "el porcentaje", name, row) { it in 1.0..MAX_PERCENT },
+            rpe = checked(rpe, "el RPE", name, row) { it in 1.0..10.0 },
+            rir = checked(rir, "las RIR", name, row) { it in 0..10 },
+            restSeconds = checked(rest, "el descanso", name, row) { it in 5..MAX_REST_SECONDS },
             notes = notes?.trim()?.takeIf { it.isNotEmpty() }?.take(MAX_NOTE_CHARS),
+            sourceText = row.source,
         )
     }
 
     private fun <T> checked(
         value: T?,
         label: String,
-        where: String,
         name: String,
-        builder: DraftBuilder,
+        row: RowContext,
         valid: (T) -> Boolean,
     ): T? {
         if (value == null) return null
         if (valid(value)) return value
-        builder.warn("$where: $label de «$name» está fuera de rango; se ignora")
+        row.warn(ImportWarningKind.IGNORED_VALUE, "$label de «$name» está fuera de rango; se ignora")
         return null
     }
 
@@ -490,20 +499,50 @@ object ProgramImportParser {
         data class Exercise(val exercise: ImportedExercise) : Line
     }
 
-    private class DayDraft(val week: Int, val name: String) {
-        val exercises = mutableListOf<ImportedExercise>()
+    /** Fila o línea en curso: dónde está y su texto original, para los avisos y el ejercicio que salga de ella. */
+    private class RowContext(val where: String, val source: String, private val builder: DraftBuilder) {
+        fun warn(kind: ImportWarningKind, detail: String) = builder.warn(kind, where, source, "$where: $detail")
     }
+
+    /** Día en curso. Su [id] se fija al cerrar el borrador, y solo si el día conserva ejercicios. */
+    private class DayDraft(val week: Int, val name: String, val location: String, val sourceText: String) {
+        val exercises = mutableListOf<ExerciseDraft>()
+        var id: String? = null
+    }
+
+    /** Ejercicio conservado; su [id] se fija al cerrar el borrador. */
+    private class ExerciseDraft(val day: DayDraft, val exercise: ImportedExercise) {
+        var id: String? = null
+    }
+
+    /**
+     * Aviso en curso. Día y ejercicio se resuelven al cerrar el borrador, cuando ya se sabe qué se conserva.
+     * [exercise] solo se fija en los avisos de valores descartados de un ejercicio que sí se conservó.
+     */
+    private class PendingWarning(
+        val kind: ImportWarningKind,
+        val location: String,
+        val sourceText: String?,
+        val message: String,
+        var weekIndex: Int?,
+        var day: DayDraft?,
+        var exercise: ExerciseDraft?,
+    )
 
     /** Acumula semanas, días y avisos mientras se recorren las filas. */
     private class DraftBuilder {
-        val warnings = mutableListOf<String>()
+        private val warnings = mutableListOf<PendingWarning>()
+        private val rowWarnings = mutableListOf<PendingWarning>()
         private val days = mutableListOf<DayDraft>()
         private var week = 1
         private var openDay: DayDraft? = null
         var pendingDayName: String? = null
 
-        fun warn(message: String) {
-            warnings += message
+        /** Aviso de la fila en curso: lleva la semana y el día que estaban abiertos al leerla. */
+        fun warn(kind: ImportWarningKind, where: String, sourceText: String, message: String) {
+            val pending = PendingWarning(kind, where, sourceText, message, weekIndex = week, day = openDay, exercise = null)
+            warnings += pending
+            rowWarnings += pending
         }
 
         fun openWeek(number: Int) {
@@ -511,31 +550,92 @@ object ProgramImportParser {
             openDay = null
         }
 
-        fun startDay(name: String) {
+        fun startDay(name: String, row: RowContext) {
             pendingDayName = null
-            openDay = DayDraft(week, name).also { days += it }
+            openDay = DayDraft(week, name, row.where, row.source).also { days += it }
         }
 
-        fun addExercise(exercise: ImportedExercise) {
-            val day = openDay ?: DayDraft(week, takeDefaultDayName()).also { days += it }
+        fun addExercise(exercise: ImportedExercise, row: RowContext): ExerciseDraft {
+            val day = openDay ?: DayDraft(week, takeDefaultDayName(), row.where, row.source).also { days += it }
             openDay = day
-            day.exercises += exercise
+            return ExerciseDraft(day, exercise).also { day.exercises += it }
+        }
+
+        /** Cierra la fila: los valores descartados pasan al ejercicio que se conservó, si lo hubo. */
+        fun endRow(exercise: ExerciseDraft?) {
+            if (exercise != null) {
+                rowWarnings
+                    .filter { it.kind == ImportWarningKind.IGNORED_VALUE }
+                    .forEach { pending ->
+                        pending.exercise = exercise
+                        pending.day = exercise.day
+                        pending.weekIndex = exercise.day.week
+                    }
+            }
+            rowWarnings.clear()
         }
 
         fun finish(title: String): ImportedProgramDraft {
             val kept = days.filter { day ->
                 val hasExercises = day.exercises.isNotEmpty()
-                if (!hasExercises) warn("«${day.name}» no tiene ejercicios; se omite")
+                if (!hasExercises) {
+                    warnings += PendingWarning(
+                        kind = ImportWarningKind.EMPTY_DAY,
+                        location = day.location,
+                        sourceText = day.sourceText,
+                        message = "«${day.name}» no tiene ejercicios; se omite",
+                        weekIndex = day.week,
+                        day = null,
+                        exercise = null,
+                    )
+                }
                 hasExercises
             }
             val weeks = kept.groupBy { it.week }.toSortedMap().map { (number, dayList) ->
                 ImportedWeek(
                     index = number,
-                    days = dayList.map { ImportedDay(name = it.name, exercises = it.exercises.toList()) },
+                    days = dayList.mapIndexed { dayPosition, day ->
+                        val dayId = "w$number-d${dayPosition + 1}"
+                        day.id = dayId
+                        ImportedDay(
+                            id = dayId,
+                            name = day.name,
+                            exercises = day.exercises.mapIndexed { exercisePosition, draft ->
+                                val exerciseId = "$dayId-e${exercisePosition + 1}"
+                                draft.id = exerciseId
+                                draft.exercise.copy(id = exerciseId)
+                            },
+                        )
+                    },
                 )
             }
-            if (weeks.isEmpty()) warn("No se ha encontrado ningún ejercicio con series y repeticiones")
-            return ImportedProgramDraft(title = title.trim(), weeks = weeks, warnings = warnings.toList())
+            if (weeks.isEmpty()) {
+                warnings += PendingWarning(
+                    kind = ImportWarningKind.NOTHING_FOUND,
+                    location = "",
+                    sourceText = null,
+                    message = "No se ha encontrado ningún ejercicio con series y repeticiones",
+                    weekIndex = null,
+                    day = null,
+                    exercise = null,
+                )
+            }
+            return ImportedProgramDraft(
+                title = title.trim(),
+                weeks = weeks,
+                warnings = warnings.mapIndexed { index, pending ->
+                    ImportWarning(
+                        id = "a${index + 1}",
+                        kind = pending.kind,
+                        location = pending.location,
+                        sourceText = pending.sourceText,
+                        message = pending.message,
+                        weekIndex = pending.weekIndex,
+                        dayId = pending.day?.id,
+                        exerciseId = pending.exercise?.id,
+                    )
+                },
+            )
         }
 
         private fun takeDefaultDayName(): String {
