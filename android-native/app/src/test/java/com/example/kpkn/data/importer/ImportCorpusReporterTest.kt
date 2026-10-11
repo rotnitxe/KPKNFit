@@ -77,6 +77,50 @@ class ImportCorpusReporterTest {
     }
 
     @Test
+    fun `lee ods, docx, md y txt, y rechaza pdf y doc con su mensaje`() {
+        val root = temporaryFolder.newFolder("corpus-formatos")
+        fun write(path: String, bytes: ByteArray) {
+            File(root, path).apply { parentFile?.mkdirs() }.writeBytes(bytes)
+        }
+        val odsRows = odsRow(odsCell(text = "Ejercicio"), odsCell(text = "Series"), odsCell(text = "Reps")) +
+            odsRow(
+                odsCell(text = "Press banca"),
+                odsCell("office:value-type='float' office:value='4'", "4"),
+                odsCell("office:value-type='float' office:value='8'", "8"),
+            )
+        write("010-ods/010-ods.ods", odsFile("Día 1" to odsRows))
+        write(
+            "011-docx/011-docx.docx",
+            docxFile(
+                docxTable(
+                    docxRow(docxCell("Ejercicio"), docxCell("Series"), docxCell("Reps")),
+                    docxRow(docxCell("Press banca"), docxCell("4"), docxCell("8")),
+                ),
+            ),
+        )
+        write("012-md/012-md.md", "```liftoscript\nPress banca / 4x8 / 80kg\n```\n".toByteArray(Charsets.UTF_8))
+        write("013-txt/013-txt.txt", "Press banca 4x8 80kg\n".toByteArray(Charsets.UTF_8))
+        write("014-pdf/014-pdf.pdf", "%PDF-1.4\n".toByteArray(Charsets.US_ASCII))
+        write("015-doc/015-doc.doc", byteArrayOf(0xD0.toByte(), 0xCF.toByte(), 0x11, 0xE0.toByte(), 0xA1.toByte(), 0xB1.toByte(), 0x1A, 0xE1.toByte()))
+
+        val report = ImportCorpusReporter(matcher).run(root, temporaryFolder.newFolder("informe-formatos"))
+
+        assertEquals(
+            listOf(
+                "014-pdf/014-pdf.pdf" to CorpusOutcome.RECHAZO,
+                "015-doc/015-doc.doc" to CorpusOutcome.RECHAZO,
+                "010-ods/010-ods.ods" to CorpusOutcome.BIEN,
+                "011-docx/011-docx.docx" to CorpusOutcome.BIEN,
+                "012-md/012-md.md" to CorpusOutcome.BIEN,
+                "013-txt/013-txt.txt" to CorpusOutcome.BIEN,
+            ),
+            report.files.map { it.path to it.outcome },
+        )
+        assertEquals("Para importar un PDF, copia su texto y usa «Pegar texto».", report.files[0].note)
+        assertEquals("Es un formato antiguo de Office. Guárdalo como .xlsx o .docx y vuelve a intentarlo.", report.files[1].note)
+    }
+
+    @Test
     fun `un fallo inesperado queda como FALLO y el informe se escribe igual`() {
         val out = temporaryFolder.newFolder("informe")
         val reporter = ImportCorpusReporter(matcher, parse = { sheets, title ->
@@ -102,7 +146,7 @@ class ImportCorpusReporterTest {
         write("004-veintiuna/004-veintiuna.xlsx", workbook((1..21).map { "Hoja $it" to sheetXml(emptyList()) }))
         write("005-pobre/005-pobre.csv", CSV_POBRE.toByteArray(Charsets.UTF_8))
         write("006-vacio/006-vacio.csv", ByteArray(0))
-        write("007-notas/leeme.txt", "no se lee".toByteArray(Charsets.UTF_8))
+        write("007-notas/portada.jpg", "no se lee".toByteArray(Charsets.UTF_8))
         return root
     }
 
