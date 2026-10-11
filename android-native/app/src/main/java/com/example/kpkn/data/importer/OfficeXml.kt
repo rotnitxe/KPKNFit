@@ -2,6 +2,7 @@ package com.example.kpkn.data.importer
 
 import java.io.ByteArrayInputStream
 import java.io.IOException
+import java.io.InputStream
 import java.util.zip.ZipInputStream
 import javax.xml.XMLConstants
 import javax.xml.parsers.DocumentBuilderFactory
@@ -10,26 +11,41 @@ import org.w3c.dom.Element
 import org.w3c.dom.Node
 
 /**
- * Piezas comunes de los lectores de ODS y DOCX (ZIP y XML), con las mismas protecciones que [XlsxReader]: tope de bytes
- * descomprimidos, DOM con espacios de nombres y sin DTD ni entidades externas. Los nombres se comparan sin prefijo.
+ * Piezas comunes de los lectores de ZIP y XML (xlsx, ods y docx), con las mismas protecciones: solo se guardan las entradas
+ * que pide el lector (tope de [ImportLimits.MAX_UNCOMPRESSED_BYTES]) y el resto se lee y se descarta (tope de
+ * [ImportLimits.MAX_DISCARDED_BYTES], contra las bombas ZIP). El DOM tiene espacios de nombres y no tiene DTD ni entidades
+ * externas. Los nombres se comparan sin prefijo.
  */
 internal object OfficeXml {
+    private const val DISCARD_CHUNK = 8 * 1024
+
+    /** Un ZIP leído: los nombres de todas sus entradas y el contenido de las que se guardaron. */
+    class Archive(val names: Set<String>, val entries: Map<String, ByteArray>)
 
     /**
-     * Entradas de un ZIP (nombre → bytes) con el tope de [ImportLimits.MAX_UNCOMPRESSED_BYTES]. Devuelve null si los bytes
-     * no son un ZIP legible; lanza [ImportFileException] con [tooLarge] si las entradas pasan el tope.
+     * Lee un ZIP: los nombres de todas sus entradas y el contenido de las que cumplen [keep]. Lo que se guarda tiene el tope
+     * de [ImportLimits.MAX_UNCOMPRESSED_BYTES]; lo demás se lee y se descarta con su propio tope de
+     * [ImportLimits.MAX_DISCARDED_BYTES]. Devuelve null si los bytes no son un ZIP legible; lanza [ImportFileException] con
+     * [tooLarge] si se supera un tope.
      */
-    fun entries(bytes: ByteArray, tooLarge: String): Map<String, ByteArray>? {
+    fun archive(bytes: ByteArray, tooLarge: String, keep: (String) -> Boolean): Archive? {
+        val names = HashSet<String>()
         val entries = HashMap<String, ByteArray>()
-        var budget = ImportLimits.MAX_UNCOMPRESSED_BYTES
+        var kept = ImportLimits.MAX_UNCOMPRESSED_BYTES
+        var discarded = ImportLimits.MAX_DISCARDED_BYTES
         try {
             ZipInputStream(ByteArrayInputStream(bytes)).use { zip ->
                 while (true) {
                     val entry = zip.nextEntry ?: break
                     if (entry.isDirectory) continue
-                    val content = readBoundedBytes(zip, budget, tooLarge)
-                    budget -= content.size
-                    entries[entry.name] = content
+                    names += entry.name
+                    if (keep(entry.name)) {
+                        val content = readBoundedBytes(zip, kept, tooLarge)
+                        kept -= content.size
+                        entries[entry.name] = content
+                    } else {
+                        discarded = discard(zip, discarded, tooLarge)
+                    }
                 }
             }
         } catch (error: IOException) {
@@ -38,7 +54,23 @@ internal object OfficeXml {
             // Nombres de entrada mal codificados: el ZIP no se puede leer con seguridad.
             return null
         }
-        return entries
+        return Archive(names, entries)
+    }
+
+    /** Contenido de las entradas que cumplen [keep] (ver [archive]); null si los bytes no son un ZIP legible. */
+    fun entries(bytes: ByteArray, tooLarge: String, keep: (String) -> Boolean): Map<String, ByteArray>? =
+        archive(bytes, tooLarge, keep)?.entries
+
+    /** Lee una entrada sin guardarla y devuelve lo que queda del tope de bytes descartados. */
+    private fun discard(input: InputStream, budget: Long, tooLarge: String): Long {
+        val buffer = ByteArray(DISCARD_CHUNK)
+        var left = budget
+        while (true) {
+            val read = input.read(buffer)
+            if (read < 0) return left
+            left -= read
+            if (left < 0) throw ImportFileException(tooLarge)
+        }
     }
 
     /** DOM con espacios de nombres y sin DTD ni entidades externas. Un XML roto lanza [ImportFileException] con [invalid]. */

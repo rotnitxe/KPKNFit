@@ -9,6 +9,7 @@ import com.example.kpkn.domain.training.importer.ImportedProgramDraft
 import com.example.kpkn.domain.training.importer.ProgramImportParser
 import java.io.File
 import java.time.Instant
+import java.util.zip.ZipInputStream
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 
@@ -69,7 +70,13 @@ class ImportCorpusReporter(
             ImportFileReader.read(file.readBytes(), file.name, mime = null)
         } catch (rejected: ImportFileException) {
             return Analysis(
-                CorpusFileReport(path, CorpusOutcome.RECHAZO, note = rejected.message, readMs = millisSince(readStart)),
+                CorpusFileReport(
+                    path,
+                    CorpusOutcome.RECHAZO,
+                    note = rejected.message,
+                    readMs = millisSince(readStart),
+                    zipSizes = zipSizesOf(file),
+                ),
                 emptyMap(),
             )
         } catch (error: Throwable) {
@@ -285,6 +292,20 @@ class ImportCorpusReporter(
         if (summary.rejections.isEmpty()) appendLine("Ninguno.")
         for (group in summary.rejections) appendLine("- ${group.count} × «${mdCell(group.message)}»")
         appendLine()
+        appendLine("### Rechazos: entradas del ZIP más grandes (tamaño descomprimido)")
+        appendLine()
+        val measured = report.files.filter { it.zipSizes != null }
+        if (measured.isEmpty()) appendLine("Ninguno.")
+        if (measured.isNotEmpty()) {
+            appendLine("| Archivo | Entradas | Total MB | Las cinco más grandes (KB) |")
+            appendLine("|---|---:|---:|---|")
+            for (file in measured) {
+                val zip = file.zipSizes ?: continue
+                val largest = zip.largest.joinToString("; ") { "${mdCell(cutCell(it.name, ENTRY_NAME_CHARS))} ${rounded(it.bytes / 1024.0, 1)}" }
+                appendLine("| ${mdCell(file.path)} | ${zip.entries} | ${rounded(zip.totalBytes / 1048576.0, 2)} | $largest |")
+            }
+        }
+        appendLine()
         appendLine("### Fallos")
         appendLine()
         if (summary.failures.isEmpty()) appendLine("Ninguno.")
@@ -436,6 +457,9 @@ class ImportCorpusReporter(
         private const val VIEW_COLUMNS = 16
         private const val CELL_CHARS = 24
         private const val NOTE_CHARS = 160
+        private const val ENTRY_NAME_CHARS = 48
+        private const val LARGEST_ENTRIES = 5
+        private val ZIP_HEADER = byteArrayOf(0x50, 0x4B, 0x03, 0x04)
         private const val UNKNOWN_LIMIT = 60
         private const val CONFIDENT_LIMIT = 80
         private const val POOR_PERCENT = 50.0
@@ -454,8 +478,48 @@ class ImportCorpusReporter(
         /** Escapa una celda para la tabla Markdown: los saltos de línea salen como «\n» y las barras como «\|». */
         internal fun mdCell(text: String): String =
             text.replace("\r\n", "\n").replace('\r', '\n').replace("\n", "\\n").replace("|", "\\|")
+
+        /**
+         * Medida de un ZIP para los rechazos: sus entradas con los bytes descomprimidos de cada una, que se leen y se
+         * descartan sin guardarlas. Null si el archivo no empieza como un ZIP. Un ZIP roto da lo que se pudo leer.
+         */
+        internal fun zipSizesOf(file: File): ZipSizes? {
+            val signature = file.inputStream().use { stream -> ByteArray(ZIP_HEADER.size).also { stream.read(it) } }
+            if (!signature.contentEquals(ZIP_HEADER)) return null
+            val sizes = mutableListOf<ZipEntrySize>()
+            val buffer = ByteArray(64 * 1024)
+            try {
+                ZipInputStream(file.inputStream().buffered()).use { zip ->
+                    while (true) {
+                        val entry = zip.nextEntry ?: break
+                        var size = 0L
+                        while (true) {
+                            val read = zip.read(buffer)
+                            if (read < 0) break
+                            size += read
+                        }
+                        if (!entry.isDirectory) sizes += ZipEntrySize(entry.name, size)
+                    }
+                }
+            } catch (error: Exception) {
+                // Un ZIP roto: se cuenta lo que se pudo leer.
+            }
+            return ZipSizes(
+                entries = sizes.size,
+                totalBytes = sizes.sumOf { it.bytes },
+                largest = sizes.sortedByDescending { it.bytes }.take(LARGEST_ENTRIES),
+            )
+        }
     }
 }
+
+/** Tamaño descomprimido de una entrada de un ZIP. */
+@Serializable
+data class ZipEntrySize(val name: String, val bytes: Long)
+
+/** Entradas de un ZIP: cuántas son, sus bytes descomprimidos en total y las más grandes. */
+@Serializable
+data class ZipSizes(val entries: Int, val totalBytes: Long, val largest: List<ZipEntrySize>)
 
 /** Resultado de un archivo; el orden de declaración es la gravedad, de más a menos. */
 @Serializable
@@ -520,6 +584,8 @@ data class CorpusFileReport(
     val exerciseSamples: List<ExerciseSample> = emptyList(),
     val warningSamples: List<WarningSample> = emptyList(),
     val sheetViews: List<SheetView> = emptyList(),
+    /** Solo en los rechazos de un ZIP: sus entradas más grandes, para decidir los topes. */
+    val zipSizes: ZipSizes? = null,
 )
 
 @Serializable

@@ -6,6 +6,8 @@ import java.io.InputStream
 /**
  * Lector de CSV propio: detecta el separador (`;`, tabulador o `,`), respeta las comillas (también con saltos de
  * línea y `""`) y quita el BOM. Devuelve una sola hoja; todas las filas se rellenan hasta el ancho de la más ancha.
+ * Recorta en vez de rechazar: más de [ImportLimits.MAX_ROWS] filas o [ImportLimits.MAX_COLUMNS] columnas dejan las
+ * primeras, con una nota en [ImportSheet.notes].
  */
 object CsvReader {
 
@@ -15,21 +17,20 @@ object CsvReader {
         return parse(String(bytes, Charsets.UTF_8), name)
     }
 
-    /** Parte un texto CSV en una hoja. Solo lanza [ImportFileException] si supera el límite de filas o columnas. */
+    /** Parte un texto CSV en una hoja, recortada a los topes; cada recorte con datos deja una nota. */
     fun parse(text: String, name: String): ImportSheet {
         val clean = text.removePrefix("﻿")
         val separator = detectSeparator(clean)
         val records = splitRecords(clean, separator).dropLastWhile { it.isEmpty() }
-        if (records.size > ImportLimits.MAX_ROWS) {
-            throw ImportFileException("La hoja «$name» tiene más de ${ImportLimits.MAX_ROWS} filas")
-        }
-        val width = records.maxOfOrNull { it.size } ?: 0
-        if (width > ImportLimits.MAX_COLUMNS) {
-            throw ImportFileException("La hoja «$name» tiene más de ${ImportLimits.MAX_COLUMNS} columnas")
-        }
+        val rows = records.take(ImportLimits.MAX_ROWS)
+        // Solo cuenta lo que tiene texto: el relleno vacío de más no es un recorte.
+        val columnsCut = rows.any { row -> row.drop(ImportLimits.MAX_COLUMNS).any { it.isNotBlank() } }
+        val rowsCut = records.drop(ImportLimits.MAX_ROWS).any { row -> row.any { it.isNotBlank() } }
+        val width = minOf(rows.maxOfOrNull { it.size } ?: 0, ImportLimits.MAX_COLUMNS)
         return ImportSheet(
             name = name,
-            rows = records.map { row -> List(width) { index -> row.getOrElse(index) { "" } } },
+            rows = rows.map { row -> List(width) { index -> row.getOrElse(index) { "" } } },
+            notes = listOfNotNull(TrimNotes.COLUMNS.takeIf { columnsCut }, TrimNotes.ROWS.takeIf { rowsCut }),
         )
     }
 

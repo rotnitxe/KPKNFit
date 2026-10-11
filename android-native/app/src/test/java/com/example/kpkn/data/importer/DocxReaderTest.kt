@@ -36,7 +36,7 @@ class DocxReaderTest {
     }
 
     @Test
-    fun `un ZIP sin documento de Word, un XML roto y más de 40 columnas se rechazan`() {
+    fun `un ZIP sin documento de Word y un XML roto se rechazan`() {
         assertEquals(
             "No es un documento de Word (.docx) válido",
             rejectionOf { DocxReader.read(zipFile("notas.txt" to "hola"), "x") },
@@ -45,7 +45,16 @@ class DocxReaderTest {
             "El documento contiene XML no válido",
             rejectionOf { DocxReader.read(zipFile("word/document.xml" to "<w:document><w:body>"), "x") },
         )
-        val wide = docxFile(docxTable(docxRow(*Array(41) { docxCell("c$it") })))
-        assertEquals("La hoja «ancha» tiene más de 40 columnas", rejectionOf { DocxReader.read(wide, "ancha") })
+    }
+
+    @Test
+    fun `más de 40 columnas o más de 2000 filas se recortan con una nota`() {
+        val wide = DocxReader.read(docxFile(docxTable(docxRow(*Array(41) { docxCell("c${it + 1}") }))), "ancha")
+        assertEquals(listOf(List(40) { "c${it + 1}" }), wide.rows)
+        assertEquals(listOf(TrimNotes.COLUMNS), wide.notes)
+
+        val tall = DocxReader.read(docxFile((1..2_001).joinToString("") { docxParagraph("línea $it") }), "alta")
+        assertEquals(2_000, tall.rows.size)
+        assertEquals(listOf(TrimNotes.ROWS), tall.notes)
     }
 }

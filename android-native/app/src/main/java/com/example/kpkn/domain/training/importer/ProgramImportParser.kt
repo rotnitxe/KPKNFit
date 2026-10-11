@@ -29,6 +29,8 @@ object ProgramImportParser {
     fun parseSheets(sheets: List<ImportSheet>, title: String): ImportedProgramDraft {
         val builder = DraftBuilder()
         for (sheet in sheets) {
+            // Lo que el lector recortó de la hoja (columnas, filas o el total de hojas) va como aviso de hoja.
+            for (note in sheet.notes) builder.noteReaderTrim(sheet.name, note)
             if (isInstructionOrCalcSheet(sheet.name)) {
                 builder.noteOmittedSheet(sheet.name)
                 continue
@@ -786,6 +788,11 @@ object ProgramImportParser {
 
         fun noteOmittedSheet(name: String) {
             addNote("Hoja «$name»", "Se omitió la hoja «$name»: parece de instrucciones o de cálculo.")
+        }
+
+        /** Nota que el lector dejó sobre una hoja: un recorte de columnas o de filas, o el total de hojas del libro. */
+        fun noteReaderTrim(name: String, note: String) {
+            addNote("Hoja «$name»", "Hoja «$name»: $note")
         }
 
         private fun addNote(location: String, message: String) {

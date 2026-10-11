@@ -1,45 +1,72 @@
 package com.example.kpkn.data.importer
 
 import com.example.kpkn.domain.training.importer.ImportSheet
+import org.w3c.dom.Document
 import org.w3c.dom.Element
 import org.w3c.dom.Node
 
 /**
  * Lector de hojas de cálculo OpenDocument (.ods): un ZIP con content.xml, leído con las protecciones de [XlsxReader].
- * Cada `table:table` es una hoja con su nombre. Las repeticiones de filas y de columnas se respetan, pero solo se
- * materializa lo que tiene valor: una columna vacía repetida no se expande. Porcentajes («25%»), horas («2:00») y
- * decimales salen como texto legible; lo demás, el texto de la celda. Los topes son los de [ImportLimits].
+ * Cada `table:table` visible es una hoja con su nombre; las ocultas no se devuelven. Las repeticiones de filas y de
+ * columnas se respetan, pero solo se materializa lo que tiene valor: una columna vacía repetida no se expande.
+ * Porcentajes («25%»), horas («2:00») y decimales salen como texto legible; lo demás, el texto de la celda. Recorta con
+ * notas como [XlsxReader]: columnas, filas y hojas visibles de más.
  */
 object OdsReader {
     private const val CONTENT = "content.xml"
+    private const val MIMETYPE = "mimetype"
     private const val MAX_SPACES = 100
     private val DURATION = Regex("""(-?)P(?:(\d+)D)?(?:T(?:(\d+)H)?(?:(\d+)M)?(?:(\d+(?:\.\d+)?)S)?)?""")
 
-    /** Hojas del libro en su orden. Lanza [ImportFileException] si no es una hoja de cálculo o si supera los topes. */
+    /** Hoja leída: sus filas y las notas de lo que se recortó. */
+    private class TableRead(val rows: List<List<String>>, val notes: List<String>)
+
+    /** Hojas visibles del libro en su orden. Lanza [ImportFileException] si no es una hoja de cálculo. */
     fun read(bytes: ByteArray): List<ImportSheet> {
-        val entries = OfficeXml.entries(bytes, ARCHIVE_TOO_LARGE) ?: throw notOds()
+        val entries = OfficeXml.entries(bytes, ARCHIVE_TOO_LARGE) { it == CONTENT || it == MIMETYPE } ?: throw notOds()
         val content = entries[CONTENT] ?: throw notOds()
-        val spreadsheet = OfficeXml.parse(content, "El libro contiene XML no válido")
-            .getElementsByTagNameNS("*", "spreadsheet").item(0) ?: throw notOds()
+        val document = OfficeXml.parse(content, "El libro contiene XML no válido")
+        val spreadsheet = document.getElementsByTagNameNS("*", "spreadsheet").item(0) ?: throw notOds()
         val tables = OfficeXml.childElements(spreadsheet).filter { OfficeXml.name(it) == "table" }
-        if (tables.size > ImportLimits.MAX_SHEETS) {
-            throw ImportFileException("El libro tiene más de ${ImportLimits.MAX_SHEETS} hojas")
-        }
-        return tables.mapIndexed { index, table ->
-            val name = OfficeXml.attribute(table, "name")?.takeIf { it.isNotBlank() } ?: "Hoja ${index + 1}"
-            ImportSheet(name = name, rows = readTable(name, table))
+        val hidden = hiddenTableStyles(document)
+        val visible = tables.filterNot { isHidden(it, hidden) }
+        val chosen = visible.take(ImportLimits.MAX_SHEETS)
+        return chosen.mapIndexed { index, table ->
+            val name = OfficeXml.attribute(table, "name")?.takeIf { it.isNotBlank() } ?: "Hoja ${tables.indexOf(table) + 1}"
+            val tableRead = readTable(table)
+            val bookNote = TrimNotes.sheets(visible.size).takeIf { index == 0 && visible.size > ImportLimits.MAX_SHEETS }
+            ImportSheet(name = name, rows = tableRead.rows, notes = tableRead.notes + listOfNotNull(bookNote))
         }
     }
 
+    /** Nombres de los estilos de tabla que ocultan la hoja (`table:display="false"` en sus propiedades). */
+    private fun hiddenTableStyles(document: Document): Set<String> {
+        val styles = document.getElementsByTagNameNS("*", "style")
+        return (0 until styles.length).mapNotNull { styles.item(it) as? Element }
+            .filter { OfficeXml.attribute(it, "family") == "table" }
+            .filter { style ->
+                OfficeXml.childElements(style).any {
+                    OfficeXml.name(it) == "table-properties" && OfficeXml.attribute(it, "display") == "false"
+                }
+            }
+            .mapNotNull { OfficeXml.attribute(it, "name") }
+            .toSet()
+    }
+
+    private fun isHidden(table: Element, hidden: Set<String>): Boolean =
+        OfficeXml.attribute(table, "style-name")?.let { it in hidden } ?: false
+
     /**
      * Filas con datos de una tabla. La última fila y la última columna con valor marcan el tamaño, como en [XlsxReader];
-     * las filas y columnas vacías repetidas se cuentan sin materializarse.
+     * las filas y columnas vacías repetidas se cuentan sin materializarse. Lo que pasa de los topes se recorta con nota.
      */
-    private fun readTable(name: String, table: Element): List<List<String>> {
+    private fun readTable(table: Element): TableRead {
         val values = HashMap<Int, Map<Int, String>>()
         var rowIndex = 0
         var maxRow = -1
         var maxCol = -1
+        var columnsCut = false
+        var rowsCut = false
         for (row in tableRows(table)) {
             val repeat = repeatOf(row, "number-rows-repeated", ImportLimits.MAX_ROWS + 1)
             val cells = HashMap<Int, String>()
@@ -48,27 +75,26 @@ object OdsReader {
                 val span = repeatOf(cell, "number-columns-repeated", ImportLimits.MAX_COLUMNS + 1)
                 val text = cellText(cell)
                 if (text.isNotBlank()) {
-                    if (col + span > ImportLimits.MAX_COLUMNS) {
-                        throw ImportFileException("La hoja «$name» tiene más de ${ImportLimits.MAX_COLUMNS} columnas")
-                    }
-                    for (c in col until col + span) cells[c] = text
-                    maxCol = maxOf(maxCol, col + span - 1)
+                    if (col + span > ImportLimits.MAX_COLUMNS) columnsCut = true
+                    val end = minOf(col + span, ImportLimits.MAX_COLUMNS)
+                    for (c in col until end) cells[c] = text
+                    if (col < end) maxCol = maxOf(maxCol, end - 1)
                 }
                 col += span
             }
             if (cells.isNotEmpty()) {
-                if (rowIndex + repeat > ImportLimits.MAX_ROWS) {
-                    throw ImportFileException("La hoja «$name» tiene más de ${ImportLimits.MAX_ROWS} filas")
-                }
-                for (r in rowIndex until rowIndex + repeat) values[r] = cells
-                maxRow = maxOf(maxRow, rowIndex + repeat - 1)
+                if (rowIndex + repeat > ImportLimits.MAX_ROWS) rowsCut = true
+                val end = minOf(rowIndex + repeat, ImportLimits.MAX_ROWS)
+                for (r in rowIndex until end) values[r] = cells
+                if (rowIndex < end) maxRow = maxOf(maxRow, end - 1)
             }
-            // Con el tope, un hueco más largo que el límite sigue sin dejar pasar datos (se rechazan al llegar).
+            // Con el tope, un hueco más largo que el límite sigue sin dejar pasar datos (se recortan al llegar).
             rowIndex = minOf(rowIndex + repeat, ImportLimits.MAX_ROWS + 1)
         }
-        if (maxRow < 0) return emptyList()
+        val notes = listOfNotNull(TrimNotes.COLUMNS.takeIf { columnsCut }, TrimNotes.ROWS.takeIf { rowsCut })
+        if (maxRow < 0) return TableRead(emptyList(), notes)
         val width = maxCol + 1
-        return (0..maxRow).map { r -> List(width) { c -> values[r]?.get(c).orEmpty() } }
+        return TableRead((0..maxRow).map { r -> List(width) { c -> values[r]?.get(c).orEmpty() } }, notes)
     }
 
     /** Filas de una tabla en orden, también dentro de grupos o de cabeceras de filas. */

@@ -45,7 +45,7 @@ class ImportCorpusReporterTest {
         assertEquals(
             listOf(
                 "003-no-xlsx/003-no-xlsx.xlsx" to CorpusOutcome.RECHAZO,
-                "004-veintiuna/004-veintiuna.xlsx" to CorpusOutcome.RECHAZO,
+                "004-veintiuna/004-veintiuna.xlsx" to CorpusOutcome.NADA,
                 "006-vacio/006-vacio.csv" to CorpusOutcome.NADA,
                 "005-pobre/005-pobre.csv" to CorpusOutcome.POBRE,
                 "001-valido/001-valido.xlsx" to CorpusOutcome.BIEN,
@@ -54,7 +54,14 @@ class ImportCorpusReporterTest {
             report.files.map { it.path to it.outcome },
         )
         assertEquals("No es un libro de Excel (.xlsx) válido", report.files[0].note)
-        assertEquals("El libro tiene más de 20 hojas", report.files[1].note)
+        // Veintiuna hojas no es un rechazo: se leen 20 y el aviso de hoja lo dice.
+        val veintiuna = report.files.single { it.path == "004-veintiuna/004-veintiuna.xlsx" }
+        assertEquals(20, veintiuna.sheets.size)
+        assertEquals(1, veintiuna.warnings["SHEET_NOTE"])
+        assertEquals(
+            "Hoja «Hoja 1»: El libro tiene 21 hojas; se leyeron las 20 primeras.",
+            veintiuna.warningSamples.first().message,
+        )
         assertEquals(1, report.summary.ignored)
     }
 
@@ -132,6 +139,36 @@ class ImportCorpusReporterTest {
         assertEquals(CorpusOutcome.FALLO, report.files.single { it.path == "002-csv/002-csv.csv" }.outcome)
         assertEquals(listOf("002-csv/002-csv.csv: análisis: java.lang.IllegalStateException: prueba"), report.summary.failures)
         assertTrue(File(out, "report.md").isFile)
+    }
+
+    @Test
+    fun `un rechazo en ZIP lista sus entradas más grandes con su tamaño descomprimido`() {
+        val root = temporaryFolder.newFolder("corpus-zip")
+        val zip = ByteArrayOutputStream()
+        ZipOutputStream(zip).use { out ->
+            out.putNextEntry(ZipEntry("notas.txt"))
+            out.write("hola".toByteArray(Charsets.UTF_8))
+            out.closeEntry()
+            out.putNextEntry(ZipEntry("xl/media/grande.bin"))
+            out.write(ByteArray(5_000))
+            out.closeEntry()
+            out.putNextEntry(ZipEntry("xl/media/mediano.bin"))
+            out.write(ByteArray(300))
+            out.closeEntry()
+        }
+        File(root, "020-zip/020-zip.xlsx").apply { parentFile?.mkdirs() }.writeBytes(zip.toByteArray())
+
+        val report = ImportCorpusReporter(matcher).run(root, temporaryFolder.newFolder("informe-zip"))
+
+        val file = report.files.single()
+        assertEquals(CorpusOutcome.RECHAZO, file.outcome)
+        val sizes = requireNotNull(file.zipSizes)
+        assertEquals(3, sizes.entries)
+        assertEquals(5_304L, sizes.totalBytes)
+        assertEquals(
+            listOf("xl/media/grande.bin" to 5_000L, "xl/media/mediano.bin" to 300L, "notas.txt" to 4L),
+            sizes.largest.map { it.name to it.bytes },
+        )
     }
 
     /** Corpus mínimo: un xlsx de dos hojas, un csv bueno, un no-xlsx, uno con 21 hojas, un csv pobre y uno vacío. */

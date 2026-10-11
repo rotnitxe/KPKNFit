@@ -1,6 +1,9 @@
 package com.example.kpkn.data.importer
 
 import com.example.kpkn.domain.training.importer.ProgramImportParser
+import java.io.ByteArrayOutputStream
+import java.util.zip.ZipEntry
+import java.util.zip.ZipOutputStream
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
@@ -104,10 +107,61 @@ class ImportFileReaderTest {
     }
 
     @Test
+    fun `un xlsx con un medio de 40 MB descomprimidos se lee sin rechazarlo al detectar el tipo`() {
+        val out = ByteArrayOutputStream()
+        ZipOutputStream(out).use { zip ->
+            zip.entryText("xl/workbook.xml", WORKBOOK_XML)
+            zip.entryText("xl/_rels/workbook.xml.rels", RELS_XML)
+            zip.entryText("xl/worksheets/sheet1.xml", SHEET_XML)
+            zip.putNextEntry(ZipEntry("xl/media/image1.png"))
+            zip.write(ByteArray(40 * 1024 * 1024))
+            zip.closeEntry()
+        }
+
+        val sheets = ImportFileReader.read(out.toByteArray(), "programa.xlsx", null)
+
+        assertEquals(listOf(listOf("Press banca", "4")), sheets.single().rows)
+    }
+
+    @Test
+    fun `una bomba ZIP de más de 128 MB descomprimidos se rechaza al detectar el tipo`() {
+        val chunk = ByteArray(1024 * 1024)
+        val out = ByteArrayOutputStream()
+        ZipOutputStream(out).use { zip ->
+            zip.putNextEntry(ZipEntry("xl/media/bomba.bin"))
+            repeat(130) { zip.write(chunk) }
+            zip.closeEntry()
+        }
+
+        assertEquals(
+            "El archivo descomprimido es demasiado grande",
+            rejectionOf { ImportFileReader.read(out.toByteArray(), "bomba.xlsx", null) },
+        )
+    }
+
+    @Test
     fun `un archivo de más de 5 MB se rechaza antes de leerlo`() {
         assertEquals(
             "El archivo es demasiado grande (máx. 5 MB).",
             rejectionOf { ImportFileReader.read(ByteArray(5 * 1024 * 1024 + 1), "grande.csv", null) },
         )
     }
+
+    private fun ZipOutputStream.entryText(name: String, content: String) {
+        putNextEntry(ZipEntry(name))
+        write(content.toByteArray(Charsets.UTF_8))
+        closeEntry()
+    }
+
+    private val WORKBOOK_XML = """<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" """ +
+        """xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets>""" +
+        """<sheet name="Día 1" sheetId="1" r:id="rId1"/></sheets></workbook>"""
+
+    private val RELS_XML = """<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">""" +
+        """<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" """ +
+        """Target="worksheets/sheet1.xml"/></Relationships>"""
+
+    private val SHEET_XML = """<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetData>""" +
+        """<row r="1"><c r="A1" t="inlineStr"><is><t>Press banca</t></is></c><c r="B1"><v>4</v></c></row>""" +
+        "</sheetData></worksheet>"
 }

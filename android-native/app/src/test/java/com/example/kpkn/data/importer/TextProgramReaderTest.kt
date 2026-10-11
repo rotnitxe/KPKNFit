@@ -85,19 +85,13 @@ class TextProgramReaderTest {
     }
 
     @Test
-    fun `más de 2000 filas o más de 40 columnas se rechazan con su mensaje`() {
-        val tall = (1..2_001).joinToString("\n") { "Línea $it" }
-        val wide = (1..41).joinToString(" / ") { "c$it" }
+    fun `más de 2000 filas o más de 40 columnas se recortan con una nota`() {
+        val tall = TextProgramReader.read((1..2_001).joinToString("\n") { "Línea $it" }, "alto")
+        assertEquals(2_000, tall.rows.size)
+        assertEquals(listOf(TrimNotes.ROWS), tall.notes)
 
-        assertEquals("La hoja «alto» tiene más de 2000 filas", rejectionOf { TextProgramReader.read(tall, "alto") })
-        assertEquals("La hoja «ancha» tiene más de 40 columnas", rejectionOf { TextProgramReader.read(wide, "ancha") })
-    }
-
-    /** Mensaje del rechazo del lector, o null si no lo hubo. */
-    private fun rejectionOf(block: () -> Unit): String? = try {
-        block()
-        null
-    } catch (error: ImportFileException) {
-        error.message
+        val wide = TextProgramReader.read((1..41).joinToString(" / ") { "c$it" }, "ancha")
+        assertEquals(listOf(List(40) { "c${it + 1}" }), wide.rows)
+        assertEquals(listOf(TrimNotes.COLUMNS), wide.notes)
     }
 }

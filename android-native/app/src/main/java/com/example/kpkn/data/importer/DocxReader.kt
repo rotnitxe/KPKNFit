@@ -8,25 +8,28 @@ import org.w3c.dom.Node
  * Lector de documentos Word (.docx): un ZIP con word/document.xml. Todo va en una sola hoja con el nombre [title]:
  * cada párrafo con texto es una fila de una celda (sus `w:t` unidos), y cada tabla da sus filas, con una celda por
  * `w:tc` (los párrafos de la celda unidos con espacio). Una celda que continúa una combinación vertical va vacía, y una
- * combinada en horizontal ocupa una sola celda. Los topes son los de [ImportLimits].
+ * combinada en horizontal ocupa una sola celda. Recorta con notas, como xlsx, a [ImportLimits.MAX_ROWS] filas y
+ * [ImportLimits.MAX_COLUMNS] columnas. Solo se guarda word/document.xml; el resto del ZIP se descarta.
  */
 object DocxReader {
     private const val DOCUMENT = "word/document.xml"
+    private const val TOO_LARGE = "El archivo descomprimido es demasiado grande"
 
-    /** Lee el cuerpo del documento en orden. Lanza [ImportFileException] si no es un .docx o supera los topes. */
+    /** Lee el cuerpo del documento en orden. Lanza [ImportFileException] si no es un .docx válido. */
     fun read(bytes: ByteArray, title: String): ImportSheet {
-        val entries = OfficeXml.entries(bytes, "El archivo descomprimido es demasiado grande") ?: throw notDocx()
+        val entries = OfficeXml.entries(bytes, TOO_LARGE) { it == DOCUMENT } ?: throw notDocx()
         val xml = entries[DOCUMENT] ?: throw notDocx()
         val body = OfficeXml.parse(xml, "El documento contiene XML no válido").getElementsByTagNameNS("*", "body").item(0)
-        val rows = body?.let { bodyRows(it) }.orEmpty()
-        if (rows.size > ImportLimits.MAX_ROWS) {
-            throw ImportFileException("La hoja «$title» tiene más de ${ImportLimits.MAX_ROWS} filas")
-        }
-        val width = rows.maxOfOrNull { it.size } ?: 0
-        if (width > ImportLimits.MAX_COLUMNS) {
-            throw ImportFileException("La hoja «$title» tiene más de ${ImportLimits.MAX_COLUMNS} columnas")
-        }
-        return ImportSheet(name = title, rows = rows.map { row -> List(width) { row.getOrElse(it) { "" } } })
+        val allRows = body?.let { bodyRows(it) }.orEmpty()
+        val rows = allRows.take(ImportLimits.MAX_ROWS)
+        val columnsCut = rows.any { row -> row.drop(ImportLimits.MAX_COLUMNS).any { it.isNotBlank() } }
+        val rowsCut = allRows.drop(ImportLimits.MAX_ROWS).any { row -> row.any { it.isNotBlank() } }
+        val width = minOf(rows.maxOfOrNull { it.size } ?: 0, ImportLimits.MAX_COLUMNS)
+        return ImportSheet(
+            name = title,
+            rows = rows.map { row -> List(width) { row.getOrElse(it) { "" } } },
+            notes = listOfNotNull(TrimNotes.COLUMNS.takeIf { columnsCut }, TrimNotes.ROWS.takeIf { rowsCut }),
+        )
     }
 
     /** Filas del cuerpo en orden: párrafos con texto y filas de tablas. Los bloques de contenido (`w:sdt`) se abren. */
