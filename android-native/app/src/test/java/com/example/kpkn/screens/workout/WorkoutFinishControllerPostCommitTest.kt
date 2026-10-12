@@ -117,6 +117,38 @@ class WorkoutFinishControllerPostCommitTest {
         assertEquals(0, failed)
     }
 
+    @Test
+    fun voiceRingsBridge_isNotifiedAfterTheDurableCommit_andOnlyOnce() = runTest {
+        val fixture = createFixture(this)
+        val bridge = FinishRingsBridge()
+        // Lo que arma finalizeVoiceSession cuando la persona dicta solo «batería nerviosa 40».
+        val voiceFeedback = feedback().copy(finalNeuralBattery = 40, neuralEdited = true)
+        val logIdSeenByTheApplier = mutableListOf<String?>()
+        bridge.setApplier { logIdSeenByTheApplier += fixture.state.logAlreadyWrittenId }
+
+        fixture.controller().finish(
+            notes = "",
+            fatigueLevel = 5,
+            closingFeedback = voiceFeedback,
+            onComplete = { bridge.onSessionSaved(voiceFeedback) },
+        )
+        advanceUntilIdle()
+        awaitFinished(fixture)
+
+        val savedLogId = fixture.repository.getLogsForSession(fixture.session.id).single().id
+        assertEquals(
+            "el aplicador se avisa con el log ya escrito y una sola vez",
+            listOf<String?>(savedLogId),
+            logIdSeenByTheApplier,
+        )
+
+        // Otro intento de cierre (la hoja, tras el de voz) lo absorben los guardas de finish: no vuelve a avisar.
+        fixture.controller().finish("", 5, voiceFeedback, onComplete = { bridge.onSessionSaved(voiceFeedback) })
+        advanceUntilIdle()
+        assertEquals(1, logIdSeenByTheApplier.size)
+        assertEquals(1, fixture.repository.getLogsForSession(fixture.session.id).size)
+    }
+
     private data class FinishFixture(
         val scope: kotlinx.coroutines.CoroutineScope,
         val repository: ProgramRepository,

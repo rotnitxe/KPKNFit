@@ -1,6 +1,7 @@
 package com.example.kpkn.domain.auge
 
 import com.example.kpkn.data.models.DailyWellbeingLog
+import com.example.kpkn.data.models.WellbeingSource
 
 /**
  * Lo que un guardado de bienestar CAMBIA de verdad respecto a lo ya guardado ese día (ver [detectWellbeingEdits]).
@@ -48,7 +49,8 @@ fun detectWellbeingEdits(existing: DailyWellbeingLog?, incoming: DailyWellbeingL
  *   cambia en V1 o declara en V2; de esos gana [incoming].
  * - Globales, V1 y ancla: si [incoming] cambia alguno, valen los suyos; si no, los de
  *   [existing] con su ancla (así no se reinicia su decaimiento).
- * - `capturedFields`: unión. El resto de campos son los de [incoming].
+ * - `capturedFields`: unión. `source`: el de [existing] si la fila nació en el alta (`ONBOARDING_INITIAL`), si no el
+ *   de [incoming]. El resto de campos son los de [incoming].
  */
 fun mergeWellbeingForSave(existing: DailyWellbeingLog?, incoming: DailyWellbeingLog): DailyWellbeingLog {
     if (existing == null) return incoming
@@ -69,6 +71,9 @@ fun mergeWellbeingForSave(existing: DailyWellbeingLog?, incoming: DailyWellbeing
         manualBatteryAnchorMs = channels.manualBatteryAnchorMs,
         manualMuscleOverridesV2 = keptV2 + incoming.manualMuscleOverridesV2,
         capturedFields = existing.capturedFields + incoming.capturedFields,
+        // La fila que nació en el alta conserva su procedencia: el chequeo previo la reenvía como DAILY_CHECK_IN y
+        // `declaredCheckInChannels` la usa de respaldo para las filas sin `capturedFields`.
+        source = if (existing.source == WellbeingSource.ONBOARDING_INITIAL) existing.source else incoming.source,
     )
 }
 
