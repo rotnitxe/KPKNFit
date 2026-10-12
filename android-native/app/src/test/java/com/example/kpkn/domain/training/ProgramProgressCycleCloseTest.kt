@@ -1,6 +1,7 @@
 package com.example.kpkn.domain.training
 
 import com.example.kpkn.data.models.ActiveProgramState
+import com.example.kpkn.data.models.AlgorithmSettings
 import com.example.kpkn.data.models.AutoregulationAuditEntry
 import com.example.kpkn.data.models.AutoregulationMode
 import com.example.kpkn.data.models.AutoregulationProposal
@@ -31,6 +32,7 @@ import com.example.kpkn.data.models.ProgramStatus
 import com.example.kpkn.data.models.ProgramStructure
 import com.example.kpkn.data.models.ProgramWeek
 import com.example.kpkn.data.models.Session
+import com.example.kpkn.data.models.Settings
 import com.example.kpkn.data.models.SimpleProgramKind
 import com.example.kpkn.data.models.UnitModeV2
 import com.example.kpkn.data.models.WorkoutLog
@@ -1459,8 +1461,14 @@ class ProgramProgressCycleCloseTest {
 
     // ─── B.S6 parte 2a · H7: todas las entradas a un bloque pasan por el enganche de autor ───────
 
-    /** AUGE con estrés alto de mesociclo: al cerrar la ola 1 pide una descarga y queda la puerta CONFIRM_DELOAD. */
-    private val augeStress = BlockTransitionEngine.TransitionContext(mesocycleStressEma = 80.0)
+    /**
+     * AUGE con estrés alto de mesociclo y la descarga automática activada por la persona (precondición del flujo):
+     * al cerrar la ola 1 pide una descarga y queda la puerta CONFIRM_DELOAD.
+     */
+    private val augeStress = BlockTransitionEngine.TransitionContext(
+        mesocycleStressEma = 80.0,
+        settings = Settings(algorithmSettings = AlgorithmSettings(augeAutoDeload = true)),
+    )
 
     /** Los registros de las dos semanas de la ola 1, la que se cierra al entrar en la ola 2. */
     private fun wave1Logs(program: Program): List<WorkoutLog> = logsFor(program, weeksOf(program).take(2))

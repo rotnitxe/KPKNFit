@@ -2475,7 +2475,15 @@ class ProgramDetailViewModelTest {
             completedSession = weeks[1].sessions.last(),
             weekInstanceId = weeks[1].id,
             logs = logs,
-            transitionContext = if (stress) BlockTransitionEngine.TransitionContext(mesocycleStressEma = 80.0) else null,
+            // La persona activó la descarga automática: precondición del flujo de descarga AUGE.
+            transitionContext = if (stress) {
+                BlockTransitionEngine.TransitionContext(
+                    mesocycleStressEma = 80.0,
+                    settings = Settings(algorithmSettings = AlgorithmSettings(augeAutoDeload = true)),
+                )
+            } else {
+                null
+            },
         )
         return gate.program to logs
     }
