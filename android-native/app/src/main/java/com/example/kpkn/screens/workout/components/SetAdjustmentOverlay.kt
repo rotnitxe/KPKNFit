@@ -18,10 +18,59 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.kpkn.data.models.*
 import com.example.kpkn.data.exercises.displayNameWithSelectedChips
+import com.example.kpkn.data.exercises.resolveCatalogExerciseInfo
 import com.example.kpkn.domain.auge.ExerciseReadinessEngine
+import com.example.kpkn.domain.training.canonicalEquipmentKind
+import com.example.kpkn.domain.training.machineRangeForExercise
+import com.example.kpkn.domain.training.reachableWarmupLoad
 import com.example.kpkn.screens.workout.*
 import com.example.kpkn.ui.components.KpknSheet
 import kotlin.math.roundToInt
+
+/**
+ * Material real para la sugerencia de carga (1.12c): misma resolución que el calentamiento
+ * (`WorkoutViewModel.getWarmupSuggestedWeight`). Sin material declarado devuelve null y la
+ * sugerencia usa el paso fijo de 2,5 kg.
+ */
+internal fun readinessLoadSnapFor(
+    exercise: Exercise,
+    settings: com.example.kpkn.data.models.Settings,
+): ((Double) -> Double?)? {
+    val inventory = settings.resolvedEquipmentInventory()
+    val declared = inventory.barbellWeightKg != null || inventory.plates.isNotEmpty() ||
+        inventory.dumbbells.isNotEmpty() || inventory.kettlebells.isNotEmpty() ||
+        inventory.machines.isNotEmpty()
+    if (!declared) return null
+    val info = resolveCatalogExerciseInfo(
+        catalogConfigurationId = exercise.catalogConfigurationId,
+        exerciseDbId = exercise.exerciseDbId,
+        exerciseId = exercise.exerciseId,
+        exerciseName = exercise.name,
+    )
+    val equipmentKind = canonicalEquipmentKind(info?.equipment)
+    val machine = inventory.machineRangeForExercise(exercise.catalogConfigurationId, equipmentKind)
+    return { requestedKg ->
+        val reached = reachableWarmupLoad(requestedKg, equipmentKind, inventory, machine)
+        when {
+            reached == null -> null
+            reached <= requestedKg + 0.001 -> reached
+            // Las máquinas redondean al paso más cercano: se baja un paso para quedar por debajo.
+            machine != null -> reachableWarmupLoad(
+                reached - machine.incrementKg,
+                equipmentKind,
+                inventory,
+                machine,
+            )?.takeIf { it <= requestedKg + 0.001 }
+            else -> null
+        }
+    }
+}
+
+/** Porcentaje con una cifra decimal como máximo y coma decimal, sin truncar. */
+private fun Double.toPercentText(): String {
+    val tenths = (this * 1000).roundToInt()
+    return if (tenths % 10 == 0) "${tenths / 10}" else "${tenths / 10},${kotlin.math.abs(tenths % 10)}"
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -33,6 +82,7 @@ internal fun SetAdjustmentOverlay(
     weightSuggestion: WeightSuggestion?,
     averageErm: Double?,
     bodyWeight: Double? = null,
+    snap: ((Double) -> Double?)? = null,
     loadMode: LoadModeV2,
     onDismiss: () -> Unit,
     onApply: (SetAdjustmentSuggestion) -> Unit,
@@ -51,7 +101,7 @@ internal fun SetAdjustmentOverlay(
             ?: 0.0
     }
 
-    val adjustment = remember(severitySlider, plannedWeight, loadMode, bodyWeight) {
+    val adjustment = remember(severitySlider, plannedWeight, loadMode, bodyWeight, snap) {
         ExerciseReadinessEngine.calculateSetAdjustment(
             plannedWeight = plannedWeight,
             exerciseReadiness = exerciseReadiness,
@@ -59,6 +109,7 @@ internal fun SetAdjustmentOverlay(
             averageErm = averageErm,
             loadMode = loadMode,
             bodyWeight = bodyWeight,
+            snap = snap,
         )
     }
 
@@ -239,10 +290,15 @@ internal fun SetAdjustmentOverlay(
                             color = readinessColor,
                         )
                         Text(
-                            if (loadMode == LoadModeV2.ASSISTED) {
-                                "+${(adjustment.suggestedWeight - plannedWeight).roundToInt()}kg asist."
-                            } else {
-                                "−${(adjustment.reductionPercent * 100).roundToInt()}%"
+                            when {
+                                adjustment.suggestedLoadMode == LoadModeV2.ASSISTED ->
+                                    "+${(adjustment.suggestedWeight - plannedWeight).toTrimmedNumberString()}kg asist."
+                                // Reducción real: la sugerida queda por debajo de la planificada.
+                                adjustment.suggestedWeight < plannedWeight - 0.001 ->
+                                    "−${adjustment.reductionPercent.toPercentText()}%"
+                                // Sin carga exacta: la reducción se pide a ojo y el peso no cambia.
+                                adjustment.reductionPercent > 0.0 -> "a ojo"
+                                else -> "sin ajuste"
                             },
                             style = MaterialTheme.typography.labelSmall,
                             fontWeight = FontWeight.SemiBold,

@@ -809,6 +809,7 @@ internal fun SetInputCardV2(
     exerciseReadiness: ExerciseReadiness? = null,
     readinessAdjustment: SetAdjustmentSuggestion? = null,
     onApplyReadinessAdjustment: ((SetAdjustmentSuggestion) -> Unit)? = null,
+    readinessLoadSnap: ((Double) -> Double?)? = null,
     godModeActionsVisible: Boolean = false,
     isDropSet: Boolean = false,
     isRestPause: Boolean = false,
@@ -3518,6 +3519,7 @@ internal fun SetInputCardV2(
             averageErm = rm1,
             bodyWeight = initialBodyWeight ?: bodyWeightText.toDoubleOrNull(),
             loadMode = loadMode,
+            snap = readinessLoadSnap,
             onDismiss = { showReadinessAdjustmentSheet = false },
             onApply = { suggestion ->
                 loadMode = suggestion.suggestedLoadMode
