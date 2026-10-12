@@ -139,12 +139,20 @@ Resultados (2026-10-12, `feat/wizard-v3` con H4d):
 Evolución en el teléfono:
 - 1.ª pasada (H4b): BIEN 1, POBRE 16 y NADA 18, con 317 ejercicios.
 - 2.ª pasada (H4d): BIEN 9, POBRE 15 y NADA 11, con 477 ejercicios. Ningún archivo empeoró.
+- Con H4e, medido con el banco JVM sobre las filas de la 2.ª pasada: 486 ejercicios.
+  - El plan de 4 días de Scraler pasa de 2 a 4 días y de 15 a 22 ejercicios.
+  - Ningún archivo empeora y las hojas de cálculo no cambian.
+- Qué hace H4e en PDF y fotos:
+  - en una tabla, los trozos del nombre que quedan encima y debajo de su fila de datos se unen a ella («Curl de bíceps con» / datos /
+    «mancuernas» → «Curl de bíceps con mancuernas»);
+  - se quita el número que va delante de una etiqueta de día («2 Día 2: Pierna A»).
 
 ## 7. Pendientes conocidos
 
-- **PDF con tablas de celdas de varias líneas:** el nombre queda partido encima y debajo de su fila de datos («Curl de bíceps con» /
-  datos / «mancuernas»).
-- **Días con un número delante** («2 Día 2: Pierna A»).
+- **Tablas de OCR sin columna de repeticiones** («Exercise | Activity | Rest | Sets»): «6-8 reps» cae en otra columna y el ejercicio se
+  rechaza. Haría falta deducir las columnas por su contenido.
+- **Celdas partidas cuyo trozo de arriba lleva cifras** («Opción 2,- Flexiones en»): no se unen, y el trozo de abajo puede quedar como un
+  día suelto.
 - **Infografías de varias columnas** (algunos PDF de Templo del Fitness): el OCR mezcla las columnas en las mismas filas. Haría falta
   reconstruir bloques por página.
 - **Liftoscript con plantillas** («...t1»): las referencias no se expanden.
