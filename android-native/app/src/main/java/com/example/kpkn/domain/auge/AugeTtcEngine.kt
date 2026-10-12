@@ -3,6 +3,7 @@ package com.example.kpkn.domain.auge
 import com.example.kpkn.data.exercises.resolveCatalogExerciseInfoInIndex
 import com.example.kpkn.data.models.*
 import com.example.kpkn.domain.auge.AugeFatigueEngine.getEffectiveRPE
+import com.example.kpkn.domain.auge.AugeUtils.batteryPercent
 import com.example.kpkn.domain.auge.AugeUtils.logDateMs
 import java.text.SimpleDateFormat
 import java.time.Instant
@@ -358,7 +359,7 @@ object AugeTtcEngine {
             val unresolvedAcc = unresolvedStress[ab] ?: 0.0
             val totalAcc = acc + discomfortAcc + unresolvedAcc
             val battery = clamp(100.0 - (totalAcc / TENDON_CAPACITY_BASE) * 100.0, 0.0, 100.0)
-            val score   = battery.toInt()
+            val score   = batteryPercent(battery)
             val status  = when {
                 battery < 40.0 -> ArticularStatus.EXHAUSTED
                 battery < 85.0 -> ArticularStatus.RECOVERING
@@ -392,9 +393,9 @@ object AugeTtcEngine {
     ): StructuralReadinessBreakdown {
         val related = articularBatteriesFor(muscleName)
         val articularScore = if (related.isEmpty()) muscleBattery
-        else related.map { articularBatteries[it]?.recoveryScore ?: 100 }.average().toInt()
+        else batteryPercent(related.map { articularBatteries[it]?.recoveryScore ?: 100 }.average())
 
-        val combined  = ((muscleBattery + articularScore) / 2.0).toInt()
+        val combined  = batteryPercent((muscleBattery + articularScore) / 2.0)
         val limiting  = min(muscleBattery, articularScore)
 
         return StructuralReadinessBreakdown(
