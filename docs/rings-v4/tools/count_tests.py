@@ -17,6 +17,11 @@ RUTA = os.path.join("android-native", "app", "build", "test-results", "testBaseD
 
 
 def main() -> int:
+    # La consola de Windows usa cp1252 y un fallo con «τ» o «→» tiraba UnicodeEncodeError.
+    try:
+        sys.stdout.reconfigure(encoding="utf-8")
+    except (AttributeError, ValueError):
+        pass
     archivos = sorted(glob.glob(RUTA))
     if not archivos:
         print(f"SIN RESULTADOS: no hay XML en {RUTA}. ¿Corrió la tarea de pruebas en este worktree?")
