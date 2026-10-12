@@ -1,6 +1,7 @@
 package com.example.kpkn.screens.onboarding
 
 import android.app.Application
+import android.net.Uri
 import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.SavedStateHandle
@@ -44,7 +45,11 @@ import com.example.kpkn.screens.programs.importer.ImportCatalogLookup
 import com.example.kpkn.screens.programs.importer.ImportEditOp
 import com.example.kpkn.screens.programs.importer.ImportEdits
 import com.example.kpkn.screens.programs.importer.ImportSnapshot
+import com.example.kpkn.screens.programs.importer.IMPORT_READING_PHOTO_TEXT
+import com.example.kpkn.screens.programs.importer.IMPORT_READING_TEXT
 import com.example.kpkn.screens.programs.importer.ImportUndoStack
+import com.example.kpkn.screens.programs.importer.importReadingPageText
+import com.example.kpkn.screens.programs.importer.readPickedFile
 import com.example.kpkn.domain.training.generator.GeneratedRoutine
 import com.example.kpkn.domain.training.generator.RoutineGenerationException
 import com.example.kpkn.domain.training.generator.RoutineGenerator
@@ -58,6 +63,7 @@ import com.example.kpkn.domain.training.split.SplitRedistributor
 import com.example.kpkn.domain.training.split.WeekAssignment
 import com.example.kpkn.screens.nutrition.NutritionWizardDraft
 import com.example.kpkn.screens.programs.ReadyWeekSnapshot
+import java.io.File
 import java.time.LocalDate
 import java.time.ZoneId
 import java.util.UUID
@@ -69,6 +75,7 @@ import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -3847,13 +3854,57 @@ class SetupWizardViewModel @JvmOverloads constructor(
     /** Trabajo de importación en curso: una lectura nueva cancela la anterior. */
     private var importJob: kotlinx.coroutines.Job? = null
 
+    /**
+     * Lee un archivo elegido o una foto con sus hojas y su título, y avisa de cada página de un PDF. Las pruebas lo sustituyen
+     * por uno falso con progreso.
+     */
+    internal var readFile: suspend (uri: Uri, onProgress: (page: Int, pages: Int) -> Unit) -> Result<Pair<String, List<ImportSheet>>> =
+        { uri, onProgress -> readPickedFile(application.contentResolver, uri, application.cacheDir, onProgress) }
+
     /** Importa las hojas ya leídas de un archivo (xlsx o csv); el título es el nombre del archivo. */
     fun importFromSheets(sheets: List<ImportSheet>, title: String) =
-        startImport { ProgramImportParser.parseSheets(sheets, title.ifBlank { ImportedProgramBuilder.DEFAULT_TITLE }) }
+        startImport(IMPORT_READING_TEXT) {
+            withContext(Dispatchers.Default) {
+                ProgramImportParser.parseSheets(sheets, title.ifBlank { ImportedProgramBuilder.DEFAULT_TITLE })
+            }
+        }
 
     /** Importa el texto pegado («Día 1 — Pierna» y «Sentadilla 4x6 @120kg»). */
     fun importFromText(text: String) =
-        startImport { ProgramImportParser.parseText(text, ImportedProgramBuilder.DEFAULT_TITLE) }
+        startImport(IMPORT_READING_TEXT) {
+            withContext(Dispatchers.Default) { ProgramImportParser.parseText(text, ImportedProgramBuilder.DEFAULT_TITLE) }
+        }
+
+    /**
+     * Lee un archivo elegido o una foto en segundo plano, con su progreso y «Cancelar», y lo importa. Una foto de la cámara
+     * ([takenFile]) se borra al terminar de leerla; una de la galería no se toca.
+     */
+    fun importFromPicked(uri: Uri, photo: Boolean = false, takenFile: File? = null) =
+        startImport(if (photo) IMPORT_READING_PHOTO_TEXT else IMPORT_READING_TEXT) {
+            try {
+                val (fileTitle, sheets) = readFile(uri, ::reportImportPage).getOrThrow()
+                // Una foto de la cámara no tiene un nombre útil: su programa lleva el título por defecto.
+                val title = if (takenFile != null) "" else fileTitle
+                withContext(Dispatchers.Default) {
+                    ProgramImportParser.parseSheets(sheets, title.ifBlank { ImportedProgramBuilder.DEFAULT_TITLE })
+                }
+            } finally {
+                takenFile?.delete()
+            }
+        }
+
+    /** «Cancelar» de la lectura: corta el trabajo y deja el paso como estaba (sin programa nuevo y sin error). */
+    fun cancelImport() {
+        if (importJob?.isActive != true) return
+        importJob?.cancel()
+        importJob = null
+        _state.value = _state.value.copy(importBusy = false, importProgress = null)
+    }
+
+    /** Avisa de la página de un PDF que se lee; solo mientras hay una lectura en curso. */
+    private fun reportImportPage(page: Int, pages: Int) {
+        _state.update { if (it.importBusy) it.copy(importProgress = importReadingPageText(page, pages)) else it }
+    }
 
     /** Pila de deshacer de la vista previa: en memoria (máximo 30); se vacía al leer otro archivo o al quitar lo importado. */
     private val importUndo = ImportUndoStack()
@@ -3896,15 +3947,10 @@ class SetupWizardViewModel @JvmOverloads constructor(
     fun clearImport() {
         importJob?.cancel()
         importUndo.clear()
-        _state.value = _state.value.copy(importBusy = false, importError = null, importUndoLabel = null)
+        _state.value = _state.value.copy(importBusy = false, importProgress = null, importError = null, importUndoLabel = null)
         mutateDraft(SetupStepId.PROGRAM_IMPORT) { latest ->
             latest.copy(importedProgram = null, importResolutions = emptyMap(), importTitle = "")
         }
-    }
-
-    /** Lo que muestra el aviso de un paso importado que no se pudo leer (p. ej. un archivo demasiado grande). */
-    fun reportImportError(message: String) {
-        _state.value = _state.value.copy(importError = message, importBusy = false)
     }
 
     /** Las tres mejores configuraciones del catálogo para un nombre importado (las del panel «Elegir»). */
@@ -3931,16 +3977,16 @@ class SetupWizardViewModel @JvmOverloads constructor(
     }
 
     /**
-     * Lee y empareja lo importado fuera del hilo principal. Lo que el emparejador reconoce con confianza queda decidido
-     * solo; lo dudoso espera a que la persona elija o lo deje como está.
+     * Lee y empareja lo importado en un trabajo cancelable, con [progress] mientras tanto. Lo que el emparejador reconoce con
+     * confianza queda decidido solo; lo dudoso espera a que la persona elija o lo deje como está. Mientras se lee, el programa
+     * anterior sigue como estaba: si se cancela o falla, no cambia; si sale bien, su pila de deshacer se vacía.
      */
-    private fun startImport(parse: () -> ImportedProgramDraft) {
+    private fun startImport(progress: String, read: suspend () -> ImportedProgramDraft) {
         importJob?.cancel()
-        importUndo.clear()
-        _state.value = _state.value.copy(importBusy = true, importError = null, importUndoLabel = null)
+        _state.value = _state.value.copy(importBusy = true, importProgress = progress, importError = null)
         importJob = viewModelScope.launch {
             try {
-                val parsed = withContext(Dispatchers.Default) { parse() }
+                val parsed = read()
                 val names = parsed.weeks.flatMap { week -> week.days.flatMap { day -> day.exercises } }
                     .map { it.rawName }
                     .distinct()
@@ -3952,14 +3998,20 @@ class SetupWizardViewModel @JvmOverloads constructor(
                         .filterValues { it.isConfident }
                         .mapValues { (_, match) -> match.best?.configurationId }
                 }
+                ensureActive()
+                importUndo.clear()
                 mutateDraft(SetupStepId.PROGRAM_IMPORT) { latest ->
                     latest.copy(importedProgram = parsed, importTitle = parsed.title, importResolutions = confident)
                 }
-                _state.value = _state.value.copy(importBusy = false)
+                _state.value = _state.value.copy(importBusy = false, importProgress = null, importUndoLabel = null)
             } catch (cancel: CancellationException) {
                 throw cancel
             } catch (error: Throwable) {
-                _state.value = _state.value.copy(importBusy = false, importError = error.message ?: "No pudimos leer el programa.")
+                _state.value = _state.value.copy(
+                    importBusy = false,
+                    importProgress = null,
+                    importError = error.message ?: "No pudimos leer el programa.",
+                )
             }
         }
     }

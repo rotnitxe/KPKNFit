@@ -1276,6 +1276,8 @@ data class SetupWizardState(
     val weekLayout: SetupWeekLayout? = null,
     /** Importación (paso PROGRAM_IMPORT): ocupado mientras se lee y se analiza el archivo o el texto. */
     val importBusy: Boolean = false,
+    /** Lo que se muestra mientras se lee (la página de un PDF, la foto o el programa); null si no se lee nada. */
+    val importProgress: String? = null,
     /** Por qué no se pudo leer o analizar lo importado; null = sin error. */
     val importError: String? = null,
     /** Lo que deshace el siguiente toque de la vista previa del programa importado; null si no hay nada que deshacer. */
