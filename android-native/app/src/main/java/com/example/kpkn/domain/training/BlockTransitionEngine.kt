@@ -135,11 +135,13 @@ object BlockTransitionEngine {
         }
 
         val hasAugeSnapshot = context.cumulativeFatigue != null && context.readinessScore != null
-        val suggestDeload = (hasAugeSnapshot && AugeFatigueEngine.shouldSuggestAutoDeload(
+        // Un solo interruptor: sin el ajuste de descarga automática activado, ninguna señal inserta un bloque.
+        val autoDeloadEnabled = context.settings.algorithmSettings.augeAutoDeload
+        val suggestDeload = autoDeloadEnabled && ((hasAugeSnapshot && AugeFatigueEngine.shouldSuggestAutoDeload(
             cumulativeFatigue = context.cumulativeFatigue!!,
             readinessScore = context.readinessScore!!,
             settings = context.settings,
-        )) || context.mesocycleStressEma >= 75.0 || context.overtrainedMuscles.isNotEmpty()
+        )) || context.mesocycleStressEma >= 75.0 || context.overtrainedMuscles.isNotEmpty())
 
         val blocks = orderedBlocks(program)
         val blockPos = blocks.indexOfFirst { it.id == completedBlockId }
@@ -188,7 +190,7 @@ object BlockTransitionEngine {
             }
             return TransitionDecision(
                 kind = DecisionKind.INSERT_DELOAD,
-                message = "Gate AUGE / estrés alto: se inserta un bloque de descarga antes de continuar.",
+                message = "Tienes activada la descarga automática: se añade un bloque de descarga porque tu carga acumulada y tus anillos lo sugieren.",
                 nextBlockId = withDeload.second,
                 updatedProgram = withDeload.first,
             )
