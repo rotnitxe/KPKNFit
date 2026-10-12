@@ -20,8 +20,8 @@ android {
         applicationId = "com.example.kpkn"
         minSdk = 24
         targetSdk = 35
-        versionCode = 41
-        versionName = "KPKN Pre Release 8"
+        versionCode = 42
+        versionName = "KPKN Pre Release 9"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
