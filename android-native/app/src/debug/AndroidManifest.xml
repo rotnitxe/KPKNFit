@@ -37,5 +37,10 @@
             android:name="com.example.kpkn.debug.DemoSeedActivity"
             android:exported="true"
             android:theme="@style/Theme.KPKN" />
+        <!-- SOLO DEPURACIÓN: lee con OCR el corpus de «ocr-corpus» y escribe el informe en «ocr-report» (H4b); no se integra. -->
+        <activity
+            android:name="com.example.kpkn.debug.ImportOcrHarnessActivity"
+            android:exported="true"
+            android:theme="@style/Theme.KPKN" />
     </application>
 </manifest>
