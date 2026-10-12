@@ -171,6 +171,21 @@ class ImportCorpusReporterTest {
         )
     }
 
+    @Test
+    fun `un archivo que es un programa de KPKN se cuenta por plan en el resumen y sale en la tabla`() {
+        val root = temporaryFolder.newFolder("corpus-plantilla")
+        File(root, "GZCLP.csv").writeText("Ejercicio;Series;Reps\nSentadilla;4;6\n")
+        val out = temporaryFolder.newFolder("informe-plantilla")
+
+        val report = ImportCorpusReporter(matcher).run(root, out)
+
+        assertEquals("protocol:gzclp", report.files.single().template)
+        assertEquals(listOf(CorpusTemplateGroup("protocol:gzclp", listOf("GZCLP.csv"))), report.summary.templates)
+        val markdown = File(out, "report.md").readText()
+        assertTrue(markdown.contains("Archivos reconocidos como plantilla de KPKN: 1."))
+        assertTrue(markdown.contains("| GZCLP |"))
+    }
+
     /** Corpus mínimo: un xlsx de dos hojas, un csv bueno, un no-xlsx, uno con 21 hojas, un csv pobre y uno vacío. */
     private fun syntheticCorpus(): File {
         val root = temporaryFolder.newFolder("corpus")
