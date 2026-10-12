@@ -752,6 +752,10 @@ internal fun formatTodayPrescription(session: Session): String? {
     return "${main.displayNameWithSelectedChips()}: ${working.size}×$reps$loadPart$intensityPart"
 }
 
+/** Promedio de recuperación de los músculos de la sesión como entero para mostrar; null si no hay músculos. */
+internal fun sessionRecoveryPercent(scores: List<Int>): Int? =
+    if (scores.isEmpty()) null else scores.average().toInt()
+
 internal fun axialHintsForSession(session: Session): List<AxialSessionExercise> =
     session.allExercises().mapNotNull { exercise ->
         val info = resolveCatalogExerciseInfo(

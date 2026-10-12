@@ -485,6 +485,11 @@ internal fun DrawScope.drawAugeRingCore(center: Offset, radius: Float, color: Co
         )
     }
 }
+/** Entero que muestra un anillo (0..100): texto, color de banda y accesibilidad leen este mismo valor. */
+@Suppress("UNUSED_PARAMETER")
+internal fun ringPercent(batteryInt: Int?, progress: Float): Int =
+    (progress * 100).toInt().coerceIn(0, 100)
+
 internal fun batteryColor(score: Int): Color = Color(RecoveryBands.colorArgb(score).toInt())
 
 // ─── RINGS Info Dialog ─────────────────────────────────────────────────────
