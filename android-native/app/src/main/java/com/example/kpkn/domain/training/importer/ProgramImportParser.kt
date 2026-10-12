@@ -18,6 +18,10 @@ object ProgramImportParser {
     internal const val MAX_SETS = 20
     internal const val MAX_REPS = 100
     internal const val MAX_LOAD_KG = 1000.0
+    /** Rango de la carga en libras: de 1 a 2200 lb (unos 0,5–1000 kg). Lo mismo que el panel de edición. */
+    internal const val MIN_LOAD_LB = 1.0
+    internal const val MAX_LOAD_LB = 2200.0
+    internal const val MIN_LOAD_KG = 0.5
     internal const val MAX_PERCENT = 100.0
     internal const val MAX_REST_SECONDS = 1800
     internal const val MAX_NOTE_CHARS = 200
@@ -40,6 +44,7 @@ object ProgramImportParser {
             builder.beginSheet()
             // Una hoja sin nombre de semana es un día: su nombre sirve si no trae un encabezado propio.
             builder.pendingDayName = if (weekInName == null) usableSheetName(sheet.name) else null
+            builder.sheetLift = titleLift(sheet.rows) ?: builder.pendingDayName
             processRows(builder, sheet.rows) { index -> "Hoja «${sheet.name}», fila ${index + 1}" }
             builder.endSheet("Hoja «${sheet.name}»")
         }
@@ -345,8 +350,7 @@ object ProgramImportParser {
             sets = sets,
             repsMin = low,
             repsMax = top,
-            // «0», «0lb» o «0kg» es peso corporal: sin carga y sin aviso.
-            loadKg = checked(load?.takeIf { it != 0.0 }, "la carga", name, row) { it in 0.5..MAX_LOAD_KG },
+            loadKg = loadValue(load, name, row),
             percent1Rm = checked(percent, "el porcentaje", name, row) { it in 1.0..MAX_PERCENT },
             rpe = checked(rpe, "el RPE", name, row) { it in 1.0..10.0 },
             rir = checked(rir, "las RIR", name, row) { it in 0..10 },
@@ -354,6 +358,30 @@ object ProgramImportParser {
             notes = notes?.trim()?.takeIf { it.isNotEmpty() }?.take(MAX_NOTE_CHARS),
             sourceText = row.source,
         )
+    }
+
+    /**
+     * Carga de un ejercicio en la unidad del archivo. Fuera de 0,5–2200 se descarta ya. Entre 0,5 y 1, o entre 1000 y 2200,
+     * solo vale en una unidad: el aviso queda pendiente y se decide al cerrar el borrador, con la unidad del archivo.
+     */
+    private fun loadValue(load: Double?, name: String, row: RowContext): Double? {
+        // «0», «0lb» o «0kg» es peso corporal: sin carga y sin aviso.
+        if (load == null || load == 0.0) return null
+        val message = "la carga de «$name» está fuera de rango; se ignora"
+        if (load < MIN_LOAD_KG || load > MAX_LOAD_LB) {
+            row.warn(ImportWarningKind.IGNORED_VALUE, message)
+            return null
+        }
+        if (!loadInRange(load, ImportLoadUnit.KG) || !loadInRange(load, ImportLoadUnit.LB)) {
+            row.warnUnitLoad(load, message)
+        }
+        return load
+    }
+
+    /** Si una carga cabe en el rango de su unidad: de 0,5 a 1000 kg, o de 1 a 2200 lb. */
+    internal fun loadInRange(value: Double, unit: ImportLoadUnit): Boolean = when (unit) {
+        ImportLoadUnit.KG -> value in MIN_LOAD_KG..MAX_LOAD_KG
+        ImportLoadUnit.LB -> value in MIN_LOAD_LB..MAX_LOAD_LB
     }
 
     private fun <T> checked(
@@ -647,13 +675,13 @@ object ProgramImportParser {
 
     /** «4x8», «3×10», «3 x 10», «1x5+», «3x8-12», «3x8-12+»: grupos 1 series, 2 reps, 3 «+», 4 reps máx., 5 «+». */
     private val SETS_BY_REPS = Regex(
-        """(?<![\w.,])(\d{1,2})\s*(?:x|×|\*|por)\s*(\d{1,3})(\+)?(?:\s*(?:-|–|—|a|hasta)\s*(\d{1,3})(\+)?)?""",
+        """(?<![\w.,])(\d{1,2})\s*(?:x|×|\*|por)\s*(\d{1,3})(?!\d|\s*%)(\+)?(?:\s*(?:-|–|—|a|hasta)\s*(\d{1,3})(\+)?)?""",
         RegexOption.IGNORE_CASE,
     )
 
     /** «4 series de 6-8»: los mismos grupos que [SETS_BY_REPS]. */
     private val SETS_OF_REPS = Regex(
-        """(\d{1,2})\s*(?:series?|sets?)\s*(?:de|x|of)?\s*(\d{1,3})(\+)?(?:\s*(?:-|–|—|a|hasta)\s*(\d{1,3})(\+)?)?(?:\s*(?:reps?|repeticiones|rep)\b)?""",
+        """(\d{1,2})\s*(?:series?|sets?)\s*(?:de|x|of)?\s*(\d{1,3})(?!\d|\s*%)(\+)?(?:\s*(?:-|–|—|a|hasta)\s*(\d{1,3})(\+)?)?(?:\s*(?:reps?|repeticiones|rep)\b)?""",
         RegexOption.IGNORE_CASE,
     )
     private val SETS_ONLY = Regex("""(\d{1,2})\s*(?:series?|sets?)\b""", RegexOption.IGNORE_CASE)
@@ -797,6 +825,22 @@ object ProgramImportParser {
         if (clean.isEmpty() || GENERIC_SHEET.matches(ExerciseMatchLexicon.normalize(clean))) return null
         return clean
     }
+
+    /** Levantamiento del título de la hoja («Press – 5/3/1 BBB» → «Press»); null si no hay título o es de un ciclo. */
+    private fun titleLift(rows: List<List<String>>): String? {
+        val first = rows.map { row -> row.map { it.trim() }.filter { it.isNotEmpty() } }.firstOrNull { it.isNotEmpty() }
+        if (first == null || first.size != 1) return null
+        val head = first.first().split(TITLE_SEPARATOR).first().trim()
+        return head.takeIf { head.count { it.isLetter() } >= 3 && cycleNumber(head) == null }
+    }
+
+    private val TITLE_SEPARATOR = Regex("""\s+[-–—]\s+|:""")
+
+    /** Número de ciclo de una etiqueta («Cycle 2 – 5/3/1», «Ciclo 1»); null si no es una etiqueta de ciclo. */
+    private fun cycleNumber(label: String): Int? =
+        CYCLE_LABEL.find(ExerciseMatchLexicon.normalize(label))?.groupValues?.get(1)?.toIntOrNull()
+
+    private val CYCLE_LABEL = Regex("""^(?:cycle|ciclo) (\d{1,2})\b""")
 
     private fun cleanHeader(text: String): String = text.trim().replace(HEADER_TAIL, "").trim()
 
@@ -1085,7 +1129,7 @@ object ProgramImportParser {
     private const val MAX_GROUP_WIDTH = 8
 
     /** Papel de una columna de un grupo de sesiones. «Series x reps» y «Scheme» son notación. */
-    private enum class GroupCol { SCHEME, SETS, REPS, LOAD, RPE, RIR, NAME, OTHER }
+    private enum class GroupCol { SCHEME, SETS, REPS, LOAD, PERCENT, RPE, RIR, NAME, OTHER }
 
     /** Papeles que se leen a la izquierda del primer grupo: nombre y prescripción base («Sets», «Reps / Scheme»). */
     private val BASE_COLS = setOf(GroupCol.NAME, GroupCol.SETS, GroupCol.REPS, GroupCol.SCHEME)
@@ -1095,10 +1139,22 @@ object ProgramImportParser {
     /** Subcabecera de sesiones: primera columna del primer grupo, papeles de un grupo y cuántos grupos hay. */
     private class SessionLayout(val start: Int, val pattern: List<GroupCol>, val repeats: Int)
 
-    /** Etiquetas de un grupo: semana, día y sesión si las hay; [ordinal] numera las sesiones distintas (1, 2…). */
-    private class GroupLabels(val week: Int?, val day: String?, val session: String?, val ordinal: Int?)
+    /**
+     * Etiquetas de un grupo: semana (y su texto, con las repeticiones de la 5/3/1), día y sesión si las hay; [ordinal]
+     * numera las sesiones distintas (1, 2…).
+     */
+    private class GroupLabels(
+        val week: Int?,
+        val weekLabel: String?,
+        val day: String?,
+        val session: String?,
+        val ordinal: Int?,
+    )
 
-    /** Bloque de sesiones: subcabecera, primera columna del primer grupo, papeles, etiquetas y columnas base. */
+    /**
+     * Bloque de sesiones: subcabecera, primera columna del primer grupo, papeles, etiquetas y columnas base. Con
+     * [oneSet] cada fila es una serie (familia 5/3/1); [groupNames] son los nombres que la subcabecera pone sobre cada grupo.
+     */
     private class SessionBlock(
         val header: Int,
         val firstGroup: Int,
@@ -1106,9 +1162,15 @@ object ProgramImportParser {
         val groups: List<GroupLabels>,
         /** Columna de cada papel base (nombre, series, notación o repeticiones) a la izquierda de los grupos. */
         val base: Map<GroupCol, Int>,
+        val oneSet: Boolean = false,
+        val groupNames: List<String?> = emptyList(),
     ) {
         /** Semana y día de la última fila que los trae en sus columnas base; las filas siguientes los heredan. */
         val cursor = RowCursor()
+
+        /** Familia 5/3/1: levantamiento en curso (el de la fila con nombre, o el de la hoja) y series leídas de él. */
+        var lift: String? = null
+        var setRun = 0
     }
 
     /** Semana o día que trae la última fila del bloque con etiqueta propia («Week 2», «Monday» en su primera columna). */
@@ -1221,10 +1283,13 @@ object ProgramImportParser {
         if ("scheme" in words || "esquema" in words || ("x" in words && words.any { it in GRID_SCHEME_KEYS })) {
             return GroupCol.SCHEME
         }
+        // «Est 1RM» es una columna calculada, no un porcentaje: no abre grupo.
+        if ("est" in words || "estimado" in words) return GroupCol.OTHER
         return when (columnRole(text)) {
             ColumnRole.SETS -> GroupCol.SETS
             ColumnRole.REPS -> GroupCol.REPS
             ColumnRole.LOAD -> GroupCol.LOAD
+            ColumnRole.PERCENT -> GroupCol.PERCENT
             ColumnRole.RPE -> GroupCol.RPE
             ColumnRole.RIR -> GroupCol.RIR
             ColumnRole.NAME -> GroupCol.NAME
@@ -1234,10 +1299,13 @@ object ProgramImportParser {
 
     /**
      * Subcabecera de sesiones: desde alguna columna, un patrón de papeles (dos o más con papel) que se repite dos veces o más
-     * hacia la derecha. Null si la fila no es una subcabecera.
+     * hacia la derecha. Si hay varios, gana el que tiene más grupos bajo una etiqueta de semana, día o sesión ([anchors]);
+     * sin etiquetas, el primero (más a la izquierda y de menor ancho). Null si la fila no es una subcabecera.
      */
-    private fun sessionLayout(cells: List<String>): SessionLayout? {
+    private fun sessionLayout(cells: List<String>, anchors: Set<Int> = emptySet()): SessionLayout? {
         val roles = cells.map { groupColOf(it) }
+        var best: SessionLayout? = null
+        var bestAnchors = 0
         for (start in roles.indices) {
             if (roles[start] == GroupCol.OTHER) continue
             for (width in 2..MAX_GROUP_WIDTH) {
@@ -1255,10 +1323,17 @@ object ProgramImportParser {
                     if (roles.subList(from, to) != pattern.subList(0, to - from)) break
                     repeats++
                 }
-                if (repeats >= 2) return SessionLayout(start, pattern.toList(), repeats)
+                if (repeats < 2) continue
+                // Gana la forma con más grupos bajo una etiqueta de semana, día o sesión. Con igual número (o sin etiquetas)
+                // se queda la primera en el orden de búsqueda: la más a la izquierda y la de menor ancho, como en H3g.
+                val hits = (0 until repeats).count { start + it * width in anchors }
+                if (best == null || hits > bestAnchors) {
+                    best = SessionLayout(start, pattern.toList(), repeats)
+                    bestAnchors = hits
+                }
             }
         }
-        return null
+        return best
     }
 
     /** Etiqueta de la clase pedida más cercana a [column] o a su izquierda, buscando desde la fila [to] hacia la [from]. */
@@ -1278,7 +1353,8 @@ object ProgramImportParser {
         val keys = ArrayList<String>()
         return (0 until layout.repeats).map { group ->
             val column = layout.start + group * layout.pattern.size
-            val week = nearestLabel(cells, from, to, column, LabelKind.WEEK)?.let { weekNumber(it) }
+            val weekLabel = nearestLabel(cells, from, to, column, LabelKind.WEEK)
+            val week = weekLabel?.let { weekNumber(it) }
             val day = nearestLabel(cells, from, to, column, LabelKind.DAY)
             val session = nearestLabel(cells, from, to, column, LabelKind.SESSION)
             val ordinal = session?.let { label ->
@@ -1286,7 +1362,7 @@ object ProgramImportParser {
                 if (key !in keys) keys += key
                 keys.indexOf(key) + 1
             }
-            GroupLabels(week, day, session, ordinal)
+            GroupLabels(week, weekLabel, day, session, ordinal)
         }
     }
 
@@ -1306,9 +1382,48 @@ object ProgramImportParser {
     }
 
     /** Una fila corta el bloque si es otra cabecera, otra subcabecera o trae etiquetas de grupo (semana, día, sesión, fecha). */
-    private fun endsSessionData(cells: List<String>, firstGroup: Int): Boolean =
-        detectColumns(cells) != null || sessionLayout(cells) != null ||
-            cells.drop(firstGroup).any { it.isNotEmpty() && (labelKindOf(it) != null || isFechaLabel(it)) }
+    private fun endsSessionData(cells: List<String>, firstGroup: Int): Boolean {
+        if (detectColumns(cells) != null || sessionLayout(cells) != null) return true
+        val groupCells = cells.drop(firstGroup)
+        // Una semana, sesión o fecha en los grupos abre otro bloque, tenga la fila valores o no (como en H3g).
+        val weekOrSession = groupCells.any {
+            it.isNotEmpty() && (labelKindOf(it).let { kind -> kind == LabelKind.WEEK || kind == LabelKind.SESSION } || isFechaLabel(it))
+        }
+        if (weekOrSession) return true
+        // Un día en los grupos abre bloque solo en una fila sin valores. Con valores es un dato: el «Monday» que cada semana
+        // repite en Nuckols no corta el bloque.
+        val day = groupCells.any { it.isNotEmpty() && labelKindOf(it) == LabelKind.DAY }
+        val values = groupCells.any { it.isNotEmpty() && labelKindOf(it) == null && !isFechaLabel(it) }
+        return day && !values
+    }
+
+    /** Columnas con una etiqueta de semana, día o sesión en las filas de encima de [index]: ahí caen los grupos. */
+    private fun labelColumnsAbove(cells: List<List<String>>, index: Int): Set<Int> {
+        val columns = HashSet<Int>()
+        for (k in maxOf(0, index - SESSION_LABEL_ROWS) until index) {
+            cells[k].forEachIndexed { column, text ->
+                if (text.isNotEmpty() && labelKindOf(text) != null) columns += column
+            }
+        }
+        return columns
+    }
+
+    /**
+     * Subcabecera de una serie por fila (familia 5/3/1): una celda que solo dice «Set» o «Set %» (no «Sets») y una columna
+     * de porcentaje en la misma subcabecera («% of TM»). Sin porcentaje, «Set» es solo una columna de series o de etiquetas.
+     */
+    private fun isOneSetHeader(cells: List<String>): Boolean =
+        cells.any { ExerciseMatchLexicon.normalize(it) == "set" } && cells.any { groupColOf(it) == GroupCol.PERCENT }
+
+    /** Nombre de cada grupo puesto en la subcabecera, en la columna de su izquierda («SQUAT» sobre «Reps | Weight»). */
+    private fun groupNamesOf(header: List<String>, layout: SessionLayout): List<String?> =
+        (0 until layout.repeats).map { group ->
+            val text = header.getOrNull(layout.start - 1 + group * layout.pattern.size).orEmpty().trim()
+            text.takeIf {
+                it.count { c -> c.isLetter() } >= 3 && columnRole(it) == null && groupColOf(it) == GroupCol.OTHER &&
+                    labelKindOf(it) == null && !isFechaLabel(it) && parseNotation(it) == null
+            }
+        }
 
     /**
      * Reparte las filas con sesiones en columnas. Cada subcabecera abre un bloque: sus etiquetas son las filas de encima
@@ -1317,17 +1432,33 @@ object ProgramImportParser {
      */
     private fun planSessions(rows: List<List<String>>): Map<Int, SessionPart> {
         val cells = rows.map { row -> row.map { it.trim() } }
-        // Una subcabecera solo abre bloque si sus grupos tienen alguna etiqueta (semana, día o sesión) encima.
-        class Candidate(val header: Int, val layout: SessionLayout, val top: Int, val groups: List<GroupLabels>)
+        // Una subcabecera solo abre bloque si sus grupos tienen alguna etiqueta (semana, día o sesión) encima, o si hereda
+        // las del bloque anterior con la misma forma (bloques apilados: la misma tabla repetida por debajo).
+        class Candidate(
+            val header: Int,
+            val layout: SessionLayout,
+            val top: Int,
+            val groups: List<GroupLabels>,
+            val oneSet: Boolean,
+            val groupNames: List<String?>,
+        )
         val candidates = ArrayList<Candidate>()
         var previous = -1
         for (index in cells.indices) {
-            val layout = sessionLayout(cells[index]) ?: continue
+            val layout = sessionLayout(cells[index], labelColumnsAbove(cells, index)) ?: continue
             val lowest = maxOf(previous + 1, index - SESSION_LABEL_ROWS)
             val top = (index - 1 downTo lowest).lastOrNull { k -> isLabelRow(cells[k]) } ?: index
-            val groups = groupLabelsOf(cells, top, index - 1, layout)
-            if (groups.none { it.week != null || it.day != null || it.session != null }) continue
-            candidates += Candidate(index, layout, top, groups)
+            val labelled = groupLabelsOf(cells, top, index - 1, layout)
+            val ownLabels = labelled.any { it.week != null || it.day != null || it.session != null }
+            val before = candidates.lastOrNull()
+            val sameShape = before != null && before.layout.start == layout.start &&
+                before.layout.pattern == layout.pattern && before.layout.repeats == layout.repeats
+            val groups = when {
+                ownLabels -> labelled
+                sameShape -> before!!.groups
+                else -> continue
+            }
+            candidates += Candidate(index, layout, top, groups, isOneSetHeader(cells[index]), groupNamesOf(cells[index], layout))
             previous = index
         }
         val parts = HashMap<Int, SessionPart>()
@@ -1341,6 +1472,8 @@ object ProgramImportParser {
                 pattern = candidate.layout.pattern,
                 groups = candidate.groups,
                 base = baseColumnsOf(cells, candidate.top, candidate.header, candidate.layout.start),
+                oneSet = candidate.oneSet,
+                groupNames = candidate.groupNames,
             )
             for (k in candidate.top until candidate.header) parts[k] = SessionPart.Labels
             parts[candidate.header] = SessionPart.Header
@@ -1373,13 +1506,11 @@ object ProgramImportParser {
 
     /** Fila de datos de un bloque: un ejercicio por grupo, con su notación (o la base), su carga, su RPE o su RIR. */
     private fun sessionRow(builder: DraftBuilder, block: SessionBlock, cells: List<String>, row: RowContext) {
-        val width = block.pattern.size
-        fun own(group: Int, role: GroupCol): String {
-            val offset = block.pattern.indexOf(role)
-            if (offset < 0) return ""
-            val text = cells.getOrNull(block.firstGroup + group * width + offset).orEmpty()
-            return if (isEmptyMark(text)) "" else text
+        if (block.oneSet) {
+            setRow(builder, block, cells, row)
+            return
         }
+        fun own(group: Int, role: GroupCol): String = ownCell(block, cells, group, role)
         fun baseText(role: GroupCol): String {
             val text = block.base[role]?.let { cells.getOrNull(it) }.orEmpty()
             return if (isEmptyMark(text)) "" else text
@@ -1390,6 +1521,7 @@ object ProgramImportParser {
             listOf(scheme, sets, reps).firstOrNull { hasScheme(it) }.orEmpty()
 
         val baseScheme = schemeOf(baseText(GroupCol.SCHEME), baseText(GroupCol.SETS), baseText(GroupCol.REPS))
+            .ifEmpty { headerlessScheme(cells, block) }
         val baseNotation = baseScheme.takeIf { it.isNotEmpty() }?.let { parseNotation(it) }
         val baseRange = if (baseNotation == null) {
             baseText(GroupCol.REPS).takeIf { it.isNotEmpty() }?.let { parseRange(it) }
@@ -1410,7 +1542,7 @@ object ProgramImportParser {
         }
         val groupCount = block.groups.size
         val anyValue = (0 until groupCount).any { group ->
-            listOf(GroupCol.SCHEME, GroupCol.SETS, GroupCol.LOAD, GroupCol.RPE, GroupCol.RIR)
+            listOf(GroupCol.SCHEME, GroupCol.SETS, GroupCol.LOAD, GroupCol.PERCENT, GroupCol.RPE, GroupCol.RIR)
                 .any { own(group, it).isNotEmpty() } || hasScheme(own(group, GroupCol.REPS))
         }
         // Etiquetas de la fila en sus columnas base («Week 2», «Monday»): cambian el cursor del bloque para las filas siguientes.
@@ -1445,6 +1577,7 @@ object ProgramImportParser {
             val setsCell = own(group, GroupCol.SETS)
             val repsCell = own(group, GroupCol.REPS)
             val loadCell = own(group, GroupCol.LOAD)
+            val percentCell = own(group, GroupCol.PERCENT)
             val rpeCell = own(group, GroupCol.RPE)
             val rirCell = own(group, GroupCol.RIR)
             val notation = scheme.takeIf { it.isNotEmpty() }?.let { parseNotation(it) }
@@ -1459,17 +1592,18 @@ object ProgramImportParser {
             val repsMin = notation?.repsMin ?: groupRange?.first ?: baseRepsMin
             val repsMax = notation?.repsMax ?: groupRange?.second ?: baseRepsMax
             val amrap = notation?.amrapReps ?: baseAmrap
-            val untouched = scheme.isEmpty() && setsCell.isEmpty() && loadCell.isEmpty() && rpeCell.isEmpty() && rirCell.isEmpty()
+            val untouched = scheme.isEmpty() && setsCell.isEmpty() && loadCell.isEmpty() && percentCell.isEmpty() &&
+                rpeCell.isEmpty() && rirCell.isEmpty()
             if (untouched && sets == null) continue
-            // Nombre del grupo: el de su propia columna (bloques con su ejercicio) o el de la fila.
-            val named = numbered(dropLinks(own(group, GroupCol.NAME).ifEmpty { baseName }))
+            // Nombre del grupo: el de su propia columna, el de la fila o el que la subcabecera pone sobre el grupo.
+            val named = numbered(dropLinks(own(group, GroupCol.NAME).ifEmpty { baseName.ifEmpty { block.groupNames.getOrNull(group).orEmpty() } }))
             if (named.name.isBlank()) {
                 if (!warnedNoName) row.warn(ImportWarningKind.SKIPPED_ROW, "fila sin nombre de ejercicio; se omite")
                 warnedNoName = true
                 continue
             }
             if (countIfNotExercise(named.name, row)) continue
-            val percent = if (loadCell.contains('%')) firstNumber(loadCell) else null
+            val percent = fractionPercent(percentCell) ?: if (loadCell.contains('%')) firstNumber(loadCell) else null
             val load = if (loadCell.contains('%')) null else firstNumber(loadCell)
             val rpe = firstNumber(rpeCell)
             val rir = leadingInt(rirCell)
@@ -1477,6 +1611,7 @@ object ProgramImportParser {
             val (week, dayName) = sessionTarget(builder, block.groups[group], group, block.cursor)
             val day = builder.sessionDay(week, dayName, row)
             val exercise = builder.inDay(day) {
+                unreadable(row, percentCell, percent, "porcentaje")
                 unreadable(row, loadCell, load ?: percent, "carga")
                 unreadable(row, rpeCell, rpe, "RPE")
                 unreadable(row, rirCell, rir, "RIR")
@@ -1501,6 +1636,151 @@ object ProgramImportParser {
         }
         builder.endRow(null)
     }
+
+    /** Celda de un grupo para un papel de la subcabecera; vacía si el grupo no tiene ese papel o la celda es un guion. */
+    private fun ownCell(block: SessionBlock, cells: List<String>, group: Int, role: GroupCol): String {
+        val offset = block.pattern.indexOf(role)
+        if (offset < 0) return ""
+        val text = cells.getOrNull(block.firstGroup + group * block.pattern.size + offset).orEmpty()
+        return if (isEmptyMark(text)) "" else text
+    }
+
+    /** Notación en una columna de la izquierda sin cabecera («8x8» junto al nombre): es la prescripción base de la fila. */
+    private fun headerlessScheme(cells: List<String>, block: SessionBlock): String =
+        cells.take(block.firstGroup).filterIndexed { index, _ -> index !in block.base.values }
+            .firstOrNull { hasScheme(it) }.orEmpty()
+
+    /** Porcentaje de una celda de columna de %: un valor de hasta 1,5 es una fracción («0,5» → 50 %). */
+    private fun fractionPercent(cell: String): Double? {
+        val value = firstNumber(cell) ?: return null
+        return if (value <= 1.5) Math.round(value * 1000) / 10.0 else value
+    }
+
+    /**
+     * Fila de una serie por fila (familia 5/3/1): cada fila con porcentaje o carga es una serie del levantamiento, y un
+     * grupo es una semana. Las series seguidas del mismo levantamiento se funden después (H3e). Solo se lee el primer ciclo.
+     */
+    private fun setRow(builder: DraftBuilder, block: SessionBlock, cells: List<String>, row: RowContext) {
+        val label = cells.take(block.firstGroup).firstOrNull { it.isNotEmpty() && labelKindOf(it) == null && !isFechaLabel(it) }
+            .orEmpty()
+        // Desde el «Cycle 2» la hoja deja de leerse en las series: el resto de la hoja se omite sin avisos.
+        cycleNumber(label)?.let { cycle ->
+            if (cycle >= 2) builder.stopCycles()
+            block.setRun = 0
+            builder.endRow(null)
+            return
+        }
+        if (builder.cyclesStopped) {
+            builder.endRow(null)
+            return
+        }
+        val valued = (0 until block.groups.size).any { group ->
+            ownCell(block, cells, group, GroupCol.PERCENT).isNotEmpty() || ownCell(block, cells, group, GroupCol.LOAD).isNotEmpty()
+        }
+        if (!valued) {
+            // Sin valores: un nombre de levantamiento («Military») o una sección («Boring But Big») reinicia la cuenta de series.
+            if (label.isNotEmpty() && !isSetLabel(label) && !isSectionLabel(label)) block.lift = cleanHeader(label)
+            block.setRun = 0
+            builder.endRow(null)
+            return
+        }
+        if (isWarmupLabel(label)) {
+            row.count(Noise.WARMUP)
+            builder.endRow(null)
+            return
+        }
+        // Un nombre que no es de serie cambia el levantamiento; «Set 1» o «BBB Set 1» no lo cambian.
+        if (label.isNotEmpty() && !isSetLabel(label) && !isSectionLabel(label)) {
+            block.lift = cleanHeader(label)
+            block.setRun = 0
+        }
+        val lift = block.lift ?: builder.sheetLift
+        if (lift == null) {
+            row.warn(ImportWarningKind.SKIPPED_ROW, "fila sin nombre de ejercicio; se omite")
+            builder.endRow(null)
+            return
+        }
+        val normalized = ExerciseMatchLexicon.normalize(label)
+        val bbb = normalized.split(' ').contains("bbb")
+        val name = if (bbb) "$lift BBB" else lift
+        val index = SET_NUMBER.find(normalized)?.groupValues?.get(1)?.toIntOrNull()?.minus(1) ?: block.setRun
+        block.setRun++
+        val repsInLabel = REPS_IN_LABEL.find(normalized)?.groupValues?.get(1)?.toIntOrNull()
+        val amrap = normalized.split(' ').contains("amrap") || label.contains('+')
+        for (group in 0 until block.groups.size) {
+            val labels = block.groups[group]
+            val week = labels.week ?: continue
+            val percentCell = ownCell(block, cells, group, GroupCol.PERCENT)
+            val loadCell = ownCell(block, cells, group, GroupCol.LOAD)
+            val percent = fractionPercent(percentCell) ?: if (loadCell.contains('%')) firstNumber(loadCell) else null
+            val load = if (loadCell.contains('%')) null else firstNumber(loadCell)
+            if (percent == null && load == null) continue
+            if (load != null) row.noteLoad(unitMarkOf(loadCell))
+            val reps = repsInLabel ?: fiveThreeOneReps(labels.weekLabel, index)
+            val day = builder.sessionDay(week, lift, row)
+            val exercise = builder.inDay(day) {
+                unreadable(row, percentCell, percent, "porcentaje")
+                unreadable(row, loadCell, load ?: percent, "carga")
+                validate(
+                    name = name,
+                    sets = 1,
+                    repsMin = reps,
+                    repsMax = reps,
+                    load = load,
+                    percent = percent,
+                    rpe = null,
+                    rir = null,
+                    rest = null,
+                    notes = if (amrap) amrapNote(reps) else null,
+                    row = row,
+                )
+            }
+            if (exercise == null) builder.discardIfEmpty(day)
+            builder.endRow(exercise?.let { builder.addToDay(day, it) })
+        }
+        builder.endRow(null)
+    }
+
+    /** Repeticiones de una serie según la etiqueta de su semana: «(3x5)» → 5; «(5/3/1)» → 5, 3 y 1 por orden; «Deload» → 5. */
+    private fun fiveThreeOneReps(weekLabel: String?, index: Int): Int? {
+        val text = weekLabel.orEmpty()
+        FIVE_THREE_ONE.find(text)?.let { match ->
+            val reps = listOf(match.groupValues[1], match.groupValues[2], match.groupValues[3]).map { it.toInt() }
+            return reps[index.coerceIn(0, reps.lastIndex)]
+        }
+        SCHEME_REPS.find(text)?.let { match -> return match.groupValues[2].toIntOrNull() }
+        val normalized = ExerciseMatchLexicon.normalize(text)
+        return if ("deload" in normalized || "descarga" in normalized) 5 else null
+    }
+
+    /** Serie de un levantamiento: «Set 1», «Serie 2», «Set 3 (AMRAP)», «BBB Set 1 (10 reps)», «Top set», «Back-off set». */
+    private fun isSetLabel(text: String): Boolean {
+        val words = ExerciseMatchLexicon.normalize(text).split(' ')
+        return "set" in words || "serie" in words
+    }
+
+    /** Etiqueta de sección de una hoja de series, que no nombra un levantamiento: BBB, calentamiento. */
+    private fun isSectionLabel(text: String): Boolean {
+        val words = ExerciseMatchLexicon.normalize(text).split(' ')
+        return "bbb" in words || "boring" in words || isWarmupLabel(text)
+    }
+
+    private fun isWarmupLabel(text: String): Boolean {
+        val words = ExerciseMatchLexicon.normalize(text).split(' ').filter { it.isNotEmpty() }
+        return words.isNotEmpty() && isWarmupStart(words)
+    }
+
+    /** Número de serie en el texto normalizado: «set 2», «serie 3». */
+    private val SET_NUMBER = Regex("""\b(?:set|serie) (\d{1,2})\b""")
+
+    /** Repeticiones de la etiqueta de una serie en el texto normalizado: «bbb set 1 10 reps». */
+    private val REPS_IN_LABEL = Regex("""\b(\d{1,2}) reps?\b""")
+
+    /** «5/3/1» de una semana de la 5/3/1: una repetición por serie. */
+    private val FIVE_THREE_ONE = Regex("""(\d{1,2})\s*/\s*(\d{1,2})\s*/\s*(\d{1,2})""")
+
+    /** «3x5» de una semana de la 5/3/1: tres series de cinco; manda la segunda cifra (las repeticiones). */
+    private val SCHEME_REPS = Regex("""(\d{1,2})\s*[x×]\s*(\d{1,2})(?!\d)""", RegexOption.IGNORE_CASE)
 
     // ---- Grupos con porcentaje (Sheiko, Smolov, 5/3/1) ------------------------------------------------------
 
@@ -1638,6 +1918,9 @@ object ProgramImportParser {
 
         /** Carga con número de esta fila: [mark] es la unidad que lleva la celda, si la lleva. */
         fun noteLoad(mark: ImportLoadUnit?) = builder.noteLoadValue(mark)
+
+        /** Aviso de una carga que solo cabe en una unidad: se decide al cerrar el borrador. */
+        fun warnUnitLoad(load: Double, detail: String) = builder.warnUnitLoad(load, where, source, "$where: $detail")
     }
 
     /** Día en curso. Su [id] se fija al cerrar el borrador, y solo si el día conserva ejercicios. */
@@ -1669,6 +1952,8 @@ object ProgramImportParser {
         var weekIndex: Int?,
         var day: DayDraft?,
         var exercise: ExerciseDraft?,
+        /** Carga que solo cabe en una unidad: el aviso sobrevive solo si el archivo va en la otra. */
+        val unitLoad: Double? = null,
     )
 
     /** Acumula semanas, días y avisos mientras se recorren las filas. */
@@ -1681,6 +1966,17 @@ object ProgramImportParser {
         private var openDay: DayDraft? = null
         private var sheetFirstDay = 0
         var pendingDayName: String? = null
+
+        /** Levantamiento de la hoja (título «Press – 5/3/1» o nombre de la pestaña): día de una familia 5/3/1 sin nombre propio. */
+        var sheetLift: String? = null
+
+        /** Desde el ciclo 2 de la hoja no se leen más series de una familia 5/3/1 («solo se lee el primer ciclo»). */
+        var cyclesStopped = false
+            private set
+
+        fun stopCycles() {
+            cyclesStopped = true
+        }
 
         /** Semana en curso: la última que abrió una fila de semana, o la 1. */
         val currentWeek: Int get() = week
@@ -1768,6 +2064,16 @@ object ProgramImportParser {
             rowWarnings += pending
         }
 
+        /** Aviso de una carga que solo cabe en una unidad: se resuelve en [finish], con la unidad del archivo. */
+        fun warnUnitLoad(load: Double, where: String, sourceText: String, message: String) {
+            val pending = PendingWarning(
+                ImportWarningKind.IGNORED_VALUE, where, sourceText, message,
+                weekIndex = week, day = openDay, exercise = null, unitLoad = load,
+            )
+            warnings += pending
+            rowWarnings += pending
+        }
+
         fun count(kind: Noise) {
             noise[kind] = (noise[kind] ?: 0) + 1
         }
@@ -1782,11 +2088,13 @@ object ProgramImportParser {
             openDay = null
             sheetFirstDay = days.size
             noise.clear()
+            cyclesStopped = false
         }
 
         /** Cierra una hoja: los días cortos sin ejercicios cuentan como texto y sale una nota por tipo de ruido. */
         fun endSheet(location: String) {
             repeat(days.drop(sheetFirstDay).count { it.silent && it.exercises.isEmpty() }) { count(Noise.TEXT) }
+            if (cyclesStopped) addNote(location, "$location: se leyó el primer ciclo.")
             for (kind in Noise.entries) {
                 val total = noise[kind] ?: continue
                 addNote(location, noiseMessage(location, kind, total))
@@ -1849,6 +2157,8 @@ object ProgramImportParser {
         }
 
         fun finish(title: String): ImportedProgramDraft {
+            // La unidad del archivo decide qué cargas (las que solo caben en una unidad) se conservan y qué avisos salen.
+            val unit = decideLoadUnit()
             val kept = days.filter { day ->
                 val hasExercises = day.exercises.isNotEmpty()
                 if (!hasExercises && !day.silent) {
@@ -1876,7 +2186,10 @@ object ProgramImportParser {
                             exercises = day.exercises.mapIndexed { exercisePosition, draft ->
                                 val exerciseId = "$dayId-e${exercisePosition + 1}"
                                 draft.id = exerciseId
-                                draft.exercise.copy(id = exerciseId)
+                                draft.exercise.copy(
+                                    id = exerciseId,
+                                    loadKg = draft.exercise.loadKg?.takeIf { loadInRange(it, unit) },
+                                )
                             },
                         )
                     },
@@ -1896,8 +2209,9 @@ object ProgramImportParser {
             return ImportedProgramDraft(
                 title = title.trim(),
                 weeks = weeks,
-                loadUnit = decideLoadUnit(),
-                warnings = warnings.mapIndexed { index, pending ->
+                loadUnit = unit,
+                // Un aviso de carga sobrevive solo si la carga no cabe en la unidad del archivo.
+                warnings = warnings.filter { it.unitLoad == null || !loadInRange(it.unitLoad, unit) }.mapIndexed { index, pending ->
                     ImportWarning(
                         id = "a${index + 1}",
                         kind = pending.kind,
