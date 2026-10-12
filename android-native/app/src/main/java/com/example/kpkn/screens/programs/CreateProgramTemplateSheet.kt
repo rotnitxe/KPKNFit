@@ -312,9 +312,9 @@ fun CreateProgramTemplateSheet(
                         color = KpknSheetTokens.ControlFill,
                     ) {
                         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                            Text("Importar (Excel, CSV o texto)", fontWeight = FontWeight.Black, color = KpknSheetTokens.ControlLabel)
+                            Text("Importar un programa", fontWeight = FontWeight.Black, color = KpknSheetTokens.ControlLabel)
                             Text(
-                                "Trae tu programa desde un archivo o pégalo.",
+                                "Desde Excel, Word, PDF, texto o una foto de tu rutina.",
                                 color = KpknSheetTokens.ControlLabel.copy(alpha = 0.72f),
                                 style = MaterialTheme.typography.bodySmall,
                             )
