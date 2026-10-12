@@ -39,6 +39,8 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.Role
@@ -216,6 +218,9 @@ fun WizardTopScrim(height: Dp, modifier: Modifier = Modifier) {
  * Sigue al teclado (`imePadding`) y a la barra de navegación. `setup-continue` identifica el
  * único CTA y el nodo publica `Role.Button` con el estado real (deshabilitado de verdad, no
  * solo atenuado) para TalkBack y para las pruebas.
+ *
+ * Con el botón habilitado, al confirmar suelta el foco y cierra el teclado antes de avisar: el
+ * paso siguiente no queda tapado por el teclado del anterior.
  */
 @Composable
 fun WizardDock(
@@ -230,6 +235,8 @@ fun WizardDock(
 ) {
     val density = LocalDensity.current
     val navBottom = with(density) { WindowInsets.navigationBars.getBottom(density).toDp() }
+    val focusManager = LocalFocusManager.current
+    val keyboardController = LocalSoftwareKeyboardController.current
     Box(modifier = modifier.fillMaxWidth().imePadding()) {
         Box(
             modifier = Modifier
@@ -250,7 +257,17 @@ fun WizardDock(
                 .navigationBarsPadding()
                 .padding(bottom = 16.dp),
         ) {
-            WizardDockButton(enabled = enabled, label = label, textLabel = textLabel, onClick = onClick)
+            WizardDockButton(
+                enabled = enabled,
+                label = label,
+                textLabel = textLabel,
+                // Deshabilitado, el botón no llama a esta lambda: el foco se queda donde estaba.
+                onClick = {
+                    focusManager.clearFocus(force = true)
+                    keyboardController?.hide()
+                    onClick()
+                },
+            )
         }
         if (note != null) {
             // El aviso va justo encima del botón, sea círculo o píldora.
