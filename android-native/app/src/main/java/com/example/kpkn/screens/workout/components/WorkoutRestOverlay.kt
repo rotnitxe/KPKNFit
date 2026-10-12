@@ -20,11 +20,15 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.text.BasicText
+import androidx.compose.foundation.text.TextAutoSize
 import com.example.kpkn.ui.components.kpknHazeEffect
 import dev.chrisbanes.haze.HazeState
 import java.util.Locale
@@ -272,12 +276,9 @@ private fun FeedbackContent(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Center,
                 ) {
-                    Text(
+                    RestClockText(
                         text = formatTime(remainingSeconds.coerceAtLeast(0)),
-                        style = MaterialTheme.typography.displayMedium,
-                        fontWeight = FontWeight.Black,
-                        color = Color.White,
-                        fontSize = fontSize,
+                        maxFontSize = fontSize,
                     )
                     if (!state.notificationsEnabled) {
                         Spacer(Modifier.height(6.dp))
@@ -423,12 +424,9 @@ private fun NormalRestContent(
                 verticalArrangement = Arrangement.Center,
                 modifier = Modifier.padding(24.dp)
             ) {
-                Text(
+                RestClockText(
                     text = formatTime(remainingSeconds.coerceAtLeast(0)),
-                    style = MaterialTheme.typography.displayMedium,
-                    fontWeight = FontWeight.Black,
-                    color = Color.White,
-                    fontSize = 46.sp,
+                    maxFontSize = 46.sp,
                 )
                 Spacer(Modifier.height(2.dp))
                 Text(
@@ -810,6 +808,33 @@ private fun RestTinyBadge(
             color = color,
         )
     }
+}
+
+/**
+ * Tiempo del descanso en UNA sola línea: si «mm:ss» no cabe con [maxFontSize], la letra encoge (mínimo 20 sp) hasta que quepa.
+ * Nunca se parte ni se corta con puntos suspensivos.
+ */
+@Composable
+internal fun RestClockText(
+    text: String,
+    maxFontSize: TextUnit,
+    modifier: Modifier = Modifier,
+) {
+    val autoSize = remember(maxFontSize) {
+        TextAutoSize.StepBased(minFontSize = 20.sp, maxFontSize = maxFontSize, stepSize = 1.sp)
+    }
+    BasicText(
+        text = text,
+        modifier = modifier,
+        style = MaterialTheme.typography.displayMedium.copy(
+            fontWeight = FontWeight.Black,
+            color = Color.White,
+            textAlign = TextAlign.Center,
+        ),
+        maxLines = 1,
+        softWrap = false,
+        autoSize = autoSize,
+    )
 }
 
 // Helpers

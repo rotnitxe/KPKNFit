@@ -94,7 +94,7 @@ internal fun buildWorkoutContinuityState(
     val blockLabel = when {
         currentPart != null && currentPartIndex != null -> "Bloque ${currentPartIndex + 1} de ${visibleParts.size}"
         currentPart != null -> "Bloque activo"
-        else -> "Sesion activa"
+        else -> "Sesión activa"
     }
     val progressLabel = "Ejercicio ${currentExerciseIdx + 1} de ${visibleExercises.size}"
     val currentSetNumber = currentSetIdx + 1
@@ -106,7 +106,7 @@ internal fun buildWorkoutContinuityState(
             phase = WorkoutContinuityPhase.SUPERSET,
             eyebrow = blockLabel,
             title = "Empalma con ${nextExercise.displayNameWithSelectedChips()}",
-            body = "Superset en la misma ronda. Despues de cerrar aqui, sigues con Serie ${supersetTarget.second + 1}.",
+            body = "Superset en la misma ronda. Después de cerrar aquí, sigues con Serie ${supersetTarget.second + 1}.",
             progressLabel = progressLabel,
             nextExerciseName = nextExercise.displayNameWithSelectedChips(),
             nextSetLabel = "Serie ${supersetTarget.second + 1}",
@@ -122,7 +122,7 @@ internal fun buildWorkoutContinuityState(
             phase = WorkoutContinuityPhase.CURRENT_EXERCISE,
             eyebrow = blockLabel,
             title = if (remainingSets == 1) {
-                "Ultima serie para cerrar ${currentExercise.displayNameWithSelectedChips()}"
+                "Última serie para cerrar ${currentExercise.displayNameWithSelectedChips()}"
             } else {
                 "Quedan $remainingSets series en ${currentExercise.displayNameWithSelectedChips()}"
             },
@@ -141,7 +141,7 @@ internal fun buildWorkoutContinuityState(
             phase = WorkoutContinuityPhase.SESSION_FINISH,
             eyebrow = blockLabel,
             title = "Cierras ${currentPart?.name ?: session.name}",
-            body = "Esta es la ultima estacion de la sesion. Al completar la serie, pasas al cierre final.",
+            body = "Esta es la última estación de la sesión. Al completar la serie, pasas al cierre final.",
             progressLabel = progressLabel,
             accentHex = currentPart?.color,
             feedbackPrompt = feedbackPrompt,
@@ -159,9 +159,9 @@ internal fun buildWorkoutContinuityState(
             "Sigue con ${nextExercise.displayNameWithSelectedChips()}"
         },
         body = if (entersNewBlock) {
-            "Cierras ${currentExercise.displayNameWithSelectedChips()} y entras al siguiente bloque con una transicion limpia."
+            "Cierras ${currentExercise.displayNameWithSelectedChips()} y entras al siguiente bloque con una transición limpia."
         } else {
-            "Despues de esta serie, el flujo continua sin salir del ritmo actual."
+            "Después de esta serie, el flujo continúa sin salir del ritmo actual."
         },
         progressLabel = progressLabel,
         nextExerciseName = nextExercise.displayNameWithSelectedChips(),

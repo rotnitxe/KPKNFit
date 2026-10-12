@@ -661,7 +661,7 @@ fun WorkoutScreen(
             listOf(
                 SessionPart(
                     id = "default",
-                    name = "Sesion Principal",
+                    name = "Sesión principal",
                     exercises = modeSession.exercises,
                 )
             )
@@ -679,7 +679,7 @@ fun WorkoutScreen(
     }
 
     val currentPartName = remember(uiState.currentExerciseIdx, modeSession.parts, visibleExercises) {
-        val exId = visibleExercises.getOrNull(uiState.currentExerciseIdx)?.id ?: return@remember "Sesion"
+        val exId = visibleExercises.getOrNull(uiState.currentExerciseIdx)?.id ?: return@remember "Sesión"
         modeSession.parts.firstOrNull { part -> part.exercises.any { it.id == exId } }?.name
     }
 
