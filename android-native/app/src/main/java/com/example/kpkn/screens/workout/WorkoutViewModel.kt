@@ -6498,7 +6498,8 @@ class WorkoutViewModel(
                 state.voiceFinalDiscomforts.map { discomfortLabel(it) } +
                     listOfNotNull(additionalNote)
                 ).distinct(),
-            clarityRating = averageTechnique.toInt().coerceIn(1, 10),
+            // No se pregunta la claridad: la técnica media no es claridad mental.
+            clarityRating = null,
             environmentTags = emptyList(),
             finalNeuralBattery = state.voiceFinalNeural,
             finalSpinalBattery = state.voiceFinalSpinal,

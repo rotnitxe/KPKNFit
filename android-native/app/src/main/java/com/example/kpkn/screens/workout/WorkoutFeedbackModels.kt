@@ -146,7 +146,7 @@ data class SessionClosingFeedback(
     val muscularAdjustment: Int,
     val structureAdjustment: Int,
     val discomforts: List<String>,
-    val clarityRating: Int = 5,           // 1–10: mental clarity / freshness at end
+    val clarityRating: Int? = null,       // 1–10: claridad mental; solo si se pregunta (hoy nadie). null = sin dato
     val environmentTags: List<String> = emptyList(), // e.g. "buen sueño", "estresado"
     val finalNeuralBattery: Int? = null,
     val finalSpinalBattery: Int? = null,

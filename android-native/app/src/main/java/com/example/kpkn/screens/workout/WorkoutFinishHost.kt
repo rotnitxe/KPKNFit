@@ -396,7 +396,8 @@ internal fun FinishWorkoutSheet(
                 discomforts = allSessionDiscomfortLabels + listOfNotNull(
                     additionalDiscomfortNote.trim().takeIf { it.isNotBlank() },
                 ),
-                clarityRating = averageTechnique.toInt().coerceIn(1, 10),
+                // No se pregunta la claridad: la técnica media no es claridad mental.
+                clarityRating = null,
                 environmentTags = emptyList(),
                 finalNeuralBattery = neuralFinal,
                 finalSpinalBattery = spinalFinal,
