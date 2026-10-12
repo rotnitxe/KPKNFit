@@ -37,12 +37,14 @@ import com.example.kpkn.domain.auge.toAugeAdaptiveMuscleKey
 import com.example.kpkn.domain.onboarding.RingsCoverage
 import com.example.kpkn.domain.onboarding.declaredCheckInChannels
 import com.example.kpkn.domain.training.VolumeCalculator
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import java.time.Instant
 import java.time.LocalDate
@@ -67,6 +69,7 @@ class AugeViewModel(application: Application) : AndroidViewModel(application) {
 
     private var recoveryTimerJob: Job? = null
     private val recomputeGeneration = AtomicLong(0L)
+    /** Serializa las escrituras de AUGE (caché adaptativo y bienestar). NO es reentrante: ver [withWriteLock]. */
     private val augeWriteMutex = kotlinx.coroutines.sync.Mutex()
 
     // ─── Public state ─────────────────────────────────────────────────────────
@@ -185,8 +188,60 @@ class AugeViewModel(application: Application) : AndroidViewModel(application) {
 
     // ─── Core recompute ───────────────────────────────────────────────────────
 
-    private suspend fun recompute(history: List<WorkoutLog>, settings: Settings) {
+    /**
+     * Ejecuta [block] con el candado de escritura de AUGE. El `Mutex` de kotlinx NO es reentrante:
+     * quien ya lo tiene tomado ([held] = true: las acciones públicas que escriben y luego recalculan)
+     * corre el bloque sin volver a pedirlo; el resto lo pide con `withLock`, que lo libera siempre
+     * (también ante excepción o cancelación).
+     */
+    private suspend fun <T> withWriteLock(held: Boolean, block: suspend () -> T): T =
+        if (held) block() else augeWriteMutex.withLock { block() }
+
+    /** Caché adaptativo tal como lo lee el motor: multiplicadores musculares remapeados a pilares. */
+    private suspend fun readAdaptiveCacheForEngine(): AugeAdaptiveCache =
+        augeRepo.getAdaptiveCache().let { raw ->
+            raw.copy(muscleDrainMultipliers = remapMuscleMultiplierMapToPillars(raw.muscleDrainMultipliers))
+        }
+
+    /**
+     * Recalcula y publica el snapshot. [lockHeld] = true si el llamador ya tiene [augeWriteMutex]
+     * (`saveWellbeing`, `applyManualBatteries`, `dismissAdvisory`, `clearManualBatteryOverrides`,
+     * `resetAdaptiveCache`): el candado no es reentrante, así que los guardados de aquí dentro no
+     * pueden volver a pedirlo.
+     *
+     * Una excepción del cálculo no tumba al colector de `init` ni a quien lo lanzó: se registra y el
+     * snapshot deja de estar «cargando» conservando las baterías anteriores. La cancelación se relanza.
+     */
+    private suspend fun recompute(history: List<WorkoutLog>, settings: Settings, lockHeld: Boolean = false) {
         val generation = recomputeGeneration.incrementAndGet()
+        try {
+            computeAndPublish(generation, history, settings, lockHeld)
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            KpknDiagnosticLogger.event(
+                namespace = "auge",
+                name = "recompute_failed",
+                fields = mapOf(
+                    "generation" to generation,
+                    "historyCount" to history.size,
+                    "exceptionType" to e.javaClass.name,
+                    "exceptionMessage" to e.message,
+                ),
+            )
+            // Solo suelta el «cargando» si no hay un recálculo más nuevo en marcha (ese decide).
+            if (generation == recomputeGeneration.get()) {
+                _snapshot.update { it.copy(isLoading = false) }
+            }
+        }
+    }
+
+    private suspend fun computeAndPublish(
+        generation: Long,
+        history: List<WorkoutLog>,
+        settings: Settings,
+        lockHeld: Boolean,
+    ) {
         val computeStartedElapsed = SystemClock.elapsedRealtime()
         _snapshot.update { it.copy(isLoading = true) }
         val todayWellbeing = augeRepo.getTodayWellbeing()
@@ -220,6 +275,7 @@ class AugeViewModel(application: Application) : AndroidViewModel(application) {
             sleepLogs = sleepLogs,
             nutritionLogs = nutritionLogs,
             feedbacks = feedbacks,
+            lockHeld = lockHeld,
         )
 
         val evaluationNowMs = System.currentTimeMillis()
@@ -393,13 +449,19 @@ class AugeViewModel(application: Application) : AndroidViewModel(application) {
             ),
         )
         if (cacheToPersist != null && generation == recomputeGeneration.get()) {
-            augeWriteMutex.lock()
-            try {
+            withWriteLock(lockHeld) {
                 if (generation == recomputeGeneration.get()) {
-                    augeRepo.saveAdaptiveCache(cacheToPersist)
+                    // Solo los dos campos del aviso, sobre lo ÚLTIMO guardado: `cacheToPersist` nace de la
+                    // copia leída al empezar el recálculo y, guardada entera, pisaría lo que otra escritura
+                    // (τ aprendido, aviso de modelo mostrado, descartes) cambió entretanto.
+                    val latest = augeRepo.getAdaptiveCache()
+                    augeRepo.saveAdaptiveCache(
+                        latest.copy(
+                            lastAdvisoryLevelByChannel = cacheToPersist.lastAdvisoryLevelByChannel,
+                            lastAdvisoryDay = cacheToPersist.lastAdvisoryDay,
+                        ),
+                    )
                 }
-            } finally {
-                augeWriteMutex.unlock()
             }
         }
     }
@@ -452,7 +514,7 @@ class AugeViewModel(application: Application) : AndroidViewModel(application) {
                 )
             }
 
-            recompute(programRepo.history.value, programRepo.settings.value)
+            recompute(programRepo.history.value, programRepo.settings.value, lockHeld = true)
             } finally {
                 augeWriteMutex.unlock()
             }
@@ -694,7 +756,7 @@ class AugeViewModel(application: Application) : AndroidViewModel(application) {
                 wellbeing = updated,
             )
 
-            recompute(programRepo.history.value, programRepo.settings.value)
+            recompute(programRepo.history.value, programRepo.settings.value, lockHeld = true)
             } finally {
                 augeWriteMutex.unlock()
             }
@@ -837,6 +899,12 @@ class AugeViewModel(application: Application) : AndroidViewModel(application) {
     private val performanceLearnLock = Any()
     @Volatile private var inMemoryLastPerformanceLearnLogId: String? = null
 
+    /**
+     * Aprende τ del rendimiento del último log terminado y sella el log. [lockHeld] como en [recompute].
+     * El cálculo pesado va sin candado; el guardado relee el caché bajo el candado y aplica el resultado
+     * sobre lo ÚLTIMO guardado (no sobre la copia leída al empezar el recálculo), para no pisar una
+     * escritura concurrente como [learnFromManualAdjustment]. Qué se aprende y cuándo no cambia.
+     */
     private suspend fun learnFromLatestFinishedLog(
         history: List<WorkoutLog>,
         settings: Settings,
@@ -845,6 +913,7 @@ class AugeViewModel(application: Application) : AndroidViewModel(application) {
         sleepLogs: List<SleepLog>,
         nutritionLogs: List<NutritionLog>,
         feedbacks: List<PostSessionFeedback>,
+        lockHeld: Boolean,
     ): AugeAdaptiveCache {
         val newest = history
             .filter { AugeUtils.logDateMs(it) > 0L }
@@ -865,9 +934,11 @@ class AugeViewModel(application: Application) : AndroidViewModel(application) {
             val newestMs = AugeUtils.logDateMs(newest)
             val ageHours = (System.currentTimeMillis() - newestMs) / 3_600_000.0
             if (ageHours > 6.0 || ageHours < 0.0) {
-                val stamped = cache.copy(lastPerformanceLearnLogId = newest.id)
-                augeRepo.saveAdaptiveCache(stamped)
-                return@runCatching stamped
+                return@runCatching withWriteLock(lockHeld) {
+                    val stamped = readAdaptiveCacheForEngine().copy(lastPerformanceLearnLogId = newest.id)
+                    augeRepo.saveAdaptiveCache(stamped)
+                    stamped
+                }
             }
             val historyWithout = history.filter { it.id != newest.id }
             val startWellbeing = wellbeingForStartPrediction(wellbeing, newestMs)
@@ -895,13 +966,16 @@ class AugeViewModel(application: Application) : AndroidViewModel(application) {
                     manual = manualTouchesFromFinish(wellbeing, newestMs),
                 ),
             )
-            val next = PerformanceTauLearner.applyToCache(
-                cache = cache,
-                result = result,
-                finishedLogId = newest.id,
-                nowMs = System.currentTimeMillis(),
-            )
-            augeRepo.saveAdaptiveCache(next)
+            val next = withWriteLock(lockHeld) {
+                val applied = PerformanceTauLearner.applyToCache(
+                    cache = readAdaptiveCacheForEngine(),
+                    result = result,
+                    finishedLogId = newest.id,
+                    nowMs = System.currentTimeMillis(),
+                )
+                augeRepo.saveAdaptiveCache(applied)
+                applied
+            }
             result.diagnostics.forEach { diagnostic ->
                 KpknDiagnosticLogger.event(
                     namespace = "auge",
@@ -929,6 +1003,8 @@ class AugeViewModel(application: Application) : AndroidViewModel(application) {
                     inMemoryLastPerformanceLearnLogId = cache.lastPerformanceLearnLogId
                 }
             }
+            // La cancelación no es un fallo de aprendizaje: se relanza (la marca en memoria ya se revirtió).
+            if (error is CancellationException) throw error
             KpknDiagnosticLogger.event(
                 namespace = "auge",
                 name = "tau_from_performance_failed",
@@ -1063,7 +1139,7 @@ class AugeViewModel(application: Application) : AndroidViewModel(application) {
                 augeRepo.saveAdaptiveCache(
                     cache.copy(dismissedAdvisoryKeys = cache.dismissedAdvisoryKeys + id),
                 )
-                recompute(programRepo.history.value, programRepo.settings.value)
+                recompute(programRepo.history.value, programRepo.settings.value, lockHeld = true)
             } finally {
                 augeWriteMutex.unlock()
             }
@@ -1135,7 +1211,7 @@ class AugeViewModel(application: Application) : AndroidViewModel(application) {
             augeWriteMutex.lock()
             try {
                 augeRepo.clearManualBatteryOverrides()
-                recompute(programRepo.history.value, programRepo.settings.value)
+                recompute(programRepo.history.value, programRepo.settings.value, lockHeld = true)
             } finally {
                 augeWriteMutex.unlock()
             }
@@ -1148,7 +1224,7 @@ class AugeViewModel(application: Application) : AndroidViewModel(application) {
             augeWriteMutex.lock()
             try {
                 augeRepo.resetAdaptiveCache()
-                recompute(programRepo.history.value, programRepo.settings.value)
+                recompute(programRepo.history.value, programRepo.settings.value, lockHeld = true)
             } finally {
                 augeWriteMutex.unlock()
             }
