@@ -77,6 +77,25 @@ sealed interface ImportEditOp {
         val decided: Boolean,
     ) : ImportEditOp
 
+    /**
+     * Añade como ejercicio lo que un aviso no supo leer: al día [toDayId] si existe, si no al del aviso; con [newDay], a un día
+     * nuevo. Con [decided], fija la decisión del nombre como [AddExercise]. El aviso queda revisado.
+     */
+    data class AddFromWarning(
+        val warningId: String,
+        val toDayId: String?,
+        val rawName: String,
+        val sets: Int,
+        val repsMin: Int,
+        val repsMax: Int,
+        val configId: String?,
+        val decided: Boolean,
+        val newDay: Boolean = false,
+    ) : ImportEditOp
+
+    /** Marca un aviso como revisado. */
+    data class IgnoreWarning(val warningId: String) : ImportEditOp
+
     /** Marca como revisados todos los avisos. */
     data object IgnoreAllWarnings : ImportEditOp
 
@@ -132,6 +151,10 @@ object ImportEdits {
                 imported = ImportDraftEditor.duplicateWeek(draft, op.index),
             ) to "Duplicaste la semana ${op.index}."
             is ImportEditOp.AddExercise -> addedExercise(snapshot, op, nameOf)
+            is ImportEditOp.AddFromWarning -> addedFromWarning(snapshot, op, nameOf)
+            is ImportEditOp.IgnoreWarning -> snapshot.copy(
+                imported = ImportDraftEditor.ignoreWarning(draft, op.warningId),
+            ) to "Marcaste un aviso como revisado."
             ImportEditOp.IgnoreAllWarnings -> ignoredAll(snapshot)
             is ImportEditOp.Batch -> return batched(snapshot, op, nameOf)
         }
@@ -214,6 +237,33 @@ object ImportEdits {
         val decide = op.decided && imported != draft && name !in snapshot.resolutions
         val resolutions = if (decide) snapshot.resolutions + (name to op.configId) else snapshot.resolutions
         return ImportSnapshot(imported, resolutions) to "Añadiste «$shown»."
+    }
+
+    /**
+     * Añade el ejercicio de un aviso. La decisión del nombre sigue la de [addedExercise]: si el nombre ya la tenía, la conserva.
+     * El texto nombra el ejercicio y de dónde sale.
+     */
+    private fun addedFromWarning(
+        snapshot: ImportSnapshot,
+        op: ImportEditOp.AddFromWarning,
+        nameOf: (String) -> String,
+    ): Pair<ImportSnapshot, String> {
+        val draft = snapshot.imported
+        val name = op.rawName.trim()
+        val shown = nameOf(name)
+        val imported = ImportDraftEditor.addFromWarning(
+            draft = draft,
+            warningId = op.warningId,
+            rawName = name,
+            sets = op.sets,
+            repsMin = op.repsMin,
+            repsMax = op.repsMax,
+            toDayId = op.toDayId,
+            newDay = op.newDay,
+        )
+        val decide = op.decided && imported != draft && name !in snapshot.resolutions
+        val resolutions = if (decide) snapshot.resolutions + (name to op.configId) else snapshot.resolutions
+        return ImportSnapshot(imported, resolutions) to "Añadiste «$shown» desde un aviso."
     }
 
     private fun ignoredAll(snapshot: ImportSnapshot): Pair<ImportSnapshot, String> {

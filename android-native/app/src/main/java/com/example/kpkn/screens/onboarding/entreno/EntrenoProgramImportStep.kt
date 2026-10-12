@@ -23,7 +23,7 @@ import com.example.kpkn.screens.programs.importer.ImportPreviewWeeks
 import com.example.kpkn.screens.programs.importer.ImportReview
 import com.example.kpkn.screens.programs.importer.ImportSourceChoices
 import com.example.kpkn.screens.programs.importer.ImportUndoLine
-import com.example.kpkn.screens.programs.importer.ImportWarningsNote
+import com.example.kpkn.screens.programs.importer.ImportWarningsPanel
 import com.example.kpkn.screens.programs.importer.importSessionsPerWeek
 import com.example.kpkn.screens.programs.importer.readPickedFile
 import com.example.kpkn.screens.programs.importer.rememberImportFilePicker
@@ -43,7 +43,8 @@ internal fun EntrenoProgramImportStep(state: SetupWizardState, vm: SetupWizardVi
     var pasting by rememberSaveable { mutableStateOf(false) }
     var pasted by rememberSaveable { mutableStateOf("") }
     var openedExerciseId by rememberSaveable { mutableStateOf<String?>(null) }
-    var warningsOpen by rememberSaveable { mutableStateOf(false) }
+    // Sube cada vez que «Ver avisos» de la revisión final: el panel de avisos se despliega y sube a la vista.
+    var warningsReveal by rememberSaveable { mutableStateOf(0) }
     val resolutions = draft.importResolutions
     val issues = remember(imported, resolutions) {
         imported?.let { program -> ImportDraftValidation.check(program) { resolutions.containsKey(it) } }.orEmpty()
@@ -74,10 +75,12 @@ internal fun EntrenoProgramImportStep(state: SetupWizardState, vm: SetupWizardVi
                 testTag = "setup-import-title",
             )
             state.importUndoLabel?.let { ImportUndoLine(label = it, onUndo = vm::undoImportEdit) }
-            ImportWarningsNote(
-                warnings = imported.warningMessages,
-                expanded = warningsOpen,
-                onExpandedChange = { warningsOpen = it },
+            ImportWarningsPanel(
+                imported = imported,
+                reveal = warningsReveal,
+                search = vm::searchImportCatalog,
+                onOpenExercise = { openedExerciseId = it },
+                onEdit = vm::editImport,
             )
             ImportPreviewWeeks(
                 imported = imported,
@@ -103,7 +106,7 @@ internal fun EntrenoProgramImportStep(state: SetupWizardState, vm: SetupWizardVi
                 issues = issues,
                 onOpenExercise = { openedExerciseId = it },
                 onEdit = vm::editImport,
-                onShowWarnings = { warningsOpen = true },
+                onShowWarnings = { warningsReveal += 1 },
                 onRestart = vm::clearImport,
             )
             Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {

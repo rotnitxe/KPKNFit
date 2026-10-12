@@ -274,4 +274,17 @@ class ImportStructureMenusTest {
         rule.onNodeWithTag("import-day-menu").assertDoesNotExist()
         rule.onNodeWithTag("import-edit-panel").assertExists()
     }
+
+    @Test
+    fun theAddPanelOpensBelowTheLastExerciseOfItsDay() {
+        rule.setContent { EditHost(oneWeek(), decided) }
+
+        rule.onNodeWithTag("import-day-menu-w1-d1").performClick()
+        rule.onNodeWithTag("import-day-add-exercise").performClick()
+
+        // El ejercicio nuevo va al final del día: el panel sale debajo de «Sentadilla», no entre el día y sus ejercicios.
+        val sentadilla = rule.onNodeWithTag("import-exercise-Sentadilla").fetchSemanticsNode().boundsInRoot.top
+        val panel = rule.onNodeWithTag("import-add-panel").fetchSemanticsNode().boundsInRoot.top
+        assertTrue("el panel de añadir debe ir debajo de «Sentadilla»", panel > sentadilla)
+    }
 }

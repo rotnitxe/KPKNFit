@@ -334,6 +334,98 @@ class ImportEditsTest {
         assertEquals("Sentadilla", duplicated.weeks[1].days[0].exercises[0].rawName)
     }
 
+    @Test
+    fun `anadir desde un aviso lo deja en su dia, revisado y con su texto para deshacer`() {
+        val (after, label) = applied(
+            ImportEditOp.AddFromWarning(
+                warningId = "a1",
+                toDayId = null,
+                rawName = "Remo con barra",
+                sets = 3,
+                repsMin = 8,
+                repsMax = 10,
+                configId = null,
+                decided = true,
+            ),
+        )
+
+        assertEquals("Añadiste «Remo con barra» desde un aviso.", label)
+        assertEquals(listOf("w1-d2-e1", "x1"), after.imported.weeks[0].days[1].exercises.map { it.id })
+        assertEquals(setOf("a1"), after.imported.reviewedWarnings)
+        // Propio: el nombre queda decidido sin configuración.
+        assertTrue("Remo con barra" in after.resolutions)
+        assertNull(after.resolutions["Remo con barra"])
+    }
+
+    @Test
+    fun `anadir desde un aviso con catalogo fija la configuracion y un nombre ya decidido la conserva`() {
+        val chosen = applied(
+            ImportEditOp.AddFromWarning(
+                warningId = "a1",
+                toDayId = "w1-d1",
+                rawName = "Remo con barra (barra)",
+                sets = 4,
+                repsMin = 6,
+                repsMax = 6,
+                configId = "cfg-row",
+                decided = true,
+            ),
+        )
+        assertEquals("cfg-row", chosen.first.resolutions["Remo con barra (barra)"])
+
+        val kept = applied(
+            ImportEditOp.AddFromWarning(
+                warningId = "a1",
+                toDayId = "w1-d1",
+                rawName = "Sentadilla",
+                sets = 3,
+                repsMin = 5,
+                repsMax = 5,
+                configId = null,
+                decided = true,
+            ),
+        )
+        assertEquals("cfg-squat", kept.first.resolutions["Sentadilla"])
+    }
+
+    @Test
+    fun `anadir desde un aviso a un dia nuevo crea «Dia n+1» en la semana del aviso`() {
+        val (after, _) = applied(
+            ImportEditOp.AddFromWarning(
+                warningId = "a2",
+                toDayId = null,
+                rawName = "Hacer 3 vueltas",
+                sets = 3,
+                repsMin = 10,
+                repsMax = 12,
+                configId = null,
+                decided = false,
+                newDay = true,
+            ),
+        )
+
+        // La semana 3 ya tiene dos días: el nuevo es «Día 3».
+        val days = after.imported.weeks[2].days
+        assertEquals("Día 3", days[2].name)
+        assertEquals(listOf("x2"), days[2].exercises.map { it.id })
+        assertFalse("Hacer 3 vueltas" in after.resolutions)
+    }
+
+    @Test
+    fun `ignorar un aviso lo marca como revisado y repetirlo no deja nada para deshacer`() {
+        val (after, label) = applied(ImportEditOp.IgnoreWarning("a2"))
+
+        assertEquals("Marcaste un aviso como revisado.", label)
+        assertEquals(setOf("a2"), after.imported.reviewedWarnings)
+        assertNull(ImportEdits.apply(after, ImportEditOp.IgnoreWarning("a2")))
+        assertNull(ImportEdits.apply(snapshot, ImportEditOp.IgnoreWarning("zz")))
+    }
+
+    @Test
+    fun `anadir desde un aviso que no existe no cambia nada`() {
+        assertNull(ImportEdits.apply(snapshot, ImportEditOp.AddFromWarning("zz", null, "X", 3, 8, 8, null, false)))
+    }
+
     private fun week(index: Int, vararg days: ImportedDay): ImportedWeek = ImportedWeek(index = index, days = days.toList())
 
     private fun day(id: String, name: String, vararg exercises: ImportedExercise): ImportedDay =

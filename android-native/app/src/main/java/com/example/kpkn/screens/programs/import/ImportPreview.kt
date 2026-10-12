@@ -190,14 +190,6 @@ internal fun ImportPreviewWeeks(
                                 onClose = { structurePanel = null },
                             )
                         }
-                        if (activePanel == addKey) {
-                            ImportAddExercisePanel(
-                                dayId = day.id,
-                                search = search,
-                                onEdit = onEdit,
-                                onClose = { structurePanel = null },
-                            )
-                        }
                         day.exercises.forEachIndexed { position, exercise ->
                             val open = openedExerciseId == exercise.id
                             ImportExerciseRow(
@@ -234,6 +226,19 @@ internal fun ImportPreviewWeeks(
                                 )
                             }
                         }
+                        // «Añadir ejercicio» sale bajo el último ejercicio del día, que es donde queda el nuevo.
+                        if (activePanel == addKey) {
+                            ImportAddExercisePanel(
+                                key = day.id,
+                                search = search,
+                                onAdd = { name, configId, sets, repsMin, repsMax ->
+                                    onEdit(
+                                        ImportEditOp.AddExercise(day.id, name, sets, repsMin, repsMax, configId = configId, decided = true),
+                                    )
+                                },
+                                onClose = { structurePanel = null },
+                            )
+                        }
                     }
                 }
                 ImportTextAction(
@@ -241,43 +246,6 @@ internal fun ImportPreviewWeeks(
                     onClick = { onEdit(ImportEditOp.AddDay(week.index, "")) },
                     modifier = Modifier.testTag("import-add-day-${week.index}"),
                 )
-            }
-        }
-    }
-}
-
-/**
- * Los avisos del analizador («N filas no se entendieron») en una línea; al desplegarla, cada fila. Sin caja. Quien lo usa
- * guarda si está desplegado, para poder abrirlo desde la revisión final.
- */
-@Composable
-internal fun ImportWarningsNote(
-    warnings: List<String>,
-    expanded: Boolean,
-    onExpandedChange: (Boolean) -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    val requester = remember { BringIntoViewRequester() }
-    // Al desplegarse desde la revisión final, la lista sube a la vista (queda arriba, lejos del final de la página).
-    LaunchedEffect(expanded) { if (expanded) requester.bringIntoView() }
-    if (warnings.isNotEmpty()) {
-        Column(
-            modifier = modifier.fillMaxWidth().bringIntoViewRequester(requester),
-            verticalArrangement = Arrangement.spacedBy(4.dp),
-        ) {
-            Text(
-                if (warnings.size == 1) "1 fila no se entendió" else "${warnings.size} filas no se entendieron",
-                style = WizardTypography.note,
-                color = WizardColors.textMuted,
-            )
-            ImportTextAction(
-                label = if (expanded) "Ocultar las filas" else "Ver las filas",
-                onClick = { onExpandedChange(!expanded) },
-            )
-            if (expanded) {
-                warnings.forEach { warning ->
-                    Text(warning, style = WizardTypography.note, color = WizardColors.textMuted)
-                }
             }
         }
     }

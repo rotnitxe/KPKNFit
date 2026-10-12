@@ -232,8 +232,9 @@ object ImportDraftEditor {
     }
 
     /**
-     * Añade como ejercicio lo que el aviso no supo leer: al final de su día; si no había día, crea «Día 1» al final de
-     * su semana (o de la semana 1, creándola si no existe). Después marca el aviso como revisado.
+     * Añade como ejercicio lo que el aviso no supo leer, al final de un día: [toDayId] si existe; si no, el del aviso. Con
+     * [newDay], o si ninguno existe, crea un día al final de la semana del aviso (o de la semana 1, creándola si no
+     * existe) llamado «Día <n+1>», donde n son los días que ya tiene esa semana. Después marca el aviso como revisado.
      */
     fun addFromWarning(
         draft: ImportedProgramDraft,
@@ -242,21 +243,25 @@ object ImportDraftEditor {
         sets: Int,
         repsMin: Int,
         repsMax: Int,
+        toDayId: String? = null,
+        newDay: Boolean = false,
     ): ImportedProgramDraft {
         val warning = draft.warnings.firstOrNull { it.id == warningId } ?: return draft
         val name = rawName.trim()
         if (name.isEmpty() || !isValidValues(sets, repsMin, repsMax)) return draft
         val reviewed = draft.reviewedWarnings + warningId
-        val dayId = warning.dayId?.takeIf { placeOfDay(draft, it) != null }
+        val dayId = if (newDay) null else listOfNotNull(toDayId, warning.dayId).firstOrNull { placeOfDay(draft, it) != null }
         if (dayId != null) {
             val exercise = newExercise("x${draft.nextId}", name, sets, repsMin, repsMax)
             return draft.copy(nextId = draft.nextId + 1, reviewedWarnings = reviewed)
                 .withDayById(dayId) { day -> day.copy(exercises = day.exercises + exercise) } ?: draft
         }
         val weekIndex = warning.weekIndex ?: 1
+        // «Día <n+1>»: n son los días que ya tiene la semana (ninguno si no existe).
+        val dayNumber = (draft.weeks.firstOrNull { it.index == weekIndex }?.days?.size ?: 0) + 1
         val day = ImportedDay(
             id = "x${draft.nextId}",
-            name = "Día 1",
+            name = "Día $dayNumber",
             exercises = listOf(newExercise("x${draft.nextId + 1}", name, sets, repsMin, repsMax)),
         )
         val weekPosition = draft.weeks.indexOfFirst { it.index == weekIndex }

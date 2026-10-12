@@ -28,32 +28,39 @@ import com.example.kpkn.screens.onboarding.design.WizardColors
 import com.example.kpkn.screens.onboarding.design.WizardTypography
 
 /** Series por defecto de un ejercicio añadido. */
-private const val ADD_SETS_DEFAULT = 3
+internal const val ADD_SETS_DEFAULT = 3
 
 /** Repeticiones por defecto de un ejercicio añadido: 3 × 10. */
-private const val ADD_REPS_DEFAULT = 10
+internal const val ADD_REPS_DEFAULT = 10
 
 /**
- * «Añade un ejercicio» en un día: se busca en el catálogo (al tocar un resultado, el nombre queda fijado y la decisión es esa
- * configuración) o se escribe un nombre propio; después, series y repeticiones, y «Añadir». El ejercicio va al final del día y
- * deja deshacer. Sus selectores son los del panel de ajuste.
+ * «Añade un ejercicio»: se busca en el catálogo (al tocar un resultado, el nombre queda fijado y la decisión es esa
+ * configuración) o se escribe un nombre propio; después, series y repeticiones, y «Añadir». [onAdd] recibe el nombre, la
+ * configuración (null = propio) y los valores; quien lo usa decide la operación (añadir a un día o desde un aviso). [key]
+ * reinicia el estado al cambiar de día o de aviso. [initialName] y los valores iniciales son lo que propone un aviso;
+ * [leading] va bajo el título (los avisos ponen ahí el selector de día). Sus selectores son los del panel de ajuste.
  */
 @Composable
 internal fun ImportAddExercisePanel(
-    dayId: String,
+    key: String,
     search: suspend (String) -> List<ExerciseNameCandidate>,
-    onEdit: (ImportEditOp) -> Unit,
+    onAdd: (rawName: String, configId: String?, sets: Int, repsMin: Int, repsMax: Int) -> Unit,
     onClose: () -> Unit,
     modifier: Modifier = Modifier,
+    initialName: String = "",
+    initialSets: Int = ADD_SETS_DEFAULT,
+    initialRepsMin: Int = ADD_REPS_DEFAULT,
+    initialRepsMax: Int = ADD_REPS_DEFAULT,
+    leading: @Composable () -> Unit = {},
 ) {
     // El resultado del catálogo que se eligió (id y nombre), o, si no hay, el nombre propio que se escribe.
-    var pickedId by rememberSaveable(dayId) { mutableStateOf<String?>(null) }
-    var pickedName by rememberSaveable(dayId) { mutableStateOf("") }
-    var own by rememberSaveable(dayId) { mutableStateOf("") }
-    var sets by rememberSaveable(dayId) { mutableStateOf(ADD_SETS_DEFAULT) }
-    var rangeMode by rememberSaveable(dayId) { mutableStateOf(false) }
-    var repsMin by rememberSaveable(dayId) { mutableStateOf(ADD_REPS_DEFAULT) }
-    var repsMax by rememberSaveable(dayId) { mutableStateOf(ADD_REPS_DEFAULT) }
+    var pickedId by rememberSaveable(key) { mutableStateOf<String?>(null) }
+    var pickedName by rememberSaveable(key) { mutableStateOf("") }
+    var own by rememberSaveable(key) { mutableStateOf(initialName) }
+    var sets by rememberSaveable(key) { mutableStateOf(initialSets) }
+    var rangeMode by rememberSaveable(key) { mutableStateOf(initialRepsMin != initialRepsMax) }
+    var repsMin by rememberSaveable(key) { mutableStateOf(initialRepsMin) }
+    var repsMax by rememberSaveable(key) { mutableStateOf(initialRepsMax) }
     val requester = remember { BringIntoViewRequester() }
     LaunchedEffect(Unit) { requester.bringIntoView() }
 
@@ -61,7 +68,7 @@ internal fun ImportAddExercisePanel(
     val rawName = if (pickedId != null) pickedName else own.trim()
 
     fun add() {
-        onEdit(ImportEditOp.AddExercise(dayId, rawName, sets, repsMin, repsMax, configId = pickedId, decided = true))
+        onAdd(rawName, pickedId, sets, repsMin, repsMax)
         onClose()
     }
 
@@ -80,6 +87,7 @@ internal fun ImportAddExercisePanel(
             color = WizardColors.text,
             modifier = Modifier.semantics { heading() },
         )
+        leading()
         if (pickedId != null) {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text("Ejercicio del catálogo: $pickedName", style = WizardTypography.controlLabel, color = WizardColors.text)
@@ -94,7 +102,7 @@ internal fun ImportAddExercisePanel(
             }
         } else {
             ImportCatalogSearch(
-                key = dayId,
+                key = key,
                 search = search,
                 onPick = { candidate ->
                     pickedId = candidate.configurationId
