@@ -82,7 +82,7 @@ class ImportProgramScreenTest {
 
         rule.setContent {
             CompositionLocalProvider(LocalPlan provides PlanLevel.FREE) {
-                ImportProgramScreen(onBack = {}, onSaved = {}, viewModel = vm)
+                ImportProgramScreen(onBack = {}, onSaved = {}, onUseCatalogProgram = {}, viewModel = vm)
             }
         }
         rule.onNodeWithText("Guardar programa").performClick()
@@ -134,7 +134,7 @@ class ImportProgramScreenTest {
 
         rule.setContent {
             CompositionLocalProvider(LocalPlan provides PlanLevel.PRO) {
-                ImportProgramScreen(onBack = {}, onSaved = {}, viewModel = vm)
+                ImportProgramScreen(onBack = {}, onSaved = {}, onUseCatalogProgram = {}, viewModel = vm)
             }
         }
         rule.onNodeWithText("Guardar programa").performClick()
@@ -152,7 +152,7 @@ class ImportProgramScreenTest {
             onProgress(2, 5)
             awaitCancellation()
         }
-        rule.setContent { ImportProgramScreen(onBack = {}, onSaved = {}, viewModel = vm) }
+        rule.setContent { ImportProgramScreen(onBack = {}, onSaved = {}, onUseCatalogProgram = {}, viewModel = vm) }
 
         vm.importFromPicked(Uri.parse("content://kpkn.test/programa.pdf"))
         rule.onNodeWithText("Leyendo la página 2 de 5…").assertExists()

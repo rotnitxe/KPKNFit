@@ -17,6 +17,8 @@ import com.example.kpkn.domain.training.importer.ImportDraftValidation
 import com.example.kpkn.domain.training.importer.ImportSheet
 import com.example.kpkn.domain.training.importer.ImportedProgramBuilder
 import com.example.kpkn.domain.training.importer.ImportedProgramDraft
+import com.example.kpkn.domain.training.importer.KnownProgramMatch
+import com.example.kpkn.domain.training.importer.KnownProgramRecognizer
 import com.example.kpkn.domain.training.importer.ProgramImportParser
 import java.io.File
 import java.util.UUID
@@ -46,6 +48,10 @@ data class ImportProgramState(
     val openedExerciseId: String? = null,
     /** Lo que deshace el siguiente toque; null si no hay nada que deshacer. */
     val undoLabel: String? = null,
+    /** Programa de KPKN que el archivo parece ser (H3f); null = ninguno. Cada lectura nueva lo reinicia. */
+    val importKnownPlanId: String? = null,
+    /** «Seguir con mi archivo»: el aviso del programa de KPKN no vuelve a salir para esta lectura. */
+    val importKnownDismissed: Boolean = false,
     val busy: Boolean = false,
     /** Lo que se muestra mientras se lee: «Leyendo la página N de M…», «Leyendo la foto…» o «Leyendo el programa…». */
     val progress: String? = null,
@@ -89,13 +95,17 @@ class ImportProgramViewModel(application: Application) : AndroidViewModel(applic
     fun importFromSheets(sheets: List<ImportSheet>, title: String) =
         startImport(title.ifBlank { ImportedProgramBuilder.DEFAULT_TITLE }, IMPORT_READING_TEXT) {
             withContext(Dispatchers.Default) {
-                ProgramImportParser.parseSheets(sheets, title.ifBlank { ImportedProgramBuilder.DEFAULT_TITLE })
+                ProgramImportParser.parseSheets(sheets, title.ifBlank { ImportedProgramBuilder.DEFAULT_TITLE }) to
+                    KnownProgramRecognizer.recognizeSheets(title, sheets)
             }
         }
 
     fun importFromText(text: String) =
         startImport(ImportedProgramBuilder.DEFAULT_TITLE, IMPORT_READING_TEXT) {
-            withContext(Dispatchers.Default) { ProgramImportParser.parseText(text, ImportedProgramBuilder.DEFAULT_TITLE) }
+            withContext(Dispatchers.Default) {
+                ProgramImportParser.parseText(text, ImportedProgramBuilder.DEFAULT_TITLE) to
+                    KnownProgramRecognizer.recognizeText(text)
+            }
         }
 
     /**
@@ -109,7 +119,8 @@ class ImportProgramViewModel(application: Application) : AndroidViewModel(applic
                 // Una foto de la cámara no tiene un nombre útil: su programa lleva el título por defecto.
                 val title = if (takenFile != null) "" else fileTitle
                 withContext(Dispatchers.Default) {
-                    ProgramImportParser.parseSheets(sheets, title.ifBlank { ImportedProgramBuilder.DEFAULT_TITLE })
+                    ProgramImportParser.parseSheets(sheets, title.ifBlank { ImportedProgramBuilder.DEFAULT_TITLE }) to
+                        KnownProgramRecognizer.recognizeSheets(title, sheets)
                 }
             } finally {
                 takenFile?.delete()
@@ -181,6 +192,11 @@ class ImportProgramViewModel(application: Application) : AndroidViewModel(applic
         _state.value = ImportProgramState()
     }
 
+    /** «Seguir con mi archivo» (H3f): el aviso del programa de KPKN se descarta para esta lectura. */
+    fun dismissImportKnown() {
+        _state.value = _state.value.copy(importKnownDismissed = true)
+    }
+
     suspend fun suggestions(rawName: String): List<ExerciseNameCandidate> =
         withContext(Dispatchers.Default) { ImportCatalogLookup.suggestions(loadedCatalog(), rawName) }.also(::rememberNames)
 
@@ -234,13 +250,17 @@ class ImportProgramViewModel(application: Application) : AndroidViewModel(applic
      * de antes de la primera se guarda para «Cancelar». Al terminar bien, la pila de deshacer se vacía (el programa es otro); si
      * falla, sale el error.
      */
-    private fun startImport(defaultTitle: String, progress: String, read: suspend () -> ImportedProgramDraft) {
+    private fun startImport(
+        defaultTitle: String,
+        progress: String,
+        read: suspend () -> Pair<ImportedProgramDraft, KnownProgramMatch?>,
+    ) {
         if (stateBeforeRead == null) stateBeforeRead = _state.value
         importJob?.cancel()
         _state.value = ImportProgramState(busy = true, progress = progress)
         importJob = viewModelScope.launch {
             try {
-                val parsed = read()
+                val (parsed, known) = read()
                 val names = parsed.weeks.flatMap { week -> week.days.flatMap { day -> day.exercises } }
                     .map { it.rawName }
                     .distinct()
@@ -256,6 +276,7 @@ class ImportProgramViewModel(application: Application) : AndroidViewModel(applic
                     imported = parsed,
                     title = parsed.title.ifBlank { defaultTitle },
                     resolutions = confident,
+                    importKnownPlanId = known?.planId,
                 )
             } catch (cancel: CancellationException) {
                 throw cancel

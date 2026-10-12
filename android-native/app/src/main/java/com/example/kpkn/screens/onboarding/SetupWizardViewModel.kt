@@ -40,6 +40,8 @@ import com.example.kpkn.domain.training.importer.ExerciseNameMatcher
 import com.example.kpkn.domain.training.importer.ImportSheet
 import com.example.kpkn.domain.training.importer.ImportedProgramBuilder
 import com.example.kpkn.domain.training.importer.ImportedProgramDraft
+import com.example.kpkn.domain.training.importer.KnownProgramMatch
+import com.example.kpkn.domain.training.importer.KnownProgramRecognizer
 import com.example.kpkn.domain.training.importer.ProgramImportParser
 import com.example.kpkn.screens.programs.importer.ImportCatalogLookup
 import com.example.kpkn.screens.programs.importer.ImportEditOp
@@ -3865,14 +3867,18 @@ class SetupWizardViewModel @JvmOverloads constructor(
     fun importFromSheets(sheets: List<ImportSheet>, title: String) =
         startImport(IMPORT_READING_TEXT) {
             withContext(Dispatchers.Default) {
-                ProgramImportParser.parseSheets(sheets, title.ifBlank { ImportedProgramBuilder.DEFAULT_TITLE })
+                ProgramImportParser.parseSheets(sheets, title.ifBlank { ImportedProgramBuilder.DEFAULT_TITLE }) to
+                    KnownProgramRecognizer.recognizeSheets(title, sheets)
             }
         }
 
     /** Importa el texto pegado («Día 1 — Pierna» y «Sentadilla 4x6 @120kg»). */
     fun importFromText(text: String) =
         startImport(IMPORT_READING_TEXT) {
-            withContext(Dispatchers.Default) { ProgramImportParser.parseText(text, ImportedProgramBuilder.DEFAULT_TITLE) }
+            withContext(Dispatchers.Default) {
+                ProgramImportParser.parseText(text, ImportedProgramBuilder.DEFAULT_TITLE) to
+                    KnownProgramRecognizer.recognizeText(text)
+            }
         }
 
     /**
@@ -3886,7 +3892,8 @@ class SetupWizardViewModel @JvmOverloads constructor(
                 // Una foto de la cámara no tiene un nombre útil: su programa lleva el título por defecto.
                 val title = if (takenFile != null) "" else fileTitle
                 withContext(Dispatchers.Default) {
-                    ProgramImportParser.parseSheets(sheets, title.ifBlank { ImportedProgramBuilder.DEFAULT_TITLE })
+                    ProgramImportParser.parseSheets(sheets, title.ifBlank { ImportedProgramBuilder.DEFAULT_TITLE }) to
+                        KnownProgramRecognizer.recognizeSheets(title, sheets)
                 }
             } finally {
                 takenFile?.delete()
@@ -3947,10 +3954,40 @@ class SetupWizardViewModel @JvmOverloads constructor(
     fun clearImport() {
         importJob?.cancel()
         importUndo.clear()
-        _state.value = _state.value.copy(importBusy = false, importProgress = null, importError = null, importUndoLabel = null)
+        _state.value = _state.value.copy(
+            importBusy = false, importProgress = null, importError = null, importUndoLabel = null, importKnownUnavailable = false,
+        )
         mutateDraft(SetupStepId.PROGRAM_IMPORT) { latest ->
-            latest.copy(importedProgram = null, importResolutions = emptyMap(), importTitle = "")
+            latest.copy(
+                importedProgram = null, importResolutions = emptyMap(), importTitle = "",
+                importKnownPlanId = null, importKnownDismissed = false,
+            )
         }
+    }
+
+    /** «Seguir con mi archivo» (H3f): el aviso del programa de KPKN se descarta y no vuelve a salir para esta importación. */
+    fun dismissImportKnown() = mutateDraft(SetupStepId.PROGRAM_IMPORT) { latest -> latest.copy(importKnownDismissed = true) }
+
+    /**
+     * «Usar el de KPKN» (H3f): cambia lo importado por el plan reconocido, con la misma preselección que la biblioteca
+     * ([withPreselectedPlan]), en la ruta de programa recomendado y con el cursor en PLAN. Si el plan no encaja con las
+     * respuestas, lo importado sigue como estaba y el aviso lo dice.
+     */
+    fun useKnownProgram(planId: String) {
+        if (_state.value.draft.withPreselectedPlan(planId) == null) {
+            _state.value = _state.value.copy(importKnownUnavailable = true)
+            return
+        }
+        importUndo.clear()
+        _state.value = _state.value.copy(importUndoLabel = null, importKnownUnavailable = false)
+        mutateDraft(SetupStepId.PROGRAM_SOURCE) { latest ->
+            val cleared = latest.withProgramSource(ProgramSource.RECOMMEND).copy(
+                importedProgram = null, importResolutions = emptyMap(), importTitle = "",
+                importKnownPlanId = null, importKnownDismissed = false,
+            )
+            cleared.withPreselectedPlan(planId) ?: latest
+        }
+        editStep(SetupStepId.PLAN)
     }
 
     /** Las tres mejores configuraciones del catálogo para un nombre importado (las del panel «Elegir»). */
@@ -3981,12 +4018,12 @@ class SetupWizardViewModel @JvmOverloads constructor(
      * confianza queda decidido solo; lo dudoso espera a que la persona elija o lo deje como está. Mientras se lee, el programa
      * anterior sigue como estaba: si se cancela o falla, no cambia; si sale bien, su pila de deshacer se vacía.
      */
-    private fun startImport(progress: String, read: suspend () -> ImportedProgramDraft) {
+    private fun startImport(progress: String, read: suspend () -> Pair<ImportedProgramDraft, KnownProgramMatch?>) {
         importJob?.cancel()
         _state.value = _state.value.copy(importBusy = true, importProgress = progress, importError = null)
         importJob = viewModelScope.launch {
             try {
-                val parsed = read()
+                val (parsed, known) = read()
                 val names = parsed.weeks.flatMap { week -> week.days.flatMap { day -> day.exercises } }
                     .map { it.rawName }
                     .distinct()
@@ -4001,9 +4038,14 @@ class SetupWizardViewModel @JvmOverloads constructor(
                 ensureActive()
                 importUndo.clear()
                 mutateDraft(SetupStepId.PROGRAM_IMPORT) { latest ->
-                    latest.copy(importedProgram = parsed, importTitle = parsed.title, importResolutions = confident)
+                    latest.copy(
+                        importedProgram = parsed, importTitle = parsed.title, importResolutions = confident,
+                        importKnownPlanId = known?.planId, importKnownDismissed = false,
+                    )
                 }
-                _state.value = _state.value.copy(importBusy = false, importProgress = null, importUndoLabel = null)
+                _state.value = _state.value.copy(
+                    importBusy = false, importProgress = null, importUndoLabel = null, importKnownUnavailable = false,
+                )
             } catch (cancel: CancellationException) {
                 throw cancel
             } catch (error: Throwable) {

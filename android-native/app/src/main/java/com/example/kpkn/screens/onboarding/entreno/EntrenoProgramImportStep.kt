@@ -17,6 +17,7 @@ import com.example.kpkn.screens.onboarding.SetupFormTextField
 import com.example.kpkn.screens.onboarding.SetupWizardState
 import com.example.kpkn.screens.onboarding.SetupWizardViewModel
 import com.example.kpkn.screens.programs.importer.IMPORT_READING_TEXT
+import com.example.kpkn.screens.programs.importer.ImportKnownProgramNotice
 import com.example.kpkn.screens.programs.importer.ImportPasteField
 import com.example.kpkn.screens.programs.importer.ImportPreviewWeeks
 import com.example.kpkn.screens.programs.importer.ImportReadingNotice
@@ -68,6 +69,14 @@ internal fun EntrenoProgramImportStep(state: SetupWizardState, vm: SetupWizardVi
                 label = "Título del programa",
                 testTag = "setup-import-title",
             )
+            draft.importKnownPlanId?.takeUnless { draft.importKnownDismissed }?.let { planId ->
+                ImportKnownProgramNotice(
+                    planId = planId,
+                    onUse = { vm.useKnownProgram(planId) },
+                    onDismiss = vm::dismissImportKnown,
+                    unavailable = state.importKnownUnavailable,
+                )
+            }
             state.importUndoLabel?.let { ImportUndoLine(label = it, onUndo = vm::undoImportEdit) }
             ImportWarningsPanel(
                 imported = imported,

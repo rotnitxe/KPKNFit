@@ -592,6 +592,10 @@ data class SetupWizardDraft(
     val importResolutions: Map<String, String?> = emptyMap(),
     /** Título editable del programa importado; vacío = «Mi programa importado». */
     val importTitle: String = "",
+    /** Programa de KPKN que el archivo importado parece ser (H3f); null = ninguno. Cada lectura nueva y quitarlo lo reinician. */
+    val importKnownPlanId: String? = null,
+    /** «Seguir con mi archivo»: el aviso del programa de KPKN no vuelve a salir para esta importación. */
+    val importKnownDismissed: Boolean = false,
     // ── ¿Compites? (paso COMPETITION). Sin valor, el paso no está en la ruta o no tiene respuesta. La respuesta y la fecha
     // cuentan para el programa (`activeCompetition()`, `activeMeetDate()`); el nombre no cambia el programa (`activeMeetName()`).
     /** Respuesta de «¿Compites?»; null = sin responder. */
@@ -1282,6 +1286,8 @@ data class SetupWizardState(
     val importError: String? = null,
     /** Lo que deshace el siguiente toque de la vista previa del programa importado; null si no hay nada que deshacer. */
     val importUndoLabel: String? = null,
+    /** «Usar el de KPKN» eligió un plan que el asistente no puede ofrecer con las respuestas; el aviso lo dice (H3f). */
+    val importKnownUnavailable: Boolean = false,
 ) {
     val showNutritionPreview: Boolean get() = nutritionDraft != null
     val nutritionDraft: NutritionWizardDraft? get() = draft.nutritionDraft

@@ -20,6 +20,7 @@ import com.example.kpkn.data.onboarding.SetupDraftCandidate
 import com.example.kpkn.data.onboarding.SetupDraftRepository
 import com.example.kpkn.data.onboarding.SetupDraftResolver
 import com.example.kpkn.data.protocols.PlanProvenanceClass
+import com.example.kpkn.data.protocols.definitions.AuthoredPhulPhatRecipes
 import com.example.kpkn.data.repository.NutritionRepository
 import com.example.kpkn.data.repository.ProgramRepository
 import com.example.kpkn.domain.entitlements.PlanLevel
@@ -36,6 +37,7 @@ import com.example.kpkn.domain.onboarding.WizChatMachineState
 import com.example.kpkn.domain.training.ProgramExecutionContract
 import com.example.kpkn.domain.training.importer.Change
 import com.example.kpkn.domain.training.importer.ImportExercisePatch
+import com.example.kpkn.domain.training.importer.ImportSheet
 import com.example.kpkn.screens.programs.importer.ImportEditOp
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -49,6 +51,7 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
@@ -337,6 +340,57 @@ class ImportActivationWizardTest {
         assertNull(vm.state.value.importProgress)
         assertNull(vm.state.value.importError)
         assertNull(vm.state.value.draft.importedProgram)
+    }
+
+    /**
+     * H3f: un archivo que parece un programa de KPKN se reconoce por su título. «Seguir con mi archivo» lo descarta y una lectura
+     * nueva lo reinicia. «Usar el de KPKN» con un plan que el asistente no ofrece deja lo importado y lo dice; con el plan
+     * reconocido cambia lo importado por él (ruta recomendada, sin importación y con el cursor en PLAN).
+     */
+    @Test
+    fun aRecognizedKnownProgramCanReplaceTheImportedFileFromTheWizard() = runTest(dispatcher.scheduler, timeout = 10.minutes) {
+        val vm = newVm()
+        vm.initialize(SetupWizardMode.TRAINING_ONLY)
+        await(vm, "wizard cargado") { !it.isLoading && it.currentStep == SetupStepId.NAME }
+        walkUntil(
+            vm,
+            SetupStepId.PROGRAM_SOURCE,
+            Answers(
+                profile = TrainingGoalProfile.STRENGTH_MUSCLE,
+                places = setOf(TrainingPlace.GYM),
+                days = setOf(1, 4),
+                freshDay = 1,
+                minutes = 60,
+            ),
+        )
+        vm.setProgramSource(ProgramSource.IMPORT)
+        await(vm, "elección de importar guardada") { it.draft.programSource == ProgramSource.IMPORT }
+        confirm(vm, SetupStepId.PROGRAM_SOURCE, SetupStepId.PROGRAM_IMPORT)
+
+        val sheets = listOf(ImportSheet("Semana 1", listOf(listOf("Ejercicio", "Series", "Reps"), listOf("Sentadilla", "4", "6"))))
+        vm.importFromSheets(sheets, "PHUL 4 días")
+        await(vm, "programa leído") { !it.importBusy && it.draft.importedProgram != null }
+        assertEquals(AuthoredPhulPhatRecipes.PHUL_ORIGINAL_ID, vm.state.value.draft.importKnownPlanId)
+
+        vm.dismissImportKnown()
+        await(vm, "aviso descartado") { it.draft.importKnownDismissed }
+        vm.importFromSheets(sheets, "PHUL 4 días")
+        await(vm, "nueva lectura: el aviso vuelve") { !it.importBusy && !it.draft.importKnownDismissed }
+        assertEquals(AuthoredPhulPhatRecipes.PHUL_ORIGINAL_ID, vm.state.value.draft.importKnownPlanId)
+
+        // Un plan oculto no se puede ofrecer: lo importado sigue y el aviso lo dice.
+        vm.useKnownProgram("native:strength-cardio")
+        await(vm, "aviso de plan no ofrecible") { it.importKnownUnavailable }
+        assertNotNull(vm.state.value.draft.importedProgram)
+        assertEquals(SetupStepId.PROGRAM_IMPORT, vm.state.value.currentStep)
+
+        // El plan reconocido: sin importación, en la ruta recomendada y con el cursor en PLAN.
+        vm.useKnownProgram(AuthoredPhulPhatRecipes.PHUL_ORIGINAL_ID)
+        await(vm, "cursor en PLAN con el plan elegido") { it.currentStep == SetupStepId.PLAN && it.draft.importedProgram == null }
+        assertEquals(ProgramSource.RECOMMEND, vm.state.value.draft.programSource)
+        assertEquals(AuthoredPhulPhatRecipes.PHUL_ORIGINAL_ID, vm.state.value.draft.selectedCatalogId)
+        assertFalse(vm.state.value.importKnownUnavailable)
+        assertNull(vm.state.value.importUndoLabel)
     }
 
     private fun newVm(level: PlanLevel = PlanLevel.PRO): SetupWizardViewModel =
