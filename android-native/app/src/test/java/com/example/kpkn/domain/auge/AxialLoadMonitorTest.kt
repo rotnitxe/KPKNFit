@@ -52,6 +52,8 @@ class AxialLoadMonitorTest {
         )
         val report = AxialLoadMonitor.evaluate(fourDays, db, now)
         assertTrue("days4=${report.axialDaysIn4} days6=${report.axialDaysIn6}", report.axialDaysIn4 >= 3 || report.axialDaysIn6 >= 4)
+        // 6 sesiones iguales en 24 días: aguda 3 / (6 ÷ 24/7 semanas) = 1,714 (con el denominador fijo ÷4 daba 2,0).
+        assertEquals(3.0 / (6.0 / (24.0 / 7.0)), report.acwr!!, 1e-9)
         val level = LoadAdvisoryEngine.levelFor(
             acwr = report.acwr ?: 1.0,
             insufficient = report.insufficientData,
@@ -61,7 +63,7 @@ class AxialLoadMonitorTest {
             previous = LoadAdvisoryLevel.NONE,
             allowDrop = true,
         )
-        assertTrue("level=$level", level == LoadAdvisoryLevel.WATCH || level == LoadAdvisoryLevel.ADJUST)
+        assertEquals(LoadAdvisoryLevel.ADJUST, level)
         val adjust = LoadAdvisoryEngine.levelFor(
             acwr = 1.45,
             insufficient = false,

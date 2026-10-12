@@ -20,10 +20,7 @@ data class AxialSessionExercise(
 )
 
 object LoadAdvisoryEngine {
-    const val WATCH_ACWR = 1.2
-    const val ADJUST_ACWR = 1.4
-    const val UNLOAD_ACWR = 1.6
-    const val HYSTERESIS = 0.10
+    // Los umbrales de aviso (WATCH / ADJUST / UNLOAD) y la histéresis viven en AcwrThresholds, junto a las zonas.
 
     fun rank(level: LoadAdvisoryLevel): Int = when (level) {
         LoadAdvisoryLevel.NONE -> 0
@@ -173,8 +170,8 @@ object LoadAdvisoryEngine {
         }
         val raw = when {
             extraUnload -> LoadAdvisoryLevel.UNLOAD
-            extraAdjust || (acwr != null && acwr > ADJUST_ACWR) -> LoadAdvisoryLevel.ADJUST
-            extraWatch || (acwr != null && acwr >= WATCH_ACWR) -> LoadAdvisoryLevel.WATCH
+            extraAdjust || (acwr != null && acwr > AcwrThresholds.ADJUST) -> LoadAdvisoryLevel.ADJUST
+            extraWatch || (acwr != null && acwr >= AcwrThresholds.WATCH) -> LoadAdvisoryLevel.WATCH
             else -> LoadAdvisoryLevel.NONE
         }
         return applyHysteresis(raw, previous, allowDrop, acwr)
@@ -196,7 +193,7 @@ object LoadAdvisoryEngine {
         val prevIdx = order.indexOf(previous)
         if (rawIdx >= prevIdx) return raw
         val enter = enterThreshold(previous)
-        if (enter != null && acwr != null && acwr >= enter * (1.0 - HYSTERESIS)) {
+        if (enter != null && acwr != null && acwr >= enter * (1.0 - AcwrThresholds.HYSTERESIS)) {
             return previous
         }
         if (!allowDrop) return previous
@@ -204,9 +201,9 @@ object LoadAdvisoryEngine {
     }
 
     private fun enterThreshold(level: LoadAdvisoryLevel): Double? = when (level) {
-        LoadAdvisoryLevel.WATCH -> WATCH_ACWR
-        LoadAdvisoryLevel.ADJUST -> ADJUST_ACWR
-        LoadAdvisoryLevel.UNLOAD -> UNLOAD_ACWR
+        LoadAdvisoryLevel.WATCH -> AcwrThresholds.WATCH
+        LoadAdvisoryLevel.ADJUST -> AcwrThresholds.ADJUST
+        LoadAdvisoryLevel.UNLOAD -> AcwrThresholds.UNLOAD
         LoadAdvisoryLevel.NONE -> null
     }
 
@@ -264,7 +261,7 @@ object LoadAdvisoryEngine {
 
     private fun unloadFromTrend(acwr: Double?, trend: List<Int>): Boolean {
         if (lowStarts(trend, 50, 3)) return true
-        if (acwr == null || acwr <= UNLOAD_ACWR || trend.size < 3) return false
+        if (acwr == null || acwr <= AcwrThresholds.UNLOAD || trend.size < 3) return false
         val last = trend.takeLast(3)
         return last[0] >= last[1] && last[1] >= last[2] && last[0] - last[2] >= 5
     }
