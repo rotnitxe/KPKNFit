@@ -40,6 +40,7 @@ import com.example.kpkn.ui.components.rings.TowerRingValues
 import com.example.kpkn.data.models.AugeSnapshot
 import com.example.kpkn.data.models.RecoveryChannelId
 import com.example.kpkn.data.models.RecoveryDashboard
+import com.example.kpkn.data.models.ringScore
 import com.example.kpkn.domain.auge.RecoveryBands
 import com.example.kpkn.domain.onboarding.RingsCoverage
 import com.example.kpkn.domain.onboarding.RingsCoverageSource
@@ -74,6 +75,12 @@ fun HomeRingsSection(
     val progressValues = remember(muscularProgress, sncProgress, columnaProgress, isLoading) {
         if (isLoading) listOf(0f, 0f, 0f)
         else listOf(muscularProgress, sncProgress, columnaProgress)
+    }
+    // Entero de cada batería (Músculos, Energía, Columna) sin pasar por el Float del progreso; sin snapshot, ringPercent redondea el Float.
+    val batteryScores = if (isLoading || snapshot == null) {
+        emptyList<Int>()
+    } else {
+        listOf(RecoveryChannelId.MUSCULAR, RecoveryChannelId.SYSTEM, RecoveryChannelId.STRUCTURE).map { snapshot.ringScore(it) }
     }
 
     // «Sin calibrar» (sin historial, sin check-in y sin evidencia) no se renderiza
@@ -149,6 +156,7 @@ fun HomeRingsSection(
             hasActiveProgram = hasActiveProgram,
             isLoading = isLoading,
             coverage = ringsCoverage,
+            batteryScores = batteryScores,
             onChannelClick = { selectedChannel = it },
         )
         Spacer(Modifier.height(4.dp))
@@ -177,6 +185,8 @@ private fun CombinedRingsView(
     hasActiveProgram: Boolean = true,
     isLoading: Boolean = false,
     coverage: RingsCoverage? = null,
+    /** Batería entera de cada anillo (mismo orden que [progressValues]); vacía si no hay, y entonces se redondea el progreso. */
+    batteryScores: List<Int> = emptyList(),
     onChannelClick: (RecoveryChannelId) -> Unit = {},
 ) {
     val channelIds = listOf(
@@ -184,11 +194,13 @@ private fun CombinedRingsView(
         RecoveryChannelId.SYSTEM,
         RecoveryChannelId.STRUCTURE,
     )
+    // Un solo entero por anillo: la torre, el texto, el color de banda y la accesibilidad leen el mismo valor.
+    val percents = progressValues.mapIndexed { i, progress -> ringPercent(batteryScores.getOrNull(i), progress) }
     // Un canal sin datos no tiene valor: la torre lo muestra sin calibrar (pista discontinua), sin afirmar un 100 %.
     fun towerPercent(i: Int): Int? = when {
         isLoading -> 0
         coverage?.channel(channelIds[i])?.hasData == false -> null
-        else -> (progressValues[i] * 100).toInt().coerceIn(0, 100)
+        else -> percents[i]
     }
     val towerValues = TowerRingValues(
         columna = towerPercent(2),
@@ -217,7 +229,7 @@ private fun CombinedRingsView(
                                 "Rings: " + channelIds.mapIndexed { i, id ->
                                     val channel = coverage?.channel(id)
                                     val label = RingLabels[i]
-                                    val scoreText = "${(progressValues[i] * 100).toInt()}%"
+                                    val scoreText = "${percents[i]}%"
                                     when {
                                         channel != null && !channel.hasData -> "$label sin datos"
                                         channel != null && channel.isEstimated -> "$label $scoreText (${channel.label.lowercase()})"
@@ -257,10 +269,9 @@ private fun CombinedRingsView(
                 Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceEvenly,
             ) {
-                progressValues.forEachIndexed { i, progress ->
+                percents.forEachIndexed { i, score ->
                     val channel = coverage?.channel(channelIds[i])
                     val noData = !isLoading && channel != null && !channel.hasData
-                    val score = (progress * 100).toInt()
                     val sourceChip = when (channel?.source) {
                         RingsCoverageSource.SUBJECTIVE_SENSATION -> "Estimación subjetiva"
                         RingsCoverageSource.INITIAL_ESTIMATE -> "Estimación inicial"
@@ -485,10 +496,12 @@ internal fun DrawScope.drawAugeRingCore(center: Offset, radius: Float, color: Co
         )
     }
 }
-/** Entero que muestra un anillo (0..100): texto, color de banda y accesibilidad leen este mismo valor. */
-@Suppress("UNUSED_PARAMETER")
+/**
+ * Entero (0..100) que muestra un anillo: con la batería entera a mano se usa tal cual; si solo hay el progreso Float se redondea
+ * (0,53f · 100 = 52,999996 daba 52 al truncar). Torre, texto, color de banda y accesibilidad leen este mismo entero.
+ */
 internal fun ringPercent(batteryInt: Int?, progress: Float): Int =
-    (progress * 100).toInt().coerceIn(0, 100)
+    (batteryInt ?: if (progress.isNaN()) 0 else (progress * 100f).roundToInt()).coerceIn(0, 100)
 
 internal fun batteryColor(score: Int): Color = Color(RecoveryBands.colorArgb(score).toInt())
 

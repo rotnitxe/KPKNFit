@@ -59,6 +59,7 @@ import com.example.kpkn.screens.sessioneditor.components.SessionBackgroundLayer
 import com.example.kpkn.ui.components.SectionHeader
 import com.example.kpkn.ui.tour.TourAnchors
 import com.example.kpkn.ui.tour.tourAnchor
+import kotlin.math.roundToInt
 
 @Composable
 fun HomeSessionSection(
@@ -428,17 +429,18 @@ private fun SessionCard(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(6.dp),
                     ) {
-                        val avgRecovery = sessionMuscles
-                            .map { lookupMuscleValue(perMuscle, it)?.recoveryScore ?: 100 }
-                            .average()
+                        // Un solo entero para el texto y el color de banda (redondeado, no truncado).
+                        val avgRecovery = sessionRecoveryPercent(
+                            sessionMuscles.map { lookupMuscleValue(perMuscle, it)?.recoveryScore ?: 100 },
+                        )
                         Text(
-                            if (avgRecovery.isNaN()) "--%" else "${avgRecovery.toInt()}%",
+                            if (avgRecovery == null) "--%" else "$avgRecovery%",
                             style = MaterialTheme.typography.labelSmall,
                             fontWeight = FontWeight.Black,
-                            color = if (avgRecovery.isNaN()) {
+                            color = if (avgRecovery == null) {
                                 MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)
                             } else {
-                                batteryColor(avgRecovery.toInt())
+                                batteryColor(avgRecovery)
                             },
                         )
                         Icon(
@@ -752,9 +754,9 @@ internal fun formatTodayPrescription(session: Session): String? {
     return "${main.displayNameWithSelectedChips()}: ${working.size}×$reps$loadPart$intensityPart"
 }
 
-/** Promedio de recuperación de los músculos de la sesión como entero para mostrar; null si no hay músculos. */
+/** Promedio de recuperación de los músculos de la sesión como entero para mostrar (99,5 ⇒ 100); null si no hay músculos. */
 internal fun sessionRecoveryPercent(scores: List<Int>): Int? =
-    if (scores.isEmpty()) null else scores.average().toInt()
+    if (scores.isEmpty()) null else scores.average().roundToInt()
 
 internal fun axialHintsForSession(session: Session): List<AxialSessionExercise> =
     session.allExercises().mapNotNull { exercise ->

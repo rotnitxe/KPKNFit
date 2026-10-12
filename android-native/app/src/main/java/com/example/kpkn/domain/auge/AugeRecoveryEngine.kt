@@ -323,7 +323,7 @@ object AugeRecoveryEngine {
             .takeIf { it.isNotEmpty() }
             ?.map { it.value.recoveryScore.toDouble() }
             ?.average()
-            ?.toInt()
+            ?.roundToInt()
             ?: 100
         val guardScores = SPINE_GUARD_MUSCLES.mapNotNull { name ->
             perMuscle.entries.firstOrNull { muscleMatchesCategory(it.key, name) }?.value?.recoveryScore
@@ -695,7 +695,8 @@ object AugeRecoveryEngine {
 
         return MuscleRecoveryStatus(
             muscleName             = muscleName,
-            recoveryScore          = battery.toInt(),
+            // Se redondea (≥ 99,5 ⇒ 100): truncar dejaba el 99 durante días y sesgaba toda cifra −0,5.
+            recoveryScore          = battery.roundToInt(),
             hoursToRecovery        = hoursToRecovery,
             hoursSinceLastSession  = if (lastSessionDate > 0) ((now - lastSessionDate) / 3_600_000).toInt() else -1,
             effectiveSets          = effectiveSetsCount,
@@ -890,9 +891,9 @@ object AugeRecoveryEngine {
         val normalizedGymFatigue = clamp(100.0 * (1.0 - safeExp(-rawGymPct / 75.0)), 0.0, 100.0)
 
         val total = normalizedGymFatigue
-        val cnsBattery = clamp(100.0 - total, 0.0, 100.0).toInt()
+        val cnsBattery = clamp(100.0 - total, 0.0, 100.0).roundToInt()
 
-        return Triple(cnsBattery, normalizedGymFatigue.toInt(), 0)
+        return Triple(cnsBattery, normalizedGymFatigue.roundToInt(), 0)
     }
 
     // ─── 3. BATERÍA ESPINAL ───────────────────────────────────────────────────
@@ -1098,7 +1099,7 @@ object AugeRecoveryEngine {
         val capacity = max(70.0, tanks.spinal * 0.02)
         val rawPct = (accumulatedSpinalLoad / capacity) * 100.0
         val normalizedLoad = clamp(100.0 * (1.0 - safeExp(-rawPct / 70.0)), 0.0, 100.0)
-        return clamp(100.0 - normalizedLoad, 0.0, 100.0).toInt()
+        return clamp(100.0 - normalizedLoad, 0.0, 100.0).roundToInt()
     }
 
     // ─── 4. BATERÍAS GLOBALES ─────────────────────────────────────────────────
@@ -1174,7 +1175,7 @@ object AugeRecoveryEngine {
             val sortedAsc = gatedPillarBatteries.sorted()
             val bottomCount = maxOf(1, (sortedAsc.size * 0.25).toInt())
             val bottomQuartileAvg = sortedAsc.take(bottomCount).average()
-            (overallAvg * 0.85 + bottomQuartileAvg * 0.15).toInt()
+            (overallAvg * 0.85 + bottomQuartileAvg * 0.15).roundToInt()
         }
 
         val muscularWithAcwr = if (wellbeing?.manualMuscularBattery != null) {
@@ -1213,23 +1214,24 @@ object AugeRecoveryEngine {
         val spinalDelta = adaptiveCache.spinalLearningDelta.coerceIn(-15.0, 15.0)
         val floor = physiologicalFloor(settings)
 
+        // Los tres valores finales de los anillos también se redondean: aquí ya hay decimales (ACWR, deceleración, deltas).
         val decelMuscular = decelerateBattery(muscularWithAcwr)
         val finalMuscular = max(
             clamp(decelMuscular + avgMuscleDelta, 0.0, 100.0),
             floor.muscular.toDouble(),
-        ).toInt()
+        ).roundToInt()
         val finalCnc = max(
             decelerateBattery(
                 clamp(cncBattery.toDouble() + cnsDelta, 0.0, 100.0),
             ),
             floor.cns.toDouble(),
-        ).toInt().coerceIn(0, 100)
+        ).roundToInt().coerceIn(0, 100)
         val finalSpinal = max(
             decelerateBattery(
                 clamp(spinalBattery.toDouble() + spinalDelta, 0.0, 100.0),
             ),
             floor.spinal.toDouble(),
-        ).toInt().coerceIn(0, 100)
+        ).roundToInt().coerceIn(0, 100)
 
         val initialContribution = InitialRecoveryEvidencePolicy.resolve(
             InitialRecoveryPolicyInput(
@@ -1387,7 +1389,7 @@ object AugeRecoveryEngine {
             .takeIf { it.isNotEmpty() }
             ?.map { it.value.recoveryScore.toDouble() }
             ?.average()
-            ?.toInt()
+            ?.roundToInt()
             ?: 100
         val guardScores = SPINE_GUARD_MUSCLES.mapNotNull { name ->
             perMuscle.entries.firstOrNull { muscleMatchesCategory(it.key, name) }?.value?.recoveryScore
