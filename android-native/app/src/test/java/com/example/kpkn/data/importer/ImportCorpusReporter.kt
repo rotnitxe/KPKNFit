@@ -127,10 +127,11 @@ class ImportCorpusReporter(
         val percent = if (names.isEmpty()) null else confident * 100.0 / names.size
         val warnings = ImportWarningKind.entries.associate { kind -> kind.name to draft.warnings.count { it.kind == kind } }
         // Plantilla de KPKN: el mismo reconocimiento que la app, con el nombre del archivo como título.
-        val template = KnownProgramRecognizer.recognizeSheets(title, sheets)?.planId
+        val known = KnownProgramRecognizer.recognizeSheets(title, sheets)
         val report = base.copy(
             outcome = outcomeOf(placed.size, percent, warnings.getValue(ImportWarningKind.SKIPPED_ROW.name)),
-            template = template,
+            template = known?.planId,
+            templateFrom = known?.let { originOf(title, sheets) },
             analysisMs = analysisMs,
             weeks = draft.weeks.size,
             days = draft.weeks.sumOf { it.days.size },
@@ -386,7 +387,7 @@ class ImportCorpusReporter(
         appendLine("- Hojas (${file.sheets.size}): ${file.sheets.joinToString { "«${mdCell(it)}»" }}")
         appendLine("- Filas: ${file.rows}. Semanas: ${file.weeks}. Días: ${file.days}. Ejercicios: ${file.exercises}.")
         appendLine("- Nombres distintos: ${file.distinctNames}. Reconocidos con confianza: ${recognizedText(file)}.")
-        appendLine("- Plantilla de KPKN: ${file.template?.let { "«${mdCell(planName(it))}» ($it)" } ?: "ninguna"}.")
+        appendLine("- Plantilla de KPKN: ${file.template?.let { "«${mdCell(planName(it))}» ($it), por ${file.templateFrom}" } ?: "ninguna"}.")
         appendLine("- Avisos: ${ImportWarningKind.entries.joinToString(", ") { "${it.name} ${file.warnings[it.name] ?: 0}" }}.")
         appendLine("- Tiempos: lectura ${rounded(file.readMs, 1)} ms, análisis ${rounded(file.analysisMs, 1)} ms.")
         appendLine()
@@ -445,7 +446,15 @@ class ImportCorpusReporter(
     /** Nombre del plan para los textos: el de su ficha en KPKN, o su id si ya no existe. */
     private fun planName(planId: String): String = PersonalizedPlanCatalog.find(planId)?.displayName ?: planId
 
-    private fun templateText(file: CorpusFileReport): String = file.template?.let { planName(it) } ?: "-"
+    /** De dónde sale la plantilla: del título del archivo, de un nombre de hoja o de una celda de texto (para revisarla). */
+    private fun originOf(title: String, sheets: List<ImportSheet>): String = when {
+        KnownProgramRecognizer.recognize(title, emptyList(), emptyList()) != null -> "título"
+        KnownProgramRecognizer.recognize("", sheets.map { it.name }, emptyList()) != null -> "nombre de hoja"
+        else -> "celda de texto"
+    }
+
+    private fun templateText(file: CorpusFileReport): String =
+        file.template?.let { "${planName(it)} (${file.templateFrom ?: "-"})" } ?: "-"
 
     private fun recognizedText(file: CorpusFileReport): String {
         val pct = file.confidentPct ?: return "-"
@@ -615,6 +624,8 @@ data class CorpusFileReport(
     val confidentPct: Double? = null,
     /** Plan de KPKN que el archivo parece ser (su id), o null: el reconocedor de programas (H3f). */
     val template: String? = null,
+    /** De dónde sale esa plantilla: «título», «nombre de hoja» o «celda de texto»; null si no hay plantilla. */
+    val templateFrom: String? = null,
     /** Avisos por tipo (siempre los cinco, aunque sean cero). */
     val warnings: Map<String, Int> = emptyMap(),
     val exerciseSamples: List<ExerciseSample> = emptyList(),

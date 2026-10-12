@@ -180,10 +180,11 @@ class ImportCorpusReporterTest {
         val report = ImportCorpusReporter(matcher).run(root, out)
 
         assertEquals("protocol:gzclp", report.files.single().template)
+        assertEquals("título", report.files.single().templateFrom)
         assertEquals(listOf(CorpusTemplateGroup("protocol:gzclp", listOf("GZCLP.csv"))), report.summary.templates)
         val markdown = File(out, "report.md").readText()
         assertTrue(markdown.contains("Archivos reconocidos como plantilla de KPKN: 1."))
-        assertTrue(markdown.contains("| GZCLP |"))
+        assertTrue(markdown.contains("| GZCLP (título) |"))
     }
 
     /** Corpus mínimo: un xlsx de dos hojas, un csv bueno, un no-xlsx, uno con 21 hojas, un csv pobre y uno vacío. */

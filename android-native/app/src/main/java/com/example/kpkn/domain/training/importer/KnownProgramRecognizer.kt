@@ -13,14 +13,30 @@ data class KnownProgramMatch(val planId: String, val aliasMatched: String)
  * Prioridad de fuentes: el título manda; si no dice nada, los nombres de hoja; si tampoco, las celdas de texto. Dentro de un
  * nivel gana la frase más específica (la que contiene a las demás: «smolov jr» antes que «smolov»). Si quedan planes distintos
  * en el mismo nivel, no se reconoce ninguno.
+ *
+ * Las celdas de texto son ruidosas: solo cuentan las de tipo título ([isTitleLike]) y, al leer una hoja, solo sus primeras
+ * filas no vacías ([FIRST_ROWS]). Así una frase de instrucciones que nombra un programa no se toma por su título.
  */
 object KnownProgramRecognizer {
 
-    /** Cuántas filas no vacías de cada hoja (o líneas del texto pegado) se miran. */
-    private const val FIRST_ROWS = 10
+    /** Filas no vacías de cada hoja (o líneas del texto pegado) que se miran para el nivel de texto. */
+    private const val FIRST_ROWS = 3
+
+    /** Una celda de tipo título tiene como mucho estas palabras. */
+    private const val TITLE_MAX_WORDS = 8
 
     private val DIACRITICS = Regex("\\p{Mn}+")
     private val NON_ALPHANUMERIC = Regex("[^a-z0-9]+")
+    private val WHITESPACE = Regex("\\s+")
+
+    /**
+     * Frases de instrucciones (normalizadas): detrás de ellas una mención es una referencia, no el nombre del programa
+     * («based on the Texas Method…», «similar a Smolov»).
+     */
+    private val REFERENCE_PHRASES = listOf(
+        "based on", "inspired by", "similar to", "like", "basado en", "basada en", "basados en", "basadas en",
+        "inspirado en", "inspirada en", "similar a", "segun", "como", "al estilo de",
+    )
 
     /**
      * Frase normalizada → id del plan en `PersonalizedPlanCatalog`. Solo planes que se ofrecen (lo comprueba
@@ -61,8 +77,10 @@ object KnownProgramRecognizer {
         "coan philippi" to "protocol:coan-phillipi-dl",
         "coan y philippi" to "protocol:coan-phillipi-dl",
         "coan phillipi" to "protocol:coan-phillipi-dl",
-        "jacked tan 2" to "protocol:gzcl-jt-2",
-        "jacked and tan 2" to "protocol:gzcl-jt-2",
+        // GZCL Jacked & Tan 2.0: «tan», o «J&T»/«JNT», seguido de 2 (o 2.0). «Jacked and Tactical» es otro programa.
+        "tan 2" to "protocol:gzcl-jt-2",
+        "j t 2" to "protocol:gzcl-jt-2",
+        "jnt 2" to "protocol:gzcl-jt-2",
         "rippler" to "protocol:gzcl-rippler",
         "uhf 9" to "protocol:gzcl-uhf-9",
     )
@@ -70,9 +88,10 @@ object KnownProgramRecognizer {
     /**
      * El programa que KPKN ya tiene para [title], [sheetNames] y [firstTexts] (las celdas de texto de las primeras filas), o null.
      * Se decide en el primer nivel que nombra algún programa; si ese nivel nombra dos planes distintos, no se reconoce ninguno.
+     * De [firstTexts] solo cuentan las celdas de tipo título ([isTitleLike]).
      */
     fun recognize(title: String, sheetNames: List<String>, firstTexts: List<String>): KnownProgramMatch? {
-        val levels = listOf(listOf(title), sheetNames, firstTexts)
+        val levels = listOf(listOf(title), sheetNames, firstTexts.filter { isTitleLike(it) })
         for (texts in levels) {
             val hits = texts.flatMap { hitsIn(normalize(it)) }
             if (hits.isEmpty()) continue
@@ -87,7 +106,10 @@ object KnownProgramRecognizer {
         return null
     }
 
-    /** Un archivo ya leído: su título, los nombres de hoja y las celdas de texto de las primeras filas no vacías de cada hoja. */
+    /**
+     * Un archivo ya leído: su título, los nombres de hoja y las celdas de texto de sus primeras [FIRST_ROWS] filas no vacías
+     * (todas sus celdas no vacías).
+     */
     fun recognizeSheets(title: String, sheets: List<ImportSheet>): KnownProgramMatch? = recognize(
         title = title,
         sheetNames = sheets.map { it.name },
@@ -98,7 +120,7 @@ object KnownProgramRecognizer {
         },
     )
 
-    /** Un texto pegado: no tiene título ni hojas; sus primeras líneas no vacías hacen de celdas. */
+    /** Un texto pegado: no tiene título ni hojas; sus primeras [FIRST_ROWS] líneas no vacías hacen de celdas. */
     fun recognizeText(text: String): KnownProgramMatch? = recognize(
         title = "",
         sheetNames = emptyList(),
@@ -111,6 +133,18 @@ object KnownProgramRecognizer {
             .replace(DIACRITICS, "")
             .replace(NON_ALPHANUMERIC, " ")
             .trim()
+
+    /**
+     * Una celda puede ser el título de un programa si es corta (hasta [TITLE_MAX_WORDS] palabras), no acaba en punto ni en
+     * puntos suspensivos y no es una frase de instrucciones ([REFERENCE_PHRASES]).
+     */
+    private fun isTitleLike(cell: String): Boolean {
+        val text = cell.trim()
+        if (text.split(WHITESPACE).size > TITLE_MAX_WORDS) return false
+        if (text.endsWith(".") || text.endsWith("…")) return false
+        val padded = " ${normalize(text)} "
+        return REFERENCE_PHRASES.none { phrase -> padded.contains(" $phrase ") }
+    }
 
     private class Hit(val phrase: String, val planId: String)
 

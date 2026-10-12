@@ -95,6 +95,43 @@ class KnownProgramRecognizerTest {
     }
 
     @Test
+    fun jackedAndTacticalIsNotTheJackedAndTanProgram() {
+        listOf("Jacked and Tactical", "Jacked & Tactical", "Jacked & Tactical 2.0", "Jacked and Tan").forEach { title ->
+            assertNull(title, planOf(title))
+        }
+        assertEquals("protocol:gzcl-jt-2", planOf("J&T 2.0"))
+        assertEquals("protocol:gzcl-jt-2", planOf("JNT 2"))
+    }
+
+    @Test
+    fun aTextCellCountsOnlyWhenItLooksLikeATitle() {
+        // Una frase de instrucciones que nombra un programa no es su título.
+        val instructions = listOf(
+            "Based on the Texas Method, a four day plan with extra volume.",
+            "Based on the Texas Method…",
+            "Similar a Smolov",
+        )
+        instructions.forEach { cell ->
+            assertNull(cell, KnownProgramRecognizer.recognize("", emptyList(), listOf(cell)))
+        }
+        // Una celda corta de tipo título, sí.
+        assertEquals("protocol:texas-method-3d", KnownProgramRecognizer.recognize("", emptyList(), listOf("Texas Method"))?.planId)
+    }
+
+    @Test
+    fun onlyTheFirstThreeNonEmptyRowsOfASheetOrLinesOfATextCount() {
+        val late = ImportSheet(
+            "Hoja 1",
+            listOf(listOf("Día 1"), listOf(""), listOf("Ejercicio", "Series"), listOf("Sentadilla", "4"), listOf("Texas Method")),
+        )
+        val early = ImportSheet("Hoja 1", listOf(listOf("Texas Method"), listOf(""), listOf("Ejercicio", "Series")))
+
+        assertNull(KnownProgramRecognizer.recognizeSheets("", listOf(late)))
+        assertEquals("protocol:texas-method-3d", KnownProgramRecognizer.recognizeSheets("", listOf(early))?.planId)
+        assertNull(KnownProgramRecognizer.recognizeText("Día 1\nEjercicio\nSentadilla\nTexas Method"))
+    }
+
+    @Test
     fun theTableOnlyPointsAtPlansThatExistAndAreOffered() {
         KnownProgramRecognizer.ALIASES.forEach { (phrase, planId) ->
             val entry = checkNotNull(PersonalizedPlanCatalog.find(planId)) { "«$phrase» apunta a un plan que no existe: $planId" }
