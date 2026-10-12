@@ -329,6 +329,8 @@ class BatteryRoundingTest {
         assertEquals(0, ringPercent(batteryInt = -3, progress = 1f))
         assertEquals(0, ringPercent(batteryInt = null, progress = -0.2f))
         assertEquals(100, ringPercent(batteryInt = null, progress = 1.7f))
+        // Un progreso NaN sigue dando 0, como el toInt() de antes (roundToInt lanzaría).
+        assertEquals(0, ringPercent(batteryInt = null, progress = Float.NaN))
     }
 
     @Test
