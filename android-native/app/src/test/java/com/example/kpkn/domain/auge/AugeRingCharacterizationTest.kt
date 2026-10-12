@@ -60,18 +60,20 @@ class AugeRingCharacterizationTest {
         }
         assertTrue("Pecho duro debe drenar de forma visible", chest(hard, 0) < 95)
         assertTrue("Columna con sentadilla debe drenar", spinal(hard, 0) < 100)
-        pin("energyHard@0", energy(hard, 0), 80)
+        // Re-anclados por el redondeo de las baterías (WP 1.5), +1 como mucho; antes: energyHard@0 80 · chestHard@0 72 ·
+        // spinalHard@12 96 · energyHard@48 y @72 99 (la meseta del 99, ahora 100) · chestLight@0 92.
+        pin("energyHard@0", energy(hard, 0), 81)
         pin("spinalHard@0", spinal(hard, 0), 93)
-        pin("chestHard@0", chest(hard, 0), 72)
+        pin("chestHard@0", chest(hard, 0), 73)
         pin("energyHard@12", energy(hard, 12), 92)
-        pin("spinalHard@12", spinal(hard, 12), 96)
+        pin("spinalHard@12", spinal(hard, 12), 97)
         pin("chestHard@12", chest(hard, 12), 80)
         pin("energyHard@24", energy(hard, 24), 97)
         pin("spinalHard@24", spinal(hard, 24), 99)
-        pin("energyHard@48", energy(hard, 48), 99)
-        pin("energyHard@72", energy(hard, 72), 99)
+        pin("energyHard@48", energy(hard, 48), 100)
+        pin("energyHard@72", energy(hard, 72), 100)
         pin("energyLight@0", energy(light, 0), 90)
-        pin("chestLight@0", chest(light, 0), 92)
+        pin("chestLight@0", chest(light, 0), 93)
     }
 
     @Test
@@ -90,9 +92,10 @@ class AugeRingCharacterizationTest {
         println("[PIN] energy 1x=$e1 3x=$e3 5x=$e5")
         assertTrue("1× no puede dejar menos Energía que 3×, 1x=$e1 3x=$e3", e1 >= e3)
         assertTrue("5×/semana no puede dejar más Energía que 3×, 3x=$e3 5x=$e5", e5 <= e3)
-        pin("energy1x", e1, 87)
+        // Re-anclados por el redondeo (WP 1.5): antes 87 / 86 / 85.
+        pin("energy1x", e1, 88)
         pin("energy3x", e3, 86)
-        pin("energy5x", e5, 85)
+        pin("energy5x", e5, 86)
     }
 
     private fun pin(label: String, value: Int, expected: Int, slack: Int = 2) {
