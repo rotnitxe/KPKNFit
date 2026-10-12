@@ -68,6 +68,7 @@ import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.models.SessionRequirement
 import com.example.kpkn.domain.training.ProgramCalendarEngine
 import com.example.kpkn.domain.training.ScheduleIssue
+import com.example.kpkn.screens.programs.pluralSesiones
 import com.example.kpkn.domain.training.StartDaySessionMode
 import com.example.kpkn.domain.training.StartDayTemporalScope
 import com.example.kpkn.domain.training.WeekWithMeta
@@ -758,7 +759,7 @@ private fun DayColumn(
                                 isOutsideProgram -> "Fuera de programa"
                                 onEditScheduledDate != null && scheduledDateLabel != null -> "Toca la fecha para ajustar (turnos)"
                                 entries.isEmpty() -> "Sin sesiones todavía"
-                                else -> "${entries.size} sesión${if (entries.size > 1) "es" else ""}"
+                                else -> pluralSesiones(entries.size)
                             },
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,

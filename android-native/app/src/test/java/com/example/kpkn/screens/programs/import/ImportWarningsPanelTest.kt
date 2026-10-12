@@ -17,6 +17,7 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.text.AnnotatedString
+import com.example.kpkn.data.importer.ocr.OcrImportSource
 import com.example.kpkn.domain.training.importer.ImportDraftValidation
 import com.example.kpkn.domain.training.importer.ImportWarning
 import com.example.kpkn.domain.training.importer.ImportWarningKind
@@ -25,6 +26,7 @@ import com.example.kpkn.domain.training.importer.ImportedExercise
 import com.example.kpkn.domain.training.importer.ImportedProgramDraft
 import com.example.kpkn.domain.training.importer.ImportedWeek
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -161,9 +163,13 @@ class ImportWarningsPanelTest {
         }
     }
 
+    /** Con cuatro avisos sin revisar el panel empieza plegado: «Ver avisos» despliega la lista. */
+    private fun abrirLosAvisos() = rule.onNodeWithTag("import-warnings-see").performClick()
+
     @Test
     fun cadaTipoDeAvisoTieneSusAcciones() {
         rule.setContent { WarningsHost() }
+        abrirLosAvisos()
 
         rule.onNodeWithText("4 sin revisar").assertExists()
         // Una fila no entendida: añadirla como ejercicio o ignorarla.
@@ -182,6 +188,7 @@ class ImportWarningsPanelTest {
     @Test
     fun anadirComoEjercicioUsaElNombrePropuestoYElDiaElegido() {
         rule.setContent { WarningsHost() }
+        abrirLosAvisos()
 
         rule.onNodeWithTag("import-warning-add-a1").performClick()
         // El nombre sale de la fila; el día por defecto es el del aviso («Pierna»), y 3 × 10 si el texto no dice otra cosa.
@@ -207,6 +214,7 @@ class ImportWarningsPanelTest {
     @Test
     fun unDiaNuevoSeLlamaDiaN1() {
         rule.setContent { WarningsHost() }
+        abrirLosAvisos()
 
         rule.onNodeWithTag("import-warning-add-a1").performClick()
         rule.onNodeWithTag("import-warning-day-new").performClick()
@@ -221,6 +229,7 @@ class ImportWarningsPanelTest {
     @Test
     fun deshacerDeUnAnadirDesdeUnAvisoDevuelveElAvisoYQuitaElEjercicio() {
         rule.setContent { WarningsHost() }
+        abrirLosAvisos()
 
         rule.onNodeWithTag("import-warning-add-a1").performClick()
         rule.onNodeWithTag("import-add-exercise-save").performClick()
@@ -236,6 +245,7 @@ class ImportWarningsPanelTest {
     @Test
     fun revisarElEjercicioAbreSuPanelYElAvisoNoCambia() {
         rule.setContent { WarningsHost() }
+        abrirLosAvisos()
 
         rule.onNodeWithTag("import-warning-review-a2").performClick()
 
@@ -289,5 +299,79 @@ class ImportWarningsPanelTest {
         assertEquals(ImportAddReading(3, 8, 12), importAddReading("3x8-12 Remo"))
         assertEquals(ImportAddReading(5, 5, 5), importAddReading("5x5 Squat"))
         assertEquals(ImportAddReading(3, 10, 10), importAddReading("21x8 Algo"))
+    }
+
+    /** El mismo borrador con un aviso más, de la lectura de una imagen: el panel plegado debe mostrarlo siempre. */
+    private fun conAvisoDeImagen(): ImportedProgramDraft = program().let { draft ->
+        draft.copy(
+            warnings = draft.warnings + ImportWarning(
+                id = "img",
+                kind = ImportWarningKind.SHEET_NOTE,
+                location = "Hoja «Foto»",
+                sourceText = null,
+                message = "Hoja «Foto»: ${OcrImportSource.IMAGE_NOTE}",
+                weekIndex = null,
+                dayId = null,
+                exerciseId = null,
+            ),
+        )
+    }
+
+    @Test
+    fun conMasDeTresAvisosElPanelEmpiezaPlegadoYVerAvisosLoDespliega() {
+        rule.setContent { WarningsHost() }
+
+        rule.onNodeWithText("4 avisos sin revisar.").assertExists()
+        rule.onNodeWithTag("import-warning-add-a1").assertDoesNotExist()
+        abrirLosAvisos()
+
+        rule.onNodeWithTag("import-warning-add-a1").assertExists()
+        rule.onNodeWithText("4 sin revisar").assertExists()
+    }
+
+    @Test
+    fun conTresAvisosOMenosElPanelSaleDesplegadoComoAntes() {
+        rule.setContent { WarningsHost(initial = program().copy(warnings = program().warnings.take(3))) }
+
+        rule.onNodeWithTag("import-warnings-see").assertDoesNotExist()
+        rule.onNodeWithTag("import-warning-add-a1").assertExists()
+        rule.onNodeWithText("3 sin revisar").assertExists()
+    }
+
+    @Test
+    fun elAvisoDeLaImagenSeVeConElPanelPlegadoYSeDaPorEntendido() {
+        rule.setContent { WarningsHost(initial = conAvisoDeImagen()) }
+
+        rule.onNodeWithTag("import-warnings-see").assertExists()
+        rule.onNodeWithText(OcrImportSource.IMAGE_NOTE).assertExists()
+        rule.onNodeWithTag("import-warning-ok-img").performClick()
+
+        rule.onNodeWithText(OcrImportSource.IMAGE_NOTE).assertDoesNotExist()
+        rule.onNodeWithText("4 avisos sin revisar.").assertExists()
+    }
+
+    @Test
+    fun verAvisosDeLaRevisionFinalDespliegaElPanelPlegado() {
+        rule.setContent { WarningsHost() }
+
+        rule.onNodeWithTag("import-review-warnings").performClick()
+
+        rule.onNodeWithTag("import-warning-add-a1").assertExists()
+    }
+
+    @Test
+    fun tuArchivoDiceNoSeRepiteCuandoElMensajeYaLoCita() {
+        val cita = ImportWarning(
+            id = "c1",
+            kind = ImportWarningKind.SKIPPED_ROW,
+            location = "Hoja «Pierna», fila 9",
+            sourceText = "Hacer 3 vueltas",
+            message = "Hoja «Pierna», fila 9: No se entiende «Hacer 3 vueltas»",
+            weekIndex = 1,
+            dayId = "w1-d1",
+            exerciseId = null,
+        )
+        assertNull(importWarningSource(cita))
+        assertEquals("Hacer 3 vueltas", importWarningSource(cita.copy(message = "Hoja «Pierna», fila 9: no se entiende la fila")))
     }
 }

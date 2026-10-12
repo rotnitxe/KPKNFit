@@ -463,6 +463,7 @@ fun KPKNApp(
     var showPermissionAlert by remember { mutableStateOf(false) }
     var missingPermissions by remember { mutableStateOf(emptyList<String>()) }
     var permissionsRequested by remember { mutableStateOf(false) }
+    var permissionsSkipped by rememberSaveable { mutableStateOf(false) }
     val settings by ProgramRepository.getInstance().settings.collectAsState()
 
     DisposableEffect(lifecycleOwner) {
@@ -481,7 +482,7 @@ fun KPKNApp(
                         }
                     }
                     missingPermissions = missing
-                    showPermissionAlert = missing.isNotEmpty()
+                    showPermissionAlert = missing.isNotEmpty() && !permissionsSkipped
                 }
             }
         }
@@ -531,6 +532,7 @@ fun KPKNApp(
         // chrome de navegación: el CTA «Continuar» del visual gate no puede
         // quedar tapado por la bottom bar.
         currentRoute?.startsWith(KpknRoute.SetupWizard.SETUP_ROUTES_BASE) == true ||
+        currentRoute == KpknRoute.ImportProgram.route ||
         currentRoute == KpknRoute.CompetitionDetail.route ||
         resolvedRoute?.startsWith("competition/") == true
     val primaryProgramId = activeProgram?.id ?: allPrograms.firstOrNull()?.id
@@ -1091,7 +1093,7 @@ fun KPKNApp(
             },
             dismissButton = {
                 TextButton(
-                    onClick = { showPermissionAlert = false },
+                    onClick = { showPermissionAlert = false; permissionsSkipped = true },
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Text("Omitir por ahora", color = MaterialTheme.colorScheme.onSurfaceVariant)

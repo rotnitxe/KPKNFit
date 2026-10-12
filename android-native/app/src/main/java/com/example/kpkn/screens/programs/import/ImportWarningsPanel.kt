@@ -23,6 +23,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.example.kpkn.data.importer.ocr.OcrImportSource
 import com.example.kpkn.domain.training.importer.ExerciseNameCandidate
 import com.example.kpkn.domain.training.importer.ImportWarning
 import com.example.kpkn.domain.training.importer.ImportWarningKind
@@ -32,6 +33,7 @@ import com.example.kpkn.domain.training.importer.ImportedProgramDraft
 import com.example.kpkn.domain.training.importer.ProgramImportParser
 import com.example.kpkn.screens.onboarding.design.WizardColors
 import com.example.kpkn.screens.onboarding.design.WizardTypography
+import com.example.kpkn.screens.programs.plural
 
 /** Lo que «Añadir a:» elige para un día nuevo (los ids de día nunca están vacíos). */
 private const val NEW_DAY_TARGET = ""
@@ -54,11 +56,15 @@ private val SCHEME_IN_TEXT = Regex("""(\d{1,3})\s*[x×]\s*(\d{1,3})(?:\s*[-–]\
 /** Series y repeticiones con las que se propone añadir una fila: lo que se lee en su texto, o 3 × 10. */
 internal data class ImportAddReading(val sets: Int, val repsMin: Int, val repsMax: Int)
 
+/** Con más avisos sin revisar que esto, el panel empieza plegado. */
+internal const val IMPORT_WARNINGS_FOLD_FROM = 3
+
 /**
  * Los avisos de la importación, cada uno con su acción. Un aviso sin revisar se resuelve con lo que dice: «Añadir como
  * ejercicio» (una fila que no se entendió), «Revisar el ejercicio» (un valor descartado) o «Entendido» / «Ignorar». Cada acción
  * deja deshacer. Los revisados salen de la lista y se ven atenuados si se piden. Sin nada sin revisar, el panel se pliega en una
- * línea. [reveal] sube al tocar «Ver avisos» de la revisión final: el panel se despliega y sube a la vista.
+ * línea. Con más de [IMPORT_WARNINGS_FOLD_FROM] sin revisar, empieza plegado: la cuenta, «Ver avisos» e «Ignorar todos», y el aviso
+ * de la imagen, que siempre sale. [reveal] sube al tocar «Ver avisos» de la revisión final: el panel se despliega y sube a la vista.
  */
 @Composable
 internal fun ImportWarningsPanel(
@@ -93,6 +99,18 @@ internal fun ImportWarningsPanel(
             Text("Avisos: todo revisado ·", style = WizardTypography.note, color = WizardColors.textMuted)
             ImportTextAction(label = "Ver", onClick = { expanded = true }, modifier = Modifier.testTag("import-warnings-open"))
         }
+        return
+    }
+    if (pending.size > IMPORT_WARNINGS_FOLD_FROM && !expanded) {
+        ImportWarningsFolded(
+            imported = imported,
+            pending = pending,
+            search = search,
+            onOpen = { expanded = true },
+            onEdit = onEdit,
+            requester = requester,
+            modifier = modifier,
+        )
         return
     }
     Column(
@@ -145,11 +163,63 @@ internal fun ImportWarningsPanel(
                 reviewed.forEach { warning -> ReviewedWarningRow(warning) }
             }
         }
-        if (pending.isEmpty()) {
+        if (pending.isEmpty() || pending.size > IMPORT_WARNINGS_FOLD_FROM) {
             ImportTextAction(
                 label = "Ocultar avisos",
                 onClick = { expanded = false },
                 modifier = Modifier.testTag("import-warnings-close"),
+            )
+        }
+    }
+}
+
+/**
+ * El panel con más de [IMPORT_WARNINGS_FOLD_FROM] avisos sin revisar, plegado: la cuenta, «Ver avisos» e «Ignorar todos». El aviso de
+ * la imagen («revisa los números antes de guardar») sale siempre, con su «Entendido».
+ */
+@Composable
+private fun ImportWarningsFolded(
+    imported: ImportedProgramDraft,
+    pending: List<ImportWarning>,
+    search: suspend (String) -> List<ExerciseNameCandidate>,
+    onOpen: () -> Unit,
+    onEdit: (ImportEditOp) -> Unit,
+    requester: BringIntoViewRequester,
+    modifier: Modifier,
+) {
+    val imageNotices = pending.filter { it.kind == ImportWarningKind.SHEET_NOTE && it.message.contains(OcrImportSource.IMAGE_NOTE) }
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .bringIntoViewRequester(requester)
+            .semantics { paneTitle = "Avisos de la importación" }
+            .testTag("import-warnings-pending-folded"),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        Text(
+            "Avisos de la importación",
+            style = WizardTypography.controlLabel,
+            color = WizardColors.text,
+            modifier = Modifier.semantics { heading() },
+        )
+        Text(avisosSinRevisar(pending.size), style = WizardTypography.note, color = WizardColors.textMuted)
+        Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+            ImportTextAction(label = "Ver avisos", onClick = onOpen, modifier = Modifier.testTag("import-warnings-see"))
+            ImportTextAction(
+                label = "Ignorar todos",
+                onClick = { onEdit(ImportEditOp.IgnoreAllWarnings) },
+                modifier = Modifier.testTag("import-warnings-ignore-all"),
+            )
+        }
+        imageNotices.forEach { warning ->
+            ImportWarningRow(
+                warning = warning,
+                imported = imported,
+                adding = false,
+                onAddingChange = {},
+                search = search,
+                onOpenExercise = {},
+                onEdit = onEdit,
             )
         }
     }
@@ -336,6 +406,9 @@ private fun ReviewedWarningRow(warning: ImportWarning) {
 
 private fun sinRevisar(count: Int): String = if (count == 1) "1 sin revisar" else "$count sin revisar"
 
+/** La cuenta del panel plegado: «47 avisos sin revisar.». */
+private fun avisosSinRevisar(count: Int): String = "${plural(count, "aviso", "avisos")} sin revisar."
+
 /** El mensaje sin su ubicación, que sale en la línea de arriba: «Hoja «X», fila 4: sin series» → «Sin series». */
 internal fun importWarningDetail(warning: ImportWarning): String {
     val prefix = "${warning.location}: "
@@ -347,9 +420,14 @@ internal fun importWarningDetail(warning: ImportWarning): String {
     return detail.replaceFirstChar { it.titlecase() }
 }
 
-/** El texto original de la fila, si aporta algo distinto del mensaje. */
-internal fun importWarningSource(warning: ImportWarning): String? =
-    warning.sourceText?.trim()?.takeIf { it.isNotEmpty() && it != warning.message.trim() }
+/**
+ * El texto original de la fila, si aporta algo distinto del mensaje. Si el mensaje ya lo cita entre comillas angulares
+ * («No se entiende «Hacer 3 vueltas»»), no se repite.
+ */
+internal fun importWarningSource(warning: ImportWarning): String? {
+    val source = warning.sourceText?.trim()?.takeIf { it.isNotEmpty() && it != warning.message.trim() } ?: return null
+    return source.takeUnless { warning.message.contains("«$source»") }
+}
 
 /** El ejercicio con ese id, o null si ya no está en el borrador. */
 internal fun importExerciseOf(imported: ImportedProgramDraft, exerciseId: String): ImportedExercise? =

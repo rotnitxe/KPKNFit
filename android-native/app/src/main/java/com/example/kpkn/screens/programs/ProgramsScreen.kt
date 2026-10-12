@@ -110,43 +110,12 @@ fun ProgramsScreen(
             contentPadding = PaddingValues(bottom = 120.dp.adapt(programsAdapt)),
         ) {
             item {
-                Row(
+                ProgramsHeader(
+                    onNew = { showCreateSheet = true },
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 20.dp.adapt(programsAdapt), vertical = 24.dp.adapt(programsAdapt)),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                ) {
-                    Column(Modifier.weight(1f)) {
-                        Text(
-                            text = "PROGRAMAS",
-                            style = MaterialTheme.typography.titleLarge,
-                            fontWeight = FontWeight.Black,
-                            color = MaterialTheme.colorScheme.onSurface,
-                        )
-                        Text(
-                            text = "Gestiona tus planes de entrenamiento",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                    }
-                    Button(
-                        onClick = { showCreateSheet = true },
-                        modifier = Modifier.wrapContentWidth(),
-                        shape = MaterialTheme.shapes.extraLarge,
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.primary,
-                        ),
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Add,
-                            contentDescription = null,
-                            modifier = Modifier.size(18.dp),
-                        )
-                        Spacer(Modifier.width(4.dp))
-                        Text("Nuevo", fontWeight = FontWeight.Black, fontSize = 12.sp)
-                    }
-                }
+                )
             }
 
             if (activeProgram != null) {
@@ -497,11 +466,57 @@ private fun ActiveProgramCard(
                 }
 
                 Text(
-                    text = "${stats.weeks} semanas · ${stats.sessions} sesiones",
+                    text = "${pluralSemanas(stats.weeks)} · ${pluralSesiones(stats.sessions)}",
                     style = MaterialTheme.typography.bodySmall,
                     color = Color.White.copy(alpha = 0.78f),
                 )
             }
+        }
+    }
+}
+
+/**
+ * La cabecera de Programas: el título y «+ Nuevo». Va en una línea mientras cabe; con letra grande, «+ Nuevo» baja a su propia
+ * fila. El título no se parte por dentro de la palabra.
+ */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+internal fun ProgramsHeader(onNew: () -> Unit, modifier: Modifier = Modifier) {
+    FlowRow(
+        modifier = modifier,
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        Column {
+            Text(
+                text = "PROGRAMAS",
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Black,
+                color = MaterialTheme.colorScheme.onSurface,
+                maxLines = 1,
+                softWrap = false,
+            )
+            Text(
+                text = "Gestiona tus planes de entrenamiento",
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+        Button(
+            onClick = onNew,
+            modifier = Modifier.wrapContentWidth(),
+            shape = MaterialTheme.shapes.extraLarge,
+            colors = ButtonDefaults.buttonColors(
+                containerColor = MaterialTheme.colorScheme.primary,
+            ),
+        ) {
+            Icon(
+                imageVector = Icons.Default.Add,
+                contentDescription = null,
+                modifier = Modifier.size(18.dp),
+            )
+            Spacer(Modifier.width(4.dp))
+            Text("Nuevo", fontWeight = FontWeight.Black, fontSize = 12.sp)
         }
     }
 }
@@ -549,7 +564,7 @@ private fun InactiveProgramCard(
                         color = Color.White,
                     )
                     Text(
-                        text = "${stats.weeks} semanas · ${stats.sessions} sesiones",
+                        text = "${pluralSemanas(stats.weeks)} · ${pluralSesiones(stats.sessions)}",
                         style = MaterialTheme.typography.bodySmall,
                         color = Color.White.copy(alpha = 0.78f),
                     )
