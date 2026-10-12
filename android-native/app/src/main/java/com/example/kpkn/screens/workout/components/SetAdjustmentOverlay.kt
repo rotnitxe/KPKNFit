@@ -25,12 +25,12 @@ import com.example.kpkn.domain.training.machineRangeForExercise
 import com.example.kpkn.domain.training.reachableWarmupLoad
 import com.example.kpkn.screens.workout.*
 import com.example.kpkn.ui.components.KpknSheet
-import kotlin.math.roundToInt
 
 /**
  * Material real para la sugerencia de carga (1.12c): misma resolución que el calentamiento
- * (`WorkoutViewModel.getWarmupSuggestedWeight`). Sin material declarado devuelve null y la
- * sugerencia usa el paso fijo de 2,5 kg.
+ * (`WorkoutViewModel.getWarmupSuggestedWeight`). Devuelve la carga alcanzable MÁS CERCANA a la pedida
+ * (null si no se puede afirmar). Sin material declarado devuelve null y la sugerencia usa el múltiplo
+ * de 2,5 kg más cercano.
  */
 internal fun readinessLoadSnapFor(
     exercise: Exercise,
@@ -49,27 +49,7 @@ internal fun readinessLoadSnapFor(
     )
     val equipmentKind = canonicalEquipmentKind(info?.equipment)
     val machine = inventory.machineRangeForExercise(exercise.catalogConfigurationId, equipmentKind)
-    return { requestedKg ->
-        val reached = reachableWarmupLoad(requestedKg, equipmentKind, inventory, machine)
-        when {
-            reached == null -> null
-            reached <= requestedKg + 0.001 -> reached
-            // Las máquinas redondean al paso más cercano: se baja un paso para quedar por debajo.
-            machine != null -> reachableWarmupLoad(
-                reached - machine.incrementKg,
-                equipmentKind,
-                inventory,
-                machine,
-            )?.takeIf { it <= requestedKg + 0.001 }
-            else -> null
-        }
-    }
-}
-
-/** Porcentaje con una cifra decimal como máximo y coma decimal, sin truncar. */
-private fun Double.toPercentText(): String {
-    val tenths = (this * 1000).roundToInt()
-    return if (tenths % 10 == 0) "${tenths / 10}" else "${tenths / 10},${kotlin.math.abs(tenths % 10)}"
+    return { requestedKg -> reachableWarmupLoad(requestedKg, equipmentKind, inventory, machine) }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -128,7 +108,7 @@ internal fun SetAdjustmentOverlay(
     }
     val plannedWeightText = when (loadMode) {
         LoadModeV2.BODYWEIGHT -> "BW"
-        else -> "${plannedWeight.toTrimmedNumberString()}kg"
+        else -> "${ExerciseReadinessEngine.formatSuggestedNumber(plannedWeight)}kg"
     }
 
     val suggestedModeText = when (adjustment.suggestedLoadMode) {
@@ -139,7 +119,7 @@ internal fun SetAdjustmentOverlay(
     }
     val suggestedWeightText = when (adjustment.suggestedLoadMode) {
         LoadModeV2.BODYWEIGHT -> "BW"
-        else -> "${adjustment.suggestedWeight.toTrimmedNumberString()}kg"
+        else -> "${ExerciseReadinessEngine.formatSuggestedNumber(adjustment.suggestedWeight)}kg"
     }
     KpknSheet(
         onDismissRequest = {},
@@ -292,12 +272,13 @@ internal fun SetAdjustmentOverlay(
                         Text(
                             when {
                                 adjustment.suggestedLoadMode == LoadModeV2.ASSISTED ->
-                                    "+${(adjustment.suggestedWeight - plannedWeight).toTrimmedNumberString()}kg asist."
+                                    "+${ExerciseReadinessEngine.formatSuggestedNumber(adjustment.suggestedWeight - plannedWeight)}kg asist."
                                 // Reducción real: la sugerida queda por debajo de la planificada.
                                 adjustment.suggestedWeight < plannedWeight - 0.001 ->
-                                    "−${adjustment.reductionPercent.toPercentText()}%"
-                                // Sin carga exacta: la reducción se pide a ojo y el peso no cambia.
+                                    "−${ExerciseReadinessEngine.formatSuggestedNumber(adjustment.reductionPercent * 100)} %"
+                                // Sin material que afirme una carga: la reducción se pide «a ojo» (el peso no cambia).
                                 adjustment.reductionPercent > 0.0 -> "a ojo"
+                                // «Sin ajuste»: el peso sugerido es igual al planificado.
                                 else -> "sin ajuste"
                             },
                             style = MaterialTheme.typography.labelSmall,
@@ -320,7 +301,7 @@ internal fun SetAdjustmentOverlay(
                         tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f),
                     )
                     Text(
-                        "eRM promedio: ~${averageErm.toTrimmedNumberString()}kg",
+                        "eRM promedio: ~${ExerciseReadinessEngine.formatSuggestedNumber(averageErm)}kg",
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
                     )
@@ -418,8 +399,9 @@ internal fun SetAdjustmentOverlay(
                     Text(
                         when (adjustment.suggestedLoadMode) {
                             LoadModeV2.BODYWEIGHT -> "Aplicar Peso Corporal"
-                            LoadModeV2.ASSISTED -> "Aplicar +${adjustment.suggestedWeight.toTrimmedNumberString()}kg Asist."
-                            else -> "Aplicar ${adjustment.suggestedWeight.toTrimmedNumberString()}kg"
+                            LoadModeV2.ASSISTED ->
+                                "Aplicar +${ExerciseReadinessEngine.formatSuggestedNumber(adjustment.suggestedWeight)}kg Asist."
+                            else -> "Aplicar ${ExerciseReadinessEngine.formatSuggestedNumber(adjustment.suggestedWeight)}kg"
                         },
                         fontWeight = FontWeight.Bold,
                     )
