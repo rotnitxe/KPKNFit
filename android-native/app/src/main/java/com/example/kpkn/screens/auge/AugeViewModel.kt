@@ -30,6 +30,7 @@ import com.example.kpkn.domain.auge.PerformanceTauLearner
 import com.example.kpkn.domain.auge.PerformanceTauManualTouches
 import com.example.kpkn.domain.auge.RecoveryBands
 import com.example.kpkn.domain.auge.SystemicLoadMonitor
+import com.example.kpkn.domain.auge.detectWellbeingEdits
 import com.example.kpkn.domain.auge.mergeWellbeingForSave
 import com.example.kpkn.domain.auge.remapMuscleIntMapToPillars
 import com.example.kpkn.domain.auge.remapMuscleMultiplierMapToPillars
@@ -473,35 +474,38 @@ class AugeViewModel(application: Application) : AndroidViewModel(application) {
         viewModelScope.launch {
             augeWriteMutex.lock()
             try {
-            // Stamp anchor only when real manual overrides are present (not auto-filled predictions)
-            val hasManualOverrides = log.manualNeuralBattery != null ||
-                log.manualSpinalBattery != null ||
-                log.manualMuscularBattery != null ||
-                log.manualMuscleBatteries.isNotEmpty() ||
-                log.manualMuscleOverridesV2.isNotEmpty()
             val pillarMuscles = remapMuscleIntMapToPillars(log.manualMuscleBatteries)
             val remappedLog = log.copy(manualMuscleBatteries = pillarMuscles)
+            // La fila REAL de hoy, leída al guardar: el anfitrión reutiliza la que leyó al componerse la
+            // pantalla (tras medianoche es la de ayer) y el chequeo previo reenvía los ajustes de hoy
+            // sin que la persona los toque.
+            val storedToday = augeRepo.getTodayWellbeing()?.takeIf { it.date == remappedLog.date }
+            // Solo es ajuste lo que cambia lo guardado: una copia no reinicia el ancla ni enseña a AUGE.
+            val edits = detectWellbeingEdits(storedToday, remappedLog)
+            // Stamp anchor only when real manual overrides are present (not auto-filled predictions)
+            val hasManualOverrides = !edits.isEmpty() || log.manualMuscleOverridesV2.isNotEmpty()
             val anchoredLog = if (hasManualOverrides) {
                 remappedLog.copy(manualBatteryAnchorMs = System.currentTimeMillis())
             } else {
                 remappedLog.copy(manualBatteryAnchorMs = null)
             }
             // El chequeo previo reconstruye la fila sin las anclas V2 del alta y del final
-            // del entreno: se fusiona con lo que ya guarda hoy antes de persistir.
-            val storedToday = augeRepo.getTodayWellbeing()?.takeIf { it.date == anchoredLog.date }
-            augeRepo.saveWellbeingLog(mergeWellbeingForSave(storedToday, anchoredLog))
+            // del entreno: se fusiona con lo que ya guarda hoy antes de persistir. El `id` es el de la fila
+            // de hoy, nunca el de otro día (el `upsert` es por `id`).
+            val rowId = storedToday?.id ?: freeWellbeingRowId(anchoredLog)
+            augeRepo.saveWellbeingLog(mergeWellbeingForSave(storedToday, anchoredLog.copy(id = rowId)))
 
-            // Learn τ only when the sensation differs from the live prediction.
-            // Finish-near-zero hours is rejected inside learnFromManualAdjustment.
-            if (hasManualOverrides) {
+            // Learn τ only when the sensation differs from the live prediction, and only from what the person
+            // actually edited (never from copies). Finish-near-zero hours is rejected inside learnFromManualAdjustment.
+            if (!edits.isEmpty()) {
                 val snapshot = _snapshot.value
                 val predictedNeural = snapshot.batteries.cnc
                 val predictedSpinal = snapshot.batteries.spinal
                 val predictedMuscles = snapshot.perMuscle.mapValues { (_, v) -> v.recoveryScore }
                 learnFromManualAdjustment(
-                    manualNeural = anchoredLog.manualNeuralBattery?.takeIf { it != predictedNeural },
-                    manualSpinal = anchoredLog.manualSpinalBattery?.takeIf { it != predictedSpinal },
-                    manualMuscleBatteries = anchoredLog.manualMuscleBatteries.filter { (muscle, value) ->
+                    manualNeural = edits.neural?.takeIf { it != predictedNeural },
+                    manualSpinal = edits.spinal?.takeIf { it != predictedSpinal },
+                    manualMuscleBatteries = edits.muscles.filter { (muscle, value) ->
                         predictedMuscles[muscle] != null && predictedMuscles[muscle] != value
                     },
                     sessionCnsDrain = 0.0,
@@ -519,6 +523,16 @@ class AugeViewModel(application: Application) : AndroidViewModel(application) {
                 augeWriteMutex.unlock()
             }
         }
+    }
+
+    /**
+     * `id` con el que guardar [log] cuando hoy aún no hay fila: el suyo, salvo que lo use una fila de OTRA fecha.
+     * El `upsert` de Room es por `id`: reusar el de ayer (el anfitrión lo leyó una sola vez al componerse la
+     * pantalla) reescribiría la fila de ayer con la fecha de hoy. Son pocas filas: una por día.
+     */
+    private suspend fun freeWellbeingRowId(log: DailyWellbeingLog): String {
+        val usedByAnotherDay = augeRepo.getWellbeingLogs().any { it.id == log.id && it.date != log.date }
+        return if (usedByAnotherDay) UUID.randomUUID().toString() else log.id
     }
 
     /** Call when user submits post-session feedback. */
@@ -698,17 +712,10 @@ class AugeViewModel(application: Application) : AndroidViewModel(application) {
             // Do not invent a global muscular override from a simple average of per-muscle
             // values — that freezes the muscular ring and diverges from the engine formula.
             val invertedSpinal = spinal?.let { invertDisplayedStructure(it) }
-            val updated = DailyWellbeingLog(
-                id = base?.id ?: UUID.randomUUID().toString(),
-                date = LocalDate.now().toString(),
-                sleepQuality = base?.sleepQuality ?: 3,
-                stressLevel = base?.stressLevel ?: 3,
-                doms = base?.doms ?: 1,
-                motivation = base?.motivation ?: 3,
-                sleepHours = base?.sleepHours,
-                moodState = base?.moodState,
-                workIntensity = base?.workIntensity,
-                studyIntensity = base?.studyIntensity,
+            // Solo cambia lo que este gesto toca: `source`, `capturedFields`, notas, molestias y cualquier
+            // campo futuro de la fila (p. ej. la del alta) se conservan tal cual.
+            val target = base ?: DailyWellbeingLog(id = UUID.randomUUID().toString(), date = LocalDate.now().toString())
+            val updated = target.copy(
                 manualMuscularBattery = muscular?.coerceIn(0, 100) ?: base?.manualMuscularBattery,
                 manualNeuralBattery = neural?.coerceIn(0, 100) ?: base?.manualNeuralBattery,
                 manualSpinalBattery = invertedSpinal?.coerceIn(0, 100) ?: base?.manualSpinalBattery,
@@ -720,8 +727,6 @@ class AugeViewModel(application: Application) : AndroidViewModel(application) {
                     else -> base?.manualBatteryAnchorMs
                 },
                 manualMuscleOverridesV2 = updatedV2,
-                notes = base?.notes,
-                preWorkoutDiscomforts = base?.preWorkoutDiscomforts.orEmpty(),
             )
             augeRepo.saveWellbeingLog(updated)
 
