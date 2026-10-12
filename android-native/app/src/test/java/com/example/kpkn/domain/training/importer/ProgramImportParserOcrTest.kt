@@ -217,6 +217,7 @@ class ProgramImportParserOcrTest {
         val rows = listOf(
             listOf("Cómo leer esta tabla: RPE 8 significa que al final de la serie te quedan unas 2 repeticiones."),
             listOf("Regla de progresión: cuando el cliente llega al máximo del rango en todas las series, sube la carga."),
+            listOf("• Cómo sumar las series de calentamiento: no cuentan para la progresión de cada ejercicio."),
             listOf("Sentadilla 4x8"),
         )
 
@@ -227,7 +228,7 @@ class ProgramImportParserOcrTest {
 
         assertEquals(listOf("Sentadilla"), exercisesOf(draft).map { it.rawName })
         assertEquals(emptyList<String>(), skippedMessages(draft))
-        assertTrue(draft.warnings.any { it.message.contains("2 líneas de texto") })
+        assertTrue(draft.warnings.any { it.message.contains("3 líneas de texto") })
     }
 
     @Test

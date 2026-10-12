@@ -1170,14 +1170,14 @@ object ProgramImportParser {
 
     /**
      * Prosa de una hoja de OCR (H5b): una celda de 8 palabras o más, o de 60 caracteres o más, en su mayoría en minúscula,
-     * que empieza por letra (no por cifra ni por símbolo) y cuyas 3 primeras palabras no son un alias. Son instrucciones
-     * y reglas de la página con cifras, no ejercicios.
+     * que no empieza por notación (tras quitar viñetas y símbolos, por cifra) y cuyas 3 primeras palabras no son un alias.
+     * Son instrucciones y reglas de la página con cifras, no ejercicios.
      */
     private fun isOcrProse(text: String): Boolean {
         val clean = text.trim()
         val words = clean.split(WHITESPACE).filter { it.isNotEmpty() }
         if (words.size < 8 && clean.length < 60) return false
-        if (clean.firstOrNull()?.isLetter() != true) return false
+        if (clean.trimStart { !it.isLetterOrDigit() }.firstOrNull()?.isLetter() != true) return false
         val lettered = words.filter { word -> word.any { it.isLetter() } }
         if (lettered.count { it == it.lowercase() } * 2 <= lettered.size) return false
         return (1..minOf(3, words.size)).none { ImportExerciseAliases.lookup(words.take(it).joinToString(" ")) != null }
