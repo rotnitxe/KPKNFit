@@ -44,6 +44,7 @@ object ImportedProgramBuilder {
         val trainingDays = weekdays.filter { it in 1..7 }.distinct().sorted()
         val configurations = catalog?.let { configurationIndex(it) }.orEmpty()
         val revision = catalog?.catalogRevision
+        val alternatives = catalog?.let { alternativeNotes(draft, resolved, it) }.orEmpty()
         val weeks = draft.weeks.sortedBy { it.index }.map { week ->
             val weekdayPerSession = assignWeekdays(week.days.size, trainingDays)
             ProgramWeek(
@@ -58,6 +59,7 @@ object ImportedProgramBuilder {
                         weekday = weekdayPerSession[dayIndex],
                         loadUnit = draft.loadUnit,
                         resolved = resolved,
+                        alternatives = alternatives,
                         configurations = configurations,
                         revision = revision,
                     )
@@ -111,6 +113,7 @@ object ImportedProgramBuilder {
         weekday: Int?,
         loadUnit: ImportLoadUnit,
         resolved: Map<String, String?>,
+        alternatives: Map<String, String>,
         configurations: Map<String, Pair<ExerciseDefinitionV2, ExerciseConfigurationV2>>,
         revision: String?,
     ): Session {
@@ -125,6 +128,7 @@ object ImportedProgramBuilder {
                     members = members,
                     loadUnit = loadUnit,
                     configurationId = resolved[members.first().rawName],
+                    alternativeNote = alternatives[members.first().rawName],
                     configurations = configurations,
                     revision = revision,
                 )
@@ -141,6 +145,7 @@ object ImportedProgramBuilder {
         members: List<ImportedExercise>,
         loadUnit: ImportLoadUnit,
         configurationId: String?,
+        alternativeNote: String?,
         configurations: Map<String, Pair<ExerciseDefinitionV2, ExerciseConfigurationV2>>,
         revision: String?,
     ): Exercise {
@@ -162,7 +167,7 @@ object ImportedProgramBuilder {
             trainingMode = TrainingMode.REPS,
             restTime = members.firstNotNullOfOrNull { it.restSeconds },
             sets = buildSets(id, members, loadUnit),
-            executionCues = members.mapNotNull { it.notes }.distinct(),
+            executionCues = (members.mapNotNull { it.notes } + listOfNotNull(alternativeNote)).distinct(),
         )
     }
 
@@ -214,6 +219,28 @@ object ImportedProgramBuilder {
             }
         }
         return groups
+    }
+
+    /**
+     * Nota «Alternativa: Y.» de cada nombre «X o Y» que se resolvió por X: el emparejador lo reconoce así y la
+     * configuración resuelta es la suya. Si la persona eligió otra, no hay nota.
+     */
+    private fun alternativeNotes(
+        draft: ImportedProgramDraft,
+        resolved: Map<String, String?>,
+        catalog: ExerciseCatalogV2,
+    ): Map<String, String> {
+        val names = draft.weeks.flatMap { week -> week.days.flatMap { day -> day.exercises.map { it.rawName } } }
+            .distinct()
+            .filter { resolved[it] != null && splitAlternative(it) != null }
+        if (names.isEmpty()) return emptyMap()
+        val matcher = ExerciseNameMatcher(catalog)
+        return names.mapNotNull { name ->
+            val match = matcher.match(name)
+            val alternative = match.alternative ?: return@mapNotNull null
+            if (match.best?.configurationId != resolved[name]) return@mapNotNull null
+            name to "Alternativa: $alternative."
+        }.toMap()
     }
 
     private const val LB_TO_KG = 0.45359237

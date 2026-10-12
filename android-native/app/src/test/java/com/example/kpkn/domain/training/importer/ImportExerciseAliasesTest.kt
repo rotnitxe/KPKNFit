@@ -102,4 +102,45 @@ class ImportExerciseAliasesTest {
         assertNull(ImportExerciseAliases.lookup("Press con mancuernas"))
         assertEquals("military_press", ImportExerciseAliases.lookup("Press militar con mancuernas")?.definitionId)
     }
+
+    @Test
+    fun `cada familia de H5b apunta a su ejercicio`() {
+        val expected = listOf(
+            "Gemelos de pie" to "calf_raise",
+            "Gemelos sentado" to "calf_raise",
+            "Gemelos sentado en máquina" to "calf_raise",
+            "Zancada andando" to "walking_lunge",
+            "Remo con barra inclinado" to "conventional_row",
+            "Remo inclinado con barra" to "conventional_row",
+            "Barbell row" to "conventional_row",
+            "Remo sentado en polea" to "gironda_row",
+            "Remo en polea sentado" to "gironda_row",
+            "Seated cable row" to "gironda_row",
+            "Remo gironda" to "gironda_row",
+            "Remo sentado" to "gironda_row",
+            "Aperturas en polea" to "flat_chest_fly",
+            "Cable fly" to "flat_chest_fly",
+            "Cruce de poleas" to "tren_superior_cruce_poleas",
+            "Extensión de tríceps sobre la cabeza" to "overhead_triceps_extension",
+            "Peso muerto con barra hexagonal" to "conventional_deadlift",
+            "Aductores" to "hip_adduction",
+            "Aductores en máquina" to "hip_adduction",
+            "Abductores en máquina" to "hip_abduction",
+            "Close grip pulldown" to "close_grip_lat_pulldown",
+            "Jalón agarre cerrado" to "close_grip_lat_pulldown",
+            "Dominadas" to "pull_up",
+        )
+        for ((phrase, definitionId) in expected) {
+            assertEquals("«$phrase»", definitionId, ImportExerciseAliases.lookup(phrase)?.definitionId)
+        }
+    }
+
+    @Test
+    fun `las variantes y el material de las frases de H5b son los de su ejercicio`() {
+        assertEquals("calf_raise__bilateral__seated_machine", ImportExerciseAliases.lookup("Gemelos sentado")?.configurationId)
+        assertEquals("conventional_row__barbell", ImportExerciseAliases.lookup("Remo con barra inclinado")?.configurationId)
+        assertEquals("cable", ImportExerciseAliases.lookup("Cable fly")?.equipmentId)
+        assertEquals("cable", ImportExerciseAliases.lookup("Aperturas en polea")?.equipmentId)
+        assertEquals("hex_bar", ImportExerciseAliases.lookup("Peso muerto con barra hexagonal")?.equipmentId)
+    }
 }
