@@ -62,6 +62,8 @@ convierte en un `Program` con procedencia «Programa importado».
   saltando etiquetas de día).
 - Nombres sueltos sin prescripción (sin cifras): se cuentan como líneas de texto de la hoja y solo avisan uno a uno si la hoja no da
   ningún ejercicio. Una fila con cifras que no se entiende («Press 4/8») sí avisa, para poder «Añadir como ejercicio».
+- Solo en PDF y fotos: una frase larga con cifras (8 palabras o más, o 60 caracteres o más, casi toda en minúscula; por ejemplo «Cómo
+  leerlo: RPE 8 significa…») es una línea de texto, no un aviso.
 - AMRAP: «5+», «AMRAP» → la última serie lleva la nota AMRAP.
 - Pirámide: «4x 15-12-10-8» o «12/10/8/6» → rango 8–15 y la nota «Pirámide: 15-12-10-8.».
   - Hacen falta 3 cifras o más («2x10-12» es un rango) y ninguna con cero delante.
@@ -85,6 +87,11 @@ ejercicio («Añadir como ejercicio»).
 1. Alias exactos (`ImportExerciseAliases`, ~500 frases en inglés y en español; confianza 0,95).
 2. Si no, parecido por palabras (Dice) con traducción inglés → español y penalización por variante o material que no cuadra.
 - «Reconocido» = confianza ≥ 0,8 y al menos 0,15 por encima del segundo candidato. Si no, la pantalla ofrece 3 sugerencias y búsqueda.
+- **Dos opciones** («Dominadas o jalón agarre cerrado», «Leg press or hack squat»):
+  - si el nombre entero no se reconoce y la primera opción sí, se usa la primera;
+  - el ejercicio guardado lleva la nota «Alternativa: jalón agarre cerrado.».
+- **Alias que dicen el movimiento, no solo el material:** «remo sentado (en polea)» es el Remo Gironda, no el remo con barra en polea, que
+  se hace de pie. Al añadir alias, comprobar las dos cosas en el catálogo.
 - `ExerciseMatchLexicon` (el del resto de la app) no se tocó.
 
 ## 4. Programas que KPKN ya tiene
@@ -102,6 +109,13 @@ Todo es puro y se puede deshacer:
 - Cada nombre necesita una decisión: «Elegir» (un ejercicio del catálogo) o «Propio» (se guarda con su nombre).
 - Revisión final «Falta revisar» (`ImportDraftValidation.check`, pura): semanas o días vacíos, nombres sin decidir y avisos sin revisar,
   cada uno con su acción («Elegir», «Quitar el día», «Quitar la semana», «Ver avisos», «Ignorar todos»).
+- **Avisos:** con más de 3 sin revisar, el panel empieza plegado («47 avisos sin revisar.» · «Ver avisos» · «Ignorar todos»). El aviso de
+  imagen se ve siempre.
+- **Días de entrenamiento** (solo desde Programas; en el alta lo hace «Así queda tu semana»):
+  - siete interruptores L–D junto a «Guardar programa», con un reparto inicial según los días del programa (3 → L, X, V);
+  - sin ningún día no se guarda.
+  - Antes, todo caía el lunes.
+- La pantalla de importar oculta la barra flotante de la app, como el asistente y el editor de programas.
 - El borrador del alta guarda el programa importado; los borradores anteriores a H1 se reparan al leerlos (`withIds`).
 
 En Free, un programa importado de más de 1 semana o de más de 5 sesiones pide Pro (`ProgramAccessPolicy`).
@@ -128,13 +142,16 @@ Qué significa cada resultado:
 - **NADA:** ningún ejercicio.
 - **RECHAZO:** el lector no acepta el archivo.
 
-Resultados (2026-10-12, `feat/wizard-v3` con H4d):
+Resultados (2026-10-12, `feat/wizard-v3` con H5b):
 
 | Corpus | Archivos | BIEN | POBRE | NADA | RECHAZO | Nombres reconocidos |
 |---|---|---|---|---|---|---|
-| Hojas de la comunidad (118 de LiftVault y 8 en español) | 126 | 22 | 61 | 43 | 0 | 36,0 % de media por archivo; 34 plantillas de KPKN |
-| Colección del usuario (`01_originales`) | 1057 | 105 | 208 | 149 | 595: PDF, porque la JVM no tiene OCR | 39,3 %; 62 plantillas |
-| PDF por OCR en el Galaxy Z Flip5 | 35 (483 páginas) | 9 | 15 | 11 | 0 fallos | 47,9 % de los nombres; 173 ms por página (mediana) |
+| Hojas de la comunidad (118 de LiftVault y 8 en español) | 126 | 22 | 61 | 43 | 0 | 493 nombres; 36,0 % de media por archivo; 34 plantillas de KPKN |
+| Colección del usuario (`01_originales`) | 1057 | 106 | 207 | 149 | 595: PDF, porque la JVM no tiene OCR | 2033 nombres; 62 plantillas |
+| PDF por OCR (filas del Galaxy Z Flip5, banco JVM) | 35 (483 páginas) | 9 | 13 | 13 | 0 fallos | 51,0 % de los nombres; 173 ms por página en el teléfono (mediana) |
+
+- Los dos PDF de Vivifrail pasan de POBRE a NADA con H5b. Sus 6 «ejercicios» eran palabras sueltas de frases de instrucciones («Realiza»,
+  «Haz»): no leer nada es más honesto.
 
 Evolución en el teléfono:
 - 1.ª pasada (H4b): BIEN 1, POBRE 16 y NADA 18, con 317 ejercicios.
@@ -160,3 +177,6 @@ Evolución en el teléfono:
   estructura no se reconoce.
 - **Archivos de más de 5 MB** (15 en la colección): se rechazan por tamaño.
 - **Pirámide sin series que no va en un solo sentido** («10-8-6-15»): no se lee como pirámide. Con series («4x 10-8-6-15») sí.
+- **Errores del OCR dentro de una palabra** («Fondoso» en lugar de «Fondos o»): no se adivinan.
+- **Dos opciones con una primera muy genérica** («Remo o jalón», «Sentadilla o prensa»): se usa la configuración por defecto de la primera.
+- **El nombre del catálogo no dice el material en la vista previa** («Aperturas Planas» puede ser en polea): se ve al abrir el ejercicio.
