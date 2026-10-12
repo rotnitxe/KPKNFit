@@ -197,6 +197,7 @@ import com.example.kpkn.data.models.SetAdjustmentSuggestion
 import com.example.kpkn.data.repository.AugeRepository
 import java.time.LocalDate
 import java.util.UUID
+import java.util.concurrent.atomic.AtomicReference
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.hazeSource
 import kotlin.math.roundToInt
@@ -349,8 +350,46 @@ fun WorkoutScreen(
     val perMuscle by augeViewModel.perMuscle.collectAsStateWithLifecycle()
 
     val augeRepository = remember(context) { AugeRepository.getInstance(context) }
-    val todayWellbeing by produceState<DailyWellbeingLog?>(initialValue = null) {
+    // La fila de bienestar de HOY, releída cuando AUGE recalcula (un guardado, el recálculo de 5 min) y al cambiar el
+    // día. Leída una sola vez, el chequeo previo y todo lo que la reutiliza veían una copia vieja (tras medianoche,
+    // la de ayer).
+    val today = LocalDate.now()
+    val todayWellbeing by produceState<DailyWellbeingLog?>(initialValue = null, augeSnapshot, today) {
         value = augeRepository.getTodayWellbeing()
+    }
+
+    // ─── Anillos del cierre: la hoja y el cierre por voz comparten UN aplicador ─────────────────────────────
+    // La voz guarda la sesión sin pasar por la hoja (P0) y aplica los anillos dictados desde aquí, con el resumen del
+    // cierre mientras la hoja lo muestra; sin resumen, se aplica lo dictado sin predicciones (AUGE no aprende).
+    val latestFinishPreview = remember { AtomicReference<PostSessionPreview?>(null) }
+    val finishRingsOnce = remember { FinishRingsOnce() }
+    val applyFinishRings: (SessionClosingFeedback, PostSessionPreview?) -> Unit = remember(viewModel, augeViewModel) {
+        { closing, preview ->
+            // Una sola aplicación por sesión: el id del log recién escrito la identifica.
+            if (finishRingsOnce.shouldApply(viewModel.uiState.value.logAlreadyWrittenId ?: closing.finishOperationId)) {
+                val edits = finishRingEdits(closing, preview)
+                if (edits != null) {
+                    augeViewModel.applyManualBatteries(
+                        neural = edits.neural,
+                        muscular = null,
+                        spinal = edits.spinal,
+                        perMuscleDelta = edits.muscleDeltas.takeIf { it.isNotEmpty() },
+                        sessionCnsDrain = edits.sessionCnsDrain,
+                        sessionSpinalDrain = edits.sessionSpinalDrain,
+                        sessionMuscleDrain = edits.sessionMuscleDrain,
+                        predictedNeuralBattery = edits.predictedNeural,
+                        predictedSpinalBattery = edits.predictedSpinal,
+                        predictedMuscleBatteries = edits.predictedMuscles,
+                    )
+                } else {
+                    augeViewModel.refresh()
+                }
+            }
+        }
+    }
+    DisposableEffect(viewModel, applyFinishRings) {
+        viewModel.setFinishRingsApplier { closing -> applyFinishRings(closing, latestFinishPreview.get()) }
+        onDispose { viewModel.setFinishRingsApplier(null) }
     }
 
     // Calcular readiness por ejercicio cuando los datos AUGE están listos
@@ -1679,6 +1718,11 @@ fun WorkoutScreen(
 
         if (previewState is FinishAugePreviewState.Ready) {
             val postSessionPreview = (previewState as FinishAugePreviewState.Ready).preview
+            // Mientras la hoja muestra este resumen, el cierre por voz lo usa para aplicar los anillos dictados.
+            DisposableEffect(postSessionPreview) {
+                latestFinishPreview.set(postSessionPreview)
+                onDispose { latestFinishPreview.compareAndSet(postSessionPreview, null) }
+            }
             // D2.1: series de fuerza/cardio que quedan sin hacer (no cuenta ejercicios saltados
             // a propósito ni series omitidas). Solo aviso: el resumen y el guardado no cambian.
             val pendingSeriesNotice = remember(
@@ -1737,42 +1781,7 @@ fun WorkoutScreen(
                     fatigueLevel = fatigue,
                     closingFeedback = closingFeedback,
                     onComplete = {
-                        val neuralChanged = closingFeedback.finalNeuralBattery != postSessionPreview.neural
-                        val spinalChanged = closingFeedback.finalSpinalBattery != postSessionPreview.spinal
-                        val anyRingEdit = neuralChanged ||
-                            spinalChanged ||
-                            closingFeedback.editedMuscleKeys.isNotEmpty()
-                        if (anyRingEdit) {
-                            val predictedMuscles = postSessionPreview.perMuscle.mapValues { it.value.recoveryScore }
-                            augeViewModel.applyManualBatteries(
-                                neural = if (neuralChanged) {
-                                    closingFeedback.finalNeuralBattery
-                                } else {
-                                    null
-                                },
-                                muscular = null,
-                                spinal = if (spinalChanged) {
-                                    closingFeedback.finalSpinalBattery
-                                } else {
-                                    null
-                                },
-                                perMuscleDelta = if (closingFeedback.editedMuscleKeys.isNotEmpty()) {
-                                    closingFeedback.finalMuscleBatteries.filterKeys {
-                                        it in closingFeedback.editedMuscleKeys
-                                    }
-                                } else {
-                                    null
-                                },
-                                sessionCnsDrain = postSessionPreview.globalCnsDrain.toDouble(),
-                                sessionSpinalDrain = postSessionPreview.globalSpinalDrain.toDouble(),
-                                sessionMuscleDrain = postSessionPreview.globalMuscularDrain.toDouble(),
-                                predictedNeuralBattery = postSessionPreview.neural,
-                                predictedSpinalBattery = postSessionPreview.spinalRaw,
-                                predictedMuscleBatteries = predictedMuscles,
-                            )
-                        } else {
-                            augeViewModel.refresh()
-                        }
+                        applyFinishRings(closingFeedback, postSessionPreview)
                         if (share) {
                             viewModel.shareWorkoutToStory(
                                 context = context,
