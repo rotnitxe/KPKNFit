@@ -140,11 +140,12 @@ object ExerciseReadinessEngine {
         }
 
         val ermPenaltyFactor = if (averageErm != null && averageErm > 0.0) {
+            // targetPercentageRM es un porcentaje (60.0 = 60 %): sin kilos, se divide entre 100
             val maxPlannedWeight = exercise.sets
                 .mapNotNull {
                     it.weight
                         ?: if (it.targetPercentageRM != null && averageErm > 0.0)
-                            averageErm * it.targetPercentageRM
+                            averageErm * it.targetPercentageRM / 100.0
                         else null
                 }
                 .maxOrNull() ?: 0.0
@@ -256,10 +257,13 @@ object ExerciseReadinessEngine {
                 .flatMap { it.involvedMuscleIds }
                 .distinct()
 
+            // Sin ningún músculo del patrón en perMuscle: 100, como el resto del archivo (1.10 decidirá «sin datos»)
             val avgMuscleRecov = uniqueMuscles
                 .mapNotNull { perMuscle[it]?.recoveryScore }
-                .average()
-                .roundToInt()
+                .takeIf { it.isNotEmpty() }
+                ?.average()
+                ?.roundToInt()
+                ?: 100
 
             MovementPatternReadiness(
                 patternId = patternId,
