@@ -15,6 +15,9 @@ import androidx.compose.ui.test.assertIsNotSelected
 import androidx.compose.ui.test.assertIsSelected
 import androidx.compose.ui.test.performTextReplacement
 import androidx.compose.ui.test.assertIsNotEnabled
+import androidx.compose.ui.test.hasAnyAncestor
+import androidx.compose.ui.test.hasTestTag
+import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onAllNodesWithText
@@ -24,6 +27,7 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextInput
 import com.example.kpkn.domain.training.importer.ImportDraftValidation
+import com.example.kpkn.domain.training.importer.ImportLoadUnit
 import com.example.kpkn.domain.training.importer.ImportedDay
 import com.example.kpkn.domain.training.importer.ImportedExercise
 import com.example.kpkn.domain.training.importer.ImportedProgramDraft
@@ -137,7 +141,8 @@ class ImportExerciseEditorTest {
         rule.setContent { EditHost(oneDay(), mapOf("Sentadilla" to null, "Prensa" to null)) }
 
         rule.onNodeWithTag("import-exercise-Prensa").performClick()
-        rule.onNodeWithText("kg").performClick()
+        // «kg» también es el conmutador de la vista previa: el de la carga se elige dentro de su fila.
+        rule.onNode(hasText("kg") and hasAnyAncestor(hasTestTag("import-edit-load-mode"))).performClick()
         rule.onNodeWithTag("import-edit-kg").performTextInput("0,2")
 
         rule.onNodeWithText("Entre 0,5 y 1000 kg.").assertExists()
@@ -233,5 +238,77 @@ class ImportExerciseEditorTest {
 
         rule.onNodeWithText("Listo: 1 semana · 1 día · 1 ejercicio.").assertExists()
         rule.onNodeWithTag("import-save").assertIsEnabled()
+    }
+
+    /** Una sentadilla de 4 × 6 con 135 de carga, en la unidad que diga el borrador (kg o libras). */
+    private fun squatIn(unit: ImportLoadUnit): ImportedProgramDraft = ImportedProgramDraft(
+        title = "Plan",
+        weeks = listOf(
+            ImportedWeek(
+                1,
+                listOf(
+                    ImportedDay(
+                        "w1-d1",
+                        "Pierna",
+                        listOf(ImportedExercise("w1-d1-e1", "Sentadilla", sets = 4, repsMin = 6, repsMax = 6, loadKg = 135.0)),
+                    ),
+                ),
+            ),
+        ),
+        loadUnit = unit,
+    )
+
+    @Test
+    fun theLoadUnitToggleAppearsWithLoadsAndSwitchingItChangesTheRowsUntilUndone() {
+        rule.setContent { EditHost(squatIn(ImportLoadUnit.KG), mapOf("Sentadilla" to null)) }
+
+        rule.onNodeWithTag("import-load-unit").assertExists()
+        rule.onNodeWithText("4 × 6 · 135 kg", substring = true).assertExists()
+        rule.onNode(hasText("lb") and hasAnyAncestor(hasTestTag("import-load-unit"))).performClick()
+
+        rule.onNodeWithText("4 × 6 · 135 lb", substring = true).assertExists()
+        rule.onNodeWithText("Se guardarán en kg (p. ej. 135 lb = 61 kg).").assertExists()
+        rule.onNodeWithText("Cambiaste la unidad de las cargas a lb.").assertExists()
+
+        rule.onNodeWithTag("import-undo").performClick()
+
+        rule.onNodeWithText("4 × 6 · 135 kg", substring = true).assertExists()
+        rule.onNodeWithText("Se guardarán en kg (p. ej. 135 lb = 61 kg).").assertDoesNotExist()
+    }
+
+    @Test
+    fun aProgramWithoutLoadsHasNoLoadUnitToggle() {
+        rule.setContent {
+            EditHost(
+                ProgramImportParser.parseText("Día 1 — Pierna\nSentadilla 4x6\nPrensa 3x10", "Mi programa"),
+                mapOf("Sentadilla" to null, "Prensa" to null),
+            )
+        }
+
+        rule.onNodeWithTag("import-load-unit").assertDoesNotExist()
+    }
+
+    @Test
+    fun withPoundsThePanelSaysPoundsAndRefusesMoreThan2200() {
+        rule.setContent { EditHost(squatIn(ImportLoadUnit.LB), mapOf("Sentadilla" to null)) }
+
+        rule.onNodeWithTag("import-exercise-Sentadilla").performClick()
+        rule.onNode(hasText("lb") and hasAnyAncestor(hasTestTag("import-edit-load-mode"))).assertExists()
+        rule.onNode(hasText("Libras"), useUnmergedTree = true).assertExists()
+        rule.onNodeWithTag("import-edit-kg").performTextReplacement("2300")
+
+        rule.onNodeWithText("Entre 1 y 2200 lb.").assertExists()
+        rule.onNodeWithTag("import-edit-save").assertIsNotEnabled()
+    }
+
+    @Test
+    fun aPoundsValueSavesAsItIsAndTheRowShowsPounds() {
+        rule.setContent { EditHost(squatIn(ImportLoadUnit.LB), mapOf("Sentadilla" to null)) }
+
+        rule.onNodeWithTag("import-exercise-Sentadilla").performClick()
+        rule.onNodeWithTag("import-edit-kg").performTextReplacement("185")
+        rule.onNodeWithTag("import-edit-save").performClick()
+
+        rule.onNodeWithText("4 × 6 · 185 lb", substring = true).assertExists()
     }
 }
