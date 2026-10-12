@@ -1,6 +1,7 @@
 package com.example.kpkn.screens.onboarding
 
 import android.app.Application
+import android.net.Uri
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModelStore
 import androidx.test.core.app.ApplicationProvider
@@ -38,6 +39,7 @@ import com.example.kpkn.domain.training.importer.ImportExercisePatch
 import com.example.kpkn.screens.programs.importer.ImportEditOp
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestScope
@@ -311,6 +313,30 @@ class ImportActivationWizardTest {
         advanceUntilIdle()
         assertNull(vm.state.value.draft.importedProgram)
         assertNull(vm.state.value.importUndoLabel)
+    }
+
+    /**
+     * Leer un PDF en el alta: el progreso por página se ve; «Cancelar» corta la lectura y el paso queda como estaba, sin programa
+     * ni error.
+     */
+    @Test
+    fun readingAFileShowsItsPageAndCancelLeavesTheStepAsItWas() = runTest(dispatcher.scheduler, timeout = 10.minutes) {
+        val vm = newVm()
+        vm.initialize(SetupWizardMode.TRAINING_ONLY)
+        await(vm, "wizard cargado") { !it.isLoading && it.currentStep == SetupStepId.NAME }
+        vm.readFile = { _, onProgress ->
+            onProgress(2, 5)
+            awaitCancellation()
+        }
+
+        vm.importFromPicked(Uri.parse("content://kpkn.test/programa.pdf"))
+        await(vm, "página 2 de 5") { it.importBusy && it.importProgress == "Leyendo la página 2 de 5…" }
+        vm.cancelImport()
+
+        await(vm, "lectura cancelada") { !it.importBusy }
+        assertNull(vm.state.value.importProgress)
+        assertNull(vm.state.value.importError)
+        assertNull(vm.state.value.draft.importedProgram)
     }
 
     private fun newVm(level: PlanLevel = PlanLevel.PRO): SetupWizardViewModel =

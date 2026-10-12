@@ -20,7 +20,6 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -47,19 +46,12 @@ fun ImportProgramScreen(
     val state by viewModel.state.collectAsState()
     val level: PlanLevel = LocalPlan.current
     val scope = rememberCoroutineScope()
-    val context = LocalContext.current
     var pasting by rememberSaveable { mutableStateOf(false) }
     var pasted by rememberSaveable { mutableStateOf("") }
     // Sube cada vez que «Ver avisos» de la revisión final: el panel de avisos se despliega y sube a la vista.
     var warningsReveal by rememberSaveable { mutableStateOf(0) }
-    val pickFile = rememberImportFilePicker { uri ->
-        scope.launch {
-            readPickedFile(context.contentResolver, uri).fold(
-                onSuccess = { (title, sheets) -> viewModel.importFromSheets(sheets, title) },
-                onFailure = { viewModel.reportError(it.message ?: "No pudimos leer este archivo.") },
-            )
-        }
-    }
+    // La lectura va en el ViewModel: así su progreso se ve y «Cancelar» la corta.
+    val pickFile = rememberImportFilePicker { uri -> viewModel.importFromPicked(uri) }
     val imported = state.imported
     val resolutions = state.resolutions
     val issues = remember(imported, resolutions) {
@@ -76,7 +68,11 @@ fun ImportProgramScreen(
         ImportTextAction(label = "Atrás", onClick = onBack)
         Text("Importar programa", style = WizardTypography.stepTitle, color = WizardColors.text)
         if (imported == null) {
-            ImportSourceChoices(onChooseFile = pickFile, onPaste = { pasting = true })
+            ImportSourceChoices(
+                onChooseFile = pickFile,
+                onPaste = { pasting = true },
+                onPhoto = { uri, takenFile -> viewModel.importFromPicked(uri, photo = true, takenFile = takenFile) },
+            )
             if (pasting) {
                 ImportPasteField(
                     text = pasted,
@@ -129,7 +125,7 @@ fun ImportProgramScreen(
                 Text("Guardar programa")
             }
         }
-        if (state.busy) EntrenoPlanNotice(text = "Leyendo el programa…", error = false)
+        if (state.busy) ImportReadingNotice(text = state.progress ?: IMPORT_READING_TEXT, onCancel = viewModel::cancelImport)
         state.error?.let { EntrenoPlanNotice(text = it) }
         state.notice?.let { EntrenoPlanNotice(text = it, error = false) }
     }

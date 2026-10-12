@@ -5,6 +5,7 @@ import com.example.kpkn.domain.training.importer.ImportDraftEditor
 import com.example.kpkn.domain.training.importer.ImportExercisePatch
 import com.example.kpkn.domain.training.importer.ImportIssue
 import com.example.kpkn.domain.training.importer.ImportIssueKind
+import com.example.kpkn.domain.training.importer.ImportLoadUnit
 import com.example.kpkn.domain.training.importer.ImportedDay
 import com.example.kpkn.domain.training.importer.ImportedExercise
 import com.example.kpkn.domain.training.importer.ImportedProgramDraft
@@ -99,6 +100,9 @@ sealed interface ImportEditOp {
     /** Marca como revisados todos los avisos. */
     data object IgnoreAllWarnings : ImportEditOp
 
+    /** Cambia la unidad de las cargas del archivo (kg o libras); solo cambia la unidad, nunca los números. */
+    data class SetLoadUnit(val unit: ImportLoadUnit) : ImportEditOp
+
     /**
      * Varias ediciones como una sola, en orden: «Guardar cambios» con valores y nombre deja un único paso para deshacer.
      */
@@ -156,6 +160,8 @@ object ImportEdits {
                 imported = ImportDraftEditor.ignoreWarning(draft, op.warningId),
             ) to "Marcaste un aviso como revisado."
             ImportEditOp.IgnoreAllWarnings -> ignoredAll(snapshot)
+            is ImportEditOp.SetLoadUnit -> snapshot.copy(imported = draft.copy(loadUnit = op.unit)) to
+                "Cambiaste la unidad de las cargas a ${importLoadUnitLabel(op.unit)}."
             is ImportEditOp.Batch -> return batched(snapshot, op, nameOf)
         }
         return if (result.first == snapshot) null else result
@@ -355,21 +361,40 @@ data class ImportExerciseForm(
     }
 }
 
+/** Tope de la carga en libras del panel: 2200 lb, unos 1000 kg (el mismo tope que en kilos, en su unidad). */
+internal const val MAX_LOAD_LB = 2200.0
+
 /** Rangos del panel: los del analizador, para que lo que se edita sea lo que se lee. */
 private val LOAD_KG_RANGE = 0.5..ProgramImportParser.MAX_LOAD_KG
+private val LOAD_LB_RANGE = 1.0..MAX_LOAD_LB
 private val PERCENT_RANGE = 1.0..ProgramImportParser.MAX_PERCENT
 private val RPE_RANGE = 1.0..10.0
 private val RIR_RANGE = 0..10
 
-/** Carga válida para el modo elegido: kg de 0,5 a 1000; % de 1 a 100; sin carga siempre vale. */
-fun ImportExerciseForm.loadIsValid(): Boolean = when (loadMode) {
+/** El rango válido de la carga en la unidad [unit]: de 0,5 a 1000 kg, o de 1 a 2200 lb. */
+private fun loadRangeOf(unit: ImportLoadUnit): ClosedFloatingPointRange<Double> =
+    if (unit == ImportLoadUnit.LB) LOAD_LB_RANGE else LOAD_KG_RANGE
+
+/** La pista del campo de carga cuando sale de su rango: «Entre 0,5 y 1000 kg.» o «Entre 1 y 2200 lb.». */
+fun importLoadRangeText(unit: ImportLoadUnit): String =
+    if (unit == ImportLoadUnit.LB) {
+        "Entre 1 y ${MAX_LOAD_LB.toLong()} lb."
+    } else {
+        "Entre 0,5 y ${ProgramImportParser.MAX_LOAD_KG.toLong()} kg."
+    }
+
+/** Carga válida para el modo elegido: kg (o libras) dentro de su rango; % de 1 a 100; sin carga siempre vale. */
+fun ImportExerciseForm.loadIsValid(unit: ImportLoadUnit = ImportLoadUnit.KG): Boolean = when (loadMode) {
     ImportLoadMode.NONE -> true
-    ImportLoadMode.KG -> loadKg?.let { it in LOAD_KG_RANGE } == true
+    ImportLoadMode.KG -> loadKg?.let { it in loadRangeOf(unit) } == true
     ImportLoadMode.PERCENT -> percent1Rm?.let { it in PERCENT_RANGE } == true
 }
 
-/** Si el formulario se puede guardar: nombre, series, repeticiones, carga, esfuerzo, descanso y notas dentro de rango. */
-fun ImportExerciseForm.isValid(): Boolean {
+/**
+ * Si el formulario se puede guardar: nombre, series, repeticiones, carga (en la unidad [unit] del borrador), esfuerzo, descanso y
+ * notas dentro de rango.
+ */
+fun ImportExerciseForm.isValid(unit: ImportLoadUnit = ImportLoadUnit.KG): Boolean {
     val effortOk = when (effortMode) {
         ImportEffortMode.NONE -> true
         ImportEffortMode.RPE -> rpe?.let { it in RPE_RANGE } == true
@@ -380,7 +405,7 @@ fun ImportExerciseForm.isValid(): Boolean {
         repsMin in 1..ProgramImportParser.MAX_REPS &&
         repsMax in 1..ProgramImportParser.MAX_REPS &&
         repsMin <= repsMax &&
-        loadIsValid() &&
+        loadIsValid(unit) &&
         effortOk &&
         (restSeconds == null || restSeconds in 0..ProgramImportParser.MAX_REST_SECONDS) &&
         notes.length <= ProgramImportParser.MAX_NOTE_CHARS

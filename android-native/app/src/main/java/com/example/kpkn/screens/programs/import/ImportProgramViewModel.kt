@@ -1,6 +1,7 @@
 package com.example.kpkn.screens.programs.importer
 
 import android.app.Application
+import android.net.Uri
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.kpkn.data.exercises.catalogv2.ApprovedAssetExerciseCatalogRepositoryV2
@@ -17,13 +18,16 @@ import com.example.kpkn.domain.training.importer.ImportSheet
 import com.example.kpkn.domain.training.importer.ImportedProgramBuilder
 import com.example.kpkn.domain.training.importer.ImportedProgramDraft
 import com.example.kpkn.domain.training.importer.ProgramImportParser
+import java.io.File
 import java.util.UUID
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -43,6 +47,8 @@ data class ImportProgramState(
     /** Lo que deshace el siguiente toque; null si no hay nada que deshacer. */
     val undoLabel: String? = null,
     val busy: Boolean = false,
+    /** Lo que se muestra mientras se lee: «Leyendo la página N de M…», «Leyendo la foto…» o «Leyendo el programa…». */
+    val progress: String? = null,
     val error: String? = null,
     val notice: String? = null,
 )
@@ -58,6 +64,9 @@ class ImportProgramViewModel(application: Application) : AndroidViewModel(applic
     @Volatile private var catalog: ExerciseCatalogV2? = null
     private var importJob: Job? = null
 
+    /** Lo que había antes de empezar a leer: «Cancelar» vuelve a ello tal cual. Null si no hay lectura en curso. */
+    private var stateBeforeRead: ImportProgramState? = null
+
     /** Pila de deshacer de las ediciones: en memoria; se vacía al leer otro archivo o al empezar de nuevo. */
     private val undoStack = ImportUndoStack()
 
@@ -67,18 +76,59 @@ class ImportProgramViewModel(application: Application) : AndroidViewModel(applic
     /** Guarda el programa; las pruebas lo sustituyen. Producción: el repositorio de programas. */
     internal var saveProgram: suspend (Program) -> Result<Unit> = { ProgramRepository.getInstance().addProgramNow(it) }
 
+    /**
+     * Lee un archivo elegido o una foto con sus hojas y su título, y avisa de cada página de un PDF. Las pruebas lo sustituyen
+     * por uno falso con progreso.
+     */
+    internal var readFile: suspend (uri: Uri, onProgress: (page: Int, pages: Int) -> Unit) -> Result<Pair<String, List<ImportSheet>>> =
+        { uri, onProgress -> readPickedFile(application.contentResolver, uri, application.cacheDir, onProgress) }
+
     private val _state = MutableStateFlow(ImportProgramState())
     val state: StateFlow<ImportProgramState> = _state.asStateFlow()
 
     fun importFromSheets(sheets: List<ImportSheet>, title: String) =
-        startImport(title.ifBlank { ImportedProgramBuilder.DEFAULT_TITLE }) {
-            ProgramImportParser.parseSheets(sheets, title.ifBlank { ImportedProgramBuilder.DEFAULT_TITLE })
+        startImport(title.ifBlank { ImportedProgramBuilder.DEFAULT_TITLE }, IMPORT_READING_TEXT) {
+            withContext(Dispatchers.Default) {
+                ProgramImportParser.parseSheets(sheets, title.ifBlank { ImportedProgramBuilder.DEFAULT_TITLE })
+            }
         }
 
     fun importFromText(text: String) =
-        startImport(ImportedProgramBuilder.DEFAULT_TITLE) {
-            ProgramImportParser.parseText(text, ImportedProgramBuilder.DEFAULT_TITLE)
+        startImport(ImportedProgramBuilder.DEFAULT_TITLE, IMPORT_READING_TEXT) {
+            withContext(Dispatchers.Default) { ProgramImportParser.parseText(text, ImportedProgramBuilder.DEFAULT_TITLE) }
         }
+
+    /**
+     * Lee un archivo elegido o una foto en segundo plano, con su progreso y «Cancelar», y lo importa. Una foto de la cámara
+     * ([takenFile]) se borra al terminar de leerla; una de la galería no se toca.
+     */
+    fun importFromPicked(uri: Uri, photo: Boolean = false, takenFile: File? = null) =
+        startImport(ImportedProgramBuilder.DEFAULT_TITLE, if (photo) IMPORT_READING_PHOTO_TEXT else IMPORT_READING_TEXT) {
+            try {
+                val (fileTitle, sheets) = readFile(uri, ::reportPage).getOrThrow()
+                // Una foto de la cámara no tiene un nombre útil: su programa lleva el título por defecto.
+                val title = if (takenFile != null) "" else fileTitle
+                withContext(Dispatchers.Default) {
+                    ProgramImportParser.parseSheets(sheets, title.ifBlank { ImportedProgramBuilder.DEFAULT_TITLE })
+                }
+            } finally {
+                takenFile?.delete()
+            }
+        }
+
+    /** «Cancelar» de la lectura: corta el trabajo y deja la pantalla como estaba antes de empezar, sin error. */
+    fun cancelImport() {
+        val before = stateBeforeRead ?: return
+        importJob?.cancel()
+        importJob = null
+        stateBeforeRead = null
+        _state.value = before
+    }
+
+    /** Avisa de la página de un PDF que se lee; solo mientras hay una lectura (un aviso tardío tras cancelar no cambia nada). */
+    private fun reportPage(page: Int, pages: Int) {
+        _state.update { if (it.busy) it.copy(progress = importReadingPageText(page, pages)) else it }
+    }
 
     fun reportError(message: String) {
         _state.value = _state.value.copy(error = message, busy = false)
@@ -126,6 +176,7 @@ class ImportProgramViewModel(application: Application) : AndroidViewModel(applic
 
     fun clear() {
         importJob?.cancel()
+        stateBeforeRead = null
         undoStack.clear()
         _state.value = ImportProgramState()
     }
@@ -178,13 +229,18 @@ class ImportProgramViewModel(application: Application) : AndroidViewModel(applic
         )
     }
 
-    private fun startImport(defaultTitle: String, parse: () -> ImportedProgramDraft) {
+    /**
+     * Lee e importa en un trabajo cancelable, con [progress] mientras tanto. Una lectura nueva cancela la anterior, y el estado
+     * de antes de la primera se guarda para «Cancelar». Al terminar bien, la pila de deshacer se vacía (el programa es otro); si
+     * falla, sale el error.
+     */
+    private fun startImport(defaultTitle: String, progress: String, read: suspend () -> ImportedProgramDraft) {
+        if (stateBeforeRead == null) stateBeforeRead = _state.value
         importJob?.cancel()
-        undoStack.clear()
-        _state.value = ImportProgramState(busy = true)
+        _state.value = ImportProgramState(busy = true, progress = progress)
         importJob = viewModelScope.launch {
             try {
-                val parsed = withContext(Dispatchers.Default) { parse() }
+                val parsed = read()
                 val names = parsed.weeks.flatMap { week -> week.days.flatMap { day -> day.exercises } }
                     .map { it.rawName }
                     .distinct()
@@ -193,6 +249,9 @@ class ImportProgramViewModel(application: Application) : AndroidViewModel(applic
                         .filterValues { it.isConfident }
                         .mapValues { (_, match) -> match.best?.configurationId }
                 }
+                ensureActive()
+                stateBeforeRead = null
+                undoStack.clear()
                 _state.value = ImportProgramState(
                     imported = parsed,
                     title = parsed.title.ifBlank { defaultTitle },
@@ -201,6 +260,8 @@ class ImportProgramViewModel(application: Application) : AndroidViewModel(applic
             } catch (cancel: CancellationException) {
                 throw cancel
             } catch (error: Throwable) {
+                stateBeforeRead = null
+                undoStack.clear()
                 _state.value = ImportProgramState(error = error.message ?: "No pudimos leer el programa.")
             }
         }

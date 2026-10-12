@@ -4,6 +4,7 @@ import com.example.kpkn.domain.training.importer.Change
 import com.example.kpkn.domain.training.importer.ImportExercisePatch
 import com.example.kpkn.domain.training.importer.ImportIssue
 import com.example.kpkn.domain.training.importer.ImportIssueKind
+import com.example.kpkn.domain.training.importer.ImportLoadUnit
 import com.example.kpkn.domain.training.importer.ImportWarning
 import com.example.kpkn.domain.training.importer.ImportWarningKind
 import com.example.kpkn.domain.training.importer.ImportedDay
@@ -424,6 +425,29 @@ class ImportEditsTest {
     @Test
     fun `anadir desde un aviso que no existe no cambia nada`() {
         assertNull(ImportEdits.apply(snapshot, ImportEditOp.AddFromWarning("zz", null, "X", 3, 8, 8, null, false)))
+    }
+
+    @Test
+    fun `cambiar la unidad de las cargas solo cambia la unidad y lo dice, y la misma unidad no deja nada`() {
+        val (after, label) = applied(ImportEditOp.SetLoadUnit(ImportLoadUnit.LB))
+
+        assertEquals(ImportLoadUnit.LB, after.imported.loadUnit)
+        assertEquals(draft.copy(loadUnit = ImportLoadUnit.LB), after.imported)
+        assertEquals("Cambiaste la unidad de las cargas a lb.", label)
+        assertNull(ImportEdits.apply(snapshot, ImportEditOp.SetLoadUnit(ImportLoadUnit.KG)))
+    }
+
+    @Test
+    fun `con libras la carga va de 1 a 2200 lb, con su pista, y con kilos de 0,5 a 1000`() {
+        val form = ImportExerciseForm.of(draft.weeks[0].days[0].exercises[0])
+
+        assertTrue(form.loadIsValid(ImportLoadUnit.LB))
+        assertTrue(form.copy(loadKg = 2200.0).isValid(ImportLoadUnit.LB))
+        assertFalse(form.copy(loadKg = 2300.0).isValid(ImportLoadUnit.LB))
+        assertFalse(form.copy(loadKg = 0.5).isValid(ImportLoadUnit.LB))
+        assertFalse(form.copy(loadKg = 1500.0).isValid())
+        assertEquals("Entre 1 y 2200 lb.", importLoadRangeText(ImportLoadUnit.LB))
+        assertEquals("Entre 0,5 y 1000 kg.", importLoadRangeText(ImportLoadUnit.KG))
     }
 
     private fun week(index: Int, vararg days: ImportedDay): ImportedWeek = ImportedWeek(index = index, days = days.toList())

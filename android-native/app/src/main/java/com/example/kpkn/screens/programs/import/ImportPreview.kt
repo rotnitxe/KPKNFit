@@ -28,7 +28,9 @@ import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.unit.dp
 import com.example.kpkn.domain.training.importer.ExerciseNameCandidate
 import com.example.kpkn.domain.training.importer.ImportDraftEditor
+import com.example.kpkn.domain.training.importer.ImportLoadUnit
 import com.example.kpkn.domain.training.importer.ImportedExercise
+import com.example.kpkn.domain.training.importer.ImportedProgramBuilder
 import com.example.kpkn.domain.training.importer.ImportedProgramDraft
 import com.example.kpkn.screens.onboarding.SetupFormTextField
 import com.example.kpkn.screens.onboarding.design.WizardColors
@@ -55,11 +57,14 @@ internal fun importExerciseStateOf(rawName: String, resolutions: Map<String, Str
 /** Sesiones por semana del programa importado: la semana con más días de entreno. */
 internal fun importSessionsPerWeek(imported: ImportedProgramDraft): Int = imported.weeks.maxOfOrNull { it.days.size } ?: 0
 
-/** La prescripción en una línea: «4 × 6–8 · 120 kg · RPE 8». */
-internal fun importPrescriptionOf(exercise: ImportedExercise): String {
+/** La unidad de las cargas en una palabra: «kg» o «lb». */
+internal fun importLoadUnitLabel(unit: ImportLoadUnit): String = if (unit == ImportLoadUnit.LB) "lb" else "kg"
+
+/** La prescripción en una línea: «4 × 6–8 · 120 kg · RPE 8», o «135 lb» si las cargas del archivo están en libras. */
+internal fun importPrescriptionOf(exercise: ImportedExercise, unit: ImportLoadUnit): String {
     val reps = if (exercise.repsMin == exercise.repsMax) "${exercise.repsMin}" else "${exercise.repsMin}–${exercise.repsMax}"
     val parts = mutableListOf("${exercise.sets} × $reps")
-    exercise.loadKg?.let { parts += "${decimalText(it)} kg" }
+    exercise.loadKg?.let { parts += "${decimalText(it)} ${importLoadUnitLabel(unit)}" }
     exercise.percent1Rm?.let { parts += "${decimalText(it)} %" }
     exercise.rpe?.let { parts += "RPE ${decimalText(it)}" }
     exercise.rir?.let { parts += "$it RIR" }
@@ -93,6 +98,38 @@ internal data class ImportMoveTarget(val dayId: String, val label: String, val e
  */
 internal fun importMoveLabelOf(position: Int, dayName: String): String =
     if (dayName.startsWith("Día")) dayName else "Día ${position + 1} — $dayName"
+
+/** El primer valor de carga en kilos (o libras) del programa, en el orden de la vista previa; null si no hay ninguno. */
+internal fun importFirstLoadOf(imported: ImportedProgramDraft): Double? =
+    imported.weeks.sortedBy { it.index }.firstNotNullOfOrNull { week ->
+        week.days.firstNotNullOfOrNull { day -> day.exercises.firstNotNullOfOrNull { it.loadKg } }
+    }
+
+/**
+ * El conmutador «kg | lb» de las cargas del archivo, encima de las semanas. Con lb, la nota dice cómo se guardan: con el primer
+ * valor del programa, convertido como lo hace el constructor (135 lb = 61 kg).
+ */
+@Composable
+internal fun ImportLoadUnitToggle(unit: ImportLoadUnit, example: Double, onChange: (ImportLoadUnit) -> Unit) {
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
+        Text("Las cargas de tu archivo están en", style = WizardTypography.controlLabel, color = WizardColors.text)
+        ImportSegmented(
+            options = ImportLoadUnit.entries,
+            selected = unit,
+            label = { importLoadUnitLabel(it) },
+            onSelected = onChange,
+            testTag = "import-load-unit",
+        )
+        if (unit == ImportLoadUnit.LB) {
+            val kilos = ImportedProgramBuilder.kilograms(example, ImportLoadUnit.LB)
+            Text(
+                "Se guardarán en kg (p. ej. ${decimalText(example)} lb = ${decimalText(kilos)} kg).",
+                style = WizardTypography.note,
+                color = WizardColors.textMuted,
+            )
+        }
+    }
+}
 
 /**
  * La vista previa de un programa importado: semanas, días y ejercicios con su prescripción. Cada ejercicio muestra si
@@ -142,6 +179,14 @@ internal fun ImportPreviewWeeks(
         }
     }
     Column(modifier = modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(24.dp)) {
+        // La unidad de las cargas va encima de las semanas, y solo si el programa tiene alguna carga.
+        importFirstLoadOf(imported)?.let { example ->
+            ImportLoadUnitToggle(
+                unit = imported.loadUnit,
+                example = example,
+                onChange = { unit -> onEdit(ImportEditOp.SetLoadUnit(unit)) },
+            )
+        }
         imported.weeks.sortedBy { it.index }.forEach { week ->
             val weekKey = importWeekMenuKey(week.index)
             Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
@@ -196,6 +241,7 @@ internal fun ImportPreviewWeeks(
                                 exercise = exercise,
                                 state = importExerciseStateOf(exercise.rawName, resolutions),
                                 shownName = resolutions[exercise.rawName]?.let { names[it] } ?: exercise.rawName,
+                                loadUnit = imported.loadUnit,
                                 expanded = open,
                                 onToggle = {
                                     structurePanel = null
@@ -210,6 +256,7 @@ internal fun ImportPreviewWeeks(
                                     dayExerciseCount = day.exercises.size,
                                     state = importExerciseStateOf(exercise.rawName, resolutions),
                                     shownName = resolutions[exercise.rawName]?.let { names[it] } ?: exercise.rawName,
+                                    loadUnit = imported.loadUnit,
                                     moveTargets = week.days.mapIndexedNotNull { target, other ->
                                         if (target == dayPosition) {
                                             null
@@ -275,6 +322,7 @@ private fun ImportExerciseRow(
     exercise: ImportedExercise,
     state: ImportExerciseState,
     shownName: String,
+    loadUnit: ImportLoadUnit,
     expanded: Boolean,
     onToggle: () -> Unit,
 ) {
@@ -300,7 +348,7 @@ private fun ImportExerciseRow(
         PatternGlyph(pattern = pattern, accent = SymbolPalette.musculo, modifier = Modifier.size(36.dp))
         Column(modifier = Modifier.weight(1f)) {
             Text(shownName, style = WizardTypography.measure, color = WizardColors.text, maxLines = 2)
-            Text(importPrescriptionOf(exercise), style = WizardTypography.note, color = WizardColors.textMuted)
+            Text(importPrescriptionOf(exercise, loadUnit), style = WizardTypography.note, color = WizardColors.textMuted)
         }
         when (state) {
             ImportExerciseState.CHOSEN -> Text(

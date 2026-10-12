@@ -1,8 +1,10 @@
 package com.example.kpkn.screens.programs.importer
 
 import android.app.Application
+import android.net.Uri
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.test.core.app.ApplicationProvider
@@ -12,8 +14,11 @@ import com.example.kpkn.domain.training.importer.Change
 import com.example.kpkn.domain.training.importer.ImportExercisePatch
 import com.example.kpkn.domain.training.importer.ImportSheet
 import com.example.kpkn.ui.entitlements.LocalPlan
+import java.io.File
+import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Rule
@@ -138,5 +143,60 @@ class ImportProgramScreenTest {
         assertEquals(1, saved.size)
         assertEquals("Prueba de dos semanas", saved.single().name)
         assertEquals(null, vm.state.value.notice)
+    }
+
+    @Test
+    fun readingAPdfShowsItsPageAndCancelLeavesTheScreenAsItWas() {
+        val vm = newViewModel()
+        vm.readFile = { _, onProgress ->
+            onProgress(2, 5)
+            awaitCancellation()
+        }
+        rule.setContent { ImportProgramScreen(onBack = {}, onSaved = {}, viewModel = vm) }
+
+        vm.importFromPicked(Uri.parse("content://kpkn.test/programa.pdf"))
+        rule.onNodeWithText("Leyendo la página 2 de 5…").assertExists()
+        rule.onNodeWithTag("import-cancel").performClick()
+
+        rule.onNodeWithText("Leyendo la página 2 de 5…").assertDoesNotExist()
+        rule.onNodeWithTag("import-choose-file").assertExists()
+        assertFalse(vm.state.value.busy)
+        assertNull(vm.state.value.error)
+    }
+
+    @Test
+    fun cancellingANewReadKeepsTheProgramAndItsUndoAsTheyWere() {
+        val vm = newViewModel()
+        vm.importFromSheets(twoWeeks(), "Prueba de dos semanas")
+        settle(vm) { it.imported != null && !it.busy }
+        val squat = vm.state.value.imported!!.weeks[0].days[0].exercises[0]
+        vm.edit(ImportEditOp.Update(squat.id, ImportExercisePatch(sets = Change.Set(5)), allWeeks = false))
+        val before = vm.state.value
+        vm.readFile = { _, _ -> awaitCancellation() }
+
+        vm.importFromPicked(Uri.parse("content://kpkn.test/otro.xlsx"))
+        assertTrue(vm.state.value.busy)
+        vm.cancelImport()
+
+        assertEquals(before.imported, vm.state.value.imported)
+        assertEquals("Cambiaste «Sentadilla».", vm.state.value.undoLabel)
+        assertFalse(vm.state.value.busy)
+        assertNull(vm.state.value.error)
+    }
+
+    @Test
+    fun aPhotoIsReadAndTheCameraFileIsDeletedAfterwards() {
+        val vm = newViewModel()
+        val taken = File(app.cacheDir, "import_photos/rutina-prueba.jpg").apply {
+            parentFile?.mkdirs()
+            writeText("foto")
+        }
+        vm.readFile = { _, _ -> Result.success("Foto" to twoWeeks()) }
+
+        vm.importFromPicked(Uri.parse("content://kpkn.test/rutina.jpg"), photo = true, takenFile = taken)
+        settle(vm) { it.imported != null && !it.busy }
+
+        assertFalse("la foto de la cámara se borra al leerla", taken.exists())
+        assertEquals("Mi programa importado", vm.state.value.title)
     }
 }

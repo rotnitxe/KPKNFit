@@ -42,6 +42,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.example.kpkn.domain.training.importer.ExerciseNameCandidate
+import com.example.kpkn.domain.training.importer.ImportLoadUnit
 import com.example.kpkn.domain.training.importer.ImportedExercise
 import com.example.kpkn.domain.training.importer.ProgramImportParser
 import com.example.kpkn.screens.onboarding.SetupFormTextField
@@ -74,6 +75,7 @@ internal fun ImportExerciseEditor(
     dayExerciseCount: Int,
     state: ImportExerciseState,
     shownName: String,
+    loadUnit: ImportLoadUnit,
     moveTargets: List<ImportMoveTarget>,
     sameNameCount: Int,
     otherWeeks: Int,
@@ -93,7 +95,7 @@ internal fun ImportExerciseEditor(
     val allWeeks = form.allWeeks && otherWeeks > 0
     val patch = patchFrom(exercise, form)
     val renamed = form.rawName.isNotBlank() && form.rawName.trim() != exercise.rawName
-    val canSave = (renamed || !patch.isNoOp()) && form.isValid()
+    val canSave = (renamed || !patch.isNoOp()) && form.isValid(loadUnit)
 
     fun save() {
         // Valores y nombre van en una sola operación: un solo paso para deshacer.
@@ -227,7 +229,7 @@ internal fun ImportExerciseEditor(
                 label = { mode ->
                     when (mode) {
                         ImportLoadMode.NONE -> "Sin carga"
-                        ImportLoadMode.KG -> "kg"
+                        ImportLoadMode.KG -> importLoadUnitLabel(loadUnit)
                         ImportLoadMode.PERCENT -> "% 1RM"
                     }
                 },
@@ -243,13 +245,13 @@ internal fun ImportExerciseEditor(
                             kgText = text
                             form = form.copy(loadKg = parseDecimal(text))
                         },
-                        label = "Kilos",
+                        label = if (loadUnit == ImportLoadUnit.LB) "Libras" else "Kilos",
                         keyboardType = KeyboardType.Decimal,
                         testTag = "import-edit-kg",
                     )
-                    if (!form.loadIsValid()) {
+                    if (!form.loadIsValid(loadUnit)) {
                         Text(
-                            "Entre 0,5 y 1000 kg.",
+                            importLoadRangeText(loadUnit),
                             style = WizardTypography.note,
                             color = WizardColors.danger,
                             modifier = Modifier.testTag("import-edit-load-hint"),

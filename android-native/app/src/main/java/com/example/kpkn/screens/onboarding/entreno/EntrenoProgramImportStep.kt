@@ -7,27 +7,25 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.example.kpkn.domain.onboarding.SetupStepId
 import com.example.kpkn.domain.training.importer.ImportDraftValidation
 import com.example.kpkn.screens.onboarding.SetupFormTextField
 import com.example.kpkn.screens.onboarding.SetupWizardState
 import com.example.kpkn.screens.onboarding.SetupWizardViewModel
+import com.example.kpkn.screens.programs.importer.IMPORT_READING_TEXT
 import com.example.kpkn.screens.programs.importer.ImportPasteField
 import com.example.kpkn.screens.programs.importer.ImportPreviewWeeks
+import com.example.kpkn.screens.programs.importer.ImportReadingNotice
 import com.example.kpkn.screens.programs.importer.ImportReview
 import com.example.kpkn.screens.programs.importer.ImportSourceChoices
 import com.example.kpkn.screens.programs.importer.ImportUndoLine
 import com.example.kpkn.screens.programs.importer.ImportWarningsPanel
 import com.example.kpkn.screens.programs.importer.importSessionsPerWeek
-import com.example.kpkn.screens.programs.importer.readPickedFile
 import com.example.kpkn.screens.programs.importer.rememberImportFilePicker
-import kotlinx.coroutines.launch
 
 /**
  * PROGRAM_IMPORT · «Importa tu programa»: elegir un archivo o pegar el texto; después, la vista previa por semanas y días
@@ -38,8 +36,6 @@ import kotlinx.coroutines.launch
 internal fun EntrenoProgramImportStep(state: SetupWizardState, vm: SetupWizardViewModel) {
     val draft = state.draft
     val imported = draft.importedProgram
-    val scope = rememberCoroutineScope()
-    val context = LocalContext.current
     var pasting by rememberSaveable { mutableStateOf(false) }
     var pasted by rememberSaveable { mutableStateOf("") }
     var openedExerciseId by rememberSaveable { mutableStateOf<String?>(null) }
@@ -49,17 +45,15 @@ internal fun EntrenoProgramImportStep(state: SetupWizardState, vm: SetupWizardVi
     val issues = remember(imported, resolutions) {
         imported?.let { program -> ImportDraftValidation.check(program) { resolutions.containsKey(it) } }.orEmpty()
     }
-    val pickFile = rememberImportFilePicker { uri ->
-        scope.launch {
-            readPickedFile(context.contentResolver, uri).fold(
-                onSuccess = { (title, sheets) -> vm.importFromSheets(sheets, title) },
-                onFailure = { vm.reportImportError(it.message ?: "No pudimos leer este archivo.") },
-            )
-        }
-    }
+    // La lectura va en el ViewModel: así su progreso se ve y «Cancelar» la corta.
+    val pickFile = rememberImportFilePicker { uri -> vm.importFromPicked(uri) }
     Column(modifier = Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(20.dp)) {
         if (imported == null) {
-            ImportSourceChoices(onChooseFile = pickFile, onPaste = { pasting = true })
+            ImportSourceChoices(
+                onChooseFile = pickFile,
+                onPaste = { pasting = true },
+                onPhoto = { uri, takenFile -> vm.importFromPicked(uri, photo = true, takenFile = takenFile) },
+            )
             if (pasting) {
                 ImportPasteField(
                     text = pasted,
@@ -114,7 +108,7 @@ internal fun EntrenoProgramImportStep(state: SetupWizardState, vm: SetupWizardVi
                 EntrenoTextAction(label = "Empezar de nuevo", onClick = vm::clearImport)
             }
         }
-        if (state.importBusy) EntrenoPlanNotice(text = "Leyendo el programa…", error = false)
+        if (state.importBusy) ImportReadingNotice(text = state.importProgress ?: IMPORT_READING_TEXT, onCancel = vm::cancelImport)
         state.importError?.let { EntrenoPlanNotice(text = it) }
     }
 }
