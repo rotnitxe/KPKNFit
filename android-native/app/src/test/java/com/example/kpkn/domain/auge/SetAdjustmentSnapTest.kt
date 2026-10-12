@@ -9,10 +9,11 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /**
- * Sugerencia de carga honesta (paquete 1.12c, F-41): pasos reales, porcentaje real y nunca sube sola.
+ * Sugerencia de carga honesta (paquete 1.12c, F-41): carga alcanzable más cercana, porcentaje real,
+ * «Sin ajuste» cuando el material no permite la reducción y nunca sube sola.
  *
  * Con severidad 0,5 el recorte pedido es (70 − readiness) / 100 × 0,5:
- * readiness 50 ⇒ 10 %, readiness 45 ⇒ 12,5 %.
+ * readiness 50 ⇒ 10 %, readiness 45 ⇒ 12,5 %, readiness 46 ⇒ 12 %.
  */
 class SetAdjustmentSnapTest {
 
@@ -38,14 +39,56 @@ class SetAdjustmentSnapTest {
     )
 
     @Test
-    fun a_cinco_kg_con_diez_por_ciento_nunca_se_sugiere_igual() {
+    fun a_cinco_kg_con_diez_por_ciento_queda_sin_ajuste() {
         val s = ExerciseReadinessEngine.calculateSetAdjustment(
             plannedWeight = 5.0,
             exerciseReadiness = readiness(50),
             severitySlider = 0.5,
             loadMode = LoadModeV2.LOAD,
         )
-        assertTrue(s.reason, s.reason == "No requiere ajuste" || s.suggestedWeight < 5.0)
+        assertEquals(5.0, s.suggestedWeight, 1e-9)
+        assertEquals(0.0, s.reductionPercent, 1e-9)
+        assertTrue(s.reason, s.reason.contains("Sin ajuste"))
+    }
+
+    @Test
+    fun a2_diez_kg_con_diez_por_ciento_queda_sin_ajuste() {
+        val s = ExerciseReadinessEngine.calculateSetAdjustment(
+            plannedWeight = 10.0,
+            exerciseReadiness = readiness(50),
+            severitySlider = 0.5,
+            loadMode = LoadModeV2.LOAD,
+        )
+        assertEquals(10.0, s.suggestedWeight, 1e-9)
+        assertEquals(0.0, s.reductionPercent, 1e-9)
+        assertTrue(s.reason, s.reason.contains("Sin ajuste"))
+    }
+
+    @Test
+    fun a3_veinte_kg_con_diez_por_ciento_da_diecisiete_coma_cinco() {
+        val s = ExerciseReadinessEngine.calculateSetAdjustment(
+            plannedWeight = 20.0,
+            exerciseReadiness = readiness(50),
+            severitySlider = 0.5,
+            loadMode = LoadModeV2.LOAD,
+        )
+        assertEquals(17.5, s.suggestedWeight, 1e-9)
+        assertEquals(0.125, s.reductionPercent, 1e-9)
+        assertTrue(s.reason, s.reason.contains("17,5kg"))
+        assertTrue(s.reason, s.reason.contains("12,5 %"))
+    }
+
+    @Test
+    fun a4_sesenta_kg_con_diez_por_ciento_da_cincuenta_y_cinco_con_porcentaje_real() {
+        val s = ExerciseReadinessEngine.calculateSetAdjustment(
+            plannedWeight = 60.0,
+            exerciseReadiness = readiness(50),
+            severitySlider = 0.5,
+            loadMode = LoadModeV2.LOAD,
+        )
+        assertEquals(55.0, s.suggestedWeight, 1e-9)
+        assertEquals(0.083, s.reductionPercent, 1e-9)
+        assertTrue(s.reason, s.reason.contains("8,3 %"))
     }
 
     @Test
@@ -58,7 +101,7 @@ class SetAdjustmentSnapTest {
         )
         assertEquals(87.5, s.suggestedWeight, 1e-9)
         assertEquals(1 - 87.5 / 100.0, s.reductionPercent, 1e-9)
-        assertTrue(s.reason, s.reason.contains("12.5%"))
+        assertTrue(s.reason, s.reason.contains("12,5 %"))
     }
 
     @Test
@@ -70,7 +113,7 @@ class SetAdjustmentSnapTest {
             loadMode = LoadModeV2.LASTRE,
         )
         assertEquals(12.5, s.suggestedWeight, 1e-9)
-        assertTrue(s.reason, s.reason.contains("12.5"))
+        assertTrue(s.reason, s.reason.contains("12,5kg"))
         assertFalse(s.reason, s.reason.contains("12kg"))
     }
 
@@ -111,20 +154,20 @@ class SetAdjustmentSnapTest {
     }
 
     @Test
-    fun e_snap_de_cinco_kilos_baja_al_multiplo_inferior() {
+    fun e1_snap_de_paso_cinco_toma_la_carga_mas_cercana() {
         val s = ExerciseReadinessEngine.calculateSetAdjustment(
             plannedWeight = 100.0,
-            exerciseReadiness = readiness(45),
+            exerciseReadiness = readiness(46),
             severitySlider = 0.5,
             loadMode = LoadModeV2.LOAD,
-            snap = { kg -> kotlin.math.floor(kg / 5.0) * 5.0 },
+            snap = { kg -> kotlin.math.round(kg / 5.0) * 5.0 },
         )
-        assertEquals(85.0, s.suggestedWeight, 1e-9)
-        assertEquals(1 - 85.0 / 100.0, s.reductionPercent, 1e-9)
+        assertEquals(90.0, s.suggestedWeight, 1e-9)
+        assertEquals(0.1, s.reductionPercent, 1e-9)
     }
 
     @Test
-    fun e_snap_nulo_no_inventa_kilos() {
+    fun e2_snap_nulo_no_inventa_kilos() {
         val s = ExerciseReadinessEngine.calculateSetAdjustment(
             plannedWeight = 100.0,
             exerciseReadiness = readiness(45),
