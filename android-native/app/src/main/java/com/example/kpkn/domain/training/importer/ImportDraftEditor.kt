@@ -37,7 +37,6 @@ object ImportDraftEditor {
 
     private val SETS_RANGE = 1..ProgramImportParser.MAX_SETS
     private val REPS_RANGE = 1..ProgramImportParser.MAX_REPS
-    private val LOAD_RANGE = 0.5..ProgramImportParser.MAX_LOAD_KG
     private val PERCENT_RANGE = 1.0..ProgramImportParser.MAX_PERCENT
     private val RPE_RANGE = 1.0..10.0
     private val RIR_RANGE = 0..10
@@ -58,7 +57,7 @@ object ImportDraftEditor {
     ): ImportedProgramDraft {
         val same = sameExercise(draft, exerciseId)
         if (same.isEmpty()) return draft
-        return draft.withExercisesAt(same, allWeeks) { exercise -> exercise.patched(patch) }
+        return draft.withExercisesAt(same, allWeeks) { exercise -> exercise.patched(patch, draft.loadUnit) }
     }
 
     /**
@@ -306,8 +305,9 @@ object ImportDraftEditor {
     // ---- Parche ----------------------------------------------------------------------------------------------
 
     /** Aplica el parche a un ejercicio; los valores fuera de rango se descartan. */
-    private fun ImportedExercise.patched(patch: ImportExercisePatch): ImportedExercise {
-        val newLoad = patch.loadKg.validSetValue { it in LOAD_RANGE }
+    private fun ImportedExercise.patched(patch: ImportExercisePatch, unit: ImportLoadUnit): ImportedExercise {
+        // La carga se valida con el rango de su unidad (kg o lb), igual que el analizador y el panel de edición.
+        val newLoad = patch.loadKg.validSetValue { ProgramImportParser.loadInRange(it, unit) }
         val newPercent = patch.percent1Rm.validSetValue { it in PERCENT_RANGE }
         val newRpe = patch.rpe.validSetValue { it in RPE_RANGE }
         val newRir = patch.rir.validSetValue { it in RIR_RANGE }
@@ -315,7 +315,7 @@ object ImportDraftEditor {
         val loadPair: Pair<Double?, Double?> = when {
             newLoad != null -> newLoad to null
             newPercent != null -> null to newPercent
-            else -> patch.loadKg.optional(loadKg) { it in LOAD_RANGE } to
+            else -> patch.loadKg.optional(loadKg) { ProgramImportParser.loadInRange(it, unit) } to
                 patch.percent1Rm.optional(percent1Rm) { it in PERCENT_RANGE }
         }
         val load = loadPair.first
