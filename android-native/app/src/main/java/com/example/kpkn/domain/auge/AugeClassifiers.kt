@@ -161,23 +161,6 @@ object AugeClassifiers {
         StressZone.EXCESSIVE -> "#FF2E43"
     }
 
-    // ─── Aprendizaje adaptativo de tasa de recuperación ──────────────────────
-
-    /**
-     * Ajusta el multiplicador de recuperación basándose en la diferencia entre
-     * sensación manual reportada y score calculado.
-     * diff × 0.005 para gradiente suave; pinzado 0.5–2.0.
-     */
-    fun learnRecoveryRate(
-        currentMultiplier: Double,
-        calculatedScore: Double,
-        manualFeel: Double,
-    ): Double {
-        val diff = manualFeel - calculatedScore
-        val adjustment = diff * 0.005
-        return clamp(currentMultiplier + adjustment, 0.5, 2.0)
-    }
-
     // ─── Normalización ────────────────────────────────────────────────────────
 
     /** Normaliza un score de batería (0-100) a escala 1-10. */

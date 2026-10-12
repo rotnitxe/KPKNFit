@@ -715,21 +715,6 @@ internal fun ReadinessRingVisual(
 }
 
 @Composable
-internal fun MuscleSliderChip(
-    modifier: Modifier = Modifier,
-    muscleLabel: String,
-    value: Int,
-    onValueChange: (Int) -> Unit,
-) {
-    MinimalMuscleSlider(
-        modifier = modifier,
-        muscleLabel = muscleLabel,
-        value = value,
-        onValueChange = onValueChange,
-    )
-}
-
-@Composable
 private fun SessionVoiceReadinessCard(
     voiceSessionEnabled: Boolean,
     captureMode: com.example.kpkn.data.models.VoiceCaptureMode,

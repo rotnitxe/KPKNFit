@@ -81,42 +81,6 @@ object AugeAdaptiveEngine {
     }
 
     /**
-     * Learns system-level biases (CNS/spinal) from the difference between
-     * manual ring adjustments and predicted drains.
-     *
-     * If the user consistently says CNS drained LESS than predicted,
-     * we learn a positive delta (battery was higher → user recovers faster for CNS).
-     * If the user says it drained MORE, we learn a negative delta.
-     */
-    fun updateSystemLearningDeltas(
-        currentCnsDelta: Double,
-        currentSpinalDelta: Double,
-        systemAdjustment: Int?,
-        structureAdjustment: Int?,
-        totalObservations: Int,
-    ): Pair<Double, Double> {
-        val samples = (totalObservations + 1).coerceAtLeast(1).toDouble()
-        val alpha = max(0.05, min(0.5, 1.5 / samples))
-
-        val newCns = if (systemAdjustment != null) {
-            currentCnsDelta * (1.0 - alpha) + systemAdjustment.toDouble() * alpha
-        } else {
-            currentCnsDelta
-        }
-
-        val newSpinal = if (structureAdjustment != null) {
-            currentSpinalDelta * (1.0 - alpha) + structureAdjustment.toDouble() * alpha
-        } else {
-            currentSpinalDelta
-        }
-
-        return Pair(
-            clamp(newCns, -50.0, 50.0),
-            clamp(newSpinal, -50.0, 50.0),
-        )
-    }
-
-    /**
      * Learns the exact recovery Tau (hours) for systemic batteries based on the implied 
      * recovery time from a user's calibration, exactly how it's done for muscles.
      */
@@ -150,94 +114,6 @@ object AugeAdaptiveEngine {
             newCnsTau?.let { clamp(it, 12.0, 144.0) },
             newSpinalTau?.let { clamp(it, 18.0, 144.0) },
         )
-    }
-
-    /**
-     * Updates drain resistance multipliers using the relationship between predicted drain and actual drain.
-     * Ratio = Actual Drain / Predicted Drain. Modulates muscle and system drain costs.
-     */
-    fun updateDrainMultipliers(
-        currentCnsMult: Double,
-        currentSpinalMult: Double,
-        currentMuscleMults: Map<String, Double>,
-        manualNeural: Int?,
-        manualSpinal: Int?,
-        manualMuscleBatteries: Map<String, Int>,
-        predictedNeural: Int?,
-        predictedSpinal: Int?,
-        predictedMuscleBatteries: Map<String, Int>,
-        preWorkoutNeural: Int,
-        preWorkoutSpinal: Int,
-        preWorkoutMuscleBatteries: Map<String, Int>,
-        totalObservations: Int,
-    ): Triple<Double, Double, Map<String, Double>> {
-        val samples = (totalObservations + 1).coerceAtLeast(1).toDouble()
-        val alpha = max(0.05, min(0.5, 1.5 / samples))
-
-        val newCnsMult = if (manualNeural != null && predictedNeural != null && preWorkoutNeural > predictedNeural) {
-            val predictedDrain = (preWorkoutNeural - predictedNeural).toDouble().coerceAtLeast(1.0)
-            val actualDrain = (preWorkoutNeural - manualNeural).toDouble().coerceAtLeast(1.0)
-            val ratio = (actualDrain / predictedDrain).coerceIn(0.5, 1.6)
-            currentCnsMult * (1.0 - alpha) + ratio * alpha
-        } else {
-            currentCnsMult
-        }
-
-        val newSpinalMult = if (manualSpinal != null && predictedSpinal != null && preWorkoutSpinal > predictedSpinal) {
-            val predictedDrain = (preWorkoutSpinal - predictedSpinal).toDouble().coerceAtLeast(1.0)
-            val actualDrain = (preWorkoutSpinal - manualSpinal).toDouble().coerceAtLeast(1.0)
-            val ratio = (actualDrain / predictedDrain).coerceIn(0.5, 1.6)
-            currentSpinalMult * (1.0 - alpha) + ratio * alpha
-        } else {
-            currentSpinalMult
-        }
-
-        val updatedMuscleMults = currentMuscleMults.toMutableMap()
-        for ((muscle, manualValue) in manualMuscleBatteries) {
-            val muscleKey = toAugeAdaptiveMuscleKey(muscle)
-            val predicted = lookupMuscleScore(predictedMuscleBatteries, muscle)
-            val preWorkout = lookupMuscleScore(preWorkoutMuscleBatteries, muscle) ?: 100
-            
-            if (predicted != null && preWorkout > predicted) {
-                val predictedDrain = (preWorkout - predicted).toDouble().coerceAtLeast(1.0)
-                val actualDrain = (preWorkout - manualValue).toDouble().coerceAtLeast(1.0)
-                val ratio = (actualDrain / predictedDrain).coerceIn(0.5, 1.6)
-                val currentMult = lookupMuscleDrainMultiplier(currentMuscleMults, muscle)
-                updatedMuscleMults[muscleKey] = clamp(currentMult * (1.0 - alpha) + ratio * alpha, 0.5, 1.6)
-            }
-        }
-
-        return Triple(
-            clamp(newCnsMult, 0.5, 1.6),
-            clamp(newSpinalMult, 0.5, 1.6),
-            remapMuscleMultiplierMapToPillars(updatedMuscleMults),
-        )
-    }
-
-    /**
-     * Computes per-muscle delta (battery calibration offset) based on
-     * difference between manual muscle battery and predicted.
-     */
-    fun updateMuscleDeltas(
-        current: Map<String, Double>,
-        manualMuscleBatteries: Map<String, Int>,
-        predictedMuscleBatteries: Map<String, Int>,
-        totalObservations: Int,
-    ): Map<String, Double> {
-        val samples = (totalObservations + 1).coerceAtLeast(1).toDouble()
-        val alpha = max(0.05, min(0.5, 1.5 / samples))
-        val result = current.toMutableMap()
-
-        for ((muscle, manualValue) in manualMuscleBatteries) {
-            val muscleKey = toAugeAdaptiveMuscleKey(muscle)
-            val predicted = lookupMuscleScore(predictedMuscleBatteries, muscle) ?: manualValue
-            val currentDelta = current[muscleKey] ?: 0.0
-            val signal = (manualValue - predicted).toDouble()
-            val newDelta = currentDelta * (1.0 - alpha) + signal * alpha
-            result[muscleKey] = clamp(newDelta, -50.0, 50.0)
-        }
-
-        return result
     }
 
     /**
