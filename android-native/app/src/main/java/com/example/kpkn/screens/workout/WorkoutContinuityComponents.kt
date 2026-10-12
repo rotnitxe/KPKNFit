@@ -94,7 +94,7 @@ internal fun buildWorkoutContinuityState(
     val blockLabel = when {
         currentPart != null && currentPartIndex != null -> "Bloque ${currentPartIndex + 1} de ${visibleParts.size}"
         currentPart != null -> "Bloque activo"
-        else -> "Sesion activa"
+        else -> "Sesión activa"
     }
     val progressLabel = "Ejercicio ${currentExerciseIdx + 1} de ${visibleExercises.size}"
     val currentSetNumber = currentSetIdx + 1

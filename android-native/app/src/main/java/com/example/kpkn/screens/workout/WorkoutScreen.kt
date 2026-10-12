@@ -661,7 +661,7 @@ fun WorkoutScreen(
             listOf(
                 SessionPart(
                     id = "default",
-                    name = "Sesion Principal",
+                    name = "Sesión principal",
                     exercises = modeSession.exercises,
                 )
             )
