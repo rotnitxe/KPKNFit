@@ -119,6 +119,7 @@ data class Settings(
     val smartSleepEnabled: Boolean = false,
 
     val algorithmSettings: AlgorithmSettings = AlgorithmSettings(),
+    // sin lectores desde la ola Rings v4; se conserva por compatibilidad del JSON
     val augePredictionBias: PredictionBiasProfile = PredictionBiasProfile(),
     val initialRecoveryEvidence: InitialRecoveryEvidence? = null,
     /** Global volume reference captured by the setup wizard, even without a program. */

@@ -1,16 +1,11 @@
 package com.example.kpkn.screens.workout
 
-import com.example.kpkn.data.exercises.resolveCatalogExerciseInfoInIndex
 import com.example.kpkn.data.models.CompletedSet
 import com.example.kpkn.data.models.DropSetData
-import com.example.kpkn.data.models.ExerciseMuscleInfo
-import com.example.kpkn.data.models.MuscleRole
 import com.example.kpkn.data.models.PlanDeviation
 import com.example.kpkn.data.models.PlanDeviationType
 import com.example.kpkn.data.models.PostExerciseFeedback
-import com.example.kpkn.data.models.PostSessionFeedback
 import com.example.kpkn.data.models.RingStartSnapshot
-import com.example.kpkn.data.models.MuscleFeedbackEntry
 import com.example.kpkn.data.models.RestPauseData
 import com.example.kpkn.data.models.ExerciseSet
 import com.example.kpkn.data.models.HistoryColorV2
@@ -20,9 +15,6 @@ import com.example.kpkn.data.models.RepRange
 import com.example.kpkn.data.models.WorkoutLog
 import com.example.kpkn.data.models.effectiveRepRange
 import com.example.kpkn.domain.auge.AugeFatigueEngine
-import com.example.kpkn.domain.auge.getAugeMusclePillarId
-import com.example.kpkn.domain.training.VolumeCalculator
-import java.time.LocalDate
 
 data class SetAdvancedFeedback(
     val rir: Int? = null,
@@ -146,7 +138,7 @@ data class SessionClosingFeedback(
     val muscularAdjustment: Int,
     val structureAdjustment: Int,
     val discomforts: List<String>,
-    val clarityRating: Int = 5,           // 1–10: mental clarity / freshness at end
+    val clarityRating: Int? = null,       // 1–10: claridad mental; solo si se pregunta (hoy nadie). null = sin dato
     val environmentTags: List<String> = emptyList(), // e.g. "buen sueño", "estresado"
     val finalNeuralBattery: Int? = null,
     val finalSpinalBattery: Int? = null,
@@ -303,53 +295,6 @@ fun calculateUnifiedSessionEffortSignal(
 fun technicalQuality10ToPenaltyScale(technicalQuality: Int): Int {
     val q = technicalQuality.coerceIn(1, 10)
     return (1 + ((q - 1) * 4) / 9).coerceIn(1, 5)
-}
-
-@Suppress("unused")
-fun mapWorkoutToPostSessionFeedback(
-    log: WorkoutLog,
-    postExerciseFeedback: List<PostExerciseFeedback>,
-    exerciseDbById: Map<String, ExerciseMuscleInfo>,
-): PostSessionFeedback {
-    val grouped = postExerciseFeedback.groupBy { feedback ->
-        val exercise = log.completedExercises.find { it.exerciseId == feedback.exerciseId }
-        val dbInfo = exercise?.let {
-            resolveCatalogExerciseInfoInIndex(
-                index = exerciseDbById,
-                catalogConfigurationId = it.catalogConfigurationId,
-                exerciseDbId = it.exerciseDbId,
-                exerciseId = it.exerciseId,
-                exerciseName = it.exerciseName,
-            )
-        }
-        val primary = (exercise?.effectiveMuscles?.takeIf { it.isNotEmpty() } ?: dbInfo?.involvedMuscles.orEmpty())
-            .firstOrNull { it.role == MuscleRole.PRIMARY }
-        if (primary != null) {
-            val canonical = VolumeCalculator.normalizeCanonicalMuscleGroup(primary.muscle, primary.emphasis)
-            getAugeMusclePillarId(canonical, primary.emphasis)
-        } else feedback.exerciseName
-    }
-
-    val feedbackByMuscle = grouped.mapValues { (_, list) ->
-        val avgDemand = 7
-        val avgTech = if (list.isEmpty()) 8 else list.map { it.technicalQuality }.average().toInt().coerceIn(1, 10)
-        val hasJointPain = list.any { it.discomfortIds.any { d -> d != "none" } }
-        MuscleFeedbackEntry(
-            doms = (11 - avgTech).coerceIn(1, 5),
-            jointPain = hasJointPain,
-            strengthCapacity = avgDemand,
-            notes = list.flatMap { it.discomfortIds }.filter { it != "none" }.distinct().joinToString().takeIf { it.isNotBlank() } ?: "",
-        )
-    }
-
-    val cnsRecovery = 7
-
-    return PostSessionFeedback(
-        logId = log.id,
-        date = LocalDate.now().toString(),
-        cnsRecovery = cnsRecovery,
-        muscleFeedback = feedbackByMuscle,
-    )
 }
 
 data class SetAutoRegulation(

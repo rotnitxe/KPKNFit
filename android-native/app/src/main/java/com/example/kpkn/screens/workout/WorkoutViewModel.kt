@@ -6437,13 +6437,35 @@ class WorkoutViewModel(
         )
     }
 
+    /** Puente con la pantalla para los anillos dictados al cerrar por voz (ver [FinishRingsBridge]). */
+    private val finishRingsBridge = FinishRingsBridge(
+        onFailure = { error ->
+            KpknDiagnosticLogger.event(
+                namespace = "workout",
+                name = "voice_finish_rings_failed",
+                fields = mapOf(
+                    "exceptionType" to error.javaClass.name,
+                    "exceptionMessage" to error.message,
+                ),
+                sessionId = sessionId,
+            )
+        },
+    )
+
+    /**
+     * Registra (o quita, con `null`) quien aplica los anillos dictados cuando el cierre por voz termina de guardar.
+     * Lo registra la pantalla mientras está compuesta: es la que tiene el AugeViewModel y el resumen del cierre.
+     */
+    fun setFinishRingsApplier(applier: ((SessionClosingFeedback) -> Unit)?) = finishRingsBridge.setApplier(applier)
+
     /**
      * Cierre de sesión disparado por voz (P0: save desacoplado de Compose).
      * Construye el [SessionClosingFeedback] con lo dictado (voiceFinal*) y delega en
      * [finishWorkout] en el acto; los guards de WorkoutFinishController.finish
      * (isFinishingWorkout/isComplete) absorben el doble disparo del LaunchedEffect
      * de la sheet, y finalizeWorkout es idempotente por log.id.
-     * El TTS «guardado» suena SOLO en onComplete, es decir, después del write real.
+     * El TTS «guardado» suena SOLO en onComplete, es decir, después del write real; justo antes, los anillos
+     * dictados (voiceFinalNeural/Spinal) se entregan al aplicador de la pantalla.
      */
     fun finalizeVoiceSession() {
         val state = _uiState.value
@@ -6476,7 +6498,8 @@ class WorkoutViewModel(
                 state.voiceFinalDiscomforts.map { discomfortLabel(it) } +
                     listOfNotNull(additionalNote)
                 ).distinct(),
-            clarityRating = averageTechnique.toInt().coerceIn(1, 10),
+            // No se pregunta la claridad: la técnica media no es claridad mental.
+            clarityRating = null,
             environmentTags = emptyList(),
             finalNeuralBattery = state.voiceFinalNeural,
             finalSpinalBattery = state.voiceFinalSpinal,
@@ -6490,6 +6513,9 @@ class WorkoutViewModel(
             fatigueLevel = inferredFatigue,
             closingFeedback = closingFeedback,
             onComplete = {
+                // Anillos dictados («batería nerviosa 40», «espinal 70»): se aplican con el log ya escrito y ANTES del
+                // TTS. El puente registra un fallo sin propagarlo, así que el «guardada» suena igual.
+                finishRingsBridge.onSessionSaved(closingFeedback)
                 // TTS post-write: suena recién cuando finalizeWorkout ya persistió el log.
                 voiceController.speakSessionSaved()
             },

@@ -71,6 +71,14 @@ internal fun isFinishBlockedForEmptySession(completedExercises: List<CompletedEx
 internal fun finishEmptySessionGuidance(completedExercises: List<CompletedExercise>): String? =
     FINISH_EMPTY_SESSION_GUIDANCE.takeIf { isFinishBlockedForEmptySession(completedExercises) }
 
+/** Factor de estrés por claridad mental. Sin valoración (null) es neutro: la técnica ya entra en `techniquePenalty`. */
+internal fun clarityStressFactor(rating: Int?): Double = when {
+    rating == null -> 1.0
+    rating >= 8 -> 0.96
+    rating <= 4 -> 1.10
+    else -> 1.0
+}
+
 /**
  * Owns workout finish flow: build log, persist, performance snapshots, volume-advance gate.
  */
@@ -334,11 +342,8 @@ class WorkoutFinishController(
                         technicalQuality = techniqueQuality5,
                         effortSignal = avgSetEffortSignal,
                     ).coerceIn(1.0, 1.5)
-                    val clarityFactor = when {
-                        closingFeedback.clarityRating >= 8 -> 0.96
-                        closingFeedback.clarityRating <= 4 -> 1.10
-                        else -> 1.0
-                    }
+                    // La técnica ya entra en techniquePenalty: la claridad solo cuenta si se preguntó.
+                    val clarityFactor = clarityStressFactor(closingFeedback.clarityRating)
                     (base * impactFactor * techniquePenalty * clarityFactor).coerceAtLeast(1.0)
                 }
 

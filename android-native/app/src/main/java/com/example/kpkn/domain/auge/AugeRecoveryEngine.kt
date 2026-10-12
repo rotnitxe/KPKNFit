@@ -323,7 +323,7 @@ object AugeRecoveryEngine {
             .takeIf { it.isNotEmpty() }
             ?.map { it.value.recoveryScore.toDouble() }
             ?.average()
-            ?.toInt()
+            ?.roundToInt()
             ?: 100
         val guardScores = SPINE_GUARD_MUSCLES.mapNotNull { name ->
             perMuscle.entries.firstOrNull { muscleMatchesCategory(it.key, name) }?.value?.recoveryScore
@@ -695,7 +695,8 @@ object AugeRecoveryEngine {
 
         return MuscleRecoveryStatus(
             muscleName             = muscleName,
-            recoveryScore          = battery.toInt(),
+            // Se redondea (≥ 99,5 ⇒ 100): truncar dejaba el 99 durante días y sesgaba toda cifra −0,5.
+            recoveryScore          = battery.roundToInt(),
             hoursToRecovery        = hoursToRecovery,
             hoursSinceLastSession  = if (lastSessionDate > 0) ((now - lastSessionDate) / 3_600_000).toInt() else -1,
             effectiveSets          = effectiveSetsCount,
@@ -890,9 +891,9 @@ object AugeRecoveryEngine {
         val normalizedGymFatigue = clamp(100.0 * (1.0 - safeExp(-rawGymPct / 75.0)), 0.0, 100.0)
 
         val total = normalizedGymFatigue
-        val cnsBattery = clamp(100.0 - total, 0.0, 100.0).toInt()
+        val cnsBattery = clamp(100.0 - total, 0.0, 100.0).roundToInt()
 
-        return Triple(cnsBattery, normalizedGymFatigue.toInt(), 0)
+        return Triple(cnsBattery, normalizedGymFatigue.roundToInt(), 0)
     }
 
     // ─── 3. BATERÍA ESPINAL ───────────────────────────────────────────────────
@@ -1098,7 +1099,7 @@ object AugeRecoveryEngine {
         val capacity = max(70.0, tanks.spinal * 0.02)
         val rawPct = (accumulatedSpinalLoad / capacity) * 100.0
         val normalizedLoad = clamp(100.0 * (1.0 - safeExp(-rawPct / 70.0)), 0.0, 100.0)
-        return clamp(100.0 - normalizedLoad, 0.0, 100.0).toInt()
+        return clamp(100.0 - normalizedLoad, 0.0, 100.0).roundToInt()
     }
 
     // ─── 4. BATERÍAS GLOBALES ─────────────────────────────────────────────────
@@ -1174,7 +1175,7 @@ object AugeRecoveryEngine {
             val sortedAsc = gatedPillarBatteries.sorted()
             val bottomCount = maxOf(1, (sortedAsc.size * 0.25).toInt())
             val bottomQuartileAvg = sortedAsc.take(bottomCount).average()
-            (overallAvg * 0.85 + bottomQuartileAvg * 0.15).toInt()
+            (overallAvg * 0.85 + bottomQuartileAvg * 0.15).roundToInt()
         }
 
         val muscularWithAcwr = if (wellbeing?.manualMuscularBattery != null) {
@@ -1213,23 +1214,24 @@ object AugeRecoveryEngine {
         val spinalDelta = adaptiveCache.spinalLearningDelta.coerceIn(-15.0, 15.0)
         val floor = physiologicalFloor(settings)
 
+        // Los tres valores finales de los anillos también se redondean: aquí ya hay decimales (ACWR, deceleración, deltas).
         val decelMuscular = decelerateBattery(muscularWithAcwr)
         val finalMuscular = max(
             clamp(decelMuscular + avgMuscleDelta, 0.0, 100.0),
             floor.muscular.toDouble(),
-        ).toInt()
+        ).roundToInt()
         val finalCnc = max(
             decelerateBattery(
                 clamp(cncBattery.toDouble() + cnsDelta, 0.0, 100.0),
             ),
             floor.cns.toDouble(),
-        ).toInt().coerceIn(0, 100)
+        ).roundToInt().coerceIn(0, 100)
         val finalSpinal = max(
             decelerateBattery(
                 clamp(spinalBattery.toDouble() + spinalDelta, 0.0, 100.0),
             ),
             floor.spinal.toDouble(),
-        ).toInt().coerceIn(0, 100)
+        ).roundToInt().coerceIn(0, 100)
 
         val initialContribution = InitialRecoveryEvidencePolicy.resolve(
             InitialRecoveryPolicyInput(
@@ -1387,7 +1389,7 @@ object AugeRecoveryEngine {
             .takeIf { it.isNotEmpty() }
             ?.map { it.value.recoveryScore.toDouble() }
             ?.average()
-            ?.toInt()
+            ?.roundToInt()
             ?: 100
         val guardScores = SPINE_GUARD_MUSCLES.mapNotNull { name ->
             perMuscle.entries.firstOrNull { muscleMatchesCategory(it.key, name) }?.value?.recoveryScore
@@ -1532,41 +1534,6 @@ object AugeRecoveryEngine {
         )
     }
 
-    // ─── 7. RECOMENDACIÓN DE SUEÑO ───────────────────────────────────────────
-
-    fun calculateSleepRecommendations(
-        settings: Settings,
-        wellbeing: DailyWellbeingLog?,
-        todayLog: WorkoutLog?,
-    ): SleepRecommendation {
-        val base = settings.sleepTargetHours
-        var extra = 0.0
-        val reasons = mutableListOf<String>()
-
-        todayLog?.let { log ->
-            val volume = log.completedExercises.size * 3
-            if (volume > 15 || (log.sessionStressScore ?: 0.0) > 50) {
-                extra += 0.75; reasons.add("Alta carga neural")
-            } else if (volume > 10) {
-                extra += 0.5; reasons.add("Volumen moderado")
-            }
-        }
-
-        wellbeing?.let { w ->
-            if (w.workIntensity == IntensityLevel.HIGH || w.studyIntensity == IntensityLevel.HIGH) {
-                extra += 0.5; reasons.add("Carga cognitiva alta")
-            }
-            if (w.stressLevel >= 4) {
-                extra += 0.25; reasons.add("Estrés elevado")
-            }
-        }
-
-        return SleepRecommendation(
-            targetHours = (base + extra).coerceIn(6.0, 10.0),
-            reasons = reasons,
-        )
-    }
-
     // ─── 9. MULTIPLICADOR NUTRICIONAL ────────────────────────────────────────
 
     fun getNutritionMultiplier(
@@ -1596,192 +1563,6 @@ object AugeRecoveryEngine {
 
     // Expose PILLAR_MUSCLES para la UI
     val pillarMuscles: List<String> get() = PILLAR_MUSCLES
-
-    // ─── 10. RANKINGS DE SESIONES ─────────────────────────────────────────────
-
-    /**
-     * Calcula el ranking de sesiones del historial ordenadas por drenaje total.
-     * Incluye desglose por canal (muscular, cns, espinal).
-     */
-    fun calculateSessionDrainRankings(
-        history: List<WorkoutLog>,
-        settings: Settings,
-        exerciseDb: Map<String, ExerciseMuscleInfo> = emptyMap(),
-    ): List<SessionDrainRanking> {
-        return history.map { log ->
-            val drain = AugeFatigueEngine.calculateCompletedSessionDrain(
-                completedExercises = log.completedExercises,
-                exerciseDb = exerciseDb,
-                settings = settings,
-            )
-            SessionDrainRanking(
-                logId = log.id,
-                sessionName = log.sessionName,
-                date = log.date.take(10),
-                totalDrain = drain.cns * AugeUtils.STRESS_WEIGHT_CNS +
-                    drain.muscular * AugeUtils.STRESS_WEIGHT_MUSCULAR +
-                    drain.spinal * AugeUtils.STRESS_WEIGHT_SPINAL,
-                cnsDrain = drain.cns.toDouble(),
-                muscularDrain = drain.muscular.toDouble(),
-                spinalDrain = drain.spinal.toDouble(),
-            )
-        }.sortedByDescending { it.totalDrain }
-    }
-
-    /**
-     * Calcula el ranking de ejercicios agregado por drenaje promedio.
-     * Agrupa por ejerciseName/exerciseDbId para promediar a través del historial.
-     */
-    fun calculateExerciseDrainRankings(
-        history: List<WorkoutLog>,
-        settings: Settings,
-        exerciseDb: Map<String, ExerciseMuscleInfo> = emptyMap(),
-    ): List<ExerciseDrainRanking> {
-        val tanks = AugeFatigueEngine.calculatePersonalizedBatteryTanks(settings)
-        // Map: exerciseKey -> (totalMuscular, totalCns, totalSpinal, sessionCount)
-        data class DrainAccum(
-            var muscular: Double = 0.0,
-            var cns: Double = 0.0,
-            var spinal: Double = 0.0,
-            var count: Int = 0,
-            var name: String = "",
-            var dbId: String? = null,
-        )
-        val accumMap = mutableMapOf<String, DrainAccum>()
-
-        history.forEach { log ->
-            log.completedExercises.forEach { ex ->
-                val key = (ex.exerciseDbId ?: ex.exerciseName).lowercase().trim()
-                val dbInfo = resolveDbInfo(ex, exerciseDb)
-                val metrics = getDynamicAugeMetrics(ex.exerciseName, dbInfo?.equipment, dbInfo) ?: AugeMetrics()
-                val densityMult = densityMultiplierForCompletedExercise(ex)
-                var accumulated = 0
-                var sessMuscular = 0.0
-                var sessCns = 0.0
-                var sessSpinal = 0.0
-
-                ex.sets.forEach { s ->
-                    if (!isSetEffective(s)) return@forEach
-                    accumulated++
-                    val drain = calculateSetBatteryDrain(
-                        set = s,
-                        metrics = metrics,
-                        tanks = tanks,
-                        accumulatedSets = accumulated,
-                        restTime = ex.restTime,
-                        densityMultiplier = densityMult,
-                    )
-                    sessMuscular += drain.muscularDrainPct
-                    sessCns += drain.cnsDrainPct
-                    sessSpinal += drain.spinalDrainPct
-                }
-
-                val entry = accumMap.getOrPut(key) {
-                    DrainAccum(name = ex.exerciseName, dbId = ex.exerciseDbId)
-                }
-                entry.muscular += sessMuscular
-                entry.cns += sessCns
-                entry.spinal += sessSpinal
-                entry.count++
-            }
-        }
-
-        return accumMap.values.map { a ->
-            val n = maxOf(1, a.count).toDouble()
-            val normFactor = 0.01
-            ExerciseDrainRanking(
-                exerciseName = a.name,
-                exerciseDbId = a.dbId,
-                overallDrain = ((a.muscular / n * AugeUtils.STRESS_WEIGHT_MUSCULAR) +
-                    (a.cns / n * AugeUtils.STRESS_WEIGHT_CNS) +
-                    (a.spinal / n * AugeUtils.STRESS_WEIGHT_SPINAL)) * normFactor,
-                muscularDrain = (a.muscular / n) * normFactor,
-                cnsDrain = (a.cns / n) * normFactor,
-                spinalDrain = (a.spinal / n) * normFactor,
-                sessionCount = a.count,
-            )
-        }.sortedByDescending { it.overallDrain }
-    }
-
-    /**
-     * Calcula estadísticas personales de recuperación del último mes.
-     * Compara el tiempo necesario para cada canal usando el historial de WorkoutLogs.
-     */
-    fun calculatePersonalRecoveryStats(
-        history: List<WorkoutLog>,
-        settings: Settings,
-        exerciseDb: Map<String, ExerciseMuscleInfo> = emptyMap(),
-    ): PersonalRecoveryStats {
-        val cutoffMs = System.currentTimeMillis() - 30L * 24 * 3600_000L
-        val recent = history.filter { logDateMs(it) >= cutoffMs }
-
-        if (recent.isEmpty()) {
-            return PersonalRecoveryStats(
-                avgRecoveryHoursOverall = 48.0,
-                avgRecoveryHoursMuscular = 48.0,
-                avgRecoveryHoursCns = 36.0,
-                avgRecoveryHoursSpinal = 52.0,
-                fastestRecoverySession = null,
-                slowestRecoverySession = null,
-                sampleCount = 0,
-            )
-        }
-
-        // Estimate recovery hours per session based on drain intensity
-        data class SessionRecovery(val name: String, val muscular: Double, val cns: Double, val spinal: Double)
-
-        val tanks = AugeFatigueEngine.calculatePersonalizedBatteryTanks(settings)
-        val sessionStats = recent.map { log ->
-            var totalMuscular = 0.0
-            var totalCns = 0.0
-            var totalSpinal = 0.0
-
-            log.completedExercises.forEach { ex ->
-                val dbInfo = resolveDbInfo(ex, exerciseDb)
-                val metrics = getDynamicAugeMetrics(ex.exerciseName, dbInfo?.equipment, dbInfo) ?: AugeMetrics()
-                val densityMult = densityMultiplierForCompletedExercise(ex)
-                var accumulated = 0
-                ex.sets.forEach { s ->
-                    if (!isSetEffective(s)) return@forEach
-                    accumulated++
-                    val drain = calculateSetBatteryDrain(
-                        set = s, metrics = metrics, tanks = tanks,
-                        accumulatedSets = accumulated, restTime = ex.restTime, densityMultiplier = densityMult,
-                    )
-                    totalMuscular += drain.muscularDrainPct
-                    totalCns += drain.cnsDrainPct
-                    totalSpinal += drain.spinalDrainPct
-                }
-            }
-
-            // Estimate recovery hours: higher drain → more hours needed
-            // Muscular: base 24-96h, CNC: base 12-48h, Spinal: base 24-72h
-            val muscularHours = clamp(24.0 + totalMuscular * 0.5, 24.0, 96.0)
-            val cnsHours = clamp(12.0 + totalCns * 0.3, 12.0, 48.0)
-            val spinalHours = clamp(24.0 + totalSpinal * 0.4, 24.0, 72.0)
-            SessionRecovery(log.sessionName, muscularHours, cnsHours, spinalHours)
-        }
-
-        val avgMuscular = sessionStats.map { it.muscular }.average()
-        val avgCns = sessionStats.map { it.cns }.average()
-        val avgSpinal = sessionStats.map { it.spinal }.average()
-        val avgOverall = (avgMuscular * AugeUtils.STRESS_WEIGHT_MUSCULAR +
-            avgCns * AugeUtils.STRESS_WEIGHT_CNS +
-            avgSpinal * AugeUtils.STRESS_WEIGHT_SPINAL)
-
-        val fastest = sessionStats.minByOrNull { it.muscular + it.cns + it.spinal }?.name
-        val slowest = sessionStats.maxByOrNull { it.muscular + it.cns + it.spinal }?.name
-
-        return PersonalRecoveryStats(
-            avgRecoveryHoursOverall = avgOverall,
-            avgRecoveryHoursMuscular = avgMuscular,
-            avgRecoveryHoursCns = avgCns,
-            avgRecoveryHoursSpinal = avgSpinal,
-            fastestRecoverySession = fastest,
-            slowestRecoverySession = slowest,
-            sampleCount = recent.size,
-        )
-    }
 
     // ─── Post-Session Preview (finish-sheet ↔ home-screen consistency) ─────────
 

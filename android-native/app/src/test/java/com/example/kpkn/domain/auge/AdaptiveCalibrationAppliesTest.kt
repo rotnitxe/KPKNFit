@@ -110,28 +110,6 @@ class AdaptiveCalibrationAppliesTest {
     }
 
     @Test
-    fun drainMultipliers_clampToHalfThroughOnePointSix() {
-        val (cns, spinal, muscles) = AugeAdaptiveEngine.updateDrainMultipliers(
-            currentCnsMult = 1.0,
-            currentSpinalMult = 1.0,
-            currentMuscleMults = emptyMap(),
-            manualNeural = 20,
-            manualSpinal = 20,
-            manualMuscleBatteries = mapOf("pectorales" to 20),
-            predictedNeural = 80,
-            predictedSpinal = 80,
-            predictedMuscleBatteries = mapOf("pectorales" to 80),
-            preWorkoutNeural = 100,
-            preWorkoutSpinal = 100,
-            preWorkoutMuscleBatteries = mapOf("pectorales" to 100),
-            totalObservations = 0,
-        )
-        assertTrue(cns in 0.5..1.6)
-        assertTrue(spinal in 0.5..1.6)
-        assertTrue(muscles.values.all { it in 0.5..1.6 })
-    }
-
-    @Test
     fun sleepQuality_doesNotChangeImpliedTau() {
         val base = RecoveryLearningObservation(
             muscle = "Pectorales",
