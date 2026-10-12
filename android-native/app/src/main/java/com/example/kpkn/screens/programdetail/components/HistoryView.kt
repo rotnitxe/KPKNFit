@@ -302,7 +302,7 @@ private fun SessionHistoryCard(
                         ) {
                             Text("Estado reportado", fontWeight = FontWeight.Bold, fontSize = 12.sp)
                             Text(
-                                "Fatiga: ${detail.log.fatigueLevel?.let { "$it/10" } ?: "Sin dato"} · Readiness: no registrado en este historial.",
+                                "${fatigueSummaryText(detail.log.fatigueLevel)} · Readiness: no registrado en este historial.",
                                 fontSize = 11.sp,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
@@ -526,6 +526,13 @@ private fun EmptyInlineHistory(message: String) {
     }
 }
 
+/**
+ * Texto de la fatiga en el historial. La escala real es 1–5 y es una estimación a partir del esfuerzo registrado,
+ * no una respuesta de la persona: por eso nunca se muestra como «X/10». Sin dato se deja como estaba.
+ */
+internal fun fatigueSummaryText(level: Int?): String =
+    level?.let { "Fatiga estimada: $it/5 (según tu esfuerzo)" } ?: "Fatiga: Sin dato"
+
 private fun buildSessionHistory(logs: List<WorkoutLog>): List<SessionHistoryDetail> {
     return logs.sortedByDescending { it.date }.map { log ->
         val lifts = log.completedExercises.mapNotNull { exercise ->
@@ -549,7 +556,7 @@ private fun buildSessionHistory(logs: List<WorkoutLog>): List<SessionHistoryDeta
             lifts = lifts,
             headline = buildString {
                 append("${lifts.size} ejercicios · ${log.completedExercises.sumOf { it.sets.size }} series")
-                if (log.fatigueLevel != null) append(" · Fatiga ${log.fatigueLevel}/10")
+                if (log.fatigueLevel != null) append(" · Fatiga est. ${log.fatigueLevel}/5")
             },
         )
     }
