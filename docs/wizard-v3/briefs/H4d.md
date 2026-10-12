@@ -45,6 +45,10 @@ DÍA 1                         ←   el día se repite
    - «3 series de 10 repeticiones», «3 series x 12», «4 x 10 reps».
    - También entre paréntesis tras un nombre: «Bent-Over Rows (2 sets x 10 reps)».
 7. **Por lado:** «8/leg», «10 each side», «12 por pierna», «10 c/l» o «10 por lado» dan esas repeticiones con la nota «Por lado.».
+8. **Retoque del editor que dejó H3h** (`ImportDraftEditor.kt`):
+   - Hoy `LOAD_RANGE` es 0,5–1000 sin mirar la unidad, así que rechaza una edición de 1100 lb.
+   - Debe usar el rango según `draft.loadUnit`: 0,5–1000 en kg y 1–2200 en lb, el mismo que el analizador (`ProgramImportParser`) y la interfaz (`ImportEdits`).
+   - Añade la prueba.
 
 ## Banco de pruebas de filas de OCR (código de prueba)
 - **Prueba nueva** `OcrRowsCorpusReportTest`: solo corre con `KPKN_OCR_ROWS` (la carpeta de `.rows.txt`).
