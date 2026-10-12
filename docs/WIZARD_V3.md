@@ -135,6 +135,22 @@ Cuándo sale cada paso condicional:
   - Fichas de 6 semanas: «para recuperarte» en lugar de «para llegar fresco».
   - Tres «cuando estés listo» quedan neutros: el resumen del chat, la voz del entreno y el recorrido.
   - Sin probar en el teléfono: la cabecera y los chips solo se comprobaron con pruebas JVM y Robolectric.
+- Visto en la prueba de la PR8 (2026-10-12). Arreglado en H5c y H5d, y comprobado en el teléfono:
+  - **El reloj de descanso se partía en dos líneas** («02:5» / «7»): 46 sp con Syne en un anillo de 204 dp. Ahora `RestClockText` (en
+    `WorkoutRestOverlay.kt`) lo pinta siempre en una línea y encoge la letra hasta 20 sp si no cabe; lo usan los dos anillos del
+    descanso.
+    - El vídeo de bienvenida de Entreno lo mostraba: se volvió a grabar con la misma toma y los mismos cortes; la imagen fija es del
+      mismo instante.
+    - Ojo en las pruebas: el `TextLayoutResult` que da la semántica de un `BasicText` lleva el estilo original, no el tamaño que
+      elige `autoSize`. Para saber el tamaño real, mide el ancho de la línea.
+  - **Tildes del entreno:** «Sesión principal», «Sesión activa», «Después de…», «Última serie», «transición» y «estación».
+  - **El teclado no se cerraba al confirmar un paso del asistente** y tapaba el paso siguiente. Ahora `WizardDock` quita el foco y cierra
+    el teclado antes de confirmar. En el paso 1, «Siguiente» del alias pasa a la fecha, y «Listo» de la fecha cierra el teclado sin
+    confirmar el paso.
+  - Pulido opcional, sin hacer:
+    - con el teclado abierto, el check flota sobre el campo de fecha, y el tirador del cursor puede quedar encima del botón;
+    - en el descanso, el texto de arriba se superpone al de la pantalla de debajo;
+    - quedan «Terminar hasta acá» y «Aprovecha el timer».
 - Sigue igual: la hoja del anillo en Inicio no tiene deslizador. El ajuste manual solo está en la hoja previa al entreno y al terminarlo.
 - La persona `qa` del arnés no trae plan de nutrición. Para el vídeo se creó a mano en la `.dbg`.
 - `src/debug/.../EntrenoPlanPreviewActivity.kt:185` (solo depuración) aún dice «para que llegues fresco».
