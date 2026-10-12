@@ -9,6 +9,7 @@ import java.time.Instant
 import kotlin.math.exp
 import kotlin.math.max
 import kotlin.math.min
+import kotlin.math.roundToInt
 
 /**
  * Utilidades compartidas para el sistema AUGE (baterías, recuperación, predicción de fatiga).
@@ -126,6 +127,12 @@ internal object AugeUtils {
     fun decelerateBattery(battery: Double): Double {
         val b = battery.coerceIn(0.0, 100.0)
         return if (b < 30.0) 30.0 * kotlin.math.sqrt(b / 30.0) else b
+    }
+
+    /** Batería entera 0..100 con mitad hacia arriba. NaN ⇒ 0: `roundToInt()` lanza con NaN y `toInt()` daba 0. */
+    fun batteryPercent(value: Double): Int {
+        if (value.isNaN()) return 0
+        return value.coerceIn(0.0, 100.0).roundToInt()
     }
 
     /**

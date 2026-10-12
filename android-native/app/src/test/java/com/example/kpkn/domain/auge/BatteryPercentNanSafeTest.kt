@@ -80,6 +80,33 @@ class BatteryPercentNanSafeTest {
         assertEquals("Control: con τ finito el ajuste manual del 80 % se lee 80", 80, g.muscular)
     }
 
+    // ─── (b) batteryPercent: NaN ⇒ 0, acotado y mitad hacia arriba ─────────
+
+    @Test
+    fun batteryPercent_casosDeBorde() {
+        assertEquals("NaN", 0, AugeUtils.batteryPercent(Double.NaN))
+        assertEquals("+∞", 100, AugeUtils.batteryPercent(Double.POSITIVE_INFINITY))
+        assertEquals("−∞", 0, AugeUtils.batteryPercent(Double.NEGATIVE_INFINITY))
+        assertEquals("99,5 ⇒ 100", 100, AugeUtils.batteryPercent(99.5))
+        assertEquals("99,49 ⇒ 99", 99, AugeUtils.batteryPercent(99.49))
+        assertEquals("0,5 ⇒ 1", 1, AugeUtils.batteryPercent(0.5))
+        assertEquals("0,49 ⇒ 0", 0, AugeUtils.batteryPercent(0.49))
+        assertEquals("−3 ⇒ 0", 0, AugeUtils.batteryPercent(-3.0))
+        assertEquals("140 ⇒ 100", 100, AugeUtils.batteryPercent(140.0))
+    }
+
+    @Test
+    fun batteryPercent_esMonotonoEnLaMallaDeCeroACien() {
+        var previo = -1
+        for (n in 0..2000) { // 0,00 a 100,00 con paso 0,05
+            val valor = n * 0.05
+            val obtenido = AugeUtils.batteryPercent(valor)
+            assertTrue("fuera de 0..100 en $valor: $obtenido", obtenido in 0..100)
+            assertTrue("no monótono en $valor: $obtenido tras $previo", obtenido >= previo)
+            previo = obtenido
+        }
+    }
+
     // ─── (d) TTC: promedio articular y combinada redondean la mitad hacia arriba ─
 
     @Test

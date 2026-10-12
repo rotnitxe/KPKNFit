@@ -947,7 +947,7 @@ private fun MiniRingsWidget(
     val allProgress = listOf(muscularProgress, sncProgress, columnaProgress)
     // Sin datos el canal queda sin calibrar (pista discontinua), sin afirmar un valor.
     fun percent(i: Int): Int? = if (coverage.channel(channels[i]).hasData) {
-        (allProgress[i] * 100).toInt().coerceIn(0, 100)
+        ringPercent(null, allProgress[i])
     } else {
         null
     }
