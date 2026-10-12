@@ -10,6 +10,7 @@ import androidx.lifecycle.lifecycleScope
 import com.example.kpkn.data.importer.readSheets
 import com.example.kpkn.domain.exercises.catalogv2.ExerciseCatalogV2Loader
 import com.example.kpkn.domain.training.importer.ExerciseNameMatcher
+import com.example.kpkn.domain.training.importer.ImportSheet
 import com.example.kpkn.domain.training.importer.ImportWarningKind
 import com.example.kpkn.domain.training.importer.ProgramImportParser
 import java.io.File
@@ -25,7 +26,8 @@ import org.json.JSONObject
  * SOLO DEPURACIÓN (no se integra): lee con OCR cada .pdf, .jpg, .jpeg y .png de `getExternalFilesDir("ocr-corpus")` por el
  * mismo camino que la app: `readSheets`, `ProgramImportParser.parseSheets` y el emparejador con el catálogo. Escribe en
  * `getExternalFilesDir("ocr-report")` un `ocr-report.json` con las cifras de cada archivo y un `<archivo>.rows.txt` con sus
- * filas reconstruidas (celdas separadas por « | »). Muestra «Listo: N archivos» y lo deja en logcat con la etiqueta
+ * filas reconstruidas (celdas separadas por « | » y, en un PDF, una línea `--- página N ---` antes de las filas de cada página,
+ * sin quitar los muebles). Muestra «Listo: N archivos» y lo deja en logcat con la etiqueta
  * KpknOcrHarness. Los milisegundos por página son el tiempo entre dos avisos de progreso (dibujo y OCR de esa página); el
  * último incluye la reconstrucción de filas.
  */
@@ -136,11 +138,22 @@ class ImportOcrHarnessActivity : ComponentActivity() {
                         },
                     ),
                 )
-            Outcome(json, rows.joinToString("\n") { row -> row.joinToString(" | ") })
+            Outcome(json, rowsTextOf(sheets))
         } catch (cancel: CancellationException) {
             throw cancel
         } catch (error: Exception) {
             Outcome(json.put("resultado", "FALLO").put("mensaje", "${error.javaClass.simpleName}: ${error.message}"), "")
+        }
+    }
+
+    /** Filas de las hojas para el `.rows.txt`: en un PDF, una línea `--- página N ---` antes de las filas de cada página. */
+    private fun rowsTextOf(sheets: List<ImportSheet>): String = sheets.joinToString("\n") { sheet ->
+        if (sheet.ocrPages.isEmpty()) {
+            sheet.rows.joinToString("\n") { row -> row.joinToString(" | ") }
+        } else {
+            sheet.ocrPages.withIndex().joinToString("\n") { (index, page) ->
+                "--- página ${index + 1} ---\n" + page.joinToString("\n") { row -> row.joinToString(" | ") }
+            }
         }
     }
 

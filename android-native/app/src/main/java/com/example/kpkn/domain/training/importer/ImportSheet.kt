@@ -10,4 +10,11 @@ data class ImportSheet(
     val name: String,
     val rows: List<List<String>>,
     val notes: List<String> = emptyList(),
+    /** Solo en un PDF leído con OCR: las filas de cada página antes de quitar los muebles. Lo usa el arnés de depuración. */
+    val ocrPages: List<List<List<String>>> = emptyList(),
+    /**
+     * Índice en [rows] donde empieza cada página, después de quitar los muebles. Lista no vacía = hoja de OCR: ahí la cabecera
+     * de cada página repite el día y un texto corto no cambia el día abierto.
+     */
+    val pageStarts: List<Int> = emptyList(),
 )
