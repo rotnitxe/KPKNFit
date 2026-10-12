@@ -2,6 +2,7 @@ package com.example.kpkn.domain.training.importer
 
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /** Filas de OCR (H4d): nombre y prescripción en líneas distintas, días repetidos, pirámides, notación larga y por lado. */
@@ -209,5 +210,37 @@ class ProgramImportParserOcrTest {
         assertEquals(1, exercise.repsMin)
         assertEquals(3, exercise.repsMax)
         assertEquals("Pirámide: 3-2-1-3-2-1.", exercise.notes)
+    }
+
+    @Test
+    fun `en una hoja de OCR la prosa con cifras cuenta como linea de texto y no da avisos`() {
+        val rows = listOf(
+            listOf("Cómo leer esta tabla: RPE 8 significa que al final de la serie te quedan unas 2 repeticiones."),
+            listOf("Regla de progresión: cuando el cliente llega al máximo del rango en todas las series, sube la carga."),
+            listOf("• Cómo sumar las series de calentamiento: no cuentan para la progresión de cada ejercicio."),
+            listOf("Sentadilla 4x8"),
+        )
+
+        val draft = ProgramImportParser.parseSheets(
+            listOf(ImportSheet(name = "Hoja", rows = rows, pageStarts = listOf(0))),
+            title = "Prosa OCR",
+        )
+
+        assertEquals(listOf("Sentadilla"), exercisesOf(draft).map { it.rawName })
+        assertEquals(emptyList<String>(), skippedMessages(draft))
+        assertTrue(draft.warnings.any { it.message.contains("3 líneas de texto") })
+    }
+
+    @Test
+    fun `la misma prosa con cifras en una hoja normal sigue avisando como antes`() {
+        val rows = listOf(
+            listOf("Cómo leer esta tabla: RPE 8 significa que al final de la serie te quedan unas 2 repeticiones."),
+            listOf("Regla de progresión: cuando el cliente llega al máximo del rango en todas las series, sube la carga."),
+            listOf("Sentadilla 4x8"),
+        )
+
+        val draft = ProgramImportParser.parseSheets(listOf(ImportSheet(name = "Hoja", rows = rows)), title = "Prosa normal")
+
+        assertTrue("avisos: ${draft.warnings.map { it.message }}", skippedMessages(draft).isNotEmpty())
     }
 }

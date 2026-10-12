@@ -19,10 +19,14 @@ data class ExerciseNameCandidate(
     val equipmentId: String? = null,
 )
 
-/** Hasta tres configuraciones para un nombre importado, de mayor a menor confianza. */
+/**
+ * Hasta tres configuraciones para un nombre importado, de mayor a menor confianza. [alternative] es la segunda opción de
+ * un nombre «X o Y» que se reconoce por X («Dominadas o jalón agarre cerrado» → «jalón agarre cerrado»); si no, null.
+ */
 data class ExerciseNameMatch(
     val rawName: String,
     val candidates: List<ExerciseNameCandidate>,
+    val alternative: String? = null,
 ) {
     val best: ExerciseNameCandidate?
         get() = candidates.firstOrNull()
@@ -176,6 +180,17 @@ private val VARIANT_ROOTS: Set<String> = listOf(
     "sentado", "pie", "alta", "baja",
 ).map(::genderRoot).toSet()
 
+/** Separador de dos opciones de un nombre: «X o Y», «X or Y» o «X u Y». */
+private val ALTERNATIVE_SEPARATOR = Regex("""\s+(?:o|or|u)\s+""", RegexOption.IGNORE_CASE)
+
+/** Parte un nombre con dos opciones en X e Y; null si no tiene esa forma o le falta una de las dos partes. */
+internal fun splitAlternative(name: String): Pair<String, String>? {
+    val separator = ALTERNATIVE_SEPARATOR.find(name) ?: return null
+    val first = name.substring(0, separator.range.first).trim()
+    val second = name.substring(separator.range.last + 1).trim()
+    return if (first.isNotEmpty() && second.isNotEmpty()) first to second else null
+}
+
 /**
  * Empareja nombres importados con el catálogo v2. Primero busca el alias curado de [ImportExerciseAliases] (confianza
  * alta). Si no hay alias, usa [ExerciseCatalogV2Resolver.search] como candidatos y mide el parecido con el nombre
@@ -190,9 +205,19 @@ class ExerciseNameMatcher(catalog: ExerciseCatalogV2) {
      * Configuraciones para un nombre. Si el nombre dice el material («con mancuernas», «en polea», «hexagonal»),
      * elige la configuración de ese equipo; si el ejercicio no la tiene, propone la sugerida o por defecto con la
      * confianza bajada. Sin material, la del alias, la sugerida o por defecto, y otros materiales por debajo.
+     * «X o Y»: si el nombre completo no se reconoce y X sí, se reconoce X y Y queda como [ExerciseNameMatch.alternative].
      */
     fun match(rawName: String): ExerciseNameMatch {
         val name = rawName.trim()
+        val whole = matchPart(name)
+        if (whole.isConfident) return whole
+        val (first, second) = splitAlternative(name) ?: return whole
+        val part = matchPart(first)
+        return if (part.isConfident) ExerciseNameMatch(name, part.candidates, alternative = second) else whole
+    }
+
+    /** Configuraciones de un nombre sin separar sus dos opciones (ver [match]). */
+    private fun matchPart(name: String): ExerciseNameMatch {
         val original = comparable(name)
         if (original.isEmpty()) return ExerciseNameMatch(name, emptyList())
         val equipment = materialEquipment(name)

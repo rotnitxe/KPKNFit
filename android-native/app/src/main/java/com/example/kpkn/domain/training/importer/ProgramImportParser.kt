@@ -320,6 +320,11 @@ object ProgramImportParser {
                     null
                 }
                 tableDay != null && (filled.size == 1 || (table != null && isBareTableRow(cells, table))) -> null
+                // Prosa con cifras de una hoja de OCR (H5b): cuenta como línea de texto, sin aviso.
+                filled.size == 1 && builder.ocrSheet && isOcrProse(filled.first()) -> {
+                    context.count(Noise.TEXT)
+                    null
+                }
                 filled.size == 1 -> classify(filled.first(), context, prescribedName)
                 table != null -> tableRow(cells, table, context)
                 else -> classify(filled.joinToString(" "), context)
@@ -1161,6 +1166,21 @@ object ProgramImportParser {
         val words = text.split(WHITESPACE).count { it.isNotEmpty() }
         return words > 8 || text.length > 60 || text.contains("http", ignoreCase = true) ||
             (text.trimEnd().endsWith(".") && words >= 5)
+    }
+
+    /**
+     * Prosa de una hoja de OCR (H5b): una celda de 8 palabras o más, o de 60 caracteres o más, en su mayoría en minúscula,
+     * que no empieza por notación (tras quitar viñetas y símbolos, por cifra) y cuyas 3 primeras palabras no son un alias.
+     * Son instrucciones y reglas de la página con cifras, no ejercicios.
+     */
+    private fun isOcrProse(text: String): Boolean {
+        val clean = text.trim()
+        val words = clean.split(WHITESPACE).filter { it.isNotEmpty() }
+        if (words.size < 8 && clean.length < 60) return false
+        if (clean.trimStart { !it.isLetterOrDigit() }.firstOrNull()?.isLetter() != true) return false
+        val lettered = words.filter { word -> word.any { it.isLetter() } }
+        if (lettered.count { it == it.lowercase() } * 2 <= lettered.size) return false
+        return (1..minOf(3, words.size)).none { ImportExerciseAliases.lookup(words.take(it).joinToString(" ")) != null }
     }
 
     /** El nombre de una hoja sirve de día salvo que sea genérico («Hoja1», «Sheet 2»). */
