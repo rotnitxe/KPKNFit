@@ -175,6 +175,8 @@ internal fun RestLiveCard(
                 fontWeight = FontWeight.Black,
                 color = Color.White,
                 modifier = Modifier.align(Alignment.CenterHorizontally),
+                maxLines = 1,
+                softWrap = false,
             )
 
             Surface(
