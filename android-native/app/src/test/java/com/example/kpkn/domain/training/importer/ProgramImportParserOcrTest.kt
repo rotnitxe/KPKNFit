@@ -180,4 +180,34 @@ class ProgramImportParserOcrTest {
         assertEquals(listOf(8, 10, 12, 10, 10), exercises.map { it.repsMin })
         assertEquals(List(5) { "Por lado." }, exercises.map { it.notes })
     }
+
+    @Test
+    fun `una fecha no es una piramide ni da ejercicios`() {
+        val draft = ProgramImportParser.parseText("Deadlift 100 Updated: 06/03/15\nFecha 6/3/15", title = "Fecha")
+
+        assertEquals(emptyList<String>(), exercisesOf(draft).map { it.rawName })
+    }
+
+    @Test
+    fun `las piramides sin series van en un solo sentido y sin ceros delante`() {
+        val draft = ProgramImportParser.parseText("Sentadilla 15-12-10-8\nCurl 8-10-12", title = "Sentido")
+
+        val exercises = exercisesOf(draft)
+        assertEquals(listOf("Sentadilla", "Curl"), exercises.map { it.rawName })
+        assertEquals(listOf(4, 3), exercises.map { it.sets })
+        assertEquals(listOf(8, 8), exercises.map { it.repsMin })
+        assertEquals(listOf(15, 12), exercises.map { it.repsMax })
+        assertEquals(listOf("Pirámide: 15-12-10-8.", "Pirámide: 8-10-12."), exercises.map { it.notes })
+    }
+
+    @Test
+    fun `con series, una piramide en onda de seis series sigue siendo piramide`() {
+        val draft = ProgramImportParser.parseText("Dominadas 6x 3-2-1-3-2-1", title = "Onda")
+
+        val exercise = exercisesOf(draft).single()
+        assertEquals(6, exercise.sets)
+        assertEquals(1, exercise.repsMin)
+        assertEquals(3, exercise.repsMax)
+        assertEquals("Pirámide: 3-2-1-3-2-1.", exercise.notes)
+    }
 }

@@ -650,7 +650,7 @@ object ProgramImportParser {
         scan(REST_MINUTES) { m -> if (rest == null) rest = minutesToSeconds(m.groupValues[1]) }
         scan(REST_SECONDS) { m -> if (rest == null) rest = m.groupValues[1].toIntOrNull() }
         // Pirámide con series («4x 15-12-10-8»): antes que la notación normal, que solo leería dos cifras.
-        scan(PYRAMID_WITH_SETS, accept = { m -> pyramidFits(figuresOf(m.groupValues[2])) }) { m ->
+        scan(PYRAMID_WITH_SETS, accept = { m -> pyramidWithSetsFits(m.groupValues[2]) }) { m ->
             if (sets == null) {
                 val figures = figuresOf(m.groupValues[2])
                 sets = m.groupValues[1].toIntOrNull()
@@ -847,26 +847,38 @@ object ProgramImportParser {
         return leadingInt(text)?.let { it to it }
     }
 
-    /** Lista de repeticiones de una celda («15-12-10-8», «12/10/8/6») si es una pirámide: tres cifras o más. */
+    /**
+     * Lista de repeticiones de una celda («15-12-10-8», «12/10/8/6») si es una pirámide: tres cifras o más, sin ceros delante
+     * y en un solo sentido.
+     */
     private fun pyramidOfCell(cell: String): List<Int>? {
         val text = cell.trim()
-        if (!PYRAMID_CELL.matches(text)) return null
-        return figuresOf(text).takeIf { it.size >= 3 }
+        if (!PYRAMID_CELL.matches(text) || hasLeadingZero(text)) return null
+        return figuresOf(text).takeIf { it.size >= 3 && isMonotone(it) }
     }
 
     /** Las cifras de un texto, en orden. */
     private fun figuresOf(text: String): List<Int> = NUMBER_TOKEN.findAll(text).mapNotNull { it.value.toIntOrNull() }.toList()
 
-    /** Una pirámide con series: tres cifras o más («2x10-12» es un rango de 10 a 12, no una pirámide). */
-    private fun pyramidFits(figures: List<Int>): Boolean = figures.size >= 3
+    /** Una pirámide con series: tres cifras o más, sin ceros delante («2x10-12» es un rango; «06» es una fecha). */
+    private fun pyramidWithSetsFits(list: String): Boolean = figuresOf(list).size >= 3 && !hasLeadingZero(list)
+
+    /** Una cifra con cero delante («06», «03») no es una repetición: es una fecha o un código. */
+    private fun hasLeadingZero(list: String): Boolean =
+        NUMBER_TOKEN.findAll(list).any { it.value.length > 1 && it.value.startsWith('0') }
+
+    /** Las repeticiones de una pirámide van en un solo sentido: «15-12-10-8» o «8-10-12», no «6/3/15». */
+    private fun isMonotone(figures: List<Int>): Boolean =
+        figures.zipWithNext().all { (a, b) -> a >= b } || figures.zipWithNext().all { (a, b) -> a <= b }
 
     /**
-     * Una pirámide sin series en un texto: cuatro cifras, o tres si la lista cierra el texto. Así «5/3/1» dentro de un título
-     * («Press – 5/3/1 BBB») no es una pirámide.
+     * Una pirámide sin series en un texto: cuatro cifras, o tres si la lista cierra el texto (así «5/3/1» dentro de un título
+     * no es pirámide). Además, sin ceros delante y en un solo sentido: «Deadlift 100 Updated: 06/03/15» y «Fecha 6/3/15» no lo son.
      */
     private fun pyramidListFits(list: String, atEnd: Boolean): Boolean {
-        val count = figuresOf(list).size
-        return count >= 4 || (count >= 3 && atEnd)
+        val figures = figuresOf(list)
+        val long = figures.size >= 4 || (figures.size >= 3 && atEnd)
+        return long && !hasLeadingZero(list) && isMonotone(figures)
     }
 
     /** La nota de una pirámide: «Pirámide: 15-12-10-8.». */
