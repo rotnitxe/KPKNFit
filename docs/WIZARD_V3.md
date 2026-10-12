@@ -72,8 +72,9 @@ Cuándo sale cada paso condicional:
   `ADAPTED`. Quien compite con fecha no ve la versión simple de los programas propios.
 - **Evidencia v2 de RINGS**: días entrenados, ejercicios principales y series por grupo con las curvas reales del motor; sin días no hay
   evidencia; sin datos de columna, «Sin calibrar» (nunca 100 %). Las sensaciones solo penalizan; nunca son ancla.
-- **Importador**: `XlsxReader` (ZIP + XmlPullParser), `CsvReader`, `ProgramImportParser`, `ExerciseNameMatcher`, `ImportedProgramBuilder`
-  (procedencia «Programa importado»). En Free, un importado de más de 1 semana o 5 sesiones pide Pro.
+- **Importador**: lee Excel, ODS, CSV, Word, texto, PDF y fotos (OCR en el teléfono). El usuario lo revisa y lo ajusta antes de
+  guardarlo. Todo está en [`IMPORTADOR_PROGRAMAS.md`](IMPORTADOR_PROGRAMAS.md): lectores, reglas del analizador, emparejador de nombres,
+  plantillas conocidas, editor con deshacer, bancos de pruebas y resultados. En Free, un importado de más de 1 semana o 5 sesiones pide Pro.
 
 ## 4. Reglas nuevas que no hay que romper
 
