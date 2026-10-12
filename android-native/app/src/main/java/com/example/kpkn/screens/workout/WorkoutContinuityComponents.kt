@@ -122,7 +122,7 @@ internal fun buildWorkoutContinuityState(
             phase = WorkoutContinuityPhase.CURRENT_EXERCISE,
             eyebrow = blockLabel,
             title = if (remainingSets == 1) {
-                "Ultima serie para cerrar ${currentExercise.displayNameWithSelectedChips()}"
+                "Última serie para cerrar ${currentExercise.displayNameWithSelectedChips()}"
             } else {
                 "Quedan $remainingSets series en ${currentExercise.displayNameWithSelectedChips()}"
             },
