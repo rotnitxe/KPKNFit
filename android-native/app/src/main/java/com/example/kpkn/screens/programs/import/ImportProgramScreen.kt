@@ -41,6 +41,7 @@ import kotlinx.coroutines.launch
 fun ImportProgramScreen(
     onBack: () -> Unit,
     onSaved: (programId: String) -> Unit,
+    onUseCatalogProgram: (planId: String) -> Unit,
     viewModel: ImportProgramViewModel = viewModel(),
 ) {
     val state by viewModel.state.collectAsState()
@@ -87,6 +88,13 @@ fun ImportProgramScreen(
                 label = "Título del programa",
                 testTag = "import-title",
             )
+            state.importKnownPlanId?.takeUnless { state.importKnownDismissed }?.let { planId ->
+                ImportKnownProgramNotice(
+                    planId = planId,
+                    onUse = { onUseCatalogProgram(planId) },
+                    onDismiss = viewModel::dismissImportKnown,
+                )
+            }
             state.undoLabel?.let { ImportUndoLine(label = it, onUndo = viewModel::undo) }
             ImportWarningsPanel(
                 imported = imported,

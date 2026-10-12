@@ -1309,6 +1309,7 @@ private fun KPKNNavGraph(
                         launchSingleTop = true
                     }
                 },
+                onUseCatalogProgram = { planId -> openLibraryPlanInWizard(navController, planId) },
             )
         }
         composable(KpknRoute.Competitions.route) {

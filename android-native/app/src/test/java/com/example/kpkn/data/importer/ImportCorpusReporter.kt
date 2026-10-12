@@ -1,11 +1,13 @@
 package com.example.kpkn.data.importer
 
+import com.example.kpkn.data.programs.PersonalizedPlanCatalog
 import com.example.kpkn.domain.training.importer.ExerciseNameMatch
 import com.example.kpkn.domain.training.importer.ExerciseNameMatcher
 import com.example.kpkn.domain.training.importer.ImportSheet
 import com.example.kpkn.domain.training.importer.ImportWarningKind
 import com.example.kpkn.domain.training.importer.ImportedExercise
 import com.example.kpkn.domain.training.importer.ImportedProgramDraft
+import com.example.kpkn.domain.training.importer.KnownProgramRecognizer
 import com.example.kpkn.domain.training.importer.ProgramImportParser
 import java.io.File
 import java.time.Instant
@@ -124,8 +126,12 @@ class ImportCorpusReporter(
         val confident = matches.values.count { it.isConfident }
         val percent = if (names.isEmpty()) null else confident * 100.0 / names.size
         val warnings = ImportWarningKind.entries.associate { kind -> kind.name to draft.warnings.count { it.kind == kind } }
+        // Plantilla de KPKN: el mismo reconocimiento que la app, con el nombre del archivo como título.
+        val known = KnownProgramRecognizer.recognizeSheets(title, sheets)
         val report = base.copy(
             outcome = outcomeOf(placed.size, percent, warnings.getValue(ImportWarningKind.SKIPPED_ROW.name)),
+            template = known?.planId,
+            templateFrom = known?.let { originOf(title, sheets) },
             analysisMs = analysisMs,
             weeks = draft.weeks.size,
             days = draft.weeks.sumOf { it.days.size },
@@ -202,8 +208,16 @@ class ImportCorpusReporter(
                 .map { (message, group) -> RejectionGroup(message, group.size, group.map { it.path }) }
                 .sortedWith(compareByDescending<RejectionGroup> { it.count }.thenBy { it.message }),
             failures = files.filter { it.outcome == CorpusOutcome.FALLO }.map { "${it.path}: ${it.note.orEmpty()}" },
+            templates = templatesOf(files),
         )
     }
+
+    /** Archivos reconocidos como plantilla de KPKN, agrupados por plan: el plan con más archivos, primero. */
+    private fun templatesOf(files: List<CorpusFileReport>): List<CorpusTemplateGroup> =
+        files.mapNotNull { file -> file.template?.let { planId -> planId to file.path } }
+            .groupBy({ it.first }, { it.second })
+            .map { (planId, paths) -> CorpusTemplateGroup(planId, paths) }
+            .sortedWith(compareByDescending<CorpusTemplateGroup> { it.files.size }.thenBy { it.planId })
 
     /** Nombres que el emparejador no reconoce con confianza, por número de archivos que los usan. */
     private fun unknownNames(analyses: List<Analysis>): List<UnknownName> {
@@ -287,6 +301,14 @@ class ImportCorpusReporter(
         val average = summary.averageConfidentPct?.let { "${rounded(it, 1)} %" } ?: "sin nombres"
         appendLine("Reconocimiento medio: $average (media por archivo; ${summary.filesWithNames} archivos tienen nombres).")
         appendLine()
+        appendLine("### Plantillas de KPKN")
+        appendLine()
+        appendLine("Archivos reconocidos como plantilla de KPKN: ${summary.templates.sumOf { it.files.size }}.")
+        for (group in summary.templates) {
+            val paths = group.files.joinToString(", ") { "`${mdCell(it)}`" }
+            appendLine("- ${group.files.size} × «${mdCell(planName(group.planId))}» (`${group.planId}`): $paths")
+        }
+        appendLine()
         appendLine("### Rechazos agrupados")
         appendLine()
         if (summary.rejections.isEmpty()) appendLine("Ninguno.")
@@ -315,15 +337,16 @@ class ImportCorpusReporter(
         appendLine()
         appendLine(
             "| Resultado | Archivo | Hojas | Filas | Semanas | Días | Ejercicios | Nombres | Reconocidos " +
-                "| Avisos: saltadas / ignorados / día vacío / nada / nota de hoja | Lectura ms | Análisis ms | Nota |",
+                "| Plantilla | Avisos: saltadas / ignorados / día vacío / nada / nota de hoja | Lectura ms | Análisis ms | Nota |",
         )
-        appendLine("|---|---|---:|---:|---:|---:|---:|---:|---|---|---:|---:|---|")
+        appendLine("|---|---|---:|---:|---:|---:|---:|---:|---|---|---|---:|---:|---|")
         for (file in report.files) {
             val link = "[${mdCell(file.path)}](sheets/${file.sheetFile})"
             appendLine(
                 "| ${file.outcome.name} | $link | ${file.sheets.size} | ${file.rows} | ${file.weeks} | ${file.days} " +
-                    "| ${file.exercises} | ${file.distinctNames} | ${recognizedText(file)} | ${warningsText(file)} " +
-                    "| ${rounded(file.readMs, 1)} | ${rounded(file.analysisMs, 1)} | ${mdCell(cutCell(file.note.orEmpty(), NOTE_CHARS))} |",
+                    "| ${file.exercises} | ${file.distinctNames} | ${recognizedText(file)} | ${templateText(file)} " +
+                    "| ${warningsText(file)} | ${rounded(file.readMs, 1)} | ${rounded(file.analysisMs, 1)} " +
+                    "| ${mdCell(cutCell(file.note.orEmpty(), NOTE_CHARS))} |",
             )
         }
         appendLine()
@@ -364,6 +387,7 @@ class ImportCorpusReporter(
         appendLine("- Hojas (${file.sheets.size}): ${file.sheets.joinToString { "«${mdCell(it)}»" }}")
         appendLine("- Filas: ${file.rows}. Semanas: ${file.weeks}. Días: ${file.days}. Ejercicios: ${file.exercises}.")
         appendLine("- Nombres distintos: ${file.distinctNames}. Reconocidos con confianza: ${recognizedText(file)}.")
+        appendLine("- Plantilla de KPKN: ${file.template?.let { "«${mdCell(planName(it))}» ($it), por ${file.templateFrom}" } ?: "ninguna"}.")
         appendLine("- Avisos: ${ImportWarningKind.entries.joinToString(", ") { "${it.name} ${file.warnings[it.name] ?: 0}" }}.")
         appendLine("- Tiempos: lectura ${rounded(file.readMs, 1)} ms, análisis ${rounded(file.analysisMs, 1)} ms.")
         appendLine()
@@ -418,6 +442,19 @@ class ImportCorpusReporter(
             if (view.columns > width) appendLine("(se muestran $width de ${view.columns} columnas)")
         }
     }
+
+    /** Nombre del plan para los textos: el de su ficha en KPKN, o su id si ya no existe. */
+    private fun planName(planId: String): String = PersonalizedPlanCatalog.find(planId)?.displayName ?: planId
+
+    /** De dónde sale la plantilla: del título del archivo, de un nombre de hoja o de una celda de texto (para revisarla). */
+    private fun originOf(title: String, sheets: List<ImportSheet>): String = when {
+        KnownProgramRecognizer.recognize(title, emptyList(), emptyList()) != null -> "título"
+        KnownProgramRecognizer.recognize("", sheets.map { it.name }, emptyList()) != null -> "nombre de hoja"
+        else -> "celda de texto"
+    }
+
+    private fun templateText(file: CorpusFileReport): String =
+        file.template?.let { "${planName(it)} (${file.templateFrom ?: "-"})" } ?: "-"
 
     private fun recognizedText(file: CorpusFileReport): String {
         val pct = file.confidentPct ?: return "-"
@@ -544,10 +581,16 @@ data class CorpusSummary(
     val averageConfidentPct: Double?,
     val rejections: List<RejectionGroup>,
     val failures: List<String>,
+    /** Plantillas de KPKN reconocidas, agrupadas por plan. */
+    val templates: List<CorpusTemplateGroup> = emptyList(),
 )
 
 @Serializable
 data class RejectionGroup(val message: String, val count: Int, val files: List<String>)
+
+/** Archivos reconocidos como plantilla de KPKN con un mismo plan (su id y sus rutas). */
+@Serializable
+data class CorpusTemplateGroup(val planId: String, val files: List<String>)
 
 @Serializable
 data class UnknownName(val name: String, val files: Int, val bestCandidate: String?, val confidence: Double?)
@@ -579,6 +622,10 @@ data class CorpusFileReport(
     val distinctNames: Int = 0,
     val confidentNames: Int = 0,
     val confidentPct: Double? = null,
+    /** Plan de KPKN que el archivo parece ser (su id), o null: el reconocedor de programas (H3f). */
+    val template: String? = null,
+    /** De dónde sale esa plantilla: «título», «nombre de hoja» o «celda de texto»; null si no hay plantilla. */
+    val templateFrom: String? = null,
     /** Avisos por tipo (siempre los cinco, aunque sean cero). */
     val warnings: Map<String, Int> = emptyMap(),
     val exerciseSamples: List<ExerciseSample> = emptyList(),
