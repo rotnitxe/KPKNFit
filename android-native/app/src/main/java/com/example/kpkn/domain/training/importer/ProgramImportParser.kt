@@ -44,9 +44,11 @@ object ProgramImportParser {
             builder.beginSheet()
             // Una hoja sin nombre de semana es un día: su nombre sirve si no trae un encabezado propio.
             builder.pendingDayName = if (weekInName == null) usableSheetName(sheet.name) else null
-            builder.sheetLift = titleLift(sheet.rows) ?: builder.pendingDayName
+            // En una hoja de OCR, las celdas partidas y los días con número delante se arreglan antes de leer las filas (H4e).
+            val rows = if (sheet.pageStarts.isNotEmpty()) joinOcrRows(sheet.rows) else sheet.rows
+            builder.sheetLift = titleLift(rows) ?: builder.pendingDayName
             builder.ocrSheet = sheet.pageStarts.isNotEmpty()
-            processRows(builder, sheet.rows, pageHeaderRows(sheet.rows, sheet.pageStarts)) { index -> "Hoja «${sheet.name}», fila ${index + 1}" }
+            processRows(builder, rows, pageHeaderRows(rows, sheet.pageStarts)) { index -> "Hoja «${sheet.name}», fila ${index + 1}" }
             builder.endSheet("Hoja «${sheet.name}»")
         }
         return builder.finish(title)
@@ -129,6 +131,116 @@ object ProgramImportParser {
     /** Datos de tabla: dos celdas o más que empiezan por cifra («Sentadilla | 4 | 8 | 100»). */
     private fun isTableDataRow(cells: List<String>): Boolean =
         cells.count { cell -> cell.trim().firstOrNull()?.isDigit() == true } >= 2
+
+    // ---- Hojas de OCR: celdas partidas y días con número delante (H4e) ----------------------------------------
+
+    /** Un número suelto de 1 o 2 cifras delante de un texto («2 Día 2: Pierna A»); el texto es el grupo 1. */
+    private val NUMBER_BEFORE_TEXT = Regex("""\d{1,2}\s+(\S.*)""")
+
+    /**
+     * Prepara las filas de una hoja de OCR antes de analizarlas. Quita el número delante de una etiqueta de día y une en una
+     * sola fila las celdas del nombre que el OCR partió en 2 o 3 líneas dentro de una tabla: el trozo de arriba y el de abajo
+     * se suman a la fila de datos, columna a columna. Los trozos usados se vacían; la hoja conserva sus filas, así que los
+     * índices de sus páginas no cambian.
+     */
+    private fun joinOcrRows(rows: List<List<String>>): List<List<String>> {
+        val cells = rows.map { row -> dayWithoutNumber(row.map { it.trim() }) }
+        val sessions = planSessions(cells)
+        val nameColumns = activeTables(cells, sessions).map { table -> table?.indexOf(ColumnRole.NAME) }
+        val orphan = cells.indices.map { index ->
+            !sessions.containsKey(index) && nameColumns[index]?.let { isOrphanData(cells[index], it) } == true
+        }
+        val out = cells.toMutableList()
+        val used = HashSet<Int>()
+        for (index in cells.indices) {
+            val nameColumn = nameColumns[index] ?: continue
+            if (!orphan[index] || index in used) continue
+            val upper = textRowAround(cells, index, step = -1) ?: continue
+            if (upper in used || !isSplitPiece(cells, upper, cells[index], nameColumn, sessions)) continue
+            // El trozo de abajo no vale si la fila que sigue es otra fila de datos huérfana: ese texto es su trozo de arriba.
+            val lower = textRowAround(cells, index, step = 1)?.takeIf { below ->
+                val after = textRowAround(cells, below, step = 1)
+                below !in used && isSplitPiece(cells, below, cells[index], nameColumn, sessions) && (after == null || !orphan[after])
+            }
+            out[index] = mergedRow(cells, upper, index, lower)
+            out[upper] = emptyList()
+            used += upper
+            if (lower != null) {
+                out[lower] = emptyList()
+                used += lower
+            }
+        }
+        return out
+    }
+
+    /** Cabecera de tabla activa en cada fila, como en el análisis: la última leída antes; una subcabecera de sesiones la cierra. */
+    private fun activeTables(cells: List<List<String>>, sessions: Map<Int, SessionPart>): List<Columns?> {
+        var current: Columns? = null
+        return cells.indices.map { index ->
+            val part = sessions[index]
+            if (part == null) {
+                detectColumns(cells[index])?.let { current = it }
+            } else if (part is SessionPart.Header) {
+                current = null
+            }
+            current
+        }
+    }
+
+    /** Fila de datos huérfana: la celda del nombre vacía y dos o más celdas que empiezan por cifra. */
+    private fun isOrphanData(cells: List<String>, nameColumn: Int): Boolean =
+        cells.getOrNull(nameColumn).orEmpty().isEmpty() && isTableDataRow(cells)
+
+    /** La fila con texto más cercana a [index], hacia arriba (`step` -1) o hacia abajo (`step` 1); null si no hay. */
+    private fun textRowAround(cells: List<List<String>>, index: Int, step: Int): Int? {
+        var row = index + step
+        while (row in cells.indices) {
+            if (cells[row].any { it.isNotEmpty() }) return row
+            row += step
+        }
+        return null
+    }
+
+    /**
+     * Trozo de nombre que el OCR partió de su celda: la celda del nombre tiene texto, al menos 3 letras y ninguna cifra; la fila
+     * no es prosa, día, semana, cabecera, notación ni fila de datos; y en las demás columnas solo tiene texto donde la fila de
+     * datos [data] está vacía («8 a 10 por» completa el hueco de las repeticiones).
+     */
+    private fun isSplitPiece(
+        cells: List<List<String>>,
+        piece: Int,
+        data: List<String>,
+        nameColumn: Int,
+        sessions: Map<Int, SessionPart>,
+    ): Boolean {
+        if (sessions.containsKey(piece)) return false
+        val row = cells[piece]
+        val name = row.getOrNull(nameColumn).orEmpty()
+        if (name.any { it.isDigit() } || name.count { it.isLetter() } < 3) return false
+        val onlyGaps = row.indices.all { column ->
+            column == nameColumn || row[column].isEmpty() || data.getOrNull(column).orEmpty().isEmpty()
+        }
+        if (!onlyGaps) return false
+        val text = joinedOf(row)
+        return !isProse(text) && !isDayLabel(text) && weekNumber(text) == null && !isFechaLabel(text) &&
+            detectColumns(row) == null && !isColumnHeaderText(text) && !hasNotation(text) &&
+            !isTableDataRow(row) && nonExerciseKind(name) == null
+    }
+
+    /** La fila de datos con sus trozos, columna a columna y separados por un espacio. */
+    private fun mergedRow(cells: List<List<String>>, upper: Int, data: Int, lower: Int?): List<String> {
+        val parts = listOfNotNull(upper, data, lower).map { cells[it] }
+        return List(parts.maxOf { it.size }) { column ->
+            parts.mapNotNull { it.getOrNull(column) }.filter { it.isNotEmpty() }.joinToString(" ")
+        }
+    }
+
+    /** Una fila con un solo texto que empieza por un número suelto y una etiqueta de día («2 Día 2: Pierna A») es esa etiqueta. */
+    private fun dayWithoutNumber(row: List<String>): List<String> {
+        val column = row.indices.singleOrNull { row[it].isNotEmpty() } ?: return row
+        val label = NUMBER_BEFORE_TEXT.matchEntire(row[column])?.groupValues?.get(1) ?: return row
+        return if (isDayLabel(label)) row.toMutableList().also { it[column] = label } else row
+    }
 
     private fun processRows(builder: DraftBuilder, rows: List<List<String>>, pageHeaders: Set<Int> = emptySet(), where: (Int) -> String) {
         var columns: Columns? = null
