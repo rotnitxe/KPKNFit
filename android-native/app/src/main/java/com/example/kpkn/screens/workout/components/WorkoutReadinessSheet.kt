@@ -24,8 +24,6 @@ import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.runtime.saveable.mapSaver
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -119,64 +117,29 @@ fun WorkoutReadinessSheet(
 ) {
     if (!showReadinessSheet) return
 
-    var neural by rememberSaveable { mutableIntStateOf(readinessNeuralStart) }
-    var muscular by rememberSaveable { mutableIntStateOf(readinessMuscularStart) }
-    var spinal by rememberSaveable { mutableIntStateOf(readinessSpinalStart) }
-    val muscleAdjustments = rememberSaveable(
-        saver = mapSaver(
-            save = { value -> value.toMap() },
-            restore = { restored ->
-                mutableStateMapOf<String, Int>().apply {
-                    restored.forEach { (key, value) ->
-                        val n = (value as? Number)?.toInt() ?: return@forEach
-                        this[key] = n
-                    }
-                }
-            },
-        ),
-    ) { mutableStateMapOf<String, Int>() }
-    val derivedMuscular by derivedStateOf {
-        if (muscleAdjustments.isEmpty()) readinessMuscularStart.coerceIn(0, 100)
-        else muscleAdjustments.values.average().toInt().coerceIn(0, 100)
-    }
-    var userEditedNeural by rememberSaveable { mutableStateOf(false) }
-    var userEditedSpinal by rememberSaveable { mutableStateOf(false) }
-    val userEditedMuscles = remember { mutableStateMapOf<String, Boolean>() }
-    var initialized by rememberSaveable { mutableStateOf(false) }
-    var selectedDiscomforts by rememberSaveable { mutableStateOf(listOf<String>()) }
+    // Todo lo editable vive en un contenedor guardable: sobrevive a plegar/girar (recreación de la Activity).
+    val state = rememberReadinessSheetState(
+        startNeural = readinessNeuralStart,
+        startMuscular = readinessMuscularStart,
+        startSpinal = readinessSpinalStart,
+    )
+    val derivedMuscular by derivedStateOf { state.derivedMuscular(readinessMuscularStart) }
     var adjustTarget by remember { mutableStateOf<ReadinessAdjustTarget?>(null) }
 
     LaunchedEffect(
-        initialized,
+        state.initialized,
         readinessNeuralStart,
         readinessMuscularStart,
         readinessSpinalStart,
         sessionMuscleStartingBatteries,
     ) {
-        if (!initialized) {
-            neural = readinessNeuralStart
-            muscular = derivedMuscular
-            spinal = readinessSpinalStart
-            muscleAdjustments.clear()
-            sessionMuscleStartingBatteries.forEach { (muscleId, value) ->
-                muscleAdjustments[muscleId] = value.coerceIn(0, 100)
-            }
-            selectedDiscomforts = initialDiscomforts
-            initialized = true
-        } else {
-            if (!userEditedNeural) neural = readinessNeuralStart
-            muscular = readinessMuscularStart
-            if (!userEditedSpinal) spinal = readinessSpinalStart
-            val validMuscles = sessionMuscleStartingBatteries.keys
-            muscleAdjustments.keys
-                .filter { it !in validMuscles }
-                .forEach { muscleAdjustments.remove(it) }
-            sessionMuscleStartingBatteries.forEach { (muscleId, value) ->
-                if (userEditedMuscles[muscleId] != true) {
-                    muscleAdjustments[muscleId] = value.coerceIn(0, 100)
-                }
-            }
-        }
+        state.reconcile(
+            startNeural = readinessNeuralStart,
+            startMuscular = readinessMuscularStart,
+            startSpinal = readinessSpinalStart,
+            startMuscles = sessionMuscleStartingBatteries,
+            initialDiscomforts = initialDiscomforts,
+        )
     }
     KpknSheet(
         onDismissRequest = {},
@@ -235,17 +198,17 @@ fun WorkoutReadinessSheet(
                 // 1. RINGS ENTRENLAZADOS (estilo Home) + ajuste por ring
                 InterlacedRingsBlock(
                     muscular = derivedMuscular,
-                    neural = neural,
-                    spinal = spinal,
+                    neural = state.neural,
+                    spinal = state.spinal,
                     selectedTarget = adjustTarget,
-                    muscleAdjustments = muscleAdjustments,
+                    muscleAdjustments = state.muscleAdjustments,
                     onRingTap = { adjustTarget = it },
                     onDismiss = { adjustTarget = null },
-                    onNeuralChange = { neural = it; userEditedNeural = true },
-                    onSpinalChange = { spinal = it; userEditedSpinal = true },
+                    onNeuralChange = { state.neural = it; state.userEditedNeural = true },
+                    onSpinalChange = { state.spinal = it; state.userEditedSpinal = true },
                     onMuscleChange = { muscleId, updated ->
-                        muscleAdjustments[muscleId] = updated
-                        userEditedMuscles[muscleId] = true
+                        state.muscleAdjustments[muscleId] = updated
+                        state.userEditedMuscles[muscleId] = true
                     },
                 )
 
@@ -291,9 +254,9 @@ fun WorkoutReadinessSheet(
                     getSessionPillarMuscleIds(sessionExercises)
                 }
                 PreWorkoutDiscomfortSelector(
-                    selectedDiscomforts = selectedDiscomforts,
+                    selectedDiscomforts = state.selectedDiscomforts,
                     onDiscomfortsChanged = { list ->
-                        selectedDiscomforts = list
+                        state.selectedDiscomforts = list
                     },
                     sessionPillarMuscleIds = sessionPillarMuscleIds,
                 )
@@ -317,18 +280,18 @@ fun WorkoutReadinessSheet(
             ) {
                 FloatingActionButton(
                     onClick = {
-                        val editedMuscleMap = muscleAdjustments
-                            .filter { (id, _) -> userEditedMuscles[id] == true }
+                        val editedMuscleMap = state.muscleAdjustments
+                            .filter { (id, _) -> state.userEditedMuscles[id] == true }
                             .mapValues { (_, v) -> v.coerceIn(0, 100) }
                         val manualMuscular = null
                         onSave(
-                            neural,
+                            state.neural,
                             derivedMuscular,
-                            spinal,
-                            muscleAdjustments.toMap(),
-                            selectedDiscomforts.toList(),
-                            if (userEditedNeural) neural.coerceIn(0, 100) else null,
-                            if (userEditedSpinal) spinal.coerceIn(0, 100) else null,
+                            state.spinal,
+                            state.muscleAdjustments.toMap(),
+                            state.selectedDiscomforts.toList(),
+                            if (state.userEditedNeural) state.neural.coerceIn(0, 100) else null,
+                            if (state.userEditedSpinal) state.spinal.coerceIn(0, 100) else null,
                             manualMuscular,
                             editedMuscleMap,
                         )

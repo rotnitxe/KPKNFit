@@ -70,8 +70,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -115,6 +113,7 @@ import com.example.kpkn.screens.home.RingColors
 import com.example.kpkn.screens.home.augeRingsHostHeightDp
 import com.example.kpkn.screens.workout.components.AdjustableRingCompact
 import com.example.kpkn.screens.workout.components.MinimalMuscleSlider
+import com.example.kpkn.screens.workout.components.rememberFinishRingEdits
 import dev.chrisbanes.haze.HazeState
 import java.time.Instant
 
@@ -223,14 +222,14 @@ internal fun FinishWorkoutSheet(
             .filterKeys { involved.isEmpty() || it in involved }
             .mapValues { it.value.recoveryScore }
     }
-    var neuralFinal by remember(neuralSeed) { mutableIntStateOf(neuralSeed) }
-    var spinalFinal by remember(spinalSeed) { mutableIntStateOf(spinalSeed) }
-    var neuralEdited by remember(neuralSeed) { mutableStateOf(false) }
-    var spinalEdited by remember(spinalSeed) { mutableStateOf(false) }
-    var musclesEdited by remember(muscleSeed) { mutableStateOf(false) }
-    val muscleFinal = remember(muscleSeed) {
-        mutableStateMapOf<String, Int>().also { map -> map.putAll(muscleSeed) }
-    }
+    // Las ediciones sobreviven a la recreación de la Activity (plegar/girar); cada grupo se reinicia solo con su semilla.
+    val ringEdits = rememberFinishRingEdits(neuralSeed = neuralSeed, spinalSeed = spinalSeed, muscleSeed = muscleSeed)
+    var neuralFinal by ringEdits.neuralFinal
+    var spinalFinal by ringEdits.spinalFinal
+    var neuralEdited by ringEdits.neuralEdited
+    var spinalEdited by ringEdits.spinalEdited
+    var musclesEdited by ringEdits.musclesEdited
+    val muscleFinal = ringEdits.muscleFinal
 
     val editedMuscleKeys by remember(muscleFinal, muscleSeed) {
         derivedStateOf { muscleFinal.keys.filterTo(mutableSetOf()) { muscleFinal[it] != muscleSeed[it] } }
