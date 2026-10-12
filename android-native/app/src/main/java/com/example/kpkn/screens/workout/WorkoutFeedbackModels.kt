@@ -381,7 +381,8 @@ object WorkoutAutoRegulation {
     private const val READINESS_SEVERE_THRESHOLD = 50
     private const val READINESS_MIN_FACTOR = 0.70
     private const val READINESS_SEVERE_FACTOR = 0.85
-    private const val READINESS_RECOVERY_FACTOR = 1.05
+    // 1.12c: la recuperación no sube la carga; la readiness solo reduce (sin subidas automáticas).
+    private const val READINESS_RECOVERY_FACTOR = 1.0
 
     fun computeReadinessAdjustmentFactor(
         readinessNeural: Int?,
@@ -425,7 +426,6 @@ object WorkoutAutoRegulation {
         return when {
             factor < 0.85 && readinessValue != null -> "Readiness ${readinessValue} · −${((1 - factor) * 100).toInt()}%"
             factor < 1.0 -> "Readiness ${readinessValue ?: "baja"}"
-            factor > 1.0 -> "Readiness ${readinessValue ?: "alta"} · +${((factor - 1) * 100).toInt()}%"
             else -> ""
         }
     }

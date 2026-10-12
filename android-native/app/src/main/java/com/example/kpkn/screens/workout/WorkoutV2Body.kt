@@ -63,6 +63,7 @@ import com.example.kpkn.screens.workout.components.LocalLiveViewportPolicy
 import com.example.kpkn.ui.adapt.LocalViewportAdapt
 import com.example.kpkn.ui.adapt.LiveViewportPolicyMath
 import com.example.kpkn.screens.workout.components.SetInputCardV2
+import com.example.kpkn.screens.workout.components.readinessLoadSnapFor
 import com.example.kpkn.screens.workout.components.WorkoutMobilityChecklistItem
 import com.example.kpkn.screens.workout.components.WorkoutWarmupDisplaySet
 import com.example.kpkn.screens.workout.components.GodModeTechniqueScopeDialog
@@ -2235,6 +2236,9 @@ internal fun WorkoutV2Body(
                                     readinessAdjustment = uiState.readinessAdjustments[
                                         "${targetExercise.id}_${activeSetIndex}"
                                     ],
+                                    readinessLoadSnap = remember(targetExercise.id, settings) {
+                                        readinessLoadSnapFor(targetExercise, settings)
+                                    },
                                     onApplyReadinessAdjustment = { suggestion ->
                                         viewModel.applyReadinessAdjustment(
                                             targetExercise.id,

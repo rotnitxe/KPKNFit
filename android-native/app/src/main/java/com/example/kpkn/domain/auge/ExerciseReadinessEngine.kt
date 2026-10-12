@@ -21,6 +21,11 @@ object ExerciseReadinessEngine {
     private const val MAX_REDUCTION_CAP = 0.30
     private const val BASE_SETS = 3
 
+    /** Paso fijo de carga cuando no hay material declarado (1.12c). */
+    private const val LOAD_STEP_KG = 2.5
+    /** Tolerancia de coma flotante al redondear y comparar kilos. */
+    private const val ROUNDING_EPS = 1e-6
+
     // ─── Readiness por Ejercicio ──────────────────────────────────────────────
 
     /**
@@ -280,8 +285,26 @@ object ExerciseReadinessEngine {
     // ─── Ajuste de Carga ─────────────────────────────────────────────────────
 
     /**
+     * Número de los textos de sugerencia (motor y overlay): coma decimal española y una cifra decimal
+     * como máximo («12,5», «50», «8,3»). Helper único para ambos.
+     */
+    fun formatSuggestedNumber(value: Double): String {
+        val tenths = (value * 10).roundToInt()
+        val whole = tenths / 10
+        val decimal = tenths % 10
+        return if (decimal == 0) "$whole" else "$whole,$decimal"
+    }
+
+    /**
      * Calcula la carga sugerida para una serie según readiness, slider de severidad y tipo de carga.
      * Soporta progresión inteligente: Asistencia -> Peso Corporal -> Lastre.
+     *
+     * Reglas (1.12c): con reducción, LOAD y LASTRE toman la carga alcanzable MÁS CERCANA a la pedida;
+     * si esa no baja de lo planificado, «Sin ajuste». El porcentaje mostrado es el real (1 − sugerida /
+     * planificada). ASSISTED sube redondeando hacia arriba; la readiness nunca sube la carga.
+     *
+     * @param snap carga pedida ⇒ carga alcanzable MÁS CERCANA con el material real, o null si no se puede
+     *   afirmar. Sin snap se usa el múltiplo de 2,5 kg más cercano. No se aplica a ASSISTED.
      */
     fun calculateSetAdjustment(
         plannedWeight: Double,
@@ -290,6 +313,7 @@ object ExerciseReadinessEngine {
         averageErm: Double? = null,
         loadMode: LoadModeV2 = LoadModeV2.LOAD,
         bodyWeight: Double? = null,
+        snap: ((Double) -> Double?)? = null,
     ): SetAdjustmentSuggestion {
         val score = exerciseReadiness.overallScore
 
@@ -314,68 +338,96 @@ object ExerciseReadinessEngine {
 
         val reductionPercent = (gap * reductionFactor).coerceIn(0.0, MAX_REDUCTION_CAP)
 
-        val (suggestedWeight, suggestedMode, reason) = when (loadMode) {
-            LoadModeV2.LASTRE -> {
-                val rawWeight = plannedWeight * (1.0 - reductionPercent)
-                if (rawWeight < 2.5) {
-                    Triple(
-                        0.0,
-                        LoadModeV2.BODYWEIGHT,
-                        "Readiness $score% · Pasar a Peso Corporal (quitar lastre)"
-                    )
-                } else {
-                    val finalWeight = ((rawWeight / 2.5).roundToInt() * 2.5).toDouble()
-                    Triple(
-                        finalWeight,
-                        LoadModeV2.LASTRE,
-                        "Readiness $score% · Reducir lastre a ${finalWeight.toInt()}kg (−${(reductionPercent * 100).roundToInt()}%)"
-                    )
-                }
+        fun suggestion(weight: Double, percent: Double, mode: LoadModeV2, reason: String) =
+            SetAdjustmentSuggestion(
+                exerciseId = exerciseReadiness.exerciseId,
+                setIndex = 0,
+                currentPlannedWeight = plannedWeight,
+                readinessScore = score,
+                severityFactor = severitySlider,
+                reductionPercent = percent,
+                suggestedWeight = weight,
+                averageErm = averageErm,
+                reason = reason,
+                suggestedLoadMode = mode,
+            )
+
+        // Carga alcanzable MÁS CERCANA a la pedida: la del material (snap) o el múltiplo de 2,5 kg.
+        fun nearestLoad(requestedKg: Double): Double? {
+            val material = snap ?: return (requestedKg / LOAD_STEP_KG).roundToInt() * LOAD_STEP_KG
+            return material(requestedKg)
+        }
+
+        fun reducedLoad(mode: LoadModeV2): SetAdjustmentSuggestion {
+            if (plannedWeight <= ROUNDING_EPS) {
+                return suggestion(plannedWeight, 0.0, mode, "No requiere ajuste")
             }
+            val raw = plannedWeight * (1.0 - reductionPercent)
+            val requestedText = formatSuggestedNumber(reductionPercent * 100)
+            if (mode == LoadModeV2.LASTRE && raw < LOAD_STEP_KG) {
+                return suggestion(
+                    0.0,
+                    1.0,
+                    LoadModeV2.BODYWEIGHT,
+                    "Readiness $score % · Pasar a Peso Corporal (quitar lastre)",
+                )
+            }
+            // Sin material que afirme una carga: reducción «a ojo», sin kilos inventados.
+            val nearest = nearestLoad(raw) ?: return suggestion(
+                plannedWeight,
+                reductionPercent,
+                mode,
+                "Readiness $score % · No se puede afirmar una carga exacta: reduce un $requestedText % a ojo",
+            )
+            if (nearest <= ROUNDING_EPS || nearest >= plannedWeight - ROUNDING_EPS) {
+                // El paso más pequeño del material no alcanza esa reducción: se mantiene el peso.
+                return suggestion(
+                    plannedWeight,
+                    0.0,
+                    mode,
+                    "Readiness $score % · Sin ajuste: el paso de carga más pequeño de tu material es mayor " +
+                        "que la reducción pedida ($requestedText %). Mantén el peso y baja una repetición o un punto de RPE",
+                )
+            }
+            val realPercent = ((1.0 - nearest / plannedWeight) * 1000).roundToInt() / 1000.0
+            val label = if (mode == LoadModeV2.LASTRE) "Reducir lastre a" else "Reducir peso a"
+            return suggestion(
+                nearest,
+                realPercent,
+                mode,
+                "Readiness $score % · $label ${formatSuggestedNumber(nearest)}kg " +
+                    "(−${formatSuggestedNumber(realPercent * 100)} %)",
+            )
+        }
+
+        return when (loadMode) {
+            LoadModeV2.LOAD, LoadModeV2.LASTRE -> reducedLoad(loadMode)
             LoadModeV2.BODYWEIGHT -> {
-                // Assistance suggestion from readiness severity — not (PC − net).
+                // Asistencia sugerida por severidad de readiness (comportamiento sin cambios).
                 val baseAssistance = (2.5 + reductionPercent * 20.0).coerceAtLeast(2.5)
-                val finalWeight = ((baseAssistance / 2.5).roundToInt() * 2.5).coerceAtLeast(2.5).toDouble()
-                Triple(
+                val finalWeight = ((baseAssistance / 2.5).roundToInt() * 2.5).coerceAtLeast(2.5)
+                suggestion(
                     finalWeight,
+                    reductionPercent,
                     LoadModeV2.ASSISTED,
-                    "Readiness $score% · Añadir ${finalWeight.toInt()}kg de asistencia por fatiga"
+                    "Readiness $score % · Añadir ${formatSuggestedNumber(finalWeight)}kg de asistencia por fatiga",
                 )
             }
             LoadModeV2.ASSISTED -> {
-                // Stay in ASSISTED: increase assistance kg directly (no PC−net translation).
-                val bump = ((plannedWeight * reductionPercent).coerceAtLeast(2.5) / 2.5).roundToInt() * 2.5
-                val finalWeight = (plannedWeight + bump).coerceAtLeast(plannedWeight + 2.5)
-                Triple(
+                // La asistencia SUBE (menos dificultad): redondeo hacia arriba al paso de 2,5 kg.
+                // No usa snap: ese contrato busca la carga más cercana y aquí hace falta un techo.
+                val bumpRequested = max(plannedWeight * reductionPercent, LOAD_STEP_KG)
+                val bump = kotlin.math.ceil(bumpRequested / LOAD_STEP_KG - ROUNDING_EPS) * LOAD_STEP_KG
+                val finalWeight = plannedWeight + bump
+                suggestion(
                     finalWeight,
+                    reductionPercent,
                     LoadModeV2.ASSISTED,
-                    "Readiness $score% · Aumentar asistencia a ${finalWeight.toInt()}kg (+${(finalWeight - plannedWeight).toInt()}kg)"
-                )
-            }
-            LoadModeV2.LOAD -> {
-                val rawWeight = plannedWeight * (1.0 - reductionPercent)
-                val finalWeight = ((rawWeight / 2.5).roundToInt() * 2.5).coerceAtLeast(0.0).toDouble()
-                val weightStr = if (finalWeight % 1.0 == 0.0) finalWeight.toInt().toString() else finalWeight.toString()
-                Triple(
-                    finalWeight,
-                    LoadModeV2.LOAD,
-                    "Readiness $score% · Reducir peso a ${weightStr}kg (−${(reductionPercent * 100).roundToInt()}%)"
+                    "Readiness $score % · Aumentar asistencia a " +
+                        "${formatSuggestedNumber(finalWeight)}kg (+${formatSuggestedNumber(bump)}kg)",
                 )
             }
         }
-
-        return SetAdjustmentSuggestion(
-            exerciseId = exerciseReadiness.exerciseId,
-            setIndex = 0,
-            currentPlannedWeight = plannedWeight,
-            readinessScore = score,
-            severityFactor = severitySlider,
-            reductionPercent = reductionPercent,
-            suggestedWeight = suggestedWeight,
-            averageErm = averageErm,
-            reason = reason,
-            suggestedLoadMode = suggestedMode,
-        )
     }
 
 
