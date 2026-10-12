@@ -20,7 +20,7 @@ Hallazgos que quedan congelados (no corregidos todavía):
 ## 0.3 · Arnés de usuarios sintéticos y sesgo del aprendiz actual
 Pruebas: `AugeSyntheticUserInvariantsTest` (9), `AugeLearnerBiasCharacterizationTest` (11). Modo ligero ≈ 45 s; `AUGE_SIM_FULL=1` ≈ 196 s. Interfaz `SimLearner` en `AugeLearnerSimulator.kt` para enchufar el aprendiz nuevo (paquete 3.2).
 
-**Tabla A · inversión sin ruido** (τ_implícito / τ_verdadero; la «sensación» es exactamente la batería del motor con ese τ):
+**Tabla A · inversión sin ruido** (τ_implícito / τ_verdadero; la «sensación» es exactamente la batería del motor con ese τ). *Medida con el motor truncando; las cifras vigentes tras el redondeo de 1.5 están en la sección «Tras 1.5».*
 
 | Canal | 8 h | 12 h | 24 h | 48 h |
 |---|---|---|---|---|
@@ -28,7 +28,7 @@ Pruebas: `AugeSyntheticUserInvariantsTest` (9), `AugeLearnerBiasCharacterization
 | Energía (τ 36) | ×0,45–0,52 | ×0,55–0,66 | ×0,71–0,91 | ×0,95–1,38 |
 | Columna (τ 52) | ×1,14–1,49 | ×1,28–1,70 | ×1,05–2,20 | ×1,20–3,46 |
 
-**Tabla B · bucle cerrado** (60 usuarios, 4 sesiones/semana, ruido σ = 4 salvo el último escenario, 30 gestos; error absoluto medio / sesgo del τ aprendido, en horas):
+**Tabla B · bucle cerrado** (60 usuarios, 4 sesiones/semana, ruido σ = 4 salvo el último escenario, 30 gestos; error absoluto medio / sesgo del τ aprendido, en horas). *Idem: medida antes de 1.5.*
 
 | Escenario | Pectorales (τ 48) | Energía (τ 36) | Columna (τ 52) |
 |---|---|---|---|
@@ -44,6 +44,28 @@ F-11 medido: la tasa de aprendizaje depende del contador GLOBAL (Δτ de la 1.ª
 **Invariantes del motor** (modo ligero): rango y suelos 0 violaciones en 20 679; recuperación monótona en el tiempo 0/9 216; ACWR nulo con < 14 días 0/339; ruta rápida = Home 0/105.
 **Monotonía del drenaje: 2 violaciones en 4 046 (BUG F-60)**: en un tirón, subir la carga ×0,5 → ×0,75 BAJA el drenaje muscular (66 → 65) porque la receta mezcla los tres canales (`accumulatedDrain` es el promedio de los tres). Lo arregla la receta unificada de 2.2.
 **Paridad vista previa ↔ Home (F-23)**: hoy hasta 7 puntos en el anillo muscular tras una sesión pesada (≤ 4 en general, ≤ 3 por músculo); el presupuesto fijado es 8 y el paquete 2.3 lo baja a ≤ 1.
+
+## Tras 1.5 · el redondeo cambia la línea base (motor `229392b4b`)
+El paquete 1.5 pasó de truncar (`toInt`) a redondear (`roundToInt`, 99,5 ⇒ 100) las baterías. Efecto medido:
+- **Pines** (`AugeRingCharacterizationTest`): ocho pines suben +1 (energyHard@0 80→81, chestHard@0 72→73, spinalHard@12 96→97, energyHard@48 y @72 99→100, chestLight@0 92→93, energy1x 87→88, energy5x 85→86). El resto, intacto.
+- **Máster dorado**: cambian 201 de 234 líneas de instantes y 1 763 de 13 298 campos; media +1,00 en lo que cambia (+0,26 sobre todas las baterías); horas, drenajes de sesión y V2: 0 cambios. Excepción a «±1»: +2 en 5 campos de C09 (cadena pilares→promedio→ACWR 1,12→anillo final; reproducida con un verificador independiente fuera de Kotlin).
+- **Meseta «99 %»**: desaparece (tras una sesión dura, Energía lee 100 a las 48 h y a las 72 h; antes 99).
+- **El sesgo del aprendiz actual era en parte un artefacto de la truncación** (leer 99 en vez de 100 con la batería ya recuperada). Cifras vigentes (motor real, 60 usuarios, 30 gestos; error absoluto medio / sesgo del τ aprendido, en horas):
+
+| Escenario | Pectorales (τ 48) | Energía (τ 36) | Columna (τ 52) |
+|---|---|---|---|
+| τ verdadero = defecto | 7,3 / +6,9 | 3,8 / −3,6 | 23,8 / +23,8 |
+| τ verdadero × 1,25 | 5,2 / −4,4 | 9,5 / −9,5 | 14,1 / +13,9 |
+| τ verdadero × 0,75 | 17,4 / +17,4 | 3,3 / +2,8 | 34,9 / +34,9 |
+| usuario ruidoso σ = 7 | 7,7 / +7,2 | 2,8 / −1,3 | 25,7 / +25,7 |
+
+Inversión sin ruido (τ_implícito / τ_verdadero): músculo ×1,01–2,78 · Energía ×0,43–0,74 a ≤24 h (la sesión pequeña a 24 h pasa de ×0,91 a ×0,69; a 48 h sigue cambiando de signo, ×0,95–1,38) · Columna ×1,00–3,46.
+Corrida larga: Pectorales +9,5 h a las 30 observaciones propias; **Columna +22,7 h a las 30 y +37,8 h a los 100 gestos** (sigue sin estabilizarse); Energía con τ ×1,25: −11,0 h; Pectorales con τ ×0,75: +19,1 h.
+Entre el 44 % y el 65 % de las actualizaciones alejan τ del verdadero (64,8 / 44,3 / 58,9 / 64,8 % por escenario). La «guarda de planta» (sentido = predicho ⇒ no se aprende) pasa de ≈10 % a ≈27 % de las observaciones con σ = 4 (músculo 27,4 · Energía 26,5 · Columna 32,6; con σ = 7: 24,2 · 22,9 · 28,9): con la batería redondeada un canal recuperado lee 100 tanto en la verdad como en lo predicho.
+Cociente implícito/verdadero con ruido por tramo horario (Energía, τ verdadero = defecto): ×0,70 a ≤30 h, ×1,34 a 30–60 h, ×2,06 a >60 h (sesgo neto negativo); Columna ×2,0 / ×3,2 / ×3,5.
+**Estas son las cifras que el aprendiz nuevo (3.2) debe batir**, con el mismo simulador y el motor vigente en ese momento (las tablas A y B de arriba quedan como referencia histórica).
+
+Pendiente de la familia (paquete 1.5b): `MiniRingsWidget` (`HomeScreen.kt:950`) y las baterías articulares (`AugeTtcEngine.kt:361,395,397`) todavía truncan; `Double.roundToInt()` lanza con NaN (`toInt()` daba 0) y se blinda con un helper; `overallScore` (`AugeRecoveryEngine.kt:~1496`) sigue truncado y pasa a redondear.
 
 ## Implicaciones para el diseño
 - El aprendiz nuevo (3.2) debe batir estas cifras con el mismo simulador: Columna es el caso más grave (se desvía sin parar) y Energía el más engañoso (sin deriva neta pero con error de 6–7 h cuando τ ≠ defecto).
