@@ -69,11 +69,29 @@ object ProgramImportParser {
     private fun processRows(builder: DraftBuilder, rows: List<List<String>>, where: (Int) -> String) {
         var columns: Columns? = null
         var grid: Grid? = null
+        val sessions = planSessions(rows)
         rows.forEachIndexed { index, row ->
             val cells = row.map { it.trim() }
             val filled = cells.filter { it.isNotEmpty() }
             if (filled.isEmpty()) return@forEachIndexed
             val context = RowContext(where(index), filled.joinToString(" · "), builder)
+
+            // Sesiones en columnas (subcabecera, sus etiquetas de encima y sus datos): van por su propio camino.
+            val part = sessions[index]
+            if (part != null) {
+                grid?.let { closeGrid(builder, it) }
+                grid = null
+                when (part) {
+                    SessionPart.Header -> {
+                        columns = null
+                        cells.filter { groupColOf(it) == GroupCol.LOAD }.forEach { builder.noteLoadHeader(it) }
+                    }
+                    SessionPart.Labels -> if (filled.any { isProse(it) }) builder.count(Noise.TEXT)
+                    is SessionPart.Data -> sessionRow(builder, part.block, cells, context)
+                }
+                builder.endRow(null)
+                return@forEachIndexed
+            }
 
             // Una fila con tres o más días puede ser la cabecera de una cuadrícula: cada columna con día es un día.
             // Solo abre cuadrícula si más abajo hay filas de series o de peso; si no, es una fila normal.
@@ -113,7 +131,7 @@ object ProgramImportParser {
                     header.loadHeader?.let { builder.noteLoadHeader(it) }
                     null
                 }
-                tableDay != null && filled.size == 1 -> null
+                tableDay != null && (filled.size == 1 || (table != null && isBareTableRow(cells, table))) -> null
                 filled.size == 1 -> classify(filled.first(), context)
                 table != null -> tableRow(cells, table, context)
                 else -> classify(filled.joinToString(" "), context)
@@ -170,11 +188,13 @@ object ProgramImportParser {
     }
 
     private fun notationLine(notation: Notation, row: RowContext): Line? {
-        if (countIfNotExercise(notation.name, row)) return null
+        val named = numbered(notation.name)
+        if (countIfNotExercise(named.name, row)) return null
         if (notation.load != null) row.noteLoad(notation.loadUnit)
-        val notes = listOfNotNull(notation.notes, amrapNote(notation.amrapReps)).joinToString(" ").takeIf { it.isNotEmpty() }
+        val notes = listOfNotNull(blockNote(named.block), notation.notes, amrapNote(notation.amrapReps))
+            .joinToString(" ").takeIf { it.isNotEmpty() }
         return validate(
-            name = notation.name,
+            name = named.name,
             sets = notation.sets,
             repsMin = notation.repsMin,
             repsMax = notation.repsMax,
@@ -197,9 +217,12 @@ object ProgramImportParser {
     private fun tableRow(cells: List<String>, columns: Columns, row: RowContext): Line? {
         fun cell(role: ColumnRole): String = columns.indexOf(role)?.let { cells.getOrNull(it) }.orEmpty()
 
+        // Fila de día dentro de la tabla («Día 1: | Pecho», «Miércoles | Descanso»): abre el día y no es un ejercicio.
+        tableDayName(cells, columns)?.let { return Line.Day(it, silent = false) }
         val nameCell = cell(ColumnRole.NAME)
         val inline = if (nameCell.isEmpty()) null else parseNotation(nameCell)
-        val name = dropLinks(inline?.name ?: nameCell)
+        val named = numbered(dropLinks(inline?.name ?: nameCell))
+        val name = named.name
         if (name.isBlank()) {
             row.warn(ImportWarningKind.SKIPPED_ROW, "fila sin nombre de ejercicio; se omite")
             return null
@@ -245,6 +268,7 @@ object ProgramImportParser {
         // Sin otra nota, la columna de grupo muscular va a notas.
         val groupCell = cell(ColumnRole.GROUP)
         val notes = listOfNotNull(
+            blockNote(named.block),
             notesCell.takeIf { it.isNotEmpty() },
             remainder,
             inline?.notes,
@@ -897,7 +921,8 @@ object ProgramImportParser {
     /** Ejercicio nuevo de un día de la cuadrícula; la celda puede traer notación («Sentadilla 4x8»). */
     private fun addGridEntry(builder: DraftBuilder, grid: Grid, day: DayDraft, cell: String, row: RowContext) {
         val notation = parseNotation(cell)
-        val name = notation?.name ?: dropLinks(cell)
+        val named = numbered(notation?.name ?: dropLinks(cell))
+        val name = named.name
         if (name.isBlank()) {
             builder.inDay(day) { row.warn(ImportWarningKind.SKIPPED_ROW, "falta el nombre del ejercicio («$cell»)") }
             return
@@ -905,6 +930,7 @@ object ProgramImportParser {
         if (countIfNotExercise(name, row)) return
         val entry = GridEntry(day, row.where, name)
         entry.cells += cell
+        blockNote(named.block)?.let { entry.notes += it }
         if (notation != null) {
             entry.sets = notation.sets
             entry.repsMin = notation.repsMin
@@ -1048,6 +1074,432 @@ object ProgramImportParser {
         }
     }
 
+    // ---- Sesiones en columnas, nombres numerados y filas de día en tablas (H3g) ----------------------------
+
+    /** Filas de encima de una subcabecera de sesiones que se miran en busca de semana, día o sesión. */
+    private const val SESSION_LABEL_ROWS = 4
+
+    /** Ancho máximo de un grupo de sesiones, en columnas. */
+    private const val MAX_GROUP_WIDTH = 8
+
+    /** Papel de una columna de un grupo de sesiones. «Series x reps» y «Scheme» son notación. */
+    private enum class GroupCol { SCHEME, SETS, REPS, LOAD, RPE, RIR, NAME, OTHER }
+
+    /** Papeles que se leen a la izquierda del primer grupo: nombre y prescripción base («Sets», «Reps / Scheme»). */
+    private val BASE_COLS = setOf(GroupCol.NAME, GroupCol.SETS, GroupCol.REPS, GroupCol.SCHEME)
+
+    private enum class LabelKind { WEEK, DAY, SESSION }
+
+    /** Subcabecera de sesiones: primera columna del primer grupo, papeles de un grupo y cuántos grupos hay. */
+    private class SessionLayout(val start: Int, val pattern: List<GroupCol>, val repeats: Int)
+
+    /** Etiquetas de un grupo: semana, día y sesión si las hay; [ordinal] numera las sesiones distintas (1, 2…). */
+    private class GroupLabels(val week: Int?, val day: String?, val session: String?, val ordinal: Int?)
+
+    /** Bloque de sesiones: subcabecera, primera columna del primer grupo, papeles, etiquetas y columnas base. */
+    private class SessionBlock(
+        val header: Int,
+        val firstGroup: Int,
+        val pattern: List<GroupCol>,
+        val groups: List<GroupLabels>,
+        /** Columna de cada papel base (nombre, series, notación o repeticiones) a la izquierda de los grupos. */
+        val base: Map<GroupCol, Int>,
+    ) {
+        /** Semana y día de la última fila que los trae en sus columnas base; las filas siguientes los heredan. */
+        val cursor = RowCursor()
+    }
+
+    /** Semana o día que trae la última fila del bloque con etiqueta propia («Week 2», «Monday» en su primera columna). */
+    private class RowCursor {
+        var week: Int? = null
+        var day: String? = null
+    }
+
+    /** Qué es cada fila de un bloque de sesiones: subcabecera, etiqueta de encima o dato. */
+    private sealed interface SessionPart {
+        object Header : SessionPart
+        object Labels : SessionPart
+        class Data(val block: SessionBlock) : SessionPart
+    }
+
+    /** Un nombre sin enumerador y, si lo tenía, su etiqueta de bloque («A1. Remo» → «Remo», bloque A1). */
+    private class Numbered(val name: String, val block: String?)
+
+    /** Enumerador inicial («1.», «1)», «12.», «1 -»); el punto no va seguido de cifra («1.5 kg» no cuenta). */
+    private val ENUMERATOR = Regex("""^\s*\d{1,2}(?:\s*[.)](?!\d)\s*|\s+[-–—]\s*)""")
+
+    /** Etiqueta de bloque de superserie: «A1.», «A1)», «B2 -». */
+    private val BLOCK_TAG = Regex("""^\s*([A-Za-z]\d{1,2})(?:\s*[.)](?!\d)\s*|\s+[-–—]\s*)""")
+
+    /** Palabras de una fila de descanso dentro de un día («Descanso»): no son el foco del día. */
+    private val REST_DAY_WORDS = setOf("descanso", "descansa", "rest", "off")
+
+    /** Papeles de una fila de ejercicio: si ninguno tiene texto, la fila solo puede ser un día. */
+    private val VALUE_ROLES = listOf(
+        ColumnRole.NAME, ColumnRole.SETS, ColumnRole.REPS, ColumnRole.LOAD, ColumnRole.PERCENT,
+        ColumnRole.RPE, ColumnRole.RIR, ColumnRole.REST,
+    )
+
+    /** Quita el enumerador del nombre y separa la etiqueta de bloque, si la hay. */
+    private fun numbered(text: String): Numbered {
+        BLOCK_TAG.find(text)?.let { match ->
+            return Numbered(text.substring(match.range.last + 1).trim(), match.groupValues[1].uppercase())
+        }
+        val rest = ENUMERATOR.find(text)?.let { text.substring(it.range.last + 1) } ?: text
+        return Numbered(rest.trim(), null)
+    }
+
+    /** Nota de superserie para una etiqueta de bloque («Bloque A1»); null si el nombre no la tenía. */
+    private fun blockNote(block: String?): String? = block?.let { "Bloque $it" }
+
+    /** Celda vacía a efectos de notación: vacía o un guion. */
+    private fun isEmptyMark(text: String): Boolean = text.isBlank() || text == "-" || text == "–" || text == "—"
+
+    /**
+     * Nombre del día si la fila de tabla es una fila de día: su celda de nombre (o la primera con texto) es una etiqueta de
+     * día y la fila no trae series ni repeticiones (la etiqueta puede caer en esa columna, como en Scraler). El foco es otra
+     * celda de texto: «Día 1 — Pecho».
+     */
+    private fun tableDayName(cells: List<String>, columns: Columns): String? {
+        val nameIndex = columns.indexOf(ColumnRole.NAME)
+        val labelIndex = if (nameIndex != null && cells.getOrNull(nameIndex).orEmpty().isNotEmpty()) {
+            nameIndex
+        } else {
+            cells.indexOfFirst { it.isNotEmpty() }
+        }
+        if (labelIndex < 0) return null
+        val label = cells[labelIndex]
+        if (parseNotation(label) != null || !isDayLabel(label)) return null
+        val valued = listOf(ColumnRole.SETS, ColumnRole.REPS).mapNotNull { columns.indexOf(it) }.filter { it != labelIndex }
+        if (valued.any { cells.getOrNull(it).orEmpty().isNotEmpty() }) return null
+        val focus = cells.filterIndexed { index, text -> index != labelIndex && isFocusText(text) }.firstOrNull()
+        val name = cleanHeader(label)
+        return if (focus == null) name else "$name — $focus"
+    }
+
+    /** Texto que puede ser el foco de un día: letras suficientes, sin notación y sin ser una palabra de descanso. */
+    private fun isFocusText(text: String): Boolean {
+        val words = ExerciseMatchLexicon.normalize(text).split(' ').filter { it.isNotEmpty() }
+        return text.count { it.isLetter() } >= 3 && parseNotation(text) == null &&
+            !(words.isNotEmpty() && words.all { it in REST_DAY_WORDS })
+    }
+
+    /** Fila sin valores de ejercicio (ni nombre, ni series, ni carga…): solo sirve de día, como «Miércoles | Descanso». */
+    private fun isBareTableRow(cells: List<String>, columns: Columns): Boolean =
+        VALUE_ROLES.none { role -> columns.indexOf(role)?.let { cells.getOrNull(it) }.orEmpty().isNotEmpty() }
+
+    /** Clase de una etiqueta de grupo: semana («Semana 2»), sesión («Sesión 3») o día («Lunes», «Día 1»); null si no es ninguna. */
+    private fun labelKindOf(text: String): LabelKind? {
+        if (weekNumber(text) != null) return LabelKind.WEEK
+        val n = ExerciseMatchLexicon.normalize(text)
+        if (n.isEmpty()) return null
+        return when {
+            SESSION_LABEL.matches(n) -> LabelKind.SESSION
+            DAY_NUMBERED.matches(n) || WEEKDAY_LABEL.matches(n) -> LabelKind.DAY
+            else -> null
+        }
+    }
+
+    private fun isFechaLabel(text: String): Boolean {
+        val n = ExerciseMatchLexicon.normalize(text)
+        return n == "fecha" || n.startsWith("fecha ") || n == "date"
+    }
+
+    /** Fila de etiquetas de un bloque: alguna celda con semana, día, sesión o «Fecha». */
+    private fun isLabelRow(cells: List<String>): Boolean =
+        cells.any { it.isNotEmpty() && (labelKindOf(it) != null || isFechaLabel(it)) }
+
+    /** Papel de una celda de subcabecera; OTHER si no tiene papel o está vacía. */
+    private fun groupColOf(raw: String): GroupCol {
+        val text = raw.trim()
+        if (text.isEmpty()) return GroupCol.OTHER
+        val words = ExerciseMatchLexicon.normalize(text.replace(PARENTHESES, " ")).split(' ').filter { it.isNotEmpty() }.toSet()
+        // «Lift» es el nombre del ejercicio en las hojas de fuerza (5/3/1, Starscream): solo cuenta en subcabeceras de sesiones.
+        if (words == setOf("lift") || words == setOf("lifts")) return GroupCol.NAME
+        if ("scheme" in words || "esquema" in words || ("x" in words && words.any { it in GRID_SCHEME_KEYS })) {
+            return GroupCol.SCHEME
+        }
+        return when (columnRole(text)) {
+            ColumnRole.SETS -> GroupCol.SETS
+            ColumnRole.REPS -> GroupCol.REPS
+            ColumnRole.LOAD -> GroupCol.LOAD
+            ColumnRole.RPE -> GroupCol.RPE
+            ColumnRole.RIR -> GroupCol.RIR
+            ColumnRole.NAME -> GroupCol.NAME
+            else -> GroupCol.OTHER
+        }
+    }
+
+    /**
+     * Subcabecera de sesiones: desde alguna columna, un patrón de papeles (dos o más con papel) que se repite dos veces o más
+     * hacia la derecha. Null si la fila no es una subcabecera.
+     */
+    private fun sessionLayout(cells: List<String>): SessionLayout? {
+        val roles = cells.map { groupColOf(it) }
+        for (start in roles.indices) {
+            if (roles[start] == GroupCol.OTHER) continue
+            for (width in 2..MAX_GROUP_WIDTH) {
+                if (start + width > roles.size) break
+                val pattern = roles.subList(start, start + width)
+                // Dos papeles distintos como mínimo: «Reps | Reps | Reps» (una cabecera de semanas) no es un grupo.
+                if (pattern.filter { it != GroupCol.OTHER }.toSet().size < 2) continue
+                // La última repetición puede ser parcial (una hoja que corta el grupo al final de la fila), pero tiene
+                // que coincidir en al menos dos celdas: una sola celda «Reps» al final no abre un bloque.
+                var repeats = 1
+                while (start + repeats * width < roles.size) {
+                    val from = start + repeats * width
+                    val to = minOf(from + width, roles.size)
+                    if (to - from < 2) break
+                    if (roles.subList(from, to) != pattern.subList(0, to - from)) break
+                    repeats++
+                }
+                if (repeats >= 2) return SessionLayout(start, pattern.toList(), repeats)
+            }
+        }
+        return null
+    }
+
+    /** Etiqueta de la clase pedida más cercana a [column] o a su izquierda, buscando desde la fila [to] hacia la [from]. */
+    private fun nearestLabel(cells: List<List<String>>, from: Int, to: Int, column: Int, kind: LabelKind): String? {
+        for (r in to downTo from) {
+            val row = cells[r]
+            for (c in minOf(column, row.size - 1) downTo 0) {
+                val text = row[c]
+                if (text.isNotEmpty() && labelKindOf(text) == kind) return cleanHeader(text)
+            }
+        }
+        return null
+    }
+
+    /** Etiquetas de cada grupo del bloque (una por repetición del patrón), buscadas en las filas [from]..[to]. */
+    private fun groupLabelsOf(cells: List<List<String>>, from: Int, to: Int, layout: SessionLayout): List<GroupLabels> {
+        val keys = ArrayList<String>()
+        return (0 until layout.repeats).map { group ->
+            val column = layout.start + group * layout.pattern.size
+            val week = nearestLabel(cells, from, to, column, LabelKind.WEEK)?.let { weekNumber(it) }
+            val day = nearestLabel(cells, from, to, column, LabelKind.DAY)
+            val session = nearestLabel(cells, from, to, column, LabelKind.SESSION)
+            val ordinal = session?.let { label ->
+                val key = ExerciseMatchLexicon.normalize(label)
+                if (key !in keys) keys += key
+                keys.indexOf(key) + 1
+            }
+            GroupLabels(week, day, session, ordinal)
+        }
+    }
+
+    /**
+     * Columnas base (nombre, series, notación) a la izquierda del primer grupo. Se buscan en la subcabecera y, si no
+     * están allí, en las filas de encima (la cabecera «Exercise | Sets | Reps» suele ir sobre las semanas).
+     */
+    private fun baseColumnsOf(cells: List<List<String>>, from: Int, header: Int, firstGroup: Int): Map<GroupCol, Int> {
+        val base = LinkedHashMap<GroupCol, Int>()
+        for (row in header downTo from) {
+            for (column in 0 until firstGroup) {
+                val role = groupColOf(cells[row].getOrNull(column).orEmpty())
+                if (role in BASE_COLS && role !in base) base[role] = column
+            }
+        }
+        return base
+    }
+
+    /** Una fila corta el bloque si es otra cabecera, otra subcabecera o trae etiquetas de grupo (semana, día, sesión, fecha). */
+    private fun endsSessionData(cells: List<String>, firstGroup: Int): Boolean =
+        detectColumns(cells) != null || sessionLayout(cells) != null ||
+            cells.drop(firstGroup).any { it.isNotEmpty() && (labelKindOf(it) != null || isFechaLabel(it)) }
+
+    /**
+     * Reparte las filas con sesiones en columnas. Cada subcabecera abre un bloque: sus etiquetas son las filas de encima
+     * (hasta [SESSION_LABEL_ROWS], sin pisar el bloque anterior) y sus datos llegan hasta la siguiente etiqueta, cabecera o
+     * fin de hoja.
+     */
+    private fun planSessions(rows: List<List<String>>): Map<Int, SessionPart> {
+        val cells = rows.map { row -> row.map { it.trim() } }
+        // Una subcabecera solo abre bloque si sus grupos tienen alguna etiqueta (semana, día o sesión) encima.
+        class Candidate(val header: Int, val layout: SessionLayout, val top: Int, val groups: List<GroupLabels>)
+        val candidates = ArrayList<Candidate>()
+        var previous = -1
+        for (index in cells.indices) {
+            val layout = sessionLayout(cells[index]) ?: continue
+            val lowest = maxOf(previous + 1, index - SESSION_LABEL_ROWS)
+            val top = (index - 1 downTo lowest).lastOrNull { k -> isLabelRow(cells[k]) } ?: index
+            val groups = groupLabelsOf(cells, top, index - 1, layout)
+            if (groups.none { it.week != null || it.day != null || it.session != null }) continue
+            candidates += Candidate(index, layout, top, groups)
+            previous = index
+        }
+        val parts = HashMap<Int, SessionPart>()
+        candidates.forEachIndexed { j, candidate ->
+            val end = candidates.getOrNull(j + 1)?.top ?: cells.size
+            var stop = candidate.header + 1
+            while (stop < end && !endsSessionData(cells[stop], candidate.layout.start)) stop++
+            val block = SessionBlock(
+                header = candidate.header,
+                firstGroup = candidate.layout.start,
+                pattern = candidate.layout.pattern,
+                groups = candidate.groups,
+                base = baseColumnsOf(cells, candidate.top, candidate.header, candidate.layout.start),
+            )
+            for (k in candidate.top until candidate.header) parts[k] = SessionPart.Labels
+            parts[candidate.header] = SessionPart.Header
+            for (k in candidate.header + 1 until stop) parts[k] = SessionPart.Data(block)
+        }
+        return parts
+    }
+
+    /** Semana y día de un grupo: los de sus etiquetas; con sesiones y un día abierto, la sesión numera la semana. */
+    private fun sessionTarget(
+        builder: DraftBuilder,
+        labels: GroupLabels,
+        group: Int,
+        cursor: RowCursor,
+    ): Pair<Int, String> {
+        val context = builder.pendingDayName ?: builder.openDayName
+        val session = labels.session
+        val week = labels.week ?: cursor.week ?: if (session != null && context != null) {
+            labels.ordinal ?: builder.currentWeek
+        } else {
+            builder.currentWeek
+        }
+        val day = labels.day ?: cursor.day ?: when {
+            session != null && context != null -> context
+            session != null -> session
+            else -> context ?: "Día ${group + 1}"
+        }
+        return week to day
+    }
+
+    /** Fila de datos de un bloque: un ejercicio por grupo, con su notación (o la base), su carga, su RPE o su RIR. */
+    private fun sessionRow(builder: DraftBuilder, block: SessionBlock, cells: List<String>, row: RowContext) {
+        val width = block.pattern.size
+        fun own(group: Int, role: GroupCol): String {
+            val offset = block.pattern.indexOf(role)
+            if (offset < 0) return ""
+            val text = cells.getOrNull(block.firstGroup + group * width + offset).orEmpty()
+            return if (isEmptyMark(text)) "" else text
+        }
+        fun baseText(role: GroupCol): String {
+            val text = block.base[role]?.let { cells.getOrNull(it) }.orEmpty()
+            return if (isEmptyMark(text)) "" else text
+        }
+
+        // Notación de la fila: la de «Series x reps», o la de la columna de series o de repeticiones si trae «5x10» o «1*2-5».
+        fun schemeOf(scheme: String, sets: String, reps: String): String =
+            listOf(scheme, sets, reps).firstOrNull { hasScheme(it) }.orEmpty()
+
+        val baseScheme = schemeOf(baseText(GroupCol.SCHEME), baseText(GroupCol.SETS), baseText(GroupCol.REPS))
+        val baseNotation = baseScheme.takeIf { it.isNotEmpty() }?.let { parseNotation(it) }
+        val baseRange = if (baseNotation == null) {
+            baseText(GroupCol.REPS).takeIf { it.isNotEmpty() }?.let { parseRange(it) }
+        } else {
+            null
+        }
+        val baseSets = leadingInt(baseText(GroupCol.SETS)) ?: baseNotation?.sets
+        val baseRepsMin = baseNotation?.repsMin ?: baseRange?.first
+        val baseRepsMax = baseNotation?.repsMax ?: baseRange?.second
+        val baseAmrap = baseNotation?.amrapReps
+        val hasBase = baseSets != null || baseRepsMin != null
+
+        // Nombre de la fila: la columna base o, si no la hay, la primera celda con letras que no sea una etiqueta de día.
+        val baseName = baseText(GroupCol.NAME).ifEmpty {
+            cells.take(block.firstGroup).firstOrNull { text ->
+                text.count { it.isLetter() } >= 3 && labelKindOf(text) == null && !isFechaLabel(text)
+            }.orEmpty()
+        }
+        val groupCount = block.groups.size
+        val anyValue = (0 until groupCount).any { group ->
+            listOf(GroupCol.SCHEME, GroupCol.SETS, GroupCol.LOAD, GroupCol.RPE, GroupCol.RIR)
+                .any { own(group, it).isNotEmpty() } || hasScheme(own(group, GroupCol.REPS))
+        }
+        // Etiquetas de la fila en sus columnas base («Week 2», «Monday»): cambian el cursor del bloque para las filas siguientes.
+        var rowWeek: Int? = null
+        var rowDay: String? = null
+        for (column in 0 until block.firstGroup) {
+            val text = cells.getOrNull(column).orEmpty()
+            when (labelKindOf(text)) {
+                LabelKind.WEEK -> rowWeek = weekNumber(text)
+                LabelKind.DAY -> rowDay = cleanHeader(text)
+                else -> Unit
+            }
+        }
+        rowWeek?.let { block.cursor.week = it }
+        rowDay?.let { block.cursor.day = it }
+        if ((rowWeek != null || rowDay != null) && !anyValue) {
+            builder.endRow(null)
+            return
+        }
+        if (!hasBase && !anyValue) {
+            if (isProse(baseName)) builder.count(Noise.TEXT)
+            builder.endRow(null)
+            return
+        }
+        var warnedNoName = false
+        val anyLabel = block.groups.any { it.week != null || it.day != null || it.session != null }
+        for (group in 0 until groupCount) {
+            // Un grupo sin ninguna etiqueta, en un bloque que sí las tiene, no es una sesión (columnas de sobra).
+            val labels = block.groups[group]
+            if (anyLabel && labels.week == null && labels.day == null && labels.session == null) continue
+            val scheme = schemeOf(own(group, GroupCol.SCHEME), own(group, GroupCol.SETS), own(group, GroupCol.REPS))
+            val setsCell = own(group, GroupCol.SETS)
+            val repsCell = own(group, GroupCol.REPS)
+            val loadCell = own(group, GroupCol.LOAD)
+            val rpeCell = own(group, GroupCol.RPE)
+            val rirCell = own(group, GroupCol.RIR)
+            val notation = scheme.takeIf { it.isNotEmpty() }?.let { parseNotation(it) }
+            // Series y repeticiones propias del grupo (si tiene sus columnas); si no, la notación o la base.
+            val groupSets = if (block.pattern.contains(GroupCol.SETS)) leadingInt(setsCell) else null
+            val groupRange = if (block.pattern.contains(GroupCol.SETS) && block.pattern.contains(GroupCol.REPS)) {
+                parseRange(repsCell)
+            } else {
+                null
+            }
+            val sets = notation?.sets ?: groupSets ?: baseSets
+            val repsMin = notation?.repsMin ?: groupRange?.first ?: baseRepsMin
+            val repsMax = notation?.repsMax ?: groupRange?.second ?: baseRepsMax
+            val amrap = notation?.amrapReps ?: baseAmrap
+            val untouched = scheme.isEmpty() && setsCell.isEmpty() && loadCell.isEmpty() && rpeCell.isEmpty() && rirCell.isEmpty()
+            if (untouched && sets == null) continue
+            // Nombre del grupo: el de su propia columna (bloques con su ejercicio) o el de la fila.
+            val named = numbered(dropLinks(own(group, GroupCol.NAME).ifEmpty { baseName }))
+            if (named.name.isBlank()) {
+                if (!warnedNoName) row.warn(ImportWarningKind.SKIPPED_ROW, "fila sin nombre de ejercicio; se omite")
+                warnedNoName = true
+                continue
+            }
+            if (countIfNotExercise(named.name, row)) continue
+            val percent = if (loadCell.contains('%')) firstNumber(loadCell) else null
+            val load = if (loadCell.contains('%')) null else firstNumber(loadCell)
+            val rpe = firstNumber(rpeCell)
+            val rir = leadingInt(rirCell)
+            if (load != null) row.noteLoad(unitMarkOf(loadCell))
+            val (week, dayName) = sessionTarget(builder, block.groups[group], group, block.cursor)
+            val day = builder.sessionDay(week, dayName, row)
+            val exercise = builder.inDay(day) {
+                unreadable(row, loadCell, load ?: percent, "carga")
+                unreadable(row, rpeCell, rpe, "RPE")
+                unreadable(row, rirCell, rir, "RIR")
+                val notes = listOfNotNull(blockNote(named.block), notation?.notes, amrapNote(amrap))
+                    .joinToString(" ").takeIf { it.isNotEmpty() }
+                validate(
+                    name = named.name,
+                    sets = sets,
+                    repsMin = repsMin,
+                    repsMax = repsMax,
+                    load = load,
+                    percent = percent,
+                    rpe = rpe,
+                    rir = rir,
+                    rest = null,
+                    notes = notes,
+                    row = row,
+                )
+            }
+            if (exercise == null) builder.discardIfEmpty(day)
+            builder.endRow(exercise?.let { builder.addToDay(day, it) })
+        }
+        builder.endRow(null)
+    }
+
     // ---- Grupos con porcentaje (Sheiko, Smolov, 5/3/1) ------------------------------------------------------
 
     /** Un grupo de series de una fila: «70%x3x2» son 2 series de 3 repeticiones al 70 %. */
@@ -1103,13 +1555,15 @@ object ProgramImportParser {
             if (index < first) before.append(char) else behind.append(char)
         }
         val beforeName = cleanName(before.toString())
-        val name = beforeName.ifEmpty { cleanName(behind.toString()) }
+        val named = numbered(beforeName.ifEmpty { cleanName(behind.toString()) })
+        val name = named.name
         if (name.isBlank()) {
             row.warn(ImportWarningKind.SKIPPED_ROW, "falta el nombre del ejercicio («$text»)")
             return null
         }
         if (countIfNotExercise(name, row)) return null
-        val notes = if (beforeName.isEmpty()) null else cleanNotes(behind.toString()).takeIf { it.isNotEmpty() }
+        val behindNotes = if (beforeName.isEmpty()) null else cleanNotes(behind.toString()).takeIf { it.isNotEmpty() }
+        val notes = listOfNotNull(blockNote(named.block), behindNotes).joinToString(" ").takeIf { it.isNotEmpty() }
         return Line.Groups(spans.map { PercentGroup(name, notes, it.percent, it.reps, it.sets) })
     }
 
@@ -1226,6 +1680,12 @@ object ProgramImportParser {
         private var sheetFirstDay = 0
         var pendingDayName: String? = null
 
+        /** Semana en curso: la última que abrió una fila de semana, o la 1. */
+        val currentWeek: Int get() = week
+
+        /** Nombre del día abierto, si lo hay. */
+        val openDayName: String? get() = openDay?.name
+
         // Marcas de unidad de carga: cabeceras y valores con número, y cuántos llevan libras.
         private var kgMarks = 0
         private var lbHeaderMarks = 0
@@ -1281,6 +1741,16 @@ object ProgramImportParser {
 
         fun addToDay(day: DayDraft, exercise: ImportedExercise): ExerciseDraft =
             ExerciseDraft(day, exercise).also { day.exercises += it }
+
+        /** Día de una semana con ese nombre en la hoja en curso; lo crea si no existe. */
+        fun sessionDay(week: Int, name: String, row: RowContext): DayDraft =
+            days.drop(sheetFirstDay).firstOrNull { it.week == week && it.name == name }
+                ?: DayDraft(week, name, row.where, row.source, silent = false).also { days += it }
+
+        /** Quita el día si se quedó sin ejercicios: un grupo que no da ejercicio no deja un día vacío. */
+        fun discardIfEmpty(day: DayDraft) {
+            if (day.exercises.isEmpty()) days.remove(day)
+        }
 
         /** Día de la columna de día de una tabla: si ya está abierto con ese nombre, la fila sigue en él. */
         fun openTableDay(name: String, row: RowContext) {
