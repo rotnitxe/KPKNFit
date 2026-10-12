@@ -109,4 +109,31 @@ class SetAdjustmentSnapTest {
         )
         assertTrue(factor < 1.0)
     }
+
+    @Test
+    fun e_snap_de_cinco_kilos_baja_al_multiplo_inferior() {
+        val s = ExerciseReadinessEngine.calculateSetAdjustment(
+            plannedWeight = 100.0,
+            exerciseReadiness = readiness(45),
+            severitySlider = 0.5,
+            loadMode = LoadModeV2.LOAD,
+            snap = { kg -> kotlin.math.floor(kg / 5.0) * 5.0 },
+        )
+        assertEquals(85.0, s.suggestedWeight, 1e-9)
+        assertEquals(1 - 85.0 / 100.0, s.reductionPercent, 1e-9)
+    }
+
+    @Test
+    fun e_snap_nulo_no_inventa_kilos() {
+        val s = ExerciseReadinessEngine.calculateSetAdjustment(
+            plannedWeight = 100.0,
+            exerciseReadiness = readiness(45),
+            severitySlider = 0.5,
+            loadMode = LoadModeV2.LOAD,
+            snap = { null },
+        )
+        assertEquals(100.0, s.suggestedWeight, 1e-9)
+        assertTrue(s.reason, s.reason.contains("a ojo"))
+        assertFalse(s.reason, s.reason.contains("kg"))
+    }
 }
