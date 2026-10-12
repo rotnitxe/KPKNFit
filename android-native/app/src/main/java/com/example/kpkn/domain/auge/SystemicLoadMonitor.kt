@@ -40,7 +40,11 @@ object SystemicLoadMonitor {
         val oldest = recent.minOfOrNull { it.second } ?: 0L
         val insufficient = recent.size < MIN_SESSIONS || nowMs - oldest < MIN_SPAN_DAYS * day
         val acute = recent.filter { it.second >= nowMs - 7L * day }.sumOf { it.third }
-        val chronicWeekly = recent.sumOf { it.third } / 4.0
+        // Crónica con semanas reales desde el primer registro de TODO el historial (mín. 2, máx. 4), no siempre ÷4.
+        val chronicWeekly = AugeClassifiers.chronicWeeklyLoad(
+            totalLoad28d = recent.sumOf { it.third },
+            trackingSpanDays = AugeClassifiers.userTrackingSpanDays(history, nowMs),
+        )
         val acwr = if (insufficient || chronicWeekly <= 0.0) null else AugeClassifiers.computeAcwr(acute, chronicWeekly)
         val sessions7 = recent.count { it.second >= nowMs - 7L * day }
         val trend = recent.sortedBy { it.second }.mapNotNull { it.first.ringStartSnapshot?.takeUnless { snapshot -> snapshot.isInitialEstimate }?.energy }.takeLast(8)

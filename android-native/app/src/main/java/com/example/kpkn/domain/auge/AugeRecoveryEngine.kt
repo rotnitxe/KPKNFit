@@ -349,12 +349,17 @@ object AugeRecoveryEngine {
         }
     }
 
-    internal fun muscularAcwrFor(history: List<WorkoutLog>, nowMs: Long = nowMs()): Double? {
+    /**
+     * ACWR muscular: estrés V2 de 7 días ÷ carga semanal crónica del mes. La crónica divide entre las semanas
+     * reales de seguimiento (2 a 4, ver [AugeClassifiers.chronicWeeklyLoad]) y no siempre entre 4.
+     * [nowMs] es obligatorio: ninguna llamada puede caer en el reloj real sin querer.
+     */
+    internal fun muscularAcwrFor(history: List<WorkoutLog>, nowMs: Long): Double? {
         val day = 24L * 3600_000L
         val acute = muscularLoadInWindow(history, nowMs - 7L * day, nowMs)
         val month = muscularLoadInWindow(history, nowMs - 28L * day, nowMs)
-        val chronicWeekly = month / 4.0
         if (month <= 0.0) return null
+        val chronicWeekly = AugeClassifiers.chronicWeeklyLoad(month, AugeClassifiers.userTrackingSpanDays(history, nowMs))
         val recentV2 = history.filter { log ->
             val ms = logDateMs(log)
             ms > 0L &&
@@ -367,8 +372,8 @@ object AugeRecoveryEngine {
         return AugeClassifiers.computeAcwr(acute, chronicWeekly)
     }
 
-    private fun applyMuscularAcwr(muscularAvg: Double, history: List<WorkoutLog>): Double {
-        val acwr = muscularAcwrFor(history) ?: return muscularAvg
+    private fun applyMuscularAcwr(muscularAvg: Double, history: List<WorkoutLog>, nowMs: Long): Double {
+        val acwr = muscularAcwrFor(history, nowMs) ?: return muscularAvg
         val factor = AugeClassifiers.muscularLoadFactorFromAcwr(acwr)
         return (100.0 - (100.0 - muscularAvg) * factor).coerceIn(0.0, 100.0)
     }
@@ -1175,7 +1180,8 @@ object AugeRecoveryEngine {
         val muscularWithAcwr = if (wellbeing?.manualMuscularBattery != null) {
             muscularAvg.toDouble()
         } else {
-            applyMuscularAcwr(muscularAvg.toDouble(), history)
+            // El factor de ACWR se evalúa en el mismo instante que el resto del cálculo (nowOverrideMs ?: reloj).
+            applyMuscularAcwr(muscularAvg.toDouble(), history, evaluationNow)
         }
 
         val (cncBattery, _, _) = calculateSystemicFatigue(

@@ -178,6 +178,10 @@ class AcwrReliabilityTest {
         assertNotNull(systemic.acwr)
         assertEquals("ACWR axial del recién llegado", 1.0, axial.acwr!!, 0.25)
         assertEquals("ACWR sistémico del recién llegado", 1.0, systemic.acwr!!, 0.25)
+        // Los tres sitios usan las semanas reales (15/7): aguda 2 / (5 sesiones ÷ 15/7 semanas) = 6/7.
+        assertEquals("muscular con semanas reales", 6.0 / 7.0, muscular, 1e-9)
+        assertEquals("axial con semanas reales", 6.0 / 7.0, axial.acwr!!, 1e-9)
+        assertEquals("sistémico con semanas reales", 6.0 / 7.0, systemic.acwr!!, 1e-9)
         assertEquals(LoadAdvisoryLevel.NONE, levelFromAcwr(axial.acwr, axial.insufficientData))
         assertEquals(LoadAdvisoryLevel.NONE, levelFromAcwr(systemic.acwr, systemic.insufficientData))
         assertTrue("no debe salir ningún aviso (antes: ADJUST «Hoy baja 10–15 %»)", advisories(history, now).isEmpty())
@@ -232,7 +236,7 @@ class AcwrReliabilityTest {
         val ringControl = muscularRing(control, now)
         assertTrue("anillo con pico ($ringSpike) debe quedar por debajo del anillo sin pico ($ringControl)", ringSpike < ringControl)
         assertEquals("sin pico: 60 sin factor", 60, ringControl)
-        assertEquals("con pico: 100 − 40 · 1,12", 55, ringSpike)
+        assertEquals("con pico: 100 - 40 x 1,12 = 55,2", 55, ringSpike)
     }
 
     // ─── d · Pausa larga con historia antigua ────────────────────────────────
@@ -274,8 +278,8 @@ class AcwrReliabilityTest {
 
     // ─── e · Sin escalón a los 14 días ───────────────────────────────────────
 
-    /** Recién llegado estable: la misma sesión los lunes y jueves, desde [base]. */
-    private fun newcomerSessions(): List<WorkoutLog> = (0..3).flatMap { w ->
+    /** Recién llegado estable: la misma sesión los lunes y jueves, desde [base] (hasta el día 31). */
+    private fun newcomerSessions(): List<WorkoutLog> = (0..4).flatMap { w ->
         listOf(0, 3).map { off -> session("e$w-$off", base + (7L * w + off) * day) }
     }
 
@@ -290,7 +294,8 @@ class AcwrReliabilityTest {
         val all = newcomerSessions()
         assertNull("el día 13 aún no hay ACWR (14 días de margen)", AugeRecoveryEngine.muscularAcwrFor(historyAt(all, dayAfterFirst(13)), dayAfterFirst(13)))
         assertNotNull("el día 14 ya hay ACWR", AugeRecoveryEngine.muscularAcwrFor(historyAt(all, dayAfterFirst(14)), dayAfterFirst(14)))
-        for (d in 12..17) {
+        // Días 12 a 27 (hueco 5 del plan: 14-27 días de historia): ni el escalón del día 14 ni el del día 17.
+        for (d in 12..27) {
             val now = dayAfterFirst(d)
             val factor = appliedFactor(historyAt(all, now), now)
             assertEquals("factor de ACWR el día $d (antes saltaba a 1,12 el día 14)", 1.0, factor, 0.01)
@@ -300,10 +305,10 @@ class AcwrReliabilityTest {
     @Test
     fun e_noRingStepNorFalseAdvisoryAroundDay14() {
         val all = newcomerSessions()
-        val rings = (13..15).map { d -> muscularRing(historyAt(all, dayAfterFirst(d)), dayAfterFirst(d)) }
+        val rings = (13..27).map { d -> muscularRing(historyAt(all, dayAfterFirst(d)), dayAfterFirst(d)) }
         val step = rings.max() - rings.min()
-        assertTrue("el anillo muscular salta $step puntos entre los días 13 y 15 ($rings)", step < 2)
-        for (d in 14..16) {
+        assertTrue("el anillo muscular salta $step puntos entre los días 13 y 27 ($rings)", step < 2)
+        for (d in 14..27) {
             val now = dayAfterFirst(d)
             assertTrue("aviso falso el día $d", advisories(historyAt(all, now), now).isEmpty())
         }
@@ -318,7 +323,7 @@ class AcwrReliabilityTest {
         for (i in 1..300) {
             val acwr = i / 100.0
             val factor = AugeClassifiers.muscularLoadFactorFromAcwr(acwr)
-            assertTrue("no decreciente en $acwr: $previous → $factor", factor >= previous - 1e-12)
+            assertTrue("no decreciente en $acwr: de $previous a $factor", factor >= previous - 1e-12)
             assertTrue("paso de ${factor - previous} en $acwr (máx. 0,0035)", factor - previous <= 0.0035)
             if (acwr <= 1.3) assertEquals("hasta 1,3 vale 1,0 (acwr=$acwr)", 1.0, factor, 1e-9)
             if (acwr >= 1.7) assertEquals("desde 1,7 vale 1,12 (acwr=$acwr)", 1.12, factor, 1e-9)
@@ -338,9 +343,80 @@ class AcwrReliabilityTest {
         val tenDaysLater = muscularRing(history, now + 10 * day)
         val twoMonthsLater = muscularRing(history, now + 60 * day)
 
-        assertEquals("tras el pico: ACWR 2,0 ⇒ 100 − 40 · 1,12", 55, justAfterPeak)
-        assertEquals("10 días después la semana aguda está vacía (ACWR 0) ⇒ sin factor", 60, tenDaysLater)
-        assertEquals("2 meses después la ventana de 28 días está vacía ⇒ sin ACWR", 60, twoMonthsLater)
+        assertEquals("tras el pico: ACWR 2,0, o sea 100 - 40 x 1,12 = 55,2", 55, justAfterPeak)
+        assertEquals("10 días después la semana aguda está vacía (ACWR 0), sin factor", 60, tenDaysLater)
+        assertEquals("2 meses después la ventana de 28 días está vacía, sin ACWR", 60, twoMonthsLater)
         assertTrue("dos instantes tienen que dar dos resultados", justAfterPeak != tenDaysLater)
+    }
+
+    // ─── Piezas nuevas: carga crónica, días de seguimiento y mapa de umbrales ─
+
+    @Test
+    fun chronicWeeklyLoad_dividesByTheRealWeeksBetweenTwoAndFour() {
+        fun chronic(span: Double) = AugeClassifiers.chronicWeeklyLoad(100.0, span)
+        assertEquals("15 días: 15/7 semanas", 100.0 / (15.0 / 7.0), chronic(15.0), 1e-9)
+        assertEquals("14 días: 2 semanas", 50.0, chronic(14.0), 1e-9)
+        assertEquals("21 días: 3 semanas", 100.0 / 3.0, chronic(21.0), 1e-9)
+        assertEquals("28 días: 4 semanas", 25.0, chronic(28.0), 1e-9)
+        assertEquals("menos de 2 semanas se queda en 2", 50.0, chronic(3.0), 1e-9)
+        assertEquals("sin seguimiento se queda en 2", 50.0, chronic(0.0), 1e-9)
+        assertEquals("meses de historia se quedan en 4", 25.0, chronic(400.0), 1e-9)
+    }
+
+    @Test
+    fun userTrackingSpan_countsFromTheFirstLogOfAllHistoryAndIgnoresBadDates() {
+        val now = base
+        val history = listOf(
+            session("t-new", now - 3 * day),
+            session("t-first", now - 40 * day),
+            session("t-bad", now - 50 * day).copy(date = "no-es-fecha"),
+        )
+        assertEquals("primer registro válido de todo el historial", 40.0, AugeClassifiers.userTrackingSpanDays(history, now), 1e-9)
+        assertEquals("sin historial", 0.0, AugeClassifiers.userTrackingSpanDays(emptyList(), now), 1e-9)
+        assertEquals(
+            "un registro posterior a 'ahora' no da días negativos",
+            0.0,
+            AugeClassifiers.userTrackingSpanDays(listOf(session("t-future", now + 2 * day)), now),
+            1e-9,
+        )
+    }
+
+    @Test
+    fun thresholds_singleMapKeepsEveryValueAndFeedsZonesAndAdvisories() {
+        // Ningún valor cambia con la unificación (alinear avisos y zonas es decisión de producto).
+        assertEquals(0.8, AcwrThresholds.UNDER, 0.0)
+        assertEquals(1.3, AcwrThresholds.CAUTION, 0.0)
+        assertEquals(1.5, AcwrThresholds.DANGER, 0.0)
+        assertEquals(1.2, AcwrThresholds.WATCH, 0.0)
+        assertEquals(1.4, AcwrThresholds.ADJUST, 0.0)
+        assertEquals(1.6, AcwrThresholds.UNLOAD, 0.0)
+        assertEquals(0.10, AcwrThresholds.HYSTERESIS, 0.0)
+
+        // Zonas: leen del mapa (bordes inclusivos hacia abajo).
+        val zone = AugeClassifiers::classifyAcwrZone
+        assertEquals(AugeClassifiers.AcwrZone.UNDER, zone(AcwrThresholds.UNDER - 0.001))
+        assertEquals(AugeClassifiers.AcwrZone.SAFE, zone(AcwrThresholds.UNDER))
+        assertEquals(AugeClassifiers.AcwrZone.SAFE, zone(AcwrThresholds.CAUTION))
+        assertEquals(AugeClassifiers.AcwrZone.CAUTION, zone(AcwrThresholds.CAUTION + 0.001))
+        assertEquals(AugeClassifiers.AcwrZone.CAUTION, zone(AcwrThresholds.DANGER))
+        assertEquals(AugeClassifiers.AcwrZone.DANGER, zone(AcwrThresholds.DANGER + 0.001))
+
+        // Avisos: WATCH desde el umbral (>=), ADJUST solo por encima (>).
+        fun level(acwr: Double) = levelFromAcwr(acwr, insufficient = false)
+        assertEquals(LoadAdvisoryLevel.NONE, level(AcwrThresholds.WATCH - 0.001))
+        assertEquals(LoadAdvisoryLevel.WATCH, level(AcwrThresholds.WATCH))
+        assertEquals(LoadAdvisoryLevel.WATCH, level(AcwrThresholds.ADJUST))
+        assertEquals(LoadAdvisoryLevel.ADJUST, level(AcwrThresholds.ADJUST + 0.001))
+
+        // Histéresis: un nivel se mantiene hasta bajar de umbral x (1 - HYSTERESIS).
+        val inside = AcwrThresholds.ADJUST * (1.0 - AcwrThresholds.HYSTERESIS)
+        assertEquals(
+            LoadAdvisoryLevel.ADJUST,
+            LoadAdvisoryEngine.applyHysteresis(LoadAdvisoryLevel.WATCH, LoadAdvisoryLevel.ADJUST, allowDrop = true, acwr = inside),
+        )
+        assertEquals(
+            LoadAdvisoryLevel.WATCH,
+            LoadAdvisoryEngine.applyHysteresis(LoadAdvisoryLevel.WATCH, LoadAdvisoryLevel.ADJUST, allowDrop = true, acwr = inside - 0.001),
+        )
     }
 }

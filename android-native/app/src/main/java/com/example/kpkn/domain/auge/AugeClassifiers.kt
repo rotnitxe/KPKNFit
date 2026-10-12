@@ -1,13 +1,46 @@
 package com.example.kpkn.domain.auge
 
+import com.example.kpkn.data.models.WorkoutLog
 import kotlin.math.max
 import kotlin.math.min
+
+/**
+ * AcwrThresholds — Único mapa de umbrales del ACWR. Las zonas del anillo muscular
+ * ([AugeClassifiers.classifyAcwrZone]) y los niveles de aviso de Columna/Energía
+ * ([LoadAdvisoryEngine]) leen de aquí; no se repiten literales en ningún otro archivo.
+ *
+ * Los de aviso (1.2 / 1.4 / 1.6) no coinciden con los de zona (1.3 / 1.5): alinearlos es
+ * una decisión de producto pendiente, así que aquí no se ha cambiado ningún valor.
+ */
+object AcwrThresholds {
+    // Zonas (AugeClassifiers.classifyAcwrZone): < UNDER sub-entrena · hasta CAUTION segura · hasta DANGER riesgo · más, alto riesgo.
+    const val UNDER = 0.8
+    const val CAUTION = 1.3
+    const val DANGER = 1.5
+
+    // Avisos (LoadAdvisoryEngine): WATCH desde WATCH (≥) · ADJUST por encima de ADJUST (>) · UNLOAD por encima de UNLOAD (>, con tendencia).
+    const val WATCH = 1.2
+    const val ADJUST = 1.4
+    const val UNLOAD = 1.6
+
+    /** Histéresis relativa de los avisos: un nivel se mantiene hasta bajar de `umbral · (1 − HYSTERESIS)`. */
+    const val HYSTERESIS = 0.10
+}
 
 /**
  * AugeClassifiers — Clasificadores semánticos y utilidades de escala AUGE.
  * Funciones puras, sin estado. Equivalente a @kpkn/shared-domain classifiers.ts
  */
 object AugeClassifiers {
+
+    /** Semanas de datos mínimas y máximas con las que se divide la carga de 28 días (ver [chronicWeeklyLoad]). */
+    private const val MIN_CHRONIC_WEEKS = 2.0
+    private const val MAX_CHRONIC_WEEKS = 4.0
+    private const val MS_PER_DAY = 86_400_000.0
+
+    /** Rampa del factor muscular: +0.06 por tramo, cada tramo a lo largo de 0.2 de ACWR. */
+    private const val MUSCULAR_FACTOR_STEP = 0.06
+    private const val MUSCULAR_FACTOR_RAMP = 0.2
 
     private fun clamp(v: Double, lo: Double, hi: Double) = min(hi, max(lo, v))
 
@@ -28,21 +61,21 @@ object AugeClassifiers {
     enum class AcwrZone { UNDER, SAFE, CAUTION, DANGER }
 
     /**
-     * Clasifica el ACWR (Acute:Chronic Workload Ratio).
-     *  < 0.8  → UNDER    (Sub-entrenando)
-     *  0.8-1.3 → SAFE    (Zona Segura)
-     *  1.3-1.5 → CAUTION (Zona de Riesgo)
-     *  > 1.5  → DANGER   (Alto Riesgo)
+     * Clasifica el ACWR (Acute:Chronic Workload Ratio) con los umbrales de [AcwrThresholds]:
+     *  < UNDER (0.8)            → UNDER    (Sub-entrenando)
+     *  UNDER-CAUTION (0.8-1.3)  → SAFE     (Zona Segura)
+     *  CAUTION-DANGER (1.3-1.5) → CAUTION  (Zona de Riesgo)
+     *  > DANGER (1.5)           → DANGER   (Alto Riesgo)
      */
     fun classifyAcwrZone(acwr: Double): AcwrZone = when {
-        acwr < 0.8 -> AcwrZone.UNDER
-        acwr > 1.5 -> AcwrZone.DANGER
-        acwr > 1.3 -> AcwrZone.CAUTION
+        acwr < AcwrThresholds.UNDER -> AcwrZone.UNDER
+        acwr > AcwrThresholds.DANGER -> AcwrZone.DANGER
+        acwr > AcwrThresholds.CAUTION -> AcwrZone.CAUTION
         else       -> AcwrZone.SAFE
     }
 
     /**
-     * Acute:Chronic Workload Ratio = carga de 7 días / promedio semanal de 28 días.
+     * Acute:Chronic Workload Ratio = carga de 7 días / carga semanal crónica ([chronicWeeklyLoad]).
      * Null si no hay crónica usable (evita un spike falso en la primera semana).
      */
     fun computeAcwr(acuteLoad: Double, chronicWeeklyLoad: Double): Double? {
@@ -51,13 +84,34 @@ object AugeClassifiers {
     }
 
     /**
-     * Extra remaining muscular fatigue when the last week spikes vs the month.
-     * 1.0 = no change. Only CAUTION/DANGER move the ring.
+     * Carga crónica semanal = carga de los últimos 28 días ÷ semanas con datos reales (mínimo 2, máximo 4).
+     * [trackingSpanDays] son los días de seguimiento del usuario ([userTrackingSpanDays]): quien empezó hace
+     * 15 días divide entre 2,14 semanas, no entre 4, que lo marcaba en falso peligro con un ritmo estable.
      */
-    fun muscularLoadFactorFromAcwr(acwr: Double): Double = when (classifyAcwrZone(acwr)) {
-        AcwrZone.DANGER -> 1.12
-        AcwrZone.CAUTION -> 1.06
-        AcwrZone.SAFE, AcwrZone.UNDER -> 1.0
+    fun chronicWeeklyLoad(totalLoad28d: Double, trackingSpanDays: Double): Double =
+        totalLoad28d / (trackingSpanDays / 7.0).coerceIn(MIN_CHRONIC_WEEKS, MAX_CHRONIC_WEEKS)
+
+    /**
+     * Días de seguimiento: desde el primer registro con fecha válida de TODA la [history] recibida (no el
+     * primero dentro de la ventana de 28 días) hasta [nowMs]; 0 si no hay ninguno. Así quien lleva meses
+     * entrenando y paró 3 semanas sigue dividiendo entre 4 y el pico al volver sí se detecta.
+     */
+    fun userTrackingSpanDays(history: List<WorkoutLog>, nowMs: Long): Double {
+        val firstLogMs = history.asSequence().map { AugeUtils.logDateMs(it) }.filter { it > 0L }.minOrNull()
+            ?: return 0.0
+        return max(0.0, (nowMs - firstLogMs) / MS_PER_DAY)
+    }
+
+    /**
+     * Extra remaining muscular fatigue when the last week spikes vs the month.
+     * 1.0 = no change. Rampa continua, sin escalones: 1.0 hasta CAUTION (1.3), +0.06 hasta DANGER (1.5)
+     * y otros +0.06 hasta 1.7, donde se queda en 1.12. Pendiente máxima: 0.3 por unidad de ACWR.
+     */
+    fun muscularLoadFactorFromAcwr(acwr: Double): Double {
+        if (acwr.isNaN()) return 1.0
+        return 1.0 +
+            MUSCULAR_FACTOR_STEP * clamp((acwr - AcwrThresholds.CAUTION) / MUSCULAR_FACTOR_RAMP, 0.0, 1.0) +
+            MUSCULAR_FACTOR_STEP * clamp((acwr - AcwrThresholds.DANGER) / MUSCULAR_FACTOR_RAMP, 0.0, 1.0)
     }
 
     fun acwrZoneLabel(zone: AcwrZone): String = when (zone) {
