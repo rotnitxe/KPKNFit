@@ -1,5 +1,6 @@
 package com.example.kpkn.domain.training.importer
 
+import com.example.kpkn.domain.exercises.ExerciseMatchLexicon
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.roundToInt
@@ -35,6 +36,64 @@ object OcrLayout {
 
     /** Filas de todas las páginas, en orden, cada una con sus celdas. */
     fun reconstruct(pages: List<OcrPage>): List<List<String>> = pages.flatMap { rowsOfPage(it) }
+
+    /** Páginas que hacen falta, como mínimo, para que una fila repetida sea un mueble de página. */
+    private const val FURNITURE_MIN_PAGES = 3
+
+    /** Letras que debe tener el texto de una fila para poder ser un mueble de página. */
+    private const val FURNITURE_MIN_LETTERS = 3
+
+    /** Filas unidas de varias páginas y, para cada página, el índice de su primera fila (tras quitar los muebles). */
+    data class Joined(val rows: List<List<String>>, val pageStarts: List<Int>)
+
+    /**
+     * Une las filas de varias páginas quitando los muebles de página. Un mueble es una fila de las 2 primeras o de las 2
+     * últimas con texto de su página que, sin cifras ni signos, se repite en el 40 % de las páginas o más (y en 3 como
+     * mínimo). Nunca lo son las filas con contenido ([ProgramImportParser.pageContentRows]): estructura, notación, %,
+     * datos de tabla, nombres de prescripciones sueltas y títulos encima de ejercicios.
+     */
+    fun joinPages(pages: List<List<List<String>>>): Joined {
+        val candidates = pages.map { page -> furnitureCandidates(page) }
+        val pagesWithKey = HashMap<String, Int>()
+        for ((page, positions) in pages.zip(candidates)) {
+            for (key in positions.map { furnitureKey(page[it]) }.filter { it.isNotEmpty() }.toSet()) {
+                pagesWithKey[key] = (pagesWithKey[key] ?: 0) + 1
+            }
+        }
+        val furniture = pagesWithKey.filter { (_, count) ->
+            count >= FURNITURE_MIN_PAGES && count * 5 >= pages.size * 2
+        }.keys
+        val rows = ArrayList<List<String>>()
+        val pageStarts = ArrayList<Int>()
+        for ((page, positions) in pages.zip(candidates)) {
+            pageStarts += rows.size
+            page.forEachIndexed { index, row ->
+                val mark = index in positions && furnitureKey(row) in furniture
+                if (!mark) rows += row
+            }
+        }
+        return Joined(rows, pageStarts)
+    }
+
+    /** Filas de una página que pueden ser muebles: las 2 primeras y las 2 últimas con texto, menos las que tienen contenido. */
+    private fun furnitureCandidates(page: List<List<String>>): Set<Int> {
+        val filled = page.indices.filter { index -> page[index].any { it.isNotBlank() } }
+        val edges = (filled.take(2) + filled.takeLast(2)).toSet()
+        return edges - ProgramImportParser.pageContentRows(page)
+    }
+
+    /**
+     * Texto de una fila para comparar páginas: minúsculas, sin cifras ni signos. Una fila con menos de 3 letras («4x 15-12-10-8»
+     * queda en «x») no es un mueble: es una prescripción que se repite por estar en cada página.
+     */
+    private fun furnitureKey(row: List<String>): String {
+        val key = ExerciseMatchLexicon.normalize(row.joinToString(" "))
+            .split(' ')
+            .map { word -> word.filter { it.isLetter() } }
+            .filter { it.isNotEmpty() }
+            .joinToString(" ")
+        return if (key.count { it.isLetter() } >= FURNITURE_MIN_LETTERS) key else ""
+    }
 
     private fun rowsOfPage(page: OcrPage): List<List<String>> {
         val words = page.words.mapNotNull { word ->

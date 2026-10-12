@@ -45,7 +45,8 @@ object ProgramImportParser {
             // Una hoja sin nombre de semana es un día: su nombre sirve si no trae un encabezado propio.
             builder.pendingDayName = if (weekInName == null) usableSheetName(sheet.name) else null
             builder.sheetLift = titleLift(sheet.rows) ?: builder.pendingDayName
-            processRows(builder, sheet.rows) { index -> "Hoja «${sheet.name}», fila ${index + 1}" }
+            builder.ocrSheet = sheet.pageStarts.isNotEmpty()
+            processRows(builder, sheet.rows, pageHeaderRows(sheet.rows, sheet.pageStarts)) { index -> "Hoja «${sheet.name}», fila ${index + 1}" }
             builder.endSheet("Hoja «${sheet.name}»")
         }
         return builder.finish(title)
@@ -73,15 +74,75 @@ object ProgramImportParser {
 
     // ---- Filas -------------------------------------------------------------------------------------------
 
-    private fun processRows(builder: DraftBuilder, rows: List<List<String>>, where: (Int) -> String) {
+    /** Fila que el analizador necesita en cada página de un PDF: semana, día o cabecera de columnas (no se quita como mueble). */
+    internal fun isStructuralRow(cells: List<String>): Boolean {
+        val trimmed = cells.map { it.trim() }
+        val text = trimmed.filter { it.isNotEmpty() }.joinToString(" ")
+        if (text.isEmpty()) return false
+        return weekNumber(text) != null || isDayLabel(text) || detectColumns(trimmed) != null
+    }
+
+    /** Cabeceras de página en una hoja de OCR: las primeras filas con texto de cada página. */
+    private const val PAGE_HEADER_ROWS = 3
+
+    /** Filas que son cabecera de su página; vacío si la hoja no trae inicios de página (no es de OCR). */
+    internal fun pageHeaderRows(rows: List<List<String>>, pageStarts: List<Int>): Set<Int> {
+        val headers = HashSet<Int>()
+        val starts = pageStarts.filter { it in rows.indices }.distinct().sorted()
+        for ((k, start) in starts.withIndex()) {
+            val end = starts.getOrNull(k + 1) ?: rows.size
+            (start until end).filter { index -> rows[index].any { it.isNotBlank() } }
+                .take(PAGE_HEADER_ROWS)
+                .forEach { headers += it }
+        }
+        return headers
+    }
+
+    /**
+     * Filas de una página que nunca son mueble aunque se repitan: estructurales (día, semana, cabecera de columnas), con
+     * notación o grupos con %, datos de tabla (dos celdas o más que empiezan por cifra), el nombre de una prescripción
+     * suelta, y la fila que va justo encima de un ejercicio o de una cabecera de columnas. Índices dentro de [page].
+     */
+    internal fun pageContentRows(page: List<List<String>>): Set<Int> {
+        val filled = page.indices.filter { index -> page[index].any { it.isNotBlank() } }
+        val names = pairNames(page, emptyMap()).taken
+        val kept = HashSet<Int>()
+        for ((position, index) in filled.withIndex()) {
+            val cells = page[index]
+            if (isStructuralRow(cells) || index in names || hasNotation(joinedOf(cells)) || isTableDataRow(cells)) {
+                kept += index
+                continue
+            }
+            val below = filled.getOrNull(position + 1)?.let { page[it] } ?: continue
+            if (hasNotation(joinedOf(below)) || isTableDataRow(below) || detectColumns(below.map { it.trim() }) != null) {
+                kept += index
+            }
+        }
+        return kept
+    }
+
+    private fun joinedOf(cells: List<String>): String = cells.map { it.trim() }.filter { it.isNotEmpty() }.joinToString(" ")
+
+    /** Una fila con notación o con grupos de porcentaje, sea cual sea su nombre. */
+    private fun hasNotation(text: String): Boolean = text.isNotEmpty() && (parseNotation(text) != null || percentGroups(text) != null)
+
+    /** Datos de tabla: dos celdas o más que empiezan por cifra («Sentadilla | 4 | 8 | 100»). */
+    private fun isTableDataRow(cells: List<String>): Boolean =
+        cells.count { cell -> cell.trim().firstOrNull()?.isDigit() == true } >= 2
+
+    private fun processRows(builder: DraftBuilder, rows: List<List<String>>, pageHeaders: Set<Int> = emptySet(), where: (Int) -> String) {
         var columns: Columns? = null
         var grid: Grid? = null
         val sessions = planSessions(rows)
+        val pairs = pairNames(rows, sessions)
         rows.forEachIndexed { index, row ->
             val cells = row.map { it.trim() }
             val filled = cells.filter { it.isNotEmpty() }
             if (filled.isEmpty()) return@forEachIndexed
-            val context = RowContext(where(index), filled.joinToString(" · "), builder)
+            builder.pageHeader = index in pageHeaders
+            // Una prescripción suelta («4x 15-12-10-8») lleva el nombre de la fila de arriba, si lo hay.
+            val prescribedName = pairs.nameOf[index]
+            val context = RowContext(where(index), listOfNotNull(prescribedName, filled.joinToString(" · ")).joinToString(" · "), builder)
 
             // Sesiones en columnas (subcabecera, sus etiquetas de encima y sus datos): van por su propio camino.
             val part = sessions[index]
@@ -96,6 +157,14 @@ object ProgramImportParser {
                     SessionPart.Labels -> if (filled.any { isProse(it) }) builder.count(Noise.TEXT)
                     is SessionPart.Data -> sessionRow(builder, part.block, cells, context)
                 }
+                builder.endRow(null)
+                return@forEachIndexed
+            }
+
+            // Un nombre que ya es la prescripción de la fila de abajo no es línea de texto ni día: se lee con ella.
+            if (index in pairs.taken) {
+                grid?.let { closeGrid(builder, it) }
+                grid = null
                 builder.endRow(null)
                 return@forEachIndexed
             }
@@ -139,7 +208,7 @@ object ProgramImportParser {
                     null
                 }
                 tableDay != null && (filled.size == 1 || (table != null && isBareTableRow(cells, table))) -> null
-                filled.size == 1 -> classify(filled.first(), context)
+                filled.size == 1 -> classify(filled.first(), context, prescribedName)
                 table != null -> tableRow(cells, table, context)
                 else -> classify(filled.joinToString(" "), context)
             }
@@ -164,14 +233,16 @@ object ProgramImportParser {
      * Una línea o una fila sin cabecera. Orden: notación (ejercicio), semana, prosa (se cuenta), etiqueta de día y, por
      * último, un texto corto que puede ser un día. Lo demás es un aviso «no se entiende».
      */
-    private fun classify(raw: String, row: RowContext): Line? {
+    private fun classify(raw: String, row: RowContext, name: String? = null): Line? {
         val text = raw.trim()
         // Una cabecera es una lista corta de nombres de columna; una frase larga con esas palabras es prosa.
         if (text.isEmpty() || (isColumnHeaderText(text) && !isProse(text))) return null
         // Varios grupos con porcentaje («50%x5, 60%x4»): un ejercicio por grupo. Antes que la notación normal.
-        percentGroups(text)?.let { return groupLine(text, it, row) }
+        percentGroups(text)?.let { return groupLine(text, it, row, name) }
         val notation = parseNotation(text)
         if (notation != null) {
+            // Una prescripción suelta con el nombre de la fila de arriba: el nombre va aparte, no en el texto.
+            if (name != null && notation.name.isBlank()) return notationLine(notation, row, name)
             // Prosa con notación: lo que hay antes de la notación es una frase, no un nombre.
             if (isLongLeadingText(notation.leading)) {
                 row.count(Noise.TEXT)
@@ -190,16 +261,21 @@ object ProgramImportParser {
         }
         if (isDayLabel(text)) return dayLine(text, silent = false)
         if (isShortDayCandidate(text)) return dayLine(text, silent = true)
-        row.warn(ImportWarningKind.SKIPPED_ROW, "no se entiende «$text»")
+        // Un nombre suelto sin cifras cuenta como línea de texto. Con cifras puede ser un ejercicio mal escrito: aviso de siempre.
+        if (text.any { it.isDigit() }) {
+            row.warn(ImportWarningKind.SKIPPED_ROW, "no se entiende «$text»")
+        } else {
+            row.loose("no se entiende «$text»")
+        }
         return null
     }
 
-    private fun notationLine(notation: Notation, row: RowContext): Line? {
-        val named = numbered(notation.name)
+    private fun notationLine(notation: Notation, row: RowContext, prescribedName: String? = null): Line? {
+        val named = numbered(prescribedName ?: notation.name)
         if (countIfNotExercise(named.name, row)) return null
         if (notation.load != null) row.noteLoad(notation.loadUnit)
-        val notes = listOfNotNull(blockNote(named.block), notation.notes, amrapNote(notation.amrapReps))
-            .joinToString(" ").takeIf { it.isNotEmpty() }
+        val notes = (listOfNotNull(blockNote(named.block)) + notation.repsNotes +
+            listOfNotNull(notation.notes, amrapNote(notation.amrapReps))).joinToString(" ").takeIf { it.isNotEmpty() }
         return validate(
             name = named.name,
             sets = notation.sets,
@@ -246,6 +322,7 @@ object ProgramImportParser {
         // «1x5+», «3x8-12», «3 x 10» en la celda de repeticiones; si no hay notación, un número o un rango.
         val scheme = if (hasScheme(repsCell)) parseNotation(repsCell) else null
         val range = if (scheme == null) parseRange(repsCell) else null
+        val pyramid = if (scheme == null) pyramidOfCell(repsCell) else null
         // Si la columna de series tiene un número, manda; si no, la notación de la celda de repeticiones o la de antes.
         val sets = leadingInt(setsCell) ?: setsNotation?.sets ?: scheme?.sets ?: inline?.sets
         val repsMin = range?.first ?: scheme?.repsMin ?: setsNotation?.repsMin ?: inline?.repsMin
@@ -271,16 +348,16 @@ object ProgramImportParser {
         unreadable(row, rirCell, rir, "RIR")
         unreadable(row, restCell, rest, "descanso")
 
-        val remainder = if (range != null) rangeRemainder(repsCell) else null
+        val remainder = if (range != null && pyramid == null) rangeRemainder(repsCell) else null
         // Sin otra nota, la columna de grupo muscular va a notas.
         val groupCell = cell(ColumnRole.GROUP)
-        val notes = listOfNotNull(
-            blockNote(named.block),
+        val repsNotes = (scheme?.repsNotes ?: repsNotesOfCell(repsCell)) + inline?.repsNotes.orEmpty()
+        val notes = (listOfNotNull(blockNote(named.block)) + repsNotes + listOfNotNull(
             notesCell.takeIf { it.isNotEmpty() },
             remainder,
             inline?.notes,
             amrapNote(amrap),
-        ).joinToString(" ").takeIf { it.isNotEmpty() } ?: groupCell.takeIf { it.isNotEmpty() }
+        )).joinToString(" ").takeIf { it.isNotEmpty() } ?: groupCell.takeIf { it.isNotEmpty() }
         // Carga con número: cuenta para saber si el archivo va en libras (manda la celda; si no, la notación).
         if (load != null) {
             row.noteLoad(unitMarkOf(loadCell))
@@ -538,6 +615,8 @@ object ProgramImportParser {
         val leading: String,
         /** Unidad que lleva la carga («135 lb», «60kg»); null si la carga no lleva unidad. */
         val loadUnit: ImportLoadUnit?,
+        /** Notas de las repeticiones: «Pirámide: 15-12-10-8.» y «Por lado.». */
+        val repsNotes: List<String>,
     )
 
     /**
@@ -557,10 +636,12 @@ object ProgramImportParser {
         var rir: Int? = null
         var rest: Int? = null
         var loadUnit: ImportLoadUnit? = null
+        var pyramid: List<Int>? = null
+        var perSide = false
 
-        fun scan(pattern: Regex, onMatch: (MatchResult) -> Unit) {
+        fun scan(pattern: Regex, accept: (MatchResult) -> Boolean = { true }, onMatch: (MatchResult) -> Unit) {
             for (match in pattern.findAll(text)) {
-                if (spans.any { overlaps(it, match.range) }) continue
+                if (spans.any { overlaps(it, match.range) } || !accept(match)) continue
                 spans += match.range
                 onMatch(match)
             }
@@ -568,12 +649,23 @@ object ProgramImportParser {
 
         scan(REST_MINUTES) { m -> if (rest == null) rest = minutesToSeconds(m.groupValues[1]) }
         scan(REST_SECONDS) { m -> if (rest == null) rest = m.groupValues[1].toIntOrNull() }
+        // Pirámide con series («4x 15-12-10-8»): antes que la notación normal, que solo leería dos cifras.
+        scan(PYRAMID_WITH_SETS, accept = { m -> pyramidWithSetsFits(m.groupValues[2]) }) { m ->
+            if (sets == null) {
+                val figures = figuresOf(m.groupValues[2])
+                sets = m.groupValues[1].toIntOrNull()
+                repsMin = figures.minOf { it }
+                repsMax = figures.maxOf { it }
+                pyramid = figures
+            }
+        }
         scan(SETS_BY_REPS) { m ->
             if (sets == null) {
                 sets = m.groupValues[1].toIntOrNull()
                 repsMin = m.groupValues[2].toIntOrNull()
                 repsMax = m.groupValues[4].toIntOrNull() ?: repsMin
                 amrap = schemeAmrap(m)
+                perSide = perSide || m.groupValues[6].isNotEmpty()
             }
         }
         scan(SETS_OF_REPS) { m ->
@@ -582,9 +674,20 @@ object ProgramImportParser {
                 repsMin = m.groupValues[2].toIntOrNull()
                 repsMax = m.groupValues[4].toIntOrNull() ?: repsMin
                 amrap = schemeAmrap(m)
+                perSide = perSide || m.groupValues[6].isNotEmpty()
             }
         }
         scan(SETS_ONLY) { m -> if (sets == null) sets = m.groupValues[1].toIntOrNull() }
+        // Pirámide sin series («15-12-10-8»): tres cifras o más, y las series son esas cifras.
+        scan(PYRAMID_LIST, accept = { m -> pyramidListFits(m.groupValues[1], atEnd = m.range.last == text.length - 1) }) { m ->
+            if (repsMin == null) {
+                val figures = figuresOf(m.groupValues[1])
+                if (sets == null) sets = figures.size
+                repsMin = figures.minOf { it }
+                repsMax = figures.maxOf { it }
+                pyramid = figures
+            }
+        }
         scan(PERCENT) { m -> if (percent == null) percent = firstNumber(m.groupValues[1]) }
         scan(LOAD_KG) { m ->
             if (load == null) {
@@ -607,6 +710,7 @@ object ProgramImportParser {
         val beforeName = cleanName(before.toString())
         val name = beforeName.ifEmpty { cleanName(behind.toString()) }
         val notes = if (beforeName.isEmpty()) "" else cleanNotes(behind.toString())
+        val repsNotes = listOfNotNull(pyramid?.let { pyramidNote(it) }, "Por lado.".takeIf { perSide })
         return Notation(
             name = name,
             notes = notes.takeIf { it.isNotEmpty() },
@@ -621,6 +725,7 @@ object ProgramImportParser {
             amrapReps = amrap,
             leading = before.toString(),
             loadUnit = loadUnit,
+            repsNotes = repsNotes,
         )
     }
 
@@ -637,7 +742,7 @@ object ProgramImportParser {
     private fun cleanNotes(raw: String): String =
         raw.replace(EMPTY_PARENTHESES, " ")
             .replace(SPACES, " ")
-            .trim { it.isWhitespace() || it in "-–—|·,;:" }
+            .trim { it.isWhitespace() || it in "-–—|·,;:()[]" }
 
     /** Nota de la última serie con «+»; null si no hay AMRAP. */
     private fun amrapNote(reps: Int?): String? = reps?.let { "AMRAP: última serie, $it o más repeticiones." }
@@ -673,17 +778,41 @@ object ProgramImportParser {
         RegexOption.IGNORE_CASE,
     )
 
-    /** «4x8», «3×10», «3 x 10», «1x5+», «3x8-12», «3x8-12+»: grupos 1 series, 2 reps, 3 «+», 4 reps máx., 5 «+». */
+    /** Repeticiones por lado («8/leg», «10 each side», «12 por pierna», «10 c/l», «10 por lado»): grupo 6 de la notación. */
+    private const val PER_SIDE_TAIL = """\s*(?:/\s*(?:leg|lado|pierna|side)s?|each\s+side|por\s+(?:pierna|lado)|c\s*/\s*l)(?![a-z])"""
+
+    /** «4x8», «3×10», «3 x 10», «1x5+», «3x8-12», «3x8-12+», «4 x 10 reps», «4x8/leg»: grupos 1 series, 2 reps, 3 «+», 4 reps máx., 5 «+», 6 por lado. */
     private val SETS_BY_REPS = Regex(
-        """(?<![\w.,])(\d{1,2})\s*(?:x|×|\*|por)\s*(\d{1,3})(?!\d|\s*%)(\+)?(?:\s*(?:-|–|—|a|hasta)\s*(\d{1,3})(\+)?)?""",
+        """(?<![\w.,])(\d{1,2})\s*(?:x|×|\*|por)\s*(\d{1,3})(?!\d|\s*%)(\+)?(?:\s*(?:-|–|—|a|hasta)\s*(\d{1,3})(\+)?)?""" +
+            """(?:\s*(?:reps?|repeticiones|rep)\b)?($PER_SIDE_TAIL)?""",
         RegexOption.IGNORE_CASE,
     )
 
     /** «4 series de 6-8»: los mismos grupos que [SETS_BY_REPS]. */
     private val SETS_OF_REPS = Regex(
-        """(\d{1,2})\s*(?:series?|sets?)\s*(?:de|x|of)?\s*(\d{1,3})(?!\d|\s*%)(\+)?(?:\s*(?:-|–|—|a|hasta)\s*(\d{1,3})(\+)?)?(?:\s*(?:reps?|repeticiones|rep)\b)?""",
+        """(\d{1,2})\s*(?:series?|sets?)\s*(?:de|x|of)?\s*(\d{1,3})(?!\d|\s*%)(\+)?(?:\s*(?:-|–|—|a|hasta)\s*(\d{1,3})(\+)?)?(?:\s*(?:reps?|repeticiones|rep)\b)?($PER_SIDE_TAIL)?""",
         RegexOption.IGNORE_CASE,
     )
+    /** «4x 15-12-10-8», «3x8-12-10»: una pirámide con series; grupo 1 las series y grupo 2 la lista de repeticiones. */
+    private val PYRAMID_WITH_SETS = Regex(
+        """(?<![\w.,])(\d{1,2})\s*(?:x|×|\*|por)\s*(\d{1,3}(?:[-–—/]\d{1,3})+)(?!\d)""",
+        RegexOption.IGNORE_CASE,
+    )
+
+    /** «15-12-10-8» sin series: una lista de tres cifras o más, sin espacios (grupo 1). */
+    private val PYRAMID_LIST = Regex("""(?<![\w.,/+\-–—])(\d{1,3}(?:[-–—/]\d{1,3}){2,})(?!\d)""")
+
+    /** Una celda que es solo una lista de repeticiones sin espacios: «15-12-10-8», «12/10/8/6» («4-6 / 8-10» no lo es). */
+    private val PYRAMID_CELL = Regex("""\d{1,3}(?:[-–—/]\d{1,3})+""")
+
+    /** Una celda de repeticiones por lado: «8/leg», «10 each side», «12 por pierna», «10 c/l», «10 por lado». */
+    private val PER_SIDE_CELL = Regex(
+        """^\s*\d{1,3}\s*(?:/\s*(?:leg|lado|pierna|side)s?|each\s+side|por\s+(?:pierna|lado)|c\s*/\s*l)(?![a-z])""",
+        RegexOption.IGNORE_CASE,
+    )
+
+    private val NUMBER_TOKEN = Regex("""\d{1,3}""")
+
     private val SETS_ONLY = Regex("""(\d{1,2})\s*(?:series?|sets?)\b""", RegexOption.IGNORE_CASE)
     private val PERCENT = Regex("""@?\s*(\d{1,3}(?:[.,]\d+)?)\s*%""")
     private val LOAD_KG = Regex(
@@ -713,8 +842,111 @@ object ProgramImportParser {
     private fun leadingInt(text: String): Int? = LEADING_INT.find(text)?.groupValues?.get(1)?.toIntOrNull()
 
     private fun parseRange(text: String): Pair<Int, Int>? {
+        pyramidOfCell(text)?.let { figures -> return figures.minOf { it } to figures.maxOf { it } }
         RANGE_CELL.find(text)?.let { m -> return m.groupValues[1].toInt() to m.groupValues[2].toInt() }
         return leadingInt(text)?.let { it to it }
+    }
+
+    /**
+     * Lista de repeticiones de una celda («15-12-10-8», «12/10/8/6») si es una pirámide: tres cifras o más, sin ceros delante
+     * y en un solo sentido.
+     */
+    private fun pyramidOfCell(cell: String): List<Int>? {
+        val text = cell.trim()
+        if (!PYRAMID_CELL.matches(text) || hasLeadingZero(text)) return null
+        return figuresOf(text).takeIf { it.size >= 3 && isMonotone(it) }
+    }
+
+    /** Las cifras de un texto, en orden. */
+    private fun figuresOf(text: String): List<Int> = NUMBER_TOKEN.findAll(text).mapNotNull { it.value.toIntOrNull() }.toList()
+
+    /** Una pirámide con series: tres cifras o más, sin ceros delante («2x10-12» es un rango; «06» es una fecha). */
+    private fun pyramidWithSetsFits(list: String): Boolean = figuresOf(list).size >= 3 && !hasLeadingZero(list)
+
+    /** Una cifra con cero delante («06», «03») no es una repetición: es una fecha o un código. */
+    private fun hasLeadingZero(list: String): Boolean =
+        NUMBER_TOKEN.findAll(list).any { it.value.length > 1 && it.value.startsWith('0') }
+
+    /** Las repeticiones de una pirámide van en un solo sentido: «15-12-10-8» o «8-10-12», no «6/3/15». */
+    private fun isMonotone(figures: List<Int>): Boolean =
+        figures.zipWithNext().all { (a, b) -> a >= b } || figures.zipWithNext().all { (a, b) -> a <= b }
+
+    /**
+     * Una pirámide sin series en un texto: cuatro cifras, o tres si la lista cierra el texto (así «5/3/1» dentro de un título
+     * no es pirámide). Además, sin ceros delante y en un solo sentido: «Deadlift 100 Updated: 06/03/15» y «Fecha 6/3/15» no lo son.
+     */
+    private fun pyramidListFits(list: String, atEnd: Boolean): Boolean {
+        val figures = figuresOf(list)
+        val long = figures.size >= 4 || (figures.size >= 3 && atEnd)
+        return long && !hasLeadingZero(list) && isMonotone(figures)
+    }
+
+    /** La nota de una pirámide: «Pirámide: 15-12-10-8.». */
+    private fun pyramidNote(figures: List<Int>): String = "Pirámide: ${figures.joinToString("-")}."
+
+    /** Notas de las repeticiones de una celda sola: «Pirámide: …» y «Por lado.». */
+    private fun repsNotesOfCell(cell: String): List<String> = listOfNotNull(
+        pyramidOfCell(cell)?.let { pyramidNote(it) },
+        "Por lado.".takeIf { PER_SIDE_CELL.containsMatchIn(cell) },
+    )
+
+    /** El texto que queda fuera de los tramos [ranges]. */
+    private fun outsideText(text: String, ranges: List<IntRange>): String =
+        text.filterIndexed { index, _ -> ranges.none { index in it } }
+
+    /** Texto de una fila de una sola celda con texto, o null si tiene varias. */
+    private fun singleText(row: List<String>): String? = row.map { it.trim() }.filter { it.isNotEmpty() }.singleOrNull()
+
+    /** Una fila que solo trae la prescripción (series y repeticiones, sin nombre), o un grupo con porcentaje sin nombre. */
+    private fun isNotationOnly(text: String): Boolean {
+        val groups = percentGroups(text)
+        if (groups != null) return cleanName(outsideText(text, groups.map { it.range })).isEmpty()
+        val notation = parseNotation(text) ?: return false
+        return notation.name.isBlank() && notation.sets != null && notation.repsMin != null
+    }
+
+    /** Un nombre que puede ir encima de una prescripción: texto de 4 letras o más, sin notación, prosa, día ni etiqueta. */
+    private fun isNameCandidate(text: String): Boolean =
+        percentGroups(text) == null && parseNotation(text) == null && !isProse(text) && !isDayLabel(text) &&
+            weekNumber(text) == null && !isFechaLabel(text) && !isColumnHeaderText(text) &&
+            ExerciseMatchLexicon.normalize(text) !in NAME_WORDS && nonExerciseKind(text) == null
+
+    /** Filas de nombre que dan nombre a una prescripción suelta (fila → nombre) y las filas de nombre ya usadas. */
+    private class NamePairs(val nameOf: Map<Int, String>, val taken: Set<Int>)
+
+    /** Filas con texto que se miran hacia atrás en busca del nombre de una prescripción suelta. */
+    private const val NAME_LOOKBACK_ROWS = 3
+
+    /**
+     * Empareja cada fila de solo prescripción («4x 15-12-10-8», «3x10») con el nombre de la fila de encima: la más cercana
+     * hacia atrás, dentro de las 3 filas con texto. Se saltan las etiquetas de día y las filas de 3 letras o menos; una fila
+     * de nombre sirve a una sola prescripción. Las filas de sesiones y las de varias celdas no entran.
+     */
+    private fun pairNames(rows: List<List<String>>, sessions: Map<Int, SessionPart>): NamePairs {
+        val filled = rows.indices.filter { index -> rows[index].any { it.isNotBlank() } }
+        val texts = HashMap<Int, String>()
+        for (index in filled) {
+            if (sessions.containsKey(index)) continue
+            singleText(rows[index])?.let { texts[index] = it }
+        }
+        val nameOf = HashMap<Int, String>()
+        val taken = HashSet<Int>()
+        for ((position, index) in filled.withIndex()) {
+            val text = texts[index] ?: continue
+            if (!isNotationOnly(text)) continue
+            for (k in position - 1 downTo maxOf(0, position - NAME_LOOKBACK_ROWS)) {
+                val j = filled[k]
+                val candidate = texts[j] ?: break
+                if (j in taken) break
+                if (isDayLabel(candidate) || candidate.count { it.isLetter() } <= 3) continue
+                if (isNameCandidate(candidate)) {
+                    nameOf[index] = cleanHeader(dropLinks(candidate))
+                    taken += j
+                }
+                break
+            }
+        }
+        return NamePairs(nameOf, taken)
     }
 
     /** Descanso en segundos: «2:30», «3 min», «2'», «90 s»; un número suelto usa la unidad de la cabecera. */
@@ -988,6 +1220,7 @@ object ProgramImportParser {
             entry.rir = notation.rir
             entry.rest = notation.rest
             notation.notes?.let { entry.notes += it }
+            entry.notes += notation.repsNotes
             if (notation.load != null) row.noteLoad(notation.loadUnit)
         }
         grid.entries += entry
@@ -1017,6 +1250,7 @@ object ProgramImportParser {
             notation.repsMin?.let { entry.repsMin = it }
             notation.repsMax?.let { entry.repsMax = it }
             notation.amrapReps?.let { entry.amrap = it }
+            entry.notes += notation.repsNotes
         } else if (hasSets && !hasReps) {
             val sets = leadingInt(cell)
             if (sets != null) entry.sets = sets else entry.unreadable += ("series" to cell)
@@ -1025,6 +1259,7 @@ object ProgramImportParser {
             if (reps != null) {
                 entry.repsMin = reps.first
                 entry.repsMax = reps.second
+                entry.notes += repsNotesOfCell(cell)
             } else {
                 entry.unreadable += ("repeticiones" to cell)
             }
@@ -1828,7 +2063,7 @@ object ProgramImportParser {
             .any { match -> groups.none { overlaps(it.range, match.range) } }
 
     /** Un ejercicio por grupo: el nombre es el texto antes del primer grupo; lo de detrás, notas (como en la notación). */
-    private fun groupLine(text: String, spans: List<GroupSpan>, row: RowContext): Line? {
+    private fun groupLine(text: String, spans: List<GroupSpan>, row: RowContext, prescribedName: String? = null): Line? {
         val first = spans.first().range.first
         val before = StringBuilder()
         val behind = StringBuilder()
@@ -1837,14 +2072,14 @@ object ProgramImportParser {
             if (index < first) before.append(char) else behind.append(char)
         }
         val beforeName = cleanName(before.toString())
-        val named = numbered(beforeName.ifEmpty { cleanName(behind.toString()) })
+        val named = numbered(prescribedName ?: beforeName.ifEmpty { cleanName(behind.toString()) })
         val name = named.name
         if (name.isBlank()) {
             row.warn(ImportWarningKind.SKIPPED_ROW, "falta el nombre del ejercicio («$text»)")
             return null
         }
         if (countIfNotExercise(name, row)) return null
-        val behindNotes = if (beforeName.isEmpty()) null else cleanNotes(behind.toString()).takeIf { it.isNotEmpty() }
+        val behindNotes = if (beforeName.isEmpty() && prescribedName == null) null else cleanNotes(behind.toString()).takeIf { it.isNotEmpty() }
         val notes = listOfNotNull(blockNote(named.block), behindNotes).joinToString(" ").takeIf { it.isNotEmpty() }
         return Line.Groups(spans.map { PercentGroup(name, notes, it.percent, it.reps, it.sets) })
     }
@@ -1914,6 +2149,9 @@ object ProgramImportParser {
     private class RowContext(val where: String, val source: String, private val builder: DraftBuilder) {
         fun warn(kind: ImportWarningKind, detail: String) = builder.warn(kind, where, source, "$where: $detail")
 
+        /** Nombre suelto sin prescripción: línea de texto, y aviso solo si la hoja no da ningún ejercicio. */
+        fun loose(detail: String) = builder.looseName(where, source, "$where: $detail")
+
         fun count(noise: Noise) = builder.count(noise)
 
         /** Carga con número de esta fila: [mark] es la unidad que lleva la celda, si la lleva. */
@@ -1929,7 +2167,7 @@ object ProgramImportParser {
         val name: String,
         val location: String,
         val sourceText: String,
-        val silent: Boolean,
+        var silent: Boolean,
     ) {
         val exercises = mutableListOf<ExerciseDraft>()
         var id: String? = null
@@ -1960,12 +2198,21 @@ object ProgramImportParser {
     private class DraftBuilder {
         private val warnings = mutableListOf<PendingWarning>()
         private val rowWarnings = mutableListOf<PendingWarning>()
+
+        /** Avisos de nombres sueltos de la hoja en curso: salen al cerrarla, solo si la hoja no tiene ejercicios. */
+        private val looseNames = mutableListOf<PendingWarning>()
         private val days = mutableListOf<DayDraft>()
         private val noise = mutableMapOf<Noise, Int>()
         private var week = 1
         private var openDay: DayDraft? = null
         private var sheetFirstDay = 0
         var pendingDayName: String? = null
+
+        /** Hoja de OCR con inicios de página: solo ahí la cabecera de página repite el día y un texto corto no lo cambia. */
+        var ocrSheet = false
+
+        /** La fila en curso es una de las primeras de su página (cabecera de una hoja de OCR). */
+        var pageHeader = false
 
         /** Levantamiento de la hoja (título «Press – 5/3/1» o nombre de la pestaña): día de una familia 5/3/1 sin nombre propio. */
         var sheetLift: String? = null
@@ -2078,6 +2325,20 @@ object ProgramImportParser {
             noise[kind] = (noise[kind] ?: 0) + 1
         }
 
+        /** Nombre suelto sin prescripción: cuenta como línea de texto; su aviso sale al cerrar la hoja, si no hay ejercicios. */
+        fun looseName(where: String, sourceText: String, message: String) {
+            count(Noise.TEXT)
+            looseNames += PendingWarning(
+                kind = ImportWarningKind.SKIPPED_ROW,
+                location = where,
+                sourceText = sourceText,
+                message = message,
+                weekIndex = week,
+                day = openDay,
+                exercise = null,
+            )
+        }
+
         fun openWeek(number: Int) {
             week = number
             openDay = null
@@ -2088,6 +2349,7 @@ object ProgramImportParser {
             openDay = null
             sheetFirstDay = days.size
             noise.clear()
+            looseNames.clear()
             cyclesStopped = false
         }
 
@@ -2099,6 +2361,9 @@ object ProgramImportParser {
                 val total = noise[kind] ?: continue
                 addNote(location, noiseMessage(location, kind, total))
             }
+            // Los nombres sueltos avisan uno a uno solo si la hoja no dio ningún ejercicio; si no, son líneas de texto.
+            if (days.drop(sheetFirstDay).none { it.exercises.isNotEmpty() }) warnings += looseNames
+            looseNames.clear()
         }
 
         fun noteOmittedSheet(name: String) {
@@ -2133,6 +2398,19 @@ object ProgramImportParser {
 
         fun startDay(name: String, silent: Boolean, row: RowContext) {
             pendingDayName = null
+            val open = openDay
+            if (ocrSheet && open != null) {
+                // Hoja de OCR: la etiqueta igual al día abierto, en la cabecera de página, sigue ese día («DÍA 1» en cada página).
+                if (pageHeader && ExerciseMatchLexicon.normalize(open.name) == ExerciseMatchLexicon.normalize(name)) {
+                    if (!silent) open.silent = false
+                    return
+                }
+                // Hoja de OCR: un texto corto (que puede no ser día) no cambia un día con nombre ya abierto: es línea de texto.
+                if (silent && !open.silent) {
+                    count(Noise.TEXT)
+                    return
+                }
+            }
             openDay = DayDraft(week, name, row.where, row.source, silent).also { days += it }
         }
 

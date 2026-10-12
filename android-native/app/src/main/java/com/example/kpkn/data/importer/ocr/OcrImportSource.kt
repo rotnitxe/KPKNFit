@@ -66,7 +66,7 @@ object OcrImportSource {
             bitmap.recycle()
         }
         val rows = withContext(Dispatchers.Default) { OcrLayout.reconstruct(listOf(page)) }
-        return listOf(ImportSheet(name = title, rows = rows, notes = listOf(IMAGE_NOTE)))
+        return listOf(ImportSheet(name = title, rows = rows, notes = listOf(IMAGE_NOTE), pageStarts = listOf(0)))
     }
 
     /**
@@ -92,14 +92,16 @@ object OcrImportSource {
             }
             pages.add(page)
         }
-        val rows = withContext(Dispatchers.Default) { OcrLayout.reconstruct(pages) }
+        // Las filas de cada página van aparte: al unirlas se quitan los muebles de página (OcrLayout.joinPages).
+        val pageRows = withContext(Dispatchers.Default) { pages.map { OcrLayout.reconstruct(listOf(it)) } }
+        val joined = withContext(Dispatchers.Default) { OcrLayout.joinPages(pageRows) }
         val notes = buildList {
             add(IMAGE_NOTE)
             if (source.pageCount > ImportLimits.MAX_OCR_PAGES) {
                 add("Solo se leyeron las primeras ${ImportLimits.MAX_OCR_PAGES} páginas.")
             }
         }
-        return listOf(ImportSheet(name = title, rows = rows, notes = notes))
+        return listOf(ImportSheet(name = title, rows = joined.rows, notes = notes, ocrPages = pageRows, pageStarts = joined.pageStarts))
     }
 
     /** La foto como bitmap, con el lado largo de como mucho [ImportLimits.MAX_OCR_IMAGE_SIDE] px y girada según su EXIF. */
