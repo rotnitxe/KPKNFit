@@ -17,9 +17,6 @@ import java.time.LocalDate
 /** Datos de ejemplo del editor de Nutrición para las hojas de render y las pruebas de su raíz. Deterministas: sin reloj ni azar. */
 object NutritionEditorSamples {
 
-    /** Día de referencia de la muestra (martes): la franja marca ese día. */
-    val today: LocalDate = LocalDate.of(2026, 10, 13)
-
     /** Base revisada de la muestra: 2.150 kcal, con el total Atwater distinto (2.110), para que se lea la línea del total. */
     val base = NutritionEditorBase(caloriesKcal = 2150, proteinG = 160, carbsG = 210, fatG = 70)
 

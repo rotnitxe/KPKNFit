@@ -20,7 +20,6 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
-import java.time.LocalDate
 
 /**
  * Comportamiento de la raíz del editor de Nutrición, sin estado: cada control llama a su acción, «Guardar» se enciende solo con
@@ -34,8 +33,7 @@ class NutritionPlanEditorDesignTest {
     @get:Rule
     val rule = createComposeRule()
 
-    private val today = LocalDate.of(2026, 10, 13)
-    private val base = NutritionEditorBase(caloriesKcal = 2150, proteinG = 160, carbsG = 210, fatG = 70)
+    private val base =NutritionEditorBase(caloriesKcal = 2150, proteinG = 160, carbsG = 210, fatG = 70)
     private val originalBase = NutritionEditorBase(caloriesKcal = 2300, proteinG = 170, carbsG = 230, fatG = 70)
 
     private fun uiState(
@@ -65,7 +63,6 @@ class NutritionPlanEditorDesignTest {
             isNew = state.draft.planId == null,
             goalOpen = false,
             selectedDay = null,
-            today = today,
         )
     }
 
