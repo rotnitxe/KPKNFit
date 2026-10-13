@@ -18,7 +18,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
@@ -54,7 +53,6 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
-import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
@@ -104,17 +102,11 @@ fun CompactHeroBanner(
     isActive: Boolean,
     isPaused: Boolean,
     focusMode: String,
-    muscularBattery: Int,
-    sncBattery: Int,
-    spinalBattery: Int,
-    isVolumeCalibrated: Boolean,
     onBack: () -> Unit,
     onStartPause: () -> Unit,
     onTitleDescriptionChange: (String, String?) -> Unit,
     onCoverChange: (String) -> Unit,
     onApplyVolumeCalibration: (ProgramMode, AthleteProfileScore, List<VolumeRecommendation>) -> Unit,
-    onIncreaseVolumeCurrentWeek: () -> Unit,
-    onReduceVolumeCurrentWeek: () -> Unit,
     openVolumeSheetToken: Int = 0,
     blockProgressLabel: String? = null,
     modifier: Modifier = Modifier,
@@ -124,15 +116,12 @@ fun CompactHeroBanner(
     val coverPhoto = rememberProgramCover(programCoverEntryIdOf(coverValue), screenWidthPx())
     val coverKind = remember(coverValue, coverPhoto) { heroCoverKind(coverValue, hasBundledCover = coverPhoto != null) }
     val usesGradient = coverKind == HeroCoverKind.GRADIENT
-    val darkIcons = remember(coverGradient, usesGradient) {
-        usesGradient && coverGradient.colors.firstOrNull()?.luminance()?.let { it > 0.72f } == true
-    }
-    val labelColor = if (darkIcons) Color(0xFF1C1B1F).copy(alpha = 0.74f) else Color.White.copy(alpha = 0.72f)
-    val primaryTextColor = if (darkIcons) Color(0xFF141218) else Color.White
-    val glassColor = if (darkIcons) Color.White.copy(alpha = 0.7f) else Color.White.copy(alpha = 0.14f)
-    val strokeColor = if (darkIcons) Color(0xFF141218).copy(alpha = 0.14f) else Color.White.copy(alpha = 0.18f)
-    val actionContainer = if (darkIcons) Color.White.copy(alpha = 0.92f) else Color.White.copy(alpha = 0.18f)
-    val actionContent = if (darkIcons) Color(0xFF141218) else Color.White
+    val labelColor = Color.White.copy(alpha = 0.72f)
+    val primaryTextColor = Color.White
+    val glassColor = Color.White.copy(alpha = 0.14f)
+    val strokeColor = Color.White.copy(alpha = 0.18f)
+    val actionContainer = Color.White.copy(alpha = 0.18f)
+    val actionContent = Color.White
     val statusText = when {
         isActive && !isPaused -> "Activo"
         isPaused -> "Pausado"
@@ -154,7 +143,7 @@ fun CompactHeroBanner(
         }
     }
 
-    HeroSystemBars(darkIcons = darkIcons)
+    HeroSystemBars()
 
     Box(
             modifier = modifier
@@ -243,8 +232,8 @@ fun CompactHeroBanner(
                         onClick = onStartPause,
                         modifier = Modifier.size(32.dp),
                         colors = IconButtonDefaults.filledIconButtonColors(
-                            containerColor = if (darkIcons) MaterialTheme.colorScheme.primary else Color.White,
-                            contentColor = if (darkIcons) MaterialTheme.colorScheme.onPrimary else Color(0xFF141218),
+                            containerColor = Color.White,
+                            contentColor = Color(0xFF141218),
                         ),
                     ) {
                         Icon(
@@ -538,10 +527,10 @@ private fun HeroIconAction(
 }
 
 @Composable
-private fun HeroSystemBars(darkIcons: Boolean) {
+private fun HeroSystemBars() {
     val view = LocalView.current
     val context = LocalContext.current
-    DisposableEffect(view, darkIcons, context) {
+    DisposableEffect(view, context) {
         val activity = context.findActivity()
         val window = activity?.window
         val previousColor = window?.statusBarColor
@@ -550,7 +539,7 @@ private fun HeroSystemBars(darkIcons: Boolean) {
 
         if (window != null && controller != null) {
             window.statusBarColor = AndroidColor.TRANSPARENT
-            controller.isAppearanceLightStatusBars = darkIcons
+            controller.isAppearanceLightStatusBars = false
         }
 
         onDispose {

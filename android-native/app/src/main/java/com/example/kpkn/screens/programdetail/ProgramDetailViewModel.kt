@@ -14,7 +14,6 @@ import com.example.kpkn.data.models.BlockGoal
 import com.example.kpkn.data.models.BlockProgressionScheme
 import com.example.kpkn.data.models.EquipmentInventory
 import com.example.kpkn.data.models.Exercise
-import com.example.kpkn.data.models.HYPERTROPHY_ROLE_MULTIPLIERS
 import com.example.kpkn.data.models.Mesocycle
 import com.example.kpkn.data.models.MesocycleGoal
 import com.example.kpkn.data.models.OptionalSessionConfirmation
@@ -30,14 +29,12 @@ import com.example.kpkn.data.models.WorkoutLog
 import com.example.kpkn.data.models.isSimpleTemporalProgram
 import com.example.kpkn.data.models.nextSimpleCalendarStart
 import com.example.kpkn.data.models.normalizedTemporalStructure
-import com.example.kpkn.data.models.resolvedSchedulePlan
 import com.example.kpkn.data.models.resolveMuscleVolumeContribution
 import com.example.kpkn.data.models.restorePausedCyclicProgram
 import com.example.kpkn.data.models.startFreshSimpleCycle
 import com.example.kpkn.data.models.startSimpleCalendarizedBreak
 import com.example.kpkn.data.models.calendarizeSimpleCycle
 import com.example.kpkn.data.models.suggestCalendarTrainingDays
-import com.example.kpkn.data.models.toSimpleProgramSnapshot
 import com.example.kpkn.data.repository.CompetitionRepository
 import com.example.kpkn.data.protocols.TrainingPlanRecipe
 import com.example.kpkn.data.repository.ProgramRepository
@@ -52,7 +49,6 @@ import com.example.kpkn.domain.training.IdProvider
 import com.example.kpkn.domain.training.SystemAppClock
 import com.example.kpkn.domain.training.UuidIdProvider
 import com.example.kpkn.domain.training.ProgramCalendarEngine
-import com.example.kpkn.domain.training.ProgramKeyDateEngine
 import com.example.kpkn.domain.training.ProgramProgressEngine
 import com.example.kpkn.domain.training.RoadmapBlock
 import com.example.kpkn.domain.training.RoadmapLoopMarker
@@ -62,7 +58,6 @@ import com.example.kpkn.domain.training.StartDaySessionMode
 import com.example.kpkn.domain.training.StartDayTemporalScope
 import com.example.kpkn.domain.training.TrainingMaxMerge
 import com.example.kpkn.domain.training.VolumeCalculator
-import com.example.kpkn.domain.training.WeekAdherence
 import com.example.kpkn.domain.training.WeekWithMeta
 import android.content.Context
 import android.util.Log
@@ -70,7 +65,6 @@ import kotlin.math.roundToInt
 import com.example.kpkn.data.repository.AugeRepository
 import com.example.kpkn.data.models.PostSessionFeedback
 import com.example.kpkn.data.models.MuscleRole
-import com.example.kpkn.data.models.VolumeRecommendation
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -85,11 +79,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
-import java.util.UUID
 import java.time.LocalDate
-import java.time.format.DateTimeFormatter
-import java.time.format.DateTimeParseException
-import java.util.Locale
 import kotlin.math.ceil
 import kotlin.math.floor
 
@@ -457,7 +447,7 @@ class ProgramDetailViewModel(
 
             val explanation = when {
                 isOvertrained -> "Posible exceso de volumen: ${factorsList.joinToString(", ")}."
-                isOverreaching -> "Sobreachance Funcional: Volumen alto pero buena tolerancia sistémica."
+                isOverreaching -> "Sobrecarga funcional: Volumen alto pero buena tolerancia sistémica."
                 else -> "Óptimo o acumulando volumen."
             }
 
@@ -473,18 +463,6 @@ class ProgramDetailViewModel(
         statusMap
     }
         .stateIn(viewModelScope, SharingStarted.Lazily, emptyMap())
-
-    val totalAdherence: StateFlow<Int> = combine(programLogs, program) { logs, p ->
-        if (p == null) 0 else ProgramDetailHelpers.computeTotalAdherence(logs, p)
-    }
-        .distinctUntilChanged()
-        .stateIn(viewModelScope, SharingStarted.Lazily, 0)
-
-    val weeklyAdherence: StateFlow<List<WeekAdherence>> = combine(currentWeeks, programLogs) { weeks, logs ->
-        ProgramDetailHelpers.computeWeeklyAdherence(weeks, logs)
-    }
-        .distinctUntilChanged()
-        .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
     val totalWeeks: StateFlow<Int> = program
         .map { p -> p?.let { ProgramDetailHelpers.getTotalWeeks(it) } ?: 0 }
@@ -805,25 +783,6 @@ class ProgramDetailViewModel(
         }
     }
 
-    fun clearCompetitionKeyDate() {
-        val current = program.value ?: return
-        val competition = ProgramKeyDateEngine.competitionKeyDate(current) ?: return
-        val updated = ProgramKeyDateEngine.deleteKeyDate(
-            program = current,
-            keyDateId = competition.id,
-            mode = ProgramKeyDateEngine.KeyDateDeleteMode.UNLINK_SESSION,
-            competitionRepository = com.example.kpkn.data.repository.CompetitionRepository.getInstance(),
-        )
-        val cleared = if (updated.calendarization?.activatedByCompetition == true) {
-            updated.copy(
-                calendarization = updated.calendarization.copy(activatedByCompetition = false),
-            )
-        } else {
-            updated
-        }
-        updateProgram(cleared)
-    }
-
     fun addProgramCopy(copy: Program) {
         repository.addProgram(ProgramCalendarEngine.materializeWeekDates(copy))
     }
@@ -941,11 +900,6 @@ class ProgramDetailViewModel(
     fun markVolumeSetupPromptSeen() {
         val current = program.value ?: return
         repository.updateProgram(current.copy(volumeSetupPromptSeen = true))
-    }
-
-    fun updateStartDay(day: Int) {
-        val current = program.value ?: return
-        repository.updateProgram(current.copy(startDay = day))
     }
 
     fun updateStartDay(
@@ -1719,9 +1673,6 @@ class ProgramDetailViewModel(
         _blockTransitionBanner.value = null
     }
 
-    /** Legacy entrypoint retained for integrations; records SKIPPED explicitly. */
-    fun confirmPendingOneRmTestAndContinue() = skipPendingOneRmTest()
-
     fun blockProgressLabel(): String? {
         val p = program.value ?: return null
         if (p.structure != ProgramStructure.COMPLEX) return null
@@ -2066,12 +2017,6 @@ class ProgramDetailViewModel(
         }
     }
 
-    private fun parseIsoDate(raw: String): LocalDate? = try {
-        LocalDate.parse(raw.trim())
-    } catch (_: DateTimeParseException) {
-        null
-    }
-
     private fun nextCalendarWeekStart(program: Program): LocalDate {
         val lastEnd = program.macrocycles
             .flatMap { it.blocks }
@@ -2083,9 +2028,6 @@ class ProgramDetailViewModel(
             ?: program.timelineStartDate?.let(::parseIsoDate)
             ?: appClock.today(java.time.ZoneId.systemDefault())
     }
-
-    private fun calendarWeekTitle(startDate: LocalDate): String =
-        "Semana: ${startDate.format(DateTimeFormatter.ofPattern("MM/dd", Locale.US))}"
 
     private fun adjustWeekSessionsByCanonicalMuscle(
         sessions: List<Session>,
@@ -2336,11 +2278,6 @@ class ProgramDetailViewModel(
         _calendarizationStartDayOfWeek.value = day
     }
 
-    fun toggleCalendarizationTrainingDay(day: Int) {
-        val current = _calendarizationTrainingDays.value
-        _calendarizationTrainingDays.value = if (day in current) current - day else current + day
-    }
-
     fun setCalendarizationTrainingDays(days: Set<Int>) {
         _calendarizationTrainingDays.value = days
     }
@@ -2555,15 +2492,4 @@ class ProgramDetailViewModel(
             return candidates.firstOrNull { it in idSet }
         }
     }
-}
-
-private fun dayLabelShort(dayOfWeek: Int): String = when (dayOfWeek) {
-    1 -> "Lun"
-    2 -> "Mar"
-    3 -> "Mié"
-    4 -> "Jue"
-    5 -> "Vie"
-    6 -> "Sáb"
-    7 -> "Dom"
-    else -> "Día"
 }

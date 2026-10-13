@@ -7,10 +7,6 @@ import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -29,13 +25,8 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.kpkn.data.exercises.exerciseCatalogSnapshot
 import com.example.kpkn.data.models.Program
-import com.example.kpkn.data.models.ProgramCalendarizationMode
-import com.example.kpkn.data.models.ProgramKeyDate
-import com.example.kpkn.data.models.ProgramStructure
-import com.example.kpkn.data.models.RecoveryChannelId
 import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.models.SimpleProgramKind
-import com.example.kpkn.data.models.ringScore
 import com.example.kpkn.data.models.KeyDateType
 import com.example.kpkn.data.models.PendingProgramActionType
 import com.example.kpkn.data.models.isSimpleTemporalProgram
@@ -43,25 +34,16 @@ import com.example.kpkn.data.programs.PersonalizedPlanCatalog
 import com.example.kpkn.screens.programs.PlanInfoMode
 import com.example.kpkn.screens.programs.PlanInfoSheet
 import com.example.kpkn.screens.programs.TrainingMaxWizard
-import com.example.kpkn.data.repository.ProgramRepository
 import com.example.kpkn.domain.training.LoopEngine
 import com.example.kpkn.domain.training.ProgramAnalyticsEngine
 import com.example.kpkn.domain.training.ProgramCalendarEngine
 import com.example.kpkn.domain.training.ProgramProgressEngine
 import com.example.kpkn.domain.training.BlockTransitionEngine
-import com.example.kpkn.screens.auge.AugeViewModel
-import com.example.kpkn.ui.components.KpknGlass
-import com.example.kpkn.ui.components.KpknGlassDialog
-import com.example.kpkn.screens.auge.rememberAugeViewModel
 import com.example.kpkn.screens.programdetail.components.*
 import com.example.kpkn.services.workout.LoopNotificationManager
 import com.example.kpkn.ui.components.KpknSnackbar
 import com.example.kpkn.ui.components.SnackbarType
 import com.example.kpkn.ui.components.showKpknSnackbar
-import kotlinx.coroutines.launch
-import java.time.Instant
-import java.time.LocalDate
-import java.time.ZoneId
 import com.example.kpkn.ui.components.KpknAlertDialog
 import com.example.kpkn.ui.components.LocalKpknOverlayHost
 import com.example.kpkn.ui.tour.TourAnchors
@@ -80,7 +62,6 @@ fun ProgramDetailScreen(
     onOpenProgram: (String) -> Unit = {},
     viewModel: ProgramDetailViewModel = viewModel(factory = ProgramDetailViewModel.factory(programId)),
 ) {
-    val augeViewModel = rememberAugeViewModel()
     val program by viewModel.program.collectAsState()
     val uiState by viewModel.uiState.collectAsState()
     val isActive by viewModel.isActiveProgram.collectAsState()
@@ -88,21 +69,9 @@ fun ProgramDetailScreen(
     val currentWeeks by viewModel.currentWeeks.collectAsState()
     val displayedSessions by viewModel.displayedSessions.collectAsState()
     val selectedWeekMeta by viewModel.selectedWeekMeta.collectAsState()
-    val totalWeeks by viewModel.totalWeeks.collectAsState()
-    val currentWeekIndex by viewModel.currentWeekIndex.collectAsState()
     val roadmapBlocks by viewModel.roadmapBlocks.collectAsState()
     val simpleRoadmapLoopMarkers by viewModel.simpleRoadmapLoopMarkers.collectAsState()
-    val isSimpleProgram by viewModel.isSimpleProgram.collectAsState()
     val activeProgramState by viewModel.activeProgramState.collectAsState()
-    val activeBlockId by viewModel.activeBlockId.collectAsState()
-    val blockTransitionBanner by viewModel.blockTransitionBanner.collectAsState()
-    val showSimpleCalendarizationSheet by viewModel.showSimpleCalendarizationSheet.collectAsState()
-    val calendarizationStartDate by viewModel.calendarizationStartDate.collectAsState()
-    val calendarizationEndDate by viewModel.calendarizationEndDate.collectAsState()
-    val calendarizationStartDayOfWeek by viewModel.calendarizationStartDayOfWeek.collectAsState()
-    val calendarizationTrainingDays by viewModel.calendarizationTrainingDays.collectAsState()
-    val augeSnapshot by augeViewModel.snapshot.collectAsState()
-    val settings by ProgramRepository.getInstance().settings.collectAsState()
     val context = LocalContext.current
 
     LaunchedEffect(programId) {
@@ -113,7 +82,6 @@ fun ProgramDetailScreen(
     }
 
     val snackbarHostState = remember { SnackbarHostState() }
-    val scope = rememberCoroutineScope()
 
     LaunchedEffect(uiState.snackbarMessage) {
         val message = uiState.snackbarMessage ?: return@LaunchedEffect
@@ -201,10 +169,6 @@ fun ProgramDetailScreen(
                 isActive = isActive,
                 isPaused = isPaused,
                 focusMode = p.mode.name.lowercase(),
-                muscularBattery = augeSnapshot.ringScore(RecoveryChannelId.MUSCULAR),
-                sncBattery = augeSnapshot.ringScore(RecoveryChannelId.SYSTEM),
-                spinalBattery = augeSnapshot.ringScore(RecoveryChannelId.STRUCTURE),
-                isVolumeCalibrated = p.volumeRecommendations.isNotEmpty() && p.athleteProfileScore != null,
                 blockProgressLabel = viewModel.blockProgressLabel(),
                 onBack = onBack,
                 onStartPause = { viewModel.toggleStartPause() },
@@ -223,52 +187,6 @@ fun ProgramDetailScreen(
                             volumeRecommendations = recommendations,
                         )
                     )
-                },
-                onIncreaseVolumeCurrentWeek = {
-                    val result = viewModel.increaseCurrentWeekVolumeBy20Percent()
-                    scope.launch {
-                        when (result) {
-                            VolumeAdjustmentResult.SUCCESS -> snackbarHostState.showKpknSnackbar(
-                                "Aumentamos en 20% el volumen de la semana actual por músculo.",
-                                SnackbarType.SUCCESS,
-                            )
-                            VolumeAdjustmentResult.REQUIRES_CALIBRATION -> snackbarHostState.showKpknSnackbar(
-                                "Primero calibra el volumen del programa.",
-                                SnackbarType.SUGGESTION,
-                            )
-                            VolumeAdjustmentResult.NO_WEEK_SELECTED -> snackbarHostState.showKpknSnackbar(
-                                "No encontramos una semana activa para ajustar.",
-                                SnackbarType.SUGGESTION,
-                            )
-                            VolumeAdjustmentResult.NO_ADJUSTABLE_VOLUME -> snackbarHostState.showKpknSnackbar(
-                                "No encontramos volumen ajustable en la semana actual.",
-                                SnackbarType.SUGGESTION,
-                            )
-                        }
-                    }
-                },
-                onReduceVolumeCurrentWeek = {
-                    val result = viewModel.reduceCurrentWeekVolumeBy20Percent()
-                    scope.launch {
-                        when (result) {
-                            VolumeAdjustmentResult.SUCCESS -> snackbarHostState.showKpknSnackbar(
-                                "Reducimos en 20% el volumen de la semana actual por músculo.",
-                                SnackbarType.SUCCESS,
-                            )
-                            VolumeAdjustmentResult.REQUIRES_CALIBRATION -> snackbarHostState.showKpknSnackbar(
-                                "Primero calibra el volumen del programa.",
-                                SnackbarType.SUGGESTION,
-                            )
-                            VolumeAdjustmentResult.NO_WEEK_SELECTED -> snackbarHostState.showKpknSnackbar(
-                                "No encontramos una semana activa para ajustar.",
-                                SnackbarType.SUGGESTION,
-                            )
-                            VolumeAdjustmentResult.NO_ADJUSTABLE_VOLUME -> snackbarHostState.showKpknSnackbar(
-                                "No encontramos volumen ajustable en la semana actual.",
-                                SnackbarType.SUGGESTION,
-                            )
-                        }
-                    }
                 },
                 openVolumeSheetToken = openVolumeSheetToken,
             )
@@ -1070,98 +988,6 @@ private fun CopyWeekDialog(
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun CalendarWeeksDialog(
-    onDismiss: () -> Unit,
-    onCreate: (String, Int, Set<Int>) -> Unit,
-) {
-    var startDate by rememberSaveable { mutableStateOf(LocalDate.now().toString()) }
-    var weekCountText by rememberSaveable { mutableStateOf("8") }
-    var selectedDays by rememberSaveable { mutableStateOf(setOf(1, 3, 5)) }
-    var showDatePicker by remember { mutableStateOf(false) }
-    val count = weekCountText.toIntOrNull()?.coerceIn(1, 52) ?: 0
-
-    KpknAlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text("Crear semanas desde calendario", fontWeight = FontWeight.Black) },
-        text = {
-            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                OutlinedButton(onClick = { showDatePicker = true }, modifier = Modifier.fillMaxWidth()) {
-                    Text("Inicio: $startDate")
-                }
-                OutlinedTextField(
-                    value = weekCountText,
-                    onValueChange = { input -> weekCountText = input.filter(Char::isDigit).take(2) },
-                    label = { Text("Cantidad de semanas") },
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth(),
-                )
-                Text("Días de entrenamiento", style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold)
-                FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    (1..7).forEach { day ->
-                        FilterChip(
-                            selected = day in selectedDays,
-                            onClick = {
-                                selectedDays = if (day in selectedDays) selectedDays - day else selectedDays + day
-                            },
-                            label = { Text(dayLabelShort(day)) },
-                        )
-                    }
-                }
-            }
-        },
-        confirmButton = {
-            Button(enabled = count > 0, onClick = { onCreate(startDate, count, selectedDays) }) {
-                Text("Crear")
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) { Text("Cancelar") }
-        },
-    )
-
-    if (showDatePicker) {
-        val initialMillis = remember(startDate) {
-            runCatching {
-                LocalDate.parse(startDate)
-                    .atStartOfDay(ZoneId.systemDefault())
-                    .toInstant()
-                    .toEpochMilli()
-            }.getOrDefault(System.currentTimeMillis())
-        }
-        val datePickerState = rememberDatePickerState(initialSelectedDateMillis = initialMillis)
-        KpknGlassDialog(
-            onDismissRequest = { showDatePicker = false },
-            shape = RoundedCornerShape(KpknGlass.DialogCornerRadius),
-        ) {
-            Column(modifier = Modifier.padding(12.dp)) {
-                DatePicker(
-                    state = datePickerState,
-                    colors = DatePickerDefaults.colors(containerColor = Color.Transparent),
-                )
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.End,
-                ) {
-                    TextButton(onClick = { showDatePicker = false }) { Text("Cancelar") }
-                    TextButton(
-                        onClick = {
-                            datePickerState.selectedDateMillis?.let { millis ->
-                                startDate = Instant.ofEpochMilli(millis)
-                                    .atZone(ZoneId.systemDefault())
-                                    .toLocalDate()
-                                    .toString()
-                            }
-                            showDatePicker = false
-                        },
-                    ) { Text("Usar fecha") }
-                }
-            }
-        }
-    }
-}
-
 private data class WeekSessionLocation(
     val blockId: String,
     val weekId: String,
@@ -1178,17 +1004,6 @@ private fun createBlankRoadmapSession(sessionId: String, dayOfWeek: Int): Sessio
         dayOfWeek = dayOfWeek,
         isMainSession = true,
     )
-
-private fun dayLabelShort(dayOfWeek: Int): String = when (dayOfWeek) {
-    1 -> "Lun"
-    2 -> "Mar"
-    3 -> "Mié"
-    4 -> "Jue"
-    5 -> "Vie"
-    6 -> "Sáb"
-    7 -> "Dom"
-    else -> "Día"
-}
 
 private fun dayLabelFull(dayOfWeek: Int): String = when (dayOfWeek) {
     1 -> "Lunes"
@@ -1216,28 +1031,6 @@ private fun locateWeekForSessionCreation(program: Program, weekId: String): Week
                             mesoIndex = mesoIndex,
                             sessions = week.sessions,
                         )
-                    }
-                }
-            }
-        }
-    }
-    return null
-}
-
-private fun locateCompetitionWeekDay(program: Program, keyDate: ProgramKeyDate): Pair<String, Int>? {
-    val eventDate = parseIsoDate(keyDate.eventDate ?: keyDate.startDate) ?: return null
-    program.macrocycles.forEach { macro ->
-        macro.blocks.forEach { block ->
-            block.mesocycles.forEach { meso ->
-                meso.weeks.forEach { week ->
-                    val dayByTrainingDate = week.trainingDayDates.entries.firstOrNull { (_, date) ->
-                        parseIsoDate(date) == eventDate
-                    }?.key
-                    if (dayByTrainingDate != null) return week.id to dayByTrainingDate
-                    val start = parseIsoDate(week.startDate)
-                    val end = parseIsoDate(week.endDate)
-                    if (start != null && end != null && !eventDate.isBefore(start) && !eventDate.isAfter(end)) {
-                        return week.id to eventDate.dayOfWeek.value
                     }
                 }
             }
@@ -1452,9 +1245,6 @@ internal fun usesTrainingMax(recipe: com.example.kpkn.data.protocols.TrainingPla
         }
     }
 }
-
-private fun parseIsoDate(raw: String?): LocalDate? =
-    raw?.trim()?.takeIf { it.isNotBlank() }?.let { runCatching { LocalDate.parse(it) }.getOrNull() }
 
 private fun chooseSessionCreationDay(
     existingSessions: List<Session>,
