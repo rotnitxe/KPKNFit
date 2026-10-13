@@ -29,7 +29,6 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
-import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -40,21 +39,16 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import com.example.kpkn.ui.components.KpknSheet
-import androidx.compose.material3.SheetValue
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Tab
-import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import com.example.kpkn.ui.components.KpknSheetLightChip
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
@@ -75,10 +69,7 @@ import com.example.kpkn.data.models.ProgramCalendarizationMode
 import com.example.kpkn.data.models.ProgramKeyDate
 import com.example.kpkn.data.models.ProgramStructure
 import com.example.kpkn.data.models.ProgramWeek
-import com.example.kpkn.data.models.Session
-import com.example.kpkn.data.models.SessionPart
 import com.example.kpkn.data.models.SimpleProgramKind
-import com.example.kpkn.data.models.SimpleProgramSnapshot
 import com.example.kpkn.data.models.isSimpleTemporalProgram
 import com.example.kpkn.data.models.buildSimpleCalendarWeeks
 import com.example.kpkn.data.models.nextSimpleCalendarStart
@@ -95,21 +86,14 @@ import com.example.kpkn.data.models.suggestCalendarTrainingDays
 import com.example.kpkn.data.models.totalBlockCount
 import com.example.kpkn.data.models.totalMesocycleCount
 import com.example.kpkn.data.models.totalProgramWeeks
-import com.example.kpkn.data.programs.PROGRAM_TEMPLATES
 import com.example.kpkn.data.programs.ProgramTemplateOption
-import com.example.kpkn.data.protocols.PROTOCOL_LIBRARY
 import com.example.kpkn.data.protocols.Protocol
-import com.example.kpkn.data.protocols.isVisibleForApplication
-import com.example.kpkn.data.protocols.materializesAsComplex
-import com.example.kpkn.domain.training.ProgramProtocolEngine
-import com.example.kpkn.data.splits.SPLIT_TEMPLATES
 import com.example.kpkn.domain.training.ProgramCalendarEngine
 import com.example.kpkn.domain.training.ProgramEndDateStatus
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.hazeSource
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
-import java.time.format.DateTimeParseException
 import java.time.temporal.ChronoUnit
 import java.util.Locale
 import com.example.kpkn.ui.components.KpknAlertDialog
@@ -122,6 +106,8 @@ import com.example.kpkn.screens.programdetail.components.editor.MacrocycleRoadma
 import com.example.kpkn.screens.programdetail.components.editor.MesoDialog
 import com.example.kpkn.screens.programdetail.components.editor.WeekDialog
 import com.example.kpkn.screens.programdetail.components.editor.WeekMetadataEditorDialog
+import com.example.kpkn.screens.programdetail.dayLabelShort
+import com.example.kpkn.screens.programdetail.parseIsoDateExact
 
 @OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
 @Composable
@@ -1025,8 +1011,8 @@ internal fun LegacySimpleCalendarizationSheet(
 ) {
     val isCalendarized = program.simpleProgramKind == SimpleProgramKind.CALENDARIZED &&
         program.calendarization?.mode == ProgramCalendarizationMode.SIMPLE_DATED
-    val parsedStartDate = parseProgramDate(startDate)
-    val parsedEndDate = parseProgramDate(endDate)
+    val parsedStartDate = parseIsoDateExact(startDate)
+    val parsedEndDate = parseIsoDateExact(endDate)
     val weekCount = if (parsedStartDate != null && parsedEndDate != null) {
         inclusiveCalendarWeekCount(parsedStartDate, parsedEndDate)
     } else {
@@ -1318,9 +1304,9 @@ internal fun LegacyKeyDatesManagementSheet(
     val preview = remember(program, timelineStartDate, competitionDate, manualEndDate) {
         buildCalendarPreview(program, timelineStartDate, competitionDate, manualEndDate)
     }
-    val canSave = timelineStartDate.isBlank() || parseProgramDate(timelineStartDate) != null
-    val canSaveCompetition = competitionDate.isBlank() || parseProgramDate(competitionDate) != null
-    val canSaveManualEnd = manualEndDate.isBlank() || parseProgramDate(manualEndDate) != null
+    val canSave = timelineStartDate.isBlank() || parseIsoDateExact(timelineStartDate) != null
+    val canSaveCompetition = competitionDate.isBlank() || parseIsoDateExact(competitionDate) != null
+    val canSaveManualEnd = manualEndDate.isBlank() || parseIsoDateExact(manualEndDate) != null
     val hasRequiredStart = competitionDate.isBlank() || timelineStartDate.isNotBlank()
 
     KpknSheet(onDismissRequest = onDismiss) {
@@ -1420,7 +1406,7 @@ private fun NativeDateField(
     firstDayOfWeek: Int = 1,
 ) {
     var showPicker by remember { mutableStateOf(false) }
-    val parsed = parseProgramDate(value)
+    val parsed = parseIsoDateExact(value)
     val initialDate = parsed ?: LocalDate.now()
 
     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
@@ -2023,20 +2009,6 @@ private fun MacroHeader(
 }
 
 @Composable
-private fun InsightChip(label: String, value: String, accent: Color) {
-    Box(
-        modifier = Modifier
-            .background(accent.copy(alpha = 0.16f), RoundedCornerShape(999.dp))
-            .padding(horizontal = 12.dp, vertical = 8.dp),
-    ) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text(value, fontWeight = FontWeight.Black, color = accent)
-            Text(label, fontSize = 10.sp, color = Color.White.copy(alpha = 0.86f))
-        }
-    }
-}
-
-@Composable
 private fun BlockNode(
     block: Block,
     macroIndex: Int,
@@ -2312,14 +2284,6 @@ internal fun LegacyWeekMetadataDialog(
             }
         },
     )
-}
-
-@Composable
-private fun StatChip(label: String, value: String) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Text(value, fontSize = 16.sp, fontWeight = FontWeight.Black, color = MaterialTheme.colorScheme.primary)
-        Text(label, fontSize = 10.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
-    }
 }
 
 internal data class ProgramStats(val weeks: Int, val sessions: Int, val mesos: Int, val blocks: Int)
@@ -2733,7 +2697,7 @@ private fun buildAdvancedRoadmap(program: Program): AdvancedRoadmap {
         weekSlots = slots,
         keyDateTracks = tracks,
         competitionDate = program.keyDates.firstOrNull { it.type == KeyDateType.COMPETITION }?.let { keyDate ->
-            parseProgramDate(keyDate.eventDate) ?: parseProgramDate(keyDate.startDate)
+            parseIsoDateExact(keyDate.eventDate) ?: parseIsoDateExact(keyDate.startDate)
         },
     )
 }
@@ -2772,9 +2736,9 @@ private fun buildKeyDateMark(
     weekStart: LocalDate,
     weekEnd: LocalDate,
 ): KeyDateMark? {
-    val eventDate = parseProgramDate(keyDate.eventDate)
-    val start = parseProgramDate(keyDate.startDate) ?: eventDate ?: return null
-    val end = parseProgramDate(keyDate.endDate) ?: start
+    val eventDate = parseIsoDateExact(keyDate.eventDate)
+    val start = parseIsoDateExact(keyDate.startDate) ?: eventDate ?: return null
+    val end = parseIsoDateExact(keyDate.endDate) ?: start
     if (end < weekStart || start > weekEnd) return null
     val kind = KeyDateMarkKind.SPECIAL_WEEK
     return KeyDateMark(
@@ -2786,24 +2750,15 @@ private fun buildKeyDateMark(
     )
 }
 
-private fun parseProgramDate(raw: String?): LocalDate? {
-    if (raw.isNullOrBlank()) return null
-    return try {
-        LocalDate.parse(raw, DateTimeFormatter.ISO_LOCAL_DATE)
-    } catch (_: DateTimeParseException) {
-        null
-    }
-}
-
 private fun buildCalendarPreview(
     program: Program,
     timelineStartDate: String,
     competitionDate: String,
     manualEndDate: String,
 ): CalendarPreview {
-    val start = parseProgramDate(timelineStartDate)
-    val competition = parseProgramDate(competitionDate)
-    val manualEnd = parseProgramDate(manualEndDate)
+    val start = parseIsoDateExact(timelineStartDate)
+    val competition = parseIsoDateExact(competitionDate)
+    val manualEnd = parseIsoDateExact(manualEndDate)
     val blockStarts = mutableListOf<BlockStartPreview>()
     val messages = mutableListOf<String>()
 
@@ -2870,7 +2825,7 @@ private fun findProgramWeekRange(program: Program, targetDate: LocalDate): Pair<
     if (projection.enabled) {
         return projection.weekForDate(targetDate)?.let { it.startDate to it.endDate }
     }
-    var cursor = parseProgramDate(program.timelineStartDate) ?: return null
+    var cursor = parseIsoDateExact(program.timelineStartDate) ?: return null
     program.macrocycles.forEach { macro ->
         macro.blocks.forEach { block ->
             block.mesocycles.forEach { meso ->
@@ -2910,8 +2865,8 @@ private fun buildKeyDateTrack(
     keyDate: ProgramKeyDate,
     slots: List<AdvancedWeekSlot>,
 ): KeyDateTrack? {
-    val start = parseProgramDate(keyDate.startDate) ?: return null
-    val end = parseProgramDate(keyDate.endDate) ?: start
+    val start = parseIsoDateExact(keyDate.startDate) ?: return null
+    val end = parseIsoDateExact(keyDate.endDate) ?: start
     val relevantSlots = slots.filter { slot ->
         val distanceBefore = java.time.temporal.ChronoUnit.DAYS.between(slot.weekEnd, start)
         val distanceAfter = java.time.temporal.ChronoUnit.DAYS.between(end, slot.weekStart)
@@ -2960,10 +2915,6 @@ private fun preferredDayOfWeek(type: KeyDateType): Int {
     }
 }
 
-private fun calendarWeekTitle(startDate: LocalDate): String {
-    return "Semana: ${startDate.format(DateTimeFormatter.ofPattern("MM/dd", Locale.US))}"
-}
-
 private fun dayFullLabel(day: Int): String = when (day) {
     1 -> "Lunes"
     2 -> "Martes"
@@ -2985,15 +2936,4 @@ private fun rotatedWeekDays(startDayOfWeek: Int): List<Int> {
 private fun inclusiveCalendarWeekCount(startDate: LocalDate, endDate: LocalDate): Int {
     val inclusiveDays = ChronoUnit.DAYS.between(startDate, endDate).coerceAtLeast(0) + 1
     return ((inclusiveDays + 6) / 7).toInt().coerceAtLeast(1)
-}
-
-private fun dayLabelShort(dayOfWeek: Int): String = when (dayOfWeek) {
-    1 -> "Lun"
-    2 -> "Mar"
-    3 -> "Mié"
-    4 -> "Jue"
-    5 -> "Vie"
-    6 -> "Sáb"
-    7 -> "Dom"
-    else -> "Día"
 }

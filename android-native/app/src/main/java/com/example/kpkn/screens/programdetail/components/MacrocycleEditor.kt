@@ -21,8 +21,8 @@ fun MacrocycleEditor(
     onFocusWeek: (blockId: String, weekId: String) -> Unit = { _, _ -> },
     onCreateSessionForWeek: (weekId: String, preferredDayOfWeek: Int, keyDateId: String?) -> Unit = { _, _, _ -> },
     onApplyProgramTemplate: (com.example.kpkn.data.programs.ProgramTemplateOption) -> Unit = {},
-    onApplyProgramTemplateOverwrite: (com.example.kpkn.data.programs.ProgramTemplateOption, Boolean) -> Unit = { template, overwrite ->
-        if (overwrite) onApplyProgramTemplate(template) else onApplyProgramTemplate(template)
+    onApplyProgramTemplateOverwrite: (com.example.kpkn.data.programs.ProgramTemplateOption, Boolean) -> Unit = { template, _ ->
+        onApplyProgramTemplate(template)
     },
     onApplyProtocol: (com.example.kpkn.data.protocols.Protocol, Boolean) -> Unit = { _, _ -> },
     programSnapshots: List<com.example.kpkn.domain.training.ProgramSnapshot> = emptyList(),

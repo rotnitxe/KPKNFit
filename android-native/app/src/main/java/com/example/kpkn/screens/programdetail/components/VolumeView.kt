@@ -14,14 +14,12 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -35,6 +33,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import com.example.kpkn.screens.programdetail.MuscleOvertrainingStatus
+import com.example.kpkn.screens.programdetail.parseIsoDateExact
 import com.example.kpkn.data.models.WorkoutLog
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -48,7 +47,6 @@ import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.kpkn.data.exercises.exerciseCatalogSnapshot
 import com.example.kpkn.data.exercises.catalogSearchRedirects
 import com.example.kpkn.data.exercises.catalogExerciseIndex
 import com.example.kpkn.data.models.AthleteProfileScore
@@ -65,9 +63,7 @@ import com.example.kpkn.domain.training.VolumeCalculator
 import com.example.kpkn.domain.exercises.MuscleHeadResolution
 import com.example.kpkn.domain.exercises.ExerciseMuscleResolver
 import com.example.kpkn.domain.exercises.exerciseDisplayName
-import java.time.LocalDate
 import java.time.format.DateTimeFormatter
-import java.time.format.DateTimeParseException
 import java.util.Locale
 import kotlin.math.max
 import com.example.kpkn.ui.components.KpknDropdownMenu
@@ -731,7 +727,7 @@ private fun CanonicalMuscleBarRow(
         !isVolumeCalibrated || target == null -> MaterialTheme.colorScheme.primary
         entry.weeklySets <= 0.0 -> MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f)
         overtrainingStatus != null && overtrainingStatus.isOvertrained -> Color(0xFFEF4444) // Rojo / carga muy alta
-        overtrainingStatus != null && overtrainingStatus.isOverreaching -> Color(0xFFF97316) // Naranja / Sobreachance Funcional
+        overtrainingStatus != null && overtrainingStatus.isOverreaching -> Color(0xFFF97316) // Naranja / Sobrecarga funcional
         entry.weeklySets < target.minEffective -> Color(0xFFEAB308) // Amarillo / Subentrenado
         entry.weeklySets <= target.maxAdaptive -> Color(0xFF10B981) // Verde / Óptimo
         entry.weeklySets <= target.maxRecoverable -> Color(0xFFF97316) // Naranja / Alto tolerable
@@ -740,7 +736,7 @@ private fun CanonicalMuscleBarRow(
 
     val statusText = when {
         overtrainingStatus != null && overtrainingStatus.isOvertrained -> "Posible exceso de volumen"
-        overtrainingStatus != null && overtrainingStatus.isOverreaching -> "Sobreachance"
+        overtrainingStatus != null && overtrainingStatus.isOverreaching -> "Sobrecarga funcional"
         else -> buildMuscleStatusText(
             weeklySets = entry.weeklySets,
             target = target,
@@ -959,43 +955,6 @@ private fun SummaryMetricCard(
 }
 
 @Composable
-private fun VolumeTagRow(
-    label: String,
-    value: String,
-    intensity: Float,
-) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Row(
-            modifier = Modifier.weight(1f),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Box(
-                modifier = Modifier
-                    .width(10.dp)
-                    .height(10.dp)
-                    .clip(CircleShape)
-                    .background(heatColorForIntensity(intensity)),
-            )
-            Text(
-                text = label,
-                fontSize = 12.sp,
-                fontWeight = FontWeight.SemiBold,
-            )
-        }
-        Text(
-            text = value,
-            fontSize = 11.sp,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-    }
-}
-
-@Composable
 private fun CompactDiscomfortWidget(discomforts: List<DiscomfortEntry>) {
     val trackColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f)
     Card(
@@ -1138,7 +1097,7 @@ private fun Program.indexedVolumeWeeks(): List<IndexedVolumeWeek> {
     return result
 }
 private fun weekScopeName(week: ProgramWeek): String {
-    val date = week.startDate?.let(::parseIsoDateOrNull)?.format(monthDayFormatter)
+    val date = week.startDate?.let(::parseIsoDateExact)?.format(monthDayFormatter)
     return if (date != null && !week.name.contains(date)) {
         "${week.name} · $date"
     } else {
@@ -1264,35 +1223,6 @@ private fun calculateExerciseBreakdownForMuscle(
         .sortedByDescending { it.weeklySetsContribution }
 }
 
-private fun heatIntensityForMuscle(
-    weeklySets: Double,
-    target: PersonalizedVolumeTarget?,
-    maxWeeklySets: Double,
-    isVolumeCalibrated: Boolean,
-): Float {
-    if (!isVolumeCalibrated || target == null) {
-        return (weeklySets / maxWeeklySets).toFloat().coerceIn(0f, 1f)
-    }
-
-    val min = target.minEffective.toDouble().coerceAtLeast(1.0)
-    val ideal = target.maxAdaptive.toDouble().coerceAtLeast(min)
-    val recoverable = target.maxRecoverable.toDouble().coerceAtLeast(ideal + 1.0)
-
-    return when {
-        weeklySets <= 0.0 -> 0f
-        weeklySets < min -> (0.16f + ((weeklySets / min) * 0.22f).toFloat()).coerceIn(0f, 0.38f)
-        weeklySets <= ideal -> {
-            val fraction = ((weeklySets - min) / (ideal - min).coerceAtLeast(1.0)).toFloat()
-            (0.48f + fraction * 0.16f).coerceIn(0.48f, 0.68f)
-        }
-        weeklySets <= recoverable -> {
-            val fraction = ((weeklySets - ideal) / (recoverable - ideal).coerceAtLeast(1.0)).toFloat()
-            (0.78f + fraction * 0.14f).coerceIn(0.78f, 0.92f)
-        }
-        else -> 1f
-    }
-}
-
 internal fun buildMuscleStatusText(
     weeklySets: Double,
     target: PersonalizedVolumeTarget?,
@@ -1326,12 +1256,6 @@ private fun heatColorForIntensity(intensity: Float): Color {
 }
 
 private val monthDayFormatter: DateTimeFormatter = DateTimeFormatter.ofPattern("MM/dd", Locale.US)
-
-private fun parseIsoDateOrNull(raw: String): LocalDate? = try {
-    LocalDate.parse(raw)
-} catch (_: DateTimeParseException) {
-    null
-}
 
 private fun formatOneDecimal(value: Double): String = String.format(Locale.US, "%.1f", value)
 private data class SubMuscleContribution(
@@ -1435,24 +1359,6 @@ private fun IndirectModeChip(
             color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
         )
     }
-}
-
-private fun buildDisplayContributions(
-    involvedMuscles: List<com.example.kpkn.data.models.InvolvedMuscle>,
-    indirectMode: Int
-): Map<String, Double> {
-    val grouped = linkedMapOf<String, Double>()
-    involvedMuscles.forEach { involvement ->
-        if (roleIncludedInMode(involvement.role, indirectMode)) {
-            val canonical = VolumeCalculator.normalizeCanonicalMuscleGroup(involvement.muscle, involvement.emphasis)
-            val contribution = com.example.kpkn.data.models.resolveMuscleVolumeContribution(involvement)
-            val current = grouped[canonical] ?: 0.0
-            if (contribution > current) {
-                grouped[canonical] = contribution
-            }
-        }
-    }
-    return grouped.filterValues { it > 0.0 }
 }
 
 private fun calculateSubMuscleBreakdown(
