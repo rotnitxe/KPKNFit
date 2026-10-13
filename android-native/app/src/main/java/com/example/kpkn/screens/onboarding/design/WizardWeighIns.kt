@@ -492,42 +492,45 @@ internal fun WizardWeighInEditor(
             )
         }
 
-        // Porcentajes opcionales: cada uno se despliega con su regla y se quita con «Quitar».
-        WizardWeighInPercentToggle(
-            open = fatOpen,
-            addLabel = "Añadir % de grasa",
-            tag = WEIGHIN_FAT_TOGGLE_TAG,
-            onOpen = { fatOpen = true },
-            onRemove = {
-                fatOpen = false
-                fatPercent = null
-            },
-        )
-        if (fatOpen) {
-            WizardBodyFatRuler(
-                percent = fatPercent ?: FAT_START_PERCENT,
-                declared = fatPercent != null,
-                onPercentChange = { fatPercent = it.toDouble() },
-                modifier = Modifier.fillMaxWidth().height(RULER_HEIGHT).testTag(WEIGHIN_FAT_RULER_TAG),
+        // Porcentajes opcionales en dos columnas: cada una se despliega con su regla y se quita con «Quitar».
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
+            verticalAlignment = Alignment.Top,
+        ) {
+            WizardWeighInPercentColumn(
+                name = "% de grasa",
+                addLabel = "Añadir % de grasa",
+                open = fatOpen,
+                percent = fatPercent,
+                startPercent = FAT_START_PERCENT,
+                range = WizardBodyFatScale.DEFAULT_RANGE,
+                tag = WEIGHIN_FAT_TOGGLE_TAG,
+                rulerTag = WEIGHIN_FAT_RULER_TAG,
+                onOpen = { fatOpen = true },
+                onRemove = {
+                    fatOpen = false
+                    fatPercent = null
+                },
+                onPercentChange = { fatPercent = it },
+                modifier = Modifier.weight(1f),
             )
-        }
-        WizardWeighInPercentToggle(
-            open = muscleOpen,
-            addLabel = "Añadir % de músculo",
-            tag = WEIGHIN_MUSCLE_TOGGLE_TAG,
-            onOpen = { muscleOpen = true },
-            onRemove = {
-                muscleOpen = false
-                musclePercent = null
-            },
-        )
-        if (muscleOpen) {
-            WizardBodyFatRuler(
-                percent = musclePercent ?: MUSCLE_START_PERCENT,
-                declared = musclePercent != null,
-                onPercentChange = { musclePercent = it.toDouble() },
-                modifier = Modifier.fillMaxWidth().height(RULER_HEIGHT).testTag(WEIGHIN_MUSCLE_RULER_TAG),
+            WizardWeighInPercentColumn(
+                name = "% de músculo",
+                addLabel = "Añadir % de músculo",
+                open = muscleOpen,
+                percent = musclePercent,
+                startPercent = MUSCLE_START_PERCENT,
                 range = MUSCLE_PERCENT_RANGE,
+                tag = WEIGHIN_MUSCLE_TOGGLE_TAG,
+                rulerTag = WEIGHIN_MUSCLE_RULER_TAG,
+                onOpen = { muscleOpen = true },
+                onRemove = {
+                    muscleOpen = false
+                    musclePercent = null
+                },
+                onPercentChange = { musclePercent = it },
+                modifier = Modifier.weight(1f),
             )
         }
 
@@ -570,24 +573,55 @@ internal fun WizardWeighInEditor(
     }
 }
 
-/** Acción de texto para desplegar una regla de porcentaje o quitarla («Quitar»). */
+/**
+ * Una columna de porcentaje del editor. Cerrada, solo su acción «Añadir» arriba. Abierta: nombre y valor en grande, la
+ * regla vertical a lo ancho de la columna y «Quitar» debajo. Sin valor tocado, el número sale como «—».
+ */
 @Composable
-private fun WizardWeighInPercentToggle(
-    open: Boolean,
+private fun WizardWeighInPercentColumn(
+    name: String,
     addLabel: String,
+    open: Boolean,
+    percent: Double?,
+    startPercent: Double,
+    range: IntRange,
     tag: String,
+    rulerTag: String,
     onOpen: () -> Unit,
     onRemove: () -> Unit,
+    onPercentChange: (Double) -> Unit,
+    modifier: Modifier = Modifier,
 ) {
-    TextButton(
-        onClick = if (open) onRemove else onOpen,
-        modifier = Modifier.defaultMinSize(minHeight = WizardSpacing.touchTarget).testTag(tag),
-    ) {
-        Text(
-            text = if (open) "Quitar" else addLabel,
-            style = WizardTypography.cardSubtitle,
-            color = WizardColors.text,
-        )
+    Column(modifier = modifier) {
+        if (open) {
+            Text(text = name, style = WizardTypography.cardSubtitle, color = WizardColors.textMuted)
+            Text(
+                text = percent?.let { "${wizardBodyFatNumber(it)} %" } ?: "—",
+                style = WizardTypography.controlValue,
+                color = if (percent != null) WizardColors.text else WizardColors.textFaint,
+            )
+            Spacer(Modifier.height(8.dp))
+            WizardBodyFatRuler(
+                percent = percent ?: startPercent,
+                declared = percent != null,
+                onPercentChange = { onPercentChange(it.toDouble()) },
+                modifier = Modifier.fillMaxWidth().height(RULER_HEIGHT).testTag(rulerTag),
+                range = range,
+            )
+            TextButton(
+                onClick = onRemove,
+                modifier = Modifier.defaultMinSize(minHeight = WizardSpacing.touchTarget).testTag(tag),
+            ) {
+                Text(text = "Quitar", style = WizardTypography.cardSubtitle, color = WizardColors.textMuted)
+            }
+        } else {
+            TextButton(
+                onClick = onOpen,
+                modifier = Modifier.defaultMinSize(minHeight = WizardSpacing.touchTarget).testTag(tag),
+            ) {
+                Text(text = addLabel, style = WizardTypography.cardSubtitle, color = WizardColors.text)
+            }
+        }
     }
 }
 

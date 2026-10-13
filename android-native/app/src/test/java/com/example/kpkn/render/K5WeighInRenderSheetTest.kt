@@ -3,7 +3,10 @@ package com.example.kpkn.render
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.view.View
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.unit.Density
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
@@ -123,5 +126,24 @@ class K5WeighInRenderSheetTest {
         rule.onNodeWithTag(WEIGHIN_MUSCLE_TOGGLE_TAG).performClick()
         rule.waitForIdle()
         save(WEIGHINS_BODY_TAG, "k5_weighins_editor")
+    }
+
+    /** El mismo editor con la letra al 130 %: para comprobar que los dos porcentajes no se cortan. */
+    @Test
+    fun renderEditorAt130Percent() {
+        onlyWhenAsked()
+        rule.setContent {
+            hostView = LocalView.current
+            val base = LocalDensity.current
+            CompositionLocalProvider(LocalDensity provides Density(base.density, fontScale = 1.3f)) {
+                WizardWeighInsBody(rows = sample, unit = WizardMassUnit.KG, currentKg = 80.0, today = today, onSave = {}, onDelete = {})
+            }
+        }
+        rule.onNodeWithTag(WEIGHIN_ADD_TAG).performClick()
+        rule.waitForIdle()
+        rule.onNodeWithTag(WEIGHIN_FAT_TOGGLE_TAG).performClick()
+        rule.onNodeWithTag(WEIGHIN_MUSCLE_TOGGLE_TAG).performClick()
+        rule.waitForIdle()
+        save(WEIGHINS_BODY_TAG, "k5_weighins_editor_130")
     }
 }
