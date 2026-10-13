@@ -31,8 +31,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
 import androidx.compose.material3.TabRowDefaults
@@ -115,13 +113,13 @@ import com.example.kpkn.services.workout.ActiveWorkoutHolder
 import com.example.kpkn.services.workout.WorkoutRestAlertManager
 import com.example.kpkn.telemetry.TelemetryHelper
 import com.example.kpkn.telemetry.nutrition.NutritionTelemetry
-import com.example.kpkn.ui.components.icons.BodyIcon
-import com.example.kpkn.ui.components.icons.DumbbellIcon
-import com.example.kpkn.ui.components.icons.NutritionIcon
+import com.example.kpkn.ui.components.icons.KpknLineIcons
 import com.example.kpkn.ui.components.LocalHazeState
 import com.example.kpkn.ui.components.LocalKpknOverlayHost
 import com.example.kpkn.ui.components.KpknOverlayHostContent
 import com.example.kpkn.ui.components.kpknGlass
+import com.example.kpkn.ui.components.KpknBottomBar
+import com.example.kpkn.ui.components.KpknBottomBarItem
 import com.example.kpkn.ui.components.rememberKpknOverlayHostController
 import com.example.kpkn.data.models.Block
 import com.example.kpkn.data.models.Macrocycle
@@ -146,6 +144,7 @@ import kotlinx.serialization.json.Json
 import com.example.kpkn.screens.onboarding.design.WizardColors
 import com.example.kpkn.screens.onboarding.design.entreno.SymbolPalette
 import com.example.kpkn.ui.components.permissions.RecommendedPermissionsDialog
+import com.example.kpkn.ui.design.KpknShape
 
 class MainActivity : ComponentActivity() {
     private val pendingDeepLinkRoute = mutableStateOf<String?>(null)
@@ -769,7 +768,7 @@ fun KPKNApp(
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
                         Surface(shape = CircleShape, color = accentColor.copy(alpha = 0.25f), modifier = Modifier.size(36.dp)) {
-                            Icon(Icons.Default.PlayArrow, null, Modifier.padding(6.dp), tint = accentColor)
+                            Icon(KpknLineIcons.PlayFilled, null, Modifier.padding(8.dp), tint = accentColor)
                         }
                         Spacer(Modifier.width(10.dp))
                         Column(Modifier.weight(1f)) {
@@ -800,7 +799,7 @@ fun KPKNApp(
                                 ),
                             ) {
                                 Icon(
-                                    imageVector = Icons.Default.PlayArrow,
+                                    imageVector = KpknLineIcons.PlayFilled,
                                     contentDescription = "Reanudar sesión",
                                     modifier = Modifier.size(20.dp),
                                     tint = Color.Black,
@@ -840,9 +839,9 @@ fun KPKNApp(
                                 ),
                             ) {
                                 Icon(
-                                    imageVector = Icons.Default.Close,
+                                    imageVector = KpknLineIcons.Close,
                                     contentDescription = "Cancelar sesión",
-                                    modifier = Modifier.size(18.dp),
+                                    modifier = Modifier.size(20.dp),
                                     tint = Color.White,
                                 )
                             }
@@ -851,85 +850,60 @@ fun KPKNApp(
                 }
             }
 
-            // ─── DarkMica bottom bar ───────────────────────────────────────
+            // ─── Barra inferior: isla de vidrio de 64 dp con las pestañas KPKN Line (I11b) ───
+            // SKIPPED oculta Nutrición (semántica intacta); el modo de solo registro nunca la oculta.
+            val nutritionTabVisible = com.example.kpkn.domain.nutrition.isNutritionVisible(settings)
+            val bottomBarItems = listOfNotNull(
+                KpknBottomBarItem(KpknRoute.Home.route, stringResource(R.string.nav_home), KpknLineIcons.Home),
+                KpknBottomBarItem(KpknRoute.Training.route, stringResource(R.string.nav_training), KpknLineIcons.Training),
+                if (nutritionTabVisible) {
+                    KpknBottomBarItem(KpknRoute.Nutrition.route, stringResource(R.string.nav_nutrition), KpknLineIcons.Nutrition)
+                } else {
+                    null
+                },
+                KpknBottomBarItem(KpknRoute.BodyProgress.route, stringResource(R.string.nav_body), KpknLineIcons.Body),
+            )
             Box(
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
                     .fillMaxWidth()
                     .navigationBarsPadding()
-                    .padding(start = 12.dp, end = 12.dp, bottom = 12.dp)
+                    .padding(start = 12.dp, end = 12.dp, bottom = 8.dp)
                     .onSizeChanged { bottomBarHeightPx = it.height }
                     .kpknGlass(
                         hazeState = hazeState,
-                        shape = RoundedCornerShape(32.dp),
+                        shape = KpknShape.island,
                     ),
             ) {
-                Column(Modifier.fillMaxWidth()) {
-                // ─── Main navigation bar ───────────────────────────────────
-                val navItemColors = NavigationBarItemDefaults.colors(
-                    indicatorColor = Color.Transparent,
-                )
-                NavigationBar(
-                    containerColor = Color.Transparent,
-                    contentColor = MaterialTheme.colorScheme.onSurface,
-                    tonalElevation = 0.dp,
-                    windowInsets = WindowInsets(0, 0, 0, 0),
-                    modifier = Modifier.height(80.dp).tourAnchor(TourAnchors.HOME_BARRA),
-                ) {
-                    val homeSel = currentTab == KpknRoute.Home.route
-                    NavigationBarItem(
-                        selected = homeSel,
-                        onClick = {
-                            navController.navigate(KpknRoute.Home.route) { launchSingleTop = true }
-                        },
-                        icon = { Icon(Icons.Default.Home, null, tint = navIconTint(homeSel)) },
-                        label = { NavLabel(stringResource(R.string.nav_home), homeSel) },
-                        colors = navItemColors,
-                    )
-                    val trainSel = currentTab == KpknRoute.Training.route
-                    NavigationBarItem(
-                        selected = trainSel,
-                        onClick = {
-                            val activeProgramId = activeProgram?.id
-                            if (activeProgramId != null) {
-                                navController.navigate(KpknRoute.ProgramDetail.create(activeProgramId)) {
-                                    launchSingleTop = true
-                                }
-                            } else {
-                                navController.navigate(KpknRoute.Training.route) { launchSingleTop = true }
+                KpknBottomBar(
+                    items = bottomBarItems,
+                    selectedRoute = currentTab,
+                    onSelect = { route ->
+                        when (route) {
+                            KpknRoute.Home.route -> {
+                                navController.navigate(KpknRoute.Home.route) { launchSingleTop = true }
                             }
-                        },
-                        icon = { DumbbellIcon(tint = navIconTint(trainSel)) },
-                        label = { NavLabel(stringResource(R.string.nav_training), trainSel) },
-                        colors = navItemColors,
-                    )
-                    // SKIPPED oculta Nutrición (semántica intacta); el modo de
-                    // solo registro nunca la oculta.
-                    if (com.example.kpkn.domain.nutrition.isNutritionVisible(settings)) {
-                        val nutSel = currentTab == KpknRoute.Nutrition.route
-                        NavigationBarItem(
-                            selected = nutSel,
-                            onClick = {
+                            KpknRoute.Training.route -> {
+                                val activeProgramId = activeProgram?.id
+                                if (activeProgramId != null) {
+                                    navController.navigate(KpknRoute.ProgramDetail.create(activeProgramId)) {
+                                        launchSingleTop = true
+                                    }
+                                } else {
+                                    navController.navigate(KpknRoute.Training.route) { launchSingleTop = true }
+                                }
+                            }
+                            KpknRoute.Nutrition.route -> {
                                 telemetryHelper.logNutritionOpen()
                                 navController.navigate(KpknRoute.Nutrition.route) { launchSingleTop = true }
-                            },
-                            icon = { NutritionIcon(tint = navIconTint(nutSel)) },
-                            label = { NavLabel(stringResource(R.string.nav_nutrition), nutSel) },
-                            colors = navItemColors,
-                        )
-                    }
-                    val bodySel = currentTab == KpknRoute.BodyProgress.route
-                    NavigationBarItem(
-                        selected = bodySel,
-                        onClick = {
-                            navController.navigate(KpknRoute.BodyProgress.route) { launchSingleTop = true }
-                        },
-                        icon = { BodyIcon(tint = navIconTint(bodySel)) },
-                        label = { NavLabel(stringResource(R.string.nav_body), bodySel) },
-                        colors = navItemColors,
-                    )
-                }
-                }
+                            }
+                            KpknRoute.BodyProgress.route -> {
+                                navController.navigate(KpknRoute.BodyProgress.route) { launchSingleTop = true }
+                            }
+                        }
+                    },
+                    modifier = Modifier.tourAnchor(TourAnchors.HOME_BARRA),
+                )
             }
         }
 
