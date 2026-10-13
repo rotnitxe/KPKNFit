@@ -9,18 +9,23 @@ import com.example.kpkn.domain.nutrition.percentsOfEnergy
 import com.example.kpkn.screens.onboarding.design.MacroRingFractions
 import com.example.kpkn.screens.onboarding.design.WIZARD_RING_CALORIE_SCALE
 import com.example.kpkn.screens.onboarding.design.WizardMassUnit
-import com.example.kpkn.screens.onboarding.design.WizardNutritionDay
 import com.example.kpkn.screens.onboarding.design.WizardWeightScale
 import com.example.kpkn.screens.onboarding.design.formatDecimalEs
 import com.example.kpkn.screens.onboarding.design.formatKcalEs
 import com.example.kpkn.screens.onboarding.design.weekdayNameEs
-import java.time.LocalDate
+import kotlin.math.abs
 import kotlin.math.round
 
 /*
- * Textos y cifras del editor de Nutrición, sin Compose: se prueban en la JVM. Las cifras de las frases que lee la prueba
- * instrumentada («Base revisada…», «La meta de hoy…») van sin separador de miles; el resto, con punto de millar («2.150 kcal»).
+ * Textos y cifras del editor de Nutrición, sin Compose: se prueban en la JVM. Las cifras llevan punto de millar («2.150 kcal»), y cada
+ * unidad va pegada a su cifra con un espacio que no se parte, para que una línea no deje «kcal» suelto.
  */
+
+/** Tolerancia entre la energía de los macros y las calorías antes de avisar: el 2 %. */
+private const val MacroGapTolerance = 0.02
+
+/** Altura mínima de una barra del reparto, como fracción del gráfico: ningún día desaparece aunque tenga pocas kcal. */
+const val EDITOR_MIN_BAR_FRACTION = 0.30f
 
 /** Kcal con su unidad y punto de millar («2.150 kcal»); sin dato, «—». */
 fun editorKcalText(kcal: Int?): String = kcal?.let { "${formatKcalEs(it)} kcal" } ?: "—"
@@ -59,20 +64,18 @@ fun editorMacrosLine(base: NutritionEditorBase?): String {
     return "P $protein · H $carbs · G $fat g"
 }
 
-/** Primera línea de la base revisada: la frase que se guarda tal cual, sin cifras. */
-const val EDITOR_BASE_REVISED_LEAD = "Base revisada que se guardará tal cual:"
-
-/** Cifras de la base revisada en una línea de lectura: cada cifra va con su unidad y no se parte al ajustar la línea. */
-fun editorBaseRevisedFigures(base: NutritionEditorBase): String =
-    "${base.caloriesKcal} kcal · P ${base.proteinG} g · H ${base.carbsG} g · G ${base.fatG} g"
-
-/** Línea completa de la base revisada (cifras sin separador de miles: así las lee la prueba instrumentada y el lector de pantalla). */
-fun editorBaseRevisedLine(base: NutritionEditorBase): String =
-    "$EDITOR_BASE_REVISED_LEAD ${base.caloriesKcal} kcal · P ${base.proteinG} g · H ${base.carbsG} g · G ${base.fatG} g"
-
-/** Total energético Atwater, solo si dice algo distinto de la base revisada. */
-fun editorAtwaterLine(base: NutritionEditorBase): String? =
-    base.atwaterEnergyKcal.takeIf { it != base.caloriesKcal }?.let { "Total energético mostrado: $it kcal" }
+/**
+ * Aviso de la diferencia entre la energía de los macros (4/4/9) y las calorías, solo si pasa del 2 %: «Tus macros suman 2.110 kcal, 40
+ * menos que tus calorías.». Sin calorías o sin macros no hay nada que comparar.
+ */
+fun editorMacroGapLine(base: NutritionEditorBase): String? {
+    if (base.caloriesKcal <= 0 || base.proteinG + base.carbsG + base.fatG == 0) return null
+    val macroKcal = base.atwaterEnergyKcal
+    val gap = macroKcal - base.caloriesKcal
+    if (abs(gap) <= base.caloriesKcal * MacroGapTolerance) return null
+    val side = if (gap < 0) "menos" else "más"
+    return "Tus macros suman ${formatKcalEs(macroKcal)} kcal, ${formatKcalEs(abs(gap))} $side que tus calorías."
+}
 
 /** Aviso de que la meta de hoy ya la fijó este plan: lo que cambie vale desde mañana. */
 fun editorTodayGoalLine(kcal: Int): String =
@@ -125,21 +128,17 @@ fun editorDirectionLine(direction: PlanDirection?): String = when (direction) {
     null -> "Elige una dirección para calcular la base."
 }
 
-/** Días del reparto tal como los dibuja la franja; el de hoy se marca. */
-fun editorWeekDays(targets: List<NutritionEditorDayTarget>, today: LocalDate): List<WizardNutritionDay> =
-    targets.map { day ->
-        WizardNutritionDay(
-            date = day.date,
-            kcal = day.calorieTargetKcal,
-            proteinG = day.proteinG,
-            carbsG = day.carbsG,
-            fatG = day.fatG,
-            isToday = day.date == today,
-        )
-    }
+/**
+ * Altura de cada barra del reparto: proporcional a sus kcal frente al día más alto, con un mínimo del 30 %. Sin kcal, todas al mínimo.
+ */
+fun editorBarFractions(kcals: List<Int>): List<Float> {
+    val highest = kcals.maxOrNull()?.takeIf { it > 0 } ?: return kcals.map { EDITOR_MIN_BAR_FRACTION }
+    return kcals.map { kcal -> (kcal.toFloat() / highest).coerceIn(EDITOR_MIN_BAR_FRACTION, 1f) }
+}
 
-/** Línea del día elegido en la franja: «Lunes · P 160 · H 210 · G 70 g». */
+/** Línea del día elegido bajo el gráfico: «Miércoles · 2.400 kcal · P 170 · H 260 · G 75 g». */
 fun editorDayLine(day: NutritionEditorDayTarget): String {
     val name = weekdayNameEs(day.date.dayOfWeek).replaceFirstChar { it.uppercaseChar() }
-    return "$name · P ${day.proteinG} · H ${day.carbsG} · G ${day.fatG} g"
+    return "$name · ${formatKcalEs(day.calorieTargetKcal)} kcal · " +
+        "P ${day.proteinG} · H ${day.carbsG} · G ${day.fatG} g"
 }

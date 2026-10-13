@@ -47,22 +47,14 @@ fun EditorDirectionModule(
         Spacer(Modifier.height(12.dp))
         EditorCaption("Dirección")
         Spacer(Modifier.height(8.dp))
-        if (directionIndex >= 0 && !professional) {
-            KpknSegmentedControl(
-                options = DirectionOptions,
-                selectedIndex = directionIndex,
-                onSelect = { onDirection(DirectionChoices[it]) },
-                modifier = Modifier.fillMaxWidth(),
-            )
-        } else {
-            // Sin dirección elegida, o con la de tercero: ningún segmento parece elegido; con tercero, todo queda apagado.
-            EditorSegmentedTrack(
-                options = DirectionOptions,
-                selectedIndex = null,
-                onSelect = { onDirection(DirectionChoices[it]) },
-                enabled = !professional,
-            )
-        }
+        // Sin dirección elegida, ningún segmento parece elegido; con procedencia profesional, el control entero queda apagado.
+        KpknSegmentedControl(
+            options = DirectionOptions,
+            selectedIndex = if (professional) -1 else directionIndex,
+            onSelect = { onDirection(DirectionChoices[it]) },
+            modifier = Modifier.fillMaxWidth(),
+            enabled = !professional,
+        )
         Spacer(Modifier.height(8.dp))
         EditorCaption(editorDirectionLine(draft.direction))
         Spacer(Modifier.height(20.dp))
