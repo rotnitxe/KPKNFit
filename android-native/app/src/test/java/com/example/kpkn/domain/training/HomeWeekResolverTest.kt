@@ -128,4 +128,54 @@ class HomeWeekResolverTest {
     fun `sin programa activo no hay línea de programa`() {
         assertNull(HomeWeekResolver.programLine(null, emptyList(), today))
     }
+
+    /** «Tu semana» desde el jueves 8 (J 8 a X 14): Torso B el jueves, Torso A el lunes y Pierna A el martes, de la semana 3. */
+    private fun thursdayWeek(): List<HomeWeekDay> =
+        HomeWeekResolver.week(HomeSamples.twelveWeekItems(program), startDay = 4, today = today)
+
+    @Test
+    fun `la siguiente sesión sale de la semana si cae dentro`() {
+        val next = HomeWeekResolver.nextSession(
+            program,
+            HomeSamples.twelveWeekItems(program),
+            thursdayWeek(),
+            after = LocalDate.of(2026, 10, 12),
+        )
+
+        assertEquals(HomeNextSession(LocalDate.of(2026, 10, 13), "Pierna A"), next)
+    }
+
+    @Test
+    fun `un miércoles de descanso busca la siguiente en la semana que viene del programa`() {
+        val next = HomeWeekResolver.nextSession(
+            program,
+            HomeSamples.twelveWeekItems(program),
+            thursdayWeek(),
+            after = LocalDate.of(2026, 10, 14),
+        )
+
+        // La semana 4 cae en los 7 días que siguen a «Tu semana»: su jueves es el 15, con Torso B.
+        assertEquals(HomeNextSession(LocalDate.of(2026, 10, 15), "Torso B"), next)
+    }
+
+    @Test
+    fun `en la última semana del programa no hay siguiente`() {
+        val lastWeek = HomeSamples.twelveWeekItems(program).map { it.copy(location = it.location.copy(weekId = "w12")) }
+        val next = HomeWeekResolver.nextSession(
+            program,
+            lastWeek,
+            HomeWeekResolver.week(lastWeek, startDay = 4, today = today),
+            after = LocalDate.of(2026, 10, 14),
+        )
+
+        assertNull(next)
+    }
+
+    @Test
+    fun `sin programa o sin sesiones no hay siguiente que buscar`() {
+        val after = LocalDate.of(2026, 10, 14)
+
+        assertNull(HomeWeekResolver.nextSession(null, HomeSamples.twelveWeekItems(program), thursdayWeek(), after))
+        assertNull(HomeWeekResolver.nextSession(program, emptyList(), thursdayWeek(), after))
+    }
 }

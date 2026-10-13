@@ -4,6 +4,9 @@ import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.ExerciseSet
 import com.example.kpkn.data.models.IntensityMode
 import com.example.kpkn.data.models.RepRange
+import com.example.kpkn.domain.training.HomeDayKind
+import com.example.kpkn.domain.training.HomeNextSession
+import com.example.kpkn.domain.training.HomeWeekDay
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Test
@@ -90,5 +93,17 @@ class HomeSessionHeroDoseTest {
     fun el_kicker_de_otro_dia_y_del_descanso() {
         assertEquals("JUEVES 15 · DÍA 3 DE 4", homeHeroKicker(HomeHeroMode.OTHER_DAY, LocalDate.of(2026, 10, 15), 3, 4))
         assertEquals("MIÉRCOLES 14", homeHeroKicker(HomeHeroMode.REST, LocalDate.of(2026, 10, 14), null, null))
+    }
+
+    @Test
+    fun la_linea_siguiente_lleva_dia_numero_y_sesion_o_la_frase_de_hoy() {
+        val week = listOf(HomeWeekDay(LocalDate.of(2026, 10, 14), "X", false, HomeDayKind.REST, null))
+
+        assertEquals(
+            "Siguiente: jueves 15 · Pierna A",
+            homeHeroNextLine(week, HomeNextSession(LocalDate.of(2026, 10, 15), "Pierna A")),
+        )
+        assertEquals("Siguiente: la próxima semana", homeHeroNextLine(week, null))
+        assertNull(homeHeroNextLine(emptyList(), HomeNextSession(LocalDate.of(2026, 10, 15), "Pierna A")))
     }
 }

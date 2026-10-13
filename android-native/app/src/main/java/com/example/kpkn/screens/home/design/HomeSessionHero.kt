@@ -32,6 +32,7 @@ import com.example.kpkn.data.models.ExerciseSet
 import com.example.kpkn.data.models.IntensityMode
 import com.example.kpkn.data.models.SessionBackground
 import com.example.kpkn.data.models.effectiveRepRange
+import com.example.kpkn.domain.training.HomeNextSession
 import com.example.kpkn.domain.training.HomeWeekDay
 import com.example.kpkn.screens.onboarding.design.WizardColors
 import com.example.kpkn.screens.onboarding.design.WizardShapes
@@ -502,12 +503,12 @@ private fun heroDayLabel(date: LocalDate): String =
     "${weekdaysEs[date.dayOfWeek.value - 1]} ${date.dayOfMonth}".uppercase(Locale("es"))
 
 /**
- * La línea «Siguiente: …» del descanso: el siguiente día con sesión después de [date] en «Tu semana», o «Siguiente: la próxima
- * semana» si no hay ninguno. Null si no hay días (no se sabe).
+ * La línea «Siguiente: …» del descanso: «Siguiente: jueves 15 · Pierna A», con la siguiente sesión del programa después del día
+ * ([next], la que busca `HomeWeekResolver.nextSession`). Si no se puede resolver, «Siguiente: la próxima semana». Null si no hay
+ * «Tu semana» (no se sabe).
  */
-internal fun homeHeroNextLine(weekDays: List<HomeWeekDay>, date: LocalDate): String? {
+internal fun homeHeroNextLine(weekDays: List<HomeWeekDay>, next: HomeNextSession?): String? {
     if (weekDays.isEmpty()) return null
-    val next = weekDays.firstOrNull { it.date.isAfter(date) && it.sessionName != null }
-        ?: return "Siguiente: la próxima semana"
-    return "Siguiente: ${weekdaysEs[next.date.dayOfWeek.value - 1]} · ${next.sessionName}"
+    if (next == null) return "Siguiente: la próxima semana"
+    return "Siguiente: ${weekdaysEs[next.date.dayOfWeek.value - 1]} ${next.date.dayOfMonth} · ${next.sessionName}"
 }

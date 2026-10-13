@@ -42,6 +42,7 @@ import com.example.kpkn.domain.calculations.calculateSessionTimeBreakdown
 import com.example.kpkn.domain.training.CompetitionHomePhase
 import com.example.kpkn.domain.training.HomeCompetitionState
 import com.example.kpkn.domain.training.HomeWeekDay
+import com.example.kpkn.domain.training.HomeWeekResolver
 import com.example.kpkn.screens.home.design.HomeHeroActions
 import com.example.kpkn.screens.home.design.HomeHeroArt
 import com.example.kpkn.screens.home.design.HomeHeroLine
@@ -292,7 +293,10 @@ private fun homeHeroPages(
                     mode = HomeHeroMode.REST,
                     kicker = homeHeroKicker(HomeHeroMode.REST, day, null, null),
                     title = "Descanso",
-                    meta = homeHeroNextLine(weekDays, day),
+                    meta = homeHeroNextLine(
+                        weekDays,
+                        HomeWeekResolver.nextSession(activeProgram, sessions, weekDays, day),
+                    ),
                     countdown = countdown,
                     art = programForArt
                         ?.let { HomeHeroArt.Cover(coverIdentityFor(it.id, it.structureTemplateId), opacity = 0.45f) }

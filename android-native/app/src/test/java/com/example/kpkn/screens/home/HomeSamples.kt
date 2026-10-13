@@ -27,6 +27,7 @@ import com.example.kpkn.data.models.SessionLocation
 import com.example.kpkn.data.models.SimpleProgramKind
 import com.example.kpkn.data.models.TodaySessionItem
 import com.example.kpkn.domain.training.HomeDayKind
+import com.example.kpkn.domain.training.HomeNextSession
 import com.example.kpkn.domain.training.HomeWeekDay
 import com.example.kpkn.domain.training.HomeWeekResolver
 import com.example.kpkn.screens.home.design.HomeHeroArt
@@ -215,7 +216,7 @@ internal object HomeSamples {
         mealKcal = mapOf(MealType.BREAKFAST to 420, MealType.LUNCH to 820),
     )
 
-    /** Nutrición sin meta: lo comido, «sin objetivo» y los macros «sin meta». */
+    /** Nutrición sin meta: lo comido, «Aún no tienes objetivos» con «Definir objetivos», y los macros «sin meta». */
     fun nutritionNoGoal(): HomeNutritionState = HomeNutritionState(
         kcal = 980,
         kcalGoal = null,
@@ -432,7 +433,7 @@ internal object HomeSamples {
         art = heroArt(),
     )
 
-    /** Miércoles de descanso: arte al 45 % y «Siguiente: jueves · Torso B». */
+    /** Miércoles de descanso: arte al 45 % y «Siguiente: jueves 15 · Torso B». */
     fun heroRest(): HomeHeroState = HomeHeroState(
         key = "rest",
         mode = HomeHeroMode.REST,
@@ -440,7 +441,7 @@ internal object HomeSamples {
         title = "Descanso",
         meta = homeHeroNextLine(
             listOf(HomeWeekDay(today.plusDays(2), "J", false, HomeDayKind.PLANNED, "Torso B")),
-            today.plusDays(1),
+            HomeNextSession(today.plusDays(2), "Torso B"),
         ),
         art = heroArt(opacity = 0.45f),
     )

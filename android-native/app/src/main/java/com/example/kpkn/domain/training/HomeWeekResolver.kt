@@ -22,6 +22,9 @@ data class HomeWeekDay(
     val sessionName: String?,
 )
 
+/** La siguiente sesión del programa después de un día: su fecha y su nombre (lo que lee el descanso de «Tu semana»). */
+data class HomeNextSession(val date: LocalDate, val sessionName: String)
+
 /**
  * Línea del programa activo en la cabecera de Home. [weekIndex] y [weekCount] son null sin sesiones; [weekLabel] y [phase]
  * también pueden ser null cuando no se sabe.
@@ -70,6 +73,45 @@ object HomeWeekResolver {
         item.isCompleted -> HomeDayKind.DONE
         date.isBefore(today) -> HomeDayKind.MISSED
         else -> HomeDayKind.PLANNED
+    }
+
+    /**
+     * La siguiente sesión del programa después de [after] (un día de descanso, por ejemplo). Primero mira «Tu semana» ([weekDays]);
+     * si no queda nada en ella, sigue por las semanas que vienen después de la de [sessions]. Cada una cae en los 7 días que siguen a
+     * la anterior, con el día ISO de cada sesión; un programa calendarizado usa las fechas de su calendario. Null si no hay programa,
+     * no se sabe en qué semana va o no queda ninguna sesión.
+     */
+    fun nextSession(
+        program: Program?,
+        sessions: List<TodaySessionItem>,
+        weekDays: List<HomeWeekDay>,
+        after: LocalDate,
+    ): HomeNextSession? {
+        weekDays.firstOrNull { it.date.isAfter(after) && it.sessionName != null }?.let { day ->
+            return HomeNextSession(day.date, day.sessionName.orEmpty())
+        }
+        val windowStart = weekDays.firstOrNull()?.date ?: return null
+        if (program == null) return null
+        val weekId = sessions.firstOrNull()?.location?.weekId ?: return null
+        val weeks = program.allWeekLocations()
+        val current = weeks.indexOfFirst { it.week.id == weekId }
+        if (current < 0) return null
+        val calendar = if (ProgramCalendarEngine.isCalendarized(program)) ProgramCalendarEngine.project(program) else null
+        val startIso = windowStart.dayOfWeek.value
+        return weeks.drop(current + 1).withIndex().flatMap { (ahead, location) ->
+            // La principal va primero: si dos sesiones caen el mismo día, gana la principal.
+            location.week.sessions.sortedBy { if (it.isMainSession) 0 else 1 }.mapNotNull { session ->
+                val date = if (calendar != null) {
+                    calendar.scheduledDateFor(session, location.week.id)
+                } else {
+                    // La semana que sigue a «Tu semana» (ahead = 0) cae en los 7 días siguientes a ella.
+                    (session.dayOfWeek ?: session.assignedDays.firstOrNull())?.let { iso ->
+                        windowStart.plusDays(7L * (ahead + 1) + Math.floorMod(iso - startIso, 7))
+                    }
+                }
+                date?.takeIf { it.isAfter(after) }?.let { HomeNextSession(it, session.name) }
+            }
+        }.minByOrNull { it.date }
     }
 
     /**

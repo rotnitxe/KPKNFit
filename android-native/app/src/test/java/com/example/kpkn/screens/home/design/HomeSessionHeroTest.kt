@@ -63,7 +63,7 @@ class HomeSessionHeroTest {
     fun descanso_sin_botones_y_con_el_siguiente() {
         setHero(HomeSamples.heroRest())
 
-        rule.onNodeWithText("Siguiente: jueves · Torso B").assertExists()
+        rule.onNodeWithText("Siguiente: jueves 15 · Torso B").assertExists()
         rule.onNodeWithTag("home-hero-start").assertDoesNotExist()
         rule.onNodeWithTag("home-hero-edit").assertDoesNotExist()
         rule.onNodeWithTag("home-hero-secondary").assertDoesNotExist()

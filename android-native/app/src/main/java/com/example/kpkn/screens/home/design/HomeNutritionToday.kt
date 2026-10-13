@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -63,6 +64,9 @@ import kotlin.math.sin
 /** Clave de la memoria de la primera vez: los anillos y la cifra de «Nutrición de hoy». */
 private const val NUTRITION_FIGURE_KEY = "home-nutrition"
 
+/** Etiqueta de prueba del contenedor de los anillos de «Nutrición de hoy» (solo se pintan con meta de kcal). */
+internal const val HOME_NUTRITION_RINGS_TAG = "home-nutrition-rings"
+
 /** Las cuatro comidas de «Nutrición de hoy», en su orden. */
 internal val HomeMeals: List<Pair<MealType, String>> = listOf(
     MealType.BREAKFAST to "Desayuno",
@@ -74,7 +78,8 @@ internal val HomeMeals: List<Pair<MealType, String>> = listOf(
 /**
  * Nutrición de hoy: los anillos de macros del wizard con las kcal, la leyenda de macros y las cuatro comidas como símbolos. Tocar
  * la fila del anillo abre el día ([onOpenDay]); tocar una comida abre el registro en esa comida ([onAddMeal] con su tipo), y el «+»
- * lo abre con la comida de la hora (null). Sin nutrición no se pinta: lo decide quien la llama.
+ * lo abre con la comida de la hora (null). Sin meta de kcal no hay anillos: queda la cifra de lo comido, «Aún no tienes objetivos.»
+ * y la acción «Definir objetivos» ([onDefineGoals]). Sin nutrición no se pinta: lo decide quien la llama.
  */
 @Composable
 fun HomeNutritionToday(
@@ -82,6 +87,8 @@ fun HomeNutritionToday(
     onAddMeal: (MealType?) -> Unit,
     onOpenDay: () -> Unit,
     modifier: Modifier = Modifier,
+    /** Abre el editor del plan de nutrición: la acción «Definir objetivos», sin meta de kcal. */
+    onDefineGoals: () -> Unit = {},
 ) {
     val reduced = wizardReducedMotion()
     // Anillos y cifra se animan solo la primera vez que se ven en el proceso.
@@ -103,6 +110,8 @@ fun HomeNutritionToday(
             centerAction = true,
         )
         Spacer(Modifier.height(16.dp))
+        // Con meta hay anillos y cifra; sin meta no se pintan (saldrían apagados): queda la cifra y cómo definir la meta.
+        val goal = state.kcalGoal
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -110,18 +119,23 @@ fun HomeNutritionToday(
                 .clickable(role = Role.Button, onClickLabel = "Ver el día de hoy", onClick = onOpenDay),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            WizardMacroRings(
-                kcal = state.kcal,
-                fractions = nutritionRingFractions(state),
-                caption = "kcal",
-                description = nutritionDescription(state),
-                appeared = appeared,
-                reducedMotion = reduced,
-                modifier = Modifier.size(140.dp),
-                // Sin cifra central: la kcal grande va a la derecha; así no se repite ni pisa los arcos.
-                showCenter = false,
-            )
-            Spacer(Modifier.width(16.dp))
+            if (goal != null) {
+                // El contenedor lleva la etiqueta de prueba: los anillos ya ponen la suya («setup-nutrition-rings») y la pisaría.
+                Box(Modifier.size(140.dp).testTag(HOME_NUTRITION_RINGS_TAG)) {
+                    WizardMacroRings(
+                        kcal = state.kcal,
+                        fractions = nutritionRingFractions(state),
+                        caption = "kcal",
+                        description = nutritionDescription(state),
+                        appeared = appeared,
+                        reducedMotion = reduced,
+                        modifier = Modifier.fillMaxSize(),
+                        // Sin cifra central: la kcal grande va a la derecha; así no se repite ni pisa los arcos.
+                        showCenter = false,
+                    )
+                }
+                Spacer(Modifier.width(16.dp))
+            }
             Column(Modifier.weight(1f)) {
                 Text(
                     text = formatKcalEs(kcalShown),
@@ -132,13 +146,26 @@ fun HomeNutritionToday(
                         contentDescription = "${formatKcalEs(state.kcal)} kilocalorías comidas hoy"
                     },
                 )
+                if (goal != null) {
+                    Text(
+                        text = kcalLine(state, goal),
+                        style = WizardTypography.caption,
+                        color = WizardColors.textMuted,
+                        maxLines = 3,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
+            }
+        }
+        if (goal == null) {
+            // Fuera de la fila clicable, para que la acción no anide otro botón: la frase y la acción de texto de 48 dp.
+            Column(Modifier.fillMaxWidth().padding(horizontal = WizardSpacing.gutter)) {
                 Text(
-                    text = kcalLine(state),
-                    style = WizardTypography.caption,
+                    text = "Aún no tienes objetivos.",
+                    style = WizardTypography.bodySmall,
                     color = WizardColors.textMuted,
-                    maxLines = 3,
-                    overflow = TextOverflow.Ellipsis,
                 )
+                HomeSectionAction(text = "Definir objetivos", onClick = onDefineGoals)
             }
         }
         Spacer(Modifier.height(16.dp))
@@ -197,9 +224,8 @@ private fun macroShare(macro: HomeMacroToday): Float {
     return (macro.grams.toFloat() / goal).coerceIn(0f, 1f)
 }
 
-/** Lo que se lee bajo la cifra: lo que queda de la meta, lo que se pasa (sin rojo) o «sin objetivo». */
-private fun kcalLine(state: HomeNutritionState): String {
-    val goal = state.kcalGoal ?: return "sin objetivo"
+/** Lo que se lee bajo la cifra con meta: lo que queda de la meta, lo que se pasa (sin rojo) o «meta cubierta». */
+private fun kcalLine(state: HomeNutritionState, goal: Int): String {
     val eaten = state.kcal
     return when {
         eaten > goal -> "${formatKcalEs(eaten)} de ${formatKcalEs(goal)} kcal · ${formatKcalEs(eaten - goal)} por encima"
