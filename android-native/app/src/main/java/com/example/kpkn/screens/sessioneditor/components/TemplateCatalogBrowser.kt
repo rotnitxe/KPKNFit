@@ -102,18 +102,16 @@ internal suspend fun executeUserTemplateSave(
             onSuccess = { result ->
                 result.fold(
                     onSuccess = { template -> UserTemplateSaveState.Success(template) },
-                    onFailure = { error ->
+                    onFailure = { _ ->
                         UserTemplateSaveState.Error(
-                            error.message?.takeIf { it.isNotBlank() }
-                                ?: "No se pudo guardar la plantilla. Intenta nuevamente.",
+                            "No se pudo guardar la plantilla. Inténtalo de nuevo.",
                         )
                     },
                 )
             },
-            onFailure = { error ->
+            onFailure = { _ ->
                 UserTemplateSaveState.Error(
-                    error.message?.takeIf { it.isNotBlank() }
-                        ?: "No se pudo guardar la plantilla. Intenta nuevamente.",
+                    "No se pudo guardar la plantilla. Inténtalo de nuevo.",
                 )
             },
         )
@@ -649,8 +647,7 @@ private fun UserTemplateMetadataDialog(
                             onDismiss()
                         } else {
                             isSaving = false
-                            saveError = result.exceptionOrNull()?.message
-                                ?: "No se pudieron actualizar los metadatos."
+                            saveError = "No se pudieron actualizar los metadatos."
                         }
                     }
                 },

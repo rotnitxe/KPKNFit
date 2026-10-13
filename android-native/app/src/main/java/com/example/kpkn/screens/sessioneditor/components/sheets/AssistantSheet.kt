@@ -237,7 +237,7 @@ private fun AssistantMainTab(uiState: SessionEditorUiState) {
 
     // 1. RINGS first (protagonist) — fill = estimated drain
     Text(
-        "RINGS DE SESIÓN",
+        "RINGS de la sesión",
         style = MaterialTheme.typography.labelLarge,
         fontWeight = FontWeight.Black,
         color = Color.White.copy(alpha = 0.92f),
@@ -286,7 +286,7 @@ private fun AssistantMainTab(uiState: SessionEditorUiState) {
 
     if (report == null) {
         Text(
-            "Calculando análisis...",
+            "Calculando análisis…",
             color = Color.White.copy(alpha = 0.55f),
             modifier = Modifier.fillMaxWidth(),
             textAlign = TextAlign.Center,
@@ -671,7 +671,7 @@ internal fun AssistantTemplatesTab(
         value = searchQuery,
         onValueChange = onSearchChange,
         placeholder = {
-            Text("Buscar plantilla...", color = KpknSheetTokens.ControlPlaceholder)
+            Text("Buscar plantilla…", color = KpknSheetTokens.ControlPlaceholder)
         },
         leadingIcon = {
             Icon(

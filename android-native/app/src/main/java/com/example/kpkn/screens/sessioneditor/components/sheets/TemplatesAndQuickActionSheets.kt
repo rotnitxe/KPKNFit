@@ -132,7 +132,7 @@ internal fun TemplatesSheet(
                 value = searchQuery,
                 onValueChange = onSearchChange,
                 placeholder = {
-                    Text("Buscar plantilla...", color = KpknSheetTokens.ControlPlaceholder)
+                    Text("Buscar plantilla…", color = KpknSheetTokens.ControlPlaceholder)
                 },
                 leadingIcon = {
                     Icon(

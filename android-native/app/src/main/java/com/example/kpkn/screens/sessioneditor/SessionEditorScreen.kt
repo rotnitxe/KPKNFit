@@ -983,7 +983,7 @@ fun SessionEditorScreen(
                         val target = if (partId == null) "la sesión" else "el grupo"
                         val noun = if (outcome.exercisesChanged == 1) "ejercicio" else "ejercicios"
                         snackbarHostState.showKpknSnackbar(
-                            "Defaults aplicados a $target (${outcome.exercisesChanged} $noun)",
+                            "Ajustes por defecto aplicados a $target (${outcome.exercisesChanged} $noun)",
                             SnackbarType.SUCCESS,
                         )
                     }
