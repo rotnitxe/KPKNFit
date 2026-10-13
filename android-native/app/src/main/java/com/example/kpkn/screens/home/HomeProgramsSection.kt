@@ -70,6 +70,9 @@ private val PosterHeight = 204.dp
 /** Tallas del título del póster, de la mayor a la menor: 17 sp es la de diseño y solo baja si la palabra más larga no cabe. */
 private val PosterTitleSizesSp: List<Float> = listOf(17f, 16f, 15f, 14f)
 
+/** Lo que sale del título de un póster: la talla en sp y si va en una sola línea con elipsis (una palabra no cabe ni a la talla menor). */
+private class PosterTitleFit(val sizeSp: Float, val oneLine: Boolean)
+
 /**
  * «Tus programas»: una fila de pósteres con la portada de cada programa, el activo primero y «Nuevo» al final. Sin programas, solo
  * «Nuevo» y un texto para empezar. [activeProgramLine] es la línea del programa activo (semana y progreso), de la que sale su
@@ -151,11 +154,12 @@ private fun ProgramPoster(
     val density = LocalDensity.current
     val measurer = rememberTextMeasurer()
     val titleWidthPx = with(density) { (PosterWidth - 24.dp).toPx() }
-    // El título baja de talla antes que partir una palabra: a 130 % de letra, «Camino» no cabe a 17 sp en 128 dp.
-    val titleSp = remember(program.name, titleWidthPx, density.density, density.fontScale) {
+    // El título baja de talla antes que partir una palabra: a 130 % de letra, «Camino» no cabe a 17 sp en 128 dp. Si ni a la
+    // talla menor cabe una palabra, va en una línea con elipsis (como el héroe): nunca se parte por letras.
+    val titleFit = remember(program.name, titleWidthPx, density.density, density.fontScale) {
         // A escala grande (más de 1,15) el título va de 15 sp hacia abajo: así el bloque inferior no sube por encima del velo.
         val sizes = if (density.fontScale > 1.15f) PosterTitleSizesSp.filter { it <= 15f } else PosterTitleSizesSp
-        fitPosterTitleSp(program.name, titleWidthPx, sizes) { word, sp ->
+        val measureWord: (String, Float) -> Float = { word, sp ->
             measurer.measure(
                 text = word,
                 style = HomeTypography.posterTitle.copy(fontSize = sp.sp),
@@ -163,6 +167,10 @@ private fun ProgramPoster(
                 softWrap = false,
             ).size.width.toFloat()
         }
+        PosterTitleFit(
+            sizeSp = fitPosterTitleSp(program.name, titleWidthPx, sizes, measureWord),
+            oneLine = posterTitleOneLine(program.name, titleWidthPx, sizes, measureWord),
+        )
     }
     // La foto propia manda; el arte del motor sale del id del programa y de su plantilla (la de Home, como en las portadas).
     val cover = rememberProgramCover(programCoverEntryIdOf(program.coverImage), with(LocalDensity.current) { PosterWidth.roundToPx() })
@@ -227,9 +235,10 @@ private fun ProgramPoster(
         ) {
             Text(
                 text = program.name,
-                style = HomeTypography.posterTitle.copy(fontSize = titleSp.sp, lineHeight = (titleSp * 1.12f).sp),
+                style = HomeTypography.posterTitle.copy(fontSize = titleFit.sizeSp.sp, lineHeight = (titleFit.sizeSp * 1.12f).sp),
                 color = WizardColors.text,
-                maxLines = 2,
+                maxLines = if (titleFit.oneLine) 1 else 2,
+                softWrap = !titleFit.oneLine,
                 overflow = TextOverflow.Ellipsis,
             )
             if (isActive) {
@@ -356,4 +365,18 @@ internal fun fitPosterTitleSp(
     val words = name.split(Regex("\\s+")).filter { it.isNotBlank() }
     if (words.isEmpty()) return sizesSp.first()
     return sizesSp.firstOrNull { sp -> words.all { measureWordPx(it, sp) <= widthPx } } ?: sizesSp.last()
+}
+
+/**
+ * Si alguna palabra de [name] no cabe en [widthPx] ni a la talla menor de [sizesSp]: el título va entonces en una sola línea con
+ * elipsis, como el héroe, y ninguna palabra se parte por letras.
+ */
+internal fun posterTitleOneLine(
+    name: String,
+    widthPx: Float,
+    sizesSp: List<Float>,
+    measureWordPx: (word: String, sp: Float) -> Float,
+): Boolean {
+    val smallest = sizesSp.last()
+    return name.split(Regex("\\s+")).filter { it.isNotBlank() }.any { measureWordPx(it, smallest) > widthPx }
 }
