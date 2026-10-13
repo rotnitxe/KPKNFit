@@ -5,6 +5,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -13,6 +14,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -27,9 +29,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.withTransform
@@ -52,6 +56,12 @@ import com.example.kpkn.screens.onboarding.design.entreno.onSymbolsVisible
 import com.example.kpkn.screens.onboarding.design.entreno.rememberEntrenoForeground
 import com.example.kpkn.screens.onboarding.design.entreno.rememberSymbolClock
 import com.example.kpkn.screens.onboarding.design.wizardReducedMotion
+import com.example.kpkn.screens.onboarding.design.entreno.plan.cover.COVER_INK
+import com.example.kpkn.screens.onboarding.design.entreno.plan.cover.CoverArtMode
+import com.example.kpkn.screens.onboarding.design.entreno.plan.cover.CoverPaletteKind
+import com.example.kpkn.screens.onboarding.design.entreno.plan.cover.CoverStudioArt
+import com.example.kpkn.screens.onboarding.design.entreno.plan.cover.assignedCoverIdentity
+import com.example.kpkn.screens.onboarding.design.entreno.plan.cover.coverArtModeOf
 import com.example.kpkn.ui.components.rememberProgramCover
 
 /*
@@ -135,23 +145,28 @@ internal fun PlanCover(
     val accent = goalAccent(profile)
     val art = remember(profile) { goalCoverArt(profile) }
     val variant = remember(model.coverSeed) { coverVariantOf(model.coverSeed) }
+    // Los programas «a medida» tienen identidad propia (`CoverStudio`); el catálogo sigue con el arte de siempre.
+    val identity = remember(model.id) { assignedCoverIdentity(model.id) }
     val foreground = rememberEntrenoForeground()
     var visible by remember { mutableStateOf(true) }
     val running = animate && !reduced
-    val clock = rememberSymbolClock(active = running && foreground && visible)
+    // El reloj del arte procedural solo corre si ese arte se pinta: con identidad, `CoverStudioArt` lleva el suyo.
+    val clock = rememberSymbolClock(active = running && foreground && visible && identity == null)
     val run = remember { SymbolRun() }
     // Antes de dibujar, anota desde cuándo corre: sin esto el primer cuadro saltaría.
     SideEffect { run.update(running, clock.peek()) }
     val pen = remember { SymbolPen() }
-    BoxWithConstraints(
-        modifier = modifier
-            .clip(RoundedCornerShape(cornerRadius))
-            .onSymbolsVisible { visible = it }
-            .drawWithCache {
-                val brush = coverBrush(size.width, size.height, variant.angleDeg, accent)
-                onDrawBehind { drawRect(brush) }
-            },
-    ) {
+    var cover = modifier
+        .clip(RoundedCornerShape(cornerRadius))
+        .onSymbolsVisible { visible = it }
+    // El fondo de siempre lo pinta el arte procedural; con identidad, el motor cubre la caja entera.
+    if (identity == null) {
+        cover = cover.drawWithCache {
+            val brush = coverBrush(size.width, size.height, variant.angleDeg, accent)
+            onDrawBehind { drawRect(brush) }
+        }
+    }
+    BoxWithConstraints(modifier = cover) {
         val banner = when (layout) {
             CoverLayout.BANNER -> true
             CoverLayout.POSTER -> false
@@ -159,8 +174,11 @@ internal fun PlanCover(
         }
         val widthDp = maxWidth.value
         val pad = coverPadDp(widthDp).dp
-        // Con portada propia (`assets/program_covers/`), la foto sustituye al arte procedural y un degradado negro abajo deja leer el título.
+        // Ancho de la caja para la franja de la cabecera: dentro de Row y Column no se ve maxWidth (el alcance de BoxWithConstraints).
+        val coverWidth = maxWidth
+        // Con portada propia (`assets/program_covers/`), la foto sustituye al arte y un degradado negro abajo deja leer el título.
         val photo = rememberProgramCover(model.id, with(LocalDensity.current) { maxWidth.roundToPx() })
+        val mode = coverArtModeOf(hasPhoto = photo != null, identity = identity)
         if (photo != null) {
             Image(
                 bitmap = photo,
@@ -173,6 +191,14 @@ internal fun PlanCover(
                     .matchParentSize()
                     .background(Brush.verticalGradient(colorStops = arrayOf(0.55f to Color.Transparent, 1f to Color.Black.copy(alpha = 0.85f)))),
             )
+        }
+        // Con fondo de tinta o de papel, la franja negra del kicker va detrás de la cabecera (ver CoverHeader).
+        val studioBand = identity != null && mode == CoverArtMode.STUDIO && identity.palette != CoverPaletteKind.NOCHE
+        if (identity != null && mode == CoverArtMode.STUDIO) {
+            // El motor a sangre; encima, el velo de la parte baja y, en la banda, otro a la izquierda donde va el texto.
+            CoverStudioArt(identity, Modifier.matchParentSize(), animate = animate, reduced = reduced, parallax = parallax)
+            if (banner) CoverLeftScrim()
+            CoverBottomVeil(solidBase = identity.palette != CoverPaletteKind.NOCHE)
         }
         val artModifier = Modifier
         if (banner) {
@@ -188,14 +214,14 @@ internal fun PlanCover(
                         .fillMaxHeight(),
                     verticalArrangement = Arrangement.SpaceBetween,
                 ) {
-                    CoverHeader(model, accent)
+                    CoverHeader(model, accent, bandInset = pad, bandWidth = if (studioBand) coverWidth else null)
                     Column {
                         CoverTitle(model.title, maxSp = 25f, minSp = COVER_TITLE_MIN_SP)
                         Spacer(Modifier.height(8.dp))
                         CoverFacts(model)
                     }
                 }
-                if (photo == null) {
+                if (mode == CoverArtMode.PROCEDURAL) {
                     CoverArtCanvas(art, variant, pen, run, clock, running, parallax, artModifier.weight(1f).fillMaxHeight())
                 } else {
                     Spacer(artModifier.weight(1f).fillMaxHeight())
@@ -208,8 +234,8 @@ internal fun PlanCover(
                     .padding(start = pad, end = pad, bottom = pad, top = pad + topInset),
             ) {
                 // La esquina de arriba a la derecha queda libre para la marca de «hecho» del carrusel.
-                CoverHeader(model, accent, Modifier.padding(end = HEADER_STAMP_GAP))
-                if (photo == null) {
+                CoverHeader(model, accent, Modifier.padding(end = HEADER_STAMP_GAP), bandInset = pad, bandWidth = if (studioBand) coverWidth else null)
+                if (mode == CoverArtMode.PROCEDURAL) {
                     CoverArtCanvas(art, variant, pen, run, clock, running, parallax, artModifier.weight(1f).fillMaxWidth())
                 } else {
                     Spacer(artModifier.weight(1f).fillMaxWidth())
@@ -222,12 +248,52 @@ internal fun PlanCover(
     }
 }
 
+/**
+ * El velo de la parte baja, para que el título y los datos se lean sobre cualquier arte. En NOCHE, un degradado del 52 % al 100 % del
+ * alto. En TINTA y PAPEL, una peana negra sólida desde el 56 % (la transición empieza en el 50 %): a 130 % de letra el título de tres
+ * líneas sube hasta ese punto, y sobre el papel su primera línea quedaba en crema invisible. El título va en tinta sobre negro.
+ */
+@Composable
+private fun BoxScope.CoverBottomVeil(solidBase: Boolean) {
+    val stops = if (solidBase) {
+        arrayOf(0.50f to Color.Transparent, 0.56f to COVER_INK, 1f to COVER_INK)
+    } else {
+        arrayOf(0.52f to Color.Transparent, 1f to COVER_INK.copy(alpha = 0.92f))
+    }
+    Box(Modifier.matchParentSize().background(Brush.verticalGradient(colorStops = stops)))
+}
+
+/**
+ * El velo de la izquierda de la banda: el texto va en esa columna. Es una columna negra sólida hasta el 58 % del ancho, que se disuelve
+ * hacia el 82 %; un degradado suave sobre el papel se veía gris y turbio, y con 130 % de letra el título no se leía.
+ */
+@Composable
+private fun BoxScope.CoverLeftScrim() {
+    Box(
+        Modifier
+            .matchParentSize()
+            .background(
+                Brush.horizontalGradient(
+                    colorStops = arrayOf(0f to COVER_INK.copy(alpha = 0.92f), 0.58f to COVER_INK.copy(alpha = 0.92f), 0.82f to Color.Transparent),
+                ),
+            ),
+    )
+}
+
 // ---------------------------------------------------------------- texto de la portada
 
-/** La insignia (si hay) y el kicker en mayúsculas, arriba a la izquierda. */
+/**
+ * La insignia (si hay) y el kicker en mayúsculas, arriba a la izquierda. Con [bandWidth], lleva detrás la franja negra al 70 % de la
+ * portada: a todo el ancho ([bandWidth]), desde [bandInset] a la izquierda del texto y con 6 dp de aire arriba y abajo; así cubre
+ * también un kicker de dos líneas.
+ */
 @Composable
-private fun CoverHeader(model: PlanCardModel, accent: Color, modifier: Modifier = Modifier) {
-    Column(modifier) {
+private fun CoverHeader(model: PlanCardModel, accent: Color, modifier: Modifier = Modifier, bandInset: Dp = 0.dp, bandWidth: Dp? = null) {
+    val withBand = if (bandWidth == null) modifier else modifier.drawBehind {
+        val air = 6.dp.toPx()
+        drawRect(COVER_INK.copy(alpha = 0.7f), topLeft = Offset(-bandInset.toPx(), -air), size = Size(bandWidth.toPx(), size.height + 2f * air))
+    }
+    Column(withBand) {
         val badge = model.badge
         if (!badge.isNullOrBlank()) {
             Row(verticalAlignment = Alignment.CenterVertically) {
