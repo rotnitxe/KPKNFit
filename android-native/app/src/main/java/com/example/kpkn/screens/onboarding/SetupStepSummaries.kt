@@ -578,6 +578,8 @@ private fun summaryPriorities(draft: SetupWizardDraft): String {
     val muscles = bag.entries
         .sortedWith(compareByDescending<Map.Entry<String, Int>> { entry -> entry.value }.thenBy { entry -> entry.key })
         .map { entry -> MuscleSymbols.fromCanonical(entry.key)?.label ?: summaryOptionLabel(step, entry.key) }
+        // «Brazos» llega dos veces (bíceps y tríceps): en el resumen cuenta una.
+        .distinct()
     return summaryJoin(muscles)
 }
 

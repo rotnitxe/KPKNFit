@@ -82,16 +82,16 @@ enum class EquipmentSymbolId(val label: String) {
 
 /**
  * Músculos del selector «¿Qué músculos priorizas?». Solo los populares: nada de «redondo mayor» ni
- * «multífidos». El trapecio no tiene símbolo: va incluido en «Espalda». La traducción a los músculos canónicos
- * del motor vive en `MuscleSymbols` (dominio).
+ * «multífidos». El trapecio no tiene símbolo: va incluido en «Espalda». «Brazos» une bíceps y tríceps: un símbolo
+ * que escribe un punto en cada uno (`MuscleSymbols.canonicals`). La traducción a los músculos canónicos del motor
+ * vive en `MuscleSymbols` (dominio). El enum no se guarda en ningún borrador: los textos guardados son los canónicos.
  */
 @Serializable
 enum class MuscleSymbol(val label: String) {
     CHEST("Pecho"),
     BACK("Espalda"),
     SHOULDERS("Hombros"),
-    BICEPS("Bíceps"),
-    TRICEPS("Tríceps"),
+    ARMS("Brazos"),
     FOREARMS("Antebrazos"),
     ABS("Abdomen"),
     GLUTES("Glúteos"),

@@ -213,7 +213,7 @@ private fun RingsMuscleGroup.muscle(): MuscleSymbol = when (this) {
     RingsMuscleGroup.CHEST -> MuscleSymbol.CHEST
     RingsMuscleGroup.BACK -> MuscleSymbol.BACK
     RingsMuscleGroup.SHOULDERS -> MuscleSymbol.SHOULDERS
-    RingsMuscleGroup.ARMS -> MuscleSymbol.BICEPS
+    RingsMuscleGroup.ARMS -> MuscleSymbol.ARMS
     RingsMuscleGroup.LEGS -> MuscleSymbol.QUADS
     RingsMuscleGroup.CORE -> MuscleSymbol.ABS
 }

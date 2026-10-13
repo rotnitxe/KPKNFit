@@ -79,9 +79,14 @@ class SetupTrainingOptionsContractTest {
 
     @Test
     fun order_bag_contract_is_shared_with_the_engine() {
-        // Inválidas: > 2 por músculo, > 5 en total y ningún negativo.
+        // Inválidas: > 2 por músculo, > 6 en total y ningún negativo.
         assertTrue(SetupTrainingOptions(orderPriorities = mapOf("Pectorales" to 3)).validate() is TrainingValidation.Invalid)
-        assertTrue(SetupTrainingOptions(orderPriorities = mapOf("Pectorales" to 2, "Dorsales" to 2, "Tríceps" to 2)).validate() is TrainingValidation.Invalid)
+        assertTrue(
+            SetupTrainingOptions(orderPriorities = mapOf("Pectorales" to 2, "Dorsales" to 2, "Tríceps" to 2, "Deltoides" to 1))
+                .validate() is TrainingValidation.Invalid,
+        )
+        // Válida en el límite de seis (Brazos escribe dos puntos).
+        assertTrue(SetupTrainingOptions(orderPriorities = mapOf("Pectorales" to 2, "Dorsales" to 2, "Tríceps" to 2)).validate() is TrainingValidation.Valid)
         assertTrue(SetupTrainingOptions(orderPriorities = mapOf("Pectorales" to -1)).validate() is TrainingValidation.Invalid)
         assertTrue(SetupTrainingOptions(orderPriorities = mapOf("Pectorales" to 0)).validate() is TrainingValidation.Valid)
         assertTrue(SetupTrainingOptions(orderPriorities = mapOf(" Pectorales " to 1)).validate() is TrainingValidation.Valid)

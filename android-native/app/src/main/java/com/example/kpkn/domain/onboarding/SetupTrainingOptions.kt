@@ -13,7 +13,7 @@ import com.example.kpkn.domain.training.TrainingValidation
  * Comportamiento (ver [TrainingOptions]):
  * - `autoregulationMode` nace en PROPOSE; AUTO exige confirmación explícita.
  * - `orderPriorities`: bolsa de orden de ejercicios, máximo 2 puntos por
- *   músculo, 5 en total y sin negativos; SOLO orden, nunca volumen ni recetas.
+ *   músculo, 6 en total y sin negativos; SOLO orden, nunca volumen ni recetas.
  * - `inventory` nullable hasta declarar material; una declaración NUEVA exige
  *   cantidades explícitas y finitas (el lector legacy conserva nulos al leer).
  * - `effectiveEquipment(legacy)` (extensión en `domain/training`) es el equipo
