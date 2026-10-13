@@ -2,7 +2,7 @@ package com.example.kpkn.screens.onboarding.design.entreno
 
 /*
  * Datos de trazo de los músculos. Regiones y fibras vienen del prototipo de diseño (a mano se retocan cifras); las
- * familias (encuadre y marcas del cuerpo) y los dos músculos del brazo se dibujaron a mano para el encuadre por familia.
+ * familias (encuadre y marcas del cuerpo) y los trazos de Brazos, Antebrazos y Espalda se dibujaron a mano (K1).
  *
  * Espacio del cuerpo: x hacia la derecha de quien mira, eje del cuerpo en x = 0, y hacia abajo; la cabeza mide 50
  * unidades y el cuerpo 400. Cada cadena es un path SVG (M, L, C, Z absolutos) que lee `PathParser`.
@@ -72,12 +72,8 @@ internal object MuscleArtPaths {
             "C-1.6 168.1 -0.5 166.4 0 166.4 Z",
     )
 
-    /** Torso de espalda: columna y omóplatos. */
-    val TORSO_BACK_CONTEXT: List<String> = listOf(
-        "M0 100 L0 200",
-        "M8 95 C9 97.5 11.7 107.8 14 110 C16.3 112.2 20.7 108.3 22 108",
-        "M-22 108 C-20.7 108.3 -16.3 112.2 -14 110 C-11.7 107.8 -9 97.5 -8 95",
-    )
+    /** Torso de espalda: sin marcas aparte; la columna y los omóplatos son trazos de Espalda (`BACK_DETAIL`, `BACK_SCAPULAE`). */
+    val TORSO_BACK_CONTEXT: List<String> = listOf()
 
     /** Brazo: sin marcas comunes; cada gesto lleva su propio contorno. */
     val ARM_CONTEXT: List<String> = listOf()
@@ -122,25 +118,25 @@ internal object MuscleArtPaths {
         "M-21 114.5 C-19.7 114.2 -15.8 113.1 -13 112.5 C-10.2 111.9 -5.9 111.2 -4.5 111",
     )
 
-    // ---- BACK
+    // ---- BACK (torso de espalda en V: el trapecio, de la nuca a mitad de la espalda, y los dorsales, de la axila a la lumbar)
     const val BACK_BACK = true
     const val BACK_REGION =
+        "M0 64 C6 64 10 65.5 14 67.5 C20 70 27 72 31 75 C33.5 77.5 31 84 26 92 C19 103 9.5 114 0 124 " +
+        "C-9.5 114 -19 103 -26 92 C-31 84 -33.5 77.5 -31 75 C-27 72 -20 70 -14 67.5 C-10 65.5 -6 64 0 64 Z " +
         "M3.8 110 C3.8 110 9.5 106.1 13 104.4 C16.5 102.7 21.2 100.8 25 100 C28.8 99.2 33.4 99.2 36 99.6 " +
         "C38.6 100 40.6 102.2 40.6 102.2 C40.6 102.2 39.3 111 38.4 116 C37.5 121 36.1 126.7 35 132 " +
-        "C33.9 137.3 32.9 143 31.8 148 C30.7 153 30.2 157.7 28.6 162 C27 166.3 22.4 174 22.4 174 " +
-        "C22.4 174 16.4 182.2 14.4 182.6 C12.4 183 11.4 180.5 10.4 176.4 C9.4 172.3 9.1 164.1 8.4 158 " +
-        "C7.7 151.9 7.1 145.7 6.4 140 C5.7 134.3 4.8 129 4.4 124 C4 119 3.8 110 3.8 110 Z M-4.4 124 " +
-        "C-4.8 129 -5.7 134.3 -6.4 140 C-7.1 145.7 -7.7 151.9 -8.4 158 C-9.1 164.1 -9.4 172.3 -10.4 176.4 " +
-        "C-11.4 180.5 -12.4 183 -14.4 182.6 C-16.4 182.2 -22.4 174 -22.4 174 C-22.4 174 -27 166.3 -28.6 162 " +
-        "C-30.2 157.7 -30.7 153 -31.8 148 C-32.9 143 -33.9 137.3 -35 132 C-36.1 126.7 -37.5 121 -38.4 116 " +
-        "C-39.3 111 -40.6 102.2 -40.6 102.2 C-40.6 102.2 -38.6 100 -36 99.6 C-33.4 99.2 -28.8 99.2 -25 100 " +
-        "C-21.2 100.8 -16.5 102.7 -13 104.4 C-9.5 106.1 -3.8 110 -3.8 110 C-3.8 110 -4 119 -4.4 124 Z " +
-        "M2.6 130 C3 130.3 4.6 127.8 5.2 132 C5.8 136.2 6 147.3 6 155 C6 162.7 5.6 171.5 5.2 178 " +
-        "C4.8 184.5 4.2 190.7 3.8 194 C3.4 197.3 2.8 197.3 2.6 198 M-2.6 198 C-2.8 197.3 -3.4 197.3 -3.8 194 " +
-        "C-4.2 190.7 -4.8 184.5 -5.2 178 C-5.6 171.5 -6 162.7 -6 155 C-6 147.3 -5.8 136.2 -5.2 132 " +
-        "C-4.6 127.8 -3 130.3 -2.6 130"
+        "C33.9 137.3 32.9 140 31.8 144 C30.7 149 28.2 157 26 160 C23.8 163 19.6 166.2 17 167.2 " +
+        "C14.4 168.2 11.6 168 10.4 166 C9.4 164.2 9.1 160 8.4 155 C7.7 150 7.1 145.7 6.4 140 " +
+        "C5.7 134.3 4.8 129 4.4 124 C4 119 3.8 110 3.8 110 Z " +
+        "M-3.8 110 C-3.8 110 -9.5 106.1 -13 104.4 C-16.5 102.7 -21.2 100.8 -25 100 C-28.8 99.2 -33.4 99.2 -36 99.6 " +
+        "C-38.6 100 -40.6 102.2 -40.6 102.2 C-40.6 102.2 -39.3 111 -38.4 116 C-37.5 121 -36.1 126.7 -35 132 " +
+        "C-33.9 137.3 -32.9 140 -31.8 144 C-30.7 149 -28.2 157 -26 160 C-23.8 163 -19.6 166.2 -17 167.2 " +
+        "C-14.4 168.2 -11.6 168 -10.4 166 C-9.4 164.2 -9.1 160 -8.4 155 C-7.7 150 -7.1 145.7 -6.4 140 " +
+        "C-5.7 134.3 -4.8 129 -4.4 124 C-4 119 -3.8 110 -3.8 110 Z"
 
+    /** La columna, como surco de tinta, y las fibras de los dorsales. */
     val BACK_DETAIL: List<String> = listOf(
+        "M0 66 C0.4 90 -0.4 118 0 146 C0.2 156 0 164 0 170",
         "M11 112 C12 114.7 15.3 122 17 128 C18.7 134 20.2 141.7 21 148 C21.8 154.3 21.8 163 22 166",
         "M-22 166 C-21.8 163 -21.8 154.3 -21 148 C-20.2 141.7 -18.7 134 -17 128 C-15.3 122 -12 114.7 -11 112",
         "M18 108 C19.5 110.7 25 117.7 27 124 C29 130.3 29.5 142.3 30 146",
@@ -148,6 +144,11 @@ internal object MuscleArtPaths {
         "M26 104 C27.2 106 31.5 111.3 33 116 C34.5 120.7 34.7 129.3 35 132",
         "M-35 132 C-34.7 129.3 -34.5 120.7 -33 116 C-31.5 111.3 -27.2 106 -26 104",
     )
+
+    /** Los omóplatos, como contorno fino: pieza móvil que se junta hacia la columna al contraerse. */
+    const val BACK_SCAPULAE =
+        "M8 94 C14 96 22 101 25 108 C27 114 22 126 16 134 C13 137 11 134 10 128 C9 118 7.5 106 8 94 Z " +
+        "M-8 94 C-14 96 -22 101 -25 108 C-27 114 -22 126 -16 134 C-13 137 -11 134 -10 128 C-9 118 -7.5 106 -8 94 Z"
 
     // ---- SHOULDERS
     const val SHOULDERS_BACK = false
@@ -163,51 +164,57 @@ internal object MuscleArtPaths {
         "M-51.2 84.6 C-54.4 92.6 -56.4 101 -56.8 110",
     )
 
-    // ---- BICEPS (de perfil, gesto clásico de sacar bíceps: brazo casi horizontal, antebrazo vertical con el puño arriba)
-    const val BICEPS_BACK = false
-    /** Contorno del brazo flexionado, con el hombro y el pecho a la izquierda. Sustituye a la silueta del cuerpo. */
-    const val BICEPS_OUTLINE =
-        "M12 35 L39.8 38.5 L41.5 15 C41.5 9.5 43.5 5 46 5 C48.5 5 50.5 9.5 50.5 15 L48.4 45 C48.6 " +
-        "47.5 48.5 49 46.5 49 L12 45 C8.5 45 6 42.5 6 40 C6 37.5 8.5 35 12 35 Z M15 12 C8 20 4 30 4 " +
-        "40 C4 50 8 56 15 62"
-    const val BICEPS_REGION =
-        "M16 35 C16 31.13 21.37 28 28 28 C34.63 28 40 31.13 40 35 C40 38.87 34.63 42 28 42 C21.37 42 " +
-        "16 38.87 16 35 Z"
+    // ---- BRAZOS (de frente, perfil de «doble bíceps» de un brazo: hombro a la izquierda, húmero casi horizontal, antebrazo
+    // vertical y puño arriba). Bíceps = el pico de arriba del húmero, con el acento entero; tríceps = la herradura de abajo,
+    // al 55 %. Sustituye a los antiguos BICEPS y TRICEPS (K1).
+    const val ARMS_BACK = false
+    /** Contorno estático de Brazos: el húmero y el borde del deltoides y del torso, en tinta tenue (contexto). */
+    const val ARMS_OUTLINE =
+        "M12 35 L39.8 38.5 L41.5 38.5 L41.5 45 L12 45 C8.5 45 6 42.5 6 40 C6 37.5 8.5 35 12 35 Z " +
+        "M15 12 C8 20 4 30 4 40 C4 50 8 56 15 62 M1 12 C-0.5 24 -1 40 -0.5 56"
 
-    val BICEPS_DETAIL: List<String> = listOf(
-        "M19 35 C22 33.5 34 33.5 37 35",
+    /** El antebrazo con su puño: pieza móvil en tinta que gira con el codo al contraerse (el codo cierra). */
+    const val ARMS_FOREARM =
+        "M39.8 38.5 L41.5 15 C41.5 9.5 43.5 5 46 5 C48.5 5 50.5 9.5 50.5 15 L48.4 45 C48.6 47.5 48.5 49 46.5 49 " +
+        "L41.5 45 Z"
+    /** El bíceps: el pico de arriba del húmero, con el acento entero. */
+    const val ARMS_BICEPS_REGION =
+        "M12 40 C12 34 17 30 22 26.5 C24 25 25.5 22.8 27 22 C29 23 31 26 33 27 C36.5 28.5 39.5 32.5 40.5 36 " +
+        "C41 37.5 41 39 41 40 Z"
+    /** El tríceps: la herradura de abajo del húmero, que se curva hacia el codo; va al 55 % del acento. */
+    const val ARMS_TRICEPS_REGION =
+        "M12 40 L41 40 C41.5 43 42.5 46 43 48.5 C43.4 51 41 52.5 38.5 51.5 C36 50.5 36 47.5 34 46.5 " +
+        "C31.5 45.3 28.5 45.5 25 45.6 C20 45.8 16 45.6 12 45 C10.4 44.7 10.2 42 12 40 Z"
+    /** La región de Brazos entera (bíceps y tríceps): la forma y el encuadre. */
+    const val ARMS_REGION = ARMS_BICEPS_REGION + " " + ARMS_TRICEPS_REGION
+
+    /** La línea fina de tinta entre el bíceps y el tríceps. */
+    val ARMS_DETAIL: List<String> = listOf(
+        "M12.5 40 C20 40.6 33 40.6 40.5 40",
     )
 
-    // ---- TRICEPS (de espalda, brazo colgado recto: la herradura con la abertura hacia el codo)
-    const val TRICEPS_BACK = true
-    /** Contorno del brazo colgado visto de espalda. */
-    const val TRICEPS_OUTLINE =
-        "M26 14 C26 8 29 5.5 32 5.5 C35 5.5 38 8 38 14 L38 40 C38 44 37 46 35.5 47 L36 58 C36 60 34 " +
-        "62 32 62 C30 62 28 60 28 58 L28.5 47 C27 46 26 44 26 40 Z"
-    const val TRICEPS_REGION =
-        "M23 38 C22.5 24 25.5 9.5 32 9.5 C38.5 9.5 41.5 24 41 38 L35.5 38 C35.5 28 34 17 32 17 C30 17 " +
-        "28.5 28 28.5 38 L23 38 Z"
-
-    val TRICEPS_DETAIL: List<String> = listOf(
-        "M31 19 C31.2 25 31.2 32 31 38",
-        "M33 19 C32.8 25 32.8 32 33 38",
-    )
-
-    // ---- FOREARMS (de frente: antebrazo vertical con el puño cerrado arriba y el vientre en huso)
+    // ---- FOREARMS (de frente: antebrazo vertical, codo abajo y puño arriba agarrando un mango horizontal)
     const val FOREARMS_BACK = false
-    /** Contorno del antebrazo con el puño cerrado. */
+    /** Antebrazo estático, de la muñeca (y≈18) al codo (y≈62). El puño y el mango van aparte: [FOREARMS_MOVING]. */
     const val FOREARMS_OUTLINE =
-        "M24 60 C23 52 23 46 23.5 42 C24 34 27 27 27.5 19 L26 17 L26 12 C26 8.34 27.34 7 29 7 L35 7 " +
-        "C36.66 7 38 8.34 38 10 L38 17 L36.5 19 C37 27 40.5 34 40.5 42 C40.5 46 40.5 52 40 60 C35 62 " +
-        "29 62 24 60 Z"
+        "M26.5 18 C26.8 26 25 34 24 42 C23.2 50 23 56 24 60 C27 62.5 37 62.5 40 60 C41 56 40.8 50 40 42 " +
+        "C39 34 37.2 26 37.5 18 Z"
+    /** La masa de los flexores: ancha junto al codo y afinada hacia la muñeca, con forma de gota. */
     const val FOREARMS_REGION =
-        "M25 44 C25 36 28 25 28 22 L36 22 C36 25 39 36 39 44 C39 50 36 56 32 58 C28 56 25 50 25 44 Z"
+        "M28 24 C28.5 32 25 40 24.5 47 C24 53 26.5 58 32 58.5 C37.5 58 40 53 39.5 47 C39 40 35.5 32 36 24 " +
+        "C34.5 22.5 29.5 22.5 28 24 Z"
 
+    /** Vientre y supinador largo (la línea del lado del pulgar). */
     val FOREARMS_DETAIL: List<String> = listOf(
-        "M29 40 C30 34 30.5 28 31 25",
-        "M35 40 C34 34 33.5 28 33 25",
-        "M28.5 13.5 C30.5 14.6 33.5 14.6 35.5 13.5",
+        "M36 52 C37 46 36.6 38 35 30",
+        "M30 30 C30.4 36 30.6 44 31 50",
     )
+
+    /** La pieza móvil: el puño, sus nudillos y el mango que atraviesa el puño. Gira con la muñeca al contraerse. */
+    const val FOREARMS_MOVING =
+        "M26.5 18 L25.6 12.5 C25.2 9.5 26.8 6.2 30 5.4 L34 5.4 C37.2 6.2 38.8 9.5 38.4 12.5 L37.5 18 Z " +
+        "M27.5 7.6 C29 6.6 31 6.4 32 7.4 C33 6.4 35 6.6 36.5 7.6 " +
+        "M13 10.2 L51 10.2 C52.4 10.2 52.6 13.8 51 13.8 L13 13.8 C11.6 13.8 11.4 10.2 13 10.2 Z"
 
     // ---- ABS
     const val ABS_BACK = false

@@ -323,7 +323,7 @@ class SetupEntrenoReducersTest {
         // Cambiar de perfil cambia la sugerencia mientras nadie haya tocado el paso.
         val armWrestling = suggested.withGoalProfile(TrainingGoalProfile.ARMWRESTLING)
         assertEquals(
-            setOf(MuscleSymbol.FOREARMS, MuscleSymbol.BICEPS),
+            setOf(MuscleSymbol.FOREARMS, MuscleSymbol.ARMS),
             MuscleSymbols.symbolsOf(armWrestling.trainingOptions.orderPriorities),
         )
         // Con Culturismo («libre») no se sugiere nada.
@@ -441,7 +441,7 @@ class SetupEntrenoReducersTest {
         // Quitar uno y el tope de cinco.
         assertEquals(mapOf("Pectorales" to 1), draft.withMuscleToggled(MuscleSymbol.FOREARMS).trainingOptions.orderPriorities)
         val five = listOf(
-            MuscleSymbol.CHEST, MuscleSymbol.BACK, MuscleSymbol.SHOULDERS, MuscleSymbol.BICEPS, MuscleSymbol.TRICEPS,
+            MuscleSymbol.CHEST, MuscleSymbol.BACK, MuscleSymbol.SHOULDERS, MuscleSymbol.ARMS, MuscleSymbol.FOREARMS,
         ).fold(SetupWizardDraft()) { acc, symbol -> acc.withMuscleToggled(symbol) }
         assertEquals(5, five.trainingOptions.orderPriorities.size)
         assertSame(five, five.withMuscleToggled(MuscleSymbol.ABS).let { if (it == five) five else it })

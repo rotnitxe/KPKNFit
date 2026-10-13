@@ -30,8 +30,12 @@ class SetupStepDefinitionsTest {
         // Only reorders exercises: the engine's canonical muscle names, stable.
         assertEquals(ORDER_MUSCLE_OPTIONS.map { it.value }, priorities.options.map { it.value })
         assertTrue("Antebrazo", priorities.options.any { it.value == "Antebrazo" })
-        // Cada símbolo tiene su músculo canónico en la lista.
-        assertTrue(MuscleSymbol.entries.all { symbol -> priorities.option(MuscleSymbols.canonical(symbol)) != null })
+        // Cada símbolo tiene sus músculos canónicos en la lista («Brazos» tiene dos: bíceps y tríceps).
+        assertTrue(
+            MuscleSymbol.entries.all { symbol ->
+                MuscleSymbols.canonicals(symbol).all { canonical -> priorities.option(canonical) != null }
+            },
+        )
     }
 
     @Test

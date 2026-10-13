@@ -5,11 +5,15 @@ import com.example.kpkn.domain.training.canonicalSelection
 /**
  * Traducción entre los símbolos de músculo del paso PRIORITIES ([MuscleSymbol]) y los **músculos canónicos** del motor
  * de orden (la bolsa `orderPriorities`: `ORDER_MUSCLE_OPTIONS` + `orderPointsFromBag`). Un símbolo elegido escribe un
- * punto en su músculo canónico; la bolsa solo reordena ejercicios dentro de la sesión.
+ * punto en cada uno de sus músculos canónicos («Brazos» escribe en bíceps y en tríceps); la bolsa solo reordena
+ * ejercicios dentro de la sesión.
  */
 object MuscleSymbols {
 
-    /** Cuántos músculos se pueden priorizar a la vez (la bolsa del motor admite 5 puntos en total). */
+    /**
+     * Cuántos SÍMBOLOS de músculo se pueden priorizar a la vez. La bolsa del motor admite más puntos que símbolos porque
+     * «Brazos» escribe dos (bíceps y tríceps): ver `SimpleCyclePersonalizer.MAX_ORDER_POINTS_TOTAL`.
+     */
     const val MAX_SELECTION = 5
 
     /**
@@ -18,39 +22,50 @@ object MuscleSymbols {
      */
     const val RETIRED_TRAPS_KEY = "Trapecio"
 
-    /** Nombre canónico del motor para [symbol]; es una clave de `ORDER_MUSCLE_OPTIONS`. */
-    fun canonical(symbol: MuscleSymbol): String = when (symbol) {
-        MuscleSymbol.CHEST -> "Pectorales"
-        MuscleSymbol.BACK -> "Dorsales"
-        MuscleSymbol.SHOULDERS -> "Deltoides"
-        MuscleSymbol.BICEPS -> "Bíceps"
-        MuscleSymbol.TRICEPS -> "Tríceps"
+    /**
+     * Nombres canónicos del motor de [symbol], todos claves de `ORDER_MUSCLE_OPTIONS`. Casi todo símbolo es un músculo;
+     * «Brazos» son dos (bíceps y tríceps), con un punto cada uno en la bolsa.
+     */
+    fun canonicals(symbol: MuscleSymbol): List<String> = when (symbol) {
+        MuscleSymbol.CHEST -> listOf("Pectorales")
+        MuscleSymbol.BACK -> listOf("Dorsales")
+        MuscleSymbol.SHOULDERS -> listOf("Deltoides")
+        MuscleSymbol.ARMS -> listOf("Bíceps", "Tríceps")
         // El catálogo y el motor lo llaman «Antebrazo» (singular): así lo cuentan el volumen y la bolsa de orden.
-        MuscleSymbol.FOREARMS -> "Antebrazo"
-        MuscleSymbol.ABS -> "Abdomen"
-        MuscleSymbol.GLUTES -> "Glúteos"
-        MuscleSymbol.QUADS -> "Cuádriceps"
-        MuscleSymbol.HAMSTRINGS -> "Isquiosurales"
-        MuscleSymbol.CALVES -> "Pantorrillas"
+        MuscleSymbol.FOREARMS -> listOf("Antebrazo")
+        MuscleSymbol.ABS -> listOf("Abdomen")
+        MuscleSymbol.GLUTES -> listOf("Glúteos")
+        MuscleSymbol.QUADS -> listOf("Cuádriceps")
+        MuscleSymbol.HAMSTRINGS -> listOf("Isquiosurales")
+        MuscleSymbol.CALVES -> listOf("Pantorrillas")
     }
 
-    private val byCanonical: Map<String, MuscleSymbol> = MuscleSymbol.entries.associateBy { canonical(it) }
+    private val byCanonical: Map<String, MuscleSymbol> =
+        MuscleSymbol.entries.flatMap { symbol -> canonicals(symbol).map { it to symbol } }.toMap()
 
     /**
      * Símbolo de un músculo de la bolsa. Acepta el nombre canónico y los sinónimos que el motor normaliza («pecho»,
-     * «antebrazos»…); null para los músculos de la bolsa sin símbolo (p. ej. «Erectores Espinales», de borradores antiguos).
+     * «antebrazos», «brazos»…); null para los músculos de la bolsa sin símbolo (p. ej. «Erectores Espinales», de borradores antiguos).
      */
     fun fromCanonical(name: String): MuscleSymbol? = byCanonical[name] ?: byCanonical[canonicalSelection(name)]
 
     /** Músculos canónicos de [symbols], en el orden del contrato de símbolos y sin repetir. */
     fun canonicalSet(symbols: Set<MuscleSymbol>): Set<String> =
-        MuscleSymbol.entries.filter { it in symbols }.mapTo(linkedSetOf<String>()) { canonical(it) }
+        MuscleSymbol.entries.filter { it in symbols }.flatMapTo(linkedSetOf<String>()) { canonicals(it) }
 
-    /** La bolsa de orden de [symbols]: un punto por músculo canónico (nunca más de [MAX_SELECTION] en total). */
+    /**
+     * La bolsa de orden de [symbols]: un punto por músculo canónico, de los primeros [MAX_SELECTION] símbolos en el orden
+     * del contrato. Con «Brazos» salen dos puntos (bíceps y tríceps), así que la bolsa puede llegar a seis.
+     */
     fun orderBagOf(symbols: Set<MuscleSymbol>): Map<String, Int> =
-        MuscleSymbol.entries.filter { it in symbols }.take(MAX_SELECTION).associate { canonical(it) to 1 }
+        MuscleSymbol.entries.filter { it in symbols }.take(MAX_SELECTION)
+            .flatMap { canonicals(it) }
+            .associateWith { 1 }
 
-    /** Los símbolos que dice una bolsa de orden (los músculos sin símbolo se ignoran). */
+    /**
+     * Los símbolos que dice una bolsa de orden (los músculos sin símbolo se ignoran). «Bíceps» o «Tríceps», solos o
+     * juntos, dicen «Brazos».
+     */
     fun symbolsOf(bag: Map<String, Int>): Set<MuscleSymbol> =
         bag.filterValues { it > 0 }.keys.mapNotNullTo(linkedSetOf<MuscleSymbol>()) { fromCanonical(it) }
 }
@@ -66,7 +81,7 @@ object MuscleSuggestions {
         TrainingGoalProfile.POWERLIFTING -> linkedSetOf(
             MuscleSymbol.CHEST, MuscleSymbol.GLUTES, MuscleSymbol.QUADS, MuscleSymbol.HAMSTRINGS, MuscleSymbol.ABS,
         )
-        TrainingGoalProfile.ARMWRESTLING -> linkedSetOf(MuscleSymbol.FOREARMS, MuscleSymbol.BICEPS)
+        TrainingGoalProfile.ARMWRESTLING -> linkedSetOf(MuscleSymbol.FOREARMS, MuscleSymbol.ARMS)
         TrainingGoalProfile.POWERBUILDING -> linkedSetOf(
             MuscleSymbol.CHEST, MuscleSymbol.BACK, MuscleSymbol.QUADS, MuscleSymbol.HAMSTRINGS,
         )

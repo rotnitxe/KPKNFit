@@ -533,7 +533,7 @@ class SetupWizardFullJourneyTest {
 
         // Prioridades: tres músculos (un punto cada uno); sin marcas ni capacidades en la ruta de Culturismo.
         confirmStep(vm, SetupStepId.PRIORITIES, SetupStepId.AVOIDED_EXERCISES) {
-            listOf(MuscleSymbol.CHEST, MuscleSymbol.BACK, MuscleSymbol.TRICEPS).forEach(vm::toggleMuscle)
+            listOf(MuscleSymbol.CHEST, MuscleSymbol.BACK, MuscleSymbol.ARMS).forEach(vm::toggleMuscle)
         }
         assertEquals(priorityBag(), vm.state.value.draft.trainingOptions.orderPriorities)
         // Culturismo pregunta qué ejercicios evitar: «Ninguno» (sin grupos) no cambia el programa.

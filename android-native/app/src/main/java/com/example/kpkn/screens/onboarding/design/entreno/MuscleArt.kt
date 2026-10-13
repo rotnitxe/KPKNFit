@@ -16,7 +16,7 @@ import kotlin.math.sin
  *
  * Todo vive en el ESPACIO DEL CUERPO (x hacia la derecha de quien mira, eje en x = 0, y hacia abajo; cabeza = 50,
  * cuerpo = 400). La silueta es la misma para todos (un trazo de cuerpo completo de frente y otro de espalda), salvo los gestos
- * del brazo (bíceps de perfil, tríceps colgado y antebrazo con puño), que llevan su propio contorno. Los trazos de datos están
+ * del brazo (doble bíceps de perfil y antebrazo con puño), que llevan su propio contorno. Los trazos de datos están
  * en [MuscleArtPaths]. Los gestos del brazo van en las mismas unidades del lienzo de 64, que fijan su encuadre.
  */
 
@@ -42,7 +42,7 @@ internal enum class MuscleFamily(val context: List<String>) {
     /** Torso de espalda: espalda. */
     TORSO_BACK(MuscleArtPaths.TORSO_BACK_CONTEXT),
 
-    /** Brazo: bíceps (flexionado, de frente), tríceps (extendido, de espalda) y antebrazo (con puño). */
+    /** Brazo: Brazos (bíceps y tríceps en perfil de «doble bíceps») y antebrazo (con puño). */
     ARM(MuscleArtPaths.ARM_CONTEXT),
 
     /** Pierna de frente: cuádriceps. */
@@ -50,6 +50,21 @@ internal enum class MuscleFamily(val context: List<String>) {
 
     /** Pierna de espalda: glúteos, isquios y pantorrillas. */
     LEG_BACK(MuscleArtPaths.LEG_BACK_CONTEXT),
+}
+
+/** Cómo se mueve la pieza móvil de un músculo al contraerse ([MuscleSpec.moving]), aparte de la región. */
+internal enum class PartMotion {
+    /** Sin movimiento propio: la pieza va con la silueta. */
+    NONE,
+
+    /** La muñeca flexiona: gira [MuscleArt.WRIST_FLEX_DEG] alrededor de [MuscleSpec.motionPivot]. */
+    WRIST_FLEX,
+
+    /** El codo cierra: el antebrazo gira [MuscleArt.ELBOW_CLOSE_DEG] alrededor del codo ([MuscleSpec.motionPivot]). */
+    ELBOW_CLOSE,
+
+    /** Los omóplatos se juntan hacia la columna: se acercan a x = 0 en [MuscleArt.SCAPULA_TUCK] de su distancia. */
+    SCAPULA_IN,
 }
 
 /**
@@ -75,6 +90,14 @@ internal class MuscleSpec(
     val origin: Offset,
     /** Contorno propio del gesto (brazo flexionado, antebrazo con puño); `null` = silueta del cuerpo. */
     val outline: String? = null,
+    /** La parte de [region] que lleva el acento entero (Brazos: el bíceps); el resto de la región va al 55 %. */
+    val accentPart: String? = null,
+    /** Pieza móvil del gesto (puño y mango, omóplatos): se dibuja aparte y se mueve según [motion]. */
+    val moving: String? = null,
+    /** Cómo se mueve la pieza móvil al contraerse. */
+    val motion: PartMotion = PartMotion.NONE,
+    /** Pivote del movimiento de la pieza móvil (la muñeca). */
+    val motionPivot: Offset = Offset.Zero,
 ) {
     /** Las marcas del cuerpo de la familia. */
     val context: List<String> get() = family.context
@@ -85,6 +108,12 @@ internal class MuscleShape(val spec: MuscleSpec) {
     val region: Path = MuscleArt.parse(spec.region)
     val detail: List<Path> = spec.detail.map(MuscleArt::parse)
     val context: List<Path> = spec.context.map(MuscleArt::parse)
+
+    /** La parte de acento entero, si la hay (Brazos: el bíceps). */
+    val accentPart: Path? = spec.accentPart?.let(MuscleArt::parse)
+
+    /** La pieza móvil del gesto, si la hay (puño con mango, omóplatos). */
+    val moving: Path? = spec.moving?.let(MuscleArt::parse)
 
     /** El contorno de contexto de este músculo: su gesto propio o la silueta del cuerpo de su vista (compartida). */
     val silhouette: Path = spec.outline?.let(MuscleArt::parse) ?: MuscleArt.silhouette(spec.view)
@@ -108,6 +137,15 @@ internal object MuscleArt {
     /** …y se ensancha esta fracción en perpendicular. */
     const val CONTRACT_ACROSS = 0.05f
 
+    /** Ángulo de la muñeca al flexionar, en grados (negativo: hacia la izquierda de quien mira). */
+    const val WRIST_FLEX_DEG = -10f
+
+    /** Ángulo con el que cierra el codo de Brazos al contraerse, en grados (negativo: el antebrazo sube hacia el hombro). */
+    const val ELBOW_CLOSE_DEG = -12f
+
+    /** Fracción en que los omóplatos se acercan a la columna al contraerse. */
+    const val SCAPULA_TUCK = 0.15f
+
     fun parse(d: String): Path = PathParser().parsePathString(d).toPath()
 
     /** Los datos de [m]. */
@@ -120,27 +158,25 @@ internal object MuscleArt {
                 MuscleArtPaths.CHEST_REGION, MuscleArtPaths.CHEST_DETAIL, fiberAngleDeg = -15f, origin = Offset(0f, 104f),
             ),
             MuscleSymbol.BACK to spec(
-                MuscleFamily.TORSO_BACK, MuscleArtPaths.BACK_BACK, MuscleWindow(0f, 148.7f, 130f),
-                MuscleArtPaths.BACK_REGION, MuscleArtPaths.BACK_DETAIL, fiberAngleDeg = -75f, origin = Offset(0f, 182f),
+                MuscleFamily.TORSO_BACK, MuscleArtPaths.BACK_BACK, MuscleWindow(0f, 117f, 130f),
+                MuscleArtPaths.BACK_REGION, MuscleArtPaths.BACK_DETAIL, fiberAngleDeg = -75f, origin = Offset(0f, 117f),
+                moving = MuscleArtPaths.BACK_SCAPULAE, motion = PartMotion.SCAPULA_IN,
             ),
             MuscleSymbol.SHOULDERS to spec(
                 MuscleFamily.TORSO_FRONT, MuscleArtPaths.SHOULDERS_BACK, MuscleWindow(0f, 100f, 150f),
                 MuscleArtPaths.SHOULDERS_REGION, MuscleArtPaths.SHOULDERS_DETAIL, fiberAngleDeg = 80f, origin = Offset(0f, 78f),
             ),
-            MuscleSymbol.BICEPS to spec(
-                MuscleFamily.ARM, MuscleArtPaths.BICEPS_BACK, MuscleWindow(28f, 32f, 58f),
-                MuscleArtPaths.BICEPS_REGION, MuscleArtPaths.BICEPS_DETAIL, fiberAngleDeg = 0f, origin = Offset(16f, 35f),
-                outline = MuscleArtPaths.BICEPS_OUTLINE,
-            ),
-            MuscleSymbol.TRICEPS to spec(
-                MuscleFamily.ARM, MuscleArtPaths.TRICEPS_BACK, MuscleWindow(32f, 23.75f, 62f),
-                MuscleArtPaths.TRICEPS_REGION, MuscleArtPaths.TRICEPS_DETAIL, fiberAngleDeg = 90f, origin = Offset(32f, 9.5f),
-                outline = MuscleArtPaths.TRICEPS_OUTLINE,
+            MuscleSymbol.ARMS to spec(
+                MuscleFamily.ARM, MuscleArtPaths.ARMS_BACK, MuscleWindow(28f, 34f, 58f),
+                MuscleArtPaths.ARMS_REGION, MuscleArtPaths.ARMS_DETAIL, fiberAngleDeg = 0f, origin = Offset(6f, 40f),
+                outline = MuscleArtPaths.ARMS_OUTLINE, accentPart = MuscleArtPaths.ARMS_BICEPS_REGION,
+                moving = MuscleArtPaths.ARMS_FOREARM, motion = PartMotion.ELBOW_CLOSE, motionPivot = Offset(46f, 47f),
             ),
             MuscleSymbol.FOREARMS to spec(
                 MuscleFamily.ARM, MuscleArtPaths.FOREARMS_BACK, MuscleWindow(32f, 39.5f, 72f),
-                MuscleArtPaths.FOREARMS_REGION, MuscleArtPaths.FOREARMS_DETAIL, fiberAngleDeg = 90f, origin = Offset(32f, 58f),
-                outline = MuscleArtPaths.FOREARMS_OUTLINE,
+                MuscleArtPaths.FOREARMS_REGION, MuscleArtPaths.FOREARMS_DETAIL, fiberAngleDeg = 90f, origin = Offset(32f, 60f),
+                outline = MuscleArtPaths.FOREARMS_OUTLINE, moving = MuscleArtPaths.FOREARMS_MOVING,
+                motion = PartMotion.WRIST_FLEX, motionPivot = Offset(32f, 18f),
             ),
             MuscleSymbol.ABS to spec(
                 MuscleFamily.TORSO_FRONT, MuscleArtPaths.ABS_BACK, MuscleWindow(0f, 154.2f, 92f),
@@ -174,6 +210,10 @@ internal object MuscleArt {
         fiberAngleDeg: Float,
         origin: Offset,
         outline: String? = null,
+        accentPart: String? = null,
+        moving: String? = null,
+        motion: PartMotion = PartMotion.NONE,
+        motionPivot: Offset = Offset.Zero,
     ): MuscleSpec = MuscleSpec(
         view = if (back) BodyView.BACK else BodyView.FRONT,
         family = family,
@@ -183,6 +223,10 @@ internal object MuscleArt {
         fiberAngleDeg = fiberAngleDeg,
         origin = origin,
         outline = outline,
+        accentPart = accentPart,
+        moving = moving,
+        motion = motion,
+        motionPivot = motionPivot,
     )
 
     private val shapes: Array<Lazy<MuscleShape>> = Array(MuscleSymbol.entries.size) { i ->
@@ -218,6 +262,36 @@ internal object MuscleArt {
         v[5] = d
         v[12] = ox - (a * ox + b * oy)
         v[13] = oy - (b * ox + d * oy)
+    }
+
+    /**
+     * Escribe en [out] el movimiento propio de la pieza móvil de [spec] con intensidad [k] (0 = reposo, 1 = contraído): la
+     * muñeca gira alrededor de su pivote, o los omóplatos se acercan a la columna (escala en x alrededor de x = 0). Sin
+     * movimiento propio, la identidad. Como [contractInto], escribe en un Matrix reutilizado.
+     */
+    fun motionInto(spec: MuscleSpec, k: Float, out: Matrix) {
+        out.reset()
+        when (spec.motion) {
+            PartMotion.NONE -> Unit
+            PartMotion.WRIST_FLEX -> rotateInto(WRIST_FLEX_DEG * k, spec.motionPivot, out)
+            PartMotion.ELBOW_CLOSE -> rotateInto(ELBOW_CLOSE_DEG * k, spec.motionPivot, out)
+            PartMotion.SCAPULA_IN -> out.values[0] = 1f - SCAPULA_TUCK * k
+        }
+    }
+
+    /** Escribe en [out] una rotación de [deg] grados alrededor de [pivot], con el mismo convenio que [contractInto]. */
+    private fun rotateInto(deg: Float, pivot: Offset, out: Matrix) {
+        val th = deg * DEG
+        val c = cos(th)
+        val s = sin(th)
+        val v = out.values
+        v[0] = c
+        v[1] = s
+        v[4] = -s
+        v[5] = c
+        // x' = c·(x − px) − s·(y − py) + px; y' = s·(x − px) + c·(y − py) + py.
+        v[12] = pivot.x - c * pivot.x + s * pivot.y
+        v[13] = pivot.y - s * pivot.x - c * pivot.y
     }
 
     private val frontSilhouette: Lazy<Path> = lazy { silhouettePath() }

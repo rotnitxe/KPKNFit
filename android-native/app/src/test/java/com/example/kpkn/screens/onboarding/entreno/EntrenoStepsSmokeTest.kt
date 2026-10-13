@@ -409,7 +409,7 @@ class EntrenoStepsSmokeTest {
 
     @Test
     fun withFiveMusclesTheGridSaysTheCapAndTheTapOnAnotherOneChangesNothing() {
-        val five = setOf(MuscleSymbol.CHEST, MuscleSymbol.BACK, MuscleSymbol.SHOULDERS, MuscleSymbol.BICEPS, MuscleSymbol.TRICEPS)
+        val five = setOf(MuscleSymbol.CHEST, MuscleSymbol.BACK, MuscleSymbol.SHOULDERS, MuscleSymbol.ARMS, MuscleSymbol.FOREARMS)
         val draft = five.fold(SetupWizardDraft()) { d, muscle -> d.withMuscleToggled(muscle) }
         show(draft) { s, v -> EntrenoMusclesStep(s, v) }
         rule.onNodeWithText("Máximo 5 músculos.").assertExists()

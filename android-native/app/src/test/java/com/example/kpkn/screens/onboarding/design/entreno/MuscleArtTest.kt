@@ -5,6 +5,7 @@ import androidx.compose.ui.graphics.vector.PathNode
 import androidx.compose.ui.graphics.vector.PathParser
 import com.example.kpkn.domain.onboarding.MuscleSymbol
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertSame
 import org.junit.Assert.assertTrue
 import org.junit.Assert.fail
@@ -41,7 +42,7 @@ class MuscleArtTest {
     private val families: Map<MuscleFamily, Set<MuscleSymbol>> = mapOf(
         MuscleFamily.TORSO_FRONT to setOf(MuscleSymbol.CHEST, MuscleSymbol.SHOULDERS, MuscleSymbol.ABS),
         MuscleFamily.TORSO_BACK to setOf(MuscleSymbol.BACK),
-        MuscleFamily.ARM to setOf(MuscleSymbol.BICEPS, MuscleSymbol.TRICEPS, MuscleSymbol.FOREARMS),
+        MuscleFamily.ARM to setOf(MuscleSymbol.ARMS, MuscleSymbol.FOREARMS),
         MuscleFamily.LEG_FRONT to setOf(MuscleSymbol.QUADS),
         MuscleFamily.LEG_BACK to setOf(MuscleSymbol.GLUTES, MuscleSymbol.HAMSTRINGS, MuscleSymbol.CALVES),
     )
@@ -143,13 +144,13 @@ class MuscleArtTest {
     }
 
     @Test
-    fun `hay dibujo para los once musculos`() {
+    fun `hay dibujo para los diez musculos`() {
         for (m in MuscleSymbol.entries) {
             val spec = MuscleArt.spec(m)
             assertTrue("${m.name} sin región", spec.region.isNotBlank())
             assertTrue("${m.name} sin silueta de contexto ni fibras", spec.detail.isNotEmpty() || spec.context.isNotEmpty())
         }
-        assertEquals(11, MuscleSymbol.entries.size)
+        assertEquals(10, MuscleSymbol.entries.size)
     }
 
     @Test
@@ -160,6 +161,8 @@ class MuscleArtTest {
             all += s.region
             all += s.detail
             s.outline?.let { all += it }
+            s.accentPart?.let { all += it }
+            s.moving?.let { all += it }
         }
         for (f in MuscleFamily.entries) all += f.context
         for (d in all) {
@@ -227,29 +230,57 @@ class MuscleArtTest {
             val views = families.getValue(family).map { MuscleArt.spec(it).view }.toSet()
             assertEquals("${family.name} debe compartir vista", 1, views.size)
         }
-        // El brazo: bíceps y antebrazo de frente (con su gesto), tríceps de espalda (la herradura vista desde atrás).
-        assertEquals(BodyView.FRONT, MuscleArt.spec(MuscleSymbol.BICEPS).view)
-        assertEquals(BodyView.BACK, MuscleArt.spec(MuscleSymbol.TRICEPS).view)
+        // El brazo: Brazos y antebrazo de frente, con su gesto (el doble bíceps de perfil y el puño).
+        assertEquals(BodyView.FRONT, MuscleArt.spec(MuscleSymbol.ARMS).view)
         assertEquals(BodyView.FRONT, MuscleArt.spec(MuscleSymbol.FOREARMS).view)
-        assertSame(MuscleFamily.ARM.context, MuscleArt.spec(MuscleSymbol.TRICEPS).context)
+        assertSame(MuscleFamily.ARM.context, MuscleArt.spec(MuscleSymbol.ARMS).context)
     }
 
     @Test
     fun `el gesto del brazo llena la celda a lo alto`() {
-        // Bíceps flexionado (puño arriba) y antebrazo con puño: el contorno propio ocupa la celda de arriba abajo.
-        for (m in listOf(MuscleSymbol.BICEPS, MuscleSymbol.FOREARMS)) {
+        // Brazos (doble bíceps con el puño arriba) y antebrazo con puño: el gesto (contorno y pieza móvil) ocupa la celda.
+        for (m in listOf(MuscleSymbol.ARMS, MuscleSymbol.FOREARMS)) {
             val spec = MuscleArt.spec(m)
             val outline = checkNotNull(spec.outline) { "${m.name} sin contorno propio" }
-            val b = boundsOf(outline)
+            val b = boundsOf(listOfNotNull(outline, spec.moving).joinToString(" "))
             val high = (b.maxY - b.minY) / spec.window.size
             assertTrue("${m.name} no llena la celda a lo alto ($high)", high >= 0.6f)
         }
     }
 
     @Test
+    fun `al contraerse la muneca flexiona y los omoplatos se juntan hacia la columna`() {
+        val rest = Matrix()
+        val full = Matrix()
+        // Antebrazo: el puño (x 32, y 5,4) gira unos 10° a la izquierda alrededor de la muñeca (32, 18); en reposo, nada.
+        val forearm = MuscleArt.spec(MuscleSymbol.FOREARMS)
+        MuscleArt.motionInto(forearm, 0f, rest)
+        assertEquals(32f, applied(rest, 32f, 5.4f).first, 0.001f)
+        MuscleArt.motionInto(forearm, 1f, full)
+        val (fx, fy) = applied(full, 32f, 5.4f)
+        assertTrue("la muñeca gira ${fx - 32f}", (fx - 32f) in -2.6f..-1.8f)
+        assertTrue("el puño no sube ni baja ($fy)", abs(fy - 5.4f) < 0.6f)
+        // Espalda: un omóplato (x 25) se acerca a la columna unas 3 unidades; la columna (x 0) no se mueve.
+        val back = MuscleArt.spec(MuscleSymbol.BACK)
+        MuscleArt.motionInto(back, 1f, full)
+        val (sx, _) = applied(full, 25f, 108f)
+        assertTrue("el omóplato se acerca ${25f - sx}", (25f - sx) in 2.5f..4f)
+        assertEquals(0f, applied(full, 0f, 110f).first, 0.001f)
+        // Brazos: el codo cierra y el antebrazo, con el puño arriba, sube hacia el hombro unos 8 unidades (12 grados).
+        val arms = MuscleArt.spec(MuscleSymbol.ARMS)
+        MuscleArt.motionInto(arms, 0f, rest)
+        assertEquals(46f, applied(rest, 46f, 5f).first, 0.001f)
+        MuscleArt.motionInto(arms, 1f, full)
+        val (ex, _) = applied(full, 46f, 5f)
+        assertTrue("el codo cierra ${ex - 46f}", (ex - 46f) in -9.5f..-7.5f)
+        // Su parte de acento entero (el bíceps) está dentro de la región de Brazos.
+        assertTrue(arms.region.contains(checkNotNull(arms.accentPart)))
+    }
+
+    @Test
     fun `la espalda se ve de espalda y el resto de frente`() {
         val back = setOf(
-            MuscleSymbol.BACK, MuscleSymbol.TRICEPS,
+            MuscleSymbol.BACK,
             MuscleSymbol.GLUTES, MuscleSymbol.HAMSTRINGS, MuscleSymbol.CALVES,
         )
         for (m in MuscleSymbol.entries) {

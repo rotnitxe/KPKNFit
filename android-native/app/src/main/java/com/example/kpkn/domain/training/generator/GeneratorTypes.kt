@@ -187,15 +187,11 @@ internal object PriorityTargets {
             listOf(RoutinePattern.VERTICAL_PUSH, RoutinePattern.SHOULDER_LATERAL, RoutinePattern.REAR_DELT),
             listOf(RoutinePattern.SHOULDER_LATERAL to ItemRole.ISOLATION, RoutinePattern.REAR_DELT to ItemRole.ISOLATION),
         )
-        com.example.kpkn.domain.onboarding.MuscleSymbol.BICEPS -> t(
-            setOf(Muscles.BICEPS),
-            listOf(RoutinePattern.BICEPS),
-            listOf(RoutinePattern.BICEPS to ItemRole.ISOLATION),
-        )
-        com.example.kpkn.domain.onboarding.MuscleSymbol.TRICEPS -> t(
-            setOf(Muscles.TRICEPS),
-            listOf(RoutinePattern.TRICEPS),
-            listOf(RoutinePattern.TRICEPS to ItemRole.ISOLATION),
+        // «Brazos» es la unión de lo que daban bíceps y tríceps: sus dos músculos, sus patrones y un aislamiento de cada uno.
+        com.example.kpkn.domain.onboarding.MuscleSymbol.ARMS -> t(
+            setOf(Muscles.BICEPS, Muscles.TRICEPS),
+            listOf(RoutinePattern.BICEPS, RoutinePattern.TRICEPS),
+            listOf(RoutinePattern.BICEPS to ItemRole.ISOLATION, RoutinePattern.TRICEPS to ItemRole.ISOLATION),
         )
         com.example.kpkn.domain.onboarding.MuscleSymbol.FOREARMS -> t(
             setOf(Muscles.FOREARMS),
