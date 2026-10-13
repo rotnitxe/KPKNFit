@@ -348,6 +348,17 @@ object KpknLineIcons {
         )
     }
 
+    /** Bandera: asta vertical y paño con una muesca. Marca la fase de competición del módulo «Fases» (P2). */
+    val Flag: ImageVector by lazy {
+        icono(
+            "KpknLine.Flag",
+            listOf(
+                "M5.75 21.25V3.25",
+                "M5.75 4.25h11.5l-2.6 3.75 2.6 3.5H5.75",
+            ),
+        )
+    }
+
     /** Trazado del triángulo de `Play` y `PlayFilled`. */
     private const val TRIANGULO_PLAY =
         "M8.25 5.6v12.8a.9.9 0 0 0 1.37.77l10.2-6.4a.9.9 0 0 0 0-1.54l-10.2-6.4a.9.9 0 0 0-1.37.77z"

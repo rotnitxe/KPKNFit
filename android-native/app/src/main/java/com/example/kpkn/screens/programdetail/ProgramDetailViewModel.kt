@@ -2477,6 +2477,33 @@ class ProgramDetailViewModel(
         .distinctUntilChanged()
         .stateIn(viewModelScope, SharingStarted.Lazily, null)
 
+    /** Sesiones ya registradas del programa; la ejecución en curso no cuenta. La fila del día muestra su check (P2). */
+    val completedSessionIds: StateFlow<Set<String>> = combine(
+        program,
+        repository.history,
+        repository.ongoingWorkout,
+    ) { p, _, ongoing ->
+        val executed = p?.let { repository.executedTrainingEvidence(it).sessionIds }.orEmpty()
+        val inProgress = ongoing?.takeIf { it.programId == programId }?.session?.id
+        if (inProgress == null) executed else executed - inProgress
+    }
+        .distinctUntilChanged()
+        .stateIn(
+            viewModelScope,
+            SharingStarted.Lazily,
+            repository.getProgramById(programId)
+                ?.let { repository.executedTrainingEvidence(it).sessionIds }
+                .orEmpty(),
+        )
+
+    /** Días desplegados de la pestaña Semana y la semana a la que pertenecen: sobreviven al cambio de pestaña (P2). */
+    private val _expandedWeekDays = MutableStateFlow<Pair<String, Set<Int>>?>(null)
+    val expandedWeekDays: StateFlow<Pair<String, Set<Int>>?> = _expandedWeekDays.asStateFlow()
+
+    fun setExpandedWeekDays(weekId: String, days: Set<Int>) {
+        _expandedWeekDays.value = weekId to days
+    }
+
     companion object {
         private const val LOG_TAG = "ProgramDetailVM"
 

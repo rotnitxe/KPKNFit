@@ -1,83 +1,54 @@
 package com.example.kpkn.screens.programdetail.components
 
-import androidx.compose.foundation.BorderStroke
-import androidx.compose.animation.animateContentSize
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.combinedClickable
-import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.KeyboardArrowDown
-import androidx.compose.material.icons.filled.KeyboardArrowUp
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Button
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ElevatedCard
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.layout.boundsInWindow
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.TextFieldValue
-import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import com.example.kpkn.data.models.Program
-import com.example.kpkn.data.models.KeyDateType
 import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.models.SessionRequirement
+import com.example.kpkn.domain.text.SpanishPlurals
 import com.example.kpkn.domain.training.ProgramCalendarEngine
 import com.example.kpkn.domain.training.ScheduleIssue
-import com.example.kpkn.screens.programs.pluralSesiones
+import com.example.kpkn.domain.training.SessionDurationEstimator
 import com.example.kpkn.domain.training.StartDaySessionMode
 import com.example.kpkn.domain.training.StartDayTemporalScope
 import com.example.kpkn.domain.training.WeekWithMeta
-import com.example.kpkn.ui.components.KpknAlertDialog
+import com.example.kpkn.screens.programdetail.design.ProgramAnchoredMenuItem
+import com.example.kpkn.screens.programdetail.design.ProgramDayDateDialog
+import com.example.kpkn.screens.programdetail.design.ProgramDayModule
+import com.example.kpkn.screens.programdetail.design.ProgramDayUi
+import com.example.kpkn.screens.programdetail.design.ProgramItemMenu
+import com.example.kpkn.screens.programdetail.design.ProgramOffScheduleDialog
+import com.example.kpkn.screens.programdetail.design.ProgramRestoreSessionDialog
+import com.example.kpkn.screens.programdetail.design.ProgramSessionDragCard
+import com.example.kpkn.screens.programdetail.design.ProgramSessionUi
+import com.example.kpkn.screens.programdetail.design.ProgramStartDayDialog
 import java.time.LocalDate
 import java.time.format.DateTimeParseException
 import kotlin.math.abs
 import kotlin.math.roundToInt
-import com.example.kpkn.ui.components.KpknDropdownMenu
 
 data class DayInfo(
     val id: Int,
@@ -125,6 +96,15 @@ private data class DayDragState(
     val targetIndex: Int? = null,
 )
 
+/**
+ * Los días de la semana (P2): un módulo por día, empezando por el día de inicio del programa. Cada día se despliega al tocarlo; sus sesiones
+ * se reordenan arrastrándolas (pulsación larga y arrastre), y la cabecera del día abre «Dejar como comienzo de semana» con una pulsación
+ * larga. Los minutos salen de `SessionDurationEstimator`. Los diálogos de cada acción viven aquí y usan las piezas KPKN.
+ *
+ * [completedSessionIds] son las sesiones ya hechas (con su check). [expandedDayIds] y [onExpandedDayIdsChange] dejan que la pantalla
+ * guarde los días desplegados en el ViewModel, así sobreviven al cambio de pestaña; sin ellos, el desplegado vive aquí. [restoreBlockedSessionIds]
+ * son las sesiones que ya no se pueden restaurar desde el plan.
+ */
 @Composable
 fun DayView(
     program: Program,
@@ -150,9 +130,14 @@ fun DayView(
     /**
      * Sesiones ya registradas o en curso: su prescripción histórica no se
      * restaura, así que el botón «Restaurar esta sesión desde el plan» no se
-     * ofrece para ellas (el badge «Sesión personalizada» se conserva).
+     * ofrece para ellas (el aviso «Sesión personalizada» se conserva).
      */
     restoreBlockedSessionIds: Set<String> = emptySet(),
+    /** Sesiones ya hechas: su fila muestra el check. */
+    completedSessionIds: Set<String> = emptySet(),
+    /** Días desplegados, si los guarda la pantalla; null = los de siempre (hoy, o el primero). */
+    expandedDayIds: Set<Int>? = null,
+    onExpandedDayIdsChange: ((Set<Int>) -> Unit)? = null,
     modifier: Modifier = Modifier,
 ) {
     val startDay = program.startDay ?: 1
@@ -174,6 +159,9 @@ fun DayView(
     var editingDayDate by remember { mutableStateOf<Pair<Int, String>?>(null) }
     var startDayScope by remember { mutableStateOf(StartDayTemporalScope.ALL_WEEKS) }
     var startDaySessionMode by remember { mutableStateOf(StartDaySessionMode.KEEP_DAYS) }
+    var dayMenu by remember { mutableStateOf<Pair<Int, Rect>?>(null) }
+    var sessionMenu by remember { mutableStateOf<Pair<String, Rect>?>(null) }
+    var pendingRestoreSessionId by remember { mutableStateOf<String?>(null) }
     val outsideProgramDays = selectedWeek?.outsideProgramDays.orEmpty()
     val trainingDayDates = selectedWeek?.trainingDayDates.orEmpty()
     val selectedWeekId = selectedWeek?.id
@@ -198,22 +186,26 @@ fun DayView(
     // Restaurar desde el plan solo tiene sentido con receta fuente y para
     // sesiones que no se entrenaron ni están en curso.
     val hasSourceRecipe = program.sourceRecipe != null
-
-    val initialExpandedDay = remember(startDay, trainingDayDates) {
-        val todayStr = java.time.LocalDate.now().toString()
-        val calendarDayId = trainingDayDates.entries.firstOrNull { it.value == todayStr }?.key
-        if (calendarDayId != null) {
-            setOf(calendarDayId)
-        } else {
-            val todayDow = java.time.LocalDate.now().dayOfWeek.value
-            if (days.any { it.id == todayDow }) {
-                setOf(todayDow)
-            } else {
-                setOf(days.firstOrNull()?.id ?: 1)
-            }
-        }
+    // Minutos del estimador común y número de ejercicios, por sesión: nunca series × 3.
+    val minutesById = remember(sessions) {
+        sessions.associate { it.id to SessionDurationEstimator.estimate(it).totalMinutes }
     }
-    var expandedDays by remember(initialExpandedDay) { mutableStateOf(initialExpandedDay) }
+    val exercisesById = remember(sessions) { sessions.associate { it.id to it.allExercises().size } }
+
+    val todayIso = remember { LocalDate.now().toString() }
+    val todayDayId = remember(trainingDayDates, days) {
+        trainingDayDates.entries.firstOrNull { it.value == todayIso }?.key
+            ?: LocalDate.now().dayOfWeek.value.takeIf { dow -> days.any { it.id == dow } }
+    }
+    val initialExpandedDay = remember(todayDayId, days) { setOf(todayDayId ?: days.firstOrNull()?.id ?: 1) }
+    var localExpandedDays by remember(initialExpandedDay) { mutableStateOf(initialExpandedDay) }
+    val expandedDays = expandedDayIds ?: localExpandedDays
+    val latestExpandedDays by rememberUpdatedState(expandedDays)
+    fun setExpanded(next: Set<Int>) {
+        if (onExpandedDayIdsChange != null) onExpandedDayIdsChange(next) else localExpandedDays = next
+    }
+    // La primera sesión de la semana lleva las anclas del recorrido (`training.sesion` y `training.empezar`).
+    val anchorDayId = days.firstOrNull { day -> dayLayout.any { it.dayId == day.id } }?.id
 
     LaunchedEffect(sessions) {
         val draggingId = dragState.draggedSessionId
@@ -233,146 +225,157 @@ fun DayView(
         }
     }
 
+    fun sessionUiOf(entry: DaySessionEntry, scheduledDate: String?): ProgramSessionUi {
+        val session = entry.session
+        // Acción contextual sólo para OPCIONAL con fecha real y futura; clave exacta día+sesión (no «todas»).
+        val optionalDateIso = if (session.requirement == SessionRequirement.OPTIONAL) {
+            scheduledDate?.takeIf { it > todayIso }
+        } else {
+            null
+        }
+        return ProgramSessionUi(
+            session = session,
+            exerciseCount = exercisesById[session.id] ?: 0,
+            minutes = minutesById[session.id] ?: 0,
+            done = session.id in completedSessionIds,
+            customized = session.id in manuallyCustomizedSessionIds,
+            restorable = hasSourceRecipe && session.id !in restoreBlockedSessionIds,
+            optionalDateIso = optionalDateIso,
+            optionalConfirmed = optionalDateIso != null && (optionalDateIso to session.id) in confirmedOptionalKeys,
+        )
+    }
+
+    fun startSession(session: Session, isOutsideProgram: Boolean, scheduledDate: String?) {
+        val issue = ProgramCalendarEngine.scheduleIssueFor(
+            program = program,
+            weekId = selectedWeekId,
+            session = session,
+        )?.let { scheduleIssueMessage(it) }
+            ?: calendarStartWarning(isOutsideProgram, scheduledDate)
+        if (issue != null) pendingOffScheduleSession = session to issue
+        else onStartWorkout(session)
+    }
+
+    fun dragStart(sessionId: String) {
+        val source = dayLayout.firstOrNull { it.session.id == sessionId } ?: return
+        val rect = cardBounds[sessionId] ?: return
+        dragState = DayDragState(
+            draggedSessionId = sessionId,
+            sourceDayId = source.dayId,
+            dragOffset = Offset.Zero,
+            startCardBounds = rect,
+            pointerWindowPosition = rect.center,
+            targetDayId = source.dayId,
+            targetIndex = dayLayout.filter { it.dayId == source.dayId }.indexOfFirst { it.session.id == sessionId }.coerceAtLeast(0),
+        )
+    }
+
+    fun dragMove(sessionId: String, delta: Offset) {
+        if (dragState.draggedSessionId != sessionId) return
+        val source = dayLayout.firstOrNull { it.session.id == sessionId } ?: return
+        val activeRect = dragState.startCardBounds ?: cardBounds[sessionId] ?: return
+        val nextOffset = dragState.dragOffset + delta
+        val pointer = Offset(
+            x = activeRect.center.x + nextOffset.x,
+            y = activeRect.center.y + nextOffset.y,
+        )
+        val targetDay = resolveTargetDay(pointer, dayBounds, source.dayId) ?: source.dayId
+        val targetEntries = dayLayout.filter { it.dayId == targetDay && it.session.id != sessionId }
+        val targetIndex = resolveTargetIndex(pointer, targetDay, targetEntries, cardBounds)
+        // El día de destino se despliega para que se vea dónde cae la sesión.
+        setExpanded(latestExpandedDays + targetDay)
+
+        dragState = dragState.copy(
+            dragOffset = nextOffset,
+            pointerWindowPosition = pointer,
+            targetDayId = targetDay,
+            targetIndex = targetIndex,
+        )
+    }
+
+    fun dragEnd(sessionId: String) {
+        val targetDayId = dragState.targetDayId
+        val targetIndex = dragState.targetIndex
+        val newLayout = if (targetDayId != null && targetIndex != null) {
+            moveSessionToDay(
+                layout = dayLayout,
+                sessionId = sessionId,
+                targetDayId = targetDayId,
+                targetIndex = targetIndex,
+                dayOrder = days.map { it.id },
+            )
+        } else {
+            dayLayout
+        }
+        dayLayout = newLayout
+
+        val updatedSessions = newLayout.map { entry ->
+            entry.session.copy(
+                dayOfWeek = entry.dayId,
+                assignedDays = listOf(entry.dayId),
+            )
+        }
+        if (updatedSessions.map { it.id } != sessions.map { it.id } ||
+            updatedSessions.map { it.dayOfWeek } != sessions.map { it.dayOfWeek }) {
+            onApplySessionsLayout(updatedSessions)
+        }
+        dragState = DayDragState()
+    }
+
+    fun dragCancel() {
+        dayLayout = sessions.map { session ->
+            DaySessionEntry(session = session, dayId = session.dayOfWeek ?: 1)
+        }
+        dragState = DayDragState()
+    }
+
     Box(
         modifier = modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp)
             .onGloballyPositioned { rootBounds = it.boundsInWindow() },
     ) {
-        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            if (selectedWeek != null) {
-                    WeekIdentityCard(
-                        week = selectedWeek,
-                        onSave = { name, description ->
-                            onUpdateWeekMetadata(selectedWeek.id, name, description)
-                        },
-                    )
-            }
-
+        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
             days.forEach { day ->
                 val dayEntries = dayLayout.filter { it.dayId == day.id }
-                val isExpanded = day.id in expandedDays
                 val isDropTarget = dragState.draggedSessionId != null && dragState.targetDayId == day.id
                 val isOutsideProgram = day.id in outsideProgramDays
                 val scheduledDate: String? = trainingDayDates[day.id] ?: projectedWeekDates[day.id]?.toString()
-
-                DayColumn(
-                    day = day,
-                    entries = dayEntries,
-                    isExpanded = isExpanded,
-                    dragState = dragState,
-                    isDropTarget = isDropTarget,
-                    targetInsertIndex = if (isDropTarget) dragState.targetIndex else null,
+                val dayUi = ProgramDayUi(
+                    id = day.id,
+                    name = day.name,
+                    short = day.short,
+                    dateNumber = scheduledDate?.let(::dayNumberOf),
+                    sessions = dayEntries.map { sessionUiOf(it, scheduledDate) },
+                    isToday = day.id == todayDayId,
                     isStartDay = day.id == startDay,
                     isOutsideProgram = isOutsideProgram,
-                    scheduledDate = scheduledDate,
-                    isOptionalConfirmed = { dateIso, sessionId ->
-                        (dateIso to sessionId) in confirmedOptionalKeys
+                    isDropTarget = isDropTarget,
+                    dateEditable = isCalendarized && selectedWeekId != null,
+                )
+                ProgramDayModule(
+                    day = dayUi,
+                    expanded = day.id in expandedDays,
+                    onToggleExpanded = {
+                        setExpanded(if (day.id in expandedDays) expandedDays - day.id else expandedDays + day.id)
                     },
-                    onToggleOptionalConfirmation = onToggleOptionalConfirmation,
-                    isManuallyCustomized = { sessionId -> sessionId in manuallyCustomizedSessionIds },
-                    canRestoreManualSession = { sessionId ->
-                        hasSourceRecipe && sessionId !in restoreBlockedSessionIds
-                    },
-                    onRestoreManualSessionFromPlan = onRestoreManualSessionFromPlan,
-                    onToggleExpand = {
-                        expandedDays = if (isExpanded) expandedDays - day.id else expandedDays + day.id
-                    },
-                    onEditSession = onEditSession,
-                    onDeleteSession = onDeleteSession,
-                    onStartWorkout = { session ->
-                        val issue = ProgramCalendarEngine.scheduleIssueFor(
-                            program = program,
-                            weekId = selectedWeekId,
-                            session = session,
-                        )?.let { scheduleIssueMessage(it) }
-                            ?: calendarStartWarning(isOutsideProgram, scheduledDate)
-                        if (issue != null) pendingOffScheduleSession = session to issue
-                        else onStartWorkout(session)
-                    },
+                    onLongPressDay = { rect -> dayMenu = day.id to rect },
+                    onEditDate = { editingDayDate = day.id to scheduledDate.orEmpty() },
                     onAddSession = { onAddSession(day.id) },
-                    onSetStartDay = {
-                        if (!isCalendarized) {
-                            pendingStartDay = day.id
-                            startDayScope = StartDayTemporalScope.ALL_WEEKS
-                            startDaySessionMode = StartDaySessionMode.KEEP_DAYS
-                        }
-                    },
-                    onEditScheduledDate = if (isCalendarized && selectedWeekId != null) {
-                        {
-                            editingDayDate = day.id to (scheduledDate.orEmpty())
-                        }
-                    } else null,
-                    onDayBoundsChange = { rect -> dayBounds[day.id] = rect },
-                    onCardBoundsChange = { sessionId, rect -> cardBounds[sessionId] = rect },
-                    onDragStart = { sessionId ->
-                        val source = dayLayout.firstOrNull { it.session.id == sessionId } ?: return@DayColumn
-                        val rect = cardBounds[sessionId] ?: return@DayColumn
-                        dragState = DayDragState(
-                            draggedSessionId = sessionId,
-                            sourceDayId = source.dayId,
-                            dragOffset = Offset.Zero,
-                            startCardBounds = rect,
-                            pointerWindowPosition = rect.center,
-                            targetDayId = source.dayId,
-                            targetIndex = dayLayout.filter { it.dayId == source.dayId }.indexOfFirst { it.session.id == sessionId }.coerceAtLeast(0),
-                        )
-                    },
-                    onDrag = { sessionId, delta ->
-                        if (dragState.draggedSessionId != sessionId) return@DayColumn
-                        val source = dayLayout.firstOrNull { it.session.id == sessionId } ?: return@DayColumn
-                        val activeRect = dragState.startCardBounds ?: cardBounds[sessionId] ?: return@DayColumn
-                        val nextOffset = dragState.dragOffset + delta
-                        val pointer = Offset(
-                            x = activeRect.center.x + nextOffset.x,
-                            y = activeRect.center.y + nextOffset.y,
-                        )
-                        val targetDay = resolveTargetDay(pointer, dayBounds, source.dayId) ?: source.dayId
-                        val targetEntries = dayLayout.filter { it.dayId == targetDay && it.session.id != sessionId }
-                        val targetIndex = resolveTargetIndex(pointer, targetDay, targetEntries, cardBounds)
-                        expandedDays = expandedDays + targetDay
-
-                        dragState = dragState.copy(
-                            dragOffset = nextOffset,
-                            pointerWindowPosition = pointer,
-                            targetDayId = targetDay,
-                            targetIndex = targetIndex,
-                        )
-                    },
-                    onDragEnd = { sessionId ->
-                        val targetDayId = dragState.targetDayId
-                        val targetIndex = dragState.targetIndex
-                        val newLayout = if (targetDayId != null && targetIndex != null) {
-                            moveSessionToDay(
-                                layout = dayLayout,
-                                sessionId = sessionId,
-                                targetDayId = targetDayId,
-                                targetIndex = targetIndex,
-                                dayOrder = days.map { it.id },
-                            )
-                        } else {
-                            dayLayout
-                        }
-                        dayLayout = newLayout
-
-                        val updatedSessions = newLayout.map { entry ->
-                            entry.session.copy(
-                                dayOfWeek = entry.dayId,
-                                assignedDays = listOf(entry.dayId),
-                            )
-                        }
-                        if (updatedSessions.map { it.id } != sessions.map { it.id } ||
-                            updatedSessions.map { it.dayOfWeek } != sessions.map { it.dayOfWeek }) {
-                            onApplySessionsLayout(updatedSessions)
-                        }
-                        dragState = DayDragState()
-                    },
-                    onDragCancel = {
-                        dayLayout = sessions.map { session ->
-                            DaySessionEntry(session = session, dayId = session.dayOfWeek ?: 1)
-                        }
-                        dragState = DayDragState()
-                    },
+                    onStartSession = { session -> startSession(session, isOutsideProgram, scheduledDate) },
+                    onEditSession = onEditSession,
+                    onMoreSession = { sessionId, anchor -> sessionMenu = sessionId to anchor },
+                    onRestoreSession = { sessionId -> pendingRestoreSessionId = sessionId },
+                    onToggleOptional = { dateIso, sessionId -> onToggleOptionalConfirmation(dateIso, sessionId) },
+                    draggingSessionId = dragState.draggedSessionId,
+                    insertIndex = if (isDropTarget) dragState.targetIndex else null,
+                    anchorFirstSession = day.id == anchorDayId,
+                    onDayBounds = { rect -> dayBounds[day.id] = rect },
+                    onSessionBounds = { sessionId, rect -> cardBounds[sessionId] = rect },
+                    onSessionDragStart = { sessionId -> dragStart(sessionId) },
+                    onSessionDrag = { sessionId, delta -> dragMove(sessionId, delta) },
+                    onSessionDragEnd = { sessionId -> dragEnd(sessionId) },
+                    onSessionDragCancel = { dragCancel() },
                 )
             }
         }
@@ -381,12 +384,55 @@ fun DayView(
             dragState = dragState,
             rootBounds = rootBounds,
             entry = dayLayout.firstOrNull { it.session.id == dragState.draggedSessionId },
+            minutesById = minutesById,
+            exercisesById = exercisesById,
         )
+    }
+
+    dayMenu?.let { (dayId, anchor) ->
+        ProgramItemMenu(
+            items = listOf(
+                ProgramAnchoredMenuItem(
+                    label = "Dejar como comienzo de semana",
+                    onClick = {
+                        if (!isCalendarized) {
+                            pendingStartDay = dayId
+                            startDayScope = StartDayTemporalScope.ALL_WEEKS
+                            startDaySessionMode = StartDaySessionMode.KEEP_DAYS
+                        }
+                    },
+                ),
+            ),
+            anchor = anchor,
+            onDismiss = { dayMenu = null },
+        )
+    }
+
+    sessionMenu?.let { (sessionId, anchor) ->
+        val session = dayLayout.firstOrNull { it.session.id == sessionId }?.session
+        val items = buildList<ProgramAnchoredMenuItem> {
+            if (session != null && sessionId in manuallyCustomizedSessionIds && hasSourceRecipe && sessionId !in restoreBlockedSessionIds) {
+                add(
+                    ProgramAnchoredMenuItem(
+                        label = "Restaurar esta sesión desde el plan",
+                        onClick = { pendingRestoreSessionId = sessionId },
+                    ),
+                )
+            }
+            add(
+                ProgramAnchoredMenuItem(
+                    label = "Eliminar sesión",
+                    destructive = true,
+                    onClick = { onDeleteSession(sessionId) },
+                ),
+            )
+        }
+        ProgramItemMenu(items = items, anchor = anchor, onDismiss = { sessionMenu = null })
     }
 
     if (!isCalendarized) {
         pendingStartDay?.let { dayId ->
-            StartDayConfirmDialog(
+            ProgramStartDayDialog(
                 dayName = DAYS_OF_WEEK.firstOrNull { it.id == dayId }?.name ?: "este día",
                 scope = startDayScope,
                 sessionMode = startDaySessionMode,
@@ -402,63 +448,55 @@ fun DayView(
     }
 
     pendingOffScheduleSession?.let { (session, message) ->
-        KpknAlertDialog(
-            onDismissRequest = { pendingOffScheduleSession = null },
-            title = { Text("Aviso de calendario", fontWeight = FontWeight.Black) },
-            text = { Text(message) },
-            confirmButton = {
-                Button(
-                    onClick = {
-                        pendingOffScheduleSession = null
-                        onStartWorkout(session)
-                    },
-                ) { Text("Continuar") }
+        ProgramOffScheduleDialog(
+            message = message,
+            onConfirm = {
+                pendingOffScheduleSession = null
+                onStartWorkout(session)
             },
-            dismissButton = {
-                TextButton(onClick = { pendingOffScheduleSession = null }) { Text("Cancelar") }
+            onDismiss = { pendingOffScheduleSession = null },
+        )
+    }
+
+    pendingRestoreSessionId?.let { sessionId ->
+        ProgramRestoreSessionDialog(
+            onConfirm = {
+                pendingRestoreSessionId = null
+                onRestoreManualSessionFromPlan(sessionId)
             },
+            onDismiss = { pendingRestoreSessionId = null },
         )
     }
 
     editingDayDate?.let { (dayId, currentIso) ->
         var draft by remember(dayId, currentIso) { mutableStateOf(currentIso) }
-        KpknAlertDialog(
-            onDismissRequest = { editingDayDate = null },
-            title = { Text("Fecha de entrenamiento", fontWeight = FontWeight.Black) },
-            text = {
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text("ISO (YYYY-MM-DD) para este día de la semana seleccionada. Así puedes anclar turnos irregulares.")
-                    OutlinedTextField(
-                        value = draft,
-                        onValueChange = { draft = it },
-                        label = { Text("Fecha") },
-                        singleLine = true,
-                        modifier = Modifier.fillMaxWidth(),
-                    )
+        ProgramDayDateDialog(
+            draft = draft,
+            onDraftChange = { draft = it },
+            onSave = {
+                selectedWeekId?.let { weekId ->
+                    onUpdateTrainingDayDate(weekId, dayId, draft.trim().ifBlank { null })
                 }
+                editingDayDate = null
             },
-            confirmButton = {
-                Button(
-                    onClick = {
-                        val weekId = selectedWeekId ?: return@Button
-                        onUpdateTrainingDayDate(weekId, dayId, draft.trim().ifBlank { null })
-                        editingDayDate = null
-                    },
-                ) { Text("Guardar") }
-            },
-            dismissButton = {
-                TextButton(onClick = { editingDayDate = null }) { Text("Cancelar") }
-            },
+            onDismiss = { editingDayDate = null },
         )
     }
 }
 
-private fun scheduleIssueMessage(issue: com.example.kpkn.domain.training.ScheduleIssue): String = when (issue) {
-    is com.example.kpkn.domain.training.ScheduleIssue.WrongDate ->
+/** La fecha ISO como número de día («2026-10-13» → «13»); null si no se puede leer. */
+private fun dayNumberOf(raw: String): String? = try {
+    LocalDate.parse(raw).dayOfMonth.toString()
+} catch (_: DateTimeParseException) {
+    null
+}
+
+private fun scheduleIssueMessage(issue: ScheduleIssue): String = when (issue) {
+    is ScheduleIssue.WrongDate ->
         "Esta sesión está planificada para ${issue.plannedDate}. Hoy es ${issue.actualDate}. Puedes continuar; KPKN registrará la desviación."
-    is com.example.kpkn.domain.training.ScheduleIssue.OutsideProgram ->
+    is ScheduleIssue.OutsideProgram ->
         "Hoy (${issue.actualDate}) está fuera del rango del programa (${issue.startDate} → ${issue.endDate})."
-    is com.example.kpkn.domain.training.ScheduleIssue.OutsideProgramDay ->
+    is ScheduleIssue.OutsideProgramDay ->
         "Hoy (${issue.actualDate}) no es un día de entrenamiento del plan calendarizado."
 }
 
@@ -474,479 +512,14 @@ private fun calendarStartWarning(isOutsideProgram: Boolean, scheduledDate: Strin
     return "Esta sesión corresponde al ${scheduled}. Hoy es ${today}. Puedes entrenar igual, pero KPKN guardará la diferencia de calendario."
 }
 
-private fun formatDayDateLabel(raw: String): String? {
-    return try {
-        val date = LocalDate.parse(raw)
-        "%02d/%02d".format(date.dayOfMonth, date.monthValue)
-    } catch (_: DateTimeParseException) {
-        raw.takeIf { it.isNotBlank() }
-    }
-}
-
-@Composable
-private fun StartDayConfirmDialog(
-    dayName: String,
-    scope: StartDayTemporalScope,
-    sessionMode: StartDaySessionMode,
-    onScopeChange: (StartDayTemporalScope) -> Unit,
-    onSessionModeChange: (StartDaySessionMode) -> Unit,
-    onDismiss: () -> Unit,
-    onConfirm: () -> Unit,
-) {
-    KpknAlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text("Cambiar inicio de semana", fontWeight = FontWeight.Black) },
-        text = {
-            Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
-                Text("$dayName será el nuevo primer día visual del programa.")
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text("Alcance de sesiones", fontWeight = FontWeight.Bold)
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        androidx.compose.material3.FilterChip(
-                            selected = scope == StartDayTemporalScope.ALL_WEEKS,
-                            onClick = { onScopeChange(StartDayTemporalScope.ALL_WEEKS) },
-                            label = { Text("Todas") },
-                        )
-                        androidx.compose.material3.FilterChip(
-                            selected = scope == StartDayTemporalScope.FROM_SELECTED_WEEK,
-                            onClick = { onScopeChange(StartDayTemporalScope.FROM_SELECTED_WEEK) },
-                            label = { Text("Desde esta") },
-                        )
-                    }
-                }
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text("Qué hacer con las sesiones", fontWeight = FontWeight.Bold)
-                    androidx.compose.material3.FilterChip(
-                        selected = sessionMode == StartDaySessionMode.KEEP_DAYS,
-                        onClick = { onSessionModeChange(StartDaySessionMode.KEEP_DAYS) },
-                        label = { Text("Mantener días actuales") },
-                    )
-                    androidx.compose.material3.FilterChip(
-                        selected = sessionMode == StartDaySessionMode.KEEP_SPLIT_ORDER,
-                        onClick = { onSessionModeChange(StartDaySessionMode.KEEP_SPLIT_ORDER) },
-                        label = { Text("Mantener orden del split") },
-                    )
-                }
-                Text(
-                    if (sessionMode == StartDaySessionMode.KEEP_DAYS) {
-                        "Solo cambiará el orden visual de la semana. Las sesiones seguirán en sus días actuales."
-                    } else {
-                        "Las sesiones se moverán para conservar su posición dentro de la semana."
-                    },
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
-        },
-        confirmButton = { Button(onClick = onConfirm) { Text("Confirmar") } },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancelar") } },
-    )
-}
-
-@Composable
-private fun WeekIdentityCard(
-    week: WeekWithMeta,
-    onSave: (String, String?) -> Unit,
-) {
-    var isEditing by remember(week.id) { mutableStateOf(false) }
-    var descriptionExpanded by remember(week.id) { mutableStateOf(false) }
-    var draftName by remember(week.id, week.name) { mutableStateOf(TextFieldValue(week.name)) }
-    var draftDescription by remember(week.id, week.description) {
-        mutableStateOf(TextFieldValue(week.description.orEmpty()))
-    }
-
-    ElevatedCard(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(24.dp),
-        colors = CardDefaults.elevatedCardColors(
-            containerColor = MaterialTheme.colorScheme.surface,
-        ),
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .animateContentSize()
-                .padding(horizontal = 14.dp, vertical = 10.dp),
-            verticalArrangement = Arrangement.spacedBy(6.dp),
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = week.name,
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Black,
-                    )
-                }
-                if (!week.description.isNullOrBlank()) {
-                    IconButton(onClick = { descriptionExpanded = !descriptionExpanded }) {
-                        Icon(
-                            imageVector = if (descriptionExpanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
-                            contentDescription = if (descriptionExpanded) "Ocultar descripción" else "Mostrar descripción",
-                        )
-                    }
-                }
-                IconButton(onClick = { isEditing = !isEditing }) {
-                    Icon(
-                        imageVector = Icons.Default.Edit,
-                        contentDescription = "Editar semana",
-                    )
-                }
-            }
-
-            if (descriptionExpanded && !week.description.isNullOrBlank()) {
-                Text(
-                    text = week.description,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
-
-            if (isEditing) {
-                OutlinedTextField(
-                    value = draftName,
-                    onValueChange = { draftName = it },
-                    modifier = Modifier.fillMaxWidth(),
-                    label = { Text("Nombre visible de la semana") },
-                    singleLine = true,
-                    shape = RoundedCornerShape(16.dp),
-                )
-                TextButton(onClick = { descriptionExpanded = !descriptionExpanded }) {
-                    Text(if (descriptionExpanded) "Ocultar descripción" else "Agregar descripción")
-                }
-                if (descriptionExpanded) {
-                    OutlinedTextField(
-                        value = draftDescription,
-                        onValueChange = { draftDescription = it },
-                        modifier = Modifier.fillMaxWidth(),
-                        label = { Text("Descripción opcional") },
-                        minLines = 2,
-                        maxLines = 3,
-                        shape = RoundedCornerShape(16.dp),
-                    )
-                }
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.End,
-                ) {
-                    TextButton(
-                        onClick = {
-                            draftName = TextFieldValue(week.name)
-                            draftDescription = TextFieldValue(week.description.orEmpty())
-                            isEditing = false
-                        },
-                    ) {
-                        Text("Cancelar")
-                    }
-                    TextButton(
-                        onClick = {
-                            onSave(draftName.text, draftDescription.text)
-                            isEditing = false
-                        },
-                    ) {
-                        Text("Guardar")
-                    }
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun DayColumn(
-    day: DayInfo,
-    entries: List<DaySessionEntry>,
-    isExpanded: Boolean,
-    dragState: DayDragState,
-    isDropTarget: Boolean,
-    targetInsertIndex: Int?,
-    isStartDay: Boolean,
-    isOutsideProgram: Boolean,
-    scheduledDate: String?,
-    /** Estado checked de la confirmación opcional de (día ISO, sesión). */
-    isOptionalConfirmed: (dayIso: String, sessionId: String) -> Boolean = { _, _ -> false },
-    /** Alterna la confirmación de UNA sesión opcional en su día. */
-    onToggleOptionalConfirmation: (dayIso: String, sessionId: String) -> Unit = { _, _ -> },
-    isManuallyCustomized: (sessionId: String) -> Boolean = { false },
-    canRestoreManualSession: (sessionId: String) -> Boolean = { true },
-    onRestoreManualSessionFromPlan: (String) -> Unit = {},
-    onToggleExpand: () -> Unit,
-    onEditSession: (String) -> Unit,
-    onDeleteSession: (String) -> Unit,
-    onStartWorkout: (Session) -> Unit,
-    onAddSession: () -> Unit,
-    onSetStartDay: () -> Unit,
-    onEditScheduledDate: (() -> Unit)? = null,
-    onDayBoundsChange: (Rect) -> Unit,
-    onCardBoundsChange: (String, Rect) -> Unit,
-    onDragStart: (String) -> Unit,
-    onDrag: (String, Offset) -> Unit,
-    onDragEnd: (String) -> Unit,
-    onDragCancel: () -> Unit,
-) {
-    var dayMenuExpanded by remember { mutableStateOf(false) }
-    val scheduledDateLabel = scheduledDate?.let(::formatDayDateLabel)
-    // Sólo fechas FUTURAS son confirmables: hoy y pasado son inmutables.
-    val todayIso = remember { java.time.LocalDate.now().toString() }
-
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .animateContentSize()
-            .onGloballyPositioned { onDayBoundsChange(it.boundsInWindow()) },
-        shape = MaterialTheme.shapes.medium,
-        border = if (isDropTarget) BorderStroke(1.5.dp, MaterialTheme.colorScheme.primary) else null,
-        colors = CardDefaults.cardColors(
-            containerColor = when {
-                isDropTarget -> MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.18f)
-                isOutsideProgram -> MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.22f)
-                else -> MaterialTheme.colorScheme.surface
-            },
-        ),
-    ) {
-        Column {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .combinedClickable(
-                        onClick = onToggleExpand,
-                        onLongClick = if (isStartDay) null else ({ dayMenuExpanded = true }),
-                    )
-                    .padding(horizontal = 14.dp, vertical = 10.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Box(
-                        modifier = Modifier
-                            .size(32.dp)
-                            .background(
-                                if (isOutsideProgram) MaterialTheme.colorScheme.outline.copy(alpha = 0.35f)
-                                else if (entries.isNotEmpty()) MaterialTheme.colorScheme.primary
-                                else MaterialTheme.colorScheme.surfaceVariant,
-                                CircleShape,
-                            ),
-                        contentAlignment = Alignment.Center,
-                    ) {
-                        Text(
-                            day.short,
-                            fontSize = 9.sp,
-                            fontWeight = FontWeight.Black,
-                            color = if (isOutsideProgram) MaterialTheme.colorScheme.onSurfaceVariant
-                            else if (entries.isNotEmpty()) MaterialTheme.colorScheme.onPrimary
-                            else MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                    }
-                    Spacer(Modifier.width(10.dp))
-                    Column {
-                        Text(
-                            scheduledDateLabel?.let { "${day.name} · $it" } ?: day.name,
-                            style = MaterialTheme.typography.titleSmall,
-                            fontWeight = FontWeight.Bold,
-                            textDecoration = if (isOutsideProgram) TextDecoration.LineThrough else TextDecoration.None,
-                            color = if (isOutsideProgram) MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.72f) else MaterialTheme.colorScheme.onSurface,
-                            modifier = if (onEditScheduledDate != null) {
-                                Modifier.clickable { onEditScheduledDate.invoke() }
-                            } else {
-                                Modifier
-                            },
-                        )
-                        Text(
-                            when {
-                                isOutsideProgram -> "Fuera de programa"
-                                onEditScheduledDate != null && scheduledDateLabel != null -> "Toca la fecha para ajustar (turnos)"
-                                entries.isEmpty() -> "Sin sesiones todavía"
-                                else -> pluralSesiones(entries.size)
-                            },
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                    }
-                }
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    IconButton(onClick = onAddSession, enabled = !isOutsideProgram) {
-                        Icon(
-                            Icons.Default.Add,
-                            "Agregar",
-                            modifier = Modifier.size(20.dp),
-                            tint = MaterialTheme.colorScheme.primary,
-                        )
-                    }
-                    Icon(
-                        if (isExpanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
-                        null,
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                }
-            }
-
-            if (!isStartDay) {
-                KpknDropdownMenu(
-                    expanded = dayMenuExpanded,
-                    onDismissRequest = { dayMenuExpanded = false },
-                ) {
-                    DropdownMenuItem(
-                        text = { Text("Dejar como comienzo de semana") },
-                        onClick = {
-                            onSetStartDay()
-                            dayMenuExpanded = false
-                        },
-                    )
-                }
-            }
-
-            if (isExpanded) {
-                if (entries.isEmpty()) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 14.dp, vertical = 12.dp),
-                        contentAlignment = Alignment.Center,
-                    ) {
-                        Text(
-                            if (isDropTarget) "Soltar aquí" else "Sin sesiones todavía. Toca + para agregar una.",
-                            fontSize = 11.sp,
-                            fontWeight = if (isDropTarget) FontWeight.Black else FontWeight.Normal,
-                            color = if (isDropTarget) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
-                        )
-                    }
-                } else {
-                    Column(
-                        modifier = Modifier
-                            .padding(horizontal = 14.dp)
-                            .padding(bottom = 12.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp),
-                    ) {
-                        entries.forEachIndexed { idx, entry ->
-                            if (isDropTarget && targetInsertIndex == idx) {
-                                DropIndicator()
-                            }
-                            val session = entry.session
-                            val isDragging = dragState.draggedSessionId == session.id
-                            // Acción contextual sólo para OPCIONAL con fecha real
-                            // y futura; clave exacta día+sesión (no «todas»).
-                            val futureOptionalDateIso = if (session.requirement == SessionRequirement.OPTIONAL) {
-                                scheduledDate?.takeIf { it > todayIso }
-                            } else {
-                                null
-                            }
-
-                            DraggableSessionCard(
-                                session = session,
-                                index = idx,
-                                isDragging = isDragging,
-                                isDragOver = isDropTarget && !isDragging,
-                                onStart = { onStartWorkout(session) },
-                                onEdit = { onEditSession(session.id) },
-                                onDelete = { onDeleteSession(session.id) },
-                                optionalConfirmationChecked = futureOptionalDateIso
-                                    ?.let { isOptionalConfirmed(it, session.id) },
-                                onToggleOptionalConfirmation = if (futureOptionalDateIso != null) {
-                                    { _: Boolean ->
-                                        onToggleOptionalConfirmation(futureOptionalDateIso, session.id)
-                                    }
-                                } else {
-                                    null
-                                },
-                                isManuallyCustomized = isManuallyCustomized(session.id),
-                                // El badge depende solo de la marca; el botón además exige
-                                // receta fuente y una sesión sin registros ni ejecución en curso.
-                                onRestoreFromPlan = if (
-                                    isManuallyCustomized(session.id) && canRestoreManualSession(session.id)
-                                ) {
-                                    { onRestoreManualSessionFromPlan(session.id) }
-                                } else {
-                                    null
-                                },
-                                onBoundsChange = { rect -> onCardBoundsChange(session.id, rect) },
-                                onDragStart = { onDragStart(session.id) },
-                                onDrag = { delta -> onDrag(session.id, delta) },
-                                onDragEnd = { onDragEnd(session.id) },
-                                onDragCancel = onDragCancel,
-                            )
-                        }
-                        if (isDropTarget && targetInsertIndex == entries.count { it.session.id != dragState.draggedSessionId }) {
-                            DropIndicator()
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun DraggableSessionCard(
-    session: Session,
-    index: Int,
-    isDragging: Boolean,
-    isDragOver: Boolean,
-    onStart: () -> Unit,
-    onEdit: () -> Unit,
-    onDelete: () -> Unit,
-    onBoundsChange: (Rect) -> Unit,
-    onDragStart: () -> Unit,
-    onDrag: (Offset) -> Unit,
-    onDragEnd: () -> Unit,
-    onDragCancel: () -> Unit,
-    optionalConfirmationChecked: Boolean? = null,
-    onToggleOptionalConfirmation: ((Boolean) -> Unit)? = null,
-    isManuallyCustomized: Boolean = false,
-    onRestoreFromPlan: (() -> Unit)? = null,
-) {
-    SessionCard(
-        session = session,
-        index = index,
-        onStart = onStart,
-        onEdit = onEdit,
-        onDelete = { onDelete() },
-        showDragHandle = true,
-        isDragging = isDragging,
-        optionalConfirmationChecked = optionalConfirmationChecked,
-        onToggleOptionalConfirmation = onToggleOptionalConfirmation,
-        isManuallyCustomized = isManuallyCustomized,
-        onRestoreFromPlan = onRestoreFromPlan,
-        modifier = Modifier
-            .onGloballyPositioned { onBoundsChange(it.boundsInWindow()) }
-            .graphicsLayer {
-                scaleX = if (isDragOver) 1.01f else 1f
-                scaleY = if (isDragOver) 1.01f else 1f
-                alpha = if (isDragging) 0.22f else 1f
-            }
-            .pointerInput(session.id) {
-                detectDragGesturesAfterLongPress(
-                    onDragStart = { onDragStart() },
-                    onDragEnd = { onDragEnd() },
-                    onDragCancel = { onDragCancel() },
-                    onDrag = { change, dragAmount ->
-                        change.consume()
-                        onDrag(Offset(dragAmount.x, dragAmount.y))
-                    },
-                )
-            },
-    )
-}
-
-@Composable
-private fun DropIndicator() {
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(4.dp)
-            .clip(RoundedCornerShape(999.dp))
-            .background(MaterialTheme.colorScheme.primary)
-            .padding(horizontal = 4.dp),
-    )
-}
-
+/** La tarjeta que se levanta al arrastrar una sesión: su nombre y su resumen, con sombra suave. */
 @Composable
 private fun DragOverlay(
     dragState: DayDragState,
     rootBounds: Rect?,
     entry: DaySessionEntry?,
+    minutesById: Map<String, Int>,
+    exercisesById: Map<String, Int>,
 ) {
     val startBounds = dragState.startCardBounds ?: return
     val root = rootBounds ?: return
@@ -964,20 +537,15 @@ private fun DragOverlay(
             .width(cardWidth)
             .zIndex(100f)
             .graphicsLayer {
-                scaleX = 1.03f
-                scaleY = 1.03f
+                scaleX = 1.02f
+                scaleY = 1.02f
                 alpha = 0.96f
-                shadowElevation = 18.dp.toPx()
+                shadowElevation = 14.dp.toPx()
             },
     ) {
-        SessionCard(
-            session = session,
-            index = 0,
-            onStart = {},
-            onEdit = {},
-            onDelete = null,
-            showDragHandle = true,
-            isDragging = true,
+        ProgramSessionDragCard(
+            title = session.name,
+            caption = "${SpanishPlurals.exercises(exercisesById[session.id] ?: 0)} · ≈ ${minutesById[session.id] ?: 0} min",
         )
     }
 }
