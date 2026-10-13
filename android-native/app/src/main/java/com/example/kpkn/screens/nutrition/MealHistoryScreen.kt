@@ -1,381 +1,152 @@
 package com.example.kpkn.screens.nutrition
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import com.example.kpkn.data.models.*
-import com.example.kpkn.data.repository.NutritionRepository
-import com.example.kpkn.domain.nutrition.DayGoalsResult
-import com.example.kpkn.domain.nutrition.NutritionDisplayFormat
-import com.example.kpkn.domain.nutrition.computeDailyTotals
-import com.example.kpkn.domain.nutrition.MealSlots
-import com.example.kpkn.domain.nutrition.resolveDayGoalsByDate
-import com.example.kpkn.screens.nutrition.design.mealIcon
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.kpkn.screens.nutrition.design.NutritionSubpageHeader
+import com.example.kpkn.screens.nutrition.design.NutritionTopIsland
+import com.example.kpkn.screens.nutrition.design.history.MealHistoryMonthModule
+import com.example.kpkn.ui.components.icons.KpknLineIcons
+import com.example.kpkn.ui.design.KpknEmptyState
+import com.example.kpkn.ui.design.KpknPrimaryPill
+import com.example.kpkn.ui.design.KpknSkeletonModule
+import com.example.kpkn.ui.design.KpknSurface
+import com.example.kpkn.ui.design.rememberIslandVisible
 import com.example.kpkn.ui.locale.LocaleManager
-import com.example.kpkn.ui.theme.MacroColors
 
-// ═══════════════════════════════════════════════════════════════════════
-// COLORS
-// ═══════════════════════════════════════════════════════════════════════
+/** Filas de margen antes del final de la lista a partir de las que se piden más meses. */
+private const val LOAD_MORE_MARGIN_ITEMS = 3
 
-private val TEAL = Color(0xFF009688)
-private val PROTEIN_COLOR = MacroColors.protein
-private val CARBS_COLOR = MacroColors.carbs
-private val FATS_COLOR = MacroColors.fat
-
-// ═══════════════════════════════════════════════════════════════════════
-// DATA
-// ═══════════════════════════════════════════════════════════════════════
-
-private data class DaySummary(
-    val date: String,
-    val dateLabel: String,
-    val logs: List<NutritionLog>,
-    val totals: DailyMacroTotals,
-)
-
-// ═══════════════════════════════════════════════════════════════════════
-// MAIN SCREEN
-// ═══════════════════════════════════════════════════════════════════════
-
-@OptIn(ExperimentalMaterial3Api::class)
+/**
+ * Historial de comidas por meses (N5, NUTRITION_V1 §5): una página propia con «Atrás», «Historial» en `display` e isla al hacer scroll.
+ * Los días llegan ya resueltos del [MealHistoryViewModel] y la lista pide más meses sola al llegar al final. Tocar un día abre su detalle;
+ * «Ir a este día» vuelve a Nutrición con esa fecha ([onOpenDay]) y el estado vacío ofrece «Registrar comida» ([onRegister]).
+ */
 @Composable
 fun MealHistoryScreen(
     onBack: () -> Unit,
+    onOpenDay: (String) -> Unit,
+    onRegister: () -> Unit,
 ) {
-    val allLogs by NutritionRepository.getInstance().nutritionLogs.collectAsState()
-    val settings by com.example.kpkn.data.repository.ProgramRepository.getInstance().settings.collectAsState()
-    val plans by NutritionRepository.getInstance().nutritionPlans.collectAsState()
-    val activePlanId by NutritionRepository.getInstance().activeNutritionPlanId.collectAsState()
-    val goalSnapshots by NutritionRepository.getInstance().dailyGoalSnapshots.collectAsState()
-    val activePlan = remember(plans, activePlanId) {
-        activePlanId?.let { id -> plans.find { it.id == id } }
-    }
-
-    // Idioma efectivo de la app, como en la cabecera: el «de» de la fecha solo existe en español
     val locale = LocaleManager.getEffectiveLocale(LocalContext.current)
-
-    // Group by day, sorted descending
-    val daySummaries = remember(allLogs, locale) {
-        allLogs
-            .filter { it.status != NutritionStatus.PLANNED }
-            .groupBy { it.date.take(10) }
-            .map { (date, logs) ->
-                val dateLabel = nutritionHeroDateLabel(date, locale)
-                DaySummary(
-                    date = date,
-                    dateLabel = dateLabel,
-                    logs = logs.sortedBy { it.mealType.ordinal },
-                    totals = computeDailyTotals(logs),
-                )
-            }
-            .sortedByDescending { it.date }
-    }
-
-    // Metas por fecha con el resolvedor canónico: el snapshot histórico del
-    // día manda sobre el plan actual; sin evidencia, ausencia explícita
-    // (TrackingOnly/NoGoal) y nunca un default de 2500 kcal.
-    val today = remember { java.time.LocalDate.now() }
-    val goalsKey = listOf(daySummaries, settings, activePlan, goalSnapshots, today)
-    val goalsByDate = remember(goalsKey) {
-        runCatching {
-            resolveDayGoalsByDate(
-                dates = daySummaries.mapNotNull { day -> runCatching { java.time.LocalDate.parse(day.date) }.getOrNull() },
-                settings = settings,
-                activePlan = activePlan,
-                snapshots = goalSnapshots,
-                today = today,
-            )
-        }.getOrDefault(emptyMap())
-    }
-
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Historial de Comidas", fontWeight = FontWeight.Black) },
-                navigationIcon = {
-                    IconButton(onClick = onBack) { Icon(Icons.Default.ArrowBack, "Volver") }
-                },
-            )
-        },
-    ) { padding ->
-        if (daySummaries.isEmpty()) {
-            Box(
-                modifier = Modifier.fillMaxSize().padding(padding),
-                contentAlignment = Alignment.Center,
-            ) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Icon(
-                        Icons.Default.History,
-                        null,
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f),
-                        modifier = Modifier.size(64.dp),
-                    )
-                    Spacer(Modifier.height(12.dp))
-                    Text(
-                        "Sin registros aún",
-                        style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                    Text(
-                        "Los registros de comida aparecerán aquí",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
-                    )
-                }
-            }
-        } else {
-            LazyColumn(
-                modifier = Modifier.fillMaxSize().padding(padding),
-                contentPadding = PaddingValues(bottom = 100.dp),
-            ) {
-                // Stats summary
-                item {
-                    val dayGoalKcals = goalsByDate.values.mapNotNull { dayGoals ->
-                        (dayGoals as? DayGoalsResult.Present)?.goals?.calorieGoal
-                    }
-                    HistoryStatsHeader(
-                        totalDays = daySummaries.size,
-                        totalLogs = allLogs.count { it.status != NutritionStatus.PLANNED },
-                        avgCalories = if (daySummaries.isNotEmpty())
-                            daySummaries.map { it.totals.calories }.average() else 0.0,
-                        avgGoalKcal = dayGoalKcals.takeIf { it.isNotEmpty() }
-                            ?.average()
-                            ?.let { kotlin.math.round(it).toInt() },
-                    )
-                }
-
-                // Day groups
-                daySummaries.forEach { day ->
-                    item(key = "header_${day.date}") {
-                        DayHeader(
-                            day = day,
-                            goals = goalsByDate.entries
-                                .firstOrNull { (date, _) -> date.toString() == day.date }?.value
-                                ?: DayGoalsResult.Absent(com.example.kpkn.domain.nutrition.GoalsAbsence.NO_GOAL),
-                        )
-                    }
-                    items(day.logs, key = { it.id }) { log ->
-                        HistoryLogEntry(log = log)
-                    }
-                    item(key = "spacer_${day.date}") {
-                        Spacer(Modifier.height(8.dp))
-                    }
-                }
-            }
-        }
-    }
+    val viewModel: MealHistoryViewModel = viewModel(factory = MealHistoryViewModelFactory(locale))
+    val months by viewModel.months.collectAsState()
+    val isLoading by viewModel.isLoading.collectAsState()
+    val hasMore by viewModel.hasMore.collectAsState()
+    MealHistoryContent(
+        months = months,
+        isLoading = isLoading,
+        hasMore = hasMore,
+        onBack = onBack,
+        onOpenDay = onOpenDay,
+        onRegister = onRegister,
+        onLoadMore = viewModel::loadMore,
+    )
 }
 
-// ═══════════════════════════════════════════════════════════════════════
-// STATS HEADER
-// ═══════════════════════════════════════════════════════════════════════
-
+/**
+ * La página del historial sin su ViewModel: la lista, la cabecera, la isla y la hoja del día. Va separada para montarla con datos de
+ * ejemplo en las pruebas y en la hoja de render.
+ */
 @Composable
-private fun HistoryStatsHeader(
-    totalDays: Int,
-    totalLogs: Int,
-    avgCalories: Double,
-    avgGoalKcal: Int?,
+internal fun MealHistoryContent(
+    months: List<MealHistoryMonth>,
+    isLoading: Boolean,
+    hasMore: Boolean,
+    onBack: () -> Unit,
+    onOpenDay: (String) -> Unit,
+    onRegister: () -> Unit,
+    onLoadMore: () -> Unit,
 ) {
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(
-                Brush.verticalGradient(
-                    listOf(TEAL.copy(alpha = 0.10f), Color.Transparent)
-                )
-            )
-            .padding(horizontal = 20.dp, vertical = 16.dp),
-    ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceEvenly,
-        ) {
-            StatBubble("Días", "$totalDays", Color(0xFF42A5F5))
-            StatBubble("Registros", "$totalLogs", TEAL)
-            // Sin meta no se juzga el promedio frente a ningún default.
-            StatBubble(
-                "Prom. kcal",
-                "${kotlin.math.round(avgCalories).toInt()}",
-                when {
-                    avgGoalKcal == null -> Color(0xFF78909C)
-                    avgCalories > avgGoalKcal * 1.1 -> Color(0xFFE53935)
-                    else -> Color(0xFF66BB6A)
-                },
-            )
+    val listState = rememberLazyListState()
+    val islandVisible = rememberIslandVisible(listState, afterItemIndex = 0)
+    val topInset = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
+    // Día abierto en el detalle; null si no hay hoja.
+    var openDay by remember { mutableStateOf<MealHistoryDay?>(null) }
+
+    // La lista pide más meses sola: si la última fila visible está cerca del final, se suma una tanda.
+    val nearEnd by remember(listState) {
+        derivedStateOf {
+            val info = listState.layoutInfo
+            info.totalItemsCount > 0 &&
+                (info.visibleItemsInfo.lastOrNull()?.index ?: 0) >= info.totalItemsCount - LOAD_MORE_MARGIN_ITEMS
         }
     }
-}
-
-@Composable
-private fun StatBubble(label: String, value: String, color: Color) {
-    Surface(
-        shape = RoundedCornerShape(14.dp),
-        color = color.copy(alpha = 0.10f),
-    ) {
-        Column(
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
-            Text(value, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Black, color = color)
-            Text(label, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        }
+    // Al crecer la lista, la clave cambia y se vuelve a mirar si sigue faltando margen (la pantalla puede no llenarse con una tanda).
+    val totalItems by remember(listState) { derivedStateOf { listState.layoutInfo.totalItemsCount } }
+    LaunchedEffect(nearEnd, totalItems, hasMore) {
+        if (nearEnd && hasMore) onLoadMore()
     }
-}
 
-// ═══════════════════════════════════════════════════════════════════════
-// DAY HEADER
-// ═══════════════════════════════════════════════════════════════════════
-
-@Composable
-private fun DayHeader(day: DaySummary, goals: DayGoalsResult) {
-    // Meta del día según el resolvedor por fecha; sin meta no hay porcentaje
-    // inventado y el día se etiqueta «sin objetivos».
-    val goalKcal = (goals as? DayGoalsResult.Present)?.goals?.calorieGoal
-    val calPct = if (goalKcal != null && goalKcal > 0) day.totals.calories / goalKcal else null
-    val overGoal = (calPct ?: 0.0) > 1.05
-
-    Card(
-        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp),
-        shape = RoundedCornerShape(14.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh),
-    ) {
-        Row(
-            modifier = Modifier.padding(12.dp),
-            verticalAlignment = Alignment.CenterVertically,
+    Box(modifier = Modifier.fillMaxSize().background(KpknSurface.canvas)) {
+        LazyColumn(
+            state = listState,
+            modifier = Modifier.fillMaxSize().navigationBarsPadding(),
+            contentPadding = PaddingValues(bottom = 32.dp),
         ) {
-            // Date circle
-            Surface(
-                shape = CircleShape,
-                color = if (overGoal) Color(0xFFE53935).copy(alpha = 0.12f) else TEAL.copy(alpha = 0.12f),
-                modifier = Modifier.size(40.dp),
-            ) {
-                Box(contentAlignment = Alignment.Center) {
-                    val dayNum = try {
-                        java.time.LocalDate.parse(day.date).dayOfMonth.toString()
-                    } catch (_: Exception) { "?" }
-                    Text(
-                        dayNum,
-                        style = MaterialTheme.typography.titleSmall,
-                        fontWeight = FontWeight.Black,
-                        color = if (overGoal) Color(0xFFE53935) else TEAL,
-                    )
-                }
+            item(key = "meal-history-header") {
+                NutritionSubpageHeader(title = "Historial", topInset = topInset, onBack = onBack)
             }
-
-            Spacer(Modifier.width(12.dp))
-
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    day.dateLabel,
-                    style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.Bold,
-                )
-                Text(
-                    "${NutritionDisplayFormat.kcalLabel(day.totals)} · P${kotlin.math.round(day.totals.protein).toInt()} C${kotlin.math.round(day.totals.carbs).toInt()} G${kotlin.math.round(day.totals.fats).toInt()}",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-                NutritionDisplayFormat.kcalRangeLabel(day.totals)?.let { range ->
-                    Text(
-                        range,
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
+            when {
+                isLoading -> {
+                    item(key = "meal-history-skeleton-1") {
+                        KpknSkeletonModule(lines = 3, modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp))
+                    }
+                    item(key = "meal-history-skeleton-2") {
+                        KpknSkeletonModule(lines = 2, modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp))
+                    }
                 }
-            }
-
-            Surface(
-                shape = RoundedCornerShape(8.dp),
-                color = if (overGoal) Color(0xFFE53935).copy(alpha = 0.10f) else TEAL.copy(alpha = 0.10f),
-            ) {
-                Text(
-                    calPct?.let { "${(it * 100).toInt()}%" } ?: "sin objetivos",
-                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-                    style = MaterialTheme.typography.labelSmall,
-                    fontWeight = FontWeight.Black,
-                    color = if (overGoal) Color(0xFFE53935) else TEAL,
-                )
-            }
-        }
-    }
-}
-
-// ═══════════════════════════════════════════════════════════════════════
-// LOG ENTRY
-// ═══════════════════════════════════════════════════════════════════════
-
-@Composable
-private fun HistoryLogEntry(log: NutritionLog) {
-    val icon = mealIcon(log.mealType)
-    val label = MealSlots.mealLabel(log.mealType)
-    val foodNames = log.foods.joinToString(", ") { it.foodName }.ifEmpty { "Comida registrada" }
-    val pro = log.foods.sumOf { it.protein }
-    val car = log.foods.sumOf { it.carbs }
-    val fat = log.foods.sumOf { it.fats }
-    val uncertainFoods = log.foods.count { it.isUncertain }
-
-    Surface(
-        modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 2.dp),
-        shape = RoundedCornerShape(10.dp),
-        color = MaterialTheme.colorScheme.surfaceContainerLow,
-    ) {
-        Row(
-            modifier = Modifier.padding(10.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Icon(icon, null, tint = TEAL, modifier = Modifier.size(18.dp))
-            Spacer(Modifier.width(10.dp))
-            Column(modifier = Modifier.weight(1f)) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(
-                        label,
-                        style = MaterialTheme.typography.labelSmall,
-                        fontWeight = FontWeight.Bold,
-                        color = TEAL,
-                    )
-                    Spacer(Modifier.width(6.dp))
-                    Text(
-                        foodNames,
-                        style = MaterialTheme.typography.bodySmall,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier.weight(1f, fill = false),
-                    )
+                months.isEmpty() -> {
+                    item(key = "meal-history-empty") {
+                        Box(modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 16.dp, top = 28.dp)) {
+                            KpknEmptyState(
+                                icon = KpknLineIcons.Nutrition,
+                                title = "Aún no hay comidas registradas",
+                                body = "Cada día con comidas aparece aquí, ordenado por mes.",
+                                action = { KpknPrimaryPill(text = "Registrar comida", onClick = onRegister) },
+                            )
+                        }
+                    }
                 }
-                Text(
-                    "${NutritionDisplayFormat.logKcalSummary(log)} · P${kotlin.math.round(pro).toInt()} C${kotlin.math.round(car).toInt()} G${kotlin.math.round(fat).toInt()}",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-                if (uncertainFoods > 0) {
-                    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                        AssistChip(
-                            onClick = {},
-                            label = { Text("Incertidumbre ($uncertainFoods)", style = MaterialTheme.typography.labelSmall) },
-                            enabled = false,
-                        )
+                else -> {
+                    months.forEachIndexed { index, month ->
+                        item(key = "meal-history-${month.month}") {
+                            MealHistoryMonthModule(month = month, index = index, onOpen = { openDay = it })
+                        }
                     }
                 }
             }
+        }
+
+        NutritionTopIsland(visible = islandVisible, title = "Historial", subtitle = null)
+
+        openDay?.let { day ->
+            MealHistoryDaySheet(
+                day = day,
+                onDismiss = { openDay = null },
+                onGoToDay = onOpenDay,
+            )
         }
     }
 }
