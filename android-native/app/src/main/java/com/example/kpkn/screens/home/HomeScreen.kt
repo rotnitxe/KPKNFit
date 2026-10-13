@@ -12,7 +12,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -88,6 +87,11 @@ import com.example.kpkn.screens.home.design.homeDateLine
 import com.example.kpkn.screens.home.design.homeEntrance
 import com.example.kpkn.screens.home.design.HomeBodyToday
 import com.example.kpkn.screens.home.design.HomeNutritionToday
+import com.example.kpkn.screens.home.design.HomeNotice
+import com.example.kpkn.screens.home.design.HomeNoticeTone
+import com.example.kpkn.screens.home.design.HomeTypography
+import com.example.kpkn.screens.onboarding.design.WizardColors
+import com.example.kpkn.screens.onboarding.design.entreno.SymbolPalette
 import kotlinx.coroutines.launch
 import com.example.kpkn.ui.components.kpknGlass
 import dev.chrisbanes.haze.HazeState
@@ -768,25 +772,24 @@ private fun HomeWithProgram(
         }
         if (homeAdvisory != null) {
             item(key = "auto-deload") {
-                AlertActionCard(
+                HomeNotice(
                     title = homeAdvisory.title,
                     body = homeAdvisory.body,
                     actionLabel = "Entendido",
                     onAction = { onDismissAdvisory(homeAdvisory.id) },
-                    emphasize = homeAdvisory.level == LoadAdvisoryLevel.UNLOAD,
+                    tone = if (homeAdvisory.level == LoadAdvisoryLevel.UNLOAD) HomeNoticeTone.DANGER else HomeNoticeTone.WARN,
                     modifier = Modifier.homeEntrance(4),
                 )
             }
         }
         if (overtrainedMuscles.isNotEmpty()) {
             item(key = "overtraining") {
-                AlertActionCard(
+                HomeNotice(
                     title = "Posible exceso de volumen",
                     body = "Hay señales de carga alta en: ${overtrainedMuscles.joinToString(", ")}. Considera reducir series semanales o un descanso activo.",
                     actionLabel = "Ver recomendaciones",
                     onAction = { onNavigate("settings/auge") },
-                    emphasize = true,
-                    leadingIcon = true,
+                    tone = HomeNoticeTone.DANGER,
                     modifier = Modifier.homeEntrance(5),
                 )
             }
@@ -819,6 +822,8 @@ private fun HomeWithProgram(
                 onProgramClick = onNavigateToProgram,
                 onCreateProgram = onCreateProgram,
                 modifier = Modifier.tourAnchor(TourAnchors.HOME_PROGRAMAS).homeEntrance(7),
+                activeProgramLine = mastheadState.program,
+                onSeeAll = { onNavigate(com.example.kpkn.navigation.KpknRoute.Training.route) },
             )
         }
         item(key = "wikilab") {
@@ -831,56 +836,7 @@ private fun HomeWithProgram(
 }
 
 @Composable
-private fun AlertActionCard(
-    title: String,
-    body: String,
-    actionLabel: String,
-    onAction: () -> Unit,
-    emphasize: Boolean,
-    leadingIcon: Boolean = false,
-    modifier: Modifier = Modifier,
-) {
-    Surface(
-        modifier = modifier.fillMaxWidth().padding(horizontal = 16.dp),
-        shape = RoundedCornerShape(12.dp),
-        color = MaterialTheme.colorScheme.errorContainer.copy(alpha = if (emphasize) 0.65f else 0.45f),
-    ) {
-        Column(
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                if (leadingIcon) {
-                    Icon(
-                        Icons.Default.Warning,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onErrorContainer,
-                    )
-                }
-                Text(
-                    title,
-                    style = MaterialTheme.typography.labelLarge,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onErrorContainer,
-                )
-            }
-            Text(
-                text = body,
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onErrorContainer.copy(alpha = 0.85f),
-            )
-            TextButton(onClick = onAction) {
-                Text(actionLabel, fontWeight = FontWeight.Bold)
-            }
-        }
-    }
-}
-
-@Composable
-private fun HomeTopBar(
+internal fun HomeTopBar(
     modifier: Modifier = Modifier,
     greeting: String,
     userName: String,
@@ -939,7 +895,7 @@ private fun HomeTopBar(
                         painter = painterResource(R.drawable.kpkn_simbolo),
                         contentDescription = "KPKN",
                         modifier = Modifier.size(43.dp),
-                        colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onSurface),
+                        colorFilter = ColorFilter.tint(WizardColors.text),
                     )
                     val boxHeightDp = 24.dp
                     val topBarDensity = LocalDensity.current
@@ -1026,7 +982,7 @@ private fun HomeTopBar(
                     }
                 }
                 IconButton(onClick = onNavigateToProfile) {
-                    Icon(Icons.Default.Person, contentDescription = "Perfil", modifier = Modifier.size(22.dp), tint = MaterialTheme.colorScheme.onSurface)
+                    Icon(Icons.Default.Person, contentDescription = "Perfil", modifier = Modifier.size(22.dp), tint = WizardColors.text)
                 }
             }
         }
@@ -1034,25 +990,27 @@ private fun HomeTopBar(
 }
 
 /**
- * Saludo de la cabecera con el nombre entero: el completo de 16 a 12 sp; si no cabe, «¡Hola, …!» (también de 16 a 12 sp);
+ * Saludo de la cabecera con el nombre entero: el completo de 16 a 12 sp; si no cabe, «Hola, …» (también de 16 a 12 sp);
  * y solo si ni así cabe, se corta con «…». Siempre en una línea y con la tipografía de la barra.
  */
 @Composable
 private fun HomeGreetingLine(greeting: String, userName: String, modifier: Modifier = Modifier) {
     val measurer = rememberTextMeasurer()
-    val style = MaterialTheme.typography.titleMedium
+    // Sin «¡» ni «!», como la cabecera de la página: el saludo va en Syne 700 y en tinta.
+    val style = HomeTypography.barTitle
+    val clean = greeting.replace("¡", "").replace("!", "").trim()
     val density = LocalDensity.current
     BoxWithConstraints(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.CenterStart) {
         val widthPx = constraints.maxWidth.toFloat()
-        val fit = remember(greeting, userName, widthPx, style, density.density, density.fontScale) {
+        val fit = remember(clean, userName, widthPx, density.density, density.fontScale) {
             fitHomeGreeting(
-                full = "$greeting, $userName!",
-                short = "¡Hola, $userName!",
+                full = "$clean, $userName",
+                short = "Hola, $userName",
                 widthPx = widthPx,
             ) { text, sp ->
                 measurer.measure(
                     text = text,
-                    style = style.copy(fontWeight = FontWeight.Black, fontSize = sp.sp),
+                    style = style.copy(fontSize = sp.sp),
                     maxLines = 1,
                     softWrap = false,
                 ).size.width.toFloat()
@@ -1060,10 +1018,8 @@ private fun HomeGreetingLine(greeting: String, userName: String, modifier: Modif
         }
         Text(
             text = fit.text,
-            style = style,
-            fontWeight = FontWeight.Black,
-            fontSize = fit.sp.sp,
-            color = Color.White,
+            style = style.copy(fontSize = fit.sp.sp),
+            color = WizardColors.text,
             maxLines = 1,
             softWrap = false,
             overflow = TextOverflow.Ellipsis,
@@ -1130,46 +1086,46 @@ private fun MiniSessionCard(
 ) {
     val registerPhase = homeCompetition?.phase == com.example.kpkn.domain.training.CompetitionHomePhase.REGISTER
     Row(
-        modifier = modifier.fillMaxWidth().height(44.dp).padding(horizontal = 8.dp),
+        modifier = modifier.fillMaxWidth().height(48.dp).padding(horizontal = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween,
     ) {
         if (!hasPrograms) {
             Button(
                 onClick = onCreateProgram,
-                modifier = Modifier.weight(1f).height(36.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
+                modifier = Modifier.weight(1f).height(48.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = WizardColors.text, contentColor = WizardColors.ctaContent),
                 shape = RoundedCornerShape(8.dp),
             ) {
-                Text("Crear programa", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold, fontSize = 12.sp, maxLines = 1)
+                Text("Crear programa", style = HomeTypography.barLabel, maxLines = 1)
             }
         } else if (registerPhase && homeCompetition != null) {
             Text(
                 homeCompetition.title,
-                style = MaterialTheme.typography.labelMedium,
-                fontWeight = FontWeight.Bold,
-                fontSize = 13.sp,
+                style = HomeTypography.barLabel,
+                color = WizardColors.text,
                 maxLines = 1,
                 modifier = Modifier.weight(1f),
             )
-            TextButton(onClick = { onRegisterCompetition(homeCompetition.recordId) }) {
-                Text("Registrar", fontWeight = FontWeight.Black, fontSize = 12.sp)
+            TextButton(
+                onClick = { onRegisterCompetition(homeCompetition.recordId) },
+                modifier = Modifier.heightIn(min = 48.dp),
+                colors = ButtonDefaults.textButtonColors(contentColor = WizardColors.text),
+            ) {
+                Text("Registrar", style = HomeTypography.barLabel)
             }
         } else if (isRestDay || primarySession == null) {
             Text(
                 "Día de descanso",
-                style = MaterialTheme.typography.labelMedium,
-                fontWeight = FontWeight.Bold,
-                fontSize = 13.sp,
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+                style = HomeTypography.barLabel,
+                color = WizardColors.textMuted,
                 maxLines = 1,
             )
         } else {
             Text(
                 primarySession.session.name,
-                style = MaterialTheme.typography.labelMedium,
-                fontWeight = FontWeight.Bold,
-                fontSize = 13.sp,
+                style = HomeTypography.barLabel,
+                color = WizardColors.text,
                 maxLines = 1,
                 modifier = Modifier.weight(1f),
             )
@@ -1177,7 +1133,7 @@ private fun MiniSessionCard(
                 onClick = { onStartWorkout(primarySession.session, primarySession.program) },
                 modifier = Modifier.size(48.dp),
             ) {
-                Icon(Icons.Filled.PlayArrow, "Iniciar", modifier = Modifier.size(18.dp))
+                Icon(Icons.Filled.PlayArrow, "Iniciar", modifier = Modifier.size(18.dp), tint = WizardColors.text)
             }
         }
     }
@@ -1196,44 +1152,51 @@ private fun MiniNutritionCard(
     } else {
         0f
     }
+    // Bajo la meta, energía; en la meta, ok; pasada, el rojo suave de la marca.
     val progressColor = when {
-        pct < 0.9f -> MaterialTheme.colorScheme.tertiary
-        pct <= 1.1f -> MaterialTheme.colorScheme.primary
-        else -> MaterialTheme.colorScheme.error
+        pct < 0.9f -> SymbolPalette.energia
+        pct <= 1.1f -> SymbolPalette.ok
+        else -> WizardColors.danger
     }
     Row(
-        modifier = modifier.fillMaxWidth().height(44.dp).padding(horizontal = 8.dp),
+        modifier = modifier.fillMaxWidth().height(48.dp).padding(horizontal = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween,
     ) {
         Column(Modifier.weight(1f)) {
             Text(
                 "Calorías",
-                style = MaterialTheme.typography.labelSmall,
-                fontWeight = FontWeight.Bold,
-                fontSize = 11.sp,
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+                style = HomeTypography.barLabel,
+                color = WizardColors.textMuted,
             )
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(consumedCalories.toString(), style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Black, fontSize = 15.sp)
+                Text(consumedCalories.toString(), style = HomeTypography.barTitle, color = WizardColors.text)
                 Spacer(Modifier.width(2.dp))
                 Text(
                     dailyCalorieGoal?.let { "/ $it" } ?: "sin objetivos",
-                    style = MaterialTheme.typography.labelSmall,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 11.sp,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                    style = HomeTypography.barLabel,
+                    color = WizardColors.textFaint,
                 )
             }
-            LinearProgressIndicator(
-                progress = { pct.coerceAtMost(1f) },
-                modifier = Modifier.padding(top = 2.dp, end = 8.dp).fillMaxWidth().height(3.dp).clip(RoundedCornerShape(50)),
-                color = progressColor,
-                trackColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f),
-            )
+            // Barra de 3 dp hecha con cajas (Home no usa LinearProgressIndicator): la pista al 14 % y el relleno del color.
+            Box(
+                modifier = Modifier
+                    .padding(top = 2.dp, end = 8.dp)
+                    .fillMaxWidth()
+                    .height(3.dp)
+                    .clip(RoundedCornerShape(50))
+                    .background(WizardColors.glassBorder),
+            ) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth(pct.coerceAtMost(1f))
+                        .fillMaxHeight()
+                        .background(progressColor),
+                ) {}
+            }
         }
         IconButton(onClick = onAddMeal, modifier = Modifier.size(48.dp)) {
-            Icon(Icons.Default.Add, "Agregar", modifier = Modifier.size(18.dp))
+            Icon(Icons.Default.Add, "Agregar", modifier = Modifier.size(18.dp), tint = WizardColors.text)
         }
     }
 }

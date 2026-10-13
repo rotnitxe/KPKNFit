@@ -82,6 +82,21 @@ internal object HomeTypography {
 
     /** Porcentaje dentro del anillo de «Cómo llegan tus músculos»: Syne 700 a 14 sp. */
     val gaugeFigure: TextStyle = WizardTypography.measure.copy(fontSize = 14.sp, lineHeight = 18.sp, letterSpacing = 0.sp)
+
+    /** Título de un póster de programa: Syne ExtraBold a 17 sp. */
+    val posterTitle: TextStyle = WizardTypography.question.copy(fontSize = 17.sp, lineHeight = 22.sp, letterSpacing = 0.sp)
+
+    /** Título del concepto de «Aprende»: Syne 700 a 20 sp. */
+    val conceptTitle: TextStyle = WizardTypography.measure.copy(fontSize = 20.sp, lineHeight = 25.sp, letterSpacing = 0.sp)
+
+    /** Saludo de la barra superior y cifra de sus mini-widgets: Syne 700 a 16 sp. */
+    val barTitle: TextStyle = WizardTypography.measure.copy(fontSize = 16.sp, lineHeight = 20.sp, letterSpacing = 0.sp)
+
+    /** Etiquetas pequeñas de la barra superior: Inter 600 a 13 sp. */
+    val barLabel: TextStyle = WizardTypography.note.copy(fontWeight = FontWeight.SemiBold)
+
+    /** Píldora «ACTIVO» de un póster: Inter 700 a 13 sp. */
+    val posterPill: TextStyle = WizardTypography.note.copy(fontWeight = FontWeight.Bold)
 }
 
 /**
@@ -107,6 +122,19 @@ fun HomeSectionLabel(
             modifier = Modifier.weight(1f),
         )
         if (action != null) action()
+    }
+}
+
+/** Acción de texto de una etiqueta de sección («Ver todos»): en tinta y de 48 dp de alto como mínimo. */
+@Composable
+fun HomeSectionAction(text: String, onClick: () -> Unit) {
+    Box(
+        modifier = Modifier
+            .defaultMinSize(minHeight = WizardSpacing.touchTarget)
+            .clickable(role = Role.Button, onClick = onClick),
+        contentAlignment = Alignment.BottomEnd,
+    ) {
+        Text(text = text, style = WizardTypography.controlLabel, color = WizardColors.text)
     }
 }
 

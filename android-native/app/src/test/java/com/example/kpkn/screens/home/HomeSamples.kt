@@ -485,6 +485,64 @@ internal object HomeSamples {
         "descanso" to HomeHeroSheetCase(heroRest(), emptyList()),
         "otro_dia" to HomeHeroSheetCase(heroOtherDay(), heroMuscles()),
         "sin_programa" to HomeHeroSheetCase(heroNoProgram(), emptyList()),
+
+     * Un programa de [weeks] semanas (un solo macrociclo y bloque), con [weekDays] días por semana y, si se pasa, la plantilla de su
+     * portada. Sus semanas tienen las sesiones de [weekSessions].
+     */
+    fun programOf(
+        id: String,
+        name: String,
+        weeks: Int,
+        weekDays: Int?,
+        structureTemplateId: String? = null,
+    ): Program = Program(
+        id = id,
+        name = name,
+        structure = ProgramStructure.COMPLEX,
+        startDay = 1,
+        weekDays = weekDays,
+        structureTemplateId = structureTemplateId,
+        macrocycles = listOf(
+            Macrocycle(
+                id = "mac-$id",
+                name = "Macrociclo",
+                blocks = listOf(
+                    Block(
+                        id = "blk-$id",
+                        name = "Bloque",
+                        mesocycles = listOf(
+                            Mesocycle(
+                                id = "meso-$id",
+                                name = "Mesociclo",
+                                weeks = (1..weeks).map { n ->
+                                    ProgramWeek(id = "$id-w$n", name = "Semana $n", sessions = weekSessions)
+                                },
+                            ),
+                        ),
+                    ),
+                ),
+            ),
+        ),
+    )
+
+    /**
+     * La estantería de muestra: un programa de 8 semanas, el activo de 12 (4 días por semana, con plantilla de portada) en medio y
+     * otro de 6 sin días. Así el activo no va el primero y se ve que el póster lo sube.
+     */
+    fun shelfPrograms(
+        active: Program = twelveWeekProgram().copy(weekDays = 4, structureTemplateId = "generated:powerlifting:periodized"),
+    ): List<Program> = listOf(
+        programOf("p-fuerza", "Fuerza y masa", weeks = 8, weekDays = 3, structureTemplateId = "generated:strength-muscle:periodized"),
+        active,
+        programOf("p-hiper", "Hipertrofia de verano", weeks = 6, weekDays = null),
+    )
+
+    /** Un programa de nombre larguísimo, de 12 semanas, para ver cómo se parte el título del póster. */
+    fun longNameProgram(): Program = programOf(
+        id = "p-largo",
+        name = "Powerlifting a medida con un nombre larguísimo que no cabe en una línea",
+        weeks = 12,
+        weekDays = 4,
     )
 }
 
