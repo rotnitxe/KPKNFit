@@ -146,3 +146,70 @@ wizard. El mapa del Home de hoy está en `C:\kw\analysis\home\home_map.md` (ruta
 - **Duplicados de `gradient://lagoon`:** ya no hay ninguno dentro de Home; quedan 7 archivos de otras pantallas (`MainActivity`, `programs`, `programdetail`, `sessioneditor`).
 - **Resuelto respecto al mapa:** colores fijos de Material en Home, `?: 100` para músculos sin dato y la altura de 170 cm (solo queda en un comentario).
 - **Cosmética a 130 %:** la leyenda de nutrición reparte «sin meta» en tres líneas y, en Cuerpo, «% músculo» se parte entre el «%» y la palabra. No se corta ninguna palabra; se deja tal cual.
+
+## Home v1.1 · correcciones del usuario (2026-10-13)
+
+El usuario revisó Home v1 en su teléfono: «Me gusta por ahora el diseño», pero pidió cinco correcciones. Ver el lenguaje común en
+`docs/design/KPKN_UI_V2.md`.
+1. La portada de la sesión de hoy es excesivamente grande: quitarla y hacer la sesión más compacta.
+2. El calendario necesita un contenedor que lo separe del resto, igual que los demás elementos: continuo pero ordenado.
+3. Falta el vidrio con desenfoque en las islas y las hojas.
+4. La píldora superior debe aparecer con una animación.
+5. Más pulido en iconos, símbolos y reparto del texto.
+
+### La página v1.1, de arriba abajo
+1. **Cabecera de la página**, sobre el negro: fecha, avatar, saludo y programa con su regla de semanas. Sin cambios de contenido.
+2. **Módulo «Esta semana»:** los 7 días y, debajo, separada por un `divider`, la sesión del día elegido, compacta y SIN portada.
+   - **Cabecera:** el kicker (`HOY · DÍA 2 DE 4`) a la izquierda y, a la derecha, el reloj con «60 min».
+   - **Título** en `title` (Syne Bold 24).
+   - **Ejercicios:** hasta 3 filas en una línea cada una, con el nombre en `bodyStrong` y elipsis, y la dosis a la derecha en
+     `body` tabular `textMuted`. Debajo, «+3 ejercicios más» en `caption`.
+   - **Músculos de la sesión:** UNA fila de chips que se desplaza en horizontal y sustituye a la sección «Cómo llegan tus músculos»,
+     que desaparece.
+     - Cada chip mide 32 dp, en `inset`, con un mini anillo de 16 dp en color músculo, el nombre y el %.
+     - Sin dato, «—».
+     - Al tocar uno se abre el detalle de Músculos de RINGS.
+   - **Acciones:** «Empezar sesión» (principal, ancho restante) y «Editar» (secundaria).
+   - **Variantes:**
+     - descanso: «Descanso» y «Siguiente: jueves 15 · Pierna A», con la secundaria «Ver programa»;
+     - hecha: el check `done`, el resumen («58 min · 20 series») y las secundarias «Repetir sesión» y «Editar»;
+     - en curso: «Continuar sesión» y «Ejercicio 3 de 6»;
+     - otro día: «Ver en el programa»;
+     - sin programa: «Elige tu programa» y «Crear o importar»;
+     - día de competición y cuenta atrás: como hoy, dentro del módulo.
+   - Al cambiar de día, la sesión cambia con `AnimatedContent` y se desplaza 12 dp hacia el lado del día elegido.
+   - Comprobación: con un viewport de 360 × 760 dp, el título y «Empezar sesión» se ven sin hacer scroll.
+3. **Módulo «Tus RINGS»:**
+   - en la cabecera, el eyebrow y el (i) como botón de icono;
+   - el titular del motor en Syne Bold 22;
+   - la torre de 112 dp a la izquierda y tres filas a la derecha: eyebrow con su acento, cifra `metricL` con «%» en `unit` sobre la
+     misma línea base, y la banda en `caption`;
+   - al pie, en `caption`: «Confianza media · Toca un anillo para ver por qué».
+4. **Avisos** (si los hay): módulos teñidos con el icono de línea del aviso, el texto y una acción de texto.
+5. **Módulo «Nutrición de hoy»:**
+   - en la cabecera, el eyebrow y «+» como botón de icono de 40 dp;
+   - los anillos de 120 dp, las kcal en `metricXL` contando y «de 2.300 kcal · te quedan 1.302»;
+   - la leyenda en tres columnas que no se rompen a media palabra;
+   - las cuatro comidas con los iconos de §4 de KPKN_UI_V2;
+   - sin objetivos (I8): sin anillos, con «Aún no tienes objetivos.» y «Definir objetivos».
+6. **Módulo «Cuerpo»:**
+   - en la cabecera, el eyebrow y «Ver progreso»;
+   - el peso en `metricXL` con «kg» en `unit` y el cambio de 30 días con su flecha (TrendUp o TrendDown) y su color;
+   - la tendencia a todo el ancho, de 72 dp, con la línea del objetivo;
+   - una fila con % de grasa, IMC y FFMI en `metricM` y `caption`.
+7. **«Tus programas»:** etiqueta de grupo y carrusel de pósteres sobre el negro.
+   - La tarjeta «Crear o importar» pasa del borde discontinuo a un filete fino `moduleBorder`, con el «+» en un círculo `inset`.
+8. **Módulo «Aprende»:** el icono Book en un círculo `inset` de 44 dp, el título en Syne Bold 18 en tipo frase, dos líneas y
+   «Leer» con ChevronRight.
+9. **Islas:** la barra superior contextual con su animación y la barra inferior de 64 dp, ambas de vidrio v2. Además, el velo de la
+   barra de estado.
+
+### Paquetes (ola I, ronda 2)
+| Paquete | Qué | Depende de |
+|---|---|---|
+| I9 | Base `ui/design/` (superficies, módulo, tipos, botones, cifra con unidad, entrada), vidrio v2 en `KpknGlass`, isla superior con animación y contenido contextual | I8 |
+| I11a | Iconos KPKN Line (solo el archivo nuevo y su hoja de render) | — |
+| I10a | Módulo «Esta semana»: semana y sesión compacta, chips de músculos; fuera la portada y la sección de músculos | I9, I11a |
+| I10b | Módulos de RINGS, avisos, Nutrición, Cuerpo y Aprende, pósteres, iconos y reglas de texto dentro de la página | I9, I11a |
+| I11b | Barra inferior de 64 dp con los iconos nuevos y la isla superior con los iconos nuevos | I9, I11a |
+| I12 | QA en el emulador (lo hago yo) y arreglos de la ronda | I10a, I10b, I11b |
