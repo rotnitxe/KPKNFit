@@ -567,6 +567,52 @@ class NutritionViewModel(
             programRepo.updateSettings { settingsWithPlanGoals(it, plan, goalObjective) }
         }
     }
+
+    // ─── Raíz de Nutrición (N1): carga, tira de «Tu día» y racha de creatina ───
+
+    /**
+     * True cuando el repositorio ya publicó el estado del usuario (planes, comidas y metas). Lo hace al final de su primera fase,
+     * justo antes de publicar el catálogo de alimentos, así que un catálogo no vacío marca la carga. Hasta entonces «sin objetivos»
+     * no es un dato y la raíz pinta un esqueleto.
+     */
+    val userStateLoaded: StateFlow<Boolean> = nutritionRepo.foodDatabase
+        .map { it.isNotEmpty() }
+        .distinctUntilChanged()
+        .stateIn(viewModelScope, SharingStarted.Lazily, false)
+
+    /**
+     * Los siete días de «Tu día», de hoy −3 a hoy +3 (el mismo rango que tenía el selector de fecha). Cada día lleva sus kcal
+     * registradas (sin lo planificado) y su meta de kcal, que queda null si no la hay: no se inventa.
+     */
+    val weekStrip: StateFlow<List<NutritionWeekDay>> = combine(
+        nutritionLogs,
+        programRepo.settings,
+        activePlan,
+        nutritionRepo.dailyGoalSnapshots,
+        _today,
+    ) { logs, settings, plan, snapshots, end ->
+        val dates = (-3L..3L).map { end.plusDays(it) }
+        val goals = resolveDayGoalsByDate(dates, settings, plan, snapshots, end)
+        val logsByDay = logs.groupBy { it.date.take(10) }
+        dates.map { date ->
+            NutritionWeekDay(
+                date = date.toString(),
+                kcal = kotlin.math.round(computeDailyTotals(logsByDay[date.toString()].orEmpty()).calories).toInt(),
+                kcalGoal = (goals[date] as? DayGoalsResult.Present)?.goals?.calorieGoal?.takeIf { it > 0 },
+                isToday = date == end,
+            )
+        }
+    }
+        .flowOn(computeDispatcher)
+        .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
+
+    /** Días seguidos con creatina registrada, contados desde el día elegido (ver [countCreatineStreak]). */
+    val creatineStreakDays: StateFlow<Int> = combine(nutritionLogs, _selectedDate) { logs, date ->
+        countCreatineStreak(logs, date)
+    }
+        .distinctUntilChanged()
+        .flowOn(computeDispatcher)
+        .stateIn(viewModelScope, SharingStarted.Lazily, 0)
 }
 
 /**
@@ -581,3 +627,31 @@ internal fun settingsWithPlanGoals(current: Settings, plan: NutritionPlan, objec
         dailyFatGoal = plan.fatGoal.takeIf { it > 0 } ?: current.dailyFatGoal,
         calorieGoalObjective = objective,
     )
+
+/** Un día de la tira de «Tu día»: su fecha ISO, sus kcal registradas y su meta de kcal (null = sin meta). */
+data class NutritionWeekDay(
+    val date: String,
+    val kcal: Int,
+    val kcalGoal: Int?,
+    val isToday: Boolean,
+)
+
+/**
+ * Días seguidos con creatina registrada (sin lo planificado), hacia atrás desde [fromDate]. Si ese día aún no tiene creatina, la racha
+ * cuenta desde el día anterior: sigue viva hasta que acaba el día. 0 si no hay racha o la fecha no se lee.
+ */
+internal fun countCreatineStreak(logs: List<NutritionLog>, fromDate: String): Int {
+    val start = runCatching { LocalDate.parse(fromDate.take(10)) }.getOrNull() ?: return 0
+    val daysWithCreatine = logs
+        .asSequence()
+        .filter { it.status != NutritionStatus.PLANNED && it.foods.any { food -> food.creatineG > 0.0 } }
+        .map { it.date.take(10) }
+        .toSet()
+    var day = if (start.toString() in daysWithCreatine) start else start.minusDays(1)
+    var streak = 0
+    while (day.toString() in daysWithCreatine) {
+        streak++
+        day = day.minusDays(1)
+    }
+    return streak
+}
