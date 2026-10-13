@@ -2649,13 +2649,15 @@ class ProgramDetailViewModelTest {
     @Test
     fun verPropuesta_only_navigates_to_the_week_tab_and_never_accepts_the_proposal() {
         val source = programDetailScreenSource()
-        val label = source.indexOf("Text(\"VER PROPUESTA\")")
-        assertTrue("el botón VER PROPUESTA existe", label > 0)
-        val handler = source.substring(source.lastIndexOf("TextButton(", label), label)
+        // El aviso de transición (módulo KPKN) enseña «Ver propuesta» en tipo frase; su acción principal solo abre Semana.
+        val label = source.indexOf("isAutoreg -> \"Ver propuesta\"")
+        assertTrue("el botón Ver propuesta existe", label > 0)
+        val handler = source.substring(source.indexOf("onPrimary = {", label), source.indexOf("onSecondary", label))
+        val branch = handler.substringAfter("isAutoreg ->").substringBefore("isDeload ->")
 
-        assertTrue(handler, handler.contains("setStructureSubTab(StructureSubTab.SEMANA)"))
-        assertFalse(handler, handler.contains("acceptAutoregulation"))
-        assertFalse(handler, handler.contains("rejectAutoregulation"))
+        assertTrue(branch, branch.contains("setStructureSubTab(StructureSubTab.SEMANA)"))
+        assertFalse(branch, branch.contains("acceptAutoregulation"))
+        assertFalse(branch, branch.contains("rejectAutoregulation"))
         // La decisión se toma en la tarjeta de propuestas de la pestaña Semana (aplicar, aceptar todo, rechazar).
         assertTrue(
             Regex("""if \(structureSubTab == StructureSubTab\.SEMANA\) \{\s*AutoregulationProposalsCard\(""")
