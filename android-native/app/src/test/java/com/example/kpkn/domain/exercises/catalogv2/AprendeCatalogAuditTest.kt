@@ -207,7 +207,7 @@ class AprendeCatalogAuditTest {
             File("src/main/java/com/example/kpkn/screens/home/HomeWikiLabSection.kt"),
             File("app/src/main/java/com/example/kpkn/screens/home/HomeWikiLabSection.kt"),
         ).first { it.exists() }.readText()
-        assertTrue(home.contains("\"CONCEPTOS CLAVE\""))
+        assertTrue(home.contains("\"APRENDE\""))
         assertTrue(!home.contains(".shuffled()"))
     }
 
