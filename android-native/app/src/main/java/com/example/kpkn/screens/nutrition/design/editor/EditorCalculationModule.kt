@@ -57,7 +57,6 @@ fun EditorCalculationModule(
     onLactating: (Boolean) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val weightLabel = "Peso (${draft.weightUnit})"
     KpknModule(modifier = modifier) {
         KpknModuleHeader(label = "Datos de cálculo")
         Spacer(Modifier.height(12.dp))
@@ -73,7 +72,8 @@ fun EditorCalculationModule(
                 EditorNumberField(
                     value = draft.heightText,
                     onValueChange = onHeight,
-                    label = "Altura (cm)",
+                    label = "Altura",
+                    unit = "cm",
                     modifier = Modifier.weight(1f),
                 )
             }
@@ -82,7 +82,8 @@ fun EditorCalculationModule(
                 EditorNumberField(
                     value = draft.weightText,
                     onValueChange = onWeight,
-                    label = weightLabel,
+                    label = "Peso",
+                    unit = draft.weightUnit,
                     modifier = Modifier.weight(1f),
                 )
                 Spacer(Modifier.weight(1f))
@@ -99,13 +100,15 @@ fun EditorCalculationModule(
                 EditorNumberField(
                     value = draft.heightText,
                     onValueChange = onHeight,
-                    label = "Altura (cm)",
+                    label = "Altura",
+                    unit = "cm",
                     modifier = Modifier.weight(1f),
                 )
                 EditorNumberField(
                     value = draft.weightText,
                     onValueChange = onWeight,
-                    label = weightLabel,
+                    label = "Peso",
+                    unit = draft.weightUnit,
                     modifier = Modifier.weight(1f),
                 )
             }
@@ -117,24 +120,14 @@ fun EditorCalculationModule(
         Spacer(Modifier.height(8.dp))
         val sexes = EerSex.entries
         val sexIndex = draft.equationSex?.let { sexes.indexOf(it) }
-        if (sexIndex != null) {
-            KpknSegmentedControl(
-                options = SexOptions,
-                selectedIndex = sexIndex,
-                onSelect = { onEquation(sexes[it]) },
-                modifier = Modifier.fillMaxWidth(),
-                size = KpknSegmentedSize.Compact,
-            )
-        } else {
-            // Sin sexo en el perfil ni elegido: ninguna ecuación parece elegida hasta que el usuario toque una.
-            EditorSegmentedTrack(
-                options = SexOptions,
-                selectedIndex = null,
-                onSelect = { onEquation(sexes[it]) },
-                modifier = Modifier.fillMaxWidth(),
-                size = KpknSegmentedSize.Compact,
-            )
-        }
+        // Sin sexo en el perfil ni elegido, ninguna ecuación parece elegida hasta que el usuario toque una.
+        KpknSegmentedControl(
+            options = SexOptions,
+            selectedIndex = sexIndex ?: -1,
+            onSelect = { onEquation(sexes[it]) },
+            modifier = Modifier.fillMaxWidth(),
+            size = KpknSegmentedSize.Compact,
+        )
         if (draft.equationSex == EerSex.AVERAGE) {
             Spacer(Modifier.height(8.dp))
             EditorCaption("Promedio de la ecuación femenina y la masculina, para un contexto hormonal mixto o no declarado.")

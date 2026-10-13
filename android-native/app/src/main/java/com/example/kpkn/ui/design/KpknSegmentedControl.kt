@@ -24,6 +24,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.Role
@@ -58,6 +59,9 @@ private val SegmentTextPad = 6.dp
  * resorte (amortiguación 0,8, rigidez media-baja). Cada segmento es `Role.Tab` y expone `selected`. Su zona táctil mide 48 dp de alto
  * aunque la pista sea de 44 o de 36. El texto va en una línea y se encoge hasta 11 sp antes de cortar, también al 130 % de letra.
  * Con movimiento reducido, el indicador salta.
+ *
+ * Con [selectedIndex] negativo no hay ningún segmento elegido: sin indicador y todo el texto en `textMuted`, para cuando la pantalla
+ * todavía no tiene el dato. Con [enabled] en falso, todo va al 38 % y no responde: es el control apagado.
  */
 @Composable
 fun KpknSegmentedControl(
@@ -66,19 +70,21 @@ fun KpknSegmentedControl(
     onSelect: (Int) -> Unit,
     modifier: Modifier = Modifier,
     size: KpknSegmentedSize = KpknSegmentedSize.Regular,
+    enabled: Boolean = true,
 ) {
     if (options.isEmpty()) return
     val reduced = wizardReducedMotion()
     val compact = size == KpknSegmentedSize.Compact
     val trackHeight = if (compact) 36.dp else 44.dp
     val baseStyle = if (compact) KpknType.segment.copy(fontSize = 13.sp, lineHeight = 18.sp) else KpknType.segment
-    val chosen = selectedIndex.coerceIn(0, options.lastIndex)
+    // Un índice negativo es «ninguno elegido»; uno demasiado grande se lleva al último, como antes.
+    val chosen: Int? = if (selectedIndex < 0) null else selectedIndex.coerceAtMost(options.lastIndex)
     val slideSpec: AnimationSpec<Float> = if (reduced) {
         snap()
     } else {
         spring(dampingRatio = 0.8f, stiffness = Spring.StiffnessMediumLow)
     }
-    val slide = animateFloatAsState(targetValue = chosen.toFloat(), animationSpec = slideSpec, label = "kpknSegmentSlide")
+    val slide = animateFloatAsState(targetValue = (chosen ?: 0).toFloat(), animationSpec = slideSpec, label = "kpknSegmentSlide")
     val measurer = rememberTextMeasurer()
     // BoxWithConstraintsScope no es un Density: la conversión a px se hace con la densidad capturada fuera.
     val density = LocalDensity.current
@@ -87,6 +93,7 @@ fun KpknSegmentedControl(
         modifier = modifier
             .fillMaxWidth()
             .height(48.dp)
+            .alpha(if (enabled) 1f else 0.38f)
             .selectableGroup(),
     ) {
         val segment: Dp = (maxWidth - SegmentInset * 2) / options.size
@@ -105,7 +112,7 @@ fun KpknSegmentedControl(
                 .clip(KpknShape.pill)
                 .background(KpknSurface.inset, KpknShape.pill),
         )
-        Box(
+        if (chosen != null) Box(
             modifier = Modifier
                 .align(Alignment.CenterStart)
                 .offset { IntOffset(x = (SegmentInset.toPx() + slide.value * segment.toPx()).roundToInt(), y = 0) }
@@ -123,6 +130,7 @@ fun KpknSegmentedControl(
                         .fillMaxHeight()
                         .selectable(
                             selected = selected,
+                            enabled = enabled,
                             interactionSource = interaction,
                             indication = null,
                             role = Role.Tab,

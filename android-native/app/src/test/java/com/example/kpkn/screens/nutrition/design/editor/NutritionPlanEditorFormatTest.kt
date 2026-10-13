@@ -9,7 +9,10 @@ import org.junit.Assert.assertNull
 import org.junit.Test
 import java.time.LocalDate
 
-/** Textos y cifras puras del editor de Nutrición: el cambio que se guarda, la meta en kg o lb, las líneas de macros y los anillos. */
+/**
+ * Textos y cifras puras del editor de Nutrición: el cambio que se guarda, la meta en kg o lb, las líneas de macros, el aviso de desvío,
+ * los anillos y las barras del reparto. Las cifras y sus unidades van unidas con espacios que no se parten (U+00A0).
+ */
 class NutritionPlanEditorFormatTest {
 
     private val base = NutritionEditorBase(caloriesKcal = 2150, proteinG = 160, carbsG = 210, fatG = 70)
@@ -41,19 +44,28 @@ class NutritionPlanEditorFormatTest {
     }
 
     @Test
-    fun laLineaDeMacrosYLaBaseRevisada() {
+    fun laLineaDeMacrosVaConSusUnidadesPegadas() {
         assertEquals("P 160 · H 210 · G 70 g", editorMacrosLine(base))
         assertEquals("P — · H — · G — g", editorMacrosLine(null))
+    }
+
+    @Test
+    fun elAvisoDeDesvioSoloSaleSiPasaDelDosPorCiento() {
+        // 2.110 frente a 2.150: 40 kcal, por debajo del 2 % (43): no hay aviso.
+        assertNull(editorMacroGapLine(base))
+        // 2.110 frente a 2.300: 190 kcal menos, por encima del 2 %.
         assertEquals(
-            "Base revisada que se guardará tal cual: 2150 kcal · P 160 g · H 210 g · G 70 g",
-            editorBaseRevisedLine(base),
+            "Tus macros suman 2.110 kcal, 190 menos que tus calorías.",
+            editorMacroGapLine(NutritionEditorBase(2300, 160, 210, 70)),
         )
-        assertEquals("Total energético mostrado: 2110 kcal", editorAtwaterLine(base))
+        // 2.110 frente a 2.000: 110 kcal más, por encima del 2 %.
         assertEquals(
-            "2150 kcal · P 160 g · H 210 g · G 70 g",
-            editorBaseRevisedFigures(base),
+            "Tus macros suman 2.110 kcal, 110 más que tus calorías.",
+            editorMacroGapLine(NutritionEditorBase(2000, 160, 210, 70)),
         )
-        assertNull(editorAtwaterLine(NutritionEditorBase(2110, 160, 210, 70)))
+        // Sin calorías, o sin macros, no hay nada que comparar.
+        assertNull(editorMacroGapLine(NutritionEditorBase(0, 0, 0, 0)))
+        assertNull(editorMacroGapLine(NutritionEditorBase(2000, 0, 0, 0)))
     }
 
     @Test
@@ -90,13 +102,26 @@ class NutritionPlanEditorFormatTest {
     }
 
     @Test
-    fun elDiaElegidoSeLeeEnUnaLineaYHoySeMarca() {
+    fun lasBarrasSonProporcionalesConMinimoDelTreintaPorCiento() {
+        val week = listOf(2150, 2080, 2400, 1950)
+        val fractions = editorBarFractions(week)
+        assertEquals(2150f / 2400f, fractions[0], 1e-4f)
+        assertEquals(2080f / 2400f, fractions[1], 1e-4f)
+        assertEquals(1f, fractions[2], 1e-6f)
+        assertEquals(1950f / 2400f, fractions[3], 1e-4f)
+        // Un día con muy pocas kcal no desaparece: se queda en el 30 %.
+        assertEquals(listOf(0.30f, 1f), editorBarFractions(listOf(500, 2000)))
+        // Sin kcal, todas al mínimo.
+        assertEquals(listOf(0.30f, 0.30f), editorBarFractions(listOf(0, 0)))
+    }
+
+    @Test
+    fun elDiaElegidoSeLeeEnUnaLineaConSusKcal() {
         val monday = NutritionEditorDayTarget(LocalDate.of(2026, 10, 12), 2150, 160, 210, 70)
-        val tuesday = NutritionEditorDayTarget(LocalDate.of(2026, 10, 13), 2100, 150, 200, 70)
-        assertEquals("Lunes · P 160 · H 210 · G 70 g", editorDayLine(monday))
-        val marked = editorWeekDays(listOf(monday, tuesday), today = LocalDate.of(2026, 10, 13))
-        assertEquals(listOf(false, true), marked.map { it.isToday })
-        assertEquals(2100, marked[1].kcal)
+        assertEquals(
+            "Lunes · 2.150 kcal · P 160 · H 210 · G 70 g",
+            editorDayLine(monday),
+        )
     }
 
     @Test

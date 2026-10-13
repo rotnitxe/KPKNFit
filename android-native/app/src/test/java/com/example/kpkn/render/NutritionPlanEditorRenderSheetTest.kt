@@ -157,7 +157,6 @@ class NutritionPlanEditorRenderSheetTest {
             goalOpen = false,
             // Con el plan completo, el miércoles elegido en la franja muestra su línea de macros.
             selectedDay = if (name.startsWith("completo")) 2 else null,
-            today = NutritionEditorSamples.today,
             listState = listState,
         )
     }

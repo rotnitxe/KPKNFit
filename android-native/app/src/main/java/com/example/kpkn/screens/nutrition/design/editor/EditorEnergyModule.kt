@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -25,8 +24,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.clearAndSetSemantics
-import androidx.compose.ui.semantics.text
-import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextMeasurer
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.KeyboardType
@@ -62,8 +59,8 @@ private const val FigureSampleKcal = 12345
 
 /**
  * Módulo «Calorías y macros». Arriba, en vivo: los anillos (112 dp) y la cifra de la base con su línea de macros, con la misma caída a
- * apilado que Home. Debajo, la base editable: las calorías, los tres macros con su color, el reparto de energía y las lecturas de la base
- * revisada. Si la meta de hoy ya está fijada por este plan, lo dice. Sin estado.
+ * apilado que Home. Debajo, la base editable: las calorías y los tres macros con su color y su unidad dentro del campo; el reparto de
+ * energía; un aviso solo si los macros se alejan de las calorías más de un 2 %, y la meta de hoy si ya está fijada. Sin estado.
  */
 @Composable
 fun EditorEnergyModule(
@@ -93,21 +90,21 @@ fun EditorEnergyModule(
         Spacer(Modifier.height(12.dp))
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             EditorMacroField(
-                label = "Proteína (g)",
+                label = "Proteína",
                 color = MacroColors.protein,
                 value = base?.proteinG,
                 onValue = onProtein,
                 modifier = Modifier.weight(1f),
             )
             EditorMacroField(
-                label = "Hidratos (g)",
+                label = "Hidratos",
                 color = MacroColors.carbs,
                 value = base?.carbsG,
                 onValue = onCarbs,
                 modifier = Modifier.weight(1f),
             )
             EditorMacroField(
-                label = "Grasas (g)",
+                label = "Grasas",
                 color = MacroColors.fat,
                 value = base?.fatG,
                 onValue = onFat,
@@ -120,13 +117,10 @@ fun EditorEnergyModule(
             Spacer(Modifier.height(6.dp))
             EditorCaption(editorEnergyLegend(percents), numeric = true)
         }
-        base?.let { revised ->
+        // Solo si los macros se alejan de las calorías más de un 2 %: si no, el aviso sobra.
+        base?.let { editorMacroGapLine(it) }?.let { line ->
             Spacer(Modifier.height(12.dp))
-            EditorBaseRevised(revised)
-            editorAtwaterLine(revised)?.let { line ->
-                Spacer(Modifier.height(4.dp))
-                EditorCaption(line)
-            }
+            EditorCaption(line)
         }
         // Editar el MISMO plan nunca cambia la meta de hoy: queda fijada y el cambio vale desde mañana.
         todayGoalFixedKcal?.let { kcal ->
@@ -217,7 +211,10 @@ private fun EditorFigure(base: NutritionEditorBase?, style: TextStyle) {
     )
 }
 
-/** Un macro: punto de su color y etiqueta arriba, y el campo numérico debajo. La etiqueta va en la misma columna que su campo. */
+/**
+ * Un macro: un punto de su color y su nombre arriba, y el campo numérico debajo con la unidad («g») dentro. El nombre va en una sola línea,
+ * y el punto y el campo quedan alineados en la misma columna en cualquier escala de letra.
+ */
 @Composable
 private fun EditorMacroField(
     label: String,
@@ -227,40 +224,28 @@ private fun EditorMacroField(
     modifier: Modifier = Modifier,
 ) {
     Column(modifier = modifier) {
-        // Dos líneas de alto para todas: así los tres campos quedan a la misma altura aunque una etiqueta se parta (130 %).
         Row(
-            modifier = Modifier.heightIn(min = 36.dp).padding(start = 4.dp, bottom = 6.dp),
-            verticalAlignment = Alignment.Top,
+            modifier = Modifier.padding(bottom = 6.dp),
+            verticalAlignment = Alignment.CenterVertically,
         ) {
-            Box(Modifier.padding(top = 5.dp).size(8.dp).clip(CircleShape).background(color))
-            Spacer(Modifier.width(6.dp))
+            Box(Modifier.size(8.dp).clip(CircleShape).background(color))
+            Spacer(Modifier.width(5.dp))
             Text(
                 text = label,
                 style = KpknType.caption,
                 color = WizardColors.textMuted,
-                maxLines = 2,
+                maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
             )
         }
         EditorNumberField(
             value = value?.toString().orEmpty(),
             onValueChange = { text -> parseLocalizedNumber(text)?.takeIf { it >= 0 }?.let(onValue) },
+            unit = "g",
             placeholder = "—",
             keyboard = KeyboardType.Number,
             modifier = Modifier.fillMaxWidth(),
         )
-    }
-}
-
-/**
- * La base revisada en dos líneas: la frase en la primera y las cifras en la segunda, para que ninguna cifra quede partida de su unidad.
- * La semántica lleva la frase entera, tal como la lee la prueba instrumentada y el lector de pantalla.
- */
-@Composable
-private fun EditorBaseRevised(base: NutritionEditorBase) {
-    Column(modifier = Modifier.clearAndSetSemantics { text = AnnotatedString(editorBaseRevisedLine(base)) }) {
-        EditorCaption(EDITOR_BASE_REVISED_LEAD)
-        EditorCaption(editorBaseRevisedFigures(base), numeric = true)
     }
 }
 

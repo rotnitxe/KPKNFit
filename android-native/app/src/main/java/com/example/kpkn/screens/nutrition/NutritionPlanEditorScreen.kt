@@ -6,7 +6,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
@@ -16,7 +15,6 @@ import com.example.kpkn.data.repository.NutritionRepository
 import com.example.kpkn.data.repository.ProgramRepository
 import com.example.kpkn.screens.nutrition.design.editor.NutritionPlanEditorActions
 import com.example.kpkn.screens.nutrition.design.editor.NutritionPlanEditorContent
-import java.time.LocalDate
 
 /**
  * Editor nutricional DIRECTO: secciones editables en cualquier orden, sin
@@ -41,7 +39,6 @@ fun NutritionPlanEditorScreen(
     var goalOpen by rememberSaveable { mutableStateOf(false) }
     var selectedDay by rememberSaveable { mutableStateOf<Int?>(null) }
     val listState = rememberLazyListState()
-    val today = remember { LocalDate.now() }
     // Mientras carga, el título sigue a la navegación (plan nuevo o existente); después, al borrador cargado.
     val isNew = if (state.isLoading) planId == null else state.draft.planId == null
 
@@ -86,7 +83,6 @@ fun NutritionPlanEditorScreen(
         isNew = isNew,
         goalOpen = goalOpen,
         selectedDay = selectedDay,
-        today = today,
         listState = listState,
     )
 }

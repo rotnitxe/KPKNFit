@@ -39,7 +39,6 @@ import com.example.kpkn.ui.design.KpknTopRow
 import com.example.kpkn.ui.design.KpknType
 import com.example.kpkn.ui.design.kpknEntrance
 import com.example.kpkn.ui.design.rememberIslandVisible
-import java.time.LocalDate
 
 /** Grupo de la entrada escalonada de los módulos del editor. */
 private const val EntranceGroup = "nutrition.editor"
@@ -96,7 +95,6 @@ fun NutritionPlanEditorContent(
     isNew: Boolean,
     goalOpen: Boolean,
     selectedDay: Int?,
-    today: LocalDate,
     modifier: Modifier = Modifier,
     listState: LazyListState = rememberLazyListState(),
 ) {
@@ -177,7 +175,6 @@ fun NutritionPlanEditorContent(
                         weeklyDistribution = draft.weeklyDistribution,
                         weeklyTargets = state.weeklyTargets,
                         selectedDay = selectedDay,
-                        today = today,
                         onWeeklyDistribution = actions.onWeeklyDistribution,
                         onSelectDay = actions.onSelectDay,
                         modifier = Modifier.fillMaxWidth().kpknEntrance(EntranceGroup, 3),

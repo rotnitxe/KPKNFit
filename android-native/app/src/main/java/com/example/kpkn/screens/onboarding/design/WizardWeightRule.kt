@@ -68,6 +68,7 @@ private val ruleTrackHeight = 90.dp
  * pueden elegir, así que el arrastre se recorta mientras se hace y nunca se
  * emite un valor fuera del límite. Sin ellos, el rango es el de la escala.
  * Si el valor inicial queda fuera, la regla arranca en el límite más cercano.
+ * Con [showReading] en falso no pinta la cifra central; la semántica (ajustar y confirmar) sigue igual.
  */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -80,6 +81,8 @@ fun WizardWeightRule(
     max: Double? = null,
     /** Con `true`, la cifra central va en tinta también sin tocar la regla (la hoja de Cuerpo la muestra así). */
     emphasized: Boolean = false,
+    /** Con `false`, la regla no pinta su cifra central: la pantalla que la usa ya muestra ese valor, y así no se lee dos veces. */
+    showReading: Boolean = true,
 ) {
     val reducedMotion = wizardReducedMotion()
     val isLb = unit == WizardMassUnit.LB
@@ -216,7 +219,7 @@ fun WizardWeightRule(
             },
         verticalArrangement = Arrangement.spacedBy(6.dp),
     ) {
-        Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+        if (showReading) Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
             Text(
                 text = "${WizardWeightScale.format(currentDisplay)} ${unit.code}",
                 style = WizardTypography.measure,

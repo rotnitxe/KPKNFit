@@ -30,7 +30,7 @@ fun EditorProvenanceModule(
         KpknRadioRow(
             selected = current == NutritionEditorProvenance.AUTOMATIC,
             title = "Recomendación automática",
-            subtitle = "Calculada con la ecuación EER.",
+            subtitle = "Calculada con tu edad, altura, peso y actividad.",
             onClick = { onProvenance(NutritionEditorProvenance.AUTOMATIC) },
         )
         KpknRadioRow(
