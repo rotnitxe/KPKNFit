@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -29,6 +30,7 @@ import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -232,6 +234,9 @@ fun WizardDock(
     note: String? = null,
     /** Con texto, el botón es una píldora que lo muestra («Activar y entrar a KPKN»); sin él, el círculo con el check. */
     textLabel: String? = null,
+    /** Acción secundaria opcional («Omitir»): texto a la izquierda del dock, sin caja. Sin [onSecondary], no se pinta. */
+    secondaryLabel: String? = null,
+    onSecondary: (() -> Unit)? = null,
 ) {
     val density = LocalDensity.current
     val navBottom = with(density) { WindowInsets.navigationBars.getBottom(density).toDp() }
@@ -268,6 +273,20 @@ fun WizardDock(
                     onClick()
                 },
             )
+        }
+        if (secondaryLabel != null && onSecondary != null) {
+            // A la izquierda y a la altura del círculo: el check conserva su sitio.
+            TextButton(
+                onClick = onSecondary,
+                modifier = Modifier
+                    .align(Alignment.BottomStart)
+                    .navigationBarsPadding()
+                    .padding(start = 8.dp, bottom = 24.dp)
+                    .defaultMinSize(minHeight = WizardSpacing.touchTarget)
+                    .testTag("setup-dock-secondary"),
+            ) {
+                Text(text = secondaryLabel, style = WizardTypography.controlLabel, color = WizardColors.text)
+            }
         }
         if (note != null) {
             // El aviso va justo encima del botón, sea círculo o píldora.

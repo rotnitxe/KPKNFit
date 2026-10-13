@@ -184,6 +184,10 @@ data class SetupWeighIn(
     val id: String,
     val dateIso: String,
     val weightKg: Double,
+    /** Porcentaje de grasa corporal del pesaje (opcional; de 0 a 100). Sin valor no hay fila de grasa. */
+    val bodyFatPercent: Double? = null,
+    /** Porcentaje de masa muscular del pesaje (opcional; de 0 a 100). Sin valor no hay fila de músculo. */
+    val muscleMassPercent: Double? = null,
 )
 
 /**
@@ -1855,7 +1859,10 @@ object SetupWizardValidation {
                 val broken = rows.firstOrNull { row ->
                     val date = runCatching { LocalDate.parse(row.dateIso) }.getOrNull()
                     date == null || date.isAfter(today) ||
-                        !row.weightKg.isFinite() || row.weightKg !in 20.0..500.0
+                        !row.weightKg.isFinite() || row.weightKg !in 20.0..500.0 ||
+                        // Los porcentajes usan el mismo rango que las observaciones de Cuerpo (0 a 100).
+                        row.bodyFatPercent?.let { it !in 0.0..100.0 } == true ||
+                        row.muscleMassPercent?.let { it !in 0.0..100.0 } == true
                 }
                 when {
                     broken != null -> invalid("weighIns", "Revisa la fecha y el peso de tus pesajes")

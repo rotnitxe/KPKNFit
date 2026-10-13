@@ -106,17 +106,43 @@ object SetupActivationPayload {
             if (!seenIds.add(id)) {
                 throw reject("Hay dos pesajes en la misma fecha ($date). Corrígelo antes de activar.")
             }
+            // Hoy a mediodía puede aún no llegar: nunca se envía el futuro. La grasa y el músculo del pesaje van con el
+            // MISMO instante y la MISMA sesión que su peso: Cuerpo los agrupa en una sola medición.
+            val measuredAt = minOf(noon, nowEpochMs)
             rows += observation(
                 id = id,
                 metric = BodyMetric.WEIGHT,
                 valueSi = weighIn.weightKg,
                 unitSi = "kg",
-                // Hoy a mediodía puede aún no llegar: nunca se envía el futuro.
-                timestampEpochMs = minOf(noon, nowEpochMs),
+                timestampEpochMs = measuredAt,
                 zone = zone,
                 quality = BodyObservationQuality.MEASURED,
                 nowEpochMs = nowEpochMs,
             )
+            weighIn.bodyFatPercent?.let { fat ->
+                rows += observation(
+                    id = "$id/fat",
+                    metric = BodyMetric.BODY_FAT_PERCENT,
+                    valueSi = fat,
+                    unitSi = "%",
+                    timestampEpochMs = measuredAt,
+                    zone = zone,
+                    quality = BodyObservationQuality.MEASURED,
+                    nowEpochMs = nowEpochMs,
+                )
+            }
+            weighIn.muscleMassPercent?.let { muscle ->
+                rows += observation(
+                    id = "$id/muscle",
+                    metric = BodyMetric.MUSCLE_MASS_PERCENT,
+                    valueSi = muscle,
+                    unitSi = "%",
+                    timestampEpochMs = measuredAt,
+                    zone = zone,
+                    quality = BodyObservationQuality.MEASURED,
+                    nowEpochMs = nowEpochMs,
+                )
+            }
         }
 
         // 4. weightTrend / previousMaximumWeightKg: contexto declarado aparte.
