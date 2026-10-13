@@ -353,7 +353,7 @@ private fun EnergySection(state: NutritionPlanEditorUiState, viewModel: Nutritio
     )
     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         MacroField("Proteína (g)", base.proteinG, Modifier.weight(1f)) { viewModel.setMacro(protein = it) }
-        MacroField("Carbohidratos (g)", base.carbsG, Modifier.weight(1f)) { viewModel.setMacro(carbs = it) }
+        MacroField("Hidratos (g)", base.carbsG, Modifier.weight(1f)) { viewModel.setMacro(carbs = it) }
         MacroField("Grasas (g)", base.fatG, Modifier.weight(1f)) { viewModel.setMacro(fat = it) }
     }
     Text(

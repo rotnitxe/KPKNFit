@@ -47,6 +47,7 @@ import com.example.kpkn.data.food.findStaticFoodById
 import com.example.kpkn.data.food.findFoodExactByNormalized
 import com.example.kpkn.domain.nutrition.HouseholdPortions
 import com.example.kpkn.domain.nutrition.FoodLoggerPrimaryAction
+import com.example.kpkn.domain.nutrition.MealSlots
 import com.example.kpkn.data.diagnostics.KpknDiagnosticLogger
 import com.example.kpkn.telemetry.nutrition.NutritionTelemetry
 import com.example.kpkn.telemetry.nutrition.NutritionTelemetrySanitizer
@@ -92,6 +93,8 @@ import com.example.kpkn.domain.nutrition.stripOilFromLoggedFood
 import com.example.kpkn.domain.nutrition.scalingForIntent
 import com.example.kpkn.domain.nutrition.oilGramsForLevel
 import com.example.kpkn.ui.components.KpknSheet
+import com.example.kpkn.ui.locale.LocaleManager
+import com.example.kpkn.ui.theme.MacroColors
 import java.util.UUID
 import java.util.concurrent.CancellationException
 import kotlinx.coroutines.CoroutineExceptionHandler
@@ -121,13 +124,6 @@ private const val CORRECTION_SEARCH_DEBOUNCE_MS = 250L
 /** Lado mínimo de una zona táctil (WP-U17): los botones y chips de 24-32 dp se llevan a este tamaño. */
 private val MIN_TOUCH_TARGET = 40.dp
 
-private val MEAL_OPTIONS = listOf(
-    MealType.BREAKFAST to "Desayuno",
-    MealType.LUNCH to "Almuerzo",
-    MealType.DINNER to "Cena",
-    MealType.SNACK to "Snack",
-)
-
 /** El nombre de una porción tal como se le muestra al usuario: nunca el identificador `SMALL`/`MEDIUM`/`LARGE`. */
 internal fun portionPresetLabel(preset: PortionPreset): String = when (preset) {
     PortionPreset.SMALL -> "Pequeño"
@@ -136,9 +132,9 @@ internal fun portionPresetLabel(preset: PortionPreset): String = when (preset) {
     PortionPreset.EXTRA -> "Extra"
 }
 
-private val PROTEIN_COLOR = Color(0xFFB3261E)
-private val CARBS_COLOR = Color(0xFF6750A4)
-private val FATS_COLOR = Color(0xFF006A6A)
+private val PROTEIN_COLOR = MacroColors.protein
+private val CARBS_COLOR = MacroColors.carbs
+private val FATS_COLOR = MacroColors.fat
 private val PRO_COLOR = Color(0xFF7C3AED)
 
 /** CRI-ANALYSIS: fragmento corto y seguro (errorType: mensaje) para mostrar en avisos
@@ -1379,7 +1375,7 @@ fun FoodLoggerDrawer(
             },
             text = {
                 Text(
-                    "En KPKN registrás comidas sin conexión y en privado: el cálculo corre solo en el teléfono, sin mandar lo que comés a servidores ni usar APIs o IA externas. Esa independencia puede equivocarse en coincidencias y calorías. Si algo no cierra, usá Corrección avanzada o ajustá gramos y macros a mano. El catálogo y el reconocimiento se siguen afinando.",
+                    "En KPKN registras comidas sin conexión y en privado: el cálculo corre solo en el teléfono, sin enviar lo que comes a servidores ni usar APIs o IA externas. Esa independencia puede equivocarse en coincidencias y calorías. Si algo no cierra, usa Corrección avanzada o ajusta los gramos y los macros a mano. El catálogo y el reconocimiento se siguen afinando.",
                     style = MaterialTheme.typography.bodyMedium,
                 )
             },
@@ -1470,6 +1466,7 @@ fun FoodLoggerDrawer(
 
             // ── Date ────────────────────────────────────────────────────────
             item {
+                val locale = LocaleManager.getEffectiveLocale(LocalContext.current)
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -1478,7 +1475,7 @@ fun FoodLoggerDrawer(
                     Text(
                         text = try {
                             java.time.LocalDate.parse(logDate)
-                                .format(java.time.format.DateTimeFormatter.ofPattern("EEE, d MMM", java.util.Locale.getDefault()))
+                                .format(java.time.format.DateTimeFormatter.ofPattern("EEE, d MMM", locale))
                         } catch (e: Exception) { logDate },
                         style = MaterialTheme.typography.bodyMedium,
                         fontWeight = FontWeight.SemiBold,
@@ -1838,7 +1835,7 @@ fun FoodLoggerDrawer(
                                 color = LocalContentColor.current
                             )
                             Spacer(modifier = Modifier.width(8.dp))
-                            Text(if (isSaving) "Guardando..." else "Interpretando...", fontWeight = FontWeight.Black)
+                            Text(if (isSaving) "Guardando…" else "Interpretando…", fontWeight = FontWeight.Black)
                         } else {
                             val icon = if (descriptionEdited) Icons.Default.Refresh
                                        else if (hasTags) Icons.Default.Check
@@ -1852,8 +1849,8 @@ fun FoodLoggerDrawer(
                             Icon(icon, null, modifier = Modifier.size(20.dp))
                             Spacer(modifier = Modifier.width(8.dp))
                             Text(
-                                if (label == "REGISTRAR") "Interpretar comida"
-                                else if (label == "GUARDAR") (if (isEditing) "Guardar cambios" else "Guardar comida")
+                                if (label == "Registrar") "Interpretar comida"
+                                else if (label == "Guardar") (if (isEditing) "Guardar cambios" else "Guardar comida")
                                 else label,
                                 fontWeight = FontWeight.Black,
                             )
@@ -2126,7 +2123,8 @@ private fun MealTypeSelector(mealType: MealType, onSelect: (MealType) -> Unit) {
         horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        MEAL_OPTIONS.forEach { (type, label) ->
+        MealSlots.mealOrder.forEach { type ->
+            val label = MealSlots.mealLabel(type)
             val isSelected = type == mealType
             Surface(
                 shape = RoundedCornerShape(12.dp),
@@ -2532,7 +2530,7 @@ private fun TagCard(
                     }
                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                         Box(modifier = Modifier.weight(1f)) {
-                            MacroOverrideCol("Carbos", logged?.carbs ?: 0.0, step = 1.0, onChange = onCarbsChange)
+                            MacroOverrideCol("Hidratos", logged?.carbs ?: 0.0, step = 1.0, onChange = onCarbsChange)
                         }
                         Box(modifier = Modifier.weight(1f)) {
                             MacroOverrideCol("Grasas", logged?.fats ?: 0.0, step = 1.0, onChange = onFatsChange)

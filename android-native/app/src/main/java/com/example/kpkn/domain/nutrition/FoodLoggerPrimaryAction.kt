@@ -16,10 +16,10 @@ object FoodLoggerPrimaryAction {
 
     fun label(hasTags: Boolean, descriptionEdited: Boolean, isSearchMode: Boolean): String {
         return when {
-            descriptionEdited -> "ACTUALIZAR Y BUSCAR"
-            hasTags -> "GUARDAR"
-            isSearchMode && !hasTags -> "BUSCAR"
-            else -> "REGISTRAR"
+            descriptionEdited -> "Actualizar y buscar"
+            hasTags -> "Guardar"
+            isSearchMode && !hasTags -> "Buscar"
+            else -> "Registrar"
         }
     }
 }

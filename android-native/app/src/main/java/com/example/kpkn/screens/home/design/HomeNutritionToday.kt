@@ -32,7 +32,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.Role
@@ -52,8 +51,10 @@ import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.kpkn.data.models.MealType
+import com.example.kpkn.domain.nutrition.MealSlots
 import com.example.kpkn.screens.home.HomeMacroToday
 import com.example.kpkn.screens.home.HomeNutritionState
+import com.example.kpkn.screens.nutrition.design.mealIcon
 import com.example.kpkn.screens.onboarding.design.MacroRingFractions
 import com.example.kpkn.screens.onboarding.design.WIZARD_RING_CALORIE_SCALE
 import com.example.kpkn.screens.onboarding.design.WizardColors
@@ -76,13 +77,8 @@ private const val NUTRITION_FIGURE_KEY = "home-nutrition"
 /** Etiqueta de prueba del contenedor de los anillos de «Nutrición de hoy» (solo se pintan con meta de kcal). */
 internal const val HOME_NUTRITION_RINGS_TAG = "home-nutrition-rings"
 
-/** Las cuatro comidas de «Nutrición de hoy», en su orden. */
-internal val HomeMeals: List<Pair<MealType, String>> = listOf(
-    MealType.BREAKFAST to "Desayuno",
-    MealType.LUNCH to "Almuerzo",
-    MealType.SNACK to "Merienda",
-    MealType.DINNER to "Cena",
-)
+/** Las cuatro comidas de «Nutrición de hoy», en su orden y con su nombre de [MealSlots]. */
+internal val HomeMeals: List<Pair<MealType, String>> = MealSlots.mealOrder.map { it to MealSlots.mealLabel(it) }
 
 /** Diámetro de los anillos de macros de «Nutrición de hoy»: 112 dp, a la izquierda de la cifra (Home v1.1, I12). */
 private val NutritionRingSize = 112.dp
@@ -505,12 +501,4 @@ private fun HomeMealCell(
             maxLines = 1,
         )
     }
-}
-
-/** Icono de línea de cada comida: amanecer (desayuno), sol (almuerzo), manzana (merienda) y luna (cena). */
-private fun mealIcon(type: MealType): ImageVector = when (type) {
-    MealType.BREAKFAST -> KpknLineIcons.Sunrise
-    MealType.LUNCH -> KpknLineIcons.Sun
-    MealType.SNACK -> KpknLineIcons.Apple
-    MealType.DINNER -> KpknLineIcons.Moon
 }

@@ -448,28 +448,6 @@ data class DailyMacroTotals(
     val isEstimate: Boolean = false,
 )
 
-data class NutrientProgress(
-    val key: String,
-    val label: String,
-    val consumed: Double,
-    val goal: Double,
-    val unit: String,
-    val showOverages: Boolean = true,
-) {
-    val remaining: Double
-        get() = goal - consumed
-
-    val progressRatio: Double
-        get() {
-            if (goal <= 0.0) return 1.0
-            val raw = consumed / goal
-            return if (showOverages) raw else raw.coerceAtMost(1.0)
-        }
-
-    val progressPercent: Int
-        get() = kotlin.math.round(progressRatio * 100.0).toInt()
-}
-
 data class MealGroup(
     val mealType: MealType,
     val logs: List<NutritionLog> = emptyList(),
