@@ -348,6 +348,11 @@ object KpknLineIcons {
         )
     }
 
+    // ── Cantidades ──────────────────────────────────────────────────────────────
+
+    /** Menos: barra horizontal centrada, el complemento de `Plus` en los pasos de cantidad. */
+    val Minus: ImageVector by lazy { icono("KpknLine.Minus", listOf("M5.75 12h12.5")) }
+
     /** Trazado del triángulo de `Play` y `PlayFilled`. */
     private const val TRIANGULO_PLAY =
         "M8.25 5.6v12.8a.9.9 0 0 0 1.37.77l10.2-6.4a.9.9 0 0 0 0-1.54l-10.2-6.4a.9.9 0 0 0-1.37.77z"

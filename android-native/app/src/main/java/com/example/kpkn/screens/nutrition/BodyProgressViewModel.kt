@@ -75,6 +75,8 @@ data class BodyProgressUiState(
     val loaded: Boolean = false,
     /** Peso de los últimos 30 días, sin depender del rango: la isla de Cuerpo muestra su cambio. */
     val weightSummary30Days: BodyWeightSummary = BodyWeightSummary(),
+    /** Plan de nutrición activo, o null. Con plan, la meta se edita en el editor del plan. */
+    val activePlanId: String? = null,
 )
 
 /** State holder for normalized body observations; composables only render this state. */
@@ -212,7 +214,8 @@ class BodyProgressViewModel(
         repository.lastError,
         bodyPart,
         repository.loaded,
-    ) { state, error, derived, loaded ->
+        activePlan.map { plan -> plan?.id },
+    ) { state, error, derived, loaded, planId ->
         state.copy(
             error = error,
             goal = derived.goal,
@@ -225,6 +228,7 @@ class BodyProgressViewModel(
             goalTrack = derived.goalTrack,
             loaded = loaded,
             weightSummary30Days = derived.weightSummary30Days,
+            activePlanId = planId,
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), BodyProgressUiState())
 

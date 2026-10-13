@@ -39,7 +39,7 @@ fun BodyFatModule(
     KpknModule(modifier = modifier.fillMaxWidth()) {
         KpknModuleHeader(label = "Grasa corporal")
         Spacer(Modifier.height(10.dp))
-        KpknMetric(value = formatDecimalEs(current, 1), unit = "%", style = KpknType.metricM)
+        KpknMetric(value = formatDecimalEs(current, 1), unit = "%", style = KpknType.metricL)
         if (start != null) {
             val change = current - start.value
             Spacer(Modifier.height(8.dp))
