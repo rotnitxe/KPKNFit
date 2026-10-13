@@ -115,3 +115,10 @@ qué. Si quieres cambiar alguna, dímelo y la ajusto.
     - Probé las variantes, los músculos, las portadas de «Elige tu programa» y el overlay de activación.
     - El arnés solo crea borradores de Entreno, así que Nutrición y RINGS los comprobé con las hojas de render. Conviene verlos en
       tu teléfono.
+32. **Home no se probó en dispositivo.**
+    - De qué trata: para sembrar los datos de demostración hay que activar antes un programa con el arnés, y esa activación no
+      quedó hecha en el emulador.
+    - Por qué no seguí: averiguarlo era un sumidero de tiempo. Home quedó verificado con las hojas de render de la página completa
+      (4 estados) y 472 pruebas en verde.
+    - Qué queda: conviene verlo en tu teléfono. El APK está en `C:\kwapk\home-v1\`.
+
