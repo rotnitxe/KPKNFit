@@ -13,7 +13,7 @@ import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 
-/** «Nutrición de hoy»: tocar una comida abre el registro en esa comida, y la meta se lee como «sin objetivo» o «por encima». */
+/** «Nutrición de hoy»: tocar una comida abre el registro; sin meta, «Definir objetivos» en vez de anillos; con meta, se lee si se pasa. */
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [34], application = android.app.Application::class, qualifiers = "w360dp-h800dp-xxhdpi")
 class HomeNutritionTodayTest {
@@ -38,12 +38,42 @@ class HomeNutritionTodayTest {
     }
 
     @Test
-    fun `sin meta se lee sin objetivo`() {
+    fun `sin meta no pinta los anillos y ofrece definir objetivos`() {
         rule.setContent {
             HomeNutritionToday(state = HomeSamples.nutritionNoGoal(), onAddMeal = {}, onOpenDay = {})
         }
 
-        rule.onNodeWithText("sin objetivo", substring = true).assertExists()
+        rule.onNodeWithText("Aún no tienes objetivos.").assertExists()
+        rule.onNodeWithText("Definir objetivos").assertExists()
+        rule.onNodeWithTag(HOME_NUTRITION_RINGS_TAG, useUnmergedTree = true).assertDoesNotExist()
+    }
+
+    @Test
+    fun `definir objetivos llama a la lambda`() {
+        var defined = 0
+        rule.setContent {
+            HomeNutritionToday(
+                state = HomeSamples.nutritionNoGoal(),
+                onAddMeal = {},
+                onOpenDay = {},
+                onDefineGoals = { defined++ },
+            )
+        }
+
+        rule.onNodeWithText("Definir objetivos").performClick()
+
+        assertEquals(1, defined)
+    }
+
+    @Test
+    fun `con meta se ven los anillos y no se ofrece definir objetivos`() {
+        rule.setContent {
+            HomeNutritionToday(state = HomeSamples.nutritionTwoMeals(), onAddMeal = {}, onOpenDay = {}, onDefineGoals = {})
+        }
+
+        // Los anillos van dentro de la fila clicable: su etiqueta solo aparece en el árbol sin fusionar.
+        rule.onNodeWithTag(HOME_NUTRITION_RINGS_TAG, useUnmergedTree = true).assertExists()
+        rule.onNodeWithText("Definir objetivos").assertDoesNotExist()
     }
 
     @Test

@@ -17,6 +17,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.onGloballyPositioned
@@ -394,10 +396,14 @@ fun HomeScreen(
                          RecoveryChannelId.STRUCTURE -> augeViewModel.applyManualBatteries(spinal = value)
                      }
                  },
+                 onNavigateToNutritionEditor = onNavigateToNutritionEditor,
                  modifier = Modifier
                      .fillMaxSize()
                      .navigationBarsPadding(),
              )
+
+        // Velo fijo bajo la barra de estado (I8): va por encima de la lista y por debajo de la barra superior, que es hermana del NavHost.
+        HomeStatusVeil(modifier = Modifier.align(Alignment.TopCenter))
 
         if (showFoodLogger) {
             // C12: la misma regla horaria que Nutrición, resuelta cada vez que se abre el logger. WP-U7: se guarda con el
@@ -587,6 +593,21 @@ fun HomeScreen(
 }
 
 /**
+ * Velo fijo bajo la barra de estado (I8): la página que se desliza por arriba se funde con el negro de la marca. Alto = barra de
+ * estado + 24 dp, de [WizardColors.background] pleno arriba a transparente abajo. No capta toques: el tacto pasa a la lista.
+ */
+@Composable
+private fun HomeStatusVeil(modifier: Modifier = Modifier) {
+    val statusTop = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .height(statusTop + 24.dp)
+            .background(Brush.verticalGradient(listOf(WizardColors.background, Color.Transparent))),
+    )
+}
+
+/**
  * Opacidad de la barra superior: 0 mientras el borde inferior de la cabecera de la página está a 48 dp o más de cruzar el de la
  * barra, y 1 cuando ya lo ha cruzado. Sin medidas (valores infinitos) la barra no aparece.
  */
@@ -663,6 +684,8 @@ private fun HomeWithProgram(
     selectedChannel: RecoveryChannelId? = null,
     onSelectedChannelChange: (RecoveryChannelId?) -> Unit = {},
     onSaveRingAdjustment: (RecoveryChannelId, Int) -> Unit = { _, _ -> },
+    /** Abre el editor del plan de nutrición: la acción «Definir objetivos» de «Nutrición de hoy» (sin meta de kcal). */
+    onNavigateToNutritionEditor: () -> Unit = {},
 ) {
     val homeAdapt = LocalViewportAdapt.current
     val isCatalogReady by exerciseCatalogReady.collectAsState()
@@ -795,6 +818,7 @@ private fun HomeWithProgram(
                         state = nutritionToday,
                         onAddMeal = onAddMeal,
                         onOpenDay = onOpenNutritionOverlay,
+                        onDefineGoals = onNavigateToNutritionEditor,
                         modifier = Modifier.onGloballyPositioned { onNutritionAnchorPositionChanged(it.positionInRoot().y) },
                     )
                 }
