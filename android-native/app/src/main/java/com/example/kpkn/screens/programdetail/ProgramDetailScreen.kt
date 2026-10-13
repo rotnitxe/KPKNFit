@@ -98,6 +98,22 @@ import com.example.kpkn.ui.design.KpknSurface
 import com.example.kpkn.ui.design.KpknTopIsland
 import com.example.kpkn.ui.design.KpknTopRow
 import com.example.kpkn.ui.design.kpknEntrance
+import com.example.kpkn.domain.training.ProgramDetailHelpers
+import com.example.kpkn.screens.programdetail.design.AutoregulationProposalsCard
+import com.example.kpkn.screens.programdetail.design.ProgramAnchoredMenuItem
+import com.example.kpkn.screens.programdetail.design.ProgramCopyWeekSheet
+import com.example.kpkn.screens.programdetail.design.ProgramDeleteSessionDialog
+import com.example.kpkn.screens.programdetail.design.ProgramItemMenu
+import com.example.kpkn.screens.programdetail.design.ProgramPhaseBlockUi
+import com.example.kpkn.screens.programdetail.design.ProgramPhaseWeekUi
+import com.example.kpkn.screens.programdetail.design.ProgramPhasesModule
+import com.example.kpkn.screens.programdetail.design.ProgramTransitionModule
+import com.example.kpkn.screens.programdetail.design.ProgramWeekEditSheet
+import com.example.kpkn.screens.programdetail.design.ProgramWeekHeader
+import com.example.kpkn.screens.programdetail.design.ProgramWeekStrip
+import com.example.kpkn.screens.programdetail.design.programPhaseEyebrow
+import com.example.kpkn.screens.programdetail.design.programPhaseOf
+import androidx.compose.ui.geometry.Rect
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -603,6 +619,75 @@ private fun TrainingPanel(
         com.example.kpkn.domain.training.ProgramDetailHelpers.getAllWeeks(roadmapBlocks, program)
     }
     var pendingDeleteSession by remember { mutableStateOf<Session?>(null) }
+    // Hoja «Editar semana», menú de la semana (copiar y pegar) y días desplegados (en el VM: sobreviven a Estructura).
+    var weekEdit by remember(program.id) { mutableStateOf<WeekEditDraft?>(null) }
+    var weekMenu by remember { mutableStateOf<Pair<String, Rect>?>(null) }
+    val completedSessionIds by viewModel.completedSessionIds.collectAsState()
+    val expandedWeekDays by viewModel.expandedWeekDays.collectAsState()
+    val activeWeekId = currentWeekId?.currentWeekId
+    // Módulo «Fases»: cada bloque con sus semanas numeradas en orden global. Hecha = antes de la semana en curso.
+    val phaseBlocks = remember(roadmapBlocks, allProgramWeeks, activeWeekId, program) {
+        val currentIndex = allProgramWeeks.indexOfFirst { it.id == activeWeekId }
+        roadmapBlocks.map { block ->
+            val weeks = ProgramDetailHelpers.getWeeksForBlock(block.id, roadmapBlocks, program)
+            val phase = programPhaseOf(
+                goal = block.goal,
+                hasCompetitionWeek = weeks.any { it.keyDateType == KeyDateType.COMPETITION },
+            )
+            ProgramPhaseBlockUi(
+                id = block.id,
+                eyebrow = programPhaseEyebrow(block.name, phase, block.goal),
+                phase = phase,
+                weeks = weeks.map { week ->
+                    val index = allProgramWeeks.indexOfFirst { it.id == week.id }
+                    ProgramPhaseWeekUi(
+                        id = week.id,
+                        number = index + 1,
+                        isCurrent = week.id == activeWeekId,
+                        isDone = currentIndex >= 0 && index < currentIndex,
+                    )
+                },
+            )
+        }
+    }
+    // Programa simple: sin módulo; si tiene varias semanas, la fila de círculos sin caja.
+    val simpleWeeks = remember(currentWeeks, activeWeekId) {
+        val currentIndex = currentWeeks.indexOfFirst { it.id == activeWeekId }
+        currentWeeks.mapIndexed { index, week ->
+            ProgramPhaseWeekUi(
+                id = week.id,
+                number = index + 1,
+                isCurrent = week.id == activeWeekId,
+                isDone = currentIndex >= 0 && index < currentIndex,
+            )
+        }
+    }
+    // Elegir una semana de cualquier bloque: si es de otro bloque, primero se elige ese bloque.
+    fun selectPhaseWeek(weekId: String) {
+        val block = phaseBlocks.firstOrNull { b -> b.weeks.any { it.id == weekId } }
+        if (block != null && block.id != selectedBlockId) viewModel.selectBlock(block.id)
+        viewModel.selectWeek(weekId)
+    }
+    // «+» de un bloque: la semana nueva va a ese bloque.
+    fun addWeekToBlock(blockId: String) {
+        if (blockId != selectedBlockId) viewModel.selectBlock(blockId)
+        viewModel.addWeekToSelectedAdvancedBlock("", null)
+    }
+    // Pegar la semana copiada: sin conflictos se copia de una vez; si hay sesiones que reemplazar, la hoja decide.
+    fun pasteWeek(targetWeekId: String) {
+        copiedRoadmapWeekId?.let { sourceWeekId ->
+            val conflicts = viewModel.previewWeekCopyConflicts(sourceWeekId, setOf(targetWeekId))
+            if (conflicts.isEmpty()) {
+                viewModel.copyWeekSessions(
+                    sourceWeekId = sourceWeekId,
+                    targetWeekIds = setOf(targetWeekId),
+                    replaceWeekIds = emptySet(),
+                )
+            } else {
+                showCopyWeekDialog = true
+            }
+        }
+    }
 
     fun focusWeek(blockId: String, weekId: String) {
         viewModel.selectBlock(blockId)
@@ -661,115 +746,112 @@ private fun TrainingPanel(
         Spacer(modifier = Modifier.height(4.dp))
 
         if (structureSubTab != StructureSubTab.VOLUMEN && roadmapBlocks.isNotEmpty()) {
-            BlockRoadmap(
-                roadmapBlocks = roadmapBlocks,
-                currentWeeks = currentWeeks,
-                selectedBlockId = selectedBlockId,
-                selectedWeekId = selectedWeekId,
-                currentWeekId = currentWeekId?.currentWeekId,
-                isSimpleProgram = program.isSimpleTemporalProgram,
-                isSimpleCalendarized = program.simpleProgramKind == SimpleProgramKind.CALENDARIZED,
-                simpleLoopMarkers = simpleRoadmapLoopMarkers,
-                currentCycle = program.runState?.cycleNumber
-                    ?: program.loopState?.currentCycle?.takeIf { it > 0 }
-                    ?: 1,
-                activeBlockId = activeBlockId,
-                onSelectBlock = { viewModel.selectBlock(it) },
-                onSelectWeek = { viewModel.selectWeek(it) },
-                onAddSimpleWeek = { viewModel.addWeekToSimpleProgram() },
-                onAddAdvancedWeek = { name, description -> viewModel.addWeekToSelectedAdvancedBlock(name, description) },
-                onAddAdvancedBlock = { name, description -> viewModel.addAdvancedBlockFromRoadmap(name, description) },
-                onUpdateWeek = { weekId, name, description -> viewModel.updateWeekMetadata(weekId, name, description) },
-                onDeleteWeek = { weekId -> viewModel.deleteWeekFromRoadmap(weekId) },
-                onUpdateBlock = { blockId, name, description, goal, scheme ->
-                    viewModel.updateBlockMetadata(
-                        blockId = blockId,
-                        name = name,
-                        description = description,
-                        goal = goal,
-                        progressionScheme = scheme,
+            if (structureSubTab == StructureSubTab.SEMANA) {
+                // Semana: el módulo «Fases» (o la fila de semanas de un programa simple). BlockRoadmap queda en Estructura.
+                if (!program.isSimpleProgram) {
+                    ProgramPhasesModule(
+                        blocks = phaseBlocks,
+                        selectedWeekId = selectedWeekId,
+                        onSelectWeek = { weekId -> selectPhaseWeek(weekId) },
+                        onLongPressWeek = { weekId, anchor -> weekMenu = weekId to anchor },
+                        onAddWeek = { blockId -> addWeekToBlock(blockId) },
+                        modifier = Modifier.padding(horizontal = 16.dp).kpknEntrance("programdetail.semana", 0),
                     )
-                },
-                blockProgressionPreview = { blockId -> viewModel.previewBlockProgression(blockId) },
-                onDeleteBlock = { blockId -> viewModel.deleteBlockFromRoadmap(blockId) },
-                copiedWeekId = copiedRoadmapWeekId,
-                copiedWeekLookup = allProgramWeeks,
-                onCopyWeek = { copiedRoadmapWeekId = it },
-                onPasteWeek = { targetWeekId ->
-                    copiedRoadmapWeekId?.let { sourceWeekId ->
-                        val conflicts = viewModel.previewWeekCopyConflicts(sourceWeekId, setOf(targetWeekId))
-                        if (conflicts.isEmpty()) {
-                            viewModel.copyWeekSessions(
-                                sourceWeekId = sourceWeekId,
-                                targetWeekIds = setOf(targetWeekId),
-                                replaceWeekIds = emptySet(),
-                            )
-                        } else {
-                            showCopyWeekDialog = true
+                } else if (simpleWeeks.size > 1) {
+                    ProgramWeekStrip(
+                        weeks = simpleWeeks,
+                        selectedWeekId = selectedWeekId,
+                        onSelectWeek = { weekId -> viewModel.selectWeek(weekId) },
+                        onLongPressWeek = { weekId, anchor -> weekMenu = weekId to anchor },
+                        onAdd = { viewModel.addWeekToSimpleProgram() },
+                        modifier = Modifier.padding(horizontal = 16.dp),
+                    )
+                }
+            } else {
+                BlockRoadmap(
+                    roadmapBlocks = roadmapBlocks,
+                    currentWeeks = currentWeeks,
+                    selectedBlockId = selectedBlockId,
+                    selectedWeekId = selectedWeekId,
+                    currentWeekId = currentWeekId?.currentWeekId,
+                    isSimpleProgram = program.isSimpleTemporalProgram,
+                    isSimpleCalendarized = program.simpleProgramKind == SimpleProgramKind.CALENDARIZED,
+                    simpleLoopMarkers = simpleRoadmapLoopMarkers,
+                    currentCycle = program.runState?.cycleNumber
+                        ?: program.loopState?.currentCycle?.takeIf { it > 0 }
+                        ?: 1,
+                    activeBlockId = activeBlockId,
+                    onSelectBlock = { viewModel.selectBlock(it) },
+                    onSelectWeek = { viewModel.selectWeek(it) },
+                    onAddSimpleWeek = { viewModel.addWeekToSimpleProgram() },
+                    onAddAdvancedWeek = { name, description -> viewModel.addWeekToSelectedAdvancedBlock(name, description) },
+                    onAddAdvancedBlock = { name, description -> viewModel.addAdvancedBlockFromRoadmap(name, description) },
+                    onUpdateWeek = { weekId, name, description -> viewModel.updateWeekMetadata(weekId, name, description) },
+                    onDeleteWeek = { weekId -> viewModel.deleteWeekFromRoadmap(weekId) },
+                    onUpdateBlock = { blockId, name, description, goal, scheme ->
+                        viewModel.updateBlockMetadata(
+                            blockId = blockId,
+                            name = name,
+                            description = description,
+                            goal = goal,
+                            progressionScheme = scheme,
+                        )
+                    },
+                    blockProgressionPreview = { blockId -> viewModel.previewBlockProgression(blockId) },
+                    onDeleteBlock = { blockId -> viewModel.deleteBlockFromRoadmap(blockId) },
+                    copiedWeekId = copiedRoadmapWeekId,
+                    copiedWeekLookup = allProgramWeeks,
+                    onCopyWeek = { copiedRoadmapWeekId = it },
+                    onPasteWeek = { targetWeekId ->
+                        copiedRoadmapWeekId?.let { sourceWeekId ->
+                            val conflicts = viewModel.previewWeekCopyConflicts(sourceWeekId, setOf(targetWeekId))
+                            if (conflicts.isEmpty()) {
+                                viewModel.copyWeekSessions(
+                                    sourceWeekId = sourceWeekId,
+                                    targetWeekIds = setOf(targetWeekId),
+                                    replaceWeekIds = emptySet(),
+                                )
+                            } else {
+                                showCopyWeekDialog = true
+                            }
                         }
-                    }
-                },
-            )
+                    },
+                )
+            }
 
             blockTransitionBanner?.let { banner ->
-                Spacer(modifier = Modifier.height(8.dp))
-                Surface(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp),
-                    color = MaterialTheme.colorScheme.tertiaryContainer,
-                    shape = RoundedCornerShape(12.dp),
-                ) {
-                    Row(
-                        modifier = Modifier.padding(12.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                    ) {
-                        Text(
-                            banner.message,
-                            modifier = Modifier.weight(1f),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onTertiaryContainer,
-                        )
-                        Column(horizontalAlignment = Alignment.End) {
-                            if (banner.requiresExplicitConfirmation) {
-                                if (banner.pendingType == PendingProgramActionType.CONFIRM_AUTOREGULATION) {
-                                    // R-03: «VER PROPUESTA» solo lleva a la pestaña Semana, donde la tarjeta
-                                    // de propuestas deja aplicar una a una, aceptar todo o rechazar. Mirar
-                                    // la propuesta nunca la acepta.
-                                    TextButton(onClick = {
-                                        viewModel.setStructureSubTab(StructureSubTab.SEMANA)
-                                    }) {
-                                        Text("VER PROPUESTA")
-                                    }
-                                } else if (banner.kind == BlockTransitionEngine.DecisionKind.INSERT_DELOAD) {
-                                    TextButton(onClick = { viewModel.acceptPendingDeload() }) {
-                                        Text("ACEPTAR DESCARGA")
-                                    }
-                                    TextButton(onClick = { viewModel.rejectPendingDeload() }) {
-                                        Text("RECHAZAR")
-                                    }
-                                } else {
-                                    TextButton(onClick = onOpenOneRmDialog) {
-                                        Text("REGISTRAR RESULTADO")
-                                    }
-                                    TextButton(onClick = { viewModel.skipPendingOneRmTest() }) {
-                                        Text("OMITIR")
-                                    }
-                                }
-                            }
-                            TextButton(onClick = { viewModel.dismissBlockTransitionBanner() }) {
-                                Text(
-                                    if (banner.requiresExplicitConfirmation) {
-                                        "Más tarde: el programa espera tu decisión"
-                                    } else {
-                                        "OK"
-                                    },
-                                )
-                            }
+                Spacer(modifier = Modifier.height(12.dp))
+                val explicit = banner.requiresExplicitConfirmation
+                val isAutoreg = explicit && banner.pendingType == PendingProgramActionType.CONFIRM_AUTOREGULATION
+                val isDeload = explicit && !isAutoreg && banner.kind == BlockTransitionEngine.DecisionKind.INSERT_DELOAD
+                ProgramTransitionModule(
+                    message = banner.message,
+                    primaryLabel = when {
+                        isAutoreg -> "Ver propuesta"
+                        isDeload -> "Aceptar descarga"
+                        explicit -> "Registrar resultado"
+                        else -> null
+                    },
+                    onPrimary = {
+                        when {
+                            // R-03: «Ver propuesta» solo lleva a la pestaña Semana, donde las propuestas se aplican una a una.
+                            isAutoreg -> viewModel.setStructureSubTab(StructureSubTab.SEMANA)
+                            isDeload -> viewModel.acceptPendingDeload()
+                            else -> onOpenOneRmDialog()
                         }
-                    }
-                }
+                    },
+                    secondaryLabel = when {
+                        isDeload -> "Rechazar"
+                        explicit && !isAutoreg -> "Omitir"
+                        else -> null
+                    },
+                    onSecondary = {
+                        if (isDeload) viewModel.rejectPendingDeload() else viewModel.skipPendingOneRmTest()
+                    },
+                    dismissLabel = if (explicit) "Más tarde: el programa espera tu decisión" else "OK",
+                    onDismiss = { viewModel.dismissBlockTransitionBanner() },
+                    modifier = Modifier.padding(horizontal = 16.dp),
+                )
             }
 
             Spacer(modifier = Modifier.height(8.dp))
@@ -787,6 +869,7 @@ private fun TrainingPanel(
                 onDismissNativeNotice = { viewModel.dismissNativeProgressionNotice(it) },
                 onOpenTm = onOpenTmEditor,
                 onRematerialize = { viewModel.rematerializePending() },
+                modifier = Modifier.padding(horizontal = 16.dp),
             )
         } else {
             // Insignia: las progresiones por revisar también se avisan desde las otras pestañas.
@@ -798,18 +881,29 @@ private fun TrainingPanel(
             }
         }
 
-        if (structureSubTab == StructureSubTab.SEMANA) {
-            TextButton(
-                onClick = onOpenSplitPage,
-                modifier = Modifier.padding(horizontal = 16.dp),
-            ) {
-                Text("VER SPLITS", fontWeight = FontWeight.Bold, fontSize = 12.sp, color = Color.White.copy(alpha = 0.7f))
-            }
-            Spacer(modifier = Modifier.height(4.dp))
-        }
-
         when (structureSubTab) {
             StructureSubTab.SEMANA -> {
+                selectedWeekMeta?.let { week ->
+                    // «Semana 3 · Acumulación»; en un programa simple de una sola semana, «Semana que se repite».
+                    val repeating = program.isSimpleProgram && currentWeeks.size <= 1
+                    val weekIndex = if (program.isSimpleProgram) {
+                        currentWeeks.indexOfFirst { it.id == week.id }
+                    } else {
+                        allProgramWeeks.indexOfFirst { it.id == week.id }
+                    }
+                    val phase = week.mesoGoal
+                        .takeIf { !program.isSimpleProgram && it != com.example.kpkn.data.models.MesocycleGoal.CUSTOM }
+                        ?.label
+                    ProgramWeekHeader(
+                        title = if (repeating) "Semana que se repite" else listOfNotNull("Semana ${weekIndex + 1}", phase).joinToString(" · "),
+                        name = week.name.takeUnless { WeekDefaultName.matches(it.trim()) },
+                        description = week.description,
+                        onEdit = { weekEdit = WeekEditDraft(weekId = week.id, name = week.name, description = week.description.orEmpty()) },
+                        onChangeSplit = onOpenSplitPage,
+                        modifier = Modifier.padding(horizontal = 16.dp),
+                    )
+                    Spacer(modifier = Modifier.height(12.dp))
+                }
                 DayView(
                     program = program,
                     modifier = Modifier.tourAnchor(TourAnchors.TRAINING_SEMANA),
@@ -863,6 +957,11 @@ private fun TrainingPanel(
                     },
                     onRestoreManualSessionFromPlan = viewModel::restoreManualSessionFromPlan,
                     restoreBlockedSessionIds = restoreBlockedSessionIds,
+                    completedSessionIds = completedSessionIds,
+                    expandedDayIds = expandedWeekDays?.takeIf { it.first == selectedWeekMeta?.id }?.second,
+                    onExpandedDayIdsChange = { days ->
+                        selectedWeekMeta?.id?.let { weekId -> viewModel.setExpandedWeekDays(weekId, days) }
+                    },
                 )
             }
             StructureSubTab.MACROCICLO -> MacrocycleEditor(
@@ -972,180 +1071,63 @@ private fun TrainingPanel(
     }
 
     if (showCopyWeekDialog) {
-        CopyWeekDialog(
+        ProgramCopyWeekSheet(
             weeks = allProgramWeeks,
             currentBlockWeekIds = currentWeeks.map { it.id }.toSet(),
             selectedWeekId = copiedRoadmapWeekId ?: selectedWeekId,
-            selectedBlockId = selectedBlockId,
-            viewModel = viewModel,
+            conflictsFor = { source, targets -> viewModel.previewWeekCopyConflicts(source, targets) },
+            onCopy = { source, targets, replace -> viewModel.copyWeekSessions(source, targets, replace) },
             onDismiss = { showCopyWeekDialog = false },
         )
     }
 
+    weekEdit?.let { draft ->
+        ProgramWeekEditSheet(
+            name = draft.name,
+            description = draft.description,
+            onNameChange = { weekEdit = draft.copy(name = it) },
+            onDescriptionChange = { weekEdit = draft.copy(description = it) },
+            onSave = {
+                viewModel.updateWeekMetadata(draft.weekId, draft.name.trim(), draft.description.trim().ifBlank { null })
+                weekEdit = null
+            },
+            onDismiss = { weekEdit = null },
+        )
+    }
+
+    weekMenu?.let { (weekId, anchor) ->
+        ProgramItemMenu(
+            items = buildList<ProgramAnchoredMenuItem> {
+                add(ProgramAnchoredMenuItem(label = "Copiar semana", onClick = { copiedRoadmapWeekId = weekId }))
+                if (copiedRoadmapWeekId != null && copiedRoadmapWeekId != weekId) {
+                    add(ProgramAnchoredMenuItem(label = "Pegar semana", onClick = { pasteWeek(weekId) }))
+                }
+            },
+            anchor = anchor,
+            onDismiss = { weekMenu = null },
+        )
+    }
+
     pendingDeleteSession?.let { sessionToDelete ->
-        KpknAlertDialog(
-            onDismissRequest = { pendingDeleteSession = null },
-            title = { Text("Confirmar eliminación", fontWeight = FontWeight.Black) },
-            text = {
-                Text("¿Confirmas que eliminas esta sesión?")
+        ProgramDeleteSessionDialog(
+            onConfirm = {
+                val block = roadmapBlocks.find { it.id == selectedBlockId }
+                val weekMeta = currentWeeks.find { it.id == selectedWeekId }
+                if (block != null && weekMeta != null) {
+                    viewModel.deleteSession(sessionToDelete.id, block.macroIndex, weekMeta.mesoIndex, selectedWeekId ?: "")
+                }
+                pendingDeleteSession = null
             },
-            confirmButton = {
-                Button(
-                    onClick = {
-                        val block = roadmapBlocks.find { it.id == selectedBlockId }
-                        val weekMeta = currentWeeks.find { it.id == selectedWeekId }
-                        if (block != null && weekMeta != null) {
-                            viewModel.deleteSession(sessionToDelete.id, block.macroIndex, weekMeta.mesoIndex, selectedWeekId ?: "")
-                        }
-                        pendingDeleteSession = null
-                    },
-                ) { Text("Eliminar") }
-            },
-            dismissButton = {
-                TextButton(onClick = { pendingDeleteSession = null }) { Text("Cancelar") }
-            },
+            onDismiss = { pendingDeleteSession = null },
         )
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun CopyWeekDialog(
-    weeks: List<com.example.kpkn.domain.training.WeekWithMeta>,
-    currentBlockWeekIds: Set<String>,
-    selectedWeekId: String?,
-    selectedBlockId: String?,
-    viewModel: ProgramDetailViewModel,
-    onDismiss: () -> Unit,
-) {
-    var sourceWeekId by remember(weeks, selectedWeekId) { mutableStateOf(selectedWeekId ?: weeks.firstOrNull()?.id.orEmpty()) }
-    var targetWeekIds by remember(weeks, sourceWeekId) {
-        mutableStateOf(weeks.filter { it.id != sourceWeekId }.take(1).map { it.id }.toSet())
-    }
-    var replaceWeekIds by remember { mutableStateOf(emptySet<String>()) }
-    val conflicts = remember(sourceWeekId, targetWeekIds, weeks) {
-        viewModel.previewWeekCopyConflicts(sourceWeekId, targetWeekIds)
-    }
-    val sourceHasSessions = weeks.firstOrNull { it.id == sourceWeekId }?.sessions?.isNotEmpty() == true
+/** Borrador de la hoja «Editar semana» (P2): la semana que se edita y lo que hay escrito. */
+private data class WeekEditDraft(val weekId: String, val name: String, val description: String)
 
-    KpknAlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text("Copiar sesiones de semana", fontWeight = FontWeight.Black) },
-        text = {
-            Column(verticalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.verticalScroll(rememberScrollState())) {
-                Text("Semana origen", style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold)
-                weeks.forEach { week ->
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clip(RoundedCornerShape(10.dp))
-                            .clickable {
-                                sourceWeekId = week.id
-                                targetWeekIds = targetWeekIds - week.id
-                                replaceWeekIds = emptySet()
-                            }
-                            .padding(vertical = 6.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        RadioButton(selected = sourceWeekId == week.id, onClick = { sourceWeekId = week.id })
-                        Column {
-                            Text(week.name, fontWeight = FontWeight.SemiBold)
-                            Text(
-                                listOfNotNull(
-                                    week.dateRangeLabel,
-                                    "${week.sessions.size} sesiones",
-                                ).joinToString(" · "),
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            )
-                        }
-                    }
-                }
-
-                Text("Destino", style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold)
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    AssistChip(
-                        onClick = {
-                            targetWeekIds = weeks.filter { it.id != sourceWeekId && it.id in currentBlockWeekIds }.map { it.id }.toSet()
-                            replaceWeekIds = emptySet()
-                        },
-                        label = { Text("Bloque actual") },
-                    )
-                    AssistChip(
-                        onClick = {
-                            targetWeekIds = weeks.filter { it.id != sourceWeekId }.take(1).map { it.id }.toSet()
-                            replaceWeekIds = emptySet()
-                        },
-                        label = { Text("Una semana") },
-                    )
-                }
-                weeks.filter { it.id != sourceWeekId }.forEach { week ->
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clip(RoundedCornerShape(10.dp))
-                            .clickable {
-                                targetWeekIds = if (week.id in targetWeekIds) targetWeekIds - week.id else targetWeekIds + week.id
-                                replaceWeekIds = replaceWeekIds - week.id
-                            }
-                            .padding(vertical = 6.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        Checkbox(
-                            checked = week.id in targetWeekIds,
-                            onCheckedChange = { checked ->
-                                targetWeekIds = if (checked) targetWeekIds + week.id else targetWeekIds - week.id
-                                replaceWeekIds = replaceWeekIds - week.id
-                            },
-                        )
-                        Column {
-                            Text(week.name, fontWeight = FontWeight.SemiBold)
-                            Text(week.dateRangeLabel ?: "${week.sessions.size} sesiones", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                        }
-                    }
-                }
-
-                if (conflicts.isNotEmpty()) {
-                    HorizontalDivider()
-                    Text("Conflictos por semana", style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Black, color = MaterialTheme.colorScheme.error)
-                    conflicts.forEach { conflict ->
-                        Surface(shape = RoundedCornerShape(12.dp), color = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.42f)) {
-                            Column(Modifier.padding(10.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                                Text(conflict.weekName, fontWeight = FontWeight.Bold)
-                                Text("Ya tiene sesiones en: ${conflict.dayLabels.joinToString(", ").ifBlank { "días asignados" }}")
-                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Checkbox(
-                                        checked = conflict.weekId in replaceWeekIds,
-                                        onCheckedChange = { checked ->
-                                            replaceWeekIds = if (checked) replaceWeekIds + conflict.weekId else replaceWeekIds - conflict.weekId
-                                        },
-                                    )
-                                    Text("Reemplazar en esta semana")
-                                }
-                            }
-                        }
-                    }
-                }
-
-                if (!sourceHasSessions) {
-                    Text("La semana origen no tiene sesiones para copiar.", color = MaterialTheme.colorScheme.error)
-                }
-            }
-        },
-        confirmButton = {
-            Button(
-                enabled = sourceHasSessions && targetWeekIds.isNotEmpty(),
-                onClick = {
-                    viewModel.copyWeekSessions(sourceWeekId, targetWeekIds, replaceWeekIds)
-                    onDismiss()
-                },
-            ) { Text("Copiar") }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) { Text("Cancelar") }
-        },
-    )
-}
+/** Nombre por defecto de una semana («Semana 3»): no se repite como subtítulo en la cabecera. */
+private val WeekDefaultName = Regex("Semana \\d+")
 
 private data class WeekSessionLocation(
     val blockId: String,
@@ -1196,136 +1178,6 @@ private fun locateWeekForSessionCreation(program: Program, weekId: String): Week
         }
     }
     return null
-}
-
-@Composable
-private fun AutoregulationProposalsCard(
-    program: Program,
-    nativeCard: NativeProgressionCardUi,
-    onAccept: () -> Unit,
-    onAcceptProposal: (com.example.kpkn.data.models.AutoregulationProposal) -> Unit,
-    onReject: () -> Unit,
-    onAcceptNative: (String) -> Unit,
-    onRejectNative: (String) -> Unit,
-    onDismissNativeNotice: (String) -> Unit,
-    onOpenTm: () -> Unit,
-    onRematerialize: () -> Unit,
-) {
-    val pending = program.runState?.pendingAction
-    val hasAutoregPending = pending?.type == PendingProgramActionType.CONFIRM_AUTOREGULATION
-    val needsRematerialize = program.macrocycles.any { macro ->
-        macro.blocks.any { it.materializationPending }
-    }
-    val tm = program.powerliftingProfile
-    val recipe = program.sourceRecipe
-    val usesTm = recipe?.let { usesTrainingMax(it) } ?: (tm != null)
-    if (!usesTm && !hasAutoregPending && nativeCard.proposals.isEmpty() && nativeCard.notices.isEmpty() && !needsRematerialize) return
-
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 6.dp)
-            .testTag("program_proposals_card"),
-        colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.05f)),
-    ) {
-        Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            if (usesTm) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    modifier = Modifier.fillMaxWidth(),
-                ) {
-                    Text(
-                        trainingMaxLine(tm),
-                        fontSize = 12.sp,
-                        color = Color.White.copy(alpha = 0.75f),
-                        modifier = Modifier.weight(1f),
-                    )
-                    TextButton(onClick = onOpenTm) { Text("EDITAR") }
-                }
-            }
-            if (hasAutoregPending) {
-                Text(pending.message, fontSize = 13.sp, color = Color.White.copy(alpha = 0.85f))
-                pending.proposals.forEach { proposal ->
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(
-                            "• ${proposal.explanation}",
-                            fontSize = 12.sp,
-                            color = Color.White.copy(alpha = 0.7f),
-                            modifier = Modifier.weight(1f),
-                        )
-                        TextButton(onClick = { onAcceptProposal(proposal) }) { Text("APLICAR") }
-                    }
-                }
-                Row {
-                    TextButton(onClick = onAccept) { Text("ACEPTAR TODO") }
-                    TextButton(onClick = onReject) { Text("RECHAZAR") }
-                }
-            }
-            nativeCard.pendingLabel?.let { label ->
-                Text(
-                    label,
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.White.copy(alpha = 0.9f),
-                    modifier = Modifier.testTag("native_progression_header"),
-                )
-            }
-            nativeCard.proposals.forEach { item ->
-                Column(
-                    modifier = Modifier.testTag("native_progression_item_${item.id}"),
-                    verticalArrangement = Arrangement.spacedBy(2.dp),
-                ) {
-                    Text(
-                        item.title,
-                        fontSize = 13.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color.White.copy(alpha = 0.92f),
-                    )
-                    Text(
-                        item.body,
-                        fontSize = 12.sp,
-                        color = Color.White.copy(alpha = 0.82f),
-                    )
-                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-                        TextButton(
-                            onClick = { onAcceptNative(item.id) },
-                            modifier = Modifier.testTag("native_progression_apply_${item.id}"),
-                        ) { Text("APLICAR") }
-                        TextButton(
-                            onClick = { onRejectNative(item.id) },
-                            modifier = Modifier.testTag("native_progression_reject_${item.id}"),
-                        ) { Text("RECHAZAR") }
-                    }
-                }
-            }
-            nativeCard.notices.forEach { notice ->
-                Row(
-                    modifier = Modifier.testTag("native_progression_notice_${notice.id}"),
-                    verticalAlignment = Alignment.Top,
-                ) {
-                    Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                        Text(
-                            notice.title,
-                            fontSize = 12.sp,
-                            fontWeight = FontWeight.SemiBold,
-                            color = Color.White.copy(alpha = 0.8f),
-                        )
-                        Text(
-                            notice.body,
-                            fontSize = 12.sp,
-                            color = Color.White.copy(alpha = 0.7f),
-                        )
-                    }
-                    TextButton(onClick = { onDismissNativeNotice(notice.id) }) { Text("ENTENDIDO") }
-                }
-            }
-            if (needsRematerialize) {
-                Text("Hay semanas pendientes de re-materializar.", fontSize = 12.sp, color = Color.White.copy(alpha = 0.7f))
-                TextButton(onClick = onRematerialize) { Text("RE-MATERIALIZAR") }
-            }
-        }
-    }
 }
 
 /** Insignia «N progresiones por revisar» para las pestañas donde no se ve la tarjeta de propuestas. */
