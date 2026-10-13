@@ -14,20 +14,18 @@ import com.example.kpkn.domain.nutrition.NutritionDisplayFormat
 import com.example.kpkn.screens.onboarding.design.entreno.SymbolPalette
 import com.example.kpkn.screens.onboarding.design.formatKcalEs
 import com.example.kpkn.ui.components.icons.KpknLineIcons
-import com.example.kpkn.ui.design.KpknIconButton
 import com.example.kpkn.ui.design.KpknSurface
 import com.example.kpkn.ui.design.KpknTopIsland
 
 /**
- * Isla superior de Nutrición (KPKN_UI_V2 §3): «Hoy» con «1.320 kcal restantes» y el «+» en un círculo de tinta, que abre el registro.
- * El icono de energía va en un círculo `inset`. Aparece cuando la cabecera sale de la vista.
+ * Isla superior de Nutrición (KPKN_UI_V2 §3): «Hoy» con «1.320 kcal restantes» y el icono de energía en un círculo `inset`. Sin «+»: el
+ * único acceso primario al registro es la isla «Registrar comida» de abajo (N2). Aparece cuando la cabecera sale de la vista.
  */
 @Composable
 fun NutritionTopIsland(
     visible: Boolean,
     title: String,
     subtitle: String?,
-    onAdd: () -> Unit,
 ) {
     KpknTopIsland(
         visible = visible,
@@ -48,14 +46,6 @@ fun NutritionTopIsland(
                     tint = SymbolPalette.energia,
                 )
             }
-        },
-        actions = {
-            KpknIconButton(
-                icon = KpknLineIcons.Plus,
-                contentDescription = "Registrar comida",
-                onClick = onAdd,
-                filled = true,
-            )
         },
     )
 }
