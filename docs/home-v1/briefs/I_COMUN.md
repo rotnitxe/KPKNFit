@@ -64,3 +64,19 @@ Aplica a todos los paquetes I1 a I6. El entorno, Gradle, las pruebas mínimas, l
   - `selectedDate` puede quedar fuera de la semana actual tras cambiar de programa: trátalo como hoy.
 - **Pruebas:** datos de ejemplo en `src/test/java/com/example/kpkn/screens/home/HomeSamples.kt` (añade los tuyos AL FINAL) y patrón de
   hoja en `render/HomeTopRenderSheetTest.kt`.
+
+## Lo que dejó I9 (ronda 2; úsalo, no lo dupliques)
+- **`ui/design/`:**
+  - `KpknSurface.kt`: `KpknSurface` y `KpknShape`.
+  - `KpknType.kt`: los roles de §5 de KPKN_UI_V2, con cifras `lnum`/`tnum`. El eyebrow y la nota van a 13 sp.
+  - `KpknModule.kt`: `KpknModule(modifier, onClick, onClickLabel, accent, contentPadding, content)` y
+    `KpknModuleHeader(label, modifier, action)`. El eyebrow admite dos líneas.
+  - `KpknButtons.kt`: `KpknTextAction`, `KpknPrimaryPill`, `KpknSecondaryPill` (con `icon` y `enabled`) y `KpknIconButton`.
+  - `KpknMetric.kt`: `KpknMetric(value, unit, …)`, cifra y unidad sobre la misma línea base.
+  - `KpknEntrance.kt`: `Modifier.kpknEntrance(group, index)`. `homeEntrance(i)` llama a `kpknEntrance("home", i)`.
+- **Vidrio v2:** `KpknGlassVariant { ISLAND, SHEET }`. Las hojas y los diálogos ya usan SHEET.
+- **Isla superior de Home:**
+  - los iconos salen de `homeBarIcon(context)` en `HomeScreen.kt`, el único punto que cambia I11b;
+  - los acentos: saludo en tinta, sesión `musculo`, RINGS `columna` y nutrición `energia`.
+- **Pendiente menor:** el KDoc de `screens/home/design/HomeFigures.kt:5` cita `HomeEntranceMemory`, que ya no existe; cámbialo a
+  `kpknEntrance` (I10b).
