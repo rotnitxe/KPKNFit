@@ -101,19 +101,21 @@ internal object HomeTypography {
 
 /**
  * Etiqueta de sección de Home: el eyebrow en mayúsculas y en `textMuted`, con una [action] opcional a la derecha, alineada a la
- * base (p. ej. «Ver todos», que debe medir al menos 48 dp).
+ * base (p. ej. «Ver todos», que debe medir al menos 48 dp). Con [centerAction], la acción va centrada con la etiqueta (p. ej. un
+ * botón circular de 48 dp, que por la base quedaría por encima del texto).
  */
 @Composable
 fun HomeSectionLabel(
     text: String,
     modifier: Modifier = Modifier,
     action: (@Composable () -> Unit)? = null,
+    centerAction: Boolean = false,
 ) {
     Row(
         modifier = modifier
             .fillMaxWidth()
             .padding(horizontal = WizardSpacing.gutter),
-        verticalAlignment = Alignment.Bottom,
+        verticalAlignment = if (centerAction) Alignment.CenterVertically else Alignment.Bottom,
     ) {
         Text(
             text = text.uppercase(Locale("es")),

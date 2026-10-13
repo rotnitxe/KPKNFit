@@ -43,7 +43,6 @@ class CompetitionDatePromptTest {
         rule.setContent {
             HomeSessionSection(
                 sessions = emptyList(),
-                currentDayOfWeek = 1,
                 onStartWorkout = { _, _ -> },
                 onResumeWorkout = {},
                 competitionDatePromptProgramId = promptId,

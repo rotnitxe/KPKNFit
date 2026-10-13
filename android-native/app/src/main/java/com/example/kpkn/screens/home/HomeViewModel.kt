@@ -10,19 +10,14 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.kpkn.data.models.ActiveProgramState
-import com.example.kpkn.data.models.Block
 import com.example.kpkn.data.models.GoalMetric
-import com.example.kpkn.data.models.Macrocycle
-import com.example.kpkn.data.models.Mesocycle
 import com.example.kpkn.data.models.NutritionPlan
 import com.example.kpkn.data.models.NutritionStatus
 import com.example.kpkn.data.models.PlanDirection
 import com.example.kpkn.data.models.PostSessionFeedback
 import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.models.ProgramStatus
-import com.example.kpkn.data.models.ProgramStructure
 import com.example.kpkn.data.models.Settings
-import com.example.kpkn.data.models.ProgramWeek
 import com.example.kpkn.data.models.TodaySessionItem
 import com.example.kpkn.data.repository.AugeRepository
 import com.example.kpkn.data.repository.BodyProgressRepository
@@ -30,10 +25,6 @@ import com.example.kpkn.data.repository.CompetitionRepository
 import com.example.kpkn.data.repository.NutritionRepository
 import com.example.kpkn.data.repository.ProgramRepository
 import com.example.kpkn.domain.auge.OvertrainingDetector
-import com.example.kpkn.domain.calculations.IpfEquipment
-import com.example.kpkn.domain.calculations.calculateBrzycki1RM
-import com.example.kpkn.domain.calculations.calculateFFMI
-import com.example.kpkn.domain.calculations.calculateIPFGLPoints
 import com.example.kpkn.domain.nutrition.DayGoalsResult
 import com.example.kpkn.domain.nutrition.GoalsAbsence
 import com.example.kpkn.domain.nutrition.resolveDayGoals
@@ -56,7 +47,6 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.util.Calendar
-import java.util.UUID
 
 /**
  * HomeViewModel — State management for Home Screen.
@@ -102,16 +92,6 @@ import java.util.UUID
         _pendingProgramName.value = preferredName?.trim()?.takeIf { it.isNotEmpty() }
     }
 
-    fun consumeVolumeCalibrationRequest(): Triple<String?, com.example.kpkn.data.protocols.Protocol?, com.example.kpkn.data.models.PowerliftingProfile?> {
-        val template = _pendingVolumeTemplateId.value
-        val protocol = _pendingVolumeProtocol.value
-        val profile = _pendingVolumeProfile.value
-        _pendingVolumeTemplateId.value = null
-        _pendingVolumeProtocol.value = null
-        _pendingVolumeProfile.value = null
-        return Triple(template, protocol, profile)
-    }
-
     fun dismissVolumeCalibrationRequest() {
         _pendingVolumeTemplateId.value = null
         _pendingVolumeProtocol.value = null
@@ -141,7 +121,6 @@ import java.util.UUID
     }
 
     val programs = repository.programs
-    val ongoingWorkout = repository.ongoingWorkout
 
     val activeProgramId: StateFlow<String?> = repository.activeProgramState
         .map { state ->
@@ -244,29 +223,6 @@ import java.util.UUID
     }
         .distinctUntilChanged()
         .stateIn(viewModelScope, SharingStarted.Lazily, OnboardingState())
-
-    fun updateDisplayName(name: String) {
-        val trimmed = name.trim()
-        if (trimmed.length < 3 && trimmed != "Usuario") return
-        repository.updateSettings { it.copy(username = trimmed, onboardingNameDone = true) }
-    }
-
-    /** Abre la hoja de plantillas/protocolos con el nombre elegido en onboarding. */
-    fun createOnboardingProgram(name: String): String {
-        openCreateProgramSheet(name.trim().ifBlank { "Mi programa" })
-        return ""
-    }
-
-    fun markProgramDone() {
-        repository.updateSettings { settings ->
-            settings.copy(onboardingProgramDone = true)
-        }
-    }
-
-    /** Persiste la finalización completa (ambas tareas hechas). */
-    fun completeOnboarding() {
-        repository.updateSettings { it.copy(onboardingCompleted = true) }
-    }
 
     /** Cierra el overlay por ahora; reaparece en el próximo arranque hasta completar. */
     fun dismissOnboarding() {
@@ -397,229 +353,11 @@ import java.util.UUID
         .distinctUntilChanged()
         .stateIn(viewModelScope, SharingStarted.Lazily, HomeNutritionSnapshot())
 
-    val lastWeight: StateFlow<Double?> = combine(
-        repository.settings,
-        nutritionRepository.bodyMeasurements,
-    ) { settings, measurements ->
-        settings.userVitals.weight
-            ?: measurements.maxByOrNull { it.date }?.weight
-    }
-        .distinctUntilChanged()
-        .stateIn(viewModelScope, SharingStarted.Lazily, null)
-
-    val lastBodyFat: StateFlow<Double?> = combine(
-        repository.settings,
-        nutritionRepository.bodyMeasurements,
-    ) { settings, measurements ->
-        settings.userVitals.bodyFatPercentage
-            ?: measurements.maxByOrNull { it.date }?.bodyFat
-    }
-        .distinctUntilChanged()
-        .stateIn(viewModelScope, SharingStarted.Lazily, null)
-
-    val lastMusclePct: StateFlow<Double?> = combine(
-        repository.settings,
-        nutritionRepository.bodyMeasurements,
-    ) { settings, measurements ->
-        settings.userVitals.muscleMassPercentage
-            ?: measurements.maxByOrNull { it.date }?.muscleMass
-    }
-        .distinctUntilChanged()
-        .stateIn(viewModelScope, SharingStarted.Lazily, null)
-
     /** Altura real del perfil, o null si no hay: nunca 170 cm por defecto (sin altura no hay IMC ni FFMI). */
     val heightCm: StateFlow<Double?> = repository.settings
         .map { it.userVitals.height?.takeIf { h -> h > 0.0 } }
         .distinctUntilChanged()
         .stateIn(viewModelScope, SharingStarted.Lazily, null)
-
-    /** IMC con la altura real; sin altura, null. */
-    fun computeImc(weightKg: Double, heightCm: Double?): Double? {
-        if (heightCm == null || weightKg <= 0 || heightCm <= 0) return null
-        val h = heightCm / 100.0
-        return (weightKg / (h * h) * 10).toLong() / 10.0
-    }
-
-    fun computeFfmiInterpretation(weightKg: Double, heightCm: Double, bodyFatPct: Double): String? {
-        return calculateFFMI(heightCm, weightKg, bodyFatPct)?.interpretation
-    }
-
-    fun computeNormalizedFfmi(weightKg: Double, heightCm: Double, bodyFatPct: Double): Double? {
-        return calculateFFMI(heightCm, weightKg, bodyFatPct)?.normalizedFfmi
-    }
-
-    val starTargetsCount: StateFlow<Int> = combine(
-        repository.programs,
-        repository.activeProgramState,
-    ) { programs, active ->
-        if (active == null || active.status != ProgramStatus.ACTIVE) return@combine 0
-        val program = programs.find { it.id == active.programId } ?: return@combine 0
-        var count = 0
-        program.macrocycles.forEach { macro ->
-            macro.blocks.forEach { block ->
-                block.mesocycles.forEach { meso ->
-                    meso.weeks.forEach { week ->
-                        week.sessions.forEach { session ->
-                            val exercises = if (session.parts.isNotEmpty()) {
-                                session.parts.flatMap { it.exercises }
-                            } else {
-                                session.exercises
-                            }
-                            exercises.forEach { if (it.isStarTarget == true) count++ }
-                        }
-                    }
-                }
-            }
-        }
-        count
-    }
-        .distinctUntilChanged()
-        .flowOn(Dispatchers.Default)
-        .stateIn(viewModelScope, SharingStarted.Lazily, 0)
-
-    val historyCount: StateFlow<Int> = repository.history
-        .map { it.size }
-        .distinctUntilChanged()
-        .stateIn(viewModelScope, SharingStarted.Lazily, 0)
-
-    private fun findBest1RM(history: List<com.example.kpkn.data.models.WorkoutLog>, patterns: List<String>): Double {
-        var best = 0.0
-        history.forEach { log ->
-            log.completedExercises.forEach { ex ->
-                if (patterns.any { ex.exerciseName.lowercase().contains(it) }) {
-                    ex.sets.forEach { s ->
-                        val rm = calculateBrzycki1RM(s.weight, s.reps)
-                        if (rm > best) best = rm
-                    }
-                }
-            }
-        }
-        return best
-    }
-
-    private fun computeRelativeStrength(
-        history: List<com.example.kpkn.data.models.WorkoutLog>,
-        bodyWeight: Double?,
-    ): RelativeStrengthData {
-        val squat = findBest1RM(history, listOf("sentadilla", "squat"))
-        val bench = findBest1RM(history, listOf("press banca", "bench press"))
-        val deadlift = findBest1RM(history, listOf("peso muerto", "deadlift"))
-        val total = squat + bench + deadlift
-        val bw = bodyWeight ?: 0.0
-        return RelativeStrengthData(
-            squatRM = squat,
-            benchRM = bench,
-            deadliftRM = deadlift,
-            totalKg = total,
-            relativeStrength = if (bw > 0) total / bw else 0.0,
-        )
-    }
-
-    val relativeStrengthData: StateFlow<RelativeStrengthData> = combine(
-        repository.history,
-        repository.settings,
-    ) { history, settings ->
-        computeRelativeStrength(history, settings.userVitals.weight)
-    }
-        .distinctUntilChanged()
-        .flowOn(Dispatchers.Default)
-        .stateIn(viewModelScope, SharingStarted.Lazily, RelativeStrengthData(0.0, 0.0, 0.0, 0.0, 0.0))
-
-    val ipfGlPoints: StateFlow<Double> = combine(
-        relativeStrengthData,
-        repository.settings,
-    ) { strength, settings ->
-        val bodyWeight = settings.userVitals.weight ?: return@combine 0.0
-        if (strength.totalKg <= 0.0) return@combine 0.0
-        calculateIPFGLPoints(
-            totalLifted = strength.totalKg,
-            bodyWeight = bodyWeight,
-            gender = when (settings.userVitals.gender) {
-                com.example.kpkn.data.models.Gender.FEMALE -> "female"
-                else -> "male"
-            },
-            equipment = IpfEquipment.CLASSIC,
-        )
-    }
-        .distinctUntilChanged()
-        .flowOn(Dispatchers.Default)
-        .stateIn(viewModelScope, SharingStarted.Lazily, 0.0)
-
-    private data class CardsNutrition(
-        val calorieGoal: Int?,
-        val proteinGoal: Int?,
-        val carbGoal: Int?,
-        val fatGoal: Int?,
-        val nutrition: HomeNutritionSnapshot,
-    )
-
-    private data class CardsBody(
-        val weight: Double?,
-        val bodyFat: Double?,
-        val musclePct: Double?,
-        val ffmi: Double?,
-        val ffmiInterpretation: String?,
-        val imc: Double?,
-    )
-
-    private data class CardsExercise(
-        val starTargetsCount: Int,
-        val historyCount: Int,
-        val relativeStrength: Double,
-        val totalKg: Double,
-        val ipfGlPoints: Double,
-    )
-
-    /** Consolidated snapshot for HomeCardsSection to avoid many local collectors. */
-    val cardsState: StateFlow<HomeCardsState> = combine(
-        combine(macroGoals, todayNutritionTotals) { goals, nutrition ->
-            val dayGoals = (goals as? DayGoalsResult.Present)?.goals
-            CardsNutrition(
-                calorieGoal = dayGoals?.calorieGoal,
-                proteinGoal = dayGoals?.proteinGoal,
-                carbGoal = dayGoals?.carbGoal,
-                fatGoal = dayGoals?.fatGoal,
-                nutrition = nutrition,
-            )
-        },
-        combine(lastWeight, lastBodyFat, lastMusclePct, heightCm) { weight, bodyFat, muscle, height ->
-            val ffmi = if (weight != null && bodyFat != null && height != null) computeNormalizedFfmi(weight, height, bodyFat) else null
-            val ffmiInterpretation = if (weight != null && bodyFat != null && height != null) computeFfmiInterpretation(weight, height, bodyFat) else null
-            val imc = if (weight != null) computeImc(weight, height) else null
-            CardsBody(weight, bodyFat, muscle, ffmi, ffmiInterpretation, imc)
-        },
-        combine(starTargetsCount, historyCount, relativeStrengthData, ipfGlPoints) { stars, history, strength, ipf ->
-            CardsExercise(
-                starTargetsCount = stars,
-                historyCount = history,
-                relativeStrength = strength.relativeStrength,
-                totalKg = strength.totalKg,
-                ipfGlPoints = ipf,
-            )
-        },
-    ) { nutrition, body, exercise ->
-        HomeCardsState(
-            calorieGoal = nutrition.calorieGoal,
-            proteinGoal = nutrition.proteinGoal,
-            carbGoal = nutrition.carbGoal,
-            fatGoal = nutrition.fatGoal,
-            nutrition = nutrition.nutrition,
-            weight = body.weight,
-            bodyFat = body.bodyFat,
-            musclePct = body.musclePct,
-            ffmi = body.ffmi,
-            ffmiInterpretation = body.ffmiInterpretation,
-            imc = body.imc,
-            starTargetsCount = exercise.starTargetsCount,
-            historyCount = exercise.historyCount,
-            relativeStrength = exercise.relativeStrength,
-            totalKg = exercise.totalKg,
-            ipfGlPoints = exercise.ipfGlPoints,
-        )
-    }
-        .distinctUntilChanged()
-        .flowOn(Dispatchers.Default)
-        .stateIn(viewModelScope, SharingStarted.Lazily, HomeCardsState())
 
     private data class HomeUiCore(
         val userName: String,
@@ -806,34 +544,6 @@ data class HomeUiState(
     val todayNutritionTotals: HomeNutritionSnapshot = HomeNutritionSnapshot(),
     val overtrainedMuscles: List<String> = emptyList(),
     val programs: List<Program> = emptyList(),
-)
-
-data class HomeCardsState(
-    /** null = sin objetivos (ausencia explícita); nunca defaults inventados. */
-    val calorieGoal: Int? = null,
-    val proteinGoal: Int? = null,
-    val carbGoal: Int? = null,
-    val fatGoal: Int? = null,
-    val nutrition: HomeNutritionSnapshot = HomeNutritionSnapshot(),
-    val weight: Double? = null,
-    val bodyFat: Double? = null,
-    val musclePct: Double? = null,
-    val ffmi: Double? = null,
-    val ffmiInterpretation: String? = null,
-    val imc: Double? = null,
-    val starTargetsCount: Int = 0,
-    val historyCount: Int = 0,
-    val relativeStrength: Double = 0.0,
-    val totalKg: Double = 0.0,
-    val ipfGlPoints: Double = 0.0,
-)
-
-data class RelativeStrengthData(
-    val squatRM: Double,
-    val benchRM: Double,
-    val deadliftRM: Double,
-    val totalKg: Double,
-    val relativeStrength: Double,
 )
 
 data class HomeNutritionSnapshot(

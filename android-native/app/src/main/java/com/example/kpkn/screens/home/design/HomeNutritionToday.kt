@@ -64,7 +64,7 @@ import kotlin.math.sin
 private const val NUTRITION_FIGURE_KEY = "home-nutrition"
 
 /** Las cuatro comidas de «Nutrición de hoy», en su orden. */
-private val HomeMeals: List<Pair<MealType, String>> = listOf(
+internal val HomeMeals: List<Pair<MealType, String>> = listOf(
     MealType.BREAKFAST to "Desayuno",
     MealType.LUNCH to "Almuerzo",
     MealType.SNACK to "Merienda",
@@ -100,6 +100,7 @@ fun HomeNutritionToday(
         HomeSectionLabel(
             text = "NUTRICIÓN DE HOY",
             action = { HomeAddMealButton(onClick = { onAddMeal(null) }) },
+            centerAction = true,
         )
         Spacer(Modifier.height(16.dp))
         Row(
