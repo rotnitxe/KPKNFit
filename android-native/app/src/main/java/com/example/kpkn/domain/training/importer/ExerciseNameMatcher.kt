@@ -5,6 +5,7 @@ import com.example.kpkn.domain.exercises.catalogv2.ExerciseCatalogV2
 import com.example.kpkn.domain.exercises.catalogv2.ExerciseCatalogV2Resolver
 import com.example.kpkn.domain.exercises.catalogv2.ExerciseConfigurationV2
 import com.example.kpkn.domain.exercises.catalogv2.ExerciseDefinitionV2
+import com.example.kpkn.domain.exercises.catalogv2.ExerciseSearchHitV2
 
 /**
  * Configuración del catálogo v2 propuesta para un nombre importado. [equipmentId] (barbell, dumbbells, cable…)
@@ -62,6 +63,12 @@ private const val RIVAL_CEILING = ALIAS_CONFIDENCE - ALTERNATIVE_PENALTY
 /** Respaldo difuso: cada calificativo que el ejercicio tiene y el nombre no dice baja esto, hasta el tope. */
 private const val VARIANT_PENALTY = 0.10
 private const val VARIANT_PENALTY_CAP = 0.30
+
+/** Sugerencias por debajo de esta confianza no se muestran (no cambian la confianza de un reconocimiento). */
+private const val SUGGESTION_MIN = 0.3
+
+/** Tope de un candidato que las guardas G1 o G3 no dejan reconocer solo (la sugerencia sigue visible). */
+private const val GUARDED_CEILING = 0.79
 
 /** Palabras vacías que no cuentan al comparar nombres («press de banca» = «press banca»). */
 private val NAME_STOP_WORDS = setOf("de", "del", "la", "el", "en", "con", "para", "por", "al", "a", "y", "o")
@@ -170,6 +177,12 @@ private val TRANSLATIONS: Map<String, String> = mapOf(
     "abs" to "abdominal",
 )
 
+/** Traducciones de la segunda pasada: las de siempre más «sitting» → «sentado». */
+private val IMPORT_TRANSLATIONS: Map<String, String> = TRANSLATIONS + mapOf("sitting" to "sentado")
+
+/** Quita «pull down» y «pull downs» (con guion o espacio) y lo deja como «pulldown», la forma del catálogo. */
+private val PULL_DOWN = Regex("""(?iU)\bpull[ -]?downs?\b""")
+
 /**
  * Calificativos que cambian la variante (pausa, déficit, sentado…). En el respaldo, el ejercicio que los tiene y el
  * nombre no dice baja su confianza. Se comparan por raíz sin género ni número («inclinada» = «inclinado»).
@@ -192,14 +205,51 @@ internal fun splitAlternative(name: String): Pair<String, String>? {
 }
 
 /**
- * Empareja nombres importados con el catálogo v2. Primero busca el alias curado de [ImportExerciseAliases] (confianza
- * alta). Si no hay alias, usa [ExerciseCatalogV2Resolver.search] como candidatos y mide el parecido con el nombre
- * original y con su traducción sin material, por caracteres o por palabras, quedándose con el mejor.
+ * Empareja nombres importados con el catálogo v2 en dos pasadas. La primera es el emparejador de siempre: alias curados
+ * de [ImportExerciseAliases] y búsqueda con parecido; si reconoce el nombre con confianza, su resultado no cambia. Si
+ * no, la segunda aplica la propuesta v6 de H6b ([ImportNameNormalizer]: notación, plurales, abreviaturas y búsqueda
+ * relajada), con guardas que no dejan reconocer solos los nombres con palabras que el catálogo no conoce.
  */
 class ExerciseNameMatcher(catalog: ExerciseCatalogV2) {
     private val resolver = ExerciseCatalogV2Resolver(catalog)
     private val definitionsById: Map<String, ExerciseDefinitionV2> =
         catalog.families.flatMap { it.definitions }.associateBy { it.id }
+
+    /** Reglas de la primera pasada: las de siempre, sin cambios. */
+    private val currentRules = Rules(
+        stem = { ExerciseMatchLexicon.stem(it) },
+        translations = TRANSLATIONS,
+        lookupAlias = { ImportExerciseAliases.lookup(it) },
+        search = { resolver.search(it) },
+    )
+
+    /** Reglas de la segunda pasada: plurales, «sitting», alias nuevos y búsqueda relajada. */
+    private val importRules = Rules(
+        stem = { ImportNameNormalizer.pluralStem(it) },
+        translations = IMPORT_TRANSLATIONS,
+        lookupAlias = { ImportExerciseAliases.lookupForImport(it) },
+        search = { relaxedHits(it) },
+    )
+
+    /** Palabras que el catálogo conoce (guarda G1). Se calculan la primera vez que hacen falta. */
+    private val vocabulary: Set<String> by lazy {
+        ImportNameNormalizer.vocabulary(catalog, TRANSLATIONS, ImportExerciseAliases.vocabularyPhrases)
+    }
+
+    /** Palabras de cada ejercicio (nombres, búsquedas y sus stems), para la guarda G3. */
+    private val definitionTerms: Map<String, Set<String>> by lazy {
+        definitionsById.values.associate { definition ->
+            val terms = HashSet<String>()
+            for (name in namesOf(definition)) {
+                for (word in tokensOf(name)) {
+                    terms += word
+                    terms += ExerciseMatchLexicon.stem(word)
+                    terms += ImportNameNormalizer.pluralStem(word)
+                }
+            }
+            definition.id to terms
+        }
+    }
 
     /**
      * Configuraciones para un nombre. Si el nombre dice el material («con mancuernas», «en polea», «hexagonal»),
@@ -209,57 +259,194 @@ class ExerciseNameMatcher(catalog: ExerciseCatalogV2) {
      */
     fun match(rawName: String): ExerciseNameMatch {
         val name = rawName.trim()
-        val whole = matchPart(name)
-        if (whole.isConfident) return whole
-        val (first, second) = splitAlternative(name) ?: return whole
-        val part = matchPart(first)
-        return if (part.isConfident) ExerciseNameMatch(name, part.candidates, alternative = second) else whole
-    }
-
-    /** Configuraciones de un nombre sin separar sus dos opciones (ver [match]). */
-    private fun matchPart(name: String): ExerciseNameMatch {
-        val original = comparable(name)
-        if (original.isEmpty()) return ExerciseNameMatch(name, emptyList())
-        val equipment = materialEquipment(name)
-        val alias = ImportExerciseAliases.lookup(name)?.takeIf { it.definitionId in definitionsById }
-        val translated = comparable(translatedCore(name))
-        val said = saidRoots(name)
-        val ranked = mutableListOf<Ranked>()
-        if (alias != null) {
-            val definition = definitionsById.getValue(alias.definitionId)
-            addCandidates(ranked, definition, aliasConfiguration(definition, alias), equipment, ALIAS_CONFIDENCE, -1)
-        }
-        resolver.search(name).forEachIndexed { order, hit ->
-            val definition = definitionsById[hit.definitionId] ?: return@forEachIndexed
-            if (definition.id == alias?.definitionId) return@forEachIndexed
-            val primary = definition.configurations
-                .firstOrNull { it.id == (hit.suggestedConfigurationId ?: definition.defaultConfigurationId) }
-                ?: return@forEachIndexed
-            val base = fallbackConfidence(definition, original, translated, said)
-            val confidence = if (alias != null) minOf(base, RIVAL_CEILING) else base
-            addCandidates(ranked, definition, primary, equipment, confidence, order)
-        }
-        val candidates = ranked
-            .sortedWith(
-                compareByDescending<Ranked> { it.candidate.confidence }
-                    .thenBy { it.order }
-                    .thenBy { it.alternative },
-            )
-            .map { it.candidate }
-            .distinctBy { it.configurationId }
-            .take(MAX_CANDIDATES)
-        return ExerciseNameMatch(name, candidates)
+        val current = matchCurrent(name)
+        return if (current.isConfident) current else matchImported(name)
     }
 
     /** Empareja cada nombre distinto una sola vez (clave: el nombre sin espacios sobrantes). */
     fun matchAll(rawNames: Collection<String>): Map<String, ExerciseNameMatch> =
         rawNames.map { it.trim() }.filter { it.isNotEmpty() }.distinct().associateWith { match(it) }
 
-    private class Ranked(val candidate: ExerciseNameCandidate, val order: Int, val alternative: Boolean)
+    /** Primera pasada: el nombre completo y, si es «X o Y» y X se reconoce, X con Y como alternativa. */
+    private fun matchCurrent(name: String): ExerciseNameMatch {
+        val whole = ExerciseNameMatch(name, rank(name, currentRules).map { it.candidate })
+        if (whole.isConfident) return whole
+        val (first, second) = splitAlternative(name) ?: return whole
+        val part = ExerciseNameMatch(first, rank(first, currentRules).map { it.candidate })
+        return if (part.isConfident) ExerciseNameMatch(name, part.candidates, alternative = second) else whole
+    }
 
     /**
-     * Configuración de un alias: la exacta si la tiene; si no, la de su material por defecto; si no, la por defecto
-     * del ejercicio.
+     * Segunda pasada (propuesta v6): quita la notación, separa «X / Y» solo si X y Y se reconocen por separado, y
+     * empareja con las reglas de importación. Sin reconocimiento, devuelve sugerencias con confianza ≤ 0,79.
+     */
+    private fun matchImported(raw: String): ExerciseNameMatch {
+        val withoutPulldown = PULL_DOWN.replace(raw, "pulldown")
+        val slash = '/' in withoutPulldown
+        val text = withoutPulldown.replace("/", " or ")
+        val prepared = ImportNameNormalizer.prepare(text)
+        if (prepared.isNoise) return ExerciseNameMatch(raw, emptyList())
+        val whole = guarded(rank(prepared.text, importRules), prepared.text)
+        if (isConfident(whole)) return ExerciseNameMatch(raw, offered(whole, prepared.text))
+        val parts = if (withoutPulldown.count { it == '/' } <= 1) splitAlternative(text) else null
+        if (parts != null) {
+            val (firstText, firstScored) = importPart(parts.first)
+            if (isConfident(firstScored)) {
+                val secondOk = !slash || isConfident(importPart(parts.second).second)
+                if (secondOk) return ExerciseNameMatch(raw, offered(firstScored, firstText), alternative = parts.second)
+            }
+        }
+        return ExerciseNameMatch(raw, offered(whole, prepared.text))
+    }
+
+    /** Un fragmento del nombre limpio con las reglas de importación y las guardas: su texto y sus candidatos. */
+    private fun importPart(part: String): Pair<String, List<Scored>> {
+        val prepared = ImportNameNormalizer.prepare(part)
+        if (prepared.isNoise || prepared.text.isEmpty()) return "" to emptyList()
+        return prepared.text to guarded(rank(prepared.text, importRules), prepared.text)
+    }
+
+    /**
+     * Candidatos de un nombre con unas reglas: alias, búsqueda y parecido, con la configuración que pide su material.
+     * Ordenados de mayor a menor confianza, sin configuraciones repetidas y como mucho [MAX_CANDIDATES].
+     */
+    private fun rank(name: String, rules: Rules): List<Scored> {
+        val original = comparable(name, rules.stem)
+        if (original.isEmpty()) return emptyList()
+        val equipment = materialEquipment(name)
+        val alias = rules.lookupAlias(name)?.takeIf { it.definitionId in definitionsById }
+        val translated = comparable(translatedCore(name, rules.translations), rules.stem)
+        val said = saidRoots(name, rules.translations)
+        val ranked = mutableListOf<Ranked>()
+        if (alias != null) {
+            val definition = definitionsById.getValue(alias.definitionId)
+            addCandidates(ranked, definition, aliasConfiguration(definition, alias), equipment, ALIAS_CONFIDENCE, -1)
+        }
+        rules.search(name).forEachIndexed { order, hit ->
+            val definition = definitionsById[hit.definitionId] ?: return@forEachIndexed
+            if (definition.id == alias?.definitionId) return@forEachIndexed
+            val primary = definition.configurations
+                .firstOrNull { it.id == (hit.suggestedConfigurationId ?: definition.defaultConfigurationId) }
+                ?: return@forEachIndexed
+            val base = fallbackConfidence(definition, original, translated, said, rules.stem)
+            val confidence = if (alias != null) minOf(base, RIVAL_CEILING) else base
+            addCandidates(ranked, definition, primary, equipment, confidence, order)
+        }
+        return ranked
+            .sortedWith(
+                compareByDescending<Ranked> { it.scored.candidate.confidence }
+                    .thenBy { it.order }
+                    .thenBy { it.alternative },
+            )
+            .distinctBy { it.scored.candidate.configurationId }
+            .take(MAX_CANDIDATES)
+            .map { it.scored }
+    }
+
+    /** Confianza alta de una lista ordenada (igual que [ExerciseNameMatch.isConfident]), antes de ocultar sugerencias. */
+    private fun isConfident(scored: List<Scored>): Boolean {
+        val first = scored.firstOrNull()?.candidate?.confidence ?: return false
+        val second = scored.getOrNull(1)?.candidate?.confidence ?: 0.0
+        return first >= CONFIDENT_MIN && first - second >= CONFIDENT_MARGIN
+    }
+
+    /**
+     * Guardas de la segunda pasada: sin reconocimiento automático si sobra una palabra que el catálogo no conoce (G1)
+     * o si el candidato no dice una palabra significativa del nombre (G3). Antes se descarta el movimiento contrario
+     * ([isOppositeMovement]). Los alias curados no pasan por ellas.
+     */
+    private fun guarded(scored: List<Scored>, text: String): List<Scored> {
+        if (scored.isEmpty() || ImportExerciseAliases.lookupForImport(text) != null) return scored
+        val unknownWord = text.split(' ').filter { it.isNotEmpty() }.any { !isKnown(it) }
+        return scored.filterNot { isOppositeMovement(text, it.definition) }.map { item ->
+            if (!unknownWord && uncoveredWords(text, item.definition).isEmpty()) {
+                item
+            } else {
+                item.copy(candidate = item.candidate.copy(confidence = minOf(item.candidate.confidence, GUARDED_CEILING)))
+            }
+        }
+    }
+
+    /** Sugerencias que se muestran: desde [SUGGESTION_MIN] y sin la versión tumbada si el nombre dice «de pie». */
+    private fun offered(scored: List<Scored>, text: String): List<ExerciseNameCandidate> =
+        scored.filter { it.candidate.confidence >= SUGGESTION_MIN && !contradictsStanding(text, it.definition) }
+            .map { it.candidate }
+
+    /** Palabra conocida por el catálogo, tal cual, sin plural o en su raíz de importación. Los dígitos cuentan. */
+    private fun isKnown(token: String): Boolean =
+        token.all { it.isDigit() } || token in vocabulary ||
+            ImportNameNormalizer.vocabularyStem(token) in vocabulary || ExerciseMatchLexicon.stem(token) in vocabulary
+
+    /**
+     * Palabras significativas del nombre que el ejercicio no dice, ni en su forma, ni traducidas, ni por parecido de raíz
+     * (G3). No cuentan las de material, las vacías y las neutras.
+     */
+    private fun uncoveredWords(text: String, definition: ExerciseDefinitionV2): List<String> {
+        val terms = definitionTerms.getValue(definition.id)
+        return text.split(' ').filter { it.isNotEmpty() }.filterNot { token ->
+            token in MATERIAL_WORDS || token in IMPORT_STOP_WORDS || token in ImportNameNormalizer.NEUTRAL_WORDS ||
+                token.all { it.isDigit() } || coveredBy(token, terms)
+        }
+    }
+
+    private fun coveredBy(token: String, terms: Set<String>): Boolean {
+        val stemmed = ImportNameNormalizer.pluralStem(token)
+        val translated = ImportNameNormalizer.pluralStem(IMPORT_TRANSLATIONS[stemmed] ?: stemmed)
+        return token in terms || stemmed in terms || translated in terms || ExerciseMatchLexicon.stem(token) in terms ||
+            terms.any { term -> term.length >= 5 && translated.length >= 5 && sameRoot(translated, term) }
+    }
+
+    /**
+     * Postura contraria: el nombre dice «de pie» (o «standing») y no dice tumbado, y el ejercicio es la versión tumbada.
+     * Única regla de postura de H6b: evita sugerir «Extensión de Tríceps Tumbada» para «Standing Tricep Extensions».
+     */
+    private fun contradictsStanding(text: String, definition: ExerciseDefinitionV2): Boolean {
+        val said = tokensOf(text)
+        val standing = "standing" in said || "pie" in said
+        if (!standing || said.any { isLyingWord(it) }) return false
+        return tokensOf(definition.canonicalName).any { isLyingWord(it) }
+    }
+
+    private fun isLyingWord(token: String): Boolean = token == "lying" || token.startsWith("tumbad")
+
+    /**
+     * «Abductor» y «aductor» están a una letra de distancia y el parecido por raíz los une. Si el nombre dice un
+     * movimiento y el ejercicio el contrario, no es el mismo ejercicio («Hip Abductor» no es «Aducciones de Pierna»).
+     */
+    private fun isOppositeMovement(text: String, definition: ExerciseDefinitionV2): Boolean {
+        val said = movementsOf(tokensOf(text))
+        val meant = movementsOf(tokensOf(definition.canonicalName))
+        return said.isNotEmpty() && meant.isNotEmpty() && said.intersect(meant).isEmpty()
+    }
+
+    /** Movimiento de las palabras: abducción o aducción, con sus formas en inglés y español. */
+    private fun movementsOf(tokens: List<String>): Set<String> = tokens.mapNotNullTo(HashSet<String>()) { token ->
+        when {
+            token.startsWith("abduc") -> "abduccion"
+            token.startsWith("aduc") || token.startsWith("adduc") -> "aduccion"
+            else -> null
+        }
+    }
+
+    /**
+     * Búsqueda de la segunda pasada: las palabras del nombre traducidas al español, sin las que el catálogo no conoce
+     * (AND relajado). Solo amplía los candidatos.
+     */
+    private fun relaxedHits(text: String): List<ExerciseSearchHitV2> {
+        val kept = ArrayList<String>()
+        for (token in text.split(' ').filter { it.isNotEmpty() }) {
+            val stemmed = ImportNameNormalizer.pluralStem(token)
+            if (stemmed in MATERIAL_WORDS || stemmed in IMPORT_STOP_WORDS) continue
+            val translated = IMPORT_TRANSLATIONS[stemmed] ?: stemmed
+            if (resolver.search(translated).isNotEmpty()) kept += translated
+        }
+        if (kept.isEmpty()) return emptyList()
+        return resolver.search(kept.joinToString(" "))
+    }
+
+    /**
+     * Configuración de un alias: la exacta si la tiene; si no, la de su material por defecto; si no, la por defecto del
+     * ejercicio.
      */
     private fun aliasConfiguration(definition: ExerciseDefinitionV2, alias: ImportExerciseAlias): ExerciseConfigurationV2 {
         val defaultConfig = definition.configurations.first { it.id == definition.defaultConfigurationId }
@@ -284,19 +471,19 @@ class ExerciseNameMatcher(catalog: ExerciseCatalogV2) {
         order: Int,
     ) {
         if (equipment == null) {
-            ranked += Ranked(candidate(primary, definition, base), order, alternative = false)
+            ranked += Ranked(scoredOf(primary, definition, base), order, alternative = false)
             addAlternatives(ranked, definition, primary, base, ceiling = base, order = order)
             return
         }
         val chosen = primary.takeIf { it.profile.equipmentId == equipment }
             ?: definition.configurations.firstOrNull { it.profile.equipmentId == equipment }
         if (chosen != null) {
-            ranked += Ranked(candidate(chosen, definition, base), order, alternative = false)
+            ranked += Ranked(scoredOf(chosen, definition, base), order, alternative = false)
             return
         }
         // El ejercicio no tiene ese material: sugerida o por defecto, con la confianza bajada.
         val lowered = (base - MISSING_MATERIAL_PENALTY).coerceIn(0.0, MISSING_MATERIAL_CEILING)
-        ranked += Ranked(candidate(primary, definition, lowered), order, alternative = false)
+        ranked += Ranked(scoredOf(primary, definition, lowered), order, alternative = false)
         addAlternatives(ranked, definition, primary, base, ceiling = lowered, order = order)
     }
 
@@ -332,7 +519,7 @@ class ExerciseNameMatcher(catalog: ExerciseCatalogV2) {
         val equipments = hashSetOf(primary.profile.equipmentId)
         for (config in definition.configurations) {
             if (config.id == primary.id || !equipments.add(config.profile.equipmentId)) continue
-            ranked += Ranked(candidate(config, definition, confidence), order, alternative = true)
+            ranked += Ranked(scoredOf(config, definition, confidence), order, alternative = true)
         }
     }
 
@@ -345,9 +532,10 @@ class ExerciseNameMatcher(catalog: ExerciseCatalogV2) {
         original: String,
         translated: String,
         said: Set<String>,
+        stem: (String) -> String,
     ): Double {
         val best = namesOf(definition).maxOf { candidateName ->
-            val target = comparable(candidateName)
+            val target = comparable(candidateName, stem)
             maxOf(
                 similarity(original, target),
                 wordSimilarity(original, target),
@@ -365,26 +553,29 @@ class ExerciseNameMatcher(catalog: ExerciseCatalogV2) {
     }
 
     /** Raíces de las palabras del nombre y de sus traducciones: lo que el nombre dice. */
-    private fun saidRoots(name: String): Set<String> {
+    private fun saidRoots(name: String, translations: Map<String, String>): Set<String> {
         val words = tokensOf(name)
-        return (words + words.map { TRANSLATIONS[it] ?: it }).map(::genderRoot).toSet()
+        return (words + words.map { translations[it] ?: it }).map(::genderRoot).toSet()
     }
 
     /** Nombre sin palabras vacías ni de material, con las palabras inglesas traducidas («Barbell Row» → «remo»). */
-    private fun translatedCore(name: String): String =
+    private fun translatedCore(name: String, translations: Map<String, String>): String =
         tokensOf(name)
             .filter { it !in IMPORT_STOP_WORDS && it !in MATERIAL_WORDS }
-            .joinToString(" ") { TRANSLATIONS[it] ?: it }
+            .joinToString(" ") { translations[it] ?: it }
 
-    private fun candidate(
+    private fun scoredOf(
         config: ExerciseConfigurationV2,
         definition: ExerciseDefinitionV2,
         confidence: Double,
-    ): ExerciseNameCandidate = ExerciseNameCandidate(
-        configurationId = config.id,
-        displayName = definition.canonicalName,
-        confidence = confidence,
-        equipmentId = config.profile.equipmentId,
+    ): Scored = Scored(
+        definition = definition,
+        candidate = ExerciseNameCandidate(
+            configurationId = config.id,
+            displayName = definition.canonicalName,
+            confidence = confidence,
+            equipmentId = config.profile.equipmentId,
+        ),
     )
 
     private fun namesOf(definition: ExerciseDefinitionV2): List<String> =
@@ -393,11 +584,8 @@ class ExerciseNameMatcher(catalog: ExerciseCatalogV2) {
     private fun tokensOf(text: String): List<String> =
         ExerciseMatchLexicon.normalize(text).split(' ').filter { it.isNotEmpty() }
 
-    private fun comparable(text: String): String =
-        ExerciseMatchLexicon.normalize(text)
-            .split(' ')
-            .filter { it.isNotEmpty() && it !in NAME_STOP_WORDS }
-            .joinToString(" ") { ExerciseMatchLexicon.stem(it) }
+    private fun comparable(text: String, stem: (String) -> String): String =
+        tokensOf(text).filter { it !in NAME_STOP_WORDS }.joinToString(" ") { stem(it) }
 
     private fun similarity(a: String, b: String): Double {
         if (a.isEmpty() || b.isEmpty()) return 0.0
@@ -418,6 +606,19 @@ class ExerciseNameMatcher(catalog: ExerciseCatalogV2) {
 
     private fun sameRoot(x: String, y: String): Boolean =
         x == y || (x.length >= 5 && y.length >= 5 && ExerciseMatchLexicon.levenshtein(x, y) <= 1)
+
+    /** Candidato con la definición de la que sale; las guardas necesitan saber de qué ejercicio es. */
+    private data class Scored(val definition: ExerciseDefinitionV2, val candidate: ExerciseNameCandidate)
+
+    private class Ranked(val scored: Scored, val order: Int, val alternative: Boolean)
+
+    /** Reglas de una pasada: cómo se compara, qué traducciones usa, qué alias conoce y cómo busca en el catálogo. */
+    private class Rules(
+        val stem: (String) -> String,
+        val translations: Map<String, String>,
+        val lookupAlias: (String) -> ImportExerciseAlias?,
+        val search: (String) -> List<ExerciseSearchHitV2>,
+    )
 }
 
 /**
