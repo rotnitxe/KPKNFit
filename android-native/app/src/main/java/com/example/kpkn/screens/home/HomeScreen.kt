@@ -22,14 +22,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.DonutLarge
-import androidx.compose.material.icons.filled.FitnessCenter
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material.icons.filled.Restaurant
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -89,6 +81,7 @@ import com.example.kpkn.ui.components.rings.KpknTowerRings
 import com.example.kpkn.ui.components.rings.TowerRingValues
 import com.example.kpkn.ui.components.KpknGlass
 import com.example.kpkn.ui.components.KpknGlassVariant
+import com.example.kpkn.ui.components.icons.KpknLineIcons
 import com.example.kpkn.ui.design.KpknShape
 import com.example.kpkn.ui.design.KpknSurface
 import com.example.kpkn.ui.components.KpknAlertDialog
@@ -1122,12 +1115,12 @@ internal fun homeBarShownAfter(previous: Boolean, barAlpha: Float): Boolean = wh
     else -> previous
 }
 
-/** Icono de cada contexto. Son de Material hasta que llegue el set KPKN Line (I11b): solo cambia esta función. */
+/** Icono de cada contexto (KPKN Line, §4): la torre en el saludo y en RINGS, la barra en la sesión y el cuenco en nutrición. */
 internal fun homeBarIcon(context: HomeBarContext): ImageVector = when (context) {
-    HomeBarContext.GREETING -> Icons.Filled.Home
-    HomeBarContext.SESSION -> Icons.Filled.FitnessCenter
-    HomeBarContext.RINGS -> Icons.Filled.DonutLarge
-    HomeBarContext.NUTRITION -> Icons.Filled.Restaurant
+    HomeBarContext.GREETING -> KpknLineIcons.Tower
+    HomeBarContext.SESSION -> KpknLineIcons.Training
+    HomeBarContext.RINGS -> KpknLineIcons.Tower
+    HomeBarContext.NUTRITION -> KpknLineIcons.Nutrition
 }
 
 /** Acento de cada contexto (§3): sesión = músculo, RINGS = columna, nutrición = energía. El saludo va en tinta. */
@@ -1169,14 +1162,14 @@ private fun HomeBarInkAction(icon: ImageVector, contentDescription: String, onCl
                 .background(WizardColors.text),
             contentAlignment = Alignment.Center,
         ) {
-            Icon(imageVector = icon, contentDescription = null, modifier = Modifier.size(18.dp), tint = WizardColors.ctaContent)
+            Icon(imageVector = icon, contentDescription = null, modifier = Modifier.size(20.dp), tint = WizardColors.ctaContent)
         }
     }
 }
 
 /**
  * Avatar de la isla: círculo de 36 dp con filete y la inicial del nombre, en una zona táctil de 48 dp. Abre Perfil. Sin nombre
- * muestra la silueta de Material.
+ * muestra la silueta KPKN Line.
  */
 @Composable
 private fun HomeBarAvatar(userName: String, onClick: () -> Unit, modifier: Modifier = Modifier) {
@@ -1200,7 +1193,7 @@ private fun HomeBarAvatar(userName: String, onClick: () -> Unit, modifier: Modif
                 Text(text = initial, style = HomeTypography.avatarInitial, color = WizardColors.text)
             } else {
                 Icon(
-                    imageVector = Icons.Default.Person,
+                    imageVector = KpknLineIcons.Person,
                     contentDescription = null,
                     modifier = Modifier.size(20.dp),
                     tint = WizardColors.text,
@@ -1221,7 +1214,8 @@ private fun HomeGreetingLine(greeting: String, userName: String, modifier: Modif
     val style = HomeTypography.barTitle
     val clean = greeting.replace("¡", "").replace("!", "").trim()
     val density = LocalDensity.current
-    BoxWithConstraints(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.CenterStart) {
+    // Sangría de 8 dp: alinea el saludo con el texto de las mini tarjetas, que tienen el mismo margen interior.
+    BoxWithConstraints(modifier = Modifier.fillMaxSize().padding(start = 8.dp), contentAlignment = Alignment.CenterStart) {
         val widthPx = constraints.maxWidth.toFloat()
         val fit = remember(clean, userName, widthPx, density.density, density.fontScale) {
             fitHomeGreeting(
@@ -1351,7 +1345,7 @@ private fun MiniSessionCard(
                 modifier = Modifier.weight(1f),
             )
             HomeBarInkAction(
-                icon = Icons.Filled.PlayArrow,
+                icon = KpknLineIcons.PlayFilled,
                 contentDescription = "Iniciar",
                 onClick = { onStartWorkout(primarySession.session, primarySession.program) },
             )
@@ -1415,7 +1409,7 @@ private fun MiniNutritionCard(
                 ) {}
             }
         }
-        HomeBarInkAction(icon = Icons.Default.Add, contentDescription = "Agregar", onClick = onAddMeal)
+        HomeBarInkAction(icon = KpknLineIcons.Plus, contentDescription = "Agregar", onClick = onAddMeal)
     }
 }
 
