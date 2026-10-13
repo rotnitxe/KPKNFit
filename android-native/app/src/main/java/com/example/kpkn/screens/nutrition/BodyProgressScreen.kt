@@ -7,6 +7,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
@@ -14,10 +15,19 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import com.example.kpkn.screens.body.design.BodyFatModule
+import com.example.kpkn.screens.body.design.BodyIsland
+import com.example.kpkn.screens.body.design.BodyPageHeader
+import com.example.kpkn.screens.body.design.BodyWeightModule
+import com.example.kpkn.screens.body.design.bodyIslandChangeText
+import com.example.kpkn.screens.body.design.buildBodyChartPoints
 import com.example.kpkn.ui.components.LocalKpknOverlayHost
+import com.example.kpkn.ui.design.KpknSkeletonModule
+import com.example.kpkn.ui.design.KpknSurface
+import com.example.kpkn.ui.design.kpknEntrance
+import com.example.kpkn.ui.design.rememberIslandVisible
 import com.example.kpkn.ui.tour.TourAnchors
 import com.example.kpkn.ui.tour.TourIds
 import com.example.kpkn.ui.tour.TourScripts
@@ -47,11 +57,8 @@ import com.example.kpkn.screens.onboarding.design.formatDecimalEs
 import com.example.kpkn.screens.onboarding.design.formatSignedDecimalEs
 import com.example.kpkn.ui.components.KpknSheet
 import com.example.kpkn.ui.components.KpknSnackbar
-import com.example.kpkn.ui.components.kpknGlass
 import com.example.kpkn.ui.components.showKpknSnackbar
 import com.example.kpkn.ui.components.SnackbarType
-import dev.chrisbanes.haze.HazeState
-import dev.chrisbanes.haze.hazeSource
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.YearMonth
@@ -144,9 +151,11 @@ fun BodyProgressScreen(
     var editingEntry by remember { mutableStateOf<BodyMeasurementEntry?>(null) }
     val snackbarHostState = remember { SnackbarHostState() }
     val snackbarScope = rememberCoroutineScope()
-    var heroMetric by rememberSaveable { mutableStateOf(BodyHeroMetric.WEIGHT) }
     val contextualBottomBarClearance = 110.dp
-    val bodyHazeState = remember { HazeState() }
+    val listState = rememberLazyListState()
+    val islandVisible = rememberIslandVisible(listState, afterItemIndex = 0)
+    val topInset = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
+    val today = LocalDate.now()
 
     // Cifras de Cuerpo: el resumen del peso y la meta llegan ya calculados desde el ViewModel.
     val summary = bodyUiState.weightSummary
@@ -192,19 +201,15 @@ fun BodyProgressScreen(
         null
     }
 
-    // Series y tendencias: calculadas una sola vez en el ViewModel para el rango elegido.
-    val weightSeries = remember(bodyUiState.weightSeries) {
-        bodyUiState.weightSeries.map { BodyMetricPoint(it.date.toString(), it.value) }
+    // Series de la gráfica: el ViewModel calcula cada serie y su tendencia una vez; aquí solo se unen por día.
+    val weightPoints = remember(bodyUiState.weightSeries, bodyUiState.weightTrend) {
+        buildBodyChartPoints(bodyUiState.weightSeries, bodyUiState.weightTrend)
     }
-    val weightTrendSeries = remember(bodyUiState.weightTrend) {
-        bodyUiState.weightTrend.map { BodyMetricPoint(it.date.toString(), it.value) }
+    val bodyFatPoints = remember(bodyUiState.bodyFatSeries, bodyUiState.bodyFatTrend) {
+        buildBodyChartPoints(bodyUiState.bodyFatSeries, bodyUiState.bodyFatTrend)
     }
-    val bodyFatSeries = remember(bodyUiState.bodyFatSeries) {
-        bodyUiState.bodyFatSeries.map { BodyMetricPoint(it.date.toString(), it.value) }
-    }
-    val bodyFatTrendSeries = remember(bodyUiState.bodyFatTrend) {
-        bodyUiState.bodyFatTrend.map { BodyMetricPoint(it.date.toString(), it.value) }
-    }
+    val islandTitle = summary.current?.let { "${formatDecimalEs(it, 1)} kg" } ?: "Cuerpo"
+    val islandSubtitle = bodyIslandChangeText(bodyUiState.weightSummary30Days)
 
     Box(
         modifier = Modifier.fillMaxSize(),
@@ -212,51 +217,75 @@ fun BodyProgressScreen(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color.Black)
-                .hazeSource(state = bodyHazeState),
+                .background(KpknSurface.canvas),
         ) {
         LazyColumn(
+            state = listState,
             modifier = Modifier
                 .fillMaxSize(),
             contentPadding = PaddingValues(bottom = 140.dp),
         ) {
+            // Cabecera: es el primer elemento; cuando sale de la vista, aparece la isla.
             item {
-                ProgressHero(
-                    selectedMetric = heroMetric,
-                    onMetricChange = { heroMetric = it },
-                    weightSeries = weightSeries,
-                    bodyFatSeries = bodyFatSeries,
-                    weight = weight,
-                    weightSummary = summary,
-                    bodyFat = bodyFat,
-                    bodyFatWeeklyRate = bodyUiState.bodyFatWeeklyRate,
-                    goalTrack = bodyUiState.goalTrack,
-                    goalMetric = goal?.metric,
-                    loaded = bodyUiState.loaded,
-                    muscle = muscle,
-                    bmi = bmi,
-                    ffmi = ffmi,
-                    targetWeight = targetWeight,
-                    targetBodyFat = targetBodyFat,
+                BodyPageHeader(
+                    topInset = topInset,
+                    onAdd = {
+                        editingEntry = null
+                        showAddMeasurement = true
+                    },
+                    addModifier = Modifier.tourAnchor(TourAnchors.BODY_PESAJES),
                 )
             }
 
-            if (goal != null) {
-                val goalCurrent = when (goal.metric) {
-                    GoalMetric.WEIGHT -> weight
-                    GoalMetric.BODY_FAT -> bodyFat
-                    GoalMetric.MUSCLE_MASS -> muscle
+            if (!bodyUiState.loaded) {
+                item { KpknSkeletonModule(lines = 3, modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp)) }
+                item { KpknSkeletonModule(lines = 2, modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp)) }
+            } else {
+                item {
+                    BodyWeightModule(
+                        summary = summary,
+                        goalKg = targetWeight,
+                        points = weightPoints,
+                        range = bodyUiState.range,
+                        today = today,
+                        onRangeChange = bodyViewModel::selectRange,
+                        onAdd = {
+                            editingEntry = null
+                            showAddMeasurement = true
+                        },
+                        modifier = Modifier
+                            .padding(horizontal = 16.dp, vertical = 6.dp)
+                            .kpknEntrance("body", 0)
+                            .tourAnchor(TourAnchors.BODY_TENDENCIA),
+                    )
                 }
-                if (goalCurrent != null) {
+                if (bodyFat != null) {
                     item {
-                        GoalProgressCard(
-                            currentValue = goalCurrent,
-                            targetValue = goal.targetValueSi,
-                            goalType = goal.metric,
-                            rateLabel = goalRate,
-                            projectionLabel = goalProjection,
+                        BodyFatModule(
+                            current = bodyFat,
+                            start = bodyUiState.bodyFatSeries.firstOrNull(),
+                            points = bodyFatPoints,
+                            goalPercent = targetBodyFat,
+                            progressPercent = if (goal?.metric == GoalMetric.BODY_FAT) bodyUiState.goalTrack?.progressPercent else null,
+                            eta = if (goal?.metric == GoalMetric.BODY_FAT) bodyUiState.goalTrack?.eta else null,
+                            modifier = Modifier
+                                .padding(horizontal = 16.dp, vertical = 6.dp)
+                                .kpknEntrance("body", 1),
                         )
                     }
+                }
+            }
+
+            // El objetivo de peso y el de grasa ya se ven en sus módulos. El de masa muscular aún no tiene módulo (CU2).
+            if (goal != null && goal.metric == GoalMetric.MUSCLE_MASS && muscle != null) {
+                item {
+                    GoalProgressCard(
+                        currentValue = muscle,
+                        targetValue = goal.targetValueSi,
+                        goalType = goal.metric,
+                        rateLabel = goalRate,
+                        projectionLabel = goalProjection,
+                    )
                 }
             }
 
@@ -312,27 +341,6 @@ fun BodyProgressScreen(
 
             item {
                 MeasurementSectionLabel("Historial de medidas")
-            }
-
-            item {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 2.dp),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    TextButton(
-                        onClick = {
-                            editingEntry = null
-                            showAddMeasurement = true
-                        },
-                        modifier = Modifier.tourAnchor(TourAnchors.BODY_PESAJES),
-                    ) {
-                        Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(16.dp))
-                        Spacer(Modifier.width(6.dp))
-                        Text("Registrar medidas", fontWeight = FontWeight.Black)
-                    }
-                }
             }
 
             if (bodyMeasurements.isEmpty() && bodyUiState.loaded) {
@@ -405,111 +413,20 @@ fun BodyProgressScreen(
                 }
             }
 
-            item {
-                MeasurementSectionLabel("Gráficos")
-            }
-
-            item {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                ) {
-                    BodyChartRange.entries.forEach { chartRange ->
-                        FilterChip(
-                            selected = bodyUiState.range == chartRange,
-                            onClick = { bodyViewModel.selectRange(chartRange) },
-                            label = {
-                                Text(
-                                    when (chartRange) {
-                                        BodyChartRange.ONE_MONTH -> "1M"
-                                        BodyChartRange.THREE_MONTHS -> "3M"
-                                        BodyChartRange.SIX_MONTHS -> "6M"
-                                        BodyChartRange.ONE_YEAR -> "1A"
-                                        BodyChartRange.ALL -> "Todo"
-                                    },
-                                )
-                            },
-                        )
-                    }
-                }
-            }
-
-            item {
-                Box(Modifier.fillMaxWidth().tourAnchor(TourAnchors.BODY_TENDENCIA)) {
-                    BodyMetricTrendChartCard(
-                        title = "Peso corporal",
-                        subtitle = "Evolución según tus registros",
-                        points = weightSeries,
-                        trend = weightTrendSeries,
-                        unit = "kg",
-                        color = WEIGHT_COLOR,
-                        targetValue = targetWeight,
-                        emptyMessage = "Registra peso para ver su evolución en el tiempo.",
-                    )
-                }
-            }
-
-            item {
-                BodyMetricTrendChartCard(
-                    title = "% de grasa",
-                    subtitle = "Cambio relativo en composición",
-                    points = bodyFatSeries,
-                    trend = bodyFatTrendSeries,
-                    unit = "%",
-                    color = BODYFAT_COLOR,
-                    targetValue = targetBodyFat,
-                    emptyMessage = "Agrega mediciones de grasa corporal para activar este gráfico.",
-                )
-            }
-
             item { Spacer(Modifier.height(100.dp)) }
             }
         }
 
-        val pillShape = RoundedCornerShape(999.dp)
-        Box(
-            modifier = Modifier
-                .align(Alignment.BottomEnd)
-                .navigationBarsPadding()
-                .padding(end = 16.dp, bottom = 106.dp)
-                .kpknGlass(hazeState = bodyHazeState, shape = pillShape)
-                .clickable {
-                    editingEntry = null
-                    showAddMeasurement = true
-                }
-                .padding(horizontal = 18.dp, vertical = 12.dp),
-            contentAlignment = Alignment.Center,
-        ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Center,
-            ) {
-                Surface(
-                    shape = CircleShape,
-                    color = Color.White.copy(alpha = 0.12f),
-                    modifier = Modifier.size(26.dp),
-                ) {
-                    Box(contentAlignment = Alignment.Center) {
-                        Icon(
-                            imageVector = Icons.Default.Add,
-                            contentDescription = "Registrar medidas",
-                            tint = Color.White,
-                            modifier = Modifier.size(18.dp),
-                        )
-                    }
-                }
-                Spacer(Modifier.width(10.dp))
-                Text(
-                    text = "Registrar medidas",
-                    fontWeight = FontWeight.Bold,
-                    style = MaterialTheme.typography.titleSmall,
-                    color = Color.White,
-                    letterSpacing = 0.2.sp,
-                )
-            }
-        }
+        // Isla superior de Cuerpo: aparece cuando la cabecera sale de la vista.
+        BodyIsland(
+            visible = islandVisible,
+            title = islandTitle,
+            subtitle = islandSubtitle,
+            onAdd = {
+                editingEntry = null
+                showAddMeasurement = true
+            },
+        )
 
         SnackbarHost(
             hostState = snackbarHostState,

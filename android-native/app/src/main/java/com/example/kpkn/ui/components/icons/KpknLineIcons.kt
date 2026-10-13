@@ -63,16 +63,17 @@ object KpknLineIcons {
     }
 
     /**
-     * Cuerpo: báscula alta con esfera de radio 4 y aguja corta, separada del arco. Antes era casi cuadrada y se leía
-     * como manómetro.
+     * Cuerpo: cinta métrica, con el carrete, su cinta y las marcas. Antes era una báscula, que se leía como un medidor.
      */
     val Body: ImageVector by lazy {
         icono(
             "KpknLine.Body",
             listOf(
-                "M7.75 3.25h8.5a2.75 2.75 0 0 1 2.75 2.75v12a2.75 2.75 0 0 1-2.75 2.75h-8.5a2.75 2.75 0 0 1-2.75-2.75v-12a2.75 2.75 0 0 1 2.75-2.75z",
-                "M8 11.25a4 4 0 0 1 8 0",
-                "M12 11.25l1.1-1.1",
+                "M9.5 18a6 6 0 1 0 0-12 6 6 0 0 0 0 12z",
+                "M9.5 13.75a1.75 1.75 0 1 0 0-3.5 1.75 1.75 0 0 0 0 3.5z",
+                "M9.5 18h11v-2.5",
+                "M13.5 18v-1.75",
+                "M16.75 18v-1.75",
             ),
         )
     }
