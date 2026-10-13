@@ -168,6 +168,8 @@ internal data class RingsIntroScene(
     val nextReady: Boolean,
     val reduced: Boolean,
     val dragging: Boolean,
+    /** Repaso desde Home: sin el texto del alta, y el botón final dice «Entendido» en vez de «Empezar». */
+    val replay: Boolean = false,
 ) {
     /** Se acabó el recorrido: todas las invitaciones hechas o saltado. Aparece «Empezar». */
     val closing: Boolean get() = skipped || invite >= INVITE_COUNT
@@ -188,9 +190,11 @@ internal data class RingsIntroActions(
 /**
  * La intro de RINGS a pantalla completa, sobre la página del alta. «Saltar» lleva al final del tercer acto con «Empezar»
  * activo; «Empezar» confirma el paso; atrás del sistema ([onBack]) vuelve al hito de Nutrición.
+ *
+ * Con [replay] es el repaso desde Home: empieza en el acto de los anillos, no escribe nada y el botón final dice «Entendido».
  */
 @Composable
-internal fun RingsIntroOverlay(onContinue: () -> Unit, onBack: () -> Unit) {
+internal fun RingsIntroOverlay(onContinue: () -> Unit, onBack: () -> Unit, replay: Boolean = false) {
     val reduced = wizardReducedMotion()
     val scope = rememberCoroutineScope()
     val shownAnim = remember { Animatable(0f) }
@@ -208,7 +212,7 @@ internal fun RingsIntroOverlay(onContinue: () -> Unit, onBack: () -> Unit) {
             }
         }
     }
-    var act by remember { mutableIntStateOf(ACT_THRESHOLD) }
+    var act by remember { mutableIntStateOf(if (replay) ACT_RINGS else ACT_THRESHOLD) }
     var invite by remember { mutableIntStateOf(0) }
     var skipped by remember { mutableStateOf(false) }
     var demo by remember { mutableStateOf(RingsIntroState()) }
@@ -243,6 +247,7 @@ internal fun RingsIntroOverlay(onContinue: () -> Unit, onBack: () -> Unit) {
         nextReady = nextReady,
         reduced = reduced,
         dragging = dragging,
+        replay = replay,
     )
     val actions = RingsIntroActions(
         onSkip = {
@@ -610,14 +615,20 @@ private fun TryAct(scene: RingsIntroScene, actions: RingsIntroActions) {
                 modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
-                Text(
-                    text = "Con unas preguntas rápidas calculamos cómo llegas hoy.",
-                    style = WizardTypography.stepSubtitle,
-                    color = WizardColors.textMuted,
-                    textAlign = TextAlign.Center,
+                if (!scene.replay) {
+                    Text(
+                        text = "Con unas preguntas rápidas calculamos cómo llegas hoy.",
+                        style = WizardTypography.stepSubtitle,
+                        color = WizardColors.textMuted,
+                        textAlign = TextAlign.Center,
+                    )
+                    Spacer(Modifier.height(16.dp))
+                }
+                RingsCta(
+                    label = if (scene.replay) "Entendido" else "Empezar",
+                    tag = "rings-intro-start",
+                    onClick = actions.onStart,
                 )
-                Spacer(Modifier.height(16.dp))
-                RingsCta(label = "Empezar", tag = "rings-intro-start", onClick = actions.onStart)
             }
         }
     }
