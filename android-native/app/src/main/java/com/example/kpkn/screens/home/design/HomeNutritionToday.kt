@@ -117,6 +117,8 @@ fun HomeNutritionToday(
                 appeared = appeared,
                 reducedMotion = reduced,
                 modifier = Modifier.size(140.dp),
+                // Sin cifra central: la kcal grande va a la derecha; así no se repite ni pisa los arcos.
+                showCenter = false,
             )
             Spacer(Modifier.width(16.dp))
             Column(Modifier.weight(1f)) {
