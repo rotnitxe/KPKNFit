@@ -1,79 +1,57 @@
 package com.example.kpkn.screens.home.design
 
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.draw.clipToBounds
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.TextMeasurer
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.ExerciseSet
 import com.example.kpkn.data.models.IntensityMode
-import com.example.kpkn.data.models.SessionBackground
 import com.example.kpkn.data.models.effectiveRepRange
 import com.example.kpkn.domain.training.HomeNextSession
 import com.example.kpkn.domain.training.HomeWeekDay
 import com.example.kpkn.screens.onboarding.design.WizardColors
-import com.example.kpkn.screens.onboarding.design.WizardShapes
-import com.example.kpkn.screens.onboarding.design.WizardSpacing
-import com.example.kpkn.screens.onboarding.design.WizardTypography
 import com.example.kpkn.screens.onboarding.design.entreno.SymbolPalette
-import com.example.kpkn.screens.onboarding.design.entreno.plan.cover.CoverIdentity
-import com.example.kpkn.screens.onboarding.design.entreno.plan.cover.CoverPaletteKind
-import com.example.kpkn.screens.onboarding.design.entreno.plan.cover.CoverStudioArt
-import com.example.kpkn.screens.onboarding.design.entreno.plan.cover.CoverStudioStyle
-import com.example.kpkn.screens.onboarding.design.wizardReducedMotion
-import com.example.kpkn.screens.sessioneditor.components.SessionBackgroundLayer
+import com.example.kpkn.ui.components.icons.KpknLineIcons
+import com.example.kpkn.ui.design.KpknMetric
+import com.example.kpkn.ui.design.KpknPrimaryPill
+import com.example.kpkn.ui.design.KpknSecondaryPill
+import com.example.kpkn.ui.design.KpknShape
+import com.example.kpkn.ui.design.KpknSurface
+import com.example.kpkn.ui.design.KpknType
 import com.example.kpkn.ui.tour.TourAnchors
 import com.example.kpkn.ui.tour.tourAnchor
 import java.time.LocalDate
 import java.util.Locale
-import kotlin.math.ceil
-import kotlin.math.roundToInt
 
 /*
- * La sesión del día como héroe a sangre (ola Home v1, I2). Sin estado: recibe el estado ya resuelto y las acciones. Al final, las
- * funciones puras (la dosis, el kicker y el «Siguiente»): no usan Android, así que se prueban sin Robolectric.
+ * La sesión del día dentro del módulo «Esta semana» (Home v1.1, I10a): compacta y sin portada. Sin estado: recibe el estado ya
+ * resuelto y las acciones. Al final, las funciones puras (la dosis, el kicker y el «Siguiente»): no usan Android, así que se prueban
+ * sin Robolectric.
  */
 
-/** Qué le toca a la sesión del día elegido: decide el kicker, el título, los botones y el fondo. */
+/** Qué le toca a la sesión del día elegido: decide el kicker, el título, los botones y si salen músculos. */
 internal enum class HomeHeroMode { TODAY, ONGOING, DONE, OTHER_DAY, REST, NO_PROGRAM, REGISTER }
 
 /** Un ejercicio del héroe: nombre y dosis ya formateada («4 × 5–7 · 100 kg»). */
 internal data class HomeHeroLine(val name: String, val dose: String)
 
-/** El fondo del héroe. */
-internal sealed interface HomeHeroArt {
-    /** El fondo propio de la sesión, con su desenfoque (`SessionBackgroundLayer`). */
-    data class Own(val background: SessionBackground) : HomeHeroArt
-
-    /** El arte del motor de portadas (K3a), a la opacidad [opacity]. */
-    data class Cover(val identity: CoverIdentity, val opacity: Float = 1f) : HomeHeroArt
-
-    /** Sin arte: queda el negro de la marca. */
-    data object None : HomeHeroArt
-}
+/** La cuenta atrás de la competición: la cifra ([value], con su [unit] si la tiene) y su etiqueta («para tu competición»). */
+internal data class HomeHeroCountdown(val value: String, val unit: String?, val label: String)
 
 /** Todo lo que pinta el héroe. [key] identifica el contenido: al cambiar de día hay un fundido entre uno y otro. */
 internal data class HomeHeroState(
@@ -86,160 +64,165 @@ internal data class HomeHeroState(
     val meta: String? = null,
     val body: String? = null,
     val advisoryBadge: String? = null,
-    val countdown: String? = null,
-    val art: HomeHeroArt = HomeHeroArt.None,
+    val countdown: HomeHeroCountdown? = null,
 )
 
-/** Las acciones del héroe. Quien llama las cablea con la sesión de su página. */
+/**
+ * Las acciones del héroe. Quien llama las cablea con la sesión de su página. [onOpenProgram] es null cuando no hay programa que abrir:
+ * entonces no sale el botón «Ver en el programa» ni «Ver programa».
+ */
 internal data class HomeHeroActions(
     val onStart: () -> Unit = {},
     val onResume: () -> Unit = {},
     val onEdit: () -> Unit = {},
-    val onOpenProgram: () -> Unit = {},
+    val onOpenProgram: (() -> Unit)? = null,
+    val onChooseProgram: () -> Unit = {},
     val onCreateProgram: () -> Unit = {},
     val onRegister: () -> Unit = {},
 )
 
-/** Tamaños del título, de mayor a menor. 30 sp es el mínimo: si una palabra no cabe ni así, el título va en una línea con elipsis. */
-private val HeroTitleSizesSp = listOf(44, 42, 40, 38, 36, 34, 32, 30)
-
 /** Días de la semana en español, de lunes a domingo, en minúscula (para «Siguiente: jueves»). */
 private val weekdaysEs = listOf("lunes", "martes", "miércoles", "jueves", "viernes", "sábado", "domingo")
 
-/** El arte vive en la mitad de arriba: ocupa el 55 % superior del héroe, con su foco ahí. */
-private const val HERO_ART_SHARE = 0.55f
-
-/** El texto va en la mitad de abajo, sobre el velo: nunca ocupa más del 45 % de la altura del héroe. */
-private const val HERO_TEXT_SHARE = 0.45f
-
 /**
- * La sesión del día a sangre, en dos zonas: arriba el arte (el 55 % superior); abajo el texto, sobre un velo fuerte que lo deja sobre
- * negro. Si el texto no cabe en su zona, el héroe crece (nunca baja de 440 dp). Etiqueta `home-hero`, con el ancla del recorrido
- * [TourAnchors.HOME_SESION]. [parallax] (−1 a 1) desplaza el arte: las páginas de sesiones del mismo día lo usan al deslizar.
+ * La sesión del día, compacta: el kicker (con la insignia de aviso a la derecha), el título en dos líneas como mucho, hasta tres
+ * ejercicios, la meta, la cuenta atrás, la fila de músculos (solo si [muscles] tiene algo) y los botones del modo. No pinta fondo:
+ * lo pone el módulo. Etiqueta `home-hero`, con el ancla del recorrido [TourAnchors.HOME_SESION].
  */
 @Composable
 internal fun HomeSessionHero(
     state: HomeHeroState,
     actions: HomeHeroActions,
     modifier: Modifier = Modifier,
-    parallax: () -> Float = { 0f },
+    muscles: List<HomeMuscleGauge> = emptyList(),
+    onOpenMuscles: () -> Unit = {},
 ) {
-    val reduced = wizardReducedMotion()
-    val minHeight = with(LocalDensity.current) { 440.dp.roundToPx() }
-    Layout(
-        content = {
-            // Tres hijos, en este orden: el arte, el velo y el texto. La medida de abajo los coloca.
-            HeroArt(art = state.art, reduced = reduced, parallax = parallax)
-            Box(Modifier.fillMaxSize().background(heroVeil()))
-            HeroText(state = state, actions = actions)
-        },
+    Column(
         modifier = modifier
             .fillMaxWidth()
-            .clipToBounds()
-            .background(WizardColors.background)
             .testTag("home-hero")
             .tourAnchor(TourAnchors.HOME_SESION),
-    ) { measurables, constraints ->
-        val width = constraints.maxWidth
-        val text = measurables[2].measure(Constraints(maxWidth = width))
-        // El texto ocupa como mucho el 45 % de abajo: el héroe crece si hace falta, y el arte queda en el 55 % de arriba.
-        val height = maxOf(minHeight, ceil(text.height / HERO_TEXT_SHARE).toInt())
-        val art = measurables[0].measure(Constraints.fixed(width, (height * HERO_ART_SHARE).roundToInt()))
-        val veil = measurables[1].measure(Constraints.fixed(width, height))
-        layout(width, height) {
-            art.place(0, 0)
-            veil.place(0, 0)
-            text.place(0, height - text.height)
-        }
-    }
-}
-
-/** El arte del fondo, en la zona de arriba (la medida le da su altura). Sin arte queda una caja vacía sobre el negro. */
-@Composable
-private fun HeroArt(art: HomeHeroArt, reduced: Boolean, parallax: () -> Float) {
-    when (art) {
-        is HomeHeroArt.Own -> Box(Modifier.fillMaxSize()) {
-            SessionBackgroundLayer(background = art.background, blurDp = (art.background.style?.blur ?: 0f).dp)
-        }
-        is HomeHeroArt.Cover -> CoverStudioArt(
-            identity = art.identity,
-            modifier = Modifier.fillMaxSize().alpha(art.opacity),
-            animate = true,
-            reduced = reduced,
-            parallax = parallax,
-        )
-        HomeHeroArt.None -> Box(Modifier.fillMaxSize())
-    }
-}
-
-/** El texto de la zona de abajo: avisos, kicker, título, ejercicios, meta y botones. Va sobre el velo, nunca sobre el arte. */
-@Composable
-private fun HeroText(state: HomeHeroState, actions: HomeHeroActions) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(start = WizardSpacing.gutter, end = WizardSpacing.gutter, bottom = 20.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        // Uno debajo de otro: dos avisos largos no caben en una fila de 312 dp (la cuenta atrás se quedaba en un punto).
-        if (state.advisoryBadge != null || state.countdown != null) {
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                state.advisoryBadge?.let { HeroLabel(text = it, color = WizardColors.danger) }
-                state.countdown?.let { HeroLabel(text = it, color = SymbolPalette.energia) }
+        HeroKicker(kicker = state.kicker, done = state.mode == HomeHeroMode.DONE, badge = state.advisoryBadge)
+        Spacer(Modifier.height(8.dp))
+        HeroTitle(text = state.title)
+        if (state.lines.isNotEmpty()) {
+            Spacer(Modifier.height(12.dp))
+            HeroLines(lines = state.lines, moreCount = state.moreCount)
+        }
+        state.body?.let {
+            Spacer(Modifier.height(12.dp))
+            Text(
+                text = it,
+                style = KpknType.body,
+                color = WizardColors.textMuted,
+                maxLines = 3,
+                overflow = TextOverflow.Ellipsis,
+            )
+        }
+        state.meta?.let {
+            Spacer(Modifier.height(12.dp))
+            HeroMeta(text = it)
+        }
+        state.countdown?.let {
+            Spacer(Modifier.height(12.dp))
+            HeroCountdown(countdown = it)
+        }
+        if (muscles.isNotEmpty()) HomeMuscleChips(muscles = muscles, onOpen = onOpenMuscles)
+        val buttons = heroButtons(mode = state.mode, actions = actions)
+        if (buttons.isNotEmpty()) {
+            Spacer(Modifier.height(20.dp))
+            HeroButtonRow(buttons = buttons)
+        }
+    }
+}
+
+/**
+ * El kicker («HOY · DÍA 2 DE 4») en el eyebrow; en una sesión hecha, va en `done` con el check. [badge], si lo hay, va a su derecha
+ * como insignia. Si no cabe a su lado, baja a una línea propia, a la izquierda, y así el aviso no se corta.
+ */
+@Composable
+private fun HeroKicker(kicker: String, done: Boolean, badge: String?) {
+    if (badge == null) {
+        HeroKickerText(kicker = kicker, done = done)
+        return
+    }
+    Layout(
+        content = {
+            HeroKickerText(kicker = kicker, done = done)
+            HeroBadge(text = badge)
+        },
+        modifier = Modifier.fillMaxWidth(),
+    ) { measurables, constraints ->
+        val gap = 8.dp.roundToPx()
+        val maxWidth = constraints.maxWidth
+        val kickerPlaceable = measurables[0].measure(Constraints(maxWidth = maxWidth))
+        val badgeWidth = measurables[1].maxIntrinsicWidth(24.dp.roundToPx())
+        if (kickerPlaceable.width + gap + badgeWidth <= maxWidth) {
+            val badgePlaceable = measurables[1].measure(Constraints(maxWidth = maxWidth - kickerPlaceable.width - gap))
+            val height = maxOf(kickerPlaceable.height, badgePlaceable.height)
+            layout(maxWidth, height) {
+                kickerPlaceable.placeRelative(0, (height - kickerPlaceable.height) / 2)
+                badgePlaceable.placeRelative(kickerPlaceable.width + gap, (height - badgePlaceable.height) / 2)
+            }
+        } else {
+            val badgePlaceable = measurables[1].measure(Constraints(maxWidth = maxWidth))
+            layout(maxWidth, kickerPlaceable.height + gap + badgePlaceable.height) {
+                kickerPlaceable.placeRelative(0, 0)
+                badgePlaceable.placeRelative(0, kickerPlaceable.height + gap)
             }
         }
+    }
+}
+
+/** El texto del kicker, con el check delante si la sesión está hecha. */
+@Composable
+private fun HeroKickerText(kicker: String, done: Boolean) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        if (done) {
+            Icon(
+                imageVector = KpknLineIcons.Check,
+                contentDescription = null,
+                modifier = Modifier.size(16.dp),
+                tint = WizardColors.done,
+            )
+            Spacer(Modifier.width(6.dp))
+        }
         Text(
-            text = state.kicker,
-            style = HomeTypography.eyebrow,
-            color = WizardColors.text.copy(alpha = 0.78f),
+            text = kicker,
+            style = KpknType.eyebrow,
+            color = if (done) WizardColors.done else WizardColors.textMuted,
             maxLines = 1,
             softWrap = false,
             overflow = TextOverflow.Ellipsis,
         )
-        HeroTitle(text = state.title)
-        if (state.lines.isNotEmpty()) HeroLines(lines = state.lines, moreCount = state.moreCount)
-        state.body?.let { Text(text = it, style = WizardTypography.bodySmall, color = WizardColors.textMuted) }
-        state.meta?.let { HeroMeta(text = it) }
-        HeroButtons(mode = state.mode, actions = actions)
     }
 }
 
-/**
- * El velo de la zona de abajo: transparente hasta el 38 %; negro al 85 % en el 55 %, donde empieza el texto; negro pleno desde el
- * 70 %. Así ninguna letra del kicker ni del título queda sobre un color vivo.
- */
-private fun heroVeil(): Brush = Brush.verticalGradient(
-    0f to Color.Transparent,
-    0.38f to Color.Transparent,
-    0.55f to WizardColors.background.copy(alpha = 0.85f),
-    0.70f to WizardColors.background,
-    1f to WizardColors.background,
-)
-
-/** Una etiqueta de aviso: píldora de 13 sp con el color al 16 % de fondo y el texto en el mismo color. */
+/** La insignia de aviso: píldora `inset` de 24 dp, con el texto en `caption` y en la energía. Se corta con elipsis si no cabe. */
 @Composable
-private fun HeroLabel(text: String, color: Color) {
+private fun HeroBadge(text: String, modifier: Modifier = Modifier) {
     Box(
-        modifier = Modifier
-            .background(color.copy(alpha = 0.16f), WizardShapes.pill)
-            .padding(horizontal = 10.dp, vertical = 5.dp),
+        modifier = modifier
+            .heightIn(min = 24.dp)
+            .clip(KpknShape.pill)
+            .background(KpknSurface.inset)
+            .padding(horizontal = 10.dp),
+        contentAlignment = Alignment.Center,
     ) {
         Text(
             text = text,
-            style = WizardTypography.note.copy(fontWeight = FontWeight.SemiBold),
-            color = color,
+            style = KpknType.caption,
+            color = SymbolPalette.energia,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
         )
     }
 }
 
-/** Lo que resuelve el título en una columna: el tamaño elegido y si va en una sola línea (solo cuando ninguna forma de partirlo sirve). */
-private class HeroTitleFit(val sizeSp: Int, val oneLine: Boolean)
-
 /**
- * El título del héroe: usa todo el ancho y va en el mayor tamaño (de 44 a 30 sp) que quepa en dos líneas sin partir ninguna palabra.
- * Si una palabra no cabe ni a 30 sp, va en una sola línea con elipsis: nunca se parte dentro de una palabra.
+ * El título de la sesión: en dos líneas como mucho. Si no cabe entero, se quedan las palabras enteras que quepan y «…»: nunca se
+ * corta una palabra por la mitad.
  */
 @Composable
 private fun HeroTitle(text: String) {
@@ -247,59 +230,53 @@ private fun HeroTitle(text: String) {
     val density = LocalDensity.current
     BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
         val widthPx = constraints.maxWidth
-        val fit = remember(text, widthPx, density.density, density.fontScale) {
-            val sizeSp = HeroTitleSizesSp.firstOrNull { heroTitleFits(measurer, text, widthPx, it) }
-            HeroTitleFit(sizeSp = sizeSp ?: HeroTitleSizesSp.last(), oneLine = sizeSp == null)
+        val shown = remember(text, widthPx, density.density, density.fontScale) {
+            fitWordsToLines(measurer, text, KpknType.title, widthPx, maxLines = 2)
         }
         Text(
-            text = text,
-            style = HomeTypography.heroTitle.copy(fontSize = fit.sizeSp.sp, lineHeight = (fit.sizeSp * 1.05f).sp),
+            text = shown,
+            style = KpknType.title,
             color = WizardColors.text,
-            maxLines = if (fit.oneLine) 1 else 2,
-            softWrap = !fit.oneLine,
+            maxLines = 2,
             overflow = TextOverflow.Ellipsis,
         )
     }
 }
 
-/** Cabe el título a [sp]: en dos líneas como mucho, y cada palabra entera dentro de [widthPx] (así nunca se parte una palabra). */
-private fun heroTitleFits(measurer: TextMeasurer, text: String, widthPx: Int, sp: Int): Boolean {
-    val style = HomeTypography.heroTitle.copy(fontSize = sp.sp, lineHeight = (sp * 1.05f).sp)
-    val inTwoLines = !measurer.measure(
-        text = text,
-        style = style,
-        constraints = Constraints(maxWidth = widthPx),
-        maxLines = 2,
-    ).hasVisualOverflow
-    val longestWord = text.split(' ').filter { it.isNotBlank() }.maxOfOrNull { word ->
-        measurer.measure(text = word, style = style, maxLines = 1, softWrap = false).size.width
-    } ?: 0
-    return inTwoLines && longestWord <= widthPx
-}
-
-/** Hasta tres ejercicios: nombre a la izquierda y dosis a la derecha (sin partir); luego «+N ejercicios más». */
+/**
+ * Hasta tres ejercicios: el nombre a la izquierda, en una línea y sin cortar palabras, y la dosis a la derecha, entera; luego «+N».
+ */
 @Composable
 private fun HeroLines(lines: List<HomeHeroLine>, moreCount: Int) {
-    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+    val measurer = rememberTextMeasurer()
+    val density = LocalDensity.current
+    Column {
         lines.forEach { line ->
             Row(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(min = 26.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
             ) {
-                Text(
-                    text = line.name,
-                    modifier = Modifier.weight(1f),
-                    style = HomeTypography.heroLine,
-                    color = WizardColors.text,
-                    maxLines = 1,
-                    softWrap = false,
-                    overflow = TextOverflow.Ellipsis,
-                )
+                BoxWithConstraints(modifier = Modifier.weight(1f)) {
+                    val widthPx = constraints.maxWidth
+                    val shown = remember(line.name, widthPx, density.fontScale) {
+                        fitWordsToLines(measurer, line.name, KpknType.bodyStrong, widthPx, maxLines = 1)
+                    }
+                    Text(
+                        text = shown,
+                        style = KpknType.bodyStrong,
+                        color = WizardColors.text,
+                        maxLines = 1,
+                        softWrap = false,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
                 if (line.dose.isNotEmpty()) {
                     Text(
                         text = line.dose,
-                        style = HomeTypography.heroDoseText,
+                        style = HomeTypography.dose,
                         color = WizardColors.textMuted,
                         maxLines = 1,
                         softWrap = false,
@@ -310,39 +287,55 @@ private fun HeroLines(lines: List<HomeHeroLine>, moreCount: Int) {
         if (moreCount > 0) {
             Text(
                 text = if (moreCount == 1) "+1 ejercicio más" else "+$moreCount ejercicios más",
-                style = WizardTypography.caption,
+                modifier = Modifier.padding(top = 2.dp),
+                style = KpknType.caption,
                 color = WizardColors.textFaint,
             )
         }
     }
 }
 
-/** La meta con un reloj de 14 dp dibujado en línea fina, como el resto de símbolos de la marca. */
+/**
+ * El texto cabe en [maxLines] líneas de [style] y [widthPx] sin cortar ninguna palabra: si no cabe entero, se quedan las palabras
+ * enteras que quepan y «…». El elipsis de Compose corta por letras y deja «movilida…»; esta función no. Si ni una palabra cabe, se
+ * devuelve la primera con «…».
+ */
+private fun fitWordsToLines(
+    measurer: TextMeasurer,
+    text: String,
+    style: TextStyle,
+    widthPx: Int,
+    maxLines: Int,
+): String {
+    fun fits(candidate: String): Boolean = !measurer.measure(
+        text = candidate,
+        style = style,
+        constraints = Constraints(maxWidth = widthPx),
+        maxLines = maxLines,
+    ).hasVisualOverflow
+    if (fits(text)) return text
+    val words = text.split(' ').filter { it.isNotBlank() }
+    for (keep in words.size - 1 downTo 1) {
+        val candidate = words.take(keep).joinToString(" ") + "…"
+        if (fits(candidate)) return candidate
+    }
+    return words.firstOrNull()?.plus("…") ?: text
+}
+
+/** La meta de la sesión, con el reloj de línea de 16 dp, como en los demás símbolos de Home. */
 @Composable
 private fun HeroMeta(text: String) {
-    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-        Canvas(Modifier.size(14.dp)) {
-            val stroke = 1.2.dp.toPx()
-            val radius = size.minDimension / 2f - stroke
-            drawCircle(color = WizardColors.textMuted, radius = radius, center = center, style = Stroke(width = stroke))
-            drawLine(
-                color = WizardColors.textMuted,
-                start = center,
-                end = Offset(center.x, center.y - radius * 0.55f),
-                strokeWidth = stroke,
-                cap = StrokeCap.Round,
-            )
-            drawLine(
-                color = WizardColors.textMuted,
-                start = center,
-                end = Offset(center.x + radius * 0.45f, center.y),
-                strokeWidth = stroke,
-                cap = StrokeCap.Round,
-            )
-        }
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Icon(
+            imageVector = KpknLineIcons.Clock,
+            contentDescription = null,
+            modifier = Modifier.size(16.dp),
+            tint = WizardColors.textMuted,
+        )
+        Spacer(Modifier.width(6.dp))
         Text(
             text = text,
-            style = WizardTypography.caption,
+            style = KpknType.caption,
             color = WizardColors.textMuted,
             maxLines = 1,
             softWrap = false,
@@ -351,94 +344,114 @@ private fun HeroMeta(text: String) {
     }
 }
 
-/** Un botón del héroe: la píldora principal (de tinta), una secundaria (con borde) o una acción de texto. */
-private enum class HeroButtonKind { PRIMARY, SECONDARY, TEXT }
+/** La cuenta atrás de la competición: la cifra en `metricM` con su unidad, y la etiqueta en `caption` a su lado. */
+@Composable
+private fun HeroCountdown(countdown: HomeHeroCountdown) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        KpknMetric(
+            value = countdown.value,
+            unit = countdown.unit,
+            style = KpknType.metricM,
+            color = SymbolPalette.energia,
+        )
+        Spacer(Modifier.width(8.dp))
+        Text(
+            text = countdown.label,
+            modifier = Modifier.weight(1f, fill = false),
+            style = KpknType.caption,
+            color = WizardColors.textMuted,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+        )
+    }
+}
+
+/** Un botón del héroe: la píldora principal (de tinta) o la secundaria (con borde). */
+private enum class HeroButtonKind { PRIMARY, SECONDARY }
 
 private class HeroButton(val text: String, val tag: String, val kind: HeroButtonKind, val onClick: () -> Unit)
 
 /**
- * Los botones de cada modo. «Editar» va como texto, como en el diseño de Home: así la píldora principal (o la de «Repetir
- * sesión») tiene el ancho que su texto necesita, también con la letra al 130 %. El descanso no tiene ninguno.
+ * Los botones de cada modo. Hoy: «Empezar sesión» y «Editar»; en curso: «Continuar sesión»; hecha: «Repetir sesión» y «Editar»; otro
+ * día y descanso: una secundaria que abre el programa; sin programa: «Elige tu programa» y «Crear o importar»; competición:
+ * «Registrar resultados». Las etiquetas de prueba se conservan.
  */
 private fun heroButtons(mode: HomeHeroMode, actions: HomeHeroActions): List<HeroButton> = when (mode) {
     HomeHeroMode.TODAY -> listOf(
         HeroButton("Empezar sesión", "home-hero-start", HeroButtonKind.PRIMARY, actions.onStart),
-        HeroButton("Editar", "home-hero-edit", HeroButtonKind.TEXT, actions.onEdit),
+        HeroButton("Editar", "home-hero-edit", HeroButtonKind.SECONDARY, actions.onEdit),
     )
     HomeHeroMode.ONGOING -> listOf(
-        HeroButton("Reanudar", "home-hero-start", HeroButtonKind.PRIMARY, actions.onResume),
-        HeroButton("Editar", "home-hero-edit", HeroButtonKind.TEXT, actions.onEdit),
+        HeroButton("Continuar sesión", "home-hero-start", HeroButtonKind.PRIMARY, actions.onResume),
     )
     HomeHeroMode.DONE -> listOf(
         HeroButton("Repetir sesión", "home-hero-secondary", HeroButtonKind.SECONDARY, actions.onStart),
-        HeroButton("Editar", "home-hero-edit", HeroButtonKind.TEXT, actions.onEdit),
+        HeroButton("Editar", "home-hero-edit", HeroButtonKind.SECONDARY, actions.onEdit),
     )
-    HomeHeroMode.OTHER_DAY -> listOf(
-        HeroButton("Ver en el programa", "home-hero-secondary", HeroButtonKind.SECONDARY, actions.onOpenProgram),
+    HomeHeroMode.OTHER_DAY -> listOfNotNull(
+        actions.onOpenProgram?.let { HeroButton("Ver en el programa", "home-hero-secondary", HeroButtonKind.SECONDARY, it) },
     )
-    HomeHeroMode.REST -> emptyList()
+    HomeHeroMode.REST -> listOfNotNull(
+        actions.onOpenProgram?.let { HeroButton("Ver programa", "home-hero-secondary", HeroButtonKind.SECONDARY, it) },
+    )
     HomeHeroMode.NO_PROGRAM -> listOf(
-        HeroButton("Crear programa", "home-hero-start", HeroButtonKind.PRIMARY, actions.onCreateProgram),
+        HeroButton("Elige tu programa", "home-hero-start", HeroButtonKind.PRIMARY, actions.onChooseProgram),
+        HeroButton("Crear o importar", "home-hero-secondary", HeroButtonKind.SECONDARY, actions.onCreateProgram),
     )
     HomeHeroMode.REGISTER -> listOf(
         HeroButton("Registrar resultados", "home-hero-start", HeroButtonKind.PRIMARY, actions.onRegister),
     )
 }
 
-/** Una fila de botones con 10 dp entre ellos. Las píldoras ocupan el ancho que sobra; «Editar» mide lo que dice. */
+/** Una píldora del héroe (KPKN_UI_V2 §6), con su etiqueta de prueba. */
 @Composable
-private fun HeroButtons(mode: HomeHeroMode, actions: HomeHeroActions) {
-    val buttons = heroButtons(mode, actions)
-    if (buttons.isEmpty()) return
-    Row(
+private fun HeroButtonView(button: HeroButton) {
+    when (button.kind) {
+        HeroButtonKind.PRIMARY -> KpknPrimaryPill(text = button.text, onClick = button.onClick, tag = button.tag)
+        HeroButtonKind.SECONDARY -> KpknSecondaryPill(text = button.text, onClick = button.onClick, tag = button.tag)
+    }
+}
+
+/**
+ * La fila de botones, con 10 dp entre ellos. Si caben a su ancho natural, van en una fila y la primera ocupa lo que sobra. Si no
+ * (la letra al 130 %), se apilan a ancho completo, para que ninguna etiqueta se corte.
+ */
+@Composable
+private fun HeroButtonRow(buttons: List<HeroButton>) {
+    Layout(
+        content = { buttons.forEach { HeroButtonView(button = it) } },
         modifier = Modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(10.dp),
-    ) {
-        buttons.forEach { button ->
-            when (button.kind) {
-                HeroButtonKind.PRIMARY -> HomePrimaryPill(
-                    text = button.text,
-                    onClick = button.onClick,
-                    modifier = Modifier.weight(1f),
-                    tag = button.tag,
-                )
-                HeroButtonKind.SECONDARY -> HomeSecondaryPill(
-                    text = button.text,
-                    onClick = button.onClick,
-                    modifier = Modifier.weight(1f),
-                    tag = button.tag,
-                )
-                HeroButtonKind.TEXT -> HeroTextAction(text = button.text, onClick = button.onClick, tag = button.tag)
+    ) { measurables, constraints ->
+        val gap = 10.dp.roundToPx()
+        val pillHeight = 56.dp.roundToPx()
+        val maxWidth = constraints.maxWidth
+        val gaps = gap * (measurables.size - 1)
+        val naturalWidths = measurables.map { it.maxIntrinsicWidth(pillHeight) }
+        val inRow = measurables.size == 1 || naturalWidths.sum() + gaps <= maxWidth
+        if (inRow) {
+            val firstWidth = maxWidth - naturalWidths.drop(1).sum() - gaps
+            val placeables = measurables.mapIndexed { index, measurable ->
+                measurable.measure(Constraints.fixed(if (index == 0) firstWidth else naturalWidths[index], pillHeight))
+            }
+            layout(maxWidth, pillHeight) {
+                var x = 0
+                placeables.forEach { placeable ->
+                    placeable.placeRelative(x, 0)
+                    x += placeable.width + gap
+                }
+            }
+        } else {
+            val placeables = measurables.map { it.measure(Constraints.fixed(maxWidth, pillHeight)) }
+            layout(maxWidth, placeables.sumOf { it.height } + gaps) {
+                var y = 0
+                placeables.forEach { placeable ->
+                    placeable.placeRelative(0, y)
+                    y += placeable.height + gap
+                }
             }
         }
     }
 }
-
-/** Una acción de texto («Editar»): 56 dp de alto, toque de 48 dp como mínimo y sin píldora. */
-@Composable
-private fun HeroTextAction(text: String, onClick: () -> Unit, tag: String) {
-    Box(
-        modifier = Modifier
-            .defaultMinSize(minWidth = 48.dp, minHeight = 56.dp)
-            .testTag(tag)
-            .clickable(role = Role.Button, onClick = onClick)
-            .padding(horizontal = 8.dp),
-        contentAlignment = Alignment.Center,
-    ) {
-        Text(text = text, style = WizardTypography.cta, color = WizardColors.text, maxLines = 1)
-    }
-}
-
-/** La identidad fija y tenue de las pantallas sin programa (TOPO sobre noche). Va al 35 %. */
-internal fun homeHeroFallbackIdentity(): CoverIdentity = CoverIdentity(
-    style = CoverStudioStyle.TOPO,
-    palette = CoverPaletteKind.NOCHE,
-    primary = SymbolPalette.columna,
-    secondary = SymbolPalette.musculo,
-    motif = 14,
-    seed = 4242,
-)
 
 // ---------------------------------------------------------------- funciones puras
 
