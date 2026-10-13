@@ -17,11 +17,21 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import com.example.kpkn.screens.body.design.BODY_REMINDER_PRESET_DAYS
+import com.example.kpkn.screens.body.design.BodyCompositionModule
 import com.example.kpkn.screens.body.design.BodyFatModule
+import com.example.kpkn.screens.body.design.BodyGoalDraft
+import com.example.kpkn.screens.body.design.BodyGoalModule
+import com.example.kpkn.screens.body.design.BodyGoalRemoveDialog
+import com.example.kpkn.screens.body.design.BodyGoalSheet
+import com.example.kpkn.screens.body.design.BodyInfoSheet
+import com.example.kpkn.screens.body.design.BodyInfoTopic
 import com.example.kpkn.screens.body.design.BodyIsland
 import com.example.kpkn.screens.body.design.BodyPageHeader
+import com.example.kpkn.screens.body.design.BodyReminderModule
 import com.example.kpkn.screens.body.design.BodyWeightModule
 import com.example.kpkn.screens.body.design.bodyIslandChangeText
+import com.example.kpkn.screens.body.design.bodyInfoFor
 import com.example.kpkn.screens.body.design.buildBodyChartPoints
 import com.example.kpkn.ui.components.LocalKpknOverlayHost
 import com.example.kpkn.ui.design.KpknSkeletonModule
@@ -53,8 +63,10 @@ import com.example.kpkn.domain.body.bmiCategory
 import com.example.kpkn.domain.body.roundBmi1
 import com.example.kpkn.domain.body.validateBodyValue
 import com.example.kpkn.domain.nutrition.parseLocalizedNumber
+import com.example.kpkn.screens.onboarding.design.WizardMassUnit
 import com.example.kpkn.screens.onboarding.design.formatDecimalEs
 import com.example.kpkn.screens.onboarding.design.formatSignedDecimalEs
+import com.example.kpkn.ui.components.KpknNativeTimePickerDialog
 import com.example.kpkn.ui.components.KpknSheet
 import com.example.kpkn.ui.components.KpknSnackbar
 import com.example.kpkn.ui.components.showKpknSnackbar
@@ -74,7 +86,6 @@ private val TEAL = Color(0xFFCED4DC)
 private val WEIGHT_COLOR = Color(0xFFF3F4F6)
 private val BODYFAT_COLOR = Color(0xFFC9CED6)
 private val MUSCLE_COLOR = Color(0xFF939AA4)
-private val FFMI_COLOR = Color(0xFF6F7782)
 private val BODY_NEUTRAL_ACCENT = Color(0xFFE8EBEF)
 private val BODY_NEUTRAL_MUTED = Color(0xFFB7BEC8)
 private val BODY_NEUTRAL_DARK = Color(0xFF5D6570)
@@ -100,34 +111,6 @@ private data class BodyMetricPoint(
     val value: Double,
 )
 
-private data class FfmiCategory(
-    val label: String,
-    val range: ClosedFloatingPointRange<Double>,
-    val color: Color,
-)
-
-// Visual scale range: 14 - 30. Categories sized proportionally for the gauge.
-private val FFMI_SCALE_MIN = 14.0
-private val FFMI_SCALE_MAX = 30.0
-
-private val FFMI_CATEGORIES = listOf(
-    FfmiCategory("Bajo", 0.0..17.9, Color(0xFF90CAF9)),
-    FfmiCategory("Promedio", 18.0..19.9, Color(0xFF66BB6A)),
-    FfmiCategory("Avanzado", 20.0..22.4, Color(0xFFFFA726)),
-    FfmiCategory("Élite", 22.5..24.9, FFMI_COLOR),
-    FfmiCategory("Excepcional", 25.0..30.0, Color(0xFFE53935)),
-)
-
-// For gauge rendering: clamp categories to visual range
-private data class GaugeSegment(val label: String, val start: Double, val end: Double, val color: Color)
-private val FFMI_GAUGE_SEGMENTS = listOf(
-    GaugeSegment("Bajo", FFMI_SCALE_MIN, 18.0, Color(0xFF90CAF9)),
-    GaugeSegment("Promedio", 18.0, 20.0, Color(0xFF66BB6A)),
-    GaugeSegment("Avanzado", 20.0, 22.5, Color(0xFFFFA726)),
-    GaugeSegment("Élite", 22.5, 25.0, FFMI_COLOR),
-    GaugeSegment("Excepcional", 25.0, FFMI_SCALE_MAX, Color(0xFFE53935)),
-)
-
 // ═══════════════════════════════════════════════════════════════════════
 // MAIN SCREEN
 // ═══════════════════════════════════════════════════════════════════════
@@ -136,6 +119,8 @@ private val FFMI_GAUGE_SEGMENTS = listOf(
 @Composable
 fun BodyProgressScreen(
     onCreatePlan: () -> Unit = {},
+    onAddHeight: () -> Unit = {},
+    onEditNutritionPlan: (String) -> Unit = {},
 ) {
     val bodyViewModel: BodyProgressViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
     val settings by ProgramRepository.getInstance().settings.collectAsState()
@@ -149,6 +134,12 @@ fun BodyProgressScreen(
 
     var showAddMeasurement by remember { mutableStateOf(false) }
     var editingEntry by remember { mutableStateOf<BodyMeasurementEntry?>(null) }
+    // Hojas y diálogos de los módulos de Cuerpo: objetivo propio, quitarlo, explicación de una cifra y la hora del recordatorio.
+    var goalDraft by remember { mutableStateOf<BodyGoalDraft?>(null) }
+    var goalRemoveConfirm by remember { mutableStateOf(false) }
+    var infoTopic by remember { mutableStateOf<BodyInfoTopic?>(null) }
+    var reminderOther by remember { mutableStateOf(false) }
+    var showReminderTime by remember { mutableStateOf(false) }
     val snackbarHostState = remember { SnackbarHostState() }
     val snackbarScope = rememberCoroutineScope()
     val contextualBottomBarClearance = 110.dp
@@ -170,20 +161,10 @@ fun BodyProgressScreen(
         ?: bodyUiState.latestByMetric[BodyMetric.MUSCLE_MASS_PERCENT]?.valueSi
     val targetWeight = goal?.takeIf { it.metric == GoalMetric.WEIGHT }?.targetValueSi
     val targetBodyFat = goal?.takeIf { it.metric == GoalMetric.BODY_FAT }?.targetValueSi
-    val targetMuscle = goal?.takeIf { it.metric == GoalMetric.MUSCLE_MASS }?.targetValueSi
-    // Ritmo y fecha de la meta, medidos. Sin dato, se dice que aún no hay.
-    val goalRate = when (goal?.metric) {
-        GoalMetric.WEIGHT -> summary.measuredWeeklyRate?.let { "${formatSignedDecimalEs(it, 1)} kg/sem" }
-        GoalMetric.BODY_FAT, GoalMetric.MUSCLE_MASS ->
-            bodyUiState.goalTrack?.measuredWeeklyRate?.let { "${formatSignedDecimalEs(it, 1)} puntos/sem" }
-        null -> null
-    } ?: "Sin ritmo medido aún"
-    val goalEta = when (goal?.metric) {
-        GoalMetric.WEIGHT -> summary.eta
-        GoalMetric.BODY_FAT, GoalMetric.MUSCLE_MASS -> bodyUiState.goalTrack?.eta
-        null -> null
-    }
-    val goalProjection = goalEta?.let { "≈ ${formatMonthEs(it)}" } ?: "Sin fecha estimada aún"
+    // Objetivo propio (el que edita la hoja) y plan activo: con plan, la meta se edita en el editor del plan.
+    val ownGoal = bodyUiState.goals.filter { it.linkedPlanId == null }.maxByOrNull { it.updatedAtEpochMs }
+    val activePlanId = bodyUiState.activePlanId
+    val weightUnit = if (settings.weightUnit == WeightUnit.LBS) WizardMassUnit.LB else WizardMassUnit.KG
 
     val bmi = bodyUiState.bmi
     // FFMI, masa magra y masa grasa solo con la composición de una misma sesión.
@@ -274,69 +255,60 @@ fun BodyProgressScreen(
                         )
                     }
                 }
-            }
 
-            // El objetivo de peso y el de grasa ya se ven en sus módulos. El de masa muscular aún no tiene módulo (CU2).
-            if (goal != null && goal.metric == GoalMetric.MUSCLE_MASS && muscle != null) {
+                // Composición, objetivo y recordatorio (BODY_V1 §2.4 a §2.6).
                 item {
-                    GoalProgressCard(
-                        currentValue = muscle,
-                        targetValue = goal.targetValueSi,
-                        goalType = goal.metric,
-                        rateLabel = goalRate,
-                        projectionLabel = goalProjection,
+                    BodyCompositionModule(
+                        weightKg = weight,
+                        leanKg = lbm,
+                        fatKg = fatMass,
+                        bodyFatPercent = compositionBodyFat,
+                        musclePercent = muscle,
+                        ffmi = ffmi,
+                        bmi = bmi,
+                        hasHeight = height != null,
+                        onAddHeight = onAddHeight,
+                        onInfo = { topic -> infoTopic = topic },
+                        modifier = Modifier
+                            .padding(horizontal = 16.dp, vertical = 6.dp)
+                            .kpknEntrance("body", 2),
                     )
                 }
-            }
-
-            item {
-                MeasurementSectionLabel("Métricas y biometría")
-            }
-
-            if (ffmi != null) {
                 item {
-                    FfmiGaugeCard(ffmi = ffmi, gender = vitals.gender)
-                }
-            }
-
-            if (lbm != null && fatMass != null && composition != null) {
-                item {
-                    CompositionBreakdownCard(
-                        weight = composition.weightKg,
-                        lbm = lbm,
-                        fatMass = fatMass,
+                    BodyGoalModule(
+                        goal = goal,
+                        weightUnit = weightUnit,
+                        activePlan = activePlanId != null,
+                        onEditInPlan = { activePlanId?.let(onEditNutritionPlan) },
+                        onEditOwn = {
+                            goalDraft = if (goal != null) {
+                                BodyGoalDraft(
+                                    metric = goal.metric,
+                                    target = goal.targetValueSi,
+                                    existingId = ownGoal?.id,
+                                    createdAtEpochMs = goal.createdAtEpochMs,
+                                )
+                            } else {
+                                BodyGoalDraft(metric = GoalMetric.WEIGHT)
+                            }
+                        },
+                        modifier = Modifier
+                            .padding(horizontal = 16.dp, vertical = 6.dp)
+                            .kpknEntrance("body", 3),
                     )
                 }
-            }
-
-            item {
-                KpiGrid(
-                    weight = weight,
-                    height = height,
-                    bodyFat = bodyFat,
-                    muscle = muscle,
-                    bmi = bmi,
-                    ffmi = ffmi,
-                    lbm = lbm,
-                    fatMass = fatMass,
-                )
-            }
-
-            if (bmi != null) {
                 item {
-                    BmiCategoryCard(bmi = bmi)
+                    BodyReminderModule(
+                        schedule = schedule,
+                        customInterval = reminderOther || schedule.intervalDays !in BODY_REMINDER_PRESET_DAYS,
+                        onCustomIntervalChange = { reminderOther = it },
+                        onUpdate = bodyViewModel::updateSchedule,
+                        onEditTime = { showReminderTime = true },
+                        modifier = Modifier
+                            .padding(horizontal = 16.dp, vertical = 6.dp)
+                            .kpknEntrance("body", 4),
+                    )
                 }
-            }
-
-            item {
-                TipsCard(bodyFat = bodyFat, ffmi = ffmi, bmi = bmi)
-            }
-
-            item {
-                MeasurementScheduleCard(
-                    schedule = schedule,
-                    onUpdate = bodyViewModel::updateSchedule,
-                )
             }
 
             item {
@@ -435,6 +407,62 @@ fun BodyProgressScreen(
                 .padding(bottom = contextualBottomBarClearance + 64.dp),
         ) { data ->
             KpknSnackbar(data)
+        }
+
+        // Hojas y diálogos de Cuerpo: objetivo propio, quitarlo, explicación de una cifra y la hora del recordatorio.
+        goalDraft?.let { draft ->
+            BodyGoalSheet(
+                draft = draft,
+                weightUnit = weightUnit,
+                canRemove = ownGoal != null,
+                onDraftChange = { next -> goalDraft = next },
+                onSave = { newGoal ->
+                    bodyViewModel.upsertGoal(newGoal)
+                    // Un solo objetivo propio: los demás se retiran para que no vuelvan al quitar este.
+                    bodyUiState.goals
+                        .filter { it.linkedPlanId == null && it.id != newGoal.id }
+                        .forEach { bodyViewModel.deleteGoal(it.id) }
+                    goalDraft = null
+                    snackbarScope.launch {
+                        snackbarHostState.showKpknSnackbar(message = "Objetivo guardado", type = SnackbarType.SUCCESS)
+                    }
+                },
+                onRemove = {
+                    goalDraft = null
+                    goalRemoveConfirm = true
+                },
+                onDismiss = { goalDraft = null },
+            )
+        }
+        if (goalRemoveConfirm) {
+            BodyGoalRemoveDialog(
+                onConfirm = {
+                    bodyUiState.goals.filter { it.linkedPlanId == null }.forEach { bodyViewModel.deleteGoal(it.id) }
+                    goalRemoveConfirm = false
+                    snackbarScope.launch {
+                        snackbarHostState.showKpknSnackbar(message = "Objetivo quitado", type = SnackbarType.SUCCESS)
+                    }
+                },
+                onDismiss = { goalRemoveConfirm = false },
+            )
+        }
+        infoTopic?.let { topic ->
+            BodyInfoSheet(
+                info = bodyInfoFor(topic, ffmi = ffmi, bodyFatPercent = compositionBodyFat),
+                onDismiss = { infoTopic = null },
+            )
+        }
+        if (showReminderTime) {
+            KpknNativeTimePickerDialog(
+                title = "Hora del recordatorio",
+                initialHour = schedule.reminderHour,
+                initialMinute = schedule.reminderMinute,
+                onConfirm = { hour, minute ->
+                    bodyViewModel.updateSchedule(schedule.copy(reminderHour = hour, reminderMinute = minute))
+                    showReminderTime = false
+                },
+                onDismiss = { showReminderTime = false },
+            )
         }
     }
 
@@ -1130,590 +1158,6 @@ private fun BodyMetricTrendChartCard(
 }
 
 // ═══════════════════════════════════════════════════════════════════════
-// GOAL PROGRESS
-// ═══════════════════════════════════════════════════════════════════════
-
-@Composable
-private fun GoalProgressCard(
-    currentValue: Double,
-    targetValue: Double,
-    goalType: GoalMetric,
-    rateLabel: String,
-    projectionLabel: String,
-) {
-    // Direction: for MUSCLE goal, "losing" means moving away from target
-    val isDecreasing = when (goalType) {
-        GoalMetric.MUSCLE_MASS -> targetValue < currentValue // shouldn't happen normally
-        else -> targetValue < currentValue
-    }
-    val totalDelta = kotlin.math.abs(currentValue - targetValue)
-
-    val accentColor = when (goalType) {
-        GoalMetric.WEIGHT -> WEIGHT_COLOR
-        GoalMetric.BODY_FAT -> BODYFAT_COLOR
-        GoalMetric.MUSCLE_MASS -> MUSCLE_COLOR
-    }
-    val titleLabel = when (goalType) {
-        GoalMetric.WEIGHT -> "META DE PESO"
-        GoalMetric.BODY_FAT -> "META DE % GRASA"
-        GoalMetric.MUSCLE_MASS -> "META DE % MÚSCULO"
-    }
-    val unit = when (goalType) {
-        GoalMetric.WEIGHT -> "kg"
-        else -> "%"
-    }
-    val deltaLabel = when (goalType) {
-        GoalMetric.WEIGHT -> if (isDecreasing) "Perder ${r1(totalDelta)} kg" else "Ganar ${r1(totalDelta)} kg"
-        GoalMetric.BODY_FAT -> if (isDecreasing) "Reducir ${r1(totalDelta)}% grasa" else "Aumentar ${r1(totalDelta)}% grasa"
-        GoalMetric.MUSCLE_MASS -> if (!isDecreasing) "Ganar ${r1(totalDelta)}% músculo" else "Reducir ${r1(totalDelta)}% músculo"
-    }
-
-    Card(
-        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp),
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
-    ) {
-        Column(modifier = Modifier.padding(14.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(
-                    if (isDecreasing) Icons.Default.TrendingDown else Icons.Default.TrendingUp,
-                    null,
-                    tint = accentColor,
-                    modifier = Modifier.size(18.dp),
-                )
-                Spacer(Modifier.width(8.dp))
-                Text(
-                    titleLabel,
-                    style = MaterialTheme.typography.labelSmall,
-                    fontWeight = FontWeight.ExtraBold,
-                    letterSpacing = 1.sp,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
-
-            Spacer(Modifier.height(12.dp))
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-            ) {
-                Column {
-                    Text("Actual", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    Text("${r1(currentValue)} $unit", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Black)
-                }
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Icon(
-                        Icons.Default.ArrowForward,
-                        null,
-                        tint = accentColor,
-                        modifier = Modifier.size(20.dp),
-                    )
-                    Text(
-                        deltaLabel,
-                        style = MaterialTheme.typography.labelSmall,
-                        color = accentColor,
-                        fontWeight = FontWeight.Bold,
-                    )
-                }
-                Column(horizontalAlignment = Alignment.End) {
-                    Text("Meta", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    Text("${r1(targetValue)} $unit", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Black, color = accentColor)
-                }
-            }
-
-            Spacer(Modifier.height(12.dp))
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(6.dp),
-            ) {
-                InfoChip("Ritmo", rateLabel, Modifier.weight(1f))
-                InfoChip("Proyección", projectionLabel, Modifier.weight(1f))
-            }
-        }
-    }
-}
-
-@Composable
-private fun InfoChip(label: String, value: String, modifier: Modifier = Modifier) {
-    Surface(
-        modifier = modifier,
-        shape = RoundedCornerShape(8.dp),
-        color = MaterialTheme.colorScheme.surfaceContainer,
-    ) {
-        Column(
-            modifier = Modifier.padding(horizontal = 8.dp, vertical = 6.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
-            Text(
-                label,
-                style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp),
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
-            Text(
-                value,
-                style = MaterialTheme.typography.labelMedium,
-                fontWeight = FontWeight.Bold,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
-        }
-    }
-}
-
-// ═══════════════════════════════════════════════════════════════════════
-// FFMI GAUGE
-// ═══════════════════════════════════════════════════════════════════════
-
-@Composable
-private fun FfmiGaugeCard(ffmi: Double, gender: Gender?) {
-    // Búsqueda por límite inferior: 17,95 es «Bajo» y no cae en un hueco entre categorías.
-    val category = FFMI_CATEGORIES.lastOrNull { ffmi >= it.range.start } ?: FFMI_CATEGORIES.first()
-
-    Card(
-        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp),
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
-    ) {
-        Column(modifier = Modifier.padding(14.dp)) {
-            Text(
-                "ÍNDICE DE MASA LIBRE DE GRASA (FFMI)",
-                style = MaterialTheme.typography.labelSmall,
-                fontWeight = FontWeight.ExtraBold,
-                letterSpacing = 1.sp,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-
-            Spacer(Modifier.height(12.dp))
-
-            // Value + category
-            Row(verticalAlignment = Alignment.Bottom) {
-                Text(
-                    "${r1(ffmi)}",
-                    style = MaterialTheme.typography.headlineLarge,
-                    fontWeight = FontWeight.Black,
-                    color = category.color,
-                )
-                Spacer(Modifier.width(8.dp))
-                Surface(
-                    shape = RoundedCornerShape(8.dp),
-                    color = category.color.copy(alpha = 0.12f),
-                ) {
-                    Text(
-                        category.label,
-                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
-                        style = MaterialTheme.typography.labelSmall,
-                        fontWeight = FontWeight.Bold,
-                        color = category.color,
-                    )
-                }
-            }
-
-            Spacer(Modifier.height(12.dp))
-
-            // Scale bar
-            Canvas(modifier = Modifier.fillMaxWidth().height(20.dp).clip(RoundedCornerShape(10.dp))) {
-                val totalRange = FFMI_SCALE_MAX - FFMI_SCALE_MIN
-                var x = 0f
-                FFMI_GAUGE_SEGMENTS.forEach { seg ->
-                    val segWidth = ((seg.end - seg.start) / totalRange * size.width).toFloat()
-                    drawRect(seg.color.copy(alpha = 0.5f), Offset(x, 0f), Size(segWidth, size.height))
-                    x += segWidth
-                }
-                // Marker
-                val markerX = ((ffmi.coerceIn(FFMI_SCALE_MIN, FFMI_SCALE_MAX) - FFMI_SCALE_MIN) / totalRange * size.width).toFloat()
-                drawCircle(Color.White, 8.dp.toPx(), Offset(markerX, size.height / 2))
-                drawCircle(category.color, 6.dp.toPx(), Offset(markerX, size.height / 2))
-            }
-
-            Spacer(Modifier.height(8.dp))
-
-            // Category labels
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                FFMI_GAUGE_SEGMENTS.forEach { seg ->
-                    val isCurrent = seg.label == category.label
-                    Text(
-                        seg.label,
-                        style = MaterialTheme.typography.labelSmall.copy(fontSize = 8.sp),
-                        color = if (isCurrent) seg.color else MaterialTheme.colorScheme.onSurfaceVariant,
-                        fontWeight = if (isCurrent) FontWeight.Bold else FontWeight.Normal,
-                    )
-                }
-            }
-
-            Spacer(Modifier.height(8.dp))
-
-            Text(
-                "El FFMI normaliza la masa muscular por altura. Un valor >25 sin sustancias es excepcional.",
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
-            )
-        }
-    }
-}
-
-// ═══════════════════════════════════════════════════════════════════════
-// BODY COMPOSITION BREAKDOWN
-// ═══════════════════════════════════════════════════════════════════════
-
-@Composable
-private fun CompositionBreakdownCard(
-    weight: Double,
-    lbm: Double,
-    fatMass: Double,
-) {
-    val lbmPct = lbm / weight
-    val fatPct = fatMass / weight
-
-    Card(
-        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp),
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
-    ) {
-        Column(modifier = Modifier.padding(14.dp)) {
-            Text(
-                "COMPOSICIÓN CORPORAL",
-                style = MaterialTheme.typography.labelSmall,
-                fontWeight = FontWeight.ExtraBold,
-                letterSpacing = 1.sp,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-
-            Spacer(Modifier.height(12.dp))
-
-            // Stacked bar
-            Canvas(modifier = Modifier.fillMaxWidth().height(24.dp).clip(RoundedCornerShape(12.dp))) {
-                val lbmW = (size.width * lbmPct).toFloat()
-                drawRect(MUSCLE_COLOR, Offset.Zero, Size(lbmW, size.height))
-                drawRect(BODYFAT_COLOR, Offset(lbmW, 0f), Size(size.width - lbmW, size.height))
-            }
-
-            Spacer(Modifier.height(10.dp))
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceEvenly,
-            ) {
-                CompositionItem("Masa magra", "${r1(lbm)} kg", "${(lbmPct * 100).toInt()}%", MUSCLE_COLOR)
-                CompositionItem("Masa grasa", "${r1(fatMass)} kg", "${(fatPct * 100).toInt()}%", BODYFAT_COLOR)
-                CompositionItem("Total", "${r1(weight)} kg", "100%", WEIGHT_COLOR)
-            }
-        }
-    }
-}
-
-@Composable
-private fun CompositionItem(label: String, value: String, pct: String, color: Color) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Box(Modifier.size(8.dp).clip(CircleShape).background(color))
-            Spacer(Modifier.width(4.dp))
-            Text(label, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        }
-        Text(value, style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold)
-        Text(pct, style = MaterialTheme.typography.labelSmall, color = color, fontWeight = FontWeight.Bold)
-    }
-}
-
-// ═══════════════════════════════════════════════════════════════════════
-// KPI GRID
-// ═══════════════════════════════════════════════════════════════════════
-
-@Composable
-private fun KpiGrid(
-    weight: Double?,
-    height: Double?,
-    bodyFat: Double?,
-    muscle: Double?,
-    bmi: Double?,
-    ffmi: Double?,
-    lbm: Double?,
-    fatMass: Double?,
-) {
-    Card(
-        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp),
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
-    ) {
-        Column(modifier = Modifier.padding(14.dp)) {
-            Text(
-                "TODAS LAS MÉTRICAS",
-                style = MaterialTheme.typography.labelSmall,
-                fontWeight = FontWeight.ExtraBold,
-                letterSpacing = 1.sp,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-            Spacer(Modifier.height(10.dp))
-
-            val metrics = listOf(
-                Triple("Peso", weight?.let { "${r1(it)} kg" } ?: "—", WEIGHT_COLOR),
-                Triple("Altura", height?.let { "${it.toInt()} cm" } ?: "—", Color(0xFF78909C)),
-                Triple("% Grasa", bodyFat?.let { "${r1(it)}%" } ?: "—", BODYFAT_COLOR),
-                Triple("% Músculo", muscle?.let { "${r1(it)}%" } ?: "—", MUSCLE_COLOR),
-                Triple("IMC", bmi?.let { formatDecimalEs(roundBmi1(it), 1) } ?: "—", WEIGHT_COLOR),
-                Triple("FFMI", ffmi?.let { "${r1(it)}" } ?: "—", FFMI_COLOR),
-                Triple("Masa magra", lbm?.let { "${r1(it)} kg" } ?: "—", MUSCLE_COLOR),
-                Triple("Masa grasa", fatMass?.let { "${r1(it)} kg" } ?: "—", BODYFAT_COLOR),
-            )
-
-            // 2-column grid
-            metrics.chunked(2).forEach { row ->
-                Row(
-                    modifier = Modifier.fillMaxWidth().padding(vertical = 3.dp),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                ) {
-                    row.forEach { (label, value, color) ->
-                        Surface(
-                            modifier = Modifier.weight(1f),
-                            shape = RoundedCornerShape(10.dp),
-                            color = color.copy(alpha = 0.06f),
-                        ) {
-                            Row(
-                                modifier = Modifier.padding(10.dp),
-                                verticalAlignment = Alignment.CenterVertically,
-                            ) {
-                                Box(Modifier.size(8.dp).clip(CircleShape).background(color))
-                                Spacer(Modifier.width(8.dp))
-                                Column {
-                                    Text(
-                                        label,
-                                        style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp),
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    )
-                                    Text(
-                                        value,
-                                        style = MaterialTheme.typography.titleSmall,
-                                        fontWeight = FontWeight.Bold,
-                                    )
-                                }
-                            }
-                        }
-                    }
-                    // Fill empty slot if odd
-                    if (row.size == 1) Spacer(Modifier.weight(1f))
-                }
-            }
-        }
-    }
-}
-
-// ═══════════════════════════════════════════════════════════════════════
-// BMI CATEGORY
-// ═══════════════════════════════════════════════════════════════════════
-
-@Composable
-private fun BmiCategoryCard(bmi: Double) {
-    data class BmiCat(val label: String, val color: Color)
-    // Se clasifica el valor que se muestra (un decimal), con las 4 categorías continuas del dominio.
-    val shown = roundBmi1(bmi)
-    val current = when (bmiCategory(shown)) {
-        BmiCategory.UNDERWEIGHT -> BmiCat("Bajo peso", Color(0xFF90CAF9))
-        BmiCategory.HEALTHY -> BmiCat("Normal", Color(0xFF66BB6A))
-        BmiCategory.OVERWEIGHT -> BmiCat("Sobrepeso", Color(0xFFFFA726))
-        BmiCategory.OBESE -> BmiCat("Obesidad", Color(0xFFEF5350))
-        null -> BmiCat("Sin dato", BODY_NEUTRAL_MUTED)
-    }
-
-    Card(
-        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp),
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
-    ) {
-        Column(modifier = Modifier.padding(14.dp)) {
-            Text(
-                "ÍNDICE DE MASA CORPORAL (IMC)",
-                style = MaterialTheme.typography.labelSmall,
-                fontWeight = FontWeight.ExtraBold,
-                letterSpacing = 1.sp,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-
-            Spacer(Modifier.height(10.dp))
-
-            Row(verticalAlignment = Alignment.Bottom) {
-                Text(
-                    formatDecimalEs(shown, 1),
-                    style = MaterialTheme.typography.headlineMedium,
-                    fontWeight = FontWeight.Black,
-                    color = current.color,
-                )
-                Spacer(Modifier.width(8.dp))
-                Surface(
-                    shape = RoundedCornerShape(8.dp),
-                    color = current.color.copy(alpha = 0.12f),
-                ) {
-                    Text(
-                        current.label,
-                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
-                        style = MaterialTheme.typography.labelSmall,
-                        fontWeight = FontWeight.Bold,
-                        color = current.color,
-                    )
-                }
-            }
-
-            Spacer(Modifier.height(8.dp))
-
-            Text(
-                "⚠️ El IMC no distingue masa muscular de grasa. Si entrenas con pesas, el FFMI es una métrica más precisa.",
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
-            )
-        }
-    }
-}
-
-// ═══════════════════════════════════════════════════════════════════════
-// TIPS
-// ═══════════════════════════════════════════════════════════════════════
-
-@Composable
-private fun TipsCard(bodyFat: Double?, ffmi: Double?, bmi: Double?) {
-    val tips = mutableListOf<String>()
-
-    if (bodyFat != null) {
-        when {
-            bodyFat < 10 -> tips += "Tu % de grasa es muy bajo. Mantener niveles < 10% es difícil a largo plazo y puede afectar hormonas."
-            bodyFat in 10.0..15.0 -> tips += "Excelente nivel de grasa corporal para rendimiento y estética."
-            bodyFat in 15.0..20.0 -> tips += "Buen rango de grasa corporal. Ideal para fases de volumen controlado."
-            bodyFat > 25 -> tips += "Considera una fase de déficit para mejorar salud metabólica y composición corporal."
-        }
-    }
-    if (ffmi != null) {
-        when {
-            ffmi < 18 -> tips += "Tu FFMI sugiere potencial de crecimiento muscular significativo. Prioriza entrenamiento progresivo."
-            ffmi in 20.0..23.0 -> tips += "Muy buen desarrollo muscular. Estás en rango avanzado."
-            ffmi > 25 -> tips += "FFMI excepcional. Estás en el tope del potencial muscular natural."
-        }
-    }
-
-    if (tips.isEmpty()) return
-
-    Card(
-        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp),
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = TEAL.copy(alpha = 0.06f)),
-    ) {
-        Column(modifier = Modifier.padding(14.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(Icons.Default.Lightbulb, null, tint = TEAL, modifier = Modifier.size(18.dp))
-                Spacer(Modifier.width(8.dp))
-                Text(
-                    "OBSERVACIONES",
-                    style = MaterialTheme.typography.labelSmall,
-                    fontWeight = FontWeight.ExtraBold,
-                    letterSpacing = 1.sp,
-                    color = TEAL,
-                )
-            }
-            Spacer(Modifier.height(8.dp))
-            tips.forEach { tip ->
-                Text(
-                    "• $tip",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurface,
-                    modifier = Modifier.padding(bottom = 4.dp),
-                )
-            }
-        }
-    }
-}
-
-// ═══════════════════════════════════════════════════════════════════════
-// MEASUREMENT SCHEDULE CARD
-// ═══════════════════════════════════════════════════════════════════════
-
-@Composable
-private fun MeasurementScheduleCard(
-    schedule: MeasurementSchedule,
-    onUpdate: (MeasurementSchedule) -> Unit,
-) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 4.dp),
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = TEAL.copy(alpha = 0.08f)),
-    ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Default.CalendarMonth, null, tint = TEAL, modifier = Modifier.size(20.dp))
-                    Spacer(Modifier.width(8.dp))
-                    Text("Programar mediciones", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
-                }
-                Switch(
-                    checked = schedule.enabled,
-                    onCheckedChange = { onUpdate(schedule.copy(enabled = it)) },
-                    colors = SwitchDefaults.colors(checkedThumbColor = TEAL, checkedTrackColor = TEAL.copy(alpha = 0.3f)),
-                )
-            }
-
-            if (schedule.enabled) {
-                Spacer(Modifier.height(12.dp))
-
-                // Interval selector
-                Text("Frecuencia", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.ExtraBold,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant)
-                Spacer(Modifier.height(6.dp))
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    listOf(7 to "Semanal", 14 to "Quincenal", 30 to "Mensual").forEach { (days, label) ->
-                        val sel = schedule.intervalDays == days
-                        Surface(
-                            shape = RoundedCornerShape(10.dp),
-                            color = if (sel) TEAL else MaterialTheme.colorScheme.surfaceContainerHigh,
-                            modifier = Modifier.clickable { onUpdate(schedule.copy(intervalDays = days)) },
-                        ) {
-                            Text(
-                                label,
-                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 7.dp),
-                                style = MaterialTheme.typography.labelMedium,
-                                fontWeight = if (sel) FontWeight.Black else FontWeight.SemiBold,
-                                color = if (sel) Color.White else MaterialTheme.colorScheme.onSurface,
-                            )
-                        }
-                    }
-                }
-
-                if (schedule.nextDate != null) {
-                    Spacer(Modifier.height(10.dp))
-                    val label = try {
-                        java.time.LocalDate.parse(schedule.nextDate)
-                            .format(java.time.format.DateTimeFormatter.ofPattern("EEEE, d 'de' MMMM", java.util.Locale.getDefault()))
-                            .replaceFirstChar { it.uppercase() }
-                    } catch (_: Exception) { schedule.nextDate }
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(Icons.Default.Schedule, null, tint = TEAL, modifier = Modifier.size(16.dp))
-                        Spacer(Modifier.width(6.dp))
-                        Text("Próxima: $label", style = MaterialTheme.typography.labelMedium, color = TEAL, fontWeight = FontWeight.Bold)
-                    }
-                }
-
-                Spacer(Modifier.height(10.dp))
-                OutlinedButton(
-                    onClick = {
-                        val next = java.time.LocalDate.now().plusDays(schedule.intervalDays.toLong()).toString()
-                        onUpdate(schedule.copy(nextDate = next))
-                    },
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(10.dp),
-                ) {
-                    Icon(Icons.Default.Event, null, modifier = Modifier.size(16.dp))
-                    Spacer(Modifier.width(6.dp))
-                    Text("Programar próxima medición", style = MaterialTheme.typography.labelMedium)
-                }
-            }
-        }
-    }
-}
-
-// ═══════════════════════════════════════════════════════════════════════
 // MEASUREMENT ENTRY CARD
 // ═══════════════════════════════════════════════════════════════════════
 
@@ -2016,10 +1460,6 @@ private fun fieldText(v: Double): String = v.toString().replace('.', ',')
 /** «12 de agosto», en español aunque el teléfono esté en otro idioma. */
 private fun formatDayMonthEs(date: LocalDate): String =
     date.format(DateTimeFormatter.ofPattern("d 'de' MMMM", Locale("es")))
-
-/** «marzo de 2027», en español. */
-private fun formatMonthEs(month: YearMonth): String =
-    month.atDay(1).format(DateTimeFormatter.ofPattern("MMMM 'de' yyyy", Locale("es")))
 
 private fun bodyDateEpochDay(raw: String): Long? =
     runCatching { java.time.LocalDate.parse(raw).toEpochDay() }.getOrNull()
