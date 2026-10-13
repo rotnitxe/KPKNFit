@@ -199,6 +199,14 @@ Resultados tras la ola H6 (2026-10-13, `feat/wizard-v3` con H6a, H6b y H6c, fren
 | Colección del usuario | 1057 | 182 (106) | 170 (207) | 110 (149) | 0 | 55,8 % (39,7 %); 62 plantillas |
 | PDF por OCR (filas del teléfono) | 35 | 9 | 13 | 13 | 0 | 239 de 441 nombres, 54,2 % (51,0 %) |
 
+**PDF de la colección por OCR (emulador, 2026-10-13):** 562 PDF y 4676 páginas.
+- **Cómo:** el OCR se hizo en el emulador con el arnés `.dbg` (mediana de 2,9 s por página: el emulador es mucho más lento que el
+  teléfono, que tarda 173 ms). Después, las filas se analizaron en la JVM con el analizador integrado.
+- **Resultado:** BIEN 67, POBRE 288, NADA 207 y FALLO 0. Con el analizador antiguo del APK eran BIEN 47, POBRE 308 y NADA 207.
+- **Volumen:** 12 598 ejercicios y el 50,7 % de los nombres reconocidos con confianza.
+- **Casi todos los NADA** son planes de carrera (5 km, 10 km, media maratón) y guías sin ejercicios de fuerza.
+- **Las filas** se guardan en `C:\kw\ocr-emull-rows` (fuera del repo) para repetir el banco sin volver a pasar el OCR.
+
 - **Pérdidas de ejercicios:** solo 3 en la colección, todas a propósito. Dos hojas de registro de Gript juntan sus 3 filas de serie en un
   ejercicio, y askold ya no lee como ejercicio la fila de cabecera «Week · Day · Lift · Set 1…».
 - **Ningún archivo pasa a NADA.** Esta regla se exigió para integrar H6a.
