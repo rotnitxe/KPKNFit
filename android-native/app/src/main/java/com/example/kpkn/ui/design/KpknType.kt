@@ -141,4 +141,12 @@ object KpknType {
         fontSize = 13.sp,
         lineHeight = 16.sp,
     )
+
+    /** Título de los diálogos: Syne Bold 20 / 26 (`WizardFonts.display`). El color lo pone el diálogo, en tinta. */
+    val dialogTitle = TextStyle(
+        fontFamily = WizardFonts.display,
+        fontWeight = FontWeight.Bold,
+        fontSize = 20.sp,
+        lineHeight = 26.sp,
+    )
 }

@@ -41,6 +41,7 @@ import com.example.kpkn.screens.onboarding.design.WizardColors
  * El texto va en `body` y en tinta; el marcador, en `textFaint`, y el cursor, en tinta. El borde es de 1 dp: blanco al 6 %, en tinta al
  * 40 % con foco y en `danger` con [error]; el mensaje de error va debajo en `caption` y `danger`, y también se expone a accesibilidad.
  * [label] va encima, en `caption` y `textMuted`. Sin [enabled], todo va al 38 %.
+ * Con `singleLine = false`, el marcador puede ocupar hasta 2 líneas; [maxLines] limita lo que crece el campo, que después se desplaza por dentro.
  */
 @Composable
 fun KpknTextField(
@@ -57,6 +58,7 @@ fun KpknTextField(
     trailing: (@Composable () -> Unit)? = null,
     error: String? = null,
     enabled: Boolean = true,
+    maxLines: Int = Int.MAX_VALUE,
 ) {
     val interaction = remember { MutableInteractionSource() }
     val focused by interaction.collectIsFocusedAsState()
@@ -115,18 +117,20 @@ fun KpknTextField(
                 textStyle = KpknType.body.copy(color = WizardColors.text),
                 cursorBrush = SolidColor(WizardColors.text),
                 singleLine = singleLine,
-                minLines = minLines,
+                minLines = minLines.coerceAtMost(maxLines),
+                maxLines = maxLines,
                 keyboardOptions = keyboardOptions,
                 keyboardActions = keyboardActions,
                 interactionSource = interaction,
                 decorationBox = { inner ->
-                    Box(contentAlignment = Alignment.CenterStart) {
+                    // Arriba a la izquierda: un marcador de dos líneas no baja el cursor al centro.
+                    Box(contentAlignment = Alignment.TopStart) {
                         if (value.isEmpty() && placeholder != null) {
                             Text(
                                 text = placeholder,
                                 style = KpknType.body,
                                 color = WizardColors.textFaint,
-                                maxLines = 1,
+                                maxLines = if (singleLine) 1 else 2,
                                 overflow = TextOverflow.Ellipsis,
                             )
                         }

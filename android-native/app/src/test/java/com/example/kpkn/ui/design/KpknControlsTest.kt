@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
@@ -17,6 +18,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.SemanticsProperties
@@ -38,7 +40,9 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextReplacement
 import androidx.compose.ui.test.performTouchInput
+import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.example.kpkn.ui.components.icons.KpknLineIcons
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
@@ -217,5 +221,45 @@ class KpknControlsTest {
         rule.runOnIdle { scope.launch { list.scrollToItem(1) } }
         rule.waitForIdle()
         rule.onNodeWithTag("bandera").assertTextEquals("visible")
+    }
+
+    @Test
+    fun campoMultilineaNoCreceMasDeSuLimite() {
+        val seis = "1\n2\n3\n4\n5\n6"
+        rule.setContent {
+            Column {
+                Box(modifier = Modifier.width(300.dp)) {
+                    KpknTextField(value = "1\n2", onValueChange = {}, singleLine = false)
+                }
+                Box(modifier = Modifier.width(300.dp)) {
+                    KpknTextField(value = seis, onValueChange = {}, singleLine = false, maxLines = 2)
+                }
+                Box(modifier = Modifier.width(300.dp)) {
+                    KpknTextField(value = seis, onValueChange = {}, singleLine = false)
+                }
+            }
+        }
+        // Mismo estilo en los tres: con el límite de dos, el de seis líneas mide como el de dos; sin límite, mide más.
+        val (dos, conLimite, sinLimite) = rule.onAllNodes(hasSetTextAction()).fetchSemanticsNodes().map { it.size.height }
+        assertTrue(
+            "dos $dos, con límite $conLimite, sin límite $sinLimite",
+            kotlin.math.abs(conLimite - dos) <= 2 && sinLimite > conLimite + 20,
+        )
+    }
+
+    @Test
+    fun marcadorDeUnCampoMultilineaOcupaHastaDosLineas() {
+        val marcador = "Describe la técnica del ejercicio\nSus variantes y el ritmo\nLas pausas que sueles usar"
+        lateinit var density: Density
+        rule.setContent {
+            density = LocalDensity.current
+            Box(modifier = Modifier.width(300.dp)) {
+                KpknTextField(value = "", onValueChange = {}, placeholder = marcador, singleLine = false)
+            }
+        }
+        // Tres líneas de marcador: se ven dos, no una.
+        val linea = with(density) { 21.sp.toPx() }
+        val alto = rule.onNodeWithText(marcador).fetchSemanticsNode().size.height
+        assertTrue("alto $alto, línea $linea", alto > linea * 1.5f && alto <= linea * 2.5f)
     }
 }
