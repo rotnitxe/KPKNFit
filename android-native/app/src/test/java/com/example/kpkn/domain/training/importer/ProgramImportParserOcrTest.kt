@@ -62,7 +62,7 @@ class ProgramImportParserOcrTest {
     }
 
     @Test
-    fun `en una hoja de OCR, una etiqueta de dia repetida fuera de la cabecera de pagina abre otro dia`() {
+    fun `en una hoja de OCR sin semanas, una etiqueta de dia repetida fuera de la cabecera de pagina abre la semana siguiente`() {
         val rows = listOf(listOf("Día 1"), listOf("Sentadilla 4x8"), listOf("Press 3x8"), listOf("DÍA 1"), listOf("Prensa 3x10"))
 
         val draft = ProgramImportParser.parseSheets(
@@ -70,14 +70,14 @@ class ProgramImportParserOcrTest {
             title = "OCR",
         )
 
-        assertEquals(listOf("Día 1", "DÍA 1"), draft.weeks.single().days.map { it.name })
+        assertEquals(listOf(listOf("Día 1"), listOf("DÍA 1")), draft.weeks.map { week -> week.days.map { it.name } })
     }
 
     @Test
-    fun `fuera de una hoja de OCR, una etiqueta de dia repetida abre otro dia, como antes`() {
+    fun `fuera de una hoja de OCR, una etiqueta de dia repetida sin semanas abre la semana siguiente`() {
         val draft = ProgramImportParser.parseText("Día 1\nSentadilla 4x8\nDÍA 1\nPrensa 3x10", title = "Texto")
 
-        assertEquals(listOf("Día 1", "DÍA 1"), draft.weeks.single().days.map { it.name })
+        assertEquals(listOf(listOf("Día 1"), listOf("DÍA 1")), draft.weeks.map { week -> week.days.map { it.name } })
     }
 
     @Test
