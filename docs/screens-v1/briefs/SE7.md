@@ -1,6 +1,7 @@
 # SE7 · Editor de sesiones: hojas y diálogos en piezas KPKN (2026-10-13)
 
-Worktree y rama: los del mensaje de lanzamiento (salen de `feat/wizard-v3` con SE0, SE1, SE2 y D2 integrados). Lee antes:
+Worktree y rama: los del mensaje de lanzamiento (salen de `feat/sessions-v1`, la rama de integración del editor y de la sesión en
+vivo, con SE0, SE1 y D2 integrados; SE2 trabaja en paralelo la parte de arriba del editor). Lee antes:
 - `docs/wizard-v3/BRIEF_COMUN.md`;
 - `docs/screens-v1/briefs/S_COMUN.md`;
 - `docs/design/KPKN_UI_V2.md`;
