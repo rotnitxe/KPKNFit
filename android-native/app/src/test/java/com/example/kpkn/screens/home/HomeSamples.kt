@@ -546,7 +546,95 @@ internal object HomeSamples {
         weeks = 12,
         weekDays = 4,
     )
+
+    /**
+     * Los cuatro casos de la página completa de Home (martes 13 de octubre): día de entreno (programa de 12 semanas, lunes hecho),
+     * día de descanso (sin sesión el martes), sin programa y recién activado (semana 1, RINGS sin calibrar, sin pesos ni comidas).
+     */
+    fun pageCases(): List<Pair<String, HomePageSample>> {
+        val program = twelveWeekProgram().copy(weekDays = 4, structureTemplateId = "generated:powerlifting:periodized")
+        val training = twelveWeekItems(program)
+        val trainingSample = sample(program, training)
+        // Sin la sesión del martes (Pierna A, dayOfWeek 2): hoy es día de descanso y «Siguiente» sale el jueves.
+        val restItems = training.filterNot { it.dayOfWeek == 2 }
+        val restSample = sample(program, restItems)
+        val freshItems = training.map { item(program, "w1", it.session, done = false) }
+        val freshSample = sample(program, freshItems)
+        val noProgramSample = sample(null, emptyList())
+        return listOf(
+            "entreno" to HomePageSample(
+                masthead = trainingSample.masthead,
+                days = trainingSample.days,
+                sessions = training,
+                hasActiveProgram = true,
+                activeProgram = program,
+                programs = shelfPrograms(program),
+                rings = ringsSample(),
+                perMuscle = ringsSample().perMuscle,
+                nutrition = nutritionTwoMeals(),
+                body = bodyWithTrendAndGoal(),
+                overtrained = listOf("pecho y espalda"),
+            ),
+            "descanso" to HomePageSample(
+                masthead = restSample.masthead,
+                days = restSample.days,
+                sessions = restItems,
+                hasActiveProgram = true,
+                activeProgram = program,
+                programs = shelfPrograms(program),
+                rings = ringsSample(),
+                perMuscle = ringsSample().perMuscle,
+                nutrition = nutritionTwoMeals(),
+                body = bodyWithTrendAndGoal(),
+                overtrained = emptyList(),
+            ),
+            "sin_programa" to HomePageSample(
+                masthead = noProgramSample.masthead,
+                days = emptyList(),
+                sessions = emptyList(),
+                hasActiveProgram = false,
+                activeProgram = null,
+                programs = emptyList(),
+                rings = ringsSample(),
+                perMuscle = emptyMap(),
+                nutrition = nutritionNoGoal(),
+                body = bodyWithTrendAndGoal(),
+                overtrained = emptyList(),
+            ),
+            "recien_activado" to HomePageSample(
+                masthead = freshSample.masthead,
+                days = freshSample.days,
+                sessions = freshItems,
+                hasActiveProgram = true,
+                activeProgram = program,
+                programs = listOf(program),
+                rings = ringsSample(muscular = null, energy = null, structure = null).let { snapshot ->
+                    // Sin datos no hay titular ni se afirma una confianza media: el panel queda sin titular y con confianza baja.
+                    snapshot.copy(dashboard = snapshot.dashboard.copy(headline = "", confidenceLabel = "Baja"))
+                },
+                perMuscle = emptyMap(),
+                nutrition = homeNutritionState(emptyList(), HomeNutritionSnapshot(), null, null, null, null),
+                body = bodyNoWeights(),
+                overtrained = emptyList(),
+            ),
+        )
+    }
 }
+
+/** Un caso de la página completa de Home: todo lo que pinta, con datos de ejemplo. */
+internal data class HomePageSample(
+    val masthead: HomeMastheadState,
+    val days: List<HomeWeekDay>,
+    val sessions: List<TodaySessionItem>,
+    val hasActiveProgram: Boolean,
+    val activeProgram: Program?,
+    val programs: List<Program>,
+    val rings: AugeSnapshot,
+    val perMuscle: Map<String, MuscleRecoveryStatus>,
+    val nutrition: HomeNutritionState,
+    val body: HomeBodyState,
+    val overtrained: List<String>,
+)
 
 /** Un caso de la hoja del héroe: el estado de la sesión del día y los músculos de sus cifras. */
 internal data class HomeHeroSheetCase(
