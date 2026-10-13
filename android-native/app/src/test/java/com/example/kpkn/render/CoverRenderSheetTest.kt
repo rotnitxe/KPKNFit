@@ -21,13 +21,21 @@ import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
+import com.example.kpkn.data.programs.PersonalizedPlanCatalog
 import com.example.kpkn.data.programs.PlanEditorialTable
+import com.example.kpkn.data.programs.TrainingReference
 import com.example.kpkn.domain.onboarding.GeneratedPlans
 import com.example.kpkn.domain.onboarding.TrainingGoalProfile
 import com.example.kpkn.domain.training.periodization.ProgramVariant
 import com.example.kpkn.screens.onboarding.design.entreno.plan.CoverLayout
 import com.example.kpkn.screens.onboarding.design.entreno.plan.PlanCardModel
 import com.example.kpkn.screens.onboarding.design.entreno.plan.PlanCover
+import com.example.kpkn.screens.onboarding.design.entreno.plan.cover.CoverIdentity
+import com.example.kpkn.screens.onboarding.design.entreno.plan.cover.CoverPaletteKind
+import com.example.kpkn.screens.onboarding.design.entreno.plan.cover.CoverStudioArt
+import com.example.kpkn.screens.onboarding.design.entreno.plan.cover.CoverStudioStyle
+import com.example.kpkn.screens.onboarding.design.entreno.plan.cover.assignedCoverIdentity
+import com.example.kpkn.screens.onboarding.design.entreno.plan.cover.assignedCoverProgramIds
 import org.junit.Assume.assumeTrue
 import org.junit.BeforeClass
 import org.junit.Rule
@@ -205,5 +213,128 @@ class CoverRenderSheetTest {
     fun renderTheBandsAt130() {
         onlyWhenAsked()
         shoot("k3a_bandas_letra130", 1.3f, "bandas") { Bands() }
+    }
+
+    /** Estilos nuevos de K3b: trama, pista, ruta, grabado y formas planas. */
+    private val newStyles = listOf(
+        CoverStudioStyle.HALFTONE,
+        CoverStudioStyle.TRACK,
+        CoverStudioStyle.TRAIL,
+        CoverStudioStyle.ENGRAVING,
+        CoverStudioStyle.BAUHAUS,
+    )
+
+    /** Una tarjeta con su título real; sin perfil, la portada pone el acento de respaldo (ok). */
+    private fun coverModel(id: String, profile: TrainingGoalProfile?, kicker: String): PlanCardModel = PlanCardModel(
+        id = id,
+        title = PlanEditorialTable.forId(id).displayName,
+        kicker = kicker,
+        blurb = "",
+        profile = profile,
+        daysLabel = "4 días",
+        minutesLabel = "60 min",
+        levelLabel = "Intermedio",
+        coverSeed = 0,
+    )
+
+    /** Las portadas de una disciplina, en 3:4 a 200 dp, cuatro por fila. */
+    @Composable
+    private fun DisciplineSheet(models: List<PlanCardModel>) {
+        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            models.chunked(4).forEach { line ->
+                Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                    line.forEach { model -> PlanCover(model, Modifier.width(200.dp).aspectRatio(3f / 4f), reduced = true) }
+                }
+            }
+        }
+    }
+
+    /** Las portadas de una disciplina: sus tres «a medida» (si tiene) y los programas listados con esa referencia, por orden editorial. */
+    private fun disciplineModels(profile: TrainingGoalProfile?, reference: TrainingReference?): List<PlanCardModel> {
+        val generated = if (profile == null) {
+            emptyList()
+        } else {
+            ProgramVariant.entries.map { coverModel(GeneratedPlans.entryIdFor(profile, it), profile, "Plan a medida") }
+        }
+        val listed = PersonalizedPlanCatalog.listedEntries()
+            .filter { if (reference == null) it.references.isEmpty() else reference in it.references }
+            .sortedBy { it.rank }
+            .map { coverModel(it.id, profile, "Biblioteca") }
+        return generated + listed
+    }
+
+    @Test
+    fun renderK3bPowerliftingSheet() {
+        onlyWhenAsked()
+        val models = disciplineModels(TrainingGoalProfile.POWERLIFTING, TrainingReference.POWERLIFTING)
+        shoot("k3b_disciplina_powerlifting", 1f, "disciplina") { DisciplineSheet(models) }
+    }
+
+    @Test
+    fun renderK3bPowerbuildingSheet() {
+        onlyWhenAsked()
+        val models = disciplineModels(TrainingGoalProfile.POWERBUILDING, TrainingReference.POWERBUILDING)
+        shoot("k3b_disciplina_powerbuilding", 1f, "disciplina") { DisciplineSheet(models) }
+    }
+
+    @Test
+    fun renderK3bCulturismoSheet() {
+        onlyWhenAsked()
+        val models = disciplineModels(TrainingGoalProfile.BODYBUILDING, TrainingReference.HYPERTROPHY)
+        shoot("k3b_disciplina_culturismo", 1f, "disciplina") { DisciplineSheet(models) }
+    }
+
+    @Test
+    fun renderK3bSinDisciplinaSheet() {
+        onlyWhenAsked()
+        val models = disciplineModels(null, null)
+        shoot("k3b_sin_disciplina", 1f, "disciplina") { DisciplineSheet(models) }
+    }
+
+    /** Una portada real de [style] de la tabla: su acento, su motivo y su semilla. */
+    private fun styleSample(style: CoverStudioStyle): CoverIdentity =
+        assignedCoverProgramIds.sorted().map { assignedCoverIdentity(it)!! }.first { it.style == style }
+
+    /** Las cinco portadas nuevas, solo el arte, grande (300 dp) y en sus tres paletas: la fila es el estilo. */
+    @Composable
+    private fun NewStyleArt() {
+        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            for (style in newStyles) {
+                Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    for (palette in CoverPaletteKind.entries) {
+                        CoverStudioArt(
+                            identity = styleSample(style).copy(palette = palette),
+                            modifier = Modifier.width(300.dp).aspectRatio(3f / 4f),
+                            reduced = true,
+                        )
+                    }
+                }
+            }
+        }
+    }
+
+    @Test
+    fun renderK3bNewStyleArt() {
+        onlyWhenAsked()
+        shoot("k3b_estilos_arte", 1f, "estilos") { NewStyleArt() }
+    }
+
+    /** Las portadas completas, con su título real, de cada estilo nuevo: hasta tres por estilo. */
+    @Composable
+    private fun NewStyleCovers() {
+        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            for (style in newStyles) {
+                val ids = assignedCoverProgramIds.sorted().filter { assignedCoverIdentity(it)!!.style == style }.take(3)
+                Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    for (id in ids) PlanCover(coverModel(id, null, "Portada"), Modifier.width(300.dp).aspectRatio(3f / 4f), reduced = true)
+                }
+            }
+        }
+    }
+
+    @Test
+    fun renderK3bNewStyleCovers() {
+        onlyWhenAsked()
+        shoot("k3b_estilos_portadas", 1f, "estilos") { NewStyleCovers() }
     }
 }
