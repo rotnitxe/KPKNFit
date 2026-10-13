@@ -292,6 +292,7 @@ private fun KpknSheetBody(
                     hazeState = hazeState,
                     shape = sheetShape,
                     additionalScrim = additionalGlassScrim,
+                    variant = KpknGlassVariant.SHEET,
                 )
                 .clickable(
                     interactionSource = panelInteraction,

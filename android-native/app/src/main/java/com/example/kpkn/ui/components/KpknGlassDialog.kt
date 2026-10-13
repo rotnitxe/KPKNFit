@@ -69,7 +69,7 @@ fun KpknGlassDialog(
                     .padding(horizontal = 24.dp)
                     .widthIn(max = maxWidth)
                     .fillMaxWidth()
-                    .kpknGlassOrFallback(resolvedHaze, shape)
+                    .kpknGlassOrFallback(resolvedHaze, shape, variant = KpknGlassVariant.SHEET)
                     .clickable(
                         interactionSource = panelInteraction,
                         indication = null,

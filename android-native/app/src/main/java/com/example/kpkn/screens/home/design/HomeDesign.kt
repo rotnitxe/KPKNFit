@@ -1,37 +1,24 @@
 package com.example.kpkn.screens.home.design
 
-import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.FastOutSlowInEasing
-import androidx.compose.animation.core.tween
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.Saver
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.composed
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.kpkn.screens.onboarding.design.WizardColors
-import com.example.kpkn.screens.onboarding.design.WizardShapes
 import com.example.kpkn.screens.onboarding.design.WizardSpacing
 import com.example.kpkn.screens.onboarding.design.WizardTypography
-import com.example.kpkn.screens.onboarding.design.wizardReducedMotion
-import kotlinx.coroutines.delay
+import com.example.kpkn.ui.design.KpknPrimaryPill
+import com.example.kpkn.ui.design.KpknSecondaryPill
+import com.example.kpkn.ui.design.kpknEntrance
 import java.time.LocalDate
 import java.util.Locale
 
@@ -141,8 +128,8 @@ fun HomeSectionAction(text: String, onClick: () -> Unit) {
 }
 
 /**
- * Píldora principal de Home: 56 dp de alto, fondo de tinta y texto negro. Es un botón (`Role.Button`); [tag] es la etiqueta de
- * prueba, si la hay.
+ * Píldora principal de Home: envoltorio de `KpknPrimaryPill` (56 dp, redondeo completo, tinta y texto negro). Conserva la firma y
+ * la etiqueta de prueba [tag].
  */
 @Composable
 fun HomePrimaryPill(
@@ -151,12 +138,12 @@ fun HomePrimaryPill(
     modifier: Modifier = Modifier,
     tag: String? = null,
 ) {
-    HomePill(text = text, onClick = onClick, modifier = modifier, tag = tag, filled = true)
+    KpknPrimaryPill(text = text, onClick = onClick, modifier = modifier, tag = tag)
 }
 
 /**
- * Píldora secundaria de Home: 56 dp de alto, borde de 1 dp en tinta al 30 %, fondo transparente y texto en tinta. Es un botón
- * (`Role.Button`); [tag] es la etiqueta de prueba, si la hay.
+ * Píldora secundaria de Home: envoltorio de `KpknSecondaryPill` (56 dp, redondeo completo, borde en tinta al 24 %). Conserva la
+ * firma y la etiqueta de prueba [tag].
  */
 @Composable
 fun HomeSecondaryPill(
@@ -165,71 +152,14 @@ fun HomeSecondaryPill(
     modifier: Modifier = Modifier,
     tag: String? = null,
 ) {
-    HomePill(text = text, onClick = onClick, modifier = modifier, tag = tag, filled = false)
-}
-
-@Composable
-private fun HomePill(
-    text: String,
-    onClick: () -> Unit,
-    modifier: Modifier,
-    tag: String?,
-    filled: Boolean,
-) {
-    val shape = WizardShapes.cta
-    val base = modifier
-        .then(if (tag != null) Modifier.testTag(tag) else Modifier)
-        .height(56.dp)
-        .clip(shape)
-    Box(
-        modifier = (if (filled) base.background(WizardColors.text) else base.border(1.dp, WizardColors.text.copy(alpha = 0.30f), shape))
-            .clickable(role = Role.Button, onClick = onClick)
-            .padding(horizontal = 24.dp),
-        contentAlignment = Alignment.Center,
-    ) {
-        Text(
-            text = text,
-            style = WizardTypography.cta,
-            color = if (filled) WizardColors.ctaContent else WizardColors.text,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-        )
-    }
+    KpknSecondaryPill(text = text, onClick = onClick, modifier = modifier, tag = tag)
 }
 
 /**
- * Entrada de una sección de Home. La PRIMERA vez que el proceso compone la sección [index], se funde de 0 a 1 y sube 12 dp
- * hasta 0, en 420 ms con `FastOutSlowInEasing` y con retardo `index × 50 ms`. Después no se repite, ni al volver a Home. Con
- * movimiento reducido no hay entrada. Va con `graphicsLayer`, así que no recompone por cuadro.
+ * Entrada de una sección de Home: la de [kpknEntrance] en el grupo «home». La PRIMERA vez que el proceso compone la sección [index],
+ * se funde y sube 12 dp; después no se repite. Misma conducta que antes.
  */
-fun Modifier.homeEntrance(index: Int): Modifier = composed {
-    val reduced = wizardReducedMotion()
-    // La plaza se consume aunque haya movimiento reducido: así la siguiente vez tampoco anima.
-    val first = remember(index) { HomeEntranceMemory.firstTime(index) }
-    val animate = first && !reduced
-    val progress = remember { Animatable(if (animate) 0f else 1f) }
-    val liftPx = with(LocalDensity.current) { 12.dp.toPx() }
-    LaunchedEffect(animate) {
-        if (animate) {
-            delay(index * 50L)
-            progress.animateTo(1f, tween(durationMillis = 420, easing = FastOutSlowInEasing))
-        }
-    }
-    Modifier.graphicsLayer {
-        val p = progress.value
-        alpha = p
-        translationY = (1f - p) * liftPx
-    }
-}
-
-/** Secciones de Home que ya han entrado en este proceso: la entrada es una sola vez por proceso. */
-internal object HomeEntranceMemory {
-    private val entered = HashSet<Int>()
-
-    /** true solo la primera vez que se pide [index] en el proceso. */
-    @Synchronized
-    fun firstTime(index: Int): Boolean = entered.add(index)
-}
+fun Modifier.homeEntrance(index: Int): Modifier = kpknEntrance(group = "home", index = index)
 
 /** Guarda una fecha en `rememberSaveable` como texto ISO (`LocalDate` no es parcelable). */
 val HomeDateSaver: Saver<LocalDate, String> = Saver(
