@@ -111,7 +111,7 @@ private fun KpknAlertDialogBody(
                     .padding(horizontal = 28.dp)
                     .widthIn(max = 400.dp)
                     .fillMaxWidth()
-                    .kpknGlassOrFallback(hazeState, shape)
+                    .kpknGlassOrFallback(hazeState, shape, variant = KpknGlassVariant.SHEET)
                     .clickable(
                         interactionSource = panelInteraction,
                         indication = null,

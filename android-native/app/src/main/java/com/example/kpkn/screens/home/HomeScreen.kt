@@ -1,15 +1,35 @@
 package com.example.kpkn.screens.home
 
-import androidx.compose.foundation.Image
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.MutableTransitionState
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.updateTransition
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.DonutLarge
+import androidx.compose.material.icons.filled.FitnessCenter
+import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.Restaurant
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -19,22 +39,23 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import com.example.kpkn.ui.adapt.LocalViewportAdapt
 import com.example.kpkn.ui.adapt.adapt
-import com.example.kpkn.R
 import com.example.kpkn.data.exercises.exerciseCatalogReady
 import com.example.kpkn.data.models.AugeSnapshot
 import com.example.kpkn.data.models.LoadAdvisoryLevel
@@ -67,6 +88,9 @@ import com.example.kpkn.ui.theme.AppThemeMode
 import com.example.kpkn.ui.components.rings.KpknTowerRings
 import com.example.kpkn.ui.components.rings.TowerRingValues
 import com.example.kpkn.ui.components.KpknGlass
+import com.example.kpkn.ui.components.KpknGlassVariant
+import com.example.kpkn.ui.design.KpknShape
+import com.example.kpkn.ui.design.KpknSurface
 import com.example.kpkn.ui.components.KpknAlertDialog
 import com.example.kpkn.ui.components.LocalKpknOverlayHost
 import com.example.kpkn.ui.tour.TourAnchors
@@ -89,6 +113,7 @@ import com.example.kpkn.screens.home.design.HomeNotice
 import com.example.kpkn.screens.home.design.HomeNoticeTone
 import com.example.kpkn.screens.home.design.HomeTypography
 import com.example.kpkn.screens.onboarding.design.WizardColors
+import com.example.kpkn.screens.onboarding.design.wizardReducedMotion
 import com.example.kpkn.screens.onboarding.design.WizardTypography
 import com.example.kpkn.screens.onboarding.design.entreno.SymbolPalette
 import kotlinx.coroutines.launch
@@ -875,42 +900,104 @@ internal fun HomeTopBar(
     hazeState: HazeState,
     onBottomPositionChanged: (Float) -> Unit,
     ringsCoverage: com.example.kpkn.domain.onboarding.RingsCoverage = com.example.kpkn.domain.onboarding.RingsCoverage.NO_DATA,
-    /** Opacidad de la barra: 0 = oculta y sin toques (la cabecera de la página sigue arriba); 1 = a la vista. */
+    /** Opacidad de la cabecera de la página respecto a la barra: con histéresis (≥ 0,55 la muestra, ≤ 0,45 la oculta). */
     barAlpha: Float = 1f,
 ) {
+    // Histéresis (§3): aparece en ≥ 0,55 y se va en ≤ 0,45; entre ambos conserva lo que tenía.
+    val shownState = remember { mutableStateOf(false) }
+    val shown = homeBarShownAfter(previous = shownState.value, barAlpha = barAlpha)
+    SideEffect { shownState.value = shown }
+
+    val density = LocalDensity.current
+    val reduced = wizardReducedMotion()
+    val slidePx = with(density) { 24.dp.roundToPx() }
+    val fallPx = with(density) { 16.dp.roundToPx() }
+    val contextSlidePx = with(density) { 8.dp.roundToPx() }
+    val sixPx = with(density) { 6.dp.toPx() }
+    val origin = TransformOrigin(0.5f, 0f)
+    // Entrada y salida de la isla (§3). Con movimiento reducido, solo fundidos de 120 ms.
+    val enter = if (reduced) {
+        fadeIn(animationSpec = tween(durationMillis = 120))
+    } else {
+        fadeIn(animationSpec = tween(durationMillis = 180)) +
+            slideInVertically(animationSpec = spring(dampingRatio = 0.82f, stiffness = 380f)) { -slidePx } +
+            scaleIn(animationSpec = spring(dampingRatio = 0.82f, stiffness = 380f), initialScale = 0.92f, transformOrigin = origin)
+    }
+    val exit = if (reduced) {
+        fadeOut(animationSpec = tween(durationMillis = 120))
+    } else {
+        fadeOut(animationSpec = tween(durationMillis = 140)) +
+            slideOutVertically(animationSpec = tween(durationMillis = 160)) { -fallPx } +
+            scaleOut(animationSpec = tween(durationMillis = 160), targetScale = 0.96f, transformOrigin = origin)
+    }
+    val context = homeBarContextFor(sessionProgress = sessionProgress, ringsProgress = ringsProgress, nutritionProgress = nutritionProgress)
+
+    // Caja fija de 56 dp bajo la barra de estado, con 12 dp de margen. Siempre compuesta, para medir su borde aunque la isla esté oculta.
     Box(
         modifier = modifier
             .fillMaxWidth()
             .statusBarsPadding()
-            .padding(start = 12.dp, top = 10.dp, end = 12.dp)
-            .graphicsLayer { alpha = barAlpha }
-            .kpknGlass(hazeState, RoundedCornerShape(32.dp))
+            .padding(start = 12.dp, top = 12.dp, end = 12.dp)
+            .height(56.dp)
             .onGloballyPositioned { onBottomPositionChanged(it.positionInRoot().y + it.size.height) },
     ) {
-        // Con la barra oculta no se compone nada que toque: no roba toques a la cabecera de la página.
-        if (barAlpha > 0f) Box(modifier = Modifier.fillMaxWidth()) {
-            Row(
+        // Con la isla oculta no se compone nada que toque: no roba toques a la cabecera de la página.
+        AnimatedVisibility(
+            visible = shown,
+            modifier = Modifier.fillMaxSize(),
+            enter = enter,
+            exit = exit,
+        ) {
+            // Contenido escalonado (§3): icono a 0 ms, textos a 40 ms y avatar a 80 ms, con fundido y 6 dp en horizontal.
+            val appear = remember { MutableTransitionState(false).apply { targetState = true } }
+            val stagger = updateTransition(transitionState = appear, label = "homeBarStagger")
+            val iconIn by stagger.animateFloat(
+                transitionSpec = { tween(durationMillis = if (reduced) 120 else 180) },
+                label = "homeBarIconIn",
+            ) { if (it) 1f else 0f }
+            val textIn by stagger.animateFloat(
+                transitionSpec = { tween(durationMillis = if (reduced) 120 else 180, delayMillis = if (reduced) 0 else 40) },
+                label = "homeBarTextIn",
+            ) { if (it) 1f else 0f }
+            val avatarIn by stagger.animateFloat(
+                transitionSpec = { tween(durationMillis = if (reduced) 120 else 180, delayMillis = if (reduced) 0 else 80) },
+                label = "homeBarAvatarIn",
+            ) { if (it) 1f else 0f }
+
+            Box(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .height(64.dp)
-                    .padding(horizontal = 16.dp)
-                    .padding(top = 4.dp, bottom = 4.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween,
+                    .fillMaxSize()
+                    .kpknGlass(hazeState, KpknShape.island, variant = KpknGlassVariant.ISLAND),
             ) {
                 Row(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(start = 8.dp, end = 8.dp),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(10.dp),
-                    modifier = Modifier.weight(1f),
                 ) {
-                    // Símbolo oficial (vector blanco, se tiñe con tint). Conserva la caja de 43 dp del logo
-                    // anterior: el símbolo es apaisado y el Image (ContentScale.Fit por defecto) lo centra dentro.
-                    Image(
-                        painter = painterResource(R.drawable.kpkn_simbolo),
-                        contentDescription = "KPKN",
-                        modifier = Modifier.size(43.dp),
-                        colorFilter = ColorFilter.tint(WizardColors.text),
-                    )
+                    // Icono del contexto: al cambiar de contexto sube 8 dp con fundido cruzado de 220 ms.
+                    AnimatedContent(
+                        targetState = context,
+                        label = "homeBarContext",
+                        transitionSpec = {
+                            if (reduced) {
+                                fadeIn(animationSpec = tween(durationMillis = 120))
+                                    .togetherWith(fadeOut(animationSpec = tween(durationMillis = 120)))
+                            } else {
+                                (
+                                    fadeIn(animationSpec = tween(durationMillis = 220)) +
+                                        slideInVertically(animationSpec = tween(durationMillis = 220)) { contextSlidePx }
+                                    ).togetherWith(fadeOut(animationSpec = tween(durationMillis = 220)))
+                            }
+                        },
+                        modifier = Modifier.graphicsLayer {
+                            alpha = iconIn
+                            translationX = if (reduced) 0f else (1f - iconIn) * -sixPx
+                        },
+                    ) { target ->
+                        HomeBarContextIcon(icon = homeBarIcon(target), accent = homeBarAccent(target))
+                    }
                     val boxHeightDp = 24.dp
                     val topBarDensity = LocalDensity.current
                     val boxHeightPx = with(topBarDensity) { boxHeightDp.toPx() }
@@ -963,7 +1050,16 @@ internal fun HomeTopBar(
                         nutritionAlpha = 0f
                         nutritionSlide = 0f
                     }
-                    Box(modifier = Modifier.height(48.dp).weight(1f), contentAlignment = Alignment.CenterStart) {
+                    Box(
+                        modifier = Modifier
+                            .height(48.dp)
+                            .weight(1f)
+                            .graphicsLayer {
+                                alpha = textIn
+                                translationX = if (reduced) 0f else (1f - textIn) * -sixPx
+                            },
+                        contentAlignment = Alignment.CenterStart,
+                    ) {
                         HomeGreetingLine(
                             greeting = greeting,
                             userName = userName,
@@ -994,10 +1090,121 @@ internal fun HomeTopBar(
                             modifier = Modifier.graphicsLayer { alpha = nutritionAlpha; translationY = nutritionSlide },
                         )
                     }
+                    HomeBarAvatar(
+                        userName = userName,
+                        onClick = onNavigateToProfile,
+                        modifier = Modifier.graphicsLayer {
+                            alpha = avatarIn
+                            translationX = if (reduced) 0f else (1f - avatarIn) * -sixPx
+                        },
+                    )
                 }
-                IconButton(onClick = onNavigateToProfile) {
-                    Icon(Icons.Default.Person, contentDescription = "Perfil", modifier = Modifier.size(22.dp), tint = WizardColors.text)
-                }
+            }
+        }
+    }
+}
+
+/** Contexto que muestra la isla: el del texto más visible del relevo según el scroll (nutrición, RINGS, sesión o saludo). */
+internal enum class HomeBarContext { GREETING, SESSION, RINGS, NUTRITION }
+
+/** Contexto dominante de la isla: el del texto que ya pasa de la mitad en el relevo, con el mismo orden que los textos. */
+internal fun homeBarContextFor(sessionProgress: Float, ringsProgress: Float, nutritionProgress: Float): HomeBarContext = when {
+    nutritionProgress > 0f -> if (nutritionProgress >= 0.5f) HomeBarContext.NUTRITION else HomeBarContext.RINGS
+    ringsProgress > 0f -> if (ringsProgress >= 0.5f) HomeBarContext.RINGS else HomeBarContext.SESSION
+    sessionProgress > 0f -> if (sessionProgress >= 0.5f) HomeBarContext.SESSION else HomeBarContext.GREETING
+    else -> HomeBarContext.GREETING
+}
+
+/** Histéresis de la isla (§3): aparece en ≥ 0,55, se va en ≤ 0,45 y entre ambos conserva lo que tenía. */
+internal fun homeBarShownAfter(previous: Boolean, barAlpha: Float): Boolean = when {
+    barAlpha >= 0.55f -> true
+    barAlpha <= 0.45f -> false
+    else -> previous
+}
+
+/** Icono de cada contexto. Son de Material hasta que llegue el set KPKN Line (I11b): solo cambia esta función. */
+internal fun homeBarIcon(context: HomeBarContext): ImageVector = when (context) {
+    HomeBarContext.GREETING -> Icons.Filled.Home
+    HomeBarContext.SESSION -> Icons.Filled.FitnessCenter
+    HomeBarContext.RINGS -> Icons.Filled.DonutLarge
+    HomeBarContext.NUTRITION -> Icons.Filled.Restaurant
+}
+
+/** Acento de cada contexto (§3): sesión = músculo, RINGS = columna, nutrición = energía. El saludo va en tinta. */
+internal fun homeBarAccent(context: HomeBarContext): Color = when (context) {
+    HomeBarContext.GREETING -> WizardColors.text
+    HomeBarContext.SESSION -> SymbolPalette.musculo
+    HomeBarContext.RINGS -> SymbolPalette.columna
+    HomeBarContext.NUTRITION -> SymbolPalette.energia
+}
+
+/** Icono del contexto: círculo `inset` de 36 dp con el icono de 20 dp teñido con su acento. Sustituye al logo de 43 dp. */
+@Composable
+private fun HomeBarContextIcon(icon: ImageVector, accent: Color) {
+    Box(
+        modifier = Modifier
+            .size(36.dp)
+            .clip(CircleShape)
+            .background(KpknSurface.inset),
+        contentAlignment = Alignment.Center,
+    ) {
+        Icon(imageVector = icon, contentDescription = null, modifier = Modifier.size(20.dp), tint = accent)
+    }
+}
+
+/** Acción del contexto (play, «+»): círculo de tinta de 36 dp con el icono en negro, dentro de una zona táctil de 48 dp. */
+@Composable
+private fun HomeBarInkAction(icon: ImageVector, contentDescription: String, onClick: () -> Unit) {
+    Box(
+        modifier = Modifier
+            .size(48.dp)
+            .semantics { this.contentDescription = contentDescription }
+            .clickable(role = Role.Button, onClick = onClick),
+        contentAlignment = Alignment.Center,
+    ) {
+        Box(
+            modifier = Modifier
+                .size(36.dp)
+                .clip(CircleShape)
+                .background(WizardColors.text),
+            contentAlignment = Alignment.Center,
+        ) {
+            Icon(imageVector = icon, contentDescription = null, modifier = Modifier.size(18.dp), tint = WizardColors.ctaContent)
+        }
+    }
+}
+
+/**
+ * Avatar de la isla: círculo de 36 dp con filete y la inicial del nombre, en una zona táctil de 48 dp. Abre Perfil. Sin nombre
+ * muestra la silueta de Material.
+ */
+@Composable
+private fun HomeBarAvatar(userName: String, onClick: () -> Unit, modifier: Modifier = Modifier) {
+    val initial = userName.trim().firstOrNull()?.uppercase().orEmpty()
+    Box(
+        modifier = modifier
+            .size(48.dp)
+            .semantics { this.contentDescription = "Perfil" }
+            .clickable(role = Role.Button, onClick = onClick),
+        contentAlignment = Alignment.Center,
+    ) {
+        Box(
+            modifier = Modifier
+                .size(36.dp)
+                .clip(CircleShape)
+                .background(KpknSurface.inset)
+                .border(1.dp, WizardColors.glassBorder, CircleShape),
+            contentAlignment = Alignment.Center,
+        ) {
+            if (initial.isNotEmpty()) {
+                Text(text = initial, style = HomeTypography.avatarInitial, color = WizardColors.text)
+            } else {
+                Icon(
+                    imageVector = Icons.Default.Person,
+                    contentDescription = null,
+                    modifier = Modifier.size(20.dp),
+                    tint = WizardColors.text,
+                )
             }
         }
     }
@@ -1143,12 +1350,11 @@ private fun MiniSessionCard(
                 maxLines = 1,
                 modifier = Modifier.weight(1f),
             )
-            IconButton(
+            HomeBarInkAction(
+                icon = Icons.Filled.PlayArrow,
+                contentDescription = "Iniciar",
                 onClick = { onStartWorkout(primarySession.session, primarySession.program) },
-                modifier = Modifier.size(48.dp),
-            ) {
-                Icon(Icons.Filled.PlayArrow, "Iniciar", modifier = Modifier.size(18.dp), tint = WizardColors.text)
-            }
+            )
         }
     }
 }
@@ -1209,9 +1415,7 @@ private fun MiniNutritionCard(
                 ) {}
             }
         }
-        IconButton(onClick = onAddMeal, modifier = Modifier.size(48.dp)) {
-            Icon(Icons.Default.Add, "Agregar", modifier = Modifier.size(18.dp), tint = WizardColors.text)
-        }
+        HomeBarInkAction(icon = Icons.Default.Add, contentDescription = "Agregar", onClick = onAddMeal)
     }
 }
 
