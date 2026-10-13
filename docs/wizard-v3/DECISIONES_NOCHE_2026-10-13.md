@@ -120,5 +120,5 @@ qué. Si quieres cambiar alguna, dímelo y la ajusto.
       quedó hecha en el emulador.
     - Por qué no seguí: averiguarlo era un sumidero de tiempo. Home quedó verificado con las hojas de render de la página completa
       (4 estados) y 472 pruebas en verde.
-    - Qué queda: conviene verlo en tu teléfono. El APK está en `C:\kwapk\home-v1\`.
+    - Qué queda: conviene verlo en tu teléfono. El APK está en `C:\kw\apk\home-v1\`.
 
