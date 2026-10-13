@@ -26,10 +26,20 @@ import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.models.SessionLocation
 import com.example.kpkn.data.models.SimpleProgramKind
 import com.example.kpkn.data.models.TodaySessionItem
+import com.example.kpkn.domain.training.HomeDayKind
 import com.example.kpkn.domain.training.HomeWeekDay
 import com.example.kpkn.domain.training.HomeWeekResolver
+import com.example.kpkn.screens.home.design.HomeHeroArt
+import com.example.kpkn.screens.home.design.HomeHeroLine
+import com.example.kpkn.screens.home.design.HomeHeroMode
+import com.example.kpkn.screens.home.design.HomeHeroState
 import com.example.kpkn.screens.home.design.HomeMastheadState
+import com.example.kpkn.screens.home.design.HomeMuscleGauge
 import com.example.kpkn.screens.home.design.homeDateLine
+import com.example.kpkn.screens.home.design.homeHeroFallbackIdentity
+import com.example.kpkn.screens.home.design.homeHeroKicker
+import com.example.kpkn.screens.home.design.homeHeroNextLine
+import com.example.kpkn.screens.onboarding.design.entreno.plan.cover.coverIdentityFor
 import java.time.LocalDate
 import kotlin.math.sin
 
@@ -368,4 +378,118 @@ internal object HomeSamples {
             ),
         )
     }
+
+    // ---- Héroe de la sesión del día (I2): la hoja de render y las pruebas. Martes 13 de octubre: día 2 de 4. ----
+
+    /** Programa de fuerza con su plantilla: el arte de su portada sale de K3a. */
+    fun heroProgram(): Program = Program(
+        id = "gen-strength",
+        name = "Fuerza y masa",
+        structure = ProgramStructure.COMPLEX,
+        structureTemplateId = "generated:strength-muscle",
+    )
+
+    /** El arte de la portada de [heroProgram], a la opacidad [opacity]. */
+    private fun heroArt(opacity: Float = 1f): HomeHeroArt.Cover =
+        HomeHeroArt.Cover(coverIdentityFor(heroProgram().id, heroProgram().structureTemplateId), opacity)
+
+    /** Pierna A de hoy, día 2 de 4 de la semana: el caso TODAY. */
+    fun heroToday(): HomeHeroState = HomeHeroState(
+        key = "today",
+        mode = HomeHeroMode.TODAY,
+        kicker = homeHeroKicker(HomeHeroMode.TODAY, today, 2, 4),
+        title = "Pierna A",
+        lines = listOf(
+            HomeHeroLine("Sentadilla trasera", "4 × 5–7 · 100 kg"),
+            HomeHeroLine("Prensa", "3 × 10–12 · RIR 2"),
+            HomeHeroLine("Curl femoral tumbado", "3 × 12 · RPE 8"),
+        ),
+        moreCount = 2,
+        meta = "≈ 60 min · 5 ejercicios",
+        art = heroArt(),
+    )
+
+    /** El mismo día con el aviso de carga y la cuenta atrás de la competición. */
+    fun heroTodayWithAlerts(): HomeHeroState = heroToday().copy(
+        key = "today-alerts",
+        advisoryBadge = "Columna: hoy −10 % en Sentadilla trasera",
+        countdown = "COMPETICIÓN EN 23 DÍAS",
+    )
+
+    /** Torso A ya hecha: 58 min y 22 series del registro. */
+    fun heroDone(): HomeHeroState = HomeHeroState(
+        key = "done",
+        mode = HomeHeroMode.DONE,
+        kicker = homeHeroKicker(HomeHeroMode.DONE, today, null, null),
+        title = "Torso A",
+        lines = listOf(
+            HomeHeroLine("Press banca", "4 × 6–8 · RIR 2"),
+            HomeHeroLine("Remo con barra", "4 × 8–10 · 70 kg"),
+            HomeHeroLine("Elevaciones laterales", "3 × 12–15 · RPE 8"),
+        ),
+        moreCount = 1,
+        meta = "58 min · 22 series",
+        art = heroArt(),
+    )
+
+    /** Miércoles de descanso: arte al 45 % y «Siguiente: jueves · Torso B». */
+    fun heroRest(): HomeHeroState = HomeHeroState(
+        key = "rest",
+        mode = HomeHeroMode.REST,
+        kicker = homeHeroKicker(HomeHeroMode.REST, today.plusDays(1), null, null),
+        title = "Descanso",
+        meta = homeHeroNextLine(
+            listOf(HomeWeekDay(today.plusDays(2), "J", false, HomeDayKind.PLANNED, "Torso B")),
+            today.plusDays(1),
+        ),
+        art = heroArt(opacity = 0.45f),
+    )
+
+    /** El jueves 15, día 3 de 4, elegido en «Tu semana»: «Ver en el programa». */
+    fun heroOtherDay(): HomeHeroState = HomeHeroState(
+        key = "other",
+        mode = HomeHeroMode.OTHER_DAY,
+        kicker = homeHeroKicker(HomeHeroMode.OTHER_DAY, today.plusDays(2), 3, 4),
+        title = "Torso B",
+        lines = listOf(
+            HomeHeroLine("Dominadas", "4 × 6–8"),
+            HomeHeroLine("Remo en polea", "3 × 10 · RIR 1"),
+        ),
+        meta = "≈ 55 min · 4 ejercicios",
+        art = heroArt(),
+    )
+
+    /** Sin programa: la identidad fija y tenue, al 35 %. */
+    fun heroNoProgram(): HomeHeroState = HomeHeroState(
+        key = "no-program",
+        mode = HomeHeroMode.NO_PROGRAM,
+        kicker = homeHeroKicker(HomeHeroMode.NO_PROGRAM, today, null, null),
+        title = "Aún no tienes programa",
+        body = "Crea uno con KPKN o importa el tuyo.",
+        art = HomeHeroArt.Cover(homeHeroFallbackIdentity(), opacity = 0.35f),
+    )
+
+    /** Recuperación de la sesión: tres músculos con dato y uno sin dato (sale «—»). */
+    fun heroMuscles(): List<HomeMuscleGauge> = listOf(
+        HomeMuscleGauge("Isquios", 78),
+        HomeMuscleGauge("Glúteos", 64),
+        HomeMuscleGauge("Cuádriceps", 91),
+        HomeMuscleGauge("Pantorrilla", null),
+    )
+
+    /** Los casos de la hoja del héroe, con el nombre de su PNG y sus músculos (vacíos si el modo no los muestra). */
+    fun heroSheetCases(): List<Pair<String, HomeHeroSheetCase>> = listOf(
+        "hoy_arte_k3a" to HomeHeroSheetCase(heroToday(), heroMuscles()),
+        "hoy_aviso_cuenta_atras" to HomeHeroSheetCase(heroTodayWithAlerts(), heroMuscles()),
+        "hecha" to HomeHeroSheetCase(heroDone(), heroMuscles()),
+        "descanso" to HomeHeroSheetCase(heroRest(), emptyList()),
+        "otro_dia" to HomeHeroSheetCase(heroOtherDay(), heroMuscles()),
+        "sin_programa" to HomeHeroSheetCase(heroNoProgram(), emptyList()),
+    )
 }
+
+/** Un caso de la hoja del héroe: el estado de la sesión del día y los músculos de sus cifras. */
+internal data class HomeHeroSheetCase(
+    val state: HomeHeroState,
+    val muscles: List<HomeMuscleGauge>,
+)

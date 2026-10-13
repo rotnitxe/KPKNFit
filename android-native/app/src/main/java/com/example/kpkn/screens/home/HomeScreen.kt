@@ -726,6 +726,10 @@ private fun HomeWithProgram(
         item(key = "session") {
             HomeSessionSection(
                 selectedDate = selectedDate,
+                weekDays = weekDays,
+                activeProgram = programs.firstOrNull { it.id == activeProgramId },
+                onNavigateToProgram = onNavigateToProgram,
+                onOpenMuscleDetail = { onSelectedChannelChange(RecoveryChannelId.MUSCULAR) },
                 sessions = todaySessions,
                 homeCompetition = homeCompetition,
                 hasActiveProgram = hasActiveProgram,
