@@ -42,7 +42,6 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.graphics.Color
 import androidx.compose.material3.LocalContentColor
@@ -144,7 +143,9 @@ import kotlinx.coroutines.withContext
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import com.example.kpkn.ui.components.KpknAlertDialog
+import com.example.kpkn.screens.onboarding.design.WizardColors
+import com.example.kpkn.screens.onboarding.design.entreno.SymbolPalette
+import com.example.kpkn.ui.components.permissions.RecommendedPermissionsDialog
 
 class MainActivity : ComponentActivity() {
     private val pendingDeepLinkRoute = mutableStateOf<String?>(null)
@@ -882,14 +883,7 @@ fun KPKNApp(
                             navController.navigate(KpknRoute.Home.route) { launchSingleTop = true }
                         },
                         icon = { Icon(Icons.Default.Home, null, tint = navIconTint(homeSel)) },
-                        label = {
-                            Text(
-                                stringResource(R.string.nav_home),
-                                color = if (homeSel) MaterialTheme.colorScheme.primary else Color.White,
-                                style = MaterialTheme.typography.labelSmall,
-                                maxLines = 1,
-                            )
-                        },
+                        label = { NavLabel(stringResource(R.string.nav_home), homeSel) },
                         colors = navItemColors,
                     )
                     val trainSel = currentTab == KpknRoute.Training.route
@@ -906,14 +900,7 @@ fun KPKNApp(
                             }
                         },
                         icon = { DumbbellIcon(tint = navIconTint(trainSel)) },
-                        label = {
-                            Text(
-                                stringResource(R.string.nav_training),
-                                color = if (trainSel) MaterialTheme.colorScheme.primary else Color.White,
-                                style = MaterialTheme.typography.labelSmall,
-                                maxLines = 1,
-                            )
-                        },
+                        label = { NavLabel(stringResource(R.string.nav_training), trainSel) },
                         colors = navItemColors,
                     )
                     // SKIPPED oculta Nutrición (semántica intacta); el modo de
@@ -927,14 +914,7 @@ fun KPKNApp(
                                 navController.navigate(KpknRoute.Nutrition.route) { launchSingleTop = true }
                             },
                             icon = { NutritionIcon(tint = navIconTint(nutSel)) },
-                            label = {
-                                Text(
-                                    stringResource(R.string.nav_nutrition),
-                                    color = if (nutSel) MaterialTheme.colorScheme.primary else Color.White,
-                                    style = MaterialTheme.typography.labelSmall,
-                                    maxLines = 1,
-                                )
-                            },
+                            label = { NavLabel(stringResource(R.string.nav_nutrition), nutSel) },
                             colors = navItemColors,
                         )
                     }
@@ -945,14 +925,7 @@ fun KPKNApp(
                             navController.navigate(KpknRoute.BodyProgress.route) { launchSingleTop = true }
                         },
                         icon = { BodyIcon(tint = navIconTint(bodySel)) },
-                        label = {
-                            Text(
-                                stringResource(R.string.nav_body),
-                                color = if (bodySel) MaterialTheme.colorScheme.primary else Color.White,
-                                style = MaterialTheme.typography.labelSmall,
-                                maxLines = 1,
-                            )
-                        },
+                        label = { NavLabel(stringResource(R.string.nav_body), bodySel) },
                         colors = navItemColors,
                     )
                 }
@@ -1008,97 +981,15 @@ fun KPKNApp(
     }
 
     if (showPermissionAlert) {
-        KpknAlertDialog(
-            onDismissRequest = { /* No se cierra al tocar fuera */ },
-            icon = {
-                Icon(
-                    imageVector = Icons.Default.Warning,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(40.dp)
-                )
-            },
-            title = {
-                Text(
-                    text = "Permisos Recomendados",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                    textAlign = androidx.compose.ui.text.style.TextAlign.Center,
-                    modifier = Modifier.fillMaxWidth()
-                )
-            },
-            text = {
-                Column(
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text(
-                        text = "Para garantizar la mejor experiencia en KPKN, te recomendamos habilitar los siguientes permisos:",
-                        style = MaterialTheme.typography.bodyMedium,
-                        textAlign = androidx.compose.ui.text.style.TextAlign.Center,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    
-                    missingPermissions.forEach { permissionName ->
-                        Card(
-                            colors = CardDefaults.cardColors(
-                                containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.12f)
-                            ),
-                            shape = RoundedCornerShape(8.dp),
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)
-                            ) {
-                                Box(
-                                    modifier = Modifier
-                                        .size(6.dp)
-                                        .clip(CircleShape)
-                                        .background(MaterialTheme.colorScheme.primary)
-                                )
-                                Spacer(modifier = Modifier.width(8.dp))
-                                Text(
-                                    text = permissionName,
-                                    style = MaterialTheme.typography.labelMedium,
-                                    fontWeight = FontWeight.Bold,
-                                    color = MaterialTheme.colorScheme.onPrimaryContainer
-                                )
-                            }
-                        }
-                    }
-                    
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Text(
-                        text = "Las notificaciones nos permiten enviarte tus recordatorios de entrenamiento diarios y alarmas de descanso en segundo plano, mientras que el micrófono habilita los comandos y controles por voz.",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        textAlign = androidx.compose.ui.text.style.TextAlign.Center
-                    )
+        RecommendedPermissionsDialog(
+            missing = missingPermissions,
+            onOpenSettings = {
+                val intent = Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+                    data = android.net.Uri.fromParts("package", context.packageName, null)
                 }
+                context.startActivity(intent)
             },
-            confirmButton = {
-                Button(
-                    onClick = {
-                        val intent = Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
-                            data = android.net.Uri.fromParts("package", context.packageName, null)
-                        }
-                        context.startActivity(intent)
-                    },
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text("Ir a Configuración", fontWeight = FontWeight.Bold)
-                }
-            },
-            dismissButton = {
-                TextButton(
-                    onClick = { showPermissionAlert = false; permissionsSkipped = true },
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text("Omitir por ahora", color = MaterialTheme.colorScheme.onSurfaceVariant)
-                }
-            }
+            onSkip = { showPermissionAlert = false; permissionsSkipped = true },
         )
     }
     } // CompositionLocalProvider(LocalHazeState)
@@ -1778,9 +1669,36 @@ private fun createProgramAndOpen(navController: androidx.navigation.NavHostContr
 }
 
 @Composable
-private fun navIconTint(selected: Boolean): Color =
-    if (selected) MaterialTheme.colorScheme.primary
-    else Color.White
+internal fun navIconTint(selected: Boolean): Color =
+    if (selected) WizardColors.text
+    else WizardColors.textMuted
+
+/** Color de la etiqueta de una pestaña: la misma tinta que su icono (cálida si está elegida, gris cálido si no). */
+private fun navLabelColor(selected: Boolean): Color =
+    if (selected) WizardColors.text
+    else WizardColors.textMuted
+
+/**
+ * Etiqueta de una pestaña de la barra inferior. La elegida lleva debajo un punto de 4 dp en el acento de músculo, separado
+ * 4 dp. El hueco del punto existe también en las demás: así las cuatro etiquetas miden lo mismo y la barra no salta al cambiar.
+ */
+@Composable
+internal fun NavLabel(text: String, selected: Boolean) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Text(
+            text,
+            color = navLabelColor(selected),
+            style = MaterialTheme.typography.labelSmall,
+            maxLines = 1,
+        )
+        Spacer(Modifier.height(4.dp))
+        Box(
+            Modifier
+                .size(4.dp)
+                .background(if (selected) SymbolPalette.musculo else Color.Transparent, CircleShape),
+        )
+    }
+}
 
 
 @Composable fun GenericScreen(t: String) { Column(Modifier.fillMaxSize(), Arrangement.Center, Alignment.CenterHorizontally) { Text(t, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold) } }
