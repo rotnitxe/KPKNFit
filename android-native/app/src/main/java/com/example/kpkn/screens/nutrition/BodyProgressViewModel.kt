@@ -44,7 +44,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
-import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
 import java.util.UUID
@@ -100,35 +99,6 @@ class BodyProgressViewModel(
     val selectedMetric: StateFlow<BodyMetric> = _selectedMetric.asStateFlow()
     val range: StateFlow<BodyChartRange> = _range.asStateFlow()
     val measurementSchedule = repository.measurementSchedule
-
-    /** Compatibility projection for the existing chart components; Room remains the source. */
-    val legacyEntries: StateFlow<List<BodyMeasurementEntry>> = repository.observations
-        .map { observations ->
-            observations.groupBy { it.sessionId ?: "instant:${it.timestampEpochMs}" }
-                .map { (groupId, rows) ->
-                    val first = rows.minByOrNull { it.timestampEpochMs } ?: return@map null
-                    val date = java.time.Instant.ofEpochMilli(first.timestampEpochMs)
-                        .atZone(ZoneId.of(first.zoneId))
-                        .toLocalDate()
-                        .toString()
-                    BodyMeasurementEntry(
-                        id = groupId.removePrefix("legacy:"),
-                        date = date,
-                        weight = rows.firstOrNull { it.metric == BodyMetric.WEIGHT }?.valueSi,
-                        bodyFat = rows.firstOrNull { it.metric == BodyMetric.BODY_FAT_PERCENT }?.valueSi,
-                        muscleMass = rows.firstOrNull { it.metric == BodyMetric.MUSCLE_MASS_PERCENT }?.valueSi,
-                        waistCm = rows.firstOrNull { it.metric == BodyMetric.WAIST }?.valueSi,
-                        hipCm = rows.firstOrNull { it.metric == BodyMetric.HIP }?.valueSi,
-                        neckCm = rows.firstOrNull { it.metric == BodyMetric.NECK }?.valueSi,
-                        chestCm = rows.firstOrNull { it.metric == BodyMetric.CHEST }?.valueSi,
-                        armCm = rows.firstOrNull { it.metric == BodyMetric.ARM }?.valueSi,
-                        thighCm = rows.firstOrNull { it.metric == BodyMetric.THIGH }?.valueSi,
-                    )
-                }
-                .filterNotNull()
-                .sortedBy { it.date }
-        }
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
     private val calculatedState = combine(
         repository.observations,

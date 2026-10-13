@@ -1338,7 +1338,9 @@ private fun KPKNNavGraph(
         }
         composable(KpknRoute.BodyProgress.route) {
             BodyProgressScreen(
-                onCreatePlan = { navController.navigate(KpknRoute.NutritionPlanEditor.create()) },
+                // La altura vive en el perfil; con plan activo, la meta se edita en el editor del plan (una sola fuente).
+                onAddHeight = { navController.navigate(KpknRoute.Profile.route) },
+                onEditNutritionPlan = { planId -> navController.navigate(KpknRoute.NutritionPlanEditor.create(planId)) },
             )
         }
         composable(KpknRoute.MealHistory.route) {

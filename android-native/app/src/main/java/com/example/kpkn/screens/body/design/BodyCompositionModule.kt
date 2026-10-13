@@ -18,9 +18,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import com.example.kpkn.domain.body.roundBmi1
 import com.example.kpkn.screens.onboarding.design.WizardColors
+import com.example.kpkn.screens.onboarding.design.WizardMassUnit
 import com.example.kpkn.screens.onboarding.design.entreno.SymbolPalette
 import com.example.kpkn.screens.onboarding.design.formatDecimalEs
 import com.example.kpkn.ui.components.icons.KpknLineIcons
@@ -38,6 +40,7 @@ import com.example.kpkn.ui.design.KpknType
  * «Añadir altura»; sin composición de la misma medición, no hay barra ni FFMI, y se dice por qué. Sin pesaje, no se pinta. Sin estado.
  *
  * @param weightKg peso del último pesaje, o null (sin pesaje no hay módulo).
+ * @param weightUnit unidad de Ajustes: la masa magra y la grasa se muestran en kg o en lb (los datos siguen en kg).
  * @param leanKg masa magra de la misma medición que el % de grasa, o null.
  * @param fatKg masa grasa de esa misma medición, o null.
  * @param bodyFatPercent % de grasa de la composición, o null.
@@ -50,6 +53,7 @@ import com.example.kpkn.ui.design.KpknType
 @Composable
 fun BodyCompositionModule(
     weightKg: Double?,
+    weightUnit: WizardMassUnit,
     leanKg: Double?,
     fatKg: Double?,
     bodyFatPercent: Double?,
@@ -75,18 +79,19 @@ fun BodyCompositionModule(
         )
         if (leanKg != null && fatKg != null && bodyFatPercent != null) {
             val leanPercent = 100.0 - bodyFatPercent
+            val spoken = if (weightUnit == WizardMassUnit.LB) "libras" else "kilos"
             Spacer(Modifier.height(10.dp))
             BodyCompositionBar(
                 leanShare = (leanPercent / 100.0).toFloat(),
-                description = "Masa magra ≈ ${formatDecimalEs(leanKg, 1)} kilos, ${formatDecimalEs(leanPercent, 1)} %. " +
-                    "Masa grasa ≈ ${formatDecimalEs(fatKg, 1)} kilos, ${formatDecimalEs(bodyFatPercent, 1)} %.",
+                description = "Masa magra ≈ ${bodyWeightValue(leanKg, weightUnit)} $spoken, ${formatDecimalEs(leanPercent, 1)} %. " +
+                    "Masa grasa ≈ ${bodyWeightValue(fatKg, weightUnit)} $spoken, ${formatDecimalEs(bodyFatPercent, 1)} %.",
             )
             Spacer(Modifier.height(10.dp))
             Row(modifier = Modifier.fillMaxWidth()) {
                 BodyCompositionLegend(
                     label = "Masa magra",
                     color = SymbolPalette.musculo,
-                    kg = "≈ ${formatDecimalEs(leanKg, 1)} kg",
+                    weight = "≈ ${bodyWeightValue(leanKg, weightUnit)} ${weightUnit.code}",
                     percent = "${formatDecimalEs(leanPercent, 1)} %",
                     alignEnd = false,
                     modifier = Modifier.weight(1f),
@@ -94,7 +99,7 @@ fun BodyCompositionModule(
                 BodyCompositionLegend(
                     label = "Masa grasa",
                     color = WizardColors.textFaint,
-                    kg = "≈ ${formatDecimalEs(fatKg, 1)} kg",
+                    weight = "≈ ${bodyWeightValue(fatKg, weightUnit)} ${weightUnit.code}",
                     percent = "${formatDecimalEs(bodyFatPercent, 1)} %",
                     alignEnd = true,
                     modifier = Modifier.weight(1f),
@@ -124,6 +129,7 @@ fun BodyCompositionModule(
                 unit = "kg/m²",
                 approx = true,
                 detail = bodyFfmiCategory(ffmi),
+                style = KpknType.metricM,
                 infoDescription = "Cómo se calcula el FFMI",
                 onInfo = { onInfo(BodyInfoTopic.FFMI) },
             )
@@ -137,6 +143,7 @@ fun BodyCompositionModule(
                 unit = "kg/m²",
                 approx = false,
                 detail = bodyBmiCategory(bmi),
+                style = KpknType.metricM,
                 infoDescription = "Cómo se calcula el IMC",
                 onInfo = { onInfo(BodyInfoTopic.IMC) },
             )
@@ -165,6 +172,8 @@ private fun BodyFigureRow(
     detail: String?,
     infoDescription: String,
     onInfo: () -> Unit,
+    /** Cifra de FFMI e IMC: `metricM` como pide la especificación; el % de músculo, `metricL`. */
+    style: TextStyle = KpknType.metricL,
 ) {
     val shown = bodyCountedValue(countKey, target)
     Row(
@@ -176,7 +185,7 @@ private fun BodyFigureRow(
             KpknMetric(
                 value = (if (approx) "≈ " else "") + formatDecimalEs(shown, 1),
                 unit = unit,
-                style = KpknType.metricL,
+                style = style,
             )
             if (detail != null) {
                 Text(text = detail, style = KpknType.caption, color = WizardColors.textMuted)
@@ -194,7 +203,7 @@ private fun BodyFigureRow(
 private fun BodyCompositionLegend(
     label: String,
     color: Color,
-    kg: String,
+    weight: String,
     percent: String,
     alignEnd: Boolean,
     modifier: Modifier = Modifier,
@@ -215,7 +224,7 @@ private fun BodyCompositionLegend(
                 LegendDot(color = color)
             }
         }
-        Text(text = kg, style = numbers, color = WizardColors.text)
+        Text(text = weight, style = numbers, color = WizardColors.text)
         Text(text = percent, style = numbers, color = WizardColors.textMuted)
     }
 }

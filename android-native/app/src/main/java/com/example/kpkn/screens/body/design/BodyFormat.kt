@@ -1,6 +1,8 @@
 package com.example.kpkn.screens.body.design
 
 import com.example.kpkn.domain.body.BodyWeightSummary
+import com.example.kpkn.screens.onboarding.design.WizardMassUnit
+import com.example.kpkn.screens.onboarding.design.WizardWeightScale
 import com.example.kpkn.screens.onboarding.design.formatDecimalEs
 import com.example.kpkn.screens.onboarding.design.formatSignedDecimalEs
 import java.time.LocalDate
@@ -21,6 +23,21 @@ internal fun bodyDayMonthEs(date: LocalDate): String = date.format(DateTimeForma
 
 /** «13 oct». */
 internal fun bodyDayShortEs(date: LocalDate): String = date.format(DateTimeFormatter.ofPattern("d MMM", SPANISH))
+
+/**
+ * Cifra de un peso en la unidad de Ajustes, sin unidad: «64,5» en kg o «142,2» en lb. Los pesos se guardan siempre en kg; esto solo
+ * cambia lo que se muestra. Sin cifra finita, «—».
+ */
+internal fun bodyWeightValue(kg: Double, unit: WizardMassUnit): String =
+    if (kg.isFinite()) formatDecimalEs(WizardWeightScale.toDisplay(kg, unit), 1) else "—"
+
+/** Peso con su unidad: «64,5 kg» o «142,2 lb». Sin cifra finita, «—». */
+internal fun bodyWeightText(kg: Double, unit: WizardMassUnit): String =
+    if (kg.isFinite()) "${bodyWeightValue(kg, unit)} ${unit.code}" else "—"
+
+/** Cambio de peso con signo en la unidad de Ajustes, sin unidad: «−2,4» o «+0,5». Un cambio no finito es «—». */
+internal fun bodyWeightChangeValue(kgChange: Double, unit: WizardMassUnit): String =
+    if (kgChange.isFinite()) formatSignedDecimalEs(WizardWeightScale.toDisplay(kgChange, unit), 1) else "—"
 
 /** «oct 24», para los ejes de más de un año. */
 internal fun bodyMonthYearShortEs(date: LocalDate): String = date.format(DateTimeFormatter.ofPattern("MMM yy", SPANISH))
@@ -51,15 +68,15 @@ internal fun bodyTargetEs(value: Double): String {
 internal fun bodyEtaText(eta: YearMonth?): String = eta?.let { "≈ ${bodyMonthEs(it)}" } ?: "Sin fecha estimada aún"
 
 /**
- * Cambio de la isla: «−0,6 kg en 30 días». Null si no hay dos pesajes distintos en los últimos 30 días; «Sin cambio» si el cambio es
- * apenas perceptible.
+ * Cambio de la isla: «−0,6 kg en 30 días» en la unidad de Ajustes. Null si no hay dos pesajes distintos en los últimos 30 días; «Sin
+ * cambio» si el cambio es apenas perceptible (se decide en kg, antes de convertir).
  */
-internal fun bodyIslandChangeText(summary30: BodyWeightSummary): String? {
+internal fun bodyIslandChangeText(summary30: BodyWeightSummary, unit: WizardMassUnit): String? {
     val change = summary30.change ?: return null
     if (summary30.rangeStartDate == summary30.currentDate) return null
     return if (abs(change) < BODY_FLAT_CHANGE) {
         "Sin cambio en 30 días"
     } else {
-        "${formatSignedDecimalEs(change, 1)} kg en 30 días"
+        "${bodyWeightChangeValue(change, unit)} ${unit.code} en 30 días"
     }
 }

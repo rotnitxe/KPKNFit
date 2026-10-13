@@ -114,7 +114,8 @@ private val Y_GAP: Dp = 6.dp
 private val AXIS_TABULAR: TextStyle = KpknType.caption.copy(fontFeatureSettings = "'tnum' 1")
 
 /**
- * Escala y posiciones de los días. La meta solo aparece si cae dentro de la escala de los datos.
+ * Escala y posiciones de los días. La meta solo aparece si cae dentro de la escala de los datos, salvo con [includeGoal]: entonces la
+ * escala la incluye si queda a menos de tres veces el rango de los datos, para que la línea discontinua se vea.
  */
 internal fun bodyChartGeometry(
     points: List<BodyChartPoint>,
@@ -122,14 +123,20 @@ internal fun bodyChartGeometry(
     width: Float,
     height: Float,
     pad: Float,
+    includeGoal: Boolean = false,
 ): BodyChartGeometry? {
     if (points.isEmpty() || width <= 0f || height <= 0f) return null
     val values = points.flatMap { listOfNotNull(it.value, it.trend) }
     val lo = values.minOrNull() ?: return null
     val hi = values.maxOrNull() ?: return null
     val span = maxOf(hi - lo, MIN_SCALE_SPAN)
-    val yMin = lo - span * SCALE_MARGIN
-    val yMax = hi + span * SCALE_MARGIN
+    // Las etiquetas y `hiY`/`loY` siguen siendo solo de los datos; la meta solo amplía la escala vertical.
+    val meta = goal?.takeIf { includeGoal && it >= lo - 3 * span && it <= hi + 3 * span }
+    val escalaLo = minOf(lo, meta ?: lo)
+    val escalaHi = maxOf(hi, meta ?: hi)
+    val escala = maxOf(escalaHi - escalaLo, MIN_SCALE_SPAN)
+    val yMin = escalaLo - escala * SCALE_MARGIN
+    val yMax = escalaHi + escala * SCALE_MARGIN
     val firstDay = points.first().date.toEpochDay()
     val days = (points.last().date.toEpochDay() - firstDay).toFloat()
     val plotWidth = width - 2f * pad
@@ -219,6 +226,7 @@ internal fun bodyNearestIndex(xs: FloatArray, x: Float): Int {
  * movimiento reducido, no hay entrada. Escala a la derecha y tres fechas debajo. Sin estado externo: la selección vive aquí.
  *
  * @param name medida en minúsculas, para la descripción de accesibilidad («peso», «grasa corporal»).
+ * @param includeGoal si es `true`, la escala incluye la meta cuando queda cerca de los datos, para que su línea se vea.
  */
 @Composable
 fun BodyTrendChart(
@@ -228,6 +236,7 @@ fun BodyTrendChart(
     modifier: Modifier = Modifier,
     name: String = "peso",
     height: Dp = 200.dp,
+    includeGoal: Boolean = false,
 ) {
     val density = LocalDensity.current
     val haptic = LocalHapticFeedback.current
@@ -255,8 +264,8 @@ fun BodyTrendChart(
     }
 
     var plotSize by remember { mutableStateOf(IntSize.Zero) }
-    val geometry = remember(points, goal, plotSize, padPx) {
-        bodyChartGeometry(points, goal, plotSize.width.toFloat(), plotSize.height.toFloat(), padPx)
+    val geometry = remember(points, goal, plotSize, padPx, includeGoal) {
+        bodyChartGeometry(points, goal, plotSize.width.toFloat(), plotSize.height.toFloat(), padPx, includeGoal)
     }
     val labels = remember(points) { bodyChartLabels(points) }
     val description = remember(points, name, unit) { bodyChartDescription(points, name, unit) }

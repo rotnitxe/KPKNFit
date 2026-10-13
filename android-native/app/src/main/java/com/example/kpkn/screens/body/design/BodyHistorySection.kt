@@ -28,6 +28,7 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import com.example.kpkn.domain.body.BodyHistoryRow
 import com.example.kpkn.screens.onboarding.design.WizardColors
+import com.example.kpkn.screens.onboarding.design.WizardMassUnit
 import com.example.kpkn.screens.onboarding.design.formatDecimalEs
 import com.example.kpkn.ui.components.icons.KpknLineIcons
 import com.example.kpkn.ui.design.KpknEmptyState
@@ -57,6 +58,7 @@ internal fun bodyHistoryMonths(rows: List<BodyHistoryRow>): List<BodyHistoryMont
  */
 fun LazyListScope.bodyHistoryItems(
     rows: List<BodyHistoryRow>,
+    weightUnit: WizardMassUnit,
     onOpen: (BodyHistoryRow) -> Unit,
     onAdd: () -> Unit,
 ) {
@@ -78,7 +80,7 @@ fun LazyListScope.bodyHistoryItems(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(start = 16.dp, end = 16.dp, top = if (index == 0) 0.dp else 28.dp)
+                    .padding(start = 16.dp, end = 16.dp, top = 28.dp)
                     .kpknEntrance("body-history", index),
             ) {
                 Text(
@@ -101,7 +103,7 @@ fun LazyListScope.bodyHistoryItems(
                                     .background(KpknSurface.divider),
                             )
                         }
-                        BodyHistoryRowItem(row = row, onClick = { onOpen(row) })
+                        BodyHistoryRowItem(row = row, unit = weightUnit, onClick = { onOpen(row) })
                     }
                 }
             }
@@ -111,14 +113,15 @@ fun LazyListScope.bodyHistoryItems(
 
 /** Una medición del historial: 56 dp como mínimo, con relleno `modulePressed` al pulsar y `Role.Button`. */
 @Composable
-private fun BodyHistoryRowItem(row: BodyHistoryRow, onClick: () -> Unit) {
+private fun BodyHistoryRowItem(row: BodyHistoryRow, unit: WizardMassUnit, onClick: () -> Unit) {
     val interaction = remember { MutableInteractionSource() }
     val pressed by interaction.collectIsPressedAsState()
     val rowShape = RoundedCornerShape(16.dp)
     val dateLabel = "${bodyWeekdayDayEs(row.dateTime.toLocalDate())} · ${bodyTimeEs(row.dateTime)}"
+    // Cada etiqueta va unida a su cifra con espacios sin ruptura: al 130 % no se parte «Músculo» de su número.
     val details = listOfNotNull(
-        row.bodyFatPercent?.let { "Grasa ${formatDecimalEs(it, 1)} %" },
-        row.muscleMassPercent?.let { "Músculo ${formatDecimalEs(it, 1)} %" },
+        row.bodyFatPercent?.let { "Grasa ${formatDecimalEs(it, 1)} %" },
+        row.muscleMassPercent?.let { "Músculo ${formatDecimalEs(it, 1)} %" },
     ).joinToString(" · ")
     Row(
         modifier = Modifier
@@ -155,8 +158,8 @@ private fun BodyHistoryRowItem(row: BodyHistoryRow, onClick: () -> Unit) {
         }
         Spacer(Modifier.width(16.dp))
         KpknMetric(
-            value = row.weightKg?.let { formatDecimalEs(it, 1) } ?: "—",
-            unit = row.weightKg?.let { "kg" },
+            value = row.weightKg?.let { bodyWeightValue(it, unit) } ?: "—",
+            unit = row.weightKg?.let { unit.code },
             style = KpknType.metricM,
             color = if (row.weightKg != null) WizardColors.text else WizardColors.textFaint,
         )

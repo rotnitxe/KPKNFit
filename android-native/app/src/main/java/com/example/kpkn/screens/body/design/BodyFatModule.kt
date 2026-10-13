@@ -56,6 +56,7 @@ fun BodyFatModule(
             goal = goalPercent,
             unit = "%",
             name = "grasa corporal",
+            includeGoal = true,
             modifier = Modifier.fillMaxWidth(),
         )
         if (goalPercent != null) {
