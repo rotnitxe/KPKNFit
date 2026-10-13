@@ -25,6 +25,7 @@ import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
@@ -92,6 +93,11 @@ fun KpknSheet(
     // activity-wide haze source, which made every sheet blur unrelated content.
     val resolvedHaze = hazeState ?: LocalHazeState.current
     val cap = (heightFraction ?: maxHeightFraction).coerceIn(0.35f, 1f)
+    // Mientras la hoja está en composición, la isla superior se oculta (I12).
+    DisposableEffect(Unit) {
+        KpknModalTracker.onOpened()
+        onDispose { KpknModalTracker.onClosed() }
+    }
     KpknPortal {
         KpknSheetBody(
             onDismissRequest = onDismissRequest,

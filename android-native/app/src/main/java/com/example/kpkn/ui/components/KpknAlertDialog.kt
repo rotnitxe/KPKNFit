@@ -23,6 +23,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -58,6 +59,11 @@ fun KpknAlertDialog(
     hazeState: HazeState? = null,
 ) {
     val resolvedHaze = hazeState ?: LocalHazeState.current
+    // Mientras el diálogo está en composición, la isla superior se oculta (I12). La versión de texto llega aquí, así que cuenta una vez.
+    DisposableEffect(Unit) {
+        KpknModalTracker.onOpened()
+        onDispose { KpknModalTracker.onClosed() }
+    }
     KpknPortal {
         KpknAlertDialogBody(
             onDismissRequest = onDismissRequest,

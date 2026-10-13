@@ -149,6 +149,16 @@ internal fun towerRingCenter(channel: RingChannel, width: Float, height: Float):
     return Offset(layout.x(TowerUnits.CenterX), layout.y(shape.outerCy))
 }
 
+/**
+ * Franja vertical del anillo [channel] dentro de la caja de la torre, como fracciones de su altura (0 = borde superior, 1 = inferior):
+ * la de su elipse exterior. Con la caja en la proporción de la torre, la hoja del RING la usa para recortar el arte a su contenido (I12).
+ */
+internal fun towerRingBandFractions(channel: RingChannel): Pair<Float, Float> {
+    val shape = TowerShapes.first { it.channel == channel }
+    fun fraction(unitY: Float): Float = (unitY - TowerUnits.Top) / TowerUnits.Height
+    return fraction(shape.outerCy - shape.outerRy) to fraction(shape.outerCy + shape.outerRy)
+}
+
 private fun RingChannel.spanishName(): String = when (this) {
     RingChannel.COLUMNA -> "Columna"
     RingChannel.MUSCULOS -> "Músculos"

@@ -44,6 +44,7 @@ import androidx.compose.ui.unit.dp
 import com.example.kpkn.screens.onboarding.design.WizardColors
 import com.example.kpkn.screens.onboarding.design.wizardReducedMotion
 import com.example.kpkn.ui.components.KpknGlassVariant
+import com.example.kpkn.ui.components.KpknModalTracker
 import com.example.kpkn.ui.components.KpknPortal
 import com.example.kpkn.ui.components.LocalHazeState
 import com.example.kpkn.ui.components.kpknGlassOrFallback
@@ -54,7 +55,8 @@ import com.example.kpkn.ui.components.kpknGlassOrFallback
  * título a 40 ms y acciones a 80 ms). Al cambiar de [title] el contenido nuevo sube 8 dp con fundido cruzado de 220 ms.
  *
  * Se pinta con [KpknPortal], hermana de la fuente del desenfoque, y solo tiene capa en el anfitrión mientras entra, está o sale. Con
- * [visible] en falso no queda ningún nodo tocable. Con movimiento reducido, solo fundidos de 120 ms.
+ * [visible] en falso no queda ningún nodo tocable. Con movimiento reducido, solo fundidos de 120 ms. Mientras haya una hoja o un
+ * diálogo abiertos ([KpknModalTracker]) la isla sale con su animación y no se compone (I12).
  *
  * @param leading icono o botón de la izquierda, p. ej. «Atrás».
  * @param actions acciones de la derecha.
@@ -69,9 +71,10 @@ fun KpknTopIsland(
     actions: @Composable RowScope.() -> Unit = {},
 ) {
     val appear = remember { MutableTransitionState(false) }
-    SideEffect { appear.targetState = visible }
+    val shown = visible && KpknModalTracker.openCount == 0
+    SideEffect { appear.targetState = shown }
     // Mientras la salida no ha terminado (currentState sigue en true) la capa sigue montada; al acabar, se libera.
-    if (visible || appear.currentState) {
+    if (shown || appear.currentState) {
         KpknPortal {
             IslandFrame(
                 appear = appear,

@@ -9,6 +9,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -40,10 +41,14 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.TextMeasurer
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.kpkn.data.models.MealType
@@ -79,14 +84,18 @@ internal val HomeMeals: List<Pair<MealType, String>> = listOf(
     MealType.DINNER to "Cena",
 )
 
-/** Diámetro de los anillos de macros de «Nutrición de hoy» (Home v1.1 §5). */
-private val NutritionRingSize = 120.dp
+/** Diámetro de los anillos de macros de «Nutrición de hoy»: 112 dp, a la izquierda de la cifra (Home v1.1, I12). */
+private val NutritionRingSize = 112.dp
+
+/** Aire entre los anillos y la columna de la cifra con su lectura. */
+private val NutritionRingGap = 16.dp
 
 /**
- * «Nutrición de hoy»: un módulo con su cabecera (el «+» registra una comida), las kcal contando a todo el ancho, debajo los anillos de
- * macros con la lectura de la meta, la leyenda de macros y las cuatro comidas. Sin meta, «Aún no tienes objetivos.» y «Definir objetivos».
- * Tocar la cifra de kcal y los anillos abre el día ([onOpenDay]); tocar una comida abre su registro ([onAddMeal] con su tipo), y el «+» lo
- * abre con la comida de la hora (null). Sin nutrición no se pinta: lo decide quien la llama.
+ * «Nutrición de hoy»: un módulo con su cabecera (el «+» registra una comida). Con meta, los anillos de macros a la izquierda y, a la
+ * derecha, las kcal con su lectura (I12); si «12.345 kcal» no cabe junto a los anillos, la cifra va a todo el ancho y los anillos debajo.
+ * Sin meta, la cifra a todo el ancho, «Aún no tienes objetivos.» y «Definir objetivos». Debajo, la leyenda de macros y las cuatro
+ * comidas. Tocar la cifra de kcal y los anillos abre el día ([onOpenDay]); tocar una comida abre su registro ([onAddMeal] con su tipo), y
+ * el «+» lo abre con la comida de la hora (null). Sin nutrición no se pinta: lo decide quien la llama.
  */
 @Composable
 fun HomeNutritionToday(
@@ -125,54 +134,58 @@ fun HomeNutritionToday(
                 )
             },
         )
-        // La cifra de kcal va a todo el ancho: con «kcal» no cabe junto a un anillo de 120 dp.
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 8.dp)
-                .clickable(role = Role.Button, onClickLabel = "Ver el día de hoy", onClick = onOpenDay),
-        ) {
-            // La cifra cuenta hacia arriba; su semántica da el valor final, no el de cada cuadro.
-            Box(
-                Modifier.clearAndSetSemantics {
-                    contentDescription = "${formatKcalEs(state.kcal)} kilocalorías comidas hoy"
-                },
-            ) {
-                KpknMetric(value = formatKcalEs(kcalShown), unit = "kcal", style = KpknType.metricXL)
-            }
-            if (goal != null) {
-                Row(
-                    modifier = Modifier.fillMaxWidth().padding(top = 12.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    // El contenedor lleva la etiqueta de prueba: los anillos ya ponen la suya («setup-nutrition-rings») y la pisaría.
-                    Box(Modifier.size(NutritionRingSize).testTag(HOME_NUTRITION_RINGS_TAG)) {
-                        WizardMacroRings(
-                            kcal = state.kcal,
-                            fractions = nutritionRingFractions(state),
-                            caption = "kcal",
-                            description = nutritionDescription(state),
-                            appeared = appeared,
-                            reducedMotion = reduced,
-                            modifier = Modifier.fillMaxSize(),
-                            // Sin cifra central: la kcal grande va arriba; así no se repite ni pisa los arcos.
-                            showCenter = false,
-                        )
-                    }
-                    Spacer(Modifier.width(16.dp))
-                    Text(
-                        text = kcalLine(state, goal),
-                        style = KpknType.caption,
-                        color = WizardColors.textMuted,
-                        modifier = Modifier.weight(1f),
-                    )
-                }
-            }
-        }
         if (goal == null) {
-            // Fuera de la zona clicable, para que la acción no anide otro botón.
+            // Sin meta: la cifra a todo el ancho, como en I8, y la acción para definirla (fuera de la zona clicable).
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 8.dp)
+                    .clickable(role = Role.Button, onClickLabel = "Ver el día de hoy", onClick = onOpenDay),
+            ) {
+                NutritionFigure(kcalShown = kcalShown, kcal = state.kcal, style = KpknType.metricXL)
+            }
             Text(text = "Aún no tienes objetivos.", style = KpknType.body, color = WizardColors.textMuted)
             KpknTextAction(text = "Definir objetivos", onClick = onDefineGoals, icon = KpknLineIcons.ChevronRight)
+        } else {
+            // Con meta: los anillos a la izquierda y la cifra con su lectura a la derecha (I12). Si «12.345 kcal» no cabe junto a
+            // los anillos a la escala de letra, la cifra pasa a todo el ancho y los anillos van debajo.
+            val measurer = rememberTextMeasurer()
+            val density = LocalDensity.current
+            BoxWithConstraints(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 8.dp)
+                    .clickable(role = Role.Button, onClickLabel = "Ver el día de hoy", onClick = onOpenDay),
+            ) {
+                val ringsAndGapPx = with(density) { (NutritionRingSize + NutritionRingGap).roundToPx() }
+                val sideBySide = remember(constraints.maxWidth, density, measurer) {
+                    nutritionFigureFits(measurer, density, availablePx = constraints.maxWidth - ringsAndGapPx)
+                }
+                if (sideBySide) {
+                    Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                        NutritionRings(state = state, appeared = appeared, reducedMotion = reduced)
+                        Spacer(Modifier.width(NutritionRingGap))
+                        Column(modifier = Modifier.weight(1f)) {
+                            NutritionFigure(kcalShown = kcalShown, kcal = state.kcal, style = KpknType.metricL)
+                            NutritionGoalLines(state = state, goal = goal)
+                        }
+                    }
+                } else {
+                    Column(modifier = Modifier.fillMaxWidth()) {
+                        NutritionFigure(kcalShown = kcalShown, kcal = state.kcal, style = KpknType.metricXL)
+                        Row(
+                            modifier = Modifier.fillMaxWidth().padding(top = 12.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            NutritionRings(state = state, appeared = appeared, reducedMotion = reduced)
+                            Spacer(Modifier.width(NutritionRingGap))
+                            Column(modifier = Modifier.weight(1f)) {
+                                NutritionGoalLines(state = state, goal = goal)
+                            }
+                        }
+                    }
+                }
+            }
         }
         if (largeText) {
             // A escala grande, tres columnas no caben con metas de tres cifras: la leyenda pasa a tres filas, nombre a la izquierda y cifra a la derecha.
@@ -278,14 +291,64 @@ private fun macroShare(macro: HomeMacroToday): Float {
     return (macro.grams.toFloat() / goal).coerceIn(0f, 1f)
 }
 
-/** Lo que se lee bajo la cifra con meta: lo que queda de la meta, lo que se pasa (sin rojo) o «meta cubierta». */
-private fun kcalLine(state: HomeNutritionState, goal: Int): String {
-    val eaten = state.kcal
-    return when {
-        eaten > goal -> "${formatKcalEs(eaten)} de ${formatKcalEs(goal)} kcal · ${formatKcalEs(eaten - goal)} por encima"
-        eaten == goal -> "de ${formatKcalEs(goal)} kcal · meta cubierta"
-        else -> "de ${formatKcalEs(goal)} kcal · te quedan ${formatKcalEs(goal - eaten)}"
+/** La cifra de kcal de hoy. Cuenta hacia arriba; su semántica da el valor final, no el de cada cuadro. */
+@Composable
+private fun NutritionFigure(kcalShown: Int, kcal: Int, style: TextStyle) {
+    Box(
+        Modifier.clearAndSetSemantics {
+            contentDescription = "${formatKcalEs(kcal)} kilocalorías comidas hoy"
+        },
+    ) {
+        KpknMetric(value = formatKcalEs(kcalShown), unit = "kcal", style = style)
     }
+}
+
+/** Los anillos de macros con meta, con la etiqueta de prueba de su contenedor. */
+@Composable
+private fun NutritionRings(state: HomeNutritionState, appeared: Boolean, reducedMotion: Boolean) {
+    // El contenedor lleva la etiqueta de prueba: los anillos ya ponen la suya («setup-nutrition-rings») y la pisaría.
+    Box(Modifier.size(NutritionRingSize).testTag(HOME_NUTRITION_RINGS_TAG)) {
+        WizardMacroRings(
+            kcal = state.kcal,
+            fractions = nutritionRingFractions(state),
+            caption = "kcal",
+            description = nutritionDescription(state),
+            appeared = appeared,
+            reducedMotion = reducedMotion,
+            modifier = Modifier.fillMaxSize(),
+            // Sin cifra central: la kcal grande va arriba; así no se repite ni pisa los arcos.
+            showCenter = false,
+        )
+    }
+}
+
+/** Lo que se lee junto a la cifra con meta: «de 2.043 kcal» y lo que queda, en `danger` si se ha pasado. */
+@Composable
+private fun NutritionGoalLines(state: HomeNutritionState, goal: Int) {
+    Text(text = "de ${formatKcalEs(goal)} kcal", style = KpknType.caption, color = WizardColors.textMuted)
+    Text(
+        text = kcalRemainingText(eaten = state.kcal, goal = goal),
+        style = KpknType.caption,
+        color = if (state.kcal > goal) WizardColors.danger else WizardColors.textMuted,
+    )
+}
+
+/** Lo que queda de la meta: «te quedan 1.045», «meta cubierta» o «te pasaste 120». */
+private fun kcalRemainingText(eaten: Int, goal: Int): String = when {
+    eaten > goal -> "te pasaste ${formatKcalEs(eaten - goal)}"
+    eaten == goal -> "meta cubierta"
+    else -> "te quedan ${formatKcalEs(goal - eaten)}"
+}
+
+/**
+ * ¿Cabe la cifra más ancha que se prevé («12.345 kcal») junto a los anillos? Se mide con el mismo tipo y la misma escala de letra que
+ * se pintan; [availablePx] es el ancho que queda para la columna de la cifra.
+ */
+private fun nutritionFigureFits(measurer: TextMeasurer, density: Density, availablePx: Int): Boolean {
+    val value = measurer.measure(text = formatKcalEs(12345), style = KpknType.metricL, maxLines = 1).size.width
+    val unit = measurer.measure(text = "kcal", style = KpknType.unit, maxLines = 1).size.width
+    val gapPx = with(density) { 3.dp.roundToPx() }
+    return value + gapPx + unit <= availablePx
 }
 
 /** Texto accesible de los anillos: kcal frente a la meta y cada macro. */

@@ -137,6 +137,9 @@ class KpknBottomBarRenderSheetTest {
                 muscularProgress = 0.62f,
                 sncProgress = 0.48f,
                 columnaProgress = 0.71f,
+                // Con cobertura de datos la isla enseña las tres cifras, no «Sin calibrar».
+                ringsCoverage = com.example.kpkn.screens.home.HomeSamples.ringsSample().coverage
+                    ?: com.example.kpkn.domain.onboarding.RingsCoverage.NO_DATA,
                 primarySession = primarySession,
                 homeCompetition = null,
                 isRestDay = false,

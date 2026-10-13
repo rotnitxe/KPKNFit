@@ -6,6 +6,7 @@ import android.view.View
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.size
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
@@ -16,11 +17,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.SemanticsProperties
+import androidx.compose.ui.test.SemanticsMatcher
+import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
+import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.unit.dp
 import com.example.kpkn.screens.onboarding.design.LocalWizardReducedMotion
+import com.example.kpkn.ui.components.KpknSheet
 import dev.chrisbanes.haze.HazeState
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -47,6 +53,9 @@ class HomeTopBarIslandTest {
     /** Opacidad de la cabecera respecto a la isla: la cambia la prueba fuera de la composición. */
     private var barAlpha by mutableStateOf(0f)
 
+    /** Progreso del relevo de la sesión: la prueba del contexto discreto lo cambia fuera de la composición. */
+    private var sessionProgress by mutableStateOf(0f)
+
     /** La vista de Compose, para dibujarla a un bitmap y medir el avatar. */
     private var hostView: View? = null
 
@@ -61,7 +70,7 @@ class HomeTopBarIslandTest {
                     userName = "Alex",
                     greetingProgress = 1f,
                     ringsProgress = 0f,
-                    sessionProgress = 0f,
+                    sessionProgress = sessionProgress,
                     nutritionProgress = 0f,
                     hasPrograms = true,
                     muscularProgress = 0.62f,
@@ -151,5 +160,65 @@ class HomeTopBarIslandTest {
         val at400 = brightestInAvatar()
         assertTrue("a 0 ms la isla no se ve (brillo máximo $at0)", at0 < 40)
         assertTrue("a 400 ms la isla está entera (brillo máximo $at400)", at400 > 120)
+    }
+
+    /** Los textos con rol de título de la semántica (sin fusionar): el contexto de la isla tiene que dar uno solo. */
+    private fun headings() = rule.onAllNodes(SemanticsMatcher.keyIsDefined(SemanticsProperties.Heading), useUnmergedTree = true)
+
+    @Test
+    fun contextoDeLaIslaEsDiscretoConUnSoloTituloEnElScrollIntermedio() {
+        barAlpha = 1f
+        sessionProgress = 0.5f
+        rule.setContent { Island(onProfile = {}) }
+        rule.waitForIdle()
+        // A medio relevo la isla sigue con el saludo: un solo título, sin mezclar con la sesión.
+        headings().assertCountEquals(1)
+        // El saludo entero o su versión corta («Hola, Alex») según el ancho: se comprueba por el nombre.
+        rule.onNodeWithText("Alex", substring = true).assertExists()
+        rule.onNodeWithText("Día de descanso").assertDoesNotExist()
+        // Al pasar la sesión cambia de una vez, sin dos títulos a la vez.
+        rule.runOnIdle { sessionProgress = 0.8f }
+        rule.waitForIdle()
+        headings().assertCountEquals(1)
+        rule.onNodeWithText("Día de descanso").assertExists()
+        rule.onNodeWithText("Alex", substring = true).assertDoesNotExist()
+        // Un poco de vuelta (0,5) conserva la sesión: la histéresis.
+        rule.runOnIdle { sessionProgress = 0.5f }
+        rule.waitForIdle()
+        headings().assertCountEquals(1)
+        rule.onNodeWithText("Día de descanso").assertExists()
+    }
+
+    @Test
+    fun laIslaDeHomeNoSeVeConUnaHojaAbierta() {
+        barAlpha = 1f
+        rule.setContent {
+            Island(onProfile = {})
+            KpknSheet(onDismissRequest = {}) { Text("Hoja de prueba") }
+        }
+        rule.waitForIdle()
+        rule.onNodeWithContentDescription("Perfil").assertDoesNotExist()
+    }
+
+    @Test
+    fun contextoDeLaIslaConHistéresisDeCadaSeccion() {
+        // Desde el saludo, a medio relevo no cambia; con 0,55 pasa a la sesión.
+        assertEquals(HomeBarContext.GREETING, homeBarContextAfter(HomeBarContext.GREETING, 0.5f, 0f, 0f))
+        assertEquals(HomeBarContext.SESSION, homeBarContextAfter(HomeBarContext.GREETING, 0.55f, 0f, 0f))
+        // Ya en la sesión, con 0,5 se queda; con 0,45 vuelve al saludo.
+        assertEquals(HomeBarContext.SESSION, homeBarContextAfter(HomeBarContext.SESSION, 0.5f, 0f, 0f))
+        assertEquals(HomeBarContext.GREETING, homeBarContextAfter(HomeBarContext.SESSION, 0.45f, 0f, 0f))
+        // RINGS y nutrición siguen el orden de la página.
+        assertEquals(HomeBarContext.RINGS, homeBarContextAfter(HomeBarContext.SESSION, 1f, 0.6f, 0f))
+        assertEquals(HomeBarContext.NUTRITION, homeBarContextAfter(HomeBarContext.RINGS, 1f, 1f, 0.6f))
+        assertEquals(HomeBarContext.NUTRITION, homeBarContextAfter(HomeBarContext.NUTRITION, 1f, 1f, 0.5f))
+        assertEquals(HomeBarContext.RINGS, homeBarContextAfter(HomeBarContext.NUTRITION, 1f, 1f, 0.4f))
+    }
+
+    @Test
+    fun subtituloDeRingsDaLosTresCanalesOSinCalibrar() {
+        assertEquals("Energía 86 · Músculos 74 · Columna 81", homeBarRingsSubtitle(energia = 86, musculos = 74, columna = 81))
+        assertEquals("Energía — · Músculos 74 · Columna 81", homeBarRingsSubtitle(energia = null, musculos = 74, columna = 81))
+        assertEquals("Sin calibrar", homeBarRingsSubtitle(energia = null, musculos = null, columna = null))
     }
 }
