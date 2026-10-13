@@ -337,6 +337,17 @@ object KpknLineIcons {
         )
     }
 
+    /** Pausar: dos barras verticales de trazo (el contrario de `Play`). */
+    val Pause: ImageVector by lazy {
+        icono(
+            "KpknLine.Pause",
+            listOf(
+                "M9.25 6.25v11.5",
+                "M14.75 6.25v11.5",
+            ),
+        )
+    }
+
     /** Trazado del triángulo de `Play` y `PlayFilled`. */
     private const val TRIANGULO_PLAY =
         "M8.25 5.6v12.8a.9.9 0 0 0 1.37.77l10.2-6.4a.9.9 0 0 0 0-1.54l-10.2-6.4a.9.9 0 0 0-1.37.77z"

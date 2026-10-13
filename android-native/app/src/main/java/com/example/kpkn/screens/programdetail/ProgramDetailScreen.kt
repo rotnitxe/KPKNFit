@@ -50,6 +50,54 @@ import com.example.kpkn.ui.tour.TourAnchors
 import com.example.kpkn.ui.tour.TourIds
 import com.example.kpkn.ui.tour.TourScripts
 import com.example.kpkn.ui.tour.tourAnchor
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.togetherWith
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.background
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.positionInRoot
+import androidx.compose.ui.platform.LocalDensity
+import com.example.kpkn.data.models.isSimpleProgram
+import com.example.kpkn.data.programs.programCoverEntryIdOf
+import com.example.kpkn.domain.training.HomeSessionResolver.allWeekLocations
+import com.example.kpkn.screens.onboarding.design.WizardDarkSystemBars
+import com.example.kpkn.screens.onboarding.design.entreno.plan.cover.coverIdentityForProgram
+import com.example.kpkn.screens.programdetail.design.ProgramAboutModule
+import com.example.kpkn.screens.programdetail.design.ProgramDetailPlaceholder
+import com.example.kpkn.screens.programdetail.design.ProgramEditDraft
+import com.example.kpkn.screens.programdetail.design.ProgramEditSheet
+import com.example.kpkn.screens.programdetail.design.ProgramEmptyStructure
+import com.example.kpkn.screens.programdetail.design.ProgramHeader
+import com.example.kpkn.screens.programdetail.design.ProgramHeaderActions
+import com.example.kpkn.screens.programdetail.design.ProgramHeaderPrimary
+import com.example.kpkn.screens.programdetail.design.ProgramHeaderState
+import com.example.kpkn.screens.programdetail.design.ProgramMenuItem
+import com.example.kpkn.screens.programdetail.design.ProgramMoreMenu
+import com.example.kpkn.screens.programdetail.design.ProgramPinnedTabs
+import com.example.kpkn.screens.programdetail.design.ProgramPinnedTopOffset
+import com.example.kpkn.screens.programdetail.design.ProgramIslandBottom
+import com.example.kpkn.screens.programdetail.design.ProgramPlanSheet
+import com.example.kpkn.screens.programdetail.design.programDetailTabsOptions
+import com.example.kpkn.screens.programdetail.design.programEditDraftOf
+import com.example.kpkn.screens.programdetail.design.programHeaderDotColor
+import com.example.kpkn.screens.programdetail.design.programHeaderPrimaryOf
+import com.example.kpkn.screens.programdetail.design.programHeaderStatusOf
+import com.example.kpkn.screens.programdetail.design.programMetaLine
+import com.example.kpkn.screens.programdetail.design.programProgressLabel
+import com.example.kpkn.screens.programdetail.design.rememberPassedLine
+import com.example.kpkn.ui.components.rememberProgramCover
+import com.example.kpkn.ui.components.icons.KpknLineIcons
+import com.example.kpkn.ui.design.KpknIconButton
+import com.example.kpkn.ui.design.KpknSegmentedControl
+import com.example.kpkn.ui.design.KpknSurface
+import com.example.kpkn.ui.design.KpknTopIsland
+import com.example.kpkn.ui.design.KpknTopRow
+import com.example.kpkn.ui.design.kpknEntrance
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -72,7 +120,11 @@ fun ProgramDetailScreen(
     val roadmapBlocks by viewModel.roadmapBlocks.collectAsState()
     val simpleRoadmapLoopMarkers by viewModel.simpleRoadmapLoopMarkers.collectAsState()
     val activeProgramState by viewModel.activeProgramState.collectAsState()
+    val programsReady by viewModel.programsReady.collectAsState()
+    val primarySession by viewModel.headerPrimarySession.collectAsState()
+    val programLine by viewModel.headerProgramLine.collectAsState()
     val context = LocalContext.current
+    val density = LocalDensity.current
 
     LaunchedEffect(programId) {
         viewModel.loadFeedbacks(context)
@@ -100,48 +152,116 @@ fun ProgramDetailScreen(
     var showSplitPage by rememberSaveable { mutableStateOf(false) }
     var showOneRmDialog by rememberSaveable { mutableStateOf(false) }
     var showTmEditor by rememberSaveable { mutableStateOf(false) }
+    var showVolumeSheet by rememberSaveable { mutableStateOf(false) }
+    var showPlanSheet by rememberSaveable { mutableStateOf(false) }
+    var showMoreMenu by rememberSaveable { mutableStateOf(false) }
+    var showEditSheet by rememberSaveable { mutableStateOf(false) }
+    // Borrador de «Editar programa»: se abre desde la cabecera o desde «Más opciones» y no se escribe hasta «Guardar».
+    var editDraft by remember { mutableStateOf<ProgramEditDraft?>(null) }
     // Id de la entrada del catálogo cuya hoja «Cómo funciona» está abierta (solo lectura); null = cerrada.
     var planInfoEntryId by rememberSaveable { mutableStateOf<String?>(null) }
     var squat1RmText by rememberSaveable { mutableStateOf("") }
     var bench1RmText by rememberSaveable { mutableStateOf("") }
     var deadlift1RmText by rememberSaveable { mutableStateOf("") }
 
-    // Edge case: program not found
+    WizardDarkSystemBars()
+
+    // Sin programa cargado: esqueletos. «No encontrado» (y la salida) solo cuando el repositorio ya leyó sus programas.
     val p = program
     if (p == null) {
-        LaunchedEffect(Unit) {
-            snackbarHostState.showKpknSnackbar("Programa no encontrado", SnackbarType.DANGER)
-            kotlinx.coroutines.delay(1500)
-            onBack()
-        }
-        Scaffold(snackbarHost = { SnackbarHost(snackbarHostState) { KpknSnackbar(it) } }) {
-            Box(Modifier.fillMaxSize().padding(it), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator()
+        if (programsReady) {
+            LaunchedEffect(Unit) {
+                snackbarHostState.showKpknSnackbar("Programa no encontrado", SnackbarType.DANGER)
+                kotlinx.coroutines.delay(1500)
+                onBack()
             }
         }
+        ProgramDetailPlaceholder(programsReady = programsReady, onBack = onBack, snackbarHostState = snackbarHostState)
         return
     }
+
+    val bundledCover = rememberProgramCover(programCoverEntryIdOf(p.coverImage), with(density) { 88.dp.roundToPx() })
 
     LaunchedEffect(p.id, p.volumeSetupPromptSeen) {
         if (!p.volumeSetupPromptSeen) {
             showVolumeSetupNotice = true
         }
     }
+    // «Calibrar ahora» del aviso sube el token: se abre la hoja de calibración del volumen.
+    LaunchedEffect(openVolumeSheetToken) {
+        if (openVolumeSheetToken > 0) showVolumeSheet = true
+    }
     // Recorrido de Entreno: la primera vez que se entra en un programa ya cargado (visto = el controlador no arranca).
     val tourHost = LocalKpknOverlayHost.current
     LaunchedEffect(p.id) { tourHost?.startTour(TourIds.TRAINING, TourScripts.training) }
 
-    Scaffold(
-        snackbarHost = { SnackbarHost(snackbarHostState) { KpknSnackbar(it) } },
-        contentWindowInsets = WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal + WindowInsetsSides.Bottom),
-    ) { padding ->
+    // La isla aparece cuando la cabecera sale por arriba; las pestañas se pegan cuando llegan bajo la isla. Todo en la raíz.
+    val statusTopPx = WindowInsets.statusBars.getTop(density).toFloat()
+    val islandLinePx = statusTopPx + with(density) { ProgramIslandBottom.toPx() }
+    val pinLinePx = statusTopPx + with(density) { ProgramPinnedTopOffset.toPx() }
+    val scroll = rememberScrollState()
+    val headerBottomRoot = remember { mutableFloatStateOf(Float.MAX_VALUE) }
+    val tabsTopRoot = remember { mutableFloatStateOf(Float.MAX_VALUE) }
+    val islandVisible = rememberPassedLine(markerRootY = headerBottomRoot, lineRootPx = islandLinePx)
+    val tabsPinned = rememberPassedLine(markerRootY = tabsTopRoot, lineRootPx = pinLinePx)
+    val slidePx = with(density) { 12.dp.roundToPx() }
+
+    val status = programHeaderStatusOf(isActive = isActive, isPaused = isPaused)
+    val weekCount = remember(p) { p.allWeekLocations().size }
+    val repeatingWeek = p.isSimpleProgram && weekCount <= 1
+    val primaryAction = programHeaderPrimaryOf(
+        isActive = isActive,
+        sessionName = primarySession?.takeIf { !it.isCompleted }?.session?.name,
+        sessionOngoing = primarySession?.isOngoing == true,
+    )
+    val coverKind = heroCoverKind(p.coverImage, hasBundledCover = bundledCover != null)
+    val identity = remember(p.id, p.structureTemplateId, p.coverImage) { coverIdentityForProgram(p) }
+    val headerState = ProgramHeaderState(
+        name = p.name,
+        status = status,
+        meta = programMetaLine(weekCount = weekCount, repeatingWeek = repeatingWeek, daysPerWeek = p.weekDays, mode = p.mode),
+        identity = identity,
+        photoUrl = p.coverImage.takeIf { coverKind == HeroCoverKind.REMOTE },
+        bundled = bundledCover.takeIf { coverKind == HeroCoverKind.BUNDLED },
+        weekCount = weekCount,
+        currentWeekIndex = programLine?.weekIndex,
+        progressLabel = programProgressLabel(
+            weekIndex = programLine?.weekIndex,
+            weekCount = programLine?.weekCount,
+            phase = programLine?.phase,
+            repeatingWeek = repeatingWeek,
+            cycle = p.runState?.cycleNumber,
+        ),
+        primary = primaryAction,
+    )
+    val openEdit: () -> Unit = {
+        editDraft = programEditDraftOf(p)
+        showEditSheet = true
+    }
+    val headerActions = ProgramHeaderActions(
+        onPrimary = {
+            when (primaryAction) {
+                is ProgramHeaderPrimary.Start, ProgramHeaderPrimary.Continue -> primarySession?.let { onStartWorkout(it.session, p) }
+                ProgramHeaderPrimary.Activate -> viewModel.activateOrResume()
+                ProgramHeaderPrimary.None -> Unit
+            }
+        },
+        onStartPause = { viewModel.toggleStartPause() },
+        onEdit = openEdit,
+    )
+    val planSummary = remember(p) { buildProgramPlanDisplaySummary(p) }
+    val tabOptions = programDetailTabsOptions
+    val tabIndex = uiState.structureSubTab.ordinal
+    val selectTab: (Int) -> Unit = { index -> viewModel.setStructureSubTab(StructureSubTab.entries[index]) }
+
+    Box(modifier = Modifier.fillMaxSize().background(KpknSurface.canvas)) {
         if (showSplitPage) {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
                     .verticalScroll(rememberScrollState())
                     .statusBarsPadding()
-                    .padding(bottom = padding.calculateBottomPadding() + 120.dp),
+                    .padding(bottom = 120.dp),
             ) {
                 SplitView(
                     program = p,
@@ -155,72 +275,173 @@ fun ProgramDetailScreen(
                 )
             }
         } else {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .verticalScroll(rememberScrollState())
-                .padding(bottom = padding.calculateBottomPadding() + 120.dp),
-        ) {
-            // Hero Banner
-            CompactHeroBanner(
-                programName = p.name,
-                programDescription = p.description,
-                coverValue = p.coverImage,
-                isActive = isActive,
-                isPaused = isPaused,
-                focusMode = p.mode.name.lowercase(),
-                blockProgressLabel = viewModel.blockProgressLabel(),
-                onBack = onBack,
-                onStartPause = { viewModel.toggleStartPause() },
-                onTitleDescriptionChange = { name, description ->
-                    viewModel.updateProgram(p.copy(name = name, description = description))
-                },
-                onCoverChange = { coverImage ->
-                    viewModel.updateProgram(p.copy(coverImage = coverImage))
-                },
-                onApplyVolumeCalibration = { mode, athleteScore, recommendations ->
-                    viewModel.updateProgram(
-                        p.copy(
-                            mode = mode,
-                            volumeSystem = com.example.kpkn.data.models.VolumeSystem.KPNK,
-                            athleteProfileScore = athleteScore,
-                            volumeRecommendations = recommendations,
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .verticalScroll(scroll)
+                    .statusBarsPadding(),
+            ) {
+                KpknTopRow(
+                    onBack = onBack,
+                    actions = {
+                        KpknIconButton(
+                            icon = KpknLineIcons.More,
+                            contentDescription = "Más opciones",
+                            onClick = { showMoreMenu = true },
                         )
+                    },
+                )
+                Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .kpknEntrance("programdetail", 0)
+                            .onGloballyPositioned { headerBottomRoot.floatValue = it.positionInRoot().y + it.size.height },
+                    ) {
+                        ProgramHeader(state = headerState, actions = headerActions)
+                    }
+                    Spacer(Modifier.height(16.dp))
+                    ProgramAboutModule(
+                        provenance = listOfNotNull(planSummary.provenanceLabel, planSummary.sourceLine).joinToString(" · "),
+                        notes = planSummary.planNotes,
+                        onOpenPlanInfo = planSummary.catalogEntry?.let { entry -> { planInfoEntryId = entry.id } },
+                        onOpenMore = { showPlanSheet = true },
+                        modifier = Modifier.fillMaxWidth().kpknEntrance("programdetail", 1),
+                    )
+                    Spacer(Modifier.height(20.dp))
+                }
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp)
+                        .onGloballyPositioned { tabsTopRoot.floatValue = it.positionInRoot().y }
+                        .tourAnchor(TourAnchors.TRAINING_ESTRUCTURA),
+                ) {
+                    // Cuando están pegadas, el control vive en la isla de abajo; aquí queda su hueco de la misma altura.
+                    if (tabsPinned) {
+                        Spacer(Modifier.fillMaxWidth().height(48.dp))
+                    } else {
+                        KpknSegmentedControl(
+                            options = tabOptions,
+                            selectedIndex = tabIndex,
+                            onSelect = selectTab,
+                            modifier = Modifier.fillMaxWidth(),
+                        )
+                    }
+                }
+                Spacer(Modifier.height(12.dp))
+                AnimatedContent(
+                    targetState = uiState.structureSubTab,
+                    transitionSpec = {
+                        // El contenido nuevo entra desde el lado de la pestaña elegida: 12 dp y 220 ms.
+                        val direction = if (targetState.ordinal > initialState.ordinal) 1 else -1
+                        (fadeIn(animationSpec = tween(durationMillis = 220)) +
+                            slideInHorizontally(animationSpec = tween(durationMillis = 220)) { direction * slidePx })
+                            .togetherWith(
+                                fadeOut(animationSpec = tween(durationMillis = 220)) +
+                                    slideOutHorizontally(animationSpec = tween(durationMillis = 220)) { -direction * slidePx },
+                            )
+                    },
+                    label = "programDetailTab",
+                ) { tab ->
+                    TrainingPanel(
+                        viewModel = viewModel,
+                        program = p,
+                        roadmapBlocks = roadmapBlocks,
+                        currentWeeks = currentWeeks,
+                        displayedSessions = displayedSessions,
+                        selectedWeekMeta = selectedWeekMeta,
+                        selectedBlockId = uiState.selectedBlockId,
+                        selectedWeekId = uiState.selectedWeekId,
+                        simpleRoadmapLoopMarkers = simpleRoadmapLoopMarkers,
+                        structureSubTab = tab,
+                        onStartWorkout = onStartWorkout,
+                        onEditSession = onEditSession,
+                        onCreateSession = onCreateSession,
+                        onOpenProgram = onOpenProgram,
+                        onOpenSplitPage = { showSplitPage = true },
+                        onOpenOneRmDialog = { showOneRmDialog = true },
+                        onOpenTmEditor = { showTmEditor = true },
+                    )
+                }
+            }
+        }
+
+        if (!showSplitPage) {
+            KpknTopIsland(
+                visible = islandVisible,
+                title = p.name,
+                leading = {
+                    KpknIconButton(icon = KpknLineIcons.ChevronLeft, contentDescription = "Atrás", onClick = onBack)
+                },
+                actions = {
+                    Box(modifier = Modifier.size(8.dp).clip(CircleShape).background(programHeaderDotColor(status)))
+                    Spacer(Modifier.width(8.dp))
+                    KpknIconButton(
+                        icon = KpknLineIcons.More,
+                        contentDescription = "Más opciones",
+                        onClick = { showMoreMenu = true },
                     )
                 },
-                openVolumeSheetToken = openVolumeSheetToken,
             )
-
-            PlanDetailsSummary(program = p, onOpenPlanInfo = { entry -> planInfoEntryId = entry.id })
-
-            CompactStructureSubTabs(
-                structureSubTab = uiState.structureSubTab,
-                onStructureSubTabChange = { viewModel.setStructureSubTab(it) },
-            )
-
-            TrainingPanel(
-                viewModel = viewModel,
-                program = p,
-                roadmapBlocks = roadmapBlocks,
-                currentWeeks = currentWeeks,
-                displayedSessions = displayedSessions,
-                selectedWeekMeta = selectedWeekMeta,
-                selectedBlockId = uiState.selectedBlockId,
-                selectedWeekId = uiState.selectedWeekId,
-                simpleRoadmapLoopMarkers = simpleRoadmapLoopMarkers,
-                structureSubTab = uiState.structureSubTab,
-                onStartWorkout = onStartWorkout,
-                onEditSession = onEditSession,
-                onCreateSession = onCreateSession,
-                onOpenProgram = onOpenProgram,
-                onOpenSplitPage = { showSplitPage = true },
-                onOpenOneRmDialog = { showOneRmDialog = true },
-                onOpenTmEditor = { showTmEditor = true },
+            ProgramPinnedTabs(
+                visible = tabsPinned,
+                options = tabOptions,
+                selectedIndex = tabIndex,
+                onSelect = selectTab,
+                topOffset = ProgramPinnedTopOffset,
             )
         }
-        }
+        SnackbarHost(
+            hostState = snackbarHostState,
+            modifier = Modifier.align(Alignment.BottomCenter).navigationBarsPadding(),
+        ) { KpknSnackbar(it) }
     }
 
+    if (showVolumeSheet) {
+        VolumeCalibrationSheet(
+            currentMode = p.mode,
+            onDismiss = { showVolumeSheet = false },
+            onSave = { result ->
+                viewModel.updateProgram(
+                    p.copy(
+                        mode = result.mode,
+                        volumeSystem = com.example.kpkn.data.models.VolumeSystem.KPNK,
+                        athleteProfileScore = result.score,
+                        volumeRecommendations = result.recommendations,
+                    ),
+                )
+                showVolumeSheet = false
+            },
+        )
+    }
+    if (showPlanSheet) {
+        ProgramPlanSheet(summary = planSummary, onDismiss = { showPlanSheet = false })
+    }
+    if (showMoreMenu) {
+        ProgramMoreMenu(
+            items = listOf(
+                ProgramMenuItem(label = "Editar programa", onClick = openEdit),
+                ProgramMenuItem(label = "Historial", onClick = { viewModel.setStructureSubTab(StructureSubTab.MACROCICLO) }),
+            ),
+            onDismiss = { showMoreMenu = false },
+        )
+    }
+    if (showEditSheet) {
+        val draft = editDraft ?: programEditDraftOf(p)
+        ProgramEditSheet(
+            program = p,
+            draft = draft,
+            onDraftChange = { editDraft = it },
+            onSave = {
+                viewModel.updateProgram(
+                    p.copy(name = draft.trimmedName, description = draft.trimmedDescription, coverImage = draft.cover),
+                )
+                showEditSheet = false
+            },
+            onDismiss = { showEditSheet = false },
+        )
+    }
     LaunchedEffect(p.id, p.loops, p.macrocycles) {
         if (p.isSimpleTemporalProgram && p.loops.isNotEmpty()) {
             val materialized = LoopEngine.materializeLoopWeeks(p)
@@ -343,66 +564,6 @@ fun ProgramDetailScreen(
     }
 }
 
-@Composable
-private fun CompactStructureSubTabs(
-    structureSubTab: StructureSubTab,
-    onStructureSubTabChange: (StructureSubTab) -> Unit,
-) {
-    val items = listOf(
-        "Semana" to StructureSubTab.SEMANA,
-        "Estructura" to StructureSubTab.MACROCICLO,
-        "Volumen" to StructureSubTab.VOLUMEN,
-    )
-
-    Surface(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 10.dp)
-            .border(
-                width = 1.dp,
-                brush = Brush.horizontalGradient(
-                    listOf(
-                        Color.White.copy(alpha = 0.38f),
-                        MaterialTheme.colorScheme.primary.copy(alpha = 0.22f),
-                        Color.White.copy(alpha = 0.12f),
-                    )
-                ),
-                shape = RoundedCornerShape(18.dp),
-            ),
-        shape = RoundedCornerShape(18.dp),
-        color = MaterialTheme.colorScheme.surface.copy(alpha = 0.58f),
-        tonalElevation = 6.dp,
-    ) {
-        Row(
-            modifier = Modifier.padding(4.dp),
-            horizontalArrangement = Arrangement.spacedBy(6.dp),
-        ) {
-            items.forEach { (label, value) ->
-                val selected = structureSubTab == value
-                Surface(
-                    modifier = Modifier
-                        .weight(1f)
-                        .clip(RoundedCornerShape(14.dp))
-                        .then(if (value == StructureSubTab.MACROCICLO) Modifier.tourAnchor(TourAnchors.TRAINING_ESTRUCTURA) else Modifier)
-                        .clickable { onStructureSubTabChange(value) },
-                    shape = RoundedCornerShape(14.dp),
-                    color = if (selected) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.74f) else Color.White.copy(alpha = 0.05f),
-                ) {
-                    Text(
-                        text = label,
-                        modifier = Modifier.padding(vertical = 9.dp),
-                        style = MaterialTheme.typography.labelSmall,
-                        fontWeight = if (selected) FontWeight.Black else FontWeight.SemiBold,
-                        color = if (selected) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant,
-                        textAlign = TextAlign.Center,
-                    )
-                }
-            }
-        }
-    }
-}
-
-
 // ─── Training Panel ─────────────────────────────────────────────────────────
 
 @Composable
@@ -490,18 +651,16 @@ private fun TrainingPanel(
         addSessionForWeek(weekId, preferredDayOfWeek)
     }
 
-    // Edge case: empty program
-    if (roadmapBlocks.isEmpty()) {
-        EmptyProgramState(onAddStructure = {
-            viewModel.setStructureSubTab(StructureSubTab.MACROCICLO)
-        })
+    // Sin bloques, Semana no tiene nada que enseñar: la salida es crear el primer bloque en Estructura (no se queda vacía).
+    if (roadmapBlocks.isEmpty() && structureSubTab == StructureSubTab.SEMANA) {
+        ProgramEmptyStructure(onAddFirstBlock = { viewModel.setStructureSubTab(StructureSubTab.MACROCICLO) })
         return
     }
 
     Column {
         Spacer(modifier = Modifier.height(4.dp))
 
-        if (structureSubTab != StructureSubTab.VOLUMEN) {
+        if (structureSubTab != StructureSubTab.VOLUMEN && roadmapBlocks.isNotEmpty()) {
             BlockRoadmap(
                 roadmapBlocks = roadmapBlocks,
                 currentWeeks = currentWeeks,
@@ -1259,33 +1418,3 @@ private fun chooseSessionCreationDay(
     val orderedDays = (normalizedStart..7).toList() + (1 until normalizedStart).toList()
     return orderedDays.firstOrNull { it !in occupiedDays } ?: normalizedPreferred
 }
-
-// ─── Empty States ───────────────────────────────────────────────────────────
-
-@Composable
-private fun EmptyProgramState(onAddStructure: () -> Unit) {
-    Card(
-        modifier = Modifier.fillMaxWidth().padding(16.dp),
-        shape = MaterialTheme.shapes.extraLarge,
-    ) {
-        Column(
-            modifier = Modifier.padding(32.dp).fillMaxWidth(),
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
-            Text("\uD83D\uDCCB", fontSize = 40.sp)
-            Spacer(modifier = Modifier.height(12.dp))
-            Text("Programa vacío", fontSize = 16.sp, fontWeight = FontWeight.Black)
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(
-                "Agrega estructura para comenzar",
-                fontSize = 11.sp,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-            Spacer(modifier = Modifier.height(16.dp))
-            Button(onClick = onAddStructure) {
-                Text("Agregar estructura", fontWeight = FontWeight.Bold)
-            }
-        }
-    }
-}
-

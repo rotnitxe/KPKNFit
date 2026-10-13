@@ -22,6 +22,7 @@ import com.example.kpkn.data.models.ProgramCalendarizationMode
 import com.example.kpkn.data.models.ProgramStructure
 import com.example.kpkn.data.models.ProgramWeek
 import com.example.kpkn.data.models.ProgramStatus
+import com.example.kpkn.data.models.TodaySessionItem
 import com.example.kpkn.data.models.PendingProgramActionType
 import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.models.SimpleProgramKind
@@ -48,6 +49,9 @@ import com.example.kpkn.domain.training.AppClock
 import com.example.kpkn.domain.training.IdProvider
 import com.example.kpkn.domain.training.SystemAppClock
 import com.example.kpkn.domain.training.UuidIdProvider
+import com.example.kpkn.domain.training.HomeProgramLine
+import com.example.kpkn.domain.training.HomeSessionResolver
+import com.example.kpkn.domain.training.HomeWeekResolver
 import com.example.kpkn.domain.training.ProgramCalendarEngine
 import com.example.kpkn.domain.training.ProgramProgressEngine
 import com.example.kpkn.domain.training.RoadmapBlock
@@ -74,6 +78,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
@@ -2430,6 +2435,47 @@ class ProgramDetailViewModel(
     }
 
     // ─── Factory ──────────────────────────────────────────────────────────
+
+    // ─── Cabecera de Program Detail (P1) ──────────────────────────────────
+    // Campos nuevos: la cabecera lee la misma sesión de hoy y la misma línea «Semana N de M» que Home.
+
+    /** true cuando el repositorio ya leyó sus programas: así se distingue «cargando» de «no existe». */
+    val programsReady: StateFlow<Boolean> = repository.isReady
+
+    /** Sesiones de hoy de este programa, solo si está activo o pausado: las resuelve Home con el mismo motor. */
+    private val headerSessions: StateFlow<List<TodaySessionItem>> = combine(
+        program,
+        activeProgramState,
+        repository.history,
+        repository.ongoingWorkout,
+    ) { p, active, history, ongoing ->
+        if (p == null || active?.programId != p.id) return@combine emptyList()
+        val today = appClock.today(java.time.ZoneId.systemDefault())
+        HomeSessionResolver.resolveTodaySessions(
+            program = p,
+            active = active,
+            currentDayOfWeek = today.dayOfWeek.value,
+            history = history,
+            ongoing = ongoing,
+            today = today,
+        )
+    }
+        .distinctUntilChanged()
+        .flowOn(kotlinx.coroutines.Dispatchers.Default)
+        .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
+
+    /** La sesión que toca ahora: la que está en curso o la primera de hoy por hacer. Null si hoy no toca ninguna. */
+    val headerPrimarySession: StateFlow<TodaySessionItem?> = headerSessions
+        .map { HomeSessionResolver.selectPrimarySession(it) }
+        .distinctUntilChanged()
+        .stateIn(viewModelScope, SharingStarted.Lazily, null)
+
+    /** La línea del programa para la cabecera («Semana N de M» y la fase), con el mismo cálculo que Home. */
+    val headerProgramLine: StateFlow<HomeProgramLine?> = combine(program, headerSessions) { p, sessions ->
+        p?.let { HomeWeekResolver.programLine(it, sessions, appClock.today(java.time.ZoneId.systemDefault())) }
+    }
+        .distinctUntilChanged()
+        .stateIn(viewModelScope, SharingStarted.Lazily, null)
 
     companion object {
         private const val LOG_TAG = "ProgramDetailVM"
