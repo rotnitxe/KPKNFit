@@ -62,6 +62,21 @@ Cuándo sale cada paso condicional:
 | 23 | Revisión en carrusel | `SetupReviewStep.kt` con `ui/components/PagerDots.kt`; botón «Activar y entrar a KPKN» |
 | 24 | Recorrido de la app | motor `ui/tour/` (F1) y contenido `ui/tour/TourScripts.kt` (F2): `tour-home`, `tour-training`, `tour-first-workout`, `tour-nutrition`, `tour-body`, `tour-profile`; «Repetir el recorrido» en Ajustes |
 
+## 2-bis. Ola K: correcciones casi finales (2026-10-12/13)
+Los 12 puntos que pidió el usuario tras la Pre Release 9. Briefs en `docs/wizard-v3/briefs/K*.md`.
+
+| Paquete | Qué cambió |
+|---|---|
+| K1 | Bíceps y tríceps pasan a ser una sola prioridad, «Brazos», que da hasta 2 puntos por sesión (tope total de 6). Hay dibujos nuevos de brazo, antebrazo y espalda, y la cuadrícula queda en 3+2+3+2. |
+| K2 | Las variantes principales salen como un mosaico de patrones que se despliega al tocarlo: 2 × 2 en Powerbuilding y 1 × 2 en Powerlifting. |
+| K3a / K3b | Motor de portadas `CoverStudio` con 10 estilos y 3 paletas, e identidad propia para las 77 portadas (47 del catálogo y 30 a medida). Expone `CoverStudioArt` y `coverIdentityFor`, que también usa Home. |
+| K4 | Los ejercicios de cada día van sin miniatura. Al tocarlos se abre su ficha, solo con datos del catálogo: imagen o «Sin imagen», descripción, músculos y articulaciones. |
+| K5 | El peso objetivo se guarda al soltar la regla (el check ya avanza). Los pesajes son visuales, con % de grasa y de músculo, y hay «Omitir» en el dock. |
+| K6 | La introducción de RINGS es un overlay animado en tres actos: umbral, los tres anillos con leyenda, y «Pruébalo». El paso sigue en la ruta. |
+| K7 | La intensidad se elige con un deslizador de fuego que crece hacia «Muy dura». El ajuste manual de músculos son fichas con anillo que abren su deslizador. |
+| K8 | Las series por grupo van en un mosaico de 3 × 2 con un solo editor fijo. Brazos sale completo en RINGS. |
+| K9 | La revisión pasa a un overlay que motiva («{nombre}, tu KPKN está listo»), con cuatro momentos y la tarjeta animada del programa. Se quitó «Cómo funciona», y los avisos están en lenguaje llano. |
+
 ## 3. Motores nuevos
 
 - **Periodizador** (`domain/training/periodization/`): `RoutinePeriodizer.build(request, base, variant, horizon)` materializa todas las semanas
