@@ -53,6 +53,37 @@ convierte en un `Program` con procedencia «Programa importado».
   del levantamiento de la pestaña; solo se lee el primer ciclo, con la nota «se leyó el primer ciclo».
 - Hojas de instrucciones («Instructions», «Léeme», «How to use»…) y prosa: no dan ejercicios; la prosa se resume en un aviso.
 - Calentamiento («Warm-up», «Calentamiento») y etiquetas de tabla: fuera.
+- Día repetido sin semanas (H6a): si una hoja no tiene etiquetas de semana y una etiqueta de día vuelve a salir («DAY 1» tras «DAY 6»),
+  empieza una semana nueva. Con semanas en la hoja, esta regla no se aplica.
+- Calculadoras por semanas en columnas (H6c, `WeekBandBlocks`): bloques «N @ | carga | x R» bajo filas de semanas («Week 1:»,
+  «Weeks 1 & 2»).
+  - Cada fila es un día.
+  - El levantamiento sale del título de la hoja; si no se reconoce, «Levantamiento principal» con una nota.
+  - Unidad por la pista de redondeo («Round to 5» = lb, «2.5» = kg).
+  - «Option 2» y siguientes se cortan, con una nota.
+  - Las cargas salen del 1RM de ejemplo de la hoja, con la nota «las cargas salen de un 1RM de 200; cámbialas si el tuyo es otro.».
+  - «x failure», «x AMRAP» o «x max» sin número: esa fila se omite con aviso.
+
+**Columnas de la tabla (H6a)**
+- **Esquema en una columna** («Sets x Reps», «Set Scheme», «Reps / Scheme», «Target», «Rx», «Prescription»…; lista cerrada):
+  - «3 x 5» → 3 × 5;
+  - «3-4 x 6-8» → 3 × 6-8 y la nota «Series: 3-4.»;
+  - lo que va entre paréntesis pasa a nota.
+- **Columnas de registro** («Reps Done», «Weight Used», «Fatigue %», «Est 1RM», «Log», «Done»…): no tienen papel. «Reps Done» ya no tapa a
+  «Reps».
+- **«Set n», «Set #», «Set Type» y «Top Set»:** sin papel. «Set» en singular queda sin papel si en la cabecera también hay «Sets». «Lift» y
+  «Levantamiento», como cabecera exacta, son el nombre.
+- **Cargas por serie:** en una tabla sin columna de series ni de esquema, si todas las cifras de las columnas «Set n» son ≥ 20, cuenta
+  como series = número de celdas y carga = la mayor, con la nota «Cargas por serie: …».
+- **«S · X · R» seguidas en la cabecera** (series, una «x» sin papel y repeticiones). Un día a la izquierda del nombre («MONDAY») abre ese
+  día.
+- **Listas en una celda:** «(load × reps)», donde «95×3, 95×3» = 2 × 3 con 95, y «(load x reps x sets)», donde «105x1x5» = 5 × 1 con 105.
+- **Una fila por serie** (columna de índice «Set #», «Set n» o «Set», que sube de uno en uno):
+  - las filas seguidas del mismo ejercicio forman UNO: series = filas, repeticiones iguales o en rango, y la carga mayor con la nota de
+    cargas por serie;
+  - el calentamiento no cuenta, con la nota «Se omitieron N series de calentamiento.».
+- **Ojo:** el camino de «sesiones en columnas» sigue usando los papeles de columna anteriores (`legacyColumnRole`). Con los nuevos se
+  rompían hojas que ya iban BIEN.
 
 **Notación**
 - Compacta: «4x8 @80kg», «3×10 RPE8», «5x5 @ 75%», «70%x3x2», «70/3/2».
@@ -93,6 +124,16 @@ ejercicio («Añadir como ejercicio»).
 - **Alias que dicen el movimiento, no solo el material:** «remo sentado (en polea)» es el Remo Gironda, no el remo con barra en polea, que
   se hace de pie. Al añadir alias, comprobar las dos cosas en el catálogo.
 - `ExerciseMatchLexicon` (el del resto de la app) no se tocó.
+- **Nombres en inglés (H6b, `ImportNameNormalizer`):** antes de buscar, el nombre se normaliza.
+  - **Qué se quita:** la notación pegada («Squat 3x5 @80%» → «Squat»).
+  - **Qué se desarrolla:** las abreviaturas («DB», «BB», «KB», «OHP», «RDL», «1 arm»…).
+  - **Qué se unifica:** plurales y compuestos («Pull-ups» = «pull up»).
+  - **Qué se ignora:** las cabeceras que no son nombre.
+  - **Si nada da:** una búsqueda relajada traducida.
+  - **«X / Y»:** se prueban las dos.
+  - **Umbral de sugerencias:** 0,3. Hay guardas para no tomar un material o una variante por otra.
+- **Halterofilia:** «Clean» y «Cargada» a secas son la cargada completa (`squat_clean`); «Snatch» y «Arranque», el arranque completo
+  (`squat_snatch`). «Power clean», «Hang clean» y demás siguen a su variante.
 
 ## 4. Programas que KPKN ya tiene
 
@@ -150,6 +191,18 @@ Resultados (2026-10-12, `feat/wizard-v3` con H5b):
 | Colección del usuario (`01_originales`) | 1057 | 106 | 207 | 149 | 595: PDF, porque la JVM no tiene OCR | 2033 nombres; 62 plantillas |
 | PDF por OCR (filas del Galaxy Z Flip5, banco JVM) | 35 (483 páginas) | 9 | 13 | 13 | 0 fallos | 51,0 % de los nombres; 173 ms por página en el teléfono (mediana) |
 
+Resultados tras la ola H6 (2026-10-13, `feat/wizard-v3` con H6a, H6b y H6c, frente a H5b):
+
+| Corpus | Archivos | BIEN | POBRE | NADA | Empeoran | Nombres reconocidos |
+|---|---|---|---|---|---|---|
+| Hojas de la comunidad | 126 | 41 (22) | 52 (61) | 33 (43) | 0 | 50,5 % de media por archivo (36,0 %) |
+| Colección del usuario | 1057 | 182 (106) | 170 (207) | 110 (149) | 0 | 55,8 % (39,7 %); 62 plantillas |
+| PDF por OCR (filas del teléfono) | 35 | 9 | 13 | 13 | 0 | 239 de 441 nombres, 54,2 % (51,0 %) |
+
+- **Pérdidas de ejercicios:** solo 3 en la colección, todas a propósito. Dos hojas de registro de Gript juntan sus 3 filas de serie en un
+  ejercicio, y askold ya no lee como ejercicio la fila de cabecera «Week · Day · Lift · Set 1…».
+- **Ningún archivo pasa a NADA.** Esta regla se exigió para integrar H6a.
+
 - Los dos PDF de Vivifrail pasan de POBRE a NADA con H5b. Sus 6 «ejercicios» eran palabras sueltas de frases de instrucciones («Realiza»,
   «Haz»): no leer nada es más honesto.
 
@@ -179,4 +232,11 @@ Evolución en el teléfono:
 - **Pirámide sin series que no va en un solo sentido** («10-8-6-15»): no se lee como pirámide. Con series («4x 10-8-6-15») sí.
 - **Errores del OCR dentro de una palabra** («Fondoso» en lugar de «Fondos o»): no se adivinan.
 - **Dos opciones con una primera muy genérica** («Remo o jalón», «Sentadilla o prensa»): se usa la configuración por defecto de la primera.
+- **RTS (106 de la colección):** la hoja «Main» la toma el camino de sesiones, que trata «Top Set» y «Set n» como series. La regla de
+  carga por serie solo vale en tablas planas, así que sigue en NADA.
+- **russian_squat:** la cabecera «(Weight x Reps x Sets)» cae en otra columna que sus filas y no se empareja.
+- **PHAT del corpus (097):** la celda de carga trae «70%» (orden de columnas distinto), así que sale como porcentaje sin kg.
+- **Swords (122):** las filas «Warm-up» de la columna «Set» salen como series.
+- **Calculadoras de LiftVault con el levantamiento sin nombrar en el título:** 8 de 18 quedan en «Levantamiento principal» y la persona
+  lo elige en la revisión.
 - **El nombre del catálogo no dice el material en la vista previa** («Aperturas Planas» puede ser en polea): se ve al abrir el ejercicio.
