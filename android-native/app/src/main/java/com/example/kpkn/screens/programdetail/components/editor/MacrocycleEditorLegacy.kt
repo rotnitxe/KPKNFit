@@ -107,7 +107,16 @@ import com.example.kpkn.screens.programdetail.components.editor.MesoDialog
 import com.example.kpkn.screens.programdetail.components.editor.WeekDialog
 import com.example.kpkn.screens.programdetail.components.editor.WeekMetadataEditorDialog
 import com.example.kpkn.screens.programdetail.dayLabelShort
+import com.example.kpkn.screens.programdetail.formatDaysUntil
 import com.example.kpkn.screens.programdetail.parseIsoDateExact
+import com.example.kpkn.screens.programdetail.programCurrentWeekId
+import com.example.kpkn.screens.programdetail.programTrainingWeekdays
+import com.example.kpkn.screens.programdetail.design.programProgressLabel
+import com.example.kpkn.screens.programdetail.design.structure.ProgramCalendarModule
+import com.example.kpkn.screens.programdetail.design.structure.ProgramStructureNotice
+import com.example.kpkn.screens.programdetail.design.structure.ProgramToolsKind
+import com.example.kpkn.screens.programdetail.design.structure.ProgramToolsModule
+import com.example.kpkn.ui.design.kpknEntrance
 
 @OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
 @Composable
@@ -184,6 +193,8 @@ fun MacrocycleEditorLegacy(
     var overwriteExisting by remember { mutableStateOf(true) }
     var showSnapshots by remember { mutableStateOf(false) }
     var pendingCompetitionKeyDateDelete by remember { mutableStateOf<String?>(null) }
+    // La baldosa «Fechas clave» abre la hoja del calendario con la lista de fechas clave a la vista (P3a).
+    var keyDatesFocusList by remember { mutableStateOf(false) }
 
     val editingTimelineStartDate = macrocycleTimelineStartDate ?: localEditingTimelineStartDate
     val editingManualEndDate = macrocycleManualEndDate ?: localEditingManualEndDate
@@ -265,6 +276,30 @@ fun MacrocycleEditorLegacy(
     val stats = remember(program) { program.toProgramStats() }
     val advancedRoadmap = remember(program) { buildAdvancedRoadmap(program) }
     val simpleCalendarizationHazeState = remember { HazeState() }
+    // Una sola lectura del reloj para toda la pestaña Estructura: las fechas relativas y la hoja de render dependen de ella (P3a).
+    val today = remember { LocalDate.now() }
+
+    // Qué herramientas y qué calendario muestra cada tipo de programa (P3a).
+    val toolsKind = when {
+        !temporalInsight.isSimple -> ProgramToolsKind.BLOCKS
+        program.simpleProgramKind == SimpleProgramKind.CALENDARIZED -> ProgramToolsKind.CALENDARIZED
+        else -> ProgramToolsKind.CYCLIC
+    }
+    val temporalIssues = remember(program) { program.validateTemporalStructure() }
+    // Lo que el módulo de calendario muestra sale de lo GUARDADO, no de los borradores de las hojas.
+    val savedCompetition = program.keyDates.firstOrNull { it.type == KeyDateType.COMPETITION }
+    val savedPreview = remember(program, today) {
+        buildCalendarPreview(
+            program = program,
+            timelineStartDate = program.timelineStartDate.orEmpty(),
+            competitionDate = savedCompetition?.let { it.eventDate ?: it.startDate }.orEmpty(),
+            manualEndDate = program.calendarization?.manualEndDate.orEmpty(),
+            today = today,
+        )
+    }
+    val simpleProjection = remember(program) { ProgramCalendarEngine.project(program) }
+    val currentWeekId = remember(program) { programCurrentWeekId(program) }
+    val trainingDays = remember(program, currentWeekId) { programTrainingWeekdays(program, currentWeekId) }
 
     Column(
         modifier = modifier
@@ -273,46 +308,72 @@ fun MacrocycleEditorLegacy(
             .padding(horizontal = 16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        MacrocycleToolbar(
-            insight = temporalInsight,
-            stats = stats,
-            keyDatesCount = program.keyDates.size,
-            hasTimelineStartDate = !program.timelineStartDate.isNullOrBlank(),
-            showRoadmap = showAdvancedRoadmap,
-            isSimpleCalendarized = program.simpleProgramKind == SimpleProgramKind.CALENDARIZED,
-            snapshotCount = programSnapshots.size,
-            onToggleRoadmap = { setRoadmapExpanded(!showAdvancedRoadmap) },
-            onOpenKeyDates = { setKeyDatesSheetOpen(true) },
-            onOpenLibrary = { setLibrarySheetOpen(true) },
-            onOpenLoops = { setLoopsSheetOpen(true) },
-            onOpenSimpleCalendarization = { onShowSimpleCalendarizationSheetChange(true) },
-            onOpenSnapshots = {
+        ProgramToolsModule(
+            kind = toolsKind,
+            blockCount = stats.blocks,
+            weekCount = stats.weeks,
+            sessionCount = stats.sessions,
+            keyDateCount = program.keyDates.count { it.type != KeyDateType.COMPETITION },
+            historyCount = programSnapshots.size,
+            onCalendar = {
+                keyDatesFocusList = false
+                setKeyDatesSheetOpen(true)
+            },
+            onKeyDates = {
+                keyDatesFocusList = true
+                setKeyDatesSheetOpen(true)
+            },
+            onRoute = { setRoadmapExpanded(!showAdvancedRoadmap) },
+            onCycles = { setLoopsSheetOpen(true) },
+            onTemplates = { setLibrarySheetOpen(true) },
+            onHistory = {
                 onRefreshProgramSnapshots()
                 showSnapshots = true
             },
+            onCalendarize = { onShowSimpleCalendarizationSheetChange(true) },
+            modifier = Modifier.kpknEntrance("programdetail.estructura", 0),
         )
-        val temporalIssues = remember(program) { program.validateTemporalStructure() }
-        if (temporalIssues.isNotEmpty()) {
-            Surface(
-                color = MaterialTheme.colorScheme.errorContainer,
-                shape = RoundedCornerShape(12.dp),
-            ) {
-                Column(modifier = Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                    Text(
-                        "Revisa la estructura temporal",
-                        fontWeight = FontWeight.Black,
-                        fontSize = 12.sp,
-                        color = MaterialTheme.colorScheme.onErrorContainer,
-                    )
-                    temporalIssues.take(3).forEach { issue ->
-                        Text(
-                            issue.message,
-                            fontSize = 11.sp,
-                            color = MaterialTheme.colorScheme.onErrorContainer,
-                        )
-                    }
+        ProgramCalendarModule(
+            kind = toolsKind,
+            today = today,
+            startDate = if (toolsKind == ProgramToolsKind.BLOCKS) savedPreview.startDate else simpleProjection.startDate,
+            endDate = if (toolsKind == ProgramToolsKind.BLOCKS) {
+                savedPreview.manualEndDate ?: savedPreview.programEnd
+            } else {
+                simpleProjection.effectiveEndDate
+            },
+            endIsEstimate = if (toolsKind == ProgramToolsKind.BLOCKS) {
+                savedPreview.manualEndDate == null
+            } else {
+                simpleProjection.manualEndDate == null
+            },
+            competitionDate = savedPreview.competitionDate,
+            trainingDays = trainingDays,
+            repeatingWeekLabel = programProgressLabel(
+                weekIndex = null,
+                weekCount = null,
+                phase = null,
+                repeatingWeek = true,
+                cycle = program.runState?.cycleNumber,
+            ) ?: "Semana que se repite",
+            durationWeeks = simpleProjection.weeks.size,
+            messages = if (toolsKind == ProgramToolsKind.BLOCKS) savedPreview.messages else emptyList(),
+            onEdit = {
+                if (toolsKind == ProgramToolsKind.BLOCKS) {
+                    keyDatesFocusList = false
+                    setKeyDatesSheetOpen(true)
+                } else {
+                    onShowSimpleCalendarizationSheetChange(true)
                 }
-            }
+            },
+            onCalendarize = { onShowSimpleCalendarizationSheetChange(true) },
+            modifier = Modifier.kpknEntrance("programdetail.estructura", 1),
+        )
+        if (temporalIssues.isNotEmpty()) {
+            ProgramStructureNotice(
+                messages = temporalIssues.map { it.message },
+                modifier = Modifier.kpknEntrance("programdetail.estructura", 2),
+            )
         }
         if (!temporalInsight.isSimple && showAdvancedRoadmap) {
             MacrocycleRoadmapSection(
@@ -482,6 +543,8 @@ fun MacrocycleEditorLegacy(
     editingKeyDate?.let { keyDate ->
         KeyDateDialog(
             keyDate = keyDate,
+            isNew = program.keyDates.none { it.id == keyDate.id },
+            today = today,
             onSave = { updatedKeyDate ->
                 var updated = ProgramKeyDateEngine.upsertKeyDate(program, updatedKeyDate)
                 if (updatedKeyDate.type == KeyDateType.COMPETITION) {
@@ -632,6 +695,8 @@ fun MacrocycleEditorLegacy(
     if (!temporalInsight.isSimple && showKeyDatesSheet && editingKeyDate == null) {
         KeyDatesSection(
             program = program,
+            today = today,
+            focusKeyDates = keyDatesFocusList,
             timelineStartDate = editingTimelineStartDate,
             competitionDate = editingCompetitionDate,
             manualEndDate = editingManualEndDate,
@@ -854,6 +919,7 @@ fun MacrocycleEditorLegacy(
     if (temporalInsight.isSimple && showSimpleCalendarizationSheet) {
         CalendarSection(
             program = program,
+            today = today,
             onDismiss = { onShowSimpleCalendarizationSheetChange(false) },
             startDate = calendarizationStartDate,
             onStartDateChange = onCalendarizationStartDateChange,
@@ -1302,7 +1368,7 @@ internal fun LegacyKeyDatesManagementSheet(
     onDismiss: () -> Unit,
 ) {
     val preview = remember(program, timelineStartDate, competitionDate, manualEndDate) {
-        buildCalendarPreview(program, timelineStartDate, competitionDate, manualEndDate)
+        buildCalendarPreview(program, timelineStartDate, competitionDate, manualEndDate, LocalDate.now())
     }
     val canSave = timelineStartDate.isBlank() || parseIsoDateExact(timelineStartDate) != null
     val canSaveCompetition = competitionDate.isBlank() || parseIsoDateExact(competitionDate) != null
@@ -2288,7 +2354,7 @@ internal fun LegacyWeekMetadataDialog(
 
 internal data class ProgramStats(val weeks: Int, val sessions: Int, val mesos: Int, val blocks: Int)
 
-private data class CalendarPreview(
+internal data class CalendarPreview(
     val startDate: LocalDate?,
     val programEnd: LocalDate?,
     val manualEndDate: LocalDate?,
@@ -2300,7 +2366,7 @@ private data class CalendarPreview(
     val messages: List<String>,
 )
 
-private data class BlockStartPreview(
+internal data class BlockStartPreview(
     val blockName: String,
     val startDate: LocalDate,
     val endDate: LocalDate,
@@ -2750,11 +2816,16 @@ private fun buildKeyDateMark(
     )
 }
 
-private fun buildCalendarPreview(
+/**
+ * Vista previa del calendario: los bloques proyectados desde [timelineStartDate], la semana de la competición y los avisos del motor.
+ * [today] cuenta la cuenta atrás; lo recibe de la pantalla para que la vista sea determinista.
+ */
+internal fun buildCalendarPreview(
     program: Program,
     timelineStartDate: String,
     competitionDate: String,
     manualEndDate: String,
+    today: LocalDate,
 ): CalendarPreview {
     val start = parseIsoDateExact(timelineStartDate)
     val competition = parseIsoDateExact(competitionDate)
@@ -2786,7 +2857,7 @@ private fun buildCalendarPreview(
     }
 
     val competitionWeekRange = competition?.let { findProgramWeekRange(projectedProgram, it) }
-    val daysUntilCompetition = competition?.let { ChronoUnit.DAYS.between(LocalDate.now(), it) }
+    val daysUntilCompetition = competition?.let { ChronoUnit.DAYS.between(today, it) }
 
     if (competition != null && start == null) {
         messages += "Selecciona inicio estimado para asignar la competición a una semana del programa."
@@ -2847,18 +2918,6 @@ private fun AdvancedRoadmap.competitionSlot(): AdvancedWeekSlot? {
 
 private fun formatFullDate(date: LocalDate): String {
     return date.format(DateTimeFormatter.ofPattern("d MMM yyyy", Locale.forLanguageTag("es-CL")))
-}
-
-private fun formatDaysUntil(days: Long): String = when {
-    days < 0 -> "hace ${kotlin.math.abs(days)} días"
-    days == 0L -> "hoy"
-    days == 1L -> "1 día"
-    days < 7 -> "$days días"
-    else -> {
-        val weeks = days / 7
-        val rest = days % 7
-        if (rest == 0L) "$weeks semanas" else "$weeks semanas y $rest días"
-    }
 }
 
 private fun buildKeyDateTrack(

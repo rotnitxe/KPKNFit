@@ -375,6 +375,57 @@ object KpknLineIcons {
         )
     }
 
+    /** Ruta: tres nodos (círculos de radio 2,25) unidos por una línea quebrada que entra y sale por el borde de cada uno. */
+    val Route: ImageVector by lazy {
+        icono(
+            "KpknLine.Route",
+            listOf(
+                "M2.75 18a2.25 2.25 0 1 0 4.5 0 2.25 2.25 0 1 0-4.5 0",
+                "M9.75 7a2.25 2.25 0 1 0 4.5 0 2.25 2.25 0 1 0-4.5 0",
+                "M16.75 15a2.25 2.25 0 1 0 4.5 0 2.25 2.25 0 1 0-4.5 0",
+                "M6.21 16.1L10.79 8.9",
+                "M13.48 8.69L17.52 13.31",
+            ),
+        )
+    }
+
+    /** Plantillas o capas: rombo aplastado completo encima y, debajo, solo la mitad inferior de otro. */
+    val Layers: ImageVector by lazy {
+        icono(
+            "KpknLine.Layers",
+            listOf(
+                "M12 5.5L20.5 9L12 12.5L3.5 9Z",
+                "M3.5 15L12 18.5L20.5 15",
+            ),
+        )
+    }
+
+    /** Historial: reloj con agujas a las 12 y a las 3 y una flecha en sentido antihorario en su arco superior izquierdo. */
+    val History: ImageVector by lazy {
+        icono(
+            "KpknLine.History",
+            listOf(
+                "M5.07 8A8 8 0 1 0 8 5.07",
+                "M10.71 5.8L8 5.07L8.72 2.37",
+                "M12 7.75V12h3.5",
+            ),
+        )
+    }
+
+    /** Papelera: tapa con asa, cuerpo con el fondo redondeado y dos líneas verticales dentro. */
+    val Trash: ImageVector by lazy {
+        icono(
+            "KpknLine.Trash",
+            listOf(
+                "M4.25 6.75h15.5",
+                "M9.25 6.75V5a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1v1.75",
+                "M6.25 6.75l.85 11.35a1.5 1.5 0 0 0 1.5 1.4h6.8a1.5 1.5 0 0 0 1.5-1.4l.85-11.35",
+                "M10 10.75v6",
+                "M14 10.75v6",
+            ),
+        )
+    }
+
     /** Trazado del triángulo de `Play` y `PlayFilled`. */
     private const val TRIANGULO_PLAY =
         "M8.25 5.6v12.8a.9.9 0 0 0 1.37.77l10.2-6.4a.9.9 0 0 0 0-1.54l-10.2-6.4a.9.9 0 0 0-1.37.77z"
