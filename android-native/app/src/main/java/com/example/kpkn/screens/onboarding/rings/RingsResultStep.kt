@@ -1,11 +1,22 @@
 package com.example.kpkn.screens.onboarding.rings
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
@@ -14,6 +25,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -22,12 +34,19 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.example.kpkn.data.models.RecoveryChannelId
 import com.example.kpkn.domain.onboarding.RingsCoverage
@@ -42,6 +61,8 @@ import com.example.kpkn.screens.onboarding.SetupWizardViewModel
 import com.example.kpkn.screens.onboarding.design.WizardColors
 import com.example.kpkn.screens.onboarding.design.WizardSpacing
 import com.example.kpkn.screens.onboarding.design.WizardTypography
+import com.example.kpkn.screens.onboarding.design.entreno.SymbolPalette
+import com.example.kpkn.screens.onboarding.design.wizardReducedMotion
 import com.example.kpkn.ui.components.rings.KpknRingColors
 import com.example.kpkn.ui.components.rings.KpknTowerRings
 import com.example.kpkn.ui.components.rings.RingChannel
@@ -65,9 +86,27 @@ internal val RINGS_MUSCLE_GROUPS: List<Pair<String, List<String>>> = listOf(
 )
 
 /**
+ * Mapa de fichas: cuatro bandas. Pecho y Hombros, y Brazos y Core, comparten banda a mitad y mitad; Espalda y Piernas ocupan la
+ * banda entera. Es solo la disposición: los grupos y sus pilares son los de [RINGS_MUSCLE_GROUPS].
+ */
+private val RINGS_MUSCLE_BANDS: List<List<Pair<String, List<String>>>> = listOf(
+    listOf("Pecho", "Hombros"),
+    listOf("Espalda"),
+    listOf("Brazos", "Core"),
+    listOf("Piernas"),
+).map { names -> names.map { name -> RINGS_MUSCLE_GROUPS.first { it.first == name } } }
+
+/** Diámetro del aro de una ficha y separación entre los dos grupos de una banda. */
+private val MUSCLE_RING_SIZE = 40.dp
+private val MUSCLE_GROUP_GAP = 16.dp
+
+/** Opacidad de un valor que es solo estimación (no un dato de la persona). */
+private const val ESTIMATE_ALPHA = 0.55f
+
+/**
  * Paso `RINGS_RESULT` («Tus RINGS»): la torre con los mismos valores que Inicio, una línea por anillo con de dónde sale, los
- * deslizadores de Energía y Columna y, desplegable, un deslizador por músculo. Sustituye a las filas con botones de edición:
- * la lista de pasos de arriba ya permite volver.
+ * deslizadores de Energía y Columna y, desplegable, un mapa de fichas por músculo: tocar una ficha abre su deslizador. Sustituye a las
+ * filas con botones de edición: la lista de pasos de arriba ya permite volver.
  */
 @Composable
 internal fun RingsResultStep(state: SetupWizardState, vm: SetupWizardViewModel, modifier: Modifier = Modifier) {
@@ -81,6 +120,7 @@ internal fun RingsResultStep(state: SetupWizardState, vm: SetupWizardViewModel, 
         onCommitChannel = { channel, value -> vm.setRingsManual(channel, value) },
         onCommitMuscle = { pillar, value -> vm.setMuscleManual(pillar, value) },
         onResetMuscles = { vm.resetMuscleManual() },
+        onResetMuscle = { pillar -> vm.resetMuscleManual(pillar) },
         onRetry = { vm.retryFailedOperation(SetupRetryOperation.RINGS_PREVIEW) },
         modifier = modifier,
     )
@@ -101,6 +141,7 @@ internal fun RingsResultBody(
     onCommitChannel: (String, Int) -> Unit,
     onCommitMuscle: (String, Int) -> Unit,
     onResetMuscles: () -> Unit,
+    onResetMuscle: (String) -> Unit,
     onRetry: () -> Unit,
     modifier: Modifier = Modifier,
     initiallyExpanded: Boolean = false,
@@ -110,7 +151,11 @@ internal fun RingsResultBody(
     // Arrastres en curso: la torre y el número siguen al dedo sin tocar el borrador (ni animar la torre).
     var dragEnergy by remember { mutableStateOf<Int?>(null) }
     var dragColumna by remember { mutableStateOf<Int?>(null) }
+    // Músculo en arrastre (pilar y valor): solo puede haber uno, el de la ficha abierta.
+    var dragMuscle by remember { mutableStateOf<Pair<String, Int>?>(null) }
     var expanded by rememberSaveable { mutableStateOf(initiallyExpanded) }
+    // Ficha abierta: solo una a la vez; tocarla otra vez la cierra.
+    var openMuscle by rememberSaveable { mutableStateOf<String?>(null) }
     val preview = ringsTowerValues(coverage)
     val tower = TowerRingValues(
         columna = dragColumna ?: preview.columna,
@@ -196,23 +241,59 @@ internal fun RingsResultBody(
 
         RingsQuestionDivider()
 
-        MusclesToggle(expanded = expanded, onClick = { expanded = !expanded })
+        MusclesToggle(
+            expanded = expanded,
+            onClick = {
+                expanded = !expanded
+                // Al plegar el mapa se cierra su ficha: al volver a desplegarlo, todo está plegado.
+                if (!expanded) openMuscle = null
+            },
+        )
         if (expanded) {
             Column(
                 modifier = Modifier.fillMaxWidth().testTag("rings-result-muscles"),
                 verticalArrangement = Arrangement.spacedBy(WizardSpacing.sectionGap),
             ) {
-                RINGS_MUSCLE_GROUPS.forEach { (group, pillars) ->
+                RINGS_MUSCLE_BANDS.forEach { band ->
                     Column(verticalArrangement = Arrangement.spacedBy(WizardSpacing.titleGap)) {
-                        Text(text = group, style = WizardTypography.controlLabel, color = WizardColors.textMuted)
-                        pillars.forEach { pillar ->
-                            MuscleAdjustRow(
-                                pillar = pillar,
-                                manual = manualMuscles[pillar],
-                                estimate = muscleEstimates[pillar],
-                                onCommit = { value -> onCommitMuscle(pillar, value) },
-                            )
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(MUSCLE_GROUP_GAP),
+                        ) {
+                            band.forEach { (group, pillars) ->
+                                MuscleGroupChips(
+                                    group = group,
+                                    pillars = pillars,
+                                    // Con otro grupo en la misma banda, cada grupo ocupa media anchura: una ficha por fila.
+                                    stacked = band.size > 1,
+                                    modifier = Modifier.weight(1f),
+                                ) { pillar, chipModifier ->
+                                    MuscleChip(
+                                        pillar = pillar,
+                                        person = manualMuscles[pillar],
+                                        estimate = muscleEstimates[pillar],
+                                        drag = dragMuscle?.takeIf { it.first == pillar }?.second,
+                                        open = openMuscle == pillar,
+                                        onClick = { openMuscle = if (openMuscle == pillar) null else pillar },
+                                        modifier = chipModifier,
+                                    )
+                                }
+                            }
                         }
+                        // El editor de la ficha abierta sale bajo SU banda, a todo el ancho.
+                        MuscleBandEditor(
+                            pillars = band.flatMap { it.second },
+                            openMuscle = openMuscle,
+                            manual = manualMuscles,
+                            estimates = muscleEstimates,
+                            drag = dragMuscle,
+                            onPreview = { pillar, value -> dragMuscle = value?.let { pillar to it } },
+                            onCommit = { pillar, value ->
+                                dragMuscle = null
+                                onCommitMuscle(pillar, value)
+                            },
+                            onReset = onResetMuscle,
+                        )
                     }
                 }
                 Row(
@@ -225,7 +306,7 @@ internal fun RingsResultBody(
                         modifier = Modifier.heightIn(min = WizardSpacing.touchTarget).testTag("rings-result-reset"),
                     ) {
                         Text(
-                            text = "Restablecer",
+                            text = "Restablecer todo",
                             style = WizardTypography.controlLabel,
                             color = if (manualMuscles.isNotEmpty()) WizardColors.text else WizardColors.textFaint,
                         )
@@ -251,26 +332,240 @@ internal fun ringsTowerValues(coverage: RingsCoverage?): TowerRingValues = Tower
     energia = coverage?.system?.score,
 )
 
-/** Un deslizador por pilar: su arrastre en curso vive aquí y no toca el borrador hasta soltar. */
+/**
+ * Un grupo del mapa: su nombre encima y sus fichas en filas. Si [stacked] (comparte banda con otro grupo, a media anchura), una ficha
+ * por fila: así el nombre cabe aunque la letra sea grande. Piernas, con cuatro, en dos filas de dos.
+ */
 @Composable
-private fun MuscleAdjustRow(pillar: String, manual: Int?, estimate: Int?, onCommit: (Int) -> Unit) {
-    var drag by remember(pillar) { mutableStateOf<Int?>(null) }
-    AdjustRow(
-        name = ringsPillarLabel(pillar),
-        accent = KpknRingColors.musculos,
-        tag = "rings-result-muscle-$pillar",
-        person = drag ?: manual,
-        estimate = estimate,
-        onPreview = { drag = it },
-        onCommit = { value ->
-            drag = null
-            onCommit(value)
-        },
-    )
+private fun MuscleGroupChips(
+    group: String,
+    pillars: List<String>,
+    stacked: Boolean,
+    modifier: Modifier = Modifier,
+    chip: @Composable (pillar: String, modifier: Modifier) -> Unit,
+) {
+    val perRow = when {
+        stacked -> 1
+        pillars.size > 3 -> 2
+        else -> pillars.size.coerceAtLeast(1)
+    }
+    Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Text(text = group, style = WizardTypography.caption, color = WizardColors.textMuted)
+        pillars.chunked(perRow).forEach { row ->
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                row.forEach { pillar -> chip(pillar, Modifier.weight(1f)) }
+            }
+        }
+    }
 }
 
 /**
- * Un deslizador con su nombre y su valor. [person] es el dato de la persona (o su arrastre en curso); sin él se muestra la
+ * Ficha de un músculo, sin caja: un aro de 40 dp con su valor y su nombre debajo. Con dato de la persona el aro va entero y lleva un
+ * punto «ajustado»; con solo estimación va atenuado; sin dato ni estimación, aro discontinuo y «—», nunca un 100 % inventado. Tocarla
+ * la abre o la cierra; la abierta se marca con el aro algo más grueso y el nombre en tinta.
+ */
+@Composable
+private fun MuscleChip(
+    pillar: String,
+    person: Int?,
+    estimate: Int?,
+    drag: Int?,
+    open: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val value = drag ?: person ?: estimate
+    val personal = drag != null || person != null
+    val stateText = when {
+        value != null && personal -> "$value %"
+        value != null -> "Estimación $value %"
+        else -> "Sin calibrar"
+    }
+    val density = LocalDensity.current
+    val stroke = with(density) { (if (open) 4.dp else 3.dp).toPx() }
+    val dashPx = with(density) { 3.dp.toPx() }
+    val dash = remember(dashPx) { PathEffect.dashPathEffect(floatArrayOf(dashPx * 1.6f, dashPx * 1.2f)) }
+    Column(
+        modifier = modifier
+            .defaultMinSize(minWidth = WizardSpacing.touchTarget, minHeight = 64.dp)
+            .testTag("rings-result-muscle-chip-$pillar")
+            .semantics { stateDescription = if (open) "$stateText, desplegado" else stateText }
+            .clickable(role = Role.Button, onClick = onClick),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(6.dp),
+    ) {
+        Box(modifier = Modifier.size(MUSCLE_RING_SIZE), contentAlignment = Alignment.Center) {
+            Canvas(Modifier.size(MUSCLE_RING_SIZE)) {
+                drawMuscleRing(value = value, personal = personal, stroke = stroke, dash = dash)
+            }
+            Text(
+                text = value?.toString() ?: "—",
+                style = WizardTypography.caption.copy(fontWeight = FontWeight.SemiBold),
+                color = when {
+                    personal -> WizardColors.text
+                    value != null -> WizardColors.text.copy(alpha = ESTIMATE_ALPHA)
+                    else -> WizardColors.textFaint
+                },
+            )
+        }
+        Text(
+            text = ringsPillarLabel(pillar),
+            style = WizardTypography.caption,
+            color = if (open) WizardColors.text else WizardColors.textMuted,
+            textAlign = TextAlign.Center,
+            maxLines = 2,
+        )
+    }
+}
+
+/** Aro de una ficha: la pista, el arco del valor (atenuado con solo estimación) y, sin dato, un aro discontinuo. */
+private fun DrawScope.drawMuscleRing(value: Int?, personal: Boolean, stroke: Float, dash: PathEffect) {
+    val inset = stroke / 2f
+    val arc = Size(size.width - stroke, size.height - stroke)
+    val topLeft = Offset(inset, inset)
+    if (value == null) {
+        drawArc(WizardColors.textFaint, -90f, 360f, false, topLeft, arc, style = Stroke(width = stroke, pathEffect = dash))
+        return
+    }
+    drawArc(WizardColors.divider, -90f, 360f, false, topLeft, arc, style = Stroke(width = stroke))
+    val alpha = if (personal) 1f else ESTIMATE_ALPHA
+    drawArc(
+        KpknRingColors.musculos.copy(alpha = alpha),
+        -90f,
+        360f * value / 100f,
+        false,
+        topLeft,
+        arc,
+        style = Stroke(width = stroke, cap = StrokeCap.Round),
+    )
+    if (personal) drawCircle(SymbolPalette.ok, 2.dp.toPx(), Offset(size.width - 4.dp.toPx(), 4.dp.toPx()))
+}
+
+/**
+ * El editor de la ficha abierta, bajo su banda: entra en 220 ms y sale en 160 ms (sin animación con movimiento reducido). Se queda con
+ * el último pilar hasta acabar de salir, para que el cierre no se vacíe.
+ */
+@Composable
+private fun MuscleBandEditor(
+    pillars: List<String>,
+    openMuscle: String?,
+    manual: Map<String, Int>,
+    estimates: Map<String, Int>,
+    drag: Pair<String, Int>?,
+    onPreview: (String, Int?) -> Unit,
+    onCommit: (String, Int) -> Unit,
+    onReset: (String) -> Unit,
+) {
+    val reduced = wizardReducedMotion()
+    val here = openMuscle?.takeIf { it in pillars }
+    var keep by remember { mutableStateOf<String?>(null) }
+    LaunchedEffect(here) {
+        if (here != null) keep = here
+    }
+    AnimatedVisibility(
+        visible = here != null,
+        enter = if (reduced) EnterTransition.None else fadeIn(tween(220)) + expandVertically(tween(220)),
+        exit = if (reduced) ExitTransition.None else fadeOut(tween(160)) + shrinkVertically(tween(160)),
+    ) {
+        val pillar = here ?: keep
+        if (pillar != null) {
+            MuscleEditor(
+                pillar = pillar,
+                person = manual[pillar],
+                estimate = estimates[pillar],
+                drag = drag?.takeIf { it.first == pillar }?.second,
+                onPreview = { value -> onPreview(pillar, value) },
+                onCommit = { value -> onCommit(pillar, value) },
+                onReset = { onReset(pillar) },
+            )
+        }
+    }
+}
+
+/**
+ * Editor de una ficha: «Glúteos · 72 %» con «Restablecer» a la derecha, que quita solo ese músculo, y el mismo deslizador de siempre
+ * debajo. Sin dato, el deslizador arranca en la estimación y va atenuado hasta que la persona lo mueve.
+ */
+@Composable
+private fun MuscleEditor(
+    pillar: String,
+    person: Int?,
+    estimate: Int?,
+    drag: Int?,
+    onPreview: (Int?) -> Unit,
+    onCommit: (Int) -> Unit,
+    onReset: () -> Unit,
+) {
+    val name = ringsPillarLabel(pillar)
+    val shown = drag ?: person ?: estimate ?: NeutralStart
+    val dimmed = drag == null && person == null
+    val stateText = when {
+        // Espacio no separable antes del «%»: el número y el signo no se parten al ajustarse la línea.
+        drag != null || person != null -> "${drag ?: person} %"
+        estimate != null -> "Estimación $estimate %"
+        else -> "Sin calibrar"
+    }
+    Column(modifier = Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+            Text(
+                text = "$name · $stateText",
+                style = WizardTypography.header,
+                color = WizardColors.text,
+                modifier = Modifier.weight(1f),
+            )
+            TextButton(
+                onClick = onReset,
+                enabled = person != null,
+                // Poco padding lateral: la línea «Glúteos · Estimación 60 %» debe caber junto al botón a letra normal.
+                contentPadding = PaddingValues(horizontal = 4.dp),
+                modifier = Modifier
+                    .heightIn(min = WizardSpacing.touchTarget)
+                    .testTag("rings-result-muscle-reset-$pillar"),
+            ) {
+                Text(
+                    text = "Restablecer",
+                    style = WizardTypography.controlLabel,
+                    color = if (person != null) WizardColors.text else WizardColors.textFaint,
+                )
+            }
+        }
+        RingsChannelSlider(
+            accent = KpknRingColors.musculos,
+            name = name,
+            value = shown,
+            onPreview = onPreview,
+            onCommit = onCommit,
+            tag = "rings-result-muscle-$pillar",
+            dimmed = dimmed,
+            stateText = stateText,
+        )
+    }
+}
+
+/** Acción de texto que despliega los músculos: 48 dp de área de toque y el estado dicho a TalkBack. */
+@Composable
+private fun MusclesToggle(expanded: Boolean, onClick: () -> Unit) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .heightIn(min = WizardSpacing.touchTarget)
+            .testTag("rings-result-muscles-toggle")
+            .semantics { stateDescription = if (expanded) "Desplegado" else "Plegado" }
+            .clickable(role = Role.Button, onClick = onClick),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(
+            text = "Quiero ajustar mis músculos a mano",
+            style = WizardTypography.controlLabel,
+            color = WizardColors.text,
+            modifier = Modifier.weight(1f),
+        )
+        Spacer(Modifier.width(12.dp))
+        Chevron(expanded)
+    }
+}
+
+/** Un deslizador con su nombre y su valor. [person] es el dato de la persona (o su arrastre en curso); sin él se muestra la
  * [estimate] atenuada y, si tampoco hay estimación, «Sin calibrar» a mitad de recorrido. Nunca un 100 % afirmativo.
  */
 @Composable
@@ -313,29 +608,6 @@ private fun AdjustRow(
             dimmed = dimmed,
             stateText = stateText,
         )
-    }
-}
-
-/** Acción de texto que despliega los músculos: 48 dp de área de toque y el estado dicho a TalkBack. */
-@Composable
-private fun MusclesToggle(expanded: Boolean, onClick: () -> Unit) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .heightIn(min = WizardSpacing.touchTarget)
-            .testTag("rings-result-muscles-toggle")
-            .semantics { stateDescription = if (expanded) "Desplegado" else "Plegado" }
-            .clickable(role = Role.Button, onClick = onClick),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Text(
-            text = "Quiero ajustar mis músculos a mano",
-            style = WizardTypography.controlLabel,
-            color = WizardColors.text,
-            modifier = Modifier.weight(1f),
-        )
-        Spacer(Modifier.width(12.dp))
-        Chevron(expanded)
     }
 }
 

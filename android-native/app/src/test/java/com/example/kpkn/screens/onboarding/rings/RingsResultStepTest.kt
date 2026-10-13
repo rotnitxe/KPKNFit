@@ -6,6 +6,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.SemanticsActions
+import androidx.compose.ui.test.assertTextContains
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
@@ -25,7 +26,7 @@ import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 import java.time.LocalDate
 
-/** Pantalla del resultado de RINGS sin VM: sin botones de edición, deslizadores que llaman a sus setters y músculos desplegables. */
+/** Pantalla del resultado de RINGS sin VM: sin botones de edición, fichas de músculo que abren su deslizador y Energía y Columna con sus setters. */
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [34], application = Application::class)
 class RingsResultStepTest {
@@ -37,6 +38,7 @@ class RingsResultStepTest {
     private class Record {
         val channels = mutableListOf<Pair<String, Int>>()
         val muscles = mutableListOf<Pair<String, Int>>()
+        val muscleResets = mutableListOf<String>()
         var resets = 0
     }
 
@@ -45,13 +47,14 @@ class RingsResultStepTest {
         answers: SetupRingsAnswers = SetupRingsAnswers(),
         expanded: Boolean = false,
         coverage: RingsCoverage = COVERAGE,
+        estimates: Map<String, Int> = PILLARS.associateWith { 60 },
     ) {
         rule.setContent {
             // Como en el wizard, el paso va dentro de una página desplazable: así los toques llegan aunque queden bajo el borde.
             Column(Modifier.verticalScroll(rememberScrollState())) {
                 RingsResultBody(
                     coverage = coverage,
-                    muscleEstimates = PILLARS.associateWith { 60 },
+                    muscleEstimates = estimates,
                     answers = answers,
                     error = null,
                     loading = false,
@@ -59,6 +62,7 @@ class RingsResultStepTest {
                     onCommitChannel = { channel, value -> record.channels += channel to value },
                     onCommitMuscle = { pillar, value -> record.muscles += pillar to value },
                     onResetMuscles = { record.resets++ },
+                    onResetMuscle = { pillar -> record.muscleResets += pillar },
                     onRetry = {},
                     initiallyExpanded = expanded,
                 )
@@ -85,11 +89,15 @@ class RingsResultStepTest {
     }
 
     @Test
-    fun `desplegar muestra un deslizador por pilar y Restablecer avisa de la acción`() {
+    fun `desplegar muestra las fichas y el deslizador de un músculo solo tras tocar su ficha`() {
         val record = Record()
         show(record, answers = SetupRingsAnswers(manualMusclesV2 = mapOf("Pectorales" to 70)))
-        rule.onNodeWithTag("rings-result-muscle-Pectorales").assertDoesNotExist()
+        rule.onNodeWithTag("rings-result-muscle-chip-Pectorales").assertDoesNotExist()
         rule.onNodeWithTag("rings-result-muscles-toggle").performScrollTo().performClick()
+        rule.onNodeWithTag("rings-result-muscle-chip-Pectorales").assertExists()
+        rule.onNodeWithTag("rings-result-muscle-Pectorales").assertDoesNotExist()
+        rule.onNodeWithTag("rings-result-muscle-chip-Pectorales").performScrollTo().performClick()
+        rule.waitForIdle()
         rule.onNodeWithTag("rings-result-muscle-Pectorales").assertExists()
         rule.onNodeWithTag("rings-result-reset").performScrollTo().performClick()
         assertEquals(1, record.resets)
@@ -99,10 +107,51 @@ class RingsResultStepTest {
     fun `soltar el deslizador de un músculo guarda su pilar`() {
         val record = Record()
         show(record, expanded = true)
+        rule.onNodeWithTag("rings-result-muscle-chip-Dorsales").performScrollTo().performClick()
+        rule.waitForIdle()
         val setProgress = rule.onNodeWithTag("rings-result-muscle-Dorsales").fetchSemanticsNode().config[SemanticsActions.SetProgress]
         rule.runOnUiThread { setProgress.action?.invoke(55f) }
         rule.waitForIdle()
         assertEquals(listOf("Dorsales" to 55), record.muscles)
+    }
+
+    @Test
+    fun `una ficha abre su editor, cierra el otro y tocarla de nuevo lo cierra`() {
+        show(Record(), expanded = true)
+        rule.onNodeWithTag("rings-result-muscle-chip-Pectorales").performScrollTo().performClick()
+        rule.waitForIdle()
+        rule.onNodeWithTag("rings-result-muscle-Pectorales").assertExists()
+
+        rule.onNodeWithTag("rings-result-muscle-chip-Dorsales").performScrollTo().performClick()
+        rule.waitForIdle()
+        rule.onNodeWithTag("rings-result-muscle-Pectorales").assertDoesNotExist()
+        rule.onNodeWithTag("rings-result-muscle-Dorsales").assertExists()
+
+        rule.onNodeWithTag("rings-result-muscle-chip-Dorsales").performScrollTo().performClick()
+        rule.waitForIdle()
+        rule.onNodeWithTag("rings-result-muscle-Dorsales").assertDoesNotExist()
+    }
+
+    @Test
+    fun `Restablecer de una ficha solo quita ese músculo`() {
+        val record = Record()
+        show(
+            record,
+            answers = SetupRingsAnswers(manualMusclesV2 = mapOf("Pectorales" to 70, "Dorsales" to 35)),
+            expanded = true,
+        )
+        rule.onNodeWithTag("rings-result-muscle-chip-Pectorales").performScrollTo().performClick()
+        rule.waitForIdle()
+        rule.onNodeWithTag("rings-result-muscle-reset-Pectorales").performScrollTo().performClick()
+        rule.waitForIdle()
+        assertEquals(listOf("Pectorales"), record.muscleResets)
+        assertEquals(0, record.resets)
+    }
+
+    @Test
+    fun `sin dato ni estimación, la ficha dice guion y no inventa un 100`() {
+        show(Record(), expanded = true, estimates = PILLARS.filter { it != "Glúteos" }.associateWith { 60 })
+        rule.onNodeWithTag("rings-result-muscle-chip-Glúteos").assertTextContains("—")
     }
 
     @Test
