@@ -101,7 +101,8 @@ import com.example.kpkn.screens.programdetail.components.editor.CalendarSection
 import com.example.kpkn.screens.programdetail.components.editor.KeyDateDialog
 import com.example.kpkn.screens.programdetail.components.editor.KeyDatesSection
 import com.example.kpkn.screens.programdetail.components.editor.LibrarySection
-import com.example.kpkn.screens.programdetail.components.editor.MacrocycleRoadmapSection
+import com.example.kpkn.screens.programdetail.components.editor.CyclesSection
+import com.example.kpkn.screens.programdetail.components.editor.RouteSection
 import com.example.kpkn.screens.programdetail.dayLabelShort
 import com.example.kpkn.screens.programdetail.formatDaysUntil
 import com.example.kpkn.screens.programdetail.parseIsoDateExact
@@ -117,8 +118,10 @@ import com.example.kpkn.screens.programdetail.design.structure.ProgramBlockUi
 import com.example.kpkn.screens.programdetail.design.structure.ProgramCalendarModule
 import com.example.kpkn.screens.programdetail.design.structure.ProgramConvertBlocksDialog
 import com.example.kpkn.screens.programdetail.design.structure.ProgramDeleteDialog
+import com.example.kpkn.screens.programdetail.design.structure.ProgramHistorySheet
 import com.example.kpkn.screens.programdetail.design.structure.ProgramMesoSheet
 import com.example.kpkn.screens.programdetail.design.structure.ProgramStructureNotice
+import com.example.kpkn.screens.programdetail.design.structure.ProgramTemplateConfirmSheet
 import com.example.kpkn.screens.programdetail.design.structure.ProgramToolsKind
 import com.example.kpkn.screens.programdetail.design.structure.ProgramToolsModule
 import com.example.kpkn.screens.programdetail.design.structure.programBlockUis
@@ -201,18 +204,13 @@ fun MacrocycleEditorLegacy(
         mutableStateOf((competition?.eventDate ?: competition?.startDate).orEmpty())
     }
     var localShowKeyDatesSheet by remember { mutableStateOf(false) }
-    var localShowAdvancedRoadmap by remember(program.id) {
-        mutableStateOf(
-            program.structure == ProgramStructure.COMPLEX &&
-                (ProgramCalendarEngine.isCalendarized(program) || ProgramKeyDateEngine.competitionKeyDate(program) != null)
-        )
-    }
+    // La ruta es una hoja que abre la herramienta «Ruta» (P3c): empieza cerrada, nunca se abre sola.
+    var localShowRouteSheet by remember(program.id) { mutableStateOf(false) }
     var localShowLibrarySheet by remember { mutableStateOf(false) }
     var localShowLoopsSheet by remember { mutableStateOf(false) }
     var editingMeso by remember { mutableStateOf<EditingMesoTarget?>(null) }
     var pendingTemplate by remember { mutableStateOf<ProgramTemplateOption?>(null) }
     var pendingProtocol by remember { mutableStateOf<Protocol?>(null) }
-    var overwriteExisting by remember { mutableStateOf(true) }
     var showSnapshots by remember { mutableStateOf(false) }
     var pendingCompetitionKeyDateDelete by remember { mutableStateOf<String?>(null) }
     // La baldosa «Fechas clave» abre la hoja del calendario con la lista de fechas clave a la vista (P3a).
@@ -222,7 +220,7 @@ fun MacrocycleEditorLegacy(
     val editingManualEndDate = macrocycleManualEndDate ?: localEditingManualEndDate
     val editingCompetitionDate = macrocycleCompetitionDate ?: localEditingCompetitionDate
     val showKeyDatesSheet = macrocycleKeyDatesSheetOpen ?: localShowKeyDatesSheet
-    val showAdvancedRoadmap = macrocycleRoadmapExpanded ?: localShowAdvancedRoadmap
+    val showRouteSheet = macrocycleRoadmapExpanded ?: localShowRouteSheet
     val showLibrarySheet = macrocycleLibrarySheetOpen ?: localShowLibrarySheet
     val showLoopsSheet = macrocycleLoopsSheetOpen ?: localShowLoopsSheet
 
@@ -246,9 +244,10 @@ fun MacrocycleEditorLegacy(
         if (macrocycleKeyDatesSheetOpen == null) localShowKeyDatesSheet = value
     }
 
+    // Abre o cierra la hoja de la ruta (antes, la sección desplegable de la página).
     fun setRoadmapExpanded(value: Boolean) {
         onMacrocycleRoadmapExpandedChange(value)
-        if (macrocycleRoadmapExpanded == null) localShowAdvancedRoadmap = value
+        if (macrocycleRoadmapExpanded == null) localShowRouteSheet = value
     }
 
     fun setLibrarySheetOpen(value: Boolean) {
@@ -259,6 +258,15 @@ fun MacrocycleEditorLegacy(
     fun setLoopsSheetOpen(value: Boolean) {
         onMacrocycleLoopsSheetOpenChange(value)
         if (macrocycleLoopsSheetOpen == null) localShowLoopsSheet = value
+    }
+
+    fun adjustBlockWeeks(blockId: String, deltaWeeks: Int) {
+        val updated = if (deltaWeeks > 0) {
+            ProgramKeyDateEngine.addWeeksToBlock(program, blockId, deltaWeeks)
+        } else {
+            ProgramKeyDateEngine.removeWeeksFromBlock(program, blockId, -deltaWeeks)
+        }
+        onUpdateProgram(updated.alignTemporalMetadata())
     }
 
     fun applyAdvancedCalendarSave() {
@@ -369,7 +377,7 @@ fun MacrocycleEditorLegacy(
                 keyDatesFocusList = true
                 setKeyDatesSheetOpen(true)
             },
-            onRoute = { setRoadmapExpanded(!showAdvancedRoadmap) },
+            onRoute = { setRoadmapExpanded(true) },
             onCycles = { setLoopsSheetOpen(true) },
             onTemplates = { setLibrarySheetOpen(true) },
             onHistory = {
@@ -421,23 +429,6 @@ fun MacrocycleEditorLegacy(
                 modifier = Modifier.kpknEntrance("programdetail.estructura", 2),
             )
         }
-        if (!temporalInsight.isSimple && showAdvancedRoadmap) {
-            MacrocycleRoadmapSection(
-                program = program,
-                roadmap = advancedRoadmap,
-                onFocusWeek = onFocusWeek,
-                onCreateSessionForWeek = onCreateSessionForWeek,
-                onAdjustBlockWeeks = { blockId, deltaWeeks ->
-                    val updated = if (deltaWeeks > 0) {
-                        ProgramKeyDateEngine.addWeeksToBlock(program, blockId, deltaWeeks)
-                    } else {
-                        ProgramKeyDateEngine.removeWeeksFromBlock(program, blockId, -deltaWeeks)
-                    }
-                    onUpdateProgram(updated.alignTemporalMetadata())
-                },
-            )
-        }
-
         // Bloques (P3b): un módulo por bloque, en el orden del programa, con sus mesociclos y sus semanas en círculos. Las hojas y los
         // menús se abren desde aquí y se pintan al final de la pantalla.
         ProgramBlockList(
@@ -786,7 +777,6 @@ fun MacrocycleEditorLegacy(
 
     if (showLibrarySheet) {
         LibrarySection(
-            currentProgram = program,
             onApplyTemplate = { template ->
                 setLibrarySheetOpen(false)
                 pendingTemplate = template
@@ -818,125 +808,53 @@ fun MacrocycleEditorLegacy(
     }
 
     pendingTemplate?.let { template ->
-        val hasContent = ProgramTemplateEngine.hasSessionContent(program)
-        KpknAlertDialog(
-            onDismissRequest = { pendingTemplate = null },
-            title = { Text(template.name, fontWeight = FontWeight.Black) },
-            text = {
-                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                    Text(template.description)
-                    Text(
-                        "${template.trackLabel ?: "Programa"} · ${template.blockNames.size} bloques · ${template.weeks} semanas",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.primary,
-                    )
-                    Text(
-                        "Las semanas se rellenarán automáticamente con sesiones sugeridas según el split.",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                    if (hasContent) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Checkbox(
-                                checked = overwriteExisting,
-                                onCheckedChange = { overwriteExisting = it },
-                            )
-                            Text(
-                                "Reemplazar todo el programa actual (se guarda copia en Historial).",
-                                style = MaterialTheme.typography.bodySmall,
-                                modifier = Modifier.weight(1f),
-                            )
-                        }
-                        if (!overwriteExisting) {
-                            Text(
-                                "Se creará una copia borrador para no perder el original.",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            )
-                        }
-                    }
-                }
+        ProgramTemplateConfirmSheet(
+            template = template,
+            hasSessions = ProgramTemplateEngine.hasSessionContent(program),
+            onConfirm = { overwrite ->
+                onApplyProgramTemplateOverwrite(template, overwrite)
+                pendingTemplate = null
+                setLibrarySheetOpen(false)
             },
-            confirmButton = {
-                Button(onClick = {
-                    onApplyProgramTemplateOverwrite(template, overwriteExisting && hasContent)
-                    pendingTemplate = null
-                    setLibrarySheetOpen(false)
-                }) {
-                    Text(if (overwriteExisting && hasContent) "Reemplazar todo" else "Aplicar plantilla")
-                }
-            },
-            dismissButton = { TextButton(onClick = { pendingTemplate = null }) { Text("Cancelar") } },
+            onDismiss = { pendingTemplate = null },
         )
     }
 
     if (showSnapshots) {
-        KpknAlertDialog(
-            onDismissRequest = { showSnapshots = false },
-            title = { Text("Historial del programa", fontWeight = FontWeight.Black) },
-            text = {
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    if (programSnapshots.isEmpty()) {
-                        Text(
-                            "Aún no hay copias. Al reemplazar con protocolo o plantilla se guarda una aquí.",
-                            style = MaterialTheme.typography.bodySmall,
-                        )
-                    }
-                    programSnapshots.sortedByDescending { it.savedAtMs }.take(10).forEach { snapshot ->
-                        val date = runCatching {
-                            java.time.Instant.ofEpochMilli(snapshot.savedAtMs)
-                                .atZone(java.time.ZoneId.systemDefault())
-                                .format(java.time.format.DateTimeFormatter.ofPattern("dd/MM HH:mm"))
-                        }.getOrDefault("")
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        ) {
-                            Text(
-                                "$date · ${snapshot.reason}",
-                                style = MaterialTheme.typography.bodySmall,
-                                modifier = Modifier.weight(1f),
-                            )
-                            TextButton(onClick = {
-                                onRestoreProgramSnapshot(snapshot.id)
-                                showSnapshots = false
-                            }) { Text("Restaurar") }
-                        }
-                    }
-                }
+        ProgramHistorySheet(
+            snapshots = programSnapshots,
+            onRestore = { snapshotId ->
+                onRestoreProgramSnapshot(snapshotId)
+                showSnapshots = false
             },
-            confirmButton = { TextButton(onClick = { showSnapshots = false }) { Text("Cerrar") } },
+            onDismiss = { showSnapshots = false },
         )
     }
 
     if (temporalInsight.isSimple && program.simpleProgramKind == SimpleProgramKind.CYCLIC && showLoopsSheet) {
-        KpknSheet(
-            onDismissRequest = { setLoopsSheetOpen(false) },
-        ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(bottom = 24.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp),
-            ) {
-                Column(
-                    modifier = Modifier.padding(horizontal = 16.dp),
-                    verticalArrangement = Arrangement.spacedBy(4.dp),
-                ) {
-                    Text("Crear/ver loops", fontSize = 18.sp, fontWeight = FontWeight.Black)
-                    Text(
-                        "Los loops viven solo en programas simples y te permiten repetir ciclos con eventos programados.",
-                        fontSize = 11.sp,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                }
-                LoopsView(
-                    program = program,
-                    onUpdateProgram = onUpdateProgram,
-                    onFocusWeek = onFocusWeek,
-                )
-            }
-        }
+        CyclesSection(
+            program = program,
+            onUpdateProgram = onUpdateProgram,
+            onFocusWeek = { blockId, weekId ->
+                setLoopsSheetOpen(false)
+                onFocusWeek(blockId, weekId)
+            },
+            onDismiss = { setLoopsSheetOpen(false) },
+        )
+    }
+
+    if (!temporalInsight.isSimple && showRouteSheet) {
+        RouteSection(
+            program = program,
+            roadmap = advancedRoadmap,
+            today = today,
+            onFocusWeek = { blockId, weekId ->
+                setRoadmapExpanded(false)
+                onFocusWeek(blockId, weekId)
+            },
+            onAdjustBlockWeeks = { blockId, deltaWeeks -> adjustBlockWeeks(blockId, deltaWeeks) },
+            onDismiss = { setRoadmapExpanded(false) },
+        )
     }
 
     if (temporalInsight.isSimple && showSimpleCalendarizationSheet) {
@@ -1686,296 +1604,6 @@ private fun CalendarPreviewLine(label: String, value: String) {
 }
 
 @Composable
-internal fun LegacyAdvancedRoadmapSection(
-    program: Program,
-    roadmap: AdvancedRoadmap,
-    onFocusWeek: (blockId: String, weekId: String) -> Unit,
-    onCreateSessionForWeek: (weekId: String, preferredDayOfWeek: Int, keyDateId: String?) -> Unit,
-    onAdjustBlockWeeks: (blockId: String, deltaWeeks: Int) -> Unit,
-) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(20.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh),
-    ) {
-        Column(modifier = Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Text("Roadmap visual", fontWeight = FontWeight.Black, fontSize = 16.sp)
-            if (roadmap.startDate == null) {
-                Text(
-                    "Guarda primero la fecha de inicio.",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            } else {
-                val segments = roadmap.blockSegments()
-                val totalWeeks = roadmap.weekSlots.size.coerceAtLeast(1)
-                val programEnd = roadmap.weekSlots.lastOrNull()?.weekEnd
-                val competitionSlot = roadmap.competitionSlot()
-                val competitionMark = competitionSlot?.marks?.firstOrNull { it.type == KeyDateType.COMPETITION }
-                val competition = competitionMark?.eventDate ?: roadmap.competitionDate
-                Text(
-                    "${formatFullDate(roadmap.startDate)} → ${programEnd?.let { formatFullDate(it) } ?: formatFullDate(roadmap.startDate)} · $totalWeeks semanas",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-                val fitReport = remember(program) { ProgramKeyDateEngine.fitBlocksToCompetitionKeyDate(program) }
-                val lastBlockId = roadmap.weekSlots.lastOrNull()?.blockId
-                if (fitReport != null) {
-                    KeyDateFitSection(
-                        fitReport = fitReport,
-                        lastBlockId = lastBlockId,
-                        onAdjustBlockWeeks = onAdjustBlockWeeks,
-                    )
-                }
-                Text(
-                    "Guía: los bloques muestran el plan completo y los puntos son semanas reales. La competición se reserva como semana completa; el registro de resultados se hace después, desde Home o Perfil.",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Row(modifier = Modifier.fillMaxWidth().height(26.dp), horizontalArrangement = Arrangement.spacedBy(3.dp)) {
-                        segments.forEachIndexed { index, segment ->
-                            Box(
-                                modifier = Modifier
-                                    .weight(segment.weeks.toFloat().coerceAtLeast(1f))
-                                    .height(26.dp)
-                                    .background(roadmapSegmentColor(index), RoundedCornerShape(999.dp))
-                                    .clickable { onFocusWeek(segment.firstBlockId, segment.firstWeekId) },
-                                contentAlignment = Alignment.Center,
-                            ) {
-                                Text(segment.blockName, fontSize = 9.sp, fontWeight = FontWeight.Black, color = Color.White, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                            }
-                        }
-                    }
-
-                    LazyRow(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        contentPadding = PaddingValues(vertical = 4.dp),
-                    ) {
-                        itemsIndexed(roadmap.weekSlots, key = { _, slot -> slot.weekId }) { index, slot ->
-                            RoadmapWeekDot(
-                                index = index + 1,
-                                slot = slot,
-                                onClick = { onFocusWeek(slot.blockId, slot.weekId) },
-                            )
-                        }
-                    }
-                }
-
-                if (competitionSlot != null && competitionMark != null) {
-                    CompetitionWeekCard(
-                        weekIndex = roadmap.weekSlots.indexOf(competitionSlot) + 1,
-                        slot = competitionSlot,
-                        mark = competitionMark,
-                        onFocusWeek = { onFocusWeek(competitionSlot.blockId, competitionSlot.weekId) },
-                    )
-                } else if (competition != null) {
-                    Card(
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(16.dp),
-                        colors = CardDefaults.cardColors(containerColor = Color(0xFFF59E0B).copy(alpha = 0.13f)),
-                        border = BorderStroke(1.dp, Color(0xFFF59E0B).copy(alpha = 0.42f)),
-                    ) {
-                        Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                            Text("Competición fuera del programa", fontWeight = FontWeight.Black, color = Color(0xFFF59E0B))
-                            Text(
-                                "${formatFullDate(competition)} no cae dentro de las $totalWeeks semanas proyectadas. Ajusta el inicio estimado, añade semanas o cambia la fecha para que KPKN pueda reservar la semana completa.",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            )
-                        }
-                    }
-                }
-
-                roadmap.keyDateTracks.filter { it.keyDate.type != KeyDateType.COMPETITION }.forEach { track ->
-                    KeyDateTrackCard(track = track, onFocusWeek = onFocusWeek)
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun KeyDateFitSection(
-    fitReport: ProgramKeyDateEngine.KeyDateFitReport,
-    lastBlockId: String?,
-    onAdjustBlockWeeks: (blockId: String, deltaWeeks: Int) -> Unit,
-) {
-    val requiredWeeks = fitReport.requiredWeeks
-    if (requiredWeeks != null && requiredWeeks > 0) {
-        val progress = (fitReport.currentTotalWeeks.toFloat() / requiredWeeks.toFloat()).coerceIn(0f, 1f)
-        val progressColor = when {
-            fitReport.fitsExactly -> Color(0xFF10B981)
-            fitReport.hasSurplusWeeks -> Color(0xFF10B981)
-            else -> Color(0xFFF59E0B)
-        }
-        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                Text("Avance hacia el día de competición", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                Text("${fitReport.currentTotalWeeks}/$requiredWeeks sem", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Black)
-            }
-            LinearProgressIndicator(
-                progress = { progress },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(8.dp)
-                    .clip(RoundedCornerShape(50)),
-                color = progressColor,
-                trackColor = MaterialTheme.colorScheme.surfaceVariant,
-            )
-        }
-    }
-
-    val gapMessage = when (fitReport.status) {
-        ProgramKeyDateEngine.KeyDateFitStatus.NEEDS_MORE_WEEKS ->
-            "Faltan ${fitReport.actionableWeeks} semana(s) para llegar a la competición con la estructura actual."
-        ProgramKeyDateEngine.KeyDateFitStatus.HAS_SURPLUS_WEEKS ->
-            "Sobran ${fitReport.actionableWeeks} semana(s) después de la competición."
-        ProgramKeyDateEngine.KeyDateFitStatus.BEFORE_PROGRAM_START ->
-            "La competición cae antes del inicio del programa. Ajusta la fecha de inicio o la de competición."
-        else -> null
-    }
-    if (gapMessage != null) {
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(14.dp),
-            colors = CardDefaults.cardColors(containerColor = Color(0xFFF59E0B).copy(alpha = 0.13f)),
-            border = BorderStroke(1.dp, Color(0xFFF59E0B).copy(alpha = 0.42f)),
-        ) {
-            Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text(gapMessage, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                if (lastBlockId != null && fitReport.actionableWeeks > 0 &&
-                    fitReport.status != ProgramKeyDateEngine.KeyDateFitStatus.BEFORE_PROGRAM_START
-                ) {
-                    val delta = if (fitReport.needsMoreWeeks) fitReport.actionableWeeks else -fitReport.actionableWeeks
-                    OutlinedButton(onClick = { onAdjustBlockWeeks(lastBlockId, delta) }) {
-                        Text(
-                            if (fitReport.needsMoreWeeks) {
-                                "+${fitReport.actionableWeeks} sem al último bloque"
-                            } else {
-                                "-${fitReport.actionableWeeks} sem del último bloque"
-                            }
-                        )
-                    }
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun KeyDateTrackCard(
-    track: KeyDateTrack,
-    onFocusWeek: (blockId: String, weekId: String) -> Unit,
-) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(14.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.55f)),
-    ) {
-        Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                KeyDateTypeBadge(track.keyDate.type)
-                Text(track.keyDate.title, fontWeight = FontWeight.Bold, fontSize = 12.sp)
-            }
-            LazyRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                itemsIndexed(track.slots, key = { _, slot -> slot.weekId }) { _, slot ->
-                    val accent = when (slot.trackKind) {
-                        KeyDateTrackKind.INSIDE -> MaterialTheme.colorScheme.primary
-                        KeyDateTrackKind.BEFORE, KeyDateTrackKind.AFTER -> MaterialTheme.colorScheme.onSurfaceVariant
-                    }
-                    Box(
-                        modifier = Modifier
-                            .background(accent.copy(alpha = if (slot.trackKind == KeyDateTrackKind.INSIDE) 0.18f else 0.08f), RoundedCornerShape(999.dp))
-                            .clickable { onFocusWeek(slot.blockId, slot.weekId) }
-                            .padding(horizontal = 10.dp, vertical = 6.dp),
-                    ) {
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Text(slot.relativeLabel, fontSize = 9.sp, fontWeight = FontWeight.Black, color = accent)
-                            Text(slot.weekName, fontSize = 8.sp, color = accent, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun RoadmapWeekDot(
-    index: Int,
-    slot: AdvancedWeekSlot,
-    onClick: () -> Unit,
-) {
-    val competitionMark = slot.marks.firstOrNull { it.type == KeyDateType.COMPETITION }
-    val hasKeyDate = slot.marks.isNotEmpty()
-    val accent = if (competitionMark != null) Color(0xFFF59E0B) else MaterialTheme.colorScheme.tertiary
-    Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(4.dp)) {
-        Surface(
-            modifier = Modifier
-                .size(48.dp)
-                .clip(CircleShape)
-                .clickable(onClick = onClick),
-            shape = CircleShape,
-            color = if (hasKeyDate) accent else MaterialTheme.colorScheme.surfaceVariant,
-            contentColor = if (hasKeyDate) Color.Black else MaterialTheme.colorScheme.onSurfaceVariant,
-            border = if (hasKeyDate) BorderStroke(2.dp, accent.copy(alpha = 0.9f)) else null,
-        ) {
-            Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
-                Text("S$index", fontSize = 10.sp, fontWeight = FontWeight.Black)
-                if (competitionMark != null) Text("Comp", fontSize = 7.sp, fontWeight = FontWeight.Bold)
-            }
-        }
-        Text(
-            slot.weekStart.format(DateTimeFormatter.ofPattern("d MMM", Locale.forLanguageTag("es-CL"))),
-            fontSize = 8.sp,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            maxLines = 1,
-        )
-    }
-}
-
-@Composable
-private fun CompetitionWeekCard(
-    weekIndex: Int,
-    slot: AdvancedWeekSlot,
-    mark: KeyDateMark,
-    onFocusWeek: () -> Unit,
-) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(18.dp),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFFF59E0B).copy(alpha = 0.15f)),
-        border = BorderStroke(1.dp, Color(0xFFF59E0B).copy(alpha = 0.55f)),
-    ) {
-        Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                Box(
-                    modifier = Modifier
-                        .background(Color(0xFFF59E0B), RoundedCornerShape(999.dp))
-                        .padding(horizontal = 10.dp, vertical = 6.dp),
-                ) {
-                    Text("Comp", fontWeight = FontWeight.Black, fontSize = 10.sp, color = Color.Black)
-                }
-                Column(Modifier.weight(1f)) {
-                    Text("Semana de competición · S$weekIndex", fontWeight = FontWeight.Black)
-                    Text(slot.blockName, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                }
-            }
-            Text(
-                "Día clave: ${formatFullDate(mark.eventDate ?: slot.weekStart)}. Semana reservada: ${formatFullDate(slot.weekStart)} → ${formatFullDate(slot.weekEnd)}.",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                Button(onClick = onFocusWeek, modifier = Modifier.fillMaxWidth()) { Text("Ver semana") }
-            }
-        }
-    }
-}
-
-@Composable
 private fun KeyDateTypeBadge(type: KeyDateType) {
     val text = when (type) {
         KeyDateType.COMPETITION -> "Competición"
@@ -2347,13 +1975,6 @@ internal data class AdvancedRoadmap(
     val competitionDate: LocalDate? = null,
 )
 
-private data class RoadmapBlockSegment(
-    val blockName: String,
-    val firstBlockId: String,
-    val firstWeekId: String,
-    val weeks: Int,
-)
-
 internal data class AdvancedWeekSlot(
     val blockId: String,
     val blockName: String,
@@ -2442,35 +2063,6 @@ private fun buildAdvancedRoadmap(program: Program): AdvancedRoadmap {
             parseIsoDateExact(keyDate.eventDate) ?: parseIsoDateExact(keyDate.startDate)
         },
     )
-}
-
-private fun AdvancedRoadmap.blockSegments(): List<RoadmapBlockSegment> {
-    val segments = mutableListOf<RoadmapBlockSegment>()
-    weekSlots.forEach { slot ->
-        val last = segments.lastOrNull()
-        if (last != null && last.firstBlockId == slot.blockId) {
-            segments[segments.lastIndex] = last.copy(weeks = last.weeks + 1)
-        } else {
-            segments += RoadmapBlockSegment(
-                blockName = slot.blockName,
-                firstBlockId = slot.blockId,
-                firstWeekId = slot.weekId,
-                weeks = 1,
-            )
-        }
-    }
-    return segments
-}
-
-private fun roadmapSegmentColor(index: Int): Color {
-    val colors = listOf(
-        Color(0xFF2563EB),
-        Color(0xFF7C3AED),
-        Color(0xFF059669),
-        Color(0xFFEA580C),
-        Color(0xFFDC2626),
-    )
-    return colors[index % colors.size]
 }
 
 private fun buildKeyDateMark(
@@ -2586,10 +2178,6 @@ private fun findProgramWeekRange(program: Program, targetDate: LocalDate): Pair<
         }
     }
     return null
-}
-
-private fun AdvancedRoadmap.competitionSlot(): AdvancedWeekSlot? {
-    return weekSlots.firstOrNull { slot -> slot.marks.any { it.type == KeyDateType.COMPETITION } }
 }
 
 private fun formatFullDate(date: LocalDate): String {

@@ -38,9 +38,28 @@ import com.example.kpkn.screens.programdetail.design.ProgramVolumeSplit
 import com.example.kpkn.screens.programdetail.design.ProgramVolumeZones
 import com.example.kpkn.screens.programdetail.design.programMetaLine
 import com.example.kpkn.screens.programdetail.design.structure.ProgramBlockRange
+import com.example.kpkn.data.models.LoopType
+import com.example.kpkn.data.programs.CatalogDuration
+import com.example.kpkn.data.programs.ProgramTemplateOption
+import com.example.kpkn.domain.training.ProgramKeyDateEngine
+import com.example.kpkn.domain.training.ProgramSnapshot
 import com.example.kpkn.screens.programdetail.design.structure.ProgramBlockUi
+import com.example.kpkn.screens.programdetail.design.structure.ProgramCycleLoop
+import com.example.kpkn.screens.programdetail.design.structure.ProgramCycleWeek
+import com.example.kpkn.screens.programdetail.design.structure.ProgramCyclesModel
+import com.example.kpkn.screens.programdetail.design.structure.ProgramLibraryCard
+import com.example.kpkn.screens.programdetail.design.structure.ProgramLibraryProfile
+import com.example.kpkn.screens.programdetail.design.structure.ProgramLibraryTraits
 import com.example.kpkn.screens.programdetail.design.structure.ProgramMesoUi
+import com.example.kpkn.screens.programdetail.design.structure.ProgramRouteBlock
+import com.example.kpkn.screens.programdetail.design.structure.ProgramRouteKeyDate
+import com.example.kpkn.screens.programdetail.design.structure.ProgramRouteModel
+import com.example.kpkn.screens.programdetail.design.structure.ProgramRouteWeek
+import com.example.kpkn.screens.programdetail.design.structure.programBlocksAndWeeksLine
+import com.example.kpkn.screens.programs.LibraryOriginFilter
 import java.time.LocalDate
+import java.time.LocalDateTime
+import java.time.ZoneId
 
 /** Datos de ejemplo de Program Detail para la hoja de render de la cabecera (P1). Sin datos reales ni inventados fuera de ejemplo. */
 internal object ProgramDetailSamples {
@@ -447,4 +466,214 @@ internal object ProgramOneRmSamples {
 
     /** La estimación del historial que ofrece «Calcular desde mi historial». */
     val historyEstimate = PowerliftingProfile(squat1RM = 145.0, bench1RM = 102.5, deadlift1RM = 185.0)
+}
+
+/**
+ * Datos de ejemplo de las hojas de Estructura de P3c (ciclos, ruta, plantillas e historial) para la hoja de render y las pruebas. Hoy es
+ * fijo (13 oct 2026), como en [ProgramStructureSamples]. Son datos simples: las hojas no conocen el motor.
+ */
+internal object ProgramStructureSheetSamples {
+
+    /** El día de hoy de los ejemplos. */
+    val today: LocalDate = LocalDate.of(2026, 10, 13)
+
+    /** Dos ciclos activos: una descarga cada 4 y un test de 1RM cada 8. */
+    val cycleLoops: List<ProgramCycleLoop> = listOf(
+        ProgramCycleLoop(id = "loop-deload", title = "Descarga", type = LoopType.DELOAD, cadence = 4, cancelled = false),
+        ProgramCycleLoop(id = "loop-test", title = "Test 1RM", type = LoopType.ONE_RM_TEST, cadence = 8, cancelled = false),
+    )
+
+    /** Una semana de ciclo próxima: la descarga del ciclo 5, movida desde el 4. */
+    val cycleWeeks: List<ProgramCycleWeek> = listOf(
+        ProgramCycleWeek(
+            occurrenceId = "occ-deload-5",
+            loopTitle = "Descarga",
+            loopType = LoopType.DELOAD,
+            weekName = "Semana 9",
+            cycle = 5,
+            originCycle = 4,
+            dayLabel = "Jueves",
+            countdown = "3 días",
+            blockId = "block-3",
+            weekId = "week-9",
+        ),
+    )
+
+    /** La hoja de Ciclos: dos ciclos activos, una semana especial y el aviso de dos eventos antiguos por migrar. */
+    val cycles: ProgramCyclesModel = ProgramCyclesModel(
+        currentCycle = 5,
+        loops = cycleLoops,
+        weeks = cycleWeeks,
+        legacyEventCount = 2,
+        collisionLines = emptyList(),
+    )
+
+    /** Un programa de 12 semanas en 4 bloques desde el 6 de octubre. */
+    private val routeStart: LocalDate = LocalDate.of(2026, 10, 6)
+
+    /** Las 12 semanas, de tres en tres por bloque. Sin semana de competición: la competición cae después del final. */
+    val routeWeeks: List<ProgramRouteWeek> = (0 until 12).map { index ->
+        val start = routeStart.plusWeeks(index.toLong())
+        ProgramRouteWeek(
+            index = index,
+            blockId = "block-${index / 3 + 1}",
+            weekId = "week-${index + 1}",
+            start = start,
+            end = start.plusDays(6),
+            isCompetition = false,
+        )
+    }
+
+    /** Los cuatro bloques con su fase: acumulación, intensificación, realización y descarga. */
+    val routeBlocks: List<ProgramRouteBlock> = listOf(
+        ProgramPhase.ACCUMULATION,
+        ProgramPhase.INTENSIFICATION,
+        ProgramPhase.REALIZATION,
+        ProgramPhase.DELOAD,
+    ).mapIndexed { index, phase ->
+        ProgramRouteBlock(
+            id = "block-${index + 1}",
+            name = "Bloque ${index + 1}",
+            firstWeekIndex = index * 3,
+            weeks = 3,
+            start = routeStart.plusWeeks((index * 3).toLong()),
+            firstWeekId = "week-${index * 3 + 1}",
+            color = phase.color,
+            phaseLabel = phase.label,
+        )
+    }
+
+    /** La ruta: dos fechas clave dentro del programa y la competición el 10 de enero, dos semanas después del final. */
+    val route: ProgramRouteModel = ProgramRouteModel(
+        today = today,
+        weeks = routeWeeks,
+        blocks = routeBlocks,
+        keyDates = listOf(
+            ProgramRouteKeyDate(
+                title = "Examen de química",
+                typeLabel = "Exámenes",
+                date = LocalDate.of(2026, 10, 20),
+                weekIndex = 2,
+            ),
+            ProgramRouteKeyDate(
+                title = "Vacaciones de invierno",
+                typeLabel = "Vacaciones",
+                date = LocalDate.of(2026, 12, 21),
+                weekIndex = 10,
+            ),
+        ),
+        competitionDate = LocalDate.of(2027, 1, 10),
+        competitionWeekIndex = null,
+        fitStatus = ProgramKeyDateEngine.KeyDateFitStatus.NEEDS_MORE_WEEKS,
+        fitWeeks = 2,
+    )
+
+    /** Tres plantillas y dos protocolos de ejemplo, con sus filtros. */
+    val templateCards: List<ProgramLibraryCard> = listOf(
+        ProgramLibraryCard(
+            key = "fuerza-4",
+            name = "Fuerza 4 días",
+            description = "Cuatro días por semana con acumulación, intensificación y realización, y una semana de descarga.",
+            caption = programBlocksAndWeeksLine(3, 12),
+            traits = ProgramLibraryTraits(
+                profiles = setOf(ProgramLibraryProfile.STRENGTH),
+                frequencies = 4..4,
+                duration = CatalogDuration.REPEATING_WEEK,
+                origins = setOf(LibraryOriginFilter.ORIGINAL),
+            ),
+        ),
+        ProgramLibraryCard(
+            key = "torso-pierna",
+            name = "Torso y pierna",
+            description = "Dos días de torso y dos de pierna con repetición semanal. Pensado para empezar sin prisa.",
+            caption = programBlocksAndWeeksLine(0, 8),
+            traits = ProgramLibraryTraits(
+                profiles = setOf(ProgramLibraryProfile.MUSCLE),
+                frequencies = 3..4,
+                duration = CatalogDuration.REPEATING_WEEK,
+                origins = setOf(LibraryOriginFilter.KPKN),
+            ),
+        ),
+        ProgramLibraryCard(
+            key = "competicion-16",
+            name = "Competición a 16 semanas",
+            description = "Ciclo finito con su pico y su puesta a punto para llegar a una competición con la forma justa.",
+            caption = programBlocksAndWeeksLine(4, 16),
+            traits = ProgramLibraryTraits(
+                profiles = setOf(ProgramLibraryProfile.STRENGTH_MUSCLE),
+                frequencies = 3..5,
+                duration = CatalogDuration.FINITE_CYCLE,
+                origins = setOf(LibraryOriginFilter.ADAPTED),
+            ),
+        ),
+    )
+
+    /** Dos protocolos de la biblioteca: se abren con su ficha, no con la confirmación. */
+    val protocolCards: List<ProgramLibraryCard> = listOf(
+        ProgramLibraryCard(
+            key = "protocolo-sbd",
+            name = "Protocolo de fuerza SBD",
+            description = "Sentadilla, banca y peso muerto con cargas por porcentaje del máximo.",
+            caption = programBlocksAndWeeksLine(3, 9),
+            traits = ProgramLibraryTraits(
+                profiles = setOf(ProgramLibraryProfile.STRENGTH),
+                frequencies = 3..4,
+                duration = CatalogDuration.FINITE_CYCLE,
+                origins = setOf(LibraryOriginFilter.KPKN),
+            ),
+        ),
+        ProgramLibraryCard(
+            key = "protocolo-hipertrofia",
+            name = "Hipertrofia por bloques",
+            description = "Acumulación de volumen, después intensificación y una descarga corta.",
+            caption = programBlocksAndWeeksLine(4, 16),
+            traits = ProgramLibraryTraits(
+                profiles = setOf(ProgramLibraryProfile.MUSCLE),
+                frequencies = 4..5,
+                duration = CatalogDuration.REPEATING_CYCLE,
+                origins = setOf(LibraryOriginFilter.LEGACY),
+            ),
+        ),
+    )
+
+    /** La plantilla que se confirma en la hoja de render: con sesiones, así salen las dos opciones. */
+    val template: ProgramTemplateOption = ProgramTemplateOption(
+        id = "fuerza-4",
+        name = "Fuerza 4 días",
+        description = "Cuatro días por semana con acumulación, intensificación y realización, y una semana de descarga.",
+        emoji = "",
+        type = com.example.kpkn.data.models.ProgramStructure.COMPLEX,
+        weeks = 12,
+        trackLabel = "Fuerza",
+        blockNames = listOf("Acumulación", "Intensificación", "Realización"),
+    )
+
+    /** Una hora de copia en la zona del móvil: así «mar 13 oct · 10:42» sale igual en cualquier zona. */
+    private fun savedAt(day: Int, hour: Int, minute: Int): Long =
+        LocalDateTime.of(2026, 10, day, hour, minute).atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()
+
+    /** Tres copias del programa, de la más reciente a la más antigua. */
+    val copies: List<ProgramSnapshot> = listOf(
+        ProgramSnapshot(
+            id = "snap-3",
+            programId = "program-1",
+            program = ProgramDetailSamples.active,
+            savedAtMs = savedAt(13, 10, 42),
+            reason = "Antes de \"Fuerza 4 días\"",
+        ),
+        ProgramSnapshot(
+            id = "snap-2",
+            programId = "program-1",
+            program = ProgramDetailSamples.active,
+            savedAtMs = savedAt(9, 18, 5),
+            reason = "Antes de \"Descarga de 4 semanas\"",
+        ),
+        ProgramSnapshot(
+            id = "snap-1",
+            programId = "program-1",
+            program = ProgramDetailSamples.active,
+            savedAtMs = savedAt(2, 8, 30),
+            reason = "Antes de \"Hipertrofia 4 días\"",
+        ),
+    )
 }
