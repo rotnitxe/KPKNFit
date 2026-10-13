@@ -1644,7 +1644,6 @@ internal fun SetInputCardV2(
         intensityDelta >= 0.5 -> "Más difícil"
         else -> "Igual"
     }
-    val plannedValueLabel = if (isTimeMode) "Tiempo" else "Reps"
     val expectedIntensityLabel = when {
         plannedAmrap || isAmrap -> "AMRAP"
         plannedIntensityMode == IntensityMode.FAILURE -> "FALLO"

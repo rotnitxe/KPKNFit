@@ -15,7 +15,6 @@ import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.Spring
@@ -242,12 +241,6 @@ internal fun restPageInsertIndex(
             (page.exerciseId ?: anchorExerciseId) == anchorExerciseId
     }.takeIf { it >= 0 } ?: pages.size
 }
-
-/**
- * The REST pager page always hosts [com.example.kpkn.screens.workout.components.RestLiveCard].
- * The full overlay covers it when expanded; minimizing must not leave an empty slot.
- */
-internal fun shouldRenderRestLiveCard(@Suppress("UNUSED_PARAMETER") isOverlayMinimized: Boolean): Boolean = true
 
 /** NORMAL, MOV, APR and REST share the same wrap-measured Y as the working-set card. */
 internal fun livePagerCardAllowsContentExpansion(type: LivePageType): Boolean =
@@ -646,38 +639,6 @@ private fun timelineRailCursorPartial(element: TimelineElement): Float = when (e
     is TimelineElement.WarmupPill -> element.progress.coerceIn(0f, 1f)
     is TimelineElement.RestPill -> element.progress.coerceIn(0f, 1f)
     else -> 0f
-}
-
-private fun timelineRailElementPartial(element: TimelineElement): Float = when (element) {
-    is TimelineElement.MobilityPill -> element.progress.coerceIn(0f, 1f)
-    is TimelineElement.WarmupPill -> element.progress.coerceIn(0f, 1f)
-    is TimelineElement.RestPill -> element.progress.coerceIn(0f, 1f)
-    is TimelineElement.BilateralSet -> when (element.state) {
-        WorkoutSetCardVisualState.COMPLETED,
-        WorkoutSetCardVisualState.SKIPPED,
-        -> 1f
-        else -> 0f
-    }
-    is TimelineElement.UnilateralSet -> {
-        val left = when (element.leftState) {
-            WorkoutSetCardVisualState.COMPLETED,
-            WorkoutSetCardVisualState.SKIPPED,
-            -> 1f
-            else -> 0f
-        }
-        val right = when (element.rightState) {
-            WorkoutSetCardVisualState.COMPLETED,
-            WorkoutSetCardVisualState.SKIPPED,
-            -> 1f
-            else -> 0f
-        }
-        when {
-            element.leftState == WorkoutSetCardVisualState.ACTIVE -> left * 0.5f
-            element.rightState == WorkoutSetCardVisualState.ACTIVE -> 0.5f + right * 0.5f
-            else -> (left + right) / 2f
-        }
-    }
-    is TimelineElement.RoundBadge -> 0f
 }
 
 private const val STEPPER_NODE_GAP_MIN_DP = 10f

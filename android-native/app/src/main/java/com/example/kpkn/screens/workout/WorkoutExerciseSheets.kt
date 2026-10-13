@@ -42,7 +42,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -51,7 +50,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.kpkn.data.models.Exercise
-import com.example.kpkn.data.models.ExerciseSetupDetails
 import com.example.kpkn.data.models.ExerciseSet
 import com.example.kpkn.data.models.IntensityMode
 import com.example.kpkn.data.models.UnilateralTarget
@@ -60,82 +58,6 @@ import com.example.kpkn.data.models.WorkoutContextProfile
 import com.example.kpkn.data.models.WorkoutTag
 import com.example.kpkn.ui.components.KpknAlertDialog
 import com.example.kpkn.ui.components.kpknSheetWhiteTonalButtonColors
-
-@OptIn(ExperimentalLayoutApi::class)
-@Composable
-internal fun WorkoutExerciseSetupContent(
-    exercise: Exercise,
-    currentSet: ExerciseSet,
-    onUpdateExercise: ((Exercise) -> Exercise) -> Unit,
-    onUpdateSet: (String, (ExerciseSet) -> ExerciseSet) -> Unit,
-    maxVisibleCues: Int = Int.MAX_VALUE,
-) {
-    var machineBrandText by rememberSaveable(currentSet.id, currentSet.machineBrand) { mutableStateOf(currentSet.machineBrand.orEmpty()) }
-    var seatText by rememberSaveable(exercise.id, exercise.setupDetails?.seatPosition) { mutableStateOf(exercise.setupDetails?.seatPosition.orEmpty()) }
-    var pinText by rememberSaveable(exercise.id, exercise.setupDetails?.pinPosition) { mutableStateOf(exercise.setupDetails?.pinPosition.orEmpty()) }
-    var notesText by rememberSaveable(exercise.id, exercise.setupDetails?.equipmentNotes) { mutableStateOf(exercise.setupDetails?.equipmentNotes.orEmpty()) }
-    val cues = (exercise.setupCues + exercise.executionCues).distinct()
-
-    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-        OutlinedTextField(
-            value = machineBrandText,
-            onValueChange = {
-                machineBrandText = it
-                onUpdateSet(currentSet.id) { set -> set.copy(machineBrand = it.ifBlank { null }) }
-            },
-            modifier = Modifier.fillMaxWidth(),
-            label = { Text("Máquina / marca") },
-            singleLine = true,
-        )
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
-            OutlinedTextField(
-                value = seatText,
-                onValueChange = {
-                    seatText = it
-                    onUpdateExercise { current ->
-                        current.copy(setupDetails = (current.setupDetails ?: ExerciseSetupDetails()).copy(seatPosition = it.ifBlank { null }))
-                    }
-                },
-                modifier = Modifier.weight(1f),
-                label = { Text("Asiento") },
-                singleLine = true,
-            )
-            OutlinedTextField(
-                value = pinText,
-                onValueChange = {
-                    pinText = it
-                    onUpdateExercise { current ->
-                        current.copy(setupDetails = (current.setupDetails ?: ExerciseSetupDetails()).copy(pinPosition = it.ifBlank { null }))
-                    }
-                },
-                modifier = Modifier.weight(1f),
-                label = { Text("Pin") },
-                singleLine = true,
-            )
-        }
-        OutlinedTextField(
-            value = notesText,
-            onValueChange = {
-                notesText = it
-                onUpdateExercise { current ->
-                    current.copy(setupDetails = (current.setupDetails ?: ExerciseSetupDetails()).copy(equipmentNotes = it.ifBlank { null }))
-                }
-            },
-            modifier = Modifier.fillMaxWidth(),
-            label = { Text("Notas de set-up") },
-            minLines = 2,
-            maxLines = 4,
-        )
-        if (cues.isNotEmpty()) {
-            Text("Cues", style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold)
-            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                cues.take(maxVisibleCues.coerceAtLeast(0)).forEach { cue ->
-                    Text("• $cue", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                }
-            }
-        }
-    }
-}
 
 internal fun exerciseHasPlannedIntensity(exercise: Exercise): Boolean = exercise.sets.any { set ->
     fun UnilateralTarget.hasPlannedIntensity(): Boolean =

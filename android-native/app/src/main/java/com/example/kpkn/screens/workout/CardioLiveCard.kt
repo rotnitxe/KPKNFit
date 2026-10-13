@@ -1,15 +1,10 @@
 package com.example.kpkn.screens.workout
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -28,17 +23,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.example.kpkn.data.models.CardioDetails
 import com.example.kpkn.data.models.CardioExecutionStatus
 import com.example.kpkn.data.models.CardioTimerState
 import com.example.kpkn.data.models.CompletedSet
-import com.example.kpkn.domain.cardio.CardioIntervalEngine
 import com.example.kpkn.domain.cardio.CardioGuideEngine
 import com.example.kpkn.services.cardio.CardioGpsState
 import com.example.kpkn.services.cardio.CardioGpsStatus
@@ -439,54 +430,6 @@ private fun CardioMetricCircle(
             Text(value, fontWeight = FontWeight.Black, color = Color.White)
         }
     }
-}
-
-@Composable
-private fun CardioLiveAccentField(
-    value: String,
-    onValueChange: (String) -> Unit,
-    label: String,
-    accentColor: Color,
-    modifier: Modifier = Modifier,
-    readOnly: Boolean = false,
-    trailingIcon: (@Composable (() -> Unit))? = null,
-    keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
-) {
-    var focused by remember { mutableStateOf(false) }
-    val shape = RoundedCornerShape(14.dp)
-    BasicTextField(
-        value = value,
-        onValueChange = onValueChange,
-        modifier = modifier
-            .clip(shape)
-            .background(accentColor.copy(alpha = if (focused) 0.14f else 0.08f))
-            .border(1.dp, accentColor.copy(alpha = if (focused) 0.95f else 0.56f), shape)
-            .onFocusChanged { focused = it.isFocused }
-            .padding(horizontal = 12.dp, vertical = 8.dp),
-        readOnly = readOnly,
-        singleLine = true,
-        keyboardOptions = keyboardOptions,
-        textStyle = MaterialTheme.typography.bodySmall.copy(color = Color.White, fontWeight = FontWeight.Bold),
-        cursorBrush = SolidColor(accentColor),
-        decorationBox = { innerTextField ->
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = label,
-                        style = MaterialTheme.typography.labelSmall,
-                        color = if (focused) accentColor else accentColor.copy(alpha = 0.82f),
-                        fontWeight = FontWeight.Bold,
-                    )
-                    Box(modifier = Modifier.fillMaxWidth().heightIn(min = 22.dp)) { innerTextField() }
-                }
-                trailingIcon?.invoke()
-            }
-        },
-    )
 }
 
 private fun formatCardioTime(totalSeconds: Int): String {
