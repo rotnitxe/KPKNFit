@@ -44,3 +44,23 @@ Aplica a todos los paquetes I1 a I6. El entorno, Gradle, las pruebas mínimas, l
     rondas.
 - **Git:** commits `feat(home): …` / `fix(home): …` / `test(home): …`, con la línea Co-Authored-By de Haiku 5.5 del BRIEF_COMUN. Sin
   push.
+
+## Lo que dejó I1 (úsalo; no lo dupliques)
+- **`screens/home/design/HomeDesign.kt`:**
+  - `HomeSectionGap` (40 dp);
+  - `HomeSectionLabel(text, modifier, action)`;
+  - `Modifier.homeEntrance(index)`;
+  - `HomePrimaryPill(text, onClick, modifier, tag)` y `HomeSecondaryPill(...)`;
+  - `HomeDateSaver`;
+  - `HomeTypography` (`internal`): `eyebrow` a 13 sp, `dayNumber`, `avatarInitial`, …
+  - Si necesitas un estilo nuevo, añádelo AL FINAL de `HomeTypography`, en vez de crear estilos sueltos.
+- **`domain/training/HomeWeekResolver.kt`:**
+  - `HomeWeekDay` y `HomeDayKind` (DONE, PLANNED, MISSED, ONGOING, REST);
+  - `HomeProgramLine(name, weekLabel, weekIndex, weekCount, phase)`;
+  - `HomeWeekResolver.week(...)` y `programLine(...)`.
+- **`HomeScreen.kt`:**
+  - `selectedDate` (con `rememberSaveable`) y la cabecera y la semana como primeros ítems de la `LazyColumn`;
+  - `HomeTopBar(barAlpha)`.
+  - `selectedDate` puede quedar fuera de la semana actual tras cambiar de programa: trátalo como hoy.
+- **Pruebas:** datos de ejemplo en `src/test/java/com/example/kpkn/screens/home/HomeSamples.kt` (añade los tuyos AL FINAL) y patrón de
+  hoja en `render/HomeTopRenderSheetTest.kt`.
