@@ -63,6 +63,8 @@ fun HomeWeekStrip(
     selected: LocalDate,
     onSelect: (LocalDate) -> Unit,
     modifier: Modifier = Modifier,
+    /** Relleno lateral de la tira: 16 dp por defecto; el módulo «Esta semana» lo pone a cero, porque ya tiene su propio aire. */
+    contentPadding: PaddingValues = PaddingValues(horizontal = 16.dp),
 ) {
     if (days.isEmpty()) return
     val reduced = wizardReducedMotion()
@@ -72,7 +74,7 @@ fun HomeWeekStrip(
     BoxWithConstraints(
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp)
+            .padding(contentPadding)
             .testTag("home-week")
             .onSymbolsVisible { visible = it },
     ) {

@@ -6,18 +6,15 @@ import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.togetherWith
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
-import androidx.compose.material3.Text
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.kpkn.data.exercises.displayNameWithSelectedChips
@@ -44,30 +41,24 @@ import com.example.kpkn.domain.training.HomeCompetitionState
 import com.example.kpkn.domain.training.HomeWeekDay
 import com.example.kpkn.domain.training.HomeWeekResolver
 import com.example.kpkn.screens.home.design.HomeHeroActions
-import com.example.kpkn.screens.home.design.HomeHeroArt
+import com.example.kpkn.screens.home.design.HomeHeroCountdown
 import com.example.kpkn.screens.home.design.HomeHeroLine
 import com.example.kpkn.screens.home.design.HomeHeroMode
 import com.example.kpkn.screens.home.design.HomeHeroState
 import com.example.kpkn.screens.home.design.HomeMuscleGauge
-import com.example.kpkn.screens.home.design.HomeMuscleGauges
-import com.example.kpkn.screens.home.design.HomeSectionGap
 import com.example.kpkn.screens.home.design.HomeSessionHero
 import com.example.kpkn.screens.home.design.heroDose
-import com.example.kpkn.screens.home.design.homeHeroFallbackIdentity
 import com.example.kpkn.screens.home.design.homeHeroKicker
 import com.example.kpkn.screens.home.design.homeHeroNextLine
-import com.example.kpkn.screens.onboarding.design.WizardColors
-import com.example.kpkn.screens.onboarding.design.WizardSpacing
-import com.example.kpkn.screens.onboarding.design.WizardTypography
-import com.example.kpkn.screens.onboarding.design.entreno.plan.cover.coverIdentityFor
 import com.example.kpkn.screens.onboarding.design.wizardReducedMotion
 import com.example.kpkn.ui.components.PagerDots
+import com.example.kpkn.ui.design.KpknTextAction
 import java.time.LocalDate
 
 /**
- * La sesión del día (Inicio): el héroe a sangre del día elegido en «Tu semana» (I2), con las cifras de sus músculos debajo. Sin
- * día elegido, o con hoy, es la sesión de hoy: la preferida, y un pager si hay varias. Un día fuera de «Tu semana» se trata como
- * hoy. Cada día que no es hoy muestra su sesión (OTHER_DAY) o el descanso.
+ * La sesión del día (Inicio), dentro del módulo «Esta semana» (I10a): el héroe compacto del día elegido en «Tu semana», con los
+ * músculos como fila de chips dentro del propio héroe. Sin día elegido, o con hoy, es la sesión de hoy: la preferida, y un pager si
+ * hay varias. Un día fuera de «Tu semana» se trata como hoy. Cada día que no es hoy muestra su sesión (OTHER_DAY) o el descanso.
  */
 @Composable
 fun HomeSessionSection(
@@ -84,11 +75,13 @@ fun HomeSessionSection(
     onResumeWorkout: () -> Unit,
     onEditSession: (Session, Program) -> Unit = { _, _ -> },
     onCreateProgram: () -> Unit = {},
+    /** Lleva a elegir programa (la acción «Elige tu programa» cuando no hay programa activo). */
+    onChooseProgram: () -> Unit = {},
     /** Día elegido en «Tu semana»; null = hoy. Si no está en [weekDays], se trata como hoy. */
     selectedDate: LocalDate? = null,
     /** Los días de «Tu semana» (I1): el «Siguiente», el «DÍA n DE m» y el día elegido. */
     weekDays: List<HomeWeekDay> = emptyList(),
-    /** Programa activo: su arte cuando esta semana no hay sesiones que lo muestren (el descanso). */
+    /** Programa activo: el que abre «Ver programa» en el descanso, cuando no hay sesión que abrir. */
     activeProgram: Program? = null,
     /** Abre el programa (la acción «Ver en el programa» de un día que no es hoy). */
     onNavigateToProgram: (String) -> Unit = {},
@@ -99,6 +92,7 @@ fun HomeSessionSection(
     val customExercises by CustomExerciseRepository.customExercises.collectAsStateWithLifecycle()
     val isCatalogReady by exerciseCatalogReady.collectAsStateWithLifecycle()
     val reduced = wizardReducedMotion()
+    val liftPx = with(LocalDensity.current) { 12.dp.roundToPx() }
     val today = LocalDate.now()
     val day = selectedDate?.takeIf { it != today && weekDays.any { d -> d.date == it } } ?: today
 
@@ -127,7 +121,9 @@ fun HomeSessionSection(
             onStart = { item?.let { onStartWorkout(it.session, it.program) } },
             onResume = onResumeWorkout,
             onEdit = { item?.let { onEditSession(it.session, it.program) } },
-            onOpenProgram = { item?.let { onNavigateToProgram(it.program.id) } },
+            // Con sesión, abre su programa; en el descanso (sin sesión), el programa activo. Sin programa, no hay botón.
+            onOpenProgram = (item?.program ?: activeProgram)?.let { program -> { onNavigateToProgram(program.id) } },
+            onChooseProgram = onChooseProgram,
             onCreateProgram = onCreateProgram,
             onRegister = { homeCompetition?.let { onRegisterCompetition(it.recordId) } },
         )
@@ -143,7 +139,8 @@ fun HomeSessionSection(
                 HomeSessionHero(
                     state = page.state,
                     actions = actionsFor(page),
-                    parallax = { (pagerState.currentPage + pagerState.currentPageOffsetFraction - index).coerceIn(-1f, 1f) },
+                    muscles = gaugesFor(page, perMuscle),
+                    onOpenMuscles = onOpenMuscleDetail,
                 )
             }
             PagerDots(
@@ -156,59 +153,50 @@ fun HomeSessionSection(
                 targetState = pages.first(),
                 contentKey = { it.state.key },
                 transitionSpec = {
-                    if (reduced) {
-                        EnterTransition.None togetherWith ExitTransition.None
-                    } else {
-                        fadeIn(tween(durationMillis = 220)) togetherWith fadeOut(tween(durationMillis = 220))
+                    when {
+                        reduced -> EnterTransition.None togetherWith ExitTransition.None
+                        // Mismo día: solo fundido. Otro día: la sesión nueva entra desde su lado, 12 dp, y se funde.
+                        initialState.date == targetState.date ->
+                            fadeIn(tween(durationMillis = 220)) togetherWith fadeOut(tween(durationMillis = 220))
+                        else -> {
+                            val side = if (targetState.date > initialState.date) 1 else -1
+                            (fadeIn(tween(durationMillis = 220)) + slideInHorizontally(tween(durationMillis = 220)) { side * liftPx })
+                                .togetherWith(fadeOut(tween(durationMillis = 220)))
+                        }
                     }
                 },
                 label = "homeHeroDay",
             ) { page ->
-                HomeSessionHero(state = page.state, actions = actionsFor(page))
+                HomeSessionHero(
+                    state = page.state,
+                    actions = actionsFor(page),
+                    muscles = gaugesFor(page, perMuscle),
+                    onOpenMuscles = onOpenMuscleDetail,
+                )
             }
         }
         promptProgramId?.let { CompetitionDatePrompt(programId = it, onOpenProgram = onOpenProgramForCompetitionDate) }
-        if (shown.showsMuscles) {
-            Spacer(Modifier.height(HomeSectionGap))
-            HomeMuscleGauges(
-                muscles = shown.muscles.map { HomeMuscleGauge(it, lookupMuscleValue(perMuscle, it)?.recoveryScore) },
-                onOpen = onOpenMuscleDetail,
-            )
-        }
     }
 }
 
 /** Tag de prueba de la acción «Añadir la fecha de tu competición» (C4c). */
 internal const val COMPETITION_DATE_PROMPT_TAG = "home-competition-date-prompt"
 
-/** La acción «Añadir la fecha de tu competición», como texto bajo el héroe (C4c). */
+/** La acción «Añadir la fecha de tu competición», al pie del módulo: un [KpknTextAction] (C4c). */
 @Composable
 private fun CompetitionDatePrompt(programId: String, onOpenProgram: (String) -> Unit) {
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = WizardSpacing.gutter),
-        contentAlignment = Alignment.Center,
-    ) {
-        Box(
-            modifier = Modifier
-                .defaultMinSize(minHeight = 48.dp)
-                .testTag(COMPETITION_DATE_PROMPT_TAG)
-                .clickable(role = Role.Button, onClick = { onOpenProgram(programId) })
-                .padding(horizontal = 12.dp),
-            contentAlignment = Alignment.Center,
-        ) {
-            Text(
-                text = "Añadir la fecha de tu competición",
-                style = WizardTypography.cta.copy(textDecoration = TextDecoration.Underline),
-                color = WizardColors.text,
-            )
-        }
+    Box(modifier = Modifier.padding(top = 8.dp)) {
+        KpknTextAction(
+            text = "Añadir la fecha de tu competición",
+            onClick = { onOpenProgram(programId) },
+            modifier = Modifier.testTag(COMPETITION_DATE_PROMPT_TAG),
+        )
     }
 }
 
-/** Una página del héroe: su estado, la sesión que muestra (null si no hay) y los músculos de sus cifras. */
+/** Una página del héroe: su día, su estado, la sesión que muestra (null si no hay) y los músculos de sus cifras. */
 private data class HomeHeroPage(
+    val date: LocalDate,
     val state: HomeHeroState,
     val item: TodaySessionItem?,
     val muscles: List<String>,
@@ -222,6 +210,14 @@ private data class HomeHeroPage(
             HomeHeroMode.OTHER_DAY,
         )
 }
+
+/** Los músculos de una página como chips: su % de recuperación, o sin dato («—»). Vacío si la página no los muestra. */
+private fun gaugesFor(page: HomeHeroPage, perMuscle: Map<String, MuscleRecoveryStatus>): List<HomeMuscleGauge> =
+    if (page.showsMuscles) {
+        page.muscles.map { HomeMuscleGauge(it, lookupMuscleValue(perMuscle, it)?.recoveryScore) }
+    } else {
+        emptyList()
+    }
 
 /** La página preferida: la sesión en curso, si no la que toca hoy, si no la primera. */
 private fun preferredHeroPage(pages: List<HomeHeroPage>): Int =
@@ -245,21 +241,18 @@ private fun homeHeroPages(
 ): List<HomeHeroPage> {
     val onToday = day == today
     val countdown = homeCompetition?.takeIf { it.phase == CompetitionHomePhase.UPCOMING }?.let(::heroCountdown)
-    val programForArt = activeProgram ?: sessions.firstOrNull()?.program
-    val fallbackArt = HomeHeroArt.Cover(homeHeroFallbackIdentity(), opacity = 0.35f)
 
     val competition = homeCompetition?.takeIf { onToday && it.phase == CompetitionHomePhase.REGISTER }
     if (competition != null) {
         return listOf(
             HomeHeroPage(
+                date = day,
                 state = HomeHeroState(
                     key = "$day/REGISTER",
                     mode = HomeHeroMode.REGISTER,
                     kicker = homeHeroKicker(HomeHeroMode.REGISTER, day, null, null),
                     title = "¿Cómo te fue en ${competition.title}?",
                     meta = "${competition.countdownLabel} · ${competition.competitionDateLabel}",
-                    art = programForArt?.let { HomeHeroArt.Cover(coverIdentityFor(it.id, it.structureTemplateId)) }
-                        ?: fallbackArt,
                 ),
                 item = null,
                 muscles = emptyList(),
@@ -270,13 +263,13 @@ private fun homeHeroPages(
     if (!hasActiveProgram) {
         return listOf(
             HomeHeroPage(
+                date = day,
                 state = HomeHeroState(
                     key = "$day/NO_PROGRAM",
                     mode = HomeHeroMode.NO_PROGRAM,
                     kicker = homeHeroKicker(HomeHeroMode.NO_PROGRAM, day, null, null),
                     title = "Aún no tienes programa",
                     body = "Crea uno con KPKN o importa el tuyo.",
-                    art = fallbackArt,
                 ),
                 item = null,
                 muscles = emptyList(),
@@ -288,19 +281,17 @@ private fun homeHeroPages(
     if (dayItems.isEmpty()) {
         return listOf(
             HomeHeroPage(
+                date = day,
                 state = HomeHeroState(
                     key = "$day/REST",
                     mode = HomeHeroMode.REST,
                     kicker = homeHeroKicker(HomeHeroMode.REST, day, null, null),
                     title = "Descanso",
-                    meta = homeHeroNextLine(
+                    body = homeHeroNextLine(
                         weekDays,
                         HomeWeekResolver.nextSession(activeProgram, sessions, weekDays, day),
                     ),
                     countdown = countdown,
-                    art = programForArt
-                        ?.let { HomeHeroArt.Cover(coverIdentityFor(it.id, it.structureTemplateId), opacity = 0.45f) }
-                        ?: fallbackArt,
                 ),
                 item = null,
                 muscles = emptyList(),
@@ -329,7 +320,7 @@ private fun sessionHeroPage(
     onToday: Boolean,
     position: Int?,
     count: Int?,
-    countdown: String?,
+    countdown: HomeHeroCountdown?,
     loadAdvisory: LoadAdvisory?,
 ): HomeHeroPage {
     val session = item.session
@@ -347,9 +338,8 @@ private fun sessionHeroPage(
     }
     val log = item.log
     val meta = if (mode == HomeHeroMode.DONE && log != null) doneMeta(log) else estimateMeta(session, exercises.size)
-    val art = session.background?.let { HomeHeroArt.Own(it) }
-        ?: HomeHeroArt.Cover(coverIdentityFor(item.program.id, item.program.structureTemplateId))
     return HomeHeroPage(
+        date = day,
         state = HomeHeroState(
             key = "$day/${mode.name}/${session.id}",
             mode = mode,
@@ -362,7 +352,6 @@ private fun sessionHeroPage(
             meta = meta,
             advisoryBadge = advisory?.let { LoadAdvisoryEngine.badgeLabel(it, axialHintsForSession(session)) },
             countdown = countdown,
-            art = art,
         ),
         item = item,
         muscles = getSessionInvolvedMuscles(session),
@@ -410,9 +399,13 @@ private fun estimatedSessionMinutes(session: Session): Int? {
     return (estimatedSeconds / 60.0).toInt().coerceAtLeast(1)
 }
 
-/** La cuenta atrás de la competición para la etiqueta del héroe: «COMPETICIÓN EN 23 DÍAS» o «COMPETICIÓN MAÑANA». */
-private fun heroCountdown(state: HomeCompetitionState): String =
-    if (state.daysUntil == 1L) "COMPETICIÓN MAÑANA" else "COMPETICIÓN EN ${state.daysUntil} DÍAS"
+/** La cuenta atrás de la competición para el héroe: «23 días para tu competición» o «Mañana es tu competición». */
+private fun heroCountdown(state: HomeCompetitionState): HomeHeroCountdown =
+    if (state.daysUntil == 1L) {
+        HomeHeroCountdown(value = "Mañana", unit = null, label = "es tu competición")
+    } else {
+        HomeHeroCountdown(value = "${state.daysUntil}", unit = "días", label = "para tu competición")
+    }
 
 /** Los músculos que trabaja una sesión, con el nombre que muestra Auge. */
 private fun getSessionInvolvedMuscles(session: Session): List<String> {

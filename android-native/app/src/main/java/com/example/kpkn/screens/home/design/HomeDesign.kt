@@ -18,6 +18,7 @@ import com.example.kpkn.screens.onboarding.design.WizardSpacing
 import com.example.kpkn.screens.onboarding.design.WizardTypography
 import com.example.kpkn.ui.design.KpknPrimaryPill
 import com.example.kpkn.ui.design.KpknSecondaryPill
+import com.example.kpkn.ui.design.KpknType
 import com.example.kpkn.ui.design.kpknEntrance
 import java.time.LocalDate
 import java.util.Locale
@@ -53,23 +54,6 @@ internal object HomeTypography {
     /** Cifra de un músculo en la rejilla de RINGS: Syne 700 a 15 sp. */
     val ringValueSmall: TextStyle = WizardTypography.measure.copy(fontSize = 15.sp, lineHeight = 20.sp, letterSpacing = 0.sp)
 
-    /** Título de la sesión del día (el héroe): Syne ExtraBold a 44 sp. Si no cabe en dos líneas, el héroe lo encoge hasta 30 sp. */
-    val heroTitle: TextStyle = WizardTypography.question.copy(fontSize = 44.sp, lineHeight = 46.sp, letterSpacing = (-0.8).sp)
-
-    /** Nombre de un ejercicio en el héroe: Inter 500 a 15 sp. */
-    val heroLine: TextStyle = WizardTypography.bodySmall.copy(fontWeight = FontWeight.Medium, fontSize = 15.sp, lineHeight = 20.sp)
-
-    /** Dosis de un ejercicio en el héroe: Inter 500 a 14 sp, con cifras tabulares para que las columnas cuadren. */
-    val heroDoseText: TextStyle = WizardTypography.bodySmall.copy(
-        fontWeight = FontWeight.Medium,
-        fontSize = 14.sp,
-        lineHeight = 20.sp,
-        fontFeatureSettings = "tnum",
-    )
-
-    /** Porcentaje dentro del anillo de «Cómo llegan tus músculos»: Syne 700 a 14 sp. */
-    val gaugeFigure: TextStyle = WizardTypography.measure.copy(fontSize = 14.sp, lineHeight = 18.sp, letterSpacing = 0.sp)
-
     /** Título de un póster de programa: Syne ExtraBold a 17 sp. */
     val posterTitle: TextStyle = WizardTypography.question.copy(fontSize = 17.sp, lineHeight = 22.sp, letterSpacing = 0.sp)
 
@@ -84,6 +68,12 @@ internal object HomeTypography {
 
     /** Píldora «ACTIVO» de un póster: Inter 700 a 13 sp. */
     val posterPill: TextStyle = WizardTypography.note.copy(fontWeight = FontWeight.Bold)
+
+    /** Porcentaje de un músculo en su chip (Home v1.1, I10a): el rol `caption` en SemiBold, con cifras tabulares. */
+    val chipValue: TextStyle = KpknType.caption.copy(fontWeight = FontWeight.SemiBold, fontFeatureSettings = "'tnum' 1")
+
+    /** Dosis de un ejercicio del héroe (Home v1.1, I10a): el cuerpo de `KpknType` con cifras tabulares, para que las columnas cuadren. */
+    val dose: TextStyle = KpknType.body.copy(fontFeatureSettings = "'tnum' 1")
 }
 
 /**

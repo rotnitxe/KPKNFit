@@ -84,6 +84,9 @@ import com.example.kpkn.ui.components.KpknGlassVariant
 import com.example.kpkn.ui.components.icons.KpknLineIcons
 import com.example.kpkn.ui.design.KpknShape
 import com.example.kpkn.ui.design.KpknSurface
+import com.example.kpkn.ui.design.KpknModule
+import com.example.kpkn.ui.design.KpknModuleHeader
+import com.example.kpkn.ui.design.KpknTextAction
 import com.example.kpkn.ui.components.KpknAlertDialog
 import com.example.kpkn.ui.components.LocalKpknOverlayHost
 import com.example.kpkn.ui.tour.TourAnchors
@@ -748,38 +751,58 @@ private fun HomeWithProgram(
                     .onGloballyPositioned { onMastheadPositionChanged(it.positionInRoot().y + it.size.height) },
             )
         }
-        if (hasActiveProgram && weekDays.isNotEmpty()) {
-            item(key = "week") {
-                HomeWeekStrip(
-                    days = weekDays,
-                    selected = selectedDate,
-                    onSelect = onSelectDate,
-                    modifier = Modifier.homeEntrance(1),
+        // «Esta semana» y la sesión del día son un solo módulo (I10a): la semana arriba y, separada por un filete, la sesión.
+        item(key = "week-session") {
+            val showWeek = hasActiveProgram && weekDays.isNotEmpty()
+            KpknModule(
+                modifier = Modifier
+                    .padding(horizontal = 16.dp)
+                    .onGloballyPositioned { onSessionAnchorPositionChanged(it.positionInRoot().y) }
+                    .homeEntrance(1),
+            ) {
+                if (showWeek) {
+                    KpknModuleHeader(
+                        label = "Esta semana",
+                        action = if (activeProgramId == null) null else {
+                            { KpknTextAction(text = "Programa", onClick = { onNavigateToProgram(activeProgramId) }) }
+                        },
+                    )
+                    Spacer(Modifier.height(12.dp))
+                    HomeWeekStrip(
+                        days = weekDays,
+                        selected = selectedDate,
+                        onSelect = onSelectDate,
+                        contentPadding = PaddingValues(0.dp),
+                    )
+                    Box(
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 16.dp)
+                            .height(1.dp)
+                            .background(KpknSurface.divider),
+                    )
+                }
+                HomeSessionSection(
+                    selectedDate = selectedDate,
+                    weekDays = weekDays,
+                    activeProgram = programs.firstOrNull { it.id == activeProgramId },
+                    onNavigateToProgram = onNavigateToProgram,
+                    onOpenMuscleDetail = { onSelectedChannelChange(RecoveryChannelId.MUSCULAR) },
+                    sessions = todaySessions,
+                    homeCompetition = homeCompetition,
+                    hasActiveProgram = hasActiveProgram,
+                    perMuscle = perMuscle,
+                    loadAdvisory = homeAdvisory,
+                    onStartWorkout = onStartWorkout,
+                    onRegisterCompetition = onRegisterCompetition,
+                    onResumeWorkout = onResumeWorkout,
+                    onEditSession = onEditSession,
+                    onCreateProgram = onCreateProgram,
+                    onChooseProgram = { onNavigate(com.example.kpkn.navigation.KpknRoute.Training.route) },
+                    competitionDatePromptProgramId = competitionDatePromptProgramId,
+                    onOpenProgramForCompetitionDate = onNavigateToProgram,
                 )
             }
-        }
-
-        item(key = "session") {
-            HomeSessionSection(
-                selectedDate = selectedDate,
-                weekDays = weekDays,
-                activeProgram = programs.firstOrNull { it.id == activeProgramId },
-                onNavigateToProgram = onNavigateToProgram,
-                onOpenMuscleDetail = { onSelectedChannelChange(RecoveryChannelId.MUSCULAR) },
-                sessions = todaySessions,
-                homeCompetition = homeCompetition,
-                hasActiveProgram = hasActiveProgram,
-                perMuscle = perMuscle,
-                loadAdvisory = homeAdvisory,
-                onStartWorkout = onStartWorkout,
-                onRegisterCompetition = onRegisterCompetition,
-                onResumeWorkout = onResumeWorkout,
-                onEditSession = onEditSession,
-                onCreateProgram = onCreateProgram,
-                competitionDatePromptProgramId = competitionDatePromptProgramId,
-                onOpenProgramForCompetitionDate = onNavigateToProgram,
-                modifier = Modifier.onGloballyPositioned { onSessionAnchorPositionChanged(it.positionInRoot().y) }.homeEntrance(2),
-            )
         }
 
         item(key = "rings") {

@@ -5,15 +5,13 @@ import android.graphics.Canvas
 import android.view.View
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.platform.testTag
@@ -24,10 +22,10 @@ import androidx.compose.ui.unit.dp
 import com.example.kpkn.screens.home.HomeHeroSheetCase
 import com.example.kpkn.screens.home.HomeSamples
 import com.example.kpkn.screens.home.design.HomeHeroActions
-import com.example.kpkn.screens.home.design.HomeMuscleGauges
-import com.example.kpkn.screens.home.design.HomeSectionGap
 import com.example.kpkn.screens.home.design.HomeSessionHero
 import com.example.kpkn.screens.onboarding.design.LocalWizardReducedMotion
+import com.example.kpkn.screens.onboarding.design.WizardColors
+import com.example.kpkn.ui.design.KpknModule
 import org.junit.Assume.assumeTrue
 import org.junit.BeforeClass
 import org.junit.Rule
@@ -40,8 +38,9 @@ import java.io.File
 import java.io.FileOutputStream
 
 /**
- * HOJA DE DIBUJO del héroe de la sesión del día (no comprueba nada: escribe PNG). Pinta cada caso de [HomeSamples.heroSheetCases] a
- * 360 dp, con la letra al 100 % y al 130 %, sin movimiento (el cuadro final). Solo corre con `KPKN_RENDER_DIR`; sin ella se salta.
+ * HOJA DE DIBUJO de la sesión del día como módulo (no comprueba nada: escribe PNG). Pinta cada caso de [HomeSamples.heroSheetCases] y
+ * el caso de título largo, dentro de un `KpknModule` a 360 dp, con la letra al 100 % y al 130 %, sin movimiento (el cuadro final).
+ * Solo corre con `KPKN_RENDER_DIR`; sin ella se salta.
  */
 @RunWith(RobolectricTestRunner::class)
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
@@ -96,18 +95,21 @@ class HomeHeroRenderSheetTest {
                 LocalDensity provides Density(base.density, fontScale = fontScale),
                 LocalWizardReducedMotion provides true,
             ) {
-                Column(Modifier.testTag("sheet").width(360.dp).background(Color.Black)) {
+                // Cada caso, como en la lista de Home: dentro de su módulo y con el margen de pantalla de 16 dp.
+                Column(Modifier.testTag("sheet").width(360.dp).background(WizardColors.background).padding(16.dp)) {
                     current?.let { case ->
-                        HomeSessionHero(state = case.state, actions = HomeHeroActions())
-                        if (case.muscles.isNotEmpty()) {
-                            Spacer(Modifier.height(HomeSectionGap))
-                            HomeMuscleGauges(muscles = case.muscles, onOpen = {})
+                        KpknModule {
+                            // Con `onOpenProgram`, el descanso y «otro día» muestran su botón, como en la app con programa activo.
+                            HomeSessionHero(state = case.state, actions = HomeHeroActions(onOpenProgram = {}), muscles = case.muscles)
                         }
                     }
                 }
             }
         }
-        for ((name, case) in HomeSamples.heroSheetCases()) {
+        val cases = HomeSamples.heroSheetCases() + (
+            "hoy_titulo_largo" to HomeHeroSheetCase(HomeSamples.heroLongTitle(), HomeSamples.heroManyMuscles())
+        )
+        for ((name, case) in cases) {
             for ((scale, suffix) in listOf(1f to "s100", 1.3f to "s130")) {
                 rule.runOnUiThread {
                     current = case
