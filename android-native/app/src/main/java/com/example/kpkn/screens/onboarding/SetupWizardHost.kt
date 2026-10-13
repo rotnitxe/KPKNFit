@@ -487,6 +487,11 @@ private fun WizardLongPage(
             // En la revisión el botón final dice lo que hace; en los demás pasos sigue siendo el círculo con el check.
             textLabel = ctaLabel.takeIf { step == SetupStepId.REVIEW_ACTIVATE && !keepsLaterAnswers },
             note = if (keepsLaterAnswers) "Tus respuestas siguientes se conservan." else null,
+            // «Omitir» de los pesajes solo sin pesajes: el paso se declara omitido igual que antes lo hacía su botón de texto.
+            secondaryLabel = "Omitir".takeIf {
+                step == SetupStepId.NUTRITION_WEIGH_INS && state.draft.historicalWeighIns.isEmpty()
+            },
+            onSecondary = { viewModel.skipStep(step) },
             onClick = {
                 haptics.performHapticFeedback(HapticFeedbackType.ContextClick)
                 when {
