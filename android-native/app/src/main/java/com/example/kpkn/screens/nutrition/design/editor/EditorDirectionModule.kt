@@ -103,9 +103,11 @@ private fun EditorWeightGoal(draft: NutritionPlanEditorDraft, onTargetValue: (St
         unit = if (targetKg == null) null else unit.code,
     )
     Spacer(Modifier.height(8.dp))
+    // La cifra ya la pone la métrica de arriba: la regla no la repite en su centro.
     WizardWeightRule(
         unit = unit,
         valueKg = anchorKg,
         onValueChange = { kg -> onTargetValue(editorWeightTargetText(kg, unit)) },
+        showReading = false,
     )
 }

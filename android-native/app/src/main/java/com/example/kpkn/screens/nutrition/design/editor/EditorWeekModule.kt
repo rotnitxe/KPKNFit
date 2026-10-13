@@ -29,6 +29,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -44,6 +45,7 @@ import com.example.kpkn.screens.onboarding.design.weekdayNameEs
 import com.example.kpkn.screens.onboarding.design.wizardReducedMotion
 import com.example.kpkn.ui.design.KpknModule
 import com.example.kpkn.ui.design.KpknModuleHeader
+import com.example.kpkn.ui.design.KpknRadioRow
 import com.example.kpkn.ui.design.KpknSegmentedControl
 import com.example.kpkn.ui.design.KpknSegmentedSize
 import com.example.kpkn.ui.design.KpknType
@@ -78,13 +80,27 @@ fun EditorWeekModule(
     KpknModule(modifier = modifier) {
         KpknModuleHeader(label = "Reparto semanal")
         Spacer(Modifier.height(12.dp))
-        KpknSegmentedControl(
-            options = WeekOptions,
-            selectedIndex = WeekModes.indexOf(weeklyDistribution),
-            onSelect = { onWeeklyDistribution(WeekModes[it]) },
-            modifier = Modifier.fillMaxWidth(),
-            size = KpknSegmentedSize.Compact,
-        )
+        if (LocalDensity.current.fontScale >= EditorLargeFontScale) {
+            // Al 130 % de letra, los dos segmentos cortarían «Según el gasto previsto»: cada opción va en su fila.
+            KpknRadioRow(
+                selected = weeklyDistribution == NutritionWeeklyDistributionMode.VARIABLE,
+                title = WeekOptions[0],
+                onClick = { onWeeklyDistribution(WeekModes[0]) },
+            )
+            KpknRadioRow(
+                selected = weeklyDistribution == NutritionWeeklyDistributionMode.UNIFORM,
+                title = WeekOptions[1],
+                onClick = { onWeeklyDistribution(WeekModes[1]) },
+            )
+        } else {
+            KpknSegmentedControl(
+                options = WeekOptions,
+                selectedIndex = WeekModes.indexOf(weeklyDistribution),
+                onSelect = { onWeeklyDistribution(WeekModes[it]) },
+                modifier = Modifier.fillMaxWidth(),
+                size = KpknSegmentedSize.Compact,
+            )
+        }
         Spacer(Modifier.height(16.dp))
         if (weeklyTargets.isEmpty()) {
             EditorCaption("Sin base revisada aún no hay reparto que mostrar.")
