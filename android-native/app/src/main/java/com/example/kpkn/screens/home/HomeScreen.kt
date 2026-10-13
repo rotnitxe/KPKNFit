@@ -155,6 +155,9 @@ fun HomeScreen(
     var showAugeRecommendations by remember { mutableStateOf(false) }
     // «Tu semana»: el día elegido sobrevive a girar la pantalla; por defecto, hoy.
     var selectedDate by rememberSaveable(stateSaver = HomeDateSaver) { mutableStateOf(LocalDate.now()) }
+    // RINGS: canal cuyo detalle está abierto. Se guarda por nombre para sobrevivir a girar la pantalla.
+    var selectedChannelName by rememberSaveable { mutableStateOf<String?>(null) }
+    val selectedChannel = selectedChannelName?.let { RecoveryChannelId.valueOf(it) }
     // Cabecera y «Tu semana», calculadas del programa activo y de sus sesiones de la semana.
     val todayDate = LocalDate.now()
     val activeProgram = remember(uiState.programs, uiState.activeProgramId) {
@@ -374,6 +377,15 @@ fun HomeScreen(
                  weekDays = weekDays,
                  onMastheadPositionChanged = { mastheadBottomY = it },
                  onOpenProfile = onNavigateToProfile,
+                 selectedChannel = selectedChannel,
+                 onSelectedChannelChange = { selectedChannelName = it?.name },
+                 onSaveRingAdjustment = { channel, value ->
+                     when (channel) {
+                         RecoveryChannelId.MUSCULAR -> augeViewModel.applyManualBatteries(muscular = value)
+                         RecoveryChannelId.SYSTEM -> augeViewModel.applyManualBatteries(neural = value)
+                         RecoveryChannelId.STRUCTURE -> augeViewModel.applyManualBatteries(spinal = value)
+                     }
+                 },
                  modifier = Modifier
                      .fillMaxSize()
                      .navigationBarsPadding(),
@@ -637,6 +649,10 @@ private fun HomeWithProgram(
     weekDays: List<HomeWeekDay>,
     onMastheadPositionChanged: (Float) -> Unit,
     onOpenProfile: () -> Unit,
+    /** Canal con el detalle de RINGS abierto, su cambio y el guardado del ajuste manual (lo cablea HomeScreen). */
+    selectedChannel: RecoveryChannelId? = null,
+    onSelectedChannelChange: (RecoveryChannelId?) -> Unit = {},
+    onSaveRingAdjustment: (RecoveryChannelId, Int) -> Unit = { _, _ -> },
 ) {
     val homeAdapt = LocalViewportAdapt.current
     val isCatalogReady by exerciseCatalogReady.collectAsState()
@@ -712,6 +728,10 @@ private fun HomeWithProgram(
                 dashboard = augeSnapshot?.dashboard,
                 snapshot = augeSnapshot,
                 showModelUpdateNotice = augeSnapshot?.showModelUpdateNotice == true,
+                selectedChannel = selectedChannel,
+                onSelectedChannelChange = onSelectedChannelChange,
+                perMuscle = perMuscle,
+                onSaveAdjustment = onSaveRingAdjustment,
                 onDismissAdvisory = onDismissAdvisory,
                 onModelNoticeShown = onModelNoticeShown,
                 modifier = Modifier.onGloballyPositioned { onRingsAnchorPositionChanged(it.positionInRoot().y) }.homeEntrance(3),

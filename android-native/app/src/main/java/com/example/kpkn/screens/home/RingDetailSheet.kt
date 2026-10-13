@@ -1,36 +1,70 @@
 package com.example.kpkn.screens.home
 
-import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Path
-import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.disabled
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import com.example.kpkn.data.models.AugeSnapshot
 import com.example.kpkn.data.models.LoadAdvisoryLevel
+import com.example.kpkn.data.models.MuscleRecoveryStatus
 import com.example.kpkn.data.models.RecoveryChannelId
 import com.example.kpkn.data.models.ringScore
 import com.example.kpkn.domain.auge.LoadAdvisoryEngine
 import com.example.kpkn.domain.auge.RecoveryBands
+import com.example.kpkn.domain.onboarding.RingsCoverage
+import com.example.kpkn.screens.home.design.HomeGlyph
+import com.example.kpkn.screens.home.design.HomeGlyphButton
+import com.example.kpkn.screens.home.design.HomePrimaryPill
+import com.example.kpkn.screens.home.design.HomeRingMuscle
+import com.example.kpkn.screens.home.design.HomeRingMuscleGrid
+import com.example.kpkn.screens.home.design.HomeRingRange
+import com.example.kpkn.screens.home.design.HomeRingSparkline
+import com.example.kpkn.screens.home.design.HomeTypography
+import com.example.kpkn.screens.home.design.RingTowerAspect
+import com.example.kpkn.screens.home.design.homeAccent
+import com.example.kpkn.screens.onboarding.design.WizardColors
+import com.example.kpkn.screens.onboarding.design.WizardSpacing
+import com.example.kpkn.screens.onboarding.design.WizardTypography
+import com.example.kpkn.screens.onboarding.rings.RingsChannelSlider
+import com.example.kpkn.ui.components.KpknSheet
+import com.example.kpkn.ui.components.rings.KpknTowerRings
+import com.example.kpkn.ui.components.rings.RingChannel
+import com.example.kpkn.ui.components.rings.TowerRingValues
 
-@OptIn(ExperimentalMaterial3Api::class)
+/** Máximo de músculos en la rejilla del detalle de Músculos. */
+private const val MuscleGridMax = 12
+
+/**
+ * Detalle de un canal de RINGS: una hoja de vidrio (`KpknSheet`) que, de arriba abajo, muestra el nombre del canal y su cierre,
+ * el anillo grande con su cifra y su banda, tu rango habitual, por qué, qué hacer hoy, (solo Músculos) los músculos uno a uno, las
+ * últimas sesiones, el aviso del canal y el ajuste con deslizador. Sin dato ([coverage]) no hay cifra ni ajuste. Etiquetas
+ * `home-ring-sheet`, `home-ring-close`, `home-ring-adjust` y `home-ring-save`.
+ */
 @Composable
 fun RingDetailSheet(
     channel: RecoveryChannelId,
@@ -39,123 +73,256 @@ fun RingDetailSheet(
     onDismiss: () -> Unit,
     onDismissAdvisory: (String) -> Unit,
     onModelNoticeShown: () -> Unit,
+    coverage: RingsCoverage = snapshot.coverage ?: RingsCoverage.NO_DATA,
+    dataLabel: String? = null,
+    perMuscle: Map<String, MuscleRecoveryStatus> = emptyMap(),
+    onSaveAdjustment: (RecoveryChannelId, Int) -> Unit = { _, _ -> },
 ) {
     val channelSnap = snapshot.dashboard.channels.firstOrNull { it.id == channel }
-    val score = channelSnap?.score ?: snapshot.ringScore(channel)
-    val band = RecoveryBands.band(score)
+    val channelCoverage = coverage.channel(channel)
+    // Sin dato no hay cifra: nunca el 100 % por defecto del motor.
+    val score: Int? = if (channelCoverage.hasData) snapshot.ringScore(channel) else null
+    val accent = channel.homeAccent()
+    val ring = channel.ringChannel()
     val baseline = snapshot.personalBaseline[channel]
     val hours = snapshot.hoursToNormal[channel]
     val spark = snapshot.sparkline[channel].orEmpty()
     val advisory = snapshot.advisories.firstOrNull { it.channel == channel }
+    val causes = channelSnap?.causes.orEmpty()
+    // Músculos del motor con sesión registrada, de menor a mayor. Sin sesión no hay dato y no se listan.
+    val muscles = remember(perMuscle) {
+        perMuscle.values
+            .filter { it.hoursSinceLastSession >= 0 }
+            .sortedBy { it.recoveryScore }
+            .take(MuscleGridMax)
+            .map { HomeRingMuscle(name = it.muscleName, score = it.recoveryScore) }
+    }
+    // Ajuste: lo elegido al soltar el deslizador y lo que se arrastra ahora (la torre lo enseña ya).
+    var adjusted by remember(channel, score) { mutableStateOf<Int?>(null) }
+    var dragging by remember(channel, score) { mutableStateOf<Int?>(null) }
+    val shown: Int? = dragging ?: adjusted ?: score
+    val changed = score != null && adjusted != null && adjusted != score
     LaunchedEffect(showModelUpdateNotice) {
         if (showModelUpdateNotice) onModelNoticeShown()
     }
-    ModalBottomSheet(onDismissRequest = onDismiss) {
+    // La torre enseña solo el canal del detalle; los demás anillos no se pintan.
+    val towerValues = TowerRingValues(
+        columna = shown.takeIf { ring == RingChannel.COLUMNA },
+        musculos = shown.takeIf { ring == RingChannel.MUSCULOS },
+        energia = shown.takeIf { ring == RingChannel.ENERGIA },
+    )
+
+    KpknSheet(
+        onDismissRequest = onDismiss,
+        modifier = Modifier.testTag("home-ring-sheet"),
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(start = WizardSpacing.gutter, end = 12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                text = RecoveryBands.channelTitle(channel),
+                style = WizardTypography.stepTitle,
+                color = accent,
+                modifier = Modifier.weight(1f),
+            )
+            HomeGlyphButton(
+                glyph = HomeGlyph.CLOSE,
+                description = "Cerrar",
+                onClick = onDismiss,
+                modifier = Modifier.testTag("home-ring-close"),
+            )
+        }
         Column(
             modifier = Modifier
                 .fillMaxWidth()
+                .weight(1f, fill = false)
                 .verticalScroll(rememberScrollState())
-                .padding(horizontal = 24.dp)
-                .padding(bottom = 32.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
+                .padding(horizontal = WizardSpacing.gutter)
+                .padding(top = 12.dp, bottom = 32.dp),
+            verticalArrangement = Arrangement.spacedBy(28.dp),
         ) {
-            Text(
-                RecoveryBands.channelTitle(channel),
-                style = MaterialTheme.typography.headlineSmall,
-                fontWeight = FontWeight.Black,
-            )
-            Text(
-                "$score % · ${RecoveryBands.label(band)}",
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold,
-            )
-            Text(
-                RecoveryBands.meaning(channel, band),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-            if (showModelUpdateNotice) {
+            // El anillo grande, su cifra y su banda.
+            Column(modifier = Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
+                KpknTowerRings(
+                    values = towerValues,
+                    visible = setOf(ring),
+                    highlighted = ring,
+                    modifier = Modifier.width(240.dp).aspectRatio(RingTowerAspect),
+                )
+                Row(verticalAlignment = Alignment.Bottom) {
+                    Text(
+                        text = shown?.toString() ?: "—",
+                        style = WizardTypography.controlValue,
+                        color = WizardColors.text,
+                    )
+                    if (shown != null) {
+                        Text(
+                            text = " %",
+                            style = WizardTypography.header,
+                            color = WizardColors.text,
+                            modifier = Modifier.padding(bottom = 8.dp),
+                        )
+                    }
+                }
                 Text(
-                    "Modelo actualizado: Columna ahora mide carga axial (no presses de pecho) y Energía/Columna recuperan con la misma semántica que el aprendizaje.",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.primary,
+                    text = ringCaption(shown, channelCoverage.label, channelCoverage.isEstimated),
+                    style = WizardTypography.caption,
+                    color = WizardColors.textMuted,
                 )
             }
+
+            // Tu rango habitual, o la nota de que aún no hay.
             if (baseline != null) {
-                Text(
-                    "Hoy $score % · tu rango habitual al empezar: ${baseline.first}–${baseline.last} %",
-                    style = MaterialTheme.typography.bodyMedium,
-                )
+                HomeRingRange(range = baseline, score = score, accent = accent, key = channel.name)
             } else {
                 Text(
-                    "Tu normal aparecerá tras unas 4 sesiones con rings al inicio.",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    text = "Tu normal aparecerá tras unas 4 sesiones con RINGS al inicio.",
+                    style = WizardTypography.bodySmall,
+                    color = WizardColors.textMuted,
                 )
             }
-            if (!channelSnap?.causes.isNullOrEmpty()) {
-                Text("Por qué", fontWeight = FontWeight.Bold)
-                channelSnap?.causes?.forEach { cause ->
-                    Text("· $cause", style = MaterialTheme.typography.bodySmall)
-                }
-            }
-            Text("Qué hacer hoy", fontWeight = FontWeight.Bold)
-            Text(
-                channelSnap?.action ?: RecoveryBands.action(channel, score),
-                style = MaterialTheme.typography.bodyMedium,
-            )
-            when (hours) {
-                null -> Unit
-                0 -> Text("Ya estás en Normal o por encima.")
-                else -> Text("Vuelve a Normal en ~$hours h.")
-            }
-            Text(
-                "Confianza: ${snapshot.dashboard.confidenceLabel}",
-                style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-            if (spark.size >= 2) {
-                Text("Últimas sesiones", fontWeight = FontWeight.Bold)
-                RingSparkline(values = spark)
-            }
-            if (advisory != null) {
-                Text(advisory.title, fontWeight = FontWeight.Bold)
-                Text(advisory.body, style = MaterialTheme.typography.bodySmall)
-                if (advisory.dismissible &&
-                    LoadAdvisoryEngine.rank(advisory.level) >= LoadAdvisoryEngine.rank(LoadAdvisoryLevel.WATCH)
-                ) {
-                    TextButton(onClick = { onDismissAdvisory(advisory.id) }) {
-                        Text("Descartar aviso")
+
+            if (score != null && causes.isNotEmpty()) {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    DetailEyebrow("POR QUÉ")
+                    causes.forEach { cause ->
+                        Text(text = cause, style = WizardTypography.bodySmall, color = WizardColors.textMuted)
                     }
                 }
             }
+
+            if (score != null) {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    DetailEyebrow("QUÉ HACER HOY")
+                    Text(
+                        text = channelSnap?.action?.takeIf { it.isNotBlank() } ?: RecoveryBands.action(channel, score),
+                        style = WizardTypography.body,
+                        color = WizardColors.text,
+                    )
+                    hours?.let { h ->
+                        Text(
+                            text = if (h == 0) "Ya estás en Normal o por encima." else "Vuelve a Normal en ~$h h",
+                            style = WizardTypography.bodySmall,
+                            color = WizardColors.textMuted,
+                        )
+                    }
+                }
+            }
+
+            if (channel == RecoveryChannelId.MUSCULAR && muscles.isNotEmpty()) {
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    DetailEyebrow("POR MÚSCULO")
+                    HomeRingMuscleGrid(muscles = muscles)
+                }
+            }
+
+            if (spark.size >= 2) {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    DetailEyebrow("ÚLTIMAS SESIONES")
+                    HomeRingSparkline(values = spark, accent = accent, key = channel.name)
+                }
+            }
+
+            advisory?.let { notice ->
+                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    Text(text = notice.title, style = WizardTypography.controlLabel, color = WizardColors.text)
+                    Text(text = notice.body, style = WizardTypography.bodySmall, color = WizardColors.textMuted)
+                    if (notice.dismissible &&
+                        LoadAdvisoryEngine.rank(notice.level) >= LoadAdvisoryEngine.rank(LoadAdvisoryLevel.WATCH)
+                    ) {
+                        DetailTextAction(text = "Descartar aviso", onClick = { onDismissAdvisory(notice.id) })
+                    }
+                }
+            }
+
+            if (score != null) {
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    DetailEyebrow("¿TE SIENTES DISTINTO?")
+                    RingsChannelSlider(
+                        accent = accent,
+                        name = RecoveryBands.channelTitle(channel),
+                        value = shown ?: score,
+                        onPreview = { dragging = it },
+                        onCommit = { value ->
+                            adjusted = value
+                            dragging = null
+                        },
+                        tag = "home-ring-adjust",
+                        dimmed = channelCoverage.isEstimated && adjusted == null && dragging == null,
+                        stateText = "${shown ?: score} %",
+                    )
+                    Text(
+                        text = "Si no coincide con cómo te sientes, ajústalo. Tu ajuste manda sobre la estimación de hoy.",
+                        style = WizardTypography.note,
+                        color = WizardColors.textMuted,
+                    )
+                    HomePrimaryPill(
+                        text = "Guardar ajuste",
+                        onClick = {
+                            val value = adjusted
+                            if (value != null && value != score) {
+                                onSaveAdjustment(channel, value)
+                                onDismiss()
+                            }
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .then(if (changed) Modifier else Modifier.alpha(0.4f).semantics { disabled() }),
+                        tag = "home-ring-save",
+                    )
+                }
+            }
+
+            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                if (showModelUpdateNotice) {
+                    Text(
+                        text = "Modelo actualizado: Columna ahora mide carga axial (no presses de pecho) y Energía/Columna recuperan con la misma semántica que el aprendizaje.",
+                        style = WizardTypography.bodySmall,
+                        color = WizardColors.textMuted,
+                    )
+                }
+                val data = (dataLabel ?: snapshot.dashboard.dataLabel)?.let { " · Datos: $it" }.orEmpty()
+                Text(
+                    text = "Confianza: ${snapshot.dashboard.confidenceLabel}$data",
+                    style = WizardTypography.note,
+                    color = WizardColors.textFaint,
+                )
+            }
         }
     }
 }
 
+/** Etiqueta de una sección del detalle: `eyebrow` en `textMuted`. */
 @Composable
-private fun RingSparkline(values: List<Int>, modifier: Modifier = Modifier) {
-    val color = Color(RecoveryBands.colorArgb(values.last()).toInt())
-    Canvas(
-        modifier
-            .fillMaxWidth()
-            .height(56.dp)
-            .padding(vertical = 4.dp),
+private fun DetailEyebrow(text: String) {
+    Text(text = text, style = HomeTypography.eyebrow, color = WizardColors.textMuted)
+}
+
+/** Acción de texto del detalle, de al menos 48 dp de alto. */
+@Composable
+private fun DetailTextAction(text: String, onClick: () -> Unit) {
+    Box(
+        modifier = Modifier
+            .heightIn(min = WizardSpacing.touchTarget)
+            .clickable(role = Role.Button, onClick = onClick),
+        contentAlignment = Alignment.CenterStart,
     ) {
-        if (values.size < 2) return@Canvas
-        val min = values.min().toFloat()
-        val max = values.max().toFloat().coerceAtLeast(min + 1f)
-        val step = size.width / (values.size - 1).toFloat()
-        val path = Path()
-        values.forEachIndexed { index, value ->
-            val x = index * step
-            val y = size.height - ((value - min) / (max - min)) * size.height
-            if (index == 0) path.moveTo(x, y) else path.lineTo(x, y)
-        }
-        drawPath(path, color, style = Stroke(width = 4f, cap = StrokeCap.Round))
-        val lastX = (values.lastIndex) * step
-        val lastY = size.height - ((values.last() - min) / (max - min)) * size.height
-        drawCircle(color, radius = 6f, center = Offset(lastX, lastY))
+        Text(text = text, style = WizardTypography.controlLabel, color = WizardColors.text)
     }
 }
 
+/** La banda bajo la cifra; sin dato, «Sin calibrar»; si el valor es una estimación, también su procedencia. */
+private fun ringCaption(shown: Int?, sourceLabel: String, estimated: Boolean): String = when {
+    shown == null -> "Sin calibrar"
+    estimated -> "${RecoveryBands.labelForScore(shown)} · $sourceLabel"
+    else -> RecoveryBands.labelForScore(shown)
+}
+
+private fun RecoveryChannelId.ringChannel(): RingChannel = when (this) {
+    RecoveryChannelId.MUSCULAR -> RingChannel.MUSCULOS
+    RecoveryChannelId.SYSTEM -> RingChannel.ENERGIA
+    RecoveryChannelId.STRUCTURE -> RingChannel.COLUMNA
+}

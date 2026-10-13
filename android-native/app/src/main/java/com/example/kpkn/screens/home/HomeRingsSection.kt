@@ -2,13 +2,13 @@ package com.example.kpkn.screens.home
 
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -22,27 +22,34 @@ import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.lerp
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
-import kotlin.math.*
-import com.example.kpkn.ui.components.KpknAlertDialog
-import com.example.kpkn.ui.tour.TourAnchors
-import com.example.kpkn.ui.tour.tourAnchor
-import com.example.kpkn.ui.components.rings.KpknRingColors
-import com.example.kpkn.ui.components.rings.KpknTowerRings
-import com.example.kpkn.ui.components.rings.RingChannel
-import com.example.kpkn.ui.components.rings.TowerRingValues
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
 import com.example.kpkn.data.models.AugeSnapshot
+import com.example.kpkn.data.models.MuscleRecoveryStatus
 import com.example.kpkn.data.models.RecoveryChannelId
 import com.example.kpkn.data.models.RecoveryDashboard
 import com.example.kpkn.domain.auge.RecoveryBands
 import com.example.kpkn.domain.onboarding.RingsCoverage
-import com.example.kpkn.domain.onboarding.RingsCoverageSource
+import com.example.kpkn.screens.home.design.HomeGlyph
+import com.example.kpkn.screens.home.design.HomeGlyphButton
+import com.example.kpkn.screens.home.design.HomeRingRow
+import com.example.kpkn.screens.home.design.HomeSectionLabel
+import com.example.kpkn.screens.home.design.RingTowerAspect
+import com.example.kpkn.screens.onboarding.design.WizardColors
+import com.example.kpkn.screens.onboarding.design.WizardSpacing
+import com.example.kpkn.screens.onboarding.design.WizardTypography
+import com.example.kpkn.screens.onboarding.rings.RingsIntroOverlay
+import com.example.kpkn.ui.components.rings.KpknRingColors
+import com.example.kpkn.ui.components.rings.KpknTowerRings
+import com.example.kpkn.ui.components.rings.RingChannel
+import com.example.kpkn.ui.components.rings.TowerRingValues
+import com.example.kpkn.ui.tour.TourAnchors
+import com.example.kpkn.ui.tour.tourAnchor
+import kotlin.math.*
 
 // ─── Ring Constants ──────────────────────────────────────────────────────────
 
@@ -52,8 +59,19 @@ internal val RingColors = listOf(
     KpknRingColors.energia,
     KpknRingColors.columna,
 )
-private val RingLabels = listOf("Músculos", "Energía", "Columna")
 
+/** Filas de RINGS en Home, de arriba abajo: el orden de la torre (Energía, Músculos y Columna). */
+private val RingRowOrder = listOf(
+    RecoveryChannelId.SYSTEM,
+    RecoveryChannelId.MUSCULAR,
+    RecoveryChannelId.STRUCTURE,
+)
+
+/**
+ * «Tus RINGS» de Home: el titular del motor; a la izquierda, la torre (46 % del ancho) y, a la derecha, una fila por canal con su
+ * cifra, su banda o su procedencia. Tocar la torre o una fila abre el detalle del canal: el canal abierto ([selectedChannel]) lo
+ * guarda HomeScreen. La (i) abre la introducción de RINGS en repaso.
+ */
 @Composable
 fun HomeRingsSection(
     muscularProgress: Float,
@@ -67,95 +85,138 @@ fun HomeRingsSection(
     /** Cobertura por canal explícita; sin ella manda `snapshot.coverage` (publicada por el productor AugeViewModel) y sin ninguna → «sin datos». */
     coverage: RingsCoverage? = null,
     showModelUpdateNotice: Boolean = false,
+    /** Canal con el detalle abierto; HomeScreen lo guarda por nombre para sobrevivir a girar la pantalla. */
+    selectedChannel: RecoveryChannelId? = null,
+    onSelectedChannelChange: (RecoveryChannelId?) -> Unit = {},
+    /** Músculos del motor: el detalle de Músculos los lista uno a uno. */
+    perMuscle: Map<String, MuscleRecoveryStatus> = emptyMap(),
+    /** Guarda el ajuste manual de un canal (HomeScreen lo cablea con AugeViewModel). */
+    onSaveAdjustment: (RecoveryChannelId, Int) -> Unit = { _, _ -> },
     onDismissAdvisory: (String) -> Unit = {},
     onModelNoticeShown: () -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
-    val progressValues = remember(muscularProgress, sncProgress, columnaProgress, isLoading) {
-        if (isLoading) listOf(0f, 0f, 0f)
-        else listOf(muscularProgress, sncProgress, columnaProgress)
-    }
-
-    // «Sin calibrar» (sin historial, sin check-in y sin evidencia) no se renderiza
-    // como un 100 % afirmativo: se marca «sin datos» en valor y accesibilidad.
-    // Cobertura POR CANAL publicada por el productor del snapshot (AugeViewModel,
-    // mismas entradas y corte temporal que las baterías). Esta sección no hace IO
-    // ni usa etiquetas globales: sin snapshot todavía → «sin datos», nunca una
-    // afirmación.
+    // Sin ninguna cobertura, «sin datos»: la sección nunca afirma un porcentaje que no tenga procedencia.
     val ringsCoverage = coverage ?: snapshot?.coverage ?: RingsCoverage.NO_DATA
+    var showIntro by remember { mutableStateOf(false) }
 
-    val ringColors = remember(hasActiveProgram, isLoading) {
-        when {
-            isLoading -> listOf(Color(0xFF444444), Color(0xFF555555), Color(0xFF666666))
-            hasActiveProgram -> RingColors
-            else -> listOf(Color(0xFF666666), Color(0xFF888888), Color(0xFFAAAAAA))
+    // Puntuación del canal (0–100). Sin dato, null: la torre lo deja sin arco y la fila dice «—». Cargando, 0.
+    fun scoreOf(channel: RecoveryChannelId): Int? {
+        if (isLoading) return 0
+        if (!ringsCoverage.channel(channel).hasData) return null
+        val progress = when (channel) {
+            RecoveryChannelId.MUSCULAR -> muscularProgress
+            RecoveryChannelId.SYSTEM -> sncProgress
+            RecoveryChannelId.STRUCTURE -> columnaProgress
         }
+        return (progress * 100).toInt().coerceIn(0, 100)
     }
-
-    var showInfoDialog by remember { mutableStateOf(false) }
-    var selectedChannel by remember { mutableStateOf<RecoveryChannelId?>(null) }
-
-    Column(modifier = modifier.fillMaxWidth()) {
-        Row(
-            modifier = Modifier.padding(start = 24.dp, bottom = 8.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Text(
-                text = "MIS RINGS",
-                style = MaterialTheme.typography.labelLarge,
-                fontWeight = FontWeight.Black,
-                letterSpacing = 1.sp,
-            )
-            Spacer(Modifier.width(12.dp))
-            TextButton(
-                onClick = { showInfoDialog = true },
-                contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp),
-            ) {
-                Text(
-                    text = "¿Qué es esto?",
-                    style = MaterialTheme.typography.bodySmall,
-                    fontWeight = FontWeight.Medium,
-                )
+    val towerValues = TowerRingValues(
+        columna = scoreOf(RecoveryChannelId.STRUCTURE),
+        musculos = scoreOf(RecoveryChannelId.MUSCULAR),
+        energia = scoreOf(RecoveryChannelId.SYSTEM),
+    )
+    // Una sola lectura de los RINGS para TalkBack, en el orden de la torre.
+    val towerDescription = if (isLoading) {
+        "Calculando recuperación"
+    } else {
+        "Rings: " + RingRowOrder.joinToString(", ") { channel ->
+            val name = RecoveryBands.channelTitle(channel)
+            val score = scoreOf(channel)
+            val cov = ringsCoverage.channel(channel)
+            when {
+                score == null -> "$name sin datos"
+                cov.isEstimated -> "$name $score % (${cov.label.lowercase()})"
+                else -> "$name $score %"
             }
         }
+    }
+
+    Column(modifier = modifier.fillMaxWidth()) {
+        HomeSectionLabel(
+            text = "TUS RINGS",
+            action = {
+                HomeGlyphButton(
+                    glyph = HomeGlyph.INFO,
+                    description = "Qué son los RINGS",
+                    onClick = { showIntro = true },
+                    modifier = Modifier.offset(x = 12.dp).testTag("home-rings-info"),
+                )
+            },
+        )
         dashboard?.headline?.takeIf { it.isNotBlank() && !isLoading }?.let { headline ->
             Text(
                 text = headline,
-                modifier = Modifier.padding(start = 24.dp, end = 24.dp, bottom = 12.dp),
-                style = MaterialTheme.typography.bodyMedium,
-                fontWeight = FontWeight.SemiBold,
-                color = MaterialTheme.colorScheme.onSurface,
+                modifier = Modifier.padding(start = WizardSpacing.gutter, end = WizardSpacing.gutter, top = 12.dp),
+                style = WizardTypography.questionCompact,
+                color = WizardColors.text,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
             )
         }
-        dashboard?.takeIf { !isLoading }?.let { board ->
-            val causes = board.channels.flatMap { it.causes }.distinct().take(2).joinToString(" · ")
-            val coverageLine = buildString {
-                append("Cobertura de datos: ")
-                append(board.confidenceLabel)
-                (dataLabel ?: board.dataLabel)?.let { append(" · ").append(it) }
-                if (causes.isNotBlank()) append(" · ").append(causes)
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = WizardSpacing.gutter)
+                .padding(top = 20.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth(0.46f)
+                    .aspectRatio(RingTowerAspect)
+                    .tourAnchor(TourAnchors.HOME_RINGS)
+                    // Una sola lectura de los RINGS: la descripción del contenedor sustituye a la de la torre y sus bandas.
+                    .clearAndSetSemantics {
+                        contentDescription = towerDescription
+                        stateDescription = towerDescription
+                    },
+            ) {
+                KpknTowerRings(
+                    values = towerValues,
+                    modifier = Modifier.fillMaxSize().alpha(if (hasActiveProgram || isLoading) 1f else 0.5f),
+                    onRingTap = if (isLoading) null else { ring -> onSelectedChannelChange(ring.recoveryChannel()) },
+                )
             }
+            Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                RingRowOrder.forEach { channel ->
+                    val score = scoreOf(channel)
+                    val cov = ringsCoverage.channel(channel)
+                    val secondary = when {
+                        isLoading -> null
+                        score == null -> "Sin calibrar"
+                        cov.isEstimated -> cov.label
+                        else -> RecoveryBands.labelForScore(score)
+                    }
+                    HomeRingRow(
+                        channel = channel,
+                        name = RecoveryBands.channelTitle(channel),
+                        score = score,
+                        secondary = secondary,
+                        loading = isLoading,
+                        onClick = { onSelectedChannelChange(channel) },
+                    )
+                }
+            }
+        }
+        if (dashboard != null && !isLoading) {
             Text(
-                text = coverageLine,
-                modifier = Modifier.padding(start = 24.dp, end = 24.dp, bottom = 8.dp),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                text = "Confianza ${dashboard.confidenceLabel} · toca un anillo para ver por qué",
+                modifier = Modifier.padding(start = WizardSpacing.gutter, end = WizardSpacing.gutter, top = 14.dp),
+                style = WizardTypography.note,
+                color = WizardColors.textFaint,
             )
         }
-
-        CombinedRingsView(
-            progressValues = progressValues,
-            ringColors = ringColors,
-            hasActiveProgram = hasActiveProgram,
-            isLoading = isLoading,
-            coverage = ringsCoverage,
-            onChannelClick = { selectedChannel = it },
-        )
-        Spacer(Modifier.height(4.dp))
     }
 
-    if (showInfoDialog) {
-        RingsInfoDialog(onDismiss = { showInfoDialog = false })
+    // (i): la introducción de RINGS (K6) en modo repaso. No escribe nada; «Entendido» la cierra.
+    if (showIntro) {
+        RingsIntroOverlay(
+            onContinue = { showIntro = false },
+            onBack = { showIntro = false },
+            replay = true,
+        )
     }
     val channel = selectedChannel
     if (channel != null && snapshot != null) {
@@ -163,156 +224,22 @@ fun HomeRingsSection(
             channel = channel,
             snapshot = snapshot,
             showModelUpdateNotice = showModelUpdateNotice,
-            onDismiss = { selectedChannel = null },
+            onDismiss = { onSelectedChannelChange(null) },
             onDismissAdvisory = onDismissAdvisory,
             onModelNoticeShown = onModelNoticeShown,
+            coverage = ringsCoverage,
+            dataLabel = dataLabel,
+            perMuscle = perMuscle,
+            onSaveAdjustment = onSaveAdjustment,
         )
     }
 }
 
-@Composable
-private fun CombinedRingsView(
-    progressValues: List<Float>,
-    ringColors: List<Color>,
-    hasActiveProgram: Boolean = true,
-    isLoading: Boolean = false,
-    coverage: RingsCoverage? = null,
-    onChannelClick: (RecoveryChannelId) -> Unit = {},
-) {
-    val channelIds = listOf(
-        RecoveryChannelId.MUSCULAR,
-        RecoveryChannelId.SYSTEM,
-        RecoveryChannelId.STRUCTURE,
-    )
-    // Un canal sin datos no tiene valor: la torre lo muestra sin calibrar (pista discontinua), sin afirmar un 100 %.
-    fun towerPercent(i: Int): Int? = when {
-        isLoading -> 0
-        coverage?.channel(channelIds[i])?.hasData == false -> null
-        else -> (progressValues[i] * 100).toInt().coerceIn(0, 100)
-    }
-    val towerValues = TowerRingValues(
-        columna = towerPercent(2),
-        musculos = towerPercent(0),
-        energia = towerPercent(1),
-    )
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 12.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(8.dp),
-    ) {
-            BoxWithConstraints(Modifier.fillMaxWidth()) {
-                val hostHeight = augeRingsHostHeightDp(maxWidth.value).dp
-                Box(
-                    Modifier
-                        .height(hostHeight)
-                        .fillMaxWidth()
-                        .tourAnchor(TourAnchors.HOME_RINGS)
-                        // Una sola lectura de los RINGS: la descripción del contenedor sustituye a la de la torre y sus bandas (TalkBack no las repite).
-                        .clearAndSetSemantics {
-                            val desc = if (isLoading) {
-                                "Calculando recuperación"
-                            } else {
-                                "Rings: " + channelIds.mapIndexed { i, id ->
-                                    val channel = coverage?.channel(id)
-                                    val label = RingLabels[i]
-                                    val scoreText = "${(progressValues[i] * 100).toInt()}%"
-                                    when {
-                                        channel != null && !channel.hasData -> "$label sin datos"
-                                        channel != null && channel.isEstimated -> "$label $scoreText (${channel.label.lowercase()})"
-                                        else -> "$label $scoreText"
-                                    }
-                                }.joinToString(", ")
-                            }
-                            contentDescription = desc
-                            stateDescription = desc
-                        },
-                ) {
-                    KpknTowerRings(
-                        values = towerValues,
-                        modifier = Modifier.fillMaxSize().alpha(if (hasActiveProgram || isLoading) 1f else 0.5f),
-                        onRingTap = if (isLoading) null else { channel ->
-                            onChannelClick(
-                                when (channel) {
-                                    RingChannel.MUSCULOS -> RecoveryChannelId.MUSCULAR
-                                    RingChannel.ENERGIA -> RecoveryChannelId.SYSTEM
-                                    RingChannel.COLUMNA -> RecoveryChannelId.STRUCTURE
-                                },
-                            )
-                        },
-                    )
-                    if (isLoading) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.align(Alignment.Center).size(28.dp),
-                            strokeWidth = 2.dp,
-                        )
-                    }
-                }
-            }
-
-            // Keep the captions clear of the lowered energy ring.
-            Spacer(Modifier.height(16.dp))
-            Row(
-                Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceEvenly,
-            ) {
-                progressValues.forEachIndexed { i, progress ->
-                    val channel = coverage?.channel(channelIds[i])
-                    val noData = !isLoading && channel != null && !channel.hasData
-                    val score = (progress * 100).toInt()
-                    val sourceChip = when (channel?.source) {
-                        RingsCoverageSource.SUBJECTIVE_SENSATION -> "Estimación subjetiva"
-                        RingsCoverageSource.INITIAL_ESTIMATE -> "Estimación inicial"
-                        else -> null
-                    }
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        modifier = Modifier.clickable { onChannelClick(channelIds[i]) },
-                    ) {
-                        Text(
-                            RingLabels[i].uppercase(),
-                            style = MaterialTheme.typography.labelSmall,
-                            color = ringColors[i],
-                            fontWeight = FontWeight.Black,
-                            fontSize = 11.sp,
-                            maxLines = 1,
-                        )
-                        Text(
-                            // Sin datos no se afirma un porcentaje (ni 100 ni 0).
-                            if (isLoading) "…" else if (noData) "Sin datos" else "$score%",
-                            style = MaterialTheme.typography.labelMedium,
-                            color = Color.White.copy(alpha = 0.85f),
-                            fontWeight = FontWeight.Bold,
-                        )
-                        if (!isLoading) {
-                            if (noData) {
-                                Text(
-                                    "Sin calibrar",
-                                    style = MaterialTheme.typography.labelSmall,
-                                    color = Color.White.copy(alpha = 0.55f),
-                                    fontWeight = FontWeight.SemiBold,
-                                )
-                            } else {
-                                val chipColor = if (sourceChip != null) ringColors[i] else Color(RecoveryBands.colorArgb(score).toInt())
-                                Surface(
-                                    shape = RoundedCornerShape(50),
-                                    color = chipColor.copy(alpha = 0.18f),
-                                ) {
-                                    Text(
-                                        sourceChip ?: RecoveryBands.labelForScore(score),
-                                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
-                                        style = MaterialTheme.typography.labelSmall,
-                                        color = chipColor,
-                                        fontWeight = FontWeight.SemiBold,
-                                    )
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-    }
+/** Canal de RINGS de la torre (su banda de toque) al canal de Home. */
+private fun RingChannel.recoveryChannel(): RecoveryChannelId = when (this) {
+    RingChannel.MUSCULOS -> RecoveryChannelId.MUSCULAR
+    RingChannel.ENERGIA -> RecoveryChannelId.SYSTEM
+    RingChannel.COLUMNA -> RecoveryChannelId.STRUCTURE
 }
 
 private val AugeRingCoreStroke = 2.dp
@@ -486,90 +413,3 @@ internal fun DrawScope.drawAugeRingCore(center: Offset, radius: Float, color: Co
     }
 }
 internal fun batteryColor(score: Int): Color = Color(RecoveryBands.colorArgb(score).toInt())
-
-// ─── RINGS Info Dialog ─────────────────────────────────────────────────────
-
-@Composable
-private fun RingsInfoDialog(onDismiss: () -> Unit) {
-    KpknAlertDialog(
-        onDismissRequest = onDismiss,
-        title = {
-            Text(
-                "¿Qué son los RINGS?",
-                fontWeight = FontWeight.Black,
-            )
-        },
-        text = {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .heightIn(max = 360.dp)
-                    .verticalScroll(rememberScrollState()),
-                verticalArrangement = Arrangement.spacedBy(12.dp),
-            ) {
-                Text(
-                    "Tus RINGS son la representación visual del estado de tu cuerpo, dividido en tres áreas relevantes del entrenamiento:",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f),
-                )
-
-                Text(
-                    "1. RING Músculos:",
-                    style = MaterialTheme.typography.bodyMedium,
-                    fontWeight = FontWeight.Black,
-                    color = KpknRingColors.musculos,
-                )
-                Text(
-                    "Muestra el promedio del estado de todos tus músculos, puede entenderse de dos formas, qué tan recuperados están o qué tan preparados están para una sesión de entrenamiento. El anillo representa el estado general de todos tus músculos, si deseas corregir el porcentaje porque no representa tu estado real, puedes dirigirte al músculo en específico y corregir.",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f),
-                )
-
-                Text(
-                    "2. RING Energía:",
-                    style = MaterialTheme.typography.bodyMedium,
-                    fontWeight = FontWeight.Black,
-                    color = KpknRingColors.energia,
-                )
-                Text(
-                    "Es tu sistema nervioso estructural: la carga neural de entrenar más cómo te sientes. No pedimos horas de sueño; si dormiste mal, eso ya llega en esta sensación.",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f),
-                )
-
-                Text(
-                    "3. RING Columna:",
-                    style = MaterialTheme.typography.bodyMedium,
-                    fontWeight = FontWeight.Black,
-                    color = KpknRingColors.columna,
-                )
-                Text(
-                    "Mezcla la carga axial reciente (sentadilla, peso muerto y similares), el piso articular y el estado de dorsales, erectores/lumbar y trapecio. Si esos músculos están cansados, la columna queda más expuesta. No es una medición clínica.",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f),
-                )
-
-                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
-
-                Text(
-                    "¿Cómo se actualizan los RINGS?",
-                    style = MaterialTheme.typography.bodyMedium,
-                    fontWeight = FontWeight.Black,
-                )
-                Text(
-                    "Se recalculan con lo que entrenas (y un decaimiento en el tiempo). Puedes corregir cómo te sientes en el sheet de estado antes de entrenar y, si hace falta, al cerrar la sesión. Si no tocas los rings, el modelo igual puede ajustar los tiempos de recuperación cuando rindes distinto a lo que el anillo predijo (mismo ejercicio, esfuerzo parecido). Si tocas un anillo, esa corrección manda ese día.",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f),
-                )
-            }
-        },
-        confirmButton = {
-            TextButton(onClick = onDismiss) {
-                Text(
-                    "Entendido",
-                    fontWeight = FontWeight.Black,
-                )
-            }
-        }
-    )
-}

@@ -55,6 +55,9 @@ internal object HomeTypography {
 
     /** Inicial del botón de perfil: Syne 700 a 18 sp. */
     val avatarInitial: TextStyle = WizardTypography.measure.copy(fontSize = 18.sp, lineHeight = 22.sp, letterSpacing = 0.sp)
+
+    /** Cifra de un músculo en la rejilla de RINGS: Syne 700 a 15 sp. */
+    val ringValueSmall: TextStyle = WizardTypography.measure.copy(fontSize = 15.sp, lineHeight = 20.sp, letterSpacing = 0.sp)
 }
 
 /**
