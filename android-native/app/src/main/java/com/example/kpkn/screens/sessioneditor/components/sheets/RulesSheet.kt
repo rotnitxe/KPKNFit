@@ -367,7 +367,7 @@ internal fun RulesSheet(
         SheetHeader(
             title = "Reglas y tiempo",
             subtitle = if (activeTab == 0) {
-                "Defaults de series, intensidad y descansos para nuevos ejercicios."
+                "Ajustes por defecto de series, intensidad y descansos para nuevos ejercicios."
             } else {
                 "Presupuesto de duración y ajustes para entrar en tu límite."
             },
@@ -800,12 +800,12 @@ internal fun RulesSheet(
                             )
                             if (!template.isFactory) {
                                 KpknSheetGlassChip(
-                                    label = "✎",
+                                    label = "Renombrar",
                                     selected = false,
                                     onClick = { renameTemplate = template.id to template.name },
                                 )
                                 KpknSheetGlassChip(
-                                    label = "✕",
+                                    label = "Eliminar",
                                     selected = false,
                                     onClick = { onDeleteRuleTemplate(template.id) },
                                 )

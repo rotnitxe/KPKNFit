@@ -14,7 +14,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
@@ -35,17 +34,13 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.luminance
-import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
-import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
@@ -55,7 +50,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import com.example.kpkn.data.models.*
-import com.example.kpkn.ui.components.KpknSheetTokens
 import kotlin.math.roundToInt
 
 /** Solid or gradient accent stored in [SessionPart.color]. */
@@ -156,9 +150,6 @@ internal fun resolveExerciseAccentHex(
     session: Session,
     partColor: String?,
 ): String = partColor?.takeIf { it.isNotBlank() } ?: resolveCoverAccentId(session.background)
-
-internal fun resolveCoverAccentColor(session: Session): Color =
-    resolvePartAccent(resolveCoverAccentId(session.background)).primary
 
 @Composable
 internal fun DragLiftPreview(
@@ -342,16 +333,6 @@ internal fun SessionEditorInvalidDropBanner(
             )
         }
     }
-}
-
-@Deprecated("Use SessionEditorDropIndicator", ReplaceWith("SessionEditorDropIndicator(visible)"))
-@Composable
-internal fun DropGapProjection(
-    visible: Boolean,
-    accentColor: Color,
-    modifier: Modifier = Modifier,
-) {
-    SessionEditorDropIndicator(visible = visible, modifier = modifier)
 }
 
 internal val DarkEditorSurface = Color(0xE61B1B20)

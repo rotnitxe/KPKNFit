@@ -620,7 +620,7 @@ internal fun SessionContextNavigator(
                                             DropdownMenuItem(
                                                 text = {
                                                     Text(
-                                                        if (isActive) "✓ $variantName" else variantName,
+                                                        if (isActive) "$variantName · Activa" else variantName,
                                                         fontWeight = if (isActive) FontWeight.Bold else FontWeight.Normal,
                                                     )
                                                 },
@@ -718,7 +718,7 @@ internal fun SessionContextNavigator(
                             onClick = { if (!isCurrent) onSelectSession(ssn.id) },
                             label = {
                                 Text(
-                                    if (isPrimary) "★ ${ssn.name.ifBlank { "Sesión" }}" else ssn.name.ifBlank { "Sesión" },
+                                    if (isPrimary) "Principal · ${ssn.name.ifBlank { "Sesión" }}" else ssn.name.ifBlank { "Sesión" },
                                     style = MaterialTheme.typography.labelSmall,
                                     fontWeight = if (isCurrent) FontWeight.Bold else FontWeight.Normal,
                                 )

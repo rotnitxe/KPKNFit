@@ -1,250 +1,31 @@
 package com.example.kpkn.screens.sessioneditor
 
-import android.content.Intent
-import android.graphics.Color as AndroidColor
-import android.widget.NumberPicker
-import androidx.activity.compose.BackHandler
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.ui.draw.clipToBounds
-import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.animation.expandVertically
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.shrinkVertically
-import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.core.RepeatMode
-import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.rememberInfiniteTransition
-import androidx.compose.animation.core.tween
-import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.combinedClickable
-import androidx.compose.foundation.gestures.detectDragGestures
-import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ColumnScope
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.imePadding
-import androidx.compose.foundation.layout.navigationBars
-import androidx.compose.foundation.layout.navigationBarsPadding
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.ui.layout.onSizeChanged
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.LazyListState
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.foundation.text.BasicTextField
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.ArrowDownward
-import androidx.compose.material.icons.filled.ArrowUpward
-import androidx.compose.material.icons.filled.AutoAwesome
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.DragHandle
-import androidx.compose.material.icons.filled.FilterList
-import androidx.compose.material.icons.filled.FitnessCenter
-import androidx.compose.material.icons.filled.History
-import androidx.compose.material.icons.filled.Info
-import androidx.compose.material.icons.filled.KeyboardArrowDown
-import androidx.compose.material.icons.filled.KeyboardArrowUp
-import androidx.compose.material.icons.filled.Link
-import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material.icons.filled.Palette
-import androidx.compose.material.icons.filled.Save
-import androidx.compose.material.icons.filled.PriorityHigh
-import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material.icons.filled.Star
-import androidx.compose.material.icons.filled.StarBorder
-import androidx.compose.material.icons.filled.SwapHoriz
-import androidx.compose.material.icons.filled.Timer
-import androidx.compose.material.icons.filled.TipsAndUpdates
-import androidx.compose.material.icons.filled.Tune
-import androidx.compose.material.icons.filled.Image
-import androidx.compose.material.icons.filled.Visibility
-import androidx.compose.material3.AssistChip
-import androidx.compose.material3.AssistChipDefaults
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Checkbox
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.FilledTonalButton
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FabPosition
-import androidx.compose.material3.FilterChip
-import androidx.compose.material3.FilterChipDefaults
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedTextFieldDefaults
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SheetValue
-import androidx.compose.material3.Slider
-import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SuggestionChip
-import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.Switch
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Tab
-import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.TextField
-import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.snapshotFlow
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.blur
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.scale
-import androidx.compose.ui.draw.drawWithContent
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.SolidColor
-import com.example.kpkn.screens.home.SingleRingCanvas
 import com.example.kpkn.data.models.Session
-import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.graphics.PathEffect
-import androidx.compose.ui.graphics.lerp
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Rect
-import androidx.compose.ui.geometry.CornerRadius
-import androidx.compose.ui.focus.onFocusChanged
-import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.layout.boundsInRoot
-import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.platform.LocalConfiguration
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.font.FontStyle
-import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.zIndex
-import androidx.compose.ui.viewinterop.AndroidView
-import dev.chrisbanes.haze.HazeState
-import dev.chrisbanes.haze.HazeTint
-import dev.chrisbanes.haze.hazeSource
-import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.LifecycleEventObserver
-import androidx.lifecycle.compose.LocalLifecycleOwner
-import coil.compose.AsyncImage
-import com.example.kpkn.data.exercises.exerciseCatalogSnapshot
 import com.example.kpkn.data.exercises.catalogSearchRedirects
 import com.example.kpkn.data.exercises.catalogExerciseIndex
-import com.example.kpkn.data.exercises.resolveCatalogExerciseInfoInIndex
 import com.example.kpkn.data.models.*
-import com.example.kpkn.data.models.discomfortLabel
-import com.example.kpkn.data.sessions.SessionTemplate
-import com.example.kpkn.data.sessions.SessionTemplateApplyDecision
-import com.example.kpkn.data.sessions.SessionTemplateApplyMode
-import com.example.kpkn.data.sessions.SessionTemplateTag
-import com.example.kpkn.data.sessions.SessionTemplateFocusCategory
-import com.example.kpkn.data.splits.SPLIT_TEMPLATES
-import com.example.kpkn.data.splits.SplitTemplate
-import com.example.kpkn.domain.templates.SessionTemplateCatalogPolicy
-import com.example.kpkn.domain.templates.SplitTemplateDayGroup
-import com.example.kpkn.domain.templates.FocusTemplateGroup
-import androidx.compose.animation.animateContentSize
-import com.example.kpkn.domain.auge.AugeFatigueEngine
-import com.example.kpkn.domain.calculations.calculateEstimatedMetric
-import com.example.kpkn.domain.calculations.calculateGeneralizedCapacity
 import com.example.kpkn.domain.exercises.*
-import com.example.kpkn.domain.calculations.calculateHybrid1RM
-import com.example.kpkn.domain.calculations.calculateSuggestedLoad
-import com.example.kpkn.domain.calculations.estimatePercent1RM
-import com.example.kpkn.domain.calculations.resolveReferenceCapacity
 import com.example.kpkn.domain.training.VolumeCalculator
-import com.example.kpkn.domain.workout.SupersetRules
-import com.example.kpkn.data.repository.CustomExerciseRepository
-import com.example.kpkn.screens.sessioneditor.components.SetCardDensity
-import com.example.kpkn.screens.sessioneditor.components.SetEditorCard
-import com.example.kpkn.screens.sessioneditor.components.SessionEditorBreakpoint
-import com.example.kpkn.screens.sessioneditor.components.rememberSessionEditorBreakpoint
-import com.example.kpkn.screens.sessioneditor.components.rememberSessionEditorSpacing
-import com.example.kpkn.ui.components.KpknSnackbar
-import com.example.kpkn.ui.components.SnackbarType
-import com.example.kpkn.ui.components.showKpknSnackbar
-import com.example.kpkn.ui.components.SwipeToDeleteCard
-import com.example.kpkn.screens.wikilab.components.ExerciseFatigueScenarios
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
-import java.time.LocalDate
-import java.time.temporal.ChronoUnit
-import java.util.UUID
 import kotlin.math.abs
-import kotlin.math.roundToInt
-import com.example.kpkn.screens.sessioneditor.components.InlineSetRow
 
 internal fun suggestWarmupReps(percentage: Double): Int = when {
     percentage >= 90.0 -> 1
@@ -262,138 +43,6 @@ internal fun suggestWarmupReps(percentage: Double): Int = when {
 // ===== COMPACT COMPONENTS FOR OPTIMIZED EXERCISE EDITOR =====
 
 
-
-internal fun computeSessionRoleWeightedSets(
-    session: Session,
-    exerciseIndex: Map<String, ExerciseMuscleInfo>,
-): Map<String, Double> {
-    val result = mutableMapOf<String, Double>()
-    val exercises = session.allExercises()
-    exercises.forEach { exercise ->
-        val dbEntry = resolveCatalogExerciseInfoInIndex(
-            index = exerciseIndex,
-            catalogConfigurationId = exercise.catalogConfigurationId,
-            exerciseDbId = exercise.exerciseDbId,
-            exerciseId = exercise.exerciseId,
-            exerciseName = exercise.name,
-        ) ?: return@forEach
-        val effectiveSetCount = exercise.sets.count { !it.isIneffective }.coerceAtLeast(1)
-        dbEntry.involvedMuscles.forEach { involvement ->
-            val canonical = VolumeCalculator.normalizeCanonicalMuscleGroup(involvement.muscle, involvement.emphasis)
-            val roleMultiplier = resolveMuscleVolumeContribution(involvement)
-            val weighted = effectiveSetCount * roleMultiplier
-            result[canonical] = (result[canonical] ?: 0.0) + weighted
-        }
-    }
-    return result
-}
-
-internal fun computePredictedMuscleBatteries(
-    session: Session,
-    roleWeightedSets: Map<String, Double>,
-    predictedMuscularDrain: Int,
-): Map<String, Int> {
-    if (roleWeightedSets.isEmpty()) return emptyMap()
-    val totalRoleWeight = roleWeightedSets.values.sum().takeIf { it > 0.0 } ?: return emptyMap()
-    val muscleCount = roleWeightedSets.size.coerceAtLeast(1)
-    val totalSets = session.allExercises().sumOf { exercise ->
-        exercise.sets.count { !it.isIneffective }
-    }.coerceAtLeast(1)
-    val avgSessionRest = session.allExercises().mapNotNull { it.restTime }.ifEmpty { listOf(90) }.average()
-    val densityFactor = when {
-        avgSessionRest <= 45.0 -> 1.16
-        avgSessionRest <= 75.0 -> 1.10
-        avgSessionRest >= 210.0 -> 0.92
-        avgSessionRest >= 150.0 -> 0.96
-        else -> 1.0
-    }
-    val progressionFactor = (1.0 + ((totalSets - 4).coerceAtLeast(0) / 14.0) * 0.22)
-        .coerceIn(1.0, 1.30)
-    val supersetFactor = if (session.allExercises().any { !it.supersetGroupRefOrLegacyId().isNullOrBlank() }) 1.08 else 1.0
-    val expectedDrop = predictedMuscularDrain.coerceIn(0, 100).toDouble()
-    val adjustedExpectedDrop = (expectedDrop * densityFactor * progressionFactor * supersetFactor).coerceAtMost(100.0)
-
-    return roleWeightedSets.mapValues { (_, weight) ->
-        val share = (weight / totalRoleWeight).coerceIn(0.0, 1.0)
-        val relativeShare = share * muscleCount.toDouble()
-        val roleFactor = (0.60 + (0.40 * relativeShare)).coerceIn(0.45, 1.55)
-        val modeledDrop = (adjustedExpectedDrop * roleFactor).coerceIn(0.0, 100.0)
-        (100.0 - modeledDrop).roundToInt().coerceIn(0, 100)
-    }
-}
-
-internal fun computePredictedMuscleBatteriesFromVolumeMap(
-    volumeByMuscle: Map<String, Double>,
-    predictedMuscularDrain: Int,
-): Map<String, Int> {
-    if (volumeByMuscle.isEmpty()) return emptyMap()
-    val totalVolume = volumeByMuscle.values.sum().takeIf { it > 0.0 } ?: return emptyMap()
-    val expectedDrop = predictedMuscularDrain.coerceIn(0, 100).toDouble()
-    return volumeByMuscle.mapValues { (_, sets) ->
-        val share = (sets / totalVolume).coerceIn(0.0, 1.0)
-        val modeledDrop = (expectedDrop * (0.65 + share * 0.9)).coerceIn(0.0, 100.0)
-        (100.0 - modeledDrop).roundToInt().coerceIn(0, 100)
-    }
-}
-
-internal fun thresholdForScope(
-    threshold: SessionEditorVolumeThreshold?,
-    scope: SessionAnalyticsScope,
-): Triple<Double, Double, Double>? {
-    threshold ?: return null
-    return when (scope) {
-        SessionAnalyticsScope.CURRENT -> Triple(threshold.sessionMev, threshold.sessionMav, threshold.sessionMrv)
-        SessionAnalyticsScope.WEEK -> Triple(threshold.weeklyMev, threshold.weeklyMav, threshold.weeklyMrv)
-    }
-}
-
-@Composable
-internal fun PredictedMuscleBatterySection(perMuscle: Map<String, Int>) {
-    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-        Text(
-            "Batería restante por músculo",
-            style = MaterialTheme.typography.labelMedium,
-            fontWeight = FontWeight.Black,
-        )
-        val entries = perMuscle.entries.sortedBy { it.value }
-        entries.forEach { (muscle, score) ->
-            val color = when {
-                score >= 80 -> Color(0xFF22C55E)
-                score >= 50 -> Color(0xFFFACC15)
-                else -> Color(0xFFEF4444)
-            }
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Text(
-                    muscle,
-                    style = MaterialTheme.typography.labelSmall,
-                    fontWeight = FontWeight.SemiBold,
-                    modifier = Modifier.widthIn(max = 118.dp),
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
-                LinearProgressIndicator(
-                    progress = { score / 100f },
-                    modifier = Modifier
-                        .weight(1f)
-                        .height(5.dp)
-                        .clip(RoundedCornerShape(999.dp)),
-                    color = color,
-                    trackColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.42f),
-                )
-                Text(
-                    "$score%",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = color,
-                    fontWeight = FontWeight.Black,
-                )
-            }
-        }
-    }
-}
 
 
 internal fun resolveSpecificSubMuscle(muscle: String, emphasis: String?): String {

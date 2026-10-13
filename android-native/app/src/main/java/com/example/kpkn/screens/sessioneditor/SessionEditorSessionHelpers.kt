@@ -129,26 +129,6 @@ internal fun Exercise.withSessionEditorDefaults(
         )
     }
 
-internal fun createBlankExercise(): Exercise {
-    val customId = "custom:${UUID.randomUUID()}"
-    return Exercise(
-        id = UUID.randomUUID().toString(),
-        name = "",
-        exerciseDbId = customId,
-        exerciseId = customId,
-        canonicalExerciseId = customId,
-        exerciseFamilyId = customId,
-        trainingMode = TrainingMode.REPS,
-        restTime = 90,
-        sets = listOf(
-            ExerciseSet(
-                id = UUID.randomUUID().toString(),
-                targetReps = 8,
-            ),
-        ),
-    )
-}
-
 internal fun Session.inferredEditorRuleDefaults(): SessionEditorRuleDefaults {
     val sessionExercises = allExercises()
     if (sessionExercises.isEmpty()) return SessionEditorRuleDefaults()
@@ -722,9 +702,3 @@ internal fun resolveWeekDayDate(week: ProgramWeek, dayOfWeek: Int): LocalDate? {
 
 internal fun String?.toLocalDateOrNull(): LocalDate? =
     this?.takeIf { it.isNotBlank() }?.let { runCatching { LocalDate.parse(it) }.getOrNull() }
-
-internal fun defaultCompetitionSportType(mode: ProgramMode): CompetitionTemplateType = when (mode) {
-    ProgramMode.POWERLIFTING -> CompetitionTemplateType.POWERLIFTING
-    ProgramMode.HYPERTROPHY -> CompetitionTemplateType.BODYBUILDING
-    ProgramMode.POWERBUILDING -> CompetitionTemplateType.POWERLIFTING
-}

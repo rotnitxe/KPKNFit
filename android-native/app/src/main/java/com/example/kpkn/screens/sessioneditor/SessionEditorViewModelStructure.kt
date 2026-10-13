@@ -51,10 +51,6 @@ fun SessionEditorViewModel.updatePartColor(partId: String, color: String) = upda
     session.copy(parts = session.parts.map { if (it.id == partId) it.copy(color = color) else it })
 }
 
-fun SessionEditorViewModel.movePart(partId: String, direction: Int) = updateSession { session ->
-    session.copy(parts = moveItem(session.parts, partId, direction) { it.id })
-}
-
 fun SessionEditorViewModel.movePartToIndex(partId: String, targetIndex: Int) = updateSession { session ->
     val movedPart = session.parts.firstOrNull { it.id == partId } ?: return@updateSession session
     val grouped = session.parts.filterNot { it.isUncategorizedPart() }
@@ -109,11 +105,6 @@ fun SessionEditorViewModel.setSearchQuery(query: String) { updateUi { it.copy(se
 fun SessionEditorViewModel.toggleExerciseSelection(exerciseId: String) {
     val current = currentUiState.selectedExercisesIds
     updateUi { it.copy(selectedExercisesIds = if (exerciseId in current) current - exerciseId else current + exerciseId) }
-    persistDraft()
-}
-
-fun SessionEditorViewModel.setExerciseSelection(ids: Set<String>) {
-    updateUi { it.copy(selectedExercisesIds = ids) }
     persistDraft()
 }
 
@@ -275,31 +266,6 @@ fun SessionEditorViewModel.addExercisesAsSupersetToPart(
     updateSession { updated }
     closeSheet()
     return newExercises.map { it.id }
-}
-
-fun SessionEditorViewModel.addBlankExerciseToPart(partId: String?): String {
-    val currentSession = currentUiState.activeVariantSession
-    val newExercise = createBlankExercise().let { base ->
-        if (currentSession?.isMeetDay == true) base.asCompetitionMovement() else base
-    }.withSessionEditorDefaults(getRuleDefaultsForPart(partId))
-    updateSession { session ->
-        if (partId == null) {
-            session.copy(exercises = session.exercises + newExercise)
-        } else {
-            session.copy(parts = session.parts.map { if (it.id == partId) it.copy(exercises = it.exercises + newExercise) else it })
-        }
-    }
-    return newExercise.id
-}
-
-fun SessionEditorViewModel.addCompetitionMovement(name: String): String {
-    val movementName = name.ifBlank { "Movimiento competición" }
-    val newExercise = createBlankExercise().copy(name = movementName).asCompetitionMovement()
-    updateSession { session ->
-        if (!session.isMeetDay) return@updateSession session
-        session.copy(exercises = session.exercises + newExercise)
-    }
-    return newExercise.id
 }
 
 fun SessionEditorViewModel.replaceExerciseInPart(partId: String?, exerciseId: String, info: ExerciseMuscleInfo) {
@@ -552,40 +518,6 @@ fun SessionEditorViewModel.triggerQuickActionDelete() {
     val state = currentUiState
     val exerciseId = state.quickActionsExerciseId ?: return
     removeExercise(state.quickActionsPartId, exerciseId)
-    updateUi {
-        it.copy(
-            sheet = SessionEditorSheet.NONE,
-            quickActionsPartId = null,
-            quickActionsExerciseId = null,
-        )
-    }
-}
-
-fun SessionEditorViewModel.triggerQuickActionLinkSuperset() {
-    val state = currentUiState
-    val exerciseId = state.quickActionsExerciseId ?: return
-    val sourceExercises = state.quickActionsPartId?.let { partId ->
-        state.activeVariantSession?.parts?.firstOrNull { it.id == partId }?.exercises
-    } ?: state.activeVariantSession?.exercises
-    val currentIndex = sourceExercises?.indexOfFirst { it.id == exerciseId } ?: -1
-    val nextExerciseId = sourceExercises?.getOrNull(currentIndex + 1)?.id
-    if (nextExerciseId != null) {
-        openSupersetCreator(state.quickActionsPartId, listOf(exerciseId, nextExerciseId))
-        return
-    }
-    updateUi {
-        it.copy(
-            sheet = SessionEditorSheet.NONE,
-            quickActionsPartId = null,
-            quickActionsExerciseId = null,
-        )
-    }
-}
-
-fun SessionEditorViewModel.triggerQuickActionUnlinkSuperset() {
-    val state = currentUiState
-    val exerciseId = state.quickActionsExerciseId ?: return
-    unlinkExerciseFromSuperset(state.quickActionsPartId, exerciseId)
     updateUi {
         it.copy(
             sheet = SessionEditorSheet.NONE,

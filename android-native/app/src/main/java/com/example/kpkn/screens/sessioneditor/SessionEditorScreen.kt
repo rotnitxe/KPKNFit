@@ -1,7 +1,6 @@
 package com.example.kpkn.screens.sessioneditor
 
 import android.content.Intent
-import android.graphics.Color as AndroidColor
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -15,7 +14,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.navigationBars
@@ -32,14 +30,7 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.FitnessCenter
-import androidx.compose.material.icons.filled.DirectionsRun
 import androidx.compose.material3.Button
-import androidx.compose.material3.FilledTonalButton
-import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -47,7 +38,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -68,8 +58,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.graphics.Color
-import com.example.kpkn.data.models.Session
-import com.example.kpkn.data.models.hasCardioPart
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
@@ -98,8 +86,6 @@ import java.util.UUID
 import com.example.kpkn.screens.sessioneditor.sessionBackgroundPresets
 import com.example.kpkn.screens.sessioneditor.sessionGradients
 import com.example.kpkn.screens.sessioneditor.components.SessionHero
-import com.example.kpkn.screens.sessioneditor.sessionBackgroundPresets
-import com.example.kpkn.screens.sessioneditor.sessionGradients
 import com.example.kpkn.screens.sessioneditor.components.SessionHeroCompactOverlay
 import com.example.kpkn.screens.sessioneditor.components.SessionContextNavigator
 import com.example.kpkn.screens.sessioneditor.components.sheets.SessionEditorSheets
@@ -107,24 +93,10 @@ import com.example.kpkn.screens.sessioneditor.components.sheets.AssistantGlassOv
 import com.example.kpkn.screens.sessioneditor.components.HeroGlassFab
 import com.example.kpkn.screens.sessioneditor.components.HeroTimeFab
 import com.example.kpkn.screens.sessioneditor.components.DraggableHeroFabGroup
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.foundation.clickable
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Save
-import androidx.compose.material3.IconButton
 import androidx.compose.ui.geometry.Rect
-import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.scrollBy
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.material.icons.filled.AutoAwesome
-import androidx.compose.ui.text.style.TextOverflow
 import kotlin.math.roundToInt
 import com.example.kpkn.ui.components.KpknAlertDialog
 import com.example.kpkn.screens.workout.RepairBenchmarkTrace
@@ -495,14 +467,6 @@ fun SessionEditorScreen(
         }
     }
 
-    fun cancelExerciseDrag() {
-        dragController.cancelExerciseDrag()
-    }
-
-    fun cancelPartDrag() {
-        dragController.cancelPartDrag()
-    }
-
     if (session == null) {
         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             val loadErrorMessage = uiState.loadErrorMessage
@@ -816,9 +780,9 @@ fun SessionEditorScreen(
                     beginExerciseDrag = ::beginExerciseDrag,
                     updateExerciseDrag = ::updateExerciseDrag,
                     endExerciseDrag = ::endExerciseDrag,
-                    cancelExerciseDrag = ::cancelExerciseDrag,
+                    cancelExerciseDrag = dragController::cancelExerciseDrag,
                     beginPartDrag = ::beginPartDrag,
-                    cancelPartDrag = ::cancelPartDrag,
+                    cancelPartDrag = dragController::cancelPartDrag,
                     projectedShiftFor = ::projectedShiftFor,
                     viewModel = viewModel,
                 )
@@ -1019,7 +983,7 @@ fun SessionEditorScreen(
                         val target = if (partId == null) "la sesión" else "el grupo"
                         val noun = if (outcome.exercisesChanged == 1) "ejercicio" else "ejercicios"
                         snackbarHostState.showKpknSnackbar(
-                            "Defaults aplicados a $target (${outcome.exercisesChanged} $noun)",
+                            "Ajustes por defecto aplicados a $target (${outcome.exercisesChanged} $noun)",
                             SnackbarType.SUCCESS,
                         )
                     }

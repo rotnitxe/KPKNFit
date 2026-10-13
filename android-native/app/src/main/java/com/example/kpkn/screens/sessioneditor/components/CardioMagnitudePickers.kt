@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.FilledTonalButton
@@ -16,11 +15,8 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
@@ -379,24 +375,4 @@ private fun CardioWheelDialogScaffold(
             TextButton(onClick = onDismiss) { Text("Cancelar") }
         },
     )
-}
-
-@Composable
-internal fun rememberCardioMagnitudePicker(): CardioMagnitudePickerState {
-    var kind by remember { mutableStateOf<CardioMagnitudeKind?>(null) }
-    return remember {
-        CardioMagnitudePickerState(
-            kindProvider = { kind },
-            setKind = { kind = it },
-        )
-    }
-}
-
-internal class CardioMagnitudePickerState(
-    private val kindProvider: () -> CardioMagnitudeKind?,
-    private val setKind: (CardioMagnitudeKind?) -> Unit,
-) {
-    val kind: CardioMagnitudeKind? get() = kindProvider()
-    fun dismiss() = setKind(null)
-    fun open(kind: CardioMagnitudeKind) = setKind(kind)
 }

@@ -51,7 +51,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.ExerciseMuscleInfo
 import com.example.kpkn.domain.exercises.exerciseDisplayParts
 import com.example.kpkn.data.models.PredictedDrain
@@ -225,32 +224,6 @@ internal fun CompactTemplateCard(
         if (glassDark) {
             HorizontalDivider(color = Color.White.copy(alpha = 0.08f))
         }
-    }
-}
-
-@Composable
-private fun AdvancedTemplateMetaRow(
-    facets: SessionTemplateFacets,
-    mutedColor: Color,
-    glassDark: Boolean,
-) {
-    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-        val rpe = facets.averageTargetRpe
-
-        if (rpe != null) {
-            Text(
-                text = "RPE ${formatEditorOneDecimal(rpe)}",
-                style = MaterialTheme.typography.labelSmall,
-                fontWeight = FontWeight.Bold,
-                color = mutedColor,
-            )
-        }
-        CompactFatigueMeters(
-            energy = facets.drain.cns,
-            muscular = facets.drain.muscular,
-            spinal = facets.drain.spinal,
-            glassDark = glassDark,
-        )
     }
 }
 

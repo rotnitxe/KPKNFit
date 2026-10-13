@@ -110,13 +110,13 @@ internal fun RelationshipPickerSheet(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(14.dp),
             ) {
-                Text("Quitar vinculo actual")
+                Text("Quitar vínculo actual")
             }
         }
 
         if (filteredCandidates.isEmpty()) {
             Text(
-                "No hay ejercicios candidatos para este vinculo.",
+                "No hay ejercicios candidatos para este vínculo.",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )

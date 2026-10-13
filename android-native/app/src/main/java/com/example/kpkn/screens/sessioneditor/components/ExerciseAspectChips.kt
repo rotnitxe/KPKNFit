@@ -13,14 +13,12 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.kpkn.data.models.ExerciseMuscleInfo
 import com.example.kpkn.data.models.TechnicalAspect
-import com.example.kpkn.screens.sessioneditor.CatalogSelectionDraftBridge
 import com.example.kpkn.ui.components.KpknSheetTokens
 
 /** Defaults: each aspect → defaultOptionId or first option. */
@@ -119,27 +117,5 @@ private fun AspectChipRow(
                 }
             }
         }
-    }
-}
-
-/**
- * When [exercise] has technical aspects, keep [CatalogSelectionDraftBridge] in sync so
- * [createExerciseFromInfo] / workout replace pick up the selection without the wizard.
- */
-@Composable
-fun RememberAspectCacheSync(
-    exercise: ExerciseMuscleInfo?,
-    selectedAspects: Map<String, String>,
-) {
-    LaunchedEffect(exercise?.id, selectedAspects) {
-        val ex = exercise ?: return@LaunchedEffect
-        if (ex.catalogOptionAxes.isNullOrEmpty()) return@LaunchedEffect
-        CatalogSelectionDraftBridge.store(
-            exerciseDbId = ex.id,
-            variantName = ex.variantName,
-            variantGroupId = ex.variantGroupId,
-            variantGroupName = ex.variantGroupName,
-            selectedAspects = selectedAspects.ifEmpty { defaultAspectSelection(ex) },
-        )
     }
 }

@@ -1,118 +1,13 @@
 package com.example.kpkn.screens.sessioneditor
 
 import com.example.kpkn.data.models.*
-import com.example.kpkn.data.repository.CompetitionRepository
-import com.example.kpkn.domain.auge.AugeClassifiers
 import com.example.kpkn.domain.exercises.ExerciseMuscleResolver
-import com.example.kpkn.domain.exercises.normalizedIdentityFields
-import com.example.kpkn.domain.exercises.resolvedCanonicalExerciseId
 import com.example.kpkn.domain.sessionassistant.AssistantActionType
 import com.example.kpkn.domain.sessionassistant.AssistantDetailAction
 import com.example.kpkn.domain.sessionassistant.AssistantSuggestionDetail
-import com.example.kpkn.domain.sessionassistant.SessionAssistantEngine
-import com.example.kpkn.domain.sessionassistant.SessionAssistantInput
 import com.example.kpkn.domain.training.VolumeCalculator
 import com.example.kpkn.domain.workout.SupersetRules
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import java.time.LocalDate
-import java.util.UUID
 import kotlin.math.roundToInt
-
-fun SessionEditorViewModel.applyAugeCorrection(
-    alertId: String,
-    overrideType: SessionEditorAugeCorrectionType? = null,
-) {
-    val alert = (currentUiState.augeSummary.alerts + currentUiState.augeSummary.suggestions)
-        .firstOrNull { it.id == alertId } ?: return
-
-    val correctionType = overrideType ?: alert.correctionType
-
-    when (correctionType) {
-        SessionEditorAugeCorrectionType.REDUCE_SERIES -> reduceSeriesForAugeAlert(alert)
-        SessionEditorAugeCorrectionType.REDUCE_RPE -> reduceRpeForAugeAlert(alert)
-        SessionEditorAugeCorrectionType.REDUCE_VOLUME_RPE -> reduceVolumeAndRpeForAugeAlert(alert)
-        SessionEditorAugeCorrectionType.ADD_SERIES -> addSeriesForAugeAlert(alert)
-        null -> Unit
-    }
-}
-
-internal fun SessionEditorViewModel.reduceSeriesForAugeAlert(alert: SessionEditorAugeAlert) {
-    val targetExerciseIds = orderedExerciseIdsForAlert(alert)
-    updateSession { session ->
-        session.transformExercises { exercise ->
-            if (exercise.id !in targetExerciseIds || exercise.sets.size <= 1) return@transformExercises exercise
-            exercise.copy(sets = exercise.sets.dropLast(1))
-        }
-    }
-}
-
-internal fun SessionEditorViewModel.reduceRpeForAugeAlert(alert: SessionEditorAugeAlert) {
-    val targetExerciseIds = orderedExerciseIdsForAlert(alert)
-    updateSession { session ->
-        session.transformExercises { exercise ->
-            if (exercise.id !in targetExerciseIds) return@transformExercises exercise
-            exercise.copy(sets = exercise.sets.map { it.lowerAugeIntensity() })
-        }
-    }
-}
-
-internal fun SessionEditorViewModel.reduceVolumeAndRpeForAugeAlert(alert: SessionEditorAugeAlert) {
-    val targetExerciseIds = orderedExerciseIdsForAlert(alert)
-    updateSession { session ->
-        session.transformExercises { exercise ->
-            if (exercise.id !in targetExerciseIds) return@transformExercises exercise
-            val trimmedSets = when {
-                exercise.sets.size > 3 -> exercise.sets.take(3)
-                exercise.sets.size > 1 -> exercise.sets.dropLast(1)
-                else -> exercise.sets
-            }
-            exercise.copy(sets = trimmedSets.map { it.lowerAugeIntensity(capRpe = 7.0) })
-        }
-    }
-}
-
-internal fun SessionEditorViewModel.addSeriesForAugeAlert(alert: SessionEditorAugeAlert) {
-    val targetExerciseIds = orderedExerciseIdsForAlert(alert)
-    updateSession { session ->
-        session.transformExercises { exercise ->
-            if (exercise.id !in targetExerciseIds) return@transformExercises exercise
-            val template = exercise.sets.lastOrNull()
-            val nextSet = template?.let { createNextSetTemplate(exercise, it) } ?: ExerciseSet(
-                id = UUID.randomUUID().toString(),
-                targetReps = 8,
-            )
-            exercise.copy(sets = exercise.sets + nextSet)
-        }
-    }
-}
-
-fun SessionEditorViewModel.addGhostExercise(cardId: String) {
-    val card = currentUiState.ghostExerciseCards.find { it.cardId == cardId } ?: return
-    val info = exerciseIndex[card.exerciseDbId.lowercase()] ?: return
-    // Reuse the catalog selection path so an assistant-added exercise cannot
-    // lose its v2 definition/configuration/performance identity.
-    val newExercise = createExerciseFromInfo(info, repository.history.value).copy(
-        name = card.name,
-        selectedMovementPattern = info.movementPattern,
-        selectedExecutionOption = info.executionOptions?.firstOrNull(),
-        sets = (1..card.sets).map {
-            ExerciseSet(
-                id = UUID.randomUUID().toString(),
-                targetReps = card.reps,
-                targetRPE = card.rpe,
-                intensityMode = IntensityMode.RPE,
-            )
-        },
-        restTime = card.restSeconds,
-    )
-    updateSession { session ->
-        session.copy(
-            exercises = session.exercises + newExercise,
-        )
-    }
-}
 
 fun SessionEditorViewModel.applyAssistantSuggestion(
     suggestionId: String,
@@ -363,37 +258,5 @@ internal fun SessionEditorViewModel.convertFailureToRir(session: Session): Sessi
                 set
             }
         })
-    }
-}
-
-internal fun SessionEditorViewModel.orderedExerciseIdsForAlert(alert: SessionEditorAugeAlert): Set<String> {
-    val currentSession = currentUiState.activeVariantSession ?: return emptySet()
-    val rankedExerciseIds = currentUiState.augeSummary.topExercises.map { it.exerciseId }
-    return when {
-        alert.exerciseId != null -> linkedSetOf(alert.exerciseId)
-        alert.muscle != null -> {
-            val matching = currentSession.allExercises()
-                .filter { exerciseMatchesPrimaryMuscle(it, alert.muscle) }
-                .map { it.id }
-                .toSet()
-            linkedSetOf<String>().apply {
-                rankedExerciseIds.filterTo(this) { it in matching }
-                matching.filterTo(this) { it !in this }
-            }
-        }
-        else -> linkedSetOf<String>().apply {
-            addAll(rankedExerciseIds)
-            addAll(currentSession.allExercises().map { it.id })
-        }
-    }
-}
-
-internal fun SessionEditorViewModel.exerciseMatchesPrimaryMuscle(exercise: Exercise, muscle: String?): Boolean {
-    if (muscle.isNullOrBlank()) return false
-    val muscles = ExerciseMuscleResolver.effectiveMuscles(exercise, exerciseIndex)
-    val target = VolumeCalculator.normalizeCanonicalMuscleGroup(muscle)
-    return muscles.any {
-        it.role == MuscleRole.PRIMARY &&
-            VolumeCalculator.normalizeCanonicalMuscleGroup(it.muscle, it.emphasis) == target
     }
 }
