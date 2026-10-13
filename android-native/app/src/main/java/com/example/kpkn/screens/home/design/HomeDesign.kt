@@ -21,6 +21,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -61,6 +62,21 @@ internal object HomeTypography {
 
     /** Último peso de «Cuerpo»: Syne ExtraBold a 40 sp. */
     val weightFigure: TextStyle = WizardTypography.question.copy(fontSize = 40.sp, lineHeight = 44.sp, letterSpacing = (-0.8).sp)
+
+    /** Título de un póster de programa: Syne ExtraBold a 17 sp. */
+    val posterTitle: TextStyle = WizardTypography.question.copy(fontSize = 17.sp, lineHeight = 22.sp, letterSpacing = 0.sp)
+
+    /** Título del concepto de «Aprende»: Syne 700 a 20 sp. */
+    val conceptTitle: TextStyle = WizardTypography.measure.copy(fontSize = 20.sp, lineHeight = 25.sp, letterSpacing = 0.sp)
+
+    /** Saludo de la barra superior y cifra de sus mini-widgets: Syne 700 a 16 sp. */
+    val barTitle: TextStyle = WizardTypography.measure.copy(fontSize = 16.sp, lineHeight = 20.sp, letterSpacing = 0.sp)
+
+    /** Etiquetas pequeñas de la barra superior: Inter 600 a 13 sp. */
+    val barLabel: TextStyle = WizardTypography.note.copy(fontWeight = FontWeight.SemiBold)
+
+    /** Píldora «ACTIVO» de un póster: Inter 700 a 13 sp. */
+    val posterPill: TextStyle = WizardTypography.note.copy(fontWeight = FontWeight.Bold)
 }
 
 /**
@@ -86,6 +102,19 @@ fun HomeSectionLabel(
             modifier = Modifier.weight(1f),
         )
         if (action != null) action()
+    }
+}
+
+/** Acción de texto de una etiqueta de sección («Ver todos»): en tinta y de 48 dp de alto como mínimo. */
+@Composable
+fun HomeSectionAction(text: String, onClick: () -> Unit) {
+    Box(
+        modifier = Modifier
+            .defaultMinSize(minHeight = WizardSpacing.touchTarget)
+            .clickable(role = Role.Button, onClick = onClick),
+        contentAlignment = Alignment.BottomEnd,
+    ) {
+        Text(text = text, style = WizardTypography.controlLabel, color = WizardColors.text)
     }
 }
 
