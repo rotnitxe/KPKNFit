@@ -94,6 +94,20 @@ Por id de programa: `CoverIdentity(style, palette, primary, secondary, motif, se
   | Powerlifting | PLATES · PAPEL | WAVES · TINTA | TOPO · NOCHE |
 
 - K3b añadirá HALFTONE, TRACK, TRAIL, ENGRAVING y BAUHAUS, y reasignará algunas filas para más variedad.
+
+### Para Home (la usarán los paquetes I2 e I5 del rediseño de Home)
+Expón dos piezas reutilizables, `internal` en el módulo y en `design/entreno/plan/cover/`:
+- **`CoverStudioArt(identity, modifier, animate = false, reduced, parallax = { 0f })`:** pinta SOLO el arte a sangre (fondo de la
+  paleta y estilo), sin texto, sin velo y sin franja. `PlanCover` lo usa por dentro; Home lo usará de fondo en su sesión del día y en
+  sus pósteres.
+- **`coverIdentityFor(programId: String, templateId: String?): CoverIdentity`:**
+  - Primero busca en la tabla por `templateId` (el id del catálogo o del programa a medida con el que se creó el programa) y luego
+    por `programId`.
+  - Si no hay entrada (un programa propio o importado), devuelve una identidad DETERMINISTA a partir del hash de `programId`, con
+    uno de los estilos que existan, una paleta, dos acentos distintos de `SymbolPalette` y la semilla.
+  - El mismo id da siempre la misma identidad.
+- **Pruebas unitarias:** la identidad de respaldo es estable para el mismo id y válida (acentos distintos), y un id de la tabla
+  devuelve su fila.
 - **Programas del catálogo:** K3a no los asigna. Siguen con el arte de hoy hasta K3b, así que el arte actual tiene que seguir funcionando
   para ellos.
 
