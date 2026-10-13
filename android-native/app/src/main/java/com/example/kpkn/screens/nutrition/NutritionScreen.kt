@@ -53,6 +53,7 @@ import com.example.kpkn.screens.nutrition.components.FoodLoggerDrawer
 import com.example.kpkn.screens.nutrition.components.MealTypeSaver
 import com.example.kpkn.screens.nutrition.components.SupplementTrackingCard
 import com.example.kpkn.screens.nutrition.components.CreatineSaturationOverlay
+import com.example.kpkn.screens.nutrition.design.mealIcon
 import com.example.kpkn.ui.components.KpknAlertDialog
 import com.example.kpkn.ui.components.KpknSnackbar
 import com.example.kpkn.ui.components.SnackbarType
@@ -78,19 +79,6 @@ private val FATS_COLOR = MacroColors.fat
 private val CALORIES_COLOR = MacroColors.calories
 private val TEAL = Color(0xFF009688)
 
-private val MEAL_ICONS = mapOf(
-    MealType.BREAKFAST to Icons.Default.FreeBreakfast,
-    MealType.LUNCH to Icons.Default.LunchDining,
-    MealType.DINNER to Icons.Default.DinnerDining,
-    MealType.SNACK to Icons.Default.Fastfood,
-)
-private val MEAL_LABELS = mapOf(
-    MealType.BREAKFAST to "Desayuno",
-    MealType.LUNCH to "Almuerzo",
-    MealType.DINNER to "Cena",
-    MealType.SNACK to "Snack",
-)
-
 // ═══════════════════════════════════════════════════════════════════════
 // MAIN SCREEN
 // ═══════════════════════════════════════════════════════════════════════
@@ -98,7 +86,6 @@ private val MEAL_LABELS = mapOf(
 @Composable
 fun NutritionScreen(
     viewModel: NutritionViewModel = viewModel { NutritionViewModel() },
-    onNavigateToBodyProgress: (() -> Unit)? = null,
     onNavigateToMealHistory: (() -> Unit)? = null,
     /** Editor directo del plan: creación y edición, nunca un wizard. */
     onNavigateToPlanEditor: (planId: String?) -> Unit = { _ -> },
@@ -326,8 +313,7 @@ fun NutritionScreen(
                     )
                 }
 
-                val mealOrder = listOf(MealType.BREAKFAST, MealType.LUNCH, MealType.DINNER, MealType.SNACK)
-                items(mealOrder) { mealType ->
+                items(MealSlots.mealOrder) { mealType ->
                     val group = mealGroups.find { it.mealType == mealType }
                     MealGroupCard(
                         mealType = mealType,
@@ -568,10 +554,10 @@ private fun NutritionHeroHeader(
                     )
                 }
                 if (hasActivePlan) {
-                    IconButton(onClick = if (hasActivePlan) onEditPlan else onCreatePlan, modifier = Modifier.size(MIN_TOUCH_TARGET).tourAnchor(TourAnchors.NUTRITION_PLAN)) {
+                    IconButton(onClick = onEditPlan, modifier = Modifier.size(MIN_TOUCH_TARGET).tourAnchor(TourAnchors.NUTRITION_PLAN)) {
                         Icon(
-                            if (hasActivePlan) Icons.Default.Edit else Icons.Default.Add,
-                            if (hasActivePlan) "Editar plan" else "Crear plan",
+                            Icons.Default.Edit,
+                            "Editar plan",
                             modifier = Modifier.size(18.dp),
                         )
                     }
@@ -635,7 +621,7 @@ private fun NutritionHeroHeader(
                             approximate = dailyTotals.isEstimate,
                         )
                         MacroDetailRow(
-                            label = "Carbohidratos",
+                            label = "Hidratos",
                             current = dailyTotals.carbs,
                             goal = dayGoals?.carbGoal,
                             unit = "g",
@@ -873,6 +859,7 @@ private fun DateSelector(
 ) {
     // C1: «hoy» viene del ViewModel y las fechas se reconstruyen cuando cambia (medianoche
     // con la app viva); antes se congelaba con LocalDate.now() en la primera composición.
+    val locale = LocaleManager.getEffectiveLocale(LocalContext.current)
     val dates = remember(today) { (-3..3).map { today.plusDays(it.toLong()).toString() } }
     val todayKey = today.toString()
 
@@ -884,7 +871,7 @@ private fun DateSelector(
             val isSelected = date == selectedDate
             val isToday = date == todayKey
             val d = try { java.time.LocalDate.parse(date) } catch (_: Exception) { today }
-            val dayName = d.format(java.time.format.DateTimeFormatter.ofPattern("EEE", java.util.Locale.getDefault()))
+            val dayName = d.format(java.time.format.DateTimeFormatter.ofPattern("EEE", locale))
             val dayNum = d.dayOfMonth.toString()
 
             Surface(
@@ -953,7 +940,7 @@ private fun QuickAddBar(onMealTypeClick: (MealType) -> Unit) {
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
-                MealType.entries.forEach { meal ->
+                MealSlots.mealOrder.forEach { meal ->
                     Surface(
                         modifier = Modifier
                             .weight(1f)
@@ -968,14 +955,14 @@ private fun QuickAddBar(onMealTypeClick: (MealType) -> Unit) {
                             horizontalAlignment = Alignment.CenterHorizontally,
                         ) {
                             Icon(
-                                MEAL_ICONS[meal] ?: Icons.Default.Add,
+                                mealIcon(meal),
                                 null,
                                 tint = TEAL,
                                 modifier = Modifier.size(20.dp),
                             )
                             Spacer(Modifier.height(2.dp))
                             Text(
-                                MEAL_LABELS[meal] ?: "",
+                                MealSlots.mealLabel(meal),
                                 style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp),
                                 fontWeight = FontWeight.Bold,
                                 maxLines = 1,
@@ -1141,8 +1128,8 @@ private fun MealGroupCard(
     onEdit: (String) -> Unit,
     onAddFood: () -> Unit,
 ) {
-    val label = MEAL_LABELS[mealType] ?: mealType.name
-    val icon = MEAL_ICONS[mealType] ?: Icons.Default.Restaurant
+    val label = MealSlots.mealLabel(mealType)
+    val icon = mealIcon(mealType)
     val logs = group?.logs ?: emptyList()
     val totals = group?.totals ?: DailyMacroTotals()
     var expanded by remember { mutableStateOf(true) }
@@ -1390,6 +1377,8 @@ private fun CalorieTrendChart(
                 }
             }
 
+            val locale = LocaleManager.getEffectiveLocale(LocalContext.current)
+
             // Day labels — each gets equal slot to align with bars
             Row(
                 modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
@@ -1397,7 +1386,7 @@ private fun CalorieTrendChart(
                 trendData.forEach { point ->
                     val dayLabel = try {
                         java.time.LocalDate.parse(point.date)
-                            .format(java.time.format.DateTimeFormatter.ofPattern("E", java.util.Locale.getDefault()))
+                            .format(java.time.format.DateTimeFormatter.ofPattern("E", locale))
                             .take(2)
                     } catch (_: Exception) { "?" }
                     Text(

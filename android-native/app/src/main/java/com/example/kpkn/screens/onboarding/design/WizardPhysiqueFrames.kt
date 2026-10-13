@@ -1,4 +1,4 @@
-package com.example.kpkn.screens.nutrition
+package com.example.kpkn.screens.onboarding.design
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -36,9 +36,8 @@ import com.example.kpkn.R
 /**
  * Recursos del bloque de grasa corporal, extraídos de `NutritionWizardScreen.kt`
  * en la Fase 7, cuando la pantalla y el ViewModel legacy del wizard nutricional
- * se retiraron. Tras el retiro del picker legacy de WizChat, el único consumidor
- * vivo es `design/WizardPhysiqueSelector` (prototipo de la puerta visual): el
- * paquete no cambia para no tocar sus imports.
+ * se retiraron. Los usan `WizardPhysiqueSelector` y `WizardBodyFatPicker` (onboarding),
+ * así que el archivo vive en su paquete desde N0.
  *
  * NO borrar: los frames `wizard_h_*`/`wizard_m_*` se usan en el bloque de grasa.
  */

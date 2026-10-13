@@ -15,6 +15,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -24,30 +25,20 @@ import com.example.kpkn.data.repository.NutritionRepository
 import com.example.kpkn.domain.nutrition.DayGoalsResult
 import com.example.kpkn.domain.nutrition.NutritionDisplayFormat
 import com.example.kpkn.domain.nutrition.computeDailyTotals
+import com.example.kpkn.domain.nutrition.MealSlots
 import com.example.kpkn.domain.nutrition.resolveDayGoalsByDate
+import com.example.kpkn.screens.nutrition.design.mealIcon
+import com.example.kpkn.ui.locale.LocaleManager
+import com.example.kpkn.ui.theme.MacroColors
 
 // ═══════════════════════════════════════════════════════════════════════
 // COLORS
 // ═══════════════════════════════════════════════════════════════════════
 
 private val TEAL = Color(0xFF009688)
-private val PROTEIN_COLOR = Color(0xFFEF5350)
-private val CARBS_COLOR = Color(0xFF7E57C2)
-private val FATS_COLOR = Color(0xFF26A69A)
-
-private val MEAL_LABELS = mapOf(
-    MealType.BREAKFAST to "Desayuno",
-    MealType.LUNCH to "Almuerzo",
-    MealType.DINNER to "Cena",
-    MealType.SNACK to "Snack",
-)
-
-private val MEAL_ICONS = mapOf(
-    MealType.BREAKFAST to Icons.Default.FreeBreakfast,
-    MealType.LUNCH to Icons.Default.LunchDining,
-    MealType.DINNER to Icons.Default.DinnerDining,
-    MealType.SNACK to Icons.Default.Fastfood,
-)
+private val PROTEIN_COLOR = MacroColors.protein
+private val CARBS_COLOR = MacroColors.carbs
+private val FATS_COLOR = MacroColors.fat
 
 // ═══════════════════════════════════════════════════════════════════════
 // DATA
@@ -78,17 +69,16 @@ fun MealHistoryScreen(
         activePlanId?.let { id -> plans.find { it.id == id } }
     }
 
+    // Idioma efectivo de la app, como en la cabecera: el «de» de la fecha solo existe en español
+    val locale = LocaleManager.getEffectiveLocale(LocalContext.current)
+
     // Group by day, sorted descending
-    val daySummaries = remember(allLogs) {
+    val daySummaries = remember(allLogs, locale) {
         allLogs
             .filter { it.status != NutritionStatus.PLANNED }
             .groupBy { it.date.take(10) }
             .map { (date, logs) ->
-                val dateLabel = try {
-                    java.time.LocalDate.parse(date)
-                        .format(java.time.format.DateTimeFormatter.ofPattern("EEEE, d 'de' MMMM", java.util.Locale.getDefault()))
-                        .replaceFirstChar { it.uppercase() }
-                } catch (_: Exception) { date }
+                val dateLabel = nutritionHeroDateLabel(date, locale)
                 DaySummary(
                     date = date,
                     dateLabel = dateLabel,
@@ -335,8 +325,8 @@ private fun DayHeader(day: DaySummary, goals: DayGoalsResult) {
 
 @Composable
 private fun HistoryLogEntry(log: NutritionLog) {
-    val icon = MEAL_ICONS[log.mealType] ?: Icons.Default.Restaurant
-    val label = MEAL_LABELS[log.mealType] ?: log.mealType.name
+    val icon = mealIcon(log.mealType)
+    val label = MealSlots.mealLabel(log.mealType)
     val foodNames = log.foods.joinToString(", ") { it.foodName }.ifEmpty { "Comida registrada" }
     val pro = log.foods.sumOf { it.protein }
     val car = log.foods.sumOf { it.carbs }

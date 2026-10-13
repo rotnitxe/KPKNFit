@@ -6,7 +6,6 @@ import com.example.kpkn.data.models.*
 import com.example.kpkn.data.repository.NutritionRepository
 import com.example.kpkn.data.repository.ProgramRepository
 import com.example.kpkn.domain.energy.TrainingEnergyEngine
-import com.example.kpkn.domain.body.goalProgressPercent
 import com.example.kpkn.domain.body.latestValidByMetric
 import com.example.kpkn.domain.nutrition.*
 import com.example.kpkn.domain.time.ActivityLocalDate
@@ -68,7 +67,6 @@ class NutritionViewModel(
     val nutritionLogs = nutritionRepo.nutritionLogs
     val nutritionPlans = nutritionRepo.nutritionPlans
     val foodDatabase = nutritionRepo.foodDatabase
-    val mealTemplates: StateFlow<List<MealTemplate>> = nutritionRepo.mealTemplates
     val historySeries: StateFlow<NutritionHistorySeries> = combine(
         nutritionLogs,
         nutritionRepo.dailyGoalSnapshots,
@@ -256,20 +254,6 @@ class NutritionViewModel(
     }
         .distinctUntilChanged()
         .stateIn(viewModelScope, SharingStarted.Lazily, MacroRingPct())
-
-    val nutrientProgress: StateFlow<List<NutrientProgress>> = combine(
-        dailyTotals,
-        goals,
-    ) { totals, g ->
-        when (g) {
-            // Sin metas no hay filas de progreso: nada que medir y ningún
-            // default que enseñar.
-            is DayGoalsResult.Absent -> emptyList<NutrientProgress>()
-            is DayGoalsResult.Present -> nutrientProgressRows(totals, g.goals)
-        }
-    }
-        .distinctUntilChanged()
-        .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
     // ─── Derived: Trend Data ────────────────────────────────────────────────
 
@@ -527,29 +511,6 @@ class NutritionViewModel(
         activePlan.value?.let { applyPlanToSettings(it) }
     }
 
-    // ─── Progress Calculation ───────────────────────────────────────────────
-
-    val progressPct: StateFlow<Int> = combine(
-        activePlan, programRepo.settings, nutritionRepo.bodyProgressRepository.observations,
-    ) { plan, settings, observations ->
-        if (plan == null) return@combine 0
-        val metric = plan.typedBodyGoal?.metric ?: plan.goalType
-        val latest = latestValidByMetric(observations)
-        val current = when (metric) {
-            GoalMetric.WEIGHT -> latest[BodyMetric.WEIGHT]?.valueSi
-            GoalMetric.BODY_FAT -> latest[BodyMetric.BODY_FAT_PERCENT]?.valueSi
-            GoalMetric.MUSCLE_MASS -> latest[BodyMetric.MUSCLE_MASS_PERCENT]?.valueSi
-        } ?: return@combine 0
-        val target = plan.typedBodyGoal?.targetValueSi
-            ?: plan.primaryGoal?.value?.takeIf { it > 0.0 }
-            ?: plan.goalValue.takeIf { it > 0.0 }
-            ?: return@combine 0
-        val start = plan.startValue ?: current
-        goalProgressPercent(start, current, target)
-    }
-        .distinctUntilChanged()
-        .stateIn(viewModelScope, SharingStarted.Lazily, 0)
-
     val dailyEnergyBalance: StateFlow<DailyEnergyBalance> = combine(
         combine(dailyTotals, programRepo.history, _selectedDate) { totals, history, date ->
             Triple(totals, history, date)
@@ -604,44 +565,6 @@ class NutritionViewModel(
         if (settingsWithPlanGoals(current, plan, goalObjective) == current) return
         viewModelScope.launch {
             programRepo.updateSettings { settingsWithPlanGoals(it, plan, goalObjective) }
-        }
-    }
-
-    /**
-     * Filas de progreso solo para metas presentes. Un campo sin meta (null)
-     * no genera fila: nada de defaults inventados; un 0 explícito sí se
-     * muestra como 0.
-     */
-    private fun nutrientProgressRows(totals: DailyMacroTotals, goals: MacroGoals): List<NutrientProgress> {
-        data class Row(
-            val key: String,
-            val label: String,
-            val consumed: Double,
-            val goal: Int?,
-            val unit: String,
-            val showOverages: Boolean,
-        )
-        return listOf(
-            Row("calories", "Calorias", totals.calories, goals.calorieGoal, "kcal", goals.showOverages),
-            Row("protein", "Proteina", totals.protein, goals.proteinGoal, "g", goals.showOverages),
-            Row("carbs", "Carbohidratos", totals.carbs, goals.carbGoal, "g", goals.showOverages),
-            Row("fats", "Grasas", totals.fats, goals.fatGoal, "g", goals.showOverages),
-            Row("fiber", "Fibra", totals.fiber, goals.fiberGoal, "g", true),
-            Row("sugar", "Azucar", totals.sugar, goals.sugarLimit, "g", true),
-            Row("sodium", "Sodio", totals.sodiumMg, goals.sodiumLimitMg, "mg", true),
-            Row("potassium", "Potasio", totals.potassiumMg, goals.potassiumGoalMg, "mg", goals.showOverages),
-            Row("hydration", "Agua", totals.waterMl, goals.hydrationGoalMl, "ml", goals.showOverages),
-        ).mapNotNull { row ->
-            row.goal?.let { goal ->
-                NutrientProgress(
-                    key = row.key,
-                    label = row.label,
-                    consumed = row.consumed,
-                    goal = goal.toDouble(),
-                    unit = row.unit,
-                    showOverages = row.showOverages,
-                )
-            }
         }
     }
 }

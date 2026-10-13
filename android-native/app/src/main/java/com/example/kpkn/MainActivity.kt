@@ -1205,9 +1205,6 @@ private fun KPKNNavGraph(
         composable(KpknRoute.Nutrition.route) {
             NutritionScreen(
                 viewModel = nutritionViewModel,
-                onNavigateToBodyProgress = {
-                    navController.navigate(KpknRoute.BodyProgress.route)
-                },
                 onNavigateToMealHistory = {
                     navController.navigate(KpknRoute.MealHistory.route)
                 },
