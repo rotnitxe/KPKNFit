@@ -1,13 +1,6 @@
 package com.example.kpkn.screens.nutrition.components
 
 import androidx.compose.animation.*
-import androidx.compose.animation.core.FastOutSlowInEasing
-import androidx.compose.animation.core.RepeatMode
-import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.rememberInfiniteTransition
-import androidx.compose.animation.core.tween
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -17,8 +10,6 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
@@ -35,9 +26,7 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.runtime.collectAsState
 import com.example.kpkn.data.repository.ProgramRepository
 import com.example.kpkn.data.repository.NutritionRepository
@@ -47,7 +36,6 @@ import com.example.kpkn.data.food.findStaticFoodById
 import com.example.kpkn.data.food.findFoodExactByNormalized
 import com.example.kpkn.domain.nutrition.HouseholdPortions
 import com.example.kpkn.domain.nutrition.FoodLoggerPrimaryAction
-import com.example.kpkn.domain.nutrition.MealSlots
 import com.example.kpkn.data.diagnostics.KpknDiagnosticLogger
 import com.example.kpkn.telemetry.nutrition.NutritionTelemetry
 import com.example.kpkn.telemetry.nutrition.NutritionTelemetrySanitizer
@@ -109,6 +97,11 @@ import androidx.compose.ui.unit.sp
 import com.example.kpkn.ui.components.KpknSnackbarBanner
 import com.example.kpkn.ui.components.SnackbarType
 import com.example.kpkn.ui.components.KpknAlertDialog
+import com.example.kpkn.screens.nutrition.design.logger.*
+import com.example.kpkn.screens.onboarding.design.WizardColors
+import com.example.kpkn.screens.onboarding.design.entreno.SymbolPalette
+import com.example.kpkn.ui.design.KpknModule
+import com.example.kpkn.ui.design.KpknType
 import androidx.lifecycle.createSavedStateHandle
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -135,7 +128,6 @@ internal fun portionPresetLabel(preset: PortionPreset): String = when (preset) {
 private val PROTEIN_COLOR = MacroColors.protein
 private val CARBS_COLOR = MacroColors.carbs
 private val FATS_COLOR = MacroColors.fat
-private val PRO_COLOR = Color(0xFF7C3AED)
 
 /** CRI-ANALYSIS: fragmento corto y seguro (errorType: mensaje) para mostrar en avisos
  *  de fallo. On-device, truncado; ayuda a diagnosticar la causa raíz. Puro y top-level
@@ -211,6 +203,8 @@ fun FoodLoggerDrawer(
     var detectedContext by remember(draft) { draft::detectedContext }
     var searchQuery by remember(draft) { draft::searchQuery }
     var searchResults by remember(draft) { draft::searchResults }
+    // Último texto con la búsqueda ya resuelta: distingue «sin resultados» de «todavía no se ha buscado».
+    var searchedQuery by remember { mutableStateOf<String?>(null) }
     // The search in flight: a newer search (or an emptied box) cancels it instead of letting it finish for nothing.
     var searchJob by remember(vm) { vm::searchJob }
     var activeTab by remember(draft) { draft::activeTab }
@@ -245,6 +239,8 @@ fun FoodLoggerDrawer(
     // IT3: utensilios configurables (ml por utensilio).
     var showUtensilDialog by remember { mutableStateOf(false) }
     var showPrivacyInfo by remember { mutableStateOf(false) }
+    // Detalle técnico de un aviso de análisis: oculto hasta pedir «Ver detalle»; cada aviso empieza oculto.
+    var showNoticeDetail by remember(analysisNotice) { mutableStateOf(false) }
     // WP-U12 (C11): el diálogo parte de lo vigente (base + lo guardado), no solo de la base.
     var utensilValues by remember(draft) { draft::utensilValues }
 
@@ -1178,7 +1174,10 @@ fun FoodLoggerDrawer(
             // 15 rows are usable ones.
             val results = nutritionRepo.searchFoodCandidates(query, limit = 15, loggerFilter = true)
                 .distinctBy { it.foodId.ifBlank { "${it.food.name}_${it.food.brand.orEmpty()}" } } // C13: una ficha por id (keys únicas)
-            if (searchQuery == query) searchResults = results
+            if (searchQuery == query) {
+                searchResults = results
+                searchedQuery = query
+            }
         }
     }
 
@@ -1411,151 +1410,44 @@ fun FoodLoggerDrawer(
     // ─── Sheet ───────────────────────────────────────────────────────────────
 
     key(sheetRevision) {
-    KpknSheet(onDismissRequest = requestDismiss, dismissible = !isSaving && !showSuccess) {
+    // Altura fija de casi pantalla completa: la hoja no salta al cambiar de pestaña.
+    KpknSheet(onDismissRequest = requestDismiss, dismissible = !isSaving && !showSuccess, stableHeightFraction = 0.92f) {
         LazyColumn(
             state = listState,
             modifier = Modifier
                 .fillMaxWidth()
-                .heightIn(max = 640.dp)
+                .weight(1f)
                 .padding(horizontal = 20.dp)
                 .padding(bottom = 24.dp)
                 .imePadding(),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            // ── Header ───────────────────────────────────────────────────────
-            item {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Column(
-                        modifier = Modifier.weight(1f),
-                        verticalArrangement = Arrangement.spacedBy(4.dp),
-                    ) {
-                        Text(
-                            text = if (isEditing) "Editar comida" else "Registrar comida",
-                            style = MaterialTheme.typography.headlineSmall,
-                            fontWeight = FontWeight.Black,
-                        )
-                        Text(
-                            text = if (isEditing) {
-                                "Ajusta los alimentos o la comida y guarda los cambios."
-                            } else {
-                                "Describe tu comida o agrega alimentos uno por uno."
-                            },
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                    }
-                    IconButton(
-                        onClick = { showSettingsDialog = true },
-                        modifier = Modifier.size(40.dp),
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Settings,
-                            contentDescription = "Configuración",
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                    }
-                }
-            }
-
-            // ── Meal Type Selector ───────────────────────────────────────────
-            item { MealTypeSelector(mealType = mealType, onSelect = { mealType = it }) }
-
-            // ── Date ────────────────────────────────────────────────────────
+            // ── Cabecera: título, fecha y comida ─────────────────────────────
             item {
                 val locale = LocaleManager.getEffectiveLocale(LocalContext.current)
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                ) {
-                    Icon(Icons.Default.CalendarMonth, null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
-                    Text(
-                        text = try {
-                            java.time.LocalDate.parse(logDate)
-                                .format(java.time.format.DateTimeFormatter.ofPattern("EEE, d MMM", locale))
-                        } catch (e: Exception) { logDate },
-                        style = MaterialTheme.typography.bodyMedium,
-                        fontWeight = FontWeight.SemiBold,
-                    )
-                }
+                LoggerHeader(
+                    title = if (isEditing) "Editar comida" else "Registrar comida",
+                    dateLabel = loggerDateLabel(logDate, locale),
+                    mealType = mealType,
+                    onMealSelect = { mealType = it },
+                    onSettings = { showSettingsDialog = true },
+                    onClose = requestDismiss,
+                )
             }
 
-            // ── Tab Selector ────────────────────────────────────────────────
-            item {
-                Row(
-                    modifier = Modifier.fillMaxWidth().selectableGroup(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                ) {
-                    TabChip("Describir comida", activeTab == 0, modifier = Modifier.weight(1f)) { activeTab = 0 }
-                    TabChip("Buscar alimento", activeTab == 1, modifier = Modifier.weight(1f)) { activeTab = 1 }
-                }
-            }
+            // ── Pestañas: Describir · Buscar ─────────────────────────────────
+            item { LoggerTabs(activeTab = activeTab, onTabSelect = { activeTab = it }) }
 
-            // ── Description Tab ──────────────────────────────────────────────
+            // ── Describir ────────────────────────────────────────────────────
             if (activeTab == 0) {
                 item {
-                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        if (reviewRequired) {
-                            Surface(
-                                shape = RoundedCornerShape(10.dp),
-                                color = MaterialTheme.colorScheme.errorContainer,
-                            ) {
-                                Text(
-                                    text = "Revisa la comida antes de guardar: hay datos incompletos o fuera de rango.",
-                                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 8.dp),
-                                    style = MaterialTheme.typography.labelSmall,
-                                    color = MaterialTheme.colorScheme.onErrorContainer,
-                                )
-                            }
-                        }
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            Text(
-                                "Descripción",
-                                style = MaterialTheme.typography.labelSmall,
-                                fontWeight = FontWeight.SemiBold,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            )
-                            IconButton(
-                                onClick = { showPrivacyInfo = true },
-                                modifier = Modifier.size(MIN_TOUCH_TARGET),
-                            ) {
-                                Icon(
-                                    Icons.Default.Info,
-                                    contentDescription = "Cómo funciona el registro de comidas",
-                                    modifier = Modifier.size(18.dp),
-                                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                                )
-                            }
-                        }
-                        TextField(
-                            value = description,
-                            onValueChange = { description = it },
-                            modifier = Modifier.fillMaxWidth(),
+                    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                        LoggerDescribeField(
+                            text = description,
+                            onTextChange = { description = it },
+                            onImeDone = { analyzeDescription() },
+                            onPrivacyInfo = { showPrivacyInfo = true },
                             enabled = !isAnalyzing && !isSaving,
-                            placeholder = {
-                                Text(
-                                    "Ej: Almorcé arroz con pollo y un poco de ensalada"
-                                )
-                            },
-                            minLines = 2,
-                            maxLines = 4,
-                            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
-                            keyboardActions = KeyboardActions(onDone = { analyzeDescription() }),
-                            shape = RoundedCornerShape(12.dp),
-                            colors = TextFieldDefaults.colors(
-                                focusedIndicatorColor = Color.Transparent,
-                                unfocusedIndicatorColor = Color.Transparent,
-                                disabledIndicatorColor = Color.Transparent,
-                                focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-                                unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainer
-                            )
                         )
 
                         AnimatedVisibility(
@@ -1563,8 +1455,8 @@ fun FoodLoggerDrawer(
                             enter = fadeIn() + expandVertically(),
                             exit = fadeOut() + shrinkVertically(),
                         ) {
-                            LocalAnalysisPanel(
-                                stage = analysisStage,
+                            LoggerAnalysisPanel(
+                                interpreting = analysisStage == ParseStage.INTERPRETING,
                                 elapsedMs = analysisElapsedMs,
                             )
                         }
@@ -1575,96 +1467,116 @@ fun FoodLoggerDrawer(
                             exit = fadeOut() + shrinkVertically(),
                         ) {
                             analysisNotice?.let { notice ->
-                                AnalysisNoticeCard(notice = notice)
+                                LoggerAnalysisNotice(
+                                    title = notice.title,
+                                    message = notice.message,
+                                    onRetry = { analyzeDescription() },
+                                    technicalDetail = notice.technicalDetail,
+                                    detailShown = showNoticeDetail,
+                                    onToggleDetail = { showNoticeDetail = !showNoticeDetail },
+                                )
                             }
                         }
 
-
+                        if (reviewRequired) {
+                            KpknModule(accent = SymbolPalette.energia) {
+                                Text(
+                                    text = "Revisa la comida antes de guardar: hay datos incompletos o fuera de rango.",
+                                    style = KpknType.body,
+                                    color = WizardColors.text,
+                                )
+                            }
+                        }
 
                         if (learnedMemoryCleared) {
                             Text(
-                                "Memoria de aprendizaje borrada",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = Color.White.copy(alpha = 0.6f),
+                                text = "Memoria de aprendizaje borrada",
+                                style = KpknType.caption,
+                                color = WizardColors.textMuted,
                             )
                         }
                     }
                 }
             }
 
-            // ── Search Tab ──────────────────────────────────────────────────
+            // ── Buscar ───────────────────────────────────────────────────────
             if (activeTab == 1) {
                 item {
-                    TextField(
-                        value = searchQuery,
-                        onValueChange = { searchQuery = it },
-                        modifier = Modifier.fillMaxWidth(),
-                        placeholder = { Text("Busca un alimento para agregarlo") },
-                        singleLine = true,
-                        leadingIcon = { Icon(Icons.Default.Search, null) },
-                        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
-                        keyboardActions = KeyboardActions(onSearch = { performSearch() }),
-                        shape = RoundedCornerShape(12.dp),
-                        colors = TextFieldDefaults.colors(
-                            focusedIndicatorColor = Color.Transparent,
-                            unfocusedIndicatorColor = Color.Transparent,
-                            disabledIndicatorColor = Color.Transparent,
-                            focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-                            unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainer
-                        )
+                    LoggerSearchField(
+                        query = searchQuery,
+                        onQueryChange = { searchQuery = it },
+                        onImeSearch = { performSearch() },
                     )
                 }
                 // Mientras el catálogo se prepara, los resultados salen de lo que ya hay: el aviso lo dice.
                 catalogImportProgress?.let { progress ->
-                    item(key = "catalog_import_progress") { CatalogImportProgress(progress) }
+                    item(key = "catalog_import_progress") { LoggerCatalogProgress(progress) }
                 }
                 items(searchResults, key = { "search_" + it.foodId.ifBlank { "${it.food.name}_${it.food.brand.orEmpty()}" } }) { food ->
-                    FoodSearchResultCard(candidate = food, onClick = {
-                        val selectedFood = food.food
-                        if (!NutrientBasis.isVerified(selectedFood)) {
-                            saveError = "Esta ficha no tiene nutrientes verificables. Elige otro alimento."
-                            errorPulse++
-                            return@FoodSearchResultCard
-                        }
-                        val queryUsed = searchQuery.ifBlank { selectedFood.name }
-                        if (!FoodIdentity.matchesDeclaredIdentity(queryUsed, selectedFood)) {
-                            // The results outlive the query box: a tap that no longer matches must say so.
-                            saveError = "Esa ficha no coincide con lo que buscaste. Elige otra."
-                            errorPulse++
-                            return@FoodSearchResultCard
-                        }
-                        // The tapped row IS the eaten identity; a pack or per-100 g row only changes the portion.
-                        val identity = HouseholdPortions.identityForSearchPick(selectedFood, queryUsed)
-                        val grams = HouseholdPortions.eatenGramsForSearchPick(identity, queryUsed)
-                        val logged = scaleFoodByPortion(identity, amountGrams = grams)
-                        val status = HouseholdPortions.operationalAutoStatus(
-                            food = identity,
-                            grams = grams,
-                            brandHint = null,
-                            explicitKilogram = HouseholdPortions.isExplicitKilogram(queryUsed),
-                            amountIntent = AmountIntent.UNSPECIFIED,
-                            explicitPick = true,
+                    LoggerSearchRow(
+                        name = food.food.name.trim().replaceFirstChar { it.uppercase() },
+                        kcal = kotlin.math.round(food.food.calories).toInt(),
+                        basisGrams = kotlin.math.round(NutrientBasis.grams(food.food)).toInt(),
+                        caption = loggerSearchCaption(food),
+                        onAdd = {
+                            val selectedFood = food.food
+                            if (!NutrientBasis.isVerified(selectedFood)) {
+                                saveError = "Esta ficha no tiene nutrientes verificables. Elige otro alimento."
+                                errorPulse++
+                                return@LoggerSearchRow
+                            }
+                            val queryUsed = searchQuery.ifBlank { selectedFood.name }
+                            if (!FoodIdentity.matchesDeclaredIdentity(queryUsed, selectedFood)) {
+                                // The results outlive the query box: a tap that no longer matches must say so.
+                                saveError = "Esa ficha no coincide con lo que buscaste. Elige otra."
+                                errorPulse++
+                                return@LoggerSearchRow
+                            }
+                            // The tapped row IS the eaten identity; a pack or per-100 g row only changes the portion.
+                            val identity = HouseholdPortions.identityForSearchPick(selectedFood, queryUsed)
+                            val grams = HouseholdPortions.eatenGramsForSearchPick(identity, queryUsed)
+                            val logged = scaleFoodByPortion(identity, amountGrams = grams)
+                            val status = HouseholdPortions.operationalAutoStatus(
+                                food = identity,
+                                grams = grams,
+                                brandHint = null,
+                                explicitKilogram = HouseholdPortions.isExplicitKilogram(queryUsed),
+                                amountIntent = AmountIntent.UNSPECIFIED,
+                                explicitPick = true,
+                            )
+                            val tag = ResolvedTag(
+                                tag = identity.name,
+                                portion = PortionPreset.MEDIUM,
+                                quantity = 1.0,
+                                amountGrams = grams,
+                                foodItem = identity,
+                                loggedFood = logged,
+                                isResolved = status == FoodResolutionStatus.AUTO,
+                                statusText = "",
+                                hasManualEdits = true,
+                                resolutionStatus = status,
+                                nutritionSource = NutrientBasis.source(identity),
+                                resolutionConfidence = 1.0,
+                                origin = TagOrigin.SEARCH,
+                            )
+                            tags = tags + NutritionInterpretationBridge.refresh(tag.copy(foodQuery = queryUsed, confirmedDimensions = setOf("identity")))
+                            saveError = null
+                            searchQuery = ""
+                            searchResults = emptyList()
+                        },
+                    )
+                }
+                // Sin resultados de una búsqueda ya hecha: lo dice y ofrece describir la comida en lugar de buscarla.
+                if (searchQuery.isNotBlank() && searchResults.isEmpty() && searchedQuery == searchQuery) {
+                    item(key = "search_empty") {
+                        LoggerSearchEmpty(
+                            query = searchQuery,
+                            onDescribeInstead = {
+                                description = searchQuery
+                                activeTab = 0
+                            },
                         )
-                        val tag = ResolvedTag(
-                            tag = identity.name,
-                            portion = PortionPreset.MEDIUM,
-                            quantity = 1.0,
-                            amountGrams = grams,
-                            foodItem = identity,
-                            loggedFood = logged,
-                            isResolved = status == FoodResolutionStatus.AUTO,
-                            statusText = "",
-                            hasManualEdits = true,
-                            resolutionStatus = status,
-                            nutritionSource = NutrientBasis.source(identity),
-                            resolutionConfidence = 1.0,
-                            origin = TagOrigin.SEARCH,
-                        )
-                        tags = tags + NutritionInterpretationBridge.refresh(tag.copy(foodQuery = queryUsed, confirmedDimensions = setOf("identity")))
-                        saveError = null
-                        searchQuery = ""
-                        searchResults = emptyList()
-                    })
+                    }
                 }
             }
 
@@ -1903,318 +1815,13 @@ fun FoodLoggerDrawer(
     }
 }
 
-/** WP-S8: «Preparando catálogo…» con su avance mientras el catálogo global se importa (null = no hay importación). */
-@Composable
-private fun CatalogImportProgress(progress: Float, modifier: Modifier = Modifier) {
-    val shown = progress.coerceIn(0f, 1f)
-    Column(
-        modifier = modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(4.dp),
-    ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-        ) {
-            Text(
-                text = "Preparando catálogo…",
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                fontWeight = FontWeight.SemiBold,
-            )
-            Text(
-                text = "${(shown * 100).toInt()}%",
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                fontWeight = FontWeight.Bold,
-            )
-        }
-        LinearProgressIndicator(
-            progress = { shown },
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(6.dp)
-                .clip(RoundedCornerShape(3.dp)),
-        )
-    }
-}
-
-@Composable
-private fun LocalAnalysisPanel(stage: ParseStage?, elapsedMs: Long) {
-    val messages = remember(stage) {
-        when {
-            stage == ParseStage.INTERPRETING -> listOf(
-                "Convirtiendo la comida en un registro editable",
-                "Comprobando porciones y cantidades",
-                "Ajustando el resumen para que sea más consistente",
-            )
-            else -> listOf(
-                "Leyendo tu comida",
-                "Estimando alimentos y cantidades",
-                "Esto puede tardar un poco más la primera vez",
-                "Preparando un resumen para que lo revises",
-            )
-        }
-    }
-
-    val messageIndex = ((elapsedMs / 2600L).toInt()).mod(messages.size.coerceAtLeast(1))
-    val infiniteTransition = rememberInfiniteTransition(label = "local-analysis")
-    val pulseA by infiniteTransition.animateFloat(
-        initialValue = 0.35f,
-        targetValue = 1f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(900, easing = FastOutSlowInEasing),
-            repeatMode = RepeatMode.Reverse,
-        ),
-        label = "pulseA",
-    )
-    val pulseB by infiniteTransition.animateFloat(
-        initialValue = 0.25f,
-        targetValue = 0.9f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(900, delayMillis = 180, easing = FastOutSlowInEasing),
-            repeatMode = RepeatMode.Reverse,
-        ),
-        label = "pulseB",
-    )
-    val pulseC by infiniteTransition.animateFloat(
-        initialValue = 0.2f,
-        targetValue = 0.8f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(900, delayMillis = 360, easing = FastOutSlowInEasing),
-            repeatMode = RepeatMode.Reverse,
-        ),
-        label = "pulseC",
-    )
-
-    Surface(
-        shape = RoundedCornerShape(18.dp),
-        color = PRO_COLOR.copy(alpha = 0.08f),
-        tonalElevation = 0.dp,
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Memory,
-                        contentDescription = null,
-                        tint = PRO_COLOR,
-                        modifier = Modifier.size(18.dp),
-                    )
-                    Text(
-                        text = "Preparando registro",
-                        style = MaterialTheme.typography.labelLarge,
-                        fontWeight = FontWeight.ExtraBold,
-                    )
-                }
-                Text(
-                    text = "${(elapsedMs / 1000L).coerceAtLeast(1L)}s",
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
-
-            AnimatedContent(targetState = messages[messageIndex], label = "local-message") { message ->
-                Text(
-                    text = message,
-                    style = MaterialTheme.typography.bodyMedium,
-                    fontWeight = FontWeight.SemiBold,
-                    color = MaterialTheme.colorScheme.onSurface,
-                )
-            }
-
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                listOf(pulseA, pulseB, pulseC).forEach { alpha ->
-                    Box(
-                        modifier = Modifier
-                            .size(10.dp)
-                            .clip(RoundedCornerShape(50))
-                            .background(
-                                PRO_COLOR.copy(alpha = alpha)
-                            )
-                    )
-                }
-                Text(
-                    text = "Estamos interpretando la comida para dejarla lista para guardar",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
-
-            LinearProgressIndicator(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(6.dp)
-                    .clip(RoundedCornerShape(999.dp)),
-                color = PRO_COLOR,
-                trackColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-            )
-        }
-    }
-}
-
-@Composable
-private fun AnalysisNoticeCard(notice: AnalysisNotice) {
-    val accent = when (notice.tone) {
-        AnalysisNoticeTone.INFO -> Color(0xFF1565C0)
-        AnalysisNoticeTone.WARNING -> Color(0xFFB3261E)
-    }
-    Surface(
-        shape = RoundedCornerShape(14.dp),
-        color = accent.copy(alpha = 0.08f),
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(12.dp),
-            horizontalArrangement = Arrangement.spacedBy(10.dp),
-            verticalAlignment = Alignment.Top,
-        ) {
-            Icon(
-                imageVector = if (notice.tone == AnalysisNoticeTone.WARNING) Icons.Default.Info else Icons.Default.TipsAndUpdates,
-                contentDescription = null,
-                tint = accent,
-                modifier = Modifier.size(18.dp),
-            )
-            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                Text(
-                    text = notice.title,
-                    style = MaterialTheme.typography.labelLarge,
-                    fontWeight = FontWeight.Bold,
-                )
-                Text(
-                    text = notice.message,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-                notice.technicalDetail?.let { detail ->
-                    Text(
-                        text = detail,
-                        style = MaterialTheme.typography.labelSmall,
-                        fontFamily = FontFamily.Monospace,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
-                    )
-                }
-            }
-        }
-    }
-}
-
 // ─── Sub-composables ─────────────────────────────────────────────────────────
-
-@Composable
-private fun MealTypeSelector(mealType: MealType, onSelect: (MealType) -> Unit) {
-    Row(
-        modifier = Modifier.fillMaxWidth().selectableGroup(),
-        horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        MealSlots.mealOrder.forEach { type ->
-            val label = MealSlots.mealLabel(type)
-            val isSelected = type == mealType
-            Surface(
-                shape = RoundedCornerShape(12.dp),
-                color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceContainer,
-                modifier = Modifier
-                    .heightIn(min = MIN_TOUCH_TARGET)
-                    .clickable(role = Role.RadioButton) { onSelect(type) }
-                    .semantics { selected = isSelected },
-            ) {
-                Box(contentAlignment = Alignment.Center) {
-                    Text(
-                        text = label,
-                        modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp),
-                        style = MaterialTheme.typography.labelMedium,
-                        fontWeight = if (isSelected) FontWeight.Black else FontWeight.SemiBold,
-                        color = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun TabChip(label: String, active: Boolean, modifier: Modifier = Modifier, onClick: () -> Unit) {
-    Surface(
-        shape = RoundedCornerShape(12.dp),
-        color = if (active) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surfaceContainer,
-        modifier = modifier
-            .heightIn(min = MIN_TOUCH_TARGET)
-            .clickable(role = Role.Tab, onClick = onClick)
-            .semantics { selected = active },
-    ) {
-        Box(contentAlignment = Alignment.Center) {
-            Text(
-                text = label,
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-                style = MaterialTheme.typography.labelMedium,
-                fontWeight = if (active) FontWeight.ExtraBold else FontWeight.SemiBold,
-            )
-        }
-    }
-}
 
 @Composable
 private fun MacroBadge(label: String, value: String, color: Color) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Text(text = label, style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp), fontWeight = FontWeight.ExtraBold, color = color)
         Text(text = value, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
-    }
-}
-
-@Composable
-private fun FoodSearchResultCard(candidate: FoodCandidate, onClick: () -> Unit) {
-    val food = candidate.food
-    Card(
-        modifier = Modifier.fillMaxWidth().clickable(onClickLabel = "Agregar a la comida", role = Role.Button, onClick = onClick),
-        shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
-    ) {
-        Column(modifier = Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                Text(text = food.name.trim().replaceFirstChar { it.uppercase() }, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold)
-                Text(
-                    text = when (candidate.confidence) {
-                        SearchConfidence.HIGH -> "Alta"
-                        SearchConfidence.MEDIUM -> "Media"
-                        SearchConfidence.LOW -> "Baja"
-                    },
-                    style = MaterialTheme.typography.labelSmall,
-                    color = when (candidate.confidence) {
-                        SearchConfidence.HIGH -> Color(0xFF2E7D32)
-                        SearchConfidence.MEDIUM -> Color(0xFFF57C00)
-                        SearchConfidence.LOW -> MaterialTheme.colorScheme.error
-                    },
-                )
-            }
-            Text(
-                text = "${kotlin.math.round(food.calories).toInt()} kcal · P ${kotlin.math.round(food.protein).toInt()}g · C ${kotlin.math.round(food.carbs).toInt()}g · G ${kotlin.math.round(food.fats).toInt()}g / ${kotlin.math.round(NutrientBasis.grams(food)).toInt()} g",
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-            if (!food.brand.isNullOrBlank()) {
-                Text(
-                    text = "Marca: ${food.brand}",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
-        }
     }
 }
 

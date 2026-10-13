@@ -364,6 +364,17 @@ object KpknLineIcons {
         )
     }
 
+    /** Buscar: lupa con el círculo de radio 6,25 en (10,75; 10,75) y el mango hasta (20; 20). */
+    val Search: ImageVector by lazy {
+        icono(
+            "KpknLine.Search",
+            listOf(
+                "M10.75 17a6.25 6.25 0 1 0 0-12.5 6.25 6.25 0 0 0 0 12.5z",
+                "M15.2 15.2L20 20",
+            ),
+        )
+    }
+
     /** Trazado del triángulo de `Play` y `PlayFilled`. */
     private const val TRIANGULO_PLAY =
         "M8.25 5.6v12.8a.9.9 0 0 0 1.37.77l10.2-6.4a.9.9 0 0 0 0-1.54l-10.2-6.4a.9.9 0 0 0-1.37.77z"
