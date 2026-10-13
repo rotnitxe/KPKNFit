@@ -17,6 +17,7 @@ import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
+import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import com.example.kpkn.domain.body.BodyHistoryRow
@@ -138,5 +139,20 @@ class BodyRecordSheetTest {
         rule.onNodeWithText("La hora no puede ser futura.").assertIsDisplayed()
         rule.onNodeWithTag(BODY_RECORD_SAVE_TAG).performClick()
         assertFalse(guardado)
+    }
+
+    @Test
+    fun losChipsAbrenGrasaYMusculoYCadaReglaSeAnuncia() {
+        montar(bodyRecordNew(now).copy(weightKg = 64.5))
+        // Cerrados, los dos chips añaden su porcentaje; abierto uno, solo queda el otro.
+        rule.onNodeWithText("Grasa").performClick()
+        rule.mainClock.advanceTimeBy(1_000L)
+        rule.onNodeWithContentDescription("Porcentaje de grasa corporal", useUnmergedTree = true).assertExists()
+        rule.onNodeWithText("Grasa").assertDoesNotExist()
+        rule.onNodeWithText("Músculo").performClick()
+        rule.mainClock.advanceTimeBy(1_000L)
+        // La regla de músculo no se anuncia como grasa: su nombre accesible es el suyo.
+        rule.onNodeWithContentDescription("Porcentaje de músculo", useUnmergedTree = true).assertExists()
+        rule.onNodeWithText("Músculo").assertDoesNotExist()
     }
 }

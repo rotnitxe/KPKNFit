@@ -3,6 +3,8 @@ package com.example.kpkn.screens.body.design
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -61,6 +63,7 @@ const val BODY_RECORD_DELETE_TAG = "body-record-delete"
  * @param anchorKg último peso conocido, para situar la regla al empezar. No cuenta como respuesta hasta que el usuario la toca.
  * @param now fecha y hora actuales: límite de la fecha y de la hora elegidas.
  */
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun BodyRecordSheet(
     draft: BodyRecordDraft,
@@ -165,7 +168,7 @@ fun BodyRecordSheet(
             if (readOnly) {
                 // Solo lectura: la cifra grande, como en la regla de la edición. Sin dato, «—».
                 KpknMetric(
-                    value = draft.weightKg?.let { WizardWeightScale.format(WizardWeightScale.toDisplay(it, unit)) } ?: "—",
+                    value = draft.weightKg?.let { bodyWeightValue(it, unit) } ?: "—",
                     unit = draft.weightKg?.let { unit.code },
                     style = KpknType.metricXL,
                     color = if (draft.weightKg != null) WizardColors.text else WizardColors.textFaint,
@@ -177,6 +180,7 @@ fun BodyRecordSheet(
                     onValueChange = { onDraftChange(draft.withValue(BodyMetric.WEIGHT, it)) },
                     min = WizardWeightScale.MIN_KG,
                     max = WizardWeightScale.MAX_KG,
+                    emphasized = true,
                 )
                 if (draft.weightKg == null) {
                     Text(
@@ -187,47 +191,75 @@ fun BodyRecordSheet(
                 }
             }
 
-            // Porcentajes opcionales, en dos columnas como en el wizard.
+            // Porcentajes opcionales: chips para abrirlos y, abiertos, su regla como en el wizard.
             if (readOnly) {
                 // Solo los porcentajes que tienen dato: sin dato no se muestra nada.
                 draft.bodyFatPercent?.let { BodyRecordReadOnlyLine(label = "% de grasa", value = formatDecimalEs(it, 1), unit = "%") }
                 draft.muscleMassPercent?.let { BodyRecordReadOnlyLine(label = "% de músculo", value = formatDecimalEs(it, 1), unit = "%") }
             } else {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(16.dp),
-                    verticalAlignment = Alignment.Top,
-                ) {
-                    BodyRecordPercentColumn(
-                        name = "% de grasa",
-                        addLabel = "Añadir % de grasa",
-                        open = fatOpen,
-                        percent = draft.bodyFatPercent,
-                        startPercent = BODY_RECORD_FAT_START_PERCENT,
-                        range = WizardBodyFatScale.DEFAULT_RANGE,
-                        onOpen = { fatOpen = true },
-                        onRemove = {
-                            fatOpen = false
-                            onDraftChange(draft.withValue(BodyMetric.BODY_FAT_PERCENT, null))
-                        },
-                        onPercentChange = { onDraftChange(draft.withValue(BodyMetric.BODY_FAT_PERCENT, it)) },
-                        modifier = Modifier.weight(1f),
-                    )
-                    BodyRecordPercentColumn(
-                        name = "% de músculo",
-                        addLabel = "Añadir % de músculo",
-                        open = muscleOpen,
-                        percent = draft.muscleMassPercent,
-                        startPercent = BODY_RECORD_MUSCLE_START_PERCENT,
-                        range = MUSCLE_PERCENT_RANGE,
-                        onOpen = { muscleOpen = true },
-                        onRemove = {
-                            muscleOpen = false
-                            onDraftChange(draft.withValue(BodyMetric.MUSCLE_MASS_PERCENT, null))
-                        },
-                        onPercentChange = { onDraftChange(draft.withValue(BodyMetric.MUSCLE_MASS_PERCENT, it)) },
-                        modifier = Modifier.weight(1f),
-                    )
+                // Un chip por cada porcentaje cerrado: con dos líneas de letra grande, bajan a otra fila y nunca se parten.
+                if (!fatOpen || !muscleOpen) {
+                    FlowRow(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        if (!fatOpen) {
+                            KpknChip(
+                                text = "Grasa",
+                                selected = false,
+                                onClick = { fatOpen = true },
+                                leadingIcon = KpknLineIcons.Plus,
+                            )
+                        }
+                        if (!muscleOpen) {
+                            KpknChip(
+                                text = "Músculo",
+                                selected = false,
+                                onClick = { muscleOpen = true },
+                                leadingIcon = KpknLineIcons.Plus,
+                            )
+                        }
+                    }
+                }
+                // Abiertos, la regla de cada uno; con los dos, una al lado de la otra.
+                if (fatOpen || muscleOpen) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(16.dp),
+                        verticalAlignment = Alignment.Top,
+                    ) {
+                        if (fatOpen) {
+                            BodyRecordPercentColumn(
+                                name = "Grasa",
+                                percent = draft.bodyFatPercent,
+                                startPercent = BODY_RECORD_FAT_START_PERCENT,
+                                range = WizardBodyFatScale.DEFAULT_RANGE,
+                                accessibilityLabel = "Porcentaje de grasa corporal",
+                                onRemove = {
+                                    fatOpen = false
+                                    onDraftChange(draft.withValue(BodyMetric.BODY_FAT_PERCENT, null))
+                                },
+                                onPercentChange = { onDraftChange(draft.withValue(BodyMetric.BODY_FAT_PERCENT, it)) },
+                                modifier = Modifier.weight(1f),
+                            )
+                        }
+                        if (muscleOpen) {
+                            BodyRecordPercentColumn(
+                                name = "Músculo",
+                                percent = draft.muscleMassPercent,
+                                startPercent = BODY_RECORD_MUSCLE_START_PERCENT,
+                                range = MUSCLE_PERCENT_RANGE,
+                                accessibilityLabel = "Porcentaje de músculo",
+                                onRemove = {
+                                    muscleOpen = false
+                                    onDraftChange(draft.withValue(BodyMetric.MUSCLE_MASS_PERCENT, null))
+                                },
+                                onPercentChange = { onDraftChange(draft.withValue(BodyMetric.MUSCLE_MASS_PERCENT, it)) },
+                                modifier = Modifier.weight(1f),
+                            )
+                        }
+                    }
                 }
             }
 

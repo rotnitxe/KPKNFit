@@ -129,6 +129,7 @@ class BodyPageLowerRenderSheetTest {
     private fun ModuloComposicion(conAltura: Boolean, conComposicion: Boolean = true) {
         BodyCompositionModule(
             weightKg = 64.5,
+            weightUnit = WizardMassUnit.KG,
             leanKg = if (conComposicion) bodySampleLeanKg() else null,
             fatKg = if (conComposicion) bodySampleFatKg() else null,
             bodyFatPercent = if (conComposicion) BODY_SAMPLE_BODY_FAT else null,

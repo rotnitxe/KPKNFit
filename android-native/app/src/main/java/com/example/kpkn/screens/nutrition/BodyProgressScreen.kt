@@ -30,6 +30,7 @@ import com.example.kpkn.screens.body.design.BodyPageHeader
 import com.example.kpkn.screens.body.design.BodyReminderModule
 import com.example.kpkn.screens.body.design.BodyWeightModule
 import com.example.kpkn.screens.body.design.bodyIslandChangeText
+import com.example.kpkn.screens.body.design.bodyWeightText
 import com.example.kpkn.screens.body.design.bodyInfoFor
 import com.example.kpkn.screens.body.design.buildBodyChartPoints
 import com.example.kpkn.ui.components.LocalKpknOverlayHost
@@ -47,7 +48,6 @@ import com.example.kpkn.data.repository.ProgramRepository
 import com.example.kpkn.domain.calculations.calculateFFMI
 import com.example.kpkn.domain.body.BodyHistoryRow
 import com.example.kpkn.screens.onboarding.design.WizardMassUnit
-import com.example.kpkn.screens.onboarding.design.formatDecimalEs
 import com.example.kpkn.ui.components.KpknNativeTimePickerDialog
 import com.example.kpkn.ui.components.SnackbarType
 import com.example.kpkn.ui.components.showKpknSnackbar
@@ -65,7 +65,6 @@ import java.util.UUID
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BodyProgressScreen(
-    onCreatePlan: () -> Unit = {},
     onAddHeight: () -> Unit = {},
     onEditNutritionPlan: (String) -> Unit = {},
 ) {
@@ -90,7 +89,8 @@ fun BodyProgressScreen(
     var recordSource by remember { mutableStateOf<BodyHistoryRow?>(null) }
     var recordKey by remember { mutableStateOf(0) }
     val zone = ZoneId.systemDefault()
-    val recordUnit = if (settings.weightUnit == WeightUnit.LBS) WizardMassUnit.LB else WizardMassUnit.KG
+    // Una sola unidad de peso en la página: la de Ajustes. Los pesos se guardan en kg; solo cambia lo que se muestra.
+    val weightUnit = if (settings.weightUnit == WeightUnit.LBS) WizardMassUnit.LB else WizardMassUnit.KG
     val snackbarHostState = remember { SnackbarHostState() }
     val snackbarScope = rememberCoroutineScope()
     val contextualBottomBarClearance = 110.dp
@@ -115,7 +115,6 @@ fun BodyProgressScreen(
     // Objetivo propio (el que edita la hoja) y plan activo: con plan, la meta se edita en el editor del plan.
     val ownGoal = bodyUiState.goals.filter { it.linkedPlanId == null }.maxByOrNull { it.updatedAtEpochMs }
     val activePlanId = bodyUiState.activePlanId
-    val weightUnit = if (settings.weightUnit == WeightUnit.LBS) WizardMassUnit.LB else WizardMassUnit.KG
 
     val bmi = bodyUiState.bmi
     // FFMI, masa magra y masa grasa solo con la composición de una misma sesión.
@@ -140,8 +139,8 @@ fun BodyProgressScreen(
     val bodyFatPoints = remember(bodyUiState.bodyFatSeries, bodyUiState.bodyFatTrend) {
         buildBodyChartPoints(bodyUiState.bodyFatSeries, bodyUiState.bodyFatTrend)
     }
-    val islandTitle = summary.current?.let { "${formatDecimalEs(it, 1)} kg" } ?: "Cuerpo"
-    val islandSubtitle = bodyIslandChangeText(bodyUiState.weightSummary30Days)
+    val islandTitle = summary.current?.let { bodyWeightText(it, weightUnit) } ?: "Cuerpo"
+    val islandSubtitle = bodyIslandChangeText(bodyUiState.weightSummary30Days, weightUnit)
 
     // Abrir la hoja de registro: una medición nueva a la hora actual, o una existente para verla o editarla.
     fun openNewRecord() {
@@ -189,6 +188,7 @@ fun BodyProgressScreen(
                         points = weightPoints,
                         range = bodyUiState.range,
                         today = today,
+                        weightUnit = weightUnit,
                         onRangeChange = bodyViewModel::selectRange,
                         onAdd = { openNewRecord() },
                         modifier = Modifier
@@ -217,6 +217,7 @@ fun BodyProgressScreen(
                 item {
                     BodyCompositionModule(
                         weightKg = weight,
+                        weightUnit = weightUnit,
                         leanKg = lbm,
                         fatKg = fatMass,
                         bodyFatPercent = compositionBodyFat,
@@ -272,6 +273,7 @@ fun BodyProgressScreen(
             if (bodyUiState.loaded) {
                 bodyHistoryItems(
                     rows = history,
+                    weightUnit = weightUnit,
                     onOpen = { row -> openRecord(row) },
                     onAdd = { openNewRecord() },
                 )
@@ -362,7 +364,7 @@ fun BodyProgressScreen(
                 draft = draft,
                 onDraftChange = { recordDraft = it },
                 source = recordSource,
-                unit = recordUnit,
+                unit = weightUnit,
                 anchorKg = summary.current,
                 now = LocalDateTime.now(zone),
                 onSave = {

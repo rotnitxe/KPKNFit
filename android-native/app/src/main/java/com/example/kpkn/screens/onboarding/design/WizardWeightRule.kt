@@ -78,6 +78,8 @@ fun WizardWeightRule(
     onConfirm: (() -> Unit)? = null,
     min: Double? = null,
     max: Double? = null,
+    /** Con `true`, la cifra central va en tinta también sin tocar la regla (la hoja de Cuerpo la muestra así). */
+    emphasized: Boolean = false,
 ) {
     val reducedMotion = wizardReducedMotion()
     val isLb = unit == WizardMassUnit.LB
@@ -218,7 +220,7 @@ fun WizardWeightRule(
             Text(
                 text = "${WizardWeightScale.format(currentDisplay)} ${unit.code}",
                 style = WizardTypography.measure,
-                color = if (touched) WizardColors.text else WizardColors.textMuted,
+                color = if (touched || emphasized) WizardColors.text else WizardColors.textMuted,
                 modifier = Modifier
                     .clickable { confirm() }
                     // Valor central estable para pruebas: el texto grande que se

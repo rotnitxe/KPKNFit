@@ -27,6 +27,8 @@ import androidx.compose.ui.unit.dp
 import com.example.kpkn.domain.body.BodyHistoryRow
 import com.example.kpkn.screens.body.bodySampleHistoryRows
 import com.example.kpkn.screens.body.design.BODY_RECORD_DELETE_TAG
+import com.example.kpkn.screens.body.design.BODY_RECORD_SAVE_TAG
+import com.example.kpkn.screens.body.design.BODY_RECORD_SHEET_TAG
 import com.example.kpkn.screens.body.design.BodyRecordDraft
 import com.example.kpkn.screens.body.design.BodyRecordSheet
 import com.example.kpkn.screens.body.design.bodyHistoryItems
@@ -145,7 +147,7 @@ class BodyHistoryRenderSheetTest {
 
     /**
      * Una escena de la hoja: se monta, se hace la [accion] (p. ej. abrir «Medidas») y se guarda el recorte de [tag]. Por defecto, la
-     * pantalla entera: así se ven también las acciones fijas al pie de la hoja.
+     * pantalla entera: así se ven también las acciones fijas al pie de la hoja. Con [recortada], solo la hoja, sin el negro de encima.
      */
     private fun escenaDeHoja(
         nombre: String,
@@ -154,11 +156,33 @@ class BodyHistoryRenderSheetTest {
         inicial: BodyRecordDraft,
         tag: String = "pantalla",
         accion: () -> Unit = {},
+        recortada: Boolean = false,
     ) {
         onlyWhenAsked()
         montar(escala) { HojaDeRegistro(inicial, origen) }
         accion()
-        guardar(nombre, tag)
+        if (recortada) guardarHoja(nombre) else guardar(nombre, tag)
+    }
+
+    /** Recorta la hoja de su título al botón «Guardar», con un poco de aire: sin el negro vacío de la pantalla. */
+    private fun guardarHoja(nombre: String) {
+        val dir = File(System.getenv("KPKN_RENDER_DIR")!!)
+        dir.mkdirs()
+        rule.waitForIdle()
+        val arriba = rule.onNodeWithTag(BODY_RECORD_SHEET_TAG, useUnmergedTree = true).fetchSemanticsNode().boundsInRoot.top
+        // 72 px son 24 dp con la densidad de 3 del render: el aire bajo el botón.
+        val abajo = rule.onNodeWithTag(BODY_RECORD_SAVE_TAG, useUnmergedTree = true).fetchSemanticsNode().boundsInRoot.bottom + 72f
+        val vista = hostView!!
+        val completa = Bitmap.createBitmap(vista.width, vista.height, Bitmap.Config.ARGB_8888)
+        rule.runOnUiThread {
+            val lienzo = android.graphics.Canvas(completa)
+            lienzo.drawColor(android.graphics.Color.BLACK)
+            vista.draw(lienzo)
+        }
+        val top = (arriba - 24f).toInt().coerceIn(0, completa.height - 2)
+        val bottom = abajo.toInt().coerceIn(top + 1, completa.height)
+        val recorte = Bitmap.createBitmap(completa, 0, top, completa.width, bottom - top)
+        FileOutputStream(File(dir, "$nombre.png")).use { recorte.compress(Bitmap.CompressFormat.PNG, 100, it) }
     }
 
     private val medicionManual: BodyHistoryRow get() = bodySampleHistoryRows().first()
@@ -171,7 +195,7 @@ class BodyHistoryRenderSheetTest {
         onlyWhenAsked()
         montar(1f) {
             LazyColumn(modifier = Modifier.fillMaxSize().testTag("historial")) {
-                bodyHistoryItems(rows = bodySampleHistoryRows(), onOpen = {}, onAdd = {})
+                bodyHistoryItems(rows = bodySampleHistoryRows(), weightUnit = WizardMassUnit.KG, onOpen = {}, onAdd = {})
             }
         }
         guardar("historial_3_meses_100", "historial")
@@ -182,7 +206,7 @@ class BodyHistoryRenderSheetTest {
         onlyWhenAsked()
         montar(1.3f) {
             LazyColumn(modifier = Modifier.fillMaxSize().testTag("historial")) {
-                bodyHistoryItems(rows = bodySampleHistoryRows(), onOpen = {}, onAdd = {})
+                bodyHistoryItems(rows = bodySampleHistoryRows(), weightUnit = WizardMassUnit.KG, onOpen = {}, onAdd = {})
             }
         }
         guardar("historial_3_meses_130", "historial")
@@ -193,7 +217,7 @@ class BodyHistoryRenderSheetTest {
         onlyWhenAsked()
         montar(1f) {
             LazyColumn(modifier = Modifier.fillMaxSize().padding(top = 8.dp).testTag("historial")) {
-                bodyHistoryItems(rows = emptyList(), onOpen = {}, onAdd = {})
+                bodyHistoryItems(rows = emptyList(), weightUnit = WizardMassUnit.KG, onOpen = {}, onAdd = {})
             }
         }
         guardar("historial_vacio_100", "historial")
@@ -201,11 +225,30 @@ class BodyHistoryRenderSheetTest {
 
     // ── Hoja de registro ─────────────────────────────────────────────────────
 
+    // Porcentajes abiertos (CU4): las dos reglas juntas, con «GRASA» y «MÚSCULO» como eyebrows y el peso en tinta.
     @Test
-    fun hojaDeAlta100() = escenaDeHoja("hoja_alta_100", 1f, null, bodyRecordNew(AHORA).copy(weightKg = 64.5))
+    fun hojaConPorcentajesAbiertos100() = escenaDeHoja(
+        "hoja_porcentajes_abiertos_100",
+        1f,
+        null,
+        bodyRecordNew(AHORA).copy(weightKg = 64.5, bodyFatPercent = 17.2, muscleMassPercent = 42.0),
+        recortada = true,
+    )
 
     @Test
-    fun hojaDeAlta130() = escenaDeHoja("hoja_alta_130", 1.3f, null, bodyRecordNew(AHORA).copy(weightKg = 64.5))
+    fun hojaConPorcentajesAbiertos130() = escenaDeHoja(
+        "hoja_porcentajes_abiertos_130",
+        1.3f,
+        null,
+        bodyRecordNew(AHORA).copy(weightKg = 64.5, bodyFatPercent = 17.2, muscleMassPercent = 42.0),
+        recortada = true,
+    )
+
+    @Test
+    fun hojaDeAlta100() = escenaDeHoja("hoja_alta_100", 1f, null, bodyRecordNew(AHORA).copy(weightKg = 64.5), recortada = true)
+
+    @Test
+    fun hojaDeAlta130() = escenaDeHoja("hoja_alta_130", 1.3f, null, bodyRecordNew(AHORA).copy(weightKg = 64.5), recortada = true)
 
     @Test
     fun hojaDeEdicionConMedidasDesplegadas100() = escenaDeHoja(

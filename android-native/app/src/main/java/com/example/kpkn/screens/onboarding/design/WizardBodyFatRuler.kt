@@ -185,6 +185,8 @@ fun WizardBodyFatRuler(
     modifier: Modifier = Modifier,
     onPercentChangeFinished: (Int) -> Unit = {},
     range: IntRange = WizardBodyFatScale.DEFAULT_RANGE,
+    /** Nombre del control para TalkBack: «Porcentaje de músculo» en la regla de músculo. */
+    accessibilityLabel: String = "Porcentaje de grasa corporal",
 ) {
     val density = LocalDensity.current
     val haptics = LocalHapticFeedback.current
@@ -218,7 +220,7 @@ fun WizardBodyFatRuler(
             .width(widthDp)
             .testTag(BODY_FAT_RULER_TAG)
             .semantics {
-                contentDescription = "Porcentaje de grasa corporal"
+                contentDescription = accessibilityLabel
                 stateDescription = spoken
                 progressBarRangeInfo = ProgressBarRangeInfo(
                     current = shownValue.toFloat(),

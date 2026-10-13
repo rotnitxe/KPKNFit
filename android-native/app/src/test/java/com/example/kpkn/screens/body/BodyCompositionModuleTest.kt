@@ -1,6 +1,7 @@
 package com.example.kpkn.screens.body
 
 import androidx.compose.ui.test.assertIsDisplayed
+import com.example.kpkn.screens.onboarding.design.WizardMassUnit
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
@@ -33,6 +34,7 @@ class BodyCompositionModuleTest {
         rule.setContent {
             BodyCompositionModule(
                 weightKg = if (conPesaje) 64.5 else null,
+                weightUnit = WizardMassUnit.KG,
                 leanKg = if (conComposicion) bodySampleLeanKg() else null,
                 fatKg = if (conComposicion) bodySampleFatKg() else null,
                 bodyFatPercent = if (conComposicion) BODY_SAMPLE_BODY_FAT else null,

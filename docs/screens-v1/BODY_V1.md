@@ -84,3 +84,37 @@ falta:
 | CU2 | Composición, «Añadir altura», módulo «Objetivo» con su hoja y recordatorio | CU1 |
 | CU3 | Historial por meses, editar, eliminar con «Deshacer» y hoja de registro v2 con reglas, hora y medidas | CU1 |
 | CU4 | Cierre: código muerto, hojas de render de la página y de la hoja (360 dp, 100 % y 130 %) y docs | todos |
+
+## Estado (CU4)
+
+Cierre de la pantalla de Cuerpo (2026-10-13). Por punto de la especificación:
+
+- **§1 Qué falla hoy (datos):** lo cubre CU0. La pantalla solo pinta cifras que calcula el ViewModel; CU4 no cambia la lógica de datos.
+- **§2.1 Cabecera e isla:** hecho. La isla lleva el peso y el cambio de 30 días en la unidad de Ajustes.
+- **§2.2 «Peso»:** hecho. Cifra actual con «hoy» o «hace n días», cambio desde el primer pesaje del rango con su fecha, ritmo medido (o «Hacen falta 2 semanas…»), gráfica interactiva de 200 dp, con la línea discontinua de la meta si queda a menos de tres veces el rango de los datos (`includeGoal`), y objetivo con «Te faltan». La fecha estimada sale solo con ritmo medido. Todo en la unidad de Ajustes.
+- **§2.3 «Grasa corporal»:** hecho, con su gráfica y su cambio.
+- **§2.4 «Composición»:** hecho. Barra de masa magra y grasa en la unidad de Ajustes, % de músculo, y FFMI e IMC en `metricM` con su categoría. Sin altura, «Añadir altura» lleva al perfil.
+- **§2.5 «Objetivo»:** hecho. Con plan activo, «Editar» abre el editor del plan; sin plan, una hoja con `WizardWeightRule` que guarda con `upsertGoal`.
+- **§2.6 «Recordatorio de pesaje»:** hecho. Interruptor, frecuencias (cada día, semana, 2 semanas, mes) y «Otra» de 1 a 365 días, hora editable y próxima fecha.
+- **§2.7 «Historial»:** hecho. Meses como etiquetas de grupo; cada fila con fecha y hora, grasa y músculo en `caption`, peso a la derecha e insignia «Health Connect» si viene de ahí. Tocar edita; eliminar pide confirmación y deja «Deshacer».
+- **§2.8 «Hoja de registro»:** hecho, salvo lo que se indica abajo. Calendario y reloj en hora local; peso con `WizardWeightRule` en la unidad de Ajustes y cifra en tinta; % de grasa y de músculo como chips «Grasa» y «Músculo» que abren su regla; medidas plegables; «Guardar» como principal.
+- **§3 Fuera de la página:** «Consejos» quitado de la página. Cada explicación va en su hoja «Cómo se calcula», junto a su cifra.
+
+**Una sola unidad de peso.** Toda la página muestra el peso en la unidad de Ajustes (kg o lb) con `bodyWeightText(kg, unit)`, con su prueba `BodyWeightFormatTest`. Los pesos se guardan siempre en kg; solo cambia lo que se muestra.
+
+**Lo que no se hizo, y por qué:**
+
+- **Notas de la medición (§2.8):** no se guardan en ningún sitio (ni en `BodyObservation` ni en `BodyHistoryRow`), así que no se muestran ni se editan.
+- **Pantorrilla (§2.8):** `BodyMetric` no tiene ese campo; añadirlo tocaría el dominio y la base de datos, fuera de este paquete.
+- **Línea «Sincronizado con Health Connect» (§3):** no está. Depende del flavor `health` y el brief de CU4 no la pide.
+- **Leyenda de la gráfica (§2.2):** no hay una leyenda visible que explique los puntos y la tendencia; la descripción para lectores de pantalla la resume. La línea discontinua de la meta tampoco lleva etiqueta: su cifra está en «Meta: 60 kg», debajo de la gráfica.
+- **Prueba de la isla con la lista desplazada:** no hay prueba automática. `rememberIslandVisible` queda sin cubrir; la isla se verifica sola en `render/BodyPageRenderSheetTest`.
+
+**Cambios de CU4:**
+
+- `MainActivity`: `onAddHeight` lleva al perfil y `onEditNutritionPlan` al editor del plan. Se quita `onCreatePlan`.
+- Código muerto: 818 líneas quitadas, 788 de la pantalla y 30 del ViewModel (`legacyEntries`, que ninguna pantalla leía).
+- Se quita la cabecera «Historial de medidas»: no está en la especificación.
+- Hoja de registro: chips en `FlowRow`, eyebrows «GRASA» y «MÚSCULO», cifra de peso en tinta, y la regla de músculo se anuncia como «Porcentaje de músculo».
+- Historial: 28 dp entre el recordatorio y el primer mes (antes, 12 dp), y cada cifra de grasa y de músculo unida a su etiqueta, para que al 130 % no se parta.
+- Hojas de render: `render/BodyPageRenderSheetTest` (página completa, persona nueva, libras con historial, isla sola en kg y en libras, y burbuja) y `render/BodyHistoryRenderSheetTest` (historial y hoja, con la hoja recortada a su contenido). Las capturas `cuerpo_desplazado_*` no muestran la página desplazada: en Robolectric la lista no se mueve; no son prueba de la isla con scroll.
