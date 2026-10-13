@@ -203,8 +203,9 @@ internal class RingsLevelArt(fraction: Float, ringColor: Color) : EquipmentArt(r
 }
 
 /**
- * Un músculo de [MuscleArt] estático, de 56 dp, para el paso de series por grupo: la silueta tenue y la región del músculo en
- * el acento de Músculos. Es decorativo: el nombre del grupo va al lado.
+ * Un músculo de [MuscleArt] estático para el mosaico de series por grupo (64 dp): la silueta tenue y la región en el acento de
+ * Músculos. En Brazos, el bíceps (`accentPart`) va al acento entero, el tríceps (la región) al 35 % y la pieza móvil (el
+ * antebrazo) en reposo, como en la cuadrícula de prioridades. Es decorativo: el nombre del grupo va debajo.
  */
 @Composable
 internal fun RingsMuscleGlyph(muscle: MuscleSymbol, modifier: Modifier = Modifier) {
@@ -224,6 +225,9 @@ private fun silhouetteFade(w: MuscleWindow): Brush {
     )
 }
 
+/** El tríceps de Brazos (la región sin el bíceps) va al 35 % del acento, igual que en la cuadrícula de prioridades. */
+private const val RINGS_TRICEPS_ALPHA = 0.35f
+
 private fun DrawScope.drawRingsMuscle(shape: MuscleShape) {
     val window = shape.spec.window
     val s = size.minDimension / window.size
@@ -237,7 +241,16 @@ private fun DrawScope.drawRingsMuscle(shape: MuscleShape) {
     }) {
         // La silueta se desvanece hacia el borde de la ventana, como en la cuadrícula de músculos: el músculo llena la pieza.
         drawPath(shape.silhouette, silhouetteFade(window), alpha = 0.6f, style = thin)
-        drawPath(shape.region, SymbolPalette.musculo.copy(alpha = 0.86f))
+        val accent = SymbolPalette.musculo
+        if (shape.accentPart != null) {
+            // Brazos: la región (el tríceps) al 35 % y el bíceps, encima, al acento entero.
+            drawPath(shape.region, accent.copy(alpha = RINGS_TRICEPS_ALPHA))
+            drawPath(shape.accentPart, accent.copy(alpha = 0.86f))
+        } else {
+            drawPath(shape.region, accent.copy(alpha = 0.86f))
+        }
         drawPath(shape.detailAll, WizardColors.text.copy(alpha = 0.28f), style = fiber)
+        // La pieza móvil (el antebrazo de Brazos, los omóplatos de Espalda) en reposo: solo su contorno, en tinta tenue.
+        shape.moving?.let { moving -> drawPath(moving, WizardColors.text.copy(alpha = 0.6f), style = thin) }
     }
 }

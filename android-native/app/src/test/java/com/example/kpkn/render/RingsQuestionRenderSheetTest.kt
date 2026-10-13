@@ -11,10 +11,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
+import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import com.example.kpkn.data.models.InitialRecoveryIntensity
 import com.example.kpkn.data.models.RingsLiftPattern
@@ -69,11 +71,18 @@ class RingsQuestionRenderSheetTest {
 
     private fun onlyWhenAsked() = assumeTrue("sin KPKN_RENDER_DIR no se dibuja nada", System.getenv("KPKN_RENDER_DIR") != null)
 
-    /** Pinta [content] en una columna de 360 dp sobre negro, con la animación en su cuadro final. */
-    private fun sheet(content: @Composable () -> Unit) {
+    /**
+     * Pinta [content] en una columna de 360 dp sobre negro, con la animación en su cuadro final. [fontScale] agranda la letra
+     * (1,3 = el 130 % del sistema).
+     */
+    private fun sheet(fontScale: Float = 1f, content: @Composable () -> Unit) {
         rule.setContent {
             hostView = LocalView.current
-            CompositionLocalProvider(LocalWizardReducedMotion provides true) {
+            val base = LocalDensity.current
+            CompositionLocalProvider(
+                LocalWizardReducedMotion provides true,
+                LocalDensity provides Density(base.density, fontScale = fontScale),
+            ) {
                 Column(
                     Modifier
                         .testTag("sheet")
@@ -160,17 +169,18 @@ class RingsQuestionRenderSheetTest {
     @Test
     fun groupSetsWithLegsOpen() {
         onlyWhenAsked()
-        sheet {
+        // Tres grupos respondidos (Pecho, Hombros con «No lo sé» y Core) y Piernas en edición, sin cifra todavía. A 130 %.
+        sheet(fontScale = 1.3f) {
             RingsGroupSetsContent(
                 answers = SetupRingsAnswers(
                     sessionDaysState = RingsSessionDaysState.DECLARED,
                     trainedDayOffsets = setOf(1),
-                    groupSets = mapOf(RingsMuscleGroup.CHEST to 10, RingsMuscleGroup.LEGS to 12, RingsMuscleGroup.CORE to 4),
+                    groupSets = mapOf(RingsMuscleGroup.CHEST to 10, RingsMuscleGroup.CORE to 4),
                     groupSetsUnknown = setOf(RingsMuscleGroup.SHOULDERS),
                 ),
                 today = today,
                 onSets = { _, _ -> },
-                initialOpen = RingsMuscleGroup.LEGS,
+                initialSelected = RingsMuscleGroup.LEGS,
             )
         }
         save("rings_group_sets")
@@ -199,5 +209,19 @@ class RingsQuestionRenderSheetTest {
             )
         }
         save("rings_feelings")
+    }
+
+    @Test
+    fun groupSetsUnanswered() {
+        onlyWhenAsked()
+        // El mosaico sin ninguna respuesta: el editor arranca en Pecho. A 130 %.
+        sheet(fontScale = 1.3f) {
+            RingsGroupSetsContent(
+                answers = SetupRingsAnswers(sessionDaysState = RingsSessionDaysState.DECLARED, trainedDayOffsets = setOf(1)),
+                today = today,
+                onSets = { _, _ -> },
+            )
+        }
+        save("rings_group_sets_unanswered")
     }
 }
