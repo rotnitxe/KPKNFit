@@ -54,3 +54,12 @@ El usuario pidió nivel top mundial, por encima de Lyfta, MacroFactor Workouts y
   existe y, si existe, añade al final. Máximo 3 rondas de crítica.
 - **Git:** commits `feat(<pantalla>): …` / `fix(…)` / `test(…)` por rutas, con la línea Co-Authored-By de Haiku 5.5 del
   BRIEF_COMUN. Sin push.
+
+## Gradle: la cola es compartida (añadido 2026-10-13, 15:55)
+- Hay 2 ranuras para toda la máquina y 7 agentes. Cada corrida que ahorras la ganan todos.
+- **Corridas intermedias** (mientras arreglas): sin `:app:compileBaseDebugAndroidTestKotlin`, solo
+  `:app:compileBaseDebugKotlin :app:testBaseDebugUnitTest --tests …` con tus filtros.
+- **La última corrida antes del commit**, el comando COMPLETO del brief, con la compilación de `androidTest`.
+- Antes de lanzar una corrida, revisa a mano los imports y las firmas que cambiaste: un error de compilación cuesta una vuelta entera
+  de cola.
+- Nunca pares una corrida con TaskStop: deja que termine. La cola es por orden de llegada (`gradle_slot.sh` v5).
