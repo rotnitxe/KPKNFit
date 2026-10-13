@@ -272,24 +272,18 @@ fun ProgramDetailScreen(
 
     Box(modifier = Modifier.fillMaxSize().background(KpknSurface.canvas)) {
         if (showSplitPage) {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .verticalScroll(rememberScrollState())
-                    .statusBarsPadding()
-                    .padding(bottom = 120.dp),
-            ) {
-                SplitView(
-                    program = p,
-                    selectedBlockId = uiState.selectedBlockId,
-                    selectedWeekId = uiState.selectedWeekId,
-                    onUpdateProgram = {
-                        viewModel.updateProgram(it)
-                        showSplitPage = false
-                    },
-                    onBack = { showSplitPage = false },
-                )
-            }
+            // La página de repartos hace su propio scroll (y su isla); aquí solo se reserva la barra de estado.
+            SplitView(
+                program = p,
+                selectedBlockId = uiState.selectedBlockId,
+                selectedWeekId = uiState.selectedWeekId,
+                onUpdateProgram = {
+                    viewModel.updateProgram(it)
+                    showSplitPage = false
+                },
+                onBack = { showSplitPage = false },
+                modifier = Modifier.fillMaxSize().statusBarsPadding(),
+            )
         } else {
             Column(
                 modifier = Modifier
