@@ -49,6 +49,8 @@ import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.models.ringScore
 import com.example.kpkn.data.models.TodaySessionItem
 import com.example.kpkn.domain.calculations.getCurrentDayOfWeek
+import com.example.kpkn.domain.training.HomeWeekDay
+import com.example.kpkn.domain.training.HomeWeekResolver
 import com.example.kpkn.data.models.MealType
 import com.example.kpkn.data.models.NutritionLog
 import com.example.kpkn.data.models.NutritionStatus
@@ -77,6 +79,13 @@ import com.example.kpkn.ui.tour.TourAnchors
 import com.example.kpkn.ui.tour.TourIds
 import com.example.kpkn.ui.tour.TourScripts
 import com.example.kpkn.ui.tour.tourAnchor
+import com.example.kpkn.screens.home.design.HomeDateSaver
+import com.example.kpkn.screens.home.design.HomeMasthead
+import com.example.kpkn.screens.home.design.HomeMastheadState
+import com.example.kpkn.screens.home.design.HomeSectionGap
+import com.example.kpkn.screens.home.design.HomeWeekStrip
+import com.example.kpkn.screens.home.design.homeDateLine
+import com.example.kpkn.screens.home.design.homeEntrance
 import kotlinx.coroutines.launch
 import com.example.kpkn.ui.components.kpknGlass
 import dev.chrisbanes.haze.HazeState
@@ -144,6 +153,33 @@ fun HomeScreen(
     var showFoodLogger by rememberSaveable { mutableStateOf(false) }
     var showNutritionOverlay by remember { mutableStateOf(false) }
     var showAugeRecommendations by remember { mutableStateOf(false) }
+    // «Tu semana»: el día elegido sobrevive a girar la pantalla; por defecto, hoy.
+    var selectedDate by rememberSaveable(stateSaver = HomeDateSaver) { mutableStateOf(LocalDate.now()) }
+    // Cabecera y «Tu semana», calculadas del programa activo y de sus sesiones de la semana.
+    val todayDate = LocalDate.now()
+    val activeProgram = remember(uiState.programs, uiState.activeProgramId) {
+        uiState.programs.firstOrNull { it.id == uiState.activeProgramId }
+    }
+    val weekDays = remember(uiState.todaySessions, activeProgram, todayDate) {
+        if (activeProgram == null || uiState.todaySessions.isEmpty()) {
+            emptyList<HomeWeekDay>()
+        } else {
+            HomeWeekResolver.week(uiState.todaySessions, activeProgram.startDay, todayDate)
+        }
+    }
+    val programLine = remember(uiState.todaySessions, activeProgram, todayDate) {
+        HomeWeekResolver.programLine(activeProgram, uiState.todaySessions, todayDate)
+    }
+    val mastheadState = remember(uiState.userName, uiState.greeting, programLine, todayDate) {
+        HomeMastheadState(
+            dateLine = homeDateLine(todayDate),
+            // El saludo llega como «¡Buenos días»: sin «¡» ni «!», y el nombre va aparte.
+            greeting = uiState.greeting.replace("¡", "").replace("!", "").trim(),
+            name = uiState.userName,
+            initial = uiState.userName.firstOrNull()?.uppercaseChar()?.toString() ?: "?",
+            program = programLine,
+        )
+    }
     // Recorrido de Inicio: solo cuando los RINGS ya cargaron (si no, esperaría a sus anclas). Lo decide el controlador: visto = no arranca.
     val tourHost = LocalKpknOverlayHost.current
     LaunchedEffect(augeLoading) {
@@ -220,6 +256,8 @@ fun HomeScreen(
     var sessionAnchorY by remember { mutableFloatStateOf(Float.POSITIVE_INFINITY) }
     var ringsAnchorY by remember { mutableFloatStateOf(Float.POSITIVE_INFINITY) }
     var nutritionAnchorY by remember { mutableFloatStateOf(Float.POSITIVE_INFINITY) }
+    // Borde inferior de la cabecera de la página (coordenadas de la raíz): decide el fundido de la barra superior.
+    var mastheadBottomY by remember { mutableFloatStateOf(Float.POSITIVE_INFINITY) }
 
     fun anchorProgress(anchorY: Float): Float =
         if (headerBottomY.isFinite() && anchorY.isFinite()) {
@@ -230,6 +268,10 @@ fun HomeScreen(
     val sessionProgress by remember { derivedStateOf { anchorProgress(sessionAnchorY) } }
     val ringsProgress by remember { derivedStateOf { anchorProgress(ringsAnchorY) } }
     val nutritionProgress by remember { derivedStateOf { anchorProgress(nutritionAnchorY) } }
+    // La barra aparece cuando la cabecera de la página sale por arriba (los últimos 48 dp antes de cruzarse).
+    val mastheadBarAlpha by remember {
+        derivedStateOf { homeBarAlphaFor(headerBottomY, mastheadBottomY, handoffDistancePx) }
+    }
     val latestHeaderContent by rememberUpdatedState<@Composable (HazeState) -> Unit> { rootHazeState ->
         HomeTopBar(
             modifier = Modifier,
@@ -256,6 +298,7 @@ fun HomeScreen(
             hazeState = rootHazeState,
             onBottomPositionChanged = { headerBottomY = it },
             ringsCoverage = augeSnapshot.coverage ?: com.example.kpkn.domain.onboarding.RingsCoverage.NO_DATA,
+            barAlpha = mastheadBarAlpha,
         )
     }
     val latestHeaderOverlayChange by rememberUpdatedState(onHeaderOverlayChange)
@@ -325,6 +368,12 @@ fun HomeScreen(
                  onAddMeal = { if (showNutrition) showFoodLogger = true },
                  onOpenNutritionOverlay = { if (showNutrition) showNutritionOverlay = true },
                  showNutrition = showNutrition,
+                 selectedDate = selectedDate,
+                 onSelectDate = { selectedDate = it },
+                 mastheadState = mastheadState,
+                 weekDays = weekDays,
+                 onMastheadPositionChanged = { mastheadBottomY = it },
+                 onOpenProfile = onNavigateToProfile,
                  modifier = Modifier
                      .fillMaxSize()
                      .navigationBarsPadding(),
@@ -514,6 +563,17 @@ fun HomeScreen(
     }
 }
 
+/**
+ * Opacidad de la barra superior: 0 mientras el borde inferior de la cabecera de la página está a 48 dp o más de cruzar el de la
+ * barra, y 1 cuando ya lo ha cruzado. Sin medidas (valores infinitos) la barra no aparece.
+ */
+private fun homeBarAlphaFor(barBottomY: Float, mastheadBottomY: Float, distancePx: Float): Float =
+    if (barBottomY.isFinite() && mastheadBottomY.isFinite()) {
+        ((barBottomY + distancePx - mastheadBottomY) / distancePx).coerceIn(0f, 1f)
+    } else {
+        0f
+    }
+
 @Composable
 private fun HomeFoodLoggerHost(
     nutritionRepo: NutritionRepository,
@@ -570,6 +630,13 @@ private fun HomeWithProgram(
     onAddMeal: () -> Unit = {},
     onOpenNutritionOverlay: () -> Unit = {},
     showNutrition: Boolean = true,
+    /** Día elegido en «Tu semana» (lo usa la sesión del día, I2). */
+    selectedDate: LocalDate,
+    onSelectDate: (LocalDate) -> Unit,
+    mastheadState: HomeMastheadState,
+    weekDays: List<HomeWeekDay>,
+    onMastheadPositionChanged: (Float) -> Unit,
+    onOpenProfile: () -> Unit,
 ) {
     val homeAdapt = LocalViewportAdapt.current
     val isCatalogReady by exerciseCatalogReady.collectAsState()
@@ -589,16 +656,35 @@ private fun HomeWithProgram(
     LazyColumn(
         state = listState,
         modifier = modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.spacedBy(12.dp.adapt(homeAdapt)),
-        // Keep the first Home card visually separate from the floating dock.
+        verticalArrangement = Arrangement.spacedBy(HomeSectionGap.adapt(homeAdapt)),
+        // La cabecera de la página lleva su propia barra de estado: la lista arranca en el borde superior.
         contentPadding = PaddingValues(
-            top = 176.dp.adapt(homeAdapt),
             bottom = 140.dp.adapt(homeAdapt),
         ),
     ) {
+        item(key = "masthead") {
+            HomeMasthead(
+                state = mastheadState,
+                onOpenProfile = onOpenProfile,
+                modifier = Modifier
+                    .homeEntrance(0)
+                    .onGloballyPositioned { onMastheadPositionChanged(it.positionInRoot().y + it.size.height) },
+            )
+        }
+        if (hasActiveProgram && weekDays.isNotEmpty()) {
+            item(key = "week") {
+                HomeWeekStrip(
+                    days = weekDays,
+                    selected = selectedDate,
+                    onSelect = onSelectDate,
+                    modifier = Modifier.homeEntrance(1),
+                )
+            }
+        }
 
         item(key = "session") {
             HomeSessionSection(
+                selectedDate = selectedDate,
                 sessions = todaySessions,
                 homeCompetition = homeCompetition,
                 hasActiveProgram = hasActiveProgram,
@@ -612,7 +698,7 @@ private fun HomeWithProgram(
                 onCreateProgram = onCreateProgram,
                 competitionDatePromptProgramId = competitionDatePromptProgramId,
                 onOpenProgramForCompetitionDate = onNavigateToProgram,
-                modifier = Modifier.onGloballyPositioned { onSessionAnchorPositionChanged(it.positionInRoot().y) },
+                modifier = Modifier.onGloballyPositioned { onSessionAnchorPositionChanged(it.positionInRoot().y) }.homeEntrance(2),
             )
         }
 
@@ -628,7 +714,7 @@ private fun HomeWithProgram(
                 showModelUpdateNotice = augeSnapshot?.showModelUpdateNotice == true,
                 onDismissAdvisory = onDismissAdvisory,
                 onModelNoticeShown = onModelNoticeShown,
-                modifier = Modifier.onGloballyPositioned { onRingsAnchorPositionChanged(it.positionInRoot().y) },
+                modifier = Modifier.onGloballyPositioned { onRingsAnchorPositionChanged(it.positionInRoot().y) }.homeEntrance(3),
             )
         }
         if (homeAdvisory != null) {
@@ -639,6 +725,7 @@ private fun HomeWithProgram(
                     actionLabel = "Entendido",
                     onAction = { onDismissAdvisory(homeAdvisory.id) },
                     emphasize = homeAdvisory.level == LoadAdvisoryLevel.UNLOAD,
+                    modifier = Modifier.homeEntrance(4),
                 )
             }
         }
@@ -651,12 +738,13 @@ private fun HomeWithProgram(
                     onAction = { onNavigate("settings/auge") },
                     emphasize = true,
                     leadingIcon = true,
+                    modifier = Modifier.homeEntrance(5),
                 )
             }
         }
         item(key = "cards") {
             Spacer(Modifier.height(8.dp))
-            HomeCardsSection(viewModel = viewModel, onNavigateToCard = onNavigateToCard, onAddMeal = onAddMeal, onOpenNutritionOverlay = onOpenNutritionOverlay, onNutritionAnchorPositionChanged = onNutritionAnchorPositionChanged, showNutrition = showNutrition)
+            HomeCardsSection(viewModel = viewModel, onNavigateToCard = onNavigateToCard, onAddMeal = onAddMeal, onOpenNutritionOverlay = onOpenNutritionOverlay, onNutritionAnchorPositionChanged = onNutritionAnchorPositionChanged, showNutrition = showNutrition, modifier = Modifier.homeEntrance(6))
         }
         item(key = "programs") {
             Spacer(Modifier.height(8.dp))
@@ -665,12 +753,14 @@ private fun HomeWithProgram(
                 activeProgramId = activeProgramId,
                 onProgramClick = onNavigateToProgram,
                 onCreateProgram = onCreateProgram,
-                modifier = Modifier.tourAnchor(TourAnchors.HOME_PROGRAMAS),
+                modifier = Modifier.tourAnchor(TourAnchors.HOME_PROGRAMAS).homeEntrance(7),
             )
         }
         item(key = "wikilab") {
             Spacer(Modifier.height(16.dp))
-            HomeWikiLabSection(onNavigate = onNavigate)
+            Box(Modifier.homeEntrance(8)) {
+                HomeWikiLabSection(onNavigate = onNavigate)
+            }
         }
     }
 }
@@ -683,9 +773,10 @@ private fun AlertActionCard(
     onAction: () -> Unit,
     emphasize: Boolean,
     leadingIcon: Boolean = false,
+    modifier: Modifier = Modifier,
 ) {
     Surface(
-        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+        modifier = modifier.fillMaxWidth().padding(horizontal = 16.dp),
         shape = RoundedCornerShape(12.dp),
         color = MaterialTheme.colorScheme.errorContainer.copy(alpha = if (emphasize) 0.65f else 0.45f),
     ) {
@@ -749,16 +840,20 @@ private fun HomeTopBar(
     hazeState: HazeState,
     onBottomPositionChanged: (Float) -> Unit,
     ringsCoverage: com.example.kpkn.domain.onboarding.RingsCoverage = com.example.kpkn.domain.onboarding.RingsCoverage.NO_DATA,
+    /** Opacidad de la barra: 0 = oculta y sin toques (la cabecera de la página sigue arriba); 1 = a la vista. */
+    barAlpha: Float = 1f,
 ) {
     Box(
         modifier = modifier
             .fillMaxWidth()
             .statusBarsPadding()
             .padding(start = 12.dp, top = 10.dp, end = 12.dp)
+            .graphicsLayer { alpha = barAlpha }
             .kpknGlass(hazeState, RoundedCornerShape(32.dp))
             .onGloballyPositioned { onBottomPositionChanged(it.positionInRoot().y + it.size.height) },
     ) {
-        Box(modifier = Modifier.fillMaxWidth()) {
+        // Con la barra oculta no se compone nada que toque: no roba toques a la cabecera de la página.
+        if (barAlpha > 0f) Box(modifier = Modifier.fillMaxWidth()) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
