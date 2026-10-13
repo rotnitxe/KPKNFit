@@ -235,7 +235,8 @@ private fun BodyTrendChart(
         val end = (state.windowEnd ?: state.trend.last().date).toEpochDay()
         val span = (end - first).coerceAtLeast(1L).toFloat()
         val left = 4.dp.toPx()
-        val right = size.width - 4.dp.toPx()
+        // A la derecha, el margen cubre el anillo del último punto (6 dp de radio más el trazo): si no, se corta en el borde.
+        val right = size.width - 8.dp.toPx()
         // Arriba queda sitio para el texto del objetivo; abajo, un margen para el anillo del último punto.
         val top = 26.dp.toPx()
         val bottom = size.height - 10.dp.toPx()
