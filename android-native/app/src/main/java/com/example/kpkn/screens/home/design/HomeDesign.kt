@@ -21,6 +21,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -61,6 +62,23 @@ internal object HomeTypography {
 
     /** Último peso de «Cuerpo»: Syne ExtraBold a 40 sp. */
     val weightFigure: TextStyle = WizardTypography.question.copy(fontSize = 40.sp, lineHeight = 44.sp, letterSpacing = (-0.8).sp)
+
+    /** Título de la sesión del día (el héroe): Syne ExtraBold a 44 sp. Si no cabe en dos líneas, el héroe lo encoge hasta 30 sp. */
+    val heroTitle: TextStyle = WizardTypography.question.copy(fontSize = 44.sp, lineHeight = 46.sp, letterSpacing = (-0.8).sp)
+
+    /** Nombre de un ejercicio en el héroe: Inter 500 a 15 sp. */
+    val heroLine: TextStyle = WizardTypography.bodySmall.copy(fontWeight = FontWeight.Medium, fontSize = 15.sp, lineHeight = 20.sp)
+
+    /** Dosis de un ejercicio en el héroe: Inter 500 a 14 sp, con cifras tabulares para que las columnas cuadren. */
+    val heroDoseText: TextStyle = WizardTypography.bodySmall.copy(
+        fontWeight = FontWeight.Medium,
+        fontSize = 14.sp,
+        lineHeight = 20.sp,
+        fontFeatureSettings = "tnum",
+    )
+
+    /** Porcentaje dentro del anillo de «Cómo llegan tus músculos»: Syne 700 a 14 sp. */
+    val gaugeFigure: TextStyle = WizardTypography.measure.copy(fontSize = 14.sp, lineHeight = 18.sp, letterSpacing = 0.sp)
 }
 
 /**
