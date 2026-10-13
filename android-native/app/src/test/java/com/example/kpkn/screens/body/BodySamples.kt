@@ -1,10 +1,17 @@
 package com.example.kpkn.screens.body
 
+import com.example.kpkn.data.models.BodyMetric
+import com.example.kpkn.data.models.BodyMetricSource
+import com.example.kpkn.data.models.BodyObservation
+import com.example.kpkn.data.models.BodyObservationMethod
+import com.example.kpkn.domain.body.BodyHistoryRow
 import com.example.kpkn.domain.body.BodyMetricPoint
 import com.example.kpkn.domain.body.BodyWeightSummary
 import com.example.kpkn.screens.body.design.BodyChartPoint
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.time.YearMonth
+import java.time.ZoneOffset
 
 /** Día de referencia de los datos de ejemplo: fijo, para que las pruebas y la hoja de render no dependan del reloj. */
 internal val BODY_SAMPLE_TODAY: LocalDate = LocalDate.of(2026, 10, 13)
@@ -66,3 +73,64 @@ internal fun bodySampleFatPoints(): List<BodyChartPoint> = (0..90 step 4).map { 
 
 /** Primer punto de grasa del rango, de donde sale el cambio del módulo. */
 internal fun bodySampleFatStart(): BodyMetricPoint = BodyMetricPoint(BODY_SAMPLE_TODAY.minusDays(90), 18.4, emptyList())
+
+/**
+ * Una medición de ejemplo del historial, con sus observaciones (mismo instante y misma sesión, como las guarda la pantalla). Con
+ * [healthConnect], la medición viene de Health Connect: solo lectura.
+ */
+private fun bodySampleRow(
+    dateTime: LocalDateTime,
+    weightKg: Double?,
+    bodyFatPercent: Double? = null,
+    muscleMassPercent: Double? = null,
+    healthConnect: Boolean = false,
+): BodyHistoryRow {
+    val timestamp = dateTime.toInstant(ZoneOffset.UTC).toEpochMilli()
+    val sessionId = if (healthConnect) "health_connect:${dateTime.toLocalDate()}" else "legacy:medicion-${dateTime}"
+    val source = if (healthConnect) BodyMetricSource.HEALTH_CONNECT else BodyMetricSource.MANUAL
+    val method = if (healthConnect) BodyObservationMethod.HEALTH_CONNECT else BodyObservationMethod.MANUAL
+    fun observation(metric: BodyMetric, value: Double, unit: String) = BodyObservation(
+        id = "$sessionId:${metric.name}",
+        metric = metric,
+        valueSi = value,
+        unitSi = unit,
+        sessionId = sessionId,
+        timestampEpochMs = timestamp,
+        zoneId = "UTC",
+        source = source,
+        method = method,
+    )
+    val observations = listOfNotNull(
+        weightKg?.let { observation(BodyMetric.WEIGHT, it, "kg") },
+        bodyFatPercent?.let { observation(BodyMetric.BODY_FAT_PERCENT, it, "%") },
+        muscleMassPercent?.let { observation(BodyMetric.MUSCLE_MASS_PERCENT, it, "%") },
+    )
+    return BodyHistoryRow(
+        sessionId = sessionId,
+        timestampEpochMs = timestamp,
+        dateTime = dateTime,
+        weightKg = weightKg,
+        bodyFatPercent = bodyFatPercent,
+        muscleMassPercent = muscleMassPercent,
+        waistCm = null,
+        hipCm = null,
+        chestCm = null,
+        armCm = null,
+        thighCm = null,
+        neckCm = null,
+        fromHealthConnect = healthConnect,
+        observations = observations,
+    )
+}
+
+/**
+ * Historial de ejemplo, del más reciente al más antiguo: tres meses (octubre, septiembre y agosto de 2026), una medición de Health Connect
+ * (solo lectura) y otra sin grasa ni músculo. Son fechas fijas, como [BODY_SAMPLE_TODAY].
+ */
+internal fun bodySampleHistoryRows(): List<BodyHistoryRow> = listOf(
+    bodySampleRow(LocalDateTime.of(2026, 10, 13, 7, 40), 64.5, bodyFatPercent = 17.2, muscleMassPercent = 42.0),
+    bodySampleRow(LocalDateTime.of(2026, 10, 6, 7, 35), 64.9, bodyFatPercent = 17.5),
+    bodySampleRow(LocalDateTime.of(2026, 9, 22, 8, 10), 65.3, healthConnect = true),
+    bodySampleRow(LocalDateTime.of(2026, 9, 14, 19, 5), 65.8),
+    bodySampleRow(LocalDateTime.of(2026, 8, 30, 7, 20), 66.9, bodyFatPercent = 18.4, muscleMassPercent = 41.5),
+)

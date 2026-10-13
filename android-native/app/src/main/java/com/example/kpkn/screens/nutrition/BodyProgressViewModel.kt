@@ -17,6 +17,7 @@ import com.example.kpkn.data.repository.BodyProgressRepository
 import com.example.kpkn.data.repository.NutritionRepository
 import com.example.kpkn.data.repository.ProgramRepository
 import com.example.kpkn.domain.body.BodyGoalTrack
+import com.example.kpkn.domain.body.BodyHistoryRow
 import com.example.kpkn.domain.body.BodyMetricPoint
 import com.example.kpkn.domain.body.BodyWeightSummary
 import com.example.kpkn.domain.body.CompatibleComposition
@@ -24,6 +25,7 @@ import com.example.kpkn.domain.body.ResolvedBodyGoal
 import com.example.kpkn.domain.body.bmi
 import com.example.kpkn.domain.body.bodyDailySeries
 import com.example.kpkn.domain.body.bodyGoalTrack
+import com.example.kpkn.domain.body.buildBodyHistory
 import com.example.kpkn.domain.body.dailyMedianSeries
 import com.example.kpkn.domain.body.ewmaTrend
 import com.example.kpkn.domain.body.latestCompatibleComposition
@@ -301,6 +303,41 @@ class BodyProgressViewModel(
     override fun onCleared() {
         super.onCleared()
         // Repository is process-scoped and intentionally outlives a screen VM.
+    }
+
+    /** Historial de mediciones (una fila por medición, con su hora), del más reciente al más antiguo. */
+    val history: StateFlow<List<BodyHistoryRow>> = repository.observations
+        .map { buildBodyHistory(it) }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
+
+    /**
+     * Guarda una medición manual con su hora exacta. Antes borra [replacing] (la medición que se edita), así que la sesión y la hora
+     * quedan como las da la pantalla. [values] solo lleva los datos que tienen cifra.
+     */
+    fun saveBodyRecord(
+        sessionId: String,
+        timestampEpochMs: Long,
+        values: Map<BodyMetric, Double>,
+        replacing: List<BodyObservation> = emptyList(),
+    ): Int {
+        removeObservations(replacing)
+        return values.count { (metric, value) ->
+            addObservation(metric, value, bodyMetricUnit(metric), sessionId = sessionId, timestampEpochMs = timestampEpochMs)
+        }
+    }
+
+    /** Borra las observaciones indicadas: una medición entera, sin tocar las demás. */
+    fun removeObservations(observations: List<BodyObservation>) {
+        observations.forEach { repository.deleteObservation(it.id) }
+    }
+
+    /** Deshacer: vuelve a guardar observaciones borradas con su mismo id, su hora y su origen. */
+    fun restoreObservations(observations: List<BodyObservation>): Int = repository.addObservations(observations)
+
+    private fun bodyMetricUnit(metric: BodyMetric): String = when (metric) {
+        BodyMetric.WEIGHT -> "kg"
+        BodyMetric.BODY_FAT_PERCENT, BodyMetric.MUSCLE_MASS_PERCENT -> "%"
+        else -> "cm"
     }
 }
 
