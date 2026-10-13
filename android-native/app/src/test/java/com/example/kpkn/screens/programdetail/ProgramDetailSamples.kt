@@ -2,7 +2,9 @@ package com.example.kpkn.screens.programdetail
 
 import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.ExerciseSet
+import com.example.kpkn.data.models.KeyDateType
 import com.example.kpkn.data.models.Program
+import com.example.kpkn.data.models.ProgramKeyDate
 import com.example.kpkn.data.models.ProgramMode
 import com.example.kpkn.data.models.ProgramStructure
 import com.example.kpkn.data.models.Session
@@ -26,6 +28,8 @@ import com.example.kpkn.screens.programdetail.design.ProgramVolumeScope
 import com.example.kpkn.screens.programdetail.design.ProgramVolumeSplit
 import com.example.kpkn.screens.programdetail.design.ProgramVolumeZones
 import com.example.kpkn.screens.programdetail.design.programMetaLine
+import com.example.kpkn.screens.programdetail.design.structure.ProgramBlockRange
+import java.time.LocalDate
 
 /** Datos de ejemplo de Program Detail para la hoja de render de la cabecera (P1). Sin datos reales ni inventados fuera de ejemplo. */
 internal object ProgramDetailSamples {
@@ -235,4 +239,46 @@ internal object ProgramDetailSamples {
 
     /** Molestias asociadas a un ejercicio de ejemplo. */
     val volumeAssociations = listOf(ProgramVolumeAssociation("Press militar", "Pinchazo en hombro", 2))
+}
+
+/**
+ * Datos de ejemplo de la pestaña Estructura (P3a) para la hoja de render y las pruebas de las hojas. Hoy es fijo (13 oct 2026) para que
+ * la cuenta atrás y el calendario salgan siempre iguales.
+ */
+internal object ProgramStructureSamples {
+
+    /** El día de hoy de los ejemplos. */
+    val today: LocalDate = LocalDate.of(2026, 10, 13)
+
+    /** Cuatro bloques proyectados desde el 6 de octubre. */
+    val blockRanges: List<ProgramBlockRange> = listOf(
+        ProgramBlockRange("Bloque 1", LocalDate.of(2026, 10, 6), LocalDate.of(2026, 11, 2)),
+        ProgramBlockRange("Bloque 2", LocalDate.of(2026, 11, 3), LocalDate.of(2026, 11, 30)),
+        ProgramBlockRange("Bloque 3", LocalDate.of(2026, 12, 1), LocalDate.of(2026, 12, 28)),
+        ProgramBlockRange("Bloque 4", LocalDate.of(2026, 12, 29), LocalDate.of(2027, 1, 25)),
+    )
+
+    /** Dos fechas clave que no son la competición. */
+    val keyDates: List<ProgramKeyDate> = listOf(
+        ProgramKeyDate(
+            id = "key_exams",
+            title = "Examen de química",
+            type = KeyDateType.EXAMS,
+            startDate = "2026-10-20",
+            endDate = "2026-10-24",
+        ),
+        ProgramKeyDate(
+            id = "key_vacation",
+            title = "Vacaciones de invierno",
+            type = KeyDateType.VACATION,
+            startDate = "2026-12-21",
+            endDate = "2027-01-04",
+        ),
+    )
+
+    /** Avisos del motor de ejemplo: la competición cae fuera de las semanas y el término manual queda antes del proyectado. */
+    val engineMessages: List<String> = listOf(
+        "La competición no cae dentro de las semanas actuales del programa. Ajusta fechas o agrega semanas.",
+        "El término manual queda antes del término proyectado. Agrega o quita semanas para que calce.",
+    )
 }
