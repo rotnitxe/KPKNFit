@@ -23,6 +23,7 @@ import androidx.core.content.FileProvider
 import com.example.kpkn.data.models.CompletedExercise
 import com.example.kpkn.data.models.CompletedSet
 import com.example.kpkn.R
+import com.example.kpkn.ui.locale.LocaleManager
 import java.io.File
 import java.io.FileOutputStream
 import java.util.Locale
@@ -486,7 +487,7 @@ object WorkoutShareService {
 
         val titleEndY = drawWrappedText(
             canvas = canvas,
-            text = sessionName.uppercase(Locale.getDefault()),
+            text = sessionName.uppercase(LocaleManager.getEffectiveLocale(context)),
             startX = 64f,
             startY = 286f,
             maxWidth = 780f,
@@ -687,7 +688,7 @@ object WorkoutShareService {
     }
 
     private fun formatSetToken(set: CompletedSet): String {
-        val sidePrefix = when (set.side?.lowercase(Locale.getDefault())) {
+        val sidePrefix = when (set.side?.lowercase(Locale.forLanguageTag("es"))) {
             "left" -> "L "
             "right" -> "R "
             else -> ""

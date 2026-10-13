@@ -841,14 +841,14 @@ internal fun RestClockText(
 private fun formatTime(seconds: Int): String {
     val min = seconds / 60
     val sec = seconds % 60
-    return String.format(Locale.getDefault(), "%02d:%02d", min, sec)
+    return String.format(Locale.forLanguageTag("es"), "%02d:%02d", min, sec)
 }
 
 private fun formatWeight(weight: Double): String {
     return if (weight % 1.0 == 0.0) {
         weight.toInt().toString()
     } else {
-        String.format(Locale.getDefault(), "%.1f", weight)
+        String.format(Locale.forLanguageTag("es"), "%.1f", weight)
     }
 }
 
@@ -857,7 +857,7 @@ private fun formatIntensity(intensity: Double): String {
     return if (intensity % 1.0 == 0.0) {
         intensity.toInt().toString()
     } else {
-        String.format(Locale.getDefault(), "%.1f", intensity)
+        String.format(Locale.forLanguageTag("es"), "%.1f", intensity)
     }
 }
 

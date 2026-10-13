@@ -1097,7 +1097,7 @@ fun PreWorkoutDiscomfortSelector(
                 value = query,
                 onValueChange = { query = it },
                 modifier = Modifier.fillMaxWidth(),
-                placeholder = { Text("Buscar molestia...", style = MaterialTheme.typography.bodySmall) },
+                placeholder = { Text("Buscar molestia…", style = MaterialTheme.typography.bodySmall) },
                 leadingIcon = {
                     Icon(Icons.Default.Search, contentDescription = null, modifier = Modifier.size(18.dp))
                 },

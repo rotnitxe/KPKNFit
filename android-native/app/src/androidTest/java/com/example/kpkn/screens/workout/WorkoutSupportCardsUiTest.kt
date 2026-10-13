@@ -44,9 +44,9 @@ class WorkoutSupportCardsUiTest {
             }
         }
 
-        composeRule.onNodeWithText("Warm-up inteligente").assertExists()
+        composeRule.onNodeWithText("Calentamiento inteligente").assertExists()
                         composeRule.onNodeWithText("80 kg estimados para la serie efectiva").assertExists()
         composeRule.onNodeWithText("Aproximacion 1").assertExists()
-        composeRule.onNodeWithText("Marcar warm-up listo").assertExists()
+        composeRule.onNodeWithText("Marcar calentamiento listo").assertExists()
     }
 }

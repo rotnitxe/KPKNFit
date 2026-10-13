@@ -567,7 +567,7 @@ internal fun WorkoutRmCalcContent(
                 com.example.kpkn.screens.workout.components.WorkoutSoftNumberField(
                     value = rmRepsText,
                     onValueChange = { rmRepsText = it },
-                    label = "Reps",
+                    label = "Repeticiones",
                     modifier = Modifier.weight(1f),
                 )
             } else {
@@ -582,7 +582,7 @@ internal fun WorkoutRmCalcContent(
                 OutlinedTextField(
                     value = rmRepsText,
                     onValueChange = { rmRepsText = it },
-                    label = { Text("Reps") },
+                    label = { Text("Repeticiones") },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     singleLine = true,
                     modifier = Modifier.weight(1f),

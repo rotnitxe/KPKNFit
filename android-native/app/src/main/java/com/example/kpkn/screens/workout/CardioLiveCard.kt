@@ -186,7 +186,7 @@ internal fun CardioLiveCard(
                         CardioGpsStatus.RECORDING -> "Señal GPS activa · ${formatCardioDistance(recordedDistanceKm)} · ${formatCardioTime(durationSeconds)}"
                         CardioGpsStatus.SIGNAL_LOST -> "Señal GPS perdida · puedes continuar o registrar manualmente"
                         CardioGpsStatus.PAUSED -> "GPS pausado · ${formatCardioDistance(recordedDistanceKm)}"
-                        CardioGpsStatus.REQUESTING_PERMISSION -> "Solicitando permiso y señal de ubicación..."
+                        CardioGpsStatus.REQUESTING_PERMISSION -> "Solicitando permiso y señal de ubicación…"
                         CardioGpsStatus.PERMISSION_DENIED -> "Permiso denegado · registro manual disponible"
                         CardioGpsStatus.LOCATION_DISABLED -> "Ubicación desactivada · registro manual disponible"
                         else -> "GPS listo · el registro manual sigue disponible"

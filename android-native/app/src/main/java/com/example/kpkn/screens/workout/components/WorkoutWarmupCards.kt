@@ -85,7 +85,7 @@ internal fun WorkoutWarmupSheet(
                 modifier = Modifier.size(24.dp)
             )
             Text(
-                text = "Warm-up inteligente",
+                text = "Calentamiento inteligente",
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Black,
                 color = Color.White
@@ -191,7 +191,7 @@ internal fun WorkoutWarmupSheet(
                 shape = RoundedCornerShape(999.dp)
             ) {
                 Text(
-                    text = if (isCompleted) "Listo" else "Marcar warm-up listo",
+                    text = if (isCompleted) "Listo" else "Marcar calentamiento listo",
                     style = MaterialTheme.typography.bodyMedium,
                     fontWeight = FontWeight.Black
                 )
