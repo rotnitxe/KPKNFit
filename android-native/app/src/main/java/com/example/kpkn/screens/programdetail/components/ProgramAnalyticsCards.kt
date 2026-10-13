@@ -4,11 +4,11 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -22,6 +22,11 @@ import com.example.kpkn.domain.training.DiagnosticSeverity
 import com.example.kpkn.domain.training.MuscleMetric
 import com.example.kpkn.domain.training.NamedMetric
 import com.example.kpkn.domain.training.ProgramAnalyticsReport
+import com.example.kpkn.screens.onboarding.design.WizardColors
+import com.example.kpkn.ui.design.KpknModule
+import com.example.kpkn.ui.design.KpknModuleHeader
+import com.example.kpkn.ui.design.KpknType
+import java.util.Locale
 
 @Composable
 internal fun VolumeAnalyticsCard(
@@ -213,16 +218,10 @@ private fun AnalyticsCard(
     modifier: Modifier = Modifier,
     content: @Composable ColumnScope.() -> Unit,
 ) {
-    Card(
-        modifier = modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(20.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.22f)),
-    ) {
-        Column(
-            modifier = Modifier.fillMaxWidth().padding(14.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp),
-        ) {
-            Text(title, fontSize = 15.sp, fontWeight = FontWeight.Black)
+    KpknModule(modifier = modifier.fillMaxWidth()) {
+        KpknModuleHeader(label = title)
+        Spacer(Modifier.height(10.dp))
+        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
             content()
         }
     }
@@ -236,17 +235,17 @@ private fun AnalyticsMetricRow(
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-            Text(label, fontSize = 12.sp, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
-            Text(value, fontSize = 12.sp, fontWeight = FontWeight.Black, color = MaterialTheme.colorScheme.primary)
+            Text(label, style = KpknType.bodyStrong, color = WizardColors.text, modifier = Modifier.weight(1f))
+            Text(value, style = KpknType.bodyStrong.copy(fontFeatureSettings = "'tnum' 1"), color = WizardColors.textMuted)
         }
-        Text(detail, fontSize = 10.sp, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 2, overflow = TextOverflow.Ellipsis)
+        Text(detail, style = KpknType.caption, color = WizardColors.textMuted, maxLines = 2, overflow = TextOverflow.Ellipsis)
     }
 }
 
 @Composable
 private fun CompactMetricList(title: String, metrics: List<MuscleMetric>) {
     if (metrics.isEmpty()) return
-    Text(title, fontSize = 12.sp, fontWeight = FontWeight.Black)
+    Text(title.uppercase(Locale("es")), style = KpknType.eyebrow, color = WizardColors.textMuted)
     metrics.forEach { metric ->
         AnalyticsMetricRow(metric.name, metric.value.format1(), metric.explanation)
     }
@@ -255,7 +254,7 @@ private fun CompactMetricList(title: String, metrics: List<MuscleMetric>) {
 @Composable
 private fun CompactNamedMetricList(title: String, metrics: List<NamedMetric>) {
     if (metrics.isEmpty()) return
-    Text(title, fontSize = 12.sp, fontWeight = FontWeight.Black)
+    Text(title.uppercase(Locale("es")), style = KpknType.eyebrow, color = WizardColors.textMuted)
     metrics.forEach { metric ->
         AnalyticsMetricRow(metric.label, metric.value.format1(), metric.explanation)
     }
@@ -264,7 +263,7 @@ private fun CompactNamedMetricList(title: String, metrics: List<NamedMetric>) {
 @Composable
 private fun CompactDirectIndirectList(title: String, metrics: List<com.example.kpkn.domain.training.DirectIndirectMetric>) {
     if (metrics.isEmpty()) return
-    Text(title, fontSize = 12.sp, fontWeight = FontWeight.Black)
+    Text(title.uppercase(Locale("es")), style = KpknType.eyebrow, color = WizardColors.textMuted)
     metrics.forEach { metric ->
         AnalyticsMetricRow(
             label = metric.muscle,
