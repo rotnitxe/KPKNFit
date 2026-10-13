@@ -3,28 +3,17 @@ package com.example.kpkn.screens.workout
 import com.example.kpkn.ui.tour.TourAnchors
 import com.example.kpkn.ui.tour.tourAnchor
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.core.FastOutSlowInEasing
-import androidx.compose.animation.expandHorizontally
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.animation.shrinkHorizontally
-import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.LocalFireDepartment
-import androidx.compose.material.icons.filled.SelfImprovement
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -43,19 +32,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import kotlin.math.absoluteValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.example.kpkn.data.exercises.exerciseCatalogSnapshot
-import com.example.kpkn.data.exercises.catalogExerciseIndex
-import com.example.kpkn.data.exercises.resolveCatalogExerciseInfo
 import com.example.kpkn.data.models.*
 import com.example.kpkn.domain.exercises.nicknameKey
 import com.example.kpkn.domain.sessionassistant.SeriesTechnique
 import com.example.kpkn.domain.workout.isVolumeReplacedTechnique
-import com.example.kpkn.domain.calculations.resolveReferenceCapacity
-import com.example.kpkn.domain.exercises.exerciseDisplayParts
 import com.example.kpkn.screens.workout.components.LocalLivePagerAdaptScale
 import com.example.kpkn.screens.workout.components.LocalLivePagerShouldReflow
 import com.example.kpkn.screens.workout.components.LocalLivePagerWorkingSetVisualHeightPx
@@ -70,15 +53,8 @@ import com.example.kpkn.screens.workout.components.WorkoutUiTokens
 import dev.chrisbanes.haze.HazeState
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.isActive
 import com.example.kpkn.ui.components.KpknAlertDialog
-
-internal data class WorkoutStageTransitionTarget(
-    val exerciseId: String,
-    val order: Int,
-    val label: String,
-)
 
 
 @Composable
@@ -1921,7 +1897,6 @@ internal fun WorkoutV2Body(
                                 }
                             }
                             LivePageType.REST -> {
-                                if (shouldRenderRestLiveCard(uiState.isRestMinimized)) {
                                 val restState = uiState.restModalState
                                 val total = (restState?.activeSeconds ?: restState?.plannedSeconds ?: 90).coerceAtLeast(1)
                                 com.example.kpkn.screens.workout.components.RestLiveCard(
@@ -1946,7 +1921,6 @@ internal fun WorkoutV2Body(
                                     onRelatorAction = { viewModel.performRelatorAssist(it) },
                                     modifier = Modifier.fillMaxWidth().fillMaxHeight(),
                                 )
-                                }
                             }
                             LivePageType.NORMAL -> {
                                 val targetExercise = visibleExercises.firstOrNull { it.id == pageSpec.exerciseId } ?: currentExercise
@@ -2485,24 +2459,6 @@ internal fun Exercise.completionKeysForSet(setIndex: Int): List<String> {
         hasLeftOnly -> listOf("${id}_${setIndex}_L")
         hasRightOnly -> listOf("${id}_${setIndex}_R")
         else -> listOf("${id}_${setIndex}_L", "${id}_${setIndex}_R")
-    }
-}
-
-@Composable
-internal fun InfoPill(label: String, value: String, color: Color) {
-    Surface(
-        shape = RoundedCornerShape(8.dp),
-        color = color.copy(alpha = 0.12f),
-        border = BorderStroke(1.dp, color.copy(alpha = 0.25f))
-    ) {
-        Row(
-            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(4.dp)
-        ) {
-            Text(label, style = MaterialTheme.typography.labelSmall, color = color.copy(alpha = 0.7f))
-            Text(value, style = MaterialTheme.typography.labelSmall, color = color, fontWeight = FontWeight.Bold)
-        }
     }
 }
 

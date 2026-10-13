@@ -4,7 +4,6 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -354,39 +353,6 @@ fun UltraFastPreviewSheet(
                 color = Color.White.copy(0.45f),
             )
             Spacer(Modifier.height(4.dp))
-        }
-    }
-}
-
-@Composable
-fun UltraFastAppliedBanner(
-    savedSeconds: Int,
-    onUndo: () -> Unit,
-    onDismiss: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    Surface(
-        modifier = modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(14.dp),
-        color = Color(0xFF222222),
-        border = BorderStroke(1.dp, Color(0xFF66BB6A).copy(alpha = 0.35f)),
-    ) {
-        Row(
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 10.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(10.dp),
-        ) {
-            Column(modifier = Modifier.weight(1f)) {
-                Text("Modo Ultrarrápido activo", style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Black, color = Color(0xFF66BB6A))
-                Text(
-                    if (savedSeconds > 0) "Ahorro ~${formatSeconds(savedSeconds)} · Deshacer revierte la sesión"
-                    else "Aplicado · Deshacer disponible",
-                    style = MaterialTheme.typography.labelSmall.copy(fontSize = 11.sp),
-                    color = Color.White.copy(0.78f),
-                )
-            }
-            TextButton(onClick = onUndo) { Text("Deshacer", fontWeight = FontWeight.Black, color = Color(0xFF66BB6A)) }
-            TextButton(onClick = onDismiss) { Text("×", color = Color.White.copy(0.6f)) }
         }
     }
 }

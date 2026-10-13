@@ -86,7 +86,7 @@ internal fun GuidedTechniquePanel(
                         WorkoutMiniTextField(
                             value = dropRepsText,
                             onValueChange = onDropRepsChange,
-                            label = "Reps",
+                            label = "Repeticiones",
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                             accentColor = accentColor,
                             modifier = Modifier.weight(1f),
@@ -148,7 +148,7 @@ internal fun GuidedTechniquePanel(
                     WorkoutMiniTextField(
                         value = restPauseRepsText,
                         onValueChange = onRestPauseRepsChange,
-                        label = "Reps",
+                        label = "Repeticiones",
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                         accentColor = accentColor,
                         modifier = Modifier.fillMaxWidth(),

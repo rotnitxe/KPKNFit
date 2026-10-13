@@ -128,7 +128,7 @@ private fun AmrapConfigSheet(
         Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
             Text("Configurar serie AMRAP", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Black, color = Color.White)
             Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                Text("Reps mínimas", style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold, color = Color.White.copy(alpha = 0.7f))
+                Text("Repeticiones mínimas", style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold, color = Color.White.copy(alpha = 0.7f))
                 OutlinedTextField(value = minReps, onValueChange = { minReps = it.filter { c -> c.isDigit() } }, modifier = Modifier.fillMaxWidth(), singleLine = true, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number), placeholder = { Text(plannedMinReps?.toString() ?: "0") }, textStyle = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold, color = Color.White), colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = MaterialTheme.colorScheme.primary, unfocusedBorderColor = Color(0xFF555555), focusedLabelColor = Color.White.copy(alpha = 0.7f), unfocusedLabelColor = Color.White.copy(alpha = 0.5f), cursorColor = Color.White, focusedTextColor = Color.White, unfocusedTextColor = Color.White, focusedContainerColor = Color(0xFF2A2A2A), unfocusedContainerColor = Color(0xFF2A2A2A)))
             }
             Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
@@ -1644,7 +1644,6 @@ internal fun SetInputCardV2(
         intensityDelta >= 0.5 -> "Más difícil"
         else -> "Igual"
     }
-    val plannedValueLabel = if (isTimeMode) "Tiempo" else "Reps"
     val expectedIntensityLabel = when {
         plannedAmrap || isAmrap -> "AMRAP"
         plannedIntensityMode == IntensityMode.FAILURE -> "FALLO"
@@ -1676,7 +1675,7 @@ internal fun SetInputCardV2(
     }
     val isExecutionError = isFailedSet
     val intensityFieldLabel = when {
-        isExecutionError -> "ERROR"
+        isExecutionError -> "Error"
         reachedFailure -> "F"
         reportedIntensityMode == IntensityMode.RIR -> "RIR"
         reportedIntensityMode == IntensityMode.RPE -> "RPE"
@@ -2249,7 +2248,7 @@ internal fun SetInputCardV2(
 
                             if (isExecutionError) {
                                 WorkoutHorizontalWheelPicker(
-                                    items = listOf(if (isNarrowScreen) "ERR" else "ERROR"),
+                                    items = listOf("Error"),
                                     selectedIndex = 0,
                                     onSelectedIndexChange = {},
                                     enabled = false,
@@ -3436,7 +3435,7 @@ internal fun SetInputCardV2(
                                 modifier = Modifier.fillMaxWidth(),
                                 placeholder = {
                                     Text(
-                                        "Ej. Molestia en hombro, fallo técnico, carga excesiva...",
+                                        "Ej. Molestia en hombro, fallo técnico, carga excesiva…",
                                         style = MaterialTheme.typography.bodySmall,
                                         color = Color.White.copy(alpha = 0.50f),
                                     )

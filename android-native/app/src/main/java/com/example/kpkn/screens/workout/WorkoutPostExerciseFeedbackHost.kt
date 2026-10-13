@@ -417,7 +417,7 @@ internal fun WorkoutPostExerciseFeedbackContent(
                             }
                         } else if (discomfortSearchQuery.value.isBlank()) {
                             Text(
-                                "Escribe para buscar molestias...",
+                                "Escribe para buscar molestias…",
                                 style = MaterialTheme.typography.labelSmall,
                                 color = Color.White.copy(alpha = 0.4f),
                             )

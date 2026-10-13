@@ -33,14 +33,11 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -50,18 +47,15 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import com.example.kpkn.domain.exercises.GodModeTechniqueScope
 import com.example.kpkn.domain.sessionassistant.SeriesTechnique
 import com.example.kpkn.ui.adapt.LocalViewportAdapt
-import com.example.kpkn.ui.components.KpknAlertDialog
 import com.example.kpkn.ui.components.KpknGlass
 import com.example.kpkn.ui.components.KpknGlassDialog
 import com.example.kpkn.ui.components.KpknSheetWhiteButton
-import com.example.kpkn.ui.components.kpknSheetWhiteFieldColors
 
 internal fun godModeEnterSpec() = tween<Float>(
     durationMillis = WorkoutUiTokens.GodModeEnterMs,
@@ -390,42 +384,4 @@ internal fun GodModeTechniqueScopeDialog(
             }
         }
     }
-}
-
-@Composable
-internal fun GodModeNicknameDialog(
-    initialValue: String,
-    onSave: (String) -> Unit,
-    onRemove: () -> Unit,
-    onDismiss: () -> Unit,
-) {
-    var text by remember(initialValue) { mutableStateOf(initialValue) }
-    KpknAlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text("Apodo del ejercicio", fontWeight = androidx.compose.ui.text.font.FontWeight.Black) },
-        text = {
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text("Reemplaza el nombre en las sesiones. En el catálogo se verá el nombre original y a.k.a. este apodo.")
-                OutlinedTextField(
-                    value = text,
-                    onValueChange = { text = it },
-                    singleLine = true,
-                    label = { Text("Apodo") },
-                    colors = kpknSheetWhiteFieldColors(),
-                    modifier = Modifier.fillMaxWidth(),
-                )
-            }
-        },
-        confirmButton = {
-            TextButton(onClick = { onSave(text.trim()) }) { Text("Guardar") }
-        },
-        dismissButton = {
-            Row {
-                if (initialValue.isNotBlank()) {
-                    TextButton(onClick = onRemove) { Text("Quitar") }
-                }
-                TextButton(onClick = onDismiss) { Text("Cancelar") }
-            }
-        },
-    )
 }

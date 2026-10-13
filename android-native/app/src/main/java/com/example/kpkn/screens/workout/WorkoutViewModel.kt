@@ -6495,7 +6495,7 @@ class WorkoutViewModel(
             },
             onFailure = {
                 voiceController.speakFeedbackUpdated(
-                    "No pude guardar la sesión. Intentá decir sesión terminada de nuevo o tocá guardar en pantalla."
+                    "No pude guardar la sesión. Intenta decir «sesión terminada» de nuevo o toca guardar en pantalla."
                 )
             },
         )
@@ -6511,7 +6511,7 @@ class WorkoutViewModel(
         if (voiceController.isEnabled()) {
             voiceController.speakFeedbackUpdated(
                 "No registré ninguna serie en esta sesión, así que no guardé nada. " +
-                    "Registrá series o decí cancelar sesión para descartarla."
+                    "Registra series o di cancelar sesión para descartarla."
             )
         }
     }

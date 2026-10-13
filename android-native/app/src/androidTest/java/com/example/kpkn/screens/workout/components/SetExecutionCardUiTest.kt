@@ -2,12 +2,9 @@ package com.example.kpkn.screens.workout.components
 
 import androidx.activity.ComponentActivity
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
-import androidx.compose.ui.test.onAllNodesWithContentDescription
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
@@ -29,7 +26,6 @@ import com.example.kpkn.screens.workout.WorkoutTechniqueDraftKind
 import com.example.kpkn.screens.workout.WorkoutTechniqueMainCaptureDraft
 import com.example.kpkn.screens.workout.WorkoutTechniqueProgressDraft
 import com.example.kpkn.screens.workout.WeightSuggestion
-import com.example.kpkn.services.workout.VoiceSessionState
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
@@ -102,58 +98,6 @@ class SetExecutionCardUiTest {
         composeRule.onNodeWithText("Carga sugerida").assertDoesNotExist()
         composeRule.onNodeWithText("Sugerida").assertDoesNotExist()
         composeRule.onNodeWithText("82,5").assertExists()
-    }
-
-    @Test
-    fun commandDockShowsIconOnlyCompleteFabAndMicAppendage() {
-        composeRule.setContent {
-            MaterialTheme {
-                val completed = remember { mutableStateOf(false) }
-                val voice = remember { mutableStateOf(false) }
-                WorkoutCommandDock(
-                    exercise = bilateralExercise(),
-                    setIndex = 0,
-                    activeSide = null,
-                    isUnilateral = false,
-                    voiceSessionEnabled = false,
-                    voiceSessionState = VoiceSessionState(),
-                    onToggleVoice = { voice.value = true },
-                    onPrimaryAction = { completed.value = true },
-                )
-                if (completed.value) androidx.compose.material3.Text("completed")
-                if (voice.value) androidx.compose.material3.Text("voice")
-            }
-        }
-
-        composeRule.onNodeWithText("Completar S1").assertDoesNotExist()
-        composeRule.onNodeWithContentDescription("Completar serie").performClick()
-        composeRule.onNodeWithContentDescription("Activar control por voz").performClick()
-        composeRule.onNodeWithText("completed").assertExists()
-        composeRule.onNodeWithText("voice").assertExists()
-    }
-
-    @Test
-    fun commandDockIgnoresCompleteTapWhileRecording() {
-        composeRule.setContent {
-            MaterialTheme {
-                val completed = remember { mutableStateOf(false) }
-                WorkoutCommandDock(
-                    exercise = bilateralExercise(),
-                    setIndex = 0,
-                    activeSide = null,
-                    isUnilateral = false,
-                    voiceSessionEnabled = false,
-                    voiceSessionState = VoiceSessionState(),
-                    onToggleVoice = {},
-                    onPrimaryAction = { completed.value = true },
-                    primaryActionEnabled = false,
-                )
-                if (completed.value) androidx.compose.material3.Text("completed")
-            }
-        }
-
-        composeRule.onNodeWithContentDescription("Registrando serie").performClick()
-        composeRule.onNodeWithText("completed").assertDoesNotExist()
     }
 
     @Test

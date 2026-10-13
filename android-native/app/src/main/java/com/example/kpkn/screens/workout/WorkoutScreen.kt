@@ -432,7 +432,7 @@ fun WorkoutScreen(
             ) {
                 CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
                 Text(
-                    text = "Cargando sesión de entrenamiento...",
+                    text = "Cargando sesión de entrenamiento…",
                     style = MaterialTheme.typography.bodyMedium,
                     color = Color.White.copy(alpha = 0.7f),
                 )

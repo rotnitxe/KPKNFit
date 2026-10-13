@@ -52,14 +52,12 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Popup
 import androidx.compose.ui.window.PopupProperties
-import kotlin.math.min
 import com.example.kpkn.data.models.AugeSnapshot
 import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.ExerciseReadiness
@@ -752,21 +750,6 @@ internal fun ReadinessRingVisual(
 }
 
 @Composable
-internal fun MuscleSliderChip(
-    modifier: Modifier = Modifier,
-    muscleLabel: String,
-    value: Int,
-    onValueChange: (Int) -> Unit,
-) {
-    MinimalMuscleSlider(
-        modifier = modifier,
-        muscleLabel = muscleLabel,
-        value = value,
-        onValueChange = onValueChange,
-    )
-}
-
-@Composable
 private fun SessionVoiceReadinessCard(
     voiceSessionEnabled: Boolean,
     captureMode: com.example.kpkn.data.models.VoiceCaptureMode,
@@ -1114,7 +1097,7 @@ fun PreWorkoutDiscomfortSelector(
                 value = query,
                 onValueChange = { query = it },
                 modifier = Modifier.fillMaxWidth(),
-                placeholder = { Text("Buscar molestia...", style = MaterialTheme.typography.bodySmall) },
+                placeholder = { Text("Buscar molestia…", style = MaterialTheme.typography.bodySmall) },
                 leadingIcon = {
                     Icon(Icons.Default.Search, contentDescription = null, modifier = Modifier.size(18.dp))
                 },

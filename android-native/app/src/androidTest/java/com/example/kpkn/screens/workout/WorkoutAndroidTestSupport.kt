@@ -5,33 +5,17 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.pager.HorizontalPager
-import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilterChip
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -43,92 +27,15 @@ import androidx.compose.ui.unit.sp
 import com.example.kpkn.data.models.CompletedSet
 import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.SupersetGroup
-import com.example.kpkn.data.models.isEffectivelyUnilateral
-import com.example.kpkn.data.models.supersetGroupRefOrLegacyId
 import com.example.kpkn.screens.workout.components.RoadmapMode
 import com.example.kpkn.screens.workout.components.WorkoutRoadmapBar
-import dev.chrisbanes.haze.HazeState
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.material3.Button
-import androidx.compose.material3.FilledTonalButton
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.core.graphics.toColorInt
 import com.example.kpkn.data.models.SessionPart
-import kotlinx.coroutines.launch
-
-/**
- * APIs retained for androidTest / legacy carousel. Production uses WorkoutRoadmapBar.
- */
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-internal fun WorkoutExerciseQuickActionsSheet(
-    exercise: Exercise,
-    canMoveUp: Boolean,
-    canMoveDown: Boolean,
-    hasWarmup: Boolean,
-    onDismiss: () -> Unit,
-    onGoToExercise: () -> Unit,
-    onOpenWarmup: () -> Unit,
-    onOpenHistory: () -> Unit,
-    onOpenTags: () -> Unit,
-    onOpenSetup: () -> Unit,
-    onOpenReplace: () -> Unit,
-    onMoveUp: () -> Unit,
-    onMoveDown: () -> Unit,
-    onSkip: () -> Unit,
-) {
-    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        Text("Quick actions", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-        Text(exercise.name, style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        FilledTonalButton(onClick = onGoToExercise, modifier = Modifier.fillMaxWidth()) {
-            Text("Ir al ejercicio")
-        }
-        OutlinedButton(onClick = onOpenHistory, modifier = Modifier.fillMaxWidth()) {
-            Text("Ver historial")
-        }
-        if (hasWarmup) {
-            OutlinedButton(onClick = onOpenWarmup, modifier = Modifier.fillMaxWidth()) {
-                Text("Warm-up")
-            }
-        }
-        OutlinedButton(onClick = onOpenReplace, modifier = Modifier.fillMaxWidth()) {
-            Text("Reemplazar")
-        }
-        OutlinedButton(onClick = onOpenTags, modifier = Modifier.fillMaxWidth()) {
-            Text("Tags")
-        }
-        OutlinedButton(onClick = onOpenSetup, modifier = Modifier.fillMaxWidth()) {
-            Text("Setup")
-        }
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
-            OutlinedButton(onClick = onMoveUp, enabled = canMoveUp, modifier = Modifier.weight(1f)) {
-                Text("Subir")
-            }
-            OutlinedButton(onClick = onMoveDown, enabled = canMoveDown, modifier = Modifier.weight(1f)) {
-                Text("Bajar")
-            }
-        }
-        Button(onClick = onSkip, modifier = Modifier.fillMaxWidth()) {
-            Text("Omitir ejercicio")
-        }
-        TextButton(onClick = onDismiss, modifier = Modifier.fillMaxWidth()) {
-            Text("Cerrar")
-        }
-    }
-}
-
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -163,11 +70,6 @@ internal fun UnifiedExerciseCarousel(
     )
 }
 
-
-private data class ExerciseRoadmapGroup(
-    val groupId: String?,
-    val exercises: List<Exercise>,
-)
 
 
 
@@ -365,4 +267,3 @@ internal fun SupersetRoadmapCard(
         }
     }
 }
-

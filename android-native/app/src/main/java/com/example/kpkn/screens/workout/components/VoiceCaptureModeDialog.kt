@@ -81,7 +81,7 @@ fun VoiceCaptureModeDialog(
 
             VoiceModeOptionCard(
                 title = "Modo Manos Libres",
-                description = "Si eres de esos usuarios que quiere la máxima concentración en sus entrenamientos y olvidarse del celular durante la sesión, puedes registrar tus entrenamientos usando directamente el micrófono de tus auriculares, sin necesidad de sacar tu teléfono. Esto degradará la calidad de tu música, pero será tu forma favorita de registrar tus marcas si quieres máxima libertad y cero distracciones.",
+                description = "Si eres de esos usuarios que quieren la máxima concentración en sus entrenamientos y olvidarse del celular durante la sesión, puedes registrar tus entrenamientos usando directamente el micrófono de tus auriculares, sin necesidad de sacar tu teléfono. Esto degradará la calidad de tu música, pero será tu forma favorita de registrar tus marcas si quieres máxima libertad y cero distracciones.",
                 selected = selected == VoiceCaptureMode.HANDS_FREE,
                 onClick = { selected = VoiceCaptureMode.HANDS_FREE },
             )

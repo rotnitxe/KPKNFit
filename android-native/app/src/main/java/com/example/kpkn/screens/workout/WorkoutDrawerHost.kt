@@ -228,7 +228,7 @@ internal fun QuickExecutionErrorDiscomfortSheet(
                         }
                     }
                 } else if (searchQuery.isBlank()) {
-                    Text("Escribe para buscar molestias...", style = MaterialTheme.typography.labelSmall, color = Color.White.copy(alpha = 0.4f))
+                    Text("Escribe para buscar molestias…", style = MaterialTheme.typography.labelSmall, color = Color.White.copy(alpha = 0.4f))
                 } else {
                     Text("No se encontraron resultados para \"$searchQuery\"", style = MaterialTheme.typography.labelSmall, color = Color.White.copy(alpha = 0.4f))
                 }
