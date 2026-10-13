@@ -84,8 +84,9 @@ wizard. El mapa del Home de hoy está en `C:\kw\analysis\home\home_map.md` (ruta
 | I2 | Héroe de la sesión del día y anillos de músculos | I1, K3a |
 | I3 | Sección RINGS y su detalle con ajuste | I1, K6 |
 | I4 | Nutrición de hoy y Cuerpo (tendencia de peso; fuera los 170 cm inventados) | I1 |
-| I5 | Pósteres de programas, Aprende, avisos, barras superior e inferior, y permisos | I1, K3a |
-| I6 | Limpieza de código muerto, hoja de la página completa y documentación | I2 a I5 |
+| I5 | Pósteres de programas, Aprende, avisos y barra superior | I1, K3a |
+| I7 | Barra inferior y «Permisos recomendados» (único paquete que toca `MainActivity.kt`) | — |
+| I6 | Limpieza de código muerto, overlay de comidas, hoja de la página completa y documentación | I2 a I5, I7 |
 
 ## 5. Fuera de este encargo
 - El tema global de Material: Home deja de usarlo, el resto de la app no cambia aún.
