@@ -34,19 +34,21 @@ import com.example.kpkn.data.models.RecoveryChannelId
 import com.example.kpkn.data.models.RecoveryDashboard
 import com.example.kpkn.domain.auge.RecoveryBands
 import com.example.kpkn.domain.onboarding.RingsCoverage
-import com.example.kpkn.screens.home.design.HomeGlyph
-import com.example.kpkn.screens.home.design.HomeGlyphButton
+import com.example.kpkn.screens.home.design.HomeModuleMargin
 import com.example.kpkn.screens.home.design.HomeRingRow
-import com.example.kpkn.screens.home.design.HomeSectionLabel
+import com.example.kpkn.screens.home.design.HomeTypography
 import com.example.kpkn.screens.home.design.RingTowerAspect
 import com.example.kpkn.screens.onboarding.design.WizardColors
-import com.example.kpkn.screens.onboarding.design.WizardSpacing
-import com.example.kpkn.screens.onboarding.design.WizardTypography
 import com.example.kpkn.screens.onboarding.rings.RingsIntroOverlay
+import com.example.kpkn.ui.components.icons.KpknLineIcons
 import com.example.kpkn.ui.components.rings.KpknRingColors
 import com.example.kpkn.ui.components.rings.KpknTowerRings
 import com.example.kpkn.ui.components.rings.RingChannel
 import com.example.kpkn.ui.components.rings.TowerRingValues
+import com.example.kpkn.ui.design.KpknIconButton
+import com.example.kpkn.ui.design.KpknModule
+import com.example.kpkn.ui.design.KpknModuleHeader
+import com.example.kpkn.ui.design.KpknType
 import com.example.kpkn.ui.tour.TourAnchors
 import com.example.kpkn.ui.tour.tourAnchor
 import kotlin.math.*
@@ -68,9 +70,9 @@ private val RingRowOrder = listOf(
 )
 
 /**
- * «Tus RINGS» de Home: el titular del motor; a la izquierda, la torre (46 % del ancho) y, a la derecha, una fila por canal con su
- * cifra, su banda o su procedencia. Tocar la torre o una fila abre el detalle del canal: el canal abierto ([selectedChannel]) lo
- * guarda HomeScreen. La (i) abre la introducción de RINGS en repaso.
+ * «Tus RINGS» de Home: un módulo con su cabecera (la (i) abre la introducción de RINGS en repaso), el titular del motor y, a la izquierda,
+ * la torre de 112 dp; a la derecha, una fila por canal con su cifra y su banda. Tocar la torre o una fila abre el detalle del canal: el
+ * canal abierto ([selectedChannel]) lo guarda HomeScreen.
  */
 @Composable
 fun HomeRingsSection(
@@ -132,23 +134,23 @@ fun HomeRingsSection(
         }
     }
 
-    Column(modifier = modifier.fillMaxWidth()) {
-        HomeSectionLabel(
-            text = "TUS RINGS",
+    KpknModule(modifier = modifier.fillMaxWidth().padding(horizontal = HomeModuleMargin)) {
+        KpknModuleHeader(
+            label = "Tus RINGS",
             action = {
-                HomeGlyphButton(
-                    glyph = HomeGlyph.INFO,
-                    description = "Qué son los RINGS",
+                KpknIconButton(
+                    icon = KpknLineIcons.Info,
+                    contentDescription = "Qué son los RINGS",
                     onClick = { showIntro = true },
-                    modifier = Modifier.offset(x = 12.dp).testTag("home-rings-info"),
+                    modifier = Modifier.testTag("home-rings-info"),
                 )
             },
         )
         dashboard?.headline?.takeIf { it.isNotBlank() && !isLoading }?.let { headline ->
             Text(
                 text = headline,
-                modifier = Modifier.padding(start = WizardSpacing.gutter, end = WizardSpacing.gutter, top = 12.dp),
-                style = WizardTypography.questionCompact,
+                modifier = Modifier.padding(top = 6.dp),
+                style = HomeTypography.ringsHeadline,
                 color = WizardColors.text,
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis,
@@ -157,14 +159,14 @@ fun HomeRingsSection(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = WizardSpacing.gutter)
-                .padding(top = 20.dp),
+                .padding(top = 16.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             Box(
                 modifier = Modifier
-                    .fillMaxWidth(0.46f)
+                    // La torre de Home mide 112 dp de ancho; su alto sale de la proporción del logo.
+                    .width(112.dp)
                     .aspectRatio(RingTowerAspect)
                     .tourAnchor(TourAnchors.HOME_RINGS)
                     // Una sola lectura de los RINGS: la descripción del contenedor sustituye a la de la torre y sus bandas.
@@ -179,7 +181,7 @@ fun HomeRingsSection(
                     onRingTap = if (isLoading) null else { ring -> onSelectedChannelChange(ring.recoveryChannel()) },
                 )
             }
-            Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 RingRowOrder.forEach { channel ->
                     val score = scoreOf(channel)
                     val cov = ringsCoverage.channel(channel)
@@ -202,9 +204,10 @@ fun HomeRingsSection(
         }
         if (dashboard != null && !isLoading) {
             Text(
-                text = "Confianza ${dashboard.confidenceLabel} · toca un anillo para ver por qué",
-                modifier = Modifier.padding(start = WizardSpacing.gutter, end = WizardSpacing.gutter, top = 14.dp),
-                style = WizardTypography.note,
+                // «por qué» va sin corte: no deja «qué» huérfano en la segunda línea.
+                text = "Confianza ${dashboard.confidenceLabel.lowercase()} · Toca un anillo para ver por qué",
+                modifier = Modifier.padding(top = 14.dp),
+                style = KpknType.caption,
                 color = WizardColors.textFaint,
             )
         }
