@@ -65,6 +65,9 @@ internal enum class PartMotion {
 
     /** Los omóplatos se juntan hacia la columna: se acercan a x = 0 en [MuscleArt.SCAPULA_TUCK] de su distancia. */
     SCAPULA_IN,
+
+    /** La mano aprieta: gira la muñeca ([MuscleArt.WRIST_FLEX_DEG]) y la barra se acerca [MuscleArt.GRIP_SQUEEZE] al antebrazo. */
+    GRIP,
 }
 
 /**
@@ -146,6 +149,9 @@ internal object MuscleArt {
     /** Fracción en que los omóplatos se acercan a la columna al contraerse. */
     const val SCAPULA_TUCK = 0.15f
 
+    /** Cuánto se acerca la barra al antebrazo al apretar la mano, en unidades del cuerpo. */
+    const val GRIP_SQUEEZE = 1f
+
     fun parse(d: String): Path = PathParser().parsePathString(d).toPath()
 
     /** Los datos de [m]. */
@@ -167,16 +173,16 @@ internal object MuscleArt {
                 MuscleArtPaths.SHOULDERS_REGION, MuscleArtPaths.SHOULDERS_DETAIL, fiberAngleDeg = 80f, origin = Offset(0f, 78f),
             ),
             MuscleSymbol.ARMS to spec(
-                MuscleFamily.ARM, MuscleArtPaths.ARMS_BACK, MuscleWindow(28f, 34f, 58f),
-                MuscleArtPaths.ARMS_REGION, MuscleArtPaths.ARMS_DETAIL, fiberAngleDeg = 0f, origin = Offset(6f, 40f),
+                MuscleFamily.ARM, MuscleArtPaths.ARMS_BACK, MuscleWindow(32f, 32f, 64f),
+                MuscleArtPaths.ARMS_REGION, MuscleArtPaths.ARMS_DETAIL, fiberAngleDeg = 0f, origin = Offset(14f, 30f),
                 outline = MuscleArtPaths.ARMS_OUTLINE, accentPart = MuscleArtPaths.ARMS_BICEPS_REGION,
-                moving = MuscleArtPaths.ARMS_FOREARM, motion = PartMotion.ELBOW_CLOSE, motionPivot = Offset(46f, 47f),
+                moving = MuscleArtPaths.ARMS_FOREARM, motion = PartMotion.ELBOW_CLOSE, motionPivot = Offset(41f, 37f),
             ),
             MuscleSymbol.FOREARMS to spec(
-                MuscleFamily.ARM, MuscleArtPaths.FOREARMS_BACK, MuscleWindow(32f, 39.5f, 72f),
-                MuscleArtPaths.FOREARMS_REGION, MuscleArtPaths.FOREARMS_DETAIL, fiberAngleDeg = 90f, origin = Offset(32f, 60f),
+                MuscleFamily.ARM, MuscleArtPaths.FOREARMS_BACK, MuscleWindow(28f, 40f, 64f),
+                MuscleArtPaths.FOREARMS_REGION, MuscleArtPaths.FOREARMS_DETAIL, fiberAngleDeg = -58.6f, origin = Offset(20f, 56f),
                 outline = MuscleArtPaths.FOREARMS_OUTLINE, moving = MuscleArtPaths.FOREARMS_MOVING,
-                motion = PartMotion.WRIST_FLEX, motionPivot = Offset(32f, 18f),
+                motion = PartMotion.GRIP, motionPivot = Offset(42f, 20f),
             ),
             MuscleSymbol.ABS to spec(
                 MuscleFamily.TORSO_FRONT, MuscleArtPaths.ABS_BACK, MuscleWindow(0f, 154.2f, 92f),
@@ -275,6 +281,12 @@ internal object MuscleArt {
             PartMotion.NONE -> Unit
             PartMotion.WRIST_FLEX -> rotateInto(WRIST_FLEX_DEG * k, spec.motionPivot, out)
             PartMotion.ELBOW_CLOSE -> rotateInto(ELBOW_CLOSE_DEG * k, spec.motionPivot, out)
+            PartMotion.GRIP -> {
+                rotateInto(WRIST_FLEX_DEG * k, spec.motionPivot, out)
+                // La barra se acerca al antebrazo: traslación hacia el eje, de la muñeca al codo (vector unitario −0,521; 0,853).
+                out.values[12] += -0.521f * GRIP_SQUEEZE * k
+                out.values[13] += 0.853f * GRIP_SQUEEZE * k
+            }
             PartMotion.SCAPULA_IN -> out.values[0] = 1f - SCAPULA_TUCK * k
         }
     }

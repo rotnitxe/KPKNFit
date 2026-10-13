@@ -252,27 +252,27 @@ class MuscleArtTest {
     fun `al contraerse la muneca flexiona y los omoplatos se juntan hacia la columna`() {
         val rest = Matrix()
         val full = Matrix()
-        // Antebrazo: el puño (x 32, y 5,4) gira unos 10° a la izquierda alrededor de la muñeca (32, 18); en reposo, nada.
+        // Antebrazo: la mano (borde de arriba, x 44, y 7,6) gira con la muñeca (10°) y la barra se aprieta 1 u hacia el antebrazo.
         val forearm = MuscleArt.spec(MuscleSymbol.FOREARMS)
         MuscleArt.motionInto(forearm, 0f, rest)
-        assertEquals(32f, applied(rest, 32f, 5.4f).first, 0.001f)
+        assertEquals(44f, applied(rest, 44f, 7.6f).first, 0.001f)
         MuscleArt.motionInto(forearm, 1f, full)
-        val (fx, fy) = applied(full, 32f, 5.4f)
-        assertTrue("la muñeca gira ${fx - 32f}", (fx - 32f) in -2.6f..-1.8f)
-        assertTrue("el puño no sube ni baja ($fy)", abs(fy - 5.4f) < 0.6f)
+        val (fx, fy) = applied(full, 44f, 7.6f)
+        assertTrue("la mano gira y aprieta ${fx - 44f}", (fx - 44f) in -3.5f..-1.5f)
+        assertTrue("la mano no sube ni baja de golpe ($fy)", abs(fy - 7.6f) < 2f)
         // Espalda: un omóplato (x 25) se acerca a la columna unas 3 unidades; la columna (x 0) no se mueve.
         val back = MuscleArt.spec(MuscleSymbol.BACK)
         MuscleArt.motionInto(back, 1f, full)
         val (sx, _) = applied(full, 25f, 108f)
         assertTrue("el omóplato se acerca ${25f - sx}", (25f - sx) in 2.5f..4f)
         assertEquals(0f, applied(full, 0f, 110f).first, 0.001f)
-        // Brazos: el codo cierra y el antebrazo, con el puño arriba, sube hacia el hombro unos 8 unidades (12 grados).
+        // Brazos: el codo cierra 12° alrededor del codo (41, 37): el antebrazo, en (46, 14), se va unas 5 u hacia el hombro.
         val arms = MuscleArt.spec(MuscleSymbol.ARMS)
         MuscleArt.motionInto(arms, 0f, rest)
-        assertEquals(46f, applied(rest, 46f, 5f).first, 0.001f)
+        assertEquals(46f, applied(rest, 46f, 14f).first, 0.001f)
         MuscleArt.motionInto(arms, 1f, full)
-        val (ex, _) = applied(full, 46f, 5f)
-        assertTrue("el codo cierra ${ex - 46f}", (ex - 46f) in -9.5f..-7.5f)
+        val (ex, _) = applied(full, 46f, 14f)
+        assertTrue("el codo cierra ${ex - 46f}", (ex - 46f) in -5.5f..-4.3f)
         // Su parte de acento entero (el bíceps) está dentro de la región de Brazos.
         assertTrue(arms.region.contains(checkNotNull(arms.accentPart)))
     }

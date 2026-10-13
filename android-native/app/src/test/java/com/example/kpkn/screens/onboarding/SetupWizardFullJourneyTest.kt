@@ -1013,10 +1013,11 @@ class SetupWizardFullJourneyTest {
     private fun expectedConfirmations(route: List<SetupStepId>): List<SetupStepId> =
         route.dropLast(1).toMutableList().apply { add(2, SetupStepId.NAME) }
 
-    /** Pecho, espalda y tríceps con un punto cada uno: los músculos canónicos del motor de orden. */
+    /** Pecho, espalda y brazos (bíceps y tríceps) con un punto cada uno: los músculos canónicos del motor de orden. */
     private fun priorityBag(): Map<String, Int> = linkedMapOf(
         "Pectorales" to 1,
         "Dorsales" to 1,
+        "Bíceps" to 1,
         "Tríceps" to 1,
     )
 

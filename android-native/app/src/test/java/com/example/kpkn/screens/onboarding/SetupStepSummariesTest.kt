@@ -601,8 +601,8 @@ class SetupStepSummariesTest {
         assertEquals(SetupStepSummary("Músculos a mejorar", "Espalda, Glúteos +1"), summary(SetupStepId.PRIORITIES, draft))
         // Brazos escribe dos puntos (bíceps y tríceps), pero en el resumen cuenta una vez.
         assertEquals("Brazos", value(SetupStepId.PRIORITIES, SetupWizardDraft().withMuscleToggled(MuscleSymbol.ARMS)))
-        // Un punto a cero no cuenta y un borrador antiguo con dos puntos sigue leyéndose.
-        assertEquals("Bíceps", value(SetupStepId.PRIORITIES, SetupWizardDraft(trainingOptions = TrainingOptions(orderPriorities = mapOf("Bíceps" to 2, "Dorsales" to 0)))))
+        // Un punto a cero no cuenta, y un borrador antiguo con «Bíceps» se lee como Brazos.
+        assertEquals("Brazos", value(SetupStepId.PRIORITIES, SetupWizardDraft(trainingOptions = TrainingOptions(orderPriorities = mapOf("Bíceps" to 2, "Dorsales" to 0)))))
         assertEquals(
             "Glúteos, Isquios +1",
             value(

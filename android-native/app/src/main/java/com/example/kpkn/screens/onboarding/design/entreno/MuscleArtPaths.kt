@@ -64,12 +64,10 @@ internal object MuscleArtPaths {
 
     // ---- FAMILIAS: el encuadre (MuscleFamily) y las marcas del cuerpo son de la familia; cada músculo aporta región y fibras.
 
-    /** Torso de frente: clavículas y ombligo. */
+    /** Torso de frente: clavículas. El ombligo salía como un punto suelto en el encuadre de Hombros, así que se quitó. */
     val TORSO_FRONT_CONTEXT: List<String> = listOf(
         "M3 66 C4.8 65.8 9.8 64.5 14 65 C18.2 65.5 23 67.1 28 69 C33 70.9 41.3 75.3 44 76.6",
         "M-44 76.6 C-41.3 75.3 -33 70.9 -28 69 C-23 67.1 -18.2 65.5 -14 65 C-9.8 64.5 -4.8 65.8 -3 66",
-        "M0 166.4 C0.5 166.4 1.6 168.1 1.6 169 C1.6 169.9 0.5 171.6 0 171.6 C-0.5 171.6 -1.6 169.9 -1.6 169 " +
-            "C-1.6 168.1 -0.5 166.4 0 166.4 Z",
     )
 
     /** Torso de espalda: sin marcas aparte; la columna y los omóplatos son trazos de Espalda (`BACK_DETAIL`, `BACK_SCAPULAE`). */
@@ -164,57 +162,63 @@ internal object MuscleArtPaths {
         "M-51.2 84.6 C-54.4 92.6 -56.4 101 -56.8 110",
     )
 
-    // ---- BRAZOS (de frente, perfil de «doble bíceps» de un brazo: hombro a la izquierda, húmero casi horizontal, antebrazo
-    // vertical y puño arriba). Bíceps = el pico de arriba del húmero, con el acento entero; tríceps = la herradura de abajo,
-    // al 55 %. Sustituye a los antiguos BICEPS y TRICEPS (K1).
+    // ---- BRAZOS (gesto de perfil, «doble bíceps» de un brazo: hombro a la izquierda, húmero casi horizontal hacia el codo,
+    // antebrazo casi vertical y puño arriba). Bíceps = cúpula redondeada de arriba del húmero, con el acento entero; tríceps =
+    // lóbulo de abajo que cuelga y se une al codo, al 55 %. Sustituye a BICEPS y TRICEPS (K1, ronda 3).
     const val ARMS_BACK = false
-    /** Contorno estático de Brazos: el húmero y el borde del deltoides y del torso, en tinta tenue (contexto). */
+    /** Contexto en tinta tenue: el arco del casquete del deltoides (centro 14,30; radio 7) y el borde del torso a la izquierda. */
     const val ARMS_OUTLINE =
-        "M12 35 L39.8 38.5 L41.5 38.5 L41.5 45 L12 45 C8.5 45 6 42.5 6 40 C6 37.5 8.5 35 12 35 Z " +
-        "M15 12 C8 20 4 30 4 40 C4 50 8 56 15 62 M1 12 C-0.5 24 -1 40 -0.5 56"
+        "M14 23 C9.6 23 7 26 7 30 C7 34 9.6 37 14 37 M6.5 6 C5.6 16 5.6 44 6.8 56"
 
-    /** El antebrazo con su puño: pieza móvil en tinta que gira con el codo al contraerse (el codo cierra). */
+    /** El antebrazo y la mano (puño con nudillos y pulgar): pieza móvil con relleno de tinta al 10 %; gira con el codo. */
     const val ARMS_FOREARM =
-        "M39.8 38.5 L41.5 15 C41.5 9.5 43.5 5 46 5 C48.5 5 50.5 9.5 50.5 15 L48.4 45 C48.6 47.5 48.5 49 46.5 49 " +
-        "L41.5 45 Z"
-    /** El bíceps: el pico de arriba del húmero, con el acento entero. */
+        "M34.6 35.6 L42.1 13.2 L49.9 14.8 C50.9 22 51.2 30 47.4 38.4 Z " +
+        "M42.1 13.4 L41.6 9.5 C41.4 6.2 43.4 5.2 46.5 5.2 L50.2 5.2 C52.2 5.4 53 7.2 52.8 9.5 L52.4 14.6 Z " +
+        "M41.7 7.6 C40.3 7.4 40.3 9.2 41.7 9.4 M41.7 9.8 C40.3 9.6 40.3 11.4 41.7 11.6 M41.8 12 C40.6 11.9 40.6 13.4 42.1 13.4 " +
+        "M52.6 7.6 C51.4 8.2 51.4 10.6 52.6 11.2"
+    /** El bíceps: cúpula redondeada sobre el húmero (cúspide en x≈28), con el acento entero. */
     const val ARMS_BICEPS_REGION =
-        "M12 40 C12 34 17 30 22 26.5 C24 25 25.5 22.8 27 22 C29 23 31 26 33 27 C36.5 28.5 39.5 32.5 40.5 36 " +
-        "C41 37.5 41 39 41 40 Z"
-    /** El tríceps: la herradura de abajo del húmero, que se curva hacia el codo; va al 55 % del acento. */
+        "M18 31.2 C19.4 27 23 24.4 28 24.4 C33 24.4 36.6 27 38 31.4 C38.7 33.2 39.2 35.4 39.5 37.6 Z"
+    /** El tríceps: lóbulo bajo el húmero que cuelga un poco por debajo de la línea del brazo y se une al codo; va al 55 %. */
     const val ARMS_TRICEPS_REGION =
-        "M12 40 L41 40 C41.5 43 42.5 46 43 48.5 C43.4 51 41 52.5 38.5 51.5 C36 50.5 36 47.5 34 46.5 " +
-        "C31.5 45.3 28.5 45.5 25 45.6 C20 45.8 16 45.6 12 45 C10.4 44.7 10.2 42 12 40 Z"
+        "M14 30 L40 37.6 C41.6 38.4 42.2 39.6 42 40.6 C41.8 42.4 40.6 44.2 39 45.4 C36.4 47.4 32.4 47.4 29 46.4 " +
+        "C24 45 18.6 42.4 15 37.6 C13.2 35.2 12.8 32.2 14 30 Z"
     /** La región de Brazos entera (bíceps y tríceps): la forma y el encuadre. */
     const val ARMS_REGION = ARMS_BICEPS_REGION + " " + ARMS_TRICEPS_REGION
 
-    /** La línea fina de tinta entre el bíceps y el tríceps. */
+    /** La línea fina de tinta entre el bíceps y el tríceps (la línea del húmero). */
     val ARMS_DETAIL: List<String> = listOf(
-        "M12.5 40 C20 40.6 33 40.6 40.5 40",
+        "M17 31 C25 32.4 33 35 39.5 37.6",
     )
 
-    // ---- FOREARMS (de frente: antebrazo vertical, codo abajo y puño arriba agarrando un mango horizontal)
+    // ---- FOREARMS (antebrazo en diagonal: codo abajo a la izquierda, muñeca arriba a la derecha; la mano agarra una barra)
     const val FOREARMS_BACK = false
-    /** Antebrazo estático, de la muñeca (y≈18) al codo (y≈62). El puño y el mango van aparte: [FOREARMS_MOVING]. */
+    /** Contexto: el cuerpo del antebrazo, afinado (14 u en el codo, 8 u en la muñeca), y un trozo del brazo bajo el codo. */
     const val FOREARMS_OUTLINE =
-        "M26.5 18 C26.8 26 25 34 24 42 C23.2 50 23 56 24 60 C27 62.5 37 62.5 40 60 C41 56 40.8 50 40 42 " +
-        "C39 34 37.2 26 37.5 18 Z"
-    /** La masa de los flexores: ancha junto al codo y afinada hacia la muñeca, con forma de gota. */
+        "M14.03 52.35 L38.59 17.92 L45.41 22.08 L25.97 59.65 C26.5 61.5 24.5 63 21 63 C17 63 12.5 58 14.03 52.35 Z " +
+        "M19 63 C15 66 12 70 14 74 C16 78 24 77 27 72"
+    /** La masa de los flexores: una gota en la cara de arriba, del codo a mitad del antebrazo; va con el acento. */
     const val FOREARMS_REGION =
-        "M28 24 C28.5 32 25 40 24.5 47 C24 53 26.5 58 32 58.5 C37.5 58 40 53 39.5 47 C39 40 35.5 32 36 24 " +
-        "C34.5 22.5 29.5 22.5 28 24 Z"
+        "M20.85 56.52 L27.88 45.98 L34.22 34.99 C35.4 32.9 36.2 30.8 36.5 29 C35.6 30.3 33.2 33.8 30.56 35.26 " +
+        "L23.36 43.22 L17.49 50.52 C15.6 52.8 16 55.4 20.85 56.52 Z"
 
-    /** Vientre y supinador largo (la línea del lado del pulgar). */
+    /** El supinador largo: la línea del lado del pulgar, como detalle. */
     val FOREARMS_DETAIL: List<String> = listOf(
-        "M36 52 C37 46 36.6 38 35 30",
-        "M30 30 C30.4 36 30.6 44 31 50",
+        "M23.3 52.1 C26 46 29 41 32.8 36.6",
     )
 
-    /** La pieza móvil: el puño, sus nudillos y el mango que atraviesa el puño. Gira con la muñeca al contraerse. */
+    /**
+     * La mano que agarra la barra (pieza móvil): los dedos pasan por encima de la barra, con 4 nudillos y el pulgar debajo;
+     * la barra solo se ve fuera de la mano. Gira con la muñeca y se aprieta contra el antebrazo al contraerse.
+     */
     const val FOREARMS_MOVING =
-        "M26.5 18 L25.6 12.5 C25.2 9.5 26.8 6.2 30 5.4 L34 5.4 C37.2 6.2 38.8 9.5 38.4 12.5 L37.5 18 Z " +
-        "M27.5 7.6 C29 6.6 31 6.4 32 7.4 C33 6.4 35 6.6 36.5 7.6 " +
-        "M13 10.2 L51 10.2 C52.4 10.2 52.6 13.8 51 13.8 L13 13.8 C11.6 13.8 11.4 10.2 13 10.2 Z"
+        "M24.5 12.5 L38.5 12.5 L38.5 15.5 L24.5 15.5 C23.2 15.5 23.2 12.5 24.5 12.5 Z " +
+        "M50 12.5 L58.5 12.5 C60 12.5 60 15.5 58.5 15.5 L50 15.5 Z " +
+        "M38.5 13 C38.5 9.2 40.2 7.6 43 7.6 L47.4 7.6 C49.8 7.6 50.6 9.4 50.2 12.2 C50 13.8 49.4 15.4 49.4 17.2 " +
+        "C49.4 19.2 47.6 20 45.4 19.6 L41.2 18.8 C39.2 18.4 38.5 16.4 38.5 13 Z " +
+        "M40 9.2 C39.2 7.6 40.8 6.8 41.6 7.8 M42.6 8.6 C42 6.8 43.8 6.2 44.4 7.8 M45 8.4 C44.6 6.9 46.4 6.5 46.8 8.1 " +
+        "M47.4 8.8 C47.4 7.4 49.2 7.2 49.5 8.9 " +
+        "M41.2 18.8 C42.6 20.6 46 20.8 47.6 19.2"
 
     // ---- ABS
     const val ABS_BACK = false

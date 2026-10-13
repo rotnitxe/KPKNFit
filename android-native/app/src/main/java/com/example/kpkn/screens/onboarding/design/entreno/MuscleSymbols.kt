@@ -475,6 +475,8 @@ private fun DrawScope.drawMuscle(shape: MuscleShape, state: MuscleDrawState, sel
                 }
             } else {
                 withTransform({ transform(state.motion) }) {
+                    // Relleno de tinta al 10 % y contorno encima: la pieza se lee como cuerpo, no como alambre.
+                    drawPath(moving, ink.copy(alpha = 0.10f))
                     drawPath(moving, lerp(ink.copy(alpha = 0.6f), ink, sel), style = state.strokes.edge)
                 }
             }

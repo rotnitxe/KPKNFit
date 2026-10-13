@@ -394,7 +394,7 @@ class EntrenoStepsSmokeTest {
             EntrenoMusclesStep(s, v)
         }
         rule.onNodeWithTag("setup-muscle-FOREARMS").assertIsOn()
-        rule.onNodeWithTag("setup-muscle-BICEPS").assertIsOn()
+        rule.onNodeWithTag("setup-muscle-ARMS").assertIsOn()
         rule.onAllNodesWithText("Sugerido").assertCountEquals(2)
     }
 
