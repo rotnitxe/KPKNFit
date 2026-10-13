@@ -38,7 +38,8 @@ import com.example.kpkn.screens.onboarding.design.WizardColors
 import com.example.kpkn.screens.onboarding.design.WizardTypography
 
 /**
- * Acción de texto (KPKN_UI_V2 §6): `action` en tinta y, si hay [icon], de 16 dp a la derecha. Zona táctil de 48 dp de alto.
+ * Acción de texto (KPKN_UI_V2 §6): `action` en [color] (tinta por defecto) y, si hay [icon], de 16 dp a la derecha. Zona táctil de 48 dp
+ * de alto.
  */
 @Composable
 fun KpknTextAction(
@@ -46,6 +47,7 @@ fun KpknTextAction(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     icon: ImageVector? = null,
+    color: Color = WizardColors.text,
 ) {
     Row(
         modifier = modifier
@@ -56,13 +58,13 @@ fun KpknTextAction(
         Text(
             text = text,
             style = KpknType.action,
-            color = WizardColors.text,
+            color = color,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
         )
         if (icon != null) {
             Spacer(Modifier.width(4.dp))
-            Icon(imageVector = icon, contentDescription = null, modifier = Modifier.size(16.dp), tint = WizardColors.text)
+            Icon(imageVector = icon, contentDescription = null, modifier = Modifier.size(16.dp), tint = color)
         }
     }
 }
@@ -81,7 +83,7 @@ fun KpknPrimaryPill(
     icon: ImageVector? = null,
     enabled: Boolean = true,
 ) {
-    KpknPill(text = text, onClick = onClick, modifier = modifier, tag = tag, icon = icon, enabled = enabled, filled = true)
+    KpknPill(text = text, onClick = onClick, modifier = modifier, tag = tag, icon = icon, enabled = enabled, tone = KpknPillTone.FILLED)
 }
 
 /**
@@ -96,8 +98,11 @@ fun KpknSecondaryPill(
     icon: ImageVector? = null,
     enabled: Boolean = true,
 ) {
-    KpknPill(text = text, onClick = onClick, modifier = modifier, tag = tag, icon = icon, enabled = enabled, filled = false)
+    KpknPill(text = text, onClick = onClick, modifier = modifier, tag = tag, icon = icon, enabled = enabled, tone = KpknPillTone.OUTLINED)
 }
+
+/** Tono de una píldora: relleno de tinta (principal), solo borde (secundaria) o relleno de peligro (destructiva). */
+private enum class KpknPillTone { FILLED, OUTLINED, DANGER }
 
 @Composable
 private fun KpknPill(
@@ -107,7 +112,7 @@ private fun KpknPill(
     tag: String?,
     icon: ImageVector?,
     enabled: Boolean,
-    filled: Boolean,
+    tone: KpknPillTone,
 ) {
     val interaction = remember { MutableInteractionSource() }
     val pressed by interaction.collectIsPressedAsState()
@@ -117,14 +122,15 @@ private fun KpknPill(
         label = "kpknPillScale",
     )
     val fill = when {
-        !filled -> Color.Transparent
-        enabled -> WizardColors.text
-        else -> WizardColors.ctaDisabled
+        tone == KpknPillTone.OUTLINED -> Color.Transparent
+        !enabled -> WizardColors.ctaDisabled
+        tone == KpknPillTone.DANGER -> WizardColors.danger
+        else -> WizardColors.text
     }
     val ink = when {
         !enabled -> WizardColors.ctaDisabledContent
-        filled -> WizardColors.ctaContent
-        else -> WizardColors.text
+        tone == KpknPillTone.OUTLINED -> WizardColors.text
+        else -> WizardColors.ctaContent
     }
     Box(
         modifier = modifier
@@ -136,7 +142,10 @@ private fun KpknPill(
             }
             .clip(KpknShape.pill)
             .background(fill, KpknShape.pill)
-            .then(if (!filled) Modifier.border(1.dp, WizardColors.text.copy(alpha = 0.24f), KpknShape.pill) else Modifier)
+            .then(
+                if (tone == KpknPillTone.OUTLINED) Modifier.border(1.dp, WizardColors.text.copy(alpha = 0.24f), KpknShape.pill)
+                else Modifier,
+            )
             .clickable(
                 interactionSource = interaction,
                 indication = null,
@@ -205,4 +214,20 @@ fun KpknIconButton(
             Icon(imageVector = icon, contentDescription = null, modifier = Modifier.size(20.dp), tint = ink)
         }
     }
+}
+
+/**
+ * Píldora destructiva (KPKN_UI_V2 §6, D2): la misma que [KpknPrimaryPill], con relleno `danger` y texto negro. Solo para confirmar una
+ * acción que borra o quita algo. Con [enabled] = false se pinta apagada, como las demás.
+ */
+@Composable
+fun KpknDangerPill(
+    text: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    tag: String? = null,
+    icon: ImageVector? = null,
+    enabled: Boolean = true,
+) {
+    KpknPill(text = text, onClick = onClick, modifier = modifier, tag = tag, icon = icon, enabled = enabled, tone = KpknPillTone.DANGER)
 }

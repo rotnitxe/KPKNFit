@@ -1457,12 +1457,17 @@ private fun MiniNutritionCard(
  * filas) y la píldora principal «Registrar comida». Sin comidas, la frase de vacío.
  */
 @Composable
-private fun NutritionTodayGlassOverlay(
+internal fun NutritionTodayGlassOverlay(
     hazeState: HazeState,
     meals: List<NutritionLog>,
     onDismiss: () -> Unit,
     onAddMeal: () -> Unit,
 ) {
+    // Capa abierta: la isla superior se oculta mientras esté, como con una hoja o un diálogo (I12).
+    DisposableEffect(Unit) {
+        KpknModalTracker.onOpened()
+        onDispose { KpknModalTracker.onClosed() }
+    }
     Box(
         modifier = Modifier
             .fillMaxSize()

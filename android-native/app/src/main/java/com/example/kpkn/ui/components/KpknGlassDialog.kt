@@ -25,6 +25,7 @@ import dev.chrisbanes.haze.HazeState
 /**
  * Centered in-composition glass dialog (via [KpknPortal]).
  * Use for custom dialog bodies that previously lived in a Material [androidx.compose.ui.window.Dialog].
+ * El contenido va con la tipografía de KPKN ([KpknDialogTheme]); cada texto puede fijar la suya.
  */
 @Composable
 fun KpknGlassDialog(
@@ -82,8 +83,10 @@ fun KpknGlassDialog(
                         onClick = {},
                     ),
             ) {
-                KpknSheetContentTheme {
-                    content()
+                KpknDialogTheme {
+                    KpknSheetContentTheme {
+                        content()
+                    }
                 }
             }
         }
