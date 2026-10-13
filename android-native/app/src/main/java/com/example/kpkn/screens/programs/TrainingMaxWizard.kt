@@ -1,33 +1,45 @@
 package com.example.kpkn.screens.programs
 
-import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.style.LineBreak
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.example.kpkn.data.models.PowerliftingProfile
+import com.example.kpkn.domain.onboarding.LiftMark
 import com.example.kpkn.domain.training.TrainingMaxResolver
+import com.example.kpkn.screens.onboarding.design.WizardColors
+import com.example.kpkn.screens.onboarding.design.entreno.LiftMarksPicker
+import com.example.kpkn.screens.onboarding.design.entreno.MarksMath
+import com.example.kpkn.screens.programdetail.design.ScrollEdgeFade
 import com.example.kpkn.ui.components.KpknSheet
-import com.example.kpkn.ui.components.KpknSheetWhiteButton
-import com.example.kpkn.ui.components.kpknSheetWhiteFieldColors
+import com.example.kpkn.ui.design.KpknPrimaryPill
+import com.example.kpkn.ui.design.KpknSecondaryPill
+import com.example.kpkn.ui.design.KpknTextAction
+import com.example.kpkn.ui.design.KpknType
+
+/** Etiqueta de prueba del botón de guardar del TM. */
+internal const val TM_SAVE_TAG = "program-tm-save"
+
+/** Los levantamientos del TM: los tres de competición y el press militar, que es opcional. */
+private val TmLifts = listOf(LiftMark.SQUAT, LiftMark.BENCH, LiftMark.DEADLIFT, LiftMark.OVERHEAD_PRESS)
 
 @Composable
 fun TrainingMaxWizard(
@@ -38,105 +50,129 @@ fun TrainingMaxWizard(
     onDismiss: () -> Unit,
     onConfirm: (PowerliftingProfile) -> Unit,
 ) {
-    var squat by remember(initial) { mutableStateOf(initial?.squat1RM?.toString().orEmpty()) }
-    var bench by remember(initial) { mutableStateOf(initial?.bench1RM?.toString().orEmpty()) }
-    var deadlift by remember(initial) { mutableStateOf(initial?.deadlift1RM?.toString().orEmpty()) }
-    var overhead by remember(initial) { mutableStateOf(initial?.overhead1RM?.toString().orEmpty()) }
-    var attempted by remember { mutableStateOf(false) }
+    KpknSheet(onDismissRequest = onDismiss, stableHeightFraction = 0.9f) {
+        TrainingMaxContent(
+            initial = initial,
+            autoEstimate = autoEstimate,
+            trainingMaxPercent = trainingMaxPercent,
+            confirmLabel = confirmLabel,
+            onDismiss = onDismiss,
+            onConfirm = onConfirm,
+        )
+    }
+}
 
-    fun parsed(text: String): Double? = text.replace(',', '.').toDoubleOrNull()?.takeIf { it > 0 }
+/**
+ * El contenido de la hoja de TM, sin su contenedor: los levantamientos en la regla de marcas, la vista previa y, abajo, «Guardar» y
+ * «Más tarde». La unidad empieza en kg (la firma no recibe la de Ajustes): el conmutador solo cambia la vista, y lo guardado es kg.
+ */
+@Composable
+internal fun TrainingMaxContent(
+    initial: PowerliftingProfile?,
+    autoEstimate: PowerliftingProfile?,
+    trainingMaxPercent: Double,
+    confirmLabel: String,
+    onDismiss: () -> Unit,
+    onConfirm: (PowerliftingProfile) -> Unit,
+) {
+    var marks by remember(initial) { mutableStateOf(tmMarksOf(initial)) }
+    var unit by remember { mutableStateOf(MarksMath.UNIT_KG) }
+    val preview = TrainingMaxResolver.hydrateProfile(
+        PowerliftingProfile(
+            squat1RM = positiveKg(marks[LiftMark.SQUAT]),
+            bench1RM = positiveKg(marks[LiftMark.BENCH]),
+            deadlift1RM = positiveKg(marks[LiftMark.DEADLIFT]),
+            overhead1RM = positiveKg(marks[LiftMark.OVERHEAD_PRESS]),
+        ),
+        trainingMaxPercent,
+    )
+    val hasValidInput = positiveKg(marks[LiftMark.SQUAT]) != null ||
+        positiveKg(marks[LiftMark.BENCH]) != null ||
+        positiveKg(marks[LiftMark.DEADLIFT]) != null
+    val noMarks = marks[LiftMark.SQUAT] == null && marks[LiftMark.BENCH] == null && marks[LiftMark.DEADLIFT] == null
+    val scroll = rememberScrollState()
+    // Solo cambia el booleano: la franja aparece o se va sin recomponer la hoja en cada tick del scroll.
+    val canScrollMore by remember { derivedStateOf { scroll.canScrollForward } }
 
-    KpknSheet(onDismissRequest = onDismiss) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 20.dp, vertical = 8.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp),
-        ) {
-            Text("Máximo de entrenamiento (TM)", fontWeight = FontWeight.Black, fontSize = 20.sp, color = Color.White)
-            Text(
-                trainingMaxIntro(trainingMaxPercent),
-                style = MaterialTheme.typography.bodySmall,
-                color = Color.White.copy(alpha = 0.7f),
-            )
-            trainingMaxFiveRepNote(trainingMaxPercent)?.let { note ->
+    Column(modifier = Modifier.fillMaxSize()) {
+        Box(modifier = Modifier.weight(1f).fillMaxWidth()) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .verticalScroll(scroll)
+                    .padding(horizontal = 20.dp, vertical = 8.dp),
+            ) {
                 Text(
-                    note,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = Color.White.copy(alpha = 0.7f),
+                    text = "Máximo de entrenamiento",
+                    style = KpknType.title,
+                    color = WizardColors.text,
+                    modifier = Modifier.semantics { heading() },
                 )
-            }
-            if (autoEstimate != null && squat.isBlank() && bench.isBlank() && deadlift.isBlank()) {
-                TextButton(onClick = {
-                    autoEstimate.squat1RM?.let { squat = trimTrailingZero(it) }
-                    autoEstimate.bench1RM?.let { bench = trimTrailingZero(it) }
-                    autoEstimate.deadlift1RM?.let { deadlift = trimTrailingZero(it) }
-                    autoEstimate.overhead1RM?.let { overhead = trimTrailingZero(it) }
-                }) {
-                    Text("Calcular desde mi historial")
+                Spacer(Modifier.height(8.dp))
+                Text(
+                    text = trainingMaxIntro(trainingMaxPercent),
+                    style = KpknType.body.copy(lineBreak = LineBreak.Paragraph),
+                    color = WizardColors.textMuted,
+                )
+                trainingMaxFiveRepNote(trainingMaxPercent)?.let { note ->
+                    Spacer(Modifier.height(6.dp))
+                    Text(
+                        text = note,
+                        style = KpknType.caption.copy(lineBreak = LineBreak.Paragraph),
+                        color = WizardColors.textMuted,
+                    )
                 }
-            }
-            TmField(value = squat, onValueChange = { squat = it }, label = "Sentadilla 1RM (kg)")
-            TmField(value = bench, onValueChange = { bench = it }, label = "Press de banca 1RM (kg)")
-            TmField(value = deadlift, onValueChange = { deadlift = it }, label = "Peso muerto 1RM (kg)")
-            TmField(value = overhead, onValueChange = { overhead = it }, label = "Press militar 1RM (kg, opcional)")
-            if (attempted && parsed(squat) == null && parsed(bench) == null && parsed(deadlift) == null) {
-                Text(
-                    "Introduce al menos un 1RM válido para guardar.",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = Color(0xFFFBBF24),
+                if (autoEstimate != null && noMarks) {
+                    Spacer(Modifier.height(14.dp))
+                    KpknSecondaryPill(
+                        text = "Calcular desde mi historial",
+                        onClick = { marks = marks + tmMarksOf(autoEstimate) },
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                }
+                Spacer(Modifier.height(16.dp))
+                LiftMarksPicker(
+                    lifts = TmLifts,
+                    valuesKg = marks,
+                    unit = unit,
+                    onValueKg = { lift, kg -> marks = if (kg == null) marks - lift else marks + (lift to kg) },
+                    onUnit = { unit = it },
+                    variantLabels = mapOf(LiftMark.OVERHEAD_PRESS to "opcional"),
                 )
             }
-            val preview = TrainingMaxResolver.hydrateProfile(
-                PowerliftingProfile(
-                    squat1RM = parsed(squat),
-                    bench1RM = parsed(bench),
-                    deadlift1RM = parsed(deadlift),
-                    overhead1RM = parsed(overhead),
-                ),
-                trainingMaxPercent,
-            )
+            if (canScrollMore) ScrollEdgeFade(modifier = Modifier.align(Alignment.BottomCenter))
+        }
+        Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 12.dp)) {
             Text(
-                trainingMaxPreviewLine(preview.squatTM, preview.benchTM, preview.deadliftTM),
-                color = Color.White.copy(alpha = 0.8f),
-                style = MaterialTheme.typography.bodySmall,
+                text = trainingMaxPreviewLine(preview.squatTM, preview.benchTM, preview.deadliftTM),
+                style = KpknType.caption.copy(fontFeatureSettings = "'tnum' 1", lineBreak = LineBreak.Paragraph),
+                color = WizardColors.text,
             )
-            val hasValidInput = parsed(squat) != null || parsed(bench) != null || parsed(deadlift) != null
-            KpknSheetWhiteButton(
+            Spacer(Modifier.height(12.dp))
+            KpknPrimaryPill(
                 text = confirmLabel,
+                onClick = { onConfirm(preview) },
+                modifier = Modifier.fillMaxWidth(),
+                tag = TM_SAVE_TAG,
                 enabled = hasValidInput,
-                onClick = {
-                    attempted = true
-                    if (!hasValidInput) return@KpknSheetWhiteButton
-                    onConfirm(preview)
-                },
             )
-            TextButton(onClick = onDismiss, modifier = Modifier.fillMaxWidth()) {
-                Text("Más tarde", color = Color.White.copy(alpha = 0.85f))
+            Box(modifier = Modifier.fillMaxWidth().padding(top = 4.dp), contentAlignment = Alignment.Center) {
+                KpknTextAction(text = "Más tarde", onClick = onDismiss)
             }
-            Spacer(Modifier.height(8.dp))
         }
     }
 }
 
-@Composable
-private fun TmField(value: String, onValueChange: (String) -> Unit, label: String) {
-    OutlinedTextField(
-        value = value,
-        onValueChange = onValueChange,
-        label = { Text(label) },
-        modifier = Modifier.fillMaxWidth(),
-        singleLine = true,
-        shape = RoundedCornerShape(14.dp),
-        colors = kpknSheetWhiteFieldColors(),
-        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-    )
+/** Las marcas declaradas de un perfil (solo las mayores que cero): lo que la regla muestra como marca, por levantamiento. */
+internal fun tmMarksOf(profile: PowerliftingProfile?): Map<LiftMark, Double> = buildMap {
+    positiveKg(profile?.squat1RM)?.let { put(LiftMark.SQUAT, it) }
+    positiveKg(profile?.bench1RM)?.let { put(LiftMark.BENCH, it) }
+    positiveKg(profile?.deadlift1RM)?.let { put(LiftMark.DEADLIFT, it) }
+    positiveKg(profile?.overhead1RM)?.let { put(LiftMark.OVERHEAD_PRESS, it) }
 }
 
-private fun trimTrailingZero(value: Double): String {
-    val asLong = value.toLong()
-    return if (value == asLong.toDouble()) asLong.toString() else value.toString()
-}
+/** Un 1RM válido es mayor que cero; con 0 o sin dato, el levantamiento cuenta como «No la sé». */
+private fun positiveKg(kg: Double?): Double? = kg?.takeIf { it > 0 }
 
 /** Porcentaje del 1RM que usan Texas Method y Madcow como TM (D7): un peso parecido a un 5RM. */
 private const val TEXAS_MADCOW_TM_PERCENT = 87

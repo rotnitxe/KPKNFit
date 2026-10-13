@@ -10,9 +10,11 @@ import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.models.ProgramKeyDate
 import com.example.kpkn.data.models.ProgramMode
 import com.example.kpkn.data.models.ProgramStructure
+import com.example.kpkn.data.models.PowerliftingProfile
 import com.example.kpkn.data.models.ProgramWeek
 import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.models.SessionRequirement
+import com.example.kpkn.domain.onboarding.LiftMark
 import com.example.kpkn.domain.training.SessionDurationEstimator
 import com.example.kpkn.screens.onboarding.design.entreno.plan.cover.coverIdentityForProgram
 import com.example.kpkn.screens.programdetail.design.ProgramDayUi
@@ -323,4 +325,20 @@ internal object ProgramStructureSamples {
         "La competición no cae dentro de las semanas actuales del programa. Ajusta fechas o agrega semanas.",
         "El término manual queda antes del término proyectado. Agrega o quita semanas para que calce.",
     )
+}
+
+/** Datos de ejemplo de la hoja de máximos y del TM (P6): un test de fuerza y la estimación del historial. Sin datos reales. */
+internal object ProgramOneRmSamples {
+    /** Los 1RM del test en kg: sentadilla 142,5, banca 100 y peso muerto 180. */
+    val testedKg: Map<LiftMark, Double> = mapOf(
+        LiftMark.SQUAT to 142.5,
+        LiftMark.BENCH to 100.0,
+        LiftMark.DEADLIFT to 180.0,
+    )
+
+    /** Un TM ya guardado: los tres 1RM y un press militar. */
+    val savedProfile = PowerliftingProfile(squat1RM = 142.5, bench1RM = 100.0, deadlift1RM = 180.0, overhead1RM = 62.5)
+
+    /** La estimación del historial que ofrece «Calcular desde mi historial». */
+    val historyEstimate = PowerliftingProfile(squat1RM = 145.0, bench1RM = 102.5, deadlift1RM = 185.0)
 }

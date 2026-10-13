@@ -29,8 +29,10 @@ import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.models.SimpleProgramKind
 import com.example.kpkn.data.models.KeyDateType
 import com.example.kpkn.data.models.PendingProgramActionType
+import com.example.kpkn.data.models.WeightUnit
 import com.example.kpkn.data.models.isSimpleTemporalProgram
 import com.example.kpkn.data.programs.PersonalizedPlanCatalog
+import com.example.kpkn.data.repository.ProgramRepository
 import com.example.kpkn.screens.programs.PlanInfoMode
 import com.example.kpkn.screens.programs.PlanInfoSheet
 import com.example.kpkn.screens.programs.TrainingMaxWizard
@@ -39,6 +41,7 @@ import com.example.kpkn.domain.training.ProgramAnalyticsEngine
 import com.example.kpkn.domain.training.ProgramCalendarEngine
 import com.example.kpkn.domain.training.ProgramProgressEngine
 import com.example.kpkn.domain.training.BlockTransitionEngine
+import com.example.kpkn.domain.onboarding.LiftMark
 import com.example.kpkn.screens.programdetail.components.*
 import com.example.kpkn.services.workout.LoopNotificationManager
 import com.example.kpkn.ui.components.KpknSnackbar
@@ -66,6 +69,7 @@ import com.example.kpkn.data.models.isSimpleProgram
 import com.example.kpkn.data.programs.programCoverEntryIdOf
 import com.example.kpkn.domain.training.HomeSessionResolver.allWeekLocations
 import com.example.kpkn.screens.onboarding.design.WizardDarkSystemBars
+import com.example.kpkn.screens.onboarding.design.entreno.MarksMath
 import com.example.kpkn.screens.onboarding.design.entreno.plan.cover.coverIdentityForProgram
 import com.example.kpkn.screens.programdetail.design.ProgramAboutModule
 import com.example.kpkn.screens.programdetail.design.ProgramDetailPlaceholder
@@ -78,6 +82,7 @@ import com.example.kpkn.screens.programdetail.design.ProgramHeaderPrimary
 import com.example.kpkn.screens.programdetail.design.ProgramHeaderState
 import com.example.kpkn.screens.programdetail.design.ProgramMenuItem
 import com.example.kpkn.screens.programdetail.design.ProgramMoreMenu
+import com.example.kpkn.screens.programdetail.design.ProgramOneRmSheet
 import com.example.kpkn.screens.programdetail.design.ProgramPinnedTabs
 import com.example.kpkn.screens.programdetail.design.ProgramPinnedTopOffset
 import com.example.kpkn.screens.programdetail.design.ProgramIslandBottom
@@ -176,9 +181,10 @@ fun ProgramDetailScreen(
     var editDraft by remember { mutableStateOf<ProgramEditDraft?>(null) }
     // Id de la entrada del catálogo cuya hoja «Cómo funciona» está abierta (solo lectura); null = cerrada.
     var planInfoEntryId by rememberSaveable { mutableStateOf<String?>(null) }
-    var squat1RmText by rememberSaveable { mutableStateOf("") }
-    var bench1RmText by rememberSaveable { mutableStateOf("") }
-    var deadlift1RmText by rememberSaveable { mutableStateOf("") }
+    // Máximos del test de 1RM en kg para la hoja «Registrar tus máximos»; null = sin marca declarada.
+    var squat1RmKg by rememberSaveable { mutableStateOf<Double?>(null) }
+    var bench1RmKg by rememberSaveable { mutableStateOf<Double?>(null) }
+    var deadlift1RmKg by rememberSaveable { mutableStateOf<Double?>(null) }
 
     WizardDarkSystemBars()
 
@@ -505,47 +511,32 @@ fun ProgramDetailScreen(
     }
 
     if (showOneRmDialog) {
-        AlertDialog(
-            onDismissRequest = { showOneRmDialog = false },
-            title = { Text("Registrar 1RM", fontWeight = FontWeight.Black) },
-            text = {
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text("Introduce los máximos válidos de la sesión de test.")
-                    OutlinedTextField(
-                        value = squat1RmText,
-                        onValueChange = { squat1RmText = it },
-                        label = { Text("Sentadilla (kg)") },
-                        singleLine = true,
-                    )
-                    OutlinedTextField(
-                        value = bench1RmText,
-                        onValueChange = { bench1RmText = it },
-                        label = { Text("Banca (kg)") },
-                        singleLine = true,
-                    )
-                    OutlinedTextField(
-                        value = deadlift1RmText,
-                        onValueChange = { deadlift1RmText = it },
-                        label = { Text("Peso muerto (kg)") },
-                        singleLine = true,
-                    )
+        // La unidad es la de Ajustes al abrir; el conmutador de la hoja solo cambia su vista. Lo guardado son kg.
+        val settings by ProgramRepository.getInstance().settings.collectAsState()
+        val settingsUnit = if (settings.weightUnit == WeightUnit.LBS) MarksMath.UNIT_LB else MarksMath.UNIT_KG
+        var oneRmUnit by rememberSaveable(settingsUnit) { mutableStateOf(settingsUnit) }
+        val marks = buildMap<LiftMark, Double> {
+            squat1RmKg?.let { put(LiftMark.SQUAT, it) }
+            bench1RmKg?.let { put(LiftMark.BENCH, it) }
+            deadlift1RmKg?.let { put(LiftMark.DEADLIFT, it) }
+        }
+        ProgramOneRmSheet(
+            valuesKg = marks,
+            unit = oneRmUnit,
+            onValueKg = { lift, kg ->
+                when (lift) {
+                    LiftMark.SQUAT -> squat1RmKg = kg
+                    LiftMark.BENCH -> bench1RmKg = kg
+                    LiftMark.DEADLIFT -> deadlift1RmKg = kg
+                    else -> Unit
                 }
             },
-            confirmButton = {
-                val squat = squat1RmText.toDoubleOrNull()
-                val bench = bench1RmText.toDoubleOrNull()
-                val deadlift = deadlift1RmText.toDoubleOrNull()
-                Button(
-                    enabled = squat != null && squat > 0 && bench != null && bench > 0 && deadlift != null && deadlift > 0,
-                    onClick = {
-                        viewModel.recordPendingOneRmTest(squat!!, bench!!, deadlift!!)
-                        showOneRmDialog = false
-                    },
-                ) { Text("Guardar y continuar") }
+            onUnit = { oneRmUnit = it },
+            onSave = { squat, bench, deadlift ->
+                viewModel.recordPendingOneRmTest(squat, bench, deadlift)
+                showOneRmDialog = false
             },
-            dismissButton = {
-                TextButton(onClick = { showOneRmDialog = false }) { Text("Cancelar") }
-            },
+            onDismiss = { showOneRmDialog = false },
         )
     }
 
