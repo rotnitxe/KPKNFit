@@ -73,7 +73,6 @@ fun HomeSessionSection(
     sessions: List<TodaySessionItem>,
     homeCompetition: HomeCompetitionState? = null,
     hasActiveProgram: Boolean = true,
-    @Suppress("UNUSED_PARAMETER") currentDayOfWeek: Int,
     perMuscle: Map<String, MuscleRecoveryStatus> = emptyMap(),
     loadAdvisory: LoadAdvisory? = null,
     onStartWorkout: (Session, Program) -> Unit,

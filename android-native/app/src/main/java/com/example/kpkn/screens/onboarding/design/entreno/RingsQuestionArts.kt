@@ -17,11 +17,10 @@ import com.example.kpkn.domain.onboarding.MuscleSymbol
 import com.example.kpkn.screens.onboarding.design.WizardColors
 import com.example.kpkn.screens.onboarding.design.eOutCubic
 import com.example.kpkn.screens.onboarding.design.seg
-import kotlin.math.cos
 import kotlin.math.sin
 
 /*
- * Símbolos de las preguntas de RINGS (E3d): los días, los ejercicios principales, la intensidad y las sensaciones. Son de la
+ * Símbolos de las preguntas de RINGS (E3d): los días, los ejercicios principales y las sensaciones. Son de la
  * misma familia que `EntrenoSymbolKit` (tinta cálida, un acento por símbolo, trazo fino) y se pintan con `SymbolCanvas` o
  * `SymbolCell`. Lo que no se mueve va en `drawStatic`; lo que se mueve, en `drawDynamic`, y solo corre con el símbolo elegido.
  */
@@ -38,19 +37,6 @@ private const val REST_FLOOR_Y = 54f
 
 /** Amplitud de la respiración de la figura sentada, en unidades del lienzo. */
 private const val BREATH_LIFT = 0.8f
-
-/** Barra de la intensidad: centro, altura del centro, semilargo y semialto de los discos. */
-private const val BAR_CX = 32f
-private const val BAR_Y = 38f
-private const val BAR_HALF = 25f
-private const val PLATE_HALF = 7.5f
-
-/** Gotas de esfuerzo (solo «Muy dura»): radio, caída en su ciclo y desfase entre ellas. */
-private const val DROP_R = 2.2f
-private const val DROP_FALL = 6f
-private const val DROP_STEP = 0.33f
-private val DROP_X = floatArrayOf(16f, 48f, 32f)
-private val DROP_Y = floatArrayOf(12f, 10f, 5f)
 
 /**
  * La «?» trazada: un gancho de unas 21 unidades de alto centrado en (`cx`, `cy`). [progress] de 0 a 1 la dibuja en orden: el
@@ -135,51 +121,6 @@ internal object RingsNoneArt : EquipmentArt(SymbolPalette.ink, period = 1f, rest
 
     override fun drawDynamic(pen: SymbolPen, t: Float) = Unit
 }
-
-/**
- * Intensidad: una barra con discos que se dobla hacia arriba por los extremos ([bendDeg] grados). Con [drops], unas gotas de
- * esfuerzo caen sobre ella. El acento es la energía de la marca.
- */
-internal class RingsBarbellArt(bendDeg: Float, private val drops: Boolean) :
-    EquipmentArt(SymbolPalette.energia, period = 2.4f, restT = 0f) {
-    private val cb = cos(bendDeg * DEG)
-    private val sb = sin(bendDeg * DEG)
-
-    override fun drawStatic(pen: SymbolPen) {
-        val lx = BAR_CX - BAR_HALF * cb
-        val rx = BAR_CX + BAR_HALF * cb
-        val ey = BAR_Y - BAR_HALF * sb
-        pen.poly3(lx, ey, BAR_CX, BAR_Y, rx, ey, pen.ink, SymbolStroke.LINE)
-        // Un disco en cada extremo, perpendicular a la barra y en el acento del símbolo.
-        plate(pen, lx, ey, sb, -cb)
-        plate(pen, rx, ey, sb, cb)
-    }
-
-    override fun drawDynamic(pen: SymbolPen, t: Float) {
-        if (!drops) return
-        for (i in DROP_X.indices) {
-            val k = (t / period + i * DROP_STEP) % 1f
-            pen.dot(DROP_X[i], DROP_Y[i] + DROP_FALL * k, DROP_R, SymbolPalette.columna.copy(alpha = 1f - k))
-        }
-    }
-
-    /** Un disco centrado en (x, y) y orientado con el vector perpendicular (px, py). */
-    private fun plate(pen: SymbolPen, x: Float, y: Float, px: Float, py: Float) {
-        pen.line(x - px * PLATE_HALF, y - py * PLATE_HALF, x + px * PLATE_HALF, y + py * PLATE_HALF, pen.accent, SymbolStroke.BODY)
-    }
-}
-
-/** Intensidad «Suave»: la barra recta. */
-internal val RingsEasyBar: SymbolArt = RingsBarbellArt(bendDeg = 0f, drops = false)
-
-/** Intensidad «Moderada»: la barra se dobla 4°. */
-internal val RingsModerateBar: SymbolArt = RingsBarbellArt(bendDeg = 4f, drops = false)
-
-/** Intensidad «Dura»: la barra se dobla 9°. */
-internal val RingsHardBar: SymbolArt = RingsBarbellArt(bendDeg = 9f, drops = false)
-
-/** Intensidad «Muy dura»: la barra se dobla 15° y caen unas gotas de esfuerzo. */
-internal val RingsVeryHardBar: SymbolArt = RingsBarbellArt(bendDeg = 15f, drops = true)
 
 /**
  * Una escala de sensación: el anillo de un canal de la torre con el arco lleno al [fraction] (1, 0,75, 0,5, 0,3 o 0,1). Solo

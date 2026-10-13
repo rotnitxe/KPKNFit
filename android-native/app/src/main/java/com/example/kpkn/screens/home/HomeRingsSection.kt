@@ -248,54 +248,13 @@ private val AugeRingBloomNear = 4.5.dp
 private val AugeRingHighlight = 1.dp
 
 internal const val AugeRingsRadiusWidthDivisor = 5f
-internal const val AugeRingsStaggerDx = 1.45f
 internal const val AugeRingsStaggerDy = 0.48f
-
-internal data class AugeRingsLayout(
-    val radius: Float,
-    val centers: List<Offset>,
-)
-
-/**
- * Olympic 3-ring cluster. Radius is width-bound (`width / 5`) so growing the
- * host to fit bloom padding never shrinks the rings. [bloomPx] is inset on
- * every side because the glow stroke is drawn centered on the path.
- */
-internal fun augeRingsLayout(width: Float, height: Float, bloomPx: Float): AugeRingsLayout {
-    val inset = bloomPx.coerceAtLeast(0f)
-    val usableH = (height - 2f * inset).coerceAtLeast(1f)
-    val radiusFromWidth = (width / AugeRingsRadiusWidthDivisor).coerceAtLeast(1f)
-    val maxRadiusForHeight = usableH / (2f * (1f + AugeRingsStaggerDy))
-    val radius = min(radiusFromWidth, maxRadiusForHeight)
-    val centerX = width / 2f
-    val centerY = height / 2f
-    val dx = radius * AugeRingsStaggerDx
-    val dy = radius * AugeRingsStaggerDy
-    return AugeRingsLayout(
-        radius = radius,
-        centers = listOf(
-            Offset(centerX - dx, centerY - dy),
-            Offset(centerX, centerY + dy),
-            Offset(centerX + dx, centerY - dy),
-        ),
-    )
-}
 
 /** Host height that keeps radius = width/5 after bloom inset. */
 internal fun augeRingsHostHeightDp(contentWidthDp: Float, bloomDp: Float = 8f): Float {
     val radius = (contentWidthDp / AugeRingsRadiusWidthDivisor).coerceAtLeast(1f)
     val verticalExtent = radius * (1f + AugeRingsStaggerDy)
     return 2f * verticalExtent + 2f * bloomDp
-}
-
-internal fun augeRingsClusterFits(width: Float, height: Float, bloomPx: Float): Boolean {
-    val layout = augeRingsLayout(width, height, bloomPx)
-    val halfStroke = bloomPx / 2f
-    return layout.centers.all { center ->
-        val top = center.y - layout.radius - halfStroke
-        val bottom = center.y + layout.radius + halfStroke
-        top >= -0.5f && bottom <= height + 0.5f
-    }
 }
 
 @Composable
@@ -412,4 +371,3 @@ internal fun DrawScope.drawAugeRingCore(center: Offset, radius: Float, color: Co
         )
     }
 }
-internal fun batteryColor(score: Int): Color = Color(RecoveryBands.colorArgb(score).toInt())

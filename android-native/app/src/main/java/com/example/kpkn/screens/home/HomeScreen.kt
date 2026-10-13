@@ -1,9 +1,7 @@
 package com.example.kpkn.screens.home
 
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -19,14 +17,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInRoot
-import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -47,7 +42,6 @@ import com.example.kpkn.data.models.RecoveryChannelId
 import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.models.ringScore
 import com.example.kpkn.data.models.TodaySessionItem
-import com.example.kpkn.domain.calculations.getCurrentDayOfWeek
 import com.example.kpkn.domain.training.HomeWeekDay
 import com.example.kpkn.domain.training.HomeWeekResolver
 import com.example.kpkn.data.models.MealType
@@ -69,7 +63,6 @@ import com.example.kpkn.screens.programs.TrainingMaxWizard
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.kpkn.ui.theme.AppThemeMode
 import com.example.kpkn.ui.components.rings.KpknTowerRings
-import com.example.kpkn.ui.components.rings.RingChannel
 import com.example.kpkn.ui.components.rings.TowerRingValues
 import com.example.kpkn.ui.components.KpknGlass
 import com.example.kpkn.ui.components.KpknAlertDialog
@@ -359,8 +352,6 @@ fun HomeScreen(
                 onSessionAnchorPositionChanged = { sessionAnchorY = it },
                 onRingsAnchorPositionChanged = { ringsAnchorY = it },
                 onNutritionAnchorPositionChanged = { nutritionAnchorY = it },
-                userName = uiState.userName,
-                greeting = uiState.greeting,
                 onStartWorkout = onStartWorkout,
                 onRegisterCompetition = onRegisterCompetition,
                 onResumeWorkout = onResumeWorkout,
@@ -374,7 +365,6 @@ fun HomeScreen(
                 augeSnapshot = augeSnapshot,
                 onDismissAdvisory = augeViewModel::dismissAdvisory,
                 onModelNoticeShown = augeViewModel::markModelUpdateNoticeShown,
-                autoDeloadMessage = augeSnapshot.autoDeloadMessage,
                 overtrainedMuscles = uiState.overtrainedMuscles,
                  onAddMeal = { meal ->
                      if (showNutrition) {
@@ -640,8 +630,6 @@ private fun HomeWithProgram(
     onSessionAnchorPositionChanged: (Float) -> Unit,
     onRingsAnchorPositionChanged: (Float) -> Unit,
     onNutritionAnchorPositionChanged: (Float) -> Unit,
-    userName: String,
-    greeting: String,
     onStartWorkout: (Session, Program) -> Unit,
     onRegisterCompetition: (String) -> Unit,
     onResumeWorkout: () -> Unit,
@@ -654,7 +642,6 @@ private fun HomeWithProgram(
     augeSnapshot: AugeSnapshot? = null,
     onDismissAdvisory: (String) -> Unit = {},
     onModelNoticeShown: () -> Unit = {},
-    autoDeloadMessage: String? = null,
     overtrainedMuscles: List<String> = emptyList(),
     onAddMeal: (MealType?) -> Unit = {},
     onOpenNutritionOverlay: () -> Unit = {},
@@ -737,7 +724,6 @@ private fun HomeWithProgram(
                 sessions = todaySessions,
                 homeCompetition = homeCompetition,
                 hasActiveProgram = hasActiveProgram,
-                currentDayOfWeek = getCurrentDayOfWeek(),
                 perMuscle = perMuscle,
                 loadAdvisory = homeAdvisory,
                 onStartWorkout = onStartWorkout,
