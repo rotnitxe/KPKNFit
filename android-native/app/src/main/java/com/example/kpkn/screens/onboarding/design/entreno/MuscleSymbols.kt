@@ -389,8 +389,11 @@ private class MuscleDrawState(val silhouette: Brush, val marks: Brush) {
     val motion = Matrix()
 }
 
-/** Brazos: la región (el tríceps) va al 55 % del acento cuando hay una parte de acento entero (el bíceps, al 100 %). */
-private const val SECONDARY_ACCENT = 0.55f
+/** Brazos: la región (el tríceps) lleva el relleno del acento al 35 %; el bíceps, encima, va al acento entero. */
+private const val SECONDARY_ACCENT = 0.35f
+
+/** Brazos: el contorno del tríceps, en acento al 70 % cuando está elegido. */
+private const val SECONDARY_EDGE = 0.70f
 
 /**
  * Radios del desvanecido, en lados del encuadre. La silueta se apaga cerca del borde para no dejar trazos cortados en él;
@@ -459,12 +462,21 @@ private fun DrawScope.drawMuscle(shape: MuscleShape, state: MuscleDrawState, sel
         drawPath(shape.silhouette, state.silhouette, style = state.strokes.fine)
         drawPath(shape.contextAll, state.marks, style = state.strokes.fine)
         val accent = SymbolPalette.musculo.copy(alpha = 0.85f)
-        val regionAccent = if (shape.accentPart != null) accent.copy(alpha = accent.alpha * SECONDARY_ACCENT) else accent
+        // Brazos: la región (el tríceps) va al 35 % del acento, con su contorno al 70 %; el bíceps (accentPart), encima,
+        // va al acento entero y con el contorno en tinta.
+        val split = shape.accentPart != null
+        val regionAccent = if (split) SymbolPalette.musculo.copy(alpha = SECONDARY_ACCENT) else accent
+        val regionEdge = if (split) {
+            lerp(ink.copy(alpha = 0.6f), SymbolPalette.musculo.copy(alpha = SECONDARY_EDGE), sel)
+        } else {
+            lerp(ink.copy(alpha = 0.6f), ink, sel)
+        }
         withTransform({ transform(state.contraction) }) {
             drawPath(shape.region, lerp(ink.copy(alpha = 0.08f), regionAccent, sel))
             shape.accentPart?.let { drawPath(it, lerp(ink.copy(alpha = 0.08f), accent, sel)) }
             drawPath(shape.detailAll, lerp(ink.copy(alpha = 0.25f), ink.copy(alpha = 0.5f), sel), style = state.strokes.fiber)
-            drawPath(shape.region, lerp(ink.copy(alpha = 0.6f), ink, sel), style = state.strokes.edge)
+            drawPath(shape.region, regionEdge, style = state.strokes.edge)
+            shape.accentPart?.let { drawPath(it, lerp(ink.copy(alpha = 0.6f), ink, sel), style = state.strokes.edge) }
         }
         // La pieza móvil (puño con mango, omóplatos) se mueve con su propia transformación, no con la región.
         shape.moving?.let { moving ->
@@ -474,9 +486,8 @@ private fun DrawScope.drawMuscle(shape: MuscleShape, state: MuscleDrawState, sel
                     drawPath(moving, lerp(ink.copy(alpha = 0.25f), ink.copy(alpha = 0.5f), sel), style = state.strokes.fiber)
                 }
             } else {
+                // Sin relleno: solo el contorno en tinta, como el contexto de los demás símbolos.
                 withTransform({ transform(state.motion) }) {
-                    // Relleno de tinta al 10 % y contorno encima: la pieza se lee como cuerpo, no como alambre.
-                    drawPath(moving, ink.copy(alpha = 0.10f))
                     drawPath(moving, lerp(ink.copy(alpha = 0.6f), ink, sel), style = state.strokes.edge)
                 }
             }

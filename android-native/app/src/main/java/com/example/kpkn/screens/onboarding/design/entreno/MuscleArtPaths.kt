@@ -197,10 +197,10 @@ internal object MuscleArtPaths {
     const val FOREARMS_OUTLINE =
         "M14.03 52.35 L38.59 17.92 L45.41 22.08 L25.97 59.65 C26.5 61.5 24.5 63 21 63 C17 63 12.5 58 14.03 52.35 Z " +
         "M19 63 C15 66 12 70 14 74 C16 78 24 77 27 72"
-    /** La masa de los flexores: una gota en la cara de arriba, del codo a mitad del antebrazo; va con el acento. */
+    /** La masa de los flexores: una gota en la cara de arriba, ancha (45-50 % del antebrazo) del codo a un poco más allá de la mitad. */
     const val FOREARMS_REGION =
-        "M20.85 56.52 L27.88 45.98 L34.22 34.99 C35.4 32.9 36.2 30.8 36.5 29 C35.6 30.3 33.2 33.8 30.56 35.26 " +
-        "L23.36 43.22 L17.49 50.52 C15.6 52.8 16 55.4 20.85 56.52 Z"
+        "M21.5 56.9 L28.1 46.1 L32.5 37.9 C33.6 36.2 35.2 33 35.3 29.8 C34.2 32.6 31.5 35.6 28.8 36.6 " +
+        "L22.8 43.9 L17.7 50.6 C16.6 52.2 16 53.4 16.1 53.6 C16.5 56.2 19 57.6 21.5 56.9 Z"
 
     /** El supinador largo: la línea del lado del pulgar, como detalle. */
     val FOREARMS_DETAIL: List<String> = listOf(
