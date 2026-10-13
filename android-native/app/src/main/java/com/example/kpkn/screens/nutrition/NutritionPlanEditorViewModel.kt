@@ -92,6 +92,8 @@ data class NutritionPlanEditorUiState(
     val todayGoalFixedKcal: Int? = null,
     /** Identificador de idempotencia de la operación de edición en curso. */
     val activeCommitId: String? = null,
+    /** Base del plan tal como se cargó (null si es un plan nuevo): el «antes» del cambio que muestra «Guardar». */
+    val originalBase: NutritionEditorBase? = null,
 )
 
 /**
@@ -186,6 +188,7 @@ class NutritionPlanEditorViewModel(
                 it.copy(
                     isLoading = false,
                     draft = draft,
+                    originalBase = draft.base.takeIf { draft.planId != null },
                 )
             }
             refreshCalendarExpenditures()
@@ -281,11 +284,11 @@ class NutritionPlanEditorViewModel(
                         )
                     }
                 },
-                onFailure = { error ->
+                onFailure = { _ ->
                     _uiState.update {
                         it.copy(
                             isSaving = false,
-                            errors = it.errors + ("commit" to (error.message ?: "No se pudo guardar el plan")),
+                            errors = it.errors + ("commit" to "No se pudo guardar el plan. Inténtalo de nuevo."),
                         )
                     }
                 },
