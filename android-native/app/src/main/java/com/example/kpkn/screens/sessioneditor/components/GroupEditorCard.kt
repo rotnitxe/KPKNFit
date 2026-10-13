@@ -324,7 +324,6 @@ import com.example.kpkn.screens.sessioneditor.components.ExerciseCatalogInfoDial
 import com.example.kpkn.screens.sessioneditor.components.SupersetRestPickerButton
 import com.example.kpkn.screens.sessioneditor.components.SupersetRestPickerDialog
 import com.example.kpkn.screens.sessioneditor.components.ExercisePickerSheet
-import com.example.kpkn.screens.sessioneditor.components.HeroGlassFab
 import com.example.kpkn.ui.components.KpknAlertConfirmButton
 import com.example.kpkn.ui.components.KpknAlertDialog
 import com.example.kpkn.ui.components.KpknAlertDismissButton
