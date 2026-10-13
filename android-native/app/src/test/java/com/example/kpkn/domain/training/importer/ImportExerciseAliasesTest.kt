@@ -208,4 +208,19 @@ class ImportExerciseAliasesTest {
         assertNull(ImportExerciseAliases.lookup("Flat bench"))
         assertNull(ImportExerciseAliases.lookup("Bicep curl"))
     }
+
+    @Test
+    fun `clean, cargada, snatch y arranque a secas son la cargada y el arranque completos, y Power Clean sigue de potencia`() {
+        val expected = listOf(
+            "Clean" to "squat_clean",
+            "Cargada" to "squat_clean",
+            "Snatch" to "squat_snatch",
+            "Arranque" to "squat_snatch",
+            "Power Clean" to "power_clean",
+        )
+        for ((phrase, definitionId) in expected) {
+            assertEquals("«$phrase»", definitionId, ImportExerciseAliases.lookup(phrase)?.definitionId)
+            assertEquals("«$phrase» (importador)", definitionId, ImportExerciseAliases.lookupForImport(phrase)?.definitionId)
+        }
+    }
 }

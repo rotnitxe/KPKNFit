@@ -234,10 +234,10 @@ internal object ImportExerciseAliases {
         "swing con kettlebell a dos manos" to alias("hams_swing_kettlebell_dos_manos"),
         "swing con kettlebell a una mano" to alias("hams_swing_kettlebell_unilateral"),
 
-        // Halterofilia
+        // Halterofilia: «clean», «cargada», «snatch» y «arranque» a secas son la cargada y el arranque completos (sentadilla).
         "power clean" to alias("power_clean"),
-        "clean" to alias("power_clean"),
-        "cargada" to alias("power_clean"),
+        "clean" to alias("squat_clean"),
+        "cargada" to alias("squat_clean"),
         "cargada de potencia" to alias("power_clean"),
         "hang power clean" to alias("hang_power_clean"),
         "hang clean" to alias("hang_power_clean"),
@@ -245,8 +245,8 @@ internal object ImportExerciseAliases {
         "squat clean" to alias("squat_clean"),
         "cargada en sentadilla" to alias("squat_clean"),
         "power snatch" to alias("power_snatch"),
-        "snatch" to alias("power_snatch"),
-        "arranque" to alias("power_snatch"),
+        "snatch" to alias("squat_snatch"),
+        "arranque" to alias("squat_snatch"),
         "arranque de potencia" to alias("power_snatch"),
         "hang snatch" to alias("hang_power_snatch"),
         "hang power snatch" to alias("hang_power_snatch"),
