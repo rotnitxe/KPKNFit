@@ -7,6 +7,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.lifecycle.viewmodel.initializer
+import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.kpkn.data.models.ActiveProgramState
 import com.example.kpkn.data.models.Block
 import com.example.kpkn.data.models.GoalMetric
@@ -23,6 +25,7 @@ import com.example.kpkn.data.models.Settings
 import com.example.kpkn.data.models.ProgramWeek
 import com.example.kpkn.data.models.TodaySessionItem
 import com.example.kpkn.data.repository.AugeRepository
+import com.example.kpkn.data.repository.BodyProgressRepository
 import com.example.kpkn.data.repository.CompetitionRepository
 import com.example.kpkn.data.repository.NutritionRepository
 import com.example.kpkn.data.repository.ProgramRepository
@@ -44,6 +47,8 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.emitAll
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
@@ -56,7 +61,7 @@ import java.util.UUID
 /**
  * HomeViewModel — State management for Home Screen.
  */
-    class HomeViewModel : ViewModel() {
+    class HomeViewModel(appContext: Context? = null) : ViewModel() {
 
     private val repository = ProgramRepository.getInstance()
     private val nutritionRepository = NutritionRepository.getInstance()
@@ -422,13 +427,15 @@ import java.util.UUID
         .distinctUntilChanged()
         .stateIn(viewModelScope, SharingStarted.Lazily, null)
 
-    val heightCm: StateFlow<Double> = repository.settings
-        .map { it.userVitals.height ?: 170.0 }
+    /** Altura real del perfil, o null si no hay: nunca 170 cm por defecto (sin altura no hay IMC ni FFMI). */
+    val heightCm: StateFlow<Double?> = repository.settings
+        .map { it.userVitals.height?.takeIf { h -> h > 0.0 } }
         .distinctUntilChanged()
-        .stateIn(viewModelScope, SharingStarted.Lazily, 170.0)
+        .stateIn(viewModelScope, SharingStarted.Lazily, null)
 
-    fun computeImc(weightKg: Double, heightCm: Double): Double? {
-        if (weightKg <= 0 || heightCm <= 0) return null
+    /** IMC con la altura real; sin altura, null. */
+    fun computeImc(weightKg: Double, heightCm: Double?): Double? {
+        if (heightCm == null || weightKg <= 0 || heightCm <= 0) return null
         val h = heightCm / 100.0
         return (weightKg / (h * h) * 10).toLong() / 10.0
     }
@@ -576,8 +583,8 @@ import java.util.UUID
             )
         },
         combine(lastWeight, lastBodyFat, lastMusclePct, heightCm) { weight, bodyFat, muscle, height ->
-            val ffmi = if (weight != null && bodyFat != null) computeNormalizedFfmi(weight, height, bodyFat) else null
-            val ffmiInterpretation = if (weight != null && bodyFat != null) computeFfmiInterpretation(weight, height, bodyFat) else null
+            val ffmi = if (weight != null && bodyFat != null && height != null) computeNormalizedFfmi(weight, height, bodyFat) else null
+            val ffmiInterpretation = if (weight != null && bodyFat != null && height != null) computeFfmiInterpretation(weight, height, bodyFat) else null
             val imc = if (weight != null) computeImc(weight, height) else null
             CardsBody(weight, bodyFat, muscle, ffmi, ffmiInterpretation, imc)
         },
@@ -678,6 +685,28 @@ import java.util.UUID
     }
         .distinctUntilChanged()
         .stateIn(viewModelScope, SharingStarted.Lazily, HomeUiState())
+
+    /** Repositorio del cuerpo, con el contexto de aplicación; sin contexto (pruebas) no hay datos de cuerpo. */
+    private val bodyRepository: BodyProgressRepository? by lazy {
+        appContext?.let { BodyProgressRepository.getInstance(it) }
+    }
+
+    /** Cuerpo de hoy para Home: pesos, tendencia y objetivo de [BodyProgressRepository], con la altura real del perfil. */
+    val bodyToday: StateFlow<HomeBodyState> = flow {
+        val repo = bodyRepository
+        if (repo == null) {
+            emit(HomeBodyState())
+        } else {
+            emitAll(
+                combine(repo.observations, repo.goals, heightCm) { observations, goals, height ->
+                    homeBodyState(observations, goals, height, LocalDate.now())
+                },
+            )
+        }
+    }
+        .distinctUntilChanged()
+        .flowOn(Dispatchers.Default)
+        .stateIn(viewModelScope, SharingStarted.Lazily, HomeBodyState())
 }
 
 data class OnboardingState(
@@ -823,5 +852,7 @@ fun rememberHomeViewModel(): HomeViewModel {
     val context = LocalContext.current
     val activity = context as? ComponentActivity
         ?: error("rememberHomeViewModel requires a ComponentActivity context")
-    return viewModel(activity)
+    // El contexto de aplicación llega al repositorio del cuerpo; así el ViewModel no retiene la actividad.
+    val appContext = context.applicationContext
+    return viewModel(activity, factory = viewModelFactory { initializer { HomeViewModel(appContext) } })
 }
