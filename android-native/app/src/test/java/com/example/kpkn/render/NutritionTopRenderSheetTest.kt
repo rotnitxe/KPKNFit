@@ -25,7 +25,6 @@ import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import com.example.kpkn.domain.nutrition.CaffeineLimitEngine
 import com.example.kpkn.screens.nutrition.NutritionSamples
-import com.example.kpkn.screens.nutrition.design.NutritionBalanceModule
 import com.example.kpkn.screens.nutrition.design.NutritionDayModule
 import com.example.kpkn.screens.nutrition.design.NutritionHeader
 import com.example.kpkn.screens.nutrition.design.NutritionSupplementsModule
@@ -45,7 +44,7 @@ import java.io.FileOutputStream
 import java.util.Locale
 
 /**
- * HOJA DE DIBUJO de la raíz de Nutrición (no comprueba nada: escribe PNG). Pinta la cabecera, «Tu día», el balance y los suplementos con
+ * HOJA DE DIBUJO de la raíz de Nutrición (no comprueba nada: escribe PNG). Pinta la cabecera, «Tu día» y los suplementos con
  * los datos de [NutritionSamples], a 360 dp, con la letra al 100 % y al 130 %, y sin movimiento para ver el cuadro final. Además dibuja la
  * isla superior. Solo corre con `KPKN_RENDER_DIR`; sin ella se salta.
  */
@@ -105,7 +104,7 @@ class NutritionTopRenderSheetTest {
         FileOutputStream(File(dir, "$name.png")).use { cropped.compress(Bitmap.CompressFormat.PNG, 100, it) }
     }
 
-    /** La cabecera, «Tu día», el balance y los suplementos de un caso, en el orden de la raíz. */
+    /** La cabecera, «Tu día» (con el entreno del día) y los suplementos de un caso, en el orden de la raíz. */
     @Composable
     private fun NutritionRenderBlock(case: NutritionSamples.RenderCase) {
         NutritionHeader(
@@ -125,11 +124,7 @@ class NutritionTopRenderSheetTest {
             onSelectDate = {},
             onDefineGoals = {},
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp),
-        )
-        NutritionBalanceModule(
-            loaded = case.loaded,
-            balance = case.balance,
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp),
+            trainingBurnKcal = case.balance.trainingBurnKcal,
         )
         NutritionSupplementsModule(
             loaded = case.loaded,
@@ -162,7 +157,6 @@ class NutritionTopRenderSheetTest {
                                 visible = true,
                                 title = "Hoy",
                                 subtitle = "1.060 kcal restantes",
-                                onAdd = {},
                             )
                         }
                     } else {

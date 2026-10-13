@@ -613,6 +613,26 @@ class NutritionViewModel(
         .distinctUntilChanged()
         .flowOn(computeDispatcher)
         .stateIn(viewModelScope, SharingStarted.Lazily, 0)
+
+    /**
+     * Cambia la comida de un registro («Mover a…» del menú de la fila, N2) sin tocar nada más: mismo id, fecha y alimentos. Se escribe con
+     * `updateNutritionLog`; un fallo avisa por [uiMessage] en vez de quedarse callado.
+     */
+    fun moveLog(logId: String, mealType: MealType) {
+        val log = nutritionRepo.nutritionLogs.value.firstOrNull { it.id == logId } ?: return
+        if (log.mealType == mealType) return
+        val moved = log.copy(mealType = mealType)
+        viewModelScope.launch {
+            try {
+                withContext(NonCancellable) { nutritionRepo.updateNutritionLog(moved) }
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (error: Exception) {
+                android.util.Log.w("NutritionViewModel", "No se pudo mover la comida", error)
+                _uiMessage.value = "No se pudo mover la comida. Inténtalo de nuevo."
+            }
+        }
+    }
 }
 
 /**

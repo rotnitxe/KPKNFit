@@ -2,6 +2,7 @@ package com.example.kpkn.screens.nutrition.design
 
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.core.AnimationSpec
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateIntAsState
 import androidx.compose.animation.core.snap
@@ -10,8 +11,8 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.togetherWith
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -23,12 +24,14 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredWidth
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -38,11 +41,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.Role
@@ -58,6 +58,8 @@ import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.Density
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.kpkn.data.models.DailyMacroTotals
@@ -129,6 +131,8 @@ data class NutritionDayFigure(
     val protein: NutritionMacroFigure,
     val carbs: NutritionMacroFigure,
     val fat: NutritionMacroFigure,
+    /** Kcal de entreno del día (0 = sin entreno: no hay línea ni se cuenta en la descripción). */
+    val trainingBurnKcal: Int = 0,
 )
 
 /**
@@ -148,6 +152,8 @@ fun NutritionDayModule(
     onSelectDate: (String) -> Unit,
     onDefineGoals: () -> Unit,
     modifier: Modifier = Modifier,
+    /** Gasto de entreno del día elegido: con más de 0 sale su línea («Entreno · 320 kcal»); sin entreno, no hay línea. */
+    trainingBurnKcal: Int = 0,
 ) {
     if (!loaded) {
         KpknSkeletonModule(lines = 3, modifier = modifier)
@@ -165,6 +171,7 @@ fun NutritionDayModule(
         protein = NutritionMacroFigure(kotlin.math.round(totals.protein).toInt(), dayGoals?.proteinGoal?.takeIf { it > 0 }),
         carbs = NutritionMacroFigure(kotlin.math.round(totals.carbs).toInt(), dayGoals?.carbGoal?.takeIf { it > 0 }),
         fat = NutritionMacroFigure(kotlin.math.round(totals.fats).toInt(), dayGoals?.fatGoal?.takeIf { it > 0 }),
+        trainingBurnKcal = trainingBurnKcal.coerceAtLeast(0),
     )
     KpknModule(
         modifier = modifier,
@@ -206,7 +213,13 @@ fun NutritionDayModule(
     }
 }
 
-/** La tira de los siete días. Sin días no pinta nada. */
+/** Ancho del subrayado que marca el día elegido, como en «Tu semana» de Home. */
+private val NutritionUnderlineWidth: Dp = 18.dp
+
+/**
+ * La tira de los siete días con el patrón de «Tu semana» de Home: un subrayado de músculo que se desliza bajo la columna elegida (420 ms;
+ * con movimiento reducido, salto). Sin días no pinta nada.
+ */
 @Composable
 private fun NutritionWeekStrip(
     days: List<NutritionWeekDay>,
@@ -214,14 +227,38 @@ private fun NutritionWeekStrip(
     onSelect: (String) -> Unit,
 ) {
     if (days.isEmpty()) return
-    Row(modifier = Modifier.fillMaxWidth()) {
-        days.forEach { day ->
-            NutritionDayColumn(
-                day = day,
-                selected = day.date == selectedDate,
-                onSelect = onSelect,
-                modifier = Modifier.weight(1f),
-            )
+    val reduced = wizardReducedMotion()
+    val selectedIndex = days.indexOfFirst { it.date == selectedDate }
+    BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
+        val columnWidth = maxWidth / days.size
+        val spec: AnimationSpec<Dp> = if (reduced) snap() else tween(durationMillis = 420, easing = FastOutSlowInEasing)
+        val underlineX by animateDpAsState(
+            targetValue = columnWidth * selectedIndex.coerceAtLeast(0) + (columnWidth - NutritionUnderlineWidth) / 2,
+            animationSpec = spec,
+            label = "nutritionWeekUnderline",
+        )
+        Column(modifier = Modifier.fillMaxWidth()) {
+            Row(modifier = Modifier.fillMaxWidth()) {
+                days.forEach { day ->
+                    NutritionDayColumn(
+                        day = day,
+                        selected = day.date == selectedDate,
+                        onSelect = onSelect,
+                        modifier = Modifier.weight(1f),
+                    )
+                }
+            }
+            Spacer(Modifier.height(6.dp))
+            Box(modifier = Modifier.fillMaxWidth().height(2.dp)) {
+                if (selectedIndex >= 0) {
+                    Box(
+                        modifier = Modifier
+                            .offset { IntOffset(underlineX.roundToPx(), 0) }
+                            .size(width = NutritionUnderlineWidth, height = 2.dp)
+                            .background(SymbolPalette.musculo, RoundedCornerShape(1.dp)),
+                    )
+                }
+            }
         }
     }
 }
@@ -257,65 +294,36 @@ private fun NutritionDayColumn(
         ) {
             Text(
                 text = date?.let { dayLetter(it) }.orEmpty(),
-                style = KpknType.chip,
+                style = KpknType.eyebrow,
                 color = if (day.isToday) WizardColors.text else WizardColors.textFaint,
             )
-            Spacer(Modifier.height(4.dp))
-            Text(
-                text = date?.dayOfMonth?.toString().orEmpty(),
-                style = NutritionDayNumber,
-                color = if (day.isToday || selected) WizardColors.text else WizardColors.textMuted,
-                maxLines = 1,
-            )
             Spacer(Modifier.height(6.dp))
-            NutritionMiniRing(day = day, selected = selected)
-        }
-    }
-}
-
-/**
- * El mini anillo de kcal de un día: 28 dp, pista blanca al 14 % y arco con el % de la meta en energía (en `danger` si se pasa). Hoy, el
- * arco va en tinta. El día elegido se rellena de tinta por dentro. La cifra del día va encima, fuera del anillo.
- */
-@Composable
-private fun NutritionMiniRing(
-    day: NutritionWeekDay,
-    selected: Boolean,
-) {
-    val goal = day.kcalGoal
-    val fraction = if (goal == null || day.kcal <= 0) 0f else (day.kcal.toFloat() / goal).coerceIn(0f, 1f)
-    val over = goal != null && day.kcal > goal
-    val arcColor = when {
-        over -> WizardColors.danger
-        day.isToday -> WizardColors.text
-        else -> SymbolPalette.energia
-    }
-    Canvas(modifier = Modifier.size(28.dp)) {
-        val stroke = 3.dp.toPx()
-        val origin = Offset(stroke / 2f, stroke / 2f)
-        val arc = Size(size.width - stroke, size.height - stroke)
-        drawArc(
-            color = WizardColors.glassBorder,
-            startAngle = -90f,
-            sweepAngle = 360f,
-            useCenter = false,
-            topLeft = origin,
-            size = arc,
-            style = Stroke(width = stroke),
-        )
-        if (fraction > 0f) {
-            drawArc(
-                color = arcColor,
-                startAngle = -90f,
-                sweepAngle = 360f * fraction,
-                useCenter = false,
-                topLeft = origin,
-                size = arc,
-                style = Stroke(width = stroke, cap = StrokeCap.Round),
-            )
-        }
-        if (selected) {
-            drawCircle(color = WizardColors.text, radius = size.minDimension / 2f - stroke * 1.2f)
+            // El número va en un círculo: relleno de tinta si es hoy, con borde de 1,5 dp si es el día elegido (como en Home).
+            Box(
+                modifier = Modifier
+                    .size(40.dp)
+                    .then(
+                        when {
+                            day.isToday -> Modifier.clip(CircleShape).background(WizardColors.text)
+                            selected -> Modifier.border(1.5.dp, WizardColors.text, CircleShape)
+                            else -> Modifier
+                        },
+                    ),
+                contentAlignment = Alignment.Center,
+            ) {
+                Text(
+                    text = date?.dayOfMonth?.toString().orEmpty(),
+                    style = NutritionDayNumber,
+                    color = when {
+                        day.isToday -> WizardColors.background
+                        selected -> WizardColors.text
+                        else -> WizardColors.textMuted
+                    },
+                    maxLines = 1,
+                )
+            }
+            Spacer(Modifier.height(6.dp))
+            NutritionMiniRing(day = day)
         }
     }
 }
@@ -346,6 +354,10 @@ private fun NutritionDayFiguresBlock(
     if (goal == null) {
         Column(modifier = Modifier.fillMaxWidth()) {
             NutritionKcalFigure(value = kcalShown, estimate = figure.estimate, style = KpknType.metricXL)
+            if (figure.trainingBurnKcal > 0) {
+                Spacer(Modifier.height(8.dp))
+                NutritionTrainingLine(burnKcal = figure.trainingBurnKcal)
+            }
             if (!hasActivePlan) {
                 Spacer(Modifier.height(10.dp))
                 Text(text = "Aún no tienes objetivos.", style = KpknType.body, color = WizardColors.textMuted)
@@ -366,7 +378,7 @@ private fun NutritionDayFiguresBlock(
                     Spacer(Modifier.width(NutritionRingGap))
                     Column(modifier = Modifier.weight(1f)) {
                         NutritionKcalFigure(value = kcalShown, estimate = figure.estimate, style = KpknType.metricL)
-                        NutritionGoalLines(kcal = figure.kcal, goal = goal, estimate = figure.estimate)
+                        NutritionGoalLines(kcal = figure.kcal, goal = goal, estimate = figure.estimate, burnKcal = figure.trainingBurnKcal)
                     }
                 }
             } else {
@@ -379,7 +391,7 @@ private fun NutritionDayFiguresBlock(
                         NutritionRings(figure = figure, appeared = appeared, reduced = reduced)
                         Spacer(Modifier.width(NutritionRingGap))
                         Column(modifier = Modifier.weight(1f)) {
-                            NutritionGoalLines(kcal = figure.kcal, goal = goal, estimate = figure.estimate)
+                            NutritionGoalLines(kcal = figure.kcal, goal = goal, estimate = figure.estimate, burnKcal = figure.trainingBurnKcal)
                         }
                     }
                 }
@@ -418,13 +430,28 @@ private fun NutritionKcalFigure(value: Int, estimate: Boolean, style: TextStyle)
 
 /** Lo que se lee junto a la cifra con meta: «de 2.300 kcal» y lo que queda, en `danger` si se ha pasado. */
 @Composable
-private fun NutritionGoalLines(kcal: Int, goal: Int, estimate: Boolean) {
+private fun NutritionGoalLines(kcal: Int, goal: Int, estimate: Boolean, burnKcal: Int = 0) {
     Text(text = "de ${formatKcalEs(goal)} kcal", style = KpknType.caption, color = WizardColors.textMuted)
     Text(
         text = kcalRemainingText(eaten = kcal, goal = goal, approx = NutritionDisplayFormat.approxPrefix(estimate)),
         style = KpknType.caption,
         color = if (kcal > goal) WizardColors.danger else WizardColors.textMuted,
     )
+    // El gasto del entreno no cambia la meta: va como una línea más, debajo de lo que queda.
+    if (burnKcal > 0) {
+        Spacer(Modifier.height(4.dp))
+        NutritionTrainingLine(burnKcal = burnKcal)
+    }
+}
+
+/** «Entreno · 320 kcal» con un punto de músculo: el gasto del entreno del día, solo si lo hay. */
+@Composable
+private fun NutritionTrainingLine(burnKcal: Int) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Box(Modifier.size(6.dp).background(SymbolPalette.musculo, CircleShape))
+        Spacer(Modifier.width(6.dp))
+        Text(text = "Entreno · ${formatKcalEs(burnKcal)} kcal", style = KpknType.caption, color = WizardColors.textMuted)
+    }
 }
 
 /**
@@ -557,8 +584,9 @@ private fun macroShare(macro: NutritionMacroFigure): Float {
 private fun nutritionRingsDescription(figure: NutritionDayFigure): String {
     val kcal = figure.kcalGoal?.let { "${formatKcalEs(figure.kcal)} kilocalorías de ${formatKcalEs(it)}" }
         ?: "${formatKcalEs(figure.kcal)} kilocalorías"
+    val burn = if (figure.trainingBurnKcal > 0) " Entreno de ${formatKcalEs(figure.trainingBurnKcal)} kilocalorías." else ""
     return "Nutrición del día: $kcal. ${macroPhrase("Proteína", figure.protein)}. " +
-        "${macroPhrase("Hidratos", figure.carbs)}. ${macroPhrase("Grasas", figure.fat)}."
+        "${macroPhrase("Hidratos", figure.carbs)}. ${macroPhrase("Grasas", figure.fat)}.$burn"
 }
 
 private fun macroPhrase(name: String, macro: NutritionMacroFigure): String =
@@ -599,7 +627,7 @@ private fun nutritionDayDescription(day: NutritionWeekDay, date: LocalDate?): St
 }
 
 /** La letra de un día en español: L, M, X, J, V, S, D. */
-private fun dayLetter(date: LocalDate): String = when (date.dayOfWeek) {
+internal fun dayLetter(date: LocalDate): String = when (date.dayOfWeek) {
     DayOfWeek.MONDAY -> "L"
     DayOfWeek.TUESDAY -> "M"
     DayOfWeek.WEDNESDAY -> "X"
