@@ -61,6 +61,9 @@ internal object HomeTypography {
 
     /** Último peso de «Cuerpo»: Syne ExtraBold a 40 sp. */
     val weightFigure: TextStyle = WizardTypography.question.copy(fontSize = 40.sp, lineHeight = 44.sp, letterSpacing = (-0.8).sp)
+
+    /** Cifra de un músculo en la rejilla de RINGS: Syne 700 a 15 sp. */
+    val ringValueSmall: TextStyle = WizardTypography.measure.copy(fontSize = 15.sp, lineHeight = 20.sp, letterSpacing = 0.sp)
 }
 
 /**
