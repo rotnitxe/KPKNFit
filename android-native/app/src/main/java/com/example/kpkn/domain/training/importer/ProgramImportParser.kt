@@ -40,8 +40,9 @@ object ProgramImportParser {
                 continue
             }
             val weekInName = weekNumber(sheet.name)
-            if (weekInName != null) builder.openWeek(weekInName)
             builder.beginSheet()
+            // El nombre de la hoja puede ser una semana («Week 2»): en ese caso un día repetido no abre semana nueva (H6a).
+            if (weekInName != null) builder.openSheetWeek(weekInName)
             // Una hoja sin nombre de semana es un día: su nombre sirve si no trae un encabezado propio.
             builder.pendingDayName = if (weekInName == null) usableSheetName(sheet.name) else null
             // En una hoja de OCR, las celdas partidas y los días con número delante se arreglan antes de leer las filas (H4e).
@@ -250,11 +251,18 @@ object ProgramImportParser {
         // Calculadoras por bloques bajo filas de semanas (H6c): su plan decide esas filas y da los avisos de la hoja.
         val weekBands = WeekBandBlocks.plan(rows)
         weekBands?.let { noteWeekBandSheet(builder, it) }
+        // Filas por serie (H6a): las consecutivas de un mismo ejercicio forman uno; la primera de cada grupo lo lleva.
+        val setRuns = setRunsOf(rows, sessions)
         rows.forEachIndexed { index, row ->
             val cells = row.map { it.trim() }
             val filled = cells.filter { it.isNotEmpty() }
             if (filled.isEmpty()) return@forEachIndexed
             builder.pageHeader = index in pageHeaders
+            // Filas que ya son series de un ejercicio agrupado (H6a): no producen nada por sí solas.
+            if (index in setRuns.consumed) {
+                builder.endRow(null)
+                return@forEachIndexed
+            }
             // Una prescripción suelta («4x 15-12-10-8») lleva el nombre de la fila de arriba, si lo hay.
             val prescribedName = pairs.nameOf[index]
             val context = RowContext(where(index), listOfNotNull(prescribedName, filled.joinToString(" · ")).joinToString(" · "), builder)
@@ -328,8 +336,11 @@ object ProgramImportParser {
                 header != null -> {
                     columns = header
                     header.loadHeader?.let { builder.noteLoadHeader(it) }
+                    // Una etiqueta de día a la izquierda de la columna de nombre abre el día («MONDAY · Exercise», H6a).
+                    headerDayLabel(cells, header)?.let { builder.openTableDay(it, context) }
                     null
                 }
+                setRuns.first[index] != null -> setRunLine(setRuns.first.getValue(index), context)
                 tableDay != null && (filled.size == 1 || (table != null && isBareTableRow(cells, table))) -> null
                 // Prosa con cifras de una hoja de OCR (H5b): cuenta como línea de texto, sin aviso.
                 filled.size == 1 && builder.ocrSheet && isOcrProse(filled.first()) -> {
@@ -511,8 +522,22 @@ object ProgramImportParser {
         }
         if (countIfNotExercise(name, row)) return null
 
+        // Lista de carga × repeticiones («95×3, 95×3, 100×3»): un ejercicio por grupo, como los grupos con porcentaje (H6a).
+        parseListLoads(cell(ColumnRole.LIST), columns.listHasSets)?.let { spans ->
+            val listNotes = listOfNotNull(blockNote(named.block), cell(ColumnRole.NOTES).takeIf { it.isNotEmpty() })
+                .joinToString(" ").takeIf { it.isNotEmpty() }
+            return Line.Groups(spans.map { PercentGroup(name, listNotes, null, it.reps, it.sets, it.load) })
+        }
+
+        // «Sets x Reps» (H6a): su notación rellena lo que falta. Si la cabecera también dice repeticiones y la celda no tiene
+        // notación («Reps / Scheme»: «8», «4-6 / 8-10»), esa celda se lee como la columna de repeticiones.
+        val schemeCell = cell(ColumnRole.SCHEME)
+        val schemeRead = if (schemeCell.isEmpty()) null else readScheme(schemeCell)
+        val sn = schemeRead?.notation
+        // «SETS X» con un número suelto: sin notación y sin repeticiones en la cabecera, el número son las series (H6a).
+        val schemePlainSets = if (sn == null && !columns.schemeHasReps && columns.schemeHasSets) leadingInt(schemeCell) else null
+        val repsCell = cell(ColumnRole.REPS).ifEmpty { if (sn == null && columns.schemeHasReps) schemeCell else "" }
         val setsCell = cell(ColumnRole.SETS)
-        val repsCell = cell(ColumnRole.REPS)
         if (isAmrapWithoutNumber(repsCell)) {
             row.warn(ImportWarningKind.SKIPPED_ROW, "«$name»: AMRAP sin número de repeticiones; se omite")
             return null
@@ -522,11 +547,15 @@ object ProgramImportParser {
         val scheme = if (hasScheme(repsCell)) parseNotation(repsCell) else null
         val range = if (scheme == null) parseRange(repsCell) else null
         val pyramid = if (scheme == null) pyramidOfCell(repsCell) else null
-        // Si la columna de series tiene un número, manda; si no, la notación de la celda de repeticiones o la de antes.
-        val sets = leadingInt(setsCell) ?: setsNotation?.sets ?: scheme?.sets ?: inline?.sets
-        val repsMin = range?.first ?: scheme?.repsMin ?: setsNotation?.repsMin ?: inline?.repsMin
-        val repsMax = range?.second ?: scheme?.repsMax ?: setsNotation?.repsMax ?: inline?.repsMax
-        val amrap = cellAmrap(repsCell) ?: scheme?.amrapReps ?: setsNotation?.amrapReps ?: inline?.amrapReps
+        // Cargas por serie en columnas «Set n» (H6a): solo si la tabla no tiene columna de series ni de esquema.
+        val setLoads = setLoadsOf(cells, columns)
+        // Si la columna de series tiene un número, manda; si no, la notación de la celda de repeticiones, la de esquema o la de antes.
+        val sets = leadingInt(setsCell) ?: setsNotation?.sets ?: scheme?.sets ?: sn?.sets ?: schemePlainSets ?: setLoads?.count
+            ?: inline?.sets
+        val repsMin = range?.first ?: scheme?.repsMin ?: setsNotation?.repsMin ?: sn?.repsMin ?: setLoads?.repsMin ?: inline?.repsMin
+        val repsMax = range?.second ?: scheme?.repsMax ?: setsNotation?.repsMax ?: sn?.repsMax ?: setLoads?.repsMax ?: inline?.repsMax
+        val amrap = cellAmrap(repsCell) ?: cellAmrap(schemeCell) ?: scheme?.amrapReps ?: setsNotation?.amrapReps ?:
+            sn?.amrapReps ?: inline?.amrapReps
 
         val loadCell = cell(ColumnRole.LOAD)
         val percentCell = cell(ColumnRole.PERCENT)
@@ -550,11 +579,14 @@ object ProgramImportParser {
         val remainder = if (range != null && pyramid == null) rangeRemainder(repsCell) else null
         // Sin otra nota, la columna de grupo muscular va a notas.
         val groupCell = cell(ColumnRole.GROUP)
-        val repsNotes = (scheme?.repsNotes ?: repsNotesOfCell(repsCell)) + inline?.repsNotes.orEmpty()
+        val repsNotes = (scheme?.repsNotes ?: repsNotesOfCell(repsCell)) + inline?.repsNotes.orEmpty() +
+            sn?.repsNotes.orEmpty() + listOfNotNull(schemeRead?.seriesNote)
         val notes = (listOfNotNull(blockNote(named.block)) + repsNotes + listOfNotNull(
             notesCell.takeIf { it.isNotEmpty() },
             remainder,
             inline?.notes,
+            sn?.let { schemeText(it) },
+            setLoads?.note,
             amrapNote(amrap),
         )).joinToString(" ").takeIf { it.isNotEmpty() } ?: groupCell.takeIf { it.isNotEmpty() }
         // Carga con número: cuenta para saber si el archivo va en libras (manda la celda; si no, la notación).
@@ -562,20 +594,266 @@ object ProgramImportParser {
             row.noteLoad(unitMarkOf(loadCell))
         } else if (inline != null && inline.load != null) {
             row.noteLoad(inline.loadUnit)
+        } else if (sn != null && sn.load != null) {
+            row.noteLoad(sn.loadUnit)
         }
         return validate(
             name = name,
             sets = sets,
             repsMin = repsMin,
             repsMax = repsMax,
-            load = load ?: inline?.load,
-            percent = percent ?: inline?.percent,
-            rpe = rpe ?: inline?.rpe,
-            rir = rir ?: inline?.rir,
-            rest = rest ?: inline?.rest,
+            load = load ?: sn?.load ?: setLoads?.max ?: inline?.load,
+            percent = percent ?: sn?.percent ?: inline?.percent,
+            rpe = rpe ?: sn?.rpe ?: inline?.rpe,
+            rir = rir ?: sn?.rir ?: inline?.rir,
+            rest = rest ?: sn?.rest ?: inline?.rest,
             notes = notes,
             row = row,
         )?.let { Line.Exercise(it) }
+    }
+
+    /** Etiqueta de día a la izquierda de la columna de nombre de una cabecera («MONDAY · Exercise»); null si no hay ninguna (H6a). */
+    private fun headerDayLabel(cells: List<String>, columns: Columns): String? {
+        val nameIndex = columns.indexOf(ColumnRole.NAME) ?: return null
+        val label = cells.take(nameIndex).lastOrNull { it.isNotEmpty() } ?: return null
+        return cleanHeader(label).takeIf { isDayLabel(it) }
+    }
+
+    /** Lectura de una celda «Sets x Reps» (H6a): su notación y, si el rango de series era «3-4», la nota de ese rango. */
+    private class SchemeRead(val notation: Notation?, val seriesNote: String?)
+
+    private fun readScheme(cell: String): SchemeRead {
+        val range = SCHEME_SETS_RANGE.find(cell) ?: return SchemeRead(parseNotation(cell), null)
+        val low = range.groupValues[1]
+        return SchemeRead(parseNotation(low + cell.substring(range.range.last + 1)), "Series: $low-${range.groupValues[2]}.")
+    }
+
+    /** Lo que la notación de una celda de esquema no usa («(heavy, squeeze)», «(build to bodyweight)»): va a notas. */
+    private fun schemeText(notation: Notation): String? =
+        listOfNotNull(notation.name.takeIf { it.isNotBlank() }, notation.notes).joinToString(" ").takeIf { it.isNotEmpty() }
+
+    /** Cargas por serie de una fila (H6a): las celdas «Set n» con cifras, su número, su mayor carga y sus repeticiones si las traen. */
+    private class SetLoads(val count: Int, val max: Double, val loads: List<Double>, val repsMin: Int?, val repsMax: Int?) {
+        /** Nota de la fila: «Cargas por serie: 270, 285, 300.». */
+        val note: String get() = "Cargas por serie: ${loads.joinToString(", ") { numberText(it) }}."
+    }
+
+    /**
+     * Las cargas por serie de la fila, o null si la regla no aplica: sin columna de series ni de esquema, y todas las cifras ≥ 20.
+     * Una celda «140 x10» trae su carga y sus repeticiones; si todas las traen, la fila tiene su rango de repeticiones.
+     */
+    private fun setLoadsOf(cells: List<String>, columns: Columns): SetLoads? {
+        if (columns.indexOf(ColumnRole.SETS) != null || columns.indexOf(ColumnRole.SCHEME) != null) return null
+        val values = columns.setColumns.mapNotNull { index ->
+            val text = cells.getOrNull(index).orEmpty()
+            val pair = SET_LOAD_REPS.find(text)
+            val load = pair?.let { decimalOf(it.groupValues[1]) } ?: firstNumber(text)
+            load?.let { Pair(it, pair?.groupValues?.get(2)?.toIntOrNull()) }
+        }
+        if (values.isEmpty() || values.any { it.first < SET_LOAD_MIN }) return null
+        val reps = values.mapNotNull { it.second }
+        val repsAll = reps.size == values.size
+        return SetLoads(
+            count = values.size,
+            max = values.maxOf { it.first },
+            loads = values.map { it.first },
+            repsMin = if (repsAll) reps.minOrNull() else null,
+            repsMax = if (repsAll) reps.maxOrNull() else null,
+        )
+    }
+
+    /** Una serie o un grupo de una lista de carga × repeticiones: carga, repeticiones y series (H6a). */
+    private class LoadSpan(val load: Double, val reps: Int, val sets: Int)
+
+    /**
+     * Las series de una celda de lista («95×3, 95×3, 100×3» o, con series, «105x1x5, 90x2x3»), o null si la celda no tiene esa
+     * forma. En la lista de dos cifras, los elementos seguidos e iguales son un grupo: «95×3, 95×3» son 2×3 con 95.
+     */
+    private fun parseListLoads(cell: String, withSets: Boolean): List<LoadSpan>? {
+        val text = cell.trim()
+        if (text.isEmpty()) return null
+        if (withSets) {
+            if (!LOAD_REPS_SETS_LIST.matches(text)) return null
+            return LOAD_REPS_SETS_ITEM.findAll(text).map { m ->
+                LoadSpan(decimalOf(m.groupValues[1]), m.groupValues[2].toInt(), m.groupValues[3].toInt())
+            }.toList()
+        }
+        if (!LOAD_REPS_LIST.matches(text)) return null
+        val spans = ArrayList<LoadSpan>()
+        for (m in LOAD_REPS_ITEM.findAll(text)) {
+            val load = decimalOf(m.groupValues[1])
+            val reps = m.groupValues[2].toInt()
+            val last = spans.lastOrNull()
+            if (last != null && last.load == load && last.reps == reps) {
+                spans[spans.lastIndex] = LoadSpan(load, reps, last.sets + 1)
+            } else {
+                spans += LoadSpan(load, reps, 1)
+            }
+        }
+        return spans
+    }
+
+    /** Un número de una lista de carga, con coma o con punto decimal. */
+    private fun decimalOf(text: String): Double = text.replace(',', '.').toDouble()
+
+    /** Índice de serie de una fila (H6a): número o calentamiento en la columna de índice, y el nombre normalizado. */
+    private class SetRowInfo(val number: Int?, val warm: Boolean, val key: String)
+
+    /** Carrera de filas por serie de una misma tabla: sus filas (índices) y sus celdas. */
+    private class SetRun(val table: Columns, val rows: List<Int>, val cells: List<List<String>>)
+
+    /** Carreras por serie de una hoja: la primera fila de cada una lleva el ejercicio; las demás se consumen. */
+    private class SetRuns(val first: Map<Int, SetRun>, val consumed: Set<Int>)
+
+    /** Calentamiento en una celda de serie o de nombre: «Warm-up», «Warmup», «WU», «Calentamiento» (H6a). */
+    private val WARMUP_WORD = Regex("""\b(?:warm[\s-]*up|wu|calentamiento)\b""", RegexOption.IGNORE_CASE)
+
+    private fun isWarmupText(text: String): Boolean = WARMUP_WORD.containsMatchIn(text)
+
+    /** El nombre sin las palabras de calentamiento («Squat - Warm-up» → «Squat»). */
+    private fun stripWarmup(text: String): String =
+        WARMUP_WORD.replace(text, " ").replace(SPACES, " ").trim(' ', '-', '–', '—', '·', '|', ':', ',')
+
+    /** Fila por serie: su columna de índice tiene un número de serie o un calentamiento; null si no es una fila por serie. */
+    private fun setRowInfo(row: List<String>, table: Columns): SetRowInfo? {
+        val setIndex = table.setIndex ?: return null
+        val indexCell = row.getOrNull(setIndex).orEmpty()
+        val nameCell = table.indexOf(ColumnRole.NAME)?.let { row.getOrNull(it) }.orEmpty()
+        val number = indexCell.toIntOrNull()?.takeIf { it in 1..MAX_SETS }
+        val warm = isWarmupText(indexCell) || isWarmupText(nameCell)
+        if (number == null && !warm) return null
+        return SetRowInfo(number, warm, ExerciseMatchLexicon.normalize(stripWarmup(nameCell)))
+    }
+
+    /**
+     * Agrupa las filas por serie consecutivas de cada tabla (H6a): mismo nombre, o nombre en blanco (sigue al anterior), y un
+     * índice que sube. Una fila vacía no corta la carrera; cualquier otra fila que no sea serie, sí.
+     */
+    private fun setRunsOf(rows: List<List<String>>, sessions: Map<Int, SessionPart>): SetRuns {
+        val cells = rows.map { row -> row.map { it.trim() } }
+        val tables = activeTables(cells, sessions)
+        val runs = ArrayList<MutableList<Int>>()
+        val runTables = ArrayList<Columns>()
+        var open: MutableList<Int>? = null
+        var openKey = ""
+        var lastSet = 0
+        cells.forEachIndexed { index, row ->
+            if (row.all { it.isEmpty() }) return@forEachIndexed
+            val table = tables[index]
+            val info = if (table != null && !sessions.containsKey(index) && detectColumns(row) == null) setRowInfo(row, table) else null
+            if (table == null || info == null) {
+                open = null
+                return@forEachIndexed
+            }
+            val current = open
+            // El índice sube de uno en uno: una columna «Set» con cuentas (1 y luego 3) no es un índice de serie.
+            // Un calentamiento no cuenta, ni su índice ni su lugar en la secuencia.
+            val inSequence = info.warm || info.number == null || lastSet == 0 || info.number == lastSet + 1
+            val continues = current != null && runTables.last() === table &&
+                (info.key.isEmpty() || info.key == openKey) && inSequence
+            val run = if (current != null && continues) {
+                current
+            } else {
+                mutableListOf<Int>().also {
+                    runs += it
+                    runTables += table
+                    open = it
+                    openKey = ""
+                    lastSet = 0
+                }
+            }
+            run += index
+            if (openKey.isEmpty()) openKey = info.key
+            if (!info.warm) info.number?.let { lastSet = it }
+        }
+        val first = HashMap<Int, SetRun>()
+        val consumed = HashSet<Int>()
+        runs.forEachIndexed { k, run ->
+            val table = runTables[k]
+            // Una sola fila cuyo índice es la columna de series («Set» con su cuenta): sigue como antes, en tableRow.
+            val countRow = run.size == 1 && table.setIndex != null && table.indexOf(ColumnRole.SETS) == table.setIndex
+            if (countRow) return@forEachIndexed
+            first[run.first()] = SetRun(table, run.toList(), run.map { cells[it] })
+            consumed += run.drop(1)
+        }
+        return SetRuns(first, consumed)
+    }
+
+    /**
+     * Una carrera de filas por serie como ejercicio (H6a): series = filas de trabajo (sin calentamiento); repeticiones de todas
+     * ellas (rango si difieren; un valor que no se lee se ignora con su aviso); carga = la mayor, con la nota si difieren;
+     * %, RPE y RIR = los de la fila de trabajo más pesada.
+     */
+    private fun setRunLine(run: SetRun, row: RowContext): Line? {
+        val table = run.table
+        fun cell(role: ColumnRole, cells: List<String>): String = table.indexOf(role)?.let { cells.getOrNull(it) }.orEmpty()
+        val infos = run.cells.map { setRowInfo(it, table) }
+        val working = run.cells.indices.filter { infos[it]?.warm != true }
+        val warm = run.cells.indices.count { infos[it]?.warm == true }
+        val rawName = run.cells.map { stripWarmup(cell(ColumnRole.NAME, it)) }.firstOrNull { it.isNotEmpty() }.orEmpty()
+        val name = numbered(dropLinks(rawName)).name
+        if (name.isBlank()) {
+            row.warn(ImportWarningKind.SKIPPED_ROW, "fila sin nombre de ejercicio; se omite")
+            return null
+        }
+        if (working.isEmpty()) {
+            row.warn(ImportWarningKind.SKIPPED_ROW, "«$name» solo tiene series de calentamiento; se omite")
+            return null
+        }
+        val reps = ArrayList<Pair<Int, Int>>()
+        for (i in working) {
+            val text = cell(ColumnRole.REPS, run.cells[i])
+            if (text.isEmpty()) continue
+            val range = parseRange(text)
+            if (range == null || range.first !in 1..MAX_REPS || range.second !in 1..MAX_REPS) {
+                row.warn(ImportWarningKind.IGNORED_VALUE, "«$text» no se entiende como repeticiones; se ignora")
+                continue
+            }
+            reps += range
+        }
+        val rowLoad = working.associateWith { i ->
+            val text = cell(ColumnRole.LOAD, run.cells[i])
+            if (text.contains('%')) null else firstNumber(text)?.also { row.noteLoad(unitMarkOf(text)) }
+        }
+        val loads = working.mapNotNull { rowLoad[it] }
+        val top = working.filter { rowLoad[it] != null }.maxByOrNull { rowLoad[it] ?: 0.0 } ?: working.first()
+        val topCells = run.cells[top]
+        val topLoad = cell(ColumnRole.LOAD, topCells)
+        val percent = firstNumber(cell(ColumnRole.PERCENT, topCells)) ?: topLoad.takeIf { it.contains('%') }?.let { firstNumber(it) }
+        val notes = listOfNotNull(
+            loads.distinct().takeIf { it.size > 1 }?.let { "Cargas por serie: ${loads.joinToString(", ") { numberText(it) }}." },
+            warmupNote(warm),
+        ).joinToString(" ").takeIf { it.isNotEmpty() }
+        return validate(
+            name = name,
+            sets = working.size,
+            repsMin = reps.minOfOrNull { it.first },
+            repsMax = reps.maxOfOrNull { it.second },
+            load = loads.maxOrNull(),
+            percent = percent,
+            rpe = firstNumber(cell(ColumnRole.RPE, topCells)),
+            rir = leadingInt(cell(ColumnRole.RIR, topCells)),
+            rest = null,
+            notes = notes,
+            row = row,
+        )?.let { Line.Exercise(it) }
+    }
+
+    /** Nota de las series de calentamiento que no cuentan (H6a). */
+    private fun warmupNote(count: Int): String? = when (count) {
+        0 -> null
+        1 -> "Se omitió 1 serie de calentamiento."
+        else -> "Se omitieron $count series de calentamiento."
+    }
+
+    /** Un número sin ceros de más: «270», «77.5». */
+    private fun numberText(value: Double): String = if (value % 1.0 == 0.0) value.toLong().toString() else value.toString()
+
+    /** Columna de índice de serie (H6a): «Set #», «Set n», o «Set»/«Serie» sin «Sets» ni «Series» en la cabecera. */
+    private fun isSetIndexHeader(raw: String, plural: Boolean): Boolean = when (headerText(raw)) {
+        "set n", "serie n" -> !plural
+        "set", "serie" -> !plural || raw.contains('#')
+        else -> false
     }
 
     private fun unreadable(row: RowContext, cell: String, parsed: Any?, label: String) {
@@ -722,31 +1000,115 @@ object ProgramImportParser {
 
     // ---- Cabeceras de columna ----------------------------------------------------------------------------
 
-    private enum class ColumnRole { NAME, SETS, REPS, LOAD, PERCENT, RPE, RIR, REST, NOTES, DAY, GROUP }
+    private enum class ColumnRole { NAME, SETS, REPS, LOAD, PERCENT, RPE, RIR, REST, NOTES, DAY, GROUP, SCHEME, LIST }
 
-    /** Columnas de una tabla; [loadHeader] es la cabecera de carga, si la hay («Peso (kg)», «Weight (lb)»). */
+    /**
+     * Columnas de una tabla; [loadHeader] es la cabecera de carga, si la hay («Peso (kg)», «Weight (lb)»). [listHasSets] dice
+     * que la lista de carga lleva series («(load x reps x sets)»); [setColumns] son las columnas «Set n» sin rol (H6a); y
+     * [schemeHasReps] dice que la columna de esquema habla también de repeticiones («Reps / Scheme»).
+     */
     private class Columns(
         private val indexes: Map<ColumnRole, Int>,
         val restInMinutes: Boolean,
         val loadHeader: String?,
+        val listHasSets: Boolean = false,
+        val setColumns: List<Int> = emptyList(),
+        val schemeHasReps: Boolean = false,
+        val schemeHasSets: Boolean = false,
+        val setIndex: Int? = null,
     ) {
         fun indexOf(role: ColumnRole): Int? = indexes[role]
     }
 
-    /** Una fila es cabecera si trae la columna de ejercicio y al menos otra columna reconocida. */
-    private fun detectColumns(cells: List<String>): Columns? {
+    /**
+     * Una fila es cabecera si trae la columna de ejercicio y al menos otra columna reconocida, o alguna «Set n». Además de las
+     * palabras, mira la cabecera original («Work-up (load × reps)»), las celdas «S · X · R» seguidas y las «Set n» (H6a).
+     * Con [legacy] se reconoce como antes del H6a: lo comprueban las sesiones al decidir dónde acaba su bloque.
+     */
+    private fun detectColumns(cells: List<String>, legacy: Boolean = false): Columns? {
         val indexes = HashMap<ColumnRole, Int>()
+        val setColumns = ArrayList<Int>()
+        var listHasSets = false
+        var setIndex: Int? = null
+        // Con «Sets» o «Series» en la misma cabecera, «Set» o «Serie» sueltas no tienen rol («Lift · Set · Sets · Reps»).
+        val plural = !legacy && cells.any { cell -> headerWords(cell).any { it in PLURAL_SET_WORDS } }
+        // La cabecera de lista va a la derecha de la columna de nombre («Exercise | Work-up (load × reps)»).
+        val nameAt = if (legacy) -1 else cells.indexOfFirst { columnRole(it) == ColumnRole.NAME }
         cells.forEachIndexed { index, cell ->
-            val role = columnRole(cell)
+            val list = if (legacy) null else LIST_HEADER.find(cell)
+            if (list != null) {
+                if (!indexes.containsKey(ColumnRole.LIST) && nameAt >= 0 && index > nameAt) {
+                    indexes[ColumnRole.LIST] = index
+                    listHasSets = list.groupValues[1].isNotEmpty()
+                }
+                return@forEachIndexed
+            }
+            if (!legacy && SET_NUMBERED_HEADER.containsMatchIn(headerText(cell))) setColumns += index
+            if (!legacy && setIndex == null && isSetIndexHeader(cell, plural)) setIndex = index
+            val role = when {
+                legacy -> legacyColumnRole(cell)
+                plural && headerText(cell) in SET_SINGULAR -> null
+                else -> columnRole(cell)
+            }
             if (role != null && !indexes.containsKey(role)) indexes[role] = index
         }
-        if (!indexes.containsKey(ColumnRole.NAME) || indexes.size < 2) return null
+        // Varios bloques «Lift» en la misma cabecera («Lift | Sets*Reps» repetido por semanas): no es una tabla nueva.
+        // Solo cuenta «Lift»: los bloques de «Exercise» o «Movement» (una hoja por semana) siguen siendo su tabla (H6a).
+        if (!legacy && cells.count { headerText(it) in LIFT_HEADERS } >= 2) return null
+        // «S · X · R» en una fila: tres celdas seguidas de una letra. S son las series, R las repeticiones y X no tiene rol.
+        if (!legacy) {
+            for (index in 0..cells.size - 3) {
+                val triple = cells.subList(index, index + 3)
+                if (triple[0].equals("S", ignoreCase = true) && triple[1].equals("X", ignoreCase = true) &&
+                    triple[2].equals("R", ignoreCase = true)
+                ) {
+                    if (!indexes.containsKey(ColumnRole.SETS)) indexes[ColumnRole.SETS] = index
+                    if (!indexes.containsKey(ColumnRole.REPS)) indexes[ColumnRole.REPS] = index + 2
+                    break
+                }
+            }
+        }
+        // Con «Set n» sin más columnas la cabecera sigue siendo tabla: si no, su texto se leería como una prescripción (H6a).
+        if (!indexes.containsKey(ColumnRole.NAME) || (indexes.size < 2 && setColumns.isEmpty())) return null
         val restHeader = indexes[ColumnRole.REST]?.let { cells[it] }.orEmpty()
         val loadHeader = indexes[ColumnRole.LOAD]?.let { cells[it] }
-        return Columns(indexes, restInMinutes = isMinutesHeader(restHeader), loadHeader = loadHeader)
+        val schemeHeader = indexes[ColumnRole.SCHEME]?.let { cells[it] }.orEmpty()
+        return Columns(
+            indexes,
+            restInMinutes = isMinutesHeader(restHeader),
+            loadHeader = loadHeader,
+            listHasSets = listHasSets,
+            setColumns = setColumns,
+            schemeHasReps = headerWords(schemeHeader).any { it in REP_WORDS },
+            schemeHasSets = headerWords(schemeHeader).any { it in SET_WORDS },
+            setIndex = setIndex,
+        )
     }
 
+    /**
+     * Papel de una columna en una tabla (H6a): lo que no es ejercicio ni dato (registro, «Set n», «Top Set») no tiene rol, el
+     * esquema es una lista cerrada y «Lift» es el nombre. Lo demás, como antes ([legacyColumnRole]).
+     */
     private fun columnRole(raw: String): ColumnRole? {
+        val text = raw.trim()
+        if (text.isEmpty()) return null
+        val normalized = headerText(text)
+        val words = headerWords(text)
+        return when {
+            // Lo que rellena quien entrena («Reps Done», «Weight Used», «Fatigue %», «Est 1RM») no tiene rol.
+            words.any { it in REGISTER_WORDS } -> null
+            // «Set 1», «Serie 2», «Set #», «Set Type», «Top Set», «First Set …» y «Last Set …» no son la columna de series.
+            SET_NUMBERED_HEADER.containsMatchIn(normalized) || (text.contains('#') && words.any { it in SET_SINGULAR }) ||
+                (words.any { it in SET_SINGULAR } && words.any { it in SET_NOT_COLUMN_WORDS }) -> null
+            // Lista cerrada de cabeceras de esquema («Sets x Reps», «Sets×Reps», «Reps / Scheme»…), normalizadas.
+            normalized in SCHEME_HEADERS -> ColumnRole.SCHEME
+            normalized in LIFT_HEADERS -> ColumnRole.NAME
+            else -> legacyColumnRole(text)
+        }
+    }
+
+    /** Papel de una columna según su cabecera, como antes del H6a: lo usan las sesiones y el texto de una fila. */
+    private fun legacyColumnRole(raw: String): ColumnRole? {
         val text = raw.trim()
         if (text.isEmpty()) return null
         val words = ExerciseMatchLexicon.normalize(text.replace(PARENTHESES, " "))
@@ -769,9 +1131,15 @@ object ProgramImportParser {
         }
     }
 
+    /** Cabecera normalizada sin paréntesis: «Work-up (load × reps)» queda en «work up». */
+    private fun headerText(raw: String): String = ExerciseMatchLexicon.normalize(raw.replace(PARENTHESES, " "))
+
+    /** Palabras de una cabecera, normalizadas y sin paréntesis. */
+    private fun headerWords(raw: String): Set<String> = headerText(raw).split(' ').filter { it.isNotEmpty() }.toSet()
+
     private fun isColumnHeaderText(text: String): Boolean {
         if (text.any { it.isDigit() }) return false
-        return ExerciseMatchLexicon.normalize(text).split(' ').count { columnRole(it) != null } >= 2
+        return ExerciseMatchLexicon.normalize(text).split(' ').count { legacyColumnRole(it) != null } >= 2
     }
 
     private fun isMinutesHeader(header: String): Boolean =
@@ -794,6 +1162,63 @@ object ProgramImportParser {
 
     /** Columna de grupo muscular: no es nombre; va a notas solo si la fila no tiene otra nota. */
     private val GROUP_WORDS = setOf("grupo", "muscle", "group")
+
+    /** Columnas de registro, que rellena quien entrena: lo hecho, lo usado, la fatiga o lo estimado. No tienen rol (H6a). */
+    /** «Lift» y «Levantamiento» como cabecera exacta de la columna de nombre (no una palabra dentro de un nombre). */
+    private val LIFT_HEADERS = setOf("lift", "lifts", "levantamiento", "levantamientos")
+
+    private val REGISTER_WORDS = setOf(
+        "done", "used", "actual", "log", "logged", "hecho", "hechas", "realizado", "realizadas", "usado", "registro",
+        "fatigue", "fatiga", "expected", "estimated", "est",
+    )
+
+    /** Palabra de serie en singular: sin rol si la misma cabecera tiene «Sets» o «Series» (H6a). */
+    private val SET_SINGULAR = setOf("set", "serie")
+
+    /** Plural de la columna de series: con «Sets» o «Series» en la cabecera, «Set» o «Serie» sueltas no tienen rol (H6a). */
+    private val PLURAL_SET_WORDS = setOf("sets", "series")
+
+    /** Con una palabra de serie, la cabecera no es la columna de series: «Top Set», «First Set …», «Last Set …», «Set Type». */
+    private val SET_NOT_COLUMN_WORDS = setOf("top", "first", "last", "type", "tipo")
+
+    /** «Set 1», «Serie 2», «Set 1 Reps»: la palabra de serie seguida de un número, en texto normalizado (H6a). */
+    private val SET_NUMBERED_HEADER = Regex("""^(?:set|serie) \d""")
+
+    /** Cabeceras de la columna de esquema («Sets x Reps», «Set Scheme», «Reps / Scheme», «Target»…), normalizadas (H6a). */
+    private val SCHEME_HEADERS: Set<String> = listOf(
+        "Sets x Reps", "Sets×Reps", "Sets*Reps", "Set x Rep", "Sets x Rep", "Sets/Reps", "Sets / Reps", "Series x Reps",
+        "Series x Repeticiones", "Set Scheme", "Rep Scheme", "Scheme", "Esquema", "Reps / Scheme", "Sets x Reps / How",
+        "Sets x", "Rx", "Prescription", "Prescripción", "Target",
+    ).mapTo(HashSet()) { ExerciseMatchLexicon.normalize(it) }
+
+    /** Cabecera de lista en paréntesis («Work-up (load × reps)», «Prescription (load x reps x sets)»): el orden es el del texto. */
+    private val LIST_HEADER = Regex(
+        """\(\s*(?:load|weight|wt|kg|peso)\s*[x×]\s*reps\s*([x×]\s*sets)?\s*\)""",
+        RegexOption.IGNORE_CASE,
+    )
+
+    /** Un elemento de lista de carga: «95×3» (carga × repeticiones) o «105x1x5» (con series). Con «x» o «×» (H6a). */
+    private const val LOAD_REPS = """(\d{1,4}(?:[.,]\d+)?)\s*[x×]\s*(\d{1,2})"""
+    private const val LOAD_REPS_SETS = """(\d{1,4}(?:[.,]\d+)?)\s*[x×]\s*(\d{1,2})\s*[x×]\s*(\d{1,2})"""
+    private val LOAD_REPS_LIST = Regex("""^\s*$LOAD_REPS(?:\s*[,;]\s*$LOAD_REPS)*\s*[,;]?\s*$""", RegexOption.IGNORE_CASE)
+    private val LOAD_REPS_SETS_LIST = Regex(
+        """^\s*$LOAD_REPS_SETS(?:\s*[,;]\s*$LOAD_REPS_SETS)*\s*[,;]?\s*$""",
+        RegexOption.IGNORE_CASE,
+    )
+    private val LOAD_REPS_ITEM = Regex(LOAD_REPS, RegexOption.IGNORE_CASE)
+    private val LOAD_REPS_SETS_ITEM = Regex(LOAD_REPS_SETS, RegexOption.IGNORE_CASE)
+
+    /** Rango de series delante de una notación de esquema («3-4 x 6-8», «3–4 sets of 6-8»): su mínimo es el número de series. */
+    private val SCHEME_SETS_RANGE = Regex(
+        """^\s*(\d{1,2})\s*[-–—]\s*(\d{1,2})(?=\s*(?:[x×]|sets?\b|series\b))""",
+        RegexOption.IGNORE_CASE,
+    )
+
+    /** Las «Set n» con cifras son cargas por serie solo si todas llegan a este peso; por debajo son repeticiones o RIR (H6a). */
+    private const val SET_LOAD_MIN = 20.0
+
+    /** «140 x10»: carga y repeticiones en una misma celda de «Set n» (H6a). */
+    private val SET_LOAD_REPS = Regex("""^\s*(\d{1,4}(?:[.,]\d+)?)\s*(?:kg|lb|lbs)?\s*[x×]\s*(\d{1,2})\s*$""", RegexOption.IGNORE_CASE)
 
     // ---- Notación compacta -------------------------------------------------------------------------------
 
@@ -1650,7 +2075,7 @@ object ProgramImportParser {
     /** Papeles de una fila de ejercicio: si ninguno tiene texto, la fila solo puede ser un día. */
     private val VALUE_ROLES = listOf(
         ColumnRole.NAME, ColumnRole.SETS, ColumnRole.REPS, ColumnRole.LOAD, ColumnRole.PERCENT,
-        ColumnRole.RPE, ColumnRole.RIR, ColumnRole.REST,
+        ColumnRole.RPE, ColumnRole.RIR, ColumnRole.REST, ColumnRole.SCHEME, ColumnRole.LIST,
     )
 
     /** Quita el enumerador del nombre y separa la etiqueta de bloque, si la hay. */
@@ -1683,7 +2108,9 @@ object ProgramImportParser {
         if (labelIndex < 0) return null
         val label = cells[labelIndex]
         if (parseNotation(label) != null || !isDayLabel(label)) return null
-        val valued = listOf(ColumnRole.SETS, ColumnRole.REPS).mapNotNull { columns.indexOf(it) }.filter { it != labelIndex }
+        val valued = listOf(ColumnRole.SETS, ColumnRole.REPS, ColumnRole.SCHEME)
+            .mapNotNull { columns.indexOf(it) }
+            .filter { it != labelIndex }
         if (valued.any { cells.getOrNull(it).orEmpty().isNotEmpty() }) return null
         val focus = cells.filterIndexed { index, text -> index != labelIndex && isFocusText(text) }.firstOrNull()
         val name = cleanHeader(label)
@@ -1734,7 +2161,7 @@ object ProgramImportParser {
         }
         // «Est 1RM» es una columna calculada, no un porcentaje: no abre grupo.
         if ("est" in words || "estimado" in words) return GroupCol.OTHER
-        return when (columnRole(text)) {
+        return when (legacyColumnRole(text)) {
             ColumnRole.SETS -> GroupCol.SETS
             ColumnRole.REPS -> GroupCol.REPS
             ColumnRole.LOAD -> GroupCol.LOAD
@@ -1832,7 +2259,7 @@ object ProgramImportParser {
 
     /** Una fila corta el bloque si es otra cabecera, otra subcabecera o trae etiquetas de grupo (semana, día, sesión, fecha). */
     private fun endsSessionData(cells: List<String>, firstGroup: Int): Boolean {
-        if (detectColumns(cells) != null || sessionLayout(cells) != null) return true
+        if (detectColumns(cells, legacy = true) != null || sessionLayout(cells) != null) return true
         val groupCells = cells.drop(firstGroup)
         // Una semana, sesión o fecha en los grupos abre otro bloque, tenga la fila valores o no (como en H3g).
         val weekOrSession = groupCells.any {
@@ -1869,7 +2296,7 @@ object ProgramImportParser {
         (0 until layout.repeats).map { group ->
             val text = header.getOrNull(layout.start - 1 + group * layout.pattern.size).orEmpty().trim()
             text.takeIf {
-                it.count { c -> c.isLetter() } >= 3 && columnRole(it) == null && groupColOf(it) == GroupCol.OTHER &&
+                it.count { c -> c.isLetter() } >= 3 && legacyColumnRole(it) == null && groupColOf(it) == GroupCol.OTHER &&
                     labelKindOf(it) == null && !isFechaLabel(it) && parseNotation(it) == null
             }
         }
@@ -2233,8 +2660,18 @@ object ProgramImportParser {
 
     // ---- Grupos con porcentaje (Sheiko, Smolov, 5/3/1) ------------------------------------------------------
 
-    /** Un grupo de series de una fila: «70%x3x2» son 2 series de 3 repeticiones al 70 %. */
-    private class PercentGroup(val name: String, val notes: String?, val percent: Double, val reps: Int, val sets: Int)
+    /**
+     * Un grupo de series de una fila: «70%x3x2» son 2 series de 3 repeticiones al 70 %; «95×3» (lista de carga, H6a) es lo
+     * mismo con carga en vez de porcentaje.
+     */
+    private class PercentGroup(
+        val name: String,
+        val notes: String?,
+        val percent: Double?,
+        val reps: Int,
+        val sets: Int,
+        val load: Double? = null,
+    )
 
     /** Un grupo encontrado en el texto: su posición y sus cifras. */
     private class GroupSpan(val range: IntRange, val percent: Double, val reps: Int, val sets: Int)
@@ -2305,7 +2742,7 @@ object ProgramImportParser {
             sets = group.sets,
             repsMin = group.reps,
             repsMax = group.reps,
-            load = null,
+            load = group.load,
             percent = group.percent,
             rpe = null,
             rir = null,
@@ -2385,6 +2822,8 @@ object ProgramImportParser {
     ) {
         val exercises = mutableListOf<ExerciseDraft>()
         var id: String? = null
+        /** Etiquetas de semana vistas en la hoja cuando se abrió este día (H6a); -1 si no se abrió con una fila de día. */
+        var labelMark = -1
     }
 
     /** Ejercicio conservado; su [id] se fija al cerrar el borrador. */
@@ -2576,9 +3015,23 @@ object ProgramImportParser {
             )
         }
 
+        /** Etiquetas de semana vistas en filas de cualquier hoja: un día repetido sin ninguna entre medias abre semana nueva (H6a). */
+        private var weekLabelEvents = 0
+
+        /** El nombre de la hoja es una semana: un día repetido en esa hoja no abre semana nueva (H6a). */
+        private var sheetNamedWeek = false
+
         fun openWeek(number: Int) {
             week = number
             openDay = null
+            weekLabelEvents++
+        }
+
+        /** Semana del nombre de la hoja, que se abre al empezarla (H6a). */
+        fun openSheetWeek(number: Int) {
+            week = number
+            openDay = null
+            sheetNamedWeek = true
         }
 
         /** Empieza una hoja (o el texto pegado): el día abierto de la hoja anterior no recoge sus filas. */
@@ -2590,6 +3043,7 @@ object ProgramImportParser {
             cyclesStopped = false
             optionsCut = false
             sheetHints.clear()
+            sheetNamedWeek = false
         }
 
         /** Cierra una hoja: los días cortos sin ejercicios cuentan como texto y sale una nota por tipo de ruido. */
@@ -2652,7 +3106,19 @@ object ProgramImportParser {
                     return
                 }
             }
-            openDay = DayDraft(week, name, row.where, row.source, silent).also { days += it }
+            // Hoja sin semanas reconocibles (H6a): un día que ya salió en esta semana, sin etiqueta de semana entre medias,
+            // abre la semana siguiente en vez de añadir días a esta.
+            val lastSame = days.drop(sheetFirstDay).lastOrNull {
+                it.week == week && !it.silent && it.labelMark >= 0 &&
+                    ExerciseMatchLexicon.normalize(it.name) == ExerciseMatchLexicon.normalize(name)
+            }
+            if (!silent && !sheetNamedWeek && lastSame != null && lastSame.labelMark == weekLabelEvents) {
+                week = (days.drop(sheetFirstDay).maxOfOrNull { it.week } ?: week) + 1
+            }
+            openDay = DayDraft(week, name, row.where, row.source, silent).also {
+                it.labelMark = weekLabelEvents
+                days += it
+            }
         }
 
         fun addExercise(exercise: ImportedExercise, row: RowContext): ExerciseDraft {
