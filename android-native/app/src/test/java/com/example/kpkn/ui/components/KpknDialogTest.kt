@@ -1,15 +1,20 @@
 package com.example.kpkn.ui.components
 
+import androidx.compose.material3.Button
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import com.example.kpkn.screens.home.NutritionTodayGlassOverlay
+import com.example.kpkn.screens.onboarding.design.WizardColors
 import dev.chrisbanes.haze.HazeState
 import org.junit.Assert.assertEquals
 import org.junit.Rule
@@ -109,5 +114,39 @@ class KpknDialogTest {
         rule.runOnIdle { overlayOpen = false }
         rule.waitForIdle()
         assertEquals(antes, KpknModalTracker.openCount)
+    }
+
+    @Test
+    fun dentroDelDialogoLosBotonesDeMaterialSalenEnTinta() {
+        var primario: Color? = null
+        var sobrePrimario: Color? = null
+        rule.setContent {
+            KpknAlertDialog(
+                onDismissRequest = {},
+                confirmButton = {
+                    primario = MaterialTheme.colorScheme.primary
+                    sobrePrimario = MaterialTheme.colorScheme.onPrimary
+                    Button(onClick = {}) { Text("Activar") }
+                },
+                title = { Text("Permiso de notificaciones") },
+                text = { Text("Activa las notificaciones para recibir el aviso.") },
+            )
+        }
+        rule.waitForIdle()
+        assertEquals(WizardColors.text, primario)
+        assertEquals(WizardColors.background, sobrePrimario)
+    }
+
+    @Test
+    fun dentroDeLaHojaDeVidrioElColorPrimarioEsTinta() {
+        var primario: Color? = null
+        rule.setContent {
+            KpknGlassDialog(onDismissRequest = {}) {
+                primario = MaterialTheme.colorScheme.primary
+                Text("Contenido de prueba")
+            }
+        }
+        rule.waitForIdle()
+        assertEquals(WizardColors.text, primario)
     }
 }

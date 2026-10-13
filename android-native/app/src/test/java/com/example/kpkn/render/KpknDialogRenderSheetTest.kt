@@ -140,6 +140,13 @@ class KpknDialogRenderSheetTest {
                 confirmButton = { Button(onClick = {}) { Text("Activar") } },
                 dismissButton = { TextButton(onClick = {}) { Text("Ahora no") } },
             )
+            "antiguo_rojo" -> KpknAlertDialog(
+                onDismissRequest = {},
+                title = { Text("¿Quitar el objetivo?") },
+                text = { Text("Deja de aparecer en Cuerpo. El historial de medidas se conserva.") },
+                confirmButton = { TextButton(onClick = {}) { Text("Eliminar", color = Color.Red) } },
+                dismissButton = { TextButton(onClick = {}) { Text("Cancelar") } },
+            )
             else -> KpknGlassDialog(onDismissRequest = {}) {
                 Column(modifier = Modifier.padding(20.dp)) {
                     Text("Ajustes del descanso", style = KpknType.dialogTitle, color = WizardColors.text)
@@ -183,7 +190,7 @@ class KpknDialogRenderSheetTest {
                 }
             }
         }
-        for (name in listOf("normal", "destructivo", "icono", "largo", "antiguo", "vidrio")) {
+        for (name in listOf("normal", "destructivo", "icono", "largo", "antiguo", "antiguo_rojo", "vidrio")) {
             for ((suffix, scale) in listOf("s100" to 1f, "s130" to 1.3f)) {
                 rule.runOnUiThread {
                     sample = name
