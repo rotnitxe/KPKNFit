@@ -941,9 +941,9 @@ internal fun daysAndTimeReviewValue(draft: SetupWizardDraft): String? =
         draft.minutesPerSession?.let { minutes -> "$minutes min" },
     ).joinToString(" · ").ifEmpty { null }
 
-private val WEEKDAY_LABELS = listOf("", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo")
+internal val WEEKDAY_LABELS = listOf("", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo")
 
-private fun formatPercent(value: Double): String =
+internal fun formatPercent(value: Double): String =
     if (value % 1.0 == 0.0) value.toInt().toString() else "%.1f".format(value).replace('.', ',')
 
 /** Estado del plan de nutrición en la revisión (el mismo texto que su fila-resumen). */
