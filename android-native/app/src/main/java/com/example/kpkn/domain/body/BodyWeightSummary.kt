@@ -3,13 +3,16 @@ package com.example.kpkn.domain.body
 import com.example.kpkn.data.models.BodyChartRange
 import com.example.kpkn.data.models.BodyGoal
 import com.example.kpkn.data.models.BodyMetric
+import com.example.kpkn.data.models.BodyMetricSource
 import com.example.kpkn.data.models.BodyObservation
+import com.example.kpkn.data.models.BodyObservationMethod
 import com.example.kpkn.data.models.GoalMetric
 import com.example.kpkn.data.models.NutritionPlan
 import java.time.Instant
 import java.time.LocalDate
 import java.time.YearMonth
 import java.time.ZoneId
+import java.time.ZoneOffset
 import kotlin.math.abs
 import kotlin.math.ceil
 import kotlin.math.sign
@@ -75,9 +78,21 @@ private fun BodyMetric.toGoalMetric(): GoalMetric? = when (this) {
 
 /** Día local de una medida, en la zona en que se tomó; sin zona válida, en [fallbackZone]. */
 fun bodyLocalDate(observation: BodyObservation, fallbackZone: ZoneId): LocalDate {
+    // Las medidas manuales antiguas se guardaron a medianoche UTC: su día es el de UTC, no el de la zona del teléfono.
+    if (isLegacyUtcMidnightManual(observation)) {
+        return Instant.ofEpochMilli(observation.timestampEpochMs).atZone(ZoneOffset.UTC).toLocalDate()
+    }
     val zone = runCatching { ZoneId.of(observation.zoneId) }.getOrDefault(fallbackZone)
     return Instant.ofEpochMilli(observation.timestampEpochMs).atZone(zone).toLocalDate()
 }
+
+private const val MILLIS_PER_DAY = 86_400_000L
+
+/** Medida manual a medianoche UTC exacta: el formato antiguo que, visto al oeste de Greenwich, caía en el día anterior. */
+private fun isLegacyUtcMidnightManual(observation: BodyObservation): Boolean =
+    observation.timestampEpochMs % MILLIS_PER_DAY == 0L &&
+        observation.source == BodyMetricSource.MANUAL &&
+        observation.method == BodyObservationMethod.MANUAL
 
 /**
  * Medidas de [metric] de los últimos [days] días locales, contando hoy (null = sin límite).
