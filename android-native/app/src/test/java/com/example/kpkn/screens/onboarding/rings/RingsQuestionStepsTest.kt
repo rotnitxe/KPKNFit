@@ -8,7 +8,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.semantics.SemanticsActions
+import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.test.assertIsNotSelected
 import androidx.compose.ui.test.assertIsOff
 import androidx.compose.ui.test.assertIsOn
@@ -18,6 +20,9 @@ import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performSemanticsAction
+import androidx.compose.ui.test.click
+import androidx.compose.ui.test.performTouchInput
+import androidx.compose.ui.test.swipe
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModelStore
 import androidx.test.core.app.ApplicationProvider
@@ -188,6 +193,57 @@ class RingsQuestionStepsTest {
         assertEquals(InitialRecoveryIntensity.EASY, answers()?.intensityLevel)
         rule.onNodeWithTag("rings-intensity-EASY").assertIsSelected()
         rule.onNodeWithTag("rings-intensity-HARD").assertIsNotSelected()
+    }
+
+    @Test
+    fun sinRespuestaLaLlamaEstaApagadaYLaEscalaNoTieneNivel() {
+        showStep(SetupStepId.RINGS_INTENSITY)
+        assertEquals(
+            "Apagada",
+            rule.onNodeWithTag("rings-intensity-flame").fetchSemanticsNode().config[SemanticsProperties.StateDescription],
+        )
+        assertEquals(
+            "Sin elegir",
+            rule.onNodeWithTag("rings-intensity-slider").fetchSemanticsNode().config[SemanticsProperties.StateDescription],
+        )
+        assertNull(answers()?.intensityLevel)
+    }
+
+    @Test
+    fun arrastrarYSoltarCercaDeDuraGuardaHard() {
+        showStep(SetupStepId.RINGS_INTENSITY)
+        val slider = rule.onNodeWithTag("rings-intensity-slider")
+        val size = slider.fetchSemanticsNode().size
+        val middle = size.height / 2f
+        // Del 55 % al 70 % de la pista: la parada más cercana es «Dura».
+        slider.performTouchInput { swipe(Offset(size.width * 0.55f, middle), Offset(size.width * 0.7f, middle)) }
+        rule.waitForIdle()
+        assertEquals(InitialRecoveryIntensity.HARD, answers()?.intensityLevel)
+        rule.onNodeWithTag("rings-intensity-HARD").assertIsSelected()
+    }
+
+    @Test
+    fun tocarLaPistaGuardaLaParadaMasCercana() {
+        showStep(SetupStepId.RINGS_INTENSITY)
+        val slider = rule.onNodeWithTag("rings-intensity-slider")
+        val size = slider.fetchSemanticsNode().size
+        slider.performTouchInput { click(Offset(size.width * 0.9f, size.height / 2f)) }
+        rule.waitForIdle()
+        assertEquals(InitialRecoveryIntensity.VERY_HARD, answers()?.intensityLevel)
+        rule.onNodeWithTag("rings-intensity-VERY_HARD").assertIsSelected()
+    }
+
+    @Test
+    fun restablecerUnMusculoSoloQuitaEseMusculo() {
+        showStep(SetupStepId.RINGS_INTENSITY)
+        rule.runOnUiThread {
+            vm.setMuscleManual("Pectorales", 70)
+            vm.setMuscleManual("Dorsales", 35)
+        }
+        rule.waitForIdle()
+        rule.runOnUiThread { vm.resetMuscleManual("Pectorales") }
+        rule.waitForIdle()
+        assertEquals(mapOf("Dorsales" to 35), answers()?.manualMusclesV2)
     }
 
     @Test
