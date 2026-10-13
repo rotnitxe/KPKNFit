@@ -247,6 +247,9 @@ object ProgramImportParser {
         var grid: Grid? = null
         val sessions = planSessions(rows)
         val pairs = pairNames(rows, sessions)
+        // Calculadoras por bloques bajo filas de semanas (H6c): su plan decide esas filas y da los avisos de la hoja.
+        val weekBands = WeekBandBlocks.plan(rows)
+        weekBands?.let { noteWeekBandSheet(builder, it) }
         rows.forEachIndexed { index, row ->
             val cells = row.map { it.trim() }
             val filled = cells.filter { it.isNotEmpty() }
@@ -270,6 +273,14 @@ object ProgramImportParser {
                     is SessionPart.Data -> sessionRow(builder, part.block, cells, context)
                 }
                 builder.endRow(null)
+                return@forEachIndexed
+            }
+
+            // Calculadoras por bloques bajo filas de semanas (H6c): las filas que decide el plan van por su camino.
+            if (weekBands != null && index in weekBands.ownedRows) {
+                grid?.let { closeGrid(builder, it) }
+                grid = null
+                weekBandRow(builder, weekBands, index, context)
                 return@forEachIndexed
             }
 
@@ -345,6 +356,77 @@ object ProgramImportParser {
         }
         grid?.let { closeGrid(builder, it) }
     }
+
+    /**
+     * Una fila del plan de calculadoras: sus bloques dan un ejercicio por semana; una fila de etiqueta cuenta como línea de
+     * texto, sin aviso (la pista de unidad se anota aquí); una fila de semanas se consume sin aviso.
+     */
+    private fun weekBandRow(builder: DraftBuilder, plan: WeekBandPlan, index: Int, row: RowContext) {
+        val blocks = plan.blocks[index]
+        if (blocks != null) {
+            blocks.forEach { planBlock(builder, plan, it, row) }
+        } else if (index in plan.labelRows) {
+            plan.unitHint?.takeIf { it.row == index }?.let { builder.noteUnitHint(it.unit) }
+            row.count(Noise.LABEL)
+        }
+        builder.endRow(null)
+    }
+
+    /**
+     * Un bloque: un ejercicio por semana en su día, con los mismos avisos de valores que el resto del importador. Un bloque
+     * sin número de repeticiones («x failure») se omite con el aviso de AMRAP sin número, como en una tabla.
+     */
+    private fun planBlock(builder: DraftBuilder, plan: WeekBandPlan, block: PlannedBlock, row: RowContext) {
+        val name = plan.lift ?: WeekBandBlocks.DEFAULT_LIFT
+        if (block.repsMissing) {
+            val day = builder.sessionDay(block.weeks.first(), block.day, row)
+            builder.inDay(day) { row.warn(ImportWarningKind.SKIPPED_ROW, "«$name»: AMRAP sin número de repeticiones; se omite") }
+            builder.discardIfEmpty(day)
+            builder.endRow(null)
+            return
+        }
+        row.noteLoad(null)
+        val notes = listOfNotNull(
+            block.bandNote,
+            block.setsRange?.let { "Series: ${it.first}-${it.last}." },
+            amrapNote(block.amrapReps),
+        ).joinToString(" ").takeIf { it.isNotEmpty() }
+        for (week in block.weeks) {
+            val day = builder.sessionDay(week, block.day, row)
+            // Dentro del día, los avisos de la serie llevan su semana y su día.
+            val exercise = builder.inDay(day) {
+                validate(
+                    name = name,
+                    sets = block.sets,
+                    repsMin = block.repsMin,
+                    repsMax = block.repsMax,
+                    load = block.load,
+                    percent = null,
+                    rpe = null,
+                    rir = null,
+                    rest = null,
+                    notes = notes,
+                    row = row,
+                )
+            }
+            if (exercise == null) builder.discardIfEmpty(day)
+            builder.endRow(exercise?.let { builder.addToDay(day, it) })
+        }
+    }
+
+    /** Avisos de una hoja de calculadora: la segunda opción, el 1RM de la hoja y el levantamiento que no se reconoce. */
+    private fun noteWeekBandSheet(builder: DraftBuilder, plan: WeekBandPlan) {
+        if (plan.optionRow != null) builder.cutOptions()
+        plan.oneRm?.let { oneRm ->
+            val kind = if (oneRm.rm == 2) "2RM" else "1RM"
+            builder.noteSheetHint("las cargas salen de un $kind de ${spanishNumber(oneRm.value)}; cámbialas si el tuyo es otro.")
+        }
+        if (plan.lift == null) builder.noteSheetHint("no dice qué levantamiento es; elige el ejercicio.")
+    }
+
+    /** Un número como lo escribe la persona: «200», «245,5». */
+    private fun spanishNumber(value: Double): String =
+        if (value % 1.0 == 0.0) value.toLong().toString() else value.toString().replace('.', ',')
 
     /**
      * Una línea o una fila sin cabecera. Orden: notación (ejercicio), semana, prosa (se cuenta), etiqueta de día y, por
@@ -2357,6 +2439,29 @@ object ProgramImportParser {
             cyclesStopped = true
         }
 
+        /** Hoja con varias opciones («Option 2»): se lee la primera; la nota sale al cerrar la hoja. */
+        var optionsCut = false
+            private set
+
+        fun cutOptions() {
+            optionsCut = true
+        }
+
+        /** Avisos de la hoja que salen al cerrarla, con su ubicación («las cargas salen de un 1RM…»). */
+        private val sheetHints = mutableListOf<String>()
+
+        fun noteSheetHint(text: String) {
+            sheetHints += text
+        }
+
+        /** Pista de unidad de la hoja («Rounding: 5»): cuenta como una cabecera de carga en esa unidad. */
+        fun noteUnitHint(unit: ImportLoadUnit) {
+            when (unit) {
+                ImportLoadUnit.KG -> kgMarks++
+                ImportLoadUnit.LB -> lbHeaderMarks++
+            }
+        }
+
         /** Semana en curso: la última que abrió una fila de semana, o la 1. */
         val currentWeek: Int get() = week
 
@@ -2483,12 +2588,16 @@ object ProgramImportParser {
             noise.clear()
             looseNames.clear()
             cyclesStopped = false
+            optionsCut = false
+            sheetHints.clear()
         }
 
         /** Cierra una hoja: los días cortos sin ejercicios cuentan como texto y sale una nota por tipo de ruido. */
         fun endSheet(location: String) {
             repeat(days.drop(sheetFirstDay).count { it.silent && it.exercises.isEmpty() }) { count(Noise.TEXT) }
             if (cyclesStopped) addNote(location, "$location: se leyó el primer ciclo.")
+            if (optionsCut) addNote(location, "$location: trae varias opciones; se leyó la primera.")
+            for (hint in sheetHints) addNote(location, "$location: $hint")
             for (kind in Noise.entries) {
                 val total = noise[kind] ?: continue
                 addNote(location, noiseMessage(location, kind, total))
