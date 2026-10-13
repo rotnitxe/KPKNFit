@@ -47,7 +47,8 @@ MacroFactor es el referente del sector en nutrición. Para superarlo hacen falta
    - **Gestos:** tocar la fila edita. Una pulsación larga abre el menú de vidrio con «Duplicar», «Mover a…» y «Eliminar».
      Eliminar deja «Deshacer» en la barra de avisos.
    - **Vacío:** una fila «Añadir» en `textFaint`.
-5. **Módulo «Balance de hoy»:** una barra horizontal con «Comido · Entreno · Restante», sin repetir cifras.
+5. ~~**Módulo «Balance de hoy»**~~ (quitado tras revisar N1, 2026-10-13): el motor ya no resta el entreno de lo comido, así que el
+   módulo solo repetía las cifras de «Tu día». El gasto del entreno, si lo hay, es una línea de «Tu día» («Entreno · 320 kcal»).
 6. **Módulo «Suplementos»:**
    - la cafeína (mg y límite) con un medidor de arco pequeño;
    - la creatina, con un check del día y su racha.
