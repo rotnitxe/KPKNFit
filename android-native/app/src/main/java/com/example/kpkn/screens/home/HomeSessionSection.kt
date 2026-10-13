@@ -59,6 +59,7 @@ import com.example.kpkn.screens.sessioneditor.components.SessionBackgroundLayer
 import com.example.kpkn.ui.components.SectionHeader
 import com.example.kpkn.ui.tour.TourAnchors
 import com.example.kpkn.ui.tour.tourAnchor
+import java.time.LocalDate
 
 @Composable
 fun HomeSessionSection(
@@ -76,6 +77,8 @@ fun HomeSessionSection(
     onResumeWorkout: () -> Unit,
     onEditSession: (Session, Program) -> Unit = { _, _ -> },
     onCreateProgram: () -> Unit = {},
+    /** Día elegido en «Tu semana». Por ahora no se usa aquí; la sesión del día lo leerá en I2. */
+    @Suppress("UNUSED_PARAMETER") selectedDate: LocalDate? = null,
     modifier: Modifier = Modifier,
 ) {
     var activeIndex by remember { mutableIntStateOf(0) }
