@@ -1,10 +1,14 @@
 package com.example.kpkn.screens.programdetail
 
+import com.example.kpkn.data.models.Block
 import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.ExerciseSet
+import com.example.kpkn.data.models.Macrocycle
+import com.example.kpkn.data.models.Mesocycle
 import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.models.ProgramMode
 import com.example.kpkn.data.models.ProgramStructure
+import com.example.kpkn.data.models.ProgramWeek
 import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.models.SessionRequirement
 import com.example.kpkn.domain.training.SessionDurationEstimator
@@ -235,4 +239,42 @@ internal object ProgramDetailSamples {
 
     /** Molestias asociadas a un ejercicio de ejemplo. */
     val volumeAssociations = listOf(ProgramVolumeAssociation("Press militar", "Pinchazo en hombro", 2))
+
+    /** Tres sesiones de ejemplo de una semana, en días distintos: lo que una aplicación con reemplazo borra (P5). */
+    private fun splitSessions(week: Int): List<Session> = listOf(
+        Session(id = "split-$week-a", name = "Torso A", dayOfWeek = 1),
+        Session(id = "split-$week-b", name = "Pierna A", dayOfWeek = 3),
+        Session(id = "split-$week-c", name = "Torso B", dayOfWeek = 5),
+    )
+
+    /** Un programa de ejemplo con [weeks] semanas de tres sesiones cada una, en un solo bloque, para las hojas de aplicar (P5). */
+    fun splitProgram(weeks: Int, startDay: Int = 1): Program = Program(
+        id = "split-sample",
+        name = "Fuerza de base",
+        startDay = startDay,
+        macrocycles = listOf(
+            Macrocycle(
+                id = "split-macro",
+                name = "Macrociclo",
+                blocks = listOf(
+                    Block(
+                        id = "split-block",
+                        name = "Bloque 1",
+                        mesocycles = listOf(
+                            Mesocycle(
+                                id = "split-meso",
+                                name = "Mesociclo 1",
+                                weeks = (1..weeks).map { week ->
+                                    ProgramWeek(id = "split-w$week", name = "Semana $week", sessions = splitSessions(week))
+                                },
+                            ),
+                        ),
+                    ),
+                ),
+            ),
+        ),
+    )
+
+    /** Un reparto propio de ejemplo, con sus siete días y un día de descanso de cada lado (P5). */
+    val splitCustomPattern: List<String> = listOf("Torso", "Pierna", "Descanso", "Empuje", "Tirón", "Pierna", "Descanso")
 }
