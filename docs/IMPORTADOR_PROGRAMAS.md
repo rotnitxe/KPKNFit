@@ -205,7 +205,7 @@ Resultados tras la ola H6 (2026-10-13, `feat/wizard-v3` con H6a, H6b y H6c, fren
 - **Resultado:** BIEN 67, POBRE 288, NADA 207 y FALLO 0. Con el analizador antiguo del APK eran BIEN 47, POBRE 308 y NADA 207.
 - **Volumen:** 12 598 ejercicios y el 50,7 % de los nombres reconocidos con confianza.
 - **Casi todos los NADA** son planes de carrera (5 km, 10 km, media maratón) y guías sin ejercicios de fuerza.
-- **Las filas** se guardan en `C:\kw\ocr-emull-rows` (fuera del repo) para repetir el banco sin volver a pasar el OCR.
+- **Las filas** se guardan en `C:\kw\ocr-emu\all-rows` (fuera del repo) para repetir el banco sin volver a pasar el OCR.
 
 - **Pérdidas de ejercicios:** solo 3 en la colección, todas a propósito. Dos hojas de registro de Gript juntan sus 3 filas de serie en un
   ejercicio, y askold ya no lee como ejercicio la fila de cabecera «Week · Day · Lift · Set 1…».
