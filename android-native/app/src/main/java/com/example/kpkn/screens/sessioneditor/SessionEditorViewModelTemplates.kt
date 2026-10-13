@@ -7,13 +7,11 @@ import com.example.kpkn.data.sessions.SessionTemplateApplyMode
 import com.example.kpkn.data.sessions.SessionTemplateSourceType
 import com.example.kpkn.data.sessions.SessionTemplateTag
 import com.example.kpkn.data.sessions.SessionTemplatePublicationStatus
-import android.util.Log
 import androidx.lifecycle.viewModelScope
 import com.example.kpkn.domain.templates.SessionTemplateEngine
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import com.example.kpkn.domain.workout.SupersetRules
 import java.util.UUID
 
 /** Updates the free-text filter in the template browser. */
@@ -91,34 +89,6 @@ fun SessionEditorViewModel.deleteUserTemplate(id: String) {
     }
 }
 
-/** Persists editable metadata before exposing the updated USER template. */
-fun SessionEditorViewModel.updateUserTemplateMetadata(
-    template: SessionTemplate,
-    name: String,
-    description: String,
-    difficulty: com.example.kpkn.data.splits.Difficulty = template.difficulty,
-    focusCategory: com.example.kpkn.data.sessions.SessionTemplateFocusCategory? = template.focusCategory,
-    durationClass: com.example.kpkn.data.sessions.SessionTemplateDurationClass = template.durationClass,
-    splitIds: List<String> = template.splitIds,
-    splitDayLabels: List<String> = template.splitDayLabels,
-    autoGenerationEligible: Boolean = template.autoGenerationEligible,
-) {
-    viewModelScope.launch {
-        val result = updateUserTemplateMetadataNow(
-            template = template,
-            name = name,
-            description = description,
-            difficulty = difficulty,
-            focusCategory = focusCategory,
-            durationClass = durationClass,
-            splitIds = splitIds,
-            splitDayLabels = splitDayLabels,
-            autoGenerationEligible = autoGenerationEligible,
-        )
-        updateUi { it.copy(snackbarMessage = if (result.isSuccess) "Metadatos actualizados." else "No se pudieron actualizar los metadatos.") }
-    }
-}
-
 /** Durable metadata command used by the editor dialog before it dismisses. */
 suspend fun SessionEditorViewModel.updateUserTemplateMetadataNow(
     template: SessionTemplate,
@@ -151,7 +121,6 @@ private fun SessionEditorViewModel.buildCurrentSessionTemplate(
 ): SessionTemplate? {
     val trimmedName = name.trim()
     if (trimmedName.isBlank()) {
-        Log.w("SessionEditorVM", "saveCurrentSessionAsTemplate: nombre vacio")
         return null
     }
     // A/B/C/D editors must materialize the active variant.  The base editor
@@ -159,11 +128,7 @@ private fun SessionEditorViewModel.buildCurrentSessionTemplate(
     // blueprint save from the canonical session shown on screen.
     val session = currentUiState.activeVariantSession ?: currentUiState.session ?: return null
     if (!SessionTemplateEngine.sessionHasCompleteExecutableContent(session)) {
-        Log.w("SessionEditorVM", "saveCurrentSessionAsTemplate: sesión sin prescripción completa")
         return null
-    }
-    if (session.allExercises().size > 12) {
-        Log.w("SessionEditorVM", "Plantilla grande ${session.allExercises().size} ejercicios")
     }
     val now = java.time.Instant.now().toString()
     val allExercises = session.exercises + session.parts.flatMap { it.exercises }
@@ -257,10 +222,6 @@ internal fun SessionEditorViewModel.applyTemplateInternal(template: SessionTempl
     if (!SessionTemplateEngine.canApplyTemplate(template, session)) {
         updateUi { it.copy(snackbarMessage = "La plantilla no se puede aplicar a esta sesión.") }
         return
-    }
-    // ensure large templates don't block UI
-    if (template.session.allExercises().size > 12) {
-        Log.w("SessionEditorVM", "applyTemplateInternal plantilla grande ${template.id}")
     }
     templateApplyJob = viewModelScope.launch {
         // Clone and merge off Main. The commit below is conditional on the same

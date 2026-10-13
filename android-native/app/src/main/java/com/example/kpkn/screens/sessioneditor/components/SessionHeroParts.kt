@@ -1,16 +1,13 @@
 package com.example.kpkn.screens.sessioneditor.components
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
@@ -43,8 +40,6 @@ import coil.compose.AsyncImage
 import com.example.kpkn.data.models.*
 import com.example.kpkn.domain.exercises.*
 import com.example.kpkn.screens.sessioneditor.DarkEditorChip
-import com.example.kpkn.screens.sessioneditor.sessionBackgroundPresets
-import com.example.kpkn.screens.sessioneditor.sessionGradients
 import com.example.kpkn.screens.sessioneditor.sessionCoverColors
 import com.example.kpkn.screens.sessioneditor.SessionEditorAugeSummary
 import com.example.kpkn.ui.components.kpknGlass
@@ -106,36 +101,6 @@ internal fun HeroGlassIconButton(
                         .background(Color(0xFFEF4444)),
                 )
             }
-        }
-    }
-}
-
-@Composable
-internal fun HeroActionIcon(
-    icon: ImageVector,
-    contentDescription: String,
-    onClick: () -> Unit,
-    selected: Boolean = false,
-) {
-    Surface(
-        onClick = onClick,
-        shape = CircleShape,
-        color = if (selected) Color.White.copy(alpha = 0.26f) else Color.White.copy(alpha = 0.12f),
-        border = androidx.compose.foundation.BorderStroke(
-            1.dp,
-            if (selected) Color.White.copy(alpha = 0.45f) else Color.White.copy(alpha = 0.16f),
-        ),
-    ) {
-        Box(
-            modifier = Modifier.size(48.dp),
-            contentAlignment = Alignment.Center,
-        ) {
-            Icon(
-                imageVector = icon,
-                contentDescription = contentDescription,
-                tint = Color.White,
-                modifier = Modifier.size(18.dp),
-            )
         }
     }
 }

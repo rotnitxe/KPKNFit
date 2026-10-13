@@ -1,8 +1,5 @@
 package com.example.kpkn.screens.sessioneditor.components
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -12,19 +9,15 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.BasicTextField
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
@@ -37,7 +30,6 @@ import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.FormatListBulleted
-import androidx.compose.material.icons.filled.Timer
 import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -56,11 +48,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -75,9 +64,7 @@ import com.example.kpkn.data.models.CardioIntervalPrograms
 import com.example.kpkn.domain.cardio.CardioIntervalEngine
 import com.example.kpkn.domain.cardio.CardioIntervalProgramBuilder
 import com.example.kpkn.screens.workout.CardioIntervalChart
-import com.example.kpkn.ui.components.KpknNativeTimePickerDialog
 import java.util.UUID
-import kotlin.math.roundToInt
 
 @Composable
 internal fun CardioIntervalsEditor(
@@ -1060,78 +1047,8 @@ private fun intervalPatternDistance(
     return (weightDistance + typeDistance).coerceAtMost(1f)
 }
 
-@Composable
-internal fun IntervalAccentField(
-    value: String,
-    onValueChange: (String) -> Unit,
-    label: String,
-    accentColor: Color,
-    modifier: Modifier = Modifier,
-    readOnly: Boolean = false,
-    trailingIcon: (@Composable (() -> Unit))? = null,
-    keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
-) {
-    var focused by remember { mutableStateOf(false) }
-    val shape = RoundedCornerShape(12.dp)
-    BasicTextField(
-        value = value,
-        onValueChange = onValueChange,
-        modifier = modifier
-            .clip(shape)
-            .background(accentColor.copy(alpha = if (focused) 0.14f else 0.08f))
-            .border(1.dp, accentColor.copy(alpha = if (focused) 0.90f else 0.35f), shape)
-            .onFocusChanged { focused = it.isFocused }
-            .padding(horizontal = 10.dp, vertical = 7.dp),
-        readOnly = readOnly,
-        singleLine = true,
-        keyboardOptions = keyboardOptions,
-        textStyle = MaterialTheme.typography.bodySmall.copy(color = Color.White, fontWeight = FontWeight.Bold),
-        cursorBrush = SolidColor(accentColor),
-        decorationBox = { inner ->
-            Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(text = label, style = MaterialTheme.typography.labelSmall, color = if (focused) accentColor else accentColor.copy(alpha = 0.80f), fontWeight = FontWeight.Bold)
-                    Box(modifier = Modifier.fillMaxWidth().heightIn(min = 18.dp)) { inner() }
-                }
-                trailingIcon?.invoke()
-            }
-        },
-    )
-}
-
 private fun formatMinutes(totalSeconds: Int): String {
     val m = totalSeconds / 60
     val s = totalSeconds % 60
     return if (s == 0) "${m} min" else "${m}m ${s}s"
-}
-
-private fun rescaleIntervalDetails(details: CardioDetails, totalSeconds: Int): CardioDetails {
-    val rounds = details.intervalRounds.coerceIn(1, 99)
-    val perRoundTarget = (totalSeconds / rounds).coerceAtLeast(details.intervalBlocks.size * 15)
-    val current = details.intervalBlocks.sumOf { it.durationSeconds }.coerceAtLeast(1)
-    val scaled = details.intervalBlocks.map { block ->
-        block.copy(durationSeconds = (block.durationSeconds.toDouble() * perRoundTarget / current).roundToInt().coerceAtLeast(15))
-    }.toMutableList()
-    var delta = perRoundTarget - scaled.sumOf { it.durationSeconds }
-    var index = scaled.lastIndex
-    while (delta != 0 && scaled.isNotEmpty()) {
-        if (delta > 0) {
-            val add = minOf(delta, 5)
-            scaled[index] = scaled[index].copy(durationSeconds = scaled[index].durationSeconds + add)
-            delta -= add
-        } else {
-            val removable = (scaled[index].durationSeconds - 15).coerceAtLeast(0)
-            if (removable == 0) {
-                index = (index - 1).takeIf { it >= 0 } ?: scaled.lastIndex
-                if (scaled.all { it.durationSeconds <= 15 }) break
-                continue
-            }
-            val subtract = minOf(-delta, removable, 5)
-            scaled[index] = scaled[index].copy(durationSeconds = scaled[index].durationSeconds - subtract)
-            delta += subtract
-        }
-        index = (index - 1).takeIf { it >= 0 } ?: scaled.lastIndex
-    }
-    val actual = scaled.sumOf { it.durationSeconds } * rounds
-    return details.copy(intervalBlocks = scaled, intervalRounds = rounds, targetDurationSeconds = actual)
 }

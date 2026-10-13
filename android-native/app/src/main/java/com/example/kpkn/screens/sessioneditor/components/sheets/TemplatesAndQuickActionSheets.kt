@@ -1,20 +1,16 @@
 package com.example.kpkn.screens.sessioneditor.components.sheets
 
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -26,11 +22,8 @@ import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.MenuBook
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.Timer
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -41,9 +34,7 @@ import com.example.kpkn.ui.components.KpknSheetTokens
 import com.example.kpkn.ui.components.kpknSheetWhiteFieldColors
 import com.example.kpkn.ui.components.kpknSheetWhiteTonalButtonColors
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.SuggestionChip
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -55,7 +46,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -73,7 +63,6 @@ import com.example.kpkn.domain.exercises.*
 import com.example.kpkn.screens.sessioneditor.CatalogSearchField
 import com.example.kpkn.screens.sessioneditor.CompactCatalogFilterChip
 import com.example.kpkn.screens.sessioneditor.components.TemplateCatalogBrowser
-import com.example.kpkn.screens.sessioneditor.components.CatalogDescription
 import com.example.kpkn.screens.sessioneditor.components.CatalogInvolvementAccordions
 import com.example.kpkn.screens.sessioneditor.components.resolveCatalogExerciseV2
 import kotlinx.coroutines.Dispatchers
@@ -217,70 +206,6 @@ internal fun TemplatesSheet(
                 }
             },
         )
-    }
-}
-
-@Composable
-internal fun TemplateCard(
-    template: SessionTemplate,
-    onApply: () -> Unit,
-) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
-        shape = RoundedCornerShape(16.dp),
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Column(modifier = Modifier.weight(1f)) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(text = template.emoji, fontSize = 22.sp, modifier = Modifier.padding(end = 8.dp))
-                    Text(
-                        text = template.name,
-                        style = MaterialTheme.typography.bodyLarge,
-                        fontWeight = FontWeight.Bold,
-                    )
-                }
-                if (template.description.isNotBlank()) {
-                    Spacer(Modifier.height(4.dp))
-                    Text(
-                        text = template.description,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        maxLines = 2,
-                    )
-                }
-                if (template.muscleGroupsSummary.isNotBlank() || template.estimatedDurationMinutes != null) {
-                    Spacer(Modifier.height(6.dp))
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        if (template.muscleGroupsSummary.isNotBlank()) {
-                            SuggestionChip(
-                                onClick = {},
-                                label = { Text(template.muscleGroupsSummary, fontSize = 11.sp) },
-                            )
-                        }
-                        template.estimatedDurationMinutes?.let {
-                            SuggestionChip(
-                                onClick = {},
-                                label = { Text("~${it}min", fontSize = 11.sp) },
-                            )
-                        }
-                    }
-                }
-            }
-            Spacer(Modifier.width(8.dp))
-            FilledTonalButton(
-                onClick = onApply,
-                colors = kpknSheetWhiteTonalButtonColors(),
-            ) {
-                Text("Aplicar")
-            }
-        }
     }
 }
 
@@ -469,26 +394,6 @@ internal fun ExerciseQuickActionsSheet(
             Icon(Icons.Default.Search, null, modifier = Modifier.size(16.dp))
             Spacer(Modifier.width(8.dp))
             Text("Cambiar")
-        }
-    }
-}
-
-@Composable
-private fun QuickInfoBlock(
-    title: String,
-    value: String,
-) {
-    Surface(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(14.dp),
-        color = Color.White.copy(alpha = 0.07f),
-    ) {
-        Column(
-            modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
-            verticalArrangement = Arrangement.spacedBy(4.dp),
-        ) {
-            Text(title, fontWeight = FontWeight.Black, color = Color.White.copy(alpha = 0.92f))
-            Text(value, style = MaterialTheme.typography.bodySmall, color = Color.White.copy(alpha = 0.72f))
         }
     }
 }

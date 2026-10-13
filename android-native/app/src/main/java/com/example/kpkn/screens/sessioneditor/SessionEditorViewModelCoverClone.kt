@@ -1,21 +1,7 @@
 package com.example.kpkn.screens.sessioneditor
 
 import com.example.kpkn.data.models.*
-import com.example.kpkn.data.repository.CompetitionRepository
-import com.example.kpkn.domain.auge.AugeClassifiers
-import com.example.kpkn.domain.exercises.ExerciseMuscleResolver
-import com.example.kpkn.domain.exercises.normalizedIdentityFields
-import com.example.kpkn.domain.exercises.resolvedCanonicalExerciseId
-import com.example.kpkn.domain.sessionassistant.SessionAssistantEngine
-import com.example.kpkn.domain.sessionassistant.SessionAssistantInput
 import com.example.kpkn.domain.training.PlanMaterializer
-import com.example.kpkn.domain.training.VolumeCalculator
-import com.example.kpkn.domain.workout.SupersetRules
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import java.time.LocalDate
-import java.util.UUID
 
 fun SessionEditorViewModel.updateBackgroundValue(value: String, type: SessionBackgroundType) = updateSession { session ->
     session.copy(
@@ -189,16 +175,6 @@ internal fun PendingTransferToDays.withLatestSourceFrom(base: Session): PendingT
         sourceVariantKey = resolvedVariant,
         sourceMainSessionId = base.id,
     )
-}
-
-internal fun SessionEditorViewModel.applyCloneToTarget(
-    program: Program,
-    source: Session,
-    target: SessionCloneDayOption,
-    selectedExerciseIds: Set<String>?,
-    applyMode: SessionCloneApplyMode,
-): Program {
-    return applySessionTransferTarget(program, source, target, selectedExerciseIds, applyMode)
 }
 
 internal fun SessionTransferOutcome.freezeTransferredSessionOverrides(): Program {

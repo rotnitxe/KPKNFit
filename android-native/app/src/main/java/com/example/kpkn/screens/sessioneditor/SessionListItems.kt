@@ -94,10 +94,6 @@ sealed class SessionListItem {
     ) : SessionListItem() {
         override val stableKey: String = "strength-divider"
     }
-
-    data object AddActions : SessionListItem() {
-        override val stableKey: String = "add-actions"
-    }
 }
 
 fun buildSessionListItems(
@@ -261,7 +257,7 @@ fun findListIndexForExercise(items: List<SessionListItem>, exerciseId: String): 
 
 /**
  * Maps an exercise id to the LazyColumn index used by SessionEditorScreen:
- * [0]=Hero, [1..n]=scrollable content, [n+1]=AddActions (optional).
+ * [0]=Hero, [1..n]=scrollable content.
  */
 fun lazyColumnIndexForExercise(
     scrollableItems: List<SessionListItem>,

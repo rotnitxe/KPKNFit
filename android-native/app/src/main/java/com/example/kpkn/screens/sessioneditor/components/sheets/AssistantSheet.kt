@@ -1,81 +1,50 @@
 package com.example.kpkn.screens.sessioneditor.components.sheets
 
-import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.spring
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.detectVerticalDragGestures
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.navigationBarsPadding
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.zIndex
-import kotlin.math.roundToInt
-import kotlinx.coroutines.launch
 import com.example.kpkn.data.exercises.exerciseCatalogSnapshot
-import com.example.kpkn.data.exercises.catalogSearchRedirects
 import com.example.kpkn.data.exercises.resolveCatalogExerciseInfoInIndex
 import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.ExerciseMuscleInfo
-import com.example.kpkn.data.models.WorkoutLog
-import com.example.kpkn.data.models.discomfortLabel
 import com.example.kpkn.data.sessions.SessionTemplate
 import com.example.kpkn.data.sessions.SessionTemplateApplyDecision
 import com.example.kpkn.data.sessions.SessionTemplateApplyMode
@@ -100,11 +69,7 @@ import dev.chrisbanes.haze.HazeState
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.runtime.mutableStateMapOf
-import androidx.compose.foundation.layout.width
-import com.example.kpkn.domain.sessionassistant.AssistantActionType
 import com.example.kpkn.domain.sessionassistant.AssistantSuggestion
-import com.example.kpkn.domain.sessionassistant.AssistantSuggestionDetail
-import com.example.kpkn.domain.sessionassistant.AssistantDetailAction
 
 private val EnergyRingColor = KpknRingColors.of(RingChannel.ENERGIA)
 private val SpineRingColor = KpknRingColors.of(RingChannel.COLUMNA)
@@ -834,14 +799,6 @@ internal fun AssistantSuggestionCard(
     }
 }
 
-internal fun buildExerciseCatalogLookup(catalog: List<ExerciseMuscleInfo>): Map<String, ExerciseMuscleInfo> {
-    val base = catalog.associateBy { it.id.lowercase() }
-    val aliasEntries = catalogSearchRedirects().mapNotNull { (alias, canonical) ->
-        base[canonical]?.let { alias.lowercase() to it }
-    }.toMap()
-    return base + aliasEntries
-}
-
 internal fun resolveCatalogExerciseInfo(
     exercise: Exercise,
     catalogLookup: Map<String, ExerciseMuscleInfo>,
@@ -852,29 +809,3 @@ internal fun resolveCatalogExerciseInfo(
     exerciseId = exercise.exerciseId,
     exerciseName = exercise.name,
 )
-
-internal fun buildDiscomfortByExercise(
-    workoutLogs: List<WorkoutLog>,
-): Map<String, List<Pair<String, Int>>> {
-    val map = mutableMapOf<String, MutableMap<String, Int>>()
-    workoutLogs.forEach { log ->
-        log.postExerciseReports.forEach { report ->
-            val key = report.canonicalExerciseId ?: report.exerciseDbId ?: report.exerciseId
-            if (key.isBlank()) return@forEach
-            val bucket = map.getOrPut(key) { mutableMapOf() }
-            report.discomfortIds
-                .filter { it != "none" }
-                .forEach { discomfortId ->
-                    val label = discomfortLabel(discomfortId)
-                    bucket[label] = (bucket[label] ?: 0) + 1
-                }
-        }
-    }
-
-    return map.mapValues { (_, value) ->
-        value.entries
-            .sortedByDescending { it.value }
-            .take(5)
-            .map { it.key to it.value }
-    }
-}

@@ -7,7 +7,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
-import androidx.compose.foundation.gestures.animateScrollBy
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
@@ -24,7 +23,6 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
@@ -103,10 +101,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.TextUnit
-import com.example.kpkn.R
-import com.example.kpkn.screens.sessioneditor.CatalogCommitAction
-import com.example.kpkn.screens.sessioneditor.CatalogLaunchOrigin
-import com.example.kpkn.screens.sessioneditor.CatalogSelectionMode
 import com.example.kpkn.screens.sessioneditor.CatalogSupersetConfig
 import com.example.kpkn.data.exercises.catalogv2.toLegacySelection
 import com.example.kpkn.data.exercises.catalogv2.CanonicalKnowledge
@@ -1910,29 +1904,6 @@ private fun CatalogInfoAccordion(
     }
 }
 
-@Composable
-private fun EditorialBullet(text: String, color: Color) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-        verticalAlignment = Alignment.Top,
-    ) {
-        Box(
-            modifier = Modifier
-                .padding(top = 5.dp)
-                .size(6.dp)
-                .clip(CircleShape)
-                .background(color),
-        )
-        Text(
-            text,
-            color = Color.White.copy(alpha = 0.76f),
-            style = MaterialTheme.typography.bodySmall,
-            modifier = Modifier.weight(1f),
-        )
-    }
-}
-
 internal val JOINT_LABELS = mapOf(
     "glenohumeral" to "Hombro",
     "acromioclavicular" to "Acromioclavicular",
@@ -2307,22 +2278,6 @@ private fun CustomExerciseCard(
                 }
             }
         }
-    }
-}
-
-@Composable
-private fun EmphasisChip(label: String) {
-    Box(
-        modifier = Modifier
-            .clip(RoundedCornerShape(999.dp))
-            .background(Color.White.copy(alpha = 0.10f))
-            .padding(horizontal = 8.dp, vertical = 3.dp),
-    ) {
-        Text(
-            label,
-            color = Color.White.copy(alpha = 0.82f),
-            style = MaterialTheme.typography.bodySmall,
-        )
     }
 }
 
@@ -2952,35 +2907,6 @@ private fun draftAfterAxisSelection(
     }
     return result
 }
-/**
- * Diálogo reutilizable para editar un ejercicio personalizado existente.
- */
-@Composable
-fun SmartExerciseEditorDialog(
-    initial: ExerciseMuscleInfo,
-    onSave: (ExerciseMuscleInfo) -> Unit,
-    onDismiss: () -> Unit,
-) {
-    KpknGlassDialog(onDismissRequest = onDismiss) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .heightIn(max = 620.dp)
-                .verticalScroll(rememberScrollState())
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            Text(
-                "Editar (${initial.name})",
-                color = Color.White,
-                fontWeight = FontWeight.Black,
-                style = MaterialTheme.typography.titleLarge,
-            )
-            SmartExerciseForm(initial = initial, onSave = onSave, onDismiss = onDismiss)
-        }
-    }
-}
-
 /**
  * Página de edición dentro del sheet: reemplaza el catálogo completo (sin
  * filtros ni título de catálogo) y muestra solo el editor con su cabecera.

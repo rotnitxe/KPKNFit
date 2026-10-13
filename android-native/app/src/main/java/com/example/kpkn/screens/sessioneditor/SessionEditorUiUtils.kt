@@ -1,8 +1,6 @@
 package com.example.kpkn.screens.sessioneditor
 
-import android.graphics.Color as AndroidColor
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.luminance
 import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.models.*
 import java.text.SimpleDateFormat
@@ -33,9 +31,6 @@ internal fun formatEditableNumber(value: Double?): String {
     if (value == null) return ""
     return formatMax2Decimals(value)
 }
-
-internal fun String.toEditorColor(default: Color = Color(0xFF6E8A95)): Color =
-    resolvePartAccent(this).primary
 
 internal fun formatEditorOneDecimal(value: Double): String = "%.1f".format(value)
 
@@ -241,19 +236,3 @@ internal fun formatEstimatedMetric(value: Double?, mode: TrainingMode, customUni
         else -> value.toInt().toString()
     }
 }
-
-internal data class SessionMuscleGroup(val label: String, val muscles: List<String>)
-
-internal enum class SessionAnalyticsScope(val label: String) {
-    CURRENT("Sesión actual"),
-    WEEK("Semana"),
-}
-
-internal val SESSION_MUSCLE_GROUPS = listOf(
-    SessionMuscleGroup("Pecho", listOf("Pectorales")),
-    SessionMuscleGroup("Espalda", listOf("Dorsales", "Trapecio", "Erectores Espinales")),
-    SessionMuscleGroup("Hombros", listOf("Deltoides")),
-    SessionMuscleGroup("Brazos", listOf("Bíceps", "Tríceps", "Antebrazo")),
-    SessionMuscleGroup("Core", listOf("Abdomen", "Core")),
-    SessionMuscleGroup("Piernas", listOf("Cuádriceps", "Isquiosurales", "Glúteos", "Aductores", "Pantorrillas")),
-)

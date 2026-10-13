@@ -14,33 +14,16 @@ import com.example.kpkn.data.repository.NutritionRepository
 import com.example.kpkn.data.repository.ProgramRepository
 import com.example.kpkn.data.repository.SessionTemplateRepository
 import com.example.kpkn.data.sessions.SessionTemplate
-import com.example.kpkn.data.sessions.SessionTemplateApplyDecision
-import com.example.kpkn.data.sessions.SessionTemplateApplyMode
-import com.example.kpkn.data.sessions.SessionTemplateSourceType
-import com.example.kpkn.data.sessions.SessionTemplateTag
 import com.example.kpkn.data.models.WeekVariant
-import com.example.kpkn.domain.templates.SessionTemplateEngine
-import com.example.kpkn.domain.auge.AugeClassifiers
-import com.example.kpkn.domain.auge.AugeFatigueEngine
-import com.example.kpkn.domain.auge.SessionMuscleFilter
 import com.example.kpkn.domain.sessionassistant.SessionAssistantEngine
 import com.example.kpkn.domain.sessionassistant.SessionAssistantInput
 import com.example.kpkn.domain.sessionassistant.TimeCoachEngine
 import com.example.kpkn.domain.energy.TrainingEnergyEngine
-import com.example.kpkn.domain.calculations.calculateHybrid1RM
 import com.example.kpkn.domain.calculations.calculateSessionTimeBreakdown
-import com.example.kpkn.domain.calculations.calculateSuggestedLoad
 import com.example.kpkn.domain.calculations.estimateSessionDurationMinutes
-import com.example.kpkn.domain.calculations.resolveReferenceCapacity
-import com.example.kpkn.domain.calculations.SessionTimeBreakdown
-import com.example.kpkn.domain.calculations.suggestRestSeconds
-import com.example.kpkn.domain.exercises.TechnicalAspectEngine
 import com.example.kpkn.domain.exercises.normalizedIdentityFields
 import com.example.kpkn.domain.exercises.catalogv2.SessionCatalogNameReconciler
-import com.example.kpkn.domain.exercises.ExerciseMuscleResolver
-import com.example.kpkn.domain.exercises.replacedWithCatalogExercise
 import com.example.kpkn.domain.exercises.resolvedCanonicalExerciseId
-import com.example.kpkn.domain.training.VolumeCalculator
 import com.example.kpkn.domain.workout.SupersetRules
 import com.example.kpkn.domain.workout.normalizeEditorScheduledTechniques
 import kotlinx.coroutines.CancellationException
@@ -48,20 +31,15 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
-import java.time.LocalDate
-import java.util.UUID
-import kotlin.math.roundToInt
 
 @Serializable
 internal data class PersistedSessionEditorDraft(
@@ -111,8 +89,6 @@ class SessionEditorViewModel(
 ) : AndroidViewModel(application) {
 
     companion object {
-        internal const val MAX_LOCAL_DRAFT_SNAPSHOTS = 12
-
         fun factory(
             programId: String,
             sessionId: String,
@@ -566,14 +542,6 @@ class SessionEditorViewModel(
         loadSession()
     }
 
-    fun discardDraftForCurrentSession() {
-        viewModelScope.launch {
-            if (!discardDraftForCurrentSessionAndAwait()) {
-                updateUi { it.copy(snackbarMessage = "No se pudo descartar el borrador. Vuelve a intentarlo.") }
-            }
-        }
-    }
-
     suspend fun discardDraftForCurrentSessionAndAwait(): Boolean {
         val state = _uiState.value
         val session = state.session ?: return false
@@ -948,10 +916,6 @@ class SessionEditorViewModel(
 
     fun updateCurrentSession(transform: (Session) -> Session) = updateSession(transform = transform)
 
-    private fun updateSessionDay(dayOfWeek: Int) = updateSession { session ->
-        session.copy(dayOfWeek = dayOfWeek)
-    }
-
     internal fun scheduleAugeRecalc() {
         augeJob?.cancel()
         augeJob = viewModelScope.launch {
@@ -1220,48 +1184,7 @@ class SessionEditorViewModel(
             textHistoryBaseline = null
         }
     }
-    fun updateSessionMeetDay(isMeetDay: Boolean) {
-        val current = _uiState.value.activeVariantSession ?: _uiState.value.session ?: return
-        if (!isMeetDay) {
-            val backup = current.trainingBackup
-            if (backup != null && backup.catalogSchemaVersion < 2) {
-                updateUi { it.copy(snackbarMessage = "No se puede restaurar un respaldo de sesión anterior al catálogo actual.") }
-                return
-            }
-        }
-        updateSession {
-            if (isMeetDay) {
-                it.copy(
-                    isMeetDay = true,
-                    isCompetitionSession = true,
-                    trainingBackup = TrainingBackup(
-                        exercises = it.exercises,
-                        parts = it.parts,
-                        warmup = it.warmup,
-                        savedAtMs = System.currentTimeMillis(),
-                        catalogSchemaVersion = 2,
-                    ),
-                    exercises = emptyList(),
-                    parts = emptyList(),
-                    warmup = emptyList(),
-                )
-            } else {
-                val backup = it.trainingBackup
-                if (backup != null && backup.catalogSchemaVersion >= 2) {
-                    it.copy(
-                        isMeetDay = false,
-                        isCompetitionSession = false,
-                        exercises = backup.exercises,
-                        parts = backup.parts,
-                        warmup = backup.warmup,
-                        trainingBackup = null,
-                    )
-                } else {
-                    it.copy(isMeetDay = false, isCompetitionSession = false)
-                }
-            }
-        }
-    }    fun updateSessionMeetBodyweight(bodyweight: Double?) = updateSession { it.copy(meetBodyweight = bodyweight) }
+    fun updateSessionMeetBodyweight(bodyweight: Double?) = updateSession { it.copy(meetBodyweight = bodyweight) }
 
     fun syncMeetBodyweightFromLatestMeasurement(): SessionEditorSaveResult {
         val latest = _uiState.value.latestBodyMeasurement ?: return SessionEditorSaveResult(
@@ -1278,7 +1201,6 @@ class SessionEditorViewModel(
             message = "Peso sincronizado desde medición (${formatOneDecimal(weight)} kg · ${latest.date}).",
         )
     }
-    fun updateDayOfWeek(dayOfWeek: Int) = updateSessionDay(dayOfWeek)
     fun openSheet(sheet: SessionEditorSheet) {
         _uiState.update { state ->
             state.copy(
@@ -1433,22 +1355,6 @@ calculateSessionTimeBreakdown(
         textHistoryDebounceJob?.cancel()
         scheduleAugeRecalc()
         scheduleAutoSave()
-    }
-
-    /** Reloads trained versions for the current session (e.g. after finishing a workout). */
-    fun refreshTrainedVersions() {
-        val sessionId = _uiState.value.activeVariantSession?.id ?: _uiState.value.session?.id ?: return
-        viewModelScope.launch {
-            val history = runCatching { trainedVersionStore.loadForSessionOnIo(sessionId) }
-                .onFailure { error -> Log.w("SessionEditor", "Unable to load trained session history", error) }
-                .getOrNull() ?: return@launch
-            withContext(Dispatchers.Main) {
-                val currentId = _uiState.value.activeVariantSession?.id ?: _uiState.value.session?.id
-                if (currentId == sessionId) {
-                    _uiState.update { it.copy(localDraftHistory = history) }
-                }
-            }
-        }
     }
 
 }

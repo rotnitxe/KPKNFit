@@ -1,20 +1,15 @@
 package com.example.kpkn.screens.sessioneditor.components
 
-import androidx.compose.ui.graphics.Color
 import com.example.kpkn.data.models.ExerciseMuscleInfo
 import com.example.kpkn.data.models.InvolvedMuscle
 import com.example.kpkn.data.models.MuscleRole
-import com.example.kpkn.data.models.WorkoutLog
-import com.example.kpkn.data.models.discomfortLabel
 import com.example.kpkn.data.models.resolveMuscleVolumeContribution
 import com.example.kpkn.domain.exercises.ExerciseCatalogExclusiveFilter
-import com.example.kpkn.domain.exercises.ExerciseCatalogRegion
 import com.example.kpkn.domain.exercises.ExerciseCatalogSort
 import com.example.kpkn.domain.exercises.calculateFriendlyFatigue
 import com.example.kpkn.domain.exercises.calculateSearchScore
 import com.example.kpkn.domain.exercises.deduplicateCatalogVisualResults
 import com.example.kpkn.domain.exercises.matchesExclusiveCatalogFilter
-import com.example.kpkn.domain.exercises.resolveExerciseRegion
 import com.example.kpkn.domain.exercises.resolvePrimaryMuscleLabel
 import com.example.kpkn.domain.training.VolumeCalculator
 
@@ -68,76 +63,6 @@ internal fun filterAndSortExerciseCatalog(
     return deduplicateCatalogVisualResults(sorted)
 }
 
-internal fun discomfortCountsByExercise(
-    workoutLogs: List<WorkoutLog>,
-): Map<String, List<Pair<String, Int>>> {
-    val map = mutableMapOf<String, MutableMap<String, Int>>()
-    workoutLogs.forEach { log ->
-        log.postExerciseReports.forEach { report ->
-            val key = report.canonicalExerciseId ?: report.exerciseDbId ?: report.exerciseId
-            if (key.isBlank()) return@forEach
-            val bucket = map.getOrPut(key) { mutableMapOf() }
-            report.discomfortIds
-                .filter { it != "none" }
-                .forEach { discomfortId ->
-                    val label = discomfortLabel(discomfortId)
-                    bucket[label] = (bucket[label] ?: 0) + 1
-                }
-        }
-    }
-    return map.mapValues { (_, value) ->
-        value.entries
-            .sortedByDescending { it.value }
-            .take(5)
-            .map { it.key to it.value }
-    }
-}
-
-internal fun buildExerciseUtilityBullets(exercise: ExerciseMuscleInfo): List<String> {
-    val bullets = mutableListOf<String>()
-    val region = resolveExerciseRegion(exercise)
-    val type = exercise.type?.lowercase().orEmpty()
-    val fatigue = calculateFriendlyFatigue(exercise).overall
-
-    if (exercise.functionalTransfer?.isNotBlank() == true) {
-        bullets += exercise.functionalTransfer
-    }
-
-    if (type.contains("básico") || type.contains("basico") || exercise.tier?.equals("T1", true) == true) {
-        bullets += "Muy útil para mejorar básicos del programa y capacidad de producir fuerza."
-    }
-
-    if (type.contains("aislamiento") || type.contains("accesorio")) {
-        bullets += "Buena opción para reforzar puntos débiles con fatiga sistémica controlada."
-    }
-
-    if (exercise.bracingRecommended == true || fatigue >= 7) {
-        bullets += "Puede mejorar tolerancia estructural y control técnico cuando se programa con criterio."
-    } else {
-        bullets += "Útil para salud muscular/articular al acumular práctica de calidad con fatiga moderada."
-    }
-
-    bullets += when (region) {
-        ExerciseCatalogRegion.FULL -> "Aporta utilidad general para rendimiento global y coordinación."
-        ExerciseCatalogRegion.UPPER -> "Útil para salud de hombro y mejora de empuje/tirón del tren superior."
-        ExerciseCatalogRegion.LOWER -> "Útil para potencia del tren inferior, estabilidad y rendimiento atlético."
-        ExerciseCatalogRegion.CORE -> "Útil para estabilidad del tronco y transmisión de fuerza."
-        ExerciseCatalogRegion.ALL -> "Útil para construir base general según tu objetivo."
-    }
-
-    if (!exercise.sportsRelevance.isNullOrEmpty()) {
-        bullets += "Muy usado en: ${exercise.sportsRelevance.take(4).joinToString(", ")}."
-    }
-
-    bullets += when {
-        fatigue <= 3 -> "Permite acumular práctica técnica sin castigar demasiado la recuperación."
-        fatigue <= 6 -> "Equilibrio entre estímulo y recuperación para progresar con constancia."
-        else -> "Conviene periodizar su uso porque genera una demanda alta de recuperación."
-    }
-
-    return bullets.distinct().take(5)
-}
-
 internal data class MuscleVolumeContribution(
     val muscle: String,
     val role: MuscleRole,
@@ -189,13 +114,6 @@ internal fun roleVolumeLabel(role: MuscleRole): String = when (role) {
     MuscleRole.NEUTRALIZER -> "Neutralizador · evita compensación"
 }
 
-internal fun roleVolumeWhy(role: MuscleRole): String = when (role) {
-    MuscleRole.PRIMARY -> "Recibe la mayor parte del estímulo por serie."
-    MuscleRole.SECONDARY -> "Aporta volumen parcial; útil para equilibrio semanal."
-    MuscleRole.STABILIZER -> "Fatiga local sin ser el objetivo hipertrofia principal."
-    MuscleRole.NEUTRALIZER -> "Trabajo de control; no cuenta como volumen directo típico."
-}
-
 internal fun formatSeriesEquivalent(value: Double): String {
     val normalized = value.coerceAtLeast(0.0)
     val text = "%.1f".format(normalized)
@@ -204,12 +122,6 @@ internal fun formatSeriesEquivalent(value: Double): String {
 
 internal fun formatVolumePercent(value: Double): String =
     "%.0f%%".format((value.coerceIn(0.0, 1.0)) * 100.0)
-
-internal fun fatigueColor(score: Int): Color = when {
-    score <= 3 -> Color(0xFF22C55E)
-    score <= 6 -> Color(0xFFF59E0B)
-    else -> Color(0xFFEF4444)
-}
 
 internal fun fatigueLabel(score: Int): String = when {
     score <= 3 -> "Poca fatiga"
