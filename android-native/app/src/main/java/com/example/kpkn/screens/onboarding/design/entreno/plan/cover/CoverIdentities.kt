@@ -4,21 +4,26 @@ import androidx.compose.ui.graphics.Color
 import com.example.kpkn.screens.onboarding.design.entreno.SymbolPalette
 
 /*
- * Identidad de cada portada del motor «CoverStudio» (K3a): el estilo del grafismo, el fondo, dos acentos de `SymbolPalette` y el
- * dato que el estilo necesita. La tabla da una fila a cada programa «a medida» del generador (30). El resto (catálogo, programas
- * propios o importados) sigue su camino: el arte de hoy en PLAN, y [coverIdentityFor] en Home.
+ * Identidad de cada portada del motor «CoverStudio» (K3a y K3b): el estilo del grafismo, el fondo, dos acentos de `SymbolPalette` y
+ * el dato que el estilo necesita. La tabla da una fila a cada programa «a medida» del generador (30) y a cada programa listado del
+ * catálogo (47). El resto (programas propios o importados) sigue con [coverIdentityFor] (Home) y con el arte de hoy en PLAN.
  */
 
-/** Los estilos del motor. K3a: cinco; K3b añade otros cinco. */
-internal enum class CoverStudioStyle { NUMERAL, TOPO, PLATES, GRID, WAVES }
+/**
+ * Los estilos del motor. K3a: NUMERAL, TOPO, PLATES, GRID y WAVES. K3b: HALFTONE (trama), TRACK (pista), TRAIL (ruta de hitos),
+ * ENGRAVING (grabado) y BAUHAUS (formas planas).
+ */
+internal enum class CoverStudioStyle { NUMERAL, TOPO, PLATES, GRID, WAVES, HALFTONE, TRACK, TRAIL, ENGRAVING, BAUHAUS }
 
 /** El fondo: negro con un velo del acento, acento a tinta plena o papel cálido. */
 internal enum class CoverPaletteKind { NOCHE, TINTA, PAPEL }
 
 /**
  * La identidad de una portada. [primary] es el acento del perfil (`goalAccent`) y [secondary] otro acento distinto. [motif] es el
- * dato del estilo: el numeral (NUMERAL), las semanas (GRID), los discos por lado (PLATES), las curvas (TOPO) o las ondas (WAVES).
- * [days] son los días por semana que enciende GRID. [seed] es estable por id.
+ * dato del estilo: el numeral (NUMERAL), las semanas (GRID), los discos por lado (PLATES), las curvas (TOPO), las ondas (WAVES), los
+ * hitos (TRAIL) o la forma del grabado (ENGRAVING: 0 disco, 1 piedra, 2 pesa rusa, 3 mancuerna). [days] son los días por semana que
+ * enciende GRID. [numeralIsWeeks] dice si el numeral de NUMERAL son semanas (lleva rótulo); una cifra de método («531») no lo lleva.
+ * [seed] es estable por id.
  */
 internal data class CoverIdentity(
     val style: CoverStudioStyle,
@@ -28,6 +33,7 @@ internal data class CoverIdentity(
     val motif: Int,
     val seed: Int,
     val days: Int = 4,
+    val numeralIsWeeks: Boolean = true,
 )
 
 /** Cómo pinta PlanCover su fondo: la foto propia manda; con identidad, el motor; si no, el arte procedural de siempre. */
@@ -59,12 +65,15 @@ private fun row(
     secondary: Color,
     motif: Int,
     days: Int = 4,
+    weeks: Boolean = true,
 ): Pair<String, CoverIdentity> =
-    id to CoverIdentity(style, palette, primary, secondary, motif, seed = stableHash(id), days = days)
+    id to CoverIdentity(style, palette, primary, secondary, motif, seed = stableHash(id), days = days, numeralIsWeeks = weeks)
 
 /**
- * Los 30 programas «a medida» (`generated:<perfil>`, `:blocks` y `:periodized`). En cada perfil, sus tres variantes van con tres
- * estilos y tres fondos distintos, y ninguna pareja (estilo, fondo, primario) se repite. El primario es el acento del perfil.
+ * Los 30 programas «a medida» (`generated:<perfil>`, `:blocks` y `:periodized`) y los 47 listados del catálogo. En cada perfil, sus
+ * tres variantes van con tres estilos y tres fondos distintos, y ninguna pareja (estilo, fondo, primario) se repite. El primario es el
+ * acento de la disciplina (`goalAccent`). En el catálogo, dos programas seguidos de una disciplina (la lista de PLAN) no comparten
+ * estilo ni fondo, y ninguna portada se parece a otra en estilo, fondo, acentos y motivo.
  */
 private val ASSIGNED: Map<String, CoverIdentity> = mapOf(
     // Fuerza y masa muscular (primario ok)
@@ -72,7 +81,7 @@ private val ASSIGNED: Map<String, CoverIdentity> = mapOf(
     row("generated:strength-muscle:blocks", CoverStudioStyle.GRID, CoverPaletteKind.TINTA, OK, MENTE, motif = 6),
     row("generated:strength-muscle:periodized", CoverStudioStyle.NUMERAL, CoverPaletteKind.PAPEL, OK, MUSCULO, motif = 12),
     // Fuerza y cardio (ok)
-    row("generated:hybrid", CoverStudioStyle.WAVES, CoverPaletteKind.NOCHE, OK, ENERGIA, motif = 9),
+    row("generated:hybrid", CoverStudioStyle.TRACK, CoverPaletteKind.NOCHE, OK, ENERGIA, motif = 0),
     row("generated:hybrid:blocks", CoverStudioStyle.GRID, CoverPaletteKind.PAPEL, OK, COLUMNA, motif = 6, days = 3),
     row("generated:hybrid:periodized", CoverStudioStyle.TOPO, CoverPaletteKind.TINTA, OK, MENTE, motif = 18),
     // Funcional y saludable (ok)
@@ -80,17 +89,17 @@ private val ASSIGNED: Map<String, CoverIdentity> = mapOf(
     row("generated:functional:blocks", CoverStudioStyle.WAVES, CoverPaletteKind.TINTA, OK, MUSCULO, motif = 10),
     row("generated:functional:periodized", CoverStudioStyle.TOPO, CoverPaletteKind.PAPEL, OK, MUSCULO, motif = 14),
     // Calistenia (ok)
-    row("generated:calisthenics", CoverStudioStyle.NUMERAL, CoverPaletteKind.NOCHE, OK, MENTE, motif = 1),
+    row("generated:calisthenics", CoverStudioStyle.TRAIL, CoverPaletteKind.NOCHE, OK, MENTE, motif = 4),
     row("generated:calisthenics:blocks", CoverStudioStyle.PLATES, CoverPaletteKind.TINTA, OK, COLUMNA, motif = 5),
     row("generated:calisthenics:periodized", CoverStudioStyle.WAVES, CoverPaletteKind.PAPEL, OK, MUSCULO, motif = 12),
     // Powerbuilding (energía)
     row("generated:powerbuilding", CoverStudioStyle.PLATES, CoverPaletteKind.TINTA, ENERGIA, COLUMNA, motif = 4),
-    row("generated:powerbuilding:blocks", CoverStudioStyle.WAVES, CoverPaletteKind.NOCHE, ENERGIA, MUSCULO, motif = 10),
+    row("generated:powerbuilding:blocks", CoverStudioStyle.BAUHAUS, CoverPaletteKind.NOCHE, ENERGIA, MUSCULO, motif = 0),
     row("generated:powerbuilding:periodized", CoverStudioStyle.NUMERAL, CoverPaletteKind.PAPEL, ENERGIA, COLUMNA, motif = 12),
     // Culturismo (mente)
     row("generated:bodybuilding", CoverStudioStyle.WAVES, CoverPaletteKind.TINTA, MENTE, MUSCULO, motif = 9),
     row("generated:bodybuilding:blocks", CoverStudioStyle.GRID, CoverPaletteKind.NOCHE, MENTE, ENERGIA, motif = 6, days = 5),
-    row("generated:bodybuilding:periodized", CoverStudioStyle.NUMERAL, CoverPaletteKind.PAPEL, MENTE, MUSCULO, motif = 12),
+    row("generated:bodybuilding:periodized", CoverStudioStyle.HALFTONE, CoverPaletteKind.PAPEL, MENTE, MUSCULO, motif = 0),
     // Halterofilia (columna)
     row("generated:weightlifting-base", CoverStudioStyle.WAVES, CoverPaletteKind.NOCHE, COLUMNA, MENTE, motif = 9),
     row("generated:weightlifting-base:blocks", CoverStudioStyle.GRID, CoverPaletteKind.PAPEL, COLUMNA, MUSCULO, motif = 6),
@@ -101,12 +110,60 @@ private val ASSIGNED: Map<String, CoverIdentity> = mapOf(
     row("generated:armwrestling:periodized", CoverStudioStyle.TOPO, CoverPaletteKind.PAPEL, MUSCULO, COLUMNA, motif = 16),
     // Strongman (energía)
     row("generated:strongman", CoverStudioStyle.PLATES, CoverPaletteKind.NOCHE, ENERGIA, MUSCULO, motif = 4),
-    row("generated:strongman:blocks", CoverStudioStyle.WAVES, CoverPaletteKind.PAPEL, ENERGIA, OK, motif = 10),
+    row("generated:strongman:blocks", CoverStudioStyle.ENGRAVING, CoverPaletteKind.PAPEL, ENERGIA, OK, motif = 2),
     row("generated:strongman:periodized", CoverStudioStyle.TOPO, CoverPaletteKind.TINTA, ENERGIA, COLUMNA, motif = 17),
     // Powerlifting (músculo)
     row("generated:powerlifting", CoverStudioStyle.PLATES, CoverPaletteKind.PAPEL, MUSCULO, COLUMNA, motif = 4),
     row("generated:powerlifting:blocks", CoverStudioStyle.WAVES, CoverPaletteKind.TINTA, MUSCULO, MENTE, motif = 10),
     row("generated:powerlifting:periodized", CoverStudioStyle.TOPO, CoverPaletteKind.NOCHE, MUSCULO, ENERGIA, motif = 16),
+    // Catálogo (47), en orden de ficha: la disciplina sale de la referencia del catálogo (PL, PB y HYP) y el primario, de su acento.
+    row("native:strength-foundation-v2", CoverStudioStyle.PLATES, CoverPaletteKind.TINTA, MUSCULO, MENTE, motif = 4),
+    row("native:muscle-foundation-v2", CoverStudioStyle.WAVES, CoverPaletteKind.NOCHE, MENTE, OK, motif = 9),
+    row("native:powerbuilding-foundation-v2", CoverStudioStyle.BAUHAUS, CoverPaletteKind.TINTA, ENERGIA, COLUMNA, motif = 0),
+    row("native:complete-athlete-v2", CoverStudioStyle.TRACK, CoverPaletteKind.NOCHE, OK, COLUMNA, motif = 0),
+    row("original:phul-ms-2021-r1", CoverStudioStyle.HALFTONE, CoverPaletteKind.PAPEL, ENERGIA, OK, motif = 0),
+    row("original:phat-biolayne-2016-r1", CoverStudioStyle.WAVES, CoverPaletteKind.NOCHE, ENERGIA, COLUMNA, motif = 10),
+    row("adapted:phul-kpkn-r1", CoverStudioStyle.HALFTONE, CoverPaletteKind.TINTA, ENERGIA, OK, motif = 0),
+    row("adapted:phat-kpkn-r1", CoverStudioStyle.WAVES, CoverPaletteKind.NOCHE, ENERGIA, MUSCULO, motif = 9),
+    row("protocol:kpkn-native-sbd-4", CoverStudioStyle.GRID, CoverPaletteKind.PAPEL, MUSCULO, COLUMNA, motif = 11),
+    row("template:power-12-3", CoverStudioStyle.TRAIL, CoverPaletteKind.NOCHE, MUSCULO, OK, motif = 5),
+    row("template:power-16-4", CoverStudioStyle.BAUHAUS, CoverPaletteKind.TINTA, MUSCULO, ENERGIA, motif = 0),
+    row("template:power-20-5", CoverStudioStyle.ENGRAVING, CoverPaletteKind.NOCHE, MUSCULO, MENTE, motif = 0),
+    row("template:powerbuild-16-4", CoverStudioStyle.PLATES, CoverPaletteKind.TINTA, ENERGIA, COLUMNA, motif = 5),
+    row("template:body-12-3", CoverStudioStyle.HALFTONE, CoverPaletteKind.PAPEL, MENTE, ENERGIA, motif = 0),
+    row("template:body-16-4", CoverStudioStyle.WAVES, CoverPaletteKind.NOCHE, MENTE, MUSCULO, motif = 12),
+    row("template:body-20-5", CoverStudioStyle.HALFTONE, CoverPaletteKind.TINTA, MENTE, OK, motif = 0),
+    row("protocol:kpkn-ppl-6", CoverStudioStyle.WAVES, CoverPaletteKind.NOCHE, MENTE, MUSCULO, motif = 10),
+    row("protocol:kpkn-rp-style", CoverStudioStyle.HALFTONE, CoverPaletteKind.TINTA, MENTE, ENERGIA, motif = 0),
+    row("protocol:kpkn-rts-style", CoverStudioStyle.BAUHAUS, CoverPaletteKind.PAPEL, MUSCULO, MENTE, motif = 0),
+    row("protocol:kpkn-sbs-rtf", CoverStudioStyle.GRID, CoverPaletteKind.NOCHE, MUSCULO, COLUMNA, motif = 8),
+    row("protocol:texas-method-3d", CoverStudioStyle.ENGRAVING, CoverPaletteKind.TINTA, MUSCULO, OK, motif = 0),
+    row("protocol:texas-method-4d", CoverStudioStyle.PLATES, CoverPaletteKind.NOCHE, MUSCULO, COLUMNA, motif = 4),
+    row("protocol:wendler-531-bbb", CoverStudioStyle.NUMERAL, CoverPaletteKind.PAPEL, MUSCULO, OK, motif = 531, weeks = false),
+    row("protocol:wendler-531-fsl", CoverStudioStyle.ENGRAVING, CoverPaletteKind.NOCHE, MUSCULO, ENERGIA, motif = 0),
+    row("protocol:madcow-5x5", CoverStudioStyle.PLATES, CoverPaletteKind.TINTA, MUSCULO, ENERGIA, motif = 4),
+    row("protocol:gzclp", CoverStudioStyle.BAUHAUS, CoverPaletteKind.NOCHE, MUSCULO, ENERGIA, motif = 0),
+    row("protocol:candito-6", CoverStudioStyle.GRID, CoverPaletteKind.TINTA, MUSCULO, COLUMNA, motif = 6),
+    row("protocol:calgary-16", CoverStudioStyle.WAVES, CoverPaletteKind.NOCHE, MUSCULO, MENTE, motif = 11),
+    row("protocol:tsa-9", CoverStudioStyle.GRID, CoverPaletteKind.TINTA, MUSCULO, COLUMNA, motif = 9),
+    row("protocol:korte-3x3", CoverStudioStyle.NUMERAL, CoverPaletteKind.NOCHE, MUSCULO, OK, motif = 3, weeks = false),
+    row("protocol:lilliebridge", CoverStudioStyle.BAUHAUS, CoverPaletteKind.TINTA, MUSCULO, OK, motif = 0),
+    row("protocol:sheiko-29-32", CoverStudioStyle.ENGRAVING, CoverPaletteKind.NOCHE, MUSCULO, COLUMNA, motif = 0),
+    row("protocol:cube-method", CoverStudioStyle.WAVES, CoverPaletteKind.TINTA, MUSCULO, MENTE, motif = 9),
+    row("protocol:westside-conjugate", CoverStudioStyle.BAUHAUS, CoverPaletteKind.NOCHE, MUSCULO, OK, motif = 0),
+    row("protocol:juggernaut-2", CoverStudioStyle.WAVES, CoverPaletteKind.TINTA, MUSCULO, OK, motif = 10),
+    row("protocol:nsuns-531-lp-4d", CoverStudioStyle.NUMERAL, CoverPaletteKind.NOCHE, MUSCULO, MENTE, motif = 5, weeks = false),
+    row("protocol:gzcl-jt-2", CoverStudioStyle.BAUHAUS, CoverPaletteKind.TINTA, MUSCULO, COLUMNA, motif = 0),
+    row("protocol:gzcl-rippler", CoverStudioStyle.WAVES, CoverPaletteKind.NOCHE, MUSCULO, ENERGIA, motif = 10),
+    row("protocol:gzcl-uhf-9", CoverStudioStyle.BAUHAUS, CoverPaletteKind.TINTA, MUSCULO, MENTE, motif = 0),
+    row("native:machine-muscle", CoverStudioStyle.WAVES, CoverPaletteKind.NOCHE, MENTE, ENERGIA, motif = 9),
+    row("native:bodyweight", CoverStudioStyle.TRAIL, CoverPaletteKind.TINTA, OK, ENERGIA, motif = 3),
+    row("protocol:smolov", CoverStudioStyle.ENGRAVING, CoverPaletteKind.NOCHE, MUSCULO, OK, motif = 0),
+    row("protocol:smolov-jr", CoverStudioStyle.NUMERAL, CoverPaletteKind.TINTA, MUSCULO, ENERGIA, motif = 3),
+    row("protocol:coan-phillipi-dl", CoverStudioStyle.PLATES, CoverPaletteKind.NOCHE, MUSCULO, MENTE, motif = 4),
+    row("template:simple-1", CoverStudioStyle.NUMERAL, CoverPaletteKind.TINTA, OK, MENTE, motif = 1),
+    row("template:simple-ab", CoverStudioStyle.TRACK, CoverPaletteKind.NOCHE, OK, MENTE, motif = 0),
+    row("template:simple-4", CoverStudioStyle.TRAIL, CoverPaletteKind.TINTA, OK, MENTE, motif = 5),
 )
 
 /** La identidad asignada a [programId] (solo los 30 «a medida»); null si el programa no tiene fila. */
@@ -140,13 +197,18 @@ internal fun fallbackCoverIdentity(programId: String): CoverIdentity {
     )
 }
 
-/** El dato de [style] para la variación [r] (no negativa): numeral, semanas, discos, curvas u ondas. */
+/** El dato de [style] para la variación [r] (no negativa): numeral, curvas, discos, semanas, ondas, hitos o forma del grabado. */
 internal fun motifFor(style: CoverStudioStyle, r: Int): Int = when (style) {
     CoverStudioStyle.NUMERAL -> NUMERALS[r % NUMERALS.size]
     CoverStudioStyle.TOPO -> 14 + r % 5
     CoverStudioStyle.PLATES -> 4 + r % 3
     CoverStudioStyle.GRID -> if (r % 2 == 0) 1 else 6
     CoverStudioStyle.WAVES -> 9 + r % 4
+    CoverStudioStyle.HALFTONE -> 0
+    CoverStudioStyle.TRACK -> 0
+    CoverStudioStyle.TRAIL -> 3 + r % 3
+    CoverStudioStyle.ENGRAVING -> r % 4
+    CoverStudioStyle.BAUHAUS -> 0
 }
 
 /** El arte de una portada: la foto propia manda; con identidad, el motor; si no, el procedural de siempre. */
