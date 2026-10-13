@@ -18,7 +18,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.ColorFilter
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInRoot
@@ -30,6 +29,7 @@ import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.semantics.semantics
 import com.example.kpkn.ui.adapt.LocalViewportAdapt
 import com.example.kpkn.ui.adapt.adapt
 import com.example.kpkn.R
@@ -74,6 +74,9 @@ import com.example.kpkn.ui.tour.tourAnchor
 import com.example.kpkn.screens.home.design.HomeDateSaver
 import com.example.kpkn.screens.home.design.HomeMasthead
 import com.example.kpkn.screens.home.design.HomeMastheadState
+import com.example.kpkn.screens.home.design.HomeMeals
+import com.example.kpkn.screens.home.design.HomePrimaryPill
+import com.example.kpkn.screens.home.design.HomeSectionAction
 import com.example.kpkn.screens.home.design.HomeSectionGap
 import com.example.kpkn.screens.home.design.HomeWeekStrip
 import com.example.kpkn.screens.home.design.homeDateLine
@@ -84,6 +87,7 @@ import com.example.kpkn.screens.home.design.HomeNotice
 import com.example.kpkn.screens.home.design.HomeNoticeTone
 import com.example.kpkn.screens.home.design.HomeTypography
 import com.example.kpkn.screens.onboarding.design.WizardColors
+import com.example.kpkn.screens.onboarding.design.WizardTypography
 import com.example.kpkn.screens.onboarding.design.entreno.SymbolPalette
 import kotlinx.coroutines.launch
 import com.example.kpkn.ui.components.kpknGlass
@@ -335,7 +339,7 @@ fun HomeScreen(
             latestHeaderOverlayChange(owned, null)
         }
     }
-    Box(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
+    Box(Modifier.fillMaxSize().background(WizardColors.background)) {
             HomeWithProgram(
                 viewModel = viewModel,
                 muscularProgress = muscularProgress,
@@ -1187,6 +1191,10 @@ private fun MiniNutritionCard(
     }
 }
 
+/**
+ * «Comidas de hoy»: el vidrio de siempre con las comidas registradas en filas sin caja (tipo, nombre y kcal, con un filete entre
+ * filas) y la píldora principal «Registrar comida». Sin comidas, la frase de vacío.
+ */
 @Composable
 private fun NutritionTodayGlassOverlay(
     hazeState: HazeState,
@@ -1197,7 +1205,7 @@ private fun NutritionTodayGlassOverlay(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFF0A0A0C).copy(alpha = 0.42f)),
+            .background(WizardColors.background.copy(alpha = 0.42f)),
         contentAlignment = Alignment.Center,
     ) {
         Box(
@@ -1215,57 +1223,67 @@ private fun NutritionTodayGlassOverlay(
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Column(Modifier.weight(1f)) {
-                        Text("REGISTRO DE HOY", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Black, color = Color.White.copy(alpha = 0.66f), letterSpacing = 1.3.sp)
+                        Text("REGISTRO DE HOY", style = HomeTypography.eyebrow, color = WizardColors.textMuted)
                         Spacer(Modifier.height(4.dp))
-                        Text("Comidas registradas", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Black, color = Color.White)
+                        Text("Comidas registradas", style = WizardTypography.questionCompact, color = WizardColors.text)
                     }
-                    TextButton(onClick = onDismiss) { Text("Cerrar", fontWeight = FontWeight.Bold) }
+                    HomeSectionAction(text = "Cerrar", onClick = onDismiss)
                 }
                 if (meals.isEmpty()) {
-                    Text("Aún no registras comidas hoy.", style = MaterialTheme.typography.bodyMedium, color = Color.White.copy(alpha = 0.72f))
+                    Text("Aún no registras comidas hoy.", style = WizardTypography.body, color = WizardColors.textMuted)
                 } else {
-                    meals.forEachIndexed { index, meal ->
-                        val minKcal = kotlin.math.round(meal.foods.sumOf { it.caloriesMin ?: it.calories }).toInt()
-                        val maxKcal = kotlin.math.round(meal.foods.sumOf { it.caloriesMax ?: it.calories }).toInt()
-                        val hasRange = maxKcal > minKcal
-                        val isEstimate = hasRange || meal.foods.any { it.isUncertain }
-                        val mealLabel = when (meal.mealType) {
-                            MealType.BREAKFAST -> "Desayuno"
-                            MealType.LUNCH -> "Almuerzo"
-                            MealType.DINNER -> "Cena"
-                            MealType.SNACK -> "Colación"
-                        }
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Column(Modifier.weight(1f)) {
-                                Text(mealLabel, style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Black, color = Color.White)
-                                Text(
-                                    meal.foods.take(3).joinToString(" · ") { it.foodName }.ifBlank { "Comida registrada" },
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = Color.White.copy(alpha = 0.68f),
-                                    maxLines = 1,
-                                    overflow = TextOverflow.Ellipsis,
-                                )
-                                meal.foods.mapNotNull { it.nutritionReferenceNote }.distinct().forEach { note ->
-                                    Text(note, style = MaterialTheme.typography.bodySmall, color = Color.White.copy(alpha = 0.68f))
-                                }
-                                if (hasRange) {
+                    Column {
+                        meals.forEachIndexed { index, meal ->
+                            val minKcal = kotlin.math.round(meal.foods.sumOf { it.caloriesMin ?: it.calories }).toInt()
+                            val maxKcal = kotlin.math.round(meal.foods.sumOf { it.caloriesMax ?: it.calories }).toInt()
+                            val hasRange = maxKcal > minKcal
+                            val isEstimate = hasRange || meal.foods.any { it.isUncertain }
+                            val mealLabel = HomeMeals.firstOrNull { it.first == meal.mealType }?.second ?: "Comida"
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 12.dp)
+                                    .semantics(mergeDescendants = true) {},
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                Column(Modifier.weight(1f)) {
+                                    Text(mealLabel.uppercase(), style = HomeTypography.eyebrow, color = WizardColors.textMuted)
                                     Text(
-                                        "Rango estimado: $minKcal–$maxKcal kcal",
-                                        style = MaterialTheme.typography.bodySmall,
-                                        color = Color.White.copy(alpha = 0.68f),
+                                        meal.foods.take(3).joinToString(" · ") { it.foodName }.ifBlank { "Comida registrada" },
+                                        style = WizardTypography.bodySmall,
+                                        color = WizardColors.text,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis,
                                     )
+                                    meal.foods.mapNotNull { it.nutritionReferenceNote }.distinct().forEach { note ->
+                                        Text(note, style = WizardTypography.note, color = WizardColors.textFaint)
+                                    }
+                                    if (hasRange) {
+                                        Text(
+                                            "Rango estimado: $minKcal–$maxKcal kcal",
+                                            style = WizardTypography.note,
+                                            color = WizardColors.textFaint,
+                                        )
+                                    }
                                 }
+                                Spacer(Modifier.width(12.dp))
+                                Text(
+                                    "${if (isEstimate) "≈ " else ""}${kotlin.math.round(meal.foods.sumOf { it.calories }).toInt()} kcal",
+                                    style = HomeTypography.barTitle,
+                                    color = WizardColors.text,
+                                )
                             }
-                            Text("${if (isEstimate) "≈ " else ""}${kotlin.math.round(meal.foods.sumOf { it.calories }).toInt()} kcal", style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Black, color = Color(0xFF8FB7B8))
+                            if (index < meals.lastIndex) {
+                                Box(Modifier.fillMaxWidth().height(1.dp).background(WizardColors.divider))
+                            }
                         }
-                        if (index < meals.lastIndex) HorizontalDivider(color = Color.White.copy(alpha = 0.12f))
                     }
                 }
-                TextButton(onClick = onAddMeal, modifier = Modifier.align(Alignment.CenterHorizontally)) {
-                    Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(16.dp))
-                    Spacer(Modifier.width(6.dp))
-                    Text("Agregar comida", fontWeight = FontWeight.Black)
-                }
+                HomePrimaryPill(
+                    text = "Registrar comida",
+                    onClick = onAddMeal,
+                    modifier = Modifier.fillMaxWidth(),
+                )
             }
         }
     }
