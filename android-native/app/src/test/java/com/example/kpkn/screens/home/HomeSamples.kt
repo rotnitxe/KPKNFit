@@ -485,7 +485,9 @@ internal object HomeSamples {
         "descanso" to HomeHeroSheetCase(heroRest(), emptyList()),
         "otro_dia" to HomeHeroSheetCase(heroOtherDay(), heroMuscles()),
         "sin_programa" to HomeHeroSheetCase(heroNoProgram(), emptyList()),
+    )
 
+    /**
      * Un programa de [weeks] semanas (un solo macrociclo y bloque), con [weekDays] días por semana y, si se pasa, la plantilla de su
      * portada. Sus semanas tienen las sesiones de [weekSessions].
      */
