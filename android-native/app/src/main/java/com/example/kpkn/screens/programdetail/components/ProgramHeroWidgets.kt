@@ -1,9 +1,6 @@
 package com.example.kpkn.screens.programdetail.components
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
@@ -11,21 +8,9 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.FilterChip
-import androidx.compose.material3.MaterialTheme
-import com.example.kpkn.ui.components.KpknSheet
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -35,8 +20,6 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.kpkn.data.models.AthleteProfileLevel
 import com.example.kpkn.data.models.AthleteProfileScore
@@ -44,6 +27,16 @@ import com.example.kpkn.data.models.ProgramMode
 import com.example.kpkn.data.models.TrainingStyle
 import com.example.kpkn.data.models.VolumeRecommendation
 import com.example.kpkn.domain.training.VolumeCalibrationEngine
+import com.example.kpkn.screens.onboarding.design.WizardColors
+import com.example.kpkn.ui.components.KpknSheet
+import com.example.kpkn.ui.design.KpknChip
+import com.example.kpkn.ui.design.KpknModule
+import com.example.kpkn.ui.design.KpknModuleHeader
+import com.example.kpkn.ui.design.KpknPrimaryPill
+import com.example.kpkn.ui.design.KpknRadioRow
+import com.example.kpkn.ui.design.KpknTextAction
+import com.example.kpkn.ui.design.KpknTextField
+import com.example.kpkn.ui.design.KpknType
 
 data class VolumeCalibrationResult(
     val mode: ProgramMode,
@@ -51,7 +44,11 @@ data class VolumeCalibrationResult(
     val recommendations: List<VolumeRecommendation>,
 )
 
-@OptIn(ExperimentalMaterial3Api::class)
+/**
+ * Hoja «Calibrar volumen» (P4): las opciones como píldoras `KpknChip` y filas `KpknRadioRow`, el campo de notas como `KpknTextField`, el
+ * resumen en un módulo KPKN y la acción principal en `KpknPrimaryPill`. La lógica (estilo, puntajes y recomendaciones) no cambia; la usan
+ * también Home y Programas.
+ */
 @Composable
 fun VolumeCalibrationSheet(
     currentMode: ProgramMode,
@@ -81,13 +78,13 @@ fun VolumeCalibrationSheet(
                 .fillMaxWidth()
                 .verticalScroll(rememberScrollState())
                 .padding(horizontal = 20.dp, vertical = 8.dp),
-            verticalArrangement = Arrangement.spacedBy(18.dp),
+            verticalArrangement = Arrangement.spacedBy(22.dp),
         ) {
-            Text("Calibrar volumen", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Black)
+            Text("Calibrar volumen", style = KpknType.title, color = WizardColors.text)
             Text(
                 "Usamos tus datos y tu historial para proponerte series semanales por músculo. Este resultado también sincroniza el enfoque del programa.",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                style = KpknType.body,
+                color = WizardColors.textMuted,
             )
 
             ChoiceSection(
@@ -130,63 +127,54 @@ fun VolumeCalibrationSheet(
                 onSelect = { mobility = it },
             )
 
-            OutlinedTextField(
+            KpknTextField(
                 value = notes,
                 onValueChange = { notes = it },
-                modifier = Modifier.fillMaxWidth(),
-                label = { Text("Notas opcionales") },
-                placeholder = { Text("Ej: compito pronto, tolero alta frecuencia, priorizo banca...") },
+                label = "Notas opcionales",
+                placeholder = "Ej: compito pronto, tolero alta frecuencia, priorizo banca...",
+                singleLine = false,
                 minLines = 2,
-                maxLines = 4,
-                shape = RoundedCornerShape(18.dp),
             )
 
-            Surface(
-                shape = RoundedCornerShape(22.dp),
-                color = MaterialTheme.colorScheme.surfaceContainerLowest,
-            ) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
-                ) {
-                    Text("Resumen KPKN", fontWeight = FontWeight.Black)
-                    val modeLabel = when (preview.mode) {
-                        ProgramMode.POWERLIFTING -> "Powerlifting"
-                        ProgramMode.POWERBUILDING -> "Powerbuilding"
-                        ProgramMode.HYPERTROPHY -> "Hipertrofia"
-                    }
+            KpknModule {
+                KpknModuleHeader(label = "Resumen KPKN")
+                Spacer(Modifier.height(10.dp))
+                val modeLabel = when (preview.mode) {
+                    ProgramMode.POWERLIFTING -> "Powerlifting"
+                    ProgramMode.POWERBUILDING -> "Powerbuilding"
+                    ProgramMode.HYPERTROPHY -> "Hipertrofia"
+                }
+                Text(
+                    "Enfoque: $modeLabel",
+                    style = KpknType.bodyStrong,
+                    color = WizardColors.text,
+                )
+                Text(
+                    "Perfil: ${preview.score.profileLevel.label()} · Puntaje ${preview.score.totalScore}/12",
+                    style = KpknType.caption,
+                    color = WizardColors.textMuted,
+                )
+                Spacer(Modifier.height(10.dp))
+                preview.recommendations.take(6).forEach { recommendation ->
                     Text(
-                        "Enfoque: $modeLabel",
-                        color = MaterialTheme.colorScheme.primary,
-                        fontWeight = FontWeight.Bold,
+                        "${recommendation.muscleGroup}: ${recommendation.minEffectiveVolume}-${recommendation.maxRecoverableVolume} series/sem",
+                        style = KpknType.body,
+                        color = WizardColors.text,
                     )
-                    Text(
-                        "Perfil: ${preview.score.profileLevel.label()} · Puntaje ${preview.score.totalScore}/12",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                    preview.recommendations.take(6).forEach { recommendation ->
-                        Text(
-                            "${recommendation.muscleGroup}: ${recommendation.minEffectiveVolume}-${recommendation.maxRecoverableVolume} series/sem",
-                            style = MaterialTheme.typography.bodySmall,
-                        )
-                    }
                 }
             }
 
+            KpknPrimaryPill(
+                text = "Guardar calibración",
+                onClick = { onSave(preview) },
+                modifier = Modifier.fillMaxWidth(),
+            )
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.End,
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center,
             ) {
-                TextButton(onClick = onDismiss) { Text("Cancelar") }
-                Button(
-                    onClick = { onSave(preview) },
-                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
-                ) {
-                    Text("Guardar calibración")
-                }
+                KpknTextAction(text = "Cancelar", onClick = onDismiss)
             }
 
             Spacer(Modifier.height(24.dp))
@@ -194,6 +182,7 @@ fun VolumeCalibrationSheet(
     }
 }
 
+/** Elección de una sola opción de texto (objetivo principal) en píldoras `KpknChip`, con su ayuda debajo del título. */
 @Composable
 private fun ChoiceSection(
     title: String,
@@ -203,20 +192,21 @@ private fun ChoiceSection(
     onSelect: (TrainingStyle) -> Unit,
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-        Text(title, fontWeight = FontWeight.Black)
-        Text(helper, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Text(title, style = KpknType.bodyStrong, color = WizardColors.text)
+        Text(helper, style = KpknType.caption, color = WizardColors.textMuted)
         FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             options.forEach { option ->
-                FilterChip(
+                KpknChip(
+                    text = option.label,
                     selected = option.value == selectedValue,
                     onClick = { onSelect(option.value) },
-                    label = { Text(option.label) },
                 )
             }
         }
     }
 }
 
+/** Puntaje de 1 a 3 en filas de radio: cada nivel dice qué significa en su detalle. */
 @Composable
 private fun ScoreSection(
     title: String,
@@ -225,62 +215,16 @@ private fun ScoreSection(
     options: List<ChoiceOption<Int>>,
     onSelect: (Int) -> Unit,
 ) {
-    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-        Text(title, fontWeight = FontWeight.Black)
-        Text(helper, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            options.forEach { option ->
-                val isSelected = option.value == selectedValue
-                val selectedBg = MaterialTheme.colorScheme.primaryContainer
-                val selectedContent = MaterialTheme.colorScheme.onPrimaryContainer
-                val idleBg = MaterialTheme.colorScheme.surfaceContainerLowest
-                val idleContent = MaterialTheme.colorScheme.onSurface
-                Surface(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clip(RoundedCornerShape(18.dp))
-                        .clickable { onSelect(option.value) },
-                    shape = RoundedCornerShape(18.dp),
-                    color = if (isSelected) selectedBg else idleBg,
-                ) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(14.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text(
-                                option.label,
-                                fontWeight = FontWeight.Bold,
-                                color = if (isSelected) selectedContent else idleContent,
-                            )
-                            Text(
-                                option.detail,
-                                style = MaterialTheme.typography.bodySmall,
-                                color = if (isSelected) selectedContent.copy(alpha = 0.72f) else MaterialTheme.colorScheme.onSurfaceVariant,
-                            )
-                        }
-                        Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                            repeat(3) { index ->
-                                Box(
-                                    modifier = Modifier
-                                        .size(8.dp)
-                                        .clip(CircleShape)
-                                        .background(
-                                            if (index < option.value) {
-                                                if (isSelected) selectedContent else MaterialTheme.colorScheme.primary
-                                            } else {
-                                                if (isSelected) selectedContent.copy(alpha = 0.25f) else MaterialTheme.colorScheme.surfaceVariant
-                                            },
-                                        ),
-                                )
-                            }
-                        }
-                    }
-                }
-            }
+    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        Text(title, style = KpknType.bodyStrong, color = WizardColors.text)
+        Text(helper, style = KpknType.caption, color = WizardColors.textMuted)
+        options.forEach { option ->
+            KpknRadioRow(
+                selected = option.value == selectedValue,
+                title = option.label,
+                subtitle = option.detail,
+                onClick = { onSelect(option.value) },
+            )
         }
     }
 }
