@@ -26,6 +26,7 @@ import com.example.kpkn.screens.onboarding.design.WizardNutritionPlanCallbacks
 import com.example.kpkn.screens.onboarding.design.WizardNutritionPlanModel
 import com.example.kpkn.screens.onboarding.design.WizardNutritionPlanPanel
 import com.example.kpkn.screens.onboarding.design.WizardWeightRule
+import com.example.kpkn.screens.onboarding.design.WizardWeightScale
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Rule
@@ -119,7 +120,7 @@ class NutritionGoalComposeTest {
                 onCommit = {},
             )
         }
-        rule.onNodeWithText("Desliza la regla y toca la cifra para fijarlo: entre 48 y 79,5 kg.").assertIsDisplayed()
+        rule.onNodeWithText("Desliza la regla para elegir tu objetivo: entre 48 y 79,5 kg.").assertIsDisplayed()
     }
 
     @Test
@@ -167,5 +168,56 @@ class NutritionGoalComposeTest {
         rule.onNodeWithTag("setup-weight-value").assertTextEquals("74 kg")
         rule.onNodeWithTag("setup-weight-value").performClick()
         assertEquals(74.0, confirmed, 1e-9)
+    }
+
+    /** Arrastrar y soltar basta: el valor en reposo se guarda y es el que se muestra, sin tocar la cifra. */
+    @Test
+    fun `arrastrar la regla del peso objetivo lo guarda al soltar sin tocar la cifra`() {
+        val committed = mutableListOf<Double>()
+        rule.setContent {
+            NutritionTargetControl(
+                unit = WizardMassUnit.KG,
+                currentKg = 80.0,
+                direction = PlanDirection.DEFICIT,
+                pace = WizardPacePreset.MEDIUM,
+                committedKg = null,
+                onCommit = { committed += it },
+            )
+        }
+        rule.waitForIdle()
+        rule.onNodeWithContentDescription("Regla de peso en kilogramos")
+            .performTouchInput { swipe(Offset(centerX - 200f, bottom - 30f), Offset(centerX + 200f, bottom - 30f)) }
+        rule.waitForIdle()
+        assertTrue(committed.isNotEmpty())
+        val shown = WizardWeightScale.format(WizardWeightScale.snap(WizardWeightScale.toDisplay(committed.last(), WizardMassUnit.KG)))
+        rule.onNodeWithTag("setup-weight-value").assertTextEquals("$shown kg")
+    }
+
+    /** Con Definir, ningún valor que se guarda sale de la ventana (48 … 79,5 kg con 80 kg de partida). */
+    @Test
+    fun `el peso objetivo de definir no sale de su ventana al arrastrar`() {
+        val committed = mutableListOf<Double>()
+        rule.setContent {
+            NutritionTargetControl(
+                unit = WizardMassUnit.KG,
+                currentKg = 80.0,
+                direction = PlanDirection.DEFICIT,
+                pace = WizardPacePreset.MEDIUM,
+                committedKg = null,
+                onCommit = { committed += it },
+            )
+        }
+        rule.waitForIdle()
+        val ruleNode = rule.onNodeWithContentDescription("Regla de peso en kilogramos")
+        repeat(3) {
+            ruleNode.performTouchInput { swipe(Offset(centerX - 200f, bottom - 30f), Offset(centerX + 200f, bottom - 30f)) }
+        }
+        rule.waitForIdle()
+        repeat(3) {
+            ruleNode.performTouchInput { swipe(Offset(centerX + 200f, bottom - 30f), Offset(centerX - 200f, bottom - 30f)) }
+        }
+        rule.waitForIdle()
+        assertTrue(committed.isNotEmpty())
+        assertTrue(committed.all { it in 48.0..79.5 })
     }
 }

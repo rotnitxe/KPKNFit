@@ -266,16 +266,19 @@ private fun NutritionTargetContent(state: SetupWizardState, vm: SetupWizardViewM
 private fun commitNutritionTarget(vm: SetupWizardViewModel, step: SetupStepId, unit: WizardMassUnit, kg: Double) {
     val display = WizardWeightScale.snap(WizardWeightScale.toDisplay(kg, unit))
     val text = WizardWeightScale.format(display)
-    vm.updateStep(step) { draft -> draft.withNutritionDraft { it.copy(targetWeightText = text, weightUnit = unit.code) } }
-    vm.setStepText(step, text)
-    vm.setStepNumber(step, display)
+    // Una sola escritura: el objetivo, el texto del paso y su número llegan juntos (una revisión, nunca mitades).
+    vm.updateStep(step) { draft ->
+        draft.withNutritionDraft { it.copy(targetWeightText = text, weightUnit = unit.code) }
+            .withStepText(step, text)
+            .withStepNumber(step, display)
+    }
 }
 
 /**
  * Peso objetivo con la regla de peso de Datos básicos ([WizardWeightRule]), la diferencia con el peso actual y la
- * estimación con el ritmo elegido. Arrastrar solo propone un peso; tocar la cifra lo fija ([onCommit], en kg). Cada
- * propuesta respeta el límite de la dirección ([goalWeightWindow]), que la regla recibe como mínimo y máximo: no se
- * puede arrastrar más allá, así lo que se ve es lo que se guarda.
+ * estimación con el ritmo elegido. Cada valor en reposo de la regla (al soltar o al tocar una marca) se guarda ya con
+ * [onCommit], en kg: lo que se ve es lo que se guarda, sin tocar la cifra. Cada valor respeta el límite de la dirección
+ * ([goalWeightWindow]), que la regla recibe como mínimo y máximo, así que no se puede arrastrar más allá.
  */
 @Composable
 internal fun NutritionTargetControl(
@@ -287,23 +290,22 @@ internal fun NutritionTargetControl(
     onCommit: (Double) -> Unit,
 ) {
     val window = remember(direction, currentKg) { goalWeightWindow(direction, currentKg) }
-    // La posición de arranque es el objetivo guardado o el peso actual (en el límite si queda fuera): no es una
-    // respuesta hasta que se fija.
+    // La posición de arranque es el objetivo guardado o el peso actual: no es una respuesta hasta que la regla se mueve o se toca.
     val ruleAnchorKg = remember(unit) { committedKg ?: currentKg }
-    var proposalKg by remember(unit) { mutableStateOf<Double?>(null) }
-    var pending by remember(unit) { mutableStateOf(false) }
-    val shownKg = proposalKg ?: committedKg
+    // Último valor en reposo: la confirmación lo vuelve a guardar por si la escritura anterior no llegó al borrador.
+    var restKg by remember(unit) { mutableStateOf<Double?>(null) }
+    val shownKg = committedKg
 
     val estimate = shownKg?.let { value ->
         goalWeeklyChangeKg(direction, pace, currentKg)?.let { weekly -> goalWeeksRange(currentKg, value, weekly) }
     }?.let { goalWeeksText(it, pace) }
-    val hint = when {
-        pending -> "Toca la cifra para fijar este objetivo."
-        shownKg == null -> window?.let {
-            "Desliza la regla y toca la cifra para fijarlo: entre ${goalDisplayText(it.start, unit)} y " +
+    val hint = if (shownKg != null) {
+        null
+    } else {
+        window?.let {
+            "Desliza la regla para elegir tu objetivo: entre ${goalDisplayText(it.start, unit)} y " +
                 "${goalDisplayText(it.endInclusive, unit)} ${unit.code}."
         }
-        else -> null
     }
 
     Column(modifier = Modifier.fillMaxWidth().testTag("setup-nutrition-target")) {
@@ -314,15 +316,11 @@ internal fun NutritionTargetControl(
             max = window?.endInclusive,
             onValueChange = { kg ->
                 // La regla no sale del límite; el coerce solo absorbe el error de coma flotante del borde.
-                proposalKg = window?.let { kg.coerceIn(it) } ?: kg
-                pending = true
+                val value = window?.let { kg.coerceIn(it) } ?: kg
+                restKg = value
+                onCommit(value)
             },
-            onConfirm = {
-                proposalKg?.let { kg ->
-                    onCommit(kg)
-                    pending = false
-                }
-            },
+            onConfirm = { restKg?.let(onCommit) },
         )
         if (shownKg != null) {
             Spacer(Modifier.height(8.dp))
