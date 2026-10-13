@@ -1,11 +1,14 @@
 package com.example.kpkn.screens.programdetail
 
 import com.example.kpkn.data.models.Block
+import com.example.kpkn.data.models.BlockGoal
+import com.example.kpkn.data.models.BlockProgressionScheme
 import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.ExerciseSet
 import com.example.kpkn.data.models.KeyDateType
 import com.example.kpkn.data.models.Macrocycle
 import com.example.kpkn.data.models.Mesocycle
+import com.example.kpkn.data.models.MesocycleGoal
 import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.models.ProgramKeyDate
 import com.example.kpkn.data.models.ProgramMode
@@ -33,6 +36,8 @@ import com.example.kpkn.screens.programdetail.design.ProgramVolumeSplit
 import com.example.kpkn.screens.programdetail.design.ProgramVolumeZones
 import com.example.kpkn.screens.programdetail.design.programMetaLine
 import com.example.kpkn.screens.programdetail.design.structure.ProgramBlockRange
+import com.example.kpkn.screens.programdetail.design.structure.ProgramBlockUi
+import com.example.kpkn.screens.programdetail.design.structure.ProgramMesoUi
 import java.time.LocalDate
 
 /** Datos de ejemplo de Program Detail para la hoja de render de la cabecera (P1). Sin datos reales ni inventados fuera de ejemplo. */
@@ -323,4 +328,105 @@ internal object ProgramStructureSamples {
         "La competición no cae dentro de las semanas actuales del programa. Ajusta fechas o agrega semanas.",
         "El término manual queda antes del término proyectado. Agrega o quita semanas para que calce.",
     )
+
+    // ─── P3b: los módulos de bloque de la pestaña Estructura ───
+
+    /** Una semana del módulo de ejemplo: la de número [number] (id `s<number>`), con la semana [current] en curso y las anteriores hechas. */
+    private fun blockWeek(number: Int, current: Int, loop: Boolean = false, competition: Boolean = false): ProgramPhaseWeekUi =
+        ProgramPhaseWeekUi(
+            id = "s$number",
+            number = number,
+            isCurrent = number == current,
+            isDone = number < current,
+            isLoop = loop,
+            isCompetition = competition,
+        )
+
+    /** Acumulación de seis semanas con dos mesociclos; la semana 4 es la actual y las tres primeras están hechas. */
+    val acumulacion: ProgramBlockUi = ProgramBlockUi(
+        id = "bloque-acumulacion",
+        name = "Acumulación 1",
+        macroIndex = 0,
+        blockIndex = 0,
+        eyebrow = "Acumulación",
+        phase = ProgramPhase.ACCUMULATION,
+        mesocycles = listOf(
+            ProgramMesoUi(name = "Mesociclo 1", goalLabel = "Acumulación"),
+            ProgramMesoUi(name = "Mesociclo 2", goalLabel = "Realización"),
+        ),
+        weeks = (1..6).map { blockWeek(number = it, current = 4) },
+        sessionCount = 18,
+    )
+
+    /** Intensificación de cuatro semanas, con un solo mesociclo (no tiene fila propia). */
+    val intensificacion: ProgramBlockUi = ProgramBlockUi(
+        id = "bloque-intensificacion",
+        name = "Intensificación",
+        macroIndex = 0,
+        blockIndex = 1,
+        eyebrow = "Intensificación",
+        phase = ProgramPhase.INTENSIFICATION,
+        mesocycles = listOf(ProgramMesoUi(name = "Mesociclo 1", goalLabel = "Intensificación")),
+        weeks = (7..10).map { blockWeek(number = it, current = 4) },
+        sessionCount = 12,
+    )
+
+    /** Realización de tres semanas con una de ciclo: lleva la marca de repetición. */
+    val realizacion: ProgramBlockUi = ProgramBlockUi(
+        id = "bloque-realizacion",
+        name = "Realización",
+        macroIndex = 0,
+        blockIndex = 2,
+        eyebrow = "Realización",
+        phase = ProgramPhase.REALIZATION,
+        mesocycles = listOf(ProgramMesoUi(name = "Mesociclo 1", goalLabel = "Realización")),
+        weeks = listOf(blockWeek(11, 4), blockWeek(12, 4, loop = true), blockWeek(13, 4)),
+        sessionCount = 9,
+    )
+
+    /** Bloque de competición de dos semanas: la segunda es la competición y lleva bandera. */
+    val competicion: ProgramBlockUi = ProgramBlockUi(
+        id = "bloque-competicion",
+        name = "Puesta a punto",
+        macroIndex = 0,
+        blockIndex = 3,
+        eyebrow = "Competición",
+        phase = ProgramPhase.COMPETITION,
+        mesocycles = listOf(ProgramMesoUi(name = "Mesociclo 1", goalLabel = "Descarga")),
+        weeks = listOf(blockWeek(14, 4), blockWeek(15, 4, competition = true)),
+        sessionCount = 4,
+    )
+
+    /** Los cuatro bloques del programa de ejemplo, en su orden. */
+    val programaCuatroBloques: List<ProgramBlockUi> = listOf(acumulacion, intensificacion, realizacion, competicion)
+
+    /** El bloque único de un programa simple con ciclo: sin fase, con «Semana que se repite» y «Ciclo 5». */
+    val simpleCiclo: ProgramBlockUi = ProgramBlockUi(
+        id = "bloque-simple",
+        name = "Bloque 1",
+        macroIndex = 0,
+        blockIndex = 0,
+        eyebrow = "Semana que se repite",
+        phase = null,
+        mesocycles = listOf(ProgramMesoUi(name = "Mesociclo 1", goalLabel = "Acumulación")),
+        weeks = listOf(blockWeek(1, 2), blockWeek(2, 2, loop = true), blockWeek(3, 2)),
+        sessionCount = 9,
+        cycleLabel = "Ciclo 5",
+    )
+
+    /** El bloque de acumulación como modelo de datos, para la hoja de edición: con descripción, objetivo y progresión. */
+    val bloqueEditable: Block = Block(
+        id = "bloque-acumulacion",
+        name = "Acumulación 1",
+        description = "Volumen alto con técnica estable.",
+        mesocycles = listOf(
+            Mesocycle(id = "meso-1", name = "Mesociclo 1", goal = MesocycleGoal.ACCUMULATION, weeks = listOf(ProgramWeek(id = "s1", name = "Semana 1"))),
+            Mesocycle(id = "meso-2", name = "Mesociclo 2", goal = MesocycleGoal.REALIZATION, weeks = listOf(ProgramWeek(id = "s4", name = "Semana 4"))),
+        ),
+        goal = BlockGoal.ACCUMULATION,
+        progressionScheme = BlockProgressionScheme.LINEAR_LOAD,
+    )
+
+    /** La semana 4 como modelo de datos, para la hoja de semana, con su descripción. */
+    val semanaEditable: ProgramWeek = ProgramWeek(id = "s4", name = "Semana 4", description = "Pico de volumen antes del descanso.")
 }

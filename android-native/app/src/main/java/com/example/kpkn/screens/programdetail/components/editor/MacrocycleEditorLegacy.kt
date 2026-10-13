@@ -2,8 +2,8 @@ package com.example.kpkn.screens.programdetail.components
 /**
  * Macrocycle editor implementation (legacy monolito).
  * Edición de Block.goal / progressionScheme y preview de progresión viven en
- * [BlockRoadmap] (diálogos del roadmap) para cambios mínimos y acotados; esta
- * fachada no duplica esa lógica (plan 2026-08-20 Fase C).
+ * la hoja de bloque ([ProgramBlockSheet], P3b); esta fachada no duplica esa
+ * lógica (plan 2026-08-20 Fase C).
  */
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
@@ -97,25 +97,34 @@ import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
 import java.util.Locale
 import com.example.kpkn.ui.components.KpknAlertDialog
-import com.example.kpkn.screens.programdetail.components.editor.BlockDialog
 import com.example.kpkn.screens.programdetail.components.editor.CalendarSection
 import com.example.kpkn.screens.programdetail.components.editor.KeyDateDialog
 import com.example.kpkn.screens.programdetail.components.editor.KeyDatesSection
 import com.example.kpkn.screens.programdetail.components.editor.LibrarySection
 import com.example.kpkn.screens.programdetail.components.editor.MacrocycleRoadmapSection
-import com.example.kpkn.screens.programdetail.components.editor.MesoDialog
-import com.example.kpkn.screens.programdetail.components.editor.WeekDialog
-import com.example.kpkn.screens.programdetail.components.editor.WeekMetadataEditorDialog
 import com.example.kpkn.screens.programdetail.dayLabelShort
 import com.example.kpkn.screens.programdetail.formatDaysUntil
 import com.example.kpkn.screens.programdetail.parseIsoDateExact
 import com.example.kpkn.screens.programdetail.programCurrentWeekId
 import com.example.kpkn.screens.programdetail.programTrainingWeekdays
 import com.example.kpkn.screens.programdetail.design.programProgressLabel
+import com.example.kpkn.screens.programdetail.design.ProgramAnchoredMenuItem
+import com.example.kpkn.screens.programdetail.design.ProgramItemMenu
+import com.example.kpkn.screens.programdetail.design.ProgramWeekEditSheet
+import com.example.kpkn.screens.programdetail.design.structure.ProgramBlockList
+import com.example.kpkn.screens.programdetail.design.structure.ProgramBlockSheet
+import com.example.kpkn.screens.programdetail.design.structure.ProgramBlockUi
 import com.example.kpkn.screens.programdetail.design.structure.ProgramCalendarModule
+import com.example.kpkn.screens.programdetail.design.structure.ProgramConvertBlocksDialog
+import com.example.kpkn.screens.programdetail.design.structure.ProgramDeleteDialog
+import com.example.kpkn.screens.programdetail.design.structure.ProgramMesoSheet
 import com.example.kpkn.screens.programdetail.design.structure.ProgramStructureNotice
 import com.example.kpkn.screens.programdetail.design.structure.ProgramToolsKind
 import com.example.kpkn.screens.programdetail.design.structure.ProgramToolsModule
+import com.example.kpkn.screens.programdetail.design.structure.programBlockUis
+import com.example.kpkn.data.models.BlockGoal
+import com.example.kpkn.data.models.BlockProgressionScheme
+import androidx.compose.ui.geometry.Rect
 import com.example.kpkn.ui.design.kpknEntrance
 
 @OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
@@ -163,12 +172,25 @@ fun MacrocycleEditorLegacy(
     onMacrocycleManualEndDateChange: (String) -> Unit = {},
     macrocycleCompetitionDate: String? = null,
     onMacrocycleCompetitionDateChange: (String) -> Unit = {},
+    // Bloques (P3b): la semana elegida y la copiada, y las acciones que el ViewModel ya tiene para bloques y semanas.
+    selectedWeekId: String? = null,
+    copiedWeekId: String? = null,
+    onCopyWeek: (weekId: String) -> Unit = {},
+    onPasteWeek: (weekId: String) -> Unit = {},
+    onUpdateBlock: (blockId: String, name: String, description: String?, goal: BlockGoal?, progressionScheme: BlockProgressionScheme?) -> Unit =
+        { _, _, _, _, _ -> },
+    blockProgressionPreview: (blockId: String) -> String? = { null },
+    onDeleteBlock: (blockId: String) -> Unit = {},
+    onUpdateWeek: (weekId: String, name: String, description: String?) -> Unit = { _, _, _ -> },
+    onDeleteWeek: (weekId: String) -> Unit = {},
+    onAddSimpleWeek: () -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
-    var expandedBlocks by remember { mutableStateOf(setOf("0")) }
-    var editingBlock by remember { mutableStateOf<EditingItem?>(null) }
-    var editingWeek by remember { mutableStateOf<EditingItem?>(null) }
-    var editingExistingWeek by remember { mutableStateOf<EditingWeekTarget?>(null) }
+    // Bloques (P3b): la hoja de bloque, los menús de bloque y de semana, y el borrador de la semana que se edita.
+    var blockSheet by remember { mutableStateOf<BlockSheetTarget?>(null) }
+    var blockMenu by remember { mutableStateOf<AnchoredTarget?>(null) }
+    var weekMenu by remember { mutableStateOf<AnchoredTarget?>(null) }
+    var weekEdit by remember { mutableStateOf<WeekEditTarget?>(null) }
     var editingKeyDate by remember { mutableStateOf<ProgramKeyDate?>(null) }
     var pendingDelete by remember { mutableStateOf<DeleteTarget?>(null) }
     var pendingSimpleToAdvanced by remember { mutableStateOf(false) }
@@ -301,6 +323,30 @@ fun MacrocycleEditorLegacy(
     val currentWeekId = remember(program) { programCurrentWeekId(program) }
     val trainingDays = remember(program, currentWeekId) { programTrainingWeekdays(program, currentWeekId) }
 
+    // Bloques (P3b): el modelo de cada módulo sale del programa; la semana en curso ya está calculada arriba.
+    val cycle = program.runState?.cycleNumber ?: program.loopState?.currentCycle?.takeIf { it > 0 }
+    val blockUis = remember(program, currentWeekId, cycle) { programBlockUis(program, currentWeekId, cycle) }
+    val canDeleteBlock = blockUis.size > 1
+    val canDeleteWeek = program.totalProgramWeeks > 1
+
+    // Añadir una semana (P3b): en un programa simple la crea el ViewModel, con sus fechas; en uno por bloques, al final del bloque.
+    fun addWeekTo(block: ProgramBlockUi) {
+        if (temporalInsight.isSimple) {
+            onAddSimpleWeek()
+            return
+        }
+        val weekName = "Semana ${program.countWeeksBeforeAppendingToBlock(block.macroIndex, block.blockIndex) + 1}"
+        onUpdateProgram(program.addWeekToBlock(block.macroIndex, block.blockIndex, weekName).alignTemporalMetadata())
+    }
+
+    // Editar un mesociclo (P3b): abre su hoja con el mesociclo elegido.
+    fun editMeso(block: ProgramBlockUi, mesoIndex: Int) {
+        val meso = program.macrocycles
+            .getOrNull(block.macroIndex)?.blocks?.getOrNull(block.blockIndex)?.mesocycles?.getOrNull(mesoIndex)
+            ?: return
+        editingMeso = EditingMesoTarget(block.macroIndex, block.blockIndex, mesoIndex, meso, isAdd = false)
+    }
+
     Column(
         modifier = modifier
             .fillMaxWidth()
@@ -392,152 +438,150 @@ fun MacrocycleEditorLegacy(
             )
         }
 
-        program.ensureMacrocycle().macrocycles.forEachIndexed { macroIdx, macro ->
-            MacroHeader(macro = macro, macroIndex = macroIdx, isSimple = temporalInsight.isSimple)
-
-            macro.blocks.forEachIndexed { blockIdx, block ->
-                val blockKey = "$macroIdx-$blockIdx"
-                val isExpanded = blockKey in expandedBlocks
-
-                BlockNode(
-                    block = block,
-                    macroIndex = macroIdx,
-                    blockIndex = blockIdx,
-                    isExpanded = isExpanded,
-                    onToggle = {
-                        expandedBlocks = if (isExpanded) expandedBlocks - blockKey else expandedBlocks + blockKey
-                    },
-                    onEditBlock = {
-                        editingBlock = EditingItem(
-                            type = EditType.EDIT,
-                            macroIndex = macroIdx,
-                            blockIndex = blockIdx,
-                            data = block,
-                        )
-                    },
-                    onDeleteBlock = { pendingDelete = DeleteTarget.Block(macroIdx, blockIdx) },
-                    onAddWeek = {
-                        val weekName = "Semana ${program.countWeeksBeforeAppendingToBlock(macroIdx, blockIdx) + 1}"
-                        onUpdateProgram(program.addWeekToBlock(macroIdx, blockIdx, weekName).alignTemporalMetadata())
-                    },
-                    onSelectWeek = { weekId -> onFocusWeek(block.id, weekId) },
-                    onEditWeek = { mesoIdx, weekIdx, week ->
-                        editingExistingWeek = EditingWeekTarget(macroIdx, blockIdx, mesoIdx, weekIdx, week)
-                    },
-                    onAddMesocycle = {
-                        editingMeso = EditingMesoTarget(macroIdx, blockIdx, null, null, isAdd = true)
-                    },
-                    onEditMesocycle = { mesoIdx, meso ->
-                        editingMeso = EditingMesoTarget(macroIdx, blockIdx, mesoIdx, meso, isAdd = false)
-                    },
-                )
-            }
-
-            OutlinedButton(
-                onClick = {
-                    if (temporalInsight.isSimple) pendingSimpleToAdvanced = true
-                    else editingBlock = EditingItem(type = EditType.ADD, macroIndex = macroIdx)
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 4.dp, bottom = 8.dp),
-            ) {
-                Icon(Icons.Default.Add, null)
-                Spacer(Modifier.width(8.dp))
-                Text(if (temporalInsight.isSimple) "Agregar bloque y convertir a avanzado" else "Agregar bloque")
-            }
-        }
+        // Bloques (P3b): un módulo por bloque, en el orden del programa, con sus mesociclos y sus semanas en círculos. Las hojas y los
+        // menús se abren desde aquí y se pintan al final de la pantalla.
+        ProgramBlockList(
+            blocks = blockUis,
+            isSimple = temporalInsight.isSimple,
+            selectedWeekId = selectedWeekId,
+            onFocusWeek = { blockId, weekId -> onFocusWeek(blockId, weekId) },
+            onWeekLongPress = { _, weekId, anchor -> weekMenu = AnchoredTarget(weekId, anchor) },
+            onBlockMore = { blockId, anchor -> blockMenu = AnchoredTarget(blockId, anchor) },
+            onEditMeso = { blockId, mesoIndex -> blockUis.blockAt(blockId)?.let { editMeso(it, mesoIndex) } },
+            onAddWeekToBlock = { blockId -> blockUis.blockAt(blockId)?.let { addWeekTo(it) } },
+            onAddMesoToBlock = { blockId ->
+                blockUis.blockAt(blockId)?.let { block ->
+                    editingMeso = EditingMesoTarget(block.macroIndex, block.blockIndex, mesoIndex = null, meso = null, isAdd = true)
+                }
+            },
+            onAddBlock = { blockSheet = BlockSheetTarget.Add },
+            onConvert = { pendingSimpleToAdvanced = true },
+        )
 
         Spacer(Modifier.height(120.dp))
     }
 
-    editingBlock?.let { item ->
-        BlockDialog(
-            block = item.data as? Block,
-            onSave = { name ->
-                val updated = if (item.type == EditType.ADD) {
-                    program.ensureMacrocycle().addBlockToMacro(item.macroIndex ?: 0, name)
-                } else {
-                    program.renameBlock(item.macroIndex ?: 0, item.blockIndex ?: 0, name)
-                }
-                onUpdateProgram(updated.alignTemporalMetadata())
-                editingBlock = null
-            },
-            onDismiss = { editingBlock = null },
-        )
+    // Hoja de bloque (P3b): un bloque nuevo, o uno existente con la vista previa de su progresión. Un bloque nuevo se crea en una sola
+    // escritura, con su objetivo y su esquema.
+    blockSheet?.let { target ->
+        val editing = (target as? BlockSheetTarget.Edit)?.let { edit ->
+            program.macrocycles.flatMap { it.blocks }.firstOrNull { it.id == edit.blockId }
+        }
+        if (target is BlockSheetTarget.Add || editing != null) {
+            ProgramBlockSheet(
+                block = editing,
+                suggestedName = "Bloque ${blockUis.size + 1}",
+                preview = editing?.let { blockProgressionPreview(it.id) },
+                onSave = { name, description, goal, scheme ->
+                    when (target) {
+                        is BlockSheetTarget.Add -> {
+                            val base = program.ensureMacrocycle()
+                            val updated = base.addBlockToMacro(base.macrocycles.lastIndex, name, description, goal, scheme)
+                            onUpdateProgram(updated.alignTemporalMetadata())
+                        }
+                        is BlockSheetTarget.Edit -> onUpdateBlock(target.blockId, name, description, goal, scheme)
+                    }
+                    blockSheet = null
+                },
+                onDismiss = { blockSheet = null },
+            )
+        }
     }
 
-    editingWeek?.let { item ->
-        WeekDialog(
-            onSave = { name ->
-                val updated = program.addWeekToBlock(item.macroIndex ?: 0, item.blockIndex ?: 0, name)
-                onUpdateProgram(updated.alignTemporalMetadata())
-                editingWeek = null
+    // Hoja de la semana (P3b): la de Semana, con «Eliminar semana» si el programa tiene más de una.
+    weekEdit?.let { draft ->
+        val onDeleteDraft: () -> Unit = {
+            pendingDelete = DeleteTarget.Week(draft.weekId)
+            weekEdit = null
+        }
+        ProgramWeekEditSheet(
+            name = draft.name,
+            description = draft.description,
+            onNameChange = { weekEdit = draft.copy(name = it) },
+            onDescriptionChange = { weekEdit = draft.copy(description = it) },
+            onSave = {
+                onUpdateWeek(draft.weekId, draft.name.trim(), draft.description.trim().ifBlank { null })
+                weekEdit = null
             },
-            onDismiss = { editingWeek = null },
-        )
-    }
-
-    editingExistingWeek?.let { target ->
-        WeekMetadataEditorDialog(
-            week = target.week,
-            canDelete = program.totalProgramWeeks > 1,
-            onSave = { name, description ->
-                val updated = program.updateWeekAt(
-                    macroIndex = target.macroIndex,
-                    blockIndex = target.blockIndex,
-                    mesoIndex = target.mesoIndex,
-                    weekIndex = target.weekIndex,
-                ) { week ->
-                    week.copy(
-                        name = name.trim().ifBlank { week.name },
-                        description = description?.trim()?.takeIf { it.isNotBlank() },
-                    )
-                }
-                onUpdateProgram(updated.alignTemporalMetadata())
-                editingExistingWeek = null
-            },
-            onDelete = {
-                pendingDelete = DeleteTarget.Week(target.macroIndex, target.blockIndex, target.mesoIndex, target.weekIndex)
-                editingExistingWeek = null
-            },
-            onDismiss = { editingExistingWeek = null },
+            onDismiss = { weekEdit = null },
+            onDelete = if (canDeleteWeek) onDeleteDraft else null,
         )
     }
 
     editingMeso?.let { target ->
-        val mesoCount = program.macrocycles
-            .getOrNull(target.macroIndex)
-            ?.blocks?.getOrNull(target.blockIndex)
-            ?.mesocycles?.size ?: 0
-        MesoDialog(
+        val mesocycles = program.macrocycles.getOrNull(target.macroIndex)?.blocks?.getOrNull(target.blockIndex)?.mesocycles
+            ?: emptyList()
+        ProgramMesoSheet(
             meso = if (target.isAdd) null else target.meso,
-            canDelete = !target.isAdd && mesoCount > 1,
+            suggestedName = "Mesociclo ${mesocycles.size + 1}",
+            canDelete = !target.isAdd && mesocycles.size > 1,
             onSave = { name, goal ->
                 val updated = if (target.isAdd) {
                     program.addMesocycle(target.macroIndex, target.blockIndex, name, goal)
                 } else {
-                    program.renameMesocycle(
-                        target.macroIndex,
-                        target.blockIndex,
-                        target.mesoIndex ?: 0,
-                        name,
-                        goal,
-                    )
-                }.alignTemporalMetadata()
-                onUpdateProgram(updated)
+                    program.renameMesocycle(target.macroIndex, target.blockIndex, target.mesoIndex ?: 0, name, goal)
+                }
+                onUpdateProgram(updated.alignTemporalMetadata())
                 editingMeso = null
             },
             onDelete = {
-                pendingDelete = DeleteTarget.Meso(
-                    target.macroIndex,
-                    target.blockIndex,
-                    target.mesoIndex ?: 0,
-                )
+                pendingDelete = DeleteTarget.Meso(target.macroIndex, target.blockIndex, target.mesoIndex ?: 0)
                 editingMeso = null
             },
             onDismiss = { editingMeso = null },
         )
+    }
+
+    // Menú del bloque (P3b): «Editar bloque» y, si hay más de uno, «Eliminar bloque».
+    blockMenu?.let { menu ->
+        ProgramItemMenu(
+            items = buildList<ProgramAnchoredMenuItem> {
+                add(ProgramAnchoredMenuItem(label = "Editar bloque", onClick = { blockSheet = BlockSheetTarget.Edit(menu.id) }))
+                if (canDeleteBlock) {
+                    add(
+                        ProgramAnchoredMenuItem(
+                            label = "Eliminar bloque",
+                            onClick = { pendingDelete = DeleteTarget.Block(menu.id) },
+                            destructive = true,
+                        ),
+                    )
+                }
+            },
+            anchor = menu.anchor,
+            onDismiss = { blockMenu = null },
+        )
+    }
+
+    // Menú de la semana (P3b): editar, copiar, pegar aquí (con una semana copiada) y eliminar.
+    weekMenu?.let { menu ->
+        val week = program.findProgramWeek(menu.id)
+        if (week != null) {
+            ProgramItemMenu(
+                items = buildList<ProgramAnchoredMenuItem> {
+                    add(
+                        ProgramAnchoredMenuItem(
+                            label = "Editar semana",
+                            onClick = { weekEdit = WeekEditTarget(menu.id, week.name, week.description.orEmpty()) },
+                        ),
+                    )
+                    add(ProgramAnchoredMenuItem(label = "Copiar semana", onClick = { onCopyWeek(menu.id) }))
+                    if (copiedWeekId != null && copiedWeekId != menu.id) {
+                        add(ProgramAnchoredMenuItem(label = "Pegar aquí", onClick = { onPasteWeek(menu.id) }))
+                    }
+                    if (canDeleteWeek) {
+                        add(
+                            ProgramAnchoredMenuItem(
+                                label = "Eliminar semana",
+                                onClick = { pendingDelete = DeleteTarget.Week(menu.id) },
+                                destructive = true,
+                            ),
+                        )
+                    }
+                },
+                anchor = menu.anchor,
+                onDismiss = { weekMenu = null },
+            )
+        }
     }
 
     editingKeyDate?.let { keyDate ->
@@ -587,32 +631,23 @@ fun MacrocycleEditorLegacy(
     }
 
     pendingDelete?.let { target ->
-        KpknAlertDialog(
-            onDismissRequest = { pendingDelete = null },
-            title = { Text("Eliminar", fontWeight = FontWeight.Bold) },
-            text = {
-                Text(
-                    when (target) {
-                        is DeleteTarget.Block -> "Eliminar este bloque puede cambiar la lógica temporal del programa."
-                        is DeleteTarget.Meso -> "Eliminar este mesociclo quitará sus semanas y sesiones."
-                        is DeleteTarget.Week -> "Eliminar esta semana quitará sus sesiones."
-                    }
-                )
+        ProgramDeleteDialog(
+            text = when (target) {
+                is DeleteTarget.Block -> "Eliminar este bloque puede cambiar la lógica temporal del programa."
+                is DeleteTarget.Meso -> "Eliminar este mesociclo quitará sus semanas y sesiones."
+                is DeleteTarget.Week -> "Eliminar esta semana quitará sus sesiones."
             },
-            confirmButton = {
-                Button(
-                    onClick = {
-                        val updated = when (target) {
-                            is DeleteTarget.Block -> program.removeBlock(target.macroIndex, target.blockIndex)
-                            is DeleteTarget.Meso -> program.removeMesocycle(target.macroIndex, target.blockIndex, target.mesoIndex)
-                            is DeleteTarget.Week -> program.removeWeek(target.macroIndex, target.blockIndex, target.mesoIndex, target.weekIndex)
-                        }.alignTemporalMetadata()
-                        onUpdateProgram(updated)
-                        pendingDelete = null
-                    },
-                ) { Text("Eliminar") }
+            onConfirm = {
+                when (target) {
+                    is DeleteTarget.Block -> onDeleteBlock(target.blockId)
+                    is DeleteTarget.Meso -> onUpdateProgram(
+                        program.removeMesocycle(target.macroIndex, target.blockIndex, target.mesoIndex).alignTemporalMetadata(),
+                    )
+                    is DeleteTarget.Week -> onDeleteWeek(target.weekId)
+                }
+                pendingDelete = null
             },
-            dismissButton = { TextButton(onClick = { pendingDelete = null }) { Text("Cancelar") } },
+            onDismiss = { pendingDelete = null },
         )
     }
 
@@ -666,29 +701,17 @@ fun MacrocycleEditorLegacy(
     }
 
     if (pendingSimpleToAdvanced) {
-        KpknAlertDialog(
-            onDismissRequest = { pendingSimpleToAdvanced = false },
-            title = { Text("Convertir a programa avanzado", fontWeight = FontWeight.Black) },
-            text = {
-                Text(
-                    "Agregar un segundo bloque hace que este programa deje de ser simple. " +
-                        "La estructura pasa a ser lineal, se terminan los loops y los eventos cíclicos dejan de ser compatibles."
-                )
+        ProgramConvertBlocksDialog(
+            onConfirm = {
+                val updated = program
+                    .ensureMacrocycle()
+                    .addBlockToMacro(0, "Bloque 2")
+                    .convertSimpleCalendarizedToAdvanced()
+                    .alignTemporalMetadata()
+                onUpdateProgram(updated)
+                pendingSimpleToAdvanced = false
             },
-            confirmButton = {
-                Button(
-                    onClick = {
-                        val updated = program
-                            .ensureMacrocycle()
-                            .addBlockToMacro(0, "Bloque 2")
-                            .convertSimpleCalendarizedToAdvanced()
-                            .alignTemporalMetadata()
-                        onUpdateProgram(updated)
-                        pendingSimpleToAdvanced = false
-                    },
-                ) { Text("Convertir") }
-            },
-            dismissButton = { TextButton(onClick = { pendingSimpleToAdvanced = false }) { Text("Cancelar") } },
+            onDismiss = { pendingSimpleToAdvanced = false },
         )
     }
 
@@ -2059,299 +2082,6 @@ internal fun LegacyLibrarySection(
     )
 }
 
-@Composable
-private fun MacroHeader(
-    macro: Macrocycle,
-    macroIndex: Int,
-    isSimple: Boolean,
-) {
-    val title = if (isSimple) "Macrociclo base" else macro.name
-    Text(
-        text = if (macroIndex == 0) title else "${macro.name} · ${macroIndex + 1}",
-        fontWeight = FontWeight.Black,
-        fontSize = 14.sp,
-        modifier = Modifier.padding(top = 4.dp, bottom = 2.dp),
-    )
-}
-
-@Composable
-private fun BlockNode(
-    block: Block,
-    macroIndex: Int,
-    blockIndex: Int,
-    isExpanded: Boolean,
-    onToggle: () -> Unit,
-    onEditBlock: () -> Unit,
-    onDeleteBlock: () -> Unit,
-    onAddWeek: () -> Unit,
-    onSelectWeek: (String) -> Unit,
-    onEditWeek: (Int, Int, ProgramWeek) -> Unit,
-    onAddMesocycle: () -> Unit,
-    onEditMesocycle: (Int, Mesocycle) -> Unit,
-) {
-    val flatWeeks = block.mesocycles.flatMapIndexed { mesoIndex, meso ->
-        meso.weeks.mapIndexed { weekIndex, week -> Triple(mesoIndex, weekIndex, week) }
-    }
-    Card(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(16.dp)) {
-        Column {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable(onClick = onToggle)
-                    .padding(14.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Icon(
-                    if (isExpanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
-                    null,
-                    tint = MaterialTheme.colorScheme.primary,
-                )
-                Spacer(Modifier.width(10.dp))
-                Column(Modifier.weight(1f)) {
-                    Text(block.name, fontSize = 14.sp, fontWeight = FontWeight.Black)
-                    Text(
-                        "${flatWeeks.size} semana${if (flatWeeks.size != 1) "s" else ""}",
-                        fontSize = 11.sp,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                }
-                IconButton(onClick = onEditBlock) { Icon(Icons.Default.Edit, "Editar") }
-                IconButton(onClick = onDeleteBlock) { Icon(Icons.Default.Delete, "Eliminar", tint = Color(0xFFEF4444)) }
-            }
-
-            AnimatedVisibility(visible = isExpanded, enter = expandVertically(), exit = shrinkVertically()) {
-                Column(modifier = Modifier.padding(start = 24.dp, end = 14.dp, bottom = 14.dp)) {
-                    Text("Mesociclos", fontSize = 12.sp, fontWeight = FontWeight.Bold)
-                    block.mesocycles.forEachIndexed { mesoIdx, meso ->
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clickable { onEditMesocycle(mesoIdx, meso) }
-                                .padding(vertical = 4.dp),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            Column(Modifier.weight(1f)) {
-                                Text(meso.name, fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
-                                Text(meso.goal.label, fontSize = 10.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                            }
-                            Icon(Icons.Default.Edit, null, modifier = Modifier.size(16.dp))
-                        }
-                    }
-                    OutlinedButton(onClick = onAddMesocycle, modifier = Modifier.fillMaxWidth()) {
-                        Icon(Icons.Default.Add, null)
-                        Spacer(Modifier.width(6.dp))
-                        Text("Agregar mesociclo")
-                    }
-                    Spacer(Modifier.height(8.dp))
-                    WeekPillGrid(
-                        weeks = flatWeeks,
-                        onSelectWeek = onSelectWeek,
-                        onEditWeek = onEditWeek,
-                    )
-                    Spacer(Modifier.height(8.dp))
-                    OutlinedButton(onClick = onAddWeek, modifier = Modifier.fillMaxWidth()) {
-                        Icon(Icons.Default.Add, null)
-                        Spacer(Modifier.width(8.dp))
-                        Text("Agregar semana")
-                    }
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun WeekPillGrid(
-    weeks: List<Triple<Int, Int, ProgramWeek>>,
-    onSelectWeek: (String) -> Unit,
-    onEditWeek: (Int, Int, ProgramWeek) -> Unit,
-) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
-    ) {
-        Column(Modifier.padding(12.dp)) {
-            Text("Semanas del bloque", fontSize = 12.sp, fontWeight = FontWeight.Bold)
-            Column(verticalArrangement = Arrangement.spacedBy(6.dp), modifier = Modifier.padding(top = 6.dp)) {
-                weeks.chunked(3).forEach { rowWeeks ->
-                    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                        rowWeeks.forEach { (mesoIdx, weekIdx, week) ->
-                            Box(
-                                modifier = Modifier
-                                    .background(
-                                        if (week.isLoopWeek) MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.7f)
-                                        else MaterialTheme.colorScheme.primary.copy(alpha = 0.12f),
-                                        RoundedCornerShape(999.dp),
-                                    )
-                                    .combinedClickable(
-                                        onClick = { onSelectWeek(week.id) },
-                                        onLongClick = { onEditWeek(mesoIdx, weekIdx, week) },
-                                    )
-                                    .padding(horizontal = 10.dp, vertical = 6.dp),
-                            ) {
-                                Text(if (week.isLoopWeek) "Loop · ${week.name}" else week.name, fontSize = 10.sp, fontWeight = FontWeight.Bold)
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
-
-@Composable
-internal fun LegacyBlockDialog(
-    block: Block?,
-    onSave: (String) -> Unit,
-    onDismiss: () -> Unit,
-) {
-    var name by remember { mutableStateOf(block?.name ?: "Nuevo bloque") }
-    KpknAlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text(if (block != null) "Editar bloque" else "Nuevo bloque", fontWeight = FontWeight.Bold) },
-        text = {
-            OutlinedTextField(
-                value = name,
-                onValueChange = { name = it },
-                label = { Text("Nombre") },
-                singleLine = true,
-            )
-        },
-        confirmButton = { Button(onClick = { onSave(name.trim()) }, enabled = name.isNotBlank()) { Text("Guardar") } },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancelar") } },
-    )
-}
-
-@Composable
-internal fun LegacyMesoDialog(
-    meso: Mesocycle?,
-    canDelete: Boolean = false,
-    onSave: (String, MesocycleGoal) -> Unit,
-    onDelete: () -> Unit = {},
-    onDismiss: () -> Unit,
-) {
-    var name by remember { mutableStateOf(meso?.name ?: "Nuevo mesociclo") }
-    var goal by remember { mutableStateOf(meso?.goal ?: MesocycleGoal.ACCUMULATION) }
-    KpknAlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text("Mesociclo", fontWeight = FontWeight.Bold) },
-        text = {
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                OutlinedTextField(
-                    value = name,
-                    onValueChange = { name = it },
-                    label = { Text("Nombre") },
-                    singleLine = true,
-                )
-                Text("Objetivo", fontSize = 12.sp, fontWeight = FontWeight.Bold)
-                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                    MesocycleGoal.entries.forEach { entry ->
-                        FilterChip(
-                            selected = goal == entry,
-                            onClick = { goal = entry },
-                            label = { Text(entry.label, fontSize = 11.sp) },
-                        )
-                    }
-                }
-            }
-        },
-        confirmButton = {
-            Button(onClick = { onSave(name.trim(), goal) }, enabled = name.isNotBlank()) { Text("Guardar") }
-        },
-        dismissButton = {
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                if (canDelete) {
-                    TextButton(onClick = onDelete) {
-                        Text("Eliminar", color = Color(0xFFEF4444))
-                    }
-                }
-                TextButton(onClick = onDismiss) { Text("Cancelar") }
-            }
-        },
-    )
-}
-
-@Composable
-internal fun LegacyWeekDialog(
-    onSave: (String) -> Unit,
-    onDismiss: () -> Unit,
-) {
-    var name by remember { mutableStateOf("Nueva semana") }
-    KpknAlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text("Semana", fontWeight = FontWeight.Bold) },
-        text = {
-            OutlinedTextField(
-                value = name,
-                onValueChange = { name = it },
-                label = { Text("Nombre") },
-                singleLine = true,
-            )
-        },
-        confirmButton = { Button(onClick = { onSave(name.trim()) }, enabled = name.isNotBlank()) { Text("Guardar") } },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancelar") } },
-    )
-}
-
-@Composable
-internal fun LegacyWeekMetadataDialog(
-    week: ProgramWeek,
-    canDelete: Boolean,
-    onSave: (String, String?) -> Unit,
-    onDelete: () -> Unit,
-    onDismiss: () -> Unit,
-) {
-    var name by remember(week.id) { mutableStateOf(week.name) }
-    var description by remember(week.id) { mutableStateOf(week.description.orEmpty()) }
-
-    KpknAlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text("Editar semana", fontWeight = FontWeight.Bold) },
-        text = {
-            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                Text(
-                    "Toca una semana para verla. Mantener presionado abre esta edición segura.",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-                OutlinedTextField(
-                    value = name,
-                    onValueChange = { name = it },
-                    label = { Text("Nombre") },
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth(),
-                )
-                OutlinedTextField(
-                    value = description,
-                    onValueChange = { description = it },
-                    label = { Text("Descripción de la semana") },
-                    minLines = 2,
-                    maxLines = 4,
-                    modifier = Modifier.fillMaxWidth(),
-                )
-            }
-        },
-        confirmButton = {
-            Button(
-                onClick = { onSave(name, description) },
-                enabled = name.isNotBlank(),
-            ) { Text("Guardar") }
-        },
-        dismissButton = {
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                if (canDelete) {
-                    TextButton(onClick = onDelete) {
-                        Text("Eliminar", color = MaterialTheme.colorScheme.error)
-                    }
-                }
-                TextButton(onClick = onDismiss) { Text("Cancelar") }
-            }
-        },
-    )
-}
-
 internal data class ProgramStats(val weeks: Int, val sessions: Int, val mesos: Int, val blocks: Int)
 
 internal data class CalendarPreview(
@@ -2384,23 +2114,17 @@ internal data class TemporalInsight(
     val hadLoopsOrEvents: Boolean,
 )
 
-private enum class EditType { ADD, EDIT }
+/** Lo que se edita en la hoja de bloque (P3b): un bloque nuevo, o uno existente por su id. */
+private sealed class BlockSheetTarget {
+    object Add : BlockSheetTarget()
+    data class Edit(val blockId: String) : BlockSheetTarget()
+}
 
-private data class EditingItem(
-    val type: EditType,
-    val macroIndex: Int?,
-    val blockIndex: Int? = null,
-    val mesoIndex: Int? = null,
-    val data: Any? = null,
-)
+/** Un menú anclado a un bloque o a una semana (P3b): su id y dónde está su ancla en la ventana. */
+private data class AnchoredTarget(val id: String, val anchor: Rect)
 
-private data class EditingWeekTarget(
-    val macroIndex: Int,
-    val blockIndex: Int,
-    val mesoIndex: Int,
-    val weekIndex: Int,
-    val week: ProgramWeek,
-)
+/** Borrador de la hoja «Editar semana» (P3b): la semana que se edita y lo escrito. */
+private data class WeekEditTarget(val weekId: String, val name: String, val description: String)
 
 private data class EditingMesoTarget(
     val macroIndex: Int,
@@ -2410,10 +2134,11 @@ private data class EditingMesoTarget(
     val isAdd: Boolean,
 )
 
+/** Lo que se borra tras confirmar (P3b): un bloque y una semana por su id; un mesociclo, por su posición. */
 private sealed class DeleteTarget {
-    data class Block(val macroIndex: Int, val blockIndex: Int) : DeleteTarget()
+    data class Block(val blockId: String) : DeleteTarget()
     data class Meso(val macroIndex: Int, val blockIndex: Int, val mesoIndex: Int) : DeleteTarget()
-    data class Week(val macroIndex: Int, val blockIndex: Int, val mesoIndex: Int, val weekIndex: Int) : DeleteTarget()
+    data class Week(val weekId: String) : DeleteTarget()
 }
 
 private fun Program.toProgramStats(): ProgramStats {
@@ -2456,11 +2181,19 @@ private fun Program.ensureMacrocycle(): Program {
     )
 }
 
-private fun defaultBlock(name: String): Block {
+private fun defaultBlock(
+    name: String,
+    description: String? = null,
+    goal: BlockGoal? = null,
+    progressionScheme: BlockProgressionScheme? = null,
+): Block {
     return Block(
         id = "block_${System.nanoTime()}",
         name = name,
+        description = description,
         mesocycles = listOf(defaultMesocycle()),
+        goal = goal,
+        progressionScheme = progressionScheme,
     )
 }
 
@@ -2480,27 +2213,27 @@ private fun defaultWeek(name: String): ProgramWeek {
     return ProgramWeek(id = "week_${System.nanoTime()}", name = name)
 }
 
-private fun Program.addBlockToMacro(macroIndex: Int, blockName: String): Program {
+private fun Program.addBlockToMacro(
+    macroIndex: Int,
+    blockName: String,
+    description: String? = null,
+    goal: BlockGoal? = null,
+    progressionScheme: BlockProgressionScheme? = null,
+): Program {
     return copy(
         macrocycles = macrocycles.mapIndexed { index, macro ->
             if (index != macroIndex) macro
-            else macro.copy(blocks = macro.blocks + defaultBlock(blockName))
+            else macro.copy(blocks = macro.blocks + defaultBlock(blockName, description, goal, progressionScheme))
         }
     )
 }
 
-private fun Program.renameBlock(macroIndex: Int, blockIndex: Int, name: String): Program {
-    return copy(
-        macrocycles = macrocycles.mapIndexed { currentMacroIndex, macro ->
-            if (currentMacroIndex != macroIndex) macro
-            else macro.copy(
-                blocks = macro.blocks.mapIndexed { currentBlockIndex, block ->
-                    if (currentBlockIndex == blockIndex) block.copy(name = name) else block
-                }
-            )
-        }
-    )
-}
+/** El bloque del módulo con ese id (P3b). */
+private fun List<ProgramBlockUi>.blockAt(blockId: String): ProgramBlockUi? = firstOrNull { it.id == blockId }
+
+/** La semana con ese id, esté en el bloque o el mesociclo que esté (P3b). */
+private fun Program.findProgramWeek(weekId: String): ProgramWeek? =
+    macrocycles.flatMap { it.blocks }.flatMap { it.mesocycles }.flatMap { it.weeks }.firstOrNull { it.id == weekId }
 
 private fun Program.addMesocycle(macroIndex: Int, blockIndex: Int, name: String, goal: MesocycleGoal): Program {
     val mesocycle = defaultMesocycle(name = name, goal = goal)
@@ -2593,15 +2326,6 @@ private fun Program.countWeeksBeforeAppendingToBlock(targetMacroIndex: Int, targ
     return count
 }
 
-private fun Program.removeBlock(macroIndex: Int, blockIndex: Int): Program {
-    return copy(
-        macrocycles = macrocycles.mapIndexed { currentMacroIndex, macro ->
-            if (currentMacroIndex != macroIndex) macro
-            else macro.copy(blocks = macro.blocks.filterIndexed { index, _ -> index != blockIndex })
-        }.filter { it.blocks.isNotEmpty() }
-    ).ensureMacrocycle()
-}
-
 private fun Program.removeMesocycle(macroIndex: Int, blockIndex: Int, mesoIndex: Int): Program {
     return copy(
         macrocycles = macrocycles.mapIndexed { currentMacroIndex, macro ->
@@ -2610,54 +2334,6 @@ private fun Program.removeMesocycle(macroIndex: Int, blockIndex: Int, mesoIndex:
                 blocks = macro.blocks.mapIndexed { currentBlockIndex, block ->
                     if (currentBlockIndex != blockIndex) block
                     else block.copy(mesocycles = block.mesocycles.filterIndexed { index, _ -> index != mesoIndex })
-                }
-            )
-        }
-    )
-}
-
-private fun Program.removeWeek(macroIndex: Int, blockIndex: Int, mesoIndex: Int, weekIndex: Int): Program {
-    return copy(
-        macrocycles = macrocycles.mapIndexed { currentMacroIndex, macro ->
-            if (currentMacroIndex != macroIndex) macro
-            else macro.copy(
-                blocks = macro.blocks.mapIndexed { currentBlockIndex, block ->
-                    if (currentBlockIndex != blockIndex) block
-                    else block.copy(
-                        mesocycles = block.mesocycles.mapIndexed { currentMesoIndex, meso ->
-                            if (currentMesoIndex != mesoIndex) meso
-                            else meso.copy(weeks = meso.weeks.filterIndexed { index, _ -> index != weekIndex })
-                        }
-                    )
-                }
-            )
-        }
-    )
-}
-
-private fun Program.updateWeekAt(
-    macroIndex: Int,
-    blockIndex: Int,
-    mesoIndex: Int,
-    weekIndex: Int,
-    update: (ProgramWeek) -> ProgramWeek,
-): Program {
-    return copy(
-        macrocycles = macrocycles.mapIndexed { currentMacroIndex, macro ->
-            if (currentMacroIndex != macroIndex) macro
-            else macro.copy(
-                blocks = macro.blocks.mapIndexed { currentBlockIndex, block ->
-                    if (currentBlockIndex != blockIndex) block
-                    else block.copy(
-                        mesocycles = block.mesocycles.mapIndexed { currentMesoIndex, meso ->
-                            if (currentMesoIndex != mesoIndex) meso
-                            else meso.copy(
-                                weeks = meso.weeks.mapIndexed { currentWeekIndex, week ->
-                                    if (currentWeekIndex == weekIndex) update(week) else week
-                                }
-                            )
-                        }
-                    )
                 }
             )
         }

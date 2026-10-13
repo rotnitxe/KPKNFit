@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
@@ -42,12 +43,17 @@ import com.example.kpkn.ui.components.icons.KpknLineIcons
 import com.example.kpkn.ui.design.KpknSurface
 import com.example.kpkn.ui.design.KpknType
 
-/** Una semana de una fila (P2): su número global desde 1 y su estado. */
+/**
+ * Una semana de una fila (P2): su número global desde 1 y su estado. [isLoop] y [isCompetition] ponen una marca pequeña (`Repeat` o
+ * `Flag`) en el círculo; la fila de Semana no las usa, el módulo de bloque de Estructura (P3b) sí.
+ */
 internal data class ProgramPhaseWeekUi(
     val id: String,
     val number: Int,
     val isCurrent: Boolean,
     val isDone: Boolean,
+    val isLoop: Boolean = false,
+    val isCompetition: Boolean = false,
 )
 
 /**
@@ -110,6 +116,18 @@ internal fun ProgramWeekCircle(
         week.isCurrent -> WizardColors.text
         else -> WizardColors.textMuted
     }
+    // Marca de la semana (P3b): competición con bandera; ciclo con repetición. Sin ninguna, el círculo queda como en P2.
+    val marker = when {
+        week.isCompetition -> KpknLineIcons.Flag
+        week.isLoop -> KpknLineIcons.Repeat
+        else -> null
+    }
+    val markerTint = if (week.isCompetition) WizardColors.danger else WizardColors.textMuted
+    val kindText = when {
+        week.isCompetition -> ", de competición"
+        week.isLoop -> ", de ciclo"
+        else -> ""
+    }
     Column(
         modifier = modifier
             .width(48.dp)
@@ -122,22 +140,38 @@ internal fun ProgramWeekCircle(
                 onLongClick = { onLongClick(bounds) },
             )
             .semantics {
-                contentDescription = "Semana ${week.number}$stateText"
+                contentDescription = "Semana ${week.number}$stateText$kindText"
                 selected = isSelected
             },
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        Box(
-            modifier = Modifier
-                .size(40.dp)
-                .clip(CircleShape)
-                .background(fill, CircleShape)
-                .then(
-                    if (week.isCurrent && !isSelected) Modifier.border(2.dp, WizardColors.text, CircleShape) else Modifier,
-                ),
-            contentAlignment = Alignment.Center,
-        ) {
-            Text(text = "${week.number}", style = KpknType.metricM, color = ink, maxLines = 1)
+        // La marca va fuera del círculo recortado, así que cuelga de su esquina sin cortarse.
+        Box(modifier = Modifier.size(40.dp)) {
+            Box(
+                modifier = Modifier
+                    .size(40.dp)
+                    .clip(CircleShape)
+                    .background(fill, CircleShape)
+                    .then(
+                        if (week.isCurrent && !isSelected) Modifier.border(2.dp, WizardColors.text, CircleShape) else Modifier,
+                    ),
+                contentAlignment = Alignment.Center,
+            ) {
+                Text(text = "${week.number}", style = KpknType.metricM, color = ink, maxLines = 1)
+            }
+            marker?.let { icon ->
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .offset(x = 4.dp, y = (-4).dp)
+                        .size(18.dp)
+                        .clip(CircleShape)
+                        .background(WizardColors.background, CircleShape),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Icon(imageVector = icon, contentDescription = null, modifier = Modifier.size(12.dp), tint = markerTint)
+                }
+            }
         }
         Spacer(Modifier.height(5.dp))
         Box(
