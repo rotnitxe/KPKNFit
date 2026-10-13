@@ -13,12 +13,15 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.test.swipe
+import androidx.lifecycle.SavedStateHandle
+import androidx.test.core.app.ApplicationProvider
 import com.example.kpkn.data.models.PlanDirection
 import com.example.kpkn.domain.nutrition.EerSex
 import com.example.kpkn.domain.nutrition.PlanTuning
 import com.example.kpkn.domain.nutrition.PlanTuningContext
 import com.example.kpkn.domain.nutrition.PlanValues
 import com.example.kpkn.domain.nutrition.WizardPacePreset
+import com.example.kpkn.domain.nutrition.nutritionTargetKgOf
 import com.example.kpkn.domain.onboarding.SetupStepId
 import com.example.kpkn.screens.onboarding.design.WizardMassUnit
 import com.example.kpkn.screens.onboarding.design.WizardNutritionGoal
@@ -28,6 +31,7 @@ import com.example.kpkn.screens.onboarding.design.WizardNutritionPlanPanel
 import com.example.kpkn.screens.onboarding.design.WizardWeightRule
 import com.example.kpkn.screens.onboarding.design.WizardWeightScale
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
@@ -219,5 +223,35 @@ class NutritionGoalComposeTest {
         rule.waitForIdle()
         assertTrue(committed.isNotEmpty())
         assertTrue(committed.all { it in 48.0..79.5 })
+    }
+
+    /**
+     * Con el ViewModel real: tras arrastrar y soltar, el borrador ya tiene el objetivo y el validador del paso no bloquea
+     * (lo que lee el check), sin tocar la cifra. El avance del check lo cubre el recorrido completo del alta.
+     */
+    @Test
+    fun `arrastrar el peso objetivo y soltar lo guarda en el borrador y el paso queda valido`() {
+        val vm = SetupWizardViewModel(
+            application = ApplicationProvider.getApplicationContext<Application>(),
+            savedStateHandle = SavedStateHandle(),
+            persistence = FakeSetupWizardPersistence(),
+            environment = FakeSetupWizardEnvironment(),
+            materializeOverride = SetupWizardMaterializer { SetupPreview(null, null) },
+        )
+        vm.initialize(SetupWizardMode.FULL)
+        rule.waitForIdle()
+        vm.updateStep(SetupStepId.HEIGHT) { draft -> draft.copy(weightKg = 80.0) }
+        rule.waitForIdle()
+        rule.setContent {
+            SetupNutritionStepContent(step = SetupStepId.NUTRITION_TARGET, state = vm.state.value, vm = vm)
+        }
+        rule.waitForIdle()
+        rule.onNodeWithContentDescription("Regla de peso en kilogramos").performTouchInput {
+            swipe(Offset(centerX - 200f, bottom - 30f), Offset(centerX + 200f, bottom - 30f))
+        }
+        rule.waitForIdle()
+        val draft = vm.state.value.draft
+        assertNotNull(nutritionTargetKgOf(draft.nutritionDraft))
+        assertTrue(SetupWizardValidation.validateStep(draft, SetupStepId.NUTRITION_TARGET).none { it.isBlocking })
     }
 }
