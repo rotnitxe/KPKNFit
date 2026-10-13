@@ -57,8 +57,8 @@ internal object HomeTypography {
     /** Título de un póster de programa: Syne ExtraBold a 17 sp. */
     val posterTitle: TextStyle = WizardTypography.question.copy(fontSize = 17.sp, lineHeight = 22.sp, letterSpacing = 0.sp)
 
-    /** Título del concepto de «Aprende»: Syne 700 a 20 sp. */
-    val conceptTitle: TextStyle = WizardTypography.measure.copy(fontSize = 20.sp, lineHeight = 25.sp, letterSpacing = 0.sp)
+    /** Título de un concepto de «Aprende»: Syne Bold 18 / 22. */
+    val conceptTitle: TextStyle = WizardTypography.measure.copy(fontSize = 18.sp, lineHeight = 22.sp, letterSpacing = 0.sp)
 
     /** Saludo de la barra superior y cifra de sus mini-widgets: Syne 700 a 16 sp. */
     val barTitle: TextStyle = WizardTypography.measure.copy(fontSize = 16.sp, lineHeight = 20.sp, letterSpacing = 0.sp)
@@ -66,14 +66,17 @@ internal object HomeTypography {
     /** Etiquetas pequeñas de la barra superior: Inter 600 a 13 sp. */
     val barLabel: TextStyle = WizardTypography.note.copy(fontWeight = FontWeight.SemiBold)
 
-    /** Píldora «ACTIVO» de un póster: Inter 700 a 13 sp. */
-    val posterPill: TextStyle = WizardTypography.note.copy(fontWeight = FontWeight.Bold)
+    /** Píldora «ACTIVO» de un póster: caption en Inter SemiBold (13 sp). */
+    val posterPill: TextStyle = KpknType.caption.copy(fontWeight = FontWeight.SemiBold)
 
     /** Porcentaje de un músculo en su chip (Home v1.1, I10a): el rol `caption` en SemiBold, con cifras tabulares. */
     val chipValue: TextStyle = KpknType.caption.copy(fontWeight = FontWeight.SemiBold, fontFeatureSettings = "'tnum' 1")
 
     /** Dosis de un ejercicio del héroe (Home v1.1, I10a): el cuerpo de `KpknType` con cifras tabulares, para que las columnas cuadren. */
     val dose: TextStyle = KpknType.body.copy(fontFeatureSettings = "'tnum' 1")
+
+    /** Titular del motor en «Tus RINGS»: Syne Bold 22 / 26 (el rol `title` de KPKN_UI_V2 a 22 sp). */
+    val ringsHeadline: TextStyle = KpknType.title.copy(fontSize = 22.sp, lineHeight = 26.sp)
 }
 
 /**

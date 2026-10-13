@@ -1,6 +1,7 @@
 package com.example.kpkn.screens.home.design
 
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
@@ -83,5 +84,17 @@ class HomeNutritionTodayTest {
         }
 
         rule.onNodeWithText("por encima", substring = true).assertExists()
+    }
+
+    @Test
+    fun `el mas de la cabecera registra una comida sin hora`() {
+        val calls = mutableListOf<MealType?>()
+        rule.setContent {
+            HomeNutritionToday(state = HomeSamples.nutritionTwoMeals(), onAddMeal = { calls += it }, onOpenDay = {})
+        }
+
+        rule.onNodeWithContentDescription("Registrar comida").performClick()
+
+        assertEquals(listOf<MealType?>(null), calls)
     }
 }

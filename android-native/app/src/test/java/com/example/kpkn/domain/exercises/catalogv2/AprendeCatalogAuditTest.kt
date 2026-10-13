@@ -207,7 +207,8 @@ class AprendeCatalogAuditTest {
             File("src/main/java/com/example/kpkn/screens/home/HomeWikiLabSection.kt"),
             File("app/src/main/java/com/example/kpkn/screens/home/HomeWikiLabSection.kt"),
         ).first { it.exists() }.readText()
-        assertTrue(home.contains("\"APRENDE\""))
+        // La cabecera pasa el texto a mayúsculas (KpknModuleHeader): el literal es «Aprende».
+        assertTrue(home.contains("\"Aprende\""))
         assertTrue(!home.contains(".shuffled()"))
     }
 

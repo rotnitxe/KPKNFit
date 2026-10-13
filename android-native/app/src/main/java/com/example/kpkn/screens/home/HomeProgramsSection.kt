@@ -1,29 +1,23 @@
 package com.example.kpkn.screens.home
 
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Text
+import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.drawBehind
-import androidx.compose.ui.geometry.CornerRadius
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.PathEffect
-import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.graphics.drawscope.DrawScope
-import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
@@ -39,6 +33,10 @@ import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.models.totalProgramWeeks
 import com.example.kpkn.data.programs.programCoverEntryIdOf
 import com.example.kpkn.domain.training.HomeProgramLine
+import com.example.kpkn.ui.components.icons.KpknLineIcons
+import com.example.kpkn.ui.design.KpknShape
+import com.example.kpkn.ui.design.KpknSurface
+import com.example.kpkn.ui.design.KpknType
 import com.example.kpkn.screens.home.design.HomeSectionAction
 import com.example.kpkn.screens.home.design.HomeSectionLabel
 import com.example.kpkn.screens.home.design.HomeTypography
@@ -220,9 +218,11 @@ private fun ProgramPoster(
                 modifier = Modifier
                     .align(Alignment.TopStart)
                     .padding(12.dp)
-                    .clip(RoundedCornerShape(percent = 50))
+                    .height(24.dp)
+                    .clip(KpknShape.pill)
                     .background(WizardColors.text)
-                    .padding(horizontal = 8.dp, vertical = 4.dp),
+                    .padding(horizontal = 10.dp),
+                contentAlignment = Alignment.Center,
             ) {
                 Text(text = "ACTIVO", style = HomeTypography.posterPill, color = WizardColors.ctaContent)
             }
@@ -292,50 +292,46 @@ private fun PosterProgress(fraction: Float) {
 }
 
 /**
- * Póster «Nuevo», del mismo tamaño: borde discontinuo de 1,5 dp, sin relleno, un + de 32 dp en tinta y «Crear o importar».
- * Etiqueta de prueba: `home-programs-new`.
+ * Póster «Nuevo», del mismo tamaño que los demás: un módulo con su filete fino (`moduleBorder`), el «+» en un círculo `inset` de 44 dp y
+ * «Crear o importar» en `bodyStrong`. Etiqueta de prueba: `home-programs-new`.
  */
 @Composable
 private fun NewProgramPoster(onClick: () -> Unit) {
     Column(
         modifier = Modifier
             .size(width = PosterWidth, height = PosterHeight)
+            .clip(WizardShapes.panel)
+            .background(KpknSurface.module, WizardShapes.panel)
+            .border(1.dp, KpknSurface.moduleBorder, WizardShapes.panel)
             .testTag("home-programs-new")
-            .drawBehind { drawDashedBorder() }
             .semantics(mergeDescendants = true) { contentDescription = "Crear o importar un programa" }
             .clickable(role = Role.Button, onClick = onClick)
             .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
     ) {
-        Canvas(modifier = Modifier.size(32.dp)) {
-            val w = 2.2.dp.toPx()
-            drawLine(WizardColors.text, Offset(0f, size.height / 2f), Offset(size.width, size.height / 2f), strokeWidth = w, cap = StrokeCap.Round)
-            drawLine(WizardColors.text, Offset(size.width / 2f, 0f), Offset(size.width / 2f, size.height), strokeWidth = w, cap = StrokeCap.Round)
+        Box(
+            modifier = Modifier
+                .size(44.dp)
+                .background(KpknSurface.inset, CircleShape),
+            contentAlignment = Alignment.Center,
+        ) {
+            Icon(
+                imageVector = KpknLineIcons.Plus,
+                contentDescription = null,
+                modifier = Modifier.size(20.dp),
+                tint = WizardColors.text,
+            )
         }
         Spacer(Modifier.height(12.dp))
         Text(
             text = "Crear o importar",
-            style = WizardTypography.header,
+            style = KpknType.bodyStrong,
             color = WizardColors.text,
             textAlign = TextAlign.Center,
             maxLines = 2,
         )
     }
-}
-
-/** Borde discontinuo de 1,5 dp en el filete de cristal, metido hacia dentro para no salirse del póster. */
-private fun DrawScope.drawDashedBorder() {
-    val w = 1.5.dp.toPx()
-    val half = w / 2f
-    val dash = floatArrayOf(6.dp.toPx(), 5.dp.toPx())
-    drawRoundRect(
-        color = WizardColors.glassBorder,
-        topLeft = Offset(half, half),
-        size = Size(size.width - w, size.height - w),
-        cornerRadius = CornerRadius(20.dp.toPx() - half),
-        style = Stroke(width = w, pathEffect = PathEffect.dashPathEffect(dash)),
-    )
 }
 
 /**

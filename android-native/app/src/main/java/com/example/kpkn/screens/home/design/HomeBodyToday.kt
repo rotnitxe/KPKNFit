@@ -7,6 +7,7 @@ import androidx.compose.animation.core.snap
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -15,7 +16,6 @@ import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -23,7 +23,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Path
@@ -32,23 +31,30 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.withTransform
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.drawText
 import androidx.compose.ui.text.rememberTextMeasurer
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.example.kpkn.screens.home.HomeBodyState
 import com.example.kpkn.screens.onboarding.design.WizardColors
-import com.example.kpkn.screens.onboarding.design.WizardSpacing
 import com.example.kpkn.screens.onboarding.design.WizardTypography
+import com.example.kpkn.screens.onboarding.design.entreno.SymbolPalette
 import com.example.kpkn.screens.onboarding.design.formatDecimalEs
 import com.example.kpkn.screens.onboarding.design.formatSignedDecimalEs
 import com.example.kpkn.screens.onboarding.design.wizardReducedMotion
-import com.example.kpkn.screens.onboarding.design.entreno.SymbolPalette
+import com.example.kpkn.ui.components.icons.KpknLineIcons
+import com.example.kpkn.ui.design.KpknMetric
+import com.example.kpkn.ui.design.KpknModule
+import com.example.kpkn.ui.design.KpknModuleHeader
+import com.example.kpkn.ui.design.KpknSecondaryPill
+import com.example.kpkn.ui.design.KpknTextAction
+import com.example.kpkn.ui.design.KpknType
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.Locale
@@ -60,9 +66,9 @@ private const val BODY_FIGURE_KEY = "home-body"
 private val TrendDateFormat: DateTimeFormatter = DateTimeFormatter.ofPattern("d MMM", Locale.forLanguageTag("es"))
 
 /**
- * Cuerpo de hoy: el último peso con su cambio de 30 días, la tendencia y el objetivo, y los datos pequeños que existan (% grasa,
- * % músculo, IMC y FFMI; estos dos solo con altura real). Sin pesajes, la invitación a registrar. Cada dato lleva a su detalle:
- * [onOpen] recibe el destino de la pantalla de progreso.
+ * «Cuerpo» de hoy: un módulo con «Ver progreso» en la cabecera, el último peso con su cambio de 30 días, la tendencia a todo el ancho y los
+ * datos pequeños que existan (% grasa, % músculo, IMC y FFMI; estos dos solo con altura real). Sin pesajes, la invitación a registrar. Cada
+ * dato lleva a su detalle: [onOpen] recibe el destino de la pantalla de progreso.
  */
 @Composable
 fun HomeBodyToday(
@@ -90,98 +96,99 @@ fun HomeBodyToday(
     val weight = state.weightKg
     val smallFigures = bodySmallFigures(state)
 
-    Column(modifier = modifier.fillMaxWidth()) {
-        HomeSectionLabel(
-            text = "CUERPO",
-            action = {
-                Box(
-                    modifier = Modifier
-                        .defaultMinSize(minHeight = 48.dp)
-                        .clickable(role = Role.Button, onClick = { onOpen("body-progress") })
-                        .padding(start = 16.dp),
-                    // Abajo a la derecha: el texto se alinea con la línea base de «CUERPO», y el área de toque sigue en 48 dp.
-                    contentAlignment = Alignment.BottomEnd,
-                ) {
-                    Text(text = "Ver progreso", style = WizardTypography.header, color = WizardColors.text)
-                }
-            },
+    KpknModule(modifier = modifier.fillMaxWidth().padding(horizontal = HomeModuleMargin)) {
+        KpknModuleHeader(
+            label = "Cuerpo",
+            action = { KpknTextAction(text = "Ver progreso", onClick = { onOpen("body-progress") }) },
         )
-        Spacer(Modifier.height(14.dp))
+        Spacer(Modifier.height(12.dp))
         if (weight != null) {
             BodyWeightBlock(state = state, weight = weight, shown = weightShown)
-            Spacer(Modifier.height(14.dp))
+            Spacer(Modifier.height(12.dp))
             BodyTrendBlock(state = state, progress = trendProgress)
         } else {
             Text(
                 text = "Registra tu peso para ver tu tendencia.",
-                style = WizardTypography.body,
+                style = KpknType.body,
                 color = WizardColors.text,
-                modifier = Modifier.padding(horizontal = WizardSpacing.gutter),
             )
-            Spacer(Modifier.height(14.dp))
-            HomeSecondaryPill(
+            Spacer(Modifier.height(12.dp))
+            KpknSecondaryPill(
                 text = "Añadir pesaje",
                 onClick = { onOpen("body-progress") },
-                modifier = Modifier.padding(horizontal = WizardSpacing.gutter),
                 tag = "home-body-add",
             )
         }
         if (smallFigures.isNotEmpty()) {
-            Spacer(Modifier.height(18.dp))
-            Row(Modifier.fillMaxWidth().padding(horizontal = WizardSpacing.gutter)) {
-                smallFigures.forEach { figure ->
-                    BodySmallFigureCell(
-                        figure = figure,
-                        onClick = { onOpen(figure.target) },
-                        modifier = Modifier.weight(1f),
-                    )
+            Spacer(Modifier.height(16.dp))
+            // A escala grande, las cifras pasan a dos filas de dos: a 130 % de letra, cuatro cifras de 18 sp no caben sin tocarse.
+            if (LocalDensity.current.fontScale > HomeLargeTextScale) {
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    smallFigures.chunked(2).forEach { pair ->
+                        Row(Modifier.fillMaxWidth()) {
+                            pair.forEach { figure ->
+                                BodySmallFigureCell(
+                                    figure = figure,
+                                    onClick = { onOpen(figure.target) },
+                                    modifier = Modifier.weight(1f),
+                                )
+                            }
+                            // Un dato suelto ocupa su mitad y deja el hueco a la derecha, para que no se estire.
+                            if (pair.size == 1) Spacer(Modifier.weight(1f))
+                        }
+                    }
+                }
+            } else {
+                Row(Modifier.fillMaxWidth()) {
+                    smallFigures.forEach { figure ->
+                        BodySmallFigureCell(
+                            figure = figure,
+                            onClick = { onOpen(figure.target) },
+                            modifier = Modifier.weight(1f),
+                        )
+                    }
                 }
             }
         }
     }
 }
 
-/** Último peso en Syne con «kg» y, a su lado, el cambio de 30 días: en `ok` si va hacia el objetivo, si no en `textMuted`. */
+/**
+ * El último peso en Syne con «kg» y, a su derecha, el cambio de 30 días con su flecha: en `done` si va hacia el objetivo, en `danger` si se
+ * aleja y en `textMuted` si no hay objetivo. Si no cabe a la derecha (a 130 % de letra), el cambio baja debajo del peso.
+ */
 @Composable
 private fun BodyWeightBlock(state: HomeBodyState, weight: Double, shown: Float) {
-    Row(
-        modifier = Modifier.fillMaxWidth().padding(horizontal = WizardSpacing.gutter),
-        verticalAlignment = Alignment.Bottom,
+    val change = state.weightChange30d
+    val tint = when {
+        state.goalKg == null -> WizardColors.textMuted
+        state.changeTowardGoal -> WizardColors.done
+        else -> WizardColors.danger
+    }
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            // La cifra cuenta: la semántica da el peso y el cambio finales.
+            .clearAndSetSemantics {
+                contentDescription = "Peso: ${formatDecimalEs(weight, 1)} kilos" +
+                    change?.let { ", ${formatSignedDecimalEs(it, 1)} kilos en 30 días" }.orEmpty()
+            },
     ) {
-        Text(
-            text = formatDecimalEs(shown.toDouble(), 1),
-            style = HomeTypography.weightFigure,
-            color = WizardColors.text,
-            maxLines = 1,
-            modifier = Modifier.semantics { contentDescription = "Peso: ${formatDecimalEs(weight, 1)} kilos" },
+        HomeMetricNote(
+            value = formatDecimalEs(shown.toDouble(), 1),
+            unit = "kg",
+            note = change?.let { "${formatSignedDecimalEs(it, 1)} kg en 30 días" },
+            valueStyle = KpknType.metricXL,
+            noteStyle = KpknType.caption,
+            noteColor = tint,
+            noteIcon = change?.let { if (it < 0) KpknLineIcons.TrendDown else KpknLineIcons.TrendUp },
         )
-        Spacer(Modifier.width(6.dp))
-        Text(
-            text = "kg",
-            style = WizardTypography.controlLabel,
-            color = WizardColors.textMuted,
-            modifier = Modifier.padding(bottom = 8.dp),
-        )
-        Spacer(Modifier.weight(1f))
-        state.weightChange30d?.let { change ->
-            // Separado de «kg» y en dos líneas: con la letra grande no se pisan ni se cortan.
-            Spacer(Modifier.width(12.dp))
-            Text(
-                text = "${formatSignedDecimalEs(change, 1)} kg\nen 30 días",
-                style = WizardTypography.bodySmall,
-                color = if (state.changeTowardGoal) SymbolPalette.ok else WizardColors.textMuted,
-                textAlign = TextAlign.End,
-                maxLines = 2,
-                overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.padding(bottom = 4.dp),
-            )
-        }
     }
 }
 
 /**
- * La tendencia de 30 días (con al menos dos días con pesaje) y su pie: la fecha inicial y «hoy». Sin tendencia, solo el texto
- * del objetivo, si lo hay.
+ * La tendencia de 30 días (con al menos dos días con pesaje) a todo el ancho del módulo, y su pie: la fecha inicial y «hoy». Sin tendencia,
+ * solo el texto del objetivo, si lo hay.
  */
 @Composable
 private fun BodyTrendBlock(state: HomeBodyState, progress: Float) {
@@ -193,24 +200,22 @@ private fun BodyTrendBlock(state: HomeBodyState, progress: Float) {
             progress = progress,
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = WizardSpacing.gutter)
-                .height(96.dp),
+                .height(72.dp),
         )
-        Row(Modifier.fillMaxWidth().padding(horizontal = WizardSpacing.gutter)) {
+        Row(Modifier.fillMaxWidth()) {
             Text(
                 text = state.trend.first().date.format(TrendDateFormat),
-                style = WizardTypography.caption,
+                style = KpknType.caption,
                 color = WizardColors.textFaint,
             )
             Spacer(Modifier.weight(1f))
-            Text(text = "hoy", style = WizardTypography.caption, color = WizardColors.textFaint)
+            Text(text = "hoy", style = KpknType.caption, color = WizardColors.textFaint)
         }
     } else if (goalText != null) {
         Text(
             text = goalText,
-            style = WizardTypography.caption,
+            style = KpknType.caption,
             color = WizardColors.textMuted,
-            modifier = Modifier.padding(horizontal = WizardSpacing.gutter),
         )
     }
 }
@@ -294,18 +299,20 @@ private fun bodyGoalText(state: HomeBodyState): String? {
     return "Objetivo $weight kg" + (state.goalMonth?.let { " · ≈ $it" } ?: "")
 }
 
-/** Un dato pequeño de Cuerpo: su cifra, su nombre y el destino de la pantalla de progreso. */
-private class BodySmallFigure(val value: String, val name: String, val target: String)
+/** Un dato pequeño de Cuerpo: su cifra con la unidad (si la tiene), su nombre y el destino de la pantalla de progreso. */
+private class BodySmallFigure(val value: String, val unit: String?, val name: String, val target: String)
 
 /** Los datos pequeños que existen: solo aparecen con valor real (el IMC y el FFMI, además, con altura real). */
 private fun bodySmallFigures(state: HomeBodyState): List<BodySmallFigure> = buildList {
-    state.bodyFatPct?.let { add(BodySmallFigure(formatDecimalEs(it, 1), "% grasa", "fat")) }
-    state.musclePct?.let { add(BodySmallFigure(formatDecimalEs(it, 1), "% músculo", "muscle")) }
-    state.bmi?.let { add(BodySmallFigure(formatDecimalEs(it, 1), "IMC", "imc")) }
-    state.ffmi?.let { add(BodySmallFigure(formatDecimalEs(it, 1), "FFMI", "ffmi")) }
+    state.bodyFatPct?.let { add(BodySmallFigure(formatDecimalEs(it, 1), "%", "Grasa", "fat")) }
+    state.musclePct?.let { add(BodySmallFigure(formatDecimalEs(it, 1), "%", "Músculo", "muscle")) }
+    state.bmi?.let { add(BodySmallFigure(formatDecimalEs(it, 1), null, "IMC", "imc")) }
+    state.ffmi?.let { add(BodySmallFigure(formatDecimalEs(it, 1), null, "FFMI", "ffmi")) }
 }
 
-/** Una celda de dato pequeño: cifra en Syne y nombre en `textMuted`; toda la celda abre su destino. */
+/**
+ * Una celda de dato pequeño: la cifra con su unidad en `metricM` y el nombre debajo en `caption`. Toda la celda abre su destino.
+ */
 @Composable
 private fun BodySmallFigureCell(figure: BodySmallFigure, onClick: () -> Unit, modifier: Modifier) {
     Column(
@@ -313,10 +320,16 @@ private fun BodySmallFigureCell(figure: BodySmallFigure, onClick: () -> Unit, mo
             .testTag("home-body-${figure.target}")
             .defaultMinSize(minHeight = 48.dp)
             .clickable(role = Role.Button, onClick = onClick)
-            .semantics { contentDescription = "${figure.name}, ${figure.value}" },
+            .semantics { contentDescription = "${figure.name}, ${figure.value}" + figure.unit?.let { " $it" }.orEmpty() },
     ) {
-        Text(text = figure.value, style = WizardTypography.measure, color = WizardColors.text, maxLines = 1)
-        // Dos líneas como máximo: con la letra grande «% músculo» baja a la segunda en lugar de cortarse.
-        Text(text = figure.name, style = WizardTypography.caption, color = WizardColors.textMuted, maxLines = 2)
+        KpknMetric(value = figure.value, unit = figure.unit, style = KpknType.metricM)
+        // Una línea: con la letra grande, el nombre se corta con elipsis antes que partirse.
+        Text(
+            text = figure.name,
+            style = KpknType.caption,
+            color = WizardColors.textMuted,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+        )
     }
 }

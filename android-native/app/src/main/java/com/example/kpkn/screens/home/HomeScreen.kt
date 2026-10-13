@@ -99,7 +99,10 @@ import com.example.kpkn.screens.home.design.HomeMastheadState
 import com.example.kpkn.screens.home.design.HomeMeals
 import com.example.kpkn.screens.home.design.HomePrimaryPill
 import com.example.kpkn.screens.home.design.HomeSectionAction
+import com.example.kpkn.screens.home.design.HomeGroupGap
+import com.example.kpkn.screens.home.design.HomeModuleGap
 import com.example.kpkn.screens.home.design.HomeSectionGap
+import com.example.kpkn.screens.home.design.homeGapAbove
 import com.example.kpkn.screens.home.design.HomeWeekStrip
 import com.example.kpkn.screens.home.design.homeDateLine
 import com.example.kpkn.screens.home.design.homeEntrance
@@ -821,7 +824,10 @@ private fun HomeWithProgram(
                 onSaveAdjustment = onSaveRingAdjustment,
                 onDismissAdvisory = onDismissAdvisory,
                 onModelNoticeShown = onModelNoticeShown,
-                modifier = Modifier.onGloballyPositioned { onRingsAnchorPositionChanged(it.positionInRoot().y) }.homeEntrance(3),
+                modifier = Modifier
+                    .onGloballyPositioned { onRingsAnchorPositionChanged(it.positionInRoot().y) }
+                    .homeEntrance(3)
+                    .homeGapAbove(HomeSectionGap.adapt(homeAdapt)),
             )
         }
         if (homeAdvisory != null) {
@@ -832,7 +838,7 @@ private fun HomeWithProgram(
                     actionLabel = "Entendido",
                     onAction = { onDismissAdvisory(homeAdvisory.id) },
                     tone = if (homeAdvisory.level == LoadAdvisoryLevel.UNLOAD) HomeNoticeTone.DANGER else HomeNoticeTone.WARN,
-                    modifier = Modifier.homeEntrance(4),
+                    modifier = Modifier.homeEntrance(4).homeGapAbove(HomeSectionGap.adapt(homeAdapt)),
                 )
             }
         }
@@ -844,15 +850,15 @@ private fun HomeWithProgram(
                     actionLabel = "Ver recomendaciones",
                     onAction = { onNavigate("settings/auge") },
                     tone = HomeNoticeTone.DANGER,
-                    modifier = Modifier.homeEntrance(5),
+                    modifier = Modifier.homeEntrance(5).homeGapAbove(HomeSectionGap.adapt(homeAdapt)),
                 )
             }
         }
         item(key = "cards") {
             // «Nutrición de hoy» y «Cuerpo» van en un solo ítem: comparten la entrada (índice 6) y el aire entre secciones.
             Column(
-                modifier = Modifier.homeEntrance(6),
-                verticalArrangement = Arrangement.spacedBy(HomeSectionGap.adapt(homeAdapt)),
+                modifier = Modifier.homeEntrance(6).homeGapAbove(HomeSectionGap.adapt(homeAdapt)),
+                verticalArrangement = Arrangement.spacedBy(HomeModuleGap),
             ) {
                 if (showNutrition) {
                     HomeNutritionToday(
@@ -870,19 +876,20 @@ private fun HomeWithProgram(
             }
         }
         item(key = "programs") {
-            Spacer(Modifier.height(8.dp))
             HomeProgramsSection(
                 programs = programs,
                 activeProgramId = activeProgramId,
                 onProgramClick = onNavigateToProgram,
                 onCreateProgram = onCreateProgram,
-                modifier = Modifier.tourAnchor(TourAnchors.HOME_PROGRAMAS).homeEntrance(7),
+                modifier = Modifier
+                    .tourAnchor(TourAnchors.HOME_PROGRAMAS)
+                    .homeEntrance(7)
+                    .homeGapAbove(HomeSectionGap.adapt(homeAdapt), target = HomeGroupGap),
                 activeProgramLine = mastheadState.program,
                 onSeeAll = { onNavigate(com.example.kpkn.navigation.KpknRoute.Training.route) },
             )
         }
         item(key = "wikilab") {
-            Spacer(Modifier.height(16.dp))
             Box(Modifier.homeEntrance(8)) {
                 HomeWikiLabSection(onNavigate = onNavigate)
             }
