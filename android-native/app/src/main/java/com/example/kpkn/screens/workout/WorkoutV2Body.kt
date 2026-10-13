@@ -106,6 +106,11 @@ internal fun WorkoutV2Body(
     overlayHazeState: HazeState = remember { HazeState() },
     roadmapExpanded: Boolean = false,
     dockBottomClearance: Dp = 140.dp,
+    onOpenRoute: () -> Unit = {},
+    onOpenCockpit: () -> Unit = {},
+    onOpenNotes: () -> Unit = {},
+    onOpenPhotos: () -> Unit = {},
+    onMinimize: () -> Unit = {},
     onCreateSuperset: () -> Unit = {},
     onReplaceExercise: (String) -> Unit = {},
     requestLiveTagList: Boolean = false,
@@ -247,25 +252,54 @@ internal fun WorkoutV2Body(
                 uniformScale = windowAdaptForRelator.uniformScale,
             )
         }
+        // LS2a: datos de la cabecera de la serie (eyebrow, objetivo, última vez y tramos hechos de la barra de progreso).
+        val liveSupersetId = currentExercise?.supersetGroupRefOrLegacyId()
+        val liveSupersetMembers = liveSupersetId
+            ?.let { id -> visibleExercises.filter { it.supersetGroupRefOrLegacyId() == id } }
+            .orEmpty()
+        val liveSupersetLetter = liveSupersetId
+            ?.takeIf { liveSupersetMembers.size > 1 }
+            ?.let { id ->
+                val order = visibleExercises.mapNotNull { it.supersetGroupRefOrLegacyId() }.distinct()
+                ('A' + order.indexOf(id)).toString()
+            }
+        val liveFrameEyebrow = workoutLiveEyebrow(
+            exerciseIndex = uiState.currentExerciseIdx,
+            exerciseCount = visibleExercises.size,
+            sessionName = headerSessionName,
+            supersetLetter = liveSupersetLetter,
+            round = uiState.currentSetIdx + 1,
+            roundCount = liveSupersetMembers.maxOfOrNull { it.sets.size } ?: 1,
+        )
+        val liveFrameTargetLine = currentExercise?.let { workoutLiveTargetLine(it.sets) }
+        val liveFrameLastLine = remember(currentExercise?.id) {
+            currentExercise?.let { workoutLiveLastLine(viewModel.lastWorkingSetLabel(it)) }
+        }
+        val liveFrameDoneFlags = remember(visibleExercises, uiState.completedSets, uiState.omittedSetKeys) {
+            workoutLiveDoneFlags(visibleExercises, uiState.completedSets, uiState.omittedSetKeys)
+        }
         Column(modifier = Modifier.fillMaxSize()) {
             Box(
                 modifier = Modifier
                     .onSizeChanged { headerHeightPx = it.height }
                     .zIndex(8f),
             ) {
-            WorkoutHeaderBar(
+            WorkoutLiveFrameHeader(
+                eyebrow = liveFrameEyebrow,
                 exerciseName = headerExerciseName,
                 exerciseChips = headerExerciseChips,
-                sessionName = headerSessionName,
-                groupName = headerGroupName,
-                protocolLabel = uiState.livePlanContext?.sourceProtocolName?.let { name ->
-                    val id = uiState.livePlanContext?.sourceProtocolId
-                    val emoji = id?.let { com.example.kpkn.data.protocols.PROTOCOL_LIBRARY.firstOrNull { it.id == id }?.emoji }
-                    listOfNotNull(emoji, name).joinToString(" ")
+                exerciseTagNames = currentExerciseActiveMainTags.map { tag ->
+                    currentExerciseActiveTagLabels[tag.id] ?: tag.name
                 },
+                targetLine = liveFrameTargetLine,
+                lastLine = liveFrameLastLine,
+                protocolLabel = uiState.livePlanContext?.sourceProtocolName,
+                exerciseIndex = uiState.currentExerciseIdx,
+                exerciseCount = visibleExercises.size,
+                doneFlags = liveFrameDoneFlags,
+                onOpenRoute = onOpenRoute,
                 startTimeMs = headerStartTimeMs,
                 isComplete = headerIsComplete,
-                background = headerBackground,
                 sessionTimeRemainingSeconds = sessionTimeRemainingSeconds,
                 onAdjustTimeLimit = { viewModel.adjustSessionTimeLimit(it) },
                 onSetAbsoluteTimeLimit = { minutes, persist ->
@@ -284,32 +318,22 @@ internal fun WorkoutV2Body(
                 sessionHasProgrammedTime = uiState.session?.targetDurationMinutes != null,
                 pacingAlertMessage = uiState.pacingAlertMessage,
                 coachPaceAlert = uiState.coachPaceAlert,
-                exerciseTag = headerExerciseTag,
-                isSuperset = currentExercise?.supersetGroupRefOrLegacyId()
-                    ?.let { groupId ->
-                        visibleExercises.count { it.supersetGroupRefOrLegacyId() == groupId } > 1
-                    } == true,
-                exerciseReadiness = currentExerciseReadiness,
-                activeMainTags = currentExerciseActiveMainTags,
-                activeMainTagLabels = currentExerciseActiveTagLabels,
-                activeSubTags = currentExerciseActiveSubTags,
-                hasCreatedTags = currentExerciseTags.isNotEmpty(),
-                onTagClick = { tagId -> tagManagerTagId = tagId },
-                onRemoveSubTag = { subTagId ->
-                    viewModel.toggleSubTagActive(currentExercise?.id ?: "", subTagId)
-                },
-                onOpenTagList = { showTagListOverlay = true },
-                voiceCaptureMode = settings.voiceCaptureMode.takeIf { uiState.voiceSessionEnabled },
-                onVoiceCaptureModeChange = { mode -> viewModel.setVoiceCaptureMode(mode) },
-                voiceSessionEnabled = uiState.voiceSessionEnabled,
-                voiceSessionState = uiState.voiceSessionState,
-                onToggleVoice = onToggleVoice,
                 onUltraFastPreview = { viewModel.previewUltraFast() },
                 ultraFastApplied = uiState.ultraFastApplied,
                 ultraFastSavedSeconds = uiState.ultraFastSavedSeconds,
                 onRevertUltraFast = { viewModel.revertUltraFast() },
-                readinessAdjustment = currentReadinessAdjustment,
-                onAdaptClick = if (
+                voiceSessionEnabled = uiState.voiceSessionEnabled,
+                onToggleVoice = onToggleVoice,
+                onOpenTags = { showTagListOverlay = true },
+                onOpenCockpit = onOpenCockpit,
+                onOpenNotes = onOpenNotes,
+                onOpenPhotos = onOpenPhotos,
+                onOpenVoiceMode = { viewModel.showVoiceCaptureModeFromMenu() },
+                onFinishSession = { viewModel.requestFinishSessionFromMenu() },
+                onMinimize = onMinimize,
+                onHistory = onExpandHistory,
+                onSuperset = onCreateSuperset,
+                onAdapt = if (
                     currentExerciseReadiness != null && (
                         currentReadinessAdjustment != null ||
                             currentExerciseReadiness.overallScore <
@@ -320,18 +344,7 @@ internal fun WorkoutV2Body(
                 } else {
                     null
                 },
-                onHistoryClick = onExpandHistory,
-                onReplaceClick = onExpandReplace,
-                nicknameKey = currentExercise?.nicknameKey(),
-                nicknameValue = currentExercise?.nicknameKey()?.let { key ->
-                    com.example.kpkn.domain.exercises.ExerciseNicknameResolver.nicknames[key]
-                }.orEmpty(),
-                canonicalExerciseName = currentExercise?.name ?: headerExerciseName,
-                onNicknameChange = currentExercise?.nicknameKey()?.let { key ->
-                    { value -> viewModel.setExerciseNickname(key, value.ifBlank { null }) }
-                },
-                onCreateSupersetClick = onCreateSuperset,
-                bodyHazeState = cardsHazeState,
+                onChangeExercise = if (currentExercise != null) onExpandReplace else null,
             )
             }
             Spacer(Modifier.height(0.dp))

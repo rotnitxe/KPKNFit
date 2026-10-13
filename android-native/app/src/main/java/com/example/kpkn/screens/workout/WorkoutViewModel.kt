@@ -7304,6 +7304,30 @@ class WorkoutViewModel(
         mediaCapture.stopIfRecording()
     }
 
+    // ─── Marco de la sesión en vivo (LS2a): acciones del menú y «Última vez». Sin cambios de lógica. ───
+
+    /** Abre el diálogo de modo de voz desde el menú «Más opciones» de la sesión. */
+    fun showVoiceCaptureModeFromMenu() {
+        updateUiState { it.copy(showVoiceCaptureModeDialog = true) }
+    }
+
+    /** «Terminar sesión» del menú de la sesión: abre la hoja de cierre, la misma que abre el resto de salidas. */
+    fun requestFinishSessionFromMenu() {
+        openFinishSheet()
+    }
+
+    /** Última serie de trabajo de este ejercicio en el histórico, como «80 kg × 8»; null si no hay historial con carga. */
+    fun lastWorkingSetLabel(exercise: Exercise): String? {
+        val keys = identityKeysForExercise(exercise)
+        val logs = mergeWorkoutLogsForKeys(historyByExerciseDbId.value, keys).sortedByDescending { it.date }
+        val last = logs.asSequence()
+            .mapNotNull { log -> matchingCompletedExercise(log, keys) }
+            .firstOrNull()
+            ?: return null
+        val set = last.sets.lastOrNull { !it.isWarmup && !it.skipped && it.weight > 0.0 && it.reps > 0 } ?: return null
+        return WorkoutTagLastLoad.format(set.weight, set.reps)
+    }
+
     companion object {
         private const val CARDIO_SERIES_CHANGE_BLOCKED_NOTICE =
             "Registra esta serie o vuelve a ella para reanudarla antes de cambiar."
