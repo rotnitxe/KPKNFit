@@ -21,6 +21,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.layout.boundsInWindow
 import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -64,7 +65,7 @@ internal fun ProgramSessionBlock(
     val exerciseLookup = remember { catalogExerciseIndex() }
     val exercises = remember(session) { session.allExercises() }
     var moreBounds by remember { mutableStateOf(Rect.Zero) }
-    Column(modifier = modifier.fillMaxWidth().padding(vertical = 12.dp)) {
+    Column(modifier = modifier.fillMaxWidth().padding(vertical = 12.dp).testTag("programsession-${session.id}")) {
         if (showName) {
             Text(
                 text = session.name,

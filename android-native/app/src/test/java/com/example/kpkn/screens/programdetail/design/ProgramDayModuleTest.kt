@@ -167,13 +167,21 @@ class ProgramDayModuleTest {
     }
 
     @Test
-    fun elMenuDeUnaSesionPersonalizadaOfreceRestaurarCuandoAplica() {
+    fun laRestauracionVaEnLineaYNoSeRepiteEnElMenu() {
         setDayView(manualProgram())
-        // Dos sesiones personalizadas en el día de hoy: el menú de la primera, la editada, ofrece restaurar.
+        // Una sola acción de restaurar: la de la sesión personalizada con receta fuente (la otra sesión no tiene marca).
+        assertEquals(1, composeRule.onAllNodesWithText(RESTORE_LABEL).fetchSemanticsNodes().size)
+        // El menú de la sesión solo lleva lo destructivo: abrirlo no añade otra restauración.
         composeRule.onAllNodesWithContentDescription("Más opciones de la sesión")[0].performClick()
         composeRule.onNodeWithText("Eliminar sesión").assertIsDisplayed()
-        // Una en línea («Restaurar…» de la sesión) y otra en el menú.
-        assertEquals(2, composeRule.onAllNodesWithText(RESTORE_LABEL).fetchSemanticsNodes().size)
+        assertEquals(1, composeRule.onAllNodesWithText(RESTORE_LABEL).fetchSemanticsNodes().size)
+    }
+
+    @Test
+    fun laRestauracionEnLineaAbreLaConfirmacion() {
+        setDayView(manualProgram())
+        composeRule.onNodeWithText(RESTORE_LABEL).performClick()
+        composeRule.onNodeWithText("Restaurar sesión").assertIsDisplayed()
     }
 
     /** La vista de días con un programa de dos sesiones de hoy: la editada (con receta fuente) y una sin marca. */

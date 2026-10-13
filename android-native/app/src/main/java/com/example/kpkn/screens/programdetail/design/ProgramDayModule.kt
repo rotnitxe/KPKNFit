@@ -38,6 +38,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.boundsInWindow
 import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -242,6 +243,7 @@ private fun ProgramDayHeader(
     Row(
         modifier = Modifier
             .fillMaxWidth()
+            .testTag("programday-header-${day.id}")
             .defaultMinSize(minHeight = if (rest) 56.dp else 64.dp)
             .onGloballyPositioned { onBounds(it.boundsInWindow()) }
             .combinedClickable(
@@ -301,6 +303,7 @@ private fun DayDateColumn(day: ProgramDayUi, onEditDate: () -> Unit) {
             .then(
                 if (day.dateEditable) {
                     Modifier
+                        .testTag("programday-date-${day.id}")
                         .defaultMinSize(minHeight = 48.dp)
                         .clickable(role = Role.Button, onClickLabel = "Cambiar la fecha", onClick = onEditDate)
                 } else {

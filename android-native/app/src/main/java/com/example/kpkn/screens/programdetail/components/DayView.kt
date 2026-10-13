@@ -409,25 +409,18 @@ fun DayView(
     }
 
     sessionMenu?.let { (sessionId, anchor) ->
-        val session = dayLayout.firstOrNull { it.session.id == sessionId }?.session
-        val items = buildList<ProgramAnchoredMenuItem> {
-            if (session != null && sessionId in manuallyCustomizedSessionIds && hasSourceRecipe && sessionId !in restoreBlockedSessionIds) {
-                add(
-                    ProgramAnchoredMenuItem(
-                        label = "Restaurar esta sesión desde el plan",
-                        onClick = { pendingRestoreSessionId = sessionId },
-                    ),
-                )
-            }
-            add(
+        // La restauración vive en línea, en la sesión desplegada: el menú solo lleva lo destructivo, para no repetirla.
+        ProgramItemMenu(
+            items = listOf(
                 ProgramAnchoredMenuItem(
                     label = "Eliminar sesión",
                     destructive = true,
                     onClick = { onDeleteSession(sessionId) },
                 ),
-            )
-        }
-        ProgramItemMenu(items = items, anchor = anchor, onDismiss = { sessionMenu = null })
+            ),
+            anchor = anchor,
+            onDismiss = { sessionMenu = null },
+        )
     }
 
     if (!isCalendarized) {
