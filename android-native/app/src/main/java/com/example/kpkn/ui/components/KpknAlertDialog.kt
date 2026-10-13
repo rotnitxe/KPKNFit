@@ -16,10 +16,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.darkColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
@@ -34,6 +36,7 @@ import androidx.compose.ui.zIndex
 import com.example.kpkn.screens.onboarding.design.WizardColors
 import com.example.kpkn.ui.design.KpknDangerPill
 import com.example.kpkn.ui.design.KpknPrimaryPill
+import com.example.kpkn.ui.design.KpknSurface
 import com.example.kpkn.ui.design.KpknTextAction
 import com.example.kpkn.ui.design.KpknType
 import com.example.kpkn.ui.theme.Typography as KpknAppTypography
@@ -81,13 +84,65 @@ fun KpknAlertDialog(
 }
 
 /**
- * Tipografía del panel de los diálogos: la de la app (Inter en el cuerpo, Syne en los títulos), aunque no haya un tema alrededor
- * (por ejemplo, en una hoja de render). Así los `Text` y los botones de Material de las llamadas antiguas salen también en Inter.
+ * Tema del panel de los diálogos KPKN: tipografía de la app (Inter y Syne) y tokens de [kpknDialogColorScheme]. Envuelve el tema de
+ * hoja y vuelve a poner los tokens después, porque el tema de hoja pisa fondo, superficies y contornos.
  */
 @Composable
 internal fun KpknDialogTheme(content: @Composable () -> Unit) {
-    MaterialTheme(typography = KpknAppTypography, content = content)
+    val colors = remember { kpknDialogColorScheme() }
+    MaterialTheme(colorScheme = colors, typography = KpknAppTypography) {
+        KpknSheetContentTheme {
+            MaterialTheme(colorScheme = colors) {
+                content()
+            }
+        }
+    }
 }
+
+/**
+ * Tokens de color del panel de los diálogos. Un `Button` o un `TextButton` de Material dentro de un diálogo sale en tinta (píldora
+ * crema con letra negra, o texto crema), no en el primario del tema de la app (amarillo en el tema de alto contraste) ni en el morado
+ * por defecto de Material. Vive solo dentro del panel: el tema global no cambia. Un color explícito de la llamada (un texto en rojo)
+ * sigue mandando sobre estos.
+ */
+private fun kpknDialogColorScheme(): ColorScheme = darkColorScheme(
+    primary = WizardColors.text,
+    onPrimary = WizardColors.background,
+    primaryContainer = WizardColors.text,
+    onPrimaryContainer = WizardColors.background,
+    inversePrimary = WizardColors.background,
+    secondary = WizardColors.textMuted,
+    onSecondary = WizardColors.background,
+    secondaryContainer = KpknSurface.inset,
+    onSecondaryContainer = WizardColors.text,
+    tertiary = WizardColors.textMuted,
+    onTertiary = WizardColors.background,
+    tertiaryContainer = KpknSurface.inset,
+    onTertiaryContainer = WizardColors.text,
+    background = KpknSurface.module,
+    onBackground = WizardColors.text,
+    surface = KpknSurface.module,
+    onSurface = WizardColors.text,
+    surfaceVariant = KpknSurface.inset,
+    onSurfaceVariant = WizardColors.textMuted,
+    surfaceTint = Color.Transparent,
+    inverseSurface = WizardColors.text,
+    inverseOnSurface = WizardColors.background,
+    error = WizardColors.danger,
+    onError = WizardColors.background,
+    errorContainer = WizardColors.danger,
+    onErrorContainer = WizardColors.background,
+    outline = WizardColors.glassBorder,
+    outlineVariant = KpknSurface.divider,
+    scrim = Color.Black,
+    surfaceBright = KpknSurface.modulePressed,
+    surfaceDim = KpknSurface.canvas,
+    surfaceContainerLowest = KpknSurface.canvas,
+    surfaceContainerLow = KpknSurface.module,
+    surfaceContainer = KpknSurface.module,
+    surfaceContainerHigh = KpknSurface.inset,
+    surfaceContainerHighest = KpknSurface.inset,
+)
 
 @Composable
 private fun KpknAlertDialogBody(
@@ -122,70 +177,68 @@ private fun KpknAlertDialogBody(
         )
 
         KpknDialogTheme {
-            KpknSheetContentTheme {
-                Column(
-                    modifier = modifier
-                        .padding(horizontal = 28.dp)
-                        .widthIn(max = 400.dp)
-                        .fillMaxWidth()
-                        .kpknGlassOrFallback(hazeState, shape, variant = KpknGlassVariant.SHEET)
-                        .clickable(
-                            interactionSource = panelInteraction,
-                            indication = null,
-                            onClick = {},
-                        )
-                        .padding(horizontal = 24.dp, vertical = 20.dp),
-                    horizontalAlignment = Alignment.Start,
-                ) {
-                    if (icon != null) {
-                        Box(modifier = Modifier.padding(bottom = 12.dp)) { icon() }
-                    }
-                    if (title != null) {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(bottom = 8.dp),
-                            contentAlignment = Alignment.CenterStart,
-                        ) {
-                            CompositionLocalProvider(
-                                LocalContentColor provides WizardColors.text,
-                                LocalTextStyle provides KpknType.dialogTitle,
-                            ) {
-                                title()
-                            }
-                        }
-                    }
-                    if (text != null) {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(bottom = 20.dp),
-                            contentAlignment = Alignment.CenterStart,
-                        ) {
-                            CompositionLocalProvider(
-                                LocalContentColor provides WizardColors.textMuted,
-                                LocalTextStyle provides KpknType.body,
-                            ) {
-                                text()
-                            }
-                        }
-                    }
-                    // Fila de acciones: estilo de acción de KPKN, sin color de texto, para que cada botón pinte su propia etiqueta.
-                    CompositionLocalProvider(
-                        LocalContentColor provides WizardColors.text,
-                        LocalTextStyle provides KpknType.action,
+            Column(
+                modifier = modifier
+                    .padding(horizontal = 28.dp)
+                    .widthIn(max = 400.dp)
+                    .fillMaxWidth()
+                    .kpknGlassOrFallback(hazeState, shape, variant = KpknGlassVariant.SHEET)
+                    .clickable(
+                        interactionSource = panelInteraction,
+                        indication = null,
+                        onClick = {},
+                    )
+                    .padding(horizontal = 24.dp, vertical = 20.dp),
+                horizontalAlignment = Alignment.Start,
+            ) {
+                if (icon != null) {
+                    Box(modifier = Modifier.padding(bottom = 12.dp)) { icon() }
+                }
+                if (title != null) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 8.dp),
+                        contentAlignment = Alignment.CenterStart,
                     ) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.End,
-                            verticalAlignment = Alignment.CenterVertically,
+                        CompositionLocalProvider(
+                            LocalContentColor provides WizardColors.text,
+                            LocalTextStyle provides KpknType.dialogTitle,
                         ) {
-                            dismissButton?.invoke()
-                            if (dismissButton != null) {
-                                Spacer(modifier = Modifier.size(8.dp))
-                            }
-                            confirmButton()
+                            title()
                         }
+                    }
+                }
+                if (text != null) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 20.dp),
+                        contentAlignment = Alignment.CenterStart,
+                    ) {
+                        CompositionLocalProvider(
+                            LocalContentColor provides WizardColors.textMuted,
+                            LocalTextStyle provides KpknType.body,
+                        ) {
+                            text()
+                        }
+                    }
+                }
+                // Fila de acciones: estilo de acción de KPKN, sin color de texto, para que cada botón pinte su propia etiqueta.
+                CompositionLocalProvider(
+                    LocalContentColor provides WizardColors.text,
+                    LocalTextStyle provides KpknType.action,
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.End,
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        dismissButton?.invoke()
+                        if (dismissButton != null) {
+                            Spacer(modifier = Modifier.size(8.dp))
+                        }
+                        confirmButton()
                     }
                 }
             }
