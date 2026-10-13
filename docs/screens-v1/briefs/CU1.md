@@ -61,6 +61,16 @@ Worktree y rama: los del mensaje de lanzamiento (salen de `feat/wizard-v3` con I
    `source == MANUAL` y `method == MANUAL` se lee con su fecha UTC. No se cambia nada guardado.
    - Prueba unitaria: en `America/Santiago`, una medida antigua del «13 oct» UTC se lee como del 13 de octubre.
 
+4. **Nuevo icono de Cuerpo.** La báscula de `KpknLineIcons.Body` se lee como un medidor (dos agentes lo señalaron). Sustituye sus
+   trazados por una cinta métrica, con la misma regla de trazo:
+   - `M9.5 18a6 6 0 1 0 0-12 6 6 0 0 0 0 12z`
+   - `M9.5 13.75a1.75 1.75 0 1 0 0-3.5 1.75 1.75 0 0 0 0 3.5z`
+   - `M9.5 18h11v-2.5`
+   - `M13.5 18v-1.75`
+   - `M16.75 18v-1.75`
+   Vuelve a sacar `render/KpknLineIconsRenderSheetTest` (PNG en tu carpeta) y míralo: tiene que leerse como cinta métrica a 20 y 24
+   dp. Ajusta si hace falta y anota los cambios.
+
 ## Pruebas
 - **Robolectric** `BodyWeightModuleTest`:
   - el rango llama al VM;
@@ -81,7 +91,7 @@ Worktree y rama: los del mensaje de lanzamiento (salen de `feat/wizard-v3` con I
     rondas.
 
 ## Comando
-`KPKN_RENDER_DIR=C:/kw/shots/screens/cu1 bash /c/kw/tools/gradle_slot.sh /c/kw/<wt>/android-native :app:compileBaseDebugKotlin :app:testBaseDebugUnitTest --tests "*Body*" --tests "*NutritionActionRouting*" --tests "*Tour*" > /c/kw/logs/screens-cu1-<n>.log 2>&1`
+`KPKN_RENDER_DIR=C:/kw/shots/screens/cu1 bash /c/kw/tools/gradle_slot.sh /c/kw/<wt>/android-native :app:compileBaseDebugKotlin :app:testBaseDebugUnitTest --tests "*Body*" --tests "*NutritionActionRouting*" --tests "*Tour*" --tests "*KpknLineIcons*" > /c/kw/logs/screens-cu1-<n>.log 2>&1`
 
 ## Commit
 - Por rutas: `feat(body): cabecera, isla, módulo de peso con gráfica interactiva y objetivo, y grasa corporal (CU1)`.
