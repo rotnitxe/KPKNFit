@@ -91,6 +91,7 @@ import com.example.kpkn.screens.onboarding.design.WizardSpacing
 import com.example.kpkn.screens.onboarding.design.WizardTopScrim
 import com.example.kpkn.screens.onboarding.design.WizardTypography
 import com.example.kpkn.screens.onboarding.design.wizardReducedMotion
+import com.example.kpkn.screens.onboarding.rings.RingsIntroOverlay
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.hazeSource
 import kotlinx.coroutines.flow.first
@@ -551,6 +552,17 @@ private fun WizardLongPage(
                         ctaTag = "setup-milestone-continue",
                     )
                 }
+            }
+        }
+
+        // La intro de RINGS: un overlay animado sobre el paso RINGS_INTRO (la ruta no cambia). «Empezar» confirma el paso;
+        // atrás vuelve al hito de Nutrición.
+        if (step == SetupStepId.RINGS_INTRO) {
+            key(step) {
+                RingsIntroOverlay(
+                    onContinue = { viewModel.submitCurrentStep(step) },
+                    onBack = { viewModel.goBack() },
+                )
             }
         }
 
