@@ -100,6 +100,7 @@ fun HomeNutritionToday(
         HomeSectionLabel(
             text = "NUTRICIÓN DE HOY",
             action = { HomeAddMealButton(onClick = { onAddMeal(null) }) },
+            centerAction = true,
         )
         Spacer(Modifier.height(16.dp))
         Row(
