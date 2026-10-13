@@ -3,6 +3,7 @@ package com.example.kpkn.screens.home
 import com.example.kpkn.data.models.Block
 import com.example.kpkn.data.models.BlockGoal
 import com.example.kpkn.data.models.Macrocycle
+import com.example.kpkn.data.models.MealType
 import com.example.kpkn.data.models.Mesocycle
 import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.models.ProgramRunState
@@ -17,6 +18,7 @@ import com.example.kpkn.domain.training.HomeWeekResolver
 import com.example.kpkn.screens.home.design.HomeMastheadState
 import com.example.kpkn.screens.home.design.homeDateLine
 import java.time.LocalDate
+import kotlin.math.sin
 
 /** Un caso de Home para la hoja de render: lo que pinta la cabecera y «Tu semana». */
 internal data class HomeSample(
@@ -179,4 +181,73 @@ internal object HomeSamples {
             "long" to sample(longProgram, twelveWeekItems(longProgram), name = "Maximiliano Alejandro"),
         )
     }
+
+    /** Nutrición con dos comidas registradas (desayuno y almuerzo): 1.240 de 2.300 kcal, con los macros a medio camino. */
+    fun nutritionTwoMeals(): HomeNutritionState = HomeNutritionState(
+        kcal = 1_240,
+        kcalGoal = 2_300,
+        protein = HomeMacroToday(grams = 92, goalGrams = 160),
+        carbs = HomeMacroToday(grams = 130, goalGrams = 250),
+        fat = HomeMacroToday(grams = 38, goalGrams = 70),
+        mealKcal = mapOf(MealType.BREAKFAST to 420, MealType.LUNCH to 820),
+    )
+
+    /** Nutrición sin meta: lo comido, «sin objetivo» y los macros «sin meta». */
+    fun nutritionNoGoal(): HomeNutritionState = HomeNutritionState(
+        kcal = 980,
+        kcalGoal = null,
+        protein = HomeMacroToday(grams = 74),
+        carbs = HomeMacroToday(grams = 96),
+        fat = HomeMacroToday(grams = 33),
+        mealKcal = mapOf(MealType.BREAKFAST to 380, MealType.LUNCH to 420, MealType.SNACK to 180),
+    )
+
+    /** Nutrición por encima de la meta: 2.450 kcal frente a 2.300, con 150 de más. */
+    fun nutritionOverGoal(): HomeNutritionState = HomeNutritionState(
+        kcal = 2_450,
+        kcalGoal = 2_300,
+        protein = HomeMacroToday(grams = 168, goalGrams = 160),
+        carbs = HomeMacroToday(grams = 262, goalGrams = 250),
+        fat = HomeMacroToday(grams = 74, goalGrams = 70),
+        mealKcal = mapOf(
+            MealType.BREAKFAST to 500,
+            MealType.LUNCH to 900,
+            MealType.SNACK to 250,
+            MealType.DINNER to 800,
+        ),
+    )
+
+    /** Días (hace n días) con pesaje en la tendencia de ejemplo: 20 días entre hace 30 días y hoy. */
+    private val trendDaysAgo: List<Int> = listOf(30, 28, 27, 25, 23, 22, 20, 18, 17, 15, 13, 12, 10, 9, 7, 6, 4, 3, 1, 0)
+
+    /** Tendencia de ejemplo: de 79,6 a 78,4 kg, con un leve vaivén en medio y los extremos exactos. */
+    private fun bodyTrend(): List<HomeBodyPoint> = trendDaysAgo.map { ago ->
+        val progress = ago / 30.0
+        val wobble = 0.12 * sin(ago * 1.7) * (ago * (30 - ago)) / 225.0
+        HomeBodyPoint(today.minusDays(ago.toLong()), 78.4 + 1.2 * progress + wobble)
+    }
+
+    /** Cuerpo con tendencia y objetivo de 72 kg: 78,4 kg, −1,2 kg en 30 días y, con altura real, IMC y FFMI. */
+    fun bodyWithTrendAndGoal(): HomeBodyState {
+        val trend = bodyTrend()
+        return HomeBodyState(
+            weightKg = trend.last().kg,
+            weightChange30d = trend.last().kg - trend.first().kg,
+            trend = trend,
+            windowEnd = today,
+            goalKg = 72.0,
+            goalMonth = "abril",
+            changeTowardGoal = true,
+            bodyFatPct = 18.2,
+            musclePct = 40.1,
+            bmi = 24.2,
+            ffmi = 19.8,
+        )
+    }
+
+    /** Cuerpo sin pesajes: el estado vacío, con la invitación a registrar. */
+    fun bodyNoWeights(): HomeBodyState = HomeBodyState()
+
+    /** Cuerpo sin altura real: hay peso y tendencia, pero no IMC ni FFMI. */
+    fun bodyWithoutHeight(): HomeBodyState = bodyWithTrendAndGoal().copy(bmi = null, ffmi = null)
 }

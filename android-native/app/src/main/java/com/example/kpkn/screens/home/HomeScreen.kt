@@ -86,6 +86,8 @@ import com.example.kpkn.screens.home.design.HomeSectionGap
 import com.example.kpkn.screens.home.design.HomeWeekStrip
 import com.example.kpkn.screens.home.design.homeDateLine
 import com.example.kpkn.screens.home.design.homeEntrance
+import com.example.kpkn.screens.home.design.HomeBodyToday
+import com.example.kpkn.screens.home.design.HomeNutritionToday
 import kotlinx.coroutines.launch
 import com.example.kpkn.ui.components.kpknGlass
 import dev.chrisbanes.haze.HazeState
@@ -151,6 +153,8 @@ fun HomeScreen(
     val nutritionRepo = remember { NutritionRepository.getInstance() }
     // WP-U7 (C5): si la hoja del logger estaba abierta, tras la muerte del proceso se reabre con su borrador.
     var showFoodLogger by rememberSaveable { mutableStateOf(false) }
+    // Comida elegida con el «+» o con una comida de «Nutrición de hoy»; null = la de la hora (defaultMealTypeNow).
+    var loggerMealChoice by rememberSaveable { mutableStateOf<MealType?>(null) }
     var showNutritionOverlay by remember { mutableStateOf(false) }
     var showAugeRecommendations by remember { mutableStateOf(false) }
     // «Tu semana»: el día elegido sobrevive a girar la pantalla; por defecto, hoy.
@@ -365,7 +369,12 @@ fun HomeScreen(
                 onModelNoticeShown = augeViewModel::markModelUpdateNoticeShown,
                 autoDeloadMessage = augeSnapshot.autoDeloadMessage,
                 overtrainedMuscles = uiState.overtrainedMuscles,
-                 onAddMeal = { if (showNutrition) showFoodLogger = true },
+                 onAddMeal = { meal ->
+                     if (showNutrition) {
+                         loggerMealChoice = meal
+                         showFoodLogger = true
+                     }
+                 },
                  onOpenNutritionOverlay = { if (showNutrition) showNutritionOverlay = true },
                  showNutrition = showNutrition,
                  selectedDate = selectedDate,
@@ -374,6 +383,7 @@ fun HomeScreen(
                  weekDays = weekDays,
                  onMastheadPositionChanged = { mastheadBottomY = it },
                  onOpenProfile = onNavigateToProfile,
+                 todayMeals = todayMeals,
                  modifier = Modifier
                      .fillMaxSize()
                      .navigationBarsPadding(),
@@ -383,12 +393,15 @@ fun HomeScreen(
             // C12: la misma regla horaria que Nutrición, resuelta cada vez que se abre el logger. WP-U7: se guarda con el
             // resto del estado (la semilla del borrador manda de todos modos al restaurar).
             val loggerMeal by rememberSaveable(stateSaver = MealTypeSaver) {
-                mutableStateOf(com.example.kpkn.domain.nutrition.defaultMealTypeNow())
+                mutableStateOf(loggerMealChoice ?: com.example.kpkn.domain.nutrition.defaultMealTypeNow())
             }
             HomeFoodLoggerHost(
                 nutritionRepo = nutritionRepo,
                 selectedMealForLogger = loggerMeal,
-                onDismiss = { showFoodLogger = false },
+                onDismiss = {
+                    showFoodLogger = false
+                    loggerMealChoice = null
+                },
             )
         }
         if (showAugeRecommendations) {
@@ -627,7 +640,7 @@ private fun HomeWithProgram(
     onModelNoticeShown: () -> Unit = {},
     autoDeloadMessage: String? = null,
     overtrainedMuscles: List<String> = emptyList(),
-    onAddMeal: () -> Unit = {},
+    onAddMeal: (MealType?) -> Unit = {},
     onOpenNutritionOverlay: () -> Unit = {},
     showNutrition: Boolean = true,
     /** Día elegido en «Tu semana» (lo usa la sesión del día, I2). */
@@ -637,11 +650,23 @@ private fun HomeWithProgram(
     weekDays: List<HomeWeekDay>,
     onMastheadPositionChanged: (Float) -> Unit,
     onOpenProfile: () -> Unit,
+    /** Comidas de hoy (sin planeadas): los símbolos de «Nutrición de hoy». */
+    todayMeals: List<NutritionLog> = emptyList(),
 ) {
     val homeAdapt = LocalViewportAdapt.current
     val isCatalogReady by exerciseCatalogReady.collectAsState()
     // «Añadir la fecha de tu competición» (C4c): id del programa activo que aún no tiene fecha clave, o null.
     val competitionDatePromptProgramId by viewModel.competitionDatePromptProgramId.collectAsState()
+    // «Nutrición de hoy» y «Cuerpo» (I4): totales y metas del día, y el estado del cuerpo, desde el ViewModel.
+    val nutritionTotals by viewModel.todayNutritionTotals.collectAsState()
+    val calorieGoal by viewModel.dailyCalorieGoal.collectAsState()
+    val proteinGoal by viewModel.dailyProteinGoal.collectAsState()
+    val carbGoal by viewModel.dailyCarbGoal.collectAsState()
+    val fatGoal by viewModel.dailyFatGoal.collectAsState()
+    val bodyToday by viewModel.bodyToday.collectAsState()
+    val nutritionToday = remember(todayMeals, nutritionTotals, calorieGoal, proteinGoal, carbGoal, fatGoal) {
+        homeNutritionState(todayMeals, nutritionTotals, calorieGoal, proteinGoal, carbGoal, fatGoal)
+    }
     val homeAdvisory = remember(augeSnapshot, todaySessions, isCatalogReady) {
         val raw = augeSnapshot?.advisories
             ?.filter { LoadAdvisoryEngine.rank(it.level) >= LoadAdvisoryEngine.rank(LoadAdvisoryLevel.ADJUST) }
@@ -743,8 +768,24 @@ private fun HomeWithProgram(
             }
         }
         item(key = "cards") {
-            Spacer(Modifier.height(8.dp))
-            HomeCardsSection(viewModel = viewModel, onNavigateToCard = onNavigateToCard, onAddMeal = onAddMeal, onOpenNutritionOverlay = onOpenNutritionOverlay, onNutritionAnchorPositionChanged = onNutritionAnchorPositionChanged, showNutrition = showNutrition, modifier = Modifier.homeEntrance(6))
+            // «Nutrición de hoy» y «Cuerpo» van en un solo ítem: comparten la entrada (índice 6) y el aire entre secciones.
+            Column(
+                modifier = Modifier.homeEntrance(6),
+                verticalArrangement = Arrangement.spacedBy(HomeSectionGap.adapt(homeAdapt)),
+            ) {
+                if (showNutrition) {
+                    HomeNutritionToday(
+                        state = nutritionToday,
+                        onAddMeal = onAddMeal,
+                        onOpenDay = onOpenNutritionOverlay,
+                        modifier = Modifier.onGloballyPositioned { onNutritionAnchorPositionChanged(it.positionInRoot().y) },
+                    )
+                }
+                HomeBodyToday(
+                    state = bodyToday,
+                    onOpen = onNavigateToCard,
+                )
+            }
         }
         item(key = "programs") {
             Spacer(Modifier.height(8.dp))

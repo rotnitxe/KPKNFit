@@ -55,6 +55,12 @@ internal object HomeTypography {
 
     /** Inicial del botón de perfil: Syne 700 a 18 sp. */
     val avatarInitial: TextStyle = WizardTypography.measure.copy(fontSize = 18.sp, lineHeight = 22.sp, letterSpacing = 0.sp)
+
+    /** Kcal comidas de «Nutrición de hoy»: Syne ExtraBold a 34 sp. */
+    val kcalFigure: TextStyle = WizardTypography.question.copy(fontSize = 34.sp, lineHeight = 38.sp, letterSpacing = (-0.5).sp)
+
+    /** Último peso de «Cuerpo»: Syne ExtraBold a 40 sp. */
+    val weightFigure: TextStyle = WizardTypography.question.copy(fontSize = 40.sp, lineHeight = 44.sp, letterSpacing = (-0.8).sp)
 }
 
 /**
