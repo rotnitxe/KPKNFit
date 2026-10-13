@@ -101,4 +101,36 @@ object KpknType {
         fontSize = 14.sp,
         lineHeight = 20.sp,
     )
+
+    /** Título de la isla superior: Inter SemiBold 15 / 20, una línea. */
+    val islandTitle = TextStyle(
+        fontFamily = WizardFonts.body,
+        fontWeight = FontWeight.SemiBold,
+        fontSize = 15.sp,
+        lineHeight = 20.sp,
+    )
+
+    /** Subtítulo de la isla superior: Inter Regular 13 / 16. KPKN_UI_V2 §3 pide 12; sube a 13 por el mínimo de la app, como eyebrow y nota. */
+    val islandSubtitle = TextStyle(
+        fontFamily = WizardFonts.body,
+        fontWeight = FontWeight.Normal,
+        fontSize = 13.sp,
+        lineHeight = 16.sp,
+    )
+
+    /** Segmentos del control segmentado: Inter SemiBold 14 / 20 (el compacto usa 13 sp y se encoge si no cabe). */
+    val segment = TextStyle(
+        fontFamily = WizardFonts.body,
+        fontWeight = FontWeight.SemiBold,
+        fontSize = 14.sp,
+        lineHeight = 20.sp,
+    )
+
+    /** Texto de una píldora de filtro: Inter SemiBold 13 / 16. */
+    val chip = TextStyle(
+        fontFamily = WizardFonts.body,
+        fontWeight = FontWeight.SemiBold,
+        fontSize = 13.sp,
+        lineHeight = 16.sp,
+    )
 }
