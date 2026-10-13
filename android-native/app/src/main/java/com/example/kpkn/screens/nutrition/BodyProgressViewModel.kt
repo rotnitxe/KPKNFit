@@ -73,6 +73,8 @@ data class BodyProgressUiState(
     val goalTrack: BodyGoalTrack? = null,
     /** false hasta que termina la primera carga del repositorio. */
     val loaded: Boolean = false,
+    /** Peso de los últimos 30 días, sin depender del rango: la isla de Cuerpo muestra su cambio. */
+    val weightSummary30Days: BodyWeightSummary = BodyWeightSummary(),
 )
 
 /** State holder for normalized body observations; composables only render this state. */
@@ -201,6 +203,7 @@ class BodyProgressViewModel(
             bodyFatWeeklyRate = measuredWeeklyRate(observations, BodyMetric.BODY_FAT_PERCENT, zone, today),
             goalTrack = goal?.takeIf { it.metric != GoalMetric.WEIGHT }
                 ?.let { bodyGoalTrack(observations, it, goalCurrent, zone, today) },
+            weightSummary30Days = summarizeWeight(observations, BodyChartRange.ONE_MONTH, goal, zone, today),
         )
     }
 
@@ -221,6 +224,7 @@ class BodyProgressViewModel(
             bodyFatWeeklyRate = derived.bodyFatWeeklyRate,
             goalTrack = derived.goalTrack,
             loaded = loaded,
+            weightSummary30Days = derived.weightSummary30Days,
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), BodyProgressUiState())
 
@@ -310,4 +314,5 @@ private data class BodyDerived(
     val bodyFatTrend: List<BodyMetricPoint>,
     val bodyFatWeeklyRate: Double?,
     val goalTrack: BodyGoalTrack?,
+    val weightSummary30Days: BodyWeightSummary,
 )
