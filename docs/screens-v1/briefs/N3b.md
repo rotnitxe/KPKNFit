@@ -60,6 +60,14 @@ La lógica (análisis, búsqueda, borrador, guardado, aclaraciones, aprendizaje)
 5. **Textos:** «Hidratos» (nunca «Carbos» ni «Carbohidratos» en esta hoja), «Merienda» (nunca «Snack»), «…» de un carácter, tipo
    frase. «De maíz / huevo / papas» fijo (aprox. 2412): si es un ejemplo de marcador, pasa a «Por ejemplo: de maíz».
 6. **Colores:** fuera los literales y el verde `0xFF2E7D32` de esta parte; solo tokens.
+7. **La fecha de la comida** (lo dejó pendiente N3a; `KpknMonthCalendar` ya existe en `ui/design/`):
+   - la píldora «Hoy · lun 13 oct» de la cabecera pasa a ser tocable (48 dp, `Role.Button`, «Cambiar la fecha de la comida»);
+   - abre una `KpknSheet` con `KpknMonthCalendar` (hasta hoy, sin días futuros) y elegir un día cambia `logDate` del borrador (ya es
+     mutable en `FoodLoggerDrawer`: `var logDate by … draft::logDate`) y cierra la hoja;
+   - sin hora: los registros se guardan con la fecha y las 12:00, así que no hay hora que elegir (no la inventes);
+   - al editar una comida existente, también se puede mover de día.
+8. **Encaje de la barra inferior:** la barra del punto 2 va DESPUÉS de la lista, dentro de la `KpknSheet` (N3a dejó la lista con
+   `weight(1f)` para eso), fija abajo y por encima del teclado (`imePadding`).
 
 ## Pruebas
 - **Siguen en verde:** `FoodLoggerViewModelTest`, `FoodLoggerViewModelEditTest`, `FoodClarificationPromptTest`,
