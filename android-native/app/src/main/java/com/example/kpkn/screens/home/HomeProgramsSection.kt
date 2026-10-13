@@ -50,7 +50,7 @@ import com.example.kpkn.screens.onboarding.design.entreno.SymbolPalette
 import com.example.kpkn.screens.onboarding.design.entreno.plan.cover.COVER_INK
 import com.example.kpkn.screens.onboarding.design.entreno.plan.cover.CoverPaletteKind
 import com.example.kpkn.screens.onboarding.design.entreno.plan.cover.CoverStudioArt
-import com.example.kpkn.screens.onboarding.design.entreno.plan.cover.coverIdentityFor
+import com.example.kpkn.screens.onboarding.design.entreno.plan.cover.coverIdentityForProgram
 import com.example.kpkn.screens.onboarding.design.wizardReducedMotion
 import com.example.kpkn.ui.components.rememberProgramCover
 
@@ -174,7 +174,8 @@ private fun ProgramPoster(
     }
     // La foto propia manda; el arte del motor sale del id del programa y de su plantilla (la de Home, como en las portadas).
     val cover = rememberProgramCover(programCoverEntryIdOf(program.coverImage), with(LocalDensity.current) { PosterWidth.roundToPx() })
-    val identity = remember(program.id, program.structureTemplateId) { coverIdentityFor(program.id, program.structureTemplateId) }
+    // La portada de estudio («Editar programa») manda; sin ella, la identidad de siempre.
+    val identity = remember(program.id, program.structureTemplateId, program.coverImage) { coverIdentityForProgram(program) }
     val summary = if (isActive) null else programSummaryLine(program)
     val weekText = line?.weekLabel
     val description = buildList {
