@@ -15,12 +15,13 @@ import androidx.compose.ui.test.assertIsNotSelected
 import androidx.compose.ui.test.assertIsOff
 import androidx.compose.ui.test.assertIsOn
 import androidx.compose.ui.test.assertIsSelected
+import androidx.compose.ui.test.click
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performSemanticsAction
-import androidx.compose.ui.test.click
 import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.test.swipe
 import androidx.lifecycle.SavedStateHandle
@@ -168,7 +169,7 @@ class RingsQuestionStepsTest {
     @Test
     fun laReglaDeSeriesDePiernasEscribeElSetterYNoLoSeEscribeNull() {
         showStep(SetupStepId.RINGS_GROUP_SETS)
-        // Solo una regla se despliega: al abrir Piernas se toca su regla, que escribe las series de ese grupo.
+        // Tocar la celda de Piernas la elige para el editor; su regla escribe las series de ese grupo.
         rule.onNodeWithTag("rings-group-LEGS").performClick()
         rule.waitForIdle()
         rule.onNodeWithTag("rings-group-ruler-LEGS").performSemanticsAction(SemanticsActions.SetProgress) { it(12f) }
@@ -177,6 +178,8 @@ class RingsQuestionStepsTest {
         rule.onNodeWithContentDescription("Piernas: 12 series").assertExists()
 
         // «No lo sé» en Pecho escribe `null`: el grupo queda sin cifra y marcado como desconocido.
+        rule.onNodeWithTag("rings-group-CHEST").performClick()
+        rule.waitForIdle()
         rule.onNodeWithTag("rings-group-unknown-CHEST").performClick()
         rule.waitForIdle()
         assertNull(answers()?.groupSets?.get(RingsMuscleGroup.CHEST))
@@ -299,5 +302,40 @@ class RingsQuestionStepsTest {
         override fun nutritionPlan(id: String): NutritionPlan? = null
         override fun hasInitialRecoveryEvidence(): Boolean = false
         override suspend fun refreshBodyProgress() = Unit
+    }
+
+    @Test
+    fun elEditorArrancaEnElPrimerGrupoSinResponder() {
+        showStep(SetupStepId.RINGS_GROUP_SETS)
+        rule.onNodeWithTag("rings-group-editor").assertExists()
+        rule.onNodeWithTag("rings-group-ruler-CHEST").assertExists()
+        rule.onNodeWithTag("rings-group-ruler-BACK").assertDoesNotExist()
+    }
+
+    @Test
+    fun alSoltarEnUnGrupoSinRespuestaLaSeleccionPasaAlSiguienteSinResponder() {
+        showStep(SetupStepId.RINGS_GROUP_SETS)
+        // Un toque en la regla de Pecho declara su valor; al soltar, tras 400 ms el editor pasa a Espalda.
+        rule.onNodeWithTag("rings-group-ruler-CHEST").performTouchInput { click(center) }
+        rule.waitUntil(timeoutMillis = 5_000) {
+            rule.onAllNodesWithTag("rings-group-ruler-BACK").fetchSemanticsNodes().isNotEmpty()
+        }
+        rule.onNodeWithTag("rings-group-ruler-CHEST").assertDoesNotExist()
+        assertEquals(10, answers()?.groupSets?.get(RingsMuscleGroup.CHEST))
+    }
+
+    @Test
+    fun elPrimerYElSiguienteGrupoSinResponderSeCalculanEnElOrdenDelMosaico() {
+        val sample = SetupRingsAnswers(
+            groupSets = mapOf(RingsMuscleGroup.CHEST to 8),
+            groupSetsUnknown = setOf(RingsMuscleGroup.BACK),
+        )
+        assertEquals(RingsMuscleGroup.SHOULDERS, firstUnansweredRingsGroup(sample))
+        assertEquals(RingsMuscleGroup.CHEST, firstUnansweredRingsGroup(null))
+        assertEquals(RingsMuscleGroup.SHOULDERS, nextUnansweredRingsGroup(RingsMuscleGroup.CHEST, sample))
+        // Desde Core se da la vuelta al mosaico: Pecho y Espalda ya responden, así que queda Hombros.
+        assertEquals(RingsMuscleGroup.SHOULDERS, nextUnansweredRingsGroup(RingsMuscleGroup.CORE, sample))
+        val all = SetupRingsAnswers(groupSets = RingsMuscleGroup.entries.associateWith { 5 })
+        assertNull(nextUnansweredRingsGroup(RingsMuscleGroup.CORE, all))
     }
 }

@@ -171,17 +171,18 @@ class RingsQuestionRenderSheetTest {
     @Test
     fun groupSetsWithLegsOpen() {
         onlyWhenAsked()
-        sheet {
+        // Tres grupos respondidos (Pecho, Hombros con «No lo sé» y Core) y Piernas en edición, sin cifra todavía. A 130 %.
+        sheet(fontScale = 1.3f) {
             RingsGroupSetsContent(
                 answers = SetupRingsAnswers(
                     sessionDaysState = RingsSessionDaysState.DECLARED,
                     trainedDayOffsets = setOf(1),
-                    groupSets = mapOf(RingsMuscleGroup.CHEST to 10, RingsMuscleGroup.LEGS to 12, RingsMuscleGroup.CORE to 4),
+                    groupSets = mapOf(RingsMuscleGroup.CHEST to 10, RingsMuscleGroup.CORE to 4),
                     groupSetsUnknown = setOf(RingsMuscleGroup.SHOULDERS),
                 ),
                 today = today,
                 onSets = { _, _ -> },
-                initialOpen = RingsMuscleGroup.LEGS,
+                initialSelected = RingsMuscleGroup.LEGS,
             )
         }
         save("rings_group_sets")
@@ -261,5 +262,19 @@ class RingsQuestionRenderSheetTest {
             }
         }
         save("k7_llama_niveles")
+    }
+
+    @Test
+    fun groupSetsUnanswered() {
+        onlyWhenAsked()
+        // El mosaico sin ninguna respuesta: el editor arranca en Pecho. A 130 %.
+        sheet(fontScale = 1.3f) {
+            RingsGroupSetsContent(
+                answers = SetupRingsAnswers(sessionDaysState = RingsSessionDaysState.DECLARED, trainedDayOffsets = setOf(1)),
+                today = today,
+                onSets = { _, _ -> },
+            )
+        }
+        save("rings_group_sets_unanswered")
     }
 }
