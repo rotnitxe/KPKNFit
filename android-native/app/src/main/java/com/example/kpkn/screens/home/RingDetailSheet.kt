@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.height
@@ -24,10 +23,14 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.clipToBounds
+import androidx.compose.ui.layout.layout
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.disabled
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.unit.Constraints
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.example.kpkn.data.models.AugeSnapshot
 import com.example.kpkn.data.models.LoadAdvisoryLevel
@@ -55,9 +58,13 @@ import com.example.kpkn.ui.components.KpknSheet
 import com.example.kpkn.ui.components.rings.KpknTowerRings
 import com.example.kpkn.ui.components.rings.RingChannel
 import com.example.kpkn.ui.components.rings.TowerRingValues
+import com.example.kpkn.ui.components.rings.towerRingBandFractions
 
 /** Máximo de músculos en la rejilla del detalle de Músculos. */
 private const val MuscleGridMax = 12
+
+/** Ancho del arte del anillo en la hoja; la torre completa guarda su proporción (`RingTowerAspect`). */
+private val RingArtWidth = 240.dp
 
 /**
  * Detalle de un canal de RINGS: una hoja de vidrio (`KpknSheet`) que, de arriba abajo, muestra el nombre del canal y su cierre,
@@ -144,14 +151,25 @@ fun RingDetailSheet(
                 .padding(top = 12.dp, bottom = 32.dp),
             verticalArrangement = Arrangement.spacedBy(28.dp),
         ) {
-            // El anillo grande, su cifra y su banda.
+            // El anillo grande, su cifra y su banda. La caja del arte es solo la franja de este anillo (I12): la cifra va justo debajo.
             Column(modifier = Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
-                KpknTowerRings(
-                    values = towerValues,
-                    visible = setOf(ring),
-                    highlighted = ring,
-                    modifier = Modifier.width(240.dp).aspectRatio(RingTowerAspect),
-                )
+                val (bandTop, bandBottom) = towerRingBandFractions(ring)
+                val towerHeight = RingArtWidth / RingTowerAspect
+                Box(
+                    modifier = Modifier
+                        .width(RingArtWidth)
+                        .height(towerHeight * (bandBottom - bandTop))
+                        .clipToBounds(),
+                ) {
+                    // La torre conserva su tamaño y su sitio en el logo; la caja solo deja ver la franja del anillo.
+                    KpknTowerRings(
+                        values = towerValues,
+                        visible = setOf(ring),
+                        highlighted = ring,
+                        modifier = Modifier.towerBand(towerWidth = RingArtWidth, towerHeight = towerHeight, top = towerHeight * bandTop),
+                    )
+                }
+                Spacer(Modifier.height(12.dp))
                 Row(verticalAlignment = Alignment.Bottom) {
                     Text(
                         text = shown?.toString() ?: "—",
@@ -312,6 +330,15 @@ private fun DetailTextAction(text: String, onClick: () -> Unit) {
     ) {
         Text(text = text, style = WizardTypography.controlLabel, color = WizardColors.text)
     }
+}
+
+/**
+ * Coloca la torre de [towerWidth] × [towerHeight] con su borde superior [top] por encima de la caja: la caja recortada enseña la franja
+ * que empieza ahí. Va con medidas fijas y en (0, -top), sin pasar por la alineación del padre, así el recorte no se centra (I12).
+ */
+private fun Modifier.towerBand(towerWidth: Dp, towerHeight: Dp, top: Dp): Modifier = layout { measurable, constraints ->
+    val placeable = measurable.measure(Constraints.fixed(towerWidth.roundToPx(), towerHeight.roundToPx()))
+    layout(constraints.maxWidth, constraints.maxHeight) { placeable.place(0, -top.roundToPx()) }
 }
 
 /** La banda bajo la cifra; sin dato, «Sin calibrar»; si el valor es una estimación, también su procedencia. */

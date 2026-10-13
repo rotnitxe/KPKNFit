@@ -639,6 +639,16 @@ internal object HomeSamples {
         HomeMuscleGauge("Gemelos", 73),
         HomeMuscleGauge("Core", 88),
     )
+
+    /** Cifra de cinco dígitos: «12.345 kcal» tiene que caber junto a los anillos al 130 % de letra, o pasar a la disposición apilada (I12). */
+    fun nutritionBigFigure(): HomeNutritionState = HomeNutritionState(
+        kcal = 12_345,
+        kcalGoal = 2_300,
+        protein = HomeMacroToday(grams = 168, goalGrams = 160),
+        carbs = HomeMacroToday(grams = 262, goalGrams = 250),
+        fat = HomeMacroToday(grams = 74, goalGrams = 70),
+        mealKcal = mapOf(MealType.BREAKFAST to 500, MealType.LUNCH to 900),
+    )
 }
 
 /** Un caso de la página completa de Home: todo lo que pinta, con datos de ejemplo. */

@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -37,6 +38,11 @@ fun KpknGlassDialog(
     content: @Composable () -> Unit,
 ) {
     val resolvedHaze = hazeState ?: LocalHazeState.current
+    // Mientras el diálogo está en composición, la isla superior se oculta (I12).
+    DisposableEffect(Unit) {
+        KpknModalTracker.onOpened()
+        onDispose { KpknModalTracker.onClosed() }
+    }
     KpknPortal {
         val panelInteraction = remember { MutableInteractionSource() }
         BackHandler(enabled = dismissOnBackPress, onBack = onDismissRequest)

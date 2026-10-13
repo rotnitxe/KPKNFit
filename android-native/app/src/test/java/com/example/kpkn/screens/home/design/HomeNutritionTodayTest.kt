@@ -78,12 +78,12 @@ class HomeNutritionTodayTest {
     }
 
     @Test
-    fun `por encima de la meta se lee por encima`() {
+    fun `por encima de la meta se lee te pasaste`() {
         rule.setContent {
             HomeNutritionToday(state = HomeSamples.nutritionOverGoal(), onAddMeal = {}, onOpenDay = {})
         }
 
-        rule.onNodeWithText("por encima", substring = true).assertExists()
+        rule.onNodeWithText("te pasaste", substring = true).assertExists()
     }
 
     @Test

@@ -20,6 +20,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
@@ -82,7 +83,8 @@ private fun Modifier.bleed(edge: Dp): Modifier = layout { measurable, constraint
 
 /**
  * La fila de músculos: un chip por músculo, de menor a mayor %, en horizontal (8 dp entre chips) y con 16 dp de aire arriba. Cada chip
- * es un botón que abre [onOpen] (el detalle de Músculos). Sin músculos no pinta nada.
+ * es un botón que abre [onOpen] (el detalle de Músculos). Si queda contenido por la derecha, un degradado de 24 dp lo indica (I12).
+ * Sin músculos no pinta nada.
  */
 @Composable
 internal fun HomeMuscleChips(
@@ -97,16 +99,29 @@ internal fun HomeMuscleChips(
     // Con `key`, cada lista nueva (otro día) recompone la fila y sus arcos empiezan de cero.
     key(rowKey) {
         val play = remember { HomeGaugeMemory.firstPlay(rowKey) && !reduced }
-        Row(
-            modifier = modifier
-                .fillMaxWidth()
-                .padding(top = 16.dp)
-                .bleed(ChipsBleed)
-                .horizontalScroll(rememberScrollState())
-                .padding(horizontal = ChipsBleed),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            shown.forEach { gauge -> MuscleChip(gauge = gauge, play = play, onOpen = onOpen) }
+        val scroll = rememberScrollState()
+        Box(modifier = modifier.fillMaxWidth().padding(top = 16.dp)) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .bleed(ChipsBleed)
+                    .horizontalScroll(scroll)
+                    .padding(horizontal = ChipsBleed),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                shown.forEach { gauge -> MuscleChip(gauge = gauge, play = play, onOpen = onOpen) }
+            }
+            // Solo si queda contenido por la derecha: el degradado va sobre el borde del módulo (la fila cruza 20 dp a cada lado).
+            // `maxValue` vale Int.MAX_VALUE hasta medir la fila: el guard evita que el degradado asome un cuadro en las filas que caben.
+            if (scroll.maxValue != Int.MAX_VALUE && scroll.canScrollForward) {
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.CenterEnd)
+                        .offset(x = ChipsBleed)
+                        .size(width = 24.dp, height = 48.dp)
+                        .background(Brush.horizontalGradient(listOf(Color.Transparent, KpknSurface.module))),
+                )
+            }
         }
     }
 }
