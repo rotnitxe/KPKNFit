@@ -1933,7 +1933,7 @@ private fun EditorialBullet(text: String, color: Color) {
     }
 }
 
-private val JOINT_LABELS = mapOf(
+internal val JOINT_LABELS = mapOf(
     "glenohumeral" to "Hombro",
     "acromioclavicular" to "Acromioclavicular",
     "esternoclavicular" to "Esternoclavicular",
@@ -1951,15 +1951,15 @@ private val JOINT_LABELS = mapOf(
     "subtalar" to "Subastragalina",
 )
 
-private fun catalogTitleLabel(value: String): String = value
+internal fun catalogTitleLabel(value: String): String = value
     .split(" ")
     .joinToString(" ") { word ->
         word.replaceFirstChar { character -> character.uppercaseChar() }
     }
 
-private fun jointLabel(id: String): String = JOINT_LABELS[id] ?: id.replace('-', ' ').replaceFirstChar { it.uppercaseChar() }
+internal fun jointLabel(id: String): String = JOINT_LABELS[id] ?: id.replace('-', ' ').replaceFirstChar { it.uppercaseChar() }
 
-private fun jointRoleLabel(role: JointRoleV2): String = when (role) {
+internal fun jointRoleLabel(role: JointRoleV2): String = when (role) {
     JointRoleV2.PRIMARY -> "Principal"
     JointRoleV2.SECONDARY -> "Secundaria"
     JointRoleV2.STABILIZER -> "Estabilizadora"
