@@ -1,7 +1,9 @@
 package com.example.kpkn.screens.programdetail.design.structure
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -11,6 +13,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import com.example.kpkn.screens.onboarding.design.WizardColors
 import com.example.kpkn.screens.onboarding.design.entreno.SymbolPalette
@@ -27,6 +30,21 @@ internal fun ProgramSectionLabel(text: String, modifier: Modifier = Modifier) {
         color = WizardColors.textMuted,
         modifier = modifier,
     )
+}
+
+/**
+ * Acción de texto en `danger` (como `KpknTextAction`, pero en rojo) para borrar desde una hoja o un diálogo (P3b): zona táctil de 48 dp.
+ */
+@Composable
+internal fun ProgramDangerAction(text: String, onClick: () -> Unit, modifier: Modifier = Modifier) {
+    Row(
+        modifier = modifier
+            .defaultMinSize(minHeight = 48.dp)
+            .clickable(role = Role.Button, onClick = onClick),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(text = text, style = KpknType.action, color = WizardColors.danger)
+    }
 }
 
 /**

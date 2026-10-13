@@ -26,7 +26,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.kpkn.data.exercises.exerciseCatalogSnapshot
 import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.models.Session
-import com.example.kpkn.data.models.SimpleProgramKind
 import com.example.kpkn.data.models.KeyDateType
 import com.example.kpkn.data.models.PendingProgramActionType
 import com.example.kpkn.data.models.isSimpleTemporalProgram
@@ -134,7 +133,6 @@ fun ProgramDetailScreen(
     val displayedSessions by viewModel.displayedSessions.collectAsState()
     val selectedWeekMeta by viewModel.selectedWeekMeta.collectAsState()
     val roadmapBlocks by viewModel.roadmapBlocks.collectAsState()
-    val simpleRoadmapLoopMarkers by viewModel.simpleRoadmapLoopMarkers.collectAsState()
     val activeProgramState by viewModel.activeProgramState.collectAsState()
     val programsReady by viewModel.programsReady.collectAsState()
     val primarySession by viewModel.headerPrimarySession.collectAsState()
@@ -363,7 +361,6 @@ fun ProgramDetailScreen(
                         selectedWeekMeta = selectedWeekMeta,
                         selectedBlockId = uiState.selectedBlockId,
                         selectedWeekId = uiState.selectedWeekId,
-                        simpleRoadmapLoopMarkers = simpleRoadmapLoopMarkers,
                         structureSubTab = tab,
                         onStartWorkout = onStartWorkout,
                         onEditSession = onEditSession,
@@ -586,7 +583,6 @@ private fun TrainingPanel(
     selectedWeekMeta: com.example.kpkn.domain.training.WeekWithMeta?,
     selectedBlockId: String?,
     selectedWeekId: String?,
-    simpleRoadmapLoopMarkers: List<com.example.kpkn.domain.training.RoadmapLoopMarker>,
     structureSubTab: StructureSubTab,
     onStartWorkout: (Session, Program) -> Unit,
     onEditSession: (String) -> Unit,
@@ -598,7 +594,6 @@ private fun TrainingPanel(
 ) {
     val currentWeekId by viewModel.activeProgramState.collectAsState()
     val editorUiState by viewModel.uiState.collectAsState()
-    val activeBlockId by viewModel.activeBlockId.collectAsState()
     val blockTransitionBanner by viewModel.blockTransitionBanner.collectAsState()
     val showSimpleCalendarizationSheet by viewModel.showSimpleCalendarizationSheet.collectAsState()
     val calendarizationStartDate by viewModel.calendarizationStartDate.collectAsState()
@@ -741,7 +736,7 @@ private fun TrainingPanel(
 
         if (structureSubTab != StructureSubTab.VOLUMEN && roadmapBlocks.isNotEmpty()) {
             if (structureSubTab == StructureSubTab.SEMANA) {
-                // Semana: el módulo «Fases» (o la fila de semanas de un programa simple). BlockRoadmap queda en Estructura.
+                // Semana: el módulo «Fases» (o la fila de semanas de un programa simple). Estructura lista sus bloques aparte (P3b).
                 if (!program.isSimpleProgram) {
                     ProgramPhasesModule(
                         blocks = phaseBlocks,
@@ -761,56 +756,6 @@ private fun TrainingPanel(
                         modifier = Modifier.padding(horizontal = 16.dp),
                     )
                 }
-            } else {
-                BlockRoadmap(
-                    roadmapBlocks = roadmapBlocks,
-                    currentWeeks = currentWeeks,
-                    selectedBlockId = selectedBlockId,
-                    selectedWeekId = selectedWeekId,
-                    currentWeekId = currentWeekId?.currentWeekId,
-                    isSimpleProgram = program.isSimpleTemporalProgram,
-                    isSimpleCalendarized = program.simpleProgramKind == SimpleProgramKind.CALENDARIZED,
-                    simpleLoopMarkers = simpleRoadmapLoopMarkers,
-                    currentCycle = program.runState?.cycleNumber
-                        ?: program.loopState?.currentCycle?.takeIf { it > 0 }
-                        ?: 1,
-                    activeBlockId = activeBlockId,
-                    onSelectBlock = { viewModel.selectBlock(it) },
-                    onSelectWeek = { viewModel.selectWeek(it) },
-                    onAddSimpleWeek = { viewModel.addWeekToSimpleProgram() },
-                    onAddAdvancedWeek = { name, description -> viewModel.addWeekToSelectedAdvancedBlock(name, description) },
-                    onAddAdvancedBlock = { name, description -> viewModel.addAdvancedBlockFromRoadmap(name, description) },
-                    onUpdateWeek = { weekId, name, description -> viewModel.updateWeekMetadata(weekId, name, description) },
-                    onDeleteWeek = { weekId -> viewModel.deleteWeekFromRoadmap(weekId) },
-                    onUpdateBlock = { blockId, name, description, goal, scheme ->
-                        viewModel.updateBlockMetadata(
-                            blockId = blockId,
-                            name = name,
-                            description = description,
-                            goal = goal,
-                            progressionScheme = scheme,
-                        )
-                    },
-                    blockProgressionPreview = { blockId -> viewModel.previewBlockProgression(blockId) },
-                    onDeleteBlock = { blockId -> viewModel.deleteBlockFromRoadmap(blockId) },
-                    copiedWeekId = copiedRoadmapWeekId,
-                    copiedWeekLookup = allProgramWeeks,
-                    onCopyWeek = { copiedRoadmapWeekId = it },
-                    onPasteWeek = { targetWeekId ->
-                        copiedRoadmapWeekId?.let { sourceWeekId ->
-                            val conflicts = viewModel.previewWeekCopyConflicts(sourceWeekId, setOf(targetWeekId))
-                            if (conflicts.isEmpty()) {
-                                viewModel.copyWeekSessions(
-                                    sourceWeekId = sourceWeekId,
-                                    targetWeekIds = setOf(targetWeekId),
-                                    replaceWeekIds = emptySet(),
-                                )
-                            } else {
-                                showCopyWeekDialog = true
-                            }
-                        }
-                    },
-                )
             }
 
             blockTransitionBanner?.let { banner ->
@@ -962,6 +907,25 @@ private fun TrainingPanel(
                 program = program,
                 onUpdateProgram = { viewModel.updateProgram(it) },
                 onFocusWeek = ::focusWeek,
+                // Bloques (P3b): las acciones de bloque, semana y copia, con las mismas llamadas al ViewModel de siempre.
+                selectedWeekId = selectedWeekId,
+                copiedWeekId = copiedRoadmapWeekId,
+                onCopyWeek = { copiedRoadmapWeekId = it },
+                onPasteWeek = ::pasteWeek,
+                onUpdateBlock = { blockId, name, description, goal, scheme ->
+                    viewModel.updateBlockMetadata(
+                        blockId = blockId,
+                        name = name,
+                        description = description,
+                        goal = goal,
+                        progressionScheme = scheme,
+                    )
+                },
+                blockProgressionPreview = { blockId -> viewModel.previewBlockProgression(blockId) },
+                onDeleteBlock = { blockId -> viewModel.deleteBlockFromRoadmap(blockId) },
+                onUpdateWeek = { weekId, name, description -> viewModel.updateWeekMetadata(weekId, name, description) },
+                onDeleteWeek = { weekId -> viewModel.deleteWeekFromRoadmap(weekId) },
+                onAddSimpleWeek = { viewModel.addWeekToSimpleProgram() },
                 onCreateSessionForWeek = ::createSessionForWeek,
                 onApplyProgramTemplate = { viewModel.applyProgramTemplate(it) },
                 onApplyProgramTemplateOverwrite = { template, overwrite ->
