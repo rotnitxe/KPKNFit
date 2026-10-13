@@ -27,6 +27,14 @@ import com.example.kpkn.screens.body.design.BodyGoalSheet
 import com.example.kpkn.screens.body.design.BodyInfoSheet
 import com.example.kpkn.screens.body.design.BodyInfoTopic
 import com.example.kpkn.screens.body.design.BodyIsland
+import com.example.kpkn.screens.body.design.BodyRecordDraft
+import com.example.kpkn.screens.body.design.BodyRecordSheet
+import com.example.kpkn.screens.body.design.bodyHistoryItems
+import com.example.kpkn.screens.body.design.bodyRecordFrom
+import com.example.kpkn.screens.body.design.bodyRecordNew
+import com.example.kpkn.screens.body.design.bodyRecordSessionId
+import com.example.kpkn.screens.body.design.epochMsFor
+import com.example.kpkn.screens.body.design.metricValues
 import com.example.kpkn.screens.body.design.BodyPageHeader
 import com.example.kpkn.screens.body.design.BodyReminderModule
 import com.example.kpkn.screens.body.design.BodyWeightModule
@@ -58,6 +66,7 @@ import com.example.kpkn.data.repository.ProgramRepository
 import com.example.kpkn.domain.calculations.calculateFFMI
 import com.example.kpkn.domain.body.BmiCategory
 import com.example.kpkn.domain.body.BodyGoalTrack
+import com.example.kpkn.domain.body.BodyHistoryRow
 import com.example.kpkn.domain.body.BodyWeightSummary
 import com.example.kpkn.domain.body.bmiCategory
 import com.example.kpkn.domain.body.roundBmi1
@@ -68,12 +77,14 @@ import com.example.kpkn.screens.onboarding.design.formatDecimalEs
 import com.example.kpkn.screens.onboarding.design.formatSignedDecimalEs
 import com.example.kpkn.ui.components.KpknNativeTimePickerDialog
 import com.example.kpkn.ui.components.KpknSheet
-import com.example.kpkn.ui.components.KpknSnackbar
-import com.example.kpkn.ui.components.showKpknSnackbar
 import com.example.kpkn.ui.components.SnackbarType
+import com.example.kpkn.ui.components.showKpknSnackbar
+import com.example.kpkn.ui.components.KpknSnackbar
 import kotlinx.coroutines.launch
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.time.YearMonth
+import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 import java.util.UUID
@@ -128,18 +139,22 @@ fun BodyProgressScreen(
     // Recorrido de Cuerpo: se lanza al montar la pantalla (no hay señal de carga en el ViewModel). Visto = no arranca.
     val tourHost = LocalKpknOverlayHost.current
     LaunchedEffect(Unit) { tourHost?.startTour(TourIds.BODY, TourScripts.body) }
-    val bodyMeasurements by bodyViewModel.legacyEntries.collectAsState()
+    val history by bodyViewModel.history.collectAsState()
     val bodyUiState by bodyViewModel.uiState.collectAsState()
     val schedule by bodyViewModel.measurementSchedule.collectAsState()
 
-    var showAddMeasurement by remember { mutableStateOf(false) }
-    var editingEntry by remember { mutableStateOf<BodyMeasurementEntry?>(null) }
     // Hojas y diálogos de los módulos de Cuerpo: objetivo propio, quitarlo, explicación de una cifra y la hora del recordatorio.
     var goalDraft by remember { mutableStateOf<BodyGoalDraft?>(null) }
     var goalRemoveConfirm by remember { mutableStateOf(false) }
     var infoTopic by remember { mutableStateOf<BodyInfoTopic?>(null) }
     var reminderOther by remember { mutableStateOf(false) }
     var showReminderTime by remember { mutableStateOf(false) }
+    // Hoja de registro: lo que se escribe y la medición de origen (null si es nueva). El contador rehace la hoja al abrirla.
+    var recordDraft by remember { mutableStateOf<BodyRecordDraft?>(null) }
+    var recordSource by remember { mutableStateOf<BodyHistoryRow?>(null) }
+    var recordKey by remember { mutableStateOf(0) }
+    val zone = ZoneId.systemDefault()
+    val recordUnit = if (settings.weightUnit == WeightUnit.LBS) WizardMassUnit.LB else WizardMassUnit.KG
     val snackbarHostState = remember { SnackbarHostState() }
     val snackbarScope = rememberCoroutineScope()
     val contextualBottomBarClearance = 110.dp
@@ -192,6 +207,18 @@ fun BodyProgressScreen(
     val islandTitle = summary.current?.let { "${formatDecimalEs(it, 1)} kg" } ?: "Cuerpo"
     val islandSubtitle = bodyIslandChangeText(bodyUiState.weightSummary30Days)
 
+    // Abrir la hoja de registro: una medición nueva a la hora actual, o una existente para verla o editarla.
+    fun openNewRecord() {
+        recordSource = null
+        recordDraft = bodyRecordNew(LocalDateTime.now(zone))
+        recordKey += 1
+    }
+    fun openRecord(row: BodyHistoryRow) {
+        recordSource = row
+        recordDraft = bodyRecordFrom(row)
+        recordKey += 1
+    }
+
     Box(
         modifier = Modifier.fillMaxSize(),
     ) {
@@ -210,10 +237,7 @@ fun BodyProgressScreen(
             item {
                 BodyPageHeader(
                     topInset = topInset,
-                    onAdd = {
-                        editingEntry = null
-                        showAddMeasurement = true
-                    },
+                    onAdd = { openNewRecord() },
                     addModifier = Modifier.tourAnchor(TourAnchors.BODY_PESAJES),
                 )
             }
@@ -230,10 +254,7 @@ fun BodyProgressScreen(
                         range = bodyUiState.range,
                         today = today,
                         onRangeChange = bodyViewModel::selectRange,
-                        onAdd = {
-                            editingEntry = null
-                            showAddMeasurement = true
-                        },
+                        onAdd = { openNewRecord() },
                         modifier = Modifier
                             .padding(horizontal = 16.dp, vertical = 6.dp)
                             .kpknEntrance("body", 0)
@@ -315,74 +336,13 @@ fun BodyProgressScreen(
                 MeasurementSectionLabel("Historial de medidas")
             }
 
-            if (bodyMeasurements.isEmpty() && bodyUiState.loaded) {
-                item {
-                    Card(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp, vertical = 4.dp),
-                        shape = RoundedCornerShape(16.dp),
-                        colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
-                        ),
-                    ) {
-                        Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(24.dp),
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                        ) {
-                            Icon(
-                                Icons.Default.MonitorWeight,
-                                null,
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier.size(32.dp),
-                            )
-                            Spacer(Modifier.height(8.dp))
-                            Text(
-                                "Sin mediciones registradas",
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            )
-                            Text(
-                                "Usa el botón + para registrar tu primera medición",
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            )
-                            TextButton(onClick = onCreatePlan) {
-                                Text("Crear plan (opcional)")
-                            }
-                        }
-                    }
-                }
-            } else {
-                items(bodyMeasurements.sortedByDescending { it.date }) { entry ->
-                    val manualEntry = !entry.id.startsWith("health_connect:") && !entry.id.startsWith("instant:")
-                    MeasurementEntryCard(
-                        entry = entry,
-                        onEdit = if (manualEntry) ({ editingEntry = entry }) else null,
-                        onDelete = {
-                            bodyViewModel.deleteLegacyMeasurement(entry.id)
-                            snackbarScope.launch {
-                                if (manualEntry) {
-                                    val result = snackbarHostState.showKpknSnackbar(
-                                        message = "Medición eliminada",
-                                        type = SnackbarType.SUCCESS,
-                                        actionLabel = "Deshacer",
-                                    )
-                                    if (result == SnackbarResult.ActionPerformed) {
-                                        bodyViewModel.addLegacyMeasurement(entry)
-                                    }
-                                } else {
-                                    snackbarHostState.showKpknSnackbar(
-                                        message = "Medición eliminada",
-                                        type = SnackbarType.SUCCESS,
-                                    )
-                                }
-                            }
-                        },
-                    )
-                }
+            // Historial por meses: una etiqueta por mes y un módulo con una fila por medición (CU3).
+            if (bodyUiState.loaded) {
+                bodyHistoryItems(
+                    rows = history,
+                    onOpen = { row -> openRecord(row) },
+                    onAdd = { openNewRecord() },
+                )
             }
 
             item { Spacer(Modifier.height(100.dp)) }
@@ -394,10 +354,7 @@ fun BodyProgressScreen(
             visible = islandVisible,
             title = islandTitle,
             subtitle = islandSubtitle,
-            onAdd = {
-                editingEntry = null
-                showAddMeasurement = true
-            },
+            onAdd = { openNewRecord() },
         )
 
         SnackbarHost(
@@ -466,25 +423,50 @@ fun BodyProgressScreen(
         }
     }
 
-    // ── Add Measurement Sheet ────────────────────────────────────────────────
-    if (showAddMeasurement || editingEntry != null) {
-        AddMeasurementSheet(
-            initialEntry = editingEntry,
-            onDismiss = {
-                showAddMeasurement = false
-                editingEntry = null
-            },
-            onSave = { entry ->
-                val original = editingEntry
-                if (original == null) {
-                    bodyViewModel.addLegacyMeasurement(entry)
-                } else {
-                    bodyViewModel.replaceLegacyMeasurement(original.id, entry)
-                }
-                showAddMeasurement = false
-                editingEntry = null
-            },
-        )
+    // ── Hoja de registro de Cuerpo (CU3) ─────────────────────────────────────
+    recordDraft?.let { draft ->
+        key(recordKey) {
+            BodyRecordSheet(
+                draft = draft,
+                onDraftChange = { recordDraft = it },
+                source = recordSource,
+                unit = recordUnit,
+                anchorKg = summary.current,
+                now = LocalDateTime.now(zone),
+                onSave = {
+                    val source = recordSource
+                    bodyViewModel.saveBodyRecord(
+                        sessionId = bodyRecordSessionId(source) { UUID.randomUUID().toString() },
+                        timestampEpochMs = draft.epochMsFor(source, zone),
+                        values = draft.metricValues(),
+                        replacing = source?.observations.orEmpty(),
+                    )
+                    recordDraft = null
+                    recordSource = null
+                },
+                onDelete = {
+                    val removed = recordSource?.observations.orEmpty()
+                    recordDraft = null
+                    recordSource = null
+                    if (removed.isNotEmpty()) {
+                        bodyViewModel.removeObservations(removed)
+                        snackbarScope.launch {
+                            val result = snackbarHostState.showSnackbar(
+                                message = "Medición eliminada",
+                                actionLabel = "Deshacer",
+                                withDismissAction = true,
+                            )
+                            // Deshacer vuelve a guardar las mismas observaciones: mismo id, misma hora y mismo origen.
+                            if (result == SnackbarResult.ActionPerformed) bodyViewModel.restoreObservations(removed)
+                        }
+                    }
+                },
+                onDismiss = {
+                    recordDraft = null
+                    recordSource = null
+                },
+            )
+        }
     }
 }
 
@@ -1157,236 +1139,6 @@ private fun BodyMetricTrendChartCard(
     }
 }
 
-// ═══════════════════════════════════════════════════════════════════════
-// MEASUREMENT ENTRY CARD
-// ═══════════════════════════════════════════════════════════════════════
-
-@Composable
-private fun MeasurementEntryCard(
-    entry: BodyMeasurementEntry,
-    onEdit: (() -> Unit)?,
-    onDelete: () -> Unit,
-) {
-    val dateLabel = try {
-        java.time.LocalDate.parse(entry.date)
-            .format(java.time.format.DateTimeFormatter.ofPattern("d MMM yyyy", java.util.Locale.getDefault()))
-    } catch (_: Exception) { entry.date }
-
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 3.dp),
-        shape = RoundedCornerShape(14.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
-    ) {
-        Column(modifier = Modifier.padding(14.dp)) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Default.CalendarToday, null, tint = TEAL, modifier = Modifier.size(16.dp))
-                    Spacer(Modifier.width(6.dp))
-                    Text(dateLabel, style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold)
-                }
-                if (onEdit != null) {
-                    IconButton(onClick = onEdit, modifier = Modifier.size(28.dp)) {
-                        Icon(Icons.Default.Edit, "Editar", tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(16.dp))
-                    }
-                }
-                IconButton(onClick = onDelete, modifier = Modifier.size(28.dp)) {
-                    Icon(Icons.Default.DeleteOutline, null, tint = MaterialTheme.colorScheme.error, modifier = Modifier.size(16.dp))
-                }
-            }
-            Spacer(Modifier.height(8.dp))
-            // Main metrics row
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-            ) {
-                entry.weight?.let { MeasurementChip("Peso", "${r1(it)} kg", WEIGHT_COLOR) }
-                entry.bodyFat?.let { MeasurementChip("% Grasa", "${r1(it)}%", BODYFAT_COLOR) }
-                entry.muscleMass?.let { MeasurementChip("% Músculo", "${r1(it)}%", MUSCLE_COLOR) }
-            }
-            // Circumferences
-            val hasCirfs = listOf(entry.waistCm, entry.hipCm, entry.chestCm, entry.armCm, entry.thighCm).any { it != null }
-            if (hasCirfs) {
-                Spacer(Modifier.height(6.dp))
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(10.dp),
-                ) {
-                    entry.waistCm?.let { MeasurementChip("Cintura", "${r1(it)} cm", Color(0xFF78909C)) }
-                    entry.hipCm?.let { MeasurementChip("Cadera", "${r1(it)} cm", Color(0xFF78909C)) }
-                    entry.chestCm?.let { MeasurementChip("Pecho", "${r1(it)} cm", Color(0xFF78909C)) }
-                    entry.armCm?.let { MeasurementChip("Brazo", "${r1(it)} cm", Color(0xFF78909C)) }
-                    entry.thighCm?.let { MeasurementChip("Muslo", "${r1(it)} cm", Color(0xFF78909C)) }
-                }
-            }
-            if (entry.notes != null) {
-                Spacer(Modifier.height(6.dp))
-                Text(entry.notes, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            }
-        }
-    }
-}
-
-@Composable
-private fun MeasurementChip(label: String, value: String, color: Color) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Text(value, style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Black, color = color)
-        Text(label, style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp), color = MaterialTheme.colorScheme.onSurfaceVariant)
-    }
-}
-
-// ═══════════════════════════════════════════════════════════════════════
-// ADD MEASUREMENT SHEET
-// ═══════════════════════════════════════════════════════════════════════
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun AddMeasurementSheet(
-    initialEntry: BodyMeasurementEntry? = null,
-    onDismiss: () -> Unit,
-    onSave: (BodyMeasurementEntry) -> Unit,
-) {
-    val entryKey = initialEntry?.id ?: "new"
-    val displayDate = runCatching {
-        java.time.LocalDate.parse(initialEntry?.date ?: java.time.LocalDate.now().toString())
-    }.getOrDefault(java.time.LocalDate.now())
-    var weight by remember(entryKey) { mutableStateOf(initialEntry?.weight?.let(::fieldText).orEmpty()) }
-    var bodyFat by remember(entryKey) { mutableStateOf(initialEntry?.bodyFat?.let(::fieldText).orEmpty()) }
-    var muscleMass by remember(entryKey) { mutableStateOf(initialEntry?.muscleMass?.let(::fieldText).orEmpty()) }
-    var waist by remember(entryKey) { mutableStateOf(initialEntry?.waistCm?.let(::fieldText).orEmpty()) }
-    var hip by remember(entryKey) { mutableStateOf(initialEntry?.hipCm?.let(::fieldText).orEmpty()) }
-    var chest by remember(entryKey) { mutableStateOf(initialEntry?.chestCm?.let(::fieldText).orEmpty()) }
-    var arm by remember(entryKey) { mutableStateOf(initialEntry?.armCm?.let(::fieldText).orEmpty()) }
-    var thigh by remember(entryKey) { mutableStateOf(initialEntry?.thighCm?.let(::fieldText).orEmpty()) }
-    var neck by remember(entryKey) { mutableStateOf(initialEntry?.neckCm?.let(::fieldText).orEmpty()) }
-    var notes by remember(entryKey) { mutableStateOf(initialEntry?.notes.orEmpty()) }
-
-    KpknSheet(
-        onDismissRequest = onDismiss,
-    ) {
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 20.dp)
-                .padding(bottom = 32.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            item {
-                Text(
-                    if (initialEntry == null) "Registrar Medición" else "Editar Medición",
-                    style = MaterialTheme.typography.headlineSmall,
-                    fontWeight = FontWeight.Black,
-                )
-                Text(
-                    displayDate.format(
-                        java.time.format.DateTimeFormatter.ofPattern("EEEE, d 'de' MMMM yyyy", java.util.Locale.getDefault())
-                    ).replaceFirstChar { it.uppercase() },
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
-
-            item { MeasurementSectionLabel("Peso y composición") }
-
-            item {
-                Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                    MeasurementField("Peso (kg)", weight, { weight = it }, Modifier.weight(1f))
-                    MeasurementField("% Grasa", bodyFat, { bodyFat = it }, Modifier.weight(1f))
-                    MeasurementField("% Músculo", muscleMass, { muscleMass = it }, Modifier.weight(1f))
-                }
-            }
-
-            item { MeasurementSectionLabel("Circunferencias (cm) — opcional") }
-
-            item {
-                Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                    MeasurementField("Cintura", waist, { waist = it }, Modifier.weight(1f))
-                    MeasurementField("Cadera", hip, { hip = it }, Modifier.weight(1f))
-                    MeasurementField("Pecho", chest, { chest = it }, Modifier.weight(1f))
-                }
-            }
-
-            item {
-                Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                    MeasurementField("Brazo", arm, { arm = it }, Modifier.weight(1f))
-                    MeasurementField("Muslo", thigh, { thigh = it }, Modifier.weight(1f))
-                    MeasurementField("Cuello", neck, { neck = it }, Modifier.weight(1f))
-                }
-            }
-
-            item {
-                TextField(
-                    value = notes,
-                    onValueChange = { notes = it },
-                    modifier = Modifier.fillMaxWidth(),
-                    label = { Text("Notas (opcional)") },
-                    maxLines = 2,
-                    shape = RoundedCornerShape(12.dp),
-                    colors = TextFieldDefaults.colors(
-                        focusedContainerColor = Color(0xFF1C1C1C),
-                        unfocusedContainerColor = Color(0xFF1C1C1C),
-                        disabledContainerColor = Color(0xFF121212),
-                        focusedIndicatorColor = Color.Transparent,
-                        unfocusedIndicatorColor = Color.Transparent,
-                        disabledIndicatorColor = Color.Transparent
-                    )
-                )
-            }
-
-            item {
-                val hasData = listOf(weight, bodyFat, muscleMass, waist, hip, chest, arm, thigh, neck)
-                    .any { it.isNotBlank() }
-                val parsed = listOfNotNull(
-                    weight.takeIf { it.isNotBlank() }?.let { BodyMetric.WEIGHT to parseLocalizedNumber(it) },
-                    bodyFat.takeIf { it.isNotBlank() }?.let { BodyMetric.BODY_FAT_PERCENT to parseLocalizedNumber(it) },
-                    muscleMass.takeIf { it.isNotBlank() }?.let { BodyMetric.MUSCLE_MASS_PERCENT to parseLocalizedNumber(it) },
-                    waist.takeIf { it.isNotBlank() }?.let { BodyMetric.WAIST to parseLocalizedNumber(it) },
-                    hip.takeIf { it.isNotBlank() }?.let { BodyMetric.HIP to parseLocalizedNumber(it) },
-                    chest.takeIf { it.isNotBlank() }?.let { BodyMetric.CHEST to parseLocalizedNumber(it) },
-                    arm.takeIf { it.isNotBlank() }?.let { BodyMetric.ARM to parseLocalizedNumber(it) },
-                    thigh.takeIf { it.isNotBlank() }?.let { BodyMetric.THIGH to parseLocalizedNumber(it) },
-                    neck.takeIf { it.isNotBlank() }?.let { BodyMetric.NECK to parseLocalizedNumber(it) },
-                )
-                val invalid = parsed.any { (metric, value) -> value == null || !validateBodyValue(metric, value).valid }
-                if (invalid) {
-                    Text("Revisa los valores: deben ser finitos y estar dentro de rangos válidos.", color = Color(0xFFFF9E9E), style = MaterialTheme.typography.labelSmall)
-                }
-                Button(
-                    onClick = {
-                        val entry = BodyMeasurementEntry(
-                            id = initialEntry?.id ?: UUID.randomUUID().toString(),
-                            date = initialEntry?.date ?: java.time.LocalDate.now().toString(),
-                            weight = parseLocalizedNumber(weight),
-                            bodyFat = parseLocalizedNumber(bodyFat),
-                            muscleMass = parseLocalizedNumber(muscleMass),
-                            waistCm = parseLocalizedNumber(waist),
-                            hipCm = parseLocalizedNumber(hip),
-                            chestCm = parseLocalizedNumber(chest),
-                            armCm = parseLocalizedNumber(arm),
-                            thighCm = parseLocalizedNumber(thigh),
-                            neckCm = parseLocalizedNumber(neck),
-                            notes = notes.ifBlank { null },
-                        )
-                        onSave(entry)
-                    },
-                    modifier = Modifier.fillMaxWidth().height(52.dp),
-                    shape = RoundedCornerShape(16.dp),
-                    enabled = hasData && !invalid,
-                ) {
-                    Icon(Icons.Default.Save, null, modifier = Modifier.size(18.dp))
-                    Spacer(Modifier.width(8.dp))
-                    Text("GUARDAR MEDICIÓN", fontWeight = FontWeight.Black)
-                }
-            }
-        }
-    }
-}
-
 @Composable
 private fun MeasurementSectionLabel(label: String) {
     Text(
@@ -1399,32 +1151,6 @@ private fun MeasurementSectionLabel(label: String) {
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 20.dp, vertical = 2.dp),
-    )
-}
-
-@Composable
-private fun MeasurementField(
-    label: String,
-    value: String,
-    onValueChange: (String) -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    TextField(
-        value = value,
-        onValueChange = onValueChange,
-        modifier = modifier,
-        label = { Text(label, style = MaterialTheme.typography.labelSmall) },
-        singleLine = true,
-        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-        shape = RoundedCornerShape(12.dp),
-        colors = TextFieldDefaults.colors(
-            focusedContainerColor = Color(0xFF1C1C1C),
-            unfocusedContainerColor = Color(0xFF1C1C1C),
-            disabledContainerColor = Color(0xFF121212),
-            focusedIndicatorColor = Color.Transparent,
-            unfocusedIndicatorColor = Color.Transparent,
-            disabledIndicatorColor = Color.Transparent
-        )
     )
 }
 
