@@ -36,16 +36,17 @@ import com.example.kpkn.screens.home.HomeSamples
 import com.example.kpkn.screens.home.HomeSessionSection
 import com.example.kpkn.screens.home.HomeWikiLabSection
 import com.example.kpkn.screens.home.design.HomeBodyToday
+import com.example.kpkn.screens.home.design.HomeGroupGap
 import com.example.kpkn.screens.home.design.HomeMasthead
+import com.example.kpkn.screens.home.design.HomeModuleGap
 import com.example.kpkn.screens.home.design.HomeNotice
 import com.example.kpkn.screens.home.design.HomeNoticeTone
 import com.example.kpkn.screens.home.design.HomeNutritionToday
-import com.example.kpkn.screens.home.design.HomeSectionGap
+import com.example.kpkn.screens.home.design.HomePageGap
 import com.example.kpkn.screens.home.design.HomeWeekStrip
+import com.example.kpkn.screens.home.design.homeGapAbove
 import com.example.kpkn.screens.onboarding.design.LocalWizardReducedMotion
 import com.example.kpkn.screens.onboarding.design.WizardColors
-import com.example.kpkn.ui.adapt.LocalViewportAdapt
-import com.example.kpkn.ui.adapt.adapt
 import com.example.kpkn.ui.design.KpknModule
 import com.example.kpkn.ui.design.KpknModuleHeader
 import com.example.kpkn.ui.design.KpknSurface
@@ -126,88 +127,88 @@ class HomeFullRenderSheetTest {
 
     /**
      * La página completa: las secciones de la `LazyColumn` de Home en su orden (cabecera, el módulo «Esta semana» con la sesión,
-     * RINGS, avisos, nutrición y cuerpo, programas y «Aprende»), con el mismo aire entre ellas.
+     * RINGS, avisos, nutrición y cuerpo, programas y «Aprende»). El aire es el de la lista: cada bloque lo pone arriba con
+     * `homeGapAbove` (I12), así que las medidas de la hoja son las de la pantalla.
      */
     @Composable
     private fun Page(sample: HomePageSample) {
-        val gap = HomeSectionGap.adapt(LocalViewportAdapt.current)
         val today = HomeSamples.today
         Column(Modifier.testTag("sheet").width(360.dp).background(WizardColors.background)) {
-            Column(verticalArrangement = Arrangement.spacedBy(gap), modifier = Modifier.fillMaxWidth()) {
-                HomeMasthead(state = sample.masthead, onOpenProfile = {})
-                // «Esta semana» y la sesión del día, un solo módulo (I10a), con el mismo margen de pantalla que en la lista de Home.
-                KpknModule(modifier = Modifier.padding(horizontal = 16.dp)) {
-                    if (sample.hasActiveProgram && sample.days.isNotEmpty()) {
-                        KpknModuleHeader(
-                            label = "Esta semana",
-                            action = { KpknTextAction(text = "Programa", onClick = {}) },
-                        )
-                        Spacer(Modifier.height(12.dp))
-                        HomeWeekStrip(
-                            days = sample.days,
-                            selected = today,
-                            onSelect = {},
-                            contentPadding = PaddingValues(0.dp),
-                        )
-                        Box(
-                            Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = 16.dp)
-                                .height(1.dp)
-                                .background(KpknSurface.divider),
-                        )
-                    }
-                    HomeSessionSection(
-                        sessions = sample.sessions,
-                        hasActiveProgram = sample.hasActiveProgram,
-                        perMuscle = sample.perMuscle,
-                        onStartWorkout = { _, _ -> },
-                        onResumeWorkout = {},
-                        onEditSession = { _, _ -> },
-                        onCreateProgram = {},
-                        selectedDate = today,
-                        weekDays = sample.days,
-                        activeProgram = sample.activeProgram,
+            HomeMasthead(state = sample.masthead, onOpenProfile = {})
+            // «Esta semana» y la sesión del día, un solo módulo (I10a), con el mismo margen de pantalla que en la lista de Home.
+            KpknModule(modifier = Modifier.homeGapAbove(HomePageGap).padding(horizontal = 16.dp)) {
+                if (sample.hasActiveProgram && sample.days.isNotEmpty()) {
+                    KpknModuleHeader(
+                        label = "Esta semana",
+                        action = { KpknTextAction(text = "Programa", onClick = {}) },
+                    )
+                    Spacer(Modifier.height(12.dp))
+                    HomeWeekStrip(
+                        days = sample.days,
+                        selected = today,
+                        onSelect = {},
+                        contentPadding = PaddingValues(0.dp),
+                    )
+                    Box(
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 16.dp)
+                            .height(1.dp)
+                            .background(KpknSurface.divider),
                     )
                 }
-                HomeRingsSection(
-                    muscularProgress = sample.rings.ringScore(RecoveryChannelId.MUSCULAR) / 100f,
-                    sncProgress = sample.rings.ringScore(RecoveryChannelId.SYSTEM) / 100f,
-                    columnaProgress = sample.rings.ringScore(RecoveryChannelId.STRUCTURE) / 100f,
+                HomeSessionSection(
+                    sessions = sample.sessions,
                     hasActiveProgram = sample.hasActiveProgram,
-                    dashboard = sample.rings.dashboard,
-                    snapshot = sample.rings,
                     perMuscle = sample.perMuscle,
+                    onStartWorkout = { _, _ -> },
+                    onResumeWorkout = {},
+                    onEditSession = { _, _ -> },
+                    onCreateProgram = {},
+                    selectedDate = today,
+                    weekDays = sample.days,
+                    activeProgram = sample.activeProgram,
                 )
-                if (sample.overtrained.isNotEmpty()) {
-                    HomeNotice(
-                        title = "Posible exceso de volumen",
-                        body = "Hay señales de carga alta en: ${sample.overtrained.joinToString(", ")}. " +
-                            "Considera reducir series semanales o un descanso activo.",
-                        actionLabel = "Ver recomendaciones",
-                        onAction = {},
-                        tone = HomeNoticeTone.DANGER,
-                    )
-                }
-                Column(verticalArrangement = Arrangement.spacedBy(gap)) {
-                    HomeNutritionToday(state = sample.nutrition, onAddMeal = {}, onOpenDay = {})
-                    HomeBodyToday(state = sample.body, onOpen = {})
-                }
-                Column {
-                    Spacer(Modifier.height(8.dp))
-                    HomeProgramsSection(
-                        programs = sample.programs,
-                        activeProgramId = sample.activeProgram?.id,
-                        onProgramClick = {},
-                        onCreateProgram = {},
-                        activeProgramLine = sample.masthead.program,
-                        onSeeAll = {},
-                    )
-                }
-                Column {
-                    Spacer(Modifier.height(16.dp))
-                    HomeWikiLabSection(onNavigate = {})
-                }
+            }
+            HomeRingsSection(
+                muscularProgress = sample.rings.ringScore(RecoveryChannelId.MUSCULAR) / 100f,
+                sncProgress = sample.rings.ringScore(RecoveryChannelId.SYSTEM) / 100f,
+                columnaProgress = sample.rings.ringScore(RecoveryChannelId.STRUCTURE) / 100f,
+                hasActiveProgram = sample.hasActiveProgram,
+                dashboard = sample.rings.dashboard,
+                snapshot = sample.rings,
+                perMuscle = sample.perMuscle,
+                modifier = Modifier.homeGapAbove(HomeModuleGap),
+            )
+            if (sample.overtrained.isNotEmpty()) {
+                HomeNotice(
+                    title = "Posible exceso de volumen",
+                    body = "Hay señales de carga alta en: ${sample.overtrained.joinToString(", ")}. " +
+                        "Considera reducir series semanales o un descanso activo.",
+                    actionLabel = "Ver recomendaciones",
+                    onAction = {},
+                    tone = HomeNoticeTone.DANGER,
+                    modifier = Modifier.homeGapAbove(HomeModuleGap),
+                )
+            }
+            Column(
+                modifier = Modifier.homeGapAbove(HomeModuleGap),
+                verticalArrangement = Arrangement.spacedBy(HomeModuleGap),
+            ) {
+                HomeNutritionToday(state = sample.nutrition, onAddMeal = {}, onOpenDay = {})
+                HomeBodyToday(state = sample.body, onOpen = {})
+            }
+            HomeProgramsSection(
+                programs = sample.programs,
+                activeProgramId = sample.activeProgram?.id,
+                onProgramClick = {},
+                onCreateProgram = {},
+                modifier = Modifier.homeGapAbove(HomeGroupGap),
+                activeProgramLine = sample.masthead.program,
+                onSeeAll = {},
+            )
+            Box(Modifier.homeGapAbove(HomeGroupGap)) {
+                HomeWikiLabSection(onNavigate = {})
             }
             Spacer(Modifier.height(24.dp))
         }

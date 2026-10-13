@@ -108,6 +108,11 @@ class HomeCardsRenderSheetTest {
                             onAddMeal = {},
                             onOpenDay = {},
                         )
+                        "nutricion-cifra-grande" -> HomeNutritionToday(
+                            state = HomeSamples.nutritionBigFigure(),
+                            onAddMeal = {},
+                            onOpenDay = {},
+                        )
                         "cuerpo-tendencia" -> HomeBodyToday(state = HomeSamples.bodyWithTrendAndGoal(), onOpen = {})
                         "cuerpo-sin-pesos" -> HomeBodyToday(state = HomeSamples.bodyNoWeights(), onOpen = {})
                         "cuerpo-sin-altura" -> HomeBodyToday(state = HomeSamples.bodyWithoutHeight(), onOpen = {})
@@ -119,6 +124,7 @@ class HomeCardsRenderSheetTest {
         val cases = listOf(
             "nutricion-dos",
             "nutricion-sin-meta",
+            "nutricion-cifra-grande",
             "cuerpo-tendencia",
             "cuerpo-sin-pesos",
             "cuerpo-sin-altura",

@@ -1,6 +1,6 @@
 package com.example.kpkn.screens.home.design
 
-import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.padding
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -16,8 +16,11 @@ internal val HomeModuleMargin: Dp = 16.dp
 /** Aire entre dos módulos seguidos: 12 dp. */
 internal val HomeModuleGap: Dp = 12.dp
 
-/** Aire entre el módulo anterior y la etiqueta de grupo «Tus programas»: 28 dp. */
+/** Aire entre el módulo anterior y la etiqueta de grupo «Tus programas», y tras el carrusel: 28 dp. */
 internal val HomeGroupGap: Dp = 28.dp
+
+/** Aire entre la cabecera de la página y el primer módulo: 20 dp (I12). */
+internal val HomePageGap: Dp = 20.dp
 
 /**
  * Escala de letra a partir de la cual las filas de cifras (comidas, datos de Cuerpo) pasan de una fila a dos de dos. A 130 % de letra,
@@ -26,9 +29,9 @@ internal val HomeGroupGap: Dp = 28.dp
 internal const val HomeLargeTextScale = 1.15f
 
 /**
- * La `LazyColumn` de Home separa sus ítems con [sectionGap] (`HomeSectionGap`, 40 dp) y ese `verticalArrangement` es común a todas las
- * secciones, así que no se toca. Para que el aire entre este ítem y el anterior sea [target], el ítem sube la diferencia. Se pone en el
- * ítem que sigue a un módulo.
+ * Aire de arriba de un ítem de la página (I12): la única regla de separación. La `LazyColumn` de Home no separa sus ítems
+ * (`Arrangement.Top`); cada ítem pone aquí su aire: [HomePageGap] bajo la cabecera, [HomeModuleGap] entre módulos seguidos y
+ * [HomeGroupGap] antes de una etiqueta de grupo o tras un carrusel. Es relleno, no desplazamiento: el aire ocupa sitio y un ítem
+ * ausente no deja hueco. Va en el modificador más externo del ítem, para que su ancla mida el borde del módulo.
  */
-internal fun Modifier.homeGapAbove(sectionGap: Dp, target: Dp = HomeModuleGap): Modifier =
-    offset(y = target - sectionGap)
+internal fun Modifier.homeGapAbove(gap: Dp): Modifier = padding(top = gap)

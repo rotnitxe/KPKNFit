@@ -27,7 +27,6 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -45,6 +44,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import com.example.kpkn.ui.adapt.LocalViewportAdapt
 import com.example.kpkn.ui.adapt.adapt
@@ -77,8 +77,7 @@ import com.example.kpkn.screens.programs.ProtocolDetailSheet
 import com.example.kpkn.screens.programs.TrainingMaxWizard
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.kpkn.ui.theme.AppThemeMode
-import com.example.kpkn.ui.components.rings.KpknTowerRings
-import com.example.kpkn.ui.components.rings.TowerRingValues
+import com.example.kpkn.ui.components.KpknModalTracker
 import com.example.kpkn.ui.components.KpknGlass
 import com.example.kpkn.ui.components.KpknGlassVariant
 import com.example.kpkn.ui.components.icons.KpknLineIcons
@@ -87,6 +86,7 @@ import com.example.kpkn.ui.design.KpknSurface
 import com.example.kpkn.ui.design.KpknModule
 import com.example.kpkn.ui.design.KpknModuleHeader
 import com.example.kpkn.ui.design.KpknTextAction
+import com.example.kpkn.ui.design.KpknType
 import com.example.kpkn.ui.components.KpknAlertDialog
 import com.example.kpkn.ui.components.LocalKpknOverlayHost
 import com.example.kpkn.ui.tour.TourAnchors
@@ -101,7 +101,7 @@ import com.example.kpkn.screens.home.design.HomePrimaryPill
 import com.example.kpkn.screens.home.design.HomeSectionAction
 import com.example.kpkn.screens.home.design.HomeGroupGap
 import com.example.kpkn.screens.home.design.HomeModuleGap
-import com.example.kpkn.screens.home.design.HomeSectionGap
+import com.example.kpkn.screens.home.design.HomePageGap
 import com.example.kpkn.screens.home.design.homeGapAbove
 import com.example.kpkn.screens.home.design.HomeWeekStrip
 import com.example.kpkn.screens.home.design.homeDateLine
@@ -112,6 +112,7 @@ import com.example.kpkn.screens.home.design.HomeNotice
 import com.example.kpkn.screens.home.design.HomeNoticeTone
 import com.example.kpkn.screens.home.design.HomeTypography
 import com.example.kpkn.screens.onboarding.design.WizardColors
+import com.example.kpkn.screens.onboarding.design.formatKcalEs
 import com.example.kpkn.screens.onboarding.design.wizardReducedMotion
 import com.example.kpkn.screens.onboarding.design.WizardTypography
 import com.example.kpkn.screens.onboarding.design.entreno.SymbolPalette
@@ -119,6 +120,7 @@ import kotlinx.coroutines.launch
 import com.example.kpkn.ui.components.kpknGlass
 import dev.chrisbanes.haze.HazeState
 import java.time.LocalDate
+import kotlin.math.roundToInt
 
 typealias HomeGlassOverlay = @Composable (HazeState) -> Unit
 typealias HomeGlassOverlayChange = (
@@ -617,18 +619,21 @@ fun HomeScreen(
 }
 
 /**
- * Velo fijo bajo la barra de estado (I8): la página que se desliza por arriba se funde con el negro de la marca. Alto = barra de
- * estado + 24 dp, de [WizardColors.background] pleno arriba a transparente abajo. No capta toques: el tacto pasa a la lista.
+ * Velo fijo bajo la barra de estado (I8, I12): negro pleno en todo el alto de la barra de estado y, debajo, 24 dp de degradado del negro
+ * a transparente. Así lo que se desliza por arriba no se lee bajo la hora ni los iconos. No capta toques: el tacto pasa a la lista.
  */
 @Composable
 private fun HomeStatusVeil(modifier: Modifier = Modifier) {
     val statusTop = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
-    Box(
-        modifier = modifier
-            .fillMaxWidth()
-            .height(statusTop + 24.dp)
-            .background(Brush.verticalGradient(listOf(WizardColors.background, Color.Transparent))),
-    )
+    Column(modifier = modifier.fillMaxWidth()) {
+        Box(Modifier.fillMaxWidth().height(statusTop).background(WizardColors.background.copy(alpha = 1f)))
+        Box(
+            Modifier
+                .fillMaxWidth()
+                .height(24.dp)
+                .background(Brush.verticalGradient(listOf(WizardColors.background, Color.Transparent))),
+        )
+    }
 }
 
 /**
@@ -739,7 +744,8 @@ private fun HomeWithProgram(
     LazyColumn(
         state = listState,
         modifier = modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.spacedBy(HomeSectionGap.adapt(homeAdapt)),
+        // Sin `spacedBy`: cada ítem pone su aire arriba con `homeGapAbove` (regla única de la página, I12).
+        verticalArrangement = Arrangement.Top,
         // La cabecera de la página lleva su propia barra de estado: la lista arranca en el borde superior.
         contentPadding = PaddingValues(
             bottom = 140.dp.adapt(homeAdapt),
@@ -759,6 +765,7 @@ private fun HomeWithProgram(
             val showWeek = hasActiveProgram && weekDays.isNotEmpty()
             KpknModule(
                 modifier = Modifier
+                    .homeGapAbove(HomePageGap)
                     .padding(horizontal = 16.dp)
                     .onGloballyPositioned { onSessionAnchorPositionChanged(it.positionInRoot().y) }
                     .homeEntrance(1),
@@ -825,9 +832,9 @@ private fun HomeWithProgram(
                 onDismissAdvisory = onDismissAdvisory,
                 onModelNoticeShown = onModelNoticeShown,
                 modifier = Modifier
+                    .homeGapAbove(HomeModuleGap)
                     .onGloballyPositioned { onRingsAnchorPositionChanged(it.positionInRoot().y) }
-                    .homeEntrance(3)
-                    .homeGapAbove(HomeSectionGap.adapt(homeAdapt)),
+                    .homeEntrance(3),
             )
         }
         if (homeAdvisory != null) {
@@ -838,7 +845,7 @@ private fun HomeWithProgram(
                     actionLabel = "Entendido",
                     onAction = { onDismissAdvisory(homeAdvisory.id) },
                     tone = if (homeAdvisory.level == LoadAdvisoryLevel.UNLOAD) HomeNoticeTone.DANGER else HomeNoticeTone.WARN,
-                    modifier = Modifier.homeEntrance(4).homeGapAbove(HomeSectionGap.adapt(homeAdapt)),
+                    modifier = Modifier.homeGapAbove(HomeModuleGap).homeEntrance(4),
                 )
             }
         }
@@ -850,14 +857,14 @@ private fun HomeWithProgram(
                     actionLabel = "Ver recomendaciones",
                     onAction = { onNavigate("settings/auge") },
                     tone = HomeNoticeTone.DANGER,
-                    modifier = Modifier.homeEntrance(5).homeGapAbove(HomeSectionGap.adapt(homeAdapt)),
+                    modifier = Modifier.homeGapAbove(HomeModuleGap).homeEntrance(5),
                 )
             }
         }
         item(key = "cards") {
             // «Nutrición de hoy» y «Cuerpo» van en un solo ítem: comparten la entrada (índice 6) y el aire entre secciones.
             Column(
-                modifier = Modifier.homeEntrance(6).homeGapAbove(HomeSectionGap.adapt(homeAdapt)),
+                modifier = Modifier.homeGapAbove(HomeModuleGap).homeEntrance(6),
                 verticalArrangement = Arrangement.spacedBy(HomeModuleGap),
             ) {
                 if (showNutrition) {
@@ -882,15 +889,15 @@ private fun HomeWithProgram(
                 onProgramClick = onNavigateToProgram,
                 onCreateProgram = onCreateProgram,
                 modifier = Modifier
+                    .homeGapAbove(HomeGroupGap)
                     .tourAnchor(TourAnchors.HOME_PROGRAMAS)
-                    .homeEntrance(7)
-                    .homeGapAbove(HomeSectionGap.adapt(homeAdapt), target = HomeGroupGap),
+                    .homeEntrance(7),
                 activeProgramLine = mastheadState.program,
                 onSeeAll = { onNavigate(com.example.kpkn.navigation.KpknRoute.Training.route) },
             )
         }
         item(key = "wikilab") {
-            Box(Modifier.homeEntrance(8)) {
+            Box(Modifier.homeGapAbove(HomeGroupGap).homeEntrance(8)) {
                 HomeWikiLabSection(onNavigate = onNavigate)
             }
         }
@@ -902,7 +909,7 @@ internal fun HomeTopBar(
     modifier: Modifier = Modifier,
     greeting: String,
     userName: String,
-    greetingProgress: Float,
+    @Suppress("UNUSED_PARAMETER") greetingProgress: Float,
     ringsProgress: Float,
     sessionProgress: Float,
     nutritionProgress: Float,
@@ -930,6 +937,17 @@ internal fun HomeTopBar(
     val shownState = remember { mutableStateOf(false) }
     val shown = homeBarShownAfter(previous = shownState.value, barAlpha = barAlpha)
     SideEffect { shownState.value = shown }
+    // Con una hoja o un diálogo abiertos la isla sale con su animación y no roba toques (I12).
+    val modalOpen = KpknModalTracker.openCount > 0
+    // Contexto discreto (I12): el de la última sección cuyo ancla ya pasó bajo la isla, con la histéresis de la aparición.
+    val contextState = remember { mutableStateOf(HomeBarContext.GREETING) }
+    val context = homeBarContextAfter(
+        previous = contextState.value,
+        sessionProgress = sessionProgress,
+        ringsProgress = ringsProgress,
+        nutritionProgress = nutritionProgress,
+    )
+    SideEffect { contextState.value = context }
 
     val density = LocalDensity.current
     val reduced = wizardReducedMotion()
@@ -953,8 +971,6 @@ internal fun HomeTopBar(
             slideOutVertically(animationSpec = tween(durationMillis = 160)) { -fallPx } +
             scaleOut(animationSpec = tween(durationMillis = 160), targetScale = 0.96f, transformOrigin = origin)
     }
-    val context = homeBarContextFor(sessionProgress = sessionProgress, ringsProgress = ringsProgress, nutritionProgress = nutritionProgress)
-
     // Caja fija de 56 dp bajo la barra de estado, con 12 dp de margen. Siempre compuesta, para medir su borde aunque la isla esté oculta.
     Box(
         modifier = modifier
@@ -966,7 +982,7 @@ internal fun HomeTopBar(
     ) {
         // Con la isla oculta no se compone nada que toque: no roba toques a la cabecera de la página.
         AnimatedVisibility(
-            visible = shown,
+            visible = shown && !modalOpen,
             modifier = Modifier.fillMaxSize(),
             enter = enter,
             exit = exit,
@@ -999,10 +1015,13 @@ internal fun HomeTopBar(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(10.dp),
                 ) {
-                    // Icono del contexto: al cambiar de contexto sube 8 dp con fundido cruzado de 220 ms.
+                    // Contexto discreto (I12): icono, textos y acción cambian a la vez; el contenido nuevo sube 8 dp con fundido cruzado
+                    // de 220 ms. Con movimiento reducido, solo fundido de 120 ms.
                     AnimatedContent(
                         targetState = context,
-                        label = "homeBarContext",
+                        modifier = Modifier
+                            .weight(1f)
+                            .fillMaxHeight(),
                         transitionSpec = {
                             if (reduced) {
                                 fadeIn(animationSpec = tween(durationMillis = 120))
@@ -1014,104 +1033,55 @@ internal fun HomeTopBar(
                                     ).togetherWith(fadeOut(animationSpec = tween(durationMillis = 220)))
                             }
                         },
-                        modifier = Modifier.graphicsLayer {
-                            alpha = iconIn
-                            translationX = if (reduced) 0f else (1f - iconIn) * -sixPx
-                        },
+                        label = "homeBarContext",
                     ) { target ->
-                        HomeBarContextIcon(icon = homeBarIcon(target), accent = homeBarAccent(target))
-                    }
-                    val boxHeightDp = 24.dp
-                    val topBarDensity = LocalDensity.current
-                    val boxHeightPx = with(topBarDensity) { boxHeightDp.toPx() }
-
-                    val greetingAlpha: Float
-                    val greetingSlide: Float
-                    val ringsAlpha: Float
-                    val ringsSlide: Float
-                    val sessionAlpha: Float
-                    val sessionSlide: Float
-                    val nutritionAlpha: Float
-                    val nutritionSlide: Float
-
-                    // Initially empty. Each mini-card appears only when its matching
-                    // section reaches the pinned header, then hands off to the next one.
-                    if (nutritionProgress > 0f) {
-                        nutritionAlpha = nutritionProgress
-                        nutritionSlide = (1f - nutritionProgress) * boxHeightPx
-                        ringsAlpha = 1f - nutritionProgress
-                        ringsSlide = -nutritionProgress * boxHeightPx
-                        sessionAlpha = 0f
-                        sessionSlide = 0f
-                        greetingAlpha = 0f
-                        greetingSlide = 0f
-                    } else if (ringsProgress > 0f) {
-                        ringsAlpha = ringsProgress
-                        ringsSlide = (1f - ringsProgress) * boxHeightPx
-                        sessionAlpha = 1f - ringsProgress
-                        sessionSlide = -ringsProgress * boxHeightPx
-                        nutritionAlpha = 0f
-                        nutritionSlide = 0f
-                        greetingAlpha = 0f
-                        greetingSlide = 0f
-                    } else if (sessionProgress > 0f) {
-                        sessionAlpha = sessionProgress
-                        sessionSlide = (1f - sessionProgress) * boxHeightPx
-                        greetingAlpha = 1f - sessionProgress
-                        greetingSlide = -sessionProgress * boxHeightPx
-                        ringsAlpha = 0f
-                        ringsSlide = 0f
-                        nutritionAlpha = 0f
-                        nutritionSlide = 0f
-                    } else {
-                        greetingAlpha = greetingProgress
-                        greetingSlide = (1f - greetingProgress) * boxHeightPx
-                        sessionAlpha = 0f
-                        sessionSlide = 0f
-                        ringsAlpha = 0f
-                        ringsSlide = 0f
-                        nutritionAlpha = 0f
-                        nutritionSlide = 0f
-                    }
-                    Box(
-                        modifier = Modifier
-                            .height(48.dp)
-                            .weight(1f)
-                            .graphicsLayer {
-                                alpha = textIn
-                                translationX = if (reduced) 0f else (1f - textIn) * -sixPx
-                            },
-                        contentAlignment = Alignment.CenterStart,
-                    ) {
-                        HomeGreetingLine(
-                            greeting = greeting,
-                            userName = userName,
-                            modifier = Modifier.graphicsLayer { alpha = greetingAlpha; translationY = greetingSlide },
-                        )
-                        MiniSessionCard(
-                            hasPrograms = hasPrograms,
-                            primarySession = primarySession,
-                            homeCompetition = homeCompetition,
-                            isRestDay = isRestDay,
-                            onStartWorkout = onStartWorkout,
-                            onRegisterCompetition = onRegisterCompetition,
-                            onCreateProgram = onCreateProgram,
-                            modifier = Modifier.graphicsLayer { alpha = sessionAlpha; translationY = sessionSlide },
-                        )
-                        MiniRingsWidget(
-                            muscularProgress = muscularProgress,
-                            sncProgress = sncProgress,
-                            columnaProgress = columnaProgress,
-                            hasActiveProgram = hasPrograms,
-                            coverage = ringsCoverage,
-                            modifier = Modifier.graphicsLayer { alpha = ringsAlpha; translationY = ringsSlide },
-                        )
-                        MiniNutritionCard(
-                            dailyCalorieGoal = dailyCalorieGoal,
-                            consumedCalories = consumedCalories,
-                            onAddMeal = onAddMeal,
-                            modifier = Modifier.graphicsLayer { alpha = nutritionAlpha; translationY = nutritionSlide },
-                        )
+                        Row(
+                            modifier = Modifier.fillMaxSize(),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(10.dp),
+                        ) {
+                            Box(
+                                modifier = Modifier.graphicsLayer {
+                                    alpha = iconIn
+                                    translationX = if (reduced) 0f else (1f - iconIn) * -sixPx
+                                },
+                            ) {
+                                HomeBarContextIcon(icon = homeBarIcon(target), accent = homeBarAccent(target))
+                            }
+                            Box(
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .fillMaxHeight()
+                                    .graphicsLayer {
+                                        alpha = textIn
+                                        translationX = if (reduced) 0f else (1f - textIn) * -sixPx
+                                    },
+                                contentAlignment = Alignment.CenterStart,
+                            ) {
+                                when (target) {
+                                    HomeBarContext.GREETING -> HomeGreetingLine(greeting = greeting, userName = userName)
+                                    HomeBarContext.SESSION -> MiniSessionCard(
+                                        hasPrograms = hasPrograms,
+                                        primarySession = primarySession,
+                                        homeCompetition = homeCompetition,
+                                        isRestDay = isRestDay,
+                                        onStartWorkout = onStartWorkout,
+                                        onRegisterCompetition = onRegisterCompetition,
+                                        onCreateProgram = onCreateProgram,
+                                    )
+                                    HomeBarContext.RINGS -> HomeBarRingsLine(
+                                        energia = ringPercent(sncProgress, ringsCoverage.channel(RecoveryChannelId.SYSTEM).hasData),
+                                        musculos = ringPercent(muscularProgress, ringsCoverage.channel(RecoveryChannelId.MUSCULAR).hasData),
+                                        columna = ringPercent(columnaProgress, ringsCoverage.channel(RecoveryChannelId.STRUCTURE).hasData),
+                                    )
+                                    HomeBarContext.NUTRITION -> MiniNutritionCard(
+                                        dailyCalorieGoal = dailyCalorieGoal,
+                                        consumedCalories = consumedCalories,
+                                        onAddMeal = onAddMeal,
+                                    )
+                                }
+                            }
+                        }
                     }
                     HomeBarAvatar(
                         userName = userName,
@@ -1127,15 +1097,31 @@ internal fun HomeTopBar(
     }
 }
 
-/** Contexto que muestra la isla: el del texto más visible del relevo según el scroll (nutrición, RINGS, sesión o saludo). */
+/** Contexto que muestra la isla, en el orden de la página: saludo, sesión, RINGS y nutrición. */
 internal enum class HomeBarContext { GREETING, SESSION, RINGS, NUTRITION }
 
-/** Contexto dominante de la isla: el del texto que ya pasa de la mitad en el relevo, con el mismo orden que los textos. */
-internal fun homeBarContextFor(sessionProgress: Float, ringsProgress: Float, nutritionProgress: Float): HomeBarContext = when {
-    nutritionProgress > 0f -> if (nutritionProgress >= 0.5f) HomeBarContext.NUTRITION else HomeBarContext.RINGS
-    ringsProgress > 0f -> if (ringsProgress >= 0.5f) HomeBarContext.RINGS else HomeBarContext.SESSION
-    sessionProgress > 0f -> if (sessionProgress >= 0.5f) HomeBarContext.SESSION else HomeBarContext.GREETING
+/**
+ * Contexto de la isla (I12): el de la última sección cuyo ancla ya pasó bajo la isla. Cada sección «pasa» al llegar a 0,55 y «vuelve»
+ * al bajar de 0,45, con la misma histéresis que la aparición; entre ambos conserva lo que tenía. Así la isla cambia de una vez, sin
+ * mezclar dos textos a medio relevo.
+ */
+internal fun homeBarContextAfter(
+    previous: HomeBarContext,
+    sessionProgress: Float,
+    ringsProgress: Float,
+    nutritionProgress: Float,
+): HomeBarContext = when {
+    homeBarPassed(nutritionProgress, wasPassed = previous == HomeBarContext.NUTRITION) -> HomeBarContext.NUTRITION
+    homeBarPassed(ringsProgress, wasPassed = previous >= HomeBarContext.RINGS) -> HomeBarContext.RINGS
+    homeBarPassed(sessionProgress, wasPassed = previous >= HomeBarContext.SESSION) -> HomeBarContext.SESSION
     else -> HomeBarContext.GREETING
+}
+
+/** Una sección ha pasado bajo la isla: con 0,55 o más sí; con 0,45 o menos no; entre ambos, lo que era antes. */
+private fun homeBarPassed(progress: Float, wasPassed: Boolean): Boolean = when {
+    progress >= 0.55f -> true
+    progress <= 0.45f -> false
+    else -> wasPassed
 }
 
 /** Histéresis de la isla (§3): aparece en ≥ 0,55, se va en ≤ 0,45 y entre ambos conserva lo que tenía. */
@@ -1268,7 +1254,7 @@ private fun HomeGreetingLine(greeting: String, userName: String, modifier: Modif
             maxLines = 1,
             softWrap = false,
             overflow = TextOverflow.Ellipsis,
-            modifier = modifier,
+            modifier = modifier.semantics { heading() },
         )
     }
 }
@@ -1295,28 +1281,49 @@ internal fun fitHomeGreeting(
     return HomeGreetingFit(short, homeGreetingSizesSp.last(), truncated = true)
 }
 
+/**
+ * Contexto de RINGS en la isla (I12): «Tus RINGS» y el valor de cada canal; el icono Tower en columna lo pone la isla. Sin acción, con la
+ * misma plantilla que los demás contextos: título y línea de apoyo (dos si el ancho no basta).
+ */
 @Composable
-private fun MiniRingsWidget(
-    muscularProgress: Float,
-    sncProgress: Float,
-    columnaProgress: Float,
-    modifier: Modifier = Modifier,
-    hasActiveProgram: Boolean = true,
-    coverage: com.example.kpkn.domain.onboarding.RingsCoverage = com.example.kpkn.domain.onboarding.RingsCoverage.NO_DATA,
-) {
-    val channels = listOf(RecoveryChannelId.MUSCULAR, RecoveryChannelId.SYSTEM, RecoveryChannelId.STRUCTURE)
-    val allProgress = listOf(muscularProgress, sncProgress, columnaProgress)
-    // Sin datos el canal queda sin calibrar (pista discontinua), sin afirmar un valor.
-    fun percent(i: Int): Int? = if (coverage.channel(channels[i]).hasData) {
-        (allProgress[i] * 100).toInt().coerceIn(0, 100)
-    } else {
-        null
+private fun HomeBarRingsLine(energia: Int?, musculos: Int?, columna: Int?) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 8.dp),
+        verticalArrangement = Arrangement.Center,
+    ) {
+        Text(
+            text = "Tus RINGS",
+            style = HomeTypography.barLabel,
+            color = WizardColors.text,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.semantics { heading() },
+        )
+        Text(
+            text = homeBarRingsSubtitle(energia = energia, musculos = musculos, columna = columna),
+            style = KpknType.islandSubtitle,
+            color = WizardColors.textMuted,
+            // A 360 dp los tres canales no caben en una línea a 13 sp: el subtítulo baja a dos antes que cortar una cifra (I12).
+            maxLines = 2,
+            overflow = TextOverflow.Ellipsis,
+        )
     }
-    KpknTowerRings(
-        values = TowerRingValues(columna = percent(2), musculos = percent(0), energia = percent(1)),
-        modifier = modifier.fillMaxWidth().height(40.dp).alpha(if (hasActiveProgram) 1f else 0.5f),
-    )
 }
+
+/**
+ * Subtítulo de RINGS en la isla (I12): «Energía 86 · Músculos 74 · Columna 81». Un canal sin dato sale como «—» en su sitio; si ninguno
+ * tiene dato, «Sin calibrar».
+ */
+internal fun homeBarRingsSubtitle(energia: Int?, musculos: Int?, columna: Int?): String {
+    if (energia == null && musculos == null && columna == null) return "Sin calibrar"
+    return "Energía ${energia ?: "—"} · Músculos ${musculos ?: "—"} · Columna ${columna ?: "—"}"
+}
+
+/** Cifra de un canal para la isla: el progreso redondeado (así 0,86 da 86); sin dato, null, nunca un 100 % por defecto. */
+private fun ringPercent(progress: Float, hasData: Boolean): Int? =
+    if (hasData) (progress * 100f).roundToInt().coerceIn(0, 100) else null
 
 @Composable
 private fun MiniSessionCard(
@@ -1350,7 +1357,7 @@ private fun MiniSessionCard(
                 style = HomeTypography.barLabel,
                 color = WizardColors.text,
                 maxLines = 1,
-                modifier = Modifier.weight(1f),
+                modifier = Modifier.weight(1f).semantics { heading() },
             )
             TextButton(
                 onClick = { onRegisterCompetition(homeCompetition.recordId) },
@@ -1365,6 +1372,7 @@ private fun MiniSessionCard(
                 style = HomeTypography.barLabel,
                 color = WizardColors.textMuted,
                 maxLines = 1,
+                modifier = Modifier.semantics { heading() },
             )
         } else {
             Text(
@@ -1372,7 +1380,7 @@ private fun MiniSessionCard(
                 style = HomeTypography.barLabel,
                 color = WizardColors.text,
                 maxLines = 1,
-                modifier = Modifier.weight(1f),
+                modifier = Modifier.weight(1f).semantics { heading() },
             )
             HomeBarInkAction(
                 icon = KpknLineIcons.PlayFilled,
@@ -1412,12 +1420,13 @@ private fun MiniNutritionCard(
                 "Calorías",
                 style = HomeTypography.barLabel,
                 color = WizardColors.textMuted,
+                modifier = Modifier.semantics { heading() },
             )
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(consumedCalories.toString(), style = HomeTypography.barTitle, color = WizardColors.text)
+                Text(formatKcalEs(consumedCalories), style = HomeTypography.barTitle, color = WizardColors.text)
                 Spacer(Modifier.width(2.dp))
                 Text(
-                    dailyCalorieGoal?.let { "/ $it" } ?: "sin objetivos",
+                    dailyCalorieGoal?.let { "/ ${formatKcalEs(it)}" } ?: "sin objetivos",
                     style = HomeTypography.barLabel,
                     color = WizardColors.textFaint,
                 )
