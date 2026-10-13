@@ -2,6 +2,8 @@ package com.example.kpkn.domain.body
 
 import com.example.kpkn.data.models.BodyMetric
 import com.example.kpkn.data.models.BodyObservation
+import java.math.BigDecimal
+import java.math.RoundingMode
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
@@ -131,3 +133,19 @@ fun goalProgressPercent(baseline: Double, current: Double, target: Double): Int 
     val progress = ((current - baseline) / distance * 100.0)
     return progress.coerceIn(0.0, 100.0).toInt()
 }
+
+/**
+ * IMC tal como se muestra: un decimal, mitad hacia arriba. Se clasifica sobre este valor para que
+ * la categoría coincida con la cifra (24,995 se muestra «25,0» y es sobrepeso).
+ */
+fun roundBmi1(value: Double): Double {
+    if (!value.isFinite()) return value
+    return BigDecimal(value.toString()).setScale(1, RoundingMode.HALF_UP).toDouble()
+}
+
+/**
+ * Instante de una medida manual: si es de hoy, la hora actual; si es de otro día, las 12:00
+ * locales de ese día. Así la medida cae en su día en la zona local, también al oeste de UTC.
+ */
+fun localMeasurementEpochMs(date: LocalDate, today: LocalDate, nowEpochMs: Long, zone: ZoneId): Long =
+    if (date == today) nowEpochMs else date.atTime(12, 0).atZone(zone).toInstant().toEpochMilli()

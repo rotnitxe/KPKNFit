@@ -64,6 +64,10 @@ class BodyProgressRepository private constructor(
     private val _lastError = MutableStateFlow<String?>(null)
     val lastError: StateFlow<String?> = _lastError.asStateFlow()
 
+    private val _loaded = MutableStateFlow(false)
+    /** true cuando termina la primera carga: antes la pantalla no debe decir «sin mediciones». */
+    val loaded: StateFlow<Boolean> = _loaded.asStateFlow()
+
     init {
         scope.launch {
             load()
@@ -232,27 +236,31 @@ class BodyProgressRepository private constructor(
         load()
     }
 
+    /** Carga y migración de lo heredado bajo [writeMutex]: no se cruza con una escritura en curso. */
     private suspend fun load() {
-        runCatching {
-            val rows = dao.getAllObservations().mapNotNull { it.toBodyObservation() }
-            val goals = dao.getAllGoals().mapNotNull { it.toBodyGoal() }
-            val imported = importLegacyIfNeeded(rows)
-            _observations.value = (rows + imported).distinctBy { it.id }.sortedBy { it.timestampEpochMs }
-            _goals.value = goals
-            _measurementSchedule.value = prefs.getString(KEY_SCHEDULE, null)?.let {
-                Json.decodeFromString<MeasurementSchedule>(it)
-            } ?: MeasurementSchedule()
-            val schedule = _measurementSchedule.value
-            if (schedule.enabled && schedule.nextDate != null) {
-                NutritionNotificationManager(appContext).scheduleMeasurementReminder(
-                    schedule.nextDate,
-                    schedule.reminderHour,
-                    schedule.reminderMinute,
-                )
+        writeMutex.withLock {
+            runCatching {
+                val rows = dao.getAllObservations().mapNotNull { it.toBodyObservation() }
+                val goals = dao.getAllGoals().mapNotNull { it.toBodyGoal() }
+                val imported = importLegacyIfNeeded(rows)
+                _observations.value = (rows + imported).distinctBy { it.id }.sortedBy { it.timestampEpochMs }
+                _goals.value = goals
+                _measurementSchedule.value = prefs.getString(KEY_SCHEDULE, null)?.let {
+                    Json.decodeFromString<MeasurementSchedule>(it)
+                } ?: MeasurementSchedule()
+                val schedule = _measurementSchedule.value
+                if (schedule.enabled && schedule.nextDate != null) {
+                    NutritionNotificationManager(appContext).scheduleMeasurementReminder(
+                        schedule.nextDate,
+                        schedule.reminderHour,
+                        schedule.reminderMinute,
+                    )
+                }
+            }.onFailure {
+                _lastError.value = it.message ?: "No se pudieron cargar las mediciones"
             }
-        }.onFailure {
-            _lastError.value = it.message ?: "No se pudieron cargar las mediciones"
         }
+        _loaded.value = true
     }
 
     private suspend fun importLegacyIfNeeded(existing: List<BodyObservation>): List<BodyObservation> {

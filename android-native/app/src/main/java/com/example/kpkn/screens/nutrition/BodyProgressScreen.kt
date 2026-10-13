@@ -34,14 +34,17 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.kpkn.data.models.*
-import com.example.kpkn.data.repository.NutritionRepository
 import com.example.kpkn.data.repository.ProgramRepository
 import com.example.kpkn.domain.calculations.calculateFFMI
+import com.example.kpkn.domain.body.BmiCategory
+import com.example.kpkn.domain.body.BodyGoalTrack
+import com.example.kpkn.domain.body.BodyWeightSummary
+import com.example.kpkn.domain.body.bmiCategory
+import com.example.kpkn.domain.body.roundBmi1
 import com.example.kpkn.domain.body.validateBodyValue
-import com.example.kpkn.domain.body.goalProgressPercent
-import com.example.kpkn.domain.body.dailyMedianSeries
-import com.example.kpkn.domain.body.ewmaTrend
 import com.example.kpkn.domain.nutrition.parseLocalizedNumber
+import com.example.kpkn.screens.onboarding.design.formatDecimalEs
+import com.example.kpkn.screens.onboarding.design.formatSignedDecimalEs
 import com.example.kpkn.ui.components.KpknSheet
 import com.example.kpkn.ui.components.KpknSnackbar
 import com.example.kpkn.ui.components.kpknGlass
@@ -50,7 +53,10 @@ import com.example.kpkn.ui.components.SnackbarType
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.hazeSource
 import kotlinx.coroutines.launch
-import java.time.ZoneId
+import java.time.LocalDate
+import java.time.YearMonth
+import java.time.format.DateTimeFormatter
+import java.util.Locale
 import java.util.UUID
 
 // ═══════════════════════════════════════════════════════════════════════
@@ -124,16 +130,12 @@ private val FFMI_GAUGE_SEGMENTS = listOf(
 fun BodyProgressScreen(
     onCreatePlan: () -> Unit = {},
 ) {
-    val nutritionRepo = NutritionRepository.getInstance()
     val bodyViewModel: BodyProgressViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
     val settings by ProgramRepository.getInstance().settings.collectAsState()
     val vitals = settings.userVitals
-    val plans by nutritionRepo.nutritionPlans.collectAsState()
     // Recorrido de Cuerpo: se lanza al montar la pantalla (no hay señal de carga en el ViewModel). Visto = no arranca.
     val tourHost = LocalKpknOverlayHost.current
     LaunchedEffect(Unit) { tourHost?.startTour(TourIds.BODY, TourScripts.body) }
-    val activePlanId by nutritionRepo.activeNutritionPlanId.collectAsState()
-    val activePlan = plans.find { it.id == activePlanId }
     val bodyMeasurements by bodyViewModel.legacyEntries.collectAsState()
     val bodyUiState by bodyViewModel.uiState.collectAsState()
     val schedule by bodyViewModel.measurementSchedule.collectAsState()
@@ -146,70 +148,63 @@ fun BodyProgressScreen(
     val contextualBottomBarClearance = 110.dp
     val bodyHazeState = remember { HazeState() }
 
-    // Compute derived body metrics
+    // Cifras de Cuerpo: el resumen del peso y la meta llegan ya calculados desde el ViewModel.
+    val summary = bodyUiState.weightSummary
+    val goal = bodyUiState.goal
+    // Peso actual = último pesaje válido, esté o no en el rango. La composición sale de una sola sesión.
+    val weight = summary.current
     val composition = bodyUiState.latestComposition
-    val weight = composition?.weightKg ?: bodyUiState.latestByMetric[BodyMetric.WEIGHT]?.valueSi
     val height = vitals.height
-    // Composition KPIs must be from a compatible session/timestamp; do not
-    // combine an old scale weight with a newer body-fat reading.
     val bodyFat = composition?.bodyFatPercent
         ?: bodyUiState.latestByMetric[BodyMetric.BODY_FAT_PERCENT]?.valueSi
     val muscle = composition?.muscleMassPercent
         ?: bodyUiState.latestByMetric[BodyMetric.MUSCLE_MASS_PERCENT]?.valueSi
-    val independentGoal = bodyUiState.goals.firstOrNull()
-    val independentGoalMetric = independentGoal?.metric?.let {
-        when (it) {
-            BodyMetric.WEIGHT -> GoalMetric.WEIGHT
-            BodyMetric.BODY_FAT_PERCENT -> GoalMetric.BODY_FAT
-            BodyMetric.MUSCLE_MASS_PERCENT -> GoalMetric.MUSCLE_MASS
-            else -> null
-        }
+    val targetWeight = goal?.takeIf { it.metric == GoalMetric.WEIGHT }?.targetValueSi
+    val targetBodyFat = goal?.takeIf { it.metric == GoalMetric.BODY_FAT }?.targetValueSi
+    val targetMuscle = goal?.takeIf { it.metric == GoalMetric.MUSCLE_MASS }?.targetValueSi
+    // Ritmo y fecha de la meta, medidos. Sin dato, se dice que aún no hay.
+    val goalRate = when (goal?.metric) {
+        GoalMetric.WEIGHT -> summary.measuredWeeklyRate?.let { "${formatSignedDecimalEs(it, 1)} kg/sem" }
+        GoalMetric.BODY_FAT, GoalMetric.MUSCLE_MASS ->
+            bodyUiState.goalTrack?.measuredWeeklyRate?.let { "${formatSignedDecimalEs(it, 1)} puntos/sem" }
+        null -> null
+    } ?: "Sin ritmo medido aún"
+    val goalEta = when (goal?.metric) {
+        GoalMetric.WEIGHT -> summary.eta
+        GoalMetric.BODY_FAT, GoalMetric.MUSCLE_MASS -> bodyUiState.goalTrack?.eta
+        null -> null
     }
-    val goalType = activePlan?.typedBodyGoal?.metric
-        ?: activePlan?.goalType
-        ?: independentGoalMetric
-        ?: GoalMetric.WEIGHT
-    // Target value interpreted by goalType: kg for WEIGHT, % for BODY_FAT/MUSCLE_MASS.
-    // Manual goals remain visible even when no nutrition plan is active.
-    val typedTarget = activePlan?.typedBodyGoal?.targetValueSi
-        ?: activePlan?.goalValue?.takeIf { it > 0.0 }
-        ?: independentGoal?.targetValueSi
-    val targetWeight = typedTarget?.takeIf { goalType == GoalMetric.WEIGHT }
-    val targetBodyFat = typedTarget?.takeIf { goalType == GoalMetric.BODY_FAT }
-    val targetMuscle = typedTarget?.takeIf { goalType == GoalMetric.MUSCLE_MASS }
+    val goalProjection = goalEta?.let { "≈ ${formatMonthEs(it)}" } ?: "Sin fecha estimada aún"
 
     val bmi = bodyUiState.bmi
-    val ffmiResult = if (composition != null && weight != null && height != null && bodyFat != null) {
-        calculateFFMI(heightCm = height, weightKg = weight, bodyFatPercent = bodyFat)
+    // FFMI, masa magra y masa grasa solo con la composición de una misma sesión.
+    val compositionBodyFat = composition?.bodyFatPercent
+    val ffmiResult = if (composition != null && height != null && compositionBodyFat != null) {
+        calculateFFMI(heightCm = height, weightKg = composition.weightKg, bodyFatPercent = compositionBodyFat)
     } else {
         null
     }
     val ffmi = ffmiResult?.normalizedFfmi
     val lbm = ffmiResult?.leanBodyMass
-    val fatMass = if (weight != null && bodyFat != null)
-        weight * (bodyFat / 100) else null
+    val fatMass = if (composition != null && compositionBodyFat != null) {
+        composition.weightKg * (compositionBodyFat / 100)
+    } else {
+        null
+    }
 
-    val sortedMeasurements = remember(bodyMeasurements) {
-        bodyMeasurements.sortedBy { it.date }
+    // Series y tendencias: calculadas una sola vez en el ViewModel para el rango elegido.
+    val weightSeries = remember(bodyUiState.weightSeries) {
+        bodyUiState.weightSeries.map { BodyMetricPoint(it.date.toString(), it.value) }
     }
-    val chartObservations = remember(bodyUiState.observations, bodyUiState.range) {
-        val now = System.currentTimeMillis()
-        val rangeDays = bodyUiState.range.days
-        bodyUiState.observations.filter { observation ->
-            val age = now - observation.timestampEpochMs
-            rangeDays == null || (age >= 0L && age <= rangeDays * 86_400_000L)
-        }
+    val weightTrendSeries = remember(bodyUiState.weightTrend) {
+        bodyUiState.weightTrend.map { BodyMetricPoint(it.date.toString(), it.value) }
     }
-    val weightSeries = remember(chartObservations) {
-        dailyMedianSeries(chartObservations.filter { it.metric == BodyMetric.WEIGHT }, ZoneId.systemDefault())
-            .map { BodyMetricPoint(it.date.toString(), it.value) }
+    val bodyFatSeries = remember(bodyUiState.bodyFatSeries) {
+        bodyUiState.bodyFatSeries.map { BodyMetricPoint(it.date.toString(), it.value) }
     }
-    val bodyFatSeries = remember(chartObservations) {
-        dailyMedianSeries(chartObservations.filter { it.metric == BodyMetric.BODY_FAT_PERCENT }, ZoneId.systemDefault())
-            .map { BodyMetricPoint(it.date.toString(), it.value) }
+    val bodyFatTrendSeries = remember(bodyUiState.bodyFatTrend) {
+        bodyUiState.bodyFatTrend.map { BodyMetricPoint(it.date.toString(), it.value) }
     }
-    val weightTrendSeries = remember(weightSeries) { smoothBodySeries(weightSeries) }
-    val bodyFatTrendSeries = remember(bodyFatSeries) { smoothBodySeries(bodyFatSeries) }
 
     Box(
         modifier = Modifier.fillMaxSize(),
@@ -232,47 +227,34 @@ fun BodyProgressScreen(
                     weightSeries = weightSeries,
                     bodyFatSeries = bodyFatSeries,
                     weight = weight,
+                    weightSummary = summary,
                     bodyFat = bodyFat,
+                    bodyFatWeeklyRate = bodyUiState.bodyFatWeeklyRate,
+                    goalTrack = bodyUiState.goalTrack,
+                    goalMetric = goal?.metric,
+                    loaded = bodyUiState.loaded,
                     muscle = muscle,
                     bmi = bmi,
                     ffmi = ffmi,
                     targetWeight = targetWeight,
                     targetBodyFat = targetBodyFat,
-                    plan = activePlan,
                 )
             }
 
-            when (goalType) {
-                GoalMetric.WEIGHT -> if (targetWeight != null && weight != null) {
-                    item {
-                        GoalProgressCard(
-                            currentValue = weight,
-                            targetValue = targetWeight,
-                            goalType = GoalMetric.WEIGHT,
-                            plan = activePlan,
-                            currentWeight = weight,
-                        )
-                    }
+            if (goal != null) {
+                val goalCurrent = when (goal.metric) {
+                    GoalMetric.WEIGHT -> weight
+                    GoalMetric.BODY_FAT -> bodyFat
+                    GoalMetric.MUSCLE_MASS -> muscle
                 }
-                GoalMetric.BODY_FAT -> if (targetBodyFat != null && bodyFat != null) {
+                if (goalCurrent != null) {
                     item {
                         GoalProgressCard(
-                            currentValue = bodyFat,
-                            targetValue = targetBodyFat,
-                            goalType = GoalMetric.BODY_FAT,
-                            plan = activePlan,
-                            currentWeight = weight,
-                        )
-                    }
-                }
-                GoalMetric.MUSCLE_MASS -> if (targetMuscle != null && muscle != null) {
-                    item {
-                        GoalProgressCard(
-                            currentValue = muscle,
-                            targetValue = targetMuscle,
-                            goalType = GoalMetric.MUSCLE_MASS,
-                            plan = activePlan,
-                            currentWeight = weight,
+                            currentValue = goalCurrent,
+                            targetValue = goal.targetValueSi,
+                            goalType = goal.metric,
+                            rateLabel = goalRate,
+                            projectionLabel = goalProjection,
                         )
                     }
                 }
@@ -288,10 +270,10 @@ fun BodyProgressScreen(
                 }
             }
 
-            if (lbm != null && fatMass != null && weight != null) {
+            if (lbm != null && fatMass != null && composition != null) {
                 item {
                     CompositionBreakdownCard(
-                        weight = weight,
+                        weight = composition.weightKg,
                         lbm = lbm,
                         fatMass = fatMass,
                     )
@@ -307,6 +289,7 @@ fun BodyProgressScreen(
                     bmi = bmi,
                     ffmi = ffmi,
                     lbm = lbm,
+                    fatMass = fatMass,
                 )
             }
 
@@ -352,7 +335,7 @@ fun BodyProgressScreen(
                 }
             }
 
-            if (bodyMeasurements.isEmpty()) {
+            if (bodyMeasurements.isEmpty() && bodyUiState.loaded) {
                 item {
                     Card(
                         modifier = Modifier
@@ -571,13 +554,17 @@ private fun ProgressHero(
     weightSeries: List<BodyMetricPoint>,
     bodyFatSeries: List<BodyMetricPoint>,
     weight: Double?,
+    weightSummary: BodyWeightSummary,
     bodyFat: Double?,
+    bodyFatWeeklyRate: Double?,
+    goalTrack: BodyGoalTrack?,
+    goalMetric: GoalMetric?,
+    loaded: Boolean,
     muscle: Double?,
     bmi: Double?,
     ffmi: Double?,
     targetWeight: Double?,
     targetBodyFat: Double?,
-    plan: NutritionPlan?,
 ) {
     val topInset = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
     val points = if (selectedMetric == BodyHeroMetric.WEIGHT) weightSeries else bodyFatSeries
@@ -592,29 +579,54 @@ private fun ProgressHero(
         BodyHeroMetric.WEIGHT -> targetWeight
         BodyHeroMetric.BODY_FAT -> targetBodyFat
     }
-    val startValue = points.firstOrNull()?.value
-    val deltaValue = if (currentValue != null && startValue != null) currentValue - startValue else null
-    val progressPct = calculateGoalProgress(startValue, currentValue, targetValue)
-    val latestDateLabel = points.lastOrNull()?.date?.let(::formatHeroDate) ?: "Sin registros"
-    val weeklyRateLabel = when {
-        plan == null -> "Sin ritmo"
-        selectedMetric == BodyHeroMetric.WEIGHT -> "${r1(plan.weeklyChangeKg)} kg/sem"
-        weight != null && weight > 0 -> "${r1(plan.weeklyChangeKg / weight * 100)} %/sem"
-        else -> "Sin ritmo"
+    // Cambio desde el primer punto del rango, con su fecha. El peso lo da el resumen del ViewModel.
+    val startValue = if (selectedMetric == BodyHeroMetric.WEIGHT) {
+        weightSummary.rangeStart
+    } else {
+        points.firstOrNull()?.value
     }
+    val startDate = if (selectedMetric == BodyHeroMetric.WEIGHT) {
+        weightSummary.rangeStartDate
+    } else {
+        points.firstOrNull()?.date?.let { runCatching { LocalDate.parse(it) }.getOrNull() }
+    }
+    val deltaValue = when {
+        selectedMetric == BodyHeroMetric.WEIGHT -> weightSummary.change
+        currentValue != null && startValue != null -> currentValue - startValue
+        else -> null
+    }
+    val rangeStartLabel = startDate?.let { "desde el ${formatDayMonthEs(it)}" } ?: ""
+    // El avance hacia la meta solo se muestra para la métrica de la meta activa.
+    val progressPct: Int? = when {
+        selectedMetric == BodyHeroMetric.WEIGHT && goalMetric == GoalMetric.WEIGHT -> weightSummary.progressPercent
+        selectedMetric == BodyHeroMetric.BODY_FAT && goalMetric == GoalMetric.BODY_FAT -> goalTrack?.progressPercent
+        else -> null
+    }
+    val latestDateLabel = when {
+        !loaded -> ""
+        selectedMetric == BodyHeroMetric.WEIGHT -> weightSummary.currentDate?.toString()?.let(::formatHeroDate) ?: "Sin registros"
+        else -> points.lastOrNull()?.date?.let(::formatHeroDate) ?: "Sin registros"
+    }
+    val rateLabel = when (selectedMetric) {
+        BodyHeroMetric.WEIGHT -> weightSummary.measuredWeeklyRate?.let { "${formatSignedDecimalEs(it, 1)} kg/sem" }
+        BodyHeroMetric.BODY_FAT -> bodyFatWeeklyRate?.let { "${formatSignedDecimalEs(it, 1)} puntos/sem" }
+    } ?: "Sin ritmo medido aún"
     val counterpartLabel = if (selectedMetric == BodyHeroMetric.WEIGHT) "% grasa" else "Peso"
     val counterpartValue = if (selectedMetric == BodyHeroMetric.WEIGHT) {
         bodyFat?.let { "${r1(it)}%" } ?: "—"
     } else {
         weight?.let { "${r1(it)} kg" } ?: "—"
     }
+    // Sin ritmo medido del peso, la línea dice cuántas semanas de pesajes faltan.
+    val rateHint = if (selectedMetric == BodyHeroMetric.WEIGHT && weightSummary.measuredWeeklyRate == null) {
+        "Hacen falta 2 semanas de pesajes para medir tu ritmo"
+    } else {
+        counterpartLabel + " " + counterpartValue
+    }
     val deltaLabel = when {
         deltaValue == null -> "Sin tendencia"
         deltaValue == 0.0 -> "Sin cambio"
-        else -> {
-            val direction = if (deltaValue > 0) "+" else ""
-            "$direction${r1(deltaValue)} $metricUnit"
-        }
+        else -> "${formatSignedDecimalEs(deltaValue, 1)} $metricUnit"
     }
 
     Box(
@@ -715,13 +727,13 @@ private fun ProgressHero(
                     BodyHeroDetailRow(
                         label = "Cambio",
                         primary = deltaLabel,
-                        secondary = "Desde el primer registro",
+                        secondary = rangeStartLabel,
                         color = BODY_NEUTRAL_MUTED,
                     )
                     BodyHeroDetailRow(
                         label = "Ritmo",
-                        primary = weeklyRateLabel,
-                        secondary = counterpartLabel + " " + counterpartValue,
+                        primary = rateLabel,
+                        secondary = rateHint,
                         color = BODY_NEUTRAL_DARK,
                     )
 
@@ -892,12 +904,14 @@ private fun BodyHeroDetailRow(
                 color = color.copy(alpha = 0.12f),
                 cornerRadius = androidx.compose.ui.geometry.CornerRadius(3.dp.toPx()),
             )
-            val fill = ((progress ?: 0.45f).coerceIn(0.12f, 1f)) * size.width
-            drawRoundRect(
-                color = color,
-                size = Size(fill, size.height),
-                cornerRadius = androidx.compose.ui.geometry.CornerRadius(3.dp.toPx()),
-            )
+            // Sin avance medido no hay relleno: la barra queda vacía y no se inventa un porcentaje.
+            progress?.let { fraction ->
+                drawRoundRect(
+                    color = color,
+                    size = Size(fraction.coerceIn(0f, 1f) * size.width, size.height),
+                    cornerRadius = androidx.compose.ui.geometry.CornerRadius(3.dp.toPx()),
+                )
+            }
         }
     }
 }
@@ -1206,9 +1220,9 @@ private fun BodyMetricTrendChartCard(
 private fun GoalProgressCard(
     currentValue: Double,
     targetValue: Double,
-    goalType: GoalMetric = GoalMetric.WEIGHT,
-    plan: NutritionPlan?,
-    currentWeight: Double? = null, // needed for body fat % → kg rate conversion
+    goalType: GoalMetric,
+    rateLabel: String,
+    projectionLabel: String,
 ) {
     // Direction: for MUSCLE goal, "losing" means moving away from target
     val isDecreasing = when (goalType) {
@@ -1235,18 +1249,6 @@ private fun GoalProgressCard(
         GoalMetric.WEIGHT -> if (isDecreasing) "Perder ${r1(totalDelta)} kg" else "Ganar ${r1(totalDelta)} kg"
         GoalMetric.BODY_FAT -> if (isDecreasing) "Reducir ${r1(totalDelta)}% grasa" else "Aumentar ${r1(totalDelta)}% grasa"
         GoalMetric.MUSCLE_MASS -> if (!isDecreasing) "Ganar ${r1(totalDelta)}% músculo" else "Reducir ${r1(totalDelta)}% músculo"
-    }
-
-    val weeklyRateKg = plan?.weeklyChangeKg ?: 0.0
-    // Composition plans persist percentage points/week; never convert through
-    // a guessed 70 kg body weight or label it as kg/week.
-    val weeklyRateInUnit = when (goalType) {
-        GoalMetric.WEIGHT -> weeklyRateKg.takeIf { it > 0.0 } ?: 0.0
-        GoalMetric.BODY_FAT, GoalMetric.MUSCLE_MASS -> weeklyRateKg
-    }
-    val weeklyRateLabel = when (goalType) {
-        GoalMetric.WEIGHT -> weeklyRateInUnit?.let { "${r1(it)} kg/sem" } ?: "Calibrando"
-        GoalMetric.BODY_FAT, GoalMetric.MUSCLE_MASS -> if (plan?.weeklyChangeUnit == "percentage-points/week" && weeklyRateInUnit > 0.0) "${r1(weeklyRateInUnit)} puntos/sem" else "Calibrando"
     }
 
     Card(
@@ -1308,9 +1310,8 @@ private fun GoalProgressCard(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(6.dp),
             ) {
-                InfoChip("Ritmo", weeklyRateLabel, Modifier.weight(1f))
-                InfoChip("Proyección", "Sin fecha", Modifier.weight(1f))
-                InfoChip("Estado", "Calibrando", Modifier.weight(1f))
+                InfoChip("Ritmo", rateLabel, Modifier.weight(1f))
+                InfoChip("Proyección", projectionLabel, Modifier.weight(1f))
             }
         }
     }
@@ -1351,7 +1352,8 @@ private fun InfoChip(label: String, value: String, modifier: Modifier = Modifier
 
 @Composable
 private fun FfmiGaugeCard(ffmi: Double, gender: Gender?) {
-    val category = FFMI_CATEGORIES.find { ffmi in it.range } ?: FFMI_CATEGORIES.last()
+    // Búsqueda por límite inferior: 17,95 es «Bajo» y no cae en un hueco entre categorías.
+    val category = FFMI_CATEGORIES.lastOrNull { ffmi >= it.range.start } ?: FFMI_CATEGORIES.first()
 
     Card(
         modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp),
@@ -1511,6 +1513,7 @@ private fun KpiGrid(
     bmi: Double?,
     ffmi: Double?,
     lbm: Double?,
+    fatMass: Double?,
 ) {
     Card(
         modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp),
@@ -1532,10 +1535,10 @@ private fun KpiGrid(
                 Triple("Altura", height?.let { "${it.toInt()} cm" } ?: "—", Color(0xFF78909C)),
                 Triple("% Grasa", bodyFat?.let { "${r1(it)}%" } ?: "—", BODYFAT_COLOR),
                 Triple("% Músculo", muscle?.let { "${r1(it)}%" } ?: "—", MUSCLE_COLOR),
-                Triple("IMC", bmi?.let { "${r1(it)}" } ?: "—", WEIGHT_COLOR),
+                Triple("IMC", bmi?.let { formatDecimalEs(roundBmi1(it), 1) } ?: "—", WEIGHT_COLOR),
                 Triple("FFMI", ffmi?.let { "${r1(it)}" } ?: "—", FFMI_COLOR),
                 Triple("Masa magra", lbm?.let { "${r1(it)} kg" } ?: "—", MUSCLE_COLOR),
-                Triple("Masa grasa", if (weight != null && bodyFat != null) "${r1(weight * bodyFat / 100)} kg" else "—", BODYFAT_COLOR),
+                Triple("Masa grasa", fatMass?.let { "${r1(it)} kg" } ?: "—", BODYFAT_COLOR),
             )
 
             // 2-column grid
@@ -1585,15 +1588,16 @@ private fun KpiGrid(
 
 @Composable
 private fun BmiCategoryCard(bmi: Double) {
-    data class BmiCat(val label: String, val range: ClosedFloatingPointRange<Double>, val color: Color)
-    val cats = listOf(
-        BmiCat("Bajo peso", 0.0..18.49, Color(0xFF90CAF9)),
-        BmiCat("Normal", 18.5..24.99, Color(0xFF66BB6A)),
-        BmiCat("Sobrepeso", 25.0..29.99, Color(0xFFFFA726)),
-        BmiCat("Obesidad I", 30.0..34.99, Color(0xFFEF5350)),
-        BmiCat("Obesidad II+", 35.0..60.0, Color(0xFFB71C1C)),
-    )
-    val current = cats.find { bmi in it.range } ?: cats.last()
+    data class BmiCat(val label: String, val color: Color)
+    // Se clasifica el valor que se muestra (un decimal), con las 4 categorías continuas del dominio.
+    val shown = roundBmi1(bmi)
+    val current = when (bmiCategory(shown)) {
+        BmiCategory.UNDERWEIGHT -> BmiCat("Bajo peso", Color(0xFF90CAF9))
+        BmiCategory.HEALTHY -> BmiCat("Normal", Color(0xFF66BB6A))
+        BmiCategory.OVERWEIGHT -> BmiCat("Sobrepeso", Color(0xFFFFA726))
+        BmiCategory.OBESE -> BmiCat("Obesidad", Color(0xFFEF5350))
+        null -> BmiCat("Sin dato", BODY_NEUTRAL_MUTED)
+    }
 
     Card(
         modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp),
@@ -1613,7 +1617,7 @@ private fun BmiCategoryCard(bmi: Double) {
 
             Row(verticalAlignment = Alignment.Bottom) {
                 Text(
-                    "${r1(bmi)}",
+                    formatDecimalEs(shown, 1),
                     style = MaterialTheme.typography.headlineMedium,
                     fontWeight = FontWeight.Black,
                     color = current.color,
@@ -1890,15 +1894,15 @@ private fun AddMeasurementSheet(
     val displayDate = runCatching {
         java.time.LocalDate.parse(initialEntry?.date ?: java.time.LocalDate.now().toString())
     }.getOrDefault(java.time.LocalDate.now())
-    var weight by remember(entryKey) { mutableStateOf(initialEntry?.weight?.let(::r1).orEmpty()) }
-    var bodyFat by remember(entryKey) { mutableStateOf(initialEntry?.bodyFat?.let(::r1).orEmpty()) }
-    var muscleMass by remember(entryKey) { mutableStateOf(initialEntry?.muscleMass?.let(::r1).orEmpty()) }
-    var waist by remember(entryKey) { mutableStateOf(initialEntry?.waistCm?.let(::r1).orEmpty()) }
-    var hip by remember(entryKey) { mutableStateOf(initialEntry?.hipCm?.let(::r1).orEmpty()) }
-    var chest by remember(entryKey) { mutableStateOf(initialEntry?.chestCm?.let(::r1).orEmpty()) }
-    var arm by remember(entryKey) { mutableStateOf(initialEntry?.armCm?.let(::r1).orEmpty()) }
-    var thigh by remember(entryKey) { mutableStateOf(initialEntry?.thighCm?.let(::r1).orEmpty()) }
-    var neck by remember(entryKey) { mutableStateOf(initialEntry?.neckCm?.let(::r1).orEmpty()) }
+    var weight by remember(entryKey) { mutableStateOf(initialEntry?.weight?.let(::fieldText).orEmpty()) }
+    var bodyFat by remember(entryKey) { mutableStateOf(initialEntry?.bodyFat?.let(::fieldText).orEmpty()) }
+    var muscleMass by remember(entryKey) { mutableStateOf(initialEntry?.muscleMass?.let(::fieldText).orEmpty()) }
+    var waist by remember(entryKey) { mutableStateOf(initialEntry?.waistCm?.let(::fieldText).orEmpty()) }
+    var hip by remember(entryKey) { mutableStateOf(initialEntry?.hipCm?.let(::fieldText).orEmpty()) }
+    var chest by remember(entryKey) { mutableStateOf(initialEntry?.chestCm?.let(::fieldText).orEmpty()) }
+    var arm by remember(entryKey) { mutableStateOf(initialEntry?.armCm?.let(::fieldText).orEmpty()) }
+    var thigh by remember(entryKey) { mutableStateOf(initialEntry?.thighCm?.let(::fieldText).orEmpty()) }
+    var neck by remember(entryKey) { mutableStateOf(initialEntry?.neckCm?.let(::fieldText).orEmpty()) }
     var notes by remember(entryKey) { mutableStateOf(initialEntry?.notes.orEmpty()) }
 
     KpknSheet(
@@ -2067,15 +2071,6 @@ private fun MeasurementField(
 // HELPERS
 // ═══════════════════════════════════════════════════════════════════════
 
-private fun calculateGoalProgress(
-    startValue: Double?,
-    currentValue: Double?,
-    targetValue: Double?,
-): Int? {
-    if (startValue == null || currentValue == null || targetValue == null) return null
-    return goalProgressPercent(startValue, currentValue, targetValue)
-}
-
 private fun formatShortDate(raw: String): String {
     return try {
         java.time.LocalDate.parse(raw)
@@ -2095,22 +2090,19 @@ private fun formatHeroDate(raw: String): String {
     }
 }
 
-private fun r1(v: Double): String {
-    return (kotlin.math.round(v * 10) / 10.0).toString()
-}
+/** Cifra con coma decimal y un decimal, como el resto de la app: 64,0. */
+private fun r1(v: Double): String = formatDecimalEs(v, 1)
+
+/** Texto de un campo de medida sin redondear: 64,25 se edita como 64,25. */
+private fun fieldText(v: Double): String = v.toString().replace('.', ',')
+
+/** «12 de agosto», en español aunque el teléfono esté en otro idioma. */
+private fun formatDayMonthEs(date: LocalDate): String =
+    date.format(DateTimeFormatter.ofPattern("d 'de' MMMM", Locale("es")))
+
+/** «marzo de 2027», en español. */
+private fun formatMonthEs(month: YearMonth): String =
+    month.atDay(1).format(DateTimeFormatter.ofPattern("MMMM 'de' yyyy", Locale("es")))
 
 private fun bodyDateEpochDay(raw: String): Long? =
     runCatching { java.time.LocalDate.parse(raw).toEpochDay() }.getOrNull()
-
-private fun smoothBodySeries(points: List<BodyMetricPoint>): List<BodyMetricPoint> =
-    ewmaTrend(
-        points.mapNotNull { point ->
-            runCatching {
-                com.example.kpkn.domain.body.BodyMetricPoint(
-                    date = java.time.LocalDate.parse(point.date),
-                    value = point.value,
-                    sourceObservationIds = emptyList(),
-                )
-            }.getOrNull()
-        },
-    ).map { point -> BodyMetricPoint(point.date.toString(), point.value) }
