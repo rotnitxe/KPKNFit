@@ -9,6 +9,20 @@
 
 El motor deja de ser solo un contador: mide cada repetición y arma el `SetTechniqueReport`. **Aún sin m/s y sin observaciones** (de eso se encarga VT3b): `observations = emptyList()`, `scale = ScaleInfo(NONE, …)` y velocidades relativas.
 
+## Heredado de VT2b (ya integrado; los nombres REALES mandan sobre este brief)
+- **Firmas:**
+  - `TrackPreparation.prepare(track, tuning) → PreparedTrack`;
+  - `CountSeriesBuilder.build(prepared, bar?, profile, tuning) → CountSeriesResult`, que es `Ok(series, prepared)` o `NoSignal(reason)`. Se llama `CountSeriesBuilder`, no `CountSignalBuilder`;
+  - `RepSegmenter.segment(series, profile, hints, tuning) → SegmentationResult`;
+  - `RepConfidence.score(series, seg, view, profile, flags, tuning) → ConfidenceBreakdown` y `RepFlags.of(prepared, series, seg)`;
+  - `RepPhases.compute(series, seg, profile, tuning) → PhaseSummary`.
+- **Campos añadidos al final:** `CountSeries.workSide`, `RepCycle.miniSet` y `SegmentationResult.ambiguousCycles`.
+- **Fases:** se ajustan con el perfil de jerk mínimo (`MovementPieces`), no con el umbral del 10 % de la velocidad (§6, actualizado).
+  - Para el inicio y el fin de la CON y de la EXC, usa los instantes de `RepPhaseResult` (`departUs`, `turnStartUs`, `turnEndUs` y `arriveUs`). No los recalcules con otro criterio: el MCV, el Δτ temprano y el bloqueo deben salir de los mismos instantes que el tempo.
+  - En la sentadilla sin disco (señal de cadera), el generador da fases a ±0,5 s: las tolerancias de tus pruebas de velocidad en sentadilla tienen que contar con eso, o usar el disco.
+- **`AnalysisTuning`:** ya trae los valores de VT2b. Tú solo AÑADES campos al final.
+- **`RepSegmenter.trace`:** es un gancho interno de depuración. No lo uses en el motor.
+
 ## Archivos permitidos
 - **`domain/biomechanics/metrics/` (nuevos):**
   - `SetTechniqueReport.kt`: los tipos de §3.5 que aún no existen (`DepthClass`, `VelocityUnit`, `ScaleSource`, `MetricKey`, `RepPhaseTimes`, `RepReport`, `ScaleInfo`, `TechniqueObservation`, `SetTechniqueReport`), todos `@Serializable`;
@@ -61,7 +75,7 @@ El motor deja de ser solo un contador: mide cada repetición y arma el `SetTechn
 7. **`TechniqueAnalysisEngine.analyze`.**
    - **Secuencia:**
      1. `TrackPreparation`;
-     2. `CountSignalBuilder`;
+     2. `CountSeriesBuilder`;
      3. `RepSegmenter`;
      4. `RepConfidence`;
      5. `RepPhases`;
@@ -89,9 +103,9 @@ El motor deja de ser solo un contador: mide cada repetición y arma el `SetTechn
 - **Motor de punta a punta:** 5 sentadillas limpias → 5 reps, ALTA, tempo con 4 cifras, TUT > 0, `available` ⊇ {REPS, PHASES, TUT, TEMPO, ROM, DEPTH, TRUNK, PATH, VELOCITY_RELATIVE}.
 - **Ida y vuelta** del `SetTechniqueReport` con `kotlinx.serialization`.
 
-**Comandos:**
-1. `:app:compileBaseDebugKotlin`
-2. `:app:testBaseDebugUnitTest --tests "com.example.kpkn.domain.biomechanics.metrics.*" --tests "com.example.kpkn.domain.biomechanics.reps.*"`
+**Comandos** (carril de dominio: SOLO el arnés, por su carril ligero; ver VT_COMUN):
+- `KPKN_SLOT_LANE=jvm bash /c/kw/tools/gradle_slot.sh /c/kw/vt-jvm-b test --offline --tests "com.example.kpkn.domain.biomechanics.metrics.*" --tests "com.example.kpkn.domain.biomechanics.reps.*" --console=plain > /c/kw/logs/vt-3a-jvm-<n>.log 2>&1`
+- Las corridas `:app:…` (`compileBaseDebugKotlin` y `testBaseDebugUnitTest` con estos filtros) las hace el orquestador, en lote, en vt-a.
 
 ## Commits
 - `feat(technique): métricas por repetición (ROM, profundidad, bloqueo, tronco, trayectoria, velocidad relativa)`

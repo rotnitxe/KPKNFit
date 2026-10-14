@@ -718,16 +718,26 @@ BAJA forzada: sin FULL, fracción válida < 0.6 o fs < 20
 ```
 VT10 calibra estos umbrales para que P(conteo exacto | ALTA) ≥ 98 %.
 
+**Ajustes de VT2b al segmentador** (en `AnalysisTuning`, con su razón en el KDoc):
+- `failedReturnBelow` sube de 0,5 a 0,70.
+- La primera o la última FULL con más de 1,35× el RECORRIDO (no la duración) es preparación o dejada, con ≥ 3 FULL. Sirve para recoger la barra del suelo o dejarla.
+- Si la serie acaba arriba, se añade una bajada virtual.
+- La distancia mínima entre picos conserva los rebotes de las parciales.
+- La «parada» de un intento fallido es un tramo quieto.
+- La alternancia por lado se mide entre los centros de los ciclos.
+- La polaridad no se invierte si la serie empieza y acaba abajo.
+- Con REST_PAUSE, un parcial sigue en la serie con un hueco ≤ 30 s.
+- La detección de caminar exige la cadera.
+- La puerta de huesos (§4.6) no se aplica al conteo.
+
 ### Fases, TUT y tempo
-- **Señal:** r_m = LP(r, 5 Hz), o el disco a 8 Hz si es la señal principal; v = dr_m/dt.
-- **Umbral:** v_th = max(0,10·|v|max del medio ciclo, 3σ_v), donde σ_v es el MAD de v en el reposo.
-- **Eventos:**
-  - salida: |v| sube de v_th;
-  - llegada: |v| baja a ≤ v_th;
-  - pausa de giro: |v| ≤ v_th durante ≥ 0,25 s; si no hay pausa, el límite es el cruce por cero de v, interpolado.
-- **Subfotograma:**
-  - cruces: t* = t_k + (v_th − |v_k|)/(|v_{k+1}| − |v_k|)·Δt;
-  - picos: ajuste parabólico.
+- **Señal:** r_m = LP(r, 5 Hz), o el disco a 8 Hz si es la señal principal y fs ≥ 50.
+- **Método (VT2b; reemplaza al umbral del 10 % de la velocidad):** cada media repetición (del reposo al giro y del giro al reposo) se ajusta con el perfil de jerk mínimo s(τ) = 10τ³ − 15τ⁴ + 6τ⁵ (`MovementPieces`):
+  - primero, los cruces del 10 %, el 50 % y el 90 % del recorrido, que son robustos porque ahí la pendiente es máxima, dan una salida y una llegada por extrapolación;
+  - después, un ajuste de Levenberg–Marquardt, con los niveles libres y límites de cordura, las afina; si el ajuste se sale de esos límites, vale el de los cruces.
+  - **Por qué:** con el umbral del 10 % de |v|máx, cada extremo se adelanta 0,087·T. En una fase de 2 s son 0,17 s, y una pausa de 0,2 s saldría de 0,46 s.
+- **Eventos:** salida = inicio del tramo de subida; giro = fin de la subida e inicio de la bajada. Si entre ellos hay ≥ 0,25 s, es pausa de giro; si no, es un solo instante. Llegada = fin de la bajada.
+- **Límite conocido:** con la cadera como señal, la sentadilla sin disco tiene fases aproximadas (±0,5 s en el generador), porque la altura de la cadera no es lineal con los ángulos.
 - **Pausas < 0,25 s:** se dan como 0. A 30 fps no se resuelven.
 - **Orden de fases:**
   - arranque E: EXC → P1 (giro) → CON → P2 (reposo);
