@@ -8,7 +8,9 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -19,6 +21,7 @@ import com.example.kpkn.screens.onboarding.design.WizardColors
 import com.example.kpkn.screens.onboarding.design.wizardReducedMotion
 import com.example.kpkn.ui.design.KpknTextAction
 import com.example.kpkn.ui.design.KpknType
+import androidx.compose.ui.unit.dp
 
 /**
  * Carga sugerida de la serie (KPKN LS1). [suggestion] es la cifra con su unidad («82,5 kg»): la pieza escribe «Sugerida» delante.
@@ -46,27 +49,28 @@ fun WorkoutLoadSuggestion(
         },
         label = "workoutLoadSuggestion",
     ) { isApplied ->
-        Column {
-            Row(verticalAlignment = Alignment.CenterVertically) {
+        // El motivo va en la misma columna que «Sugerida», a 2 dp; «Usar» (48 dp de toque) queda centrado a la derecha.
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = if (isApplied) "Sugerida $suggestion · en uso" else "Sugerida $suggestion",
                     style = KpknType.caption,
                     color = WizardColors.textMuted,
-                    modifier = Modifier.weight(1f),
                 )
-                if (!isApplied) {
-                    KpknTextAction(
-                        text = "Usar",
-                        onClick = onUse,
-                        modifier = Modifier.semantics { this.contentDescription = "Usar $suggestion" },
+                if (!isApplied && reason != null) {
+                    Spacer(Modifier.height(2.dp))
+                    Text(
+                        text = reason,
+                        style = KpknType.caption,
+                        color = WizardColors.textFaint,
                     )
                 }
             }
-            if (!isApplied && reason != null) {
-                Text(
-                    text = reason,
-                    style = KpknType.caption,
-                    color = WizardColors.textFaint,
+            if (!isApplied) {
+                KpknTextAction(
+                    text = "Usar",
+                    onClick = onUse,
+                    modifier = Modifier.semantics { this.contentDescription = "Usar $suggestion" },
                 )
             }
         }

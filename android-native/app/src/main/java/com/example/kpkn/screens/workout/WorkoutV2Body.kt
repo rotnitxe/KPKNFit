@@ -278,6 +278,8 @@ internal fun WorkoutV2Body(
         val liveFrameDoneFlags = remember(visibleExercises, uiState.completedSets, uiState.omittedSetKeys) {
             workoutLiveDoneFlags(visibleExercises, uiState.completedSets, uiState.omittedSetKeys)
         }
+        // Petición de la hoja «Técnica» que abre el Info de la cabecera (KPKN LS2b).
+        val techniqueSheetHolder = remember { WorkoutTechniqueSheetHolder() }
         Column(modifier = Modifier.fillMaxSize()) {
             Box(
                 modifier = Modifier
@@ -345,6 +347,7 @@ internal fun WorkoutV2Body(
                     null
                 },
                 onChangeExercise = if (currentExercise != null) onExpandReplace else null,
+                onTechnique = { techniqueSheetHolder.requests++ },
             )
             }
             Spacer(Modifier.height(0.dp))
@@ -1546,6 +1549,7 @@ internal fun WorkoutV2Body(
                             totalCount = totalTimelineSetsCount,
                             sessionAccentColor = sessionAccentColor,
                             canAddSet = canAddSetToCurrentExercise,
+                            captions = workoutSetDoneCaptions(setPagerPages, uiState.completedSets, currentExercise.id),
                         )
                         if (liveSetStepperHolder.snapshot != next) {
                             liveSetStepperHolder.snapshot = next
@@ -2079,6 +2083,7 @@ internal fun WorkoutV2Body(
                                     ) {
                                         SetInputCardV2(
                                     exercise = targetExercise,
+                                    techniqueSheetHolder = if (isActivePage) techniqueSheetHolder else null,
                                     setIndex = activeSetIndex,
                                     currentSet = activeSet,
                                     recordActionHolder = recordActionHolder,
