@@ -35,6 +35,12 @@
         - Con un `Channel(C)` llegan a estar vivos C + 2 fotogramas: el que procesa la pose, los C de la cola y el que espera en `send`. Por eso hace falta `SLOTS ≥ C + 2`.
         - Usa `Channel(2)` y sube `FramePool.SLOTS` a 4: es un cambio de una línea y está permitido. La otra opción es `Channel(1)` con 3 huecos.
         - Nunca guardes el `ByteBuffer` ni la luma fuera de esa ventana. Lo que deba vivir más, como el búfer circular de luma del disco, se COPIA.
+      - **Heredado de VT4b** (`data/media/pose`, ya integrado):
+        - `MediaPipePoseEstimators.create(context, mode, model = PoseModel.Full | HeavyFromFile(path), preferGpu = true, numPoses = 2)`;
+        - `estimate(frame, timestampMs)` se puede llamar desde cualquier hilo: pasa al hilo `vt-pose` y espera el resultado. Entre la llamada y su vuelta el `RgbaFrame` no se puede reutilizar;
+        - `GpuProbe.get(ctx).recommendedPoseStride` da el stride de pose (1 o 2);
+        - `PoseTrackAssembler`: `add`, `build(engine)`, `resumeFrom` (para reanudar desde `<id>.pose.part`) y `multiPersonFraction` (para la flag MULTI_PERSON);
+        - `PoseEstimatorReport` dice qué delegado se usó (GPU o CPU): anótalo en el sidecar.
       - **Camino de decodificación** (`(source as? VideoDecodeReport)?.path`): con `RETRIEVER`, la confianza del conteo se topa en MEDIA y se añade la flag `DECODE_FALLBACK`. Esa flag se añade AL FINAL de `AnalysisFlag` (`domain/biomechanics/metrics/AnalysisFlag.kt`): es una línea y está permitida.
       - **Cierre:** `source.use { … }` alrededor de la decodificación entera. Nunca se llama a `close()` mientras `decode` sigue en marcha: hay que cancelar y esperar antes.
       - **Pose:** cada fotograma va al estimador; el resultado, a `PoseTrackAssembler`.
