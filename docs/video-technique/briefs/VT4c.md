@@ -13,6 +13,18 @@ VT3b y VT6a solo se probaron en el arnés JVM. Tu PRIMERA corrida, por `gradle_s
 - Mientras espera en la cola, lee y planifica, pero no edites hasta que termine.
 - Si falla algo del dominio, NO lo arregles: anótalo con el error exacto y avisa en el informe. Sigue si tu parte compila.
 
+## Heredado de VT6a (ya integrado en `a5b450ea1`; los nombres REALES mandan)
+- **`LumaFrame(width, height, data: ByteArray)`:** NO copia `data`. El rastreador no guarda referencias al búfer entre llamadas, así que puedes reutilizar el mismo `ByteArray` fotograma a fotograma. Lo que deba vivir más (el búfer circular hacia atrás) sí se copia.
+- **`PlateDetector.propose(frame, wristsPx: List<Pair<Float, Float>>, expectedRadiusPx: Float, max = 3): List<PlateCandidate>`:** devuelve `PlateCandidate(cx, cy, r, score, coverage)` en píxeles de la luma, ya ordenados.
+  - El radio previo sale de la escala corporal, como dice §8 punto 3.
+  - La mejor propuesta pasa a `PlateSeed(tUs, cx, cy, r, userConfirmed = false)`.
+- **`PlateTracker(seed, fps, config = PlateTrackerConfig())`:**
+  - `.track(frame, tUs, wristPriorPx: Pair<Float, Float>?): BarSample` en cada fotograma, con la muñeca del lado cercano como prior;
+  - no es seguro para varios hilos: un rastreador por dirección (hacia delante y hacia atrás), cada uno en un solo hilo;
+  - asigna 48 B por fotograma.
+- **Coordenadas:** la pose va normalizada y la luma en píxeles. Las muñecas se pasan en píxeles del MISMO fotograma de luma, ya girado igual que la pose.
+- **Rendimiento en el arnés JVM** (720×1280): 0,4–3,1 ms por fotograma según el radio. Cabe de sobra a 60 fps; la cifra buena es la del teléfono.
+
 ## Archivos permitidos
 - **`data/media/technique/` (nuevos):**
   - `TechniqueAnalysisPipeline.kt`: implementa `TechniqueAnalyzer`;
