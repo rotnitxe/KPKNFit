@@ -36,8 +36,9 @@ import org.json.JSONArray
 import org.json.JSONObject
 
 /**
- * SOLO DEPURACIÓN (no se integra): banco de la técnica en vídeo. El modo se pasa con `--es mode <modo>`; hoy solo existe
- * `decode_selftest` (el de por defecto), y VT4b le añadirá más.
+ * SOLO DEPURACIÓN (no se integra): banco de la técnica en vídeo. El modo se pasa con `--es mode <modo>`: `decode_selftest` (el de
+ * por defecto, VT4a), `pose_bench` y `telemetry_check` (VT4b, ver [PoseBench] y [TelemetryCheck]). Con `--ez quit true` la
+ * actividad se cierra al terminar el modo.
  *
  * `decode_selftest` genera con [SyntheticClipEncoder] cuatro clips de 320×240 en `getExternalFilesDir("vt-selftest")` (30 fps,
  * 60 fps, 30 fps con `setOrientationHint(90)` y VFR con saltos de 25 y 41 ms), con un disco blanco que recorre una trayectoria
@@ -65,16 +66,39 @@ class TechniqueBenchActivity : ComponentActivity() {
         }
         setContentView(status)
         val mode = intent.getStringExtra(EXTRA_MODE) ?: MODE_DECODE_SELFTEST
+        val quit = intent.getBooleanExtra(EXTRA_QUIT, false)
         if (mode == MODE_DECODE_SELFTEST) {
             // El result.json de una corrida anterior fuera YA, antes de que termine el arranque: quien espere el archivo no debe ver el viejo.
             runCatching { File(getExternalFilesDir(SELFTEST_DIR), RESULT_FILE).delete() }
         }
+        if (mode == MODE_POSE_BENCH) runCatching { File(BenchLayout.resolve(this).outDir, PoseBench.BENCH_FILE).delete() }
+        if (mode == MODE_TELEMETRY_CHECK) runCatching { File(BenchLayout.resolve(this).outDir, TelemetryCheck.TELEMETRY_FILE).delete() }
         lifecycleScope.launch(Dispatchers.Default) {
             val text = try {
                 when (mode) {
                     MODE_DECODE_SELFTEST -> {
                         val dir = getExternalFilesDir(SELFTEST_DIR) ?: error("Sin almacenamiento externo de la app")
                         "Listo: ${DecodeSelfTest(dir).run()}"
+                    }
+                    MODE_POSE_BENCH -> {
+                        val bench = PoseBench(
+                            this@TechniqueBenchActivity,
+                            BenchLayout.resolve(this@TechniqueBenchActivity),
+                            engineFilter = listExtra(EXTRA_ENGINES).toSet(),
+                            videoFilter = listExtra(EXTRA_VIDEOS),
+                            maxSeconds = intent.getIntExtra(EXTRA_MAX_SECONDS, 0),
+                        )
+                        "Listo: ${bench.run()}"
+                    }
+                    MODE_TELEMETRY_CHECK -> {
+                        val check = TelemetryCheck(
+                            this@TechniqueBenchActivity,
+                            BenchLayout.resolve(this@TechniqueBenchActivity),
+                            waitSeconds = intent.getIntExtra(EXTRA_WAIT_SECONDS, TELEMETRY_WAIT_SECONDS),
+                            disableTransport = intent.getBooleanExtra(EXTRA_DISABLE_TRANSPORT, false),
+                            detect = intent.getBooleanExtra(EXTRA_DETECT, true),
+                        )
+                        "Listo: ${check.run()}"
                     }
                     else -> "Modo desconocido: $mode"
                 }
@@ -83,14 +107,31 @@ class TechniqueBenchActivity : ComponentActivity() {
             } catch (error: Throwable) {
                 "Error: ${describe(error)}"
             }
-            withContext(Dispatchers.Main) { status.text = text }
+            withContext(Dispatchers.Main) {
+                status.text = text
+                if (quit) finish()
+            }
         }
     }
+
+    /** Un extra de texto con valores separados por comas (`--es engines mp-full-cpu,mlkit-base`); vacío si falta. */
+    private fun listExtra(key: String): List<String> =
+        intent.getStringExtra(key)?.split(',')?.map { it.trim() }?.filter { it.isNotEmpty() }.orEmpty()
 }
 
 private const val TAG = "KpknTechniqueBench"
 private const val EXTRA_MODE = "mode"
 private const val MODE_DECODE_SELFTEST = "decode_selftest"
+private const val MODE_POSE_BENCH = "pose_bench"
+private const val MODE_TELEMETRY_CHECK = "telemetry_check"
+private const val EXTRA_QUIT = "quit"
+private const val EXTRA_ENGINES = "engines"
+private const val EXTRA_VIDEOS = "videos"
+private const val EXTRA_MAX_SECONDS = "maxSeconds"
+private const val EXTRA_WAIT_SECONDS = "waitSeconds"
+private const val EXTRA_DISABLE_TRANSPORT = "disableTransport"
+private const val EXTRA_DETECT = "detect"
+private const val TELEMETRY_WAIT_SECONDS = 75
 private const val SELFTEST_DIR = "vt-selftest"
 private const val RESULT_FILE = "result.json"
 private const val PROGRESS_FILE = "progress.txt"
