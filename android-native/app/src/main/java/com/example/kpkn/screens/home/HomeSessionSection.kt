@@ -51,6 +51,7 @@ import com.example.kpkn.screens.home.design.heroDose
 import com.example.kpkn.screens.home.design.homeHeroKicker
 import com.example.kpkn.screens.home.design.homeHeroNextLine
 import com.example.kpkn.screens.onboarding.design.wizardReducedMotion
+import com.example.kpkn.screens.programdetail.design.programNextSessionOf
 import com.example.kpkn.ui.components.PagerDots
 import com.example.kpkn.ui.design.KpknTextAction
 import java.time.LocalDate
@@ -290,6 +291,11 @@ private fun homeHeroPages(
                     body = homeHeroNextLine(
                         weekDays,
                         HomeWeekResolver.nextSession(activeProgram, sessions, weekDays, day),
+                        // Sin sesión datada, la del programa en su semana: la misma función que Program Detail.
+                        programNextSessionOf(
+                            sessions = weekDays.mapNotNull { d -> d.sessionName?.let { d.date.dayOfWeek.value to it } },
+                            today = day.dayOfWeek.value,
+                        ),
                     ),
                     countdown = countdown,
                 ),

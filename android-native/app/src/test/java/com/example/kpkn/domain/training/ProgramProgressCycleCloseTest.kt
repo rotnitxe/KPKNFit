@@ -504,7 +504,7 @@ class ProgramProgressCycleCloseTest {
             assertTrue(result.program.macrocycles.flatMap { it.blocks }.all { it.materializationPending })
             val notice = userNotices(result.program).single()
             assertEquals("author-cycle-c2", notice.proposalId)
-            assertTrue(notice.reason, notice.reason.endsWith("Las cargas nuevas se aplican al pulsar RE-MATERIALIZAR."))
+            assertTrue(notice.reason, notice.reason.endsWith("Las cargas nuevas se aplican al pulsar «Re-materializar»."))
             assertEquals(1, appliedProposals(result.program, "author-cycle-c2").size)
             // El porqué técnico queda en el marcador, no en el aviso del atleta.
             val summary = appliedProposals(result.program, "author-cycle-c2").single().second.summary
