@@ -546,7 +546,7 @@ private fun SoftToggleChip(
     }
 }
 
-private fun commit(
+internal fun commit(
     dropRows: List<TechniqueCheckRow>,
     restPauseRows: List<TechniqueCheckRow>,
     dropEnabled: Boolean,
@@ -555,7 +555,8 @@ private fun commit(
 ): Boolean {
     val drops = if (dropEnabled) {
         dropRows.mapNotNull { row ->
-            val weight = row.weightText.toDoubleOrNull() ?: return@mapNotNull null
+            // El teclado decimal escribe la coma: se lee como punto antes de convertir (LR0).
+            val weight = row.weightText.replace(',', '.').toDoubleOrNull() ?: return@mapNotNull null
             val reps = row.repsText.toIntOrNull() ?: return@mapNotNull null
             if (weight <= 0.0 || reps <= 0) null else DropSetData(weight, reps)
         }
