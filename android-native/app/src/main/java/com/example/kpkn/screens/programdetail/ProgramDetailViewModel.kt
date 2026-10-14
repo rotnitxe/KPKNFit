@@ -1448,7 +1448,7 @@ class ProgramDetailViewModel(
 
     private fun savedMessageFor(rebuild: Rematerialization?): String = when {
         rebuild == null -> "TM actualizado"
-        rebuild.failed -> "TM actualizado. Las cargas nuevas se aplican al pulsar RE-MATERIALIZAR."
+        rebuild.failed -> "TM actualizado. Las cargas nuevas se aplican al pulsar «Re-materializar»."
         else -> trainingMaxSavedMessage(rebuild.recalculatedWeeks, rebuild.preservedWeeks)
     }
 

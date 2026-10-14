@@ -23,7 +23,9 @@ import com.example.kpkn.data.models.ProgramMode
 import com.example.kpkn.data.models.ProgramWeek
 import com.example.kpkn.data.models.VolumeRecommendation
 import com.example.kpkn.data.models.WorkoutLog
+import com.example.kpkn.data.models.isSimpleProgram
 import com.example.kpkn.data.models.isSimpleTemporalProgram
+import com.example.kpkn.screens.programdetail.design.volumeScopeLabelOf
 import com.example.kpkn.domain.exercises.ExerciseMuscleResolver
 import com.example.kpkn.domain.exercises.MuscleHeadResolution
 import com.example.kpkn.domain.exercises.exerciseDisplayName
@@ -248,7 +250,7 @@ fun VolumeView(
     }
 
     val scope = ProgramVolumeScope(
-        label = selectedVolumeScope?.label ?: "Sin alcance",
+        label = volumeScopeLabelOf(selectedVolumeScope?.label ?: "Sin alcance", simpleProgram = program.isSimpleProgram),
         detail = selectedVolumeScope?.detail.orEmpty(),
         kinds = scopeKinds.map(::volumeKindLabel),
         selectedKind = selectedKind,
@@ -275,7 +277,10 @@ fun VolumeView(
         }
 
         if (!isVolumeCalibrated || program.athleteProfileScore == null) {
-            ProgramVolumeCalibrationInvite(onCalibrate = { showCalibrationSheet = true })
+            ProgramVolumeCalibrationInvite(
+                onCalibrate = { showCalibrationSheet = true },
+                note = if (!isVolumeCalibrated) "Sin calibrar: las zonas aparecen al calibrar" else null,
+            )
         }
 
         ProgramVolumeModule(

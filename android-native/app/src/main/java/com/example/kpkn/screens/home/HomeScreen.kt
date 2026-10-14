@@ -84,6 +84,7 @@ import com.example.kpkn.ui.components.KpknGlass
 import com.example.kpkn.ui.components.KpknGlassVariant
 import com.example.kpkn.ui.components.icons.KpknLineIcons
 import com.example.kpkn.ui.design.KpknShape
+import com.example.kpkn.ui.design.KpknStatusVeil
 import com.example.kpkn.ui.design.KpknSurface
 import com.example.kpkn.ui.design.KpknModule
 import com.example.kpkn.ui.design.KpknModuleHeader
@@ -431,7 +432,7 @@ fun HomeScreen(
              )
 
         // Velo fijo bajo la barra de estado (I8): va por encima de la lista y por debajo de la barra superior, que es hermana del NavHost.
-        HomeStatusVeil(modifier = Modifier.align(Alignment.TopCenter))
+        KpknStatusVeil(modifier = Modifier.align(Alignment.TopCenter))
 
         if (showFoodLogger) {
             // C12: la misma regla horaria que Nutrición, resuelta cada vez que se abre el logger. WP-U7: se guarda con el
@@ -618,24 +619,6 @@ fun HomeScreen(
                 },
             )
         }
-    }
-}
-
-/**
- * Velo fijo bajo la barra de estado (I8, I12): negro pleno en todo el alto de la barra de estado y, debajo, 24 dp de degradado del negro
- * a transparente. Así lo que se desliza por arriba no se lee bajo la hora ni los iconos. No capta toques: el tacto pasa a la lista.
- */
-@Composable
-private fun HomeStatusVeil(modifier: Modifier = Modifier) {
-    val statusTop = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
-    Column(modifier = modifier.fillMaxWidth()) {
-        Box(Modifier.fillMaxWidth().height(statusTop).background(WizardColors.background.copy(alpha = 1f)))
-        Box(
-            Modifier
-                .fillMaxWidth()
-                .height(24.dp)
-                .background(Brush.verticalGradient(listOf(WizardColors.background, Color.Transparent))),
-        )
     }
 }
 

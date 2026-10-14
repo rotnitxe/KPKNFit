@@ -21,7 +21,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.TextMeasurer
@@ -38,6 +40,7 @@ import com.example.kpkn.screens.onboarding.design.entreno.plan.cover.CoverIdenti
 import com.example.kpkn.ui.components.icons.KpknLineIcons
 import com.example.kpkn.ui.design.KpknIconButton
 import com.example.kpkn.ui.design.KpknPrimaryPill
+import com.example.kpkn.ui.design.KpknSecondaryPill
 import com.example.kpkn.ui.design.KpknType
 import java.util.Locale
 
@@ -56,6 +59,8 @@ internal data class ProgramHeaderState(
     /** «Semana 3 de 12 · Acumulación»; null si no se sabe en qué semana va. */
     val progressLabel: String?,
     val primary: ProgramHeaderPrimary,
+    /** La siguiente sesión, para un día sin sesión: su píldora dice «Siguiente: jueves · Pierna A». Null si no hay ninguna. */
+    val nextSession: ProgramNextSession? = null,
 )
 
 /** Las acciones de la cabecera. Cada una la ejecuta la pantalla. */
@@ -63,6 +68,8 @@ internal data class ProgramHeaderActions(
     val onPrimary: () -> Unit,
     val onStartPause: () -> Unit,
     val onEdit: () -> Unit,
+    /** Abre el día de la siguiente sesión en la pestaña Semana. */
+    val onOpenNextSession: () -> Unit = {},
 )
 
 /**
@@ -118,8 +125,10 @@ internal fun ProgramHeader(
 }
 
 /**
- * Fila de acciones: la principal con pausar o reanudar y editar. Si la etiqueta de la principal no cabe en la fila a la letra
- * actual, la píldora ocupa la primera línea y los iconos van debajo, a la derecha: así nunca se corta una palabra (KPKN_UI_V2 §5).
+ * Fila de acciones: la principal con pausar o reanudar y editar. En un día sin sesión, la píldora secundaria dice cuál es la siguiente
+ * sesión («Siguiente: jueves · Pierna A») y ocupa el mismo ancho que «Empezar»; si no hay siguiente, ⏸ y ✎ van a la izquierda. Si la
+ * etiqueta no cabe en la fila a la letra actual, la píldora ocupa la primera línea y los iconos van debajo, a la derecha: así nunca se
+ * corta una palabra (KPKN_UI_V2 §5).
  */
 @Composable
 private fun ProgramActionRow(state: ProgramHeaderState, actions: ProgramHeaderActions) {
@@ -129,26 +138,34 @@ private fun ProgramActionRow(state: ProgramHeaderState, actions: ProgramHeaderAc
     } else {
         null
     }
+    // Sin acción principal (día sin sesión), la píldora secundaria enseña la siguiente sesión.
+    val isNext = primaryLabel == null && state.nextSession != null
+    val pillLabel = primaryLabel ?: state.nextSession?.label
+    val pillOnClick = if (isNext) actions.onOpenNextSession else actions.onPrimary
+    // En la píldora secundaria: el icono de calendario y lo que lee TalkBack de la siguiente sesión.
+    val pillIcon = if (isNext) KpknLineIcons.Calendar else primaryIcon
+    val pillDescription = if (isNext) state.nextSession?.description else null
     val measurer = rememberTextMeasurer()
     val density = LocalDensity.current
     BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
         // En la fila, la píldora cabe en lo que dejan dos iconos de 48 dp y 8 dp de separación.
         val pillRowPx = with(density) { (maxWidth - 8.dp - 48.dp - 8.dp - 48.dp).toPx() }
         // Lo que necesita la píldora: el texto, el icono (20 dp y 8 dp) si lo hay, y 24 dp de margen a cada lado.
-        val neededPx = if (primaryLabel == null) {
+        val neededPx = if (pillLabel == null) {
             0f
         } else {
-            measurer.measure(text = primaryLabel, style = WizardTypography.cta, maxLines = 1, softWrap = false).size.width.toFloat() +
-                with(density) { (48.dp + (if (primaryIcon != null) 28.dp else 0.dp)).toPx() }
+            measurer.measure(text = pillLabel, style = WizardTypography.cta, maxLines = 1, softWrap = false).size.width.toFloat() +
+                with(density) { (48.dp + (if (pillIcon != null) 28.dp else 0.dp)).toPx() }
         }
-        if (primaryLabel != null && neededPx > pillRowPx) {
+        if (pillLabel != null && neededPx > pillRowPx) {
             Column(modifier = Modifier.fillMaxWidth()) {
-                KpknPrimaryPill(
-                    text = primaryLabel,
-                    onClick = actions.onPrimary,
+                ProgramHeaderPill(
+                    isNext = isNext,
+                    text = pillLabel,
+                    onClick = pillOnClick,
                     modifier = Modifier.fillMaxWidth(),
-                    tag = "program_header_primary",
-                    icon = primaryIcon,
+                    icon = pillIcon,
+                    description = pillDescription,
                 )
                 Spacer(Modifier.height(8.dp))
                 Row(
@@ -161,21 +178,42 @@ private fun ProgramActionRow(state: ProgramHeaderState, actions: ProgramHeaderAc
             }
         } else {
             Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                if (primaryLabel != null) {
-                    KpknPrimaryPill(
-                        text = primaryLabel,
-                        onClick = actions.onPrimary,
+                if (pillLabel != null) {
+                    ProgramHeaderPill(
+                        isNext = isNext,
+                        text = pillLabel,
+                        onClick = pillOnClick,
                         modifier = Modifier.weight(1f),
-                        tag = "program_header_primary",
-                        icon = primaryIcon,
+                        icon = pillIcon,
+                        description = pillDescription,
                     )
                     Spacer(Modifier.width(8.dp))
-                } else {
-                    Spacer(Modifier.weight(1f))
                 }
+                // Sin píldora (día sin sesión y sin siguiente), ⏸ y ✎ quedan a la izquierda.
                 ProgramControlButtons(state = state, actions = actions)
             }
         }
+    }
+}
+
+/**
+ * La píldora de la fila: la principal («Empezar…», «Activar programa») o, en un día sin sesión, la secundaria con la siguiente sesión.
+ */
+@Composable
+private fun ProgramHeaderPill(
+    isNext: Boolean,
+    text: String,
+    onClick: () -> Unit,
+    modifier: Modifier,
+    icon: ImageVector?,
+    description: String?,
+) {
+    if (isNext) {
+        // La secundaria de la siguiente sesión: TalkBack lee «Siguiente sesión: jueves, Pierna A» en vez de la etiqueta corta.
+        val pillModifier = if (description != null) modifier.semantics { contentDescription = description } else modifier
+        KpknSecondaryPill(text = text, onClick = onClick, modifier = pillModifier, tag = "program_header_next", icon = icon)
+    } else {
+        KpknPrimaryPill(text = text, onClick = onClick, modifier = modifier, tag = "program_header_primary", icon = icon)
     }
 }
 

@@ -40,6 +40,7 @@ import com.example.kpkn.ui.components.SnackbarType
 import com.example.kpkn.ui.components.icons.KpknLineIcons
 import com.example.kpkn.ui.components.showKpknSnackbar
 import com.example.kpkn.ui.design.KpknModule
+import com.example.kpkn.ui.design.KpknStatusVeil
 import com.example.kpkn.ui.design.KpknSurface
 import com.example.kpkn.ui.design.KpknTextAction
 import com.example.kpkn.ui.design.KpknType
@@ -154,9 +155,8 @@ fun NutritionScreen(
     }
 
     val nutritionHazeState = remember { HazeState() }
-    // Fecha de la cabecera y de la isla («Hoy» o la fecha elegida), con el idioma efectivo de la app.
-    val nutritionLocale = LocaleManager.getEffectiveLocale(nutritionContext)
-    val dateLabel = remember(selectedDate, nutritionLocale) { nutritionHeroDateLabel(selectedDate, nutritionLocale) }
+    // Fecha de la cabecera y de la isla («Hoy» o la fecha elegida): siempre en español, sea cual sea el idioma del sistema.
+    val dateLabel = remember(selectedDate) { nutritionHeroDateLabel(selectedDate) }
     // La isla «Registrar comida» y el «+» de la isla superior usan la misma regla: sin plan, pide crear uno.
     val openFoodLogger: () -> Unit = {
         if (!isFoodLoggingAvailable(settings, activePlan != null)) {
@@ -339,6 +339,9 @@ fun NutritionScreen(
             }
         }
 
+        // Velo bajo la barra de estado: por encima de la lista y por debajo de las islas.
+        KpknStatusVeil(modifier = Modifier.align(Alignment.TopCenter))
+
         // Isla superior: aparece cuando la cabecera sale de la vista. Sin «+»: el registro vive en la isla de abajo.
         NutritionTopIsland(
             visible = islandVisible,
@@ -484,21 +487,18 @@ private fun NutritionMealsBlock(
 }
 
 /**
- * La fecha del encabezado: «Jueves, 2 de octubre» en español, «Thursday, October 2» en inglés y, en cualquier otro idioma,
- * la fecha larga de ese idioma. Cada idioma arma su propio orden: el «de» solo existe en español. Si [selectedDate] no es
- * una fecha válida se muestra tal cual.
+ * La fecha del encabezado: «Miércoles 14 de octubre», con el mismo formato que Inicio (la pantalla la pone en mayúsculas por estilo).
+ * Siempre en español, con independencia del idioma del sistema. Si [selectedDate] no es una fecha válida se muestra tal cual.
  */
-internal fun nutritionHeroDateLabel(selectedDate: String, locale: Locale): String =
+internal fun nutritionHeroDateLabel(selectedDate: String): String =
     try {
-        val formatter = when (locale.language) {
-            "es" -> DateTimeFormatter.ofPattern("EEEE, d 'de' MMMM", locale)
-            "en" -> DateTimeFormatter.ofPattern("EEEE, MMMM d", locale)
-            else -> DateTimeFormatter.ofLocalizedDate(FormatStyle.FULL).withLocale(locale)
-        }
-        LocalDate.parse(selectedDate).format(formatter).replaceFirstChar { it.titlecase(locale) }
+        LocalDate.parse(selectedDate).format(NUTRITION_DATE_FORMAT).replaceFirstChar { it.titlecase(NUTRITION_DATE_LOCALE) }
     } catch (_: Exception) {
         selectedDate
     }
+
+private val NUTRITION_DATE_LOCALE: Locale = Locale.forLanguageTag("es")
+private val NUTRITION_DATE_FORMAT: DateTimeFormatter = DateTimeFormatter.ofPattern("EEEE d 'de' MMMM", NUTRITION_DATE_LOCALE)
 
 /**
  * Guardar la comida abierta es una edición si lo que se guarda lleva el id de la comida que se abrió para editar. El id

@@ -88,12 +88,15 @@ import com.example.kpkn.screens.programdetail.design.programHeaderDotColor
 import com.example.kpkn.screens.programdetail.design.programHeaderPrimaryOf
 import com.example.kpkn.screens.programdetail.design.programHeaderStatusOf
 import com.example.kpkn.screens.programdetail.design.programMetaLine
+import com.example.kpkn.screens.programdetail.design.programNextSessionOf
+import com.example.kpkn.screens.programdetail.design.repeatingWeekSubtitle
 import com.example.kpkn.screens.programdetail.design.programProgressLabel
 import com.example.kpkn.screens.programdetail.design.rememberPassedLine
 import com.example.kpkn.ui.components.rememberProgramCover
 import com.example.kpkn.ui.components.icons.KpknLineIcons
 import com.example.kpkn.ui.design.KpknIconButton
 import com.example.kpkn.ui.design.KpknSegmentedControl
+import com.example.kpkn.ui.design.KpknStatusVeil
 import com.example.kpkn.ui.design.KpknSurface
 import com.example.kpkn.ui.design.KpknTopIsland
 import com.example.kpkn.ui.design.KpknTopRow
@@ -232,6 +235,13 @@ fun ProgramDetailScreen(
     )
     val coverKind = heroCoverKind(p.coverImage, hasBundledCover = bundledCover != null)
     val identity = remember(p.id, p.structureTemplateId, p.coverImage) { coverIdentityForProgram(p) }
+    // La siguiente sesión de la semana que se ve: la fila de acciones la enseña en un día sin sesión («Siguiente: jueves · Pierna A»).
+    val nextSession = remember(displayedSessions) {
+        programNextSessionOf(
+            sessions = displayedSessions.mapNotNull { session -> session.dayOfWeek?.let { it to session.name } },
+            today = java.time.LocalDate.now().dayOfWeek.value,
+        )
+    }
     val headerState = ProgramHeaderState(
         name = p.name,
         status = status,
@@ -249,6 +259,7 @@ fun ProgramDetailScreen(
             cycle = p.runState?.cycleNumber,
         ),
         primary = primaryAction,
+        nextSession = nextSession,
     )
     val openEdit: () -> Unit = {
         editDraft = programEditDraftOf(p)
@@ -264,6 +275,13 @@ fun ProgramDetailScreen(
         },
         onStartPause = { viewModel.toggleStartPause() },
         onEdit = openEdit,
+        onOpenNextSession = {
+            // Abre ese día en la pestaña Semana: se despliega solo ese día de la semana que se ve.
+            val weekId = selectedWeekMeta?.id
+            val day = nextSession?.dayOfWeek
+            if (weekId != null && day != null) viewModel.setExpandedWeekDays(weekId, setOf(day))
+            viewModel.setStructureSubTab(StructureSubTab.SEMANA)
+        },
     )
     val planSummary = remember(p) { buildProgramPlanDisplaySummary(p) }
     val tabOptions = programDetailTabsOptions
@@ -312,7 +330,7 @@ fun ProgramDetailScreen(
                     }
                     Spacer(Modifier.height(16.dp))
                     ProgramAboutModule(
-                        provenance = listOfNotNull(planSummary.provenanceLabel, planSummary.sourceLine).joinToString(" · "),
+                        provenance = aboutProvenanceLine(planSummary),
                         notes = planSummary.planNotes,
                         onOpenPlanInfo = planSummary.catalogEntry?.let { entry -> { planInfoEntryId = entry.id } },
                         onOpenMore = { showPlanSheet = true },
@@ -377,6 +395,8 @@ fun ProgramDetailScreen(
         }
 
         if (!showSplitPage) {
+            // Velo bajo la barra de estado: por encima del contenido que se desliza y por debajo de la isla.
+            KpknStatusVeil(modifier = Modifier.align(Alignment.TopCenter))
             KpknTopIsland(
                 visible = islandVisible,
                 title = p.name,
@@ -780,7 +800,16 @@ private fun TrainingPanel(
                         ?.label
                     ProgramWeekHeader(
                         title = if (repeating) "Semana que se repite" else listOfNotNull("Semana ${weekIndex + 1}", phase).joinToString(" · "),
-                        name = week.name.takeUnless { WeekDefaultName.matches(it.trim()) },
+                        // Un programa simple no repite el nombre de la semana («Semana repetible»): dice sus sesiones y su duración.
+                        name = if (repeating) {
+                            repeatingWeekSubtitle(
+                                sessionMinutes = displayedSessions.map {
+                                    com.example.kpkn.domain.training.SessionDurationEstimator.estimate(it).totalMinutes
+                                },
+                            )
+                        } else {
+                            week.name.takeUnless { WeekDefaultName.matches(it.trim()) }
+                        },
                         description = week.description,
                         onEdit = { weekEdit = WeekEditDraft(weekId = week.id, name = week.name, description = week.description.orEmpty()) },
                         onChangeSplit = onOpenSplitPage,
