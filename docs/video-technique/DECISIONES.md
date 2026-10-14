@@ -8,6 +8,7 @@
 - **U3. Verdad de campo:** vídeos públicos con licencia, con permiso explícito para CADA descarga (archivo, origen y tamaño).
 - **U4. Modelos de MediaPipe:** autoriza descargar `pose_landmarker_full.task` (9 398 198 B) y `pose_landmarker_heavy.task` (30 664 242 B) desde storage.googleapis.com (`float16/1`). Ver `MODELS.md`.
 - **U5.** Plan aprobado: `C:\Users\valen\.claude\plans\iridescent-enchanting-dragonfly.md`.
+- **U6 (14-oct).** Aprueba el lote 2 del banco dorado: 28 vídeos de Pexels y Pixabay (148 MB), para cubrir los perfiles sin clips aptos. La lista, con archivo, origen y tamaño, está en `C:\kw\vt-bench\candidates2.tsv`. Coverr queda fuera porque su licencia prohíbe usar el material como conjunto de datos.
 
 ## Del orquestador (con su razón)
 | # | Decisión | Por qué |
