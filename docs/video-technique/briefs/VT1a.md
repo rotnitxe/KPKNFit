@@ -58,7 +58,7 @@ object GapFiller { fun fill(x: DoubleArray, fs: Double, maxGapS: Double): GapFil
 object Hampel { fun filter(x: DoubleArray, halfWindow: Int, nSigma: Double = 3.0): DoubleArray } // sustituye por la mediana
 data class Biquad(val b0: Double, val b1: Double, val b2: Double, val a1: Double, val a2: Double)
 object ZeroPhaseLowPass {
-    fun design(fs: Double, fcEffective: Double): Biquad                     // fd = fc/0.802 (Winter), K = tan(π·fd/fs)
+    fun design(fs: Double, fcEffective: Double): Biquad                     // Winter: K = tan(π·fc/fs)/0.802 (corregido en VT1b)
     fun filter(x: DoubleArray, fs: Double, fcEffective: Double): DoubleArray
 }
 object Derivative { fun central(x: DoubleArray, fs: Double): DoubleArray }   // extremos con diferencia hacia un lado; NaN se propaga

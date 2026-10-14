@@ -493,6 +493,11 @@ Los `Settings` se guardan con `encodeDefaults = true`, así que cambiar el valor
   - θ(A,B,C) = atan2(|BA×BC|, BA·BC), el ángulo incluido en B, en grados;
   - HC (centro de la mano) = ½·muñeca + ¼·(índice + meñique);
   - MF (medio pie) = ½·(talón + punta).
+- **Convenios fijados por VT1b** (los respetan VT4c y VT8a):
+  - roll > 0 = la imagen está girada en sentido horario;
+  - con ψ = 90 (de lado, lado izquierdo del atleta hacia la cámara), el atleta mira a la izquierda de la imagen (f = −1);
+  - «world» va en ejes de cámara (x a la derecha, y hacia abajo, z en profundidad), centrado en la cadera;
+  - en el generador, PARTIAL_FAR = del 0 al 55 % del recorrido (en el segmentador, REST_END) y PARTIAL_REST = del 45 al 100 % (en el segmentador, FAR_END).
 - **Ningún ángulo ni distancia** se calcula sin corregir el aspecto. El `trunkAngleDeg` de v1 lo hacía mal: con un tronco a 30°, un vídeo vertical marcaba 46°.
 
 1. **Tiempo:**
@@ -524,8 +529,8 @@ Los `Settings` se guardan con `encodeDefaults = true`, así que cambiar el valor
    - 0,25–0,6 s: relleno solo en la señal de conteo;
    - > 0,6 s: corte.
    - Un giro dentro de un relleno marca la repetición como `turnInGap`.
-9. **Paso bajo de fase cero** (`ZeroPhaseLowPass`): Butterworth de 2.º orden en ida y vuelta, con fd = fc/0,802 (corrección de Winter).
-   - **Coeficientes:** K = tan(π·fd/fs), n = 1 + √2·K + K²;
+9. **Paso bajo de fase cero** (`ZeroPhaseLowPass`): Butterworth de 2.º orden en ida y vuelta, con la corrección de Winter aplicada sobre la frecuencia YA deformada: K = tan(π·fc/fs)/0,802 (no fd = fc/0,802, que a 30 fps/5 Hz daba una ganancia de 0,755 en fc; corregido en VT1b).
+   - **Coeficientes:** n = 1 + √2·K + K²;
      - b0 = K²/n, b1 = 2·b0, b2 = b0;
      - a1 = 2(K² − 1)/n, a2 = (1 − √2·K + K²)/n.
    - **Implementación:** DF-II transpuesta.

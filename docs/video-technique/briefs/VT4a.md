@@ -9,6 +9,16 @@
 
 El analizador necesita TODOS los fotogramas del vídeo, en orden, ya girados y a ~720 px, con PTS reales. Hoy se usa `MediaMetadataRetriever.getScaledFrameAtTime` a 10 fps, que busca cada fotograma por separado: es lento e impreciso. Esto lo sustituye.
 
+## Paso 0: verificación de integración (lo primero, antes de editar)
+`feat/video-technique` acaba de recibir VT-A, VT1a, VT1b y la fusión de `feat/sessions-v1` (LS2b, LS3, LS4, LS6 y la PR11).
+
+Tu PRIMERA corrida es:
+`:app:compileBaseDebugKotlin :app:testBaseDebugUnitTest --tests "com.example.kpkn.domain.biomechanics.*" --tests "com.example.kpkn.data.media.*"`
+- Es la verificación oficial, en lote, del carril de dominio.
+- Mientras espera en la cola, puedes leer y planificar, pero no edites hasta que termine.
+- Si falla por algo AJENO a la ola VT (código de `sessions-v1`), no lo arregles: anótalo en el informe con el error exacto y sigue con tu paquete, si tu parte compila.
+- Si falla algo de `domain/biomechanics`, anótalo con el error exacto. Lo arregla el carril de dominio.
+
 ## Archivos permitidos
 - **Código** (`data/media/video/`, nuevos):
   - `VideoInfo.kt`: `VideoInfo`, `FrameNeeds` y `DecodedFrame`;
