@@ -1,6 +1,6 @@
 # VT1b · Cinemática, vista, encuadre y generador sintético (dominio puro)
 
-- **Worktree y rama:** `C:\kw\vt-a`, rama `vt/vt1b`, desde `feat/video-technique` con VT1a integrado.
+- **Worktree y rama:** `C:\kw\vt-b` (carril de dominio), rama `vt/vt1b`, desde `feat/video-technique` con VT1a integrado.
 - **Antes de empezar, lee:**
   - `docs/video-technique/briefs/VT_COMUN.md`;
   - `docs/video-technique/VIDEO_TECHNIQUE_V1.md` §3.1, §4 (entero) y §10 puntos 1–3;

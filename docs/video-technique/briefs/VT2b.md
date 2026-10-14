@@ -1,6 +1,6 @@
 # VT2b · Señal de conteo, segmentador, confianza, fases y TUT (dominio puro)
 
-- **Worktree y rama:** `C:\kw\vt-a`, rama `vt/vt2b`, desde `feat/video-technique` con VT2a integrado.
+- **Worktree y rama:** `C:\kw\vt-b` (carril de dominio), rama `vt/vt2b`, desde `feat/video-technique` con VT2a integrado.
 - **Antes de empezar, lee:**
   - `VT_COMUN.md`;
   - `VIDEO_TECHNIQUE_V1.md` §3.4–§3.6, §4 (puntos 1–13), §5 («Señal de conteo», «Disco como señal principal» y la tabla) y §6, ENTERA;

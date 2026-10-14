@@ -1,6 +1,6 @@
 # VT3b · VBT con disco (escala, m/s, carga-velocidad) y observaciones (dominio puro)
 
-- **Worktree y rama:** `C:\kw\vt-a`, rama `vt/vt3b`, desde `feat/video-technique` con VT3a integrado.
+- **Worktree y rama:** `C:\kw\vt-b` (carril de dominio), rama `vt/vt3b`, desde `feat/video-technique` con VT3a integrado.
 - **Antes de empezar, lee:**
   - `VT_COMUN.md`;
   - `VIDEO_TECHNIQUE_V1.md` §3.5, §3.6, §7 («Velocidad», «Perfil carga-velocidad», «Observaciones») y §8 punto 6 (escala, elipse y paralaje);

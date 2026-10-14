@@ -1,6 +1,6 @@
 # VT3a · Métricas por repetición y por serie, informe y motor (dominio puro)
 
-- **Worktree y rama:** `C:\kw\vt-a`, rama `vt/vt3a`, desde `feat/video-technique` con VT2b integrado.
+- **Worktree y rama:** `C:\kw\vt-b` (carril de dominio), rama `vt/vt3a`, desde `feat/video-technique` con VT2b integrado.
 - **Antes de empezar, lee:**
   - `VT_COMUN.md`;
   - `VIDEO_TECHNIQUE_V1.md` §3.5, §3.6 y §7, salvo las partes «Perfil carga-velocidad» y «Observaciones», que son de VT3b;

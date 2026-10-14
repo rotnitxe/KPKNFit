@@ -55,6 +55,12 @@ La especificación es `docs/video-technique/VIDEO_TECHNIQUE_V1.md`. Lee SOLO las
   - No toques los archivos del arnés: si falla por su configuración, avisa en el informe.
   - Al final, la verificación OFICIAL del paquete se hace UNA vez, por `gradle_slot.sh`: `:app:compileBaseDebugKotlin` y luego `:app:testBaseDebugUnitTest --tests …`.
 - **Regla de aislamiento:** `domain/biomechanics/**` solo importa de sí mismo, de `kotlin.*`/`kotlinx.*` y de `java.*`. Nada de otros paquetes `domain/`, ni de `data/`, ni de `android.*`. Si no, el arnés no compila.
+- **Carril de dominio** (VT1a, VT1b, VT2a, VT2b, VT3a, VT3b y VT6a), en el worktree `C:\kw\vt-b`:
+  - **NO lances Gradle de Android** (ni `gradle_slot.sh` ni `gradlew` de `android-native`): ese worktree no compila la app, para no gastar 4,5 GB de disco.
+  - Usa SOLO el arnés propio, `C:\kw\vt-jvm-b`:
+    `cd /c/kw/vt-jvm-b && ./gradlew test --offline --tests "<filtro>" --console=plain > /c/kw/logs/vt-<paquete>-jvm-<n>.log 2>&1`
+  - Las corridas `:app:…` que aparecen en esos briefs las hace el orquestador, en lote, en `C:\kw\vt-a`.
+  - En el informe, pon el comando del arnés y su resultado (los XML de `C:\kw\vt-jvm-b\build\test-results\test\`).
 - **Si falla una prueba ajena a tu cambio,** no la persigas: anótala.
 - **Estilo de pruebas:**
   - JUnit4 con `org.junit.Assert`; no hay Truth ni MockK;

@@ -1,6 +1,6 @@
 # VT2a · Perfiles de análisis y resolver con cobertura del catálogo (dominio puro)
 
-- **Worktree y rama:** `C:\kw\vt-a`, rama `vt/vt2a`, desde `feat/video-technique` con VT1b integrado.
+- **Worktree y rama:** `C:\kw\vt-b` (carril de dominio), rama `vt/vt2a`, desde `feat/video-technique` con VT1b integrado.
 - **Antes de empezar, lee:**
   - `VT_COMUN.md`;
   - `VIDEO_TECHNIQUE_V1.md` §3.4 y §5 (entera);

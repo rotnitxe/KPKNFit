@@ -1,6 +1,6 @@
 # VT1a · Pose v2, barra, códecs y procesado de señal (dominio puro)
 
-- **Worktree y rama:** `C:\kw\vt-a`, rama `vt/vt1a`, desde `feat/video-technique` con VT-A integrado.
+- **Worktree y rama:** `C:\kw\vt-b` (carril de dominio), rama `vt/vt1a`, desde `feat/video-technique` (no necesita VT-A: es dominio puro).
 - **Antes de empezar, lee:**
   - `docs/video-technique/briefs/VT_COMUN.md`;
   - `docs/video-technique/VIDEO_TECHNIQUE_V1.md` §3.1, §3.2, §3.8 (formatos) y §4 puntos 1, 4 y 6–10;

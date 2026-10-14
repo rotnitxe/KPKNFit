@@ -1,6 +1,6 @@
 # VT6a · Disco de la barra: detección y seguimiento sobre luma (dominio puro)
 
-- **Worktree y rama:** `C:\kw\vt-a`, rama `vt/vt6a`, desde `feat/video-technique` con VT3b integrado.
+- **Worktree y rama:** `C:\kw\vt-b` (carril de dominio), rama `vt/vt6a`, desde `feat/video-technique` con VT3b integrado.
 - **Antes de empezar, lee:**
   - `VT_COMUN.md`;
   - `VIDEO_TECHNIQUE_V1.md` §3.2, §3.3 y §8 (entero, salvo el punto 6, que ya hizo VT3b) y §10 punto 4;
