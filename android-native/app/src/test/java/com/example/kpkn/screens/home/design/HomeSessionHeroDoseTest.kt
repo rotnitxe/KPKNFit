@@ -7,6 +7,7 @@ import com.example.kpkn.data.models.RepRange
 import com.example.kpkn.domain.training.HomeDayKind
 import com.example.kpkn.domain.training.HomeNextSession
 import com.example.kpkn.domain.training.HomeWeekDay
+import com.example.kpkn.screens.programdetail.design.programNextSessionOf
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Test
@@ -105,5 +106,34 @@ class HomeSessionHeroDoseTest {
         )
         assertEquals("Siguiente: la próxima semana", homeHeroNextLine(week, null))
         assertNull(homeHeroNextLine(emptyList(), HomeNextSession(LocalDate.of(2026, 10, 15), "Pierna A")))
+    }
+
+    @Test
+    fun sin_sesion_datada_la_linea_nombra_el_dia_y_la_sesion_del_programa() {
+        // Miércoles de descanso y «Pierna A» el sábado, tres días después: la misma función que Program Detail.
+        val week = listOf(HomeWeekDay(LocalDate.of(2026, 10, 14), "X", false, HomeDayKind.REST, null))
+        val programNext = programNextSessionOf(listOf(6 to "Pierna A"), today = 3)
+
+        assertEquals("Siguiente: sábado · Pierna A", homeHeroNextLine(week, null, programNext))
+    }
+
+    @Test
+    fun una_sesion_datada_a_diez_dias_conserva_su_fecha() {
+        // El 24 de octubre de 2026 es sábado, diez días después del descanso: manda la sesión datada, no la del programa.
+        val week = listOf(HomeWeekDay(LocalDate.of(2026, 10, 14), "X", false, HomeDayKind.REST, null))
+        val programNext = programNextSessionOf(listOf(6 to "Pierna A"), today = 3)
+
+        assertEquals(
+            "Siguiente: sábado 24 · Torso B",
+            homeHeroNextLine(week, HomeNextSession(LocalDate.of(2026, 10, 24), "Torso B"), programNext),
+        )
+    }
+
+    @Test
+    fun sin_ninguna_sesion_queda_la_frase_de_siempre() {
+        val week = listOf(HomeWeekDay(LocalDate.of(2026, 10, 14), "X", false, HomeDayKind.REST, null))
+
+        assertEquals("Siguiente: la próxima semana", homeHeroNextLine(week, null, programNextSessionOf(emptyList(), today = 3)))
+        assertEquals("Siguiente: la próxima semana", homeHeroNextLine(week, null, null))
     }
 }

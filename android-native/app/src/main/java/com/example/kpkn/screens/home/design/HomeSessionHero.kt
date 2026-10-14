@@ -26,6 +26,7 @@ import com.example.kpkn.domain.training.HomeNextSession
 import com.example.kpkn.domain.training.HomeWeekDay
 import com.example.kpkn.screens.onboarding.design.WizardColors
 import com.example.kpkn.screens.onboarding.design.entreno.SymbolPalette
+import com.example.kpkn.screens.programdetail.design.ProgramNextSession
 import com.example.kpkn.ui.components.icons.KpknLineIcons
 import com.example.kpkn.ui.design.KpknMetric
 import com.example.kpkn.ui.design.KpknPrimaryPill
@@ -516,12 +517,18 @@ private fun heroDayLabel(date: LocalDate): String =
     "${weekdaysEs[date.dayOfWeek.value - 1]} ${date.dayOfMonth}".uppercase(Locale("es"))
 
 /**
- * La línea «Siguiente: …» del descanso: «Siguiente: jueves 15 · Pierna A», con la siguiente sesión del programa después del día
- * ([next], la que busca `HomeWeekResolver.nextSession`). Si no se puede resolver, «Siguiente: la próxima semana». Null si no hay
- * «Tu semana» (no se sabe).
+ * La línea «Siguiente: …» del descanso: «Siguiente: jueves 15 · Pierna A», con la siguiente sesión datada del programa después del día
+ * ([next], la que busca `HomeWeekResolver.nextSession`). Sin ella, la del programa en su semana ([programNext], la misma función que
+ * Program Detail): «Siguiente: jueves · Pierna A». Da la vuelta a la semana, así que cae siempre en los 7 días que siguen al descanso.
+ * Si no hay ninguna, «Siguiente: la próxima semana». Null si no hay «Tu semana» (no se sabe).
  */
-internal fun homeHeroNextLine(weekDays: List<HomeWeekDay>, next: HomeNextSession?): String? {
+internal fun homeHeroNextLine(
+    weekDays: List<HomeWeekDay>,
+    next: HomeNextSession?,
+    programNext: ProgramNextSession? = null,
+): String? {
     if (weekDays.isEmpty()) return null
-    if (next == null) return "Siguiente: la próxima semana"
-    return "Siguiente: ${weekdaysEs[next.date.dayOfWeek.value - 1]} ${next.date.dayOfMonth} · ${next.sessionName}"
+    if (next != null) return "Siguiente: ${weekdaysEs[next.date.dayOfWeek.value - 1]} ${next.date.dayOfMonth} · ${next.sessionName}"
+    if (programNext != null) return "Siguiente: ${programNext.label.replaceFirstChar { it.lowercaseChar() }}"
+    return "Siguiente: la próxima semana"
 }
