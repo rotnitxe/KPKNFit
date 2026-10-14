@@ -206,3 +206,44 @@ Todas usan `KpknSheet` (vidrio v2) y piezas KPKN:
 | SE6 | Catálogo de página completa (filas con miniatura, filtros, isla de selección y ficha) y el asistente de variantes; se retira el selector en hoja | SE1 |
 | SE7 | Hojas: reglas, portada, historial, copiar, guardar plantilla y superseries; los `AlertDialog` de Material pasan a KPKN | SE2 |
 | SE8 | Cierre: hojas de render de la pantalla entera (sesión de fuerza, con cardio, vacía, con superseries; 360 dp, 100 % y 130 %), accesibilidad, movimiento reducido y docs | todos |
+
+## Estado (SE8)
+
+SE8 cierra el editor: los pendientes que dejaron SE2 a SE7, la accesibilidad y el movimiento de la pantalla entera, las hojas de render y esta sección. La lógica del ViewModel y de los motores no cambia.
+
+### Por punto de la especificación
+
+| Punto | Estado en SE8 |
+|---|---|
+| §2.1 Fila superior, §2.2 cabecera, §2.4 preparación | Sin cambios de comportamiento. La cabecera y los módulos comparten el margen de 16 dp. |
+| §2.3 Impacto de la sesión | Sin cambios (SE4). |
+| §2.5 Espacio de cardio y de fuerza | El cardio y los ejercicios sueltos van en un módulo sin cabecera de parte. |
+| §2.6 Partes y ejercicios | La fila no repite el nombre de la parte. Cada fila se lee entera para TalkBack y su miniatura tiene zona táctil de 48 dp. La superserie, ver «No se hizo». |
+| §2.7 Cardio | «1 ronda» / «2 rondas». «Calent.» y «Enfr.» se abrevian y TalkBack lee el nombre entero. Los tramos de la mini línea miden 4 dp como mínimo. El RPE se elige con la regla KPKN. Las pausas de la gráfica, ver «No se hizo». |
+| §2.8 Sesión vacía | Sin cambios (SE3a). |
+| §2.9 Isla inferior | Sin cambios. A 130 % se apila en dos filas: diseño intencionado. |
+| §3 Series y opciones | Tabla sin cambios (SE1, SE3b). El desplegado queda con cuatro chips; «Nota» y «Cambiar ejercicio» pasan al menú «⋯» de la fila de intensidad. |
+| §4 Catálogo | Sin cambios en SE8. SE6a integrado; SE6b sigue en marcha. |
+| §5 Asistente | Sin cambios (SE4, SE4b). En las plantillas, la leyenda de fatiga va una vez arriba de la lista. |
+| §6 Hojas | «Meta del ejercicio» y «Unidad personalizada» pasan a `KpknSheet` con `KpknTextField`, `KpknSwitch` y píldoras. No quedan diálogos de Material en el editor. |
+| §7 Arrastre | Sin cambios: el controlador y su geometría no se tocan. |
+| §8 Datos y textos | «1 ronda» en plural. «Sesión origen» sin la fase. `KpknModuleHeader` baja la acción a su propia línea al 130 %. |
+| §9 Piezas compartidas | `KpknLineIcons` gana `Flame`, `Joint` y `Link`. Nuevas: `KpknRuler` (regla de valores) y `SessionMotion` (movimiento del editor). `KpknSegmentedControl` admite `descriptions`. |
+
+### Lo que no se hizo y por qué
+
+- **«Editar» de la superserie (§2.6).** El panel en línea de `SupersetGroupEditorCard` hace más que `SupersetManagerSheet`: rondas y series de cada ronda, orden de los miembros, superserie opcional, configuración por ejercicio, añadir miembros y borrar la superserie con sus ejercicios. La hoja solo deshace o quita. Se queda el panel. La hoja se abre desde las acciones rápidas («Gestionar superserie»). Decisión pendiente: si la hoja absorbe el panel.
+- **Pausas de la gráfica de intervalos en blanco al 12 %.** La gráfica (`CardioIntervalChart`) es de `screens/workout/` y no se toca. Anotado para LS5b.
+- **«Calent.» y «Enfr.» escritos enteros.** A 13 sp no caben en cuatro segmentos y el control reduce la letra. Se quedan abreviados, con el nombre entero para TalkBack.
+- **Movimiento de los selectores de catálogo.** `ExercisePickerCards`, `ExercisePickerSheet` y la ficha de SE6b quedan fuera del paquete.
+- **Pantalla montada con el ViewModel.** La hoja de render monta las piezas del editor con datos de ejemplo. El ViewModel no se puede montar en Robolectric sin repositorios.
+- **Miembros de una superserie fuera de una parte.** Siguen sin módulo propio. Solo el ejercicio suelto y el cardio van ahora en módulo.
+- **`SessionEditorFocusUiTest`.** Monta su propio contenido: se actualizaron los textos y el tag del nombre a los de hoy («Asistente de la sesión», «Cerrar») y se mantiene el tag `assistant-sheet`. No prueba la pantalla real.
+
+### Decisiones de los paquetes que cambian lo especificado
+
+- Las acciones rápidas tienen seis filas: ficha, cambiar ejercicio, calentamiento, movilidad, superserie y, aparte y en peligro, eliminar con confirmación.
+- El desplegado lleva cuatro chips. «Nota» y «Cambiar ejercicio» van al menú «⋯» de la fila de intensidad.
+- El RPE se elige con una regla KPKN de diez marcas, por toque o arrastre, en lugar de un deslizador.
+- El cardio y los ejercicios sueltos van en un módulo sin cabecera. La fila de la parte no repite el nombre de la parte.
+- La leyenda de fatiga de las plantillas va una vez arriba de la lista, y las filas muestran solo las barras y sus cifras.

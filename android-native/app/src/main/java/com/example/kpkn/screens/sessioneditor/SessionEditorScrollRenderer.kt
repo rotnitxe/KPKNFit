@@ -1,5 +1,11 @@
 package com.example.kpkn.screens.sessioneditor
 
+import com.example.kpkn.screens.sessioneditor.design.sessionEnter
+import com.example.kpkn.screens.sessioneditor.design.sessionExit
+import com.example.kpkn.screens.sessioneditor.design.sessionFloatSpec
+import androidx.compose.foundation.layout.PaddingValues
+import com.example.kpkn.ui.design.KpknModule
+
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
@@ -88,7 +94,7 @@ internal fun SessionEditorListItem(
             val isDragging = draggingPartId == part.id
             val isDropTargetBefore = partDropTargetId == "BEFORE_${part.id}" && !isDragging
             val isDropTargetAfter = partDropTargetId == "AFTER_${part.id}" && !isDragging && isCollapsed
-            val dropScale by animateFloatAsState(if (isDropTargetBefore) 1.01f else 1f, label = "partDropScale")
+            val dropScale by animateFloatAsState(if (isDropTargetBefore) 1.01f else 1f, animationSpec = sessionFloatSpec(), label = "partDropScale")
             // Cabecera arriba del módulo; si está plegada, es todo el módulo.
             val edge = if (isCollapsed) SessionModuleEdge.ONLY else SessionModuleEdge.TOP
             Column(
@@ -125,7 +131,7 @@ internal fun SessionEditorListItem(
                     },
                     onDragCancel = cancelPartDrag,
                 )
-                AnimatedVisibility(visible = !isCollapsed && part.isMobilityGroup) {
+                AnimatedVisibility(visible = !isCollapsed && part.isMobilityGroup, enter = sessionEnter(), exit = sessionExit()) {
                     MobilityGroupInlineEditor(
                         mobilitySeries = part.mobilitySeries,
                         mobilityConfig = part.mobilityConfig,
@@ -590,6 +596,8 @@ private fun LooseExerciseItem(
     val coverAccentHex = resolveCoverAccentId(session.background)
 
     key("loose|${exercise.id}") {
+        // Un ejercicio suelto (y el cardio) va en un módulo sin cabecera de parte: sin relleno, para no mover su geometría (SE8).
+        KpknModule(contentPadding = PaddingValues(0.dp)) {
         ExerciseEditorCard(
             exercise = exercise,
             exerciseInfo = resolveCatalogInfoForDisplay(exercise, exerciseInfoById),
@@ -646,6 +654,7 @@ private fun LooseExerciseItem(
             onToggleCardioPlacement = viewModel::toggleCardioPlacement,
             cardioHistory = exercise.cardioDetails?.type?.let { cardioHistoryByType[it] },
         )
+        }
     }
 
     ExerciseListDivider(
@@ -689,6 +698,7 @@ private fun PartExerciseItem(
             accentHex = accentHex,
             coverAccentHex = coverAccentHex,
             partId = part.id,
+            partName = part.name,
             isCompetitionMovement = exercise.matchesCompetitionMovement(competitionMovementIds),
             modifier = Modifier.fillMaxWidth(),
             enableDrag = true,
@@ -984,6 +994,7 @@ private fun PartSupersetItem(
                     accentHex = accentHex,
                     coverAccentHex = coverAccentHex,
                     partId = part.id,
+                    partName = part.name,
                     isCompetitionMovement = member.matchesCompetitionMovement(competitionMovementIds),
                     modifier = Modifier.fillMaxWidth(),
                     enableDrag = true,

@@ -1,5 +1,8 @@
 package com.example.kpkn.screens.sessioneditor.components
 
+import com.example.kpkn.screens.sessioneditor.design.sessionEnterVertical
+import com.example.kpkn.screens.sessioneditor.design.sessionExitVertical
+
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
@@ -586,8 +589,8 @@ private fun RoundExerciseSetCard(
             }
             AnimatedVisibility(
                 visible = expanded,
-                enter = expandVertically() + fadeIn(),
-                exit = shrinkVertically() + fadeOut(),
+                enter = sessionEnterVertical(),
+                exit = sessionExitVertical(),
             ) {
                 Column(
                     modifier = Modifier.padding(start = 8.dp, end = 8.dp, bottom = 8.dp),

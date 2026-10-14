@@ -12,8 +12,6 @@ import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Slider
-import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -47,6 +45,7 @@ import com.example.kpkn.screens.onboarding.design.WizardColors
 import com.example.kpkn.ui.components.icons.KpknLineIcons
 import com.example.kpkn.ui.design.KpknChip
 import com.example.kpkn.ui.design.KpknMetric
+import com.example.kpkn.ui.design.KpknRuler
 import com.example.kpkn.ui.design.KpknSurface
 import com.example.kpkn.ui.design.KpknTextAction
 import com.example.kpkn.ui.design.KpknType
@@ -370,10 +369,10 @@ internal fun CardioEditorCard(
                     color = WizardColors.textMuted,
                 )
             }
-            Slider(
-                value = rpe.toFloat(),
-                onValueChange = { value ->
-                    val level = value.roundToInt().coerceIn(1, 10)
+            // La regla KPKN sustituye al deslizador de Material: 10 marcas, de 1 a 10 (SE8).
+            KpknRuler(
+                value = rpe,
+                onValueChange = { level ->
                     val updated = when (val current = CardioRepeatGrammar.shape(details)) {
                         is CardioAuthoringShape.Uniform -> CardioRepeatGrammar.applyUniform(
                             details,
@@ -387,13 +386,9 @@ internal fun CardioEditorCard(
                     }
                     onChange(updated)
                 },
-                valueRange = 1f..10f,
-                steps = 8,
-                colors = SliderDefaults.colors(
-                    thumbColor = WizardColors.text,
-                    activeTrackColor = accentColor,
-                    inactiveTrackColor = KpknSurface.inset,
-                ),
+                range = 1..10,
+                label = "Esfuerzo percibido (RPE)",
+                valueText = { "RPE $it" },
             )
         }
 

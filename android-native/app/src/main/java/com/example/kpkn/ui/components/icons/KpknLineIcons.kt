@@ -514,6 +514,17 @@ object KpknLineIcons {
         )
     }
 
+    /** Llama: calentamiento. Una gota de fuego con su lengua interior en la base. */
+    val Flame: ImageVector by lazy {
+        icono(
+            "KpknLine.Flame",
+            listOf(
+                "M12 3c.5 3.2 4.75 5.6 4.75 10.25A4.75 4.75 0 0 1 12 18a4.75 4.75 0 0 1-4.75-4.75c0-2.1.95-3.75 2.05-4.9.25 1.3.8 2.15 1.6 2.7C10.6 7.5 11.2 5.2 12 3z",
+                "M12 15.75c-.6 0-1.1-.45-1.1-1.1 0-.7.55-1.05.8-1.5.15.45.35.7.7.9.05-.5.2-.85.5-1.25.2.55.5.95.5 1.6 0 .65-.5 1.35-1.4 1.35z",
+            ),
+        )
+    }
+
     /** Dos flechas enfrentadas: cambiar un ejercicio por otro («Reemplazar»). */
     val Swap: ImageVector by lazy {
         icono("KpknLine.Swap", listOf("M4.75 8.25h13.5M14.75 4.75l3.5 3.5-3.5 3.5M19.25 15.75H5.75M9.25 12.25l-3.5 3.5 3.5 3.5"))
@@ -527,14 +538,25 @@ object KpknLineIcons {
         )
     }
 
-    /** Dos eslabones unidos: una superserie. */
+    /** Articulación: dos segmentos que forman un ángulo y el eje redondo donde se doblan. Movilidad. */
+    val Joint: ImageVector by lazy {
+        icono(
+            "KpknLine.Joint",
+            listOf(
+                "M5.5 18.5L12 12l6.5 6.5",
+                "M12 9.75a2.25 2.25 0 1 0 0 4.5a2.25 2.25 0 1 0 0-4.5z",
+            ),
+        )
+    }
+
+    /** Eslabón: dos medias anillas unidas por una barra. Superserie: ejercicios enlazados. */
     val Link: ImageVector by lazy {
         icono(
             "KpknLine.Link",
             listOf(
-                "M8.25 12.75 6.5 14.5a3.18 3.18 0 0 0 4.5 4.5l1.75-1.75",
-                "M15.75 11.25l1.75-1.75a3.18 3.18 0 0 0-4.5-4.5L11.25 6.75",
-                "M9.75 14.25l4.5-4.5",
+                "M9 17H7a5 5 0 0 1 0-10h2",
+                "M15 7h2a5 5 0 0 1 0 10h-2",
+                "M8 12h8",
             ),
         )
     }
@@ -556,6 +578,22 @@ object KpknLineIcons {
 
     /** Círculo de radio 8,75 centrado en (12, 12): base de `Info` y `Clock`. */
     private const val CIRCULO_GRANDE = "M12 20.75a8.75 8.75 0 1 0 0-17.5 8.75 8.75 0 0 0 0 17.5z"
+
+    /** Asa de arrastre (LS4): seis puntos rellenos en dos columnas, como el icono «Más», para reordenar con la pulsación larga. */
+    val Grip: ImageVector by lazy {
+        icono(
+            "KpknLine.Grip",
+            listOf(
+                "M8.2 8.25a1.3 1.3 0 1 0 2.6 0a1.3 1.3 0 1 0-2.6 0z",
+                "M13.2 8.25a1.3 1.3 0 1 0 2.6 0a1.3 1.3 0 1 0-2.6 0z",
+                "M8.2 12a1.3 1.3 0 1 0 2.6 0a1.3 1.3 0 1 0-2.6 0z",
+                "M13.2 12a1.3 1.3 0 1 0 2.6 0a1.3 1.3 0 1 0-2.6 0z",
+                "M8.2 15.75a1.3 1.3 0 1 0 2.6 0a1.3 1.3 0 1 0-2.6 0z",
+                "M13.2 15.75a1.3 1.3 0 1 0 2.6 0a1.3 1.3 0 1 0-2.6 0z",
+            ),
+            relleno = true,
+        )
+    }
 
     /**
      * Construye un icono con los trazados [trazados] (cadenas SVG `d` sobre la retícula de 24). Con [relleno] se pinta

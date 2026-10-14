@@ -1,6 +1,4 @@
 package com.example.kpkn.screens.workout.design
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -14,8 +12,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -26,6 +26,7 @@ import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
 import com.example.kpkn.screens.onboarding.design.WizardColors
 import com.example.kpkn.ui.components.icons.KpknLineIcons
 import com.example.kpkn.ui.design.KpknIconButton
@@ -36,11 +37,11 @@ import androidx.compose.material3.Text
 import java.util.Locale
 
 /**
- * Cabecera del ejercicio (LS2a, §2 punto 3). Una fila con el eyebrow («EJERCICIO 3 DE 6 · TORSO A») a la izquierda y, a la derecha,
- * «Técnica» (si [onTechnique] existe), «Cambiar ejercicio» (si [onChangeExercise] existe) y «Opciones del ejercicio», que entrega su
- * posición por [onOptions]. Debajo, el nombre en `display` con dos líneas como máximo; luego [detailLine] (chips y etiquetas) en
- * `caption`; la fila de datos [targetLine] y [lastLine] en `caption` tabular, cada parte solo si hay dato; y el protocolo en una
- * píldora de texto, sin emoji. Sin estado: el menú lo abre quien recibe el ancla.
+ * Cabecera del ejercicio (LS2a, §2 punto 3; LS4 la compacta). Una fila con el eyebrow («EJERCICIO 3 DE 6 · TORSO A») a la izquierda y, a la
+ * derecha, «Técnica» (si [onTechnique] existe), «Cambiar ejercicio» (si [onChangeExercise] existe) y «Opciones del ejercicio», que entrega
+ * su posición por [onOptions]. Debajo, el nombre en `display` con dos líneas como máximo; luego la línea de detalle (chips y etiquetas) y, a su
+ * derecha, el protocolo en una píldora de texto, sin emoji (LS4: ya no ocupa una línea propia); la fila de datos [targetLine] y [lastLine]
+ * en `caption` tabular, cada parte solo si hay dato. Sin estado: el menú lo abre quien recibe el ancla.
  */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -57,7 +58,8 @@ fun WorkoutExerciseHeader(
     onChangeExercise: (() -> Unit)? = null,
 ) {
     var optionsBounds by remember { mutableStateOf(Rect.Zero) }
-    Column(modifier = modifier.fillMaxWidth().padding(horizontal = 16.dp)) {
+    // Por encima de la barra de progreso: su zona táctil sobresale hasta aquí y los botones de esta fila ganan el toque.
+    Column(modifier = modifier.zIndex(1f).fillMaxWidth().padding(horizontal = 16.dp)) {
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
@@ -105,14 +107,42 @@ fun WorkoutExerciseHeader(
             },
             modifier = Modifier.semantics { heading() },
         )
-        if (detailLine != null) {
-            Text(
-                text = detailLine,
-                style = KpknType.caption,
-                color = WizardColors.textMuted,
-                maxLines = 2,
-                overflow = TextOverflow.Ellipsis,
-            )
+        if (detailLine != null || protocolLabel != null) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                if (detailLine != null) {
+                    Text(
+                        text = detailLine,
+                        style = KpknType.caption,
+                        color = WizardColors.textMuted,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.weight(1f),
+                    )
+                } else {
+                    Spacer(Modifier.weight(1f))
+                }
+                if (protocolLabel != null) {
+                    Box(
+                        modifier = Modifier
+                            .clip(KpknShape.pill)
+                            .background(KpknSurface.inset, KpknShape.pill)
+                            .padding(horizontal = 10.dp, vertical = 4.dp),
+                        contentAlignment = Alignment.CenterStart,
+                    ) {
+                        Text(
+                            text = protocolLabel,
+                            style = KpknType.chip,
+                            color = WizardColors.textMuted,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                    }
+                }
+            }
         }
         val dataParts = listOfNotNull(targetLine, lastLine)
         if (dataParts.isNotEmpty()) {
@@ -130,24 +160,6 @@ fun WorkoutExerciseHeader(
                         overflow = TextOverflow.Ellipsis,
                     )
                 }
-            }
-        }
-        if (protocolLabel != null) {
-            Spacer(Modifier.height(8.dp))
-            Box(
-                modifier = Modifier
-                    .clip(KpknShape.pill)
-                    .background(KpknSurface.inset, KpknShape.pill)
-                    .padding(horizontal = 12.dp, vertical = 6.dp),
-                contentAlignment = Alignment.CenterStart,
-            ) {
-                Text(
-                    text = protocolLabel,
-                    style = KpknType.chip,
-                    color = WizardColors.textMuted,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
             }
         }
     }

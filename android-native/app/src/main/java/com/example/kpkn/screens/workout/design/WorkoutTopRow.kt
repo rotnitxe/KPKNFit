@@ -26,6 +26,7 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
 import com.example.kpkn.screens.onboarding.design.WizardColors
 import com.example.kpkn.screens.onboarding.design.entreno.SymbolPalette
 import com.example.kpkn.ui.components.icons.KpknLineIcons
@@ -54,6 +55,7 @@ fun WorkoutTopRow(
     var moreBounds by remember { mutableStateOf(Rect.Zero) }
     Row(
         modifier = modifier
+            .zIndex(1f)
             .fillMaxWidth()
             .height(56.dp)
             .padding(horizontal = 12.dp),

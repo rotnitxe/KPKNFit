@@ -134,6 +134,8 @@ class SessionExerciseExpandedTest {
         val llamadas = Llamadas()
         montar(SessionEditorSamples.exerciseRpe(), llamadas)
 
+        // «Cambiar ejercicio» está en el menú «⋯» de la fila de intensidad (SE8), no en la fila de chips.
+        rule.onNodeWithContentDescription("Más opciones del ejercicio").performClick()
         rule.onNodeWithText("Cambiar ejercicio").performClick()
 
         assertEquals(1, llamadas.reemplazos)
