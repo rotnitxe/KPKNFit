@@ -243,8 +243,9 @@ dependencies {
     // MediaPipe Pose Landmarker (técnica en vídeo, ola VT). Versión FIJA: nunca "+" ni "latest.release";
     // 0.20230731 es una versión vieja que se ordena como si fuera más nueva.
     implementation("com.google.mediapipe:tasks-vision:1.1.0")
-    // Bundled base pose model; applies to both healthConnect flavors (base + health).
-    implementation("com.google.mlkit:pose-detection:18.0.0-beta5")
+    // ML Kit pose (modelo base empaquetado) solo en depuración: es el motor viejo, que se queda para comparar en el banco (ola VT).
+    // La app usa MediaPipe (tasks-vision). Vale para los dos sabores (base + health).
+    debugImplementation("com.google.mlkit:pose-detection:18.0.0-beta5")
     implementation("com.google.mlkit:text-recognition:16.0.1")
     implementation(libs.vosk.android)
     ksp(libs.androidx.room.compiler)

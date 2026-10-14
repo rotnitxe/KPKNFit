@@ -56,8 +56,8 @@
 -keep class androidx.compose.material.icons.** { *; }
 -keep class androidx.navigation.** { *; }
 
-# ── ML Kit Pose (F5 offline trajectory) ─────────────────────────────────────
--keep class com.google.mlkit.vision.pose.** { *; }
+# ── ML Kit (OCR del importador) ──────────────────────────────────────────────
+# ML Kit pose ya solo va en depuración: aquí no queda su regla.
 -keep class com.google.mlkit.vision.common.** { *; }
 -dontwarn com.google.mlkit.**
 
