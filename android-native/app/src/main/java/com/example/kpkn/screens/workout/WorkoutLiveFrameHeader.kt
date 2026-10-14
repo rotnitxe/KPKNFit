@@ -109,14 +109,14 @@ internal fun WorkoutLiveFrameHeader(
                 )
             },
         )
-        Spacer(Modifier.height(4.dp))
+        Spacer(Modifier.height(8.dp))
         WorkoutProgressBar(
             exerciseCount = exerciseCount,
             currentIndex = exerciseIndex,
             doneFlags = doneFlags,
             onOpenRoute = onOpenRoute,
         )
-        Spacer(Modifier.height(8.dp))
+        Spacer(Modifier.height(12.dp))
         WorkoutExerciseHeader(
             eyebrow = eyebrow,
             name = exerciseName,

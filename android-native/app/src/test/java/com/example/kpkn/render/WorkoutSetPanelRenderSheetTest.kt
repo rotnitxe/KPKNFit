@@ -209,14 +209,14 @@ class WorkoutSetPanelRenderSheetTest {
                     )
                 },
             )
-            Spacer(Modifier.height(4.dp))
+            Spacer(Modifier.height(8.dp))
             WorkoutProgressBar(
                 exerciseCount = 6,
                 currentIndex = 2,
                 doneFlags = WorkoutSamples.DONE,
                 onOpenRoute = noop,
             )
-            Spacer(Modifier.height(8.dp))
+            Spacer(Modifier.height(12.dp))
             WorkoutExerciseHeader(
                 eyebrow = WorkoutSamples.EYEBROW_PLAIN,
                 name = WorkoutSamples.EXERCISE_NAME_SHORT,
@@ -225,6 +225,7 @@ class WorkoutSetPanelRenderSheetTest {
                 lastLine = WorkoutSamples.LAST,
                 protocolLabel = WorkoutSamples.PROTOCOL,
                 onOptions = {},
+                onTechnique = noop,
                 onChangeExercise = noop,
             )
             Spacer(Modifier.height(12.dp))

@@ -1234,7 +1234,8 @@ internal fun SetInputCardV2(
         val requests = techniqueSheetHolder?.requests ?: 0
         if (requests != handledTechniqueRequest) {
             handledTechniqueRequest = requests
-            techniqueSheetMedia = false
+            // El Info de la cabecera abre los medios (LS4): quien lo toca quiere ver cómo se hace el ejercicio.
+            techniqueSheetMedia = true
             techniqueSheetOpen = true
         }
     }
@@ -1646,6 +1647,15 @@ internal fun SetInputCardV2(
                             },
                         ) {
                             if (techniqueSheetMedia) {
+                                // Con los medios, el nombre del ejercicio como título (LS4): así abre el «Info».
+                                Text(
+                                    text = displayWorkoutExerciseName(exercise),
+                                    style = KpknType.title,
+                                    color = WizardColors.text,
+                                    maxLines = 2,
+                                    overflow = TextOverflow.Ellipsis,
+                                    modifier = Modifier.padding(bottom = 12.dp),
+                                )
                                 Box(modifier = Modifier.fillMaxWidth().height(540.dp)) {
                                     SetCardExerciseMediaBack(
                                         exercise = exercise,
