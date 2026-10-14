@@ -20,4 +20,18 @@ class KpknSetFormatTest {
         assertEquals("0:00", KpknSetFormat.rest(-5))
         assertEquals("60:00", KpknSetFormat.rest(3600))
     }
+
+    @Test
+    fun elTiempoDeTextoCorridoTieneSuUnidadBajoUnMinutoYMSSDesdeAhi() {
+        assertEquals("40 s", KpknSetFormat.doseTime(40))
+        assertEquals("59 s", KpknSetFormat.doseTime(59))
+        assertEquals("1:00", KpknSetFormat.doseTime(60))
+        assertEquals("3:15", KpknSetFormat.doseTime(195))
+    }
+
+    @Test
+    fun elTiempoDeTextoCorridoNoRompeConCeroONegativos() {
+        assertEquals("0 s", KpknSetFormat.doseTime(0))
+        assertEquals("0 s", KpknSetFormat.doseTime(-5))
+    }
 }

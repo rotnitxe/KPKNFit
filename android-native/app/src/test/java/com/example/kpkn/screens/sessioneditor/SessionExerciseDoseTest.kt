@@ -33,7 +33,13 @@ class SessionExerciseDoseTest {
     @Test
     fun tiempo_mostrarDuracionPorSerie() {
         val sets = (1..4).map { ExerciseSet(id = "s$it", targetDuration = 45) }
-        assertEquals("4 × 0:45 · 1:00", sessionExerciseDose(sets, TrainingMode.TIME, restSeconds = 60))
+        assertEquals("4 × 45 s · 1:00", sessionExerciseDose(sets, TrainingMode.TIME, restSeconds = 60))
+    }
+
+    @Test
+    fun descansoDeMenosDeUnMinuto_saleEnSegundosConSuUnidad() {
+        val sets = (1..3).map { rango("s$it", 6, 8, rir = 2) }
+        assertEquals("3 × 6–8 · RIR 2 · 45 s", sessionExerciseDose(sets, TrainingMode.REPS, restSeconds = 45))
     }
 
     @Test
