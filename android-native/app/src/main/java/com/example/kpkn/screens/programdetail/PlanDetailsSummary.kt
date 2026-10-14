@@ -176,6 +176,28 @@ internal fun trainingMaxLine(profile: PowerliftingProfile?): String? {
 private fun trainingMaxValue(value: Double?): String? =
     value?.takeIf { it.isFinite() && it > 0.0 }?.let(PlanInfoModelBuilder::formatNumber)
 
+/** Qué dice la fila de máximos de Propuestas: lo que hay fijado, la invitación a fijarlo si el programa usa TM, o nada. */
+internal sealed interface TrainingMaxRow {
+    /** Los máximos que existen, en una línea («TM: sentadilla 108 kg»). */
+    data class Value(val line: String) : TrainingMaxRow
+
+    /** El programa usa TM y ningún máximo está fijado: «Añadir» abre el editor. */
+    object Unset : TrainingMaxRow
+
+    /** El programa no usa TM: no hay fila. */
+    object None : TrainingMaxRow
+}
+
+/**
+ * La fila de máximos de Propuestas. [usesTm] es la regla de siempre (la receta, o el perfil si no hay receta). Si el programa usa TM y no
+ * hay ningún máximo, la fila invita a fijarlos; si no usa TM, no hay fila aunque haya máximos guardados.
+ */
+internal fun trainingMaxRowOf(usesTm: Boolean, profile: PowerliftingProfile?): TrainingMaxRow {
+    if (!usesTm) return TrainingMaxRow.None
+    val line = trainingMaxLine(profile) ?: return TrainingMaxRow.Unset
+    return TrainingMaxRow.Value(line)
+}
+
 /**
  * La línea de procedencia de «Sobre este programa». «Plan KPKN · Plan propio de KPKN.» repetía la etiqueta: con la descripción genérica
  * (el «Plan propio de KPKN.» de siempre) la línea pasa a ser el resumen de la ficha del catálogo, si existe; si no, no se pinta (null).
