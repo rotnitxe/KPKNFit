@@ -595,6 +595,42 @@ object KpknLineIcons {
         )
     }
 
+    // ── Reproductor de técnica (VT7a) ───────────────────────────────────────────
+
+    /** Fotograma anterior: una barra a la izquierda y un triángulo que apunta a ella, con las esquinas redondeadas. */
+    val FrameBack: ImageVector by lazy {
+        icono(
+            "KpknLine.FrameBack",
+            listOf(
+                "M4.25 6.25v11.5",
+                "M19.75 6.4v11.2a.9.9 0 0 1-1.37.77l-8.4-5.6a.9.9 0 0 1 0-1.54l8.4-5.6a.9.9 0 0 1 1.37.77z",
+            ),
+        )
+    }
+
+    /** Fotograma siguiente: un triángulo que apunta a una barra a la derecha. El espejo de `FrameBack`. */
+    val FrameForward: ImageVector by lazy {
+        icono(
+            "KpknLine.FrameForward",
+            listOf(
+                "M4.25 6.4v11.2a.9.9 0 0 0 1.37.77l8.4-5.6a.9.9 0 0 0 0-1.54l-8.4-5.6a.9.9 0 0 0-1.37.77z",
+                "M19.75 6.25v11.5",
+            ),
+        )
+    }
+
+    /** Disco o diana: dos anillos concéntricos (radio 8,75 y 4,25) y el punto del centro. El disco de la barra, de frente. */
+    val Target: ImageVector by lazy {
+        icono(
+            "KpknLine.Target",
+            listOf(
+                CIRCULO_GRANDE,
+                "M12 16.25a4.25 4.25 0 1 0 0-8.5 4.25 4.25 0 0 0 0 8.5z",
+                "M12 12h.01",
+            ),
+        )
+    }
+
     /**
      * Construye un icono con los trazados [trazados] (cadenas SVG `d` sobre la retícula de 24). Con [relleno] se pinta
      * sólido y sin trazo; si no, en trazo de 1,75 dp con extremos y uniones redondeados.
