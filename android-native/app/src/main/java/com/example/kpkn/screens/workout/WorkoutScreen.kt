@@ -175,8 +175,6 @@ import com.example.kpkn.screens.workout.components.WorkoutUiTokens
 import com.example.kpkn.ui.components.kpknGlassOrFallback
 import com.example.kpkn.ui.adapt.LocalViewportAdapt
 import com.example.kpkn.screens.workout.components.RoadmapMode
-import com.example.kpkn.screens.workout.components.RestTimerOverlay
-import com.example.kpkn.screens.workout.components.RestTimerPill
 import com.example.kpkn.screens.workout.components.VolumeAdvanceModal
 import com.example.kpkn.screens.workout.components.WorkoutReadinessSheet
 import com.example.kpkn.ui.components.LocalKpknOverlayHost
@@ -1431,22 +1429,17 @@ fun WorkoutScreen(
     val workingRestActive = uiState.isRestTimerRunning &&
         uiState.restModalState != null &&
         uiState.restModalState?.kind != RestTimerKind.WARMUP
-    val showWorkingRestOverlay = workingRestActive && !uiState.isRestMinimized
-    val showRestOverlayHost = isShowingFeedback || showWorkingRestOverlay
+    // LS3: con la ruta o el cockpit abiertos, el descanso se guarda en la píldora; tocarla vuelve a la página de la serie.
+    LaunchedEffect(roadmapMode, workingRestActive) {
+        if (roadmapMode == RoadmapMode.EXPANDED && workingRestActive && !uiState.isRestMinimized) {
+            viewModel.minimizeRestOverlay()
+        }
+    }
+    // LS3: el descanso en curso vive en la página de la serie (WorkoutRestPanel). Aquí solo quedan la píldora, si se minimiza,
+    // y el feedback del ejercicio, que aparece al terminar el descanso.
+    val showRestOverlayHost = isShowingFeedback || (workingRestActive && uiState.isRestMinimized)
 
     if (showRestOverlayHost) {
-        val currentRoundCompletedSets = currentExercise
-            ?.supersetGroupRefOrLegacyId()
-            ?.let { groupId ->
-                visibleExercises
-                    .filter { it.supersetGroupRefOrLegacyId() == groupId }
-                    .mapNotNull { member ->
-                        val key = "${member.id}_${uiState.currentSetIdx}"
-                        uiState.completedSets[key]?.let { displayWorkoutExerciseName(member) to it }
-                    }
-            }
-            .orEmpty()
-
         val restState = activeRestModalState ?: WorkoutRestModalState(
             exerciseId = postExerciseTarget?.id,
             exerciseName = postExerciseTarget?.let(::displayWorkoutExerciseName).orEmpty(),
@@ -1465,27 +1458,18 @@ fun WorkoutScreen(
             isRestTimerRunning = uiState.isRestTimerRunning,
             isRestMinimized = uiState.isRestMinimized,
             restState = restState,
-            pendingRestSuggestion = uiState.pendingRestSuggestion,
-            lastSetOutcome = uiState.lastSetOutcomeV2,
-            lastCompletedSet = uiState.setJustLoggedKey?.let { uiState.completedSets[it] },
-            lastCompletedSets = currentRoundCompletedSets,
-            sessionAccentColor = sessionAccentColor,
             hazeState = overlayHazeState,
-            skipExerciseLabel = skipExerciseLabel,
-            onSkipExercise = onSkipExerciseFromRest,
             postExerciseFeedbackContent = if (isShowingFeedback) {
                 {
                     WorkoutPostExerciseFeedbackContent(
                         feedbackExercises = feedbackExercises,
                         postExerciseFeedbackByExerciseId = uiState.postExerciseFeedbackByExerciseId,
-                        sessionAccentColor = sessionAccentColor,
                         viewModel = viewModel,
                     )
                 }
             } else {
                 null
             },
-            feedbackExerciseCount = feedbackExercises.size,
             forceShowForFeedback = isShowingFeedback,
         )
     }
