@@ -11,6 +11,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -77,6 +78,8 @@ import com.example.kpkn.ui.components.KpknAlertConfirmButton
 import com.example.kpkn.ui.components.KpknAlertDismissButton
 import com.example.kpkn.ui.components.KpknAlertDialog
 import com.example.kpkn.ui.components.SwipeToDeleteCard
+import com.example.kpkn.ui.design.KpknSetFormat
+import com.example.kpkn.screens.sessioneditor.design.SessionSupersetCaption
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.getValue
 
@@ -129,6 +132,42 @@ internal fun SupersetGroupEditorCard(
         exercises.firstOrNull { it.id == id }
     }
 
+    // Línea de la superserie: rondas y descanso entre rondas. «Editar» despliega la gestión (rondas, orden, opcional, disolver).
+    val captionText = listOfNotNull(
+        "Superserie",
+        "$rounds ${if (rounds == 1) "ronda" else "rondas"}",
+        group.restAfterSuperset.takeIf { it > 0 }?.let { "${KpknSetFormat.rest(it)} entre rondas" },
+        "Opcional".takeIf { group.isOptional },
+    ).joinToString(" · ")
+    var captionOrigin by remember(group.id) { mutableStateOf(Offset.Zero) }
+    val latestOnDragStart = rememberUpdatedState(onDragStart)
+    val latestOnDrag = rememberUpdatedState(onDrag)
+    val latestOnDragEnd = rememberUpdatedState(onDragEnd)
+    val latestOnDragCancel = rememberUpdatedState(onDragCancel)
+    // La pulsación larga en la línea arrastra el bloque entero.
+    val captionDrag = Modifier
+        .onGloballyPositioned { captionOrigin = it.boundsInWindow().topLeft }
+        .pointerInput(group.id) {
+            detectDragGesturesAfterLongPress(
+                onDragStart = { offset ->
+                    haptics.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
+                    latestOnDragStart.value(captionOrigin + offset)
+                },
+                onDragCancel = {
+                    haptics.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.TextHandleMove)
+                    latestOnDragCancel.value()
+                },
+                onDragEnd = {
+                    haptics.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.TextHandleMove)
+                    latestOnDragEnd.value()
+                },
+                onDrag = { change, dragAmount ->
+                    change.consume()
+                    latestOnDrag.value(Offset(dragAmount.x, dragAmount.y))
+                },
+            )
+        }
+
     Column(
         modifier = modifier
             .fillMaxWidth()
@@ -139,131 +178,16 @@ internal fun SupersetGroupEditorCard(
                 alpha = if (isDragging) 0.22f else 1f
                 shadowElevation = if (isDragging) 6.dp.toPx() else 0f
             }
-            .zIndex(if (isDragging) 12f else 0f)
-            .clip(RoundedCornerShape(16.dp))
-            .background(accent.exerciseCardBrush()),
+            .zIndex(if (isDragging) 12f else 0f),
     ) {
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(1.dp)
-                .background(accentColor.copy(alpha = if (expanded) 0.85f else 0.30f)),
+        SessionSupersetCaption(
+            text = captionText,
+            editing = expanded,
+            onEdit = { expanded = !expanded },
+            dragModifier = captionDrag,
         )
-        // Drag handle outside swipe — same pattern as ExerciseEditorCard / GroupEditorCard.
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            var handleWindowOrigin by remember(group.id) { mutableStateOf(Offset.Zero) }
-            val latestOnDragStart = rememberUpdatedState(onDragStart)
-            val latestOnDrag = rememberUpdatedState(onDrag)
-            val latestOnDragEnd = rememberUpdatedState(onDragEnd)
-            val latestOnDragCancel = rememberUpdatedState(onDragCancel)
-            Box(
-                modifier = Modifier
-                    .padding(start = 4.dp)
-                    .size(48.dp)
-                    .onGloballyPositioned { coords ->
-                        val b = coords.boundsInWindow()
-                        handleWindowOrigin = Offset(b.left, b.top)
-                    }
-                    .pointerInput(group.id) {
-                        detectDragGestures(
-                            onDragStart = { offset ->
-                                haptics.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
-                                latestOnDragStart.value(handleWindowOrigin + offset)
-                            },
-                            onDragCancel = {
-                                haptics.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.TextHandleMove)
-                                latestOnDragCancel.value()
-                            },
-                            onDragEnd = {
-                                haptics.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.TextHandleMove)
-                                latestOnDragEnd.value()
-                            },
-                            onDrag = { change, dragAmount ->
-                                change.consume()
-                                latestOnDrag.value(Offset(dragAmount.x, dragAmount.y))
-                            },
-                        )
-                    },
-                contentAlignment = Alignment.Center,
-            ) {
-                Icon(
-                    imageVector = Icons.Default.DragHandle,
-                    contentDescription = "Reordenar superserie",
-                    tint = accentColor.copy(alpha = 0.72f),
-                    modifier = Modifier.size(24.dp),
-                )
-            }
-            SwipeToDeleteCard(
-                onDelete = { showDeleteGroupDialog = true },
-                modifier = Modifier.weight(1f),
-                shape = if (expanded) {
-                    RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)
-                } else {
-                    RoundedCornerShape(16.dp)
-                },
-                animateDeletion = false,
-            ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(start = 8.dp, end = 14.dp, top = 8.dp, bottom = 8.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                ) {
-                    Column(
-                        modifier = Modifier
-                            .weight(1f)
-                            .combinedClickable(
-                                onClick = { expanded = !expanded },
-                                onLongClick = { expanded = !expanded },
-                            ),
-                    ) {
-                        Text(
-                            text = "Superserie",
-                            style = MaterialTheme.typography.labelLarge,
-                            fontWeight = FontWeight.Bold,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                        )
-                        Row(
-                            horizontalArrangement = Arrangement.spacedBy(4.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            if (group.isOptional) {
-                                Surface(
-                                    shape = RoundedCornerShape(6.dp),
-                                    color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.5f),
-                                ) {
-                                    Text(
-                                        "Opcional",
-                                        style = MaterialTheme.typography.labelSmall,
-                                        fontWeight = FontWeight.Bold,
-                                        color = MaterialTheme.colorScheme.onSecondaryContainer,
-                                        modifier = Modifier.padding(horizontal = 4.dp, vertical = 1.dp),
-                                    )
-                                }
-                            }
-                            Text(
-                                text = "${exercises.size} ejercicios · $rounds ronda${if (rounds == 1) "" else "s"} · $totalSets series",
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis,
-                            )
-                        }
-                    }
-                    Icon(
-                        imageVector = if (expanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
-                        contentDescription = if (expanded) "Plegar" else "Desplegar",
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.clickable { expanded = !expanded },
-                    )
-                }
-            }
-        }
+        // Los miembros se ven siempre, unidos por la barra de la superserie.
+        content()
 
         AnimatedVisibility(visible = expanded) {
         Column(
@@ -451,8 +375,11 @@ internal fun SupersetGroupEditorCard(
                 TextButton(onClick = { onDissolve(group.id) }) {
                     Text("Disolver", fontWeight = FontWeight.Bold)
                 }
+                // Borrar la superserie entera: antes lo hacía el deslizamiento de la cabecera, que ya no existe.
+                TextButton(onClick = { showDeleteGroupDialog = true }) {
+                    Text("Eliminar superserie", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.error)
+                }
             }
-            content()
         }
         }
     }
