@@ -257,6 +257,17 @@ class TechniqueSidecarsTest {
     }
 
     @Test
+    fun a_commit_that_cannot_place_the_new_content_gives_back_the_previous_one() {
+        val target = File(folder.root, "m1.analysis.json").apply { writeText("anterior") }
+
+        // El temporal no existe: el renombrado falla justo después de apartar el destino, y lo apartado vuelve a su sitio.
+        assertThrows(IOException::class.java) { TechniqueSidecars.commit(File(folder.root, "no-existe.tmp"), target) }
+
+        assertEquals("anterior", target.readText())
+        assertEquals("sin restos de la copia apartada", listOf("m1.analysis.json"), folder.root.list()!!.sorted())
+    }
+
+    @Test
     fun a_parent_that_is_a_file_fails_with_io_exception_and_writes_nothing() {
         val notAFolder = folder.newFile("not-a-folder")
 

@@ -55,6 +55,9 @@ object TechniqueSidecars {
     /** Sufijo del archivo temporal de una escritura atómica: `<id>.analysis.json.tmp`. */
     const val TEMP_SUFFIX = ".tmp"
 
+    // Solo en el reemplazo sin renombrado atómico (ver [commit]); dura lo que un renombrado.
+    private const val BACKUP_SUFFIX = ".bak"
+
     private val SUFFIXES = listOf(POSE_SUFFIX, BAR_SUFFIX, ANALYSIS_SUFFIX, CAPTURE_SUFFIX, PART_SUFFIX)
 
     // Con los valores por defecto incluidos y tolerante con campos nuevos; un NaN suelto no debe tirar el análisis entero.
@@ -129,12 +132,23 @@ object TechniqueSidecars {
         return temporary
     }
 
-    /** Segunda mitad: el renombrado. En Android (POSIX) `renameTo` reemplaza el destino de forma atómica. */
+    /**
+     * Segunda mitad: el renombrado. En Android (POSIX) `renameTo` reemplaza el destino de forma atómica y no hace falta más.
+     * Si no reemplaza (Windows, en las pruebas de JVM), se aparta el destino, se renombra el temporal y se borra lo apartado;
+     * si algo falla se devuelve lo que había. El destino nunca se borra antes de tener el contenido nuevo en su sitio.
+     */
     internal fun commit(temporary: File, target: File) {
         if (temporary.renameTo(target)) return
-        // Sin reemplazo en el renombrado (Windows, en las pruebas de JVM): se borra el destino y se vuelve a intentar.
-        if (target.exists() && !target.delete()) throw IOException("No se pudo reemplazar ${target.name}.")
-        if (!temporary.renameTo(target)) throw IOException("No se pudo guardar ${target.name}.")
+        if (target.isDirectory) throw IOException("${target.name} es una carpeta.")
+        if (!target.exists()) throw IOException("No se pudo guardar ${target.name}.")
+        val aside = File(target.absoluteFile.parentFile, target.name + BACKUP_SUFFIX)
+        aside.delete()
+        if (!target.renameTo(aside)) throw IOException("No se pudo reemplazar ${target.name}.")
+        if (!temporary.renameTo(target)) {
+            aside.renameTo(target)
+            throw IOException("No se pudo guardar ${target.name}.")
+        }
+        aside.delete()
     }
 
     /** Escribe `<id>.analysis.json` de forma atómica. */
