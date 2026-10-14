@@ -351,7 +351,10 @@ internal fun SessionSetMenuRows(
     }
 }
 
-/** Filas del menú «Más» (⋮): lo que no cabe en la fila de opciones, con las mismas acciones de hoy. */
+/**
+ * Filas del menú «Más» (⋮): lo que no cabe en la fila de opciones, con las mismas acciones de hoy. «Nota» y «Cambiar ejercicio», las
+ * menos usadas de la fila de opciones, van al final (SE8).
+ */
 @Composable
 internal fun SessionExerciseMoreRows(
     exercise: Exercise,
@@ -361,6 +364,8 @@ internal fun SessionExerciseMoreRows(
     onSuperset: () -> Unit,
     onGoal: () -> Unit,
     onCustomUnit: () -> Unit,
+    onNote: () -> Unit,
+    onReplace: () -> Unit,
 ) {
     Column(modifier = Modifier.fillMaxWidth()) {
         KpknContextMenuRow(label = if (exercise.trackRom) "Dejar de medir ROM" else "Medir ROM", onClick = onToggleRom)
@@ -376,12 +381,14 @@ internal fun SessionExerciseMoreRows(
         if (exercise.trainingMode == TrainingMode.CUSTOM) {
             KpknContextMenuRow(label = "Unidad personalizada", onClick = onCustomUnit)
         }
+        KpknContextMenuRow(label = "Nota", onClick = onNote)
+        KpknContextMenuRow(label = "Cambiar ejercicio", onClick = onReplace)
     }
 }
 
 /** Número de filas de [SessionExerciseMoreRows], para dar altura al menú. */
 internal fun sessionExerciseMoreRowCount(exercise: Exercise): Int =
-    3 + (if (exercise.cardioDetails == null) 1 else 0) + (if (exercise.trainingMode == TrainingMode.CUSTOM) 1 else 0)
+    5 + (if (exercise.cardioDetails == null) 1 else 0) + (if (exercise.trainingMode == TrainingMode.CUSTOM) 1 else 0)
 
 /** Nombre de un modo en la interfaz: «Repeticiones» (y no «Reps», que solo va como cabecera de columna). */
 internal fun sessionModeLabel(mode: TrainingMode): String =

@@ -235,7 +235,7 @@ internal fun SessionPartHeader(
             )
         }
 
-        AnimatedVisibility(visible = showColors) {
+        AnimatedVisibility(visible = showColors, enter = sessionEnter(), exit = sessionExit()) {
             Column(
                 modifier = Modifier.padding(start = 20.dp, end = 20.dp, bottom = 12.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp),

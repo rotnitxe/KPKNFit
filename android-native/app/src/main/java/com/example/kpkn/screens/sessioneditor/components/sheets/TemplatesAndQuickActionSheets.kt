@@ -74,6 +74,12 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.height
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.draw.clip
 import com.example.kpkn.screens.onboarding.design.WizardColors
 import com.example.kpkn.ui.components.icons.KpknLineIcons
@@ -241,6 +247,8 @@ internal fun ExerciseQuickActionsSheet(
         return
     }
 
+    // Eliminar pide confirmación: hasta que la confirmen, el ejercicio sigue en la sesión.
+    var confirmDelete by remember { mutableStateOf(false) }
     val catalogLookup = catalogExerciseIndex()
     val selectedInfo = remember(exercise.id, catalogLookup) {
         resolveCatalogExerciseInfo(exercise, catalogLookup)
@@ -366,36 +374,130 @@ internal fun ExerciseQuickActionsSheet(
             )
         }
 
-        // La única acción de la hoja: cambiar el ejercicio por otro (abre el selector), en una fila de 56 dp.
-        KpknModule(onClick = onOpenPicker, onClickLabel = "Cambiar ejercicio") {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .defaultMinSize(minHeight = 32.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Icon(
-                    imageVector = KpknLineIcons.Repeat,
-                    contentDescription = null,
-                    modifier = Modifier.size(20.dp),
-                    tint = WizardColors.text,
-                )
-                Spacer(Modifier.width(12.dp))
-                Text(
-                    text = "Cambiar ejercicio",
-                    style = KpknType.bodyStrong,
-                    color = WizardColors.text,
-                    modifier = Modifier.weight(1f),
-                )
-                Icon(
-                    imageVector = KpknLineIcons.ChevronRight,
-                    contentDescription = null,
-                    modifier = Modifier.size(20.dp),
-                    tint = WizardColors.textMuted,
-                )
-            }
+        // Una fila de 56 dp por cada acción que llega (SE8). «Eliminar», aparte y en peligro, pide confirmación.
+        KpknModule(contentPadding = PaddingValues(horizontal = 20.dp, vertical = 4.dp)) {
+            QuickActionRow(
+                icon = KpknLineIcons.Info,
+                label = "Ficha del ejercicio",
+                tag = "session_quick_action_detail",
+                onClick = { onOpenExerciseDetail(exercise.id) },
+            )
+            QuickActionDivider()
+            QuickActionRow(
+                icon = KpknLineIcons.Repeat,
+                label = "Cambiar ejercicio",
+                tag = "session_quick_action_replace",
+                onClick = onOpenPicker,
+            )
+            QuickActionDivider()
+            QuickActionRow(
+                icon = KpknLineIcons.Flame,
+                label = "Calentamiento",
+                tag = "session_quick_action_warmup",
+                onClick = onOpenWarmup,
+            )
+            QuickActionDivider()
+            QuickActionRow(
+                icon = KpknLineIcons.Joint,
+                label = "Movilidad",
+                tag = "session_quick_action_mobility",
+                onClick = onOpenMobility,
+            )
+            QuickActionDivider()
+            QuickActionRow(
+                icon = KpknLineIcons.Link,
+                label = if (exercise.isInSuperset()) "Gestionar superserie" else "Crear superserie",
+                tag = "session_quick_action_superset",
+                onClick = onManageSuperset,
+            )
+        }
+        KpknModule(contentPadding = PaddingValues(horizontal = 20.dp, vertical = 4.dp)) {
+            QuickActionRow(
+                icon = KpknLineIcons.Trash,
+                label = "Eliminar ejercicio",
+                tag = "session_quick_action_delete",
+                onClick = { confirmDelete = true },
+                danger = true,
+            )
         }
     }
+
+    if (confirmDelete) {
+        KpknAlertDialog(
+            onDismissRequest = { confirmDelete = false },
+            title = "¿Eliminar el ejercicio?",
+            text = "«${exercise.name}» sale de esta sesión con todas sus series.",
+            confirmLabel = "Eliminar",
+            onConfirm = {
+                confirmDelete = false
+                onDelete()
+            },
+            dismissLabel = "Cancelar",
+            onDismiss = { confirmDelete = false },
+            destructive = true,
+        )
+    }
+}
+
+/**
+ * Fila de 56 dp de las acciones rápidas: el icono KPKN Line, el nombre en `bodyStrong` y, si lleva a otra pantalla, la flecha. Con
+ * [danger] va en peligro y sin flecha. Sin ripple de Material: la pulsación no pinta el fondo.
+ */
+@Composable
+private fun QuickActionRow(
+    icon: ImageVector,
+    label: String,
+    tag: String,
+    onClick: () -> Unit,
+    danger: Boolean = false,
+) {
+    val tint = if (danger) WizardColors.danger else WizardColors.text
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .heightIn(min = 56.dp)
+            .testTag(tag)
+            .clickable(
+                interactionSource = remember { MutableInteractionSource() },
+                indication = null,
+                role = Role.Button,
+                onClick = onClick,
+            ),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Icon(
+            imageVector = icon,
+            contentDescription = null,
+            modifier = Modifier.size(20.dp),
+            tint = tint,
+        )
+        Spacer(Modifier.width(14.dp))
+        Text(
+            text = label,
+            style = KpknType.bodyStrong,
+            color = tint,
+            modifier = Modifier.weight(1f),
+        )
+        if (!danger) {
+            Icon(
+                imageVector = KpknLineIcons.ChevronRight,
+                contentDescription = null,
+                modifier = Modifier.size(20.dp),
+                tint = WizardColors.textMuted,
+            )
+        }
+    }
+}
+
+/** Separador de 1 dp dentro del módulo de acciones (`divider`). */
+@Composable
+private fun QuickActionDivider() {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(1.dp)
+            .background(KpknSurface.divider),
+    )
 }
 
 private fun articulationLabel(value: String): String = when (value.uppercase()) {

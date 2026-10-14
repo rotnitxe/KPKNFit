@@ -28,6 +28,8 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextMeasurer
 import androidx.compose.ui.text.TextStyle
@@ -71,6 +73,8 @@ fun KpknSegmentedControl(
     modifier: Modifier = Modifier,
     size: KpknSegmentedSize = KpknSegmentedSize.Regular,
     enabled: Boolean = true,
+    /** Nombre hablado de cada segmento cuando su rótulo va abreviado («Calent.» se oye «Calentamiento»). Nulo: se lee el rótulo. */
+    descriptions: List<String>? = null,
 ) {
     if (options.isEmpty()) return
     val reduced = wizardReducedMotion()
@@ -135,7 +139,8 @@ fun KpknSegmentedControl(
                             indication = null,
                             role = Role.Tab,
                             onClick = { onSelect(index) },
-                        ),
+                        )
+                        .semantics { descriptions?.getOrNull(index)?.let { contentDescription = it } },
                     contentAlignment = Alignment.Center,
                 ) {
                     Text(

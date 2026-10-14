@@ -1,6 +1,9 @@
 package com.example.kpkn.screens.sessioneditor.design
 
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.snap
+import androidx.compose.animation.core.tween
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
@@ -8,6 +11,7 @@ import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -87,9 +91,12 @@ internal fun SessionCardioModule(
 ) {
     val haptics = LocalHapticFeedback.current
     val reduced = wizardReducedMotion()
-    val turn by animateFloatAsState(targetValue = if (expanded) 180f else 0f, label = "sessionCardioTurn")
     // Con movimiento reducido la flecha cambia de golpe, sin giro.
-    val angle = if (reduced) (if (expanded) 180f else 0f) else turn
+    val angle by animateFloatAsState(
+        targetValue = if (expanded) 180f else 0f,
+        animationSpec = if (reduced) snap() else tween(durationMillis = 220),
+        label = "sessionCardioTurn",
+    )
     val dose = remember(details) { SessionCardioDose.of(details) }
     val timeline = remember(details) { SessionCardioDose.timelineOf(details) }
     var gripOrigin by remember { mutableStateOf(Offset.Zero) }
@@ -108,9 +115,8 @@ internal fun SessionCardioModule(
         // Figura del tipo: asa de arrastre (pulsación larga) y, tocada, despliega.
         Box(
             modifier = Modifier
-                .size(44.dp)
-                .clip(CircleShape)
-                .background(KpknSurface.inset)
+                // La zona táctil mide 48 dp; el círculo, 44 (SE8).
+                .size(48.dp)
                 .onGloballyPositioned { gripOrigin = it.boundsInWindow().topLeft }
                 .then(
                     if (dragEnabled) {
@@ -144,15 +150,24 @@ internal fun SessionCardioModule(
                     role = Role.Button,
                     onClick = onToggle,
                 )
-                .semantics { contentDescription = "$name. Arrastra para reordenar" },
+                // Oculta para TalkBack: la fila lee el nombre, la dosis y el estado en una sola frase.
+                .clearAndSetSemantics { },
             contentAlignment = Alignment.Center,
         ) {
-            Icon(
-                imageVector = details.type.kpknIcon(),
-                contentDescription = null,
-                tint = WizardColors.text,
-                modifier = Modifier.size(22.dp),
-            )
+            Box(
+                modifier = Modifier
+                    .size(44.dp)
+                    .clip(CircleShape)
+                    .background(KpknSurface.inset),
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(
+                    imageVector = details.type.kpknIcon(),
+                    contentDescription = null,
+                    tint = WizardColors.text,
+                    modifier = Modifier.size(22.dp),
+                )
+            }
         }
         Spacer(Modifier.width(12.dp))
         SwipeToDeleteCard(
@@ -167,7 +182,9 @@ internal fun SessionCardioModule(
                     .background(KpknSurface.module, RoundedCornerShape(12.dp))
                     .combinedClickable(onClick = onToggle, onLongClick = onLongPress)
                     .padding(vertical = 10.dp)
-                    .semantics { stateDescription = if (expanded) "Desplegado" else "Plegado" },
+                    .semantics(mergeDescendants = true) {
+                        contentDescription = "$name, $dose, ${if (expanded) "desplegado" else "plegado"}"
+                    },
                 verticalArrangement = Arrangement.spacedBy(6.dp),
             ) {
                 val nameLine = if (chips.isNullOrBlank()) name else "$name · $chips"
@@ -202,7 +219,7 @@ internal fun SessionCardioModule(
                     role = Role.Button,
                     onClick = onToggle,
                 )
-                .semantics { contentDescription = if (expanded) "Plegar $name" else "Desplegar $name" },
+                .clearAndSetSemantics { },
             contentAlignment = Alignment.Center,
         ) {
             Icon(
@@ -228,31 +245,73 @@ internal fun CardioType.kpknIcon(): ImageVector = when (this) {
 }
 
 /**
- * Mini línea de tiempo del bloque: una barra de 6 dp por tramo, con el ancho proporcional a su duración. El esfuerzo va en `energia` y la
- * pausa en blanco al 12 %. Tiene su resumen para lectores de pantalla.
+ * Mini línea de tiempo del bloque: una barra de 6 dp por tramo, con el ancho proporcional a su duración y nunca menos de 4 dp (SE8: un
+ * tramo de 30 s en un bloque largo se veía como un punto). El esfuerzo va en `energia` y la pausa en blanco al 12 %. Tiene su resumen
+ * para lectores de pantalla.
  */
 @Composable
 private fun CardioTimelineBar(segments: List<CardioTimelineSegment>) {
     val efforts = segments.count { it.work }
     val pauses = segments.size - efforts
-    Row(
+    BoxWithConstraints(
         modifier = Modifier
             .fillMaxWidth()
             .height(6.dp)
             .semantics { contentDescription = "Línea de tiempo: $efforts esfuerzos y $pauses tramos de pausa" },
-        horizontalArrangement = Arrangement.spacedBy(2.dp),
     ) {
-        segments.forEach { segment ->
-            Box(
-                modifier = Modifier
-                    .weight(segment.seconds.toFloat())
-                    .fillMaxHeight()
-                    .clip(RoundedCornerShape(3.dp))
-                    .background(if (segment.work) SymbolPalette.energia else Color.White.copy(alpha = 0.12f))
-                    .testTag(CardioTimelineTag),
-            )
+        val widths = timelineSegmentWidths(
+            seconds = segments.map { it.seconds },
+            availableDp = maxWidth.value,
+            gapDp = TimelineGapDp,
+            minDp = TimelineMinSegmentDp,
+        )
+        Row(horizontalArrangement = Arrangement.spacedBy(TimelineGapDp.dp)) {
+            segments.forEachIndexed { index, segment ->
+                Box(
+                    modifier = Modifier
+                        .width(widths[index].dp)
+                        .fillMaxHeight()
+                        .clip(RoundedCornerShape(3.dp))
+                        .background(if (segment.work) SymbolPalette.energia else Color.White.copy(alpha = 0.12f))
+                        .testTag(CardioTimelineTag),
+                )
+            }
         }
     }
+}
+
+private const val TimelineGapDp = 2f
+private const val TimelineMinSegmentDp = 4f
+
+/**
+ * Anchos en dp de los tramos de la mini línea (SE8): proporcionales a su duración, sin bajar de [minDp]. Los tramos que no llegan al
+ * mínimo se quedan en él y lo que sobra se reparte entre los demás, así que la suma cabe en [availableDp] menos los huecos. Función pura.
+ */
+internal fun timelineSegmentWidths(seconds: List<Int>, availableDp: Float, gapDp: Float, minDp: Float): List<Float> {
+    val count = seconds.size
+    if (count == 0) return emptyList()
+    val room = availableDp - gapDp * (count - 1)
+    // Si ni siquiera caben los mínimos, todos se reparten a partes iguales.
+    if (room <= minDp * count) return List(count) { room.coerceAtLeast(0f) / count }
+    val small = BooleanArray(count)
+    var changed = true
+    while (changed) {
+        changed = false
+        val free = (0 until count).filter { !small[it] }
+        if (free.isEmpty()) break
+        val left = room - minDp * small.count { it }
+        val freeSeconds = free.sumOf { seconds[it] }.coerceAtLeast(1).toFloat()
+        for (i in free) {
+            if (left * seconds[i] / freeSeconds < minDp) {
+                small[i] = true
+                changed = true
+            }
+        }
+    }
+    val free = (0 until count).filter { !small[it] }
+    val left = room - minDp * small.count { it }
+    val freeSeconds = free.sumOf { seconds[it] }.coerceAtLeast(1).toFloat()
+    return (0 until count).map { i -> if (small[i]) minDp else left * seconds[i] / freeSeconds }
 }
 
 /** Etiqueta de prueba de cada barra de la mini línea (una por tramo). */

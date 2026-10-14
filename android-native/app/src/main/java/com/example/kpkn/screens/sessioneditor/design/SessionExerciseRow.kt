@@ -1,6 +1,9 @@
 package com.example.kpkn.screens.sessioneditor.design
 
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.snap
+import androidx.compose.animation.core.tween
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -88,12 +91,21 @@ internal fun SessionExerciseRow(
     chips: String? = null,
     superset: Boolean = false,
     dragEnabled: Boolean = true,
+    // La dosis dicha en voz alta («3 series de 6 a 8, RIR 2…»); sin ella, se lee la dosis de la línea.
+    spokenDose: String? = null,
 ) {
     val haptics = LocalHapticFeedback.current
     val reduced = wizardReducedMotion()
-    val turn by animateFloatAsState(targetValue = if (expanded) 180f else 0f, label = "sessionExerciseTurn")
     // Con movimiento reducido la flecha cambia de golpe, sin giro.
-    val angle = if (reduced) (if (expanded) 180f else 0f) else turn
+    val angle by animateFloatAsState(
+        targetValue = if (expanded) 180f else 0f,
+        animationSpec = if (reduced) snap() else tween(durationMillis = 220),
+        label = "sessionExerciseTurn",
+    )
+    // Una sola lectura para TalkBack: «Press banca, 3 series de 6 a 8, RIR 2, descanso 2 minutos 30, plegado» (SE8).
+    val spokenLabel = remember(name, dose, spokenDose, expanded) {
+        listOf(name, spokenDose ?: dose, if (expanded) "desplegado" else "plegado").joinToString(", ")
+    }
     var gripOrigin by remember { mutableStateOf(Offset.Zero) }
     val latestOnDragStart = rememberUpdatedState(onDragStart)
     val latestOnDrag = rememberUpdatedState(onDrag)
@@ -127,12 +139,10 @@ internal fun SessionExerciseRow(
             .padding(start = if (superset) 32.dp else 20.dp, end = 4.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        // Miniatura: asa de arrastre (pulsación larga) y, tocada, despliega.
+        // Miniatura: asa de arrastre (pulsación larga) y, tocada, despliega. La zona táctil mide 48 dp; el círculo, 44 (SE8).
         Box(
             modifier = Modifier
-                .size(44.dp)
-                .clip(CircleShape)
-                .background(KpknSurface.inset)
+                .size(48.dp)
                 .onGloballyPositioned { gripOrigin = it.boundsInWindow().topLeft }
                 .then(
                     if (dragEnabled) {
@@ -166,18 +176,27 @@ internal fun SessionExerciseRow(
                     role = Role.Button,
                     onClick = onToggle,
                 )
-                .semantics { contentDescription = "$name. Arrastra para reordenar" },
+                // Oculta para TalkBack: la fila ya se lee entera y «Desplegar» lo dice la fila.
+                .clearAndSetSemantics { },
             contentAlignment = Alignment.Center,
         ) {
-            if (imageRes != null) {
-                Image(
-                    painter = painterResource(imageRes),
-                    contentDescription = null,
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier.fillMaxSize(),
-                )
-            } else {
-                PatternGlyph(pattern = pattern, accent = accent, modifier = Modifier.size(26.dp))
+            Box(
+                modifier = Modifier
+                    .size(44.dp)
+                    .clip(CircleShape)
+                    .background(KpknSurface.inset),
+                contentAlignment = Alignment.Center,
+            ) {
+                if (imageRes != null) {
+                    Image(
+                        painter = painterResource(imageRes),
+                        contentDescription = null,
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier.fillMaxSize(),
+                    )
+                } else {
+                    PatternGlyph(pattern = pattern, accent = accent, modifier = Modifier.size(26.dp))
+                }
             }
         }
         Spacer(Modifier.width(12.dp))
@@ -193,7 +212,7 @@ internal fun SessionExerciseRow(
                     .background(KpknSurface.module, RoundedCornerShape(12.dp))
                     .combinedClickable(onClick = onToggle, onLongClick = onLongPress)
                     .padding(top = 10.dp, bottom = 10.dp)
-                    .semantics { stateDescription = if (expanded) "Desplegado" else "Plegado" },
+                    .semantics(mergeDescendants = true) { contentDescription = spokenLabel },
             ) {
                 Text(
                     text = nameText,
@@ -223,7 +242,7 @@ internal fun SessionExerciseRow(
                     role = Role.Button,
                     onClick = onToggle,
                 )
-                .semantics { contentDescription = if (expanded) "Plegar $name" else "Desplegar $name" },
+                .clearAndSetSemantics { },
             contentAlignment = Alignment.Center,
         ) {
             Icon(

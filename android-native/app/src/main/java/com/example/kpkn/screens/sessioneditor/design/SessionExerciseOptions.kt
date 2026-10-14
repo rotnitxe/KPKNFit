@@ -65,9 +65,9 @@ internal fun SessionIntensityRow(
 }
 
 /**
- * Fila de opciones del ejercicio (KPKN_UI_V2 §3): «Modo», «Unilateral», «Carga inteligente», «Técnica», «Nota» y «Cambiar ejercicio». En
- * una `FlowRow`, así que baja de línea si no caben. Los chips activos (unilateral, carga inteligente, técnica o nota con texto) se
- * ven seleccionados.
+ * Fila de opciones del ejercicio (KPKN_UI_V2 §3): «Modo», «Unilateral», «Carga inteligente» y «Técnica». En una `FlowRow`, así que baja de
+ * línea si no caben. Los chips activos (unilateral, carga inteligente o técnica) se ven seleccionados. «Nota» y «Cambiar ejercicio», las
+ * menos usadas, están en el menú «⋯» de la fila de intensidad (SE8): cuatro chips forman líneas regulares al 100 % y al 130 %.
  */
 @Composable
 internal fun SessionOptionChips(
@@ -75,13 +75,10 @@ internal fun SessionOptionChips(
     unilateral: Boolean,
     smartLoad: Boolean,
     technique: Boolean,
-    note: Boolean,
     onMode: () -> Unit,
     onUnilateral: () -> Unit,
     onSmartLoad: () -> Unit,
     onTechnique: () -> Unit,
-    onNote: () -> Unit,
-    onReplace: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     FlowRow(
@@ -93,8 +90,6 @@ internal fun SessionOptionChips(
         KpknChip(text = "Unilateral", selected = unilateral, onClick = onUnilateral)
         KpknChip(text = "Carga inteligente", selected = smartLoad, onClick = onSmartLoad)
         KpknChip(text = "Técnica", selected = technique, onClick = onTechnique)
-        KpknChip(text = "Nota", selected = note, onClick = onNote)
-        KpknChip(text = "Cambiar ejercicio", selected = false, onClick = onReplace)
     }
 }
 

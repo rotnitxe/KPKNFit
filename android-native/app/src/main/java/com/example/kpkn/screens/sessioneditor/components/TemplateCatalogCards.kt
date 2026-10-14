@@ -1,5 +1,8 @@
 package com.example.kpkn.screens.sessioneditor.components
 
+import com.example.kpkn.screens.sessioneditor.design.sessionEnter
+import com.example.kpkn.screens.sessioneditor.design.sessionExit
+
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -209,7 +212,7 @@ internal fun CatalogTemplateRow(
             Spacer(Modifier.height(10.dp))
             TemplateFatigueBars(drain = facets?.drain, showValues = false)
         }
-        AnimatedVisibility(visible = expanded) {
+        AnimatedVisibility(visible = expanded, enter = sessionEnter(), exit = sessionExit()) {
             TemplateExpandedDetails(
                 template = template,
                 exerciseIndex = exerciseIndex,
@@ -248,14 +251,50 @@ internal fun CatalogTemplateRow(
 }
 
 /**
+ * Leyenda de los tres canales de fatiga (músculos, energía y columna) con el color de cada anillo. Va una sola vez, arriba de la lista de
+ * plantillas, y no en cada fila (SE8).
+ */
+@Composable
+internal fun TemplateFatigueLegend(modifier: Modifier = Modifier) {
+    Row(
+        modifier = modifier.semantics(mergeDescendants = true) {
+            contentDescription = "Canales de fatiga: Músculos, Energía y Columna"
+        },
+        horizontalArrangement = Arrangement.spacedBy(16.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        listOf(
+            "Músculos" to KpknRingColors.musculos,
+            "Energía" to KpknRingColors.energia,
+            "Columna" to KpknRingColors.columna,
+        ).forEach { (label, color) ->
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(6.dp)
+                        .clip(CircleShape)
+                        .background(color),
+                )
+                Text(text = label, style = KpknType.caption, color = WizardColors.textMuted)
+            }
+        }
+    }
+}
+
+/**
  * Fatiga estimada en tres barras finas, una por canal (músculos, energía y columna) con los colores de los anillos. Con [showValues],
- * cada barra lleva su cifra «≈». Mientras no hay dato, las barras van vacías: nunca una cifra inventada.
+ * cada barra lleva su cifra «≈». Con [showLabels], el nombre del canal; si no, la leyenda de arriba de la lista lo dice una vez (SE8).
+ * Mientras no hay dato, las barras van vacías: nunca una cifra inventada.
  */
 @Composable
 internal fun TemplateFatigueBars(
     drain: PredictedDrain?,
     showValues: Boolean,
     modifier: Modifier = Modifier,
+    showLabels: Boolean = false,
 ) {
     val channels = listOf(
         Triple("Músculos", drain?.muscular, KpknRingColors.musculos),
@@ -278,13 +317,21 @@ internal fun TemplateFatigueBars(
                 modifier = Modifier.weight(1f),
                 verticalArrangement = Arrangement.spacedBy(4.dp),
             ) {
-                Text(
-                    text = if (showValues && value != null) "$label ≈$value%" else label,
-                    style = KpknType.caption,
-                    color = WizardColors.textMuted,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
+                val caption = when {
+                    showLabels && showValues && value != null -> "$label ≈$value%"
+                    showLabels -> label
+                    showValues && value != null -> "≈$value%"
+                    else -> null
+                }
+                if (caption != null) {
+                    Text(
+                        text = caption,
+                        style = KpknType.caption,
+                        color = WizardColors.textMuted,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()

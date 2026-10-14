@@ -182,13 +182,10 @@ class SessionExerciseExpandedRenderSheetTest {
                         unilateral = true,
                         smartLoad = true,
                         technique = true,
-                        note = true,
                         onMode = {},
                         onUnilateral = {},
                         onSmartLoad = {},
                         onTechnique = {},
-                        onNote = {},
-                        onReplace = {},
                     )
                     SessionUnilateralPanel(
                         choiceIndex = 2,

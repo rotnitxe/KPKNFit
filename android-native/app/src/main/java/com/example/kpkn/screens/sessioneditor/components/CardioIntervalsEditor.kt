@@ -101,7 +101,7 @@ internal fun CardioIntervalsEditor(
             Text("Circuitos / Intervalos", style = KpknType.bodyStrong, color = WizardColors.text)
             Text(
                 text = if (hasIntervals) {
-                    "${details.intervalBlocks.size} bloques · ${details.intervalRounds} ronda(s) · ${formatMinutes(details.totalIntervalSeconds())}"
+                    "${details.intervalBlocks.size} bloques · ${if (details.intervalRounds == 1) "1 ronda" else "${details.intervalRounds} rondas"} ·${formatMinutes(details.totalIntervalSeconds())}"
                 } else {
                     "Programa velocidades por tramos y pirámides"
                 },
@@ -530,6 +530,8 @@ private fun CardioActiveBlockInspector(
             selectedIndex = CardioBlockType.entries.indexOf(block.type),
             onSelect = { onUpdate(block.copy(type = CardioBlockType.entries[it])) },
             size = KpknSegmentedSize.Compact,
+            // Los rótulos van abreviados para caber a 13 sp; TalkBack lee el nombre entero (SE8).
+            descriptions = CardioBlockType.entries.map { it.fullName() },
         )
 
         // Duración: la píldora abre el selector; los ajustes rápidos son acciones de texto de 48 dp.
@@ -902,4 +904,12 @@ private fun CardioBlockType.segmentLabel(): String = when (this) {
     CardioBlockType.WORK -> "Trabajo"
     CardioBlockType.RECOVER -> "Pausa"
     CardioBlockType.COOLDOWN -> "Enfr."
+}
+
+/** Nombre entero del tipo de bloque, que TalkBack lee cuando el rótulo va abreviado (SE8). */
+private fun CardioBlockType.fullName(): String = when (this) {
+    CardioBlockType.WARMUP -> "Calentamiento"
+    CardioBlockType.WORK -> "Trabajo"
+    CardioBlockType.RECOVER -> "Pausa"
+    CardioBlockType.COOLDOWN -> "Enfriamiento"
 }

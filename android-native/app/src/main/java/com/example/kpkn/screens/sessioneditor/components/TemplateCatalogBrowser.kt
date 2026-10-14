@@ -1,5 +1,8 @@
 package com.example.kpkn.screens.sessioneditor.components
 
+import com.example.kpkn.screens.sessioneditor.design.sessionEnter
+import com.example.kpkn.screens.sessioneditor.design.sessionExit
+
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -73,6 +76,7 @@ import com.example.kpkn.ui.design.KpknCheckRow
 import com.example.kpkn.ui.design.KpknContextMenu
 import com.example.kpkn.ui.design.KpknEmptyState
 import com.example.kpkn.ui.design.KpknModule
+import com.example.kpkn.ui.design.KpknModuleHeader
 import com.example.kpkn.ui.design.KpknPrimaryPill
 import com.example.kpkn.ui.design.KpknSurface
 import com.example.kpkn.ui.design.KpknTextAction
@@ -257,9 +261,13 @@ internal fun TemplateCatalogBrowser(
         verticalArrangement = Arrangement.spacedBy(12.dp),
         contentPadding = PaddingValues(bottom = 8.dp),
     ) {
+        // La leyenda de la fatiga va una sola vez, arriba de la lista, y no en cada fila (SE8).
+        item(key = "fatigue-legend") {
+            TemplateFatigueLegend(modifier = Modifier.fillMaxWidth())
+        }
         item(key = "user-templates") {
             KpknModule(modifier = Modifier.fillMaxWidth()) {
-                ModuleHeaderRow(label = "Mis plantillas") {
+                KpknModuleHeader(label = "Mis plantillas") {
                     KpknTextAction(
                         text = "Guardar esta sesión",
                         onClick = { showSaveSheet = true },
@@ -478,35 +486,6 @@ internal fun TemplateCatalogBrowser(
     }
 }
 
-/**
- * Cabecera de módulo con una acción (SE4b): la etiqueta en eyebrow a la izquierda y la acción a la derecha. Si no caben en una línea (letra
- * al 130 %), la acción baja a la línea siguiente, alineada a la izquierda: ni la etiqueta ni la acción se cortan.
- */
-@OptIn(ExperimentalLayoutApi::class)
-@Composable
-private fun ModuleHeaderRow(
-    label: String,
-    modifier: Modifier = Modifier,
-    action: @Composable () -> Unit,
-) {
-    FlowRow(
-        modifier = modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalArrangement = Arrangement.Center,
-    ) {
-        Box(
-            modifier = Modifier.heightIn(min = 48.dp),
-            contentAlignment = Alignment.CenterStart,
-        ) {
-            Text(
-                text = label.uppercase(Locale.forLanguageTag("es")),
-                style = KpknType.eyebrow,
-                color = WizardColors.textMuted,
-            )
-        }
-        action()
-    }
-}
 
 @Composable
 private fun ModuleCaption(text: String) {
@@ -627,7 +606,7 @@ private fun CatalogSectionModule(
             bottom = if (expanded) 8.dp else 18.dp,
         ),
     ) {
-        ModuleHeaderRow(
+        KpknModuleHeader(
             label = templateCatalogText(section.title),
             modifier = Modifier.clickable(
                 interactionSource = remember { MutableInteractionSource() },
@@ -659,7 +638,7 @@ private fun CatalogSectionModule(
                 )
             }
         }
-        AnimatedVisibility(visible = expanded) {
+        AnimatedVisibility(visible = expanded, enter = sessionEnter(), exit = sessionExit()) {
             Column(modifier = Modifier.fillMaxWidth().padding(top = 6.dp)) {
                 if (section.nestedGroups.isNotEmpty()) {
                     section.nestedGroups.forEach { nested ->

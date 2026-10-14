@@ -288,7 +288,12 @@ internal fun SessionClonerSheet(
                         KpknRadioRow(
                             selected = selectedSourceSessionId == source.sessionId,
                             title = source.sessionName,
-                            subtitle = "${sessionEditorDayLabel(source.dayOfWeek)} · ${source.weekName} · ${source.blockName} · ${source.exerciseCount} ejercicios",
+                            // Día, semana y número de ejercicios. La fase («Hipertrofia») sale, y «ejercicios» no queda huérfano (SE8).
+                            subtitle = listOf(
+                                sessionEditorDayLabel(source.dayOfWeek),
+                                source.weekName,
+                                "${source.exerciseCount} ejercicios",
+                            ).filter { it.isNotBlank() }.joinToString(" · "),
                             onClick = { selectedSourceSessionId = source.sessionId },
                         )
                     }
