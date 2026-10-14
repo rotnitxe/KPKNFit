@@ -282,7 +282,6 @@ import com.example.kpkn.screens.sessioneditor.NativeWheelPicker
 import com.example.kpkn.screens.sessioneditor.CompactModeSelector
 import com.example.kpkn.screens.sessioneditor.CompactGoalTrackingButton
 import com.example.kpkn.screens.sessioneditor.CompactRestPickerButton
-import com.example.kpkn.screens.sessioneditor.CompactRestBundleButton
 import com.example.kpkn.screens.sessioneditor.UnilateralModeSelector
 import com.example.kpkn.screens.sessioneditor.SideOrderChip
 import com.example.kpkn.screens.sessioneditor.ExerciseSetsCarousel
