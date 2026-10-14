@@ -573,6 +573,9 @@ private fun WizardLongPage(
         // La revisión y activación (K9): el overlay con el resumen de cada bloque y el botón «Activar y entrar a KPKN», que llama
         // al mismo `onActivate` del dock. Con el cursor en REVIEW_ACTIVATE; la página de debajo queda vacía.
         if (step == SetupStepId.REVIEW_ACTIVATE) {
+            // Fondo opaco bajo la revisión: la página de debajo (cabecera, resumen y filas) queda tapada. Con el velo del diálogo al 52 %
+            // (cuando el sistema dice que hay desenfoque) el texto de atrás se leía a media intensidad, encima del del overlay.
+            Box(Modifier.fillMaxSize().background(WizardColors.background))
             ActivationOverlay(
                 state = state,
                 activateEnabled = checkEnabled,

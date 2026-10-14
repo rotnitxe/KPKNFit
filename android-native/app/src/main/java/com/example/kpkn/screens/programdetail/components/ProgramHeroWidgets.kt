@@ -131,7 +131,7 @@ fun VolumeCalibrationSheet(
                 value = notes,
                 onValueChange = { notes = it },
                 label = "Notas opcionales",
-                placeholder = "Ej: compito pronto, tolero alta frecuencia, priorizo banca...",
+                placeholder = "Ej: compito pronto, tolero alta frecuencia, priorizo banca…",
                 singleLine = false,
                 minLines = 2,
             )

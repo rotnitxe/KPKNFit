@@ -1,5 +1,6 @@
 package com.example.kpkn.screens.programdetail.design.structure
 
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -102,13 +103,13 @@ internal fun ProgramTemplateConfirmContent(
             )
         }
         Spacer(Modifier.height(22.dp))
-        Row(verticalAlignment = Alignment.CenterVertically) {
+        KpknPrimaryPill(
+            text = if (overwrite) "Reemplazar todo" else "Aplicar plantilla",
+            onClick = { onConfirm(overwrite) },
+            modifier = Modifier.fillMaxWidth(),
+        )
+        Box(modifier = Modifier.fillMaxWidth().padding(top = 4.dp), contentAlignment = Alignment.Center) {
             KpknTextAction(text = "Cancelar", onClick = onCancel)
-            Spacer(Modifier.weight(1f))
-            KpknPrimaryPill(
-                text = if (overwrite) "Reemplazar todo" else "Aplicar plantilla",
-                onClick = { onConfirm(overwrite) },
-            )
         }
     }
 }

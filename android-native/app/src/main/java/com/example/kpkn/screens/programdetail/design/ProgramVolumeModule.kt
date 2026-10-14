@@ -5,15 +5,18 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.example.kpkn.screens.onboarding.design.WizardColors
 import com.example.kpkn.ui.design.KpknModule
 import com.example.kpkn.ui.design.KpknModuleHeader
 import com.example.kpkn.ui.design.KpknSegmentedControl
 import com.example.kpkn.ui.design.KpknSegmentedSize
 import com.example.kpkn.ui.design.KpknSurface
 import com.example.kpkn.ui.design.KpknTextAction
+import com.example.kpkn.ui.design.KpknType
 import com.example.kpkn.ui.design.kpknEntrance
 
 /**
@@ -57,7 +60,12 @@ fun ProgramVolumeModule(
         Spacer(Modifier.height(10.dp))
         ProgramVolumeScopeSelector(scope = scope, onPrevious = onPreviousScope, onNext = onNextScope)
         Spacer(Modifier.height(12.dp))
-        muscles.forEachIndexed { index, muscle ->
+        // Sin calibrar en todo el módulo, la etiqueta «Sin calibrar» se dice una sola vez (en la invitación de arriba), no en cada fila.
+        val uncalibrated = muscles.none { it.zones != null }
+        // Los músculos sin series no tienen fila: se juntan al final en una línea.
+        val withSets = muscles.filter { it.sets > 0.0 }
+        val withoutSets = muscles.filter { it.sets <= 0.0 }
+        withSets.forEachIndexed { index, muscle ->
             if (index > 0) {
                 Box(Modifier.fillMaxWidth().height(1.dp).background(KpknSurface.divider))
             }
@@ -67,6 +75,15 @@ fun ProgramVolumeModule(
                 expanded = expanded,
                 onToggle = { onToggleMuscle(muscle.name) },
                 breakdown = if (expanded) breakdown else null,
+                showStateLabel = !uncalibrated,
+            )
+        }
+        if (withoutSets.isNotEmpty()) {
+            Spacer(Modifier.height(8.dp))
+            Text(
+                text = "Sin series esta semana: ${spanishList(withoutSets.map { it.name })}",
+                style = KpknType.caption,
+                color = WizardColors.textMuted,
             )
         }
         Spacer(Modifier.height(14.dp))
@@ -74,4 +91,11 @@ fun ProgramVolumeModule(
         Spacer(Modifier.height(14.dp))
         controls()
     }
+}
+
+/** «A», «A y B», «A, B y C»: la enumeración de nombres en español. */
+private fun spanishList(names: List<String>): String = when (names.size) {
+    0 -> ""
+    1 -> names.single()
+    else -> names.dropLast(1).joinToString(", ") + " y " + names.last()
 }

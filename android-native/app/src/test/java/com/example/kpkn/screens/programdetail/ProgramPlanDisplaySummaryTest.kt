@@ -359,27 +359,33 @@ class ProgramPlanDisplaySummaryTest {
         val profile = PowerliftingProfile(squatTM = 182.0, benchTM = 110.5, deadliftTM = 220.25)
 
         assertEquals("TM: sentadilla 182 · banca 110,5 · peso muerto 220,3 kg", trainingMaxLine(profile))
-        assertFalse(trainingMaxLine(profile).contains('.'))
+        assertFalse(trainingMaxLine(profile).orEmpty().contains('.'))
     }
 
     @Test
-    fun trainingMaxLineWritesADashForAMissingValue() {
+    fun trainingMaxLineLeavesOutTheMissingValuesInsteadOfADash() {
         assertEquals(
-            "TM: sentadilla 180 · banca — · peso muerto 220 kg",
+            "TM: sentadilla 180 · peso muerto 220 kg",
             trainingMaxLine(PowerliftingProfile(squatTM = 180.0, benchTM = null, deadliftTM = 220.0)),
         )
-        // Sin ningún dato no hay unidad que acompañar.
-        assertEquals("TM: sentadilla — · banca — · peso muerto —", trainingMaxLine(null))
-        assertEquals("TM: sentadilla — · banca — · peso muerto —", trainingMaxLine(PowerliftingProfile()))
-        assertEquals(
-            "TM: sentadilla — · banca — · peso muerto —",
-            trainingMaxLine(PowerliftingProfile(squatTM = Double.NaN, benchTM = Double.POSITIVE_INFINITY)),
-        )
+    }
+
+    @Test
+    fun trainingMaxLineWithOneMaxShowsOnlyThatOne() {
+        assertEquals("TM: sentadilla 108 kg", trainingMaxLine(PowerliftingProfile(squatTM = 108.0)))
+        assertEquals("TM: banca 80 kg", trainingMaxLine(PowerliftingProfile(benchTM = 80.0)))
+    }
+
+    @Test
+    fun trainingMaxLineIsNullWithoutAnyMaxSoTheRowIsNotPainted() {
+        assertNull(trainingMaxLine(null))
+        assertNull(trainingMaxLine(PowerliftingProfile()))
+        assertNull(trainingMaxLine(PowerliftingProfile(squatTM = Double.NaN, benchTM = Double.POSITIVE_INFINITY)))
     }
 
     @Test
     fun trainingMaxLineNeverUsesTheOldAbbreviations() {
-        val line = trainingMaxLine(PowerliftingProfile(squatTM = 100.0, benchTM = 80.0, deadliftTM = 120.0))
+        val line = trainingMaxLine(PowerliftingProfile(squatTM = 100.0, benchTM = 80.0, deadliftTM = 120.0)).orEmpty()
 
         assertFalse(line.contains("SQ"))
         assertFalse(line.contains("BP"))

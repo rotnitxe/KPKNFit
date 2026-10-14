@@ -436,7 +436,7 @@ fun FoodLoggerDrawer(
                 loggedFood = logged,
                 analysisSource = AnalysisSource.LOCAL_HEURISTIC,
                 statusText = if (logged != null) {
-                    "Estimación local. Tocá la tarjeta para editar."
+                    "Estimación local. Toca la tarjeta para editar."
                 } else {
                     "No pude identificar el alimento."
                 },
@@ -1445,7 +1445,7 @@ fun FoodLoggerDrawer(
         ) {
             // ── Cabecera: título, fecha y comida ─────────────────────────────
             item {
-                val locale = LocaleManager.getEffectiveLocale(LocalContext.current)
+                val locale = java.util.Locale.forLanguageTag("es")
                 LoggerHeader(
                     title = if (isEditing) "Editar comida" else "Registrar comida",
                     dateLabel = loggerDateLabel(logDate, locale),

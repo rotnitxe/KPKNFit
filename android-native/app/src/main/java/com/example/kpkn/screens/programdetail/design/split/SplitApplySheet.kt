@@ -164,7 +164,7 @@ internal fun SplitApplySheet(
         add(
             SplitModeOption(
                 mode = SessionMigrationMode.PREBUILT,
-                title = "Sesiones pre-creadas",
+                title = "Con ejercicios de plantilla",
                 description = "Carga ejercicios desde la plantilla más compatible para cada día.",
             ),
         )
@@ -197,6 +197,15 @@ internal fun SplitApplySheet(
                 )
                 Spacer(Modifier.height(14.dp))
                 SplitWeekDiagram(pattern = selectedSplit.pattern, startDay = startDay)
+                Spacer(Modifier.height(8.dp))
+                SplitRoleLegend(pattern = selectedSplit.pattern)
+                // Lo que antes abría el icono de información del catálogo: la descripción, y sus beneficios y precauciones.
+                if (selectedSplit.description.isNotBlank()) {
+                    Spacer(Modifier.height(14.dp))
+                    Text(text = selectedSplit.description, style = KpknType.body, color = WizardColors.textMuted)
+                }
+                SplitExplainer(title = "Beneficios", items = selectedSplit.pros.take(4))
+                SplitExplainer(title = "Precauciones", items = selectedSplit.cons.take(4))
             }
 
             if (isCalendarized) {
@@ -362,5 +371,16 @@ private fun applySplitSafely(
             error.message?.takeIf { it.isNotBlank() }
                 ?: "No se pudo aplicar el reparto.",
         )
+    }
+}
+
+/** Un bloque de la explicación del reparto: su título en `bodyStrong` y una línea por punto en `caption`. Sin puntos, no pinta nada. */
+@Composable
+private fun SplitExplainer(title: String, items: List<String>) {
+    if (items.isEmpty()) return
+    Spacer(Modifier.height(12.dp))
+    Text(text = title, style = KpknType.bodyStrong, color = WizardColors.text)
+    items.forEach { item ->
+        Text(text = "• $item", style = KpknType.caption, color = WizardColors.textMuted)
     }
 }

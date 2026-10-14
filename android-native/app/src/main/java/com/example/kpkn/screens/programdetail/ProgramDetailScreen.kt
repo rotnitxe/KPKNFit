@@ -1,6 +1,5 @@
 package com.example.kpkn.screens.programdetail
 
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.statusBarsPadding
@@ -13,14 +12,11 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.kpkn.data.exercises.exerciseCatalogSnapshot
@@ -92,12 +88,15 @@ import com.example.kpkn.screens.programdetail.design.programHeaderDotColor
 import com.example.kpkn.screens.programdetail.design.programHeaderPrimaryOf
 import com.example.kpkn.screens.programdetail.design.programHeaderStatusOf
 import com.example.kpkn.screens.programdetail.design.programMetaLine
+import com.example.kpkn.screens.programdetail.design.programNextSessionOf
+import com.example.kpkn.screens.programdetail.design.repeatingWeekSubtitle
 import com.example.kpkn.screens.programdetail.design.programProgressLabel
 import com.example.kpkn.screens.programdetail.design.rememberPassedLine
 import com.example.kpkn.ui.components.rememberProgramCover
 import com.example.kpkn.ui.components.icons.KpknLineIcons
 import com.example.kpkn.ui.design.KpknIconButton
 import com.example.kpkn.ui.design.KpknSegmentedControl
+import com.example.kpkn.ui.design.KpknStatusVeil
 import com.example.kpkn.ui.design.KpknSurface
 import com.example.kpkn.ui.design.KpknTopIsland
 import com.example.kpkn.ui.design.KpknTopRow
@@ -236,6 +235,13 @@ fun ProgramDetailScreen(
     )
     val coverKind = heroCoverKind(p.coverImage, hasBundledCover = bundledCover != null)
     val identity = remember(p.id, p.structureTemplateId, p.coverImage) { coverIdentityForProgram(p) }
+    // La siguiente sesión de la semana que se ve: la fila de acciones la enseña en un día sin sesión («Siguiente: jueves · Pierna A»).
+    val nextSession = remember(displayedSessions) {
+        programNextSessionOf(
+            sessions = displayedSessions.mapNotNull { session -> session.dayOfWeek?.let { it to session.name } },
+            today = java.time.LocalDate.now().dayOfWeek.value,
+        )
+    }
     val headerState = ProgramHeaderState(
         name = p.name,
         status = status,
@@ -253,6 +259,7 @@ fun ProgramDetailScreen(
             cycle = p.runState?.cycleNumber,
         ),
         primary = primaryAction,
+        nextSession = nextSession,
     )
     val openEdit: () -> Unit = {
         editDraft = programEditDraftOf(p)
@@ -268,6 +275,13 @@ fun ProgramDetailScreen(
         },
         onStartPause = { viewModel.toggleStartPause() },
         onEdit = openEdit,
+        onOpenNextSession = {
+            // Abre ese día en la pestaña Semana: se despliega solo ese día de la semana que se ve.
+            val weekId = selectedWeekMeta?.id
+            val day = nextSession?.dayOfWeek
+            if (weekId != null && day != null) viewModel.setExpandedWeekDays(weekId, setOf(day))
+            viewModel.setStructureSubTab(StructureSubTab.SEMANA)
+        },
     )
     val planSummary = remember(p) { buildProgramPlanDisplaySummary(p) }
     val tabOptions = programDetailTabsOptions
@@ -316,7 +330,7 @@ fun ProgramDetailScreen(
                     }
                     Spacer(Modifier.height(16.dp))
                     ProgramAboutModule(
-                        provenance = listOfNotNull(planSummary.provenanceLabel, planSummary.sourceLine).joinToString(" · "),
+                        provenance = aboutProvenanceLine(planSummary),
                         notes = planSummary.planNotes,
                         onOpenPlanInfo = planSummary.catalogEntry?.let { entry -> { planInfoEntryId = entry.id } },
                         onOpenMore = { showPlanSheet = true },
@@ -381,6 +395,8 @@ fun ProgramDetailScreen(
         }
 
         if (!showSplitPage) {
+            // Velo bajo la barra de estado: por encima del contenido que se desliza y por debajo de la isla.
+            KpknStatusVeil(modifier = Modifier.align(Alignment.TopCenter))
             KpknTopIsland(
                 visible = islandVisible,
                 title = p.name,
@@ -471,7 +487,7 @@ fun ProgramDetailScreen(
         } ?: return@LaunchedEffect
         if (notifiedLoopWeekId == loopWeek.id) return@LaunchedEffect
         notifiedLoopWeekId = loopWeek.id
-        snackbarHostState.showKpknSnackbar("Loop activo: ${loopWeek.name}. Ya puedes programar sus sesiones.", SnackbarType.SUGGESTION)
+        snackbarHostState.showKpknSnackbar("Ciclo activo: ${loopWeek.name}. Ya puedes programar sus sesiones.", SnackbarType.SUGGESTION)
         LoopNotificationManager(context).notifyLoopActive(p.name, loopWeek.name)
     }
 
@@ -507,11 +523,10 @@ fun ProgramDetailScreen(
         )
     }
 
+    // La unidad es la de Ajustes, una sola en toda la app: las hojas de máximos no tienen conmutador. Lo guardado son kg.
+    val settings by ProgramRepository.getInstance().settings.collectAsState()
+    val settingsUnit = if (settings.weightUnit == WeightUnit.LBS) MarksMath.UNIT_LB else MarksMath.UNIT_KG
     if (showOneRmDialog) {
-        // La unidad es la de Ajustes al abrir; el conmutador de la hoja solo cambia su vista. Lo guardado son kg.
-        val settings by ProgramRepository.getInstance().settings.collectAsState()
-        val settingsUnit = if (settings.weightUnit == WeightUnit.LBS) MarksMath.UNIT_LB else MarksMath.UNIT_KG
-        var oneRmUnit by rememberSaveable(settingsUnit) { mutableStateOf(settingsUnit) }
         val marks = buildMap<LiftMark, Double> {
             squat1RmKg?.let { put(LiftMark.SQUAT, it) }
             bench1RmKg?.let { put(LiftMark.BENCH, it) }
@@ -519,7 +534,7 @@ fun ProgramDetailScreen(
         }
         ProgramOneRmSheet(
             valuesKg = marks,
-            unit = oneRmUnit,
+            unit = settingsUnit,
             onValueKg = { lift, kg ->
                 when (lift) {
                     LiftMark.SQUAT -> squat1RmKg = kg
@@ -528,7 +543,6 @@ fun ProgramDetailScreen(
                     else -> Unit
                 }
             },
-            onUnit = { oneRmUnit = it },
             onSave = { squat, bench, deadlift ->
                 viewModel.recordPendingOneRmTest(squat, bench, deadlift)
                 showOneRmDialog = false
@@ -543,6 +557,7 @@ fun ProgramDetailScreen(
             autoEstimate = viewModel.estimatedTmProfile(),
             trainingMaxPercent = p.sourceRecipe?.trainingMaxPercent ?: 0.90,
             confirmLabel = "Guardar TM",
+            unit = settingsUnit,
             onDismiss = { showTmEditor = false },
             onConfirm = { profile ->
                 viewModel.updatePowerliftingProfile(profile)
@@ -675,47 +690,6 @@ private fun TrainingPanel(
         viewModel.setStructureSubTab(StructureSubTab.SEMANA)
     }
 
-    fun addSessionForWeek(
-        weekId: String,
-        preferredDayOfWeek: Int,
-    ) {
-        val located = locateWeekForSessionCreation(program, weekId) ?: return
-        val suggestedDay = chooseSessionCreationDay(
-            existingSessions = located.sessions,
-            preferredDayOfWeek = preferredDayOfWeek,
-            startDay = program.startDay ?: 1,
-        )
-        viewModel.selectBlock(located.blockId)
-        viewModel.selectWeek(located.weekId)
-        viewModel.setStructureSubTab(StructureSubTab.SEMANA)
-        val sessionId = java.util.UUID.randomUUID().toString()
-        val session = createBlankRoadmapSession(sessionId, suggestedDay)
-        viewModel.addSession(
-            macroIndex = located.macroIndex,
-            mesoIndex = located.mesoIndex,
-            weekId = located.weekId,
-            session = session,
-        )
-        onCreateSession(
-            sessionId,
-            located.weekId,
-            located.macroIndex,
-            located.mesoIndex,
-            suggestedDay,
-        )
-    }
-
-    fun createSessionForWeek(weekId: String, preferredDayOfWeek: Int, keyDateId: String? = null) {
-        if (keyDateId != null && program.keyDates.any { it.id == keyDateId && it.type == KeyDateType.COMPETITION }) {
-            focusWeek(
-                blockId = locateWeekForSessionCreation(program, weekId)?.blockId ?: return,
-                weekId = weekId,
-            )
-            return
-        }
-        addSessionForWeek(weekId, preferredDayOfWeek)
-    }
-
     // Sin bloques, Semana no tiene nada que enseñar: la salida es crear el primer bloque en Estructura (no se queda vacía).
     if (roadmapBlocks.isEmpty() && structureSubTab == StructureSubTab.SEMANA) {
         ProgramEmptyStructure(onAddFirstBlock = { viewModel.setStructureSubTab(StructureSubTab.MACROCICLO) })
@@ -778,7 +752,7 @@ private fun TrainingPanel(
                     onSecondary = {
                         if (isDeload) viewModel.rejectPendingDeload() else viewModel.skipPendingOneRmTest()
                     },
-                    dismissLabel = if (explicit) "Más tarde: el programa espera tu decisión" else "OK",
+                    dismissLabel = if (explicit) "Más tarde: el programa espera tu decisión" else "Entendido",
                     onDismiss = { viewModel.dismissBlockTransitionBanner() },
                     modifier = Modifier.padding(horizontal = 16.dp),
                 )
@@ -826,7 +800,16 @@ private fun TrainingPanel(
                         ?.label
                     ProgramWeekHeader(
                         title = if (repeating) "Semana que se repite" else listOfNotNull("Semana ${weekIndex + 1}", phase).joinToString(" · "),
-                        name = week.name.takeUnless { WeekDefaultName.matches(it.trim()) },
+                        // Un programa simple no repite el nombre de la semana («Semana repetible»): dice sus sesiones y su duración.
+                        name = if (repeating) {
+                            repeatingWeekSubtitle(
+                                sessionMinutes = displayedSessions.map {
+                                    com.example.kpkn.domain.training.SessionDurationEstimator.estimate(it).totalMinutes
+                                },
+                            )
+                        } else {
+                            week.name.takeUnless { WeekDefaultName.matches(it.trim()) }
+                        },
                         description = week.description,
                         onEdit = { weekEdit = WeekEditDraft(weekId = week.id, name = week.name, description = week.description.orEmpty()) },
                         onChangeSplit = onOpenSplitPage,
@@ -917,7 +900,6 @@ private fun TrainingPanel(
                 onUpdateWeek = { weekId, name, description -> viewModel.updateWeekMetadata(weekId, name, description) },
                 onDeleteWeek = { weekId -> viewModel.deleteWeekFromRoadmap(weekId) },
                 onAddSimpleWeek = { viewModel.addWeekToSimpleProgram() },
-                onCreateSessionForWeek = ::createSessionForWeek,
                 onApplyProgramTemplate = { viewModel.applyProgramTemplate(it) },
                 onApplyProgramTemplateOverwrite = { template, overwrite ->
                     viewModel.applyProgramTemplate(template, overwrite)
@@ -1078,14 +1060,6 @@ private data class WeekEditDraft(val weekId: String, val name: String, val descr
 /** Nombre por defecto de una semana («Semana 3»): no se repite como subtítulo en la cabecera. */
 private val WeekDefaultName = Regex("Semana \\d+")
 
-private data class WeekSessionLocation(
-    val blockId: String,
-    val weekId: String,
-    val macroIndex: Int,
-    val mesoIndex: Int,
-    val sessions: List<Session>,
-)
-
 private fun createBlankRoadmapSession(sessionId: String, dayOfWeek: Int): Session =
     Session(
         id = sessionId,
@@ -1106,29 +1080,6 @@ private fun dayLabelFull(dayOfWeek: Int): String = when (dayOfWeek) {
     else -> "día"
 }
 
-private fun locateWeekForSessionCreation(program: Program, weekId: String): WeekSessionLocation? {
-    var globalMesoIndex = 0
-    program.macrocycles.forEachIndexed { macroIndex, macro ->
-        macro.blocks.forEach { block ->
-            block.mesocycles.forEach { meso ->
-                val mesoIndex = globalMesoIndex++
-                meso.weeks.forEach { week ->
-                    if (week.id == weekId) {
-                        return WeekSessionLocation(
-                            blockId = block.id,
-                            weekId = week.id,
-                            macroIndex = macroIndex,
-                            mesoIndex = mesoIndex,
-                            sessions = week.sessions,
-                        )
-                    }
-                }
-            }
-        }
-    }
-    return null
-}
-
 /** Insignia «N progresiones por revisar» para las pestañas donde no se ve la tarjeta de propuestas. */
 @Composable
 private fun NativeProgressionBadge(label: String, onClick: () -> Unit) {
@@ -1136,7 +1087,7 @@ private fun NativeProgressionBadge(label: String, onClick: () -> Unit) {
         modifier = Modifier
             .padding(horizontal = 16.dp, vertical = 6.dp)
             .clip(RoundedCornerShape(12.dp))
-            .clickable(onClick = onClick)
+            .clickable(role = Role.Button, onClick = onClick)
             .testTag("native_progression_badge"),
         shape = RoundedCornerShape(12.dp),
         color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.55f),
@@ -1206,16 +1157,3 @@ internal fun usesTrainingMax(recipe: com.example.kpkn.data.protocols.TrainingPla
     }
 }
 
-private fun chooseSessionCreationDay(
-    existingSessions: List<Session>,
-    preferredDayOfWeek: Int,
-    startDay: Int,
-): Int {
-    val normalizedPreferred = preferredDayOfWeek.coerceIn(1, 7)
-    val occupiedDays = existingSessions.mapNotNull { it.dayOfWeek?.takeIf { day -> day in 1..7 } }.toSet()
-    if (normalizedPreferred !in occupiedDays) return normalizedPreferred
-
-    val normalizedStart = startDay.coerceIn(1, 7)
-    val orderedDays = (normalizedStart..7).toList() + (1 until normalizedStart).toList()
-    return orderedDays.firstOrNull { it !in occupiedDays } ?: normalizedPreferred
-}

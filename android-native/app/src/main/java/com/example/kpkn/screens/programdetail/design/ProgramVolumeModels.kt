@@ -1,7 +1,18 @@
 package com.example.kpkn.screens.programdetail.design
 
 import com.example.kpkn.screens.onboarding.design.formatDecimalEs
+import com.example.kpkn.screens.programdetail.design.structure.SIMPLE_WEEK_NAME
 import kotlin.math.roundToInt
+
+/** Nombre de dominio de la semana de un programa simple («Semana repetible»): el dominio no cambia, solo lo que se pinta. */
+private const val REPEATING_WEEK_DOMAIN_NAME = "Semana repetible"
+
+/**
+ * El alcance del volumen tal como se pinta: en un programa simple, «Semana que se repite» en vez de «Semana repetible». Solo cambia el
+ * texto; el cálculo del alcance es el de siempre.
+ */
+internal fun volumeScopeLabelOf(label: String, simpleProgram: Boolean): String =
+    if (simpleProgram) label.replace(REPEATING_WEEK_DOMAIN_NAME, SIMPLE_WEEK_NAME) else label
 
 /**
  * Datos de la pestaña Volumen (P4). `VolumeView` los calcula con la lógica de siempre y las piezas de `design/` solo los pintan, así

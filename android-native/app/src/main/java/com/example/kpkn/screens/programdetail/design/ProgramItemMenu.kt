@@ -31,6 +31,8 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInWindow
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import com.example.kpkn.screens.onboarding.design.WizardColors
@@ -83,7 +85,8 @@ internal fun ProgramItemMenu(
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .clickable(interactionSource = interaction, indication = null, onClick = onDismiss),
+                    .semantics { contentDescription = "Cerrar el menú" }
+                    .clickable(interactionSource = interaction, indication = null, role = Role.Button, onClick = onDismiss),
             )
             val start = origin
             if (start != null) {
