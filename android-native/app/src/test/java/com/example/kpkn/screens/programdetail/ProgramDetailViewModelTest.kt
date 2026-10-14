@@ -2171,7 +2171,7 @@ class ProgramDetailViewModelTest {
             CompositionMetadataHolder.current = installed
         }
 
-        assertEquals("TM actualizado. Las cargas nuevas se aplican al pulsar RE-MATERIALIZAR.", message)
+        assertEquals("TM actualizado. Las cargas nuevas se aplican al pulsar «Re-materializar».", message)
         val saved = repository.getProgramById(id)!!
         assertEquals("el TM se guardó igual", 189.0, saved.powerliftingProfile!!.squatTM!!, 1e-9)
         assertEquals("las semanas no se tocaron", weeksOf(before), weeksOf(saved))
@@ -2297,7 +2297,7 @@ class ProgramDetailViewModelTest {
         }
 
         assertEquals(
-            "1RM registrado. TM actualizado. Las cargas nuevas se aplican al pulsar RE-MATERIALIZAR.",
+            "1RM registrado. TM actualizado. Las cargas nuevas se aplican al pulsar «Re-materializar».",
             awaitSnackbar(vm),
         )
         val saved = repository.getProgramById(id)!!

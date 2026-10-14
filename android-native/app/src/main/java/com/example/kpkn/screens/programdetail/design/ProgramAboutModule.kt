@@ -28,7 +28,7 @@ import com.example.kpkn.ui.design.KpknType
  */
 @Composable
 fun ProgramAboutModule(
-    provenance: String,
+    provenance: String?,
     notes: List<String>,
     onOpenPlanInfo: (() -> Unit)?,
     onOpenMore: () -> Unit,
@@ -37,15 +37,18 @@ fun ProgramAboutModule(
     KpknModule(modifier = modifier) {
         KpknModuleHeader(label = "Sobre este programa")
         Spacer(Modifier.height(8.dp))
-        Text(
-            text = provenance,
-            style = KpknType.bodyStrong,
-            color = WizardColors.text,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-        )
-        notes.take(2).forEach { note ->
-            Spacer(Modifier.height(4.dp))
+        // Sin procedencia que decir (null), la línea no se pinta y las notas suben.
+        if (provenance != null) {
+            Text(
+                text = provenance,
+                style = KpknType.bodyStrong,
+                color = WizardColors.text,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+        }
+        notes.take(2).forEachIndexed { index, note ->
+            if (provenance != null || index > 0) Spacer(Modifier.height(4.dp))
             Text(
                 text = note,
                 style = KpknType.caption,

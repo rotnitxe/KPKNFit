@@ -3,6 +3,10 @@ package com.example.kpkn.screens.programdetail.design
 import com.example.kpkn.data.models.ProgramMode
 import com.example.kpkn.domain.text.SpanishPlurals
 import com.example.kpkn.screens.programdetail.components.focusModeLabel
+import java.time.DayOfWeek
+import java.time.format.TextStyle
+import java.util.Locale
+import kotlin.math.roundToInt
 
 /*
  * Textos y decisiones de la cabecera de Program Detail, sin Compose: la prueba en la JVM decide qué dice cada caso.
@@ -115,3 +119,40 @@ internal fun shortPhaseOf(phase: String?): String? =
         ?.replaceFirstChar { it.uppercaseChar() }
 
 private const val PHASE_PREFIX = "Fase de "
+
+/** La sesión que toca después de hoy en la semana que se ve: su día (1 = lunes … 7 = domingo) y la etiqueta de la píldora. */
+internal data class ProgramNextSession(val dayOfWeek: Int, val label: String)
+
+private val SPANISH_LOCALE: Locale = Locale("es")
+
+/**
+ * «Siguiente: jueves · Pierna A»: la sesión que toca después de [today] (1 = lunes … 7 = domingo), dando la vuelta a la semana. La del
+ * propio día cuenta solo dentro de siete días. [sessions] son pares (día, nombre); las que no tienen día se ignoran. Null si ninguna.
+ */
+internal fun programNextSessionOf(sessions: List<Pair<Int, String>>, today: Int): ProgramNextSession? {
+    val next = sessions
+        .filter { it.first in 1..7 }
+        .minByOrNull { daysUntil(it.first, today) }
+        ?: return null
+    val dayName = DayOfWeek.of(next.first).getDisplayName(TextStyle.FULL, SPANISH_LOCALE).lowercase(SPANISH_LOCALE)
+    val name = next.second.trim()
+    val label = if (name.isEmpty()) "Siguiente: $dayName" else "Siguiente: $dayName · $name"
+    return ProgramNextSession(dayOfWeek = next.first, label = label)
+}
+
+/** Días desde [today] hasta [day] dentro de la semana: 1 para el día siguiente y 7 para el mismo día de la semana siguiente. */
+private fun daysUntil(day: Int, today: Int): Int {
+    val distance = ((day - today) % 7 + 7) % 7
+    return if (distance == 0) 7 else distance
+}
+
+/**
+ * Subtítulo de la semana de un programa simple, en lugar de su nombre («Semana repetible»): «4 sesiones · ≈ 61 min de media». La media
+ * solo cuenta las sesiones con duración; sin ninguna, dice solo las sesiones. Sin sesiones, null.
+ */
+internal fun repeatingWeekSubtitle(sessionMinutes: List<Int>): String? {
+    if (sessionMinutes.isEmpty()) return null
+    val sessions = SpanishPlurals.sessions(sessionMinutes.size)
+    val timed = sessionMinutes.filter { it > 0 }
+    return if (timed.isEmpty()) sessions else "$sessions · ≈ ${timed.average().roundToInt()} min de media"
+}

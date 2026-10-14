@@ -54,15 +54,17 @@ internal fun AutoregulationProposalsCard(
     val tm = program.powerliftingProfile
     val recipe = program.sourceRecipe
     val usesTm = recipe?.let { usesTrainingMax(it) } ?: (tm != null)
-    if (!usesTm && !hasAutoregPending && nativeCard.proposals.isEmpty() && nativeCard.notices.isEmpty() && !needsRematerialize) return
+    // La línea de TM solo sale con algún máximo guardado: sin ninguno, la fila no se pinta (ni un «—»).
+    val tmLine = if (usesTm) trainingMaxLine(tm) else null
+    if (tmLine == null && !hasAutoregPending && nativeCard.proposals.isEmpty() && nativeCard.notices.isEmpty() && !needsRematerialize) return
 
     KpknModule(modifier = modifier.fillMaxWidth().testTag("program_proposals_card")) {
         KpknModuleHeader(label = "Propuestas")
-        if (usesTm) {
+        if (tmLine != null) {
             Spacer(Modifier.height(8.dp))
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
-                    text = trainingMaxLine(tm),
+                    text = tmLine,
                     style = KpknType.caption,
                     color = WizardColors.textMuted,
                     modifier = Modifier.weight(1f),

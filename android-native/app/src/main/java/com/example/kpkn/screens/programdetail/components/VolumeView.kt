@@ -275,7 +275,10 @@ fun VolumeView(
         }
 
         if (!isVolumeCalibrated || program.athleteProfileScore == null) {
-            ProgramVolumeCalibrationInvite(onCalibrate = { showCalibrationSheet = true })
+            ProgramVolumeCalibrationInvite(
+                onCalibrate = { showCalibrationSheet = true },
+                note = if (!isVolumeCalibrated) "Sin calibrar: las zonas aparecen al calibrar" else null,
+            )
         }
 
         ProgramVolumeModule(

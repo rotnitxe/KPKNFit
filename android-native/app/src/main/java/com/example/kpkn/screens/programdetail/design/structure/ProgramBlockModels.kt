@@ -16,10 +16,13 @@ internal data class ProgramMesoUi(
     val goalLabel: String,
 )
 
+/** El único nombre de la semana de un programa simple: lo lleva el título del bloque, sin repetirlo en el eyebrow. */
+internal const val SIMPLE_WEEK_NAME = "Semana que se repite"
+
 /**
- * Un bloque para su módulo (P3b). [eyebrow] es la fase («Intensificación») o, en un programa simple, «Semana que se repite» o
- * «Calendarizado»; null si no se sabe, y entonces el eyebrow no se pinta. [phase] da su color y la bandera de competición. [macroIndex]
- * y [blockIndex] sitúan el bloque en el programa, para sus cambios.
+ * Un bloque para su módulo (P3b). [eyebrow] es la fase («Intensificación») o, en un programa simple calendarizado, «Calendarizado»; null si
+ * no se sabe, y entonces el eyebrow no se pinta. [phase] da su color y la bandera de competición. [macroIndex] y [blockIndex] sitúan el
+ * bloque en el programa, para sus cambios.
  */
 internal data class ProgramBlockUi(
     val id: String,
@@ -53,11 +56,12 @@ internal fun programBlockUis(program: Program, currentWeekId: String?, cycle: In
         val goal: BlockGoal? = block.goal
         ProgramBlockUi(
             id = block.id,
-            name = block.name,
+            // En un programa simple, la semana se llama «Semana que se repite», no «Semana cíclica».
+            name = if (simple) SIMPLE_WEEK_NAME else block.name,
             macroIndex = roadmapBlock.macroIndex,
             blockIndex = roadmapBlock.blockIndex,
             eyebrow = when {
-                simple -> if (program.simpleProgramKind == SimpleProgramKind.CALENDARIZED) "Calendarizado" else "Semana que se repite"
+                simple -> if (program.simpleProgramKind == SimpleProgramKind.CALENDARIZED) "Calendarizado" else null
                 phase != null -> phase.label
                 goal != null && goal != BlockGoal.CUSTOM -> blockGoalLabel(goal)
                 else -> null
