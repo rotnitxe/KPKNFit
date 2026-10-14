@@ -217,47 +217,6 @@ private fun quickLoadIncrementFor(exercise: Exercise, currentSet: ExerciseSet): 
 }
 
 
-@Composable
-internal fun WorkoutMiniTextField(
-    value: String,
-    onValueChange: (String) -> Unit,
-    label: String,
-    modifier: Modifier = Modifier,
-    keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
-    accentColor: Color = MaterialTheme.colorScheme.primary,
-) {
-    val bringIntoViewRequester = remember { BringIntoViewRequester() }
-    val scope = rememberCoroutineScope()
-    OutlinedTextField(
-        value = value,
-        onValueChange = onValueChange,
-        label = { Text(label, style = MaterialTheme.typography.labelSmall) },
-        keyboardOptions = keyboardOptions,
-        singleLine = true,
-        modifier = modifier
-            .heightIn(min = 48.dp)
-            .bringIntoViewRequester(bringIntoViewRequester)
-            .onFocusEvent { focusState ->
-                if (focusState.isFocused) {
-                    scope.launch { bringIntoViewRequester.bringIntoView() }
-                }
-            },
-        shape = WorkoutUiTokens.InnerCardShape,
-        textStyle = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
-        colors = OutlinedTextFieldDefaults.colors(
-            focusedBorderColor = accentColor,
-            unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f),
-            focusedLabelColor = accentColor,
-            unfocusedLabelColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
-            cursorColor = MaterialTheme.colorScheme.onSurface,
-            focusedTextColor = MaterialTheme.colorScheme.onSurface,
-            unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
-            focusedContainerColor = WorkoutUiTokens.setInnerHighestColor(),
-            unfocusedContainerColor = WorkoutUiTokens.setInnerHighestColor(),
-        )
-    )
-}
-
 private enum class SetCardFace { Front, ExerciseMedia }
 
 @Suppress("UNUSED_PARAMETER")
