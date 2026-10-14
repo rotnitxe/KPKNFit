@@ -168,33 +168,36 @@ private fun historyDateLabel(raw: String): String {
     val iso = raw.take(10)
     val date = try { LocalDate.parse(iso) } catch (e: Exception) { return iso }
     val pattern = if (date.year == LocalDate.now().year) "EEEE d 'de' MMMM" else "EEEE d 'de' MMMM 'de' yyyy"
-    return DateTimeFormatter.ofPattern(pattern, historyLocale).format(date)
+    return DateTimeFormatter.ofPattern(pattern, historyLocale).format(date).replace(" de ", "$NB_SPACE" + "de" + "$NB_SPACE")
 }
+
+/** Espacio inseparable: une la cifra con su unidad o con su «×» para que una serie no se parta entre dos líneas (130 % de letra). */
+private const val NB_SPACE = " "
 
 /** Una serie como «80 × 8» («82,5 × 6»), con lado, RPE, RIR, parciales y ayuda si los hay, y «(fallida)» si falló. */
 private fun historySetText(set: CompletedSet): String {
     val side = when (set.side) {
-        "left" -> "Izq "
-        "right" -> "Der "
+        "left" -> "Izq${NB_SPACE}"
+        "right" -> "Der${NB_SPACE}"
         else -> ""
     }
     val load = if (set.weight > 0) set.weight.toTrimmedNumberString() else null
     val reps = if (set.reps > 0) set.reps.toString() else null
     val core = when {
-        load != null && reps != null -> "$load × $reps"
-        load != null -> "$load kg"
-        reps != null -> "$reps reps"
+        load != null && reps != null -> "${load}${NB_SPACE}×${NB_SPACE}${reps}"
+        load != null -> "${load}${NB_SPACE}kg"
+        reps != null -> "${reps}${NB_SPACE}reps"
         else -> "—"
     }
     val extras = buildList {
-        set.rpe?.let { add("RPE ${it.toTrimmedNumberString()}") }
-        set.rir?.let { add("RIR $it") }
-        (set.partialReps ?: 0).takeIf { it > 0 }?.let { add("+$it parciales") }
-        (set.assistedReps ?: 0).takeIf { it > 0 }?.let { add("$it con ayuda") }
+        set.rpe?.let { add("RPE${NB_SPACE}${it.toTrimmedNumberString()}") }
+        set.rir?.let { add("RIR${NB_SPACE}${it}") }
+        (set.partialReps ?: 0).takeIf { it > 0 }?.let { add("+${it}${NB_SPACE}parciales") }
+        (set.assistedReps ?: 0).takeIf { it > 0 }?.let { add("${it}${NB_SPACE}con${NB_SPACE}ayuda") }
     }
     val failed = if (isFailedHistorySet(set)) {
         val reason = set.failureReason?.takeIf { it.isNotBlank() && it != "execution_error" && it != "Serie marcada como fallida" }
-        if (reason != null) " (fallida: $reason)" else " (fallida)"
+        if (reason != null) "${NB_SPACE}(fallida: $reason)" else "${NB_SPACE}(fallida)"
     } else {
         ""
     }

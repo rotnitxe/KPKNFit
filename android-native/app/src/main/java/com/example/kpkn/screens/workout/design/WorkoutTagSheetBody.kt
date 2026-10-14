@@ -73,7 +73,7 @@ internal fun WorkoutTagSheetBody(
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         KpknModule {
-            KpknModuleHeader(label = "Etiquetas")
+            KpknModuleHeader(label = "Elige una")
             Spacer(Modifier.height(12.dp))
             if (commonTags.isEmpty()) {
                 Text(
