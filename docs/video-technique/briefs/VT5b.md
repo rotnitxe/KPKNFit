@@ -69,7 +69,22 @@
    - `reanalyze(mediaId)`;
    - `setPlateSeed(mediaId, seed, diameterMm)`: guarda la semilla en el sidecar de captura o en un sidecar `<id>.plate.json` (elige y documenta) y encola PLATE_ONLY;
    - `setUserProfileOverride(mediaId, profileId)` para ejercicios propios: lo guarda en el sidecar de captura y encola FULL.
-5. **Enganches:**
+5. **Telemetría (D27, decisión del usuario U9: «lo que NO AFECTE LA FUNCIONALIDAD»).** VT4b midió que `tasks-core` de MediaPipe envía métricas de uso a `firebaselogging.googleapis.com` mediante datatransport.
+   - **Cambio:** en `src/main/AndroidManifest.xml`, dentro de `<application>`, declara deshabilitados los dos componentes del planificador de datatransport:
+     ```xml
+     <service android:name="com.google.android.datatransport.runtime.scheduling.jobscheduling.JobInfoSchedulerService"
+         android:enabled="false" tools:replace="android:enabled" />
+     <receiver android:name="com.google.android.datatransport.runtime.scheduling.jobscheduling.AlarmManagerSchedulerBroadcastReceiver"
+         android:enabled="false" tools:replace="android:enabled" />
+     ```
+     Comprueba en el manifiesto fusionado (`build/intermediates/merged_manifests/...`) que quedan con `enabled=false` y con el resto de atributos intactos.
+   - **Condición: no afecta a la funcionalidad.** Compruébalo en el EMULADOR con el APK `.dbg` y `emu_run.py`, sin `adb` suelto:
+     1. `TechniqueBenchActivity`, modo `telemetry_check`, SIN apagar nada en tiempo de ejecución (el manifiesto ya lo hace). Esperado: 0 B a firebaselogging en ≥ 110 s, ninguna caída y la pose de MediaPipe funcionando.
+     2. El OCR del importador sigue funcionando con ML Kit: usa el arnés `ImportOcrHarnessActivity` como diga su KDoc, y que reconozca texto como antes.
+     3. Arranque en frío dos veces seguidas: sin caídas y sin `FATAL` en `--crash-log`.
+   - **Si algo de la funcionalidad cambia,** revierte el cambio del manifiesto y anótalo. Entonces queda la opción «dejarla y avisar» para el texto de privacidad.
+   - Archivo permitido para esto: `src/main/AndroidManifest.xml`, solo esas dos entradas.
+6. **Enganches:**
    - **`WorkoutMediaRepository`:** encola FULL (`userInitiated = true`) en dos casos:
      - al terminar bien la ingesta de un VIDEO (cámara: `submitFinalizedVideoCapture`; galería: `submitUriCapture`);
      - con `analyzeVideos` activo.
@@ -91,6 +106,7 @@
 - **Corridas:**
   1. `:app:compileBaseDebugKotlin`
   2. `:app:testBaseDebugUnitTest --tests "com.example.kpkn.data.work.*" --tests "com.example.kpkn.data.repository.*VideoAnalysis*" --tests "com.example.kpkn.data.repository.*Media*"`
+  3. `-I C:/kw/tools/dbg-suffix.init.gradle :app:assembleBaseDebug`, para las comprobaciones de telemetría en el emulador (punto 5).
 
 ## Commits
 - `feat(technique): Worker del análisis con cola, puerta de cámara y primer plano`
