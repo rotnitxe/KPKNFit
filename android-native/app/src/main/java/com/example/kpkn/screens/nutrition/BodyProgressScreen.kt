@@ -35,6 +35,7 @@ import com.example.kpkn.screens.body.design.bodyInfoFor
 import com.example.kpkn.screens.body.design.buildBodyChartPoints
 import com.example.kpkn.ui.components.LocalKpknOverlayHost
 import com.example.kpkn.ui.design.KpknSkeletonModule
+import com.example.kpkn.ui.design.KpknStatusVeil
 import com.example.kpkn.ui.design.KpknSurface
 import com.example.kpkn.ui.design.kpknEntrance
 import com.example.kpkn.ui.design.rememberIslandVisible
@@ -282,6 +283,9 @@ fun BodyProgressScreen(
             item { Spacer(Modifier.height(100.dp)) }
             }
         }
+
+        // Velo bajo la barra de estado: por encima de la lista y por debajo de la isla superior.
+        KpknStatusVeil(modifier = Modifier.align(Alignment.TopCenter))
 
         // Isla superior de Cuerpo: aparece cuando la cabecera sale de la vista.
         BodyIsland(
