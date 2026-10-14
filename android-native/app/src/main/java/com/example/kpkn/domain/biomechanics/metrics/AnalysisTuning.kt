@@ -1,0 +1,252 @@
+package com.example.kpkn.domain.biomechanics.metrics
+
+/**
+ * TODOS los umbrales del motor de técnica en vídeo (§4 a §8), con los valores de la especificación como defecto. VT10 solo
+ * ajusta aquí, con el reparto de ajuste y de reserva del banco dorado. Los campos nuevos de las olas siguientes (VT3a, VT3b)
+ * se añaden AL FINAL.
+ *
+ * Los comentarios dicen de dónde sale cada cifra: «§6 p5» es el paso 5 del pseudocódigo del segmentador.
+ */
+data class AnalysisTuning(
+    // ---------------------------------------------------------------------------------------------------------
+    // §4 · preparación de la traza
+    // ---------------------------------------------------------------------------------------------------------
+    /** fs por debajo de esto (Hz): LOW_FPS, sin fases ni velocidad y confianza BAJA (§4.1 y §6). */
+    val lowFpsBelow: Double = 20.0,
+    /** MULTI_PERSON si la 2.ª pose sale en más de esta fracción de los fotogramas con pose (§4.2). */
+    val multiPersonFraction: Double = 0.10,
+    /** Se corrige la inclinación del móvil si |roll| supera esto, en grados (§4.3). */
+    val rollCorrectionDeg: Double = 2.0,
+    /** Un punto es válido con visibilidad y presencia de al menos esto (§4.4). */
+    val minVisibility: Float = 0.5f,
+    val minPresence: Float = 0.5f,
+    /** S provisional del reparador de cruces izquierda/derecha = mediana(|S_mid − A_mid|) / esto (§4.5). */
+    val provisionalScaleRatio: Double = 0.80,
+
+    // ---------------------------------------------------------------------------------------------------------
+    // §4.6–§4.8 · atípicos y huecos de la señal de conteo
+    // ---------------------------------------------------------------------------------------------------------
+    /** Hampel: media ventana k = max([hampelMinHalfWindow], round([hampelWindowFraction]·fs)) (§4.6). */
+    val hampelWindowFraction: Double = 0.10,
+    val hampelMinHalfWindow: Int = 2,
+    /** Hampel: umbral de 3·1,4826·MAD. */
+    val hampelSigmas: Double = 3.0,
+    /** Salto: |Δr| > 4,5 BH/s · Δt deja la muestra como falta (§4.6). */
+    val jumpBodyHeightsPerS: Double = 4.5,
+    /**
+     * Huesos (§4.6, solo en SIDE): un segmento 2D fuera de [0,65; 1,25]·L̂ deja la articulación distal como falta. La serie de
+     * conteo no lo aplica (Hampel y salto bastan para contar); lo usa la serie de ángulos de las métricas (VT3a).
+     */
+    val boneMinRatio: Double = 0.65,
+    val boneMaxRatio: Double = 1.25,
+    /** Huecos de hasta 0,25 s se rellenan y se marcan (§4.8); de 0,25 a 0,6 s también, solo para contar. */
+    val fillShortGapS: Double = 0.25,
+    val fillCountGapS: Double = 0.60,
+    /** Fracción mínima de fotogramas con pose para dar por buena la serie con un lado en un perfil por lado (§6 p9). */
+    val perSideMinValid: Double = 0.70,
+    /** Segundos mínimos de señal observada para que haya serie. */
+    val minObservedS: Double = 2.0,
+
+    // ---------------------------------------------------------------------------------------------------------
+    // §5 · disco como señal principal y caminar
+    // ---------------------------------------------------------------------------------------------------------
+    /** El disco es la señal si HOUGH + NCC cubren al menos esta fracción de los fotogramas con pose (§5). */
+    val plateMinCoverage: Double = 0.85,
+    /**
+     * Desfase pose↔disco que se busca por correlación, en fotogramas (±) (§5). Hacen falta [plateLagMinPairs] pares de datos
+     * y que el desfase reduzca la decorrelación (1 − ρ) del desfase 0 en al menos la fracción [plateLagMinGain]. Se mide la
+     * reducción relativa y no la diferencia de ρ porque la mano y el disco siguen una señal lenta: tres fotogramas de
+     * desfase cambian ρ en menos de 0,01 aunque dupliquen el error.
+     */
+    val plateMaxLagFrames: Int = 3,
+    val plateLagMinPairs: Int = 30,
+    val plateLagMinGain: Double = 0.30,
+    /** Visibilidad mínima de la muñeca para usar la mano como punto de barra del peso muerto (§5: «HC (vis ≥ 0,6)»). */
+    val deadliftHandVisibility: Float = 0.6f,
+    /** Caminar: |dX tobillos| > 0,12 BH/s durante ≥ 0,3 s, dilatado ±0,3 s (§6 p5). */
+    val walkSpeedBhPerS: Double = 0.12,
+    val walkMinS: Double = 0.3,
+    val walkDilateS: Double = 0.3,
+    /** Paso bajo con el que se suaviza la X de los tobillos y las caderas antes de derivarla. */
+    val walkLowPassHz: Double = 1.0,
+
+    // ---------------------------------------------------------------------------------------------------------
+    // §6 · segmentador
+    // ---------------------------------------------------------------------------------------------------------
+    /** Menos de estos segundos de señal válida: «too_short». */
+    val minSeriesS: Double = 3.0,
+    /** p1: σn = 1,4826·MAD(r − LP(r, 5 Hz)). */
+    val noiseLowPassHz: Double = 5.0,
+    /** p2: rd = LP(r, 2,5 Hz) hasta conocer T0. */
+    val acfLowPassHz: Double = 2.5,
+    /** p2: T0 = primera cresta de la ACF normalizada en [0,6; 10] s con ρ ≥ 0,3. */
+    val periodMinS: Double = 0.6,
+    val periodMaxS: Double = 10.0,
+    val periodMinRho: Double = 0.3,
+    /** p2: con T0, rd = LP(r, clamp(4/T0, 1,5, 4)). */
+    val countLowPassCycles: Double = 4.0,
+    val countLowPassMinHz: Double = 1.5,
+    val countLowPassMaxHz: Double = 4.0,
+    /** p2: dmin = clamp(0,45·T0, 0,35, 3,0) s, o 0,6 s sin T0; wlen = max(3·T0, 12 s). */
+    val minDistanceFactor: Double = 0.45,
+    val minDistanceMinS: Double = 0.35,
+    val minDistanceMaxS: Double = 3.0,
+    val minDistanceDefaultS: Double = 0.6,
+    /**
+     * No está en el §6: en la segunda pasada, dos picos a menos de dmin se conservan los dos si el más alto NO es de tamaño
+     * completo (prominencia < [closePeakRelaxFraction]·Aref) y el otro tiene al menos [closePeakProminenceRatio] veces su
+     * prominencia. Así los rebotes de las parciales, al doble de cadencia que las completas, no se pierden; los rizos del
+     * ruido junto a una cima y los bordes de una meseta o de un hundimiento (picos de tamaño completo) siguen eliminándose.
+     */
+    val closePeakProminenceRatio: Double = 0.60,
+    val closePeakRelaxFraction: Double = 0.80,
+    val windowPeriods: Double = 3.0,
+    val windowMinS: Double = 12.0,
+    /**
+     * No está en el §6: si la serie acaba en la mitad alta de su recorrido (mediana de los últimos [endLevelWindowS] s por
+     * encima del [endHighFraction] del recorrido), se le pega una bajada virtual de [endDescentS] s para que el último pico,
+     * cortado por el final, tenga prominencia y el clasificador lo juzgue (bloqueo de un peso muerto, barra dejada abajo).
+     */
+    val endLevelWindowS: Double = 0.5,
+    val endHighFraction: Double = 0.5,
+    val endDescentS: Double = 1.0,
+    /** p3: span = P99 − P1; primera pasada con prominencia ≥ 0,25·span. */
+    val spanLowPercentile: Double = 1.0,
+    val spanHighPercentile: Double = 99.0,
+    val firstPassProminence: Double = 0.25,
+    /** p3: Aref = mediana de las 3 mayores prominencias; segunda pasada con prominencia ≥ 0,30·Aref. */
+    val refPeakCount: Int = 3,
+    val secondPassProminence: Double = 0.30,
+    /** p4: el primer y el último valle se buscan a 1,5·T. */
+    val edgeSearchPeriods: Double = 1.5,
+    /** p4: «top» = ciclos con prominencia ≥ 0,7·Aref; de ahí salen Lrest y Afull. */
+    val topProminence: Double = 0.70,
+    /** p4: sin repeticiones si Afull < 6σn (y si Afull < minAmplitude del perfil). */
+    val minAmplitudeSigmas: Double = 6.0,
+    /** p5: FULL si a ≥ 0,70; PARTIAL si 0,30 ≤ a < 0,70 (FAR_END si e ≥ 0,85); menos, ruido. */
+    val fullFraction: Double = 0.70,
+    val partialFraction: Double = 0.30,
+    val farEndFraction: Double = 0.85,
+    /** p5: NONREP si caminar solapa más del 20 % del ciclo. */
+    val walkOverlapFraction: Double = 0.20,
+    /** p5: NONREP si, en un perfil vertical, ΔX del punto de barra > 1,5·ΔY. */
+    val horizontalPathRatio: Double = 1.5,
+    /** p5, FAILED con arranque C: sube entre el 30 % y el 70 %, > 1,5× la subida de una FULL, parada ≥ 0,3 s. */
+    val failedConcentricFactor: Double = 1.5,
+    val failedStallS: Double = 0.3,
+    /** p5, último ciclo con arranque C: FULL si sube ≥ 0,70 y se sostiene ≥ 0,3 s en ≥ Lrest + 0,7·A. */
+    val lastSustainedLevel: Double = 0.70,
+    val lastSustainedS: Double = 0.3,
+    /**
+     * p5, arranque E: el ciclo llegó al extremo lejano y no vuelve. Con aDn < [failedReturnBelow] (el §6 dice 0,5; sube a 0,70
+     * porque el intento del generador llega justo al 50 % y el ruido lo pone a cada lado), un intento ≥ [failedAttemptFraction]·A
+     * parado ≥ [failedValleyStallS] es FAILED; si es el último ciclo y vuelve menos de [setdownReturnBelow], se ignora (SETDOWN).
+     */
+    val failedReturnBelow: Double = 0.70,
+    val failedAttemptFraction: Double = 0.15,
+    val failedValleyStallS: Double = 0.5,
+    val setdownReturnBelow: Double = 0.5,
+    /**
+     * No está en el §6: una «parada» (de un intento fallido) es un tramo quieto; si la señal LP de 5 Hz varía más de esta
+     * fracción de Afull entre el fin de un tramo y el inicio del siguiente, hay movimiento (un rebote) y no cuenta.
+     */
+    val stillBandFraction: Double = 0.20,
+    /**
+     * p6: la primera o la última FULL con más de 1,35× el recorrido de una completa (recoger la barra del suelo y dejarla) es
+     * preparación o dejada, si hay al menos [edgeMinFull] FULL. No está en el §6.
+     */
+    val edgeOversizeFactor: Double = 1.35,
+    val edgeMinFull: Int = 3,
+    /** p6: un parcial se conserva si el reposo que lo separa es ≤ 1,5·Tmed (≤ [miniSetGapS] con REST_PAUSE). */
+    val partialGapPeriods: Double = 1.5,
+    val miniSetGapS: Double = 30.0,
+    /** p8: mini-serie nueva donde el reposo dura ≥ max(8 s, 3× la mediana). */
+    val miniSetRestMinS: Double = 8.0,
+    val miniSetRestFactor: Double = 3.0,
+    /**
+     * Banda sobre el nivel bajo en la que se mide el reposo: max(10 % de Afull, 2,5σn), como mucho el 25 % de Afull; el nivel
+     * bajo es el percentil [restReferencePercentile] de la señal entre dos picos.
+     */
+    val restBandFraction: Double = 0.10,
+    val restBandSigmas: Double = 2.5,
+    val restBandMaxFraction: Double = 0.25,
+    val restReferencePercentile: Double = 10.0,
+    /** Las muestras de reposo (de las que sale σ_v) son las de rd ≤ Lrest + 15 % de Afull. */
+    val restSampleFraction: Double = 0.15,
+    /** Periodo de referencia (s) para buscar el primer y el último valle y medir descansos cuando no hay T0 ni picos de los que sacarlo. */
+    val referencePeriodS: Double = 4.0,
+    /** p7: quieto = |v| ≤ max(0,10·|v|máx, 3σ_v); se da la vuelta si quieto arriba > 2× abajo y ≥ 2 s. */
+    val speedThresholdFraction: Double = 0.10,
+    val speedThresholdSigmas: Double = 3.0,
+    val polarityStillRatio: Double = 2.0,
+    val polarityMinStillS: Double = 2.0,
+    /**
+     * No está en el §6: si el primer y el último segundo de la serie caen en la mitad baja (la persona empieza y acaba en
+     * reposo), la señal está bien aunque haya más quieto arriba (sentadilla con pausas largas abajo): no se da la vuelta.
+     */
+    val polarityEdgeS: Double = 1.0,
+    /** p9: ÚNICO si la amplitud de un lado es < 0,3× la del otro. */
+    val singleSideAmplitudeRatio: Double = 0.3,
+    /**
+     * p9: ALTERNO si corr(rL, rR) < −0,3 o ≥ 80 % de los ciclos alternan con fase ≥ 0,25 del periodo propio. La fase se mide
+     * entre los CENTROS de los ciclos (la mitad del recorrido), no entre los máximos de rd, que en una cima plana y con
+     * ruido caen donde sea.
+     */
+    val alternatingCorrelation: Double = -0.3,
+    val alternatingPeaksFraction: Double = 0.80,
+    val alternatingMinPhase: Double = 0.25,
+    /** Un giro a ±esto de un hueco rellenado cuenta como `turnInGap`. */
+    val turnGapWindowS: Double = 0.15,
+
+    // ---------------------------------------------------------------------------------------------------------
+    // §6 · confianza del conteo
+    // ---------------------------------------------------------------------------------------------------------
+    /** c_track = clamp((fracción válida − 0,70)/0,25, 0, 1). */
+    val trackBase: Double = 0.70,
+    val trackSpan: Double = 0.25,
+    /** c_snr = clamp(log10(Afull/σn/5)/log10(6), 0, 1). */
+    val snrFloor: Double = 5.0,
+    val snrSpanRatio: Double = 6.0,
+    /** c_amp = clamp(1 − (CV_a − 0,10)/0,30, 0, 1). */
+    val ampCvBase: Double = 0.10,
+    val ampCvSpan: Double = 0.30,
+    /** c_rhy = clamp(1 − (CV_duración − 0,30)/0,50, 0, 1). */
+    val rhythmCvBase: Double = 0.30,
+    val rhythmCvSpan: Double = 0.50,
+    /** Con menos FULL que esto el CV no es de fiar y c_amp y c_rhy valen [neutralScore]. */
+    val minCvReps: Int = 3,
+    val neutralScore: Double = 0.5,
+    /** c_view: 1 si la vista cuenta; 0,7 si es OBLIQUE; 0,4 en otro caso. */
+    val viewOblique: Double = 0.7,
+    val viewOther: Double = 0.4,
+    /** n_amb: franja alrededor de 0,30 y 0,70 (±0,08 → [0,22; 0,38] y [0,62; 0,78]) y ±15 % de prominencia del umbral. */
+    val ambiguityMargin: Double = 0.08,
+    val prominenceBorderline: Double = 0.15,
+    /** Extremo bajo de los picos «por poco» (1 − 0,15). */
+    val borderlineLow: Double = 0.85,
+    /** score = √c_track · c_view · (0,45·c_snr + 0,30·c_amp + 0,25·c_rhy) · 0,8^n_amb. */
+    val snrWeight: Double = 0.45,
+    val ampWeight: Double = 0.30,
+    val rhythmWeight: Double = 0.25,
+    val ambiguityPenalty: Double = 0.8,
+    /** ALTA con score ≥ 0,75 (y n_amb = 0…); MEDIA con score ≥ 0,45; BAJA forzada con fracción válida < 0,6. */
+    val altaScore: Double = 0.75,
+    val mediaScore: Double = 0.45,
+    val minValidFraction: Double = 0.60,
+
+    // ---------------------------------------------------------------------------------------------------------
+    // §6 · fases, TUT y tempo
+    // ---------------------------------------------------------------------------------------------------------
+    /** r_m = LP(r, 5 Hz), o el disco a 8 Hz si fs ≥ 50. */
+    val phaseLowPassHz: Double = 5.0,
+    val plateLowPassHzFast: Double = 8.0,
+    val plateFastMinFps: Double = 50.0,
+    /** Una pausa de giro o de reposo de menos de 0,25 s vale 0. */
+    val turnPauseMinS: Double = 0.25,
+    /** Ventana en la que se buscan los niveles de reposo y de giro de un tramo de movimiento. */
+    val pieceLevelWindowS: Double = 0.3,
+) {
+    companion object {
+        val DEFAULT: AnalysisTuning = AnalysisTuning()
+    }
+}

@@ -6,7 +6,8 @@ package com.example.kpkn.domain.biomechanics.profiles
  * cubre las mancuernas). Se rellena en el data layer (`ExerciseRefResolver`, VT4c).
  *
  * @property definitionId definición del catálogo (`bench_press`); `null` si no es del catálogo.
- * @property configurationId configuración exacta (`bench_press__barbell`); no se usa para resolver, viaja con la referencia.
+ * @property configurationId configuración exacta (`bench_press__barbell`); solo decide los gemelos sentado
+ *   (`calf_raise__bilateral__seated_machine`), el resto viaja con la referencia.
  * @property movementPatternId patrón de movimiento del catálogo (`horizontal_push`); `null` si no lo hay.
  * @property equipmentId material (`barbell`, `smith_machine`, `dumbbells`…).
  * @property isCustom ejercicio propio del usuario: sin elección del perfil no se resuelve.

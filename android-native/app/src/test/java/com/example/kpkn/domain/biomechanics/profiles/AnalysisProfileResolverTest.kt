@@ -19,9 +19,10 @@ class AnalysisProfileResolverTest {
         isCustom: Boolean = false,
         override: AnalysisProfileId? = null,
         guess: String? = null,
+        configuration: String? = definitionId?.let { "${it}__$equipment" },
     ) = ExerciseRef(
         definitionId = definitionId,
-        configurationId = definitionId?.let { "${it}__$equipment" },
+        configurationId = configuration,
         movementPatternId = pattern,
         equipmentId = equipment,
         laterality = laterality,
@@ -447,5 +448,51 @@ class AnalysisProfileResolverTest {
         assertEquals(base.copy(startPhase = StartPhase.CONCENTRIC_FIRST), withMachine)
         // Un perfil sin ajustes de material sale idéntico al de la tabla.
         assertEquals(AnalysisProfiles.of(CALF), supported(ref("calf_raise", "plantar_flexion", "machine")).profile)
+    }
+
+    @Test
+    fun fliesAreOnlyForDumbbellsAndMachineOrCableFliesAreOutOfPlane() {
+        for (definition in listOf("flat_chest_fly", "incline_chest_fly", "decline_chest_fly")) {
+            assertEquals(definition, FLY, supported(ref(definition, "horizontal_push", "dumbbells")).profile.id)
+            // Pec deck y crossover: el movimiento es horizontal y de lado la muñeca no baja.
+            for (equipment in listOf("machine", "cable")) {
+                val resolution = unsupported(ref(definition, "horizontal_push", equipment))
+                assertEquals("$definition con $equipment", UnsupportedReasons.MACHINE_PLANE, resolution.reason)
+                assertEquals("Este movimiento no se ve bien de lado", resolution.text)
+            }
+            // Sin material conocido tampoco se asume que sean mancuernas.
+            assertEquals(UnsupportedReasons.MACHINE_PLANE, unsupported(ref(definition, "horizontal_push", null)).reason)
+        }
+        // La elección del usuario sigue ganando a todo.
+        assertEquals(FLY, supported(ref("flat_chest_fly", "horizontal_push", "machine", override = FLY)).profile.id)
+    }
+
+    @Test
+    fun theSeatedCalfRaiseHasItsOwnProfile() {
+        fun calf(configuration: String, equipment: String = "machine") =
+            supported(ref("calf_raise", "plantar_flexion", equipment, configuration = configuration)).profile
+
+        val seated = calf("calf_raise__bilateral__seated_machine")
+        assertEquals(CALF_SEATED, seated.id)
+        assertEquals(CountSignal.RISE_KNEE_NEAR, seated.poseSignal)
+        assertEquals(AnalysisProfiles.of(CALF_SEATED), seated)
+        // El resto de configuraciones de gemelos siguen siendo CALF (la señal sale del tronco).
+        for ((configuration, equipment) in listOf(
+            "calf_raise__bilateral__machine" to "machine",
+            "calf_raise__unilateral__barbell" to "barbell",
+            "calf_raise__bilateral__smith_machine" to "smith_machine",
+            "calf_raise__bilateral__donkey_machine" to "machine",
+            "calf_raise__bilateral__leg_press_machine" to "machine",
+            "calf_raise__bilateral__bodyweight" to "bodyweight",
+        )) {
+            assertEquals(configuration, CALF, calf(configuration, equipment).id)
+            assertEquals(configuration, CountSignal.RISE_TRUNK_MID, calf(configuration, equipment).poseSignal)
+        }
+        // Sin id de configuración se queda en CALF; el perfil sentado elegido por el usuario no cambia.
+        assertEquals(CALF, supported(ref("calf_raise", "plantar_flexion", "machine", configuration = null)).profile.id)
+        assertEquals(CALF_SEATED, supported(ref("calf_raise", "plantar_flexion", "machine", override = CALF_SEATED)).profile.id)
+        // «seated» en otro patrón no cambia nada: solo los gemelos tienen perfil sentado.
+        val legCurl = supported(ref("seated_leg_curl", "knee_flexion", "machine", configuration = "seated_leg_curl__bilateral__machine"))
+        assertEquals(LEG_CURL, legCurl.profile.id)
     }
 }
