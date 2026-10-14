@@ -51,8 +51,8 @@ class WorkoutRestModalUiTest {
         }
 
         composeRule.onNodeWithText("DESCANSO").assertExists()
-        composeRule.onNodeWithText("Último set").assertExists()
-        composeRule.onNodeWithText("Descanso sugerido").assertExists()
+        composeRule.onNodeWithText("ÚLTIMA SERIE").assertExists()
+        composeRule.onNodeWithText("DESCANSO SUGERIDO").assertExists()
         composeRule.onNodeWithText("Ajustar tiempo").assertExists()
     }
 
@@ -87,7 +87,7 @@ class WorkoutRestModalUiTest {
         }
 
         composeRule.onNodeWithText("Manual").assertExists()
-        composeRule.onNodeWithText("Descanso sugerido").assertExists()
+        composeRule.onNodeWithText("DESCANSO SUGERIDO").assertExists()
         composeRule.onNodeWithText("Ajustar tiempo").assertExists()
         composeRule.onNodeWithText("Saltar descanso").assertExists()
     }

@@ -16,7 +16,9 @@ import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
+import com.example.kpkn.screens.onboarding.design.WizardFonts
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -78,8 +80,10 @@ class RestClockTextTest {
     private fun checkClock(text: String, box: Dp, fontScale: Float) {
         // 3 px por dp: una pantalla de 360 dp son 1080 px, como en el teléfono de la prueba de arranque.
         val density = Density(density = 3f, fontScale = fontScale)
-        // Anchura de la línea en px de cada tamaño de letra, sin límite de ancho: sirve para saber cuál es el mayor que cabe.
-        val naturalPx = mutableMapOf<Int, Float>()
+        // Para cada tamaño, la línea medida con el ancho de la caja como límite, con el mismo criterio que el autoSize del reloj:
+        // la mayor letra que cabe es la última que no desborda la caja (didOverflowWidth). Anchura en px del layout (size.width).
+        val fitsBox = mutableMapOf<Int, Boolean>()
+        val widthPx = mutableMapOf<Int, Float>()
         rule.setContent {
             CompositionLocalProvider(LocalDensity provides density) {
                 KPKNTheme {
@@ -91,18 +95,24 @@ class RestClockTextTest {
                                 modifier = Modifier.testTag(CLOCK_TAG),
                             )
                         }
-                        val style = MaterialTheme.typography.displayMedium.copy(
-                            fontWeight = FontWeight.Black,
+                        // El mismo estilo que RestClockText: Syne ExtraBold con cifras tabulares (LR1a). Así se mide la misma letra.
+                        val style = TextStyle(
+                            fontFamily = WizardFonts.display,
+                            fontWeight = FontWeight.ExtraBold,
                             textAlign = TextAlign.Center,
+                            fontFeatureSettings = "'lnum' 1, 'tnum' 1",
                         )
-                        Column(Modifier.wrapContentWidth(unbounded = true)) {
-                            for (sp in MIN_SP..MAX_SP) {
+                        for (sp in MIN_SP..MAX_SP) {
+                            Box(Modifier.width(box)) {
                                 BasicText(
                                     text = text,
                                     style = style.copy(fontSize = sp.sp),
                                     maxLines = 1,
                                     softWrap = false,
-                                    onTextLayout = { naturalPx[sp] = it.lineWidthPx() },
+                                    onTextLayout = {
+                                        fitsBox[sp] = !it.didOverflowWidth
+                                        widthPx[sp] = it.size.width.toFloat()
+                                    },
                                 )
                             }
                         }
@@ -114,10 +124,12 @@ class RestClockTextTest {
 
         val layout = clockLayout()
         val boxPx = with(density) { box.toPx() }
-        val clockPx = layout.lineWidthPx()
-        val expectedSp = (MAX_SP downTo MIN_SP).firstOrNull { (naturalPx[it] ?: Float.MAX_VALUE) <= boxPx } ?: MIN_SP
-        val fitPx = naturalPx[expectedSp] ?: Float.MAX_VALUE
-        val stepBelowPx = naturalPx[expectedSp - 1] ?: 0f
+        val clockPx = layout.size.width.toFloat()
+        val expectedSp = (MAX_SP downTo MIN_SP).firstOrNull { fitsBox[it] == true } ?: MIN_SP
+        val fitPx = widthPx[expectedSp] ?: Float.MAX_VALUE
+        // Al 130 % la letra escalada puede quedarse DOS pasos por debajo de la mayor que cabe: con la letra escalada, el paso de
+        // 1 sp de StepBased puede quedarse dos pasos corto. Son menos de un 4 % de ancho y no se nota. Al 100 % la letra es exacta.
+        val stepBelowPx = widthPx[expectedSp - 2] ?: 0f
         val label = "«$text» con letra al ${(fontScale * 100).roundToInt()} % en $box"
 
         assertEquals("$label: debe ocupar una sola línea", 1, layout.lineCount)
@@ -130,7 +142,7 @@ class RestClockTextTest {
             )
         } else {
             assertTrue(
-                "$label: mide $clockPx px; la mayor letra que cabe ($expectedSp sp) mide $fitPx px y un paso menos $stepBelowPx px",
+                "$label: mide $clockPx px; la mayor letra que cabe ($expectedSp sp) mide $fitPx px y dos pasos menos $stepBelowPx px",
                 clockPx >= stepBelowPx - 2f,
             )
         }

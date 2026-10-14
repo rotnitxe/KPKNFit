@@ -55,12 +55,14 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.kpkn.data.models.*
 import com.example.kpkn.data.exercises.displayNameWithSelectedChips
-import com.example.kpkn.screens.sessioneditor.contentOn
+import com.example.kpkn.screens.onboarding.design.WizardColors
+import com.example.kpkn.screens.onboarding.design.entreno.SymbolPalette
 import com.example.kpkn.screens.sessioneditor.isEditorUncategorized
 import com.example.kpkn.screens.sessioneditor.resolvePartAccent
 import com.example.kpkn.screens.workout.*
 import com.example.kpkn.ui.adapt.LocalViewportAdapt
-import com.example.kpkn.ui.components.kpknGlassOrFallback
+import com.example.kpkn.ui.design.KpknShape
+import com.example.kpkn.ui.design.KpknSurface
 import dev.chrisbanes.haze.HazeState
 
 private enum class RoadmapCardScale { Full, Mini }
@@ -162,12 +164,6 @@ fun WorkoutRoadmapBar(
     val density = LocalDensity.current
     val dragThresholdPx = with(density) { 12.dp.toPx() }
     val dragStridePx = with(density) { 96.dp.toPx() }
-
-    val accentByPartId = remember(parts, sessionAccentColor) {
-        parts.associate { part ->
-            part.id to roadmapAccentForPart(part, sessionAccentColor)
-        }
-    }
 
     val listState = rememberLazyListState(
         initialFirstVisibleItemIndex = (currentIdx - 1).coerceAtLeast(0)
@@ -276,17 +272,18 @@ fun WorkoutRoadmapBar(
             .fillMaxWidth(),
         shape = roadmapShape,
         color = Color.Transparent,
-        contentColor = MaterialTheme.colorScheme.onSurface,
+        contentColor = WizardColors.text,
         border = null,
         tonalElevation = 0.dp,
         shadowElevation = 0.dp,
     ) {
-        val cockpitGlassModifier = Modifier
+        // Cajón de módulo sólido: relleno KpknSurface.module con el radio superior de siempre.
+        val cockpitModifier = Modifier
             .fillMaxWidth()
             .clip(roadmapShape)
-            .kpknGlassOrFallback(hazeState, roadmapShape, withBorder = false)
+            .background(KpknSurface.module)
         Box(
-            modifier = cockpitGlassModifier
+            modifier = cockpitModifier
                 .clickable(enabled = activeMode == RoadmapMode.COMPACT) {
                     onModeChange(RoadmapMode.EXPANDED)
                 }
@@ -311,14 +308,14 @@ fun WorkoutRoadmapBar(
                     Icon(
                         imageVector = Icons.Default.DragHandle,
                         contentDescription = "Desplegar roadmap",
-                        tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f),
+                        tint = WizardColors.textFaint,
                         modifier = Modifier.size(18.dp)
                     )
                     Spacer(Modifier.width(4.dp))
                     Icon(
                         imageVector = if (activeMode == RoadmapMode.EXPANDED) Icons.Default.KeyboardArrowDown else Icons.Default.KeyboardArrowUp,
                         contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f),
+                        tint = WizardColors.textFaint,
                         modifier = Modifier.size(16.dp)
                     )
                 }
@@ -333,7 +330,10 @@ fun WorkoutRoadmapBar(
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
                     godModeUndoStack.forEachIndexed { index, snap ->
-                        TextButton(onClick = { onRevertGodModeAction(index) }) {
+                        TextButton(
+                            onClick = { onRevertGodModeAction(index) },
+                            colors = ButtonDefaults.textButtonColors(contentColor = WizardColors.text),
+                        ) {
                             Text("Deshacer ${snap.label}", fontWeight = FontWeight.Bold)
                         }
                     }
@@ -451,10 +451,6 @@ fun WorkoutRoadmapBar(
                             val idx = exercises.indexOfFirst { it.id == exercise.id }.coerceAtLeast(0)
                             val part = parts.firstOrNull { it.exercises.any { e -> e.id == exercise.id } }
                             val isSuperset = group.groupId != null && group.exercises.size > 1
-                            val accent = when {
-                                part != null -> accentByPartId[part.id] ?: sessionAccentColor
-                                else -> sessionAccentColor
-                            }
                             val partName = normalizeWorkoutHeaderLabel(part?.name)
 
                             val completedCount = WorkoutStepRules.completedRoadmapSlotsForExercises(
@@ -518,7 +514,7 @@ fun WorkoutRoadmapBar(
                                     .then(
                                         if (selectedBorder > 0.dp || selectedScrim > 0.01f) {
                                             Modifier
-                                                .border(selectedBorder, Color.White.copy(alpha = 0.72f), WorkoutUiTokens.InnerCardShape)
+                                                .border(selectedBorder, WizardColors.text.copy(alpha = 0.72f), WorkoutUiTokens.InnerCardShape)
                                                 .drawWithContent {
                                                     drawContent()
                                                     if (selectedScrim > 0.01f) {
@@ -617,7 +613,6 @@ fun WorkoutRoadmapBar(
                                     totalCount = totalSets,
                                     isCurrent = isCurrent,
                                     isAllDone = isAllDone,
-                                    accent = accent,
                                     groupName = partName,
                                     completedSets = completedSets,
                                     currentSetIdx = if (isCurrent) currentSetIdx else null,
@@ -643,7 +638,6 @@ fun WorkoutRoadmapBar(
                                     omittedSetKeys = omittedSetKeys,
                                     isCurrent = isCurrent,
                                     isAllDone = isAllDone,
-                                    accent = accent,
                                     groupName = partName,
                                     currentExerciseId = exercises.getOrNull(currentIdx)?.id,
                                     currentRound = if (isCurrent) currentSetIdx + 1 else null,
@@ -715,7 +709,7 @@ fun WorkoutRoadmapBar(
                         modifier = Modifier.padding(horizontal = 20.dp, vertical = 18.dp),
                         verticalArrangement = Arrangement.spacedBy(10.dp),
                     ) {
-                        Text("Modo ultrarrápido", fontWeight = FontWeight.Black, color = Color.White)
+                        Text("Modo ultrarrápido", fontWeight = FontWeight.Black, color = WizardColors.text)
                         KpknSheetWhiteButton(
                             text = "Drop-set",
                             onClick = {
@@ -733,7 +727,7 @@ fun WorkoutRoadmapBar(
                             },
                         )
                         TextButton(onClick = { pendingUltraFast = false }, modifier = Modifier.fillMaxWidth()) {
-                            Text("Cancelar", color = Color.White)
+                            Text("Cancelar", color = WizardColors.text)
                         }
                     }
                 }
@@ -868,15 +862,12 @@ private fun CardioRoadmapCard(
         }
     }
     val displayName = exercise.displayNameWithSelectedChips()
-    val cardColor = when {
-        isCurrent -> CardioRoadmapAccent.copy(alpha = 0.72f)
-        isAllDone -> Color(0xFF344238).copy(alpha = 0.90f)
-        else -> Color(0xFF282725).copy(alpha = 0.96f)
-    }
-    val contentColor = if (isCurrent) Color.White else MaterialTheme.colorScheme.onSurface
+    // Cardio conserva su acento ámbar como identidad; el bloque activo va en tinta.
+    val cardColor = if (isCurrent) WizardColors.text else KpknSurface.inset
+    val contentColor = if (isCurrent) WizardColors.ctaContent else WizardColors.textMuted
     val borderColor = when {
-        isCurrent -> CardioRoadmapAccent.copy(alpha = 0.82f)
-        isAllDone -> Color(0xFF7FBF8A).copy(alpha = 0.44f)
+        isCurrent -> WizardColors.text
+        isAllDone -> SymbolPalette.ok.copy(alpha = 0.44f)
         else -> CardioRoadmapAccent.copy(alpha = 0.30f)
     }
 
@@ -899,7 +890,7 @@ private fun CardioRoadmapCard(
                 onClick = onClick,
                 onLongClick = onLongClick,
             ),
-        shape = WorkoutUiTokens.InnerCardShape,
+        shape = KpknShape.pill,
         color = cardColor,
         border = BorderStroke(1.dp, borderColor),
     ) {
@@ -912,14 +903,18 @@ private fun CardioRoadmapCard(
         ) {
             Surface(
                 shape = CircleShape,
-                color = if (isCurrent) Color.White.copy(alpha = 0.18f) else CardioRoadmapAccent.copy(alpha = 0.18f),
+                color = if (isCurrent) WizardColors.ctaContent.copy(alpha = 0.12f) else CardioRoadmapAccent.copy(alpha = 0.18f),
             ) {
                 Text(
                     text = if (isAllDone) "✓" else "C",
                     modifier = Modifier.padding(horizontal = 7.dp, vertical = 4.dp),
                     style = MaterialTheme.typography.labelSmall,
                     fontWeight = FontWeight.Bold,
-                    color = if (isCurrent) Color.White else CardioRoadmapAccent,
+                    color = when {
+                        isCurrent -> WizardColors.ctaContent
+                        isAllDone -> SymbolPalette.ok
+                        else -> CardioRoadmapAccent
+                    },
                 )
             }
             Column(modifier = Modifier.weight(1f)) {
@@ -937,7 +932,7 @@ private fun CardioRoadmapCard(
                     overflow = TextOverflow.Ellipsis,
                     style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
                     fontWeight = FontWeight.Medium,
-                    color = contentColor.copy(alpha = 0.68f),
+                    color = if (isCurrent) WizardColors.ctaContent.copy(alpha = 0.7f) else WizardColors.textFaint,
                 )
             }
         }
@@ -952,7 +947,6 @@ private fun ExerciseRoadmapCard(
     totalCount: Int,
     isCurrent: Boolean,
     isAllDone: Boolean,
-    accent: Color,
     groupName: String?,
     completedSets: Map<String, CompletedSet> = emptyMap(),
     currentSetIdx: Int? = null,
@@ -981,13 +975,16 @@ private fun ExerciseRoadmapCard(
     } else {
         WorkoutUiTokens.liveRoadmapCarouselCardHeight(chromeScale)
     }
-    val containerColor = when {
-        isCurrent -> accent.copy(alpha = 0.86f)
-        isAllDone -> accent.copy(alpha = 0.30f)
-        else -> accent.copy(alpha = 0.26f)
+    val containerColor = if (isCurrent) WizardColors.text else KpknSurface.inset
+    val contentColor = if (isCurrent) WizardColors.ctaContent else WizardColors.textMuted
+    val borderColor = if (isCurrent) WizardColors.text else KpknSurface.moduleBorder
+    // El acento de sesión (musculo) solo marca el progreso parcial de la serie.
+    val countColor = when {
+        isCurrent -> WizardColors.ctaContent
+        isAllDone -> SymbolPalette.ok
+        completedCount > 0 -> SymbolPalette.musculo
+        else -> WizardColors.textMuted
     }
-    val contentColor = if (isCurrent) contentOn(containerColor) else MaterialTheme.colorScheme.onSurface
-    val borderColor = if (isCurrent) Color.White.copy(alpha = 0.16f) else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.22f)
 
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
@@ -1007,7 +1004,7 @@ private fun ExerciseRoadmapCard(
                 onClick = onClick,
                 onLongClick = onLongClick,
             ),
-        shape = WorkoutUiTokens.InnerCardShape,
+        shape = KpknShape.pill,
         color = containerColor,
         border = BorderStroke(1.dp, borderColor)
     ) {
@@ -1023,7 +1020,7 @@ private fun ExerciseRoadmapCard(
         ) {
             Surface(
                 shape = RoundedCornerShape(999.dp),
-                color = Color.White.copy(alpha = 0.08f),
+                color = if (isCurrent) WizardColors.ctaContent.copy(alpha = 0.12f) else KpknSurface.module,
             ) {
                 Text(
                     text = if (isAllDone) "✓" else "$completedCount/$totalCount",
@@ -1035,7 +1032,7 @@ private fun ExerciseRoadmapCard(
                         fontSize = if (isMini) 10.sp else MaterialTheme.typography.labelSmall.fontSize,
                     ),
                     fontWeight = FontWeight.Bold,
-                    color = contentColor,
+                    color = countColor,
                 )
             }
             Column(modifier = Modifier.weight(1f)) {
@@ -1056,7 +1053,7 @@ private fun ExerciseRoadmapCard(
                         overflow = TextOverflow.Ellipsis,
                         style = MaterialTheme.typography.labelSmall.copy(fontSize = 11.sp),
                         fontWeight = FontWeight.Medium,
-                        color = contentColor.copy(alpha = 0.6f),
+                        color = if (isCurrent) WizardColors.ctaContent.copy(alpha = 0.7f) else WizardColors.textFaint,
                     )
                 }
             }
@@ -1085,7 +1082,6 @@ private fun SupersetRoadmapCard(
     omittedSetKeys: Set<String> = emptySet(),
     isCurrent: Boolean,
     isAllDone: Boolean,
-    accent: Color,
     groupName: String?,
     currentExerciseId: String?,
     currentRound: Int?,
@@ -1101,16 +1097,12 @@ private fun SupersetRoadmapCard(
 ) {
     val safeRoundCount = roundCount.coerceAtLeast(1)
     val currentRoundIndex = ((currentRound ?: 1) - 1).coerceIn(0, safeRoundCount - 1)
-    val motherAccent = accent
-    val cardColor = when {
-        isAllDone -> accent.copy(alpha = 0.30f)
-        isCurrent -> motherAccent.copy(alpha = 0.86f)
-        else -> motherAccent.copy(alpha = 0.26f)
-    }
-    val onCard = if (isCurrent) contentOn(cardColor) else MaterialTheme.colorScheme.onSurface
+    // El grupo es un módulo con filete; el grupo activo marca el filete en tinta.
+    val cardColor = KpknSurface.module
+    val onCard = if (isCurrent) WizardColors.text else WizardColors.textMuted
     val outline = when {
-        isCurrent -> Color.White.copy(alpha = 0.16f)
-        else -> MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.22f)
+        isCurrent -> WizardColors.text.copy(alpha = 0.72f)
+        else -> KpknSurface.moduleBorder
     }
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
@@ -1150,7 +1142,11 @@ private fun SupersetRoadmapCard(
                 Text(
                     if (isAllDone) "Completada" else "Ronda ${currentRound ?: 1}/$safeRoundCount",
                     style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
-                    color = if (isCurrent) onCard.copy(alpha = 0.85f) else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.62f),
+                    color = when {
+                        isAllDone -> SymbolPalette.ok
+                        isCurrent -> onCard.copy(alpha = 0.85f)
+                        else -> WizardColors.textFaint
+                    },
                     maxLines = 1,
                 )
             }
@@ -1177,7 +1173,6 @@ private fun SupersetRoadmapCard(
                         totalCount = memberTotal,
                         isCurrent = memberIsCurrent,
                         isAllDone = memberAllDone,
-                        accent = motherAccent,
                         groupName = null,
                         onClick = {
                             val side = if (member.isEffectivelyUnilateral()) {

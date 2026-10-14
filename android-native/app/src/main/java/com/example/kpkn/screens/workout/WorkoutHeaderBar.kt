@@ -11,7 +11,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.MicOff
 import androidx.compose.material.icons.filled.KeyboardArrowDown
@@ -51,7 +50,6 @@ import com.example.kpkn.ui.components.KpknAlertDialog
 import com.example.kpkn.ui.components.kpknSheetWhiteFilterChipColors
 import com.example.kpkn.ui.components.kpknSheetWhiteTonalButtonColors
 import com.example.kpkn.screens.sessioneditor.sessionCoverAccentColor
-import com.example.kpkn.screens.sessioneditor.sessionCoverColors
 import com.example.kpkn.ui.components.kpknCoverGlass
 import com.example.kpkn.services.workout.VoiceSessionState
 import com.example.kpkn.domain.auge.ExerciseReadinessEngine
@@ -60,6 +58,14 @@ import com.example.kpkn.ui.adapt.LiveViewportPolicyMath
 import com.example.kpkn.data.models.SetAdjustmentSuggestion
 import dev.chrisbanes.haze.HazeState
 import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.text.TextStyle
+import com.example.kpkn.screens.onboarding.design.WizardColors
+import com.example.kpkn.screens.onboarding.design.WizardFonts
+import com.example.kpkn.ui.components.icons.KpknLineIcons
+import com.example.kpkn.ui.design.KpknIconButton
+import com.example.kpkn.ui.design.KpknShape
+import com.example.kpkn.ui.design.KpknSurface
+import com.example.kpkn.ui.design.KpknType
 
 private const val HeaderCompactScale = 0.80f
 
@@ -79,19 +85,41 @@ internal fun workoutHeaderTitleFontScale(glyphCount: Int): Float = when {
     else -> 0.58f
 }
 
+/** Escala del visor (pantalla estrecha o baja). Vale 1 en el formato de referencia. */
 @Composable
-private fun headerCompactScale(): Float {
+private fun headerViewportScale(): Float {
     val adapt = LocalViewportAdapt.current
     val policy = LiveViewportPolicyMath.compute(
         widthDp = adapt.widthDp,
         heightDp = adapt.heightDp,
     )
-    return HeaderCompactScale * adapt.uniformScale * policy.headerMul
+    return adapt.uniformScale * policy.headerMul
 }
+
+/** Escala compacta de la cabecera: espaciado y elementos de tamaño fijo, como antes. */
+@Composable
+private fun headerCompactScale(): Float = HeaderCompactScale * headerViewportScale()
+
+/** Texto de las píldoras de la cabecera: Inter 12 (cifras SemiBold, etiquetas Medium), escalado solo por el visor. */
+private fun headerChipStyle(weight: FontWeight, scale: Float): TextStyle = TextStyle(
+    fontFamily = WizardFonts.body,
+    fontWeight = weight,
+    fontSize = 12.sp * scale,
+    lineHeight = 16.sp * scale,
+)
+
+/** Escala el tamaño y el interlineado de un estilo por [k]. */
+private fun TextStyle.scaledBy(k: Float): TextStyle = copy(
+    fontSize = fontSize * k,
+    lineHeight = lineHeight * k,
+)
 
 private val PaceChipGreen = Color(0xFF66BB6A)
 private val PaceChipRed = Color(0xFFFF5252)
-private val PaceChipWhite = Color.White.copy(alpha = 0.85f)
+private val PaceChipNeutral = WizardColors.text
+
+/** Rojo de señal de la cabecera (Superserie, Adaptar): va como texto sobre la píldora inset. */
+private val HeaderSignalRed = Color(0xFFFF8A80)
 
 private sealed class PendingSessionTimeChange {
     data class SetMinutes(val minutes: Int) : PendingSessionTimeChange()
@@ -105,7 +133,7 @@ internal fun sessionTimeChipAccent(
     isExceeded || coachPaceAlert == "excedido" -> PaceChipRed
     coachPaceAlert == "retrasado" || coachPaceAlert == "apurar" -> PaceChipRed
     coachPaceAlert == "adelantado" -> PaceChipGreen
-    else -> PaceChipWhite
+    else -> PaceChipNeutral
 }
 
 internal fun resolveSessionAccentColor(background: SessionBackground?): Color {
@@ -228,8 +256,8 @@ internal fun WorkoutChronometer(
 
     Row(
         modifier = modifier
-            .clip(RoundedCornerShape(99.dp))
-            .background(accent.copy(alpha = 0.16f))
+            .clip(KpknShape.pill)
+            .background(KpknSurface.inset)
             .clickable { showAdjustDialog = true }
             .padding(horizontal = 9.dp * headerCompactScale(), vertical = 5.dp * headerCompactScale()),
         verticalAlignment = Alignment.CenterVertically,
@@ -241,7 +269,7 @@ internal fun WorkoutChronometer(
                     progress = { ringProgress },
                     modifier = Modifier.size(18.dp * headerCompactScale()),
                     color = accent,
-                    trackColor = Color.White.copy(alpha = 0.18f),
+                    trackColor = WizardColors.textFaint.copy(alpha = 0.30f),
                     strokeWidth = 1.6.dp * headerCompactScale(),
                 )
             }
@@ -254,19 +282,16 @@ internal fun WorkoutChronometer(
         }
         Text(
             text = text,
-            style = MaterialTheme.typography.labelSmall.copy(
+            style = headerChipStyle(FontWeight.SemiBold, headerViewportScale()).copy(
                 fontFeatureSettings = "tnum",
             ),
             color = accent,
-            fontWeight = FontWeight.Black,
-            fontSize = 13.sp * headerCompactScale(),
         )
         if (!countdownMessage.isNullOrBlank()) {
             Text(
                 text = countdownMessage,
-                style = MaterialTheme.typography.labelSmall.copy(fontSize = 12.sp * headerCompactScale()),
+                style = headerChipStyle(FontWeight.Medium, headerViewportScale()),
                 color = accent,
-                fontWeight = FontWeight.Bold,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
             )
@@ -571,7 +596,8 @@ internal fun WorkoutHeaderBar(
     groupName: String?,
     startTimeMs: Long,
     isComplete: Boolean,
-    background: SessionBackground?,
+    // La portada ya no pinta degradado; el parámetro se conserva para el llamador.
+    @Suppress("UNUSED_PARAMETER") background: SessionBackground?,
     sessionTimeRemainingSeconds: Int?,
     onAdjustTimeLimit: (Int) -> Unit,
     onSetAbsoluteTimeLimit: (totalMinutes: Int, persistToSession: Boolean) -> Unit = { _, _ -> },
@@ -615,8 +641,8 @@ internal fun WorkoutHeaderBar(
     protocolLabel: String? = null,
 ) {
     val headerScale = headerCompactScale()
+    val typeScale = headerViewportScale()
     fun cs(dp: androidx.compose.ui.unit.Dp): androidx.compose.ui.unit.Dp = dp * headerScale
-    val colors = remember(background) { sessionCoverColors(background) }
 
     val density = LocalDensity.current
     var headerContentHeightPx by remember { mutableIntStateOf(0) }
@@ -648,13 +674,7 @@ internal fun WorkoutHeaderBar(
             Box(
                 modifier = Modifier
                     .matchParentSize()
-                    .background(
-                        Brush.verticalGradient(
-                            0.00f to colors.first(),
-                            0.58f to colors.last().copy(alpha = 0.42f),
-                            1.00f to Color.Transparent,
-                        ),
-                    ),
+                    .background(KpknSurface.canvas),
             )
             if (bodyHazeState != null) {
                 Box(
@@ -679,37 +699,34 @@ internal fun WorkoutHeaderBar(
                 verticalAlignment = Alignment.Top,
             ) {
                 Column(modifier = Modifier.weight(1f)) {
+                    // Una línea (Syne Bold 24/28) con elipsis, como la original: sin alto reservado. La reducción por longitud es la
+                    // de la original (workoutHeaderTitleFontScale), para mostrar tanto texto como antes (LR1a).
                     val titleGlyphs = workoutHeaderTitleGlyphCount(exerciseName, exerciseChips)
                     val titleLengthScale = workoutHeaderTitleFontScale(titleGlyphs)
-                    val titleBase = MaterialTheme.typography.headlineSmall
+                    val titleBase = KpknType.title.scaledBy(typeScale)
                     val titleSlotHeight = with(density) {
-                        (titleBase.lineHeight * headerScale).toDp()
+                        (KpknType.title.lineHeight * typeScale).toDp()
                     }
                     Row(
-                        modifier = Modifier.height(titleSlotHeight),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(cs(8.dp)),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(titleSlotHeight),
+                        verticalAlignment = Alignment.Bottom,
                     ) {
                         Text(
                             text = buildAnnotatedString {
-                                withStyle(SpanStyle(color = Color.White)) {
+                                withStyle(SpanStyle(color = WizardColors.text)) {
                                     append(exerciseName)
                                 }
                                 exerciseChips.forEach { chip ->
                                     append(" · ")
-                                    withStyle(SpanStyle(color = Color.White.copy(alpha = 0.72f))) {
+                                    withStyle(SpanStyle(color = WizardColors.textMuted)) {
                                         append(chip)
                                     }
                                 }
                             },
-                            modifier = Modifier
-                                .weight(1f)
-                                .height(titleSlotHeight),
-                            style = titleBase.copy(
-                                fontSize = titleBase.fontSize * headerScale * titleLengthScale,
-                                lineHeight = titleBase.lineHeight * headerScale,
-                            ),
-                            fontWeight = FontWeight.Black,
+                            modifier = Modifier.weight(1f),
+                            style = titleBase.copy(fontSize = titleBase.fontSize * titleLengthScale),
                             maxLines = 1,
                             softWrap = false,
                             overflow = TextOverflow.Ellipsis,
@@ -721,11 +738,8 @@ internal fun WorkoutHeaderBar(
                             if (!groupName.isNullOrBlank()) append("$groupName · ")
                             append(sessionName)
                         },
-                        style = MaterialTheme.typography.labelMedium.copy(
-                            fontSize = MaterialTheme.typography.labelMedium.fontSize * headerCompactScale(),
-                        ),
-                        color = Color.White.copy(alpha = 0.72f),
-                        fontWeight = FontWeight.Bold,
+                        style = KpknType.caption.scaledBy(typeScale),
+                        color = WizardColors.textMuted,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                     )
@@ -734,7 +748,20 @@ internal fun WorkoutHeaderBar(
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .horizontalScroll(rememberScrollState()),
+                            .horizontalScroll(rememberScrollState())
+                            // Orilla derecha con máscara de alfa: el chip que no cabe se funde en vez de cortarse a media palabra (LR1a).
+                            .graphicsLayer { compositingStrategy = CompositingStrategy.Offscreen }
+                            .drawWithContent {
+                                drawContent()
+                                drawRect(
+                                    brush = Brush.horizontalGradient(
+                                        colors = listOf(Color.Black, Color.Transparent),
+                                        startX = size.width - 24.dp.toPx(),
+                                        endX = size.width,
+                                    ),
+                                    blendMode = BlendMode.DstIn,
+                                )
+                            },
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(cs(6.dp)),
                     ) {
@@ -777,8 +804,8 @@ internal fun WorkoutHeaderBar(
                             Row(
                                 verticalAlignment = Alignment.CenterVertically,
                                 modifier = Modifier
-                                    .clip(RoundedCornerShape(99.dp))
-                                    .background(chipColor.copy(alpha = 0.18f))
+                                    .clip(KpknShape.pill)
+                                    .background(KpknSurface.inset)
                                     .padding(horizontal = cs(9.dp), vertical = cs(5.dp)),
                             ) {
                                 Box(
@@ -789,10 +816,9 @@ internal fun WorkoutHeaderBar(
                                 )
                                 Spacer(Modifier.width(cs(5.dp)))
                                 Text(
-                                    text = "${score}%",
-                                    style = MaterialTheme.typography.labelSmall.copy(fontSize = 13.sp * headerCompactScale()),
-                                    color = Color.White.copy(alpha = 0.85f),
-                                    fontWeight = FontWeight.Black,
+                                    text = "$score %",
+                                    style = headerChipStyle(FontWeight.SemiBold, typeScale),
+                                    color = WizardColors.text,
                                 )
                             }
                             val showAdapt = onAdaptClick != null && (
@@ -802,15 +828,14 @@ internal fun WorkoutHeaderBar(
                             if (showAdapt) {
                                 Surface(
                                     onClick = { onAdaptClick?.invoke() },
-                                    shape = RoundedCornerShape(99.dp),
-                                    color = Color(0xFFFF5252).copy(alpha = 0.18f),
+                                    shape = KpknShape.pill,
+                                    color = KpknSurface.inset,
                                 ) {
                                     Text(
                                         text = if (readinessAdjustment != null) "Adaptado" else "Adaptar",
                                         modifier = Modifier.padding(horizontal = cs(9.dp), vertical = cs(5.dp)),
-                                        style = MaterialTheme.typography.labelSmall.copy(fontSize = 13.sp * headerCompactScale()),
-                                        fontWeight = FontWeight.Bold,
-                                        color = Color(0xFFFF8A80),
+                                        style = headerChipStyle(FontWeight.Medium, typeScale),
+                                        color = HeaderSignalRed,
                                     )
                                 }
                             }
@@ -820,16 +845,14 @@ internal fun WorkoutHeaderBar(
                         if (ultraFastApplied) {
                             Surface(
                                 onClick = { openSessionTimeRequest++ },
-                                shape = RoundedCornerShape(99.dp),
-                                color = Color(0xFF66BB6A).copy(alpha = 0.82f),
-                                border = BorderStroke(1.dp, Color.White.copy(alpha = 0.28f)),
+                                shape = KpknShape.pill,
+                                color = KpknSurface.inset,
                             ) {
                                 Text(
                                     "ULTRARRÁPIDO",
                                     modifier = Modifier.padding(horizontal = cs(8.dp), vertical = cs(5.dp)),
-                                    style = MaterialTheme.typography.labelSmall.copy(fontSize = 12.sp * headerCompactScale()),
-                                    fontWeight = FontWeight.ExtraBold,
-                                    color = Color.White,
+                                    style = headerChipStyle(FontWeight.Medium, typeScale),
+                                    color = PaceChipGreen,
                                     maxLines = 1,
                                 )
                             }
@@ -837,9 +860,8 @@ internal fun WorkoutHeaderBar(
 
                         if (isSuperset) {
                             Surface(
-                                shape = RoundedCornerShape(99.dp),
-                                color = Color(0xFFEF4444).copy(alpha = 0.82f),
-                                border = BorderStroke(1.dp, Color.White.copy(alpha = 0.28f)),
+                                shape = KpknShape.pill,
+                                color = KpknSurface.inset,
                             ) {
                                 Row(
                                     modifier = Modifier.padding(horizontal = cs(8.dp), vertical = cs(5.dp)),
@@ -849,14 +871,13 @@ internal fun WorkoutHeaderBar(
                                     Icon(
                                         Icons.Default.SwapHoriz,
                                         contentDescription = null,
-                                        tint = Color.White,
+                                        tint = HeaderSignalRed,
                                         modifier = Modifier.size(cs(12.dp)),
                                     )
                                     Text(
                                         "Superserie",
-                                        style = MaterialTheme.typography.labelSmall.copy(fontSize = 12.sp * headerCompactScale()),
-                                        fontWeight = FontWeight.ExtraBold,
-                                        color = Color.White,
+                                        style = headerChipStyle(FontWeight.Medium, typeScale),
+                                        color = HeaderSignalRed,
                                         maxLines = 1,
                                     )
                                 }
@@ -866,9 +887,8 @@ internal fun WorkoutHeaderBar(
                         activeMainTags.forEach { tag ->
                             Surface(
                                 onClick = { onTagClick(tag.id) },
-                                color = Color.White.copy(alpha = 0.18f),
-                                shape = RoundedCornerShape(99.dp),
-                                border = BorderStroke(1.dp, Color.White.copy(alpha = 0.28f)),
+                                color = KpknSurface.inset,
+                                shape = KpknShape.pill,
                             ) {
                                 Row(
                                     modifier = Modifier.padding(horizontal = cs(8.dp), vertical = cs(5.dp)),
@@ -877,9 +897,8 @@ internal fun WorkoutHeaderBar(
                                 ) {
                                     Text(
                                         text = activeMainTagLabels[tag.id] ?: tag.name,
-                                        style = MaterialTheme.typography.labelSmall.copy(fontSize = 12.sp * headerCompactScale()),
-                                        color = Color.White.copy(alpha = 0.9f),
-                                        fontWeight = FontWeight.Black,
+                                        style = headerChipStyle(FontWeight.Medium, typeScale),
+                                        color = WizardColors.text,
                                         maxLines = 1,
                                         overflow = TextOverflow.Ellipsis,
                                     )
@@ -887,7 +906,7 @@ internal fun WorkoutHeaderBar(
                                         Icons.Default.ArrowDropDown,
                                         contentDescription = "Editar",
                                         modifier = Modifier.size(cs(12.dp)),
-                                        tint = Color.White.copy(alpha = 0.7f),
+                                        tint = WizardColors.textMuted,
                                     )
                                 }
                             }
@@ -895,9 +914,8 @@ internal fun WorkoutHeaderBar(
                         activeSubTags.forEach { subTag ->
                             Surface(
                                 onClick = { onRemoveSubTag(subTag.id) },
-                                color = Color.White.copy(alpha = 0.10f),
-                                shape = RoundedCornerShape(99.dp),
-                                border = BorderStroke(1.dp, Color.White.copy(alpha = 0.15f)),
+                                color = KpknSurface.inset,
+                                shape = KpknShape.pill,
                             ) {
                                 Row(
                                     modifier = Modifier.padding(horizontal = cs(8.dp), vertical = cs(5.dp)),
@@ -906,15 +924,15 @@ internal fun WorkoutHeaderBar(
                                 ) {
                                     Text(
                                         text = subTag.name,
-                                        style = MaterialTheme.typography.labelSmall.copy(fontSize = 11.sp * headerCompactScale()),
-                                        color = Color.White.copy(alpha = 0.7f),
+                                        style = headerChipStyle(FontWeight.Medium, typeScale),
+                                        color = WizardColors.textMuted,
                                         maxLines = 1,
                                     )
                                     Icon(
                                         Icons.Default.Close,
                                         contentDescription = "Quitar",
                                         modifier = Modifier.size(cs(10.dp)),
-                                        tint = Color.White.copy(alpha = 0.5f),
+                                        tint = WizardColors.textFaint,
                                     )
                                 }
                             }
@@ -922,16 +940,14 @@ internal fun WorkoutHeaderBar(
                         if (activeMainTags.isEmpty()) {
                             Surface(
                                 onClick = onOpenTagList,
-                                color = Color.Transparent,
-                                shape = RoundedCornerShape(99.dp),
-                                border = BorderStroke(1.dp, Color.White.copy(alpha = 0.20f)),
+                                color = KpknSurface.inset,
+                                shape = KpknShape.pill,
                             ) {
                                 Text(
                                     text = if (hasCreatedTags) "Etiquetas" else "Sin etiquetas",
                                     modifier = Modifier.padding(horizontal = cs(8.dp), vertical = cs(5.dp)),
-                                    style = MaterialTheme.typography.labelSmall.copy(fontSize = 12.sp * headerCompactScale()),
-                                    color = Color.White.copy(alpha = 0.85f),
-                                    fontWeight = FontWeight.Bold,
+                                    style = headerChipStyle(FontWeight.Medium, typeScale),
+                                    color = WizardColors.textMuted,
                                     maxLines = 1,
                                 )
                             }
@@ -943,10 +959,10 @@ internal fun WorkoutHeaderBar(
                     horizontalArrangement = Arrangement.spacedBy(cs(8.dp)),
                 ) {
                     if (onHistoryClick != null) {
-                        HeaderCoverIconButton(
-                            onClick = onHistoryClick,
-                            icon = Icons.Default.History,
+                        KpknIconButton(
+                            icon = KpknLineIcons.History,
                             contentDescription = "Historial",
+                            onClick = onHistoryClick,
                         )
                     }
                     if (voiceCaptureMode != null && onVoiceCaptureModeChange != null) {
@@ -954,8 +970,8 @@ internal fun WorkoutHeaderBar(
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
                             modifier = Modifier
-                                .clip(RoundedCornerShape(99.dp))
-                                .background(Color.White.copy(alpha = 0.14f))
+                                .clip(KpknShape.pill)
+                                .background(KpknSurface.inset)
                                 .padding(cs(2.dp)),
                         ) {
                             VoiceModeHeaderSegment(
@@ -975,64 +991,24 @@ internal fun WorkoutHeaderBar(
                         }
                     }
                     if (onToggleVoice != null) {
-                        val voiceButtonFill = when {
-                            voiceSessionState.isListening -> Color(0xFF2E7D32).copy(alpha = 0.92f)
-                            voiceSessionEnabled -> Color(0xFF1B2838).copy(alpha = 0.92f)
-                            else -> Color.Black.copy(alpha = 0.24f)
-                        }
-                        val voiceButtonBorder = when {
-                            voiceSessionState.isListening -> Color(0xFF81C784).copy(alpha = 0.78f)
-                            voiceSessionEnabled -> MaterialTheme.colorScheme.secondary.copy(alpha = 0.58f)
-                            else -> Color.White.copy(alpha = 0.22f)
-                        }
-                        HeaderCoverIconButton(
-                            onClick = onToggleVoice,
+                        KpknIconButton(
                             icon = if (voiceSessionEnabled) Icons.Default.Mic else Icons.Default.MicOff,
                             contentDescription = if (voiceSessionEnabled) {
                                 "Desactivar control por voz"
                             } else {
                                 "Activar control por voz"
                             },
-                            fill = voiceButtonFill,
-                            border = voiceButtonBorder,
-                            iconTint = when {
-                                voiceSessionState.isListening -> Color.White
+                            onClick = onToggleVoice,
+                            tint = when {
+                                voiceSessionState.isListening -> WizardColors.done
                                 voiceSessionEnabled -> MaterialTheme.colorScheme.secondary
-                                else -> Color.White.copy(alpha = 0.9f)
+                                else -> null
                             },
                         )
                     }
                 }
             }
         }
-    }
-}
-
-@Composable
-private fun HeaderCoverIconButton(
-    onClick: () -> Unit,
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
-    contentDescription: String,
-    fill: Color = Color.Black.copy(alpha = 0.24f),
-    border: Color = Color.White.copy(alpha = 0.22f),
-    iconTint: Color = Color.White.copy(alpha = 0.9f),
-) {
-    Surface(
-        onClick = onClick,
-        modifier = Modifier.size(44.dp * headerCompactScale()),
-        shape = CircleShape,
-        color = fill,
-        contentColor = Color.White,
-        border = BorderStroke(1.5.dp * headerCompactScale(), border),
-        tonalElevation = 0.dp,
-        shadowElevation = 0.dp,
-    ) {
-        Icon(
-            imageVector = icon,
-            contentDescription = contentDescription,
-            tint = iconTint,
-            modifier = Modifier.padding(10.dp * headerCompactScale()),
-        )
     }
 }
 
@@ -1044,16 +1020,17 @@ private fun VoiceModeHeaderSegment(
 ) {
     Box(
         modifier = Modifier
-            .clip(RoundedCornerShape(99.dp))
-            .background(if (selected) Color.White.copy(alpha = 0.30f) else Color.Transparent)
+            .clip(KpknShape.pill)
+            .background(if (selected) WizardColors.text else Color.Transparent)
             .clickable(onClick = onClick)
             .padding(horizontal = 10.dp * headerCompactScale(), vertical = 5.dp * headerCompactScale()),
     ) {
         Text(
             text = label,
-            color = Color.White,
+            color = if (selected) WizardColors.ctaContent else WizardColors.text,
+            fontFamily = WizardFonts.body,
             fontSize = 10.sp * headerCompactScale(),
-            fontWeight = if (selected) FontWeight.Black else FontWeight.Bold,
+            fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Medium,
             maxLines = 1,
         )
     }
