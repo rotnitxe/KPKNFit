@@ -255,6 +255,12 @@ data class AnalysisTuning(
      * (un campo más suelto da `ClassFormatError`). Los umbrales que añadan VT3b y VT10 deben ir en un grupo propio como este.
      */
     val metrics: MetricsTuning = MetricsTuning(),
+
+    // ---------------------------------------------------------------------------------------------------------
+    // §8 punto 6 y §7 «Velocidad» y «Perfil carga-velocidad» (VT3b). Campo añadido al final, en un grupo propio.
+    // ---------------------------------------------------------------------------------------------------------
+    /** Umbrales de la escala por disco, la velocidad en m/s, la pérdida de velocidad y el perfil carga-velocidad. */
+    val vbt: VbtTuning = VbtTuning(),
 ) {
     companion object {
         val DEFAULT: AnalysisTuning = AnalysisTuning()
@@ -330,4 +336,81 @@ data class MetricsTuning(
     val peakMinFps: Double = 50.0,
     /** Una concéntrica más corta que esto (s) no da MCV. */
     val minConcentricS: Double = 0.10,
+)
+
+/**
+ * Umbrales de la escala por disco, la velocidad en m/s, la pérdida de velocidad y el perfil carga-velocidad (§8 punto 6 y §7):
+ * viven en `AnalysisTuning.vbt`. VT10 los ajusta aquí, igual que el resto.
+ */
+data class VbtTuning(
+    // ---- Escala por disco (§8 p6) ----
+    /** Los radios de calibración son los de las muestras HOUGH con q ≥ esto. */
+    val calibrationMinQuality: Double = 0.5,
+    /** Fotograma lento = velocidad del disco < esto × su radio por segundo (el desenfoque infla los bordes verticales). */
+    val calibrationSlowRadiiPerS: Double = 0.4,
+    /** Muestras lentas mínimas para fiarse del radio de calibración. */
+    val calibrationMinSamples: Int = 8,
+    /** a/b por debajo de esto: PLATE_ELLIPSE (cámara no perpendicular a la barra); por debajo del segundo: PLATE_REJECTED y sin escala. */
+    val ellipseWarnBelow: Double = 0.85,
+    val ellipseRejectBelow: Double = 0.70,
+    /** Campo de visión horizontal que se supone cuando la traza no trae la focal (galería). */
+    val defaultHfovDeg: Double = 70.0,
+    /** El plano del disco está esto más cerca de la cámara que el plano sagital (m). */
+    val plateToSagittalM: Double = 0.70,
+    /** Sin focal conocida, un error de paralaje del desvío absoluto mayor que esto (cm) lo oculta (PARALLAX_SUPPRESSED). */
+    val parallaxMaxErrorCm: Double = 2.0,
+    /** Con focal conocida el paralaje se corrige; queda esta parte del error por la incertidumbre de los 0,70 m. */
+    val parallaxResidualFraction: Double = 0.15,
+
+    // ---- Velocidad con disco (§8 p5 y §4.9) ----
+    /** Hueco máximo (s) que se interpola en la trayectoria del disco para la cinemática; con más, esa repetición no tiene velocidad. */
+    val plateMaxGapS: Double = 0.1,
+    /** Paso bajo de la posición del disco a menos de `plateFastMinFps`; a más, `plateLowPassHzFast` (8 Hz). */
+    val plateLowPassSlowHz: Double = 6.0,
+
+    // ---- Pérdida de velocidad (§7) ----
+    /** La velocidad de cada repetición se mide entre el 10 % y el 90 % del desplazamiento de su concéntrica. */
+    val vlWindowLow: Double = 0.10,
+    val vlWindowHigh: Double = 0.90,
+    /**
+     * Error relativo esperado de la duración de una concéntrica por el ruido de la señal: κ·(σ/ΔL)/√(fs·T), con σ el ruido de la
+     * señal en la propia concéntrica (lo que el ajuste de jerk mínimo deja sin explicar, ver [vlNoiseMarginS]), ΔL el recorrido, fs los
+     * fotogramas por segundo y T la duración. La cota de Cramér–Rao de un tramo de jerk mínimo da κ = 5,55; el ajuste real
+     * (Levenberg–Marquardt, 300 simulaciones) se queda un 20 % por encima: κ = 6,6. Por encima de [vlMaxDurationError] (0,025 = ±2,5 %,
+     * con lo que una serie sin pérdida real marca como mucho en torno a ±5 %) la pérdida de velocidad no se da.
+     */
+    val vlDurationErrorFactor: Double = 6.6,
+    val vlMaxDurationError: Double = 0.025,
+    /**
+     * Con un error esperado de la duración por encima de [vlMaxDurationError] la pérdida no se da, pero cada velocidad relativa sigue
+     * valiendo para ver cuánto más lenta es una repetición; por encima de este (0,10 = ±10 %) tampoco: no hay velocidad relativa.
+     */
+    val vlMaxBarDurationError: Double = 0.10,
+    /** Las [vlFirstReps] primeras repeticiones no deben diferir más de este CV: si no, alguna se midió mal (un hueco, una oclusión). */
+    val vlFirstReps: Int = 3,
+    val vlMaxFirstCv: Double = 0.25,
+    /** El ruido se mide en la concéntrica y en estos segundos a cada lado (los reposos que la rodean fijan los dos niveles). */
+    val vlNoiseMarginS: Double = 0.20,
+
+    // ---- Perfil carga-velocidad (§7) ----
+    /** Solo valen los puntos de los últimos 14 días respecto del más reciente. */
+    val lvMaxAgeDays: Int = 14,
+    /** Dos cargas a menos de esto (kg) cuentan como la misma. */
+    val lvDistinctLoadKg: Double = 0.5,
+    val lvMinLoads: Int = 3,
+    /** (carga mayor − carga menor) / carga mayor ≥ 25 %. */
+    val lvMinLoadRangeFraction: Double = 0.25,
+    /** MCV máxima − MCV mínima ≥ 0,30 m/s. */
+    val lvMinVelocityRangeMps: Double = 0.30,
+    /** MCV del punto más pesado ≤ 0,60 m/s (banca: 0,50). */
+    val lvMaxHeaviestMps: Double = 0.60,
+    val lvMaxHeaviestBenchMps: Double = 0.50,
+    /** R² ≥ 0,95 con 3 puntos; ≥ 0,90 con 4 o más. */
+    val lvMinR2ThreePoints: Double = 0.95,
+    val lvMinR2FourPlusPoints: Double = 0.90,
+    /** El 1RM se oculta si supera 1,6× la carga mayor o si el intervalo de predicción del 95 % pasa de ±10 %. */
+    val lvMaxOverMaxLoad: Double = 1.6,
+    val lvMaxIntervalFraction: Double = 0.10,
+    /** El 1RM se redondea a este paso (kg). */
+    val lvRoundingKg: Double = 2.5,
 )
