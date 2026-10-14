@@ -26,7 +26,7 @@ Estos son el **lote 4 (Kaggle)** y el **lote 5 (UCF101)**.
   | pull Up, lat pulldown | PULL_VERTICAL |
   | lateral raise | RAISE |
   | leg extension | LEG_EXTENSION |
-  | tricep Pushdown | TRICEPS_EXTENDED_REST |
+  | tricep Pushdown | TRICEPS_FLEXED_REST (el reposo es el codo flexionado; ver `AnalysisProfiles.kt`) |
   | push-up | PUSH_UP |
   | tricep dips | DIP |
   | hip thrust | HIP_THRUST |
@@ -49,6 +49,17 @@ Estos son el **lote 4 (Kaggle)** y el **lote 5 (UCF101)**.
   | Lunges | LUNGE |
   | CleanAndJerk, HandstandPushups, JumpRope, JumpingJack, Rowing | UNSUPPORTED |
 - **UNSUPPORTED:** etiqueta mínima (usable=false, «ejercicio no soportado en v1»), sin tarjeta ni conteo.
+
+## Giro de la repetición (`turnaroundKind` y `repTimesS`; D30)
+- **El giro** es el extremo de cada repetición opuesto al reposo del perfil: donde la repetición cambia de sentido a mitad de camino.
+- **`turnaroundKind`** sale del `startPhase` del perfil en `AnalysisProfiles.kt`:
+  - **BOTTOM**, en los perfiles que arrancan con la excéntrica: SQUAT, MACHINE_SQUAT, LUNGE, PUSH_UP, BENCH, DIP, HINGE, FLY, BACK_EXTENSION y TRICEPS_EXTENDED_REST. El giro es el final de la bajada.
+  - **TOP**, en los que arrancan con la concéntrica: CURL, PULL_VERTICAL, ROW, DEADLIFT, HIP_THRUST, OHP, RAISE, SHRUG, CALF, CALF_SEATED, LEG_EXTENSION, LEG_CURL, STEP_UP y TRICEPS_FLEXED_REST. El giro es el final de la concéntrica, aunque en la imagen quede ABAJO:
+    - jalón: la barra en el pecho;
+    - polea de tríceps: el bloqueo, con las manos abajo.
+- **`repTimesS[].turnaroundS`** es el instante de ESE giro. Si los extremos automáticos marcan el otro extremo (el reposo), no se copian.
+- **`startPhase`** de la etiqueta sigue siendo literal: la dirección del primer movimiento sostenido del clip.
+- **Tiempos del corpus:** con ~0,25 s de precisión en el mejor caso, y `flow_auto` sin verificar fotograma a fotograma. Se informan aparte y no entran en la aceptación de tiempos (VT10).
 
 ## Fase A (un agente; guiones, sin mirar imágenes salvo para comprobar los guiones)
 Para cada clip soportado:
