@@ -1,32 +1,60 @@
 package com.example.kpkn.screens.workout
 
-import androidx.compose.animation.*
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.defaultMinSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.Icon
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.example.kpkn.data.exercises.resolveCatalogExerciseInfo
 import com.example.kpkn.data.models.*
 import com.example.kpkn.domain.calculations.calculateHybrid1RM
+import com.example.kpkn.screens.onboarding.design.WizardColors
+import com.example.kpkn.screens.onboarding.design.entreno.SymbolPalette
+import com.example.kpkn.ui.components.KpknAlertDialog
+import com.example.kpkn.ui.components.icons.KpknLineIcons
+import com.example.kpkn.ui.design.KpknChip
+import com.example.kpkn.ui.design.KpknMetric
+import com.example.kpkn.ui.design.KpknModule
+import com.example.kpkn.ui.design.KpknModuleHeader
+import com.example.kpkn.ui.design.KpknPrimaryPill
+import com.example.kpkn.ui.design.KpknSecondaryPill
+import com.example.kpkn.ui.design.KpknSurface
+import com.example.kpkn.ui.design.KpknTextAction
+import com.example.kpkn.ui.design.KpknTextField
+import com.example.kpkn.ui.design.KpknType
 import java.util.Locale
 import kotlin.math.roundToInt
-import com.example.kpkn.ui.components.KpknAlertDialog
 
 internal enum class WorkoutExerciseContextTab {
     HISTORY,
@@ -45,6 +73,10 @@ internal fun subTagCategoryLabel(category: SubTagCategory): String = when (categ
     SubTagCategory.LIBRE -> "Libre"
 }
 
+/**
+ * Historial del ejercicio (LS7b): las sesiones agrupadas por semana o por mes, cada una en su módulo con sus series y su e1RM.
+ * El módulo se tiñe si la sesión es la marcada en amarillo o en rojo, o si coincide con la etiqueta activa.
+ */
 @Composable
 internal fun WorkoutExerciseHistoryContent(
     history: List<ExerciseHistoryEntry>,
@@ -56,9 +88,14 @@ internal fun WorkoutExerciseHistoryContent(
         maxEntries?.let { history.take(it) } ?: history
     }
     if (visibleHistory.isEmpty()) {
-        Box(Modifier.fillMaxWidth().padding(32.dp), contentAlignment = Alignment.Center) {
-            Text("Sin historial registrado", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        }
+        Text(
+            text = "Sin historial registrado",
+            style = KpknType.body,
+            color = WizardColors.textMuted,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 24.dp),
+        )
         return
     }
 
@@ -83,105 +120,113 @@ internal fun WorkoutExerciseHistoryContent(
         }
     }
 
-    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+    Column(verticalArrangement = Arrangement.spacedBy(20.dp)) {
         groupedHistory.forEach { (groupLabel, entries) ->
-            var expanded by rememberSaveable(groupLabel) { mutableStateOf(groupLabel == "Esta semana" || groupLabel == "Semana pasada") }
-            
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            var expanded by rememberSaveable(groupLabel) {
+                mutableStateOf(groupLabel == "Esta semana" || groupLabel == "Semana pasada")
+            }
+            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clickable { expanded = !expanded }
-                        .padding(vertical = 4.dp),
+                        .defaultMinSize(minHeight = 48.dp)
+                        .clickable(role = Role.Button, onClick = { expanded = !expanded }),
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
+                    horizontalArrangement = Arrangement.SpaceBetween,
                 ) {
                     Text(
-                        text = groupLabel,
-                        style = MaterialTheme.typography.labelLarge,
-                        fontWeight = FontWeight.Black,
-                        color = MaterialTheme.colorScheme.primary
+                        text = groupLabel.uppercase(Locale("es")),
+                        style = KpknType.eyebrow,
+                        color = WizardColors.textMuted,
                     )
                     Icon(
-                        imageVector = if (expanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
-                        contentDescription = null,
+                        imageVector = if (expanded) KpknLineIcons.ChevronUp else KpknLineIcons.ChevronDown,
+                        contentDescription = if (expanded) "Plegar $groupLabel" else "Desplegar $groupLabel",
                         modifier = Modifier.size(20.dp),
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        tint = WizardColors.textMuted,
                     )
                 }
-                
                 AnimatedVisibility(visible = expanded) {
                     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                         entries.forEach { entry ->
                             val isTagMatch = activeTag != null && entry.tag == activeTag
-                            val entryBgColor = when (entry.latestHistoryColor) {
-                                HistoryColorV2.YELLOW -> Color(0xFFFFF9C4)
-                                HistoryColorV2.RED -> MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.5f)
-                                else -> if (isTagMatch) MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.4f)
-                                        else MaterialTheme.colorScheme.surfaceContainerLow
+                            val accent = when (entry.latestHistoryColor) {
+                                HistoryColorV2.YELLOW -> SymbolPalette.energia
+                                HistoryColorV2.RED -> WizardColors.danger
+                                else -> if (isTagMatch) SymbolPalette.columna else null
                             }
-                            Surface(
-                                shape = RoundedCornerShape(12.dp),
-                                color = entryBgColor,
+                            KpknModule(
                                 modifier = Modifier.fillMaxWidth(),
+                                accent = accent,
+                                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 14.dp),
                             ) {
-                                Column(modifier = Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                                        Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
-                                            Text(entry.date.take(10), style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold)
-                                            if (entry.tag != null) {
-                                                Surface(shape = RoundedCornerShape(999.dp), color = MaterialTheme.colorScheme.secondaryContainer) {
-                                                    Text(entry.tag, modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSecondaryContainer)
-                                                }
-                                            }
-                                        }
-                                        if (entry.e1rm != null) {
-                                            Text("e1RM ${"%.1f".format(entry.e1rm)} kg", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.tertiary, fontWeight = FontWeight.Bold)
-                                        }
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically,
+                                ) {
+                                    Text(
+                                        text = entry.date.take(10),
+                                        style = KpknType.bodyStrong.copy(fontFeatureSettings = "tnum"),
+                                        color = WizardColors.text,
+                                    )
+                                    entry.e1rm?.let { e1rm ->
+                                        Text(
+                                            text = "e1RM ${"%.1f".format(e1rm)} kg",
+                                            style = KpknType.caption.copy(fontFeatureSettings = "tnum"),
+                                            color = WizardColors.textMuted,
+                                            maxLines = 1,
+                                        )
                                     }
-                                    val workingSets = entry.sets.filter { !it.isWarmup }
+                                }
+                                entry.tag?.let { tag ->
+                                    Spacer(Modifier.height(6.dp))
+                                    HistoryTag(text = tag)
+                                }
+                                val workingSets = entry.sets.filter { !it.isWarmup }
+                                Spacer(Modifier.height(10.dp))
+                                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                                     workingSets.take(maxSetsPerEntry.coerceAtLeast(0)).forEach { s ->
                                         val sideLabel = when (s.side) {
                                             "left" -> "Izq"
                                             "right" -> "Der"
                                             else -> null
                                         }
-                                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
-                                            if (s.isFailedSet || s.failureReason == "execution_error" || !s.failureReason.isNullOrBlank()) {
-                                                Surface(
-                                                    shape = RoundedCornerShape(6.dp),
-                                                    color = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.50f),
-                                                ) {
-                                                    val reason = s.failureReason?.takeIf { it.isNotBlank() && it != "execution_error" && it != "Serie marcada como fallida" }
-                                                    Text(
-                                                        text = buildString {
-                                                            if (sideLabel != null) append("$sideLabel · ")
-                                                            append("❌ Fallida")
-                                                            if (reason != null) append(": $reason")
-                                                        },
-                                                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
-                                                        style = MaterialTheme.typography.labelSmall,
-                                                        fontWeight = FontWeight.Bold,
-                                                        color = MaterialTheme.colorScheme.error,
-                                                    )
-                                                }
-                                            } else {
+                                        if (s.isFailedSet || s.failureReason == "execution_error" || !s.failureReason.isNullOrBlank()) {
+                                            val reason = s.failureReason?.takeIf {
+                                                it.isNotBlank() && it != "execution_error" && it != "Serie marcada como fallida"
+                                            }
+                                            Text(
+                                                text = buildString {
+                                                    if (sideLabel != null) append("$sideLabel · ")
+                                                    append("Fallida")
+                                                    if (reason != null) append(": $reason")
+                                                },
+                                                style = KpknType.body,
+                                                color = WizardColors.danger,
+                                            )
+                                        } else {
+                                            Row(
+                                                modifier = Modifier.fillMaxWidth(),
+                                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                                verticalAlignment = Alignment.CenterVertically,
+                                            ) {
                                                 Text(
-                                                    buildString {
+                                                    text = buildString {
                                                         if (sideLabel != null) append("$sideLabel · ")
-                                                        if (s.weight > 0) append("${s.weight}kg")
-                                                        if (s.weight > 0 && s.reps > 0) append(" x ")
-                                                        if (s.reps > 0) append("${s.reps} reps")
+                                                        if (s.weight > 0) append("${s.weight.toTrimmedNumberString()} kg")
+                                                        if (s.weight > 0 && s.reps > 0) append(" × ")
+                                                        if (s.reps > 0) append(if (s.reps == 1) "1 repetición" else "${s.reps} repeticiones")
                                                         if (s.rpe != null) append(" · RPE ${s.rpe}")
                                                         if ((s.partialReps ?: 0) > 0) append(" · +${s.partialReps} parciales")
                                                         if ((s.assistedReps ?: 0) > 0) append(" · ${s.assistedReps} con ayuda")
                                                     },
-                                                    style = MaterialTheme.typography.bodySmall,
+                                                    style = KpknType.body.copy(fontFeatureSettings = "tnum"),
+                                                    color = WizardColors.text,
+                                                    modifier = Modifier.weight(1f),
                                                 )
                                                 if (s.isFailure) {
-                                                    Surface(shape = RoundedCornerShape(999.dp), color = MaterialTheme.colorScheme.errorContainer) {
-                                                        Text("F", modifier = Modifier.padding(horizontal = 4.dp), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onErrorContainer)
-                                                    }
+                                                    HistoryTag(text = "Fallo", color = WizardColors.danger)
                                                 }
                                             }
                                         }
@@ -196,6 +241,28 @@ internal fun WorkoutExerciseHistoryContent(
     }
 }
 
+/** Etiqueta de una sesión o marca de fallo: cápsula `inset` con el texto en [color]. */
+@Composable
+private fun HistoryTag(text: String, color: Color = WizardColors.textMuted) {
+    Box(
+        modifier = Modifier
+            .clip(RoundedCornerShape(999.dp))
+            .background(KpknSurface.inset)
+            .padding(horizontal = 8.dp, vertical = 3.dp),
+    ) {
+        Text(
+            text = text,
+            style = KpknType.caption,
+            color = color,
+            maxLines = 1,
+        )
+    }
+}
+
+/**
+ * Configuración del ejercicio (setup) en la hoja de contexto (LS7b): los setups guardados como chips KPKN, los campos de máquina,
+ * asiento, pin, carga base y notas con `KpknTextField`, los cues y la asociación a la etiqueta activa. La lógica no cambia.
+ */
 @Composable
 internal fun WorkoutExerciseSetupContent(
     exercise: Exercise,
@@ -214,52 +281,37 @@ internal fun WorkoutExerciseSetupContent(
     var hasSetupChanges by remember { mutableStateOf(false) }
     val activeProfile = remember(activeProfileId, profiles) { profiles.firstOrNull { it.id == activeProfileId } }
 
-    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+    Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
         if (profiles.isNotEmpty()) {
-            Text("Setups guardados", style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold)
+            Text(
+                text = "Setups guardados".uppercase(Locale("es")),
+                style = KpknType.eyebrow,
+                color = WizardColors.textMuted,
+            )
             LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 items(profiles) { profile ->
-                    val isSelected = profile.id == activeProfileId
-                    Surface(
-                        modifier = Modifier.clickable { onSelectProfile(profile.id) },
-                        shape = RoundedCornerShape(8.dp),
-                        color = if (isSelected) sessionAccentColor.copy(alpha = 0.15f) else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
-                        border = androidx.compose.foundation.BorderStroke(
-                            1.dp,
-                            if (isSelected) sessionAccentColor else Color.Transparent
-                        )
-                    ) {
-                        Text(
-                            text = profile.tagDisplayTitle().ifBlank { "Sin nombre" },
-                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
-                            style = MaterialTheme.typography.labelSmall,
-                            color = if (isSelected) sessionAccentColor else MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
+                    KpknChip(
+                        text = profile.tagDisplayTitle().ifBlank { "Sin nombre" },
+                        selected = profile.id == activeProfileId,
+                        onClick = { onSelectProfile(profile.id) },
+                    )
                 }
                 item {
-                    OutlinedButton(
+                    KpknChip(
+                        text = "Nuevo",
+                        selected = false,
                         onClick = { showNewProfileDialog = true },
-                        shape = RoundedCornerShape(8.dp),
-                        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 0.dp),
-                        modifier = Modifier.height(32.dp)
-                    ) {
-                        Icon(Icons.Default.Add, null, modifier = Modifier.size(14.dp))
-                        Spacer(Modifier.width(4.dp))
-                        Text("Nuevo", style = MaterialTheme.typography.labelSmall)
-                    }
+                        leadingIcon = KpknLineIcons.Plus,
+                    )
                 }
             }
-            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f))
         } else {
-            OutlinedButton(
+            KpknSecondaryPill(
+                text = "Crear primer setup",
                 onClick = { showNewProfileDialog = true },
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Icon(Icons.Default.Add, null)
-                Spacer(Modifier.width(8.dp))
-                Text("Crear primer Setup")
-            }
+                modifier = Modifier.fillMaxWidth(),
+                icon = KpknLineIcons.Plus,
+            )
         }
 
         // Details of active or temporary setup
@@ -272,7 +324,7 @@ internal fun WorkoutExerciseSetupContent(
             exercise = exercise,
         )
 
-        OutlinedTextField(
+        KpknTextField(
             value = currentMachine,
             onValueChange = { newValue ->
                 if (activeProfile != null) {
@@ -282,12 +334,12 @@ internal fun WorkoutExerciseSetupContent(
                 }
             },
             modifier = Modifier.fillMaxWidth(),
-            label = { Text("Maquina / marca") },
+            label = "Máquina o marca",
             singleLine = true,
         )
 
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
-            OutlinedTextField(
+            KpknTextField(
                 value = currentSeat,
                 onValueChange = { newValue ->
                     if (activeProfile != null) {
@@ -299,10 +351,10 @@ internal fun WorkoutExerciseSetupContent(
                     }
                 },
                 modifier = Modifier.weight(1f),
-                label = { Text("Asiento") },
+                label = "Asiento",
                 singleLine = true,
             )
-            OutlinedTextField(
+            KpknTextField(
                 value = currentPin,
                 onValueChange = { newValue ->
                     if (activeProfile != null) {
@@ -314,73 +366,75 @@ internal fun WorkoutExerciseSetupContent(
                     }
                 },
                 modifier = Modifier.weight(1f),
-                label = { Text("Pin") },
+                label = "Pin",
                 singleLine = true,
             )
         }
 
-        OutlinedTextField(
-            value = currentBaseLoadKg?.toTrimmedNumberString().orEmpty(),
-            onValueChange = { value ->
-                val parsed = value.toDoubleOrNull()
-                val hasTag = !exerciseTag.isNullOrBlank()
-                when {
-                    // Persist to tagged profile only when a tag is active.
-                    hasTag && activeProfile != null -> {
-                        val mirrored = com.example.kpkn.domain.workout.BaseLoadPolicy.withMirroredBaseLoad(
-                            activeProfile.setupDetails ?: ExerciseSetupDetails(),
-                            parsed,
-                        )
-                        onSaveProfile(
-                            activeProfile.copy(
-                                tagId = activeProfile.tagId ?: exerciseTag,
-                                baseLoadKg = mirrored.baseLoadKg,
-                                barWeightKg = mirrored.barWeightKg,
-                                setupDetails = mirrored,
-                            ),
-                        )
-                    }
-                    hasTag && activeProfile == null -> {
-                        // Session exercise mirror until user creates/selects a profile;
-                        // explicit save-with-tag button also writes a profile.
-                        onUpdateExercise { ex ->
-                            ex.copy(
-                                setupDetails = com.example.kpkn.domain.workout.BaseLoadPolicy.withMirroredBaseLoad(
-                                    ex.setupDetails ?: ExerciseSetupDetails(),
-                                    parsed,
+        Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            KpknTextField(
+                value = currentBaseLoadKg?.toTrimmedNumberString().orEmpty(),
+                onValueChange = { value ->
+                    val parsed = value.toDoubleOrNull()
+                    val hasTag = !exerciseTag.isNullOrBlank()
+                    when {
+                        // Persist to tagged profile only when a tag is active.
+                        hasTag && activeProfile != null -> {
+                            val mirrored = com.example.kpkn.domain.workout.BaseLoadPolicy.withMirroredBaseLoad(
+                                activeProfile.setupDetails ?: ExerciseSetupDetails(),
+                                parsed,
+                            )
+                            onSaveProfile(
+                                activeProfile.copy(
+                                    tagId = activeProfile.tagId ?: exerciseTag,
+                                    baseLoadKg = mirrored.baseLoadKg,
+                                    barWeightKg = mirrored.barWeightKg,
+                                    setupDetails = mirrored,
                                 ),
                             )
                         }
-                    }
-                    else -> {
-                        // No tag: session-only (not Room / not suggestion floor).
-                        onUpdateExercise { ex ->
-                            ex.copy(
-                                setupDetails = com.example.kpkn.domain.workout.BaseLoadPolicy.withMirroredBaseLoad(
-                                    ex.setupDetails ?: ExerciseSetupDetails(),
-                                    parsed,
-                                ),
-                            )
+                        hasTag && activeProfile == null -> {
+                            // Session exercise mirror until user creates/selects a profile;
+                            // explicit save-with-tag button also writes a profile.
+                            onUpdateExercise { ex ->
+                                ex.copy(
+                                    setupDetails = com.example.kpkn.domain.workout.BaseLoadPolicy.withMirroredBaseLoad(
+                                        ex.setupDetails ?: ExerciseSetupDetails(),
+                                        parsed,
+                                    ),
+                                )
+                            }
+                        }
+                        else -> {
+                            // No tag: session-only (not Room / not suggestion floor).
+                            onUpdateExercise { ex ->
+                                ex.copy(
+                                    setupDetails = com.example.kpkn.domain.workout.BaseLoadPolicy.withMirroredBaseLoad(
+                                        ex.setupDetails ?: ExerciseSetupDetails(),
+                                        parsed,
+                                    ),
+                                )
+                            }
                         }
                     }
-                }
-            },
-            modifier = Modifier.fillMaxWidth(),
-            label = { Text("Carga base (kg)") },
-            supportingText = {
-                Text(
-                    if (exerciseTag.isNullOrBlank()) {
-                        "Se guarda con una etiqueta (barra vacía, pin mínimo, stack…)"
-                    } else {
-                        "Piso de sugerencias LOAD · etiqueta activa"
-                    },
-                )
-            },
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-            singleLine = true,
-        )
+                },
+                modifier = Modifier.fillMaxWidth(),
+                label = "Carga base (kg)",
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                singleLine = true,
+            )
+            Text(
+                text = if (exerciseTag.isNullOrBlank()) {
+                    "Se guarda con una etiqueta (barra vacía, pin mínimo, stack…)"
+                } else {
+                    "Piso de sugerencias LOAD · etiqueta activa"
+                },
+                style = KpknType.caption,
+                color = WizardColors.textFaint,
+            )
+        }
 
-        OutlinedTextField(
+        KpknTextField(
             value = currentNotes,
             onValueChange = { newValue ->
                 if (activeProfile != null) {
@@ -392,24 +446,32 @@ internal fun WorkoutExerciseSetupContent(
                 }
             },
             modifier = Modifier.fillMaxWidth(),
-            label = { Text("Notas de set-up") },
+            label = "Notas del setup",
+            singleLine = false,
             minLines = 2,
             maxLines = 4,
         )
 
         val cues = (exercise.setupCues + exercise.executionCues).distinct()
         if (cues.isNotEmpty()) {
-            Text("Cues", style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold)
-            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                cues.take(maxVisibleCues.coerceAtLeast(0)).forEach { cue ->
-                    Text("- $cue", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            KpknModule(modifier = Modifier.fillMaxWidth()) {
+                KpknModuleHeader(label = "Cues")
+                Spacer(Modifier.height(8.dp))
+                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    cues.take(maxVisibleCues.coerceAtLeast(0)).forEach { cue ->
+                        Text(
+                            text = "· $cue",
+                            style = KpknType.body,
+                            color = WizardColors.textMuted,
+                        )
+                    }
                 }
             }
         }
 
         if (exerciseTag != null) {
-            Spacer(Modifier.height(4.dp))
-            Surface(
+            KpknSecondaryPill(
+                text = "Asociar setup a «$exerciseTag»",
                 onClick = {
                     val mirroredSetup = com.example.kpkn.domain.workout.BaseLoadPolicy.withMirroredBaseLoad(
                         ExerciseSetupDetails(
@@ -432,24 +494,9 @@ internal fun WorkoutExerciseSetupContent(
                     )
                     hasSetupChanges = false
                 },
-                shape = RoundedCornerShape(12.dp),
-                color = sessionAccentColor.copy(alpha = 0.1f),
-            ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 10.dp),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Icon(Icons.Default.Link, null, Modifier.size(16.dp), tint = sessionAccentColor)
-                    Text(
-                        "Asociar set-up a \"$exerciseTag\"",
-                        modifier = Modifier.weight(1f),
-                        style = MaterialTheme.typography.labelMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = sessionAccentColor,
-                    )
-                }
-            }
+                modifier = Modifier.fillMaxWidth(),
+                icon = KpknLineIcons.Plus,
+            )
         }
     }
 
@@ -457,18 +504,19 @@ internal fun WorkoutExerciseSetupContent(
         var newLabel by remember { mutableStateOf("") }
         KpknAlertDialog(
             onDismissRequest = { showNewProfileDialog = false },
-            title = { Text("Nuevo Setup", fontWeight = FontWeight.Black) },
+            title = { Text("Nuevo setup", style = KpknType.dialogTitle, color = WizardColors.text) },
             text = {
-                OutlinedTextField(
+                KpknTextField(
                     value = newLabel,
                     onValueChange = { newLabel = it },
-                    label = { Text("Nombre del setup (ej. Maquina SmartFit)") },
+                    label = "Nombre del setup (ej. máquina SmartFit)",
                     singleLine = true,
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
                 )
             },
             confirmButton = {
-                Button(
+                KpknPrimaryPill(
+                    text = "Guardar",
                     onClick = {
                         val sessionBase = com.example.kpkn.domain.workout.BaseLoadPolicy.resolvedForDisplay(
                             profile = null,
@@ -491,26 +539,32 @@ internal fun WorkoutExerciseSetupContent(
                         )
                         showNewProfileDialog = false
                     },
-                    enabled = newLabel.isNotBlank()
-                ) { Text("Guardar") }
+                    enabled = newLabel.isNotBlank(),
+                )
             },
             dismissButton = {
-                TextButton(onClick = { showNewProfileDialog = false }) { Text("Cancelar") }
-            }
+                KpknTextAction(text = "Cancelar", onClick = { showNewProfileDialog = false })
+            },
         )
     }
 }
 
+/**
+ * Calculadora de RM (LS7b): el peso y las repeticiones en campos KPKN, el e1RM en `metricM` con su unidad y la tabla de 1 a 10
+ * repeticiones; tocar una fila de la tabla devuelve ese peso. [softInputs] ya no cambia el aspecto: se conserva por el cockpit.
+ */
 @Composable
 internal fun WorkoutRmCalcContent(
     bodyWeight: Double? = null,
     currentLoadMode: LoadModeV2? = null,
     onWeightSelected: ((weight: Double, loadMode: LoadModeV2?) -> Unit)? = null,
-    sessionAccentColor: Color = MaterialTheme.colorScheme.primary,
-    softInputs: Boolean = false,
+    sessionAccentColor: Color = WizardColors.text,
+    @Suppress("UNUSED_PARAMETER") softInputs: Boolean = false,
+    initialWeightText: String = "",
+    initialRepsText: String = "",
 ) {
-    var rmWeightText by remember { mutableStateOf("") }
-    var rmRepsText by remember { mutableStateOf("") }
+    var rmWeightText by remember { mutableStateOf(initialWeightText) }
+    var rmRepsText by remember { mutableStateOf(initialRepsText) }
     val isAssisted = currentLoadMode == LoadModeV2.ASSISTED
     val isLastre = currentLoadMode == LoadModeV2.LASTRE
     val weightLabel = when (currentLoadMode) {
@@ -554,97 +608,124 @@ internal fun WorkoutRmCalcContent(
             }
         }
     }
-    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
-            if (softInputs) {
-                com.example.kpkn.screens.workout.components.WorkoutSoftNumberField(
-                    value = rmWeightText,
-                    onValueChange = { rmWeightText = it },
-                    label = weightLabel,
-                    decimal = true,
-                    modifier = Modifier.weight(1f),
-                )
-                com.example.kpkn.screens.workout.components.WorkoutSoftNumberField(
-                    value = rmRepsText,
-                    onValueChange = { rmRepsText = it },
-                    label = "Repeticiones",
-                    modifier = Modifier.weight(1f),
-                )
-            } else {
-                OutlinedTextField(
-                    value = rmWeightText,
-                    onValueChange = { rmWeightText = it },
-                    label = { Text(weightLabel) },
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                    singleLine = true,
-                    modifier = Modifier.weight(1f),
-                )
-                OutlinedTextField(
-                    value = rmRepsText,
-                    onValueChange = { rmRepsText = it },
-                    label = { Text("Repeticiones") },
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    singleLine = true,
-                    modifier = Modifier.weight(1f),
-                )
-            }
+    Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.Top,
+        ) {
+            KpknTextField(
+                value = rmWeightText,
+                onValueChange = { rmWeightText = it },
+                label = weightLabel,
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                singleLine = true,
+                modifier = Modifier.weight(1f),
+            )
+            KpknTextField(
+                value = rmRepsText,
+                onValueChange = { rmRepsText = it },
+                label = "Repeticiones",
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                singleLine = true,
+                modifier = Modifier.weight(1f),
+            )
         }
         if (rmResult != null && rmTable.isNotEmpty()) {
-            Surface(
-                shape = RoundedCornerShape(12.dp),
-                color = Color(0xFF1A3A1A),
+            KpknModule(
                 modifier = Modifier.fillMaxWidth(),
+                accent = SymbolPalette.ok,
             ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 8.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
+                KpknModuleHeader(label = if (isAssisted || isLastre) "e1RM equivalente" else "e1RM")
+                Spacer(Modifier.height(6.dp))
+                KpknMetric(
+                    value = "%.1f".format(rmResult),
+                    unit = "kg",
+                    style = KpknType.metricM,
+                    color = SymbolPalette.ok,
+                )
+                if ((isAssisted || isLastre) && bodyWeight != null) {
+                    Spacer(Modifier.height(6.dp))
                     Text(
-                        if (isAssisted || isLastre) "e1RM equiv.: ${"%.1f".format(rmResult)} kg" else "e1RM: ${"%.1f".format(rmResult)} kg",
-                        style = MaterialTheme.typography.labelSmall,
-                        fontWeight = FontWeight.Bold,
-                        color = Color(0xFF4CAF50),
+                        text = "Peso corporal (solo cálculo): ${bodyWeight.toTrimmedNumberString()} kg",
+                        style = KpknType.caption,
+                        color = WizardColors.textMuted,
                     )
-                    if ((isAssisted || isLastre) && bodyWeight != null) {
-                        Text("Peso corporal (solo cálculo): ${bodyWeight.toTrimmedNumberString()} kg", style = MaterialTheme.typography.labelSmall, color = Color.White.copy(alpha = 0.6f))
-                    }
                 }
             }
-            Spacer(Modifier.height(4.dp))
-            Text("Tabla RM", style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold, color = Color.White.copy(alpha = 0.7f))
-            FlowRow(horizontalArrangement = Arrangement.spacedBy(4.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                rmTable.forEach { (reps, triple) ->
-                    val (estLoad, assistance, lastre) = triple
-                    val displayWeight = when {
-                        assistance != null -> assistance
-                        lastre != null -> lastre
-                        else -> estLoad
-                    }
-                    val suffix = when {
-                        assistance != null -> "kg asistencia"
-                        lastre != null -> "kg lastre"
-                        else -> "kg"
-                    }
-                    Surface(
-                        onClick = { onWeightSelected?.invoke(displayWeight, currentLoadMode) },
-                        shape = RoundedCornerShape(10.dp),
-                        color = Color(0xFF2A2A2A),
-                        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.08f)),
-                        modifier = Modifier.widthIn(min = 72.dp),
+            KpknModuleHeader(label = "Tabla RM")
+            // Cuadrícula de tres columnas de ancho igual: la tabla llena la anchura y no deja huecos a la derecha.
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                rmTable.chunked(3).forEach { rowEntries ->
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
                     ) {
-                        Column(
-                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 6.dp),
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                        ) {
-                            Text("${reps}RM", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold, color = sessionAccentColor)
-                            Text("${"%.1f".format(displayWeight)}", style = MaterialTheme.typography.labelSmall, color = Color.White, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                            Text(suffix, style = MaterialTheme.typography.labelSmall.copy(fontSize = 8.sp), color = Color.White.copy(alpha = 0.5f), maxLines = 1)
+                        rowEntries.forEach { (reps, triple) ->
+                            val (estLoad, assistance, lastre) = triple
+                            val displayWeight = when {
+                                assistance != null -> assistance
+                                lastre != null -> lastre
+                                else -> estLoad
+                            }
+                            val suffix = when {
+                                assistance != null -> "kg asistencia"
+                                lastre != null -> "kg lastre"
+                                else -> "kg"
+                            }
+                            RmTableCell(
+                                reps = reps,
+                                displayWeight = displayWeight,
+                                suffix = suffix,
+                                accent = sessionAccentColor,
+                                onClick = { onWeightSelected?.invoke(displayWeight, currentLoadMode) },
+                                modifier = Modifier.weight(1f),
+                            )
                         }
+                        repeat(3 - rowEntries.size) { Spacer(Modifier.weight(1f)) }
                     }
                 }
             }
         }
+    }
+}
+
+/** Una fila de la tabla RM: repeticiones, peso y unidad, en una celda `inset` que se toca para elegir ese peso. */
+@Composable
+private fun RmTableCell(
+    reps: Int,
+    displayWeight: Double,
+    suffix: String,
+    accent: Color,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Column(
+        modifier = modifier
+            .clip(RoundedCornerShape(12.dp))
+            .background(KpknSurface.inset)
+            .defaultMinSize(minHeight = 48.dp)
+            .clickable(role = Role.Button, onClick = onClick)
+            .padding(horizontal = 10.dp, vertical = 8.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Text(
+            text = "${reps}RM",
+            style = KpknType.bodyStrong,
+            color = accent,
+            maxLines = 1,
+        )
+        Text(
+            text = "%.1f".format(displayWeight),
+            style = KpknType.bodyStrong.copy(fontFeatureSettings = "tnum"),
+            color = WizardColors.text,
+            maxLines = 1,
+        )
+        Text(
+            text = suffix,
+            style = KpknType.caption,
+            color = WizardColors.textMuted,
+            maxLines = 1,
+        )
     }
 }
 

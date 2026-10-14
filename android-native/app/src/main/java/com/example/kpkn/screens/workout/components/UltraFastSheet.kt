@@ -1,31 +1,46 @@
 package com.example.kpkn.screens.workout.components
 
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.tween
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.Remove
-import androidx.compose.material.icons.filled.SwapHoriz
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.Icon
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.domain.sessionassistant.UltraFastPreview
 import com.example.kpkn.domain.sessionassistant.UltraFastReason
+import com.example.kpkn.screens.onboarding.design.WizardColors
+import com.example.kpkn.screens.onboarding.design.entreno.SymbolPalette
 import com.example.kpkn.ui.components.KpknSheet
+import com.example.kpkn.ui.components.icons.KpknLineIcons
+import com.example.kpkn.ui.design.KpknChip
+import com.example.kpkn.ui.design.KpknIconButton
+import com.example.kpkn.ui.design.KpknMetric
+import com.example.kpkn.ui.design.KpknModule
+import com.example.kpkn.ui.design.KpknModuleHeader
+import com.example.kpkn.ui.design.KpknPrimaryPill
+import com.example.kpkn.ui.design.KpknProgressBar
+import com.example.kpkn.ui.design.KpknSecondaryPill
+import com.example.kpkn.ui.design.KpknSurface
+import com.example.kpkn.ui.design.KpknType
 
 private fun formatSeconds(sec: Int): String {
     val m = sec / 60
@@ -33,6 +48,10 @@ private fun formatSeconds(sec: Int): String {
     return if (s == 0) "${m} min" else "${m}m ${s.toString().padStart(2, '0')}s"
 }
 
+/**
+ * Hoja «Modo ultrarrápido» (LS7b): la duración estándar contra la comprimida, el ahorro en `metricM`, los ajustes por ejercicio
+ * con su ± de series y los supersets. Antes de llegar la propuesta, muestra que se está calculando.
+ */
 @Composable
 fun UltraFastPreviewSheet(
     preview: UltraFastPreview?,
@@ -43,316 +62,316 @@ fun UltraFastPreviewSheet(
     onConfirm: (Map<String, Int>) -> Unit,
     onDismiss: () -> Unit,
 ) {
+    // Ajustes locales de series por ejercicio (solo se aplican al confirmar).
+    var customSetCounts by remember { mutableStateOf(mapOf<String, Int>()) }
     if (preview == null) {
         KpknSheet(onDismissRequest = onDismiss) {
-            Column(Modifier.fillMaxWidth().padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                Text("Modo Ultrarrápido", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Black, color = Color.White)
-                Text("Calculando compresión de sesión…", color = Color.White.copy(0.7f))
-                LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
-                TextButton(onClick = onDismiss, modifier = Modifier.fillMaxWidth()) { Text("Cerrar") }
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(start = 20.dp, end = 20.dp, bottom = 24.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                Text(text = "Modo ultrarrápido", style = KpknType.title, color = WizardColors.text)
+                Text(
+                    text = "Calculando la compresión de la sesión…",
+                    style = KpknType.body,
+                    color = WizardColors.textMuted,
+                )
+                KpknSecondaryPill(text = "Cerrar", onClick = onDismiss, modifier = Modifier.fillMaxWidth())
             }
         }
         return
     }
+    KpknSheet(onDismissRequest = onDismiss) {
+        UltraFastPreviewBody(
+            preview = preview,
+            savedSeconds = savedSeconds,
+            manualOverrides = ultraFastManualOverrides,
+            setCounts = customSetCounts,
+            onSetCountChange = { exerciseId, count ->
+                customSetCounts = customSetCounts + (exerciseId to count)
+            },
+            onToggleOverride = onToggleOverride,
+            onConfirm = { onConfirm(customSetCounts) },
+            onDismiss = onDismiss,
+        )
+    }
+}
+
+/**
+ * Cuerpo sin estado de «Modo ultrarrápido» (LS7b): duraciones, ahorro, ajustes por ejercicio, supersets y «Aplicar». Lo pinta la
+ * hoja y lo montan las pruebas con datos y lambdas. [setCounts] son las series elegidas a mano por ejercicio.
+ */
+@Composable
+internal fun UltraFastPreviewBody(
+    preview: UltraFastPreview,
+    savedSeconds: Int,
+    manualOverrides: Map<String, Boolean>,
+    setCounts: Map<String, Int>,
+    onSetCountChange: (String, Int) -> Unit,
+    onToggleOverride: (String) -> Unit,
+    onConfirm: () -> Unit,
+    onDismiss: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
     val totalSaved = preview.savedSeconds.takeIf { it > 0 } ?: savedSeconds
     val beforeSec = preview.beforeSeconds.coerceAtLeast(60)
     val afterSec = preview.afterSeconds.coerceAtLeast(60)
+    val maxSec = maxOf(beforeSec, afterSec).toFloat()
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .verticalScroll(rememberScrollState())
+            .padding(start = 20.dp, end = 20.dp, bottom = 24.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp),
+    ) {
+        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            Text(
+                text = "Modo ultrarrápido",
+                style = KpknType.title,
+                color = WizardColors.text,
+            )
+            Text(
+                text = "Optimiza descansos y densifica series para finalizar en menos tiempo.",
+                style = KpknType.caption,
+                color = WizardColors.textMuted,
+            )
+        }
 
-    // State for local adjustments to dropsets / rest-pauses per exercise
-    var customSetCounts by remember { mutableStateOf(mapOf<String, Int>()) }
-
-    KpknSheet(onDismissRequest = onDismiss) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 12.dp)
-                .verticalScroll(rememberScrollState()),
-            verticalArrangement = Arrangement.spacedBy(14.dp),
-        ) {
-            // Clean, bold typography title (No AI icon)
-            Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                Text(
-                    "Modo Ultrarrápido",
-                    style = MaterialTheme.typography.headlineSmall,
-                    fontWeight = FontWeight.Black,
-                    color = Color.White,
-                )
-                Text(
-                    "Optimiza descansos y densifica series para finalizar en menos tiempo.",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = Color.White.copy(alpha = 0.70f),
-                )
+        KpknModule(modifier = Modifier.fillMaxWidth()) {
+            DurationRow(
+                label = "Duración estándar",
+                value = formatSeconds(beforeSec),
+                progress = beforeSec / maxSec,
+                color = WizardColors.textMuted,
+            )
+            Spacer(Modifier.height(14.dp))
+            DurationRow(
+                label = "Con modo ultrarrápido",
+                value = formatSeconds(afterSec),
+                progress = afterSec / maxSec,
+                color = SymbolPalette.ok,
+            )
+            if (totalSaved > 0) {
+                Spacer(Modifier.height(16.dp))
+                KpknModuleHeader(label = "Ahorro estimado")
+                Spacer(Modifier.height(6.dp))
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    KpknMetric(
+                        value = "≈ ${formatSeconds(totalSaved)}",
+                        style = KpknType.metricM,
+                        color = SymbolPalette.ok,
+                    )
+                    Spacer(Modifier.width(8.dp))
+                    Text(
+                        text = "(${((totalSaved.toFloat() / beforeSec) * 100).toInt()}% más rápida)",
+                        style = KpknType.caption,
+                        color = WizardColors.textMuted,
+                    )
+                }
             }
+        }
 
-            // Visual Comparative Duration Chart
-            Surface(
-                shape = RoundedCornerShape(16.dp),
-                color = Color(0xFF1D1E20),
-                border = BorderStroke(1.dp, Color.White.copy(alpha = 0.12f)),
-                modifier = Modifier.fillMaxWidth(),
-            ) {
+        KpknModule(modifier = Modifier.fillMaxWidth()) {
+            KpknModuleHeader(label = "Ajustes por ejercicio")
+            Spacer(Modifier.height(8.dp))
+            preview.perExercise.forEachIndexed { index, change ->
+                if (index > 0) ModuleDivider()
+                val isOverridden = manualOverrides[change.exerciseId] == true
+                val count = setCounts[change.exerciseId] ?: change.afterSets
+                val reasonLabel = when (change.reason) {
+                    UltraFastReason.PROTECTED_BASIC -> "Básico protegido · ${change.beforeSets} → $count series"
+                    UltraFastReason.DANGEROUS_COMPLEX -> "Complejo · ${change.beforeSets} → $count series"
+                    UltraFastReason.ISOLATION_DENSIFIED -> "Aislado · ${change.beforeSets} series → $count× ${change.afterTechnique}"
+                    UltraFastReason.MANUAL_OVERRIDE_ALLOWED -> "Manual: forzado a ${change.afterTechnique}"
+                    else -> "${change.beforeSets} → $count series · ${change.afterTechnique}"
+                }
+                val badgeTone = when {
+                    change.wasReduced -> SymbolPalette.columna
+                    change.wasDensified -> SymbolPalette.ok
+                    else -> WizardColors.textFaint
+                }
+                val badgeText = when {
+                    change.wasDensified -> change.afterTechnique
+                    change.wasReduced -> "${change.beforeSets}→$count"
+                    else -> "Sin cambio"
+                }
                 Column(
-                    modifier = Modifier.padding(14.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
-                    val maxSec = maxOf(beforeSec, afterSec).toFloat()
-
-                    // Row 1: Duración Estándar
-                    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            Text("Duración estándar", style = MaterialTheme.typography.labelMedium, color = Color.White.copy(alpha = 0.65f))
-                            Text(formatSeconds(beforeSec), style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold, color = Color.White)
-                        }
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(10.dp)
-                                .clip(RoundedCornerShape(999.dp))
-                                .background(Color.White.copy(alpha = 0.08f)),
-                        ) {
-                            val standardProgress by animateFloatAsState(
-                                targetValue = (beforeSec / maxSec).coerceIn(0.1f, 1f),
-                                animationSpec = tween(600),
-                                label = "standardProgress",
-                            )
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxWidth(standardProgress)
-                                    .fillMaxHeight()
-                                    .clip(RoundedCornerShape(999.dp))
-                                    .background(Color.White.copy(alpha = 0.35f)),
-                            )
-                        }
-                    }
-
-                    // Row 2: Duración Modo Ultrarrápido
-                    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            Text("Con Modo Ultrarrápido", style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold, color = Color(0xFF66BB6A))
-                            Text(formatSeconds(afterSec), style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Black, color = Color(0xFF66BB6A))
-                        }
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(10.dp)
-                                .clip(RoundedCornerShape(999.dp))
-                                .background(Color.White.copy(alpha = 0.08f)),
-                        ) {
-                            val ultraProgress by animateFloatAsState(
-                                targetValue = (afterSec / maxSec).coerceIn(0.1f, 1f),
-                                animationSpec = tween(600),
-                                label = "ultraProgress",
-                            )
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxWidth(ultraProgress)
-                                    .fillMaxHeight()
-                                    .clip(RoundedCornerShape(999.dp))
-                                    .background(Color(0xFF66BB6A)),
-                            )
-                        }
-                    }
-
-                    // Savings Pill
-                    if (totalSaved > 0) {
-                        Surface(
-                            shape = RoundedCornerShape(8.dp),
-                            color = Color(0xFF66BB6A).copy(alpha = 0.15f),
-                            border = BorderStroke(1.dp, Color(0xFF66BB6A).copy(alpha = 0.30f)),
-                            modifier = Modifier.fillMaxWidth(),
-                        ) {
-                            Row(
-                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
-                                horizontalArrangement = Arrangement.Center,
-                                verticalAlignment = Alignment.CenterVertically,
-                            ) {
-                                Text(
-                                    "⚡ Ahorras ~${formatSeconds(totalSaved)} (${((totalSaved.toFloat() / beforeSec) * 100).toInt()}% más rápida)",
-                                    style = MaterialTheme.typography.labelSmall,
-                                    fontWeight = FontWeight.Bold,
-                                    color = Color(0xFF66BB6A),
-                                )
-                            }
-                        }
-                    }
-                }
-            }
-
-            // Per-exercise changes (Minimalist & Configurable)
-            Text("Ajustes por ejercicio", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold, color = Color.White)
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                preview.perExercise.forEach { ch ->
-                    val isOverridden = ultraFastManualOverrides[ch.exerciseId]
-                    val count = customSetCounts[ch.exerciseId] ?: ch.afterSets
-                    val reasonLabel = when (ch.reason) {
-                        UltraFastReason.PROTECTED_BASIC -> "Básico protegido · ${ch.beforeSets} → $count series"
-                        UltraFastReason.DANGEROUS_COMPLEX -> "Complejo · ${ch.beforeSets} → $count series"
-                        UltraFastReason.ISOLATION_DENSIFIED -> "Aislado · ${ch.beforeSets} series → $count× ${ch.afterTechnique}"
-                        UltraFastReason.MANUAL_OVERRIDE_ALLOWED -> "Manual: forzado a ${ch.afterTechnique}"
-                        else -> "${ch.beforeSets} → $count series · ${ch.afterTechnique}"
-                    }
-                    val badgeBg = when {
-                        ch.wasReduced -> Color(0xFF90CAF9)
-                        ch.wasDensified -> Color(0xFF81C784)
-                        else -> Color.White.copy(alpha = 0.20f)
-                    }
-
-                    Surface(
-                        shape = RoundedCornerShape(14.dp),
-                        color = Color(0xFF1D1E20),
-                        border = BorderStroke(1.dp, Color.White.copy(0.10f)),
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically,
                     ) {
-                        Column(modifier = Modifier.fillMaxWidth().padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically,
-                            ) {
-                                Text(
-                                    ch.exerciseName,
-                                    style = MaterialTheme.typography.labelMedium,
-                                    fontWeight = FontWeight.Bold,
-                                    color = Color.White,
-                                    modifier = Modifier.weight(1f),
-                                )
-                                Surface(
-                                    shape = RoundedCornerShape(99.dp),
-                                    color = badgeBg.copy(alpha = 0.16f),
-                                    border = BorderStroke(1.dp, badgeBg.copy(alpha = 0.35f)),
-                                ) {
-                                    Text(
-                                        if (ch.wasDensified) ch.afterTechnique else if (ch.wasReduced) "${ch.beforeSets}→$count" else "Sin cambio",
-                                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
-                                        style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
-                                        fontWeight = FontWeight.Black,
-                                        color = badgeBg,
-                                    )
-                                }
-                            }
-
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically,
-                            ) {
-                                Text(
-                                    reasonLabel,
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = Color.White.copy(0.65f),
-                                    modifier = Modifier.weight(1f),
-                                )
-
-                                // Mini Stepper to configure set count / dropset count
-                                if (ch.wasDensified || ch.wasReduced) {
-                                    Row(
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        horizontalArrangement = Arrangement.spacedBy(4.dp),
-                                    ) {
-                                        Surface(
-                                            onClick = {
-                                                if (count > 1) customSetCounts = customSetCounts + (ch.exerciseId to count - 1)
-                                            },
-                                            shape = RoundedCornerShape(6.dp),
-                                            color = Color.White.copy(alpha = 0.08f),
-                                            border = BorderStroke(1.dp, Color.White.copy(alpha = 0.15f)),
-                                        ) {
-                                            Icon(Icons.Default.Remove, contentDescription = "Menos", tint = Color.White, modifier = Modifier.padding(4.dp).size(14.dp))
-                                        }
-                                        Text(
-                                            "$count",
-                                            style = MaterialTheme.typography.labelSmall,
-                                            fontWeight = FontWeight.Bold,
-                                            color = Color.White,
-                                            modifier = Modifier.padding(horizontal = 4.dp),
-                                        )
-                                        Surface(
-                                            onClick = {
-                                                if (count < 6) customSetCounts = customSetCounts + (ch.exerciseId to count + 1)
-                                            },
-                                            shape = RoundedCornerShape(6.dp),
-                                            color = Color.White.copy(alpha = 0.08f),
-                                            border = BorderStroke(1.dp, Color.White.copy(alpha = 0.15f)),
-                                        ) {
-                                            Icon(Icons.Default.Add, contentDescription = "Más", tint = Color.White, modifier = Modifier.padding(4.dp).size(14.dp))
-                                        }
-                                    }
-                                }
-                            }
-
-                            // Manual override toggle for protected/dangerous exercises
-                            if (ch.reason == UltraFastReason.PROTECTED_BASIC || ch.reason == UltraFastReason.DANGEROUS_COMPLEX) {
-                                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                                    FilterChip(
-                                        selected = isOverridden == true,
-                                        onClick = { onToggleOverride(ch.exerciseId) },
-                                        label = { Text(if (isOverridden == true) "Permitir técnica intensa" else "Mantener protegido") },
-                                    )
-                                    if (isOverridden == true) {
-                                        Text("⚠︎ Mayor riesgo", style = MaterialTheme.typography.labelSmall, color = Color(0xFFFF5252), fontWeight = FontWeight.Bold)
-                                    }
-                                }
-                            }
+                        Text(
+                            text = change.exerciseName,
+                            style = KpknType.bodyStrong,
+                            color = WizardColors.text,
+                            maxLines = 1,
+                            modifier = Modifier.weight(1f),
+                        )
+                        Text(
+                            text = badgeText,
+                            style = KpknType.caption,
+                            color = badgeTone,
+                            maxLines = 1,
+                        )
+                    }
+                    Text(
+                        text = reasonLabel,
+                        style = KpknType.caption,
+                        color = WizardColors.textMuted,
+                    )
+                    if (change.wasDensified || change.wasReduced) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(
+                                text = "Series",
+                                style = KpknType.caption,
+                                color = WizardColors.textMuted,
+                                modifier = Modifier.padding(end = 8.dp),
+                            )
+                            KpknIconButton(
+                                icon = KpknLineIcons.Minus,
+                                contentDescription = "Menos series de ${change.exerciseName}",
+                                onClick = {
+                                    if (count > 1) onSetCountChange(change.exerciseId, count - 1)
+                                },
+                            )
+                            Text(
+                                text = "$count",
+                                style = KpknType.bodyStrong.copy(fontFeatureSettings = "tnum"),
+                                color = WizardColors.text,
+                                modifier = Modifier.padding(horizontal = 6.dp),
+                            )
+                            KpknIconButton(
+                                icon = KpknLineIcons.Plus,
+                                contentDescription = "Más series de ${change.exerciseName}",
+                                onClick = {
+                                    if (count < MaxUltraFastSets) onSetCountChange(change.exerciseId, count + 1)
+                                },
+                            )
                         }
                     }
-                }
-            }
-
-            // Supersets summary
-            if (preview.supersets.isNotEmpty()) {
-                Text("Supersets (misma máquina, antagónicos)", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold, color = Color.White)
-                preview.supersets.forEach { ss ->
-                    Surface(shape = RoundedCornerShape(14.dp), color = Color(0xFF1D1E20), border = BorderStroke(1.dp, Color(0xFF66BB6A).copy(alpha = 0.25f))) {
+                    if (change.reason == UltraFastReason.PROTECTED_BASIC || change.reason == UltraFastReason.DANGEROUS_COMPLEX) {
                         Row(
-                            modifier = Modifier.fillMaxWidth().padding(12.dp),
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.spacedBy(8.dp),
                         ) {
-                            Icon(Icons.Default.SwapHoriz, null, tint = Color(0xFF66BB6A), modifier = Modifier.size(18.dp))
-                            Column(modifier = Modifier.weight(1f)) {
-                                Text("${ss.nameA} + ${ss.nameB}", style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold, color = Color.White)
-                                Text("Máquina: ${ss.machineKey} · antagónicos", style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp), color = Color.White.copy(0.62f))
+                            KpknChip(
+                                text = if (isOverridden) "Permitir técnica intensa" else "Mantener protegido",
+                                selected = isOverridden,
+                                onClick = { onToggleOverride(change.exerciseId) },
+                            )
+                            if (isOverridden) {
+                                Text(
+                                    text = "Mayor riesgo",
+                                    style = KpknType.caption,
+                                    color = WizardColors.danger,
+                                )
                             }
                         }
                     }
                 }
             }
+        }
 
-            // Actions
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                OutlinedButton(
-                    onClick = onDismiss,
-                    modifier = Modifier.weight(1f).height(44.dp),
-                    shape = RoundedCornerShape(12.dp),
-                    border = BorderStroke(1.dp, Color.White.copy(alpha = 0.25f)),
-                ) {
-                    Text("Cancelar", color = Color.White)
-                }
-                Button(
-                    onClick = { onConfirm(customSetCounts) },
-                    modifier = Modifier.weight(1f).height(44.dp),
-                    enabled = totalSaved >= 0,
-                    shape = RoundedCornerShape(12.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color.White, contentColor = Color.Black),
-                ) {
-                    Icon(Icons.Default.CheckCircle, null, modifier = Modifier.size(16.dp))
-                    Spacer(Modifier.width(6.dp))
-                    Text("Aplicar", fontWeight = FontWeight.Black)
+        if (preview.supersets.isNotEmpty()) {
+            KpknModule(modifier = Modifier.fillMaxWidth()) {
+                KpknModuleHeader(label = "Supersets")
+                Spacer(Modifier.height(8.dp))
+                preview.supersets.forEachIndexed { index, superset ->
+                    if (index > 0) ModuleDivider()
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(10.dp),
+                    ) {
+                        Icon(
+                            imageVector = KpknLineIcons.Repeat,
+                            contentDescription = null,
+                            modifier = Modifier.size(20.dp),
+                            tint = SymbolPalette.ok,
+                        )
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = "${superset.nameA} + ${superset.nameB}",
+                                style = KpknType.bodyStrong,
+                                color = WizardColors.text,
+                            )
+                            Text(
+                                text = "Máquina: ${superset.machineKey} · antagónicos",
+                                style = KpknType.caption,
+                                color = WizardColors.textMuted,
+                            )
+                        }
+                    }
                 }
             }
-            Text(
-                "Reversible: podrás deshacer desde el banner o el menú de tiempo.",
-                style = MaterialTheme.typography.labelSmall,
-                color = Color.White.copy(0.45f),
-            )
-            Spacer(Modifier.height(4.dp))
         }
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            KpknSecondaryPill(
+                text = "Cancelar",
+                onClick = onDismiss,
+                modifier = Modifier.weight(1f),
+            )
+            KpknPrimaryPill(
+                text = "Aplicar",
+                onClick = onConfirm,
+                modifier = Modifier.weight(1f),
+                enabled = totalSaved >= 0,
+            )
+        }
+        Text(
+            text = "Reversible: podrás deshacer desde el banner o el menú de tiempo.",
+            style = KpknType.caption,
+            color = WizardColors.textFaint,
+        )
     }
+}
+
+/** Tope de series por ejercicio que el ajuste manual de la hoja permite. */
+private const val MaxUltraFastSets = 6
+
+/** Una duración: etiqueta y cifra en una fila, y debajo su barra proporcional al máximo. */
+@Composable
+private fun DurationRow(label: String, value: String, progress: Float, color: Color) {
+    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(text = label, style = KpknType.caption, color = WizardColors.textMuted)
+            Text(
+                text = value,
+                style = KpknType.bodyStrong.copy(fontFeatureSettings = "tnum"),
+                color = color,
+            )
+        }
+        KpknProgressBar(
+            progress = progress.coerceIn(0.1f, 1f),
+            color = color,
+            modifier = Modifier.fillMaxWidth(),
+            height = 8.dp,
+        )
+    }
+}
+
+@Composable
+private fun ModuleDivider() {
+    Spacer(Modifier.height(10.dp))
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(1.dp)
+            .background(KpknSurface.divider),
+    )
+    Spacer(Modifier.height(10.dp))
 }
