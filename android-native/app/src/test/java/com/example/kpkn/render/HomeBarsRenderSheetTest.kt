@@ -91,7 +91,7 @@ class HomeBarsRenderSheetTest {
         val alto: Float = 760f,
     )
 
-    private val notificaciones = "Notificaciones (Recordatorios y Alertas de Descanso)"
+    private val notificaciones = "Notificaciones: recordatorios y avisos del descanso"
     private val microfono = "Micrófono (comandos por voz)"
 
     private var current by mutableStateOf(Case("none"))
