@@ -1,6 +1,6 @@
 package com.example.kpkn.screens.workout.components
 
-import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.snapping.rememberSnapFlingBehavior
 import androidx.compose.foundation.layout.Box
@@ -10,13 +10,13 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -33,22 +33,28 @@ import kotlinx.coroutines.launch
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.drawWithContent
-import androidx.compose.ui.geometry.CornerRadius
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.CompositingStrategy
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.kpkn.screens.onboarding.design.WizardColors
 import com.example.kpkn.screens.workout.CarouselValueTone
+import com.example.kpkn.ui.design.KpknSurface
+import com.example.kpkn.ui.design.KpknType
 import kotlin.math.abs
 
+/**
+ * Fila de cifras con scroll y ajuste al centro (reps y RIR de la serie). Cada cifra va en un círculo `inset` de 48 dp; la elegida, en
+ * tinta con la cifra en negro. Las demás, en `textMuted`. El gesto y el ajuste al centro son los de siempre (LR1a).
+ */
 @Composable
 fun WorkoutHorizontalWheelPicker(
     items: List<String>,
@@ -68,12 +74,11 @@ fun WorkoutHorizontalWheelPicker(
     val safeIndex = selectedIndex.coerceIn(0, items.lastIndex)
     val listState = rememberLazyListState(initialFirstVisibleItemIndex = safeIndex)
     val scope = rememberCoroutineScope()
-    val itemWidth = if (roomier) 52.dp else 48.dp
+    // Celda de 52 dp y círculo de 48 dp: entre cifra y cifra queda aire.
+    val cellWidth = 52.dp
+    val circleSize = 48.dp
     val controlHeight = if (roomier) 60.dp else 56.dp
     val density = LocalDensity.current
-    val trackColor = WorkoutUiTokens.setInnerColor().copy(alpha = 0.92f)
-    val cellColor = WorkoutUiTokens.setInnerHighestColor()
-    val fadeColor = trackColor
 
     val centerIndex by remember(items, listState) {
         derivedStateOf {
@@ -122,83 +127,37 @@ fun WorkoutHorizontalWheelPicker(
             }
     }
 
-    val containerColor = when {
-        isError -> MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.25f)
-        else -> trackColor
-    }
-
-    Surface(
-        shape = RoundedCornerShape(18.dp),
-        color = containerColor,
-        border = BorderStroke(
-            width = 1.dp,
-            color = if (isError) {
-                MaterialTheme.colorScheme.error.copy(alpha = 0.38f)
-            } else {
-                MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.28f)
-            },
-        ),
-        tonalElevation = 0.dp,
-        shadowElevation = 0.dp,
-        modifier = modifier.height(controlHeight),
-    ) {
+    Box(modifier = modifier.height(controlHeight)) {
         BoxWithConstraints(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 4.dp, vertical = 4.dp)
+                // Capa fuera de pantalla: la máscara de alfa solo afecta a las cifras (LR1a).
+                .graphicsLayer { compositingStrategy = CompositingStrategy.Offscreen }
                 .drawWithContent {
                     drawContent()
                     val fadeWidth = with(density) { 24.dp.toPx() }
+                    // Las orillas se desvanecen por alfa (DstIn): la cifra parcial se funde en vez de cortarse (LR1a).
                     drawRect(
                         brush = Brush.horizontalGradient(
-                            colors = listOf(fadeColor, Color.Transparent),
+                            colors = listOf(Color.Transparent, Color.Black),
                             startX = 0f,
                             endX = fadeWidth,
                         ),
+                        blendMode = BlendMode.DstIn,
                     )
                     drawRect(
                         brush = Brush.horizontalGradient(
-                            colors = listOf(Color.Transparent, fadeColor),
+                            colors = listOf(Color.Black, Color.Transparent),
                             startX = size.width - fadeWidth,
                             endX = size.width,
                         ),
+                        blendMode = BlendMode.DstIn,
                     )
                 },
             contentAlignment = Alignment.Center,
         ) {
-            val sidePadding = (maxWidth - itemWidth).coerceAtLeast(0.dp) / 2
-            val cellCornerPx = with(density) { 14.dp.toPx() }
-            val fillColor = if (showSemanticGlow && centerGlowColor != null) {
-                centerGlowColor
-            } else if (isError) {
-                MaterialTheme.colorScheme.error.copy(alpha = 0.35f)
-            } else {
-                cellColor
-            }
-            val selectedTextColor = when {
-                isError -> MaterialTheme.colorScheme.error
-                centerGlowColor != null && showSemanticGlow -> Color(
-                    red = centerGlowColor.red,
-                    green = centerGlowColor.green,
-                    blue = centerGlowColor.blue,
-                    alpha = 1f,
-                )
-                else -> MaterialTheme.colorScheme.onSurface
-            }
-
-            Box(
-                modifier = Modifier
-                    .width(itemWidth)
-                    .fillMaxHeight()
-                    .align(Alignment.Center)
-                    .drawBehind {
-                        drawRoundRect(
-                            color = fillColor,
-                            size = Size(size.width, size.height),
-                            cornerRadius = CornerRadius(cellCornerPx),
-                        )
-                    },
-            )
+            val sidePadding = (maxWidth - cellWidth).coerceAtLeast(0.dp) / 2
 
             LazyRow(
                 state = listState,
@@ -209,21 +168,22 @@ fun WorkoutHorizontalWheelPicker(
                 userScrollEnabled = enabled,
             ) {
                 itemsIndexed(items) { index, label ->
-                    val distance = abs(index - centerIndex)
-                    val alpha = when (distance) {
-                        0 -> 1f
-                        1 -> 0.52f
-                        else -> 0.38f
-                    }
+                    val isCentered = index == centerIndex
                     val fontSize = when {
                         label.length >= 7 -> 11.sp
                         label.length >= 5 -> 13.sp
-                        index == centerIndex -> if (roomier) 22.sp else 20.sp
-                        else -> if (roomier) 16.sp else 15.sp
+                        isCentered -> 17.sp
+                        else -> 15.sp
+                    }
+                    // La cifra elegida va en tinta, sin anillo de tono: la selección no lleva acento (LR1a).
+                    val fill = when {
+                        isCentered && isError -> MaterialTheme.colorScheme.error.copy(alpha = 0.35f)
+                        isCentered -> WizardColors.text
+                        else -> KpknSurface.inset
                     }
                     Box(
                         modifier = Modifier
-                            .width(itemWidth)
+                            .width(cellWidth)
                             .fillMaxHeight()
                             .clickable(enabled = enabled && index != centerIndex) {
                                 scope.launch {
@@ -238,21 +198,29 @@ fun WorkoutHorizontalWheelPicker(
                             },
                         contentAlignment = Alignment.Center,
                     ) {
-                        Text(
-                            text = label,
-                            style = MaterialTheme.typography.titleMedium.copy(
-                                fontSize = fontSize,
-                                fontWeight = if (index == centerIndex) FontWeight.Black else FontWeight.SemiBold,
-                                textAlign = TextAlign.Center,
+                        Box(
+                            modifier = Modifier
+                                .size(circleSize)
+                                .background(fill, CircleShape),
+                            contentAlignment = Alignment.Center,
+                        ) {
+                            Text(
+                                text = label,
+                                style = KpknType.bodyStrong.copy(
+                                    fontSize = fontSize,
+                                    fontWeight = if (isCentered) FontWeight.Bold else FontWeight.SemiBold,
+                                    textAlign = TextAlign.Center,
+                                    fontFeatureSettings = "'tnum' 1",
+                                ),
                                 color = when {
-                                    isError && index == centerIndex -> MaterialTheme.colorScheme.error
-                                    index == centerIndex -> selectedTextColor
-                                    else -> MaterialTheme.colorScheme.onSurface.copy(alpha = alpha)
+                                    isError && isCentered -> MaterialTheme.colorScheme.error
+                                    isCentered -> WizardColors.ctaContent
+                                    else -> WizardColors.textMuted
                                 },
-                            ),
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                        )
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                            )
+                        }
                     }
                 }
             }

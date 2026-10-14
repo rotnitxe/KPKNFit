@@ -31,12 +31,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
-import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -58,11 +53,9 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.CompositingStrategy
-import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
@@ -70,7 +63,13 @@ import androidx.compose.ui.unit.Velocity
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
+import com.example.kpkn.screens.onboarding.design.WizardColors
+import com.example.kpkn.screens.onboarding.design.entreno.SymbolPalette
 import com.example.kpkn.screens.workout.components.WorkoutUiTokens
+import com.example.kpkn.ui.components.icons.KpknLineIcons
+import com.example.kpkn.ui.design.KpknShape
+import com.example.kpkn.ui.design.KpknSurface
+import com.example.kpkn.ui.design.KpknType
 import kotlin.math.roundToInt
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
@@ -708,15 +707,15 @@ internal fun WorkoutSetPager(
     val stepperHeight = WorkoutUiTokens.liveCockpitStepperHeight(chromeScale)
     val stepperRowHeight = STEPPER_ROW_HEIGHT * chromeScale
     val stepperEndSlot = STEPPER_END_SLOT * chromeScale
-    val accent = sessionAccentColor ?: MaterialTheme.colorScheme.primary
-    val timelineProgressColor = accent
+    // El acento de sesión ya no pinta pasos: el progreso del riel va en musculo; lo pendiente, en el divisor.
+    val timelineProgressColor = SymbolPalette.musculo
     val timelineFillTarget = timelineRailCursorProgress(elements, activeElementIndex)
     val timelineFillProgress by animateFloatAsState(
         targetValue = timelineFillTarget,
         animationSpec = tween(durationMillis = 480, easing = FastOutSlowInEasing),
         label = "setTimelineContinuousFill",
     )
-    val trackColor = Color.White.copy(alpha = 0.38f)
+    val trackColor = KpknSurface.divider
 
     // Determine natural active round from current activeElementIndex
     val activeElement = elements.getOrNull(activeElementIndex)
@@ -969,7 +968,6 @@ internal fun WorkoutSetPager(
                 completedPreviousSets = completedPreviousSets,
                 nextExerciseSetCount = nextExerciseSetCount,
                 scrollState = scrollState,
-                accent = accent,
                 modifier = Modifier.align(Alignment.TopCenter),
             )
 
@@ -1026,7 +1024,6 @@ internal fun WorkoutSetPager(
                     if (completedPreviousSets > 0) {
                         PreviousCompletedCluster(
                             count = completedPreviousSets,
-                            accent = accent,
                         )
                     }
 
@@ -1048,7 +1045,6 @@ internal fun WorkoutSetPager(
                                         badge = badge,
                                         sets = slot.sets,
                                         isExpanded = isExpanded,
-                                        accent = accent,
                                         onSelectPage = onSelectPage,
                                         onLongPressPage = onLongPressPage,
                                         onRoundClick = {
@@ -1073,7 +1069,6 @@ internal fun WorkoutSetPager(
                                     isCurrentRound = element.isCurrentRound,
                                     isExpanded = isExpanded,
                                     isAllDone = element.isAllDone,
-                                    accent = accent,
                                     onClick = {
                                         extraExpandedRounds = setOf(element.roundIndex)
                                         onSelectPage(element.firstPageIndex)
@@ -1088,15 +1083,8 @@ internal fun WorkoutSetPager(
                                 val isActive = element.state == WorkoutSetCardVisualState.ACTIVE
                                 val isComplete = element.state == WorkoutSetCardVisualState.COMPLETED
                                 val isSkipped = element.state == WorkoutSetCardVisualState.SKIPPED
-                                val accentColor = workoutSetPagerAccent(
-                                    element.state,
-                                    MaterialTheme.colorScheme,
-                                    false,
-                                    sessionAccentColor,
-                                    volumeReplaced = element.volumeReplaced,
-                                )
                                 TimelineDot(
-                                    accent = accentColor,
+                                    replaced = element.volumeReplaced,
                                     active = isActive || element.isEditing,
                                     complete = isComplete,
                                     skipped = isSkipped,
@@ -1122,7 +1110,7 @@ internal fun WorkoutSetPager(
                                     leftState = element.leftState,
                                     rightPageIndex = element.rightPageIndex,
                                     rightState = element.rightState,
-                                    accent = if (element.volumeReplaced) VolumeReplacedStepperTint else accent,
+                                    replaced = element.volumeReplaced,
                                     onSelectPage = onSelectPage,
                                     modifier = Modifier.keepActiveVisible(isElementActive(element)),
                                 )
@@ -1133,7 +1121,6 @@ internal fun WorkoutSetPager(
                                     isActive = element.isCurrent,
                                     isCompleted = element.isCompleted,
                                     progress = if (element.isCompleted) 1f else element.progress,
-                                    accent = accent,
                                     onClick = element.onSelect,
                                     modifier = Modifier.keepActiveVisible(isElementActive(element)),
                                 )
@@ -1144,7 +1131,6 @@ internal fun WorkoutSetPager(
                                     isActive = element.isCurrent,
                                     isCompleted = element.isCompleted,
                                     progress = if (element.isCompleted) 1f else element.progress,
-                                    accent = accent,
                                     onClick = element.onSelect,
                                     modifier = Modifier.keepActiveVisible(isElementActive(element)),
                                 )
@@ -1176,7 +1162,6 @@ internal fun WorkoutSetPager(
                                         isActive = isElementActive(element),
                                         isCompleted = false,
                                         progress = element.progress,
-                                        accent = accent,
                                         onClick = { onSelectPage(element.pageIndex) },
                                         modifier = Modifier.keepActiveVisible(isElementActive(element)),
                                         widthDp = 108.dp,
@@ -1191,7 +1176,6 @@ internal fun WorkoutSetPager(
                     if (nextExerciseSetCount > 0) {
                         NextGhostCluster(
                             count = nextExerciseSetCount,
-                            accent = accent,
                         )
                     }
 
@@ -1211,7 +1195,6 @@ internal fun WorkoutSetPager(
                 SetProgressBadge(
                     completedCount = completedCount,
                     totalCount = totalCount,
-                    accent = timelineProgressColor,
                 )
             }
             if (hasAddSet) {
@@ -1223,7 +1206,6 @@ internal fun WorkoutSetPager(
                     contentAlignment = Alignment.Center,
                 ) {
                     AddSetStepperButton(
-                        accent = accent,
                         onClick = { invokeAddSetAction(onAddSet) },
                     )
                 }
@@ -1272,7 +1254,6 @@ private fun ActivityCloudStrip(
     completedPreviousSets: Int,
     nextExerciseSetCount: Int,
     scrollState: androidx.compose.foundation.ScrollState,
-    accent: Color,
     modifier: Modifier = Modifier,
 ) {
     if (pieces.isEmpty()) return
@@ -1332,7 +1313,6 @@ private fun ActivityCloudStrip(
                     ActivityCloudPill(
                         area = area,
                         segmentWidth = piece.width,
-                        accent = accent,
                     )
                 }
             }
@@ -1352,12 +1332,9 @@ private fun ActivityCloudStrip(
 private fun ActivityCloudPill(
     area: ActivityCloudArea,
     segmentWidth: Dp,
-    accent: Color,
 ) {
-    val connectorColor = accent.copy(alpha = 0.30f)
-    val cloudLabelWidth = activityCloudLabelWidthDp(segmentWidth.value, area).dp
-    val minLabelWidth = activityCloudMinLabelWidthDp(area).dp
-    val cloudLabelFontSize = if (cloudLabelWidth < minLabelWidth) 8.5.sp else 10.sp
+    // Rótulo como eyebrow en tinta muda, sin caja ni contorno; el conector va en el divisor.
+    val connectorColor = KpknSurface.divider
     Box(
         modifier = Modifier
             .width(segmentWidth)
@@ -1377,27 +1354,17 @@ private fun ActivityCloudPill(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Bottom,
         ) {
-            Surface(
-                modifier = Modifier.width(cloudLabelWidth),
-                shape = WorkoutUiTokens.ChipShape,
-                color = accent.copy(alpha = 0.12f),
-                border = BorderStroke(1.dp, accent.copy(alpha = 0.30f)),
-                tonalElevation = 0.dp,
-                shadowElevation = 0.dp,
-            ) {
-                Text(
-                    text = area.label,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 10.dp, vertical = 4.dp),
-                    style = MaterialTheme.typography.labelSmall.copy(fontSize = cloudLabelFontSize),
-                    fontWeight = FontWeight.Black,
-                    color = accent.copy(alpha = 0.92f),
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    textAlign = TextAlign.Center,
-                )
-            }
+            // Sin ancho fijo: no se trunca aunque el eyebrow (13 sp, 1,2 sp de espaciado) sea algo más ancho que la zona.
+            Text(
+                text = area.label,
+                modifier = Modifier.wrapContentWidth(unbounded = true),
+                style = KpknType.eyebrow,
+                color = WizardColors.textMuted,
+                maxLines = 1,
+                softWrap = false,
+                overflow = TextOverflow.Visible,
+                textAlign = TextAlign.Center,
+            )
             Spacer(modifier = Modifier.height(2.dp))
             Box(
                 modifier = Modifier
@@ -1469,21 +1436,17 @@ internal fun WorkoutSetPager(
     )
 }
 
-private val TIMELINE_NODE_SOLID_BG = Color(0xFF16151A)
-
 @Composable
 private fun SetProgressBadge(
     completedCount: Int,
     totalCount: Int,
-    accent: Color,
 ) {
     Surface(
         modifier = Modifier
             .width(STEPPER_END_SLOT)
             .height(STEPPER_CHROME_SIZE),
-        shape = RoundedCornerShape(999.dp),
-        color = TIMELINE_NODE_SOLID_BG,
-        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.20f)),
+        shape = KpknShape.pill,
+        color = KpknSurface.inset,
     ) {
         Box(
             modifier = Modifier.padding(horizontal = 8.dp),
@@ -1491,9 +1454,8 @@ private fun SetProgressBadge(
         ) {
             Text(
                 text = "$completedCount/$totalCount",
-                style = MaterialTheme.typography.labelSmall.copy(fontSize = 11.sp),
-                fontWeight = FontWeight.Black,
-                color = if (completedCount > 0) Color.White else accent.copy(alpha = 0.90f),
+                style = KpknType.chip.copy(fontSize = 11.sp),
+                color = if (completedCount > 0) WizardColors.text else WizardColors.textMuted,
             )
         }
     }
@@ -1505,12 +1467,10 @@ private fun StepperProgressPillNode(
     isActive: Boolean,
     isCompleted: Boolean,
     progress: Float,
-    accent: Color,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     widthDp: Dp = 40.dp,
 ) {
-    val progressColor = accent
     val animatedProgress by animateFloatAsState(
         targetValue = progress.coerceIn(0f, 1f),
         animationSpec = tween(520, easing = FastOutSlowInEasing),
@@ -1525,71 +1485,71 @@ private fun StepperProgressPillNode(
         label = "pillActiveScale",
     )
     val nodeHeight = STEPPER_CHROME_SIZE
-    val nodeWidth = widthDp
-
-    val bgColor by animateColorAsState(
-        targetValue = when {
-            isCompleted -> accent.copy(alpha = 0.42f).compositeOver(TIMELINE_NODE_SOLID_BG)
-            isActive -> accent.copy(alpha = 0.18f).compositeOver(TIMELINE_NODE_SOLID_BG)
-            else -> TIMELINE_NODE_SOLID_BG
-        },
+    // Zona táctil de [widthDp]; el disco visible mide 32 dp centrado (el REST de 108 dp es píldora).
+    val visualWidth = if (widthDp > nodeHeight) widthDp else nodeHeight
+    val ringColor by animateColorAsState(
+        targetValue = if (isActive && !isCompleted) WizardColors.text else Color.Transparent,
         animationSpec = tween(440, easing = FastOutSlowInEasing),
-        label = "pillBgColor",
+        label = "pillRingColor",
     )
-    val borderColor by animateColorAsState(
-        targetValue = when {
-            isCompleted -> progressColor
-            isActive -> accent
-            else -> Color.White.copy(alpha = 0.22f)
-        },
+    val labelColor by animateColorAsState(
+        targetValue = if (isActive) WizardColors.text else WizardColors.textFaint,
         animationSpec = tween(440, easing = FastOutSlowInEasing),
-        label = "pillBorderColor",
+        label = "pillLabelColor",
     )
 
-    Surface(
+    Box(
         modifier = modifier
             .height(nodeHeight)
-            .width(nodeWidth)
+            .width(widthDp)
             .graphicsLayer {
                 scaleX = activeScale
                 scaleY = activeScale
             }
-            .clip(RoundedCornerShape(999.dp))
             .clickable(
                 interactionSource = remember { MutableInteractionSource() },
                 indication = null,
                 onClick = onClick,
             ),
-        shape = RoundedCornerShape(999.dp),
-        color = bgColor,
-        border = BorderStroke(
-            width = if (isActive || isCompleted) 1.2.dp else 1.dp,
-            color = borderColor,
-        ),
+        contentAlignment = Alignment.Center,
     ) {
-        Box(
-            modifier = Modifier.fillMaxSize(),
-            contentAlignment = Alignment.Center,
+        Surface(
+            modifier = Modifier
+                .width(visualWidth)
+                .height(nodeHeight),
+            shape = KpknShape.pill,
+            color = KpknSurface.inset,
+            border = BorderStroke(1.5.dp, ringColor),
         ) {
-            if (animatedProgress > 0.01f) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth(if (isCompleted) 1f else animatedProgress)
-                        .fillMaxHeight()
-                        .background(progressColor.copy(alpha = if (isCompleted) 0.22f else 0.35f))
-                        .align(Alignment.CenterStart),
-                )
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center,
+            ) {
+                // Progreso parcial en musculo; un paso hecho no lleva relleno parcial.
+                if (animatedProgress > 0.01f && !isCompleted) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth(animatedProgress)
+                            .fillMaxHeight()
+                            .background(SymbolPalette.musculo.copy(alpha = 0.35f))
+                            .align(Alignment.CenterStart),
+                    )
+                }
+                if (isCompleted) {
+                    Icon(
+                        imageVector = KpknLineIcons.Check,
+                        contentDescription = label,
+                        tint = SymbolPalette.ok,
+                        modifier = Modifier.size(16.dp),
+                    )
+                } else {
+                    Text(
+                        text = label,
+                        style = KpknType.chip.copy(fontSize = 10.5.sp),
+                        color = labelColor,
+                    )
+                }
             }
-            Text(
-                text = label,
-                style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.5.sp),
-                fontWeight = if (isActive || isCompleted) FontWeight.Black else FontWeight.Bold,
-                color = when {
-                    isCompleted -> progressColor
-                    isActive -> Color.White
-                    else -> Color.White.copy(alpha = 0.70f)
-                },
-            )
         }
     }
 }
@@ -1599,7 +1559,6 @@ private fun RoundSetCapsule(
     badge: TimelineElement.RoundBadge,
     sets: List<TimelineElement>,
     isExpanded: Boolean,
-    accent: Color,
     onSelectPage: (Int) -> Unit,
     onLongPressPage: ((Int) -> Unit)?,
     onRoundClick: () -> Unit,
@@ -1632,8 +1591,9 @@ private fun RoundSetCapsule(
             ) {
                 Surface(
                     modifier = Modifier.height(STEPPER_CHROME_SIZE),
-                    shape = RoundedCornerShape(percent = 50),
-                    color = accent,
+                    shape = KpknShape.pill,
+                    color = KpknSurface.module,
+                    border = BorderStroke(1.dp, KpknSurface.moduleBorder),
                 ) {
                     Row(
                         modifier = Modifier.padding(
@@ -1650,14 +1610,13 @@ private fun RoundSetCapsule(
                                     val isComplete = setElement.state == WorkoutSetCardVisualState.COMPLETED
                                     val isSkipped = setElement.state == WorkoutSetCardVisualState.SKIPPED
                                     TimelineDot(
-                                        accent = if (setElement.volumeReplaced) VolumeReplacedStepperTint else accent,
+                                        replaced = setElement.volumeReplaced,
                                         active = isActive || setElement.isEditing,
                                         complete = isComplete,
                                         skipped = isSkipped,
                                         label = setElement.label,
                                         nodeSize = STEPPER_SET_IN_PILL,
                                         emphasizeScale = 1f,
-                                        onAccentTrack = !setElement.volumeReplaced,
                                         modifier = keepActiveVisible(
                                             isElementActive(setElement),
                                             Modifier.combinedClickable(
@@ -1680,10 +1639,9 @@ private fun RoundSetCapsule(
                                         leftState = setElement.leftState,
                                         rightPageIndex = setElement.rightPageIndex,
                                         rightState = setElement.rightState,
-                                        accent = if (setElement.volumeReplaced) VolumeReplacedStepperTint else accent,
+                                        replaced = setElement.volumeReplaced,
                                         onSelectPage = onSelectPage,
                                         compact = true,
-                                        onAccentTrack = !setElement.volumeReplaced,
                                         modifier = keepActiveVisible(isElementActive(setElement), Modifier),
                                     )
                                 }
@@ -1699,7 +1657,6 @@ private fun RoundSetCapsule(
             isCurrentRound = badge.isCurrentRound,
             isExpanded = showSets,
             isAllDone = badge.isAllDone,
-            accent = accent,
             lockSize = true,
             onClick = onRoundClick,
             onLongClick = onRoundLongPress,
@@ -1716,14 +1673,14 @@ private fun RoundBadgeNode(
     isCurrentRound: Boolean,
     isExpanded: Boolean = true,
     isAllDone: Boolean,
-    accent: Color,
     onClick: () -> Unit,
     onLongClick: (() -> Unit)? = null,
     modifier: Modifier = Modifier,
     lockSize: Boolean = false,
 ) {
-    val progressColor = accent
     val isHighlighted = isCurrentRound || isExpanded
+    // Hecho: marca verde en lugar de la cifra. Actual: anillo de tinta de 1,5 dp.
+    val showRing = isHighlighted && !isAllDone
     val activeScale by animateFloatAsState(
         targetValue = if (lockSize || !isHighlighted) 1f else 1.08f,
         animationSpec = spring(
@@ -1732,28 +1689,15 @@ private fun RoundBadgeNode(
         ),
         label = "roundBadgeActiveScale",
     )
-    val fillColor by animateColorAsState(
-        targetValue = when {
-            isAllDone -> accent.copy(alpha = 0.42f).compositeOver(TIMELINE_NODE_SOLID_BG)
-            isHighlighted -> accent.copy(alpha = 0.22f).compositeOver(TIMELINE_NODE_SOLID_BG)
-            else -> TIMELINE_NODE_SOLID_BG
-        },
+    val ringColor by animateColorAsState(
+        targetValue = if (showRing) WizardColors.text else Color.Transparent,
         animationSpec = tween(durationMillis = 440, easing = FastOutSlowInEasing),
-        label = "roundBadgeFill",
+        label = "roundBadgeRing",
     )
-    val borderColor by animateColorAsState(
-        targetValue = when {
-            isAllDone -> progressColor
-            isHighlighted -> accent
-            else -> Color.White.copy(alpha = 0.22f)
-        },
+    val ringWidth by animateDpAsState(
+        targetValue = if (showRing) 1.5.dp else 0.dp,
         animationSpec = tween(durationMillis = 440, easing = FastOutSlowInEasing),
-        label = "roundBadgeBorder",
-    )
-    val borderWidth by animateDpAsState(
-        targetValue = if (isHighlighted) 1.8.dp else 1.dp,
-        animationSpec = tween(durationMillis = 440, easing = FastOutSlowInEasing),
-        label = "roundBadgeBorderWidth",
+        label = "roundBadgeRingWidth",
     )
     Surface(
         modifier = modifier
@@ -1770,27 +1714,28 @@ private fun RoundBadgeNode(
                 onLongClick = onLongClick,
             ),
         shape = CircleShape,
-        color = fillColor,
-        border = BorderStroke(
-            width = borderWidth,
-            color = borderColor,
-        ),
+        color = KpknSurface.inset,
+        border = BorderStroke(width = ringWidth, color = ringColor),
     ) {
         Box(
             modifier = Modifier.fillMaxSize(),
             contentAlignment = Alignment.Center,
         ) {
-            Text(
-                text = "R${roundIndex + 1}",
-                style = MaterialTheme.typography.labelSmall.copy(fontSize = 11.sp),
-                fontWeight = FontWeight.Black,
-                color = when {
-                    isAllDone -> progressColor
-                    isCurrentRound || isExpanded -> accent
-                    else -> Color.White.copy(alpha = 0.65f)
-                },
-                maxLines = 1,
-            )
+            if (isAllDone) {
+                Icon(
+                    imageVector = KpknLineIcons.Check,
+                    contentDescription = "R${roundIndex + 1}",
+                    tint = SymbolPalette.ok,
+                    modifier = Modifier.size(16.dp),
+                )
+            } else {
+                Text(
+                    text = "R${roundIndex + 1}",
+                    style = KpknType.chip.copy(fontSize = 11.sp),
+                    color = if (isHighlighted) WizardColors.text else WizardColors.textFaint,
+                    maxLines = 1,
+                )
+            }
         }
     }
 }
@@ -1802,15 +1747,16 @@ private fun UnilateralSetStackNode(
     leftState: WorkoutSetCardVisualState,
     rightPageIndex: Int?,
     rightState: WorkoutSetCardVisualState,
-    accent: Color,
+    replaced: Boolean,
     onSelectPage: (Int) -> Unit,
     modifier: Modifier = Modifier,
     compact: Boolean = false,
-    onAccentTrack: Boolean = false,
 ) {
-    val progressColor = accent
     val hasActive = leftState == WorkoutSetCardVisualState.ACTIVE || rightState == WorkoutSetCardVisualState.ACTIVE
     val isAllComplete = leftState == WorkoutSetCardVisualState.COMPLETED && rightState == WorkoutSetCardVisualState.COMPLETED
+    // Tinta para lo activo y marca verde para lo hecho; el rojo solo sigue marcando volumen reemplazado.
+    val inkColor = if (replaced) VolumeReplacedStepperTint else WizardColors.text
+    val markColor = if (replaced) VolumeReplacedStepperTint else SymbolPalette.ok
     val activeScale by animateFloatAsState(
         targetValue = if (hasActive) 1.06f else 1f,
         animationSpec = spring(
@@ -1819,30 +1765,15 @@ private fun UnilateralSetStackNode(
         ),
         label = "unilateralStackActiveScale",
     )
-    val fillColor by animateColorAsState(
-        targetValue = when {
-            onAccentTrack && hasActive -> Color.White.copy(alpha = 0.42f)
-            onAccentTrack -> Color.White
-            isAllComplete -> accent.copy(alpha = 0.42f).compositeOver(TIMELINE_NODE_SOLID_BG)
-            hasActive -> accent.copy(alpha = 0.22f).compositeOver(TIMELINE_NODE_SOLID_BG)
-            else -> TIMELINE_NODE_SOLID_BG
-        },
+    val ringColor by animateColorAsState(
+        targetValue = if (hasActive) inkColor else Color.Transparent,
         animationSpec = tween(durationMillis = 440, easing = FastOutSlowInEasing),
-        label = "unilateralStackFill",
+        label = "unilateralStackRing",
     )
-    val borderColor by animateColorAsState(
-        targetValue = when {
-            hasActive -> accent
-            isAllComplete -> progressColor
-            else -> Color.White.copy(alpha = 0.22f)
-        },
+    val ringWidth by animateDpAsState(
+        targetValue = if (hasActive) 1.5.dp else 0.dp,
         animationSpec = tween(durationMillis = 440, easing = FastOutSlowInEasing),
-        label = "unilateralStackBorder",
-    )
-    val borderWidth by animateDpAsState(
-        targetValue = if (hasActive) 1.8.dp else 1.dp,
-        animationSpec = tween(durationMillis = 440, easing = FastOutSlowInEasing),
-        label = "unilateralStackBorderWidth",
+        label = "unilateralStackRingWidth",
     )
     Surface(
         modifier = modifier
@@ -1851,12 +1782,9 @@ private fun UnilateralSetStackNode(
                 scaleX = if (compact) 1f else activeScale
                 scaleY = if (compact) 1f else activeScale
             },
-        shape = RoundedCornerShape(999.dp),
-        color = fillColor,
-        border = BorderStroke(
-            width = if (onAccentTrack) 0.dp else if (compact) 1.dp else borderWidth,
-            color = if (onAccentTrack) Color.Transparent else borderColor,
-        ),
+        shape = KpknShape.pill,
+        color = KpknSurface.inset,
+        border = BorderStroke(width = ringWidth, color = ringColor),
     ) {
         Row(
             modifier = Modifier.padding(
@@ -1869,13 +1797,11 @@ private fun UnilateralSetStackNode(
             val labelText = setLabel ?: "S"
             Text(
                 text = labelText,
-                style = MaterialTheme.typography.labelSmall.copy(fontSize = 11.sp),
-                fontWeight = FontWeight.Black,
+                style = KpknType.chip.copy(fontSize = 11.sp),
                 color = when {
-                    onAccentTrack -> accent
-                    hasActive -> accent
-                    isAllComplete -> progressColor
-                    else -> Color.White.copy(alpha = 0.65f)
+                    hasActive -> inkColor
+                    isAllComplete -> markColor
+                    else -> WizardColors.textFaint
                 },
                 modifier = Modifier.padding(start = 2.dp, end = 3.dp),
             )
@@ -1884,7 +1810,7 @@ private fun UnilateralSetStackNode(
             UnilateralDotNode(
                 label = "L",
                 state = leftState,
-                accent = accent,
+                replaced = replaced,
                 compact = compact,
                 onClick = { leftPageIndex?.let { onSelectPage(it) } },
             )
@@ -1893,7 +1819,7 @@ private fun UnilateralSetStackNode(
             UnilateralDotNode(
                 label = "R",
                 state = rightState,
-                accent = accent,
+                replaced = replaced,
                 compact = compact,
                 onClick = { rightPageIndex?.let { onSelectPage(it) } },
             )
@@ -1905,12 +1831,14 @@ private fun UnilateralSetStackNode(
 private fun UnilateralDotNode(
     label: String,
     state: WorkoutSetCardVisualState,
-    accent: Color,
+    replaced: Boolean,
     onClick: () -> Unit,
     compact: Boolean = false,
 ) {
     val isActive = state == WorkoutSetCardVisualState.ACTIVE
     val isComplete = state == WorkoutSetCardVisualState.COMPLETED
+    val inkColor = if (replaced) VolumeReplacedStepperTint else WizardColors.text
+    val markColor = if (replaced) VolumeReplacedStepperTint else SymbolPalette.ok
     val size by animateDpAsState(
         targetValue = when {
             compact && isActive -> 16.dp
@@ -1924,28 +1852,15 @@ private fun UnilateralDotNode(
         ),
         label = "unilateralDotSize",
     )
-    val fillColor by animateColorAsState(
-        targetValue = when {
-            isActive -> accent
-            isComplete -> accent
-            else -> Color(0xFF26252C)
-        },
+    val ringColor by animateColorAsState(
+        targetValue = if (isActive) inkColor else Color.Transparent,
         animationSpec = tween(durationMillis = 440, easing = FastOutSlowInEasing),
-        label = "unilateralDotFill",
+        label = "unilateralDotRing",
     )
-    val borderColor by animateColorAsState(
-        targetValue = when {
-            isActive -> accent
-            isComplete -> accent
-            else -> Color.White.copy(alpha = 0.35f)
-        },
+    val ringWidth by animateDpAsState(
+        targetValue = if (isActive) 1.5.dp else 0.dp,
         animationSpec = tween(durationMillis = 440, easing = FastOutSlowInEasing),
-        label = "unilateralDotBorder",
-    )
-    val borderWidth by animateDpAsState(
-        targetValue = if (isActive || isComplete) 0.dp else 1.dp,
-        animationSpec = tween(durationMillis = 440, easing = FastOutSlowInEasing),
-        label = "unilateralDotBorderWidth",
+        label = "unilateralDotRingWidth",
     )
     Surface(
         modifier = Modifier
@@ -1957,30 +1872,31 @@ private fun UnilateralDotNode(
                 onClick = onClick,
             ),
         shape = CircleShape,
-        color = fillColor,
-        border = BorderStroke(
-            width = borderWidth,
-            color = borderColor,
-        ),
+        color = KpknSurface.inset,
+        border = BorderStroke(width = ringWidth, color = ringColor),
     ) {
         Box(contentAlignment = Alignment.Center) {
-            Text(
-                text = label,
-                style = MaterialTheme.typography.labelSmall.copy(
-                    fontSize = when {
-                        compact && isActive -> 8.sp
-                        compact -> 7.5.sp
-                        isActive -> 10.5.sp
-                        else -> 9.5.sp
-                    },
-                ),
-                fontWeight = FontWeight.Black,
-                color = if (isActive || isComplete) {
-                    com.example.kpkn.screens.sessioneditor.contentOn(if (isActive) accent else accent)
-                } else {
-                    Color.White.copy(alpha = 0.85f)
-                },
-            )
+            if (isComplete) {
+                Icon(
+                    imageVector = KpknLineIcons.Check,
+                    contentDescription = label,
+                    tint = markColor,
+                    modifier = Modifier.size(if (compact) 9.dp else 12.dp),
+                )
+            } else {
+                Text(
+                    text = label,
+                    style = KpknType.chip.copy(
+                        fontSize = when {
+                            compact && isActive -> 8.sp
+                            compact -> 7.5.sp
+                            isActive -> 10.5.sp
+                            else -> 9.5.sp
+                        },
+                    ),
+                    color = if (isActive) inkColor else WizardColors.textFaint,
+                )
+            }
         }
     }
 }
@@ -1988,7 +1904,6 @@ private fun UnilateralDotNode(
 
 @Composable
 private fun AddSetStepperButton(
-    accent: Color,
     onClick: () -> Unit,
 ) {
     Surface(
@@ -2000,14 +1915,13 @@ private fun AddSetStepperButton(
                 onClick = onClick,
             ),
         shape = CircleShape,
-        color = accent,
-        border = BorderStroke(1.dp, accent),
+        color = KpknSurface.inset,
     ) {
         Box(contentAlignment = Alignment.Center) {
             Icon(
-                imageVector = Icons.Default.Add,
+                imageVector = KpknLineIcons.Plus,
                 contentDescription = "Añadir serie",
-                tint = com.example.kpkn.screens.sessioneditor.contentOn(accent),
+                tint = WizardColors.textMuted,
                 modifier = Modifier.size(18.dp),
             )
         }
@@ -2038,7 +1952,7 @@ private fun ContinuousTimelineTrack(
 
 @Composable
 private fun TimelineDot(
-    accent: Color,
+    replaced: Boolean,
     active: Boolean,
     complete: Boolean,
     skipped: Boolean,
@@ -2046,7 +1960,6 @@ private fun TimelineDot(
     modifier: Modifier = Modifier,
     nodeSize: Dp = STEPPER_CHROME_SIZE,
     emphasizeScale: Float = 1.08f,
-    onAccentTrack: Boolean = false,
 ) {
     val size by animateDpAsState(
         targetValue = nodeSize,
@@ -2057,46 +1970,27 @@ private fun TimelineDot(
         label = "setTimelineDotSize",
     )
     val activeScale by animateFloatAsState(
-        targetValue = if (onAccentTrack) 1f else if (active) emphasizeScale else 1f,
+        targetValue = if (active) emphasizeScale else 1f,
         animationSpec = spring(
             dampingRatio = Spring.DampingRatioNoBouncy,
             stiffness = Spring.StiffnessMediumLow,
         ),
         label = "setTimelineDotActiveScale",
     )
-    val fillTarget = when {
-        onAccentTrack && active -> Color.White.copy(alpha = 0.42f)
-        onAccentTrack -> Color.White
-        active -> accent
-        complete -> accent
-        skipped -> accent.copy(alpha = 0.26f).compositeOver(TIMELINE_NODE_SOLID_BG)
-        else -> Color(0xFF26252C)
-    }
-    val fillColor by animateColorAsState(
-        targetValue = fillTarget,
+    // Activo: anillo de tinta de 1,5 dp. Hecho: marca verde. Futuro: cifra en textFaint.
+    val inkColor = if (replaced) VolumeReplacedStepperTint else WizardColors.text
+    val markColor = if (replaced) VolumeReplacedStepperTint else SymbolPalette.ok
+    val ringColor by animateColorAsState(
+        targetValue = if (active) inkColor else Color.Transparent,
         animationSpec = tween(durationMillis = 440, easing = FastOutSlowInEasing),
-        label = "setTimelineDotFill",
+        label = "setTimelineDotRing",
     )
-    val borderColor by animateColorAsState(
-        targetValue = when {
-            onAccentTrack -> Color.Transparent
-            complete -> accent
-            active -> accent
-            skipped -> accent.copy(alpha = 0.24f)
-            else -> Color.White.copy(alpha = 0.35f)
-        },
+    val ringWidth by animateDpAsState(
+        targetValue = if (active) 1.5.dp else 0.dp,
         animationSpec = tween(durationMillis = 440, easing = FastOutSlowInEasing),
-        label = "setTimelineDotBorder",
+        label = "setTimelineDotRingWidth",
     )
-    val borderWidth by animateDpAsState(
-        targetValue = when {
-            onAccentTrack -> 0.dp
-            active || complete -> 0.dp
-            else -> 1.2.dp
-        },
-        animationSpec = tween(durationMillis = 440, easing = FastOutSlowInEasing),
-        label = "setTimelineDotBorderWidth",
-    )
+    val isInPill = nodeSize <= STEPPER_SET_IN_PILL
     Surface(
         modifier = modifier
             .size(size)
@@ -2105,29 +1999,37 @@ private fun TimelineDot(
                 scaleY = activeScale
             },
         shape = CircleShape,
-        color = fillColor,
-        border = BorderStroke(
-            width = borderWidth,
-            color = borderColor,
-        ),
+        color = KpknSurface.inset,
+        border = BorderStroke(width = ringWidth, color = ringColor),
     ) {
         Box(contentAlignment = Alignment.Center) {
-            Text(
-                text = label,
-                style = MaterialTheme.typography.labelSmall.copy(
-                    fontSize = if (onAccentTrack) 8.5.sp else if (nodeSize <= STEPPER_SET_IN_PILL) {
-                        if (active) 9.5.sp else 8.5.sp
-                    } else if (active) 11.sp else 10.sp,
-                ),
-                fontWeight = FontWeight.Black,
-                color = when {
-                    onAccentTrack -> accent
-                    active || complete -> com.example.kpkn.screens.sessioneditor.contentOn(fillColor)
-                    skipped -> Color.White.copy(alpha = 0.5f)
-                    else -> Color.White.copy(alpha = 0.9f)
-                },
-                maxLines = 1,
-            )
+            if (complete) {
+                Icon(
+                    imageVector = KpknLineIcons.Check,
+                    contentDescription = label,
+                    tint = markColor,
+                    modifier = Modifier.size(if (isInPill) 12.dp else 16.dp),
+                )
+            } else {
+                Text(
+                    text = label,
+                    style = KpknType.chip.copy(
+                        fontSize = if (isInPill) {
+                            if (active) 9.5.sp else 8.5.sp
+                        } else if (active) {
+                            11.sp
+                        } else {
+                            10.sp
+                        },
+                    ),
+                    color = when {
+                        active -> inkColor
+                        skipped -> WizardColors.textFaint.copy(alpha = 0.5f)
+                        else -> WizardColors.textFaint
+                    },
+                    maxLines = 1,
+                )
+            }
         }
     }
 }
@@ -2138,9 +2040,9 @@ private val TIMELINE_TOTAL_SLOT_HEIGHT = TIMELINE_NODE_SLOT_HEIGHT
 @Composable
 private fun PreviousCompletedCluster(
     count: Int,
-    accent: Color,
     modifier: Modifier = Modifier,
 ) {
+    // Series ya hechas: puntos verdes; los conectores van en el divisor.
     Box(
         modifier = modifier.height(TIMELINE_TOTAL_SLOT_HEIGHT),
         contentAlignment = Alignment.Center,
@@ -2158,13 +2060,13 @@ private fun PreviousCompletedCluster(
                             .width(5.dp)
                             .height(2.dp)
                             .clip(RoundedCornerShape(1.dp))
-                            .background(accent.copy(alpha = 0.40f))
+                            .background(KpknSurface.divider)
                     )
                 }
                 Surface(
                     modifier = Modifier.size(6.dp),
                     shape = CircleShape,
-                    color = accent.copy(alpha = 0.55f),
+                    color = SymbolPalette.ok,
                     border = BorderStroke(0.dp, Color.Transparent),
                 ) {}
             }
@@ -2173,13 +2075,13 @@ private fun PreviousCompletedCluster(
                 Surface(
                     modifier = Modifier.size(4.dp),
                     shape = CircleShape,
-                    color = accent.copy(alpha = 0.35f),
+                    color = SymbolPalette.ok.copy(alpha = 0.35f),
                     border = BorderStroke(0.dp, Color.Transparent),
                 ) {}
                 Surface(
                     modifier = Modifier.size(4.dp),
                     shape = CircleShape,
-                    color = accent.copy(alpha = 0.25f),
+                    color = SymbolPalette.ok.copy(alpha = 0.25f),
                     border = BorderStroke(0.dp, Color.Transparent),
                 ) {}
             }
@@ -2188,7 +2090,7 @@ private fun PreviousCompletedCluster(
                     .width(8.dp)
                     .height(2.dp)
                     .clip(RoundedCornerShape(1.dp))
-                    .background(accent.copy(alpha = 0.50f))
+                    .background(KpknSurface.divider)
             )
         }
     }
@@ -2197,9 +2099,9 @@ private fun PreviousCompletedCluster(
 @Composable
 private fun NextGhostCluster(
     count: Int,
-    accent: Color,
     modifier: Modifier = Modifier,
 ) {
+    // Series pendientes: aros en textFaint (futuro); los conectores van en el divisor.
     Box(
         modifier = modifier.height(TIMELINE_TOTAL_SLOT_HEIGHT),
         contentAlignment = Alignment.Center,
@@ -2214,7 +2116,7 @@ private fun NextGhostCluster(
                     .width(8.dp)
                     .height(2.dp)
                     .clip(RoundedCornerShape(1.dp))
-                    .background(accent.copy(alpha = 0.15f))
+                    .background(KpknSurface.divider)
             )
             val capCount = count.coerceAtMost(8)
             repeat(capCount) { index ->
@@ -2224,7 +2126,7 @@ private fun NextGhostCluster(
                     color = Color.Transparent,
                     border = BorderStroke(
                         width = 1.dp,
-                        color = accent.copy(alpha = 0.25f),
+                        color = WizardColors.textFaint,
                     ),
                 ) {}
                 if (index < capCount - 1) {
@@ -2233,7 +2135,7 @@ private fun NextGhostCluster(
                             .width(5.dp)
                             .height(2.dp)
                             .clip(RoundedCornerShape(1.dp))
-                            .background(accent.copy(alpha = 0.12f))
+                            .background(KpknSurface.divider)
                     )
                 }
             }
@@ -2244,7 +2146,7 @@ private fun NextGhostCluster(
                     color = Color.Transparent,
                     border = BorderStroke(
                         width = 0.8.dp,
-                        color = accent.copy(alpha = 0.16f),
+                        color = WizardColors.textFaint.copy(alpha = 0.5f),
                     ),
                 ) {}
                 Surface(
@@ -2253,7 +2155,7 @@ private fun NextGhostCluster(
                     color = Color.Transparent,
                     border = BorderStroke(
                         width = 0.6.dp,
-                        color = accent.copy(alpha = 0.10f),
+                        color = WizardColors.textFaint.copy(alpha = 0.35f),
                     ),
                 ) {}
             }
@@ -2272,12 +2174,14 @@ internal fun LivePagerPeekNavArrows(
 ) {
     if (totalPages <= 1) return
     val slotWidth = peekWidth.coerceAtLeast(WorkoutUiTokens.MinTouchTarget)
+    val chevronLeft = com.example.kpkn.ui.components.icons.KpknLineIcons.ChevronLeft
+    val chevronRight = com.example.kpkn.ui.components.icons.KpknLineIcons.ChevronRight
     Box(modifier = modifier) {
         LivePagerPeekNavButton(
             enabled = settledPage > 0,
             onClick = onPrevious,
             contentDescription = "Serie anterior",
-            icon = Icons.AutoMirrored.Filled.KeyboardArrowLeft,
+            icon = chevronLeft,
             modifier = Modifier
                 .align(Alignment.CenterStart)
                 .width(slotWidth)
@@ -2287,7 +2191,7 @@ internal fun LivePagerPeekNavArrows(
             enabled = settledPage < totalPages - 1,
             onClick = onNext,
             contentDescription = "Serie siguiente",
-            icon = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+            icon = chevronRight,
             modifier = Modifier
                 .align(Alignment.CenterEnd)
                 .width(slotWidth)
@@ -2304,27 +2208,39 @@ private fun LivePagerPeekNavButton(
     icon: ImageVector,
     modifier: Modifier = Modifier,
 ) {
+    val inset = com.example.kpkn.ui.design.KpknSurface.inset
+    val ink = com.example.kpkn.screens.onboarding.design.WizardColors.text
+    val inkFaint = com.example.kpkn.screens.onboarding.design.WizardColors.textFaint
+    val interactionSource = remember { MutableInteractionSource() }
     Box(
         modifier = modifier,
         contentAlignment = Alignment.Center,
     ) {
-        Surface(
-            onClick = onClick,
-            enabled = enabled,
-            shape = CircleShape,
-            color = Color.Black.copy(alpha = if (enabled) 0.42f else 0.18f),
-            border = BorderStroke(
-                width = 1.dp,
-                color = Color.White.copy(alpha = if (enabled) 0.22f else 0.10f),
-            ),
-            modifier = Modifier.size(36.dp),
+        // Zona táctil de 48 dp con el círculo inset de 40 dp dentro (forma de KpknIconButton).
+        Box(
+            modifier = Modifier
+                .requiredSize(48.dp)
+                .clickable(
+                    interactionSource = interactionSource,
+                    indication = null,
+                    enabled = enabled,
+                    role = androidx.compose.ui.semantics.Role.Button,
+                    onClick = onClick,
+                ),
+            contentAlignment = Alignment.Center,
         ) {
-            Box(contentAlignment = Alignment.Center) {
+            Box(
+                modifier = Modifier
+                    .size(40.dp)
+                    .clip(CircleShape)
+                    .background(inset),
+                contentAlignment = Alignment.Center,
+            ) {
                 Icon(
                     imageVector = icon,
                     contentDescription = contentDescription,
-                    tint = Color.White.copy(alpha = if (enabled) 0.88f else 0.32f),
-                    modifier = Modifier.size(22.dp),
+                    tint = if (enabled) ink else inkFaint,
+                    modifier = Modifier.size(20.dp),
                 )
             }
         }
