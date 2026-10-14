@@ -1205,17 +1205,17 @@ Los valores horizontales llevan el signo de f.
 | VT5b | Worker, cola, `AnalysisGate`, `VideoAnalysisRepository`, encolado al guardar, `reconcile` (con un `TechniqueAnalyzer` «no disponible» hasta VT4c) | `data/work/*`, `data/repository/VideoAnalysisRepository.kt`, `data/media/technique/TechniqueAnalyzer.kt`, `AppBootstrap.kt` (1 línea) | VT5a |
 | VT4b | `MediaPipePoseEstimator`, sonda de GPU, banco `src/debug` | `data/media/pose/`, `src/debug/` | VT-A |
 | VT4c | pipeline (pose + disco), sidecars, puntos de control, `ExerciseRefResolver`, analizador real en el Worker | `data/media/technique/` | VT3, VT6a, VT4b, VT5 |
-| VT7 | pantalla de análisis, reproductor v2, calibración | `screens/technique/analysis/` | VT4c |
-| VT8a | grabador | `screens/workout/technique/`, `WorkoutMediaCaptureController.kt`, `SetCardExerciseMediaBack.kt` (mínimo), `WorkoutMediaPrFlags.kt` | VT5, VT1 |
-| VT9 | hub, tendencias, comparar, galería, ajustes, navegación | `screens/technique/{hub,trends,compare,importer}`, `Navigation.kt`, `MainActivity.kt`, Perfil, visor de medios, pantalla de ajustes | VT7 |
-| VT8b | resultado en la sesión | final de `WorkoutViewModel.kt`, `WorkoutVideoAnalysisController.kt`, `design/WorkoutVideoRepsSuggestion.kt`, `WorkoutSetPanel`/`WorkoutRestPanel` (parámetros al final), `WorkoutVoiceSet*` | VT5, LS2b y LS3 |
+| VT7a | reproductor de técnica (vídeo, capa sincronizada, controles, línea de repeticiones) e iconos FrameBack/FrameForward/Target | `screens/technique/player/` | VT4c |
+| VT7b | pantalla «Análisis de técnica» (VM, módulos, calibración del disco) | `screens/technique/analysis/` | VT7a |
+| VT8a | grabador a pantalla completa (encuadre, 60 fps, REC, metadatos), lado normalizado, cifras al finalizar, miniaturas por serie, iconos Camera/Record | `screens/workout/technique/`, `WorkoutMediaCaptureController.kt`, `SetCardExerciseMediaBack.kt`, `data/media/WorkoutMediaSides.kt` (+ mínimos en `SetExecutionCard`/`WorkoutV2Body`) | VT7b |
+| VT9a | tendencias por ejercicio y comparar dos vídeos (+ sus rutas) | `screens/technique/{trends,compare}/`, `Navigation.kt`/`MainActivity.kt` (bloques nuevos) | VT8a |
+| VT9b | hub con ajustes, importar de la galería, rutas del hub y del análisis, entradas en Perfil y en el visor; quitar las lecturas de `poseTrajectoryEnabled` | `screens/technique/{hub,importer}/`, `Navigation.kt`, `MainActivity.kt`, `ProfileScreen.kt`, `WorkoutMediaViewerScreen.kt`, `CatalogContracts.kt` | VT9a |
+| VT8b | resultado en la sesión en vivo (usar, corregir, fallo, ver análisis) | final de `WorkoutViewModel.kt`, `WorkoutVideoAnalysisController.kt`, `design/WorkoutVideoRepsSuggestion.kt`, `WorkoutSetPanel`/`WorkoutRestPanel` (parámetros al final), `WorkoutVoiceSet*`, `WorkoutSessionAlbumSheet.kt` | VT9b |
 | VT10 | banco dorado, ajuste, QA en el emulador, docs y mapas | `src/test/.../golden`, `docs/` | todo |
 
 **Orden:**
 1. VT0, luego VT-A.
 2. Carriles (1 agente si el disco tiene < 20 GB libres): dominio VT1a → VT1b → VT2a → VT2b → VT3a → VT3b → VT6a ‖ Android VT4a → VT5a → VT5b → VT4b.
 3. VT4c.
-4. VT7 ‖ VT8a.
-5. VT9.
-6. VT8b.
-7. VT10.
+4. VT7a → VT7b → VT8a → VT9a → VT9b → VT8b (carril Android, en serie).
+5. VT10.
