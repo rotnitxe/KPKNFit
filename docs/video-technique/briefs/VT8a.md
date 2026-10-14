@@ -1,10 +1,5 @@
 # VT8a · Grabador de técnica a pantalla completa (encuadre, 60 fps, REC, metadatos) y arreglos de la captura
 
-> **⚠ PENDIENTE DE REESCRIBIR (D28, 14-oct). NO LANZAR con este texto.**
-> - El usuario rechazó el rediseño de la sesión en vivo (LS1–LS8). `screens/workout/` vuelve a la sesión ORIGINAL de la PR11 (`8f0afc9dc`) en `feat/sessions-v1`.
-> - Desaparecen la hoja «Técnica» de LS2b, `WorkoutTechniqueSheetHolder`, `WorkoutSetPanel`, `WorkoutRestPanel` y su `videoSlot`, entre otros.
-> - Siguen igual `SetCardExerciseMediaBack`, `WorkoutMediaCaptureController` y `WorkoutMediaPreviewDialog`.
-> - El orquestador reescribe este brief cuando entre la restauración, con los puntos de entrada equivalentes que pasará la sesión «KPKN Wizard definitivo».
 
 - **Worktree y rama:** `C:\kw\vt-a`, rama `vt/vt8a`, desde `feat/video-technique` con VT7b integrado.
 - **Antes de empezar, lee:**
@@ -13,8 +8,8 @@
   - el código de hoy:
     - `screens/workout/WorkoutMediaCaptureController.kt`;
     - `screens/workout/components/SetCardExerciseMediaBack.kt`;
-    - `screens/workout/components/SetExecutionCard.kt`: la hoja «Técnica» en ~L1230-1241 y ~L1642-1700, y el `WorkoutTechniqueSheetHolder`;
-    - `screens/workout/WorkoutV2Body.kt`;
+    - `screens/workout/components/SetExecutionCard.kt`: `SetInputCardV2` (~L760), el botón «Ver ejercicio/Fotos» (`cardFace = ExerciseMedia`, ~L2355), el reverso con `rotationY` (~L3314-3330), donde se llama a `SetCardExerciseMediaBack` (~L3320), y `openMediaFace` (~L1204);
+    - `screens/workout/WorkoutV2Body.kt` (llama a `SetInputCardV2` en ~L2067), `screens/workout/WorkoutScreen.kt` (`requestOpenMediaFace`, ~L1373) y `screens/workout/WorkoutOverlayHost.kt`;
     - `data/media/WorkoutMediaPrFlags.kt` (`sideToken`);
     - `data/media/technique/CaptureMetadata.kt` (VT4c);
     - `data/media/pose/MediaPipePoseEstimator.kt` (VT4b);
@@ -22,11 +17,14 @@
 - **Logs:** `C:\kw\logs\vt-8a-<n>.log`.
 - **PNG:** `C:/kw/shots/vt/8a`.
 
-**La ola LS** se comprometió a no tocar `SetCardExerciseMediaBack`, `WorkoutMediaCaptureController` ni `screens/workout/technique/`. Esos archivos son tuyos. En `SetExecutionCard.kt` y `WorkoutV2Body.kt`, solo cambios mínimos y parámetros al final.
+**Sesión en vivo ORIGINAL (PR11; U7, D28).** El rediseño LS se retiró.
+- `SetCardExerciseMediaBack`, `WorkoutMediaCaptureController`, `WorkoutMediaPreviewDialog` y `screens/workout/technique/` son tuyos.
+- La sesión «KPKN Wizard definitivo» va a refinar SOLO el aspecto de `SetExecutionCard` y `WorkoutRestOverlay`: misma disposición y mismos controles. Antes de lanzar este paquete, el orquestador confirma que no hay un paquete suyo en curso sobre esos archivos.
+- En `SetExecutionCard.kt`, `WorkoutV2Body.kt` y `WorkoutScreen.kt`: cambios mínimos, con los parámetros nuevos al final y con valor por defecto.
 
 ## Archivos permitidos
 - **Nuevos en `screens/workout/technique/`:**
-  - `TechniqueRecorderHolder.kt`: con `var request by mutableStateOf<TechniqueRecorderRequest?>(null)`, como `WorkoutTechniqueSheetHolder`;
+  - `TechniqueRecorderHolder.kt`: un holder estable (`@Stable class`) con `var request by mutableStateOf<TechniqueRecorderRequest?>(null)`, recordado en `WorkoutScreen`;
   - `TechniqueRecorderScreen.kt`: con estado, a pantalla completa;
   - `RecorderSessionFactory.kt`;
   - `FramingCheckController.kt`;
@@ -36,8 +34,8 @@
 - **Modificados:**
   - `WorkoutMediaCaptureController.kt`;
   - `SetCardExerciseMediaBack.kt`;
-  - `SetExecutionCard.kt`: solo para abrir el grabador y cerrar la hoja;
-  - `WorkoutV2Body.kt` y/o `WorkoutScreen.kt`: crear el holder y pintar el grabador;
+  - `SetExecutionCard.kt`: solo para pasar `onOpenRecorder` a `SetCardExerciseMediaBack` y volver a la cara frontal;
+  - `WorkoutScreen.kt`, y si hace falta `WorkoutV2Body.kt` o `WorkoutOverlayHost.kt`: crear el holder, bajarlo a la tarjeta y pintar el grabador;
   - `WorkoutMediaPrFlags.kt`;
   - `ui/components/icons/KpknLineIcons.kt`: añadir AL FINAL `Camera` y `Record`.
 - **Depuración:** `src/debug/.../debug/TechniqueBenchActivity.kt`, con el modo `recorder_preview`.
@@ -46,7 +44,7 @@
 ## Qué haces
 1. **Abrir el grabador.**
    - En `SetCardExerciseMediaBack`, el chip «Vídeo» llama a un nuevo parámetro final `onOpenRecorder: ((WorkoutMediaCaptureRequest) -> Unit)? = null`. Si es null, sigue el comportamiento de hoy.
-   - La tarjeta (`SetInputCardV2`) cierra la hoja «Técnica» y pone `holder.request`.
+   - La tarjeta (`SetInputCardV2`) vuelve a la cara frontal (`cardFace = SetCardFace.Front`) y pone `holder.request`.
    - `WorkoutScreen`/`WorkoutV2Body` pinta `TechniqueRecorderScreen` sobre todo cuando hay petición: `Dialog` a pantalla completa con `usePlatformDefaultWidth = false` y `decorFitsSystemWindows = false`.
    - Al cerrar el grabador, `request = null`.
    - La vista previa de la tarjeta pasa a enlazar SOLO Preview + ImageCapture (las fotos).
