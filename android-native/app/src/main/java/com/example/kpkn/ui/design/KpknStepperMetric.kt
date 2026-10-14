@@ -91,6 +91,8 @@ fun KpknStepperMetric(
     keyboardType: KeyboardType = KeyboardType.Decimal,
     minusEnabled: Boolean = true,
     plusEnabled: Boolean = true,
+    /** Estilo de la etiqueta: eyebrow por defecto; en tipo frase (p. ej. «Con ayuda») se pasa `KpknType.bodyStrong`. */
+    labelStyle: androidx.compose.ui.text.TextStyle = KpknType.eyebrow,
 ) {
     var editing by remember { mutableStateOf(false) }
     val spoken = spokenName(label)
@@ -101,7 +103,7 @@ fun KpknStepperMetric(
         // La etiqueta visual se calla: la cifra ya lleva su unidad en la descripción.
         Text(
             text = label,
-            style = KpknType.eyebrow,
+            style = labelStyle,
             color = WizardColors.textMuted,
             maxLines = 1,
             modifier = Modifier.clearAndSetSemantics { },

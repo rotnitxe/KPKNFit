@@ -38,6 +38,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.Dp
@@ -62,6 +63,9 @@ internal data class TechniqueCheckRow(
 
 private const val LiveDropSetMax = 5
 private const val TechniqueColumnSize = 3
+
+/** Etiqueta de prueba del círculo «Hecho» de cada fila de drops o rest-pause (LR0). */
+internal const val TechniqueDoneToggleTag = "technique_done_toggle"
 
 @Suppress("UNUSED_PARAMETER")
 @Composable
@@ -129,6 +133,19 @@ internal fun SetCardTechniqueBack(
 
     LaunchedEffect(dropEnabled) { onDropEnabledChange(dropEnabled) }
     LaunchedEffect(restPauseEnabled) { onRestPauseEnabledChange(restPauseEnabled) }
+    // Con todas las filas marcadas como hechas, la técnica se registra en la serie (LR0).
+    LaunchedEffect(dropEnabled, restPauseEnabled, dropRows, restPauseRows, committed) {
+        if (committed) return@LaunchedEffect
+        val dropsReady = !dropEnabled || shouldAutoCommitTechniqueRows(dropRows.map { it.done })
+        val pausesReady = !restPauseEnabled || shouldAutoCommitTechniqueRows(restPauseRows.map { it.done })
+        val hasTechnique = dropEnabled || restPauseEnabled
+        if (hasTechnique && dropsReady && pausesReady &&
+            ((dropEnabled && dropRows.isNotEmpty()) || (restPauseEnabled && restPauseRows.isNotEmpty()))
+        ) {
+            val submitted = commit(dropRows, restPauseRows, dropEnabled, restPauseEnabled, onCompleteTechniques)
+            if (submitted) committed = true
+        }
+    }
 
     Surface(
         modifier = modifier.fillMaxSize(),
@@ -478,7 +495,7 @@ private fun TechniqueDoneToggle(
     CompositionLocalProvider(LocalMinimumInteractiveComponentSize provides Dp.Unspecified) {
         Surface(
             onClick = onToggle,
-            modifier = Modifier.size(22.dp),
+            modifier = Modifier.size(22.dp).testTag(TechniqueDoneToggleTag),
             shape = RoundedCornerShape(6.dp),
             color = if (done) {
                 MaterialTheme.colorScheme.onSurface.copy(alpha = 0.78f)
@@ -529,7 +546,7 @@ private fun SoftToggleChip(
     }
 }
 
-private fun commit(
+internal fun commit(
     dropRows: List<TechniqueCheckRow>,
     restPauseRows: List<TechniqueCheckRow>,
     dropEnabled: Boolean,
@@ -538,7 +555,8 @@ private fun commit(
 ): Boolean {
     val drops = if (dropEnabled) {
         dropRows.mapNotNull { row ->
-            val weight = row.weightText.toDoubleOrNull() ?: return@mapNotNull null
+            // El teclado decimal escribe la coma: se lee como punto antes de convertir (LR0).
+            val weight = row.weightText.replace(',', '.').toDoubleOrNull() ?: return@mapNotNull null
             val reps = row.repsText.toIntOrNull() ?: return@mapNotNull null
             if (weight <= 0.0 || reps <= 0) null else DropSetData(weight, reps)
         }

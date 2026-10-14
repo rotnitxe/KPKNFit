@@ -26,7 +26,7 @@ class RecommendedPermissionsDialogTest {
     @get:Rule
     val rule = createComposeRule()
 
-    private val notificaciones = "Notificaciones (Recordatorios y Alertas de Descanso)"
+    private val notificaciones = "Notificaciones: recordatorios y avisos del descanso"
     private val microfono = "Micrófono (comandos por voz)"
     private val lineaMicrofono = "El micrófono activa los comandos por voz."
 

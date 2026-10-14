@@ -3,21 +3,26 @@ package com.example.kpkn.screens.workout.components
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.expandVertically
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectDragGestures
-import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.ExpandLess
+import androidx.compose.material.icons.filled.ExpandMore
+import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Mic
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.mapSaver
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -25,6 +30,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.BlendMode
@@ -33,29 +39,35 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.CompositingStrategy
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.ProgressBarRangeInfo
-import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.progressBarRangeInfo
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.setProgress
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.kpkn.data.exercises.resolveExercise
+import androidx.compose.ui.window.Popup
+import androidx.compose.ui.window.PopupProperties
 import com.example.kpkn.data.models.AugeSnapshot
-import com.example.kpkn.data.models.DiscomfortCatalogEntry
 import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.ExerciseReadiness
 import com.example.kpkn.data.models.Gender
 import com.example.kpkn.data.models.LoadAdvisoryLevel
 import com.example.kpkn.data.models.MovementPatternReadiness
-import com.example.kpkn.data.models.VoiceCaptureMode
+import com.example.kpkn.ui.components.KpknSheet
+import dev.chrisbanes.haze.HazeState
+import com.example.kpkn.data.exercises.resolveExercise
+import com.example.kpkn.data.models.DiscomfortCatalogEntry
 import com.example.kpkn.domain.auge.DiscomfortSuggestionEngine
 import com.example.kpkn.domain.auge.ExerciseReadinessEngine
 import com.example.kpkn.domain.auge.LoadAdvisoryEngine
@@ -63,37 +75,14 @@ import com.example.kpkn.domain.auge.RecoveryBands
 import com.example.kpkn.domain.auge.SessionMuscleFilter
 import com.example.kpkn.domain.auge.getAugeMusclePillarId
 import com.example.kpkn.domain.exercises.resolvedCanonicalExerciseId
-import com.example.kpkn.screens.onboarding.design.WizardColors
-import com.example.kpkn.screens.onboarding.design.entreno.SymbolPalette
-import com.example.kpkn.ui.components.KpknSheet
-import com.example.kpkn.ui.components.icons.KpknLineIcons
-import com.example.kpkn.ui.components.rings.KpknRingColors
+import com.example.kpkn.screens.home.RingColors
+import com.example.kpkn.screens.home.augeRingsHostHeightDp
 import com.example.kpkn.ui.components.rings.KpknTowerRings
 import com.example.kpkn.ui.components.rings.RingChannel
 import com.example.kpkn.ui.components.rings.TowerRingValues
-import com.example.kpkn.ui.design.KpknChip
-import com.example.kpkn.ui.design.KpknMetric
-import com.example.kpkn.ui.design.KpknModule
-import com.example.kpkn.ui.design.KpknModuleHeader
-import com.example.kpkn.ui.design.KpknPercentRule
-import com.example.kpkn.ui.design.KpknPrimaryPill
-import com.example.kpkn.ui.design.KpknSegmentedControl
-import com.example.kpkn.ui.design.KpknSegmentedSize
-import com.example.kpkn.ui.design.KpknSwitch
-import com.example.kpkn.ui.design.KpknTextAction
-import com.example.kpkn.ui.design.KpknTextField
-import com.example.kpkn.ui.design.KpknType
-import com.example.kpkn.ui.design.kpknEntrance
-import dev.chrisbanes.haze.HazeState
-import java.util.Locale
+import com.example.kpkn.ui.components.rings.towerRingCenter
 
-/** Alto de la hoja de preparación: casi a pantalla completa, como pide la pantalla de la sesión en vivo. */
-private const val ReadinessSheetFraction = 0.96f
-
-/**
- * Preparación antes de empezar la sesión (LIVE_SESSION_V1 §5): «¿Cómo llegas a entrenar hoy?». Es la hoja de [KpknSheet] y pinta su
- * cuerpo, [WorkoutReadinessBody]. Los ajustes, las anclas, las molestias y la voz son los de siempre; solo cambia cómo se ven.
- */
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun WorkoutReadinessSheet(
     showReadinessSheet: Boolean,
@@ -122,13 +111,14 @@ fun WorkoutReadinessSheet(
     augeSnapshot: AugeSnapshot? = null,
     initialDiscomforts: List<String> = emptyList(),
     voiceSessionEnabled: Boolean = false,
-    voiceCaptureMode: VoiceCaptureMode = VoiceCaptureMode.HANDS_FREE,
+    voiceCaptureMode: com.example.kpkn.data.models.VoiceCaptureMode = com.example.kpkn.data.models.VoiceCaptureMode.HANDS_FREE,
     onVoiceToggle: () -> Unit = {},
-    onVoiceCaptureModeChange: (VoiceCaptureMode) -> Unit = {},
+    onVoiceCaptureModeChange: (com.example.kpkn.data.models.VoiceCaptureMode) -> Unit = {},
 ) {
     if (!showReadinessSheet) return
 
     var neural by rememberSaveable { mutableIntStateOf(readinessNeuralStart) }
+    var muscular by rememberSaveable { mutableIntStateOf(readinessMuscularStart) }
     var spinal by rememberSaveable { mutableIntStateOf(readinessSpinalStart) }
     val muscleAdjustments = rememberSaveable(
         saver = mapSaver(
@@ -152,6 +142,7 @@ fun WorkoutReadinessSheet(
     val userEditedMuscles = remember { mutableStateMapOf<String, Boolean>() }
     var initialized by rememberSaveable { mutableStateOf(false) }
     var selectedDiscomforts by rememberSaveable { mutableStateOf(listOf<String>()) }
+    var adjustTarget by remember { mutableStateOf<ReadinessAdjustTarget?>(null) }
 
     LaunchedEffect(
         initialized,
@@ -162,6 +153,7 @@ fun WorkoutReadinessSheet(
     ) {
         if (!initialized) {
             neural = readinessNeuralStart
+            muscular = derivedMuscular
             spinal = readinessSpinalStart
             muscleAdjustments.clear()
             sessionMuscleStartingBatteries.forEach { (muscleId, value) ->
@@ -171,6 +163,7 @@ fun WorkoutReadinessSheet(
             initialized = true
         } else {
             if (!userEditedNeural) neural = readinessNeuralStart
+            muscular = readinessMuscularStart
             if (!userEditedSpinal) spinal = readinessSpinalStart
             val validMuscles = sessionMuscleStartingBatteries.keys
             muscleAdjustments.keys
@@ -183,416 +176,388 @@ fun WorkoutReadinessSheet(
             }
         }
     }
-
-    val sessionPillarMuscleIds = remember(sessionExercises) {
-        getSessionPillarMuscleIds(sessionExercises)
-    }
-    val coaching = remember(patternReadiness, exerciseReadinessMap, sessionExercises, perMuscle) {
-        ExerciseReadinessEngine.buildPatternCoaching(
-            patternReadiness = patternReadiness,
-            exerciseReadinessMap = exerciseReadinessMap,
-            sessionExercises = sessionExercises,
-            perMuscle = perMuscle,
-        )
-    }
-    val advice = remember(augeSnapshot, coaching) {
-        ReadinessAdvice(
-            channelLines = augeSnapshot?.dashboard?.channels?.map { channel ->
-                "${channel.title}: ${RecoveryBands.label(channel.band)} · ${channel.action}"
-            }.orEmpty(),
-            coachingHeadline = coaching?.headline,
-            coachingDetail = coaching?.detail,
-            advisoryLine = augeSnapshot?.advisories
-                ?.firstOrNull { LoadAdvisoryEngine.rank(it.level) >= LoadAdvisoryEngine.rank(LoadAdvisoryLevel.ADJUST) }
-                ?.let { advisory -> "${advisory.title}: ${advisory.body}" },
-        )
-    }
-
     KpknSheet(
         onDismissRequest = {},
         dismissible = false,
-        heightFraction = ReadinessSheetFraction,
-        stableHeightFraction = ReadinessSheetFraction,
+        stableHeightFraction = 0.86f,
         hazeState = hazeState,
     ) {
-        WorkoutReadinessBody(
-            neural = neural,
-            muscular = derivedMuscular,
-            spinal = spinal,
-            muscleAdjustments = muscleAdjustments,
-            selectedDiscomforts = selectedDiscomforts,
-            discomfortPillarIds = sessionPillarMuscleIds,
-            advice = advice,
-            voiceSessionEnabled = voiceSessionEnabled,
-            voiceCaptureMode = voiceCaptureMode,
-            onNeuralChange = {
-                neural = it
-                userEditedNeural = true
-            },
-            onSpinalChange = {
-                spinal = it
-                userEditedSpinal = true
-            },
-            onMuscleChange = { muscleId, updated ->
-                muscleAdjustments[muscleId] = updated
-                userEditedMuscles[muscleId] = true
-            },
-            onDiscomfortsChanged = { selectedDiscomforts = it },
-            onVoiceToggle = onVoiceToggle,
-            onVoiceCaptureModeChange = onVoiceCaptureModeChange,
-            onStart = {
-                val editedMuscleMap = muscleAdjustments
-                    .filter { (id, _) -> userEditedMuscles[id] == true }
-                    .mapValues { (_, v) -> v.coerceIn(0, 100) }
-                onSave(
-                    neural,
-                    derivedMuscular,
-                    spinal,
-                    muscleAdjustments.toMap(),
-                    selectedDiscomforts.toList(),
-                    if (userEditedNeural) neural.coerceIn(0, 100) else null,
-                    if (userEditedSpinal) spinal.coerceIn(0, 100) else null,
-                    null,
-                    editedMuscleMap,
-                )
-            },
-        )
-    }
-}
-
-/** Lo que la hoja cuenta del estado: el resumen de los canales, el consejo del patrón y el aviso de carga. Lo arma la pantalla. */
-internal data class ReadinessAdvice(
-    val channelLines: List<String>,
-    val coachingHeadline: String?,
-    val coachingDetail: String?,
-    val advisoryLine: String?,
-) {
-    /** Sin nada que contar: el módulo no se pinta. */
-    val isEmpty: Boolean
-        get() = channelLines.isEmpty() && coachingHeadline == null && coachingDetail == null && advisoryLine == null
-
-    companion object {
-        val None = ReadinessAdvice(emptyList(), null, null, null)
-    }
-}
-
-/**
- * Cuerpo de la preparación, sin la hoja: lo pinta [WorkoutReadinessSheet] y lo usan las pruebas y la hoja de render. Los ajustes, las
- * molestias y la voz llegan por parámetros y salen por las lambdas; aquí solo vive lo que se ve (qué módulo está abierto y qué canal
- * está resaltado). El botón de abajo queda fuera del desplazamiento, siempre a la vista.
- */
-@OptIn(ExperimentalLayoutApi::class)
-@Composable
-internal fun WorkoutReadinessBody(
-    neural: Int,
-    muscular: Int,
-    spinal: Int,
-    muscleAdjustments: Map<String, Int>,
-    selectedDiscomforts: List<String>,
-    discomfortPillarIds: List<String>,
-    advice: ReadinessAdvice,
-    voiceSessionEnabled: Boolean,
-    voiceCaptureMode: VoiceCaptureMode,
-    onNeuralChange: (Int) -> Unit,
-    onSpinalChange: (Int) -> Unit,
-    onMuscleChange: (String, Int) -> Unit,
-    onDiscomfortsChanged: (List<String>) -> Unit,
-    onVoiceToggle: () -> Unit,
-    onVoiceCaptureModeChange: (VoiceCaptureMode) -> Unit,
-    onStart: () -> Unit,
-) {
-    var focus by remember { mutableStateOf<RingChannel?>(null) }
-    var musclesOpen by rememberSaveable { mutableStateOf(false) }
-    var discomfortsOpen by rememberSaveable { mutableStateOf(false) }
-    var discomfortQuery by rememberSaveable { mutableStateOf("") }
-    val scroll = rememberScrollState()
-    val suggestions = remember(discomfortPillarIds) {
-        DiscomfortSuggestionEngine.suggestForMuscles(discomfortPillarIds)
-    }
-    val searchResults = remember(discomfortQuery) {
-        if (discomfortQuery.isBlank()) emptyList() else DiscomfortSuggestionEngine.search(discomfortQuery)
-    }
-    val countLabel = when (selectedDiscomforts.size) {
-        0 -> "Ninguna reportada"
-        1 -> "1 seleccionada"
-        else -> "${selectedDiscomforts.size} seleccionadas"
-    }
-
-    fun toggleDiscomfort(item: DiscomfortCatalogEntry) {
-        onDiscomfortsChanged(
-            if (selectedDiscomforts.contains(item.id)) selectedDiscomforts - item.id
-            else selectedDiscomforts + item.id,
-        )
-    }
-
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(horizontal = 16.dp),
-    ) {
-        Column(
+        Box(
             modifier = Modifier
-                .weight(1f)
                 .fillMaxWidth()
-                .graphicsLayer { compositingStrategy = CompositingStrategy.Offscreen }
-                .drawWithContent {
-                    drawContent()
-                    // Solo se desvanece el borde si queda contenido por desplazar: si todo cabe, la última línea se ve entera.
-                    if (scroll.canScrollForward) {
-                        val fade = 32.dp.toPx()
+                .fillMaxSize(),
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .graphicsLayer { compositingStrategy = CompositingStrategy.Offscreen }
+                    .drawWithContent {
+                        drawContent()
                         drawRect(
                             brush = Brush.verticalGradient(
                                 colorStops = arrayOf(
                                     0.0f to Color.Black,
-                                    ((size.height - fade) / size.height).coerceIn(0f, 1f) to Color.Black,
+                                    0.82f to Color.Black,
                                     1.0f to Color.Transparent,
                                 ),
                             ),
                             blendMode = BlendMode.DstIn,
                         )
                     }
-                }
-                .verticalScroll(scroll)
-                .padding(top = 8.dp, bottom = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-        ) {
-            Column(
-                modifier = Modifier.fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(4.dp),
+                    .verticalScroll(rememberScrollState())
+                    .padding(horizontal = 20.dp, vertical = 20.dp)
+                    .padding(bottom = 80.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp),
             ) {
                 Text(
-                    text = "Reporta tu estado antes de entrenar".uppercase(Locale("es")),
-                    style = KpknType.eyebrow,
-                    color = WizardColors.textMuted,
+                    text = "Reporta tu estado antes de entrenar",
+                    style = MaterialTheme.typography.labelSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.primary,
+                    letterSpacing = 1.5.sp,
+                    modifier = Modifier.fillMaxWidth(),
+                    textAlign = TextAlign.Center
                 )
+
                 Text(
                     text = "¿Cómo llegas a entrenar hoy?",
-                    style = KpknType.title,
-                    color = WizardColors.text,
-                    modifier = Modifier.semantics { heading() },
+                    modifier = Modifier.fillMaxWidth(),
+                    textAlign = TextAlign.Center,
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.Black,
+                    color = Color.White,
+                )
+
+                Spacer(Modifier.height(10.dp))
+
+                // 1. RINGS ENTRENLAZADOS (estilo Home) + ajuste por ring
+                InterlacedRingsBlock(
+                    muscular = derivedMuscular,
+                    neural = neural,
+                    spinal = spinal,
+                    selectedTarget = adjustTarget,
+                    muscleAdjustments = muscleAdjustments,
+                    onRingTap = { adjustTarget = it },
+                    onDismiss = { adjustTarget = null },
+                    onNeuralChange = { neural = it; userEditedNeural = true },
+                    onSpinalChange = { spinal = it; userEditedSpinal = true },
+                    onMuscleChange = { muscleId, updated ->
+                        muscleAdjustments[muscleId] = updated
+                        userEditedMuscles[muscleId] = true
+                    },
+                )
+
+                augeSnapshot?.dashboard?.channels?.forEach { channel ->
+                    Text(
+                        text = "${channel.title}: ${RecoveryBands.label(channel.band)} · ${channel.action}",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = Color.White.copy(alpha = 0.85f),
+                    )
+                }
+                val coaching = remember(patternReadiness, exerciseReadinessMap, sessionExercises, perMuscle) {
+                    ExerciseReadinessEngine.buildPatternCoaching(
+                        patternReadiness = patternReadiness,
+                        exerciseReadinessMap = exerciseReadinessMap,
+                        sessionExercises = sessionExercises,
+                        perMuscle = perMuscle,
+                    )
+                }
+                coaching?.let { tip ->
+                    Text(
+                        text = tip.headline,
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White,
+                    )
+                    Text(
+                        text = tip.detail,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = Color.White.copy(alpha = 0.8f),
+                    )
+                }
+                augeSnapshot?.advisories
+                    ?.firstOrNull { LoadAdvisoryEngine.rank(it.level) >= LoadAdvisoryEngine.rank(LoadAdvisoryLevel.ADJUST) }
+                    ?.let { advisory ->
+                        Text(
+                            text = "${advisory.title}: ${advisory.body}",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = Color(0xFFFACC15),
+                        )
+                    }
+
+                val sessionPillarMuscleIds = remember(sessionExercises) {
+                    getSessionPillarMuscleIds(sessionExercises)
+                }
+                PreWorkoutDiscomfortSelector(
+                    selectedDiscomforts = selectedDiscomforts,
+                    onDiscomfortsChanged = { list ->
+                        selectedDiscomforts = list
+                    },
+                    sessionPillarMuscleIds = sessionPillarMuscleIds,
+                )
+
+                // ── 2c. Control por voz: pre-entrenamiento ──
+                SessionVoiceReadinessCard(
+                    voiceSessionEnabled = voiceSessionEnabled,
+                    captureMode = voiceCaptureMode,
+                    onToggle = onVoiceToggle,
+                    onCaptureModeChange = onVoiceCaptureModeChange,
                 )
             }
 
-            // Torre de los RINGS con los tres canales. Tocar un anillo lo resalta; el de Músculos abre su ajuste.
-            KpknModule(
-                modifier = Modifier.kpknEntrance("preparacion", 0),
-                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 16.dp),
+            // 3. BOTÓN PRINCIPAL — FAB circular de 64 dp anclado abajo
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .align(Alignment.BottomCenter)
+                    .padding(bottom = 16.dp),
+                contentAlignment = Alignment.Center,
             ) {
+                FloatingActionButton(
+                    onClick = {
+                        val editedMuscleMap = muscleAdjustments
+                            .filter { (id, _) -> userEditedMuscles[id] == true }
+                            .mapValues { (_, v) -> v.coerceIn(0, 100) }
+                        val manualMuscular = null
+                        onSave(
+                            neural,
+                            derivedMuscular,
+                            spinal,
+                            muscleAdjustments.toMap(),
+                            selectedDiscomforts.toList(),
+                            if (userEditedNeural) neural.coerceIn(0, 100) else null,
+                            if (userEditedSpinal) spinal.coerceIn(0, 100) else null,
+                            manualMuscular,
+                            editedMuscleMap,
+                        )
+                    },
+                    modifier = Modifier.size(64.dp),
+                    shape = CircleShape,
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary,
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Check,
+                        contentDescription = "Confirmar y entrenar",
+                        modifier = Modifier.size(32.dp),
+                    )
+                }
+            }
+        }
+    }
+}
+
+private enum class ReadinessAdjustTarget { MUSCULAR, ENERGY, SPINE }
+
+/** Anillo de la torre que se toca para cada ajuste de la preparación. */
+private fun ReadinessAdjustTarget.toRingChannel(): RingChannel = when (this) {
+    ReadinessAdjustTarget.MUSCULAR -> RingChannel.MUSCULOS
+    ReadinessAdjustTarget.ENERGY -> RingChannel.ENERGIA
+    ReadinessAdjustTarget.SPINE -> RingChannel.COLUMNA
+}
+
+private fun RingChannel.toReadinessTarget(): ReadinessAdjustTarget = when (this) {
+    RingChannel.MUSCULOS -> ReadinessAdjustTarget.MUSCULAR
+    RingChannel.ENERGIA -> ReadinessAdjustTarget.ENERGY
+    RingChannel.COLUMNA -> ReadinessAdjustTarget.SPINE
+}
+
+@Composable
+private fun InterlacedRingsBlock(
+    muscular: Int,
+    neural: Int,
+    spinal: Int,
+    selectedTarget: ReadinessAdjustTarget?,
+    muscleAdjustments: Map<String, Int>,
+    onRingTap: (ReadinessAdjustTarget) -> Unit,
+    onDismiss: () -> Unit,
+    onNeuralChange: (Int) -> Unit,
+    onSpinalChange: (Int) -> Unit,
+    onMuscleChange: (String, Int) -> Unit,
+) {
+    val density = LocalDensity.current
+    var ringsSize by remember { mutableStateOf(IntSize.Zero) }
+
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        BoxWithConstraints(Modifier.fillMaxWidth()) {
+            val hostHeight = augeRingsHostHeightDp(maxWidth.value).dp
+            Box(
+                Modifier
+                    .fillMaxWidth()
+                    .height(hostHeight)
+                    .onSizeChanged { ringsSize = it },
+            ) {
+                // Sin animación: al ajustar con el deslizador la torre sigue el valor al instante.
                 KpknTowerRings(
                     values = TowerRingValues(columna = spinal, musculos = muscular, energia = neural),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(160.dp),
-                    highlighted = focus,
-                    onRingTap = { channel ->
-                        focus = if (focus == channel) null else channel
-                        if (channel == RingChannel.MUSCULOS) musclesOpen = true
-                    },
-                    // Sin animación: al arrastrar una regla, la torre sigue el valor al instante.
+                    modifier = Modifier.fillMaxSize(),
+                    onRingTap = { channel -> onRingTap(channel.toReadinessTarget()) },
                     animate = false,
                 )
-                Spacer(Modifier.height(16.dp))
-                // Músculos es la media de sus músculos (abajo), así que no tiene regla propia: abre el ajuste.
+
+                if (ringsSize != IntSize.Zero) {
+                selectedTarget?.let { selected ->
+                    val c = towerRingCenter(
+                        channel = selected.toRingChannel(),
+                        width = ringsSize.width.toFloat(),
+                        height = ringsSize.height.toFloat(),
+                    )
+                    val cardWidthPx = with(density) { 264.dp.toPx() }
+                    Popup(
+                        alignment = Alignment.TopStart,
+                        offset = IntOffset(
+                            (c.x - cardWidthPx / 2).toInt(),
+                            (c.y + with(density) { 14.dp.toPx() }).toInt(),
+                        ),
+                        properties = PopupProperties(focusable = true),
+                        onDismissRequest = onDismiss,
+                    ) {
+                        ReadinessAdjustCard(
+                            target = selected,
+                            neural = neural,
+                            spinal = spinal,
+                            muscleAdjustments = muscleAdjustments,
+                            onNeuralChange = onNeuralChange,
+                            onSpinalChange = onSpinalChange,
+                            onMuscleChange = onMuscleChange,
+                            onDismiss = onDismiss,
+                        )
+                    }
+                }
+            }
+            }
+        }
+
+        // Keep the captions clear of the lowered energy ring.
+        Spacer(Modifier.height(8.dp))
+        Row(
+            Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceEvenly,
+        ) {
+            InterlacedRingLabel("Músculos", muscular, RingColors[0])
+            InterlacedRingLabel("Energía", neural, RingColors[1])
+            InterlacedRingLabel("Columna", spinal, RingColors[2])
+        }
+
+        Text(
+            text = "Si no te representan los rings, presiona cada uno para ajustarlo",
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.75f),
+            textAlign = TextAlign.Center,
+            modifier = Modifier.fillMaxWidth(),
+        )
+    }
+}
+
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun ReadinessAdjustCard(
+    target: ReadinessAdjustTarget,
+    neural: Int,
+    spinal: Int,
+    muscleAdjustments: Map<String, Int>,
+    onNeuralChange: (Int) -> Unit,
+    onSpinalChange: (Int) -> Unit,
+    onMuscleChange: (String, Int) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    val (title, color) = when (target) {
+        ReadinessAdjustTarget.MUSCULAR -> "Músculos" to RingColors[0]
+        ReadinessAdjustTarget.ENERGY -> "Energía" to RingColors[1]
+        ReadinessAdjustTarget.SPINE -> "Columna" to RingColors[2]
+    }
+    Surface(
+        modifier = Modifier
+            .width(264.dp)
+            .heightIn(max = 340.dp),
+        shape = RoundedCornerShape(16.dp),
+        color = Color(0xFF1F1F1F),
+        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.12f)),
+        shadowElevation = 14.dp,
+    ) {
+        Column(
+            modifier = Modifier.padding(14.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
                 Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .defaultMinSize(minHeight = 48.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    ChannelLabel(
-                        label = "Músculos",
-                        value = muscular,
-                        color = KpknRingColors.musculos,
-                        modifier = Modifier
-                            .weight(1f)
-                            .semantics(mergeDescendants = true) { contentDescription = "Músculos $muscular %" },
-                    )
-                    Spacer(Modifier.width(12.dp))
-                    KpknTextAction(
-                        text = "Ajustar",
-                        onClick = { musclesOpen = !musclesOpen },
-                        icon = if (musclesOpen) KpknLineIcons.ChevronUp else KpknLineIcons.ChevronDown,
+                    Box(Modifier.size(10.dp).clip(CircleShape).background(color))
+                    Text(
+                        text = "Ajustar $title",
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.Black,
+                        color = Color.White,
                     )
                 }
-                Spacer(Modifier.height(10.dp))
-                ChannelRuleRow(
-                    label = "Energía",
+                IconButton(onClick = onDismiss, modifier = Modifier.size(28.dp)) {
+                    Icon(
+                        imageVector = Icons.Default.Close,
+                        contentDescription = "Cerrar",
+                        modifier = Modifier.size(16.dp),
+                        tint = Color.White.copy(alpha = 0.6f),
+                    )
+                }
+            }
+
+            when (target) {
+                ReadinessAdjustTarget.ENERGY -> ReadinessSliderRow(
+                    title = "Energía",
                     value = neural,
-                    color = KpknRingColors.energia,
-                    onChange = onNeuralChange,
+                    color = RingColors[1],
+                    onValueChange = onNeuralChange,
                 )
-                Spacer(Modifier.height(10.dp))
-                ChannelRuleRow(
-                    label = "Columna",
+                ReadinessAdjustTarget.SPINE -> ReadinessSliderRow(
+                    title = "Columna",
                     value = spinal,
-                    color = KpknRingColors.columna,
-                    onChange = onSpinalChange,
+                    color = RingColors[2],
+                    onValueChange = onSpinalChange,
                 )
-            }
-
-            if (!advice.isEmpty) {
-                KpknModule(
-                    modifier = Modifier.kpknEntrance("preparacion", 1),
-                    contentPadding = PaddingValues(horizontal = 20.dp, vertical = 16.dp),
-                ) {
-                    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                        advice.channelLines.forEach { line ->
-                            Text(text = line, style = KpknType.caption, color = WizardColors.textMuted)
-                        }
-                        advice.coachingHeadline?.let { headline ->
-                            Text(text = headline, style = KpknType.bodyStrong, color = WizardColors.text)
-                        }
-                        advice.coachingDetail?.let { detail ->
-                            Text(text = detail, style = KpknType.caption, color = WizardColors.textMuted)
-                        }
-                        advice.advisoryLine?.let { line ->
-                            Text(text = line, style = KpknType.caption, color = SymbolPalette.energia)
-                        }
-                    }
-                }
-            }
-
-            // Ajuste por músculo, plegado: cada músculo con su regla, en dos columnas.
-            KpknModule(
-                modifier = Modifier.kpknEntrance("preparacion", 2),
-                contentPadding = PaddingValues(horizontal = 20.dp, vertical = 16.dp),
-            ) {
-                KpknModuleHeader(
-                    label = "Ajustar músculos",
-                    modifier = Modifier
-                        .semantics { stateDescription = if (musclesOpen) "Desplegado" else "Plegado" }
-                        .clickable(
-                            interactionSource = remember { MutableInteractionSource() },
-                            indication = null,
-                            role = Role.Button,
-                            onClick = { musclesOpen = !musclesOpen },
-                        ),
-                    action = {
-                        Icon(
-                            imageVector = KpknLineIcons.ChevronDown,
-                            contentDescription = null,
-                            modifier = Modifier
-                                .size(20.dp)
-                                .graphicsLayer { rotationZ = if (musclesOpen) 180f else 0f },
-                            tint = WizardColors.textMuted,
-                        )
-                    },
-                )
-                AnimatedVisibility(
-                    visible = musclesOpen,
-                    enter = expandVertically() + fadeIn(),
-                    exit = shrinkVertically() + fadeOut(),
-                ) {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(top = 12.dp),
-                        verticalArrangement = Arrangement.spacedBy(16.dp),
-                    ) {
-                        if (muscleAdjustments.isEmpty()) {
-                            Text(
-                                text = "No hay músculos detectados para esta sesión.",
-                                style = KpknType.caption,
-                                color = WizardColors.textMuted,
-                            )
-                        } else {
-                            muscleAdjustments.keys.sorted().chunked(2).forEach { pair ->
-                                Row(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.spacedBy(16.dp),
-                                ) {
-                                    pair.forEach { muscleId ->
-                                        MuscleRuleCell(
-                                            muscleId = muscleId,
-                                            value = muscleAdjustments[muscleId] ?: 100,
-                                            onChange = { onMuscleChange(muscleId, it) },
-                                            modifier = Modifier.weight(1f),
-                                        )
-                                    }
-                                    if (pair.size == 1) Spacer(Modifier.weight(1f))
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-
-            // Molestias previas: multi-selección con chips, buscador y sugerencias de los músculos de la sesión.
-            KpknModule(
-                modifier = Modifier.kpknEntrance("preparacion", 3),
-                contentPadding = PaddingValues(horizontal = 20.dp, vertical = 16.dp),
-            ) {
-                KpknModuleHeader(
-                    label = "Molestias previas",
-                    modifier = Modifier
-                        .semantics { stateDescription = if (discomfortsOpen) "Desplegado" else "Plegado" }
-                        .clickable(
-                            interactionSource = remember { MutableInteractionSource() },
-                            indication = null,
-                            role = Role.Button,
-                            onClick = { discomfortsOpen = !discomfortsOpen },
-                        ),
-                    action = {
-                        Icon(
-                            imageVector = KpknLineIcons.ChevronDown,
-                            contentDescription = null,
-                            modifier = Modifier
-                                .size(20.dp)
-                                .graphicsLayer { rotationZ = if (discomfortsOpen) 180f else 0f },
-                            tint = WizardColors.textMuted,
-                        )
-                    },
-                )
-                Text(
-                    text = countLabel,
-                    style = KpknType.caption,
-                    color = WizardColors.textMuted,
-                )
-                AnimatedVisibility(
-                    visible = discomfortsOpen,
-                    enter = expandVertically() + fadeIn(),
-                    exit = shrinkVertically() + fadeOut(),
-                ) {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(top = 12.dp),
-                        verticalArrangement = Arrangement.spacedBy(12.dp),
-                    ) {
-                        KpknTextField(
-                            value = discomfortQuery,
-                            onValueChange = { discomfortQuery = it },
-                            placeholder = "Buscar molestia…",
-                            leadingIcon = KpknLineIcons.Search,
-                            singleLine = true,
-                        )
-                        val searching = discomfortQuery.isNotBlank()
+                ReadinessAdjustTarget.MUSCULAR -> {
+                    if (muscleAdjustments.isEmpty()) {
                         Text(
-                            text = (if (searching) "Resultados" else "Sugeridas para tu sesión").uppercase(Locale("es")),
-                            style = KpknType.eyebrow,
-                            color = WizardColors.textMuted,
+                            text = "No hay músculos detectados para esta sesión.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
-                        val shown = if (searching) searchResults else suggestions
-                        if (shown.isEmpty()) {
+                    } else {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .verticalScroll(rememberScrollState())
+                                .nestedScroll(object : NestedScrollConnection {}),
+                            verticalArrangement = Arrangement.spacedBy(10.dp),
+                        ) {
                             Text(
-                                text = if (searching) {
-                                    "Sin resultados para “$discomfortQuery”"
-                                } else {
-                                    "No hay molestias típicas para los músculos de esta sesión."
-                                },
-                                style = KpknType.caption,
-                                color = WizardColors.textMuted,
+                                text = "Frescura por Músculo",
+                                style = MaterialTheme.typography.titleSmall,
+                                fontWeight = FontWeight.Black,
+                                color = Color.White,
                             )
-                        } else {
                             FlowRow(
+                                modifier = Modifier.fillMaxWidth(),
                                 horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                verticalArrangement = Arrangement.spacedBy(4.dp),
+                                verticalArrangement = Arrangement.spacedBy(8.dp),
+                                maxItemsInEachRow = 2,
                             ) {
-                                shown.forEach { item ->
-                                    KpknChip(
-                                        text = item.label,
-                                        selected = selectedDiscomforts.contains(item.id),
-                                        onClick = { toggleDiscomfort(item) },
+                                muscleAdjustments.keys.sorted().forEach { muscleId ->
+                                    MinimalMuscleSlider(
+                                        modifier = Modifier.weight(1f),
+                                        muscleLabel = muscleId,
+                                        value = muscleAdjustments[muscleId] ?: 100,
+                                        onValueChange = { updated ->
+                                            onMuscleChange(muscleId, updated)
+                                        },
                                     )
                                 }
                             }
@@ -600,197 +565,74 @@ internal fun WorkoutReadinessBody(
                     }
                 }
             }
-
-            // Voz: un interruptor en 56 dp y, al encenderla, el modo elegido y su explicación.
-            KpknModule(
-                modifier = Modifier.kpknEntrance("preparacion", 4),
-                contentPadding = PaddingValues(horizontal = 20.dp, vertical = 12.dp),
-            ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .defaultMinSize(minHeight = 56.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(
-                            text = "Voz durante la sesión",
-                            style = KpknType.bodyStrong,
-                            color = WizardColors.text,
-                        )
-                        Text(
-                            text = if (voiceSessionEnabled) voiceModeTitle(voiceCaptureMode) else "Desactivada",
-                            style = KpknType.caption,
-                            color = WizardColors.textMuted,
-                        )
-                    }
-                    KpknSwitch(
-                        checked = voiceSessionEnabled,
-                        onCheckedChange = { onVoiceToggle() },
-                        modifier = Modifier.semantics { contentDescription = "Voz durante la sesión" },
-                    )
-                }
-                if (voiceSessionEnabled) {
-                    Spacer(Modifier.height(8.dp))
-                    KpknSegmentedControl(
-                        options = listOf("Manos libres", "Música"),
-                        selectedIndex = if (voiceCaptureMode == VoiceCaptureMode.MUSIC) 1 else 0,
-                        onSelect = { index ->
-                            onVoiceCaptureModeChange(if (index == 1) VoiceCaptureMode.MUSIC else VoiceCaptureMode.HANDS_FREE)
-                        },
-                        size = KpknSegmentedSize.Compact,
-                    )
-                } else {
-                    Spacer(Modifier.height(4.dp))
-                    Text(
-                        text = VoiceExplanation,
-                        style = KpknType.caption,
-                        color = WizardColors.textMuted,
-                    )
-                }
-            }
-
-            AnimatedVisibility(
-                visible = voiceSessionEnabled,
-                enter = expandVertically() + fadeIn(),
-                exit = shrinkVertically() + fadeOut(),
-            ) {
-                KpknModule(contentPadding = PaddingValues(horizontal = 20.dp, vertical = 14.dp)) {
-                    Text(
-                        text = voiceModeBody(voiceCaptureMode),
-                        style = KpknType.caption,
-                        color = WizardColors.textMuted,
-                    )
-                }
-            }
-        }
-
-        // Empezar: a todo el ancho, fuera del desplazamiento. Su descripción es la que buscan las pruebas.
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 8.dp, bottom = 16.dp),
-        ) {
-            KpknPrimaryPill(
-                text = "Empezar",
-                onClick = onStart,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .semantics { contentDescription = "Confirmar y entrenar" },
-            )
         }
     }
 }
 
-/** Etiqueta de un canal: punto de color, nombre y cifra con «%». Sin estado. */
 @Composable
-private fun ChannelLabel(
+private fun InterlacedRingLabel(
     label: String,
     value: Int,
     color: Color,
-    modifier: Modifier = Modifier,
 ) {
-    Row(
-        modifier = modifier,
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Box(Modifier.size(10.dp).clip(CircleShape).background(color))
-        Spacer(Modifier.width(10.dp))
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Text(
-            text = label,
-            style = KpknType.bodyStrong,
-            color = WizardColors.text,
-            modifier = Modifier.weight(1f),
+            text = label.uppercase(),
+            style = MaterialTheme.typography.labelSmall,
+            color = color,
+            fontWeight = FontWeight.Black,
+            fontSize = 11.sp,
+            maxLines = 1,
         )
-        KpknMetric(value = value.toString(), unit = "%", style = KpknType.metricM)
+        Text(
+            text = "$value%",
+            style = MaterialTheme.typography.labelMedium,
+            color = Color.White.copy(alpha = 0.85f),
+            fontWeight = FontWeight.Bold,
+        )
     }
 }
 
-/** Canal con regla propia: nombre y cifra, y debajo la regla de 0 a 100. Sin estado. */
 @Composable
-private fun ChannelRuleRow(
-    label: String,
+private fun ReadinessSliderRow(
+    title: String,
     value: Int,
     color: Color,
-    onChange: (Int) -> Unit,
+    onValueChange: (Int) -> Unit,
 ) {
     Column(
         modifier = Modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(2.dp),
     ) {
-        // La regla ya lleva el nombre y el valor para TalkBack: la fila visible no se lee dos veces.
-        ChannelLabel(
-            label = label,
-            value = value,
-            color = color,
-            modifier = Modifier
-                .fillMaxWidth()
-                .clearAndSetSemantics {},
-        )
-        KpknPercentRule(
-            value = value,
-            onValueChange = onChange,
-            color = color,
-            contentDescription = label,
-        )
-    }
-}
-
-/** Un músculo de la sesión: el nombre entero en su línea y, debajo, su cifra y su regla. Sin estado. */
-@Composable
-private fun MuscleRuleCell(
-    muscleId: String,
-    value: Int,
-    onChange: (Int) -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    Column(
-        modifier = modifier,
-        verticalArrangement = Arrangement.spacedBy(2.dp),
-    ) {
-        // El nombre ocupa la celda entera y no se parte: a 130 % de letra sigue en una línea. La regla lleva el nombre para TalkBack.
-        Text(
-            text = muscleId,
-            style = KpknType.caption,
-            color = WizardColors.textMuted,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-            modifier = Modifier
-                .fillMaxWidth()
-                .clearAndSetSemantics {},
-        )
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Box(Modifier.clearAndSetSemantics {}) {
-                KpknMetric(value = value.toString(), unit = "%", style = KpknType.metricM)
-            }
-            Spacer(Modifier.width(8.dp))
-            KpknPercentRule(
-                value = value,
-                onValueChange = onChange,
-                color = KpknRingColors.musculos,
-                contentDescription = muscleId,
-                modifier = Modifier.weight(1f),
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.labelMedium,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurface,
+            )
+            Text(
+                text = "$value%",
+                style = MaterialTheme.typography.labelMedium,
+                fontWeight = FontWeight.Black,
+                color = color,
             )
         }
+        Slider(
+            value = value.toFloat(),
+            onValueChange = { onValueChange(it.toInt().coerceIn(0, 100)) },
+            valueRange = 0f..100f,
+            colors = SliderDefaults.colors(
+                activeTrackColor = color,
+                thumbColor = color,
+                inactiveTrackColor = color.copy(alpha = 0.15f),
+            ),
+        )
     }
-}
-
-/** Explicación de la voz, antes de activarla. */
-private const val VoiceExplanation = "Controla tu sesión hablando: registra series, cambia pesos y gestiona descansos con comandos de voz. " +
-    "La voz estará activa durante toda la sesión. Ejemplos: “2 series más”, “sube a 80 kg”, “pausa de 90 segundos”."
-
-private fun voiceModeTitle(mode: VoiceCaptureMode): String = when (mode) {
-    VoiceCaptureMode.HANDS_FREE -> "Modo manos libres"
-    VoiceCaptureMode.MUSIC -> "Modo música"
-}
-
-private fun voiceModeBody(mode: VoiceCaptureMode): String = when (mode) {
-    VoiceCaptureMode.HANDS_FREE ->
-        "Registra tus series con el micrófono de tus auriculares, incluso por bluetooth, sin acercarte al celular. " +
-            "La contra: el audio suena con calidad de llamada y degrada la música de fondo."
-    VoiceCaptureMode.MUSIC ->
-        "Usa el micrófono del celular, no el de tus auriculares: tu música se escucha perfecta. " +
-            "Solo necesitas tener el teléfono cerca (sin desbloquearlo) para registrar tus series por voz."
 }
 
 @Composable
@@ -905,6 +747,460 @@ internal fun ReadinessRingVisual(
             style = Stroke(strokePx),
         )
     }
+}
+
+@Composable
+private fun SessionVoiceReadinessCard(
+    voiceSessionEnabled: Boolean,
+    captureMode: com.example.kpkn.data.models.VoiceCaptureMode,
+    onToggle: () -> Unit,
+    onCaptureModeChange: (com.example.kpkn.data.models.VoiceCaptureMode) -> Unit,
+) {
+    var showInfo by remember { mutableStateOf(false) }
+    var modeInfo by remember { mutableStateOf<com.example.kpkn.data.models.VoiceCaptureMode?>(null) }
+    var cardHeight by remember { mutableIntStateOf(0) }
+    var modeRowHeight by remember { mutableIntStateOf(0) }
+    val density = LocalDensity.current
+
+    Surface(
+        onClick = { showInfo = true },
+        modifier = Modifier
+            .fillMaxWidth()
+            .onSizeChanged { cardHeight = it.height },
+        shape = RoundedCornerShape(14.dp),
+        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.12f),
+        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.08f)),
+    ) {
+        Column(
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+            verticalArrangement = Arrangement.spacedBy(6.dp),
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Row(
+                    modifier = Modifier.weight(1f),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Mic,
+                        contentDescription = null,
+                        tint = if (voiceSessionEnabled) {
+                            MaterialTheme.colorScheme.primary
+                        } else {
+                            MaterialTheme.colorScheme.onSurfaceVariant
+                        },
+                        modifier = Modifier.size(18.dp),
+                    )
+                    Text(
+                        text = "Entrenar con Comandos de Voz",
+                        style = MaterialTheme.typography.labelMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = if (voiceSessionEnabled) {
+                            Color.White
+                        } else {
+                            MaterialTheme.colorScheme.onSurface.copy(alpha = 0.85f)
+                        },
+                    )
+                }
+                Switch(
+                    checked = voiceSessionEnabled,
+                    onCheckedChange = { onToggle() },
+                    modifier = Modifier.scale(0.8f),
+                )
+            }
+
+            if (voiceSessionEnabled) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .onSizeChanged { modeRowHeight = it.height },
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    Text(
+                        "Modo",
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    val musicSelected = captureMode == com.example.kpkn.data.models.VoiceCaptureMode.MUSIC
+                    SingleChoiceSegmentedButtonRow(Modifier.weight(1f)) {
+                        SegmentedButton(
+                            selected = !musicSelected,
+                            onClick = {
+                                if (musicSelected) {
+                                    onCaptureModeChange(com.example.kpkn.data.models.VoiceCaptureMode.HANDS_FREE)
+                                }
+                                modeInfo = com.example.kpkn.data.models.VoiceCaptureMode.HANDS_FREE
+                            },
+                            shape = SegmentedButtonDefaults.itemShape(index = 0, count = 2),
+                        ) { Text("Manos libres", fontSize = 11.sp) }
+                        SegmentedButton(
+                            selected = musicSelected,
+                            onClick = {
+                                if (!musicSelected) {
+                                    onCaptureModeChange(com.example.kpkn.data.models.VoiceCaptureMode.MUSIC)
+                                }
+                                modeInfo = com.example.kpkn.data.models.VoiceCaptureMode.MUSIC
+                            },
+                            shape = SegmentedButtonDefaults.itemShape(index = 1, count = 2),
+                        ) { Text("Música", fontSize = 11.sp) }
+                    }
+                }
+
+                modeInfo?.let { mode ->
+                    Popup(
+                        alignment = Alignment.TopStart,
+                        offset = IntOffset(
+                            0,
+                            modeRowHeight + with(density) { 8.dp.toPx() }.toInt(),
+                        ),
+                        properties = PopupProperties(focusable = true),
+                        onDismissRequest = { modeInfo = null },
+                    ) {
+                        VoiceModeInfoCard(mode = mode, onDismiss = { modeInfo = null })
+                    }
+                }
+            }
+        }
+    }
+
+    if (showInfo) {
+        Popup(
+            alignment = Alignment.TopStart,
+            offset = IntOffset(
+                0,
+                cardHeight + with(density) { 8.dp.toPx() }.toInt(),
+            ),
+            properties = PopupProperties(focusable = true),
+            onDismissRequest = { showInfo = false },
+        ) {
+            Surface(
+                modifier = Modifier.width(300.dp),
+                shape = RoundedCornerShape(16.dp),
+                color = Color(0xFF1F1F1F),
+                border = BorderStroke(1.dp, Color.White.copy(alpha = 0.12f)),
+                shadowElevation = 14.dp,
+            ) {
+                Column(
+                    modifier = Modifier.padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(10.dp),
+                ) {
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Mic,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(18.dp),
+                        )
+                        Text(
+                            text = "¿Cómo funciona la voz?",
+                            style = MaterialTheme.typography.titleSmall,
+                            fontWeight = FontWeight.Black,
+                            color = Color.White,
+                        )
+                    }
+                    Text(
+                        text = "Controla tu sesión hablando: registra series, " +
+                            "cambia pesos y gestiona descansos con comandos de voz. " +
+                            "La voz estará activa durante toda la sesión.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    Text(
+                        text = "Ejemplos: “2 series más”, “sube a 80 kg”, “pausa de 90 segundos”.",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f),
+                    )
+                    Button(
+                        onClick = { showInfo = false },
+                        modifier = Modifier.fillMaxWidth().height(40.dp),
+                        shape = RoundedCornerShape(999.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.primary,
+                            contentColor = MaterialTheme.colorScheme.onPrimary,
+                        ),
+                    ) {
+                        Text("Entendido", fontWeight = FontWeight.Bold)
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun VoiceModeInfoCard(
+    mode: com.example.kpkn.data.models.VoiceCaptureMode,
+    onDismiss: () -> Unit,
+) {
+    val (title, body) = when (mode) {
+        com.example.kpkn.data.models.VoiceCaptureMode.HANDS_FREE ->
+            "Modo manos libres" to
+                "Registra tus series con el micrófono de tus auriculares, incluso por bluetooth, " +
+                "sin acercarte al celular. La contra: el audio suena con calidad de llamada " +
+                "y degrada la música de fondo."
+        com.example.kpkn.data.models.VoiceCaptureMode.MUSIC ->
+            "Modo música" to
+                "Usa el micrófono del celular, no el de tus auriculares: tu música se escucha " +
+                "perfecta. Solo necesitas tener el teléfono cerca (sin desbloquearlo) para " +
+                "registrar tus series por voz."
+    }
+    Surface(
+        modifier = Modifier.width(300.dp),
+        shape = RoundedCornerShape(16.dp),
+        color = Color(0xFF1F1F1F),
+        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.12f)),
+        shadowElevation = 14.dp,
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Mic,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(18.dp),
+                )
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.Black,
+                    color = Color.White,
+                )
+            }
+            Text(
+                text = body,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            Button(
+                onClick = onDismiss,
+                modifier = Modifier.fillMaxWidth().height(40.dp),
+                shape = RoundedCornerShape(999.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary,
+                ),
+            ) {
+                Text("Entendido", fontWeight = FontWeight.Bold)
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+fun PreWorkoutDiscomfortSelector(
+    selectedDiscomforts: List<String>,
+    onDiscomfortsChanged: (List<String>) -> Unit,
+    sessionPillarMuscleIds: List<String> = emptyList(),
+) {
+    var query by remember { mutableStateOf("") }
+    var expanded by remember { mutableStateOf(false) }
+    val suggestions = remember(sessionPillarMuscleIds) {
+        DiscomfortSuggestionEngine.suggestForMuscles(sessionPillarMuscleIds)
+    }
+    val searchResults = remember(query) {
+        if (query.isBlank()) emptyList() else DiscomfortSuggestionEngine.search(query)
+    }
+    val isSearching = query.isNotBlank()
+    val count = selectedDiscomforts.size
+
+    fun toggle(item: DiscomfortCatalogEntry) {
+        val newSelection = selectedDiscomforts.toMutableList()
+        if (selectedDiscomforts.contains(item.id)) {
+            newSelection.remove(item.id)
+        } else {
+            newSelection.add(item.id)
+        }
+        onDiscomfortsChanged(newSelection)
+    }
+
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.05f)),
+        shape = RoundedCornerShape(16.dp),
+        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.1f)),
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(14.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(12.dp))
+                    .clickable { expanded = !expanded }
+                    .padding(vertical = 2.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Row(
+                    modifier = Modifier.weight(1f),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Info,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(20.dp)
+                    )
+                    Column {
+                        Text(
+                            text = "Molestias previas al entrenamiento",
+                            style = MaterialTheme.typography.titleSmall,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White
+                        )
+                        Text(
+                            text = if (count == 0) "Ninguna reportada" else "$count seleccionada(s)",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = Color.White.copy(alpha = 0.5f)
+                        )
+                    }
+                }
+                Icon(
+                    imageVector = if (expanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
+                    contentDescription = if (expanded) "Plegar" else "Desplegar",
+                    tint = Color.White.copy(alpha = 0.6f),
+                    modifier = Modifier.size(22.dp)
+                )
+            }
+
+            AnimatedVisibility(
+                visible = expanded,
+                enter = expandVertically(),
+                exit = shrinkVertically(),
+            ) {
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+
+            OutlinedTextField(
+                value = query,
+                onValueChange = { query = it },
+                modifier = Modifier.fillMaxWidth(),
+                placeholder = { Text("Buscar molestia…", style = MaterialTheme.typography.bodySmall) },
+                leadingIcon = {
+                    Icon(Icons.Default.Search, contentDescription = null, modifier = Modifier.size(18.dp))
+                },
+                trailingIcon = if (query.isNotBlank()) {
+                    {
+                        IconButton(onClick = { query = "" }) {
+                            Icon(Icons.Default.Close, contentDescription = "Limpiar búsqueda", modifier = Modifier.size(18.dp))
+                        }
+                    }
+                } else null,
+                singleLine = true,
+                shape = RoundedCornerShape(12.dp),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.7f),
+                    unfocusedBorderColor = Color.White.copy(alpha = 0.12f),
+                    cursorColor = Color.White,
+                    focusedTextColor = Color.White,
+                    unfocusedTextColor = Color.White,
+                    focusedContainerColor = Color.White.copy(alpha = 0.04f),
+                    unfocusedContainerColor = Color.White.copy(alpha = 0.04f),
+                    focusedPlaceholderColor = Color.White.copy(alpha = 0.35f),
+                    unfocusedPlaceholderColor = Color.White.copy(alpha = 0.35f),
+                    focusedLeadingIconColor = Color.White.copy(alpha = 0.5f),
+                    unfocusedLeadingIconColor = Color.White.copy(alpha = 0.5f),
+                ),
+            )
+
+            if (isSearching) {
+                Text(
+                    text = "Resultados",
+                    style = MaterialTheme.typography.labelSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.primary.copy(alpha = 0.8f)
+                )
+                if (searchResults.isEmpty()) {
+                    Text(
+                        text = "Sin resultados para \"$query\"",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = Color.White.copy(alpha = 0.5f)
+                    )
+                } else {
+                    FlowRow(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                        verticalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        searchResults.forEach { item ->
+                            DiscomfortFilterChip(
+                                item = item,
+                                isSelected = selectedDiscomforts.contains(item.id),
+                                onClick = { toggle(item) },
+                            )
+                        }
+                    }
+                }
+            } else {
+                Text(
+                    text = "Sugeridas para tu sesión",
+                    style = MaterialTheme.typography.labelSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.primary.copy(alpha = 0.8f)
+                )
+                if (suggestions.isEmpty()) {
+                    Text(
+                        text = "No hay molestias típicas para los músculos de esta sesión.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = Color.White.copy(alpha = 0.5f)
+                    )
+                } else {
+                    FlowRow(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                        verticalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        suggestions.forEach { item ->
+                            DiscomfortFilterChip(
+                                item = item,
+                                isSelected = selectedDiscomforts.contains(item.id),
+                                onClick = { toggle(item) },
+                            )
+                        }
+                    }
+                }
+            }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun DiscomfortFilterChip(
+    item: DiscomfortCatalogEntry,
+    isSelected: Boolean,
+    onClick: () -> Unit,
+) {
+    FilterChip(
+        selected = isSelected,
+        onClick = onClick,
+        label = { Text(item.label, fontSize = 11.sp) },
+        colors = com.example.kpkn.ui.components.kpknSheetWhiteFilterChipColors(),
+        border = null,
+    )
 }
 
 private fun getSessionPillarMuscleIds(exercises: List<Exercise>): List<String> {

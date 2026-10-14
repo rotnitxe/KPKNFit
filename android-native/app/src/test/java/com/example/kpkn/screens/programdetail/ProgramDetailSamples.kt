@@ -597,7 +597,7 @@ internal object ProgramStructureSheetSamples {
         ProgramLibraryCard(
             key = "competicion-16",
             name = "Competición a 16 semanas",
-            description = "Ciclo finito con su pico y su puesta a punto para llegar a una competición con la forma justa.",
+            description = "Ciclo que termina con su pico y su puesta a punto para llegar a una competición con la forma justa.",
             caption = programBlocksAndWeeksLine(4, 16),
             traits = ProgramLibraryTraits(
                 profiles = setOf(ProgramLibraryProfile.STRENGTH_MUSCLE),

@@ -104,12 +104,8 @@ internal fun WorkoutV2Body(
     warmupWorkingWeight: Double? = null,
     catalogV2: com.example.kpkn.domain.exercises.catalogv2.ExerciseCatalogV2? = null,
     overlayHazeState: HazeState = remember { HazeState() },
+    roadmapExpanded: Boolean = false,
     dockBottomClearance: Dp = 140.dp,
-    onOpenRoute: () -> Unit = {},
-    onOpenCockpit: () -> Unit = {},
-    onOpenNotes: () -> Unit = {},
-    onOpenPhotos: () -> Unit = {},
-    onMinimize: () -> Unit = {},
     onCreateSuperset: () -> Unit = {},
     onReplaceExercise: (String) -> Unit = {},
     requestLiveTagList: Boolean = false,
@@ -251,56 +247,25 @@ internal fun WorkoutV2Body(
                 uniformScale = windowAdaptForRelator.uniformScale,
             )
         }
-        // LS2a: datos de la cabecera de la serie (eyebrow, objetivo, última vez y tramos hechos de la barra de progreso).
-        val liveSupersetId = currentExercise?.supersetGroupRefOrLegacyId()
-        val liveSupersetMembers = liveSupersetId
-            ?.let { id -> visibleExercises.filter { it.supersetGroupRefOrLegacyId() == id } }
-            .orEmpty()
-        val liveSupersetLetter = liveSupersetId
-            ?.takeIf { liveSupersetMembers.size > 1 }
-            ?.let { id ->
-                val order = visibleExercises.mapNotNull { it.supersetGroupRefOrLegacyId() }.distinct()
-                ('A' + order.indexOf(id)).toString()
-            }
-        val liveFrameEyebrow = workoutLiveEyebrow(
-            exerciseIndex = uiState.currentExerciseIdx,
-            exerciseCount = visibleExercises.size,
-            sessionName = headerSessionName,
-            supersetLetter = liveSupersetLetter,
-            round = uiState.currentSetIdx + 1,
-            roundCount = liveSupersetMembers.maxOfOrNull { it.sets.size } ?: 1,
-        )
-        val liveFrameTargetLine = currentExercise?.let { workoutLiveTargetLine(it.sets) }
-        val liveFrameLastLine = remember(currentExercise?.id) {
-            currentExercise?.let { workoutLiveLastLine(viewModel.lastWorkingSetLabel(it)) }
-        }
-        val liveFrameDoneFlags = remember(visibleExercises, uiState.completedSets, uiState.omittedSetKeys) {
-            workoutLiveDoneFlags(visibleExercises, uiState.completedSets, uiState.omittedSetKeys)
-        }
-        // Petición de la hoja «Técnica» que abre el Info de la cabecera (KPKN LS2b).
-        val techniqueSheetHolder = remember { WorkoutTechniqueSheetHolder() }
         Column(modifier = Modifier.fillMaxSize()) {
             Box(
                 modifier = Modifier
                     .onSizeChanged { headerHeightPx = it.height }
                     .zIndex(8f),
             ) {
-            WorkoutLiveFrameHeader(
-                eyebrow = liveFrameEyebrow,
+            WorkoutHeaderBar(
                 exerciseName = headerExerciseName,
                 exerciseChips = headerExerciseChips,
-                exerciseTagNames = currentExerciseActiveMainTags.map { tag ->
-                    currentExerciseActiveTagLabels[tag.id] ?: tag.name
+                sessionName = headerSessionName,
+                groupName = headerGroupName,
+                protocolLabel = uiState.livePlanContext?.sourceProtocolName?.let { name ->
+                    val id = uiState.livePlanContext?.sourceProtocolId
+                    val emoji = id?.let { com.example.kpkn.data.protocols.PROTOCOL_LIBRARY.firstOrNull { it.id == id }?.emoji }
+                    listOfNotNull(emoji, name).joinToString(" ")
                 },
-                targetLine = liveFrameTargetLine,
-                lastLine = liveFrameLastLine,
-                protocolLabel = uiState.livePlanContext?.sourceProtocolName,
-                exerciseIndex = uiState.currentExerciseIdx,
-                exerciseCount = visibleExercises.size,
-                doneFlags = liveFrameDoneFlags,
-                onOpenRoute = onOpenRoute,
                 startTimeMs = headerStartTimeMs,
                 isComplete = headerIsComplete,
+                background = headerBackground,
                 sessionTimeRemainingSeconds = sessionTimeRemainingSeconds,
                 onAdjustTimeLimit = { viewModel.adjustSessionTimeLimit(it) },
                 onSetAbsoluteTimeLimit = { minutes, persist ->
@@ -319,22 +284,32 @@ internal fun WorkoutV2Body(
                 sessionHasProgrammedTime = uiState.session?.targetDurationMinutes != null,
                 pacingAlertMessage = uiState.pacingAlertMessage,
                 coachPaceAlert = uiState.coachPaceAlert,
+                exerciseTag = headerExerciseTag,
+                isSuperset = currentExercise?.supersetGroupRefOrLegacyId()
+                    ?.let { groupId ->
+                        visibleExercises.count { it.supersetGroupRefOrLegacyId() == groupId } > 1
+                    } == true,
+                exerciseReadiness = currentExerciseReadiness,
+                activeMainTags = currentExerciseActiveMainTags,
+                activeMainTagLabels = currentExerciseActiveTagLabels,
+                activeSubTags = currentExerciseActiveSubTags,
+                hasCreatedTags = currentExerciseTags.isNotEmpty(),
+                onTagClick = { tagId -> tagManagerTagId = tagId },
+                onRemoveSubTag = { subTagId ->
+                    viewModel.toggleSubTagActive(currentExercise?.id ?: "", subTagId)
+                },
+                onOpenTagList = { showTagListOverlay = true },
+                voiceCaptureMode = settings.voiceCaptureMode.takeIf { uiState.voiceSessionEnabled },
+                onVoiceCaptureModeChange = { mode -> viewModel.setVoiceCaptureMode(mode) },
+                voiceSessionEnabled = uiState.voiceSessionEnabled,
+                voiceSessionState = uiState.voiceSessionState,
+                onToggleVoice = onToggleVoice,
                 onUltraFastPreview = { viewModel.previewUltraFast() },
                 ultraFastApplied = uiState.ultraFastApplied,
                 ultraFastSavedSeconds = uiState.ultraFastSavedSeconds,
                 onRevertUltraFast = { viewModel.revertUltraFast() },
-                voiceSessionEnabled = uiState.voiceSessionEnabled,
-                onToggleVoice = onToggleVoice,
-                onOpenTags = { showTagListOverlay = true },
-                onOpenCockpit = onOpenCockpit,
-                onOpenNotes = onOpenNotes,
-                onOpenPhotos = onOpenPhotos,
-                onOpenVoiceMode = { viewModel.showVoiceCaptureModeFromMenu() },
-                onFinishSession = { viewModel.requestFinishSessionFromMenu() },
-                onMinimize = onMinimize,
-                onHistory = onExpandHistory,
-                onSuperset = onCreateSuperset,
-                onAdapt = if (
+                readinessAdjustment = currentReadinessAdjustment,
+                onAdaptClick = if (
                     currentExerciseReadiness != null && (
                         currentReadinessAdjustment != null ||
                             currentExerciseReadiness.overallScore <
@@ -345,8 +320,18 @@ internal fun WorkoutV2Body(
                 } else {
                     null
                 },
-                onChangeExercise = if (currentExercise != null) onExpandReplace else null,
-                onTechnique = { techniqueSheetHolder.requests++ },
+                onHistoryClick = onExpandHistory,
+                onReplaceClick = onExpandReplace,
+                nicknameKey = currentExercise?.nicknameKey(),
+                nicknameValue = currentExercise?.nicknameKey()?.let { key ->
+                    com.example.kpkn.domain.exercises.ExerciseNicknameResolver.nicknames[key]
+                }.orEmpty(),
+                canonicalExerciseName = currentExercise?.name ?: headerExerciseName,
+                onNicknameChange = currentExercise?.nicknameKey()?.let { key ->
+                    { value -> viewModel.setExerciseNickname(key, value.ifBlank { null }) }
+                },
+                onCreateSupersetClick = onCreateSuperset,
+                bodyHazeState = cardsHazeState,
             )
             }
             Spacer(Modifier.height(0.dp))
@@ -1548,7 +1533,6 @@ internal fun WorkoutV2Body(
                             totalCount = totalTimelineSetsCount,
                             sessionAccentColor = sessionAccentColor,
                             canAddSet = canAddSetToCurrentExercise,
-                            captions = workoutSetDoneCaptions(setPagerPages, uiState.completedSets, currentExercise.id),
                         )
                         if (liveSetStepperHolder.snapshot != next) {
                             liveSetStepperHolder.snapshot = next
@@ -1715,7 +1699,9 @@ internal fun WorkoutV2Body(
                                     } else {
                                         globalTimer?.remainingSeconds ?: (totalMinutes * 60)
                                     },
+                                    totalMinutes = totalMinutes,
                                     isTimerRunning = globalTimer?.isRunning == true,
+                                    sessionAccentColor = sessionAccentColor,
                                     onToggleComplete = { item, completed ->
                                         viewModel.setMobilityExerciseCompleted(
                                             exerciseId = item.exerciseId,
@@ -1794,7 +1780,6 @@ internal fun WorkoutV2Body(
                                                     suggestedWeightKg = suggestedKg,
                                                     actualWeightKg = completedSet?.weight?.takeIf { it > 0.0 },
                                                     isCompleted = isCompleted,
-                                                    exerciseName = member.name,
                                                 ),
                                             )
                                         }
@@ -1803,7 +1788,7 @@ internal fun WorkoutV2Body(
                                 val firstWarmupEx = prepWarmupMembers.firstOrNull() ?: pageExercise
                                 com.example.kpkn.screens.workout.components.WarmupPhaseLiveCard(
                                     rows = warmupRows,
-                                    weightDrafts = warmupWeightDrafts,
+                                    sessionAccentColor = sessionAccentColor,
                                     onToggleComplete = { row, completed, weightKg ->
                                         if (completed) {
                                             viewModel.recordWarmupWeight(row.exerciseId, row.warmup.id, weightKg)
@@ -1914,31 +1899,27 @@ internal fun WorkoutV2Body(
                             LivePageType.REST -> {
                                 val restState = uiState.restModalState
                                 val total = (restState?.activeSeconds ?: restState?.plannedSeconds ?: 90).coerceAtLeast(1)
-                                // LS3: el descanso único ocupa el sitio del panel de la serie (la misma página del pager).
-                                com.example.kpkn.screens.workout.design.WorkoutRestPanel(
+                                com.example.kpkn.screens.workout.components.RestLiveCard(
                                     remainingSeconds = restTimerRemaining.coerceAtLeast(0),
                                     totalSeconds = total,
-                                    nextLine = restNextLineFor(
-                                        kind = restState?.kind,
-                                        setJustLoggedKey = uiState.setJustLoggedKey,
-                                        completedSetKeys = uiState.completedSets.keys,
-                                        visibleExercises = visibleExercises,
-                                    ),
-                                    suggestedSeconds = uiState.pendingRestSuggestion
-                                        ?.takeIf { !isAdaptiveRestActive(restState, uiState.pendingRestSuggestion) }
-                                        ?.adaptiveSeconds,
-                                    onAdjustSeconds = { viewModel.addRestTime(it) },
+                                    sessionAccentColor = sessionAccentColor,
+                                    restState = restState,
+                                    pendingRestSuggestion = uiState.pendingRestSuggestion,
+                                    lastSetOutcome = uiState.lastSetOutcomeV2,
+                                    lastCompletedSet = uiState.setJustLoggedKey?.let { uiState.completedSets[it] },
+                                    onDecrease = { viewModel.addRestTime(-15) },
+                                    onIncrease = { viewModel.addRestTime(15) },
                                     onSkip = { viewModel.stopRestTimer() },
-                                    onUseSuggestion = { viewModel.resolvePendingRestSuggestion(useAdaptive = true) },
-                                    modifier = Modifier.fillMaxWidth().fillMaxHeight(),
+                                    onUseAdaptive = { viewModel.resolvePendingRestSuggestion(useAdaptive = true) },
+                                    onExpand = { viewModel.toggleRestMinimized() },
+                                    isAdaptiveActive = isAdaptiveRestActive(restState, uiState.pendingRestSuggestion),
+                                    skipExerciseLabel = skipExerciseLabel,
+                                    onSkipExercise = onSkipExercise,
                                     relatorText = relatorResolution.text,
                                     relatorPhaseKey = relatorResolution.phaseKey,
                                     relatorActions = relatorResolution.actions,
                                     onRelatorAction = { viewModel.performRelatorAssist(it) },
-                                    accentColor = sessionAccentColor,
-                                    notices = restNoticesFor(restState),
-                                    skipExerciseLabel = skipExerciseLabel,
-                                    onSkipExercise = onSkipExercise,
+                                    modifier = Modifier.fillMaxWidth().fillMaxHeight(),
                                 )
                             }
                             LivePageType.NORMAL -> {
@@ -2085,7 +2066,6 @@ internal fun WorkoutV2Body(
                                     ) {
                                         SetInputCardV2(
                                     exercise = targetExercise,
-                                    techniqueSheetHolder = if (isActivePage) techniqueSheetHolder else null,
                                     setIndex = activeSetIndex,
                                     currentSet = activeSet,
                                     recordActionHolder = recordActionHolder,

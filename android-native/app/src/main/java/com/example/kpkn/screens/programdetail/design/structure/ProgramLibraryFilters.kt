@@ -63,11 +63,11 @@ internal fun ProgramLibraryTraits.matches(filters: ProgramLibraryFilters): Boole
         (filters.duration == null || filters.duration == duration) &&
         (filters.origin == LibraryOriginFilter.ALL || filters.origin in origins)
 
-/** Cómo se nombra cada duración en el filtro. */
+/** Cómo se nombra cada duración en la biblioteca y su filtro. Es la única fuente: la hoja de plantillas la usa también. */
 internal fun catalogDurationLabel(duration: CatalogDuration): String = when (duration) {
-    CatalogDuration.REPEATING_WEEK -> "Semana repetible"
-    CatalogDuration.REPEATING_CYCLE -> "Ciclo repetible"
-    CatalogDuration.FINITE_CYCLE -> "Ciclo finito"
+    CatalogDuration.REPEATING_WEEK -> "Semana que se repite"
+    CatalogDuration.REPEATING_CYCLE -> "Ciclo que se repite"
+    CatalogDuration.FINITE_CYCLE -> "Ciclo que termina"
 }
 
 /**
