@@ -1,6 +1,6 @@
 # VT7b · Pantalla «Análisis de técnica» y calibración del disco
 
-- **Worktree y rama:** `C:\kw\vt-a`, rama `vt/vt7b`, desde `feat/video-technique` con VT7a integrado.
+- **Worktree y rama:** `C:\kw\vt-b`, rama `vt/vt7b`, desde `feat/video-technique` con VT7a integrado (`7ff451de4`). VT4c se hace a la vez en `C:\kw\vt-a`: esta pantalla no lo necesita, porque lee la fila y los sidecars.
 - **Antes de empezar, lee:**
   - `VT_COMUN.md`, `S_COMUN.md` y `KPKN_UI_V2.md`;
   - `VIDEO_TECHNIQUE_V1.md` §1 (puntos 3–4, «Honestidad»), §3.5, §3.9, §7 («Observaciones») y §9 (puntos 4 y 8);
@@ -8,6 +8,35 @@
   - `VideoAnalysisRepository` y `TechniqueSidecars` (VT5).
 - **Logs:** `C:\kw\logs\vt-7b-<n>.log`.
 - **PNG:** `C:/kw/shots/vt/7b`.
+
+## Heredado de VT7a (ya integrado; los nombres REALES mandan)
+- **`TechniqueOverlayData.from(track, bar, report, videoWidth, videoHeight)`**, con `reps`, `guideX`, `trailSource`, `frameIndexAt`, `repIndexAt` y `stepSeekMs`.
+- **`rememberTechniquePlayerState(overlay)`** → `TechniquePlayerState`:
+  - lectura: `isPlaying`, `speed`, `loopEnabled`, `selectedRep`, `durationUs` y `positionUs`. `positionUs` se lee SOLO al dibujar: no lo metas en el estado de la pantalla;
+  - acciones: `play`, `pause`, `togglePlay`, `seekToUs`, `stepFrame(±1)`, `setSpeed`, `toggleLoop`, `selectRep`, `scrubStart`, `scrubTo` y `scrubEnd`.
+  - **Elegir una repetición** en la gráfica o en una observación («Ver», que salta a `atUs`) pasa por este estado: `selectRep` y `seekToUs`.
+- **Composables:**
+  - `TechniqueVideoPlayer(file, overlay, state, modifier, onTap, options, description)`;
+  - en `design/`: `TechniqueOverlay`, `fitVideoRect`, `TechniquePlayerControls(…, loopAvailable)`, `TechniqueScrubber` y `TechniqueRepChips`.
+- **Leyenda de la trayectoria:** el color va de azul (lenta) a ámbar (rápida). Píntala bajo el reproductor, en `caption`: «Trayectoria: lenta → rápida», con una muestra del degradado. Solo cuando hay trayectoria.
+- **Pendiente de VT7a que entra aquí** (archivos permitidos además de los tuyos):
+  - `res/layout/technique_player_view.xml` (nuevo): un `PlayerView` con `surface_type="texture_view"` y sin controles. `TechniqueVideoPlayer.kt` deja de reutilizar `R.layout.welcome_video_player`, que es del asistente: es una línea. Así un cambio en la bienvenida no rompe el reproductor;
+  - añade `FrameBack`, `FrameForward` y `Target` a `KpknLineIconsTest` y a `KpknLineIconsRenderSheetTest`, en `src/test`.
+- **Riesgos que miras en tu hoja y en el ViewModel:**
+  - la sincronía con 6 ms de margen y el salto del bucle (búsqueda exacta, depende del GOP) solo se validan con reproducción real: lo hace VT10 en el emulador;
+  - con pose cada 2 fotogramas (60 fps), el paso a paso avanza de 2 en 2;
+  - a 0,25× y 0,5× el audio va silenciado.
+
+## Heredado de VT5b (ya integrado; los nombres REALES mandan)
+- **`VideoAnalysisRepository`:**
+  - `init` y `getInstance`;
+  - `observeByMedia(mediaId)` y los demás Flows;
+  - `requestAnalysis(mediaId, mode)`, `reanalyze(mediaId)`, `setPlateSeed(mediaId, seed, diameterMm: Int)` y `setUserProfileOverride(mediaId, profileId)`.
+  - Todas son peticiones EXPLÍCITAS (D31): corren aunque el ajuste esté apagado.
+- **RECOMPUTE perezoso:** si la fila DONE tiene una `engineVersion` menor que `TechniqueAnalysisEngine.ENGINE_VERSION`, el ViewModel pide `requestAnalysis(mediaId, RECOMPUTE)` UNA vez por apertura.
+- **Estados:**
+  - NEEDS_PROFILE guarda la conjetura del resolver en `profileId`: preselecciónala en la lista;
+  - FAILED con `errorCode = "analyzer_unavailable"` solo sale en builds sin VT4c. Trátalo como FAILED normal.
 
 ## Heredado de VT3b (en el informe; los nombres REALES mandan)
 - **m/s** solo si `velocityUnit == MPS` (disco calibrado y señal de conteo del disco). `PEAK_VELOCITY` se marca solo en m/s.
