@@ -1,6 +1,6 @@
 # VT5a · Persistencia: Room v29, sidecars, resumen y ajustes
 
-- **Worktree y rama:** `C:\kw\vt-a`, rama `vt/vt5a`, desde `feat/video-technique` con VT4a integrado.
+- **Worktree y rama:** `C:\kw\vt-a`, rama `vt/vt5a`, desde `feat/video-technique` con VT4b y VT3a integrados. VT3a crea `SetTechniqueReport` (`domain/biomechanics/metrics/SetTechniqueReport.kt`), que necesitas para `toSummary` y para el sidecar de análisis (D26).
 - **Antes de empezar, lee:**
   - `VT_COMUN.md`;
   - `VIDEO_TECHNIQUE_V1.md` §3.5, §3.8, §3.9, §3.10 y §9 punto 5;
@@ -13,7 +13,7 @@
 - **Logs:** `C:\kw\logs\vt-5a-<n>.log`.
 
 ## Paso 0: verificación de integración (lo primero, antes de editar)
-`feat/video-technique` acaba de recibir VT2a (perfiles), VT4a (decodificación) y, si ya está, VT2b (segmentador). El carril de dominio solo los probó con el arnés JVM.
+`feat/video-technique` acaba de recibir paquetes del carril de dominio (VT2b, VT3a y, si ya está, VT3b), que solo se probaron con el arnés JVM.
 
 Tu PRIMERA corrida, por `gradle_slot.sh`, es:
 `:app:compileBaseDebugKotlin :app:testBaseDebugUnitTest --tests "com.example.kpkn.domain.biomechanics.*" --tests "com.example.kpkn.data.media.*"`

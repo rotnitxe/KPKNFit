@@ -1,6 +1,6 @@
 # VT4b · Motor de pose MediaPipe, sonda de GPU y banco de depuración
 
-- **Worktree y rama:** `C:\kw\vt-a`, rama `vt/vt4b`, desde `feat/video-technique` con VT5b integrado.
+- **Worktree y rama:** `C:\kw\vt-a`, rama `vt/vt4b`, desde `feat/video-technique` con VT4a integrado. VT4b va antes que VT5a, porque VT5a espera los tipos de VT3a (D26).
 - **Antes de empezar, lee:**
   - `VT_COMUN.md`;
   - `VIDEO_TECHNIQUE_V1.md` §3.1, §3.7 (bloque `data/media/pose`) y §9 punto 3;
@@ -8,6 +8,15 @@
   - el arnés `src/debug/.../debug/TechniqueBenchActivity.kt` (VT4a);
   - `src/debug/.../data/media/PoseTrajectoryAnalyzer.kt` (el ML Kit viejo, que VT-A movió a depuración).
 - **Logs:** `C:\kw\logs\vt-4b-<n>.log`.
+
+## Paso 0: verificación de integración (lo primero, antes de editar)
+`feat/video-technique` acaba de recibir VT2a (perfiles), VT4a (decodificación) y, si ya está, VT2b (segmentador). El carril de dominio solo los probó con el arnés JVM.
+
+Tu PRIMERA corrida, por `gradle_slot.sh`, es:
+`:app:compileBaseDebugKotlin :app:testBaseDebugUnitTest --tests "com.example.kpkn.domain.biomechanics.*" --tests "com.example.kpkn.data.media.*"`
+- Es la verificación oficial, en lote, de esos paquetes.
+- Mientras espera en la cola, puedes leer y planificar, pero no edites hasta que termine.
+- Si falla algo de `domain/biomechanics` o de `data/media/video`, no lo arregles: anótalo en el informe con el error exacto y sigue con tu paquete, si tu parte compila.
 
 ## Archivos permitidos
 - **`data/media/pose/` (nuevos):**
@@ -73,6 +82,8 @@
 3. `-I C:/kw/tools/dbg-suffix.init.gradle :app:assembleBaseDebug`
 4. **Emulador** (autorizado; sin `adb` suelto):
    - un clip propio: el orquestador deja en `C:\kw\vt-bench\in\` los vídeos con permiso; si no hay ninguno, genera uno con `SyntheticClipEncoder` (sin persona: comprueba que no falla);
+     - hoy hay 3: `r14-pexels-4921641.mp4` (sentadilla con barra en oblicuo 3/4, vertical a 50 fps), `r20-pexels-6767732.mp4` (puente de glúteo de lado, horizontal a 25 fps) y `x14-commons-squat.webm` (sentadilla de espaldas, VP8/VP9);
+     - **los vídeos NUNCA entran en el repo** ni salen de `C:\kw\vt-bench\`, de tu carpeta temporal y del emulador;
    - el modelo heavy, desde `C:\kw\models\mediapipe-pose-float16-1\`:
      ```
      python C:\kw\tools\emu_run.py --apk <apk debug .dbg> --push-dbg C:\kw\vt-bench\in=vt-bench/in ^

@@ -1208,7 +1208,7 @@ Los valores horizontales llevan el signo de f.
 | VT3b | `vbt/` (escala por disco con elipse y paralaje, m/s, pérdida, carga-velocidad, MVT) y observaciones con su texto, integradas en el motor | `…/vbt`, `…/metrics/Observations*` | VT3a |
 | VT6a | disco sobre luma | `…/vision` | VT1 |
 | VT4a | `VideoFrameSource` + prueba instrumentada | `data/media/video/`, `src/androidTest/.../data/media/video/` | VT-A |
-| VT5a | Room v29, DAO, sidecars, resumen, ajustes, ids de catálogo en la captura, repositorio de medios dirigido | `data/db/*` (VideoAnalysis*, KpknDatabase, BackupTableManifest, WorkoutMediaEntity), `schemas/29.json`, `data/media/technique/TechniqueSidecars.kt`, `WorkoutMediaRepository.kt`, `data/models/{WorkoutMedia,VideoAnalysisSummary,Settings}.kt` | VT4a |
+| VT5a | Room v29, DAO, sidecars, resumen, ajustes, ids de catálogo en la captura, repositorio de medios dirigido | `data/db/*` (VideoAnalysis*, KpknDatabase, BackupTableManifest, WorkoutMediaEntity), `schemas/29.json`, `data/media/technique/TechniqueSidecars.kt`, `WorkoutMediaRepository.kt`, `data/models/{WorkoutMedia,VideoAnalysisSummary,Settings}.kt` | VT4a, VT3a (`SetTechniqueReport`) |
 | VT5b | Worker, cola, `AnalysisGate`, `VideoAnalysisRepository`, encolado al guardar, `reconcile` (con un `TechniqueAnalyzer` «no disponible» hasta VT4c) | `data/work/*`, `data/repository/VideoAnalysisRepository.kt`, `data/media/technique/TechniqueAnalyzer.kt`, `AppBootstrap.kt` (1 línea) | VT5a |
 | VT4b | `MediaPipePoseEstimator`, sonda de GPU, banco `src/debug` | `data/media/pose/`, `src/debug/` | VT-A |
 | VT4c | pipeline (pose + disco), sidecars, puntos de control, `ExerciseRefResolver`, analizador real en el Worker | `data/media/technique/` | VT3, VT6a, VT4b, VT5 |
@@ -1222,7 +1222,7 @@ Los valores horizontales llevan el signo de f.
 
 **Orden:**
 1. VT0, luego VT-A.
-2. Carriles (1 agente si el disco tiene < 20 GB libres): dominio VT1a → VT1b → VT2a → VT2b → VT3a → VT3b → VT6a ‖ Android VT4a → VT5a → VT5b → VT4b.
+2. Carriles (1 agente si el disco tiene < 20 GB libres): dominio VT1a → VT1b → VT2a → VT2b → VT3a → VT3b → VT6a ‖ Android VT4a → VT4b → VT5a (cuando VT3a esté integrado) → VT5b (D26).
 3. VT4c.
 4. VT7a → VT7b → VT8a → VT9a → VT9b → VT8b (carril Android, en serie).
 5. VT10.
