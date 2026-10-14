@@ -273,7 +273,6 @@ import com.example.kpkn.screens.sessioneditor.CompactRestBundleButton
 import com.example.kpkn.screens.sessioneditor.UnilateralModeSelector
 import com.example.kpkn.screens.sessioneditor.SideOrderChip
 import com.example.kpkn.screens.sessioneditor.ExerciseSetsCarousel
-import com.example.kpkn.screens.sessioneditor.EstimatedRingsRow
 import com.example.kpkn.screens.sessioneditor.UnilateralAddGhostCard
 import com.example.kpkn.screens.sessioneditor.AddSetGhostCard
 import com.example.kpkn.screens.sessioneditor.formatEditableNumber
