@@ -24,6 +24,7 @@ import androidx.compose.ui.unit.sp
 import com.example.kpkn.data.exercises.resolveCatalogExerciseInfo
 import com.example.kpkn.data.models.*
 import com.example.kpkn.domain.calculations.calculateHybrid1RM
+import com.example.kpkn.domain.calculations.calculateWeightFrom1RM
 import java.util.Locale
 import kotlin.math.roundToInt
 import com.example.kpkn.ui.components.KpknAlertDialog
@@ -501,6 +502,13 @@ internal fun WorkoutExerciseSetupContent(
     }
 }
 
+/**
+ * Cargas de la tabla RM (1 a 10 repeticiones) a partir del 1RM que muestra la calculadora (LR0): la inversa de la misma fórmula
+ * (calculateHybrid1RM), así la fila «1 RM» es ese 1RM y las demás bajan de forma monótona. Pura; la prueba es WorkoutRmTableTest.
+ */
+internal fun rmTableLoads(estimated1RM: Double): List<Pair<Int, Double>> =
+    (1..10).map { reps -> reps to calculateWeightFrom1RM(estimated1RM, reps) }
+
 @Composable
 internal fun WorkoutRmCalcContent(
     bodyWeight: Double? = null,
@@ -533,10 +541,7 @@ internal fun WorkoutRmCalcContent(
     val rmTable = remember(rmResult, isAssisted, isLastre, bodyWeight) {
         if (rmResult == null) emptyList()
         else {
-            val estRms = (1..10).map { reps ->
-                val estLoad = rmResult / (1.0 + reps / 30.0) // Epley inverse
-                reps to estLoad
-            }
+            val estRms = rmTableLoads(rmResult)
             when {
                 isAssisted && bodyWeight != null && bodyWeight > 0 -> {
                     estRms.map { (reps, load) ->
