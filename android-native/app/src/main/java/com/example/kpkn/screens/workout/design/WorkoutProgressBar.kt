@@ -6,10 +6,12 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.defaultMinSize
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.requiredHeight
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -26,7 +28,11 @@ import com.example.kpkn.ui.design.KpknShape
 /**
  * Barra de progreso de la sesión (LS2a, §2 punto 2): una regla de 6 dp con 3 dp entre tramos, uno por ejercicio. Los hechos van en
  * tinta, el actual en `musculo` y los futuros en blanco al 12 %. [currentIndex] se cuenta desde 0; fuera de rango, ningún tramo es el
- * actual. Toda la franja (48 dp de alto) abre la ruta de la sesión con [onOpenRoute].
+ * actual. Tocarla abre la ruta de la sesión con [onOpenRoute].
+ *
+ * La zona táctil mide 48 dp (KPKN_UI_V2 §8) pero no ocupa su alto en la columna: se centra sobre la regla y sobresale por arriba y por
+ * abajo. Así la barra queda a 8 dp de la fila superior y a 12 dp de la cabecera, como pide el marco compacto (LS4). La fila superior y la
+ * cabecera van por encima en el orden de dibujo (`zIndex`), para que sus botones ganen los toques del solapamiento.
  *
  * El dibujo sale de `ProgramWeekRuler` (P1, `screens/programdetail/design/ProgramWeekRuler.kt`), con su misma forma y colores. Su
  * descripción es otra: aquí es el ejercicio, no la semana.
@@ -46,22 +52,11 @@ fun WorkoutProgressBar(
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .defaultMinSize(minHeight = 48.dp)
-            .clickable(
-                interactionSource = interaction,
-                indication = null,
-                role = Role.Button,
-                onClickLabel = "Abrir la ruta de la sesión",
-                onClick = onOpenRoute,
-            )
-            .semantics { contentDescription = "Ejercicio $position de $exerciseCount. Abrir la ruta de la sesión" }
+            .height(6.dp)
             .padding(horizontal = 16.dp),
-        contentAlignment = Alignment.Center,
     ) {
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(6.dp),
+            modifier = Modifier.fillMaxSize(),
             horizontalArrangement = Arrangement.spacedBy(3.dp),
         ) {
             for (index in 0 until exerciseCount) {
@@ -73,11 +68,25 @@ fun WorkoutProgressBar(
                 Box(
                     modifier = Modifier
                         .weight(1f)
-                        .height(6.dp)
+                        .fillMaxHeight()
                         .background(color, KpknShape.pill),
                 )
             }
         }
+        Box(
+            modifier = Modifier
+                .align(Alignment.Center)
+                .fillMaxWidth()
+                .requiredHeight(48.dp)
+                .clickable(
+                    interactionSource = interaction,
+                    indication = null,
+                    role = Role.Button,
+                    onClickLabel = "Abrir la ruta de la sesión",
+                    onClick = onOpenRoute,
+                )
+                .semantics { contentDescription = "Ejercicio $position de $exerciseCount. Abrir la ruta de la sesión" },
+        )
     }
 }
 

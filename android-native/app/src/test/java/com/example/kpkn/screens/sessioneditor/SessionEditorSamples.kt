@@ -16,7 +16,10 @@ import com.example.kpkn.domain.sessionassistant.AssistantActionType
 import com.example.kpkn.domain.sessionassistant.AssistantDetailAction
 import com.example.kpkn.domain.sessionassistant.AssistantSuggestion
 import com.example.kpkn.domain.sessionassistant.AssistantSuggestionDetail
+import com.example.kpkn.data.models.CardioDetails
+import com.example.kpkn.data.models.CardioType
 import com.example.kpkn.screens.sessioneditor.design.SessionImpact
+import com.example.kpkn.screens.sessioneditor.design.SessionPreparationRow
 import com.example.kpkn.screens.sessioneditor.design.sessionImpactOf
 
 /** Datos de ejemplo del editor de sesiones para las pruebas y la hoja de render (SE2). Sin datos reales. */
@@ -211,4 +214,22 @@ object SessionEditorSamples {
             ExerciseSet(id = "drop-3", targetReps = 10, intensityMode = IntensityMode.RIR, targetRIR = 2),
         ),
     )
+}
+
+/**
+ * Datos de la hoja de render de la pantalla entera (SE8): la parte «Empuje» con su superserie y su ejercicio desplegado, el cardio de cinta
+ * y la preparación. Son datos de la pantalla, sin ViewModel.
+ */
+internal object SessionEditorScreenSamples {
+    /** La preparación de la sesión: movilidad de cadera y la serie de aproximación del primer ejercicio. */
+    val preparation = listOf(
+        SessionPreparationRow(name = "Movilidad de cadera", dose = "2 × 10"),
+        SessionPreparationRow(name = "Calentamiento · Press inclinado con mancuernas", dose = "3 × 8"),
+    )
+
+    /** Cinta de 30 min en zona 2. */
+    val treadmill = CardioDetails(type = CardioType.TREADMILL, targetDurationSeconds = 1800, targetHrPercent = 65)
+
+    /** La parte «Empuje»: tres ejercicios de la muestra; los dos primeros van en superserie en la pantalla. */
+    val empuje = SessionEditorSamples.partExercises.take(3)
 }

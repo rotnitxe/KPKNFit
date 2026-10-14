@@ -192,7 +192,7 @@ internal class AdaptActionHolder {
     var open: (() -> Unit)? = null
 }
 
-/** Publishes live set-stepper args from WorkoutV2Body into WorkoutRoadmapBar. */
+/** Publica desde WorkoutV2Body los argumentos de la tira de series que pinta la pantalla (LS2b). */
 internal data class LiveSetStepperSnapshot(
     val elements: List<TimelineElement>,
     val activeElementIndex: Int,

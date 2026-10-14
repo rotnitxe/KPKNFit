@@ -2,18 +2,22 @@ package com.example.kpkn.ui.design
 
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.snap
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -27,6 +31,7 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.example.kpkn.screens.onboarding.design.WizardColors
+import com.example.kpkn.screens.onboarding.design.wizardReducedMotion
 import java.util.Locale
 
 /**
@@ -46,9 +51,11 @@ fun KpknModule(
     val interaction = remember { MutableInteractionSource() }
     val pressed by interaction.collectIsPressedAsState()
     val pressing = pressed && onClick != null
+    val reduced = wizardReducedMotion()
     val scale by animateFloatAsState(
         targetValue = if (pressing) 0.985f else 1f,
-        animationSpec = spring(dampingRatio = 0.8f, stiffness = Spring.StiffnessMedium),
+        // Con movimiento reducido el cambio de escala es de golpe, sin resorte.
+        animationSpec = if (reduced) snap() else spring(dampingRatio = 0.8f, stiffness = Spring.StiffnessMedium),
         label = "kpknModuleScale",
     )
     val fill = if (pressing) KpknSurface.modulePressed else KpknSurface.module
@@ -83,28 +90,35 @@ fun KpknModule(
 /**
  * Cabecera de módulo: el eyebrow en mayúsculas y en `textMuted` a la izquierda, y la [action] a la derecha, centradas entre sí.
  * Alto mínimo de 40 dp; la acción de texto o el botón de icono tienen su zona táctil de 48 dp dentro.
+ *
+ * Si la etiqueta y la acción no caben en una línea (letra al 130 %), la acción baja a la línea siguiente, alineada a la izquierda:
+ * ni la etiqueta ni la acción se cortan (SE8, como la cabecera local de SE4b).
  */
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun KpknModuleHeader(
     label: String,
     modifier: Modifier = Modifier,
     action: (@Composable () -> Unit)? = null,
 ) {
-    Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .defaultMinSize(minHeight = 40.dp),
-        verticalAlignment = Alignment.CenterVertically,
+    FlowRow(
+        modifier = modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalArrangement = Arrangement.Center,
     ) {
-        Text(
-            text = label.uppercase(Locale("es")),
-            style = KpknType.eyebrow,
-            color = WizardColors.textMuted,
-            // Hasta dos líneas: la etiqueta se parte entre palabras y nunca se corta a media palabra (KPKN_UI_V2 §5).
-            maxLines = 2,
-            overflow = TextOverflow.Ellipsis,
-            modifier = Modifier.weight(1f),
-        )
+        Box(
+            modifier = Modifier.heightIn(min = if (action != null) 48.dp else 40.dp),
+            contentAlignment = Alignment.CenterStart,
+        ) {
+            Text(
+                text = label.uppercase(Locale("es")),
+                style = KpknType.eyebrow,
+                color = WizardColors.textMuted,
+                // Hasta dos líneas: la etiqueta se parte entre palabras y nunca se corta a media palabra (KPKN_UI_V2 §5).
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+            )
+        }
         if (action != null) action()
     }
 }

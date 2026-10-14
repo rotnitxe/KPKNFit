@@ -29,26 +29,30 @@ import androidx.compose.ui.unit.dp
 import org.junit.Rule
 import org.junit.Test
 
+/**
+ * Al abrir el asistente de la sesión, el campo del nombre pierde el foco y se cierra el teclado (SE8: etiquetas y textos de hoy). La prueba
+ * monta el mismo patrón que la pantalla: el botón «Asistente de la sesión» (su descripción en la isla inferior) y la hoja con «Cerrar».
+ */
 class SessionEditorFocusUiTest {
     @get:Rule
     val composeRule = createAndroidComposeRule<ComponentActivity>()
 
     @Test
-    fun assistantOpenAndClose_leaveGroupNameWithoutFocus() {
+    fun assistantOpenAndClose_leaveSessionNameWithoutFocus() {
         composeRule.setContent {
             MaterialTheme {
                 var assistantVisible by remember { mutableStateOf(false) }
-                var groupName by remember { mutableStateOf("") }
+                var sessionName by remember { mutableStateOf("") }
                 val focusManager = LocalFocusManager.current
                 val keyboardController = LocalSoftwareKeyboardController.current
                 Column {
                     BasicTextField(
-                        value = groupName,
-                        onValueChange = { groupName = it },
+                        value = sessionName,
+                        onValueChange = { sessionName = it },
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(56.dp)
-                            .testTag("group-name"),
+                            .testTag("session-name"),
                     )
                     Button(
                         onClick = {
@@ -56,13 +60,13 @@ class SessionEditorFocusUiTest {
                             assistantVisible = true
                         },
                     ) {
-                        Text("Abrir asistente")
+                        Text("Asistente de la sesión")
                     }
                     if (assistantVisible) {
                         Box(modifier = Modifier.testTag("assistant-sheet")) {
                             Text("Asistente")
                             Button(onClick = { assistantVisible = false }) {
-                                Text("Cerrar asistente")
+                                Text("Cerrar")
                             }
                         }
                     }
@@ -70,15 +74,15 @@ class SessionEditorFocusUiTest {
             }
         }
 
-        composeRule.onNodeWithTag("group-name").performTextInput("Grupo")
-        composeRule.onNodeWithTag("group-name").assertIsFocused()
-        composeRule.onNodeWithText("Abrir asistente").performClick()
+        composeRule.onNodeWithTag("session-name").performTextInput("Grupo")
+        composeRule.onNodeWithTag("session-name").assertIsFocused()
+        composeRule.onNodeWithText("Asistente de la sesión").performClick()
         composeRule.waitForIdle()
         composeRule.onNodeWithTag("assistant-sheet").assertIsDisplayed()
-        composeRule.onNodeWithTag("group-name").assertIsNotFocused()
+        composeRule.onNodeWithTag("session-name").assertIsNotFocused()
 
-        composeRule.onNodeWithText("Cerrar asistente").performClick()
+        composeRule.onNodeWithText("Cerrar").performClick()
         composeRule.waitForIdle()
-        composeRule.onNodeWithTag("group-name").assertIsNotFocused()
+        composeRule.onNodeWithTag("session-name").assertIsNotFocused()
     }
 }

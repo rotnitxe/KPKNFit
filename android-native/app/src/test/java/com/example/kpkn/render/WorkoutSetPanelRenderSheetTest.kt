@@ -6,6 +6,8 @@ import android.view.View
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Text
@@ -209,14 +211,14 @@ class WorkoutSetPanelRenderSheetTest {
                     )
                 },
             )
-            Spacer(Modifier.height(4.dp))
+            Spacer(Modifier.height(8.dp))
             WorkoutProgressBar(
                 exerciseCount = 6,
                 currentIndex = 2,
                 doneFlags = WorkoutSamples.DONE,
                 onOpenRoute = noop,
             )
-            Spacer(Modifier.height(8.dp))
+            Spacer(Modifier.height(12.dp))
             WorkoutExerciseHeader(
                 eyebrow = WorkoutSamples.EYEBROW_PLAIN,
                 name = WorkoutSamples.EXERCISE_NAME_SHORT,
@@ -225,13 +227,20 @@ class WorkoutSetPanelRenderSheetTest {
                 lastLine = WorkoutSamples.LAST,
                 protocolLabel = WorkoutSamples.PROTOCOL,
                 onOptions = {},
+                onTechnique = noop,
                 onChangeExercise = noop,
             )
             Spacer(Modifier.height(12.dp))
-            Box(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)) {
+            // El panel se desplaza dentro de su franja; el pie queda fijo abajo, como en la app.
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f)
+                    .verticalScroll(rememberScrollState())
+                    .padding(horizontal = 16.dp),
+            ) {
                 PanelBody(timeMode = false, valueText = "8", suggestionApplied = false, startOpen = false)
             }
-            Spacer(Modifier.weight(1f))
             WorkoutCompactFooter(
                 stripSlot = { StripBody() },
                 recordSlot = {

@@ -1,5 +1,8 @@
 package com.example.kpkn.screens.sessioneditor.components
 
+import com.example.kpkn.screens.sessioneditor.design.sessionEnterVertical
+import com.example.kpkn.screens.sessioneditor.design.sessionExitVertical
+
 import android.graphics.Color as AndroidColor
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
@@ -189,7 +192,7 @@ internal fun SupersetGroupEditorCard(
         // Los miembros se ven siempre, unidos por la barra de la superserie.
         content()
 
-        AnimatedVisibility(visible = expanded) {
+        AnimatedVisibility(visible = expanded, enter = sessionEnterVertical(), exit = sessionExitVertical()) {
         Column(
             modifier = Modifier.padding(start = 14.dp, end = 14.dp, bottom = 12.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp),
@@ -218,7 +221,7 @@ internal fun SupersetGroupEditorCard(
                             )
                             IconButton(
                                 onClick = { pendingRemovalExerciseId = exercise.id },
-                                modifier = Modifier.size(24.dp),
+                                modifier = Modifier.size(48.dp),
                             ) {
                                 Icon(Icons.Default.Close, contentDescription = "Quitar de superserie", modifier = Modifier.size(14.dp))
                             }
@@ -231,7 +234,7 @@ internal fun SupersetGroupEditorCard(
                                         ids.add(orderIndex - 1, moved)
                                         onReorderMembers(ids)
                                     },
-                                    modifier = Modifier.size(24.dp),
+                                    modifier = Modifier.size(48.dp),
                                 ) {
                                     Icon(
                                         Icons.Default.KeyboardArrowUp,
@@ -248,7 +251,7 @@ internal fun SupersetGroupEditorCard(
                                         ids.add(orderIndex + 1, moved)
                                         onReorderMembers(ids)
                                     },
-                                    modifier = Modifier.size(24.dp),
+                                    modifier = Modifier.size(48.dp),
                                 ) {
                                     Icon(
                                         Icons.Default.KeyboardArrowDown,
@@ -265,7 +268,7 @@ internal fun SupersetGroupEditorCard(
                         shape = RoundedCornerShape(999.dp),
                         color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.42f),
                         modifier = Modifier
-                            .height(34.dp)
+                            .height(48.dp)
                             .clickable(enabled = exercises.size < 4) {
                                 onOpenSupersetCreator(partId, exercises.map { it.id })
                             },
@@ -284,8 +287,8 @@ internal fun SupersetGroupEditorCard(
 
             AnimatedVisibility(
                 visible = configExerciseId != null,
-                enter = expandVertically() + fadeIn(),
-                exit = shrinkVertically() + fadeOut(),
+                enter = sessionEnterVertical(),
+                exit = sessionExitVertical(),
             ) {
                 exercises.firstOrNull { it.id == configExerciseId }?.let { selected ->
                     SupersetExerciseConfigOverlay(
@@ -331,7 +334,7 @@ internal fun SupersetGroupEditorCard(
                 Surface(
                     modifier = Modifier
                         .weight(1f)
-                        .height(42.dp)
+                        .height(48.dp)
                         .clip(RoundedCornerShape(999.dp))
                         .clickable { showOptionalInfo = true },
                     shape = RoundedCornerShape(999.dp),
