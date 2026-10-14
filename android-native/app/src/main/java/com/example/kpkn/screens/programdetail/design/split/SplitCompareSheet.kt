@@ -80,6 +80,8 @@ private fun SplitCompareCard(split: SplitTemplate, startDay: Int) {
         )
         Spacer(Modifier.height(14.dp))
         SplitWeekDiagram(pattern = split.pattern, startDay = startDay)
+        Spacer(Modifier.height(8.dp))
+        SplitRoleLegend(pattern = split.pattern)
     }
 }
 

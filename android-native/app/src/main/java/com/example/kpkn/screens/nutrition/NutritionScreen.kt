@@ -2,7 +2,6 @@ package com.example.kpkn.screens.nutrition
 
 import androidx.compose.animation.*
 import androidx.compose.animation.core.*
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -12,10 +11,7 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
-import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -44,7 +40,7 @@ import com.example.kpkn.ui.components.SnackbarType
 import com.example.kpkn.ui.components.icons.KpknLineIcons
 import com.example.kpkn.ui.components.showKpknSnackbar
 import com.example.kpkn.ui.design.KpknModule
-import com.example.kpkn.ui.design.KpknModuleHeader
+import com.example.kpkn.ui.design.KpknStatusVeil
 import com.example.kpkn.ui.design.KpknSurface
 import com.example.kpkn.ui.design.KpknTextAction
 import com.example.kpkn.ui.design.KpknType
@@ -53,7 +49,6 @@ import com.example.kpkn.ui.design.rememberIslandVisible
 import com.example.kpkn.ui.adapt.LocalViewportAdapt
 import com.example.kpkn.ui.adapt.adapt
 import com.example.kpkn.ui.locale.LocaleManager
-import com.example.kpkn.ui.theme.MacroColors
 import com.example.kpkn.ui.tour.TourIds
 import com.example.kpkn.ui.tour.TourScripts
 import dev.chrisbanes.haze.HazeState
@@ -62,10 +57,6 @@ import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
 import java.util.Locale
-
-private val PROTEIN_COLOR = MacroColors.protein
-private val CARBS_COLOR = MacroColors.carbs
-private val FATS_COLOR = MacroColors.fat
 
 /** El menú de una fila abierto: el registro, dónde se midió la fila y si «Mover a…» está desplegado. */
 private data class NutritionFoodMenuState(
@@ -164,9 +155,8 @@ fun NutritionScreen(
     }
 
     val nutritionHazeState = remember { HazeState() }
-    // Fecha de la cabecera y de la isla («Hoy» o la fecha elegida), con el idioma efectivo de la app.
-    val nutritionLocale = LocaleManager.getEffectiveLocale(nutritionContext)
-    val dateLabel = remember(selectedDate, nutritionLocale) { nutritionHeroDateLabel(selectedDate, nutritionLocale) }
+    // Fecha de la cabecera y de la isla («Hoy» o la fecha elegida): siempre en español, sea cual sea el idioma del sistema.
+    val dateLabel = remember(selectedDate) { nutritionHeroDateLabel(selectedDate) }
     // La isla «Registrar comida» y el «+» de la isla superior usan la misma regla: sin plan, pide crear uno.
     val openFoodLogger: () -> Unit = {
         if (!isFoodLoggingAvailable(settings, activePlan != null)) {
@@ -322,15 +312,6 @@ fun NutritionScreen(
                     )
                 }
 
-                if (dailyTotals.calories > 0) {
-                    item {
-                        MacroBarsSection(
-                            dailyTotals = dailyTotals,
-                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp),
-                        )
-                    }
-                }
-
                 item {
                     NutritionSupplementsModule(
                         loaded = userStateLoaded,
@@ -357,6 +338,9 @@ fun NutritionScreen(
                 }
             }
         }
+
+        // Velo bajo la barra de estado: por encima de la lista y por debajo de las islas.
+        KpknStatusVeil(modifier = Modifier.align(Alignment.TopCenter))
 
         // Isla superior: aparece cuando la cabecera sale de la vista. Sin «+»: el registro vive en la isla de abajo.
         NutritionTopIsland(
@@ -503,21 +487,18 @@ private fun NutritionMealsBlock(
 }
 
 /**
- * La fecha del encabezado: «Jueves, 2 de octubre» en español, «Thursday, October 2» en inglés y, en cualquier otro idioma,
- * la fecha larga de ese idioma. Cada idioma arma su propio orden: el «de» solo existe en español. Si [selectedDate] no es
- * una fecha válida se muestra tal cual.
+ * La fecha del encabezado: «Miércoles 14 de octubre», con el mismo formato que Inicio (la pantalla la pone en mayúsculas por estilo).
+ * Siempre en español, con independencia del idioma del sistema. Si [selectedDate] no es una fecha válida se muestra tal cual.
  */
-internal fun nutritionHeroDateLabel(selectedDate: String, locale: Locale): String =
+internal fun nutritionHeroDateLabel(selectedDate: String): String =
     try {
-        val formatter = when (locale.language) {
-            "es" -> DateTimeFormatter.ofPattern("EEEE, d 'de' MMMM", locale)
-            "en" -> DateTimeFormatter.ofPattern("EEEE, MMMM d", locale)
-            else -> DateTimeFormatter.ofLocalizedDate(FormatStyle.FULL).withLocale(locale)
-        }
-        LocalDate.parse(selectedDate).format(formatter).replaceFirstChar { it.titlecase(locale) }
+        LocalDate.parse(selectedDate).format(NUTRITION_DATE_FORMAT).replaceFirstChar { it.titlecase(NUTRITION_DATE_LOCALE) }
     } catch (_: Exception) {
         selectedDate
     }
+
+private val NUTRITION_DATE_LOCALE: Locale = Locale.forLanguageTag("es")
+private val NUTRITION_DATE_FORMAT: DateTimeFormatter = DateTimeFormatter.ofPattern("EEEE d 'de' MMMM", NUTRITION_DATE_LOCALE)
 
 /**
  * Guardar la comida abierta es una edición si lo que se guarda lleva el id de la comida que se abrió para editar. El id
@@ -526,38 +507,3 @@ internal fun nutritionHeroDateLabel(selectedDate: String, locale: Locale): Strin
  */
 internal fun isEditSave(editingLogId: String?, saved: NutritionLog): Boolean =
     editingLogId != null && saved.id == editingLogId
-
-// ═══════════════════════════════════════════════════════════════════════
-// DISTRIBUCIÓN CALÓRICA (módulo KPKN; el reparto de energía del día)
-// ═══════════════════════════════════════════════════════════════════════
-
-/**
- * La distribución de energía del día entre P, H y G en una barra apilada de 10 dp, con los colores de los macros. Sin kcal no se pinta.
- * Va en un módulo KPKN (antes era una tarjeta de Material).
- */
-@Composable
-private fun MacroBarsSection(dailyTotals: DailyMacroTotals, modifier: Modifier = Modifier) {
-    val totalCal = dailyTotals.protein * 4 + dailyTotals.carbs * 4 + dailyTotals.fats * 9
-    val protPct = if (totalCal > 0) (dailyTotals.protein * 4 / totalCal) else 0.0
-    val carbPct = if (totalCal > 0) (dailyTotals.carbs * 4 / totalCal) else 0.0
-    val fatPct = if (totalCal > 0) (dailyTotals.fats * 9 / totalCal) else 0.0
-
-    KpknModule(modifier = modifier) {
-        KpknModuleHeader(label = "Distribución calórica")
-        Spacer(Modifier.height(12.dp))
-        if (totalCal > 0) {
-            Canvas(modifier = Modifier.fillMaxWidth().height(10.dp).clip(androidx.compose.foundation.shape.RoundedCornerShape(5.dp))) {
-                drawRect(WizardColors.glassFill)
-                var x = 0f
-                val segments = listOf(protPct to PROTEIN_COLOR, carbPct to CARBS_COLOR, fatPct to FATS_COLOR)
-                segments.forEach { (pct, color) ->
-                    val w = (size.width * pct).toFloat()
-                    if (w > 0f) {
-                        drawRect(color, Offset(x, 0f), Size(w, size.height))
-                        x += w
-                    }
-                }
-            }
-        }
-    }
-}

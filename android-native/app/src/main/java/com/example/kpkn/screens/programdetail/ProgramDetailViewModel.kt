@@ -55,7 +55,6 @@ import com.example.kpkn.domain.training.HomeWeekResolver
 import com.example.kpkn.domain.training.ProgramCalendarEngine
 import com.example.kpkn.domain.training.ProgramProgressEngine
 import com.example.kpkn.domain.training.RoadmapBlock
-import com.example.kpkn.domain.training.RoadmapLoopMarker
 import com.example.kpkn.domain.exercises.normalizedSessionStructures
 import com.example.kpkn.domain.training.SplitApplicationEngine
 import com.example.kpkn.domain.training.StartDaySessionMode
@@ -85,12 +84,8 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import java.time.LocalDate
-import kotlin.math.ceil
-import kotlin.math.floor
 
 enum class StructureSubTab { SEMANA, MACROCICLO, VOLUMEN }
-
-enum class VolumeAdjustmentResult { SUCCESS, REQUIRES_CALIBRATION, NO_WEEK_SELECTED, NO_ADJUSTABLE_VOLUME }
 
 data class ProgramDetailUiState(
     val structureSubTab: StructureSubTab = StructureSubTab.SEMANA,
@@ -217,17 +212,6 @@ class ProgramDetailViewModel(
         .map { p -> p?.let { ProgramDetailHelpers.buildRoadmapBlocks(it) } ?: emptyList() }
         .distinctUntilChanged()
         .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
-
-    val simpleRoadmapLoopMarkers: StateFlow<List<RoadmapLoopMarker>> = program
-        .map { p -> p?.let { ProgramDetailHelpers.buildSimpleRoadmapLoopMarkers(it) } ?: emptyList() }
-        .distinctUntilChanged()
-        .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
-
-    val activeBlockId: StateFlow<String?> = combine(activeProgramState, roadmapBlocks) { active, blocks ->
-        ProgramDetailHelpers.findActiveBlockId(active, programId, blocks)
-    }
-        .distinctUntilChanged()
-        .stateIn(viewModelScope, SharingStarted.Lazily, null)
 
     val currentWeeks: StateFlow<List<WeekWithMeta>> = combine(_uiState, roadmapBlocks, program) { state, blocks, p ->
         if (p == null) emptyList()
@@ -880,6 +864,13 @@ class ProgramDetailViewModel(
             val snapshot = withContext(kotlinx.coroutines.Dispatchers.IO) {
                 store.restore(current.id, snapshotId)
             } ?: return@launch
+            // P7: lo que hay ahora se guarda en el historial antes de restaurar. La copia elegida ya está en memoria, así que
+            // guardar no la puede desplazar. Si el guardado falla, no se restaura nada y el aviso sale por el snackbar.
+            val saved = runCatching { pushProgramSnapshot(current, "Antes de restaurar una copia") }
+            if (saved.isFailure) {
+                _uiState.update { it.copy(snackbarMessage = saved.exceptionOrNull()?.message ?: "No se pudo guardar la copia.") }
+                return@launch
+            }
             updateProgram(snapshot)
             selectFirstRoadmapPosition(snapshot)
             _uiState.update { it.copy(snackbarMessage = "Copia previa restaurada.") }
@@ -1061,35 +1052,6 @@ class ProgramDetailViewModel(
         }
     }
 
-    fun addAdvancedBlockFromRoadmap(name: String? = null, description: String? = null) {
-        val current = program.value ?: return
-        if (current.isSimpleTemporalProgram) return
-
-        val blocks = ProgramDetailHelpers.buildRoadmapBlocks(current)
-        val targetMacroIndex = blocks.lastOrNull()?.macroIndex ?: current.macrocycles.lastIndex.takeIf { it >= 0 } ?: return
-        val newWeek = defaultRoadmapWeek("Semana ${ProgramDetailHelpers.getTotalWeeks(current) + 1}")
-        val newBlock = defaultRoadmapBlock(
-            name = name?.trim()?.takeIf { it.isNotEmpty() } ?: "Bloque ${blocks.size + 1}",
-            description = description,
-            firstWeek = newWeek,
-        )
-
-        val updated = current.copy(
-            macrocycles = current.macrocycles.mapIndexed { macroIndex, macro ->
-                if (macroIndex == targetMacroIndex) macro.copy(blocks = macro.blocks + newBlock) else macro
-            }
-        ).normalizedTemporalStructure()
-
-        updateProgram(updated)
-        _uiState.update {
-            it.copy(
-                selectedBlockId = newBlock.id,
-                selectedWeekId = newWeek.id,
-                structureSubTab = StructureSubTab.SEMANA,
-            )
-        }
-    }
-
     private fun defaultRoadmapWeek(name: String, description: String? = null): ProgramWeek {
         return ProgramWeek(
             id = idProvider.newId(),
@@ -1104,15 +1066,6 @@ class ProgramDetailViewModel(
             name = "Mesociclo 1",
             goal = MesocycleGoal.ACCUMULATION,
             weeks = listOf(firstWeek),
-        )
-    }
-
-    private fun defaultRoadmapBlock(name: String, description: String?, firstWeek: ProgramWeek): Block {
-        return Block(
-            id = idProvider.newId(),
-            name = name,
-            description = description?.trim()?.takeIf { it.isNotEmpty() },
-            mesocycles = listOf(defaultRoadmapMesocycle(firstWeek)),
         )
     }
 
@@ -1453,12 +1406,6 @@ class ProgramDetailViewModel(
             "Esta sesión no tiene una sesión equivalente en la receta (la creaste tú o cambió de día); se conserva tu edición."
     }
 
-    fun setAutoregulationMode(mode: com.example.kpkn.data.models.AutoregulationMode) {
-        val current = program.value ?: return
-        if (current.autoregulationMode == mode) return
-        updateProgram(current.copy(autoregulationMode = mode))
-    }
-
     /**
      * «Guardar TM» (R-04). El asistente solo edita los 1RM y devuelve un perfil nuevo; se fusiona con el
      * que tiene el programa ([TrainingMaxMerge]: conserva las variantes y los TM ajustados de los
@@ -1501,7 +1448,7 @@ class ProgramDetailViewModel(
 
     private fun savedMessageFor(rebuild: Rematerialization?): String = when {
         rebuild == null -> "TM actualizado"
-        rebuild.failed -> "TM actualizado. Las cargas nuevas se aplican al pulsar RE-MATERIALIZAR."
+        rebuild.failed -> "TM actualizado. Las cargas nuevas se aplican al pulsar «Re-materializar»."
         else -> trainingMaxSavedMessage(rebuild.recalculatedWeeks, rebuild.preservedWeeks)
     }
 
@@ -1678,24 +1625,6 @@ class ProgramDetailViewModel(
         _blockTransitionBanner.value = null
     }
 
-    fun blockProgressLabel(): String? {
-        val p = program.value ?: return null
-        if (p.structure != ProgramStructure.COMPLEX) return null
-        val blocks = p.macrocycles.flatMap { it.blocks }
-        if (blocks.isEmpty()) return null
-        val activeId = activeBlockId.value ?: _uiState.value.selectedBlockId ?: blocks.first().id
-        val index = blocks.indexOfFirst { it.id == activeId }.takeIf { it >= 0 } ?: 0
-        val block = blocks[index]
-        val weeks = block.mesocycles.flatMap { it.weeks }
-        val weekId = _uiState.value.selectedWeekId
-        val weekIdx = weeks.indexOfFirst { it.id == weekId }.takeIf { it >= 0 } ?: 0
-        val goalLabel = block.goal?.label
-            ?: block.mesocycles.firstOrNull()?.goal?.label
-            ?: "Bloque"
-        val remaining = (weeks.size - weekIdx - 1).coerceAtLeast(0)
-        return "Bloque ${index + 1}/${blocks.size} · $goalLabel · quedan $remaining sem"
-    }
-
     fun previewBlockProgression(blockId: String): String? {
         val block = program.value?.macrocycles?.flatMap { it.blocks }?.firstOrNull { it.id == blockId }
             ?: return null
@@ -1764,63 +1693,6 @@ class ProgramDetailViewModel(
                 structureSubTab = StructureSubTab.SEMANA,
             )
         }
-    }
-
-    fun reduceCurrentWeekVolumeBy20Percent(): VolumeAdjustmentResult {
-        return adjustCurrentWeekVolumeByFactor(0.8)
-    }
-
-    fun increaseCurrentWeekVolumeBy20Percent(): VolumeAdjustmentResult {
-        return adjustCurrentWeekVolumeByFactor(1.2)
-    }
-
-    private fun adjustCurrentWeekVolumeByFactor(factor: Double): VolumeAdjustmentResult {
-        val current = program.value ?: return VolumeAdjustmentResult.NO_WEEK_SELECTED
-        if (current.volumeRecommendations.isEmpty() || current.athleteProfileScore == null) {
-            return VolumeAdjustmentResult.REQUIRES_CALIBRATION
-        }
-
-        val targetWeekId = when {
-            activeProgramState.value?.programId == programId && !activeProgramState.value?.currentWeekId.isNullOrBlank() ->
-                activeProgramState.value?.currentWeekId
-            !_uiState.value.selectedWeekId.isNullOrBlank() -> _uiState.value.selectedWeekId
-            else -> null
-        } ?: return VolumeAdjustmentResult.NO_WEEK_SELECTED
-
-        var changed = false
-        val updated = current.copy(
-            macrocycles = current.macrocycles.map { macro ->
-                macro.copy(
-                    blocks = macro.blocks.map { block ->
-                        block.copy(
-                            mesocycles = block.mesocycles.map { meso ->
-                                meso.copy(
-                                    weeks = meso.weeks.map { week ->
-                                        if (week.id != targetWeekId) {
-                                            week
-                                        } else {
-                                            val adjustedSessions = adjustWeekSessionsByCanonicalMuscle(
-                                                sessions = week.sessions,
-                                                factor = factor,
-                                                canonicalMuscles = current.volumeRecommendations.map {
-                                                    canonicalizeMuscleName(it.muscleGroup)
-                                                }.distinct(),
-                                            )
-                                            if (adjustedSessions != week.sessions) changed = true
-                                            week.copy(sessions = adjustedSessions)
-                                        }
-                                    }
-                                )
-                            }
-                        )
-                    }
-                )
-            }
-        )
-
-        if (!changed) return VolumeAdjustmentResult.NO_ADJUSTABLE_VOLUME
-        repository.updateProgram(updated)
-        return VolumeAdjustmentResult.SUCCESS
     }
 
     fun deleteSession(
@@ -2032,118 +1904,6 @@ class ProgramDetailViewModel(
         return lastEnd?.plusDays(1)
             ?: program.timelineStartDate?.let(::parseIsoDate)
             ?: appClock.today(java.time.ZoneId.systemDefault())
-    }
-
-    private fun adjustWeekSessionsByCanonicalMuscle(
-        sessions: List<Session>,
-        factor: Double,
-        canonicalMuscles: List<String>,
-    ): List<Session> {
-        val exerciseNodes = collectExerciseNodes(sessions)
-        if (exerciseNodes.isEmpty()) return sessions
-
-        val mutableSetCounts = exerciseNodes.associate { it.exerciseId to it.setCount }.toMutableMap()
-        val muscleToExercises = linkedMapOf<String, MutableSet<String>>()
-
-        exerciseNodes.forEach { node ->
-            node.muscles.forEach { muscle ->
-                muscleToExercises.getOrPut(muscle) { linkedSetOf() }.add(node.exerciseId)
-            }
-        }
-
-        val orderedMuscles = (canonicalMuscles + muscleToExercises.keys).distinct()
-        var changed = false
-
-        orderedMuscles.forEach { muscle ->
-            val candidates = muscleToExercises[muscle].orEmpty().toList()
-            if (candidates.isEmpty()) return@forEach
-
-            val currentTotal = candidates.sumOf { mutableSetCounts[it] ?: 0 }
-            if (currentTotal == 0) return@forEach
-
-            val targetTotal = computeTargetSetTotal(currentTotal, factor)
-            when {
-                targetTotal > currentTotal -> {
-                    if (increaseMuscleVolume(candidates, mutableSetCounts, targetTotal - currentTotal)) {
-                        changed = true
-                    }
-                }
-                targetTotal < currentTotal -> {
-                    if (decreaseMuscleVolume(candidates, mutableSetCounts, currentTotal - targetTotal)) {
-                        changed = true
-                    }
-                }
-            }
-        }
-
-        if (!changed) return sessions
-        return sessions.map { applySetCountsToSession(it, mutableSetCounts) }
-    }
-
-    private fun computeTargetSetTotal(currentTotal: Int, factor: Double): Int {
-        if (currentTotal <= 0) return 0
-        return if (factor >= 1.0) {
-            ceil(currentTotal * factor).toInt()
-        } else {
-            floor(currentTotal * factor).toInt().coerceAtLeast(1)
-        }
-    }
-
-    private fun increaseMuscleVolume(
-        candidates: List<String>,
-        setCounts: MutableMap<String, Int>,
-        delta: Int,
-    ): Boolean {
-        if (delta <= 0 || candidates.isEmpty()) return false
-        var remaining = delta
-        var changed = false
-        val ordered = candidates.sortedWith(compareBy({ setCounts[it] ?: 0 }, { it }))
-
-        while (remaining > 0) {
-            ordered.forEach { exerciseId ->
-                setCounts[exerciseId] = (setCounts[exerciseId] ?: 0) + 1
-                remaining--
-                changed = true
-                if (remaining <= 0) return changed
-            }
-        }
-
-        return changed
-    }
-
-    private fun decreaseMuscleVolume(
-        candidates: List<String>,
-        setCounts: MutableMap<String, Int>,
-        delta: Int,
-    ): Boolean {
-        if (delta <= 0 || candidates.isEmpty()) return false
-        var remaining = delta
-        var changed = false
-
-        while (remaining > 0) {
-            val ordered = candidates.sortedByDescending { setCounts[it] ?: 0 }
-            var reducedThisRound = false
-
-            ordered.forEach { exerciseId ->
-                val currentCount = setCounts[exerciseId] ?: 0
-                if (currentCount > 1 && remaining > 0) {
-                    setCounts[exerciseId] = currentCount - 1
-                    remaining--
-                    changed = true
-                    reducedThisRound = true
-                }
-            }
-
-            if (!reducedThisRound) break
-        }
-
-        return changed
-    }
-
-    private fun collectExerciseNodes(sessions: List<Session>): List<ExerciseNode> {
-        val nodes = mutableListOf<ExerciseNode>()
-        sessions.forEach { session -> collectExerciseNodesFromSession(session, nodes) }
-        return nodes
     }
 
     private fun collectExerciseNodesFromSession(session: Session, destination: MutableList<ExerciseNode>) {

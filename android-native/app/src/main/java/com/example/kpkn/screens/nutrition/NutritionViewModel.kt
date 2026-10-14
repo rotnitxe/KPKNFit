@@ -6,7 +6,6 @@ import com.example.kpkn.data.models.*
 import com.example.kpkn.data.repository.NutritionRepository
 import com.example.kpkn.data.repository.ProgramRepository
 import com.example.kpkn.domain.energy.TrainingEnergyEngine
-import com.example.kpkn.domain.body.latestValidByMetric
 import com.example.kpkn.domain.nutrition.*
 import com.example.kpkn.domain.time.ActivityLocalDate
 import com.example.kpkn.domain.training.AppClock
@@ -238,23 +237,6 @@ class NutritionViewModel(
         .distinctUntilChanged()
         .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
-    // ─── Derived: Macro Ring Percentages ─────────────────────────────────────
-
-    val macroRingPct: StateFlow<MacroRingPct> = combine(
-        dailyTotals, goals
-    ) { totals, g ->
-        val dayGoals = (g as? DayGoalsResult.Present)?.goals
-        computeMacroRingPct(
-            totals,
-            dayGoals?.calorieGoal,
-            dayGoals?.proteinGoal,
-            dayGoals?.carbGoal,
-            dayGoals?.fatGoal,
-        )
-    }
-        .distinctUntilChanged()
-        .stateIn(viewModelScope, SharingStarted.Lazily, MacroRingPct())
-
     // ─── Derived: Trend Data ────────────────────────────────────────────────
 
     val trendData: StateFlow<List<TrendPoint>> = combine(
@@ -483,21 +465,6 @@ class NutritionViewModel(
         viewModelScope.launch {
             runCatching { nutritionRepo.saveNutritionLog(duplicated) }
         }
-    }
-
-    fun createPlan(plan: NutritionPlan) {
-        val vitals = programRepo.settings.value.userVitals
-        val latest = latestValidByMetric(nutritionRepo.bodyProgressRepository.observations.value)
-        val withStart = plan.copy(
-            startValue = plan.startValue ?: when (plan.typedBodyGoal?.metric ?: plan.goalType) {
-                GoalMetric.WEIGHT -> latest[BodyMetric.WEIGHT]?.valueSi ?: vitals.weight
-                GoalMetric.BODY_FAT -> latest[BodyMetric.BODY_FAT_PERCENT]?.valueSi ?: vitals.bodyFatPercentage
-                GoalMetric.MUSCLE_MASS -> latest[BodyMetric.MUSCLE_MASS_PERCENT]?.valueSi ?: vitals.muscleMassPercentage
-            },
-        )
-        nutritionRepo.addNutritionPlan(withStart)
-        nutritionRepo.activatePlan(withStart.id)
-        applyPlanToSettings(withStart)
     }
 
     fun activatePlan(planId: String) {

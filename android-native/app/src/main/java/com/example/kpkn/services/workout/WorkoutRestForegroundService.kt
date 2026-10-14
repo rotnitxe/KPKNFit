@@ -208,7 +208,8 @@ class WorkoutRestForegroundService : Service() {
         return KpknDeepLinks.pendingActivityIntent(
             context = this,
             requestCode = REQUEST_CODE_OPEN,
-            path = "training",
+            // LS3: abre la sesión en curso; sin ella, la pestaña Entreno.
+            path = currentWorkoutNotificationPath(),
         )
     }
 
@@ -258,7 +259,7 @@ class WorkoutRestForegroundService : Service() {
         )
         return NotificationCompat.Action.Builder(
             R.mipmap.ic_launcher,
-            "-15s",
+            "−15 s",
             pending,
         ).build()
     }
@@ -275,7 +276,7 @@ class WorkoutRestForegroundService : Service() {
         )
         return NotificationCompat.Action.Builder(
             R.mipmap.ic_launcher,
-            "+15s",
+            "+15 s",
             pending,
         ).build()
     }

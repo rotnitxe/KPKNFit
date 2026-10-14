@@ -516,13 +516,6 @@ object LoopEngine {
         }
     }
 
-    fun getLoopTypeEmoji(type: LoopType): String = when (type) {
-        LoopType.ONE_RM_TEST -> "\uD83C\uDFCB\uFE0F"
-        LoopType.DELOAD -> "\uD83E\uDDD8"
-        LoopType.COMPETITION -> "\uD83C\uDFC6"
-        LoopType.CUSTOM -> "\u26A1"
-    }
-
     fun getLoopTypeLabel(type: LoopType): String = when (type) {
         LoopType.ONE_RM_TEST -> "Test 1RM"
         LoopType.DELOAD -> "Descarga"

@@ -9,6 +9,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
@@ -84,10 +86,19 @@ internal fun CatalogListHeader(
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp),
         )
+        // El chip de músculo es el último de la fila: con un músculo elegido (o con su selector abierto), la fila se desplaza hasta el
+        // final para que «Pectorales» se lea entero y no quede cortado en el borde (SE6b).
+        val chipRowScroll = rememberScrollState()
+        LaunchedEffect(filterMuscle, muscleFilterExpanded) {
+            if (filterMuscle != null || muscleFilterExpanded) {
+                withFrameNanos { }
+                chipRowScroll.animateScrollTo(chipRowScroll.maxValue)
+            }
+        }
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .horizontalScroll(rememberScrollState())
+                .horizontalScroll(chipRowScroll)
                 .padding(horizontal = 16.dp),
             horizontalArrangement = Arrangement.spacedBy(8.dp),
             verticalAlignment = Alignment.CenterVertically,

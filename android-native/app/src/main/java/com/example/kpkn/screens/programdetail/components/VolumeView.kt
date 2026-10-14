@@ -23,7 +23,9 @@ import com.example.kpkn.data.models.ProgramMode
 import com.example.kpkn.data.models.ProgramWeek
 import com.example.kpkn.data.models.VolumeRecommendation
 import com.example.kpkn.data.models.WorkoutLog
+import com.example.kpkn.data.models.isSimpleProgram
 import com.example.kpkn.data.models.isSimpleTemporalProgram
+import com.example.kpkn.screens.programdetail.design.volumeScopeLabelOf
 import com.example.kpkn.domain.exercises.ExerciseMuscleResolver
 import com.example.kpkn.domain.exercises.MuscleHeadResolution
 import com.example.kpkn.domain.exercises.exerciseDisplayName
@@ -248,7 +250,7 @@ fun VolumeView(
     }
 
     val scope = ProgramVolumeScope(
-        label = selectedVolumeScope?.label ?: "Sin alcance",
+        label = volumeScopeLabelOf(selectedVolumeScope?.label ?: "Sin alcance", simpleProgram = program.isSimpleProgram),
         detail = selectedVolumeScope?.detail.orEmpty(),
         kinds = scopeKinds.map(::volumeKindLabel),
         selectedKind = selectedKind,
@@ -275,7 +277,10 @@ fun VolumeView(
         }
 
         if (!isVolumeCalibrated || program.athleteProfileScore == null) {
-            ProgramVolumeCalibrationInvite(onCalibrate = { showCalibrationSheet = true })
+            ProgramVolumeCalibrationInvite(
+                onCalibrate = { showCalibrationSheet = true },
+                note = if (!isVolumeCalibrated) "Sin calibrar: las zonas aparecen al calibrar" else null,
+            )
         }
 
         ProgramVolumeModule(
@@ -556,32 +561,10 @@ private fun calculateExerciseBreakdownForMuscle(
         .sortedByDescending { it.weeklySetsContribution }
 }
 
-/**
- * Texto de estado de un músculo con su cifra, en la forma de antes de P4. La pestaña pinta ahora el estado con su color y su etiqueta
- * (`ProgramVolumeStates`); esta función se conserva porque la prueba `ProgramHeroWidgetsCalibrationTest`.
- */
-internal fun buildMuscleStatusText(
-    weeklySets: Double,
-    target: PersonalizedVolumeTarget?,
-    isVolumeCalibrated: Boolean,
-): String {
-    if (!isVolumeCalibrated || target == null) {
-        return "${formatOneDecimal(weeklySets)} series/sem"
-    }
-
-    val status = when {
-        weeklySets < target.minEffective -> "Subentrenado"
-        weeklySets == target.minEffective.toDouble() -> "Base mínima"
-        weeklySets <= target.maxAdaptive -> "Rango ideal"
-        weeklySets <= target.maxRecoverable -> "Alto tolerable"
-        else -> "Sobreentreno"
-    }
-    return "$status · ${formatOneDecimal(weeklySets)} series/sem"
-}
-
 private val monthDayFormatter: DateTimeFormatter = DateTimeFormatter.ofPattern("MM/dd", Locale.US)
 
 private fun formatOneDecimal(value: Double): String = String.format(Locale.US, "%.1f", value)
+
 private data class SubMuscleContribution(
     val subMuscleName: String,
     val weeklySets: Double,

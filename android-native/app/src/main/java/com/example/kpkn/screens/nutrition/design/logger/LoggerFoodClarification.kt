@@ -17,6 +17,21 @@ import com.example.kpkn.screens.onboarding.design.WizardColors
 import com.example.kpkn.ui.design.KpknChip
 import com.example.kpkn.ui.design.KpknType
 
+/** Composiciones de la tortilla que ofrece el chip «De …» (N3b): su respuesta corta es la misma tortilla que el candidato «Tortilla de …». */
+private val TORTILLA_COMPOSITIONS = listOf("maíz", "huevo", "papas")
+
+/**
+ * Los candidatos de una pregunta de identidad, sin repetir la respuesta corta (N6): en la tortilla, «Tortilla de maíz» y «De maíz» llevan
+ * al mismo alimento, así que solo queda «De maíz». Lo demás se muestra igual y lo que pasa al elegir no cambia.
+ */
+internal fun clarificationCandidateChoices(question: ClarificationRequest.Identity): List<Pair<String, String>> {
+    val choices = question.candidateIds.zip(question.candidateLabels).take(4)
+    if (question.requestId != "tortilla_composition") return choices
+    return choices.filterNot { (_, label) ->
+        TORTILLA_COMPOSITIONS.any { composition -> label.equals("Tortilla de $composition", ignoreCase = true) }
+    }
+}
+
 /**
  * Aclaración pendiente de un alimento (N3b): la pregunta en `body`, su detalle en `caption` y las respuestas en `KpknChip`. Cada respuesta
  * llama a su acción de [actions]. El chip de [FoodClarificationPrompt.reviewAmountLabel] abre los gramos ([onReviewAmount]) y el de
@@ -49,11 +64,11 @@ internal fun LoggerFoodClarification(
             }
             when (question) {
                 is ClarificationRequest.Identity -> {
-                    question.candidateIds.zip(question.candidateLabels).take(4).forEach { (id, label) ->
+                    clarificationCandidateChoices(question).forEach { (id, label) ->
                         KpknChip(text = label, selected = false, onClick = { actions.onIdentityChoice(id) })
                     }
                     if (question.requestId == "tortilla_composition") {
-                        listOf("maíz", "huevo", "papas").forEach { composition ->
+                        TORTILLA_COMPOSITIONS.forEach { composition ->
                             KpknChip(
                                 text = "De $composition",
                                 selected = false,

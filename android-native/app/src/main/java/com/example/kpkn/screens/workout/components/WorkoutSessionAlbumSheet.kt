@@ -5,17 +5,14 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
-import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -23,19 +20,26 @@ import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.example.kpkn.data.models.WorkoutMedia
 import com.example.kpkn.data.models.WorkoutMediaKind
+import com.example.kpkn.screens.onboarding.design.WizardColors
+import com.example.kpkn.ui.components.KpknSheet
 import com.example.kpkn.ui.components.LocalMediaImage
+import com.example.kpkn.ui.components.icons.KpknLineIcons
 import com.example.kpkn.ui.components.rememberLocalMediaImageSource
+import com.example.kpkn.ui.design.KpknEmptyState
+import com.example.kpkn.ui.design.KpknType
 import java.io.File
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
-@OptIn(ExperimentalMaterial3Api::class)
+/**
+ * Álbum de la sesión (LS6): una hoja KPKN con la rejilla de fotos y vídeos; sin medios, un estado vacío. Cada medio se abre en
+ * [WorkoutMediaPreviewDialog].
+ */
 @Composable
 fun WorkoutSessionAlbumSheet(
     media: List<WorkoutMedia>,
@@ -43,40 +47,34 @@ fun WorkoutSessionAlbumSheet(
     onDelete: (String) -> Unit = {},
     poseOverlayEnabled: Boolean = false,
 ) {
-    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     var preview by remember { mutableStateOf<WorkoutMedia?>(null) }
-    ModalBottomSheet(
-        onDismissRequest = onDismiss,
-        sheetState = sheetState,
-        shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
-    ) {
+    KpknSheet(onDismissRequest = onDismiss) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp, vertical = 8.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             Text(
-                "Álbum de esta sesión",
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold,
+                text = "Álbum de esta sesión",
+                style = KpknType.title,
+                color = WizardColors.text,
             )
             if (media.isEmpty()) {
-                Text(
-                    "Todavía no hay fotos ni vídeos en esta sesión.",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
-                    modifier = Modifier.padding(bottom = 24.dp),
+                KpknEmptyState(
+                    icon = KpknLineIcons.Layers,
+                    title = "Todavía no hay fotos ni vídeos",
+                    body = "Las fotos y los vídeos de esta sesión aparecen aquí.",
                 )
             } else {
                 LazyVerticalGrid(
                     columns = GridCells.Adaptive(96.dp),
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(360.dp),
+                        .heightIn(max = 420.dp),
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp),
-                    contentPadding = PaddingValues(bottom = 24.dp),
+                    contentPadding = PaddingValues(bottom = 16.dp),
                 ) {
                     items(media, key = { it.id }) { item ->
                         WorkoutMediaThumb(

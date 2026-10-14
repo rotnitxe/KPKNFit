@@ -1915,27 +1915,31 @@ internal fun WorkoutV2Body(
                             LivePageType.REST -> {
                                 val restState = uiState.restModalState
                                 val total = (restState?.activeSeconds ?: restState?.plannedSeconds ?: 90).coerceAtLeast(1)
-                                com.example.kpkn.screens.workout.components.RestLiveCard(
+                                // LS3: el descanso único ocupa el sitio del panel de la serie (la misma página del pager).
+                                com.example.kpkn.screens.workout.design.WorkoutRestPanel(
                                     remainingSeconds = restTimerRemaining.coerceAtLeast(0),
                                     totalSeconds = total,
-                                    sessionAccentColor = sessionAccentColor,
-                                    restState = restState,
-                                    pendingRestSuggestion = uiState.pendingRestSuggestion,
-                                    lastSetOutcome = uiState.lastSetOutcomeV2,
-                                    lastCompletedSet = uiState.setJustLoggedKey?.let { uiState.completedSets[it] },
-                                    onDecrease = { viewModel.addRestTime(-15) },
-                                    onIncrease = { viewModel.addRestTime(15) },
+                                    nextLine = restNextLineFor(
+                                        kind = restState?.kind,
+                                        setJustLoggedKey = uiState.setJustLoggedKey,
+                                        completedSetKeys = uiState.completedSets.keys,
+                                        visibleExercises = visibleExercises,
+                                    ),
+                                    suggestedSeconds = uiState.pendingRestSuggestion
+                                        ?.takeIf { !isAdaptiveRestActive(restState, uiState.pendingRestSuggestion) }
+                                        ?.adaptiveSeconds,
+                                    onAdjustSeconds = { viewModel.addRestTime(it) },
                                     onSkip = { viewModel.stopRestTimer() },
-                                    onUseAdaptive = { viewModel.resolvePendingRestSuggestion(useAdaptive = true) },
-                                    onExpand = { viewModel.toggleRestMinimized() },
-                                    isAdaptiveActive = isAdaptiveRestActive(restState, uiState.pendingRestSuggestion),
-                                    skipExerciseLabel = skipExerciseLabel,
-                                    onSkipExercise = onSkipExercise,
+                                    onUseSuggestion = { viewModel.resolvePendingRestSuggestion(useAdaptive = true) },
+                                    modifier = Modifier.fillMaxWidth().fillMaxHeight(),
                                     relatorText = relatorResolution.text,
                                     relatorPhaseKey = relatorResolution.phaseKey,
                                     relatorActions = relatorResolution.actions,
                                     onRelatorAction = { viewModel.performRelatorAssist(it) },
-                                    modifier = Modifier.fillMaxWidth().fillMaxHeight(),
+                                    accentColor = sessionAccentColor,
+                                    notices = restNoticesFor(restState),
+                                    skipExerciseLabel = skipExerciseLabel,
+                                    onSkipExercise = onSkipExercise,
                                 )
                             }
                             LivePageType.NORMAL -> {

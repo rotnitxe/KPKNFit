@@ -103,21 +103,18 @@ class ProgramOneRmRenderSheetTest {
                 valuesKg = emptyMap(),
                 unit = "kg",
                 onValueKg = { _, _ -> },
-                onUnit = {},
                 onSave = { _, _, _ -> },
             )
             "oneRmValues" -> OneRmSheetBody(
                 valuesKg = ProgramOneRmSamples.testedKg,
                 unit = "kg",
                 onValueKg = { _, _ -> },
-                onUnit = {},
                 onSave = { _, _, _ -> },
             )
             "oneRmLb" -> OneRmSheetBody(
                 valuesKg = ProgramOneRmSamples.testedKg,
                 unit = "lb",
                 onValueKg = { _, _ -> },
-                onUnit = {},
                 onSave = { _, _, _ -> },
             )
             "tmPreview" -> TrainingMaxContent(

@@ -12,6 +12,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.example.kpkn.screens.onboarding.design.WizardColors
@@ -44,7 +46,11 @@ internal fun ProgramPhasesModule(
     onAddWeek: ((blockId: String) -> Unit)? = null,
 ) {
     KpknModule(modifier = modifier.fillMaxWidth()) {
-        KpknModuleHeader(label = "Fases")
+        // Las fases son círculos interactivos: el resumen va en la cabecera para quien no los recorre uno a uno.
+        KpknModuleHeader(
+            label = "Fases",
+            modifier = Modifier.semantics { contentDescription = "Fases del programa. ${phasesSummary(blocks)}" },
+        )
         blocks.forEachIndexed { index, block ->
             Spacer(Modifier.height(if (index == 0) 12.dp else 18.dp))
             PhaseEyebrow(block)
@@ -60,6 +66,17 @@ internal fun ProgramPhasesModule(
         }
     }
 }
+
+/**
+ * Resumen de las fases para lectores de pantalla (P7): cada bloque con sus semanas y la que está en curso, separados por «;».
+ */
+internal fun phasesSummary(blocks: List<ProgramPhaseBlockUi>): String =
+    blocks.joinToString(separator = "; ") { block ->
+        val count = block.weeks.size
+        val weeks = if (count == 1) "1 semana" else "$count semanas"
+        val current = block.weeks.firstOrNull { it.isCurrent }?.let { ", semana ${it.number} en curso" }.orEmpty()
+        "${block.eyebrow.lowercase(Locale("es"))}, $weeks$current"
+    }
 
 /** El eyebrow de un bloque: su nombre en mayúsculas, en el color de su fase (o en `textMuted` si no se sabe). */
 @Composable

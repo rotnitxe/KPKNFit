@@ -156,3 +156,57 @@ Program Detail es la pestaña **Entreno** de quien tiene un programa activo: la 
 | P5 | SplitView como hoja «Cambiar reparto» | P2 |
 | P6 | 1RM con la regla de marcas, calibrar volumen, copiar semana y borrar sesión | P2 |
 | P7 | Cierre: hoja de render de la pantalla completa (tres pestañas, 360 dp, 100 % y 130 %), accesibilidad y docs | todos |
+
+## Estado (P7)
+
+Cierre de Program Detail (2026-10-13). Por punto de la especificación:
+
+- **§1 Qué falla hoy:** lo cubren P0 a P6. P7 cierra lo que quedaba: código muerto, textos, accesibilidad y la hoja de render.
+- **§2 Cabecera y pestañas:** sin cambios de P7 salvo los textos y la accesibilidad de los menús.
+- **Pestaña Semana:** las fases tienen su resumen accesible en la cabecera del módulo. El distintivo de progresiones es un botón con rol.
+- **Pestaña Estructura:**
+  - el menú «⋯» de cada bloque ofrece «Añadir semana», «Añadir mesociclo», «Editar bloque» y «Eliminar bloque»;
+  - «Añadir semana» queda en el pie solo del último bloque;
+  - un programa simple no tiene menú, así que conserva «Añadir semana» y «Añadir mesociclo» en el pie;
+  - las plantillas de ciclo son un módulo con una fila por plantilla y «Añadir»;
+  - restaurar una copia guarda antes la copia actual en el historial;
+  - los avisos del motor que se ven aquí están en lenguaje llano;
+  - «Sin fecha» es el único texto para un dato vacío, y la fila de días de entreno lleva su etiqueta.
+- **Pestaña Volumen:** la barra apilada del reparto tiene una descripción con sus porcentajes.
+- **Cambiar reparto:**
+  - leyenda de roles bajo el diagrama de «Tu reparto» y de las hojas de aplicar y comparar, con círculos de 12 dp;
+  - Cuerpo completo va en tinta, separado del lila de torso;
+  - el módulo entero abre la hoja de aplicar, sin botón «Aplicar» ni icono de información;
+  - la descripción y los beneficios y precauciones pasan a la hoja de aplicar;
+  - la disponibilidad de los repartos se calcula en `produceState` con `Dispatchers.Default` y, hasta que llega, no se marca nada;
+  - «Sesiones pre-creadas» pasa a «Con ejercicios de plantilla».
+- **Diálogos y hojas:** las confirmaciones de «Eliminar» usan la píldora de peligro. Los botones principales de las hojas van a todo el ancho, con la acción de peligro o de cancelar debajo.
+- **1RM y TM:** la nota de la regla sale solo en «Mi mejor serie». Las hojas no tienen conmutador de unidad y usan la de Ajustes, la misma que Cuerpo. La vista previa del TM es una fila por levantamiento con TM («Sentadilla · TM 124 kg») y no se pinta sin ningún valor.
+- **Biblioteca de programas:** la lista pinta la portada de estudio (`kpkn-studio://`) con el mismo motor que la cabecera; el diseño de la lista no cambia.
+- **Idioma:** «Loop activo» pasa a «Ciclo activo»; el botón «OK» pasa a «Entendido»; «...» pasa a «…».
+- **Accesibilidad:** los velos de los menús se anuncian como «Cerrar el menú» y tienen rol de botón.
+
+**Código muerto.** Se borró con confirmación por búsqueda en `main`, `test` y `androidTest`:
+
+- `MacrocycleEditorLegacy.kt`: 16 declaraciones (`MacrocycleToolbar`, `ToolbarStatChip`, `LegacySimpleCalendarizationSheet`, `WeekStartSelector`, `CalendarDayChecklist`, `LegacyKeyDatesManagementSheet`, `NativeDateField`, `WeekStartDatePickerDialog`, `CalendarPreviewCard`, `CalendarPreviewLine`, `KeyDateTypeBadge`, `LegacyKeyDateDialog`, `LegacyLibrarySection`, `dateSummary`, `dayFullLabel`, `rotatedWeekDays`), más la cadena `keyDateTracks` (con `KeyDateTrack`, `KeyDateTrackSlot`, `KeyDateTrackKind` y `buildKeyDateTrack`) y el parámetro `onCreateSessionForWeek`.
+- `ProgramDetailScreen.kt`: `createSessionForWeek`, `addSessionForWeek`, `locateWeekForSessionCreation`, `chooseSessionCreationDay` y `WeekSessionLocation`.
+- `ProgramDetailViewModel.kt`: `simpleRoadmapLoopMarkers`, `addAdvancedBlockFromRoadmap`, `setAutoregulationMode`, `blockProgressLabel`, `reduceCurrentWeekVolumeBy20Percent`, `increaseCurrentWeekVolumeBy20Percent`, `adjustCurrentWeekVolumeByFactor`, `activeBlockId`, `defaultRoadmapBlock`, `adjustWeekSessionsByCanonicalMuscle`, `computeTargetSetTotal`, `increaseMuscleVolume`, `decreaseMuscleVolume`, `collectExerciseNodes`, y el enum `VolumeAdjustmentResult`.
+- `components/SessionCard.kt` (249 líneas): su prueba de render pinta ahora `ProgramDayModule`.
+- `components/ProgramAnalyticsCards.kt`: `ProgressAnalyticsCard` y `HistoryAnalyticsCard`.
+- `components/VolumeView.kt`: `buildMuscleStatusText`. Sus pruebas conservan las comprobaciones de dominio de la calibración.
+- `domain/training/LoopEngine.kt`: `getLoopTypeEmoji`.
+- `screens/programs/ProgramsViewModel.kt`: `navigateToProgram`.
+- `design/split/SplitInfoDialog.kt` (54 líneas): su contenido pasa a la hoja de aplicar.
+
+**Lo que no se hizo, y por qué:**
+
+- **Sobrecarga de textos de `KpknAlertDialog` (4c):** en `programdetail/` no hay ninguna llamada con `title: String` y `confirmLabel`. Se aplicó el mismo criterio con `KpknDangerPill` en el botón de confirmar de las tres confirmaciones de «Eliminar» (`ProgramDayDialogs`, `ProgramStructureDialogs` y `ProgramCyclesSheet`).
+- **Funciones que el brief daba como sin uso y ya no existían:** `StatChip`, `InsightChip`, `totalAdherence`, `weeklyAdherence`, `clearCompetitionKeyDate`, `confirmPendingOneRmTestAndContinue` y `toggleCalendarizationTrainingDay`. `updateStartDay` sigue en uso con tres parámetros, así que no se tocó.
+- **Solo en pruebas, sin borrar:** `planChipLabel` y `createProgramFromTemplate` (sin uso en la app y con sus propias pruebas, fuera de la lista del brief) y `ProgramDetailHelpers.buildSimpleRoadmapLoopMarkers` (lógica de dominio con pruebas).
+- **Mayúsculas en los nombres de músculos del volumen:** «Erectores Espinales» y similares son claves de la lógica de grupos; cambiarlas arriesga el cálculo.
+- **Símbolo «✓» del importador de programas y «Comienza Hoy» en la lista:** no se ven desde Program Detail.
+- **Línea «TM: …» de «Sobre este programa» (`PlanDetailsSummary`):** sigue mostrando «—» en los levantamientos sin marca. No es la hoja de TM y el brief no la incluía.
+- **Isla al hacer scroll en la hoja de render:** la escena es un fotograma fijo; la prueba no simula el desplazamiento.
+- **Mapa de la pantalla en la hoja de render:** la hoja compone las piezas con los datos de muestra de `ProgramDetailSamples`, no la pantalla entera con su ViewModel.
+- **Rejilla de herramientas de bloques:** sigue con cinco baldosas, sin «Ciclos», porque `ProgramStructureToolsTest` fija ese conjunto; la fila incompleta se centra con baldosas del mismo ancho, así que no queda hueco.
+- **Hoja de render (crítica en dos rondas):** la coherencia entre pestañas se corrigió (semana 3 en la cabecera y en las fases, «Sobre este programa» en todas, etiquetas con un solo peso). Quedan dos detalles: algunas capturas tienen espacio negro sobrante bajo el contenido, que solo afecta al recorte, y al 130 % las cifras «Músculos activos» y «Más cargado» del resumen quedan juntas, sin solaparse.

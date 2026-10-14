@@ -4,39 +4,29 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.KeyboardArrowDown
-import androidx.compose.material.icons.filled.KeyboardArrowUp
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.Checkbox
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.FilledTonalButton
-import androidx.compose.material3.HorizontalDivider
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -46,14 +36,15 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.layout.boundsInWindow
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.DialogProperties
 import com.example.kpkn.data.models.ExerciseMuscleInfo
 import com.example.kpkn.data.sessions.SessionTemplate
 import com.example.kpkn.data.sessions.SessionTemplateDurationClass
@@ -63,6 +54,7 @@ import com.example.kpkn.data.splits.Difficulty
 import com.example.kpkn.data.splits.SPLIT_TEMPLATES
 import com.example.kpkn.data.splits.isVisibleForApplication
 import com.example.kpkn.domain.templates.SessionTemplateDurationBucket
+import com.example.kpkn.domain.templates.SessionTemplateFacets
 import com.example.kpkn.domain.templates.TemplateCatalogFilterLogic
 import com.example.kpkn.domain.templates.TemplateCatalogFilters
 import com.example.kpkn.domain.templates.TemplateCatalogNestedGroup
@@ -71,21 +63,23 @@ import com.example.kpkn.domain.templates.TemplateGroupMode
 import com.example.kpkn.domain.templates.TemplateSessionGoal
 import com.example.kpkn.domain.templates.TemplateSessionType
 import com.example.kpkn.domain.templates.TemplateSessionZone
-import com.example.kpkn.screens.sessioneditor.CompactCatalogFilterChip
-import com.example.kpkn.ui.components.KpknDropdownMenu
-import kotlinx.coroutines.launch
-import androidx.compose.foundation.layout.defaultMinSize
-import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.semantics.Role
 import com.example.kpkn.screens.onboarding.design.WizardColors
-import com.example.kpkn.ui.components.KpknAlertConfirmButton
+import com.example.kpkn.screens.onboarding.design.entreno.SymbolPalette
 import com.example.kpkn.ui.components.KpknAlertDialog
-import com.example.kpkn.ui.components.KpknAlertDismissButton
+import com.example.kpkn.ui.components.KpknSheet
 import com.example.kpkn.ui.components.icons.KpknLineIcons
+import com.example.kpkn.ui.design.KpknChip
 import com.example.kpkn.ui.design.KpknCheckRow
-import com.example.kpkn.ui.design.KpknRadioRow
+import com.example.kpkn.ui.design.KpknContextMenu
+import com.example.kpkn.ui.design.KpknEmptyState
+import com.example.kpkn.ui.design.KpknModule
+import com.example.kpkn.ui.design.KpknPrimaryPill
+import com.example.kpkn.ui.design.KpknSurface
+import com.example.kpkn.ui.design.KpknTextAction
 import com.example.kpkn.ui.design.KpknTextField
 import com.example.kpkn.ui.design.KpknType
+import java.util.Locale
+import kotlinx.coroutines.launch
 
 /**
  * Result-driven state for the USER-template save dialog.  The dialog owns this
@@ -148,6 +142,10 @@ private val VisibleGroupModes = listOf(
     TemplateGroupMode.DURATION,
 )
 
+/**
+ * Pestaña de plantillas (SE4b): «Mis plantillas» en su módulo, con «Guardar esta sesión» en la cabecera; la fila de filtros; y el catálogo
+ * de KPKN en módulos por grupo. Filtros, búsqueda, guardado, edición, archivado y borrado conservan su lógica.
+ */
 @Composable
 internal fun TemplateCatalogBrowser(
     templates: List<SessionTemplate>,
@@ -175,21 +173,16 @@ internal fun TemplateCatalogBrowser(
     onSaveCurrentTemplate: suspend (String, String) -> Result<SessionTemplate> = { _, _ ->
         Result.failure(IllegalStateException("Guardado de plantillas no disponible en esta superficie"))
     },
-    glassDark: Boolean = false,
+    /** Resumen de la sesión que «Guardar esta sesión» guardaría, p. ej. «6 ejercicios · 22 series». Sin él, el diálogo no lo muestra. */
+    sessionSummary: String? = null,
     modifier: Modifier = Modifier,
 ) {
-    val titleColor = if (glassDark) Color.White else MaterialTheme.colorScheme.primary
-    val bodyColor = if (glassDark) Color.White else MaterialTheme.colorScheme.onSurface
-    val mutedColor = if (glassDark) Color.White.copy(alpha = 0.55f) else MaterialTheme.colorScheme.onSurfaceVariant
-    val rowBg = if (glassDark) Color.White.copy(alpha = 0.06f) else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.2f)
     var templateBeingEdited by remember { mutableStateOf<SessionTemplate?>(null) }
-    var showSaveDialog by remember { mutableStateOf(false) }
+    var showSaveSheet by remember { mutableStateOf(false) }
     var pendingDeleteId by remember { mutableStateOf<String?>(null) }
 
-    // Keep first paint independent from the expensive AUGE/ring calculation.
-    // Duration and difficulty filters already have metadata fallbacks; detailed
-    // facets are calculated lazily only when a card is expanded.
-    val facetsById = emptyMap<String, com.example.kpkn.domain.templates.SessionTemplateFacets>()
+    // La primera pintura no espera al cálculo de AUGE: las facetas de cada fila se calculan en segundo plano, al pintarla.
+    val facetsById = emptyMap<String, SessionTemplateFacets>()
     val splits = remember { SPLIT_TEMPLATES.filter { it.id != "custom" && it.isVisibleForApplication } }
 
     var groupMode by rememberSaveable { mutableStateOf(TemplateGroupMode.MUSCLE_GROUP.name) }
@@ -225,14 +218,26 @@ internal fun TemplateCatalogBrowser(
     val filteredTemplates = remember(templates, facetsById, filters) {
         TemplateCatalogFilterLogic.filterTemplates(templates, facetsById, filters)
     }
-
-    val sections = remember(filteredTemplates, facetsById, activeGroupMode, splits) {
+    // Las plantillas propias van en su módulo; el catálogo son las de KPKN, agrupadas.
+    val userTemplates = remember(filteredTemplates) {
+        filteredTemplates.filter { it.sourceType == SessionTemplateSourceType.USER }
+    }
+    val catalogTemplates = remember(filteredTemplates) {
+        filteredTemplates.filter { it.sourceType != SessionTemplateSourceType.USER }
+    }
+    val archivedMatches = remember(archivedUserTemplates, facetsById, filters) {
+        TemplateCatalogFilterLogic.filterTemplates(archivedUserTemplates, facetsById, filters)
+    }
+    val sections = remember(catalogTemplates, facetsById, activeGroupMode, splits) {
         TemplateCatalogFilterLogic.groupTemplates(
-            templates = filteredTemplates,
+            templates = catalogTemplates,
             facetsById = facetsById,
             mode = activeGroupMode,
             splits = splits,
         )
+    }
+    val ownTemplates = remember(templates) {
+        templates.filter { it.sourceType == SessionTemplateSourceType.USER }
     }
 
     val hasConstraintFilters = activeSessionType != TemplateSessionType.ALL ||
@@ -252,117 +257,135 @@ internal fun TemplateCatalogBrowser(
         verticalArrangement = Arrangement.spacedBy(12.dp),
         contentPadding = PaddingValues(bottom = 8.dp),
     ) {
-        val visibleUserTemplates = templates.filter { it.sourceType == SessionTemplateSourceType.USER }
-        item(key = "user-template-management") {
-                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(
-                            text = "Mis plantillas",
-                            style = MaterialTheme.typography.labelLarge,
-                            fontWeight = FontWeight.Black,
-                            color = titleColor,
-                            modifier = Modifier.weight(1f),
-                        )
-                        FilledTonalButton(
-                            onClick = { showSaveDialog = true },
-                            contentPadding = PaddingValues(horizontal = 10.dp, vertical = 6.dp),
-                        ) { Text("Guardar sesión") }
-                    }
-                    if (!templatesReady) {
-                        Text(
-                            "Cargando plantillas…",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = mutedColor,
-                        )
-                    } else if (visibleUserTemplates.isEmpty() && archivedUserTemplates.isEmpty()) {
-                        Text(
-                            "Todavía no tienes plantillas guardadas.",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = mutedColor,
-                        )
-                    }
-                    if (corruptTemplateIds.isNotEmpty()) {
-                        Text(
-                            if (corruptTemplateIds.size == 1) {
-                                "Hay 1 plantilla ilegible en cuarentena. No se aplicará hasta reparar el archivo."
-                            } else {
-                                "Hay ${corruptTemplateIds.size} plantillas ilegibles en cuarentena. No se aplicarán hasta reparar el archivo."
-                            },
-                            style = MaterialTheme.typography.bodySmall,
-                            color = Color(0xFFFBBF24),
-                        )
-                    }
-                    visibleUserTemplates.forEach { template ->
-                        UserTemplateManagementRow(
-                            template = template,
-                            archived = false,
-                            mutedColor = mutedColor,
-                            onArchive = onArchiveUserTemplate,
-                            onRestore = onRestoreUserTemplate,
-                            onDelete = { pendingDeleteId = it },
-                            onEdit = { templateBeingEdited = it },
-                        )
-                    }
-                    archivedUserTemplates.forEach { template ->
-                        UserTemplateManagementRow(
-                            template = template,
-                            archived = true,
-                            mutedColor = mutedColor,
-                            onArchive = onArchiveUserTemplate,
-                            onRestore = onRestoreUserTemplate,
-                            onDelete = { pendingDeleteId = it },
-                            onEdit = { templateBeingEdited = it },
-                        )
-                    }
+        item(key = "user-templates") {
+            KpknModule(modifier = Modifier.fillMaxWidth()) {
+                ModuleHeaderRow(label = "Mis plantillas") {
+                    KpknTextAction(
+                        text = "Guardar esta sesión",
+                        onClick = { showSaveSheet = true },
+                        leadingIcon = KpknLineIcons.Plus,
+                    )
                 }
-        }
-        item(key = "filters-header") {
-            Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                Text(
-                    text = "Filtros de sesión",
-                    style = MaterialTheme.typography.labelLarge,
-                    fontWeight = FontWeight.Black,
-                    color = titleColor,
-                )
-                Text(
-                    text = "Grupo, nivel y duración",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = mutedColor,
-                )
+                if (!templatesReady) {
+                    ModuleCaption("Cargando plantillas…")
+                } else if (ownTemplates.isEmpty() && archivedUserTemplates.isEmpty()) {
+                    ModuleCaption("Todavía no tienes plantillas guardadas.")
+                } else if (userTemplates.isEmpty() && archivedMatches.isEmpty()) {
+                    ModuleCaption("Ninguna de tus plantillas coincide con la búsqueda o los filtros.")
+                }
+                if (corruptTemplateIds.isNotEmpty()) {
+                    Text(
+                        text = if (corruptTemplateIds.size == 1) {
+                            "Hay 1 plantilla ilegible en cuarentena. No se aplicará hasta reparar el archivo."
+                        } else {
+                            "Hay ${corruptTemplateIds.size} plantillas ilegibles en cuarentena. No se aplicarán hasta reparar el archivo."
+                        },
+                        style = KpknType.caption,
+                        color = SymbolPalette.energia,
+                    )
+                }
+                val rows = userTemplates.map { it to false } + archivedMatches.map { it to true }
+                rows.forEachIndexed { index, (template, archived) ->
+                    if (index > 0) ModuleDivider()
+                    CatalogTemplateRow(
+                        template = template,
+                        exerciseIndex = exerciseIndex,
+                        onApply = if (archived) null else ({ onSelectTemplate(template) }),
+                        manage = UserTemplateActions(
+                            archived = archived,
+                            onEdit = { templateBeingEdited = template },
+                            onArchiveOrRestore = {
+                                if (archived) onRestoreUserTemplate(template.id) else onArchiveUserTemplate(template.id)
+                            },
+                            onDelete = { pendingDeleteId = template.id },
+                        ),
+                    )
+                }
             }
         }
 
-        item(key = "filters-dropdowns") {
-            FilterDropdownRow(
-                groupMode = activeGroupMode,
-                onGroupMode = { groupMode = it.name },
-                difficulty = activeDifficulty,
-                onDifficulty = { difficultyName = it?.name },
-                duration = activeDuration,
-                onDuration = { durationName = it.name },
-                visibleGroupModes = VisibleGroupModes,
-                mutedColor = mutedColor,
-                glassDark = glassDark,
-            )
-        }
-
-        item(key = "filters-chips") {
-            SessionTypeChipsRow(
-                chips = FriendlyGroupChips,
-                sessionType = activeSessionType,
-                onToggle = { target ->
-                    sessionTypeName = if (activeSessionType == target) {
-                        TemplateSessionType.ALL.name
-                    } else {
-                        target.name
+        item(key = "filters") {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .horizontalScroll(rememberScrollState()),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                CatalogFilterChip(
+                    text = "Agrupar: ${activeGroupMode.label.removePrefix("Por ").replaceFirstChar { it.uppercase() }}",
+                    selected = false,
+                    menuRows = VisibleGroupModes.size,
+                ) { close ->
+                    VisibleGroupModes.forEach { mode ->
+                        CatalogFilterOptionRow(
+                            label = mode.label,
+                            selected = mode == activeGroupMode,
+                            onClick = {
+                                groupMode = mode.name
+                                close()
+                            },
+                        )
                     }
-                },
-                glassDark = glassDark,
-            )
+                }
+                CatalogFilterChip(
+                    text = activeDifficulty?.let { "Nivel: ${TemplateCatalogFilterLogic.difficultyLabel(it)}" } ?: "Nivel",
+                    selected = activeDifficulty != null,
+                    menuRows = Difficulty.entries.size + 1,
+                ) { close ->
+                    CatalogFilterOptionRow(
+                        label = "Todos",
+                        selected = activeDifficulty == null,
+                        onClick = {
+                            difficultyName = null
+                            close()
+                        },
+                    )
+                    Difficulty.entries.forEach { option ->
+                        CatalogFilterOptionRow(
+                            label = TemplateCatalogFilterLogic.difficultyLabel(option),
+                            selected = activeDifficulty == option,
+                            onClick = {
+                                difficultyName = option.name
+                                close()
+                            },
+                        )
+                    }
+                }
+                CatalogFilterChip(
+                    text = if (activeDuration == SessionTemplateDurationBucket.ALL) {
+                        "Duración"
+                    } else {
+                        "Duración: ${TemplateCatalogFilterLogic.durationLabel(activeDuration)}"
+                    },
+                    selected = activeDuration != SessionTemplateDurationBucket.ALL,
+                    menuRows = SessionTemplateDurationBucket.entries.size,
+                ) { close ->
+                    SessionTemplateDurationBucket.entries.forEach { option ->
+                        CatalogFilterOptionRow(
+                            label = TemplateCatalogFilterLogic.durationLabel(option),
+                            selected = activeDuration == option,
+                            onClick = {
+                                durationName = option.name
+                                close()
+                            },
+                        )
+                    }
+                }
+                FriendlyGroupChips.forEach { chip ->
+                    KpknChip(
+                        text = templateCatalogText(chip.label),
+                        selected = activeSessionType == chip,
+                        onClick = {
+                            sessionTypeName = if (activeSessionType == chip) TemplateSessionType.ALL.name else chip.name
+                        },
+                    )
+                }
+            }
         }
 
         if (filters.hasActiveFilters) {
-            item(key = "filters-summary") {
+            item(key = "filter-summary") {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
@@ -374,97 +397,50 @@ internal fun TemplateCatalogBrowser(
                         } else {
                             "${filteredTemplates.size} resultado${if (filteredTemplates.size == 1) "" else "s"}"
                         },
-                        style = MaterialTheme.typography.labelMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = titleColor,
+                        style = KpknType.caption,
+                        color = WizardColors.textMuted,
                     )
                     if (hasConstraintFilters) {
-                        TextButton(
+                        KpknTextAction(
+                            text = "Limpiar",
                             onClick = { clearAll() },
-                            modifier = Modifier
-                                .heightIn(min = 40.dp)
-                                .semantics { contentDescription = "Limpiar filtros de sesión" },
-                        ) {
-                            Text("Limpiar", color = if (glassDark) Color.White else MaterialTheme.colorScheme.primary)
-                        }
+                            modifier = Modifier.semantics { contentDescription = "Limpiar filtros de sesión" },
+                        )
                     }
                 }
             }
         }
 
-        when {
-            filteredTemplates.isEmpty() -> {
-                item(key = "empty") {
-                    CatalogEmptyState(
-                        hasQueryOrFilters = filters.hasActiveFilters,
-                        searchQuery = searchQuery,
-                        mutedColor = mutedColor,
-                    )
-                }
+        if (sections.isEmpty()) {
+            item(key = "empty") {
+                CatalogEmptyState(
+                    hasQueryOrFilters = filters.hasActiveFilters,
+                    searchQuery = searchQuery,
+                )
             }
-            else -> {
-                if (!filters.hasActiveFilters) {
-                    item(key = "group-label") {
-                        Text(
-                            text = "Agrupado ${activeGroupMode.label.removePrefix("Por ").lowercase()}",
-                            style = MaterialTheme.typography.labelLarge,
-                            fontWeight = FontWeight.Black,
-                            color = titleColor,
-                            modifier = Modifier.padding(horizontal = 2.dp),
-                        )
-                    }
-                }
-                items(
-                    items = sections,
-                    key = { it.key },
-                ) { section ->
-                    CatalogSection(
-                        section = section,
-                        bodyColor = bodyColor,
-                        mutedColor = mutedColor,
-                        rowBg = rowBg,
-                        initiallyExpanded = section.key == "user" ||
-                            filters.hasActiveFilters ||
-                            activeGroupMode == TemplateGroupMode.MUSCLE_GROUP,
-                    ) {
-                        if (section.nestedGroups.isNotEmpty()) {
-                            section.nestedGroups.forEach { nested ->
-                                NestedGroupBlock(
-                                    nested = nested,
-                                    mutedColor = mutedColor,
-                                    glassDark = glassDark,
-                                    facetsById = facetsById,
-                                    exerciseIndex = exerciseIndex,
-                                    onSelectTemplate = onSelectTemplate,
-                                )
-                            }
-                        } else {
-                            section.templates.forEach { template ->
-                                CompactTemplateCard(
-                                    template = template,
-                                    onApply = { onSelectTemplate(template) },
-                                    exerciseIndex = exerciseIndex,
-                                    glassDark = glassDark,
-                                    facets = facetsById[template.id],
-                                )
-                            }
-                        }
-                    }
-                }
+        } else {
+            items(items = sections, key = { it.key }) { section ->
+                CatalogSectionModule(
+                    section = section,
+                    initiallyExpanded = filters.hasActiveFilters || activeGroupMode == TemplateGroupMode.MUSCLE_GROUP,
+                    exerciseIndex = exerciseIndex,
+                    onSelectTemplate = onSelectTemplate,
+                )
             }
         }
     }
+
     pendingDeleteId?.let { id ->
         val pendingName = (templates + archivedUserTemplates).firstOrNull { it.id == id }?.name
         KpknAlertDialog(
             onDismissRequest = { pendingDeleteId = null },
-            title = "Borrar plantilla",
+            title = "Eliminar plantilla",
             text = if (pendingName.isNullOrBlank()) {
                 "Esta acción es permanente. ¿Eliminar la plantilla?"
             } else {
-                "Esta acción es permanente. ¿Eliminar \"$pendingName\"?"
+                "Esta acción es permanente. ¿Eliminar «$pendingName»?"
             },
-            confirmLabel = "Borrar",
+            confirmLabel = "Eliminar",
             onConfirm = {
                 onDeleteUserTemplate(id)
                 pendingDeleteId = null
@@ -475,7 +451,7 @@ internal fun TemplateCatalogBrowser(
         )
     }
     templateBeingEdited?.let { template ->
-        UserTemplateMetadataDialog(
+        UserTemplateMetadataSheet(
             template = template,
             onDismiss = { templateBeingEdited = null },
             onSave = { name, description, difficulty, focus, duration, splitIds, dayLabels, autoGeneration ->
@@ -493,45 +469,248 @@ internal fun TemplateCatalogBrowser(
             },
         )
     }
-    if (showSaveDialog) {
-        SaveUserTemplateDialog(
-            onDismiss = { showSaveDialog = false },
+    if (showSaveSheet) {
+        SaveUserTemplateSheet(
+            sessionSummary = sessionSummary,
+            onDismiss = { showSaveSheet = false },
             onSave = onSaveCurrentTemplate,
         )
     }
 }
 
+/**
+ * Cabecera de módulo con una acción (SE4b): la etiqueta en eyebrow a la izquierda y la acción a la derecha. Si no caben en una línea (letra
+ * al 130 %), la acción baja a la línea siguiente, alineada a la izquierda: ni la etiqueta ni la acción se cortan.
+ */
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun UserTemplateManagementRow(
-    template: SessionTemplate,
-    archived: Boolean,
-    mutedColor: Color,
-    onArchive: (String) -> Unit,
-    onRestore: (String) -> Unit,
-    onDelete: (String) -> Unit,
-    onEdit: (SessionTemplate) -> Unit,
+private fun ModuleHeaderRow(
+    label: String,
+    modifier: Modifier = Modifier,
+    action: @Composable () -> Unit,
 ) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(4.dp),
+    FlowRow(
+        modifier = modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalArrangement = Arrangement.Center,
     ) {
-        Column(modifier = Modifier.weight(1f)) {
-            Text(template.name, style = MaterialTheme.typography.bodySmall, maxLines = 1, overflow = TextOverflow.Ellipsis)
-            Text(if (archived) "Archivada" else "Disponible · ${template.exerciseCount} ejercicios", style = MaterialTheme.typography.labelSmall, color = mutedColor)
+        Box(
+            modifier = Modifier.heightIn(min = 48.dp),
+            contentAlignment = Alignment.CenterStart,
+        ) {
+            Text(
+                text = label.uppercase(Locale.forLanguageTag("es")),
+                style = KpknType.eyebrow,
+                color = WizardColors.textMuted,
+            )
         }
-        if (archived) {
-            TextButton(onClick = { onRestore(template.id) }) { Text("Restaurar") }
-        } else {
-            TextButton(onClick = { onArchive(template.id) }) { Text("Archivar") }
-        }
-        TextButton(onClick = { onEdit(template) }) { Text("Editar") }
-        TextButton(onClick = { onDelete(template.id) }) { Text("Borrar") }
+        action()
     }
 }
 
 @Composable
-private fun UserTemplateMetadataDialog(
+private fun ModuleCaption(text: String) {
+    Text(text = text, style = KpknType.caption, color = WizardColors.textMuted)
+}
+
+@Composable
+private fun ModuleDivider() {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(1.dp)
+            .background(KpknSurface.divider),
+    )
+}
+
+/**
+ * Filtro de la fila: una `KpknChip` que abre un menú de vidrio anclado a sí misma con sus opciones. Elegir una opción llama a [menu] con
+ * [close] para cerrarlo.
+ */
+@Composable
+private fun CatalogFilterChip(
+    text: String,
+    selected: Boolean,
+    menuRows: Int,
+    menu: @Composable (close: () -> Unit) -> Unit,
+) {
+    var menuOpen by remember { mutableStateOf(false) }
+    var anchor by remember { mutableStateOf<Rect?>(null) }
+    KpknChip(
+        text = text,
+        selected = selected,
+        onClick = { menuOpen = true },
+        modifier = Modifier.onGloballyPositioned { anchor = it.boundsInWindow() },
+    )
+    val rect = anchor
+    if (menuOpen && rect != null) {
+        KpknContextMenu(anchor = rect, rows = menuRows, onDismiss = { menuOpen = false }) {
+            menu { menuOpen = false }
+        }
+    }
+}
+
+/** Opción de un filtro dentro de su menú: 52 dp, con marca de check en la elegida. */
+@Composable
+private fun CatalogFilterOptionRow(
+    label: String,
+    selected: Boolean,
+    onClick: () -> Unit,
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .defaultMinSize(minHeight = 52.dp)
+            .selectable(
+                selected = selected,
+                interactionSource = remember { MutableInteractionSource() },
+                indication = null,
+                role = Role.RadioButton,
+                onClick = onClick,
+            )
+            .padding(horizontal = 18.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(
+            text = label,
+            style = KpknType.bodyStrong,
+            color = if (selected) WizardColors.text else WizardColors.textMuted,
+            modifier = Modifier.weight(1f),
+        )
+        if (selected) {
+            Icon(
+                imageVector = KpknLineIcons.Check,
+                contentDescription = null,
+                tint = WizardColors.text,
+                modifier = Modifier.size(20.dp),
+            )
+        }
+    }
+}
+
+@Composable
+private fun CatalogEmptyState(
+    hasQueryOrFilters: Boolean,
+    searchQuery: String,
+) {
+    val query = searchQuery.trim()
+    KpknEmptyState(
+        icon = if (hasQueryOrFilters) KpknLineIcons.Search else KpknLineIcons.Book,
+        title = when {
+            !hasQueryOrFilters -> "No hay plantillas en el catálogo"
+            query.isNotEmpty() -> "Ninguna plantilla coincide con «$query»"
+            else -> "Ninguna plantilla coincide con los filtros"
+        },
+        body = when {
+            !hasQueryOrFilters -> "Guarda una sesión como plantilla o vuelve más tarde."
+            query.isNotEmpty() -> "Prueba con otra palabra o quita algún filtro."
+            else -> "Prueba a quitar algún filtro."
+        },
+    )
+}
+
+/** Un grupo del catálogo en su módulo: cabecera con el número de plantillas y la flecha que lo despliega. */
+@Composable
+private fun CatalogSectionModule(
+    section: TemplateCatalogSection,
+    initiallyExpanded: Boolean,
+    exerciseIndex: Map<String, ExerciseMuscleInfo>,
+    onSelectTemplate: (SessionTemplate) -> Unit,
+) {
+    var expanded by rememberSaveable(section.key) { mutableStateOf(initiallyExpanded) }
+    KpknModule(
+        modifier = Modifier.fillMaxWidth(),
+        contentPadding = PaddingValues(
+            start = 20.dp,
+            top = 18.dp,
+            end = 20.dp,
+            bottom = if (expanded) 8.dp else 18.dp,
+        ),
+    ) {
+        ModuleHeaderRow(
+            label = templateCatalogText(section.title),
+            modifier = Modifier.clickable(
+                interactionSource = remember { MutableInteractionSource() },
+                indication = null,
+                role = Role.Button,
+                onClickLabel = if (expanded) "Colapsar sección" else "Expandir sección",
+                onClick = { expanded = !expanded },
+            ),
+        ) {
+            Row(
+                modifier = Modifier.heightIn(min = 48.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(
+                    text = templatesCountText(section.templateCount),
+                    style = KpknType.caption,
+                    color = WizardColors.textMuted,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+                Spacer(Modifier.width(8.dp))
+                Icon(
+                    imageVector = KpknLineIcons.ChevronDown,
+                    contentDescription = null,
+                    tint = WizardColors.textMuted,
+                    modifier = Modifier
+                        .size(20.dp)
+                        .graphicsLayer { rotationZ = if (expanded) 180f else 0f },
+                )
+            }
+        }
+        AnimatedVisibility(visible = expanded) {
+            Column(modifier = Modifier.fillMaxWidth().padding(top = 6.dp)) {
+                if (section.nestedGroups.isNotEmpty()) {
+                    section.nestedGroups.forEach { nested ->
+                        NestedGroupRows(
+                            nested = nested,
+                            exerciseIndex = exerciseIndex,
+                            onSelectTemplate = onSelectTemplate,
+                        )
+                    }
+                } else {
+                    section.templates.forEachIndexed { index, template ->
+                        if (index > 0) ModuleDivider()
+                        CatalogTemplateRow(
+                            template = template,
+                            exerciseIndex = exerciseIndex,
+                            onApply = { onSelectTemplate(template) },
+                            manage = null,
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun NestedGroupRows(
+    nested: TemplateCatalogNestedGroup,
+    exerciseIndex: Map<String, ExerciseMuscleInfo>,
+    onSelectTemplate: (SessionTemplate) -> Unit,
+) {
+    Text(
+        text = "${templateCatalogText(nested.title)} · ${nested.templates.size}",
+        style = KpknType.caption,
+        color = WizardColors.textMuted,
+        modifier = Modifier.padding(top = 10.dp, bottom = 2.dp),
+    )
+    nested.templates.forEachIndexed { index, template ->
+        if (index > 0) ModuleDivider()
+        CatalogTemplateRow(
+            template = template,
+            exerciseIndex = exerciseIndex,
+            onApply = { onSelectTemplate(template) },
+            manage = null,
+        )
+    }
+}
+
+/** Editar los metadatos de una plantilla propia, en una hoja. El pie es el resumen de su propia sesión. */
+@Composable
+private fun UserTemplateMetadataSheet(
     template: SessionTemplate,
     onDismiss: () -> Unit,
     onSave: suspend (
@@ -553,92 +732,91 @@ private fun UserTemplateMetadataDialog(
     var splitIds by remember(template.id) { mutableStateOf(template.splitIds.joinToString(", ")) }
     var dayLabels by remember(template.id) { mutableStateOf(template.splitDayLabels.joinToString(", ")) }
     var autoGeneration by remember(template.id) { mutableStateOf(template.autoGenerationEligible) }
-    var expandedField by remember { mutableStateOf<String?>(null) }
     var isSaving by remember(template.id) { mutableStateOf(false) }
     var saveError by remember(template.id) { mutableStateOf<String?>(null) }
     val scope = rememberCoroutineScope()
+    val exercises = template.session.allExercises()
+    val summary = templateCountsLine(exercises.size, exercises.sumOf { it.sets.size })
 
-    KpknAlertDialog(
-        onDismissRequest = { if (!isSaving) onDismiss() },
-        title = { Text("Editar plantilla") },
-        text = {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .heightIn(max = 520.dp)
-                    .verticalScroll(rememberScrollState()),
-                verticalArrangement = Arrangement.spacedBy(12.dp),
-            ) {
-                KpknTextField(
-                    value = name,
-                    onValueChange = { name = it },
-                    label = "Nombre",
-                    singleLine = true,
-                    enabled = !isSaving,
-                )
-                KpknTextField(
-                    value = description,
-                    onValueChange = { description = it },
-                    label = "Descripción",
-                    singleLine = false,
-                    minLines = 2,
-                    enabled = !isSaving,
-                )
-                TemplateMetadataDropdown(
-                    label = "Dificultad",
-                    value = difficulty.name,
-                    expanded = expandedField == "difficulty",
-                    onExpand = { expandedField = "difficulty" },
-                    onDismiss = { expandedField = null },
-                    values = Difficulty.entries.map { it.name },
-                    onValue = { value -> difficulty = Difficulty.entries.first { it.name == value } },
-                )
-                TemplateMetadataDropdown(
-                    label = "Foco",
-                    value = focus?.name ?: "Sin foco",
-                    expanded = expandedField == "focus",
-                    onExpand = { expandedField = "focus" },
-                    onDismiss = { expandedField = null },
-                    values = listOf("Sin foco") + SessionTemplateFocusCategory.entries.map { it.name },
-                    onValue = { value -> focus = SessionTemplateFocusCategory.entries.firstOrNull { it.name == value } },
-                )
-                TemplateMetadataDropdown(
-                    label = "Duración",
-                    value = duration.name,
-                    expanded = expandedField == "duration",
-                    onExpand = { expandedField = "duration" },
-                    onDismiss = { expandedField = null },
-                    values = SessionTemplateDurationClass.entries.map { it.name },
-                    onValue = { value -> duration = SessionTemplateDurationClass.entries.first { it.name == value } },
-                )
-                KpknTextField(
-                    value = splitIds,
-                    onValueChange = { splitIds = it },
-                    label = "Split IDs (separados por coma)",
-                    singleLine = true,
-                )
-                KpknTextField(
-                    value = dayLabels,
-                    onValueChange = { dayLabels = it },
-                    label = "Etiquetas de día (separadas por coma)",
-                    singleLine = true,
-                )
-                KpknCheckRow(
-                    checked = autoGeneration,
-                    title = "Permitir autogeneración semanal",
-                    onClick = { if (!isSaving) autoGeneration = !autoGeneration },
-                    enabled = !isSaving,
-                )
-                saveError?.let { error ->
-                    Text(text = error, style = KpknType.caption, color = WizardColors.danger)
-                }
+    KpknSheet(onDismissRequest = { if (!isSaving) onDismiss() }) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 20.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+        ) {
+            Text(text = "Editar plantilla", style = KpknType.title, color = WizardColors.text)
+            KpknTextField(
+                value = name,
+                onValueChange = { name = it },
+                label = "Nombre",
+                singleLine = true,
+                enabled = !isSaving,
+            )
+            KpknTextField(
+                value = description,
+                onValueChange = { description = it },
+                label = "Descripción",
+                singleLine = false,
+                minLines = 2,
+                enabled = !isSaving,
+            )
+            MetadataChoices(
+                label = "Grupo",
+                options = listOf<SessionTemplateFocusCategory?>(null) + SessionTemplateFocusCategory.entries,
+                selected = focus,
+                labelOf = { category ->
+                    category?.let { templateCatalogText(TemplateCatalogFilterLogic.focusCategoryLabel(it)) } ?: "Sin foco"
+                },
+                onSelect = { focus = it },
+                enabled = !isSaving,
+            )
+            MetadataChoices(
+                label = "Nivel",
+                options = Difficulty.entries,
+                selected = difficulty,
+                labelOf = { TemplateCatalogFilterLogic.difficultyLabel(it) },
+                onSelect = { difficulty = it },
+                enabled = !isSaving,
+            )
+            MetadataChoices(
+                label = "Duración",
+                options = SessionTemplateDurationClass.entries,
+                selected = duration,
+                labelOf = { durationClassLabel(it) },
+                onSelect = { duration = it },
+                enabled = !isSaving,
+            )
+            KpknTextField(
+                value = splitIds,
+                onValueChange = { splitIds = it },
+                label = "Divisiones (ids separados por coma)",
+                singleLine = true,
+                enabled = !isSaving,
+            )
+            KpknTextField(
+                value = dayLabels,
+                onValueChange = { dayLabels = it },
+                label = "Etiquetas de día (separadas por coma)",
+                singleLine = true,
+                enabled = !isSaving,
+            )
+            KpknCheckRow(
+                checked = autoGeneration,
+                title = "Permitir autogeneración semanal",
+                onClick = { if (!isSaving) autoGeneration = !autoGeneration },
+                enabled = !isSaving,
+            )
+            Text(text = summary, style = KpknType.caption, color = WizardColors.textMuted)
+            saveError?.let { message ->
+                Text(text = message, style = KpknType.caption, color = WizardColors.danger)
             }
-        },
-        confirmButton = {
-            KpknAlertConfirmButton(
+            KpknPrimaryPill(
                 text = if (isSaving) "Guardando…" else "Guardar",
+                enabled = name.isNotBlank() && !isSaving,
                 onClick = {
-                    if (isSaving) return@KpknAlertConfirmButton
+                    if (isSaving) return@KpknPrimaryPill
                     isSaving = true
                     saveError = null
                     scope.launch {
@@ -654,26 +832,71 @@ private fun UserTemplateMetadataDialog(
                                 autoGeneration,
                             )
                         }.getOrElse { Result.failure(it) }
+                        isSaving = false
                         if (result.isSuccess) {
-                            isSaving = false
                             onDismiss()
                         } else {
-                            isSaving = false
                             saveError = "No se pudieron actualizar los metadatos."
                         }
                     }
                 },
-                enabled = name.isNotBlank() && !isSaving,
+                modifier = Modifier.fillMaxWidth(),
             )
-        },
-        dismissButton = {
-            KpknAlertDismissButton(text = "Cancelar", onClick = { if (!isSaving) onDismiss() })
-        },
-    )
+            KpknTextAction(
+                text = "Cancelar",
+                onClick = { if (!isSaving) onDismiss() },
+                color = WizardColors.textMuted,
+            )
+        }
+    }
 }
 
+/**
+ * Una elección de metadatos: una fila de `KpknChip` con la opción elegida seleccionada. Sustituye a los desplegables de antes; las
+ * opciones y el valor son los mismos.
+ */
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun SaveUserTemplateDialog(
+private fun <T> MetadataChoices(
+    label: String,
+    options: List<T>,
+    selected: T,
+    labelOf: (T) -> String,
+    onSelect: (T) -> Unit,
+    enabled: Boolean,
+) {
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Text(text = label, style = KpknType.caption, color = WizardColors.textMuted)
+        FlowRow(
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            options.forEach { option ->
+                KpknChip(
+                    text = labelOf(option),
+                    selected = option == selected,
+                    onClick = { onSelect(option) },
+                    enabled = enabled,
+                )
+            }
+        }
+    }
+}
+
+/** Etiqueta de la duración de una plantilla. La clase «estándar» del dominio se ve como «Media», como el filtro de duración. */
+private fun durationClassLabel(duration: SessionTemplateDurationClass): String = when (duration) {
+    SessionTemplateDurationClass.SHORT -> "Corta"
+    SessionTemplateDurationClass.STANDARD -> "Media"
+    SessionTemplateDurationClass.LONG -> "Larga"
+}
+
+/**
+ * Guardar la sesión actual como plantilla. El pie es el resumen de la sesión que se guardaría (si quien abre el diálogo lo pasa). El
+ * guardado es el mismo comando que antes: nombre y descripción.
+ */
+@Composable
+private fun SaveUserTemplateSheet(
+    sessionSummary: String?,
     onDismiss: () -> Unit,
     onSave: suspend (String, String) -> Result<SessionTemplate>,
 ) {
@@ -682,426 +905,59 @@ private fun SaveUserTemplateDialog(
     var saveState by remember { mutableStateOf<UserTemplateSaveState>(UserTemplateSaveState.Idle) }
     val scope = rememberCoroutineScope()
     val isSaving = saveState is UserTemplateSaveState.Saving
-    KpknAlertDialog(
-        onDismissRequest = { if (!isSaving) onDismiss() },
-        title = { Text("Guardar sesión como plantilla") },
-        text = {
-            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                KpknTextField(
-                    value = name,
-                    onValueChange = { name = it },
-                    label = "Nombre",
-                    singleLine = true,
-                    enabled = !isSaving,
-                )
-                KpknTextField(
-                    value = description,
-                    onValueChange = { description = it },
-                    label = "Descripción",
-                    singleLine = false,
-                    minLines = 2,
-                    enabled = !isSaving,
-                )
-                val error = (saveState as? UserTemplateSaveState.Error)?.message
-                if (error != null) {
-                    Text(text = error, style = KpknType.caption, color = WizardColors.danger)
-                }
+    val error = (saveState as? UserTemplateSaveState.Error)?.message
+
+    KpknSheet(onDismissRequest = { if (!isSaving) onDismiss() }) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 20.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+        ) {
+            Text(text = "Guardar sesión como plantilla", style = KpknType.title, color = WizardColors.text)
+            KpknTextField(
+                value = name,
+                onValueChange = { name = it },
+                label = "Nombre",
+                singleLine = true,
+                enabled = !isSaving,
+            )
+            KpknTextField(
+                value = description,
+                onValueChange = { description = it },
+                label = "Descripción",
+                singleLine = false,
+                minLines = 2,
+                enabled = !isSaving,
+            )
+            sessionSummary?.let { summary ->
+                Text(text = summary, style = KpknType.caption, color = WizardColors.textMuted)
             }
-        },
-        confirmButton = {
-            KpknAlertConfirmButton(
+            error?.let { message ->
+                Text(text = message, style = KpknType.caption, color = WizardColors.danger)
+            }
+            KpknPrimaryPill(
                 text = if (isSaving) "Guardando…" else "Guardar",
+                enabled = name.isNotBlank() && !isSaving,
                 onClick = {
-                    if (isSaving) return@KpknAlertConfirmButton
+                    if (isSaving) return@KpknPrimaryPill
                     saveState = UserTemplateSaveState.Saving
                     scope.launch {
                         val result = executeUserTemplateSave(name, description, onSave)
                         saveState = result
+                        // El comando de guardado vuelve solo cuando Room ya aceptó la fila; al cerrar, el Flow la pinta.
                         if (result is UserTemplateSaveState.Success) {
-                            // The suspend command returned only after Room accepted
-                            // the row; closing now lets the Flow render the read-back.
                             onDismiss()
                         }
                     }
                 },
-                enabled = name.isNotBlank() && !isSaving,
+                modifier = Modifier.fillMaxWidth(),
             )
-        },
-        dismissButton = {
-            KpknAlertDismissButton(text = "Cancelar", onClick = { if (!isSaving) onDismiss() })
-        },
-    )
-}
-
-@Composable
-private fun TemplateMetadataDropdown(
-    label: String,
-    value: String,
-    expanded: Boolean,
-    onExpand: () -> Unit,
-    onDismiss: () -> Unit,
-    values: List<String>,
-    onValue: (String) -> Unit,
-) {
-    // Dentro del diálogo, las opciones se despliegan en línea (sin menú flotante): una fila con el valor actual y, abierta, una fila de
-    // radio por opción. Elegir una cierra la lista.
-    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .defaultMinSize(minHeight = 48.dp)
-                .clickable(role = Role.Button, onClick = { if (expanded) onDismiss() else onExpand() }),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Text(
-                text = "$label: $value",
-                style = KpknType.bodyStrong,
-                color = WizardColors.text,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.weight(1f),
-            )
-            Icon(
-                imageVector = KpknLineIcons.ChevronDown,
-                contentDescription = if (expanded) "Ocultar opciones de $label" else "Mostrar opciones de $label",
-                modifier = Modifier
-                    .size(20.dp)
-                    .graphicsLayer { rotationZ = if (expanded) 180f else 0f },
-                tint = WizardColors.textMuted,
-            )
-        }
-        if (expanded) {
-            values.forEach { option ->
-                KpknRadioRow(
-                    selected = option == value,
-                    title = option,
-                    onClick = {
-                        onValue(option)
-                        onDismiss()
-                    },
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun NestedGroupBlock(
-    nested: TemplateCatalogNestedGroup,
-    mutedColor: Color,
-    glassDark: Boolean,
-    facetsById: Map<String, com.example.kpkn.domain.templates.SessionTemplateFacets>,
-    exerciseIndex: Map<String, ExerciseMuscleInfo>,
-    onSelectTemplate: (SessionTemplate) -> Unit,
-) {
-    Text(
-        text = "${nested.title} · ${nested.templates.size}",
-        style = MaterialTheme.typography.labelSmall,
-        fontWeight = FontWeight.Bold,
-        color = mutedColor,
-        modifier = Modifier.padding(top = 8.dp, bottom = 4.dp),
-    )
-    HorizontalDivider(
-        color = if (glassDark) {
-            Color.White.copy(alpha = 0.12f)
-        } else {
-            MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)
-        },
-    )
-    nested.templates.forEach { template ->
-        CompactTemplateCard(
-            template = template,
-            onApply = { onSelectTemplate(template) },
-            exerciseIndex = exerciseIndex,
-            glassDark = glassDark,
-            facets = facetsById[template.id],
-        )
-    }
-}
-
-@Composable
-private fun FilterDropdownRow(
-    groupMode: TemplateGroupMode,
-    onGroupMode: (TemplateGroupMode) -> Unit,
-    difficulty: Difficulty?,
-    onDifficulty: (Difficulty?) -> Unit,
-    duration: SessionTemplateDurationBucket,
-    onDuration: (SessionTemplateDurationBucket) -> Unit,
-    visibleGroupModes: List<TemplateGroupMode>,
-    mutedColor: Color,
-    glassDark: Boolean,
-) {
-    var showGroupMenu by remember { mutableStateOf(false) }
-    var showDifficultyMenu by remember { mutableStateOf(false) }
-    var showDurationMenu by remember { mutableStateOf(false) }
-
-    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .horizontalScroll(rememberScrollState()),
-            horizontalArrangement = Arrangement.spacedBy(6.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            CatalogDropdownButton(
-                label = "Agrupar: ${groupMode.label}",
-                expanded = showGroupMenu,
-                onExpandedChange = { showGroupMenu = it },
-                contentDescription = "Agrupar plantillas por ${groupMode.label}",
-            ) {
-                visibleGroupModes.forEach { mode ->
-                    DropdownMenuItem(
-                        text = { Text(mode.label) },
-                        onClick = {
-                            onGroupMode(mode)
-                            showGroupMenu = false
-                        },
-                    )
-                }
-            }
-
-            CatalogDropdownButton(
-                label = difficulty?.let { TemplateCatalogFilterLogic.difficultyLabel(it) } ?: "Nivel",
-                expanded = showDifficultyMenu,
-                onExpandedChange = { showDifficultyMenu = it },
-                contentDescription = "Filtrar por nivel",
-            ) {
-                DropdownMenuItem(
-                    text = { Text("Todos") },
-                    onClick = {
-                        onDifficulty(null)
-                        showDifficultyMenu = false
-                    },
-                )
-                Difficulty.entries.forEach { option ->
-                    DropdownMenuItem(
-                        text = { Text(TemplateCatalogFilterLogic.difficultyLabel(option)) },
-                        onClick = {
-                            onDifficulty(option)
-                            showDifficultyMenu = false
-                        },
-                    )
-                }
-            }
-
-            CatalogDropdownButton(
-                label = if (duration == SessionTemplateDurationBucket.ALL) {
-                    "Duración"
-                } else {
-                    TemplateCatalogFilterLogic.durationLabel(duration)
-                },
-                expanded = showDurationMenu,
-                onExpandedChange = { showDurationMenu = it },
-                contentDescription = "Filtrar por duración",
-            ) {
-                SessionTemplateDurationBucket.entries.forEach { option ->
-                    DropdownMenuItem(
-                        text = { Text(TemplateCatalogFilterLogic.durationLabel(option)) },
-                        onClick = {
-                            onDuration(option)
-                            showDurationMenu = false
-                        },
-                    )
-                }
-            }
-        }
-
-        Text(
-            text = if (glassDark) {
-                "Por defecto: Pierna, Torso, Brazo o Full body"
-            } else {
-                "Elige un grupo muscular y el nivel de la sesión"
-            },
-            style = MaterialTheme.typography.labelSmall,
-            color = mutedColor,
-        )
-    }
-}
-
-@Composable
-private fun CatalogDropdownButton(
-    label: String,
-    expanded: Boolean,
-    onExpandedChange: (Boolean) -> Unit,
-    contentDescription: String,
-    menuContent: @Composable () -> Unit,
-) {
-    Box {
-        FilledTonalButton(
-            onClick = { onExpandedChange(true) },
-            contentPadding = PaddingValues(horizontal = 10.dp, vertical = 4.dp),
-            modifier = Modifier
-                .heightIn(min = 40.dp)
-                .widthIn(max = 180.dp)
-                .semantics { this.contentDescription = contentDescription },
-            colors = ButtonDefaults.filledTonalButtonColors(
-                containerColor = Color.White.copy(alpha = 0.12f),
-                contentColor = Color.White.copy(alpha = 0.88f),
-            ),
-        ) {
-            Text(
-                text = label,
-                style = MaterialTheme.typography.labelSmall,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.weight(1f, fill = false),
-            )
-            Spacer(modifier = Modifier.width(4.dp))
-            Icon(
-                imageVector = Icons.Default.KeyboardArrowDown,
-                contentDescription = null,
-                modifier = Modifier.size(16.dp),
-            )
-        }
-        KpknDropdownMenu(
-            expanded = expanded,
-            onDismissRequest = { onExpandedChange(false) },
-        ) {
-            menuContent()
-        }
-    }
-}
-
-@Composable
-private fun SessionTypeChipsRow(
-    chips: List<TemplateSessionType>,
-    sessionType: TemplateSessionType,
-    onToggle: (TemplateSessionType) -> Unit,
-    glassDark: Boolean,
-) {
-    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-        Text(
-            text = "Grupo",
-            style = MaterialTheme.typography.labelLarge,
-            fontWeight = FontWeight.Bold,
-            color = if (glassDark) Color.White else MaterialTheme.colorScheme.onSurface,
-        )
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .horizontalScroll(rememberScrollState()),
-            horizontalArrangement = Arrangement.spacedBy(6.dp),
-        ) {
-            chips.forEach { chip ->
-                val selected = sessionType == chip
-                CompactCatalogFilterChip(
-                    selected = selected,
-                    onClick = { onToggle(chip) },
-                    label = chip.label,
-                    glassDark = glassDark,
-                    modifier = Modifier
-                        .heightIn(min = 36.dp)
-                        .semantics {
-                            contentDescription = buildString {
-                                append(chip.label)
-                                append(if (selected) ", activo, tocar para desactivar" else ", inactivo, tocar para activar")
-                            }
-                        },
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun CatalogEmptyState(
-    hasQueryOrFilters: Boolean,
-    searchQuery: String,
-    mutedColor: Color,
-) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 36.dp, horizontal = 8.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp),
-        horizontalAlignment = Alignment.Start,
-    ) {
-        Text(
-            text = if (hasQueryOrFilters) {
-                if (searchQuery.isNotBlank()) {
-                    "Ninguna sesión coincide con \"$searchQuery\" y los filtros activos."
-                } else {
-                    "Ninguna sesión coincide con los filtros activos."
-                }
-            } else {
-                "No hay plantillas de sesión en este catálogo."
-            },
-            style = MaterialTheme.typography.bodyMedium,
-            color = mutedColor,
-            fontWeight = FontWeight.Medium,
-        )
-        Text(
-            text = if (hasQueryOrFilters) {
-                "Prueba a limpiar filtros o cambiar el grupo."
-            } else {
-                "Guarda una sesión como plantilla o vuelve más tarde."
-            },
-            style = MaterialTheme.typography.bodySmall,
-            color = mutedColor.copy(alpha = 0.85f),
-        )
-    }
-}
-
-@Composable
-private fun CatalogSection(
-    section: TemplateCatalogSection,
-    bodyColor: Color,
-    mutedColor: Color,
-    rowBg: Color,
-    initiallyExpanded: Boolean,
-    content: @Composable () -> Unit,
-) {
-    var expanded by rememberSaveable(section.key) { mutableStateOf(initiallyExpanded) }
-    Column(modifier = Modifier.fillMaxWidth()) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clip(RoundedCornerShape(12.dp))
-                .background(rowBg)
-                .clickable { expanded = !expanded }
-                .padding(horizontal = 12.dp, vertical = 12.dp)
-                .heightIn(min = 48.dp)
-                .semantics {
-                    contentDescription = buildString {
-                        append(section.title)
-                        section.subtitle?.let { append(", $it") }
-                        append(if (expanded) ", expandido" else ", colapsado")
-                    }
-                },
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = section.title,
-                    style = MaterialTheme.typography.bodyMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = bodyColor,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis,
-                )
-                if (!section.subtitle.isNullOrBlank()) {
-                    Text(
-                        text = section.subtitle,
-                        style = MaterialTheme.typography.labelSmall,
-                        color = mutedColor,
-                        maxLines = 2,
-                        overflow = TextOverflow.Ellipsis,
-                    )
-                }
-            }
-            Icon(
-                imageVector = if (expanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
-                contentDescription = if (expanded) "Colapsar sección" else "Expandir sección",
-                tint = mutedColor,
-            )
-        }
-        AnimatedVisibility(visible = expanded) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(start = 4.dp, end = 4.dp, top = 6.dp),
-                verticalArrangement = Arrangement.spacedBy(2.dp),
-                content = { content() },
+            KpknTextAction(
+                text = "Cancelar",
+                onClick = { if (!isSaving) onDismiss() },
+                color = WizardColors.textMuted,
             )
         }
     }

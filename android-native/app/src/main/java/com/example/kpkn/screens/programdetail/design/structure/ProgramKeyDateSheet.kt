@@ -1,14 +1,11 @@
 package com.example.kpkn.screens.programdetail.design.structure
 
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
@@ -20,7 +17,6 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import com.example.kpkn.data.models.KeyDateType
 import com.example.kpkn.data.models.ProgramKeyDate
@@ -153,47 +149,30 @@ internal fun ProgramKeyDateSheet(
                 )
             }
             Spacer(Modifier.height(22.dp))
-            Row(
+            // «Guardar» a todo el ancho; «Eliminar», si la fecha ya existe, es una acción de texto en peligro debajo.
+            KpknPrimaryPill(
+                text = "Guardar",
+                onClick = {
+                    onSave(
+                        keyDate.copy(
+                            title = title.trim(),
+                            type = type,
+                            startDate = start.toString(),
+                            endDate = end?.toString(),
+                            eventDate = if (type == KeyDateType.COMPETITION) start.toString() else keyDate.eventDate,
+                            notes = notes.trim().ifBlank { null },
+                        ),
+                    )
+                },
                 modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                if (isNew) {
-                    Spacer(Modifier.weight(1f))
-                } else {
-                    DangerTextAction(text = "Eliminar", onClick = onDelete)
-                    Spacer(Modifier.weight(1f))
+                enabled = canSave,
+            )
+            if (!isNew) {
+                Box(modifier = Modifier.fillMaxWidth().padding(top = 4.dp), contentAlignment = Alignment.Center) {
+                    ProgramDangerAction(text = "Eliminar", onClick = onDelete)
                 }
-                KpknPrimaryPill(
-                    text = "Guardar",
-                    onClick = {
-                        onSave(
-                            keyDate.copy(
-                                title = title.trim(),
-                                type = type,
-                                startDate = start.toString(),
-                                endDate = end?.toString(),
-                                eventDate = if (type == KeyDateType.COMPETITION) start.toString() else keyDate.eventDate,
-                                notes = notes.trim().ifBlank { null },
-                            ),
-                        )
-                    },
-                    enabled = canSave,
-                )
             }
             Spacer(Modifier.height(16.dp))
         }
-    }
-}
-
-/** Acción de texto en `danger` (como `KpknTextAction`, pero en rojo): zona táctil de 48 dp. */
-@Composable
-private fun DangerTextAction(text: String, onClick: () -> Unit) {
-    Row(
-        modifier = Modifier
-            .defaultMinSize(minHeight = 48.dp)
-            .clickable(role = Role.Button, onClick = onClick),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Text(text = text, style = KpknType.action, color = WizardColors.danger)
     }
 }

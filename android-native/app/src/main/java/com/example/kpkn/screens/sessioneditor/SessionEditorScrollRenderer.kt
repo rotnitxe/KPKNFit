@@ -630,6 +630,7 @@ private fun LooseExerciseItem(
                 else viewModel.openSupersetManager(null, groupId)
             },
             onOpenMobility = { viewModel.openMobilityPicker(null, exercise.id) },
+            onOpenReplacePicker = { viewModel.openPicker(null, exercise.id) },
             relationshipAnchorName = resolveRelationshipAnchorName(session, exercise),
             onOpenRelationshipPicker = { viewModel.openRelationshipPicker(null, exercise.id) },
             onClearRelationship = { viewModel.linkExerciseRelativeTo(null, exercise.id, null) },
@@ -722,6 +723,7 @@ private fun PartExerciseItem(
                 else viewModel.openSupersetManager(part.id, groupId)
             },
             onOpenMobility = { viewModel.openMobilityPicker(part.id, exercise.id) },
+            onOpenReplacePicker = { viewModel.openPicker(part.id, exercise.id) },
             relationshipAnchorName = resolveRelationshipAnchorName(session, exercise),
             onOpenRelationshipPicker = { viewModel.openRelationshipPicker(part.id, exercise.id) },
             onClearRelationship = { viewModel.linkExerciseRelativeTo(part.id, exercise.id, null) },
@@ -874,6 +876,7 @@ private fun LooseSupersetItem(
                         else viewModel.openSupersetManager(null, groupId)
                     },
                     onOpenMobility = { viewModel.openMobilityPicker(null, member.id) },
+                    onOpenReplacePicker = { viewModel.openPicker(null, member.id) },
                     relationshipAnchorName = resolveRelationshipAnchorName(session, member),
                     onOpenRelationshipPicker = { viewModel.openRelationshipPicker(null, member.id) },
                     onClearRelationship = { viewModel.linkExerciseRelativeTo(null, member.id, null) },
@@ -1024,6 +1027,7 @@ private fun PartSupersetItem(
                         else viewModel.openSupersetManager(part.id, groupId)
                     },
                     onOpenMobility = { viewModel.openMobilityPicker(part.id, member.id) },
+                    onOpenReplacePicker = { viewModel.openPicker(part.id, member.id) },
                     relationshipAnchorName = resolveRelationshipAnchorName(session, member),
                     onOpenRelationshipPicker = { viewModel.openRelationshipPicker(part.id, member.id) },
                     onClearRelationship = { viewModel.linkExerciseRelativeTo(part.id, member.id, null) },

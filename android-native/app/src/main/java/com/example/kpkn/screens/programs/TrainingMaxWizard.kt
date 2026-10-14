@@ -49,6 +49,7 @@ fun TrainingMaxWizard(
     confirmLabel: String = "Aplicar y crear",
     onDismiss: () -> Unit,
     onConfirm: (PowerliftingProfile) -> Unit,
+    unit: String = MarksMath.UNIT_KG,
 ) {
     KpknSheet(onDismissRequest = onDismiss, stableHeightFraction = 0.9f) {
         TrainingMaxContent(
@@ -58,13 +59,14 @@ fun TrainingMaxWizard(
             confirmLabel = confirmLabel,
             onDismiss = onDismiss,
             onConfirm = onConfirm,
+            unit = unit,
         )
     }
 }
 
 /**
  * El contenido de la hoja de TM, sin su contenedor: los levantamientos en la regla de marcas, la vista previa y, abajo, «Guardar» y
- * «Más tarde». La unidad empieza en kg (la firma no recibe la de Ajustes): el conmutador solo cambia la vista, y lo guardado es kg.
+ * «Más tarde». La unidad es la de Ajustes ([unit]): la hoja no tiene conmutador, y lo guardado es kg.
  */
 @Composable
 internal fun TrainingMaxContent(
@@ -74,9 +76,9 @@ internal fun TrainingMaxContent(
     confirmLabel: String,
     onDismiss: () -> Unit,
     onConfirm: (PowerliftingProfile) -> Unit,
+    unit: String = MarksMath.UNIT_KG,
 ) {
     var marks by remember(initial) { mutableStateOf(tmMarksOf(initial)) }
-    var unit by remember { mutableStateOf(MarksMath.UNIT_KG) }
     val preview = TrainingMaxResolver.hydrateProfile(
         PowerliftingProfile(
             squat1RM = positiveKg(marks[LiftMark.SQUAT]),
@@ -136,19 +138,25 @@ internal fun TrainingMaxContent(
                     valuesKg = marks,
                     unit = unit,
                     onValueKg = { lift, kg -> marks = if (kg == null) marks - lift else marks + (lift to kg) },
-                    onUnit = { unit = it },
                     variantLabels = mapOf(LiftMark.OVERHEAD_PRESS to "opcional"),
+                    showUnitSwitch = false,
                 )
             }
             if (canScrollMore) ScrollEdgeFade(modifier = Modifier.align(Alignment.BottomCenter))
         }
         Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 12.dp)) {
-            Text(
-                text = trainingMaxPreviewLine(preview.squatTM, preview.benchTM, preview.deadliftTM),
-                style = KpknType.caption.copy(fontFeatureSettings = "'tnum' 1", lineBreak = LineBreak.Paragraph),
-                color = WizardColors.text,
-            )
-            Spacer(Modifier.height(12.dp))
+            // Una fila por levantamiento con TM. Sin ningún TM, la vista previa no se pinta (P6).
+            val tmRows = trainingMaxPreviewRows(preview.squatTM, preview.benchTM, preview.deadliftTM, unit)
+            if (tmRows.isNotEmpty()) {
+                tmRows.forEach { row ->
+                    Text(
+                        text = row,
+                        style = KpknType.caption.copy(fontFeatureSettings = "'tnum' 1", lineBreak = LineBreak.Paragraph),
+                        color = WizardColors.text,
+                    )
+                }
+                Spacer(Modifier.height(12.dp))
+            }
             KpknPrimaryPill(
                 text = confirmLabel,
                 onClick = { onConfirm(preview) },
@@ -192,8 +200,13 @@ internal fun trainingMaxFiveRepNote(trainingMaxPercent: Double): String? =
         null
     }
 
-/** `TM: sentadilla 85 · press de banca 60 · peso muerto 100`, con «—» donde aún no hay marca. */
-internal fun trainingMaxPreviewLine(squatTM: Double?, benchTM: Double?, deadliftTM: Double?): String {
-    fun tmText(tm: Double?): String = tm?.toInt()?.toString() ?: "—"
-    return "TM: sentadilla ${tmText(squatTM)} · press de banca ${tmText(benchTM)} · peso muerto ${tmText(deadliftTM)}"
-}
+/**
+ * Filas de la vista previa: una por levantamiento con TM, como «Sentadilla · TM 124 kg», en la unidad de Ajustes. Sin TM no hay filas, y
+ * así no quedan «—» huérfanos.
+ */
+internal fun trainingMaxPreviewRows(squatTM: Double?, benchTM: Double?, deadliftTM: Double?, unit: String): List<String> =
+    listOfNotNull(
+        squatTM?.let { "Sentadilla · TM ${MarksMath.formatMark(it, unit)}" },
+        benchTM?.let { "Press de banca · TM ${MarksMath.formatMark(it, unit)}" },
+        deadliftTM?.let { "Peso muerto · TM ${MarksMath.formatMark(it, unit)}" },
+    )

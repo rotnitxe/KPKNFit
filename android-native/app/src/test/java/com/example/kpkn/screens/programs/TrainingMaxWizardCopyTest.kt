@@ -29,16 +29,17 @@ class TrainingMaxWizardCopyTest {
     }
 
     @Test
-    fun thePreviewNamesTheLiftsInFullAndUsesADashWhereThereIsNoMarkYet() {
+    fun thePreviewNamesTheLiftsInFullAndShowsOnlyTheLiftsWithAValue() {
         assertEquals(
-            "TM: sentadilla 85 · press de banca 60 · peso muerto 100",
-            trainingMaxPreviewLine(squatTM = 85.5, benchTM = 60.2, deadliftTM = 100.0),
+            listOf("Sentadilla · TM 85 kg", "Press de banca · TM 60 kg", "Peso muerto · TM 100 kg"),
+            trainingMaxPreviewRows(squatTM = 85.0, benchTM = 60.0, deadliftTM = 100.0, unit = "kg"),
         )
-        val empty = trainingMaxPreviewLine(squatTM = null, benchTM = null, deadliftTM = null)
-        assertEquals("TM: sentadilla — · press de banca — · peso muerto —", empty)
+        // Sin marca no hay fila: ni «—» huérfanos ni una línea vacía cuando no hay ningún TM.
+        assertEquals(listOf("Peso muerto · TM 100 kg"), trainingMaxPreviewRows(null, null, 100.0, "kg"))
+        assertTrue(trainingMaxPreviewRows(null, null, null, "kg").isEmpty())
+        val all = trainingMaxPreviewRows(85.0, 60.0, 100.0, "kg").joinToString(" ")
         listOf("SQ", "BP", "DL").forEach { abbreviation ->
-            assertFalse("«$empty» conserva la sigla $abbreviation", empty.contains(abbreviation))
+            assertFalse("«$all» conserva la sigla $abbreviation", all.contains(abbreviation))
         }
-        assertTrue(trainingMaxPreviewLine(1.0, null, null).startsWith("TM: sentadilla 1 "))
     }
 }

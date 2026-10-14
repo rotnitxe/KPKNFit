@@ -346,8 +346,8 @@ internal object ProgramStructureSamples {
 
     /** Avisos del motor de ejemplo: la competición cae fuera de las semanas y el término manual queda antes del proyectado. */
     val engineMessages: List<String> = listOf(
-        "La competición no cae dentro de las semanas actuales del programa. Ajusta fechas o agrega semanas.",
-        "El término manual queda antes del término proyectado. Agrega o quita semanas para que calce.",
+        "La competición cae fuera de las semanas del programa. Mueve la fecha o agrega semanas.",
+        "La fecha de fin que pusiste llega antes de que acabe el programa. Quita semanas o mueve la fecha.",
     )
 
     // ─── P3b: los módulos de bloque de la pestaña Estructura ───

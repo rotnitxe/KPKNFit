@@ -6,11 +6,14 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.exercises.isExerciseCatalogV2RuntimeReady
 import com.example.kpkn.data.models.ProgramStructure
@@ -26,7 +29,6 @@ import com.example.kpkn.screens.programdetail.design.split.SplitCatalogMode
 import com.example.kpkn.screens.programdetail.design.split.SplitCatalogScreen
 import com.example.kpkn.screens.programdetail.design.split.SplitCompareSheet
 import com.example.kpkn.screens.programdetail.design.split.SplitCustomEditorSheet
-import com.example.kpkn.screens.programdetail.design.split.SplitInfoDialog
 import com.example.kpkn.screens.programdetail.design.split.SplitMultiApplySheet
 import com.example.kpkn.screens.programdetail.design.split.filterSplitCatalog
 import com.example.kpkn.screens.programdetail.design.split.splitUnavailableReason
@@ -49,7 +51,6 @@ fun SplitView(
 ) {
     var searchQuery by rememberSaveable { mutableStateOf("") }
     var selectedTag by rememberSaveable { mutableStateOf<SplitTag?>(null) }
-    var infoSplitId by rememberSaveable { mutableStateOf<String?>(null) }
     var sheetSplitId by rememberSaveable { mutableStateOf<String?>(null) }
     var showCustomEditor by rememberSaveable { mutableStateOf(false) }
     var pendingCustomSplit by remember { mutableStateOf<Pair<SplitTemplate, Int>?>(null) }
@@ -80,14 +81,17 @@ fun SplitView(
     val splits = remember(searchQuery, selectedTag) { filterSplitCatalog(SPLIT_TEMPLATES, searchQuery, selectedTag) }
     // Un reparto sin plantilla para algún día se marca en su módulo; el motor sigue siendo quien decide al aplicar. Sin el catálogo de
     // ejercicios listo, la comprobación no es fiable: entonces no se marca ninguno en vez de afirmar un fallo que no se ha medido.
+    // La disponibilidad de los ~45 repartos se calcula fuera del hilo principal; hasta que llega, no se marca ninguno.
     val exerciseCatalogReady = isExerciseCatalogV2RuntimeReady()
-    val unavailable = remember(applyTemplates, exerciseCatalogReady) {
-        if (!exerciseCatalogReady) {
+    val unavailable by produceState(initialValue = emptyMap<String, String?>(), applyTemplates, exerciseCatalogReady) {
+        value = if (!exerciseCatalogReady) {
             emptyMap()
         } else {
-            SPLIT_TEMPLATES
-                .filter { it.isVisibleForApplication }
-                .associate { split -> split.id to splitUnavailableReason(split, applyTemplates) }
+            withContext(Dispatchers.Default) {
+                SPLIT_TEMPLATES
+                    .filter { it.isVisibleForApplication }
+                    .associate { split -> split.id to splitUnavailableReason(split, applyTemplates) }
+            }
         }
     }
 
@@ -153,7 +157,6 @@ fun SplitView(
         onToggleCompareMode = { setMode(SplitCatalogMode.COMPARE) },
         onToggleMultiMode = { setMode(SplitCatalogMode.MULTI) },
         onApply = { split -> sheetSplitId = split.id },
-        onInfo = { split -> infoSplitId = split.id },
         onToggleSelect = { split -> toggleSelected(split) },
         onEditCustom = { showCustomEditor = true },
         onApplyCustom = { customTemplate?.let { pendingCustomSplit = it to startDay } },
@@ -169,12 +172,6 @@ fun SplitView(
             startDay = startDay,
             onDismiss = { showCompareSheet = false },
         )
-    }
-
-    infoSplitId?.let { splitId ->
-        SPLIT_TEMPLATES.firstOrNull { it.id == splitId && it.isVisibleForApplication }?.let { split ->
-            SplitInfoDialog(split = split, onDismiss = { infoSplitId = null })
-        }
     }
 
     sheetSplitId?.let { splitId ->

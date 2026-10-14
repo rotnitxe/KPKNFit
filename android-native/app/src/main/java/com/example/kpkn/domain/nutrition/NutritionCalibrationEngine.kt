@@ -32,6 +32,8 @@ object NutritionCalibrationEngine {
     const val MIN_WEIGHT_READINGS = 7
     const val MIN_COMPLETE_DAYS = 10
     const val EWMA_HALF_LIFE_DAYS = 7.0
+    /** Tope de cada ajuste, en kcal, a cada lado: ni subir ni bajar más de esto de una vez. */
+    const val MAX_ADJUSTMENT_KCAL = 150
     private const val KCAL_PER_KG = 7700.0
 
     fun evaluate(input: NutritionCalibrationInput): NutritionCalibrationResult {
@@ -68,7 +70,7 @@ object NutritionCalibrationEngine {
         } else null
         val adjustment = if (enough && !planChangeTooRecent && weeklyChange != null) {
             // Losing weight requires adding calories; gaining requires removing them.
-            (-weeklyChange * KCAL_PER_KG / 7.0).roundToInt().coerceIn(-150, 150)
+            (-weeklyChange * KCAL_PER_KG / 7.0).roundToInt().coerceIn(-MAX_ADJUSTMENT_KCAL, MAX_ADJUSTMENT_KCAL)
         } else null
         val profile = NutritionCalibrationProfile(
             baselineKcal = input.baselineKcal,

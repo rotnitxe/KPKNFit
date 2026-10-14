@@ -54,6 +54,8 @@ fun ProgramVolumeRow(
     onToggle: () -> Unit,
     modifier: Modifier = Modifier,
     breakdown: ProgramVolumeBreakdown? = null,
+    /** Falso cuando el estado lo dice el módulo una sola vez (todo el volumen sin calibrar); la semántica sigue leyéndolo. */
+    showStateLabel: Boolean = true,
 ) {
     val reduced = wizardReducedMotion()
     val state = muscle.state
@@ -118,14 +120,18 @@ fun ProgramVolumeRow(
             )
             Spacer(Modifier.height(4.dp))
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(
-                    text = label,
-                    style = KpknType.caption,
-                    color = stateColor,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.weight(1f),
-                )
+                if (showStateLabel) {
+                    Text(
+                        text = label,
+                        style = KpknType.caption,
+                        color = stateColor,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.weight(1f),
+                    )
+                } else {
+                    Spacer(Modifier.weight(1f))
+                }
                 muscle.real?.let { real ->
                     Text(
                         text = "Real ${programVolumeSeries(real)}",

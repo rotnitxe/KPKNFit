@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
@@ -166,12 +167,10 @@ private val TileMinHeight = 76.dp
 
 private val TileShape = RoundedCornerShape(16.dp)
 
-/** Cómo se escribe la etiqueta: una línea en `bodyStrong` si todas caben; si no, `caption` en dos líneas como mucho, partidas entre palabras. */
-private data class ToolLabelType(val style: TextStyle, val maxLines: Int)
-
 /**
- * Rejilla de baldosas. Tres columnas solo si cada palabra cabe entera en una baldosa de tres a la letra de `caption`; si no, dos columnas.
- * Así ninguna palabra se parte a media (a 130 % de letra, «Calendario» no cabe en tres y pasaría a dos). Con cuatro baldosas, siempre dos.
+ * Rejilla de baldosas. Tres columnas solo si cada palabra cabe entera en una baldosa de tres a la letra de `bodyStrong`; si no, dos
+ * columnas. Así ninguna palabra se parte a media (a 130 % de letra, «Calendario» no cabe en tres y pasaría a dos). Con cuatro baldosas,
+ * siempre dos. Una fila incompleta se centra con baldosas del mismo ancho que las de arriba, para que no quede un hueco a la derecha.
  */
 @Composable
 private fun ProgramToolGrid(tools: List<ProgramTool>) {
@@ -182,22 +181,26 @@ private fun ProgramToolGrid(tools: List<ProgramTool>) {
         val words = tools.flatMap { tool -> tool.label.split(' ') }
         val columns = when {
             tools.size == 4 -> 2
-            words.all { word -> fitsOneLine(measurer, word, KpknType.caption, threeInnerPx) } -> 3
+            words.all { word -> fitsOneLine(measurer, word, KpknType.bodyStrong, threeInnerPx) } -> 3
             else -> 2
         }
-        val innerPx = with(density) { ((maxWidth - TileGap * (columns - 1)) / columns - TilePadding * 2).toPx() }
-        val labelType = remember(tools, innerPx) { toolLabelType(measurer, tools.map { it.label }, innerPx) }
+        val tileWidth = (maxWidth - TileGap * (columns - 1)) / columns
         Column(verticalArrangement = Arrangement.spacedBy(TileGap)) {
             tools.chunked(columns).forEach { row ->
+                val full = row.size == columns
                 // Las baldosas de una fila comparten alto: la más alta marca la fila.
                 Row(
                     modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Min),
-                    horizontalArrangement = Arrangement.spacedBy(TileGap),
+                    horizontalArrangement = if (full) {
+                        Arrangement.spacedBy(TileGap)
+                    } else {
+                        Arrangement.spacedBy(TileGap, Alignment.CenterHorizontally)
+                    },
                 ) {
                     row.forEach { tool ->
-                        ProgramToolTile(tool = tool, labelType = labelType, modifier = Modifier.weight(1f).fillMaxHeight())
+                        val sizing = if (full) Modifier.weight(1f) else Modifier.width(tileWidth)
+                        ProgramToolTile(tool = tool, modifier = sizing.fillMaxHeight())
                     }
-                    repeat(columns - row.size) { Spacer(Modifier.weight(1f)) }
                 }
             }
         }
@@ -208,21 +211,13 @@ private fun ProgramToolGrid(tools: List<ProgramTool>) {
 private fun fitsOneLine(measurer: TextMeasurer, text: String, style: TextStyle, availablePx: Float): Boolean =
     measurer.measure(AnnotatedString(text), style, maxLines = 1, softWrap = false).size.width <= availablePx
 
-/** Una línea en `bodyStrong` si todas las etiquetas caben en [availablePx]; si no, `caption` en dos líneas como mucho. */
-private fun toolLabelType(measurer: TextMeasurer, labels: List<String>, availablePx: Float): ToolLabelType =
-    if (labels.all { fitsOneLine(measurer, it, KpknType.bodyStrong, availablePx) }) {
-        ToolLabelType(KpknType.bodyStrong, maxLines = 1)
-    } else {
-        ToolLabelType(KpknType.caption.copy(lineHeight = 16.sp), maxLines = 2)
-    }
-
 /**
  * Baldosa: superficie `inset` de 16 dp de radio y 76 dp de alto mínimo. Arriba, el icono a la izquierda y la cifra a la derecha; abajo,
  * la etiqueta. El icono y la etiqueta van en filas distintas, así que una etiqueta de dos líneas nunca se pisa con el icono. Toda la
  * baldosa es un botón (`Role.Button`) con su descripción; apagada, no se toca y el texto va en `textFaint`.
  */
 @Composable
-private fun ProgramToolTile(tool: ProgramTool, labelType: ToolLabelType, modifier: Modifier = Modifier) {
+private fun ProgramToolTile(tool: ProgramTool, modifier: Modifier = Modifier) {
     val ink = if (tool.enabled) WizardColors.text else WizardColors.textFaint
     Column(
         modifier = modifier
@@ -256,9 +251,9 @@ private fun ProgramToolTile(tool: ProgramTool, labelType: ToolLabelType, modifie
         Spacer(Modifier.height(6.dp))
         Text(
             text = tool.label,
-            style = labelType.style,
+            style = KpknType.bodyStrong,
             color = ink,
-            maxLines = labelType.maxLines,
+            maxLines = 2,
             overflow = TextOverflow.Ellipsis,
             modifier = Modifier.fillMaxWidth(),
         )

@@ -20,6 +20,8 @@ import com.example.kpkn.ui.design.KpknType
 fun ProgramVolumeCalibrationInvite(
     onCalibrate: () -> Unit,
     modifier: Modifier = Modifier,
+    /** Una línea de estado junto al botón, p. ej. «Sin calibrar: las zonas aparecen al calibrar»; null si no hace falta. */
+    note: String? = null,
 ) {
     KpknModule(modifier = modifier, accent = SymbolPalette.energia) {
         Text(
@@ -34,6 +36,14 @@ fun ProgramVolumeCalibrationInvite(
             color = WizardColors.textMuted,
         )
         Spacer(Modifier.height(16.dp))
+        note?.let { text ->
+            Text(
+                text = text,
+                style = KpknType.caption,
+                color = WizardColors.textMuted,
+            )
+            Spacer(Modifier.height(12.dp))
+        }
         KpknPrimaryPill(
             text = "Calibrar ahora",
             onClick = onCalibrate,

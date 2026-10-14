@@ -6,6 +6,7 @@ import com.example.kpkn.data.models.ProgramWeek
 import com.example.kpkn.data.programs.CatalogEntry
 import com.example.kpkn.data.programs.PersonalizedPlanCatalog
 import com.example.kpkn.data.programs.PlanLabels
+import com.example.kpkn.data.protocols.KPKN_OWN_PLAN_DISCLAIMER
 import com.example.kpkn.data.protocols.PROTOCOL_LIBRARY
 import com.example.kpkn.data.protocols.PlanProvenance
 import com.example.kpkn.data.protocols.PlanProvenanceClass
@@ -37,9 +38,6 @@ internal data class ProgramPlanDisplaySummary(
     val weeklyVolume: String,
     val pendingLoadCount: Int,
 )
-
-/** Texto que ocupa el lugar de un dato que falta («—»). */
-private const val MISSING_VALUE = "—"
 
 /** Las notas del plan que se enseñan antes de resumir el resto en «+N notas más». */
 internal const val MAX_PLAN_NOTES = 6
@@ -161,19 +159,54 @@ internal fun moreLabel(remaining: Int, singular: String, plural: String): String
 
 /**
  * Línea de máximos de entrenamiento del detalle: «TM: sentadilla 180 · banca 120 · peso muerto 220 kg».
- * Los enteros van sin decimales, los demás con coma («110,5»), y un máximo que falta se escribe «—». La unidad
- * solo acompaña a la línea si hay al menos un valor.
+ * Solo sale lo que existe: un máximo que falta no aparece (nunca un «—» suelto), y con un único valor la línea es, por ejemplo,
+ * «TM: banca 120 kg». Los enteros van sin decimales y los demás con coma («110,5»). Sin ningún máximo, null: la fila no se pinta.
  */
-internal fun trainingMaxLine(profile: PowerliftingProfile?): String {
-    val squat = trainingMaxValue(profile?.squatTM)
-    val bench = trainingMaxValue(profile?.benchTM)
-    val deadlift = trainingMaxValue(profile?.deadliftTM)
-    val line = "TM: sentadilla $squat · banca $bench · peso muerto $deadlift"
-    return if (listOf(squat, bench, deadlift).any { it != MISSING_VALUE }) "$line kg" else line
+internal fun trainingMaxLine(profile: PowerliftingProfile?): String? {
+    val parts = listOfNotNull(
+        trainingMaxValue(profile?.squatTM)?.let { "sentadilla $it" },
+        trainingMaxValue(profile?.benchTM)?.let { "banca $it" },
+        trainingMaxValue(profile?.deadliftTM)?.let { "peso muerto $it" },
+    )
+    if (parts.isEmpty()) return null
+    return "TM: " + parts.joinToString(" · ") + " kg"
 }
 
-private fun trainingMaxValue(value: Double?): String =
-    value?.takeIf { it.isFinite() }?.let(PlanInfoModelBuilder::formatNumber) ?: MISSING_VALUE
+/** Un máximo que existe, con su formato; null si falta, no es un número finito o no es positivo. */
+private fun trainingMaxValue(value: Double?): String? =
+    value?.takeIf { it.isFinite() && it > 0.0 }?.let(PlanInfoModelBuilder::formatNumber)
+
+/** Qué dice la fila de máximos de Propuestas: lo que hay fijado, la invitación a fijarlo si el programa usa TM, o nada. */
+internal sealed interface TrainingMaxRow {
+    /** Los máximos que existen, en una línea («TM: sentadilla 108 kg»). */
+    data class Value(val line: String) : TrainingMaxRow
+
+    /** El programa usa TM y ningún máximo está fijado: «Añadir» abre el editor. */
+    object Unset : TrainingMaxRow
+
+    /** El programa no usa TM: no hay fila. */
+    object None : TrainingMaxRow
+}
+
+/**
+ * La fila de máximos de Propuestas. [usesTm] es la regla de siempre (la receta, o el perfil si no hay receta). Si el programa usa TM y no
+ * hay ningún máximo, la fila invita a fijarlos; si no usa TM, no hay fila aunque haya máximos guardados.
+ */
+internal fun trainingMaxRowOf(usesTm: Boolean, profile: PowerliftingProfile?): TrainingMaxRow {
+    if (!usesTm) return TrainingMaxRow.None
+    val line = trainingMaxLine(profile) ?: return TrainingMaxRow.Unset
+    return TrainingMaxRow.Value(line)
+}
+
+/**
+ * La línea de procedencia de «Sobre este programa». «Plan KPKN · Plan propio de KPKN.» repetía la etiqueta: con la descripción genérica
+ * (el «Plan propio de KPKN.» de siempre) la línea pasa a ser el resumen de la ficha del catálogo, si existe; si no, no se pinta (null).
+ */
+internal fun aboutProvenanceLine(summary: ProgramPlanDisplaySummary): String? {
+    val source = summary.sourceLine?.trim()?.takeIf { it.isNotEmpty() }
+    if (source != null && source.trimEnd('.') == KPKN_OWN_PLAN_DISCLAIMER.trimEnd('.')) return summary.summary
+    return listOfNotNull(summary.provenanceLabel.takeIf { it.isNotBlank() }, source).joinToString(" · ").ifEmpty { null }
+}
 
 private fun sourceLine(provenance: PlanProvenance): String? = listOfNotNull(
     provenance.sourceTitle,
