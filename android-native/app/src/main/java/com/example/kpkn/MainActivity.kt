@@ -197,6 +197,11 @@ class MainActivity : ComponentActivity() {
             runCatching {
                 com.example.kpkn.data.repository.WorkoutMediaRepository.getInstance().importLegacyIfNeeded()
             }.onFailure { logKpknError("MainActivity", "Error importing workout media", it) }
+            // Técnica en vídeo: rehace las filas que falten desde sus sidecars y limpia huérfanos, ya con los medios importados.
+            // Corre una vez por proceso aunque la Activity se recree.
+            runCatching {
+                com.example.kpkn.data.work.TechniqueAnalysisScheduler.reconcileInBackground(this@MainActivity)
+            }.onFailure { logKpknError("MainActivity", "Error reconciling technique analysis", it) }
         }
 
         lifecycleScope.launch(Dispatchers.IO) {

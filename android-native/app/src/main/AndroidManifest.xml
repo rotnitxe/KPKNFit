@@ -107,6 +107,19 @@
             android:foregroundServiceType="dataSync|mediaProcessing"
             tools:node="merge" />
 
+        <!-- Telemetría (D27): MediaPipe (tasks-core) y ML Kit encolan métricas de uso para firebaselogging.googleapis.com con
+             datatransport. Sin este servicio ni este receptor no puede programar la subida y no sale nada; el resto del
+             tiempo de ejecución sigue igual (se comprobó en el emulador: pose, OCR y arranques). -->
+        <service
+            android:name="com.google.android.datatransport.runtime.scheduling.jobscheduling.JobInfoSchedulerService"
+            android:enabled="false"
+            tools:replace="android:enabled" />
+
+        <receiver
+            android:name="com.google.android.datatransport.runtime.scheduling.jobscheduling.AlarmManagerSchedulerBroadcastReceiver"
+            android:enabled="false"
+            tools:replace="android:enabled" />
+
         <receiver
             android:name=".services.workout.RestTimerFinishedReceiver"
             android:enabled="true"

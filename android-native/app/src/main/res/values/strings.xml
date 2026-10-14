@@ -140,6 +140,12 @@
      <string name="notif_ai_inference_title">Procesando con Caupo AI</string>
      <string name="notif_ai_inference_body">Analizando tu entrada para calcular calorías y macros</string>
 
+    <!-- Técnica en vídeo: aviso de primer plano del Worker de análisis (%1$d = avance en %) -->
+    <string name="notif_channel_technique_name">Análisis de técnica</string>
+    <string name="notif_channel_technique_desc">Aviso mientras se analiza la técnica de un vídeo</string>
+    <string name="notif_technique_title">Analizando la técnica del vídeo</string>
+    <string name="notif_technique_progress">%1$d %%</string>
+
     <!-- ═══════════════════════════════════════════════════════════════
          SESIÓN — Etiquetas de fatiga
     ═══════════════════════════════════════════════════════════════ -->
