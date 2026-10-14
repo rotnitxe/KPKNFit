@@ -7,8 +7,10 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Icon
@@ -21,6 +23,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.example.kpkn.data.exercises.displayNameWithSelectedChips
 import com.example.kpkn.data.models.*
@@ -28,6 +31,7 @@ import com.example.kpkn.domain.auge.ExerciseReadinessEngine
 import com.example.kpkn.screens.onboarding.design.WizardColors
 import com.example.kpkn.screens.onboarding.design.entreno.SymbolPalette
 import com.example.kpkn.screens.workout.*
+import java.util.Locale
 import com.example.kpkn.ui.components.KpknSheet
 import com.example.kpkn.ui.components.icons.KpknLineIcons
 import com.example.kpkn.ui.design.KpknIconButton
@@ -232,46 +236,75 @@ internal fun SetAdjustmentBody(
         }
 
         KpknModule(modifier = Modifier.fillMaxWidth()) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                // «Planificada» es más ancha que «Hoy»: en 130 % «PLANIFICADA» no cabe en media fila y se partía dentro de la palabra.
-                Column(
-                    modifier = Modifier.weight(1.3f),
-                    verticalArrangement = Arrangement.spacedBy(4.dp),
-                ) {
-                    KpknModuleHeader(label = "Planificada")
-                    KpknMetric(value = plannedValue, unit = plannedUnit, style = KpknType.metricL)
-                    // Solo si el modo no es el de carga normal; así las dos columnas quedan con la misma estructura.
-                    plannedCaption?.let { caption ->
-                        Text(text = caption, style = KpknType.caption, color = WizardColors.textMuted)
+            // Se lee por filas (cabeceras, cifras, aclaraciones y diferencia) para que las dos columnas compartan línea base.
+            // «Planificada» va alineada a la derecha y «Hoy» a la izquierda, pegadas a la flecha: así la flecha queda centrada entre
+            // las cifras. «Planificada» es más ancha: en 130 % «PLANIFICADA» no cabe en media fila y se partía dentro de la palabra.
+            val arrowWidth = 40.dp
+            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Row(modifier = Modifier.fillMaxWidth()) {
+                    // La misma cabecera que KpknModuleHeader (eyebrow, 40 dp de altura, centrada en vertical), pero pegada a la derecha
+                    // para que quede encima de su cifra. KpknModuleHeader siempre ocupa el ancho entero y alinea a la izquierda.
+                    Box(
+                        modifier = Modifier
+                            .weight(1.4f)
+                            .heightIn(min = 40.dp),
+                        contentAlignment = Alignment.CenterEnd,
+                    ) {
+                        Text(
+                            text = "Planificada".uppercase(Locale("es")),
+                            style = KpknType.eyebrow,
+                            color = WizardColors.textMuted,
+                            textAlign = TextAlign.End,
+                            maxLines = 1,
+                        )
                     }
+                    Spacer(Modifier.width(arrowWidth))
+                    KpknModuleHeader(label = "Hoy", modifier = Modifier.weight(1f))
                 }
-                Text(
-                    text = "→",
-                    style = KpknType.title,
-                    color = readinessTone,
-                    modifier = Modifier.padding(horizontal = 8.dp),
-                )
-                Column(
-                    modifier = Modifier.weight(1f),
-                    verticalArrangement = Arrangement.spacedBy(4.dp),
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    KpknModuleHeader(label = "Hoy")
+                    Row(modifier = Modifier.weight(1.4f), horizontalArrangement = Arrangement.End) {
+                        KpknMetric(value = plannedValue, unit = plannedUnit, style = KpknType.metricL)
+                    }
+                    Box(
+                        modifier = Modifier.width(arrowWidth),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Text(text = "→", style = KpknType.title, color = readinessTone)
+                    }
                     KpknMetric(
                         value = suggestedValue,
                         unit = suggestedUnit,
                         style = KpknType.metricL,
                         color = readinessTone,
+                        modifier = Modifier.weight(1f),
                     )
-                    suggestedCaption?.let { caption ->
-                        Text(text = caption, style = KpknType.caption, color = WizardColors.textMuted)
+                }
+                // Solo si el modo no es el de carga normal; si una columna no tiene aclaración, la otra conserva su sitio.
+                if (plannedCaption != null || suggestedCaption != null) {
+                    Row(modifier = Modifier.fillMaxWidth()) {
+                        Row(modifier = Modifier.weight(1.4f), horizontalArrangement = Arrangement.End) {
+                            Text(text = plannedCaption.orEmpty(), style = KpknType.caption, color = WizardColors.textMuted)
+                        }
+                        Spacer(Modifier.width(arrowWidth))
+                        Text(
+                            text = suggestedCaption.orEmpty(),
+                            style = KpknType.caption,
+                            color = WizardColors.textMuted,
+                            modifier = Modifier.weight(1f),
+                        )
                     }
+                }
+                Row(modifier = Modifier.fillMaxWidth()) {
+                    Spacer(Modifier.weight(1.4f))
+                    Spacer(Modifier.width(arrowWidth))
                     Text(
                         text = suggestedDelta,
                         style = KpknType.caption,
                         color = readinessTone,
+                        modifier = Modifier.weight(1f),
                     )
                 }
             }
