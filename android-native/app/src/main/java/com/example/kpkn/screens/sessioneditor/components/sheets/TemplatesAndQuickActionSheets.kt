@@ -185,7 +185,6 @@ internal fun TemplatesSheet(
                     // snapshot base solo contiene las definiciones padre y no
                     // puede resolver esos IDs ni sus chips.
                     exerciseIndex = catalogExerciseIndex(),
-                    glassDark = true,
                     modifier = Modifier.fillMaxWidth(),
                 )
             }

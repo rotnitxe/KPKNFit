@@ -322,7 +322,6 @@ import com.example.kpkn.screens.sessioneditor.SessionEditorAugeSummary
 import com.example.kpkn.screens.sessioneditor.CatalogSelectionWizard
 import com.example.kpkn.screens.sessioneditor.CatalogSelectionDraftBridge
 import com.example.kpkn.screens.sessioneditor.components.TemplateCatalogBrowser
-import com.example.kpkn.screens.sessioneditor.components.CompactTemplateCard
 import com.example.kpkn.screens.sessioneditor.SessionSubMuscleBreakdownList
 import com.example.kpkn.screens.sessioneditor.getMuscleEmphasisEducationalText
 import com.example.kpkn.screens.sessioneditor.countDisplaySets

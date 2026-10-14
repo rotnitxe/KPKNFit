@@ -94,6 +94,7 @@ fun SessionAssistantOverlay(
                     onDeleteUserTemplate = onDeleteUserTemplate,
                     onEditUserTemplate = onEditUserTemplate,
                     onSaveCurrentTemplate = onSaveCurrentTemplate,
+                    sessionSummary = sessionCountsLine(uiState.session),
                 )
             },
             modifier = Modifier.weight(1f),
