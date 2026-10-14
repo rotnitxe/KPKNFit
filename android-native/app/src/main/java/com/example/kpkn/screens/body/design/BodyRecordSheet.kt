@@ -349,6 +349,7 @@ fun BodyRecordSheet(
             },
             dismissLabel = "Cancelar",
             onDismiss = { deleteAsked = false },
+            destructive = true,
         )
     }
 }

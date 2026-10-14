@@ -245,11 +245,10 @@ class BodyPageRenderSheetTest {
     }
 
     /** Monta la página con la escena; la isla sigue a la lista como en la pantalla (aparece al salir la cabecera). */
-    private fun montar(escena: EscenaCuerpo, escala: Float = 1f, desplazarA: Int? = null) {
+    private fun montar(escena: EscenaCuerpo, escala: Float = 1f) {
         rule.setContent {
             hostView = LocalView.current
-            // Con [desplazarA], la lista empieza ya en ese elemento: la cabecera queda fuera de la vista y la isla aparece.
-            val listState = rememberLazyListState(initialFirstVisibleItemIndex = desplazarA ?: 0)
+            val listState = rememberLazyListState()
             val isla = rememberIslandVisible(listState, afterItemIndex = 0)
             AlTamano(escala) {
                 PaginaCuerpo(escena = escena, listState = listState, isla = isla)
@@ -337,25 +336,6 @@ class BodyPageRenderSheetTest {
         )
         rule.waitForIdle()
         guardarEntre("cuerpo_persona_nueva_100", "cuerpo-cabecera", "cuerpo-fin")
-    }
-
-    @Test
-    fun paginaDesplazadaHastaLaGrasa() {
-        onlyWhenAsked()
-        // La lista arranca en la grasa: la cabecera queda fuera de la vista. La isla se pinta aparte (islaSolaEnKilogramos).
-        montar(EscenaCuerpo(), desplazarA = 2)
-        rule.waitForIdle()
-        rule.mainClock.advanceTimeBy(1_000L)
-        guardarFranja("cuerpo_desplazado_100", 0f, 1300f)
-    }
-
-    @Test
-    fun paginaDesplazadaHastaLaGrasaEnLibras() {
-        onlyWhenAsked()
-        montar(EscenaCuerpo(unidad = WizardMassUnit.LB), desplazarA = 2)
-        rule.waitForIdle()
-        rule.mainClock.advanceTimeBy(1_000L)
-        guardarFranja("cuerpo_desplazado_libras_100", 0f, 1300f)
     }
 
     /** La isla sola, en kg y en libras: la pinta `BodyIsland` con `visible = true` y los textos de la página, sin depender de la lista. */
