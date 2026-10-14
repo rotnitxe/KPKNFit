@@ -30,7 +30,14 @@ persona, arregla lo que se rompa y documenta. La lógica NO cambia.
    9. reordenar arrastrando;
    10. una sesión vacía (crea una nueva);
    11. guardar, volver y comprobar que Program Detail muestra el cambio; volver a entrar y comprobar que se conservó;
-   12. lo mismo a 360 × 740 dp: añade `--wm 1080x2220@480` a la llamada de `emu_run.py` (la pantalla vuelve sola a la normal al
+   12. **vidrio y cierres:** abre las hojas y el catálogo del editor (`RulesSheet` y `ExercisePickerV2Catalog` leen `LocalHazeState`) y el
+       editor del plan de Nutrición (Nutrición → tu plan → editar: su `EditorSaveIsland` también lo lee). Usa `--crash-log` en cada paso.
+       **Fallo conocido (LS8, decisiones 146 y 151):** una pieza de vidrio que lee `LocalHazeState.current` (la fuente global de
+       `MainActivity`) y se compone DENTRO de la página se dibuja a sí misma en bucle y la app muere en RenderThread (SIGSEGV o
+       desbordamiento de pila; `--crash-log` enseña cientos de `RenderNode::prepareTreeImpl`). Si pasa, el arreglo es el de LS8: esa
+       pieza pinta el velo opaco (`kpknGlassOrFallback(null, …)`). Las hojas que van en el portal (`KpknOverlayHost`) o en su propia
+       ventana no tienen ese problema. Si el arreglo cae fuera del editor (Nutrición), hazlo igual, mínimo y en su propio commit;
+   13. lo mismo a 360 × 740 dp: añade `--wm 1080x2220@480` a la llamada de `emu_run.py` (la pantalla vuelve sola a la normal al
        terminar esa llamada; en ella los toques van en 1080 × 2220).
    - Mira cada captura con el listón del usuario (por encima de Hevy, Lyfta y MacroFactor): nada cortado ni solapado, ritmo de 16 dp,
      tipo frase, «…» de un carácter, coma decimal, espacio inseparable antes de unidades y %, vocabulario de la app («Superserie»,
