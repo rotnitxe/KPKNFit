@@ -4,6 +4,7 @@ import com.example.kpkn.data.splits.SPLIT_TEMPLATES
 import com.example.kpkn.data.splits.SplitPublicationStatus
 import com.example.kpkn.data.splits.SplitTag
 import com.example.kpkn.data.splits.SplitTemplate
+import com.example.kpkn.screens.onboarding.design.WizardColors
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -34,12 +35,15 @@ class SplitDayMarkTest {
     }
 
     @Test
-    fun torsoYCuerpoCompletoSonDelMismoRol() {
+    fun torsoYCuerpoCompletoSonRolesDistintos() {
         assertEquals(SplitDayMark(SplitDayRole.TORSO, "T"), splitDayMark("Torso"))
         // Torso antes que cuerpo completo: «Torso/Full Body» cuenta como torso.
         assertEquals(SplitDayMark(SplitDayRole.TORSO, "T"), splitDayMark("Torso/Full Body"))
-        assertEquals(SplitDayMark(SplitDayRole.TORSO, "CC"), splitDayMark("Cuerpo Completo A"))
-        assertEquals(SplitDayMark(SplitDayRole.TORSO, "CC"), splitDayMark("Full Body B"))
+        assertEquals(SplitDayMark(SplitDayRole.FULL_BODY, "CC"), splitDayMark("Cuerpo Completo A"))
+        assertEquals(SplitDayMark(SplitDayRole.FULL_BODY, "CC"), splitDayMark("Full Body B"))
+        // Cuerpo completo va en tinta: no comparte el lila de torso.
+        assertEquals(WizardColors.text, splitDayAccent(SplitDayRole.FULL_BODY))
+        assertTrue(splitDayAccent(SplitDayRole.FULL_BODY) != splitDayAccent(SplitDayRole.TORSO))
     }
 
     @Test

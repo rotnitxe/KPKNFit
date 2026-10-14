@@ -174,7 +174,6 @@ class SplitViewRenderSheetTest {
             onToggleCompareMode = {},
             onToggleMultiMode = {},
             onApply = {},
-            onInfo = {},
             onToggleSelect = {},
             onEditCustom = {},
             onApplyCustom = {},
