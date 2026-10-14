@@ -23,6 +23,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.domain.sessionassistant.UltraFastPreview
@@ -210,7 +211,8 @@ internal fun UltraFastPreviewBody(
                             text = change.exerciseName,
                             style = KpknType.bodyStrong,
                             color = WizardColors.text,
-                            maxLines = 1,
+                            maxLines = 2,
+                            overflow = TextOverflow.Ellipsis,
                             modifier = Modifier.weight(1f),
                         )
                         Text(

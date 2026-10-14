@@ -22,6 +22,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.example.kpkn.data.models.DropSetData
 import com.example.kpkn.data.models.ExerciseSet
@@ -227,7 +228,8 @@ internal fun SetTechniqueBody(
                 text = "Técnica de la serie",
                 style = KpknType.title,
                 color = WizardColors.text,
-                maxLines = 1,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
                 modifier = Modifier.weight(1f),
             )
             if (showPrMediaShortcut && onOpenPrMedia != null) {
@@ -310,18 +312,19 @@ private fun DropRowsModule(
         TechniqueCaptionRow(first = "Kilos", second = "Repeticiones")
         rows.forEachIndexed { index, row ->
             if (index > 0) TechniqueDivider()
+            // La etiqueta va en su propia línea: así cada celda ocupa la mitad del ancho y «Repeticiones» no se parte al 130 %.
+            Text(
+                text = "Drop ${index + 1}",
+                style = KpknType.bodyStrong,
+                color = WizardColors.text,
+                maxLines = 1,
+            )
+            Spacer(Modifier.height(6.dp))
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
-                Text(
-                    text = "Drop ${index + 1}",
-                    style = KpknType.bodyStrong,
-                    color = WizardColors.text,
-                    maxLines = 1,
-                    modifier = Modifier.width(64.dp),
-                )
                 KpknNumberCell(
                     value = row.weightText,
                     input = KpknCellInput.Text(
@@ -373,18 +376,18 @@ private fun RestPauseRowsModule(
         TechniqueCaptionRow(first = "Repeticiones", second = "Descanso (s)")
         rows.forEachIndexed { index, row ->
             if (index > 0) TechniqueDivider()
+            Text(
+                text = "Mini-serie ${index + 1}",
+                style = KpknType.bodyStrong,
+                color = WizardColors.text,
+                maxLines = 1,
+            )
+            Spacer(Modifier.height(6.dp))
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
-                Text(
-                    text = "Mini-serie ${index + 1}",
-                    style = KpknType.bodyStrong,
-                    color = WizardColors.text,
-                    maxLines = 1,
-                    modifier = Modifier.width(96.dp),
-                )
                 KpknNumberCell(
                     value = row.repsText,
                     input = KpknCellInput.Text(
@@ -433,7 +436,6 @@ private fun TechniqueCaptionRow(first: String, second: String) {
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        Spacer(Modifier.width(64.dp))
         Text(text = first, style = KpknType.caption, color = WizardColors.textMuted, modifier = Modifier.weight(1f))
         Text(text = second, style = KpknType.caption, color = WizardColors.textMuted, modifier = Modifier.weight(1f))
     }

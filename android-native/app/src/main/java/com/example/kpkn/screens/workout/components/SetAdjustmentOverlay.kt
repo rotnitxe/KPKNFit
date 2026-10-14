@@ -1,6 +1,7 @@
 package com.example.kpkn.screens.workout.components
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -35,7 +36,7 @@ import com.example.kpkn.ui.design.KpknModule
 import com.example.kpkn.ui.design.KpknModuleHeader
 import com.example.kpkn.ui.design.KpknPercentRule
 import com.example.kpkn.ui.design.KpknPrimaryPill
-import com.example.kpkn.ui.design.KpknSecondaryPill
+import com.example.kpkn.ui.design.KpknTextAction
 import com.example.kpkn.ui.design.KpknType
 import kotlin.math.roundToInt
 
@@ -330,20 +331,17 @@ internal fun SetAdjustmentBody(
             )
         }
 
-        Row(
+        // «Aplicar» ocupa todo el ancho para que su etiqueta quepa al 130 %; «Cancelar» baja como acción de texto.
+        KpknPrimaryPill(
+            text = applyLabel,
+            onClick = onApply,
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
+        )
+        Box(
+            modifier = Modifier.fillMaxWidth(),
+            contentAlignment = Alignment.Center,
         ) {
-            KpknSecondaryPill(
-                text = "Cancelar",
-                onClick = onDismiss,
-                modifier = Modifier.weight(1f),
-            )
-            KpknPrimaryPill(
-                text = applyLabel,
-                onClick = onApply,
-                modifier = Modifier.weight(1f),
-            )
+            KpknTextAction(text = "Cancelar", onClick = onDismiss)
         }
     }
 }

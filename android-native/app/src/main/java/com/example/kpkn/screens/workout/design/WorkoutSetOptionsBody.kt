@@ -2,21 +2,26 @@ package com.example.kpkn.screens.workout.design
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.size
+import androidx.compose.material3.Icon
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import com.example.kpkn.screens.onboarding.design.WizardColors
+import com.example.kpkn.ui.components.icons.KpknLineIcons
 import com.example.kpkn.ui.design.KpknMetric
 import com.example.kpkn.ui.design.KpknModule
 import com.example.kpkn.ui.design.KpknModuleHeader
 import com.example.kpkn.ui.design.KpknPercentRule
-import com.example.kpkn.ui.design.KpknSecondaryPill
 import com.example.kpkn.ui.design.KpknStepperMetric
 import com.example.kpkn.ui.design.KpknType
 import java.util.Locale
@@ -92,11 +97,32 @@ internal fun WorkoutSetOptionsBody(
                 )
             }
         }
-        KpknSecondaryPill(
-            text = "Drop-sets, descanso y notas",
-            onClick = onOpenTechnique,
+        // Fila de módulo en vez de píldora: el texto puede ocupar dos líneas al 130 % y no se corta.
+        KpknModule(
             modifier = Modifier.fillMaxWidth(),
-        )
+            onClick = onOpenTechnique,
+            onClickLabel = "Drop-sets, descanso y notas",
+            contentPadding = PaddingValues(horizontal = 20.dp, vertical = 16.dp),
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                Text(
+                    text = "Drop-sets, descanso y notas",
+                    style = KpknType.bodyStrong,
+                    color = WizardColors.text,
+                    modifier = Modifier.weight(1f),
+                )
+                Icon(
+                    imageVector = KpknLineIcons.ChevronRight,
+                    contentDescription = null,
+                    modifier = Modifier.size(20.dp),
+                    tint = WizardColors.text,
+                )
+            }
+        }
     }
 }
 
