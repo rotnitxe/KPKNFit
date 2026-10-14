@@ -32,6 +32,12 @@ Va solo para los ejercicios compatibles.
 - Lenguaje visual: `docs/design/KPKN_UI_V2.md`.
 - Brief común de la ola: `docs/video-technique/briefs/VT_COMUN.md`.
 
+**Estado de LS2b.** Integrado en `feat/sessions-v1` el 13-oct, en el merge `a645adb88`. Se fusiona en `feat/video-technique` antes de VT8a.
+- `design/WorkoutSetPanel.kt` sustituye la cara de `SetInputCardV2`.
+- La hoja «Técnica» la abre la tarjeta activa (`WorkoutTechniqueSheetHolder`), desde el «Info» y desde «Opciones avanzadas».
+- Dentro de la hoja van `SetCardTechniqueBack` y, con «Ver ejercicio/Fotos», `SetCardExerciseMediaBack`.
+- LS4 hará que el «Info» abra directamente los medios.
+
 **Coordinación con la ola LS** (rediseño de la sesión en vivo en `feat/sessions-v1`):
 - LS2b monta `SetCardTechniqueBack` y `SetCardExerciseMediaBack` TAL CUAL dentro de una `KpknSheet` «Técnica», que se abre con el «Info» de la cabecera.
 - LS3 deja `videoSlot: (@Composable () -> Unit)? = null` al final de `WorkoutRestPanel`.
