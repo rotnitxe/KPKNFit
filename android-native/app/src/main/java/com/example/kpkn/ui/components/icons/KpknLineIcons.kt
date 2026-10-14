@@ -426,6 +426,11 @@ object KpknLineIcons {
         )
     }
 
+    /** Cardio: el latido de un electrocardiograma (un pico sobre la línea de base). */
+    val Pulse: ImageVector by lazy {
+        icono("KpknLine.Pulse", listOf("M2.75 12h4.25l2.5-5.25 4 10.5 2.5-5.25h5.25"))
+    }
+
     /** Trazado del triángulo de `Play` y `PlayFilled`. */
     private const val TRIANGULO_PLAY =
         "M8.25 5.6v12.8a.9.9 0 0 0 1.37.77l10.2-6.4a.9.9 0 0 0 0-1.54l-10.2-6.4a.9.9 0 0 0-1.37.77z"

@@ -89,6 +89,10 @@ import com.example.kpkn.screens.sessioneditor.ExerciseSetsCarousel
 import com.example.kpkn.screens.sessioneditor.formatEditableNumber
 import com.example.kpkn.screens.sessioneditor.formatRestSummary
 import com.example.kpkn.screens.sessioneditor.formatExerciseCollapsedSummary
+import com.example.kpkn.screens.sessioneditor.sessionExerciseDose
+import com.example.kpkn.screens.sessioneditor.design.SessionExerciseRow
+import com.example.kpkn.screens.onboarding.design.entreno.plan.exercisePatternOf
+import com.example.kpkn.data.exercises.ExerciseTechniqueImageLookup
 import com.example.kpkn.screens.sessioneditor.trainingModeLabel
 import com.example.kpkn.screens.sessioneditor.safeIntOrNull
 import com.example.kpkn.screens.sessioneditor.safeDoubleOrNull
@@ -141,6 +145,8 @@ internal fun ExerciseEditorCard(
     showCardioPlacementChip: Boolean = false,
     onToggleCardioPlacement: (() -> Unit)? = null,
     cardioHistory: com.example.kpkn.domain.cardio.CardioTypeHistory? = null,
+    // Miembro de una superserie: su fila lleva la barra de 3 dp y su dosis no repite el descanso.
+    inSuperset: Boolean = false,
 ) {
     var expanded by rememberSaveable(exercise.id) { mutableStateOf(false) }
     var showCustomUnitModal by remember { mutableStateOf(false) }
@@ -217,31 +223,31 @@ internal fun ExerciseEditorCard(
     }
 
     val isSupersetExercise = exercise.supersetGroupRefOrLegacyId() != null
-    val cardShape = RoundedCornerShape(16.dp)
     val containerHighlight = when {
         isDragging -> accentColor.copy(alpha = 0.10f)
         isDropTarget -> accentColor.copy(alpha = 0.08f)
         isPartDropTarget -> accentColor.copy(alpha = 0.06f)
         else -> Color.Transparent
     }
-    val containerModifier = Modifier
-        .clip(cardShape)
-        .background(coverAccent.exerciseCardBrush(alpha = 0.10f))
-        .then(
-            if (coverAccentHex != null && coverAccentHex != accentHex) {
-                Modifier.background(accent.exerciseCardBrush(alpha = 0.045f))
-            } else {
-                Modifier
-            },
+    // Miniatura: la imagen del catálogo si hay una para este ejercicio; si no, el glifo de su patrón.
+    val imageRes = remember(exercise.id, exercise.catalogDefinitionId, exercise.catalogConfigurationId, exercise.selectedExecutionOption) {
+        ExerciseTechniqueImageLookup.resolveImageResId(
+            catalogDefinitionId = exercise.catalogDefinitionId,
+            exerciseDbId = exercise.exerciseDbId,
+            exerciseId = exercise.id,
+            catalogConfigurationId = exercise.catalogConfigurationId,
+            selectedImplementation = exercise.selectedExecutionOption ?: exercise.selectedAspects?.values?.firstOrNull(),
         )
-        .then(
-            when {
-                isSupersetExercise -> Modifier.border(1.dp, accentColor.copy(alpha = 0.20f), cardShape)
-                containerHighlight.alpha > 0f -> Modifier.background(containerHighlight)
-                else -> Modifier
-            },
-        )
-
+    }
+    val pattern = remember(exercise.name) { exercisePatternOf(exercise.name) }
+    val doseLine = exercise.cardioDetails?.let { details ->
+        com.example.kpkn.domain.cardio.CardioPrescriptionFormatter.sentence(details)
+    } ?: sessionExerciseDose(
+        sets = exercise.sets,
+        trainingMode = exercise.trainingMode,
+        restSeconds = exercise.restTime,
+        includeRest = !suppressIndividualRest,
+    ) ?: "Sin series"
     Column(
         modifier = modifier
             .fillMaxWidth()
@@ -253,187 +259,27 @@ internal fun ExerciseEditorCard(
                 shadowElevation = if (isDragging) 6.dp.toPx() else 0f
             }
             .zIndex(if (isDragging) 12f else 0f)
-            .then(containerModifier),
+            .background(containerHighlight),
     ) {
-        // Top accent line
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(1.dp)
-                .background(accentColor.copy(alpha = if (expanded) 0.30f else 0.12f)),
+        // Fila plegada de 64 dp: la miniatura es el asa de arrastre; el nombre, las acciones rápidas (pulsación larga).
+        SessionExerciseRow(
+            name = displayParts.parentName.ifBlank { "Seleccionar ejercicio" },
+            chips = displayParts.chips.joinToString(" · ").takeIf { it.isNotBlank() },
+            dose = if (isCompetitionMovement) "$doseLine · Competición" else doseLine,
+            expanded = expanded,
+            accent = accentColor,
+            imageRes = imageRes,
+            pattern = pattern,
+            onToggle = { expanded = !expanded },
+            onLongPress = onOpenQuickActions,
+            onDragStart = onDragStart,
+            onDrag = onDrag,
+            onDragEnd = onDragEnd,
+            onDragCancel = onDragCancel,
+            onDelete = onDeleteExercise,
+            superset = inSuperset,
+            dragEnabled = enableDrag,
         )
-
-        // Header: drag handle lives outside SwipeToDelete + outside combinedClickable
-        // so neither Quick Actions nor horizontal swipe can steal the long-press.
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            if (enableDrag) {
-                var handleWindowOrigin by remember(exercise.id) { mutableStateOf(Offset.Zero) }
-                val latestOnDragStart = rememberUpdatedState(onDragStart)
-                val latestOnDrag = rememberUpdatedState(onDrag)
-                val latestOnDragEnd = rememberUpdatedState(onDragEnd)
-                val latestOnDragCancel = rememberUpdatedState(onDragCancel)
-                Box(
-                    modifier = Modifier
-                        .padding(start = 4.dp)
-                        .width(40.dp)
-                        .height(48.dp)
-                        .onGloballyPositioned { coords ->
-                            val b = coords.boundsInWindow()
-                            handleWindowOrigin = Offset(b.left, b.top)
-                        }
-                        .pointerInput(exercise.id) {
-                            detectDragGesturesAfterLongPress(
-                                onDragStart = { offset ->
-                                    haptics.performHapticFeedback(HapticFeedbackType.LongPress)
-                                    latestOnDragStart.value(handleWindowOrigin + offset)
-                                },
-                                onDragCancel = {
-                                    haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-                                    latestOnDragCancel.value()
-                                },
-                                onDragEnd = {
-                                    haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-                                    latestOnDragEnd.value()
-                                },
-                                onDrag = { change, dragAmount ->
-                                    change.consume()
-                                    latestOnDrag.value(Offset(dragAmount.x, dragAmount.y))
-                                },
-                            )
-                        },
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.DragHandle,
-                        contentDescription = "Arrastra para reordenar ejercicio",
-                        tint = accentColor.copy(alpha = if (isDragging) 0.9f else 0.48f),
-                        modifier = Modifier.size(20.dp),
-                    )
-                }
-            } else {
-                Spacer(Modifier.width(44.dp).height(48.dp))
-            }
-            // Swipe target is title + actions only — not the reorder grip.
-            SwipeToDeleteCard(
-                onDelete = onDeleteExercise,
-                modifier = Modifier.weight(1f),
-                shape = cardShape,
-            ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(start = 8.dp, end = 12.dp, top = 8.dp, bottom = 8.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                ) {
-                    Column(
-                        modifier = Modifier
-                            .weight(1f)
-                            .combinedClickable(
-                                onClick = { expanded = !expanded },
-                                onLongClick = onOpenQuickActions,
-                            ),
-                    ) {
-                        FlowRow(
-                            horizontalArrangement = Arrangement.spacedBy(4.dp),
-                            verticalArrangement = Arrangement.spacedBy(2.dp),
-                        ) {
-                            if (exercise.supersetGroupRefOrLegacyId() != null) {
-                                Icon(
-                                    Icons.Default.SwapHoriz,
-                                    contentDescription = null,
-                                    tint = accentColor,
-                                    modifier = Modifier.size(16.dp)
-                                )
-                            }
-                            Text(
-                                text = buildAnnotatedString {
-                                    withStyle(SpanStyle(color = Color.White.copy(alpha = 0.94f))) {
-                                        append(displayParts.parentName.ifBlank { "Seleccionar ejercicio" })
-                                    }
-                                    displayParts.chips.forEach { chip ->
-                                        append(" · ")
-                                        withStyle(SpanStyle(color = Color.White.copy(alpha = 0.55f))) {
-                                            append(chip)
-                                        }
-                                    }
-                                },
-                                style = MaterialTheme.typography.labelLarge,
-                                fontWeight = FontWeight.Bold,
-                                maxLines = 2,
-                                overflow = TextOverflow.Ellipsis,
-                            )
-                        }
-                        Text(
-                            text = exercise.cardioDetails?.let { details ->
-                                com.example.kpkn.domain.cardio.CardioPrescriptionFormatter.sentence(details)
-                            } ?: buildString {
-                                    append("${exercise.sets.size} series · ")
-                                    if (!suppressIndividualRest) append("${formatRestSummary(exercise.restTime)} · ")
-                                    append(trainingModeLabel(exercise.trainingMode))
-                                    if (exercise.supersetGroupRefOrLegacyId() != null) append(" · Superserie")
-                                    formatExerciseCollapsedSummary(exercise)?.let { append(" · $it") }
-                            },
-                            style = MaterialTheme.typography.labelSmall,
-                            color = Color.White.copy(alpha = 0.58f),
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                        )
-                        if (!expanded) {
-                            exercise.cardioDetails?.takeIf { it.hasIntervals() }?.let { details ->
-                                com.example.kpkn.screens.workout.CardioIntervalChart(
-                                    details = details,
-                                    accentColor = accentColor,
-                                    sparkline = true,
-                                    compact = true,
-                                    showLabels = false,
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(top = 6.dp),
-                                )
-                            }
-                        }
-                        if (isCompetitionMovement) {
-                            Text(
-                                text = "Movimiento de competición",
-                                style = MaterialTheme.typography.labelSmall,
-                                fontWeight = FontWeight.Black,
-                                color = MaterialTheme.colorScheme.primary,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis,
-                            )
-                        }
-                    }
-                    if (exercise.cardioDetails == null) {
-                        Box(
-                            modifier = Modifier
-                                .size(30.dp)
-                                .clip(RoundedCornerShape(8.dp))
-                                .clickable { showGoalSheet = true },
-                            contentAlignment = Alignment.Center,
-                        ) {
-                            Icon(
-                                imageVector = if (exercise.isStarTarget || exercise.goal1RM != null) Icons.Default.Star else Icons.Default.StarBorder,
-                                contentDescription = "Meta del ejercicio",
-                                tint = if (exercise.isStarTarget || exercise.goal1RM != null) Color(0xFFFFB300) else Color.White.copy(alpha = 0.6f),
-                                modifier = Modifier.size(18.dp),
-                            )
-                        }
-                    }
-                    Icon(
-                        imageVector = if (expanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
-                        contentDescription = if (expanded) "Plegar" else "Desplegar",
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier
-                            .size(34.dp)
-                            .clickable { expanded = !expanded },
-                    )
-                }
-            }
-        }
 
         // Inline expanded editor
         AnimatedVisibility(expanded) {
@@ -687,6 +533,15 @@ internal fun ExerciseEditorCard(
                                     onOpenSuperset()
                                 },
                             )
+                            if (exercise.cardioDetails == null) {
+                                DropdownMenuItem(
+                                    text = { Text("Meta del ejercicio") },
+                                    onClick = {
+                                        showExerciseOptionsMenu = false
+                                        showGoalSheet = true
+                                    },
+                                )
+                            }
                         }
                     }
                 }
