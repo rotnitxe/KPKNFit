@@ -189,9 +189,10 @@ internal fun bodyChartLabels(points: List<BodyChartPoint>): BodyChartLabels? {
         listOf(bodyDayShortEs(first))
     } else {
         val longSpan = days > LONG_SPAN_DAYS
-        listOf(first, first.plusDays(days / 2), last).map { day ->
+        // Sin fechas repetidas: si dos marcas caen el mismo día (o el mismo mes, en un rango largo), queda una.
+        listOf(first, first.plusDays(days / 2), last).distinct().map { day ->
             if (longSpan) bodyMonthYearShortEs(day) else bodyDayShortEs(day)
-        }
+        }.distinct()
     }
     return BodyChartLabels(max = formatDecimalEs(hi, 1), min = formatDecimalEs(lo, 1), axis = axis)
 }
@@ -242,7 +243,8 @@ fun BodyTrendChart(
     val haptic = LocalHapticFeedback.current
     val reduced = wizardReducedMotion()
     val padPx = with(density) { 8.dp.toPx() }
-    val dotPx = with(density) { 1.5.dp.toPx() }
+    // Pesajes: 4 dp de diámetro (radio 2 dp), en tinta al 70 %; antes eran 3 dp en un gris casi invisible.
+    val dotPx = with(density) { 2.dp.toPx() }
     val guidePx = with(density) { 1.dp.toPx() }
     val selectedDotPx = with(density) { 4.dp.toPx() }
     val goalStrokePx = with(density) { 1.5.dp.toPx() }
@@ -336,7 +338,7 @@ fun BodyTrendChart(
                     }
                     for (i in g.valueYs.indices) {
                         val y = g.valueYs[i]
-                        if (!y.isNaN()) drawCircle(color = WizardColors.textFaint, radius = dotPx, center = Offset(g.xs[i], y))
+                        if (!y.isNaN()) drawCircle(color = WizardColors.text.copy(alpha = 0.7f), radius = dotPx, center = Offset(g.xs[i], y))
                     }
                     val p = progress.value
                     if (p < 1f) {
