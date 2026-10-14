@@ -46,6 +46,8 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
+import com.example.kpkn.data.models.WeightUnit
+import com.example.kpkn.screens.onboarding.design.entreno.MarksMath
 import com.example.kpkn.ui.adapt.LocalViewportAdapt
 import com.example.kpkn.ui.adapt.adapt
 import com.example.kpkn.data.exercises.exerciseCatalogReady
@@ -515,6 +517,7 @@ fun HomeScreen(
             TrainingMaxWizard(
                 initial = programsVm.estimatedProfileFromHistory(),
                 trainingMaxPercent = protocol.recipe?.trainingMaxPercent ?: 0.90,
+                unit = if (settings.weightUnit == WeightUnit.LBS) MarksMath.UNIT_LB else MarksMath.UNIT_KG,
                 onDismiss = {
                     val id = programsVm.createProgramFromProtocol(protocol.id, preferredName = pendingProgramName)
                     protocolForTm = null
