@@ -333,7 +333,6 @@ import com.example.kpkn.screens.sessioneditor.components.InlineSetRow
 import com.example.kpkn.screens.sessioneditor.components.ExerciseCatalogInfoDialog
 import com.example.kpkn.screens.sessioneditor.components.SupersetRestPickerButton
 import com.example.kpkn.screens.sessioneditor.components.SupersetRestPickerDialog
-import com.example.kpkn.screens.sessioneditor.components.HeroGlassFab
 import com.example.kpkn.ui.components.KpknAlertDialog
 
 @OptIn(ExperimentalMaterial3Api::class)
