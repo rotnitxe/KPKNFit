@@ -60,11 +60,17 @@ import com.example.kpkn.screens.sessioneditor.components.DropSetPlanDefaults
 import com.example.kpkn.screens.sessioneditor.components.RestPausePlanDefaults
 import com.example.kpkn.screens.workout.*
 import com.example.kpkn.screens.workout.design.WorkoutIntensityScale
+import com.example.kpkn.screens.workout.design.MaxPartialReps
+import com.example.kpkn.screens.workout.design.WorkoutSetOptionsBody
 import com.example.kpkn.screens.workout.design.WorkoutSetPanel
 import com.example.kpkn.ui.design.KpknTextAction
 import com.example.kpkn.ui.components.KpknSheet
 import com.example.kpkn.screens.onboarding.design.WizardColors
+import com.example.kpkn.ui.design.KpknCellInput
+import com.example.kpkn.ui.design.KpknChip
 import com.example.kpkn.ui.design.KpknModule
+import com.example.kpkn.ui.design.KpknModuleHeader
+import com.example.kpkn.ui.design.KpknNumberCell
 import com.example.kpkn.ui.design.KpknPrimaryPill
 import com.example.kpkn.ui.design.KpknTextField
 import com.example.kpkn.ui.design.KpknType
@@ -117,9 +123,8 @@ private fun activeRepRange(set: ExerciseSet, side: String?): RepRange? = when (s
     else -> set.targetRepsRange ?: set.effectiveRepRange()
 }
 
-// ─── AMRAP Config Sheet ────────────────────────────────────────────────
+// ─── AMRAP Config Sheet (LS7b: piezas KPKN; sin punto de entrada desde LS2b, por eso no se abre desde ningún sitio) ───
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun AmrapConfigSheet(
     plannedMinReps: Int?,
@@ -133,80 +138,65 @@ private fun AmrapConfigSheet(
     var reachFailure by remember { mutableStateOf(initialReachFailure) }
     var reserveReps by remember { mutableStateOf(initialReserveReps?.toString() ?: "") }
     KpknSheet(onDismissRequest = onDismiss) {
-        Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
-            Text("Configurar serie AMRAP", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Black, color = Color.White)
-            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                Text("Repeticiones mínimas", style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold, color = Color.White.copy(alpha = 0.7f))
-                OutlinedTextField(value = minReps, onValueChange = { minReps = it.filter { c -> c.isDigit() } }, modifier = Modifier.fillMaxWidth(), singleLine = true, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number), placeholder = { Text(plannedMinReps?.toString() ?: "0") }, textStyle = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold, color = Color.White), colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = MaterialTheme.colorScheme.primary, unfocusedBorderColor = Color(0xFF555555), focusedLabelColor = Color.White.copy(alpha = 0.7f), unfocusedLabelColor = Color.White.copy(alpha = 0.5f), cursorColor = Color.White, focusedTextColor = Color.White, unfocusedTextColor = Color.White, focusedContainerColor = Color(0xFF2A2A2A), unfocusedContainerColor = Color(0xFF2A2A2A)))
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(start = 20.dp, end = 20.dp, bottom = 24.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+        ) {
+            Text("Configurar serie AMRAP", style = KpknType.title, color = WizardColors.text)
+            KpknModule(modifier = Modifier.fillMaxWidth()) {
+                KpknModuleHeader(label = "Repeticiones mínimas")
+                Spacer(Modifier.height(12.dp))
+                KpknNumberCell(
+                    value = minReps,
+                    input = KpknCellInput.Text(
+                        keyboardType = KeyboardType.Number,
+                        onCommit = { minReps = it.filter { c -> c.isDigit() } },
+                    ),
+                    contentDescription = "Repeticiones mínimas",
+                    placeholder = plannedMinReps?.toString() ?: "0",
+                    modifier = Modifier.fillMaxWidth(),
+                )
             }
-            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                Text("Objetivo de la serie", style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold, color = Color.White.copy(alpha = 0.7f))
+            KpknModule(modifier = Modifier.fillMaxWidth()) {
+                KpknModuleHeader(label = "Objetivo de la serie")
+                Spacer(Modifier.height(12.dp))
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    FilterChip(selected = reachFailure, onClick = { reachFailure = true; reserveReps = "" }, label = { Text("Llegar al fallo", style = MaterialTheme.typography.labelSmall) }, colors = FilterChipDefaults.filterChipColors(selectedContainerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f), selectedLabelColor = MaterialTheme.colorScheme.primary, containerColor = Color(0xFF2A2A2A), labelColor = Color.White))
-                    FilterChip(selected = !reachFailure, onClick = { reachFailure = false }, label = { Text("Reservar reps", style = MaterialTheme.typography.labelSmall) }, colors = FilterChipDefaults.filterChipColors(selectedContainerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f), selectedLabelColor = MaterialTheme.colorScheme.primary, containerColor = Color(0xFF2A2A2A), labelColor = Color.White))
+                    KpknChip(
+                        text = "Llegar al fallo",
+                        selected = reachFailure,
+                        onClick = {
+                            reachFailure = true
+                            reserveReps = ""
+                        },
+                    )
+                    KpknChip(
+                        text = "Reservar reps",
+                        selected = !reachFailure,
+                        onClick = { reachFailure = false },
+                    )
+                }
+                if (!reachFailure) {
+                    Spacer(Modifier.height(12.dp))
+                    KpknModuleHeader(label = "RIR (repeticiones en reserva)")
+                    Spacer(Modifier.height(12.dp))
+                    KpknNumberCell(
+                        value = reserveReps,
+                        input = KpknCellInput.Text(
+                            keyboardType = KeyboardType.Number,
+                            onCommit = { reserveReps = it.filter { c -> c.isDigit() } },
+                        ),
+                        contentDescription = "RIR (repeticiones en reserva)",
+                        modifier = Modifier.fillMaxWidth(),
+                    )
                 }
             }
-            if (!reachFailure) {
-                OutlinedTextField(value = reserveReps, onValueChange = { reserveReps = it.filter { c -> c.isDigit() } }, modifier = Modifier.fillMaxWidth(), singleLine = true, label = { Text("RIR (repeticiones en reserva)") }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number), textStyle = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold, color = Color.White), colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = MaterialTheme.colorScheme.primary, unfocusedBorderColor = Color(0xFF555555), focusedLabelColor = Color.White.copy(alpha = 0.7f), unfocusedLabelColor = Color.White.copy(alpha = 0.5f), cursorColor = Color.White, focusedTextColor = Color.White, unfocusedTextColor = Color.White, focusedContainerColor = Color(0xFF2A2A2A), unfocusedContainerColor = Color(0xFF2A2A2A)))
-            }
-            Button(onClick = { onApply(minReps.toIntOrNull() ?: plannedMinReps, reachFailure, reserveReps.toIntOrNull()) }, modifier = Modifier.fillMaxWidth(), contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp)) { Text("Aplicar", style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold) }
-            Spacer(modifier = Modifier.height(8.dp))
-        }
-    }
-}
-
-@Composable
-private fun FeedbackExtraStepperRow(
-    label: String,
-    value: Int,
-    maxValue: Int,
-    accentColor: Color,
-    onDecrement: () -> Unit,
-    onIncrement: () -> Unit,
-) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween,
-    ) {
-        Text(
-            label,
-            style = MaterialTheme.typography.bodySmall,
-            fontWeight = FontWeight.SemiBold,
-            color = Color.White.copy(alpha = 0.9f),
-        )
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            IconButton(
-                onClick = onDecrement,
-                enabled = value > 0,
-                modifier = Modifier.size(30.dp),
-            ) {
-                Icon(
-                    Icons.Default.Remove,
-                    contentDescription = "Reducir $label",
-                    modifier = Modifier.size(15.dp),
-                    tint = if (value > 0) Color.White.copy(alpha = 0.8f) else Color.White.copy(alpha = 0.3f),
-                )
-            }
-            Text(
-                value.toString(),
-                modifier = Modifier.widthIn(min = 24.dp),
-                textAlign = TextAlign.Center,
-                fontWeight = FontWeight.Black,
-                color = if (value > 0) accentColor else Color.White.copy(alpha = 0.55f),
+            KpknPrimaryPill(
+                text = "Aplicar",
+                onClick = { onApply(minReps.toIntOrNull() ?: plannedMinReps, reachFailure, reserveReps.toIntOrNull()) },
+                modifier = Modifier.fillMaxWidth(),
             )
-            IconButton(
-                onClick = onIncrement,
-                enabled = value < maxValue,
-                modifier = Modifier.size(30.dp),
-            ) {
-                Icon(
-                    Icons.Default.Add,
-                    contentDescription = "Aumentar $label",
-                    modifier = Modifier.size(15.dp),
-                    tint = if (value < maxValue) accentColor else Color.White.copy(alpha = 0.3f),
-                )
-            }
         }
     }
 }
@@ -226,47 +216,6 @@ private fun quickLoadIncrementFor(exercise: Exercise, currentSet: ExerciseSet): 
     }
 }
 
-
-@Composable
-internal fun WorkoutMiniTextField(
-    value: String,
-    onValueChange: (String) -> Unit,
-    label: String,
-    modifier: Modifier = Modifier,
-    keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
-    accentColor: Color = MaterialTheme.colorScheme.primary,
-) {
-    val bringIntoViewRequester = remember { BringIntoViewRequester() }
-    val scope = rememberCoroutineScope()
-    OutlinedTextField(
-        value = value,
-        onValueChange = onValueChange,
-        label = { Text(label, style = MaterialTheme.typography.labelSmall) },
-        keyboardOptions = keyboardOptions,
-        singleLine = true,
-        modifier = modifier
-            .heightIn(min = 48.dp)
-            .bringIntoViewRequester(bringIntoViewRequester)
-            .onFocusEvent { focusState ->
-                if (focusState.isFocused) {
-                    scope.launch { bringIntoViewRequester.bringIntoView() }
-                }
-            },
-        shape = WorkoutUiTokens.InnerCardShape,
-        textStyle = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
-        colors = OutlinedTextFieldDefaults.colors(
-            focusedBorderColor = accentColor,
-            unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f),
-            focusedLabelColor = accentColor,
-            unfocusedLabelColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
-            cursorColor = MaterialTheme.colorScheme.onSurface,
-            focusedTextColor = MaterialTheme.colorScheme.onSurface,
-            unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
-            focusedContainerColor = WorkoutUiTokens.setInnerHighestColor(),
-            unfocusedContainerColor = WorkoutUiTokens.setInnerHighestColor(),
-        )
-    )
-}
 
 private enum class SetCardFace { Front, ExerciseMedia }
 
@@ -1516,53 +1465,38 @@ internal fun SetInputCardV2(
                         return seconds?.toString()
                     }
                     val advancedContent: @Composable () -> Unit = {
-                        Column(
-                            modifier = Modifier.fillMaxWidth(),
-                            verticalArrangement = Arrangement.spacedBy(12.dp),
-                        ) {
-                            if (exercise.trackRom) {
-                                RomReportSlider(
-                                    value = romValue ?: DEFAULT_ROM_PERCENT,
-                                    onValueChange = { romValue = it },
-                                    accentColor = sessionAccentColor,
-                                    modifier = Modifier.fillMaxWidth(),
-                                )
-                            }
-                            // Repeticiones con ayuda o parciales: antes, el «+» junto a REPS.
-                            FeedbackExtraStepperRow(
-                                label = "Con ayuda",
-                                value = assistedRepsValue,
-                                maxValue = reportValueText.toIntOrNull() ?: 0,
-                                accentColor = sessionAccentColor,
-                                onDecrement = { assistedRepsValue = (assistedRepsValue - 1).coerceAtLeast(0) },
-                                onIncrement = {
-                                    assistedRepsValue = (assistedRepsValue + 1).coerceAtMost(reportValueText.toIntOrNull() ?: 0)
-                                },
-                            )
-                            FeedbackExtraStepperRow(
-                                label = "Parciales",
-                                value = partialSets.sum().coerceAtLeast(0),
-                                maxValue = 20,
-                                accentColor = sessionAccentColor,
-                                onDecrement = {
+                        WorkoutSetOptionsBody(
+                            showRom = exercise.trackRom,
+                            romPercent = romValue ?: DEFAULT_ROM_PERCENT,
+                            onRomChange = { romValue = it },
+                            assistedReps = assistedRepsValue,
+                            maxAssistedReps = reportValueText.toIntOrNull() ?: 0,
+                            onAssistedStep = { delta ->
+                                assistedRepsValue = if (delta < 0) {
+                                    (assistedRepsValue + delta).coerceAtLeast(0)
+                                } else {
+                                    (assistedRepsValue + delta).coerceAtMost(reportValueText.toIntOrNull() ?: 0)
+                                }
+                            },
+                            partialReps = partialSets.sum().coerceAtLeast(0),
+                            onPartialStep = { delta ->
+                                if (delta < 0) {
                                     val next = (partialSets.sum() - 1).coerceAtLeast(0)
                                     partialSets = listOf(next)
                                     if (next == 0) showPartialsMode = false
-                                },
-                                onIncrement = {
+                                } else {
                                     showPartialsMode = true
-                                    partialSets = listOf((partialSets.sum() + 1).coerceAtMost(20))
-                                },
-                            )
-                            // Drop-sets, descanso de bloque y notas viven en la hoja «Técnica» (una sola instancia del reverso).
-                            KpknTextAction(
-                                text = "Drop-sets, descanso y notas",
-                                onClick = {
-                                    techniqueSheetMedia = false
-                                    techniqueSheetOpen = true
-                                },
-                            )
-                        }
+                                    partialSets = listOf((partialSets.sum() + 1).coerceAtMost(MaxPartialReps))
+                                }
+                            },
+                            onOpenTechnique = {
+                                // La hoja de opciones se cierra y abre la técnica (una sola hoja a la vez).
+                                advancedOpen = false
+                                techniqueSheetMedia = false
+                                techniqueSheetOpen = true
+                            },
+                            accentColor = sessionAccentColor,
+                        )
                     }
                     // El cronómetro de la serie por tiempo (el de antes): iniciar, y al detener, registrar lo transcurrido.
                     fun toggleCardTimer() {
@@ -1673,19 +1607,12 @@ internal fun SetInputCardV2(
                                     )
                                 }
                             } else {
-                                Box(modifier = Modifier.fillMaxWidth().height(540.dp)) {
+                                // La altura la pone el contenido (drops, notas): la hoja no tiene alto fijo.
+                                Box(modifier = Modifier.fillMaxWidth()) {
                                 SetCardTechniqueBack(
                                     currentSet = currentSet,
-                                    coverWeightLabel = if (reportWeightText.isBlank()) "—" else "${reportWeightText} kg",
-                                    coverValueLabel = if (isTimeMode) {
-                                        if (reportValueText.isBlank()) "—" else "${reportValueText}s"
-                                    } else {
-                                        if (reportValueText.isBlank()) "—" else "${reportValueText} reps"
-                                    },
-                                    coverIntensityLabel = intensityText.takeIf { it.isNotBlank() }?.let { "Int. $it" },
                                     mainWeight = reportWeightText.toDoubleOrNull() ?: 0.0,
                                     mainReps = reportValueText.toDoubleOrNull()?.roundToInt() ?: 0,
-                                    sessionAccentColor = sessionAccentColor,
                                     isFailedSet = isFailedSet,
                                     onFailedSetChange = { failed ->
                                         isFailedSet = failed
@@ -2809,68 +2736,5 @@ internal fun SetInputCardV2(
                 showReadinessAdjustmentSheet = false
             },
         )
-    }
-}
-
-@Composable
-private fun RomReportSlider(
-    value: Int,
-    onValueChange: (Int) -> Unit,
-    accentColor: Color,
-    modifier: Modifier = Modifier,
-) {
-    val clampedValue = value.coerceIn(10, 100)
-    val sliderColors = SliderDefaults.colors(
-        thumbColor = accentColor,
-        activeTrackColor = accentColor.copy(alpha = 0.92f),
-        inactiveTrackColor = Color.White.copy(alpha = 0.08f),
-        activeTickColor = Color.Transparent,
-        inactiveTickColor = Color.Transparent,
-        disabledActiveTickColor = Color.Transparent,
-        disabledInactiveTickColor = Color.Transparent,
-    )
-    Column(
-        modifier = modifier,
-        verticalArrangement = Arrangement.spacedBy(6.dp),
-    ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Text(
-                text = "ROM",
-                style = MaterialTheme.typography.labelSmall,
-                fontWeight = FontWeight.Bold,
-                color = Color.White.copy(alpha = 0.58f),
-            )
-            Text(
-                text = "$clampedValue%",
-                style = MaterialTheme.typography.labelSmall,
-                fontWeight = FontWeight.Bold,
-                color = accentColor,
-            )
-        }
-        Surface(
-            shape = WorkoutUiTokens.InnerCardShape,
-            color = WorkoutUiTokens.setInnerColor(),
-            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.22f)),
-        ) {
-            CompositionLocalProvider(
-                LocalMinimumInteractiveComponentSize provides 20.dp,
-            ) {
-                Slider(
-                    value = clampedValue.toFloat(),
-                    onValueChange = { onValueChange(it.roundToInt().coerceIn(10, 100)) },
-                    valueRange = 10f..100f,
-                    steps = 0,
-                    colors = sliderColors,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 8.dp, vertical = 2.dp)
-                        .height(22.dp),
-                )
-            }
-        }
     }
 }

@@ -262,7 +262,9 @@ class SetExecutionCardUiTest {
         composeRule.onNodeWithText("Opciones avanzadas").assertExists()
         composeRule.onNodeWithText("Reportar serie").assertDoesNotExist()
         composeRule.onNodeWithText("¿Cambio de planes o añadir técnica de intensidad?").assertDoesNotExist()
-        // El reverso (y «Ver ejercicio/Fotos») vive en la hoja «Técnica», que se abre desde su entrada dentro de lo desplegado.
+        // El reverso (y «Ver ejercicio/Fotos») vive en la hoja «Técnica», que se abre desde «Opciones avanzadas» (LS7b).
+        composeRule.onNodeWithText("Opciones avanzadas").performClick()
+        composeRule.waitForIdle()
         composeRule.onNodeWithText("Drop-sets, descanso y notas").performClick()
         composeRule.onNodeWithText("Ver ejercicio/Fotos").assertExists()
     }
@@ -291,6 +293,8 @@ class SetExecutionCardUiTest {
         composeRule.onNodeWithText("Opciones avanzadas").assertExists()
         composeRule.onNodeWithText("Confirma las 3 reps de esta mini-serie.").assertDoesNotExist()
         composeRule.onNodeWithText("Saltar técnica y registrar solo la serie").assertDoesNotExist()
+        composeRule.onNodeWithText("Opciones avanzadas").performClick()
+        composeRule.waitForIdle()
         composeRule.onNodeWithText("Drop-sets, descanso y notas").performClick()
         composeRule.onNodeWithText("Ver ejercicio/Fotos").assertExists()
     }
