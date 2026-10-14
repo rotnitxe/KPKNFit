@@ -14,7 +14,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.boundsInWindow
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.semantics.CustomAccessibilityAction
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.customActions
@@ -78,6 +81,8 @@ fun KpknSetTable(
     onAddSet: (() -> Unit)? = null,
     onRowMenu: ((rowId: String) -> Unit)? = null,
     addLabel: String = "Añadir serie",
+    /** Recibe el rectángulo de la celda del número de cada serie, para anclar su menú. Sin él no se mide nada. */
+    onRowBounds: ((rowId: String, bounds: Rect) -> Unit)? = null,
 ) {
     Column(
         modifier = modifier.fillMaxWidth(),
@@ -101,7 +106,11 @@ fun KpknSetTable(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                KpknSetRowNumber(row = row, onRowMenu = onRowMenu)
+                KpknSetRowNumber(
+                    row = row,
+                    onRowMenu = onRowMenu,
+                    onBounds = onRowBounds?.let { report -> { rect: Rect -> report(row.id, rect) } },
+                )
                 columns.forEach { column ->
                     val cell = row.cells[column.key]
                     KpknNumberCell(
@@ -116,7 +125,7 @@ fun KpknSetTable(
             }
         }
         if (onAddSet != null) {
-            KpknTextAction(text = addLabel, onClick = onAddSet, icon = KpknLineIcons.Plus)
+            KpknTextAction(text = addLabel, onClick = onAddSet, leadingIcon = KpknLineIcons.Plus)
         }
     }
 }
@@ -137,7 +146,7 @@ private fun SetHeaderLabel(text: String, spoken: String, modifier: Modifier) {
 
 /** Primera columna de una serie: su número o letra, con el color de su tipo y la pulsación larga del menú. */
 @Composable
-private fun KpknSetRowNumber(row: KpknSetRow, onRowMenu: ((String) -> Unit)?) {
+private fun KpknSetRowNumber(row: KpknSetRow, onRowMenu: ((String) -> Unit)?, onBounds: ((Rect) -> Unit)? = null) {
     val ink = when (row.kind) {
         KpknSetKind.WORK -> WizardColors.text
         KpknSetKind.APPROACH -> WizardColors.textMuted
@@ -152,6 +161,7 @@ private fun KpknSetRowNumber(row: KpknSetRow, onRowMenu: ((String) -> Unit)?) {
         modifier = Modifier
             .width(SetNumberColumn)
             .fillMaxHeight()
+            .onGloballyPositioned { coords -> onBounds?.invoke(coords.boundsInWindow()) }
             .semantics(mergeDescendants = true) {
                 contentDescription = spoken
                 if (onRowMenu != null) {
