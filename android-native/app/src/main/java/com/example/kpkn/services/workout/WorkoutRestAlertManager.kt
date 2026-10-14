@@ -327,7 +327,7 @@ class WorkoutRestAlertManager(private val context: Context) {
         return KpknDeepLinks.pendingActivityIntent(
             context = appContext,
             requestCode = requestCode,
-            path = "training",
+            path = currentWorkoutNotificationPath(),
         )
     }
 
@@ -436,7 +436,7 @@ class WorkoutRestAlertManager(private val context: Context) {
         val openPending = KpknDeepLinks.pendingActivityIntent(
             context = appContext,
             requestCode = 501,
-            path = "training",
+            path = currentWorkoutNotificationPath(),
         )
 
         val notification = NotificationCompat.Builder(appContext, CHANNEL_REST_ONGOING)
@@ -466,7 +466,7 @@ class WorkoutRestAlertManager(private val context: Context) {
         val openPending = KpknDeepLinks.pendingActivityIntent(
             context = appContext,
             requestCode = 502,
-            path = "training",
+            path = currentWorkoutNotificationPath(),
         )
 
         val builder = NotificationCompat.Builder(appContext, CHANNEL_REST_FINISHED)

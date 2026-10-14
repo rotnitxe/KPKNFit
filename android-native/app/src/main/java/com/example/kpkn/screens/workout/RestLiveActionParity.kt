@@ -1,9 +1,8 @@
 package com.example.kpkn.screens.workout
 
 /**
- * Shared rest actions for [com.example.kpkn.screens.workout.components.RestTimerOverlay]
- * (expanded) and [com.example.kpkn.screens.workout.components.RestLiveCard] (minimized).
- * Surface must not change the set: both views stay, with the same controls.
+ * Acciones compartidas del descanso: el panel de la serie (KPKN LS3, `WorkoutRestPanel`) y la píldora minimizada (`WorkoutRestPill`).
+ * La superficie no cambia el conjunto de acciones: ambas vistas muestran los mismos controles.
  */
 enum class RestLiveActionKind {
     DECREASE_15,
