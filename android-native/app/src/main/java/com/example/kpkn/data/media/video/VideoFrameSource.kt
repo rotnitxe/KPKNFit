@@ -45,11 +45,34 @@ interface VideoDecodeReport {
     val details: String
 }
 
-/** Un vídeo que no se puede abrir o decodificar. Una excepción de `needs` u `onFrame` NO se envuelve en esta. */
-class VideoDecodeException(message: String, cause: Throwable? = null) : RuntimeException(message, cause)
+/**
+ * Un vídeo que no se puede abrir o decodificar. Una excepción de `needs` u `onFrame` NO se envuelve en esta.
+ * Si la decodificación ya había empezado, lleva hasta dónde llegó para que el respaldo siga desde ahí.
+ */
+class VideoDecodeException(message: String, cause: Throwable? = null) : RuntimeException(message, cause) {
+    /** PTS (µs) del último fotograma que ya se había entregado o saltado al fallar; `Long.MIN_VALUE` si todavía ninguno. */
+    var consumedPtsUs: Long = Long.MIN_VALUE
+        internal set
+
+    /** Índice que habría tenido el siguiente fotograma (0 si todavía ninguno): el respaldo sigue la cuenta desde ahí. */
+    var nextIndex: Int = 0
+        internal set
+}
 
 /** Una excepción de `needs` u `onFrame` mientras se decodifica: no es del decodificador, así que sube tal cual y no activa el respaldo. */
 internal class ConsumerFailure(cause: Throwable) : RuntimeException(cause)
+
+/** Una fuente que puede arrancar a mitad del vídeo y seguir la numeración de otra: el respaldo de GL tras un fallo. */
+interface ResumableVideoFrameSource : VideoFrameSource {
+    /** Como `decode`, pero el primer fotograma entregado lleva el índice [startIndex] en vez de 0. */
+    suspend fun decodeFrom(
+        fromUs: Long,
+        targetLongEdge: Int,
+        needs: (index: Int, ptsUs: Long) -> FrameNeeds,
+        onFrame: suspend (DecodedFrame) -> Unit,
+        startIndex: Int,
+    )
+}
 
 object VideoFrameSources {
     /**
@@ -64,20 +87,21 @@ object VideoFrameSources {
         } catch (failure: VideoDecodeException) {
             return RetrieverVideoFrameSource(file, info, openFailure = failure.message)
         }
-        return FallbackVideoFrameSource(gl, file, info)
+        return FallbackVideoFrameSource(gl, info) { reason -> RetrieverVideoFrameSource(file, info, openFailure = reason) }
     }
 }
 
 /**
- * GL con respaldo: si GL falla a mitad (un [VideoDecodeException]; las excepciones de `onFrame` pasan tal cual) sigue con el
- * retriever desde el fotograma siguiente al último que ya se había visto.
+ * Un camino principal (GL) con respaldo: si el principal falla a mitad con un [VideoDecodeException] (las excepciones de
+ * `needs` y `onFrame` y la cancelación pasan tal cual), el respaldo sigue desde el fotograma siguiente al último que ya se
+ * había entregado o saltado, con la misma numeración. Tras un fallo, las siguientes llamadas van directas al respaldo.
  */
 internal class FallbackVideoFrameSource(
-    private val primary: GlVideoFrameSource,
-    private val file: File,
+    private val primary: VideoFrameSource,
     override val info: VideoInfo,
+    private val backupFactory: (reason: String?) -> ResumableVideoFrameSource,
 ) : VideoFrameSource, VideoDecodeReport {
-    private var backup: RetrieverVideoFrameSource? = null
+    private var backup: ResumableVideoFrameSource? = null
 
     @Volatile
     private var usingBackup = false
@@ -87,7 +111,7 @@ internal class FallbackVideoFrameSource(
 
     override val path: VideoDecodePath get() = if (usingBackup) VideoDecodePath.RETRIEVER else VideoDecodePath.GL
     override val fallbackReason: String? get() = reason
-    override val details: String get() = if (usingBackup) backup?.details.orEmpty() else primary.details
+    override val details: String get() = ((if (usingBackup) backup else primary) as? VideoDecodeReport)?.details.orEmpty()
 
     override suspend fun decode(
         fromUs: Long,
@@ -98,28 +122,19 @@ internal class FallbackVideoFrameSource(
         var resumeUs = fromUs
         var nextIndex = 0
         if (!usingBackup) {
-            var lastPtsUs = Long.MIN_VALUE
             try {
-                primary.decode(
-                    fromUs,
-                    targetLongEdge,
-                    { index, ptsUs ->
-                        nextIndex = index + 1
-                        lastPtsUs = ptsUs
-                        needs(index, ptsUs)
-                    },
-                    onFrame,
-                )
+                primary.decode(fromUs, targetLongEdge, needs, onFrame)
                 return
             } catch (cancel: CancellationException) {
                 throw cancel
             } catch (failure: VideoDecodeException) {
                 reason = failure.message
                 usingBackup = true
-                if (lastPtsUs != Long.MIN_VALUE) resumeUs = maxOf(fromUs, lastPtsUs + 1)
+                if (failure.consumedPtsUs != Long.MIN_VALUE) resumeUs = maxOf(fromUs, failure.consumedPtsUs + 1)
+                nextIndex = failure.nextIndex
             }
         }
-        val rescue = backup ?: RetrieverVideoFrameSource(file, info, openFailure = reason).also { backup = it }
+        val rescue = backup ?: backupFactory(reason).also { backup = it }
         rescue.decodeFrom(resumeUs, targetLongEdge, needs, onFrame, nextIndex)
     }
 

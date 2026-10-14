@@ -191,12 +191,21 @@ private class GlDecodeRun(
         } catch (consumer: ConsumerFailure) {
             throw consumer.cause ?: consumer
         } catch (failure: VideoDecodeException) {
-            throw failure
+            throw withProgress(failure)
         } catch (error: Exception) {
-            throw VideoDecodeException("Fallo al decodificar ${file.name}: ${error.javaClass.simpleName}: ${error.message}", error)
+            throw withProgress(
+                VideoDecodeException("Fallo al decodificar ${file.name}: ${error.javaClass.simpleName}: ${error.message}", error),
+            )
         } finally {
             release()
         }
+    }
+
+    /** Anota en el fallo hasta dónde se había llegado (fotogramas ya entregados o saltados) para que el respaldo siga de ahí. */
+    private fun withProgress(failure: VideoDecodeException): VideoDecodeException {
+        failure.consumedPtsUs = consumedPtsUs
+        failure.nextIndex = nextIndex
+        return failure
     }
 
     /** Todo lo de GL se libera aquí, en el hilo que lo creó. */
@@ -241,12 +250,15 @@ private class GlDecodeRun(
         }
     }
 
-    /** El formato de la pista con lo que hace falta: sin giro del códec, sin tiempo real y, si se puede, a máxima velocidad. */
-    private fun buildFormat(extractor: MediaExtractor, track: Int, withOperatingRate: Boolean): MediaFormat {
+    /**
+     * El formato de la pista con lo que hace falta. [level] 0: sin giro del códec, sin tiempo real y a máxima velocidad;
+     * 1: sin la velocidad máxima; 2: solo sin giro del códec (último recurso).
+     */
+    private fun buildFormat(extractor: MediaExtractor, track: Int, level: Int): MediaFormat {
         val format = extractor.getTrackFormat(track)
         format.setInteger(MediaFormat.KEY_ROTATION, 0)
-        format.setInteger(MediaFormat.KEY_PRIORITY, 1)
-        if (withOperatingRate) format.setInteger(MediaFormat.KEY_OPERATING_RATE, Short.MAX_VALUE.toInt())
+        if (level <= 1) format.setInteger(MediaFormat.KEY_PRIORITY, 1)
+        if (level == 0) format.setInteger(MediaFormat.KEY_OPERATING_RATE, Short.MAX_VALUE.toInt())
         if (info.isHdr && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             format.setInteger(MediaFormat.KEY_COLOR_TRANSFER_REQUEST, MediaFormat.COLOR_TRANSFER_SDR_VIDEO)
         }
@@ -255,17 +267,18 @@ private class GlDecodeRun(
 
     /**
      * Crea y configura el decodificador: el que `DecoderChooser` elige por tamaño y fps (hardware primero) y, si no hay o falla,
-     * el de por defecto. Con `KEY_OPERATING_RATE`; si `configure` falla con él, de nuevo sin él.
+     * el de por defecto. Con `KEY_OPERATING_RATE`; si `configure` falla con él, de nuevo sin él y, al final, sin `KEY_PRIORITY`.
      */
     private fun openCodec(extractor: MediaExtractor, track: Int, surface: Surface): MediaCodec {
         val chosen = DecoderChooser.pick(info.mime, info.codedWidth, info.codedHeight, (info.nominalFps ?: 30f).toDouble())
-        val attempts = ArrayList<Pair<String?, Boolean>>(3)
-        attempts.add(chosen to true)
-        attempts.add(chosen to false)
-        if (chosen != null) attempts.add(null to false)
+        val attempts = ArrayList<Pair<String?, Int>>(4)
+        attempts.add(chosen to 0)
+        attempts.add(chosen to 1)
+        if (chosen != null) attempts.add(null to 1)
+        attempts.add(null to 2)
         var lastError: Exception? = null
-        for ((name, withRate) in attempts) {
-            val format = buildFormat(extractor, track, withRate)
+        for ((name, level) in attempts) {
+            val format = buildFormat(extractor, track, level)
             var codec: MediaCodec? = null
             try {
                 val created = if (name != null) MediaCodec.createByCodecName(name) else MediaCodec.createDecoderByType(info.mime)
@@ -320,6 +333,8 @@ private class GlDecodeRun(
                         inOutput = true
                         previousPtsUs = output(codec, outputIndex, bufferInfo.presentationTimeUs, previousPtsUs, frames, startUs)
                         inOutput = false
+                        // Lo que tarde el consumidor en `onFrame` (backpressure, análisis en pausa) no cuenta como códec atascado.
+                        progressAtNs = System.nanoTime()
                     } else {
                         codec.releaseOutputBuffer(outputIndex, false)
                     }

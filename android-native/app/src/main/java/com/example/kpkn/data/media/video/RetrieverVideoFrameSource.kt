@@ -39,7 +39,7 @@ class RetrieverVideoFrameSource(
     override val info: VideoInfo,
     private val indexed: Boolean = Build.VERSION.SDK_INT >= Build.VERSION_CODES.P,
     private val openFailure: String? = null,
-) : VideoFrameSource, VideoDecodeReport {
+) : ResumableVideoFrameSource, VideoDecodeReport {
     private val executor = Executors.newSingleThreadExecutor { runnable ->
         Thread(runnable, "vt-decode-rt").apply { isDaemon = true }
     }
@@ -64,7 +64,7 @@ class RetrieverVideoFrameSource(
     ) = decodeFrom(fromUs, targetLongEdge, needs, onFrame, 0)
 
     /** Como [decode], pero numerando los fotogramas desde [startIndex]: así sigue la cuenta tras un fallo de GL a mitad. */
-    internal suspend fun decodeFrom(
+    override suspend fun decodeFrom(
         fromUs: Long,
         targetLongEdge: Int,
         needs: (index: Int, ptsUs: Long) -> FrameNeeds,
