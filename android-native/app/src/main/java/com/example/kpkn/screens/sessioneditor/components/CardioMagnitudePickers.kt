@@ -384,13 +384,3 @@ private fun CardioWheelDialogScaffold(
         },
     )
 }
-
-internal enum class CardioMagnitudeKind {
-    MINUTES,
-    MINUTES_SECONDS,
-    SECONDS,
-    DISTANCE_KM,
-    PACE,
-    INTEGER,
-    TENTHS,
-}
