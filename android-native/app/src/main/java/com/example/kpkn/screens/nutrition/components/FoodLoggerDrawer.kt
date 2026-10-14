@@ -436,7 +436,7 @@ fun FoodLoggerDrawer(
                 loggedFood = logged,
                 analysisSource = AnalysisSource.LOCAL_HEURISTIC,
                 statusText = if (logged != null) {
-                    "Estimación local. Tocá la tarjeta para editar."
+                    "Estimación local. Toca la tarjeta para editar."
                 } else {
                     "No pude identificar el alimento."
                 },
