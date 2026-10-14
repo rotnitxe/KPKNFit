@@ -267,7 +267,7 @@ class NutritionClosureRenderSheetTest {
         ) {
             Column(modifier = Modifier.testTag("n6-raiz-cabecera")) {
                 NutritionHeader(
-                    dateLabel = nutritionHeroDateLabel(today, Locale("es")),
+                    dateLabel = nutritionHeroDateLabel(today),
                     loaded = loaded,
                     hasActivePlan = hasPlan,
                     onEditPlan = {},

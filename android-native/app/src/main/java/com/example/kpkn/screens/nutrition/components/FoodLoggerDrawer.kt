@@ -1445,7 +1445,7 @@ fun FoodLoggerDrawer(
         ) {
             // ── Cabecera: título, fecha y comida ─────────────────────────────
             item {
-                val locale = LocaleManager.getEffectiveLocale(LocalContext.current)
+                val locale = java.util.Locale.forLanguageTag("es")
                 LoggerHeader(
                     title = if (isEditing) "Editar comida" else "Registrar comida",
                     dateLabel = loggerDateLabel(logDate, locale),

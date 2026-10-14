@@ -49,7 +49,7 @@ fun MealHistoryScreen(
     onOpenDay: (String) -> Unit,
     onRegister: () -> Unit,
 ) {
-    val locale = LocaleManager.getEffectiveLocale(LocalContext.current)
+    val locale = java.util.Locale.forLanguageTag("es")
     val viewModel: MealHistoryViewModel = viewModel(factory = MealHistoryViewModelFactory(locale))
     val months by viewModel.months.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
