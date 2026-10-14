@@ -50,6 +50,9 @@
      - **Entrada:** cada vídeo de `getExternalFilesDir("vt-bench/in")`.
      - **Motores:** `mp-full-gpu`, `mp-full-cpu`, `mp-heavy-gpu` (si existe `vt-bench/models/pose_landmarker_heavy.task`) y `mlkit-base`.
      - **Proceso:** `VideoFrameSources.open` → pose de cada fotograma (o 1 de 2 a 60 fps) → `PoseTrackAssembler`.
+       - **Heredado de VT4a:** el `DecodedFrame` solo vale dentro de `onFrame`, porque el pool reutiliza 3 huecos por turnos. En el banco, calcula la pose DENTRO de `onFrame`, en el hilo de pose y esperando su resultado, o copia el buffer antes de salir. Nada de colas sin copia.
+       - Pide `FrameNeeds.SKIP` en los fotogramas sin pose (stride 2): así ni se dibujan.
+       - Anota en `bench.json` el camino de decodificación: `(source as? VideoDecodeReport)?.path` y `details`.
      - **Escribe:**
        - `vt-bench/out/<vídeo>.<motor>.pose2.json.gz`, con `PoseTrackCodec`;
        - `vt-bench/out/bench.json`: por vídeo y motor, ms por fotograma de decodificación y de pose (media, p50 y p95), fotogramas con pose, % con 2 poses, delegado real usado y errores.

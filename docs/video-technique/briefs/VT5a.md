@@ -12,6 +12,15 @@
   - la prueba `src/test/.../data/db/WorkoutMediaMigration27To28Test.kt` (patrón).
 - **Logs:** `C:\kw\logs\vt-5a-<n>.log`.
 
+## Paso 0: verificación de integración (lo primero, antes de editar)
+`feat/video-technique` acaba de recibir VT2a (perfiles), VT4a (decodificación) y, si ya está, VT2b (segmentador). El carril de dominio solo los probó con el arnés JVM.
+
+Tu PRIMERA corrida, por `gradle_slot.sh`, es:
+`:app:compileBaseDebugKotlin :app:testBaseDebugUnitTest --tests "com.example.kpkn.domain.biomechanics.*" --tests "com.example.kpkn.data.media.*"`
+- Es la verificación oficial, en lote, de esos paquetes.
+- Mientras espera en la cola, puedes leer y planificar, pero no edites hasta que termine.
+- Si falla algo de `domain/biomechanics` o de `data/media/video`, no lo arregles: anótalo en el informe con el error exacto y sigue con tu paquete, si tu parte compila.
+
 ## Archivos permitidos
 - **`data/db/`:**
   - `VideoAnalysisEntity.kt` (nuevo, con `VideoAnalysisDao`);

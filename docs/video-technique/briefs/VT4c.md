@@ -30,7 +30,13 @@
       - **Plan por fotograma:**
         - pose en cada fotograma si fs ≤ 35; si no, 1 de cada 2 (y 1 de 2 también si `GpuProbe` recomienda stride 2);
         - LUMA en todos si `profile.usesPlate`.
-      - **Hilos:** decodificación y pose solapadas, con `Channel(2)` y un pool de 3 buffers.
+      - **Hilos:** decodificación y pose solapadas, con un `Channel`. **Heredado de VT4a:**
+        - `DecodedFrame` solo vale dentro de `onFrame`. El pool (`FramePool.SLOTS` en `data/media/video/VideoInfo.kt`) tiene 3 huecos que se reutilizan por turnos.
+        - Con un `Channel(C)` llegan a estar vivos C + 2 fotogramas: el que procesa la pose, los C de la cola y el que espera en `send`. Por eso hace falta `SLOTS ≥ C + 2`.
+        - Usa `Channel(2)` y sube `FramePool.SLOTS` a 4: es un cambio de una línea y está permitido. La otra opción es `Channel(1)` con 3 huecos.
+        - Nunca guardes el `ByteBuffer` ni la luma fuera de esa ventana. Lo que deba vivir más, como el búfer circular de luma del disco, se COPIA.
+      - **Camino de decodificación** (`(source as? VideoDecodeReport)?.path`): con `RETRIEVER`, la confianza del conteo se topa en MEDIA y se añade la flag `DECODE_FALLBACK`. Esa flag se añade AL FINAL de `AnalysisFlag` (`domain/biomechanics/metrics/AnalysisFlag.kt`): es una línea y está permitida.
+      - **Cierre:** `source.use { … }` alrededor de la decodificación entera. Nunca se llama a `close()` mientras `decode` sigue en marcha: hay que cancelar y esperar antes.
       - **Pose:** cada fotograma va al estimador; el resultado, a `PoseTrackAssembler`.
       - **Disco** (si `usesPlate`):
         - en el primer tramo con la barra quieta (≥ 0,5 s con las muñecas casi inmóviles), `PlateDetector.propose` cerca de las muñecas, con el radio previo de la escala corporal;

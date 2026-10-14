@@ -393,6 +393,13 @@ interface VideoFrameSource : Closeable {
                        needs: (index: Int, ptsUs: Long) -> FrameNeeds, onFrame: suspend (DecodedFrame) -> Unit)
 }
 object VideoFrameSources { fun open(file: File): VideoFrameSource }       // GL primero; respaldo retriever
+// Extras de VT4a (aditivos, fuera del contrato mínimo):
+enum class VideoDecodePath { GL, RETRIEVER }
+interface VideoDecodeReport { val path: VideoDecodePath; val fallbackReason: String?; val details: String }   // `source as? VideoDecodeReport`
+class VideoDecodeException(message: String, cause: Throwable?) : RuntimeException  // + consumedPtsUs y nextIndex: el respaldo sigue desde ahí
+interface ResumableVideoFrameSource : VideoFrameSource { suspend fun decodeFrom(fromUs, targetLongEdge, needs, onFrame, startIndex: Int) }
+// Pool de FramePool.SLOTS = 3 huecos por turnos: con Channel(C), SLOTS ≥ C + 2 (VT4c lo sube a 4).
+// targetLongEdge nunca amplía; el lado corto se redondea al par más cercano (720 → 406x720 en 9:16).
 
 // data/media/pose
 class RgbaFrame(val width: Int, val height: Int, val buffer: ByteBuffer)   // directo, RGBA_8888, stride = width*4
