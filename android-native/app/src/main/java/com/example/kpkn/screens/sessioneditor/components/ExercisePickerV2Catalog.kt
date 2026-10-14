@@ -101,6 +101,7 @@ import com.example.kpkn.screens.sessioneditor.design.CatalogVariantChips
 import com.example.kpkn.screens.sessioneditor.design.catalogSelectionSummary
 import com.example.kpkn.ui.components.icons.KpknLineIcons
 import com.example.kpkn.ui.design.KpknIconButton
+import com.example.kpkn.ui.design.KpknSetFormat
 import com.example.kpkn.ui.design.KpknTextAction
 import com.example.kpkn.ui.design.KpknType
 import com.example.kpkn.screens.onboarding.design.entreno.plan.ExercisePattern
@@ -1173,16 +1174,8 @@ internal fun catalogMatchLabel(
         if (rest.size > 3) " · +${rest.size - 3}" else ""
 }
 
-/** Etiqueta de un descanso de la superserie: «45s» hasta 60 segundos y «1:30» a partir de ahí. Igual que antes. */
-internal fun formatCatalogSupersetRestLabel(seconds: Int): String {
-    return if (seconds > 60) {
-        val mins = seconds / 60
-        val secs = seconds % 60
-        "$mins:${secs.toString().padStart(2, '0')}"
-    } else {
-        "${seconds}s"
-    }
-}
+/** Etiqueta de un descanso de la superserie: «45 s» por debajo de un minuto y «1:30» a partir de ahí ([KpknSetFormat.doseTime]). */
+internal fun formatCatalogSupersetRestLabel(seconds: Int): String = KpknSetFormat.doseTime(seconds)
 
 /**
  * Lo elegido, desplegado desde la isla del catálogo (SE6a): cada fila lleva su nombre (un toque lleva a su ejercicio en la lista), las

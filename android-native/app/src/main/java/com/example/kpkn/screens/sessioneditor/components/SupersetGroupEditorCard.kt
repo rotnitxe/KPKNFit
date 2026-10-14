@@ -139,7 +139,7 @@ internal fun SupersetGroupEditorCard(
     val captionText = listOfNotNull(
         "Superserie",
         "$rounds ${if (rounds == 1) "ronda" else "rondas"}",
-        group.restAfterSuperset.takeIf { it > 0 }?.let { "${KpknSetFormat.rest(it)} entre rondas" },
+        group.restAfterSuperset.takeIf { it > 0 }?.let { "${KpknSetFormat.doseTime(it)} entre rondas" },
         "Opcional".takeIf { group.isOptional },
     ).joinToString(" · ")
     var captionOrigin by remember(group.id) { mutableStateOf(Offset.Zero) }

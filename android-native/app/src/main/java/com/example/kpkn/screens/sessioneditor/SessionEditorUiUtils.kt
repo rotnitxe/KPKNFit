@@ -8,6 +8,7 @@ import java.util.Date
 import java.util.Locale
 import com.example.kpkn.domain.exercises.resolvedCanonicalExerciseId
 import com.example.kpkn.domain.calculations.resolveReferenceCapacity
+import com.example.kpkn.ui.design.KpknSetFormat
 
 internal fun String.safeIntOrNull(): Int? = toIntOrNull()
 
@@ -45,12 +46,8 @@ internal fun dayInitial(dayOfWeek: Int?): String = when (dayOfWeek) {
     else -> "?"
 }
 
-internal fun formatRestSummary(restTime: Int?): String {
-    val total = restTime ?: 90
-    val minutes = total / 60
-    val seconds = total % 60
-    return "${minutes}:${seconds.toString().padStart(2, '0')}"
-}
+/** Descanso en texto corrido: «45 s» o «2:30», el mismo formato que la dosis de la tarjeta ([KpknSetFormat.doseTime]). */
+internal fun formatRestSummary(restTime: Int?): String = KpknSetFormat.doseTime(restTime ?: 90)
 
 internal fun formatExerciseCollapsedSummary(exercise: Exercise): String? {
     if (exercise.sets.isEmpty()) return null
@@ -90,7 +87,7 @@ internal fun formatExerciseConfigSummary(exercise: Exercise): String {
             }
         }
         if (!exercise.isInSuperset()) {
-            exercise.restTime?.let { add("Rest ${formatRestSummary(it)}") }
+            exercise.restTime?.let { add("Descanso ${formatRestSummary(it)}") }
         }
         if (exercise.isStarTarget) add("Meta")
         exercise.goal1RM?.takeIf { it > 0 }?.let { add("Meta ${formatEditableNumber(it)}kg") }
