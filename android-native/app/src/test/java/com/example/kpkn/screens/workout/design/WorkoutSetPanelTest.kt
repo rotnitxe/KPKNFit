@@ -98,17 +98,16 @@ class WorkoutSetPanelTest {
         assertEquals(5.0, step ?: Double.NaN, 0.001)
     }
 
+    /** LS7b: «Opciones avanzadas» abre la hoja «Opciones de la serie» con el contenido; cerrarla es un gesto de la hoja (no se prueba aquí). */
     @Test
-    fun opcionesAvanzadasDespliegaYPliega() {
+    fun opcionesAvanzadasAbreLaHojaDeOpciones() {
         rule.setContent { PanelHost() }
 
         rule.onNodeWithText("Contenido avanzado").assertDoesNotExist()
         rule.onNodeWithText("Opciones avanzadas").performClick()
         rule.waitForIdle()
+        rule.onNodeWithText("Opciones de la serie").assertExists()
         rule.onNodeWithText("Contenido avanzado").assertExists()
-        rule.onNodeWithText("Opciones avanzadas").performClick()
-        rule.waitForIdle()
-        rule.onNodeWithText("Contenido avanzado").assertDoesNotExist()
     }
 
     @Test
