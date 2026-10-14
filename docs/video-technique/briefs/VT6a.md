@@ -9,6 +9,28 @@
 
 Visión clásica en Kotlin puro sobre `ByteArray` de luma. **Sin OpenCV ni librerías nuevas.** Rendimiento: un fotograma de 720×1280 se procesa en menos de 8 ms en JVM, porque solo se busca dentro de la ventana (ROI). Sin asignaciones por fotograma: se reutilizan los buffers del rastreador.
 
+## Heredado de VT3b (ya integrado en `dc0782b76`; los nombres REALES mandan sobre este brief)
+- **`PlateScale.estimate(bar, fps, focalLengthPx, tuning): PlateScaleResult`**, con `scale`, `flags`, `reason`, `radiusPx`, `calibrationSamples`, `planeDepthM`, `depthRatio` (Z_s/Z_p), `parallaxCorrected` y `offsetsHidden`. Lo que espera de TUS muestras:
+  - el radio de calibración es la mediana de los radios de las muestras `HOUGH` con q ≥ 0,5 en los fotogramas lentos: rellena bien `source` y `quality`;
+  - `BarSample.axisRatio` = a/b (semieje horizontal entre vertical); si es ≠ 1 usa la mediana;
+  - `BarSample.r` es el radio del **círculo equivalente, √(a·b)**. Cuando midas la elipse, guarda r = √(a·b) de ese ajuste y no el de Kåsa: con a/b < 0,85 el de Kåsa se aleja más de un 1 %.
+- **`CalibratedVelocity.compute(ctx, bar, scale): VelocitySummary`**, que necesita un `MetricContext`. Para armarlo en tus pruebas, copia el patrón de `CalibratedVelocityTest` (`MetricsTestSupport.gen`/`script` y `TechniqueAnalysisEngine.analyze` con el `BarTrack`) y usa `vbt/VbtTestSupport` (`focalPx`, `radiusPx`, `plateFollowing`): tu traza sustituye a la de `plateFollowing`.
+- **`TechniqueAnalysisEngine`** ya usa `PlateScale` y `CalibratedVelocity` cuando el disco es la señal de conteo (`series.source == "plate"`).
+
+## Pendiente de VT3b que entra aquí
+1. **Cordura de la escala del disco (§8 punto 6, «Cordura»).** El muslo según la escala del disco × Z_s/Z_p debe quedar a ±25 % del muslo «world». Si no, aviso.
+   - **Muslo en imagen:** L̂_muslo, la P90 de la longitud 2D cadera–rodilla del lado cercano, como la calcula `DepthRules` (es privada; si la sacas a una función compartida, no cambies su resultado). Pásala de FH a píxeles del fotograma del disco.
+   - **Muslo «world»:** la mediana de la distancia 3D cadera–rodilla del lado cercano en los puntos `world` de `PoseTrack` v2, en metros.
+   - **Aviso:** `AnalysisFlag.PLATE_SCALE_MISMATCH`, nuevo, al FINAL del enum y con KDoc. Es solo un aviso: la escala se sigue usando.
+   - **Calla** sin puntos `world`, sin escala o con la vista que no sea LATERAL.
+   - **Tolerancia:** campo nuevo `thighSanityTolerance = 0.25` DENTRO de `VbtTuning`, nunca suelto en `AnalysisTuning`, que está al límite de la JVM.
+   - **Dónde:** una función en `PlateScale`, más su llamada en `TechniqueAnalysisEngine`, que añade el aviso a `flags`.
+   - **Pruebas:**
+     - sentadilla sintética con el disco a su escala real → sin aviso;
+     - el mismo disco declarado con un 40 % menos de diámetro → aviso;
+     - sin puntos `world` → calla.
+2. **KDoc de `AnalysisFlag.PLATE_ELLIPSE`:** dice < 0,95, pero §8 y el código usan < 0,85. Corrígelo.
+
 ## Archivos permitidos (nuevos)
 - `domain/biomechanics/vision/`:
   - `LumaFrame.kt`;
@@ -20,6 +42,15 @@ Visión clásica en Kotlin puro sobre `ByteArray` de luma. **Sin OpenCV ni libre
   - `PlateDetector.kt`;
   - `PlateTracker.kt` (con `PlateTrackerConfig`).
 - `src/test/java/com/example/kpkn/domain/biomechanics/vision/`, con `SyntheticPlateFrames.kt`, el generador de §10.4.
+
+**Modificados, solo para lo pendiente de VT3b:**
+- `metrics/AnalysisFlag.kt`: `PLATE_SCALE_MISMATCH` al final y el KDoc de `PLATE_ELLIPSE`;
+- `vbt/PlateScale.kt`: la función de cordura;
+- `metrics/TechniqueAnalysisEngine.kt`: su llamada;
+- `metrics/AnalysisTuning.kt`: `thighSanityTolerance` dentro de `VbtTuning`;
+- `metrics/DepthRules.kt`: solo si sacas L̂_muslo a una función compartida, sin cambiar su resultado.
+
+Pruebas de la cordura: en `src/test/java/com/example/kpkn/domain/biomechanics/vbt/`. No toques las de VT3a ni las de VT3b.
 
 ## Qué haces
 §8, puntos 1–5 y 7, al pie de la letra:
@@ -68,11 +99,13 @@ Visión clásica en Kotlin puro sobre `ByteArray` de luma. **Sin OpenCV ni libre
 - **`PlateTrackerVelocityTest`:** convierte la traza a m/s con el diámetro real y calcula la MCV como VT3b (llama a `CalibratedVelocity`) → error ≤ 0,02 m/s a 60 fps y ≤ 0,03 a 30 fps.
 - **`PlateTrackerPerfTest`:** mide los ms por fotograma en JVM y los imprime en el informe. Sin aserción dura salvo < 30 ms.
 
-**Comandos:**
-1. `:app:compileBaseDebugKotlin`
-2. `:app:testBaseDebugUnitTest --tests "com.example.kpkn.domain.biomechanics.vision.*"`
+**Comandos** (carril de dominio: SOLO el arnés propio, por su carril ligero; ver VT_COMUN y D25):
+- `KPKN_SLOT_LANE=jvm bash /c/kw/tools/gradle_slot.sh /c/kw/vt-jvm-b test --offline --tests "com.example.kpkn.domain.biomechanics.vision.*" --tests "com.example.kpkn.domain.biomechanics.vbt.*" --tests "com.example.kpkn.domain.biomechanics.metrics.*" --console=plain > /c/kw/logs/vt-6a-jvm-<n>.log 2>&1`
+- Las corridas `:app:…` las hace el orquestador, en lote, en vt-a.
+- **Medidas de rendimiento:** el arnés corre con -Xmx1g y comparte la máquina. Da los ms por fotograma como orientación; la cifra que vale es la del teléfono.
 
 ## Commits
 - `feat(technique): detección del disco por Hough de gradiente y ajuste de círculo y elipse`
 - `feat(technique): seguimiento del disco con Kalman, NCC y readquisición`
 - `test(technique): fotogramas sintéticos del disco`
+- `feat(technique): cordura de la escala del disco con el muslo «world»`

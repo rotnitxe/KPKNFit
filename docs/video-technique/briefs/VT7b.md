@@ -9,6 +9,13 @@
 - **Logs:** `C:\kw\logs\vt-7b-<n>.log`.
 - **PNG:** `C:/kw/shots/vt/7b`.
 
+## Heredado de VT3b (en el informe; los nombres REALES mandan)
+- **m/s** solo si `velocityUnit == MPS` (disco calibrado y señal de conteo del disco). `PEAK_VELOCITY` se marca solo en m/s.
+- **Pérdida de velocidad:** `VELOCITY_RELATIVE` puede estar con `velocityLossPct == null`. Pasa cuando el ruido no deja medir la pérdida, pero sí las barras relativas. En ese caso, «Pérdida de velocidad: sin dato fiable», nunca un 0 %.
+- **Trayectoria:** en cm si `PATH_ABSOLUTE` está y `barDeviationUnit == "cm"`; si no, en % del recorrido (`"%ROM"`). El desvío respecto del medio pie puede faltar por PARALLAX_SUPPRESSED, aunque estén la deriva y la excursión de cada repetición.
+- **Avisos de la escala:** PLATE_ELLIPSE, PLATE_REJECTED, PARALLAX_SUPPRESSED y PLATE_SCALE_MISMATCH (VT6a). Van al módulo del disco, en una línea con la causa.
+- **Observaciones:** `report.observations`, como mucho 3, con el texto ya escrito y su repetición. Se pintan tal cual: no se reescriben.
+
 La pantalla vive en `screens/technique/analysis/`. Su ruta (`TechniqueAnalysis(mediaId)`) la registra VT9a. Aquí se entregan la pantalla, su ViewModel y una entrada `TechniqueAnalysisRoute(mediaId, onBack, onOpenTrends: (exerciseKey) -> Unit)` lista para enchufar.
 
 ## Archivos permitidos (nuevos)
