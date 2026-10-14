@@ -98,6 +98,9 @@ import com.example.kpkn.screens.sessioneditor.components.sheets.SessionEditorShe
 import com.example.kpkn.screens.sessioneditor.design.SessionAssistantOverlay
 import com.example.kpkn.screens.sessioneditor.design.SessionAssistantTab
 import com.example.kpkn.screens.sessioneditor.design.SessionImpactModule
+import com.example.kpkn.screens.sessioneditor.design.SessionPreparationModule
+import com.example.kpkn.screens.sessioneditor.design.sessionPreparationRows
+import com.example.kpkn.screens.sessioneditor.design.sessionPreparationTargetExerciseId
 import com.example.kpkn.screens.sessioneditor.design.sessionImpactOf
 import com.example.kpkn.ui.components.icons.KpknLineIcons
 import com.example.kpkn.ui.design.KpknIconButton
@@ -562,6 +565,9 @@ fun SessionEditorScreen(
         sessionListItems.drop(1)
     }
     val allExercisesForUi = remember(session.exercises, session.parts) { session.allExercises() }
+    // Preparación (SE5): calentamiento y movilidad de la sesión. Sin nada que preparar, no ocupa sitio ni ofrece «Editar».
+    val preparationRows = remember(session) { sessionPreparationRows(session) }
+    val preparationTarget = remember(session) { sessionPreparationTargetExerciseId(session) }
     // Cabecera (SESSION_EDITOR_V1 §2): etiqueta del chip del navegador y duración de la línea de datos y de la isla.
     val navigatorLabel = listOfNotNull(
         uiState.dayOfWeek?.let { sessionEditorDayLabelShort(it) },
@@ -569,10 +575,11 @@ fun SessionEditorScreen(
     ).joinToString(" · ")
     val estimatedMinutes = uiState.sessionTimeBreakdown?.totalMinutes ?: uiState.estimatedDurationMinutes
 
-    // Auto-scroll al ejercicio recién añadido (índice = Hero + offset en scrollable)
+    // Auto-scroll al ejercicio recién añadido (índice = Hero + offset en scrollable). Cuenta los módulos que van antes de la lista.
     LaunchedEffect(pendingAutoExpandExerciseId) {
         val expandId = pendingAutoExpandExerciseId ?: return@LaunchedEffect
-        val targetIndex = lazyColumnIndexForExercise(scrollableListItems, expandId, leadingItems = EditorLeadingItems)
+        val leading = EditorLeadingItems + (if (impact != null) 1 else 0) + (if (preparationRows.isNotEmpty()) 1 else 0)
+        val targetIndex = lazyColumnIndexForExercise(scrollableListItems, expandId, leadingItems = leading)
         if (targetIndex >= 0) {
             listState.animateScrollToItem(targetIndex)
         }
@@ -747,6 +754,18 @@ fun SessionEditorScreen(
                     SessionImpactModule(
                         impact = sessionImpact,
                         onOpenAssistant = { openAssistantSheet(SessionAssistantTab.IMPACT) },
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                    )
+                }
+            }
+
+            // Módulo «Preparación» (SE5), justo tras el impacto y antes de los espacios de cardio y de fuerza. «Editar» despliega el
+            // primer ejercicio con calentamiento o movilidad, con el mismo desplazamiento que al añadir uno.
+            if (preparationRows.isNotEmpty()) {
+                item(key = "sesion-preparacion") {
+                    SessionPreparationModule(
+                        rows = preparationRows,
+                        onEdit = preparationTarget?.let { targetId -> { pendingAutoExpandExerciseId = targetId } },
                         modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
                     )
                 }

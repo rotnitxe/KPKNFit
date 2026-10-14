@@ -431,6 +431,78 @@ object KpknLineIcons {
         icono("KpknLine.Pulse", listOf("M2.75 12h4.25l2.5-5.25 4 10.5 2.5-5.25h5.25"))
     }
 
+    // ── Cardio por tipo (SE5): cabeza, tronco y extremidades en trazo; la misma familia que el resto del set ──
+
+    /** Carrera: figura de perfil con las piernas en zancada y los brazos en flexión. */
+    val Run: ImageVector by lazy {
+        icono(
+            "KpknLine.Run",
+            listOf(
+                "M15 2a1.75 1.75 0 1 0 0 3.5a1.75 1.75 0 1 0 0-3.5z",
+                "M14.25 7.25L11.5 13.25",
+                "M14 9.25L17 10.5L18.25 8.25",
+                "M14 9.25L10.5 10.25L8.25 12.25",
+                "M11.5 13.25L14.75 14.5L13.25 19.75",
+                "M11.5 13.25L9 17.25L5 15.75",
+            ),
+        )
+    }
+
+    /** Caminar: figura erguida con las piernas abiertas en paso y un brazo adelantado. */
+    val Walk: ImageVector by lazy {
+        icono(
+            "KpknLine.Walk",
+            listOf(
+                "M12 2a1.75 1.75 0 1 0 0 3.5a1.75 1.75 0 1 0 0-3.5z",
+                "M12 7.5V13",
+                "M12 8.75L15.25 11.5",
+                "M12 8.75L8.75 11.5",
+                "M12 13L14.75 17.5L14.25 21.5",
+                "M12 13L9.25 17.5L9.75 21.5",
+            ),
+        )
+    }
+
+    /** Bici: dos ruedas, cuadro con sillín y manillar. */
+    val Bike: ImageVector by lazy {
+        icono(
+            "KpknLine.Bike",
+            listOf(
+                "M5.75 13a3.75 3.75 0 1 0 0 7.5a3.75 3.75 0 1 0 0-7.5z",
+                "M18.25 13a3.75 3.75 0 1 0 0 7.5a3.75 3.75 0 1 0 0-7.5z",
+                "M5.75 16.75L11.5 16.75L9.25 8.75",
+                "M7.75 8.75h3",
+                "M9.25 8.75L16.25 8.5L11.5 16.75",
+                "M16.25 8.5L18.25 16.75",
+                "M16.25 8.5L16.5 6.5",
+                "M15 6.5h2.5",
+            ),
+        )
+    }
+
+    /** Remo: persona sentada con los brazos al mango, las piernas extendidas y el carril. */
+    val Row: ImageVector by lazy {
+        icono(
+            "KpknLine.Row",
+            listOf(
+                "M7.25 3.25a1.75 1.75 0 1 0 0 3.5a1.75 1.75 0 1 0 0-3.5z",
+                "M7.25 7.75L9.75 13.25",
+                "M7.5 8.75L15 10.25",
+                "M9.75 13.25L14.5 13.25L19.5 15.5",
+                "M7.5 16.75h4",
+                "M2.75 19.75h18.5",
+            ),
+        )
+    }
+
+    /** Escaladora: cuatro peldaños que suben de izquierda a derecha. */
+    val Stairs: ImageVector by lazy {
+        icono("KpknLine.Stairs", listOf("M3.5 20.25h4.25v-4.25h4.25v-4.25h4.25V7.5h4.25"))
+    }
+
+    /** Flecha hacia arriba: el contrario de `ChevronDown`, para subir un bloque en las listas. */
+    val ChevronUp: ImageVector by lazy { icono("KpknLine.ChevronUp", listOf("M5.75 14.5L12 8.25l6.25 6.25")) }
+
     /** Trazado del triángulo de `Play` y `PlayFilled`. */
     private const val TRIANGULO_PLAY =
         "M8.25 5.6v12.8a.9.9 0 0 0 1.37.77l10.2-6.4a.9.9 0 0 0 0-1.54l-10.2-6.4a.9.9 0 0 0-1.37.77z"
