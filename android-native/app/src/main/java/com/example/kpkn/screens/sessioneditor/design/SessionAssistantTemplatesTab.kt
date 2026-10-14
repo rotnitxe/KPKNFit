@@ -8,6 +8,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.example.kpkn.data.exercises.exerciseCatalogSnapshot
+import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.sessions.SessionTemplate
 import com.example.kpkn.data.sessions.SessionTemplateApplyDecision
 import com.example.kpkn.data.sessions.SessionTemplateApplyMode
@@ -16,6 +17,7 @@ import com.example.kpkn.data.sessions.SessionTemplateFocusCategory
 import com.example.kpkn.data.splits.Difficulty
 import com.example.kpkn.screens.onboarding.design.WizardColors
 import com.example.kpkn.screens.sessioneditor.components.TemplateCatalogBrowser
+import com.example.kpkn.screens.sessioneditor.components.templateCountsLine
 import com.example.kpkn.ui.components.KpknAlertDialog
 import com.example.kpkn.ui.components.icons.KpknLineIcons
 import com.example.kpkn.ui.design.KpknPrimaryPill
@@ -57,6 +59,8 @@ fun SessionAssistantTemplatesTab(
     onSaveCurrentTemplate: suspend (String, String) -> Result<SessionTemplate> = { _, _ ->
         Result.failure(IllegalStateException("Guardado de plantillas no disponible en esta superficie"))
     },
+    /** Resumen de la sesión que se guardaría («6 ejercicios · 22 series»); el diálogo de guardar lo muestra al pie. */
+    sessionSummary: String? = null,
 ) {
     KpknTextField(
         value = searchQuery,
@@ -80,7 +84,7 @@ fun SessionAssistantTemplatesTab(
         onEditUserTemplate = onEditUserTemplate,
         onSaveCurrentTemplate = onSaveCurrentTemplate,
         exerciseIndex = exerciseCatalogSnapshot().associateBy { it.id.lowercase() },
-        glassDark = true,
+        sessionSummary = sessionSummary,
     )
     if (applyDecision != null) {
         KpknAlertDialog(
@@ -109,4 +113,10 @@ fun SessionAssistantTemplatesTab(
             },
         )
     }
+}
+
+/** Resumen de una sesión para el pie del diálogo de guardar, «6 ejercicios · 22 series». Nulo si no hay sesión. */
+internal fun sessionCountsLine(session: Session?): String? {
+    val exercises = session?.allExercises() ?: return null
+    return templateCountsLine(exercises.size, exercises.sumOf { it.sets.size })
 }
