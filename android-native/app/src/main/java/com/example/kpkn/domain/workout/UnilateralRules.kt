@@ -8,7 +8,7 @@ import com.example.kpkn.data.models.isEffectivelyUnilateral
 /**
  * Central unilateral helpers (auditoría 3 F1).
  * Fuente única para qué lados espera un set y qué claves marcan "hecho".
- * Reemplaza duplicaciones en WorkoutRouteModels, V2Body, StepRules, Recorder, Navigator, EditingRules.
+ * Reemplaza duplicaciones en WorkoutRoadmapBar, V2Body, StepRules, Recorder, Navigator, EditingRules.
  */
 fun Exercise.expectedSidesForSet(set: ExerciseSet): List<String> {
     if (!isEffectivelyUnilateral()) return listOf("B")

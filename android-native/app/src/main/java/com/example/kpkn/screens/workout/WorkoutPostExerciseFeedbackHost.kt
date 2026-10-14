@@ -1,38 +1,55 @@
 package com.example.kpkn.screens.workout
 
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.snap
-import androidx.compose.animation.core.tween
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.KeyboardArrowUp
+import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.Slider
+import androidx.compose.material3.SliderDefaults
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.rotate
-import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.semantics.role
-import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.semantics.stateDescription
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.example.kpkn.data.exercises.resolveCatalogExerciseInfo
 import com.example.kpkn.data.models.DISCOMFORT_CATALOG
@@ -43,20 +60,9 @@ import com.example.kpkn.data.models.PostExerciseFeedback
 import com.example.kpkn.data.models.unresolvedDiscomfortIds
 import com.example.kpkn.data.models.supersetGroupRefOrLegacyId
 import com.example.kpkn.domain.auge.AugeTtcEngine
-import com.example.kpkn.screens.onboarding.design.WizardColors
-import com.example.kpkn.screens.onboarding.design.wizardReducedMotion
-import com.example.kpkn.screens.workout.design.WorkoutScoreRule
-import com.example.kpkn.ui.components.KpknAlertDialog
-import com.example.kpkn.ui.components.icons.KpknLineIcons
-import com.example.kpkn.ui.design.KpknChip
-import com.example.kpkn.ui.design.KpknIconButton
-import com.example.kpkn.ui.design.KpknModule
-import com.example.kpkn.ui.design.KpknPrimaryPill
-import com.example.kpkn.ui.design.KpknTextAction
-import com.example.kpkn.ui.design.KpknTextField
-import com.example.kpkn.ui.design.KpknType
 import java.util.Locale
 import kotlin.math.roundToInt
+import com.example.kpkn.ui.components.KpknAlertDialog
 
 internal fun buildFeedbackExercisesForTarget(
     postExerciseTarget: Exercise?,
@@ -70,15 +76,12 @@ internal fun buildFeedbackExercisesForTarget(
     }
 }
 
-/**
- * Feedback del ejercicio (KPKN LS3 §3), dentro del descanso como hoy: la calidad técnica y la intensidad con [WorkoutScoreRule] (de 1 a 10),
- * el «Fallo» y las molestias con `KpknChip`, y «Registrar feedback» como píldora. Mismos datos y mismas llamadas que antes.
- */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 internal fun WorkoutPostExerciseFeedbackContent(
     feedbackExercises: List<Exercise>,
     postExerciseFeedbackByExerciseId: Map<String, PostExerciseFeedback>,
+    sessionAccentColor: Color,
     viewModel: WorkoutViewModel,
 ) {
     val discomfortSearchQuery = remember { mutableStateOf("") }
@@ -141,44 +144,111 @@ internal fun WorkoutPostExerciseFeedbackContent(
         modifier = Modifier
             .fillMaxWidth()
             .padding(bottom = 16.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         feedbackExercises.forEach { ex ->
             val showPerceivedIntensity = !exerciseHasPlannedIntensity(ex)
-            KpknModule(modifier = Modifier.fillMaxWidth()) {
-                Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
+
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.05f)),
+                shape = RoundedCornerShape(12.dp),
+                border = BorderStroke(1.dp, Color.White.copy(alpha = 0.10f)),
+            ) {
+                Column(
+                    modifier = Modifier.padding(14.dp),
+                    verticalArrangement = Arrangement.spacedBy(10.dp),
+                ) {
                     Text(
-                        text = ex.name,
-                        style = KpknType.bodyStrong,
-                        color = WizardColors.text,
+                        ex.name,
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Black,
+                        color = Color.White,
                     )
-                    FeedbackScoreBlock(
-                        eyebrow = "Calidad técnica",
-                        value = technicalValues[ex.id] ?: 8,
-                        contentLabel = "Calidad técnica de ${ex.name}",
-                        onValueChange = { technicalValues[ex.id] = it },
+
+                    Text(
+                        "Calidad técnica",
+                        style = MaterialTheme.typography.labelMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White.copy(alpha = 0.8f),
                     )
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    ) {
+                        val techVal = technicalValues[ex.id] ?: 8
+                        Slider(
+                            value = techVal.toFloat(),
+                            onValueChange = { technicalValues[ex.id] = it.toInt().coerceIn(1, 10) },
+                            valueRange = 1f..10f,
+                            steps = 8,
+                            modifier = Modifier.weight(1f),
+                            colors = SliderDefaults.colors(
+                                thumbColor = sessionAccentColor,
+                                activeTrackColor = sessionAccentColor,
+                                inactiveTrackColor = Color.White.copy(alpha = 0.15f),
+                            ),
+                        )
+                        Surface(
+                            shape = RoundedCornerShape(8.dp),
+                            color = sessionAccentColor.copy(alpha = 0.2f),
+                        ) {
+                            Text(
+                                "$techVal / 10",
+                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                                style = MaterialTheme.typography.labelMedium,
+                                fontWeight = FontWeight.Black,
+                                color = sessionAccentColor,
+                            )
+                        }
+                    }
+
                     if (showPerceivedIntensity) {
-                        val isFailed = failureValues[ex.id] == true
-                        FeedbackScoreBlock(
-                            eyebrow = "Qué tan intenso fue",
-                            value = (intensityValues[ex.id] ?: 8f).roundToInt(),
-                            contentLabel = "Intensidad percibida de ${ex.name}",
-                            onValueChange = {
-                                intensityValues[ex.id] = it.toFloat()
-                                if (it < 10) failureValues[ex.id] = false
-                            },
-                            trailing = {
-                                KpknChip(
-                                    text = "Fallo",
-                                    selected = isFailed,
-                                    onClick = {
-                                        val nextVal = !isFailed
-                                        failureValues[ex.id] = nextVal
-                                        if (nextVal) intensityValues[ex.id] = 10f
-                                    },
-                                )
-                            },
+                        Text(
+                            "Qué tan intenso fue",
+                            style = MaterialTheme.typography.labelMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White.copy(alpha = 0.8f),
+                        )
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(12.dp),
+                        ) {
+                            val intensityVal = intensityValues[ex.id] ?: 8f
+                            val isFailed = failureValues[ex.id] == true
+                            Slider(
+                                value = intensityVal,
+                                onValueChange = {
+                                    intensityValues[ex.id] = it.coerceIn(1f, 10f)
+                                    if (it < 10f) failureValues[ex.id] = false
+                                },
+                                valueRange = 1f..10f,
+                                steps = 8,
+                                modifier = Modifier.weight(1f),
+                                colors = SliderDefaults.colors(
+                                    thumbColor = sessionAccentColor,
+                                    activeTrackColor = sessionAccentColor,
+                                    inactiveTrackColor = Color.White.copy(alpha = 0.15f),
+                                ),
+                            )
+                            FilterChip(
+                                selected = isFailed,
+                                onClick = {
+                                    val nextVal = !isFailed
+                                    failureValues[ex.id] = nextVal
+                                    if (nextVal) intensityValues[ex.id] = 10f
+                                },
+                                label = { Text("Fallo") },
+                                colors = FilterChipDefaults.filterChipColors(
+                                    selectedContainerColor = sessionAccentColor.copy(alpha = 0.25f),
+                                    selectedLabelColor = sessionAccentColor,
+                                ),
+                            )
+                        }
+                        Text(
+                            "${(intensityValues[ex.id] ?: 8f).roundToInt()} / 10",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = Color.White.copy(alpha = 0.65f),
                         )
                     }
                 }
@@ -216,42 +286,51 @@ internal fun WorkoutPostExerciseFeedbackContent(
                     if (id !in linkedStillPresent) linkedStillPresent[id] = true
                 }
             }
-            KpknModule(modifier = Modifier.fillMaxWidth()) {
-                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                    Text(
-                        text = "Molestias previas relacionadas",
-                        style = KpknType.bodyStrong,
-                        color = WizardColors.text,
-                    )
-                    Text(
-                        text = "Reportaste estas molestias en otros ejercicios. Comparten articulación con el actual.",
-                        style = KpknType.caption,
-                        color = WizardColors.textMuted,
-                    )
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(containerColor = Color(0xFF1E3A2F)),
+                shape = RoundedCornerShape(12.dp),
+                border = BorderStroke(1.dp, Color(0xFF388E3C).copy(alpha = 0.3f)),
+            ) {
+                Column(modifier = Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Icon(Icons.Default.Notifications, contentDescription = null, tint = Color(0xFF81C784), modifier = Modifier.size(18.dp))
+                        Text("Molestias previas relacionadas", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold, color = Color.White)
+                    }
+                    Text("Reportaste estas molestias en otros ejercicios. Comparten articulación con el actual.", style = MaterialTheme.typography.labelSmall, color = Color.White.copy(alpha = 0.6f))
                     linkedDiscomforts.forEach { (id, label, reportedIn) ->
                         val stillPresent = linkedStillPresent[id] ?: true
-                        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                            Text(
-                                text = label,
-                                style = KpknType.body,
-                                color = if (stillPresent) WizardColors.text else WizardColors.textFaint,
-                                textDecoration = if (stillPresent) TextDecoration.None else TextDecoration.LineThrough,
-                            )
-                            Text(
-                                text = "Reportada en: $reportedIn",
-                                style = KpknType.caption,
-                                color = WizardColors.textFaint,
-                            )
-                            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                                KpknChip(
-                                    text = "Sigue",
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                        ) {
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(label, style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Medium, color = if (stillPresent) Color.White else Color.White.copy(alpha = 0.5f), textDecoration = if (stillPresent) TextDecoration.None else TextDecoration.LineThrough)
+                                Text("Reportada en: $reportedIn", style = MaterialTheme.typography.labelSmall, color = Color.White.copy(alpha = 0.5f))
+                            }
+                            Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                                FilterChip(
                                     selected = stillPresent,
                                     onClick = { linkedStillPresent[id] = true },
+                                    label = { Text("Sigue", style = MaterialTheme.typography.labelSmall) },
+                                    colors = FilterChipDefaults.filterChipColors(
+                                        selectedContainerColor = Color(0xFF388E3C).copy(alpha = 0.3f),
+                                        selectedLabelColor = Color(0xFF81C784),
+                                        containerColor = Color(0xFF2A2A2A),
+                                        labelColor = Color.White.copy(alpha = 0.5f),
+                                    ),
                                 )
-                                KpknChip(
-                                    text = "Resuelta",
+                                FilterChip(
                                     selected = !stillPresent,
                                     onClick = { linkedStillPresent[id] = false },
+                                    label = { Text("Resuelta", style = MaterialTheme.typography.labelSmall) },
+                                    colors = FilterChipDefaults.filterChipColors(
+                                        selectedContainerColor = Color(0xFF616161).copy(alpha = 0.3f),
+                                        selectedLabelColor = Color.White.copy(alpha = 0.6f),
+                                        containerColor = Color(0xFF2A2A2A),
+                                        labelColor = Color.White.copy(alpha = 0.5f),
+                                    ),
                                 )
                             }
                         }
@@ -260,24 +339,57 @@ internal fun WorkoutPostExerciseFeedbackContent(
             }
         }
 
-        KpknModule(modifier = Modifier.fillMaxWidth()) {
-            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                FeedbackToggleRow(
-                    text = "¿Sientes alguna molestia?",
-                    open = isDiscomfortExpanded,
-                    onToggle = { isDiscomfortExpanded = !isDiscomfortExpanded },
-                )
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.05f)),
+            shape = RoundedCornerShape(12.dp),
+            border = BorderStroke(1.dp, Color.White.copy(alpha = 0.10f)),
+        ) {
+            Column {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { isDiscomfortExpanded = !isDiscomfortExpanded }
+                        .padding(14.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                        Icon(Icons.Default.Warning, contentDescription = null, tint = sessionAccentColor)
+                        Text("¿Sientes alguna molestia?", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold, color = Color.White)
+                    }
+                    Icon(
+                        if (isDiscomfortExpanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
+                        contentDescription = null,
+                        tint = Color.White.copy(alpha = 0.70f),
+                    )
+                }
+
                 AnimatedVisibility(visible = isDiscomfortExpanded) {
-                    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                        KpknTextField(
+                    Column(modifier = Modifier.padding(14.dp).padding(top = 0.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                        OutlinedTextField(
                             value = discomfortSearchQuery.value,
                             onValueChange = { discomfortSearchQuery.value = it },
                             modifier = Modifier.fillMaxWidth(),
-                            placeholder = "Buscar molestia",
-                            leadingIcon = KpknLineIcons.Search,
+                            singleLine = true,
+                            label = { Text("Buscar molestia") },
+                            leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = Color.White.copy(alpha = 0.5f)) },
+                            textStyle = MaterialTheme.typography.bodySmall.copy(color = Color.White),
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedBorderColor = sessionAccentColor,
+                                unfocusedBorderColor = Color.White.copy(alpha = 0.15f),
+                                focusedLabelColor = Color.White.copy(alpha = 0.7f),
+                                unfocusedLabelColor = Color.White.copy(alpha = 0.5f),
+                                cursorColor = Color.White,
+                                focusedTextColor = Color.White,
+                                unfocusedTextColor = Color.White,
+                                focusedContainerColor = Color.White.copy(alpha = 0.03f),
+                                unfocusedContainerColor = Color.White.copy(alpha = 0.03f),
+                            ),
                         )
+
                         if (filteredDiscomforts.isNotEmpty()) {
-                            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                                 filteredDiscomforts.forEach { entry ->
                                     val selected = selectedDiscomfortIds.contains(entry.id)
                                     Row(
@@ -285,8 +397,7 @@ internal fun WorkoutPostExerciseFeedbackContent(
                                         verticalAlignment = Alignment.CenterVertically,
                                         horizontalArrangement = Arrangement.spacedBy(8.dp),
                                     ) {
-                                        KpknChip(
-                                            text = entry.label,
+                                        FilterChip(
                                             selected = selected,
                                             onClick = {
                                                 if (selected) {
@@ -295,27 +406,26 @@ internal fun WorkoutPostExerciseFeedbackContent(
                                                     selectedDiscomfortIds.add(entry.id)
                                                 }
                                             },
+                                            label = { Text(entry.label, style = MaterialTheme.typography.labelSmall) },
                                             modifier = Modifier.weight(1f),
                                         )
-                                        KpknIconButton(
-                                            icon = KpknLineIcons.Info,
-                                            contentDescription = "Detalle de ${entry.label}",
-                                            onClick = { infoDiscomfortEntry = entry },
-                                        )
+                                        IconButton(onClick = { infoDiscomfortEntry = entry }, modifier = Modifier.size(28.dp)) {
+                                            Icon(Icons.Default.Info, contentDescription = "Detalle", modifier = Modifier.size(16.dp), tint = Color.White.copy(alpha = 0.5f))
+                                        }
                                     }
                                 }
                             }
                         } else if (discomfortSearchQuery.value.isBlank()) {
                             Text(
-                                text = "Escribe para buscar molestias…",
-                                style = KpknType.caption,
-                                color = WizardColors.textMuted,
+                                "Escribe para buscar molestias…",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = Color.White.copy(alpha = 0.4f),
                             )
                         } else {
                             Text(
-                                text = "No se encontraron resultados para \"${discomfortSearchQuery.value}\"",
-                                style = KpknType.caption,
-                                color = WizardColors.textMuted,
+                                "No se encontraron resultados para \"${discomfortSearchQuery.value}\"",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = Color.White.copy(alpha = 0.4f),
                             )
                         }
                     }
@@ -325,22 +435,41 @@ internal fun WorkoutPostExerciseFeedbackContent(
 
         if (selectedDiscomfortIds.isNotEmpty()) {
             FlowRow(
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                verticalArrangement = Arrangement.spacedBy(6.dp),
+                modifier = Modifier.padding(top = 4.dp),
             ) {
                 selectedDiscomfortIds.forEach { id ->
-                    val label = DISCOMFORT_CATALOG.find { it.id == id }?.label ?: id
-                    KpknChip(
-                        text = label,
-                        selected = true,
-                        onClick = { selectedDiscomfortIds.remove(id) },
-                    )
+                    val entry = DISCOMFORT_CATALOG.find { it.id == id }
+                    val label = entry?.label ?: id
+                    Surface(
+                        shape = RoundedCornerShape(999.dp),
+                        color = sessionAccentColor.copy(alpha = 0.2f),
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
+                            horizontalArrangement = Arrangement.spacedBy(4.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Text(
+                                label,
+                                style = MaterialTheme.typography.labelSmall,
+                                color = sessionAccentColor,
+                                fontWeight = FontWeight.Medium,
+                            )
+                            Icon(
+                                Icons.Default.Close,
+                                contentDescription = "Quitar",
+                                modifier = Modifier.size(14.dp).clickable { selectedDiscomfortIds.remove(id) },
+                                tint = sessionAccentColor,
+                            )
+                        }
+                    }
                 }
             }
         }
 
-        KpknPrimaryPill(
-            text = "Registrar feedback",
+        Button(
             onClick = {
                 val stillLinkedIds = linkedDiscomforts.map { it.first }.filter { id ->
                     linkedStillPresent[id] != false
@@ -381,102 +510,31 @@ internal fun WorkoutPostExerciseFeedbackContent(
                 viewModel.savePostExerciseFeedbacks(payloads)
             },
             modifier = Modifier.fillMaxWidth(),
-        )
+            colors = ButtonDefaults.buttonColors(containerColor = sessionAccentColor),
+            shape = RoundedCornerShape(12.dp),
+            contentPadding = PaddingValues(vertical = 14.dp),
+        ) {
+            Text("Registrar feedback", style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold, color = com.example.kpkn.screens.sessioneditor.contentOn(sessionAccentColor))
+        }
     }
 
     infoDiscomfortEntry?.let { entry ->
         KpknAlertDialog(
             onDismissRequest = { infoDiscomfortEntry = null },
-            title = { Text(entry.label, style = KpknType.dialogTitle, color = WizardColors.text) },
+            title = { Text(entry.label, fontWeight = FontWeight.Black) },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text(entry.description, style = KpknType.body, color = WizardColors.text)
+                    Text(entry.description, style = MaterialTheme.typography.bodySmall)
                     Text(
                         "Sección: ${entry.section.label}",
-                        style = KpknType.caption,
-                        color = WizardColors.textMuted,
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
             },
             confirmButton = {
-                KpknTextAction(text = "Entendido", onClick = { infoDiscomfortEntry = null })
+                TextButton(onClick = { infoDiscomfortEntry = null }) { Text("Entendido") }
             },
-        )
-    }
-}
-
-/** Un bloque de puntuación del feedback: la etiqueta en mayúsculas, el valor «8 / 10», la regla y, si hay, un extra (el «Fallo»). */
-@Composable
-internal fun FeedbackScoreBlock(
-    eyebrow: String,
-    value: Int,
-    contentLabel: String,
-    onValueChange: (Int) -> Unit,
-    trailing: (@Composable () -> Unit)? = null,
-) {
-    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween,
-        ) {
-            // La etiqueta toma el ancho sobrante y se acorta con elipsis: a 130 % la cifra no se pega a ella.
-            Text(
-                text = eyebrow.uppercase(Locale("es")),
-                modifier = Modifier.weight(1f),
-                style = KpknType.eyebrow,
-                color = WizardColors.textMuted,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
-            Text(
-                text = "$value / 10",
-                style = KpknType.bodyStrong,
-                color = WizardColors.text,
-                maxLines = 1,
-            )
-        }
-        WorkoutScoreRule(
-            value = value,
-            onValueChange = onValueChange,
-            contentLabel = contentLabel,
-        )
-        trailing?.invoke()
-    }
-}
-
-/** La fila «¿Sientes alguna molestia?»: texto de 48 dp como mínimo con el chevron que gira al abrir (sin giro con movimiento reducido). */
-@Composable
-internal fun FeedbackToggleRow(text: String, open: Boolean, onToggle: () -> Unit) {
-    val reduced = wizardReducedMotion()
-    val angle by animateFloatAsState(
-        targetValue = if (open) 180f else 0f,
-        animationSpec = if (reduced) snap() else tween(durationMillis = 220),
-        label = "feedbackDiscomfortChevron",
-    )
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .defaultMinSize(minHeight = 48.dp)
-            .clickable(role = Role.Button, onClick = onToggle)
-            .semantics {
-                role = Role.Button
-                stateDescription = if (open) "Desplegado" else "Plegado"
-            },
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween,
-    ) {
-        Text(
-            text = text,
-            style = KpknType.bodyStrong,
-            color = WizardColors.text,
-            maxLines = 1,
-        )
-        Icon(
-            imageVector = KpknLineIcons.ChevronDown,
-            contentDescription = null,
-            modifier = Modifier.size(18.dp).rotate(angle),
-            tint = WizardColors.text,
         )
     }
 }

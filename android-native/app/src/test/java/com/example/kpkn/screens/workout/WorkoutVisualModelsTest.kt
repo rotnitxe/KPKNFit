@@ -208,6 +208,32 @@ class WorkoutVisualModelsTest {
     }
 
     @Test
+    fun roadmap_carousel_delta_centers_item_in_viewport() {
+        assertEquals(
+            0,
+            com.example.kpkn.screens.workout.components.lazyItemDeltaToCenterPx(
+                itemOffsetPx = 100,
+                itemSizePx = 80,
+                viewportSizePx = 280,
+            ),
+        )
+        assertTrue(
+            com.example.kpkn.screens.workout.components.lazyItemDeltaToCenterPx(
+                itemOffsetPx = 0,
+                itemSizePx = 80,
+                viewportSizePx = 280,
+            ) < 0,
+        )
+        assertTrue(
+            com.example.kpkn.screens.workout.components.lazyItemDeltaToCenterPx(
+                itemOffsetPx = 200,
+                itemSizePx = 80,
+                viewportSizePx = 280,
+            ) > 0,
+        )
+    }
+
+    @Test
     fun live_pager_card_top_nudge_is_five_percent_of_slot() {
         assertEquals(
             0.05f,
@@ -411,11 +437,11 @@ class WorkoutVisualModelsTest {
         )
         assertEquals(
             listOf("b", "c", "a", "d"),
-            com.example.kpkn.screens.workout.design.swappedGroupedExerciseIds(groups, 0, 1),
+            com.example.kpkn.screens.workout.components.swappedGroupedExerciseIds(groups, 0, 1),
         )
         assertEquals(
             listOf("a", "d", "b", "c"),
-            com.example.kpkn.screens.workout.design.swappedGroupedExerciseIds(groups, 2, 1),
+            com.example.kpkn.screens.workout.components.swappedGroupedExerciseIds(groups, 2, 1),
         )
     }
 
@@ -782,6 +808,32 @@ class WorkoutVisualModelsTest {
         assertTrue(completed != androidx.compose.ui.graphics.Color(0xFF38BDF8))
         assertTrue(warmup != androidx.compose.ui.graphics.Color(0xFF448AFF))
         assertTrue(warmup != androidx.compose.ui.graphics.Color(0xFF38BDF8))
+    }
+
+    @Test
+    fun roadmap_uncategorized_uses_cover_accent_not_celeste() {
+        val cover = androidx.compose.ui.graphics.Color(0xFFE08E45)
+        val uncategorized = com.example.kpkn.data.models.SessionPart(
+            id = "loose",
+            name = "Sin categoría",
+        )
+        val grouped = com.example.kpkn.data.models.SessionPart(
+            id = "g1",
+            name = "Empuje",
+            color = "gradient://violet",
+        )
+        val looseAccent = com.example.kpkn.screens.workout.components.roadmapAccentForPart(
+            uncategorized,
+            cover,
+        )
+        val groupAccent = com.example.kpkn.screens.workout.components.roadmapAccentForPart(
+            grouped,
+            cover,
+        )
+        assertEquals(cover, looseAccent)
+        assertTrue(looseAccent != androidx.compose.ui.graphics.Color(0xFF38BDF8))
+        assertTrue(groupAccent != cover)
+        assertTrue(groupAccent != androidx.compose.ui.graphics.Color(0xFF38BDF8))
     }
 
     @Test

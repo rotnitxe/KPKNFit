@@ -2,7 +2,6 @@ package com.example.kpkn.screens.workout
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -10,6 +9,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -33,9 +33,6 @@ import com.example.kpkn.screens.workout.components.VolumeAdvanceModal
 import com.example.kpkn.ui.components.KpknGlass
 import com.example.kpkn.ui.components.KpknGlassDialog
 import com.example.kpkn.screens.workout.components.WorkoutReadinessSheet
-import com.example.kpkn.screens.onboarding.design.WizardColors
-import com.example.kpkn.ui.design.KpknSurface
-import com.example.kpkn.ui.design.KpknType
 import dev.chrisbanes.haze.HazeState
 import java.time.LocalDate
 import java.util.UUID
@@ -156,15 +153,18 @@ internal fun WorkoutSessionOverlaysHost(
         }
         WorkoutDrawer(title = "Historial", onDismiss = { viewModel.hideHistorySheet() }, hazeState = bottomHazeState) {
             if (historyTag != null) {
-                Text(
-                    "Mostrando primero: $historyTag",
-                    modifier = Modifier
-                        .padding(bottom = 4.dp)
-                        .background(KpknSurface.inset, RoundedCornerShape(999.dp))
-                        .padding(horizontal = 12.dp, vertical = 6.dp),
-                    style = KpknType.caption,
-                    color = WizardColors.text,
-                )
+                Surface(
+                    shape = RoundedCornerShape(999.dp),
+                    color = MaterialTheme.colorScheme.secondaryContainer,
+                    modifier = Modifier.padding(bottom = 4.dp),
+                ) {
+                    Text(
+                        "Mostrando primero: $historyTag",
+                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSecondaryContainer,
+                    )
+                }
             }
             ExerciseHistoryContent(history = history, activeTag = historyTag)
         }

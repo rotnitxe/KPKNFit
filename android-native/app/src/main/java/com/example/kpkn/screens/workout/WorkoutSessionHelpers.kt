@@ -192,7 +192,7 @@ internal class AdaptActionHolder {
     var open: (() -> Unit)? = null
 }
 
-/** Publica desde WorkoutV2Body los argumentos de la tira de series que pinta la pantalla (LS2b). */
+/** Publishes live set-stepper args from WorkoutV2Body into WorkoutRoadmapBar. */
 internal data class LiveSetStepperSnapshot(
     val elements: List<TimelineElement>,
     val activeElementIndex: Int,
@@ -200,8 +200,6 @@ internal data class LiveSetStepperSnapshot(
     val totalCount: Int,
     val sessionAccentColor: Color?,
     val canAddSet: Boolean,
-    /** Texto de cada serie hecha de la tira («80 × 8»), por índice de página (KPKN LS2b). */
-    val captions: Map<Int, String> = emptyMap(),
 )
 
 internal class LiveSetStepperHolder {
