@@ -2,7 +2,9 @@ package com.example.kpkn.screens.sessioneditor
 
 import android.app.Application
 import android.content.Context
+import androidx.lifecycle.ViewModelStore
 import androidx.test.core.app.ApplicationProvider
+import com.example.kpkn.data.db.KpknDatabase
 import com.example.kpkn.data.models.Block
 import com.example.kpkn.data.models.Macrocycle
 import com.example.kpkn.data.models.Mesocycle
@@ -11,6 +13,7 @@ import com.example.kpkn.data.models.ProgramStructure
 import com.example.kpkn.data.models.ProgramWeek
 import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.repository.ProgramRepository
+import com.example.kpkn.data.repository.SessionTemplateRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
@@ -32,12 +35,18 @@ import org.robolectric.annotation.Config
 class SessionEditorLoadGenerationTest {
     private val dispatcher = UnconfinedTestDispatcher()
     private lateinit var repository: ProgramRepository
+    private val viewModelStore = ViewModelStore()
 
     @Before
     fun setUp() = runBlocking {
         Dispatchers.setMain(dispatcher)
-        ProgramRepository.initForTests(ApplicationProvider.getApplicationContext<Context>())
+        // El repositorio de plantillas del editor es un singleton: que no llegue vivo desde otra prueba.
+        SessionTemplateRepository.resetForTests()
+        val context = ApplicationProvider.getApplicationContext<Context>()
+        ProgramRepository.initForTests(context)
         repository = ProgramRepository.getInstance()
+        // Y que lea la base en memoria de ESTA prueba, no el kpkn.db del disco.
+        setDatabaseSingletonForTest(repository.databaseForTests())
         repository.clearPrograms()
         repository.clearActiveProgram()
         repository.clearOngoingWorkout()
@@ -48,8 +57,21 @@ class SessionEditorLoadGenerationTest {
 
     @After
     fun tearDown() {
-        ProgramRepository.closeInstance()
-        Dispatchers.resetMain()
+        try {
+            // Primero el editor (cancela su viewModelScope), luego el repositorio de plantillas y al final la base.
+            viewModelStore.clear()
+            SessionTemplateRepository.resetForTests()
+            ProgramRepository.closeInstance()
+        } finally {
+            setDatabaseSingletonForTest(null)
+            Dispatchers.resetMain()
+        }
+    }
+
+    private fun setDatabaseSingletonForTest(database: KpknDatabase?) {
+        KpknDatabase::class.java.getDeclaredField("INSTANCE").apply {
+            isAccessible = true
+        }.set(null, database)
     }
 
     @Test
@@ -67,7 +89,7 @@ class SessionEditorLoadGenerationTest {
             draftMacroIndex = 0,
             draftMesoIndex = 0,
             draftDayOfWeek = 1,
-        )
+        ).also { viewModelStore.put("session-editor-load", it) }
 
         // Invalidate the constructor's A load, then switch while that load may
         // still be resolving its IO snapshot. The switch generation must own UI.
