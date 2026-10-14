@@ -11,7 +11,24 @@ Todo es Kotlin puro con pruebas JVM.
 - El **generador sintético** es la herramienta de pruebas de toda la ola (VT2, VT3, VT6a y VT10). Hazlo sólido y determinista.
 - La **geometría** corrige SIEMPRE el aspecto. En v1, un tronco a 30° en un vídeo vertical marcaba 46°: ese error no puede repetirse.
 
-## Archivos permitidos (todos nuevos)
+## Dos arreglos heredados de VT1a (hazlos primero, en un commit aparte)
+1. **Corrección de Winter bien aplicada** en `signal/ZeroPhaseLowPass.design`.
+   - Debe ser K = tan(π·fc/fs)/0,802, con la corrección sobre la frecuencia ya deformada.
+   - NO fd = fc/0,802 y luego tan(π·fd/fs): con fc/fs = 1/6 (30 fps a 5 Hz) daba una ganancia de 0,755 en fc, en lugar de 0,707.
+   - Añade a `ZeroPhaseLowPassTest` los casos 30 fps / 5 Hz, 30 fps / 4 Hz y 60 fps / 8 Hz: 0,707 ± 0,02.
+   - Ajusta el KDoc.
+2. **Accesores sin asignación** en `pose/PoseTrackV2.kt` (`PoseFrameV2`), para los bucles calientes:
+   - `fun x(lm): Float`, `fun y(lm): Float`, `fun vis(lm): Float` y `fun pres(lm): Float`, que devuelven `Float.NaN` si falta el dato;
+   - `fun worldX/Y/Z(lm): Float`, igual.
+   - `FrameGeometry` los usa en lugar de `point(lm)`, que crea un objeto por llamada.
+
+**Datos de VT1a que debes conocer:**
+- `RobustStats.percentile(x, p)` usa p en **0..100**.
+- `RobustStats.cv` es el robusto (1,4826·MAD/|mediana|).
+- `PeakFinder` filtra primero por prominencia y después por distancia.
+- `Resampler.toUniform` propaga los NaN como dato que falta.
+
+## Archivos permitidos (todos nuevos, salvo los dos de arriba)
 - `domain/biomechanics/kinematics/`: `Vec2.kt`, `Side.kt`, `FrameGeometry.kt`, `Angles.kt`, `BodyScale.kt`, `NearSide.kt`, `Facing.kt`, `ViewKind.kt`, `ViewClassifier.kt`, `LeftRightSwapRepair.kt`, `AthleteSelector.kt`.
 - `domain/biomechanics/framing/`: `FramingSpec.kt` y `FramingEvaluator.kt`.
 - `src/test/java/com/example/kpkn/domain/biomechanics/testing/SyntheticLifter.kt`, más sus tipos en ese paquete.
