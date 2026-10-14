@@ -28,3 +28,6 @@
 | D14 | Modelo heavy fuera del repo: se empuja al dispositivo solo para el banco | 30 MB de historia de git para algo de depuración no compensan |
 | D15 | Un solo agente a la vez mientras el disco tenga < 20 GB libres, con un único worktree `C:\kw\vt-a` reutilizado | Hoy hay 16 GB y otra ola usa las ranuras de Gradle |
 | D16 | Room v29 en un archivo propio (`VideoAnalysisMigration.kt`), renumerable | La ola LS confirmó que no usa migraciones, pero se deja preparado |
+| D17 | ROM absoluto solo en las vistas de métrica del perfil (RAISE en cualquiera). En oblicuo no hay ROM en v1, sin el respaldo con puntos «world» | Los puntos «world» no tienen profundidad métrica fiable; se reevalúa con el banco dorado (VT10) |
+| D18 | `ENGINE_VERSION` sigue en 1 hasta la primera entrega con la ola | Aún no hay análisis publicados que recalcular |
+| D19 | VT1, VT2 y VT3 se parten en a/b | Cada paquete queda dentro del tope de 3 iteraciones; la cola es secuencial de todos modos (un agente a la vez) |
