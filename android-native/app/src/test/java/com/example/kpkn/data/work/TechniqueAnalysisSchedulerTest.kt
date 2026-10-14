@@ -418,6 +418,47 @@ class TechniqueAnalysisSchedulerTest {
     }
 
     @Test
+    fun reconcile_with_the_automatic_analysis_off_does_not_requeue_orphan_rows_and_settles_them() = runBlocking {
+        TechniqueWorkTestKit.putSettings(db, analyzeVideos = false)
+        analyzedVideo("con-informe")
+        repository.markState("con-informe", VideoAnalysisStatus.RUNNING, 40) // el trabajo se perdió a medias
+        TechniqueWorkTestKit.insertVideo(db, store, "sin-informe")
+        repository.markState("sin-informe", VideoAnalysisStatus.QUEUED)
+        TechniqueWorkTestKit.insertVideo(db, store, "vivo")
+        enqueue("vivo", explicit = true) // lo que pidió el usuario y sigue vivo
+        val alive = infos("vivo").single()
+        repository.markState("vivo", VideoAnalysisStatus.RUNNING, 10)
+
+        val result = TechniqueAnalysisScheduler.reconcile(context, repository)
+
+        assertEquals("con el ajuste apagado no se reencola nada", 0, result.requeued)
+        assertTrue("ni se crea un trabajo para la huérfana", infos("sin-informe").isEmpty() && infos("con-informe").isEmpty())
+        val restored = repository.getByMedia("con-informe")!!
+        assertEquals("con informe en su sidecar vuelve a DONE", VideoAnalysisStatus.DONE, restored.status)
+        assertEquals(2, restored.repCount)
+        assertNull("sin informe, la fila se borra", repository.getByMedia("sin-informe"))
+        assertEquals(1, result.rebuiltRows)
+        assertEquals(1, result.removedRows)
+        // Lo que tiene trabajo vivo no se toca.
+        assertEquals(listOf(alive.id), infos("vivo").filter { !it.state.isFinished }.map { it.id })
+        assertEquals(VideoAnalysisStatus.RUNNING, status("vivo"))
+    }
+
+    @Test
+    fun reconcile_with_the_automatic_analysis_on_still_requeues_them() = runBlocking {
+        TechniqueWorkTestKit.putSettings(db, analyzeVideos = true)
+        TechniqueWorkTestKit.insertVideo(db, store, "perdido")
+        repository.markState("perdido", VideoAnalysisStatus.QUEUED)
+
+        val result = TechniqueAnalysisScheduler.reconcile(context, repository)
+
+        assertEquals(1, result.requeued)
+        assertEquals(0, result.removedRows)
+        assertEquals(VideoAnalysisStatus.QUEUED, status("perdido"))
+        assertFalse(infos("perdido").single().state.isFinished)
+    }
+
+    @Test
     fun reconcile_leaves_rows_of_an_older_engine_for_the_lazy_recompute() = runBlocking {
         analyzedVideo("vid-a")
         db.openHelper.writableDatabase.execSQL("UPDATE video_analysis SET engineVersion = 0 WHERE mediaId = 'vid-a'")

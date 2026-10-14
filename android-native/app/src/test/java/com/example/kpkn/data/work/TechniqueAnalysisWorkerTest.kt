@@ -413,19 +413,49 @@ class TechniqueAnalysisWorkerTest {
     }
 
     @Test
-    fun with_the_setting_off_an_automatic_job_is_discarded_and_its_row_is_left_alone() = runBlocking {
+    fun with_the_setting_off_an_automatic_job_without_a_report_is_discarded_and_its_row_disappears() = runBlocking {
         TechniqueWorkTestKit.putSettings(db, analyzeVideos = false)
         val media = TechniqueWorkTestKit.insertVideo(db, store, "vid-1")
-        repository.markState("vid-1", VideoAnalysisStatus.QUEUED)
-        val before = repository.getByMedia("vid-1")
+        repository.markState("vid-1", VideoAnalysisStatus.QUEUED) // lo que dejó el encolado
         val analyzer = install { _, _ -> TechniqueAnalysisOutcome.Done(TechniqueReportSamples.fullReport()) }
 
         val result = work("vid-1", explicit = false).doWork()
 
         assertEquals(ListenableWorker.Result.success(), result)
         assertEquals("el analizador ni se llama", 0, analyzer.calls.get())
-        assertEquals("la fila queda exactamente como estaba", before, repository.getByMedia("vid-1"))
+        assertNull("sin informe previo, la serie no se queda en «Analizando…»: la fila se borra", repository.getByMedia("vid-1"))
+        assertEquals(0, db.videoAnalysisDao().count())
         assertFalse(analysisFile(media.filePath).exists())
+        assertNotNull("el medio no se toca", db.workoutMediaDao().getById("vid-1"))
+    }
+
+    @Test
+    fun with_the_setting_off_an_automatic_job_of_a_video_with_a_report_returns_its_row_to_done() = runBlocking {
+        TechniqueWorkTestKit.putSettings(db, analyzeVideos = false)
+        val media = TechniqueWorkTestKit.insertVideo(db, store, "vid-1")
+        // El informe de un análisis anterior, hecho con un motor anterior (engineVersion 0).
+        val oldReport = TechniqueReportSamples.fullReport().copy(engineVersion = 0)
+        TechniqueSidecars.writeAnalysis(analysisFile(media.filePath), oldReport, TechniqueReportSamples.exercise(), 80.0, "squat_2", 5L)
+        repository.markState("vid-1", VideoAnalysisStatus.QUEUED) // lo que dejó el encolado
+        val analyzer = install { _, _ -> TechniqueAnalysisOutcome.Done(TechniqueReportSamples.fullReport()) }
+
+        val result = work("vid-1", explicit = false).doWork()
+
+        assertEquals(ListenableWorker.Result.success(), result)
+        assertEquals(0, analyzer.calls.get())
+        val row = repository.getByMedia("vid-1")!!
+        assertEquals("la fila se rehace desde su sidecar, como en la reconciliación", VideoAnalysisStatus.DONE, row.status)
+        assertEquals(100, row.progressPct)
+        assertNull(row.errorCode)
+        assertEquals("con el engineVersion del informe", 0, row.engineVersion)
+        assertEquals(2, row.repCount)
+        assertEquals(1, row.partialReps)
+        assertEquals(CountConfidence.ALTA, row.confidence)
+        assertEquals(80.0, row.loadKg!!, 0.0)
+        assertEquals("squat_2", row.setKey)
+        assertEquals(analysisFile(media.filePath).absolutePath, row.reportPath)
+        assertTrue("el sidecar sigue ahí", analysisFile(media.filePath).isFile)
+        assertNotNull("el medio no se toca", db.workoutMediaDao().getById("vid-1"))
     }
 
     @Test

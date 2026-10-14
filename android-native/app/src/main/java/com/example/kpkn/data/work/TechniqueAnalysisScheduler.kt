@@ -113,8 +113,10 @@ object TechniqueAnalysisScheduler {
     /**
      * Pone la caché de análisis de acuerdo con los archivos y la cola ([VideoAnalysisRepository.reconcile]) y vuelve a
      * encolar las filas que decían QUEUED o RUNNING sin ningún trabajo vivo (el trabajo se perdió: una copia restaurada, un
-     * borrado de datos de WorkManager). Las filas con un `engineVersion` anterior al actual no se tocan: su RECOMPUTE se lanza
-     * al abrir el análisis. Dos llamadas a la vez se reparten el trabajo: la segunda no hace nada.
+     * borrado de datos de WorkManager). Con el análisis automático apagado no se reencola nada: a esas filas se les hace lo que
+     * haría el Worker al descartar un automático ([VideoAnalysisRepository.restoreOrDrop]: DONE desde su sidecar, o borrarlas).
+     * Las filas con un `engineVersion` anterior al actual no se tocan: su RECOMPUTE se lanza al abrir el análisis. Dos llamadas
+     * a la vez se reparten el trabajo: la segunda no hace nada.
      */
     suspend fun reconcile(
         context: Context,
@@ -123,7 +125,12 @@ object TechniqueAnalysisScheduler {
         if (!reconcileLock.tryLock()) return ReconcileResult()
         try {
             val base = repository.reconcile()
-            return base.copy(requeued = requeueStuckRows(context.applicationContext, repository))
+            val stuck = settleStuckRows(context.applicationContext, repository)
+            return base.copy(
+                rebuiltRows = base.rebuiltRows + stuck.rebuiltRows,
+                removedRows = base.removedRows + stuck.removedRows,
+                requeued = stuck.requeued,
+            )
         } finally {
             reconcileLock.unlock()
         }
@@ -194,30 +201,48 @@ object TechniqueAnalysisScheduler {
     private suspend fun unfinishedWork(workManager: WorkManager, uniqueName: String): List<WorkInfo> =
         workManager.getWorkInfosForUniqueWorkFlow(uniqueName).first().filter { !it.state.isFinished }
 
-    private suspend fun requeueStuckRows(app: Context, repository: VideoAnalysisRepository): Int {
+    /**
+     * Las filas QUEUED o RUNNING sin ningún trabajo vivo en WorkManager: con el análisis automático encendido se vuelven a
+     * encolar (como automáticas); con él apagado el Worker descartaría ese automático, así que aquí se les aplica ya lo mismo
+     * ([VideoAnalysisRepository.restoreOrDrop]: DONE desde su sidecar, o se borran). Sin WorkManager listo no se puede saber qué
+     * trabajos viven y no se toca nada.
+     *
+     * Caso que se acepta: una petición EXPLÍCITA (la pidió el usuario) que se cortó por la muerte del proceso y que, con el
+     * ajuste apagado, se reconcilia aquí como si fuera automática, se pierde. El usuario puede volver a pedirla.
+     */
+    private suspend fun settleStuckRows(app: Context, repository: VideoAnalysisRepository): ReconcileResult {
         val workManager = try {
             WorkManager.getInstance(app)
         } catch (error: IllegalStateException) {
             Log.w(TAG, "WorkManager no está listo: no se vuelven a encolar los análisis pendientes.", error)
-            return 0
+            return ReconcileResult()
         }
         val alive = workManager.getWorkInfosByTagFlow(TAG_ALL).first()
             .filter { !it.state.isFinished }
             .flatMapTo(HashSet()) { info ->
                 info.tags.filter { it.startsWith(TAG_MEDIA_PREFIX) }.map { it.removePrefix(TAG_MEDIA_PREFIX) }
             }
+        val automaticOn = repository.readSettings().techniqueVideo.analyzeVideos
         var requeued = 0
+        var restored = 0
+        var dropped = 0
         for (id in repository.activeIds()) {
             if (id in alive) continue
             try {
-                if (enqueue(app, id, AnalysisMode.FULL, userInitiated = false, explicit = false, repository = repository)) requeued++
+                if (automaticOn) {
+                    if (enqueue(app, id, AnalysisMode.FULL, userInitiated = false, explicit = false, repository = repository)) requeued++
+                } else if (repository.restoreOrDrop(id)) {
+                    restored++
+                } else {
+                    dropped++
+                }
             } catch (cancelled: CancellationException) {
                 throw cancelled
             } catch (error: Exception) {
-                Log.w(TAG, "No se pudo volver a encolar el análisis de $id.", error)
+                Log.w(TAG, "No se pudo resolver la fila pendiente de $id.", error)
             }
         }
-        return requeued
+        return ReconcileResult(rebuiltRows = restored, removedRows = dropped, requeued = requeued)
     }
 
     private fun isMainProcess(app: Context): Boolean =

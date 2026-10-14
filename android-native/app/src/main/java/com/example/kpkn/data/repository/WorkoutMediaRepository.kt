@@ -662,8 +662,9 @@ class WorkoutMediaRepository(
      *
      * Solo si el ajuste «Analizar la técnica de los vídeos» está activo, el vídeo es de un ejercicio (un vídeo suelto, sin
      * ejercicio, no tiene nada que medir) y aún no tiene análisis: es idempotente, así que reintentar o recuperar una captura
-     * ya guardada no lo repite. No es una petición explícita: si el ajuste se apaga antes de que corra, el Worker lo descarta.
-     * Nada de lo que falle aquí rompe el guardado: se anota y se sigue.
+     * ya guardada no lo repite. No es una petición explícita: si el ajuste se apaga antes de que corra, el Worker lo descarta y
+     * deja la fila como estaría sin él (la borra, o la rehace desde su sidecar). Nada de lo que falle aquí rompe el guardado: se
+     * anota y se sigue.
      */
     private suspend fun scheduleTechniqueAnalysis(media: WorkoutMedia, imported: Boolean) {
         if (media.kind != WorkoutMediaKind.VIDEO || !media.hasExerciseContext()) return

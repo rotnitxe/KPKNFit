@@ -48,10 +48,13 @@ import java.io.IOException
 /**
  * Lo que dejó [VideoAnalysisRepository.reconcile] (y, con la cola, `TechniqueAnalysisScheduler.reconcile`).
  *
- * @property rebuiltRows filas `video_analysis` rehechas desde su `<id>.analysis.json` (p. ej. tras restaurar una copia).
- * @property removedRows filas que apuntaban a un medio que ya no existe (o que no es un vídeo).
+ * @property rebuiltRows filas `video_analysis` rehechas desde su `<id>.analysis.json` (p. ej. tras restaurar una copia, o una
+ *   fila QUEUED o RUNNING sin trabajo vivo con el análisis automático apagado y un informe en su sidecar).
+ * @property removedRows filas que apuntaban a un medio que ya no existe (o que no es un vídeo), y las QUEUED o RUNNING sin
+ *   trabajo vivo con el análisis automático apagado y sin informe en su sidecar.
  * @property removedFiles sidecars huérfanos borrados: de un medio que ya no existe.
- * @property requeued filas que decían QUEUED o RUNNING sin ningún trabajo vivo y se volvieron a encolar.
+ * @property requeued filas que decían QUEUED o RUNNING sin ningún trabajo vivo y se volvieron a encolar (solo con el análisis
+ *   automático encendido).
  */
 data class ReconcileResult(
     val rebuiltRows: Int = 0,
@@ -282,6 +285,19 @@ class VideoAnalysisRepository internal constructor(
             val file = TechniqueSidecars.analysisFile(File(media.filePath))
             if (store.isManagedPath(file)) file.delete()
         }
+    }
+
+    /**
+     * Deja la fila de [mediaId] como estaría sin un análisis que ya no va a correr (el automático que el ajuste apagado
+     * descarta): si el vídeo tiene `<id>.analysis.json`, la fila se rehace desde él como en [reconcile] (DONE, con su resumen y su
+     * `engineVersion`); si no, se borra. Solo toca `video_analysis`, nunca `workout_media`. Devuelve `true` si la rehízo y `false`
+     * si la borró (o no había nada que borrar).
+     */
+    internal suspend fun restoreOrDrop(mediaId: String): Boolean {
+        val media = videoOf(mediaId)
+        val restored = media != null && rebuildFromSidecar(media)
+        if (!restored) db.videoAnalysisDao().delete(mediaId)
+        return restored
     }
 
     private suspend fun upsertDoneRow(

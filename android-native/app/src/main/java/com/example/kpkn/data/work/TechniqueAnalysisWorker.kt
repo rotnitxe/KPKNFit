@@ -36,9 +36,10 @@ import java.io.IOException
  *
  * Secuencia:
  * 1. Si el medio ya no existe → `Result.success()`. Lo mismo si el trabajo es AUTOMÁTICO (el que se encola al guardar un vídeo
- *    o al reconciliar: `explicit` falso) y el ajuste «Analizar la técnica de los vídeos» está apagado: se descarta sin tocar
- *    la fila. Lo que pide el usuario (`explicit`: analizar, reanalizar, fijar el disco o el perfil) corre siempre, con el
- *    ajuste apagado también: el ajuste solo gobierna el análisis automático.
+ *    o al reconciliar: `explicit` falso) y el ajuste «Analizar la técnica de los vídeos» está apagado: se descarta, pero antes
+ *    la fila vuelve a como estaría sin este trabajo (DONE rehecha desde su `<id>.analysis.json` si lo hay; si no, se borra),
+ *    para que la serie no se quede en «Analizando…». Lo que pide el usuario (`explicit`: analizar, reanalizar, fijar el disco
+ *    o el perfil) corre siempre, con el ajuste apagado también: el ajuste solo gobierna el análisis automático.
  * 2. Toma [AnalysisGate.mutex]: un análisis cada vez. Fila en RUNNING.
  * 3. [AnalysisGate.awaitClear]: espera a que la cámara no grabe y el móvil no esté en estado térmico SEVERE.
  * 4. Arma la [TechniqueAnalysisRequest] y llama al analizador ([TechniqueAnalyzerProvider]).
@@ -61,7 +62,7 @@ class TechniqueAnalysisWorker(
         val repository = VideoAnalysisRepository.init(applicationContext)
         return try {
             // Sin análisis que hacer: se descarta ANTES de esperar el turno.
-            if (shouldSkip(repository, mediaId)) return Result.success()
+            if (discardIfUnwanted(repository, mediaId)) return Result.success()
             AnalysisGate.mutex.withLock { runLocked(repository, mediaId, mode) }
         } catch (cancelled: CancellationException) {
             // Cancelado por el sistema (se reintentará) o al borrar el medio: la fila queda como estaba.
@@ -77,7 +78,7 @@ class TechniqueAnalysisWorker(
 
     private suspend fun runLocked(repository: VideoAnalysisRepository, mediaId: String, mode: AnalysisMode): Result {
         // Los ajustes y el medio pudieron cambiar mientras se esperaba el turno.
-        if (shouldSkip(repository, mediaId)) return Result.success()
+        if (discardIfUnwanted(repository, mediaId)) return Result.success()
         if (!repository.markState(mediaId, VideoAnalysisStatus.RUNNING, 0)) return Result.success()
         AnalysisGate.awaitClear(applicationContext)
         // Ya en marcha, el análisis sigue aunque el ajuste se apague mientras se espera a la cámara.
@@ -165,12 +166,16 @@ class TechniqueAnalysisWorker(
     }
 
     /**
-     * `true` si no hay nada que analizar: el medio ya no existe, o el trabajo es automático y el ajuste «Analizar la técnica de
-     * los vídeos» está apagado. Un trabajo que pidió el usuario ([KEY_EXPLICIT]) nunca se salta por el ajuste.
+     * `true` si el trabajo termina aquí, sin analizar: el medio ya no existe, o el trabajo es automático y el ajuste «Analizar la
+     * técnica de los vídeos» está apagado. En este último caso la fila, que el encolado dejó en QUEUED, vuelve antes a como
+     * estaría sin este trabajo ([VideoAnalysisRepository.restoreOrDrop]: DONE desde su sidecar, o borrada). Un trabajo que pidió
+     * el usuario ([KEY_EXPLICIT]) nunca se descarta por el ajuste.
      */
-    private suspend fun shouldSkip(repository: VideoAnalysisRepository, mediaId: String): Boolean {
+    private suspend fun discardIfUnwanted(repository: VideoAnalysisRepository, mediaId: String): Boolean {
         val (_, settings) = load(repository, mediaId) ?: return true
-        return !inputData.getBoolean(KEY_EXPLICIT, false) && !settings.techniqueVideo.analyzeVideos
+        if (inputData.getBoolean(KEY_EXPLICIT, false) || settings.techniqueVideo.analyzeVideos) return false
+        repository.restoreOrDrop(mediaId)
+        return true
     }
 
     /** Un fallo transitorio se reintenta hasta el 3.er intento; si no, FAILED con su código. */
