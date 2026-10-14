@@ -38,6 +38,10 @@ persona, arregla lo que se rompa y documenta. La lógica NO cambia.
    - Lo que se rompa o se vea fuera del lenguaje: arréglalo si es del editor (`screens/sessioneditor/`) o de una pieza compartida que solo
      usa el editor; anótalo si no. Regla de los 20 minutos por tanda: si algo se atasca, para, anota y sigue.
    - Si un fallo es de lógica (no guarda, guarda mal, se cuelga): NO lo arregles en el VM; descríbelo con pasos, captura y `--crash-log`.
+2b. **Un resto de Program Detail que vio la QA de LS8:** en la lista de ejercicios de la tarjeta de una sesión, el descanso sale «descanso
+   195s», «120s» o «45s». Pasa a «descanso 3:15» desde 60 s y a «descanso 45 s» por debajo, con espacio inseparable. Igual en «3×40s»
+   («3 × 40 s»). Busca el formateador en `screens/programdetail/` y usa el del proyecto si ya existe uno (Grep `formatRest`,
+   `formatSeconds`, `m:ss`). Que el editor diga lo mismo.
 3. **Pruebas** de lo que arregles (Robolectric con las piezas sueltas, como hicieron SE1 a SE8).
 4. **Documentación:** al final de `docs/screens-v1/SESSION_EDITOR_V1.md`, una sección «QA en el emulador (SE9)»: el recorrido con la ruta
    de cada captura, lo arreglado y lo anotado.
