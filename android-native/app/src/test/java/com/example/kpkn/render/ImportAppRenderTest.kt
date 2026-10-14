@@ -25,6 +25,7 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.ViewModelStore
 import androidx.test.core.app.ApplicationProvider
 import com.example.kpkn.data.importer.ocr.OcrImportSource
 import com.example.kpkn.data.models.Exercise
@@ -47,6 +48,7 @@ import com.example.kpkn.screens.programs.importer.ImportWeekdaysSection
 import com.example.kpkn.screens.programs.importer.importInitialWeekdays
 import com.example.kpkn.ui.entitlements.LocalPlan
 import com.example.kpkn.ui.theme.KPKNTheme
+import org.junit.After
 import org.junit.Assume.assumeTrue
 import org.junit.BeforeClass
 import org.junit.Rule
@@ -85,6 +87,18 @@ class ImportAppRenderTest {
     val rule = createComposeRule()
 
     private val app: Application = ApplicationProvider.getApplicationContext()
+
+    /** Cada VM va al store de la prueba: [tearDown] lo limpia y cancela su viewModelScope antes de que acabe la prueba. */
+    private val viewModelStore = ViewModelStore()
+    private var nextViewModelKey = 0
+
+    private fun newViewModel(): ImportProgramViewModel =
+        ImportProgramViewModel(app).also { vm -> viewModelStore.put("import-${nextViewModelKey++}", vm) }
+
+    @After
+    fun tearDown() {
+        viewModelStore.clear()
+    }
 
     /** La vista de Compose de la actividad, para dibujarla a un bitmap. */
     private var hostView: View? = null
@@ -202,7 +216,7 @@ class ImportAppRenderTest {
 
     private fun previewConBarraDeGuardar(name: String, fontScale: Float) {
         onlyWhenAsked()
-        val vm = ImportProgramViewModel(app)
+        val vm = newViewModel()
         vm.importFromText(PROGRAMA)
         settle(vm) { it.imported != null && !it.busy }
         decideAll(vm)

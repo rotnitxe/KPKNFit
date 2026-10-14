@@ -1,6 +1,7 @@
 package com.example.kpkn.screens.programdetail
 
 import android.content.Context
+import androidx.lifecycle.ViewModelStore
 import androidx.test.core.app.ApplicationProvider
 import com.example.kpkn.data.db.KpknDatabase
 import com.example.kpkn.data.models.*
@@ -74,8 +75,14 @@ class ProgramDetailViewModelTest {
 
     private val testDispatcher: TestDispatcher = UnconfinedTestDispatcher()
     private lateinit var repository: ProgramRepository
+    private val viewModelStore = ViewModelStore()
+    private var nextViewModelKey = 0
 
     private fun nextId(): String = "prog_${System.nanoTime()}"
+
+    /** Cada VM va al store de la prueba: [tearDown] lo limpia antes de cerrar repositorios y base. */
+    private fun vmFor(id: String): ProgramDetailViewModel =
+        ProgramDetailViewModel(id).also { viewModel -> viewModelStore.put("detail-${nextViewModelKey++}", viewModel) }
 
     private fun makeProgram(id: String) = Program(
         id = id,
@@ -332,6 +339,8 @@ class ProgramDetailViewModelTest {
 
     @After
     fun tearDown() {
+        // Primero los VM (cancela su viewModelScope), luego los repositorios y solo al final la base.
+        viewModelStore.clear()
         CompetitionRepository.closeInstance()
         ProgramRepository.closeInstance()
         KpknDatabase.closeInstance()
@@ -343,7 +352,7 @@ class ProgramDetailViewModelTest {
     @Test
     fun initial_state_is_semana_subtab() {
         val id = nextId()
-        val vm = ProgramDetailViewModel(id)
+        val vm = vmFor(id)
         assertEquals(StructureSubTab.SEMANA, vm.uiState.value.structureSubTab)
     }
 
@@ -353,7 +362,7 @@ class ProgramDetailViewModelTest {
     fun selectBlock_updates_selected_block() {
         val id = nextId()
         repository.addProgram(makeProgram(id))
-        val vm = ProgramDetailViewModel(id)
+        val vm = vmFor(id)
 
         vm.selectBlock("${id}_b2")
         assertEquals("${id}_b2", vm.uiState.value.selectedBlockId)
@@ -363,7 +372,7 @@ class ProgramDetailViewModelTest {
     fun selectWeek_updates_selected_week() {
         val id = nextId()
         repository.addProgram(makeProgram(id))
-        val vm = ProgramDetailViewModel(id)
+        val vm = vmFor(id)
 
         vm.selectWeek("${id}_w2")
         assertEquals("${id}_w2", vm.uiState.value.selectedWeekId)
@@ -375,7 +384,7 @@ class ProgramDetailViewModelTest {
     fun startProgram_creates_active_state() {
         val id = nextId()
         repository.addProgram(makeProgram(id))
-        val vm = ProgramDetailViewModel(id)
+        val vm = vmFor(id)
 
         vm.startProgram()
         assertNotNull(repository.activeProgramState.value)
@@ -388,7 +397,7 @@ class ProgramDetailViewModelTest {
         val id = nextId()
         repository.addProgram(makeProgram(id))
         repository.startProgram(id)
-        val vm = ProgramDetailViewModel(id)
+        val vm = vmFor(id)
 
         vm.pauseProgram()
         assertEquals(ProgramStatus.PAUSED, repository.activeProgramState.value?.status)
@@ -399,7 +408,7 @@ class ProgramDetailViewModelTest {
     fun pauseProgram_survives_update_and_resume_keeps_week() {
         val id = nextId()
         repository.addProgram(makeProgram(id))
-        val vm = ProgramDetailViewModel(id)
+        val vm = vmFor(id)
 
         vm.startProgram()
         val weekId = repository.activeProgramState.value?.currentWeekId
@@ -424,7 +433,7 @@ class ProgramDetailViewModelTest {
     fun toggleStartPause_resumes_paused_program() = runBlocking {
         val id = nextId()
         repository.addProgram(makeProgram(id))
-        val vm = ProgramDetailViewModel(id)
+        val vm = vmFor(id)
         vm.startProgram()
         vm.pauseProgram()
         val pausedCollector = async { vm.isPausedProgram.first { it } }
@@ -440,7 +449,7 @@ class ProgramDetailViewModelTest {
     fun roadmapBlocks_computed_from_program() {
         val id = nextId()
         repository.addProgram(makeProgram(id))
-        val vm = ProgramDetailViewModel(id)
+        val vm = vmFor(id)
 
         val blocks = vm.roadmapBlocks.value
         assertEquals(2, blocks.size)
@@ -452,7 +461,7 @@ class ProgramDetailViewModelTest {
     fun totalWeeks_computed() = runBlocking {
         val id = nextId()
         repository.addProgram(makeProgram(id))
-        val vm = ProgramDetailViewModel(id)
+        val vm = vmFor(id)
         assertEquals(3, withTimeout(5_000) { vm.totalWeeks.filter { it > 0 }.first() })
     }
 
@@ -460,7 +469,7 @@ class ProgramDetailViewModelTest {
     fun isSimpleProgram_false_for_multi_block() = runBlocking {
         val id = nextId()
         repository.addProgram(makeProgram(id))
-        val vm = ProgramDetailViewModel(id)
+        val vm = vmFor(id)
         assertFalse(withTimeout(5_000) { vm.isSimpleProgram.filter { !it }.first() })
     }
 
@@ -468,7 +477,7 @@ class ProgramDetailViewModelTest {
     fun isSimpleProgram_true_for_simple() {
         val id = nextId()
         repository.addProgram(makeSimpleProgram(id))
-        val vm = ProgramDetailViewModel(id)
+        val vm = vmFor(id)
 
         assertTrue(vm.isSimpleProgram.value)
     }
@@ -477,7 +486,7 @@ class ProgramDetailViewModelTest {
     fun deleteSession_removes_from_program() {
         val id = nextId()
         repository.addProgram(makeProgram(id))
-        val vm = ProgramDetailViewModel(id)
+        val vm = vmFor(id)
 
         vm.deleteSession("${id}_s1", macroIndex = 0, mesoIndex = 0, weekId = "${id}_w1")
 
@@ -543,7 +552,7 @@ class ProgramDetailViewModelTest {
     fun addSession_appends_to_week() {
         val id = nextId()
         repository.addProgram(makeProgram(id))
-        val vm = ProgramDetailViewModel(id)
+        val vm = vmFor(id)
 
         val newSession = Session(id = "${id}_new", name = "New")
         vm.addSession(macroIndex = 0, mesoIndex = 0, weekId = "${id}_w1", session = newSession)
@@ -558,7 +567,7 @@ class ProgramDetailViewModelTest {
     fun addWeekToSimpleProgram_appends_week_and_keeps_program_simple() {
         val id = nextId()
         repository.addProgram(makeSimpleProgram(id))
-        val vm = ProgramDetailViewModel(id)
+        val vm = vmFor(id)
 
         vm.addWeekToSimpleProgram()
 
@@ -599,7 +608,7 @@ class ProgramDetailViewModelTest {
                 },
             )
         )
-        val vm = ProgramDetailViewModel(id)
+        val vm = vmFor(id)
 
         vm.addWeekToSimpleProgram()
 
@@ -659,7 +668,7 @@ class ProgramDetailViewModelTest {
             },
         )
         repository.addProgram(emptyCalendarized)
-        val vm = ProgramDetailViewModel(id)
+        val vm = vmFor(id)
 
         vm.startFreshCyclicProgram()
 
@@ -695,7 +704,7 @@ class ProgramDetailViewModelTest {
                 },
             )
         )
-        val vm = ProgramDetailViewModel(id)
+        val vm = vmFor(id)
 
         vm.addWeekToSimpleProgram()
 
@@ -716,7 +725,7 @@ class ProgramDetailViewModelTest {
                 macrocycles = base.macrocycles.map { macro -> macro.copy(blocks = emptyList()) },
             )
         )
-        val vm = ProgramDetailViewModel(id)
+        val vm = vmFor(id)
 
         vm.addWeekToSimpleProgram()
 
@@ -776,7 +785,7 @@ class ProgramDetailViewModelTest {
                 }
             )
         )
-        val vm = ProgramDetailViewModel(id)
+        val vm = vmFor(id)
 
         val copied = vm.copyWeekSessions(
             sourceWeekId = "${id}_w1",
@@ -831,7 +840,7 @@ class ProgramDetailViewModelTest {
                 },
             )
         )
-        val vm = ProgramDetailViewModel(id)
+        val vm = vmFor(id)
 
         vm.updateWeekMetadata("${id}_w1", "Semana ancla", "Notas")
 
@@ -865,7 +874,7 @@ class ProgramDetailViewModelTest {
             }
         )
         repository.addProgram(withTwoMesos)
-        val vm = ProgramDetailViewModel(id)
+        val vm = vmFor(id)
         vm.selectBlock("${id}_b1")
 
         vm.addWeekToSelectedAdvancedBlock("Semana extra")
@@ -880,7 +889,7 @@ class ProgramDetailViewModelTest {
     fun reorderSessions_swaps_positions() {
         val id = nextId()
         repository.addProgram(makeProgram(id))
-        val vm = ProgramDetailViewModel(id)
+        val vm = vmFor(id)
 
         vm.reorderSessions(weekId = "${id}_w1", fromIndex = 0, toIndex = 1)
 
@@ -894,7 +903,7 @@ class ProgramDetailViewModelTest {
     fun replaceWeekSessions_persists_dayOfWeek_across_reread() {
         val id = nextId()
         repository.addProgram(makeProgram(id))
-        val vm = ProgramDetailViewModel(id)
+        val vm = vmFor(id)
         val weekId = "${id}_w1"
         val moved = listOf(
             Session(id = "${id}_s1", name = "S1", dayOfWeek = 4, assignedDays = listOf(4)),
@@ -916,7 +925,7 @@ class ProgramDetailViewModelTest {
     fun replaceWeekSessions_resolves_instance_week_id() {
         val id = nextId()
         repository.addProgram(makeProgram(id))
-        val vm = ProgramDetailViewModel(id)
+        val vm = vmFor(id)
         val templateWeekId = "${id}_w1"
         val instanceWeekId = com.example.kpkn.domain.training.ProgramProgressEngine.instanceIdFor(1, templateWeekId)
         val moved = listOf(
@@ -936,7 +945,7 @@ class ProgramDetailViewModelTest {
     fun replaceWeekSessions_unknown_week_does_not_write() {
         val id = nextId()
         repository.addProgram(makeProgram(id))
-        val vm = ProgramDetailViewModel(id)
+        val vm = vmFor(id)
         val before = repository.getProgramById(id)!!
 
         vm.replaceWeekSessions("missing-week", listOf(
@@ -954,7 +963,7 @@ class ProgramDetailViewModelTest {
     fun updateProgram_replaces_in_repository() {
         val id = nextId()
         repository.addProgram(makeProgram(id))
-        val vm = ProgramDetailViewModel(id)
+        val vm = vmFor(id)
 
         val updated = repository.getProgramById(id)!!.copy(name = "Updated Name")
         vm.updateProgram(updated)
@@ -991,7 +1000,7 @@ class ProgramDetailViewModelTest {
             ),
         )
         repository.addProgram(seeded)
-        val vm = ProgramDetailViewModel(id)
+        val vm = vmFor(id)
         assertEquals(PendingProgramActionType.CONFIRM_AUTOREGULATION, vm.program.value?.runState?.pendingAction?.type)
         vm.acceptAutoregulation()
         withTimeout(5_000) {
@@ -1027,7 +1036,7 @@ class ProgramDetailViewModelTest {
         assertEquals(fixture.siblingJson, sessionJson(siblingBefore))
         assertEquals(setOf(fixture.targetId, fixture.siblingId), beforeProgram.manualSessionOverrides.map { it.sessionId }.toSet())
 
-        val vm = ProgramDetailViewModel(id)
+        val vm = vmFor(id)
         vm.restoreManualSessionFromPlan(fixture.targetId)
 
         withTimeout(10_000) {
@@ -1056,7 +1065,7 @@ class ProgramDetailViewModelTest {
         val beforeProgram = repository.getProgramById(id)!!
         val historyBefore = repository.getLogsForProgram(id)
 
-        val vm = ProgramDetailViewModel(id)
+        val vm = vmFor(id)
         vm.restoreManualSessionFromPlan(fixture.targetId)
 
         withTimeout(10_000) {
@@ -1276,7 +1285,7 @@ class ProgramDetailViewModelTest {
         assertTrue("la receta efectiva aceptada pesa 80 %, no el 75 % base: $plannedPercents",
             plannedPercents.isNotEmpty() && plannedPercents.all { it == 80.0 })
 
-        val vm = ProgramDetailViewModel(id)
+        val vm = vmFor(id)
         restoreAndAwait(vm, fixture.targetId) { it.startsWith("Sesión restaurada desde el plan.") }
 
         val restored = repository.getProgramById(id)!!
@@ -1311,7 +1320,7 @@ class ProgramDetailViewModelTest {
         assertTrue(repository.getProgramById(id)!!.manualSessionOverrides
             .any { it.sessionId == fixture.targetId && it.reason.contains("[editor-transfer:") })
 
-        val vm = ProgramDetailViewModel(id)
+        val vm = vmFor(id)
         restoreAndAwait(vm, fixture.targetId) { it.startsWith("Sesión restaurada desde el plan.") }
 
         val restored = repository.getProgramById(id)!!
@@ -1328,7 +1337,7 @@ class ProgramDetailViewModelTest {
         val fixture = seedRestoreFixture(id, tweak = { program, _ -> program.copy(sourceRecipe = null) })
         val before = repository.getProgramById(id)!!
 
-        val vm = ProgramDetailViewModel(id)
+        val vm = vmFor(id)
         val message = restoreAndAwait(vm, fixture.targetId) { it.startsWith("No se encontró la receta fuente") }
 
         assertEquals("No se encontró la receta fuente; no se cambió la sesión.", message)
@@ -1365,7 +1374,7 @@ class ProgramDetailViewModelTest {
         val before = repository.getProgramById(id)!!
         assertTrue(weeksOf(before).single { it.id == fixture.weekId }.sessions.any { it.id == userSession.id })
 
-        val vm = ProgramDetailViewModel(id)
+        val vm = vmFor(id)
         val message = restoreAndAwait(vm, userSession.id) { it.startsWith("Esta sesión no tiene una sesión equivalente") }
 
         assertTrue("sin éxito falso: $message", !message.startsWith("Sesión restaurada"))
@@ -1392,7 +1401,7 @@ class ProgramDetailViewModelTest {
             .sessions.single { it.id == fixture.targetId }
         assertEquals(2, movedBefore.dayOfWeek)
 
-        val vm = ProgramDetailViewModel(id)
+        val vm = vmFor(id)
         restoreAndAwait(vm, fixture.targetId) { it.startsWith("Sesión restaurada desde el plan.") }
 
         val restored = repository.getProgramById(id)!!
@@ -1425,7 +1434,7 @@ class ProgramDetailViewModelTest {
             repository.getProgramById(id)!!.manualSessionOverrides.filter { it.sessionId == fixture.targetId }.map { it.scope },
         )
 
-        val vm = ProgramDetailViewModel(id)
+        val vm = vmFor(id)
         restoreAndAwait(vm, fixture.targetId) { it.startsWith("Sesión restaurada desde el plan.") }
 
         val restored = repository.getProgramById(id)!!
@@ -1451,7 +1460,7 @@ class ProgramDetailViewModelTest {
             },
         )
 
-        val vm = ProgramDetailViewModel(id)
+        val vm = vmFor(id)
         restoreAndAwait(vm, fixture.targetId) { it.startsWith("Sesión restaurada desde el plan.") }
 
         val restored = repository.getProgramById(id)!!
@@ -1491,7 +1500,7 @@ class ProgramDetailViewModelTest {
     fun restoreBlockedSessionIds_cover_logged_and_in_progress_sessions_only() = runBlocking {
         val id = nextId()
         val fixture = seedManualRestoreFixture(id)
-        val vm = ProgramDetailViewModel(id)
+        val vm = vmFor(id)
         assertEquals(emptySet<String>(), withTimeout(5_000) { vm.restoreBlockedSessionIds.first() })
 
         repository.addWorkoutLog(siblingWorkoutLog(id, fixture, fixture.siblingId))
@@ -1515,7 +1524,7 @@ class ProgramDetailViewModelTest {
         val original = makeSimpleProgram(id)
         repository.addProgram(original)
         repository.flushPendingWrites()
-        val vm = ProgramDetailViewModel(id)
+        val vm = vmFor(id)
         val protocol = com.example.kpkn.data.protocols.PROTOCOL_LIBRARY.first { it.id == "gzclp" }
         vm.applyProtocolOverwrite(protocol, overwrite = true)
         withTimeout(20_000) {
@@ -1535,7 +1544,7 @@ class ProgramDetailViewModelTest {
         val original = makeSimpleProgram(id)
         repository.addProgram(original)
         repository.flushPendingWrites()
-        val vm = ProgramDetailViewModel(id)
+        val vm = vmFor(id)
         val protocol = com.example.kpkn.data.protocols.PROTOCOL_LIBRARY.first { it.id == "gzclp" }
         vm.applyProtocolOverwrite(protocol, overwrite = false)
         withTimeout(20_000) {
@@ -1552,7 +1561,7 @@ class ProgramDetailViewModelTest {
         com.example.kpkn.domain.training.CatalogCompositionTestSupport.install()
         val id = nextId()
         repository.addProgram(Program(id = id, name = "Vacío", structure = ProgramStructure.SIMPLE))
-        val vm = ProgramDetailViewModel(id)
+        val vm = vmFor(id)
         val staleWeek = "${id}_missing_week"
         vm.selectWeek(staleWeek)
         assertEquals(staleWeek, vm.uiState.value.selectedWeekId)
@@ -1607,7 +1616,7 @@ class ProgramDetailViewModelTest {
         repository.addProgram(program)
         val store = programSnapshotStore(ApplicationProvider.getApplicationContext<Context>())
         store.push(program, "copia-1")
-        val vm = ProgramDetailViewModel(id)
+        val vm = vmFor(id)
 
         // La carga ya no es síncrona: el estado llega cuando termina la lectura en IO.
         vm.attachSnapshotStore(store)
@@ -1628,7 +1637,7 @@ class ProgramDetailViewModelTest {
         repository.addProgram(original)
         repository.flushPendingWrites()
         val store = programSnapshotStore(ApplicationProvider.getApplicationContext<Context>())
-        val vm = ProgramDetailViewModel(id)
+        val vm = vmFor(id)
         vm.attachSnapshotStore(store)
         val protocol = com.example.kpkn.data.protocols.PROTOCOL_LIBRARY.first { it.id == "gzclp" }
 
@@ -1664,7 +1673,7 @@ class ProgramDetailViewModelTest {
         repository.flushPendingWrites()
         val before = repository.getProgramById(id)!!
         val context = CommitFailingContext(ApplicationProvider.getApplicationContext<Context>())
-        val vm = ProgramDetailViewModel(id)
+        val vm = vmFor(id)
         vm.attachSnapshotStore(programSnapshotStore(context))
 
         vm.applyProgramTemplate(simpleTemplate(), overwrite = true)
@@ -1687,7 +1696,7 @@ class ProgramDetailViewModelTest {
         repository.flushPendingWrites()
         val before = repository.getProgramById(id)!!
         val context = CommitFailingContext(ApplicationProvider.getApplicationContext<Context>())
-        val vm = ProgramDetailViewModel(id)
+        val vm = vmFor(id)
         vm.attachSnapshotStore(programSnapshotStore(context))
         val protocol = com.example.kpkn.data.protocols.PROTOCOL_LIBRARY.first { it.id == "gzclp" }
 
@@ -1707,7 +1716,7 @@ class ProgramDetailViewModelTest {
         repository.addProgram(makeSimpleProgram(id))
         repository.flushPendingWrites()
         val before = repository.getProgramById(id)!!
-        val vm = ProgramDetailViewModel(id)
+        val vm = vmFor(id)
 
         vm.applyProgramTemplate(simpleTemplate(), overwrite = true)
 
@@ -1723,7 +1732,7 @@ class ProgramDetailViewModelTest {
         repository.addProgram(original)
         repository.flushPendingWrites()
         val store = programSnapshotStore(ApplicationProvider.getApplicationContext<Context>())
-        val vm = ProgramDetailViewModel(id)
+        val vm = vmFor(id)
         vm.attachSnapshotStore(store)
         val template = simpleTemplate()
 
@@ -1745,7 +1754,7 @@ class ProgramDetailViewModelTest {
         repository.addProgram(makeSimpleProgram(id))
         repository.flushPendingWrites()
         val store = programSnapshotStore(ApplicationProvider.getApplicationContext<Context>())
-        val vm = ProgramDetailViewModel(id)
+        val vm = vmFor(id)
         vm.attachSnapshotStore(store)
         val session = weeksOf(repository.getProgramById(id)!!).first().sessions.first()
         repository.startWorkout(OngoingWorkoutState(programId = id, session = session, startTime = 11L))
@@ -1766,7 +1775,7 @@ class ProgramDetailViewModelTest {
         repository.addProgram(makeSimpleProgram(id))
         repository.flushPendingWrites()
         val store = programSnapshotStore(ApplicationProvider.getApplicationContext<Context>())
-        val vm = ProgramDetailViewModel(id)
+        val vm = vmFor(id)
         vm.attachSnapshotStore(store)
         val template = simpleTemplate()
 
@@ -1783,7 +1792,7 @@ class ProgramDetailViewModelTest {
 
     @Test
     fun feedbacks_are_exposed_read_only() {
-        val vm = ProgramDetailViewModel(nextId())
+        val vm = vmFor(nextId())
 
         assertFalse("feedbacks no debe ser un MutableStateFlow público", vm.feedbacks is MutableStateFlow<*>)
         assertTrue(vm.feedbacks.value.isEmpty())
@@ -1873,7 +1882,7 @@ class ProgramDetailViewModelTest {
     fun nativeProgressionCard_names_the_exercise_in_plain_language_without_internal_ids() {
         val id = nextId()
         repository.addProgram(nativeProposalProgram(id))
-        val vm = ProgramDetailViewModel(id)
+        val vm = vmFor(id)
 
         val card = vm.nativeProgressionCard.value
 
@@ -1894,7 +1903,7 @@ class ProgramDetailViewModelTest {
         val id = nextId()
         repository.addProgram(nativeProposalProgram(id))
         repository.flushPendingWrites()
-        val vm = ProgramDetailViewModel(id)
+        val vm = vmFor(id)
 
         vm.rejectNativeProgressionProposal("$id-p1")
 
@@ -1915,7 +1924,7 @@ class ProgramDetailViewModelTest {
         // Sin receta de origen la propuesta ya no tiene a qué aplicarse: caduca sin tocar el plan.
         repository.addProgram(nativeProposalProgram(id))
         repository.flushPendingWrites()
-        val vm = ProgramDetailViewModel(id)
+        val vm = vmFor(id)
 
         vm.acceptNativeProgressionProposal("$id-p1")
 
@@ -2018,7 +2027,7 @@ class ProgramDetailViewModelTest {
         trainedLogs(program, weeksOf(program).first()).forEach { repository.addWorkoutLog(it) }
         repository.flushPendingWrites()
         val before = repository.getProgramById(id)!!
-        val vm = ProgramDetailViewModel(id)
+        val vm = vmFor(id)
 
         // Mismo 1RM de banca y de peso muerto; otra sentadilla.
         vm.updatePowerliftingProfile(wizardProfile(squat = 210.0, bench = 120.0, deadlift = 220.0))
@@ -2057,7 +2066,7 @@ class ProgramDetailViewModelTest {
         val program = wendlerProgram(id, PowerliftingProfile(squat1RM = 200.0, bench1RM = 120.0, deadlift1RM = 220.0))
         repository.addProgram(program)
         repository.flushPendingWrites()
-        val vm = ProgramDetailViewModel(id)
+        val vm = vmFor(id)
 
         vm.updatePowerliftingProfile(wizardProfile(squat = 210.0, bench = 125.0, deadlift = 230.0))
 
@@ -2080,7 +2089,7 @@ class ProgramDetailViewModelTest {
         repository.addProgram(withLoop)
         repository.flushPendingWrites()
         val loopWeekBefore = weeksOf(repository.getProgramById(id)!!).single { it.isLoopWeek }
-        val vm = ProgramDetailViewModel(id)
+        val vm = vmFor(id)
 
         vm.updatePowerliftingProfile(wizardProfile(squat = 210.0, bench = 120.0, deadlift = 220.0))
 
@@ -2108,7 +2117,7 @@ class ProgramDetailViewModelTest {
         repository.addProgram(withDeload)
         repository.flushPendingWrites()
         val before = repository.getProgramById(id)!!
-        val vm = ProgramDetailViewModel(id)
+        val vm = vmFor(id)
 
         vm.updatePowerliftingProfile(wizardProfile(squat = 210.0, bench = 125.0, deadlift = 230.0))
 
@@ -2127,7 +2136,7 @@ class ProgramDetailViewModelTest {
 
     @Test
     fun updatePowerliftingProfile_for_a_program_that_no_longer_exists_reports_a_failure_in_red() = runBlocking {
-        val vm = ProgramDetailViewModel(nextId())
+        val vm = vmFor(nextId())
 
         vm.updatePowerliftingProfile(wizardProfile(squat = 200.0, bench = 120.0, deadlift = 220.0))
 
@@ -2142,7 +2151,7 @@ class ProgramDetailViewModelTest {
         repository.addProgram(makeSimpleProgram(id))
         repository.flushPendingWrites()
         val before = repository.getProgramById(id)!!
-        val vm = ProgramDetailViewModel(id)
+        val vm = vmFor(id)
 
         vm.updatePowerliftingProfile(wizardProfile(squat = 200.0, bench = 120.0, deadlift = 220.0))
 
@@ -2160,7 +2169,7 @@ class ProgramDetailViewModelTest {
         repository.addProgram(program)
         repository.flushPendingWrites()
         val before = repository.getProgramById(id)!!
-        val vm = ProgramDetailViewModel(id)
+        val vm = vmFor(id)
 
         val installed = CompositionMetadataHolder.current
         CompositionMetadataHolder.current = null
@@ -2258,7 +2267,7 @@ class ProgramDetailViewModelTest {
             PendingProgramActionType.CONFIRM_1RM_TEST,
             repository.getProgramById(id)!!.runState?.pendingAction?.type,
         )
-        val vm = ProgramDetailViewModel(id)
+        val vm = vmFor(id)
 
         vm.recordPendingOneRmTest(210.0, 125.0, 230.0)
 
@@ -2286,7 +2295,7 @@ class ProgramDetailViewModelTest {
         repository.addProgram(oneRmGateProgram(id))
         repository.flushPendingWrites()
         val before = repository.getProgramById(id)!!
-        val vm = ProgramDetailViewModel(id)
+        val vm = vmFor(id)
 
         val installed = CompositionMetadataHolder.current
         CompositionMetadataHolder.current = null
@@ -2312,7 +2321,7 @@ class ProgramDetailViewModelTest {
         repository.addProgram(oneRmGateProgram(id))
         repository.flushPendingWrites()
         val before = repository.getProgramById(id)!!
-        val vm = ProgramDetailViewModel(id)
+        val vm = vmFor(id)
 
         vm.skipPendingOneRmTest()
 
@@ -2338,7 +2347,7 @@ class ProgramDetailViewModelTest {
         )
         repository.addProgram(pending)
         repository.flushPendingWrites()
-        val vm = ProgramDetailViewModel(id)
+        val vm = vmFor(id)
 
         vm.rematerializePending()
 
@@ -2362,7 +2371,7 @@ class ProgramDetailViewModelTest {
         repository.addProgram(pending)
         repository.flushPendingWrites()
         val before = repository.getProgramById(id)!!
-        val vm = ProgramDetailViewModel(id)
+        val vm = vmFor(id)
 
         val installed = CompositionMetadataHolder.current
         CompositionMetadataHolder.current = null
@@ -2494,7 +2503,7 @@ class ProgramDetailViewModelTest {
         val (gate, logs) = waveGate(id, stress = true, shortBenchReps = 3)
         assertEquals(PendingProgramActionType.CONFIRM_DELOAD, gate.runState?.pendingAction?.type)
         repository.addProgram(gate)
-        val vm = ProgramDetailViewModel(id)
+        val vm = vmFor(id)
         // Los registros llegan DESPUÉS de crear el ViewModel: el AMRAP corto se lee de la historia viva y no
         // de un flujo perezoso que nadie observa.
         logs.forEach { repository.addWorkoutLog(it) }
@@ -2529,7 +2538,7 @@ class ProgramDetailViewModelTest {
         repository.addProgram(gate)
         logs.forEach { repository.addWorkoutLog(it) }
         repository.flushPendingWrites()
-        val vm = ProgramDetailViewModel(id)
+        val vm = vmFor(id)
 
         vm.rejectPendingDeload()
 
@@ -2547,7 +2556,7 @@ class ProgramDetailViewModelTest {
         repository.addProgram(gate)
         logs.forEach { repository.addWorkoutLog(it) }
         repository.flushPendingWrites()
-        val vm = ProgramDetailViewModel(id)
+        val vm = vmFor(id)
 
         vm.rejectPendingDeload()
 
@@ -2569,7 +2578,7 @@ class ProgramDetailViewModelTest {
         repository.addProgram(gate)
         logs.forEach { repository.addWorkoutLog(it) }
         repository.flushPendingWrites()
-        val vm = ProgramDetailViewModel(id)
+        val vm = vmFor(id)
 
         vm.rejectPendingDeload()
 
@@ -2587,7 +2596,7 @@ class ProgramDetailViewModelTest {
         repository.addProgram(gate)
         logs.forEach { repository.addWorkoutLog(it) }
         repository.flushPendingWrites()
-        val vm = ProgramDetailViewModel(id)
+        val vm = vmFor(id)
 
         // 1RM de sentadilla 210 (TM 189); el de banca no cambia y conserva su TM de 108.
         vm.recordPendingOneRmTest(210.0, 120.0, 230.0)
@@ -2619,7 +2628,7 @@ class ProgramDetailViewModelTest {
         repository.addProgram(gate)
         logs.forEach { repository.addWorkoutLog(it) }
         repository.flushPendingWrites()
-        val vm = ProgramDetailViewModel(id)
+        val vm = vmFor(id)
 
         vm.skipPendingOneRmTest()
 

@@ -478,7 +478,7 @@ fun KPKNApp(
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                         val postNotifGranted = ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED
                         if (!postNotifGranted) {
-                            missing.add("Notificaciones (Recordatorios y Alertas de Descanso)")
+                            missing.add("Notificaciones: recordatorios y avisos del descanso")
                         }
                     }
                     missingPermissions = missing
