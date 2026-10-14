@@ -7,6 +7,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.defaultMinSize
@@ -92,9 +93,10 @@ fun WorkoutIntensityRow(
     LaunchedEffect(scale) {
         if (chosenIndex > 0) listState.scrollToItem(chosenIndex - 1)
     }
-    Row(
+    // La escala va en su propia línea, encima de los chips: así la fila tiene todo el ancho y, al 130 % de letra, cabe sin cortar «0».
+    Column(
         modifier = modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically,
+        verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         Text(
             text = scale.name,
@@ -102,10 +104,9 @@ fun WorkoutIntensityRow(
             color = WizardColors.textMuted,
             maxLines = 1,
         )
-        Spacer(Modifier.width(10.dp))
         LazyRow(
             state = listState,
-            modifier = Modifier.weight(1f).fadeScrollableEdges(listState),
+            modifier = Modifier.fillMaxWidth().fadeScrollableEdges(listState),
             horizontalArrangement = Arrangement.spacedBy(8.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {

@@ -26,6 +26,7 @@ import com.example.kpkn.screens.workout.WorkoutTechniqueDraftKind
 import com.example.kpkn.screens.workout.WorkoutTechniqueMainCaptureDraft
 import com.example.kpkn.screens.workout.WorkoutTechniqueProgressDraft
 import com.example.kpkn.screens.workout.WeightSuggestion
+import com.example.kpkn.screens.workout.design.WorkoutRecordPill
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
@@ -195,11 +196,10 @@ class SetExecutionCardUiTest {
     fun recordFabShowsRegisterLabelByDefault() {
         composeRule.setContent {
             MaterialTheme {
-                WorkoutRecordFab(
-                    sessionAccentColor = Color(0xFF00E5FF),
-                    isUpdateMode = false,
+                WorkoutRecordPill(
+                    label = "Registrar serie",
                     enabled = true,
-                    onClick = {},
+                    onRecord = {},
                 )
             }
         }
@@ -211,11 +211,10 @@ class SetExecutionCardUiTest {
     fun recordFabShowsUpdateLabelWhenSeriesAlreadyLogged() {
         composeRule.setContent {
             MaterialTheme {
-                WorkoutRecordFab(
-                    sessionAccentColor = Color(0xFF00E5FF),
-                    isUpdateMode = true,
+                WorkoutRecordPill(
+                    label = "Actualizar serie",
                     enabled = true,
-                    onClick = {},
+                    onRecord = {},
                 )
             }
         }
@@ -228,11 +227,10 @@ class SetExecutionCardUiTest {
         var clicked = false
         composeRule.setContent {
             MaterialTheme {
-                WorkoutRecordFab(
-                    sessionAccentColor = Color(0xFF00E5FF),
-                    isUpdateMode = false,
+                WorkoutRecordPill(
+                    label = "Registrar serie",
                     enabled = true,
-                    onClick = { clicked = true },
+                    onRecord = { clicked = true },
                 )
             }
         }

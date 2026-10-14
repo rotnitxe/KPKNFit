@@ -59,6 +59,9 @@ import com.example.kpkn.domain.workout.volumeReplacedLabel
 import com.example.kpkn.screens.sessioneditor.components.DropSetPlanDefaults
 import com.example.kpkn.screens.sessioneditor.components.RestPausePlanDefaults
 import com.example.kpkn.screens.workout.*
+import com.example.kpkn.screens.workout.design.WorkoutIntensityScale
+import com.example.kpkn.screens.workout.design.WorkoutSetPanel
+import com.example.kpkn.ui.design.KpknTextAction
 import com.example.kpkn.ui.components.KpknSheet
 import com.example.kpkn.ui.components.KpknDropdownMenu
 
@@ -148,174 +151,6 @@ private fun AmrapConfigSheet(
 }
 
 @Composable
-private fun WorkoutStepperField(
-    value: String,
-    onValueChange: (String) -> Unit,
-    onDecrement: () -> Unit,
-    onIncrement: () -> Unit,
-    modifier: Modifier = Modifier,
-    buttonsEnabled: Boolean = true,
-    textInputEnabled: Boolean = true,
-    isError: Boolean = false,
-    textStyle: androidx.compose.ui.text.TextStyle = MaterialTheme.typography.titleMedium,
-    keyboardOptions: KeyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-    accentColor: Color = MaterialTheme.colorScheme.primary,
-    roomier: Boolean = false,
-    placeholder: String? = null,
-) {
-    val bringIntoViewRequester = remember { BringIntoViewRequester() }
-    val scope = rememberCoroutineScope()
-    val containerColor = if (isError) {
-        MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.25f)
-    } else {
-        MaterialTheme.colorScheme.surfaceContainerHigh.copy(alpha = 0.92f)
-    }
-    val controlHeight = if (roomier) 60.dp else 56.dp
-    val buttonWidth = if (roomier) 34.dp else 32.dp
-    val buttonShape = RoundedCornerShape(12.dp)
-    val disabledColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.28f)
-    val enabledIconColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.74f)
-
-    Surface(
-        shape = RoundedCornerShape(18.dp),
-        color = containerColor,
-        border = BorderStroke(
-            width = 1.dp,
-            color = if (isError) {
-                MaterialTheme.colorScheme.error.copy(alpha = 0.38f)
-            } else {
-                MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.28f)
-            },
-        ),
-        tonalElevation = 0.dp,
-        shadowElevation = 0.dp,
-        modifier = modifier
-            .height(controlHeight)
-            .bringIntoViewRequester(bringIntoViewRequester),
-    ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(if (roomier) 4.dp else 3.dp),
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(horizontal = if (roomier) 4.dp else 3.dp, vertical = 5.dp),
-        ) {
-            Surface(
-                modifier = Modifier
-                    .width(buttonWidth)
-                    .fillMaxHeight()
-                    .clip(buttonShape)
-                    .clickable(enabled = buttonsEnabled, onClick = onDecrement),
-                shape = buttonShape,
-                color = MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = if (buttonsEnabled) 0.68f else 0.34f),
-                contentColor = if (buttonsEnabled) enabledIconColor else disabledColor,
-                tonalElevation = 0.dp,
-                shadowElevation = 0.dp,
-            ) {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Remove,
-                        contentDescription = "Disminuir",
-                        modifier = Modifier.size(if (roomier) 18.dp else 16.dp),
-                    )
-                }
-            }
-
-            Box(
-                modifier = Modifier
-                    .weight(1f)
-                    .widthIn(min = if (roomier) 72.dp else 64.dp)
-                    .fillMaxWidth()
-                    .fillMaxHeight()
-                    .clip(RoundedCornerShape(14.dp))
-                    .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.36f)),
-                contentAlignment = Alignment.Center,
-            ) {
-                val resolvedFontSize = remember(value, textStyle.fontSize) {
-                    when {
-                        value.length >= 9 -> 11.sp
-                        value.length >= 7 -> 12.sp
-                        value.length >= 5 -> 14.sp
-                        value.length == 4 -> 15.sp
-                        else -> textStyle.fontSize
-                    }
-                }
-                BasicTextField(
-                    value = value,
-                    onValueChange = { if (textInputEnabled) onValueChange(it) },
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(horizontal = 4.dp)
-                        .onFocusEvent { focusState ->
-                            if (focusState.isFocused) {
-                                scope.launch { bringIntoViewRequester.bringIntoView() }
-                            }
-                        },
-                    singleLine = true,
-                    enabled = textInputEnabled,
-                    textStyle = textStyle.copy(
-                        fontSize = resolvedFontSize,
-                        textAlign = TextAlign.Center,
-                        fontWeight = FontWeight.Black,
-                        color = if (isError) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface
-                    ),
-                    keyboardOptions = keyboardOptions,
-                    maxLines = 1,
-                    decorationBox = { innerTextField ->
-                        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                            if (value.isBlank() && !placeholder.isNullOrBlank()) {
-                                Text(
-                                    text = placeholder,
-                                    style = textStyle.copy(
-                                        fontSize = resolvedFontSize,
-                                        textAlign = TextAlign.Center,
-                                        fontWeight = FontWeight.SemiBold,
-                                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f),
-                                    ),
-                                    maxLines = 1,
-                                )
-                            }
-                            innerTextField()
-                        }
-                    }
-                )
-            }
-
-            Surface(
-                modifier = Modifier
-                    .width(buttonWidth)
-                    .fillMaxHeight()
-                    .clip(buttonShape)
-                    .clickable(enabled = buttonsEnabled, onClick = onIncrement),
-                shape = buttonShape,
-                color = if (buttonsEnabled) {
-                    accentColor.copy(alpha = 0.16f)
-                } else {
-                    MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = 0.34f)
-                },
-                contentColor = if (buttonsEnabled) accentColor else disabledColor,
-                tonalElevation = 0.dp,
-                shadowElevation = 0.dp,
-            ) {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Add,
-                        contentDescription = "Aumentar",
-                        modifier = Modifier.size(if (roomier) 18.dp else 16.dp),
-                    )
-                }
-            }
-        }
-    }
-}
-
-@Composable
 private fun FeedbackExtraStepperRow(
     label: String,
     value: Int,
@@ -369,330 +204,6 @@ private fun FeedbackExtraStepperRow(
             }
         }
     }
-}
-
-@Composable
-private fun IntegratedLoadInput(
-    value: String,
-    onValueChange: (String) -> Unit,
-    label: String,
-    placeholder: String?,
-    options: List<QuickLoadChipOption>,
-    onChipSelected: (QuickLoadChipOption) -> Unit,
-    loadModeMenuExpanded: Boolean,
-    onLoadModeMenuOpen: () -> Unit,
-    onLoadModeMenuDismiss: () -> Unit,
-    onLoadModeSelected: (LoadModeV2) -> Unit,
-    accentColor: Color,
-    modifier: Modifier = Modifier,
-    loadMode: LoadModeV2 = LoadModeV2.LOAD,
-    inlineChipsInField: Boolean = false,
-) {
-    val bringIntoViewRequester = remember { BringIntoViewRequester() }
-    val scope = rememberCoroutineScope()
-
-    @Composable
-    fun LoadValueField(modifier: Modifier = Modifier) {
-        Column(
-            modifier = modifier,
-            verticalArrangement = Arrangement.spacedBy(2.dp),
-        ) {
-            Text(
-                text = label,
-                style = MaterialTheme.typography.labelSmall,
-                fontWeight = FontWeight.SemiBold,
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.60f),
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
-            BasicTextField(
-                value = value,
-                onValueChange = onValueChange,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .onFocusEvent { focusState ->
-                        if (focusState.isFocused) {
-                            scope.launch { bringIntoViewRequester.bringIntoView() }
-                        }
-                    },
-                readOnly = false,
-                enabled = true,
-                singleLine = true,
-                maxLines = 1,
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                textStyle = MaterialTheme.typography.titleMedium.copy(
-                    fontSize = when {
-                        value.length >= 9 -> 12.sp
-                        value.length >= 7 -> 14.sp
-                        else -> MaterialTheme.typography.titleMedium.fontSize
-                    },
-                    fontWeight = FontWeight.Black,
-                    color = MaterialTheme.colorScheme.onSurface,
-                    textAlign = TextAlign.Center,
-                ),
-                decorationBox = { innerTextField ->
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .heightIn(min = 32.dp),
-                        contentAlignment = Alignment.Center,
-                    ) {
-                        if (value.isBlank() && !placeholder.isNullOrBlank()) {
-                            Text(
-                                text = placeholder,
-                                style = MaterialTheme.typography.bodyMedium.copy(
-                                    fontWeight = FontWeight.Bold,
-                                    fontStyle = FontStyle.Italic,
-                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.36f),
-                                    textAlign = TextAlign.Center,
-                                ),
-                                modifier = Modifier.fillMaxWidth(),
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis,
-                            )
-                        }
-                        Box(
-                            modifier = Modifier.fillMaxWidth(),
-                            contentAlignment = Alignment.Center,
-                        ) {
-                            innerTextField()
-                        }
-                    }
-                },
-            )
-        }
-    }
-
-    @Composable
-    fun QuickSuggestionRow(modifier: Modifier = Modifier) {
-        Row(
-            modifier = modifier.horizontalScroll(rememberScrollState()),
-            horizontalArrangement = Arrangement.spacedBy(5.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            options.forEach { option ->
-                Surface(
-                    onClick = { onChipSelected(option) },
-                    shape = RoundedCornerShape(11.dp),
-                    color = if (option.isAuge) {
-                        accentColor.copy(alpha = 0.16f)
-                    } else {
-                        MaterialTheme.colorScheme.surfaceContainerHigh.copy(alpha = 0.72f)
-                    },
-                    border = BorderStroke(
-                        1.dp,
-                        if (option.isAuge) {
-                            accentColor.copy(alpha = 0.48f)
-                        } else {
-                            MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.22f)
-                        },
-                    ),
-                ) {
-                    Column(
-                        modifier = Modifier.padding(horizontal = 7.dp, vertical = 5.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.spacedBy(1.dp),
-                    ) {
-                        if (LoadSuggestionDisplayPolicy.chipShowsNumberOnly(option.isAuge)) {
-                            Text(
-                                text = option.weight.toTrimmedNumberString(),
-                                style = MaterialTheme.typography.labelSmall.copy(
-                                    fontWeight = FontWeight.Black,
-                                    fontSize = 10.sp,
-                                ),
-                                color = accentColor,
-                                maxLines = 1,
-                            )
-                        } else {
-                            Text(
-                                text = option.label,
-                                style = MaterialTheme.typography.labelSmall.copy(
-                                    fontWeight = FontWeight.Bold,
-                                    fontSize = 9.sp,
-                                ),
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis,
-                            )
-                            val chipUnit = when (option.targetLoadMode) {
-                                LoadModeV2.LASTRE -> " lastre"
-                                LoadModeV2.ASSISTED -> " asist."
-                                else -> ""
-                            }
-                            Text(
-                                text = if (option.targetLoadMode == LoadModeV2.BODYWEIGHT && option.weight <= 0.0) {
-                                    "0 kg"
-                                } else {
-                                    "${option.weight.toTrimmedNumberString()}$chipUnit"
-                                },
-                                style = MaterialTheme.typography.labelSmall.copy(
-                                    fontWeight = FontWeight.Black,
-                                    fontSize = 10.sp,
-                                ),
-                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.82f),
-                                maxLines = 1,
-                            )
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    @Composable
-    fun LoadModeButtonWithMenu() {
-        Box {
-            IconButton(
-                onClick = onLoadModeMenuOpen,
-                modifier = Modifier.size(36.dp),
-            ) {
-                Icon(
-                    Icons.Default.UnfoldMore,
-                    contentDescription = "Cambiar tipo de carga",
-                    modifier = Modifier.size(16.dp),
-                    tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.70f),
-                )
-            }
-            KpknDropdownMenu(
-                expanded = loadModeMenuExpanded,
-                onDismissRequest = onLoadModeMenuDismiss,
-            ) {
-                DropdownMenuItem(
-                    text = { Text("Carga") },
-                    onClick = { onLoadModeSelected(LoadModeV2.LOAD) },
-                )
-                DropdownMenuItem(
-                    text = { Text("Peso corporal") },
-                    onClick = { onLoadModeSelected(LoadModeV2.BODYWEIGHT) },
-                )
-                DropdownMenuItem(
-                    text = { Text("Lastre") },
-                    onClick = { onLoadModeSelected(LoadModeV2.LASTRE) },
-                )
-                DropdownMenuItem(
-                    text = { Text("Asistido") },
-                    onClick = { onLoadModeSelected(LoadModeV2.ASSISTED) },
-                )
-            }
-        }
-    }
-
-    @Composable
-    fun CompactInlineChip(option: QuickLoadChipOption) {
-        Surface(
-            onClick = { onChipSelected(option) },
-            shape = RoundedCornerShape(9.dp),
-            color = if (option.isAuge) {
-                accentColor.copy(alpha = 0.16f)
-            } else {
-                MaterialTheme.colorScheme.surfaceContainerHigh.copy(alpha = 0.72f)
-            },
-            border = BorderStroke(
-                1.dp,
-                if (option.isAuge) {
-                    accentColor.copy(alpha = 0.48f)
-                } else {
-                    MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.22f)
-                },
-            ),
-        ) {
-            Text(
-                text = if (option.isAuge) {
-                    option.weight.toTrimmedNumberString()
-                } else {
-                    option.label
-                },
-                modifier = Modifier.padding(horizontal = 7.dp, vertical = 6.dp),
-                style = MaterialTheme.typography.labelSmall.copy(
-                    fontWeight = FontWeight.Black,
-                    fontSize = 10.sp,
-                ),
-                color = if (option.isAuge) accentColor else MaterialTheme.colorScheme.onSurface,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
-        }
-    }
-
-    Surface(
-        modifier = modifier
-            .fillMaxWidth()
-            .heightIn(min = 48.dp)
-            .bringIntoViewRequester(bringIntoViewRequester),
-        shape = WorkoutUiTokens.InnerCardShape,
-        color = WorkoutUiTokens.setInnerHighestColor(),
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.36f)),
-        tonalElevation = 0.dp,
-        shadowElevation = 0.dp,
-    ) {
-        Box(modifier = Modifier.fillMaxWidth()) {
-            if (inlineChipsInField) {
-                val inlineOptions = inlineRomLoadOptions(options)
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(start = 10.dp, end = 4.dp, top = 5.dp, bottom = 5.dp),
-                ) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(end = 36.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(6.dp),
-                    ) {
-                        LoadValueField(
-                            Modifier
-                                .weight(1f)
-                                .widthIn(min = 72.dp),
-                        )
-                        inlineOptions.forEach { option -> CompactInlineChip(option) }
-                    }
-                    Box(
-                        modifier = Modifier.align(Alignment.CenterEnd),
-                    ) {
-                        LoadModeButtonWithMenu()
-                    }
-                }
-            } else {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(start = 10.dp, end = 4.dp, top = 5.dp, bottom = 5.dp),
-                    verticalArrangement = Arrangement.spacedBy(4.dp),
-                ) {
-                    Box(modifier = Modifier.fillMaxWidth()) {
-                        LoadValueField(
-                            Modifier
-                                .fillMaxWidth()
-                                .padding(end = 36.dp),
-                        )
-                        Box(
-                            modifier = Modifier.align(Alignment.CenterEnd),
-                        ) {
-                            LoadModeButtonWithMenu()
-                        }
-                    }
-                    Box(
-                        modifier = Modifier.fillMaxWidth(),
-                        contentAlignment = Alignment.Center,
-                    ) {
-                        QuickSuggestionRow()
-                    }
-                }
-            }
-        }
-    }
-}
-
-private fun inlineRomLoadOptions(options: List<QuickLoadChipOption>): List<QuickLoadChipOption> {
-    if (options.isEmpty()) return emptyList()
-    val picked = ArrayList<QuickLoadChipOption>(2)
-    options.firstOrNull { it.isAuge }?.let { picked += it }
-    options.firstOrNull { option -> option.label.startsWith("+") && option !in picked }?.let { picked += it }
-    if (picked.size < 2) {
-        options.firstOrNull { it !in picked }?.let { picked += it }
-    }
-    return picked.take(2)
 }
 
 private fun quickLoadIncrementFor(exercise: Exercise, currentSet: ExerciseSet): Double {
@@ -825,7 +336,6 @@ internal fun SetInputCardV2(
 ) {
     val context = LocalContext.current
     val recordActionInstanceOwner = remember { Any() }
-    val isNarrowScreen = LocalLivePagerShouldReflow.current
     val resolvedWeightSuggestion = weightSuggestion
     val suggestedWeightText: String? = resolvedWeightSuggestion?.let { suggestion ->
         suggestion.suggestedWeight.toTrimmedNumberString()
@@ -1195,7 +705,6 @@ internal fun SetInputCardV2(
     var dropSetEnabled by remember(exercise.id, setIndex, sideKey) { mutableStateOf(false) }
     var restPauseEnabled by remember(exercise.id, setIndex, sideKey) { mutableStateOf(false) }
     var showPartialsMode by remember(exercise.id, setIndex, sideKey) { mutableStateOf(false) }
-    var showFeedbackExtrasPopup by remember(exercise.id, setIndex, sideKey) { mutableStateOf(false) }
     var assistedRepsValue by remember(exercise.id, setIndex, sessionCompletedSet?.id) {
         mutableIntStateOf(initialDraft?.assistedReps ?: sessionCompletedSet?.assistedReps ?: 0)
     }
@@ -1210,7 +719,7 @@ internal fun SetInputCardV2(
     var setNoteText by remember(exercise.id, setIndex, sideKey) {
         mutableStateOf(initialDraft?.notes.orEmpty())
     }
-    var loadModeMenuExpanded by remember(exercise.id, setIndex, sideKey) { mutableStateOf(false) }
+    var advancedOpen by remember(exercise.id, setIndex, sideKey) { mutableStateOf(false) }
     var dropSets by remember(exercise.id, setIndex, sideKey) {
         mutableStateOf(listOf(DropSetEntry(weight = 0.0, reps = 0)))
     }
@@ -1322,7 +831,6 @@ internal fun SetInputCardV2(
         amrapReserveReps = initialDraft?.amrapReserveReps
         amrapMinimumReps = initialDraft?.amrapMinimumReps ?: plannedRepRange?.min ?: currentSet.targetReps
         showPartialsMode = false
-        showFeedbackExtrasPopup = false
         isFailedSet = false
         val savedProgress = initialDraft?.techniqueProgress
         guidedPhase = savedProgress?.toGuidedPhaseOrNull()
@@ -1358,7 +866,6 @@ internal fun SetInputCardV2(
         } else emptyList()
         scheduledRestRemainingSeconds = savedProgress?.restRemainingSeconds ?: 0
         adjustmentsTab = -1
-        loadModeMenuExpanded = false
 
         val plannedDrop = currentSet?.plannedIntensityTechniques?.firstOrNull {
             it.type == TechniqueType.DROP_SET
@@ -1496,7 +1003,6 @@ internal fun SetInputCardV2(
         scheduledRestPauseDrafts = emptyList()
         scheduledRestRemainingSeconds = 0
         adjustmentsTab = -1
-        loadModeMenuExpanded = false
         timerRunning = false
         timerRemainingSeconds = plannedTarget ?: 0
         timerElapsedSeconds = 0
@@ -1540,14 +1046,6 @@ internal fun SetInputCardV2(
             targetRpe = activePlannedRpe,
         )
     }
-    val intensityCarouselLabels = remember(intensityCarouselItems, isNarrowScreen) {
-        intensityCarouselItems.map { item ->
-            when {
-                item.isFailure -> if (isNarrowScreen) "F" else INTENSITY_CAROUSEL_FAILURE_LABEL
-                else -> item.display
-            }
-        }
-    }
     val intensityCarouselSelectedIndex = intensityCarouselIndexFromState(
         items = intensityCarouselItems,
         reachedFailure = reachedFailure,
@@ -1556,8 +1054,6 @@ internal fun SetInputCardV2(
         plannedRir = activePlannedRir,
         plannedRpe = activePlannedRpe,
     )
-    val repsWheelCenterIndex = remember(exercise.id, setIndex, sideKey) { mutableIntStateOf(0) }
-    val intensityWheelCenterIndex = remember(exercise.id, setIndex, sideKey) { mutableIntStateOf(intensityCarouselSelectedIndex) }
     fun onIntensityCarouselIndexChange(index: Int) {
         if (isFailedSet) return
         val item = intensityCarouselItems.getOrNull(index) ?: return
@@ -1674,19 +1170,6 @@ internal fun SetInputCardV2(
         expectedIntensityValue
     }
     val isExecutionError = isFailedSet
-    val intensityFieldLabel = when {
-        isExecutionError -> "Error"
-        reachedFailure -> "F"
-        reportedIntensityMode == IntensityMode.RIR -> "RIR"
-        reportedIntensityMode == IntensityMode.RPE -> "RPE"
-        else -> ""
-    }
-    val loadFieldLabel = when (loadMode) {
-        LoadModeV2.LOAD -> "Carga (kg)"
-        LoadModeV2.BODYWEIGHT -> "Peso corporal"
-        LoadModeV2.LASTRE -> "Lastre (kg)"
-        LoadModeV2.ASSISTED -> "Asistencia (kg)"
-    }
     val timerTargetSeconds = plannedTarget ?: valueText.toIntOrNull() ?: 0
     val isPrGlobal = lastHomologatedResultV3?.isGlobalPr == true
     val isPrContext = lastHomologatedResultV3?.isContextPr == true
@@ -1736,6 +1219,7 @@ internal fun SetInputCardV2(
     val density = LocalDensity.current
     val workingSetVisualHeightHolder = LocalLivePagerWorkingSetVisualHeightPx.current
     var frontHeightPx by remember { mutableIntStateOf(0) }
+    var panelHeightPx by remember { mutableIntStateOf(0) }
     val flipRotation by animateFloatAsState(
         targetValue = if (cardFace != SetCardFace.Front) 180f else 0f,
         animationSpec = if (isSettledPage) tween(durationMillis = 420) else snap(),
@@ -1768,7 +1252,7 @@ internal fun SetInputCardV2(
                 cameraDistance = 18f * density.density
             },
     ) {
-            Surface(
+            Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .wrapContentHeight()
@@ -1786,11 +1270,6 @@ internal fun SetInputCardV2(
                             else -> 0.dp
                         },
                     ),
-                shape = WorkoutUiTokens.CardShape,
-                color = WorkoutUiTokens.setCardColor(),
-                tonalElevation = 0.dp,
-                shadowElevation = 0.dp,
-                border = BorderStroke(1.dp, Color.White.copy(alpha = 0.08f)),
             ) {
             Column(
                 modifier = Modifier
@@ -1887,10 +1366,8 @@ internal fun SetInputCardV2(
 
             // Ghost 'Última' removed - base container message eliminated
 
-            Surface(
+            Box(
                 modifier = Modifier.fillMaxWidth(),
-                shape = WorkoutUiTokens.InnerCardShape,
-                color = WorkoutUiTokens.setInnerColor(),
             ) {
                 Column(
                     modifier = Modifier.padding(horizontal = 10.dp, vertical = 8.dp),
@@ -1937,437 +1414,264 @@ internal fun SetInputCardV2(
                         )
                     }
 
-                    Box(
-                        modifier = Modifier.fillMaxWidth(),
-                    ) {
-                        IntegratedLoadInput(
-                            value = reportWeightText,
-                            onValueChange = { typed ->
-                                loadMode = loadModeAfterEnteredWeight(loadMode, typed)
-                                updateActiveWeightText(typed)
-                            },
-                            label = loadFieldLabel,
-                            placeholder = if (manualLoadRequiredNow) {
-                                "Carga a elegir"
-                            } else {
-                                LoadSuggestionDisplayPolicy.cardPlaceholderKg(
-                                    weightText = reportWeightText,
-                                    loadMode = loadMode,
-                                    ghostOrPlannedKg = plannedWeightGhost,
-                                )
-                            },
-                            options = quickLoadOptionsFor(
-                                loadMode = loadMode,
-                                currentWeightText = reportWeightText,
-                                suggestedWeight = resolvedWeightSuggestion
-                                    ?.takeIf { suggestion ->
-                                        when {
-                                            isBodyweightLoadSpectrum(loadMode) ->
-                                                suggestion.suggestedLoadMode == null ||
-                                                    isBodyweightLoadSpectrum(suggestion.suggestedLoadMode)
-                                            else ->
-                                                suggestion.suggestedLoadMode == null ||
-                                                    suggestion.suggestedLoadMode == LoadModeV2.LOAD
-                                        }
-                                    }
-                                    ?.suggestedWeight,
-                                suggestedLoadMode = resolvedWeightSuggestion?.suggestedLoadMode,
-                                previousSessionFirstSetWeight = thisSessionPreviousWorkingWeight?.takeIf { it > 0.0 }
-                                    ?: previousSessionFirstSetWeight,
-                                loadIncrementKg = quickLoadIncrementFor(exercise, currentSet),
-                                previousSessionTagLabel = activeTag,
-                            ),
-                            onChipSelected = { option ->
-                                loadMode = loadModeAfterChipSelection(option)
-                                updateActiveWeightText(weightTextAfterChipSelection(option))
-                            },
-                            loadModeMenuExpanded = loadModeMenuExpanded,
-                            onLoadModeMenuOpen = { loadModeMenuExpanded = true },
-                            onLoadModeMenuDismiss = { loadModeMenuExpanded = false },
-                            onLoadModeSelected = { selectedMode ->
-                                when (selectedMode) {
-                                    LoadModeV2.LOAD -> {
-                                        if (loadMode != LoadModeV2.LOAD) updateActiveWeightText("")
-                                        loadMode = LoadModeV2.LOAD
-                                        showBodyWeightPrompt = false
-                                    }
-                                    LoadModeV2.BODYWEIGHT -> {
-                                        loadMode = LoadModeV2.BODYWEIGHT
-                                        updateActiveWeightText("")
-                                        showBodyWeightPrompt = false
-                                    }
-                                    LoadModeV2.LASTRE -> {
-                                        if (loadMode != LoadModeV2.LASTRE) updateActiveWeightText("")
-                                        loadMode = LoadModeV2.LASTRE
-                                        showBodyWeightPrompt = false
-                                    }
-                                    LoadModeV2.ASSISTED -> {
-                                        if (loadMode != LoadModeV2.ASSISTED) updateActiveWeightText("")
-                                        loadMode = LoadModeV2.ASSISTED
-                                        if (bodyWeightText.isBlank()) showBodyWeightPrompt = true
-                                    }
-                                }
-                                loadModeMenuExpanded = false
-                            },
-                            accentColor = sessionAccentColor,
-                            loadMode = loadMode,
-                            inlineChipsInField = exercise.trackRom,
-                        )
-                    }
-
-                    val roomyStepper = supportsIndependentSides || exercise.isInSuperset()
-
-                    @Composable
-                    fun ValueStepperBlock(modifier: Modifier = Modifier) {
-                        Column(
-                            modifier = modifier,
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                        ) {
-                            val maxRepsForPopup = reportValueText.toIntOrNull() ?: 0
-                            val partialRepsValueForPopup = partialSets.sum().coerceAtLeast(0)
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .heightIn(min = 20.dp),
-                                horizontalArrangement = Arrangement.Center,
-                                verticalAlignment = Alignment.CenterVertically,
-                            ) {
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.spacedBy(2.dp),
-                                ) {
-                                    Text(
-                                        (if (isTimeMode) "Tiempo" else "Reps").uppercase(),
-                                        style = MaterialTheme.typography.labelSmall,
-                                        fontWeight = FontWeight.Bold,
-                                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.60f),
-                                    )
-                                    if (!isTimeMode) {
-                                        Box(
-                                            modifier = Modifier
-                                                .size(16.dp)
-                                                .clip(CircleShape)
-                                                .clickable { showFeedbackExtrasPopup = !showFeedbackExtrasPopup },
-                                            contentAlignment = Alignment.Center,
-                                        ) {
-                                            Icon(
-                                                Icons.Default.Add,
-                                                contentDescription = "Añadir reps con ayuda o parciales",
-                                                modifier = Modifier.size(12.dp),
-                                                tint = sessionAccentColor,
-                                            )
-                                            if (showFeedbackExtrasPopup) {
-                                                Popup(
-                                                    alignment = Alignment.TopStart,
-                                                    offset = IntOffset(0, 28),
-                                                    onDismissRequest = { showFeedbackExtrasPopup = false },
-                                                    properties = PopupProperties(focusable = true),
-                                                ) {
-                                                    Surface(
-                                                        modifier = Modifier.width(264.dp),
-                                                        shape = RoundedCornerShape(16.dp),
-                                                        color = Color(0xFF1F1F1F),
-                                                        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.12f)),
-                                                        shadowElevation = 14.dp,
-                                                    ) {
-                                                        Column(
-                                                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
-                                                            verticalArrangement = Arrangement.spacedBy(8.dp),
-                                                        ) {
-                                                            Text(
-                                                                "Detalles de reps",
-                                                                style = MaterialTheme.typography.labelMedium,
-                                                                fontWeight = FontWeight.Bold,
-                                                                color = Color.White.copy(alpha = 0.72f),
-                                                            )
-                                                            FeedbackExtraStepperRow(
-                                                                label = "Con ayuda",
-                                                                value = assistedRepsValue,
-                                                                maxValue = maxRepsForPopup,
-                                                                accentColor = sessionAccentColor,
-                                                                onDecrement = { assistedRepsValue = (assistedRepsValue - 1).coerceAtLeast(0) },
-                                                                onIncrement = { assistedRepsValue = (assistedRepsValue + 1).coerceAtMost(maxRepsForPopup) },
-                                                            )
-                                                            FeedbackExtraStepperRow(
-                                                                label = "Parciales",
-                                                                value = partialRepsValueForPopup,
-                                                                maxValue = 20,
-                                                                accentColor = sessionAccentColor,
-                                                                onDecrement = {
-                                                                    val next = (partialRepsValueForPopup - 1).coerceAtLeast(0)
-                                                                    partialSets = listOf(next)
-                                                                    if (next == 0) showPartialsMode = false
-                                                                },
-                                                                onIncrement = {
-                                                                    showPartialsMode = true
-                                                                    partialSets = listOf((partialRepsValueForPopup + 1).coerceAtMost(20))
-                                                                },
-                                                            )
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                            Spacer(modifier = Modifier.height(if (roomyStepper) 8.dp else 6.dp))
-
-                            if (isTimeMode) {
-                                WorkoutStepperField(
-                                    value = if (isFailedSet) "0" else reportValueText,
-                                    onValueChange = { if (!isFailedSet) updateActiveValueText(it.filter { ch -> ch.isDigit() }) },
-                                    onDecrement = {
-                                        val ghostBase = if (supportsIndependentSides) {
-                                            if (selectedSide == "left") leftValueGhost else rightValueGhost
-                                        } else {
-                                            plannedValueGhost
-                                        }
-                                        val current = reportValueText.toIntOrNull()
-                                            ?: ghostBase.toIntOrNull()
-                                            ?: 0
-                                        updateActiveValueText((current - 1).coerceAtLeast(0).toString())
-                                    },
-                                    onIncrement = {
-                                        val ghostBase = if (supportsIndependentSides) {
-                                            if (selectedSide == "left") leftValueGhost else rightValueGhost
-                                        } else {
-                                            plannedValueGhost
-                                        }
-                                        val current = reportValueText.toIntOrNull()
-                                            ?: ghostBase.toIntOrNull()
-                                            ?: 0
-                                        updateActiveValueText((current + 1).toString())
-                                    },
-                                    buttonsEnabled = !isFailedSet,
-                                    textInputEnabled = !isFailedSet,
-                                    isError = isFailedSet,
-                                    textStyle = MaterialTheme.typography.titleLarge,
-                                    accentColor = sessionAccentColor,
-                                    roomier = roomyStepper,
-                                    placeholder = if (supportsIndependentSides) {
-                                        if (selectedSide == "left") leftValueGhost else rightValueGhost
-                                    } else {
-                                        plannedValueGhost
-                                    }.takeIf { it.isNotBlank() },
-                                    modifier = Modifier.fillMaxWidth(),
-                                )
-                            } else {
-                                val ghostBase = if (supportsIndependentSides) {
-                                    if (selectedSide == "left") leftValueGhost else rightValueGhost
-                                } else {
-                                    plannedValueGhost
-                                }
-                                val ghostReps = ghostBase.toIntOrNull() ?: 0
-                                val currentReps = if (isFailedSet) 0 else reportValueText.toIntOrNull() ?: ghostReps
-                                val repsMax = buildRepsCarouselMax(currentReps, ghostReps)
-                                val repsItems = remember(repsMax) { (0..repsMax).map { it.toString() } }
-                                val repsSelectedIndex = repsCarouselIndexFromValue(
-                                    if (isFailedSet) "0" else reportValueText.ifBlank { ghostBase },
-                                    repsMax,
-                                )
-                                val repsCarouselTone = carouselToneForRepEvaluation(
-                                    evaluateRepRange(
-                                        actual = currentReps.toDouble(),
-                                        range = plannedRepRange ?: plannedTarget?.toInt()?.let { RepRange(it, it) },
-                                        amrapActive = isAmrap,
-                                        amrapMinimum = amrapMinimumReps,
-                                    ),
-                                ).let { tone ->
-                                    if (reportValueText.isBlank() && !isFailedSet) CarouselValueTone.OnPlan else tone
-                                }
-                                WorkoutHorizontalWheelPicker(
-                                    items = repsItems,
-                                    selectedIndex = repsSelectedIndex,
-                                    onSelectedIndexChange = { index ->
-                                        if (!isFailedSet) updateActiveValueText(index.toString())
-                                    },
-                                    enabled = !isFailedSet,
-                                    isError = isFailedSet,
-                                    accentColor = sessionAccentColor,
-                                    roomier = roomyStepper,
-                                    centerGlowColor = carouselGlowForTone(repsCarouselTone, sessionAccentColor),
-                                    centeredIndexHolder = repsWheelCenterIndex,
-                                    modifier = Modifier.fillMaxWidth(),
-                                )
-                            }
-
-                            if (isTimeMode) {
-                                Spacer(modifier = Modifier.height(if (roomyStepper) 8.dp else 6.dp))
-                                Box(
-                                    modifier = Modifier.size(32.dp).clickable {
-                                        if (timerRunning) {
-                                            timerRunning = false
-                                            if (timerElapsedSeconds > 0) {
-                                                updateActiveValueText(timerElapsedSeconds.toString())
-                                            }
-                                        } else if (timerTargetSeconds > 0) {
-                                            timerElapsedSeconds = 0
-                                            timerRemainingSeconds = timerTargetSeconds
-                                            timerRunning = true
-                                        }
-                                    },
-                                    contentAlignment = Alignment.Center,
-                                ) {
-                                    Icon(
-                                        if (timerRunning) Icons.Default.Stop else Icons.Default.PlayArrow,
-                                        contentDescription = if (timerRunning) "Detener" else "Iniciar",
-                                        modifier = Modifier.size(18.dp),
-                                        tint = if (timerRunning) sessionAccentColor else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
-                                    )
-                                }
-                            }
-                        }
-                    }
-
-                    @Composable
-                    fun IntensityStepperBlock(modifier: Modifier = Modifier) {
-                        Column(
-                            modifier = modifier,
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                        ) {
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .heightIn(min = 20.dp),
-                                horizontalArrangement = Arrangement.Center,
-                                verticalAlignment = Alignment.CenterVertically,
-                            ) {
-                                Text(
-                                    intensityFieldLabel.uppercase(),
-                                    style = MaterialTheme.typography.labelSmall,
-                                    fontWeight = FontWeight.Bold,
-                                    color = when {
-                                        isExecutionError -> MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)
-                                        reachedFailure -> MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)
-                                        else -> MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-                                    },
-                                )
-                            }
-                            Spacer(modifier = Modifier.height(if (roomyStepper) 8.dp else 6.dp))
-
-                            if (isExecutionError) {
-                                WorkoutHorizontalWheelPicker(
-                                    items = listOf("Error"),
-                                    selectedIndex = 0,
-                                    onSelectedIndexChange = {},
-                                    enabled = false,
-                                    isError = true,
-                                    accentColor = sessionAccentColor,
-                                    roomier = roomyStepper,
-                                    modifier = Modifier.fillMaxWidth(),
-                                )
-                            } else {
-                                val intensityTone = carouselToneForIntensityFeedback(
-                                    isExecutionError = isExecutionError,
-                                    reachedFailure = reachedFailure,
-                                    difficultyLabel = difficultyLabel,
-                                    intensityDelta = intensityDelta,
-                                    matchesPlanned = intensityText.isBlank() && !reachedFailure,
-                                )
-                                WorkoutHorizontalWheelPicker(
-                                    items = intensityCarouselLabels,
-                                    selectedIndex = intensityCarouselSelectedIndex,
-                                    onSelectedIndexChange = { onIntensityCarouselIndexChange(it) },
-                                    enabled = true,
-                                    isError = reachedFailure,
-                                    accentColor = sessionAccentColor,
-                                    roomier = roomyStepper,
-                                    centerGlowColor = carouselGlowForTone(intensityTone, sessionAccentColor),
-                                    centeredIndexHolder = intensityWheelCenterIndex,
-                                    modifier = Modifier.fillMaxWidth(),
-                                )
-                            }
-                        }
-                    }
-
-                    if (hasPlannedIntensityInput) {
-                        BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
-                            // El ancho de la tarjeta (con peek), no el viewport: en vivo
-                            // cada carta es más estrecha que la pantalla.
-                            val stackSteppers = maxWidth < 360.dp
-                            if (stackSteppers) {
-                                Column(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    verticalArrangement = Arrangement.spacedBy(
-                                        if (roomyStepper) 12.dp else 10.dp,
-                                    ),
-                                ) {
-                                    ValueStepperBlock(Modifier.fillMaxWidth())
-                                    IntensityStepperBlock(Modifier.fillMaxWidth())
-                                }
-                            } else {
-                                Row(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.spacedBy(
-                                        if (roomyStepper) 18.dp else 12.dp
-                                    ),
-                                    verticalAlignment = Alignment.Top,
-                                ) {
-                                    ValueStepperBlock(Modifier.weight(1f))
-                                    IntensityStepperBlock(Modifier.weight(1f))
-                                }
-                            }
-                        }
+                    val loadModeOrder = listOf(LoadModeV2.LOAD, LoadModeV2.BODYWEIGHT, LoadModeV2.LASTRE, LoadModeV2.ASSISTED)
+                    val plannedSetCount = exercise.sets.count { !it.isEmptySlot }.coerceAtLeast(1)
+                    val intensityScaleKind = if ((reportedIntensityMode ?: plannedIntensityMode) == IntensityMode.RPE) {
+                        WorkoutIntensityScale.RPE
                     } else {
-                        // A set without a planned intensity only asks for its
-                        // objective value. The friendly perceived-intensity
-                        // slider appears after the exercise instead.
-                        ValueStepperBlock(
-                            Modifier
-                                .fillMaxWidth(fraction = 0.72f)
-                                .widthIn(max = 280.dp)
-                                .align(Alignment.CenterHorizontally),
-                        )
+                        WorkoutIntensityScale.RIR
                     }
-
-                    if (exercise.trackRom) {
-                        Spacer(modifier = Modifier.height(6.dp))
-                        RomReportSlider(
-                            value = romValue ?: DEFAULT_ROM_PERCENT,
-                            onValueChange = { romValue = it },
-                            accentColor = sessionAccentColor,
+                    val valueGhostBase = if (supportsIndependentSides) {
+                        if (selectedSide == "left") leftValueGhost else rightValueGhost
+                    } else {
+                        plannedValueGhost
+                    }
+                    val shownValue = if (isFailedSet) "0" else reportValueText.ifBlank { valueGhostBase }
+                    val valueShown = if (isTimeMode) {
+                        shownValue.toIntOrNull()?.let { formatTime(it) } ?: "—"
+                    } else {
+                        shownValue.ifBlank { "—" }
+                    }
+                    val loadShown = reportWeightText.ifBlank { "—" }
+                    val suggestionShown = suggestedWeightText?.replace('.', ',')
+                    val intensitySpoken = when {
+                        reachedFailure -> "Fallo"
+                        intensityText.isNotBlank() -> "${intensityScaleKind.name} ${intensityText.replace('.', ',')}"
+                        else -> null
+                    }
+                    val summaryParts = listOfNotNull(
+                        "Serie ${setIndex + 1} de $plannedSetCount",
+                        if (loadShown == "—") "Sin carga" else "$loadShown kilos",
+                        if (isTimeMode) valueShown else "$valueShown repeticiones",
+                        intensitySpoken,
+                    )
+                    fun selectLoadModeAt(index: Int) {
+                        when (loadModeOrder.getOrNull(index)) {
+                            LoadModeV2.LOAD -> {
+                                if (loadMode != LoadModeV2.LOAD) updateActiveWeightText("")
+                                loadMode = LoadModeV2.LOAD
+                                showBodyWeightPrompt = false
+                            }
+                            LoadModeV2.BODYWEIGHT -> {
+                                loadMode = LoadModeV2.BODYWEIGHT
+                                updateActiveWeightText("")
+                                showBodyWeightPrompt = false
+                            }
+                            LoadModeV2.LASTRE -> {
+                                if (loadMode != LoadModeV2.LASTRE) updateActiveWeightText("")
+                                loadMode = LoadModeV2.LASTRE
+                                showBodyWeightPrompt = false
+                            }
+                            LoadModeV2.ASSISTED -> {
+                                if (loadMode != LoadModeV2.ASSISTED) updateActiveWeightText("")
+                                loadMode = LoadModeV2.ASSISTED
+                                if (bodyWeightText.isBlank()) showBodyWeightPrompt = true
+                            }
+                            else -> Unit
+                        }
+                    }
+                    fun stepLoad(delta: Double) {
+                        val base = reportWeightText.replace(',', '.').toDoubleOrNull()
+                            ?: plannedWeightGhost?.toDoubleOrNull()
+                            ?: 0.0
+                        val text = (base + delta).coerceAtLeast(0.0).toTrimmedNumberString()
+                        loadMode = loadModeAfterEnteredWeight(loadMode, text)
+                        updateActiveWeightText(text)
+                    }
+                    fun stepValue(delta: Double) {
+                        if (isFailedSet) return
+                        val current = reportValueText.toIntOrNull() ?: valueGhostBase.toIntOrNull() ?: 0
+                        updateActiveValueText((current + delta.roundToInt()).coerceAtLeast(0).toString())
+                    }
+                    fun secondsFromTyped(typed: String): String? {
+                        val seconds = if (':' in typed) {
+                            val minutes = typed.substringBefore(':').toIntOrNull()
+                            val rest = typed.substringAfter(':').toIntOrNull()
+                            if (minutes == null || rest == null) null else minutes * 60 + rest
+                        } else {
+                            typed.toIntOrNull()
+                        }
+                        return seconds?.toString()
+                    }
+                    val advancedContent: @Composable () -> Unit = {
+                        Column(
                             modifier = Modifier.fillMaxWidth(),
-                        )
-                    }
-
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(6.dp),
-                    ) {
-                        Surface(
-                            onClick = { cardFace = SetCardFace.Technique },
-                            modifier = Modifier.weight(1f),
-                            shape = WorkoutUiTokens.InnerCardShape,
-                            color = Color(0xFF2E2E2E),
+                            verticalArrangement = Arrangement.spacedBy(12.dp),
                         ) {
-                            Text(
-                                text = "Opciones avanzadas",
-                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 8.dp),
-                                style = MaterialTheme.typography.labelSmall,
-                                fontWeight = FontWeight.Medium,
-                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.78f),
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis,
+                            if (exercise.trackRom) {
+                                RomReportSlider(
+                                    value = romValue ?: DEFAULT_ROM_PERCENT,
+                                    onValueChange = { romValue = it },
+                                    accentColor = sessionAccentColor,
+                                    modifier = Modifier.fillMaxWidth(),
+                                )
+                            }
+                            // Repeticiones con ayuda o parciales: antes, el «+» junto a REPS.
+                            FeedbackExtraStepperRow(
+                                label = "Con ayuda",
+                                value = assistedRepsValue,
+                                maxValue = reportValueText.toIntOrNull() ?: 0,
+                                accentColor = sessionAccentColor,
+                                onDecrement = { assistedRepsValue = (assistedRepsValue - 1).coerceAtLeast(0) },
+                                onIncrement = {
+                                    assistedRepsValue = (assistedRepsValue + 1).coerceAtMost(reportValueText.toIntOrNull() ?: 0)
+                                },
                             )
-                        }
-                        Surface(
-                            onClick = { cardFace = SetCardFace.ExerciseMedia },
-                            modifier = Modifier.weight(1f),
-                            shape = WorkoutUiTokens.InnerCardShape,
-                            color = Color(0xFF2E2E2E),
-                        ) {
-                            Text(
-                                text = "Ver ejercicio/Fotos",
-                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 8.dp),
-                                style = MaterialTheme.typography.labelSmall,
-                                fontWeight = FontWeight.Medium,
-                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.78f),
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis,
+                            FeedbackExtraStepperRow(
+                                label = "Parciales",
+                                value = partialSets.sum().coerceAtLeast(0),
+                                maxValue = 20,
+                                accentColor = sessionAccentColor,
+                                onDecrement = {
+                                    val next = (partialSets.sum() - 1).coerceAtLeast(0)
+                                    partialSets = listOf(next)
+                                    if (next == 0) showPartialsMode = false
+                                },
+                                onIncrement = {
+                                    showPartialsMode = true
+                                    partialSets = listOf((partialSets.sum() + 1).coerceAtMost(20))
+                                },
                             )
+                            // El reverso de técnica tal cual, con la altura del panel (como el giro de antes).
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .then(
+                                        if (panelHeightPx > 0) {
+                                            Modifier.height(with(density) { panelHeightPx.toDp() })
+                                        } else {
+                                            Modifier.wrapContentHeight()
+                                        },
+                                    ),
+                            ) {
+                                SetCardTechniqueBack(
+                                    currentSet = currentSet,
+                                    coverWeightLabel = if (reportWeightText.isBlank()) "—" else "${reportWeightText} kg",
+                                    coverValueLabel = if (isTimeMode) {
+                                        if (reportValueText.isBlank()) "—" else "${reportValueText}s"
+                                    } else {
+                                        if (reportValueText.isBlank()) "—" else "${reportValueText} reps"
+                                    },
+                                    coverIntensityLabel = intensityText.takeIf { it.isNotBlank() }?.let { "Int. $it" },
+                                    mainWeight = reportWeightText.toDoubleOrNull() ?: 0.0,
+                                    mainReps = reportValueText.toDoubleOrNull()?.roundToInt() ?: 0,
+                                    sessionAccentColor = sessionAccentColor,
+                                    isFailedSet = isFailedSet,
+                                    onFailedSetChange = { failed ->
+                                        isFailedSet = failed
+                                        if (failed) {
+                                            triggerFailureHaptic(context)
+                                            triggerFailureSound(context)
+                                            reachedFailure = false
+                                        }
+                                    },
+                                    onFlipBack = { advancedOpen = false },
+                                    noteText = setNoteText,
+                                    onNoteChange = { setNoteText = it },
+                                    initialDropEnabled = dropSetEnabled,
+                                    initialRestPauseEnabled = restPauseEnabled,
+                                    onDropEnabledChange = { enabled ->
+                                        dropSetEnabled = enabled
+                                        if (enabled) restPauseEnabled = false
+                                    },
+                                    onRestPauseEnabledChange = { enabled ->
+                                        restPauseEnabled = enabled
+                                        if (enabled) dropSetEnabled = false
+                                    },
+                                    showPrMediaShortcut = LiveSetPrPolicy.shouldShowMediaShortcut(isPrSeries),
+                                    onOpenPrMedia = { cardFace = SetCardFace.ExerciseMedia },
+                                    onCompleteTechniques = { drops, pauses ->
+                                        dropSetEnabled = drops.isNotEmpty() || dropSetEnabled
+                                        dropSets = drops.map { DropSetEntry(weight = it.weight, reps = it.reps) }.ifEmpty {
+                                            listOf(DropSetEntry(0.0, 0))
+                                        }
+                                        restPauseEnabled = pauses.isNotEmpty() || restPauseEnabled
+                                        restPauseSets = pauses.ifEmpty { listOf(RestPauseData(restTime = RestPausePlanDefaults.PauseSeconds, reps = 0)) }
+                                        advancedOpen = false
+                                    },
+                                )
+                            }
                         }
                     }
+                    // El cronómetro de la serie por tiempo (el de antes): iniciar, y al detener, registrar lo transcurrido.
+                    fun toggleCardTimer() {
+                        if (timerRunning) {
+                            timerRunning = false
+                            if (timerElapsedSeconds > 0) updateActiveValueText(timerElapsedSeconds.toString())
+                        } else if (timerTargetSeconds > 0) {
+                            timerElapsedSeconds = 0
+                            timerRemainingSeconds = timerTargetSeconds
+                            timerRunning = true
+                        }
+                    }
+                    WorkoutSetPanel(
+                        eyebrow = "Serie ${setIndex + 1} de $plannedSetCount",
+                        summary = summaryParts.joinToString(", "),
+                        loadValue = loadShown,
+                        loadStep = quickLoadIncrementFor(exercise, currentSet),
+                        onLoadStep = { delta -> stepLoad(delta) },
+                        onLoadCommit = { typed ->
+                            loadMode = loadModeAfterEnteredWeight(loadMode, typed)
+                            updateActiveWeightText(typed)
+                        },
+                        valueLabel = if (isTimeMode) "TIEMPO" else "REPS",
+                        valueText = valueShown,
+                        valueStep = if (isTimeMode) 5.0 else 1.0,
+                        onValueStep = { delta -> stepValue(delta) },
+                        onValueCommit = { typed ->
+                            if (!isFailedSet) {
+                                val text = if (isTimeMode) secondsFromTyped(typed) else typed.filter { it.isDigit() }
+                                if (text != null) updateActiveValueText(text)
+                            }
+                        },
+                        timeMode = isTimeMode,
+                        intensityScale = if (hasPlannedIntensityInput && !isExecutionError) intensityScaleKind else null,
+                        // Sin elegir, se ve y se guarda lo que marcaba la rueda: la opción por defecto de la carga.
+                        intensitySelected = if (reachedFailure) {
+                            null
+                        } else {
+                            intensityText.replace(',', '.').toDoubleOrNull()
+                                ?: intensityCarouselItems.getOrNull(intensityCarouselSelectedIndex)?.takeIf { !it.isFailure }?.numericValue
+                        },
+                        intensityFailure = reachedFailure,
+                        onIntensitySelect = { value ->
+                            val index = intensityCarouselItems.indexOfFirst { !it.isFailure && it.numericValue == value }
+                            if (index >= 0) onIntensityCarouselIndexChange(index)
+                        },
+                        onToggleFailure = {
+                            val failureIndex = intensityCarouselItems.indexOfFirst { it.isFailure }
+                            if (!reachedFailure && failureIndex >= 0) {
+                                onIntensityCarouselIndexChange(failureIndex)
+                            } else {
+                                intensityTouched = true
+                                reachedFailure = false
+                                intensityText = ""
+                            }
+                        },
+                        suggestion = suggestionShown?.let { "$it kg" },
+                        suggestionApplied = resolvedWeightSuggestion != null && reportWeightText == suggestedWeightText,
+                        suggestionReason = resolvedWeightSuggestion?.reason,
+                        onUseSuggestion = {
+                            resolvedWeightSuggestion?.suggestedLoadMode?.let { loadMode = it }
+                            updateActiveWeightText(suggestedWeightText.orEmpty())
+                        },
+                        modeLabels = listOf("Carga", "Peso corporal", "Lastre", "Asistencia"),
+                        modeSelected = loadModeOrder.indexOf(loadMode),
+                        onModeSelected = { index -> selectLoadModeAt(index) },
+                        advancedOpen = advancedOpen,
+                        onToggleAdvanced = { advancedOpen = !advancedOpen },
+                        advanced = advancedContent,
+                        timerRunning = timerRunning,
+                        onTimerToggle = if (isTimeMode) ::toggleCardTimer else null,
+                        modifier = Modifier.onSizeChanged { size ->
+                            if (!advancedOpen && size.height > 0) panelHeightPx = size.height
+                        },
+                    )
+                    // «Ver ejercicio/Fotos» queda a la vista, fuera de lo plegado: la vía a los medios hasta que llegue la hoja de técnica.
+                    KpknTextAction(
+                        text = "Ver ejercicio/Fotos",
+                        onClick = { cardFace = SetCardFace.ExerciseMedia },
+                    )
 
                 }
             }
@@ -3045,30 +2349,13 @@ internal fun SetInputCardV2(
                             plannedValueGhost
                         }
                         val weightGhost = if (manualLoadRequiredNow) "" else plannedWeightGhost.orEmpty()
-                        if (!isTimeMode && !isFailedSet) {
-                            val repsMax = buildRepsCarouselMax(
-                                currentValue = rawReportedValueText.toIntOrNull() ?: valueGhost.toIntOrNull() ?: 0,
-                                ghostValue = valueGhost.toIntOrNull(),
-                            )
-                            val centeredRepsIndex = effectiveCarouselSelectedIndex(
-                                selectedIndex = repsCarouselIndexFromValue(
-                                    rawReportedValueText.ifBlank { valueGhost },
-                                    repsMax,
-                                ),
-                                centeredIndex = repsWheelCenterIndex.intValue,
-                                itemCount = repsMax + 1,
-                            )
-                            updateActiveValueText(centeredRepsIndex.toString())
+                        if (!isTimeMode && !isFailedSet && rawReportedValueText.isBlank() && valueGhost.isNotBlank()) {
+                            updateActiveValueText(valueGhost)
                         }
                         if (!isFailedSet && hasPlannedIntensityInput && intensityCarouselItems.isNotEmpty() &&
                             !(isRmLoadPrescription && reportedIntensityMode == null && !reachedFailure)
                         ) {
-                            val centeredIntensityIndex = effectiveCarouselSelectedIndex(
-                                selectedIndex = intensityCarouselSelectedIndex,
-                                centeredIndex = intensityWheelCenterIndex.intValue,
-                                itemCount = intensityCarouselItems.size,
-                            )
-                            onIntensityCarouselIndexChange(centeredIntensityIndex)
+                            onIntensityCarouselIndexChange(intensityCarouselSelectedIndex)
                         }
                         val syncedValueText = reportingSide?.let { valueTextForSide(it) } ?: valueText
                         val syncedWeightText = reportingSide?.let { weightTextForSide(it) } ?: weightText
@@ -3122,7 +2409,7 @@ internal fun SetInputCardV2(
                                 items = intensityCarouselItems,
                                 selectedIndex = effectiveCarouselSelectedIndex(
                                     selectedIndex = intensityCarouselSelectedIndex,
-                                    centeredIndex = intensityWheelCenterIndex.intValue,
+                                    centeredIndex = intensityCarouselSelectedIndex,
                                     itemCount = intensityCarouselItems.size,
                                 ),
                             )

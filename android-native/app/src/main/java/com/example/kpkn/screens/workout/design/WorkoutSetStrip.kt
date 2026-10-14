@@ -1,8 +1,10 @@
 package com.example.kpkn.screens.workout.design
 
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -54,6 +56,7 @@ fun WorkoutSetStrip(
     onOpen: (id: String) -> Unit,
     modifier: Modifier = Modifier,
     onAdd: (() -> Unit)? = null,
+    onLongOpen: ((id: String) -> Unit)? = null,
 ) {
     val reduced = wizardReducedMotion()
     val listState = rememberLazyListState()
@@ -71,7 +74,11 @@ fun WorkoutSetStrip(
         horizontalArrangement = Arrangement.spacedBy(6.dp, Alignment.CenterHorizontally),
     ) {
         items(dots, key = { it.id }) { dot ->
-            SetDotItem(dot = dot, onClick = { onOpen(dot.id) })
+            SetDotItem(
+                dot = dot,
+                onClick = { onOpen(dot.id) },
+                onLongClick = onLongOpen?.let { long -> { long(dot.id) } },
+            )
         }
         if (onAdd != null) {
             item(key = "add-serie") {
@@ -82,8 +89,9 @@ fun WorkoutSetStrip(
 }
 
 /** Un círculo con su dato debajo. Toda la columna es un botón y se lee como una frase. */
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
-private fun SetDotItem(dot: WorkoutSetDot, onClick: () -> Unit) {
+private fun SetDotItem(dot: WorkoutSetDot, onClick: () -> Unit, onLongClick: (() -> Unit)?) {
     val description = dotDescription(dot)
     Column(
         modifier = Modifier
@@ -91,7 +99,7 @@ private fun SetDotItem(dot: WorkoutSetDot, onClick: () -> Unit) {
                 this.contentDescription = description
                 role = Role.Button
             }
-            .clickable(role = Role.Button, onClick = onClick),
+            .combinedClickable(role = Role.Button, onClick = onClick, onLongClick = onLongClick),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Box(modifier = Modifier.size(48.dp), contentAlignment = Alignment.Center) {

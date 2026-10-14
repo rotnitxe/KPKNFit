@@ -26,9 +26,7 @@ import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.example.kpkn.screens.onboarding.design.WizardColors
-import com.example.kpkn.screens.workout.workoutHeaderTitleFontScale
 import com.example.kpkn.ui.components.icons.KpknLineIcons
 import com.example.kpkn.ui.design.KpknIconButton
 import com.example.kpkn.ui.design.KpknShape
@@ -36,10 +34,6 @@ import com.example.kpkn.ui.design.KpknSurface
 import com.example.kpkn.ui.design.KpknType
 import androidx.compose.material3.Text
 import java.util.Locale
-
-/** Tamaño del nombre del ejercicio: `display` (32 sp) que se encoge, nunca por debajo de 24 sp. */
-private const val NameMaxSp = 32f
-private const val NameMinSp = 24f
 
 /**
  * Cabecera del ejercicio (LS2a, §2 punto 3). Una fila con el eyebrow («EJERCICIO 3 DE 6 · TORSO A») a la izquierda y, a la derecha,
@@ -63,8 +57,6 @@ fun WorkoutExerciseHeader(
     onChangeExercise: (() -> Unit)? = null,
 ) {
     var optionsBounds by remember { mutableStateOf(Rect.Zero) }
-    val scale = workoutHeaderTitleFontScale(name.length)
-    val nameSp = (NameMaxSp * scale).coerceIn(NameMinSp, NameMaxSp)
     Column(modifier = modifier.fillMaxWidth().padding(horizontal = 16.dp)) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -96,11 +88,11 @@ fun WorkoutExerciseHeader(
             )
         }
         // Dos líneas como máximo y sin cortar palabras: si el nombre no cabe, se recorta en el último espacio visible y se pone «…».
-        var keep by remember(name, nameSp) { mutableStateOf(name.length) }
+        var keep by remember(name) { mutableStateOf(name.length) }
         val shownName = if (keep >= name.length) name else name.take(keep).trimEnd() + "…"
         Text(
             text = shownName,
-            style = KpknType.display.copy(fontSize = nameSp.sp, lineHeight = (nameSp + 4f).sp),
+            style = KpknType.title,
             color = WizardColors.text,
             maxLines = 2,
             overflow = TextOverflow.Clip,

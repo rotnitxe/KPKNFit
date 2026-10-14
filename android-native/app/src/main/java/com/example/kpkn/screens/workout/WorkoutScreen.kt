@@ -42,7 +42,11 @@ import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.ime
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -180,8 +184,9 @@ import com.example.kpkn.ui.tour.TourAnchors
 import com.example.kpkn.ui.tour.TourIds
 import com.example.kpkn.ui.tour.TourScripts
 import com.example.kpkn.ui.tour.tourAnchor
-import com.example.kpkn.screens.workout.components.WorkoutRecordFab
 import com.example.kpkn.screens.workout.design.WorkoutBottomIsland
+import com.example.kpkn.screens.workout.design.WorkoutRecordPill
+import com.example.kpkn.screens.workout.design.WorkoutSetStrip
 import com.example.kpkn.screens.workout.design.WorkoutLoadingFrame
 import com.example.kpkn.screens.onboarding.design.WizardColors
 import com.example.kpkn.ui.design.KpknModule
@@ -320,7 +325,8 @@ fun WorkoutScreen(
     val targetDockBottomClearance = resolveDockBottomClearanceDp(
         measuredRoadmapHeightDp = measuredRoadmapHeightDp.takeIf { it > 0 },
         roadmapExpanded = roadmapMode == RoadmapMode.EXPANDED,
-        compactHeightDp = compactCockpitHeightDp,
+        // En compacto, la página deja sitio también para «Registrar serie», que va entre la tira y la isla.
+        compactHeightDp = compactCockpitHeightDp + if (roadmapMode == RoadmapMode.COMPACT) WORKOUT_RECORD_PILL_SLOT_DP else 0,
     ).dp
     val dockBottomClearance by animateDpAsState(
         targetValue = targetDockBottomClearance,
@@ -1117,25 +1123,44 @@ fun WorkoutScreen(
                         ) { selectionClearNonce++ },
                 )
             }
-            // La tira de series (LS2a): va encima de la isla en el modo compacto y encima de la ruta en el expandido.
+            // La tira de series (LS2b): círculos por serie con su dato, encima de «Registrar serie» y la isla en el compacto.
             val setStripSlot: @Composable () -> Unit = {
                 val stepper = liveSetStepperHolder.snapshot
                 if (stepper != null) {
-                    WorkoutSetPager(
-                        modifier = Modifier,
-                        elements = stepper.elements,
-                        activeElementIndex = stepper.activeElementIndex,
-                        completedCount = stepper.completedCount,
-                        totalCount = stepper.totalCount,
-                        sessionAccentColor = stepper.sessionAccentColor,
-                        onSelectPage = { liveSetStepperHolder.onSelectPage(it) },
-                        onAddSet = if (stepper.canAddSet) {
+                    WorkoutSetStrip(
+                        dots = toWorkoutSetDots(
+                            elements = stepper.elements,
+                            activeElementIndex = stepper.activeElementIndex,
+                        ),
+                        onOpen = { id -> id.removePrefix("page-").toIntOrNull()?.let { liveSetStepperHolder.onSelectPage(it) } },
+                        onAdd = if (stepper.canAddSet) {
                             { liveSetStepperHolder.onAddSet?.invoke() }
                         } else {
                             null
                         },
-                        onLongPressPage = { liveSetStepperHolder.onLongPressPage?.invoke(it) },
-                        onNavigateAdjacentExercise = liveSetStepperHolder.onNavigateAdjacentExercise,
+                        onLongOpen = liveSetStepperHolder.onLongPressPage?.let { longPress ->
+                            { id: String -> id.removePrefix("page-").toIntOrNull()?.let(longPress) }
+                        },
+                    )
+                }
+            }
+            // «Registrar serie» (LS2b): la misma condición y la misma acción que el botón redondo que sustituye.
+            val recordPillSlot: @Composable () -> Unit = {
+                if (recordFabHolder.visible) {
+                    val activeRecordAction = recordActionHolder.actionForPage(recordFabHolder.activePageKey)
+                    WorkoutRecordPill(
+                        label = if (recordFabHolder.isUpdateMode) "Actualizar serie" else "Registrar serie",
+                        enabled = canStartWorkoutRecording(uiState) && canInvokeWorkoutRecordFab(
+                            hasActivePageAction = activeRecordAction != null,
+                            isRecording = uiState.recordingSetKey != null,
+                            isFinishing = uiState.isFinishingWorkout,
+                            isCancelling = uiState.isCancellingWorkout,
+                            startPersistenceError = uiState.startPersistenceError,
+                            isComplete = uiState.isComplete,
+                            finishSheetOpen = uiState.showFinishSheet,
+                        ),
+                        onRecord = { recordActionHolder.actionForPage(recordFabHolder.activePageKey)?.invoke() },
+                        modifier = Modifier.padding(vertical = 8.dp),
                     )
                 }
             }
@@ -1156,7 +1181,8 @@ fun WorkoutScreen(
                     modifier = Modifier
                         .align(Alignment.BottomCenter)
                         .fillMaxWidth()
-                        .navigationBarsPadding()
+                        // Con el teclado abierto, el pie sube hasta su borde (WindowInsets.ime); sin él, la barra de navegación.
+                        .windowInsetsPadding(WindowInsets.navigationBars.union(WindowInsets.ime))
                         .padding(horizontal = 12.dp, vertical = 8.dp)
                         .zIndex(5f)
                         .background(Color.Transparent),
@@ -1243,42 +1269,26 @@ fun WorkoutScreen(
                             onToggleChecklistItem = { viewModel.toggleSessionChecklistItem(it) },
                             onRemoveChecklistItem = { viewModel.removeSessionChecklistItem(it) },
                             bodyWeight = viewModel.currentBodyWeight(),
-                            aboveCarousel = setStripSlot,
+                            aboveCarousel = { setStripSlot(); recordPillSlot() },
                         )
                     } else {
-                        // Modo compacto (LS2a): la isla inferior sustituye al dock del roadmap; la tira queda encima.
-                        Column(modifier = Modifier.fillMaxWidth()) {
-                            setStripSlot()
-                            WorkoutBottomIsland(
-                                previousEnabled = uiState.currentExerciseIdx > 0,
-                                nextLabel = nextExerciseLabel,
-                                onPrevious = { stepExercise(forward = false) },
-                                onNext = { stepExercise(forward = true) },
-                                onOpenRoute = { roadmapMode = RoadmapMode.EXPANDED },
-                                modifier = Modifier.tourAnchor(TourAnchors.WORKOUT_SIGUIENTE),
-                            )
-                        }
+                        // Modo compacto (LS2a/LS2b): la tira, «Registrar serie» y la isla inferior, de arriba abajo.
+                        WorkoutCompactFooter(
+                            stripSlot = setStripSlot,
+                            recordSlot = recordPillSlot,
+                            island = {
+                                WorkoutBottomIsland(
+                                    previousEnabled = uiState.currentExerciseIdx > 0,
+                                    nextLabel = nextExerciseLabel,
+                                    onPrevious = { stepExercise(forward = false) },
+                                    onNext = { stepExercise(forward = true) },
+                                    onOpenRoute = { roadmapMode = RoadmapMode.EXPANDED },
+                                    modifier = Modifier.tourAnchor(TourAnchors.WORKOUT_SIGUIENTE),
+                                )
+                            },
+                        )
                     }
                 }
-            if (recordFabHolder.visible) {
-                val activeRecordAction = recordActionHolder.actionForPage(recordFabHolder.activePageKey)
-                // D2.2: el botón se ancla al teclado (WindowInsets.ime) cuando está visible.
-                WorkoutRecordFabHost(
-                    dockBottomClearance = dockBottomClearance,
-                    sessionAccentColor = sessionAccentColor,
-                    isUpdateMode = recordFabHolder.isUpdateMode,
-                    enabled = canStartWorkoutRecording(uiState) && canInvokeWorkoutRecordFab(
-                        hasActivePageAction = activeRecordAction != null,
-                        isRecording = uiState.recordingSetKey != null,
-                        isFinishing = uiState.isFinishingWorkout,
-                        isCancelling = uiState.isCancellingWorkout,
-                        startPersistenceError = uiState.startPersistenceError,
-                        isComplete = uiState.isComplete,
-                        finishSheetOpen = uiState.showFinishSheet,
-                    ),
-                    onClick = { recordActionHolder.actionForPage(recordFabHolder.activePageKey)?.invoke() },
-                )
-            }
         }
     }
 
