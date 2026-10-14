@@ -56,6 +56,8 @@ class WorkoutV2UiTest {
         // AMRAP is no longer a manual toggle there: it only comes from the plan.
         composeRule.onNodeWithText("Opciones avanzadas").performClick()
         composeRule.waitForIdle()
+        composeRule.onNodeWithText("Drop-sets, descanso y notas").performClick()
+        composeRule.waitForIdle()
         composeRule.onNodeWithText("Añadir drop-sets").performClick()
         composeRule.onNodeWithText("Drop-sets").assertExists()
         composeRule.onNodeWithText("Añadir rest-pause").assertExists()
@@ -99,8 +101,8 @@ class WorkoutV2UiTest {
             }
         }
 
-        composeRule.onNodeWithContentDescription("Iniciar").performClick()
-        composeRule.onNodeWithContentDescription("Detener")
+        composeRule.onNodeWithText("Empezar").performClick()
+        composeRule.onNodeWithText("Pausar")
         composeRule.onNodeWithText("Tiempo objetivo")
     }
 
@@ -142,6 +144,8 @@ class WorkoutV2UiTest {
         }
 
         composeRule.onNodeWithText("Opciones avanzadas").performClick()
+        composeRule.waitForIdle()
+        composeRule.onNodeWithText("Drop-sets, descanso y notas").performClick()
         composeRule.waitForIdle()
         composeRule.onNodeWithText("Añadir drop-sets").performClick()
         // The chip flips from the "add" call to the active label once toggled on.

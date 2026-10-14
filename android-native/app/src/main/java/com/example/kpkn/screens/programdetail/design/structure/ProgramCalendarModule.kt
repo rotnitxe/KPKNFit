@@ -99,6 +99,8 @@ internal fun ProgramCalendarModule(
             }
         }
         Spacer(Modifier.height(14.dp))
+        Text(text = "Días de entreno", style = KpknType.caption, color = WizardColors.textMuted)
+        Spacer(Modifier.height(6.dp))
         ProgramWeekdayRow(trainingDays = trainingDays)
         if (kind == ProgramToolsKind.CYCLIC) {
             Spacer(Modifier.height(10.dp))
@@ -109,10 +111,10 @@ internal fun ProgramCalendarModule(
 }
 
 /**
- * Fin del programa: la fecha manual, o la proyectada con «≈» delante. Sin inicio o sin fin no se sabe: «—», nunca una fecha inventada.
+ * Fin del programa: la fecha manual, o la proyectada con «≈» delante. Sin inicio o sin fin no se sabe: «Sin fecha», nunca una fecha inventada.
  */
 private fun endValue(start: LocalDate?, end: LocalDate?, estimate: Boolean): String = when {
-    start == null || end == null -> "—"
+    start == null || end == null -> "Sin fecha"
     estimate -> "≈ ${formatShortDate(end)}"
     else -> formatShortDate(end)
 }

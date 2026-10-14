@@ -44,6 +44,13 @@ llamadas, mismo guardado del ejercicio propio y misma configuración de superser
    - opciones en `KpknOptionRow`;
    - «Siguiente» y «Atrás» como píldoras.
    - Fuera `Card`.
+4b. **Arreglos de la revisión de SE6a** (la lista):
+   - el filtro activo queda cortado al borde derecho («Pec…»): si hay un filtro de músculo activo, su chip va el primero de la
+     fila (o la fila se desplaza sola hasta él al abrir), para que se lea entero sin tocar;
+   - las variantes se escriben en tipo frase: «Con barra», «En Smith», «Con mancuernas» (las etiquetas salen de
+     `ExerciseCatalogV2Labels.kt`; cambia solo cómo se ven, no los ids);
+   - la línea de coincidencias no repite lo que ya dice la línea de músculo y material (hoy «Dorsales · Peso corporal» y debajo
+     «Peso corporal · Agarre prono»): quita de esa línea lo repetido y, sin búsqueda escrita, no la pintes.
 5. **Lo que queda sin uso** (incluido el `SupersetCreatorSheet` muerto, si sigue sin uso): bórralo con Grep en todo `app/src`.
    `ExercisePickerSheet` se queda (lo usan el editor y la sesión en vivo).
 6. **Textos:** tipo frase, sin MAYÚSCULAS escritas a mano, «…» de un carácter. Antes de cambiar un texto, Grep en `src/androidTest`.

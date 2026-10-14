@@ -3,53 +3,27 @@ package com.example.kpkn.screens.workout.components
 import android.Manifest
 import android.content.pm.PackageManager
 import android.net.Uri
-import java.io.File
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.pager.HorizontalPager
-import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.Notes
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.AddAPhoto
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.EmojiEvents
-import androidx.compose.material.icons.filled.Pause
-import androidx.compose.material.icons.filled.PhotoLibrary
-import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.material.icons.filled.Star
-import androidx.compose.material.icons.filled.Timer
-import androidx.compose.material3.Checkbox
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.LinearProgressIndicator
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.animation.animateContentSize
-import androidx.compose.animation.core.FastOutSlowInEasing
-import androidx.compose.animation.core.tween
-import androidx.compose.material3.ScrollableTabRow
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Tab
-import androidx.compose.material3.TabRowDefaults
-import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -57,42 +31,73 @@ import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.rememberUpdatedState
-import androidx.compose.runtime.setValue
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
-import com.example.kpkn.ui.components.LocalMediaImage
-import com.example.kpkn.ui.components.rememberLocalMediaImageSource
 import com.example.kpkn.data.models.CompletedSet
 import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.SessionChecklistItem
 import com.example.kpkn.data.models.SessionEnergySummary
 import com.example.kpkn.data.models.SessionMilestone
+import com.example.kpkn.data.models.SessionSavedNote
 import com.example.kpkn.data.models.WorkoutMedia
 import com.example.kpkn.domain.calculations.calculateHybrid1RM
-import com.example.kpkn.screens.workout.WorkoutRmCalcContent
+import com.example.kpkn.screens.onboarding.design.WizardColors
+import com.example.kpkn.screens.onboarding.design.wizardReducedMotion
 import com.example.kpkn.screens.workout.WorkoutMediaCaptureController
+import com.example.kpkn.screens.workout.WorkoutRmCalcContent
 import com.example.kpkn.screens.workout.sessionCalorieStatus
 import com.example.kpkn.screens.workout.toTrimmedNumberString
+import com.example.kpkn.ui.components.KpknSheet
+import com.example.kpkn.ui.components.LocalMediaImage
+import com.example.kpkn.ui.components.icons.KpknLineIcons
+import com.example.kpkn.ui.components.rememberLocalMediaImageSource
+import com.example.kpkn.ui.design.KpknCheckRow
+import com.example.kpkn.ui.design.KpknEmptyState
+import com.example.kpkn.ui.design.KpknIconButton
+import com.example.kpkn.ui.design.KpknMetric
+import com.example.kpkn.ui.design.KpknModule
+import com.example.kpkn.ui.design.KpknModuleHeader
+import com.example.kpkn.ui.design.KpknProgressBar
+import com.example.kpkn.ui.design.KpknSecondaryPill
+import com.example.kpkn.ui.design.KpknSegmentedControl
+import com.example.kpkn.ui.design.KpknSegmentedSize
+import com.example.kpkn.ui.design.KpknShape
+import com.example.kpkn.ui.design.KpknSurface
+import com.example.kpkn.ui.design.KpknTextAction
+import com.example.kpkn.ui.design.KpknTextField
+import com.example.kpkn.ui.design.KpknType
+import java.io.File
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
-private enum class CockpitPage(val title: String) {
+/** Páginas del cockpit «Sesión» (LS6). El menú de la sesión abre la suya: «Notas» y «Fotos» van directas a su página. */
+enum class WorkoutCockpitPage(val label: String) {
     Overview("Resumen"),
     Photos("Fotos"),
-    Tools("Herramientas"),
+    Tools("Utilidades"),
     Notes("Notas"),
 }
 
-@OptIn(ExperimentalFoundationApi::class)
+/** Herramientas de la página «Utilidades». */
+private enum class CockpitToolTab(val title: String) {
+    Timer("Temporizador"),
+    Rm("Cálculo RM"),
+    Calories("Calorías"),
+}
+
+/**
+ * Cockpit «Sesión» (LS6): una hoja KPKN con un control segmentado de cuatro páginas, que abre en [initialPage]. Sustituye al panel que
+ * subía desde abajo. Los datos y las llamadas son los de siempre.
+ */
 @Composable
 fun WorkoutSessionCockpit(
     exercises: List<Exercise>,
@@ -101,7 +106,7 @@ fun WorkoutSessionCockpit(
     sessionProgressLabel: String,
     liveEnergySummary: SessionEnergySummary,
     sessionNotes: String,
-    sessionSavedNotes: List<com.example.kpkn.data.models.SessionSavedNote> = emptyList(),
+    sessionSavedNotes: List<SessionSavedNote> = emptyList(),
     sessionPhotos: List<String>,
     sessionMedia: List<WorkoutMedia> = emptyList(),
     sessionChecklist: List<SessionChecklistItem>,
@@ -122,94 +127,129 @@ fun WorkoutSessionCockpit(
     bodyWeight: Double? = null,
     modifier: Modifier = Modifier,
     poseOverlayEnabled: Boolean = false,
+    /** Página que se abre: la que pide quien abre el cockpit («Notas», «Fotos»…). */
+    initialPage: WorkoutCockpitPage = WorkoutCockpitPage.Overview,
+    onDismiss: () -> Unit = {},
 ) {
-    val pages = CockpitPage.entries
-    val pagerState = rememberPagerState(pageCount = { pages.size })
-    val scope = rememberCoroutineScope()
+    KpknSheet(
+        onDismissRequest = onDismiss,
+        modifier = modifier,
+        stableHeightFraction = 0.86f,
+    ) {
+        WorkoutSessionCockpitBody(
+            exercises = exercises,
+            completedSets = completedSets,
+            milestones = milestones,
+            sessionProgressLabel = sessionProgressLabel,
+            liveEnergySummary = liveEnergySummary,
+            sessionNotes = sessionNotes,
+            sessionSavedNotes = sessionSavedNotes,
+            sessionPhotos = sessionPhotos,
+            sessionMedia = sessionMedia,
+            sessionChecklist = sessionChecklist,
+            onSessionNotesChange = onSessionNotesChange,
+            onSaveSessionNote = onSaveSessionNote,
+            onAddSessionPhoto = onAddSessionPhoto,
+            onBeginSessionCameraCapture = onBeginSessionCameraCapture,
+            onCompleteSessionCameraCapture = onCompleteSessionCameraCapture,
+            onSessionCameraLaunchFailed = onSessionCameraLaunchFailed,
+            mediaCaptureError = mediaCaptureError,
+            onRetryPendingMediaCaptures = onRetryPendingMediaCaptures,
+            onRemoveSessionPhoto = onRemoveSessionPhoto,
+            onRemoveSessionMedia = onRemoveSessionMedia,
+            onAddChecklistItem = onAddChecklistItem,
+            onToggleChecklistItem = onToggleChecklistItem,
+            onRemoveChecklistItem = onRemoveChecklistItem,
+            sessionAccentColor = sessionAccentColor,
+            bodyWeight = bodyWeight,
+            poseOverlayEnabled = poseOverlayEnabled,
+            initialPage = initialPage,
+        )
+    }
+}
+
+/** Contenido del cockpit sin la hoja: el segmento y la página elegida. Separado para poder montarlo suelto en las pruebas. */
+@Composable
+internal fun WorkoutSessionCockpitBody(
+    exercises: List<Exercise>,
+    completedSets: Map<String, CompletedSet>,
+    milestones: List<SessionMilestone>,
+    sessionProgressLabel: String,
+    liveEnergySummary: SessionEnergySummary,
+    sessionNotes: String,
+    sessionSavedNotes: List<SessionSavedNote>,
+    sessionPhotos: List<String>,
+    sessionMedia: List<WorkoutMedia>,
+    sessionChecklist: List<SessionChecklistItem>,
+    onSessionNotesChange: (String) -> Unit,
+    onSaveSessionNote: (String) -> Unit,
+    onAddSessionPhoto: (Uri) -> Unit,
+    onBeginSessionCameraCapture: suspend () -> WorkoutMediaCaptureController.ExternalPhotoCapture?,
+    onCompleteSessionCameraCapture: (String, Boolean) -> Unit,
+    onSessionCameraLaunchFailed: (String) -> Unit,
+    mediaCaptureError: String?,
+    onRetryPendingMediaCaptures: () -> Unit,
+    onRemoveSessionPhoto: (String) -> Unit,
+    onRemoveSessionMedia: (String) -> Unit,
+    onAddChecklistItem: (String) -> Unit,
+    onToggleChecklistItem: (String) -> Unit,
+    onRemoveChecklistItem: (String) -> Unit,
+    sessionAccentColor: Color,
+    bodyWeight: Double?,
+    poseOverlayEnabled: Boolean,
+    initialPage: WorkoutCockpitPage,
+) {
+    val pages = WorkoutCockpitPage.entries
+    var page by remember(initialPage) { mutableStateOf(initialPage) }
+    val reduced = wizardReducedMotion()
+    val slidePx = with(LocalDensity.current) { 12.dp.roundToPx() }
 
     Column(
-        modifier = modifier
-            .fillMaxWidth()
-            .animateContentSize(
-                animationSpec = tween(durationMillis = 220, easing = FastOutSlowInEasing),
-            )
-            .heightIn(max = 460.dp)
-            .padding(bottom = 8.dp),
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = 16.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween,
+        ) {
+            Text(text = "Sesión", style = KpknType.title, color = WizardColors.text)
+            Text(text = sessionProgressLabel, style = KpknType.caption, color = WizardColors.textMuted)
+        }
+        KpknSegmentedControl(
+            options = pages.map { it.label },
+            selectedIndex = pages.indexOf(page),
+            onSelect = { page = pages[it] },
+            modifier = Modifier.fillMaxWidth(),
+        )
+        AnimatedContent(
+            targetState = page,
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 4.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Text(
-                "Cockpit de la sesión",
-                style = MaterialTheme.typography.titleSmall,
-                fontWeight = FontWeight.SemiBold,
-                color = MaterialTheme.colorScheme.onSurface,
-            )
-            Surface(
-                shape = RoundedCornerShape(999.dp),
-                color = sessionAccentColor.copy(alpha = 0.18f),
-            ) {
-                Text(
-                    sessionProgressLabel,
-                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
-                    style = MaterialTheme.typography.labelSmall,
-                    fontWeight = FontWeight.SemiBold,
-                    color = sessionAccentColor,
-                )
-            }
-        }
-
-        ScrollableTabRow(
-            selectedTabIndex = pagerState.currentPage,
-            edgePadding = 12.dp,
-            containerColor = Color.Transparent,
-            divider = {},
-            indicator = { tabPositions ->
-                if (pagerState.currentPage < tabPositions.size) {
-                    TabRowDefaults.SecondaryIndicator(
-                        modifier = Modifier.tabIndicatorOffset(tabPositions[pagerState.currentPage]),
-                        color = sessionAccentColor,
-                    )
+                .weight(1f),
+            transitionSpec = {
+                if (reduced) {
+                    fadeIn(animationSpec = tween(durationMillis = 120)) togetherWith
+                        fadeOut(animationSpec = tween(durationMillis = 120))
+                } else {
+                    val offset = if (targetState.ordinal > initialState.ordinal) slidePx else -slidePx
+                    (fadeIn(animationSpec = tween(durationMillis = 220)) +
+                        slideInHorizontally(animationSpec = tween(durationMillis = 220)) { offset }) togetherWith
+                        fadeOut(animationSpec = tween(durationMillis = 220))
                 }
             },
-        ) {
-            pages.forEachIndexed { index, page ->
-                val selected = pagerState.currentPage == index
-                Tab(
-                    selected = selected,
-                    onClick = { scope.launch { pagerState.animateScrollToPage(index) } },
-                    selectedContentColor = sessionAccentColor,
-                    unselectedContentColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.55f),
-                    text = {
-                        Text(
-                            page.title,
-                            style = MaterialTheme.typography.labelMedium,
-                            fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium,
-                        )
-                    },
-                )
-            }
-        }
-
-        HorizontalPager(
-            state = pagerState,
-            modifier = Modifier
-                .fillMaxWidth()
-                .weight(1f, fill = false)
-                .heightIn(max = 380.dp),
-        ) { page ->
-            when (pages[page]) {
-                CockpitPage.Overview -> CockpitOverviewPage(
+            label = "cockpitPage",
+        ) { current ->
+            when (current) {
+                WorkoutCockpitPage.Overview -> CockpitOverviewPage(
                     exercises = exercises,
                     completedSets = completedSets,
                     milestones = milestones,
                     sessionAccentColor = sessionAccentColor,
                 )
-                CockpitPage.Photos -> CockpitPhotosPage(
+                WorkoutCockpitPage.Photos -> CockpitPhotosPage(
                     sessionPhotos = sessionPhotos,
                     sessionMedia = sessionMedia,
                     onAddPhoto = onAddSessionPhoto,
@@ -220,15 +260,14 @@ fun WorkoutSessionCockpit(
                     onRetryPendingCaptures = onRetryPendingMediaCaptures,
                     onRemovePhoto = onRemoveSessionPhoto,
                     onRemoveMedia = onRemoveSessionMedia,
-                    sessionAccentColor = sessionAccentColor,
                     poseOverlayEnabled = poseOverlayEnabled,
                 )
-                CockpitPage.Tools -> CockpitToolsPage(
+                WorkoutCockpitPage.Tools -> CockpitToolsPage(
                     liveEnergySummary = liveEnergySummary,
                     sessionAccentColor = sessionAccentColor,
                     bodyWeight = bodyWeight,
                 )
-                CockpitPage.Notes -> CockpitNotesPage(
+                WorkoutCockpitPage.Notes -> CockpitNotesPage(
                     sessionNotes = sessionNotes,
                     sessionSavedNotes = sessionSavedNotes,
                     sessionChecklist = sessionChecklist,
@@ -237,11 +276,29 @@ fun WorkoutSessionCockpit(
                     onAddChecklistItem = onAddChecklistItem,
                     onToggleChecklistItem = onToggleChecklistItem,
                     onRemoveChecklistItem = onRemoveChecklistItem,
-                    sessionAccentColor = sessionAccentColor,
                 )
             }
         }
     }
+}
+
+/** Columna con desplazamiento para cada página del cockpit. */
+@Composable
+private fun CockpitPageColumn(content: @Composable ColumnScope.() -> Unit) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState())
+            .padding(bottom = 16.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+        content = content,
+    )
+}
+
+/** Línea de separación de 1 dp dentro de un módulo. */
+@Composable
+private fun CockpitDivider() {
+    Box(modifier = Modifier.fillMaxWidth().height(1.dp).background(KpknSurface.divider))
 }
 
 @Composable
@@ -256,93 +313,59 @@ private fun CockpitOverviewPage(
         milestones.sortedByDescending { it.createdAtIso }.take(12)
     }
 
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .verticalScroll(rememberScrollState())
-            .padding(horizontal = 16.dp, vertical = 8.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
-    ) {
-        CockpitSectionTitle(icon = Icons.Default.EmojiEvents, title = "Hitos de la sesión")
-        if (orderedMilestones.isEmpty()) {
-            Text(
-                "Todavía no hay hitos. Aparecen con PRs reales vs historial o meta estrella.",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.55f),
-            )
-        } else {
-            orderedMilestones.forEach { milestone ->
-                Surface(
-                    shape = RoundedCornerShape(12.dp),
-                    color = Color.White.copy(alpha = 0.06f),
-                    modifier = Modifier.fillMaxWidth(),
-                ) {
-                    Column(modifier = Modifier.padding(10.dp)) {
-                        Text(
-                            milestone.label,
-                            style = MaterialTheme.typography.labelMedium,
-                            fontWeight = FontWeight.SemiBold,
-                            color = MaterialTheme.colorScheme.onSurface,
-                        )
-                        Text(
-                            milestone.exerciseName,
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.75f),
-                        )
-                        milestone.detail?.let {
-                            Text(
-                                it,
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.65f),
-                            )
+    CockpitPageColumn {
+        KpknModule {
+            KpknModuleHeader(label = "Hitos de la sesión")
+            if (orderedMilestones.isEmpty()) {
+                Text(
+                    text = "Todavía no hay hitos. Aparecen al batir un récord o alcanzar una meta estrella.",
+                    style = KpknType.body,
+                    color = WizardColors.textMuted,
+                    modifier = Modifier.padding(top = 12.dp),
+                )
+            } else {
+                orderedMilestones.forEachIndexed { index, milestone ->
+                    if (index > 0) CockpitDivider()
+                    Column(modifier = Modifier.fillMaxWidth().padding(vertical = 12.dp)) {
+                        Text(text = milestone.label, style = KpknType.bodyStrong, color = WizardColors.text)
+                        Text(text = milestone.exerciseName, style = KpknType.caption, color = WizardColors.textMuted)
+                        milestone.detail?.let { detail ->
+                            Text(text = detail, style = KpknType.caption, color = WizardColors.textFaint)
                         }
                     }
                 }
             }
         }
-
         if (starExercises.isNotEmpty()) {
-            CockpitSectionTitle(icon = Icons.Default.Star, title = "Ejercicios estrella")
-            starExercises.forEach { exercise ->
-                val goal = exercise.goal1RM?.takeIf { it > 0 } ?: return@forEach
-                // All tags of this starred exercise count toward the same 1RM goal.
-                val bestE1rm = completedSets
-                    .filterKeys { key ->
-                        (key.startsWith("${exercise.id}_") || key == exercise.id) &&
-                            !key.contains("_warmup_")
-                    }
-                    .values
-                    .filter { !it.isWarmup && !it.skipped && (it.weight ?: 0.0) > 0 && it.reps > 0 }
-                    .maxOfOrNull { calculateHybrid1RM(it.weight ?: 0.0, it.reps) }
-                    ?: 0.0
-                val progress = (bestE1rm / goal).toFloat().coerceIn(0f, 1f)
-                Surface(
-                    shape = RoundedCornerShape(12.dp),
-                    color = sessionAccentColor.copy(alpha = 0.12f),
-                    modifier = Modifier.fillMaxWidth(),
-                ) {
-                    Column(
-                        modifier = Modifier.padding(12.dp),
-                        verticalArrangement = Arrangement.spacedBy(6.dp),
-                    ) {
+            KpknModule {
+                KpknModuleHeader(label = "Ejercicios estrella")
+                starExercises.forEachIndexed { index, exercise ->
+                    val goal = exercise.goal1RM?.takeIf { it > 0 } ?: return@forEachIndexed
+                    // All tags of this starred exercise count toward the same 1RM goal.
+                    val bestE1rm = completedSets
+                        .filterKeys { key ->
+                            (key.startsWith("${exercise.id}_") || key == exercise.id) &&
+                                !key.contains("_warmup_")
+                        }
+                        .values
+                        .filter { !it.isWarmup && !it.skipped && (it.weight ?: 0.0) > 0 && it.reps > 0 }
+                        .maxOfOrNull { calculateHybrid1RM(it.weight ?: 0.0, it.reps) }
+                        ?: 0.0
+                    val progress = (bestE1rm / goal).toFloat().coerceIn(0f, 1f)
+                    if (index > 0) CockpitDivider()
+                    Column(modifier = Modifier.fillMaxWidth().padding(vertical = 12.dp)) {
+                        Text(text = exercise.name, style = KpknType.bodyStrong, color = WizardColors.text)
                         Text(
-                            exercise.name,
-                            style = MaterialTheme.typography.labelMedium,
-                            fontWeight = FontWeight.Bold,
+                            text = "${bestE1rm.toTrimmedNumberString()} / ${goal.toTrimmedNumberString()} kg e1RM",
+                            style = KpknType.caption,
+                            color = WizardColors.textMuted,
                         )
-                        Text(
-                            "${bestE1rm.toTrimmedNumberString()} / ${goal.toTrimmedNumberString()} kg e1RM",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
-                        )
-                        LinearProgressIndicator(
-                            progress = { progress },
+                        KpknProgressBar(
+                            progress = progress,
+                            color = sessionAccentColor,
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .height(6.dp)
-                                .clip(RoundedCornerShape(999.dp)),
-                            color = sessionAccentColor,
-                            trackColor = Color.White.copy(alpha = 0.08f),
+                                .padding(top = 8.dp),
                         )
                     }
                 }
@@ -363,7 +386,6 @@ private fun CockpitPhotosPage(
     onRetryPendingCaptures: () -> Unit,
     onRemovePhoto: (String) -> Unit,
     onRemoveMedia: (String) -> Unit,
-    sessionAccentColor: Color,
     poseOverlayEnabled: Boolean = false,
 ) {
     val context = LocalContext.current
@@ -408,15 +430,13 @@ private fun CockpitPhotosPage(
         if (granted) startCameraCapture()
     }
 
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .verticalScroll(rememberScrollState())
-            .padding(horizontal = 16.dp, vertical = 8.dp),
-        verticalArrangement = Arrangement.spacedBy(10.dp),
-    ) {
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            TextButton(
+    CockpitPageColumn {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            KpknSecondaryPill(
+                text = "Cámara",
                 onClick = {
                     val granted = ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) ==
                         PackageManager.PERMISSION_GRANTED
@@ -427,41 +447,29 @@ private fun CockpitPhotosPage(
                     }
                 },
                 enabled = !preparingCamera && pendingCameraCaptureId == null,
-            ) {
-                Icon(Icons.Default.AddAPhoto, contentDescription = null, tint = sessionAccentColor)
-                Spacer(Modifier.size(6.dp))
-                Text("Cámara")
-            }
-            TextButton(
+                modifier = Modifier.weight(1f),
+            )
+            KpknSecondaryPill(
+                text = "Galería",
                 onClick = { galleryLauncher.launch(arrayOf("image/*")) },
-            ) {
-                Icon(Icons.Default.PhotoLibrary, contentDescription = null, tint = sessionAccentColor)
-                Spacer(Modifier.size(6.dp))
-                Text("Galería")
-            }
+                modifier = Modifier.weight(1f),
+            )
         }
         if (!captureError.isNullOrBlank()) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Text(
-                    text = captureError,
-                    modifier = Modifier.weight(1f),
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.error,
+            KpknModule(modifier = Modifier.fillMaxWidth(), accent = WizardColors.danger) {
+                Text(text = captureError, style = KpknType.body, color = WizardColors.text)
+                KpknTextAction(
+                    text = "Reintentar",
+                    onClick = onRetryPendingCaptures,
+                    modifier = Modifier.align(Alignment.End),
                 )
-                TextButton(onClick = onRetryPendingCaptures) {
-                    Text("Reintentar")
-                }
             }
         }
         if (sessionMedia.isEmpty() && sessionPhotos.isEmpty()) {
-            Text(
-                "Fotos y vídeos de la sesión.",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.55f),
+            KpknEmptyState(
+                icon = KpknLineIcons.Layers,
+                title = "Todavía no hay fotos ni vídeos",
+                body = "Añádelos con la cámara o desde la galería.",
             )
         } else if (sessionMedia.isNotEmpty()) {
             sessionMedia.forEach { item ->
@@ -473,12 +481,13 @@ private fun CockpitPhotosPage(
                             .height(140.dp),
                         onClick = { preview = item },
                     )
-                    IconButton(
+                    KpknIconButton(
+                        icon = KpknLineIcons.Close,
+                        contentDescription = "Quitar foto",
                         onClick = { onRemoveMedia(item.id) },
                         modifier = Modifier.align(Alignment.TopEnd),
-                    ) {
-                        Icon(Icons.Default.Close, contentDescription = "Quitar foto", tint = Color.White)
-                    }
+                        filled = true,
+                    )
                 }
             }
         } else {
@@ -491,14 +500,15 @@ private fun CockpitPhotosPage(
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(140.dp)
-                            .clip(RoundedCornerShape(12.dp)),
+                            .clip(KpknShape.module),
                     )
-                    IconButton(
+                    KpknIconButton(
+                        icon = KpknLineIcons.Close,
+                        contentDescription = "Quitar foto",
                         onClick = { onRemovePhoto(path) },
                         modifier = Modifier.align(Alignment.TopEnd),
-                    ) {
-                        Icon(Icons.Default.Close, contentDescription = "Quitar foto", tint = Color.White)
-                    }
+                        filled = true,
+                    )
                 }
             }
         }
@@ -512,12 +522,6 @@ private fun CockpitPhotosPage(
     }
 }
 
-private enum class CockpitToolTab(val title: String) {
-    Timer("Temporizador"),
-    Rm("Calculadora RM"),
-    Calories("Calorías"),
-}
-
 @Composable
 private fun CockpitToolsPage(
     liveEnergySummary: SessionEnergySummary,
@@ -527,6 +531,7 @@ private fun CockpitToolsPage(
     var selectedTool by remember { mutableStateOf(CockpitToolTab.Timer) }
     var timerRunning by remember { mutableStateOf(false) }
     var elapsedMs by remember { mutableLongStateOf(0L) }
+
     LaunchedEffect(timerRunning) {
         while (timerRunning) {
             delay(250)
@@ -538,128 +543,72 @@ private fun CockpitToolsPage(
     val mm = totalSeconds / 60
     val ss = totalSeconds % 60
 
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .animateContentSize(
-                animationSpec = tween(durationMillis = 220, easing = FastOutSlowInEasing),
-            )
-            .verticalScroll(rememberScrollState())
-            .padding(horizontal = 16.dp, vertical = 8.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
-    ) {
-        Row(
+    CockpitPageColumn {
+        KpknSegmentedControl(
+            options = CockpitToolTab.entries.map { it.title },
+            selectedIndex = selectedTool.ordinal,
+            onSelect = { selectedTool = CockpitToolTab.entries[it] },
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(6.dp),
-        ) {
-            CockpitToolTab.entries.forEach { tab ->
-                val selected = selectedTool == tab
-                Surface(
-                    onClick = { selectedTool = tab },
-                    shape = RoundedCornerShape(16.dp),
-                    color = if (selected) {
-                        sessionAccentColor.copy(alpha = 0.18f)
-                    } else {
-                        Color.White.copy(alpha = 0.06f)
-                    },
-                    modifier = Modifier.weight(1f),
+            size = KpknSegmentedSize.Compact,
+        )
+        when (selectedTool) {
+            CockpitToolTab.Timer -> KpknModule(modifier = Modifier.fillMaxWidth()) {
+                Text(
+                    text = "%02d:%02d".format(mm, ss),
+                    style = KpknType.metricXL,
+                    color = WizardColors.text,
+                )
+                Row(
+                    modifier = Modifier.padding(top = 8.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
-                    Text(
-                        tab.title,
-                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 8.dp),
-                        style = MaterialTheme.typography.labelSmall,
-                        fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Medium,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = if (selected) 0.92f else 0.68f),
+                    KpknIconButton(
+                        icon = if (timerRunning) KpknLineIcons.Pause else KpknLineIcons.Play,
+                        contentDescription = if (timerRunning) "Pausar" else "Iniciar",
+                        onClick = { timerRunning = !timerRunning },
+                        filled = true,
+                    )
+                    KpknIconButton(
+                        icon = KpknLineIcons.Repeat,
+                        contentDescription = "Reiniciar",
+                        onClick = {
+                            timerRunning = false
+                            elapsedMs = 0L
+                        },
                     )
                 }
-            }
-        }
-
-        when (selectedTool) {
-            CockpitToolTab.Timer -> {
-                Surface(
-                    shape = RoundedCornerShape(20.dp),
-                    color = Color.White.copy(alpha = 0.06f),
-                    modifier = Modifier.fillMaxWidth(),
-                ) {
-                    Column(
-                        modifier = Modifier.padding(12.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                    ) {
-                        Text(
-                            "%02d:%02d".format(mm, ss),
-                            style = MaterialTheme.typography.headlineMedium,
-                            fontWeight = FontWeight.SemiBold,
-                            color = MaterialTheme.colorScheme.onSurface,
-                        )
-                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            IconButton(onClick = { timerRunning = !timerRunning }) {
-                                Icon(
-                                    if (timerRunning) Icons.Default.Pause else Icons.Default.PlayArrow,
-                                    contentDescription = if (timerRunning) "Pausar" else "Iniciar",
-                                    tint = MaterialTheme.colorScheme.onSurface,
-                                )
-                            }
-                            IconButton(
-                                onClick = {
-                                    timerRunning = false
-                                    elapsedMs = 0L
-                                },
-                            ) {
-                                Icon(
-                                    Icons.Default.Refresh,
-                                    contentDescription = "Reiniciar",
-                                    tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f),
-                                )
-                            }
-                        }
-                        Text(
-                            "Independiente del descanso entre series",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
-                        )
-                    }
-                }
-            }
-            CockpitToolTab.Rm -> {
-                WorkoutRmCalcContent(
-                    bodyWeight = bodyWeight,
-                    sessionAccentColor = sessionAccentColor,
-                    softInputs = true,
+                Text(
+                    text = "Independiente del descanso entre series",
+                    style = KpknType.caption,
+                    color = WizardColors.textFaint,
+                    modifier = Modifier.padding(top = 8.dp),
                 )
             }
+            CockpitToolTab.Rm -> WorkoutRmCalcContent(
+                bodyWeight = bodyWeight,
+                sessionAccentColor = sessionAccentColor,
+                softInputs = true,
+            )
             CockpitToolTab.Calories -> {
                 val completedCount = liveEnergySummary.exerciseContributions.sumOf { it.completedSets }
                 val status = sessionCalorieStatus(liveEnergySummary, completedCount, bodyWeight)
-                Surface(
-                    shape = RoundedCornerShape(20.dp),
-                    color = Color.White.copy(alpha = 0.06f),
-                    modifier = Modifier.fillMaxWidth(),
-                ) {
-                    Column(
-                        modifier = Modifier.padding(16.dp),
-                        verticalArrangement = Arrangement.spacedBy(6.dp),
-                    ) {
-                        Text(
-                            "Calorías quemadas",
-                            style = MaterialTheme.typography.labelMedium,
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.62f),
+                val kcal = status.kcal
+                KpknModule {
+                    KpknModuleHeader(label = "Calorías quemadas")
+                    if (kcal != null) {
+                        KpknMetric(
+                            value = kcal.toString(),
+                            unit = "kcal",
+                            style = KpknType.metricL,
+                            modifier = Modifier.padding(top = 8.dp),
                         )
-                        if (status.kcal != null) {
-                            Text(
-                                "${status.kcal} kcal",
-                                style = MaterialTheme.typography.headlineSmall,
-                                fontWeight = FontWeight.SemiBold,
-                                color = MaterialTheme.colorScheme.onSurface,
-                            )
-                        } else {
-                            Text(
-                                status.hint.orEmpty(),
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.72f),
-                            )
-                        }
+                    } else {
+                        Text(
+                            text = status.hint.orEmpty(),
+                            style = KpknType.body,
+                            color = WizardColors.textMuted,
+                            modifier = Modifier.padding(top = 8.dp),
+                        )
                     }
                 }
             }
@@ -670,121 +619,95 @@ private fun CockpitToolsPage(
 @Composable
 private fun CockpitNotesPage(
     sessionNotes: String,
-    sessionSavedNotes: List<com.example.kpkn.data.models.SessionSavedNote>,
+    sessionSavedNotes: List<SessionSavedNote>,
     sessionChecklist: List<SessionChecklistItem>,
     onSessionNotesChange: (String) -> Unit,
     onSaveSessionNote: (String) -> Unit,
     onAddChecklistItem: (String) -> Unit,
     onToggleChecklistItem: (String) -> Unit,
     onRemoveChecklistItem: (String) -> Unit,
-    sessionAccentColor: Color,
 ) {
     val lastSaved = sessionSavedNotes.lastOrNull()?.text
     var draftItem by remember { mutableStateOf("") }
+    // La acción de guardar solo existe cuando hay texto que guardar: nada de controles apagados.
+    val saveAction: (@Composable () -> Unit)? = if (sessionNotes.isNotBlank()) {
+        { KpknTextAction(text = "Guardar nota", onClick = { onSaveSessionNote(sessionNotes) }) }
+    } else {
+        null
+    }
 
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .verticalScroll(rememberScrollState())
-            .padding(horizontal = 16.dp, vertical = 8.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
-    ) {
-        CockpitSectionTitle(icon = Icons.AutoMirrored.Filled.Notes, title = "Notas de sesión")
-        WorkoutSoftField(
-            value = sessionNotes,
-            onValueChange = onSessionNotesChange,
-            placeholder = "Anotaciones generales de la sesión…",
-            singleLine = false,
-            minLines = 3,
-            maxLines = 6,
-        )
-        TextButton(
-            onClick = { onSaveSessionNote(sessionNotes) },
-            enabled = sessionNotes.isNotBlank(),
-        ) {
-            Text("Guardar nota", color = MaterialTheme.colorScheme.onSurface)
-        }
-        if (lastSaved != null) {
-            Text(
-                lastSaved,
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+    CockpitPageColumn {
+        KpknModule {
+            KpknModuleHeader(label = "Notas de sesión", action = saveAction)
+            KpknTextField(
+                value = sessionNotes,
+                onValueChange = onSessionNotesChange,
+                placeholder = "Anotaciones generales de la sesión…",
+                singleLine = false,
+                minLines = 3,
+                maxLines = 6,
             )
-        }
-
-        CockpitSectionTitle(icon = Icons.Default.Add, title = "Tareas / objetivos")
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            WorkoutSoftField(
-                value = draftItem,
-                onValueChange = { draftItem = it },
-                modifier = Modifier.weight(1f),
-                placeholder = "Nueva tarea",
-            )
-            TextButton(
-                onClick = {
-                    onAddChecklistItem(draftItem)
-                    draftItem = ""
-                },
-                enabled = draftItem.isNotBlank(),
-            ) {
-                Text("Añadir", color = MaterialTheme.colorScheme.onSurface)
+            lastSaved?.let { saved ->
+                Text(
+                    text = saved,
+                    style = KpknType.caption,
+                    color = WizardColors.textFaint,
+                    modifier = Modifier.padding(top = 8.dp),
+                )
             }
         }
-        if (sessionChecklist.isEmpty()) {
-            Text(
-                "Checklist vacío. Añade objetivos para esta sesión.",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.55f),
-            )
-        } else {
-            sessionChecklist.forEach { item ->
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Checkbox(
-                        checked = item.done,
-                        onCheckedChange = { onToggleChecklistItem(item.id) },
-                        colors = androidx.compose.material3.CheckboxDefaults.colors(
-                            checkedColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.72f),
-                            uncheckedColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f),
-                            checkmarkColor = MaterialTheme.colorScheme.surface,
-                        ),
-                    )
-                    Text(
-                        item.text,
-                        modifier = Modifier.weight(1f),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = if (item.done) {
-                            MaterialTheme.colorScheme.onSurface.copy(alpha = 0.45f)
-                        } else {
-                            MaterialTheme.colorScheme.onSurface
+        KpknModule {
+            KpknModuleHeader(label = "Tareas y objetivos")
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 12.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                KpknTextField(
+                    value = draftItem,
+                    onValueChange = { draftItem = it },
+                    placeholder = "Nueva tarea",
+                    modifier = Modifier.weight(1f),
+                )
+                if (draftItem.isNotBlank()) {
+                    KpknTextAction(
+                        text = "Añadir",
+                        onClick = {
+                            onAddChecklistItem(draftItem)
+                            draftItem = ""
                         },
                     )
-                    IconButton(onClick = { onRemoveChecklistItem(item.id) }) {
-                        Icon(Icons.Default.Close, contentDescription = "Eliminar")
+                }
+            }
+            if (sessionChecklist.isEmpty()) {
+                Text(
+                    text = "Aún no hay tareas. Añade objetivos para esta sesión.",
+                    style = KpknType.body,
+                    color = WizardColors.textMuted,
+                    modifier = Modifier.padding(top = 12.dp),
+                )
+            } else {
+                sessionChecklist.forEach { item ->
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        KpknCheckRow(
+                            checked = item.done,
+                            title = item.text,
+                            onClick = { onToggleChecklistItem(item.id) },
+                            modifier = Modifier.weight(1f),
+                        )
+                        KpknIconButton(
+                            icon = KpknLineIcons.Close,
+                            contentDescription = "Eliminar",
+                            onClick = { onRemoveChecklistItem(item.id) },
+                        )
                     }
                 }
             }
         }
     }
 }
-
-@Composable
-private fun CockpitSectionTitle(
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
-    title: String,
-) {
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(6.dp),
-    ) {
-        Icon(icon, contentDescription = null, modifier = Modifier.size(16.dp), tint = Color.White.copy(alpha = 0.7f))
-        Text(title, style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold)
-    }
-}
-

@@ -26,8 +26,8 @@ import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 
 /**
- * Módulo del catálogo y página «Cambiar reparto» (P5), en Robolectric: «Aplicar» y el icono de información llaman a su acción; en modo
- * comparar, tocar dos repartos habilita «Comparar 2»; y la etiqueta deja solo los repartos que la llevan. Se pintan con movimiento
+ * Módulo del catálogo y página «Cambiar reparto» (P5 y P7), en Robolectric: tocar el módulo abre su hoja de aplicar (no hay botones dentro);
+ * en modo comparar, tocar dos repartos habilita «Comparar 2»; y la etiqueta deja solo los repartos que la llevan. Se pintan con movimiento
  * reducido para que la entrada animada no mueva los nodos.
  */
 // Ventana alta: performClick no desplaza, así que todos los módulos de la prueba tienen que caber en pantalla.
@@ -64,7 +64,6 @@ class SplitCatalogModuleTest {
                 mode = SplitCatalogMode.BROWSE,
                 selected = false,
                 onApply = { applied = true },
-                onInfo = {},
                 onToggle = {},
             )
         }
@@ -73,8 +72,8 @@ class SplitCatalogModuleTest {
     }
 
     @Test
-    fun infoAbreLaExplicacionDelReparto() {
-        var infoRequested = false
+    fun elModuloEnteroAbreLaHojaSinBotonesDentro() {
+        var applied = false
         setAtRest {
             SplitCatalogModule(
                 split = ulX4,
@@ -83,13 +82,15 @@ class SplitCatalogModuleTest {
                 unavailableReason = null,
                 mode = SplitCatalogMode.BROWSE,
                 selected = false,
-                onApply = {},
-                onInfo = { infoRequested = true },
+                onApply = { applied = true },
                 onToggle = {},
             )
         }
-        composeRule.onNodeWithContentDescription("Qué es ${ulX4.name}").performClick()
-        assertTrue(infoRequested)
+        // Sin «Aplicar» ni icono de información: el módulo es el botón, y tocar su nombre lo abre.
+        composeRule.onNodeWithText("Aplicar").assertDoesNotExist()
+        composeRule.onNodeWithContentDescription("Qué es ${ulX4.name}").assertDoesNotExist()
+        composeRule.onNodeWithText(ulX4.name).performClick()
+        assertTrue(applied)
     }
 
     @Test
@@ -132,7 +133,6 @@ class SplitCatalogModuleTest {
             onToggleCompareMode = {},
             onToggleMultiMode = {},
             onApply = {},
-            onInfo = {},
             onToggleSelect = { split ->
                 ids = when {
                     split.id in ids -> ids - split.id
@@ -168,7 +168,6 @@ class SplitCatalogModuleTest {
             onToggleCompareMode = {},
             onToggleMultiMode = {},
             onApply = {},
-            onInfo = {},
             onToggleSelect = {},
             onEditCustom = {},
             onApplyCustom = {},

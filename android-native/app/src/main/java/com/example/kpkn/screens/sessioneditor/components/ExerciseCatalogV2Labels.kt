@@ -120,27 +120,30 @@ internal fun exerciseCatalogConfigurationSummary(
         .split(" · ")
         .joinToString(" · ") { exerciseCatalogOptionLabel(it, definitionId) }
 
-/** Natural-language tag for the technical variants previewed on a collapsed card. */
+/**
+ * Natural-language tag for the technical variants previewed on a collapsed card. En tipo frase (SE6b): solo la primera palabra con
+ * mayúscula; «Smith», «EZ», «GHD» y las letras de «Barra H» y «Barra T» se quedan como son.
+ */
 internal fun exerciseCatalogVariantTagLabel(value: String, definitionId: String? = null): String = when (value) {
-    "barbell" -> "Con Barra"
-    "ez_bar" -> "Con Barra EZ"
-    "dumbbells" -> "Con Mancuernas"
+    "barbell" -> "Con barra"
+    "ez_bar" -> "Con barra EZ"
+    "dumbbells" -> "Con mancuernas"
     "smith_machine" -> "En Smith"
-    "machine" -> if (definitionId == "reverse_pec_fly") "En Máquina Pec Deck" else "En Máquina"
-    "cable" -> if (definitionId == "triceps_pushdown") "En Polea Alta" else "En Polea"
-    "kettlebell" -> "Con Kettlebell"
-    "hex_bar" -> "Con Barra Hexagonal"
-    "h_bar" -> "Con Barra H"
-    "t_bar" -> "En Barra T"
-    "band" -> "Con Banda"
-    "bodyweight" -> "Peso Corporal"
-    "sliders" -> "Con Deslizadores"
-    "ghd" -> "En Máquina GHD"
-    "safety_bar" -> "Con Barra de Seguridad"
-    "plate" -> "Con Discos"
-    "high" -> if (definitionId == "tren_superior_cruce_poleas") "Polea Alta" else "Alta"
-    "mid" -> if (definitionId == "tren_superior_cruce_poleas") "Polea Media" else "Media"
-    "low" -> if (definitionId == "tren_superior_cruce_poleas") "Polea Baja" else "Baja"
+    "machine" -> if (definitionId == "reverse_pec_fly") "En máquina pec deck" else "En máquina"
+    "cable" -> if (definitionId == "triceps_pushdown") "En polea alta" else "En polea"
+    "kettlebell" -> "Con kettlebell"
+    "hex_bar" -> "Con barra hexagonal"
+    "h_bar" -> "Con barra H"
+    "t_bar" -> "En barra T"
+    "band" -> "Con banda"
+    "bodyweight" -> "Peso corporal"
+    "sliders" -> "Con deslizadores"
+    "ghd" -> "En máquina GHD"
+    "safety_bar" -> "Con barra de seguridad"
+    "plate" -> "Con discos"
+    "high" -> if (definitionId == "tren_superior_cruce_poleas") "Polea alta" else "Alta"
+    "mid" -> if (definitionId == "tren_superior_cruce_poleas") "Polea media" else "Media"
+    "low" -> if (definitionId == "tren_superior_cruce_poleas") "Polea baja" else "Baja"
     else -> exerciseCatalogOptionLabel(value, definitionId)
 }
 

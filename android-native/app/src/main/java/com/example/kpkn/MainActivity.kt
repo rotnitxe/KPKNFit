@@ -1344,7 +1344,23 @@ private fun KPKNNavGraph(
             )
         }
         composable(KpknRoute.MealHistory.route) {
-            MealHistoryScreen(onBack = { navController.popBackStack() })
+            // Vuelve a Nutrición (si la pila no la tiene, por enlace, la abre); un día elegido queda como fecha de Nutrición.
+            fun volverANutricion() {
+                if (!navController.popBackStack(KpknRoute.Nutrition.route, inclusive = false)) {
+                    navController.navigate(KpknRoute.Nutrition.route) { launchSingleTop = true }
+                }
+            }
+            MealHistoryScreen(
+                onBack = { navController.popBackStack() },
+                onOpenDay = { date ->
+                    nutritionViewModel.setSelectedDate(date)
+                    volverANutricion()
+                },
+                onRegister = {
+                    nutritionViewModel.requestFoodLoggerOpen()
+                    volverANutricion()
+                },
+            )
         }
 
         // Conceptos Clave lives in Home; the former conceptual deep links land here.

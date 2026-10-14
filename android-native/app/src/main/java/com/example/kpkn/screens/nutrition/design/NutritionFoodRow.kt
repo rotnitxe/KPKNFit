@@ -98,7 +98,8 @@ private val NutritionRowKcal: TextStyle = KpknType.bodyStrong.copy(fontFeatureSe
 
 /**
  * Una fila de un registro (N2, NUTRITION_V1 §2.4): el nombre en `bodyStrong`, la porción en `caption` y las kcal tabulares a la derecha;
- * debajo, una micro barra de 3 dp con el reparto de energía de P, H y G. Una estimación lleva «≈» y, al tocar la cifra, su rango.
+ * a 6 dp bajo la porción, una micro barra de 3 dp con el reparto de energía de P, H y G. Una estimación lleva «≈» y, al tocar la cifra,
+ * su rango.
  * Tocar la fila la edita ([onOpen]); la pulsación larga pide su menú ([onLongPress], con la posición de la fila en la ventana).
  */
 @OptIn(ExperimentalFoundationApi::class)
@@ -140,11 +141,12 @@ fun NutritionFoodRow(
         // Arriba: la cifra de kcal queda a la altura del nombre, no centrada respecto a la porción.
         Row(verticalAlignment = Alignment.Top) {
             Column(modifier = Modifier.weight(1f)) {
+                // Hasta dos líneas: con la columna de kcal de 112 dp, un nombre largo («Pan integral, Queso fresco») no debe cortarse.
                 Text(
                     text = name,
                     style = KpknType.bodyStrong,
                     color = WizardColors.text,
-                    maxLines = 1,
+                    maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
                 )
                 portion?.let {
@@ -156,9 +158,16 @@ fun NutritionFoodRow(
                         overflow = TextOverflow.Ellipsis,
                     )
                 }
+                // La micro barra va 6 dp bajo la porción (o el nombre), dentro de la columna de texto: la zona táctil de las kcal
+                // (48 dp) no le añade hueco.
+                if (shares != null) {
+                    Spacer(Modifier.height(6.dp))
+                    MacroEnergyBar(shares = shares)
+                }
             }
             Spacer(Modifier.width(12.dp))
-            // La cifra de kcal: si es una estimación con rango, tocarla muestra el rango debajo (zona táctil de 48 dp).
+            // La cifra de kcal: si es una estimación con rango, tocarla muestra el rango debajo (zona táctil de 48 dp). Su ancho mínimo
+            // (112 dp) fija el de la columna de texto, así que la micro barra mide igual en todas las filas.
             Column(
                 horizontalAlignment = Alignment.End,
                 modifier = Modifier
@@ -170,7 +179,7 @@ fun NutritionFoodRow(
                             Modifier
                         },
                     )
-                    .defaultMinSize(minWidth = 48.dp, minHeight = 48.dp),
+                    .defaultMinSize(minWidth = 112.dp, minHeight = 48.dp),
             ) {
                 KpknMetric(
                     value = NutritionDisplayFormat.approxPrefix(totals.isEstimate) + formatKcalEs(kcal),
@@ -183,10 +192,6 @@ fun NutritionFoodRow(
                     }
                 }
             }
-        }
-        if (shares != null) {
-            Spacer(Modifier.height(8.dp))
-            MacroEnergyBar(shares = shares)
         }
     }
 }

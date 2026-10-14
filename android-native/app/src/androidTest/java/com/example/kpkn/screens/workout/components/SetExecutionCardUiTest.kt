@@ -26,6 +26,7 @@ import com.example.kpkn.screens.workout.WorkoutTechniqueDraftKind
 import com.example.kpkn.screens.workout.WorkoutTechniqueMainCaptureDraft
 import com.example.kpkn.screens.workout.WorkoutTechniqueProgressDraft
 import com.example.kpkn.screens.workout.WeightSuggestion
+import com.example.kpkn.screens.workout.design.WorkoutRecordPill
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
@@ -195,11 +196,10 @@ class SetExecutionCardUiTest {
     fun recordFabShowsRegisterLabelByDefault() {
         composeRule.setContent {
             MaterialTheme {
-                WorkoutRecordFab(
-                    sessionAccentColor = Color(0xFF00E5FF),
-                    isUpdateMode = false,
+                WorkoutRecordPill(
+                    label = "Registrar serie",
                     enabled = true,
-                    onClick = {},
+                    onRecord = {},
                 )
             }
         }
@@ -211,11 +211,10 @@ class SetExecutionCardUiTest {
     fun recordFabShowsUpdateLabelWhenSeriesAlreadyLogged() {
         composeRule.setContent {
             MaterialTheme {
-                WorkoutRecordFab(
-                    sessionAccentColor = Color(0xFF00E5FF),
-                    isUpdateMode = true,
+                WorkoutRecordPill(
+                    label = "Actualizar serie",
                     enabled = true,
-                    onClick = {},
+                    onRecord = {},
                 )
             }
         }
@@ -228,11 +227,10 @@ class SetExecutionCardUiTest {
         var clicked = false
         composeRule.setContent {
             MaterialTheme {
-                WorkoutRecordFab(
-                    sessionAccentColor = Color(0xFF00E5FF),
-                    isUpdateMode = false,
+                WorkoutRecordPill(
+                    label = "Registrar serie",
                     enabled = true,
-                    onClick = { clicked = true },
+                    onRecord = { clicked = true },
                 )
             }
         }
@@ -262,9 +260,11 @@ class SetExecutionCardUiTest {
         }
 
         composeRule.onNodeWithText("Opciones avanzadas").assertExists()
-        composeRule.onNodeWithText("Ver ejercicio/Fotos").assertExists()
         composeRule.onNodeWithText("Reportar serie").assertDoesNotExist()
         composeRule.onNodeWithText("¿Cambio de planes o añadir técnica de intensidad?").assertDoesNotExist()
+        // El reverso (y «Ver ejercicio/Fotos») vive en la hoja «Técnica», que se abre desde su entrada dentro de lo desplegado.
+        composeRule.onNodeWithText("Drop-sets, descanso y notas").performClick()
+        composeRule.onNodeWithText("Ver ejercicio/Fotos").assertExists()
     }
 
     @Test
@@ -289,9 +289,10 @@ class SetExecutionCardUiTest {
 
         composeRule.onNodeWithText("DROPSET").assertExists()
         composeRule.onNodeWithText("Opciones avanzadas").assertExists()
-        composeRule.onNodeWithText("Ver ejercicio/Fotos").assertExists()
         composeRule.onNodeWithText("Confirma las 3 reps de esta mini-serie.").assertDoesNotExist()
         composeRule.onNodeWithText("Saltar técnica y registrar solo la serie").assertDoesNotExist()
+        composeRule.onNodeWithText("Drop-sets, descanso y notas").performClick()
+        composeRule.onNodeWithText("Ver ejercicio/Fotos").assertExists()
     }
 
     @Test

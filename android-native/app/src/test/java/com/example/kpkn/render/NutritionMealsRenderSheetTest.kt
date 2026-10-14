@@ -145,7 +145,7 @@ class NutritionMealsRenderSheetTest {
     private fun Root() {
         val today = NutritionSamples.today.toString()
         NutritionHeader(
-            dateLabel = nutritionHeroDateLabel(today, Locale("es")),
+            dateLabel = nutritionHeroDateLabel(today),
             loaded = true,
             hasActivePlan = true,
             onEditPlan = {},

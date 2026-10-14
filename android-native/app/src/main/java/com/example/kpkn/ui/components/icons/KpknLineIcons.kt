@@ -431,12 +431,169 @@ object KpknLineIcons {
         icono("KpknLine.Pulse", listOf("M2.75 12h4.25l2.5-5.25 4 10.5 2.5-5.25h5.25"))
     }
 
+    // ── Cardio por tipo (SE5): cabeza, tronco y extremidades en trazo; la misma familia que el resto del set ──
+
+    /** Carrera: figura de perfil con las piernas en zancada y los brazos en flexión. */
+    val Run: ImageVector by lazy {
+        icono(
+            "KpknLine.Run",
+            listOf(
+                "M15 2a1.75 1.75 0 1 0 0 3.5a1.75 1.75 0 1 0 0-3.5z",
+                "M14.25 7.25L11.5 13.25",
+                "M14 9.25L17 10.5L18.25 8.25",
+                "M14 9.25L10.5 10.25L8.25 12.25",
+                "M11.5 13.25L14.75 14.5L13.25 19.75",
+                "M11.5 13.25L9 17.25L5 15.75",
+            ),
+        )
+    }
+
+    /** Caminar: figura erguida con las piernas abiertas en paso y un brazo adelantado. */
+    val Walk: ImageVector by lazy {
+        icono(
+            "KpknLine.Walk",
+            listOf(
+                "M12 2a1.75 1.75 0 1 0 0 3.5a1.75 1.75 0 1 0 0-3.5z",
+                "M12 7.5V13",
+                "M12 8.75L15.25 11.5",
+                "M12 8.75L8.75 11.5",
+                "M12 13L14.75 17.5L14.25 21.5",
+                "M12 13L9.25 17.5L9.75 21.5",
+            ),
+        )
+    }
+
+    /** Bici: dos ruedas, cuadro con sillín y manillar. */
+    val Bike: ImageVector by lazy {
+        icono(
+            "KpknLine.Bike",
+            listOf(
+                "M5.75 13a3.75 3.75 0 1 0 0 7.5a3.75 3.75 0 1 0 0-7.5z",
+                "M18.25 13a3.75 3.75 0 1 0 0 7.5a3.75 3.75 0 1 0 0-7.5z",
+                "M5.75 16.75L11.5 16.75L9.25 8.75",
+                "M7.75 8.75h3",
+                "M9.25 8.75L16.25 8.5L11.5 16.75",
+                "M16.25 8.5L18.25 16.75",
+                "M16.25 8.5L16.5 6.5",
+                "M15 6.5h2.5",
+            ),
+        )
+    }
+
+    /** Remo: persona sentada con los brazos al mango, las piernas extendidas y el carril. */
+    val Row: ImageVector by lazy {
+        icono(
+            "KpknLine.Row",
+            listOf(
+                "M7.25 3.25a1.75 1.75 0 1 0 0 3.5a1.75 1.75 0 1 0 0-3.5z",
+                "M7.25 7.75L9.75 13.25",
+                "M7.5 8.75L15 10.25",
+                "M9.75 13.25L14.5 13.25L19.5 15.5",
+                "M7.5 16.75h4",
+                "M2.75 19.75h18.5",
+            ),
+        )
+    }
+
+    /** Escaladora: cuatro peldaños que suben de izquierda a derecha. */
+    val Stairs: ImageVector by lazy {
+        icono("KpknLine.Stairs", listOf("M3.5 20.25h4.25v-4.25h4.25v-4.25h4.25V7.5h4.25"))
+    }
+
+    /** Flecha hacia arriba: el contrario de `ChevronDown`, para subir un bloque en las listas. */
+    val ChevronUp: ImageVector by lazy { icono("KpknLine.ChevronUp", listOf("M5.75 14.5L12 8.25l6.25 6.25")) }
+
+    /** Etiqueta: una marca con su orificio. Para «Etiquetas» en las acciones de un ejercicio. */
+    val Tag: ImageVector by lazy {
+        icono(
+            "KpknLine.Tag",
+            listOf(
+                "M3.75 12.25V5.5a1.75 1.75 0 0 1 1.75-1.75h6.75l8.25 8.25a1.5 1.5 0 0 1 0 2.12l-5.88 5.88a1.5 1.5 0 0 1-2.12 0L3.75 12.25z",
+                "M8.25 7.75h.01",
+            ),
+        )
+    }
+
+    /** Llama: calentamiento. Una gota de fuego con su lengua interior en la base. */
+    val Flame: ImageVector by lazy {
+        icono(
+            "KpknLine.Flame",
+            listOf(
+                "M12 3c.5 3.2 4.75 5.6 4.75 10.25A4.75 4.75 0 0 1 12 18a4.75 4.75 0 0 1-4.75-4.75c0-2.1.95-3.75 2.05-4.9.25 1.3.8 2.15 1.6 2.7C10.6 7.5 11.2 5.2 12 3z",
+                "M12 15.75c-.6 0-1.1-.45-1.1-1.1 0-.7.55-1.05.8-1.5.15.45.35.7.7.9.05-.5.2-.85.5-1.25.2.55.5.95.5 1.6 0 .65-.5 1.35-1.4 1.35z",
+            ),
+        )
+    }
+
+    /** Dos flechas enfrentadas: cambiar un ejercicio por otro («Reemplazar»). */
+    val Swap: ImageVector by lazy {
+        icono("KpknLine.Swap", listOf("M4.75 8.25h13.5M14.75 4.75l3.5 3.5-3.5 3.5M19.25 15.75H5.75M9.25 12.25l-3.5 3.5 3.5 3.5"))
+    }
+
+    /** Tres líneas con una flecha arriba y otra abajo: reordenar la lista. */
+    val Reorder: ImageVector by lazy {
+        icono(
+            "KpknLine.Reorder",
+            listOf("M3.75 7.25h9M3.75 12h9M3.75 16.75h9M18 4.75v14.5M15.5 7.25 18 4.75l2.5 2.5M15.5 16.75 18 19.25l2.5-2.5"),
+        )
+    }
+
+    /** Articulación: dos segmentos que forman un ángulo y el eje redondo donde se doblan. Movilidad. */
+    val Joint: ImageVector by lazy {
+        icono(
+            "KpknLine.Joint",
+            listOf(
+                "M5.5 18.5L12 12l6.5 6.5",
+                "M12 9.75a2.25 2.25 0 1 0 0 4.5a2.25 2.25 0 1 0 0-4.5z",
+            ),
+        )
+    }
+
+    /** Eslabón: dos medias anillas unidas por una barra. Superserie: ejercicios enlazados. */
+    val Link: ImageVector by lazy {
+        icono(
+            "KpknLine.Link",
+            listOf(
+                "M9 17H7a5 5 0 0 1 0-10h2",
+                "M15 7h2a5 5 0 0 1 0 10h-2",
+                "M8 12h8",
+            ),
+        )
+    }
+
+    /** Eslabones separados: deshacer la superserie. */
+    val Unlink: ImageVector by lazy {
+        icono(
+            "KpknLine.Unlink",
+            listOf(
+                "M8.25 12.75 6.5 14.5a3.18 3.18 0 0 0 4.5 4.5l1.25-1.25",
+                "M15.75 11.25 17.5 9.5a3.18 3.18 0 0 0-4.5-4.5l-1.25 1.25",
+            ),
+        )
+    }
+
     /** Trazado del triángulo de `Play` y `PlayFilled`. */
     private const val TRIANGULO_PLAY =
         "M8.25 5.6v12.8a.9.9 0 0 0 1.37.77l10.2-6.4a.9.9 0 0 0 0-1.54l-10.2-6.4a.9.9 0 0 0-1.37.77z"
 
     /** Círculo de radio 8,75 centrado en (12, 12): base de `Info` y `Clock`. */
     private const val CIRCULO_GRANDE = "M12 20.75a8.75 8.75 0 1 0 0-17.5 8.75 8.75 0 0 0 0 17.5z"
+
+    /** Asa de arrastre (LS4): seis puntos rellenos en dos columnas, como el icono «Más», para reordenar con la pulsación larga. */
+    val Grip: ImageVector by lazy {
+        icono(
+            "KpknLine.Grip",
+            listOf(
+                "M8.2 8.25a1.3 1.3 0 1 0 2.6 0a1.3 1.3 0 1 0-2.6 0z",
+                "M13.2 8.25a1.3 1.3 0 1 0 2.6 0a1.3 1.3 0 1 0-2.6 0z",
+                "M8.2 12a1.3 1.3 0 1 0 2.6 0a1.3 1.3 0 1 0-2.6 0z",
+                "M13.2 12a1.3 1.3 0 1 0 2.6 0a1.3 1.3 0 1 0-2.6 0z",
+                "M8.2 15.75a1.3 1.3 0 1 0 2.6 0a1.3 1.3 0 1 0-2.6 0z",
+                "M13.2 15.75a1.3 1.3 0 1 0 2.6 0a1.3 1.3 0 1 0-2.6 0z",
+            ),
+            relleno = true,
+        )
+    }
 
     /**
      * Construye un icono con los trazados [trazados] (cadenas SVG `d` sobre la retícula de 24). Con [relleno] se pinta

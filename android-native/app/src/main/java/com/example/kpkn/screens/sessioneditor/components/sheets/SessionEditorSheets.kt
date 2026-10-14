@@ -282,7 +282,6 @@ import com.example.kpkn.screens.sessioneditor.NativeWheelPicker
 import com.example.kpkn.screens.sessioneditor.CompactModeSelector
 import com.example.kpkn.screens.sessioneditor.CompactGoalTrackingButton
 import com.example.kpkn.screens.sessioneditor.CompactRestPickerButton
-import com.example.kpkn.screens.sessioneditor.CompactRestBundleButton
 import com.example.kpkn.screens.sessioneditor.UnilateralModeSelector
 import com.example.kpkn.screens.sessioneditor.SideOrderChip
 import com.example.kpkn.screens.sessioneditor.ExerciseSetsCarousel
@@ -322,7 +321,6 @@ import com.example.kpkn.screens.sessioneditor.SessionEditorAugeSummary
 import com.example.kpkn.screens.sessioneditor.CatalogSelectionWizard
 import com.example.kpkn.screens.sessioneditor.CatalogSelectionDraftBridge
 import com.example.kpkn.screens.sessioneditor.components.TemplateCatalogBrowser
-import com.example.kpkn.screens.sessioneditor.components.CompactTemplateCard
 import com.example.kpkn.screens.sessioneditor.SessionSubMuscleBreakdownList
 import com.example.kpkn.screens.sessioneditor.getMuscleEmphasisEducationalText
 import com.example.kpkn.screens.sessioneditor.countDisplaySets

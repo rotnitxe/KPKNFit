@@ -1,28 +1,34 @@
 package com.example.kpkn.screens.workout
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.example.kpkn.data.models.CompletedSet
-import com.example.kpkn.data.models.SetOutcomeV2
-import com.example.kpkn.screens.workout.components.RestTimerOverlay
-import com.example.kpkn.screens.workout.components.RestTimerPill
+import com.example.kpkn.screens.workout.design.WorkoutRestPill
+import com.example.kpkn.ui.components.kpknHazeEffect
+import com.example.kpkn.ui.design.KpknSurface
 import dev.chrisbanes.haze.HazeState
 
+/** Altura de la píldora del descanso minimizado: bajo la fila superior de 56 dp (KPKN LS2a). */
+private const val REST_PILL_TOP_DP = 64
+
 /**
- * Hosts rest overlay / minimized pill so [WorkoutScreen] stays thinner.
- * Finish sheet lives in [WorkoutFinishHost] / [FinishWorkoutSheet].
- * Stuck-at-zero is owned by [RestStuckAtZeroPolicy] / WorkoutScreen — do not call
- * [WorkoutViewModel.completeRestIfStuckAtZero] from here.
+ * Capas del descanso fuera de la página de la serie (KPKN LS3): la píldora del descanso minimizado, arriba bajo la fila superior, y el
+ * feedback del ejercicio, que aparece al terminar el descanso. El descanso en curso vive en la página de la serie (`WorkoutRestPanel`).
+ * La parada en cero la decide [RestStuckAtZeroPolicy] en WorkoutScreen: este host no la llama.
  */
 @Composable
 internal fun WorkoutRestOverlayHost(
@@ -30,70 +36,65 @@ internal fun WorkoutRestOverlayHost(
     isRestTimerRunning: Boolean,
     isRestMinimized: Boolean,
     restState: WorkoutRestModalState?,
-    pendingRestSuggestion: PendingRestSuggestion?,
-    lastSetOutcome: SetOutcomeV2?,
-    lastCompletedSet: CompletedSet?,
-    lastCompletedSets: List<Pair<String, CompletedSet>>,
-    sessionAccentColor: Color,
     hazeState: HazeState,
-    skipExerciseLabel: String?,
-    onSkipExercise: (() -> Unit)?,
     postExerciseFeedbackContent: (@Composable () -> Unit)?,
-    feedbackExerciseCount: Int,
     forceShowForFeedback: Boolean,
 ) {
-    val showExpanded = (isRestTimerRunning && restState != null && !isRestMinimized) || forceShowForFeedback
-    val showMinimized = isRestTimerRunning && isRestMinimized && restState != null && !forceShowForFeedback
-    val relator by viewModel.relatorResolution.collectAsStateWithLifecycle()
-    val adaptiveActive = isAdaptiveRestActive(restState, pendingRestSuggestion)
-
-    if (showExpanded && restState != null) {
-        RestRemainingReader(viewModel = viewModel) { restTimerRemaining ->
-            RestTimerOverlay(
-                state = restState,
-                remainingSeconds = if (isRestTimerRunning) restTimerRemaining else 0,
-                hazeState = hazeState,
-                pendingRestSuggestion = pendingRestSuggestion,
-                lastSetOutcome = lastSetOutcome,
-                lastCompletedSet = lastCompletedSet,
-                lastCompletedSets = lastCompletedSets,
-                isAdaptiveActive = adaptiveActive,
-                sessionAccentColor = sessionAccentColor,
-                onDecrease = { viewModel.addRestTime(-15) },
-                onIncrease = { viewModel.addRestTime(15) },
-                onSkip = { viewModel.stopRestTimer() },
-                skipExerciseLabel = skipExerciseLabel,
-                onSkipExercise = onSkipExercise,
-                onUseAdaptive = { viewModel.resolvePendingRestSuggestion(useAdaptive = true) },
-                onWarmupEffort = null,
-                postExerciseFeedbackContent = postExerciseFeedbackContent,
-                feedbackExerciseCount = feedbackExerciseCount,
-                onMinimize = { viewModel.toggleRestMinimized() },
-                relatorText = relator.text,
-                relatorPhaseKey = relator.phaseKey,
-                relatorActions = relator.actions,
-                onRelatorAction = { viewModel.performRelatorAssist(it) },
+    if (forceShowForFeedback && postExerciseFeedbackContent != null) {
+        WorkoutPostExerciseFeedbackLayer(hazeState = hazeState, content = postExerciseFeedbackContent)
+        return
+    }
+    val minimizedState = restState ?: return
+    if (!isRestTimerRunning || !isRestMinimized) return
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .zIndex(6f)
+            .statusBarsPadding()
+            .padding(top = REST_PILL_TOP_DP.dp),
+        contentAlignment = Alignment.TopCenter,
+    ) {
+        RestRemainingReader(viewModel = viewModel) { remaining ->
+            WorkoutRestPill(
+                remainingSeconds = remaining,
+                totalSeconds = minimizedState.activeSeconds.coerceAtLeast(1),
+                onOpen = { viewModel.toggleRestMinimized() },
             )
         }
-    } else if (showMinimized) {
-        val minimizedState = restState ?: return
-        Box(
+    }
+}
+
+/**
+ * Capa del feedback del ejercicio (KPKN LS3): pantalla completa sobre el negro, con desenfoque de lo que hay detrás. Es modal como lo
+ * era el descanso: los toques no llegan a la sesión de debajo.
+ */
+@Composable
+internal fun WorkoutPostExerciseFeedbackLayer(
+    hazeState: HazeState,
+    content: @Composable () -> Unit,
+) {
+    val scroll = rememberScrollState()
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .kpknHazeEffect(hazeState)
+            .background(KpknSurface.canvas.copy(alpha = 0.94f))
+            .clickable(
+                interactionSource = remember { MutableInteractionSource() },
+                indication = null,
+                onClick = {},
+            )
+            .zIndex(6f),
+    ) {
+        Column(
             modifier = Modifier
                 .fillMaxSize()
-                .zIndex(6f)
                 .statusBarsPadding()
-                .padding(top = 10.dp),
-            contentAlignment = Alignment.TopCenter,
+                .navigationBarsPadding()
+                .verticalScroll(scroll)
+                .padding(horizontal = 16.dp, vertical = 20.dp),
         ) {
-            RestRemainingReader(viewModel = viewModel) { restTimerRemaining ->
-                RestTimerPill(
-                    remainingSeconds = if (isRestTimerRunning) restTimerRemaining else 0,
-                    totalSeconds = minimizedState.activeSeconds.coerceAtLeast(1),
-                    exerciseName = minimizedState.exerciseName,
-                    sessionAccentColor = sessionAccentColor,
-                    onClick = { viewModel.toggleRestMinimized() },
-                )
-            }
+            content()
         }
     }
 }

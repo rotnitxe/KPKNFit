@@ -559,7 +559,7 @@ class SimpleCyclePersonalizer(
             row.directSets <= minOf(row.mav, row.mrv) + 0.001 &&
                 row.directSets + row.indirectSets > minOf(row.mav, row.mrv) + 0.001
         }.forEach { row -> notes += indirectVolumeNote(row.muscle, row.directSets, row.directSets + row.indirectSets) }
-        val week = ProgramWeek("$programId-week", "Semana repetible", sessions = sessions)
+        val week = ProgramWeek("$programId-week", "Semana que se repite", sessions = sessions)
         val sourceRecipe = TrainingPlanRecipe(
             id = "$programId-onboarding-recipe",
             weeks = listOf(
@@ -567,7 +567,7 @@ class SimpleCyclePersonalizer(
                     weekNumber = 1,
                     blockIndex = 0,
                     blockName = "KPKN personalizado",
-                    weekName = "Semana repetible",
+                    weekName = "Semana que se repite",
                     days = sessions.map { session ->
                         DayRecipe(
                             label = session.name,
@@ -606,7 +606,7 @@ class SimpleCyclePersonalizer(
             mode = ProgramMode.HYPERTROPHY, structure = ProgramStructure.SIMPLE,
             simpleProgramKind = SimpleProgramKind.CYCLIC, structureTemplateId = entry.id,
             macrocycles = listOf(Macrocycle(id = "$programId-macro", name = "Mi plan", blocks = listOf(
-                Block(id = "$programId-block", name = "Semana cíclica", mesocycles = listOf(
+                Block(id = "$programId-block", name = "Semana que se repite", mesocycles = listOf(
                     Mesocycle(id = "$programId-meso", name = "Base", weeks = listOf(week)),
                 ), sourceDefinitionId = entry.id, sourceRevision = PersonalizedPlanCatalog.REVISION, prescriptionOrigin = "KPKN_NATIVE_CURATED"),
             ))),

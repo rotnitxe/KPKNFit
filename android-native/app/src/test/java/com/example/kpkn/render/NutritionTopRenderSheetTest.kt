@@ -108,7 +108,7 @@ class NutritionTopRenderSheetTest {
     @Composable
     private fun NutritionRenderBlock(case: NutritionSamples.RenderCase) {
         NutritionHeader(
-            dateLabel = nutritionHeroDateLabel(NutritionSamples.today.toString(), Locale("es")),
+            dateLabel = nutritionHeroDateLabel(NutritionSamples.today.toString()),
             loaded = case.loaded,
             hasActivePlan = case.hasPlan,
             onEditPlan = {},

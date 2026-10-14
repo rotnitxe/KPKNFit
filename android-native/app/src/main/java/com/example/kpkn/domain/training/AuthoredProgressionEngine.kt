@@ -579,7 +579,7 @@ object AuthoredProgressionEngine {
             append(SpanishPlurals.choose(preservedSessions, "se conservó", "se conservaron"))
             append(" sin cambios.")
         }
-        if (pendingMaterialization) append(" Las cargas nuevas se aplican al pulsar RE-MATERIALIZAR.")
+        if (pendingMaterialization) append(" Las cargas nuevas se aplican al pulsar «Re-materializar».")
     }
 
     /** «banca se mantiene en 108 kg (AMRAP corto)»; con varios, «…, … y …». */

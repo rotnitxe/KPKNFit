@@ -11,6 +11,7 @@ import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 import com.example.kpkn.R
+import com.example.kpkn.services.workout.currentWorkoutNotificationPath
 import com.example.kpkn.domain.cardio.CardioGpsMilestoneEngine
 import com.example.kpkn.navigation.KpknDeepLinks
 import kotlinx.coroutines.Dispatchers
@@ -49,7 +50,7 @@ class CardioGpsMilestoneNotifier(context: Context) {
                             KpknDeepLinks.pendingActivityIntent(
                                 context = appContext,
                                 requestCode = notificationId(sessionKey, kilometre),
-                                path = "training",
+                                path = currentWorkoutNotificationPath(),
                             ),
                         )
                         .setAutoCancel(true)

@@ -19,7 +19,8 @@ import com.example.kpkn.data.models.PendingProgramActionType
 import com.example.kpkn.data.models.Program
 import com.example.kpkn.screens.onboarding.design.WizardColors
 import com.example.kpkn.screens.programdetail.NativeProgressionCardUi
-import com.example.kpkn.screens.programdetail.trainingMaxLine
+import com.example.kpkn.screens.programdetail.TrainingMaxRow
+import com.example.kpkn.screens.programdetail.trainingMaxRowOf
 import com.example.kpkn.screens.programdetail.usesTrainingMax
 import com.example.kpkn.ui.design.KpknCompactPill
 import com.example.kpkn.ui.design.KpknModule
@@ -54,21 +55,38 @@ internal fun AutoregulationProposalsCard(
     val tm = program.powerliftingProfile
     val recipe = program.sourceRecipe
     val usesTm = recipe?.let { usesTrainingMax(it) } ?: (tm != null)
-    if (!usesTm && !hasAutoregPending && nativeCard.proposals.isEmpty() && nativeCard.notices.isEmpty() && !needsRematerialize) return
+    // Sin máximos y con TM en el programa, la fila invita a fijarlos («Añadir»); si el programa no usa TM, no hay fila.
+    val tmRow = trainingMaxRowOf(usesTm, tm)
+    if (tmRow == TrainingMaxRow.None && !hasAutoregPending && nativeCard.proposals.isEmpty() && nativeCard.notices.isEmpty() && !needsRematerialize) return
 
     KpknModule(modifier = modifier.fillMaxWidth().testTag("program_proposals_card")) {
         KpknModuleHeader(label = "Propuestas")
-        if (usesTm) {
-            Spacer(Modifier.height(8.dp))
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(
-                    text = trainingMaxLine(tm),
-                    style = KpknType.caption,
-                    color = WizardColors.textMuted,
-                    modifier = Modifier.weight(1f),
-                )
-                KpknTextAction(text = "Editar", onClick = onOpenTm)
+        when (tmRow) {
+            is TrainingMaxRow.Value -> {
+                Spacer(Modifier.height(8.dp))
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        text = tmRow.line,
+                        style = KpknType.caption,
+                        color = WizardColors.textMuted,
+                        modifier = Modifier.weight(1f),
+                    )
+                    KpknTextAction(text = "Editar", onClick = onOpenTm)
+                }
             }
+            TrainingMaxRow.Unset -> {
+                Spacer(Modifier.height(8.dp))
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        text = "Máximos de entrenamiento sin fijar",
+                        style = KpknType.caption,
+                        color = WizardColors.textMuted,
+                        modifier = Modifier.weight(1f),
+                    )
+                    KpknTextAction(text = "Añadir", onClick = onOpenTm)
+                }
+            }
+            TrainingMaxRow.None -> Unit
         }
         if (hasAutoregPending) {
             Spacer(Modifier.height(8.dp))

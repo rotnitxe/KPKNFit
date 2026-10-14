@@ -59,6 +59,8 @@ internal fun SplitCurrentModule(
             )
             Spacer(Modifier.height(16.dp))
             SplitWeekDiagram(pattern = split.pattern, startDay = startDay)
+            Spacer(Modifier.height(8.dp))
+            SplitRoleLegend(pattern = split.pattern)
         }
     }
 }

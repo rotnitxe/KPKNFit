@@ -23,7 +23,10 @@ descanso adaptativo, `RestStuckAtZeroPolicy`, la alarma y el servicio en primer 
    - el descanso adaptativo, si sugiere otro tiempo: «Descanso sugerido 2:30» en `caption` con `KpknTextAction("Usar")`;
    - en cero (`RestStuckAtZeroPolicy`): el anillo vacío, «Listo» y «Registrar serie» de LS2b disponible; háptico y sonido opcional
      como hoy;
-   - con `wizardReducedMotion()`, el anillo se actualiza a saltos de segundo, sin animación continua.
+   - con `wizardReducedMotion()`, el anillo se actualiza a saltos de segundo, sin animación continua;
+   - un parámetro opcional AL FINAL de la firma, `videoSlot: (@Composable () -> Unit)? = null`, que se pinta debajo de «Siguiente…»
+     cuando no es nulo. Lo usará la ola VT (análisis del vídeo de la serie, que llega durante el descanso). Tú solo dejas el hueco:
+     nadie lo rellena en este paquete.
    - Sustituye a `RestLiveCard` y a `RestTimerOverlay`. Lo que siga en uso de ellos, se queda; lo demás, se borra (Grep en todo
      `app/src`).
 2. **La píldora del descanso minimizado** (`design/WorkoutRestPill.kt`): si la persona sale de la página (ruta, cockpit u otra

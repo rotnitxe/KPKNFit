@@ -17,27 +17,24 @@ class NutritionLabelsTest {
     // ─── Fecha del encabezado ─────────────────────────────────────────────────
 
     @Test
-    fun `the hero date is written in Spanish for a Spanish app`() {
-        assertEquals("Viernes, 2 de octubre", nutritionHeroDateLabel("2026-10-02", Locale.forLanguageTag("es-CL")))
+    fun `the hero date is written in Spanish, in the Inicio format`() {
+        assertEquals("Viernes 2 de octubre", nutritionHeroDateLabel("2026-10-02"))
     }
 
     @Test
-    fun `the hero date is written in English for an English app without the Spanish de`() {
-        val label = nutritionHeroDateLabel("2026-10-02", Locale.ENGLISH)
-        assertEquals("Friday, October 2", label)
-        assertFalse(label.contains(" de "))
-    }
-
-    @Test
-    fun `any other language gets its own long date`() {
-        val label = nutritionHeroDateLabel("2026-10-02", Locale.FRENCH)
-        assertTrue(label, label.contains("2026") && label.contains("octobre"))
-        assertTrue(label, label.first().isUpperCase())
+    fun `the hero date stays in Spanish when the system language is English`() {
+        val previous = Locale.getDefault()
+        Locale.setDefault(Locale.ENGLISH)
+        try {
+            assertEquals("Miércoles 14 de octubre", nutritionHeroDateLabel("2026-10-14"))
+        } finally {
+            Locale.setDefault(previous)
+        }
     }
 
     @Test
     fun `a date that cannot be read is shown as it came`() {
-        assertEquals("no-es-fecha", nutritionHeroDateLabel("no-es-fecha", Locale.ENGLISH))
+        assertEquals("no-es-fecha", nutritionHeroDateLabel("no-es-fecha"))
     }
 
     // ─── Calibración ───────────────────────────────────────────────────────────

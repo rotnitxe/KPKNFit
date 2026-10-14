@@ -31,7 +31,6 @@ class ProgramOneRmSheetTest {
                 valuesKg = mapOf(LiftMark.SQUAT to 150.0, LiftMark.BENCH to 100.0, LiftMark.DEADLIFT to 0.0),
                 unit = "kg",
                 onValueKg = { _, _ -> },
-                onUnit = {},
                 onSave = { _, _, _ -> },
             )
         }
@@ -46,7 +45,6 @@ class ProgramOneRmSheetTest {
                 valuesKg = mapOf(LiftMark.SQUAT to 150.0, LiftMark.BENCH to 100.0, LiftMark.DEADLIFT to 180.0),
                 unit = "lb",
                 onValueKg = { _, _ -> },
-                onUnit = {},
                 onSave = { squat, bench, deadlift -> saved = listOf(squat, bench, deadlift) },
             )
         }

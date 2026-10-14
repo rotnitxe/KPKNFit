@@ -2,7 +2,7 @@ package com.example.kpkn.screens.workout
 
 /**
  * Continuity transition UI retained for androidTest fixtures.
- * Production post-exercise feedback uses [WorkoutPostExerciseFeedbackContent] via rest overlay only.
+ * El feedback del ejercicio en producción usa [WorkoutPostExerciseFeedbackContent], solo desde la capa del descanso (WorkoutRestOverlayHost).
  */
 
 import androidx.compose.runtime.getValue

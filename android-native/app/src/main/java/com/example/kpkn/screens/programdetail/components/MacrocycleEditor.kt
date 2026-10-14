@@ -21,7 +21,6 @@ fun MacrocycleEditor(
     onAddProgramCopy: (Program) -> Unit = {},
     onCompetitionKeyDateSaved: (updatedProgram: Program, keyDate: ProgramKeyDate) -> Unit = { _, _ -> },
     onFocusWeek: (blockId: String, weekId: String) -> Unit = { _, _ -> },
-    onCreateSessionForWeek: (weekId: String, preferredDayOfWeek: Int, keyDateId: String?) -> Unit = { _, _, _ -> },
     onApplyProgramTemplate: (com.example.kpkn.data.programs.ProgramTemplateOption) -> Unit = {},
     onApplyProgramTemplateOverwrite: (com.example.kpkn.data.programs.ProgramTemplateOption, Boolean) -> Unit = { template, _ ->
         onApplyProgramTemplate(template)
@@ -77,7 +76,6 @@ fun MacrocycleEditor(
         onAddProgramCopy = onAddProgramCopy,
         onCompetitionKeyDateSaved = onCompetitionKeyDateSaved,
         onFocusWeek = onFocusWeek,
-        onCreateSessionForWeek = onCreateSessionForWeek,
         onApplyProgramTemplate = onApplyProgramTemplate,
         onApplyProgramTemplateOverwrite = onApplyProgramTemplateOverwrite,
         onApplyProtocol = onApplyProtocol,

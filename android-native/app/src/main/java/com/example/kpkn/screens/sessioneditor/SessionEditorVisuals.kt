@@ -305,8 +305,8 @@ internal fun SessionEditorInvalidDropBanner(
     AnimatedVisibility(
         visible = visible,
         modifier = modifier,
-        enter = fadeIn(tween(90)) + expandVertically(),
-        exit = fadeOut(tween(80)) + shrinkVertically(),
+        enter = if (wizardReducedMotion()) fadeIn(tween(120)) else fadeIn(tween(90)) + expandVertically(),
+        exit = if (wizardReducedMotion()) fadeOut(tween(120)) else fadeOut(tween(80)) + shrinkVertically(),
     ) {
         Box(
             modifier = Modifier

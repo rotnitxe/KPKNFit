@@ -98,7 +98,7 @@
     <string name="notif_macro_title_incomplete">Macros del día incompletos</string>
     <!-- %1$d = consumido, %2$d = objetivo, %3$d = porcentaje -->
     <string name="notif_macro_protein">Proteína: %1$dg / %2$dg (%3$d%%)</string>
-    <string name="notif_macro_carbs">Carbos: %1$dg / %2$dg (%3$d%%)</string>
+    <string name="notif_macro_carbs">Hidratos: %1$dg / %2$dg (%3$d%%)</string>
     <string name="notif_macro_fats">Grasas: %1$dg / %2$dg (%3$d%%)</string>
     <!-- %1$d = consumido, %2$d = objetivo -->
     <string name="notif_macro_calories_exceeded">Calorías excedidas: %1$d / %2$d kcal</string>
@@ -121,8 +121,8 @@
     <string name="notif_rest_ongoing_title">Descanso en curso</string>
     <string name="notif_rest_finished_title">Fin del descanso</string>
     <string name="notif_rest_finished_body">Tu descanso terminó. Puedes iniciar la siguiente serie.</string>
-    <string name="notif_rest_action_complete">Completar</string>
-    <string name="notif_rest_action_skip">Saltar descanso</string>
+    <string name="notif_rest_action_complete">Hecho</string>
+    <string name="notif_rest_action_skip">Saltar</string>
     <string name="notif_rest_default_session">Entrenamiento</string>
     <string name="notif_rest_default_exercise">Siguiente serie</string>
     <string name="notif_channel_voice_ongoing_name">Control por voz</string>

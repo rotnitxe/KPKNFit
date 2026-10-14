@@ -133,3 +133,28 @@ MacroFactor es el referente del sector en nutrición. Para superarlo hacen falta
 | N4 | Editor del plan con controles del wizard y «Guardar» único | N0 |
 | N5 | Historial (paginado) y calibración | N1 |
 | N6 | Widget y cierre: hojas de render de la raíz, el registro, el editor y el historial a 360 dp, al 100 % y al 130 %, y docs | todos |
+
+## Estado (N6)
+
+Cierre de Nutrición (2026-10-13). Por punto de la especificación:
+
+- **§1 Qué falla hoy:** lo cierran N0–N5. N6 deja cerrado lo que quedaba: textos («Hidratos», «Merienda», voseo y mayúsculas), el widget, el código muerto y el módulo «Distribución calórica», que sale de la raíz. Lo que queda abierto está al final de esta sección.
+- **§2 Raíz:** lo hecho en N1 y N2. N6 quita el módulo «Distribución calórica» y su barra de macros (repetían «Tu día» y las micro barras de cada comida). Cada fila lleva su micro barra 6 dp bajo la porción, dentro de la columna de texto. La columna de kcal mide al menos 112 dp, así que todas las barras miden igual, y el nombre puede ocupar dos líneas. La fila sigue midiendo 56 dp como mínimo. Hojas de render: la raíz con datos en tres tramos, sin objetivos, con solo seguimiento (plan activo sin meta: sin anillos ni «Definir objetivos») y cargando (esqueletos en «Tu día» y en suplementos).
+- **§3 Registro:** lo hecho en N3a y N3b. N6 añade dos cosas. La aclaración de la tortilla ya no repite la respuesta corta: si un candidato es la misma tortilla que un chip «De …», se oculta y queda la respuesta corta («De maíz»); lo que pasa al elegir no cambia. Y el aviso «Tocá la tarjeta para editar» pasa a «Toca la tarjeta para editar». En producción la tortilla solo ofrece «Trigo (wrap)» como candidato; el caso repetido venía de las muestras de la hoja. Hojas de render: describir vacío, alimentos con aclaración y guardando.
+- **§4 Editor:** lo hecho en N4. N6 quita del estado `savedPlanId` y `distributionStatus`, que nadie leía. `isDirty` sí lo lee el editor y se queda. Hojas de render arriba y abajo.
+- **§5 Historial y calibración:** lo hecho en N5. N6 saca el tope del ajuste a `NutritionCalibrationEngine.MAX_ADJUSTMENT_KCAL` (150 kcal, sin cambiar la lógica). Las cifras con signo ya usan el menos tipográfico «−» en todos los formateadores de Nutrición (`formatKcalEs`, `formatDecimalEs`, `formatSignedDecimalEs` y `signedKcal`), así que no hubo que cambiar ninguno. Hojas de render: historial de tres meses y detalle de un día.
+- **§6 Widget:** hecho. Fondo negro KPKN `#0A0A0A` igual de día y de noche, con el radio de esquina del sistema (Android 12 y posteriores; 16 dp antes). El símbolo y «Nutrición» van en tinta `#F2EEE6`. Dos píldoras: «Registrar», en tinta con texto negro, y «Buscar», en blanco al 12 % con texto tinta. Los iconos `Plus` y `Search` están exportados a `res/drawable/ic_kpkn_plus.xml` y `ic_kpkn_search.xml`, con el mismo trazo de 1,75 y extremos redondos. Los enlaces (`nutrition/action/openFoodLog` y `nutrition/action/openSearch`) no cambian. Glance no se pinta en Robolectric: la hoja muestra una réplica en Compose de la misma composición.
+- **§7 Paquetes:** N6 cerrado dentro de su alcance. N0 a N5 integrados en la rama.
+
+**Código muerto quitado (N6):** 94 líneas de producción. La raíz pierde 54 (el módulo de «Distribución calórica», su barra y los colores privados), el ViewModel 33 (`macroRingPct` y `createPlan`) y el editor 7 (`savedPlanId` y `distributionStatus`). `createPlan` sigue como ayuda de las pruebas de planes, que ahora llaman a `addNutritionPlan` y `activatePlan`, igual que hacía él. Ya no existían `nutrientProgress`, `progressPct` ni `onNavigateToBodyProgress`.
+
+**Lo que no se hizo, y por qué:**
+- **Código muerto del dominio (análisis):** quedan funciones y constantes sin lectores en `domain/nutrition`, como `resolveBatch`, `fixedTargetsFor`, `catalogFoodFor`, `methodSearchSuffix` o `DATASET_MIN_CONFIDENCE`. Quitarlas toca el análisis, que este paquete no debe cambiar. Van en una limpieza aparte.
+- **Repositorio:** `NutritionRepository.mealTemplates` se actualiza, pero nadie lo lee. `deleteNutritionPlan` y `clearNutritionLogs` los usan pruebas como limpieza. Ninguno entra en la lista de N6.
+- **Cuerpo:** `BodyProgressViewModel.selectMetric` y `replaceLegacyMeasurement` no tienen lectores. Son de Cuerpo y quedan anotados para su cierre.
+- **Pruebas de los avisos de macros:** `MacroValidator` no tiene prueba propia, así que los textos nuevos («Hidratos …») no tienen aserción.
+- **Inglés:** `values-en` conserva «Carbs», que es el término correcto en inglés.
+- **Widget en dispositivo:** pendiente de probarlo en el teléfono. La hoja solo muestra la réplica.
+- **Vidrio de las islas (§2 y §4):** en las hojas de render, la isla de «Guardar» del editor y la superior dejan leer por debajo las etiquetas de los días y los campos. La especificación pide manchas de color sin letras legibles. Es el vidrio compartido (`KpknGlass`), no esta pantalla; queda para una revisión del vidrio.
+- **Carga de las comidas (§2):** mientras no llegan los registros, cada comida muestra «Añadir» en lugar de un esqueleto. Hace falta un estado de carga propio para las comidas; queda pendiente.
+- **Pie de la tendencia (§2):** «Media de los días registrados: … · …» parte la línea justo tras el punto medio. Es cosmético y queda pendiente.
