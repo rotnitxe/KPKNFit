@@ -1,46 +1,30 @@
 package com.example.kpkn.screens.workout.components
 
-import androidx.compose.foundation.BorderStroke
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.ContentTransform
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.BoxWithConstraints
-import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredHeight
 import androidx.compose.foundation.layout.requiredWidth
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.BasicTextField
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Pause
-import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material.icons.filled.Timer
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.Checkbox
-import androidx.compose.material3.CheckboxDefaults
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.SideEffect
@@ -48,48 +32,50 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import com.example.kpkn.screens.workout.RecordActionHolder
-import com.example.kpkn.screens.workout.RecordFabHolder
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.draw.scale
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.SubcomposeLayout
 import androidx.compose.ui.layout.onSizeChanged
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Constraints
+import androidx.compose.ui.unit.dp
 import com.example.kpkn.data.models.WarmupSetDefinition
-import com.example.kpkn.screens.sessioneditor.contentOn
-import com.example.kpkn.screens.workout.inlineRestRemainingOrNull
-import com.example.kpkn.screens.workout.toTrimmedNumberString
+import com.example.kpkn.screens.onboarding.design.wizardReducedMotion
+import com.example.kpkn.screens.workout.RecordActionHolder
+import com.example.kpkn.screens.workout.RecordFabHolder
 import com.example.kpkn.screens.workout.WorkoutStepRules
+import com.example.kpkn.screens.workout.inlineRestRemainingOrNull
+import com.example.kpkn.screens.workout.design.PrepCheckState
+import com.example.kpkn.screens.workout.design.PrepChecklistRow
+import com.example.kpkn.screens.workout.design.PrepKgField
+import com.example.kpkn.screens.workout.design.PrepPageHeader
+import com.example.kpkn.screens.workout.design.PrepRestRow
+import com.example.kpkn.screens.workout.design.PrepTimerRow
+import com.example.kpkn.screens.workout.design.prepClock
+import com.example.kpkn.screens.workout.design.prepMobilityDose
+import com.example.kpkn.screens.workout.design.prepPercentText
+import com.example.kpkn.screens.workout.design.workoutBottomFade
+import com.example.kpkn.screens.workout.toTrimmedNumberString
 import com.example.kpkn.ui.adapt.LiveViewportPolicyMath
+import com.example.kpkn.ui.components.icons.KpknLineIcons
+import com.example.kpkn.ui.design.KpknSurface
+import com.example.kpkn.ui.design.KpknTextAction
 import kotlin.math.roundToInt
 
 /**
- * One mobility page in the set carousel: a single set-sized card with a flat checklist.
+ * Página de movilidad del pager de la sesión (KPKN LS5b): el elemento actual en grande, el temporizador del bloque y el checklist.
+ * Sin caja: sobre el negro, con el lenguaje del panel de la serie. Los datos, el temporizador y las llamadas son los de siempre.
  */
 @Composable
 internal fun MobilityPhaseLiveCard(
     items: List<WorkoutMobilityChecklistItem>,
     completedStepKeys: Set<String>,
     remainingSeconds: Int,
-    totalMinutes: Int,
     isTimerRunning: Boolean,
-    sessionAccentColor: Color,
     onToggleComplete: (item: WorkoutMobilityChecklistItem, completed: Boolean) -> Unit,
     onStartTimer: () -> Unit,
     onPauseTimer: () -> Unit,
@@ -126,12 +112,12 @@ internal fun MobilityPhaseLiveCard(
                 stepKey = stepKey,
                 pageKey = actionPageKey,
                 action = {
-                val item = items.firstOrNull { it.stepKey !in completedStepKeys }
-                runPrepLiveCardFabAction(
-                    hasIncomplete = item != null,
-                    completeNext = { item?.let { onToggleComplete(it, true) } },
-                    advance = onContinue,
-                )
+                    val item = items.firstOrNull { it.stepKey !in completedStepKeys }
+                    runPrepLiveCardFabAction(
+                        hasIncomplete = item != null,
+                        completeNext = { item?.let { onToggleComplete(it, true) } },
+                        advance = onContinue,
+                    )
                 },
             )
             recordFabHolder?.isUpdateMode = false
@@ -142,66 +128,74 @@ internal fun MobilityPhaseLiveCard(
     DisposableEffect(recordActionHolder, recordActionInstanceOwner) {
         onDispose { recordActionHolder?.clearIfOwner(recordActionInstanceOwner) }
     }
-    PrepChecklistShell(
-        title = "MOVILIDAD",
-        doneCount = items.count { it.stepKey in completedStepKeys },
-        totalCount = items.size,
-        sessionAccentColor = sessionAccentColor,
+    val reduced = wizardReducedMotion()
+    val currentIndex = currentPrepIndex(items.map { it.stepKey in completedStepKeys })
+    val restRemaining = inlineRestRemainingOrNull(inlineRestRemainingSeconds, inlineRestTotalSeconds)
+    PrepPageLayout(
         modifier = modifier,
-        headerExtra = {
-            CompactMobilityTimer(
-                remainingSeconds = remainingSeconds,
-                totalMinutes = totalMinutes,
-                isRunning = isTimerRunning,
-                sessionAccentColor = sessionAccentColor,
-                onStart = onStartTimer,
-                onPause = onPauseTimer,
-                onAddSeconds = onAddTimerSeconds,
-                onReset = onResetTimer,
-            )
+        header = {
+            AnimatedContent(
+                targetState = currentIndex,
+                transitionSpec = { prepContentTransition(reduced) },
+                label = "prepMobilityHeader",
+            ) { index ->
+                val current = items.getOrNull(index)
+                Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
+                    PrepPageHeader(
+                        eyebrow = "Movilidad ${index + 1} de ${items.size.coerceAtLeast(1)}",
+                        title = current?.mobility?.name?.takeIf { it.isNotBlank() } ?: "Movilidad",
+                        dose = current?.mobility?.let { prepMobilityDose(it) },
+                    )
+                    PrepTimerRow(
+                        clock = prepClock(remainingSeconds),
+                        running = isTimerRunning,
+                        onToggle = { if (isTimerRunning) onPauseTimer() else onStartTimer() },
+                        onAddSeconds = { onAddTimerSeconds(30) },
+                        onReset = onResetTimer,
+                    )
+                }
+            }
         },
         footer = {
-            val remaining = inlineRestRemainingOrNull(inlineRestRemainingSeconds, inlineRestTotalSeconds)
-            if (remaining != null) {
-                PrepInlineRestBar(
-                    remainingSeconds = remaining.coerceAtLeast(0),
+            if (restRemaining != null) {
+                PrepRestRow(
+                    remainingSeconds = restRemaining.coerceAtLeast(0),
                     totalSeconds = (inlineRestTotalSeconds ?: 1).coerceAtLeast(1),
-                    sessionAccentColor = sessionAccentColor,
                     onSkip = onSkipInlineRest ?: {},
                 )
             } else {
-                PrepPhaseSkipBar(onSkip = onSkip)
+                PrepPhaseSkipBar(label = "Saltar movilidad", onSkip = onSkip)
             }
         },
-    ) {
-        items.forEachIndexed { index, item ->
-            if (index > 0) {
-                HorizontalDivider(color = Color.White.copy(alpha = 0.06f))
+        content = {
+            items.forEachIndexed { index, item ->
+                if (index > 0) PrepRowDivider()
+                val state = when {
+                    item.stepKey in completedStepKeys -> PrepCheckState.DONE
+                    index == currentIndex -> PrepCheckState.CURRENT
+                    else -> PrepCheckState.PENDING
+                }
+                PrepChecklistRow(
+                    title = item.mobility.name,
+                    state = state,
+                    onToggle = { onToggleComplete(item, state != PrepCheckState.DONE) },
+                    caption = listOfNotNull(
+                        item.exerciseName.takeIf { showExerciseBadge && it.isNotBlank() },
+                        prepMobilityDose(item.mobility),
+                    ).joinToString(" · ").takeIf { it.isNotBlank() },
+                )
             }
-            val mob = item.mobility
-            val subtitle = buildList {
-                if (showExerciseBadge && item.exerciseName.isNotBlank()) add(item.exerciseName)
-                mob.reps?.takeIf { it.isNotBlank() }?.let { add("$it reps") }
-                mob.durationSeconds?.takeIf { it > 0 }?.let { add("${it}s") }
-            }.joinToString(" · ")
-            ChecklistLine(
-                title = mob.name,
-                subtitle = subtitle,
-                isCompleted = item.stepKey in completedStepKeys,
-                accent = sessionAccentColor,
-                onToggle = { onToggleComplete(item, it) },
-            )
-        }
-    }
+        },
+    )
 }
 
 /**
- * One approximation page: checklist with compact kg inputs + checks.
+ * Página de aproximación del pager de la sesión (KPKN LS5b): la aproximación actual en grande, con su peso y sus repeticiones, y el
+ * checklist de todas. El peso de cada fila se escribe ahí mismo y llega a [onWeightDraft] (y al relator), como antes.
  */
 @Composable
 internal fun WarmupPhaseLiveCard(
     rows: List<WarmupPhaseRow>,
-    sessionAccentColor: Color,
     onToggleComplete: (row: WarmupPhaseRow, completed: Boolean, weightKg: Double) -> Unit,
     onSkip: () -> Unit,
     onContinue: () -> Unit,
@@ -216,6 +210,7 @@ internal fun WarmupPhaseLiveCard(
     recordFabHolder: RecordFabHolder? = null,
     isActivePage: Boolean = false,
     onWeightDraft: ((row: WarmupPhaseRow, text: String) -> Unit)? = null,
+    weightDrafts: Map<String, String> = emptyMap(),
 ) {
     val recordActionInstanceOwner = remember { Any() }
     SideEffect {
@@ -238,17 +233,17 @@ internal fun WarmupPhaseLiveCard(
                 stepKey = stepKey,
                 pageKey = actionPageKey,
                 action = {
-                val row = rows.firstOrNull { !it.isCompleted }
-                runPrepLiveCardFabAction(
-                    hasIncomplete = row != null,
-                    completeNext = {
-                        row?.let {
-                            val kg = it.actualWeightKg ?: it.suggestedWeightKg ?: 0.0
-                            onToggleComplete(it, true, kg)
-                        }
-                    },
-                    advance = onContinue,
-                )
+                    val row = rows.firstOrNull { !it.isCompleted }
+                    runPrepLiveCardFabAction(
+                        hasIncomplete = row != null,
+                        completeNext = {
+                            row?.let {
+                                val kg = it.actualWeightKg ?: it.suggestedWeightKg ?: 0.0
+                                onToggleComplete(it, true, kg)
+                            }
+                        },
+                        advance = onContinue,
+                    )
                 },
             )
             recordFabHolder?.isUpdateMode = false
@@ -259,72 +254,78 @@ internal fun WarmupPhaseLiveCard(
     DisposableEffect(recordActionHolder, recordActionInstanceOwner) {
         onDispose { recordActionHolder?.clearIfOwner(recordActionInstanceOwner) }
     }
-    PrepChecklistShell(
-        title = "APROXIMACIÓN",
-        doneCount = rows.count { it.isCompleted },
-        totalCount = rows.size,
-        sessionAccentColor = sessionAccentColor,
+    val reduced = wizardReducedMotion()
+    val currentIndex = currentPrepIndex(rows.map { it.isCompleted })
+    val restRemaining = inlineRestRemainingOrNull(inlineRestRemainingSeconds, inlineRestTotalSeconds)
+    PrepPageLayout(
         modifier = modifier,
-        footer = {
-            Column(
-                modifier = Modifier.fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                val remaining = inlineRestRemainingOrNull(inlineRestRemainingSeconds, inlineRestTotalSeconds)
-                if (remaining != null) {
-                    PrepInlineRestBar(
-                        remainingSeconds = remaining.coerceAtLeast(0),
-                        totalSeconds = (inlineRestTotalSeconds ?: 1).coerceAtLeast(1),
-                        sessionAccentColor = sessionAccentColor,
-                        onSkip = onSkipInlineRest ?: {},
-                    )
-                } else {
-                    if (onAddSet != null) {
-                        OutlinedButton(
-                            onClick = onAddSet,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(40.dp),
-                            shape = RoundedCornerShape(12.dp),
-                            border = BorderStroke(1.dp, sessionAccentColor.copy(alpha = 0.45f)),
-                            colors = ButtonDefaults.outlinedButtonColors(
-                                contentColor = sessionAccentColor,
-                            ),
-                        ) {
-                            Text(
-                                text = "Agregar serie",
-                                style = MaterialTheme.typography.labelMedium,
-                                fontWeight = FontWeight.Bold,
-                            )
-                        }
-                    }
-                    PrepPhaseSkipBar(onSkip = onSkip)
-                }
+        header = {
+            AnimatedContent(
+                targetState = currentIndex,
+                transitionSpec = { prepContentTransition(reduced) },
+                label = "prepWarmupHeader",
+            ) { index ->
+                val row = rows.getOrNull(index)
+                // El peso que se ve arriba es el que se escribe en la fila (si hay borrador), o el registrado, o la sugerencia.
+                val typedKg = row?.let { weightDrafts[warmupDraftKey(it)] }?.replace(',', '.')?.toDoubleOrNull()
+                val kg = typedKg ?: row?.actualWeightKg ?: row?.suggestedWeightKg
+                val estimate = kg != null && typedKg == null && row?.actualWeightKg == null
+                PrepPageHeader(
+                    eyebrow = "Aproximación ${index + 1} de ${rows.size.coerceAtLeast(1)}",
+                    title = row?.exerciseName?.takeIf { it.isNotBlank() } ?: "Calentamiento",
+                    dose = when {
+                        row == null -> null
+                        kg != null -> kg.toTrimmedNumberString()
+                        else -> prepPercentText(row.warmup.percentageOfWorkingWeight)
+                    },
+                    doseUnit = if (kg != null) "kg" else null,
+                    doseLead = if (estimate) "≈" else null,
+                    caption = row?.let { warmupCaption(it, hasKg = kg != null, estimate = estimate) },
+                )
             }
         },
-    ) {
-        rows.forEachIndexed { index, row ->
-            if (index > 0) {
-                HorizontalDivider(color = Color.White.copy(alpha = 0.06f))
+        footer = {
+            if (restRemaining != null) {
+                PrepRestRow(
+                    remainingSeconds = restRemaining.coerceAtLeast(0),
+                    totalSeconds = (inlineRestTotalSeconds ?: 1).coerceAtLeast(1),
+                    onSkip = onSkipInlineRest ?: {},
+                )
+            } else {
+                PrepPhaseSkipBar(label = "Saltar calentamiento", onSkip = onSkip)
             }
-            val pct = formatLiveWarmupPercent(row.warmup.percentageOfWorkingWeight)
-            val subtitle = buildList {
-                row.exerciseBadge?.takeIf { it.isNotBlank() }?.let { add(it) }
-                add(pct)
-                add("${row.warmup.targetReps} reps")
-            }.joinToString(" · ")
-            WarmupChecklistLine(
-                title = "Aprox ${row.index + 1}",
-                subtitle = subtitle,
-                suggestedWeightKg = row.suggestedWeightKg,
-                actualWeightKg = row.actualWeightKg,
-                isCompleted = row.isCompleted,
-                accent = sessionAccentColor,
-                onToggle = { completed, kg -> onToggleComplete(row, completed, kg) },
-                onWeightDraft = onWeightDraft?.let { callback -> { text -> callback(row, text) } },
-            )
-        }
-    }
+        },
+        content = {
+            rows.forEachIndexed { index, row ->
+                if (index > 0) PrepRowDivider()
+                val state = when {
+                    row.isCompleted -> PrepCheckState.DONE
+                    index == currentIndex -> PrepCheckState.CURRENT
+                    else -> PrepCheckState.PENDING
+                }
+                WarmupChecklistLine(
+                    title = "Aproximación ${index + 1}",
+                    caption = listOfNotNull(
+                        row.exerciseBadge?.takeIf { it.isNotBlank() },
+                        prepPercentText(row.warmup.percentageOfWorkingWeight),
+                        "${row.warmup.targetReps} repeticiones",
+                    ).joinToString(" · "),
+                    state = state,
+                    suggestedWeightKg = row.suggestedWeightKg,
+                    actualWeightKg = row.actualWeightKg,
+                    onToggle = { completed, kg -> onToggleComplete(row, completed, kg) },
+                    onWeightDraft = onWeightDraft?.let { callback -> { text -> callback(row, text) } },
+                )
+            }
+            if (onAddSet != null) {
+                KpknTextAction(
+                    text = "Añadir aproximación",
+                    onClick = onAddSet,
+                    leadingIcon = KpknLineIcons.Plus,
+                )
+            }
+        },
+    )
 }
 
 internal data class WarmupPhaseRow(
@@ -335,18 +336,21 @@ internal data class WarmupPhaseRow(
     val suggestedWeightKg: Double?,
     val actualWeightKg: Double?,
     val isCompleted: Boolean,
+    /** Nombre del ejercicio del calentamiento: es el título de la página (KPKN LS5b). */
+    val exerciseName: String = "",
 )
 
 /**
  * Transparent sizing slot for every live pager page.
  *
  * The normal set card deliberately has no outer gray Surface: only its
- * Planificado/Reportar inner sections provide containers. Prep cards add one
- * undivided Surface inside this slot, while the slot keeps every page aligned.
- * The inner frame scales the previous base bounds uniformly so all card
- * content grows without spilling into the neighboring pager page. Normal
- * set cards can opt into measured height expansion so plan/technique panels
- * are laid out below the card instead of being hidden by the fixed slot.
+ * Planificado/Reportar inner sections provide containers. Prep pages (LS5b) sit
+ * on the black canvas too, with no box. The slot keeps every page aligned: the
+ * inner frame scales the previous base bounds uniformly so all card content
+ * grows without spilling into the neighboring pager page. Normal set cards can
+ * opt into measured height expansion so plan/technique panels are laid out below
+ * the card instead of being hidden by the fixed slot. Prep pages lock to the
+ * working-set height and clip to it, so their checklist scrolls inside.
  */
 @Composable
 internal fun LivePagerCardFrame(
@@ -515,125 +519,82 @@ internal fun LivePagerCardFrame(
     }
 }
 
+/**
+ * Esqueleto de una página de prep (KPKN LS5b): la cabecera fija arriba, el checklist con scroll en medio (ocupa lo que sobra) y el pie
+ * fijo abajo. Sin caja: sobre el negro.
+ */
 @Composable
-private fun PrepChecklistShell(
-    title: String,
-    doneCount: Int,
-    totalCount: Int,
-    sessionAccentColor: Color,
-    modifier: Modifier = Modifier,
-    headerExtra: (@Composable () -> Unit)? = null,
+private fun PrepPageLayout(
+    modifier: Modifier,
+    header: @Composable () -> Unit,
     footer: @Composable () -> Unit,
     content: @Composable () -> Unit,
 ) {
-    val bodyScrollState = rememberScrollState()
-    Surface(
-        modifier = modifier
-            .fillMaxWidth()
-            .fillMaxHeight(),
-        shape = WorkoutUiTokens.CardShape,
-        color = WorkoutUiTokens.setCardColor(),
-        tonalElevation = 0.dp,
-        shadowElevation = 0.dp,
-        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.08f)),
+    Column(
+        modifier = modifier.fillMaxWidth().fillMaxHeight().padding(horizontal = 12.dp),
+        verticalArrangement = Arrangement.spacedBy(14.dp),
     ) {
+        header()
+        val scrollState = rememberScrollState()
         Column(
             modifier = Modifier
-                .fillMaxSize()
-                .padding(horizontal = 12.dp, vertical = 12.dp),
-            verticalArrangement = Arrangement.spacedBy(6.dp),
+                .fillMaxWidth()
+                .weight(1f, fill = true)
+                .verticalScroll(scrollState)
+                .workoutBottomFade(scrollState),
         ) {
-            Column(
-                modifier = Modifier.fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                ) {
-                    Text(
-                        title,
-                        style = MaterialTheme.typography.labelSmall,
-                        fontWeight = FontWeight.Black,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.60f),
-                        letterSpacing = 1.sp,
-                    )
-                    Text(
-                        "$doneCount/$totalCount",
-                        style = MaterialTheme.typography.labelMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.60f),
-                    )
-                }
-                headerExtra?.invoke()
-            }
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .weight(1f, fill = true)
-                    .verticalScroll(bodyScrollState),
-            ) {
-                content()
-            }
-            footer()
+            content()
         }
+        footer()
+    }
+}
+
+/** Índice del elemento que toca: el primero sin hacer, o el último si ya están todos hechos. */
+private fun currentPrepIndex(done: List<Boolean>): Int {
+    val first = done.indexOfFirst { !it }
+    return if (first >= 0) first else (done.size - 1).coerceAtLeast(0)
+}
+
+/** Cambio de elemento: la cabecera sube con un fundido corto; con movimiento reducido, de golpe. */
+private fun prepContentTransition(reduced: Boolean): ContentTransform =
+    if (reduced) {
+        EnterTransition.None togetherWith ExitTransition.None
+    } else {
+        (fadeIn(tween(durationMillis = 220)) + slideInVertically(tween(durationMillis = 220)) { it / 8 }) togetherWith fadeOut(tween(durationMillis = 140))
+    }
+
+/** Clave del borrador de peso de una aproximación: la misma que usa la página para el relator (`exerciseId_warmupId`). */
+private fun warmupDraftKey(row: WarmupPhaseRow): String = "${row.exerciseId}_${row.warmup.id}"
+
+/** Leyenda de la aproximación actual: si el peso es una sugerencia, lo dice; sin peso, lo dice también. */
+private fun warmupCaption(row: WarmupPhaseRow, hasKg: Boolean, estimate: Boolean): String {
+    val pct = prepPercentText(row.warmup.percentageOfWorkingWeight)
+    val reps = "${row.warmup.targetReps} repeticiones"
+    return when {
+        !hasKg -> "Peso pendiente · $reps · $pct"
+        estimate -> "Sugerido · $reps · $pct"
+        else -> "$reps · $pct"
     }
 }
 
 @Composable
-private fun ChecklistLine(
-    title: String,
-    subtitle: String,
-    isCompleted: Boolean,
-    accent: Color,
-    onToggle: (Boolean) -> Unit,
-) {
-    Row(
+private fun PrepRowDivider() {
+    Box(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 4.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(10.dp),
-    ) {
-        Checkbox(
-            checked = isCompleted,
-            onCheckedChange = onToggle,
-            colors = CheckboxDefaults.colors(
-                checkedColor = accent,
-                uncheckedColor = Color.White.copy(alpha = 0.30f),
-                checkmarkColor = Color.Black,
-            ),
-            modifier = Modifier.size(22.dp),
-        )
-        Column(modifier = Modifier.weight(1f)) {
-            Text(
-                title,
-                style = MaterialTheme.typography.bodyMedium,
-                fontWeight = FontWeight.SemiBold,
-                color = if (isCompleted) accent else Color.White,
-                maxLines = 2,
-            )
-            if (subtitle.isNotBlank()) {
-                Text(
-                    subtitle,
-                    style = MaterialTheme.typography.labelSmall,
-                    color = Color.White.copy(alpha = 0.55f),
-                    maxLines = 1,
-                )
-            }
-        }
-    }
+            .height(1.dp)
+            .background(KpknSurface.divider),
+    ) {}
 }
 
+/** Una aproximación del checklist: el peso va a la derecha, fuera de la zona que marca la fila. */
 @Composable
 private fun WarmupChecklistLine(
     title: String,
-    subtitle: String,
+    caption: String,
+    state: PrepCheckState,
     suggestedWeightKg: Double?,
     actualWeightKg: Double?,
-    isCompleted: Boolean,
-    accent: Color,
     onToggle: (completed: Boolean, weightKg: Double) -> Unit,
     onWeightDraft: ((String) -> Unit)? = null,
 ) {
@@ -641,225 +602,35 @@ private fun WarmupChecklistLine(
         val initial = actualWeightKg ?: suggestedWeightKg
         mutableStateOf(initial?.toTrimmedNumberString() ?: "")
     }
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 4.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-    ) {
-        Checkbox(
-            checked = isCompleted,
-            onCheckedChange = { checked ->
-                val kg = textValue.toDoubleOrNull()
-                    ?: suggestedWeightKg
-                    ?: 0.0
-                onToggle(checked, kg)
-            },
-            colors = CheckboxDefaults.colors(
-                checkedColor = accent,
-                uncheckedColor = Color.White.copy(alpha = 0.30f),
-                checkmarkColor = Color.Black,
-            ),
-            modifier = Modifier.size(22.dp),
-        )
-        Column(modifier = Modifier.weight(1f)) {
-            Text(
-                title,
-                style = MaterialTheme.typography.bodyMedium,
-                fontWeight = FontWeight.SemiBold,
-                color = if (isCompleted) accent else Color.White,
-                maxLines = 1,
+    val suggestedText = suggestedWeightKg?.toTrimmedNumberString().orEmpty()
+    PrepChecklistRow(
+        title = title,
+        state = state,
+        caption = caption,
+        onToggle = {
+            // El teclado decimal escribe la coma: se lee como punto antes de convertir.
+            val kg = textValue.replace(',', '.').toDoubleOrNull() ?: suggestedWeightKg ?: 0.0
+            onToggle(state != PrepCheckState.DONE, kg)
+        },
+        trailing = {
+            PrepKgField(
+                value = textValue,
+                onValueChange = { typed ->
+                    textValue = typed
+                    onWeightDraft?.invoke(typed)
+                },
+                suggested = actualWeightKg == null && textValue == suggestedText,
             )
-            if (subtitle.isNotBlank()) {
-                Text(
-                    subtitle,
-                    style = MaterialTheme.typography.labelSmall,
-                    color = Color.White.copy(alpha = 0.55f),
-                    maxLines = 1,
-                )
-            }
-        }
-        Surface(
-            shape = RoundedCornerShape(10.dp),
-            color = Color.White.copy(alpha = 0.08f),
-            border = BorderStroke(1.dp, accent.copy(alpha = 0.35f)),
-            modifier = Modifier.height(34.dp),
-        ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.padding(horizontal = 8.dp),
-                horizontalArrangement = Arrangement.spacedBy(4.dp),
-            ) {
-                BasicTextField(
-                    value = textValue,
-                    onValueChange = {
-                        textValue = it
-                        onWeightDraft?.invoke(it)
-                    },
-                    textStyle = TextStyle(
-                        color = Color.White,
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.Bold,
-                        textAlign = TextAlign.End,
-                        fontFamily = FontFamily.Monospace,
-                    ),
-                    cursorBrush = SolidColor(accent),
-                    keyboardOptions = KeyboardOptions(
-                        keyboardType = KeyboardType.Decimal,
-                        imeAction = ImeAction.Done,
-                    ),
-                    singleLine = true,
-                    modifier = Modifier.widthIn(min = 36.dp, max = 56.dp),
-                )
-                Text("kg", style = MaterialTheme.typography.labelSmall, color = Color.White.copy(alpha = 0.55f))
-            }
-        }
-    }
-}
-
-@Composable
-private fun CompactMobilityTimer(
-    remainingSeconds: Int,
-    totalMinutes: Int,
-    isRunning: Boolean,
-    sessionAccentColor: Color,
-    onStart: () -> Unit,
-    onPause: () -> Unit,
-    onAddSeconds: (Int) -> Unit,
-    onReset: () -> Unit,
-) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween,
-    ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(6.dp),
-        ) {
-            Icon(Icons.Default.Timer, null, tint = sessionAccentColor, modifier = Modifier.size(14.dp))
-            Text(
-                "%02d:%02d".format(remainingSeconds / 60, remainingSeconds % 60),
-                style = MaterialTheme.typography.labelLarge,
-                fontWeight = FontWeight.Black,
-                fontFamily = FontFamily.Monospace,
-                color = if (remainingSeconds in 1..10) Color(0xFFFF5252) else Color.White,
-            )
-            Text(
-                "/ ${totalMinutes}m",
-                style = MaterialTheme.typography.labelSmall,
-                color = Color.White.copy(alpha = 0.40f),
-            )
-        }
-        Row(horizontalArrangement = Arrangement.spacedBy(2.dp), verticalAlignment = Alignment.CenterVertically) {
-            IconButton(onClick = { if (isRunning) onPause() else onStart() }, modifier = Modifier.size(28.dp)) {
-                Icon(
-                    if (isRunning) Icons.Default.Pause else Icons.Default.PlayArrow,
-                    null,
-                    tint = sessionAccentColor,
-                    modifier = Modifier.size(16.dp),
-                )
-            }
-            TinyChip("+30s") { onAddSeconds(30) }
-            TinyChip("Reset", onReset)
-        }
-    }
-}
-
-@Composable
-private fun TinyChip(label: String, onClick: () -> Unit) {
-    Text(
-        text = label,
-        modifier = Modifier
-            .clickable(onClick = onClick)
-            .padding(horizontal = 8.dp, vertical = 4.dp),
-        style = MaterialTheme.typography.labelSmall,
-        color = Color.White.copy(alpha = 0.75f),
+        },
     )
 }
 
-/**
- * Inline prep rest countdown on MOV/APR cards (RestTimerKind.WARMUP).
- */
-@Composable
-private fun PrepInlineRestBar(
-    remainingSeconds: Int,
-    totalSeconds: Int,
-    sessionAccentColor: Color,
-    onSkip: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    val progress = (remainingSeconds.toFloat() / totalSeconds.coerceAtLeast(1)).coerceIn(0f, 1f)
-    val mins = remainingSeconds / 60
-    val secs = remainingSeconds % 60
-    Column(
-        modifier = modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(8.dp),
-    ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Text(
-                text = "Descanso %02d:%02d".format(mins, secs),
-                style = MaterialTheme.typography.labelLarge,
-                fontWeight = FontWeight.Black,
-                color = Color.White,
-            )
-            Button(
-                onClick = onSkip,
-                modifier = Modifier.height(36.dp),
-                shape = RoundedCornerShape(10.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = sessionAccentColor,
-                    contentColor = contentOn(sessionAccentColor),
-                ),
-                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 0.dp),
-            ) {
-                Text("Saltar", style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold)
-            }
-        }
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(5.dp)
-                .clip(RoundedCornerShape(999.dp))
-                .background(Color.White.copy(alpha = 0.08f)),
-        ) {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth(progress)
-                    .fillMaxHeight()
-                    .background(sessionAccentColor.copy(alpha = 0.85f)),
-            )
-        }
-    }
-}
-
+/** «Saltar calentamiento» o «Saltar movilidad»: una acción de texto en el pie de la página (KPKN LS5b). */
 @Composable
 internal fun PrepPhaseSkipBar(
+    label: String,
     onSkip: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    Button(
-        onClick = onSkip,
-        modifier = modifier
-            .fillMaxWidth()
-            .height(40.dp),
-        shape = RoundedCornerShape(12.dp),
-        colors = ButtonDefaults.buttonColors(
-            containerColor = Color(0xFF1B232E).copy(alpha = 0.90f),
-            contentColor = Color.White,
-        ),
-        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.16f)),
-    ) {
-        Text("Omitir", style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold)
-    }
-}
-
-private fun formatLiveWarmupPercent(raw: Double): String {
-    val pct = if (raw <= 1.0) raw * 100.0 else raw
-    return "${pct.roundToInt()}%"
+    KpknTextAction(text = label, onClick = onSkip, modifier = modifier)
 }
