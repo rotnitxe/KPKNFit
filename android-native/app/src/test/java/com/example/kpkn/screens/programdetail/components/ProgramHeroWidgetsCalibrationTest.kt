@@ -7,6 +7,10 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
+/**
+ * Calibración de volumen (P7): los objetivos por músculo que sale de la calibración. Se quitaron las comprobaciones del texto de estado,
+ * que dependían de una función sin uso; las de dominio se quedan.
+ */
 class ProgramHeroWidgetsCalibrationTest {
 
     @Test
@@ -20,20 +24,9 @@ class ProgramHeroWidgetsCalibrationTest {
         )
 
         val deltoidTargets = calibration.recommendations.canonicalTarget("Deltoides")
-        val status = buildMuscleStatusText(
-            weeklySets = 16.0,
-            target = PersonalizedVolumeTarget(
-                muscleName = "Deltoides",
-                minEffective = deltoidTargets.minEffectiveVolume,
-                maxAdaptive = deltoidTargets.maxAdaptiveVolume,
-                maxRecoverable = deltoidTargets.maxRecoverableVolume,
-            ),
-            isVolumeCalibrated = true,
-        )
 
         assertTrue(deltoidTargets.minEffectiveVolume <= 16)
         assertTrue(deltoidTargets.maxAdaptiveVolume >= 16)
-        assertFalse(status.startsWith("Subentrenado"))
         assertFalse(
             calibration.recommendations.any {
                 it.muscleGroup == "Deltoides Anterior" ||
@@ -44,7 +37,7 @@ class ProgramHeroWidgetsCalibrationTest {
     }
 
     @Test
-    fun calibration_does_not_classify_six_glute_sets_as_ideal() {
+    fun calibration_glute_minimum_exceeds_six_sets() {
         val calibration = buildVolumeCalibration(
             style = TrainingStyle.POWERLIFTER,
             technique = 1,
@@ -55,18 +48,6 @@ class ProgramHeroWidgetsCalibrationTest {
 
         val gluteTargets = calibration.recommendations.canonicalTarget("Glúteos")
         assertTrue(gluteTargets.minEffectiveVolume > 6)
-        val status = buildMuscleStatusText(
-            weeklySets = 6.0,
-            target = PersonalizedVolumeTarget(
-                muscleName = "Glúteos",
-                minEffective = gluteTargets.minEffectiveVolume,
-                maxAdaptive = gluteTargets.maxAdaptiveVolume,
-                maxRecoverable = gluteTargets.maxRecoverableVolume,
-            ),
-            isVolumeCalibrated = true,
-        )
-
-        assertFalse(status.startsWith("Rango ideal"))
     }
 
     private fun List<VolumeRecommendation>.canonicalTarget(muscleName: String): VolumeRecommendation {
