@@ -7,7 +7,18 @@ import com.example.kpkn.domain.biomechanics.profiles.AnalysisProfileId.*
  * definición), para contrastarla con la del resolver sobre el catálogo real. `profile == null` es UNSUPPORTED.
  */
 internal object ProfileExpectations {
-    class Expected(val profile: AnalysisProfileId?, val startPhase: StartPhase? = null)
+    /** [onlyEquipment]: el perfil vale solo con ese material; con otro, UNSUPPORTED (aperturas con mancuernas). */
+    class Expected(val profile: AnalysisProfileId?, val startPhase: StartPhase? = null, val onlyEquipment: Set<String>? = null)
+
+    /**
+     * El perfil esperado para una configuración concreta de la tabla: aplica el material (aperturas) y los gemelos
+     * sentado (VT2b: `calf_raise__bilateral__seated_machine` → CALF_SEATED). `null` es UNSUPPORTED.
+     */
+    fun profileFor(expected: Expected, equipmentId: String, configurationId: String): AnalysisProfileId? {
+        val id = expected.profile ?: return null
+        if (expected.onlyEquipment != null && equipmentId !in expected.onlyEquipment) return null
+        return if (id == CALF && "seated" in configurationId) CALF_SEATED else id
+    }
 
     private class Rows {
         val map = LinkedHashMap<String, Expected>()
@@ -19,7 +30,8 @@ internal object ProfileExpectations {
 
     private fun rows(build: Rows.() -> Unit): Map<String, Expected> = Rows().apply(build).map
 
-    private fun use(profile: AnalysisProfileId, startPhase: StartPhase? = null) = Expected(profile, startPhase)
+    private fun use(profile: AnalysisProfileId, startPhase: StartPhase? = null, onlyEquipment: Set<String>? = null) =
+        Expected(profile, startPhase, onlyEquipment)
 
     private val unsupported = Expected(null)
 
@@ -90,7 +102,7 @@ internal object ProfileExpectations {
         row(unsupported, "back_superman_suelo", "zercher_carry")
         // horizontal_push
         row(use(PUSH_UP), "push_up", "knee_push_up", "diamond_push_up", "archer_push_up")
-        row(use(FLY), "flat_chest_fly", "incline_chest_fly", "decline_chest_fly")
+        row(use(FLY, onlyEquipment = setOf("dumbbells")), "flat_chest_fly", "incline_chest_fly", "decline_chest_fly")
         row(use(DIP), "tren_superior_fondos")
         row(unsupported, "tren_superior_cruce_poleas")
         row(

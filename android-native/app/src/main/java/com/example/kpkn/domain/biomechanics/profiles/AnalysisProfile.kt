@@ -3,11 +3,14 @@ package com.example.kpkn.domain.biomechanics.profiles
 import com.example.kpkn.domain.biomechanics.framing.FramingSpec
 import com.example.kpkn.domain.biomechanics.kinematics.ViewKind
 
-/** Los 23 perfiles de análisis (§5): cada ejercicio soportado del catálogo se mide con uno. */
+/**
+ * Los 24 perfiles de análisis (§5): cada ejercicio soportado del catálogo se mide con uno. [CALF_SEATED] va al final
+ * (gemelos sentado: la señal es la rodilla, no el tronco) y lo elige el resolver; el §5 sigue con los otros 23.
+ */
 enum class AnalysisProfileId {
     SQUAT, LUNGE, STEP_UP, MACHINE_SQUAT, DEADLIFT, HINGE, HIP_THRUST, BACK_EXTENSION, BENCH, DIP,
     PUSH_UP, OHP, PULL_VERTICAL, ROW, CURL, TRICEPS_EXTENDED_REST, TRICEPS_FLEXED_REST, RAISE, LEG_EXTENSION, LEG_CURL,
-    CALF, SHRUG, FLY,
+    CALF, SHRUG, FLY, CALF_SEATED,
 }
 
 /** Nivel de fiabilidad esperado: A, el mejor cubierto; C, el más tosco (gemelos, encogimientos, aperturas). */

@@ -10,7 +10,7 @@ import org.junit.Assert.assertSame
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
-/** La tabla de los 23 perfiles frente a la del brief VT2a (vistas, amplitudes, lados y encuadre). */
+/** La tabla de los 24 perfiles frente a la de los briefs VT2a y VT2b (vistas, amplitudes, lados y encuadre). */
 class AnalysisProfilesTest {
 
     private class Row(
@@ -55,12 +55,14 @@ class AnalysisProfilesTest {
             Row(CALF, setOf(SIDE), setOf(SIDE), 0.015, null, false, setOf(SIDE), feet = true),
             Row(SHRUG, setOf(FRONT, SIDE), setOf(FRONT), 0.02, null, false, setOf(FRONT), feet = false),
             Row(FLY, setOf(SIDE, LYING), setOf(SIDE, LYING), 0.05, null, false, setOf(SIDE), feet = false),
+            Row(CALF_SEATED, setOf(SIDE), setOf(SIDE), 0.015, null, false, setOf(SIDE), feet = true),
         )
     }
 
     @Test
-    fun thereAreTwentyThreeProfilesInTheOrderOfTheEnumAndOfIsTheirOwnEntry() {
-        assertEquals(23, AnalysisProfileId.entries.size)
+    fun thereAreTwentyFourProfilesInTheOrderOfTheEnumAndOfIsTheirOwnEntry() {
+        assertEquals(24, AnalysisProfileId.entries.size)
+        assertEquals(CALF_SEATED, AnalysisProfileId.entries.last())
         assertEquals(AnalysisProfileId.entries.toList(), AnalysisProfiles.all.map { it.id })
         for (id in AnalysisProfileId.entries) assertSame(id, AnalysisProfiles.of(id).id)
         assertEquals(AnalysisProfileId.entries.toList(), brief.map { it.id })
@@ -130,7 +132,10 @@ class AnalysisProfilesTest {
             setOf(SQUAT, DEADLIFT, HINGE, HIP_THRUST, PUSH_UP, OHP, PULL_VERTICAL),
             AnalysisProfiles.all.filter { it.tier == ProfileTier.A }.map { it.id }.toSet(),
         )
-        assertEquals(setOf(CALF, SHRUG, FLY), AnalysisProfiles.all.filter { it.tier == ProfileTier.C }.map { it.id }.toSet())
+        assertEquals(
+            setOf(CALF, SHRUG, FLY, CALF_SEATED),
+            AnalysisProfiles.all.filter { it.tier == ProfileTier.C }.map { it.id }.toSet(),
+        )
         assertEquals(
             setOf(SQUAT, LUNGE, MACHINE_SQUAT, HINGE, BACK_EXTENSION, BENCH, DIP, PUSH_UP, TRICEPS_EXTENDED_REST, FLY),
             AnalysisProfiles.all.filter { it.startPhase == StartPhase.ECCENTRIC_FIRST }.map { it.id }.toSet(),
@@ -156,7 +161,7 @@ class AnalysisProfilesTest {
 
     @Test
     fun theRomAngleIsMissingOnlyWhereThereIsNoAngle() {
-        assertEquals(setOf(CALF, SHRUG, FLY), AnalysisProfiles.all.filter { it.romAngle == null }.map { it.id }.toSet())
+        assertEquals(setOf(CALF, SHRUG, FLY, CALF_SEATED), AnalysisProfiles.all.filter { it.romAngle == null }.map { it.id }.toSet())
         assertEquals(RomAngle.ARM_ELEVATION, AnalysisProfiles.of(RAISE).romAngle)
         assertEquals(RomAngle.KNEE, AnalysisProfiles.of(SQUAT).romAngle)
         assertEquals(RomAngle.HIP, AnalysisProfiles.of(DEADLIFT).romAngle)
@@ -170,5 +175,19 @@ class AnalysisProfilesTest {
             setOf(MACHINE_SQUAT, BENCH, PULL_VERTICAL, CURL, TRICEPS_EXTENDED_REST, TRICEPS_FLEXED_REST, RAISE, LEG_EXTENSION, LEG_CURL, SHRUG, FLY),
             withoutFeet,
         )
+    }
+
+    @Test
+    fun seatedCalfIsTheStandingCalfWithTheNearKneeAsSignal() {
+        val standing = AnalysisProfiles.of(CALF)
+        val seated = AnalysisProfiles.of(CALF_SEATED)
+        // De pie sube el tronco; sentado el tronco no se mueve, sube la rodilla cercana.
+        assertEquals(CountSignal.RISE_TRUNK_MID, standing.poseSignal)
+        assertEquals(CountSignal.RISE_KNEE_NEAR, seated.poseSignal)
+        assertEquals(ProfileTier.C, seated.tier)
+        assertEquals(setOf(ViewKind.SIDE), seated.countViews)
+        assertEquals(0.015, seated.minAmplitude, 0.0)
+        // Todo lo demás es igual que en los gemelos de pie.
+        assertEquals(standing.copy(id = CALF_SEATED, poseSignal = CountSignal.RISE_KNEE_NEAR), seated)
     }
 }

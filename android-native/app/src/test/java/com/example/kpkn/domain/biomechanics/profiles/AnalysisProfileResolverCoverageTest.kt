@@ -152,7 +152,7 @@ class AnalysisProfileResolverCoverageTest {
             "Supported ${supported.size}/${catalog.size} (${percent(supported.size, catalog.size)}) < 75 %",
             supported.size * 100 >= catalog.size * 75,
         )
-        // Cada perfil sale al menos una vez en el catálogo: ninguno de los 23 es letra muerta.
+        // Cada perfil sale al menos una vez en el catálogo: ninguno de los 24 es letra muerta.
         val unused = perProfile.filterValues { it == 0 }.keys
         assertTrue("Perfiles sin ninguna configuración del catálogo: $unused", unused.isEmpty())
     }
@@ -182,16 +182,41 @@ class AnalysisProfileResolverCoverageTest {
                 continue
             }
             val actual = resolve(configuration)
+            val expectedId = ProfileExpectations.profileFor(expected, configuration.equipmentId, configuration.configurationId)
             val ok = when (actual) {
                 is ProfileResolution.Supported ->
-                    expected.profile == actual.profile.id &&
+                    expectedId == actual.profile.id &&
                         (expected.startPhase == null || expected.startPhase == actual.profile.startPhase)
-                is ProfileResolution.Unsupported -> expected.profile == null
+                is ProfileResolution.Unsupported -> expectedId == null
                 is ProfileResolution.NeedsUserChoice -> false
             }
-            if (!ok) mismatches += "${configuration.configurationId}: esperado ${expected.profile ?: "UNSUPPORTED"}, resultó $actual"
+            if (!ok) mismatches += "${configuration.configurationId}: esperado ${expectedId ?: "UNSUPPORTED"}, resultó $actual"
         }
         assertTrue("Discrepancias con la tabla del brief:\n" + mismatches.joinToString("\n"), mismatches.isEmpty())
+    }
+
+    @Test
+    fun fliesAreOnlyForDumbbellsAndOnlyTheSeatedCalfRaiseGetsItsOwnProfile() {
+        // Aperturas (VT2b): con mancuernas FLY; con máquina o polea (pec deck y crossover), fuera de plano.
+        val flies = catalog.filter { it.definitionId in setOf("flat_chest_fly", "incline_chest_fly", "decline_chest_fly") }
+        assertTrue("Catálogo sin aperturas", flies.isNotEmpty() && flies.any { it.equipmentId != "dumbbells" })
+        for (fly in flies) {
+            val resolution = resolve(fly)
+            if (fly.equipmentId == "dumbbells") {
+                assertEquals(fly.configurationId, AnalysisProfileId.FLY, (resolution as ProfileResolution.Supported).profile.id)
+            } else {
+                assertEquals(fly.configurationId, ProfileResolution.Unsupported(UnsupportedReasons.MACHINE_PLANE), resolution)
+            }
+        }
+        // Gemelos: solo la configuración «seated» usa la rodilla como señal.
+        val calves = catalog.filter { it.patternId == "plantar_flexion" }
+        assertTrue(calves.any { "seated" in it.configurationId })
+        for (calf in calves) {
+            val expected = if ("seated" in calf.configurationId) AnalysisProfileId.CALF_SEATED else AnalysisProfileId.CALF
+            assertEquals(calf.configurationId, expected, (resolve(calf) as ProfileResolution.Supported).profile.id)
+        }
+        val seatedMachine = calves.first { it.configurationId == "calf_raise__bilateral__seated_machine" }
+        assertEquals(AnalysisProfileId.CALF_SEATED, (resolve(seatedMachine) as ProfileResolution.Supported).profile.id)
     }
 
     @Test

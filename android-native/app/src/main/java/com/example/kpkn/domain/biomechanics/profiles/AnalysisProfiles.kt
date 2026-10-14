@@ -8,7 +8,7 @@ import com.example.kpkn.domain.biomechanics.kinematics.ViewKind.OBLIQUE
 import com.example.kpkn.domain.biomechanics.kinematics.ViewKind.SIDE
 
 /**
- * La tabla de los 23 perfiles (§5 y brief VT2a), en el orden de [AnalysisProfileId]. Son los perfiles BASE:
+ * La tabla de los 24 perfiles (§5 y briefs VT2a y VT2b), en el orden de [AnalysisProfileId]. Son los perfiles BASE:
  * `usesPlate` en `false`, `mvtMps` en `null` y `framing.needsPlate` en `false`. El [AnalysisProfileResolver] los
  * ajusta al material (disco) y a la definición (MVT y, en unas pocas, el arranque).
  *
@@ -16,7 +16,7 @@ import com.example.kpkn.domain.biomechanics.kinematics.ViewKind.SIDE
  * poleas, banca y mancuernas sentadas o tumbadas). Las amplitudes mínimas van en la unidad de la señal (§6).
  */
 object AnalysisProfiles {
-    /** Los 23 perfiles, en el orden de [AnalysisProfileId]. */
+    /** Los 24 perfiles, en el orden de [AnalysisProfileId]. */
     val all: List<AnalysisProfile> = buildTable()
 
     private val byId: Map<AnalysisProfileId, AnalysisProfile> = all.associateBy { it.id }
@@ -221,7 +221,7 @@ private fun buildTable(): List<AnalysisProfile> = listOf(
         depthRule = null, lockoutRule = null, pathRule = PathRule.NONE,
         mvtMps = null, minAmplitude = 35.0, framing = framing(views(SIDE), feet = false),
     ),
-    // Gemelos: poca amplitud (BH) y sin ROM angular; ver los pies es lo que importa.
+    // Gemelos de pie: poca amplitud (BH) y sin ROM angular; ver los pies es lo que importa.
     AnalysisProfile(
         id = AnalysisProfileId.CALF, tier = ProfileTier.C, startPhase = StartPhase.CONCENTRIC_FIRST,
         countViews = views(SIDE), metricViews = views(SIDE),
@@ -247,5 +247,14 @@ private fun buildTable(): List<AnalysisProfile> = listOf(
         barPoint = BarPointRule.NONE, perSide = false,
         depthRule = null, lockoutRule = null, pathRule = PathRule.NONE,
         mvtMps = null, minAmplitude = 0.05, framing = framing(views(SIDE), feet = false),
+    ),
+    // Gemelos sentado: el tronco no se mueve, pero las rodillas suben con los talones; manda la rodilla cercana.
+    AnalysisProfile(
+        id = AnalysisProfileId.CALF_SEATED, tier = ProfileTier.C, startPhase = StartPhase.CONCENTRIC_FIRST,
+        countViews = views(SIDE), metricViews = views(SIDE),
+        poseSignal = CountSignal.RISE_KNEE_NEAR, plateSignal = null, romAngle = null,
+        barPoint = BarPointRule.NONE, perSide = false,
+        depthRule = null, lockoutRule = null, pathRule = PathRule.NONE,
+        mvtMps = null, minAmplitude = 0.015, framing = framing(views(SIDE)),
     ),
 )

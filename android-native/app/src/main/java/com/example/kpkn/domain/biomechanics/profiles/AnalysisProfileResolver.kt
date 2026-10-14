@@ -70,6 +70,9 @@ object AnalysisProfileResolver {
     private const val SOURCE_DEFINITION = "definition"
     private const val SOURCE_PATTERN = "pattern"
 
+    /** Marca del id de configuración de los ejercicios sentados (`calf_raise__bilateral__seated_machine`). */
+    private const val SEATED = "seated"
+
     /** Material con el que el disco puede ser la señal principal (§5, «Disco como señal principal»). */
     private val PLATE_EQUIPMENT = setOf("barbell", "smith_machine", "hex_bar", "safety_bar", "t_bar")
 
@@ -163,7 +166,11 @@ object AnalysisProfileResolver {
         skip(UnsupportedReasons.WALKING, "zercher_carry")
         // horizontal_push.
         use(AnalysisProfileId.PUSH_UP, "push_up", "knee_push_up", "diamond_push_up", "archer_push_up")
-        use(AnalysisProfileId.FLY, "flat_chest_fly", "incline_chest_fly", "decline_chest_fly")
+        // Solo con mancuernas: en máquina o polea (pec deck, crossover) el movimiento es horizontal y la muñeca no baja.
+        use(
+            AnalysisProfileId.FLY, "flat_chest_fly", "incline_chest_fly", "decline_chest_fly",
+            onlyEquipment = setOf("dumbbells"), otherwise = UnsupportedReasons.MACHINE_PLANE,
+        )
         use(AnalysisProfileId.DIP, "tren_superior_fondos")
         skip(UnsupportedReasons.MACHINE_PLANE, "tren_superior_cruce_poleas")
         use(
@@ -224,7 +231,12 @@ object AnalysisProfileResolver {
     }
 
     private fun resolved(rule: Rule, ref: ExerciseRef, source: String): ProfileResolution = when (rule) {
-        is Rule.Use -> ProfileResolution.Supported(adjusted(AnalysisProfiles.of(rule.id), rule.startPhase, ref), source)
+        is Rule.Use ->
+            if (rule.onlyEquipment != null && ref.equipmentId !in rule.onlyEquipment) {
+                ProfileResolution.Unsupported(rule.otherwise)
+            } else {
+                ProfileResolution.Supported(adjusted(AnalysisProfiles.of(rule.id), rule.startPhase, ref), source)
+            }
         is Rule.Skip -> ProfileResolution.Unsupported(rule.reason)
     }
 
@@ -235,8 +247,16 @@ object AnalysisProfileResolver {
         return (PATTERN_RULES[patternId] as? Rule.Use)?.id
     }
 
-    /** El perfil base ajustado al ejercicio: arranque de la excepción, disco según el material y MVT. */
-    private fun adjusted(base: AnalysisProfile, startPhase: StartPhase?, ref: ExerciseRef): AnalysisProfile {
+    /**
+     * El perfil base ajustado al ejercicio: gemelos sentado, arranque de la excepción, disco según el material y MVT.
+     * Los gemelos sentado (`calf_raise__bilateral__seated_machine`) cambian de perfil: sentado el tronco no sube, sube la rodilla.
+     */
+    private fun adjusted(profile: AnalysisProfile, startPhase: StartPhase?, ref: ExerciseRef): AnalysisProfile {
+        val base = if (profile.id == AnalysisProfileId.CALF && ref.configurationId?.contains(SEATED, ignoreCase = true) == true) {
+            AnalysisProfiles.of(AnalysisProfileId.CALF_SEATED)
+        } else {
+            profile
+        }
         val equipment = ref.equipmentId
         val usesPlate = base.plateSignal != null && equipment != null && equipment in PLATE_EQUIPMENT
         val start = startPhase
@@ -263,17 +283,32 @@ object AnalysisProfileResolver {
     )
 }
 
-/** Qué hacer con un patrón o una definición: medirlo con un perfil (con otro arranque, si procede) o dejarlo fuera. */
+/**
+ * Qué hacer con un patrón o una definición: medirlo con un perfil (con otro arranque, si procede) o dejarlo fuera.
+ * [Use.onlyEquipment] limita el perfil a ese material; con otro (o sin material) el ejercicio queda fuera con [Use.otherwise].
+ */
 private sealed interface Rule {
-    data class Use(val id: AnalysisProfileId, val startPhase: StartPhase? = null) : Rule
+    data class Use(
+        val id: AnalysisProfileId,
+        val startPhase: StartPhase? = null,
+        val onlyEquipment: Set<String>? = null,
+        val otherwise: String = UnsupportedReasons.NOT_YET,
+    ) : Rule
+
     data class Skip(val reason: String) : Rule
 }
 
 private class RuleTable {
     val rules = LinkedHashMap<String, Rule>()
 
-    fun use(id: AnalysisProfileId, vararg keys: String, startPhase: StartPhase? = null) {
-        keys.forEach { put(it, Rule.Use(id, startPhase)) }
+    fun use(
+        id: AnalysisProfileId,
+        vararg keys: String,
+        startPhase: StartPhase? = null,
+        onlyEquipment: Set<String>? = null,
+        otherwise: String = UnsupportedReasons.NOT_YET,
+    ) {
+        keys.forEach { put(it, Rule.Use(id, startPhase, onlyEquipment, otherwise)) }
     }
 
     fun skip(reason: String, vararg keys: String) {
