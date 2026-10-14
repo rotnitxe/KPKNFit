@@ -58,9 +58,6 @@ import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
-import com.example.kpkn.ui.components.rings.KpknRingColors
-import com.example.kpkn.ui.components.rings.KpknTowerRings
-import com.example.kpkn.ui.components.rings.TowerRingValues
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.text.font.FontWeight
@@ -707,73 +704,6 @@ internal fun UnilateralAddGhostCard(
                 )
             }
         }
-    }
-}
-
-@Composable
-internal fun EstimatedRingsRow(
-    energy: Int,
-    spine: Int,
-) {
-    SessionEstimatedRings(
-        energyDrain = (100 - energy).coerceIn(0, 100),
-        spineDrain = (100 - spine).coerceIn(0, 100),
-        muscleDrain = 0,
-    )
-}
-
-/**
- * Drenaje estimado de la sesión en la torre de tres anillos del logo (mismos canales que los anillos en vivo).
- * El relleno es el coste previsto de cada canal; sin animación, porque cambia en cada edición de la sesión.
- */
-@Composable
-internal fun SessionEstimatedRings(
-    energyDrain: Int,
-    spineDrain: Int,
-    muscleDrain: Int,
-    modifier: Modifier = Modifier,
-) {
-    val muscleColor = KpknRingColors.musculos
-    val energyColor = KpknRingColors.energia
-    val spineColor = KpknRingColors.columna
-
-    Column(
-        modifier = modifier.fillMaxWidth(),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(18.dp),
-    ) {
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(176.dp),
-            contentAlignment = Alignment.Center,
-        ) {
-            KpknTowerRings(
-                values = TowerRingValues(
-                    columna = spineDrain.coerceIn(0, 100),
-                    musculos = muscleDrain.coerceIn(0, 100),
-                    energia = energyDrain.coerceIn(0, 100),
-                ),
-                modifier = Modifier.fillMaxSize(),
-                animate = false,
-            )
-        }
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceEvenly,
-        ) {
-            RingCaption("MÚSCULOS", muscleDrain.coerceIn(0, 100), muscleColor)
-            RingCaption("ENERGÍA", energyDrain.coerceIn(0, 100), energyColor)
-            RingCaption("COLUMNA", spineDrain.coerceIn(0, 100), spineColor)
-        }
-    }
-}
-
-@Composable
-private fun RingCaption(label: String, pct: Int, color: Color) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Text(label, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Black, color = color)
-        Text("$pct%", style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold, color = Color.White.copy(alpha = 0.85f))
     }
 }
 

@@ -95,7 +95,10 @@ import com.example.kpkn.screens.sessioneditor.design.SessionEditorTopActions
 import com.example.kpkn.screens.sessioneditor.design.SessionNavigatorSheet
 import com.example.kpkn.screens.sessioneditor.design.SessionTemplateSaveDialog
 import com.example.kpkn.screens.sessioneditor.components.sheets.SessionEditorSheets
-import com.example.kpkn.screens.sessioneditor.components.sheets.AssistantGlassOverlay
+import com.example.kpkn.screens.sessioneditor.design.SessionAssistantOverlay
+import com.example.kpkn.screens.sessioneditor.design.SessionAssistantTab
+import com.example.kpkn.screens.sessioneditor.design.SessionImpactModule
+import com.example.kpkn.screens.sessioneditor.design.sessionImpactOf
 import com.example.kpkn.ui.components.icons.KpknLineIcons
 import com.example.kpkn.ui.design.KpknIconButton
 import com.example.kpkn.ui.design.KpknPrimaryPill
@@ -164,6 +167,9 @@ fun SessionEditorScreen(
     var showMoreMenu by remember { mutableStateOf(false) }
     var moreAnchor by remember { mutableStateOf<Rect?>(null) }
     var showNavigatorSheet by rememberSaveable { mutableStateOf(false) }
+    // Pestaña del asistente: la que pide quien lo abre, o la última usada (SE4). Impacto de la sesión, nulo sin datos del motor.
+    var assistantTab by rememberSaveable { mutableStateOf(SessionAssistantTab.IMPACT) }
+    val impact = remember(uiState.augeSummary) { sessionImpactOf(uiState.augeSummary) }
     var showSaveTemplateDialog by rememberSaveable { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
@@ -176,11 +182,13 @@ fun SessionEditorScreen(
     val focusManager = LocalFocusManager.current
     val keyboardController = LocalSoftwareKeyboardController.current
 
-    fun openAssistantSheet() {
+    fun openAssistantSheet(tab: SessionAssistantTab? = null) {
         // Dismiss the group-name BasicTextField before the overlay is composed;
         // otherwise Android can keep its yellow insertion handle visible above
         // the sheet even though the field is visually covered.
         clearSessionEditorAssistantFocus(focusManager, keyboardController)
+        // Sin pestaña pedida, la hoja abre en la última usada (SE4).
+        if (tab != null) assistantTab = tab
         viewModel.openSheet(SessionEditorSheet.AUGE)
     }
 
@@ -733,6 +741,17 @@ fun SessionEditorScreen(
                 )
             }
 
+            // Módulo «Impacto de la sesión» (SE4), justo bajo la cabecera. Sin datos del motor no ocupa sitio.
+            impact?.let { sessionImpact ->
+                item(key = "sesion-impacto") {
+                    SessionImpactModule(
+                        impact = sessionImpact,
+                        onOpenAssistant = { openAssistantSheet(SessionAssistantTab.IMPACT) },
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                    )
+                }
+            }
+
             items(scrollableListItems, key = { it.stableKey }, contentType = { it::class }) { listItem ->
                 SessionEditorListItem(
                     listItem = listItem,
@@ -795,7 +814,7 @@ fun SessionEditorScreen(
             timeLabel = estimatedMinutes.takeIf { it > 0 }?.let { "≈ $it min" },
             hazeState = hazeState,
             onAddExercise = viewModel::openPickerForUncategorized,
-            onAssistant = ::openAssistantSheet,
+            onAssistant = { openAssistantSheet() },
             onTime = { viewModel.openRulesSheet(initialTab = 1) },
             modifier = Modifier
                 .align(Alignment.BottomCenter)
@@ -863,10 +882,12 @@ fun SessionEditorScreen(
         }
 
         if (uiState.sheet == SessionEditorSheet.AUGE) {
-            AssistantGlassOverlay(
+            SessionAssistantOverlay(
                 uiState = uiState,
                 templates = allTemplates,
-                hazeState = hazeState,
+                impact = impact,
+                tab = assistantTab,
+                onTabSelect = { assistantTab = it },
                 onDismiss = viewModel::closeSheet,
                 onApplyAssistantSuggestion = { suggestionId, detailIds ->
                     viewModel.applyAssistantSuggestion(suggestionId, detailIds)

@@ -38,8 +38,8 @@ import com.example.kpkn.screens.onboarding.design.WizardColors
 import com.example.kpkn.screens.onboarding.design.WizardTypography
 
 /**
- * Acción de texto (KPKN_UI_V2 §6): `action` en [color] (tinta por defecto) y, si hay [icon], de 16 dp a la derecha. Zona táctil de 48 dp
- * de alto.
+ * Acción de texto (KPKN_UI_V2 §6): `action` en [color] (tinta por defecto) y, si hay [icon], de 16 dp a la derecha. Con [leadingIcon] lleva
+ * un icono de 18 dp delante del texto. Zona táctil de 48 dp de alto.
  */
 @Composable
 fun KpknTextAction(
@@ -48,6 +48,7 @@ fun KpknTextAction(
     modifier: Modifier = Modifier,
     icon: ImageVector? = null,
     color: Color = WizardColors.text,
+    leadingIcon: ImageVector? = null,
 ) {
     Row(
         modifier = modifier
@@ -55,6 +56,10 @@ fun KpknTextAction(
             .clickable(role = Role.Button, onClick = onClick),
         verticalAlignment = Alignment.CenterVertically,
     ) {
+        if (leadingIcon != null) {
+            Icon(imageVector = leadingIcon, contentDescription = null, modifier = Modifier.size(18.dp), tint = color)
+            Spacer(Modifier.width(6.dp))
+        }
         Text(
             text = text,
             style = KpknType.action,
