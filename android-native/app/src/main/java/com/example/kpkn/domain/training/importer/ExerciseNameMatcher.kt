@@ -6,6 +6,7 @@ import com.example.kpkn.domain.exercises.catalogv2.ExerciseCatalogV2Resolver
 import com.example.kpkn.domain.exercises.catalogv2.ExerciseConfigurationV2
 import com.example.kpkn.domain.exercises.catalogv2.ExerciseDefinitionV2
 import com.example.kpkn.domain.exercises.catalogv2.ExerciseSearchHitV2
+import com.example.kpkn.domain.nutrition.RegexEs
 
 /**
  * Configuración del catálogo v2 propuesta para un nombre importado. [equipmentId] (barbell, dumbbells, cable…)
@@ -181,7 +182,8 @@ private val TRANSLATIONS: Map<String, String> = mapOf(
 private val IMPORT_TRANSLATIONS: Map<String, String> = TRANSLATIONS + mapOf("sitting" to "sentado")
 
 /** Quita «pull down» y «pull downs» (con guion o espacio) y lo deja como «pulldown», la forma del catálogo. */
-private val PULL_DOWN = Regex("""(?iU)\bpull[ -]?downs?\b""")
+// Sin bandera U: ICU (Android) la rechaza; los bordes de palabra vienen de RegexEs (SE9).
+internal val PULL_DOWN = Regex(RegexEs.bounded("""pull[ -]?downs?"""), RegexOption.IGNORE_CASE)
 
 /**
  * Calificativos que cambian la variante (pausa, déficit, sentado…). En el respaldo, el ejercicio que los tiene y el

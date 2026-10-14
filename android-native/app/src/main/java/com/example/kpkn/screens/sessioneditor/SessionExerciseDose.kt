@@ -30,7 +30,7 @@ internal fun sessionExerciseDose(
         count == 1 -> "1 serie"
         else -> "$count series"
     }
-    val rest = restSeconds?.takeIf { includeRest && it > 0 }?.let { KpknSetFormat.rest(it) }
+    val rest = restSeconds?.takeIf { includeRest && it > 0 }?.let { KpknSetFormat.doseTime(it) }
     return listOfNotNull(first, intensityLabel(working), rest).joinToString(" · ")
 }
 
@@ -71,14 +71,14 @@ private fun spokenDuration(seconds: Int): String {
     }
 }
 
-/** Repeticiones de todas las series: «AMRAP», un rango («6–8»), un número («8») o una duración («0:45»). Null si no hay un patrón común. */
+/** Repeticiones de todas las series: «AMRAP», un rango («6–8»), un número («8») o una duración («45 s»). Null si no hay un patrón común. */
 private fun repsLabel(sets: List<ExerciseSet>, mode: TrainingMode): String? {
     val amrap = sets.count { it.isAmrap || mode == TrainingMode.AMRAP }
     if (amrap == sets.size) return "AMRAP"
     if (amrap > 0) return null
     val timed = mode == TrainingMode.TIME || sets.all { repRangeOf(it) == null }
     if (timed) {
-        return sets.map { it.targetDuration }.distinct().singleOrNull()?.let { KpknSetFormat.rest(it) }
+        return sets.map { it.targetDuration }.distinct().singleOrNull()?.let { KpknSetFormat.doseTime(it) }
     }
     val ranges = sets.map { repRangeOf(it) }
     if (ranges.any { it == null }) return null

@@ -309,6 +309,18 @@ class ExerciseNameMatcherTest {
         assertNull(match.alternative)
     }
 
+    @Test
+    fun `pull down con guion plural o en mayusculas se lee como pulldown`() {
+        assertEquals("Lat pulldown", PULL_DOWN.replace("Lat pull-down", "pulldown"))
+        assertEquals("pulldown", PULL_DOWN.replace("pull downs", "pulldown"))
+        assertEquals("pulldown", PULL_DOWN.replace("PULLDOWN", "pulldown"))
+    }
+
+    @Test
+    fun `pull up no se toca al buscar pull down`() {
+        assertEquals("Pull-Ups (Bodyweight)", PULL_DOWN.replace("Pull-Ups (Bodyweight)", "pulldown"))
+    }
+
     private fun loadCatalog(): ExerciseCatalogV2 {
         val file = listOf(
             File("src/main/assets/exercise_catalog_v2.json"),

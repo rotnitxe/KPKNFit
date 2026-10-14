@@ -7,6 +7,7 @@ import com.example.kpkn.data.models.effectiveRepRange
 import com.example.kpkn.data.protocols.LoadBasis
 import com.example.kpkn.data.protocols.PlanLoadReferenceKind
 import com.example.kpkn.data.protocols.PlanLoadReferenceState
+import com.example.kpkn.ui.design.KpknSetFormat
 import java.util.Locale
 import kotlin.math.roundToInt
 
@@ -24,10 +25,16 @@ internal fun formatExercisePrescription(exercise: Exercise): String? {
 
     val first = sets.firstOrNull()
     val reps = first?.effectiveRepRange()?.format()
-    val duration = first?.targetDuration?.takeIf { it > 0 }?.let { "${it}s" }
-    val dose = listOfNotNull(sets.size.takeIf { it > 0 }?.let { "${it}×" }, duration ?: reps).joinToString("")
+    val duration = first?.targetDuration?.takeIf { it > 0 }?.let { KpknSetFormat.doseTime(it) }
+    val volume = duration ?: reps
+    // «4 × 6–8» o «3 × 40 s». Sin repeticiones ni duración no se escribe la cruz colgando: solo el número de series.
+    val dose = when {
+        sets.isEmpty() -> null
+        volume == null -> if (sets.size == 1) "1 serie" else "${sets.size} series"
+        else -> "${sets.size} × $volume"
+    }
     val parts = mutableListOf<String>()
-    if (dose.isNotBlank()) parts += dose
+    dose?.let { parts += it }
 
     val percent = first?.targetPercentageRM
     val explicitWeight = first?.weight ?: reference?.capturedLoadKg
@@ -51,7 +58,7 @@ internal fun formatExercisePrescription(exercise: Exercise): String? {
         sets.any { it.isFailure || it.intensityMode == com.example.kpkn.data.models.IntensityMode.FAILURE } -> parts += "fallo"
     }
     val rest = first?.restAfterSeconds ?: exercise.restTime
-    rest?.takeIf { it > 0 }?.let { parts += "descanso ${it}s" }
+    rest?.takeIf { it > 0 }?.let { parts += "descanso ${KpknSetFormat.doseTime(it)}" }
     if (exercise.slotRole == com.example.kpkn.data.protocols.SlotRole.SPEED) parts += "SPEED"
 
     return parts.joinToString(" · ").ifBlank { null }
