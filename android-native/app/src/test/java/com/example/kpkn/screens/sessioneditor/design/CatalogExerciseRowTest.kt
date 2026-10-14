@@ -100,10 +100,10 @@ class CatalogExerciseRowTest {
             }
         }
 
-        rule.onNodeWithText("Con Mancuernas").assertDoesNotExist()
+        rule.onNodeWithText("Con mancuernas").assertDoesNotExist()
         rule.onNodeWithText("Press banca").performClick()
         rule.waitForIdle()
-        rule.onNodeWithText("Con Mancuernas").assertExists()
+        rule.onNodeWithText("Con mancuernas").assertExists()
         rule.onNodeWithText("Ver ficha").assertExists()
     }
 
