@@ -3,10 +3,15 @@ package com.example.kpkn.domain.biomechanics.vbt
 import com.example.kpkn.domain.biomechanics.bar.BarSample
 import com.example.kpkn.domain.biomechanics.bar.BarSampleSource
 import com.example.kpkn.domain.biomechanics.bar.BarTrack
+import com.example.kpkn.domain.biomechanics.kinematics.ViewKind
+import com.example.kpkn.domain.biomechanics.kinematics.hip
+import com.example.kpkn.domain.biomechanics.kinematics.knee
 import com.example.kpkn.domain.biomechanics.metrics.AnalysisFlag
 import com.example.kpkn.domain.biomechanics.metrics.AnalysisTuning
+import com.example.kpkn.domain.biomechanics.metrics.MetricSeriesBuilder
 import com.example.kpkn.domain.biomechanics.metrics.ScaleInfo
 import com.example.kpkn.domain.biomechanics.metrics.ScaleSource
+import com.example.kpkn.domain.biomechanics.reps.PreparedTrack
 import com.example.kpkn.domain.biomechanics.signal.RobustStats
 import kotlin.math.abs
 import kotlin.math.hypot
@@ -42,6 +47,18 @@ data class PlateScaleResult(
 )
 
 /**
+ * Resultado de la cordura de la escala del disco (§8 punto 6): [thighPlateM] es el muslo medido en la imagen con la escala del disco
+ * llevada al plano del atleta (× Z_s/Z_p), [thighWorldM] el de los puntos «world», [relativeError] = (disco − world)/world y
+ * [mismatch] si queda fuera de la tolerancia (`VbtTuning.thighSanityTolerance`).
+ */
+data class ThighSanity(
+    val thighPlateM: Double,
+    val thighWorldM: Double,
+    val relativeError: Double,
+    val mismatch: Boolean,
+)
+
+/**
  * Escala por disco (§8 punto 6, VT3b): del diámetro conocido del disco y de su radio en píxeles salen los metros por píxel.
  *
  * - **Radio de calibración r̂_cal:** mediana de los radios de las muestras HOUGH con q ≥ 0,5 en los fotogramas LENTOS (velocidad
@@ -56,6 +73,8 @@ data class PlateScaleResult(
  *   traslación de la barra, nunca para puntos del cuerpo. Z_p = f·R/semieje_mayor, Z_s = Z_p + 0,70 y el error del desvío
  *   respecto del medio pie es e_par ≈ |X_p − c_x|·(1 − Z_p/Z_s)·m/px. Con la focal de la traza se corrige (queda el 15 % del
  *   error por la incertidumbre de los 0,70 m); sin ella, con un FOV horizontal de 70°, si e_par > 2 cm se ocultan los desvíos.
+ * - **Cordura (VT6a):** [thighSanity] compara el muslo del lado cercano medido en la imagen con la escala del disco llevada al plano del
+ *   atleta (× Z_s/Z_p) con el de los puntos «world»; a más de ±25 % de diferencia, el motor añade PLATE_SCALE_MISMATCH (solo un aviso).
  */
 object PlateScale {
     fun estimate(
@@ -197,6 +216,56 @@ object PlateScale {
             parallaxCorrected = focalKnown,
             offsetsHidden = hidden,
         )
+    }
+
+    /**
+     * Cordura de la escala del disco (§8 punto 6): el muslo del lado cercano visto en la imagen, con la escala del disco llevada al plano
+     * del atleta, debe quedar a ±`tuning.vbt.thighSanityTolerance` (25 %) del muslo de los puntos «world».
+     *
+     * - **Muslo en la imagen:** L̂_muslo, la P90 de la longitud 2D cadera–rodilla (la misma que usa `DepthRules`), en píxeles del
+     *   fotograma del disco; × los metros por píxel del disco (D/2 entre r̂_cal) × Z_s/Z_p ([PlateScaleResult.depthRatio]).
+     * - **Muslo «world»:** la mediana de la distancia 3D cadera–rodilla del lado cercano en los fotogramas con ambos puntos válidos.
+     *
+     * Calla (`null`) sin escala o sin diámetro, con la vista que no sea de lado (SIDE), sin lado cercano, sin puntos «world» (trazas v1)
+     * o con menos de `thighSanityMinFrames` fotogramas medidos. Es solo un aviso: la escala se sigue usando.
+     */
+    fun thighSanity(
+        plate: PlateScaleResult,
+        bar: BarTrack,
+        prepared: PreparedTrack,
+        tuning: AnalysisTuning = AnalysisTuning.DEFAULT,
+    ): ThighSanity? {
+        val vbt = tuning.vbt
+        val diameterMm = bar.plateDiameterMm
+        val rCal = plate.radiusPx
+        if (plate.scale == null || diameterMm == null || diameterMm <= 0 || rCal == null || !(rCal > 0.0) || bar.frameHeight <= 0) return null
+        if (prepared.view.kind != ViewKind.SIDE) return null
+        val near = prepared.near?.near ?: return null
+        val hip = near.hip()
+        val knee = near.knee()
+
+        val frames = prepared.track.frames
+        val lengths = DoubleArray(frames.size)
+        var m = 0
+        for (i in frames.indices) {
+            val f = frames[i]
+            if (!f.hasPose || prepared.geo.distance(i, hip, knee).isNaN()) continue
+            val dx = f.worldX(hip) - f.worldX(knee)
+            val dy = f.worldY(hip) - f.worldY(knee)
+            val dz = f.worldZ(hip) - f.worldZ(knee)
+            val d = sqrt((dx * dx + dy * dy + dz * dz).toDouble())
+            if (d.isNaN() || d.isInfinite() || d <= 0.0) continue
+            lengths[m++] = d
+        }
+        if (m < vbt.thighSanityMinFrames) return null
+        val thighWorld = RobustStats.median(lengths.copyOf(m))
+        val thighFh = MetricSeriesBuilder.segmentRef(prepared.geo, hip, knee)
+        if (!(thighWorld > 0.0) || !(thighFh > 0.0)) return null
+
+        val metresPerPx = diameterMm / 2000.0 / rCal
+        val thighPlate = thighFh * bar.frameHeight * metresPerPx * plate.depthRatio
+        val relative = (thighPlate - thighWorld) / thighWorld
+        return ThighSanity(thighPlate, thighWorld, relative, abs(relative) > vbt.thighSanityTolerance)
     }
 
     private fun none(reason: String): PlateScaleResult = PlateScaleResult(
