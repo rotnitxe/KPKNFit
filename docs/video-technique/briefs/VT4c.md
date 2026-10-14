@@ -7,6 +7,12 @@
   - el código de `data/media/{video,pose,technique}`, `data/work/` y `domain/biomechanics/`.
 - **Logs:** `C:\kw\logs\vt-4c-<n>.log`.
 
+## Paso 0: verificación oficial del dominio (lo primero, antes de editar)
+VT3b y VT6a solo se probaron en el arnés JVM. Tu PRIMERA corrida, por `gradle_slot.sh`, es:
+`:app:compileBaseDebugKotlin :app:testBaseDebugUnitTest --tests "com.example.kpkn.domain.biomechanics.*" --tests "com.example.kpkn.data.work.*" --tests "com.example.kpkn.data.media.*"`
+- Mientras espera en la cola, lee y planifica, pero no edites hasta que termine.
+- Si falla algo del dominio, NO lo arregles: anótalo con el error exacto y avisa en el informe. Sigue si tu parte compila.
+
 ## Archivos permitidos
 - **`data/media/technique/` (nuevos):**
   - `TechniqueAnalysisPipeline.kt`: implementa `TechniqueAnalyzer`;
