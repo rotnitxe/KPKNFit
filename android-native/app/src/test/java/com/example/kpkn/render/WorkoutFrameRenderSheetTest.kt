@@ -71,7 +71,7 @@ class WorkoutFrameRenderSheetTest {
     @get:Rule
     val rule = createComposeRule()
 
-    /** La vista de Compose de la actividad, para dibujarla a un bitmap (igual que RestClockTextRenderSheetTest). */
+    /** La vista de Compose de la actividad, para dibujarla a un bitmap (igual que WizardRenderSheetTest). */
     private var hostView: View? = null
 
     private fun onlyWhenAsked() = assumeTrue("sin KPKN_RENDER_DIR no se dibuja nada", System.getenv("KPKN_RENDER_DIR") != null)
