@@ -61,6 +61,14 @@
 -keep class com.google.mlkit.vision.common.** { *; }
 -dontwarn com.google.mlkit.**
 
+# ── MediaPipe Tasks (VT) ─────────────────────────────────────────────────────
+# El JNI de MediaPipe busca clases y métodos de Java por nombre y los mensajes protobuf lite se leen por reflexión.
+-keep class com.google.mediapipe.** { *; }
+-keep class * extends com.google.protobuf.GeneratedMessageLite { *; }
+-dontwarn com.google.mediapipe.**
+-dontwarn com.google.auto.value.**
+-dontwarn javax.lang.model.**
+
 # ── Vosk / JNA ───────────────────────────────────────────────────────────────
 -dontwarn java.awt.**
 -keep class com.sun.jna.** { *; }

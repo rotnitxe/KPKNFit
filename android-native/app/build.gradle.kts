@@ -89,6 +89,11 @@ android {
         }
     }
 
+    // Los modelos de MediaPipe (assets/mediapipe/*.task) se leen del APK tal cual: sin comprimir.
+    androidResources {
+        noCompress += "task"
+    }
+
     compileOptions {
         isCoreLibraryDesugaringEnabled = true
         sourceCompatibility = JavaVersion.VERSION_11
