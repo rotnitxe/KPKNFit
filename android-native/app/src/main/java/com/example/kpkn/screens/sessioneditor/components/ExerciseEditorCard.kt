@@ -90,6 +90,7 @@ import com.example.kpkn.screens.sessioneditor.formatEditableNumber
 import com.example.kpkn.screens.sessioneditor.formatRestSummary
 import com.example.kpkn.screens.sessioneditor.formatExerciseCollapsedSummary
 import com.example.kpkn.screens.sessioneditor.sessionExerciseDose
+import com.example.kpkn.screens.sessioneditor.design.SessionCardioModule
 import com.example.kpkn.screens.sessioneditor.design.SessionExerciseRow
 import com.example.kpkn.screens.onboarding.design.entreno.plan.exercisePatternOf
 import com.example.kpkn.data.exercises.ExerciseTechniqueImageLookup
@@ -262,24 +263,43 @@ internal fun ExerciseEditorCard(
             .background(containerHighlight),
     ) {
         // Fila plegada de 64 dp: la miniatura es el asa de arrastre; el nombre, las acciones rápidas (pulsación larga).
-        SessionExerciseRow(
-            name = displayParts.parentName.ifBlank { "Seleccionar ejercicio" },
-            chips = displayParts.chips.joinToString(" · ").takeIf { it.isNotBlank() },
-            dose = if (isCompetitionMovement) "$doseLine · Competición" else doseLine,
-            expanded = expanded,
-            accent = accentColor,
-            imageRes = imageRes,
-            pattern = pattern,
-            onToggle = { expanded = !expanded },
-            onLongPress = onOpenQuickActions,
-            onDragStart = onDragStart,
-            onDrag = onDrag,
-            onDragEnd = onDragEnd,
-            onDragCancel = onDragCancel,
-            onDelete = onDeleteExercise,
-            superset = inSuperset,
-            dragEnabled = enableDrag,
-        )
+        // El cardio lleva su figura del tipo, su dosis y su mini línea de tiempo (SE5); su editor se despliega debajo, como antes.
+        val cardioDetails = exercise.cardioDetails
+        if (cardioDetails != null) {
+            SessionCardioModule(
+                name = displayParts.parentName.ifBlank { "Seleccionar ejercicio" },
+                details = cardioDetails,
+                expanded = expanded,
+                onToggle = { expanded = !expanded },
+                onLongPress = onOpenQuickActions,
+                onDragStart = onDragStart,
+                onDrag = onDrag,
+                onDragEnd = onDragEnd,
+                onDragCancel = onDragCancel,
+                onDelete = onDeleteExercise,
+                chips = displayParts.chips.joinToString(" · ").takeIf { it.isNotBlank() },
+                dragEnabled = enableDrag,
+            )
+        } else {
+            SessionExerciseRow(
+                name = displayParts.parentName.ifBlank { "Seleccionar ejercicio" },
+                chips = displayParts.chips.joinToString(" · ").takeIf { it.isNotBlank() },
+                dose = if (isCompetitionMovement) "$doseLine · Competición" else doseLine,
+                expanded = expanded,
+                accent = accentColor,
+                imageRes = imageRes,
+                pattern = pattern,
+                onToggle = { expanded = !expanded },
+                onLongPress = onOpenQuickActions,
+                onDragStart = onDragStart,
+                onDrag = onDrag,
+                onDragEnd = onDragEnd,
+                onDragCancel = onDragCancel,
+                onDelete = onDeleteExercise,
+                superset = inSuperset,
+                dragEnabled = enableDrag,
+            )
+        }
 
         // Inline expanded editor
         AnimatedVisibility(expanded) {
@@ -290,23 +310,26 @@ internal fun ExerciseEditorCard(
                 verticalArrangement = Arrangement.spacedBy(10.dp),
             ) {
                 exercise.cardioDetails?.let { details ->
-                    CardioEditorCard(
-                        details = details,
-                        accentColor = accentColor,
-                        exerciseName = exercise.name,
-                        cardioFirst = cardioFirst,
-                        showPlacementChip = showCardioPlacementChip,
-                        onTogglePlacement = onToggleCardioPlacement,
-                        history = cardioHistory,
-                        onChange = { updated ->
-                            onUpdateExercise { current ->
-                                current.copy(
-                                    cardioDetails = updated,
-                                    targetDurationMinutes = updated.targetDurationSeconds?.let { (it / 60).coerceAtLeast(1) } ?: 0,
-                                )
-                            }
-                        },
-                    )
+                    // Sangría de 6 dp: el editor de cardio arranca en la misma columna que el texto de la fila (20 dp).
+                    Column(modifier = Modifier.padding(horizontal = 6.dp)) {
+                        CardioEditorCard(
+                            details = details,
+                            accentColor = accentColor,
+                            exerciseName = exercise.name,
+                            cardioFirst = cardioFirst,
+                            showPlacementChip = showCardioPlacementChip,
+                            onTogglePlacement = onToggleCardioPlacement,
+                            history = cardioHistory,
+                            onChange = { updated ->
+                                onUpdateExercise { current ->
+                                    current.copy(
+                                        cardioDetails = updated,
+                                        targetDurationMinutes = updated.targetDurationSeconds?.let { (it / 60).coerceAtLeast(1) } ?: 0,
+                                    )
+                                }
+                            },
+                        )
+                    }
                 }
                 if (exercise.cardioDetails == null) {
                     InlineEditorBlock(
