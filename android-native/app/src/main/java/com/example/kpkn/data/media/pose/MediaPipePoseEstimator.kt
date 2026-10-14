@@ -125,8 +125,10 @@ internal class MediaPipePoseEstimator(
                         onGpu = true
                         gpuAttemptOpen = true
                         delegateName = "GPU"
-                    } catch (error: Exception) {
+                    } catch (error: Throwable) {
+                        // También un LinkageError (librería nativa de GPU que falta): se cierra el intento y se sigue en CPU.
                         probe.abandonGpuAttempt()
+                        if (error is VirtualMachineError) throw error
                         note = "GPU: ${describe(error)}"
                         Log.w(TAG, "No se pudo crear con GPU, se usa CPU: ${describe(error)}")
                     }
@@ -187,8 +189,8 @@ internal class MediaPipePoseEstimator(
         val requested = nextTimestamp(timestampMs)
         val result = try {
             detectFrame(frame, requested)
-        } catch (error: Exception) {
-            if (!onGpu) throw error
+        } catch (error: Throwable) {
+            if (!onGpu || error is VirtualMachineError) throw error
             fallBackToCpu(error)
             detectFrame(frame, nextTimestamp(requested))
         }
@@ -262,7 +264,7 @@ internal class MediaPipePoseEstimator(
     }
 
     /** La GPU lanzó una excepción: se cierra el landmarker, se anota y se recrea en CPU (sin vetar: el proceso sigue vivo). */
-    private fun fallBackToCpu(error: Exception) {
+    private fun fallBackToCpu(error: Throwable) {
         Log.w(TAG, "La GPU falló al detectar, se pasa a CPU: ${describe(error)}")
         try {
             landmarker?.close()
