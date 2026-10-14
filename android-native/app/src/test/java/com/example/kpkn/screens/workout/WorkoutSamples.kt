@@ -104,6 +104,7 @@ internal object WorkoutFinishSamples {
             createdAtIso = "2026-10-13T18:10:00Z",
         ),
     )
+}
 
 /**
  * Datos de ejemplo de la fase de preparación y del cardio (KPKN LS5b): calentamiento, movilidad y cardio con GPS, por intervalos y en
