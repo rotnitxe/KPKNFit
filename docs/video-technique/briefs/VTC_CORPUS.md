@@ -59,6 +59,8 @@ Estos son el **lote 4 (Kaggle)** y el **lote 5 (UCF101)**.
     - polea de tríceps: el bloqueo, con las manos abajo.
 - **`repTimesS[].turnaroundS`** es el instante de ESE giro. Si los extremos automáticos marcan el otro extremo (el reposo), no se copian.
 - **`startPhase`** de la etiqueta sigue siendo literal: la dirección del primer movimiento sostenido del clip.
+- **Alternos** (curl alterno, zancada alternando pierna): cada lado cuenta como UNA repetición, así que `full` es el total de los dos lados. En `repTimesS`, `side` es "l" o "r".
+- **Zancada caminando** (la persona avanza): no apta, con el motivo «zancada caminando (el resolver no la admite)». `suggestedProfile` se queda en LUNGE.
 - **Tiempos del corpus:** con ~0,25 s de precisión en el mejor caso, y `flow_auto` sin verificar fotograma a fotograma. Se informan aparte y no entran en la aceptación de tiempos (VT10).
 
 ## Fase A (un agente; guiones, sin mirar imágenes salvo para comprobar los guiones)
