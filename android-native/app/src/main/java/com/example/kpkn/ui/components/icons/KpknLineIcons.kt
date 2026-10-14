@@ -503,6 +503,40 @@ object KpknLineIcons {
     /** Flecha hacia arriba: el contrario de `ChevronDown`, para subir un bloque en las listas. */
     val ChevronUp: ImageVector by lazy { icono("KpknLine.ChevronUp", listOf("M5.75 14.5L12 8.25l6.25 6.25")) }
 
+    /** Llama: calentamiento. Una gota de fuego con su lengua interior en la base. */
+    val Flame: ImageVector by lazy {
+        icono(
+            "KpknLine.Flame",
+            listOf(
+                "M12 3c.5 3.2 4.75 5.6 4.75 10.25A4.75 4.75 0 0 1 12 18a4.75 4.75 0 0 1-4.75-4.75c0-2.1.95-3.75 2.05-4.9.25 1.3.8 2.15 1.6 2.7C10.6 7.5 11.2 5.2 12 3z",
+                "M12 15.75c-.6 0-1.1-.45-1.1-1.1 0-.7.55-1.05.8-1.5.15.45.35.7.7.9.05-.5.2-.85.5-1.25.2.55.5.95.5 1.6 0 .65-.5 1.35-1.4 1.35z",
+            ),
+        )
+    }
+
+    /** Articulación: dos segmentos que forman un ángulo y el eje redondo donde se doblan. Movilidad. */
+    val Joint: ImageVector by lazy {
+        icono(
+            "KpknLine.Joint",
+            listOf(
+                "M5.5 18.5L12 12l6.5 6.5",
+                "M12 9.75a2.25 2.25 0 1 0 0 4.5a2.25 2.25 0 1 0 0-4.5z",
+            ),
+        )
+    }
+
+    /** Eslabón: dos medias anillas unidas por una barra. Superserie: ejercicios enlazados. */
+    val Link: ImageVector by lazy {
+        icono(
+            "KpknLine.Link",
+            listOf(
+                "M9 17H7a5 5 0 0 1 0-10h2",
+                "M15 7h2a5 5 0 0 1 0 10h-2",
+                "M8 12h8",
+            ),
+        )
+    }
+
     /** Trazado del triángulo de `Play` y `PlayFilled`. */
     private const val TRIANGULO_PLAY =
         "M8.25 5.6v12.8a.9.9 0 0 0 1.37.77l10.2-6.4a.9.9 0 0 0 0-1.54l-10.2-6.4a.9.9 0 0 0-1.37.77z"

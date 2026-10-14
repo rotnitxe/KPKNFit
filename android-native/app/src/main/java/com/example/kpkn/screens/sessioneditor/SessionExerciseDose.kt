@@ -34,6 +34,43 @@ internal fun sessionExerciseDose(
     return listOfNotNull(first, intensityLabel(working), rest).joinToString(" · ")
 }
 
+/**
+ * La misma dosis dicha en voz alta para TalkBack (SE8): «3 series de 6 a 8, RIR 2, descanso 2 minutos 30». Usa los mismos datos que
+ * [sessionExerciseDose] y devuelve null igual que ella, sin series de trabajo.
+ */
+internal fun sessionExerciseSpokenDose(
+    sets: List<ExerciseSet>,
+    trainingMode: TrainingMode,
+    restSeconds: Int?,
+    includeRest: Boolean = true,
+): String? {
+    val working = sets.filterNot { it.isEmptySlot }
+    if (working.isEmpty()) return null
+    val count = working.size
+    val reps = repsLabel(working, trainingMode)?.replace("–", " a ")
+    val first = when {
+        count == 1 && reps != null -> "1 serie de $reps"
+        count == 1 -> "1 serie"
+        reps != null -> "$count series de $reps"
+        else -> "$count series"
+    }
+    val rest = restSeconds?.takeIf { includeRest && it > 0 }?.let { "descanso ${spokenDuration(it)}" }
+    return listOfNotNull(first, intensityLabel(working), rest).joinToString(", ")
+}
+
+/** Un tiempo hablado: «2 minutos 30», «1 minuto», «45 segundos». */
+private fun spokenDuration(seconds: Int): String {
+    val minutes = seconds / 60
+    val rest = seconds % 60
+    val minuteText = if (minutes == 1) "1 minuto" else "$minutes minutos"
+    val secondText = if (rest == 1) "1 segundo" else "$rest segundos"
+    return when {
+        minutes == 0 -> secondText
+        rest == 0 -> minuteText
+        else -> "$minuteText ${rest}"
+    }
+}
+
 /** Repeticiones de todas las series: «AMRAP», un rango («6–8»), un número («8») o una duración («0:45»). Null si no hay un patrón común. */
 private fun repsLabel(sets: List<ExerciseSet>, mode: TrainingMode): String? {
     val amrap = sets.count { it.isAmrap || mode == TrainingMode.AMRAP }

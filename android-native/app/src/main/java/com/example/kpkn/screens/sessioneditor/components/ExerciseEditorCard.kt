@@ -1,5 +1,8 @@
 package com.example.kpkn.screens.sessioneditor.components
 
+import com.example.kpkn.screens.sessioneditor.design.sessionEnter
+import com.example.kpkn.screens.sessioneditor.design.sessionExit
+
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
@@ -61,6 +64,7 @@ import com.example.kpkn.screens.sessioneditor.design.SessionExerciseRow
 import com.example.kpkn.screens.sessioneditor.formatEditableNumber
 import com.example.kpkn.screens.sessioneditor.resolvePartAccent
 import com.example.kpkn.screens.sessioneditor.sessionExerciseDose
+import com.example.kpkn.screens.sessioneditor.sessionExerciseSpokenDose
 import java.util.UUID
 
 @Composable
@@ -70,6 +74,8 @@ internal fun ExerciseEditorCard(
     accentHex: String?,
     coverAccentHex: String? = null,
     partId: String,
+    // Nombre de la parte: la fila no lo repite entre sus chips («Press banca · Pecho» dentro de «Pecho» se queda en «Press banca») (SE8).
+    partName: String? = null,
     isCompetitionMovement: Boolean,
     modifier: Modifier = Modifier,
     isDragging: Boolean,
@@ -129,6 +135,13 @@ internal fun ExerciseEditorCard(
     val displayParts = remember(exercise, exerciseInfo) {
         exerciseDisplayParts(exercise, exerciseInfo)
     }
+    // Los chips sin el nombre de la parte: no se repite lo que ya dice el módulo (SE8).
+    val chipsText = remember(displayParts, partName) {
+        displayParts.chips
+            .filterNot { chip -> partName != null && chip.trim().equals(partName.trim(), ignoreCase = true) }
+            .joinToString(" · ")
+            .takeIf { it.isNotBlank() }
+    }
 
     LaunchedEffect(exercise.id, exercise.goal1RM) {
         goalRmInput = formatEditableNumber(exercise.goal1RM)
@@ -162,6 +175,15 @@ internal fun ExerciseEditorCard(
         restSeconds = exercise.restTime,
         includeRest = !suppressIndividualRest,
     ) ?: "Sin series"
+    // La misma dosis para TalkBack («3 series de 6 a 8, RIR 2…») (SE8).
+    val spokenDoseLine = remember(exercise.sets, exercise.trainingMode, exercise.restTime, suppressIndividualRest, isCompetitionMovement) {
+        sessionExerciseSpokenDose(
+            sets = exercise.sets,
+            trainingMode = exercise.trainingMode,
+            restSeconds = exercise.restTime,
+            includeRest = !suppressIndividualRest,
+        )?.let { if (isCompetitionMovement) "$it, competición" else it }
+    }
     Column(
         modifier = modifier
             .fillMaxWidth()
@@ -190,13 +212,13 @@ internal fun ExerciseEditorCard(
                 onDragEnd = onDragEnd,
                 onDragCancel = onDragCancel,
                 onDelete = onDeleteExercise,
-                chips = displayParts.chips.joinToString(" · ").takeIf { it.isNotBlank() },
+                chips = chipsText,
                 dragEnabled = enableDrag,
             )
         } else {
             SessionExerciseRow(
                 name = displayParts.parentName.ifBlank { "Seleccionar ejercicio" },
-                chips = displayParts.chips.joinToString(" · ").takeIf { it.isNotBlank() },
+                chips = chipsText,
                 dose = if (isCompetitionMovement) "$doseLine · Competición" else doseLine,
                 expanded = expanded,
                 accent = accentColor,
@@ -211,6 +233,7 @@ internal fun ExerciseEditorCard(
                 onDelete = onDeleteExercise,
                 superset = inSuperset,
                 dragEnabled = enableDrag,
+                spokenDose = spokenDoseLine,
             )
         }
 
@@ -460,7 +483,7 @@ private fun InlineEditorBlock(
                     modifier = Modifier.size(18.dp),
                 )
             }
-            AnimatedVisibility(visible = expanded) {
+            AnimatedVisibility(visible = expanded, enter = sessionEnter(), exit = sessionExit()) {
                 Column(
                     modifier = Modifier.padding(top = 8.dp),
                     verticalArrangement = Arrangement.spacedBy(5.dp),

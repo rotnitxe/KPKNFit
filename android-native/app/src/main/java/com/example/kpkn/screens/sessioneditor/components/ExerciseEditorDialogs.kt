@@ -5,19 +5,15 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextFieldDefaults
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
@@ -31,9 +27,17 @@ import com.example.kpkn.screens.sessioneditor.formatEditableNumber
 import com.example.kpkn.screens.sessioneditor.safeIntOrNull
 import com.example.kpkn.screens.sessioneditor.safeDoubleOrNull
 import com.example.kpkn.screens.sessioneditor.smartReferenceMetricLabel
-import com.example.kpkn.screens.sessioneditor.DarkEditorChip
+import com.example.kpkn.screens.onboarding.design.WizardColors
 import com.example.kpkn.screens.sessioneditor.ToggleToken
 import com.example.kpkn.ui.components.KpknAlertDialog
+import com.example.kpkn.ui.components.KpknSheet
+import com.example.kpkn.ui.design.KpknModule
+import com.example.kpkn.ui.design.KpknPrimaryPill
+import com.example.kpkn.ui.design.KpknSecondaryPill
+import com.example.kpkn.ui.design.KpknSwitch
+import com.example.kpkn.ui.design.KpknTextAction
+import com.example.kpkn.ui.design.KpknTextField
+import com.example.kpkn.ui.design.KpknType
 
 @Composable
 internal fun ExerciseSmartLoadDialog(
@@ -192,55 +196,63 @@ internal fun ExerciseGoalDialog(
     onUpdateExercise: ((Exercise) -> Exercise) -> Unit,
     onDismiss: () -> Unit,
 ) {
-KpknAlertDialog(
-    onDismissRequest = { onDismiss() },
-    title = { Text("Meta", fontWeight = FontWeight.Black) },
-    text = {
-        Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
+// Hoja «Meta del ejercicio» (SE8, antes diálogo de Material): mismos datos y mismas llamadas.
+KpknSheet(onDismissRequest = onDismiss) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        Text(text = "Meta del ejercicio", style = KpknType.title, color = WizardColors.text)
+        KpknModule {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
                 Column(modifier = Modifier.weight(1f)) {
-                    Text("Seguir este ejercicio", fontWeight = FontWeight.SemiBold)
-                    Text("Aparece destacado en progreso.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(text = "Seguir este ejercicio", style = KpknType.bodyStrong, color = WizardColors.text)
+                    Text(text = "Aparece destacado en progreso.", style = KpknType.caption, color = WizardColors.textMuted)
                 }
-                Switch(
+                KpknSwitch(
                     checked = exercise.isStarTarget,
                     onCheckedChange = { checked -> onUpdateExercise { it.copy(isStarTarget = checked) } },
                 )
             }
-            EditorMiniField(
-                label = "Meta 1RM kg (opcional)",
-                value = goalRmInput,
-                keyboardType = KeyboardType.Decimal,
-                modifier = Modifier.fillMaxWidth(),
-            ) { input ->
-                onGoalRmInputChange(input)
-                onUpdateExercise { ex -> ex.copy(goal1RM = input.safeDoubleOrNull()) }
-            }
-            val goal = goalRmInput.safeDoubleOrNull()?.takeIf { it > 0 }
-            if (goal != null && resolveReferenceCapacity(exercise) == null) {
-                TextButton(
-                    onClick = {
-                        onUpdateExercise { it.copy(reference1RM = goal, prFor1RM = null) }
-                    },
-                ) {
-                    Text("Usar meta como referencia")
-                }
-            }
-            Text(
-                buildString {
-                    val prText = exercise.prFor1RM?.let { "PR: ${formatEditableNumber(it.weight)} kg × ${it.reps}" }
-                    val goalText = exercise.goal1RM?.let { "Meta: ${formatEditableNumber(it)} kg" }
-                    append(listOfNotNull(prText, goalText).ifEmpty { listOf("Sin PR/meta configurada") }.joinToString(" · "))
-                },
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
         }
-    },
-    confirmButton = {
-        TextButton(onClick = { onDismiss() }) { Text("Listo") }
-    },
-)
+        KpknModule {
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                KpknTextField(
+                    value = goalRmInput,
+                    onValueChange = { input ->
+                        onGoalRmInputChange(input)
+                        onUpdateExercise { ex -> ex.copy(goal1RM = input.safeDoubleOrNull()) }
+                    },
+                    label = "Meta 1RM kg (opcional)",
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                    modifier = Modifier.fillMaxWidth(),
+                )
+                val goal = goalRmInput.safeDoubleOrNull()?.takeIf { it > 0 }
+                if (goal != null && resolveReferenceCapacity(exercise) == null) {
+                    KpknSecondaryPill(
+                        text = "Usar meta como referencia",
+                        onClick = { onUpdateExercise { it.copy(reference1RM = goal, prFor1RM = null) } },
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                }
+                Text(
+                    text = listOfNotNull(
+                        exercise.prFor1RM?.let { "PR: ${formatEditableNumber(it.weight)} kg × ${it.reps}" },
+                        exercise.goal1RM?.let { "Meta: ${formatEditableNumber(it)} kg" },
+                    ).ifEmpty { listOf("Sin PR/meta configurada") }.joinToString(" · "),
+                    style = KpknType.caption,
+                    color = WizardColors.textMuted,
+                )
+            }
+        }
+        KpknPrimaryPill(text = "Listo", onClick = onDismiss, modifier = Modifier.fillMaxWidth())
+    }
+}
 }
 
 @Composable
@@ -250,50 +262,36 @@ internal fun ExerciseCustomUnitDialog(
     onUpdateExercise: ((Exercise) -> Exercise) -> Unit,
     onDismiss: () -> Unit,
 ) {
-KpknAlertDialog(
-    onDismissRequest = { onDismiss() },
-    title = { Text("Unidad Personalizada", fontWeight = FontWeight.Black) },
-    text = {
-        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Text(
-                "Define el nombre de la unidad personalizada para este ejercicio (ej: brazadas, pasos, intentos)",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-            OutlinedTextField(
-                value = customUnitInput,
-                onValueChange = { onCustomUnitInputChange(it) },
-                label = { Text("Nombre de la unidad") },
-                placeholder = { Text("ej: brazadas") },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true,
-                shape = RoundedCornerShape(12.dp),
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedContainerColor = DarkEditorChip,
-                    unfocusedContainerColor = DarkEditorChip,
-                    focusedBorderColor = Color.Transparent,
-                    unfocusedBorderColor = Color.Transparent,
-                    cursorColor = MaterialTheme.colorScheme.primary,
-                ),
-            )
-        }
-    },
-    confirmButton = {
-        FilledTonalButton(
+// Hoja «Unidad personalizada» (SE8, antes diálogo de Material): mismos datos y misma llamada.
+KpknSheet(onDismissRequest = onDismiss) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        Text(text = "Unidad personalizada", style = KpknType.title, color = WizardColors.text)
+        Text(
+            text = "Define el nombre de la unidad personalizada para este ejercicio (ej: brazadas, pasos, intentos).",
+            style = KpknType.body,
+            color = WizardColors.textMuted,
+        )
+        KpknTextField(
+            value = customUnitInput,
+            onValueChange = onCustomUnitInputChange,
+            label = "Nombre de la unidad",
+            placeholder = "ej: brazadas",
+            modifier = Modifier.fillMaxWidth(),
+        )
+        KpknPrimaryPill(
+            text = "Guardar",
             onClick = {
                 onUpdateExercise { current -> current.copy(customUnit = customUnitInput.ifBlank { null }) }
                 onDismiss()
             },
-        ) {
-            Text("Guardar")
-        }
-    },
-    dismissButton = {
-        TextButton(
-            onClick = { onDismiss() },
-        ) {
-            Text("Cancelar")
-        }
-    },
-)
+            modifier = Modifier.fillMaxWidth(),
+        )
+        KpknTextAction(text = "Cancelar", onClick = onDismiss)
+    }
+}
 }

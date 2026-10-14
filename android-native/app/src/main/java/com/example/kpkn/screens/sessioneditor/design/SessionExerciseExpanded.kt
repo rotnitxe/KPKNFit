@@ -188,16 +188,13 @@ internal fun SessionExerciseExpanded(
             unilateral = unilateral,
             smartLoad = resolved1RM != null,
             technique = exercise.sets.any { it.hasTechnique() },
-            note = !exercise.relationshipNotes.isNullOrBlank(),
             onMode = { openSheet = SessionExerciseSheet.MODE },
             onUnilateral = { unilateralOpen = !unilateralOpen },
             onSmartLoad = { openSheet = SessionExerciseSheet.SMART_LOAD },
             onTechnique = { openSheet = SessionExerciseSheet.TECHNIQUE },
-            onNote = { openSheet = SessionExerciseSheet.NOTE },
-            onReplace = onOpenReplacePicker,
         )
 
-        AnimatedVisibility(visible = unilateralOpen) {
+        AnimatedVisibility(visible = unilateralOpen, enter = sessionEnter(), exit = sessionExit()) {
             SessionUnilateralPanel(
                 choiceIndex = exercise.unilateralChoiceIndex(),
                 unilateral = unilateral,
@@ -280,6 +277,14 @@ internal fun SessionExerciseExpanded(
                 onCustomUnit = {
                     moreOpen = false
                     onOpenCustomUnit()
+                },
+                onNote = {
+                    moreOpen = false
+                    openSheet = SessionExerciseSheet.NOTE
+                },
+                onReplace = {
+                    moreOpen = false
+                    onOpenReplacePicker()
                 },
             )
         }
