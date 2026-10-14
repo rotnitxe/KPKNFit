@@ -245,8 +245,89 @@ data class AnalysisTuning(
     val turnPauseMinS: Double = 0.25,
     /** Ventana en la que se buscan los niveles de reposo y de giro de un tramo de movimiento. */
     val pieceLevelWindowS: Double = 0.3,
+
+    // ---------------------------------------------------------------------------------------------------------
+    // §7 · métricas por repetición y por serie (VT3a). Campo añadido al final.
+    // ---------------------------------------------------------------------------------------------------------
+    /**
+     * Los umbrales de las métricas de VT3a (ROM, profundidad, bloqueos, tronco, trayectoria y velocidad), agrupados. Un constructor
+     * de la JVM y de ART admite 255 palabras de parámetros y un `Double` ocupa dos: con este campo AnalysisTuning está en el límite
+     * (un campo más suelto da `ClassFormatError`). Los umbrales que añadan VT3b y VT10 deben ir en un grupo propio como este.
+     */
+    val metrics: MetricsTuning = MetricsTuning(),
 ) {
     companion object {
         val DEFAULT: AnalysisTuning = AnalysisTuning()
     }
 }
+
+/**
+ * Umbrales de las métricas por repetición y por serie (§7), con los valores de la especificación como defecto: viven en
+ * `AnalysisTuning.metrics`. VT10 los ajusta aquí, igual que el resto.
+ */
+data class MetricsTuning(
+    /** Paso bajo de las series de las métricas (ángulos, tronco, trayectoria): 5 Hz, o 4 Hz con fs < [metricSlowFpsBelow] (§4.9). */
+    val metricLowPassHz: Double = 5.0,
+    val metricLowPassSlowHz: Double = 4.0,
+    val metricSlowFpsBelow: Double = 25.0,
+    /** Ventana (s) de la media móvil con la que se buscan los extremos de una repetición: el ruido no empuja el pico. */
+    val extremumWindowS: Double = 0.30,
+    /**
+     * Margen (s) a cada lado de [salida, llegada] en el que se buscan los extremos (ROM, profundidad, tronco…). Cubre los
+     * ±0,5 s con los que las fases de la sentadilla sin disco (señal de cadera, no lineal) sitúan la salida y la llegada.
+     */
+    val repWindowMarginS: Double = 0.50,
+    /** Semiancho (s) de la ventana alrededor del giro de la que sale «el valor en el giro». */
+    val turnWindowHalfS: Double = 0.15,
+    /** Semiancho (s) de la ventana alrededor de un instante (inicio o fin de la CON…) de la que sale su valor. */
+    val instantWindowHalfS: Double = 0.10,
+    /** Fracción mínima de muestras válidas de una ventana para dar su valor. */
+    val minWindowValidFraction: Double = 0.60,
+
+    // ROM (§7)
+    /** Con al menos estas FULL hay tendencia (media de las 2 últimas − media de las 2 primeras) y pendiente OLS. */
+    val romTrendMinFull: Int = 4,
+
+    // Profundidad y criterios (§7)
+    /** Sentadilla: PARALLEL si |α| < 5°; BELOW si α ≥ +5° (cadera bajo la rodilla); ABOVE si α ≤ −5°. */
+    val depthParallelDeg: Double = 5.0,
+    /** Sentadilla de lado: si α (con la longitud del muslo) y atan2(ΔY, |ΔX|) difieren más que esto, la repetición queda sin clase. */
+    val depthCrossCheckDeg: Double = 10.0,
+    /** Dominada: mentón ≈ boca + [chinBelowMouthFactor]·(boca − nariz); sobre la barra si Y_mentón ≤ Y_barra − [chinClearanceTrunk]·L̂_tronco. */
+    val chinBelowMouthFactor: Double = 1.5,
+    val chinClearanceTrunk: Double = 0.02,
+    /** Dominada: colgado del todo si θE ≥ 155°. */
+    val fullHangElbowDeg: Double = 155.0,
+    /** Flexiones: completa si θE,min ≤ 90° (entre 90° y 110° es «≈» y por encima, corta; lo usa VT3b). */
+    val pushUpFullElbowDeg: Double = 90.0,
+    val pushUpShortElbowDeg: Double = 110.0,
+    /** Banca: «más corta» si su fondo queda más de un 10 % de ROM_v por encima de la mediana, con al menos [benchMinFull] FULL. */
+    val benchShallowerFraction: Double = 0.10,
+    val benchMinFull: Int = 3,
+    /** Bloqueos (θ incluido al final de la CON): peso muerto θH ≥ 165° y θK ≥ 160°; hip thrust θH ≥ 165°; press militar θE ≥ 160° y muñeca sobre la nariz. */
+    val lockoutDeadliftHipDeg: Double = 165.0,
+    val lockoutDeadliftKneeDeg: Double = 160.0,
+    val lockoutHipThrustHipDeg: Double = 165.0,
+    val lockoutOhpElbowDeg: Double = 160.0,
+
+    // Tronco (§7)
+    /** Δτ temprano: del inicio de la CON a este porcentaje de su desplazamiento. */
+    val earlyConFraction: Double = 0.30,
+
+    // Trayectoria (§7)
+    /** x_ref = mediana de X_MF con visibilidad ≥ 0,6 y pies quietos (DE robusta < 0,02 BH). */
+    val pathFootVisibility: Float = 0.6f,
+    val pathFeetStillBh: Double = 0.02,
+    /** Banca: las trayectorias se remuestrean en este número de niveles de progreso vertical. */
+    val pathLevels: Int = 21,
+    /** Banca: una mediana de trayectoria necesita al menos estas repeticiones con el nivel medido. */
+    val pathMinReps: Int = 3,
+
+    // Velocidad (§7)
+    /** Pérdida de velocidad: con al menos estas FULL. */
+    val vlMinFull: Int = 3,
+    /** Pico de velocidad: solo con fs ≥ 50 Hz. */
+    val peakMinFps: Double = 50.0,
+    /** Una concéntrica más corta que esto (s) no da MCV. */
+    val minConcentricS: Double = 0.10,
+)
