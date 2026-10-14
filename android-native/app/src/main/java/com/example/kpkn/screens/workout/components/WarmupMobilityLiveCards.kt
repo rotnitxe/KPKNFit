@@ -627,7 +627,7 @@ private fun ChecklistLine(
 }
 
 @Composable
-private fun WarmupChecklistLine(
+internal fun WarmupChecklistLine(
     title: String,
     subtitle: String,
     suggestedWeightKg: Double?,
@@ -651,7 +651,8 @@ private fun WarmupChecklistLine(
         Checkbox(
             checked = isCompleted,
             onCheckedChange = { checked ->
-                val kg = textValue.toDoubleOrNull()
+                // El teclado decimal escribe la coma: se lee como punto antes de convertir (LR0).
+                val kg = textValue.replace(',', '.').toDoubleOrNull()
                     ?: suggestedWeightKg
                     ?: 0.0
                 onToggle(checked, kg)
