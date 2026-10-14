@@ -1,5 +1,11 @@
 # VT8b · El resultado del vídeo en la sesión en vivo: «Usar», «Corregir», fallo y «Ver análisis»
 
+> **⚠ PENDIENTE DE REESCRIBIR (D28, 14-oct). NO LANZAR con este texto.**
+> - El usuario rechazó el rediseño de la sesión en vivo (LS1–LS8). `screens/workout/` vuelve a la sesión ORIGINAL de la PR11 (`8f0afc9dc`).
+> - Desaparecen `WorkoutSetPanel`, `WorkoutRestPanel` (con su `videoSlot`) y, probablemente, `WorkoutLoadSuggestion`.
+> - La lógica de este brief sigue valiendo: el controlador, el parche de la serie con `patchAt`, «Usar», «Corregir», «Marcar fallo» y «Ver análisis». Lo que cambia son los puntos donde se pinta.
+> - El orquestador los reescribe cuando entre la restauración, con los puntos equivalentes que pasará la sesión «KPKN Wizard definitivo»: la línea bajo los campos de la serie activa, el hueco del descanso y el diálogo del álbum.
+
 - **Worktree y rama:** `C:\kw\vt-a`, rama `vt/vt8b`, desde `feat/video-technique` con VT9b integrado.
 - **Antes de empezar, lee:**
   - `VT_COMUN.md`, `S_COMUN.md` y `KPKN_UI_V2.md`;

@@ -7,10 +7,30 @@
   - el motor de VT3a.
 - **Logs:** `C:\kw\logs\vt-3b-<n>.log`.
 
+## Heredado de VT3a (ya integrado; los nombres REALES mandan sobre este brief)
+- **Firmas:**
+  - `TechniqueAnalysisInput(pose, bar, profile, loadKg, userHeightCm, setHints, tuning)`;
+  - `TechniqueAnalysisEngine.analyze(input): SetTechniqueReport`;
+  - `MetricContext(prepared, series, seg, phases, profile, tuning)`;
+  - `RomMetrics`, `DepthRules`, `TrunkMetrics`, `PathMetrics` y `RelativeVelocity` exponen `.compute(ctx)` y devuelven `*Summary`. La trayectoria va en BH, para que tú la pases a cm.
+- **Campos añadidos:** `SetTechniqueReport.noRepsReason` y `romSlopeDegPerRep`, y `RepReport.trunkMaxDeg`.
+- **`AnalysisTuning` está al límite de la JVM:** como mucho 255 palabras de parámetros, y un Double ocupa 2. VT3a ya movió sus 30 umbrales a `MetricsTuning`, que es UN campo.
+  - Tú añades tus umbrales en grupos propios, `VbtTuning` y `ObservationsTuning`, cada uno como UN campo al final de `AnalysisTuning`.
+  - No añadas campos sueltos: darían `ClassFormatError`.
+- **Pérdida de velocidad ruidosa en la sentadilla sin disco** (aviso de VT3a: 7 % con una pérdida real de 0). La causa es que las fases de la cadera tienen ±0,5 s de error. Arréglalo en `RelativeVelocity`, que se permite para esto:
+  - para la pérdida (VL%), mide la velocidad de cada repetición en la ventana del 10 % al 90 % del desplazamiento de la CON: 0,8·recorrido / (t90 − t10), con los cruces de `MovementPieces`. Es robusta al error de la salida y de la llegada, y como se mide igual en todas las repeticiones, el porcentaje no se sesga;
+  - el MCV en m/s con el disco calibrado sigue siendo el de la CON completa (convención VBT), con los instantes de `RepPhaseResult`;
+  - si aun así la dispersión entre repeticiones de la misma serie sin fatiga no es fiable (CV de la velocidad de las 3 primeras > umbral), no se da la VL y queda `available` sin VELOCITY_RELATIVE;
+  - **pruebas nuevas:**
+    - sentadilla sin disco con una pérdida real de 0 → |VL| ≤ 3 %;
+    - con una pérdida real del 33 % → 33 ± 4 %;
+    - las mismas con disco.
+- **No hecho en VT3a:** SYMMETRY (valgo y asimetría de frente, nivel C) no entra en v1. Si una regla de observaciones de §7 lo necesita, esa regla calla; anótalo.
+
 ## Archivos permitidos
 - **`domain/biomechanics/vbt/` (nuevos):** `PlateScale.kt`, `CalibratedVelocity.kt` y `LoadVelocityProfile.kt`.
 - **`domain/biomechanics/metrics/` (nuevos):** `Observations.kt` (las reglas) y `ObservationText.kt` (los textos).
-- **Para integrar:** `TechniqueAnalysisEngine.kt`, `PathMetrics.kt` y `AnalysisTuning.kt` (solo campos nuevos al final).
+- **Para integrar:** `TechniqueAnalysisEngine.kt`, `PathMetrics.kt`, `RelativeVelocity.kt` (la ventana 10–90 % de la VL) y `AnalysisTuning.kt` (solo tus grupos nuevos, al final).
 - **Pruebas:** en `src/test/java/com/example/kpkn/domain/biomechanics/{vbt,metrics}/`.
 
 ## Qué haces
@@ -74,9 +94,9 @@
   - ninguna palabra prohibida en ningún texto (recorre todas las reglas con datos extremos);
   - nunca m/s ni 1RM sin calibración.
 
-**Comandos:**
-1. `:app:compileBaseDebugKotlin`
-2. `:app:testBaseDebugUnitTest --tests "com.example.kpkn.domain.biomechanics.vbt.*" --tests "com.example.kpkn.domain.biomechanics.metrics.*"`
+**Comandos** (carril de dominio: SOLO el arnés, por su carril ligero; ver VT_COMUN):
+- `KPKN_SLOT_LANE=jvm bash /c/kw/tools/gradle_slot.sh /c/kw/vt-jvm-b test --offline --tests "com.example.kpkn.domain.biomechanics.vbt.*" --tests "com.example.kpkn.domain.biomechanics.metrics.*" --tests "com.example.kpkn.domain.biomechanics.reps.*" --console=plain > /c/kw/logs/vt-3b-jvm-<n>.log 2>&1`
+- Las corridas `:app:…` las hace el orquestador, en lote, en vt-a.
 
 ## Commits
 - `feat(technique): escala por disco, velocidad en m/s y perfil carga-velocidad`

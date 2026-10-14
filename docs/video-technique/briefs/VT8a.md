@@ -1,5 +1,11 @@
 # VT8a · Grabador de técnica a pantalla completa (encuadre, 60 fps, REC, metadatos) y arreglos de la captura
 
+> **⚠ PENDIENTE DE REESCRIBIR (D28, 14-oct). NO LANZAR con este texto.**
+> - El usuario rechazó el rediseño de la sesión en vivo (LS1–LS8). `screens/workout/` vuelve a la sesión ORIGINAL de la PR11 (`8f0afc9dc`) en `feat/sessions-v1`.
+> - Desaparecen la hoja «Técnica» de LS2b, `WorkoutTechniqueSheetHolder`, `WorkoutSetPanel`, `WorkoutRestPanel` y su `videoSlot`, entre otros.
+> - Siguen igual `SetCardExerciseMediaBack`, `WorkoutMediaCaptureController` y `WorkoutMediaPreviewDialog`.
+> - El orquestador reescribe este brief cuando entre la restauración, con los puntos de entrada equivalentes que pasará la sesión «KPKN Wizard definitivo».
+
 - **Worktree y rama:** `C:\kw\vt-a`, rama `vt/vt8a`, desde `feat/video-technique` con VT7b integrado.
 - **Antes de empezar, lee:**
   - `VT_COMUN.md`, `S_COMUN.md` y `KPKN_UI_V2.md`;
