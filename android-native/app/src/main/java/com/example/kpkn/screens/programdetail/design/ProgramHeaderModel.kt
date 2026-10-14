@@ -120,13 +120,16 @@ internal fun shortPhaseOf(phase: String?): String? =
 
 private const val PHASE_PREFIX = "Fase de "
 
-/** La sesión que toca después de hoy en la semana que se ve: su día (1 = lunes … 7 = domingo) y la etiqueta de la píldora. */
-internal data class ProgramNextSession(val dayOfWeek: Int, val label: String)
+/**
+ * La sesión que toca después de hoy en la semana que se ve: su día (1 = lunes … 7 = domingo), la etiqueta corta de la píldora («Jueves ·
+ * Pierna A») y lo que lee TalkBack («Siguiente sesión: jueves, Pierna A»).
+ */
+internal data class ProgramNextSession(val dayOfWeek: Int, val label: String, val description: String)
 
 private val SPANISH_LOCALE: Locale = Locale("es")
 
 /**
- * «Siguiente: jueves · Pierna A»: la sesión que toca después de [today] (1 = lunes … 7 = domingo), dando la vuelta a la semana. La del
+ * «Jueves · Pierna A»: la sesión que toca después de [today] (1 = lunes … 7 = domingo), dando la vuelta a la semana. La del
  * propio día cuenta solo dentro de siete días. [sessions] son pares (día, nombre); las que no tienen día se ignoran. Null si ninguna.
  */
 internal fun programNextSessionOf(sessions: List<Pair<Int, String>>, today: Int): ProgramNextSession? {
@@ -136,8 +139,10 @@ internal fun programNextSessionOf(sessions: List<Pair<Int, String>>, today: Int)
         ?: return null
     val dayName = DayOfWeek.of(next.first).getDisplayName(TextStyle.FULL, SPANISH_LOCALE).lowercase(SPANISH_LOCALE)
     val name = next.second.trim()
-    val label = if (name.isEmpty()) "Siguiente: $dayName" else "Siguiente: $dayName · $name"
-    return ProgramNextSession(dayOfWeek = next.first, label = label)
+    val capitalDay = dayName.replaceFirstChar { it.uppercase(SPANISH_LOCALE) }
+    val label = if (name.isEmpty()) capitalDay else "$capitalDay · $name"
+    val description = if (name.isEmpty()) "Siguiente sesión: $dayName" else "Siguiente sesión: $dayName, $name"
+    return ProgramNextSession(dayOfWeek = next.first, label = label, description = description)
 }
 
 /** Días desde [today] hasta [day] dentro de la semana: 1 para el día siguiente y 7 para el mismo día de la semana siguiente. */

@@ -12,21 +12,29 @@ class ProgramNextSessionTest {
         // Miércoles (3): el jueves (4) va antes que el lunes de la semana siguiente, aunque aparezca después en la lista.
         val next = programNextSessionOf(listOf(1 to "Pierna B", 4 to "Pierna A", 2 to "Torso B"), today = 3)
         assertEquals(4, next?.dayOfWeek)
-        assertEquals("Siguiente: jueves · Pierna A", next?.label)
+        assertEquals("Jueves · Pierna A", next?.label)
+        assertEquals("Siguiente sesión: jueves, Pierna A", next?.description)
     }
 
     @Test
     fun `the week wraps around to the next Tuesday`() {
         // Sábado (6): el martes (2) queda dentro de tres días.
         val next = programNextSessionOf(listOf(2 to "Torso B"), today = 6)
-        assertEquals("Siguiente: martes · Torso B", next?.label)
+        assertEquals("Martes · Torso B", next?.label)
     }
 
     @Test
     fun `today's own session counts only a week later`() {
         // Miércoles (3) con sesión hoy: la de hoy queda a siete días y el viernes (5) gana.
         val next = programNextSessionOf(listOf(3 to "Torso A", 5 to "Pierna A"), today = 3)
-        assertEquals("Siguiente: viernes · Pierna A", next?.label)
+        assertEquals("Viernes · Pierna A", next?.label)
+    }
+
+    @Test
+    fun `a session without a name shows only its day`() {
+        val next = programNextSessionOf(listOf(4 to "  "), today = 3)
+        assertEquals("Jueves", next?.label)
+        assertEquals("Siguiente sesión: jueves", next?.description)
     }
 
     @Test

@@ -23,6 +23,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.TextMeasurer
@@ -141,6 +142,9 @@ private fun ProgramActionRow(state: ProgramHeaderState, actions: ProgramHeaderAc
     val isNext = primaryLabel == null && state.nextSession != null
     val pillLabel = primaryLabel ?: state.nextSession?.label
     val pillOnClick = if (isNext) actions.onOpenNextSession else actions.onPrimary
+    // En la píldora secundaria: el icono de calendario y lo que lee TalkBack de la siguiente sesión.
+    val pillIcon = if (isNext) KpknLineIcons.Calendar else primaryIcon
+    val pillDescription = if (isNext) state.nextSession?.description else null
     val measurer = rememberTextMeasurer()
     val density = LocalDensity.current
     BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
@@ -151,7 +155,7 @@ private fun ProgramActionRow(state: ProgramHeaderState, actions: ProgramHeaderAc
             0f
         } else {
             measurer.measure(text = pillLabel, style = WizardTypography.cta, maxLines = 1, softWrap = false).size.width.toFloat() +
-                with(density) { (48.dp + (if (primaryIcon != null) 28.dp else 0.dp)).toPx() }
+                with(density) { (48.dp + (if (pillIcon != null) 28.dp else 0.dp)).toPx() }
         }
         if (pillLabel != null && neededPx > pillRowPx) {
             Column(modifier = Modifier.fillMaxWidth()) {
@@ -160,7 +164,8 @@ private fun ProgramActionRow(state: ProgramHeaderState, actions: ProgramHeaderAc
                     text = pillLabel,
                     onClick = pillOnClick,
                     modifier = Modifier.fillMaxWidth(),
-                    icon = primaryIcon,
+                    icon = pillIcon,
+                    description = pillDescription,
                 )
                 Spacer(Modifier.height(8.dp))
                 Row(
@@ -179,7 +184,8 @@ private fun ProgramActionRow(state: ProgramHeaderState, actions: ProgramHeaderAc
                         text = pillLabel,
                         onClick = pillOnClick,
                         modifier = Modifier.weight(1f),
-                        icon = primaryIcon,
+                        icon = pillIcon,
+                        description = pillDescription,
                     )
                     Spacer(Modifier.width(8.dp))
                 }
@@ -200,9 +206,12 @@ private fun ProgramHeaderPill(
     onClick: () -> Unit,
     modifier: Modifier,
     icon: ImageVector?,
+    description: String?,
 ) {
     if (isNext) {
-        KpknSecondaryPill(text = text, onClick = onClick, modifier = modifier, tag = "program_header_next")
+        // La secundaria de la siguiente sesión: TalkBack lee «Siguiente sesión: jueves, Pierna A» en vez de la etiqueta corta.
+        val pillModifier = if (description != null) modifier.semantics { contentDescription = description } else modifier
+        KpknSecondaryPill(text = text, onClick = onClick, modifier = pillModifier, tag = "program_header_next", icon = icon)
     } else {
         KpknPrimaryPill(text = text, onClick = onClick, modifier = modifier, tag = "program_header_primary", icon = icon)
     }

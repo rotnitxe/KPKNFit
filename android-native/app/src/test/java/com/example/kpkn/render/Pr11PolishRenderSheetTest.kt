@@ -27,6 +27,7 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import com.example.kpkn.data.models.Program
+import com.example.kpkn.data.models.PowerliftingProfile
 import com.example.kpkn.data.models.ProgramMode
 import com.example.kpkn.screens.body.design.BodyChartPoint
 import com.example.kpkn.screens.body.design.BodyTrendChart
@@ -83,7 +84,7 @@ class Pr11PolishRenderSheetTest {
     private fun onlyWhenAsked() = assumeTrue("sin KPKN_RENDER_DIR no se dibuja nada", System.getenv("KPKN_RENDER_DIR") != null)
 
     /** Los casos de la hoja, en orden. */
-    private val cases = listOf("pdDescanso", "pdSinSiguiente", "volumenSinCalibrar", "propuestasSinTm", "grasaDosPesajes")
+    private val cases = listOf("pdDescanso", "pdSinSiguiente", "volumenSinCalibrar", "propuestasSinTm", "propuestasSinTmConTm", "grasaDosPesajes")
 
     /** El caso que se dibuja ahora, y la escala de letra. Fuera de la composición para poder cambiarlos desde la prueba. */
     private var current by mutableIntStateOf(0)
@@ -115,7 +116,7 @@ class Pr11PolishRenderSheetTest {
     private fun heightOf(name: String): Int = when (name) {
         "pdDescanso", "pdSinSiguiente" -> 560
         "volumenSinCalibrar" -> 1700
-        "propuestasSinTm" -> 460
+        "propuestasSinTm", "propuestasSinTmConTm" -> 460
         "grasaDosPesajes" -> 560
         else -> 800
     }
@@ -144,7 +145,11 @@ class Pr11PolishRenderSheetTest {
         nextSession = nextSession,
     )
 
-    private val nextThursday = ProgramNextSession(dayOfWeek = 4, label = "Siguiente: jueves · Pierna A")
+    private val nextThursday = ProgramNextSession(
+        dayOfWeek = 4,
+        label = "Jueves · Pierna A",
+        description = "Siguiente sesión: jueves, Pierna A",
+    )
 
     private val noopHeaderActions = ProgramHeaderActions(onPrimary = {}, onStartPause = {}, onEdit = {}, onOpenNextSession = {})
 
@@ -173,6 +178,15 @@ class Pr11PolishRenderSheetTest {
 
     /** Un programa sin perfil de TM: la fila de TM no debe pintarse, y la propuesta nativa sí. */
     private val noTmProgram = Program(id = "fuerza-libre", name = "Fuerza libre", description = "", mode = ProgramMode.HYPERTROPHY)
+
+    /** Un programa que usa TM sin ningún máximo fijado: Propuestas invita a fijarlos con «Añadir». */
+    private val tmUnsetProgram = Program(
+        id = "fuerza-tm",
+        name = "Fuerza con TM",
+        description = "",
+        mode = ProgramMode.POWERLIFTING,
+        powerliftingProfile = PowerliftingProfile(),
+    )
 
     /** Dos pesajes del mismo día (13 de octubre) y uno del 14: el eje debe decir «13 oct» y «14 oct», una sola vez cada uno. */
     private val fatPoints = listOf(
@@ -231,6 +245,20 @@ class Pr11PolishRenderSheetTest {
                             ),
                         ),
                     ),
+                    onAccept = {},
+                    onAcceptProposal = {},
+                    onReject = {},
+                    onAcceptNative = {},
+                    onRejectNative = {},
+                    onDismissNativeNotice = {},
+                    onOpenTm = {},
+                    onRematerialize = {},
+                )
+            }
+            "propuestasSinTmConTm" -> Frame {
+                AutoregulationProposalsCard(
+                    program = tmUnsetProgram,
+                    nativeCard = NativeProgressionCardUi(),
                     onAccept = {},
                     onAcceptProposal = {},
                     onReject = {},
