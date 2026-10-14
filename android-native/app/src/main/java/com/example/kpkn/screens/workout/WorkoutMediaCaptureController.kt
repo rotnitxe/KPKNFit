@@ -49,6 +49,9 @@ data class WorkoutMediaCaptureRequest(
     val weightKg: Double? = null,
     val reps: Int? = null,
     val isPr: Boolean = false,
+    /** Definición y configuración del catálogo v2 del ejercicio (null = ejercicio fuera del catálogo o sin resolver). */
+    val catalogDefinitionId: String? = null,
+    val catalogConfigurationId: String? = null,
 )
 
 /**
@@ -573,6 +576,8 @@ class WorkoutMediaCaptureController(
             weightKg = request.weightKg,
             reps = request.reps,
             isPr = request.isPr,
+            catalogDefinitionId = request.catalogDefinitionId,
+            catalogConfigurationId = request.catalogConfigurationId,
         )
 
     private fun observeDurableWrite(

@@ -19,6 +19,8 @@ import kotlinx.coroutines.flow.Flow
         Index("canonicalExerciseId"),
         Index("createdAtMs"),
         Index("isPr"),
+        // v29: `video_analysis.observeBySessionKey` une por la clave de sesión.
+        Index("sessionKey"),
     ],
 )
 data class WorkoutMediaEntity(
@@ -45,6 +47,9 @@ data class WorkoutMediaEntity(
     val height: Int?,
     val caption: String?,
     val poseTrackPath: String?,
+    // v29: ids del catálogo v2 del ejercicio (null = ejercicio fuera del catálogo o vídeo anterior a la v29).
+    val catalogDefinitionId: String? = null,
+    val catalogConfigurationId: String? = null,
 )
 
 fun WorkoutMedia.toEntity() = WorkoutMediaEntity(
@@ -71,6 +76,8 @@ fun WorkoutMedia.toEntity() = WorkoutMediaEntity(
     height = height,
     caption = caption,
     poseTrackPath = poseTrackPath,
+    catalogDefinitionId = catalogDefinitionId,
+    catalogConfigurationId = catalogConfigurationId,
 )
 
 fun WorkoutMediaEntity.toWorkoutMedia(): WorkoutMedia = WorkoutMedia(
@@ -97,6 +104,8 @@ fun WorkoutMediaEntity.toWorkoutMedia(): WorkoutMedia = WorkoutMedia(
     height = height,
     caption = caption,
     poseTrackPath = poseTrackPath,
+    catalogDefinitionId = catalogDefinitionId,
+    catalogConfigurationId = catalogConfigurationId,
 )
 
 @Dao
@@ -157,6 +166,43 @@ interface WorkoutMediaDao {
 
     @Query("UPDATE workout_media SET caption = :caption WHERE id = :id")
     suspend fun setCaption(id: String, caption: String?)
+
+    // Actualizaciones dirigidas (v29): cambian solo sus columnas y no leen ni reescriben la fila. NUNCA pasar una
+    // escritura de este DAO a REPLACE: REPLACE borra la fila y dispara el ON DELETE CASCADE de `video_analysis`.
+    // Cada una devuelve las filas cambiadas (0 si el medio ya no existe).
+
+    @Query("UPDATE workout_media SET poseTrackPath = :path WHERE id = :id")
+    suspend fun setPoseTrackPath(id: String, path: String?): Int
+
+    /** Las repeticiones y los kg de la serie a la que pertenece el medio (la «foto» de la serie al grabar). */
+    @Query("UPDATE workout_media SET reps = :reps, weightKg = :weightKg WHERE id = :id")
+    suspend fun setSetSnapshot(id: String, reps: Int?, weightKg: Double?): Int
+
+    @Query(
+        """
+        UPDATE workout_media
+        SET catalogDefinitionId = :definitionId, catalogConfigurationId = :configurationId
+        WHERE id = :id
+        """,
+    )
+    suspend fun setCatalogIds(id: String, definitionId: String?, configurationId: String?): Int
+
+    @Query(
+        """
+        UPDATE workout_media
+        SET exerciseId = :exerciseId, canonicalExerciseId = :canonicalExerciseId, exerciseName = :exerciseName,
+            catalogDefinitionId = :definitionId, catalogConfigurationId = :configurationId
+        WHERE id = :id
+        """,
+    )
+    suspend fun setExerciseAssignment(
+        id: String,
+        exerciseId: String?,
+        canonicalExerciseId: String?,
+        exerciseName: String?,
+        definitionId: String?,
+        configurationId: String?,
+    ): Int
 
     @Query("SELECT COUNT(*) FROM workout_media")
     suspend fun count(): Int

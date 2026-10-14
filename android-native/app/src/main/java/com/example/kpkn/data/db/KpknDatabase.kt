@@ -63,8 +63,10 @@ import androidx.sqlite.db.SupportSQLiteDatabase
         WorkoutMediaSessionAssociationEntity::class,
         SetupDraftEntity::class,
         SetupCommitReceiptEntity::class,
+        // Técnica en vídeo: caché del análisis, hija de workout_media con CASCADE (v29)
+        VideoAnalysisEntity::class,
     ],
-    version = 28,
+    version = 29,
     exportSchema = true,
 )
 abstract class KpknDatabase : RoomDatabase() {
@@ -88,6 +90,7 @@ abstract class KpknDatabase : RoomDatabase() {
     abstract fun workoutMediaSessionAssociationDao(): WorkoutMediaSessionAssociationDao
     abstract fun setupDraftDao(): SetupDraftDao
     abstract fun setupCommitReceiptDao(): SetupCommitReceiptDao
+    abstract fun videoAnalysisDao(): VideoAnalysisDao
 
     companion object {
         @Volatile private var INSTANCE: KpknDatabase? = null
@@ -774,6 +777,7 @@ abstract class KpknDatabase : RoomDatabase() {
                     MIGRATION_25_26,
                     MIGRATION_26_27,
                     MIGRATION_27_28,
+                    videoAnalysisMigration(28),
                 )
                 .addCallback(GlobalFoodsFtsHygiene)
                 .build()
