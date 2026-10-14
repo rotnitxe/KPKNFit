@@ -45,20 +45,21 @@ La especificación es `docs/video-technique/VIDEO_TECHNIQUE_V1.md`. Lee SOLO las
 - **El primer build del worktree tarda 10–20 min, más la cola.** Agrupa las ediciones antes de compilar y sigue trabajando mientras esperas.
 - **Arnés JVM para los paquetes de dominio puro** (VT1a, VT1b, VT2a, VT2b, VT3a, VT3b y VT6a). Para ITERAR usa el arnés `C:\kw\vt-jvm`:
   - compila y prueba solo `domain/biomechanics/**` del worktree;
-  - va sin Android y sin la cola de ranuras;
-  - tarda ~1 min.
+  - va sin Android y tarda ~1 min una vez que tiene ranura;
+  - **va SIEMPRE por `gradle_slot.sh`**, como cualquier Gradle: espera ranura y al menos 3 GB de RAM libre. La RAM del equipo se comparte con otras sesiones, y una corrida fuera de las ranuras las ahoga (14-oct, D25). Nunca `./gradlew` directo.
 
-  Comando:
-  `cd /c/kw/vt-jvm && ./gradlew test --offline -PappRoot=C:/kw/vt-a/android-native/app --tests "<filtro>" --console=plain > /c/kw/logs/vt-<paquete>-jvm-<n>.log 2>&1`
-  - Puede ir en primer plano (timeout de 600 s) o en segundo plano.
+  Comando (en segundo plano):
+  `bash /c/kw/tools/gradle_slot.sh /c/kw/vt-jvm test --offline -PappRoot=C:/kw/vt-a/android-native/app -Dorg.gradle.jvmargs=-Xmx1g --tests "<filtro>" --console=plain > /c/kw/logs/vt-<paquete>-jvm-<n>.log 2>&1`
+  - La espera en la cola puede ser larga. Mientras tanto, avanza en lo que no dependa de esa corrida y mira el log después.
+  - Haz POCAS corridas: revisa a mano antes, junta varios `--tests` en una sola corrida y nada de corridas de sondeo.
   - Resultados XML en `C:\kw\vt-jvm\build\test-results\test\`.
   - No toques los archivos del arnés: si falla por su configuración, avisa en el informe.
   - Al final, la verificación OFICIAL del paquete se hace UNA vez, por `gradle_slot.sh`: `:app:compileBaseDebugKotlin` y luego `:app:testBaseDebugUnitTest --tests …`.
 - **Regla de aislamiento:** `domain/biomechanics/**` solo importa de sí mismo, de `kotlin.*`/`kotlinx.*` y de `java.*`. Nada de otros paquetes `domain/`, ni de `data/`, ni de `android.*`. Si no, el arnés no compila.
 - **Carril de dominio** (VT1a, VT1b, VT2a, VT2b, VT3a, VT3b y VT6a), en el worktree `C:\kw\vt-b`:
   - **NO lances Gradle de Android** (ni `gradle_slot.sh` ni `gradlew` de `android-native`): ese worktree no compila la app, para no gastar 4,5 GB de disco.
-  - Usa SOLO el arnés propio, `C:\kw\vt-jvm-b`:
-    `cd /c/kw/vt-jvm-b && ./gradlew test --offline --tests "<filtro>" --console=plain > /c/kw/logs/vt-<paquete>-jvm-<n>.log 2>&1`
+  - Usa SOLO el arnés propio, `C:\kw\vt-jvm-b`, y siempre por `gradle_slot.sh`:
+    `bash /c/kw/tools/gradle_slot.sh /c/kw/vt-jvm-b test --offline -Dorg.gradle.jvmargs=-Xmx1g --tests "<filtro>" --console=plain > /c/kw/logs/vt-<paquete>-jvm-<n>.log 2>&1`
   - Las corridas `:app:…` que aparecen en esos briefs las hace el orquestador, en lote, en `C:\kw\vt-a`.
   - En el informe, pon el comando del arnés y su resultado (los XML de `C:\kw\vt-jvm-b\build\test-results\test\`).
 - **Si falla una prueba ajena a tu cambio,** no la persigas: anótala.
