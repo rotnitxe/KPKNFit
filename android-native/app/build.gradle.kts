@@ -228,12 +228,16 @@ dependencies {
     implementation(libs.androidx.room.ktx)
     implementation(libs.androidx.work.runtime.ktx)
     implementation("com.google.android.gms:play-services-location:21.4.0")
-    implementation("androidx.camera:camera-camera2:1.4.2")
-    implementation("androidx.camera:camera-lifecycle:1.4.2")
-    implementation("androidx.camera:camera-view:1.4.2")
-    implementation("androidx.camera:camera-video:1.4.2")
+    // CameraX 1.5.x sigue en la pila Camera2 y no arrastra Media3 (la 1.6.x sí: media3-muxer/-container y camera2-pipe).
+    implementation("androidx.camera:camera-camera2:1.5.3")
+    implementation("androidx.camera:camera-lifecycle:1.5.3")
+    implementation("androidx.camera:camera-view:1.5.3")
+    implementation("androidx.camera:camera-video:1.5.3")
     implementation("androidx.media3:media3-exoplayer:1.5.1")
     implementation("androidx.media3:media3-ui:1.5.1")
+    // MediaPipe Pose Landmarker (técnica en vídeo, ola VT). Versión FIJA: nunca "+" ni "latest.release";
+    // 0.20230731 es una versión vieja que se ordena como si fuera más nueva.
+    implementation("com.google.mediapipe:tasks-vision:1.1.0")
     // Bundled base pose model; applies to both healthConnect flavors (base + health).
     implementation("com.google.mlkit:pose-detection:18.0.0-beta5")
     implementation("com.google.mlkit:text-recognition:16.0.1")
@@ -245,6 +249,7 @@ dependencies {
     testImplementation("androidx.test:core:1.6.1")
     testImplementation(libs.androidx.room.testing)
     testImplementation(libs.androidx.compose.ui.test.junit4)
+    testImplementation(libs.androidx.work.testing)
     // Health Connect dependency - only for health flavor
     "healthImplementation"(libs.androidx.health.connect.client)
     
