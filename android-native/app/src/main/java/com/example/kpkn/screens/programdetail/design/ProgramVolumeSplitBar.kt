@@ -19,11 +19,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import com.example.kpkn.screens.onboarding.design.WizardColors
 import com.example.kpkn.screens.onboarding.design.entreno.SymbolPalette
 import com.example.kpkn.ui.design.KpknShape
 import com.example.kpkn.ui.design.KpknType
+import kotlin.math.roundToInt
 
 /**
  * Reparto de series entre empuje, tirón y pierna (P4): una barra apilada de 8 dp con los colores de su grupo (músculo, columna y
@@ -51,11 +54,14 @@ fun ProgramVolumeSplitBar(
                 color = WizardColors.textMuted,
             )
         } else {
+            val description = "Reparto de volumen: empuje ${percentOf(split.push, total)} %, tirón ${percentOf(split.pull, total)} %, " +
+                "pierna ${percentOf(split.legs, total)} %."
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(8.dp)
-                    .clip(KpknShape.pill),
+                    .clip(KpknShape.pill)
+                    .semantics { contentDescription = description },
             ) {
                 if (split.push > 0.0) SplitSegment(split.push / total, SymbolPalette.musculo)
                 if (split.pull > 0.0) SplitSegment(split.pull / total, SymbolPalette.columna)
@@ -125,3 +131,6 @@ private fun SplitLegend(
         }
     }
 }
+
+/** Porcentaje entero de [part] sobre [total] (P7: para la descripción accesible de la barra). */
+private fun percentOf(part: Double, total: Double): Int = (part / total * 100).roundToInt()

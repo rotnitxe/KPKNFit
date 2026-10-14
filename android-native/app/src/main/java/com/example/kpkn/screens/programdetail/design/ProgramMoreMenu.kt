@@ -22,6 +22,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import com.example.kpkn.screens.onboarding.design.WizardColors
 import com.example.kpkn.screens.onboarding.design.wizardReducedMotion
@@ -51,7 +53,8 @@ internal fun ProgramMoreMenu(items: List<ProgramMenuItem>, onDismiss: () -> Unit
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .clickable(interactionSource = interaction, indication = null, onClick = onDismiss),
+                    .semantics { contentDescription = "Cerrar el menú" }
+                    .clickable(interactionSource = interaction, indication = null, role = Role.Button, onClick = onDismiss),
             )
             AnimatedVisibility(
                 visibleState = shown,
