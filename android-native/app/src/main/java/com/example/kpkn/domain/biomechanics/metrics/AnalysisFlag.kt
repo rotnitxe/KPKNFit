@@ -29,7 +29,7 @@ enum class AnalysisFlag {
     /** De espaldas: no se ve la cara. */
     BACK_VIEW,
 
-    /** Disco visto como elipse (axisRatio < 0,95): la escala por disco se corrige (VT3b). */
+    /** Disco visto como elipse (axisRatio < 0,85): la cámara no es perpendicular a la barra y la escala por disco se corrige (VT3b). */
     PLATE_ELLIPSE,
 
     /** El disco encontrado se descartó (no cuadra con el atleta). */
@@ -46,4 +46,11 @@ enum class AnalysisFlag {
 
     /** El vídeo es HDR (la luma del disco puede variar). */
     HDR_SOURCE,
+
+    /**
+     * La escala del disco no cuadra con el atleta (VT6a, §8 punto 6): el muslo medido en la imagen con la escala del disco, llevada al
+     * plano del atleta (× Z_s/Z_p), difiere más de un 25 % del muslo de los puntos «world». Puede ser un diámetro mal declarado o
+     * un disco mal seguido. Es solo un aviso: la escala se sigue usando.
+     */
+    PLATE_SCALE_MISMATCH,
 }

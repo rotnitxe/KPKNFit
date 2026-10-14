@@ -419,6 +419,12 @@ data class VbtTuning(
     val lvMaxIntervalFraction: Double = 0.10,
     /** El 1RM se redondea a este paso (kg). */
     val lvRoundingKg: Double = 2.5,
+
+    // ---- Cordura de la escala del disco con el muslo «world» (§8 p6, VT6a) ----
+    /** El muslo según la escala del disco × Z_s/Z_p debe quedar a ± esto (25 %) del muslo «world»; si no, PLATE_SCALE_MISMATCH. */
+    val thighSanityTolerance: Double = 0.25,
+    /** Fotogramas con cadera y rodilla «world» del lado cercano que hacen falta para medir el muslo; con menos, la cordura calla. */
+    val thighSanityMinFrames: Int = 10,
 )
 
 /**

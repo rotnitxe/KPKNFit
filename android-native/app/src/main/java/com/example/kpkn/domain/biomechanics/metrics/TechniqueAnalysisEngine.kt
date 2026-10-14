@@ -41,7 +41,8 @@ data class TechniqueAnalysisInput(
  * trayectoria y velocidad). Cada métrica solo se marca disponible si el perfil y la vista lo permiten.
  *
  * **Disco calibrado (VT3b).** Con un `BarTrack` de diámetro conocido, `PlateScale` da la escala (con la elipse y el paralaje) y sus
- * avisos (PLATE_ELLIPSE, PLATE_REJECTED, PARALLAX_SUPPRESSED). Si además el disco es la señal de conteo (`source == "plate"`):
+ * avisos (PLATE_ELLIPSE, PLATE_REJECTED, PARALLAX_SUPPRESSED, y PLATE_SCALE_MISMATCH si el muslo según el disco no cuadra con el de
+ * los puntos «world», VT6a). Si además el disco es la señal de conteo (`source == "plate"`):
  * - la velocidad sale en m/s (`VelocityUnit.MPS`, claves VELOCITY_MPS y, con el disco a ≥ 50 fps, PEAK_VELOCITY);
  * - la trayectoria sale en cm (`barDeviationUnit = "cm"`, clave PATH_ABSOLUTE); el desvío respecto del medio pie solo si el paralaje
  *   se pudo corregir o es pequeño (si no, PARALLAX_SUPPRESSED y queda sin dato; la deriva y la excursión siguen).
@@ -88,7 +89,14 @@ object TechniqueAnalysisEngine {
             } else {
                 null
             }
-        val flags = if (plate != null && plate.flags.isNotEmpty()) countFlags + plate.flags else countFlags
+        // Cordura (VT6a): el muslo según la escala del disco, en el plano del atleta, debe cuadrar con el de los puntos «world».
+        val thigh = if (plate != null && bar != null) PlateScale.thighSanity(plate, bar, prepared, tuning) else null
+        val plateFlags: Set<AnalysisFlag> = when {
+            plate == null -> emptySet()
+            thigh?.mismatch == true -> plate.flags + AnalysisFlag.PLATE_SCALE_MISMATCH
+            else -> plate.flags
+        }
+        val flags = if (plateFlags.isNotEmpty()) countFlags + plateFlags else countFlags
         val scale = plate?.scale
         val calibratedBar: BarTrack? = if (scale != null && series.source == CountSeriesBuilder.SOURCE_PLATE) bar else null
         val calibration = if (calibratedBar != null && plate != null) PathCalibration.of(plate, calibratedBar.frameHeight) else null
