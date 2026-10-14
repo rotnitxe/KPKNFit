@@ -247,6 +247,7 @@ class PlateTracker(seed: PlateSeed, fps: Float, config: PlateTrackerConfig = Pla
 ```
 
 ### 3.4 Perfiles (`domain/biomechanics/profiles`)
+`ViewKind` y `FramingSpec` aparecen en el bloque de abajo solo como referencia: los define VT1b, en `kinematics/ViewKind.kt` y `framing/FramingSpec.kt`.
 ```kotlin
 enum class AnalysisProfileId { SQUAT, LUNGE, STEP_UP, MACHINE_SQUAT, DEADLIFT, HINGE, HIP_THRUST, BACK_EXTENSION, BENCH, DIP,
     PUSH_UP, OHP, PULL_VERTICAL, ROW, CURL, TRICEPS_EXTENDED_REST, TRICEPS_FLEXED_REST, RAISE, LEG_EXTENSION, LEG_CURL,
@@ -1179,7 +1180,8 @@ Los valores horizontales llevan el signo de f.
 |---|---|---|---|
 | VT0 (orquestador) | esta especificación, decisiones, modelos, brief común y briefs | `docs/video-technique/` | — |
 | VT-A | dependencias, manifiesto, R8, modelo, ML Kit pose a debug, quitar `attachPoseTrack` | `build.gradle.kts`, `libs.versions.toml`, `proguard-rules.pro`, `AndroidManifest.xml`, `src/main/assets/mediapipe/`, `PoseTrajectoryAnalyzer.kt` → `src/debug`, `WorkoutMediaCaptureController.kt` (solo quitar), arreglos de compilación por CameraX 1.5.3 | VT0 |
-| VT1 | pose v2, códecs, `signal/`, `kinematics/`, `framing/`, `SyntheticLifter` | `domain/biomechanics/{pose,bar,signal,kinematics,framing}`, `src/test/.../biomechanics/{testing,pose,signal,kinematics,framing}` | VT-A |
+| VT1a | pose v2, barra y sus códecs, `signal/` | `domain/biomechanics/{pose,bar,signal}` + sus pruebas | VT-A |
+| VT1b | `kinematics/` (geometría con aspecto, escala, lado, vista, cruces izquierda/derecha, atleta), `framing/`, `SyntheticLifter` | `domain/biomechanics/{kinematics,framing}`, `src/test/.../biomechanics/{testing,kinematics,framing}` | VT1a |
 | VT2 | perfiles, resolver y cobertura, segmentador, confianza, fases y TUT | `…/{profiles,reps}` | VT1 |
 | VT3 | métricas, observaciones, VBT, `TechniqueAnalysisEngine`, `AnalysisTuning` | `…/{metrics,vbt}` | VT2 |
 | VT6a | disco sobre luma | `…/vision` | VT1 |
@@ -1195,7 +1197,7 @@ Los valores horizontales llevan el signo de f.
 
 **Orden:**
 1. VT0, luego VT-A.
-2. Carriles (1 agente si el disco tiene < 20 GB libres): dominio VT1 → VT2 → VT3 → VT6a ‖ Android VT4a → VT5 → VT4b.
+2. Carriles (1 agente si el disco tiene < 20 GB libres): dominio VT1a → VT1b → VT2 → VT3 → VT6a ‖ Android VT4a → VT5 → VT4b.
 3. VT4c.
 4. VT7 ‖ VT8a.
 5. VT9.
