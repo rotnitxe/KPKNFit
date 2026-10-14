@@ -1040,18 +1040,8 @@ internal fun WorkoutStructureSheetsHost(
     // ─── Setup/tag sheet (from context menu) ─────────────────────────────────
     if (state.setupSheetExerciseId != null) {
         val setupEx = visibleExercises.firstOrNull { it.id == state.setupSheetExerciseId }
-        val currentExTag = uiState.exerciseTags[state.setupSheetExerciseId]
         val setupSet = if (setupEx?.id == currentExercise?.id) currentSet else setupEx?.sets?.firstOrNull()
-        val programRepository = remember(context) { com.example.kpkn.data.repository.ProgramRepository.getInstance() }
-        val workoutLogs by programRepository.history.collectAsStateWithLifecycle()
         if (setupEx != null) {
-            val suggestedTag = remember(setupEx, workoutLogs) {
-                com.example.kpkn.domain.workout.WorkoutContextRecurrenceEngine.detectDayRecurrence(
-                    exerciseDbId = setupEx.exerciseDbId.orEmpty(),
-                    dayOfWeek = java.time.LocalDate.now().dayOfWeek,
-                    logs = workoutLogs
-                ).tagId
-            }
             WorkoutDrawer(
                 title = "${setupEx.name} · Setup",
                 onDismiss = { state.setupSheetExerciseId = null },
@@ -1060,18 +1050,14 @@ internal fun WorkoutStructureSheetsHost(
                 ExerciseSetupSheetContent(
                     exercise = setupEx,
                     currentSet = setupSet,
-                    currentTag = currentExTag,
                     profiles = viewModel.profilesForExercise(setupEx),
                     activeProfileId = uiState.activeContextProfileByExerciseId[setupEx.id],
-                    onTagSet = { tag -> if (tag.isBlank()) viewModel.clearExerciseTag(setupEx.id) else viewModel.setExerciseTag(setupEx.id, tag) },
                     onSelectProfile = { profileId: String -> viewModel.setActiveContextProfile(setupEx.id, profileId) },
                     onSaveProfile = { profile: WorkoutContextProfile -> viewModel.upsertContextProfile(setupEx, profile) },
                     onUpdateExercise = { transform -> viewModel.updateExerciseDefinition(setupEx.id, transform = transform) },
                     onUpdateSet = { setId, transform -> viewModel.updateExerciseSetPlan(setupEx.id, setId, transform) },
                     onDismiss = { state.setupSheetExerciseId = null },
                     sessionAccentColor = sessionAccentColor,
-                    userTags = allUserTags,
-                    suggestedTag = suggestedTag,
                 )
             }
         }
