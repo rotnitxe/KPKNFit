@@ -1,51 +1,56 @@
 package com.example.kpkn.screens.sessioneditor.components.sheets
 
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Search
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
-import com.example.kpkn.ui.components.KpknSheetTokens
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import com.example.kpkn.data.models.*
-import com.example.kpkn.domain.exercises.*
+import com.example.kpkn.data.models.Exercise
+import com.example.kpkn.data.models.isInSuperset
+import com.example.kpkn.screens.onboarding.design.WizardColors
 import com.example.kpkn.screens.sessioneditor.SupersetDraft
-import com.example.kpkn.screens.sessioneditor.EditorMiniField
 import com.example.kpkn.screens.sessioneditor.safeIntOrNull
-import androidx.compose.runtime.setValue
-import androidx.compose.runtime.getValue
+import com.example.kpkn.ui.components.KpknAlertDialog
+import com.example.kpkn.ui.components.icons.KpknLineIcons
+import com.example.kpkn.ui.design.KpknCellInput
+import com.example.kpkn.ui.design.KpknCheckRow
+import com.example.kpkn.ui.design.KpknIconButton
+import com.example.kpkn.ui.design.KpknModule
+import com.example.kpkn.ui.design.KpknNumberCell
+import com.example.kpkn.ui.design.KpknPrimaryPill
+import com.example.kpkn.ui.design.KpknSecondaryPill
+import com.example.kpkn.ui.design.KpknSurface
+import com.example.kpkn.ui.design.KpknTextAction
+import com.example.kpkn.ui.design.KpknType
+import com.example.kpkn.ui.design.KpknEmptyState
 
+/** Miembros máximos de una superserie, como antes: el borrador se recorta a cuatro. */
+private const val SUPERSET_MAX_MEMBERS = 4
+
+/**
+ * Hoja «Añadir a superserie» (SE7). Una fila de selección por ejercicio libre de la sesión: marcar y desmarcar cambia el borrador, y
+ * «Crear superserie» lo confirma con [onConfirm] cuando hay dos o más. «Abrir catálogo» y «Cerrar» no cambian nada.
+ */
 @Composable
 internal fun SupersetMemberPickerSheet(
     draft: SupersetDraft,
@@ -56,70 +61,97 @@ internal fun SupersetMemberPickerSheet(
     onDismiss: () -> Unit,
 ) {
     val selectedIds = draft.exerciseIds.toSet()
-    val availableExercises = remember(sessionExercises, draft.exerciseIds) {
-        sessionExercises.filter { it.id !in selectedIds && !it.isInSuperset() }
+    val candidates = remember(sessionExercises, draft.exerciseIds) {
+        sessionExercises.filter { it.id in selectedIds || !it.isInSuperset() }
     }
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .heightIn(max = 520.dp)
-            .padding(horizontal = 20.dp, vertical = 16.dp),
+            .verticalScroll(rememberScrollState())
+            .padding(horizontal = 16.dp, vertical = 8.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        Text("Añadir a superserie", fontWeight = FontWeight.Black, fontSize = 18.sp)
+        Text(text = "Añadir a superserie", style = KpknType.title, color = WizardColors.text)
         Text(
-            "Mueve un ejercicio que ya está en esta sesión o abre el catálogo para crear otro.",
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            text = "Marca de 2 a 4 ejercicios de esta sesión. Si falta uno, ábrelo desde el catálogo.",
+            style = KpknType.caption,
+            color = WizardColors.textMuted,
         )
-        Column(
-            modifier = Modifier.weight(1f, fill = false).verticalScroll(rememberScrollState()),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            availableExercises.forEach { exercise ->
-                Surface(
-                    shape = RoundedCornerShape(12.dp),
-                    color = KpknSheetTokens.ChipIdle,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable(enabled = draft.exerciseIds.size < 4) {
-                            onUpdateDraft(draft.copy(exerciseIds = (draft.exerciseIds + exercise.id).distinct().take(4)))
-                            onConfirm()
+        if (candidates.isEmpty()) {
+            KpknEmptyState(
+                icon = KpknLineIcons.Repeat,
+                title = "No hay ejercicios libres en esta sesión.",
+                body = null,
+            )
+        } else {
+            KpknModule {
+                candidates.forEachIndexed { index, exercise ->
+                    if (index > 0) SheetDivider()
+                    val checked = exercise.id in selectedIds
+                    KpknCheckRow(
+                        checked = checked,
+                        title = exercise.name.ifBlank { "Ejercicio" },
+                        enabled = checked || draft.exerciseIds.size < SUPERSET_MAX_MEMBERS,
+                        onClick = {
+                            val next = if (checked) {
+                                draft.exerciseIds - exercise.id
+                            } else {
+                                (draft.exerciseIds + exercise.id).distinct().take(SUPERSET_MAX_MEMBERS)
+                            }
+                            onUpdateDraft(draft.copy(exerciseIds = next))
                         },
-                ) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 10.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    ) {
-                        Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(18.dp), tint = KpknSheetTokens.ControlLabel)
-                        Text(
-                            exercise.name,
-                            modifier = Modifier.weight(1f),
-                            fontWeight = FontWeight.SemiBold,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                            color = KpknSheetTokens.ChipLabel,
-                        )
-                    }
+                    )
                 }
             }
-            if (availableExercises.isEmpty()) {
-                Text("No hay ejercicios libres en esta sesión.", color = MaterialTheme.colorScheme.onSurfaceVariant)
-            }
         }
-        OutlinedButton(onClick = onOpenCatalog, modifier = Modifier.fillMaxWidth()) {
-            Icon(Icons.Default.Search, contentDescription = null, modifier = Modifier.size(16.dp))
-            Spacer(Modifier.width(8.dp))
-            Text("Abrir catálogo")
-        }
-        TextButton(onClick = onDismiss, modifier = Modifier.fillMaxWidth()) { Text("Cerrar") }
+        KpknPrimaryPill(
+            text = "Crear superserie",
+            onClick = onConfirm,
+            modifier = Modifier.fillMaxWidth(),
+            enabled = draft.exerciseIds.size >= 2,
+        )
+        KpknSecondaryPill(
+            text = "Abrir catálogo",
+            onClick = onOpenCatalog,
+            modifier = Modifier.fillMaxWidth(),
+        )
+        KpknTextAction(text = "Cerrar", onClick = onDismiss)
     }
 }
 
-
+/**
+ * Hoja «Gestionar superserie» (SE7). Los ejercicios del grupo con su número, sus series y un botón para quitar cada uno; los dos descansos
+ * como celdas numéricas, en segundos; y «Deshacer superserie», en peligro y con confirmación. Deshacer quita a todos los miembros con
+ * [onRemove], que ya disuelve el grupo cuando quedan dos.
+ */
 @Composable
 internal fun SupersetManagerSheet(
+    exercises: List<Exercise>,
+    partId: String?,
+    supersetId: String,
+    restBetweenSeconds: Int?,
+    restAfterSeconds: Int?,
+    onUpdateRestBetween: (String?, String, Int) -> Unit,
+    onUpdateRestAfter: (String?, String, Int) -> Unit,
+    onRemove: (String?, String) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    SupersetManagerBody(
+        exercises = exercises,
+        partId = partId,
+        supersetId = supersetId,
+        restBetweenSeconds = restBetweenSeconds,
+        restAfterSeconds = restAfterSeconds,
+        onUpdateRestBetween = onUpdateRestBetween,
+        onUpdateRestAfter = onUpdateRestAfter,
+        onRemove = onRemove,
+        onDismiss = onDismiss,
+    )
+}
+
+/** El contenido de «Gestionar superserie» sin el despachador. Guarda la confirmación de deshacer dentro del propio contenido. */
+@Composable
+internal fun SupersetManagerBody(
     exercises: List<Exercise>,
     partId: String?,
     supersetId: String,
@@ -136,78 +168,150 @@ internal fun SupersetManagerSheet(
     var restAfter by rememberSaveable(supersetId, restAfterSeconds) {
         mutableStateOf(restAfterSeconds?.toString().orEmpty())
     }
+    var pendingUndo by remember { mutableStateOf(false) }
 
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .heightIn(max = 520.dp)
-            .padding(horizontal = 20.dp, vertical = 16.dp),
+            .verticalScroll(rememberScrollState())
+            .padding(horizontal = 16.dp, vertical = 8.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        Text("Gestionar superserie", fontWeight = FontWeight.Black, fontSize = 18.sp)
-        Column(
-            modifier = Modifier
-                .weight(1f, fill = false)
-                .verticalScroll(rememberScrollState()),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-        ) {
-            Text(
-                "${exercises.size} ejercicios vinculados",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
+        Text(text = "Gestionar superserie", style = KpknType.title, color = WizardColors.text)
+        Text(
+            text = "${exercises.size} ejercicios vinculados",
+            style = KpknType.caption,
+            color = WizardColors.textMuted,
+        )
 
+        KpknModule {
             exercises.forEachIndexed { index, exercise ->
-                Surface(
-                    shape = RoundedCornerShape(10.dp),
-                    color = Color.White,
+                if (index > 0) SheetDivider()
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth().padding(horizontal = 10.dp, vertical = 8.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    ) {
-                        Text("${index + 1}", fontWeight = FontWeight.Black, modifier = Modifier.width(24.dp))
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text(exercise.name, style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                            Text(
-                                "${exercise.sets.size} series · descanso individual reemplazado",
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            )
-                        }
-                        IconButton(
-                            onClick = { onRemove(partId, exercise.id); onDismiss() },
-                            modifier = Modifier.size(24.dp),
-                        ) {
-                            Icon(Icons.Default.Close, null, tint = MaterialTheme.colorScheme.error, modifier = Modifier.size(14.dp))
-                        }
+                    Text(
+                        text = "${index + 1}",
+                        style = KpknType.bodyStrong,
+                        color = WizardColors.textMuted,
+                        modifier = Modifier.width(28.dp),
+                    )
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = exercise.name,
+                            style = KpknType.bodyStrong,
+                            color = WizardColors.text,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                        Text(
+                            text = "${exercise.sets.size} series · descanso individual reemplazado",
+                            style = KpknType.caption,
+                            color = WizardColors.textMuted,
+                        )
                     }
+                    KpknIconButton(
+                        icon = KpknLineIcons.Close,
+                        contentDescription = "Quitar ${exercise.name} de la superserie",
+                        tint = WizardColors.danger,
+                        onClick = {
+                            onRemove(partId, exercise.id)
+                            onDismiss()
+                        },
+                    )
                 }
             }
-
-            HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.12f))
         }
 
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
-            EditorMiniField(
-                label = "Descanso entre ejercicios (s)",
+        KpknModule {
+            SupersetRestRow(
+                label = "Entre ejercicios",
                 value = restBetween,
-                keyboardType = KeyboardType.Number,
-                modifier = Modifier.weight(1f),
-            ) { input ->
-                restBetween = input
-                input.safeIntOrNull()?.let { onUpdateRestBetween(partId, supersetId, it) }
-            }
-            EditorMiniField(
-                label = "Descanso post-superserie (s)",
+                contentDescription = "Descanso entre ejercicios, en segundos",
+                onCommit = { input ->
+                    restBetween = input
+                    input.safeIntOrNull()?.let { onUpdateRestBetween(partId, supersetId, it) }
+                },
+            )
+            SheetDivider()
+            SupersetRestRow(
+                label = "Tras la superserie",
                 value = restAfter,
-                keyboardType = KeyboardType.Number,
-                modifier = Modifier.weight(1f),
-            ) { input ->
-                restAfter = input
-                input.safeIntOrNull()?.let { onUpdateRestAfter(partId, supersetId, it) }
-            }
+                contentDescription = "Descanso tras la superserie, en segundos",
+                onCommit = { input ->
+                    restAfter = input
+                    input.safeIntOrNull()?.let { onUpdateRestAfter(partId, supersetId, it) }
+                },
+            )
         }
+
+        KpknTextAction(
+            text = "Deshacer superserie",
+            onClick = { pendingUndo = true },
+            color = WizardColors.danger,
+        )
     }
+
+    if (pendingUndo) {
+        KpknAlertDialog(
+            onDismissRequest = { pendingUndo = false },
+            title = "¿Deshacer la superserie?",
+            text = "Los ejercicios vuelven a ser individuales y se pierden los descansos de la superserie.",
+            confirmLabel = "Deshacer",
+            onConfirm = {
+                pendingUndo = false
+                // El último ejercicio que se quita disuelve el grupo; el orden inverso lo deja vacío sin tocar el resto de la sesión.
+                exercises.asReversed().forEach { exercise -> onRemove(partId, exercise.id) }
+                onDismiss()
+            },
+            dismissLabel = "Cancelar",
+            onDismiss = { pendingUndo = false },
+            destructive = true,
+        )
+    }
+}
+
+/** Un descanso de la superserie: el nombre a la izquierda y la celda en segundos a la derecha, con «s» en `caption`. */
+@Composable
+private fun SupersetRestRow(
+    label: String,
+    value: String,
+    contentDescription: String,
+    onCommit: (String) -> Unit,
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .defaultMinSize(minHeight = 56.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(
+            text = label,
+            style = KpknType.bodyStrong,
+            color = WizardColors.text,
+            modifier = Modifier.weight(1f),
+        )
+        KpknNumberCell(
+            value = value,
+            input = KpknCellInput.Text(keyboardType = KeyboardType.Number, onCommit = onCommit),
+            contentDescription = contentDescription,
+            modifier = Modifier.width(96.dp),
+        )
+        Spacer(Modifier.width(8.dp))
+        Text(text = "s", style = KpknType.caption, color = WizardColors.textMuted)
+    }
+}
+
+/** Separador de 1 dp dentro de un módulo (`divider`, blanco al 6 %). */
+@Composable
+private fun SheetDivider() {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(1.dp)
+            .background(KpknSurface.divider),
+    )
 }

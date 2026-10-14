@@ -70,6 +70,18 @@ import kotlinx.coroutines.withContext
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.getValue
 import com.example.kpkn.ui.components.KpknAlertDialog
+import androidx.compose.foundation.background
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.layout.defaultMinSize
+import androidx.compose.foundation.clickable
+import androidx.compose.ui.draw.clip
+import com.example.kpkn.screens.onboarding.design.WizardColors
+import com.example.kpkn.ui.components.icons.KpknLineIcons
+import com.example.kpkn.ui.design.KpknModule
+import com.example.kpkn.ui.design.KpknModuleHeader
+import com.example.kpkn.ui.design.KpknShape
+import com.example.kpkn.ui.design.KpknSurface
+import com.example.kpkn.ui.design.KpknType
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -301,30 +313,24 @@ internal fun ExerciseQuickActionsSheet(
             .fillMaxWidth()
             .heightIn(max = 620.dp)
             .verticalScroll(rememberScrollState())
-            .padding(horizontal = 20.dp, vertical = 16.dp),
-        verticalArrangement = Arrangement.spacedBy(10.dp),
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        Text("Información del ejercicio", fontWeight = FontWeight.Black, fontSize = 18.sp)
-        Text(
-            exercise.name,
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.Bold,
-            color = Color.White,
-        )
+        Text(text = "Información del ejercicio", style = KpknType.title, color = WizardColors.text)
+        Text(text = exercise.name, style = KpknType.bodyStrong, color = WizardColors.text)
         if (tags.isNotEmpty()) {
-            LazyRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                items(tags, key = { it }) { tag ->
-                    Surface(
-                        shape = RoundedCornerShape(999.dp),
-                        color = Color.White.copy(alpha = 0.09f),
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                modifier = Modifier.horizontalScroll(rememberScrollState()),
+            ) {
+                tags.forEach { tag ->
+                    Box(
+                        modifier = Modifier
+                            .clip(KpknShape.pill)
+                            .background(KpknSurface.inset)
+                            .padding(horizontal = 10.dp, vertical = 6.dp),
                     ) {
-                        Text(
-                            tag,
-                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
-                            style = MaterialTheme.typography.labelSmall,
-                            fontWeight = FontWeight.Bold,
-                            color = Color.White.copy(alpha = 0.84f),
-                        )
+                        Text(text = tag, style = KpknType.caption, color = WizardColors.textMuted)
                     }
                 }
             }
@@ -338,38 +344,13 @@ internal fun ExerciseQuickActionsSheet(
                 ?: selectedInfo?.description?.takeIf { it.isNotBlank() }
         }
 
-        Surface(
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(14.dp),
-            color = Color.White.copy(alpha = 0.06f),
-            border = BorderStroke(1.dp, Color.White.copy(alpha = 0.10f)),
-        ) {
-            Column(
-                modifier = Modifier.padding(horizontal = 14.dp, vertical = 12.dp),
-                verticalArrangement = Arrangement.spacedBy(6.dp),
-            ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(6.dp),
-                ) {
-                    Icon(
-                        Icons.Default.MenuBook,
-                        contentDescription = null,
-                        tint = Color.White.copy(alpha = 0.85f),
-                        modifier = Modifier.size(16.dp),
-                    )
-                    Text(
-                        "Descripción del ejercicio",
-                        style = MaterialTheme.typography.labelMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = Color.White.copy(alpha = 0.95f),
-                    )
-                }
+        KpknModule {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                KpknModuleHeader(label = "Descripción del ejercicio")
                 Text(
-                    exactDescription ?: "No hay una descripción editorial disponible para este ejercicio.",
-                    style = MaterialTheme.typography.bodyMedium,
-                    lineHeight = 20.sp,
-                    color = Color.White.copy(alpha = 0.88f),
+                    text = exactDescription ?: "No hay una descripción editorial disponible para este ejercicio.",
+                    style = KpknType.body,
+                    color = WizardColors.textMuted,
                 )
             }
         }
@@ -386,14 +367,34 @@ internal fun ExerciseQuickActionsSheet(
             )
         }
 
-        FilledTonalButton(
-            onClick = onOpenPicker,
-            modifier = Modifier.fillMaxWidth(),
-            colors = kpknSheetWhiteTonalButtonColors(),
-        ) {
-            Icon(Icons.Default.Search, null, modifier = Modifier.size(16.dp))
-            Spacer(Modifier.width(8.dp))
-            Text("Cambiar")
+        // La única acción de la hoja: cambiar el ejercicio por otro (abre el selector), en una fila de 56 dp.
+        KpknModule(onClick = onOpenPicker, onClickLabel = "Cambiar ejercicio") {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .defaultMinSize(minHeight = 32.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Icon(
+                    imageVector = KpknLineIcons.Repeat,
+                    contentDescription = null,
+                    modifier = Modifier.size(20.dp),
+                    tint = WizardColors.text,
+                )
+                Spacer(Modifier.width(12.dp))
+                Text(
+                    text = "Cambiar ejercicio",
+                    style = KpknType.bodyStrong,
+                    color = WizardColors.text,
+                    modifier = Modifier.weight(1f),
+                )
+                Icon(
+                    imageVector = KpknLineIcons.ChevronRight,
+                    contentDescription = null,
+                    modifier = Modifier.size(20.dp),
+                    tint = WizardColors.textMuted,
+                )
+            }
         }
     }
 }
