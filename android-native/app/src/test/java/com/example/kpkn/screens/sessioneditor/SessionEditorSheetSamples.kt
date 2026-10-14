@@ -121,6 +121,30 @@ internal object SessionEditorSheetSamples {
         ),
     )
 
+    /** Una sesión de origen para «Traer»: su nombre, su día y sus ejercicios. */
+    private fun source(sessionId: String, name: String, dayNumber: Int, exercises: List<Exercise>) = SessionCloneSourceOption(
+        sessionId = sessionId,
+        dayOfWeek = dayNumber,
+        macroIndex = 0,
+        mesoIndex = 0,
+        weekId = "w0",
+        macroName = "Macro 1",
+        blockName = "Hipertrofia",
+        mesoName = "Meso 1",
+        weekName = "Semana 1",
+        sessionName = name,
+        exerciseCount = exercises.size,
+        exercises = exercises.map { SessionCloneExerciseOption(exerciseId = it.id, name = it.name, sourcePartName = null) },
+    )
+
+    /** La misma hoja de «Copiar», con dos sesiones de origen para «Traer». */
+    val cloneStateWithSources = cloneState.copy(
+        cloneSourceOptions = listOf(
+            source("s-torso-b", "Torso B", 2, listOf(row, curl)),
+            source("s-pierna", "Pierna", 4, listOf(squat)),
+        ),
+    )
+
     /** Un borrador de superserie con dos miembros: el de la pieza de crear. */
     val draft = SupersetDraft(partId = "p-empuje", exerciseIds = listOf(bench.id, incline.id))
 

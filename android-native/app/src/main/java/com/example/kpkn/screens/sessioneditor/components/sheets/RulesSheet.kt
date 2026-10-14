@@ -328,7 +328,7 @@ internal fun RulesSheet(
                                     label = "Series",
                                     value = defaults.setCount.toString(),
                                     keyboardType = KeyboardType.Number,
-                                    unit = "series",
+                                    unit = null,
                                     modifier = Modifier.weight(1f),
                                     onCommit = { onRuleDefaultsChange(scopePartId, it.safeIntOrNull(), null, null, null, null, null, null, null, null) },
                                 )
@@ -336,7 +336,7 @@ internal fun RulesSheet(
                                     label = "Reps",
                                     value = defaults.reps.toString(),
                                     keyboardType = KeyboardType.Number,
-                                    unit = "reps",
+                                    unit = null,
                                     modifier = Modifier.weight(1f),
                                     onCommit = { onRuleDefaultsChange(scopePartId, null, it.safeIntOrNull(), null, null, null, null, null, null, null) },
                                 )

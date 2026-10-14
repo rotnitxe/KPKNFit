@@ -22,20 +22,20 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.isInSuperset
 import com.example.kpkn.screens.onboarding.design.WizardColors
 import com.example.kpkn.screens.sessioneditor.SupersetDraft
-import com.example.kpkn.screens.sessioneditor.safeIntOrNull
 import com.example.kpkn.ui.components.KpknAlertDialog
+import com.example.kpkn.ui.components.KpknNativeTimePickerDialog
 import com.example.kpkn.ui.components.icons.KpknLineIcons
 import com.example.kpkn.ui.design.KpknCellInput
 import com.example.kpkn.ui.design.KpknCheckRow
 import com.example.kpkn.ui.design.KpknIconButton
 import com.example.kpkn.ui.design.KpknModule
+import com.example.kpkn.ui.design.KpknSetFormat
 import com.example.kpkn.ui.design.KpknNumberCell
 import com.example.kpkn.ui.design.KpknPrimaryPill
 import com.example.kpkn.ui.design.KpknSecondaryPill
@@ -162,13 +162,11 @@ internal fun SupersetManagerBody(
     onRemove: (String?, String) -> Unit,
     onDismiss: () -> Unit,
 ) {
-    var restBetween by rememberSaveable(supersetId, restBetweenSeconds) {
-        mutableStateOf(restBetweenSeconds?.toString().orEmpty())
-    }
-    var restAfter by rememberSaveable(supersetId, restAfterSeconds) {
-        mutableStateOf(restAfterSeconds?.toString().orEmpty())
-    }
+    // Los descansos viven en segundos; la celda los muestra en m:ss y se cambian con el selector de tiempo, como en reglas.
+    var restBetween by rememberSaveable(supersetId, restBetweenSeconds) { mutableStateOf(restBetweenSeconds) }
+    var restAfter by rememberSaveable(supersetId, restAfterSeconds) { mutableStateOf(restAfterSeconds) }
     var pendingUndo by remember { mutableStateOf(false) }
+    var pickingRest by remember { mutableStateOf<SupersetRest?>(null) }
 
     Column(
         modifier = Modifier
@@ -208,7 +206,7 @@ internal fun SupersetManagerBody(
                             overflow = TextOverflow.Ellipsis,
                         )
                         Text(
-                            text = "${exercise.sets.size} series · descanso individual reemplazado",
+                            text = "${exercise.sets.size} series · usa el descanso de la superserie",
                             style = KpknType.caption,
                             color = WizardColors.textMuted,
                         )
@@ -229,22 +227,14 @@ internal fun SupersetManagerBody(
         KpknModule {
             SupersetRestRow(
                 label = "Entre ejercicios",
-                value = restBetween,
-                contentDescription = "Descanso entre ejercicios, en segundos",
-                onCommit = { input ->
-                    restBetween = input
-                    input.safeIntOrNull()?.let { onUpdateRestBetween(partId, supersetId, it) }
-                },
+                seconds = restBetween,
+                onOpen = { pickingRest = SupersetRest.BETWEEN },
             )
             SheetDivider()
             SupersetRestRow(
                 label = "Tras la superserie",
-                value = restAfter,
-                contentDescription = "Descanso tras la superserie, en segundos",
-                onCommit = { input ->
-                    restAfter = input
-                    input.safeIntOrNull()?.let { onUpdateRestAfter(partId, supersetId, it) }
-                },
+                seconds = restAfter,
+                onOpen = { pickingRest = SupersetRest.AFTER },
             )
         }
 
@@ -252,6 +242,29 @@ internal fun SupersetManagerBody(
             text = "Deshacer superserie",
             onClick = { pendingUndo = true },
             color = WizardColors.danger,
+        )
+    }
+
+    pickingRest?.let { rest ->
+        val title = if (rest == SupersetRest.BETWEEN) "Descanso entre ejercicios" else "Descanso tras la superserie"
+        val current = (if (rest == SupersetRest.BETWEEN) restBetween else restAfter) ?: 0
+        KpknNativeTimePickerDialog(
+            title = title,
+            initialHour = (current / 60).coerceIn(0, 23),
+            initialMinute = (current % 60).coerceIn(0, 59),
+            hint = "Minutos : segundos",
+            onConfirm = { hour, minute ->
+                val seconds = hour * 60 + minute
+                if (rest == SupersetRest.BETWEEN) {
+                    restBetween = seconds
+                    onUpdateRestBetween(partId, supersetId, seconds)
+                } else {
+                    restAfter = seconds
+                    onUpdateRestAfter(partId, supersetId, seconds)
+                }
+                pickingRest = null
+            },
+            onDismiss = { pickingRest = null },
         )
     }
 
@@ -274,14 +287,14 @@ internal fun SupersetManagerBody(
     }
 }
 
-/** Un descanso de la superserie: el nombre a la izquierda y la celda en segundos a la derecha, con «s» en `caption`. */
+/** Un descanso de la superserie en m:ss, como en reglas: la celda abre el selector de tiempo. Sin valor, muestra «–». */
 @Composable
 private fun SupersetRestRow(
     label: String,
-    value: String,
-    contentDescription: String,
-    onCommit: (String) -> Unit,
+    seconds: Int?,
+    onOpen: () -> Unit,
 ) {
+    val display = seconds?.let { KpknSetFormat.rest(it) }.orEmpty()
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -295,15 +308,16 @@ private fun SupersetRestRow(
             modifier = Modifier.weight(1f),
         )
         KpknNumberCell(
-            value = value,
-            input = KpknCellInput.Text(keyboardType = KeyboardType.Number, onCommit = onCommit),
-            contentDescription = contentDescription,
+            value = display,
+            input = KpknCellInput.Picker(onOpen = onOpen),
+            contentDescription = "$label, ${display.ifEmpty { "sin tiempo" }}",
             modifier = Modifier.width(96.dp),
         )
-        Spacer(Modifier.width(8.dp))
-        Text(text = "s", style = KpknType.caption, color = WizardColors.textMuted)
     }
 }
+
+/** Los dos descansos de la superserie: cuál de ellos abre el selector de tiempo. */
+private enum class SupersetRest { BETWEEN, AFTER }
 
 /** Separador de 1 dp dentro de un módulo (`divider`, blanco al 6 %). */
 @Composable

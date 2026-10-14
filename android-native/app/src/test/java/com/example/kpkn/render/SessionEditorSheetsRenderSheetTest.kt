@@ -20,12 +20,6 @@ import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
-import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.semantics.SemanticsActions
-import androidx.compose.ui.semantics.SemanticsProperties
-import androidx.compose.ui.test.SemanticsMatcher
-import androidx.compose.ui.test.hasText
-import androidx.compose.ui.test.performSemanticsAction
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import com.example.kpkn.screens.onboarding.design.LocalWizardReducedMotion
@@ -37,6 +31,7 @@ import com.example.kpkn.screens.sessioneditor.components.sheets.HistoryBody
 import com.example.kpkn.screens.sessioneditor.components.sheets.RelationshipPickerBody
 import com.example.kpkn.screens.sessioneditor.components.sheets.RulesSheet
 import com.example.kpkn.screens.sessioneditor.components.sheets.SaveSheet
+import com.example.kpkn.screens.sessioneditor.components.sheets.SessionClonerMode
 import com.example.kpkn.screens.sessioneditor.components.sheets.SessionClonerSheet
 import com.example.kpkn.screens.sessioneditor.components.sheets.SupersetManagerBody
 import com.example.kpkn.screens.sessioneditor.components.sheets.SupersetMemberPickerSheet
@@ -122,10 +117,22 @@ class SessionEditorSheetsRenderSheetTest {
                     onRestoreSnapshot = {},
                 )
                 // «Copiar» y «Traer» comparten la hoja; la pestaña se elige desde la prueba (ver `renderStatic`).
-                "copiar", "traer" -> SessionClonerSheet(
+                "copiar" -> SessionClonerSheet(
                     uiState = SessionEditorSheetSamples.cloneState,
                     onCloneCurrentToTargets = { _, _, _ -> },
                     onImportFromSource = { _, _, _ -> },
+                )
+                "traer" -> SessionClonerSheet(
+                    uiState = SessionEditorSheetSamples.cloneStateWithSources,
+                    onCloneCurrentToTargets = { _, _, _ -> },
+                    onImportFromSource = { _, _, _ -> },
+                    initialMode = SessionClonerMode.IMPORT_FROM_DAY,
+                )
+                "traer_vacio" -> SessionClonerSheet(
+                    uiState = SessionEditorSheetSamples.cloneState,
+                    onCloneCurrentToTargets = { _, _, _ -> },
+                    onImportFromSource = { _, _, _ -> },
+                    initialMode = SessionClonerMode.IMPORT_FROM_DAY,
                 )
                 "guardar" -> SaveSheet(onSave = {}, onDiscardSwitch = {}, isSimpleProgram = false)
                 "superseries_crear" -> SupersetMemberPickerSheet(
@@ -242,12 +249,8 @@ class SessionEditorSheetsRenderSheetTest {
         renderStatic("historial", "se7_historial")
         renderStatic("historial_vacio", "se7_historial_vacio")
         renderStatic("copiar", "se7_copiar")
-        renderStatic("traer", "se7_traer", afterShow = {
-            // Los segmentos son `selectable` con `Role.Tab`: se invoca la acción de clic del segmento «Traer», sin depender del punto
-            // donde caiga un toque sobre el control.
-            rule.onNode(SemanticsMatcher.expectValue(SemanticsProperties.Role, Role.Tab) and hasText("Traer"))
-                .performSemanticsAction(SemanticsActions.OnClick)
-        })
+        renderStatic("traer", "se7_traer")
+        renderStatic("traer_vacio", "se7_traer_vacio")
         renderStatic("guardar", "se7_guardar")
         renderStatic("superseries_crear", "se7_superseries_crear")
         renderStatic("superseries_gestionar", "se7_superseries_gestionar")

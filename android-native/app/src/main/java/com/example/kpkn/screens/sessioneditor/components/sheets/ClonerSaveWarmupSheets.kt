@@ -73,6 +73,8 @@ import com.example.kpkn.ui.design.KpknCheckRow
 import com.example.kpkn.ui.design.KpknChip
 import com.example.kpkn.ui.design.KpknModule
 import com.example.kpkn.ui.design.KpknModuleHeader
+import com.example.kpkn.ui.design.KpknEmptyState
+import com.example.kpkn.ui.components.icons.KpknLineIcons
 import com.example.kpkn.ui.design.KpknPrimaryPill
 import com.example.kpkn.ui.design.KpknRadioRow
 import com.example.kpkn.ui.design.KpknSegmentedControl
@@ -86,6 +88,8 @@ internal fun SessionClonerSheet(
     uiState: SessionEditorUiState,
     onCloneCurrentToTargets: (Set<String>, Set<String>?, SessionCloneApplyMode) -> Unit,
     onImportFromSource: (String, Set<String>?, SessionCloneApplyMode) -> Unit,
+    /** Pestaña con la que se abre la hoja: «Copiar» por defecto. La hoja de render la abre en «Traer». */
+    initialMode: SessionClonerMode = SessionClonerMode.CLONE_TO_DAYS,
 ) {
     val currentSession = uiState.session ?: return
     val availableExercises = remember(currentSession) {
@@ -96,7 +100,7 @@ internal fun SessionClonerSheet(
         }
     }
 
-    var mode by rememberSaveable { mutableStateOf(SessionClonerMode.CLONE_TO_DAYS) }
+    var mode by rememberSaveable { mutableStateOf(initialMode) }
     var applyModeName by rememberSaveable { mutableStateOf(SessionCloneApplyMode.APPEND.name) }
     val applyMode = remember(applyModeName) {
         runCatching { SessionCloneApplyMode.valueOf(applyModeName) }.getOrElse { SessionCloneApplyMode.APPEND }
@@ -152,14 +156,22 @@ internal fun SessionClonerSheet(
             },
             modifier = Modifier.fillMaxWidth(),
         )
-        KpknSegmentedControl(
-            options = listOf("Agregar", "Reemplazar"),
-            selectedIndex = if (applyMode == SessionCloneApplyMode.APPEND) 0 else 1,
-            onSelect = { index ->
-                applyModeName = if (index == 0) SessionCloneApplyMode.APPEND.name else SessionCloneApplyMode.REPLACE.name
-            },
-            modifier = Modifier.fillMaxWidth(),
-        )
+        KpknModule {
+            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                KpknModuleHeader(label = "Cómo copiar")
+                KpknRadioRow(
+                    selected = applyMode == SessionCloneApplyMode.APPEND,
+                    title = "Añadir a lo que ya hay",
+                    onClick = { applyModeName = SessionCloneApplyMode.APPEND.name },
+                )
+                SheetDivider()
+                KpknRadioRow(
+                    selected = applyMode == SessionCloneApplyMode.REPLACE,
+                    title = "Reemplazar lo que hay",
+                    onClick = { applyModeName = SessionCloneApplyMode.REPLACE.name },
+                )
+            }
+        }
 
         if (mode == SessionClonerMode.CLONE_TO_DAYS) {
             val currentWeekId = uiState.weekId
@@ -260,6 +272,12 @@ internal fun SessionClonerSheet(
                 },
                 modifier = Modifier.fillMaxWidth(),
                 enabled = canSubmitClone,
+            )
+        } else if (uiState.cloneSourceOptions.isEmpty()) {
+            KpknEmptyState(
+                icon = KpknLineIcons.Calendar,
+                title = "No hay otras sesiones para traer",
+                body = null,
             )
         } else {
             KpknModule {

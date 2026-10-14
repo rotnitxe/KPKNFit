@@ -1,5 +1,6 @@
 package com.example.kpkn.screens.sessioneditor.components.sheets
 
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -24,7 +25,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -46,6 +49,9 @@ import com.example.kpkn.ui.design.KpknType
 
 /** Muestras por fila de la rejilla: 5 de 48 dp con 12 dp de aire ocupan los 288 dp útiles de un móvil de 360 dp. */
 private const val COVER_SAMPLES_PER_ROW = 5
+
+/** Id de la muestra «Sin portada»: vacío, quita el fondo de la sesión. */
+private const val COVER_NONE_ID = ""
 
 /**
  * Hoja «Portada de la sesión» (SE7). Los parámetros de fondo, filtros y etiqueta que esta hoja ya no pinta se conservan: los pasa el
@@ -97,6 +103,7 @@ internal fun CoverSheetBody(
         )
         CoverPreview(colors = previewColors, name = session.name.ifBlank { "Sesión" })
         KpknModule {
+            CoverNoneSample(selected = session.background == null, onClick = { onSelectGradient(COVER_NONE_ID) })
             KpknModuleHeader(label = "Degradados")
             CoverSampleGrid(samples = sessionGradients, kind = "Degradado", chosenId = chosenId, onSelect = onSelectGradient)
             KpknModuleHeader(label = "Sólidos")
@@ -139,6 +146,47 @@ private fun CoverPreview(colors: List<Color>, name: String) {
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
                 modifier = Modifier.padding(16.dp),
+            )
+        }
+    }
+}
+
+/**
+ * Muestra «Sin portada»: un círculo vacío de 48 dp con una barra diagonal fina en `textFaint`, la primera de la portada. Elegida, lleva el
+ * anillo de tinta. Elegirla llama a [onClick]; la hoja la pasa con el id vacío, que quita el fondo.
+ */
+@Composable
+private fun CoverNoneSample(
+    selected: Boolean,
+    onClick: () -> Unit,
+) {
+    val interaction = remember { MutableInteractionSource() }
+    Box(
+        modifier = Modifier
+            .size(48.dp)
+            .semantics { contentDescription = "Sin portada" }
+            .clip(CircleShape)
+            .border(
+                width = if (selected) 2.dp else 1.dp,
+                color = if (selected) WizardColors.text else WizardColors.glassBorder,
+                shape = CircleShape,
+            )
+            .selectable(
+                selected = selected,
+                interactionSource = interaction,
+                indication = null,
+                role = Role.RadioButton,
+                onClick = onClick,
+            ),
+    ) {
+        Canvas(modifier = Modifier.size(48.dp)) {
+            val inset = size.width * 0.3f
+            drawLine(
+                color = WizardColors.textFaint,
+                start = Offset(inset, size.height - inset),
+                end = Offset(size.width - inset, inset),
+                strokeWidth = 1.5.dp.toPx(),
+                cap = StrokeCap.Round,
             )
         }
     }
