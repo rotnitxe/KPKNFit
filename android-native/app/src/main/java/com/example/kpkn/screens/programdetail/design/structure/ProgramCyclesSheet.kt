@@ -22,6 +22,7 @@ import com.example.kpkn.screens.onboarding.design.WizardColors
 import com.example.kpkn.ui.components.KpknAlertDialog
 import com.example.kpkn.ui.components.KpknSheet
 import com.example.kpkn.ui.components.icons.KpknLineIcons
+import com.example.kpkn.ui.design.KpknDangerPill
 import com.example.kpkn.ui.design.KpknIconButton
 import com.example.kpkn.ui.design.KpknModule
 import com.example.kpkn.ui.design.KpknModuleHeader
@@ -164,10 +165,7 @@ internal fun ProgramCyclesContent(
         Spacer(Modifier.height(20.dp))
         ProgramSectionLabel(text = "Plantillas de ciclo")
         Spacer(Modifier.height(8.dp))
-        programCycleTemplates.forEach { template ->
-            ProgramCycleTemplateModule(template = template, onAdd = { onAddTemplate(template.id) })
-            Spacer(Modifier.height(8.dp))
-        }
+        ProgramCycleTemplatesModule(templates = programCycleTemplates, onAdd = onAddTemplate)
     }
 
     editing?.let { target ->
@@ -220,7 +218,7 @@ internal fun ProgramCyclesContent(
                 )
             },
             confirmButton = {
-                ProgramDangerAction(
+                KpknDangerPill(
                     text = "Eliminar",
                     onClick = {
                         onLoopAction(loop.id, ProgramCycleAction.DELETE)

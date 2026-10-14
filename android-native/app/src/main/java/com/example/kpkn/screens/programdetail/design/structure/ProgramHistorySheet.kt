@@ -108,7 +108,8 @@ internal fun ProgramHistoryContent(
             title = { Text(text = "¿Restaurar esta copia?", style = KpknType.title, color = WizardColors.text) },
             text = {
                 Text(
-                    text = "Sustituye el programa actual por la copia del ${programCopyStamp(copy.savedAtMs)}.",
+                    text = "Sustituye el programa actual por la copia del ${programCopyStamp(copy.savedAtMs)}. " +
+                        "Tu programa actual se guarda en el historial antes de restaurar.",
                     style = KpknType.body,
                     color = WizardColors.textMuted,
                 )
