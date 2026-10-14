@@ -221,7 +221,7 @@ internal fun bodyNearestIndex(xs: FloatArray, x: Float): Int {
 
 /**
  * Gráfica de tendencia de Cuerpo (KPKN_UI_V2 §1 y BODY_V1 §2.2): los pesajes diarios tenues, la tendencia en tinta y la meta
- * discontinua (solo si cae dentro de la escala). Al pulsar o arrastrar, una guía vertical y una burbuja con el día, su pesaje y la
+ * discontinua, con su cifra al final de la línea y en el eje (solo si cae dentro de la escala). Al pulsar o arrastrar, una guía vertical y una burbuja con el día, su pesaje y la
  * tendencia, con un toque háptico al cambiar de día. La primera vez que hay datos, la tendencia se dibuja de izquierda a derecha; con
  * movimiento reducido, no hay entrada. Escala a la derecha y tres fechas debajo. Sin estado externo: la selección vive aquí.
  *
@@ -246,6 +246,10 @@ fun BodyTrendChart(
     val guidePx = with(density) { 1.dp.toPx() }
     val selectedDotPx = with(density) { 4.dp.toPx() }
     val goalStrokePx = with(density) { 1.5.dp.toPx() }
+    // La cifra de la meta va 18 dp sobre su línea (16 dp de caption y 2 de aire). En el eje, una marca de la meta no entra si
+    // queda a menos de 16 dp de la del máximo o la del mínimo.
+    val goalLabelLiftPx = with(density) { 18.dp.toPx() }
+    val axisMinGapPx = with(density) { 16.dp.toPx() }
     val goalDash = remember(density) {
         PathEffect.dashPathEffect(floatArrayOf(with(density) { 6.dp.toPx() }, with(density) { 5.dp.toPx() }))
     }
@@ -355,6 +359,20 @@ fun BodyTrendChart(
                         if (!ty.isNaN()) drawCircle(color = WizardColors.text, radius = selectedDotPx, center = Offset(x, ty))
                     }
                 }
+                // La meta lleva su cifra al final de la línea discontinua, en caption y en el verde de «hecho».
+                val goalLineY = geometry?.goalY
+                if (goal != null && goalLineY != null) {
+                    Text(
+                        text = "Meta ${bodyTargetEs(goal)} $unit",
+                        style = KpknType.caption,
+                        color = WizardColors.done,
+                        maxLines = 1,
+                        softWrap = false,
+                        modifier = Modifier
+                            .align(Alignment.TopEnd)
+                            .offset { IntOffset(x = 0, y = (goalLineY - goalLabelLiftPx).roundToInt().coerceAtLeast(0)) },
+                    )
+                }
                 val sel = selected
                 if (geometry == null) {
                     Text(
@@ -396,6 +414,22 @@ fun BodyTrendChart(
                             .align(Alignment.TopEnd)
                             .offset { IntOffset(x = 0, y = (geometry.loY - half).roundToInt().coerceAtLeast(0)) },
                     )
+                    // La meta también marca su cifra en el eje (con una decimal, como el máximo y el mínimo), salvo que choque con ellos.
+                    val goalAxisY = geometry.goalY
+                    if (goal != null && goalAxisY != null &&
+                        abs(goalAxisY - geometry.hiY) >= axisMinGapPx && abs(goalAxisY - geometry.loY) >= axisMinGapPx
+                    ) {
+                        Text(
+                            text = formatDecimalEs(goal, 1),
+                            style = AXIS_TABULAR,
+                            color = WizardColors.done,
+                            maxLines = 1,
+                            softWrap = false,
+                            modifier = Modifier
+                                .align(Alignment.TopEnd)
+                                .offset { IntOffset(x = 0, y = (goalAxisY - half).roundToInt().coerceAtLeast(0)) },
+                        )
+                    }
                 }
             }
         }

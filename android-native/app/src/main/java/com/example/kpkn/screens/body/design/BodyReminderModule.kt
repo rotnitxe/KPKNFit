@@ -63,7 +63,7 @@ fun BodyReminderModule(
 ) {
     KpknModule(modifier = modifier.fillMaxWidth()) {
         KpknModuleHeader(
-            label = "Recordatorio de pesaje",
+            label = "Recordatorio",
             action = {
                 KpknSwitch(
                     checked = schedule.enabled,
@@ -195,7 +195,7 @@ private fun BodyReminderTimeRow(
         )
         Spacer(Modifier.width(10.dp))
         Text(
-            text = "Hora del recordatorio",
+            text = "Hora",
             style = KpknType.bodyStrong,
             color = WizardColors.text,
             modifier = Modifier.weight(1f),
