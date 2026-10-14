@@ -43,6 +43,18 @@ La especificación es `docs/video-technique/VIDEO_TECHNIQUE_V1.md`. Lee SOLO las
   - la suite entera, `clean` y `--stop`;
   - más de un Gradle tuyo a la vez.
 - **El primer build del worktree tarda 10–20 min, más la cola.** Agrupa las ediciones antes de compilar y sigue trabajando mientras esperas.
+- **Arnés JVM para los paquetes de dominio puro** (VT1a, VT1b, VT2a, VT2b, VT3a, VT3b y VT6a). Para ITERAR usa el arnés `C:\kw\vt-jvm`:
+  - compila y prueba solo `domain/biomechanics/**` del worktree;
+  - va sin Android y sin la cola de ranuras;
+  - tarda ~1 min.
+
+  Comando:
+  `cd /c/kw/vt-jvm && ./gradlew test --offline -PappRoot=C:/kw/vt-a/android-native/app --tests "<filtro>" --console=plain > /c/kw/logs/vt-<paquete>-jvm-<n>.log 2>&1`
+  - Puede ir en primer plano (timeout de 600 s) o en segundo plano.
+  - Resultados XML en `C:\kw\vt-jvm\build\test-results\test\`.
+  - No toques los archivos del arnés: si falla por su configuración, avisa en el informe.
+  - Al final, la verificación OFICIAL del paquete se hace UNA vez, por `gradle_slot.sh`: `:app:compileBaseDebugKotlin` y luego `:app:testBaseDebugUnitTest --tests …`.
+- **Regla de aislamiento:** `domain/biomechanics/**` solo importa de sí mismo, de `kotlin.*`/`kotlinx.*` y de `java.*`. Nada de otros paquetes `domain/`, ni de `data/`, ni de `android.*`. Si no, el arnés no compila.
 - **Si falla una prueba ajena a tu cambio,** no la persigas: anótala.
 - **Estilo de pruebas:**
   - JUnit4 con `org.junit.Assert`; no hay Truth ni MockK;

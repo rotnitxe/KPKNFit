@@ -5,8 +5,12 @@
   - `VT_COMUN.md`;
   - `VIDEO_TECHNIQUE_V1.md` §3.4 y §5 (entera);
   - `kinematics/ViewKind.kt` y `framing/FramingSpec.kt` (de VT1b);
-  - `domain/exercises/catalogv2/ExerciseCatalogV2.kt` y `ExerciseCatalogV2Loader.kt` (para leer el catálogo en la prueba);
-  - `src/test/.../ExerciseCatalogContractTest.kt` (patrón de carga del JSON real).
+  - `src/main/assets/exercise_catalog_v2.json`: su estructura es `families[].definitions[].configurations[].profile` con `movementPatternId`, `equipmentId`, `laterality` y `jointInvolvement[].{jointId, role}`.
+
+**Aislamiento** (regla de `VT_COMUN`):
+- `domain/biomechanics` NO importa `domain/exercises`, `domain/training` ni `data/`.
+- La prueba de cobertura lee el JSON directamente con `kotlinx.serialization.json` (`Json.parseToJsonElement`), sin `ExerciseCatalogV2Loader`.
+- El resolver NO llama a `ExercisePatternDetector`: la conjetura para ejercicios propios llega en `ExerciseRef.guessedMovementPatternId` (la rellena el data layer en VT4c).
 - **Logs:** `C:\kw\logs\vt-2a-<n>.log`.
 
 ## Archivos permitidos (nuevos)
@@ -55,8 +59,10 @@ Los datos de cada perfil salen de la tabla de §5. Este brief solo fija lo que f
 2. excepción por `definitionId`;
 3. tabla por `movementPatternId`;
 4. si `isCustom` (o no hay patrón): `NeedsUserChoice(conjetura)`.
-   - La conjetura sale de `ExercisePatternDetector` mapeado con esta misma tabla; puede ser `null`.
+   - La conjetura es `guessedMovementPatternId` mapeado con esta misma tabla; puede ser `null`.
    - El nombre NUNCA resuelve solo.
+
+**Contrato:** `ExerciseRef` gana `val guessedMovementPatternId: String? = null`, AL FINAL.
 
 **`usesPlate`** = `equipmentId ∈ {barbell, smith_machine, hex_bar, safety_bar, t_bar}` y `plateSignal != null`. El resolver devuelve el perfil con `copy(usesPlate = …)`.
 
@@ -110,7 +116,7 @@ Los datos de cada perfil salen de la tabla de §5. Este brief solo fija lo que f
 | `unknown_pattern` | (texto en la misma línea) |
 
 ## Pruebas (JVM)
-- **`AnalysisProfileResolverCoverageTest`:** carga el catálogo real (`src/main/assets/exercise_catalog_v2.json`, como `ExerciseCatalogContractTest`) y, para CADA configuración, construye su `ExerciseRef` (definición, configuración, patrón, equipamiento y lateralidad).
+- **`AnalysisProfileResolverCoverageTest`:** carga el catálogo real (`File("src/main/assets/exercise_catalog_v2.json")`, con `app/src/...` como respaldo, con `Json.parseToJsonElement`) y, para CADA configuración, construye su `ExerciseRef` (definición, configuración, patrón, equipamiento y lateralidad).
   - Ninguna termina en `NeedsUserChoice`.
   - Ningún patrón queda sin entrada en la tabla: si el catálogo crece, la prueba falla con el patrón nuevo.
   - `Supported` ≥ 75 % de las 553 (imprime el porcentaje y la cuenta por perfil).

@@ -20,7 +20,7 @@
 1. **`ExerciseRefResolver`:**
    - **Con `catalogConfigurationId` o `catalogDefinitionId`:** saca `movementPatternId`, `equipmentId` y `laterality` del catálogo, con `CatalogV2ProcessCache` / `approvedExerciseCatalogV2()` / `resolveCatalogExerciseInfo`, lo que exista. Busca la firma real con Grep.
    - **Solo con `canonicalExerciseId`:** intenta resolverlo en el catálogo.
-   - **Si empieza por `custom:`, o no resuelve:** `isCustom = true`.
+   - **Si empieza por `custom:`, o no resuelve:** `isCustom = true`, y `guessedMovementPatternId` = el resultado de `ExercisePatternDetector` con el nombre (busca su firma).
    - **`userProfileOverride`:** se lee de `<id>.capture.json`.
 2. **`TechniqueAnalysisPipeline.analyze(request, onProgress)`:**
    1. **Perfil.** `AnalysisProfileResolver.resolve(ref)`. Si da `Unsupported` o `NeedsProfile` → se devuelve sin decodificar.

@@ -298,6 +298,7 @@ data class ExerciseRef(
     val definitionId: String?, val configurationId: String?, val movementPatternId: String?,
     val equipmentId: String?, val laterality: String?, val name: String, val isCustom: Boolean,
     val userProfileOverride: AnalysisProfileId? = null,
+    val guessedMovementPatternId: String? = null,   // ejercicio propio: conjetura de ExercisePatternDetector (data layer)
 )
 sealed interface ProfileResolution {
     data class Supported(val profile: AnalysisProfile, val source: String) : ProfileResolution   // "pattern", "definition", "user", "name"

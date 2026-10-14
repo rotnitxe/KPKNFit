@@ -31,3 +31,5 @@
 | D17 | ROM absoluto solo en las vistas de métrica del perfil (RAISE en cualquiera). En oblicuo no hay ROM en v1, sin el respaldo con puntos «world» | Los puntos «world» no tienen profundidad métrica fiable; se reevalúa con el banco dorado (VT10) |
 | D18 | `ENGINE_VERSION` sigue en 1 hasta la primera entrega con la ola | Aún no hay análisis publicados que recalcular |
 | D19 | VT1, VT2 y VT3 se parten en a/b | Cada paquete queda dentro del tope de 3 iteraciones; la cola es secuencial de todos modos (un agente a la vez) |
+| D20 | Arnés JVM `C:\kw\vt-jvm` (fuera del repo, sin red) para iterar los paquetes de dominio. `domain/biomechanics` queda aislado: no importa otros paquetes `domain` ni `data` | La cola de Gradle compartida tarda decenas de minutos por corrida, y el dominio puro se prueba en ~1 min. Se mantiene una verificación oficial por paquete |
+| D21 | El resolver no llama a `ExercisePatternDetector`: recibe `guessedMovementPatternId` en `ExerciseRef` desde el data layer | Aislamiento del módulo de biomecánica (D20) |
