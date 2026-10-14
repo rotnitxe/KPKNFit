@@ -74,6 +74,18 @@ import com.example.kpkn.domain.templates.TemplateSessionZone
 import com.example.kpkn.screens.sessioneditor.CompactCatalogFilterChip
 import com.example.kpkn.ui.components.KpknDropdownMenu
 import kotlinx.coroutines.launch
+import androidx.compose.foundation.layout.defaultMinSize
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.semantics.Role
+import com.example.kpkn.screens.onboarding.design.WizardColors
+import com.example.kpkn.ui.components.KpknAlertConfirmButton
+import com.example.kpkn.ui.components.KpknAlertDialog
+import com.example.kpkn.ui.components.KpknAlertDismissButton
+import com.example.kpkn.ui.components.icons.KpknLineIcons
+import com.example.kpkn.ui.design.KpknCheckRow
+import com.example.kpkn.ui.design.KpknRadioRow
+import com.example.kpkn.ui.design.KpknTextField
+import com.example.kpkn.ui.design.KpknType
 
 /**
  * Result-driven state for the USER-template save dialog.  The dialog owns this
@@ -444,29 +456,22 @@ internal fun TemplateCatalogBrowser(
     }
     pendingDeleteId?.let { id ->
         val pendingName = (templates + archivedUserTemplates).firstOrNull { it.id == id }?.name
-        AlertDialog(
+        KpknAlertDialog(
             onDismissRequest = { pendingDeleteId = null },
-            title = { Text("Borrar plantilla", fontWeight = FontWeight.Black) },
-            text = {
-                Text(
-                    if (pendingName.isNullOrBlank()) {
-                        "Esta acción es permanente. ¿Eliminar la plantilla?"
-                    } else {
-                        "Esta acción es permanente. ¿Eliminar \"$pendingName\"?"
-                    },
-                )
+            title = "Borrar plantilla",
+            text = if (pendingName.isNullOrBlank()) {
+                "Esta acción es permanente. ¿Eliminar la plantilla?"
+            } else {
+                "Esta acción es permanente. ¿Eliminar \"$pendingName\"?"
             },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        onDeleteUserTemplate(id)
-                        pendingDeleteId = null
-                    },
-                ) { Text("Borrar") }
+            confirmLabel = "Borrar",
+            onConfirm = {
+                onDeleteUserTemplate(id)
+                pendingDeleteId = null
             },
-            dismissButton = {
-                TextButton(onClick = { pendingDeleteId = null }) { Text("Cancelar") }
-            },
+            dismissLabel = "Cancelar",
+            onDismiss = { pendingDeleteId = null },
+            destructive = true,
         )
     }
     templateBeingEdited?.let { template ->
@@ -553,25 +558,29 @@ private fun UserTemplateMetadataDialog(
     var saveError by remember(template.id) { mutableStateOf<String?>(null) }
     val scope = rememberCoroutineScope()
 
-    AlertDialog(
+    KpknAlertDialog(
         onDismissRequest = { if (!isSaving) onDismiss() },
-        // A system BACK first hides the IME.  Do not let that same event
-        // dismiss the dialog and bypass the durable Result contract.
-        properties = DialogProperties(dismissOnBackPress = false),
-        title = { Text("Editar plantilla", fontWeight = FontWeight.Black) },
+        title = { Text("Editar plantilla") },
         text = {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
                     .heightIn(max = 520.dp)
                     .verticalScroll(rememberScrollState()),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
-                OutlinedTextField(name, { name = it }, label = { Text("Nombre") }, singleLine = true, enabled = !isSaving)
-                OutlinedTextField(
-                    description,
-                    { description = it },
-                    label = { Text("Descripción") },
+                KpknTextField(
+                    value = name,
+                    onValueChange = { name = it },
+                    label = "Nombre",
+                    singleLine = true,
+                    enabled = !isSaving,
+                )
+                KpknTextField(
+                    value = description,
+                    onValueChange = { description = it },
+                    label = "Descripción",
+                    singleLine = false,
                     minLines = 2,
                     enabled = !isSaving,
                 )
@@ -602,31 +611,34 @@ private fun UserTemplateMetadataDialog(
                     values = SessionTemplateDurationClass.entries.map { it.name },
                     onValue = { value -> duration = SessionTemplateDurationClass.entries.first { it.name == value } },
                 )
-                OutlinedTextField(
-                    splitIds,
-                    { splitIds = it },
-                    label = { Text("Split IDs (separados por coma)") },
+                KpknTextField(
+                    value = splitIds,
+                    onValueChange = { splitIds = it },
+                    label = "Split IDs (separados por coma)",
                     singleLine = true,
                 )
-                OutlinedTextField(
-                    dayLabels,
-                    { dayLabels = it },
-                    label = { Text("Etiquetas de día (separadas por coma)") },
+                KpknTextField(
+                    value = dayLabels,
+                    onValueChange = { dayLabels = it },
+                    label = "Etiquetas de día (separadas por coma)",
                     singleLine = true,
                 )
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Checkbox(checked = autoGeneration, onCheckedChange = { if (!isSaving) autoGeneration = it })
-                    Text("Permitir autogeneración semanal")
-                }
+                KpknCheckRow(
+                    checked = autoGeneration,
+                    title = "Permitir autogeneración semanal",
+                    onClick = { if (!isSaving) autoGeneration = !autoGeneration },
+                    enabled = !isSaving,
+                )
                 saveError?.let { error ->
-                    Text(error, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
+                    Text(text = error, style = KpknType.caption, color = WizardColors.danger)
                 }
             }
         },
         confirmButton = {
-            Button(
+            KpknAlertConfirmButton(
+                text = if (isSaving) "Guardando…" else "Guardar",
                 onClick = {
-                    if (isSaving) return@Button
+                    if (isSaving) return@KpknAlertConfirmButton
                     isSaving = true
                     saveError = null
                     scope.launch {
@@ -652,21 +664,11 @@ private fun UserTemplateMetadataDialog(
                     }
                 },
                 enabled = name.isNotBlank() && !isSaving,
-            ) {
-                if (isSaving) {
-                    CircularProgressIndicator(
-                        modifier = Modifier.size(16.dp),
-                        strokeWidth = 2.dp,
-                        color = MaterialTheme.colorScheme.onPrimary,
-                    )
-                    Spacer(Modifier.width(8.dp))
-                    Text("Guardando…")
-                } else {
-                    Text("Guardar")
-                }
-            }
+            )
         },
-        dismissButton = { TextButton(onClick = onDismiss, enabled = !isSaving) { Text("Cancelar") } },
+        dismissButton = {
+            KpknAlertDismissButton(text = "Cancelar", onClick = { if (!isSaving) onDismiss() })
+        },
     )
 }
 
@@ -680,42 +682,37 @@ private fun SaveUserTemplateDialog(
     var saveState by remember { mutableStateOf<UserTemplateSaveState>(UserTemplateSaveState.Idle) }
     val scope = rememberCoroutineScope()
     val isSaving = saveState is UserTemplateSaveState.Saving
-    AlertDialog(
+    KpknAlertDialog(
         onDismissRequest = { if (!isSaving) onDismiss() },
-        // Keep the form mounted while the IME is being dismissed; only the
-        // Room-backed success path below may close it after a save.
-        properties = DialogProperties(dismissOnBackPress = false),
-        title = { Text("Guardar sesión como plantilla", fontWeight = FontWeight.Black) },
+        title = { Text("Guardar sesión como plantilla") },
         text = {
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                OutlinedTextField(
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                KpknTextField(
                     value = name,
                     onValueChange = { name = it },
-                    label = { Text("Nombre") },
+                    label = "Nombre",
                     singleLine = true,
                     enabled = !isSaving,
                 )
-                OutlinedTextField(
+                KpknTextField(
                     value = description,
                     onValueChange = { description = it },
-                    label = { Text("Descripción") },
+                    label = "Descripción",
+                    singleLine = false,
                     minLines = 2,
                     enabled = !isSaving,
                 )
                 val error = (saveState as? UserTemplateSaveState.Error)?.message
                 if (error != null) {
-                    Text(
-                        text = error,
-                        color = MaterialTheme.colorScheme.error,
-                        style = MaterialTheme.typography.bodySmall,
-                    )
+                    Text(text = error, style = KpknType.caption, color = WizardColors.danger)
                 }
             }
         },
         confirmButton = {
-            Button(
+            KpknAlertConfirmButton(
+                text = if (isSaving) "Guardando…" else "Guardar",
                 onClick = {
-                    if (isSaving) return@Button
+                    if (isSaving) return@KpknAlertConfirmButton
                     saveState = UserTemplateSaveState.Saving
                     scope.launch {
                         val result = executeUserTemplateSave(name, description, onSave)
@@ -728,22 +725,10 @@ private fun SaveUserTemplateDialog(
                     }
                 },
                 enabled = name.isNotBlank() && !isSaving,
-            ) {
-                if (isSaving) {
-                    CircularProgressIndicator(
-                        modifier = Modifier.size(16.dp),
-                        strokeWidth = 2.dp,
-                        color = MaterialTheme.colorScheme.onPrimary,
-                    )
-                    Spacer(Modifier.width(8.dp))
-                    Text("Guardando…")
-                } else {
-                    Text("Guardar")
-                }
-            }
+            )
         },
         dismissButton = {
-            TextButton(onClick = onDismiss, enabled = !isSaving) { Text("Cancelar") }
+            KpknAlertDismissButton(text = "Cancelar", onClick = { if (!isSaving) onDismiss() })
         },
     )
 }
@@ -758,18 +743,38 @@ private fun TemplateMetadataDropdown(
     values: List<String>,
     onValue: (String) -> Unit,
 ) {
-    Box(modifier = Modifier.fillMaxWidth()) {
-        FilledTonalButton(
-            onClick = onExpand,
-            modifier = Modifier.fillMaxWidth(),
-            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp),
+    // Dentro del diálogo, las opciones se despliegan en línea (sin menú flotante): una fila con el valor actual y, abierta, una fila de
+    // radio por opción. Elegir una cierra la lista.
+    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .defaultMinSize(minHeight = 48.dp)
+                .clickable(role = Role.Button, onClick = { if (expanded) onDismiss() else onExpand() }),
+            verticalAlignment = Alignment.CenterVertically,
         ) {
-            Text("$label: $value", modifier = Modifier.weight(1f), maxLines = 1, overflow = TextOverflow.Ellipsis)
+            Text(
+                text = "$label: $value",
+                style = KpknType.bodyStrong,
+                color = WizardColors.text,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.weight(1f),
+            )
+            Icon(
+                imageVector = KpknLineIcons.ChevronDown,
+                contentDescription = if (expanded) "Ocultar opciones de $label" else "Mostrar opciones de $label",
+                modifier = Modifier
+                    .size(20.dp)
+                    .graphicsLayer { rotationZ = if (expanded) 180f else 0f },
+                tint = WizardColors.textMuted,
+            )
         }
-        KpknDropdownMenu(expanded = expanded, onDismissRequest = onDismiss) {
+        if (expanded) {
             values.forEach { option ->
-                DropdownMenuItem(
-                    text = { Text(option) },
+                KpknRadioRow(
+                    selected = option == value,
+                    title = option,
                     onClick = {
                         onValue(option)
                         onDismiss()

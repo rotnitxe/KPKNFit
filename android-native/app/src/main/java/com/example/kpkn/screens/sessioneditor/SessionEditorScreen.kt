@@ -929,7 +929,7 @@ fun SessionEditorScreen(
         uiState = uiState,
         onDismiss = viewModel::closeSheet,
         onPickImage = { openDocument.launch(arrayOf("image/*")) },
-        onSelectGradient = { viewModel.updateBackgroundValue(it, SessionBackgroundType.COLOR) },
+        onSelectGradient = { if (it.isEmpty()) viewModel.clearSessionBackground() else viewModel.updateBackgroundValue(it, SessionBackgroundType.COLOR) },
         onBackgroundBlurChange = { viewModel.updateBackgroundStyle(blur = it) },
         onBackgroundBrightnessChange = { viewModel.updateBackgroundStyle(brightness = it) },
         onCoverBrightnessChange = viewModel::updateFilterBrightness,
