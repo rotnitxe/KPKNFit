@@ -95,6 +95,8 @@ class TechniqueBenchActivity : ComponentActivity() {
                             this@TechniqueBenchActivity,
                             BenchLayout.resolve(this@TechniqueBenchActivity),
                             waitSeconds = intent.getIntExtra(EXTRA_WAIT_SECONDS, TELEMETRY_WAIT_SECONDS),
+                            disableTransport = intent.getBooleanExtra(EXTRA_DISABLE_TRANSPORT, false),
+                            detect = intent.getBooleanExtra(EXTRA_DETECT, true),
                         )
                         "Listo: ${check.run()}"
                     }
@@ -127,6 +129,8 @@ private const val EXTRA_ENGINES = "engines"
 private const val EXTRA_VIDEOS = "videos"
 private const val EXTRA_MAX_SECONDS = "maxSeconds"
 private const val EXTRA_WAIT_SECONDS = "waitSeconds"
+private const val EXTRA_DISABLE_TRANSPORT = "disableTransport"
+private const val EXTRA_DETECT = "detect"
 private const val TELEMETRY_WAIT_SECONDS = 75
 private const val SELFTEST_DIR = "vt-selftest"
 private const val RESULT_FILE = "result.json"
