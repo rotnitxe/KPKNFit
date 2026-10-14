@@ -1,7 +1,7 @@
 package com.example.kpkn.screens.programdetail.design
 
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -55,19 +55,16 @@ internal fun ProgramWeekEditSheet(
                 minLines = 2,
             )
             Spacer(Modifier.height(20.dp))
+            KpknPrimaryPill(
+                text = "Guardar",
+                onClick = onSave,
+                modifier = Modifier.fillMaxWidth(),
+                enabled = name.isNotBlank(),
+            )
             if (onDelete != null) {
-                Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                Box(modifier = Modifier.fillMaxWidth().padding(top = 4.dp), contentAlignment = Alignment.Center) {
                     ProgramDangerAction(text = "Eliminar semana", onClick = onDelete)
-                    Spacer(Modifier.weight(1f))
-                    KpknPrimaryPill(text = "Guardar", onClick = onSave, enabled = name.isNotBlank())
                 }
-            } else {
-                KpknPrimaryPill(
-                    text = "Guardar",
-                    onClick = onSave,
-                    modifier = Modifier.fillMaxWidth(),
-                    enabled = name.isNotBlank(),
-                )
             }
             Spacer(Modifier.height(12.dp))
         }

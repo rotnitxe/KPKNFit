@@ -1,6 +1,7 @@
 package com.example.kpkn.screens.programdetail.design.structure
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
@@ -83,19 +84,16 @@ internal fun ProgramMesoSheet(
                 }
             }
             Spacer(Modifier.height(22.dp))
-            Row(
+            KpknPrimaryPill(
+                text = "Guardar",
+                onClick = { onSave(name.trim(), goal) },
                 modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                if (meso != null && canDelete) {
+                enabled = name.isNotBlank(),
+            )
+            if (meso != null && canDelete) {
+                Box(modifier = Modifier.fillMaxWidth().padding(top = 4.dp), contentAlignment = Alignment.Center) {
                     ProgramDangerAction(text = "Eliminar mesociclo", onClick = onDelete)
                 }
-                Spacer(Modifier.weight(1f))
-                KpknPrimaryPill(
-                    text = "Guardar",
-                    onClick = { onSave(name.trim(), goal) },
-                    enabled = name.isNotBlank(),
-                )
             }
             Spacer(Modifier.height(16.dp))
         }

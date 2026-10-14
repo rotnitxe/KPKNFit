@@ -64,7 +64,7 @@ internal fun ScrollEdgeFade(modifier: Modifier = Modifier) {
 /**
  * «Registrar tus máximos» (P6): sustituye al diálogo de 1RM con la regla de marcas del wizard, sin la opción de repeticiones (aquí
  * se registra un 1RM). [valuesKg] son las marcas en kg; un levantamiento ausente es «No la sé». [unit] es «kg» o «lb» y solo cambia
- * cómo se muestra. [onSave] recibe los tres 1RM en kg y solo se activa con los tres mayores que cero.
+ * cómo se muestra (la unidad es la de Ajustes: la hoja no tiene conmutador). [onSave] recibe los tres 1RM en kg y solo se activa con los tres mayores que cero.
  *
  * Sin estado: los valores y la unidad viven en la pantalla. Se cierra con el asa o atrás; no hay «Cancelar».
  */
@@ -73,12 +73,11 @@ fun ProgramOneRmSheet(
     valuesKg: Map<LiftMark, Double>,
     unit: String,
     onValueKg: (LiftMark, Double?) -> Unit,
-    onUnit: (String) -> Unit,
     onSave: (squatKg: Double, benchKg: Double, deadliftKg: Double) -> Unit,
     onDismiss: () -> Unit,
 ) {
     KpknSheet(onDismissRequest = onDismiss, stableHeightFraction = 0.9f) {
-        OneRmSheetBody(valuesKg = valuesKg, unit = unit, onValueKg = onValueKg, onUnit = onUnit, onSave = onSave)
+        OneRmSheetBody(valuesKg = valuesKg, unit = unit, onValueKg = onValueKg, onSave = onSave)
     }
 }
 
@@ -91,7 +90,6 @@ internal fun OneRmSheetBody(
     valuesKg: Map<LiftMark, Double>,
     unit: String,
     onValueKg: (LiftMark, Double?) -> Unit,
-    onUnit: (String) -> Unit,
     onSave: (squatKg: Double, benchKg: Double, deadliftKg: Double) -> Unit,
 ) {
     val squat = valuesKg[LiftMark.SQUAT]?.takeIf { it > 0 }
@@ -126,7 +124,7 @@ internal fun OneRmSheetBody(
                     valuesKg = valuesKg,
                     unit = unit,
                     onValueKg = onValueKg,
-                    onUnit = onUnit,
+                    showUnitSwitch = false,
                 )
             }
             if (canScrollMore) ScrollEdgeFade(modifier = Modifier.align(Alignment.BottomCenter))

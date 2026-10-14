@@ -5,6 +5,7 @@ import androidx.compose.runtime.Composable
 import com.example.kpkn.screens.onboarding.design.WizardColors
 import com.example.kpkn.ui.components.KpknAlertDialog
 import com.example.kpkn.ui.design.KpknCompactPill
+import com.example.kpkn.ui.design.KpknDangerPill
 import com.example.kpkn.ui.design.KpknTextAction
 import com.example.kpkn.ui.design.KpknType
 
@@ -22,7 +23,7 @@ internal fun ProgramDeleteDialog(
         onDismissRequest = onDismiss,
         title = { Text(text = "Eliminar", style = KpknType.title, color = WizardColors.text) },
         text = { Text(text = text, style = KpknType.body, color = WizardColors.textMuted) },
-        confirmButton = { ProgramDangerAction(text = "Eliminar", onClick = onConfirm) },
+        confirmButton = { KpknDangerPill(text = "Eliminar", onClick = onConfirm) },
         dismissButton = { KpknTextAction(text = "Cancelar", onClick = onDismiss) },
     )
 }

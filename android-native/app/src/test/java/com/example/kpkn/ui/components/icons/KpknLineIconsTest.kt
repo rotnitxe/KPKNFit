@@ -40,11 +40,18 @@ class KpknLineIconsTest {
         KpknLineIcons.Moon,
         KpknLineIcons.Tower,
         KpknLineIcons.Search,
+        KpknLineIcons.Pause,
+        KpknLineIcons.Minus,
+        KpknLineIcons.Flag,
+        KpknLineIcons.Route,
+        KpknLineIcons.Layers,
+        KpknLineIcons.History,
+        KpknLineIcons.Trash,
     )
 
     @Test
     fun cadaIconoMide24PorVeinticuatroDp() {
-        assertEquals(30, iconos.size)
+        assertEquals(37, iconos.size)
         for (icono in iconos) {
             assertEquals("${icono.name}: ancho", 24.dp, icono.defaultWidth)
             assertEquals("${icono.name}: alto", 24.dp, icono.defaultHeight)

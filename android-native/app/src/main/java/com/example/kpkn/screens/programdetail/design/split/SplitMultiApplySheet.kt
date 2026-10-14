@@ -188,7 +188,7 @@ internal fun SplitMultiApplySheet(
                         ),
                         SplitModeOption(
                             mode = SessionMigrationMode.PREBUILT,
-                            title = "Sesiones pre-creadas",
+                            title = "Con ejercicios de plantilla",
                             description = "Carga ejercicios desde la mejor plantilla compatible de cada reparto.",
                         ),
                     ),

@@ -12,6 +12,7 @@ import com.example.kpkn.domain.training.StartDayTemporalScope
 import com.example.kpkn.screens.onboarding.design.WizardColors
 import com.example.kpkn.ui.components.KpknAlertDialog
 import com.example.kpkn.ui.design.KpknCompactPill
+import com.example.kpkn.ui.design.KpknDangerPill
 import com.example.kpkn.ui.design.KpknRadioRow
 import com.example.kpkn.ui.design.KpknTextAction
 import com.example.kpkn.ui.design.KpknTextField
@@ -163,7 +164,7 @@ internal fun ProgramDeleteSessionDialog(
         onDismissRequest = onDismiss,
         title = { DialogTitle("Confirmar eliminación") },
         text = { Text(text = "¿Confirmas que eliminas esta sesión?", style = KpknType.body, color = WizardColors.textMuted) },
-        confirmButton = { KpknCompactPill(text = "Eliminar", onClick = onConfirm) },
+        confirmButton = { KpknDangerPill(text = "Eliminar", onClick = onConfirm) },
         dismissButton = { KpknTextAction(text = "Cancelar", onClick = onDismiss) },
     )
 }

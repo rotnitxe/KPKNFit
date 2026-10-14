@@ -36,7 +36,8 @@ import com.example.kpkn.domain.training.importer.ImportedDay
 import com.example.kpkn.domain.training.importer.ImportedExercise
 import com.example.kpkn.domain.training.importer.ImportedProgramDraft
 import com.example.kpkn.domain.training.importer.ImportedWeek
-import com.example.kpkn.screens.programdetail.components.SessionCard
+import com.example.kpkn.screens.programdetail.ProgramDetailSamples
+import com.example.kpkn.screens.programdetail.design.ProgramDayModule
 import com.example.kpkn.screens.programs.ProgramsHeader
 import com.example.kpkn.screens.programs.importer.ImportProgramScreen
 import com.example.kpkn.screens.programs.importer.ImportProgramState
@@ -303,9 +304,38 @@ class ImportAppRenderTest {
             name = "Day 2 - Upper body strength and hypertrophy focus",
             exercises = listOf(Exercise(id = "e1", name = "Press banca"), Exercise(id = "e2", name = "Remo con barra")),
         )
+        // La fila de la sesión la pinta ahora el módulo del día (P7 retira SessionCard): un día con esa sesión, desplegado.
+        val day = ProgramDetailSamples.day(
+            id = 2,
+            name = "Martes",
+            short = "MAR",
+            sessions = listOf(ProgramDetailSamples.sessionUi(sesion)),
+            number = "14",
+        )
         rule.setContent {
             Sheet(width = 360.dp, fontScale = fontScale) {
-                SessionCard(session = sesion, index = 1, onStart = {}, onEdit = {})
+                ProgramDayModule(
+                    day = day,
+                    expanded = true,
+                    onToggleExpanded = {},
+                    onLongPressDay = {},
+                    onEditDate = {},
+                    onAddSession = {},
+                    onStartSession = {},
+                    onEditSession = {},
+                    onMoreSession = { _, _ -> },
+                    onRestoreSession = {},
+                    onToggleOptional = { _, _ -> },
+                    draggingSessionId = null,
+                    insertIndex = null,
+                    anchorFirstSession = false,
+                    onDayBounds = {},
+                    onSessionBounds = { _, _ -> },
+                    onSessionDragStart = {},
+                    onSessionDrag = { _, _ -> },
+                    onSessionDragEnd = {},
+                    onSessionDragCancel = {},
+                )
             }
         }
         save(name)

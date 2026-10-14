@@ -19,7 +19,7 @@ import com.example.kpkn.ui.design.KpknModuleHeader
 import com.example.kpkn.ui.design.KpknType
 
 /**
- * «Plantillas por día» (P5): solo con «Sesiones pre-creadas». Cada día disponible muestra su plantilla y, debajo, las alternativas como
+ * «Plantillas por día» (P5): solo con «Con ejercicios de plantilla». Cada día disponible muestra su plantilla y, debajo, las alternativas como
  * chips; el día sin plantilla compatible lo dice en `danger`. Los avisos de carga van arriba, en `danger`. Sin estado: la elección la
  * recibe [onPickTemplate] (día y plantilla).
  */

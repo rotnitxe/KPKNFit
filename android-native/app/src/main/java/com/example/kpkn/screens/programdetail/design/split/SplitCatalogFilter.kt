@@ -40,7 +40,7 @@ internal fun splitTagLabel(tag: SplitTag): String = when (tag) {
 }
 
 /**
- * Motivo por el que un reparto no se puede crear con sesiones pre-creadas, o null si cada día tiene plantilla compatible. Es la
+ * Motivo por el que un reparto no se puede crear con ejercicios de plantilla, o null si cada día tiene plantilla compatible. Es la
  * misma comprobación que muestra la hoja de aplicar, pero para el catálogo.
  */
 internal fun splitUnavailableReason(split: SplitTemplate, templates: List<SessionTemplate>): String? {

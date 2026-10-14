@@ -64,7 +64,6 @@ internal fun SplitCatalogScreen(
     onToggleCompareMode: () -> Unit,
     onToggleMultiMode: () -> Unit,
     onApply: (SplitTemplate) -> Unit,
-    onInfo: (SplitTemplate) -> Unit,
     onToggleSelect: (SplitTemplate) -> Unit,
     onEditCustom: () -> Unit,
     onApplyCustom: () -> Unit,
@@ -151,7 +150,6 @@ internal fun SplitCatalogScreen(
                             mode = mode,
                             selected = split.id in selectedIds,
                             onApply = { onApply(split) },
-                            onInfo = { onInfo(split) },
                             onToggle = { onToggleSelect(split) },
                             entranceIndex = minOf(index, 4),
                         )

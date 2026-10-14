@@ -56,7 +56,8 @@ private const val BLOCK_ENTRANCE_FIRST = 3
 /**
  * Módulo de un bloque (P3b, KPKN_UI_V2 §1): el eyebrow con la fase en su color (con bandera si es competición), el nombre y «3 semanas ·
  * 12 sesiones»; a la derecha, «Opciones del bloque» si hay [onMore]. Debajo, sus mesociclos como filas (solo si hay más de uno), las
- * semanas en círculos de 40 dp y el pie con «Añadir semana» y «Añadir mesociclo». Sin estado: la pantalla decide los menús y las hojas.
+ * semanas en círculos de 40 dp y, si toca, el pie con «Añadir semana» (solo en el último bloque). «Añadir mesociclo» y el resto de acciones
+ * van al menú «⋯»; en un programa simple, sin menú, también van al pie. Sin estado: la pantalla decide los menús y las hojas.
  */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -66,8 +67,8 @@ internal fun ProgramBlockModule(
     onFocusWeek: (weekId: String) -> Unit,
     onWeekLongPress: (weekId: String, anchor: Rect) -> Unit,
     onEditMeso: (mesoIndex: Int) -> Unit,
-    onAddWeek: () -> Unit,
-    onAddMeso: () -> Unit,
+    onAddWeek: (() -> Unit)? = null,
+    onAddMeso: (() -> Unit)? = null,
     modifier: Modifier = Modifier,
     onMore: ((anchor: Rect) -> Unit)? = null,
 ) {
@@ -118,14 +119,17 @@ internal fun ProgramBlockModule(
             Spacer(Modifier.height(6.dp))
             Text(text = cycle, style = KpknType.caption, color = WizardColors.textMuted)
         }
-        Spacer(Modifier.height(6.dp))
-        // Con el texto al 130 % las dos acciones no caben en una línea: pasan a otra en vez de cortarse.
-        FlowRow(
-            horizontalArrangement = Arrangement.spacedBy(20.dp),
-            verticalArrangement = Arrangement.spacedBy(4.dp),
-        ) {
-            KpknTextAction(text = "Añadir semana", onClick = onAddWeek)
-            KpknTextAction(text = "Añadir mesociclo", onClick = onAddMeso)
+        // Las acciones de bloque van al menú «⋯»; el pie solo guarda «Añadir semana» en el último bloque. Con el texto al 130 % las
+        // acciones pasan a otra línea en vez de cortarse.
+        if (onAddWeek != null || onAddMeso != null) {
+            Spacer(Modifier.height(6.dp))
+            FlowRow(
+                horizontalArrangement = Arrangement.spacedBy(20.dp),
+                verticalArrangement = Arrangement.spacedBy(4.dp),
+            ) {
+                onAddWeek?.let { KpknTextAction(text = "Añadir semana", onClick = it) }
+                onAddMeso?.let { KpknTextAction(text = "Añadir mesociclo", onClick = it) }
+            }
         }
     }
 }
@@ -157,8 +161,9 @@ internal fun ProgramBlockList(
             onFocusWeek = { weekId -> onFocusWeek(block.id, weekId) },
             onWeekLongPress = { weekId, anchor -> onWeekLongPress(block.id, weekId, anchor) },
             onEditMeso = { mesoIndex -> onEditMeso(block.id, mesoIndex) },
-            onAddWeek = { onAddWeekToBlock(block.id) },
-            onAddMeso = { onAddMesoToBlock(block.id) },
+            // El menú «⋯» de cada bloque ofrece semana y mesociclo; el pie guarda «Añadir semana» solo en el último bloque.
+            onAddWeek = if (index == blocks.lastIndex) ({ onAddWeekToBlock(block.id) }) else null,
+            onAddMeso = if (isSimple) ({ onAddMesoToBlock(block.id) }) else null,
             onMore = if (isSimple) null else onMoreBlock,
             modifier = Modifier.kpknEntrance("programdetail.estructura", BLOCK_ENTRANCE_FIRST + index),
         )

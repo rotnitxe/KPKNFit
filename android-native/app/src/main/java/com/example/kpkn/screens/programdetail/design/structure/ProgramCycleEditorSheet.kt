@@ -1,5 +1,6 @@
 package com.example.kpkn.screens.programdetail.design.structure
 
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -110,21 +111,21 @@ internal fun ProgramCycleEditorSheet(
                 }
             }
             Spacer(Modifier.height(24.dp))
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                if (loop != null) {
+            KpknPrimaryPill(
+                text = "Guardar",
+                onClick = {
+                    onSave(ProgramCycleDraft(loopId = loop?.id, title = title.trim(), type = type, cadence = cadence))
+                },
+                modifier = Modifier.fillMaxWidth(),
+                enabled = canSave,
+            )
+            if (loop != null) {
+                Box(modifier = Modifier.fillMaxWidth().padding(top = 4.dp), contentAlignment = Alignment.Center) {
                     ProgramDangerAction(
                         text = "Eliminar",
                         onClick = { onAction(ProgramCycleAction.DELETE) },
                     )
                 }
-                Spacer(Modifier.weight(1f))
-                KpknPrimaryPill(
-                    text = "Guardar",
-                    onClick = {
-                        onSave(ProgramCycleDraft(loopId = loop?.id, title = title.trim(), type = type, cadence = cadence))
-                    },
-                    enabled = canSave,
-                )
             }
         }
     }

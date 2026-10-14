@@ -18,7 +18,7 @@ internal val SPLIT_WEEKDAY_LETTERS: List<String> = listOf("L", "M", "X", "J", "V
 internal val SPLIT_WEEKDAY_NAMES: List<String> = listOf("Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo")
 
 /** Rol de un día en el diagrama de la semana (P5): decide su inicial y su color. El descanso no lleva ninguno. */
-internal enum class SplitDayRole { REST, PUSH, PULL, LEGS, TORSO, OTHER }
+internal enum class SplitDayRole { REST, PUSH, PULL, LEGS, TORSO, FULL_BODY, OTHER }
 
 /** Rol e inicial de un día: la inicial va dentro de su casilla y queda vacía en el descanso. */
 internal data class SplitDayMark(val role: SplitDayRole, val initial: String)
@@ -35,14 +35,14 @@ internal fun splitDayMark(label: String): SplitDayMark {
         "tiron" in key || "pull" in key -> SplitDayMark(SplitDayRole.PULL, "Ti")
         "pierna" in key || "legs" in key -> SplitDayMark(SplitDayRole.LEGS, "Pi")
         "torso" in key -> SplitDayMark(SplitDayRole.TORSO, "T")
-        "cuerpo completo" in key || "full body" in key -> SplitDayMark(SplitDayRole.TORSO, "CC")
+        "cuerpo completo" in key || "full body" in key -> SplitDayMark(SplitDayRole.FULL_BODY, "CC")
         else -> SplitDayMark(SplitDayRole.OTHER, initialOf(label))
     }
 }
 
 /**
- * Color de la casilla de un rol: empuje, `musculo`; tirón, `columna`; pierna, `energia`; torso o cuerpo completo, `mente`. El resto va
- * en tinta y el descanso no tiene color.
+ * Color de la casilla de un rol: empuje, `musculo`; tirón, `columna`; pierna, `energia`; torso, `mente`. Cuerpo completo y el resto van
+ * en tinta (cuerpo completo no comparte lila con torso); el descanso no tiene color.
  */
 internal fun splitDayAccent(role: SplitDayRole): Color? = when (role) {
     SplitDayRole.REST -> null
@@ -50,6 +50,7 @@ internal fun splitDayAccent(role: SplitDayRole): Color? = when (role) {
     SplitDayRole.PULL -> SymbolPalette.columna
     SplitDayRole.LEGS -> SymbolPalette.energia
     SplitDayRole.TORSO -> SymbolPalette.mente
+    SplitDayRole.FULL_BODY -> WizardColors.text
     SplitDayRole.OTHER -> WizardColors.text
 }
 
