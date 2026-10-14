@@ -36,7 +36,6 @@ import com.example.kpkn.screens.onboarding.design.LocalWizardReducedMotion
 import com.example.kpkn.screens.onboarding.design.WizardColors
 import com.example.kpkn.screens.onboarding.design.entreno.SymbolPalette
 import com.example.kpkn.screens.workout.ExerciseHistoryEntry
-import com.example.kpkn.screens.workout.ExerciseTagSheetContent
 import com.example.kpkn.screens.workout.WorkoutExerciseHistoryContent
 import com.example.kpkn.screens.workout.WorkoutRmCalcContent
 import com.example.kpkn.screens.workout.components.SetAdjustmentBody
@@ -167,16 +166,16 @@ class WorkoutSetOptionsRenderSheetTest {
                     subtitle = "Remo sentado · Serie 2 de 4",
                     readinessScore = 72,
                     readinessLabel = "Buena",
-                    readinessDetail = "Músc. 70% · SNC 75% · Col. 68%",
+                    readinessDetail = "Músculos 70 % · Energía 75 % · Columna 68 %",
                     readinessTone = WizardColors.done,
-                    plannedMode = "Carga normal",
+                    plannedCaption = null,
                     plannedValue = "80",
                     plannedUnit = "kg",
-                    suggestedMode = "Carga normal",
+                    suggestedCaption = null,
                     suggestedValue = "76",
                     suggestedUnit = "kg",
-                    suggestedDelta = "−5%",
-                    erm = "eRM promedio: ≈ 92 kg",
+                    suggestedDelta = "−5 %",
+                    erm = "1RM estimado ≈ 92 kg",
                     severity = 0.5f,
                     onSeverityChange = {},
                     applyLabel = "Aplicar 76 kg",
@@ -215,18 +214,6 @@ class WorkoutSetOptionsRenderSheetTest {
                         sessionAccentColor = SymbolPalette.musculo,
                         initialWeightText = "80",
                         initialRepsText = "8",
-                    )
-                }
-            }
-            "etiquetas" -> Frame {
-                Pad {
-                    ExerciseTagSheetContent(
-                        currentTag = "Máquina SmartFit",
-                        onTagSet = {},
-                        onDismiss = noop,
-                        userTags = listOf("Máquina SmartFit", "Barra vacía", "Mancuerna"),
-                        suggestedTag = "Barra vacía",
-                        profiles = emptyList(),
                     )
                 }
             }
@@ -369,6 +356,5 @@ class WorkoutSetOptionsRenderSheetTest {
         renderStatic("ultra", "ls7b_ultra_rapido")
         renderStatic("historial", "ls7b_historial")
         renderStatic("rm", "ls7b_rm")
-        renderStatic("etiquetas", "ls7b_etiquetas")
     }
 }

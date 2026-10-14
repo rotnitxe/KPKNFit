@@ -70,102 +70,6 @@ internal fun exerciseHasPlannedIntensity(exercise: Exercise): Boolean = exercise
         set.rightTarget?.hasPlannedIntensity() == true
 }
 
-/**
- * Etiquetas del ejercicio (LS7b): las sugeridas y las del usuario como chips KPKN, una etiqueta personalizada con su «Aplicar» y
- * «Eliminar etiqueta» cuando hay una activa.
- */
-@OptIn(ExperimentalLayoutApi::class)
-@Composable
-internal fun ExerciseTagSheetContent(
-    currentTag: String?,
-    onTagSet: (String) -> Unit,
-    onDismiss: () -> Unit,
-    userTags: List<String> = emptyList(),
-    suggestedTag: String? = null,
-    profiles: List<WorkoutContextProfile> = emptyList(),
-) {
-    fun profileForTagText(tag: String): WorkoutContextProfile? =
-        profiles.firstOrNull { profile ->
-            profile.tagId == tag ||
-                profile.setupLabel == tag ||
-                profile.persistentTagName() == tag ||
-                profile.tagDisplayTitle() == tag
-        }
-
-    fun displayTag(tag: String): String =
-        profileForTagText(tag)?.tagDisplayTitle() ?: tag
-
-    var tagText by remember { mutableStateOf(currentTag ?: "") }
-    val commonTags = remember(userTags, suggestedTag, profiles) {
-        val base = userTags.map(::displayTag).filter { it.isNotBlank() }.distinct()
-        val displayedSuggested = suggestedTag?.let(::displayTag)
-        if (displayedSuggested != null && displayedSuggested !in base) {
-            listOf(displayedSuggested) + base
-        } else {
-            base
-        }
-    }
-
-    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        Text(
-            text = "Etiquetas sugeridas".uppercase(java.util.Locale("es")),
-            style = KpknType.eyebrow,
-            color = WizardColors.textMuted,
-        )
-        FlowRow(
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            commonTags.forEach { tag ->
-                val isSuggested = tag == suggestedTag
-                KpknChip(
-                    text = if (isSuggested) "$tag · sugerida" else tag,
-                    selected = tagText == tag,
-                    onClick = {
-                        tagText = tag
-                        onTagSet(tag)
-                    },
-                )
-            }
-        }
-        KpknTextField(
-            value = tagText,
-            onValueChange = { tagText = it },
-            label = "Etiqueta personalizada",
-            singleLine = true,
-            modifier = Modifier.fillMaxWidth(),
-            trailing = {
-                KpknIconButton(
-                    icon = KpknLineIcons.Check,
-                    contentDescription = "Aplicar",
-                    onClick = { onTagSet(tagText) },
-                )
-            },
-        )
-        if (!currentTag.isNullOrBlank()) {
-            KpknTextAction(
-                text = "Eliminar etiqueta",
-                onClick = {
-                    onTagSet("")
-                    tagText = ""
-                },
-                color = WizardColors.danger,
-                modifier = Modifier.align(Alignment.End),
-            )
-        }
-        KpknPrimaryPill(
-            text = "Guardar",
-            onClick = {
-                if (tagText.isNotBlank() && tagText.trim() != (currentTag?.trim() ?: "")) {
-                    onTagSet(tagText.trim())
-                }
-                onDismiss()
-            },
-            modifier = Modifier.fillMaxWidth(),
-        )
-    }
-}
-
 /** Campo de texto de los diálogos de etiqueta: el de KPKN con su etiqueta, de una línea por defecto. */
 @Composable
 internal fun WorkoutTagFilledTextField(
@@ -595,36 +499,21 @@ internal fun resolveSetupCurrentSet(
     sets: List<ExerciseSet>,
 ): ExerciseSet? = currentSet ?: sets.firstOrNull()
 
-/** Hoja de configuración del ejercicio (LS7b): las etiquetas, el set-up del ejercicio y «Listo». */
+/** Hoja de configuración del ejercicio (LS7b): el set-up del ejercicio y «Listo». Las etiquetas tienen su propia hoja. */
 @Composable
 internal fun ExerciseSetupSheetContent(
     exercise: Exercise,
     currentSet: ExerciseSet?,
-    currentTag: String?,
     profiles: List<WorkoutContextProfile>,
     activeProfileId: String?,
-    onTagSet: (String) -> Unit,
     onSelectProfile: (String) -> Unit,
     onSaveProfile: (WorkoutContextProfile) -> Unit,
     onUpdateExercise: ((Exercise) -> Exercise) -> Unit,
     onUpdateSet: (String, (ExerciseSet) -> ExerciseSet) -> Unit,
     onDismiss: () -> Unit,
     sessionAccentColor: Color,
-    userTags: List<String> = emptyList(),
-    suggestedTag: String? = null,
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-        ExerciseTagSheetContent(
-            currentTag = currentTag,
-            onTagSet = onTagSet,
-            onDismiss = {},
-            userTags = userTags,
-            suggestedTag = suggestedTag,
-            profiles = profiles,
-        )
-
-        SheetDivider()
-
         val setupSet = resolveSetupCurrentSet(currentSet, exercise.sets)
         if (setupSet == null) {
             Text(

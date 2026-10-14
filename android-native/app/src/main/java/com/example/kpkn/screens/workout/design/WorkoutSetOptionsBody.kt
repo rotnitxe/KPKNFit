@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -51,11 +52,26 @@ internal fun WorkoutSetOptionsBody(
     ) {
         if (showRom) {
             KpknModule(modifier = Modifier.fillMaxWidth()) {
-                KpknModuleHeader(
-                    label = "Rango de movimiento",
-                    action = { KpknMetric(value = "$romPercent", unit = "%", style = KpknType.metricM) },
-                )
-                Spacer(Modifier.height(14.dp))
+                // El eyebrow y la cifra van en la misma fila y comparten línea base; la regla queda a 16 dp.
+                Row(modifier = Modifier.fillMaxWidth()) {
+                    // El eyebrow ocupa lo que sobra y puede partirse en dos líneas; la cifra nunca se pega a él (130 %).
+                    Text(
+                        text = "Rango de movimiento".uppercase(Locale("es")),
+                        style = KpknType.eyebrow,
+                        color = WizardColors.textMuted,
+                        modifier = Modifier
+                            .weight(1f)
+                            .alignByBaseline(),
+                    )
+                    Spacer(Modifier.width(12.dp))
+                    KpknMetric(
+                        value = "$romPercent",
+                        unit = "%",
+                        style = KpknType.metricM,
+                        modifier = Modifier.alignByBaseline(),
+                    )
+                }
+                Spacer(Modifier.height(16.dp))
                 KpknPercentRule(
                     value = romPercent,
                     onValueChange = onRomChange,
@@ -74,7 +90,7 @@ internal fun WorkoutSetOptionsBody(
                 verticalAlignment = Alignment.Top,
             ) {
                 KpknStepperMetric(
-                    label = "Con ayuda".uppercase(Locale("es")),
+                    label = "Con ayuda",
                     value = "$assistedReps",
                     onMinus = { onAssistedStep(-1) },
                     onPlus = { onAssistedStep(1) },
@@ -83,9 +99,10 @@ internal fun WorkoutSetOptionsBody(
                     minusEnabled = assistedReps > 0,
                     plusEnabled = assistedReps < maxAssistedReps,
                     modifier = Modifier.weight(1f),
+                    labelStyle = KpknType.bodyStrong,
                 )
                 KpknStepperMetric(
-                    label = "Parciales".uppercase(Locale("es")),
+                    label = "Parciales",
                     value = "$partialReps",
                     onMinus = { onPartialStep(-1) },
                     onPlus = { onPartialStep(1) },
@@ -94,6 +111,7 @@ internal fun WorkoutSetOptionsBody(
                     minusEnabled = partialReps > 0,
                     plusEnabled = partialReps < MaxPartialReps,
                     modifier = Modifier.weight(1f),
+                    labelStyle = KpknType.bodyStrong,
                 )
             }
         }

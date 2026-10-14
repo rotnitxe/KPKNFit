@@ -123,84 +123,6 @@ private fun activeRepRange(set: ExerciseSet, side: String?): RepRange? = when (s
     else -> set.targetRepsRange ?: set.effectiveRepRange()
 }
 
-// ─── AMRAP Config Sheet (LS7b: piezas KPKN; sin punto de entrada desde LS2b, por eso no se abre desde ningún sitio) ───
-
-@Composable
-private fun AmrapConfigSheet(
-    plannedMinReps: Int?,
-    plannedTargetName: String,
-    initialReachFailure: Boolean,
-    initialReserveReps: Int?,
-    onApply: (minReps: Int?, reachFailure: Boolean, reserveReps: Int?) -> Unit,
-    onDismiss: () -> Unit,
-) {
-    var minReps by remember { mutableStateOf(plannedMinReps?.toString() ?: "") }
-    var reachFailure by remember { mutableStateOf(initialReachFailure) }
-    var reserveReps by remember { mutableStateOf(initialReserveReps?.toString() ?: "") }
-    KpknSheet(onDismissRequest = onDismiss) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(start = 20.dp, end = 20.dp, bottom = 24.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-        ) {
-            Text("Configurar serie AMRAP", style = KpknType.title, color = WizardColors.text)
-            KpknModule(modifier = Modifier.fillMaxWidth()) {
-                KpknModuleHeader(label = "Repeticiones mínimas")
-                Spacer(Modifier.height(12.dp))
-                KpknNumberCell(
-                    value = minReps,
-                    input = KpknCellInput.Text(
-                        keyboardType = KeyboardType.Number,
-                        onCommit = { minReps = it.filter { c -> c.isDigit() } },
-                    ),
-                    contentDescription = "Repeticiones mínimas",
-                    placeholder = plannedMinReps?.toString() ?: "0",
-                    modifier = Modifier.fillMaxWidth(),
-                )
-            }
-            KpknModule(modifier = Modifier.fillMaxWidth()) {
-                KpknModuleHeader(label = "Objetivo de la serie")
-                Spacer(Modifier.height(12.dp))
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    KpknChip(
-                        text = "Llegar al fallo",
-                        selected = reachFailure,
-                        onClick = {
-                            reachFailure = true
-                            reserveReps = ""
-                        },
-                    )
-                    KpknChip(
-                        text = "Reservar reps",
-                        selected = !reachFailure,
-                        onClick = { reachFailure = false },
-                    )
-                }
-                if (!reachFailure) {
-                    Spacer(Modifier.height(12.dp))
-                    KpknModuleHeader(label = "RIR (repeticiones en reserva)")
-                    Spacer(Modifier.height(12.dp))
-                    KpknNumberCell(
-                        value = reserveReps,
-                        input = KpknCellInput.Text(
-                            keyboardType = KeyboardType.Number,
-                            onCommit = { reserveReps = it.filter { c -> c.isDigit() } },
-                        ),
-                        contentDescription = "RIR (repeticiones en reserva)",
-                        modifier = Modifier.fillMaxWidth(),
-                    )
-                }
-            }
-            KpknPrimaryPill(
-                text = "Aplicar",
-                onClick = { onApply(minReps.toIntOrNull() ?: plannedMinReps, reachFailure, reserveReps.toIntOrNull()) },
-                modifier = Modifier.fillMaxWidth(),
-            )
-        }
-    }
-}
-
 private fun quickLoadIncrementFor(exercise: Exercise, currentSet: ExerciseSet): Double {
     val setupText = listOfNotNull(
         exercise.setupDetails?.equipmentNotes,
@@ -641,7 +563,6 @@ internal fun SetInputCardV2(
     var isAmrap by remember(exercise.id, setIndex, sideKey, initialDraft?.amrapOverride) {
         mutableStateOf(initialDraft?.amrapOverride ?: plannedAmrap)
     }
-    var showAmrapSheet by remember(exercise.id, setIndex, sideKey) { mutableStateOf(false) }
     var amrapReachFailure by remember(
         exercise.id,
         setIndex,
@@ -781,7 +702,6 @@ internal fun SetInputCardV2(
         restPauseSets = listOf(RestPauseData(restTime = RestPausePlanDefaults.PauseSeconds, reps = RestPausePlanDefaults.Reps))
         partialSets = listOf(0)
         isAmrap = initialDraft?.amrapOverride ?: plannedAmrap
-        showAmrapSheet = false
         amrapReachFailure = initialDraft?.amrapReachFailure ?: defaultAmrapReachFailure
         amrapReserveReps = initialDraft?.amrapReserveReps
         amrapMinimumReps = initialDraft?.amrapMinimumReps ?: plannedRepRange?.min ?: currentSet.targetReps
@@ -940,7 +860,6 @@ internal fun SetInputCardV2(
         restPauseSets = listOf(RestPauseData(restTime = RestPausePlanDefaults.PauseSeconds, reps = RestPausePlanDefaults.Reps))
         partialSets = listOf(0)
         isAmrap = currentSet.isAmrap
-        showAmrapSheet = false
         amrapReachFailure = defaultAmrapReachFailure
         amrapReserveReps = null
         showPartialsMode = false
@@ -1705,24 +1624,6 @@ internal fun SetInputCardV2(
                         color = if (timerRunning) sessionAccentColor else Color.White.copy(alpha = 0.6f),
                     )
                 }
-            }
-
-            if (showAmrapSheet) {
-                AmrapConfigSheet(
-                    plannedMinReps = amrapMinimumReps,
-                    plannedTargetName = if (isTimeMode) "s" else "reps",
-                    initialReachFailure = amrapReachFailure,
-                    initialReserveReps = amrapReserveReps,
-                    onApply = { minReps, reachFailure, reserveReps ->
-                        isAmrap = true
-                        amrapMinimumReps = minReps
-                        amrapReachFailure = reachFailure
-                        amrapReserveReps = reserveReps
-                        if (minReps != null) updateActiveValueText(minReps.toString())
-                        showAmrapSheet = false
-                    },
-                    onDismiss = { showAmrapSheet = false },
-                )
             }
 
             val partialRepsTotal = if (showPartialsMode) {

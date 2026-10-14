@@ -103,7 +103,7 @@ internal fun SetAdjustmentOverlay(
     val suggestedDelta = if (loadMode == LoadModeV2.ASSISTED) {
         "+${(adjustment.suggestedWeight - plannedWeight).roundToInt()} kg asist."
     } else {
-        "−${(adjustment.reductionPercent * 100).roundToInt()}%"
+        "−${(adjustment.reductionPercent * 100).roundToInt()} %"
     }
     val applyLabel = when (adjustment.suggestedLoadMode) {
         LoadModeV2.BODYWEIGHT -> "Aplicar peso corporal"
@@ -120,21 +120,22 @@ internal fun SetAdjustmentOverlay(
             readinessScore = exerciseReadiness.overallScore,
             readinessLabel = readinessLabel,
             readinessDetail = buildString {
-                append("Músc. ${exerciseReadiness.muscularComponent}%")
-                append(" · SNC ${exerciseReadiness.cnsComponent}%")
+                append("Músculos ${exerciseReadiness.muscularComponent} %")
+                append(" · Energía ${exerciseReadiness.cnsComponent} %")
                 if (exerciseReadiness.spinalWeight > 0.01) {
-                    append(" · Col. ${exerciseReadiness.spinalComponent}%")
+                    append(" · Columna ${exerciseReadiness.spinalComponent} %")
                 }
             },
             readinessTone = readinessTone,
-            plannedMode = plannedModeText,
+            // Con carga normal no hace falta decir el modo: solo se nombra cuando cambia (asistido, lastre, peso corporal).
+            plannedCaption = if (loadMode == LoadModeV2.LOAD) null else plannedModeText,
             plannedValue = plannedValue,
             plannedUnit = plannedUnit,
-            suggestedMode = suggestedModeText,
+            suggestedCaption = if (adjustment.suggestedLoadMode == LoadModeV2.LOAD) null else suggestedModeText,
             suggestedValue = suggestedValue,
             suggestedUnit = suggestedUnit,
             suggestedDelta = suggestedDelta,
-            erm = averageErm?.takeIf { it > 0 }?.let { "eRM promedio: ≈ ${it.toTrimmedNumberString()} kg" },
+            erm = averageErm?.takeIf { it > 0 }?.let { "1RM estimado ≈ ${it.toTrimmedNumberString()} kg" },
             severity = severitySlider,
             onSeverityChange = { severitySlider = it },
             applyLabel = applyLabel,
@@ -155,10 +156,10 @@ internal fun SetAdjustmentBody(
     readinessLabel: String,
     readinessDetail: String,
     readinessTone: Color,
-    plannedMode: String,
+    plannedCaption: String?,
     plannedValue: String,
     plannedUnit: String?,
-    suggestedMode: String,
+    suggestedCaption: String?,
     suggestedValue: String,
     suggestedUnit: String?,
     suggestedDelta: String,
@@ -235,18 +236,17 @@ internal fun SetAdjustmentBody(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
+                // «Planificada» es más ancha que «Hoy»: en 130 % «PLANIFICADA» no cabe en media fila y se partía dentro de la palabra.
                 Column(
-                    modifier = Modifier.weight(1f),
+                    modifier = Modifier.weight(1.3f),
                     verticalArrangement = Arrangement.spacedBy(4.dp),
                 ) {
-                    KpknModuleHeader(label = plannedMode)
+                    KpknModuleHeader(label = "Planificada")
                     KpknMetric(value = plannedValue, unit = plannedUnit, style = KpknType.metricL)
-                    // Misma estructura que la columna de la derecha: así las etiquetas y la flecha quedan en la misma línea.
-                    Text(
-                        text = "Planificada",
-                        style = KpknType.caption,
-                        color = WizardColors.textMuted,
-                    )
+                    // Solo si el modo no es el de carga normal; así las dos columnas quedan con la misma estructura.
+                    plannedCaption?.let { caption ->
+                        Text(text = caption, style = KpknType.caption, color = WizardColors.textMuted)
+                    }
                 }
                 Text(
                     text = "→",
@@ -258,13 +258,16 @@ internal fun SetAdjustmentBody(
                     modifier = Modifier.weight(1f),
                     verticalArrangement = Arrangement.spacedBy(4.dp),
                 ) {
-                    KpknModuleHeader(label = suggestedMode)
+                    KpknModuleHeader(label = "Hoy")
                     KpknMetric(
                         value = suggestedValue,
                         unit = suggestedUnit,
                         style = KpknType.metricL,
                         color = readinessTone,
                     )
+                    suggestedCaption?.let { caption ->
+                        Text(text = caption, style = KpknType.caption, color = WizardColors.textMuted)
+                    }
                     Text(
                         text = suggestedDelta,
                         style = KpknType.caption,
@@ -325,7 +328,7 @@ internal fun SetAdjustmentBody(
                 tint = WizardColors.textMuted,
             )
             Text(
-                text = "El ajuste aplica solo para esta serie y sesión. Tu plan no se modifica permanentemente.",
+                text = "Solo cambia esta serie y esta sesión. Tu plan sigue igual.",
                 style = KpknType.caption,
                 color = WizardColors.textMuted,
             )

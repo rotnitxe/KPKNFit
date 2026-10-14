@@ -383,7 +383,7 @@ internal fun WorkoutExerciseSetupContent(
 }
 
 /**
- * Calculadora de RM (LS7b): el peso y las repeticiones en campos KPKN, el e1RM en `metricM` con su unidad y la tabla de 1 a 10
+ * Calculadora de RM (LS7b): el peso y las repeticiones en campos KPKN, el 1RM estimado en `metricM` con su unidad y la tabla de 1 a 10
  * repeticiones; tocar una fila de la tabla devuelve ese peso. [softInputs] ya no cambia el aspecto: se conserva por el cockpit.
  */
 @Composable
@@ -464,14 +464,11 @@ internal fun WorkoutRmCalcContent(
             )
         }
         if (rmResult != null && rmTable.isNotEmpty()) {
-            KpknModule(
-                modifier = Modifier.fillMaxWidth(),
-                accent = SymbolPalette.ok,
-            ) {
-                KpknModuleHeader(label = if (isAssisted || isLastre) "e1RM equivalente" else "e1RM")
+            KpknModule(modifier = Modifier.fillMaxWidth()) {
+                KpknModuleHeader(label = if (isAssisted || isLastre) "1RM estimado equivalente" else "1RM estimado")
                 Spacer(Modifier.height(6.dp))
                 KpknMetric(
-                    value = "%.1f".format(rmResult),
+                    value = rmResult.toTrimmedNumberString(),
                     unit = "kg",
                     style = KpknType.metricM,
                     color = SymbolPalette.ok,
@@ -485,80 +482,81 @@ internal fun WorkoutRmCalcContent(
                     )
                 }
             }
-            KpknModuleHeader(label = "Tabla RM")
-            // Cuadrícula de tres columnas de ancho igual: la tabla llena la anchura y no deja huecos a la derecha.
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                rmTable.chunked(3).forEach { rowEntries ->
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    ) {
-                        rowEntries.forEach { (reps, triple) ->
-                            val (estLoad, assistance, lastre) = triple
-                            val displayWeight = when {
-                                assistance != null -> assistance
-                                lastre != null -> lastre
-                                else -> estLoad
-                            }
-                            val suffix = when {
-                                assistance != null -> "kg asistencia"
-                                lastre != null -> "kg lastre"
-                                else -> "kg"
-                            }
-                            RmTableCell(
-                                reps = reps,
-                                displayWeight = displayWeight,
-                                suffix = suffix,
-                                accent = sessionAccentColor,
-                                onClick = { onWeightSelected?.invoke(displayWeight, currentLoadMode) },
-                                modifier = Modifier.weight(1f),
-                            )
-                        }
-                        repeat(3 - rowEntries.size) { Spacer(Modifier.weight(1f)) }
-                    }
+            KpknModule(modifier = Modifier.fillMaxWidth()) {
+                KpknModuleHeader(label = "Repeticiones máximas")
+                if (isAssisted || isLastre) {
+                    Spacer(Modifier.height(4.dp))
+                    Text(
+                        text = if (isAssisted) "Kilos de asistencia" else "Kilos de lastre",
+                        style = KpknType.caption,
+                        color = WizardColors.textMuted,
+                    )
+                }
+                Spacer(Modifier.height(8.dp))
+                val rmRows = rmTable.map { (reps, triple) -> reps to rmDisplayWeight(triple) }
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(16.dp),
+                ) {
+                    RmTableColumn(
+                        rows = rmRows.take(5),
+                        onWeightSelected = { weight -> onWeightSelected?.invoke(weight, currentLoadMode) },
+                        modifier = Modifier.weight(1f),
+                    )
+                    RmTableColumn(
+                        rows = rmRows.drop(5),
+                        onWeightSelected = { weight -> onWeightSelected?.invoke(weight, currentLoadMode) },
+                        modifier = Modifier.weight(1f),
+                    )
                 }
             }
         }
     }
 }
 
-/** Una fila de la tabla RM: repeticiones, peso y unidad, en una celda `inset` que se toca para elegir ese peso. */
+/** El peso que muestra la tabla RM para una fila: el de asistencia o lastre si lo hay, si no el estimado. */
+private fun rmDisplayWeight(triple: Triple<Double, Double?, Double?>): Double =
+    triple.second ?: triple.third ?: triple.first
+
+/** Una columna de la tabla RM: cinco filas de 48 dp, «1 RM» a la izquierda y el peso a la derecha, sin tarjeta por celda. */
 @Composable
-private fun RmTableCell(
-    reps: Int,
-    displayWeight: Double,
-    suffix: String,
-    accent: Color,
-    onClick: () -> Unit,
+private fun RmTableColumn(
+    rows: List<Pair<Int, Double>>,
+    onWeightSelected: (Double) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    Column(
-        modifier = modifier
-            .clip(RoundedCornerShape(12.dp))
-            .background(KpknSurface.inset)
-            .defaultMinSize(minHeight = 48.dp)
-            .clickable(role = Role.Button, onClick = onClick)
-            .padding(horizontal = 10.dp, vertical = 8.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-    ) {
-        Text(
-            text = "${reps}RM",
-            style = KpknType.bodyStrong,
-            color = accent,
-            maxLines = 1,
-        )
-        Text(
-            text = "%.1f".format(displayWeight),
-            style = KpknType.bodyStrong.copy(fontFeatureSettings = "tnum"),
-            color = WizardColors.text,
-            maxLines = 1,
-        )
-        Text(
-            text = suffix,
-            style = KpknType.caption,
-            color = WizardColors.textMuted,
-            maxLines = 1,
-        )
+    Column(modifier = modifier) {
+        rows.forEachIndexed { index, (reps, weight) ->
+            if (index > 0) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(1.dp)
+                        .background(KpknSurface.divider),
+                )
+            }
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .defaultMinSize(minHeight = 48.dp)
+                    .clickable(role = Role.Button, onClick = { onWeightSelected(weight) }),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween,
+            ) {
+                Text(
+                    text = "$reps RM",
+                    style = KpknType.bodyStrong,
+                    color = WizardColors.text,
+                    maxLines = 1,
+                )
+                KpknMetric(
+                    value = weight.toTrimmedNumberString(),
+                    unit = "kg",
+                    style = KpknType.bodyStrong.copy(fontFeatureSettings = "tnum"),
+                    unitStyle = KpknType.caption,
+                )
+            }
+        }
     }
 }
 

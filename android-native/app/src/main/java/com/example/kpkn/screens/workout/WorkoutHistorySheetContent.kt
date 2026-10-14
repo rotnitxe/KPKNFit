@@ -45,6 +45,39 @@ private val historyLocale: Locale = Locale.Builder().setLanguage("es").setRegion
 /** Las series de una sesión en tabular, como «80 × 8 · 80 × 8 · 82,5 × 6». Sin tabular, las cifras bailan al desplazarse. */
 private val HistorySetsStyle = KpknType.caption.copy(fontFeatureSettings = "'tnum' 1")
 
+/** Grupo de una sesión por su fecha: «Esta semana», «Semana pasada», «Este mes» o mes y año. Null si la fecha no se puede leer. */
+internal fun historyGroupLabel(rawDate: String, today: LocalDate): String? {
+    val date = try {
+        LocalDate.parse(rawDate.take(10))
+    } catch (e: Exception) {
+        return null
+    }
+    return when {
+        date.isAfter(today.minusWeeks(1)) -> "Esta semana"
+        date.isAfter(today.minusWeeks(2)) -> "Semana pasada"
+        date.isAfter(today.withDayOfMonth(1)) -> "Este mes"
+        else -> {
+            val month = date.month.getDisplayName(java.time.format.TextStyle.FULL, historyLocale)
+                .replaceFirstChar { if (it.isLowerCase()) it.titlecase(historyLocale) else it.toString() }
+            "$month ${date.year}"
+        }
+    }
+}
+
+/** Grupo de las sesiones con fecha no legible: va al final de la lista y no se le asigna ningún día. */
+internal const val HistorySinFechaLabel = "Sin fecha"
+
+/** Agrupa el historial por grupo de fecha; «Sin fecha» queda al final y el resto conserva su orden. */
+internal fun agruparHistorial(
+    history: List<ExerciseHistoryEntry>,
+    today: LocalDate,
+): Map<String, List<ExerciseHistoryEntry>> {
+    val grouped = history.groupBy { entry -> historyGroupLabel(entry.date, today) ?: HistorySinFechaLabel }
+    return grouped.entries
+        .sortedBy { it.key == HistorySinFechaLabel }
+        .associate { it.key to it.value }
+}
+
 /**
  * Historial del ejercicio (hoja «Historial» de la sesión en vivo): sesiones agrupadas por semana o mes, cada grupo en un módulo con su
  * cabecera y «Mostrar»/«Ocultar». Una fila por sesión: la fecha larga, la etiqueta usada y sus series; la mejor serie (por 1RM estimado)
@@ -64,22 +97,7 @@ internal fun ExerciseHistoryContent(
         return
     }
 
-    val grouped = remember(history) {
-        history.groupBy { entry ->
-            val date = try { LocalDate.parse(entry.date.take(10)) } catch (e: Exception) { LocalDate.now() }
-            val now = LocalDate.now()
-            when {
-                date.isAfter(now.minusWeeks(1)) -> "Esta semana"
-                date.isAfter(now.minusWeeks(2)) -> "Semana pasada"
-                date.isAfter(now.withDayOfMonth(1)) -> "Este mes"
-                else -> {
-                    val month = date.month.getDisplayName(java.time.format.TextStyle.FULL, historyLocale)
-                        .replaceFirstChar { if (it.isLowerCase()) it.titlecase(historyLocale) else it.toString() }
-                    "$month ${date.year}"
-                }
-            }
-        }
-    }
+    val grouped = remember(history) { agruparHistorial(history, LocalDate.now()) }
 
     Column(verticalArrangement = Arrangement.spacedBy(20.dp)) {
         grouped.forEach { (label, entries) ->
@@ -122,27 +140,22 @@ internal fun HistoryEntryRow(
             .padding(vertical = 12.dp),
         verticalArrangement = Arrangement.spacedBy(6.dp),
     ) {
-        Row(
+        // La fecha ocupa todo el ancho: así se parte entre palabras y nunca dentro de una; la etiqueta va debajo.
+        Text(
+            text = historyDateLabel(entry.date),
+            style = KpknType.bodyStrong,
+            color = WizardColors.text,
             modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
+        )
+        entry.tag?.let { tag ->
             Text(
-                text = historyDateLabel(entry.date),
-                style = KpknType.bodyStrong,
-                color = WizardColors.text,
-                modifier = Modifier.weight(1f),
+                text = tag,
+                style = KpknType.caption,
+                color = if (isTagMatch) WizardColors.text else WizardColors.textMuted,
+                modifier = Modifier
+                    .background(KpknSurface.inset, RoundedCornerShape(999.dp))
+                    .padding(horizontal = 10.dp, vertical = 4.dp),
             )
-            entry.tag?.let { tag ->
-                Text(
-                    text = tag,
-                    style = KpknType.caption,
-                    color = if (isTagMatch) WizardColors.text else WizardColors.textMuted,
-                    modifier = Modifier
-                        .background(KpknSurface.inset, RoundedCornerShape(999.dp))
-                        .padding(horizontal = 10.dp, vertical = 4.dp),
-                )
-            }
         }
         if (workSets.isEmpty()) {
             Text(text = "Sin series de trabajo", style = KpknType.caption, color = WizardColors.textMuted)
