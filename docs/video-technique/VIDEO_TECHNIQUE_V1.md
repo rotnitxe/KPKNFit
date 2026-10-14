@@ -284,6 +284,7 @@ data class AnalysisProfile(
     val minAmplitude: Double,                     // grados o BH según la señal (§6)
     val framing: FramingSpec,
     val usesPlate: Boolean = false,               // lo fija el resolver según el material
+    val plateMinAmplitude: Double? = null,        // amplitud mínima en BH cuando cuenta el disco (VT2a)
 )
 
 /** Lo que el data layer sabe del ejercicio (catálogo v2 + sesión). */
@@ -1182,8 +1183,10 @@ Los valores horizontales llevan el signo de f.
 | VT-A | dependencias, manifiesto, R8, modelo, ML Kit pose a debug, quitar `attachPoseTrack` | `build.gradle.kts`, `libs.versions.toml`, `proguard-rules.pro`, `AndroidManifest.xml`, `src/main/assets/mediapipe/`, `PoseTrajectoryAnalyzer.kt` → `src/debug`, `WorkoutMediaCaptureController.kt` (solo quitar), arreglos de compilación por CameraX 1.5.3 | VT0 |
 | VT1a | pose v2, barra y sus códecs, `signal/` | `domain/biomechanics/{pose,bar,signal}` + sus pruebas | VT-A |
 | VT1b | `kinematics/` (geometría con aspecto, escala, lado, vista, cruces izquierda/derecha, atleta), `framing/`, `SyntheticLifter` | `domain/biomechanics/{kinematics,framing}`, `src/test/.../biomechanics/{testing,kinematics,framing}` | VT1a |
-| VT2 | perfiles, resolver y cobertura, segmentador, confianza, fases y TUT | `…/{profiles,reps}` | VT1 |
-| VT3 | métricas, observaciones, VBT, `TechniqueAnalysisEngine`, `AnalysisTuning` | `…/{metrics,vbt}` | VT2 |
+| VT2a | perfiles, resolver y cobertura del catálogo | `…/profiles` | VT1b |
+| VT2b | preparación de la traza, señal de conteo, segmentador, confianza, fases/TUT/tempo (y los tipos `AnalysisTuning`, `AnalysisFlag`, `CountConfidence`, `RepKind`, `TempoSummary`) | `…/reps`, parte de `…/metrics` | VT2a |
+| VT3a | métricas por repetición y por serie (ROM, profundidad, bloqueo, tronco, trayectoria, velocidad relativa), `SetTechniqueReport` y `TechniqueAnalysisEngine` (sin observaciones ni m/s) | `…/metrics` | VT2b |
+| VT3b | `vbt/` (escala por disco con elipse y paralaje, m/s, pérdida, carga-velocidad, MVT) y observaciones con su texto, integradas en el motor | `…/vbt`, `…/metrics/Observations*` | VT3a |
 | VT6a | disco sobre luma | `…/vision` | VT1 |
 | VT4a | `VideoFrameSource` + prueba instrumentada | `data/media/video/`, `src/androidTest/.../data/media/video/` | VT-A |
 | VT5 | Room v29, DAO, repositorios, Worker (con un `TechniqueAnalyzer` falso), ajustes, ids de catálogo en la captura | `data/db/*` (VideoAnalysis*, KpknDatabase, BackupTableManifest, WorkoutMediaEntity), `schemas/29.json`, `data/work/*`, `data/repository/VideoAnalysisRepository.kt`, `WorkoutMediaRepository.kt`, `data/models/{WorkoutMedia,VideoAnalysisSummary,Settings}.kt` | VT4a |
@@ -1197,7 +1200,7 @@ Los valores horizontales llevan el signo de f.
 
 **Orden:**
 1. VT0, luego VT-A.
-2. Carriles (1 agente si el disco tiene < 20 GB libres): dominio VT1a → VT1b → VT2 → VT3 → VT6a ‖ Android VT4a → VT5 → VT4b.
+2. Carriles (1 agente si el disco tiene < 20 GB libres): dominio VT1a → VT1b → VT2a → VT2b → VT3a → VT3b → VT6a ‖ Android VT4a → VT5 → VT4b.
 3. VT4c.
 4. VT7 ‖ VT8a.
 5. VT9.
