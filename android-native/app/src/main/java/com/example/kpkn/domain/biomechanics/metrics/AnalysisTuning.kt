@@ -261,6 +261,12 @@ data class AnalysisTuning(
     // ---------------------------------------------------------------------------------------------------------
     /** Umbrales de la escala por disco, la velocidad en m/s, la pérdida de velocidad y el perfil carga-velocidad. */
     val vbt: VbtTuning = VbtTuning(),
+
+    // ---------------------------------------------------------------------------------------------------------
+    // §7 «Observaciones» (VT3b). Campo añadido al final, en un grupo propio.
+    // ---------------------------------------------------------------------------------------------------------
+    /** Umbrales de las reglas de observación. */
+    val observations: ObservationsTuning = ObservationsTuning(),
 ) {
     companion object {
         val DEFAULT: AnalysisTuning = AnalysisTuning()
@@ -413,4 +419,106 @@ data class VbtTuning(
     val lvMaxIntervalFraction: Double = 0.10,
     /** El 1RM se redondea a este paso (kg). */
     val lvRoundingKg: Double = 2.5,
+)
+
+/**
+ * Umbrales de las reglas de observación (§7, «Observaciones»): viven en `AnalysisTuning.observations`. Cada regla comprueba
+ * sus requisitos (vista, visibilidad, disco, fps) y calla si le falta alguno. Los que ya están en `MetricsTuning` (bloqueos,
+ * flexiones cortas…) se leen de allí.
+ */
+data class ObservationsTuning(
+    /** Como mucho este número de observaciones por serie. */
+    val maxObservations: Int = 3,
+    /** Peso de la confianza del conteo en el orden de las observaciones (BAJA: sin observaciones). */
+    val confidenceAlta: Double = 1.0,
+    val confidenceMedia: Double = 0.75,
+    /** Las reglas que solo describen (pausa arriba, estilo del peso muerto) pesan menos que las que señalan una desviación. */
+    val descriptiveWeight: Double = 0.4,
+    /** Visibilidad mínima de cadera y rodilla (o del pie) para las reglas que miden en el fondo. */
+    val minLandmarkVisibility: Float = 0.7f,
+    /** Margen (s) alrededor de una repetición en el que se buscan sus extremos. */
+    val repMarginS: Double = 0.5,
+
+    // ---- Comunes ----
+    /** Tendencia del ROM: |Δ| ≥ 6° y |Δ|/media ≥ 10 %. */
+    val romTrendMinDeg: Double = 6.0,
+    val romTrendMinFraction: Double = 0.10,
+    /** Variación del ROM entre repeticiones (cadera en rumano e hip thrust): CV > 10 %. */
+    val romCvPct: Double = 10.0,
+    /** Tronco: τ en el giro de la última FULL frente a la primera, con al menos [trunkChangeMinFull] FULL. */
+    val trunkChangeDeg: Double = 8.0,
+    val trunkChangeMinFull: Int = 3,
+
+    // ---- Sentadilla ----
+    /** Profundidad irregular: DE(α) > 5° (con al menos 3 FULL) o una repetición ≥ 8° más alta que la mediana. */
+    val squatDepthSdDeg: Double = 5.0,
+    val squatShallowFromMedianDeg: Double = 8.0,
+    /** Cadera adelantada: Δτ temprano ≥ 8° y subida de cadera / subida de hombro ≥ 1,5 en el primer 30 % de la CON. */
+    val squatHipsEarlyDeltaDeg: Double = 8.0,
+    val squatHipsRiseRatio: Double = 1.5,
+    val earlyConTimeFraction: Double = 0.30,
+    /** Deriva de la barra: |drift_con| ≥ 5 cm (calibrado) o ≥ 10 % de ROM_v (≈). */
+    val squatDriftCm: Double = 5.0,
+    val squatDriftPctRom: Double = 10.0,
+    /** Talón que se levanta: ≥ 6 % del largo del pie con la punta quieta (la punta no se mueve más del 3 % del largo del pie). */
+    val heelLiftFootFraction: Double = 0.06,
+    val toeStillFootFraction: Double = 0.03,
+
+    // ---- Peso muerto ----
+    /** Cadera antes que la barra: ΔY_cadera/ΔY_barra ≥ 2 en el primer 15 % del recorrido de la barra y Δτ ≥ 5°. */
+    val deadliftHipsToBarRatio: Double = 2.0,
+    val deadliftBarRomFraction: Double = 0.15,
+    val deadliftHipsDeltaTauDeg: Double = 5.0,
+    /** Inclinación hacia atrás arriba: τ ≤ −10° (aquí en positivo: grados hacia atrás). */
+    val deadliftLeanBackDeg: Double = 10.0,
+    /** Estilo: «parado» si estuvo ≥ 0,25 s en el suelo (la pausa mínima de las fases); «rebote» si < 0,1 s, a ≥ 50 fps y con disco. */
+    val deadliftBounceMaxS: Double = 0.1,
+    val deadliftBounceMinFps: Double = 50.0,
+
+    // ---- Rumano y buenos días ----
+    /** La flexión de rodilla crece ≥ 25° en la EXC; la barra queda ≥ 8 cm por delante del medio pie en el fondo. */
+    val hingeKneeGrowthDeg: Double = 25.0,
+    val hingeBarAheadCm: Double = 8.0,
+
+    // ---- Banca ----
+    /** Repetición atípica: PD ≥ max(2× la mediana, 3 cm o 6 % de ROM_v). Punto de contacto: DE ≥ 3 cm o 6 % de ROM_v. */
+    val benchAtypicalFactor: Double = 2.0,
+    val benchDeviationMinCm: Double = 3.0,
+    val benchDeviationMinPctRom: Double = 6.0,
+    /** En banca con pausa, la pausa en el pecho debe durar ≥ 0,5 s. */
+    val benchPauseMinS: Double = 0.5,
+
+    // ---- Flexiones ----
+    /** Línea del cuerpo θ(S,H,A) < 165°. */
+    val pushUpBodyLineDeg: Double = 165.0,
+
+    // ---- Press militar ----
+    /** Inclinación hacia atrás en el pico de velocidad: τ ≤ −12° (aquí en positivo). En press estricto, flexión de rodilla ≥ 15° antes de la CON. */
+    val ohpLeanBackDeg: Double = 12.0,
+    val ohpKneeDriveDeg: Double = 15.0,
+
+    // ---- Dominada y jalón ----
+    /** Balanceo: X de cadera ≥ 0,10 BH o flexión de rodilla ≥ 30°. Jalón: Δτ hacia atrás ≥ 15°. */
+    val pullSwingHipBh: Double = 0.10,
+    val pullSwingKneeDeg: Double = 30.0,
+    val pulldownLeanBackDeg: Double = 15.0,
+    /** Para distinguir la dominada del jalón: en la dominada los hombros suben al menos esto (BH) en la concéntrica. */
+    val pullUpShoulderRiseBh: Double = 0.10,
+
+    // ---- Remo ----
+    /** El torso sube ≥ 10° en la CON; remo en polea: balanceo ≥ 15°. */
+    val rowTorsoRiseDeg: Double = 10.0,
+    val rowCableSwingDeg: Double = 15.0,
+
+    // ---- Curl y tríceps ----
+    /** Balanceo del tronco ≥ 10°; deriva del codo θ(H,S,E): curl ≥ 25°, tríceps ≥ 20°; curl: θE máx. abajo < 150°. */
+    val armTrunkSwingDeg: Double = 10.0,
+    val curlElbowDriftDeg: Double = 25.0,
+    val tricepsElbowDriftDeg: Double = 20.0,
+    val curlMinExtensionDeg: Double = 150.0,
+
+    // ---- Elevaciones ----
+    /** Impulso: rango de τ ≥ 8° o flexión de rodilla ≥ 15°. */
+    val raiseMomentumTrunkDeg: Double = 8.0,
+    val raiseMomentumKneeDeg: Double = 15.0,
 )

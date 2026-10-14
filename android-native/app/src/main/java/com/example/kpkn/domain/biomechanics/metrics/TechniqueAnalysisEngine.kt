@@ -47,6 +47,8 @@ data class TechniqueAnalysisInput(
  *   se pudo corregir o es pequeño (si no, PARALLAX_SUPPRESSED y queda sin dato; la deriva y la excursión siguen).
  * Sin disco calibrado nada va en m/s ni en cm: las velocidades son relativas (BH/s o °/s, mostradas solo en %) y la trayectoria
  * va en % del recorrido (ROM_v). PEAK_VELOCITY es siempre el pico en m/s: el pico relativo (BH/s) no se marca disponible.
+ *
+ * Las observaciones de técnica (`Observations`) se calculan al final, sobre el informe ya armado.
  */
 object TechniqueAnalysisEngine {
     const val ENGINE_VERSION = 1
@@ -139,7 +141,7 @@ object TechniqueAnalysisEngine {
             barDeviation != null -> PERCENT_ROM
             else -> null
         }
-        return SetTechniqueReport(
+        val report = SetTechniqueReport(
             engineVersion = ENGINE_VERSION,
             profileId = profile.id,
             tier = profile.tier,
@@ -179,6 +181,9 @@ object TechniqueAnalysisEngine {
             noRepsReason = seg.noRepsReason,
             romSlopeDegPerRep = round(rom.slopeDegPerRep, 2),
         )
+        // Las observaciones salen del informe ya armado (hechos con su cifra y su repetición, como mucho 3).
+        val observations = Observations.evaluate(report, prepared, profile, report.scale ?: ScaleInfo.NONE, tuning, ctx, path, input.setHints)
+        return if (observations.isEmpty()) report else report.copy(observations = observations)
     }
 
     /** Informe de un vídeo sin señal: 0 repeticiones, confianza BAJA, nada disponible y el motivo en `noRepsReason`. */
