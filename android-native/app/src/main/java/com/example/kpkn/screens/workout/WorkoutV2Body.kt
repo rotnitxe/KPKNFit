@@ -1716,9 +1716,7 @@ internal fun WorkoutV2Body(
                                     } else {
                                         globalTimer?.remainingSeconds ?: (totalMinutes * 60)
                                     },
-                                    totalMinutes = totalMinutes,
                                     isTimerRunning = globalTimer?.isRunning == true,
-                                    sessionAccentColor = sessionAccentColor,
                                     onToggleComplete = { item, completed ->
                                         viewModel.setMobilityExerciseCompleted(
                                             exerciseId = item.exerciseId,
@@ -1797,6 +1795,7 @@ internal fun WorkoutV2Body(
                                                     suggestedWeightKg = suggestedKg,
                                                     actualWeightKg = completedSet?.weight?.takeIf { it > 0.0 },
                                                     isCompleted = isCompleted,
+                                                    exerciseName = member.name,
                                                 ),
                                             )
                                         }
@@ -1805,7 +1804,7 @@ internal fun WorkoutV2Body(
                                 val firstWarmupEx = prepWarmupMembers.firstOrNull() ?: pageExercise
                                 com.example.kpkn.screens.workout.components.WarmupPhaseLiveCard(
                                     rows = warmupRows,
-                                    sessionAccentColor = sessionAccentColor,
+                                    weightDrafts = warmupWeightDrafts,
                                     onToggleComplete = { row, completed, weightKg ->
                                         if (completed) {
                                             viewModel.recordWarmupWeight(row.exerciseId, row.warmup.id, weightKg)
