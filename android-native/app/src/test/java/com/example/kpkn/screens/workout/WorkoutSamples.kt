@@ -1,5 +1,8 @@
 package com.example.kpkn.screens.workout
 
+import com.example.kpkn.data.models.SessionChecklistItem
+import com.example.kpkn.data.models.SessionMilestone
+import com.example.kpkn.data.models.SessionSavedNote
 import com.example.kpkn.screens.workout.design.WorkoutSetDot
 import com.example.kpkn.screens.workout.design.WorkoutSetDotState
 
@@ -49,5 +52,44 @@ internal object WorkoutSamples {
         WorkoutSetDot("s2", "2", WorkoutSetDotState.CURRENT, null),
         WorkoutSetDot("s3", "3", WorkoutSetDotState.FUTURE, null),
         WorkoutSetDot("s4", "4", WorkoutSetDotState.FUTURE, null),
+    )
+}
+
+/** Hitos, tareas y notas de ejemplo para el cockpit y el resumen al terminar (LS6). */
+internal object WorkoutFinishSamples {
+    val milestones: List<SessionMilestone> = listOf(
+        SessionMilestone(
+            id = "m1",
+            exerciseId = "press",
+            exerciseName = "Press inclinado con mancuernas",
+            kind = "pr_e1rm",
+            label = "Nuevo PR e1RM",
+            value = 96.0,
+            detail = "80 kg × 6 → 96 kg",
+            createdAtIso = "2026-10-13T18:40:00Z",
+        ),
+        SessionMilestone(
+            id = "m2",
+            exerciseId = "remo",
+            exerciseName = "Remo con barra",
+            kind = "star_goal_reached",
+            label = "Meta estrella alcanzada",
+            value = 84.0,
+            detail = "70 kg × 8 → 84 kg (meta 80 kg)",
+            createdAtIso = "2026-10-13T18:52:00Z",
+        ),
+    )
+
+    val checklist: List<SessionChecklistItem> = listOf(
+        SessionChecklistItem(id = "c1", text = "Llegar a 4 series de press", done = true),
+        SessionChecklistItem(id = "c2", text = "Subir el remo a 70 kg", done = false),
+    )
+
+    val savedNotes: List<SessionSavedNote> = listOf(
+        SessionSavedNote(
+            id = "n1",
+            text = "Hombro izquierdo algo cargado: bajar el peso el jueves.",
+            createdAtIso = "2026-10-13T18:10:00Z",
+        ),
     )
 }

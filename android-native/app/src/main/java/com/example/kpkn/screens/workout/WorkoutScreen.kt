@@ -169,6 +169,7 @@ import com.example.kpkn.ui.components.showKpknSnackbar
 import com.example.kpkn.screens.workout.components.SetInputCardV2
 import com.example.kpkn.screens.workout.components.VoiceCaptureModeDialog
 import com.example.kpkn.screens.workout.components.WorkoutRoadmapBar
+import com.example.kpkn.screens.workout.components.WorkoutCockpitPage
 import com.example.kpkn.screens.workout.components.WorkoutSessionCockpit
 import com.example.kpkn.screens.workout.components.WorkoutSessionAlbumSheet
 import com.example.kpkn.screens.workout.components.WorkoutUiTokens
@@ -316,6 +317,9 @@ fun WorkoutScreen(
     val snackbarScope = rememberCoroutineScope()
     var showExitDialog by rememberSaveable { mutableStateOf(false) }
     var roadmapMode by rememberSaveable(programId, sessionId) { mutableStateOf(RoadmapMode.COMPACT) }
+    // Cockpit «Sesión» (LS6): una hoja que abre en la página que pide el menú.
+    var cockpitOpen by remember { mutableStateOf(false) }
+    var cockpitPage by remember { mutableStateOf(WorkoutCockpitPage.Overview) }
     var roadmapSelecting by remember { mutableStateOf(false) }
     val chromeScale = LocalViewportAdapt.current.uniformScale
     val compactCockpitHeightDp = WorkoutUiTokens.liveCockpitCompactHeight(chromeScale).value.roundToInt()
@@ -1085,10 +1089,19 @@ fun WorkoutScreen(
             roadmapExpanded = roadmapMode == RoadmapMode.EXPANDED,
             dockBottomClearance = dockBottomClearance,
             onOpenRoute = { roadmapMode = RoadmapMode.EXPANDED },
-            // «Sesión», «Notas» y «Fotos» abren el cockpit, que solo se ve con la ruta expandida (como hoy).
-            onOpenCockpit = { roadmapMode = RoadmapMode.EXPANDED },
-            onOpenNotes = { roadmapMode = RoadmapMode.EXPANDED },
-            onOpenPhotos = { roadmapMode = RoadmapMode.EXPANDED },
+            // «Sesión», «Notas» y «Fotos» abren el cockpit en su página (LS6).
+            onOpenCockpit = {
+                cockpitPage = WorkoutCockpitPage.Overview
+                cockpitOpen = true
+            },
+            onOpenNotes = {
+                cockpitPage = WorkoutCockpitPage.Notes
+                cockpitOpen = true
+            },
+            onOpenPhotos = {
+                cockpitPage = WorkoutCockpitPage.Photos
+                cockpitOpen = true
+            },
             onMinimize = { pauseAndExit() },
             onCreateSuperset = {
                 currentExercise?.id?.let {
@@ -1291,26 +1304,7 @@ fun WorkoutScreen(
         }
     }
 
-    val cockpitSheetShape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)
-    AnimatedVisibility(
-        visible = roadmapMode == RoadmapMode.EXPANDED,
-        modifier = Modifier
-            .align(Alignment.BottomCenter)
-            .fillMaxWidth()
-            .navigationBarsPadding()
-            .padding(bottom = 8.dp)
-            .offset(y = -(compactCockpitHeightDp.dp))
-            .zIndex(6f),
-        enter = expandVertically(
-            expandFrom = Alignment.Bottom,
-            animationSpec = tween(durationMillis = 260, easing = FastOutSlowInEasing),
-        ),
-        exit = shrinkVertically(
-            shrinkTowards = Alignment.Bottom,
-            animationSpec = tween(durationMillis = 220, easing = FastOutSlowInEasing),
-        ),
-        label = "cockpitOverlay",
-    ) {
+    if (cockpitOpen) {
         val totalCompletedCount = WorkoutStepRules.completedRoadmapSlotsForExercises(
             exercises = visibleExercises,
             completedSets = uiState.completedSets,
@@ -1320,57 +1314,46 @@ fun WorkoutScreen(
             exercises = visibleExercises,
             omittedSetKeys = uiState.omittedSetKeys,
         )
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .graphicsLayer {
-                    clip = true
-                    shape = cockpitSheetShape
-                }
-                .kpknGlassOrFallback(
-                    hazeState = overlayHazeState,
-                    shape = cockpitSheetShape,
-                ),
-        ) {
-            WorkoutSessionCockpit(
-                exercises = visibleExercises,
-                completedSets = uiState.completedSets,
-                milestones = uiState.sessionMilestones,
-                sessionProgressLabel = "Progreso: $totalCompletedCount/$totalSetsCount",
-                liveEnergySummary = uiState.liveEnergySummary,
-                sessionNotes = uiState.sessionNotes,
-                sessionSavedNotes = uiState.sessionSavedNotes,
-                sessionPhotos = uiState.sessionPhotos,
-                sessionMedia = sessionMedia,
-                mediaCaptureError = mediaCaptureError,
-                onRetryPendingMediaCaptures = viewModel::retryPendingMediaCaptures,
-                sessionChecklist = uiState.sessionChecklist,
-                onSessionNotesChange = { viewModel.setSessionNotes(it) },
-                onSaveSessionNote = { viewModel.saveSessionNote(it) },
-                onAddSessionPhoto = { viewModel.addSessionPhoto(it) },
-                onBeginSessionCameraCapture = {
-                    viewModel.mediaCapture.beginExternalPhotoCapture(
-                        com.example.kpkn.screens.workout.WorkoutMediaCaptureRequest(),
-                    )
-                },
-                onCompleteSessionCameraCapture = { captureId, succeeded ->
-                    viewModel.mediaCapture.completeExternalPhotoCaptureById(captureId, succeeded)
-                    Unit
-                },
-                onSessionCameraLaunchFailed = { captureId ->
-                    viewModel.mediaCapture.failExternalCameraLaunch(captureId)
-                    Unit
-                },
-                onRemoveSessionPhoto = { viewModel.removeSessionPhoto(it) },
-                onRemoveSessionMedia = { viewModel.removeSessionMedia(it) },
-                onAddChecklistItem = { viewModel.addSessionChecklistItem(it) },
-                onToggleChecklistItem = { viewModel.toggleSessionChecklistItem(it) },
-                onRemoveChecklistItem = { viewModel.removeSessionChecklistItem(it) },
-                sessionAccentColor = sessionAccentColor,
-                bodyWeight = viewModel.currentBodyWeight(),
-                poseOverlayEnabled = uiState.featureFlags.poseTrajectoryEnabled,
-            )
-        }
+        WorkoutSessionCockpit(
+            exercises = visibleExercises,
+            completedSets = uiState.completedSets,
+            milestones = uiState.sessionMilestones,
+            sessionProgressLabel = "Progreso: $totalCompletedCount/$totalSetsCount",
+            liveEnergySummary = uiState.liveEnergySummary,
+            sessionNotes = uiState.sessionNotes,
+            sessionSavedNotes = uiState.sessionSavedNotes,
+            sessionPhotos = uiState.sessionPhotos,
+            sessionMedia = sessionMedia,
+            mediaCaptureError = mediaCaptureError,
+            onRetryPendingMediaCaptures = viewModel::retryPendingMediaCaptures,
+            sessionChecklist = uiState.sessionChecklist,
+            onSessionNotesChange = { viewModel.setSessionNotes(it) },
+            onSaveSessionNote = { viewModel.saveSessionNote(it) },
+            onAddSessionPhoto = { viewModel.addSessionPhoto(it) },
+            onBeginSessionCameraCapture = {
+                viewModel.mediaCapture.beginExternalPhotoCapture(
+                    com.example.kpkn.screens.workout.WorkoutMediaCaptureRequest(),
+                )
+            },
+            onCompleteSessionCameraCapture = { captureId, succeeded ->
+                viewModel.mediaCapture.completeExternalPhotoCaptureById(captureId, succeeded)
+                Unit
+            },
+            onSessionCameraLaunchFailed = { captureId ->
+                viewModel.mediaCapture.failExternalCameraLaunch(captureId)
+                Unit
+            },
+            onRemoveSessionPhoto = { viewModel.removeSessionPhoto(it) },
+            onRemoveSessionMedia = { viewModel.removeSessionMedia(it) },
+            onAddChecklistItem = { viewModel.addSessionChecklistItem(it) },
+            onToggleChecklistItem = { viewModel.toggleSessionChecklistItem(it) },
+            onRemoveChecklistItem = { viewModel.removeSessionChecklistItem(it) },
+            sessionAccentColor = sessionAccentColor,
+            bodyWeight = viewModel.currentBodyWeight(),
+            poseOverlayEnabled = uiState.featureFlags.poseTrajectoryEnabled,
+            initialPage = cockpitPage,
+            onDismiss = { cockpitOpen = false },
+        )
     }
 
     LaunchedEffect(uiState.pendingEditSheetExerciseId) {
@@ -1740,6 +1723,7 @@ fun WorkoutScreen(
             onContinuePendingSeries = viewModel::continuePendingSeriesFromFinish,
             hazeState = overlayHazeState,
             onSummaryReady = viewModel::announceWorkoutSessionSummary,
+            sessionRecordCount = finishSessionRecordCount(uiState.sessionMilestones),
             onConfirm = { notes, fatigue, closingFeedback, shareToStory ->
                 RepairBenchmarkTrace.workoutExitRequested("finish")
                 val share = shareToStory
@@ -1839,27 +1823,20 @@ fun WorkoutScreen(
             )
         } else {
             BackHandler { viewModel.hideFinish() }
-            Box(
-                modifier = Modifier.fillMaxSize().padding(32.dp),
-                contentAlignment = Alignment.Center,
-            ) {
-                when (previewState) {
-                    FinishAugePreviewState.Loading -> {
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            CircularProgressIndicator()
-                            Spacer(Modifier.height(12.dp))
-                            Text("Calculando recuperación muscular…")
-                        }
-                    }
-                    is FinishAugePreviewState.Error -> {
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Text((previewState as FinishAugePreviewState.Error).reason)
-                            Spacer(Modifier.height(12.dp))
-                            OutlinedButton(onClick = { viewModel.hideFinish() }) { Text("Cerrar") }
-                        }
-                    }
-                    is FinishAugePreviewState.Ready -> Unit
-                }
+            // Mientras se calcula, la hoja muestra esqueletos; si el cálculo falla, el motivo en lenguaje llano.
+            when (previewState) {
+                FinishAugePreviewState.Loading -> FinishCalculatingSheet(
+                    sessionName = session.name,
+                    hazeState = overlayHazeState,
+                    onBack = { viewModel.hideFinish() },
+                )
+                is FinishAugePreviewState.Error -> FinishCalculationErrorSheet(
+                    sessionName = session.name,
+                    reason = (previewState as FinishAugePreviewState.Error).reason,
+                    hazeState = overlayHazeState,
+                    onClose = { viewModel.hideFinish() },
+                )
+                is FinishAugePreviewState.Ready -> Unit
             }
         }
     }
@@ -1882,28 +1859,19 @@ fun WorkoutScreen(
                 viewModel.dismissOngoingConflict()
                 onBack()
             },
-            title = { Text("Entrenamiento en curso", fontWeight = FontWeight.Black) },
-            text = {
-                Text(
-                    "Ya hay un entrenamiento en curso: ${existing.session.name}. " +
-                        "Si empiezas este, se perderá el anterior.",
-                )
+            title = "Entrenamiento en curso",
+            text = "Ya hay un entrenamiento en curso: ${existing.session.name}. " +
+                "Si empiezas este, se perderá el anterior.",
+            confirmLabel = "Descartar",
+            onConfirm = { viewModel.confirmDiscardOngoingAndStart() },
+            dismissLabel = "Reanudar",
+            onDismiss = {
+                val existingProgramId = existing.programId
+                val existingSessionId = existing.session.id
+                viewModel.dismissOngoingConflict()
+                onOpenExistingWorkout(existingProgramId, existingSessionId)
             },
-            confirmButton = {
-                TextButton(onClick = { viewModel.confirmDiscardOngoingAndStart() }) {
-                    Text("Descartar y empezar este")
-                }
-            },
-            dismissButton = {
-                TextButton(
-                    onClick = {
-                        val existingProgramId = existing.programId
-                        val existingSessionId = existing.session.id
-                        viewModel.dismissOngoingConflict()
-                        onOpenExistingWorkout(existingProgramId, existingSessionId)
-                    },
-                ) { Text("Reanudar el que está en curso") }
-            },
+            destructive = true,
         )
     }
 
@@ -1913,33 +1881,30 @@ fun WorkoutScreen(
                 viewModel.dismissOngoingCorrupt()
                 onBack()
             },
-            title = { Text("No se pudo leer el entrenamiento", fontWeight = FontWeight.Black) },
-            text = {
-                Text("No se pudo leer el entrenamiento en curso. Puedes reintentar o descartarlo.")
+            title = "No se pudo leer el entrenamiento",
+            text = "No se pudo leer el entrenamiento en curso. " +
+                "Si lo descartas, se pierde y puedes empezar otro.",
+            confirmLabel = "Descartar",
+            onConfirm = { viewModel.confirmDiscardOngoingAndStart() },
+            dismissLabel = "Volver",
+            onDismiss = {
+                viewModel.dismissOngoingCorrupt()
+                onBack()
             },
-            confirmButton = {
-                TextButton(onClick = { viewModel.confirmDiscardOngoingAndStart() }) {
-                    Text("Descartar y empezar este")
-                }
-            },
-            dismissButton = {
-                TextButton(
-                    onClick = {
-                        viewModel.dismissOngoingCorrupt()
-                        onBack()
-                    },
-                ) { Text("Volver") }
-            },
+            destructive = true,
         )
     }
 
     uiState.cancellationError?.let { error ->
         KpknAlertDialog(
-            onDismissRequest = {},
+            onDismissRequest = { viewModel.dismissCancellationError() },
             title = "No se pudo cancelar el entreno",
             text = error,
             confirmLabel = if (uiState.isCancellingWorkout) "Reintentando…" else "Reintentar",
             onConfirm = { if (!uiState.isCancellingWorkout) viewModel.cancelWorkout() },
+            dismissLabel = "Volver",
+            onDismiss = { viewModel.dismissCancellationError() },
+            destructive = true,
         )
     }
 
