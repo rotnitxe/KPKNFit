@@ -10,6 +10,24 @@
   - `AndroidManifest.xml`: VT-A ya fusionó `SystemForegroundService`.
 - **Logs:** `C:\kw\logs\vt-5b-<n>.log`.
 
+## Paso 0: verificación de integración (lo primero, antes de editar)
+`feat/video-technique` acaba de recibir dos cosas:
+- la restauración de la sesión en vivo ORIGINAL de la PR11, desde `feat/sessions-v1` (U7, D28);
+- VT5a (Room v29).
+
+Es la primera compilación de esa combinación. Tu PRIMERA corrida, por `gradle_slot.sh`, es:
+`:app:compileBaseDebugKotlin :app:testBaseDebugUnitTest --tests "com.example.kpkn.data.db.*" --tests "com.example.kpkn.data.media.*" --tests "com.example.kpkn.data.models.*VideoAnalysis*" --tests "com.example.kpkn.data.repository.*Media*" --tests "com.example.kpkn.screens.workout.*Media*"`
+- Mientras espera en la cola, lee y planifica, pero no edites hasta que termine.
+- Si falla algo de la sesión en vivo restaurada (código de `sessions-v1`), NO lo arregles: anótalo con el error exacto y sigue si tu parte compila.
+
+## Heredado de VT5a (ya integrado; los nombres REALES mandan)
+- **DAO:** `VideoAnalysisEntity` y `VideoAnalysisDao`: `upsert`, `getByMedia`, `observeByMedia`, `observeBySessionKey`, `observeExerciseSummaries` (cuenta solo DONE), `observeTrend`, `observeConfigurationPoints`, `updateProgress`, `delete`, `allIds` y `count`.
+- **Modelos:** `VideoAnalysisStatus`, `VideoAnalysisSummary` (con `pending`), `SetTechniqueReport.toSummary(...)` (con 3 opcionales al final), y `techniqueExerciseKey`, `techniqueConfigurationKey` y `techniqueSetKey`.
+- **Sidecars:** `AnalysisSidecar` y `TechniqueSidecars`, con la escritura atómica y la lectura y escritura de `<id>.analysis.json`.
+- **`WorkoutMediaRepository`:** `setPoseTrackPath`, `setSetSnapshot`, `syncSetSnapshots`, `assignExercise` y un `delete` que ya borra los sidecars y la fila de análisis.
+- **Ajustes:** `TechniqueVideoSettings`, al final de `Settings`.
+- **Orden obligatorio al terminar bien:** primero `<id>.analysis.json` y DESPUÉS la fila. La restauración de una copia vacía `video_analysis` por la cascada de `workout_media`: el sidecar es lo que permite reconstruirla (`reconcile`). Nunca REPLACE sobre `workout_media`.
+
 ## Archivos permitidos
 - **Nuevos:**
   - `data/media/technique/TechniqueAnalyzer.kt`: el contrato de §3.7 más `TechniqueAnalyzerProvider`, un objeto que hoy devuelve un analizador «aún no disponible» (resultado `Failed("analyzer_unavailable", transient = false)`) y que VT4c sustituirá por el real;
