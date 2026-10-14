@@ -438,6 +438,22 @@ object KpknLineIcons {
     /** Círculo de radio 8,75 centrado en (12, 12): base de `Info` y `Clock`. */
     private const val CIRCULO_GRANDE = "M12 20.75a8.75 8.75 0 1 0 0-17.5 8.75 8.75 0 0 0 0 17.5z"
 
+    /** Asa de arrastre (LS4): seis puntos rellenos en dos columnas, como el icono «Más», para reordenar con la pulsación larga. */
+    val Grip: ImageVector by lazy {
+        icono(
+            "KpknLine.Grip",
+            listOf(
+                "M8.2 8.25a1.3 1.3 0 1 0 2.6 0a1.3 1.3 0 1 0-2.6 0z",
+                "M13.2 8.25a1.3 1.3 0 1 0 2.6 0a1.3 1.3 0 1 0-2.6 0z",
+                "M8.2 12a1.3 1.3 0 1 0 2.6 0a1.3 1.3 0 1 0-2.6 0z",
+                "M13.2 12a1.3 1.3 0 1 0 2.6 0a1.3 1.3 0 1 0-2.6 0z",
+                "M8.2 15.75a1.3 1.3 0 1 0 2.6 0a1.3 1.3 0 1 0-2.6 0z",
+                "M13.2 15.75a1.3 1.3 0 1 0 2.6 0a1.3 1.3 0 1 0-2.6 0z",
+            ),
+            relleno = true,
+        )
+    }
+
     /**
      * Construye un icono con los trazados [trazados] (cadenas SVG `d` sobre la retícula de 24). Con [relleno] se pinta
      * sólido y sin trazo; si no, en trazo de 1,75 dp con extremos y uniones redondeados.

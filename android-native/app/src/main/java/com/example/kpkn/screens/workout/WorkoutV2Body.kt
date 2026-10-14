@@ -104,7 +104,6 @@ internal fun WorkoutV2Body(
     warmupWorkingWeight: Double? = null,
     catalogV2: com.example.kpkn.domain.exercises.catalogv2.ExerciseCatalogV2? = null,
     overlayHazeState: HazeState = remember { HazeState() },
-    roadmapExpanded: Boolean = false,
     dockBottomClearance: Dp = 140.dp,
     onOpenRoute: () -> Unit = {},
     onOpenCockpit: () -> Unit = {},
