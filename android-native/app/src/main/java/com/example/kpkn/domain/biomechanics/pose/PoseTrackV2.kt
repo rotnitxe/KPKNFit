@@ -58,6 +58,49 @@ class PoseFrameV2 private constructor(
         return WorldSample(x, a[o + 1], a[o + 2])
     }
 
+    // Accesores sin asignación para los bucles calientes: `point(lm)` crea un objeto por llamada, estos no.
+    // Devuelven NaN si el punto no se guarda, no hay pose o falta el dato.
+
+    /** x normalizada (0..1) del punto de imagen [lm], o NaN. */
+    fun x(lm: PoseLandmark): Float = imageAt(lm, 0)
+
+    /** y normalizada (0..1, hacia abajo) del punto de imagen [lm], o NaN. */
+    fun y(lm: PoseLandmark): Float = imageAt(lm, 1)
+
+    /** Profundidad relativa a la cadera del punto de imagen [lm] (menor = más cerca de la cámara), o NaN. */
+    fun z(lm: PoseLandmark): Float = imageAt(lm, 2)
+
+    /** Visibilidad (0..1) del punto de imagen [lm], o NaN. */
+    fun vis(lm: PoseLandmark): Float = imageAt(lm, 3)
+
+    /** Presencia (0..1) del punto de imagen [lm], o NaN. */
+    fun pres(lm: PoseLandmark): Float = imageAt(lm, 4)
+
+    /** x «world» (m) de [lm], o NaN. */
+    fun worldX(lm: PoseLandmark): Float = worldAt(lm, 0)
+
+    /** y «world» (m) de [lm], o NaN. */
+    fun worldY(lm: PoseLandmark): Float = worldAt(lm, 1)
+
+    /** z «world» (m) de [lm], o NaN. */
+    fun worldZ(lm: PoseLandmark): Float = worldAt(lm, 2)
+
+    private fun imageAt(lm: PoseLandmark, k: Int): Float {
+        val a = img ?: return Float.NaN
+        val slot = PoseLandmark.imageSlot(lm)
+        if (slot < 0) return Float.NaN
+        val o = slot * IMAGE_STRIDE
+        return if (a[o].isNaN()) Float.NaN else a[o + k]
+    }
+
+    private fun worldAt(lm: PoseLandmark, k: Int): Float {
+        val a = wld ?: return Float.NaN
+        val slot = PoseLandmark.worldSlot(lm)
+        if (slot < 0) return Float.NaN
+        val o = slot * WORLD_STRIDE
+        return if (a[o].isNaN()) Float.NaN else a[o + k]
+    }
+
     /** Datos crudos de imagen (27×5), solo para el códec. */
     internal fun imageData(): FloatArray? = img
 

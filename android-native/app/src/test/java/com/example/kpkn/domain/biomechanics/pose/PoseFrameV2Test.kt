@@ -58,6 +58,40 @@ class PoseFrameV2Test {
     }
 
     @Test
+    fun allocationFreeAccessorsAgreeWithPointAndWorld() {
+        val hip = LandmarkSample(0.45f, 0.55f, 0.01f, 0.8f, 0.85f)
+        val frame = PoseFrameV2.of(
+            tUs = 1L,
+            posesDetected = 1,
+            image = mapOf(PoseLandmark.LEFT_HIP to hip, PoseLandmark.LEFT_EYE to hip),
+            world = mapOf(PoseLandmark.LEFT_HIP to WorldSample(0.09f, -0.02f, 0.03f)),
+        )
+        assertEquals(0.45f, frame.x(PoseLandmark.LEFT_HIP), 0f)
+        assertEquals(0.55f, frame.y(PoseLandmark.LEFT_HIP), 0f)
+        assertEquals(0.01f, frame.z(PoseLandmark.LEFT_HIP), 0f)
+        assertEquals(0.8f, frame.vis(PoseLandmark.LEFT_HIP), 0f)
+        assertEquals(0.85f, frame.pres(PoseLandmark.LEFT_HIP), 0f)
+        assertEquals(0.09f, frame.worldX(PoseLandmark.LEFT_HIP), 0f)
+        assertEquals(-0.02f, frame.worldY(PoseLandmark.LEFT_HIP), 0f)
+        assertEquals(0.03f, frame.worldZ(PoseLandmark.LEFT_HIP), 0f)
+        // Falta el dato, no se guarda (ojos; talón en «world») o no hay mapa «world»: NaN.
+        for (lm in listOf(PoseLandmark.RIGHT_HIP, PoseLandmark.LEFT_EYE)) {
+            assertTrue(frame.x(lm).isNaN() && frame.y(lm).isNaN() && frame.z(lm).isNaN())
+            assertTrue(frame.vis(lm).isNaN() && frame.pres(lm).isNaN())
+        }
+        for (lm in listOf(PoseLandmark.RIGHT_HIP, PoseLandmark.LEFT_HEEL)) {
+            assertTrue(frame.worldX(lm).isNaN() && frame.worldY(lm).isNaN() && frame.worldZ(lm).isNaN())
+        }
+        // Sin atleta: todo NaN. Con atleta pero sin «world»: la imagen responde y «world» es NaN.
+        val none = PoseFrameV2.of(2L, 0, null, null)
+        assertTrue(none.x(PoseLandmark.NOSE).isNaN() && none.vis(PoseLandmark.NOSE).isNaN())
+        assertTrue(none.worldX(PoseLandmark.LEFT_HIP).isNaN())
+        val noWorld = PoseFrameV2.of(3L, 1, mapOf(PoseLandmark.NOSE to LandmarkSample(0.5f, 0.1f, 0f, 0.9f, 0.95f)), null)
+        assertEquals(0.5f, noWorld.x(PoseLandmark.NOSE), 0f)
+        assertTrue(noWorld.worldZ(PoseLandmark.LEFT_HIP).isNaN())
+    }
+
+    @Test
     fun noAthleteMeansNoPointsAndNoWorld() {
         val none = PoseFrameV2.of(5L, 0, null, null)
         assertFalse(none.hasPose)

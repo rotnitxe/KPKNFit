@@ -16,25 +16,30 @@ data class Biquad(val b0: Double, val b1: Double, val b2: Double, val a1: Double
  * Sin retardo, así que los picos y las derivadas no se desplazan en el tiempo.
  */
 object ZeroPhaseLowPass {
-    /** Winter: con dos pasadas de 2.º orden el corte baja a 0,802·fd, así que se diseña con fd = fc/0,802. */
+    /**
+     * Winter: con dos pasadas de 2.º orden el −3 dB queda en 0,802 de la frecuencia (deformada) de diseño de una
+     * pasada, así que K se divide por este factor (ver [design]).
+     */
     const val WINTER_FACTOR = 0.802
 
-    /** Tope del diseño, como fracción de fs, para que tan(π·fd/fs) no explote cerca de Nyquist. */
+    /** Tope de fc, como fracción de fs, para que tan(π·fc/fs) no explote cerca de Nyquist. */
     private const val MAX_DESIGN_FRACTION = 0.49
 
     /**
-     * Coeficientes de una pasada: fd = fc/0,802 (Winter), K = tan(π·fd/fs), n = 1 + √2·K + K²;
+     * Coeficientes de una pasada: K = tan(π·fc/fs)/0,802, n = 1 + √2·K + K²;
      * b0 = K²/n, b1 = 2·b0, b2 = b0; a1 = 2(K² − 1)/n, a2 = (1 − √2·K + K²)/n. La ganancia en continua es 1.
      *
-     * Con fc/fs alto la transformada bilineal se aparta algo de la corrección analógica de Winter: en la salida
-     * filtrada el seno de frecuencia fc llega a ≈ 0,72 a fc/fs = 1/12 y a ≈ 0,75 a fc/fs = 1/6 (el ideal es 0,707).
-     * Si fd pasa de 0,49·fs se recorta a ese valor.
+     * La corrección de Winter se aplica sobre la frecuencia YA deformada por la bilineal (tan(π·fc/fs)), no sobre fc.
+     * Con x = tan(π·f/fs)/K, una pasada tiene |H|² = 1/(1 + x⁴); ida y vuelta multiplica la respuesta por su
+     * conjugada, así que la ganancia en amplitud de las dos pasadas es 1/(1 + x⁴). Con K = tan(π·fc/fs)/0,802 es
+     * x = 0,802 en f = fc y la ganancia vale 1/(1 + 0,802⁴) = 0,707 para CUALQUIER fc/fs (el diseño anterior,
+     * fd = fc/0,802 seguido de tan(π·fd/fs), daba 0,755 a 30 fps y 5 Hz). Si fc pasa de 0,49·fs se recorta a ese valor.
      */
     fun design(fs: Double, fcEffective: Double): Biquad {
         require(fs > 0.0 && fs.isFinite()) { "fs debe ser > 0 (fs = $fs)" }
         require(fcEffective > 0.0 && fcEffective.isFinite()) { "fc debe ser > 0 (fc = $fcEffective)" }
-        val fd = min(fcEffective / WINTER_FACTOR, MAX_DESIGN_FRACTION * fs)
-        val k = tan(PI * fd / fs)
+        val fc = min(fcEffective, MAX_DESIGN_FRACTION * fs)
+        val k = tan(PI * fc / fs) / WINTER_FACTOR
         val k2 = k * k
         val s2k = sqrt(2.0) * k
         val n = 1.0 + s2k + k2

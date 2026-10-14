@@ -53,8 +53,8 @@ class ZeroPhaseLowPassTest {
     fun designMatchesTheButterworthFormulas() {
         val fs = 30.0
         val fc = 5.0
-        val fd = fc / 0.802
-        val k = tan(PI * fd / fs)
+        // Winter sobre la frecuencia ya deformada: K = tan(π·fc/fs)/0,802 (no tan(π·(fc/0,802)/fs)).
+        val k = tan(PI * fc / fs) / 0.802
         val n = 1.0 + sqrt(2.0) * k + k * k
         val bq = ZeroPhaseLowPass.design(fs, fc)
         assertEquals(k * k / n, bq.b0, 1e-12)
@@ -72,8 +72,10 @@ class ZeroPhaseLowPassTest {
 
     @Test
     fun sineAtTheRequestedCutoffComesOutAtHalfPower() {
-        // fc/fs = 1/12 en ambos casos: a 30 y a 60 fotogramas por segundo.
-        for ((fs, fc) in listOf(30.0 to 2.5, 60.0 to 5.0)) {
+        // fc/fs = 1/12 (30 fps a 2,5 Hz; 60 fps a 5 Hz), 1/6 (30 fps a 5 Hz), 2/15 (30 fps a 4 Hz) y 2/15 (60 fps a 8 Hz).
+        // Con Winter bien aplicado (K = tan(π·fc/fs)/0,802) la ganancia en fc es 0,707 también cuando fc/fs es alto.
+        val cases = listOf(30.0 to 2.5, 60.0 to 5.0, 30.0 to 5.0, 30.0 to 4.0, 60.0 to 8.0)
+        for ((fs, fc) in cases) {
             val y = ZeroPhaseLowPass.filter(sine(600, fs, fc), fs, fc)
             val (amp, _) = projection(y, fs, fc, from = 240, len = 120)
             println("fs=$fs fc=$fc: amplitud a fc = $amp")
@@ -82,12 +84,17 @@ class ZeroPhaseLowPassTest {
     }
 
     @Test
-    fun cutoffGainAtAHigherCutoffToSamplingRatioIsWithinTheDocumentedRange() {
-        // La transformada bilineal aleja algo la corrección de Winter cuando fc/fs crece: a 5 Hz con 30 fps llega ≈ 0,755.
-        val y = ZeroPhaseLowPass.filter(sine(600, 30.0, 5.0), 30.0, 5.0)
-        val (amp, _) = projection(y, 30.0, 5.0, from = 240, len = 120)
-        println("fs=30 fc=5: amplitud a fc = $amp")
-        assertTrue("amplitud $amp", amp in 0.70..0.77)
+    fun cutoffGainMatchesTheClosedFormForAnyCutoffToSamplingRatio() {
+        // |H_ff(f)| = 1/(1 + (tan(π·f/fs)/K)⁴): la ganancia de las dos pasadas, en cualquier f, sale de la forma cerrada.
+        val fs = 30.0
+        val fc = 5.0
+        val k = tan(PI * fc / fs) / 0.802
+        for (f in listOf(1.0, 2.5, 5.0, 7.5)) {
+            val expected = 1.0 / (1.0 + Math.pow(tan(PI * f / fs) / k, 4.0))
+            val y = ZeroPhaseLowPass.filter(sine(600, fs, f), fs, fc)
+            val (amp, _) = projection(y, fs, f, from = 240, len = 120)
+            assertEquals("f=$f", expected, amp, 0.01)
+        }
     }
 
     @Test
@@ -259,11 +266,16 @@ class ZeroPhaseLowPassTest {
 
     @Test
     fun cutoffAboveNyquistIsClampedAndStillStable() {
-        val bq = ZeroPhaseLowPass.design(fs = 30.0, fcEffective = 14.0) // fd = 17,5 Hz > Nyquist
-        assertTrue(bq.a2 < 1.0 && abs(bq.a1) < 1.0 + bq.a2)
-        val x = sine(300, 30.0, 1.0)
-        val y = ZeroPhaseLowPass.filter(x, 30.0, 14.0)
-        for (k in 30 until 270) assertEquals(x[k], y[k], 0.05) // casi no filtra
+        // fc = 14 Hz a 30 fps es 0,47·fs (sin recorte); 16 Hz pasa de Nyquist y se recorta a 0,49·fs.
+        for (fc in listOf(14.0, 16.0, 40.0)) {
+            val bq = ZeroPhaseLowPass.design(fs = 30.0, fcEffective = fc)
+            assertTrue("fc=$fc", bq.a2 < 1.0 && abs(bq.a1) < 1.0 + bq.a2)
+            val x = sine(300, 30.0, 1.0)
+            val y = ZeroPhaseLowPass.filter(x, 30.0, fc)
+            for (k in 30 until 270) assertEquals("fc=$fc k=$k", x[k], y[k], 0.05) // casi no filtra
+        }
+        // El recorte hace que cualquier fc ≥ 0,49·fs dé el mismo diseño.
+        assertEquals(ZeroPhaseLowPass.design(30.0, 0.49 * 30.0), ZeroPhaseLowPass.design(30.0, 40.0))
     }
 
     @Test
