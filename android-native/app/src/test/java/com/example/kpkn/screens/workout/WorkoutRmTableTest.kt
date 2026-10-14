@@ -7,7 +7,7 @@ import org.junit.Test
 import kotlin.math.abs
 
 /**
- * Tabla RM de la calculadora (LS7b): la fila «1 RM» es el 1RM que se muestra arriba y las demás son la inversa de la misma fórmula,
+ * Tabla RM de la calculadora (LR0): la fila «1 RM» es el 1RM que se muestra arriba y las demás son la inversa de la misma fórmula,
  * así que la tabla baja de forma monótona y cada fila vuelve a dar ese 1RM. Pura, sin Robolectric.
  */
 class WorkoutRmTableTest {

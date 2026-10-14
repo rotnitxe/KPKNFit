@@ -1,5 +1,8 @@
 # Sesión en vivo v1 · rediseño con el lenguaje KPKN v2 (2026-10-13)
 
+> **2026-10-14: el usuario rechazó el rediseño y pidió volver a la sesión de la PR11.** Esta especificación queda archivada con el
+> código en la etiqueta `archive/live-session-redesign-v1`. El refinado del aspecto de la original irá en un documento aparte.
+
 ## Encargo y fuentes
 - **Encargo y listón:**
   - «Más adelante: rediseño del editor de sesiones y sesión en vivo».

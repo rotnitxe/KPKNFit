@@ -8,7 +8,8 @@ import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithText
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import com.example.kpkn.screens.workout.design.WorkoutRestPanel
+import com.example.kpkn.data.models.CompletedSet
+import com.example.kpkn.screens.workout.components.RestTimerOverlay
 import dev.chrisbanes.haze.HazeState
 import org.junit.Rule
 import org.junit.Test
@@ -21,58 +22,100 @@ class WorkoutRestModalUiTest {
     val composeRule = createAndroidComposeRule<ComponentActivity>()
 
     @Test
-    fun rest_panel_shows_rest_label_suggestion_and_adjust_controls() {
+    fun rest_modal_shows_last_set_and_rest_choice_actions() {
         composeRule.setContent {
             MaterialTheme {
-                WorkoutRestPanel(
+                RestTimerOverlay(
+                    state = WorkoutRestModalState(
+                        exerciseName = "Press banca",
+                        plannedSeconds = 90,
+                        suggestedSeconds = 120,
+                        activeSeconds = 120,
+                    ),
                     remainingSeconds = 64,
-                    totalSeconds = 120,
-                    nextLine = "Siguiente: Serie 2 · 80 kg × 8",
-                    suggestedSeconds = 120,
-                    onAdjustSeconds = {},
+                    hazeState = HazeState(),
+                    pendingRestSuggestion = PendingRestSuggestion(
+                        plannedSeconds = 90,
+                        adaptiveSeconds = 120,
+                        exerciseName = "Press banca",
+                        exerciseId = "press",
+                        lastSet = CompletedSet(id = "last", weight = 80.0, reps = 8, rpe = 9.0),
+                        advancedFeedback = null,
+                    ),
+                    onDecrease = {},
+                    onIncrease = {},
                     onSkip = {},
-                    onUseSuggestion = {},
+                    onUseAdaptive = {},
                 )
             }
         }
 
-        composeRule.onNodeWithText("Descanso").assertExists()
-        composeRule.onNodeWithText("Descanso sugerido 2:00").assertExists()
-        composeRule.onNodeWithText("Usar").assertExists()
-        composeRule.onNodeWithText("−15 s").assertExists()
-        composeRule.onNodeWithText("+15 s").assertExists()
+        composeRule.onNodeWithText("DESCANSO").assertExists()
+        composeRule.onNodeWithText("Último set").assertExists()
+        composeRule.onNodeWithText("Descanso sugerido").assertExists()
+        composeRule.onNodeWithText("Ajustar tiempo").assertExists()
     }
 
     @Test
-    fun rest_panel_offers_skip_and_shows_zero_state() {
+    fun rest_modal_shows_manual_badge_and_primary_controls() {
         composeRule.setContent {
             MaterialTheme {
-                WorkoutRestPanel(
-                    remainingSeconds = 0,
-                    totalSeconds = 90,
-                    nextLine = null,
-                    suggestedSeconds = null,
-                    onAdjustSeconds = {},
+                RestTimerOverlay(
+                    state = WorkoutRestModalState(
+                        exerciseName = "Sentadilla frontal",
+                        plannedSeconds = 120,
+                        suggestedSeconds = 105,
+                        activeSeconds = 105,
+                        isManualOverride = true,
+                    ),
+                    remainingSeconds = 54,
+                    hazeState = HazeState(),
+                    pendingRestSuggestion = PendingRestSuggestion(
+                        plannedSeconds = 120,
+                        adaptiveSeconds = 105,
+                        exerciseName = "Sentadilla frontal",
+                        exerciseId = "squat",
+                        lastSet = CompletedSet(id = "last", weight = 100.0, reps = 5),
+                        advancedFeedback = null,
+                    ),
+                    onDecrease = {},
+                    onIncrease = {},
                     onSkip = {},
-                    onUseSuggestion = {},
+                    onUseAdaptive = {},
                 )
             }
         }
 
-        composeRule.onNodeWithText("Listo").assertExists()
+        composeRule.onNodeWithText("Manual").assertExists()
+        composeRule.onNodeWithText("Descanso sugerido").assertExists()
+        composeRule.onNodeWithText("Ajustar tiempo").assertExists()
         composeRule.onNodeWithText("Saltar descanso").assertExists()
     }
 
     @Test
-    fun rest_feedback_layer_embeds_post_exercise_feedback_without_skip_rest() {
+    fun rest_modal_can_embed_post_exercise_feedback_without_second_popup() {
         composeRule.setContent {
             MaterialTheme {
-                WorkoutPostExerciseFeedbackLayer(hazeState = HazeState()) {
-                    Text("Feedback post ejercicio")
-                }
+                RestTimerOverlay(
+                    state = WorkoutRestModalState(
+                        exerciseName = "Press banca",
+                        plannedSeconds = 90,
+                        suggestedSeconds = 90,
+                        activeSeconds = 90,
+                    ),
+                    remainingSeconds = 42,
+                    hazeState = HazeState(),
+                    onDecrease = {},
+                    onIncrease = {},
+                    onSkip = {},
+                    postExerciseFeedbackContent = {
+                        Text("Feedback post ejercicio")
+                    },
+                )
             }
         }
 
+        composeRule.onNodeWithText("DESCANSO").assertExists()
         composeRule.onNodeWithText("Feedback post ejercicio").assertExists()
         composeRule.onAllNodesWithText("Saltar descanso").assertCountEquals(0)
     }

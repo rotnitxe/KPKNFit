@@ -1,7 +1,17 @@
 package com.example.kpkn.screens.workout
 
+import androidx.activity.compose.BackHandler
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -9,10 +19,13 @@ import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -20,12 +33,15 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
+import com.example.kpkn.ui.components.KpknSheet
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
@@ -33,6 +49,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -41,27 +58,22 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.example.kpkn.data.models.DISCOMFORT_CATALOG
 import com.example.kpkn.data.models.DiscomfortCatalogEntry
-import com.example.kpkn.screens.onboarding.design.WizardColors
 import com.example.kpkn.ui.components.KpknAlertDialog
-import com.example.kpkn.ui.components.KpknSheet
+import com.example.kpkn.ui.components.KpknGlass
 import com.example.kpkn.ui.components.LocalHazeState
-import com.example.kpkn.ui.components.icons.KpknLineIcons
-import com.example.kpkn.ui.design.KpknIconButton
-import com.example.kpkn.ui.design.KpknType
+import com.example.kpkn.ui.components.kpknGlassOrFallback
+import com.example.kpkn.ui.components.kpknHazeEffect
 import dev.chrisbanes.haze.HazeState
 import java.util.Locale
 
-/**
- * Cajón de las hojas de la sesión en vivo: una capa fina sobre [KpknSheet], que pone el vidrio v2, el asa y el arrastre para cerrar.
- * El título va en `KpknType.title` (hasta dos líneas) con la cruz de cerrar a la derecha, y el contenido se desplaza dentro de la hoja.
- * Misma firma que antes: [dismissible] y [hazeState] pasan a la hoja.
- */
 @Composable
+@OptIn(ExperimentalMaterial3Api::class)
 internal fun WorkoutDrawer(
     title: String,
     onDismiss: () -> Unit,
@@ -70,41 +82,112 @@ internal fun WorkoutDrawer(
     hazeState: HazeState? = LocalHazeState.current,
     content: @Composable ColumnScope.() -> Unit,
 ) {
-    KpknSheet(
-        onDismissRequest = onDismiss,
-        dismissible = dismissible,
-        hazeState = hazeState,
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .verticalScroll(rememberScrollState())
-                .padding(horizontal = 20.dp, vertical = 8.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
+    var showContent by remember { mutableStateOf(false) }
+    var panelHeightPx by remember { mutableStateOf(0) }
+    val density = LocalDensity.current
+    LaunchedEffect(Unit) { showContent = true }
+
+    fun handleDismiss() {
+        showContent = false
+        onDismiss()
+    }
+
+    BackHandler(enabled = dismissible) { handleDismiss() }
+
+    Box(modifier = Modifier.fillMaxSize()) {
+        AnimatedVisibility(
+            visible = showContent,
+            enter = fadeIn(animationSpec = tween(250)),
+            exit = fadeOut(animationSpec = tween(250)),
         ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-            ) {
-                Text(
-                    text = title,
-                    modifier = Modifier.weight(1f),
-                    style = KpknType.title,
-                    color = WizardColors.text,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis,
-                )
-                if (showCloseButton) {
-                    KpknIconButton(
-                        icon = KpknLineIcons.Close,
-                        contentDescription = "Cerrar",
-                        onClick = onDismiss,
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .clickable(
+                        onClick = { handleDismiss() }
                     )
+            )
+        }
+
+        // Keep dismissal available above the panel, but limit the visible veil
+        // to the panel's measured footprint. The old full-screen scrim made the
+        // hero/header look blurred even though it was not underneath the sheet.
+        if (panelHeightPx > 0) {
+            Box(
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .fillMaxWidth()
+                    .height(with(density) { panelHeightPx.toDp() })
+                    .background(KpknGlass.FallbackScrim),
+            )
+        }
+
+        AnimatedVisibility(
+            visible = showContent,
+            enter = slideInVertically(
+                initialOffsetY = { it },
+                animationSpec = tween(300, easing = FastOutSlowInEasing)
+            ),
+            exit = slideOutVertically(
+                targetOffsetY = { it },
+                animationSpec = tween(250)
+            ),
+            modifier = Modifier.align(Alignment.BottomCenter),
+        ) {
+            val panelShape = RoundedCornerShape(
+                topStart = KpknGlass.SheetCornerRadius,
+                topEnd = KpknGlass.SheetCornerRadius,
+            )
+            val panelInteraction = remember { MutableInteractionSource() }
+            // DarkMica panel — sibling of the scrim (not nested in hazeSource).
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .wrapContentHeight()
+                    .navigationBarsPadding()
+                    .onSizeChanged { panelHeightPx = it.height }
+                    .kpknGlassOrFallback(hazeState = hazeState, shape = panelShape)
+                    .clickable(
+                        interactionSource = panelInteraction,
+                        indication = null,
+                        onClick = {},
+                    ),
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .wrapContentHeight()
+                        .verticalScroll(rememberScrollState())
+                        .padding(horizontal = 20.dp, vertical = 8.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp),
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Text(
+                            title,
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.Black,
+                            color = Color.White
+                        )
+                        if (showCloseButton) {
+                            IconButton(
+                                onClick = { handleDismiss() },
+                                colors = IconButtonDefaults.iconButtonColors(
+                                    containerColor = Color.White.copy(alpha = 0.08f),
+                                    contentColor = Color.White
+                                )
+                            ) {
+                                Icon(Icons.Default.Close, contentDescription = "Cerrar")
+                            }
+                        }
+                    }
+                    content()
+                    Spacer(Modifier.height(24.dp))
                 }
             }
-            content()
-            Spacer(Modifier.height(16.dp))
         }
     }
 }

@@ -1,20 +1,34 @@
 package com.example.kpkn.screens.workout.components
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.RowScope
-import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.PhotoCamera
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.LocalMinimumInteractiveComponentSize
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -22,56 +36,47 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.example.kpkn.data.models.DropSetData
 import com.example.kpkn.data.models.ExerciseSet
 import com.example.kpkn.data.models.RestPauseData
-import com.example.kpkn.data.models.TechniqueType
 import com.example.kpkn.domain.workout.SetTechniqueScope
 import com.example.kpkn.domain.workout.techniqueScope
-import com.example.kpkn.screens.onboarding.design.WizardColors
+import com.example.kpkn.data.models.TechniqueType
 import com.example.kpkn.screens.sessioneditor.components.DropSetPlanDefaults
 import com.example.kpkn.screens.sessioneditor.components.RestPausePlanDefaults
 import com.example.kpkn.screens.workout.LiveSetPrPolicy
 import com.example.kpkn.screens.workout.toTrimmedNumberString
-import com.example.kpkn.ui.components.icons.KpknLineIcons
-import com.example.kpkn.ui.design.KpknCellInput
-import com.example.kpkn.ui.design.KpknCheckRow
-import com.example.kpkn.ui.design.KpknChip
-import com.example.kpkn.ui.design.KpknIconButton
-import com.example.kpkn.ui.design.KpknModule
-import com.example.kpkn.ui.design.KpknModuleHeader
-import com.example.kpkn.ui.design.KpknNumberCell
-import com.example.kpkn.ui.design.KpknPrimaryPill
-import com.example.kpkn.ui.design.KpknSurface
-import com.example.kpkn.ui.design.KpknTextAction
-import com.example.kpkn.ui.design.KpknTextField
-import com.example.kpkn.ui.design.KpknType
 
-/** Una fila de drop-set (peso y repeticiones) o de mini-serie de rest-pause (repeticiones y descanso), como texto. */
 internal data class TechniqueCheckRow(
     val weightText: String = "",
     val repsText: String = RestPausePlanDefaults.Reps.toString(),
     val restText: String = RestPausePlanDefaults.PauseSeconds.toString(),
+    val done: Boolean = false,
 )
 
 private const val LiveDropSetMax = 5
+private const val TechniqueColumnSize = 3
 
-/** Paso de los ± del descanso de una mini-serie, en segundos. */
-private const val RestPauseStepSeconds = 5
+/** Etiqueta de prueba del círculo «Hecho» de cada fila de drops o rest-pause (LR0). */
+internal const val TechniqueDoneToggleTag = "technique_done_toggle"
 
-/**
- * Reverso de técnica de la serie (KPKN LS7b, dentro de la hoja «Técnica de la serie»): drop-sets o rest-pause, notas, error de
- * ejecución y «Guardar técnica». Las filas viven aquí; al guardar, [onCompleteTechniques] recibe lo válido. Si no hay nada válido,
- * se cierra sin técnica.
- */
+@Suppress("UNUSED_PARAMETER")
 @Composable
 internal fun SetCardTechniqueBack(
     currentSet: ExerciseSet,
+    coverWeightLabel: String,
+    coverValueLabel: String,
+    coverIntensityLabel: String?,
     mainWeight: Double,
     mainReps: Int,
+    sessionAccentColor: Color,
     isFailedSet: Boolean,
     onFailedSetChange: (Boolean) -> Unit,
     onFlipBack: () -> Unit,
@@ -124,337 +129,424 @@ internal fun SetCardTechniqueBack(
             },
         )
     }
+    var committed by remember(currentSet.id) { mutableStateOf(false) }
 
     LaunchedEffect(dropEnabled) { onDropEnabledChange(dropEnabled) }
     LaunchedEffect(restPauseEnabled) { onRestPauseEnabledChange(restPauseEnabled) }
-
-    SetTechniqueBody(
-        dropEnabled = dropEnabled,
-        restPauseEnabled = restPauseEnabled,
-        onToggleDrop = {
-            dropEnabled = !dropEnabled
-            if (dropEnabled) restPauseEnabled = false
-        },
-        onToggleRestPause = {
-            restPauseEnabled = !restPauseEnabled
-            if (restPauseEnabled) dropEnabled = false
-        },
-        dropRows = dropRows,
-        onDropRowsChange = { dropRows = it },
-        onAddDrop = {
-            val nextIndex = dropRows.size
-            val suggested = suggestedDropLoadsForMainSet(
-                mainWeight,
-                mainReps,
-                (nextIndex + 1).coerceAtMost(DropSetPlanDefaults.MaxDrops),
-            ).getOrNull(nextIndex)
-                ?: dropRows.lastOrNull()?.weightText?.toDoubleOrNull()?.minus(DropSetPlanDefaults.DropKg)
-            dropRows = dropRows + TechniqueCheckRow(
-                weightText = suggested?.takeIf { it > 0 }?.toTrimmedNumberString().orEmpty(),
-                repsText = DropSetPlanDefaults.DropReps.toString(),
-            )
-        },
-        restPauseRows = restPauseRows,
-        onRestPauseRowsChange = { restPauseRows = it },
-        onAddRestPause = {
-            restPauseRows = restPauseRows + TechniqueCheckRow(
-                repsText = RestPausePlanDefaults.Reps.toString(),
-                restText = RestPausePlanDefaults.PauseSeconds.toString(),
-            )
-        },
-        noteText = noteText,
-        onNoteChange = onNoteChange,
-        isFailedSet = isFailedSet,
-        onFailedSetChange = onFailedSetChange,
-        showPrMediaShortcut = showPrMediaShortcut,
-        onOpenPrMedia = onOpenPrMedia,
-        onFlipBack = onFlipBack,
-        onSave = {
-            val saved = commit(dropRows, restPauseRows, dropEnabled, restPauseEnabled, onCompleteTechniques)
-            if (!saved) {
-                // Sin filas válidas no hay técnica que registrar: se cierra sin drops ni pausas.
-                onDropEnabledChange(false)
-                onRestPauseEnabledChange(false)
-                onFlipBack()
-            }
-        },
-        modifier = modifier,
-    )
-}
-
-/**
- * Cuerpo sin estado del reverso de técnica (LS7b): chips de drop-sets y rest-pause, sus filas, notas, error de ejecución y
- * «Guardar técnica». Lo pinta la hoja y lo montan las pruebas con datos y lambdas.
- */
-@Composable
-internal fun SetTechniqueBody(
-    dropEnabled: Boolean,
-    restPauseEnabled: Boolean,
-    onToggleDrop: () -> Unit,
-    onToggleRestPause: () -> Unit,
-    dropRows: List<TechniqueCheckRow>,
-    onDropRowsChange: (List<TechniqueCheckRow>) -> Unit,
-    onAddDrop: () -> Unit,
-    restPauseRows: List<TechniqueCheckRow>,
-    onRestPauseRowsChange: (List<TechniqueCheckRow>) -> Unit,
-    onAddRestPause: () -> Unit,
-    noteText: String,
-    onNoteChange: (String) -> Unit,
-    isFailedSet: Boolean,
-    onFailedSetChange: (Boolean) -> Unit,
-    showPrMediaShortcut: Boolean,
-    onOpenPrMedia: (() -> Unit)?,
-    onFlipBack: () -> Unit,
-    onSave: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    Column(
-        modifier = modifier
-            .fillMaxWidth()
-            .verticalScroll(rememberScrollState())
-            .padding(start = 20.dp, end = 20.dp, bottom = 24.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp),
-    ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
+    // Con todas las filas marcadas como hechas, la técnica se registra en la serie (LR0).
+    LaunchedEffect(dropEnabled, restPauseEnabled, dropRows, restPauseRows, committed) {
+        if (committed) return@LaunchedEffect
+        val dropsReady = !dropEnabled || shouldAutoCommitTechniqueRows(dropRows.map { it.done })
+        val pausesReady = !restPauseEnabled || shouldAutoCommitTechniqueRows(restPauseRows.map { it.done })
+        val hasTechnique = dropEnabled || restPauseEnabled
+        if (hasTechnique && dropsReady && pausesReady &&
+            ((dropEnabled && dropRows.isNotEmpty()) || (restPauseEnabled && restPauseRows.isNotEmpty()))
         ) {
-            KpknIconButton(
-                icon = KpknLineIcons.ChevronLeft,
-                contentDescription = "Volver a la serie",
-                onClick = onFlipBack,
-            )
-            Text(
-                text = "Técnica de la serie",
-                style = KpknType.title,
-                color = WizardColors.text,
-                maxLines = 2,
-                overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.weight(1f),
-            )
-            if (showPrMediaShortcut && onOpenPrMedia != null) {
-                KpknChip(
-                    text = LiveSetPrPolicy.SHORTCUT_LABEL,
-                    selected = false,
-                    onClick = onOpenPrMedia,
-                )
-            }
+            val submitted = commit(dropRows, restPauseRows, dropEnabled, restPauseEnabled, onCompleteTechniques)
+            if (submitted) committed = true
         }
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            KpknChip(
-                text = if (dropEnabled) "Drop-sets" else "Añadir drop-sets",
-                selected = dropEnabled,
-                onClick = onToggleDrop,
-            )
-            KpknChip(
-                text = if (restPauseEnabled) "Rest-pause" else "Añadir rest-pause",
-                selected = restPauseEnabled,
-                onClick = onToggleRestPause,
-            )
-        }
-        when {
-            dropEnabled -> DropRowsModule(
-                rows = dropRows,
-                onRowsChange = onDropRowsChange,
-                onAdd = onAddDrop,
-                canAdd = dropRows.size < LiveDropSetMax,
-            )
-            restPauseEnabled -> RestPauseRowsModule(
-                rows = restPauseRows,
-                onRowsChange = onRestPauseRowsChange,
-                onAdd = onAddRestPause,
-                canAdd = restPauseRows.size < RestPausePlanDefaults.MaxCount,
-            )
-            else -> Text(
-                text = "Elige drop-sets o rest-pause",
-                style = KpknType.caption,
-                color = WizardColors.textMuted,
-            )
-        }
-        KpknModule(modifier = Modifier.fillMaxWidth()) {
-            KpknModuleHeader(label = "Notas")
-            Spacer(Modifier.height(10.dp))
-            KpknTextField(
-                value = noteText,
-                onValueChange = onNoteChange,
-                placeholder = "Añadir una nota de esta serie",
-                singleLine = false,
-                minLines = 3,
-                maxLines = 6,
+    }
+
+    Surface(
+        modifier = modifier.fillMaxSize(),
+        shape = WorkoutUiTokens.CardShape,
+        color = if (isFailedSet) {
+            Color(0xFF8B1E1E)
+        } else {
+            WorkoutUiTokens.setCardColor()
+        },
+        tonalElevation = 0.dp,
+        shadowElevation = 0.dp,
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 12.dp, vertical = 12.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            Row(
                 modifier = Modifier.fillMaxWidth(),
-            )
-        }
-        KpknCheckRow(
-            checked = isFailedSet,
-            title = "Error de ejecución",
-            onClick = { onFailedSetChange(!isFailedSet) },
-            modifier = Modifier.fillMaxWidth(),
-        )
-        KpknPrimaryPill(
-            text = "Guardar técnica",
-            onClick = onSave,
-            modifier = Modifier.fillMaxWidth(),
-        )
-    }
-}
-
-/** Drop-sets: una fila por drop (su número a la izquierda, carga y repeticiones) y «Añadir drop-set» mientras quepa. */
-@Composable
-private fun DropRowsModule(
-    rows: List<TechniqueCheckRow>,
-    onRowsChange: (List<TechniqueCheckRow>) -> Unit,
-    onAdd: () -> Unit,
-    canAdd: Boolean,
-) {
-    KpknModule(modifier = Modifier.fillMaxWidth()) {
-        KpknModuleHeader(label = "Drops")
-        Spacer(Modifier.height(10.dp))
-        TechniqueCaptionRow(caption = "Kilos · Repeticiones")
-        rows.forEachIndexed { index, row ->
-            if (index > 0) Spacer(Modifier.height(12.dp))
-            TechniqueNumberedRow(number = index + 1) {
-                KpknNumberCell(
-                    value = row.weightText,
-                    input = KpknCellInput.Text(
-                        keyboardType = KeyboardType.Decimal,
-                        onCommit = { typed -> onRowsChange(rows.withRow(index, row.copy(weightText = typed.trim()))) },
-                    ),
-                    contentDescription = "Kilos del drop ${index + 1}",
-                    onStep = { delta ->
-                        onRowsChange(rows.withRow(index, row.copy(weightText = stepLoad(row.weightText, delta))))
-                    },
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(4.dp),
+            ) {
+                IconButton(onClick = onFlipBack, modifier = Modifier.size(32.dp)) {
+                    Icon(
+                        Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = "Volver a la serie",
+                        modifier = Modifier.size(18.dp),
+                        tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.78f),
+                    )
+                }
+                Text(
+                    "Opciones avanzadas",
+                    style = MaterialTheme.typography.labelSmall,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.88f),
                     modifier = Modifier.weight(1f),
                 )
-                KpknNumberCell(
-                    value = row.repsText,
-                    input = KpknCellInput.Text(
-                        keyboardType = KeyboardType.Number,
-                        onCommit = { typed -> onRowsChange(rows.withRow(index, row.copy(repsText = typed.trim()))) },
-                    ),
-                    contentDescription = "Repeticiones del drop ${index + 1}",
-                    onStep = { delta ->
-                        onRowsChange(rows.withRow(index, row.copy(repsText = stepCount(row.repsText, delta, step = 1))))
-                    },
-                    modifier = Modifier.weight(1f),
-                )
+                if (showPrMediaShortcut && onOpenPrMedia != null) {
+                    Surface(
+                        onClick = onOpenPrMedia,
+                        shape = RoundedCornerShape(12.dp),
+                        color = sessionAccentColor.copy(alpha = 0.18f),
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 6.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(4.dp),
+                        ) {
+                            Icon(
+                                Icons.Default.PhotoCamera,
+                                contentDescription = null,
+                                modifier = Modifier.size(14.dp),
+                                tint = sessionAccentColor,
+                            )
+                            Text(
+                                text = LiveSetPrPolicy.SHORTCUT_LABEL,
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.Bold,
+                                color = sessionAccentColor,
+                                maxLines = 1,
+                            )
+                        }
+                    }
+                }
             }
-        }
-        if (canAdd) {
-            Spacer(Modifier.height(8.dp))
-            KpknTextAction(
-                text = "Añadir drop-set",
-                onClick = onAdd,
-                leadingIcon = KpknLineIcons.Plus,
-            )
-        }
-    }
-}
 
-/** Rest-pause: una fila por mini-serie (su número a la izquierda, repeticiones y descanso en segundos). */
-@Composable
-private fun RestPauseRowsModule(
-    rows: List<TechniqueCheckRow>,
-    onRowsChange: (List<TechniqueCheckRow>) -> Unit,
-    onAdd: () -> Unit,
-    canAdd: Boolean,
-) {
-    KpknModule(modifier = Modifier.fillMaxWidth()) {
-        KpknModuleHeader(label = "Pausas")
-        Spacer(Modifier.height(10.dp))
-        TechniqueCaptionRow(caption = "Repeticiones · Descanso (s)")
-        rows.forEachIndexed { index, row ->
-            if (index > 0) Spacer(Modifier.height(12.dp))
-            TechniqueNumberedRow(number = index + 1) {
-                KpknNumberCell(
-                    value = row.repsText,
-                    input = KpknCellInput.Text(
-                        keyboardType = KeyboardType.Number,
-                        onCommit = { typed -> onRowsChange(rows.withRow(index, row.copy(repsText = typed.trim()))) },
-                    ),
-                    contentDescription = "Repeticiones de la mini-serie ${index + 1}",
-                    onStep = { delta ->
-                        onRowsChange(rows.withRow(index, row.copy(repsText = stepCount(row.repsText, delta, step = 1))))
-                    },
-                    modifier = Modifier.weight(1f),
-                )
-                KpknNumberCell(
-                    value = row.restText,
-                    input = KpknCellInput.Text(
-                        keyboardType = KeyboardType.Number,
-                        onCommit = { typed -> onRowsChange(rows.withRow(index, row.copy(restText = typed.trim()))) },
-                    ),
-                    contentDescription = "Descanso de la mini-serie ${index + 1}, en segundos",
-                    onStep = { delta ->
-                        onRowsChange(
-                            rows.withRow(
-                                index,
-                                row.copy(restText = stepCount(row.restText, delta, step = RestPauseStepSeconds)),
-                            ),
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                Column(
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(6.dp),
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    ) {
+                        SoftToggleChip(
+                            text = if (dropEnabled) "Drop-sets" else "Añadir drop-sets",
+                            selected = dropEnabled,
+                            onClick = {
+                                dropEnabled = !dropEnabled
+                                if (dropEnabled) restPauseEnabled = false
+                            },
+                            accentColor = sessionAccentColor,
+                            modifier = Modifier.weight(1f),
                         )
+                        SoftToggleChip(
+                            text = if (restPauseEnabled) "Rest-pause" else "Añadir rest-pause",
+                            selected = restPauseEnabled,
+                            onClick = {
+                                restPauseEnabled = !restPauseEnabled
+                                if (restPauseEnabled) dropEnabled = false
+                            },
+                            accentColor = sessionAccentColor,
+                            modifier = Modifier.weight(1f),
+                        )
+                    }
+                    Box(modifier = Modifier.weight(1f).fillMaxWidth()) {
+                        when {
+                            dropEnabled -> TechniqueCarouselBlock(
+                                rows = dropRows,
+                                showWeight = true,
+                                onRowsChange = { dropRows = it },
+                                onAdd = {
+                                    val nextIndex = dropRows.size
+                                    val suggested = suggestedDropLoadsForMainSet(
+                                        mainWeight,
+                                        mainReps,
+                                        (nextIndex + 1).coerceAtMost(DropSetPlanDefaults.MaxDrops),
+                                    ).getOrNull(nextIndex)
+                                        ?: dropRows.lastOrNull()?.weightText?.toDoubleOrNull()?.minus(DropSetPlanDefaults.DropKg)
+                                    dropRows = dropRows + TechniqueCheckRow(
+                                        weightText = suggested?.takeIf { it > 0 }?.toTrimmedNumberString().orEmpty(),
+                                        repsText = DropSetPlanDefaults.DropReps.toString(),
+                                    )
+                                },
+                                canAdd = dropRows.size < LiveDropSetMax,
+                            )
+                            restPauseEnabled -> TechniqueCarouselBlock(
+                                rows = restPauseRows,
+                                showWeight = false,
+                                onRowsChange = { restPauseRows = it },
+                                onAdd = {
+                                    restPauseRows = restPauseRows + TechniqueCheckRow(
+                                        repsText = RestPausePlanDefaults.Reps.toString(),
+                                        restText = RestPausePlanDefaults.PauseSeconds.toString(),
+                                    )
+                                },
+                                canAdd = restPauseRows.size < RestPausePlanDefaults.MaxCount,
+                            )
+                            else -> Text(
+                                "Elige drop-sets o rest-pause",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.46f),
+                            )
+                        }
+                    }
+                }
+
+                Surface(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(80.dp),
+                    shape = RoundedCornerShape(14.dp),
+                    color = WorkoutUiTokens.setInnerColor(),
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(10.dp),
+                        verticalArrangement = Arrangement.spacedBy(6.dp),
+                    ) {
+                        Text(
+                            "Notas",
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.SemiBold,
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.78f),
+                        )
+                        BasicTextField(
+                            value = noteText,
+                            onValueChange = onNoteChange,
+                            modifier = Modifier
+                                .weight(1f)
+                                .fillMaxWidth(),
+                            textStyle = MaterialTheme.typography.bodySmall.copy(
+                                color = MaterialTheme.colorScheme.onSurface,
+                            ),
+                            cursorBrush = SolidColor(sessionAccentColor),
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
+                            decorationBox = { inner ->
+                                Box(Modifier.fillMaxSize()) {
+                                    if (noteText.isBlank()) {
+                                        Text(
+                                            "Añadir una nota de esta serie",
+                                            style = MaterialTheme.typography.bodySmall,
+                                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f),
+                                        )
+                                    }
+                                    inner()
+                                }
+                            },
+                        )
+                    }
+                }
+            }
+
+            Surface(
+                onClick = { onFailedSetChange(!isFailedSet) },
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(14.dp),
+                color = if (isFailedSet) {
+                    WorkoutUiTokens.dangerColor()
+                } else {
+                    WorkoutUiTokens.dangerColor().copy(alpha = 0.18f)
+                },
+            ) {
+                Text(
+                    text = "Error de ejecución",
+                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
+                    style = MaterialTheme.typography.labelMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    color = if (isFailedSet) {
+                        Color.White
+                    } else {
+                        WorkoutUiTokens.dangerColor()
                     },
-                    modifier = Modifier.weight(1f),
                 )
             }
         }
-        if (canAdd) {
-            Spacer(Modifier.height(8.dp))
-            KpknTextAction(
-                text = "Añadir mini-serie",
-                onClick = onAdd,
-                leadingIcon = KpknLineIcons.Plus,
-            )
+    }
+}
+
+@Composable
+private fun TechniqueCarouselBlock(
+    rows: List<TechniqueCheckRow>,
+    showWeight: Boolean,
+    onRowsChange: (List<TechniqueCheckRow>) -> Unit,
+    onAdd: () -> Unit,
+    canAdd: Boolean,
+) {
+    val columns = remember(rows) { rows.chunked(TechniqueColumnSize) }
+    BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
+        val columnGap = 12.dp
+        val columnWidth = ((maxWidth - columnGap) / 2).coerceAtLeast(132.dp)
+        LazyRow(
+            modifier = Modifier.fillMaxSize(),
+            horizontalArrangement = Arrangement.spacedBy(columnGap),
+            verticalAlignment = Alignment.Top,
+        ) {
+            itemsIndexed(columns) { columnIndex, columnRows ->
+                Column(
+                    modifier = Modifier.width(columnWidth),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    columnRows.forEachIndexed { rowInColumn, row ->
+                        val index = columnIndex * TechniqueColumnSize + rowInColumn
+                        TechniqueCompactRow(
+                            index = index,
+                            row = row,
+                            showWeight = showWeight,
+                            onChange = { updated ->
+                                onRowsChange(rows.toMutableList().also { it[index] = updated })
+                            },
+                        )
+                    }
+                    if (canAdd && columnIndex == columns.lastIndex && columnRows.size < TechniqueColumnSize) {
+                        AddTechniqueChip(onAdd = onAdd)
+                    }
+                }
+            }
+            if (canAdd && (columns.isEmpty() || columns.last().size >= TechniqueColumnSize)) {
+                item {
+                    AddTechniqueChip(onAdd = onAdd)
+                }
+            }
         }
     }
 }
 
-/** Una sola cabecera sobre las columnas de la tabla, alineada con ellas (deja el hueco del número). */
 @Composable
-private fun TechniqueCaptionRow(caption: String) {
-    Row(modifier = Modifier.fillMaxWidth()) {
-        Spacer(Modifier.width(28.dp))
-        Text(
-            text = caption,
-            style = KpknType.caption,
-            color = WizardColors.textMuted,
-            maxLines = 1,
-        )
-    }
-}
-
-/** Una fila de la tabla: el número a la izquierda y las celdas a su derecha. */
-@Composable
-private fun TechniqueNumberedRow(number: Int, content: @Composable RowScope.() -> Unit) {
+private fun TechniqueCompactRow(
+    index: Int,
+    row: TechniqueCheckRow,
+    showWeight: Boolean,
+    onChange: (TechniqueCheckRow) -> Unit,
+) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        horizontalArrangement = Arrangement.spacedBy(6.dp),
     ) {
-        Text(
-            text = "$number",
-            style = KpknType.bodyStrong,
-            color = WizardColors.text,
-            maxLines = 1,
-            modifier = Modifier.width(20.dp),
+        TechniqueDoneToggle(
+            done = row.done,
+            onToggle = { onChange(row.copy(done = !row.done)) },
         )
-        content()
+        Text(
+            "${index + 1}",
+            modifier = Modifier.width(14.dp),
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.42f),
+        )
+        if (showWeight) {
+            WorkoutCompactNumberField(
+                value = row.weightText,
+                onValueChange = { onChange(row.copy(weightText = it)) },
+                unit = "kg",
+                decimal = true,
+                fixedWidth = false,
+                modifier = Modifier.weight(1.15f),
+            )
+        }
+        WorkoutCompactNumberField(
+            value = row.repsText,
+            onValueChange = { onChange(row.copy(repsText = it)) },
+            unit = "r",
+            fixedWidth = false,
+            modifier = Modifier.weight(0.85f),
+        )
+        if (!showWeight) {
+            WorkoutCompactNumberField(
+                value = row.restText,
+                onValueChange = { onChange(row.copy(restText = it)) },
+                unit = "s",
+                fixedWidth = false,
+                modifier = Modifier.weight(0.85f),
+            )
+        }
     }
 }
 
-private fun List<TechniqueCheckRow>.withRow(index: Int, row: TechniqueCheckRow): List<TechniqueCheckRow> =
-    mapIndexed { i, current -> if (i == index) row else current }
-
-/** Suma un paso con signo a una carga escrita (coma o punto), sin bajar de cero. */
-private fun stepLoad(text: String, delta: Int): String {
-    val current = text.replace(',', '.').toDoubleOrNull() ?: 0.0
-    return (current + delta).coerceAtLeast(0.0).toTrimmedNumberString()
+@Composable
+private fun AddTechniqueChip(onAdd: () -> Unit) {
+    CompositionLocalProvider(LocalMinimumInteractiveComponentSize provides Dp.Unspecified) {
+        Surface(
+            onClick = onAdd,
+            shape = RoundedCornerShape(10.dp),
+            color = WorkoutUiTokens.setInnerHighestColor(),
+        ) {
+            Row(
+                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(4.dp),
+            ) {
+                Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(14.dp))
+                Text(
+                    "Añadir",
+                    style = MaterialTheme.typography.labelSmall,
+                    fontWeight = FontWeight.SemiBold,
+                )
+            }
+        }
+    }
 }
 
-/** Suma un paso con signo a una cuenta escrita (repeticiones o segundos), sin bajar de cero. */
-private fun stepCount(text: String, delta: Int, step: Int): String =
-    ((text.toIntOrNull() ?: 0) + delta * step).coerceAtLeast(0).toString()
+@Composable
+private fun TechniqueDoneToggle(
+    done: Boolean,
+    onToggle: () -> Unit,
+) {
+    CompositionLocalProvider(LocalMinimumInteractiveComponentSize provides Dp.Unspecified) {
+        Surface(
+            onClick = onToggle,
+            modifier = Modifier.size(22.dp).testTag(TechniqueDoneToggleTag),
+            shape = RoundedCornerShape(6.dp),
+            color = if (done) {
+                MaterialTheme.colorScheme.onSurface.copy(alpha = 0.78f)
+            } else {
+                Color(0xFF2E2E2E)
+            },
+        ) {
+            Box(contentAlignment = Alignment.Center) {
+                if (done) {
+                    Icon(
+                        Icons.Default.Check,
+                        contentDescription = "Hecho",
+                        modifier = Modifier.size(14.dp),
+                        tint = MaterialTheme.colorScheme.surface,
+                    )
+                }
+            }
+        }
+    }
+}
 
-private fun commit(
+@Composable
+private fun SoftToggleChip(
+    text: String,
+    selected: Boolean,
+    onClick: () -> Unit,
+    accentColor: Color,
+    modifier: Modifier = Modifier,
+) {
+    Surface(
+        onClick = onClick,
+        modifier = modifier,
+        shape = RoundedCornerShape(16.dp),
+        color = if (selected) {
+            accentColor.copy(alpha = 0.18f)
+        } else {
+            Color(0xFF2E2E2E)
+        },
+    ) {
+        Text(
+            text = text,
+            modifier = Modifier.padding(horizontal = 6.dp, vertical = 5.dp),
+            style = MaterialTheme.typography.labelSmall,
+            fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Medium,
+            color = MaterialTheme.colorScheme.onSurface.copy(alpha = if (selected) 0.92f else 0.78f),
+            maxLines = 1,
+        )
+    }
+}
+
+internal fun commit(
     dropRows: List<TechniqueCheckRow>,
     restPauseRows: List<TechniqueCheckRow>,
     dropEnabled: Boolean,
@@ -463,7 +555,8 @@ private fun commit(
 ): Boolean {
     val drops = if (dropEnabled) {
         dropRows.mapNotNull { row ->
-            val weight = row.weightText.toDoubleOrNull() ?: return@mapNotNull null
+            // El teclado decimal escribe la coma: se lee como punto antes de convertir (LR0).
+            val weight = row.weightText.replace(',', '.').toDoubleOrNull() ?: return@mapNotNull null
             val reps = row.repsText.toIntOrNull() ?: return@mapNotNull null
             if (weight <= 0.0 || reps <= 0) null else DropSetData(weight, reps)
         }

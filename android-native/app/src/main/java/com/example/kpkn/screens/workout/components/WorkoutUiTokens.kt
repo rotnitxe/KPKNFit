@@ -176,7 +176,10 @@ object WorkoutUiTokens {
     const val GodModeExitMs = 220
     const val GodModeScrimAlpha = 0.55f
     const val GodModeCardScale = 0.58f
+    val GodModeCardBlur = 18.dp
+    val GodModeBadgeVisual = 20.dp
     val GodModeRoadmapCardHeight = 48.dp
+    val GodModePlusCardWidth = 88.dp
     val LiveRoadmapCarouselMiniInset = 14.dp
 
     fun liveRoadmapCarouselCardHeight(uniformScale: Float): Dp =
