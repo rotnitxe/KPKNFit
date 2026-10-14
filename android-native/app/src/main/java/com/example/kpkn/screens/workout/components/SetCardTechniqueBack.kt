@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -298,7 +299,7 @@ internal fun SetTechniqueBody(
     }
 }
 
-/** Drop-sets: una fila por drop con su carga y sus repeticiones, y «Añadir drop-set» mientras quepa. */
+/** Drop-sets: una fila por drop (su número a la izquierda, carga y repeticiones) y «Añadir drop-set» mientras quepa. */
 @Composable
 private fun DropRowsModule(
     rows: List<TechniqueCheckRow>,
@@ -309,22 +310,10 @@ private fun DropRowsModule(
     KpknModule(modifier = Modifier.fillMaxWidth()) {
         KpknModuleHeader(label = "Drops")
         Spacer(Modifier.height(10.dp))
-        TechniqueCaptionRow(first = "Kilos", second = "Repeticiones")
+        TechniqueCaptionRow(caption = "Kilos · Repeticiones")
         rows.forEachIndexed { index, row ->
-            if (index > 0) TechniqueDivider()
-            // La etiqueta va en su propia línea: así cada celda ocupa la mitad del ancho y «Repeticiones» no se parte al 130 %.
-            Text(
-                text = "Drop ${index + 1}",
-                style = KpknType.bodyStrong,
-                color = WizardColors.text,
-                maxLines = 1,
-            )
-            Spacer(Modifier.height(6.dp))
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
+            if (index > 0) Spacer(Modifier.height(12.dp))
+            TechniqueNumberedRow(number = index + 1) {
                 KpknNumberCell(
                     value = row.weightText,
                     input = KpknCellInput.Text(
@@ -362,7 +351,7 @@ private fun DropRowsModule(
     }
 }
 
-/** Rest-pause: una fila por mini-serie con sus repeticiones y su descanso en segundos. */
+/** Rest-pause: una fila por mini-serie (su número a la izquierda, repeticiones y descanso en segundos). */
 @Composable
 private fun RestPauseRowsModule(
     rows: List<TechniqueCheckRow>,
@@ -373,21 +362,10 @@ private fun RestPauseRowsModule(
     KpknModule(modifier = Modifier.fillMaxWidth()) {
         KpknModuleHeader(label = "Pausas")
         Spacer(Modifier.height(10.dp))
-        TechniqueCaptionRow(first = "Repeticiones", second = "Descanso (s)")
+        TechniqueCaptionRow(caption = "Repeticiones · Descanso (s)")
         rows.forEachIndexed { index, row ->
-            if (index > 0) TechniqueDivider()
-            Text(
-                text = "Mini-serie ${index + 1}",
-                style = KpknType.bodyStrong,
-                color = WizardColors.text,
-                maxLines = 1,
-            )
-            Spacer(Modifier.height(6.dp))
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
+            if (index > 0) Spacer(Modifier.height(12.dp))
+            TechniqueNumberedRow(number = index + 1) {
                 KpknNumberCell(
                     value = row.repsText,
                     input = KpknCellInput.Text(
@@ -430,25 +408,37 @@ private fun RestPauseRowsModule(
     }
 }
 
+/** Una sola cabecera sobre las columnas de la tabla, alineada con ellas (deja el hueco del número). */
 @Composable
-private fun TechniqueCaptionRow(first: String, second: String) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-    ) {
-        Text(text = first, style = KpknType.caption, color = WizardColors.textMuted, modifier = Modifier.weight(1f))
-        Text(text = second, style = KpknType.caption, color = WizardColors.textMuted, modifier = Modifier.weight(1f))
+private fun TechniqueCaptionRow(caption: String) {
+    Row(modifier = Modifier.fillMaxWidth()) {
+        Spacer(Modifier.width(28.dp))
+        Text(
+            text = caption,
+            style = KpknType.caption,
+            color = WizardColors.textMuted,
+            maxLines = 1,
+        )
     }
 }
 
+/** Una fila de la tabla: el número a la izquierda y las celdas a su derecha. */
 @Composable
-private fun TechniqueDivider() {
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(1.dp)
-            .background(KpknSurface.divider),
-    )
+private fun TechniqueNumberedRow(number: Int, content: @Composable RowScope.() -> Unit) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        Text(
+            text = "$number",
+            style = KpknType.bodyStrong,
+            color = WizardColors.text,
+            maxLines = 1,
+            modifier = Modifier.width(20.dp),
+        )
+        content()
+    }
 }
 
 private fun List<TechniqueCheckRow>.withRow(index: Int, row: TechniqueCheckRow): List<TechniqueCheckRow> =

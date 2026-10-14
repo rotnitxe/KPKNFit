@@ -43,6 +43,13 @@ import com.example.kpkn.ui.design.KpknSecondaryPill
 import com.example.kpkn.ui.design.KpknSurface
 import com.example.kpkn.ui.design.KpknType
 
+/** Línea de los antagonistas de un superset, a partir de la clave de máquina del motor («polea» o «smith[:marca]»). */
+internal fun supersetMachineLine(machineKey: String): String = when {
+    machineKey.startsWith("smith") -> "Antagonistas · máquina Smith"
+    machineKey.startsWith("polea") -> "Antagonistas · misma torre de poleas"
+    else -> "Antagonistas · misma máquina"
+}
+
 private fun formatSeconds(sec: Int): String {
     val m = sec / 60
     val s = sec % 60
@@ -134,7 +141,7 @@ internal fun UltraFastPreviewBody(
                 color = WizardColors.text,
             )
             Text(
-                text = "Optimiza descansos y densifica series para finalizar en menos tiempo.",
+                text = "Acorta descansos y junta series para terminar antes.",
                 style = KpknType.caption,
                 color = WizardColors.textMuted,
             )
@@ -166,7 +173,7 @@ internal fun UltraFastPreviewBody(
                     )
                     Spacer(Modifier.width(8.dp))
                     Text(
-                        text = "(${((totalSaved.toFloat() / beforeSec) * 100).toInt()}% más rápida)",
+                        text = "(${((totalSaved.toFloat() / beforeSec) * 100).toInt()} % más rápida)",
                         style = KpknType.caption,
                         color = WizardColors.textMuted,
                     )
@@ -188,40 +195,18 @@ internal fun UltraFastPreviewBody(
                     UltraFastReason.MANUAL_OVERRIDE_ALLOWED -> "Manual: forzado a ${change.afterTechnique}"
                     else -> "${change.beforeSets} → $count series · ${change.afterTechnique}"
                 }
-                val badgeTone = when {
-                    change.wasReduced -> SymbolPalette.columna
-                    change.wasDensified -> SymbolPalette.ok
-                    else -> WizardColors.textFaint
-                }
-                val badgeText = when {
-                    change.wasDensified -> change.afterTechnique
-                    change.wasReduced -> "${change.beforeSets}→$count"
-                    else -> "Sin cambio"
-                }
                 Column(
                     modifier = Modifier.fillMaxWidth(),
                     verticalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        Text(
-                            text = change.exerciseName,
-                            style = KpknType.bodyStrong,
-                            color = WizardColors.text,
-                            maxLines = 2,
-                            overflow = TextOverflow.Ellipsis,
-                            modifier = Modifier.weight(1f),
-                        )
-                        Text(
-                            text = badgeText,
-                            style = KpknType.caption,
-                            color = badgeTone,
-                            maxLines = 1,
-                        )
-                    }
+                    // El cambio se dice una sola vez: en la línea del motivo, sin repetirlo en una etiqueta a la derecha.
+                    Text(
+                        text = change.exerciseName,
+                        style = KpknType.bodyStrong,
+                        color = WizardColors.text,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis,
+                    )
                     Text(
                         text = reasonLabel,
                         style = KpknType.caption,
@@ -282,7 +267,7 @@ internal fun UltraFastPreviewBody(
 
         if (preview.supersets.isNotEmpty()) {
             KpknModule(modifier = Modifier.fillMaxWidth()) {
-                KpknModuleHeader(label = "Supersets")
+                KpknModuleHeader(label = "Superseries")
                 Spacer(Modifier.height(8.dp))
                 preview.supersets.forEachIndexed { index, superset ->
                     if (index > 0) ModuleDivider()
@@ -304,7 +289,7 @@ internal fun UltraFastPreviewBody(
                                 color = WizardColors.text,
                             )
                             Text(
-                                text = "Máquina: ${superset.machineKey} · antagónicos",
+                                text = supersetMachineLine(superset.machineKey),
                                 style = KpknType.caption,
                                 color = WizardColors.textMuted,
                             )
@@ -331,7 +316,7 @@ internal fun UltraFastPreviewBody(
             )
         }
         Text(
-            text = "Reversible: podrás deshacer desde el banner o el menú de tiempo.",
+            text = "Puedes deshacerlo desde «Ruta de la sesión».",
             style = KpknType.caption,
             color = WizardColors.textFaint,
         )
