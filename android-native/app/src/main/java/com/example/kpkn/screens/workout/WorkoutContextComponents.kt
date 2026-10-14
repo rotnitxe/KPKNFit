@@ -74,8 +74,8 @@ internal fun subTagCategoryLabel(category: SubTagCategory): String = when (categ
 }
 
 /**
- * Historial del ejercicio (LS7b): las sesiones agrupadas por semana o por mes, cada una en su módulo con sus series y su e1RM.
- * El módulo se tiñe si la sesión es la marcada en amarillo o en rojo, o si coincide con la etiqueta activa.
+ * Historial del ejercicio en la hoja de contexto (LS7b): el mismo historial que la hoja de sesión de LS7a, con su fila
+ * [HistoryEntryRow]. [maxEntries] y [maxSetsPerEntry] solo recortan la vista (por ejemplo, en el gestor de etiquetas).
  */
 @Composable
 internal fun WorkoutExerciseHistoryContent(
@@ -84,179 +84,12 @@ internal fun WorkoutExerciseHistoryContent(
     maxEntries: Int? = null,
     maxSetsPerEntry: Int = 6,
 ) {
-    val visibleHistory = remember(history, maxEntries) {
-        maxEntries?.let { history.take(it) } ?: history
-    }
-    if (visibleHistory.isEmpty()) {
-        Text(
-            text = "Sin historial registrado",
-            style = KpknType.body,
-            color = WizardColors.textMuted,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 24.dp),
-        )
-        return
-    }
-
-    val groupedHistory = remember(visibleHistory) {
-        visibleHistory.groupBy { entry ->
-            val date = try {
-                java.time.LocalDate.parse(entry.date.take(10))
-            } catch (e: Exception) {
-                java.time.LocalDate.now()
-            }
-            val now = java.time.LocalDate.now()
-            when {
-                date.isAfter(now.minusWeeks(1)) -> "Esta semana"
-                date.isAfter(now.minusWeeks(2)) -> "Semana pasada"
-                date.isAfter(now.withDayOfMonth(1)) -> "Este mes"
-                else -> {
-                    val month = date.month.getDisplayName(java.time.format.TextStyle.FULL, java.util.Locale("es", "CL"))
-                        .replaceFirstChar { it.uppercase() }
-                    "$month ${date.year}"
-                }
-            }
+    val visibleHistory = remember(history, maxEntries, maxSetsPerEntry) {
+        (maxEntries?.let { history.take(it) } ?: history).map { entry ->
+            entry.copy(sets = entry.sets.filter { !it.isWarmup }.take(maxSetsPerEntry.coerceAtLeast(0)))
         }
     }
-
-    Column(verticalArrangement = Arrangement.spacedBy(20.dp)) {
-        groupedHistory.forEach { (groupLabel, entries) ->
-            var expanded by rememberSaveable(groupLabel) {
-                mutableStateOf(groupLabel == "Esta semana" || groupLabel == "Semana pasada")
-            }
-            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .defaultMinSize(minHeight = 48.dp)
-                        .clickable(role = Role.Button, onClick = { expanded = !expanded }),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                ) {
-                    Text(
-                        text = groupLabel.uppercase(Locale("es")),
-                        style = KpknType.eyebrow,
-                        color = WizardColors.textMuted,
-                    )
-                    Icon(
-                        imageVector = if (expanded) KpknLineIcons.ChevronUp else KpknLineIcons.ChevronDown,
-                        contentDescription = if (expanded) "Plegar $groupLabel" else "Desplegar $groupLabel",
-                        modifier = Modifier.size(20.dp),
-                        tint = WizardColors.textMuted,
-                    )
-                }
-                AnimatedVisibility(visible = expanded) {
-                    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                        entries.forEach { entry ->
-                            val isTagMatch = activeTag != null && entry.tag == activeTag
-                            val accent = when (entry.latestHistoryColor) {
-                                HistoryColorV2.YELLOW -> SymbolPalette.energia
-                                HistoryColorV2.RED -> WizardColors.danger
-                                else -> if (isTagMatch) SymbolPalette.columna else null
-                            }
-                            KpknModule(
-                                modifier = Modifier.fillMaxWidth(),
-                                accent = accent,
-                                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 14.dp),
-                            ) {
-                                Row(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.SpaceBetween,
-                                    verticalAlignment = Alignment.CenterVertically,
-                                ) {
-                                    Text(
-                                        text = entry.date.take(10),
-                                        style = KpknType.bodyStrong.copy(fontFeatureSettings = "tnum"),
-                                        color = WizardColors.text,
-                                    )
-                                    entry.e1rm?.let { e1rm ->
-                                        Text(
-                                            text = "e1RM ${"%.1f".format(e1rm)} kg",
-                                            style = KpknType.caption.copy(fontFeatureSettings = "tnum"),
-                                            color = WizardColors.textMuted,
-                                            maxLines = 1,
-                                        )
-                                    }
-                                }
-                                entry.tag?.let { tag ->
-                                    Spacer(Modifier.height(6.dp))
-                                    HistoryTag(text = tag)
-                                }
-                                val workingSets = entry.sets.filter { !it.isWarmup }
-                                Spacer(Modifier.height(10.dp))
-                                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                                    workingSets.take(maxSetsPerEntry.coerceAtLeast(0)).forEach { s ->
-                                        val sideLabel = when (s.side) {
-                                            "left" -> "Izq"
-                                            "right" -> "Der"
-                                            else -> null
-                                        }
-                                        if (s.isFailedSet || s.failureReason == "execution_error" || !s.failureReason.isNullOrBlank()) {
-                                            val reason = s.failureReason?.takeIf {
-                                                it.isNotBlank() && it != "execution_error" && it != "Serie marcada como fallida"
-                                            }
-                                            Text(
-                                                text = buildString {
-                                                    if (sideLabel != null) append("$sideLabel · ")
-                                                    append("Fallida")
-                                                    if (reason != null) append(": $reason")
-                                                },
-                                                style = KpknType.body,
-                                                color = WizardColors.danger,
-                                            )
-                                        } else {
-                                            Row(
-                                                modifier = Modifier.fillMaxWidth(),
-                                                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                                verticalAlignment = Alignment.CenterVertically,
-                                            ) {
-                                                Text(
-                                                    text = buildString {
-                                                        if (sideLabel != null) append("$sideLabel · ")
-                                                        if (s.weight > 0) append("${s.weight.toTrimmedNumberString()} kg")
-                                                        if (s.weight > 0 && s.reps > 0) append(" × ")
-                                                        if (s.reps > 0) append(if (s.reps == 1) "1 repetición" else "${s.reps} repeticiones")
-                                                        if (s.rpe != null) append(" · RPE ${s.rpe}")
-                                                        if ((s.partialReps ?: 0) > 0) append(" · +${s.partialReps} parciales")
-                                                        if ((s.assistedReps ?: 0) > 0) append(" · ${s.assistedReps} con ayuda")
-                                                    },
-                                                    style = KpknType.body.copy(fontFeatureSettings = "tnum"),
-                                                    color = WizardColors.text,
-                                                    modifier = Modifier.weight(1f),
-                                                )
-                                                if (s.isFailure) {
-                                                    HistoryTag(text = "Fallo", color = WizardColors.danger)
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
-
-/** Etiqueta de una sesión o marca de fallo: cápsula `inset` con el texto en [color]. */
-@Composable
-private fun HistoryTag(text: String, color: Color = WizardColors.textMuted) {
-    Box(
-        modifier = Modifier
-            .clip(RoundedCornerShape(999.dp))
-            .background(KpknSurface.inset)
-            .padding(horizontal = 8.dp, vertical = 3.dp),
-    ) {
-        Text(
-            text = text,
-            style = KpknType.caption,
-            color = color,
-            maxLines = 1,
-        )
-    }
+    ExerciseHistoryContent(history = visibleHistory, activeTag = activeTag)
 }
 
 /**
