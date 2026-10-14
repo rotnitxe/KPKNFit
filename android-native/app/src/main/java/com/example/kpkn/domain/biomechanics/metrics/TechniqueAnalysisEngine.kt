@@ -13,6 +13,9 @@ import com.example.kpkn.domain.biomechanics.reps.RepFlags
 import com.example.kpkn.domain.biomechanics.reps.RepPhases
 import com.example.kpkn.domain.biomechanics.reps.RepSegmenter
 import com.example.kpkn.domain.biomechanics.reps.TrackPreparation
+import com.example.kpkn.domain.biomechanics.vbt.CalibratedVelocity
+import com.example.kpkn.domain.biomechanics.vbt.PlateScale
+import com.example.kpkn.domain.biomechanics.vbt.PlateScaleResult
 import kotlin.math.max
 
 /**
@@ -35,15 +38,26 @@ data class TechniqueAnalysisInput(
  *
  * Secuencia: preparación de la traza (cruces izquierda/derecha, geometría con el aspecto y el roll, escala, lado cercano, vista),
  * señal de conteo, segmentación, confianza, fases/TUT/tempo y, por último, las métricas (ROM, profundidad y bloqueos, tronco,
- * trayectoria y velocidad relativa). Cada métrica solo se marca disponible si el perfil y la vista lo permiten.
+ * trayectoria y velocidad). Cada métrica solo se marca disponible si el perfil y la vista lo permiten.
  *
- * Aún sin m/s ni observaciones (VT3b): `scale` es [ScaleInfo.NONE], `observations` va vacío y las velocidades son relativas.
+ * **Disco calibrado (VT3b).** Con un `BarTrack` de diámetro conocido, `PlateScale` da la escala (con la elipse y el paralaje) y sus
+ * avisos (PLATE_ELLIPSE, PLATE_REJECTED, PARALLAX_SUPPRESSED). Si además el disco es la señal de conteo (`source == "plate"`):
+ * - la velocidad sale en m/s (`VelocityUnit.MPS`, claves VELOCITY_MPS y, con el disco a ≥ 50 fps, PEAK_VELOCITY);
+ * - la trayectoria sale en cm (`barDeviationUnit = "cm"`, clave PATH_ABSOLUTE); el desvío respecto del medio pie solo si el paralaje
+ *   se pudo corregir o es pequeño (si no, PARALLAX_SUPPRESSED y queda sin dato; la deriva y la excursión siguen).
+ * Sin disco calibrado nada va en m/s ni en cm: las velocidades son relativas (BH/s o °/s, mostradas solo en %) y la trayectoria
+ * va en % del recorrido (ROM_v). PEAK_VELOCITY es siempre el pico en m/s: el pico relativo (BH/s) no se marca disponible.
+ *
+ * Las observaciones de técnica (`Observations`) se calculan al final, sobre el informe ya armado.
  */
 object TechniqueAnalysisEngine {
     const val ENGINE_VERSION = 1
 
     /** Unidad de las cifras de trayectoria sin calibrar: porcentaje del recorrido vertical de la barra (ROM_v). */
     const val PERCENT_ROM = "%ROM"
+
+    /** Unidad de las cifras de trayectoria con el disco calibrado: centímetros. */
+    const val PATH_CM = "cm"
 
     fun analyze(input: TechniqueAnalysisInput): SetTechniqueReport {
         val tuning = input.tuning
@@ -56,8 +70,8 @@ object TechniqueAnalysisEngine {
         }
         val series = ok.series
         val seg = RepSegmenter.segment(series, profile, input.setHints, tuning)
-        val flags = RepFlags.of(prepared, series, seg)
-        val confidence = RepConfidence.score(series, seg, prepared.view, profile, flags, tuning)
+        val countFlags = RepFlags.of(prepared, series, seg)
+        val confidence = RepConfidence.score(series, seg, prepared.view, profile, countFlags, tuning)
 
         // Si el segmentador dio la vuelta a la señal, los índices de sus ciclos son los de la señal al revés: las fases y las
         // métricas deben ver la misma señal.
@@ -65,14 +79,32 @@ object TechniqueAnalysisEngine {
         val phases = RepPhases.compute(oriented, seg, profile, tuning)
         val ctx = MetricContext(prepared, oriented, seg, phases, profile, tuning)
 
+        // Escala por disco (VT3b): con un disco de diámetro conocido hay escala y avisos; los m/s y los cm, además, exigen que
+        // el disco sea la señal de conteo (su traslación es la de la barra).
+        val bar = input.bar
+        val plate: PlateScaleResult? =
+            if (bar != null && bar.plateDiameterMm != null) {
+                PlateScale.estimate(bar, prepared.timebase.fs, input.pose.focalLengthPx, tuning)
+            } else {
+                null
+            }
+        val flags = if (plate != null && plate.flags.isNotEmpty()) countFlags + plate.flags else countFlags
+        val scale = plate?.scale
+        val calibratedBar: BarTrack? = if (scale != null && series.source == CountSeriesBuilder.SOURCE_PLATE) bar else null
+        val calibration = if (calibratedBar != null && plate != null) PathCalibration.of(plate, calibratedBar.frameHeight) else null
+
         val rom = RomMetrics.compute(ctx)
         val depth = DepthRules.compute(ctx)
         val trunk = TrunkMetrics.compute(ctx)
-        val path = PathMetrics.compute(ctx)
-        val velocity = RelativeVelocity.compute(ctx)
+        val path = PathMetrics.compute(ctx, calibration)
+        val relative = RelativeVelocity.compute(ctx)
+        val mps = if (calibratedBar != null && scale != null) CalibratedVelocity.compute(ctx, calibratedBar, scale) else null
+        val velocity = if (mps != null && mps.available) mps else relative
+        val inMps = velocity === mps
+        val cm = path.available && path.calibrated
 
         val reps = ctx.cycles.mapIndexed { k, cycle ->
-            repReport(ctx, cycle, rom.perRepDeg[k], depth.reps[k], trunk.reps[k], path, path.reps[k], velocity.reps[k])
+            repReport(ctx, cycle, rom.perRepDeg[k], depth.reps[k], trunk.reps[k], path, path.reps[k], velocity.reps[k], cm)
         }
         val available = buildSet<MetricKey> {
             if (ctx.cycles.isNotEmpty()) add(MetricKey.REPS)
@@ -83,14 +115,33 @@ object TechniqueAnalysisEngine {
             if (depth.depthAvailable) add(MetricKey.DEPTH)
             if (depth.lockoutAvailable) add(MetricKey.LOCKOUT)
             if (path.available) add(MetricKey.PATH)
+            if (cm) add(MetricKey.PATH_ABSOLUTE)
             if (trunk.available) add(MetricKey.TRUNK)
-            if (velocity.available) add(MetricKey.VELOCITY_RELATIVE)
-            if (velocity.peakAvailable) add(MetricKey.PEAK_VELOCITY)
+            if (inMps) {
+                // Con el disco calibrado: m/s, pico en m/s si el disco se midió a ≥ 50 fps, y las barras relativas si la pérdida es fiable.
+                add(MetricKey.VELOCITY_MPS)
+                if (velocity.peakAvailable) add(MetricKey.PEAK_VELOCITY)
+                if (velocity.lossReliable) add(MetricKey.VELOCITY_RELATIVE)
+            } else if (velocity.available) {
+                add(MetricKey.VELOCITY_RELATIVE)
+            }
         }
 
         val analyzedFps = prepared.timebase.fs
-        val barDeviation = if (path.available) round(path.barDeviationPctRom, 1) else null
-        return SetTechniqueReport(
+        // Desvío de la barra: en cm con el disco calibrado (sin dato si el paralaje lo oculta, pero la unidad sigue siendo cm para la
+        // deriva de cada repetición); si no, en % del recorrido vertical.
+        val barDeviation = when {
+            !path.available -> null
+            cm -> if (path.offsetsHidden) null else round(path.barDeviationCm, 1)
+            else -> round(path.barDeviationPctRom, 1)
+        }
+        val barDeviationUnit = when {
+            !path.available -> null
+            cm -> PATH_CM
+            barDeviation != null -> PERCENT_ROM
+            else -> null
+        }
+        val report = SetTechniqueReport(
             engineVersion = ENGINE_VERSION,
             profileId = profile.id,
             tier = profile.tier,
@@ -118,10 +169,10 @@ object TechniqueAnalysisEngine {
             mcvBest = round(velocity.best, 3),
             mcvLast = round(velocity.last, 3),
             peakBest = round(velocity.peakBest, 3),
-            scale = ScaleInfo.NONE,
+            scale = scale ?: ScaleInfo.NONE,
             trunkMeanDeg = round(trunk.meanDeg, 1),
             barDeviation = barDeviation,
-            barDeviationUnit = if (barDeviation != null) PERCENT_ROM else null,
+            barDeviationUnit = barDeviationUnit,
             observations = emptyList(),
             available = available,
             flags = flags,
@@ -130,6 +181,9 @@ object TechniqueAnalysisEngine {
             noRepsReason = seg.noRepsReason,
             romSlopeDegPerRep = round(rom.slopeDegPerRep, 2),
         )
+        // Las observaciones salen del informe ya armado (hechos con su cifra y su repetición, como mucho 3).
+        val observations = Observations.evaluate(report, prepared, profile, report.scale ?: ScaleInfo.NONE, tuning, ctx, path, input.setHints)
+        return if (observations.isEmpty()) report else report.copy(observations = observations)
     }
 
     /** Informe de un vídeo sin señal: 0 repeticiones, confianza BAJA, nada disponible y el motivo en `noRepsReason`. */
@@ -185,6 +239,7 @@ object TechniqueAnalysisEngine {
         path: PathSummary,
         pathRep: RepPath,
         velocity: RepVelocity,
+        cm: Boolean,
     ): RepReport {
         val ph = ctx.phasesOf(cycle)
         val times = if (ph != null) {
@@ -212,10 +267,15 @@ object TechniqueAnalysisEngine {
             criteria = depth.criteria.toMap(),
             mcv = round(velocity.mcv, 3),
             peakVelocity = round(velocity.peak, 3),
-            pathOffsetMean = round(percentOf(pathRep.offsetMeanBh, romV), 1),
-            pathDrift = round(percentOf(pathRep.driftBh, romV), 1),
+            // Con el disco calibrado, en cm (el desvío respecto del medio pie es NaN si el paralaje lo oculta); si no, en % de ROM_v.
+            pathOffsetMean = if (cm) round(pathRep.offsetMeanCm, 1) else round(percentOf(pathRep.offsetMeanBh, romV), 1),
+            pathDrift = if (cm) round(pathRep.driftCm, 1) else round(percentOf(pathRep.driftBh, romV), 1),
             pathExcursionFraction = round(pathRep.excursionFraction, 3),
-            pathDeviationRms = round(percentOf(pathRep.deviationRmsBh, path.medianRomVBh ?: Double.NaN), 1),
+            pathDeviationRms = if (cm) {
+                round(pathRep.deviationRmsCm, 1)
+            } else {
+                round(percentOf(pathRep.deviationRmsBh, path.medianRomVBh ?: Double.NaN), 1)
+            },
             trunkAtTurnDeg = round(trunk.atTurnDeg, 1),
             trunkRangeDeg = round(trunk.rangeDeg, 1),
             trunkEarlyDeltaDeg = round(trunk.earlyDeltaDeg, 1),
