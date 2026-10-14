@@ -38,6 +38,8 @@
    - Sin datos de una gráfica, el módulo no se pinta. Sin ningún análisis, `KpknEmptyState`.
 2. **Comparar** (`TechniqueCompare(a, b)`):
    - **Reproductores:** dos `TechniqueVideoPlayer` apilados, A arriba y B abajo, cada uno con su capa.
+     - Pasa `onTap = null` a los dos: un toque en uno no debe parar solo ese, porque el Play es compartido.
+     - Cada uno con su `rememberTechniquePlayerState(overlay)`; el deslizador compartido llama a `seekToUs` en los dos (VT7a).
    - **Deslizador compartido**, alineado al inicio de la rep 1 de cada vídeo:
      - mover el deslizador busca en los dos;
      - Play reproduce los dos, «lo mejor posible»: se resincroniza B en cada límite de repetición.
