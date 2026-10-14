@@ -25,6 +25,27 @@ VT3b y VT6a solo se probaron en el arnés JVM. Tu PRIMERA corrida, por `gradle_s
 - **Coordenadas:** la pose va normalizada y la luma en píxeles. Las muñecas se pasan en píxeles del MISMO fotograma de luma, ya girado igual que la pose.
 - **Rendimiento en el arnés JVM** (720×1280): 0,4–3,1 ms por fotograma según el radio. Cabe de sobra a 60 fps; la cifra buena es la del teléfono.
 
+## Heredado de VT5b (ya integrado; los nombres REALES mandan)
+- **Contrato**, en `data/media/technique/TechniqueAnalyzer.kt`:
+  - `AnalysisMode { FULL, RECOMPUTE, PLATE_ONLY }`, que se guarda por nombre;
+  - `TechniqueAnalysisRequest(mediaId, videoFile, mode, exercise: ExerciseRef, loadKg, plateDiameterMm, plateSeed, userHeightCm, setHints)`;
+  - `TechniqueAnalysisOutcome`: `Done(report)`, `Unsupported(reason)`, `NeedsProfile(guess)` y `Failed(errorCode, transient)`;
+  - `TechniqueAnalyzer.analyze(request, onProgress: suspend (Int) -> Unit)`.
+- **Proveedor:** `TechniqueAnalyzerProvider.get(context)`. **Cambia SOLO su `create(context)`** para devolver tu pipeline. `UnavailableTechniqueAnalyzer` se queda, para las pruebas y como respaldo.
+- **El `ExerciseRef` del request es PARCIAL.** El Worker lo arma con `exerciseRefOf(media, override)`: los ids de catálogo, el nombre, `isCustom = sin ids de catálogo` y `userProfileOverride`, sin patrón, material ni lateralidad.
+  - Tu pipeline lo completa con `ExerciseRefResolver`, a partir del medio cargado por `request.mediaId`.
+  - Usa también su `canonicalExerciseId` si no hay ids de catálogo: así un vídeo anterior a v29 no queda como «propio» por error.
+  - Conserva el `userProfileOverride` del request, que gana a todo.
+  - No toques el Worker.
+- **Sidecar de captura `<id>.capture.json`:** VT5b ya escribe ahí las elecciones del usuario (`userProfileOverride`, `plateSeed` y `plateDiameterMm`) con `CaptureOverridesFile`, sin pisar otras claves.
+  - Tu `CaptureMetadata` lee y escribe EL MISMO archivo. Todas las claves son opcionales.
+  - Al escribir, conserva las claves que no conoces, igual que hace `CaptureOverridesFile`. Si puedes, reutilízalo en vez de duplicarlo.
+- **Pausa de cámara:** `AnalysisGate.cameraBusy`, un `MutableStateFlow`. El Worker ya tiene el `mutex` y `awaitClear` antes de llamarte; tú solo esperas cada 30 fotogramas si `cameraBusy` está activo.
+- **Estados:**
+  - NEEDS_PROFILE guarda la conjetura en `profileId`;
+  - un FULL cancela un RECOMPUTE o un PLATE_ONLY pendientes;
+  - las peticiones explícitas (`KEY_EXPLICIT`) corren aunque el ajuste esté apagado.
+
 ## Archivos permitidos
 - **`data/media/technique/` (nuevos):**
   - `TechniqueAnalysisPipeline.kt`: implementa `TechniqueAnalyzer`;
