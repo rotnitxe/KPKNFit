@@ -1,5 +1,6 @@
 package com.example.kpkn.screens.workout
 
+import com.example.kpkn.data.models.CompletedSet
 import com.example.kpkn.screens.workout.design.WorkoutSetDot
 import com.example.kpkn.screens.workout.design.WorkoutSetDotState
 
@@ -75,3 +76,36 @@ private fun unilateralState(left: WorkoutSetCardVisualState, right: WorkoutSetCa
 
 /** El primer número de la etiqueta («2» o «2/3» dan «2»); null si no hay ninguno. */
 private fun String.firstIntegerOrNull(): String? = Regex("\\d+").find(this)?.value
+
+/**
+ * Texto de una serie hecha en la tira (KPKN LS2b): «80 × 8» con carga y repeticiones, «8 reps» sin carga, «80 kg» sin repeticiones y
+ * «0:45» si es por tiempo. Sin ningún dato, null: el punto no lleva texto.
+ */
+internal fun workoutSetDoneCaption(weightKg: Double, reps: Int, timeSeconds: Int?): String? = when {
+    timeSeconds != null && timeSeconds > 0 -> formatTime(timeSeconds)
+    weightKg > 0.0 && reps > 0 -> "${weightKg.toTrimmedNumberString()} × $reps"
+    reps > 0 -> "$reps reps"
+    weightKg > 0.0 -> "${weightKg.toTrimmedNumberString()} kg"
+    else -> null
+}
+
+/**
+ * Textos de las series hechas de la página (KPKN LS2b), por índice de página, que usa la tira. Solo cuentan las páginas NORMAL con su
+ * serie registrada. La clave de cada serie sigue el formato de la tarjeta: `ejercicio_serie`, con `_L` o `_R` si es unilateral.
+ */
+internal fun workoutSetDoneCaptions(
+    pages: List<WorkoutSetSwipePage>,
+    completed: Map<String, CompletedSet>,
+    fallbackExerciseId: String,
+): Map<Int, String> = buildMap {
+    pages.forEachIndexed { pageIndex, page ->
+        if (page.type != LivePageType.NORMAL) return@forEachIndexed
+        val suffix = when (page.side) {
+            "left" -> "_L"
+            "right" -> "_R"
+            else -> ""
+        }
+        val set = completed["${page.exerciseId ?: fallbackExerciseId}_${page.setIndex}$suffix"] ?: return@forEachIndexed
+        workoutSetDoneCaption(set.weight, set.reps, set.timeSeconds)?.let { put(pageIndex, it) }
+    }
+}

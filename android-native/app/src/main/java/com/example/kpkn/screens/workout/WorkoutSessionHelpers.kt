@@ -200,6 +200,8 @@ internal data class LiveSetStepperSnapshot(
     val totalCount: Int,
     val sessionAccentColor: Color?,
     val canAddSet: Boolean,
+    /** Texto de cada serie hecha de la tira («80 × 8»), por índice de página (KPKN LS2b). */
+    val captions: Map<Int, String> = emptyMap(),
 )
 
 internal class LiveSetStepperHolder {

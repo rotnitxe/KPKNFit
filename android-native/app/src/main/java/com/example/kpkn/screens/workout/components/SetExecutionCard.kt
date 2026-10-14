@@ -63,6 +63,11 @@ import com.example.kpkn.screens.workout.design.WorkoutIntensityScale
 import com.example.kpkn.screens.workout.design.WorkoutSetPanel
 import com.example.kpkn.ui.design.KpknTextAction
 import com.example.kpkn.ui.components.KpknSheet
+import com.example.kpkn.screens.onboarding.design.WizardColors
+import com.example.kpkn.ui.design.KpknModule
+import com.example.kpkn.ui.design.KpknPrimaryPill
+import com.example.kpkn.ui.design.KpknTextField
+import com.example.kpkn.ui.design.KpknType
 import com.example.kpkn.ui.components.KpknDropdownMenu
 
 /** Full range of motion; the slider's starting point only for exercises that track ROM. */
@@ -263,7 +268,7 @@ internal fun WorkoutMiniTextField(
     )
 }
 
-private enum class SetCardFace { Front, Technique, ExerciseMedia }
+private enum class SetCardFace { Front, ExerciseMedia }
 
 @Suppress("UNUSED_PARAMETER")
 @OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3Api::class)
@@ -333,6 +338,7 @@ internal fun SetInputCardV2(
     openMediaFace: Boolean = false,
     onMediaFaceConsumed: () -> Unit = {},
     sessionMilestones: List<com.example.kpkn.data.models.SessionMilestone> = emptyList(),
+    techniqueSheetHolder: WorkoutTechniqueSheetHolder? = null,
 ) {
     val context = LocalContext.current
     val recordActionInstanceOwner = remember { Any() }
@@ -1220,6 +1226,18 @@ internal fun SetInputCardV2(
     val workingSetVisualHeightHolder = LocalLivePagerWorkingSetVisualHeightPx.current
     var frontHeightPx by remember { mutableIntStateOf(0) }
     var panelHeightPx by remember { mutableIntStateOf(0) }
+    // Hoja «Técnica» (Info de la cabecera, KPKN LS2b): el reverso de técnica y, desde «Ver ejercicio/Fotos», los medios.
+    var techniqueSheetOpen by remember { mutableStateOf(false) }
+    var techniqueSheetMedia by remember { mutableStateOf(false) }
+    var handledTechniqueRequest by remember { mutableIntStateOf(techniqueSheetHolder?.requests ?: 0) }
+    LaunchedEffect(techniqueSheetHolder?.requests) {
+        val requests = techniqueSheetHolder?.requests ?: 0
+        if (requests != handledTechniqueRequest) {
+            handledTechniqueRequest = requests
+            techniqueSheetMedia = false
+            techniqueSheetOpen = true
+        }
+    }
     val flipRotation by animateFloatAsState(
         targetValue = if (cardFace != SetCardFace.Front) 180f else 0f,
         animationSpec = if (isSettledPage) tween(durationMillis = 420) else snap(),
@@ -1415,6 +1433,9 @@ internal fun SetInputCardV2(
                     }
 
                     val loadModeOrder = listOf(LoadModeV2.LOAD, LoadModeV2.BODYWEIGHT, LoadModeV2.LASTRE, LoadModeV2.ASSISTED)
+                    // El selector de modo sale cuando el modo actual ya no es «Carga» o cuando el plan de la serie usa peso corporal, lastre o asistencia.
+                    val showModeSelector = loadMode != LoadModeV2.LOAD ||
+                        (currentSet.loadModeV2 != null && currentSet.loadModeV2 != LoadModeV2.LOAD)
                     val plannedSetCount = exercise.sets.count { !it.isEmptySlot }.coerceAtLeast(1)
                     val intensityScaleKind = if ((reportedIntensityMode ?: plannedIntensityMode) == IntensityMode.RPE) {
                         WorkoutIntensityScale.RPE
@@ -1532,65 +1553,14 @@ internal fun SetInputCardV2(
                                     partialSets = listOf((partialSets.sum() + 1).coerceAtMost(20))
                                 },
                             )
-                            // El reverso de técnica tal cual, con la altura del panel (como el giro de antes).
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .then(
-                                        if (panelHeightPx > 0) {
-                                            Modifier.height(with(density) { panelHeightPx.toDp() })
-                                        } else {
-                                            Modifier.wrapContentHeight()
-                                        },
-                                    ),
-                            ) {
-                                SetCardTechniqueBack(
-                                    currentSet = currentSet,
-                                    coverWeightLabel = if (reportWeightText.isBlank()) "—" else "${reportWeightText} kg",
-                                    coverValueLabel = if (isTimeMode) {
-                                        if (reportValueText.isBlank()) "—" else "${reportValueText}s"
-                                    } else {
-                                        if (reportValueText.isBlank()) "—" else "${reportValueText} reps"
-                                    },
-                                    coverIntensityLabel = intensityText.takeIf { it.isNotBlank() }?.let { "Int. $it" },
-                                    mainWeight = reportWeightText.toDoubleOrNull() ?: 0.0,
-                                    mainReps = reportValueText.toDoubleOrNull()?.roundToInt() ?: 0,
-                                    sessionAccentColor = sessionAccentColor,
-                                    isFailedSet = isFailedSet,
-                                    onFailedSetChange = { failed ->
-                                        isFailedSet = failed
-                                        if (failed) {
-                                            triggerFailureHaptic(context)
-                                            triggerFailureSound(context)
-                                            reachedFailure = false
-                                        }
-                                    },
-                                    onFlipBack = { advancedOpen = false },
-                                    noteText = setNoteText,
-                                    onNoteChange = { setNoteText = it },
-                                    initialDropEnabled = dropSetEnabled,
-                                    initialRestPauseEnabled = restPauseEnabled,
-                                    onDropEnabledChange = { enabled ->
-                                        dropSetEnabled = enabled
-                                        if (enabled) restPauseEnabled = false
-                                    },
-                                    onRestPauseEnabledChange = { enabled ->
-                                        restPauseEnabled = enabled
-                                        if (enabled) dropSetEnabled = false
-                                    },
-                                    showPrMediaShortcut = LiveSetPrPolicy.shouldShowMediaShortcut(isPrSeries),
-                                    onOpenPrMedia = { cardFace = SetCardFace.ExerciseMedia },
-                                    onCompleteTechniques = { drops, pauses ->
-                                        dropSetEnabled = drops.isNotEmpty() || dropSetEnabled
-                                        dropSets = drops.map { DropSetEntry(weight = it.weight, reps = it.reps) }.ifEmpty {
-                                            listOf(DropSetEntry(0.0, 0))
-                                        }
-                                        restPauseEnabled = pauses.isNotEmpty() || restPauseEnabled
-                                        restPauseSets = pauses.ifEmpty { listOf(RestPauseData(restTime = RestPausePlanDefaults.PauseSeconds, reps = 0)) }
-                                        advancedOpen = false
-                                    },
-                                )
-                            }
+                            // Drop-sets, descanso de bloque y notas viven en la hoja «Técnica» (una sola instancia del reverso).
+                            KpknTextAction(
+                                text = "Drop-sets, descanso y notas",
+                                onClick = {
+                                    techniqueSheetMedia = false
+                                    techniqueSheetOpen = true
+                                },
+                            )
                         }
                     }
                     // El cronómetro de la serie por tiempo (el de antes): iniciar, y al detener, registrar lo transcurrido.
@@ -1655,7 +1625,7 @@ internal fun SetInputCardV2(
                             resolvedWeightSuggestion?.suggestedLoadMode?.let { loadMode = it }
                             updateActiveWeightText(suggestedWeightText.orEmpty())
                         },
-                        modeLabels = listOf("Carga", "Peso corporal", "Lastre", "Asistencia"),
+                        modeLabels = if (showModeSelector) listOf("Carga", "Peso corporal", "Lastre", "Asistencia") else null,
                         modeSelected = loadModeOrder.indexOf(loadMode),
                         onModeSelected = { index -> selectLoadModeAt(index) },
                         advancedOpen = advancedOpen,
@@ -1667,59 +1637,118 @@ internal fun SetInputCardV2(
                             if (!advancedOpen && size.height > 0) panelHeightPx = size.height
                         },
                     )
-                    // «Ver ejercicio/Fotos» queda a la vista, fuera de lo plegado: la vía a los medios hasta que llegue la hoja de técnica.
-                    KpknTextAction(
-                        text = "Ver ejercicio/Fotos",
-                        onClick = { cardFace = SetCardFace.ExerciseMedia },
-                    )
+                    // «Técnica» (Info de la cabecera): el reverso de técnica tal cual; «Ver ejercicio/Fotos» cambia a los medios.
+                    if (techniqueSheetOpen) {
+                        KpknSheet(
+                            onDismissRequest = {
+                                techniqueSheetOpen = false
+                                techniqueSheetMedia = false
+                            },
+                        ) {
+                            if (techniqueSheetMedia) {
+                                Box(modifier = Modifier.fillMaxWidth().height(540.dp)) {
+                                    SetCardExerciseMediaBack(
+                                        exercise = exercise,
+                                        onFlipBack = { techniqueSheetMedia = false },
+                                        isSettledPage = isSettledPage,
+                                        setIndex = setIndex,
+                                        side = activeSide ?: selectedSide,
+                                        weightKg = reportWeightText.replace(',', '.').toDoubleOrNull()
+                                            ?: sessionCompletedSet?.weight?.takeIf { it > 0.0 },
+                                        reps = reportValueText.toDoubleOrNull()?.roundToInt()
+                                            ?: sessionCompletedSet?.reps?.takeIf { it > 0 },
+                                        isPr = isPrSeries,
+                                        mediaCapture = mediaCapture,
+                                        onRetryPendingCaptures = onRetryPendingCaptures,
+                                    )
+                                }
+                            } else {
+                                Box(modifier = Modifier.fillMaxWidth().height(540.dp)) {
+                                SetCardTechniqueBack(
+                                    currentSet = currentSet,
+                                    coverWeightLabel = if (reportWeightText.isBlank()) "—" else "${reportWeightText} kg",
+                                    coverValueLabel = if (isTimeMode) {
+                                        if (reportValueText.isBlank()) "—" else "${reportValueText}s"
+                                    } else {
+                                        if (reportValueText.isBlank()) "—" else "${reportValueText} reps"
+                                    },
+                                    coverIntensityLabel = intensityText.takeIf { it.isNotBlank() }?.let { "Int. $it" },
+                                    mainWeight = reportWeightText.toDoubleOrNull() ?: 0.0,
+                                    mainReps = reportValueText.toDoubleOrNull()?.roundToInt() ?: 0,
+                                    sessionAccentColor = sessionAccentColor,
+                                    isFailedSet = isFailedSet,
+                                    onFailedSetChange = { failed ->
+                                        isFailedSet = failed
+                                        if (failed) {
+                                            triggerFailureHaptic(context)
+                                            triggerFailureSound(context)
+                                            reachedFailure = false
+                                        }
+                                    },
+                                    onFlipBack = { techniqueSheetOpen = false },
+                                    noteText = setNoteText,
+                                    onNoteChange = { setNoteText = it },
+                                    initialDropEnabled = dropSetEnabled,
+                                    initialRestPauseEnabled = restPauseEnabled,
+                                    onDropEnabledChange = { enabled ->
+                                        dropSetEnabled = enabled
+                                        if (enabled) restPauseEnabled = false
+                                    },
+                                    onRestPauseEnabledChange = { enabled ->
+                                        restPauseEnabled = enabled
+                                        if (enabled) dropSetEnabled = false
+                                    },
+                                    showPrMediaShortcut = LiveSetPrPolicy.shouldShowMediaShortcut(isPrSeries),
+                                    onOpenPrMedia = { techniqueSheetMedia = true },
+                                    onCompleteTechniques = { drops, pauses ->
+                                        dropSetEnabled = drops.isNotEmpty() || dropSetEnabled
+                                        dropSets = drops.map { DropSetEntry(weight = it.weight, reps = it.reps) }.ifEmpty {
+                                            listOf(DropSetEntry(0.0, 0))
+                                        }
+                                        restPauseEnabled = pauses.isNotEmpty() || restPauseEnabled
+                                        restPauseSets = pauses.ifEmpty { listOf(RestPauseData(restTime = RestPausePlanDefaults.PauseSeconds, reps = 0)) }
+                                        techniqueSheetOpen = false
+                                    },
+                                )
+                                }
+                                KpknTextAction(
+                                    text = "Ver ejercicio/Fotos",
+                                    onClick = { techniqueSheetMedia = true },
+                                )
+                            }
+                        }
+                    }
 
                 }
             }
 
             if (loadMode == LoadModeV2.ASSISTED && (showBodyWeightPrompt || bodyWeightText.isBlank())) {
-                Surface(
+                KpknModule(
                     modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(14.dp),
-                    color = Color(0xFF222222),
+                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 14.dp),
                 ) {
                     Row(
-                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 12.dp),
                         horizontalArrangement = Arrangement.spacedBy(10.dp),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
-                        OutlinedTextField(
+                        KpknTextField(
                             value = bodyWeightText,
                             onValueChange = { bodyWeightText = it },
-                            label = { Text("Peso corporal (kg)", fontWeight = FontWeight.SemiBold) },
+                            label = "Peso corporal",
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                            trailing = { Text("kg", style = KpknType.unit, color = WizardColors.textMuted) },
                             modifier = Modifier.weight(1f),
-                            singleLine = true,
-                            textStyle = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold, color = Color.White),
-                            colors = OutlinedTextFieldDefaults.colors(
-                                focusedBorderColor = sessionAccentColor,
-                                unfocusedBorderColor = Color(0xFF555555),
-                                focusedLabelColor = sessionAccentColor,
-                                unfocusedLabelColor = Color.White.copy(alpha = 0.7f),
-                                cursorColor = Color.White,
-                                focusedTextColor = Color.White,
-                                unfocusedTextColor = Color.White,
-                                focusedContainerColor = Color(0xFF2A2A2A),
-                                unfocusedContainerColor = Color(0xFF2A2A2A),
-                            ),
                         )
-                        Button(
+                        KpknPrimaryPill(
+                            text = "Guardar",
                             onClick = {
                                 bodyWeightText.toDoubleOrNull()?.let {
                                     onSetBodyWeight(it)
                                     showBodyWeightPrompt = false
                                 }
                             },
-                            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = sessionAccentColor,
-                                contentColor = com.example.kpkn.screens.sessioneditor.contentOn(sessionAccentColor),
-                            ),
-                        ) { Text("Guardar", fontWeight = FontWeight.Bold) }
+                            modifier = Modifier.width(128.dp),
+                        )
                     }
                 }
             }
@@ -2618,52 +2647,7 @@ internal fun SetInputCardV2(
                         mediaCapture = mediaCapture,
                         onRetryPendingCaptures = onRetryPendingCaptures,
                     )
-                    else -> SetCardTechniqueBack(
-                    currentSet = currentSet,
-                    coverWeightLabel = if (reportWeightText.isBlank()) "—" else "${reportWeightText} kg",
-                    coverValueLabel = if (isTimeMode) {
-                        if (reportValueText.isBlank()) "—" else "${reportValueText}s"
-                    } else {
-                        if (reportValueText.isBlank()) "—" else "${reportValueText} reps"
-                    },
-                    coverIntensityLabel = intensityText.takeIf { it.isNotBlank() }?.let { "Int. $it" },
-                    mainWeight = reportWeightText.toDoubleOrNull() ?: 0.0,
-                    mainReps = reportValueText.toDoubleOrNull()?.roundToInt() ?: 0,
-                    sessionAccentColor = sessionAccentColor,
-                    isFailedSet = isFailedSet,
-                    onFailedSetChange = { failed ->
-                        isFailedSet = failed
-                        if (failed) {
-                            triggerFailureHaptic(context)
-                            triggerFailureSound(context)
-                            reachedFailure = false
-                        }
-                    },
-                    onFlipBack = { cardFace = SetCardFace.Front },
-                    noteText = setNoteText,
-                    onNoteChange = { setNoteText = it },
-                    initialDropEnabled = dropSetEnabled,
-                    initialRestPauseEnabled = restPauseEnabled,
-                    onDropEnabledChange = { enabled ->
-                        dropSetEnabled = enabled
-                        if (enabled) restPauseEnabled = false
-                    },
-                    onRestPauseEnabledChange = { enabled ->
-                        restPauseEnabled = enabled
-                        if (enabled) dropSetEnabled = false
-                    },
-                    showPrMediaShortcut = LiveSetPrPolicy.shouldShowMediaShortcut(isPrSeries),
-                    onOpenPrMedia = { cardFace = SetCardFace.ExerciseMedia },
-                    onCompleteTechniques = { drops, pauses ->
-                        dropSetEnabled = drops.isNotEmpty() || dropSetEnabled
-                        dropSets = drops.map { DropSetEntry(weight = it.weight, reps = it.reps) }.ifEmpty {
-                            listOf(DropSetEntry(0.0, 0))
-                        }
-                        restPauseEnabled = pauses.isNotEmpty() || restPauseEnabled
-                        restPauseSets = pauses.ifEmpty { listOf(RestPauseData(restTime = RestPausePlanDefaults.PauseSeconds, reps = 0)) }
-                        cardFace = SetCardFace.Front
-                    },
-                )
+                    SetCardFace.Front -> Unit
                 }
             }
         }

@@ -35,6 +35,18 @@ import com.example.kpkn.screens.workout.design.WorkoutSetDot
 import com.example.kpkn.screens.workout.design.WorkoutSetDotState
 import com.example.kpkn.screens.workout.design.WorkoutSetPanel
 import com.example.kpkn.screens.workout.design.WorkoutSetStrip
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
+import com.example.kpkn.screens.onboarding.design.entreno.SymbolPalette
+import com.example.kpkn.screens.workout.WorkoutCompactFooter
+import com.example.kpkn.screens.workout.WorkoutSamples
+import com.example.kpkn.screens.workout.design.WorkoutBottomIsland
+import com.example.kpkn.screens.workout.design.WorkoutClockLabel
+import com.example.kpkn.screens.workout.design.WorkoutExerciseHeader
+import com.example.kpkn.screens.workout.design.WorkoutProgressBar
+import com.example.kpkn.screens.workout.design.WorkoutTopRow
 import com.example.kpkn.ui.design.KpknSurface
 import com.example.kpkn.ui.design.KpknType
 import org.junit.Assume.assumeTrue
@@ -139,8 +151,8 @@ class WorkoutSetPanelRenderSheetTest {
         WorkoutSetStrip(
             dots = listOf(
                 WorkoutSetDot(id = "a", label = "1", state = WorkoutSetDotState.DONE, caption = "80 × 8"),
-                WorkoutSetDot(id = "b", label = "2", state = WorkoutSetDotState.DONE, caption = "80 × 8"),
-                WorkoutSetDot(id = "c", label = "3", state = WorkoutSetDotState.CURRENT, caption = null),
+                WorkoutSetDot(id = "b", label = "2", state = WorkoutSetDotState.CURRENT, caption = null),
+                WorkoutSetDot(id = "c", label = "3", state = WorkoutSetDotState.FUTURE, caption = null),
                 WorkoutSetDot(id = "d", label = "4", state = WorkoutSetDotState.FUTURE, caption = null),
             ),
             onOpen = {},
@@ -150,6 +162,11 @@ class WorkoutSetPanelRenderSheetTest {
 
     @Composable
     private fun Scene() {
+        // La pantalla entera lleva su propia etiqueta «sheet» y sus medidas (360 × 740): no va dentro de la columna de la hoja.
+        if (scene == "frame") {
+            FullFrame()
+            return
+        }
         Column(
             modifier = Modifier.testTag("sheet").width(360.dp).background(KpknSurface.canvas).padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(20.dp),
@@ -167,6 +184,75 @@ class WorkoutSetPanelRenderSheetTest {
                     WorkoutRecordPill(label = "Registrar serie", enabled = true, onRecord = noop)
                 }
             }
+        }
+    }
+
+    /**
+     * La pantalla de una serie entera (KPKN LS2b, con el marco de LS2a): fila superior, progreso y cabecera arriba; la serie en medio, y
+     * el pie (tira, «Registrar serie» e isla) abajo. Mide 360 × 740 dp: si algo no cabe, el pie se sale por abajo.
+     */
+    @Composable
+    private fun FullFrame() {
+        Column(
+            modifier = Modifier.testTag("sheet").width(360.dp).height(740.dp).background(KpknSurface.canvas),
+        ) {
+            WorkoutTopRow(
+                onMinimize = noop,
+                onMore = {},
+                voiceActive = true,
+                center = {
+                    WorkoutClockLabel(
+                        clock = WorkoutSamples.CLOCK,
+                        pace = WorkoutSamples.PACE_AHEAD,
+                        paceColor = SymbolPalette.ok,
+                        onClick = noop,
+                    )
+                },
+            )
+            Spacer(Modifier.height(4.dp))
+            WorkoutProgressBar(
+                exerciseCount = 6,
+                currentIndex = 2,
+                doneFlags = WorkoutSamples.DONE,
+                onOpenRoute = noop,
+            )
+            Spacer(Modifier.height(8.dp))
+            WorkoutExerciseHeader(
+                eyebrow = WorkoutSamples.EYEBROW_PLAIN,
+                name = WorkoutSamples.EXERCISE_NAME_SHORT,
+                detailLine = WorkoutSamples.DETAIL,
+                targetLine = WorkoutSamples.TARGET,
+                lastLine = WorkoutSamples.LAST,
+                protocolLabel = WorkoutSamples.PROTOCOL,
+                onOptions = {},
+                onChangeExercise = noop,
+            )
+            Spacer(Modifier.height(12.dp))
+            Box(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)) {
+                PanelBody(timeMode = false, valueText = "8", suggestionApplied = false, startOpen = false)
+            }
+            Spacer(Modifier.weight(1f))
+            WorkoutCompactFooter(
+                stripSlot = { StripBody() },
+                recordSlot = {
+                    WorkoutRecordPill(
+                        label = "Registrar serie",
+                        enabled = true,
+                        onRecord = noop,
+                        modifier = Modifier.padding(vertical = 8.dp),
+                    )
+                },
+                island = {
+                    WorkoutBottomIsland(
+                        previousEnabled = true,
+                        nextLabel = WorkoutSamples.EXERCISE_NAME_SHORT,
+                        onPrevious = noop,
+                        onNext = noop,
+                        onOpenRoute = noop,
+                    )
+                },
+                modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+            )
         }
     }
 
@@ -259,5 +345,6 @@ class WorkoutSetPanelRenderSheetTest {
         renderStatic(sceneName = "avanzado", file = "ls2b_avanzado")
         renderPillCheck()
         renderStatic(sceneName = "junto", file = "ls2b_junto")
+        renderStatic(sceneName = "frame", file = "ls2b_pantalla_360x740")
     }
 }

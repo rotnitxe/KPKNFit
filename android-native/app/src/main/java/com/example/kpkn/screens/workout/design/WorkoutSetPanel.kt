@@ -35,7 +35,7 @@ import com.example.kpkn.screens.onboarding.design.WizardColors
 import com.example.kpkn.screens.onboarding.design.wizardReducedMotion
 import com.example.kpkn.ui.components.icons.KpknLineIcons
 import com.example.kpkn.ui.design.KpknSegmentedControl
-import com.example.kpkn.ui.design.KpknIconButton
+import com.example.kpkn.ui.design.KpknSecondaryPill
 import com.example.kpkn.ui.design.KpknSegmentedSize
 import com.example.kpkn.ui.design.KpknStepperMetric
 import com.example.kpkn.ui.design.KpknType
@@ -146,15 +146,16 @@ fun WorkoutSetPanel(
                     keyboardType = KeyboardType.Number,
                     modifier = Modifier.fillMaxWidth(),
                 )
-                // El cronómetro de la serie por tiempo: iniciar y detener, como el de antes (sin Material).
-                if (timeMode && onTimerToggle != null) {
-                    KpknIconButton(
-                        icon = if (timerRunning) KpknLineIcons.Close else KpknLineIcons.Play,
-                        contentDescription = if (timerRunning) "Detener" else "Iniciar",
-                        onClick = onTimerToggle,
-                    )
-                }
             }
+        }
+        // El cronómetro de la serie por tiempo: una píldora a todo el ancho, bajo las dos cifras (no deja hueco bajo KG).
+        if (timeMode && onTimerToggle != null) {
+            KpknSecondaryPill(
+                text = if (timerRunning) "Pausar" else "Empezar",
+                onClick = onTimerToggle,
+                modifier = Modifier.fillMaxWidth(),
+                icon = if (timerRunning) KpknLineIcons.Pause else KpknLineIcons.Play,
+            )
         }
         if (intensityScale != null) {
             WorkoutIntensityRow(
@@ -166,15 +167,20 @@ fun WorkoutSetPanel(
                 modifier = Modifier.fillMaxWidth(),
             )
         }
-        WorkoutLoadSuggestion(
-            suggestion = suggestion,
-            applied = suggestionApplied,
-            onUse = onUseSuggestion,
-            reason = suggestionReason,
-            modifier = Modifier.fillMaxWidth(),
-        )
+        // «Sugerida» y «Opciones avanzadas» van juntos, a 8 dp; el bloque plegado se separa con el ritmo de 20 dp.
+        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            WorkoutLoadSuggestion(
+                suggestion = suggestion,
+                applied = suggestionApplied,
+                onUse = onUseSuggestion,
+                reason = suggestionReason,
+                modifier = Modifier.fillMaxWidth(),
+            )
+            if (advanced != null) {
+                AdvancedToggle(open = advancedOpen, onToggle = onToggleAdvanced)
+            }
+        }
         if (advanced != null) {
-            AdvancedToggle(open = advancedOpen, onToggle = onToggleAdvanced)
             AnimatedVisibility(
                 visible = advancedOpen,
                 enter = expandVertically() + fadeIn(tween(durationMillis = 160)),

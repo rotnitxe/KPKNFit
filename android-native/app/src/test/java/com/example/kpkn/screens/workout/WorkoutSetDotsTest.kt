@@ -1,5 +1,6 @@
 package com.example.kpkn.screens.workout
 
+import com.example.kpkn.data.models.CompletedSet
 import com.example.kpkn.screens.workout.design.WorkoutSetDotState
 import org.junit.Assert.assertEquals
 import org.junit.Test
@@ -82,5 +83,30 @@ class WorkoutSetDotsTest {
 
         assertEquals(listOf("1"), dots.map { it.label })
         assertEquals(listOf(WorkoutSetDotState.FUTURE), dots.map { it.state })
+    }
+
+    @Test
+    fun textoDeLaSerieHechaConCargaRepeticionesOTiempo() {
+        assertEquals("80 × 8", workoutSetDoneCaption(weightKg = 80.0, reps = 8, timeSeconds = null))
+        assertEquals("8 reps", workoutSetDoneCaption(weightKg = 0.0, reps = 8, timeSeconds = null))
+        assertEquals(formatTime(45), workoutSetDoneCaption(weightKg = 0.0, reps = 0, timeSeconds = 45))
+        assertEquals(null, workoutSetDoneCaption(weightKg = 0.0, reps = 0, timeSeconds = null))
+    }
+
+    @Test
+    fun laTiraRecibeElTextoDeCadaSerieHechaPorPagina() {
+        val pages = listOf(
+            WorkoutSetSwipePage(type = LivePageType.NORMAL, setIndex = 0),
+            WorkoutSetSwipePage(type = LivePageType.NORMAL, setIndex = 1),
+            WorkoutSetSwipePage(type = LivePageType.WARMUP, setIndex = 0),
+        )
+        val completed = mapOf(
+            "ex-1_0" to CompletedSet(id = "s0", weight = 80.0, reps = 8),
+            "ex-1_1" to CompletedSet(id = "s1"),
+        )
+
+        val captions = workoutSetDoneCaptions(pages, completed, fallbackExerciseId = "ex-1")
+
+        assertEquals(mapOf(0 to "80 × 8"), captions)
     }
 }

@@ -1131,6 +1131,7 @@ fun WorkoutScreen(
                         dots = toWorkoutSetDots(
                             elements = stepper.elements,
                             activeElementIndex = stepper.activeElementIndex,
+                            captionFor = { page -> stepper.captions[page] },
                         ),
                         onOpen = { id -> id.removePrefix("page-").toIntOrNull()?.let { liveSetStepperHolder.onSelectPage(it) } },
                         onAdd = if (stepper.canAddSet) {

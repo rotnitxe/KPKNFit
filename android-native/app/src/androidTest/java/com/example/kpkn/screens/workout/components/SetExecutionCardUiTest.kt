@@ -260,9 +260,11 @@ class SetExecutionCardUiTest {
         }
 
         composeRule.onNodeWithText("Opciones avanzadas").assertExists()
-        composeRule.onNodeWithText("Ver ejercicio/Fotos").assertExists()
         composeRule.onNodeWithText("Reportar serie").assertDoesNotExist()
         composeRule.onNodeWithText("¿Cambio de planes o añadir técnica de intensidad?").assertDoesNotExist()
+        // El reverso (y «Ver ejercicio/Fotos») vive en la hoja «Técnica», que se abre desde su entrada dentro de lo desplegado.
+        composeRule.onNodeWithText("Drop-sets, descanso y notas").performClick()
+        composeRule.onNodeWithText("Ver ejercicio/Fotos").assertExists()
     }
 
     @Test
@@ -287,9 +289,10 @@ class SetExecutionCardUiTest {
 
         composeRule.onNodeWithText("DROPSET").assertExists()
         composeRule.onNodeWithText("Opciones avanzadas").assertExists()
-        composeRule.onNodeWithText("Ver ejercicio/Fotos").assertExists()
         composeRule.onNodeWithText("Confirma las 3 reps de esta mini-serie.").assertDoesNotExist()
         composeRule.onNodeWithText("Saltar técnica y registrar solo la serie").assertDoesNotExist()
+        composeRule.onNodeWithText("Drop-sets, descanso y notas").performClick()
+        composeRule.onNodeWithText("Ver ejercicio/Fotos").assertExists()
     }
 
     @Test
