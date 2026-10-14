@@ -503,6 +503,53 @@ object KpknLineIcons {
     /** Flecha hacia arriba: el contrario de `ChevronDown`, para subir un bloque en las listas. */
     val ChevronUp: ImageVector by lazy { icono("KpknLine.ChevronUp", listOf("M5.75 14.5L12 8.25l6.25 6.25")) }
 
+    /** Etiqueta: una marca con su orificio. Para «Etiquetas» en las acciones de un ejercicio. */
+    val Tag: ImageVector by lazy {
+        icono(
+            "KpknLine.Tag",
+            listOf(
+                "M3.75 12.25V5.5a1.75 1.75 0 0 1 1.75-1.75h6.75l8.25 8.25a1.5 1.5 0 0 1 0 2.12l-5.88 5.88a1.5 1.5 0 0 1-2.12 0L3.75 12.25z",
+                "M8.25 7.75h.01",
+            ),
+        )
+    }
+
+    /** Dos flechas enfrentadas: cambiar un ejercicio por otro («Reemplazar»). */
+    val Swap: ImageVector by lazy {
+        icono("KpknLine.Swap", listOf("M4.75 8.25h13.5M14.75 4.75l3.5 3.5-3.5 3.5M19.25 15.75H5.75M9.25 12.25l-3.5 3.5 3.5 3.5"))
+    }
+
+    /** Tres líneas con una flecha arriba y otra abajo: reordenar la lista. */
+    val Reorder: ImageVector by lazy {
+        icono(
+            "KpknLine.Reorder",
+            listOf("M3.75 7.25h9M3.75 12h9M3.75 16.75h9M18 4.75v14.5M15.5 7.25 18 4.75l2.5 2.5M15.5 16.75 18 19.25l2.5-2.5"),
+        )
+    }
+
+    /** Dos eslabones unidos: una superserie. */
+    val Link: ImageVector by lazy {
+        icono(
+            "KpknLine.Link",
+            listOf(
+                "M8.25 12.75 6.5 14.5a3.18 3.18 0 0 0 4.5 4.5l1.75-1.75",
+                "M15.75 11.25l1.75-1.75a3.18 3.18 0 0 0-4.5-4.5L11.25 6.75",
+                "M9.75 14.25l4.5-4.5",
+            ),
+        )
+    }
+
+    /** Eslabones separados: deshacer la superserie. */
+    val Unlink: ImageVector by lazy {
+        icono(
+            "KpknLine.Unlink",
+            listOf(
+                "M8.25 12.75 6.5 14.5a3.18 3.18 0 0 0 4.5 4.5l1.25-1.25",
+                "M15.75 11.25 17.5 9.5a3.18 3.18 0 0 0-4.5-4.5l-1.25 1.25",
+            ),
+        )
+    }
+
     /** Trazado del triángulo de `Play` y `PlayFilled`. */
     private const val TRIANGULO_PLAY =
         "M8.25 5.6v12.8a.9.9 0 0 0 1.37.77l10.2-6.4a.9.9 0 0 0 0-1.54l-10.2-6.4a.9.9 0 0 0-1.37.77z"

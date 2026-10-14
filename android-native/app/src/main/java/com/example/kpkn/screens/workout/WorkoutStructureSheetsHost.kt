@@ -1,49 +1,32 @@
 package com.example.kpkn.screens.workout
 
 import android.content.Context
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
-import androidx.compose.material.icons.filled.LibraryAdd
 import androidx.compose.material.icons.filled.Link
-import androidx.compose.material.icons.filled.LinkOff
 import androidx.compose.material.icons.filled.Reorder
-import androidx.compose.material.icons.filled.Save
-import androidx.compose.material.icons.filled.SkipNext
-import androidx.compose.material.icons.filled.SwapHoriz
-import androidx.compose.material.icons.filled.Timer
 import com.example.kpkn.ui.components.KpknSheet
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -58,10 +41,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.kpkn.data.exercises.exerciseCatalogSnapshot
 import com.example.kpkn.data.models.CardioProgramMode
@@ -71,13 +52,7 @@ import com.example.kpkn.data.models.ExerciseSet
 import com.example.kpkn.data.models.ReplacementPersistenceScopeV2
 import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.models.SessionPart
-import com.example.kpkn.data.models.UnilateralSideOrder
 import com.example.kpkn.data.models.UnilateralTarget
-import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.layout.height
-import androidx.compose.material.icons.filled.FitnessCenter
-import androidx.compose.ui.draw.clip
-import com.example.kpkn.data.models.PrReference
 import com.example.kpkn.data.models.TrainingMode
 import com.example.kpkn.domain.calculations.calculateGeneralizedCapacity
 import com.example.kpkn.domain.calculations.calculateHybrid1RM
@@ -91,10 +66,7 @@ import com.example.kpkn.data.models.isInSuperset
 import com.example.kpkn.data.models.isCardio
 import com.example.kpkn.data.models.supersetGroupRefOrLegacyId
 import com.example.kpkn.domain.workout.SupersetRules
-import com.example.kpkn.screens.sessioneditor.CompactModeSelector
 import com.example.kpkn.screens.sessioneditor.ExerciseSetsCarousel
-import com.example.kpkn.screens.sessioneditor.SideOrderChip
-import com.example.kpkn.screens.sessioneditor.UnilateralModeSelector
 import com.example.kpkn.screens.sessioneditor.components.CardioEditorCard
 import com.example.kpkn.screens.sessioneditor.components.ExercisePickerSheet
 import com.example.kpkn.screens.sessioneditor.CatalogLaunchOrigin
@@ -103,7 +75,19 @@ import com.example.kpkn.screens.sessioneditor.CatalogSelectionMode
 import com.example.kpkn.screens.sessioneditor.toggledBilateralUnilateral
 import com.example.kpkn.ui.components.KpknAlertDialog
 import com.example.kpkn.ui.components.KpknSheet
-import com.example.kpkn.ui.components.KpknSheetTokens
+import com.example.kpkn.screens.onboarding.design.WizardColors
+import com.example.kpkn.screens.workout.design.WorkoutSetSettingsBody
+import com.example.kpkn.screens.workout.design.WorkoutStructureActionRow
+import com.example.kpkn.screens.workout.design.WorkoutStructureDivider
+import com.example.kpkn.screens.workout.design.WorkoutSupersetCandidate
+import com.example.kpkn.screens.workout.design.WorkoutSupersetCreatorBody
+import com.example.kpkn.screens.workout.design.WorkoutSupersetRoundsBody
+import com.example.kpkn.screens.workout.design.WorkoutTagSheetBody
+import com.example.kpkn.ui.components.icons.KpknLineIcons
+import com.example.kpkn.ui.design.KpknModule
+import com.example.kpkn.ui.design.KpknModuleHeader
+import com.example.kpkn.ui.design.KpknPrimaryPill
+import com.example.kpkn.ui.design.KpknType
 import dev.chrisbanes.haze.HazeState
 import java.util.UUID
 @Stable
@@ -156,33 +140,6 @@ internal class WorkoutStructureSheetsState {
 @Composable
 internal fun rememberWorkoutStructureSheetsState(): WorkoutStructureSheetsState =
     remember { WorkoutStructureSheetsState() }
-
-@Composable
-private fun ContextActionButton(
-    label: String,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    Surface(
-        onClick = onClick,
-        modifier = modifier.heightIn(min = 42.dp),
-        shape = RoundedCornerShape(8.dp),
-        color = Color(0xFF2B2B2B),
-        tonalElevation = 0.dp,
-        shadowElevation = 0.dp,
-    ) {
-        Text(
-            label,
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 10.dp, vertical = 11.dp),
-            style = MaterialTheme.typography.labelMedium,
-            fontWeight = FontWeight.SemiBold,
-            color = Color.White.copy(alpha = 0.88f),
-            textAlign = androidx.compose.ui.text.style.TextAlign.Center,
-            maxLines = 2,
-            overflow = TextOverflow.Ellipsis,
-        )
-    }
-}
 
 /**
  * Live-workout catalog host. Creation is integrated into the search flow, so
@@ -345,136 +302,215 @@ internal fun WorkoutStructureSheetsHost(
             },
             hazeState = bottomHazeState,
         ) {
-            val actionRows: @Composable ColumnScope.() -> Unit = {
-                if (contextExercise?.isCardio == true) {
-                    val cardioExercise = contextExercise
-                    Text(
-                        cardioContextSummary(cardioExercise),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
-                        ContextActionButton("Editar cardio", {
+            if (contextExercise?.isCardio == true) {
+                val cardioExercise = contextExercise
+                Text(
+                    cardioContextSummary(cardioExercise),
+                    style = KpknType.caption,
+                    color = WizardColors.textMuted,
+                )
+                KpknModule(contentPadding = PaddingValues(horizontal = 16.dp, vertical = 4.dp)) {
+                    WorkoutStructureActionRow(
+                        icon = KpknLineIcons.Edit,
+                        title = "Editar cardio",
+                        onClick = {
                             state.editSheetExerciseId = cardioExercise.id
                             state.exerciseContextExerciseId = null
-                        }, Modifier.weight(1f))
-                        ContextActionButton("Reemplazar", {
+                        },
+                    )
+                    WorkoutStructureDivider()
+                    WorkoutStructureActionRow(
+                        icon = KpknLineIcons.Swap,
+                        title = "Reemplazar",
+                        onClick = {
                             state.replaceCardioTargetExerciseId = cardioExercise.id
                             state.showReplaceCardioPicker = true
                             state.exerciseContextExerciseId = null
-                        }, Modifier.weight(1f))
-                    }
-                    ContextActionButton("Omitir", {
-                        viewModel.skipExercise(cardioExercise.id)
-                        state.exerciseContextExerciseId = null
-                    }, Modifier.fillMaxWidth())
-                } else if (contextExercise != null && contextSupersetGroupId != null && !state.exerciseContextForceMemberActions) {
-                    val members = remember(contextSupersetGroupId, modeSession, contextSupersetGroup, visibleExercises) {
-                        val ordered = SupersetRules.orderedMembers(modeSession, contextSupersetGroupId)
-                        if (ordered.isNotEmpty()) ordered
-                        else contextSupersetGroup?.exerciseOrder
-                            ?.mapNotNull { id -> visibleExercises.firstOrNull { it.id == id } }
-                            .orEmpty()
-                    }
-                    Text(
-                        "${contextSupersetGroup?.rounds ?: SupersetRules.roundCount(modeSession, contextSupersetGroupId)} rondas · ${members.size} ejercicios",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        },
                     )
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
-                        ContextActionButton("Ir a la superserie", {
+                    WorkoutStructureDivider()
+                    WorkoutStructureActionRow(
+                        icon = KpknLineIcons.ChevronRight,
+                        title = "Omitir",
+                        onClick = {
+                            viewModel.skipExercise(cardioExercise.id)
+                            state.exerciseContextExerciseId = null
+                        },
+                    )
+                }
+            } else if (contextExercise != null && contextSupersetGroupId != null && !state.exerciseContextForceMemberActions) {
+                val members = remember(contextSupersetGroupId, modeSession, contextSupersetGroup, visibleExercises) {
+                    val ordered = SupersetRules.orderedMembers(modeSession, contextSupersetGroupId)
+                    if (ordered.isNotEmpty()) ordered
+                    else contextSupersetGroup?.exerciseOrder
+                        ?.mapNotNull { id -> visibleExercises.firstOrNull { it.id == id } }
+                        .orEmpty()
+                }
+                Text(
+                    "${contextSupersetGroup?.rounds ?: SupersetRules.roundCount(modeSession, contextSupersetGroupId)} rondas · ${members.size} ejercicios",
+                    style = KpknType.caption,
+                    color = WizardColors.textMuted,
+                )
+                KpknModule(contentPadding = PaddingValues(horizontal = 16.dp, vertical = 4.dp)) {
+                    WorkoutStructureActionRow(
+                        icon = KpknLineIcons.Route,
+                        title = "Ir a la superserie",
+                        onClick = {
                             viewModel.selectSupersetGroup(contextSupersetGroupId)
                             state.exerciseContextExerciseId = null
-                        }, Modifier.weight(1f))
-                        ContextActionButton("Rondas", {
+                        },
+                    )
+                    WorkoutStructureDivider()
+                    WorkoutStructureActionRow(
+                        icon = KpknLineIcons.Repeat,
+                        title = "Rondas",
+                        onClick = {
                             state.supersetSettingsGroupId = contextSupersetGroupId
                             state.exerciseContextExerciseId = null
-                        }, Modifier.weight(1f))
-                    }
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
-                        ContextActionButton("Agregar de sesión", {
+                        },
+                    )
+                    WorkoutStructureDivider()
+                    WorkoutStructureActionRow(
+                        icon = KpknLineIcons.Layers,
+                        title = "Agregar de sesión",
+                        onClick = {
                             state.workoutSupersetSelectedExerciseId = contextExercise.id
                             state.showWorkoutSupersetCreator = true
                             state.exerciseContextExerciseId = null
-                        }, Modifier.weight(1f))
-                        ContextActionButton("Agregar del catálogo", {
+                        },
+                    )
+                    WorkoutStructureDivider()
+                    WorkoutStructureActionRow(
+                        icon = KpknLineIcons.Search,
+                        title = "Agregar del catálogo",
+                        onClick = {
                             state.addCatalogToSupersetGroupId = contextSupersetGroupId
                             state.addCatalogSearchQuery = ""
                             state.addCatalogSelectedIds = emptySet()
                             state.exerciseContextExerciseId = null
-                        }, Modifier.weight(1f))
-                    }
-                    Text("Miembros", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    members.chunked(2).forEach { rowMembers ->
-                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
-                            rowMembers.forEach { member ->
-                                ContextActionButton(member.name, {
+                        },
+                    )
+                }
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    KpknModuleHeader(label = "Miembros")
+                    KpknModule(contentPadding = PaddingValues(horizontal = 16.dp, vertical = 4.dp)) {
+                        members.forEachIndexed { index, member ->
+                            if (index > 0) WorkoutStructureDivider()
+                            WorkoutStructureActionRow(
+                                icon = KpknLineIcons.Training,
+                                title = member.name,
+                                onClick = {
                                     state.exerciseContextForceMemberActions = true
                                     state.exerciseContextExerciseId = member.id
-                                }, Modifier.weight(1f))
-                            }
-                            if (rowMembers.size == 1) Spacer(Modifier.weight(1f))
+                                },
+                            )
                         }
                     }
-                    ContextActionButton("Disolver superserie", {
-                        viewModel.dissolveLiveSuperset(contextSupersetGroupId, preferredExerciseId = contextExercise.id)
-                        state.exerciseContextExerciseId = null
-                    }, Modifier.fillMaxWidth())
-                } else {
-                    val exercise = contextExercise
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
-                        ContextActionButton("Historial", {
-                            exercise?.let { viewModel.showHistoryForExercise(it) }
+                }
+                KpknModule(contentPadding = PaddingValues(horizontal = 16.dp, vertical = 4.dp)) {
+                    WorkoutStructureActionRow(
+                        icon = KpknLineIcons.Unlink,
+                        title = "Disolver superserie",
+                        destructive = true,
+                        onClick = {
+                            viewModel.dissolveLiveSuperset(contextSupersetGroupId, preferredExerciseId = contextExercise.id)
                             state.exerciseContextExerciseId = null
-                        }, Modifier.weight(1f))
-                        ContextActionButton("Etiquetas", {
-                            if (exercise != null && exercise.id == currentExercise?.id) {
-                                state.requestLiveTagList = true
-                            } else {
-                                state.tagSheetExerciseId = exercise?.id
-                            }
-                            state.exerciseContextExerciseId = null
-                        }, Modifier.weight(1f))
+                        },
+                    )
+                }
+            } else {
+                val exercise = contextExercise
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    KpknModuleHeader(label = "Este ejercicio")
+                    KpknModule(contentPadding = PaddingValues(horizontal = 16.dp, vertical = 4.dp)) {
+                        WorkoutStructureActionRow(
+                            icon = KpknLineIcons.History,
+                            title = "Historial",
+                            onClick = {
+                                exercise?.let { viewModel.showHistoryForExercise(it) }
+                                state.exerciseContextExerciseId = null
+                            },
+                        )
+                        WorkoutStructureDivider()
+                        WorkoutStructureActionRow(
+                            icon = KpknLineIcons.Tag,
+                            title = "Etiquetas",
+                            onClick = {
+                                if (exercise != null && exercise.id == currentExercise?.id) {
+                                    state.requestLiveTagList = true
+                                } else {
+                                    state.tagSheetExerciseId = exercise?.id
+                                }
+                                state.exerciseContextExerciseId = null
+                            },
+                        )
+                        WorkoutStructureDivider()
+                        WorkoutStructureActionRow(
+                            icon = KpknLineIcons.Edit,
+                            title = "Editar",
+                            onClick = {
+                                state.editSheetExerciseId = exercise?.id
+                                state.exerciseContextExerciseId = null
+                            },
+                        )
+                        WorkoutStructureDivider()
+                        WorkoutStructureActionRow(
+                            icon = KpknLineIcons.Swap,
+                            title = "Reemplazar",
+                            onClick = {
+                                state.replaceTargetExerciseId = exercise?.id
+                                state.replaceSearchQuery = if (exercise?.catalogDefinitionId == null) exercise?.name.orEmpty() else ""
+                                state.showReplaceExercisePicker = true
+                                state.exerciseContextExerciseId = null
+                            },
+                        )
                     }
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
-                        ContextActionButton("Editar", {
-                            state.editSheetExerciseId = exercise?.id
-                            state.exerciseContextExerciseId = null
-                        }, Modifier.weight(1f))
-                        ContextActionButton("Reemplazar", {
-                            state.replaceTargetExerciseId = exercise?.id
-                            state.replaceSearchQuery = if (exercise?.catalogDefinitionId == null) exercise?.name.orEmpty() else ""
-                            state.showReplaceExercisePicker = true
-                            state.exerciseContextExerciseId = null
-                        }, Modifier.weight(1f))
-                    }
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
-                        ContextActionButton("Agregar otro", {
-                            state.addExerciseAfterId = exercise?.id
-                            state.addExerciseSearchQuery = ""
-                            state.addExerciseSelectedIds = emptySet()
-                            state.exerciseContextExerciseId = null
-                        }, Modifier.weight(1f))
-                        ContextActionButton("Reordenar", {
-                            state.reorderSheetExerciseIds = visibleExercises.map { it.id }
-                            state.showReorderSheet = true
-                            state.exerciseContextExerciseId = null
-                        }, Modifier.weight(1f))
-                    }
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
-                        ContextActionButton("Crear superserie", {
-                            state.workoutSupersetSelectedExerciseId = exercise?.id
-                            state.showWorkoutSupersetCreator = true
-                            state.exerciseContextExerciseId = null
-                        }, Modifier.weight(1f))
-                        ContextActionButton("Omitir", {
-                            viewModel.skipExercise(exerciseId)
-                            state.exerciseContextExerciseId = null
-                        }, Modifier.weight(1f))
+                }
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    KpknModuleHeader(label = "La sesión")
+                    KpknModule(contentPadding = PaddingValues(horizontal = 16.dp, vertical = 4.dp)) {
+                        WorkoutStructureActionRow(
+                            icon = KpknLineIcons.Plus,
+                            title = "Agregar otro",
+                            onClick = {
+                                state.addExerciseAfterId = exercise?.id
+                                state.addExerciseSearchQuery = ""
+                                state.addExerciseSelectedIds = emptySet()
+                                state.exerciseContextExerciseId = null
+                            },
+                        )
+                        WorkoutStructureDivider()
+                        WorkoutStructureActionRow(
+                            icon = KpknLineIcons.Reorder,
+                            title = "Reordenar",
+                            onClick = {
+                                state.reorderSheetExerciseIds = visibleExercises.map { it.id }
+                                state.showReorderSheet = true
+                                state.exerciseContextExerciseId = null
+                            },
+                        )
+                        WorkoutStructureDivider()
+                        WorkoutStructureActionRow(
+                            icon = KpknLineIcons.Link,
+                            title = "Crear superserie",
+                            onClick = {
+                                state.workoutSupersetSelectedExerciseId = exercise?.id
+                                state.showWorkoutSupersetCreator = true
+                                state.exerciseContextExerciseId = null
+                            },
+                        )
+                        WorkoutStructureDivider()
+                        WorkoutStructureActionRow(
+                            icon = KpknLineIcons.ChevronRight,
+                            title = "Omitir",
+                            onClick = {
+                                viewModel.skipExercise(exerciseId)
+                                state.exerciseContextExerciseId = null
+                            },
+                        )
                     }
                 }
             }
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp), content = actionRows)
         }
     }
 
@@ -483,63 +519,27 @@ internal fun WorkoutStructureSheetsHost(
         if (group == null) {
             state.supersetSettingsGroupId = null
         } else {
-            var roundsText by remember(groupId, group.rounds) {
-                mutableStateOf((group.rounds ?: SupersetRules.roundCount(modeSession, groupId)).toString())
-            }
-            var restBetweenText by remember(groupId, group.restBetweenExercises) {
-                mutableStateOf(group.restBetweenExercises.toString())
-            }
-            var restAfterText by remember(groupId, group.restAfterSuperset) {
-                mutableStateOf(group.restAfterSuperset.toString())
-            }
-            KpknAlertDialog(
-                onDismissRequest = { state.supersetSettingsGroupId = null },
-                title = { Text("Rondas y descansos", fontWeight = FontWeight.Black) },
-                text = {
-                    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                        OutlinedTextField(
-                            value = roundsText,
-                            onValueChange = { roundsText = it.filter(Char::isDigit).take(2) },
-                            label = { Text("Rondas") },
-                            singleLine = true,
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                            modifier = Modifier.fillMaxWidth(),
+            WorkoutDrawer(
+                title = "Rondas y descansos",
+                onDismiss = { state.supersetSettingsGroupId = null },
+                hazeState = bottomHazeState,
+            ) {
+                WorkoutSupersetRoundsBody(
+                    rounds = group.rounds ?: SupersetRules.roundCount(modeSession, groupId),
+                    restBetween = group.restBetweenExercises,
+                    restAfter = group.restAfterSuperset,
+                    onSave = { rounds, restBetween, restAfter ->
+                        viewModel.updateLiveSupersetRest(
+                            groupId = groupId,
+                            restBetween = restBetween,
+                            restAfter = restAfter,
+                            rounds = rounds,
                         )
-                        OutlinedTextField(
-                            value = restBetweenText,
-                            onValueChange = { restBetweenText = it.filter(Char::isDigit).take(4) },
-                            label = { Text("Descanso entre ejercicios (s)") },
-                            singleLine = true,
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                            modifier = Modifier.fillMaxWidth(),
-                        )
-                        OutlinedTextField(
-                            value = restAfterText,
-                            onValueChange = { restAfterText = it.filter(Char::isDigit).take(4) },
-                            label = { Text("Descanso post-ronda (s)") },
-                            singleLine = true,
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                            modifier = Modifier.fillMaxWidth(),
-                        )
-                    }
-                },
-                confirmButton = {
-                    Button(
-                        onClick = {
-                            viewModel.updateLiveSupersetRest(
-                                groupId = groupId,
-                                restBetween = restBetweenText.toIntOrNull(),
-                                restAfter = restAfterText.toIntOrNull(),
-                                rounds = roundsText.toIntOrNull(),
-                            )
-                            state.supersetSettingsGroupId = null
-                        },
-                    ) { Text("Guardar", fontWeight = FontWeight.Bold) }
-                },
-                dismissButton = {
-                    TextButton(onClick = { state.supersetSettingsGroupId = null }) { Text("Cancelar") }
-                },
-            )
+                        state.supersetSettingsGroupId = null
+                    },
+                    onCancel = { state.supersetSettingsGroupId = null },
+                )
+            }
         }
     }
 
@@ -787,133 +787,43 @@ internal fun WorkoutStructureSheetsHost(
                 ?: (members.firstOrNull()?.restTime ?: 120).coerceAtLeast(0)
             Triple(rounds, between, after)
         }
-        var roundsText by remember(supersetAnchorId, supersetAnchorGroupId, supersetDefaults.first) {
-            mutableStateOf(supersetDefaults.first.toString())
-        }
-        var restBetweenText by remember(supersetAnchorId, supersetAnchorGroupId, supersetDefaults.second) {
-            mutableStateOf(supersetDefaults.second.toString())
-        }
-        var restAfterText by remember(supersetAnchorId, supersetAnchorGroupId, supersetDefaults.third) {
-            mutableStateOf(supersetDefaults.third.toString())
-        }
         fun closeWorkoutSupersetCreator() {
             state.showWorkoutSupersetCreator = false
             state.workoutSupersetSelectedExerciseId = null
         }
-        KpknAlertDialog(
-            onDismissRequest = { closeWorkoutSupersetCreator() },
-            title = { Text(if (supersetAnchorGroupId == null) "Crear superserie" else "Agregar a superserie", fontWeight = FontWeight.Black) },
-            text = {
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text(
-                        "Selecciona ejercicios pendientes de la sesión. La superserie se aplicará solo a este entrenamiento.",
-                        style = MaterialTheme.typography.bodySmall,
+        WorkoutDrawer(
+            title = if (supersetAnchorGroupId == null) "Crear superserie" else "Agregar a superserie",
+            onDismiss = { closeWorkoutSupersetCreator() },
+            hazeState = bottomHazeState,
+        ) {
+            WorkoutSupersetCreatorBody(
+                candidates = supersetCandidateExercises.map { WorkoutSupersetCandidate(id = it.id, name = it.name) },
+                anchorId = supersetAnchorId,
+                selectedIds = supersetSelectedIds,
+                onSelectedIdsChange = { supersetSelectedIds = it },
+                defaultRounds = supersetDefaults.first,
+                defaultRestBetween = supersetDefaults.second,
+                defaultRestAfter = supersetDefaults.third,
+                confirmLabel = if (supersetAnchorGroupId == null) "Crear superserie" else "Actualizar superserie",
+                canOpenCatalog = onOpenCatalog != null,
+                onConfirm = { exerciseIds, rounds, restBetween, restAfter ->
+                    viewModel.createLiveSuperset(
+                        exerciseIds = exerciseIds,
+                        partId = supersetAnchorPartId,
+                        restBetween = restBetween,
+                        restAfter = restAfter,
+                        rounds = rounds,
                     )
-                    Text(
-                        "Configuración inicial (puedes ajustarla antes de guardar)",
-                        style = MaterialTheme.typography.labelSmall,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
-                        OutlinedTextField(
-                            value = roundsText,
-                            onValueChange = { roundsText = it.filter(Char::isDigit).take(2) },
-                            label = { Text("Rondas") },
-                            singleLine = true,
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                            modifier = Modifier.weight(1f),
-                        )
-                        OutlinedTextField(
-                            value = restBetweenText,
-                            onValueChange = { restBetweenText = it.filter(Char::isDigit).take(4) },
-                            label = { Text("Entre ejercicios (s)") },
-                            singleLine = true,
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                            modifier = Modifier.weight(1f),
-                        )
-                    }
-                    OutlinedTextField(
-                        value = restAfterText,
-                        onValueChange = { restAfterText = it.filter(Char::isDigit).take(4) },
-                        label = { Text("Después de la ronda (s)") },
-                        singleLine = true,
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                        modifier = Modifier.fillMaxWidth(),
-                    )
-                    if (supersetCandidateExercises.size < 2) {
-                        Text(
-                            "No hay otro ejercicio disponible en este grupo.",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                    }
-                    supersetCandidateExercises.forEach { ex ->
-                        val isSelected = ex.id in supersetSelectedIds
-                        val isAnchor = ex.id == supersetAnchorId
-                        Row(
-                            modifier = Modifier.fillMaxWidth().clickable {
-                                if (isAnchor) return@clickable
-                                supersetSelectedIds = if (isSelected) {
-                                    supersetSelectedIds.filterNot { it == ex.id }
-                                } else {
-                                    if (supersetSelectedIds.size >= 4) return@clickable
-                                    supersetSelectedIds + ex.id
-                                }
-                            }.padding(vertical = 4.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            Checkbox(checked = isSelected, onCheckedChange = { c ->
-                                if (!isAnchor) {
-                                    supersetSelectedIds = if (c) (supersetSelectedIds + ex.id).distinct() else supersetSelectedIds.filterNot { it == ex.id }
-                                }
-                            })
-                            Spacer(Modifier.width(8.dp))
-                            Column(modifier = Modifier.weight(1f)) {
-                                Text(ex.name, style = MaterialTheme.typography.bodyMedium)
-                                if (isAnchor) {
-                                    Text(
-                                        "Origen",
-                                        style = MaterialTheme.typography.labelSmall,
-                                        color = MaterialTheme.colorScheme.primary,
-                                        fontWeight = FontWeight.SemiBold,
-                                    )
-                                }
-                            }
-                        }
-                    }
-                }
-            },
-            confirmButton = {
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
-                    if (onOpenCatalog != null) {
-                        TextButton(
-                            onClick = {
-                                val anchor = supersetAnchorId
-                                closeWorkoutSupersetCreator()
-                                state.createSupersetFromCatalogAnchorId = anchor
-                            },
-                        ) { Text("Desde catálogo") }
-                    }
-                    TextButton(
-                        enabled = supersetSelectedIds.size >= 2,
-                        onClick = {
-                        viewModel.createLiveSuperset(
-                            exerciseIds = supersetSelectedIds,
-                            partId = supersetAnchorPartId,
-                            restBetween = restBetweenText.toIntOrNull()?.coerceAtLeast(0) ?: supersetDefaults.second,
-                            restAfter = restAfterText.toIntOrNull()?.coerceAtLeast(0) ?: supersetDefaults.third,
-                            rounds = roundsText.toIntOrNull()?.coerceAtLeast(1) ?: supersetDefaults.first,
-                        )
-                        closeWorkoutSupersetCreator()
-                        },
-                    ) { Text(if (supersetAnchorGroupId == null) "Crear superserie" else "Actualizar superserie", fontWeight = FontWeight.Bold) }
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { closeWorkoutSupersetCreator() }) { Text("Cancelar") }
-            },
-        )
+                    closeWorkoutSupersetCreator()
+                },
+                onOpenCatalog = {
+                    val anchor = supersetAnchorId
+                    closeWorkoutSupersetCreator()
+                    state.createSupersetFromCatalogAnchorId = anchor
+                },
+                onDismiss = { closeWorkoutSupersetCreator() },
+            )
+        }
     }
 
     if (state.editSheetExerciseId != null) {
@@ -974,211 +884,117 @@ internal fun WorkoutStructureSheetsHost(
                             },
                         )
                     } else {
-                    LazyRow(
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        contentPadding = PaddingValues(horizontal = 2.dp),
-                    ) {
-                        item {
-                            CompactModeSelector(
-                                currentMode = draftExercise.trainingMode,
-                                accentColor = sessionAccentColor,
-                            ) { mode -> draftExercise = draftExercise.copy(trainingMode = mode) }
-                        }
-                        item {
-                            UnilateralModeSelector(
-                                mode = draftExercise.unilateralMode,
-                                accentColor = sessionAccentColor,
-                                onToggleUnilateral = { draftExercise = draftExercise.toggledBilateralUnilateral() },
-                            )
-                        }
-                        if (draftExercise.isEffectivelyUnilateral()) {
-                            item {
-                                SideOrderChip(
-                                    sideOrder = draftExercise.unilateralSideOrder,
+                        WorkoutSetSettingsBody(
+                            trainingMode = draftExercise.trainingMode,
+                            onTrainingModeChange = { mode -> draftExercise = draftExercise.copy(trainingMode = mode) },
+                            unilateral = draftExercise.isEffectivelyUnilateral(),
+                            onUnilateralChange = { on ->
+                                if (on != draftExercise.isEffectivelyUnilateral()) {
+                                    draftExercise = draftExercise.toggledBilateralUnilateral()
+                                }
+                            },
+                            sideOrder = draftExercise.unilateralSideOrder,
+                            onSideOrderChange = { order -> draftExercise = draftExercise.copy(unilateralSideOrder = order) },
+                            restBetweenSidesSeconds = draftExercise.restBetweenSidesSeconds ?: 0,
+                            onRestBetweenSidesChange = { seconds ->
+                                draftExercise = draftExercise.copy(restBetweenSidesSeconds = seconds.coerceAtLeast(0))
+                            },
+                            smartLoadSummary = resolved1RM?.takeIf { it > 0.0 }?.let { "1RM: ${formatEditableNumber(it)} kg" },
+                            onOpenSmartLoad = { showSmartLoadDialog = true },
+                            setsSlot = {
+                                ExerciseSetsCarousel(
+                                    exercise = draftExercise,
+                                    reference1RM = resolved1RM,
+                                    trainingMode = draftExercise.trainingMode,
+                                    customUnit = draftExercise.customUnit,
+                                    predictedMetrics = emptyMap(),
                                     accentColor = sessionAccentColor,
-                                    onToggle = {
+                                    onAddSet = { side ->
+                                        val lastSet = draftExercise.sets.lastOrNull()
+                                        val baseTarget = UnilateralTarget(
+                                            weight = lastSet?.weight,
+                                            targetReps = lastSet?.targetReps,
+                                            targetRepsRange = lastSet?.targetRepsRange,
+                                            targetDuration = lastSet?.targetDuration,
+                                            targetRPE = lastSet?.targetRPE,
+                                            targetRIR = lastSet?.targetRIR,
+                                            intensityMode = lastSet?.intensityMode,
+                                        )
+                                        val newSet = ExerciseSet(
+                                            id = UUID.randomUUID().toString(),
+                                            targetReps = lastSet?.targetReps,
+                                            targetRepsRange = lastSet?.targetRepsRange,
+                                            targetDuration = lastSet?.targetDuration,
+                                            targetRPE = lastSet?.targetRPE,
+                                            targetRIR = lastSet?.targetRIR,
+                                            weight = lastSet?.weight,
+                                            loadModeV2 = lastSet?.loadModeV2,
+                                            unitModeV2 = lastSet?.unitModeV2,
+                                            intensityMode = lastSet?.intensityMode,
+                                            targetPercentageRM = lastSet?.targetPercentageRM,
+                                            leftTarget = when (side) {
+                                                "left" -> baseTarget
+                                                "right" -> null
+                                                else -> lastSet?.leftTarget
+                                            },
+                                            rightTarget = when (side) {
+                                                "right" -> baseTarget
+                                                "left" -> null
+                                                else -> lastSet?.rightTarget
+                                            },
+                                        )
+                                        draftExercise = draftExercise.copy(sets = draftExercise.sets + newSet)
+                                    },
+                                    onUpdateSet = { setId, transform ->
                                         draftExercise = draftExercise.copy(
-                                            unilateralSideOrder = if (draftExercise.unilateralSideOrder == UnilateralSideOrder.LEFT_RIGHT) {
-                                                UnilateralSideOrder.RIGHT_LEFT
-                                            } else {
-                                                UnilateralSideOrder.LEFT_RIGHT
+                                            sets = draftExercise.sets.map { set ->
+                                                if (set.id == setId) transform(set) else set
                                             },
                                         )
                                     },
-                                )
-                            }
-                        }
-                    }
-
-                    if (draftExercise.isEffectivelyUnilateral()) {
-                        var restBetweenSidesText by remember(draftExercise.id, draftExercise.restBetweenSidesSeconds) {
-                            mutableStateOf((draftExercise.restBetweenSidesSeconds ?: 0).toString())
-                        }
-                        OutlinedTextField(
-                            value = restBetweenSidesText,
-                            onValueChange = { raw ->
-                                restBetweenSidesText = raw.filter(Char::isDigit).take(4)
-                                draftExercise = draftExercise.copy(restBetweenSidesSeconds = restBetweenSidesText.toIntOrNull()?.coerceAtLeast(0))
-                            },
-                            label = { Text("Descanso entre lados (s)") },
-                            singleLine = true,
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                            modifier = Modifier.fillMaxWidth(),
-                        )
-                    }
-
-                    if (draftExercise.cardioDetails == null) {
-                        Surface(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(44.dp)
-                                .clip(RoundedCornerShape(12.dp))
-                                .clickable { showSmartLoadDialog = true },
-                            shape = RoundedCornerShape(12.dp),
-                            color = sessionAccentColor.copy(alpha = 0.10f),
-                            border = BorderStroke(1.dp, sessionAccentColor.copy(alpha = 0.30f)),
-                        ) {
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(horizontal = 12.dp),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically,
-                            ) {
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                ) {
-                                    Icon(
-                                        Icons.Default.FitnessCenter,
-                                        contentDescription = null,
-                                        tint = sessionAccentColor,
-                                        modifier = Modifier.size(18.dp),
-                                    )
-                                    Text(
-                                        "Carga inteligente",
-                                        style = MaterialTheme.typography.labelLarge,
-                                        fontWeight = FontWeight.Bold,
-                                        color = sessionAccentColor,
-                                    )
-                                }
-                                if (resolved1RM != null && resolved1RM > 0.0) {
-                                    Surface(
-                                        shape = RoundedCornerShape(8.dp),
-                                        color = sessionAccentColor.copy(alpha = 0.18f),
-                                    ) {
-                                        Text(
-                                            "1RM: ${formatEditableNumber(resolved1RM)} kg",
-                                            style = MaterialTheme.typography.labelSmall,
-                                            fontWeight = FontWeight.Black,
-                                            color = sessionAccentColor,
-                                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                                    onRemoveSet = { setId ->
+                                        draftExercise = draftExercise.copy(
+                                            sets = draftExercise.sets.filterNot { it.id == setId }.ifEmpty {
+                                                listOf(ExerciseSet(id = UUID.randomUUID().toString()))
+                                            },
                                         )
-                                    }
-                                } else {
-                                    Text(
-                                        "Configurar",
-                                        style = MaterialTheme.typography.labelSmall,
-                                        fontWeight = FontWeight.SemiBold,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    )
-                                }
-                            }
+                                    },
+                                    onMoveSet = { setId, direction ->
+                                        val currentIndex = draftExercise.sets.indexOfFirst { it.id == setId }
+                                        val targetIndex = (currentIndex + direction).coerceIn(0, draftExercise.sets.lastIndex)
+                                        if (currentIndex >= 0 && currentIndex != targetIndex) {
+                                            val mutable = draftExercise.sets.toMutableList()
+                                            val moved = mutable.removeAt(currentIndex)
+                                            mutable.add(targetIndex, moved)
+                                            draftExercise = draftExercise.copy(sets = mutable)
+                                        }
+                                    },
+                                )
+                            },
+                        )
+                        if (showSmartLoadDialog) {
+                            ExerciseSmartLoadDialog(
+                                exercise = draftExercise,
+                                rmInputMode = rmInputMode,
+                                onRmInputModeChange = { rmInputMode = it },
+                                directRmInput = directRmInput,
+                                onDirectRmInputChange = { directRmInput = it },
+                                prWeightInput = prWeightInput,
+                                onPrWeightInputChange = { prWeightInput = it },
+                                prRepsInput = prRepsInput,
+                                onPrRepsInputChange = { prRepsInput = it },
+                                customUnitInput = draftExercise.customUnit.orEmpty(),
+                                localPrEstimatedRm = localPrEstimatedRm,
+                                resolved1RM = resolved1RM,
+                                onUpdateExercise = { transform ->
+                                    draftExercise = transform(draftExercise)
+                                },
+                                onDismiss = { showSmartLoadDialog = false },
+                            )
                         }
                     }
-
-                    if (showSmartLoadDialog) {
-                        ExerciseSmartLoadDialog(
-                            exercise = draftExercise,
-                            rmInputMode = rmInputMode,
-                            onRmInputModeChange = { rmInputMode = it },
-                            directRmInput = directRmInput,
-                            onDirectRmInputChange = { directRmInput = it },
-                            prWeightInput = prWeightInput,
-                            onPrWeightInputChange = { prWeightInput = it },
-                            prRepsInput = prRepsInput,
-                            onPrRepsInputChange = { prRepsInput = it },
-                            customUnitInput = draftExercise.customUnit.orEmpty(),
-                            localPrEstimatedRm = localPrEstimatedRm,
-                            resolved1RM = resolved1RM,
-                            onUpdateExercise = { transform ->
-                                draftExercise = transform(draftExercise)
-                            },
-                            onDismiss = { showSmartLoadDialog = false },
-                        )
-                    }
-
-                    ExerciseSetsCarousel(
-                        exercise = draftExercise,
-                        reference1RM = resolved1RM,
-                        trainingMode = draftExercise.trainingMode,
-                        customUnit = draftExercise.customUnit,
-                        predictedMetrics = emptyMap(),
-                        accentColor = sessionAccentColor,
-                        onAddSet = { side ->
-                            val lastSet = draftExercise.sets.lastOrNull()
-                            val baseTarget = UnilateralTarget(
-                                weight = lastSet?.weight,
-                                targetReps = lastSet?.targetReps,
-                                targetRepsRange = lastSet?.targetRepsRange,
-                                targetDuration = lastSet?.targetDuration,
-                                targetRPE = lastSet?.targetRPE,
-                                targetRIR = lastSet?.targetRIR,
-                                intensityMode = lastSet?.intensityMode,
-                            )
-                            val newSet = ExerciseSet(
-                                id = UUID.randomUUID().toString(),
-                                targetReps = lastSet?.targetReps,
-                                targetRepsRange = lastSet?.targetRepsRange,
-                                targetDuration = lastSet?.targetDuration,
-                                targetRPE = lastSet?.targetRPE,
-                                targetRIR = lastSet?.targetRIR,
-                                weight = lastSet?.weight,
-                                loadModeV2 = lastSet?.loadModeV2,
-                                unitModeV2 = lastSet?.unitModeV2,
-                                intensityMode = lastSet?.intensityMode,
-                                targetPercentageRM = lastSet?.targetPercentageRM,
-                                leftTarget = when (side) {
-                                    "left" -> baseTarget
-                                    "right" -> null
-                                    else -> lastSet?.leftTarget
-                                },
-                                rightTarget = when (side) {
-                                    "right" -> baseTarget
-                                    "left" -> null
-                                    else -> lastSet?.rightTarget
-                                },
-                            )
-                            draftExercise = draftExercise.copy(sets = draftExercise.sets + newSet)
-                        },
-                        onUpdateSet = { setId, transform ->
-                            draftExercise = draftExercise.copy(
-                                sets = draftExercise.sets.map { set ->
-                                    if (set.id == setId) transform(set) else set
-                                },
-                            )
-                        },
-                        onRemoveSet = { setId ->
-                            draftExercise = draftExercise.copy(
-                                sets = draftExercise.sets.filterNot { it.id == setId }.ifEmpty {
-                                    listOf(ExerciseSet(id = UUID.randomUUID().toString()))
-                                },
-                            )
-                        },
-                        onMoveSet = { setId, direction ->
-                            val currentIndex = draftExercise.sets.indexOfFirst { it.id == setId }
-                            val targetIndex = (currentIndex + direction).coerceIn(0, draftExercise.sets.lastIndex)
-                            if (currentIndex >= 0 && currentIndex != targetIndex) {
-                                val mutable = draftExercise.sets.toMutableList()
-                                val moved = mutable.removeAt(currentIndex)
-                                mutable.add(targetIndex, moved)
-                                draftExercise = draftExercise.copy(sets = mutable)
-                            }
-                        },
-                    )
-                    }
-
-                    Button(
+                    KpknPrimaryPill(
+                        text = "Confirmar cambios",
                         onClick = {
                             val confirmedDraft = draftExercise
                             viewModel.updateExerciseDefinition(editEx.id) { current ->
@@ -1188,12 +1004,7 @@ internal fun WorkoutStructureSheetsHost(
                             state.editSheetExerciseId = null
                         },
                         modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(14.dp),
-                    ) {
-                        Icon(Icons.Default.Save, contentDescription = null, modifier = Modifier.size(18.dp))
-                        Spacer(Modifier.width(8.dp))
-                        Text("Confirmar cambios", fontWeight = FontWeight.Bold)
-                    }
+                    )
                 }
             }
         } else {
@@ -1213,13 +1024,14 @@ internal fun WorkoutStructureSheetsHost(
                 title = "${tagEx.name} · Etiquetas",
                 onDismiss = { state.tagSheetExerciseId = null },
                 hazeState = bottomHazeState,
-                ) {
-                ExerciseTagSheetContent(
+            ) {
+                WorkoutTagSheetBody(
                     currentTag = currentExTag,
+                    userTags = allUserTags,
+                    suggestedTag = null,
+                    profiles = viewModel.profilesForExercise(tagEx),
                     onTagSet = { tag -> if (tag.isBlank()) viewModel.clearExerciseTag(tagEx.id) else viewModel.setExerciseTag(tagEx.id, tag) },
                     onDismiss = { state.tagSheetExerciseId = null },
-                    userTags = allUserTags,
-                    profiles = viewModel.profilesForExercise(tagEx),
                 )
             }
         }
