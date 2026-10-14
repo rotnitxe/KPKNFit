@@ -12,6 +12,10 @@ La sesión en vivo ya está rediseñada por partes. Este paquete la DEJA TERMINA
 como lo haría una persona y documenta. La lógica NO cambia.
 
 ## Qué haces
+0. **Antes de escribir nada, verifica la base:** una corrida de `:app:compileBaseDebugKotlin :app:compileBaseDebugUnitTestKotlin` sobre
+   la rama recién sacada. LS3 a LS7b se integraron por separado y su suma no se ha compilado entera (ya hubo un archivo borrado que
+   otro seguía usando). Si falla en archivos que no son tuyos, arréglalo de forma mínima, haz un commit aparte
+   (`fix(workout): la suma de LS3 a LS7b compila (LS8)`) y dilo en el informe.
 1. **Pendientes de la ola:**
    - **ritmo del panel de la serie** (LS2b y LS4): a 360 × 740 dp, con el pie fijo (tira, «Registrar serie» e isla), tienen que verse
      sin desplazar las cifras, sus ±, la fila de intensidad y la sugerencia:
