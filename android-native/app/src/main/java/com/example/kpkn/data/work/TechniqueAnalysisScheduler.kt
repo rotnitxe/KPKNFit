@@ -27,6 +27,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicBoolean
 
 /**
  * La cola del análisis de técnica en vídeo (§9.4): encola, cancela y reconcilia los [TechniqueAnalysisWorker].
@@ -41,6 +42,10 @@ import java.util.concurrent.TimeUnit
  *
  * Antes de encolar, la fila pasa a QUEUED (la interfaz solo lee Room). Con un fallo transitorio el Worker se reintenta con
  * espera exponencial desde [BACKOFF_SECONDS] s.
+ *
+ * `explicit` separa lo que pidió el usuario de lo automático. Lo AUTOMÁTICO (el que encola `WorkoutMediaRepository` al guardar
+ * un vídeo y la reconciliación) se descarta con el ajuste «Analizar la técnica de los vídeos» apagado; lo EXPLÍCITO (lo que
+ * encola `VideoAnalysisRepository`) corre siempre. No es lo mismo que `userInitiated`, que solo decide si el trabajo es urgente.
  */
 object TechniqueAnalysisScheduler {
     const val UNIQUE_PREFIX = "technique-analysis:"
@@ -60,6 +65,7 @@ object TechniqueAnalysisScheduler {
     private const val TAG = "TechniqueScheduler"
 
     private val reconcileLock = Mutex()
+    private val backgroundReconcileStarted = AtomicBoolean(false)
     private val backgroundScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     /** Nombre del trabajo único del análisis de [mediaId]. */
@@ -69,6 +75,8 @@ object TechniqueAnalysisScheduler {
      * Pone la fila de [mediaId] en QUEUED y encola su análisis. `false` si el medio ya no existe o no es un vídeo.
      * Con [AnalysisMode.FULL] y un análisis ya pendiente o en curso no hace nada (política KEEP) y devuelve `true`.
      * [imported] avisa al Worker de que el vídeo viene de la galería (se analiza en primer plano, igual que uno largo).
+     * [explicit] dice que lo pidió el usuario: corre aunque el ajuste «Analizar la técnica de los vídeos» esté apagado; el
+     * automático (el valor por defecto) se descarta con el ajuste apagado.
      */
     suspend fun enqueue(
         context: Context,
@@ -76,6 +84,7 @@ object TechniqueAnalysisScheduler {
         mode: AnalysisMode = AnalysisMode.FULL,
         userInitiated: Boolean = true,
         imported: Boolean = false,
+        explicit: Boolean = false,
         repository: VideoAnalysisRepository = VideoAnalysisRepository.init(context),
     ): Boolean {
         val app = context.applicationContext
@@ -92,7 +101,7 @@ object TechniqueAnalysisScheduler {
             }
         }
         if (!repository.markState(mediaId, VideoAnalysisStatus.QUEUED)) return false
-        workManager.enqueueUniqueWork(name, policyFor(mode), requestFor(mediaId, mode, userInitiated, imported)).await()
+        workManager.enqueueUniqueWork(name, policyFor(mode), requestFor(mediaId, mode, userInitiated, imported, explicit)).await()
         return true
     }
 
@@ -122,11 +131,14 @@ object TechniqueAnalysisScheduler {
 
     /**
      * [reconcile] sin bloquear a quien llama: en un ámbito propio del proceso y solo en el proceso principal (el `:voice` no
-     * toca los medios). Un fallo se anota y no cae a nadie. Devuelve el trabajo, o `null` si este no es el proceso principal.
+     * toca los medios). Corre UNA vez por proceso: `MainActivity` se recrea (al girar la pantalla, al cambiar el idioma…) y
+     * `AppBootstrap` también la llama, y las demás llamadas no hacen nada. Un fallo se anota y no cae a nadie. Devuelve el
+     * trabajo, o `null` si este no es el proceso principal o ya se lanzó en este proceso.
      */
     fun reconcileInBackground(context: Context): Job? {
         val app = context.applicationContext
         if (!isMainProcess(app)) return null
+        if (!backgroundReconcileStarted.compareAndSet(false, true)) return null
         return backgroundScope.launch {
             try {
                 reconcile(app)
@@ -138,6 +150,11 @@ object TechniqueAnalysisScheduler {
         }
     }
 
+    /** Pruebas: el proceso vuelve a poder lanzar [reconcileInBackground]. */
+    internal fun resetBackgroundReconcileForTests() {
+        backgroundReconcileStarted.set(false)
+    }
+
     internal fun policyFor(mode: AnalysisMode): ExistingWorkPolicy =
         if (mode == AnalysisMode.FULL) ExistingWorkPolicy.KEEP else ExistingWorkPolicy.REPLACE
 
@@ -146,6 +163,7 @@ object TechniqueAnalysisScheduler {
         mode: AnalysisMode,
         userInitiated: Boolean,
         imported: Boolean = false,
+        explicit: Boolean = false,
     ): OneTimeWorkRequest {
         val builder = OneTimeWorkRequestBuilder<TechniqueAnalysisWorker>()
             .setInputData(
@@ -154,6 +172,7 @@ object TechniqueAnalysisScheduler {
                     TechniqueAnalysisWorker.KEY_MODE to mode.name,
                     TechniqueAnalysisWorker.KEY_USER_INITIATED to userInitiated,
                     TechniqueAnalysisWorker.KEY_IMPORTED to imported,
+                    TechniqueAnalysisWorker.KEY_EXPLICIT to explicit,
                 ),
             )
             .setBackoffCriteria(BackoffPolicy.EXPONENTIAL, BACKOFF_SECONDS, TimeUnit.SECONDS)
@@ -191,7 +210,7 @@ object TechniqueAnalysisScheduler {
         for (id in repository.activeIds()) {
             if (id in alive) continue
             try {
-                if (enqueue(app, id, AnalysisMode.FULL, userInitiated = false, repository = repository)) requeued++
+                if (enqueue(app, id, AnalysisMode.FULL, userInitiated = false, explicit = false, repository = repository)) requeued++
             } catch (cancelled: CancellationException) {
                 throw cancelled
             } catch (error: Exception) {

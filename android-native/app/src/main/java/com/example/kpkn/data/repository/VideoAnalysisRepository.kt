@@ -116,11 +116,12 @@ class VideoAnalysisRepository internal constructor(
     // --- Lo que pide la interfaz ---
 
     /**
-     * Encola un análisis del vídeo (la fila pasa a QUEUED). `false` si el medio ya no existe o no es un vídeo.
-     * Con el ajuste «Analizar la técnica de los vídeos» apagado, el Worker descarta el trabajo (ver `TechniqueAnalysisWorker`).
+     * Encola un análisis que pide el usuario (la fila pasa a QUEUED). `false` si el medio ya no existe o no es un vídeo.
+     * Corre aunque el ajuste «Analizar la técnica de los vídeos» esté apagado: ese ajuste solo gobierna el análisis automático
+     * al guardar un vídeo, no lo que el usuario pide (también [reanalyze], [setPlateSeed] y [setUserProfileOverride]).
      */
     suspend fun requestAnalysis(mediaId: String, mode: AnalysisMode = AnalysisMode.FULL): Boolean =
-        TechniqueAnalysisScheduler.enqueue(appContext, mediaId, mode, userInitiated = true, repository = this)
+        TechniqueAnalysisScheduler.enqueue(appContext, mediaId, mode, userInitiated = true, explicit = true, repository = this)
 
     /** «Reanalizar»: vuelve a decodificar el vídeo y a estimar la pose con la versión actual. */
     suspend fun reanalyze(mediaId: String): Boolean = requestAnalysis(mediaId, AnalysisMode.FULL)
@@ -281,16 +282,6 @@ class VideoAnalysisRepository internal constructor(
             val file = TechniqueSidecars.analysisFile(File(media.filePath))
             if (store.isManagedPath(file)) file.delete()
         }
-    }
-
-    /**
-     * Quita una fila que quedó en QUEUED o RUNNING sin que el trabajo vaya a ejecutarse (ajuste apagado): si el vídeo tenía un
-     * informe en su sidecar, la fila vuelve a DONE desde ahí; si no, se borra.
-     */
-    internal suspend fun restoreOrDrop(mediaId: String) {
-        val media = videoOf(mediaId)
-        val restored = media != null && rebuildFromSidecar(media)
-        if (!restored) db.videoAnalysisDao().delete(mediaId)
     }
 
     private suspend fun upsertDoneRow(

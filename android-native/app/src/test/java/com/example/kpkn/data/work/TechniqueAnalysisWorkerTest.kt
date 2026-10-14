@@ -110,6 +110,7 @@ class TechniqueAnalysisWorkerTest {
         mode: AnalysisMode = AnalysisMode.FULL,
         attempt: Int = 0,
         imported: Boolean = false,
+        explicit: Boolean = false,
     ): TechniqueAnalysisWorker =
         TestListenableWorkerBuilder<TechniqueAnalysisWorker>(context)
             .setInputData(
@@ -118,6 +119,7 @@ class TechniqueAnalysisWorkerTest {
                     TechniqueAnalysisWorker.KEY_MODE to mode.name,
                     TechniqueAnalysisWorker.KEY_USER_INITIATED to true,
                     TechniqueAnalysisWorker.KEY_IMPORTED to imported,
+                    TechniqueAnalysisWorker.KEY_EXPLICIT to explicit,
                 ),
             )
             .setRunAttemptCount(attempt)
@@ -411,22 +413,75 @@ class TechniqueAnalysisWorkerTest {
     }
 
     @Test
-    fun a_disabled_setting_discards_the_job_and_returns_the_row_to_its_last_report() = runBlocking {
+    fun with_the_setting_off_an_automatic_job_is_discarded_and_its_row_is_left_alone() = runBlocking {
         TechniqueWorkTestKit.putSettings(db, analyzeVideos = false)
-        val analyzed = TechniqueWorkTestKit.insertVideo(db, store, "with-report")
-        val fresh = TechniqueWorkTestKit.insertVideo(db, store, "without-report")
-        TechniqueSidecars.writeAnalysis(analysisFile(analyzed.filePath), TechniqueReportSamples.fullReport(), TechniqueReportSamples.exercise(), 80.0, "squat_2", 5L)
-        repository.markState("with-report", VideoAnalysisStatus.QUEUED)
-        repository.markState("without-report", VideoAnalysisStatus.QUEUED)
+        val media = TechniqueWorkTestKit.insertVideo(db, store, "vid-1")
+        repository.markState("vid-1", VideoAnalysisStatus.QUEUED)
+        val before = repository.getByMedia("vid-1")
         val analyzer = install { _, _ -> TechniqueAnalysisOutcome.Done(TechniqueReportSamples.fullReport()) }
 
-        assertEquals(ListenableWorker.Result.success(), work("with-report").doWork())
-        assertEquals(ListenableWorker.Result.success(), work("without-report").doWork())
+        val result = work("vid-1", explicit = false).doWork()
 
-        assertEquals(0, analyzer.calls.get())
-        assertEquals("vuelve a su informe", VideoAnalysisStatus.DONE, repository.getByMedia("with-report")!!.status)
-        assertNull("sin informe, sin fila", repository.getByMedia("without-report"))
-        assertFalse(analysisFile(fresh.filePath).exists())
+        assertEquals(ListenableWorker.Result.success(), result)
+        assertEquals("el analizador ni se llama", 0, analyzer.calls.get())
+        assertEquals("la fila queda exactamente como estaba", before, repository.getByMedia("vid-1"))
+        assertFalse(analysisFile(media.filePath).exists())
+    }
+
+    @Test
+    fun with_the_setting_off_an_explicit_request_still_runs_to_done() = runBlocking {
+        TechniqueWorkTestKit.putSettings(db, analyzeVideos = false)
+        val media = TechniqueWorkTestKit.insertVideo(db, store, "vid-1")
+        repository.markState("vid-1", VideoAnalysisStatus.QUEUED)
+        val analyzer = install { _, onProgress ->
+            onProgress(10)
+            TechniqueAnalysisOutcome.Done(TechniqueReportSamples.fullReport())
+        }
+
+        val result = work("vid-1", explicit = true).doWork()
+
+        assertEquals(ListenableWorker.Result.success(), result)
+        assertEquals(1, analyzer.calls.get())
+        val row = repository.getByMedia("vid-1")!!
+        assertEquals(VideoAnalysisStatus.DONE, row.status)
+        assertEquals(2, row.repCount)
+        assertTrue(analysisFile(media.filePath).isFile)
+    }
+
+    @Test
+    fun explicit_recompute_and_plate_only_run_with_the_setting_off_and_a_job_without_the_flag_is_automatic() = runBlocking {
+        TechniqueWorkTestKit.putSettings(db, analyzeVideos = false)
+        TechniqueWorkTestKit.insertVideo(db, store, "vid-1")
+        val analyzer = install { _, _ -> TechniqueAnalysisOutcome.Done(TechniqueReportSamples.fullReport()) }
+
+        assertEquals(ListenableWorker.Result.success(), work("vid-1", AnalysisMode.RECOMPUTE, explicit = true).doWork())
+        assertEquals(ListenableWorker.Result.success(), work("vid-1", AnalysisMode.PLATE_ONLY, explicit = true).doWork())
+        assertEquals(2, analyzer.calls.get())
+        assertEquals(listOf(AnalysisMode.RECOMPUTE, AnalysisMode.PLATE_ONLY), analyzer.requests.map { it.mode })
+
+        // Un trabajo encolado antes de existir la bandera no la trae: es automático.
+        val legacy = TestListenableWorkerBuilder<TechniqueAnalysisWorker>(context)
+            .setInputData(workDataOf(TechniqueAnalysisWorker.KEY_MEDIA_ID to "vid-1", TechniqueAnalysisWorker.KEY_MODE to "FULL"))
+            .build()
+        assertEquals(ListenableWorker.Result.success(), legacy.doWork())
+        assertEquals("el automático se descarta", 2, analyzer.calls.get())
+    }
+
+    @Test
+    fun an_automatic_job_already_running_goes_on_if_the_setting_is_turned_off_while_it_waits_for_the_camera() = runBlocking {
+        TechniqueWorkTestKit.insertVideo(db, store, "vid-1")
+        val analyzer = install { _, _ -> TechniqueAnalysisOutcome.Done(TechniqueReportSamples.fullReport()) }
+        AnalysisGate.cameraBusy.value = true
+
+        val running = async(Dispatchers.Default) { work("vid-1", explicit = false).doWork() }
+        waitUntil("en marcha, esperando a la cámara") { repository.getByMedia("vid-1")?.status == VideoAnalysisStatus.RUNNING }
+        TechniqueWorkTestKit.putSettings(db, analyzeVideos = false)
+        AnalysisGate.cameraBusy.value = false
+        val result = withTimeout(10_000L) { running.await() }
+
+        assertEquals(ListenableWorker.Result.success(), result)
+        assertEquals("no se deja una fila RUNNING colgada", VideoAnalysisStatus.DONE, repository.getByMedia("vid-1")!!.status)
+        assertEquals(1, analyzer.calls.get())
     }
 
     @Test

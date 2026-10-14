@@ -268,12 +268,26 @@ class VideoAnalysisRepositoryTest {
         assertEquals("FULL", started.single().getString(TechniqueAnalysisWorker.KEY_MODE))
         assertEquals("vid-1", started.single().getString(TechniqueAnalysisWorker.KEY_MEDIA_ID))
         assertTrue("lo pide una persona", started.single().getBoolean(TechniqueAnalysisWorker.KEY_USER_INITIATED, false))
+        assertTrue("explícita: corre con el ajuste apagado", started.single().getBoolean(TechniqueAnalysisWorker.KEY_EXPLICIT, false))
         assertEquals(VideoAnalysisStatus.QUEUED, repository.getByMedia("vid-1")!!.status)
 
         TechniqueAnalysisScheduler.cancel(context, "vid-1")
         assertTrue(repository.reanalyze("vid-1"))
         assertEquals(2, TechniqueWorkTestKit.awaitStarted(2).size)
         assertEquals("FULL", TechniqueWorkTestKit.started.last().getString(TechniqueAnalysisWorker.KEY_MODE))
+        assertTrue(TechniqueWorkTestKit.started.last().getBoolean(TechniqueAnalysisWorker.KEY_EXPLICIT, false))
+    }
+
+    @Test
+    fun with_the_setting_off_what_the_user_asks_for_is_still_queued_as_explicit() = runBlocking {
+        TechniqueWorkTestKit.putSettings(db, analyzeVideos = false)
+        TechniqueWorkTestKit.insertVideo(db, store, "vid-1")
+
+        assertTrue(repository.requestAnalysis("vid-1"))
+
+        val started = TechniqueWorkTestKit.awaitStarted(1).single()
+        assertTrue(started.getBoolean(TechniqueAnalysisWorker.KEY_EXPLICIT, false))
+        assertEquals(VideoAnalysisStatus.QUEUED, repository.getByMedia("vid-1")!!.status)
     }
 
     @Test
@@ -295,6 +309,7 @@ class VideoAnalysisRepositoryTest {
         assertTrue("lo que escribió el grabador sigue ahí", capture.readText().contains("\"gravityRollDeg\":2.5"))
         val started = TechniqueWorkTestKit.awaitStarted(1).single()
         assertEquals("PLATE_ONLY", started.getString(TechniqueAnalysisWorker.KEY_MODE))
+        assertTrue(started.getBoolean(TechniqueAnalysisWorker.KEY_EXPLICIT, false))
         assertEquals(VideoAnalysisStatus.QUEUED, repository.getByMedia("vid-1")!!.status)
     }
 
@@ -324,7 +339,9 @@ class VideoAnalysisRepositoryTest {
         assertTrue(repository.setUserProfileOverride("vid-1", AnalysisProfileId.ROW))
 
         assertEquals(CaptureOverrides(AnalysisProfileId.ROW, null, null), CaptureOverridesFile.read(capture))
-        assertEquals("FULL", TechniqueWorkTestKit.awaitStarted(1).single().getString(TechniqueAnalysisWorker.KEY_MODE))
+        val started = TechniqueWorkTestKit.awaitStarted(1).single()
+        assertEquals("FULL", started.getString(TechniqueAnalysisWorker.KEY_MODE))
+        assertTrue(started.getBoolean(TechniqueAnalysisWorker.KEY_EXPLICIT, false))
         assertFalse(repository.setUserProfileOverride("fantasma", AnalysisProfileId.ROW))
 
         TechniqueAnalysisScheduler.cancel(context, "vid-1")

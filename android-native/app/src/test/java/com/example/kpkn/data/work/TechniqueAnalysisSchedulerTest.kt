@@ -60,6 +60,7 @@ class TechniqueAnalysisSchedulerTest {
         db = KpknDatabase.createInMemory(context)
         store = WorkoutMediaStore(folder.newFolder("files"))
         repository = VideoAnalysisRepository.forDatabase(context, db, store)
+        TechniqueAnalysisScheduler.resetBackgroundReconcileForTests()
         TechniqueWorkTestKit.initWorkManager(context)
     }
 
@@ -75,8 +76,12 @@ class TechniqueAnalysisSchedulerTest {
     private fun infos(mediaId: String): List<WorkInfo> =
         workManager.getWorkInfosForUniqueWork(TechniqueAnalysisScheduler.uniqueName(mediaId)).get()
 
-    private suspend fun enqueue(mediaId: String, mode: AnalysisMode = AnalysisMode.FULL, userInitiated: Boolean = true) =
-        TechniqueAnalysisScheduler.enqueue(context, mediaId, mode, userInitiated, repository = repository)
+    private suspend fun enqueue(
+        mediaId: String,
+        mode: AnalysisMode = AnalysisMode.FULL,
+        userInitiated: Boolean = true,
+        explicit: Boolean = false,
+    ) = TechniqueAnalysisScheduler.enqueue(context, mediaId, mode, userInitiated, explicit = explicit, repository = repository)
 
     private suspend fun status(mediaId: String) = repository.getByMedia(mediaId)?.status
 
@@ -117,6 +122,7 @@ class TechniqueAnalysisSchedulerTest {
         assertEquals("FULL", input.getString(TechniqueAnalysisWorker.KEY_MODE))
         assertTrue(input.getBoolean(TechniqueAnalysisWorker.KEY_USER_INITIATED, false))
         assertFalse(input.getBoolean(TechniqueAnalysisWorker.KEY_IMPORTED, true))
+        assertFalse("sin pedirlo, es automático", input.getBoolean(TechniqueAnalysisWorker.KEY_EXPLICIT, true))
     }
 
     @Test
@@ -148,6 +154,23 @@ class TechniqueAnalysisSchedulerTest {
         assertEquals("PLATE_ONLY", request.workSpec.input.getString(TechniqueAnalysisWorker.KEY_MODE))
     }
 
+    @Test
+    fun the_explicit_flag_travels_in_the_input_and_is_not_the_same_as_urgent() {
+        val explicit = TechniqueAnalysisScheduler.requestFor("m1", AnalysisMode.FULL, userInitiated = true, explicit = true)
+        assertTrue(explicit.workSpec.input.getBoolean(TechniqueAnalysisWorker.KEY_EXPLICIT, false))
+        assertTrue(explicit.workSpec.expedited)
+
+        // Una petición explícita que no es urgente (por lotes) lleva la bandera y no es expedita.
+        val batch = TechniqueAnalysisScheduler.requestFor("m1", AnalysisMode.FULL, userInitiated = false, explicit = true)
+        assertTrue(batch.workSpec.input.getBoolean(TechniqueAnalysisWorker.KEY_EXPLICIT, false))
+        assertFalse(batch.workSpec.expedited)
+
+        // Y una urgente que es automática (la del guardado) no la lleva.
+        val automatic = TechniqueAnalysisScheduler.requestFor("m1", AnalysisMode.FULL, userInitiated = true)
+        assertFalse(automatic.workSpec.input.getBoolean(TechniqueAnalysisWorker.KEY_EXPLICIT, true))
+        assertTrue(automatic.workSpec.expedited)
+    }
+
     // --- Encolar y cancelar ---
 
     @Test
@@ -164,6 +187,19 @@ class TechniqueAnalysisSchedulerTest {
         val work = infos("vid-1").single()
         assertFalse(work.state.isFinished)
         assertTrue("technique-analysis-media:vid-1" in work.tags)
+    }
+
+    @Test
+    fun enqueue_hands_the_explicit_flag_to_the_job_and_defaults_to_automatic() = runBlocking {
+        TechniqueWorkTestKit.insertVideo(db, store, "auto")
+        TechniqueWorkTestKit.insertVideo(db, store, "pedido")
+
+        assertTrue(enqueue("auto"))
+        assertTrue(enqueue("pedido", explicit = true))
+
+        val started = TechniqueWorkTestKit.awaitStarted(2).associateBy { it.getString(TechniqueAnalysisWorker.KEY_MEDIA_ID) }
+        assertFalse(started.getValue("auto").getBoolean(TechniqueAnalysisWorker.KEY_EXPLICIT, true))
+        assertTrue(started.getValue("pedido").getBoolean(TechniqueAnalysisWorker.KEY_EXPLICIT, false))
     }
 
     @Test
@@ -396,16 +432,26 @@ class TechniqueAnalysisSchedulerTest {
     }
 
     @Test
-    fun reconcile_in_the_background_runs_on_the_process_repository() = runBlocking {
+    fun reconcile_in_the_background_runs_on_the_process_repository_and_only_once_per_process() = runBlocking {
         val media = analyzedVideo("vid-a")
         db.openHelper.writableDatabase.execSQL("DELETE FROM workout_media")
         db.workoutMediaDao().upsert(media.toEntity())
         VideoAnalysisRepository.installForTests(repository)
 
-        val job = TechniqueAnalysisScheduler.reconcileInBackground(context)
+        val first = TechniqueAnalysisScheduler.reconcileInBackground(context)
 
-        assumeTrue("Robolectric no se presenta como el proceso principal", job != null)
-        job!!.join()
+        assumeTrue("Robolectric no se presenta como el proceso principal", first != null)
+        first!!.join()
+        assertEquals(VideoAnalysisStatus.DONE, status("vid-a"))
+
+        // MainActivity se recrea (al girar la pantalla…) y AppBootstrap también llama: la segunda vez no reconcilia.
+        db.videoAnalysisDao().delete("vid-a")
+        val second = TechniqueAnalysisScheduler.reconcileInBackground(context)
+
+        assertNull("la segunda llamada no lanza nada", second)
+        assertNull("y la fila borrada no se rehace", repository.getByMedia("vid-a"))
+        // Llamar a reconcile() a mano sí sigue funcionando.
+        assertEquals(1, TechniqueAnalysisScheduler.reconcile(context, repository).rebuiltRows)
         assertEquals(VideoAnalysisStatus.DONE, status("vid-a"))
     }
 

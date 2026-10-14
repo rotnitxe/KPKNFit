@@ -109,6 +109,7 @@ class WorkoutMediaRepositoryAnalysisTest {
         assertEquals("FULL", started.getString(TechniqueAnalysisWorker.KEY_MODE))
         assertTrue(started.getBoolean(TechniqueAnalysisWorker.KEY_USER_INITIATED, false))
         assertFalse("grabado con la cámara: no es una importación", started.getBoolean(TechniqueAnalysisWorker.KEY_IMPORTED, true))
+        assertFalse("el guardado es automático: el ajuste apagado lo descarta", started.getBoolean(TechniqueAnalysisWorker.KEY_EXPLICIT, true))
         assertFalse(infos("vid-1").single().state.isFinished)
     }
 
@@ -129,6 +130,7 @@ class WorkoutMediaRepositoryAnalysisTest {
         assertEquals("gallery-1", started.getString(TechniqueAnalysisWorker.KEY_MEDIA_ID))
         assertEquals("FULL", started.getString(TechniqueAnalysisWorker.KEY_MODE))
         assertTrue("viene de la galería", started.getBoolean(TechniqueAnalysisWorker.KEY_IMPORTED, false))
+        assertFalse("también automático", started.getBoolean(TechniqueAnalysisWorker.KEY_EXPLICIT, true))
     }
 
     @Test

@@ -656,12 +656,14 @@ class WorkoutMediaRepository(
     }
 
     /**
-     * Encola el análisis de técnica (FULL, a petición del usuario) de un VÍDEO recién guardado: lo graba la cámara
-     * (`submitFinalizedVideoCapture`) o llega de la galería (`submitUriCapture`), y los dos pasan por `enqueueTracked`.
+     * Encola el análisis de técnica AUTOMÁTICO (FULL, urgente: el usuario espera el resultado) de un VÍDEO recién guardado: lo
+     * graba la cámara (`submitFinalizedVideoCapture`) o llega de la galería (`submitUriCapture`), y los dos pasan por
+     * `enqueueTracked`.
      *
      * Solo si el ajuste «Analizar la técnica de los vídeos» está activo, el vídeo es de un ejercicio (un vídeo suelto, sin
      * ejercicio, no tiene nada que medir) y aún no tiene análisis: es idempotente, así que reintentar o recuperar una captura
-     * ya guardada no lo repite. Nada de lo que falle aquí rompe el guardado: se anota y se sigue.
+     * ya guardada no lo repite. No es una petición explícita: si el ajuste se apaga antes de que corra, el Worker lo descarta.
+     * Nada de lo que falle aquí rompe el guardado: se anota y se sigue.
      */
     private suspend fun scheduleTechniqueAnalysis(media: WorkoutMedia, imported: Boolean) {
         if (media.kind != WorkoutMediaKind.VIDEO || !media.hasExerciseContext()) return
@@ -674,6 +676,7 @@ class WorkoutMediaRepository(
                 AnalysisMode.FULL,
                 userInitiated = true,
                 imported = imported,
+                explicit = false,
                 repository = analysis,
             )
         } catch (cancelled: CancellationException) {
