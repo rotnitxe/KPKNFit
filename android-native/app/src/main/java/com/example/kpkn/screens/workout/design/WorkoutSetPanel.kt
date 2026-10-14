@@ -1,43 +1,26 @@
 package com.example.kpkn.screens.workout.design
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.snap
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.expandVertically
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.shrinkVertically
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.material3.Icon
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.rotate
-import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.example.kpkn.screens.onboarding.design.WizardColors
-import com.example.kpkn.screens.onboarding.design.wizardReducedMotion
+import com.example.kpkn.ui.components.KpknSheet
 import com.example.kpkn.ui.components.icons.KpknLineIcons
-import com.example.kpkn.ui.design.KpknSegmentedControl
 import com.example.kpkn.ui.design.KpknSecondaryPill
+import com.example.kpkn.ui.design.KpknSegmentedControl
 import com.example.kpkn.ui.design.KpknSegmentedSize
 import com.example.kpkn.ui.design.KpknStepperMetric
+import com.example.kpkn.ui.design.KpknTextAction
 import com.example.kpkn.ui.design.KpknType
 import java.util.Locale
 
@@ -50,9 +33,9 @@ import java.util.Locale
  * - [modeLabels] (si hay) es el selector compacto de modo de carga, encima de la cifra de kg.
  * - La intensidad (RIR o RPE, [intensityScale]) con «Fallo»; sin [intensityScale], no hay fila.
  * - La sugerencia de carga (LS1) con «Usar».
- * - «Opciones avanzadas» despliega [advanced] debajo, plegado por defecto. Con [advanced] nulo no hay botón.
+ * - «Opciones avanzadas» (LS7b) abre la hoja «Opciones de la serie» con [advanced]. Con [advanced] nulo no hay botón.
  *
- * No guarda estado: [advancedOpen] lo lleva quien la monta.
+ * No guarda estado: [advancedOpen] lo lleva quien la monta, y [onToggleAdvanced] lo cambia (también al cerrar la hoja).
  */
 @Composable
 fun WorkoutSetPanel(
@@ -167,7 +150,7 @@ fun WorkoutSetPanel(
                 modifier = Modifier.fillMaxWidth(),
             )
         }
-        // «Sugerida» y «Opciones avanzadas» van juntos, a 8 dp; el bloque plegado se separa con el ritmo de 20 dp.
+        // «Sugerida» y «Opciones avanzadas» van juntos, a 8 dp; el bloque se separa con el ritmo de 20 dp.
         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
             WorkoutLoadSuggestion(
                 suggestion = suggestion,
@@ -177,55 +160,29 @@ fun WorkoutSetPanel(
                 modifier = Modifier.fillMaxWidth(),
             )
             if (advanced != null) {
-                AdvancedToggle(open = advancedOpen, onToggle = onToggleAdvanced)
-            }
-        }
-        if (advanced != null) {
-            AnimatedVisibility(
-                visible = advancedOpen,
-                enter = expandVertically() + fadeIn(tween(durationMillis = 160)),
-                exit = shrinkVertically() + fadeOut(tween(durationMillis = 120)),
-            ) {
-                advanced()
+                KpknTextAction(
+                    text = "Opciones avanzadas",
+                    onClick = onToggleAdvanced,
+                    icon = KpknLineIcons.ChevronRight,
+                )
             }
         }
     }
-}
-
-/**
- * «Opciones avanzadas» (KPKN LS2b): el mismo aspecto que `KpknTextAction`, con el chevron que gira 180° al abrir. Sin giro con
- * movimiento reducido. Zona táctil de 48 dp, con el estado («Desplegado» o «Plegado») para TalkBack.
- */
-@Composable
-private fun AdvancedToggle(open: Boolean, onToggle: () -> Unit) {
-    val reduced = wizardReducedMotion()
-    val angle by animateFloatAsState(
-        targetValue = if (open) 180f else 0f,
-        animationSpec = if (reduced) snap() else tween(durationMillis = 220),
-        label = "advancedChevron",
-    )
-    Row(
-        modifier = Modifier
-            .defaultMinSize(minHeight = 48.dp)
-            .clickable(role = Role.Button, onClick = onToggle)
-            .semantics {
-                role = Role.Button
-                stateDescription = if (open) "Desplegado" else "Plegado"
-            },
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Text(
-            text = "Opciones avanzadas",
-            style = KpknType.action,
-            color = WizardColors.text,
-            maxLines = 1,
-        )
-        Spacer(Modifier.width(4.dp))
-        Icon(
-            imageVector = KpknLineIcons.ChevronDown,
-            contentDescription = null,
-            modifier = Modifier.size(16.dp).rotate(angle),
-            tint = WizardColors.text,
-        )
+    if (advanced != null && advancedOpen) {
+        KpknSheet(onDismissRequest = onToggleAdvanced) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(start = 20.dp, end = 20.dp, bottom = 24.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+            ) {
+                Text(
+                    text = "Opciones de la serie",
+                    style = KpknType.title,
+                    color = WizardColors.text,
+                )
+                advanced()
+            }
+        }
     }
 }
