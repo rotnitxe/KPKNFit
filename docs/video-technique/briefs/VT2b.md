@@ -9,6 +9,17 @@
 
 Este paquete es el corazón del conteo. Los umbrales van TODOS en `AnalysisTuning`; nada de números mágicos sueltos.
 
+## Ajustes heredados de VT2a (hazlos primero, en un commit aparte)
+1. **Nombre.** La clase de serie se llama `CountSeries`, igual que su constructor y su resultado, para no chocar con el enum `profiles.CountSignal` (VT2a lo avisó).
+2. **Aperturas.** En `AnalysisProfileResolver`, FLY solo con `equipmentId = dumbbells`.
+   - Las aperturas en máquina o polea (`flat_chest_fly`, `incline_chest_fly` y `decline_chest_fly` con machine o cable: pec deck y crossover) → `Unsupported("machine_plane")`.
+   - De lado, el movimiento es horizontal y la muñeca no baja.
+3. **Gemelos sentado.**
+   - Nuevo perfil `CALF_SEATED` al final del enum: `poseSignal = RISE_KNEE_NEAR`, nivel C, vistas SIDE y `minAmplitude` 0,015 BH, con el resto igual que CALF.
+   - El resolver lo elige cuando `configurationId` contiene «seated».
+   - Ajusta las pruebas de VT2a (cobertura y casos) y añade el caso `calf_raise__bilateral__seated_machine` → CALF_SEATED.
+   - Archivos permitidos para esto: `profiles/*` y sus pruebas.
+
 ## Archivos permitidos (nuevos)
 - **`domain/biomechanics/metrics/`:** solo estos tipos, que VT3a completará:
   - `AnalysisTuning.kt`: la parte de §4 y §6;
@@ -18,7 +29,7 @@ Este paquete es el corazón del conteo. Los umbrales van TODOS en `AnalysisTunin
   - `TempoSummary.kt`: `@Serializable`, con `label()`.
 - **`domain/biomechanics/reps/`:**
   - `TrackPreparation.kt`;
-  - `CountSignal.kt`: `CountSignal` y `CountSignalBuilder`;
+  - `CountSeries.kt`: `CountSeries` y `CountSeriesBuilder`;
   - `RepSegmenter.kt`;
   - `RepConfidence.kt`;
   - `RepPhases.kt`.
@@ -42,7 +53,7 @@ class PreparedTrack(
 object TrackPreparation { fun prepare(track: PoseTrackV2, tuning: AnalysisTuning = AnalysisTuning.DEFAULT): PreparedTrack }
 
 enum class SignalUnit { BODY_HEIGHTS, DEGREES, RATIO }
-class CountSignal(
+class CountSeries(
     val t0Us: Long, val fs: Double,
     val r: DoubleArray,                 // orientada (reposo = mínimo), remuestreada, Hampel, huecos ≤ 0.25 s rellenos; NaN = corte
     val filled: BooleanArray, val weak: BooleanArray,
@@ -53,10 +64,10 @@ class CountSignal(
     val unit: SignalUnit,
     val validFraction: Double,           // observada (sin rellenos ni débiles)
 )
-sealed interface CountSignalResult { data class Ok(val signal: CountSignal, val prepared: PreparedTrack) : CountSignalResult;
-    data class NoSignal(val reason: String) : CountSignalResult }
-object CountSignalBuilder {
-    fun build(prepared: PreparedTrack, bar: BarTrack?, profile: AnalysisProfile, tuning: AnalysisTuning = AnalysisTuning.DEFAULT): CountSignalResult
+sealed interface CountSeriesResult { data class Ok(val series: CountSeries, val prepared: PreparedTrack) : CountSeriesResult;
+    data class NoSignal(val reason: String) : CountSeriesResult }
+object CountSeriesBuilder {
+    fun build(prepared: PreparedTrack, bar: BarTrack?, profile: AnalysisProfile, tuning: AnalysisTuning = AnalysisTuning.DEFAULT): CountSeriesResult
 }
 
 enum class SideMode { BOTH_SYNC, ALTERNATING, SINGLE, NEAR_ONLY, NOT_APPLICABLE }
@@ -69,13 +80,13 @@ data class SegmentationResult(
     val sideMode: SideMode, val perSideCounts: Map<Side, Int>, val polarityFlipped: Boolean, val noRepsReason: String?,
 ) { val fullCount: Int; val partialCount: Int; val failedCount: Int }
 object RepSegmenter {
-    fun segment(signal: CountSignal, profile: AnalysisProfile, hints: Set<String>, tuning: AnalysisTuning = AnalysisTuning.DEFAULT): SegmentationResult
+    fun segment(series: CountSeries, profile: AnalysisProfile, hints: Set<String>, tuning: AnalysisTuning = AnalysisTuning.DEFAULT): SegmentationResult
 }
 
 data class ConfidenceBreakdown(val cTrack: Double, val cSnr: Double, val cAmp: Double, val cRhy: Double, val cView: Double,
     val nAmbiguous: Int, val score: Double, val level: CountConfidence, val forcedLowReason: String?)
 object RepConfidence {
-    fun score(signal: CountSignal, seg: SegmentationResult, view: ViewEstimate, profile: AnalysisProfile,
+    fun score(series: CountSeries, seg: SegmentationResult, view: ViewEstimate, profile: AnalysisProfile,
               flags: Set<AnalysisFlag>, tuning: AnalysisTuning = AnalysisTuning.DEFAULT): ConfidenceBreakdown
 }
 
@@ -84,7 +95,7 @@ data class RepPhaseResult(val cycleIndex: Int, val departUs: Long, val turnStart
 data class PhaseSummary(val reps: List<RepPhaseResult>, val tutMs: Long?, val setDurationMs: Long?, val restPositionMs: Long?,
     val tempo: TempoSummary?)
 object RepPhases {
-    fun compute(signal: CountSignal, seg: SegmentationResult, profile: AnalysisProfile, tuning: AnalysisTuning = AnalysisTuning.DEFAULT): PhaseSummary
+    fun compute(series: CountSeries, seg: SegmentationResult, profile: AnalysisProfile, tuning: AnalysisTuning = AnalysisTuning.DEFAULT): PhaseSummary
 }
 ```
 
@@ -95,7 +106,7 @@ object RepPhases {
    - `Timebase`;
    - `BodyScale`, `NearSide`, `Facing` y `ViewClassifier` sobre los fotogramas con pose;
    - las flags.
-2. **`CountSignalBuilder`.** Implementa cada `CountSignal` de §3.4 con la fórmula de §5, sobre la geometría de `PreparedTrack`, y la orienta con la posición de inicio o reposo en el MÍNIMO.
+2. **`CountSeriesBuilder`.** Implementa cada `CountSignal` (el enum de §3.4) con la fórmula de §5, sobre la geometría de `PreparedTrack`, y la orienta con la posición de inicio o reposo en el MÍNIMO.
    - **Fórmulas** (BH = FH/S; S = `bodyHeightFh`):
 
      | Señal | Fórmula | Unidad |
@@ -163,7 +174,7 @@ object RepPhases {
   - pausa de 0,2 s → 0;
   - TUT sin el reposo de pie entre repeticiones;
   - etiqueta de tempo «2-1-1-0».
-- **`CountSignalBuilderTest`:**
+- **`CountSeriesBuilderTest`:**
   - orientación correcta en cada perfil A: el reposo es el mínimo;
   - la misma señal en vertical que en horizontal;
   - el disco sustituye a la pose cuando hay cobertura;
