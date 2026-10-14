@@ -15,12 +15,10 @@ import androidx.camera.video.VideoRecordEvent
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import com.example.kpkn.data.media.WorkoutAlbumGrouping
-import com.example.kpkn.data.media.PoseTrajectoryAnalyzer
 import com.example.kpkn.data.media.WorkoutMediaCaptureJournalEntry
 import com.example.kpkn.data.models.WorkoutMedia
 import com.example.kpkn.data.models.WorkoutMediaKind
 import com.example.kpkn.data.repository.WorkoutMediaRepository
-import com.example.kpkn.domain.biomechanics.TrajectoryFamily
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Deferred
@@ -594,12 +592,6 @@ class WorkoutMediaCaptureController(
                     return@launch
                 }
                 _captureError.value = null
-                if (saved.kind == WorkoutMediaKind.VIDEO && poseTrajectoryEnabled()) {
-                    scope.launch(Dispatchers.IO) {
-                        runCatching { attachPoseTrack(saved, request) }
-                        refreshSessionMedia()
-                    }
-                }
             } catch (cancelled: CancellationException) {
                 throw cancelled
             } catch (error: Exception) {
@@ -611,28 +603,6 @@ class WorkoutMediaCaptureController(
             }
             refreshSessionMedia()
         }
-    }
-
-    private suspend fun attachPoseTrack(saved: WorkoutMedia, request: WorkoutMediaCaptureRequest) {
-        val video = File(saved.filePath)
-        val sidecar = repository.poseSidecarFile(saved.id, saved.createdAtMs)
-        val family = TrajectoryFamily.fromRelatorName(
-            relatorFamilyFrom(
-                exerciseName = request.exerciseName.orEmpty(),
-                jointIds = emptyList(),
-                movementPatternId = null,
-            ).name,
-        )
-        val track = runCatching {
-            PoseTrajectoryAnalyzer().analyzeVideo(
-                videoFile = video,
-                mediaId = saved.id,
-                family = family,
-                sidecarFile = sidecar,
-            )
-        }.getOrNull() ?: return
-        if (track.frames.isEmpty()) return
-        repository.upsert(saved.copy(poseTrackPath = sidecar.absolutePath))
     }
 
     companion object {
