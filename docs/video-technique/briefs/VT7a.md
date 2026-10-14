@@ -1,13 +1,15 @@
 # VT7a · Reproductor de técnica: vídeo, capa sincronizada, controles y línea de repeticiones
 
-- **Worktree y rama:** `C:\kw\vt-a`, rama `vt/vt7a`, desde `feat/video-technique` con VT4c integrado.
+- **Worktree y rama:** `C:\kw\vt-b`, rama `vt/vt7a`, desde `feat/video-technique` con el dominio entero (VT1a–VT6a).
+  - No depende de VT4c: solo usa tipos del dominio (`PoseTrackV2`, `BarTrack`, `SetTechniqueReport`) y muestras de prueba.
+  - VT4c se hace a la vez en `C:\kw\vt-a`.
 - **Antes de empezar, lee:**
   - `VT_COMUN.md`, entero, incluida la sección «Pantallas»;
   - `docs/screens-v1/briefs/S_COMUN.md`;
   - `docs/design/KPKN_UI_V2.md`;
   - `VIDEO_TECHNIQUE_V1.md` §1 punto 4, §3.1–§3.2, §3.5 y §9 punto 8 (reproductor);
   - el reproductor de hoy: `screens/workout/components/WorkoutVideoPlayer.kt` y `PoseTrajectoryOverlay.kt`;
-  - la hoja de render patrón: `src/test/.../render/WorkoutRestRenderSheetTest.kt`.
+  - la hoja de render patrón: `src/test/.../render/CatalogListRenderSheetTest.kt` o `BodyHistoryRenderSheetTest.kt`, que usan piezas de `ui/design`. `WorkoutRestRenderSheetTest.kt` ya no existe: se fue con la restauración de la sesión (U7).
 - **Logs:** `C:\kw\logs\vt-7a-<n>.log`.
 - **PNG:** `C:/kw/shots/vt/7a`.
 
