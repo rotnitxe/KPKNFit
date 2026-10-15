@@ -453,7 +453,9 @@ internal fun InlineSetRow(
     @Composable
     fun RowScope.IntensityRowFields(options: List<IntensityMode>, selectedIndex: Int) {
         if (!showPlannedIntensity) {
-            Box(modifier = Modifier.weight(1f)) {
+            Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                // Hueco del rótulo: el chip queda a la altura de las cifras de la fila.
+                Text(" ", style = KpknType.caption, minLines = 2, maxLines = 2)
                 KpknChip(
                     text = "+ Intensidad",
                     selected = false,
@@ -666,7 +668,11 @@ internal fun InlineSetRow(
                 }
             } else if (isAmrapMode) {
                 if (listSkin) {
-                    AmrapTag(calibrator = set.isCalibrator, modifier = Modifier.weight(1f))
+                    Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                        // Hueco del rótulo: la píldora AMRAP queda a la altura de la cifra de reps.
+                        Text(" ", style = KpknType.caption, minLines = 2, maxLines = 2)
+                        AmrapTag(calibrator = set.isCalibrator, modifier = Modifier.fillMaxWidth())
+                    }
                 } else {
                     Surface(
                         modifier = Modifier.weight(1f),

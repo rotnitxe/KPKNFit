@@ -426,17 +426,18 @@ internal fun MobilityPreparationRows(
                 tint = WizardColors.text,
                 modifier = Modifier.size(18.dp),
             )
-            Text(
-                "Tiempo global de movilidad",
-                style = KpknType.bodyStrong,
-                color = WizardColors.text,
-                modifier = Modifier.weight(1f),
-            )
-            Text(
-                if (totalMinutes > 0) formatMobilityTimer(totalMinutes) else "Configurar con reloj",
-                style = KpknType.caption,
-                color = WizardColors.textMuted,
-            )
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    "Tiempo global de movilidad",
+                    style = KpknType.bodyStrong,
+                    color = WizardColors.text,
+                )
+                Text(
+                    if (totalMinutes > 0) formatMobilityTimer(totalMinutes) else "Configurar con reloj",
+                    style = KpknType.caption,
+                    color = WizardColors.textMuted,
+                )
+            }
         }
         series.forEach { mobility ->
             key(mobility.id) {
