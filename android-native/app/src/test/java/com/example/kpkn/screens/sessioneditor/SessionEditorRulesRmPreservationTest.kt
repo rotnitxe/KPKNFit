@@ -71,4 +71,20 @@ class SessionEditorRulesRmPreservationTest {
             assertEquals(2, set.targetRIR)
         }
     }
+
+    /**
+     * ER1f: aplicar reglas solo cambia lo que la regla fija. La serie de partida está al 80 % RM: el %RM no es de la regla, así que
+     * debe sobrevivir (antes `applyDefaults` lo ponía a null y `normalizeSet` lo devolvía a 75).
+     */
+    @Test
+    fun aplicarReglas_enModoRM_conservaElPorcentajeRMDeLaSerie() {
+        val result = SessionEditorRulesEngine.applyDefaults(
+            session = rmSession(),
+            defaults = SessionEditorRuleDefaults(setCount = 1, reps = 6, rpe = 7.5, intensityType = DefaultIntensityType.RPE),
+            partId = null,
+            exerciseIndex = exerciseIndex,
+        )
+
+        assertEquals(80.0, result.exercises.single().sets.single().targetPercentageRM!!, 1e-9)
+    }
 }
