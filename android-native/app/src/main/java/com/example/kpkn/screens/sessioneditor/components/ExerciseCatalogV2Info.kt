@@ -1,5 +1,14 @@
 package com.example.kpkn.screens.sessioneditor.components
 
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.LocalContext
+import com.example.kpkn.data.exercises.catalogExerciseIndex
+import com.example.kpkn.data.exercises.catalogv2.CatalogV2ProcessCache
 import com.example.kpkn.data.exercises.catalogv2.toLegacySelection
 import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.ExerciseMuscleInfo
@@ -7,6 +16,11 @@ import com.example.kpkn.domain.exercises.catalogv2.ExerciseCatalogV2
 import com.example.kpkn.domain.exercises.catalogv2.ExerciseConfigurationV2
 import com.example.kpkn.domain.exercises.catalogv2.ExerciseDefinitionV2
 import com.example.kpkn.domain.exercises.catalogv2.ExerciseSelectionV2
+import com.example.kpkn.screens.onboarding.design.entreno.plan.ExercisePattern
+import com.example.kpkn.screens.onboarding.design.entreno.plan.exercisePatternOf
+import com.example.kpkn.screens.sessioneditor.components.sheets.resolveCatalogExerciseInfo
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 /** Exact v2 editorial payload for one persisted exercise occurrence. */
 internal data class ResolvedCatalogExerciseV2(
@@ -105,4 +119,97 @@ internal fun catalogFichaMaterialLabel(
     val value = selectedImplementation?.takeIf { it.isNotBlank() && it != "default" }
         ?: defaultImplementation?.takeIf { it.isNotBlank() && it != "default" }
     return value?.let { exerciseCatalogOptionLabel(it, definitionId) }
+}
+
+/**
+ * Modelo de la ficha de un ejercicio que ya está en la sesión (ER1f), armado como lo arma el catálogo (`ExercisePickerV2Catalog`): la
+ * misma etiqueta de músculo, de implemento y de patrón; las mismas imágenes; la configuración como línea de lectura. Sin ejes elegibles:
+ * desde el editor la ficha no cambia el ejercicio («Cambiar» vive en sus acciones rápidas).
+ */
+internal fun sessionExerciseDetailModel(resolved: ResolvedCatalogExerciseV2): CatalogDetailModel {
+    val definition = resolved.definition
+    val configuration = resolved.configuration
+    val default = definition.configurations.firstOrNull { it.id == definition.defaultConfigurationId }
+    val selectedImplementation = configuration.selectedOptions["implement"]
+    val pattern = exercisePatternOf(definition.canonicalName)
+    val muscleLabel = default?.profile?.primaryMuscles?.firstOrNull()?.let(::exerciseCatalogMuscleLabel)
+    val fichaMaterialLabel = catalogFichaMaterialLabel(
+        selectedImplementation = selectedImplementation,
+        defaultImplementation = default?.selectedOptions?.get("implement"),
+        definitionId = definition.id,
+    )
+    return CatalogDetailModel(
+        name = definition.canonicalName,
+        caption = listOfNotNull(
+            muscleLabel,
+            fichaMaterialLabel,
+            pattern.label.takeIf { pattern != ExercisePattern.GENERIC },
+        ).joinToString(" · ").takeIf { it.isNotBlank() },
+        description = definition.description.takeIf { it.isNotBlank() },
+        imageVariants = exerciseCatalogImageVariants(
+            definitionId = definition.id,
+            catalogConfigurationId = configuration.id,
+            selectedImplementation = selectedImplementation,
+        ),
+        selectedImplementation = selectedImplementation,
+        axes = emptyList(),
+        configurationLine = exerciseCatalogConfigurationSummary(configuration, definition.id),
+        configurationIncomplete = false,
+        muscleInfo = resolved.legacyInfo.takeIf { it.involvedMuscles.isNotEmpty() },
+        joints = configuration.profile.jointInvolvement,
+        patternId = configuration.profile.movementPatternId,
+        isSelected = true,
+        canSelect = false,
+    )
+}
+
+/** Ficha de respaldo sin catálogo v2 (aún cargando, o un ejercicio sin ficha editorial): nombre, descripción y músculos conocidos. */
+internal fun sessionExerciseFallbackDetailModel(exercise: Exercise, info: ExerciseMuscleInfo?): CatalogDetailModel = CatalogDetailModel(
+    name = exercise.name,
+    caption = null,
+    description = info?.description?.takeIf { it.isNotBlank() },
+    imageVariants = emptyList(),
+    selectedImplementation = null,
+    axes = emptyList(),
+    configurationLine = null,
+    configurationIncomplete = false,
+    muscleInfo = info?.takeIf { it.involvedMuscles.isNotEmpty() },
+    joints = emptyList(),
+    patternId = null,
+    isSelected = true,
+    canSelect = false,
+)
+
+/**
+ * La ficha de un ejercicio de la sesión, abierta desde «Ficha» de sus acciones rápidas (ER1f). Carga el catálogo v2 igual que esa hoja y
+ * pinta la misma `ExerciseCatalogInfoDialog` sin el pie «Añadir/Quitar».
+ */
+@Composable
+internal fun SessionExerciseDetailSheet(exercise: Exercise, onDismiss: () -> Unit) {
+    val context = LocalContext.current
+    var catalogEntry by remember { mutableStateOf(CatalogV2ProcessCache.peek()) }
+    LaunchedEffect(context) {
+        if (catalogEntry == null) {
+            catalogEntry = runCatching {
+                withContext(Dispatchers.IO) { CatalogV2ProcessCache.getOrLoad(context) }
+            }.getOrNull()
+        }
+    }
+    val model = remember(exercise, catalogEntry) {
+        val legacyInfo = resolveCatalogExerciseInfo(exercise, catalogExerciseIndex())
+        val resolved = resolveCatalogExerciseV2(exercise, catalogEntry?.catalog, legacyInfo)
+        if (resolved != null) {
+            sessionExerciseDetailModel(resolved)
+        } else {
+            sessionExerciseFallbackDetailModel(exercise, legacyInfo)
+        }
+    }
+    ExerciseCatalogInfoDialog(
+        model = model,
+        onDismiss = onDismiss,
+        onToggleSelection = {},
+        onSelectOption = { _, _ -> },
+        onImplementationSettled = {},
+        showFooter = false,
+    )
 }

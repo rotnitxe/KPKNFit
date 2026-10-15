@@ -209,11 +209,12 @@ internal fun shouldShowCatalogCreateSuggestion(
     globalCatalogResultCount == 0 &&
     customResultCount == 0
 
-private fun exerciseCatalogImageVariants(
+/** Internal (ER1f): la ficha del editor usa el mismo cálculo de imágenes que el catálogo. */
+internal fun exerciseCatalogImageVariants(
     definitionId: String,
     catalogConfigurationId: String? = null,
     selectedImplementation: String? = null,
-): List<CatalogExerciseImageVariant> {
+): List<ExerciseTechniqueImageVariant> {
     val variants = ExerciseTechniqueImageLookup.variants(definitionId)
     if (variants.isEmpty() || catalogConfigurationId == null) return variants
 

@@ -177,6 +177,8 @@ internal fun ExerciseCatalogInfoDialog(
     onToggleSelection: () -> Unit,
     onSelectOption: (axis: String, value: String) -> Unit,
     onImplementationSettled: (String) -> Unit,
+    /** Sin el pie «Añadir/Quitar» (ER1f): la ficha del editor ya es de un ejercicio de la sesión. */
+    showFooter: Boolean = true,
 ) {
     KpknSheet(
         onDismissRequest = onDismiss,
@@ -189,6 +191,7 @@ internal fun ExerciseCatalogInfoDialog(
             onToggleSelection = onToggleSelection,
             onSelectOption = onSelectOption,
             onImplementationSettled = onImplementationSettled,
+            showFooter = showFooter,
         )
     }
 }
@@ -209,6 +212,7 @@ internal fun CatalogDetailContent(
     onImplementationSettled: (String) -> Unit,
     modifier: Modifier = Modifier,
     startExpanded: Boolean = false,
+    showFooter: Boolean = true,
 ) {
     // Los implementos van sobre la foto como píldoras (CF1); el resto de ejes sigue en «Configuración».
     val implementOptions = model.axes.firstOrNull { it.axis == ImplementAxis }?.options.orEmpty()
@@ -322,17 +326,19 @@ internal fun CatalogDetailContent(
                 )
             }
         }
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 12.dp),
-        ) {
-            KpknPrimaryPill(
-                text = if (model.isSelected) "Quitar" else "Añadir",
-                onClick = onToggleSelection,
-                modifier = Modifier.fillMaxWidth(),
-                enabled = model.canSelect,
-            )
+        if (showFooter) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 12.dp),
+            ) {
+                KpknPrimaryPill(
+                    text = if (model.isSelected) "Quitar" else "Añadir",
+                    onClick = onToggleSelection,
+                    modifier = Modifier.fillMaxWidth(),
+                    enabled = model.canSelect,
+                )
+            }
         }
     }
 }
