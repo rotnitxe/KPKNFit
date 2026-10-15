@@ -68,7 +68,10 @@ class ExerciseSetListComposeTest {
         val set = ExerciseSet(id = "s1", targetReps = 8, targetRIR = 2, intensityMode = IntensityMode.RIR, targetPercentageRM = 80.0)
         renderList(exerciseWith(set, mode = mode, customUnit = customUnit))
         openRow("s1")
-        labels.forEach { label -> rule.onNodeWithText(label).assertExists() }
+        // «RIR» aparece como segmento del selector y como etiqueta del valor: basta con que el control esté presente.
+        labels.forEach { label ->
+            assertTrue("falta el control «$label»", rule.onAllNodesWithText(label).fetchSemanticsNodes().isNotEmpty())
+        }
     }
 
     @Test
