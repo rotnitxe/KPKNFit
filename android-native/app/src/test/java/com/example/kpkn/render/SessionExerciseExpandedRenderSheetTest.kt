@@ -66,6 +66,9 @@ class SessionExerciseExpandedRenderSheetTest {
         }
     }
 
+    /** Lo primero de cada prueba: sin `KPKN_RENDER_DIR` no se dibuja nada y la prueba se salta (no falla). */
+    private fun onlyWhenAsked() = assumeTrue("sin KPKN_RENDER_DIR no se dibuja nada", System.getenv("KPKN_RENDER_DIR") != null)
+
     @get:Rule
     val rule = createComposeRule()
 
@@ -186,168 +189,198 @@ class SessionExerciseExpandedRenderSheetTest {
     private fun bareExercise() = repsExercise(listOf(ExerciseSet(id = "b1", targetReps = 8, targetRIR = 2, intensityMode = IntensityMode.RIR)))
 
     @Test
-    fun rmBilateralConRirFilaCerrada() = renderSheet("rm_bilateral_cerrada") {
-        ExerciseSetList(
-            exercise = rmExercise(),
-            reference1RM = 100.0,
-            trainingMode = TrainingMode.RM,
-            customUnit = null,
-            predictedMetrics = mapOf("rm0" to 6.0, "rm1" to 5.0, "rm2" to 4.0),
-            accentColor = accent,
-            backgroundAccentColor = accent,
-            onAddSet = {},
-            onUpdateSet = { _, _ -> },
-            onRemoveSet = {},
-            onMoveSet = { _, _ -> },
-        )
-    }
-
-    @Test
-    fun rmBilateralConRirFilaAbierta() = renderSheet("rm_bilateral_abierta", openRowTag = "set-row-rm1") {
-        ExerciseSetList(
-            exercise = rmExercise(),
-            reference1RM = 100.0,
-            trainingMode = TrainingMode.RM,
-            customUnit = null,
-            predictedMetrics = mapOf("rm0" to 6.0, "rm1" to 5.0, "rm2" to 4.0),
-            accentColor = accent,
-            backgroundAccentColor = accent,
-            onAddSet = {},
-            onUpdateSet = { _, _ -> },
-            onRemoveSet = {},
-            onMoveSet = { _, _ -> },
-            onTransformExercise = {},
-        )
-    }
-
-    @Test
-    fun unilateralFilaAbierta() = renderSheet("unilateral_abierta", openRowTag = "set-row-r1:L") {
-        val uniSets = repsSets().map { set ->
-            set.copy(
-                leftTarget = UnilateralTarget(targetReps = set.targetReps, targetRIR = set.targetRIR, intensityMode = IntensityMode.RIR, weight = 12.0),
-                rightTarget = UnilateralTarget(targetReps = set.targetReps, targetRIR = set.targetRIR, intensityMode = IntensityMode.RIR, weight = 12.0),
+    fun rmBilateralConRirFilaCerrada() {
+        onlyWhenAsked()
+        renderSheet("rm_bilateral_cerrada") {
+            ExerciseSetList(
+                exercise = rmExercise(),
+                reference1RM = 100.0,
+                trainingMode = TrainingMode.RM,
+                customUnit = null,
+                predictedMetrics = mapOf("rm0" to 6.0, "rm1" to 5.0, "rm2" to 4.0),
+                accentColor = accent,
+                backgroundAccentColor = accent,
+                onAddSet = {},
+                onUpdateSet = { _, _ -> },
+                onRemoveSet = {},
+                onMoveSet = { _, _ -> },
             )
         }
-        val uni = repsExercise(uniSets).copy(
-            isUnilateral = true,
-            unilateralMode = UnilateralMode.UNILATERAL_PAIRED,
-            restBetweenSidesSeconds = 15,
-        )
-        ExerciseSetList(
-            exercise = uni,
-            reference1RM = 100.0,
-            trainingMode = TrainingMode.REPS,
-            customUnit = null,
-            predictedMetrics = emptyMap(),
-            accentColor = accent,
-            backgroundAccentColor = accent,
-            onAddSet = {},
-            onUpdateSet = { _, _ -> },
-            onRemoveSet = {},
-            onMoveSet = { _, _ -> },
-            onTransformExercise = {},
-        )
     }
 
     @Test
-    fun amrapFilaAbierta() = renderSheet("amrap_abierta", openRowTag = "set-row-a1") {
-        val amrap = Exercise(
-            id = "dominadas",
-            name = "Dominadas",
-            trainingMode = TrainingMode.AMRAP,
-            sets = listOf(
-                ExerciseSet(id = "a1", targetReps = 6, isAmrap = true),
-                ExerciseSet(id = "a2", targetReps = 6, isAmrap = true),
-            ),
-        )
-        ExerciseSetList(
-            exercise = amrap,
-            reference1RM = null,
-            trainingMode = TrainingMode.AMRAP,
-            customUnit = null,
-            predictedMetrics = emptyMap(),
-            accentColor = accent,
-            backgroundAccentColor = accent,
-            onAddSet = {},
-            onUpdateSet = { _, _ -> },
-            onRemoveSet = {},
-            onMoveSet = { _, _ -> },
-            onTransformExercise = {},
-        )
+    fun rmBilateralConRirFilaAbierta() {
+        onlyWhenAsked()
+        renderSheet("rm_bilateral_abierta", openRowTag = "set-row-rm1") {
+            ExerciseSetList(
+                exercise = rmExercise(),
+                reference1RM = 100.0,
+                trainingMode = TrainingMode.RM,
+                customUnit = null,
+                predictedMetrics = mapOf("rm0" to 6.0, "rm1" to 5.0, "rm2" to 4.0),
+                accentColor = accent,
+                backgroundAccentColor = accent,
+                onAddSet = {},
+                onUpdateSet = { _, _ -> },
+                onRemoveSet = {},
+                onMoveSet = { _, _ -> },
+                onTransformExercise = {},
+            )
+        }
     }
 
     @Test
-    fun tiempoFilaAbierta() = renderSheet("tiempo_abierta", openRowTag = "set-row-t1") {
-        val timed = Exercise(
-            id = "plancha",
-            name = "Plancha",
-            trainingMode = TrainingMode.TIME,
-            sets = listOf(ExerciseSet(id = "t1", targetDuration = 45), ExerciseSet(id = "t2", targetDuration = 60)),
-        )
-        ExerciseSetList(
-            exercise = timed,
-            reference1RM = null,
-            trainingMode = TrainingMode.TIME,
-            customUnit = null,
-            predictedMetrics = emptyMap(),
-            accentColor = accent,
-            backgroundAccentColor = accent,
-            onAddSet = {},
-            onUpdateSet = { _, _ -> },
-            onRemoveSet = {},
-            onMoveSet = { _, _ -> },
-            onTransformExercise = {},
-        )
+    fun unilateralFilaAbierta() {
+        onlyWhenAsked()
+        renderSheet("unilateral_abierta", openRowTag = "set-row-r1:L") {
+            val uniSets = repsSets().map { set ->
+                set.copy(
+                    leftTarget = UnilateralTarget(targetReps = set.targetReps, targetRIR = set.targetRIR, intensityMode = IntensityMode.RIR, weight = 12.0),
+                    rightTarget = UnilateralTarget(targetReps = set.targetReps, targetRIR = set.targetRIR, intensityMode = IntensityMode.RIR, weight = 12.0),
+                )
+            }
+            val uni = repsExercise(uniSets).copy(
+                isUnilateral = true,
+                unilateralMode = UnilateralMode.UNILATERAL_PAIRED,
+                restBetweenSidesSeconds = 15,
+            )
+            ExerciseSetList(
+                exercise = uni,
+                reference1RM = 100.0,
+                trainingMode = TrainingMode.REPS,
+                customUnit = null,
+                predictedMetrics = emptyMap(),
+                accentColor = accent,
+                backgroundAccentColor = accent,
+                onAddSet = {},
+                onUpdateSet = { _, _ -> },
+                onRemoveSet = {},
+                onMoveSet = { _, _ -> },
+                onTransformExercise = {},
+            )
+        }
     }
 
     @Test
-    fun preparacionVaciaConLasDosPildoras() = renderSheet("preparacion_vacia") {
-        ExpandedExercise(bareExercise())
-    }
-
-    @Test
-    fun preparacionConTresAproximaciones() = renderSheet("preparacion_3_aproximaciones") {
-        ExpandedExercise(
-            bareExercise().copy(
-                warmupSets = listOf(
-                    WarmupSetDefinition(id = "w1", percentageOfWorkingWeight = 0.5, targetReps = 8, restBetween = 60),
-                    WarmupSetDefinition(id = "w2", percentageOfWorkingWeight = 0.6, targetReps = 6, restBetween = 60),
-                    WarmupSetDefinition(id = "w3", percentageOfWorkingWeight = 0.7, targetReps = 4, restBetween = 90),
+    fun amrapFilaAbierta() {
+        onlyWhenAsked()
+        renderSheet("amrap_abierta", openRowTag = "set-row-a1") {
+            val amrap = Exercise(
+                id = "dominadas",
+                name = "Dominadas",
+                trainingMode = TrainingMode.AMRAP,
+                sets = listOf(
+                    ExerciseSet(id = "a1", targetReps = 6, isAmrap = true),
+                    ExerciseSet(id = "a2", targetReps = 6, isAmrap = true),
                 ),
-            ),
-        )
+            )
+            ExerciseSetList(
+                exercise = amrap,
+                reference1RM = null,
+                trainingMode = TrainingMode.AMRAP,
+                customUnit = null,
+                predictedMetrics = emptyMap(),
+                accentColor = accent,
+                backgroundAccentColor = accent,
+                onAddSet = {},
+                onUpdateSet = { _, _ -> },
+                onRemoveSet = {},
+                onMoveSet = { _, _ -> },
+                onTransformExercise = {},
+            )
+        }
     }
 
     @Test
-    fun preparacionConMovilidad() = renderSheet("preparacion_con_movilidad") {
-        ExpandedExercise(
-            bareExercise().copy(
-                mobilitySeries = listOf(
-                    MobilitySeries(id = "m1", name = "Gato-vaca", durationSeconds = 45),
-                    MobilitySeries(id = "m2", name = "Bisagra de cadera", reps = "10"),
+    fun tiempoFilaAbierta() {
+        onlyWhenAsked()
+        renderSheet("tiempo_abierta", openRowTag = "set-row-t1") {
+            val timed = Exercise(
+                id = "plancha",
+                name = "Plancha",
+                trainingMode = TrainingMode.TIME,
+                sets = listOf(ExerciseSet(id = "t1", targetDuration = 45), ExerciseSet(id = "t2", targetDuration = 60)),
+            )
+            ExerciseSetList(
+                exercise = timed,
+                reference1RM = null,
+                trainingMode = TrainingMode.TIME,
+                customUnit = null,
+                predictedMetrics = emptyMap(),
+                accentColor = accent,
+                backgroundAccentColor = accent,
+                onAddSet = {},
+                onUpdateSet = { _, _ -> },
+                onRemoveSet = {},
+                onMoveSet = { _, _ -> },
+                onTransformExercise = {},
+            )
+        }
+    }
+
+    @Test
+    fun preparacionVaciaConLasDosPildoras() {
+        onlyWhenAsked()
+        renderSheet("preparacion_vacia") {
+            ExpandedExercise(bareExercise())
+        }
+    }
+
+    @Test
+    fun preparacionConTresAproximaciones() {
+        onlyWhenAsked()
+        renderSheet("preparacion_3_aproximaciones") {
+            ExpandedExercise(
+                bareExercise().copy(
+                    warmupSets = listOf(
+                        WarmupSetDefinition(id = "w1", percentageOfWorkingWeight = 0.5, targetReps = 8, restBetween = 60),
+                        WarmupSetDefinition(id = "w2", percentageOfWorkingWeight = 0.6, targetReps = 6, restBetween = 60),
+                        WarmupSetDefinition(id = "w3", percentageOfWorkingWeight = 0.7, targetReps = 4, restBetween = 90),
+                    ),
                 ),
-            ),
-        )
+            )
+        }
     }
 
     @Test
-    fun hojaDeLosSieteModos() = renderSheet("hoja_modos") {
-        ExerciseModeSheetBody(current = TrainingMode.REPS, onSelect = {})
+    fun preparacionConMovilidad() {
+        onlyWhenAsked()
+        renderSheet("preparacion_con_movilidad") {
+            ExpandedExercise(
+                bareExercise().copy(
+                    mobilitySeries = listOf(
+                        MobilitySeries(id = "m1", name = "Gato-vaca", durationSeconds = 45),
+                        MobilitySeries(id = "m2", name = "Bisagra de cadera", reps = "10"),
+                    ),
+                ),
+            )
+        }
     }
 
     @Test
-    fun listaDelCajonEditarSeriesEnVivo() = renderSheet("editar_series_en_vivo") {
-        ExerciseSetsCarousel(
-            exercise = repsExercise(repsSets()),
-            reference1RM = 100.0,
-            trainingMode = TrainingMode.REPS,
-            customUnit = null,
-            predictedMetrics = emptyMap(),
-            accentColor = accent,
-            onAddSet = {},
-            onUpdateSet = { _, _ -> },
-            onRemoveSet = {},
-            onMoveSet = { _, _ -> },
-        )
+    fun hojaDeLosSieteModos() {
+        onlyWhenAsked()
+        renderSheet("hoja_modos") {
+            ExerciseModeSheetBody(current = TrainingMode.REPS, onSelect = {})
+        }
+    }
+
+    @Test
+    fun listaDelCajonEditarSeriesEnVivo() {
+        onlyWhenAsked()
+        renderSheet("editar_series_en_vivo") {
+            ExerciseSetsCarousel(
+                exercise = repsExercise(repsSets()),
+                reference1RM = 100.0,
+                trainingMode = TrainingMode.REPS,
+                customUnit = null,
+                predictedMetrics = emptyMap(),
+                accentColor = accent,
+                onAddSet = {},
+                onUpdateSet = { _, _ -> },
+                onRemoveSet = {},
+                onMoveSet = { _, _ -> },
+            )
+        }
     }
 }

@@ -93,23 +93,44 @@ class LiveSessionRelatorRenderSheetTest {
         }
     }
 
-    @Test
-    fun serie_dos_lineas_100() = draw(1f, "serie_dos_lineas_100", Variant.SERIE_DOS_LINEAS)
+    /** Lo primero de cada prueba: sin `KPKN_RENDER_DIR` no se dibuja nada y la prueba se salta (no falla). */
+    private fun onlyWhenAsked() = assumeTrue("sin KPKN_RENDER_DIR no se dibuja nada", System.getenv("KPKN_RENDER_DIR") != null)
 
     @Test
-    fun serie_dos_lineas_130() = draw(1.3f, "serie_dos_lineas_130", Variant.SERIE_DOS_LINEAS)
+    fun serie_dos_lineas_100() {
+        onlyWhenAsked()
+        draw(1f, "serie_dos_lineas_100", Variant.SERIE_DOS_LINEAS)
+    }
 
     @Test
-    fun serie_una_linea_100() = draw(1f, "serie_una_linea_100", Variant.SERIE_UNA_LINEA)
+    fun serie_dos_lineas_130() {
+        onlyWhenAsked()
+        draw(1.3f, "serie_dos_lineas_130", Variant.SERIE_DOS_LINEAS)
+    }
 
     @Test
-    fun descanso_pagina_100() = draw(1f, "descanso_pagina_100", Variant.DESCANSO_PAGINA)
+    fun serie_una_linea_100() {
+        onlyWhenAsked()
+        draw(1f, "serie_una_linea_100", Variant.SERIE_UNA_LINEA)
+    }
 
     @Test
-    fun descanso_pagina_130() = draw(1.3f, "descanso_pagina_130", Variant.DESCANSO_PAGINA)
+    fun descanso_pagina_100() {
+        onlyWhenAsked()
+        draw(1f, "descanso_pagina_100", Variant.DESCANSO_PAGINA)
+    }
 
     @Test
-    fun descanso_overlay_100() = drawOverlay(1f, "descanso_overlay_100")
+    fun descanso_pagina_130() {
+        onlyWhenAsked()
+        draw(1.3f, "descanso_pagina_130", Variant.DESCANSO_PAGINA)
+    }
+
+    @Test
+    fun descanso_overlay_100() {
+        onlyWhenAsked()
+        drawOverlay(1f, "descanso_overlay_100")
+    }
 
     private fun draw(fontScale: Float, name: String, variant: Variant) {
         rule.mainClock.autoAdvance = false

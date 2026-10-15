@@ -135,6 +135,7 @@ class KpknSnackbarRenderSheetTest {
 
     @Test
     fun renderKpknSnackbarSheet() {
+        assumeTrue("sin KPKN_RENDER_DIR no se dibuja nada", System.getenv("KPKN_RENDER_DIR") != null)
         rule.mainClock.autoAdvance = false
         rule.setContent {
             val base = LocalDensity.current
