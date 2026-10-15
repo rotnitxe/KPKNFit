@@ -31,7 +31,7 @@ internal fun sessionExerciseDose(
         else -> "$count series"
     }
     val rest = restSeconds?.takeIf { includeRest && it > 0 }?.let { KpknSetFormat.doseTime(it) }
-    return listOfNotNull(first, intensityLabel(working), rest).joinToString(" · ")
+    return listOfNotNull(first, intensityLabel(working, trainingMode), rest).joinToString(" · ")
 }
 
 /**
@@ -55,7 +55,7 @@ internal fun sessionExerciseSpokenDose(
         else -> "$count series"
     }
     val rest = restSeconds?.takeIf { includeRest && it > 0 }?.let { "descanso ${spokenDuration(it)}" }
-    return listOfNotNull(first, intensityLabel(working), rest).joinToString(", ")
+    return listOfNotNull(first, intensityLabel(working, trainingMode), rest).joinToString(", ")
 }
 
 /** Un tiempo hablado: «2 minutos 30», «1 minuto», «45 segundos». */
@@ -95,8 +95,9 @@ private fun repRangeOf(set: ExerciseSet): Pair<Int, Int>? {
 }
 
 /** Intensidad común: «hasta el fallo», o RIR, RPE o % del 1RM si todas las series lo tienen (con rango si difieren). */
-private fun intensityLabel(sets: List<ExerciseSet>): String? {
+private fun intensityLabel(sets: List<ExerciseSet>, mode: TrainingMode): String? {
     if (sets.all { it.isFailure }) return "hasta el fallo"
+    if (mode == TrainingMode.RM) return percentAndEffortLabel(sets)
     val rir = sets.mapNotNull { it.targetRIR?.toDouble() }
     if (rir.size == sets.size) return valueRange(rir, prefix = "RIR", suffix = "")
     val rpe = sets.mapNotNull { it.targetRPE }
@@ -104,6 +105,16 @@ private fun intensityLabel(sets: List<ExerciseSet>): String? {
     val pct = sets.mapNotNull { it.targetPercentageRM }
     if (pct.size == sets.size) return valueRange(pct, prefix = "", suffix = " % 1RM")
     return null
+}
+
+/**
+ * Modo %: el % 1RM y, detrás, el RIR (o el RPE) de la prescripción híbrida, si las series lo llevan (SE11): «80 % 1RM · RIR 2».
+ * Cada parte sale con la regla de siempre, sin el otro dato.
+ */
+private fun percentAndEffortLabel(sets: List<ExerciseSet>): String? {
+    val percent = intensityLabel(sets.map { it.copy(targetRIR = null, targetRPE = null) }, TrainingMode.REPS)
+    val effort = intensityLabel(sets.map { it.copy(targetPercentageRM = null) }, TrainingMode.REPS)
+    return listOfNotNull(percent, effort).joinToString(" · ").takeIf { it.isNotEmpty() }
 }
 
 private fun valueRange(values: List<Double>, prefix: String, suffix: String): String? {

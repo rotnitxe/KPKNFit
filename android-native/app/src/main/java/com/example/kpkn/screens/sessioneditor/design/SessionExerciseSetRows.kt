@@ -63,7 +63,7 @@ internal fun sessionSetColumns(exercise: Exercise, withRest: Boolean): List<Kpkn
             val unit = exercise.customUnit?.trim()?.takeIf { it.isNotEmpty() } ?: "Unidad"
             listOf(KpknSetColumn(key = "value", label = unit, weight = 1.2f, spoken = unit))
         }
-        TrainingMode.RM -> KpknSetColumns.percent
+        TrainingMode.RM -> rmColumns(exercise)
         else -> when (sessionSetIntensity(exercise)) {
             SessionSetIntensity.RIR -> KpknSetColumns.rir
             else -> KpknSetColumns.rpe
@@ -72,6 +72,16 @@ internal fun sessionSetColumns(exercise: Exercise, withRest: Boolean): List<Kpkn
     val withoutRest = core.filterNot { it.key == "rest" }
     val columns = if (withRest) withoutRest + REST_COLUMN else withoutRest
     return columns.map { column -> column.withTableWeight() }
+}
+
+/**
+ * Modo %: la columna de % y, si alguna serie lleva RIR (la prescripción híbrida del generador), la de RIR, para que la persona lo vea
+ * junto al % (SE11). Sin RIR la tabla queda como estaba.
+ */
+private fun rmColumns(exercise: Exercise): List<KpknSetColumn> {
+    val hasRir = exercise.sets.any { !it.isEmptySlot && it.targetRIR != null }
+    if (!hasRir) return KpknSetColumns.percent
+    return KpknSetColumns.percent.filterNot { it.key == "rest" } + KpknSetColumns.rir.filter { it.key == "rir" }
 }
 
 /**
