@@ -107,6 +107,26 @@ import com.example.kpkn.ui.components.KpknSheet
 import com.example.kpkn.ui.components.KpknSheetTokens
 import dev.chrisbanes.haze.HazeState
 import java.util.UUID
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.graphics.graphicsLayer
+import com.example.kpkn.screens.onboarding.design.WizardColors
+import com.example.kpkn.ui.components.icons.KpknLineIcons
+import androidx.compose.foundation.border
+import com.example.kpkn.ui.design.KpknShape
+import com.example.kpkn.ui.design.KpknCheckRow
+import com.example.kpkn.ui.design.KpknIconButton
+import com.example.kpkn.ui.design.KpknModule
+import com.example.kpkn.ui.design.KpknPrimaryPill
+import com.example.kpkn.ui.design.KpknSecondaryPill
+import com.example.kpkn.ui.design.KpknSurface
+import com.example.kpkn.ui.design.KpknTextAction
+import com.example.kpkn.ui.design.KpknTextField
+import com.example.kpkn.ui.design.KpknType
 @Stable
 internal class WorkoutStructureSheetsState {
     var exerciseContextExerciseId by mutableStateOf<String?>(null)
@@ -158,31 +178,53 @@ internal class WorkoutStructureSheetsState {
 internal fun rememberWorkoutStructureSheetsState(): WorkoutStructureSheetsState =
     remember { WorkoutStructureSheetsState() }
 
+/**
+ * Opción del cajón de opciones (KPKN_UI_V2 §1 y §4): un módulo tocable con el icono en un círculo `inset` de 36 dp y el texto en
+ * Inter SemiBold 15 debajo. Va en la rejilla de dos columnas de antes; [danger] pinta icono y texto en `danger` («Omitir»).
+ */
 @Composable
 private fun ContextActionButton(
     label: String,
+    icon: ImageVector,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
+    danger: Boolean = false,
 ) {
-    Surface(
+    val ink = if (danger) WizardColors.danger else WizardColors.text
+    KpknModule(
+        modifier = modifier,
         onClick = onClick,
-        modifier = modifier.heightIn(min = 42.dp),
-        shape = RoundedCornerShape(8.dp),
-        color = Color(0xFF2B2B2B),
-        tonalElevation = 0.dp,
-        shadowElevation = 0.dp,
+        onClickLabel = label,
+        contentPadding = PaddingValues(horizontal = 14.dp, vertical = 12.dp),
     ) {
+        Box(
+            modifier = Modifier
+                .size(36.dp)
+                .clip(CircleShape)
+                .background(KpknSurface.inset),
+            contentAlignment = Alignment.Center,
+        ) {
+            Icon(imageVector = icon, contentDescription = null, modifier = Modifier.size(20.dp), tint = ink)
+        }
+        Spacer(Modifier.height(10.dp))
         Text(
-            label,
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 10.dp, vertical = 11.dp),
-            style = MaterialTheme.typography.labelMedium,
-            fontWeight = FontWeight.SemiBold,
-            color = Color.White.copy(alpha = 0.88f),
-            textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+            text = label,
+            style = KpknType.bodyStrong,
+            color = ink,
             maxLines = 2,
             overflow = TextOverflow.Ellipsis,
         )
     }
+}
+
+/** Fila de dos opciones de la rejilla del cajón: las dos tienen la misma altura, la de la más alta. */
+@Composable
+private fun OptionsRow(content: @Composable RowScope.() -> Unit) {
+    Row(
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Min),
+        content = content,
+    )
 }
 
 /**
@@ -375,45 +417,45 @@ internal fun WorkoutStructureSheetsHost(
                     }
                     Text(
                         "${contextSupersetGroup?.rounds ?: SupersetRules.roundCount(modeSession, contextSupersetGroupId)} rondas · ${members.size} ejercicios",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        style = KpknType.caption,
+                        color = WizardColors.textMuted,
                     )
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
-                        ContextActionButton("Ir a la superserie", {
+                    OptionsRow {
+                        ContextActionButton("Ir a la superserie", KpknLineIcons.Route, {
                             viewModel.selectSupersetGroup(contextSupersetGroupId)
                             state.exerciseContextExerciseId = null
-                        }, Modifier.weight(1f))
-                        ContextActionButton("Rondas", {
+                        }, Modifier.weight(1f).fillMaxHeight())
+                        ContextActionButton("Rondas", KpknLineIcons.Repeat, {
                             state.supersetSettingsGroupId = contextSupersetGroupId
                             state.exerciseContextExerciseId = null
-                        }, Modifier.weight(1f))
+                        }, Modifier.weight(1f).fillMaxHeight())
                     }
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
-                        ContextActionButton("Agregar de sesión", {
+                    OptionsRow {
+                        ContextActionButton("Agregar de sesión", KpknLineIcons.Plus, {
                             state.workoutSupersetSelectedExerciseId = contextExercise.id
                             state.showWorkoutSupersetCreator = true
                             state.exerciseContextExerciseId = null
-                        }, Modifier.weight(1f))
-                        ContextActionButton("Agregar del catálogo", {
+                        }, Modifier.weight(1f).fillMaxHeight())
+                        ContextActionButton("Agregar del catálogo", KpknLineIcons.Layers, {
                             state.addCatalogToSupersetGroupId = contextSupersetGroupId
                             state.addCatalogSearchQuery = ""
                             state.addCatalogSelectedIds = emptySet()
                             state.exerciseContextExerciseId = null
-                        }, Modifier.weight(1f))
+                        }, Modifier.weight(1f).fillMaxHeight())
                     }
-                    Text("Miembros", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text("Miembros".uppercase(), style = KpknType.eyebrow, color = WizardColors.textMuted)
                     members.chunked(2).forEach { rowMembers ->
-                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
+                        OptionsRow {
                             rowMembers.forEach { member ->
-                                ContextActionButton(member.name, {
+                                ContextActionButton(member.name, KpknLineIcons.Link, {
                                     state.exerciseContextForceMemberActions = true
                                     state.exerciseContextExerciseId = member.id
-                                }, Modifier.weight(1f))
+                                }, Modifier.weight(1f).fillMaxHeight())
                             }
                             if (rowMembers.size == 1) Spacer(Modifier.weight(1f))
                         }
                     }
-                    ContextActionButton("Disolver superserie", {
+                    ContextActionButton("Disolver superserie", KpknLineIcons.Unlink, {
                         viewModel.dissolveLiveSuperset(contextSupersetGroupId, preferredExerciseId = contextExercise.id)
                         state.exerciseContextExerciseId = null
                     }, Modifier.fillMaxWidth())
@@ -485,29 +527,29 @@ internal fun WorkoutStructureSheetsHost(
             }
             KpknAlertDialog(
                 onDismissRequest = { state.supersetSettingsGroupId = null },
-                title = { Text("Rondas y descansos", fontWeight = FontWeight.Black) },
+                title = { Text("Rondas y descansos", style = KpknType.dialogTitle, color = WizardColors.text) },
                 text = {
                     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                        OutlinedTextField(
+                        KpknTextField(
                             value = roundsText,
                             onValueChange = { roundsText = it.filter(Char::isDigit).take(2) },
-                            label = { Text("Rondas") },
+                            label = "Rondas",
                             singleLine = true,
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                             modifier = Modifier.fillMaxWidth(),
                         )
-                        OutlinedTextField(
+                        KpknTextField(
                             value = restBetweenText,
                             onValueChange = { restBetweenText = it.filter(Char::isDigit).take(4) },
-                            label = { Text("Descanso entre ejercicios (s)") },
+                            label = "Descanso entre ejercicios (s)",
                             singleLine = true,
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                             modifier = Modifier.fillMaxWidth(),
                         )
-                        OutlinedTextField(
+                        KpknTextField(
                             value = restAfterText,
                             onValueChange = { restAfterText = it.filter(Char::isDigit).take(4) },
-                            label = { Text("Descanso post-ronda (s)") },
+                            label = "Descanso post-ronda (s)",
                             singleLine = true,
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                             modifier = Modifier.fillMaxWidth(),
@@ -515,7 +557,8 @@ internal fun WorkoutStructureSheetsHost(
                     }
                 },
                 confirmButton = {
-                    Button(
+                    KpknPrimaryPill(
+                        text = "Guardar",
                         onClick = {
                             viewModel.updateLiveSupersetRest(
                                 groupId = groupId,
@@ -525,10 +568,10 @@ internal fun WorkoutStructureSheetsHost(
                             )
                             state.supersetSettingsGroupId = null
                         },
-                    ) { Text("Guardar", fontWeight = FontWeight.Bold) }
+                    )
                 },
                 dismissButton = {
-                    TextButton(onClick = { state.supersetSettingsGroupId = null }) { Text("Cancelar") }
+                    KpknTextAction(text = "Cancelar", onClick = { state.supersetSettingsGroupId = null })
                 },
             )
         }
@@ -786,35 +829,33 @@ internal fun WorkoutStructureSheetsHost(
             onDismissRequest = {
                 viewModel.dismissPendingReplacementPersistencePrompt()
             },
-            title = { Text("Persistencia de reemplazo", fontWeight = FontWeight.Black) },
+            title = { Text("Persistencia de reemplazo", style = KpknType.dialogTitle, color = WizardColors.text) },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text("¿Cómo quieres guardar este cambio?")
+                    Text("¿Cómo quieres guardar este cambio?", style = KpknType.body, color = WizardColors.text)
                     options.filter { it != ReplacementPersistenceScopeV2.MESOCYCLE_MATCHING }.forEach { scope ->
-                        OutlinedButton(
+                        KpknSecondaryPill(
+                            text = when (scope) {
+                                ReplacementPersistenceScopeV2.SESSION_ONLY -> "Solo esta vez"
+                                ReplacementPersistenceScopeV2.PERMANENT -> "Reemplazar en todo el programa"
+                                ReplacementPersistenceScopeV2.BLOCK_MATCHING -> "Aplicar a todo el bloque"
+                                ReplacementPersistenceScopeV2.MESOCYCLE_MATCHING -> ""
+                            },
                             onClick = {
                                 viewModel.commitPendingReplacementPersistence(scope)
                             },
                             modifier = Modifier.fillMaxWidth(),
-                        ) {
-                            Text(
-                                when (scope) {
-                                    ReplacementPersistenceScopeV2.SESSION_ONLY -> "Solo esta vez"
-                                    ReplacementPersistenceScopeV2.PERMANENT -> "Reemplazar en todo el programa"
-                                    ReplacementPersistenceScopeV2.BLOCK_MATCHING -> "Aplicar a todo el bloque"
-                                    ReplacementPersistenceScopeV2.MESOCYCLE_MATCHING -> ""
-                                }
-                            )
-                        }
+                        )
                     }
                 }
             },
             confirmButton = {
-                TextButton(
+                KpknTextAction(
+                    text = "Cancelar",
                     onClick = {
                         viewModel.dismissPendingReplacementPersistencePrompt()
-                    }
-                ) { Text("Cancelar") }
+                    },
+                )
             },
         )
     }
@@ -843,7 +884,7 @@ internal fun WorkoutStructureSheetsHost(
             onDismissRequest = {
                 viewModel.clearPendingStructuralPersistence()
             },
-            title = { Text(title, fontWeight = FontWeight.Black) },
+            title = { Text(title, style = KpknType.dialogTitle, color = WizardColors.text) },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text(
@@ -875,33 +916,33 @@ internal fun WorkoutStructureSheetsHost(
                             is PendingStructuralChange.DissolveSuperset -> {
                                 "Se disolvió una superserie (${change.exerciseNames.size} ejercicios). ¿Cómo quieres guardar este cambio?"
                             }
-                        }
+                        },
+                        style = KpknType.body,
+                        color = WizardColors.text,
                     )
                     options.filter { it != ReplacementPersistenceScopeV2.MESOCYCLE_MATCHING }.forEach { scope ->
-                        OutlinedButton(
+                        KpknSecondaryPill(
+                            text = when (scope) {
+                                ReplacementPersistenceScopeV2.SESSION_ONLY -> "Solo esta vez"
+                                ReplacementPersistenceScopeV2.PERMANENT -> "Guardar en esta semana"
+                                ReplacementPersistenceScopeV2.BLOCK_MATCHING -> "Aplicar a todo el bloque"
+                                ReplacementPersistenceScopeV2.MESOCYCLE_MATCHING -> ""
+                            },
                             onClick = {
                                 viewModel.commitStructuralPersistence(scope)
                             },
                             modifier = Modifier.fillMaxWidth(),
-                        ) {
-                            Text(
-                                when (scope) {
-                                    ReplacementPersistenceScopeV2.SESSION_ONLY -> "Solo esta vez"
-                                    ReplacementPersistenceScopeV2.PERMANENT -> "Guardar en esta semana"
-                                    ReplacementPersistenceScopeV2.BLOCK_MATCHING -> "Aplicar a todo el bloque"
-                                    ReplacementPersistenceScopeV2.MESOCYCLE_MATCHING -> ""
-                                }
-                            )
-                        }
+                        )
                     }
                 }
             },
             confirmButton = {
-                TextButton(
+                KpknTextAction(
+                    text = "Cancelar",
                     onClick = {
                         viewModel.clearPendingStructuralPersistence()
-                    }
-                ) { Text("Cancelar") }
+                    },
+                )
             },
         )
     }
@@ -962,21 +1003,21 @@ internal fun ExerciseOptionsStrengthRows(
     onCreateSuperset: () -> Unit,
     onSkip: () -> Unit,
 ) {
-    Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
-        ContextActionButton("Historial", onHistory, Modifier.weight(1f))
-        ContextActionButton("Etiquetas", onTags, Modifier.weight(1f))
+    OptionsRow {
+        ContextActionButton("Historial", KpknLineIcons.History, onHistory, Modifier.weight(1f).fillMaxHeight())
+        ContextActionButton("Etiquetas", KpknLineIcons.Tag, onTags, Modifier.weight(1f).fillMaxHeight())
     }
-    Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
-        ContextActionButton("Editar", onEdit, Modifier.weight(1f))
-        ContextActionButton("Reemplazar", onReplace, Modifier.weight(1f))
+    OptionsRow {
+        ContextActionButton("Editar", KpknLineIcons.Edit, onEdit, Modifier.weight(1f).fillMaxHeight())
+        ContextActionButton("Reemplazar", KpknLineIcons.Swap, onReplace, Modifier.weight(1f).fillMaxHeight())
     }
-    Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
-        ContextActionButton("Agregar otro", onAddOther, Modifier.weight(1f))
-        ContextActionButton("Reordenar", onReorder, Modifier.weight(1f))
+    OptionsRow {
+        ContextActionButton("Agregar otro", KpknLineIcons.Plus, onAddOther, Modifier.weight(1f).fillMaxHeight())
+        ContextActionButton("Reordenar", KpknLineIcons.Reorder, onReorder, Modifier.weight(1f).fillMaxHeight())
     }
-    Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
-        ContextActionButton("Crear superserie", onCreateSuperset, Modifier.weight(1f))
-        ContextActionButton("Omitir", onSkip, Modifier.weight(1f))
+    OptionsRow {
+        ContextActionButton("Crear superserie", KpknLineIcons.Link, onCreateSuperset, Modifier.weight(1f).fillMaxHeight())
+        ContextActionButton("Omitir", KpknLineIcons.Close, onSkip, Modifier.weight(1f).fillMaxHeight(), danger = true)
     }
 }
 
@@ -1004,14 +1045,14 @@ internal fun ExerciseOptionsCardioRows(
 ) {
     Text(
         summary,
-        style = MaterialTheme.typography.bodySmall,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        style = KpknType.caption,
+        color = WizardColors.textMuted,
     )
-    Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
-        ContextActionButton("Editar cardio", onEdit, Modifier.weight(1f))
-        ContextActionButton("Reemplazar", onReplace, Modifier.weight(1f))
+    OptionsRow {
+        ContextActionButton("Editar cardio", KpknLineIcons.Edit, onEdit, Modifier.weight(1f).fillMaxHeight())
+        ContextActionButton("Reemplazar", KpknLineIcons.Swap, onReplace, Modifier.weight(1f).fillMaxHeight())
     }
-    ContextActionButton("Omitir", onSkip, Modifier.fillMaxWidth())
+    ContextActionButton("Omitir", KpknLineIcons.Close, onSkip, Modifier.fillMaxWidth(), danger = true)
 }
 
 /**
@@ -1080,18 +1121,19 @@ internal fun WorkoutReorderSheets(
 
         KpknAlertDialog(
             onDismissRequest = { closeReorderSheet() },
-            title = { Text("Reordenar ejercicios", fontWeight = FontWeight.Black) },
+            title = { Text("Reordenar ejercicios", style = KpknType.dialogTitle, color = WizardColors.text) },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text(
                         "Reordena todos los ejercicios globalmente.",
-                        style = MaterialTheme.typography.bodySmall,
+                        style = KpknType.body,
+                        color = WizardColors.text,
                     )
                     if (state.reorderSheetExerciseIds.isEmpty()) {
                         Text(
                             "No hay ejercicios para mover.",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            style = KpknType.body,
+                            color = WizardColors.textMuted,
                         )
                     } else {
                         LazyColumn(modifier = Modifier.heightIn(max = 400.dp)) {
@@ -1099,39 +1141,52 @@ internal fun WorkoutReorderSheets(
                                 val ex = reorderExerciseLookup[exId]
                                 val partName = originalExercisePartMap[exId]
                                 if (ex != null) {
-                                    Surface(
-                                        shape = RoundedCornerShape(8.dp),
-                                        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f),
+                                    KpknModule(
                                         modifier = Modifier.fillMaxWidth().padding(vertical = 2.dp),
+                                        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp),
                                     ) {
                                         Row(
-                                            modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 10.dp),
+                                            modifier = Modifier.fillMaxWidth(),
                                             verticalAlignment = Alignment.CenterVertically,
                                         ) {
-                                            Text("${index + 1}", modifier = Modifier.width(20.dp), fontWeight = FontWeight.Black)
+                                            Text(
+                                                "${index + 1}",
+                                                modifier = Modifier.width(24.dp),
+                                                style = KpknType.metricM,
+                                                color = WizardColors.text,
+                                            )
                                             Spacer(Modifier.width(8.dp))
                                             Column(modifier = Modifier.weight(1f)) {
-                                                Text(ex.name, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                                                Text(
+                                                    ex.name,
+                                                    style = KpknType.bodyStrong,
+                                                    color = WizardColors.text,
+                                                    maxLines = 2,
+                                                    overflow = TextOverflow.Ellipsis,
+                                                )
                                                 if (partName != null) {
                                                     Text(
                                                         partName,
-                                                        style = MaterialTheme.typography.labelSmall,
-                                                        color = MaterialTheme.colorScheme.primary,
+                                                        style = KpknType.caption,
+                                                        color = WizardColors.textMuted,
                                                     )
                                                 }
                                             }
-                                            IconButton(
+                                            // Una flecha apagada no hace nada: moveReorderItem ya ignora el movimiento fuera de la lista.
+                                            KpknIconButton(
+                                                icon = KpknLineIcons.ChevronUp,
+                                                contentDescription = "Subir",
                                                 onClick = { moveReorderItem(index, -1) },
-                                                enabled = index > 0,
-                                            ) {
-                                                Icon(Icons.Default.KeyboardArrowUp, null)
-                                            }
-                                            IconButton(
+                                                modifier = Modifier.graphicsLayer { alpha = if (index > 0) 1f else 0.38f },
+                                            )
+                                            KpknIconButton(
+                                                icon = KpknLineIcons.ChevronDown,
+                                                contentDescription = "Bajar",
                                                 onClick = { moveReorderItem(index, 1) },
-                                                enabled = index < state.reorderSheetExerciseIds.lastIndex,
-                                            ) {
-                                                Icon(Icons.Default.KeyboardArrowDown, null)
-                                            }
+                                                modifier = Modifier.graphicsLayer {
+                                                    alpha = if (index < state.reorderSheetExerciseIds.lastIndex) 1f else 0.38f
+                                                },
+                                            )
                                         }
                                     }
                                 }
@@ -1141,7 +1196,8 @@ internal fun WorkoutReorderSheets(
                 }
             },
             confirmButton = {
-                Button(
+                KpknPrimaryPill(
+                    text = "Guardar",
                     onClick = {
                         val crossBoundaryMessages = detectCrossBoundaryMoves(state.reorderSheetExerciseIds, originalExercisePartMap)
                         if (crossBoundaryMessages.isEmpty()) {
@@ -1154,10 +1210,10 @@ internal fun WorkoutReorderSheets(
                         }
                     },
                     enabled = state.reorderSheetExerciseIds.size >= 2,
-                ) { Text("Guardar", fontWeight = FontWeight.Bold) }
+                )
             },
             dismissButton = {
-                TextButton(onClick = { closeReorderSheet() }) { Text("Cancelar") }
+                KpknTextAction(text = "Cancelar", onClick = { closeReorderSheet() })
             },
         )
     }
@@ -1169,50 +1225,53 @@ internal fun WorkoutReorderSheets(
                 state.reorderCrossBoundaryMessages = emptyList()
                 state.pendingGlobalReorderIds = emptyList()
             },
-            title = { Text("Cambio de grupo", fontWeight = FontWeight.Black) },
+            title = { Text("Cambio de grupo", style = KpknType.dialogTitle, color = WizardColors.text) },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text(
                         "Los siguientes ejercicios se saldrán del grupo en el que estaban:",
-                        style = MaterialTheme.typography.bodySmall,
+                        style = KpknType.body,
+                        color = WizardColors.text,
                     )
                     state.reorderCrossBoundaryMessages.forEach { message ->
-                        Surface(
-                            shape = RoundedCornerShape(8.dp),
-                            color = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.5f),
+                        // Antes, un Surface errorContainer; ahora, un módulo con el aviso en `danger`.
+                        KpknModule(
                             modifier = Modifier.fillMaxWidth().padding(vertical = 2.dp),
+                            accent = WizardColors.danger,
+                            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp),
                         ) {
                             Text(
                                 "⚠ $message",
-                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onErrorContainer,
+                                style = KpknType.body,
+                                color = WizardColors.danger,
                             )
                         }
                     }
                     Text(
                         "¿Estás seguro de mantener este orden? Los ejercicios cambiarán al grupo donde fueron colocados.",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        style = KpknType.body,
+                        color = WizardColors.textMuted,
                     )
                 }
             },
             confirmButton = {
-                Button(
+                KpknPrimaryPill(
+                    text = "Guardar de todas formas",
                     onClick = {
                         onApplyReorder(state.pendingGlobalReorderIds, originalExercisePartMap, true)
                         closeReorderSheet()
                     },
-                ) { Text("Guardar de todas formas", fontWeight = FontWeight.Bold) }
+                )
             },
             dismissButton = {
-                TextButton(
+                KpknTextAction(
+                    text = "Cancelar",
                     onClick = {
                         state.showReorderCrossBoundaryConfirm = false
                         state.reorderCrossBoundaryMessages = emptyList()
                         state.pendingGlobalReorderIds = emptyList()
                     },
-                ) { Text("Cancelar") }
+                )
             },
         )
     }
@@ -1300,41 +1359,47 @@ internal fun WorkoutSupersetCreatorSheet(
         }
         KpknAlertDialog(
             onDismissRequest = { closeWorkoutSupersetCreator() },
-            title = { Text(if (supersetAnchorGroupId == null) "Crear superserie" else "Agregar a superserie", fontWeight = FontWeight.Black) },
+            title = {
+                Text(
+                    if (supersetAnchorGroupId == null) "Crear superserie" else "Agregar a superserie",
+                    style = KpknType.dialogTitle,
+                    color = WizardColors.text,
+                )
+            },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text(
                         "Selecciona ejercicios pendientes de la sesión. La superserie se aplicará solo a este entrenamiento.",
-                        style = MaterialTheme.typography.bodySmall,
+                        style = KpknType.body,
+                        color = WizardColors.text,
                     )
                     Text(
                         "Configuración inicial (puedes ajustarla antes de guardar)",
-                        style = MaterialTheme.typography.labelSmall,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        style = KpknType.caption,
+                        color = WizardColors.textMuted,
                     )
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
-                        OutlinedTextField(
+                        KpknTextField(
                             value = roundsText,
                             onValueChange = { roundsText = it.filter(Char::isDigit).take(2) },
-                            label = { Text("Rondas") },
+                            label = "Rondas",
                             singleLine = true,
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                             modifier = Modifier.weight(1f),
                         )
-                        OutlinedTextField(
+                        KpknTextField(
                             value = restBetweenText,
                             onValueChange = { restBetweenText = it.filter(Char::isDigit).take(4) },
-                            label = { Text("Entre ejercicios (s)") },
+                            label = "Entre ejercicios (s)",
                             singleLine = true,
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                             modifier = Modifier.weight(1f),
                         )
                     }
-                    OutlinedTextField(
+                    KpknTextField(
                         value = restAfterText,
                         onValueChange = { restAfterText = it.filter(Char::isDigit).take(4) },
-                        label = { Text("Después de la ronda (s)") },
+                        label = "Después de la ronda (s)",
                         singleLine = true,
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                         modifier = Modifier.fillMaxWidth(),
@@ -1342,68 +1407,61 @@ internal fun WorkoutSupersetCreatorSheet(
                     if (supersetCandidateExercises.size < 2) {
                         Text(
                             "No hay otro ejercicio disponible en este grupo.",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            style = KpknType.body,
+                            color = WizardColors.textMuted,
                         )
                     }
                     supersetCandidateExercises.forEach { ex ->
                         val isSelected = ex.id in supersetSelectedIds
                         val isAnchor = ex.id == supersetAnchorId
-                        Row(
-                            modifier = Modifier.fillMaxWidth().clickable {
-                                if (isAnchor) return@clickable
+                        // Casilla y renglón hacen lo mismo: el límite de 4 ejercicios se aplica a los dos.
+                        KpknCheckRow(
+                            checked = isSelected,
+                            title = ex.name,
+                            subtitle = if (isAnchor) "Origen" else null,
+                            onClick = {
+                                if (isAnchor) return@KpknCheckRow
                                 supersetSelectedIds = if (isSelected) {
                                     supersetSelectedIds.filterNot { it == ex.id }
                                 } else {
-                                    if (supersetSelectedIds.size >= 4) return@clickable
+                                    if (supersetSelectedIds.size >= 4) return@KpknCheckRow
                                     supersetSelectedIds + ex.id
                                 }
-                            }.padding(vertical = 4.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            Checkbox(checked = isSelected, onCheckedChange = { c ->
-                                if (!isAnchor) {
-                                    supersetSelectedIds = if (c) (supersetSelectedIds + ex.id).distinct() else supersetSelectedIds.filterNot { it == ex.id }
-                                }
-                            })
-                            Spacer(Modifier.width(8.dp))
-                            Column(modifier = Modifier.weight(1f)) {
-                                Text(ex.name, style = MaterialTheme.typography.bodyMedium)
-                                if (isAnchor) {
-                                    Text(
-                                        "Origen",
-                                        style = MaterialTheme.typography.labelSmall,
-                                        color = MaterialTheme.colorScheme.primary,
-                                        fontWeight = FontWeight.SemiBold,
-                                    )
-                                }
-                            }
-                        }
+                            },
+                        )
                     }
                 }
             },
             confirmButton = {
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
                     if (hasCatalogAction) {
-                        TextButton(
+                        KpknTextAction(
+                            text = "Desde catálogo",
                             onClick = {
                                 val anchor = supersetAnchorId
                                 closeWorkoutSupersetCreator()
                                 state.createSupersetFromCatalogAnchorId = anchor
                             },
-                        ) { Text("Desde catálogo") }
+                        )
                     }
-                    TextButton(
-                        enabled = supersetSelectedIds.size >= 2,
+                    KpknPrimaryPill(
+                        text = if (supersetAnchorGroupId == null) "Crear superserie" else "Actualizar superserie",
                         onClick = {
-                        onCreateSuperset(supersetSelectedIds, supersetAnchorPartId, restBetweenText.toIntOrNull()?.coerceAtLeast(0) ?: supersetDefaults.second, restAfterText.toIntOrNull()?.coerceAtLeast(0) ?: supersetDefaults.third, roundsText.toIntOrNull()?.coerceAtLeast(1) ?: supersetDefaults.first)
-                        closeWorkoutSupersetCreator()
+                            onCreateSuperset(
+                                supersetSelectedIds,
+                                supersetAnchorPartId,
+                                restBetweenText.toIntOrNull()?.coerceAtLeast(0) ?: supersetDefaults.second,
+                                restAfterText.toIntOrNull()?.coerceAtLeast(0) ?: supersetDefaults.third,
+                                roundsText.toIntOrNull()?.coerceAtLeast(1) ?: supersetDefaults.first,
+                            )
+                            closeWorkoutSupersetCreator()
                         },
-                    ) { Text(if (supersetAnchorGroupId == null) "Crear superserie" else "Actualizar superserie", fontWeight = FontWeight.Bold) }
+                        enabled = supersetSelectedIds.size >= 2,
+                    )
                 }
             },
             dismissButton = {
-                TextButton(onClick = { closeWorkoutSupersetCreator() }) { Text("Cancelar") }
+                KpknTextAction(text = "Cancelar", onClick = { closeWorkoutSupersetCreator() })
             },
         )
     }
@@ -1511,13 +1569,13 @@ internal fun WorkoutEditSeriesSheet(
                         var restBetweenSidesText by remember(draftExercise.id, draftExercise.restBetweenSidesSeconds) {
                             mutableStateOf((draftExercise.restBetweenSidesSeconds ?: 0).toString())
                         }
-                        OutlinedTextField(
+                        KpknTextField(
                             value = restBetweenSidesText,
                             onValueChange = { raw ->
                                 restBetweenSidesText = raw.filter(Char::isDigit).take(4)
                                 draftExercise = draftExercise.copy(restBetweenSidesSeconds = restBetweenSidesText.toIntOrNull()?.coerceAtLeast(0))
                             },
-                            label = { Text("Descanso entre lados (s)") },
+                            label = "Descanso entre lados (s)",
                             singleLine = true,
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                             modifier = Modifier.fillMaxWidth(),
@@ -1525,20 +1583,13 @@ internal fun WorkoutEditSeriesSheet(
                     }
 
                     if (draftExercise.cardioDetails == null) {
-                        Surface(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(44.dp)
-                                .clip(RoundedCornerShape(12.dp))
-                                .clickable { showSmartLoadDialog = true },
-                            shape = RoundedCornerShape(12.dp),
-                            color = sessionAccentColor.copy(alpha = 0.10f),
-                            border = BorderStroke(1.dp, sessionAccentColor.copy(alpha = 0.30f)),
+                        KpknModule(
+                            modifier = Modifier.fillMaxWidth(),
+                            onClick = { showSmartLoadDialog = true },
+                            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
                         ) {
                             Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(horizontal = 12.dp),
+                                modifier = Modifier.fillMaxWidth(),
                                 horizontalArrangement = Arrangement.SpaceBetween,
                                 verticalAlignment = Alignment.CenterVertically,
                             ) {
@@ -1547,37 +1598,36 @@ internal fun WorkoutEditSeriesSheet(
                                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                                 ) {
                                     Icon(
-                                        Icons.Default.FitnessCenter,
+                                        imageVector = KpknLineIcons.Training,
                                         contentDescription = null,
                                         tint = sessionAccentColor,
                                         modifier = Modifier.size(18.dp),
                                     )
                                     Text(
                                         "Carga inteligente",
-                                        style = MaterialTheme.typography.labelLarge,
-                                        fontWeight = FontWeight.Bold,
-                                        color = sessionAccentColor,
+                                        style = KpknType.bodyStrong,
+                                        color = WizardColors.text,
                                     )
                                 }
                                 if (resolved1RM != null && resolved1RM > 0.0) {
-                                    Surface(
-                                        shape = RoundedCornerShape(8.dp),
-                                        color = sessionAccentColor.copy(alpha = 0.18f),
+                                    Box(
+                                        modifier = Modifier
+                                            .clip(KpknShape.pill)
+                                            .background(KpknSurface.inset, KpknShape.pill)
+                                            .border(1.dp, Color.White.copy(alpha = 0.12f), KpknShape.pill)
+                                            .padding(horizontal = 10.dp, vertical = 4.dp),
                                     ) {
                                         Text(
-                                            "1RM: ${formatEditableNumber(resolved1RM)} kg",
-                                            style = MaterialTheme.typography.labelSmall,
-                                            fontWeight = FontWeight.Black,
-                                            color = sessionAccentColor,
-                                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                                            "1RM: ${formatEditableNumber(resolved1RM).replace('.', ',')}\u00A0kg",
+                                            style = KpknType.chip,
+                                            color = WizardColors.text,
                                         )
                                     }
                                 } else {
                                     Text(
                                         "Configurar",
-                                        style = MaterialTheme.typography.labelSmall,
-                                        fontWeight = FontWeight.SemiBold,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        style = KpknType.caption,
+                                        color = WizardColors.textMuted,
                                     )
                                 }
                             }
@@ -1675,7 +1725,8 @@ internal fun WorkoutEditSeriesSheet(
                     )
                     }
 
-                    Button(
+                    KpknPrimaryPill(
+                        text = "Confirmar cambios",
                         onClick = {
                             val confirmedDraft = draftExercise
                             onSaveDefinition(editEx.id, confirmedDraft)
@@ -1683,12 +1734,8 @@ internal fun WorkoutEditSeriesSheet(
                             state.editSheetExerciseId = null
                         },
                         modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(14.dp),
-                    ) {
-                        Icon(Icons.Default.Save, contentDescription = null, modifier = Modifier.size(18.dp))
-                        Spacer(Modifier.width(8.dp))
-                        Text("Confirmar cambios", fontWeight = FontWeight.Bold)
-                    }
+                        icon = KpknLineIcons.Check,
+                    )
                 }
             }
         } else {
