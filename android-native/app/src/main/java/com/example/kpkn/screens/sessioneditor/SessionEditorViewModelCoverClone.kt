@@ -77,7 +77,7 @@ fun SessionEditorViewModel.cloneCurrentSessionToTargets(
     val targets = state.cloneDayOptions.filter { it.key in targetKeys && !it.isCurrentSessionDay }
     if (targets.isEmpty()) return SessionEditorSaveResult(false, "No se encontraron destinos válidos.")
 
-    // Stage only — applied when the user saves (unified draft semantics with import).
+    // Stage: el guardado la aplica. La pantalla la guarda en cuanto se confirma (ER1a: «Se copia ahora»).
     updateUi {
         it.copy(
             pendingTransferToDays = PendingTransferToDays(
@@ -90,7 +90,7 @@ fun SessionEditorViewModel.cloneCurrentSessionToTargets(
             ),
             hasUnsavedChanges = true,
             sheet = SessionEditorSheet.NONE,
-            snackbarMessage = "Transferencia pendiente a ${targets.size} día${if (targets.size > 1) "s" else ""}. Guarda para aplicarla.",
+            snackbarMessage = "Copiando a ${targets.size} día${if (targets.size > 1) "s" else ""}…",
         )
     }
     if (!persistDraft()) {
@@ -140,7 +140,7 @@ fun SessionEditorViewModel.importFromSourceSession(
     val modeLabel = if (selectedExerciseIds.isNullOrEmpty()) "completa" else "parcial"
     return SessionEditorSaveResult(
         success = true,
-        message = "Transferencia $modeLabel al borrador desde ${sourceOption.sessionName}. Revisa y guarda.",
+        message = "Transferencia $modeLabel desde ${sourceOption.sessionName}. Se guarda sola.",
     )
 }
 

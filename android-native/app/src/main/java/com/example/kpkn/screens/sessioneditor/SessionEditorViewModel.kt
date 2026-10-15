@@ -122,6 +122,20 @@ class SessionEditorViewModel(
         get() = catalogExerciseIndex()
     private var augeJob: Job? = null
     private var autoSaveJob: Job? = null
+
+    /** Guardado automático en el programa (ER1a §5): la pantalla lo programa tras cada cambio; las pasadas van en serie. */
+    internal val programAutoSave: ProgramAutoSaveScheduler = ProgramAutoSaveScheduler(viewModelScope) { runProgramAutoSavePass() }
+    private val _autoSaveBlock = MutableStateFlow<SessionAutoSaveBlock?>(null)
+
+    /** Aviso fijo cuando el guardado automático lo bloquea (cortafuegos o validación); null si no hay bloqueo. */
+    val autoSaveBlock: StateFlow<SessionAutoSaveBlock?> = _autoSaveBlock.asStateFlow()
+
+    /** Ejercicio que bloqueó el último guardado del cortafuegos: el aviso lleva a él. */
+    internal var lastGateBlockExerciseId: String? = null
+
+    internal fun setAutoSaveBlock(block: SessionAutoSaveBlock?) {
+        _autoSaveBlock.value = block
+    }
     @Volatile
     private var loadSessionJob: Job? = null
     /** One template command at a time; prevents stale async REPLACE overwrites. */
@@ -520,6 +534,7 @@ class SessionEditorViewModel(
 
     override fun onCleared() {
         autoSaveJob?.cancel()
+        programAutoSave.cancel()
         val state = _uiState.value
         if (state.hasUnsavedChanges) createPersistedDraft(state)?.let { (key, payload) ->
             if (key == activeDurableSaveKey) return@let
