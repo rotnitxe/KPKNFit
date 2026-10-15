@@ -811,12 +811,14 @@ fun SessionEditorScreen(
 
         // Assistant FAB + Time FAB: sibling OVER hazeSource (never nested inside
         // Scaffold FAB slot). Draggable group, moves together across the screen.
-        val showTimeFab =
-            session.targetDurationMinutes != null ||
-                allExercisesForUi.isNotEmpty() ||
-                uiState.estimatedDurationMinutes > 0
-        val estimated = uiState.sessionTimeBreakdown?.totalMinutes
-            ?: uiState.estimatedDurationMinutes
+        // SE9: sin ejercicios no hay tiempo que decir (el estimador da 1 min): el FAB de tiempo no se muestra.
+        val timeFabMinutes = sessionTimeFabMinutes(
+            hasExercises = allExercisesForUi.isNotEmpty(),
+            breakdownMinutes = uiState.sessionTimeBreakdown?.totalMinutes,
+            fallbackMinutes = uiState.estimatedDurationMinutes,
+        )
+        val showTimeFab = timeFabMinutes != null
+        val estimated = timeFabMinutes ?: 0
         val navBarBottomPx = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
         DraggableHeroFabGroup(
             navBarBottomPx = with(density) { navBarBottomPx.toPx() }.roundToInt(),

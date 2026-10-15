@@ -29,3 +29,10 @@ internal fun SessionDurationBreakdown.toSessionTimeBreakdown(session: Session): 
 /** Minutos de la sesión con el estimador común, para el resumen de la Auge del editor. 0 si el estimador no puede medirla. */
 internal fun sessionEditorDurationMinutes(session: Session): Int =
     runCatching { SessionDurationEstimator.estimate(session).totalMinutes }.getOrDefault(0)
+
+/**
+ * Minutos que muestra el FAB de tiempo del editor (SE9). Sin ejercicios no hay tiempo que decir: el estimador da 1 min y eso no es
+ * un dato. Null: el FAB de tiempo no se muestra.
+ */
+internal fun sessionTimeFabMinutes(hasExercises: Boolean, breakdownMinutes: Int?, fallbackMinutes: Int): Int? =
+    (breakdownMinutes ?: fallbackMinutes).takeIf { hasExercises }
