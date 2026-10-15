@@ -5,11 +5,9 @@ import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -17,76 +15,73 @@ import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.FitnessCenter
-import androidx.compose.material.icons.filled.KeyboardArrowDown
-import androidx.compose.material.icons.filled.KeyboardArrowUp
-import androidx.compose.material.icons.filled.Timer
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.FilledTonalButton
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Switch
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.key
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.lerp
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import com.example.kpkn.data.models.*
 import com.example.kpkn.data.exercises.displayNameWithSelectedChips
+import com.example.kpkn.data.models.*
 import com.example.kpkn.domain.calculations.calculateEstimatedMetric
-import com.example.kpkn.domain.exercises.*
 import com.example.kpkn.domain.calculations.calculateHybrid1RM
 import com.example.kpkn.domain.calculations.calculateSuggestedLoad
 import com.example.kpkn.domain.calculations.resolveReferenceCapacity
-import com.example.kpkn.screens.sessioneditor.DarkEditorChip
-import com.example.kpkn.screens.sessioneditor.DarkEditorSurfaceSoft
-import com.example.kpkn.screens.sessioneditor.DarkChoiceChip
-import com.example.kpkn.screens.sessioneditor.EditorMiniField
-import com.example.kpkn.screens.sessioneditor.CompactModeSelector
-import com.example.kpkn.screens.sessioneditor.formatEditableNumber
-import com.example.kpkn.screens.sessioneditor.rememberEditableNumber
-import com.example.kpkn.screens.sessioneditor.formatExerciseConfigSummary
-import com.example.kpkn.screens.sessioneditor.formatRestSummary
-import com.example.kpkn.screens.sessioneditor.safeIntOrNull
-import com.example.kpkn.screens.sessioneditor.safeDoubleOrNull
-import com.example.kpkn.screens.sessioneditor.components.InlineSetRow
-import com.example.kpkn.screens.sessioneditor.ToggleToken
+import com.example.kpkn.domain.exercises.*
+import com.example.kpkn.screens.onboarding.design.WizardColors
 import com.example.kpkn.screens.sessioneditor.CompactGoalTrackingButton
-import com.example.kpkn.screens.sessioneditor.UnilateralModeSelector
+import com.example.kpkn.screens.sessioneditor.CompactModeSelector
 import com.example.kpkn.screens.sessioneditor.SideOrderChip
 import com.example.kpkn.screens.sessioneditor.UnilateralAddGhostCard
+import com.example.kpkn.screens.sessioneditor.UnilateralModeSelector
+import com.example.kpkn.screens.sessioneditor.formatEditableNumber
+import com.example.kpkn.screens.sessioneditor.formatExerciseConfigSummary
+import com.example.kpkn.screens.sessioneditor.formatRestSummary
+import com.example.kpkn.screens.sessioneditor.rememberEditableNumber
+import com.example.kpkn.screens.sessioneditor.safeDoubleOrNull
+import com.example.kpkn.screens.sessioneditor.safeIntOrNull
 import com.example.kpkn.screens.sessioneditor.toggledBilateralUnilateral
-import androidx.compose.runtime.setValue
-import androidx.compose.runtime.getValue
 import com.example.kpkn.ui.components.KpknAlertDialog
 import com.example.kpkn.ui.components.KpknRestPickerChain
+import com.example.kpkn.ui.components.icons.KpknLineIcons
+import com.example.kpkn.ui.design.KpknChip
+import com.example.kpkn.ui.design.KpknIconButton
+import com.example.kpkn.ui.design.KpknModule
+import com.example.kpkn.ui.design.KpknPrimaryPill
+import com.example.kpkn.ui.design.KpknSecondaryPill
+import com.example.kpkn.ui.design.KpknSegmentedControl
+import com.example.kpkn.ui.design.KpknSetFormat
+import com.example.kpkn.ui.design.KpknShape
+import com.example.kpkn.ui.design.KpknSurface
+import com.example.kpkn.ui.design.KpknSwitch
+import com.example.kpkn.ui.design.KpknTextAction
+import com.example.kpkn.ui.design.KpknTextField
+import com.example.kpkn.ui.design.KpknType
 
+/**
+ * Configuración de un miembro de la superserie (ER1c2, la piel nueva): un panel `inset` con su nombre, la carga inteligente y las opciones
+ * del ejercicio. Los chips de modo, de meta y de lados son los compartidos con la sesión en vivo.
+ */
 @Composable
 internal fun SupersetExerciseConfigOverlay(
     exercise: Exercise,
@@ -100,113 +95,102 @@ internal fun SupersetExerciseConfigOverlay(
 ) {
     var showSmartLoadSheet by remember { mutableStateOf(false) }
     var showGoalSheet by remember { mutableStateOf(false) }
+    val sharedIntensity = exercise.unilateralIntensityMode == UnilateralIntensityMode.SHARED
 
-    Surface(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp),
-        color = DarkEditorSurfaceSoft,
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(KpknSurface.inset, KpknShape.module)
+            .border(1.dp, KpknSurface.moduleBorder, KpknShape.module)
+            .padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        Column(modifier = Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        "Configuración del ejercicio",
-                        style = MaterialTheme.typography.labelSmall,
-                        fontWeight = FontWeight.SemiBold,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
-                    )
-                    Text(
-                        exercise.displayNameWithSelectedChips(),
-                        style = MaterialTheme.typography.titleSmall,
-                        fontWeight = FontWeight.Black,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                    )
-                }
-                IconButton(onClick = onDismiss, modifier = Modifier.size(32.dp)) {
-                    Icon(Icons.Default.Close, contentDescription = "Cerrar configuración", modifier = Modifier.size(16.dp))
-                }
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    "Configuración del ejercicio",
+                    style = KpknType.caption,
+                    color = WizardColors.textMuted,
+                )
+                Text(
+                    exercise.displayNameWithSelectedChips(),
+                    style = KpknType.dialogTitle,
+                    color = WizardColors.text,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
             }
-
-            if (exercise.trainingMode != TrainingMode.SOLO_RPE) {
-                FilledTonalButton(
-                    onClick = { showSmartLoadSheet = true },
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(14.dp),
-                    colors = ButtonDefaults.filledTonalButtonColors(
-                        containerColor = DarkEditorChip,
-                        contentColor = Color.White,
-                    ),
-                ) {
-                    Icon(Icons.Default.FitnessCenter, contentDescription = null, modifier = Modifier.size(16.dp))
-                    Spacer(Modifier.width(8.dp))
-                    Text("Carga inteligente", fontWeight = FontWeight.Black)
-                }
-            }
-
-            Text(
-                "Opciones del ejercicio",
-                style = MaterialTheme.typography.labelSmall,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+            KpknIconButton(
+                icon = KpknLineIcons.Close,
+                contentDescription = "Cerrar configuración",
+                onClick = onDismiss,
             )
-            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                CompactModeSelector(
-                    currentMode = exercise.trainingMode,
-                    accentColor = accentColor,
-                ) { mode -> onUpdateExercise { current -> current.copy(trainingMode = mode) } }
-                CompactGoalTrackingButton(
-                    isActive = exercise.isStarTarget,
-                    accentColor = accentColor,
-                    onToggle = { onUpdateExercise { current -> current.copy(isStarTarget = !current.isStarTarget) } },
-                    onOpenSheet = { showGoalSheet = true },
-                )
-                DarkChoiceChip(
-                    label = "Medir ROM",
-                    selected = exercise.trackRom,
-                    accentColor = accentColor,
-                ) {
-                    onUpdateExercise { current -> current.copy(trackRom = !current.trackRom) }
-                }
-                DarkChoiceChip(
-                    label = relationshipAnchorName?.let { "Ancla: $it" } ?: "Relacionar",
-                    selected = exercise.relativeToCanonicalExerciseId != null,
-                    accentColor = accentColor,
-                    modifier = Modifier.widthIn(max = 170.dp),
-                ) {
+        }
+
+        if (exercise.trainingMode != TrainingMode.SOLO_RPE) {
+            KpknSecondaryPill(
+                text = "Carga inteligente",
+                onClick = { showSmartLoadSheet = true },
+                modifier = Modifier.fillMaxWidth(),
+                icon = KpknLineIcons.Sliders,
+            )
+        }
+
+        Text(
+            "Opciones del ejercicio",
+            style = KpknType.caption,
+            color = WizardColors.textMuted,
+        )
+        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            CompactModeSelector(
+                currentMode = exercise.trainingMode,
+                accentColor = accentColor,
+            ) { mode -> onUpdateExercise { current -> current.copy(trainingMode = mode) } }
+            CompactGoalTrackingButton(
+                isActive = exercise.isStarTarget,
+                accentColor = accentColor,
+                onToggle = { onUpdateExercise { current -> current.copy(isStarTarget = !current.isStarTarget) } },
+                onOpenSheet = { showGoalSheet = true },
+            )
+            KpknChip(
+                text = "Medir ROM",
+                selected = exercise.trackRom,
+                onClick = { onUpdateExercise { current -> current.copy(trackRom = !current.trackRom) } },
+            )
+            KpknChip(
+                text = relationshipAnchorName?.let { "Ancla: $it" } ?: "Relacionar",
+                selected = exercise.relativeToCanonicalExerciseId != null,
+                onClick = {
                     if (exercise.relativeToCanonicalExerciseId == null) onOpenRelationshipPicker() else onClearRelationship()
-                }
-                UnilateralModeSelector(
-                    mode = exercise.unilateralMode,
+                },
+                modifier = Modifier.widthIn(max = 170.dp),
+            )
+            UnilateralModeSelector(
+                mode = exercise.unilateralMode,
+                accentColor = accentColor,
+                onToggleUnilateral = {
+                    onUpdateExercise { current -> current.toggledBilateralUnilateral() }
+                },
+            )
+            if (exercise.isEffectivelyUnilateral()) {
+                SideOrderChip(
+                    sideOrder = exercise.unilateralSideOrder,
                     accentColor = accentColor,
-                    onToggleUnilateral = {
-                        onUpdateExercise { current -> current.toggledBilateralUnilateral() }
-                    },
-                )
-                if (exercise.isEffectivelyUnilateral()) {
-                    SideOrderChip(
-                        sideOrder = exercise.unilateralSideOrder,
-                        accentColor = accentColor,
-                    ) {
-                        onUpdateExercise { current ->
-                            current.copy(
-                                unilateralSideOrder = if (current.unilateralSideOrder == UnilateralSideOrder.LEFT_RIGHT) {
-                                    UnilateralSideOrder.RIGHT_LEFT
-                                } else {
-                                    UnilateralSideOrder.LEFT_RIGHT
-                                },
-                            )
-                        }
+                ) {
+                    onUpdateExercise { current ->
+                        current.copy(
+                            unilateralSideOrder = if (current.unilateralSideOrder == UnilateralSideOrder.LEFT_RIGHT) {
+                                UnilateralSideOrder.RIGHT_LEFT
+                            } else {
+                                UnilateralSideOrder.LEFT_RIGHT
+                            },
+                        )
                     }
-                    DarkChoiceChip(
-                        label = if (exercise.unilateralIntensityMode == UnilateralIntensityMode.SHARED) {
-                            "Lados iguales"
-                        } else {
-                            "Lados aparte"
-                        },
-                        selected = exercise.unilateralIntensityMode == UnilateralIntensityMode.SHARED,
-                        accentColor = accentColor,
-                    ) {
+                }
+                KpknChip(
+                    text = if (sharedIntensity) "Lados iguales" else "Lados aparte",
+                    selected = sharedIntensity,
+                    onClick = {
                         onUpdateExercise { current ->
                             current.copy(
                                 unilateralIntensityMode = if (current.unilateralIntensityMode == UnilateralIntensityMode.SHARED) {
@@ -216,19 +200,19 @@ internal fun SupersetExerciseConfigOverlay(
                                 },
                             )
                         }
-                    }
-                }
+                    },
+                )
             }
-            Text(
-                formatExerciseConfigSummary(exercise),
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                maxLines = 2,
-                overflow = TextOverflow.Ellipsis,
-            )
-            relationshipAnchorName?.let {
-                Text("Relacionado con $it", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            }
+        }
+        Text(
+            formatExerciseConfigSummary(exercise),
+            style = KpknType.caption,
+            color = WizardColors.textMuted,
+            maxLines = 2,
+            overflow = TextOverflow.Ellipsis,
+        )
+        relationshipAnchorName?.let {
+            Text("Relacionado con $it", style = KpknType.caption, color = WizardColors.textMuted)
         }
     }
 
@@ -239,7 +223,6 @@ internal fun SupersetExerciseConfigOverlay(
     if (showGoalSheet) {
         SupersetGoalDialog(exercise, onUpdateExercise, onDismiss = { showGoalSheet = false })
     }
-
 }
 
 @Composable
@@ -255,38 +238,62 @@ internal fun SupersetSmartLoadDialog(
     var prRepsInput by rememberEditableNumber(exercise.id, exercise.prFor1RM?.reps?.takeIf { it > 0 }?.toDouble())
     KpknAlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Carga inteligente", fontWeight = FontWeight.Black) },
+        title = { Text("Carga inteligente", style = KpknType.dialogTitle, color = WizardColors.text) },
         text = {
-            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    ToggleToken("RM directo", rmInputMode == "direct") { rmInputMode = "direct" }
-                    ToggleToken("Desde PR", rmInputMode == "pr") { rmInputMode = "pr" }
-                }
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                KpknSegmentedControl(
+                    options = listOf("RM directo", "Desde PR"),
+                    selectedIndex = if (rmInputMode == "pr") 1 else 0,
+                    onSelect = { index -> rmInputMode = if (index == 1) "pr" else "direct" },
+                )
                 if (rmInputMode == "direct") {
-                    EditorMiniField("RM referencial", directRmInput, keyboardType = KeyboardType.Decimal, modifier = Modifier.fillMaxWidth()) { input ->
-                        directRmInput = input
-                        onUpdateExercise { it.copy(reference1RM = input.safeDoubleOrNull()?.takeIf { value -> value > 0 }) }
-                    }
+                    KpknTextField(
+                        value = directRmInput,
+                        onValueChange = { input ->
+                            directRmInput = input
+                            onUpdateExercise { it.copy(reference1RM = input.safeDoubleOrNull()?.takeIf { value -> value > 0 }) }
+                        },
+                        label = "RM referencial",
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                    )
                 } else {
                     Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                        EditorMiniField("PR kg", prWeightInput, keyboardType = KeyboardType.Decimal, modifier = Modifier.weight(1f)) { input ->
-                            prWeightInput = input
-                            val weight = input.safeDoubleOrNull()
-                            val reps = prRepsInput.safeIntOrNull()
-                            onUpdateExercise { current ->
-                                if (weight != null && weight > 0 && reps != null && reps > 0) current.copy(prFor1RM = PrReference(weight, reps), reference1RM = calculateHybrid1RM(weight, reps))
-                                else current.copy(prFor1RM = null)
-                            }
-                        }
-                        EditorMiniField("PR reps", prRepsInput, keyboardType = KeyboardType.Number, modifier = Modifier.weight(1f)) { input ->
-                            prRepsInput = input
-                            val weight = prWeightInput.safeDoubleOrNull()
-                            val reps = input.safeIntOrNull()
-                            onUpdateExercise { current ->
-                                if (weight != null && weight > 0 && reps != null && reps > 0) current.copy(prFor1RM = PrReference(weight, reps), reference1RM = calculateHybrid1RM(weight, reps))
-                                else current.copy(prFor1RM = null)
-                            }
-                        }
+                        KpknTextField(
+                            value = prWeightInput,
+                            onValueChange = { input ->
+                                prWeightInput = input
+                                val weight = input.safeDoubleOrNull()
+                                val reps = prRepsInput.safeIntOrNull()
+                                onUpdateExercise { current ->
+                                    if (weight != null && weight > 0 && reps != null && reps > 0) {
+                                        current.copy(prFor1RM = PrReference(weight, reps), reference1RM = calculateHybrid1RM(weight, reps))
+                                    } else {
+                                        current.copy(prFor1RM = null)
+                                    }
+                                }
+                            },
+                            label = "PR kg",
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                            modifier = Modifier.weight(1f),
+                        )
+                        KpknTextField(
+                            value = prRepsInput,
+                            onValueChange = { input ->
+                                prRepsInput = input
+                                val weight = prWeightInput.safeDoubleOrNull()
+                                val reps = input.safeIntOrNull()
+                                onUpdateExercise { current ->
+                                    if (weight != null && weight > 0 && reps != null && reps > 0) {
+                                        current.copy(prFor1RM = PrReference(weight, reps), reference1RM = calculateHybrid1RM(weight, reps))
+                                    } else {
+                                        current.copy(prFor1RM = null)
+                                    }
+                                }
+                            },
+                            label = "PR reps",
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                            modifier = Modifier.weight(1f),
+                        )
                     }
                 }
                 val resolved1RM = resolveReferenceCapacity(exercise)
@@ -294,14 +301,13 @@ internal fun SupersetSmartLoadDialog(
                 if (needsRmReference) {
                     Text(
                         "Falta referencia para %RM. Agrega RM o PR.",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.error,
-                        fontWeight = FontWeight.SemiBold,
+                        style = KpknType.caption,
+                        color = WizardColors.danger,
                     )
                 }
             }
         },
-        confirmButton = { TextButton(onClick = onDismiss) { Text("Listo") } },
+        confirmButton = { KpknPrimaryPill(text = "Listo", onClick = onDismiss) },
     )
 }
 
@@ -314,36 +320,50 @@ internal fun SupersetGoalDialog(
     var goalRmInput by rememberEditableNumber(exercise.id, exercise.goal1RM)
     KpknAlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Meta", fontWeight = FontWeight.Black) },
+        title = { Text("Meta", style = KpknType.dialogTitle, color = WizardColors.text) },
         text = {
-            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
-                    Text("Seguir este ejercicio", modifier = Modifier.weight(1f), fontWeight = FontWeight.SemiBold)
-                    Switch(
+                    Text(
+                        "Seguir este ejercicio",
+                        modifier = Modifier.weight(1f),
+                        style = KpknType.bodyStrong,
+                        color = WizardColors.text,
+                    )
+                    KpknSwitch(
                         checked = exercise.isStarTarget,
                         onCheckedChange = { checked -> onUpdateExercise { it.copy(isStarTarget = checked) } },
                     )
                 }
-                EditorMiniField("Meta 1RM kg", goalRmInput, keyboardType = KeyboardType.Decimal, modifier = Modifier.fillMaxWidth()) { input ->
-                    goalRmInput = input
-                    onUpdateExercise { it.copy(goal1RM = input.safeDoubleOrNull()) }
-                }
+                KpknTextField(
+                    value = goalRmInput,
+                    onValueChange = { input ->
+                        goalRmInput = input
+                        onUpdateExercise { it.copy(goal1RM = input.safeDoubleOrNull()) }
+                    },
+                    label = "Meta 1RM kg",
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                )
                 val goal = goalRmInput.safeDoubleOrNull()?.takeIf { it > 0 }
                 if (goal != null && resolveReferenceCapacity(exercise) == null) {
-                    TextButton(
+                    KpknTextAction(
+                        text = "Usar meta como referencia",
                         onClick = {
                             onUpdateExercise { it.copy(reference1RM = goal, prFor1RM = null) }
                         },
-                    ) {
-                        Text("Usar meta como referencia")
-                    }
+                    )
                 }
             }
         },
-        confirmButton = { TextButton(onClick = onDismiss) { Text("Listo") } },
+        confirmButton = { KpknPrimaryPill(text = "Listo", onClick = onDismiss) },
     )
 }
 
+/**
+ * Las rondas de la superserie (ER1c2): una lista vertical en lugar del carrusel de tarjetas. Cada ronda es una fila con su número, sus
+ * miembros con su dosis y sus puntos (qué miembros tienen serie en esa ronda). Al tocarla se despliega con el botón de descansos y las
+ * tarjetas de cada miembro. Solo una ronda abierta a la vez; «Añadir ronda» va al pie.
+ */
 @Composable
 internal fun SupersetRoundsCarousel(
     group: SupersetGroup,
@@ -358,29 +378,55 @@ internal fun SupersetRoundsCarousel(
     onAddRound: () -> Unit,
     onRemoveRound: (Int) -> Unit,
 ) {
+    var openRound by rememberSaveable(group.id) { mutableStateOf<Int?>(null) }
     var restPickerRound by remember { mutableStateOf<Int?>(null) }
-    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        Text("Rondas", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .horizontalScroll(rememberScrollState())
-                .padding(end = 4.dp),
-            horizontalArrangement = Arrangement.spacedBy(10.dp),
-        ) {
-            (0 until rounds).toList().forEach { roundIndex ->
-                val roundRestBetween = group.roundRestBetweenExercises[roundIndex] ?: group.restBetweenExercises
-                val roundRestAfter = group.roundRestAfterSuperset[roundIndex] ?: group.restAfterSuperset
-                Surface(
-                    modifier = Modifier.width(320.dp),
-                    shape = RoundedCornerShape(16.dp),
-                    color = lerp(DarkEditorSurfaceSoft, accentColor, 0.12f),
-                    border = BorderStroke(1.dp, accentColor.copy(alpha = 0.35f)),
+    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        (0 until rounds).forEach { roundIndex ->
+            val roundRestBetween = group.roundRestBetweenExercises[roundIndex] ?: group.restBetweenExercises
+            val roundRestAfter = group.roundRestAfterSuperset[roundIndex] ?: group.restAfterSuperset
+            val expanded = openRound == roundIndex
+            KpknModule(contentPadding = PaddingValues(horizontal = 14.dp, vertical = 12.dp)) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .defaultMinSize(minHeight = 48.dp)
+                        .clickable(role = Role.Button) {
+                            openRound = if (expanded) null else roundIndex
+                        },
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(10.dp),
                 ) {
-                    Column(modifier = Modifier.padding(10.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            Text("Ronda ${roundIndex + 1}", modifier = Modifier.weight(1f), fontWeight = FontWeight.Black, color = accentColor)
+                            Text("Ronda ${roundIndex + 1}", style = KpknType.bodyStrong, color = WizardColors.text)
+                            RoundProgressDots(exercises = exercises, roundIndex = roundIndex, accentColor = accentColor)
                         }
+                        Text(
+                            roundSummary(exercises, roundIndex),
+                            style = KpknType.caption,
+                            color = WizardColors.textMuted,
+                            maxLines = 2,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                    }
+                    Icon(
+                        imageVector = if (expanded) KpknLineIcons.ChevronUp else KpknLineIcons.ChevronDown,
+                        contentDescription = if (expanded) "Plegar ronda ${roundIndex + 1}" else "Desplegar ronda ${roundIndex + 1}",
+                        tint = WizardColors.text,
+                        modifier = Modifier.size(20.dp),
+                    )
+                }
+                AnimatedVisibility(
+                    visible = expanded,
+                    enter = expandVertically() + fadeIn(),
+                    exit = shrinkVertically() + fadeOut(),
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 12.dp),
+                        verticalArrangement = Arrangement.spacedBy(10.dp),
+                    ) {
                         SupersetRestPickerButton(
                             restBetweenSeconds = roundRestBetween,
                             restAfterSeconds = roundRestAfter,
@@ -403,7 +449,6 @@ internal fun SupersetRoundsCarousel(
                             } else {
                                 RoundMissingSetCard(
                                     exercise = exercise,
-                                    accentColor = accentColor,
                                     onClick = { onRestoreSet(exercise.id, roundIndex) },
                                 )
                             }
@@ -412,79 +457,72 @@ internal fun SupersetRoundsCarousel(
                 }
             }
         }
-        restPickerRound?.let { roundIndex ->
-            val roundRestBetween = group.roundRestBetweenExercises[roundIndex] ?: group.restBetweenExercises
-            val roundRestAfter = group.roundRestAfterSuperset[roundIndex] ?: group.restAfterSuperset
-            KpknRestPickerChain(
-                primaryTitle = "Descanso entre ejercicios",
-                primarySeconds = roundRestBetween,
-                secondaryTitle = "Descanso al final de la ronda",
-                secondarySeconds = roundRestAfter,
-                onConfirm = { between, after ->
-                    onUpdateRoundRest(roundIndex, between, after ?: roundRestAfter)
-                    restPickerRound = null
-                },
-                onDismiss = { restPickerRound = null },
-            )
-        }
-        Row(
+        KpknSecondaryPill(
+            text = "Añadir ronda",
+            onClick = onAddRound,
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Row(
+            icon = KpknLineIcons.Plus,
+        )
+    }
+    restPickerRound?.let { roundIndex ->
+        val roundRestBetween = group.roundRestBetweenExercises[roundIndex] ?: group.restBetweenExercises
+        val roundRestAfter = group.roundRestAfterSuperset[roundIndex] ?: group.restAfterSuperset
+        KpknRestPickerChain(
+            primaryTitle = "Descanso entre ejercicios",
+            primarySeconds = roundRestBetween,
+            secondaryTitle = "Descanso al final de la ronda",
+            secondarySeconds = roundRestAfter,
+            onConfirm = { between, after ->
+                onUpdateRoundRest(roundIndex, between, after ?: roundRestAfter)
+                restPickerRound = null
+            },
+            onDismiss = { restPickerRound = null },
+        )
+    }
+}
+
+/** Un punto por miembro: relleno si tiene serie en esa ronda, apagado si el hueco sigue vacío. */
+@Composable
+private fun RoundProgressDots(exercises: List<Exercise>, roundIndex: Int, accentColor: Color) {
+    Row(horizontalArrangement = Arrangement.spacedBy(4.dp), verticalAlignment = Alignment.CenterVertically) {
+        exercises.forEach { exercise ->
+            val hasSet = exercise.sets.getOrNull(roundIndex) != null
+            Box(
                 modifier = Modifier
-                    .weight(1f)
-                    .horizontalScroll(rememberScrollState()),
-                horizontalArrangement = Arrangement.spacedBy(6.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                (0 until rounds).forEach { roundIndex ->
-                    Surface(
-                        shape = RoundedCornerShape(999.dp),
-                        color = accentColor.copy(alpha = 0.12f),
-                        border = BorderStroke(1.dp, accentColor.copy(alpha = 0.30f)),
-                    ) {
-                        Row(
-                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-                            horizontalArrangement = Arrangement.spacedBy(4.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            Text(
-                                "R${roundIndex + 1}",
-                                style = MaterialTheme.typography.labelSmall,
-                                fontWeight = FontWeight.Bold,
-                                color = accentColor,
-                            )
-                            exercises.forEach { ex ->
-                                val hasSet = ex.sets.getOrNull(roundIndex) != null
-                                Box(
-                                    modifier = Modifier
-                                        .size(5.dp)
-                                        .clip(CircleShape)
-                                        .background(
-                                            if (hasSet) accentColor
-                                            else Color.White.copy(alpha = 0.18f),
-                                        ),
-                                )
-                            }
-                        }
-                    }
-                }
-            }
-            FilledTonalButton(
-                onClick = onAddRound,
-                shape = RoundedCornerShape(14.dp),
-                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp),
-            ) {
-                Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(16.dp))
-                Spacer(Modifier.width(6.dp))
-                Text("Añadir ronda", fontWeight = FontWeight.Bold)
-            }
+                    .size(6.dp)
+                    .clip(CircleShape)
+                    .background(if (hasSet) accentColor else WizardColors.textFaint),
+            )
         }
     }
 }
 
+/** Una línea por ronda: cada miembro con su dosis («Press banca 8–10 · Remo 10–12»). El hueco vacío se dice. */
+private fun roundSummary(exercises: List<Exercise>, roundIndex: Int): String =
+    exercises.joinToString(" · ") { exercise ->
+        val set = exercise.sets.getOrNull(roundIndex)
+        val name = exercise.displayNameWithSelectedChips()
+        if (set == null) "$name (vacío)" else "$name ${roundSetDose(exercise, set)}"
+    }
+
+private fun roundSetDose(exercise: Exercise, set: ExerciseSet): String {
+    val target = if (exercise.isEffectivelyUnilateral()) (set.leftTarget ?: set.rightTarget) else null
+    val reps = target?.targetRepsRange?.format()
+        ?: target?.targetReps?.toString()
+        ?: set.effectiveRepRange()?.format()
+        ?: set.targetReps?.toString()
+    val duration = target?.targetDuration ?: set.targetDuration
+    return when {
+        reps != null -> reps
+        duration != null -> KpknSetFormat.doseTime(duration)
+        else -> "—"
+    }
+}
+
+/**
+ * Botón de descansos de la superserie: píldora `inset` con filete de 12 % y «Entre 1:00 · Ronda 2:00», con el mismo selector encadenado de
+ * siempre. [accentColor] se conserva por las llamadas que ya lo pasan.
+ */
 @Composable
 internal fun SupersetRestPickerButton(
     restBetweenSeconds: Int,
@@ -493,30 +531,31 @@ internal fun SupersetRestPickerButton(
     modifier: Modifier = Modifier,
     onClick: () -> Unit,
 ) {
-    Surface(
+    Row(
         modifier = modifier
-            .height(48.dp)
-            .clip(RoundedCornerShape(12.dp))
-            .clickable { onClick() },
-        color = accentColor.copy(alpha = 0.12f),
-        border = androidx.compose.foundation.BorderStroke(1.dp, accentColor.copy(alpha = 0.30f)),
+            .defaultMinSize(minHeight = 48.dp)
+            .clip(KpknShape.pill)
+            .background(KpknSurface.inset, KpknShape.pill)
+            .border(1.dp, Color.White.copy(alpha = 0.12f), KpknShape.pill)
+            .clickable(role = Role.Button, onClick = onClick)
+            .padding(horizontal = 16.dp, vertical = 10.dp),
+        horizontalArrangement = Arrangement.Center,
+        verticalAlignment = Alignment.CenterVertically,
     ) {
-        Row(
-            modifier = Modifier.fillMaxSize().padding(horizontal = 12.dp),
-            horizontalArrangement = Arrangement.Center,
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Icon(Icons.Default.Timer, contentDescription = "Descansos de superserie", tint = accentColor, modifier = Modifier.size(20.dp))
-            Spacer(Modifier.width(8.dp))
-            Text(
-                "Entre ${formatRestSummary(restBetweenSeconds)} · Ronda ${formatRestSummary(restAfterSeconds)}",
-                style = MaterialTheme.typography.labelMedium,
-                fontWeight = FontWeight.Bold,
-                color = accentColor,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
-        }
+        Icon(
+            imageVector = KpknLineIcons.Clock,
+            contentDescription = "Descansos de superserie",
+            tint = WizardColors.textMuted,
+            modifier = Modifier.size(18.dp),
+        )
+        Spacer(Modifier.width(8.dp))
+        Text(
+            "Entre ${formatRestSummary(restBetweenSeconds)} · Ronda ${formatRestSummary(restAfterSeconds)}",
+            style = KpknType.chip,
+            color = WizardColors.text,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+        )
     }
 }
 
@@ -547,176 +586,174 @@ private fun RoundExerciseSetCard(
         }
     }.joinToString(" · ").ifBlank { "Sin objetivo configurado" }
 
-    Surface(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(14.dp),
-        color = lerp(DarkEditorSurfaceSoft, accentColor, 0.08f),
-        border = BorderStroke(1.dp, accentColor.copy(alpha = if (expanded) 0.45f else 0.25f)),
+    val cardShape = RoundedCornerShape(16.dp)
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(KpknSurface.inset, cardShape)
+            .border(1.dp, KpknSurface.moduleBorder, cardShape),
     ) {
-        Column {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clip(RoundedCornerShape(14.dp))
-                    .clickable { expanded = !expanded }
-                    .padding(horizontal = 10.dp, vertical = 8.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        exercise.displayNameWithSelectedChips(),
-                        style = MaterialTheme.typography.labelMedium,
-                        fontWeight = FontWeight.Bold,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                    )
-                    Text(
-                        "Ronda ${roundIndex + 1} · $summary",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                    )
-                }
-                Icon(
-                    imageVector = if (expanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
-                    contentDescription = if (expanded) "Plegar serie" else "Ampliar serie",
-                    tint = accentColor,
-                    modifier = Modifier.size(18.dp),
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .defaultMinSize(minHeight = 56.dp)
+                .clickable(role = Role.Button) { expanded = !expanded }
+                .padding(horizontal = 12.dp, vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    exercise.displayNameWithSelectedChips(),
+                    style = KpknType.bodyStrong,
+                    color = WizardColors.text,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+                Text(
+                    "Ronda ${roundIndex + 1} · $summary",
+                    style = KpknType.caption,
+                    color = WizardColors.textMuted,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
                 )
             }
-            AnimatedVisibility(
-                visible = expanded,
-                enter = expandVertically() + fadeIn(),
-                exit = shrinkVertically() + fadeOut(),
+            Icon(
+                imageVector = if (expanded) KpknLineIcons.ChevronUp else KpknLineIcons.ChevronDown,
+                contentDescription = if (expanded) "Plegar serie" else "Ampliar serie",
+                tint = WizardColors.text,
+                modifier = Modifier.size(18.dp),
+            )
+        }
+        AnimatedVisibility(
+            visible = expanded,
+            enter = expandVertically() + fadeIn(),
+            exit = shrinkVertically() + fadeOut(),
+        ) {
+            Column(
+                modifier = Modifier.padding(start = 8.dp, end = 8.dp, bottom = 8.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
-                Column(
-                    modifier = Modifier.padding(start = 8.dp, end = 8.dp, bottom = 8.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
-                ) {
-                    if (exercise.isEffectivelyUnilateral()) {
-                        val orderedSides = when (exercise.unilateralSideOrder) {
-                            UnilateralSideOrder.LEFT_RIGHT -> listOf("L", "R")
-                            UnilateralSideOrder.RIGHT_LEFT -> listOf("R", "L")
-                        }
-                        orderedSides.forEach { side ->
-                            val isLeft = side == "L"
-                            val showCard = if (isLeft) set.leftTarget != null else set.rightTarget != null
-                            val isFirstVisible = orderedSides.takeWhile { it != side }.none { prior ->
-                                if (prior == "L") set.leftTarget != null else set.rightTarget != null
-                            }
-                            if (showCard) {
-                                InlineSetRow(
-                                    set = set,
-                                    index = roundIndex,
-                                    reference1RM = resolveReferenceCapacity(exercise),
-                                    predictedWeight = predictedWeight,
-                                    estimatedMetric = estimatedMetric,
-                                    trainingMode = exercise.trainingMode,
-                                    customUnit = exercise.customUnit,
-                                    accentColor = if (isLeft) Color(0xFF2196F3) else Color(0xFFFF5252),
-                                    canMoveUp = isFirstVisible && roundIndex > 0,
-                                    canMoveDown = isFirstVisible && roundIndex < exercise.sets.lastIndex,
-                                    isUnilateral = true,
-                                    fixedUnilateralSide = side,
-                                    showSetActions = isFirstVisible,
-                                    unilateralIntensityMode = exercise.unilateralIntensityMode,
-                                    fillHeight = false,
-                                    onUpdate = { updater -> onUpdateSet(set.id, updater) },
-                                    onRemove = { onRemoveSet(set.id) },
-                                    onMoveUp = { onMoveSet(set.id, -1) },
-                                    onMoveDown = { onMoveSet(set.id, 1) },
-                                )
-                            } else {
-                                UnilateralAddGhostCard(
-                                    side = side,
-                                    accentColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .height(184.dp),
-                                    onClick = {
-                                        onUpdateSet(set.id) { current ->
-                                            val default = UnilateralTarget(
-                                                weight = current.weight,
-                                                targetReps = current.targetReps,
-                                                targetRepsRange = current.targetRepsRange,
-                                                targetDuration = current.targetDuration,
-                                                targetValue = current.plannedTargetV2,
-                                                targetRPE = current.targetRPE,
-                                                targetRIR = current.targetRIR,
-                                                intensityMode = current.intensityMode,
-                                            )
-                                            if (side == "L") {
-                                                current.copy(leftTarget = current.leftTarget ?: default)
-                                            } else {
-                                                current.copy(rightTarget = current.rightTarget ?: default)
-                                            }
-                                        }
-                                    },
-                                )
-                            }
-                        }
-                    } else {
-                        InlineSetRow(
-                            set = set,
-                            index = roundIndex,
-                            reference1RM = resolveReferenceCapacity(exercise),
-                            predictedWeight = predictedWeight,
-                            estimatedMetric = estimatedMetric,
-                            trainingMode = exercise.trainingMode,
-                            customUnit = exercise.customUnit,
-                            accentColor = accentColor,
-                            canMoveUp = roundIndex > 0,
-                            canMoveDown = roundIndex < exercise.sets.lastIndex,
-                            isUnilateral = false,
-                            unilateralIntensityMode = exercise.unilateralIntensityMode,
-                            fillHeight = false,
-                            onUpdate = { updater -> onUpdateSet(set.id, updater) },
-                            onRemove = { onRemoveSet(set.id) },
-                            onMoveUp = { onMoveSet(set.id, -1) },
-                            onMoveDown = { onMoveSet(set.id, 1) },
-                        )
+                if (exercise.isEffectivelyUnilateral()) {
+                    val orderedSides = when (exercise.unilateralSideOrder) {
+                        UnilateralSideOrder.LEFT_RIGHT -> listOf("L", "R")
+                        UnilateralSideOrder.RIGHT_LEFT -> listOf("R", "L")
                     }
+                    orderedSides.forEach { side ->
+                        val isLeft = side == "L"
+                        val showCard = if (isLeft) set.leftTarget != null else set.rightTarget != null
+                        val isFirstVisible = orderedSides.takeWhile { it != side }.none { prior ->
+                            if (prior == "L") set.leftTarget != null else set.rightTarget != null
+                        }
+                        if (showCard) {
+                            InlineSetRow(
+                                set = set,
+                                index = roundIndex,
+                                reference1RM = resolveReferenceCapacity(exercise),
+                                predictedWeight = predictedWeight,
+                                estimatedMetric = estimatedMetric,
+                                trainingMode = exercise.trainingMode,
+                                customUnit = exercise.customUnit,
+                                // El lado se dice con la letra (I/D), no con un color: la pieza va en el acento de la superserie.
+                                accentColor = accentColor,
+                                canMoveUp = isFirstVisible && roundIndex > 0,
+                                canMoveDown = isFirstVisible && roundIndex < exercise.sets.lastIndex,
+                                isUnilateral = true,
+                                fixedUnilateralSide = side,
+                                showSetActions = isFirstVisible,
+                                unilateralIntensityMode = exercise.unilateralIntensityMode,
+                                fillHeight = false,
+                                onUpdate = { updater -> onUpdateSet(set.id, updater) },
+                                onRemove = { onRemoveSet(set.id) },
+                                onMoveUp = { onMoveSet(set.id, -1) },
+                                onMoveDown = { onMoveSet(set.id, 1) },
+                            )
+                        } else {
+                            UnilateralAddGhostCard(
+                                side = side,
+                                accentColor = WizardColors.textMuted,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(184.dp),
+                                onClick = {
+                                    onUpdateSet(set.id) { current ->
+                                        val default = UnilateralTarget(
+                                            weight = current.weight,
+                                            targetReps = current.targetReps,
+                                            targetRepsRange = current.targetRepsRange,
+                                            targetDuration = current.targetDuration,
+                                            targetValue = current.plannedTargetV2,
+                                            targetRPE = current.targetRPE,
+                                            targetRIR = current.targetRIR,
+                                            intensityMode = current.intensityMode,
+                                        )
+                                        if (side == "L") {
+                                            current.copy(leftTarget = current.leftTarget ?: default)
+                                        } else {
+                                            current.copy(rightTarget = current.rightTarget ?: default)
+                                        }
+                                    }
+                                },
+                            )
+                        }
+                    }
+                } else {
+                    InlineSetRow(
+                        set = set,
+                        index = roundIndex,
+                        reference1RM = resolveReferenceCapacity(exercise),
+                        predictedWeight = predictedWeight,
+                        estimatedMetric = estimatedMetric,
+                        trainingMode = exercise.trainingMode,
+                        customUnit = exercise.customUnit,
+                        accentColor = accentColor,
+                        canMoveUp = roundIndex > 0,
+                        canMoveDown = roundIndex < exercise.sets.lastIndex,
+                        isUnilateral = false,
+                        unilateralIntensityMode = exercise.unilateralIntensityMode,
+                        fillHeight = false,
+                        onUpdate = { updater -> onUpdateSet(set.id, updater) },
+                        onRemove = { onRemoveSet(set.id) },
+                        onMoveUp = { onMoveSet(set.id, -1) },
+                        onMoveDown = { onMoveSet(set.id, 1) },
+                    )
                 }
             }
         }
     }
 }
 
+/** El hueco vacío de una ronda: un filete de 1 dp y el rótulo «Añadir … a esta ronda», que crea la serie al tocarlo. */
 @Composable
 private fun RoundMissingSetCard(
     exercise: Exercise,
-    accentColor: Color,
     onClick: () -> Unit,
 ) {
-    Surface(
+    Row(
         modifier = Modifier
             .fillMaxWidth()
-            .height(52.dp)
-            .clip(RoundedCornerShape(14.dp))
-            .clickable(onClick = onClick),
-        color = Color.White.copy(alpha = 0.03f),
-        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.12f)),
+            .defaultMinSize(minHeight = 48.dp)
+            .clip(KpknShape.pill)
+            .border(1.dp, WizardColors.glassBorder, KpknShape.pill)
+            .clickable(role = Role.Button, onClick = onClick)
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalAlignment = Alignment.CenterVertically,
     ) {
-        Row(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(horizontal = 10.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Icon(Icons.Default.Add, contentDescription = null, tint = accentColor, modifier = Modifier.size(16.dp))
-            Text(
-                "Añadir ${exercise.displayNameWithSelectedChips()} a esta ronda",
-                style = MaterialTheme.typography.labelSmall,
-                fontWeight = FontWeight.Bold,
-                color = accentColor,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.weight(1f),
-            )
-        }
+        Icon(
+            imageVector = KpknLineIcons.Plus,
+            contentDescription = null,
+            tint = WizardColors.textMuted,
+            modifier = Modifier.size(16.dp),
+        )
+        Text(
+            "Añadir ${exercise.displayNameWithSelectedChips()} a esta ronda",
+            style = KpknType.caption,
+            color = WizardColors.textMuted,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.weight(1f),
+        )
     }
 }
 
