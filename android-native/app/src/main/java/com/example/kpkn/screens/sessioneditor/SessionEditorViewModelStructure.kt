@@ -171,9 +171,12 @@ fun SessionEditorViewModel.getRuleDefaultsForPart(partId: String?): SessionEdito
 
 fun SessionEditorViewModel.addExerciseToPart(partId: String?, info: ExerciseMuscleInfo): String {
     val currentSession = currentUiState.activeVariantSession
-    val newExercise = createExerciseFromInfo(info, repository.history.value).let { base ->
-        if (currentSession?.isMeetDay == true) base.asCompetitionMovement() else base
-    }.withSessionEditorDefaults(getRuleDefaultsForPart(partId), info)
+    val newExercise = catalogExerciseForSession(
+        info = info,
+        history = repository.history.value,
+        defaults = getRuleDefaultsForPart(partId),
+        isMeetDay = currentSession?.isMeetDay == true,
+    )
     updateSession { session ->
         if (partId == null) {
             session.copy(exercises = session.exercises + newExercise)
@@ -188,9 +191,12 @@ fun SessionEditorViewModel.addExerciseToPart(partId: String?, info: ExerciseMusc
 fun SessionEditorViewModel.addExercisesToPart(partId: String?, infos: List<ExerciseMuscleInfo>): List<String> {
     val currentSession = currentUiState.activeVariantSession
     val newExercises = infos.map { info ->
-        createExerciseFromInfo(info, repository.history.value).let { base ->
-            if (currentSession?.isMeetDay == true) base.asCompetitionMovement() else base
-        }.withSessionEditorDefaults(getRuleDefaultsForPart(partId), info)
+        catalogExerciseForSession(
+            info = info,
+            history = repository.history.value,
+            defaults = getRuleDefaultsForPart(partId),
+            isMeetDay = currentSession?.isMeetDay == true,
+        )
     }
     updateSession { session ->
         if (partId == null) {
@@ -221,9 +227,12 @@ fun SessionEditorViewModel.addExercisesAsSupersetToPart(
     if (partId != null && currentSession.parts.none { it.id == partId }) return emptyList()
     val rounds = config.rounds.coerceAtLeast(1)
     val newExercises = infos.map { info ->
-        val base = createExerciseFromInfo(info, repository.history.value).let { exercise ->
-            if (currentSession.isMeetDay) exercise.asCompetitionMovement() else exercise
-        }.withSessionEditorDefaults(getRuleDefaultsForPart(partId), info)
+        val base = catalogExerciseForSession(
+            info = info,
+            history = repository.history.value,
+            defaults = getRuleDefaultsForPart(partId),
+            isMeetDay = currentSession.isMeetDay,
+        )
         base.copy(
             sets = List(rounds) { index ->
                 val existing = base.sets.getOrNull(index)
@@ -271,16 +280,41 @@ fun SessionEditorViewModel.addExercisesAsSupersetToPart(
 fun SessionEditorViewModel.replaceExerciseInPart(partId: String?, exerciseId: String, info: ExerciseMuscleInfo) {
     updateExercise(partId, exerciseId) { current ->
         val cached = if (info.catalogRevision == null) CatalogSelectionDraftBridge.consume(info.id) else null
-        current.replacedWithCatalogExercise(
-            info = info,
-            selectedAspects = cached?.selectedAspects,
-            variantName = cached?.variantName,
-            variantGroupId = cached?.variantGroupId,
-            variantGroupName = cached?.variantGroupName,
-        ).withSharedPerformanceFromHistory(repository.history.value)
+        current.replacedWithCatalogInfo(info = info, cached = cached, history = repository.history.value)
     }
     closeSheet()
 }
+
+/**
+ * Reemplazo desde el catálogo. SE10: el ejercicio reemplazado lleva la identidad v2 de la configuración elegida y un
+ * occurrenceId: el que ya tenía o, si la sesión venía sin él (antes del campo), uno nuevo. Sin él el cortafuegos bloquea.
+ */
+internal fun Exercise.replacedWithCatalogInfo(
+    info: ExerciseMuscleInfo,
+    cached: CatalogSelectionDraftBridge.VariantSelection?,
+    history: List<WorkoutLog>,
+): Exercise {
+    val replaced = replacedWithCatalogExercise(
+        info = info,
+        selectedAspects = cached?.selectedAspects,
+        variantName = cached?.variantName,
+        variantGroupId = cached?.variantGroupId,
+        variantGroupName = cached?.variantGroupName,
+    )
+    return replaced
+        .copy(occurrenceId = replaced.occurrenceId?.takeIf { it.isNotBlank() } ?: UUID.randomUUID().toString())
+        .withSharedPerformanceFromHistory(history)
+}
+
+/** Ejercicio de catálogo listo para la sesión (SE10: helper extraído de addExerciseToPart, addExercisesToPart y la superserie). */
+internal fun catalogExerciseForSession(
+    info: ExerciseMuscleInfo,
+    history: List<WorkoutLog>,
+    defaults: SessionEditorRuleDefaults,
+    isMeetDay: Boolean,
+): Exercise = createExerciseFromInfo(info, history)
+    .let { base -> if (isMeetDay) base.asCompetitionMovement() else base }
+    .withSessionEditorDefaults(defaults, info)
 
 fun SessionEditorViewModel.removeExercise(partId: String?, exerciseId: String) = updateSession { session ->
     val stripped = if (partId == null) {
