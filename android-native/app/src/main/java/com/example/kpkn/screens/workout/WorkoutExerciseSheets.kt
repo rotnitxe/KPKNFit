@@ -282,7 +282,7 @@ internal fun WorkoutCreateTagOverlay(
                 WorkoutTagFilledTextField(
                     value = newMachineBrand,
                     onValueChange = { newMachineBrand = it },
-                    label = "Marca / máquina",
+                    label = "Máquina o marca",
                 )
                 WorkoutTagFilledTextField(
                     value = newBaseLoad,
@@ -397,7 +397,7 @@ internal fun WorkoutTagManagerModal(
                 WorkoutTagFilledTextField(
                     value = brand,
                     onValueChange = { brand = it },
-                    label = "Marca / máquina",
+                    label = "Máquina o marca",
                 )
                 WorkoutTagFilledTextField(
                     value = baseLoad,

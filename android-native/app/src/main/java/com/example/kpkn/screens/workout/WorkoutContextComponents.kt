@@ -146,7 +146,7 @@ internal fun WorkoutExerciseHistoryContent(
                                     verticalAlignment = Alignment.CenterVertically,
                                 ) {
                                     Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
-                                        Text(entry.date.take(10), style = KpknType.bodyStrong, color = WizardColors.text)
+                                        Text(formatHistoryDate(entry.date, java.time.LocalDate.now()), style = KpknType.bodyStrong, color = WizardColors.text)
                                         val tag = entry.tag
                                         if (tag != null) HistoryPill(tag)
                                     }
@@ -319,7 +319,7 @@ internal fun WorkoutExerciseSetupContent(
                 }
             },
             modifier = Modifier.fillMaxWidth(),
-            label = "Maquina / marca",
+            label = "Máquina o marca",
             singleLine = true,
         )
 
