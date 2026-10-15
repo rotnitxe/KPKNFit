@@ -291,4 +291,149 @@ class TechniqueRecorderRenderSheetTest {
             FramingGuideOverlay(preferredView = ViewKind.FRONT, hasBarbell = false)
         }
     }
+
+    private fun renderFullScreen(name: String, fontScale: Float = 1f, content: @Composable () -> Unit) {
+        rule.setContent {
+            hostView = LocalView.current
+            val base = LocalDensity.current
+            CompositionLocalProvider(LocalDensity provides Density(base.density, fontScale = fontScale)) {
+                Box(
+                    modifier = Modifier
+                        .testTag(HOJA)
+                        .width(360.dp)
+                        .height(640.dp)
+                        .background(Color.Black),
+                ) {
+                    content()
+                }
+            }
+        }
+        save(name)
+    }
+
+    @Test
+    fun fullscreenIdle100() = renderFullScreen("fullscreen_idle_100", fontScale = 1f) {
+        FullScreenRecorderPreview(isRecording = false, is60FpsGranted = true, showsPlateBadge = true)
+    }
+
+    @Test
+    fun fullscreenIdle130() = renderFullScreen("fullscreen_idle_130", fontScale = 1.3f) {
+        FullScreenRecorderPreview(isRecording = false, is60FpsGranted = true, showsPlateBadge = true)
+    }
+
+    @Test
+    fun fullscreenRecording100() = renderFullScreen("fullscreen_recording_100", fontScale = 1f) {
+        FullScreenRecorderPreview(isRecording = true, elapsedSeconds = 12L, is60FpsGranted = true, showsPlateBadge = true)
+    }
+
+    @Test
+    fun fullscreenRecording130() = renderFullScreen("fullscreen_recording_130", fontScale = 1.3f) {
+        FullScreenRecorderPreview(isRecording = true, elapsedSeconds = 12L, is60FpsGranted = true, showsPlateBadge = true)
+    }
+
+    @Test
+    fun fullscreenNoCamera100() = renderFullScreen("fullscreen_nocamera_100", fontScale = 1f) {
+        FullScreenRecorderPreview(hasCamera = false, hasPermission = true)
+    }
+
+    @Test
+    fun fullscreenNoCamera130() = renderFullScreen("fullscreen_nocamera_130", fontScale = 1.3f) {
+        FullScreenRecorderPreview(hasCamera = false, hasPermission = true)
+    }
+
+    @Test
+    fun fullscreenNoPermission100() = renderFullScreen("fullscreen_nopermission_100", fontScale = 1f) {
+        FullScreenRecorderPreview(hasCamera = true, hasPermission = false, isPermanentlyDenied = false)
+    }
+
+    @Test
+    fun fullscreenNoPermission130() = renderFullScreen("fullscreen_nopermission_130", fontScale = 1.3f) {
+        FullScreenRecorderPreview(hasCamera = true, hasPermission = false, isPermanentlyDenied = true)
+    }
+}
+
+@Composable
+private fun FullScreenRecorderPreview(
+    exerciseName: String = "Sentadilla con barra",
+    setLabel: String = "Serie 2",
+    isRecording: Boolean = false,
+    elapsedSeconds: Long = 0L,
+    is60FpsGranted: Boolean = false,
+    showsPlateBadge: Boolean = false,
+    plateDiameterMm: Int? = 450,
+    hasCamera: Boolean = true,
+    hasPermission: Boolean = true,
+    isPermanentlyDenied: Boolean = false,
+) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.Black),
+    ) {
+        if (!isRecording && hasCamera && hasPermission) {
+            FramingGuideOverlay(
+                preferredView = ViewKind.SIDE,
+                hasBarbell = showsPlateBadge,
+            )
+        }
+
+        RecorderTopBar(
+            exerciseName = exerciseName,
+            setLabel = setLabel,
+            is60FpsGranted = is60FpsGranted,
+            showsPlateBadge = showsPlateBadge,
+            plateDiameterMm = plateDiameterMm,
+            plateBadgeExpanded = false,
+            onTogglePlateExpanded = {},
+            onSelectPlateDiameterMm = {},
+            onClose = {},
+            modifier = Modifier.align(Alignment.TopCenter),
+        )
+
+        if (!isRecording && hasCamera && hasPermission) {
+            Box(
+                modifier = Modifier
+                    .align(Alignment.TopCenter)
+                    .padding(top = 64.dp),
+            ) {
+                FramingChip(
+                    verdict = FramingVerdict(ok = true, issues = emptyList(), view = ViewKind.SIDE),
+                )
+            }
+        }
+
+        if (!hasPermission) {
+            com.example.kpkn.screens.workout.technique.RecorderNoticeCard(
+                title = "Permite la cámara para grabar",
+                actionLabel = if (isPermanentlyDenied) "Abrir ajustes" else "Permitir cámara",
+                onAction = {},
+                modifier = Modifier.align(Alignment.Center),
+            )
+        } else if (!hasCamera) {
+            com.example.kpkn.screens.workout.technique.RecorderNoticeCard(
+                title = "No se pudo abrir la cámara",
+                actionLabel = "Cerrar",
+                onAction = {},
+                modifier = Modifier.align(Alignment.Center),
+            )
+        }
+
+        Column(
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(bottom = 24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+        ) {
+            if (isRecording) {
+                RecTimerPill(elapsedSeconds = elapsedSeconds)
+            }
+
+            RecordButton(
+                isRecording = isRecording,
+                enabled = hasCamera && hasPermission,
+                onClick = {},
+            )
+        }
+    }
 }
