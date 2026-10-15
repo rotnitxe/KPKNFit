@@ -60,3 +60,6 @@ internal fun WorkoutTechniqueProgressDraft.toGuidedPhaseOrNull(): GuidedTechniqu
         null -> null
     }
 }
+
+/** Peso de un drop guiado tal como lo escribe la persona: el teclado decimal escribe la coma, así que «62,5» cuenta como 62,5 (LR1c2). */
+internal fun parseGuidedDropWeightKg(text: String): Double? = text.replace(',', '.').toDoubleOrNull()

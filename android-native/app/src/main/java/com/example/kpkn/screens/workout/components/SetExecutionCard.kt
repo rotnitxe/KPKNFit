@@ -2979,7 +2979,7 @@ internal fun SetInputCardV2(
                             val capture = guidedMainCapture ?: return@label
                             when (phase) {
                                 is GuidedTechniquePhase.DropSet -> {
-                                    val dropWeight = guidedDropWeightText.toDoubleOrNull()
+                                    val dropWeight = parseGuidedDropWeightKg(guidedDropWeightText)
                                     val dropReps = guidedDropRepsText.toIntOrNull()
                                     if (dropWeight == null || dropWeight <= 0.0 || dropReps == null || dropReps <= 0) {
                                         android.widget.Toast.makeText(
