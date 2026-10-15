@@ -1,37 +1,22 @@
 package com.example.kpkn.screens.sessioneditor.components
 
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.FitnessCenter
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.Link
-import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -41,36 +26,22 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.MutableState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.example.kpkn.data.models.*
-import com.example.kpkn.domain.calculations.calculateHybrid1RM
 import com.example.kpkn.domain.calculations.calculateGeneralizedCapacity
-import com.example.kpkn.domain.exercises.*
+import com.example.kpkn.domain.calculations.calculateHybrid1RM
 import com.example.kpkn.domain.workout.warmupValidationMessages
 import com.example.kpkn.screens.onboarding.design.WizardColors
-import com.example.kpkn.screens.sessioneditor.CompactModeSelector
-import com.example.kpkn.screens.sessioneditor.CompactRestBundleButton
-import com.example.kpkn.screens.sessioneditor.DarkChoiceChip
-import com.example.kpkn.screens.sessioneditor.DarkEditorSurfaceSoft
 import com.example.kpkn.screens.sessioneditor.EditorMiniField
 import com.example.kpkn.screens.sessioneditor.ExerciseSetsCarousel
-import com.example.kpkn.screens.sessioneditor.SideOrderChip
-import com.example.kpkn.screens.sessioneditor.formatEditableNumber
 import com.example.kpkn.screens.sessioneditor.rememberEditableNumber
-import com.example.kpkn.screens.sessioneditor.safeDoubleOrNull
-import com.example.kpkn.screens.sessioneditor.safeIntOrNull
-import com.example.kpkn.screens.sessioneditor.toggledBilateralUnilateral
-import com.example.kpkn.screens.sessioneditor.trainingModeLabel
-import com.example.kpkn.ui.components.KpknDropdownMenu
+import com.example.kpkn.screens.sessioneditor.DarkEditorSurfaceSoft
+import com.example.kpkn.ui.design.KpknChip
 import com.example.kpkn.ui.design.KpknModule
+import com.example.kpkn.ui.design.KpknTextAction
 import com.example.kpkn.ui.design.KpknType
-import com.example.kpkn.ui.design.KpknSurface
 import java.util.UUID
 
 /**
@@ -146,8 +117,8 @@ internal fun rememberExerciseEditorLocalState(exercise: Exercise): ExerciseEdito
 }
 
 /**
- * Editor desplegado de un ejercicio: la preparación (movilidad y aproximación), las series efectivas, el descanso y el modo, la carga
- * inteligente, los lados, la unidad, la relación y las series. Sin cambios de conducta respecto al bloque que vivía en [ExerciseEditorCard].
+ * Editor desplegado de un ejercicio (ER1c1): la preparación (movilidad y aproximación) a la vista, la barra de opciones, la carga
+ * inteligente, los lados, la unidad, la relación y la lista de series. Sin cambios de conducta respecto al bloque que vivía en [ExerciseEditorCard].
  */
 @Composable
 internal fun ExerciseEditorExpanded(
@@ -180,8 +151,6 @@ internal fun ExerciseEditorExpanded(
 ) {
     var mobilityBlockExpanded by local.mobilityBlockExpanded
     var warmupBlockExpanded by local.warmupBlockExpanded
-    var restSelectionSeconds by local.restSelectionSeconds
-    var showExerciseOptionsMenu by local.showExerciseOptionsMenu
     var showSmartLoadSheet by local.showSmartLoadSheet
     var showCustomUnitModal by local.showCustomUnitModal
     var rmInputMode by local.rmInputMode
@@ -189,6 +158,9 @@ internal fun ExerciseEditorExpanded(
     var prWeightInput by local.prWeightInput
     var prRepsInput by local.prRepsInput
     val customUnitInput by local.customUnitInput
+    var showRestChain by remember { mutableStateOf(false) }
+    val goalLambda: () -> Unit = { local.showGoalSheet.value = true }
+    val openGoal: (() -> Unit)? = if (exercise.cardioDetails == null) goalLambda else null
 
     Column(
         modifier = Modifier
@@ -297,260 +269,69 @@ internal fun ExerciseEditorExpanded(
             Text(
                 "SERIES EFECTIVAS",
                 modifier = Modifier.fillMaxWidth(),
-                textAlign = TextAlign.Center,
-                style = MaterialTheme.typography.labelSmall,
-                fontWeight = FontWeight.Bold,
-                letterSpacing = 1.2.sp,
-                color = MaterialTheme.colorScheme.onSurface,
+                style = KpknType.eyebrow,
+                color = WizardColors.textMuted,
             )
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                if (!suppressIndividualRest) {
-                    CompactRestBundleButton(
-                        primaryLabel = if (exercise.isEffectivelyUnilateral() && !isSupersetExercise) "Series L/R" else "Descanso",
-                        primarySeconds = restSelectionSeconds,
-                        sideSeconds = if (exercise.isEffectivelyUnilateral() && !isSupersetExercise) exercise.restBetweenSidesSeconds ?: 0 else null,
-                        accentColor = accentColor,
-                        modifier = Modifier.weight(1f),
-                        accentTinted = true,
-                        onConfirm = { primary, side ->
-                            restSelectionSeconds = primary
-                            onUpdateExercise { draft ->
-                                draft.copy(
-                                    restTime = primary,
-                                    restBetweenSidesSeconds = if (draft.isEffectivelyUnilateral()) {
-                                        side ?: draft.restBetweenSidesSeconds
-                                    } else {
-                                        side?.takeIf { it > 0 }
-                                    },
-                                )
-                            }
-                        },
-                    )
-                }
-
-                CompactModeSelector(
-                    currentMode = exercise.trainingMode,
-                    accentColor = accentColor,
-                    modifier = Modifier.weight(1f),
-                    accentTinted = true,
-                ) { mode ->
-                    onUpdateExercise { current -> current.copy(trainingMode = mode) }
-                }
-
-                Box {
-                    IconButton(
-                        onClick = { showExerciseOptionsMenu = true },
-                        modifier = Modifier.size(48.dp),
-                    ) {
-                        Icon(
-                            Icons.Default.MoreVert,
-                            contentDescription = "Más opciones del ejercicio",
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                    }
-                    KpknDropdownMenu(
-                        expanded = showExerciseOptionsMenu,
-                        onDismissRequest = { showExerciseOptionsMenu = false },
-                    ) {
-                        DropdownMenuItem(
-                            text = { Text(if (exercise.trackRom) "Desactivar medir ROM" else "Medir ROM") },
-                            onClick = {
-                                showExerciseOptionsMenu = false
-                                onUpdateExercise { current -> current.copy(trackRom = !current.trackRom) }
-                            },
-                        )
-                        DropdownMenuItem(
-                            text = {
-                                Text(
-                                    relationshipAnchorName?.let { "Ancla: $it" } ?: "Relacionar ejercicio",
-                                )
-                            },
-                            onClick = {
-                                showExerciseOptionsMenu = false
-                                if (exercise.relativeToCanonicalExerciseId == null) {
-                                    onOpenRelationshipPicker()
-                                } else {
-                                    onClearRelationship()
-                                }
-                            },
-                        )
-                        DropdownMenuItem(
-                            text = {
-                                Text(
-                                    if (exercise.isEffectivelyUnilateral()) {
-                                        "Cambiar a bilateral"
-                                    } else {
-                                        "Cambiar a unilateral"
-                                    },
-                                )
-                            },
-                            onClick = {
-                                showExerciseOptionsMenu = false
-                                onUpdateExercise { current -> current.toggledBilateralUnilateral() }
-                            },
-                        )
-                        DropdownMenuItem(
-                            text = {
-                                Text(
-                                    if (exercise.isInSuperset()) "Gestionar superserie" else "Crear superserie",
-                                )
-                            },
-                            onClick = {
-                                showExerciseOptionsMenu = false
-                                onOpenSuperset()
-                            },
-                        )
-                    }
-                }
-            }
+            ExerciseOptionsBar(
+                exercise = exercise,
+                local = local,
+                accentColor = accentColor,
+                isSupersetExercise = isSupersetExercise,
+                suppressIndividualRest = suppressIndividualRest,
+                relationshipAnchorName = relationshipAnchorName,
+                onUpdateExercise = onUpdateExercise,
+                onOpenSuperset = onOpenSuperset,
+                onOpenRelationshipPicker = onOpenRelationshipPicker,
+                onClearRelationship = onClearRelationship,
+                onOpenCustomUnit = { showCustomUnitModal = true },
+                onOpenSmartLoad = { showSmartLoadSheet = true },
+                onOpenGoal = openGoal,
+                onOpenRest = { showRestChain = true },
+            )
             if (exercise.trainingMode != TrainingMode.SOLO_RPE) {
-                Surface(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(40.dp)
-                        .clip(RoundedCornerShape(12.dp))
-                        .clickable { showSmartLoadSheet = true },
-                    shape = RoundedCornerShape(12.dp),
-                    color = accentColor.copy(alpha = 0.10f),
-                    border = BorderStroke(1.dp, accentColor.copy(alpha = 0.30f)),
-                ) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 12.dp),
-                        horizontalArrangement = Arrangement.Center,
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        Icon(Icons.Default.FitnessCenter, contentDescription = null, tint = accentColor, modifier = Modifier.size(16.dp))
-                        Spacer(Modifier.width(6.dp))
-                        Text(
-                            "Carga inteligente",
-                            style = MaterialTheme.typography.labelMedium,
-                            fontWeight = FontWeight.Bold,
-                            color = accentColor,
-                        )
-                    }
-                }
+                SmartLoadModule(
+                    accentColor = accentColor,
+                    onOpen = { showSmartLoadSheet = true },
+                )
             }
 
             if (exercise.isEffectivelyUnilateral()) {
-                Surface(
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(16.dp),
-                    color = DarkEditorSurfaceSoft,
-                ) {
-                    Row(
-                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        Text(
-                            "Lados",
-                            style = MaterialTheme.typography.labelSmall,
-                            fontWeight = FontWeight.Black,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                        SideOrderChip(
-                            sideOrder = exercise.unilateralSideOrder,
-                            accentColor = accentColor,
-                            onToggle = {
-                                onUpdateExercise { current ->
-                                    current.copy(
-                                        unilateralSideOrder = if (current.unilateralSideOrder == UnilateralSideOrder.LEFT_RIGHT) {
-                                            UnilateralSideOrder.RIGHT_LEFT
-                                        } else {
-                                            UnilateralSideOrder.LEFT_RIGHT
-                                        },
-                                    )
-                                }
-                            },
-                        )
-                        DarkChoiceChip(
-                            label = if (exercise.unilateralIntensityMode == UnilateralIntensityMode.SHARED) {
-                                "Lados iguales"
-                            } else {
-                                "Lados aparte"
-                            },
-                            selected = exercise.unilateralIntensityMode == UnilateralIntensityMode.SHARED,
-                            accentColor = accentColor,
-                            onClick = {
-                                onUpdateExercise { current ->
-                                    current.copy(
-                                        unilateralIntensityMode = if (current.unilateralIntensityMode == UnilateralIntensityMode.SHARED) {
-                                            UnilateralIntensityMode.INDEPENDENT
-                                        } else {
-                                            UnilateralIntensityMode.SHARED
-                                        },
-                                    )
-                                }
-                            },
-                        )
-                    }
-                }
+                SideOptionsModule(
+                    exercise = exercise,
+                    onUpdateExercise = onUpdateExercise,
+                    onOpenSideRest = { showRestChain = true },
+                )
             }
 
             if (isSupersetExercise && !suppressIndividualRest) {
-                Surface(
-                    shape = RoundedCornerShape(12.dp),
-                    color = accentColor.copy(alpha = 0.10f),
-                    border = androidx.compose.foundation.BorderStroke(1.dp, accentColor.copy(alpha = 0.30f)),
+                KpknModule(
                     modifier = Modifier.fillMaxWidth(),
+                    contentPadding = PaddingValues(horizontal = 14.dp, vertical = 12.dp),
                 ) {
-                    Column(modifier = Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                            Icon(Icons.Default.Link, null, Modifier.size(18.dp), tint = accentColor)
-                            Text("Superserie activa", fontWeight = FontWeight.Black, color = accentColor, style = MaterialTheme.typography.labelMedium)
-                        }
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                        Icon(Icons.Default.Link, null, Modifier.size(18.dp), tint = accentColor)
+                        Text("Superserie activa", style = KpknType.bodyStrong, color = accentColor)
+                    }
+                    Text(
+                        "Los ejercicios agrupados comparten descanso: ${exercise.supersetRestBetween ?: 60}s entre ejercicios, ${exercise.supersetRestAfter ?: 120}s post-ronda.",
+                        style = KpknType.caption,
+                        color = WizardColors.textMuted,
+                    )
+                    if (exercise.restTime != null) {
                         Text(
-                            "Los ejercicios agrupados comparten descanso: ${exercise.supersetRestBetween ?: 60}s entre ejercicios, ${exercise.supersetRestAfter ?: 120}s post-ronda.",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            "El descanso individual (${exercise.restTime}s) es reemplazado por los de la superserie.",
+                            style = KpknType.caption,
+                            color = WizardColors.danger,
                         )
-                        if (exercise.restTime != null) {
-                            Text(
-                                "El descanso individual (${exercise.restTime}s) es reemplazado por los de la superserie.",
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.error.copy(alpha = 0.8f),
-                                fontWeight = FontWeight.SemiBold,
-                            )
-                        }
                     }
                 }
             }
 
             if (exercise.trainingMode == TrainingMode.CUSTOM) {
-                Surface(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clip(RoundedCornerShape(12.dp))
-                        .clickable { showCustomUnitModal = true },
-                    color = accentColor.copy(alpha = 0.12f),
-                    border = androidx.compose.foundation.BorderStroke(1.dp, accentColor.copy(alpha = 0.3f)),
-                ) {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(12.dp),
-                        verticalArrangement = Arrangement.spacedBy(4.dp),
-                    ) {
-                        Text(
-                            "Unidad personalizada",
-                            style = MaterialTheme.typography.labelSmall,
-                            fontWeight = FontWeight.Bold,
-                            color = accentColor,
-                        )
-                        Text(
-                            customUnitInput.ifBlank { "Presiona para configurar" },
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = if (customUnitInput.isBlank()) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface,
-                            fontWeight = if (customUnitInput.isBlank()) FontWeight.Normal else FontWeight.Bold,
-                        )
-                    }
-                }
+                CustomUnitModule(
+                    customUnit = customUnitInput,
+                    onOpen = { showCustomUnitModal = true },
+                )
             }
 
             if (showSmartLoadSheet) {
@@ -572,52 +353,25 @@ internal fun ExerciseEditorExpanded(
                 )
             }
 
+            if (showRestChain) {
+                ExerciseRestChain(
+                    exercise = exercise,
+                    local = local,
+                    accentColor = accentColor,
+                    isSupersetExercise = isSupersetExercise,
+                    onUpdateExercise = onUpdateExercise,
+                    onDismiss = { showRestChain = false },
+                )
+            }
+
             if (exercise.relativeToCanonicalExerciseId != null) {
-                Surface(
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(16.dp),
-                    color = DarkEditorSurfaceSoft,
-                ) {
-                Column(
-                    modifier = Modifier.padding(10.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
-                ) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        Text(
-                            text = exercise.relationshipType?.displayLabel()?.let { "$it de ${relationshipAnchorName ?: exercise.relativeToCanonicalExerciseId}" }
-                                ?: "Relacionado con ${relationshipAnchorName ?: exercise.relativeToCanonicalExerciseId}",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.weight(1f),
-                        )
-                        TextButton(onClick = onClearRelationship) {
-                            Text("Quitar")
-                        }
-                    }
-                    FlowRow(
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp),
-                    ) {
-                        ExerciseRelationshipType.values().forEach { type ->
-                            DarkChoiceChip(type.displayLabel().uppercase(), exercise.relationshipType == type, accentColor = accentColor) {
-                                onUpdateRelationshipType(type)
-                            }
-                        }
-                    }
-                    EditorMiniField(
-                        label = "Notas de relacion",
-                        value = exercise.relationshipNotes.orEmpty(),
-                        stateKey = "relationship-notes-${exercise.id}",
-                        modifier = Modifier.fillMaxWidth(),
-                    ) { input ->
-                        onUpdateRelationshipNotes(input.ifBlank { null })
-                    }
-                }
-                }
+                RelationshipPanel(
+                    exercise = exercise,
+                    anchorName = relationshipAnchorName,
+                    onClearRelationship = onClearRelationship,
+                    onUpdateRelationshipType = onUpdateRelationshipType,
+                    onUpdateRelationshipNotes = onUpdateRelationshipNotes,
+                )
             }
 
             // This whole editor branch is already force-only; cardio returns
@@ -643,6 +397,58 @@ internal fun ExerciseEditorExpanded(
             }
 
             }
+    }
+}
+
+/** Panel de relación (R1 §4.2): el tipo de relación con sus chips, «Quitar» y las notas. */
+@Composable
+private fun RelationshipPanel(
+    exercise: Exercise,
+    anchorName: String?,
+    onClearRelationship: () -> Unit,
+    onUpdateRelationshipType: (ExerciseRelationshipType?) -> Unit,
+    onUpdateRelationshipNotes: (String?) -> Unit,
+) {
+    KpknModule(
+        modifier = Modifier.fillMaxWidth(),
+        contentPadding = PaddingValues(horizontal = 14.dp, vertical = 12.dp),
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                text = exercise.relationshipType?.displayLabel()?.let { "$it de ${anchorName ?: exercise.relativeToCanonicalExerciseId}" }
+                    ?: "Relacionado con ${anchorName ?: exercise.relativeToCanonicalExerciseId}",
+                style = KpknType.bodyStrong,
+                color = WizardColors.text,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.weight(1f),
+            )
+            KpknTextAction(text = "Quitar", onClick = onClearRelationship)
+        }
+        FlowRow(
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            ExerciseRelationshipType.values().forEach { type ->
+                KpknChip(
+                    text = type.displayLabel().uppercase(),
+                    selected = exercise.relationshipType == type,
+                    onClick = { onUpdateRelationshipType(type) },
+                )
+            }
+        }
+        EditorMiniField(
+            label = "Notas de relación",
+            value = exercise.relationshipNotes.orEmpty(),
+            stateKey = "relationship-notes-${exercise.id}",
+            modifier = Modifier.fillMaxWidth(),
+        ) { input ->
+            onUpdateRelationshipNotes(input.ifBlank { null })
+        }
     }
 }
 
