@@ -846,6 +846,12 @@ private fun ColumnScope.CatalogReadyContent(
                     val materialLabel = default?.selectedOptions?.get("implement")
                         ?.takeIf { it.isNotBlank() && it != "default" }
                         ?.let { exerciseCatalogOptionLabel(it, definition.id) }
+                    // La ficha nombra el implemento elegido ahora (CF1); la tarjeta sigue con el de la configuración por defecto.
+                    val fichaMaterialLabel = catalogFichaMaterialLabel(
+                        selectedImplementation = selectedImplementation,
+                        defaultImplementation = default?.selectedOptions?.get("implement"),
+                        definitionId = definition.id,
+                    )
                     val subtitle = listOfNotNull(muscleLabel, materialLabel).joinToString(" · ")
                     // La línea de coincidencias no repite lo que la fila ya dice (músculo y material), y sin búsqueda no se pinta (SE6b).
                     val matchLabel = catalogMatchLabel(
@@ -909,7 +915,7 @@ private fun ColumnScope.CatalogReadyContent(
                                     name = definition.canonicalName,
                                     caption = listOfNotNull(
                                         muscleLabel,
-                                        materialLabel,
+                                        fichaMaterialLabel,
                                         pattern.label.takeIf { pattern != ExercisePattern.GENERIC },
                                     ).joinToString(" · ").takeIf { it.isNotBlank() },
                                     description = definition.description.takeIf { it.isNotBlank() },

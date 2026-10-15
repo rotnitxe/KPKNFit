@@ -85,6 +85,7 @@ import com.example.kpkn.domain.exercises.catalogv2.JointInvolvementV2
 import com.example.kpkn.screens.onboarding.design.WizardColors
 import com.example.kpkn.screens.onboarding.design.entreno.SymbolPalette
 import com.example.kpkn.screens.onboarding.design.wizardReducedMotion
+import com.example.kpkn.domain.training.NativeProgressionText
 import com.example.kpkn.ui.components.CanonicalKnowledgeOverlay
 import com.example.kpkn.ui.components.KpknSheet
 import com.example.kpkn.ui.components.icons.KpknLineIcons
@@ -96,6 +97,7 @@ import com.example.kpkn.ui.design.KpknPrimaryPill
 import com.example.kpkn.ui.design.KpknProgressBar
 import com.example.kpkn.ui.design.KpknShape
 import com.example.kpkn.ui.design.KpknSurface
+import com.example.kpkn.ui.design.KpknTextAction
 import com.example.kpkn.ui.design.KpknTopRow
 import com.example.kpkn.ui.design.KpknType
 import dev.chrisbanes.haze.HazeState
@@ -211,6 +213,7 @@ internal fun CatalogDetailContent(
     // Los implementos van sobre la foto como píldoras (CF1); el resto de ejes sigue en «Configuración».
     val implementOptions = model.axes.firstOrNull { it.axis == ImplementAxis }?.options.orEmpty()
     val configAxes = model.axes.filter { it.axis != ImplementAxis }
+    var muscleKnowledge by remember { mutableStateOf<CanonicalKnowledge?>(null) }
     Column(modifier = modifier.fillMaxSize()) {
         KpknTopRow(
             onBack = null,
@@ -256,12 +259,14 @@ internal fun CatalogDetailContent(
                     )
                 }
             }
-            model.description?.takeIf { it.isNotBlank() }?.let { description ->
-                Text(
-                    text = description,
-                    style = KpknType.body,
-                    color = WizardColors.textMuted,
+            model.muscleInfo?.let { info ->
+                CatalogMusclesModule(
+                    exercise = info,
+                    onKnowledge = { muscleKnowledge = it },
                 )
+            }
+            model.description?.takeIf { it.isNotBlank() }?.let { description ->
+                CatalogDescription(text = description)
             }
             if (configAxes.isNotEmpty() || model.configurationLine != null) {
                 KpknModule(modifier = Modifier.fillMaxWidth()) {
@@ -303,12 +308,19 @@ internal fun CatalogDetailContent(
                     }
                 }
             }
+            // Los músculos van arriba, a la vista (CF1): aquí solo el patrón y las articulaciones.
             CatalogInvolvementAccordions(
-                info = model.muscleInfo,
+                info = null,
                 joints = model.joints,
                 patternId = model.patternId,
                 startExpanded = startExpanded,
             )
+            muscleKnowledge?.let { knowledge ->
+                CanonicalKnowledgeOverlay(
+                    knowledge = knowledge,
+                    onDismiss = { muscleKnowledge = null },
+                )
+            }
         }
         Box(
             modifier = Modifier
@@ -574,6 +586,132 @@ private fun Modifier.scrollEdgeFade(scroll: ScrollState): Modifier = this
             )
         }
     }
+
+/** Cuántos músculos se ven antes de «Ver todos» (CF1). */
+private const val MuscleRowsShown = 4
+
+/** Líneas de la descripción antes de «Leer más» (CF1). */
+private const val DescriptionLines = 4
+
+/** Espacio duro: «0,5 serie» y «50 %» no se parten entre dos líneas (CF1). */
+private const val NonBreakingSpace = '\u00A0'
+
+/**
+ * Módulo «Músculos» de la ficha (CF1): siempre abierto, justo debajo del título y antes de la descripción. Los músculos van de más a
+ * menos, cada uno con su barra y su aporte por serie. Se ven cuatro y «Ver todos» despliega el resto en el sitio. Tocar un músculo abre
+ * su definición canónica, como antes.
+ */
+@Composable
+private fun CatalogMusclesModule(
+    exercise: ExerciseMuscleInfo,
+    onKnowledge: (CanonicalKnowledge) -> Unit,
+) {
+    val contributions = remember(exercise) {
+        oneSeriesVolumeContributions(exercise).sortedByDescending { it.seriesEquivalent }
+    }
+    var expanded by remember(exercise) { mutableStateOf(false) }
+    val shown = if (expanded) contributions else contributions.take(MuscleRowsShown)
+    KpknModule(modifier = Modifier.fillMaxWidth()) {
+        Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
+            Text(
+                text = "Músculos · aporte por 1 serie",
+                style = KpknType.bodyStrong,
+                color = WizardColors.text,
+            )
+            shown.forEach { contribution ->
+                CatalogMuscleRow(contribution = contribution, onKnowledge = onKnowledge)
+            }
+            if (!expanded && contributions.size > MuscleRowsShown) {
+                KpknTextAction(text = "Ver todos", onClick = { expanded = true })
+            }
+        }
+    }
+}
+
+/** Una fila del módulo «Músculos» (CF1): nombre y papel, «0,5 serie · 50 %» a la derecha y la barra en el color del músculo. */
+@Composable
+private fun CatalogMuscleRow(
+    contribution: MuscleVolumeContribution,
+    onKnowledge: (CanonicalKnowledge) -> Unit,
+) {
+    val knowledge = canonicalMuscleKnowledgeForVolumeLabel(contribution.muscle)
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .then(
+                if (knowledge != null) {
+                    Modifier.clickable(role = Role.Button, onClick = { onKnowledge(knowledge) })
+                } else {
+                    Modifier
+                },
+            ),
+        verticalArrangement = Arrangement.spacedBy(6.dp),
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = contribution.muscle,
+                    style = KpknType.bodyStrong,
+                    color = WizardColors.text,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+                Text(
+                    text = roleVolumeLabel(contribution.role).substringBefore(" · "),
+                    style = KpknType.caption,
+                    color = WizardColors.textFaint,
+                )
+            }
+            Spacer(Modifier.size(12.dp))
+            Text(
+                text = muscleFigures(contribution.seriesEquivalent),
+                style = KpknType.caption.copy(fontFeatureSettings = "'tnum' 1"),
+                color = WizardColors.textMuted,
+                maxLines = 1,
+            )
+        }
+        KpknProgressBar(
+            progress = contribution.seriesEquivalent.toFloat(),
+            color = SymbolPalette.musculo,
+            trackColor = Color.White.copy(alpha = 0.08f),
+            height = 6.dp,
+        )
+    }
+}
+
+/** «1 serie · 100 %», «0,5 series · 50 %»: coma decimal, plural salvo una serie y espacio duro antes de la unidad (CF1). */
+internal fun muscleFigures(value: Double): String {
+    val amount = NativeProgressionText.formatKg(value.coerceIn(0.0, 1.0))
+    val unit = if (amount == "1") "serie" else "series"
+    val percent = formatVolumePercent(value).replace("%", "$NonBreakingSpace%")
+    return "$amount$NonBreakingSpace$unit · $percent"
+}
+
+/**
+ * Descripción de la ficha (CF1): recortada a cuatro líneas, con «Leer más» si no cabe y «Leer menos» para volver. Si el texto cabe entero,
+ * no hay botón.
+ */
+@Composable
+private fun CatalogDescription(text: String) {
+    var expanded by remember(text) { mutableStateOf(false) }
+    var clipped by remember(text) { mutableStateOf(false) }
+    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        Text(
+            text = text,
+            style = KpknType.body,
+            color = WizardColors.textMuted,
+            maxLines = if (expanded) Int.MAX_VALUE else DescriptionLines,
+            overflow = TextOverflow.Ellipsis,
+            onTextLayout = { result -> if (!expanded) clipped = result.hasVisualOverflow },
+        )
+        if (clipped) {
+            KpknTextAction(
+                text = if (expanded) "Leer menos" else "Leer más",
+                onClick = { expanded = !expanded },
+            )
+        }
+    }
+}
 
 /**
  * Los módulos plegables de la ficha (SE6b): «Músculos · aporte por 1 serie» y «Articulaciones», cada uno con su cabecera tocable y un
