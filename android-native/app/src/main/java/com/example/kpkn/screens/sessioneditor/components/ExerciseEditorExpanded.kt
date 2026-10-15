@@ -34,7 +34,6 @@ import com.example.kpkn.domain.exercises.displayLabel
 import com.example.kpkn.domain.workout.warmupValidationMessages
 import com.example.kpkn.screens.onboarding.design.WizardColors
 import com.example.kpkn.screens.sessioneditor.EditorMiniField
-import com.example.kpkn.screens.sessioneditor.ExerciseSetsCarousel
 import com.example.kpkn.screens.sessioneditor.rememberEditableNumber
 import com.example.kpkn.screens.sessioneditor.DarkEditorSurfaceSoft
 import com.example.kpkn.ui.design.KpknChip
@@ -378,7 +377,7 @@ internal fun ExerciseEditorExpanded(
                 modifier = Modifier.fillMaxWidth(),
                 verticalArrangement = Arrangement.spacedBy(6.dp),
             ) {
-                ExerciseSetsCarousel(
+                ExerciseSetList(
                     exercise = exercise,
                     reference1RM = resolved1RM,
                     trainingMode = exercise.trainingMode,
@@ -391,6 +390,7 @@ internal fun ExerciseEditorExpanded(
                     onUpdateSet = onUpdateSet,
                     onRemoveSet = onRemoveSet,
                     onMoveSet = onMoveSet,
+                    onTransformExercise = onUpdateExercise,
                 )
             }
 

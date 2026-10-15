@@ -71,6 +71,7 @@ import com.example.kpkn.domain.calculations.calculateSuggestedLoad
 import kotlinx.coroutines.launch
 import kotlin.math.abs
 import kotlin.math.min
+import com.example.kpkn.screens.sessioneditor.components.ExerciseSetList
 import com.example.kpkn.screens.sessioneditor.components.InlineSetRow
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
@@ -398,6 +399,10 @@ internal fun SideOrderChip(
     }
 }
 
+/**
+ * Editor de series del ejercicio (ER1c1): la lista vertical de [ExerciseSetList]. Conserva su nombre y su firma porque la usa también la
+ * sesión en vivo («Editar series»), que no pasa acciones a nivel de ejercicio (allí no aparece «Duplicar»).
+ */
 @Composable
 internal fun ExerciseSetsCarousel(
     exercise: Exercise,
@@ -413,270 +418,20 @@ internal fun ExerciseSetsCarousel(
     onRemoveSet: (String) -> Unit,
     onMoveSet: (String, Int) -> Unit,
 ) {
-    if (exercise.sets.isEmpty()) {
-        // Empty state
-        Column(
-        modifier = modifier
-                .fillMaxWidth()
-                .padding(vertical = 12.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            Text(
-                "No hay series añadidas",
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-            FilledTonalButton(
-                onClick = { onAddSet(null) },
-                modifier = Modifier
-                    .padding(top = 8.dp)
-                    .size(48.dp),
-                shape = CircleShape,
-                contentPadding = PaddingValues(0.dp)
-            ) {
-                Icon(
-                    Icons.Default.Add,
-                    contentDescription = "Añadir serie",
-                    modifier = Modifier.size(24.dp),
-                )
-            }
-        }
-        return
-    }
-
-    var currentSetIndex by remember(exercise.id) { mutableStateOf(0) }
-    val listState = rememberLazyListState(initialFirstVisibleItemIndex = currentSetIndex)
-    val coroutineScope = rememberCoroutineScope()
-    var techniqueConfigExpandedBySetId by remember(exercise.id) {
-        mutableStateOf<Map<String, Boolean>>(emptyMap())
-    }
-    val anyTechniqueConfigExpanded = techniqueConfigExpandedBySetId.values.any { it }
-
-    LaunchedEffect(exercise.sets.size) {
-        val lastIndex = (exercise.sets.size - 1).coerceAtLeast(0)
-        currentSetIndex = currentSetIndex.coerceIn(0, lastIndex)
-    }
-    LaunchedEffect(listState, exercise.sets.size) {
-        snapshotFlow { listState.layoutInfo }
-            .collect { layoutInfo ->
-                val items = layoutInfo.visibleItemsInfo
-                if (items.isEmpty()) return@collect
-                val viewportCenter = (layoutInfo.viewportStartOffset + layoutInfo.viewportEndOffset) / 2
-                val closest = items.minByOrNull { item ->
-                    abs((item.offset + item.size / 2) - viewportCenter)
-                } ?: return@collect
-                currentSetIndex = closest.index.coerceIn(0, (exercise.sets.size - 1).coerceAtLeast(0))
-            }
-    }
-
-    Column(
-        modifier = modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(8.dp),
-    ) {
-        val showUnilateralDualCards = exercise.isEffectivelyUnilateral()
-        val orderedSides = when (exercise.unilateralSideOrder) {
-            UnilateralSideOrder.LEFT_RIGHT -> listOf("L", "R")
-            UnilateralSideOrder.RIGHT_LEFT -> listOf("R", "L")
-        }
-        val baseHeight = if (showUnilateralDualCards) 460.dp else 278.dp
-        val expandedHeight = if (showUnilateralDualCards) 580.dp else 400.dp
-        val density = LocalDensity.current
-        var setCardTotalHeight by remember { mutableStateOf(220.dp) }
-        // Carousel using LazyRow
-        LazyRow(
-            modifier = Modifier
-                .fillMaxWidth()
-                .then(
-                    if (showUnilateralDualCards) {
-                        Modifier.height(if (anyTechniqueConfigExpanded) expandedHeight else baseHeight)
-                    } else {
-                        Modifier
-                    },
-                ),
-            horizontalArrangement = Arrangement.spacedBy(10.dp),
-            contentPadding = PaddingValues(horizontal = 4.dp),
-            state = listState,
-        ) {
-            itemsIndexed(exercise.sets) { index, set ->
-                key(set.id) {
-                    val predictedWeight = remember(exercise.trainingMode, exercise.reference1RM, exercise.prFor1RM, set) {
-                        calculateSuggestedLoad(exercise, set)
-                    }
-                    val estimatedMetric = predictedMetrics[set.id]
-
-                    Box(
-                        modifier = Modifier
-                            .width(264.dp)
-                        .then(if (showUnilateralDualCards) Modifier.fillMaxHeight() else Modifier)
-                        .onSizeChanged { size ->
-                            if (!showUnilateralDualCards && size.height > 0) {
-                                setCardTotalHeight = with(density) { size.height.toDp() }
-                            }
-                        },
-                    ) {
-                        if (showUnilateralDualCards) {
-                            val showLeftCard = set.leftTarget != null
-                            val showRightCard = set.rightTarget != null
-                            Column(
-                                modifier = Modifier.fillMaxSize(),
-                                verticalArrangement = Arrangement.spacedBy(8.dp),
-                            ) {
-                                orderedSides.forEach { side ->
-                                    val isLeft = side == "L"
-                                    val showCard = if (isLeft) showLeftCard else showRightCard
-                                    Box(
-                                        modifier = Modifier.fillMaxWidth().weight(1f),
-                                        contentAlignment = Alignment.Center,
-                                    ) {
-                                        if (showCard) {
-                                            val isFirstVisible = orderedSides.takeWhile { it != side }.none { prior ->
-                                                if (prior == "L") showLeftCard else showRightCard
-                                            }
-                                            InlineSetRow(
-                                                set = set,
-                                                index = index,
-                                                reference1RM = reference1RM,
-                                                predictedWeight = predictedWeight,
-                                                estimatedMetric = estimatedMetric,
-                                                trainingMode = trainingMode,
-                                                customUnit = customUnit,
-                                                 accentColor = if (isLeft) Color(0xFF2196F3) else Color(0xFFFF5252),
-                                                 backgroundAccentColor = backgroundAccentColor,
-                                                canMoveUp = isFirstVisible && index > 0,
-                                                canMoveDown = isFirstVisible && index < exercise.sets.size - 1,
-                                                isUnilateral = true,
-                                                fixedUnilateralSide = side,
-                                                showSetActions = isFirstVisible,
-                                                unilateralIntensityMode = exercise.unilateralIntensityMode,
-                                                 onUpdate = { updater -> onUpdateSet(set.id, updater) },
-                                                 onRemove = { onRemoveSet(set.id) },
-                                                 onMoveUp = { onMoveSet(set.id, -1) },
-                                                 onMoveDown = { onMoveSet(set.id, 1) },
-                                                 onTechniqueConfigExpandedChange = { expanded ->
-                                                    techniqueConfigExpandedBySetId =
-                                                        techniqueConfigExpandedBySetId + (set.id to expanded)
-                                                },
-                                            )
-                                        } else {
-                                            UnilateralAddGhostCard(
-                                                side = side,
-                                                accentColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                                                modifier = Modifier
-                                                    .fillMaxWidth()
-                                                    .fillMaxHeight(),
-                                                onClick = {
-                                                    onUpdateSet(set.id) { s ->
-                                                        val default = UnilateralTarget(
-                                                            weight = s.weight,
-                                                            targetReps = s.targetReps,
-                                                            targetRepsRange = s.targetRepsRange,
-                                                            targetDuration = s.targetDuration,
-                                                            targetValue = s.plannedTargetV2,
-                                                            targetRPE = s.targetRPE,
-                                                            targetRIR = s.targetRIR,
-                                                            intensityMode = s.intensityMode,
-                                                        )
-                                                        if (side == "L") {
-                                                            s.copy(leftTarget = s.leftTarget ?: default)
-                                                        } else {
-                                                            s.copy(rightTarget = s.rightTarget ?: default)
-                                                        }
-                                                    }
-                                                },
-                                            )
-                                        }
-                                    }
-                                }
-                            }
-                        } else {
-                            InlineSetRow(
-                                set = set,
-                                index = index,
-                                reference1RM = reference1RM,
-                                predictedWeight = predictedWeight,
-                                estimatedMetric = estimatedMetric,
-                                trainingMode = trainingMode,
-                                customUnit = customUnit,
-                                 accentColor = accentColor,
-                                 backgroundAccentColor = backgroundAccentColor,
-                                canMoveUp = index > 0,
-                                canMoveDown = index < exercise.sets.size - 1,
-                                isUnilateral = exercise.isEffectivelyUnilateral(),
-                                fillHeight = false,
-                                unilateralIntensityMode = exercise.unilateralIntensityMode,
-                                 onUpdate = { updater -> onUpdateSet(set.id, updater) },
-                                 onRemove = { onRemoveSet(set.id) },
-                                 onMoveUp = { onMoveSet(set.id, -1) },
-                                 onMoveDown = { onMoveSet(set.id, 1) },
-                                 onTechniqueConfigExpandedChange = { expanded ->
-                                    techniqueConfigExpandedBySetId =
-                                        techniqueConfigExpandedBySetId + (set.id to expanded)
-                                },
-                            )
-                        }
-                    }
-                }
-            }
-            item("add-set") {
-                Box(
-                    modifier = Modifier
-                        .width(264.dp)
-                        .then(if (showUnilateralDualCards) Modifier.fillMaxHeight() else Modifier.height(setCardTotalHeight))
-                        .padding(end = 16.dp),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    if (showUnilateralDualCards) {
-                        AddSetGhostCard(onAddSet = { onAddSet(null) })
-                    } else {
-                        Column(Modifier.fillMaxSize()) {
-                            Spacer(Modifier.height(33.dp))
-                            AddSetGhostCard(
-                                onAddSet = { onAddSet(null) },
-                                modifier = Modifier.fillMaxWidth().fillMaxHeight(),
-                            )
-                    }
-                }
-                }
-            }
-        }
-
-        // Dot stepper indicator
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 8.dp),
-        ) {
-            Row(
-                modifier = Modifier.align(Alignment.Center),
-                horizontalArrangement = Arrangement.spacedBy(6.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                exercise.sets.forEachIndexed { index, _ ->
-                    Box(
-                        modifier = Modifier
-                            .size(if (index == currentSetIndex) 10.dp else 8.dp)
-                            .clip(CircleShape)
-                            .background(
-                                if (index == currentSetIndex) accentColor else accentColor.copy(alpha = 0.35f),
-                            )
-                            .clickable {
-                                currentSetIndex = index
-                                coroutineScope.launch {
-                                    listState.animateScrollToItem(index)
-                                }
-                            },
-                    )
-                }
-            }
-            Text(
-                "${currentSetIndex + 1}/${exercise.sets.size}",
-                modifier = Modifier.align(Alignment.CenterEnd),
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        }
-    }
+    ExerciseSetList(
+        exercise = exercise,
+        reference1RM = reference1RM,
+        trainingMode = trainingMode,
+        customUnit = customUnit,
+        predictedMetrics = predictedMetrics,
+        accentColor = accentColor,
+        backgroundAccentColor = backgroundAccentColor,
+        modifier = modifier,
+        onAddSet = onAddSet,
+        onUpdateSet = onUpdateSet,
+        onRemoveSet = onRemoveSet,
+        onMoveSet = onMoveSet,
+    )
 }
 
 @Composable
