@@ -1,20 +1,15 @@
 package com.example.kpkn.screens.workout
 
+import android.provider.Settings
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.SizeTransform
 import androidx.compose.animation.core.FastOutSlowInEasing
-import androidx.compose.animation.core.LinearEasing
-import androidx.compose.animation.core.RepeatMode
-import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.snap
 import androidx.compose.animation.core.tween
-import androidx.compose.animation.expandHorizontally
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInHorizontally
-import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
@@ -24,17 +19,15 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.liveRegion
@@ -51,7 +44,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withLink
-import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.kpkn.screens.onboarding.design.WizardColors
@@ -60,11 +52,21 @@ import com.example.kpkn.ui.design.KpknType
 internal val WorkoutLiveRelatorSlotHeight = 36.dp
 internal val WorkoutLiveRelatorFontSp = 13.sp
 internal const val WorkoutLiveRelatorMaxLines = 2
-private val RelatorLineHeightSp = 16.sp
+
+/** Interlineado de la frase del relator: dos líneas de 16 sp (LR1g). La banda se mide con esta misma cifra. */
+internal val WorkoutLiveRelatorLineHeight = 16.sp
+
+/** Tinta de la frase: fija al 72 %, sin brillo (LR1g). */
+private const val RelatorInkAlpha = 0.72f
+
+/** Fundido al cambiar de momento: sale en 150 ms y entra en 220 ms (LR1g). */
+private const val RelatorFadeOutMs = 150
+private const val RelatorFadeInMs = 220
 
 /**
- * Frase del relator (LR1c1): texto en tinta con el brillo neutro de siempre (de la tinta al 40 % a la tinta entera) y las acciones como
- * enlaces en tinta subrayados. [accentColor] se conserva por las llamadas, pero el relator ya no lo usa: va en tinta neutra.
+ * Frase del relator (LR1g): texto fijo en tinta al 72 %, centrado, sin brillo. Las acciones son enlaces en tinta y
+ * subrayados. Al cambiar de momento solo se funde: sale en 150 ms y entra en 220 ms, sin deslizar ni expandir. Con
+ * «reducir movimiento» no hay animación. [accentColor] se conserva por las llamadas: el relator va en tinta neutra.
  */
 @Composable
 internal fun WorkoutLiveRelatorLine(
@@ -80,16 +82,7 @@ internal fun WorkoutLiveRelatorLine(
     val announce = phaseKey != announcedPhase
     LaunchedEffect(phaseKey) { announcedPhase = phaseKey }
 
-    val infinite = rememberInfiniteTransition(label = "relator_shimmer")
-    val shift by infinite.animateFloat(
-        initialValue = 0f,
-        targetValue = 1f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(durationMillis = 2200, easing = LinearEasing),
-            repeatMode = RepeatMode.Restart,
-        ),
-        label = "relator_shimmer_x",
-    )
+    val reduceMotion = rememberRelatorReduceMotion()
     val pieces = remember(text, actions) { relatorInlinePieces(text, actions) }
     val talkBack = if (actions.isEmpty()) {
         text
@@ -110,53 +103,43 @@ internal fun WorkoutLiveRelatorLine(
             targetState = text,
             modifier = Modifier.fillMaxWidth(),
             transitionSpec = {
-                (
-                    fadeIn(tween(320, easing = FastOutSlowInEasing)) +
-                        slideInHorizontally(tween(320, easing = FastOutSlowInEasing)) { full -> -full / 5 } +
-                        expandHorizontally(
-                            animationSpec = tween(320, easing = FastOutSlowInEasing),
-                            expandFrom = Alignment.Start,
-                            clip = false,
-                        )
-                    ) togetherWith (
-                    fadeOut(tween(180)) +
-                        slideOutHorizontally(tween(180)) { full -> full / 6 }
-                    ) using SizeTransform(clip = false) { _, _ -> snap() }
+                val fade = if (reduceMotion) {
+                    EnterTransition.None togetherWith ExitTransition.None
+                } else {
+                    fadeIn(
+                        tween(RelatorFadeInMs, delayMillis = RelatorFadeOutMs, easing = FastOutSlowInEasing),
+                    ) togetherWith fadeOut(tween(RelatorFadeOutMs, easing = FastOutSlowInEasing))
+                }
+                fade using SizeTransform(clip = false) { _, _ -> snap() }
             },
             label = "relator_copy",
         ) { line ->
             val linePieces = if (line == text) pieces else relatorInlinePieces(line, actions)
-            ShimmerRelatorText(
+            RelatorTextLine(
                 pieces = linePieces,
-                shift = shift,
                 onAction = onAction,
             )
         }
     }
 }
 
+/** «Reducir movimiento» del sistema (escala de animación 0), igual que en el resto de la app. */
 @Composable
-private fun ShimmerRelatorText(
+private fun rememberRelatorReduceMotion(): Boolean {
+    val context = LocalContext.current
+    return remember(context) {
+        runCatching {
+            Settings.Global.getFloat(context.contentResolver, Settings.Global.ANIMATOR_DURATION_SCALE, 1f) == 0f
+        }.getOrDefault(false)
+    }
+}
+
+@Composable
+private fun RelatorTextLine(
     pieces: List<RelatorInlinePiece>,
-    shift: Float,
     onAction: (RelatorAssistAction) -> Unit,
 ) {
-    var textWidth by remember { mutableFloatStateOf(0f) }
-    // Brillo neutro: tinta al 40 % y tinta entera (LR1c1), sin color.
-    val copyMuted = WizardColors.text.copy(alpha = 0.40f)
-    val copyHighlight = WizardColors.text
-    val travel = textWidth.coerceAtLeast(1f)
-    val startX = travel * (shift * 1.85f - 0.55f)
-    val end = Offset(startX + travel * 0.46f, 0f)
-    val start = Offset(startX, 0f)
-    val copyBrush = relatorShimmerBrush(copyMuted, copyHighlight, start, end)
-    // Enlaces en tinta, con el mismo brillo neutro del texto (LR1c1).
-    val actionBrush = relatorShimmerBrush(
-        WizardColors.text.copy(alpha = 0.72f),
-        WizardColors.text,
-        start,
-        end,
-    )
+    val ink = WizardColors.text
     val onActionState = rememberUpdatedState(onAction)
     var layoutResult by remember { mutableStateOf<TextLayoutResult?>(null) }
     val actionByTag = remember(pieces) {
@@ -176,17 +159,11 @@ private fun ShimmerRelatorText(
     val annotated = buildAnnotatedString {
         pieces.forEachIndexed { index, piece ->
             when (piece) {
-                is RelatorInlinePiece.Copy -> {
-                    withStyle(SpanStyle(brush = copyBrush)) {
-                        append(piece.text)
-                    }
-                }
+                is RelatorInlinePiece.Copy -> append(piece.text)
                 is RelatorInlinePiece.Action -> {
                     relatorLinkWrapChunks(piece.label).forEachIndexed { chunkIndex, chunk ->
                         if (chunk.isBlank()) {
-                            withStyle(SpanStyle(brush = copyBrush)) {
-                                append(chunk)
-                            }
+                            append(chunk)
                         } else {
                             val tag = "relator-action-$index-$chunkIndex"
                             withLink(
@@ -194,7 +171,7 @@ private fun ShimmerRelatorText(
                                     tag = tag,
                                     styles = TextLinkStyles(
                                         style = SpanStyle(
-                                            brush = actionBrush,
+                                            color = ink,
                                             fontWeight = FontWeight.SemiBold,
                                             textDecoration = TextDecoration.Underline,
                                         ),
@@ -236,10 +213,10 @@ private fun ShimmerRelatorText(
                     }
                 },
             ),
-        color = WizardColors.text,
+        color = ink.copy(alpha = RelatorInkAlpha),
         style = KpknType.caption.copy(
             fontSize = WorkoutLiveRelatorFontSp,
-            lineHeight = RelatorLineHeightSp,
+            lineHeight = WorkoutLiveRelatorLineHeight,
             hyphens = Hyphens.None,
             lineBreak = LineBreak.Simple,
         ),
@@ -247,26 +224,6 @@ private fun ShimmerRelatorText(
         softWrap = true,
         overflow = TextOverflow.Ellipsis,
         textAlign = TextAlign.Center,
-        onTextLayout = { layout ->
-            layoutResult = layout
-            textWidth = layout.size.width.toFloat().coerceAtLeast(textWidth)
-        },
+        onTextLayout = { layout -> layoutResult = layout },
     )
 }
-
-private fun relatorShimmerBrush(
-    muted: Color,
-    highlight: Color,
-    start: Offset,
-    end: Offset,
-): Brush = Brush.linearGradient(
-    colorStops = arrayOf(
-        0.00f to muted,
-        0.38f to muted,
-        0.50f to highlight,
-        0.62f to muted,
-        1.00f to muted,
-    ),
-    start = start,
-    end = end,
-)

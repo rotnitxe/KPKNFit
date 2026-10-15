@@ -15,9 +15,12 @@ import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.kpkn.screens.workout.WorkoutLiveRelatorLineHeight
+import com.example.kpkn.screens.workout.WorkoutLiveRelatorMaxLines
 import com.example.kpkn.ui.adapt.ViewportAdapt
 import com.example.kpkn.ui.adapt.ViewportAdaptMath
 import com.example.kpkn.ui.adapt.LiveViewportPolicy
@@ -98,20 +101,22 @@ object WorkoutUiTokens {
      */
     const val LivePagerCardTopNudgeFraction = 0.05f
     /**
-     * Extra gap under the live relator so the series card sits in the band
-     * between the message and the cockpit. Does not change the 5% nudge.
+     * Reserva antigua de la banda del relator (48 dp). Ya no define la altura de la banda: solo fija el borde
+     * inferior de la tarjeta, que se queda donde estaba cuando la banda se encoge (la tarjeta crece por arriba).
      */
     val LivePagerRelatorClearance = 48.dp
 
-    fun liveRelatorBandHeight(
-        topNudgeFraction: Float = LivePagerCardTopNudgeFraction,
-        uniformScale: Float = 1f,
-    ): Dp {
-        val slot = LivePagerNormalExpandedBaseHeight *
-            LivePagerCardScale *
-            LivePagerCardHeightGrowFactor *
-            uniformScale
-        return slot * topNudgeFraction + LivePagerRelatorClearance
+    /** Relleno de la banda del relator, arriba y abajo. */
+    val LiveRelatorBandPadding: Dp = 12.dp
+
+    /**
+     * Altura de la banda del relator (serie y descanso en página): 12 dp + dos líneas de 16 sp + 12 dp. El texto
+     * va centrado en vertical; con una sola línea la banda mide lo mismo y la tarjeta no salta. Las líneas van en
+     * sp, así que la banda crece con la letra del sistema.
+     */
+    fun liveRelatorBandHeight(density: Density): Dp = with(density) {
+        val lineDp = WorkoutLiveRelatorLineHeight.toDp().value
+        (LiveRelatorBandPadding.value * 2f + lineDp * WorkoutLiveRelatorMaxLines).dp
     }
     /** Design reference for proportional adapt (typical phone width / card slot). */
     val LivePagerReferenceWidth = ViewportAdaptMath.LIVE_PAGER_REF_WIDTH_DP.dp

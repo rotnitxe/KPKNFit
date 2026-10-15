@@ -232,21 +232,9 @@ internal fun WorkoutV2Body(
         val relatorResolution by viewModel.relatorResolution.collectAsStateWithLifecycle()
         val density = LocalDensity.current
         var headerHeightPx by remember { mutableIntStateOf(0) }
-        val windowAdaptForRelator = LocalViewportAdapt.current
-        val relatorBandHeight = remember(
-            windowAdaptForRelator.widthDp,
-            windowAdaptForRelator.heightDp,
-            windowAdaptForRelator.uniformScale,
-        ) {
-            val policy = LiveViewportPolicyMath.compute(
-                widthDp = windowAdaptForRelator.widthDp,
-                heightDp = windowAdaptForRelator.heightDp,
-            )
-            WorkoutUiTokens.liveRelatorBandHeight(
-                topNudgeFraction = policy.topNudgeFraction,
-                uniformScale = windowAdaptForRelator.uniformScale,
-            )
-        }
+        val relatorBandHeight = WorkoutUiTokens.liveRelatorBandHeight(density)
+        // La banda se oculta solo bajo un overlay a pantalla completa (descanso o feedback), que trae su propio relator.
+        val relatorBandCovered = uiState.showPostExerciseSheet || (workingRestActive && !uiState.isRestMinimized)
         Column(modifier = Modifier.fillMaxSize()) {
             Box(
                 modifier = Modifier
@@ -1915,10 +1903,6 @@ internal fun WorkoutV2Body(
                                     isAdaptiveActive = isAdaptiveRestActive(restState, uiState.pendingRestSuggestion),
                                     skipExerciseLabel = skipExerciseLabel,
                                     onSkipExercise = onSkipExercise,
-                                    relatorText = relatorResolution.text,
-                                    relatorPhaseKey = relatorResolution.phaseKey,
-                                    relatorActions = relatorResolution.actions,
-                                    onRelatorAction = { viewModel.performRelatorAssist(it) },
                                     modifier = Modifier.fillMaxWidth().fillMaxHeight(),
                                 )
                             }
@@ -2277,7 +2261,7 @@ internal fun WorkoutV2Body(
             } // BoxWithConstraints body
         } // header + body Column
 
-        if (!relatorResolution.text.isNullOrBlank() && headerHeightPx > 0 && !workingRestActive) {
+        if (!relatorResolution.text.isNullOrBlank() && headerHeightPx > 0 && !relatorBandCovered) {
             WorkoutLiveRelatorLine(
                 text = relatorResolution.text,
                 phaseKey = relatorResolution.phaseKey,

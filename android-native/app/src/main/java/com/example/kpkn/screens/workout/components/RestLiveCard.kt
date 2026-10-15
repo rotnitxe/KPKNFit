@@ -82,10 +82,6 @@ internal fun RestLiveCard(
     isAdaptiveActive: Boolean = false,
     skipExerciseLabel: String? = null,
     onSkipExercise: (() -> Unit)? = null,
-    relatorText: String? = null,
-    relatorPhaseKey: String = "",
-    relatorActions: List<com.example.kpkn.screens.workout.RelatorAssistAction> = emptyList(),
-    onRelatorAction: (com.example.kpkn.screens.workout.RelatorAssistAction) -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     val safeTotal = totalSeconds.coerceAtLeast(1)
@@ -157,17 +153,7 @@ internal fun RestLiveCard(
                 }
             }
 
-            if (!relatorText.isNullOrBlank()) {
-                com.example.kpkn.screens.workout.WorkoutLiveRelatorLine(
-                    text = relatorText,
-                    phaseKey = relatorPhaseKey,
-                    actions = relatorActions,
-                    onAction = onRelatorAction,
-                    accentColor = sessionAccentColor,
-                    modifier = Modifier.fillMaxWidth(),
-                )
-            }
-
+            // El relator vive en la banda de encima de la tarjeta (WorkoutV2Body), no aquí.
             // El reloj en Syne, en una línea, sin cero delante de los minutos (como el descanso a pantalla completa).
             RestClockText(
                 text = clock,
