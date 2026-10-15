@@ -63,7 +63,8 @@ internal fun SessionModeSheetBody(
         TrainingMode.DISTANCE,
         TrainingMode.CUSTOM,
     )
-    Column(modifier = modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+    // Margen de 16 dp como el resto de hojas (SE9): el título y las filas no van pegados al borde.
+    Column(modifier = modifier.fillMaxWidth().padding(horizontal = 16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
         Text(text = "Modo del ejercicio", style = KpknType.dialogTitle, color = WizardColors.text)
         modes.forEach { mode ->
             KpknRadioRow(

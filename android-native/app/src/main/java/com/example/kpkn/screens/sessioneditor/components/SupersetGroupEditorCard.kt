@@ -82,6 +82,7 @@ import com.example.kpkn.ui.components.KpknAlertDismissButton
 import com.example.kpkn.ui.components.KpknAlertDialog
 import com.example.kpkn.ui.components.SwipeToDeleteCard
 import com.example.kpkn.ui.design.KpknSetFormat
+import com.example.kpkn.ui.design.KpknTextAction
 import com.example.kpkn.screens.sessioneditor.design.SessionSupersetCaption
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.getValue
@@ -375,9 +376,7 @@ internal fun SupersetGroupEditorCard(
                         )
                     }
                 }
-                TextButton(onClick = { onDissolve(group.id) }) {
-                    Text("Disolver", fontWeight = FontWeight.Bold)
-                }
+                KpknTextAction(text = "Disolver", onClick = { onDissolve(group.id) })
                 // Borrar la superserie entera: antes lo hacía el deslizamiento de la cabecera, que ya no existe.
                 TextButton(onClick = { showDeleteGroupDialog = true }) {
                     Text("Eliminar superserie", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.error)

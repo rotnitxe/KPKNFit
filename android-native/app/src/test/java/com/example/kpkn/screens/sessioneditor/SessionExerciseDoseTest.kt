@@ -27,7 +27,7 @@ class SessionExerciseDoseTest {
     @Test
     fun porcentajeDelUnoRM() {
         val sets = (1..4).map { ExerciseSet(id = "s$it", targetReps = 5, targetPercentageRM = 75.0) }
-        assertEquals("4 × 5 · 75 % 1RM · 3:00", sessionExerciseDose(sets, TrainingMode.RM, restSeconds = 180))
+        assertEquals("4 × 5 · 75 % 1RM · 3:00", sessionExerciseDose(sets, TrainingMode.RM, restSeconds = 180))
     }
 
     @Test
