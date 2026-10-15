@@ -71,6 +71,7 @@ import com.example.kpkn.screens.sessioneditor.DarkEditorChip
 import com.example.kpkn.screens.sessioneditor.DarkEditorSurfaceSoft
 import com.example.kpkn.screens.sessioneditor.DarkChoiceChip
 import com.example.kpkn.screens.sessioneditor.EditorMiniField
+import com.example.kpkn.screens.sessioneditor.rememberEditableNumber
 import com.example.kpkn.screens.sessioneditor.CompactModeSelector
 import com.example.kpkn.screens.sessioneditor.formatEditableNumber
 import com.example.kpkn.screens.sessioneditor.formatExerciseConfigSummary
@@ -86,6 +87,8 @@ import com.example.kpkn.screens.sessioneditor.UnilateralAddGhostCard
 import com.example.kpkn.screens.sessioneditor.toggledBilateralUnilateral
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.platform.LocalConfiguration
+import com.example.kpkn.screens.onboarding.design.WizardColors
 import com.example.kpkn.ui.components.KpknAlertDialog
 import com.example.kpkn.ui.components.KpknRestPickerChain
 
@@ -251,9 +254,10 @@ internal fun SupersetSmartLoadDialog(
     onDismiss: () -> Unit,
 ) {
     var rmInputMode by remember(exercise.id, exercise.prFor1RM) { mutableStateOf(if (exercise.prFor1RM != null) "pr" else "direct") }
-    var directRmInput by rememberSaveable(exercise.id, exercise.reference1RM) { mutableStateOf(formatEditableNumber(exercise.reference1RM)) }
-    var prWeightInput by rememberSaveable(exercise.id, exercise.prFor1RM) { mutableStateOf(formatEditableNumber(exercise.prFor1RM?.weight)) }
-    var prRepsInput by rememberSaveable(exercise.id, exercise.prFor1RM) { mutableStateOf(exercise.prFor1RM?.reps?.takeIf { it > 0 }?.toString().orEmpty()) }
+    // SE11: el texto de cada campo lo escribe la persona; el modelo solo lo corrige si cambia por fuera.
+    var directRmInput by rememberEditableNumber(exercise.id, exercise.reference1RM)
+    var prWeightInput by rememberEditableNumber(exercise.id, exercise.prFor1RM?.weight)
+    var prRepsInput by rememberEditableNumber(exercise.id, exercise.prFor1RM?.reps?.takeIf { it > 0 }?.toDouble())
     KpknAlertDialog(
         onDismissRequest = onDismiss,
         title = { Text("Carga inteligente", fontWeight = FontWeight.Black) },
@@ -312,7 +316,7 @@ internal fun SupersetGoalDialog(
     onUpdateExercise: ((Exercise) -> Exercise) -> Unit,
     onDismiss: () -> Unit,
 ) {
-    var goalRmInput by rememberSaveable(exercise.id, exercise.goal1RM) { mutableStateOf(formatEditableNumber(exercise.goal1RM)) }
+    var goalRmInput by rememberEditableNumber(exercise.id, exercise.goal1RM)
     KpknAlertDialog(
         onDismissRequest = onDismiss,
         title = { Text("Meta", fontWeight = FontWeight.Black) },
@@ -360,8 +364,10 @@ internal fun SupersetRoundsCarousel(
     onRemoveRound: (Int) -> Unit,
 ) {
     var restPickerRound by remember { mutableStateOf<Int?>(null) }
+    // SE11: la tarjeta de ronda cabe en el panel (el ancho de la pantalla menos los márgenes) y deja ver el borde de la siguiente.
+    val roundCardWidth = (LocalConfiguration.current.screenWidthDp.dp - 88.dp).coerceIn(240.dp, 320.dp)
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        Text("Rondas", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
+        Text("Rondas", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold, color = WizardColors.textMuted)
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -373,9 +379,10 @@ internal fun SupersetRoundsCarousel(
                 val roundRestBetween = group.roundRestBetweenExercises[roundIndex] ?: group.restBetweenExercises
                 val roundRestAfter = group.roundRestAfterSuperset[roundIndex] ?: group.restAfterSuperset
                 Surface(
-                    modifier = Modifier.width(320.dp),
+                    modifier = Modifier.width(roundCardWidth),
                     shape = RoundedCornerShape(16.dp),
                     color = lerp(DarkEditorSurfaceSoft, accentColor, 0.12f),
+                    contentColor = WizardColors.text,
                     border = BorderStroke(1.dp, accentColor.copy(alpha = 0.35f)),
                 ) {
                     Column(modifier = Modifier.padding(10.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -444,6 +451,7 @@ internal fun SupersetRoundsCarousel(
                     Surface(
                         shape = RoundedCornerShape(999.dp),
                         color = accentColor.copy(alpha = 0.12f),
+                        contentColor = WizardColors.text,
                         border = BorderStroke(1.dp, accentColor.copy(alpha = 0.30f)),
                     ) {
                         Row(
@@ -500,6 +508,7 @@ internal fun SupersetRestPickerButton(
             .clip(RoundedCornerShape(12.dp))
             .clickable { onClick() },
         color = accentColor.copy(alpha = 0.12f),
+        contentColor = WizardColors.text,
         border = androidx.compose.foundation.BorderStroke(1.dp, accentColor.copy(alpha = 0.30f)),
     ) {
         Row(
@@ -552,6 +561,7 @@ private fun RoundExerciseSetCard(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(14.dp),
         color = lerp(DarkEditorSurfaceSoft, accentColor, 0.08f),
+        contentColor = WizardColors.text,
         border = BorderStroke(1.dp, accentColor.copy(alpha = if (expanded) 0.45f else 0.25f)),
     ) {
         Column {
@@ -697,6 +707,7 @@ private fun RoundMissingSetCard(
             .height(52.dp)
             .clip(RoundedCornerShape(14.dp))
             .clickable(onClick = onClick),
+        contentColor = WizardColors.text,
         color = Color.White.copy(alpha = 0.03f),
         border = BorderStroke(1.dp, Color.White.copy(alpha = 0.12f)),
     ) {

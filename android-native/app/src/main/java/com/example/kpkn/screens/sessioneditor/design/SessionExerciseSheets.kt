@@ -3,8 +3,11 @@ package com.example.kpkn.screens.sessioneditor.design
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
@@ -282,7 +285,11 @@ internal fun SessionNoteBody(
     modifier: Modifier = Modifier,
 ) {
     var draft by remember(exercise.id) { mutableStateOf(exercise.relationshipNotes.orEmpty()) }
-    Column(modifier = modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(14.dp)) {
+    // SE11: la hoja sube con el teclado para que el campo con el foco y «Guardar» queden a la vista.
+    Column(
+        modifier = modifier.fillMaxWidth().windowInsetsPadding(WindowInsets.ime),
+        verticalArrangement = Arrangement.spacedBy(14.dp),
+    ) {
         Text(text = "Nota", style = KpknType.dialogTitle, color = WizardColors.text)
         KpknTextField(
             value = draft,

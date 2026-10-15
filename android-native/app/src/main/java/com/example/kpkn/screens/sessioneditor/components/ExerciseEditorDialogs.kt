@@ -3,7 +3,10 @@ package com.example.kpkn.screens.sessioneditor.components
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.ime
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardOptions
@@ -196,11 +199,30 @@ internal fun ExerciseGoalDialog(
     onUpdateExercise: ((Exercise) -> Exercise) -> Unit,
     onDismiss: () -> Unit,
 ) {
-// Hoja «Meta del ejercicio» (SE8, antes diálogo de Material): mismos datos y mismas llamadas.
-KpknSheet(onDismissRequest = onDismiss) {
+    // Hoja «Meta del ejercicio» (SE8, antes diálogo de Material): mismos datos y mismas llamadas.
+    KpknSheet(onDismissRequest = onDismiss) {
+        ExerciseGoalSheetContent(exercise, goalRmInput, onGoalRmInputChange, onUpdateExercise, onDismiss)
+    }
+}
+
+/**
+ * Contenido de «Meta del ejercicio» (SE11): sube con el teclado ([imeInsets]) y se desplaza si no cabe, para que el campo con el
+ * foco y «Listo» queden a la vista.
+ */
+@Composable
+internal fun ExerciseGoalSheetContent(
+    exercise: Exercise,
+    goalRmInput: String,
+    onGoalRmInputChange: (String) -> Unit,
+    onUpdateExercise: ((Exercise) -> Exercise) -> Unit,
+    onDismiss: () -> Unit,
+    imeInsets: WindowInsets = WindowInsets.ime,
+) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
+            .windowInsetsPadding(imeInsets)
+            .verticalScroll(rememberScrollState())
             .padding(horizontal = 16.dp, vertical = 8.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
@@ -253,7 +275,6 @@ KpknSheet(onDismissRequest = onDismiss) {
         KpknPrimaryPill(text = "Listo", onClick = onDismiss, modifier = Modifier.fillMaxWidth())
     }
 }
-}
 
 @Composable
 internal fun ExerciseCustomUnitDialog(
@@ -262,11 +283,26 @@ internal fun ExerciseCustomUnitDialog(
     onUpdateExercise: ((Exercise) -> Exercise) -> Unit,
     onDismiss: () -> Unit,
 ) {
-// Hoja «Unidad personalizada» (SE8, antes diálogo de Material): mismos datos y misma llamada.
-KpknSheet(onDismissRequest = onDismiss) {
+    // Hoja «Unidad personalizada» (SE8, antes diálogo de Material): mismos datos y misma llamada.
+    KpknSheet(onDismissRequest = onDismiss) {
+        ExerciseCustomUnitSheetContent(customUnitInput, onCustomUnitInputChange, onUpdateExercise, onDismiss)
+    }
+}
+
+/** Contenido de «Unidad personalizada» (SE11): sube con el teclado ([imeInsets]), igual que «Meta del ejercicio». */
+@Composable
+internal fun ExerciseCustomUnitSheetContent(
+    customUnitInput: String,
+    onCustomUnitInputChange: (String) -> Unit,
+    onUpdateExercise: ((Exercise) -> Exercise) -> Unit,
+    onDismiss: () -> Unit,
+    imeInsets: WindowInsets = WindowInsets.ime,
+) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
+            .windowInsetsPadding(imeInsets)
+            .verticalScroll(rememberScrollState())
             .padding(horizontal = 16.dp, vertical = 8.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
@@ -293,5 +329,4 @@ KpknSheet(onDismissRequest = onDismiss) {
         )
         KpknTextAction(text = "Cancelar", onClick = onDismiss)
     }
-}
 }
