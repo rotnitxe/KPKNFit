@@ -306,11 +306,17 @@ private fun WarmupPreparationRow(
             .padding(horizontal = 12.dp, vertical = 8.dp),
         verticalArrangement = Arrangement.spacedBy(6.dp),
     ) {
-        FlowRow(
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalArrangement = Arrangement.spacedBy(6.dp),
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
         ) {
-            Text("${index + 1}", style = KpknType.bodyStrong, color = WizardColors.textMuted)
+            Text(
+                "${index + 1}",
+                style = KpknType.bodyStrong,
+                color = WizardColors.textMuted,
+                modifier = Modifier.width(16.dp),
+            )
             KpknNumberCell(
                 value = formatEditableNumber(normalizedPercentage * 100.0).replace('.', ','),
                 input = KpknCellInput.Text(
@@ -323,10 +329,9 @@ private fun WarmupPreparationRow(
                     },
                 ),
                 contentDescription = "Porcentaje de carga de la aproximación ${index + 1}",
-                modifier = Modifier.width(64.dp),
+                modifier = Modifier.width(60.dp),
             )
             Text("%", style = KpknType.bodyStrong, color = WizardColors.text)
-            Text("·", style = KpknType.bodyStrong, color = WizardColors.textMuted)
             KpknNumberCell(
                 value = warmup.targetReps.toString(),
                 input = KpknCellInput.Text(
@@ -338,16 +343,10 @@ private fun WarmupPreparationRow(
                     },
                 ),
                 contentDescription = "Repeticiones de la aproximación ${index + 1}",
-                modifier = Modifier.width(64.dp),
+                modifier = Modifier.width(60.dp),
             )
             Text("reps", style = KpknType.caption, color = WizardColors.textMuted)
-            suggestedLoad?.let { load ->
-                Text(
-                    "· ${formatEditableNumber(load).replace('.', ',')} kg",
-                    style = KpknType.bodyStrong,
-                    color = WizardColors.text,
-                )
-            }
+            Box(modifier = Modifier.weight(1f))
             KpknIconButton(
                 icon = KpknLineIcons.Close,
                 contentDescription = "Quitar aproximación",
@@ -355,13 +354,12 @@ private fun WarmupPreparationRow(
                 modifier = Modifier.size(40.dp),
             )
         }
-        if (suggestedLoad == null) {
-            Text(
-                "Al ${formatEditableNumber(normalizedPercentage * 100.0).replace('.', ',')} % de la carga que usarás en tu primera serie efectiva",
-                style = KpknType.caption,
-                color = WizardColors.textMuted,
-            )
-        }
+        Text(
+            suggestedLoad?.let { load -> "Carga sugerida: ${formatEditableNumber(load).replace('.', ',')} kg" }
+                ?: "Al ${formatEditableNumber(normalizedPercentage * 100.0).replace('.', ',')} % de la carga que usarás en tu primera serie efectiva",
+            style = KpknType.caption,
+            color = WizardColors.textMuted,
+        )
         Row(
             modifier = Modifier
                 .fillMaxWidth()

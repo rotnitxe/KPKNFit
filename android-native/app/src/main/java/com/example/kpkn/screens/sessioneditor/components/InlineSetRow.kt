@@ -477,7 +477,7 @@ internal fun InlineSetRow(
             modifier = Modifier.weight(1.6f),
             verticalArrangement = Arrangement.spacedBy(4.dp),
         ) {
-            Text("Intensidad", style = KpknType.caption, color = WizardColors.textMuted)
+            Text("Intensidad", style = KpknType.caption, color = WizardColors.textMuted, minLines = 2, maxLines = 2)
             KpknSegmentedControl(
                 options = listOf("RPE", "RIR", "Fallo"),
                 selectedIndex = selectedIndex,
@@ -922,11 +922,13 @@ private fun SetValueCell(
             modifier = modifier,
             verticalArrangement = Arrangement.spacedBy(4.dp),
         ) {
+            // Dos líneas fijas: un rótulo largo al 130 % baja a la segunda y las cifras de la fila quedan alineadas.
             Text(
                 label,
                 style = KpknType.caption,
                 color = WizardColors.textMuted,
-                maxLines = 1,
+                minLines = 2,
+                maxLines = 2,
                 overflow = TextOverflow.Ellipsis,
             )
             KpknNumberCell(
