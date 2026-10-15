@@ -66,8 +66,8 @@ import com.example.kpkn.ui.design.KpknType
 
 /**
  * Fila plegada de un ejercicio (SESSION_EDITOR_V1 §2, punto 6): 64 dp con la miniatura a la izquierda, el nombre en una línea, la dosis
- * debajo en cifras tabulares y la flecha. Tocar el nombre, la miniatura o la flecha despliega y pliega. La pulsación larga en la miniatura
- * arrastra el ejercicio; la del nombre abre las acciones rápidas. Con [superset] lleva a su izquierda la barra de 3 dp en [accent].
+ * debajo en cifras tabulares, la flecha y, al final, el asa de arrastre (SE9). Tocar el nombre, la miniatura o la flecha despliega y pliega. La
+ * pulsación larga en la miniatura o en el asa arrastra el ejercicio; la del nombre abre las acciones rápidas. Con [superset] lleva a su izquierda la barra de 3 dp en [accent].
  *
  * Sin estado de negocio: quien la usa decide si está desplegada y qué hace cada gesto. [imageRes] es la imagen del catálogo o nulo; sin
  * imagen se pinta el glifo de [pattern].
@@ -107,6 +107,7 @@ internal fun SessionExerciseRow(
         listOf(name, spokenDose ?: dose, if (expanded) "desplegado" else "plegado").joinToString(", ")
     }
     var gripOrigin by remember { mutableStateOf(Offset.Zero) }
+    var handleOrigin by remember { mutableStateOf(Offset.Zero) }
     val latestOnDragStart = rememberUpdatedState(onDragStart)
     val latestOnDrag = rememberUpdatedState(onDrag)
     val latestOnDragEnd = rememberUpdatedState(onDragEnd)
@@ -253,6 +254,43 @@ internal fun SessionExerciseRow(
                     .size(20.dp)
                     .graphicsLayer { rotationZ = angle },
             )
+        }
+        // Asa de arrastre visible al final de la fila (SE9): mismo gesto que la miniatura, pulsación larga y arrastre.
+        if (dragEnabled) {
+            Box(
+                modifier = Modifier
+                    .size(48.dp)
+                    .onGloballyPositioned { handleOrigin = it.boundsInWindow().topLeft }
+                    .pointerInput(Unit) {
+                        detectDragGesturesAfterLongPress(
+                            onDragStart = { offset ->
+                                haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+                                latestOnDragStart.value(handleOrigin + offset)
+                            },
+                            onDragCancel = {
+                                haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                                latestOnDragCancel.value()
+                            },
+                            onDragEnd = {
+                                haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                                latestOnDragEnd.value()
+                            },
+                            onDrag = { change, dragAmount ->
+                                change.consume()
+                                latestOnDrag.value(Offset(dragAmount.x, dragAmount.y))
+                            },
+                        )
+                    }
+                    .clearAndSetSemantics { },
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(
+                    imageVector = KpknLineIcons.Grip,
+                    contentDescription = null,
+                    tint = WizardColors.textFaint,
+                    modifier = Modifier.size(20.dp),
+                )
+            }
         }
     }
 }

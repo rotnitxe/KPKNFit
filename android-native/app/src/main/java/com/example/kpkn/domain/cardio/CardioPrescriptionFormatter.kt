@@ -95,7 +95,7 @@ object CardioPrescriptionFormatter {
                 val work = formatDuration(repeat.workSeconds)
                 val rest = if (repeat.restSeconds > 0) " / ${formatDuration(repeat.restSeconds)} pausa" else ""
                 val setsBit = if (repeat.sets > 1) " · ${repeat.sets} series" else ""
-                parts += "${repeat.rounds}× ($work esfuerzo$rest)$setsBit"
+                parts += "${repeat.rounds} × ($work esfuerzo$rest)$setsBit"
                 if (repeat.cooldownOpen) parts += "Enfriamiento libre"
                 else if (repeat.cooldownSeconds > 0) parts += "Enfriamiento ${formatDuration(repeat.cooldownSeconds)}"
                 val total = details.effectiveDurationSeconds()

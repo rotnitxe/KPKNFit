@@ -574,6 +574,8 @@ fun SessionEditorScreen(
         session.name.ifBlank { "Sesión" },
     ).joinToString(" · ")
     val estimatedMinutes = uiState.sessionTimeBreakdown?.totalMinutes ?: uiState.estimatedDurationMinutes
+    // Sin ejercicios no hay tiempo que decir: el estimador da 1 min y eso no es un dato (SE9).
+    val estimatedMinutesShown = estimatedMinutes.takeIf { it > 0 && allExercisesForUi.isNotEmpty() }
 
     // Auto-scroll al ejercicio recién añadido (índice = Hero + offset en scrollable). Cuenta los módulos que van antes de la lista.
     LaunchedEffect(pendingAutoExpandExerciseId) {
@@ -741,7 +743,7 @@ fun SessionEditorScreen(
                     navigatorLabel = navigatorLabel,
                     exerciseCount = allExercisesForUi.size,
                     setCount = allExercisesForUi.sumOf { it.sets.size },
-                    durationMinutes = estimatedMinutes.takeIf { it > 0 },
+                    durationMinutes = estimatedMinutesShown,
                     onNameCommit = viewModel::updateSessionName,
                     onDescriptionCommit = viewModel::updateSessionDescription,
                     onOpenNavigator = { showNavigatorSheet = true },
@@ -814,7 +816,7 @@ fun SessionEditorScreen(
         KpknTopIsland(
             visible = headerScrolledAway,
             title = session.name.ifBlank { "Nueva sesión" },
-            subtitle = estimatedMinutes.takeIf { it > 0 }?.let { "≈ $it min" },
+            subtitle = estimatedMinutesShown?.let { "≈ $it min" },
             leading = {
                 KpknIconButton(icon = KpknLineIcons.ChevronLeft, contentDescription = "Atrás", onClick = ::requestExit)
             },
@@ -830,7 +832,7 @@ fun SessionEditorScreen(
         // Isla inferior (vidrio v2): añadir ejercicio, asistente y tiempo. Sustituye al grupo de botones flotantes arrastrable.
         SessionEditorBottomIsland(
             visible = draggingExerciseId == null && draggingPartId == null,
-            timeLabel = estimatedMinutes.takeIf { it > 0 }?.let { "≈ $it min" },
+            timeLabel = estimatedMinutesShown?.let { "≈ $it min" },
             hazeState = hazeState,
             onAddExercise = viewModel::openPickerForUncategorized,
             onAssistant = { openAssistantSheet() },

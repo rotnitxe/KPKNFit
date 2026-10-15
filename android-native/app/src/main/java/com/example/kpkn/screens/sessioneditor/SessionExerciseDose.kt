@@ -102,7 +102,7 @@ private fun intensityLabel(sets: List<ExerciseSet>): String? {
     val rpe = sets.mapNotNull { it.targetRPE }
     if (rpe.size == sets.size) return valueRange(rpe, prefix = "RPE", suffix = "")
     val pct = sets.mapNotNull { it.targetPercentageRM }
-    if (pct.size == sets.size) return valueRange(pct, prefix = "", suffix = " % 1RM")
+    if (pct.size == sets.size) return valueRange(pct, prefix = "", suffix = " % 1RM")
     return null
 }
 
