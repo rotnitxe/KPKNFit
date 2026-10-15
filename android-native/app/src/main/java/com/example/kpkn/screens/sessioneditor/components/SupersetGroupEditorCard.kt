@@ -72,6 +72,7 @@ import com.example.kpkn.screens.sessioneditor.resolvePartAccent
 import com.example.kpkn.screens.sessioneditor.exerciseCardBrush
 import com.example.kpkn.screens.sessioneditor.DarkEditorSurface
 import com.example.kpkn.screens.sessioneditor.DarkChoiceChip
+import com.example.kpkn.screens.onboarding.design.WizardColors
 import com.example.kpkn.screens.sessioneditor.restoreExerciseSetAtRound
 import com.example.kpkn.ui.components.KpknAlertConfirmButton
 import com.example.kpkn.ui.components.KpknAlertDismissButton
@@ -121,8 +122,8 @@ internal fun SupersetGroupEditorCard(
     var pendingRemovalExerciseId by rememberSaveable(group.id) { mutableStateOf<String?>(null) }
     var showDeleteGroupDialog by rememberSaveable(group.id) { mutableStateOf(false) }
     val haptics = androidx.compose.ui.platform.LocalHapticFeedback.current
-    val accent = remember(accentHex) { resolvePartAccent(accentHex) }
-    val accentColor = accent.primary
+    // Sin color de grupo (ER1b): la superserie es tinta sobre su módulo.
+    val accentColor = WizardColors.text
     val rounds = (group.rounds ?: exercises.maxOfOrNull { it.sets.size } ?: 1).coerceAtLeast(1)
     val totalSets = exercises.sumOf { it.sets.size }
     val pendingRemovalExercise = pendingRemovalExerciseId?.let { id ->
@@ -139,9 +140,7 @@ internal fun SupersetGroupEditorCard(
                 alpha = if (isDragging) 0.22f else 1f
                 shadowElevation = if (isDragging) 6.dp.toPx() else 0f
             }
-            .zIndex(if (isDragging) 12f else 0f)
-            .clip(RoundedCornerShape(16.dp))
-            .background(accent.exerciseCardBrush()),
+            .zIndex(if (isDragging) 12f else 0f),
     ) {
         Box(
             modifier = Modifier

@@ -73,6 +73,8 @@ import com.example.kpkn.data.models.*
 import com.example.kpkn.domain.calculations.calculateEstimatedMetric
 import com.example.kpkn.domain.calculations.calculateGeneralizedCapacity
 import com.example.kpkn.domain.exercises.*
+import com.example.kpkn.screens.onboarding.design.WizardColors
+import com.example.kpkn.screens.onboarding.design.entreno.SymbolPalette
 import com.example.kpkn.domain.calculations.calculateHybrid1RM
 import com.example.kpkn.domain.calculations.calculateSuggestedLoad
 import com.example.kpkn.domain.calculations.resolveReferenceCapacity
@@ -176,11 +178,11 @@ internal fun ExerciseEditorCard(
             }
         } else null
     }
-    val accent = remember(accentHex) { resolvePartAccent(accentHex) }
     val coverAccent = remember(coverAccentHex, accentHex) {
         resolvePartAccent(coverAccentHex ?: accentHex)
     }
-    val accentColor = accent.primary
+    // El color de grupo no se pinta (ER1b): la tinta queda como acento de la fila.
+    val accentColor = WizardColors.text
     val coverColor = coverAccent.primary
     val displayParts = remember(exercise, exerciseInfo) {
         exerciseDisplayParts(exercise, exerciseInfo)
@@ -205,31 +207,6 @@ internal fun ExerciseEditorCard(
     }
 
     val isSupersetExercise = exercise.supersetGroupRefOrLegacyId() != null
-    val cardShape = RoundedCornerShape(16.dp)
-    val containerHighlight = when {
-        isDragging -> accentColor.copy(alpha = 0.10f)
-        isDropTarget -> accentColor.copy(alpha = 0.08f)
-        isPartDropTarget -> accentColor.copy(alpha = 0.06f)
-        else -> Color.Transparent
-    }
-    val containerModifier = Modifier
-        .clip(cardShape)
-        .background(coverAccent.exerciseCardBrush(alpha = 0.10f))
-        .then(
-            if (coverAccentHex != null && coverAccentHex != accentHex) {
-                Modifier.background(accent.exerciseCardBrush(alpha = 0.045f))
-            } else {
-                Modifier
-            },
-        )
-        .then(
-            when {
-                isSupersetExercise -> Modifier.border(1.dp, accentColor.copy(alpha = 0.20f), cardShape)
-                containerHighlight.alpha > 0f -> Modifier.background(containerHighlight)
-                else -> Modifier
-            },
-        )
-
     Column(
         modifier = modifier
             .fillMaxWidth()
@@ -240,17 +217,8 @@ internal fun ExerciseEditorCard(
                 alpha = if (isDragging) 0.22f else 1f
                 shadowElevation = if (isDragging) 6.dp.toPx() else 0f
             }
-            .zIndex(if (isDragging) 12f else 0f)
-            .then(containerModifier),
+            .zIndex(if (isDragging) 12f else 0f),
     ) {
-        // Top accent line
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(1.dp)
-                .background(accentColor.copy(alpha = if (expanded) 0.30f else 0.12f)),
-        )
-
         // Header: drag handle lives outside SwipeToDelete + outside combinedClickable
         // so neither Quick Actions nor horizontal swipe can steal the long-press.
         Row(
@@ -308,7 +276,7 @@ internal fun ExerciseEditorCard(
             SwipeToDeleteCard(
                 onDelete = onDeleteExercise,
                 modifier = Modifier.weight(1f),
-                shape = cardShape,
+                shape = RoundedCornerShape(16.dp),
             ) {
                 Row(
                     modifier = Modifier
@@ -406,7 +374,7 @@ internal fun ExerciseEditorCard(
                             Icon(
                                 imageVector = if (exercise.isStarTarget || exercise.goal1RM != null) Icons.Default.Star else Icons.Default.StarBorder,
                                 contentDescription = "Meta del ejercicio",
-                                tint = if (exercise.isStarTarget || exercise.goal1RM != null) Color(0xFFFFB300) else Color.White.copy(alpha = 0.6f),
+                                tint = if (exercise.isStarTarget || exercise.goal1RM != null) SymbolPalette.energia else WizardColors.textMuted,
                                 modifier = Modifier.size(18.dp),
                             )
                         }

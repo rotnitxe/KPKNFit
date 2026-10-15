@@ -4,60 +4,49 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.DirectionsRun
-import androidx.compose.material.icons.filled.FitnessCenter
-import androidx.compose.material.icons.filled.KeyboardArrowDown
-import androidx.compose.material.icons.filled.KeyboardArrowUp
-import androidx.compose.material3.Button
-import androidx.compose.material3.FilledTonalButton
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
+import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.boundsInWindow
 import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.ExerciseMuscleInfo
 import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.models.SessionPart
 import com.example.kpkn.data.models.hasCardioPart
 import com.example.kpkn.data.models.cardioPart
-import com.example.kpkn.data.models.isCardio
 import com.example.kpkn.data.models.isCardioPart
 import com.example.kpkn.data.models.supersetGroupRefOrLegacyId
 import com.example.kpkn.domain.exercises.resolveCatalogInfoForDisplay
+import com.example.kpkn.screens.onboarding.design.WizardColors
 import com.example.kpkn.screens.sessioneditor.components.ExerciseEditorCard
 import com.example.kpkn.screens.sessioneditor.components.GroupEditorCard
 import com.example.kpkn.screens.sessioneditor.components.SessionEditorEmptyState
 import com.example.kpkn.screens.sessioneditor.components.SupersetGroupEditorCard
+import com.example.kpkn.screens.sessioneditor.design.SessionGroupLabel
+import com.example.kpkn.screens.sessioneditor.design.SessionModuleEdge
+import com.example.kpkn.screens.sessioneditor.design.SessionModuleSlot
+import com.example.kpkn.ui.design.KpknSecondaryPill
+import com.example.kpkn.ui.design.KpknSurface
+import com.example.kpkn.ui.design.KpknTextAction
+import com.example.kpkn.ui.components.icons.KpknLineIcons
 
-private fun Modifier.drawPartBorder(partAccent: Color): Modifier = this
-
+/**
+ * Pinta un ítem de la lista. Cada grupo, el espacio de cardio y los ejercicios sueltos son módulos (SESSION_EDITOR_R1 §3): cada ítem
+ * pinta su trozo del módulo con el borde que le da [SessionListItem] y no lleva color de grupo.
+ */
 @Composable
 internal fun SessionEditorListItem(
     listItem: SessionListItem,
@@ -92,7 +81,6 @@ internal fun SessionEditorListItem(
     when (listItem) {
         is SessionListItem.PartHeader -> {
             val part = groupedParts.firstOrNull { it.id == listItem.partId } ?: return
-            val isCardio = part.isCardioPart()
             val isDropTargetBefore = partDropTargetId == "BEFORE_${part.id}" && draggingPartId != part.id
             val isCollapsed = part.id in uiState.collapsedPartIds
             val isDropTargetAfter = partDropTargetId == "AFTER_${part.id}" && draggingPartId != part.id && isCollapsed
@@ -104,36 +92,26 @@ internal fun SessionEditorListItem(
                         modifier = Modifier.padding(horizontal = 16.dp, vertical = 2.dp),
                     )
                 }
-                GroupEditorCard(
-                    part = part,
-                    collapsed = isCollapsed,
-                    onToggleCollapse = { viewModel.togglePartCollapsed(part.id) },
-                    onRename = { viewModel.updatePartName(part.id, it) },
-                    onChangeColor = { viewModel.updatePartColor(part.id, it) },
-                    onRemove = { keepExercises -> viewModel.removePart(part.id, keepExercises) },
-                    isDragging = draggingPartId == part.id,
-                    dragOffsetY = if (draggingPartId == part.id) dragController.draggingPartOffsetY else 0f,
-                    isDropTarget = isDropTargetBefore,
-                    onBoundsChange = { rect -> dragController.registerPartBoundsDuringDrag(part.id, rect) },
-                    onContentBoundsChange = { rect -> dragController.setPartContentBounds(part.id, rect) },
-                    onDragStart = { grabRect, pointerWindow -> beginPartDrag(part.id, grabRect, pointerWindow) },
-                    onDrag = { deltaY -> dragController.updatePartDrag(deltaY, groupedParts) },
-                    onDragEnd = {
-                        dragController.endPartDrag(groupedParts) { partId, index ->
-                            viewModel.movePartToIndex(partId, index)
-                        }
-                    },
-                    onDragCancel = cancelPartDrag,
-                    onAddExercise = {
-                        if (isCardio) {
-                            viewModel.openCardioPicker(part.id)
-                        } else {
-                            viewModel.openPicker(part.id)
-                        }
-                    },
-                    headerOnly = true,
-                    content = {},
-                )
+                SessionModuleSlot(edge = listItem.edge) {
+                    GroupEditorCard(
+                        part = part,
+                        collapsed = isCollapsed,
+                        onToggleCollapse = { viewModel.togglePartCollapsed(part.id) },
+                        onRename = { viewModel.updatePartName(part.id, it) },
+                        onRemove = { keepExercises -> viewModel.removePart(part.id, keepExercises) },
+                        isDragging = draggingPartId == part.id,
+                        isDropTarget = isDropTargetBefore,
+                        onBoundsChange = { rect -> dragController.registerPartBoundsDuringDrag(part.id, rect) },
+                        onDragStart = { grabRect, pointerWindow -> beginPartDrag(part.id, grabRect, pointerWindow) },
+                        onDrag = { deltaY -> dragController.updatePartDrag(deltaY, groupedParts) },
+                        onDragEnd = {
+                            dragController.endPartDrag(groupedParts) { partId, index ->
+                                viewModel.movePartToIndex(partId, index)
+                            }
+                        },
+                        onDragCancel = cancelPartDrag,
+                    )
+                }
                 if (isDropTargetAfter) {
                     SessionEditorDropIndicator(
                         visible = true,
@@ -148,10 +126,10 @@ internal fun SessionEditorListItem(
             val itemHeight = (dragController.frozenExerciseBounds["__loose__|${exercise.id}"]
                 ?: dragController.exerciseBounds["__loose__|${exercise.id}"])?.height ?: 88f
             val shiftY = if (draggingExerciseId != null) {
-                    dragController.calculateProjectedShift(session, "__loose__", listItem.indexInLoose, exercise.id, itemHeight)
-                } else {
-                    0f
-                }
+                dragController.calculateProjectedShift(session, "__loose__", listItem.indexInLoose, exercise.id, itemHeight)
+            } else {
+                0f
+            }
             val isLooseInsertBefore = exerciseDropTargetPartId == "__loose__" &&
                 exerciseDropTargetIndex == listItem.indexInLoose &&
                 draggingExerciseId != null &&
@@ -160,9 +138,7 @@ internal fun SessionEditorListItem(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 2.dp)
                     .onGloballyPositioned { onLooseBoundsReport(it.boundsInWindow()) },
-                verticalArrangement = Arrangement.spacedBy(4.dp),
             ) {
                 if (isLooseInsertBefore) {
                     SessionEditorDropIndicator(
@@ -175,30 +151,32 @@ internal fun SessionEditorListItem(
                         .fillMaxWidth()
                         .graphicsLayer { translationY = shiftY },
                 ) {
-                    LooseExerciseItem(
-                        exercise = exercise,
-                        index = listItem.indexInLoose,
-                        exercises = session.exercises,
-                        session = session,
-                        cardioHistoryByType = uiState.cardioHistoryByType,
-                        exerciseInfoById = exerciseInfoById,
-                        competitionMovementIds = uiState.competitionMovementIds,
-                        draggingExerciseId = draggingExerciseId,
-                        exerciseDropTargetKey = exerciseDropTargetKey,
-                        exerciseDropTargetPartId = exerciseDropTargetPartId,
-                        exerciseDropTargetIndex = exerciseDropTargetIndex,
-                        exerciseBounds = dragController.exerciseBounds,
-                        dragController = dragController,
-                        pendingAutoExpandExerciseId = pendingAutoExpandExerciseId,
-                        onPendingAutoExpandHandled = onPendingAutoExpandHandled,
-                        beginExerciseDrag = beginExerciseDrag,
-                        updateExerciseDrag = updateExerciseDrag,
-                        endExerciseDrag = endExerciseDrag,
-                        cancelExerciseDrag = cancelExerciseDrag,
-                        projectedShiftFor = projectedShiftFor,
-                        viewModel = viewModel,
-                        shiftYForBounds = shiftY,
-                    )
+                    SessionModuleSlot(edge = listItem.edge) {
+                        LooseExerciseItem(
+                            exercise = exercise,
+                            index = listItem.indexInLoose,
+                            exercises = session.exercises,
+                            session = session,
+                            cardioHistoryByType = uiState.cardioHistoryByType,
+                            exerciseInfoById = exerciseInfoById,
+                            competitionMovementIds = uiState.competitionMovementIds,
+                            draggingExerciseId = draggingExerciseId,
+                            exerciseDropTargetKey = exerciseDropTargetKey,
+                            exerciseDropTargetPartId = exerciseDropTargetPartId,
+                            exerciseDropTargetIndex = exerciseDropTargetIndex,
+                            exerciseBounds = dragController.exerciseBounds,
+                            dragController = dragController,
+                            pendingAutoExpandExerciseId = pendingAutoExpandExerciseId,
+                            onPendingAutoExpandHandled = onPendingAutoExpandHandled,
+                            beginExerciseDrag = beginExerciseDrag,
+                            updateExerciseDrag = updateExerciseDrag,
+                            endExerciseDrag = endExerciseDrag,
+                            cancelExerciseDrag = cancelExerciseDrag,
+                            projectedShiftFor = projectedShiftFor,
+                            viewModel = viewModel,
+                            shiftYForBounds = shiftY,
+                        )
+                    }
                 }
             }
         }
@@ -206,47 +184,23 @@ internal fun SessionEditorListItem(
         is SessionListItem.PartExercise -> {
             val part = groupedParts.firstOrNull { it.id == listItem.partId } ?: return
             val exercise = part.exercises.firstOrNull { it.id == listItem.exerciseId } ?: return
-            val partAccent = remember(part.color) { resolvePartAccent(part.color) }
             val isCardioSpace = part.isCardioPart()
             val itemHeight = (dragController.frozenExerciseBounds["${part.id}|${exercise.id}"]
                 ?: dragController.exerciseBounds["${part.id}|${exercise.id}"])?.height ?: 88f
             val shiftY = if (draggingExerciseId != null) {
-                    dragController.calculateProjectedShift(session, part.id, listItem.indexInPart, exercise.id, itemHeight)
-                } else {
-                    0f
-                }
-            val containerBackground = if (isCardioSpace) {
-                Brush.verticalGradient(
-                    listOf(
-                        Color(0xFF064E3B).copy(alpha = 0.24f),
-                        Color(0xFF047857).copy(alpha = 0.14f),
-                        Color(0xFF064E3B).copy(alpha = 0.08f),
-                    )
-                )
+                dragController.calculateProjectedShift(session, part.id, listItem.indexInPart, exercise.id, itemHeight)
             } else {
-                partAccent.brush(alpha = 0.06f)
+                0f
             }
             val isPartInsertBefore = exerciseDropTargetPartId == part.id &&
                 exerciseDropTargetIndex == listItem.indexInPart &&
                 draggingExerciseId != null &&
                 draggingExerciseId != exercise.id
-            val containerModifier = if (isCardioSpace) {
-                Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 2.dp)
-                    .onGloballyPositioned { onPartContentBoundsReport(part.id, it.boundsInWindow()) }
-            } else {
-                Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp)
-                    .background(containerBackground)
-                    .drawPartBorder(partAccent.primary)
-                    .padding(horizontal = 4.dp, vertical = 2.dp)
-                    .onGloballyPositioned { onPartContentBoundsReport(part.id, it.boundsInWindow()) }
-            }
 
             Column(
-                modifier = containerModifier,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .onGloballyPositioned { onPartContentBoundsReport(part.id, it.boundsInWindow()) },
             ) {
                 if (isPartInsertBefore) {
                     SessionEditorDropIndicator(
@@ -259,30 +213,32 @@ internal fun SessionEditorListItem(
                         .fillMaxWidth()
                         .graphicsLayer { translationY = shiftY },
                 ) {
-                    PartExerciseItem(
-                        exercise = exercise,
-                        part = part,
-                        index = listItem.indexInPart,
-                        session = session,
-                        cardioHistoryByType = uiState.cardioHistoryByType,
-                        exerciseInfoById = exerciseInfoById,
-                        competitionMovementIds = uiState.competitionMovementIds,
-                        draggingExerciseId = draggingExerciseId,
-                        exerciseDropTargetKey = exerciseDropTargetKey,
-                        exerciseDropTargetPartId = exerciseDropTargetPartId,
-                        exerciseDropTargetIndex = exerciseDropTargetIndex,
-                        exerciseBounds = dragController.exerciseBounds,
-                        dragController = dragController,
-                        pendingAutoExpandExerciseId = pendingAutoExpandExerciseId,
-                        onPendingAutoExpandHandled = onPendingAutoExpandHandled,
-                        beginExerciseDrag = beginExerciseDrag,
-                        updateExerciseDrag = updateExerciseDrag,
-                        endExerciseDrag = endExerciseDrag,
-                        cancelExerciseDrag = cancelExerciseDrag,
-                        projectedShiftFor = projectedShiftFor,
-                        viewModel = viewModel,
-                        shiftYForBounds = shiftY,
-                    )
+                    SessionModuleSlot(edge = listItem.edge) {
+                        PartExerciseItem(
+                            exercise = exercise,
+                            part = part,
+                            index = listItem.indexInPart,
+                            session = session,
+                            cardioHistoryByType = uiState.cardioHistoryByType,
+                            exerciseInfoById = exerciseInfoById,
+                            competitionMovementIds = uiState.competitionMovementIds,
+                            draggingExerciseId = draggingExerciseId,
+                            exerciseDropTargetKey = exerciseDropTargetKey,
+                            exerciseDropTargetPartId = exerciseDropTargetPartId,
+                            exerciseDropTargetIndex = exerciseDropTargetIndex,
+                            exerciseBounds = dragController.exerciseBounds,
+                            dragController = dragController,
+                            pendingAutoExpandExerciseId = pendingAutoExpandExerciseId,
+                            onPendingAutoExpandHandled = onPendingAutoExpandHandled,
+                            beginExerciseDrag = beginExerciseDrag,
+                            updateExerciseDrag = updateExerciseDrag,
+                            endExerciseDrag = endExerciseDrag,
+                            cancelExerciseDrag = cancelExerciseDrag,
+                            projectedShiftFor = projectedShiftFor,
+                            viewModel = viewModel,
+                            shiftYForBounds = shiftY,
+                        )
+                    }
                 }
             }
         }
@@ -297,10 +253,10 @@ internal fun SessionEditorListItem(
             val itemHeight = (dragController.frozenExerciseBounds["__loose__|$firstId"]
                 ?: dragController.exerciseBounds["__loose__|$firstId"])?.height ?: 88f
             val looseSupersetShiftY = if (draggingExerciseId != null) {
-                    dragController.calculateProjectedShift(session, "__loose__", listItem.indexInLoose, firstId, itemHeight)
-                } else {
-                    0f
-                }
+                dragController.calculateProjectedShift(session, "__loose__", listItem.indexInLoose, firstId, itemHeight)
+            } else {
+                0f
+            }
             val isLooseSupersetInsertBefore = exerciseDropTargetPartId == "__loose__" &&
                 exerciseDropTargetIndex == listItem.indexInLoose &&
                 draggingExerciseId != null &&
@@ -309,9 +265,7 @@ internal fun SessionEditorListItem(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 2.dp)
                     .onGloballyPositioned { onLooseBoundsReport(it.boundsInWindow()) },
-                verticalArrangement = Arrangement.spacedBy(4.dp),
             ) {
                 if (isLooseSupersetInsertBefore) {
                     SessionEditorDropIndicator(
@@ -324,31 +278,33 @@ internal fun SessionEditorListItem(
                         .fillMaxWidth()
                         .graphicsLayer { translationY = looseSupersetShiftY },
                 ) {
-                    LooseSupersetItem(
-                        supersetGroup = supersetGroup,
-                        supersetMembers = supersetMembers,
-                        index = listItem.indexInLoose,
-                        exercises = session.exercises,
-                        session = session,
-                        exerciseInfoById = exerciseInfoById,
-                        competitionMovementIds = uiState.competitionMovementIds,
-                        draggingExerciseId = draggingExerciseId,
-                        exerciseDropTargetKey = exerciseDropTargetKey,
-                        exerciseDropTargetPartId = exerciseDropTargetPartId,
-                        exerciseDropTargetIndex = exerciseDropTargetIndex,
-                        exerciseBounds = dragController.exerciseBounds,
-                        dragController = dragController,
-                        pendingAutoExpandExerciseId = pendingAutoExpandExerciseId,
-                        onPendingAutoExpandHandled = onPendingAutoExpandHandled,
-                        beginExerciseDrag = beginExerciseDrag,
-                        updateExerciseDrag = updateExerciseDrag,
-                        endExerciseDrag = endExerciseDrag,
-                        cancelExerciseDrag = cancelExerciseDrag,
-                        projectedShiftFor = projectedShiftFor,
-                        viewModel = viewModel,
-                        shiftYForBounds = looseSupersetShiftY,
-                        collapsedPartIds = uiState.collapsedPartIds,
-                    )
+                    SessionModuleSlot(edge = listItem.edge) {
+                        LooseSupersetItem(
+                            supersetGroup = supersetGroup,
+                            supersetMembers = supersetMembers,
+                            index = listItem.indexInLoose,
+                            exercises = session.exercises,
+                            session = session,
+                            exerciseInfoById = exerciseInfoById,
+                            competitionMovementIds = uiState.competitionMovementIds,
+                            draggingExerciseId = draggingExerciseId,
+                            exerciseDropTargetKey = exerciseDropTargetKey,
+                            exerciseDropTargetPartId = exerciseDropTargetPartId,
+                            exerciseDropTargetIndex = exerciseDropTargetIndex,
+                            exerciseBounds = dragController.exerciseBounds,
+                            dragController = dragController,
+                            pendingAutoExpandExerciseId = pendingAutoExpandExerciseId,
+                            onPendingAutoExpandHandled = onPendingAutoExpandHandled,
+                            beginExerciseDrag = beginExerciseDrag,
+                            updateExerciseDrag = updateExerciseDrag,
+                            endExerciseDrag = endExerciseDrag,
+                            cancelExerciseDrag = cancelExerciseDrag,
+                            projectedShiftFor = projectedShiftFor,
+                            viewModel = viewModel,
+                            shiftYForBounds = looseSupersetShiftY,
+                            collapsedPartIds = uiState.collapsedPartIds,
+                        )
+                    }
                 }
             }
         }
@@ -360,15 +316,14 @@ internal fun SessionEditorListItem(
                 part.exercises.firstOrNull { it.id == id }
             }
             if (supersetMembers.size < 2) return
-            val partAccent = remember(part.color) { resolvePartAccent(part.color) }
             val firstId = supersetMembers.first().id
             val itemHeight = (dragController.frozenExerciseBounds["${part.id}|$firstId"]
                 ?: dragController.exerciseBounds["${part.id}|$firstId"])?.height ?: 88f
             val partSupersetShiftY = if (draggingExerciseId != null) {
-                    dragController.calculateProjectedShift(session, part.id, listItem.indexInPart, firstId, itemHeight)
-                } else {
-                    0f
-                }
+                dragController.calculateProjectedShift(session, part.id, listItem.indexInPart, firstId, itemHeight)
+            } else {
+                0f
+            }
             val isPartSupersetInsertBefore = exerciseDropTargetPartId == part.id &&
                 exerciseDropTargetIndex == listItem.indexInPart &&
                 draggingExerciseId != null &&
@@ -377,10 +332,6 @@ internal fun SessionEditorListItem(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp)
-                    .background(partAccent.brush(alpha = 0.06f))
-                    .drawPartBorder(partAccent.primary)
-                    .padding(horizontal = 4.dp, vertical = 2.dp)
                     .onGloballyPositioned { onPartContentBoundsReport(part.id, it.boundsInWindow()) },
             ) {
                 if (isPartSupersetInsertBefore) {
@@ -394,31 +345,33 @@ internal fun SessionEditorListItem(
                         .fillMaxWidth()
                         .graphicsLayer { translationY = partSupersetShiftY },
                 ) {
-                    PartSupersetItem(
-                        supersetGroup = supersetGroup,
-                        supersetMembers = supersetMembers,
-                        part = part,
-                        index = listItem.indexInPart,
-                        session = session,
-                        exerciseInfoById = exerciseInfoById,
-                        competitionMovementIds = uiState.competitionMovementIds,
-                        draggingExerciseId = draggingExerciseId,
-                        exerciseDropTargetKey = exerciseDropTargetKey,
-                        exerciseDropTargetPartId = exerciseDropTargetPartId,
-                        exerciseDropTargetIndex = exerciseDropTargetIndex,
-                        exerciseBounds = dragController.exerciseBounds,
-                        dragController = dragController,
-                        pendingAutoExpandExerciseId = pendingAutoExpandExerciseId,
-                        onPendingAutoExpandHandled = onPendingAutoExpandHandled,
-                        beginExerciseDrag = beginExerciseDrag,
-                        updateExerciseDrag = updateExerciseDrag,
-                        endExerciseDrag = endExerciseDrag,
-                        cancelExerciseDrag = cancelExerciseDrag,
-                        projectedShiftFor = projectedShiftFor,
-                        viewModel = viewModel,
-                        shiftYForBounds = partSupersetShiftY,
-                        collapsedPartIds = uiState.collapsedPartIds,
-                    )
+                    SessionModuleSlot(edge = listItem.edge) {
+                        PartSupersetItem(
+                            supersetGroup = supersetGroup,
+                            supersetMembers = supersetMembers,
+                            part = part,
+                            index = listItem.indexInPart,
+                            session = session,
+                            exerciseInfoById = exerciseInfoById,
+                            competitionMovementIds = uiState.competitionMovementIds,
+                            draggingExerciseId = draggingExerciseId,
+                            exerciseDropTargetKey = exerciseDropTargetKey,
+                            exerciseDropTargetPartId = exerciseDropTargetPartId,
+                            exerciseDropTargetIndex = exerciseDropTargetIndex,
+                            exerciseBounds = dragController.exerciseBounds,
+                            dragController = dragController,
+                            pendingAutoExpandExerciseId = pendingAutoExpandExerciseId,
+                            onPendingAutoExpandHandled = onPendingAutoExpandHandled,
+                            beginExerciseDrag = beginExerciseDrag,
+                            updateExerciseDrag = updateExerciseDrag,
+                            endExerciseDrag = endExerciseDrag,
+                            cancelExerciseDrag = cancelExerciseDrag,
+                            projectedShiftFor = projectedShiftFor,
+                            viewModel = viewModel,
+                            shiftYForBounds = partSupersetShiftY,
+                            collapsedPartIds = uiState.collapsedPartIds,
+                        )
+                    }
                 }
             }
         }
@@ -438,13 +391,11 @@ internal fun SessionEditorListItem(
             val part = groupedParts.firstOrNull { it.id == listItem.partId } ?: return
             val displayName = part.name.trim().ifBlank { "este grupo" }
             val isCardioSpace = part.isCardioPart()
-            val partAccent = remember(part.color) { resolvePartAccent(part.color) }
-            val footerShape = RoundedCornerShape(bottomStart = 16.dp, bottomEnd = 16.dp)
             val footerShiftY = if (draggingExerciseId != null) {
-                    dragController.projectedFooterShiftFor(part.id, part.exercises.size)
-                } else {
-                    0f
-                }
+                dragController.projectedFooterShiftFor(part.id, part.exercises.size)
+            } else {
+                0f
+            }
             val isDropTargetAtEnd = exerciseDropTargetPartId == part.id &&
                 exerciseDropTargetIndex != null &&
                 exerciseDropTargetIndex >= part.exercises.size &&
@@ -455,24 +406,10 @@ internal fun SessionEditorListItem(
                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
                 )
             }
-            val footerBackground = if (isCardioSpace) {
-                Brush.verticalGradient(
-                    listOf(
-                        Color(0xFF047857).copy(alpha = 0.14f),
-                        Color(0xFF064E3B).copy(alpha = 0.04f),
-                    )
-                )
-            } else {
-                partAccent.brush(alpha = 0.06f)
-            }
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp)
-                    .clip(footerShape)
-                    .background(footerBackground)
                     .graphicsLayer { translationY = footerShiftY }
-                    .padding(horizontal = 4.dp, vertical = 6.dp)
                     .onGloballyPositioned {
                         val raw = it.boundsInWindow()
                         val rect = if (footerShiftY != 0f) {
@@ -484,45 +421,20 @@ internal fun SessionEditorListItem(
                         onPartContentBoundsReport(part.id, rect)
                     },
             ) {
-                if (isCardioSpace) {
-                    FilledTonalButton(
-                        onClick = { viewModel.openCardioPicker(part.id) },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 4.dp, vertical = 2.dp),
-                        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 10.dp),
-                        colors = androidx.compose.material3.ButtonDefaults.filledTonalButtonColors(
-                            containerColor = Color(0xFF10B981).copy(alpha = 0.18f),
-                            contentColor = Color(0xFF34D399),
-                        ),
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.DirectionsRun,
-                            contentDescription = null,
-                            modifier = Modifier.size(18.dp).padding(end = 6.dp),
+                SessionModuleSlot(edge = listItem.edge) {
+                    if (isCardioSpace) {
+                        KpknTextAction(
+                            text = "Añadir cardio",
+                            onClick = { viewModel.openCardioPicker(part.id) },
+                            modifier = Modifier.padding(horizontal = 4.dp),
+                            leadingIcon = KpknLineIcons.Plus,
                         )
-                        Text(
-                            "Añadir cardio",
-                            fontWeight = FontWeight.Bold,
-                            style = MaterialTheme.typography.labelMedium,
-                            maxLines = 2,
-                            overflow = TextOverflow.Ellipsis,
-                        )
-                    }
-                } else {
-                    FilledTonalButton(
-                        onClick = { viewModel.openPicker(part.id) },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 4.dp, vertical = 2.dp),
-                        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 10.dp),
-                    ) {
-                        Text(
-                            "Añadir ejercicio a $displayName",
-                            fontWeight = FontWeight.Bold,
-                            style = MaterialTheme.typography.labelMedium,
-                            maxLines = 2,
-                            overflow = TextOverflow.Ellipsis,
+                    } else {
+                        KpknTextAction(
+                            text = "Añadir ejercicio a $displayName",
+                            onClick = { viewModel.openPicker(part.id) },
+                            modifier = Modifier.padding(horizontal = 4.dp),
+                            leadingIcon = KpknLineIcons.Plus,
                         )
                     }
                 }
@@ -541,8 +453,6 @@ internal fun SessionEditorListItem(
                 session.parts.none { !it.isUncategorizedPart() }
             val hasCardioSpace = session.hasCardioPart()
             val showChooser = isEmptySession && !uiState.strengthSpaceCommitted
-
-            // End-of-loose indicator lives on LooseEndGap (N9), not on these buttons.
 
             Column(
                 modifier = Modifier
@@ -565,45 +475,23 @@ internal fun SessionEditorListItem(
                         onChooseCardio = viewModel::createCardioSpace,
                     )
                 } else {
-                    Row(
+                    KpknTextAction(
+                        text = "Añadir ejercicio",
+                        onClick = viewModel::openPickerForUncategorized,
+                        modifier = Modifier.padding(start = 4.dp),
+                        leadingIcon = KpknLineIcons.Plus,
+                    )
+                    KpknSecondaryPill(
+                        text = "Nuevo grupo",
+                        onClick = viewModel::addPart,
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(10.dp),
-                    ) {
-                        Button(
-                            onClick = viewModel::openPickerForUncategorized,
-                            modifier = Modifier.weight(1f),
-                            shape = RoundedCornerShape(18.dp),
-                        ) {
-                            Text("Añadir ejercicio", fontWeight = FontWeight.Bold)
-                        }
-                        FilledTonalButton(
-                            onClick = viewModel::addPart,
-                            modifier = Modifier.weight(1f),
-                            shape = RoundedCornerShape(18.dp),
-                        ) {
-                            Text("Nuevo grupo", fontWeight = FontWeight.Bold)
-                        }
-                    }
+                    )
                     if (!hasCardioSpace) {
-                        FilledTonalButton(
+                        KpknSecondaryPill(
+                            text = "Crear espacio de cardio",
                             onClick = viewModel::createCardioSpace,
                             modifier = Modifier.fillMaxWidth(),
-                            shape = RoundedCornerShape(18.dp),
-                            colors = androidx.compose.material3.ButtonDefaults.filledTonalButtonColors(
-                                containerColor = Color(0xFF10B981).copy(alpha = 0.16f),
-                                contentColor = Color(0xFF34D399),
-                            ),
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.DirectionsRun,
-                                contentDescription = null,
-                                modifier = Modifier.size(18.dp).padding(end = 6.dp),
-                            )
-                            Text(
-                                "Crear espacio de cardio",
-                                fontWeight = FontWeight.Bold,
-                            )
-                        }
+                        )
                     }
                 }
             }
@@ -612,10 +500,11 @@ internal fun SessionEditorListItem(
         is SessionListItem.CardioAddActions -> {
             val cardioPart = session.parts.firstOrNull { it.isCardioPart() }
             val targetPartId = cardioPart?.id
+            // Sin ningún cardio, el pie va solo en su módulo; con cardios, es el último trozo.
+            val hasCardioExercises = session.parts.any { it.isCardioPart() && it.exercises.isNotEmpty() }
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 6.dp)
                     .onGloballyPositioned {
                         val rect = it.boundsInWindow()
                         if (targetPartId != null) {
@@ -624,126 +513,39 @@ internal fun SessionEditorListItem(
                         }
                     },
             ) {
-                FilledTonalButton(
-                    onClick = { viewModel.openCardioPicker(targetPartId) },
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(18.dp),
-                    colors = androidx.compose.material3.ButtonDefaults.filledTonalButtonColors(
-                        containerColor = Color(0xFF10B981).copy(alpha = 0.16f),
-                        contentColor = Color(0xFF34D399),
-                    ),
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.DirectionsRun,
-                        contentDescription = null,
-                        modifier = Modifier.size(18.dp).padding(end = 6.dp),
-                    )
-                    Text(
-                        "Añadir cardio",
-                        fontWeight = FontWeight.Bold,
+                SessionModuleSlot(edge = if (hasCardioExercises) SessionModuleEdge.BOTTOM else SessionModuleEdge.ONLY) {
+                    KpknTextAction(
+                        text = "Añadir cardio",
+                        onClick = { viewModel.openCardioPicker(targetPartId) },
+                        modifier = Modifier.padding(horizontal = 4.dp),
+                        leadingIcon = KpknLineIcons.Plus,
                     )
                 }
             }
         }
 
         is SessionListItem.CardioDivider -> {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 20.dp, vertical = 12.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(10.dp),
-            ) {
-                HorizontalDivider(
-                    modifier = Modifier.weight(1f),
-                    color = Color(0xFF10B981).copy(alpha = 0.35f),
-                )
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(6.dp),
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.DirectionsRun,
-                        contentDescription = null,
-                        tint = Color(0xFF10B981),
-                        modifier = Modifier.size(16.dp),
-                    )
-                    Text(
-                        text = "ESPACIO DE CARDIO",
-                        style = MaterialTheme.typography.labelSmall,
-                        fontWeight = FontWeight.Black,
-                        letterSpacing = 1.sp,
-                        color = Color(0xFF10B981),
-                    )
-                    if (listItem.canMove) {
-                        IconButton(
-                            onClick = viewModel::toggleCardioPlacement,
-                            modifier = Modifier.size(28.dp),
-                        ) {
-                            Icon(
-                                imageVector = if (listItem.showCardioFirst) Icons.Default.KeyboardArrowDown else Icons.Default.KeyboardArrowUp,
-                                contentDescription = if (listItem.showCardioFirst) "Mover cardio al final" else "Mover cardio al inicio",
-                                tint = Color(0xFF10B981),
-                                modifier = Modifier.size(18.dp),
-                            )
-                        }
-                    }
-                }
-                HorizontalDivider(
-                    modifier = Modifier.weight(1f),
-                    color = Color(0xFF10B981).copy(alpha = 0.35f),
-                )
-            }
+            SessionGroupLabel(
+                label = "CARDIO",
+                moveLabel = if (listItem.canMove) {
+                    if (listItem.showCardioFirst) "Mover al final" else "Mover al inicio"
+                } else {
+                    null
+                },
+                onMove = viewModel::toggleCardioPlacement,
+            )
         }
 
         is SessionListItem.StrengthDivider -> {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 20.dp, vertical = 12.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(10.dp),
-            ) {
-                HorizontalDivider(
-                    modifier = Modifier.weight(1f),
-                    color = MaterialTheme.colorScheme.primary.copy(alpha = 0.35f),
-                )
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(6.dp),
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.FitnessCenter,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(16.dp),
-                    )
-                    Text(
-                        text = "ESPACIO DE FUERZA",
-                        style = MaterialTheme.typography.labelSmall,
-                        fontWeight = FontWeight.Black,
-                        letterSpacing = 1.sp,
-                        color = MaterialTheme.colorScheme.primary,
-                    )
-                    if (listItem.canMove) {
-                        IconButton(
-                            onClick = viewModel::toggleCardioPlacement,
-                            modifier = Modifier.size(28.dp),
-                        ) {
-                            Icon(
-                                imageVector = if (listItem.showCardioFirst) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
-                                contentDescription = if (listItem.showCardioFirst) "Mover fuerza al inicio" else "Mover fuerza al final",
-                                tint = MaterialTheme.colorScheme.primary,
-                                modifier = Modifier.size(18.dp),
-                            )
-                        }
-                    }
-                }
-                HorizontalDivider(
-                    modifier = Modifier.weight(1f),
-                    color = MaterialTheme.colorScheme.primary.copy(alpha = 0.35f),
-                )
-            }
+            SessionGroupLabel(
+                label = "FUERZA",
+                moveLabel = if (listItem.canMove) {
+                    if (listItem.showCardioFirst) "Mover al inicio" else "Mover al final"
+                } else {
+                    null
+                },
+                onMove = viewModel::toggleCardioPlacement,
+            )
         }
 
         SessionListItem.Hero -> Unit
@@ -836,12 +638,6 @@ private fun LooseExerciseItem(
             cardioHistory = exercise.cardioDetails?.type?.let { cardioHistoryByType[it] },
         )
     }
-
-    ExerciseListDivider(
-        exercise = exercise,
-        index = index,
-        exercises = exercises,
-    )
 }
 
 @Composable
@@ -928,12 +724,6 @@ private fun PartExerciseItem(
             cardioHistory = exercise.cardioDetails?.type?.let { cardioHistoryByType[it] },
         )
     }
-
-    ExerciseListDivider(
-        exercise = exercise,
-        index = index,
-        exercises = part.exercises,
-    )
 }
 
 @Composable
@@ -1013,7 +803,7 @@ private fun LooseSupersetItem(
     ) {
         // Each member exposes its own handle. The group header still drags the
         // complete block, while a member handle can leave/join another group.
-        supersetMembers.forEach { member ->
+        supersetMembers.forEachIndexed { position, member ->
             val memberIndex = exercises.indexOfFirst { it.id == member.id }.takeIf { it >= 0 } ?: index
             key("loose|${member.id}") {
                 ExerciseEditorCard(
@@ -1077,14 +867,9 @@ private fun LooseSupersetItem(
                     suppressIndividualRest = true,
                 )
             }
+            if (position < supersetMembers.lastIndex) SupersetMemberDivider()
         }
     }
-
-    ExerciseListDivider(
-        exercise = firstMember,
-        index = index,
-        exercises = exercises,
-    )
 }
 
 @Composable
@@ -1163,7 +948,7 @@ private fun PartSupersetItem(
     ) {
         // The header drags the complete block; each member handle can opt into
         // an individual move to leave or join another group.
-        supersetMembers.forEach { member ->
+        supersetMembers.forEachIndexed { position, member ->
             val memberIndex = part.exercises.indexOfFirst { it.id == member.id }.takeIf { it >= 0 } ?: index
             key("${part.id}|${member.id}") {
                 ExerciseEditorCard(
@@ -1227,40 +1012,19 @@ private fun PartSupersetItem(
                     suppressIndividualRest = true,
                 )
             }
+            if (position < supersetMembers.lastIndex) SupersetMemberDivider()
         }
     }
-    ExerciseListDivider(
-        exercise = firstMember,
-        index = index,
-        exercises = part.exercises,
-    )
 }
 
+/** Línea de 1 dp al 6 % entre dos miembros de una superserie, sangrada para no cruzar el raíl. */
 @Composable
-private fun ExerciseListDivider(
-    exercise: Exercise,
-    index: Int,
-    exercises: List<Exercise>,
-) {
-    val shouldDrawDivider = if (index < exercises.lastIndex) {
-        val currentSupersetId = exercise.supersetGroupRefOrLegacyId()
-        val nextSupersetId = exercises[index + 1].supersetGroupRefOrLegacyId()
-        currentSupersetId == null || currentSupersetId != nextSupersetId
-    } else {
-        false
-    }
-    if (shouldDrawDivider) {
-        HorizontalDivider(
-            modifier = Modifier.padding(horizontal = 16.dp),
-            color = MaterialTheme.colorScheme.outline.copy(alpha = 0.12f),
-        )
-    } else if (exercise.supersetGroupRefOrLegacyId() != null) {
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(1.dp)
-                .padding(horizontal = 20.dp)
-                .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.16f)),
-        )
-    }
+private fun SupersetMemberDivider() {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(start = 24.dp, end = 16.dp)
+            .height(1.dp)
+            .background(KpknSurface.divider),
+    )
 }
