@@ -309,7 +309,7 @@ private fun SetSummaryRow(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .height(56.dp)
+            .heightIn(min = 56.dp)
             .testTag(testTag)
             .clickable(role = Role.Button, onClick = onClick),
         verticalAlignment = Alignment.CenterVertically,
@@ -330,7 +330,8 @@ private fun SetSummaryRow(
                 summary.dose,
                 style = KpknType.metricM,
                 color = WizardColors.text,
-                maxLines = 1,
+                // ER2a: al 130 % de letra la dosis pasa a dos líneas antes que cortar el RIR con «…».
+                maxLines = 2,
                 overflow = TextOverflow.Ellipsis,
             )
             summary.load?.let { load ->
@@ -358,7 +359,7 @@ private fun SetSummaryRow(
 }
 
 /** Lo que se ve de una serie sin abrirla. */
-private data class SetRowSummary(
+internal data class SetRowSummary(
     val dose: String,
     val load: String?,
     val intensity: String?,
@@ -369,7 +370,7 @@ private data class SetRowSummary(
  * Resume una serie (o su lado) con la misma lógica que la fila: la carga sugerida si la hay, las reps o el rango, el tiempo o la
  * distancia según el modo, y la intensidad y la técnica. Los decimales van con coma y las unidades con espacio inseparable.
  */
-private fun setRowSummary(
+internal fun setRowSummary(
     set: ExerciseSet,
     side: String?,
     mode: TrainingMode,
@@ -382,7 +383,8 @@ private fun setRowSummary(
     val isAmrap = set.isAmrap || mode == TrainingMode.AMRAP
     val rpe = pick(set.targetRPE, target?.targetRPE)
     val rir = pick(set.targetRIR, target?.targetRIR)
-    val weight = predictedWeight ?: pick(set.weight, target?.weight)
+    // ER2a: la fila enseña la carga guardada; la calculada solo aparece si la serie no tiene ninguna.
+    val weight = pick(set.weight, target?.weight)?.takeIf { it > 0.0 } ?: predictedWeight
     val reps = pick(set.targetReps, target?.targetReps)
     val range = pick(set.targetRepsRange, target?.targetRepsRange)
     val duration = pick(set.targetDuration, target?.targetDuration)
@@ -391,7 +393,10 @@ private fun setRowSummary(
 
     val kgText = weight?.let { "${formatSummaryNumber(it)} kg" }
     val dose = when (mode) {
-        TrainingMode.RM -> {
+        // ER2a: una serie RM con rango o RIR enseña su prescripción («95 kg × 4–6 · RIR 2»); la pura, como antes («95 kg × 7»).
+        TrainingMode.RM -> if (range != null || rir != null) {
+            rmPrescriptionDose(kgText, range, reps, rir, estimatedMetric?.toInt())
+        } else {
             val estimated = estimatedMetric?.toInt()
             listOfNotNull(kgText, estimated?.let { "× $it" }).joinToString(" ").ifBlank {
                 set.targetPercentageRM?.let { "${formatSummaryNumber(it)} %" } ?: "—"
@@ -461,6 +466,17 @@ private fun techniqueSummary(set: ExerciseSet): String? {
 }
 
 private fun formatSummaryNumber(value: Double): String = formatMax2Decimals(value).replace('.', ',')
+
+/**
+ * Dosis de una serie RM con rango o RIR (ER2a): la carga guardada, las reps del rango («× 4–6») y el RIR («· RIR 2»). Sin rango usa
+ * las reps que salen al %RM, como la dosis pura.
+ */
+private fun rmPrescriptionDose(kgText: String?, range: RepRange?, reps: Int?, rir: Int?, estimated: Int?): String {
+    val repsText = range?.format() ?: reps?.toString() ?: estimated?.toString()
+    val head = if (kgText != null && repsText != null) "$kgText × $repsText" else kgText ?: repsText
+    // «RIR 2» con espacio inseparable: al partir la dosis a dos líneas, la cifra no se queda sola en la segunda.
+    return listOfNotNull(head, rir?.let { "RIR $it" }).joinToString(" · ").ifBlank { "—" }
+}
 
 /**
  * Acción de la fila abierta (ER1c1, pulido): texto de tinta de 48 dp de alto como objetivo táctil. Al 130 % de letra puede pasar a dos

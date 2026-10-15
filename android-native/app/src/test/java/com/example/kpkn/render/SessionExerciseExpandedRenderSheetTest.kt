@@ -27,14 +27,17 @@ import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.ExerciseSet
 import com.example.kpkn.data.models.IntensityMode
 import com.example.kpkn.data.models.MobilitySeries
+import com.example.kpkn.data.models.RepRange
 import com.example.kpkn.data.models.TrainingMode
 import com.example.kpkn.data.models.UnilateralMode
 import com.example.kpkn.data.models.UnilateralTarget
 import com.example.kpkn.data.models.WarmupSetDefinition
+import com.example.kpkn.data.protocols.LoadBasis
 import com.example.kpkn.screens.sessioneditor.ExerciseSetsCarousel
 import com.example.kpkn.screens.sessioneditor.components.ExerciseEditorExpanded
 import com.example.kpkn.screens.sessioneditor.components.ExerciseModeSheetBody
 import com.example.kpkn.screens.sessioneditor.components.ExerciseSetList
+import com.example.kpkn.domain.training.generator.Prescriber
 import com.example.kpkn.screens.sessioneditor.components.rememberExerciseEditorLocalState
 import org.junit.Assume.assumeTrue
 import org.junit.BeforeClass
@@ -218,6 +221,94 @@ class SessionExerciseExpandedRenderSheetTest {
                 trainingMode = TrainingMode.RM,
                 customUnit = null,
                 predictedMetrics = mapOf("rm0" to 6.0, "rm1" to 5.0, "rm2" to 4.0),
+                accentColor = accent,
+                backgroundAccentColor = accent,
+                onAddSet = {},
+                onUpdateSet = { _, _ -> },
+                onRemoveSet = {},
+                onMoveSet = { _, _ -> },
+                onTransformExercise = {},
+            )
+        }
+    }
+
+    /** Sentadilla del generador con rango y RIR (ER2a): la carga guardada, el %RM, el rango y el RIR de cada serie. */
+    private fun rmRangoRirExercise() = Exercise(
+        id = "sentadilla-rm",
+        name = "Sentadilla trasera",
+        trainingMode = TrainingMode.RM,
+        reference1RM = 120.0,
+        restTime = 210,
+        sets = listOf(
+            Triple("rr0", 75.0, RepRange(6, 8)),
+            Triple("rr1", 80.0, RepRange(4, 6)),
+            Triple("rr2", 85.0, RepRange(3, 5)),
+        ).map { (id, percent, range) ->
+            ExerciseSet(
+                id = id,
+                weight = Prescriber.roundLoad(120.0 * percent / 100.0),
+                targetPercentageRM = percent,
+                targetReps = range.max,
+                targetRepsRange = range,
+                targetRIR = 2,
+                intensityMode = IntensityMode.SOLO_RM,
+                loadBasis = LoadBasis.PERCENT_1RM,
+            )
+        },
+    )
+
+    @Test
+    fun rmConRangoYRirFilaCerrada() {
+        onlyWhenAsked()
+        renderSheet("rm_rango_rir_cerrada") {
+            ExerciseSetList(
+                exercise = rmRangoRirExercise(),
+                reference1RM = 120.0,
+                trainingMode = TrainingMode.RM,
+                customUnit = null,
+                predictedMetrics = mapOf("rr0" to 9.0, "rr1" to 7.0, "rr2" to 5.0),
+                accentColor = accent,
+                backgroundAccentColor = accent,
+                onAddSet = {},
+                onUpdateSet = { _, _ -> },
+                onRemoveSet = {},
+                onMoveSet = { _, _ -> },
+            )
+        }
+    }
+
+    @Test
+    fun rmConRangoYRirFilaAbierta() {
+        onlyWhenAsked()
+        renderSheet("rm_rango_rir_abierta", openRowTag = "set-row-rr1") {
+            ExerciseSetList(
+                exercise = rmRangoRirExercise(),
+                reference1RM = 120.0,
+                trainingMode = TrainingMode.RM,
+                customUnit = null,
+                predictedMetrics = mapOf("rr0" to 9.0, "rr1" to 7.0, "rr2" to 5.0),
+                accentColor = accent,
+                backgroundAccentColor = accent,
+                onAddSet = {},
+                onUpdateSet = { _, _ -> },
+                onRemoveSet = {},
+                onMoveSet = { _, _ -> },
+                onTransformExercise = {},
+            )
+        }
+    }
+
+    /** Tipo de carga de la serie abierta (ER2a): a letra grande pasa a rejilla 2 × 2 de celdas iguales. */
+    @Test
+    fun rejillaTipoDeCargaFilaAbierta() {
+        onlyWhenAsked()
+        renderSheet("rejilla_tipo_carga_abierta", openRowTag = "set-row-r1") {
+            ExerciseSetList(
+                exercise = repsExercise(repsSets()),
+                reference1RM = 100.0,
+                trainingMode = TrainingMode.REPS,
+                customUnit = null,
+                predictedMetrics = emptyMap(),
                 accentColor = accent,
                 backgroundAccentColor = accent,
                 onAddSet = {},

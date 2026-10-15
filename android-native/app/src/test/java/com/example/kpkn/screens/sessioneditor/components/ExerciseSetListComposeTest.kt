@@ -1,16 +1,22 @@
 package com.example.kpkn.screens.sessioneditor.components
 
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.test.hasSetTextAction
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
+import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performImeAction
+import androidx.compose.ui.test.performTextReplacement
 import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.ExerciseSet
 import com.example.kpkn.data.models.IntensityMode
+import com.example.kpkn.data.models.RepRange
 import com.example.kpkn.data.models.TrainingMode
 import com.example.kpkn.data.models.UnilateralTarget
+import com.example.kpkn.data.protocols.LoadBasis
 import com.example.kpkn.screens.sessioneditor.toggledBilateralUnilateral
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -38,6 +44,7 @@ class ExerciseSetListComposeTest {
 
     private fun renderList(
         exercise: Exercise,
+        predictedMetrics: Map<String, Double?> = emptyMap(),
         onUpdateSet: (String, (ExerciseSet) -> ExerciseSet) -> Unit = { _, _ -> },
         onMoveSet: (String, Int) -> Unit = { _, _ -> },
         onRemoveSet: (String) -> Unit = {},
@@ -49,7 +56,7 @@ class ExerciseSetListComposeTest {
                 reference1RM = 100.0,
                 trainingMode = exercise.trainingMode,
                 customUnit = exercise.customUnit,
-                predictedMetrics = emptyMap(),
+                predictedMetrics = predictedMetrics,
                 accentColor = accent,
                 backgroundAccentColor = accent,
                 onAddSet = {},
@@ -95,10 +102,70 @@ class ExerciseSetListComposeTest {
         openedRowShows(TrainingMode.AMRAP, "AMRAP / mín.", "AMRAP", "Externa", "Drop-set", "Rest-pause")
     }
 
+    /** Una serie RM sin rango ni RIR (pura) enseña su %RM y sus «Reps est.» de siempre (ER2a). */
     @Test
-    fun laFilaDeRmTieneSusControles() {
-        openedRowShows(TrainingMode.RM, "%RM", "Reps est.", "Externa", "Drop-set", "Rest-pause")
+    fun laFilaDeRmPuraTieneSusControles() {
+        renderList(exerciseWith(rmSet(id = "s1", range = null, rir = null), mode = TrainingMode.RM))
+        openRow("s1")
+        listOf("%RM", "Reps est.", "Externa", "Drop-set", "Rest-pause").forEach { label ->
+            assertTrue("falta el control «$label»", rule.onAllNodesWithText(label).fetchSemanticsNodes().isNotEmpty())
+        }
     }
+
+    /** Una serie RM con rango y RIR abre «Reps» y «RIR» junto al %RM, y «Reps est.» pasa a ser una línea de ayuda (ER2a). */
+    @Test
+    fun laFilaDeRmConRangoYRirTieneRepsRirYLaAyudaDeReps() {
+        renderList(
+            exerciseWith(rmSet(id = "s1", range = RepRange(4, 6), rir = 2), mode = TrainingMode.RM),
+            predictedMetrics = mapOf("s1" to 7.0),
+        )
+        openRow("s1")
+        listOf("%RM", "Reps", "RIR").forEach { label ->
+            assertTrue("falta el control «$label»", rule.onAllNodesWithText(label).fetchSemanticsNodes().isNotEmpty())
+        }
+        assertTrue("sigue el campo «Reps est.»", rule.onAllNodesWithText("Reps est.").fetchSemanticsNodes().isEmpty())
+        rule.onNodeWithText("≈ 7 reps máx. al 80 %").assertExists()
+    }
+
+    /** Editar el RIR de una serie RM con rango lo guarda en esa serie (ER2a). */
+    @Test
+    fun editarElRirDeUnaSerieRmLoGuarda() {
+        val set = rmSet(id = "s1", range = RepRange(4, 6), rir = 2)
+        var saved: ExerciseSet? = null
+        rule.setContent {
+            ExerciseSetList(
+                exercise = exerciseWith(set, mode = TrainingMode.RM),
+                reference1RM = 120.0,
+                trainingMode = TrainingMode.RM,
+                customUnit = null,
+                predictedMetrics = mapOf("s1" to 7.0),
+                accentColor = accent,
+                backgroundAccentColor = accent,
+                onAddSet = {},
+                onUpdateSet = { _, updater -> saved = updater(set) },
+                onRemoveSet = {},
+                onMoveSet = { _, _ -> },
+            )
+        }
+        openRow("s1")
+        rule.onNodeWithContentDescription("RIR").performClick()
+        rule.onNode(hasSetTextAction()).performTextReplacement("3")
+        rule.onNode(hasSetTextAction()).performImeAction()
+        assertEquals(3, saved?.targetRIR)
+        assertEquals(RepRange(4, 6), saved?.targetRepsRange)
+    }
+
+    /** Serie RM de prueba: 95 kg al 80 % de un 1RM de 120 kg, con el rango y el RIR que se indiquen. */
+    private fun rmSet(id: String, range: RepRange?, rir: Int?) = ExerciseSet(
+        id = id,
+        weight = 95.0,
+        targetPercentageRM = 80.0,
+        targetReps = range?.max,
+        targetRepsRange = range,
+        targetRIR = rir,
+        intensityMode = IntensityMode.SOLO_RM,
+        loadBasis = LoadBasis.PERCENT_1RM,
+    )
 
     @Test
     fun laFilaDeSoloRpeTieneSuRpeObjetivo() {

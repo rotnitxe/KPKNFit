@@ -897,7 +897,8 @@ class SessionEditorViewModel(
         val variant = state.activeVariant
         if (variant == WeekVariant.A) {
             val current = state.session ?: return
-            val transformed = transform(current).normalizeSession()
+            // ER2a: el recálculo de cargas RM por %RM o referencia cuelga de la edición, no de la normalización.
+            val transformed = transform(current).withExplicitRmLoads(current).normalizeSession()
             if (transformed == current) return
             val updated = transformed.copy(lastModifiedAtMs = System.currentTimeMillis())
             updateUi { s ->
@@ -908,7 +909,7 @@ class SessionEditorViewModel(
             }
         } else {
             val currentVariant = state.activeVariantSession ?: return
-            val transformedVariant = transform(currentVariant).normalizeSession()
+            val transformedVariant = transform(currentVariant).withExplicitRmLoads(currentVariant).normalizeSession()
             if (transformedVariant == currentVariant) return
             val updatedVariant = transformedVariant.copy(lastModifiedAtMs = System.currentTimeMillis())
             val base = state.session ?: return
