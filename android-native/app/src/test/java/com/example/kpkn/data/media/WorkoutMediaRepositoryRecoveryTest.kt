@@ -13,6 +13,7 @@ import com.example.kpkn.data.media.WorkoutMediaCaptureJournalEntry
 import com.example.kpkn.data.models.WorkoutMedia
 import com.example.kpkn.data.models.WorkoutMediaKind
 import com.example.kpkn.data.repository.WorkoutMediaRepository
+import com.example.kpkn.testsupport.RoomTestRule
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
 import org.junit.After
@@ -22,6 +23,7 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
+import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.Robolectric
@@ -39,6 +41,9 @@ import java.util.concurrent.atomic.AtomicInteger
 @RunWith(RobolectricTestRunner::class)
 @Config(manifest = Config.NONE, sdk = [34], application = Application::class)
 class WorkoutMediaRepositoryRecoveryTest {
+
+    @get:Rule
+    val roomRule = RoomTestRule()
     private val context: Context get() = ApplicationProvider.getApplicationContext()
     private val databases = mutableListOf<KpknDatabase>()
 

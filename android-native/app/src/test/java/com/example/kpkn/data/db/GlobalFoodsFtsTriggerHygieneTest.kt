@@ -10,6 +10,7 @@ import android.database.SQLException
 import android.database.sqlite.SQLiteDatabase
 import androidx.sqlite.db.SupportSQLiteDatabase
 import androidx.test.core.app.ApplicationProvider
+import com.example.kpkn.testsupport.RoomTestRule
 import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Assert.assertEquals
@@ -37,6 +38,9 @@ import java.io.PrintStream
 @RunWith(RobolectricTestRunner::class)
 @Config(manifest = Config.NONE, sdk = [34], application = Application::class)
 class GlobalFoodsFtsTriggerHygieneTest {
+
+    @get:Rule
+    val roomRule = RoomTestRule()
     @Rule
     @JvmField
     val temporaryFolder = TemporaryFolder()

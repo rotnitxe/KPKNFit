@@ -10,6 +10,7 @@ import com.example.kpkn.data.repository.StartWorkoutResult
 import com.example.kpkn.domain.workout.LoadSuggestionEngine
 import com.example.kpkn.services.workout.VoiceSetEditPatch
 import com.example.kpkn.services.workout.VoiceUndoPayload
+import com.example.kpkn.testsupport.RoomTestRule
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -31,6 +32,7 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertSame
 import org.junit.Assert.assertTrue
 import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
@@ -47,6 +49,9 @@ import java.util.concurrent.atomic.AtomicReference
 @Config(manifest = Config.NONE, sdk = [34])
 @OptIn(ExperimentalCoroutinesApi::class)
 class WorkoutVoiceSetMutationRoomTest {
+
+    @get:Rule
+    val roomRule = RoomTestRule()
     private val dispatcher = UnconfinedTestDispatcher()
     private val owner = CoroutineScope(SupervisorJob() + dispatcher)
     private lateinit var repository: ProgramRepository

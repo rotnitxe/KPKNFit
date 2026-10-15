@@ -22,6 +22,7 @@ import com.example.kpkn.data.models.SessionRequirement
 import com.example.kpkn.data.repository.CompetitionRepository
 import com.example.kpkn.data.repository.ProgramRepository
 import com.example.kpkn.domain.training.ProgramCalendarEngine
+import com.example.kpkn.testsupport.RoomTestRule
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
@@ -36,6 +37,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
@@ -56,6 +58,9 @@ import java.time.LocalDate
 @RunWith(RobolectricTestRunner::class)
 @Config(manifest = Config.NONE, sdk = [34])
 class ProgramDetailOptionalConfirmationTest {
+
+    @get:Rule
+    val roomRule = RoomTestRule()
 
     private val testDispatcher: TestDispatcher = UnconfinedTestDispatcher()
     private lateinit var repository: ProgramRepository

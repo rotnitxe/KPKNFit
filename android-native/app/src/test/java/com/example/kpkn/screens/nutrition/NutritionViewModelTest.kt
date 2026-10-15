@@ -7,6 +7,7 @@ import com.example.kpkn.data.repository.NutritionRepository
 import com.example.kpkn.data.repository.ProgramRepository
 import com.example.kpkn.domain.nutrition.*
 import com.example.kpkn.domain.training.AppClock
+import com.example.kpkn.testsupport.RoomTestRule
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -16,6 +17,7 @@ import kotlinx.coroutines.test.*
 import org.junit.After
 import org.junit.Assert.*
 import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
@@ -31,6 +33,9 @@ import kotlin.coroutines.CoroutineContext
 @RunWith(RobolectricTestRunner::class)
 @Config(manifest = Config.NONE, sdk = [34])
 class NutritionViewModelTest {
+
+    @get:Rule
+    val roomRule = RoomTestRule()
 
     private val testDispatcher = UnconfinedTestDispatcher()
     private val testScope = TestScope(testDispatcher)

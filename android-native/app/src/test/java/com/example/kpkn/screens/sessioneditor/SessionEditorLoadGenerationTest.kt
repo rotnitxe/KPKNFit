@@ -11,6 +11,7 @@ import com.example.kpkn.data.models.ProgramStructure
 import com.example.kpkn.data.models.ProgramWeek
 import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.repository.ProgramRepository
+import com.example.kpkn.testsupport.RoomTestRule
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
@@ -22,6 +23,7 @@ import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
@@ -30,6 +32,9 @@ import org.robolectric.annotation.Config
 @RunWith(RobolectricTestRunner::class)
 @Config(manifest = Config.NONE, sdk = [34])
 class SessionEditorLoadGenerationTest {
+
+    @get:Rule
+    val roomRule = RoomTestRule()
     private val dispatcher = UnconfinedTestDispatcher()
     private lateinit var repository: ProgramRepository
 
