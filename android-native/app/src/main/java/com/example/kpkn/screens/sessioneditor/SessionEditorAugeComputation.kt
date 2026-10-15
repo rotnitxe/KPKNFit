@@ -6,7 +6,6 @@ import com.example.kpkn.domain.auge.AugeClassifiers
 import com.example.kpkn.domain.auge.AugeFatigueEngine
 import com.example.kpkn.domain.auge.AugeUtils
 import com.example.kpkn.domain.auge.CardioRingDrainEngine
-import com.example.kpkn.domain.calculations.estimateSessionDurationMinutes
 import com.example.kpkn.domain.exercises.ExerciseMuscleResolver
 import com.example.kpkn.domain.training.VolumeCalculator
 import kotlin.math.roundToInt
@@ -700,7 +699,6 @@ internal fun computeSessionAugeComputation(
         insight
     }
 
-    val averageRest = exercises.mapNotNull { it.restTime }.ifEmpty { listOf(settings.restTimerDefaultSeconds) }.average().toInt()
     val predictedDrain = run {
         val fromPass = PredictedDrain(
             cns = pipelinedTotalCns.roundToInt().coerceIn(0, 100),
@@ -747,7 +745,7 @@ internal fun computeSessionAugeComputation(
     return SessionAugeComputation(
         drain = predictedDrain,
         setCount = totalSets,
-        durationMinutes = estimateSessionDurationMinutes(totalSets, averageRest),
+        durationMinutes = sessionEditorDurationMinutes(session),
         difficulty = computeDifficulty(
             averageRpe = if (rpeCount > 0) rpeSum / rpeCount else 0.0,
             averageRm = if (rmCount > 0) rmSum / rmCount else 0.0,
