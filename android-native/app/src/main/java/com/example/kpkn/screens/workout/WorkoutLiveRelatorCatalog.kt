@@ -1,5 +1,13 @@
 package com.example.kpkn.screens.workout
 
+import com.example.kpkn.ui.design.KpknSetFormat
+
+/**
+ * Frases del relator de la sesión en vivo (LR1g). Reglas de redacción:
+ * - español de producto, sin rótulos al principio y como mucho un «: » por frase;
+ * - una idea por frase y, con el nombre del ejercicio incluido, dentro de [RELATOR_MAX_LINE_CHARS];
+ * - series como «peso kg × reps», coma decimal, espacio inseparable antes de las unidades y tiempos con [KpknSetFormat.doseTime].
+ */
 internal object WorkoutLiveRelatorCatalog {
 
     fun copyFor(bucket: RelatorSpeechBucket, snapshot: LiveRelatorSnapshot): String =
@@ -72,38 +80,40 @@ internal object WorkoutLiveRelatorCatalog {
         val i = snapshot.setIndex + 1
         val n = snapshot.setCount.coerceAtLeast(1)
         val side = snapshot.activeSideLabel
+        // Ni las cabezas ni las colas llevan «: », así que la frase entera nunca pasa de uno.
         val heads = when {
             snapshot.isSuperset && side != null -> listOf(
-                "Superserie, ronda $i de {ex}, lado $side",
-                "Ronda $i de la superserie: {ex}, lado $side",
-                "Te toca {ex} (superserie, ronda $i, lado $side)",
+                "Superserie, {ex}, lado $side",
+                "Ronda $i, {ex}, lado $side",
+                "{ex}, lado $side, ronda $i",
             )
             snapshot.isSuperset -> listOf(
-                "Superserie, ronda $i: te toca {ex}",
-                "Ronda $i de superserie. Ahora {ex}",
-                "Sigue la superserie: ronda $i, {ex}",
+                "Superserie, ronda $i. Te toca {ex}",
+                "Ronda $i de superserie, ahora {ex}",
+                "Sigue la superserie, ronda $i, {ex}",
             )
             side != null -> listOf(
                 "Serie $i de $n de {ex}, lado $side",
-                "Vas por la $i de $n de {ex}, lado $side",
-                "{ex}, serie $i/$n, lado $side",
+                "Lado $side, serie $i de $n de {ex}",
+                "{ex}, serie $i de $n, lado $side",
             )
             else -> listOf(
                 "Serie $i de $n de {ex}",
-                "Vas por la $i de $n de {ex}",
-                "Siguiente: {ex}, serie $i/$n",
+                "Vas por la serie $i de $n en {ex}",
+                "{ex}, serie $i de $n",
             )
         }
         val session = snapshot.sessionLastSet
         val history = snapshot.historyLastSet
+        val lastLifted = snapshot.lastLiftedWeight
         val tail = when {
             snapshot.setIndex > 0 && session != null ->
-                ". En la ${session.setNumber} de hoy: ${formatRelatorSetMark(session)}."
+                ". En la ${session.setNumber} de hoy, ${formatRelatorSetMark(session)}."
             snapshot.setIndex <= 0 && history != null ->
-                ". La última vez, primera serie: ${formatRelatorSetMark(history)}."
-            snapshot.setIndex <= 0 && snapshot.lastLiftedWeight != null && snapshot.lastLiftedWeight > 0.0 ->
-                ". La última vez: ${formatRelatorLoad(snapshot.lastLiftedWeight)} kg."
-            snapshot.ultraFastApplied -> ". Vas en ultrarrápido; prioriza terminar limpio."
+                ". La última vez, ${formatRelatorSetMark(history)}."
+            snapshot.setIndex <= 0 && lastLifted != null && lastLifted > 0.0 ->
+                ". La última vez, ${formatRelatorKgText(lastLifted)}."
+            snapshot.ultraFastApplied -> ". Modo ultrarrápido activo."
             else -> "."
         }
         return heads.map { it + tail }
@@ -113,13 +123,13 @@ internal object WorkoutLiveRelatorCatalog {
         val caution = snapshot.failedSetCaution ?: return situateWorkingVariants(snapshot)
         return if (caution.sameExercise) {
             listOf(
-                "La serie ${caution.sourceSetNumber} quedó marcada como fallida. Baja un poco la carga y cuida la articulación; no persigas el número de antes.",
-                "Serie ${caution.sourceSetNumber} fallida. Entra más liviano y protege la articulación.",
+                "La serie ${caution.sourceSetNumber} quedó fallida. Baja un poco la carga y cuida la articulación.",
+                "Serie ${caution.sourceSetNumber} fallida. Entra con menos carga y protege la articulación.",
             )
         } else {
             listOf(
-                "El ejercicio anterior dejó una serie fallida. Entra suave a {ex} y no persigas el número.",
-                "Vienes de un fallo. En {ex} empieza conservador.",
+                "El ejercicio anterior dejó una serie fallida. Entra suave a {ex}.",
+                "Vienes de un fallo. En {ex} empieza con margen.",
             )
         }
     }
@@ -135,14 +145,14 @@ internal object WorkoutLiveRelatorCatalog {
                     "Ese modo ya corre en esta sesión.",
                 )
                 RelatorAssistActionKind.CONVERT_DROPSETS -> listOf(
-                    "Eso ya está aplicado: las series que quedan ya van en dropset.",
+                    "Eso ya está aplicado. Las series que quedan ya van en dropset.",
                     "Las series que quedan ya van en dropset. Nada que cambiar.",
-                    "Dropsets ya estaban. Seguimos.",
+                    "Los dropsets ya estaban. Seguimos.",
                 )
                 RelatorAssistActionKind.HALVE_SETS -> listOf(
                     "No había series suficientes para recortar a la mitad.",
                     "No alcanza para partir las series a la mitad.",
-                    "Quedan pocas series; no pude recortar.",
+                    "Quedan pocas series. No pude recortar.",
                 )
                 RelatorAssistActionKind.ADD_MOBILITY -> listOf(
                     "No pude añadir esa movilidad ahora. Revisa el ejercicio y reintenta.",
@@ -159,7 +169,7 @@ internal object WorkoutLiveRelatorCatalog {
                 )
                 RelatorAssistActionKind.MOVE_EXERCISE_END -> listOf(
                     "No pude mandar $target al final ahora.",
-                    "$target no se pudo mover al cierre.",
+                    "$target no se pudo mover al final.",
                     "Ese cambio de orden no aplicó. Seguimos aquí.",
                 )
                 RelatorAssistActionKind.OMIT_SET -> listOf(
@@ -178,13 +188,13 @@ internal object WorkoutLiveRelatorCatalog {
                 RelatorAssistActionKind.EXTEND_REST,
                 -> listOf(
                     "No pude tocar el descanso ahora.",
-                    "El timer no aceptó ese cambio.",
-                    "Descanso igual. Seguimos.",
+                    "El descanso no aceptó ese cambio.",
+                    "El descanso sigue igual. Seguimos.",
                 )
                 RelatorAssistActionKind.SKIP_REMAINING_WARMUPS -> listOf(
-                    "No pude saltar las aprox ahora.",
+                    "No pude saltar las aproximaciones ahora.",
                     "El calentamiento no se pudo recortar.",
-                    "Aprox igual. Sigue la rampa.",
+                    "Las aproximaciones siguen igual. Sigue la rampa.",
                 )
                 RelatorAssistActionKind.OPEN_REPLACE,
                 RelatorAssistActionKind.OPEN_READINESS,
@@ -201,22 +211,22 @@ internal object WorkoutLiveRelatorCatalog {
         } else {
             when (ack.kind) {
                 RelatorAssistActionKind.CONVERT_DROPSETS -> listOf(
-                    "Ok, aplico dropsets a las series que quedan para que termines antes. Ojo a las articulaciones y recupera bien para la próxima.",
-                    "Dropsets en lo que queda. Aceleramos; cuida las articulaciones.",
-                    "Quedan en dropset. Terminas antes; no fuerces la articulación.",
+                    "Aplico dropsets a lo que queda para terminar antes. Cuida las articulaciones.",
+                    "Dropsets en lo que queda. Aceleramos, pero cuida las articulaciones.",
+                    "Las series que quedan van en dropset. Terminas antes, sin forzar la articulación.",
                 )
                 RelatorAssistActionKind.PREVIEW_ULTRAFAST -> listOf(
-                    "Ok, aplico modo ultrarrápido a lo que queda: menos series y menos descanso para terminar a tiempo. Ten ojo con las articulaciones.",
-                    "Ultrarrápido activo: menos series y menos descanso. Cierra limpio.",
-                    "Modo ultrarrápido puesto. Prioriza terminar; ojo a las articulaciones.",
+                    "Aplico el modo ultrarrápido: menos series y menos descanso. Cuida las articulaciones.",
+                    "Modo ultrarrápido activo, con menos series y menos descanso.",
+                    "Modo ultrarrápido puesto. Prioriza terminar y cuida las articulaciones.",
                 )
                 RelatorAssistActionKind.HALVE_SETS -> listOf(
-                    "Ok, recorto a la mitad las series que quedan. Terminas antes; no persigas volumen extra hoy.",
-                    "Mitad de series en lo que queda. Cierra sin perseguir volumen.",
+                    "Recorto a la mitad las series que quedan. Hoy no persigas volumen extra.",
+                    "Dejo la mitad de las series que quedan. Cierra sin perseguir volumen.",
                     "Recorté las series a la mitad. Hoy no sumes extra.",
                 )
                 RelatorAssistActionKind.OMIT_SET -> listOf(
-                    "Hecho: dejo esa serie omitida y seguimos.",
+                    "Dejo esa serie omitida y seguimos.",
                     "Serie omitida. Seguimos con lo que toca.",
                     "La dejo de lado. Avanzamos.",
                 )
@@ -232,18 +242,18 @@ internal object WorkoutLiveRelatorCatalog {
                 )
                 RelatorAssistActionKind.JUMP_TO_EXERCISE -> listOf(
                     "Volvemos a $target.",
-                    "Regresamos a $target; retomamos desde aquí.",
+                    "Regresamos a $target, retomamos desde aquí.",
                     "$target otra vez. Sigue esta serie.",
                 )
                 RelatorAssistActionKind.MOVE_EXERCISE_END -> listOf(
-                    "Listo: $target queda al final. Seguimos con lo de ahora.",
-                    "$target se va al cierre. Ahora toca lo que sigue.",
-                    "Lo mandé al final. $target espera; seguimos aquí.",
+                    "Listo, $target queda al final. Seguimos con lo de ahora.",
+                    "$target se va al final. Ahora toca lo que sigue.",
+                    "Lo mandé al final. $target espera, seguimos aquí.",
                 )
                 RelatorAssistActionKind.ADD_MOBILITY -> listOf(
-                    "Añado esa movilidad a {ex}. Un momento para la articulación y seguimos.",
-                    "Movilidad añadida a {ex}. Un momento y seguimos.",
-                    "Sumé esa movilidad. {ex} queda más protegido.",
+                    "Añado esa movilidad a {ex}.",
+                    "Movilidad añadida. Un momento para la articulación y seguimos.",
+                    "Sumé esa movilidad. Así llegas mejor a {ex}.",
                 )
                 RelatorAssistActionKind.APPLY_SUGGESTED_LOAD -> listOf(
                     "Carga sugerida puesta en {ex}.",
@@ -252,50 +262,50 @@ internal object WorkoutLiveRelatorCatalog {
                 )
                 RelatorAssistActionKind.ADJUST_LOAD -> listOf(
                     "Ajusto la carga de {ex}.",
-                    "Recorto kilos en {ex} según readiness.",
+                    "Ajusto los kilos de {ex} según tu estado de hoy.",
                     "Cambio el peso de {ex}.",
                 )
                 RelatorAssistActionKind.START_REST -> listOf(
                     "Arranco el descanso.",
-                    "Timer de recobro en marcha.",
-                    "Pausa. Deja que corra el timer.",
+                    "El descanso ya está en marcha.",
+                    "Respira. Deja que corra el descanso.",
                 )
                 RelatorAssistActionKind.EXTEND_REST -> listOf(
                     "Alargo el descanso un poco.",
-                    "Más recobro. El timer suma.",
-                    "Extra de pausa puesto.",
+                    "Sumo tiempo al descanso.",
+                    "Pausa extra puesta.",
                 )
                 RelatorAssistActionKind.SKIP_REMAINING_WARMUPS -> listOf(
-                    "Salto las aprox que quedan.",
-                    "Calentamiento recortado. A trabajo.",
-                    "Aprox fuera. Entras a {ex}.",
+                    "Salto las aproximaciones que quedan.",
+                    "Calentamiento recortado. Pasamos a las series efectivas.",
+                    "Sin aproximaciones. Entras a {ex}.",
                 )
                 RelatorAssistActionKind.OPEN_REPLACE -> listOf(
-                    "Abro sustitución de {ex}.",
+                    "Abro la sustitución de {ex}.",
                     "Cambio de ejercicio a la vista.",
                     "Sustituye {ex} si el cuerpo pide otra cosa.",
                 )
                 RelatorAssistActionKind.OPEN_READINESS -> listOf(
-                    "Abro readiness.",
+                    "Abro tu estado de hoy.",
                     "Mira el veredicto de hoy.",
-                    "Readiness a la vista.",
+                    "Tu estado de hoy, a la vista.",
                 )
                 RelatorAssistActionKind.OPEN_TECHNIQUE -> listOf(
-                    "Abro técnica de {ex}.",
-                    "Cues de {ex} a la vista.",
+                    "Abro la técnica de {ex}.",
+                    "Las indicaciones de {ex}, a la vista.",
                     "Revisa el gesto de {ex}.",
                 )
                 RelatorAssistActionKind.OPEN_HISTORY -> listOf(
-                    "Abro historial de {ex}.",
+                    "Abro el historial de {ex}.",
                     "Las marcas previas de {ex}.",
                     "Historial a la vista.",
                 )
                 RelatorAssistActionKind.CAPTURE_MEDIA,
                 RelatorAssistActionKind.OPEN_ALBUM,
                 -> listOf(
-                    "Eso queda para el álbum (F3).",
-                    "Medios: el atajo queda listo para F3.",
-                    "Foto/álbum: F3 lo cablea.",
+                    "Abro tus fotos y vídeos.",
+                    "Fotos y vídeos de la sesión, a la vista.",
+                    "Ahí tienes tus fotos y vídeos.",
                 )
             }
         }
@@ -311,23 +321,24 @@ internal object WorkoutLiveRelatorCatalog {
         val joint = hint.jointCare
         return if (hint.window == RelatorTissueWindow.INTRA) {
             if (joint != null) {
+                val care = withArticle(joint)
                 listOf(
-                    "Los $muscle ya trabajaron en $source. Cuida los $joint.",
-                    "$muscle vienen de $source. Ojo a los $joint.",
-                    "Hoy $source ya cargó $muscle. En {ex} cuida los $joint.",
+                    "Ya trabajaste $muscle en $source. Cuida $care.",
+                    "$source ya cargó $muscle. En {ex} cuida $care.",
+                    "Vienes de $source, donde trabajaste $muscle. Cuida $care.",
                 )
             } else {
                 listOf(
-                    "Los $muscle ya trabajaron en $source en esta sesión.",
-                    "$muscle ya se usaron en $source. No hace falta ir al límite.",
+                    "En esta sesión ya trabajaste $muscle en $source.",
+                    "$source ya cargó $muscle. No hace falta ir al límite.",
                     "Vienes de trabajar $muscle en $source.",
                 )
             }
         } else {
             listOf(
-                "Ayer $source trabajó $muscle. Hoy no hace falta ir tan pesado.",
-                "$muscle llegan tocados de ayer ($source). Baja un punto la agresividad.",
-                "Ayer ya hubo $muscle con $source. Hoy prioriza calidad.",
+                "Ayer trabajaste $muscle en $source. Hoy no hace falta ir tan pesado.",
+                "Ayer cargaste $muscle con $source. Hoy baja un punto la intensidad.",
+                "Ayer ya hubo $muscle con $source. Hoy prioriza la calidad.",
             )
         }
     }
@@ -340,7 +351,7 @@ internal object WorkoutLiveRelatorCatalog {
         return listOf(
             "Aproximación $i de $n de {ex}.",
             "Vas en la aproximación $i de $n de {ex}.",
-            "{ex}: aproximación $i/$n.",
+            "{ex}, aproximación $i de $n.",
         )
     }
 
@@ -349,7 +360,7 @@ internal object WorkoutLiveRelatorCatalog {
     fun idleWarmupLastVariants(snapshot: LiveRelatorSnapshot): List<String> = listOf(
         "Última aproximación de {ex}. Después vienen las efectivas.",
         "Cierra las aproximaciones de {ex}. Siguen las efectivas.",
-        "Última aprox de {ex}. Ya casi las series de trabajo.",
+        "Última aproximación de {ex}. Ya casi toca trabajar.",
     )
 
     fun idleMobility(snapshot: LiveRelatorSnapshot): String = idleMobilityVariants(snapshot).first()
@@ -365,16 +376,16 @@ internal object WorkoutLiveRelatorCatalog {
         val total = snapshot.mobilityTotal
         val done = snapshot.mobilityCompleted
         val head = if (zone != null) "Movilidad de $zone antes de {ex}" else "Movilidad antes de {ex}"
-        val primary = if (total > 0) "$head: $done de $total." else "$head."
+        val primary = if (total > 0) "$head, $done de $total." else "$head."
         val second = if (zone != null) {
             "Prepara $zone. Luego {ex}."
         } else {
             "Un momento de movilidad y seguimos con {ex}."
         }
         val third = if (total > 0) {
-            "Movilidad $done/$total antes de {ex}."
+            "Movilidad $done de $total antes de {ex}."
         } else {
-            "Movilidad breve; {ex} espera."
+            "Movilidad breve, luego {ex}."
         }
         return listOf(primary, second, third)
     }
@@ -386,16 +397,17 @@ internal object WorkoutLiveRelatorCatalog {
         val n = snapshot.setCount.coerceAtLeast(1)
         val last = snapshot.sessionLastSet
         return if (last != null) {
+            val mark = formatRelatorSetMark(last)
             listOf(
-                "Descanso. Serie ${last.setNumber}: ${formatRelatorSetMark(last)} de {ex}.",
-                "Pausa. La ${last.setNumber} fue ${formatRelatorSetMark(last)} en {ex}.",
-                "Respira. {ex} última marca: ${formatRelatorSetMark(last)}.",
+                "Serie ${last.setNumber} hecha: $mark en {ex}.",
+                "La serie ${last.setNumber} fue $mark en {ex}.",
+                "Tu última marca en {ex} fue $mark.",
             )
         } else {
             listOf(
-                "Descanso. Vas en la serie $i de $n de {ex}.",
-                "Pausa entre series de {ex} ($i de $n).",
-                "Descansa; sigue {ex}, serie $i/$n.",
+                "Descansa, sigue la serie $i de $n de {ex}.",
+                "Pausa entre series de {ex}, vas por la $i de $n.",
+                "Respira y vuelve a {ex}, serie $i de $n.",
             )
         }
     }
@@ -411,24 +423,26 @@ internal object WorkoutLiveRelatorCatalog {
         warmupWeightVariants(snapshot, band).first()
 
     fun warmupWeightVariants(snapshot: LiveRelatorSnapshot, band: RelatorWeightBand): List<String> {
-        val entered = snapshot.enteredWeight?.let { formatRelatorLoad(it) }
-            ?: return idleWarmupLastVariants(snapshot)
-        val anchor = (snapshot.suggestedWeight ?: snapshot.referenceWeight)?.let { formatRelatorLoad(it) }
+        val entered = snapshot.enteredWeight ?: return idleWarmupLastVariants(snapshot)
+        val enteredKg = formatRelatorKgText(entered)
+        val anchor = snapshot.suggestedWeight ?: snapshot.referenceWeight
+        val anchorKg = anchor?.let { formatRelatorKgText(it) }
+        val gapKg = anchor?.let { formatRelatorKgText(kotlin.math.abs(entered - it)) }
         return when {
-            band == RelatorWeightBand.CONSERVATIVE && anchor != null -> listOf(
-                "Aprox a $entered kg; el plan era $anchor kg. Más liviana, no debería fatigar.",
-                "$entered kg de aprox, por debajo de $anchor. Bien para no gastar la serie.",
-                "Aprox liviana: $entered kg (plan $anchor). Reserva para las efectivas.",
+            band == RelatorWeightBand.CONSERVATIVE && anchorKg != null && gapKg != null -> listOf(
+                "$enteredKg de aproximación, $gapKg menos que el plan.",
+                "Aproximación de $enteredKg, por debajo de $anchorKg. Bien para no gastar fuerzas.",
+                "Aproximación liviana, $enteredKg frente a $anchorKg del plan. Reserva fuerzas.",
             )
-            band == RelatorWeightBand.AGGRESSIVE && anchor != null -> listOf(
-                "Aprox a $entered kg; el plan era $anchor kg. Ya parece serie efectiva.",
-                "$entered kg en aprox supera los $anchor del plan. Cuidado: ya carga de verdad.",
-                "Esa aprox ($entered kg) está alta frente a $anchor. No la trates como calentamiento.",
+            band == RelatorWeightBand.AGGRESSIVE && anchorKg != null && gapKg != null -> listOf(
+                "$enteredKg de aproximación, $gapKg más que el plan. Ya parece una serie efectiva.",
+                "Aproximación de $enteredKg, por encima de los $anchorKg del plan. Ya carga de verdad.",
+                "Esa aproximación de $enteredKg está alta frente a $anchorKg. No es calentamiento.",
             )
             else -> listOf(
-                "Aprox a $entered kg de {ex}.",
-                "{ex}: aproximación a $entered kg.",
-                "Vas a $entered kg en esta aprox.",
+                "Aproximación de $enteredKg en {ex}.",
+                "{ex}, aproximación de $enteredKg.",
+                "Vas a $enteredKg en esta aproximación.",
             )
         }
     }
@@ -597,32 +611,31 @@ internal object WorkoutLiveRelatorCatalog {
 
     private fun weightBelowVariants(snapshot: LiveRelatorSnapshot): List<String> {
         val entered = snapshot.enteredWeight ?: return situateWorkingVariants(snapshot)
-        val now = formatRelatorLoad(entered)
+        val now = formatRelatorKgText(entered)
         val session = snapshot.sessionLastSet
         if (snapshot.setIndex > 0 && session != null) {
             val last = formatRelatorSetMark(session)
-            val delta = formatRelatorDelta(entered - session.weightKg)
-            val lastKg = formatRelatorLoad(session.weightKg)
+            val change = kgMoreOrLess(entered - session.weightKg)
+            val lastKg = formatRelatorKgText(session.weightKg)
             return listOf(
-                "Ahora $now kg; en la ${session.setNumber} de hoy fue $last ($delta kg) en {ex}.",
-                "Bajas a $now kg. Hace un rato esta serie iba a $lastKg.",
-                "$now kg, más liviano que la marca de hoy. Si es a propósito, adelante.",
+                "$now: $change que en la serie ${session.setNumber} de hoy ($last).",
+                "Bajas a $now. En la serie ${session.setNumber} de hoy fueron $lastKg.",
+                "$now es menos que tu marca de hoy. Si es a propósito, adelante.",
             )
         }
-        val lastKg = snapshot.historyLastSet?.weightKg ?: snapshot.lastLiftedWeight
-        val last = lastKg?.let { formatRelatorLoad(it) }
-        val delta = lastKg?.let { formatRelatorDelta(entered - it) }
-        return if (last != null && delta != null) {
+        val lastValue = snapshot.historyLastSet?.weightKg ?: snapshot.lastLiftedWeight
+        return if (lastValue != null) {
+            val lastKg = formatRelatorKgText(lastValue)
             listOf(
-                "Ahora $now kg; la última vez en este ejercicio fue $last kg ($delta kg).",
-                "Bajas a $now kg. La última vez fueron $last kg.",
-                "$now kg, más liviano que la última ($last kg). Si es a propósito, adelante.",
+                "$now: ${kgMoreOrLess(entered - lastValue)} que la última vez.",
+                "Bajas a $now. La última vez fueron $lastKg.",
+                "$now es menos que la última vez ($lastKg). Si es a propósito, adelante.",
             )
         } else {
             listOf(
-                "Ahora $now kg, por debajo de la última en {ex}.",
-                "Bajas a $now kg en {ex}.",
-                "$now kg, más liviano que lo habitual en {ex}.",
+                "$now, por debajo de la última vez en {ex}.",
+                "Bajas a $now en {ex}.",
+                "$now es menos de lo habitual en {ex}.",
             )
         }
     }
@@ -631,21 +644,20 @@ internal object WorkoutLiveRelatorCatalog {
 
     private fun weightAboveVariants(snapshot: LiveRelatorSnapshot): List<String> {
         val entered = snapshot.enteredWeight ?: return situateWorkingVariants(snapshot)
-        val now = formatRelatorLoad(entered)
+        val now = formatRelatorKgText(entered)
         val anchor = snapshot.suggestedWeight ?: snapshot.referenceWeight
-        val plan = anchor?.let { formatRelatorLoad(it) }
-        val delta = anchor?.let { formatRelatorDelta(entered - it) }
-        return if (plan != null && delta != null) {
+        return if (anchor != null) {
+            val planKg = formatRelatorKgText(anchor)
             listOf(
-                "Ahora $now kg; lo sugerido era $plan kg ($delta kg) en {ex}.",
-                "Subes a $now kg. El ancla era $plan kg ($delta kg).",
-                "$now kg, por encima de lo sugerido ($plan). Si la técnica aguanta, ok.",
+                "$now: ${kgMoreOrLess(entered - anchor)} que lo sugerido.",
+                "Subes a $now. Lo sugerido era $planKg.",
+                "$now es más de lo sugerido ($planKg). Si la técnica aguanta, adelante.",
             )
         } else {
             listOf(
-                "Ahora $now kg, por encima de lo sugerido en {ex}.",
-                "Subes a $now kg en {ex}.",
-                "$now kg, más pesado que lo previsto en {ex}.",
+                "$now, por encima de lo sugerido en {ex}.",
+                "Subes a $now en {ex}.",
+                "$now es más de lo previsto en {ex}.",
             )
         }
     }
@@ -653,19 +665,21 @@ internal object WorkoutLiveRelatorCatalog {
     private fun repsBelow(snapshot: LiveRelatorSnapshot): String = repsBelowVariants(snapshot).first()
 
     private fun repsBelowVariants(snapshot: LiveRelatorSnapshot): List<String> {
-        val live = snapshot.enteredReps?.let { formatRelatorLoad(it) } ?: return situateWorkingVariants(snapshot)
-        val plan = snapshot.plannedReps?.let { formatRelatorLoad(it) }
+        val live = snapshot.enteredReps ?: return situateWorkingVariants(snapshot)
+        val plan = snapshot.plannedReps
         return if (plan != null) {
+            val gap = formatRelatorNumber(kotlin.math.abs(plan - live))
+            val planText = formatRelatorNumber(plan)
             listOf(
-                "Anotaste $live reps; el plan era $plan (por debajo) en {ex}.",
-                "$live reps, menos que las $plan del plan en {ex}.",
-                "Bajas a $live reps (plan $plan). Si la fatiga manda, está bien.",
+                "${repsText(live)}: $gap menos que el plan ($planText).",
+                "${repsText(live)} en {ex}, menos que el plan ($planText).",
+                "Bajas a ${repsText(live)} (plan $planText). Si la fatiga manda, está bien.",
             )
         } else {
             listOf(
-                "Anotaste $live reps en {ex}, por debajo del plan.",
-                "$live reps en {ex}, menos de lo previsto.",
-                "Reps a $live en {ex}: por debajo del objetivo.",
+                "Anotaste ${repsText(live)} en {ex}, por debajo del plan.",
+                "${repsText(live)} en {ex}, menos de lo previsto.",
+                "Bajas a ${repsText(live)} en {ex}, por debajo del objetivo.",
             )
         }
     }
@@ -673,19 +687,21 @@ internal object WorkoutLiveRelatorCatalog {
     private fun repsAbove(snapshot: LiveRelatorSnapshot): String = repsAboveVariants(snapshot).first()
 
     private fun repsAboveVariants(snapshot: LiveRelatorSnapshot): List<String> {
-        val live = snapshot.enteredReps?.let { formatRelatorLoad(it) } ?: return situateWorkingVariants(snapshot)
-        val plan = snapshot.plannedReps?.let { formatRelatorLoad(it) }
+        val live = snapshot.enteredReps ?: return situateWorkingVariants(snapshot)
+        val plan = snapshot.plannedReps
         return if (plan != null) {
+            val gap = formatRelatorNumber(kotlin.math.abs(live - plan))
+            val planText = formatRelatorNumber(plan)
             listOf(
-                "Anotaste $live reps; el plan era $plan (por encima) en {ex}.",
-                "$live reps, más que las $plan del plan en {ex}.",
-                "Subes a $live reps (plan $plan). Si siguen limpias, bien.",
+                "${repsText(live)}: $gap más que el plan ($planText).",
+                "${repsText(live)} en {ex}, más que el plan ($planText).",
+                "Subes a ${repsText(live)} (plan $planText). Si siguen limpias, bien.",
             )
         } else {
             listOf(
-                "Anotaste $live reps en {ex}, por encima del plan.",
-                "$live reps en {ex}, más de lo previsto.",
-                "Reps a $live en {ex}: por encima del objetivo.",
+                "Anotaste ${repsText(live)} en {ex}, por encima del plan.",
+                "${repsText(live)} en {ex}, más de lo previsto.",
+                "Subes a ${repsText(live)} en {ex}, por encima del objetivo.",
             )
         }
     }
@@ -693,19 +709,19 @@ internal object WorkoutLiveRelatorCatalog {
     private fun timeCopy(snapshot: LiveRelatorSnapshot): String = timeCopyVariants(snapshot).first()
 
     private fun timeCopyVariants(snapshot: LiveRelatorSnapshot): List<String> {
-        val live = snapshot.enteredReps?.let { formatRelatorLoad(it) } ?: return situateWorkingVariants(snapshot)
-        val plan = snapshot.plannedReps?.let { formatRelatorLoad(it) }
+        val live = snapshot.enteredReps?.let { timeText(it) } ?: return situateWorkingVariants(snapshot)
+        val plan = snapshot.plannedReps?.let { timeText(it) }
         return if (plan != null) {
             listOf(
-                "Tiempo ${live}s; el plan era ${plan}s en {ex}.",
-                "${live}s frente a ${plan}s de plan en {ex}.",
-                "Cronómetro a ${live}s (plan ${plan}s) en {ex}.",
+                "Tiempo de $live, el plan era $plan.",
+                "$live frente a $plan de plan en {ex}.",
+                "Cronómetro a $live (plan $plan) en {ex}.",
             )
         } else {
             listOf(
-                "Tiempo anotado: ${live}s en {ex}.",
-                "${live}s en {ex}.",
-                "Marcas ${live}s de trabajo en {ex}.",
+                "Anotaste $live de tiempo en {ex}.",
+                "$live en {ex}.",
+                "Marcas $live de trabajo en {ex}.",
             )
         }
     }
@@ -723,7 +739,7 @@ internal object WorkoutLiveRelatorCatalog {
             snapshot,
             extras = listOf(
                 "Estímulo bajo para hipertrofia ($range).",
-                "Queda holgado para $range; si buscas estímulo, aprieta un poco.",
+                "Queda holgado para $range. Si buscas estímulo, aprieta más.",
                 "Zona suave. $range suele ser el trabajo que cuenta.",
             ),
         )
@@ -736,9 +752,9 @@ internal object WorkoutLiveRelatorCatalog {
         effortWithNumbersVariants(
             snapshot,
             extras = listOf(
-                "Más cómodo que el plan: menos fatiga y menos estímulo.",
-                "Entró más fácil que lo programado. Menos costo, menos empujón.",
-                "Por debajo del esfuerzo del plan. Válido si hoy toca conservar.",
+                "Más cómodo, con menos fatiga y menos estímulo.",
+                "Más fácil que lo programado, con menos costo.",
+                "Por debajo del plan. Válido si hoy toca conservar.",
             ),
         )
 
@@ -748,7 +764,7 @@ internal object WorkoutLiveRelatorCatalog {
         effortWithNumbersVariants(
             snapshot,
             extras = listOf(
-                "Más esfuerzo que el plan: más reclutamiento y más costo.",
+                "Más esfuerzo, con más reclutamiento y más costo.",
                 "Aprietas más de lo programado. Cuenta el extra de fatiga.",
                 "Zona dura. Más estímulo, más precio para lo que queda.",
             ),
@@ -757,9 +773,9 @@ internal object WorkoutLiveRelatorCatalog {
     private fun effortFailure(snapshot: LiveRelatorSnapshot): String = effortFailureVariants(snapshot).first()
 
     private fun effortFailureVariants(snapshot: LiveRelatorSnapshot): List<String> = listOf(
-        "Marcaste fallo en {ex}. Máximo reclutamiento; cobra fatiga y articulación.",
-        "Fallo en {ex}. La serie ya no da más; no lo encadenes a lo loco.",
-        "{ex} al fallo. Buen reclutamiento, mal sitio para insistir si no era el plan.",
+        "Marcaste fallo. Máximo reclutamiento, pero cobra fatiga y articulación.",
+        "Fallo en {ex}. Recupera bien antes de insistir.",
+        "Al fallo en {ex}. No insistas si no estaba en el plan.",
     )
 
     private fun effortWithNumbers(snapshot: LiveRelatorSnapshot, extra: String): String =
@@ -767,11 +783,11 @@ internal object WorkoutLiveRelatorCatalog {
 
     private fun effortWithNumbersVariants(snapshot: LiveRelatorSnapshot, extras: List<String>): List<String> {
         val mode = if (snapshot.intensityMode == com.example.kpkn.data.models.IntensityMode.RIR) "RIR" else "RPE"
-        val live = snapshot.enteredIntensity?.let { formatRelatorLoad(it) }
+        val live = snapshot.enteredIntensity?.let { formatRelatorNumber(it) }
             ?: return situateWorkingVariants(snapshot)
-        val plan = snapshot.plannedIntensity?.let { formatRelatorLoad(it) }
-        val head = if (plan != null) "$mode $live; el plan era $plan" else "$mode $live"
-        return extras.map { extra -> "$head en {ex}. $extra" }
+        val plan = snapshot.plannedIntensity?.let { formatRelatorNumber(it) }
+        val head = if (plan != null) "$mode $live frente a $plan del plan." else "$mode $live."
+        return extras.map { extra -> "$head $extra" }
     }
 
     private fun dropsetOne(snapshot: LiveRelatorSnapshot): String = dropsetOneVariants(snapshot).first()
@@ -780,8 +796,8 @@ internal object WorkoutLiveRelatorCatalog {
         val extra = snapshot.dropSetCount - snapshot.plannedDropCount
         return listOf(
             "Añadiste $extra drop extra a esta serie de {ex}.",
-            "Un drop extra en {ex}. Más ardor local; no lo conviertas en hábito.",
-            "Drop de más en {ex}. Termina limpio y listo.",
+            "Un drop extra en {ex}. Más ardor, pero no lo hagas hábito.",
+            "Drop de más en {ex}. Termina el drop con técnica limpia.",
         )
     }
 
@@ -794,15 +810,15 @@ internal object WorkoutLiveRelatorCatalog {
             snapshot.family == RelatorFamily.HINGE
         return if (axial) {
             listOf(
-                "Añadiste $extra drops extra en {ex}. En un básico el costo de SNC y articulación sube.",
-                "$extra drops de más en {ex}. En un compuesto eso pesa más de lo que parece.",
-                "Varios drops extra en {ex}. Cuida columna y sistema; no es un aislado.",
+                "Añadiste $extra drops. En un básico sube el costo de SNC y articulación.",
+                "$extra drops de más. En un compuesto pesan más de lo que parece.",
+                "Varios drops extra. Cuida columna y sistema, no es un aislado.",
             )
         } else {
             listOf(
-                "Añadiste $extra drops extra en {ex}. Más fatiga local; recupera después.",
-                "$extra drops de más en {ex}. El músculo arde; la articulación también cuenta.",
-                "Drops extra en {ex}. Válido puntualmente; no lo encadenes todo el día.",
+                "Añadiste $extra drops extra. Más fatiga local, recupera después.",
+                "$extra drops de más. El músculo arde, pero la articulación también cuenta.",
+                "Drops extra. Válido de vez en cuando, no todo el día.",
             )
         }
     }
@@ -810,9 +826,9 @@ internal object WorkoutLiveRelatorCatalog {
     private fun dropsetFollowUp(snapshot: LiveRelatorSnapshot): String = dropsetFollowUpVariants(snapshot).first()
 
     private fun dropsetFollowUpVariants(snapshot: LiveRelatorSnapshot): List<String> = listOf(
-        "Sin descanso: baja 5 kg para esta serie de {ex}.",
-        "Dropset seguido: recorta unos 5 kg en {ex} y sigue.",
-        "No hay pausa. Quita 5 kg y cierra {ex} con forma.",
+        "Sin descanso, baja 5\u00A0kg para esta serie de {ex}.",
+        "Dropset seguido, recorta unos 5\u00A0kg en {ex} y sigue.",
+        "No hay pausa. Quita 5\u00A0kg y cierra {ex} con técnica limpia.",
     )
 
     private fun tagBestProgressVariants(snapshot: LiveRelatorSnapshot): List<String> {
@@ -820,26 +836,44 @@ internal object WorkoutLiveRelatorCatalog {
         if (rawName.isEmpty()) return situateWorkingVariants(snapshot)
         val tag = if (rawName.length > 24) rawName.take(23) + "…" else rawName
         return listOf(
-            "En \"$tag\" es donde mejor progresas, trata de hacerla más seguido.",
-            "Tu mejor curva está en \"$tag\". Priorízala cuando puedas.",
-            "\"$tag\" te está rindiendo más. Vale la pena repetirla.",
+            "En «$tag» es donde mejor progresas, trata de hacerla más seguido.",
+            "Tu mejor curva está en «$tag». Priorízala cuando puedas.",
+            "«$tag» te está rindiendo más. Vale la pena repetirla.",
         )
     }
 
     private fun prCopy(snapshot: LiveRelatorSnapshot, starred: Boolean): String {
         val hint = snapshot.prHint ?: return situateWorking(snapshot)
-        val rm = formatRelatorLoad(hint.estimatedRmKg)
+        val rm = "RM estimado de ${formatRelatorKgText(hint.estimatedRmKg)}"
+        val mark = prSetMark(snapshot)
+        // Con la serie a la vista, el récord es la serie y el RM va aparte; sin ella, el récord es el RM.
+        val lead = if (mark != null) "Récord: $mark." else "Récord: $rm."
+        val rmNote = if (mark != null) rm else null
         val pct = hint.goalPct
         return when {
             starred && pct != null && pct >= 100 ->
-                "Nuevo PR: RM ≈ $rm kg. Meta estrella completada."
+                "$lead Meta de tu ejercicio estrella completada."
             starred && pct != null ->
-                "Nuevo PR: RM ≈ $rm kg. Llevas el $pct% de la meta."
+                if (rmNote != null) {
+                    "$lead $rmNote, el ${pct}\u00A0% de tu meta."
+                } else {
+                    "$lead Llevas el ${pct}\u00A0% de la meta."
+                }
             starred ->
-                "Nuevo PR: RM ≈ $rm kg. Ejercicio estrella, sigue así."
+                if (rmNote != null) "$lead $rmNote, en tu ejercicio estrella." else "$lead Es tu ejercicio estrella."
             else ->
-                "Nuevo PR: RM ≈ $rm kg. Sigue así."
+                if (rmNote != null) "$lead $rmNote." else lead
         }
+    }
+
+    /** La serie que dio el récord: la última hecha en el descanso, o la que está en pantalla si aún se edita. */
+    private fun prSetMark(snapshot: LiveRelatorSnapshot): String? {
+        if (snapshot.phase == RelatorPhase.REST) {
+            return snapshot.sessionLastSet?.let { formatRelatorSetMark(it) }
+        }
+        val weight = snapshot.enteredWeight?.takeIf { it > 0.0 } ?: return null
+        val reps = snapshot.enteredReps?.takeIf { it > 0.0 } ?: return formatRelatorKgText(weight)
+        return "${formatRelatorKgText(weight)} × ${formatRelatorNumber(reps)}"
     }
 
     private fun discomfortCopy(snapshot: LiveRelatorSnapshot): String = discomfortVariants(snapshot).first()
@@ -847,20 +881,45 @@ internal object WorkoutLiveRelatorCatalog {
     private fun discomfortVariants(snapshot: LiveRelatorSnapshot): List<String> {
         val hint = snapshot.discomfortHint ?: return situateWorkingVariants(snapshot)
         val source = hint.sourceExerciseName?.let(::shortSourceName)
+        val label = hint.label
+        // Dentro de la frase el nombre de la molestia va en minúscula («hombro anterior»).
+        val inline = label.replaceFirstChar { it.lowercase() }
         return when {
             hint.fromThisSession && source != null -> listOf(
-                "Hoy reportaste ${hint.label} en $source. Cuida eso en {ex}.",
-                "${hint.label} hoy en $source. En {ex} no lo fuerces.",
+                "Hoy reportaste $inline en $source. Entra con cuidado.",
+                "$label hoy en $source. No lo fuerces aquí.",
             )
             hint.fromThisSession -> listOf(
-                "Hoy reportaste ${hint.label} en {ex}.",
-                "${hint.label} hoy en {ex}. Ajusta rango o carga si hace falta.",
+                "Hoy reportaste $inline en {ex}.",
+                "$label hoy en {ex}. Ajusta rango o carga.",
             )
             else -> listOf(
-                "La última vez en {ex} reportaste ${hint.label}.",
-                "La vez pasada {ex} dejó ${hint.label}. Entra con margen.",
+                "La última vez en {ex} reportaste $inline.",
+                "Tuviste molestia en $inline la vez pasada. Entra con margen.",
             )
         }
+    }
+
+    /** Los kilos de diferencia con «más» o «menos» según el signo; sin diferencia, «lo mismo» (para «… que la última vez»). */
+    private fun kgMoreOrLess(delta: Double): String = when {
+        delta > 0.05 -> "${formatRelatorKgText(delta)} más"
+        delta < -0.05 -> "${formatRelatorKgText(-delta)} menos"
+        else -> "lo mismo"
+    }
+
+    /** Las repeticiones con su unidad pegada a la cifra: «6 reps», y «1 rep» cuando es una sola. */
+    private fun repsText(value: Double): String =
+        "${formatRelatorNumber(value)}\u00A0${if (value == 1.0) "rep" else "reps"}"
+
+    /** Segundos de una serie por tiempo, como en el resto de la app: «45 s» o «3:15». */
+    private fun timeText(seconds: Double): String =
+        KpknSetFormat.doseTime(kotlin.math.round(seconds).toInt())
+
+    /** La zona con su artículo: «los codos», «la zona lumbar». */
+    private fun withArticle(zone: String): String = when (zone) {
+        "lumbar" -> "la zona lumbar"
+        "pecho" -> "el pecho"
+        else -> "los $zone"
     }
 
     private fun shortSourceName(raw: String): String {

@@ -25,7 +25,6 @@ object TechniqueObserver : RelatorObserver {
                 ),
                 cooldownSets = 3,
                 spokenConceptId = context.conceptId,
-                openers = listOf("Recuerda", "Ojo"),
             ),
         )
     }

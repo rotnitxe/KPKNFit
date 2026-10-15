@@ -59,7 +59,6 @@ object CoachObserver : RelatorObserver {
                 fingerprintBase = "COACH:${coach.key.orEmpty()}:${context.progress.completedWorkingSets}",
                 actions = actions,
                 cooldownSets = 3,
-                openers = listOf("Ojo", "Ahora"),
             ),
         )
     }

@@ -9,8 +9,8 @@ object SessionProgressObserver : RelatorObserver {
         val remaining = (total - done).coerceAtLeast(0)
         val lines = buildList {
             add("Llevas $done de $total series. Quedan $remaining.")
-            add("Progreso: $done/$total. {ex} es la pieza actual.")
-            add("Sesión al ${((done.toDouble() / total) * 100).toInt()} %. Sigue {ex}.")
+            add("Van $done de $total series. {ex} es la pieza actual.")
+            add("Sesión al ${((done.toDouble() / total) * 100).toInt()} %. Sigue con {ex}.")
             progress.minutesAhead?.let { delta ->
                 when {
                     delta > 1 -> add("Vas $delta min por delante del tiempo objetivo.")
@@ -21,11 +21,11 @@ object SessionProgressObserver : RelatorObserver {
             progress.remainingSeconds?.let { sec ->
                 if (sec in 1..900) {
                     val min = (sec / 60).coerceAtLeast(1)
-                    add("Quedan ~$min min de reloj. Estima $remaining series.")
+                    add("Quedan unos $min min de sesión. Calcula $remaining series.")
                 }
             }
             progress.nextExerciseName?.let { next ->
-                val kg = progress.nextSuggestedKg?.let { " a ${formatRelatorKg(it)} kg" }.orEmpty()
+                val kg = progress.nextSuggestedKg?.let { ", ${relatorKg(it)}" }.orEmpty()
                 add("Después de {ex} viene $next$kg.")
             }
         }
@@ -37,7 +37,6 @@ object SessionProgressObserver : RelatorObserver {
                 lines = padVariants(lines),
                 fingerprintBase = "PROGRESS:${done}",
                 cooldownSets = 2,
-                openers = listOf("Ahora", "Siguiente"),
             ),
         )
     }
