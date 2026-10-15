@@ -4,16 +4,12 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.key
 import androidx.compose.runtime.remember
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
@@ -25,23 +21,26 @@ import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.ExerciseMuscleInfo
 import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.models.SessionPart
-import com.example.kpkn.data.models.hasCardioPart
 import com.example.kpkn.data.models.cardioPart
+import com.example.kpkn.data.models.hasCardioPart
 import com.example.kpkn.data.models.isCardioPart
 import com.example.kpkn.data.models.supersetGroupRefOrLegacyId
 import com.example.kpkn.domain.exercises.resolveCatalogInfoForDisplay
-import com.example.kpkn.screens.onboarding.design.WizardColors
 import com.example.kpkn.screens.sessioneditor.components.ExerciseEditorCard
 import com.example.kpkn.screens.sessioneditor.components.GroupEditorCard
 import com.example.kpkn.screens.sessioneditor.components.SessionEditorEmptyState
 import com.example.kpkn.screens.sessioneditor.components.SupersetGroupEditorCard
+import com.example.kpkn.screens.sessioneditor.design.SessionExerciseUndoNotice
 import com.example.kpkn.screens.sessioneditor.design.SessionGroupLabel
 import com.example.kpkn.screens.sessioneditor.design.SessionModuleEdge
 import com.example.kpkn.screens.sessioneditor.design.SessionModuleSlot
+import com.example.kpkn.ui.components.icons.KpknLineIcons
 import com.example.kpkn.ui.design.KpknSecondaryPill
 import com.example.kpkn.ui.design.KpknSurface
 import com.example.kpkn.ui.design.KpknTextAction
-import com.example.kpkn.ui.components.icons.KpknLineIcons
+import com.example.kpkn.data.models.CardioType
+import com.example.kpkn.domain.cardio.CardioTypeHistory
+import com.example.kpkn.data.models.SupersetGroup
 
 /**
  * Pinta un ítem de la lista. Cada grupo, el espacio de cardio y los ejercicios sueltos son módulos (SESSION_EDITOR_R1 §3): cada ítem
@@ -78,6 +77,8 @@ internal fun SessionEditorListItem(
     val supersetGroupsById = remember(session.supersetGroups) {
         session.supersetGroups.associateBy { it.id }
     }
+    // El ejercicio cuyo borrado espera el «Deshacer» (ER1b): su fila se cambia por el aviso mientras tanto.
+    val pendingRemovalId = uiState.pendingExerciseRemoval?.exerciseId
     when (listItem) {
         is SessionListItem.PartHeader -> {
             val part = groupedParts.firstOrNull { it.id == listItem.partId } ?: return
@@ -175,6 +176,7 @@ internal fun SessionEditorListItem(
                             projectedShiftFor = projectedShiftFor,
                             viewModel = viewModel,
                             shiftYForBounds = shiftY,
+                            pendingRemovalId = pendingRemovalId,
                         )
                     }
                 }
@@ -184,7 +186,6 @@ internal fun SessionEditorListItem(
         is SessionListItem.PartExercise -> {
             val part = groupedParts.firstOrNull { it.id == listItem.partId } ?: return
             val exercise = part.exercises.firstOrNull { it.id == listItem.exerciseId } ?: return
-            val isCardioSpace = part.isCardioPart()
             val itemHeight = (dragController.frozenExerciseBounds["${part.id}|${exercise.id}"]
                 ?: dragController.exerciseBounds["${part.id}|${exercise.id}"])?.height ?: 88f
             val shiftY = if (draggingExerciseId != null) {
@@ -237,6 +238,7 @@ internal fun SessionEditorListItem(
                             projectedShiftFor = projectedShiftFor,
                             viewModel = viewModel,
                             shiftYForBounds = shiftY,
+                            pendingRemovalId = pendingRemovalId,
                         )
                     }
                 }
@@ -303,6 +305,7 @@ internal fun SessionEditorListItem(
                             viewModel = viewModel,
                             shiftYForBounds = looseSupersetShiftY,
                             collapsedPartIds = uiState.collapsedPartIds,
+                            pendingRemovalId = pendingRemovalId,
                         )
                     }
                 }
@@ -370,6 +373,7 @@ internal fun SessionEditorListItem(
                             viewModel = viewModel,
                             shiftYForBounds = partSupersetShiftY,
                             collapsedPartIds = uiState.collapsedPartIds,
+                            pendingRemovalId = pendingRemovalId,
                         )
                     }
                 }
@@ -552,13 +556,29 @@ internal fun SessionEditorListItem(
     }
 }
 
+/**
+ * Fila de un ejercicio, o su aviso «Ejercicio eliminado» mientras el borrado espera el «Deshacer» (ER1b): el aviso ocupa su sitio.
+ */
+@Composable
+private fun ExerciseRowOrUndo(
+    pending: Boolean,
+    onUndo: () -> Unit,
+    row: @Composable () -> Unit,
+) {
+    if (pending) {
+        SessionExerciseUndoNotice(onUndo = onUndo)
+    } else {
+        row()
+    }
+}
+
 @Composable
 private fun LooseExerciseItem(
     exercise: Exercise,
     index: Int,
     exercises: List<Exercise>,
     session: Session,
-    cardioHistoryByType: Map<com.example.kpkn.data.models.CardioType, com.example.kpkn.domain.cardio.CardioTypeHistory> = emptyMap(),
+    cardioHistoryByType: Map<CardioType, CardioTypeHistory> = emptyMap(),
     exerciseInfoById: Map<String, ExerciseMuscleInfo>,
     competitionMovementIds: Set<String>,
     draggingExerciseId: String?,
@@ -576,67 +596,73 @@ private fun LooseExerciseItem(
     projectedShiftFor: (String, Int, String) -> Float,
     viewModel: SessionEditorViewModel,
     shiftYForBounds: Float = 0f,
+    pendingRemovalId: String? = null,
 ) {
     val partId = "__loose__"
     val accentHex = resolveExerciseAccentHex(session, partColor = null)
     val coverAccentHex = resolveCoverAccentId(session.background)
 
     key("loose|${exercise.id}") {
-        ExerciseEditorCard(
-            exercise = exercise,
-            exerciseInfo = resolveCatalogInfoForDisplay(exercise, exerciseInfoById),
-            accentHex = accentHex,
-            coverAccentHex = coverAccentHex,
-            partId = partId,
-            isCompetitionMovement = exercise.matchesCompetitionMovement(competitionMovementIds),
-            modifier = Modifier.fillMaxWidth(),
-            enableDrag = true,
-            isDragging = draggingExerciseId == exercise.id,
-            isDropTarget = (
-                exerciseDropTargetKey == "$partId|${exercise.id}" ||
-                    (exerciseDropTargetPartId == partId && exerciseDropTargetIndex == index)
-                ) && draggingExerciseId != exercise.id,
-            isPartDropTarget = exerciseDropTargetPartId == partId && draggingExerciseId != exercise.id,
-            onBoundsChange = { rect ->
-                val key = "$partId|${exercise.id}"
-                exerciseBounds[key] = rect
-                if (dragController.isExerciseDragging) {
-                    dragController.registerExerciseBoundsDuringDrag(key, rect, shiftYForBounds)
-                }
-            },
-            onDragStart = { pointerWindow -> beginExerciseDrag(partId, exercise.id, pointerWindow) },
-            onDrag = updateExerciseDrag,
-            onDragEnd = { endExerciseDrag() },
-            onDragCancel = { cancelExerciseDrag() },
-            onUpdateExercise = { updater -> viewModel.updateExercise(null, exercise.id, updater) },
-            onDeleteExercise = { viewModel.removeExercise(null, exercise.id) },
-            onAddSet = { side -> viewModel.addSet(null, exercise.id, side) },
-            onUpdateSet = { setId, updater -> viewModel.updateSet(null, exercise.id, setId, updater) },
-            onRemoveSet = { setId -> viewModel.removeSet(null, exercise.id, setId) },
-            onMoveSet = { setId, dir -> viewModel.moveSet(null, exercise.id, setId, dir) },
-            onRemoveMobility = { mobilityId -> viewModel.removeMobilitySeries(null, exercise.id, mobilityId) },
-            onOpenQuickActions = { viewModel.openExerciseQuickActions(null, exercise.id) },
-            onOpenSuperset = {
-                val groupId = exercise.supersetGroupRefOrLegacyId()
-                if (groupId == null) viewModel.openSupersetCreator(null, listOf(exercise.id))
-                else viewModel.openSupersetManager(null, groupId)
-            },
-            onOpenMobility = { viewModel.openMobilityPicker(null, exercise.id) },
-            relationshipAnchorName = resolveRelationshipAnchorName(session, exercise),
-            onOpenRelationshipPicker = { viewModel.openRelationshipPicker(null, exercise.id) },
-            onClearRelationship = { viewModel.linkExerciseRelativeTo(null, exercise.id, null) },
-            onUpdateRelationshipType = { type -> viewModel.updateExerciseRelationshipType(null, exercise.id, type) },
-            onUpdateRelationshipNotes = { notes -> viewModel.updateExerciseRelationshipNotes(null, exercise.id, notes) },
-            autoExpand = pendingAutoExpandExerciseId == exercise.id,
-            onAutoExpandHandled = {
-                if (pendingAutoExpandExerciseId == exercise.id) onPendingAutoExpandHandled(exercise.id)
-            },
-            cardioFirst = session.cardioFirst,
-            showCardioPlacementChip = exercise.cardioDetails != null &&
-                session.cardioPart()?.exercises?.firstOrNull()?.id == exercise.id,
-            onToggleCardioPlacement = viewModel::toggleCardioPlacement,
-            cardioHistory = exercise.cardioDetails?.type?.let { cardioHistoryByType[it] },
-        )
+        ExerciseRowOrUndo(
+            pending = pendingRemovalId == exercise.id,
+            onUndo = { viewModel.undoExerciseRemoval() },
+        ) {
+            ExerciseEditorCard(
+                exercise = exercise,
+                exerciseInfo = resolveCatalogInfoForDisplay(exercise, exerciseInfoById),
+                accentHex = accentHex,
+                coverAccentHex = coverAccentHex,
+                partId = partId,
+                isCompetitionMovement = exercise.matchesCompetitionMovement(competitionMovementIds),
+                modifier = Modifier.fillMaxWidth(),
+                enableDrag = true,
+                isDragging = draggingExerciseId == exercise.id,
+                isDropTarget = (
+                    exerciseDropTargetKey == "$partId|${exercise.id}" ||
+                        (exerciseDropTargetPartId == partId && exerciseDropTargetIndex == index)
+                    ) && draggingExerciseId != exercise.id,
+                isPartDropTarget = exerciseDropTargetPartId == partId && draggingExerciseId != exercise.id,
+                onBoundsChange = { rect ->
+                    val key = "$partId|${exercise.id}"
+                    exerciseBounds[key] = rect
+                    if (dragController.isExerciseDragging) {
+                        dragController.registerExerciseBoundsDuringDrag(key, rect, shiftYForBounds)
+                    }
+                },
+                onDragStart = { pointerWindow -> beginExerciseDrag(partId, exercise.id, pointerWindow) },
+                onDrag = updateExerciseDrag,
+                onDragEnd = { endExerciseDrag() },
+                onDragCancel = { cancelExerciseDrag() },
+                onUpdateExercise = { updater -> viewModel.updateExercise(null, exercise.id, updater) },
+                onDeleteExercise = { viewModel.requestExerciseRemoval(null, exercise.id) },
+                onAddSet = { side -> viewModel.addSet(null, exercise.id, side) },
+                onUpdateSet = { setId, updater -> viewModel.updateSet(null, exercise.id, setId, updater) },
+                onRemoveSet = { setId -> viewModel.removeSet(null, exercise.id, setId) },
+                onMoveSet = { setId, dir -> viewModel.moveSet(null, exercise.id, setId, dir) },
+                onRemoveMobility = { mobilityId -> viewModel.removeMobilitySeries(null, exercise.id, mobilityId) },
+                onOpenQuickActions = { viewModel.openExerciseQuickActions(null, exercise.id) },
+                onOpenSuperset = {
+                    val groupId = exercise.supersetGroupRefOrLegacyId()
+                    if (groupId == null) viewModel.openSupersetCreator(null, listOf(exercise.id))
+                    else viewModel.openSupersetManager(null, groupId)
+                },
+                onOpenMobility = { viewModel.openMobilityPicker(null, exercise.id) },
+                relationshipAnchorName = resolveRelationshipAnchorName(session, exercise),
+                onOpenRelationshipPicker = { viewModel.openRelationshipPicker(null, exercise.id) },
+                onClearRelationship = { viewModel.linkExerciseRelativeTo(null, exercise.id, null) },
+                onUpdateRelationshipType = { type -> viewModel.updateExerciseRelationshipType(null, exercise.id, type) },
+                onUpdateRelationshipNotes = { notes -> viewModel.updateExerciseRelationshipNotes(null, exercise.id, notes) },
+                autoExpand = pendingAutoExpandExerciseId == exercise.id,
+                onAutoExpandHandled = {
+                    if (pendingAutoExpandExerciseId == exercise.id) onPendingAutoExpandHandled(exercise.id)
+                },
+                cardioFirst = session.cardioFirst,
+                showCardioPlacementChip = exercise.cardioDetails != null &&
+                    session.cardioPart()?.exercises?.firstOrNull()?.id == exercise.id,
+                onToggleCardioPlacement = viewModel::toggleCardioPlacement,
+                cardioHistory = exercise.cardioDetails?.type?.let { cardioHistoryByType[it] },
+            )
+        }
     }
 }
 
@@ -646,7 +672,7 @@ private fun PartExerciseItem(
     part: SessionPart,
     index: Int,
     session: Session,
-    cardioHistoryByType: Map<com.example.kpkn.data.models.CardioType, com.example.kpkn.domain.cardio.CardioTypeHistory> = emptyMap(),
+    cardioHistoryByType: Map<CardioType, CardioTypeHistory> = emptyMap(),
     exerciseInfoById: Map<String, ExerciseMuscleInfo>,
     competitionMovementIds: Set<String>,
     draggingExerciseId: String?,
@@ -664,71 +690,77 @@ private fun PartExerciseItem(
     projectedShiftFor: (String, Int, String) -> Float,
     viewModel: SessionEditorViewModel,
     shiftYForBounds: Float = 0f,
+    pendingRemovalId: String? = null,
 ) {
     key("${part.id}|${exercise.id}") {
         val accentHex = resolveExerciseAccentHex(session, part.color)
         val coverAccentHex = resolveCoverAccentId(session.background)
-        ExerciseEditorCard(
-            exercise = exercise,
-            exerciseInfo = resolveCatalogInfoForDisplay(exercise, exerciseInfoById),
-            accentHex = accentHex,
-            coverAccentHex = coverAccentHex,
-            partId = part.id,
-            isCompetitionMovement = exercise.matchesCompetitionMovement(competitionMovementIds),
-            modifier = Modifier.fillMaxWidth(),
-            enableDrag = true,
-            isDragging = draggingExerciseId == exercise.id,
-            isDropTarget = (
-                exerciseDropTargetKey == "${part.id}|${exercise.id}" ||
-                    (exerciseDropTargetPartId == part.id && exerciseDropTargetIndex == index)
-                ) && draggingExerciseId != exercise.id,
-            isPartDropTarget = exerciseDropTargetPartId == part.id && draggingExerciseId != exercise.id,
-            onBoundsChange = { rect ->
-                val key = "${part.id}|${exercise.id}"
-                exerciseBounds[key] = rect
-                if (dragController.isExerciseDragging) {
-                    dragController.registerExerciseBoundsDuringDrag(key, rect, shiftYForBounds)
-                }
-            },
-            onDragStart = { pointerWindow -> beginExerciseDrag(part.id, exercise.id, pointerWindow) },
-            onDrag = updateExerciseDrag,
-            onDragEnd = { endExerciseDrag() },
-            onDragCancel = { cancelExerciseDrag() },
-            onUpdateExercise = { updater -> viewModel.updateExercise(part.id, exercise.id, updater) },
-            onDeleteExercise = { viewModel.removeExercise(part.id, exercise.id) },
-            onAddSet = { side -> viewModel.addSet(part.id, exercise.id, side) },
-            onUpdateSet = { setId, updater -> viewModel.updateSet(part.id, exercise.id, setId, updater) },
-            onRemoveSet = { setId -> viewModel.removeSet(part.id, exercise.id, setId) },
-            onMoveSet = { setId, dir -> viewModel.moveSet(part.id, exercise.id, setId, dir) },
-            onRemoveMobility = { mobilityId -> viewModel.removeMobilitySeries(part.id, exercise.id, mobilityId) },
-            onOpenQuickActions = { viewModel.openExerciseQuickActions(part.id, exercise.id) },
-            onOpenSuperset = {
-                val groupId = exercise.supersetGroupRefOrLegacyId()
-                if (groupId == null) viewModel.openSupersetCreator(part.id, listOf(exercise.id))
-                else viewModel.openSupersetManager(part.id, groupId)
-            },
-            onOpenMobility = { viewModel.openMobilityPicker(part.id, exercise.id) },
-            relationshipAnchorName = resolveRelationshipAnchorName(session, exercise),
-            onOpenRelationshipPicker = { viewModel.openRelationshipPicker(part.id, exercise.id) },
-            onClearRelationship = { viewModel.linkExerciseRelativeTo(part.id, exercise.id, null) },
-            onUpdateRelationshipType = { type -> viewModel.updateExerciseRelationshipType(part.id, exercise.id, type) },
-            onUpdateRelationshipNotes = { notes -> viewModel.updateExerciseRelationshipNotes(part.id, exercise.id, notes) },
-            autoExpand = pendingAutoExpandExerciseId == exercise.id,
-            onAutoExpandHandled = {
-                if (pendingAutoExpandExerciseId == exercise.id) onPendingAutoExpandHandled(exercise.id)
-            },
-            cardioFirst = session.cardioFirst,
-            showCardioPlacementChip = exercise.cardioDetails != null &&
-                session.cardioPart()?.exercises?.firstOrNull()?.id == exercise.id,
-            onToggleCardioPlacement = viewModel::toggleCardioPlacement,
-            cardioHistory = exercise.cardioDetails?.type?.let { cardioHistoryByType[it] },
-        )
+        ExerciseRowOrUndo(
+            pending = pendingRemovalId == exercise.id,
+            onUndo = { viewModel.undoExerciseRemoval() },
+        ) {
+            ExerciseEditorCard(
+                exercise = exercise,
+                exerciseInfo = resolveCatalogInfoForDisplay(exercise, exerciseInfoById),
+                accentHex = accentHex,
+                coverAccentHex = coverAccentHex,
+                partId = part.id,
+                isCompetitionMovement = exercise.matchesCompetitionMovement(competitionMovementIds),
+                modifier = Modifier.fillMaxWidth(),
+                enableDrag = true,
+                isDragging = draggingExerciseId == exercise.id,
+                isDropTarget = (
+                    exerciseDropTargetKey == "${part.id}|${exercise.id}" ||
+                        (exerciseDropTargetPartId == part.id && exerciseDropTargetIndex == index)
+                    ) && draggingExerciseId != exercise.id,
+                isPartDropTarget = exerciseDropTargetPartId == part.id && draggingExerciseId != exercise.id,
+                onBoundsChange = { rect ->
+                    val key = "${part.id}|${exercise.id}"
+                    exerciseBounds[key] = rect
+                    if (dragController.isExerciseDragging) {
+                        dragController.registerExerciseBoundsDuringDrag(key, rect, shiftYForBounds)
+                    }
+                },
+                onDragStart = { pointerWindow -> beginExerciseDrag(part.id, exercise.id, pointerWindow) },
+                onDrag = updateExerciseDrag,
+                onDragEnd = { endExerciseDrag() },
+                onDragCancel = { cancelExerciseDrag() },
+                onUpdateExercise = { updater -> viewModel.updateExercise(part.id, exercise.id, updater) },
+                onDeleteExercise = { viewModel.requestExerciseRemoval(part.id, exercise.id) },
+                onAddSet = { side -> viewModel.addSet(part.id, exercise.id, side) },
+                onUpdateSet = { setId, updater -> viewModel.updateSet(part.id, exercise.id, setId, updater) },
+                onRemoveSet = { setId -> viewModel.removeSet(part.id, exercise.id, setId) },
+                onMoveSet = { setId, dir -> viewModel.moveSet(part.id, exercise.id, setId, dir) },
+                onRemoveMobility = { mobilityId -> viewModel.removeMobilitySeries(part.id, exercise.id, mobilityId) },
+                onOpenQuickActions = { viewModel.openExerciseQuickActions(part.id, exercise.id) },
+                onOpenSuperset = {
+                    val groupId = exercise.supersetGroupRefOrLegacyId()
+                    if (groupId == null) viewModel.openSupersetCreator(part.id, listOf(exercise.id))
+                    else viewModel.openSupersetManager(part.id, groupId)
+                },
+                onOpenMobility = { viewModel.openMobilityPicker(part.id, exercise.id) },
+                relationshipAnchorName = resolveRelationshipAnchorName(session, exercise),
+                onOpenRelationshipPicker = { viewModel.openRelationshipPicker(part.id, exercise.id) },
+                onClearRelationship = { viewModel.linkExerciseRelativeTo(part.id, exercise.id, null) },
+                onUpdateRelationshipType = { type -> viewModel.updateExerciseRelationshipType(part.id, exercise.id, type) },
+                onUpdateRelationshipNotes = { notes -> viewModel.updateExerciseRelationshipNotes(part.id, exercise.id, notes) },
+                autoExpand = pendingAutoExpandExerciseId == exercise.id,
+                onAutoExpandHandled = {
+                    if (pendingAutoExpandExerciseId == exercise.id) onPendingAutoExpandHandled(exercise.id)
+                },
+                cardioFirst = session.cardioFirst,
+                showCardioPlacementChip = exercise.cardioDetails != null &&
+                    session.cardioPart()?.exercises?.firstOrNull()?.id == exercise.id,
+                onToggleCardioPlacement = viewModel::toggleCardioPlacement,
+                cardioHistory = exercise.cardioDetails?.type?.let { cardioHistoryByType[it] },
+            )
+        }
     }
 }
 
 @Composable
 private fun LooseSupersetItem(
-    supersetGroup: com.example.kpkn.data.models.SupersetGroup,
+    supersetGroup: SupersetGroup,
     supersetMembers: List<Exercise>,
     index: Int,
     exercises: List<Exercise>,
@@ -751,6 +783,7 @@ private fun LooseSupersetItem(
     viewModel: SessionEditorViewModel,
     shiftYForBounds: Float = 0f,
     collapsedPartIds: Set<String> = emptySet(),
+    pendingRemovalId: String? = null,
 ) {
     val partId = "__loose__"
     val accentHex = resolveExerciseAccentHex(session, partColor = null)
@@ -806,66 +839,74 @@ private fun LooseSupersetItem(
         supersetMembers.forEachIndexed { position, member ->
             val memberIndex = exercises.indexOfFirst { it.id == member.id }.takeIf { it >= 0 } ?: index
             key("loose|${member.id}") {
-                ExerciseEditorCard(
-                    exercise = member,
-                    exerciseInfo = resolveCatalogInfoForDisplay(member, exerciseInfoById),
-                    accentHex = accentHex,
-                    coverAccentHex = coverAccentHex,
-                    partId = partId,
-                    isCompetitionMovement = member.matchesCompetitionMovement(competitionMovementIds),
-                    modifier = Modifier.fillMaxWidth(),
-                    enableDrag = true,
-                    isDragging = draggingExerciseId == member.id,
-                    isDropTarget = (
-                        exerciseDropTargetKey == "$partId|${member.id}" ||
-                            (exerciseDropTargetPartId == partId && exerciseDropTargetIndex == memberIndex)
-                        ) && draggingExerciseId != member.id,
-                    isPartDropTarget = exerciseDropTargetPartId == partId && draggingExerciseId != member.id,
-                    onBoundsChange = { rect ->
-                        val key = "$partId|${member.id}"
-                        exerciseBounds[key] = rect
-                        if (dragController.isExerciseDragging) {
-                            dragController.registerExerciseBoundsDuringDrag(key, rect, shiftYForBounds)
-                        }
-                    },
-                    onDragStart = { pointerWindow ->
-                        dragController.beginExerciseDrag(
-                            partId = partId,
-                            exerciseId = member.id,
-                            pointerStartWindow = pointerWindow,
-                            session = session,
-                            collapsedPartIds = collapsedPartIds,
-                            dragScope = ExerciseDragScope.INDIVIDUAL,
-                        )
-                    },
-                    onDrag = updateExerciseDrag,
-                    onDragEnd = { endExerciseDrag() },
-                    onDragCancel = { cancelExerciseDrag() },
-                    onUpdateExercise = { updater -> viewModel.updateExercise(null, member.id, updater) },
-                    onDeleteExercise = { viewModel.removeExerciseFromSupersetGroup(supersetGroup.id, null, member.id) },
-                    onAddSet = { viewModel.addSet(null, member.id) },
-                    onUpdateSet = { setId, updater -> viewModel.updateSet(null, member.id, setId, updater) },
-                    onRemoveSet = { setId -> viewModel.removeSet(null, member.id, setId) },
-                    onMoveSet = { setId, dir -> viewModel.moveSet(null, member.id, setId, dir) },
-                    onRemoveMobility = { mobilityId -> viewModel.removeMobilitySeries(null, member.id, mobilityId) },
-                    onOpenQuickActions = { viewModel.openExerciseQuickActions(null, member.id) },
-                    onOpenSuperset = {
-                        val groupId = member.supersetGroupRefOrLegacyId()
-                        if (groupId == null) viewModel.openSupersetCreator(null, listOf(member.id))
-                        else viewModel.openSupersetManager(null, groupId)
-                    },
-                    onOpenMobility = { viewModel.openMobilityPicker(null, member.id) },
-                    relationshipAnchorName = resolveRelationshipAnchorName(session, member),
-                    onOpenRelationshipPicker = { viewModel.openRelationshipPicker(null, member.id) },
-                    onClearRelationship = { viewModel.linkExerciseRelativeTo(null, member.id, null) },
-                    onUpdateRelationshipType = { type -> viewModel.updateExerciseRelationshipType(null, member.id, type) },
-                    onUpdateRelationshipNotes = { notes -> viewModel.updateExerciseRelationshipNotes(null, member.id, notes) },
-                    autoExpand = pendingAutoExpandExerciseId == member.id,
-                    onAutoExpandHandled = {
-                        if (pendingAutoExpandExerciseId == member.id) onPendingAutoExpandHandled(member.id)
-                    },
-                    suppressIndividualRest = true,
-                )
+                ExerciseRowOrUndo(
+                    pending = pendingRemovalId == member.id,
+                    onUndo = { viewModel.undoExerciseRemoval() },
+                ) {
+                    ExerciseEditorCard(
+                        exercise = member,
+                        exerciseInfo = resolveCatalogInfoForDisplay(member, exerciseInfoById),
+                        accentHex = accentHex,
+                        coverAccentHex = coverAccentHex,
+                        partId = partId,
+                        isCompetitionMovement = member.matchesCompetitionMovement(competitionMovementIds),
+                        modifier = Modifier.fillMaxWidth(),
+                        enableDrag = true,
+                        isDragging = draggingExerciseId == member.id,
+                        isDropTarget = (
+                            exerciseDropTargetKey == "$partId|${member.id}" ||
+                                (exerciseDropTargetPartId == partId && exerciseDropTargetIndex == memberIndex)
+                            ) && draggingExerciseId != member.id,
+                        isPartDropTarget = exerciseDropTargetPartId == partId && draggingExerciseId != member.id,
+                        onBoundsChange = { rect ->
+                            val key = "$partId|${member.id}"
+                            exerciseBounds[key] = rect
+                            if (dragController.isExerciseDragging) {
+                                dragController.registerExerciseBoundsDuringDrag(key, rect, shiftYForBounds)
+                            }
+                        },
+                        onDragStart = { pointerWindow ->
+                            dragController.beginExerciseDrag(
+                                partId = partId,
+                                exerciseId = member.id,
+                                pointerStartWindow = pointerWindow,
+                                session = session,
+                                collapsedPartIds = collapsedPartIds,
+                                dragScope = ExerciseDragScope.INDIVIDUAL,
+                            )
+                        },
+                        onDrag = updateExerciseDrag,
+                        onDragEnd = { endExerciseDrag() },
+                        onDragCancel = { cancelExerciseDrag() },
+                        onUpdateExercise = { updater -> viewModel.updateExercise(null, member.id, updater) },
+                        // Deslizar un miembro lo saca de la superserie (como antes), con «Deshacer».
+                        onDeleteExercise = {
+                            viewModel.requestExerciseRemoval(null, member.id, supersetGroupId = supersetGroup.id)
+                        },
+                        onAddSet = { viewModel.addSet(null, member.id) },
+                        onUpdateSet = { setId, updater -> viewModel.updateSet(null, member.id, setId, updater) },
+                        onRemoveSet = { setId -> viewModel.removeSet(null, member.id, setId) },
+                        onMoveSet = { setId, dir -> viewModel.moveSet(null, member.id, setId, dir) },
+                        onRemoveMobility = { mobilityId -> viewModel.removeMobilitySeries(null, member.id, mobilityId) },
+                        onOpenQuickActions = { viewModel.openExerciseQuickActions(null, member.id) },
+                        onOpenSuperset = {
+                            val groupId = member.supersetGroupRefOrLegacyId()
+                            if (groupId == null) viewModel.openSupersetCreator(null, listOf(member.id))
+                            else viewModel.openSupersetManager(null, groupId)
+                        },
+                        onOpenMobility = { viewModel.openMobilityPicker(null, member.id) },
+                        relationshipAnchorName = resolveRelationshipAnchorName(session, member),
+                        onOpenRelationshipPicker = { viewModel.openRelationshipPicker(null, member.id) },
+                        onClearRelationship = { viewModel.linkExerciseRelativeTo(null, member.id, null) },
+                        onUpdateRelationshipType = { type -> viewModel.updateExerciseRelationshipType(null, member.id, type) },
+                        onUpdateRelationshipNotes = { notes -> viewModel.updateExerciseRelationshipNotes(null, member.id, notes) },
+                        autoExpand = pendingAutoExpandExerciseId == member.id,
+                        onAutoExpandHandled = {
+                            if (pendingAutoExpandExerciseId == member.id) onPendingAutoExpandHandled(member.id)
+                        },
+                        suppressIndividualRest = true,
+                    )
+                }
             }
             if (position < supersetMembers.lastIndex) SupersetMemberDivider()
         }
@@ -874,7 +915,7 @@ private fun LooseSupersetItem(
 
 @Composable
 private fun PartSupersetItem(
-    supersetGroup: com.example.kpkn.data.models.SupersetGroup,
+    supersetGroup: SupersetGroup,
     supersetMembers: List<Exercise>,
     part: SessionPart,
     index: Int,
@@ -897,6 +938,7 @@ private fun PartSupersetItem(
     viewModel: SessionEditorViewModel,
     shiftYForBounds: Float = 0f,
     collapsedPartIds: Set<String> = emptySet(),
+    pendingRemovalId: String? = null,
 ) {
     val accentHex = resolveExerciseAccentHex(session, part.color)
     val coverAccentHex = resolveCoverAccentId(session.background)
@@ -951,66 +993,73 @@ private fun PartSupersetItem(
         supersetMembers.forEachIndexed { position, member ->
             val memberIndex = part.exercises.indexOfFirst { it.id == member.id }.takeIf { it >= 0 } ?: index
             key("${part.id}|${member.id}") {
-                ExerciseEditorCard(
-                    exercise = member,
-                    exerciseInfo = resolveCatalogInfoForDisplay(member, exerciseInfoById),
-                    accentHex = accentHex,
-                    coverAccentHex = coverAccentHex,
-                    partId = part.id,
-                    isCompetitionMovement = member.matchesCompetitionMovement(competitionMovementIds),
-                    modifier = Modifier.fillMaxWidth(),
-                    enableDrag = true,
-                    isDragging = draggingExerciseId == member.id,
-                    isDropTarget = (
-                        exerciseDropTargetKey == "${part.id}|${member.id}" ||
-                            (exerciseDropTargetPartId == part.id && exerciseDropTargetIndex == memberIndex)
-                        ) && draggingExerciseId != member.id,
-                    isPartDropTarget = exerciseDropTargetPartId == part.id && draggingExerciseId != member.id,
-                    onBoundsChange = { rect ->
-                        val key = "${part.id}|${member.id}"
-                        exerciseBounds[key] = rect
-                        if (dragController.isExerciseDragging) {
-                            dragController.registerExerciseBoundsDuringDrag(key, rect, shiftYForBounds)
-                        }
-                    },
-                    onDragStart = { pointerWindow ->
-                        dragController.beginExerciseDrag(
-                            partId = part.id,
-                            exerciseId = member.id,
-                            pointerStartWindow = pointerWindow,
-                            session = session,
-                            collapsedPartIds = collapsedPartIds,
-                            dragScope = ExerciseDragScope.INDIVIDUAL,
-                        )
-                    },
-                    onDrag = updateExerciseDrag,
-                    onDragEnd = { endExerciseDrag() },
-                    onDragCancel = { cancelExerciseDrag() },
-                    onUpdateExercise = { updater -> viewModel.updateExercise(part.id, member.id, updater) },
-                    onDeleteExercise = { viewModel.removeExerciseFromSupersetGroup(supersetGroup.id, part.id, member.id) },
-                    onAddSet = { viewModel.addSet(part.id, member.id) },
-                    onUpdateSet = { setId, updater -> viewModel.updateSet(part.id, member.id, setId, updater) },
-                    onRemoveSet = { setId -> viewModel.removeSet(part.id, member.id, setId) },
-                    onMoveSet = { setId, dir -> viewModel.moveSet(part.id, member.id, setId, dir) },
-                    onRemoveMobility = { mobilityId -> viewModel.removeMobilitySeries(part.id, member.id, mobilityId) },
-                    onOpenQuickActions = { viewModel.openExerciseQuickActions(part.id, member.id) },
-                    onOpenSuperset = {
-                        val groupId = member.supersetGroupRefOrLegacyId()
-                        if (groupId == null) viewModel.openSupersetCreator(part.id, listOf(member.id))
-                        else viewModel.openSupersetManager(part.id, groupId)
-                    },
-                    onOpenMobility = { viewModel.openMobilityPicker(part.id, member.id) },
-                    relationshipAnchorName = resolveRelationshipAnchorName(session, member),
-                    onOpenRelationshipPicker = { viewModel.openRelationshipPicker(part.id, member.id) },
-                    onClearRelationship = { viewModel.linkExerciseRelativeTo(part.id, member.id, null) },
-                    onUpdateRelationshipType = { type -> viewModel.updateExerciseRelationshipType(part.id, member.id, type) },
-                    onUpdateRelationshipNotes = { notes -> viewModel.updateExerciseRelationshipNotes(part.id, member.id, notes) },
-                    autoExpand = pendingAutoExpandExerciseId == member.id,
-                    onAutoExpandHandled = {
-                        if (pendingAutoExpandExerciseId == member.id) onPendingAutoExpandHandled(member.id)
-                    },
-                    suppressIndividualRest = true,
-                )
+                ExerciseRowOrUndo(
+                    pending = pendingRemovalId == member.id,
+                    onUndo = { viewModel.undoExerciseRemoval() },
+                ) {
+                    ExerciseEditorCard(
+                        exercise = member,
+                        exerciseInfo = resolveCatalogInfoForDisplay(member, exerciseInfoById),
+                        accentHex = accentHex,
+                        coverAccentHex = coverAccentHex,
+                        partId = part.id,
+                        isCompetitionMovement = member.matchesCompetitionMovement(competitionMovementIds),
+                        modifier = Modifier.fillMaxWidth(),
+                        enableDrag = true,
+                        isDragging = draggingExerciseId == member.id,
+                        isDropTarget = (
+                            exerciseDropTargetKey == "${part.id}|${member.id}" ||
+                                (exerciseDropTargetPartId == part.id && exerciseDropTargetIndex == memberIndex)
+                            ) && draggingExerciseId != member.id,
+                        isPartDropTarget = exerciseDropTargetPartId == part.id && draggingExerciseId != member.id,
+                        onBoundsChange = { rect ->
+                            val key = "${part.id}|${member.id}"
+                            exerciseBounds[key] = rect
+                            if (dragController.isExerciseDragging) {
+                                dragController.registerExerciseBoundsDuringDrag(key, rect, shiftYForBounds)
+                            }
+                        },
+                        onDragStart = { pointerWindow ->
+                            dragController.beginExerciseDrag(
+                                partId = part.id,
+                                exerciseId = member.id,
+                                pointerStartWindow = pointerWindow,
+                                session = session,
+                                collapsedPartIds = collapsedPartIds,
+                                dragScope = ExerciseDragScope.INDIVIDUAL,
+                            )
+                        },
+                        onDrag = updateExerciseDrag,
+                        onDragEnd = { endExerciseDrag() },
+                        onDragCancel = { cancelExerciseDrag() },
+                        onUpdateExercise = { updater -> viewModel.updateExercise(part.id, member.id, updater) },
+                        onDeleteExercise = {
+                            viewModel.requestExerciseRemoval(part.id, member.id, supersetGroupId = supersetGroup.id)
+                        },
+                        onAddSet = { viewModel.addSet(part.id, member.id) },
+                        onUpdateSet = { setId, updater -> viewModel.updateSet(part.id, member.id, setId, updater) },
+                        onRemoveSet = { setId -> viewModel.removeSet(part.id, member.id, setId) },
+                        onMoveSet = { setId, dir -> viewModel.moveSet(part.id, member.id, setId, dir) },
+                        onRemoveMobility = { mobilityId -> viewModel.removeMobilitySeries(part.id, member.id, mobilityId) },
+                        onOpenQuickActions = { viewModel.openExerciseQuickActions(part.id, member.id) },
+                        onOpenSuperset = {
+                            val groupId = member.supersetGroupRefOrLegacyId()
+                            if (groupId == null) viewModel.openSupersetCreator(part.id, listOf(member.id))
+                            else viewModel.openSupersetManager(part.id, groupId)
+                        },
+                        onOpenMobility = { viewModel.openMobilityPicker(part.id, member.id) },
+                        relationshipAnchorName = resolveRelationshipAnchorName(session, member),
+                        onOpenRelationshipPicker = { viewModel.openRelationshipPicker(part.id, member.id) },
+                        onClearRelationship = { viewModel.linkExerciseRelativeTo(part.id, member.id, null) },
+                        onUpdateRelationshipType = { type -> viewModel.updateExerciseRelationshipType(part.id, member.id, type) },
+                        onUpdateRelationshipNotes = { notes -> viewModel.updateExerciseRelationshipNotes(part.id, member.id, notes) },
+                        autoExpand = pendingAutoExpandExerciseId == member.id,
+                        onAutoExpandHandled = {
+                            if (pendingAutoExpandExerciseId == member.id) onPendingAutoExpandHandled(member.id)
+                        },
+                        suppressIndividualRest = true,
+                    )
+                }
             }
             if (position < supersetMembers.lastIndex) SupersetMemberDivider()
         }
