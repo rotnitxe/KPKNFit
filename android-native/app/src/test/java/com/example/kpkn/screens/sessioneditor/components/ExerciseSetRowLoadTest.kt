@@ -8,10 +8,13 @@ import com.example.kpkn.data.protocols.LoadBasis
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
-/** ER2a: la fila cerrada de una serie enseña la carga guardada; la calculada solo aparece si la serie no tiene ninguna. */
+/**
+ * ER2a: la fila cerrada de una serie enseña la carga guardada; la calculada solo aparece si la serie no tiene ninguna. Los kilos van con
+ * espacio inseparable (U+00A0) antes de «kg», como en toda la fila.
+ */
 class ExerciseSetRowLoadTest {
 
-    /** ER2a: una serie RM con rango y RIR enseña su prescripción; la pura, como antes. */
+    /** Una serie RM con rango y RIR enseña su prescripción; la pura, como antes. */
     @Test
     fun laFilaRmConRangoYRirEnseñaSuPrescripcion() {
         val set = ExerciseSet(
@@ -24,7 +27,7 @@ class ExerciseSetRowLoadTest {
             loadBasis = LoadBasis.PERCENT_1RM,
         )
         val summary = setRowSummary(set, null, TrainingMode.RM, null, predictedWeight = 96.0, estimatedMetric = 7.0)
-        assertEquals("95 kg × 4–6 · RIR 2", summary.dose)
+        assertEquals("95 kg × 4–6 · RIR 2", summary.dose)
     }
 
     @Test
@@ -37,7 +40,7 @@ class ExerciseSetRowLoadTest {
             loadBasis = LoadBasis.PERCENT_1RM,
         )
         val summary = setRowSummary(set, null, TrainingMode.RM, null, predictedWeight = 96.0, estimatedMetric = 7.0)
-        assertEquals("95 kg × 4–6", summary.dose)
+        assertEquals("95 kg × 4–6", summary.dose)
     }
 
     @Test
@@ -51,7 +54,7 @@ class ExerciseSetRowLoadTest {
             predictedWeight = 96.0,
             estimatedMetric = 7.0,
         )
-        assertEquals("95 kg × 7", summary.dose)
+        assertEquals("95 kg × 7", summary.dose)
     }
 
     @Test
@@ -65,7 +68,7 @@ class ExerciseSetRowLoadTest {
             predictedWeight = 75.0,
             estimatedMetric = null,
         )
-        assertEquals("80 kg × 8", summary.dose)
+        assertEquals("80 kg × 8", summary.dose)
     }
 
     @Test
@@ -79,6 +82,6 @@ class ExerciseSetRowLoadTest {
             predictedWeight = 75.0,
             estimatedMetric = null,
         )
-        assertEquals("75 kg × 8", summary.dose)
+        assertEquals("75 kg × 8", summary.dose)
     }
 }
