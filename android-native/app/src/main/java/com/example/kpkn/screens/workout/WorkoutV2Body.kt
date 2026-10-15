@@ -113,6 +113,7 @@ internal fun WorkoutV2Body(
     skipExerciseLabel: String? = null,
     onSkipExercise: (() -> Unit)? = null,
     onRetryPendingCaptures: () -> Unit = {},
+    techniqueRecorderHolder: com.example.kpkn.screens.workout.technique.TechniqueRecorderHolder? = null,
 ) {
     val allUserTags by viewModel.allUserTags.collectAsStateWithLifecycle()
     val cardioGpsState by viewModel.cardioGpsState.collectAsStateWithLifecycle()
@@ -2241,6 +2242,7 @@ internal fun WorkoutV2Body(
                                         ?: uiState.lastHomologatedResultV3?.takeIf {
                                             uiState.setJustLoggedKey?.startsWith("${targetExercise.id}_$activeSetIndex") == true
                                         },
+                                    techniqueRecorderHolder = techniqueRecorderHolder,
                                         )
                                     }
                                 }

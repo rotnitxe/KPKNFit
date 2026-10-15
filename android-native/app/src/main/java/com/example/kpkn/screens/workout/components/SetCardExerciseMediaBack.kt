@@ -78,6 +78,7 @@ internal fun SetCardExerciseMediaBack(
     isPr: Boolean = false,
     mediaCapture: WorkoutMediaCaptureController? = null,
     onRetryPendingCaptures: () -> Unit = {},
+    onOpenRecorder: ((WorkoutMediaCaptureRequest) -> Unit)? = null,
 ) {
     val context = LocalContext.current
     val exerciseKey = exercise.catalogDefinitionId
@@ -101,11 +102,15 @@ internal fun SetCardExerciseMediaBack(
     val recording by (mediaCapture?.isRecording ?: idleRecording).collectAsStateWithLifecycle()
     val captureError by (mediaCapture?.captureError ?: idleError).collectAsStateWithLifecycle()
     val bindGeneration by (mediaCapture?.bindGeneration ?: idleBind).collectAsStateWithLifecycle()
-    val exerciseFiles = remember(sessionMedia, exercise.id, exerciseKey) {
+    val normalizedActiveSide = com.example.kpkn.data.media.WorkoutMediaSides.normalize(side, exercise)
+    val exerciseFiles = remember(sessionMedia, exercise.id, exerciseKey, setIndex, normalizedActiveSide) {
         sessionMedia.filter { item ->
-            item.exerciseId == exercise.id ||
+            val matchesExercise = item.exerciseId == exercise.id ||
                 item.canonicalExerciseId == exerciseKey ||
                 item.exerciseId == exerciseKey
+            val matchesSet = item.setIndex == null || item.setIndex == setIndex
+            val matchesSide = com.example.kpkn.data.media.WorkoutMediaSides.normalize(item.side, exercise) == normalizedActiveSide
+            matchesExercise && matchesSet && matchesSide
         }
     }
     var cameraReady by remember { mutableStateOf(false) }
@@ -261,11 +266,8 @@ internal fun SetCardExerciseMediaBack(
                 if (cameraReady && isSettledPage && mediaCapture != null) {
                     InCardCameraPreview(
                         imageCapture = mediaCapture.imageCapture,
-                        videoCapture = mediaCapture.videoCapture,
                         bindCamera = isSettledPage,
-                        isRecording = recording,
                         bindGeneration = bindGeneration,
-                        onBindFailed = { mediaCapture.fallbackVideoCaptureToSd() },
                         modifier = Modifier.fillMaxSize(),
                     )
                 } else {
@@ -312,9 +314,15 @@ internal fun SetCardExerciseMediaBack(
                 MediaActionChip(
                     text = if (recording) "Parar" else "Vídeo",
                     icon = { Icon(Icons.Default.Videocam, contentDescription = null, modifier = Modifier.size(14.dp)) },
-                    onClick = { toggleVideo() },
+                    onClick = {
+                        if (onOpenRecorder != null) {
+                            onOpenRecorder(captureRequest)
+                        } else {
+                            toggleVideo()
+                        }
+                    },
                     modifier = Modifier.weight(1f),
-                    enabled = cameraReady && mediaCapture != null,
+                    enabled = (cameraReady && mediaCapture != null) || onOpenRecorder != null,
                     selected = recording,
                 )
                 MediaActionChip(
@@ -390,17 +398,13 @@ private fun MediaActionChip(
 @Composable
 private fun InCardCameraPreview(
     imageCapture: ImageCapture,
-    videoCapture: VideoCapture<Recorder>,
     modifier: Modifier = Modifier,
     bindCamera: Boolean = true,
-    isRecording: Boolean = false,
     bindGeneration: Int = 0,
-    onBindFailed: () -> Unit = {},
 ) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
     var previewView by remember { mutableStateOf<PreviewView?>(null) }
-    val recordingRef = rememberUpdatedRecording(isRecording)
     AndroidView(
         modifier = modifier,
         factory = { ctx ->
@@ -415,38 +419,27 @@ private fun InCardCameraPreview(
             }
         },
     )
-    DisposableEffect(previewView, lifecycleOwner, imageCapture, videoCapture, bindCamera, bindGeneration) {
+    DisposableEffect(previewView, lifecycleOwner, imageCapture, bindCamera, bindGeneration) {
         if (!bindCamera) return@DisposableEffect onDispose { }
         val view = previewView ?: return@DisposableEffect onDispose { }
         val providerFuture = ProcessCameraProvider.getInstance(context)
         val listener = Runnable {
             val provider = runCatching { providerFuture.get() }.getOrNull() ?: return@Runnable
             val preview = Preview.Builder().build().also { it.surfaceProvider = view.surfaceProvider }
-            val bound = runCatching {
+            runCatching {
                 provider.unbindAll()
                 provider.bindToLifecycle(
                     lifecycleOwner,
                     CameraSelector.DEFAULT_BACK_CAMERA,
                     preview,
                     imageCapture,
-                    videoCapture,
                 )
-            }
-            if (bound.isFailure) {
-                onBindFailed()
             }
         }
         providerFuture.addListener(listener, ContextCompat.getMainExecutor(context))
         onDispose {
-            if (recordingRef()) return@onDispose
             runCatching { providerFuture.get().unbindAll() }
         }
     }
 }
 
-@Composable
-private fun rememberUpdatedRecording(isRecording: Boolean): () -> Boolean {
-    val latest = remember { mutableStateOf(isRecording) }
-    latest.value = isRecording
-    return { latest.value }
-}

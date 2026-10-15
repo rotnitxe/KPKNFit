@@ -16,9 +16,14 @@ import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import com.example.kpkn.data.media.WorkoutAlbumGrouping
 import com.example.kpkn.data.media.WorkoutMediaCaptureJournalEntry
+import com.example.kpkn.data.media.WorkoutMediaSides
+import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.WorkoutMedia
 import com.example.kpkn.data.models.WorkoutMediaKind
 import com.example.kpkn.data.repository.WorkoutMediaRepository
+import com.example.kpkn.data.work.AnalysisGate
+import com.example.kpkn.screens.workout.technique.CaptureMetadataRecorder
+import com.example.kpkn.screens.workout.technique.RecorderSession
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Deferred
@@ -86,6 +91,9 @@ class WorkoutMediaCaptureController(
 
     private val _isRecording = MutableStateFlow(false)
     val isRecording: StateFlow<Boolean> = _isRecording.asStateFlow()
+
+    private val _recordedDurationNanos = MutableStateFlow(0L)
+    val recordedDurationNanos: StateFlow<Long> = _recordedDurationNanos.asStateFlow()
 
     private val _captureError = MutableStateFlow<String?>(null)
     val captureError: StateFlow<String?> = _captureError.asStateFlow()
@@ -370,11 +378,21 @@ class WorkoutMediaCaptureController(
                         if (audioGranted) withAudioEnabled()
                     }
                 val pending = pendingRecording.start(ContextCompat.getMainExecutor(appContext)) { event ->
-                        if (event is VideoRecordEvent.Finalize) {
+                    when (event) {
+                        is VideoRecordEvent.Start -> {
+                            AnalysisGate.cameraBusy.value = true
+                            _recordedDurationNanos.value = 0L
+                        }
+                        is VideoRecordEvent.Status -> {
+                            _recordedDurationNanos.value = event.recordingStats.recordedDurationNanos
+                        }
+                        is VideoRecordEvent.Finalize -> {
                             activeRecording = null
                             _isRecording.value = false
                             videoStartJob = null
                             _captureError.value = null
+                            _recordedDurationNanos.value = 0L
+                            AnalysisGate.cameraBusy.value = false
                             observeDurableWrite(
                                 entry = entry,
                                 request = request,
@@ -383,12 +401,119 @@ class WorkoutMediaCaptureController(
                             )
                         }
                     }
+                }
                 activeRecording = pending
                 _isRecording.value = true
             } catch (cancelled: CancellationException) {
+                AnalysisGate.cameraBusy.value = false
                 repository.markCameraCaptureCompleted(id)
                 throw cancelled
             } catch (error: Exception) {
+                AnalysisGate.cameraBusy.value = false
+                preparedEntry?.let { repository.markCameraCaptureCompleted(it.media.id) }
+                _isRecording.value = false
+                videoStartJob = null
+                _captureError.value = "No se pudo iniciar la captura del vídeo."
+                preparedEntry?.let(repository::abandonEmptyCaptureAsync)
+            }
+        }
+    }
+
+    /**
+     * Graba técnica a pantalla completa (VT8a) con límite de duración de 180s,
+     * pausa de análisis en AnalysisGate y relectura de cifras y lado al finalizar.
+     */
+    fun startTechniqueRecording(
+        requestProvider: () -> WorkoutMediaCaptureRequest,
+        audioGranted: Boolean,
+        session: RecorderSession,
+        exercise: Exercise? = null,
+        metadataRecorder: CaptureMetadataRecorder? = null,
+        onFinalized: ((File?) -> Unit)? = null,
+    ) {
+        if (_isRecording.value) {
+            stopVideo()
+            return
+        }
+        if (videoStartJob?.isActive == true) return
+        val meta = sessionMeta()
+        val id = UUID.randomUUID().toString()
+        val createdAtMs = System.currentTimeMillis()
+        val initialRequest = requestProvider()
+        videoStartJob = scope.launch {
+            var preparedEntry: WorkoutMediaCaptureJournalEntry? = null
+            try {
+                val entry = withContext(Dispatchers.IO) {
+                    val dest = repository.prepareCameraCaptureFile(id, WorkoutMediaKind.VIDEO, createdAtMs)
+                    captureEntry(dest, WorkoutMediaKind.VIDEO, initialRequest, id, createdAtMs, meta).also {
+                        repository.beginCameraCapture(it)
+                    }
+                }
+                preparedEntry = entry
+                _captureError.value = null
+                val dest = File(entry.sourceFilePath)
+                val fileOutputOptions = FileOutputOptions.Builder(dest)
+                    .setDurationLimitMillis(180_000L)
+                    .build()
+                val pendingRecording = session.videoCapture.output
+                    .prepareRecording(appContext, fileOutputOptions)
+                    .apply {
+                        if (audioGranted) withAudioEnabled()
+                    }
+                val pending = pendingRecording.start(ContextCompat.getMainExecutor(appContext)) { event ->
+                    when (event) {
+                        is VideoRecordEvent.Start -> {
+                            AnalysisGate.cameraBusy.value = true
+                            _recordedDurationNanos.value = 0L
+                        }
+                        is VideoRecordEvent.Status -> {
+                            _recordedDurationNanos.value = event.recordingStats.recordedDurationNanos
+                        }
+                        is VideoRecordEvent.Finalize -> {
+                            activeRecording = null
+                            _isRecording.value = false
+                            videoStartJob = null
+                            _captureError.value = null
+                            _recordedDurationNanos.value = 0L
+                            AnalysisGate.cameraBusy.value = false
+
+                            val latestReq = requestProvider()
+                            val normalizedSide = WorkoutMediaSides.normalize(latestReq.side, exercise)
+                            val finalRequest = latestReq.copy(
+                                catalogDefinitionId = exercise?.catalogDefinitionId ?: latestReq.catalogDefinitionId,
+                                catalogConfigurationId = exercise?.catalogConfigurationId ?: latestReq.catalogConfigurationId,
+                                side = normalizedSide,
+                            )
+
+                            metadataRecorder?.save(dest)
+
+                            val finalEntry = captureEntry(
+                                file = dest,
+                                kind = WorkoutMediaKind.VIDEO,
+                                request = finalRequest,
+                                id = id,
+                                createdAtMs = createdAtMs,
+                                meta = meta,
+                            )
+
+                            observeDurableWrite(
+                                entry = finalEntry,
+                                request = finalRequest,
+                                work = repository.submitFinalizedVideoCapture(finalEntry, event.hasError(), event.error),
+                                nullResultMessage = "No se pudo guardar el vídeo.",
+                            )
+                            onFinalized?.invoke(if (event.hasError()) null else dest)
+                        }
+                    }
+                }
+                activeRecording = pending
+                _isRecording.value = true
+            } catch (cancelled: CancellationException) {
+                AnalysisGate.cameraBusy.value = false
+                repository.markCameraCaptureCompleted(id)
+                throw cancelled
+            } catch (error: Exception) {
+                AnalysisGate.cameraBusy.value = false
                 preparedEntry?.let { repository.markCameraCaptureCompleted(it.media.id) }
                 _isRecording.value = false
                 videoStartJob = null
@@ -399,6 +524,8 @@ class WorkoutMediaCaptureController(
     }
 
     fun stopVideo() {
+        AnalysisGate.cameraBusy.value = false
+        _recordedDurationNanos.value = 0L
         activeRecording?.stop()
         activeRecording = null
     }
