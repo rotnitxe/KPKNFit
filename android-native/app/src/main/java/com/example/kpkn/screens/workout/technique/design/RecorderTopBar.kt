@@ -33,9 +33,9 @@ fun RecorderTopBar(
     plateBadgeExpanded: Boolean,
     onTogglePlateExpanded: () -> Unit,
     onSelectPlateDiameterMm: (Int?) -> Unit,
-    onCustomPlateSelected: () -> Unit,
     onClose: () -> Unit,
     modifier: Modifier = Modifier,
+    onCustomPlateSelected: () -> Unit = {},
 ) {
     Row(
         modifier = modifier

@@ -1392,11 +1392,14 @@ fun WorkoutScreen(
     }
 
     techniqueRecorderHolder.request?.let { req ->
+        val techSettings = settings.techniqueVideo
         com.example.kpkn.screens.workout.technique.TechniqueRecorderScreen(
             request = req,
             onDismiss = { techniqueRecorderHolder.request = null },
             mediaCapture = viewModel.mediaCapture,
-            prefer60FpsSetting = true,
+            prefer60FpsSetting = techSettings.prefer60Fps,
+            maxRecordSeconds = techSettings.maxRecordSeconds,
+            defaultPlateDiameterMm = techSettings.plateDiameterMm,
         )
     }
 

@@ -2,6 +2,7 @@ package com.example.kpkn.screens.workout
 
 import android.content.Context
 import android.net.Uri
+import android.view.Surface
 import androidx.camera.core.ImageCapture
 import androidx.camera.core.ImageCaptureException
 import androidx.camera.video.FallbackStrategy
@@ -17,9 +18,11 @@ import androidx.core.content.FileProvider
 import com.example.kpkn.data.media.WorkoutAlbumGrouping
 import com.example.kpkn.data.media.WorkoutMediaCaptureJournalEntry
 import com.example.kpkn.data.media.WorkoutMediaSides
+import com.example.kpkn.data.media.technique.TechniqueSidecars
 import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.WorkoutMedia
 import com.example.kpkn.data.models.WorkoutMediaKind
+import com.example.kpkn.data.repository.CaptureOverridesFile
 import com.example.kpkn.data.repository.WorkoutMediaRepository
 import com.example.kpkn.data.work.AnalysisGate
 import com.example.kpkn.screens.workout.technique.CaptureMetadataRecorder
@@ -420,7 +423,7 @@ class WorkoutMediaCaptureController(
     }
 
     /**
-     * Graba técnica a pantalla completa (VT8a) con límite de duración de 180s,
+     * Graba técnica a pantalla completa (VT8a) con límite de duración configurable,
      * pausa de análisis en AnalysisGate y relectura de cifras y lado al finalizar.
      */
     fun startTechniqueRecording(
@@ -430,6 +433,10 @@ class WorkoutMediaCaptureController(
         exercise: Exercise? = null,
         metadataRecorder: CaptureMetadataRecorder? = null,
         onFinalized: ((File?) -> Unit)? = null,
+        targetRotation: Int = Surface.ROTATION_0,
+        maxRecordSeconds: Int = 180,
+        plateDiameterOverrideMm: Int? = null,
+        defaultPlateDiameterMm: Int = 450,
     ) {
         if (_isRecording.value) {
             stopVideo()
@@ -452,8 +459,9 @@ class WorkoutMediaCaptureController(
                 preparedEntry = entry
                 _captureError.value = null
                 val dest = File(entry.sourceFilePath)
+                val durationMs = (maxRecordSeconds.coerceAtLeast(5) * 1000L)
                 val fileOutputOptions = FileOutputOptions.Builder(dest)
-                    .setDurationLimitMillis(180_000L)
+                    .setDurationLimitMillis(durationMs)
                     .build()
                 val pendingRecording = session.videoCapture.output
                     .prepareRecording(appContext, fileOutputOptions)
@@ -485,24 +493,41 @@ class WorkoutMediaCaptureController(
                                 side = normalizedSide,
                             )
 
-                            metadataRecorder?.save(dest)
+                            scope.launch(Dispatchers.IO) {
+                                // 1. Guardar metadatos de captura (gravedad, focal y fps) en capture.json antes de entregar el vídeo
+                                metadataRecorder?.save(dest)
 
-                            val finalEntry = captureEntry(
-                                file = dest,
-                                kind = WorkoutMediaKind.VIDEO,
-                                request = finalRequest,
-                                id = id,
-                                createdAtMs = createdAtMs,
-                                meta = meta,
-                            )
+                                // 2. Si el usuario seleccionó un diámetro distinto al de los ajustes, guardarlo con CaptureOverridesFile.update
+                                if (plateDiameterOverrideMm != null && plateDiameterOverrideMm != defaultPlateDiameterMm) {
+                                    val captureFile = TechniqueSidecars.captureFile(dest)
+                                    runCatching {
+                                        CaptureOverridesFile.update(captureFile) { current ->
+                                            current.copy(plateDiameterMm = plateDiameterOverrideMm)
+                                        }
+                                    }
+                                }
 
-                            observeDurableWrite(
-                                entry = finalEntry,
-                                request = finalRequest,
-                                work = repository.submitFinalizedVideoCapture(finalEntry, event.hasError(), event.error),
-                                nullResultMessage = "No se pudo guardar el vídeo.",
-                            )
-                            onFinalized?.invoke(if (event.hasError()) null else dest)
+                                // 3. Registrar el medio finalizado en el repositorio (el pipeline arrancará después de que exista capture.json)
+                                val finalEntry = captureEntry(
+                                    file = dest,
+                                    kind = WorkoutMediaKind.VIDEO,
+                                    request = finalRequest,
+                                    id = id,
+                                    createdAtMs = createdAtMs,
+                                    meta = meta,
+                                )
+
+                                observeDurableWrite(
+                                    entry = finalEntry,
+                                    request = finalRequest,
+                                    work = repository.submitFinalizedVideoCapture(finalEntry, event.hasError(), event.error),
+                                    nullResultMessage = "No se pudo guardar el vídeo.",
+                                )
+
+                                withContext(Dispatchers.Main) {
+                                    onFinalized?.invoke(if (event.hasError()) null else dest)
+                                }
+                            }
                         }
                     }
                 }

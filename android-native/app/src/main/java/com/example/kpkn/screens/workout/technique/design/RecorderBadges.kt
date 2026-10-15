@@ -73,8 +73,8 @@ fun PlateDiameterBadge(
     expanded: Boolean,
     onToggleExpanded: () -> Unit,
     onSelectDiameterMm: (Int?) -> Unit,
-    onCustomSelected: () -> Unit,
     modifier: Modifier = Modifier,
+    onCustomSelected: () -> Unit = {},
 ) {
     val label = when (diameterMm) {
         450 -> "Disco 45 cm"
@@ -134,14 +134,6 @@ fun PlateDiameterBadge(
                     selected = diameterMm == 350,
                     onClick = {
                         onSelectDiameterMm(350)
-                        onToggleExpanded()
-                    },
-                )
-                DiameterChip(
-                    text = "Otro",
-                    selected = diameterMm != null && diameterMm !in listOf(450, 400, 350),
-                    onClick = {
-                        onCustomSelected()
                         onToggleExpanded()
                     },
                 )

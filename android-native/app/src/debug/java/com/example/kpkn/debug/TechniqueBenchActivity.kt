@@ -123,7 +123,12 @@ class TechniqueBenchActivity : ComponentActivity() {
                                         }
                                     }
                                     val statusFile = File(outDir, "recorder_status.txt")
-                                    statusFile.writeText("OK: grabacion finalizada\n")
+                                    val hasVideos = files.any { it.isFile && it.extension == "mp4" }
+                                    if (hasVideos) {
+                                        statusFile.writeText("OK: grabacion finalizada\n")
+                                    } else {
+                                        statusFile.writeText("NO_RECORDING: sin camara o grabacion no realizada\n")
+                                    }
                                 }
                             }
                             withContext(Dispatchers.Main) {
