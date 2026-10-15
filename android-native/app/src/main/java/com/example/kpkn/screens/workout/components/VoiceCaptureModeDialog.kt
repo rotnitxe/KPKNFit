@@ -1,11 +1,10 @@
 package com.example.kpkn.screens.workout.components
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -13,13 +12,10 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -28,16 +24,20 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.example.kpkn.data.models.VoiceCaptureMode
+import com.example.kpkn.screens.onboarding.design.WizardColors
 import com.example.kpkn.ui.components.KpknGlassDialog
+import com.example.kpkn.ui.design.KpknModule
+import com.example.kpkn.ui.design.KpknPrimaryPill
+import com.example.kpkn.ui.design.KpknTextAction
+import com.example.kpkn.ui.design.KpknType
 
 /**
  * Diálogo obligatorio de primera elección del modo de captura de voz.
  * La primera vez no se puede cerrar (onDismissRequest vacío): el usuario debe elegir.
+ * LR1b: lo de dentro lleva la piel nueva; las dos opciones son módulos y la elegida va en tinta.
  */
 @Composable
 fun VoiceCaptureModeDialog(
@@ -61,10 +61,8 @@ fun VoiceCaptureModeDialog(
         ) {
             Text(
                 "¿Cómo quieres entrenar hoy?",
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Black,
-                letterSpacing = 2.sp,
-                color = MaterialTheme.colorScheme.onSurface,
+                style = KpknType.dialogTitle,
+                color = WizardColors.text,
                 textAlign = TextAlign.Center,
             )
 
@@ -88,28 +86,24 @@ fun VoiceCaptureModeDialog(
 
             Spacer(Modifier.height(20.dp))
 
-            Button(
+            KpknPrimaryPill(
+                text = "Empezar",
                 onClick = { selected?.let(onChosen) },
                 enabled = selected != null,
-                shape = RoundedCornerShape(12.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.onSurface,
-                ),
-            ) {
-                Text(
-                    "Empezar",
-                    fontSize = 10.sp,
-                    fontWeight = FontWeight.Black,
-                    letterSpacing = 2.sp,
-                )
-            }
-            TextButton(onClick = onDismissRequest) {
-                Text("Ahora no", fontWeight = FontWeight.Bold)
-            }
+                modifier = Modifier.fillMaxWidth(),
+            )
+            KpknTextAction(
+                text = "Ahora no",
+                onClick = onDismissRequest,
+            )
         }
     }
 }
 
+/**
+ * Opción del modo de voz: módulo de la piel nueva y tocable. La elegida se pinta en tinta, con su punto y el teñido de tinta al 8 %;
+ * la otra, en `textMuted`.
+ */
 @Composable
 private fun VoiceModeOptionCard(
     title: String,
@@ -117,49 +111,32 @@ private fun VoiceModeOptionCard(
     selected: Boolean,
     onClick: () -> Unit,
 ) {
-    val shape = RoundedCornerShape(20.dp)
-    val borderColor = if (selected) {
-        MaterialTheme.colorScheme.primary
-    } else {
-        MaterialTheme.colorScheme.outlineVariant
-    }
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(shape)
-            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f))
-            .border(1.5.dp, borderColor, shape)
-            .clickable(onClick = onClick)
-            .padding(16.dp),
+    KpknModule(
+        modifier = Modifier.fillMaxWidth(),
+        onClick = onClick,
+        accent = if (selected) WizardColors.text else null,
+        contentPadding = PaddingValues(16.dp),
     ) {
-        Column {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Box(
-                    modifier = Modifier
-                        .size(10.dp)
-                        .clip(RoundedCornerShape(5.dp))
-                        .background(
-                            if (selected) MaterialTheme.colorScheme.primary
-                            else MaterialTheme.colorScheme.outlineVariant,
-                        ),
-                )
-                Spacer(Modifier.size(10.dp))
-                Text(
-                    title,
-                    fontSize = 13.sp,
-                    fontWeight = FontWeight.Black,
-                    color = MaterialTheme.colorScheme.onSurface,
-                )
-            }
-            Spacer(Modifier.height(8.dp))
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Box(
+                modifier = Modifier
+                    .size(10.dp)
+                    .clip(CircleShape)
+                    .background(if (selected) WizardColors.text else WizardColors.textFaint),
+            )
+            Spacer(Modifier.size(10.dp))
             Text(
-                description,
-                fontSize = 11.sp,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                lineHeight = 17.sp,
-                textAlign = TextAlign.Start,
+                title,
+                style = KpknType.bodyStrong,
+                color = if (selected) WizardColors.text else WizardColors.textMuted,
             )
         }
+        Spacer(Modifier.height(8.dp))
+        Text(
+            description,
+            style = KpknType.caption,
+            color = WizardColors.textMuted,
+            textAlign = TextAlign.Start,
+        )
     }
 }
