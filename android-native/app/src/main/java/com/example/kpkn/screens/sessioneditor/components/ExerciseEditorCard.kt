@@ -308,7 +308,7 @@ internal fun ExerciseEditorCard(
                             text = dose,
                             style = KpknType.caption.copy(fontFeatureSettings = "'tnum' 1"),
                             color = WizardColors.textMuted,
-                            maxLines = 1,
+                            maxLines = 2,
                             overflow = TextOverflow.Ellipsis,
                         )
                         if (cardio != null && cardio.hasIntervals()) {
