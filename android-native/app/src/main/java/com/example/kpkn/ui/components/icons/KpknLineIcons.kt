@@ -595,18 +595,6 @@ object KpknLineIcons {
         )
     }
 
-    /** Asa de arrastre: tres trazos iguales al final de la fila de un ejercicio. La arrastra la pulsación larga (SE9). */
-    val Grip: ImageVector by lazy {
-        icono(
-            "KpknLine.Grip",
-            listOf(
-                "M7.75 8.5h8.5",
-                "M7.75 12h8.5",
-                "M7.75 15.5h8.5",
-            ),
-        )
-    }
-
     /**
      * Construye un icono con los trazados [trazados] (cadenas SVG `d` sobre la retícula de 24). Con [relleno] se pinta
      * sólido y sin trazo; si no, en trazo de 1,75 dp con extremos y uniones redondeados.
