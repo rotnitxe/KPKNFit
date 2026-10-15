@@ -743,216 +743,6 @@ internal fun WorkoutHeaderBar(
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                     )
-                    Spacer(Modifier.height(cs(6.dp)))
-                    var openSessionTimeRequest by remember { mutableIntStateOf(0) }
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .horizontalScroll(rememberScrollState())
-                            // Orilla derecha con máscara de alfa: el chip que no cabe se funde en vez de cortarse a media palabra (LR1a).
-                            .graphicsLayer { compositingStrategy = CompositingStrategy.Offscreen }
-                            .drawWithContent {
-                                drawContent()
-                                drawRect(
-                                    brush = Brush.horizontalGradient(
-                                        colors = listOf(Color.Black, Color.Transparent),
-                                        startX = size.width - 24.dp.toPx(),
-                                        endX = size.width,
-                                    ),
-                                    blendMode = BlendMode.DstIn,
-                                )
-                            },
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(cs(6.dp)),
-                    ) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            WorkoutChronometer(
-                                startTimeMs = startTimeMs,
-                                isComplete = isComplete,
-                                sessionTimeRemainingSeconds = sessionTimeRemainingSeconds,
-                                onAdjustTimeLimit = onAdjustTimeLimit,
-                                onSetAbsoluteTimeLimit = onSetAbsoluteTimeLimit,
-                                onClearTimeLimit = onClearTimeLimit,
-                                pacingAlertMode = pacingAlertMode,
-                                onPacingAlertModeChange = onPacingAlertModeChange,
-                                currentTargetMinutes = currentTargetMinutes,
-                                sessionHasProgrammedTime = sessionHasProgrammedTime,
-                                pacingAlertMessage = pacingAlertMessage,
-                                coachPaceAlert = coachPaceAlert,
-                                onUltraFastPreview = onUltraFastPreview,
-                                ultraFastApplied = ultraFastApplied,
-                                ultraFastSavedSeconds = ultraFastSavedSeconds,
-                                onRevertUltraFast = onRevertUltraFast,
-                                openSessionTimeRequest = openSessionTimeRequest,
-                            )
-                        }
-
-                        // ── Chip de readiness por ejercicio ──
-                        if (exerciseReadiness != null) {
-                            val score = exerciseReadiness.overallScore
-                            val chipColor = when {
-                                score >= 75 -> Color(0xFF4CAF50)
-                                score >= 50 -> Color(0xFFFFC107)
-                                else -> Color(0xFFFF5252)
-                            }
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(cs(6.dp)),
-                            ) {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                modifier = Modifier
-                                    .clip(KpknShape.pill)
-                                    .background(KpknSurface.inset)
-                                    .padding(horizontal = cs(9.dp), vertical = cs(5.dp)),
-                            ) {
-                                Box(
-                                    modifier = Modifier
-                                        .size(cs(6.dp))
-                                        .clip(CircleShape)
-                                        .background(chipColor)
-                                )
-                                Spacer(Modifier.width(cs(5.dp)))
-                                Text(
-                                    text = "$score %",
-                                    style = headerChipStyle(FontWeight.SemiBold, typeScale),
-                                    color = WizardColors.text,
-                                )
-                            }
-                            val showAdapt = onAdaptClick != null && (
-                                readinessAdjustment != null ||
-                                    score < ExerciseReadinessEngine.ADJUSTMENT_THRESHOLD
-                                )
-                            if (showAdapt) {
-                                Surface(
-                                    onClick = { onAdaptClick?.invoke() },
-                                    shape = KpknShape.pill,
-                                    color = KpknSurface.inset,
-                                ) {
-                                    Text(
-                                        text = if (readinessAdjustment != null) "Adaptado" else "Adaptar",
-                                        modifier = Modifier.padding(horizontal = cs(9.dp), vertical = cs(5.dp)),
-                                        style = headerChipStyle(FontWeight.Medium, typeScale),
-                                        color = HeaderSignalRed,
-                                    )
-                                }
-                            }
-                            }
-                        }
-
-                        if (ultraFastApplied) {
-                            Surface(
-                                onClick = { openSessionTimeRequest++ },
-                                shape = KpknShape.pill,
-                                color = KpknSurface.inset,
-                            ) {
-                                Text(
-                                    "ULTRARRÁPIDO",
-                                    modifier = Modifier.padding(horizontal = cs(8.dp), vertical = cs(5.dp)),
-                                    style = headerChipStyle(FontWeight.Medium, typeScale),
-                                    color = PaceChipGreen,
-                                    maxLines = 1,
-                                )
-                            }
-                        }
-
-                        if (isSuperset) {
-                            Surface(
-                                shape = KpknShape.pill,
-                                color = KpknSurface.inset,
-                            ) {
-                                Row(
-                                    modifier = Modifier.padding(horizontal = cs(8.dp), vertical = cs(5.dp)),
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.spacedBy(cs(3.dp)),
-                                ) {
-                                    Icon(
-                                        Icons.Default.SwapHoriz,
-                                        contentDescription = null,
-                                        tint = HeaderSignalRed,
-                                        modifier = Modifier.size(cs(12.dp)),
-                                    )
-                                    Text(
-                                        "Superserie",
-                                        style = headerChipStyle(FontWeight.Medium, typeScale),
-                                        color = HeaderSignalRed,
-                                        maxLines = 1,
-                                    )
-                                }
-                            }
-                        }
-                        // Multi-tag chips (new system)
-                        activeMainTags.forEach { tag ->
-                            Surface(
-                                onClick = { onTagClick(tag.id) },
-                                color = KpknSurface.inset,
-                                shape = KpknShape.pill,
-                            ) {
-                                Row(
-                                    modifier = Modifier.padding(horizontal = cs(8.dp), vertical = cs(5.dp)),
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.spacedBy(cs(3.dp)),
-                                ) {
-                                    Text(
-                                        text = activeMainTagLabels[tag.id] ?: tag.name,
-                                        style = headerChipStyle(FontWeight.Medium, typeScale),
-                                        color = WizardColors.text,
-                                        maxLines = 1,
-                                        overflow = TextOverflow.Ellipsis,
-                                    )
-                                    Icon(
-                                        Icons.Default.ArrowDropDown,
-                                        contentDescription = "Editar",
-                                        modifier = Modifier.size(cs(12.dp)),
-                                        tint = WizardColors.textMuted,
-                                    )
-                                }
-                            }
-                        }
-                        activeSubTags.forEach { subTag ->
-                            Surface(
-                                onClick = { onRemoveSubTag(subTag.id) },
-                                color = KpknSurface.inset,
-                                shape = KpknShape.pill,
-                            ) {
-                                Row(
-                                    modifier = Modifier.padding(horizontal = cs(8.dp), vertical = cs(5.dp)),
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.spacedBy(cs(3.dp)),
-                                ) {
-                                    Text(
-                                        text = subTag.name,
-                                        style = headerChipStyle(FontWeight.Medium, typeScale),
-                                        color = WizardColors.textMuted,
-                                        maxLines = 1,
-                                    )
-                                    Icon(
-                                        Icons.Default.Close,
-                                        contentDescription = "Quitar",
-                                        modifier = Modifier.size(cs(10.dp)),
-                                        tint = WizardColors.textFaint,
-                                    )
-                                }
-                            }
-                        }
-                        if (activeMainTags.isEmpty()) {
-                            Surface(
-                                onClick = onOpenTagList,
-                                color = KpknSurface.inset,
-                                shape = KpknShape.pill,
-                            ) {
-                                Text(
-                                    text = if (hasCreatedTags) "Etiquetas" else "Sin etiquetas",
-                                    modifier = Modifier.padding(horizontal = cs(8.dp), vertical = cs(5.dp)),
-                                    style = headerChipStyle(FontWeight.Medium, typeScale),
-                                    color = WizardColors.textMuted,
-                                    maxLines = 1,
-                                )
-                            }
-                        }
-                    }
                 }
                 Row(
                     verticalAlignment = Alignment.Top,
@@ -1004,6 +794,217 @@ internal fun WorkoutHeaderBar(
                                 voiceSessionEnabled -> MaterialTheme.colorScheme.secondary
                                 else -> null
                             },
+                        )
+                    }
+                }
+            }
+            // Fila de chips a todo el ancho de la cabecera, debajo del subtítulo: los botones de icono se quedan arriba (LR1a2).
+            var openSessionTimeRequest by remember { mutableIntStateOf(0) }
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    // Máscara de alfa ANTES del desplazamiento (LR1a2): el fundido cae sobre la ventana visible. Con la máscara después,
+                    // caía sobre el contenido entero, que llega fuera de la pantalla, y el chip que no cabe se cortaba con un borde recto.
+                    .graphicsLayer { compositingStrategy = CompositingStrategy.Offscreen }
+                    .drawWithContent {
+                        drawContent()
+                        drawRect(
+                            brush = Brush.horizontalGradient(
+                                colors = listOf(Color.Black, Color.Transparent),
+                                startX = size.width - 24.dp.toPx(),
+                                endX = size.width,
+                            ),
+                            blendMode = BlendMode.DstIn,
+                        )
+                    }
+                    .horizontalScroll(rememberScrollState()),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(cs(6.dp)),
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    WorkoutChronometer(
+                        startTimeMs = startTimeMs,
+                        isComplete = isComplete,
+                        sessionTimeRemainingSeconds = sessionTimeRemainingSeconds,
+                        onAdjustTimeLimit = onAdjustTimeLimit,
+                        onSetAbsoluteTimeLimit = onSetAbsoluteTimeLimit,
+                        onClearTimeLimit = onClearTimeLimit,
+                        pacingAlertMode = pacingAlertMode,
+                        onPacingAlertModeChange = onPacingAlertModeChange,
+                        currentTargetMinutes = currentTargetMinutes,
+                        sessionHasProgrammedTime = sessionHasProgrammedTime,
+                        pacingAlertMessage = pacingAlertMessage,
+                        coachPaceAlert = coachPaceAlert,
+                        onUltraFastPreview = onUltraFastPreview,
+                        ultraFastApplied = ultraFastApplied,
+                        ultraFastSavedSeconds = ultraFastSavedSeconds,
+                        onRevertUltraFast = onRevertUltraFast,
+                        openSessionTimeRequest = openSessionTimeRequest,
+                    )
+                }
+
+                // ── Chip de readiness por ejercicio ──
+                if (exerciseReadiness != null) {
+                    val score = exerciseReadiness.overallScore
+                    val chipColor = when {
+                        score >= 75 -> Color(0xFF4CAF50)
+                        score >= 50 -> Color(0xFFFFC107)
+                        else -> Color(0xFFFF5252)
+                    }
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(cs(6.dp)),
+                    ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier
+                            .clip(KpknShape.pill)
+                            .background(KpknSurface.inset)
+                            .padding(horizontal = cs(9.dp), vertical = cs(5.dp)),
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(cs(6.dp))
+                                .clip(CircleShape)
+                                .background(chipColor)
+                        )
+                        Spacer(Modifier.width(cs(5.dp)))
+                        Text(
+                            text = "$score %",
+                            style = headerChipStyle(FontWeight.SemiBold, typeScale),
+                            color = WizardColors.text,
+                        )
+                    }
+                    val showAdapt = onAdaptClick != null && (
+                        readinessAdjustment != null ||
+                            score < ExerciseReadinessEngine.ADJUSTMENT_THRESHOLD
+                        )
+                    if (showAdapt) {
+                        Surface(
+                            onClick = { onAdaptClick?.invoke() },
+                            shape = KpknShape.pill,
+                            color = KpknSurface.inset,
+                        ) {
+                            Text(
+                                text = if (readinessAdjustment != null) "Adaptado" else "Adaptar",
+                                modifier = Modifier.padding(horizontal = cs(9.dp), vertical = cs(5.dp)),
+                                style = headerChipStyle(FontWeight.Medium, typeScale),
+                                color = HeaderSignalRed,
+                            )
+                        }
+                    }
+                    }
+                }
+
+                if (ultraFastApplied) {
+                    Surface(
+                        onClick = { openSessionTimeRequest++ },
+                        shape = KpknShape.pill,
+                        color = KpknSurface.inset,
+                    ) {
+                        Text(
+                            "ULTRARRÁPIDO",
+                            modifier = Modifier.padding(horizontal = cs(8.dp), vertical = cs(5.dp)),
+                            style = headerChipStyle(FontWeight.Medium, typeScale),
+                            color = PaceChipGreen,
+                            maxLines = 1,
+                        )
+                    }
+                }
+
+                if (isSuperset) {
+                    Surface(
+                        shape = KpknShape.pill,
+                        color = KpknSurface.inset,
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(horizontal = cs(8.dp), vertical = cs(5.dp)),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(cs(3.dp)),
+                        ) {
+                            Icon(
+                                Icons.Default.SwapHoriz,
+                                contentDescription = null,
+                                tint = HeaderSignalRed,
+                                modifier = Modifier.size(cs(12.dp)),
+                            )
+                            Text(
+                                "Superserie",
+                                style = headerChipStyle(FontWeight.Medium, typeScale),
+                                color = HeaderSignalRed,
+                                maxLines = 1,
+                            )
+                        }
+                    }
+                }
+                // Multi-tag chips (new system)
+                activeMainTags.forEach { tag ->
+                    Surface(
+                        onClick = { onTagClick(tag.id) },
+                        color = KpknSurface.inset,
+                        shape = KpknShape.pill,
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(horizontal = cs(8.dp), vertical = cs(5.dp)),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(cs(3.dp)),
+                        ) {
+                            Text(
+                                text = activeMainTagLabels[tag.id] ?: tag.name,
+                                style = headerChipStyle(FontWeight.Medium, typeScale),
+                                color = WizardColors.text,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                            )
+                            Icon(
+                                Icons.Default.ArrowDropDown,
+                                contentDescription = "Editar",
+                                modifier = Modifier.size(cs(12.dp)),
+                                tint = WizardColors.textMuted,
+                            )
+                        }
+                    }
+                }
+                activeSubTags.forEach { subTag ->
+                    Surface(
+                        onClick = { onRemoveSubTag(subTag.id) },
+                        color = KpknSurface.inset,
+                        shape = KpknShape.pill,
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(horizontal = cs(8.dp), vertical = cs(5.dp)),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(cs(3.dp)),
+                        ) {
+                            Text(
+                                text = subTag.name,
+                                style = headerChipStyle(FontWeight.Medium, typeScale),
+                                color = WizardColors.textMuted,
+                                maxLines = 1,
+                            )
+                            Icon(
+                                Icons.Default.Close,
+                                contentDescription = "Quitar",
+                                modifier = Modifier.size(cs(10.dp)),
+                                tint = WizardColors.textFaint,
+                            )
+                        }
+                    }
+                }
+                if (activeMainTags.isEmpty()) {
+                    Surface(
+                        onClick = onOpenTagList,
+                        color = KpknSurface.inset,
+                        shape = KpknShape.pill,
+                    ) {
+                        Text(
+                            text = if (hasCreatedTags) "Etiquetas" else "Sin etiquetas",
+                            modifier = Modifier.padding(horizontal = cs(8.dp), vertical = cs(5.dp)),
+                            style = headerChipStyle(FontWeight.Medium, typeScale),
+                            color = WizardColors.textMuted,
+                            maxLines = 1,
                         )
                     }
                 }
