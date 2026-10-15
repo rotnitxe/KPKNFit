@@ -631,6 +631,28 @@ object KpknLineIcons {
         )
     }
 
+    /** Cámara de fotos / vídeo (VT8a). */
+    val Camera: ImageVector by lazy {
+        icono(
+            "KpknLine.Camera",
+            listOf(
+                "M3.75 8.25a2 2 0 0 1 2-2h2.5l1.5-2h4.5l1.5 2h2.5a2 2 0 0 1 2 2v9.5a2 2 0 0 1-2 2h-12.5a2 2 0 0 1-2-2z",
+                "M12 16.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7z",
+            ),
+        )
+    }
+
+    /** Grabación / REC (VT8a). */
+    val Record: ImageVector by lazy {
+        icono(
+            "KpknLine.Record",
+            listOf(
+                CIRCULO_GRANDE,
+                "M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z",
+            ),
+        )
+    }
+
     /**
      * Construye un icono con los trazados [trazados] (cadenas SVG `d` sobre la retícula de 24). Con [relleno] se pinta
      * sólido y sin trazo; si no, en trazo de 1,75 dp con extremos y uniones redondeados.
