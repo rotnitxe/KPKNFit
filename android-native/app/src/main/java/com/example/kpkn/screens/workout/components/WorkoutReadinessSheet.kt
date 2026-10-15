@@ -5,7 +5,6 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.clickable
@@ -14,14 +13,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.ExpandLess
-import androidx.compose.material.icons.filled.ExpandMore
-import androidx.compose.material.icons.filled.Info
-import androidx.compose.material.icons.filled.Mic
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.mapSaver
@@ -30,7 +21,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithContent
-import androidx.compose.ui.draw.scale
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.BlendMode
@@ -45,13 +36,17 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.ProgressBarRangeInfo
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.progressBarRangeInfo
 import androidx.compose.ui.semantics.setProgress
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
@@ -64,7 +59,19 @@ import com.example.kpkn.data.models.ExerciseReadiness
 import com.example.kpkn.data.models.Gender
 import com.example.kpkn.data.models.LoadAdvisoryLevel
 import com.example.kpkn.data.models.MovementPatternReadiness
+import com.example.kpkn.data.models.VoiceCaptureMode
+import com.example.kpkn.screens.onboarding.design.WizardColors
 import com.example.kpkn.ui.components.KpknSheet
+import com.example.kpkn.ui.components.icons.KpknLineIcons
+import com.example.kpkn.ui.design.KpknChip
+import com.example.kpkn.ui.design.KpknIconButton
+import com.example.kpkn.ui.design.KpknModule
+import com.example.kpkn.ui.design.KpknPrimaryPill
+import com.example.kpkn.ui.design.KpknSegmentedControl
+import com.example.kpkn.ui.design.KpknSegmentedSize
+import com.example.kpkn.ui.design.KpknSwitch
+import com.example.kpkn.ui.design.KpknTextField
+import com.example.kpkn.ui.design.KpknType
 import dev.chrisbanes.haze.HazeState
 import com.example.kpkn.data.exercises.resolveExercise
 import com.example.kpkn.data.models.DiscomfortCatalogEntry
@@ -81,6 +88,7 @@ import com.example.kpkn.ui.components.rings.KpknTowerRings
 import com.example.kpkn.ui.components.rings.RingChannel
 import com.example.kpkn.ui.components.rings.TowerRingValues
 import com.example.kpkn.ui.components.rings.towerRingCenter
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
@@ -111,9 +119,9 @@ fun WorkoutReadinessSheet(
     augeSnapshot: AugeSnapshot? = null,
     initialDiscomforts: List<String> = emptyList(),
     voiceSessionEnabled: Boolean = false,
-    voiceCaptureMode: com.example.kpkn.data.models.VoiceCaptureMode = com.example.kpkn.data.models.VoiceCaptureMode.HANDS_FREE,
+    voiceCaptureMode: VoiceCaptureMode = VoiceCaptureMode.HANDS_FREE,
     onVoiceToggle: () -> Unit = {},
-    onVoiceCaptureModeChange: (com.example.kpkn.data.models.VoiceCaptureMode) -> Unit = {},
+    onVoiceCaptureModeChange: (VoiceCaptureMode) -> Unit = {},
 ) {
     if (!showReadinessSheet) return
 
@@ -209,14 +217,13 @@ fun WorkoutReadinessSheet(
                     .padding(bottom = 80.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp),
             ) {
+                // Eyebrow de KpknType en `textMuted` (LR1b): antes era el amarillo del tema.
                 Text(
-                    text = "Reporta tu estado antes de entrenar",
-                    style = MaterialTheme.typography.labelSmall,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.primary,
-                    letterSpacing = 1.5.sp,
+                    text = "Reporta tu estado antes de entrenar".uppercase(Locale.forLanguageTag("es")),
+                    style = KpknType.eyebrow,
+                    color = WizardColors.textMuted,
                     modifier = Modifier.fillMaxWidth(),
-                    textAlign = TextAlign.Center
+                    textAlign = TextAlign.Center,
                 )
 
                 Text(
@@ -225,7 +232,7 @@ fun WorkoutReadinessSheet(
                     textAlign = TextAlign.Center,
                     style = MaterialTheme.typography.headlineSmall,
                     fontWeight = FontWeight.Black,
-                    color = Color.White,
+                    color = WizardColors.text,
                 )
 
                 Spacer(Modifier.height(10.dp))
@@ -247,11 +254,18 @@ fun WorkoutReadinessSheet(
                     },
                 )
 
+                // La explicación de cada canal: el nombre en tinta y SemiBold, el resto en `body` y `textMuted` (LR1b).
                 augeSnapshot?.dashboard?.channels?.forEach { channel ->
                     Text(
-                        text = "${channel.title}: ${RecoveryBands.label(channel.band)} · ${channel.action}",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = Color.White.copy(alpha = 0.85f),
+                        text = buildAnnotatedString {
+                            withStyle(SpanStyle(color = WizardColors.text, fontWeight = FontWeight.SemiBold)) {
+                                append(channel.title)
+                            }
+                            withStyle(SpanStyle(color = WizardColors.textMuted)) {
+                                append(": ${RecoveryBands.label(channel.band)} · ${channel.action}")
+                            }
+                        },
+                        style = KpknType.body,
                     )
                 }
                 val coaching = remember(patternReadiness, exerciseReadinessMap, sessionExercises, perMuscle) {
@@ -265,14 +279,13 @@ fun WorkoutReadinessSheet(
                 coaching?.let { tip ->
                     Text(
                         text = tip.headline,
-                        style = MaterialTheme.typography.bodyMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = Color.White,
+                        style = KpknType.bodyStrong,
+                        color = WizardColors.text,
                     )
                     Text(
                         text = tip.detail,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = Color.White.copy(alpha = 0.8f),
+                        style = KpknType.body,
+                        color = WizardColors.textMuted,
                     )
                 }
                 augeSnapshot?.advisories
@@ -280,8 +293,9 @@ fun WorkoutReadinessSheet(
                     ?.let { advisory ->
                         Text(
                             text = "${advisory.title}: ${advisory.body}",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = Color(0xFFFACC15),
+                            style = KpknType.body,
+                            // El amarillo del aviso pasa al token de la energía, el único amarillo de la marca.
+                            color = RingColors[1],
                         )
                     }
 
@@ -305,7 +319,7 @@ fun WorkoutReadinessSheet(
                 )
             }
 
-            // 3. BOTÓN PRINCIPAL — FAB circular de 64 dp anclado abajo
+            // 3. BOTÓN PRINCIPAL — ✓ de 64 dp anclado abajo, con la piel del ✓ de la serie (LR1b)
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -313,7 +327,7 @@ fun WorkoutReadinessSheet(
                     .padding(bottom = 16.dp),
                 contentAlignment = Alignment.Center,
             ) {
-                FloatingActionButton(
+                ReadinessConfirmButton(
                     onClick = {
                         val editedMuscleMap = muscleAdjustments
                             .filter { (id, _) -> userEditedMuscles[id] == true }
@@ -331,17 +345,7 @@ fun WorkoutReadinessSheet(
                             editedMuscleMap,
                         )
                     },
-                    modifier = Modifier.size(64.dp),
-                    shape = CircleShape,
-                    containerColor = MaterialTheme.colorScheme.primary,
-                    contentColor = MaterialTheme.colorScheme.onPrimary,
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Check,
-                        contentDescription = "Confirmar y entrenar",
-                        modifier = Modifier.size(32.dp),
-                    )
-                }
+                )
             }
         }
     }
@@ -400,35 +404,35 @@ private fun InterlacedRingsBlock(
                 )
 
                 if (ringsSize != IntSize.Zero) {
-                selectedTarget?.let { selected ->
-                    val c = towerRingCenter(
-                        channel = selected.toRingChannel(),
-                        width = ringsSize.width.toFloat(),
-                        height = ringsSize.height.toFloat(),
-                    )
-                    val cardWidthPx = with(density) { 264.dp.toPx() }
-                    Popup(
-                        alignment = Alignment.TopStart,
-                        offset = IntOffset(
-                            (c.x - cardWidthPx / 2).toInt(),
-                            (c.y + with(density) { 14.dp.toPx() }).toInt(),
-                        ),
-                        properties = PopupProperties(focusable = true),
-                        onDismissRequest = onDismiss,
-                    ) {
-                        ReadinessAdjustCard(
-                            target = selected,
-                            neural = neural,
-                            spinal = spinal,
-                            muscleAdjustments = muscleAdjustments,
-                            onNeuralChange = onNeuralChange,
-                            onSpinalChange = onSpinalChange,
-                            onMuscleChange = onMuscleChange,
-                            onDismiss = onDismiss,
+                    selectedTarget?.let { selected ->
+                        val c = towerRingCenter(
+                            channel = selected.toRingChannel(),
+                            width = ringsSize.width.toFloat(),
+                            height = ringsSize.height.toFloat(),
                         )
+                        val cardWidthPx = with(density) { 264.dp.toPx() }
+                        Popup(
+                            alignment = Alignment.TopStart,
+                            offset = IntOffset(
+                                (c.x - cardWidthPx / 2).toInt(),
+                                (c.y + with(density) { 14.dp.toPx() }).toInt(),
+                            ),
+                            properties = PopupProperties(focusable = true),
+                            onDismissRequest = onDismiss,
+                        ) {
+                            ReadinessAdjustCard(
+                                target = selected,
+                                neural = neural,
+                                spinal = spinal,
+                                muscleAdjustments = muscleAdjustments,
+                                onNeuralChange = onNeuralChange,
+                                onSpinalChange = onSpinalChange,
+                                onMuscleChange = onMuscleChange,
+                                onDismiss = onDismiss,
+                            )
+                        }
                     }
                 }
-            }
             }
         }
 
@@ -445,8 +449,8 @@ private fun InterlacedRingsBlock(
 
         Text(
             text = "Si no te representan los rings, presiona cada uno para ajustarlo",
-            style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.75f),
+            style = KpknType.caption,
+            color = WizardColors.textMuted,
             textAlign = TextAlign.Center,
             modifier = Modifier.fillMaxWidth(),
         )
@@ -470,17 +474,14 @@ private fun ReadinessAdjustCard(
         ReadinessAdjustTarget.ENERGY -> "Energía" to RingColors[1]
         ReadinessAdjustTarget.SPINE -> "Columna" to RingColors[2]
     }
-    Surface(
+    // Popup del anillo: módulo de la piel nueva, con su filete y sin vidrio (LR1b).
+    KpknModule(
         modifier = Modifier
             .width(264.dp)
             .heightIn(max = 340.dp),
-        shape = RoundedCornerShape(16.dp),
-        color = Color(0xFF1F1F1F),
-        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.12f)),
-        shadowElevation = 14.dp,
+        contentPadding = PaddingValues(14.dp),
     ) {
         Column(
-            modifier = Modifier.padding(14.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
             Row(
@@ -495,19 +496,15 @@ private fun ReadinessAdjustCard(
                     Box(Modifier.size(10.dp).clip(CircleShape).background(color))
                     Text(
                         text = "Ajustar $title",
-                        style = MaterialTheme.typography.titleSmall,
-                        fontWeight = FontWeight.Black,
-                        color = Color.White,
+                        style = KpknType.bodyStrong,
+                        color = WizardColors.text,
                     )
                 }
-                IconButton(onClick = onDismiss, modifier = Modifier.size(28.dp)) {
-                    Icon(
-                        imageVector = Icons.Default.Close,
-                        contentDescription = "Cerrar",
-                        modifier = Modifier.size(16.dp),
-                        tint = Color.White.copy(alpha = 0.6f),
-                    )
-                }
+                KpknIconButton(
+                    icon = KpknLineIcons.Close,
+                    contentDescription = "Cerrar",
+                    onClick = onDismiss,
+                )
             }
 
             when (target) {
@@ -527,8 +524,8 @@ private fun ReadinessAdjustCard(
                     if (muscleAdjustments.isEmpty()) {
                         Text(
                             text = "No hay músculos detectados para esta sesión.",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            style = KpknType.caption,
+                            color = WizardColors.textMuted,
                         )
                     } else {
                         Column(
@@ -539,10 +536,9 @@ private fun ReadinessAdjustCard(
                             verticalArrangement = Arrangement.spacedBy(10.dp),
                         ) {
                             Text(
-                                text = "Frescura por Músculo",
-                                style = MaterialTheme.typography.titleSmall,
-                                fontWeight = FontWeight.Black,
-                                color = Color.White,
+                                text = "Frescura por Músculo".uppercase(Locale.forLanguageTag("es")),
+                                style = KpknType.eyebrow,
+                                color = WizardColors.textMuted,
                             )
                             FlowRow(
                                 modifier = Modifier.fillMaxWidth(),
@@ -576,19 +572,18 @@ private fun InterlacedRingLabel(
     color: Color,
 ) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        // Eyebrow en el color de su anillo y cifra en Syne con espacio inseparable (LR1b).
         Text(
-            text = label.uppercase(),
-            style = MaterialTheme.typography.labelSmall,
+            text = label.uppercase(Locale.forLanguageTag("es")),
+            style = KpknType.eyebrow,
             color = color,
-            fontWeight = FontWeight.Black,
-            fontSize = 11.sp,
             maxLines = 1,
         )
         Text(
-            text = "$value%",
-            style = MaterialTheme.typography.labelMedium,
-            color = Color.White.copy(alpha = 0.85f),
-            fontWeight = FontWeight.Bold,
+            text = "$value %",
+            style = KpknType.metricM,
+            color = WizardColors.text,
+            maxLines = 1,
         )
     }
 }
@@ -611,15 +606,13 @@ private fun ReadinessSliderRow(
         ) {
             Text(
                 text = title,
-                style = MaterialTheme.typography.labelMedium,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onSurface,
+                style = KpknType.bodyStrong,
+                color = WizardColors.text,
             )
             Text(
-                text = "$value%",
-                style = MaterialTheme.typography.labelMedium,
-                fontWeight = FontWeight.Black,
-                color = color,
+                text = "$value %",
+                style = KpknType.metricM,
+                color = WizardColors.text,
             )
         }
         Slider(
@@ -752,27 +745,25 @@ internal fun ReadinessRingVisual(
 @Composable
 private fun SessionVoiceReadinessCard(
     voiceSessionEnabled: Boolean,
-    captureMode: com.example.kpkn.data.models.VoiceCaptureMode,
+    captureMode: VoiceCaptureMode,
     onToggle: () -> Unit,
-    onCaptureModeChange: (com.example.kpkn.data.models.VoiceCaptureMode) -> Unit,
+    onCaptureModeChange: (VoiceCaptureMode) -> Unit,
 ) {
     var showInfo by remember { mutableStateOf(false) }
-    var modeInfo by remember { mutableStateOf<com.example.kpkn.data.models.VoiceCaptureMode?>(null) }
+    var modeInfo by remember { mutableStateOf<VoiceCaptureMode?>(null) }
     var cardHeight by remember { mutableIntStateOf(0) }
     var modeRowHeight by remember { mutableIntStateOf(0) }
     val density = LocalDensity.current
 
-    Surface(
+    // Tarjeta de voz: módulo de la piel nueva; pulsarla abre la explicación, como antes (LR1b).
+    KpknModule(
         onClick = { showInfo = true },
         modifier = Modifier
             .fillMaxWidth()
             .onSizeChanged { cardHeight = it.height },
-        shape = RoundedCornerShape(14.dp),
-        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.12f),
-        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.08f)),
+        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
     ) {
         Column(
-            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
             verticalArrangement = Arrangement.spacedBy(6.dp),
         ) {
             Row(
@@ -786,30 +777,20 @@ private fun SessionVoiceReadinessCard(
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Icon(
-                        imageVector = Icons.Default.Mic,
+                        imageVector = KpknLineIcons.Mic,
                         contentDescription = null,
-                        tint = if (voiceSessionEnabled) {
-                            MaterialTheme.colorScheme.primary
-                        } else {
-                            MaterialTheme.colorScheme.onSurfaceVariant
-                        },
-                        modifier = Modifier.size(18.dp),
+                        tint = if (voiceSessionEnabled) WizardColors.text else WizardColors.textFaint,
+                        modifier = Modifier.size(20.dp),
                     )
                     Text(
                         text = "Entrenar con Comandos de Voz",
-                        style = MaterialTheme.typography.labelMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = if (voiceSessionEnabled) {
-                            Color.White
-                        } else {
-                            MaterialTheme.colorScheme.onSurface.copy(alpha = 0.85f)
-                        },
+                        style = KpknType.bodyStrong,
+                        color = if (voiceSessionEnabled) WizardColors.text else WizardColors.textMuted,
                     )
                 }
-                Switch(
+                KpknSwitch(
                     checked = voiceSessionEnabled,
                     onCheckedChange = { onToggle() },
-                    modifier = Modifier.scale(0.8f),
                 )
             }
 
@@ -822,34 +803,24 @@ private fun SessionVoiceReadinessCard(
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
                     Text(
-                        "Modo",
-                        style = MaterialTheme.typography.labelSmall,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        text = "Modo".uppercase(Locale.forLanguageTag("es")),
+                        style = KpknType.eyebrow,
+                        color = WizardColors.textMuted,
                     )
-                    val musicSelected = captureMode == com.example.kpkn.data.models.VoiceCaptureMode.MUSIC
-                    SingleChoiceSegmentedButtonRow(Modifier.weight(1f)) {
-                        SegmentedButton(
-                            selected = !musicSelected,
-                            onClick = {
-                                if (musicSelected) {
-                                    onCaptureModeChange(com.example.kpkn.data.models.VoiceCaptureMode.HANDS_FREE)
-                                }
-                                modeInfo = com.example.kpkn.data.models.VoiceCaptureMode.HANDS_FREE
-                            },
-                            shape = SegmentedButtonDefaults.itemShape(index = 0, count = 2),
-                        ) { Text("Manos libres", fontSize = 11.sp) }
-                        SegmentedButton(
-                            selected = musicSelected,
-                            onClick = {
-                                if (!musicSelected) {
-                                    onCaptureModeChange(com.example.kpkn.data.models.VoiceCaptureMode.MUSIC)
-                                }
-                                modeInfo = com.example.kpkn.data.models.VoiceCaptureMode.MUSIC
-                            },
-                            shape = SegmentedButtonDefaults.itemShape(index = 1, count = 2),
-                        ) { Text("Música", fontSize = 11.sp) }
-                    }
+                    val musicSelected = captureMode == VoiceCaptureMode.MUSIC
+                    KpknSegmentedControl(
+                        options = listOf("Manos libres", "Música"),
+                        selectedIndex = if (musicSelected) 1 else 0,
+                        onSelect = { index ->
+                            val mode = if (index == 0) VoiceCaptureMode.HANDS_FREE else VoiceCaptureMode.MUSIC
+                            // Pulsar el segmento ya elegido no cambia el modo, pero sí abre su explicación (como antes).
+                            val alreadyChosen = (index == 1) == musicSelected
+                            if (!alreadyChosen) onCaptureModeChange(mode)
+                            modeInfo = mode
+                        },
+                        modifier = Modifier.weight(1f),
+                        size = KpknSegmentedSize.Compact,
+                    )
                 }
 
                 modeInfo?.let { mode ->
@@ -879,15 +850,11 @@ private fun SessionVoiceReadinessCard(
             properties = PopupProperties(focusable = true),
             onDismissRequest = { showInfo = false },
         ) {
-            Surface(
+            KpknModule(
                 modifier = Modifier.width(300.dp),
-                shape = RoundedCornerShape(16.dp),
-                color = Color(0xFF1F1F1F),
-                border = BorderStroke(1.dp, Color.White.copy(alpha = 0.12f)),
-                shadowElevation = 14.dp,
+                contentPadding = PaddingValues(16.dp),
             ) {
                 Column(
-                    modifier = Modifier.padding(16.dp),
                     verticalArrangement = Arrangement.spacedBy(10.dp),
                 ) {
                     Row(
@@ -895,41 +862,34 @@ private fun SessionVoiceReadinessCard(
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
                         Icon(
-                            imageVector = Icons.Default.Mic,
+                            imageVector = KpknLineIcons.Mic,
                             contentDescription = null,
-                            tint = MaterialTheme.colorScheme.primary,
+                            tint = WizardColors.text,
                             modifier = Modifier.size(18.dp),
                         )
                         Text(
                             text = "¿Cómo funciona la voz?",
-                            style = MaterialTheme.typography.titleSmall,
-                            fontWeight = FontWeight.Black,
-                            color = Color.White,
+                            style = KpknType.bodyStrong,
+                            color = WizardColors.text,
                         )
                     }
                     Text(
                         text = "Controla tu sesión hablando: registra series, " +
                             "cambia pesos y gestiona descansos con comandos de voz. " +
                             "La voz estará activa durante toda la sesión.",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        style = KpknType.body,
+                        color = WizardColors.textMuted,
                     )
                     Text(
-                        text = "Ejemplos: “2 series más”, “sube a 80 kg”, “pausa de 90 segundos”.",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f),
+                        text = "Ejemplos: “2 series más”, “sube a 80 kg”, “pausa de 90 segundos”.",
+                        style = KpknType.caption,
+                        color = WizardColors.textFaint,
                     )
-                    Button(
+                    KpknPrimaryPill(
+                        text = "Entendido",
                         onClick = { showInfo = false },
-                        modifier = Modifier.fillMaxWidth().height(40.dp),
-                        shape = RoundedCornerShape(999.dp),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.primary,
-                            contentColor = MaterialTheme.colorScheme.onPrimary,
-                        ),
-                    ) {
-                        Text("Entendido", fontWeight = FontWeight.Bold)
-                    }
+                        modifier = Modifier.fillMaxWidth(),
+                    )
                 }
             }
         }
@@ -938,30 +898,26 @@ private fun SessionVoiceReadinessCard(
 
 @Composable
 private fun VoiceModeInfoCard(
-    mode: com.example.kpkn.data.models.VoiceCaptureMode,
+    mode: VoiceCaptureMode,
     onDismiss: () -> Unit,
 ) {
     val (title, body) = when (mode) {
-        com.example.kpkn.data.models.VoiceCaptureMode.HANDS_FREE ->
+        VoiceCaptureMode.HANDS_FREE ->
             "Modo manos libres" to
                 "Registra tus series con el micrófono de tus auriculares, incluso por bluetooth, " +
                 "sin acercarte al celular. La contra: el audio suena con calidad de llamada " +
                 "y degrada la música de fondo."
-        com.example.kpkn.data.models.VoiceCaptureMode.MUSIC ->
+        VoiceCaptureMode.MUSIC ->
             "Modo música" to
                 "Usa el micrófono del celular, no el de tus auriculares: tu música se escucha " +
                 "perfecta. Solo necesitas tener el teléfono cerca (sin desbloquearlo) para " +
                 "registrar tus series por voz."
     }
-    Surface(
+    KpknModule(
         modifier = Modifier.width(300.dp),
-        shape = RoundedCornerShape(16.dp),
-        color = Color(0xFF1F1F1F),
-        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.12f)),
-        shadowElevation = 14.dp,
+        contentPadding = PaddingValues(16.dp),
     ) {
         Column(
-            modifier = Modifier.padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
             Row(
@@ -969,34 +925,27 @@ private fun VoiceModeInfoCard(
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Icon(
-                    imageVector = Icons.Default.Mic,
+                    imageVector = KpknLineIcons.Mic,
                     contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary,
+                    tint = WizardColors.text,
                     modifier = Modifier.size(18.dp),
                 )
                 Text(
                     text = title,
-                    style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.Black,
-                    color = Color.White,
+                    style = KpknType.bodyStrong,
+                    color = WizardColors.text,
                 )
             }
             Text(
                 text = body,
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                style = KpknType.body,
+                color = WizardColors.textMuted,
             )
-            Button(
+            KpknPrimaryPill(
+                text = "Entendido",
                 onClick = onDismiss,
-                modifier = Modifier.fillMaxWidth().height(40.dp),
-                shape = RoundedCornerShape(999.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.primary,
-                    contentColor = MaterialTheme.colorScheme.onPrimary,
-                ),
-            ) {
-                Text("Entendido", fontWeight = FontWeight.Bold)
-            }
+                modifier = Modifier.fillMaxWidth(),
+            )
         }
     }
 }
@@ -1029,24 +978,20 @@ fun PreWorkoutDiscomfortSelector(
         onDiscomfortsChanged(newSelection)
     }
 
-    Card(
+    // Tarjeta de molestias: módulo de la piel nueva (LR1b), con la cabecera que pliega y despliega.
+    KpknModule(
         modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.05f)),
-        shape = RoundedCornerShape(16.dp),
-        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.1f)),
     ) {
         Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(14.dp),
+            modifier = Modifier.fillMaxWidth(),
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
+                    .heightIn(min = 48.dp)
                     .clip(RoundedCornerShape(12.dp))
-                    .clickable { expanded = !expanded }
-                    .padding(vertical = 2.dp),
+                    .clickable { expanded = !expanded },
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
@@ -1056,29 +1001,28 @@ fun PreWorkoutDiscomfortSelector(
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Icon(
-                        imageVector = Icons.Default.Info,
+                        imageVector = KpknLineIcons.Info,
                         contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(20.dp)
+                        tint = WizardColors.text,
+                        modifier = Modifier.size(20.dp),
                     )
                     Column {
                         Text(
                             text = "Molestias previas al entrenamiento",
-                            style = MaterialTheme.typography.titleSmall,
-                            fontWeight = FontWeight.Bold,
-                            color = Color.White
+                            style = KpknType.bodyStrong,
+                            color = WizardColors.text,
                         )
                         Text(
                             text = if (count == 0) "Ninguna reportada" else "$count seleccionada(s)",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = Color.White.copy(alpha = 0.5f)
+                            style = KpknType.caption,
+                            color = WizardColors.textMuted,
                         )
                     }
                 }
                 Icon(
-                    imageVector = if (expanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
+                    imageVector = if (expanded) KpknLineIcons.ChevronUp else KpknLineIcons.ChevronDown,
                     contentDescription = if (expanded) "Plegar" else "Desplegar",
-                    tint = Color.White.copy(alpha = 0.6f),
+                    tint = WizardColors.textMuted,
                     modifier = Modifier.size(22.dp)
                 )
             }
@@ -1092,96 +1036,81 @@ fun PreWorkoutDiscomfortSelector(
                     modifier = Modifier.fillMaxWidth(),
                     verticalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
-
-            OutlinedTextField(
-                value = query,
-                onValueChange = { query = it },
-                modifier = Modifier.fillMaxWidth(),
-                placeholder = { Text("Buscar molestia…", style = MaterialTheme.typography.bodySmall) },
-                leadingIcon = {
-                    Icon(Icons.Default.Search, contentDescription = null, modifier = Modifier.size(18.dp))
-                },
-                trailingIcon = if (query.isNotBlank()) {
-                    {
-                        IconButton(onClick = { query = "" }) {
-                            Icon(Icons.Default.Close, contentDescription = "Limpiar búsqueda", modifier = Modifier.size(18.dp))
-                        }
-                    }
-                } else null,
-                singleLine = true,
-                shape = RoundedCornerShape(12.dp),
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.7f),
-                    unfocusedBorderColor = Color.White.copy(alpha = 0.12f),
-                    cursorColor = Color.White,
-                    focusedTextColor = Color.White,
-                    unfocusedTextColor = Color.White,
-                    focusedContainerColor = Color.White.copy(alpha = 0.04f),
-                    unfocusedContainerColor = Color.White.copy(alpha = 0.04f),
-                    focusedPlaceholderColor = Color.White.copy(alpha = 0.35f),
-                    unfocusedPlaceholderColor = Color.White.copy(alpha = 0.35f),
-                    focusedLeadingIconColor = Color.White.copy(alpha = 0.5f),
-                    unfocusedLeadingIconColor = Color.White.copy(alpha = 0.5f),
-                ),
-            )
-
-            if (isSearching) {
-                Text(
-                    text = "Resultados",
-                    style = MaterialTheme.typography.labelSmall,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.primary.copy(alpha = 0.8f)
-                )
-                if (searchResults.isEmpty()) {
-                    Text(
-                        text = "Sin resultados para \"$query\"",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = Color.White.copy(alpha = 0.5f)
-                    )
-                } else {
-                    FlowRow(
+                    KpknTextField(
+                        value = query,
+                        onValueChange = { query = it },
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(6.dp),
-                        verticalArrangement = Arrangement.spacedBy(6.dp)
-                    ) {
-                        searchResults.forEach { item ->
-                            DiscomfortFilterChip(
-                                item = item,
-                                isSelected = selectedDiscomforts.contains(item.id),
-                                onClick = { toggle(item) },
-                            )
-                        }
-                    }
-                }
-            } else {
-                Text(
-                    text = "Sugeridas para tu sesión",
-                    style = MaterialTheme.typography.labelSmall,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.primary.copy(alpha = 0.8f)
-                )
-                if (suggestions.isEmpty()) {
-                    Text(
-                        text = "No hay molestias típicas para los músculos de esta sesión.",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = Color.White.copy(alpha = 0.5f)
+                        placeholder = "Buscar molestia…",
+                        leadingIcon = KpknLineIcons.Search,
+                        trailing = if (query.isNotBlank()) {
+                            {
+                                KpknIconButton(
+                                    icon = KpknLineIcons.Close,
+                                    contentDescription = "Limpiar búsqueda",
+                                    onClick = { query = "" },
+                                )
+                            }
+                        } else {
+                            null
+                        },
+                        singleLine = true,
                     )
-                } else {
-                    FlowRow(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(6.dp),
-                        verticalArrangement = Arrangement.spacedBy(6.dp)
-                    ) {
-                        suggestions.forEach { item ->
-                            DiscomfortFilterChip(
-                                item = item,
-                                isSelected = selectedDiscomforts.contains(item.id),
-                                onClick = { toggle(item) },
+
+                    if (isSearching) {
+                        Text(
+                            text = "Resultados".uppercase(Locale.forLanguageTag("es")),
+                            style = KpknType.eyebrow,
+                            color = WizardColors.textMuted,
+                        )
+                        if (searchResults.isEmpty()) {
+                            Text(
+                                text = "Sin resultados para \"$query\"",
+                                style = KpknType.caption,
+                                color = WizardColors.textMuted,
                             )
+                        } else {
+                            FlowRow(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                                verticalArrangement = Arrangement.spacedBy(0.dp)
+                            ) {
+                                searchResults.forEach { item ->
+                                    DiscomfortFilterChip(
+                                        item = item,
+                                        isSelected = selectedDiscomforts.contains(item.id),
+                                        onClick = { toggle(item) },
+                                    )
+                                }
+                            }
+                        }
+                    } else {
+                        Text(
+                            text = "Sugeridas para tu sesión".uppercase(Locale.forLanguageTag("es")),
+                            style = KpknType.eyebrow,
+                            color = WizardColors.textMuted,
+                        )
+                        if (suggestions.isEmpty()) {
+                            Text(
+                                text = "No hay molestias típicas para los músculos de esta sesión.",
+                                style = KpknType.caption,
+                                color = WizardColors.textMuted,
+                            )
+                        } else {
+                            FlowRow(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                                verticalArrangement = Arrangement.spacedBy(0.dp)
+                            ) {
+                                suggestions.forEach { item ->
+                                    DiscomfortFilterChip(
+                                        item = item,
+                                        isSelected = selectedDiscomforts.contains(item.id),
+                                        onClick = { toggle(item) },
+                                    )
+                                }
+                            }
                         }
                     }
-                }
-            }
                 }
             }
         }
@@ -1194,13 +1123,38 @@ private fun DiscomfortFilterChip(
     isSelected: Boolean,
     onClick: () -> Unit,
 ) {
-    FilterChip(
+    KpknChip(
+        text = item.label,
         selected = isSelected,
         onClick = onClick,
-        label = { Text(item.label, fontSize = 11.sp) },
-        colors = com.example.kpkn.ui.components.kpknSheetWhiteFilterChipColors(),
-        border = null,
     )
+}
+
+/**
+ * Botón ✓ de confirmar y entrenar (LR1b): círculo de 64 dp en tinta con la marca en negro, como el ✓ de la serie (LR1a). No reutiliza
+ * [WorkoutRecordFab] porque ese registra la serie y su etiqueta sería otra.
+ */
+@Composable
+private fun ReadinessConfirmButton(
+    onClick: () -> Unit,
+) {
+    Box(
+        modifier = Modifier
+            .shadow(10.dp, CircleShape, clip = false)
+            .size(64.dp)
+            .clip(CircleShape)
+            .background(WizardColors.text)
+            .clickable(role = Role.Button, onClick = onClick)
+            .semantics { contentDescription = "Confirmar y entrenar" },
+        contentAlignment = Alignment.Center,
+    ) {
+        Icon(
+            imageVector = KpknLineIcons.Check,
+            contentDescription = null,
+            tint = WizardColors.ctaContent,
+            modifier = Modifier.size(28.dp),
+        )
+    }
 }
 
 private fun getSessionPillarMuscleIds(exercises: List<Exercise>): List<String> {

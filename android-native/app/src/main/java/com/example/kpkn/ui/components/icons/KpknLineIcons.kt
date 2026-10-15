@@ -595,6 +595,19 @@ object KpknLineIcons {
         )
     }
 
+    /** Voz: cápsula de micrófono con su arco de sujeción, el pie y la base (LR1b). */
+    val Mic: ImageVector by lazy {
+        icono(
+            "KpknLine.Mic",
+            listOf(
+                "M9.25 6.25a2.75 2.75 0 0 1 5.5 0v5.5a2.75 2.75 0 0 1-5.5 0z",
+                "M6.25 11.25a5.75 5.75 0 0 0 11.5 0",
+                "M12 17v3.25",
+                "M9.25 20.25h5.5",
+            ),
+        )
+    }
+
     /**
      * Construye un icono con los trazados [trazados] (cadenas SVG `d` sobre la retícula de 24). Con [relleno] se pinta
      * sólido y sin trazo; si no, en trazo de 1,75 dp con extremos y uniones redondeados.
