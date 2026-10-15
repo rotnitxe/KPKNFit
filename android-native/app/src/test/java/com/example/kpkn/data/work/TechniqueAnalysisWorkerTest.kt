@@ -18,6 +18,7 @@ import com.example.kpkn.data.media.technique.TechniqueAnalyzer
 import com.example.kpkn.data.media.technique.TechniqueAnalyzerProvider
 import com.example.kpkn.data.media.technique.TechniqueReportSamples
 import com.example.kpkn.data.media.technique.TechniqueSidecars
+import com.example.kpkn.data.media.technique.UnavailableTechniqueAnalyzer
 import com.example.kpkn.data.models.VideoAnalysisStatus
 import com.example.kpkn.data.models.WorkoutMediaKind
 import com.example.kpkn.data.repository.CaptureOverridesFile
@@ -280,6 +281,8 @@ class TechniqueAnalysisWorkerTest {
     @Test
     fun the_stand_in_analyzer_fails_every_video_without_retrying() = runBlocking {
         TechniqueWorkTestKit.insertVideo(db, store, "vid-1")
+        // El analizador de la app ya es el pipeline real (VT4c): el de relleno, que se queda de respaldo, se pide a mano.
+        TechniqueAnalyzerProvider.overrideForTests(UnavailableTechniqueAnalyzer)
 
         val result = work("vid-1").doWork()
 

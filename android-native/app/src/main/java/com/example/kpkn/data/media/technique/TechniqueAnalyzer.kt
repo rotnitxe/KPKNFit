@@ -66,8 +66,9 @@ interface TechniqueAnalyzer {
 }
 
 /**
- * El analizador de la app. Mientras VT4c no entrega el pipeline real devuelve [UnavailableTechniqueAnalyzer]: todo vídeo acaba
- * en FAILED con `analyzer_unavailable`, sin reintentos. **VT4c cambia solo [create]** para devolver el pipeline.
+ * El analizador de la app: el [TechniqueAnalysisPipeline] real (MediaPipe en modo VIDEO con el modelo full), uno por proceso.
+ * [UnavailableTechniqueAnalyzer] se queda como respaldo y para las pruebas: todo vídeo acaba en FAILED con `analyzer_unavailable`,
+ * sin reintentos.
  *
  * [overrideForTests] sustituye al analizador del proceso (las pruebas del Worker meten un falso); `null` lo restablece.
  */
@@ -84,9 +85,8 @@ object TechniqueAnalyzerProvider {
         override = analyzer
     }
 
-    /** VT4c: aquí va el pipeline real (`TechniqueAnalysisPipeline`, con el `PoseEstimator` de MediaPipe en modo VIDEO). */
-    @Suppress("UNUSED_PARAMETER")
-    private fun create(context: Context): TechniqueAnalyzer = UnavailableTechniqueAnalyzer
+    /** El pipeline real, con el `PoseEstimator` de MediaPipe en modo VIDEO (se crea en cada análisis y se cierra al terminar). */
+    private fun create(context: Context): TechniqueAnalyzer = TechniqueAnalysisPipeline(context)
 }
 
 /** El analizador de relleno: no mira el vídeo y falla sin reintento (`analyzer_unavailable`). */

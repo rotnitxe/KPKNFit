@@ -1,0 +1,657 @@
+package com.example.kpkn.data.media.technique
+
+import android.app.Application
+import com.example.kpkn.data.media.pose.PoseEstimator
+import com.example.kpkn.data.media.video.VideoDecodeException
+import com.example.kpkn.data.media.video.VideoDecodePath
+import com.example.kpkn.data.media.video.VideoFrameSource
+import com.example.kpkn.domain.biomechanics.bar.BarSampleSource
+import com.example.kpkn.domain.biomechanics.bar.BarTrack
+import com.example.kpkn.domain.biomechanics.bar.BarTrackCodec
+import com.example.kpkn.domain.biomechanics.bar.PlateSeed
+import com.example.kpkn.domain.biomechanics.metrics.AnalysisFlag
+import com.example.kpkn.domain.biomechanics.metrics.CountConfidence
+import com.example.kpkn.domain.biomechanics.metrics.TechniqueAnalysisEngine
+import com.example.kpkn.domain.biomechanics.metrics.TechniqueAnalysisInput
+import com.example.kpkn.domain.biomechanics.pose.PoseLandmark
+import com.example.kpkn.domain.biomechanics.pose.PoseTrackCodec
+import com.example.kpkn.domain.biomechanics.pose.PoseTrackV2
+import com.example.kpkn.domain.biomechanics.profiles.AnalysisProfile
+import com.example.kpkn.domain.biomechanics.profiles.AnalysisProfileId
+import com.example.kpkn.domain.biomechanics.profiles.AnalysisProfileResolver
+import com.example.kpkn.domain.biomechanics.profiles.ExerciseRef
+import com.example.kpkn.domain.biomechanics.profiles.ProfileResolution
+import com.example.kpkn.domain.biomechanics.testing.SynthNoise
+import com.example.kpkn.domain.biomechanics.testing.SynthRepKind
+import com.example.kpkn.domain.biomechanics.vbt.VbtTestSupport
+import com.example.kpkn.domain.biomechanics.testing.SynthCamera
+import com.example.kpkn.domain.biomechanics.vision.SampledPath
+import com.example.kpkn.domain.biomechanics.vision.SceneOptions
+import com.example.kpkn.domain.biomechanics.vision.SyntheticPlateFrames
+import java.io.File
+import java.io.IOException
+import java.util.Locale
+import java.util.concurrent.CopyOnWriteArrayList
+import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicReference
+import kotlin.math.abs
+import kotlin.math.hypot
+import kotlin.math.max
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.async
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withTimeout
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
+import org.junit.Rule
+import org.junit.Test
+import org.junit.rules.TemporaryFolder
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
+import org.robolectric.annotation.Config
+
+/**
+ * El pipeline del analizador (VT4c) con un vídeo y un estimador de pose FALSOS que reparten los huecos como el pool real:
+ * una sentadilla sintética pasa por la decodificación solapada con la pose, los sidecars, los puntos de control, la cancelación,
+ * la pausa de cámara y el disco (dibujado, con las muñecas de la sentadilla).
+ */
+@RunWith(RobolectricTestRunner::class)
+@Config(manifest = Config.NONE, sdk = [34], application = Application::class)
+class TechniqueAnalysisPipelineTest {
+    @Rule
+    @JvmField
+    val folder = TemporaryFolder()
+
+    private val set = PipelineTestKit.squat()
+    private val times = set.track.frames.map { it.tUs }
+    private val sources = CopyOnWriteArrayList<FakeFrameSource>()
+    private val estimators = CopyOnWriteArrayList<FakePoseEstimator>()
+    private val stats = CopyOnWriteArrayList<PipelineRunStats>()
+
+    private class Result(val outcome: TechniqueAnalysisOutcome, val progress: List<Int>)
+
+    private fun source(
+        path: VideoDecodePath = VideoDecodePath.GL,
+        failAfter: Int = -1,
+        failure: Throwable? = null,
+        hdr: Boolean = false,
+    ): FakeFrameSource =
+        FakeFrameSource(PipelineTestKit.videoInfo(406, 720, times.last(), hdr = hdr), times, path, null, failAfter, failure).also { sources.add(it) }
+
+    private fun estimator(failEvery: Int = 0, failAlways: Boolean = false): FakePoseEstimator =
+        FakePoseEstimator(set.track.frames, failEvery, failAlways).also { estimators.add(it) }
+
+    private fun pipeline(
+        open: (File) -> VideoFrameSource = { source() },
+        pose: () -> PoseEstimator = { estimator() },
+        tuning: PipelineTuning = PipelineTuning(),
+        gateIsClosed: () -> Boolean = { false },
+        awaitGate: suspend () -> Unit = {},
+        sdkInt: Int = 34,
+    ) = TechniqueAnalysisPipeline(
+        PipelineTestKit.deps(open, pose, gateIsClosed = gateIsClosed, awaitGate = awaitGate, onStats = { stats.add(it) }, sdkInt = sdkInt),
+        tuning,
+    )
+
+    private fun analyze(pipeline: TechniqueAnalysisPipeline, request: TechniqueAnalysisRequest): Result = runBlocking {
+        val progress = CopyOnWriteArrayList<Int>()
+        val outcome = withTimeout(TIMEOUT_MS) { pipeline.analyze(request) { progress.add(it) } }
+        Result(outcome, progress.toList())
+    }
+
+    private fun done(outcome: TechniqueAnalysisOutcome): TechniqueAnalysisOutcome.Done =
+        outcome as? TechniqueAnalysisOutcome.Done ?: error("esperaba Done y fue $outcome")
+
+    private fun failed(outcome: TechniqueAnalysisOutcome): TechniqueAnalysisOutcome.Failed =
+        outcome as? TechniqueAnalysisOutcome.Failed ?: error("esperaba Failed y fue $outcome")
+
+    private fun storedPose(video: File): PoseTrackV2 =
+        checkNotNull(PoseTrackCodec.decode(TechniqueSidecars.poseFile(video).readBytes())) { "pose2 ilegible" }
+
+    private fun profile(equipment: String? = null): AnalysisProfile =
+        (AnalysisProfileResolver.resolve(PipelineTestKit.exercise(equipmentId = equipment)) as ProfileResolution.Supported).profile
+
+    private fun engineOn(track: PoseTrackV2, bar: BarTrack? = null, equipment: String? = null) =
+        TechniqueAnalysisEngine.analyze(TechniqueAnalysisInput(track, bar, profile(equipment), null, null, emptySet()))
+
+    // ---- FULL ----------------------------------------------------------------------------------------------------------
+
+    @Test
+    fun aFullAnalysisCountsTheTruthRepsAndLeavesItsSidecars() {
+        val video = PipelineTestKit.videoFile(folder.root)
+        val result = analyze(pipeline(), PipelineTestKit.request(video))
+        val report = done(result.outcome).report
+
+        assertEquals(set.reps.count { it.kind == SynthRepKind.FULL }, report.repCount)
+        assertEquals(5, report.reps.size)
+        // El progreso sube sin repetir ni retroceder, de 0 a 100.
+        assertEquals(0, result.progress.first())
+        assertEquals(100, result.progress.last())
+        assertTrue("progreso ${result.progress}", result.progress.zipWithNext().all { (a, b) -> b > a })
+        assertTrue("el 95 % es el cambio de la decodificación al motor", 95 in result.progress)
+
+        // Sidecars: la pose, sin disco ni punto de control.
+        assertTrue(TechniqueSidecars.poseFile(video).isFile)
+        assertFalse(TechniqueSidecars.barFile(video).exists())
+        assertFalse(TechniqueSidecars.partFile(video).exists())
+        val stored = storedPose(video)
+        assertEquals(times.size, stored.frames.size)
+        for (i in times.indices) {
+            assertEquals(times[i], stored.frames[i].tUs)
+            assertEquals(set.track.frames[i].hasPose, stored.frames[i].hasPose)
+        }
+        assertEquals(1, stored.poseStride)
+        assertEquals(406, stored.frameWidth)
+        assertEquals(720, stored.frameHeight)
+        assertEquals("CPU", stored.engine.delegate)
+        assertEquals(30f, stored.nominalFps, 0.6f)
+
+        // El pipeline mide exactamente lo que dejó escrito.
+        assertEquals(engineOn(stored), report)
+
+        // Decodificación y pose solapadas sin pisarse: cada hueco se leyó antes de que el decodificador lo reutilizara.
+        val estimator = estimators.single()
+        assertTrue("huecos reutilizados antes de tiempo: ${estimator.staleReads.take(3)}", estimator.staleReads.isEmpty())
+        assertTrue("tiempos que no crecen: ${estimator.notIncreasing.take(3)}", estimator.notIncreasing.isEmpty())
+        assertEquals(times.size, estimator.calls.get())
+        assertTrue(estimator.closed)
+        val src = sources.single()
+        assertTrue(src.closed)
+        assertFalse("close() con decode en marcha", src.closedWhileDecoding)
+        assertFalse(src.decoding)
+        assertEquals(times.size, src.delivered.get())
+
+        val run = stats.single()
+        assertEquals(times.size, run.framesDecoded)
+        assertEquals(times.size, run.framesPosed)
+        assertEquals(VideoDecodePath.GL, run.decodePath)
+        assertEquals("CPU", run.poseDelegate)
+        assertFalse(run.usesPlate)
+        assertNull(run.resumedFromPtsUs)
+    }
+
+    @Test
+    fun recomputeGivesTheSameReportWithoutOpeningTheVideo() {
+        val video = PipelineTestKit.videoFile(folder.root)
+        val first = done(analyze(pipeline(), PipelineTestKit.request(video)).outcome).report
+
+        val opened = java.util.concurrent.atomic.AtomicInteger()
+        val created = java.util.concurrent.atomic.AtomicInteger()
+        val again = pipeline(
+            open = { opened.incrementAndGet(); error("RECOMPUTE no abre el vídeo") },
+            pose = { created.incrementAndGet(); error("RECOMPUTE no crea el estimador") },
+        )
+        val second = analyze(again, PipelineTestKit.request(video, AnalysisMode.RECOMPUTE))
+        assertEquals(first, done(second.outcome).report)
+        assertEquals(0, opened.get())
+        assertEquals(0, created.get())
+        assertEquals(100, second.progress.last())
+    }
+
+    @Test
+    fun recomputeWithoutSidecarsFallsBackToAFullAnalysis() {
+        val video = PipelineTestKit.videoFile(folder.root)
+        val result = analyze(pipeline(), PipelineTestKit.request(video, AnalysisMode.RECOMPUTE))
+        assertEquals(5, done(result.outcome).report.repCount)
+        assertEquals(1, sources.size)
+        assertTrue(TechniqueSidecars.poseFile(video).isFile)
+    }
+
+    @Test
+    fun anUnsupportedOrUnchosenProfileNeverOpensTheVideo() {
+        val video = PipelineTestKit.videoFile(folder.root)
+        val opened = java.util.concurrent.atomic.AtomicInteger()
+        val guarded = pipeline(open = { opened.incrementAndGet(); source() }, pose = { estimator() })
+
+        val isometric = ExerciseRef("wall_sit", null, "knee_dominant", null, null, "Sentada en la pared", isCustom = false)
+        val unsupported = analyze(guarded, PipelineTestKit.request(video, exercise = isometric)).outcome
+        assertEquals(TechniqueAnalysisOutcome.Unsupported("isometric"), unsupported)
+
+        val needsProfile = analyze(guarded, PipelineTestKit.request(video, exercise = PipelineTestKit.exercise(null, name = "Press banca con pausa"))).outcome
+        assertEquals(TechniqueAnalysisOutcome.NeedsProfile(AnalysisProfileId.BENCH), needsProfile)
+
+        assertEquals("no se abrió el vídeo", 0, opened.get())
+        assertTrue(estimators.isEmpty())
+        assertFalse(TechniqueSidecars.poseFile(video).exists())
+    }
+
+    // ---- Puntos de control ---------------------------------------------------------------------------------------------
+
+    @Test
+    fun aCheckpointInTheMiddleMakesTheNextAttemptResumeWithTheSameResult() {
+        // La serie entera de un tirón: la referencia.
+        val reference = PipelineTestKit.videoFile(folder.root, "ref.mp4")
+        val referenceReport = done(analyze(pipeline(), PipelineTestKit.request(reference)).outcome).report
+        val referencePose = storedPose(reference)
+
+        // Un fallo transitorio de E/S a los 400 fotogramas deja el punto de control de los 300 (uno cada 150).
+        val video = PipelineTestKit.videoFile(folder.root, "cut.mp4")
+        val interrupted = pipeline(open = { source(failAfter = 400, failure = IOException("el disco")) })
+        val failure = failed(analyze(interrupted, PipelineTestKit.request(video)).outcome)
+        assertEquals(TechniqueAnalysisPipeline.ERROR_IO, failure.errorCode)
+        assertTrue(failure.transient)
+        val part = TechniqueSidecars.partFile(video)
+        assertTrue("el fallo transitorio deja el punto de control", part.isFile)
+        val checkpoint = checkNotNull(AnalysisCheckpoints.read(part))
+        assertEquals(300, checkpoint.header.nextIndex)
+        assertEquals(times[299], checkpoint.header.lastPtsUs)
+        assertEquals(300, checkpoint.pose.frames.size)
+        assertFalse("sin pose2 hasta terminar", TechniqueSidecars.poseFile(video).exists())
+
+        // El siguiente intento sigue desde el último PTS, sin repetir lo hecho, y da el mismo resultado.
+        val resumedSource = source()
+        val resumedEstimator = estimator()
+        val resumed = analyze(pipeline(open = { resumedSource }, pose = { resumedEstimator }), PipelineTestKit.request(video))
+        assertEquals(referenceReport, done(resumed.outcome).report)
+        assertEquals(listOf(times[299] + 1), resumedSource.decodeStarts.toList())
+        assertEquals(times.size - 300, resumedEstimator.calls.get())
+        assertTrue(resumedEstimator.staleReads.isEmpty())
+        assertFalse("se borra al terminar", part.exists())
+        assertEquals(referencePose.frames, storedPose(video).frames)
+        assertEquals(times[299], stats.last().resumedFromPtsUs)
+    }
+
+    @Test
+    fun aCheckpointFromOtherVideoOrVersionIsDiscarded() {
+        val video = PipelineTestKit.videoFile(folder.root)
+        // Un punto de control de un vídeo de otro tamaño: no sirve y se empieza de cero.
+        val fakeHeader = AnalysisCheckpoint.Header(
+            mediaId = "otro", poseVersion = TechniqueAnalysisPipeline.POSE_VERSION, videoBytes = 1L, videoModifiedMs = 1L, usesPlate = false,
+            poseStride = 1, timeScale = 1.0, frameWidth = 406, frameHeight = 720, lastPtsUs = times[100], nextIndex = 101,
+            plateStage = AnalysisCheckpoint.STAGE_NONE,
+        )
+        val partial = set.track.copy(frames = set.track.frames.take(101), mediaId = "otro")
+        AnalysisCheckpoints.write(TechniqueSidecars.partFile(video), AnalysisCheckpoint(fakeHeader, partial, null))
+
+        val src = source()
+        val result = analyze(pipeline(open = { src }), PipelineTestKit.request(video))
+        assertEquals(5, done(result.outcome).report.repCount)
+        assertEquals(listOf(0L), src.decodeStarts.toList())
+        assertNull(stats.last().resumedFromPtsUs)
+    }
+
+    // ---- Cancelación y pausa -------------------------------------------------------------------------------------------
+
+    @Test
+    fun cancellingWaitsForTheDecoderBeforeClosingAndKeepsTheCheckpoint() = runBlocking {
+        val video = PipelineTestKit.videoFile(folder.root)
+        val src = source()
+        val est = estimator()
+        val pipeline = pipeline(open = { src }, pose = { est })
+        val cancelled = AtomicBoolean(false)
+        val holder = AtomicReference<Job?>(null)
+        val job = launch(Dispatchers.Default) {
+            try {
+                pipeline.analyze(PipelineTestKit.request(video)) { percent -> if (percent >= 30) holder.get()?.cancel() }
+            } catch (expected: CancellationException) {
+                cancelled.set(true)
+                throw expected
+            }
+        }
+        holder.set(job)
+        withTimeout(TIMEOUT_MS) { job.join() }
+
+        assertTrue("la cancelación llegó hasta fuera", cancelled.get())
+        assertTrue(src.closed)
+        assertFalse("close() con decode en marcha", src.closedWhileDecoding)
+        assertFalse("decode sigue vivo tras cancelar", src.decoding)
+        assertTrue(est.closed)
+        assertTrue(est.staleReads.isEmpty())
+        assertFalse("sin sidecar de pose a medias", TechniqueSidecars.poseFile(video).exists())
+        assertTrue("la cancelación deja el punto de control", TechniqueSidecars.partFile(video).isFile)
+    }
+
+    @Test
+    fun theCameraGatePausesTheAnalysisUntilItIsFree() = runBlocking {
+        val video = PipelineTestKit.videoFile(folder.root)
+        val busy = MutableStateFlow(true)
+        val src = source()
+        val pipeline = pipeline(open = { src }, gateIsClosed = { busy.value }, awaitGate = { busy.first { free -> !free } })
+        val job = async(Dispatchers.Default) { pipeline.analyze(PipelineTestKit.request(video)) {} }
+
+        var last = -1
+        var stable = 0
+        withTimeout(TIMEOUT_MS) {
+            while (stable < 4) {
+                delay(100L)
+                val now = src.delivered.get()
+                if (now == last) stable++ else {
+                    stable = 0
+                    last = now
+                }
+            }
+        }
+        // 30 fotogramas procesados + los 2 de la cola: el productor espera en `send`.
+        assertTrue("se paró en $last de ${times.size}", last in 30..40)
+        assertTrue(job.isActive)
+
+        busy.value = false
+        val outcome = withTimeout(TIMEOUT_MS) { job.await() }
+        assertEquals(5, done(outcome).report.repCount)
+        assertEquals(times.size, src.delivered.get())
+    }
+
+    // ---- Camino de decodificación, cámara lenta y fallos -----------------------------------------------------------------
+
+    @Test
+    fun theRetrieverPathAddsTheFlagAndCapsTheConfidenceAtMedium() {
+        val video = PipelineTestKit.videoFile(folder.root)
+        val result = analyze(pipeline(open = { source(path = VideoDecodePath.RETRIEVER) }), PipelineTestKit.request(video))
+        val report = done(result.outcome).report
+        assertTrue(AnalysisFlag.DECODE_FALLBACK in report.flags)
+        val plain = engineOn(storedPose(video))
+        val expected = if (plain.confidence == CountConfidence.ALTA) CountConfidence.MEDIA else plain.confidence
+        assertEquals(expected, report.confidence)
+        assertTrue(report.confidence != CountConfidence.ALTA)
+        assertEquals(VideoDecodePath.RETRIEVER, stats.single().decodePath)
+
+        // Un RECOMPUTE hereda el aviso del informe anterior (que el Worker deja en <id>.analysis.json).
+        TechniqueSidecars.writeAnalysis(
+            TechniqueSidecars.analysisFile(video), report, PipelineTestKit.exercise(), null, null, analyzedAtMs = 1L,
+        )
+        val again = done(analyze(pipeline(), PipelineTestKit.request(video, AnalysisMode.RECOMPUTE)).outcome).report
+        assertEquals(report, again)
+    }
+
+    @Test
+    fun anHdrVideoCarriesItsFlagOnlyWhereTheToneMapRequestDoesNotExist() {
+        val before = PipelineTestKit.videoFile(folder.root, "hdr30.mp4")
+        val withoutRequest = done(analyze(pipeline(open = { source(hdr = true) }, sdkInt = 30), PipelineTestKit.request(before)).outcome).report
+        assertTrue(AnalysisFlag.HDR_SOURCE in withoutRequest.flags)
+
+        val after = PipelineTestKit.videoFile(folder.root, "hdr34.mp4")
+        val withRequest = done(analyze(pipeline(open = { source(hdr = true) }, sdkInt = 34), PipelineTestKit.request(after)).outcome).report
+        assertFalse(AnalysisFlag.HDR_SOURCE in withRequest.flags)
+
+        // Un vídeo que no es HDR nunca lo lleva.
+        val sdr = PipelineTestKit.videoFile(folder.root, "sdr.mp4")
+        assertFalse(AnalysisFlag.HDR_SOURCE in done(analyze(pipeline(sdkInt = 30), PipelineTestKit.request(sdr)).outcome).report.flags)
+    }
+
+    @Test
+    fun aSlowMotionVideoIsAnalyzedInRealTimeWithTheStrideOfItsCaptureRate() {
+        // Capturado a 60 fps y reproducido a 30: el PTS del contenedor va al doble que el tiempo real.
+        val slow = PipelineTestKit.squat(reps = 3, noise = SynthNoise(ptsJitterMs = 0.5), fps = 60.0, lead = 1.5, tail = 1.5)
+        val real = slow.track.frames.map { it.tUs }
+        val container = real.map { it * 2L }
+        val info = PipelineTestKit.videoInfo(406, 720, container.last(), fps = 30f, captureFps = 60f)
+        val video = PipelineTestKit.videoFile(folder.root)
+        val src = FakeFrameSource(info, container).also { sources.add(it) }
+        val est = FakePoseEstimator(slow.track.frames, ptsScale = 2L).also { estimators.add(it) }
+        val result = analyze(pipeline(open = { src }, pose = { est }), PipelineTestKit.request(video))
+        val report = done(result.outcome).report
+
+        val stored = storedPose(video)
+        // 60 fps reales: pose en uno de cada dos fotogramas, con los tiempos REALES.
+        assertEquals(2, stored.poseStride)
+        assertEquals(60f, checkNotNull(stored.captureFps), 0.01f)
+        assertEquals(real.indices.filter { it % 2 == 0 }.map { real[it] }, stored.frames.map { it.tUs })
+        assertEquals(30.0, report.analyzedFps, 1.0)
+        assertEquals(60.0, checkNotNull(report.sourceFps), 0.01)
+        assertEquals(3, report.repCount)
+        assertTrue(est.staleReads.isEmpty())
+        assertTrue(est.notIncreasing.isEmpty())
+    }
+
+    @Test
+    fun errorsAreReturnedNeverThrownAndOnlyTransientOnesKeepTheCheckpoint() {
+        val video = PipelineTestKit.videoFile(folder.root)
+
+        // Un fallo del decodificador que no es de E/S: definitivo.
+        val broken = failed(analyze(pipeline(open = { source(failAfter = 200, failure = VideoDecodeException("el códec murió")) }), PipelineTestKit.request(video)).outcome)
+        assertEquals(TechniqueAnalysisPipeline.ERROR_DECODE, broken.errorCode)
+        assertFalse(broken.transient)
+        assertFalse("un fallo definitivo borra el punto de control", TechniqueSidecars.partFile(video).exists())
+        assertTrue(sources.last().closed)
+        assertFalse(sources.last().closedWhileDecoding)
+        assertTrue(estimators.last().closed)
+
+        // El mismo, pero con una causa de E/S: transitorio.
+        val io = failed(analyze(pipeline(open = { source(failAfter = 10, failure = VideoDecodeException("lectura", IOException("sin espacio"))) }), PipelineTestKit.request(video)).outcome)
+        assertEquals(TechniqueAnalysisPipeline.ERROR_DECODE, io.errorCode)
+        assertTrue(io.transient)
+
+        // No se puede abrir el vídeo.
+        val unreadable = failed(analyze(pipeline(open = { throw VideoDecodeException("no existe") }), PipelineTestKit.request(video)).outcome)
+        assertEquals(TechniqueAnalysisPipeline.ERROR_VIDEO_UNREADABLE, unreadable.errorCode)
+        assertFalse(unreadable.transient)
+
+        // No se puede crear el estimador (la librería nativa falta): definitivo, y la fuente se cierra.
+        val noPose = failed(analyze(pipeline(pose = { throw UnsatisfiedLinkError("libmediapipe") }), PipelineTestKit.request(video)).outcome)
+        assertEquals(TechniqueAnalysisPipeline.ERROR_POSE_UNAVAILABLE, noPose.errorCode)
+        assertFalse(noPose.transient)
+        assertTrue(sources.last().closed)
+
+        // La pose falla en cada fotograma: tras 20 errores se rinde.
+        val failing = failed(analyze(pipeline(pose = { estimator(failAlways = true) }), PipelineTestKit.request(video)).outcome)
+        assertEquals(TechniqueAnalysisPipeline.ERROR_POSE_FAILED, failing.errorCode)
+        assertFalse(failing.transient)
+        assertEquals(PipelineTuning().maxPoseErrors + 1, estimators.last().calls.get())
+        assertTrue(estimators.last().closed)
+        assertTrue(sources.last().closed)
+    }
+
+    @Test
+    fun anOccasionalPoseErrorCostsOnlyThatFrame() {
+        val video = PipelineTestKit.videoFile(folder.root)
+        val result = analyze(pipeline(pose = { estimator(failEvery = 97) }), PipelineTestKit.request(video))
+        assertEquals(5, done(result.outcome).report.repCount)
+        val stored = storedPose(video)
+        assertEquals(times.size, stored.frames.size)
+        // Las llamadas 97, 194… devolvieron «sin atleta»: el fotograma está, sin pose.
+        assertFalse(stored.frames[96].hasPose)
+        assertFalse(stored.frames[193].hasPose)
+    }
+
+    // ---- Disco ---------------------------------------------------------------------------------------------------------
+
+    /** Una sentadilla limpia de 720×1280 con un disco DIBUJADO que sigue la muñeca izquierda, y lo necesario para pasarlo por el pipeline. */
+    private inner class PlateCase(val reps: Int = 3) {
+        val camera = SynthCamera()
+        val lifter = PipelineTestKit.squat(
+            reps = reps, width = camera.widthPx, height = camera.heightPx, noise = SynthNoise.NONE,
+            lead = 1.5, tail = 1.0, eccS = 1.2, p1S = 0.3, conS = 1.2, p2S = 0.3,
+        )
+        val frames = lifter.track.frames
+        val pts = frames.map { it.tUs }
+        val xs = DoubleArray(frames.size) { frames[it].x(PoseLandmark.LEFT_WRIST) * camera.widthPx.toDouble() }
+        val ys = DoubleArray(frames.size) { frames[it].y(PoseLandmark.LEFT_WRIST) * camera.heightPx.toDouble() }
+        val radius = VbtTestSupport.radiusPx(450, VbtTestSupport.leftWristDepthM(camera), camera).toDouble()
+        val scene = SyntheticPlateFrames.scene(
+            SyntheticPlateFrames.params(
+                11L,
+                SceneOptions(
+                    width = camera.widthPx, height = camera.heightPx, radiusPx = radius, contrast = 45.0, polarity = 1, noiseSigma = 3.0,
+                    exposureS = 1.0 / 90.0, rackBars = false, distractor = false,
+                ),
+            ),
+            SampledPath(DoubleArray(frames.size) { pts[it] / 1e6 }, xs, ys),
+        )
+        val tuning = PipelineTuning(targetLongEdge = camera.heightPx)
+
+        fun newSource(failAfter: Int = -1, failure: Throwable? = null) = FakeFrameSource(
+            PipelineTestKit.videoInfo(camera.widthPx, camera.heightPx, pts.last()), pts, VideoDecodePath.GL,
+            painter = { tUs, out -> scene.render(tUs / 1e6, (tUs / 1000L).toInt(), out) },
+            failAfterDelivered = failAfter,
+            failure = failure,
+        ).also { sources.add(it) }
+
+        fun newEstimator() = FakePoseEstimator(frames).also { estimators.add(it) }
+
+        fun truthAt(tUs: Long): Pair<Double, Double> {
+            val k = pts.indexOfFirst { it >= tUs }.let { if (it < 0) pts.size - 1 else it }
+            return xs[k] to ys[k]
+        }
+
+        fun pipeline(failAfter: Int = -1, failure: Throwable? = null) = TechniqueAnalysisPipeline(
+            PipelineTestKit.deps({ newSource(failAfter, failure) }, { newEstimator() }, onStats = { stats.add(it) }),
+            tuning,
+        )
+
+        /** Cuánto se aleja de la verdad cada medida del disco (HOUGH o NCC), ordenado. */
+        fun errorsOf(samples: List<com.example.kpkn.domain.biomechanics.bar.BarSample>): List<Double> =
+            samples.filter { it.source == BarSampleSource.HOUGH || it.source == BarSampleSource.NCC }
+                .map { hypot(it.cx - truthAt(it.tUs).first, it.cy - truthAt(it.tUs).second) }.sorted()
+
+        fun request(video: File, mode: AnalysisMode = AnalysisMode.FULL, seed: PlateSeed? = null) = PipelineTestKit.request(
+            video, mode, PipelineTestKit.exercise(AnalysisProfileId.SQUAT, equipmentId = "barbell"), seed, 450,
+        )
+    }
+
+    private fun fmt(x: Double) = String.format(Locale.ROOT, "%.2f", x)
+
+    @Test
+    fun theDiscIsFoundByItselfAndTrackedForwardAndBackward() {
+        val case = PlateCase()
+        val video = PipelineTestKit.videoFile(folder.root)
+        val result = analyze(case.pipeline(), case.request(video))
+        val report = done(result.outcome).report
+
+        val bar = checkNotNull(BarTrackCodec.decode(TechniqueSidecars.barFile(video).readBytes())) { "bar ilegible" }
+        val seed = checkNotNull(bar.seed) { "sin semilla automática" }
+        assertFalse("la semilla automática no está confirmada", seed.userConfirmed)
+        assertNull("sin diámetro hasta que el usuario confirme", bar.plateDiameterMm)
+        assertEquals(720, bar.frameWidth)
+        assertEquals(1280, bar.frameHeight)
+
+        // Una muestra por fotograma, en orden de tiempo, desde el primero (el búfer cubre lo anterior a la semilla).
+        val samples = bar.samples
+        assertTrue("muestras ${samples.size} de ${case.pts.size}", samples.size >= case.pts.size - 2)
+        assertTrue(samples.zipWithNext().all { (a, b) -> b.tUs > a.tUs })
+        assertEquals(case.pts.first(), samples.first().tUs)
+        assertTrue("la semilla llegó al empezar la quietud", seed.tUs in 400_000L..1_000_000L)
+        assertTrue("hay muestras de antes de la semilla (hacia atrás)", samples.any { it.tUs < seed.tUs })
+        assertTrue("y de después (hacia delante)", samples.any { it.tUs > seed.tUs })
+
+        // El disco medido sigue a la verdad, a ambos lados de la semilla.
+        val detector = samples.filter { it.source == BarSampleSource.HOUGH || it.source == BarSampleSource.NCC }
+        assertTrue("solo ${detector.size} medidas del disco de ${samples.size}", detector.size >= samples.size * 8 / 10)
+        val errors = detector.map { hypot(it.cx - case.truthAt(it.tUs).first, it.cy - case.truthAt(it.tUs).second) }.sorted()
+        val median = errors[errors.size / 2]
+        val p95 = errors[(errors.size * 95 / 100).coerceAtMost(errors.size - 1)]
+        println("[pipeline/disco] semilla ${seed.tUs} µs r=${fmt(seed.r.toDouble())} (verdad ${fmt(case.radius)}) | ${samples.size} muestras, ${detector.size} medidas | error mediana ${fmt(median)} px P95 ${fmt(p95)} px | ${report.repCount} reps ${report.confidence}")
+        assertTrue("error mediano ${fmt(median)} px", median <= 3.0)
+        assertTrue("P95 ${fmt(p95)} px", p95 <= 10.0)
+        val before = detector.filter { it.tUs < seed.tUs }.map { hypot(it.cx - case.truthAt(it.tUs).first, it.cy - case.truthAt(it.tUs).second) }
+        assertTrue("las muestras hacia atrás también miden el disco", before.isNotEmpty() && before.max() <= 6.0)
+
+        val run = stats.single()
+        assertTrue(run.usesPlate)
+        assertEquals("TRACKING", run.plateStage)
+        assertNotNull(run.autoSeed)
+        assertEquals(samples.size, run.barSamples)
+        assertEquals(case.reps, report.repCount)
+        assertEquals(engineOn(storedPose(video), bar, equipment = "barbell"), report)
+        assertTrue(estimators.single().staleReads.isEmpty())
+        assertFalse(TechniqueSidecars.partFile(video).exists())
+    }
+
+    @Test
+    fun plateOnlyTracksFromTheConfirmedSeedBackAndForwardAndWritesTheDiameter() {
+        val case = PlateCase()
+        val video = PipelineTestKit.videoFile(folder.root)
+        done(analyze(case.pipeline(), case.request(video)).outcome)
+        val poseBefore = TechniqueSidecars.poseFile(video).readBytes()
+
+        // El usuario fija el disco en un instante cualquiera de la 1.ª repetición.
+        val seedAt = case.pts.first { it >= 3_000_000L }
+        val (sx, sy) = case.truthAt(seedAt)
+        val seed = PlateSeed(seedAt, sx.toFloat(), sy.toFloat(), case.radius.toFloat(), userConfirmed = true)
+        val sourcesBefore = sources.size
+        val estimatorsBefore = estimators.size
+        val result = analyze(case.pipeline(), case.request(video, AnalysisMode.PLATE_ONLY, seed))
+        val report = done(result.outcome).report
+
+        // Solo luma, desde 3 s antes de la semilla.
+        val src = sources[sourcesBefore]
+        assertEquals(listOf(max(0L, seedAt - 3_000_000L)), src.decodeStarts.toList())
+        assertEquals("PLATE_ONLY no estima la pose", estimatorsBefore, estimators.size)
+        assertTrue(poseBefore.contentEquals(TechniqueSidecars.poseFile(video).readBytes()))
+        assertEquals(100, result.progress.last())
+
+        val bar = checkNotNull(BarTrackCodec.decode(TechniqueSidecars.barFile(video).readBytes()))
+        assertTrue(checkNotNull(bar.seed).userConfirmed)
+        assertEquals(seedAt, checkNotNull(bar.seed).tUs)
+        assertEquals(450, bar.plateDiameterMm)
+        val samples = bar.samples
+        assertTrue(samples.zipWithNext().all { (a, b) -> b.tUs > a.tUs })
+        assertTrue("hay muestras de antes de la semilla (el búfer es de ≤ 3 s)", samples.first().tUs < seedAt - 1_000_000L)
+        assertTrue(samples.first().tUs >= seedAt - 3_000_000L - 1L)
+        assertEquals(case.pts.last(), samples.last().tUs)
+        val errors = samples.filter { it.source == BarSampleSource.HOUGH || it.source == BarSampleSource.NCC }
+            .map { hypot(it.cx - case.truthAt(it.tUs).first, it.cy - case.truthAt(it.tUs).second) }.sorted()
+        assertTrue("pocas medidas: ${errors.size} de ${samples.size}", errors.size >= samples.size * 8 / 10)
+        println("[pipeline/disco] PLATE_ONLY: ${samples.size} muestras, error mediana ${fmt(errors[errors.size / 2])} px | escala ${report.scale?.source} | ${report.repCount} reps ${report.confidence}")
+        assertTrue(errors[errors.size / 2] <= 3.0)
+        assertEquals(case.reps, report.repCount)
+        assertEquals(VideoDecodePath.GL, stats.last().decodePath)
+        assertTrue(abs(stats.last().barSamples - samples.size) == 0)
+    }
+
+    @Test
+    fun aConfirmedSeedMakesAFullAnalysisTrackFromItsInstantAndBackward() {
+        val case = PlateCase()
+        val video = PipelineTestKit.videoFile(folder.root)
+        val seedAt = case.pts.first { it >= 3_000_000L }
+        val (sx, sy) = case.truthAt(seedAt)
+        val seed = PlateSeed(seedAt, sx.toFloat(), sy.toFloat(), case.radius.toFloat(), userConfirmed = true)
+        val result = analyze(case.pipeline(), case.request(video, AnalysisMode.FULL, seed))
+        val report = done(result.outcome).report
+
+        val bar = checkNotNull(BarTrackCodec.decode(TechniqueSidecars.barFile(video).readBytes()))
+        assertTrue(checkNotNull(bar.seed).userConfirmed)
+        assertEquals(seedAt, checkNotNull(bar.seed).tUs)
+        assertEquals("el diámetro confirmado", 450, bar.plateDiameterMm)
+        assertTrue("hay muestras de antes de la semilla (el búfer)", bar.samples.first().tUs < seedAt)
+        assertEquals(case.pts.last(), bar.samples.last().tUs)
+        assertTrue(bar.samples.zipWithNext().all { (a, b) -> b.tUs > a.tUs })
+        val errors = case.errorsOf(bar.samples)
+        assertTrue("pocas medidas: ${errors.size} de ${bar.samples.size}", errors.size >= bar.samples.size * 8 / 10)
+        assertTrue(errors[errors.size / 2] <= 3.0)
+
+        val run = stats.single()
+        assertEquals("TRACKING", run.plateStage)
+        assertNull("no hubo semilla automática", run.autoSeed)
+        assertEquals("sin adquisición: la semilla es la del usuario", 0, run.plateAttempts)
+        assertEquals(case.reps, report.repCount)
+    }
+
+    @Test
+    fun aPlateCheckpointResumesTrackingFromTheLastReliableSample() {
+        val case = PlateCase()
+        val video = PipelineTestKit.videoFile(folder.root)
+        // Un fallo transitorio de E/S a los 260 fotogramas deja el punto de control de los 150, con el disco ya siguiéndose.
+        val failure = failed(analyze(case.pipeline(failAfter = 260, failure = IOException("el disco")), case.request(video)).outcome)
+        assertTrue(failure.transient)
+        val checkpoint = checkNotNull(AnalysisCheckpoints.read(TechniqueSidecars.partFile(video)))
+        assertEquals(150, checkpoint.header.nextIndex)
+        assertEquals(AnalysisCheckpoint.STAGE_TRACKING, checkpoint.header.plateStage)
+        assertEquals("una muestra por fotograma procesado, hacia atrás incluidas", 150, checkNotNull(checkpoint.bar).samples.size)
+
+        val resumed = analyze(case.pipeline(), case.request(video))
+        val report = done(resumed.outcome).report
+        val bar = checkNotNull(BarTrackCodec.decode(TechniqueSidecars.barFile(video).readBytes()))
+        assertEquals("ningún fotograma repetido ni perdido", case.pts.size, bar.samples.size)
+        assertEquals(case.pts, bar.samples.map { it.tUs })
+        val errors = case.errorsOf(bar.samples)
+        assertTrue("pocas medidas: ${errors.size} de ${bar.samples.size}", errors.size >= bar.samples.size * 9 / 10)
+        assertTrue("error mediano ${fmt(errors[errors.size / 2])} px", errors[errors.size / 2] <= 3.0)
+        assertEquals(case.pts[149], stats.last().resumedFromPtsUs)
+        assertEquals("la semilla automática del primer intento se conserva", 500_000L, checkNotNull(bar.seed).tUs)
+        assertEquals(case.reps, report.repCount)
+        assertFalse(TechniqueSidecars.partFile(video).exists())
+    }
+
+    private companion object {
+        const val TIMEOUT_MS = 180_000L
+    }
+}

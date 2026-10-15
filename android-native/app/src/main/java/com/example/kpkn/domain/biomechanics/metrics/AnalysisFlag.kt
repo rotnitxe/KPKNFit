@@ -53,4 +53,10 @@ enum class AnalysisFlag {
      * un disco mal seguido. Es solo un aviso: la escala se sigue usando.
      */
     PLATE_SCALE_MISMATCH,
+
+    /**
+     * El vídeo se decodificó por el respaldo (`MediaMetadataRetriever`, VT4c): más lento y con tiempos que salen del índice, no del
+     * contenedor. El pipeline limita la confianza del conteo a MEDIA. Lo añade el data layer, no el motor.
+     */
+    DECODE_FALLBACK,
 }

@@ -242,12 +242,14 @@ class VideoFrameMathTest {
     // ---- Pool
 
     @Test
-    fun poolRotatesThreeDirectNativeOrderBuffers() {
+    fun poolRotatesFourDirectNativeOrderBuffers() {
+        // Con un Channel(2) llegan a estar vivos 2 + 2 fotogramas: el pool no puede tener menos de cuatro huecos (VT4c).
+        assertTrue(FramePool.SLOTS >= 2 + 2)
         val pool = FramePool(4, 2)
-        val first = pool.nextSlot()
-        val second = pool.nextSlot()
-        val third = pool.nextSlot()
-        assertEquals(setOf(0, 1, 2), setOf(first, second, third))
+        val taken = List(FramePool.SLOTS) { pool.nextSlot() }
+        assertEquals((0 until FramePool.SLOTS).toSet(), taken.toSet())
+        val first = taken[0]
+        val second = taken[1]
         assertEquals(first, pool.nextSlot()) // da la vuelta
         val buffer = pool.rgba(first)
         assertTrue(buffer.isDirect)
