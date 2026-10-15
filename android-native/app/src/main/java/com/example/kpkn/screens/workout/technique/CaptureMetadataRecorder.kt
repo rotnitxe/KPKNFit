@@ -6,15 +6,80 @@ import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
 import android.hardware.camera2.CameraCharacteristics
+import android.media.MediaMetadataRetriever
 import android.os.Build
+import android.view.Surface
 import androidx.camera.camera2.interop.Camera2CameraInfo
 import androidx.camera.core.CameraInfo
 import com.example.kpkn.data.media.technique.CaptureMetadata
 import com.example.kpkn.data.media.technique.CaptureMetadataFile
 import com.example.kpkn.data.media.technique.TechniqueSidecars
 import java.io.File
+import kotlin.math.abs
 import kotlin.math.atan2
 import kotlin.math.sqrt
+
+/**
+ * Calcula el ángulo de balanceo (roll) del móvil respecto al fotograma GRABADO (§4 «Convenios VT1b»).
+ *
+ * Fórmula: `wrap(atan2(gx, gy) - grados(targetRotation))` con convención VT1b:
+ * positivo si el contenido se ve girado en sentido horario (móvil inclinado en sentido antihorario).
+ * Si |roll| > 45°, devuelve null (otra orientación, no una mera inclinación).
+ */
+fun rollForFrameDeg(gx: Float, gy: Float, targetRotation: Int): Float? {
+    val targetDeg = when (targetRotation) {
+        Surface.ROTATION_0 -> 0.0
+        Surface.ROTATION_90 -> 90.0
+        Surface.ROTATION_180 -> 180.0
+        Surface.ROTATION_270 -> 270.0
+        90 -> 90.0
+        180 -> 180.0
+        270 -> 270.0
+        else -> 0.0
+    }
+    val rawDeg = Math.toDegrees(atan2(gx.toDouble(), gy.toDouble()))
+    val diff = wrap180(rawDeg - targetDeg)
+    if (abs(diff) > 45.0) return null
+    return diff.toFloat()
+}
+
+/**
+ * Normaliza un ángulo a (-180, 180].
+ */
+fun wrap180(degrees: Double): Double {
+    var d = degrees
+    while (d <= -180.0) d += 360.0
+    while (d > 180.0) d -= 360.0
+    return d
+}
+
+/**
+ * Calcula la distancia focal en píxeles del fotograma grabado:
+ * `f_px = (focalMm * videoLongEdgePx) / sensorLongEdgeMm`.
+ * Devuelve null si cualquiera de las dimensiones o la focal es <= 0.
+ */
+fun focalPx(focalMm: Float, sensorLongEdgeMm: Float, videoLongEdgePx: Float): Float? {
+    if (focalMm <= 0f || sensorLongEdgeMm <= 0f || videoLongEdgePx <= 0f) return null
+    return (focalMm * videoLongEdgePx) / sensorLongEdgeMm
+}
+
+/**
+ * Lee el lado largo (max(width, height)) del vídeo grabado directamente del archivo finalizado.
+ */
+fun readVideoLongEdgePx(videoFile: File): Float? {
+    if (!videoFile.exists() || videoFile.length() == 0L) return null
+    val retriever = MediaMetadataRetriever()
+    return try {
+        retriever.setDataSource(videoFile.absolutePath)
+        val w = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_WIDTH)?.toFloatOrNull() ?: return null
+        val h = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_HEIGHT)?.toFloatOrNull() ?: return null
+        maxOf(w, h).takeIf { it > 0f }
+    } catch (_: Exception) {
+        null
+    } finally {
+        runCatching { retriever.release() }
+    }
+}
 
 /**
  * Registra los metadatos de captura (§3.8 y §9 punto 6) durante la grabación:
@@ -38,13 +103,17 @@ class CaptureMetadataRecorder(
     private val pitchSamples = mutableListOf<Float>()
 
     @Volatile
+    private var activeTargetRotation: Int = Surface.ROTATION_0
+
+    @Volatile
     private var recordingStartedAtMs: Long? = null
 
     val currentRollDeg: Float?
         get() = synchronized(this) { rollSamples.lastOrNull() }
 
-    fun start() {
+    fun start(targetRotation: Int = Surface.ROTATION_0) {
         synchronized(this) {
+            activeTargetRotation = targetRotation
             rollSamples.clear()
             pitchSamples.clear()
             recordingStartedAtMs = System.currentTimeMillis()
@@ -54,13 +123,13 @@ class CaptureMetadataRecorder(
         }
     }
 
-    fun stop(): CaptureMetadata {
+    fun stop(videoLongEdgePx: Float? = null): CaptureMetadata {
         sensorManager?.unregisterListener(this)
         val (medianRoll, medianPitch, startedAt) = synchronized(this) {
             Triple(median(rollSamples), median(pitchSamples), recordingStartedAtMs)
         }
 
-        val focalPx = calculateFocalLengthPx()
+        val focalPx = calculateFocalLengthPx(videoLongEdgePx)
         val lensName = cameraInfo?.let { getLensName(it) } ?: "main"
         val model = "${Build.MANUFACTURER} ${Build.MODEL}".trim()
 
@@ -77,7 +146,8 @@ class CaptureMetadataRecorder(
     }
 
     fun save(videoFile: File): CaptureMetadata {
-        val metadata = stop()
+        val longEdge = readVideoLongEdgePx(videoFile)
+        val metadata = stop(longEdge)
         val captureFile = TechniqueSidecars.captureFile(videoFile)
         runCatching {
             CaptureMetadataFile.write(captureFile, metadata)
@@ -91,30 +161,31 @@ class CaptureMetadataRecorder(
         val gy = event.values[1]
         val gz = event.values[2]
 
-        // Roll: atan2(gx, -gy) en grados (VT1b: roll > 0 en sentido horario al inclinar la parte superior a la derecha)
-        val rollDeg = Math.toDegrees(atan2(gx.toDouble(), -gy.toDouble())).toFloat()
+        val targetRot = synchronized(this) { activeTargetRotation }
+        val rollDeg = rollForFrameDeg(gx, gy, targetRot)
         // Pitch: atan2(sqrt(gx^2 + gy^2), gz) en grados (~90° en vertical, 0° horizontal pantalla arriba)
         val pitchDeg = Math.toDegrees(atan2(sqrt((gx * gx + gy * gy).toDouble()), gz.toDouble())).toFloat()
 
         synchronized(this) {
-            rollSamples.add(rollDeg)
+            if (rollDeg != null) {
+                rollSamples.add(rollDeg)
+            }
             pitchSamples.add(pitchDeg)
         }
     }
 
     override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
 
-    private fun calculateFocalLengthPx(): Float? {
+    private fun calculateFocalLengthPx(recordedLongEdge: Float? = null): Float? {
         val info = cameraInfo ?: return null
         return try {
             val c2 = Camera2CameraInfo.from(info)
             val focals = c2.getCameraCharacteristic(CameraCharacteristics.LENS_INFO_AVAILABLE_FOCAL_LENGTHS)
             val focalMm = focals?.firstOrNull() ?: return null
             val sensorSize = c2.getCameraCharacteristic(CameraCharacteristics.SENSOR_INFO_PHYSICAL_SIZE) ?: return null
-            val recordedLongEdge = 1920f
+            val longEdge = recordedLongEdge ?: 1920f
             val sensorLongEdge = maxOf(sensorSize.width, sensorSize.height)
-            if (sensorLongEdge <= 0f) return null
-            (focalMm * recordedLongEdge) / sensorLongEdge
+            focalPx(focalMm, sensorLongEdge, longEdge)
         } catch (_: Exception) {
             null
         }
