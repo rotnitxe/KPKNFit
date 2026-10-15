@@ -30,8 +30,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.example.kpkn.data.models.*
-import com.example.kpkn.domain.calculations.calculateGeneralizedCapacity
-import com.example.kpkn.domain.calculations.calculateHybrid1RM
+import com.example.kpkn.domain.exercises.displayLabel
 import com.example.kpkn.domain.workout.warmupValidationMessages
 import com.example.kpkn.screens.onboarding.design.WizardColors
 import com.example.kpkn.screens.sessioneditor.EditorMiniField
@@ -264,7 +263,6 @@ internal fun ExerciseEditorExpanded(
                         }
                     }
                 }
-            }
 
             Text(
                 "SERIES EFECTIVAS",
