@@ -1,6 +1,8 @@
 package com.example.kpkn.screens.sessioneditor.components
 
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.test.hasSetTextAction
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
@@ -17,6 +19,7 @@ import com.example.kpkn.data.models.RepRange
 import com.example.kpkn.data.models.TrainingMode
 import com.example.kpkn.data.models.UnilateralTarget
 import com.example.kpkn.data.protocols.LoadBasis
+import androidx.compose.ui.unit.Density
 import com.example.kpkn.screens.sessioneditor.toggledBilateralUnilateral
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -149,6 +152,32 @@ class ExerciseSetListComposeTest {
         rule.onNode(hasSetTextAction()).performImeAction()
         assertEquals(3, saved?.targetRIR)
         assertEquals(RepRange(4, 6), saved?.targetRepsRange)
+    }
+
+    /** Con la letra grande, el tipo de carga pasa a rejilla 2 × 2 y sus cuatro celdas miden lo mismo (ER2a). */
+    @Test
+    fun laRejillaDelTipoDeCargaTieneCeldasIguales() {
+        rule.setContent {
+            val base = LocalDensity.current
+            CompositionLocalProvider(LocalDensity provides Density(base.density, fontScale = 1.6f)) {
+                ExerciseSetList(
+                    exercise = exerciseWith(ExerciseSet(id = "s1", targetReps = 8)),
+                    reference1RM = 100.0,
+                    trainingMode = TrainingMode.REPS,
+                    customUnit = null,
+                    predictedMetrics = emptyMap(),
+                    accentColor = accent,
+                    backgroundAccentColor = accent,
+                    onAddSet = {},
+                    onUpdateSet = { _, _ -> },
+                    onRemoveSet = {},
+                    onMoveSet = { _, _ -> },
+                )
+            }
+        }
+        openRow("s1")
+        val widths = (0..3).map { index -> rule.onNodeWithTag("load-type-$index").fetchSemanticsNode().size.width }
+        assertEquals(listOf(widths[0], widths[0], widths[0], widths[0]), widths)
     }
 
     /** Serie RM de prueba: 95 kg al 80 % de un 1RM de 120 kg, con el rango y el RIR que se indiquen. */

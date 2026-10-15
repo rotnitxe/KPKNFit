@@ -4,6 +4,7 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -13,6 +14,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -20,6 +22,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -53,6 +56,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.lerp
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -60,6 +64,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.rememberTextMeasurer
 import com.example.kpkn.data.models.*
 import com.example.kpkn.data.protocols.LoadBasis
@@ -82,6 +87,7 @@ import com.example.kpkn.ui.design.KpknChip
 import com.example.kpkn.ui.design.KpknNumberCell
 import com.example.kpkn.ui.design.KpknSegmentedControl
 import com.example.kpkn.ui.design.KpknSegmentedSize
+import com.example.kpkn.ui.design.KpknShape
 import com.example.kpkn.ui.design.KpknSurface
 import com.example.kpkn.ui.design.KpknType
 
@@ -468,15 +474,17 @@ internal fun InlineSetRow(
                     descriptions = spokenNames,
                 )
             } else {
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                // ER2a: las cuatro celdas ocupan todo el ancho y cada píldora llena la suya: miden lo mismo.
+                Column(modifier = Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     listOf(0 to 1, 2 to 3).forEach { (first, second) ->
-                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                             listOf(first, second).forEach { index ->
-                                KpknChip(
+                                LoadTypeCell(
                                     text = labels[index],
                                     selected = selectedIndex == index,
                                     onClick = { commitEditedField { current -> current.copy(loadModeV2 = loadOptions[index]) } },
                                     modifier = Modifier.weight(1f),
+                                    testTag = "load-type-$index",
                                 )
                             }
                         }
@@ -1043,6 +1051,55 @@ internal fun InlineSetRow(
                 EstimateBox()
                 TechniqueSection()
             }
+        }
+    }
+}
+
+/**
+ * Celda de la rejilla del tipo de carga (ER2a): la píldora de [KpknChip] con sus mismos tokens, pero ocupando toda su celda. Así las
+ * cuatro celdas miden lo mismo aunque cada rótulo tenga otra anchura.
+ */
+@Composable
+private fun LoadTypeCell(
+    text: String,
+    selected: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier,
+    testTag: String,
+) {
+    val interaction = remember { MutableInteractionSource() }
+    val ink = if (selected) WizardColors.ctaContent else WizardColors.text
+    val edge = if (selected) Color.Transparent else Color.White.copy(alpha = 0.08f)
+    Box(
+        modifier = modifier
+            .defaultMinSize(minHeight = 48.dp)
+            .testTag(testTag)
+            .selectable(
+                selected = selected,
+                interactionSource = interaction,
+                indication = null,
+                role = Role.RadioButton,
+                onClick = onClick,
+            ),
+        contentAlignment = Alignment.Center,
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(32.dp)
+                .clip(KpknShape.pill)
+                .background(if (selected) WizardColors.text else KpknSurface.inset, KpknShape.pill)
+                .border(width = 1.dp, color = edge, shape = KpknShape.pill)
+                .padding(horizontal = 6.dp),
+            contentAlignment = Alignment.Center,
+        ) {
+            Text(
+                text = text,
+                style = KpknType.chip,
+                color = ink,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
         }
     }
 }

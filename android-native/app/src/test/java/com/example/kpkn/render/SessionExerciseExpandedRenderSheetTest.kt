@@ -298,6 +298,28 @@ class SessionExerciseExpandedRenderSheetTest {
         }
     }
 
+    /** Tipo de carga de la serie abierta (ER2a): a letra grande pasa a rejilla 2 × 2 de celdas iguales. */
+    @Test
+    fun rejillaTipoDeCargaFilaAbierta() {
+        onlyWhenAsked()
+        renderSheet("rejilla_tipo_carga_abierta", openRowTag = "set-row-r1") {
+            ExerciseSetList(
+                exercise = repsExercise(repsSets()),
+                reference1RM = 100.0,
+                trainingMode = TrainingMode.REPS,
+                customUnit = null,
+                predictedMetrics = emptyMap(),
+                accentColor = accent,
+                backgroundAccentColor = accent,
+                onAddSet = {},
+                onUpdateSet = { _, _ -> },
+                onRemoveSet = {},
+                onMoveSet = { _, _ -> },
+                onTransformExercise = {},
+            )
+        }
+    }
+
     @Test
     fun unilateralFilaAbierta() {
         onlyWhenAsked()
