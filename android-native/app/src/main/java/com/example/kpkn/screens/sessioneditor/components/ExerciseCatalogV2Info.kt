@@ -92,3 +92,17 @@ internal fun resolveCatalogExerciseV2(
         legacyInfo = exactInfo,
     )
 }
+
+/**
+ * Implemento que nombra la línea bajo el título de la ficha (CF1): el elegido ahora y, si no hay ninguno, el de la configuración por defecto.
+ * «default» y los valores vacíos no cuentan. Usa el mismo rótulo que la tarjeta del catálogo.
+ */
+internal fun catalogFichaMaterialLabel(
+    selectedImplementation: String?,
+    defaultImplementation: String?,
+    definitionId: String,
+): String? {
+    val value = selectedImplementation?.takeIf { it.isNotBlank() && it != "default" }
+        ?: defaultImplementation?.takeIf { it.isNotBlank() && it != "default" }
+    return value?.let { exerciseCatalogOptionLabel(it, definitionId) }
+}
