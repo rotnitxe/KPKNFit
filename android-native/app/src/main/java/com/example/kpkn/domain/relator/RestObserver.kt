@@ -47,7 +47,7 @@ object RestObserver : RelatorObserver {
                 topic = RelatorTopic.REST,
                 priority = 70,
                 relevance = 0.9,
-                lines = padVariants(lines),
+                lines = realVariants(lines),
                 fingerprintBase = "REST:${context.progress.completedWorkingSets}",
                 actions = actions,
                 cooldownSets = 0,

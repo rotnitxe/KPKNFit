@@ -34,7 +34,7 @@ object SessionProgressObserver : RelatorObserver {
                 topic = RelatorTopic.SESSION_PROGRESS,
                 priority = 36,
                 relevance = 0.55,
-                lines = padVariants(lines),
+                lines = realVariants(lines),
                 fingerprintBase = "PROGRESS:${done}",
                 cooldownSets = 2,
             ),

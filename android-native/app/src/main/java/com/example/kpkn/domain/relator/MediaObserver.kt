@@ -47,7 +47,7 @@ object MediaObserver : RelatorObserver {
                 topic = RelatorTopic.MEDIA,
                 priority = 22,
                 relevance = if (pr) 0.8 else 0.4,
-                lines = padVariants(lines),
+                lines = realVariants(lines),
                 fingerprintBase = "MEDIA:${context.progress.completedWorkingSets}",
                 actions = actions,
                 cooldownSets = 3,

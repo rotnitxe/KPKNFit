@@ -65,6 +65,7 @@ object RelatorEngine {
                 setKey = context.setKey,
                 conceptId = line.spokenConceptId,
                 exerciseId = context.exerciseId,
+                variant = line.variant,
             )
         }
         return RelatorEngineResult(

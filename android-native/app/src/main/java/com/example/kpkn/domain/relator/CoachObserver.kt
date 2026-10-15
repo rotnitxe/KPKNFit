@@ -55,7 +55,7 @@ object CoachObserver : RelatorObserver {
                 topic = RelatorTopic.COACH,
                 priority = 28,
                 relevance = 0.45,
-                lines = padVariants(lines),
+                lines = realVariants(lines),
                 fingerprintBase = "COACH:${coach.key.orEmpty()}:${context.progress.completedWorkingSets}",
                 actions = actions,
                 cooldownSets = 3,

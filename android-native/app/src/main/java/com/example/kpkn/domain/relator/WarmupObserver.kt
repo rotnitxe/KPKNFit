@@ -48,7 +48,7 @@ object WarmupObserver : RelatorObserver {
                 topic = RelatorTopic.WARMUP,
                 priority = 48,
                 relevance = 0.75,
-                lines = padVariants(lines),
+                lines = realVariants(lines),
                 fingerprintBase = "WARMUP:${context.progress.completedWorkingSets}",
                 actions = actions,
                 cooldownSets = 1,

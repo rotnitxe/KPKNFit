@@ -217,6 +217,8 @@ data class RelatorLine(
     val fingerprint: String? = null,
     val spokenConceptId: String? = null,
     val actions: List<RelatorActionSpec> = emptyList(),
+    /** Índice de la frase elegida dentro del candidato (LR1h): el selector lo recuerda para rotar la siguiente vez. */
+    val variant: Int? = null,
 )
 
 data class RelatorEngineResult(

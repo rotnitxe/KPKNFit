@@ -42,7 +42,7 @@ object HistoryObserver : RelatorObserver {
                 topic = RelatorTopic.HISTORY,
                 priority = 40,
                 relevance = 0.7,
-                lines = padVariants(lines),
+                lines = realVariants(lines),
                 fingerprintBase = "HISTORY:${context.progress.completedWorkingSets}",
                 actions = listOf(
                     RelatorActionSpec(

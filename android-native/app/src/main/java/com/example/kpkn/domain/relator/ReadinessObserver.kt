@@ -51,7 +51,7 @@ object ReadinessObserver : RelatorObserver {
                 topic = RelatorTopic.READINESS,
                 priority = 64,
                 relevance = if (score < 55) 0.95 else 0.6,
-                lines = padVariants(lines),
+                lines = realVariants(lines),
                 fingerprintBase = "READINESS:${score}:$done",
                 actions = actions,
                 cooldownSets = 2,
