@@ -47,11 +47,14 @@ class KpknLineIconsTest {
         KpknLineIcons.Layers,
         KpknLineIcons.History,
         KpknLineIcons.Trash,
+        KpknLineIcons.FrameBack,
+        KpknLineIcons.FrameForward,
+        KpknLineIcons.Target,
     )
 
     @Test
     fun cadaIconoMide24PorVeinticuatroDp() {
-        assertEquals(37, iconos.size)
+        assertEquals(40, iconos.size)
         for (icono in iconos) {
             assertEquals("${icono.name}: ancho", 24.dp, icono.defaultWidth)
             assertEquals("${icono.name}: alto", 24.dp, icono.defaultHeight)
