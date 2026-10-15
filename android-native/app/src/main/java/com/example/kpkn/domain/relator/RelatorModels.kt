@@ -56,7 +56,6 @@ data class RelatorCandidate(
     val lines: List<String>,
     val fingerprintBase: String,
     val actions: List<RelatorActionSpec> = emptyList(),
-    val openers: List<String> = emptyList(),
     val cooldownSets: Int = 0,
     val ttlSets: Int = 1,
     val isReaction: Boolean = false,
@@ -102,6 +101,11 @@ data class RelatorProgressSlice(
     val minutesAhead: Int? = null,
     val nextExerciseName: String? = null,
     val nextSuggestedKg: Double? = null,
+    /** Número (1-based) de la serie que toca del mismo ejercicio; null si ya no quedan. */
+    val nextSetNumber: Int? = null,
+    val nextSetTotal: Int? = null,
+    val nextSetWeightKg: Double? = null,
+    val nextSetReps: Int? = null,
 )
 
 data class RelatorRestSlice(
@@ -163,6 +167,8 @@ data class RelatorContext(
     val idleCycle: Int = 0,
     val feminine: Boolean = false,
     val visible: Boolean = true,
+    /** Momento que el reloj ha decidido (LR1g). Null fuera del reloj: el motor usa todos los temas. */
+    val moment: RelatorMoment? = null,
     val phase: RelatorSessionPhase = RelatorSessionPhase.WORKING,
     val exerciseId: String = "",
     val exerciseName: String = "",
@@ -219,12 +225,32 @@ data class RelatorEngineResult(
     val longTermMemory: RelatorLongTermMemory,
 )
 
-internal const val RELATOR_LINE_MAX_CHARS = 140
+internal const val RELATOR_LINE_MAX_CHARS = 90
+
+/** Kilos en una frase: «97,5 kg», con espacio inseparable antes de «kg» (LR1g). */
+internal fun relatorKg(value: Double): String = "${formatRelatorKg(value)} kg"
+
+/** Serie en una frase: «95 kg × 6» (LR1g). Sin reps, solo el peso. */
+internal fun relatorSetMark(weightKg: Double, reps: Int): String =
+    if (reps > 0) "${relatorKg(weightKg)} × $reps" else relatorKg(weightKg)
+
+/** Porcentaje en una frase: «82 %», con espacio inseparable (LR1g). */
+internal fun relatorPercent(value: Double): String = "${formatRelatorKg(value)} %"
+
+/** Tiempo en una frase, como KpknSetFormat.doseTime: «3:15» o «45 s» (LR1g). */
+internal fun relatorDoseTime(seconds: Int): String {
+    val safe = seconds.coerceAtLeast(0)
+    return if (safe < 60) {
+        "$safe s"
+    } else {
+        "${safe / 60}:${(safe % 60).toString().padStart(2, '0')}"
+    }
+}
 
 internal fun formatRelatorKg(value: Double): String {
     val scaled = kotlin.math.round(value * 10.0) / 10.0
     val asLong = scaled.toLong()
-    return if (kotlin.math.abs(scaled - asLong) < 1e-6) asLong.toString() else scaled.toString()
+    return if (kotlin.math.abs(scaled - asLong) < 1e-6) asLong.toString() else scaled.toString().replace('.', ',')
 }
 
 internal fun RelatorContext.shortExerciseName(): String {

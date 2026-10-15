@@ -173,7 +173,14 @@ internal fun firstWorkingSetMemory(sets: List<CompletedSet>): RelatorSessionSetM
     )
 }
 
+/** Número para una frase del relator: coma decimal y sin ceros sobrantes («97,5», «8»). */
+internal fun formatRelatorNumber(value: Double): String = formatRelatorLoad(value).replace('.', ',')
+
+/** Kilos para una frase del relator: coma decimal y espacio inseparable antes de la unidad. */
+internal fun formatRelatorKgText(value: Double): String = "${formatRelatorNumber(value)}\u00A0kg"
+
+/** Marca de una serie: «peso kg × reps», con espacio inseparable antes de «kg» y espacios a los lados del signo. Sin reps, solo el peso. */
 internal fun formatRelatorSetMark(set: RelatorSessionSetMemory): String {
-    val kg = formatRelatorLoad(set.weightKg)
-    return if (set.reps > 0) "$kg×${set.reps}" else "$kg kg"
+    val kg = formatRelatorKgText(set.weightKg)
+    return if (set.reps > 0) "$kg × ${set.reps}" else kg
 }

@@ -31,7 +31,7 @@ object RelatorEngine {
             )
         }
         val observed = observers.flatMap { observer -> observer.observe(context) }
-        val candidates = extraCandidates + observed
+        val candidates = preferForMoment(extraCandidates + observed, context.moment)
         val selected = RelatorSelector.select(
             candidates = candidates,
             state = selectorState,
@@ -72,5 +72,16 @@ object RelatorEngine {
             selectorState = nextState,
             longTermMemory = committedMemory,
         )
+    }
+
+    /**
+     * Con un momento (LR1g), el motor prefiere los temas de ese momento. Si ninguno tiene frase, usa todos. Los
+     * candidatos que sostienen el mensaje anterior pasan siempre.
+     */
+    internal fun preferForMoment(candidates: List<RelatorCandidate>, moment: RelatorMoment?): List<RelatorCandidate> {
+        if (moment == null) return candidates
+        val preferred = candidates.filter { it.topic in moment.topics }
+        if (preferred.isEmpty()) return candidates
+        return preferred + candidates.filter { it.holdPrevious && it.topic !in moment.topics }
     }
 }

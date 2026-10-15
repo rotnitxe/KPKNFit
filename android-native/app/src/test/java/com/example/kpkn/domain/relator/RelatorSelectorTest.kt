@@ -15,14 +15,18 @@ class RelatorSelectorTest {
         assertNotEquals(a, c)
     }
 
+    /**
+     * LR1g: ya no se evita el tema anterior. Dentro de un momento gana la prioridad y la relevancia, sin mirar lo
+     * que se dijo antes; la variedad sale entre series, por las huellas.
+     */
     @Test
-    fun does_not_repeat_topic_unless_reaction() {
+    fun keeps_priority_even_when_topic_repeats() {
         val ctx = relatorContext(setKey = "ex_2")
         val plan = PlanObserver.observe(ctx).first()
         val history = HistoryObserver.observe(ctx).first()
         val state = RelatorSelectorState(lastTopic = RelatorTopic.PLAN, setsSeen = 3)
         val picked = RelatorSelector.select(listOf(plan, history), state, ctx, RelatorLongTermMemory())
-        assertEquals(RelatorTopic.HISTORY, picked?.topic)
+        assertEquals(RelatorTopic.PLAN, picked?.topic)
     }
 
     @Test

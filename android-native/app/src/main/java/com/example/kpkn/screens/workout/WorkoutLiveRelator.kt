@@ -7,9 +7,7 @@ import com.example.kpkn.domain.concepts.RelatorConceptCue
 import com.example.kpkn.domain.concepts.RelatorConceptSignals
 import com.example.kpkn.domain.concepts.pickRelatorConceptCue
 
-internal const val RELATOR_MAX_LINE_CHARS = 140 // two-line visual budget; UI wraps, copy keeps the name
-internal const val RELATOR_DEBOUNCE_MS = 400L
-internal const val RELATOR_IDLE_ROTATE_MS = 28_000L
+internal const val RELATOR_MAX_LINE_CHARS = 90 // una idea por frase, como mucho 90 caracteres (LR1g)
 internal const val RELATOR_ASSIST_CONFIRM_MS = 3_500L
 
 internal enum class RelatorPhase {

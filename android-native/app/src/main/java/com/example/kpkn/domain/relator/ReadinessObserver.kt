@@ -7,14 +7,14 @@ object ReadinessObserver : RelatorObserver {
         if (score >= 75 && r.preWorkoutDiscomforts.isEmpty() && (r.doms ?: 1) < 4) return emptyList()
         val done = context.progress.completedWorkingSets
         val lines = buildList {
-            r.dailyLabel?.let { add("Readiness de hoy: $it ($score). {ex} nota ese suelo.") }
+            r.dailyLabel?.let { add("Disponibilidad de hoy: $it ($score). {ex} necesita ese margen.") }
             add("Disponibilidad $score/100. Ajusta {ex} si el gesto se ensucia.")
-            r.limitingFactor?.let { add("El cuello de botella es $it. Cuida {ex}.") }
-            r.muscleDrainLabel?.let { add("Drenaje: $it. No aprietes {ex} de más.") }
+            r.limitingFactor?.let { add("El punto débil de hoy es $it. Cuida {ex}.") }
+            r.muscleDrainLabel?.let { add("Fatiga acumulada: $it. No aprietes {ex} de más.") }
             if ((r.doms ?: 0) >= 4) add("Agujetas altas. {ex} pide recorte o rango limpio.")
             if ((r.sleepQuality ?: 3) <= 2) add("Sueño flojo (${r.sleepQuality}/5). Baja un punto {ex}.")
             if ((r.stressLevel ?: 3) >= 4) add("Estrés alto. Autoregula {ex} a la baja.")
-            r.preWorkoutDiscomforts.firstOrNull()?.let { add("Molestia previa: $it. Abre readiness o sustituye {ex}.") }
+            r.preWorkoutDiscomforts.firstOrNull()?.let { add("Molestia previa: $it. Mira la disponibilidad o sustituye {ex}.") }
         }
         val actions = buildList {
             if (score < 60) {
@@ -40,8 +40,8 @@ object ReadinessObserver : RelatorObserver {
             add(
                 RelatorActionSpec(
                     kind = RelatorActionKind.OPEN_READINESS,
-                    label = "Ver readiness",
-                    span = "Ver readiness",
+                    label = "Ver disponibilidad",
+                    span = "Ver disponibilidad",
                     exerciseId = context.exerciseId,
                 ),
             )
@@ -55,7 +55,6 @@ object ReadinessObserver : RelatorObserver {
                 fingerprintBase = "READINESS:${score}:$done",
                 actions = actions,
                 cooldownSets = 2,
-                openers = listOf("Ojo", "Hoy"),
             ),
         )
     }

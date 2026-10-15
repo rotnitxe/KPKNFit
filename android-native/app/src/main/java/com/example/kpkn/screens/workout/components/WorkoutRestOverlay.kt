@@ -14,6 +14,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
@@ -189,7 +190,12 @@ private fun FeedbackContent(
             .statusBarsPadding()
             .navigationBarsPadding()
             .verticalScroll(scrollState)
-            .padding(horizontal = WorkoutUiTokens.ScreenHorizontalPadding, vertical = 24.dp),
+            .padding(
+                start = WorkoutUiTokens.ScreenHorizontalPadding,
+                end = WorkoutUiTokens.ScreenHorizontalPadding,
+                top = 8.dp,
+                bottom = 24.dp,
+            ),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         RestOverlayRelatorLine(
@@ -212,7 +218,7 @@ private fun FeedbackContent(
         }
 
         if (showTimerChrome) {
-            Spacer(Modifier.height(8.dp))
+            Spacer(Modifier.height(16.dp))
 
             // Shrink ANIMADO: entra con el tamaño del timer de descanso normal (204.dp)
             // y colapsa a su tamaño compacto mientras aparece el panel de feedback.
@@ -340,92 +346,99 @@ private fun NormalRestContent(
             .statusBarsPadding()
             .navigationBarsPadding()
             .verticalScroll(rememberScrollState())
-            .padding(horizontal = WorkoutUiTokens.ScreenHorizontalPadding, vertical = 24.dp),
+            .padding(
+                start = WorkoutUiTokens.ScreenHorizontalPadding,
+                end = WorkoutUiTokens.ScreenHorizontalPadding,
+                top = 8.dp,
+                bottom = 24.dp,
+            ),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(20.dp),
     ) {
-        Spacer(Modifier.height(10.dp))
-
-        RestOverlayRelatorLine(
-            text = relatorText,
-            phaseKey = relatorPhaseKey,
-            actions = relatorActions,
-            onAction = onRelatorAction,
-            accentColor = sessionAccentColor,
-        )
-
-        if (onMinimize != null) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.End,
-            ) {
+        // Asa de minimizar centrada arriba; el relator a 12 dp de ella y el aro a 16 dp del relator (LR1g).
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            if (onMinimize != null) {
                 KpknIconButton(
                     icon = KpknLineIcons.ChevronDown,
                     contentDescription = "Minimizar",
                     onClick = onMinimize,
                 )
-            }
-        }
-
-        Box(
-            modifier = Modifier.size(204.dp),
-            contentAlignment = Alignment.Center,
-        ) {
-            Canvas(modifier = Modifier.matchParentSize()) {
-                // Aro de 10 dp: pista blanca al 8 % y progreso en el acento de progreso (LR1a).
-                val sw = 10.dp.toPx()
-                val center = Offset(size.width / 2f, size.height / 2f)
-
-                val outerRadius = (size.minDimension - sw) / 2f
-                val outerRect = Size(outerRadius * 2f, outerRadius * 2f)
-
-                drawArc(
-                    color = Color.White.copy(alpha = 0.08f),
-                    startAngle = -90f,
-                    sweepAngle = 360f,
-                    useCenter = false,
-                    topLeft = Offset(center.x - outerRadius, center.y - outerRadius),
-                    size = outerRect,
-                    style = Stroke(sw, cap = StrokeCap.Round),
-                )
-
-                drawArc(
-                    color = SymbolPalette.musculo,
-                    startAngle = -90f,
-                    sweepAngle = 360f * timerProgress,
-                    useCenter = false,
-                    topLeft = Offset(center.x - outerRadius, center.y - outerRadius),
-                    size = outerRect,
-                    style = Stroke(sw, cap = StrokeCap.Round),
-                )
+                Spacer(Modifier.height(12.dp))
             }
 
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center,
-                modifier = Modifier.padding(24.dp)
+            RestOverlayRelatorLine(
+                text = relatorText,
+                phaseKey = relatorPhaseKey,
+                actions = relatorActions,
+                onAction = onRelatorAction,
+                accentColor = sessionAccentColor,
+            )
+
+            Spacer(Modifier.height(16.dp))
+
+            Box(
+                modifier = Modifier.size(204.dp).testTag("lr1g-aro"),
+                contentAlignment = Alignment.Center,
             ) {
-                RestClockText(
-                    text = formatRestClock(remainingSeconds.coerceAtLeast(0)),
-                    maxFontSize = 46.sp,
-                )
-                Spacer(Modifier.height(2.dp))
-                Text(
-                    text = restKindText(state.kind).uppercase(),
-                    style = KpknType.eyebrow,
-                    color = WizardColors.textMuted,
-                )
+                Canvas(modifier = Modifier.matchParentSize()) {
+                    // Aro de 10 dp: pista blanca al 8 % y progreso en el acento de progreso (LR1a).
+                    val sw = 10.dp.toPx()
+                    val center = Offset(size.width / 2f, size.height / 2f)
 
-                if (state.exerciseName.isNotBlank()) {
-                    Spacer(Modifier.height(4.dp))
-                    Text(
-                        text = state.exerciseName,
-                        style = KpknType.body,
-                        color = WizardColors.textMuted,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier.widthIn(max = 140.dp)
+                    val outerRadius = (size.minDimension - sw) / 2f
+                    val outerRect = Size(outerRadius * 2f, outerRadius * 2f)
+
+                    drawArc(
+                        color = Color.White.copy(alpha = 0.08f),
+                        startAngle = -90f,
+                        sweepAngle = 360f,
+                        useCenter = false,
+                        topLeft = Offset(center.x - outerRadius, center.y - outerRadius),
+                        size = outerRect,
+                        style = Stroke(sw, cap = StrokeCap.Round),
                     )
+
+                    drawArc(
+                        color = SymbolPalette.musculo,
+                        startAngle = -90f,
+                        sweepAngle = 360f * timerProgress,
+                        useCenter = false,
+                        topLeft = Offset(center.x - outerRadius, center.y - outerRadius),
+                        size = outerRect,
+                        style = Stroke(sw, cap = StrokeCap.Round),
+                    )
+                }
+
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center,
+                    modifier = Modifier.padding(24.dp)
+                ) {
+                    RestClockText(
+                        text = formatRestClock(remainingSeconds.coerceAtLeast(0)),
+                        maxFontSize = 46.sp,
+                    )
+                    Spacer(Modifier.height(2.dp))
+                    Text(
+                        text = restKindText(state.kind).uppercase(),
+                        style = KpknType.eyebrow,
+                        color = WizardColors.textMuted,
+                    )
+
+                    if (state.exerciseName.isNotBlank()) {
+                        Spacer(Modifier.height(4.dp))
+                        Text(
+                            text = state.exerciseName,
+                            style = KpknType.body,
+                            color = WizardColors.textMuted,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier.widthIn(max = 140.dp)
+                        )
+                    }
                 }
             }
         }

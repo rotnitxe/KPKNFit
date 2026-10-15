@@ -397,10 +397,16 @@ internal fun LivePagerCardFrame(
     val scaleY = scale * WorkoutUiTokens.LivePagerCardHeightGrowFactor
     val slotHeight = WorkoutUiTokens.effectiveLivePagerStableHeight()
     val baseHeight = WorkoutUiTokens.LivePagerNormalExpandedBaseHeight
+    val density = LocalDensity.current
+    // Banda del relator (LR1g): la tarjeta empieza justo debajo y el margen sale de la misma fórmula que la banda.
+    val relatorBand = WorkoutUiTokens.liveRelatorBandHeight(density)
     val topNudgeFraction = policy.topNudgeFraction
     val topNudge = slotHeight * topNudgeFraction + WorkoutUiTokens.LivePagerRelatorClearance
     if (!allowContentExpansion) {
         val widthFraction = if (scaleX >= 1f) (1f / scaleX).coerceIn(0.01f, 1f) else 1f
+        // El borde inferior de la tarjeta se queda donde estaba: la tarjeta crece por arriba lo que ahorra la banda.
+        val cardBottom = topNudge + baseHeight * scaleY
+        val cardScaleY = ((cardBottom - relatorBand) / baseHeight).coerceAtLeast(0.01f)
         Box(
             modifier = modifier
                 .fillMaxWidth()
@@ -409,27 +415,20 @@ internal fun LivePagerCardFrame(
         ) {
             Box(
                 modifier = Modifier
-                    .padding(top = topNudge)
+                    .padding(top = relatorBand)
                     .fillMaxWidth(widthFraction)
                     .height(baseHeight)
-                    .then(
-                        if (kotlin.math.abs(scaleX - scaleY) < 0.001f) {
-                            Modifier.scale(scaleX)
-                        } else {
-                            Modifier.graphicsLayer {
-                                this.scaleX = scaleX
-                                this.scaleY = scaleY
-                                transformOrigin = TransformOrigin(0.5f, 0f)
-                            }
-                        },
-                    ),
+                    .graphicsLayer {
+                        this.scaleX = scaleX
+                        this.scaleY = cardScaleY
+                        transformOrigin = TransformOrigin(0.5f, 0f)
+                    },
                 content = content,
             )
         }
         return
     }
 
-    val density = LocalDensity.current
     val workingSetHeightHolder = LocalLivePagerWorkingSetVisualHeightPx.current
     val workingSetHeightPx = workingSetHeightHolder?.intValue ?: 0
     val lockHeightPx = if (lockToWorkingSetHeight) workingSetHeightPx else 0
@@ -498,17 +497,23 @@ internal fun LivePagerCardFrame(
         }
         val unscaledHeight = if (lockHeightPx > 0) lockHeightPx else placeable.height
         val scaledHeight = (unscaledHeight * scaleY).roundToInt()
+        // Borde inferior de siempre (no se mueve): la tarjeta empieza bajo la banda del relator y crece por arriba
+        // lo que ahorra (LR1g). Así el ✓ y el cajón quedan igual que antes, y el hueco es el mismo en serie y descanso.
         val topNudgePx = (scaledHeight * topNudgeFraction).roundToInt() +
             WorkoutUiTokens.LivePagerRelatorClearance.roundToPx()
-        val layoutHeight = scaledHeight + topNudgePx
+        val footPx = scaledHeight + topNudgePx
+        val bandPx = relatorBand.roundToPx()
+        val cardPx = (footPx - bandPx).coerceAtLeast(1)
+        val cardScaleY = if (unscaledHeight > 0) cardPx.toFloat() / unscaledHeight else scaleY
+        val layoutHeight = footPx
 
         layout(layoutWidth, layoutHeight) {
             placeable.placeRelativeWithLayer(
                 x = ((layoutWidth - scaledWidth) / 2f).roundToInt(),
-                y = topNudgePx,
+                y = bandPx,
             ) {
                 this.scaleX = scaleX
-                this.scaleY = scaleY
+                this.scaleY = cardScaleY
                 transformOrigin = TransformOrigin(0f, 0f)
                 clip = lockToWorkingSetHeight
             }

@@ -1,17 +1,10 @@
 package com.example.kpkn.domain.relator
 
 object RelatorComposer {
-    val OPENERS: List<String> = listOf(
-        "Ahora",
-        "Ojo",
-        "Dato",
-        "Plan",
-        "Siguiente",
-        "Hoy",
-        "Carga",
-        "Recuerda",
-    )
-
+    /**
+     * Compone la frase de un candidato. Sin rótulos (LR1g): si una frase necesita contexto, va dentro de la frase.
+     * La elección es determinista dentro de un momento; la variedad sale entre series, por las huellas del selector.
+     */
     fun compose(
         candidate: RelatorCandidate,
         context: RelatorContext,
@@ -33,16 +26,9 @@ object RelatorComposer {
         val seed = RelatorSelector.deterministicSeed(context.sessionId, context.setKey, context.idleCycle)
         val variant = RelatorSelector.variantIndex(candidate, seed, state)
         val core = candidate.lines.getOrElse(variant) { candidate.lines.firstOrNull().orEmpty() }
-        val opener = pickOpener(candidate, context, longTerm, seed)
         val voice = RelatorVoiceWords.of(context.feminine)
-        val renderedCore = applyVoiceAndName(core, context.shortExerciseName(), voice, candidate.actions)
-        val withOpener = if (opener != null && !context.userReacted && context.idleCycle > 0) {
-            "$opener: $renderedCore"
-        } else {
-            renderedCore
-        }
-        val clipped = clipToBudget(withOpener, candidate.actions.map { it.span.ifBlank { it.label } })
-        val nextMemory = if (opener != null) longTerm.recordOpener(opener) else longTerm
+        val rendered = applyVoiceAndName(core, context.shortExerciseName(), voice, candidate.actions)
+        val clipped = clipToBudget(rendered, candidate.actions.map { it.span.ifBlank { it.label } })
         return RelatorLine(
             text = clipped.takeIf { it.isNotBlank() },
             holdPrevious = false,
@@ -51,23 +37,7 @@ object RelatorComposer {
             fingerprint = RelatorSelector.fingerprint(candidate, variant),
             spokenConceptId = candidate.spokenConceptId,
             actions = candidate.actions,
-        ) to nextMemory
-    }
-
-    private fun pickOpener(
-        candidate: RelatorCandidate,
-        context: RelatorContext,
-        longTerm: RelatorLongTermMemory,
-        seed: Int,
-    ): String? {
-        if (candidate.isReaction) return null
-        if (candidate.topic == RelatorTopic.STRUCTURE_ASSIST) return null
-        val pool = candidate.openers.ifEmpty { OPENERS }
-        val unused = pool.filter { it !in longTerm.openersUsed.takeLast(4) }
-        val source = unused.ifEmpty { pool }
-        if (source.isEmpty()) return null
-        val idx = kotlin.math.abs(seed / 7) % source.size
-        return source[idx]
+        ) to longTerm
     }
 
     private fun applyVoiceAndName(

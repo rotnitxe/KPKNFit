@@ -9,6 +9,10 @@ object RelatorSelector {
         return hash
     }
 
+    /**
+     * Elige el candidato del momento (LR1g): sin jitter y sin evitar el tema anterior. Solo cuentan la prioridad, la
+     * relevancia, el enfriamiento por series y las huellas usadas, así que dentro de un mismo momento sale siempre lo mismo.
+     */
     fun select(
         candidates: List<RelatorCandidate>,
         state: RelatorSelectorState,
@@ -26,24 +30,17 @@ object RelatorSelector {
                 passesConceptMemory(candidate, state, context, longTerm, nowEpochDay)
         }
         val pool = eligible.ifEmpty { candidates.filter { it.isReaction } }.ifEmpty { candidates }
-        val withoutRepeatTopic = if (context.userReacted) {
-            pool
-        } else {
-            pool.filter { it.topic != state.lastTopic || it.isReaction }
-        }.ifEmpty { pool }
-
-        val unused = withoutRepeatTopic.filter { candidate ->
+        val unused = pool.filter { candidate ->
             fingerprint(candidate, variantIndex(candidate, seed, state)) !in state.fingerprints
         }
-        val scored = (unused.ifEmpty { withoutRepeatTopic }).maxWithOrNull { a, b ->
-            val sa = score(a, seed, state)
-            val sb = score(b, seed, state)
-            sa.compareTo(sb).let { cmp ->
-                if (cmp != 0) cmp else fingerprint(a, variantIndex(a, seed, state))
-                    .compareTo(fingerprint(b, variantIndex(b, seed, state)))
+        return (unused.ifEmpty { pool }).maxWithOrNull { a, b ->
+            val cmp = score(a, seed, state).compareTo(score(b, seed, state))
+            if (cmp != 0) {
+                cmp
+            } else {
+                fingerprint(a, variantIndex(a, seed, state)).compareTo(fingerprint(b, variantIndex(b, seed, state)))
             }
         }
-        return scored
     }
 
     fun fingerprint(candidate: RelatorCandidate, variantIndex: Int): String {
@@ -75,8 +72,7 @@ object RelatorSelector {
         } else {
             0.0
         }
-        val jitter = ((seed xor candidate.fingerprintBase.hashCode()) and 0xff) / 255.0
-        return candidate.priority + candidate.relevance * 10.0 + unusedBonus + jitter
+        return candidate.priority + candidate.relevance * 10.0 + unusedBonus
     }
 
     private fun passesCooldown(

@@ -41,8 +41,8 @@ object PlanObserver : RelatorObserver {
                 add(
                     RelatorActionSpec(
                         kind = RelatorActionKind.APPLY_SUGGESTED_LOAD,
-                        label = "Usa ${formatRelatorKg(kg)} kg",
-                        span = "Usa ${formatRelatorKg(kg)} kg",
+                        label = "Usa ${formatRelatorKg(kg)}\u00A0kg",
+                        span = "Usa ${formatRelatorKg(kg)}\u00A0kg",
                         exerciseId = context.exerciseId,
                         setIndex = context.setIndex,
                         weightKg = kg,
@@ -59,7 +59,6 @@ object PlanObserver : RelatorObserver {
                 fingerprintBase = "PLAN:${context.progress.completedWorkingSets}",
                 actions = actions,
                 cooldownSets = 2,
-                openers = listOf("Plan", "Hoy", "Carga"),
             ),
         )
     }
@@ -75,12 +74,9 @@ object PlanObserver : RelatorObserver {
         }
         val sets = context.setCount.coerceAtLeast(1)
         val reps = context.targetReps?.toString() ?: "—"
-        val pct = context.targetPercentageRm?.let { "${formatRelatorKg(it)} %" } 
-        val kg = (context.prescribedWeightKg ?: context.suggestedWeightKg)?.let { "≈ ${formatRelatorKg(it)} kg" }
-        val scheme = listOfNotNull("$sets×$reps", pct, kg).joinToString(" ")
-        val serie = context.setIndex + 1
-        val done = context.progress.completedWorkingSets
-        return "$label de {ex}, $scheme (serie $serie/$sets, $done hechas)."
+        val kg = (context.prescribedWeightKg ?: context.suggestedWeightKg)?.let { "≈ ${relatorKg(it)}" }
+        val scheme = listOfNotNull("$sets series de $reps", kg).joinToString(", ")
+        return "$label de {ex}: $scheme."
     }
 
     private fun schemeLine(context: RelatorContext): String? {
@@ -93,9 +89,9 @@ object PlanObserver : RelatorObserver {
             LoadBasis.PERCENT_OF_TOP_SET -> "top set"
             else -> null
         }
-        val kgPart = kg?.let { " ≈ ${formatRelatorKg(it)} kg" }.orEmpty()
+        val kgPart = kg?.let { " ≈ ${relatorKg(it)}" }.orEmpty()
         val basisPart = basis?.let { " del $it" }.orEmpty()
-        return "{ex} va al ${formatRelatorKg(pct)} %$basisPart$kgPart."
+        return "{ex} va al ${relatorPercent(pct)}$basisPart$kgPart."
     }
 
     private const val GENERIC_AMRAP_LINE = "AMRAP de {ex}: deja 1 limpia; no caces el fallo si no es el test."
@@ -120,33 +116,33 @@ object PlanObserver : RelatorObserver {
         if (percent == null || percent < ProgramAutoregulationEngine.AMRAP_TM_MIN_PERCENT) return GENERIC_AMRAP_LINE
         val raise = when {
             rule.fourToFiveKg > 0.0 && rule.sixPlusKg > 0.0 ->
-                "con 4 o 5 reps el TM sube ${kgText(rule.fourToFiveKg)} kg y con 6 o más, ${kgText(rule.sixPlusKg)} kg"
-            rule.sixPlusKg > 0.0 -> "con 6 o más reps el TM sube ${kgText(rule.sixPlusKg)} kg"
-            rule.fourToFiveKg > 0.0 -> "con 4 o 5 reps el TM sube ${kgText(rule.fourToFiveKg)} kg"
+                "TM +${kgText(rule.fourToFiveKg)}\u00A0kg con 4-5 reps; +${kgText(rule.sixPlusKg)}\u00A0kg con 6+"
+            rule.sixPlusKg > 0.0 -> "TM +${kgText(rule.sixPlusKg)}\u00A0kg con 6+ reps"
+            rule.fourToFiveKg > 0.0 -> "TM +${kgText(rule.fourToFiveKg)}\u00A0kg con 4-5 reps"
             else -> return GENERIC_AMRAP_LINE
         }
-        return "AMRAP de {ex}: para con 1 limpia en reserva salvo PR; $raise."
+        return "AMRAP de {ex}: 1 limpia en reserva salvo PR. $raise."
     }
 
     /** `RepTargetDrivenTm`: el porcentaje por repetición sobre el objetivo y por repetición que falta. */
     private fun repTargetLine(rule: ProgressionRule.RepTargetDrivenTm): String {
         if (rule.extraRepPercent <= 0.0) return GENERIC_AMRAP_LINE
         val miss = if (rule.missedRepPercent > 0.0) {
-            "; si te faltan ${rule.missThreshold} o más, baja un ${kgText(rule.missedRepPercent)} % por rep"
+            " Si faltan ${rule.missThreshold} o más, baja ${kgText(rule.missedRepPercent)} % por rep."
         } else {
             ""
         }
-        return "AMRAP de {ex}: cada rep sobre el objetivo sube el TM un ${kgText(rule.extraRepPercent)} %$miss."
+        return "AMRAP de {ex}: cada rep extra sube el TM ${kgText(rule.extraRepPercent)} %.$miss"
     }
 
     /** `62.5` → «62,5», `5.0` → «5»: coma decimal y sin ceros sobrantes. */
-    private fun kgText(value: Double): String = NativeProgressionText.formatKg(value)
+    private fun kgText(value: Double): String = NativeProgressionText.formatKg(value).replace('.', ',')
 
     private fun topSetLine(context: RelatorContext): String? {
         if (!context.isTopSet) return null
-        val kg = (context.prescribedWeightKg ?: context.suggestedWeightKg)?.let { formatRelatorKg(it) }
+        val kg = (context.prescribedWeightKg ?: context.suggestedWeightKg)?.let { relatorKg(it) }
         return if (kg != null) {
-            "Top set de {ex} a $kg kg. Calidad sobre ego."
+            "Top set de {ex} a $kg. Calidad antes que ego."
         } else {
             "Esta es la serie pesada de {ex}. Una limpia vale más que forzar."
         }
@@ -155,7 +151,7 @@ object PlanObserver : RelatorObserver {
     private fun techniqueLine(context: RelatorContext): String? {
         val modifier = context.techniqueModifier ?: return null
         return when (modifier) {
-            TechniqueModifier.PAUSE_2S -> "Pausa 2 s abajo en {ex}. Cuenta quieto antes de subir."
+            TechniqueModifier.PAUSE_2S -> "Pausa 2 s abajo en {ex}. Cuenta quieto antes de subir."
             TechniqueModifier.TEMPO_3_0_3 -> "Tempo 3-0-3 en {ex}: baja 3, sin rebote, sube 3."
             else -> "${modifier.displayName()} en {ex}. Ese detalle es el estímulo."
         }
@@ -171,15 +167,15 @@ object PlanObserver : RelatorObserver {
 
     private fun competitionLine(context: RelatorContext): String? {
         if (!context.isCompetitionLift) return null
-        return "Lift de competición: cues de plataforma en {ex}. Pausas, marcas y jueces importan."
+        return "Competición: cuida la plataforma en {ex}. Pausas y jueces importan."
     }
 
     private fun protocolLine(context: RelatorContext): String? {
         val id = context.plan.sourceProtocolId?.lowercase() ?: return null
-        val pct = context.targetPercentageRm?.let { formatRelatorKg(it) }
+        val pct = context.targetPercentageRm?.let { relatorPercent(it) }
         return when {
             id.contains("smolov") && pct != null ->
-                "Smolov: {ex} al $pct % 1RM. El volumen es el estímulo."
+                "Smolov: {ex} al $pct 1RM. El volumen es el estímulo."
             id.contains("westside") || context.loadBasis == LoadBasis.REP_MAX ->
                 "Westside ME: {ex} busca un RM limpio. Cero reps sucias."
             id.contains("531") && context.isAmrap ->
@@ -191,7 +187,7 @@ object PlanObserver : RelatorObserver {
     private fun autoregLine(context: RelatorContext): String? {
         return when (context.plan.autoregulationMode) {
             AutoregulationMode.PROPOSE -> "Autorregulación propone: mira la carga de {ex} y confirma."
-            AutoregulationMode.AUTO -> "Autorregulación auto: {ex} ya viene ajustado al readiness."
+            AutoregulationMode.AUTO -> "Autorregulación automática: {ex} ya viene ajustado a tu disponibilidad."
             AutoregulationMode.OFF -> null
         }
     }
@@ -235,9 +231,9 @@ internal fun padVariants(lines: List<String>, min: Int = 6): List<String> {
     val cleaned = lines.map { it.trim() }.filter { it.isNotEmpty() }
     if (cleaned.size >= min) return cleaned
     val extras = listOf(
-        "Mantén el recetario: {ex} cuenta tal cual.",
+        "{ex} va como está escrito en la receta.",
         "No adelantes el plan de {ex}; esta serie tiene trabajo.",
-        "Si dudas, baja 2,5 kg en {ex} y conserva el gesto.",
+        "Si dudas, baja 2,5 kg en {ex} y conserva el gesto.",
         "{ex} sigue en el programa. Ejecuta limpio.",
         "El estímulo de {ex} está en cumplir, no en inventar.",
         "Respeta series y descanso de {ex}; el bloque se sostiene así.",
