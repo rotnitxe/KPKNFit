@@ -618,10 +618,11 @@ internal fun WorkoutStructureSheetsHost(
         val currentExTag = uiState.exerciseTags[state.tagSheetExerciseId]
         if (tagEx != null) {
             WorkoutDrawer(
-                title = "${tagEx.name} · Etiquetas",
+                title = "Etiquetas",
                 onDismiss = { state.tagSheetExerciseId = null },
                 hazeState = bottomHazeState,
                 ) {
+                ExerciseSheetSubtitle(tagEx.name)
                 ExerciseTagSheetContent(
                     currentTag = currentExTag,
                     onTagSet = { tag -> if (tag.isBlank()) viewModel.clearExerciseTag(tagEx.id) else viewModel.setExerciseTag(tagEx.id, tag) },
@@ -649,10 +650,11 @@ internal fun WorkoutStructureSheetsHost(
                 ).tagId
             }
             WorkoutDrawer(
-                title = "${setupEx.name} · Setup",
+                title = "Setup",
                 onDismiss = { state.setupSheetExerciseId = null },
                 hazeState = bottomHazeState,
                 ) {
+                ExerciseSheetSubtitle(setupEx.name)
                 ExerciseSetupSheetContent(
                     exercise = setupEx,
                     currentSet = setupSet,
@@ -1125,7 +1127,7 @@ internal fun WorkoutReorderSheets(
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text(
-                        "Reordena todos los ejercicios globalmente.",
+                        "Cambia el orden de los ejercicios de hoy.",
                         style = KpknType.body,
                         color = WizardColors.text,
                     )
@@ -1510,11 +1512,12 @@ internal fun WorkoutEditSeriesSheet(
             }
 
             WorkoutDrawer(
-                title = "${draftExercise.name} · ${if (draftExercise.cardioDetails != null) "Editar cardio" else "Editar series"}",
+                title = if (draftExercise.cardioDetails != null) "Editar cardio" else "Editar series",
                 onDismiss = { state.editSheetExerciseId = null },
                 hazeState = bottomHazeState,
                 ) {
                 Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    ExerciseSheetSubtitle(draftExercise.name)
                     if (draftExercise.cardioDetails != null) {
                         val cardioDetails = draftExercise.cardioDetails ?: return@Column
                         CardioEditorCard(
@@ -1745,4 +1748,16 @@ internal fun WorkoutEditSeriesSheet(
             }
         }
     }
+}
+
+/** Nombre del ejercicio bajo el título de un cajón (LR1d): Inter en `textMuted`, hasta dos líneas. */
+@Composable
+internal fun ExerciseSheetSubtitle(exerciseName: String) {
+    Text(
+        text = exerciseName,
+        style = KpknType.body,
+        color = WizardColors.textMuted,
+        maxLines = 2,
+        overflow = TextOverflow.Ellipsis,
+    )
 }

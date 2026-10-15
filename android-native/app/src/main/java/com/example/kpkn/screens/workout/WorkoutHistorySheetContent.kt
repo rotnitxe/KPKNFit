@@ -122,7 +122,7 @@ internal fun HistoryEntryCard(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Text(entry.date.take(10), style = KpknType.bodyStrong, color = WizardColors.text)
+            Text(formatHistoryDate(entry.date, LocalDate.now()), style = KpknType.bodyStrong, color = WizardColors.text)
             val tag = entry.tag
             if (tag != null) HistoryTagPill(tag)
         }

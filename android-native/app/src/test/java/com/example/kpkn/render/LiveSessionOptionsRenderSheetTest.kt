@@ -37,6 +37,7 @@ import com.example.kpkn.screens.workout.ExerciseHistoryContent
 import com.example.kpkn.screens.workout.ExerciseHistoryEntry
 import com.example.kpkn.screens.workout.ExerciseOptionsCardioRows
 import com.example.kpkn.screens.workout.ExerciseOptionsStrengthRows
+import com.example.kpkn.screens.workout.ExerciseSheetSubtitle
 import com.example.kpkn.screens.workout.ExerciseSetupSheetContent
 import com.example.kpkn.screens.workout.ExerciseTagSheetContent
 import com.example.kpkn.screens.workout.RenameTagResult
@@ -321,7 +322,8 @@ class LiveSessionOptionsRenderSheetTest {
 
     @Composable
     private fun SetupDrawer() {
-        WorkoutDrawer(title = "${SQ.name} · Setup", onDismiss = {}, hazeState = HazeState()) {
+        WorkoutDrawer(title = "Setup", onDismiss = {}, hazeState = HazeState()) {
+            ExerciseSheetSubtitle(SQ.name)
             ExerciseSetupSheetContent(
                 exercise = SQ,
                 currentSet = SQ.sets.first(),
@@ -354,7 +356,8 @@ class LiveSessionOptionsRenderSheetTest {
 
     @Composable
     private fun QuickTagsDrawer() {
-        WorkoutDrawer(title = "${SQ.name} · Etiquetas", onDismiss = {}, hazeState = HazeState()) {
+        WorkoutDrawer(title = "Etiquetas", onDismiss = {}, hazeState = HazeState()) {
+            ExerciseSheetSubtitle(SQ.name)
             ExerciseTagSheetContent(
                 currentTag = "Barra",
                 onTagSet = {},
@@ -397,7 +400,7 @@ class LiveSessionOptionsRenderSheetTest {
 
     @Composable
     private fun HistoryDrawer() {
-        WorkoutDrawer(title = "${SQ.name} · Historial", onDismiss = {}, hazeState = HazeState()) {
+        WorkoutDrawer(title = "Historial", onDismiss = {}, hazeState = HazeState()) {
             ExerciseHistoryContent(history = sampleHistory(), activeTag = "Barra")
         }
     }
