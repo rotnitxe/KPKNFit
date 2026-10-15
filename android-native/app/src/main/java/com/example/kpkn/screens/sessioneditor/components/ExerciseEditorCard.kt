@@ -87,6 +87,7 @@ import com.example.kpkn.screens.sessioneditor.CompactRestBundleButton
 import com.example.kpkn.screens.sessioneditor.SideOrderChip
 import com.example.kpkn.screens.sessioneditor.ExerciseSetsCarousel
 import com.example.kpkn.screens.sessioneditor.formatEditableNumber
+import com.example.kpkn.screens.sessioneditor.rememberEditableNumber
 import com.example.kpkn.screens.sessioneditor.formatRestSummary
 import com.example.kpkn.screens.sessioneditor.formatExerciseCollapsedSummary
 import com.example.kpkn.screens.sessioneditor.trainingModeLabel
@@ -158,11 +159,12 @@ internal fun ExerciseEditorCard(
         mutableStateOf(if (exercise.prFor1RM != null) "pr" else "direct")
     }
     var restSelectionSeconds by rememberSaveable(exercise.id) { mutableStateOf(exercise.restTime ?: 90) }
-    var directRmInput by rememberSaveable(exercise.id) { mutableStateOf<String>(formatEditableNumber(exercise.reference1RM)) }
-    var prWeightInput by rememberSaveable(exercise.id) { mutableStateOf<String>(formatEditableNumber(exercise.prFor1RM?.weight)) }
-    var prRepsInput by rememberSaveable(exercise.id) { mutableStateOf(exercise.prFor1RM?.reps?.takeIf { it > 0 }?.toString().orEmpty()) }
+    // SE11: el texto de cada campo lo escribe la persona; el modelo solo lo corrige si cambia por fuera.
+    var directRmInput by rememberEditableNumber(exercise.id, exercise.reference1RM)
+    var prWeightInput by rememberEditableNumber(exercise.id, exercise.prFor1RM?.weight)
+    var prRepsInput by rememberEditableNumber(exercise.id, exercise.prFor1RM?.reps?.takeIf { it > 0 }?.toDouble())
     var customUnitInput by rememberSaveable(exercise.id) { mutableStateOf(exercise.customUnit.orEmpty()) }
-    var goalRmInput by rememberSaveable(exercise.id) { mutableStateOf<String>(formatEditableNumber(exercise.goal1RM)) }
+    var goalRmInput by rememberEditableNumber(exercise.id, exercise.goal1RM)
     val localPrEstimatedRm = remember(prWeightInput, prRepsInput) {
         val weight = prWeightInput.safeDoubleOrNull()
         val reps = prRepsInput.safeIntOrNull()
@@ -201,16 +203,8 @@ internal fun ExerciseEditorCard(
     }
 
     LaunchedEffect(exercise.id, exercise.restTime) { restSelectionSeconds = exercise.restTime ?: 90 }
-    LaunchedEffect(exercise.id, exercise.reference1RM) {
-        directRmInput = formatEditableNumber(exercise.reference1RM)
-    }
     LaunchedEffect(exercise.id, exercise.prFor1RM) {
-        prWeightInput = formatEditableNumber(exercise.prFor1RM?.weight)
-        prRepsInput = exercise.prFor1RM?.reps?.takeIf { it > 0 }?.toString().orEmpty()
         rmInputMode = if (exercise.prFor1RM != null) "pr" else rmInputMode
-    }
-    LaunchedEffect(exercise.id, exercise.goal1RM) {
-        goalRmInput = formatEditableNumber(exercise.goal1RM)
     }
     LaunchedEffect(autoExpand) {
         if (autoExpand) { expanded = true; onAutoExpandHandled() }
