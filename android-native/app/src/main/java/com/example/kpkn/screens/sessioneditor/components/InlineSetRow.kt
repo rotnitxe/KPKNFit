@@ -294,6 +294,14 @@ internal fun InlineSetRow(
             }
         }
     }
+    // ER2a: la serie RM con rango o RIR se edita con «Reps» (el rango) y «RIR», junto al %RM. Sin ninguno, queda como antes.
+    val rmRange = if (isUnilateral) activeSideTarget?.targetRepsRange else set.targetRepsRange
+    val rmRir = uniOrSetInt({ it.targetRIR }, { it?.targetRIR })
+    val rmDetailed = isRmMode && !usesExplicitTmPercent && (rmRange != null || rmRir != null)
+    val onRmRirCommit: (String) -> Unit = { input ->
+        val rir = input.safeIntOrNull()
+        commitEditedField(if (isUnilateral) updateUniSet { it.copy(targetRIR = rir) } else { current -> current.copy(targetRIR = rir) })
+    }
     val intensityLabel = when (set.intensityMode ?: IntensityMode.RPE) {
         IntensityMode.RPE -> "RPE"
         IntensityMode.RIR -> "RIR"
@@ -333,7 +341,6 @@ internal fun InlineSetRow(
                 },
                 intensityMode = null,
                 targetRPE = null,
-                targetRIR = null,
                 isFailure = false,
             )
         }
@@ -538,15 +545,36 @@ internal fun InlineSetRow(
                     keyboardType = KeyboardType.Decimal,
                     onCommit = onPercentCommit,
                 )
-                SetValueCell(
-                    label = metricLabel,
-                    value = metricValue,
-                    stateKey = "metric-${set.id}",
-                    listSkin = true,
-                    modifier = Modifier.weight(1f),
-                    enabled = false,
-                    onCommit = {},
-                )
+                if (rmDetailed) {
+                    SetValueCell(
+                        label = "Reps",
+                        value = rmRange?.format() ?: uniOrSetInt({ it.targetReps }, { it?.targetReps })?.toString().orEmpty(),
+                        stateKey = "rm-reps-${set.id}-$setStateKeySuffix",
+                        listSkin = true,
+                        modifier = Modifier.weight(1f),
+                        keyboardType = KeyboardType.Ascii,
+                        onCommit = onMetricCommit,
+                    )
+                    SetValueCell(
+                        label = "RIR",
+                        value = rmRir?.toString().orEmpty(),
+                        stateKey = "rm-rir-${set.id}-$setStateKeySuffix",
+                        listSkin = true,
+                        modifier = Modifier.weight(1f),
+                        keyboardType = KeyboardType.Number,
+                        onCommit = onRmRirCommit,
+                    )
+                } else {
+                    SetValueCell(
+                        label = metricLabel,
+                        value = metricValue,
+                        stateKey = "metric-${set.id}",
+                        listSkin = true,
+                        modifier = Modifier.weight(1f),
+                        enabled = false,
+                        onCommit = {},
+                    )
+                }
             } else if (isSoloRpeMode) {
                 SetValueCell(
                     label = metricLabel,
@@ -595,6 +623,18 @@ internal fun InlineSetRow(
                         onCommit = onIntensityValueCommit,
                     )
                 }
+            }
+        }
+        if (rmDetailed) {
+            // Lo que antes era el campo «Reps est.» (ER2a): una línea de ayuda con las reps que salen al %RM.
+            estimatedMetric?.let { estimated ->
+                val reps = estimated.toInt()
+                Text(
+                    text = "≈ $reps ${if (reps == 1) "rep" else "reps"} máx. al " +
+                        "${formatMax2Decimals(set.targetPercentageRM ?: sliderPercent).replace('.', ',')} %",
+                    style = KpknType.caption,
+                    color = WizardColors.textMuted,
+                )
             }
         }
         if (!isAmrapMode && !isRmMode && !isSoloRpeMode) {

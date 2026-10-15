@@ -392,7 +392,10 @@ internal fun setRowSummary(
 
     val kgText = weight?.let { "${formatSummaryNumber(it)} kg" }
     val dose = when (mode) {
-        TrainingMode.RM -> {
+        // ER2a: una serie RM con rango o RIR enseña su prescripción («95 kg × 4–6 · RIR 2»); la pura, como antes («95 kg × 7»).
+        TrainingMode.RM -> if (range != null || rir != null) {
+            rmPrescriptionDose(kgText, range, reps, rir, estimatedMetric?.toInt())
+        } else {
             val estimated = estimatedMetric?.toInt()
             listOfNotNull(kgText, estimated?.let { "× $it" }).joinToString(" ").ifBlank {
                 set.targetPercentageRM?.let { "${formatSummaryNumber(it)} %" } ?: "—"
@@ -462,6 +465,16 @@ private fun techniqueSummary(set: ExerciseSet): String? {
 }
 
 private fun formatSummaryNumber(value: Double): String = formatMax2Decimals(value).replace('.', ',')
+
+/**
+ * Dosis de una serie RM con rango o RIR (ER2a): la carga guardada, las reps del rango («× 4–6») y el RIR («· RIR 2»). Sin rango usa
+ * las reps que salen al %RM, como la dosis pura.
+ */
+private fun rmPrescriptionDose(kgText: String?, range: RepRange?, reps: Int?, rir: Int?, estimated: Int?): String {
+    val repsText = range?.format() ?: reps?.toString() ?: estimated?.toString()
+    val head = if (kgText != null && repsText != null) "$kgText × $repsText" else kgText ?: repsText
+    return listOfNotNull(head, rir?.let { "RIR $it" }).joinToString(" · ").ifBlank { "—" }
+}
 
 /**
  * Acción de la fila abierta (ER1c1, pulido): texto de tinta de 48 dp de alto como objetivo táctil. Al 130 % de letra puede pasar a dos
