@@ -53,6 +53,7 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import com.example.kpkn.data.exercises.ExerciseTechniqueImageLookup
@@ -76,6 +77,7 @@ import com.example.kpkn.screens.sessioneditor.safeDoubleOrNull
 import com.example.kpkn.screens.sessioneditor.safeIntOrNull
 import com.example.kpkn.screens.sessioneditor.sessionExerciseListDose
 import com.example.kpkn.ui.components.SwipeToDeleteCard
+import com.example.kpkn.screens.sessioneditor.design.CardioTypeIcon
 import com.example.kpkn.ui.components.icons.KpknLineIcons
 import com.example.kpkn.ui.design.KpknSurface
 import com.example.kpkn.ui.design.KpknType
@@ -424,28 +426,25 @@ internal fun ExerciseEditorCard(
 }
 
 /**
- * Miniatura de 40 dp: la imagen del catálogo si la hay, o el glifo del patrón; para un cardio, su máquina en línea sobre `inset`.
+ * Miniatura de [dimension] (40 dp por defecto): la imagen del catálogo si la hay, o el glifo del patrón; para un cardio, su icono de línea
+ * sobre `inset`. La usan la fila de la lista y el selector de superserie (ER2b): la misma pieza en los dos sitios.
  */
 @Composable
-private fun Thumbnail(
+internal fun Thumbnail(
     cardio: com.example.kpkn.data.models.CardioType?,
     imageRes: Int?,
     pattern: ExercisePattern,
+    dimension: Dp = 40.dp,
 ) {
     Box(
         modifier = Modifier
-            .size(40.dp)
+            .size(dimension)
             .clip(RoundedCornerShape(10.dp))
             .background(KpknSurface.inset),
         contentAlignment = Alignment.Center,
     ) {
         when {
-            cardio != null -> Icon(
-                imageVector = cardioIconFor(cardio),
-                contentDescription = null,
-                tint = WizardColors.text,
-                modifier = Modifier.size(22.dp),
-            )
+            cardio != null -> CardioTypeIcon(type = cardio, tint = WizardColors.text)
             imageRes != null -> Image(
                 painter = painterResource(imageRes),
                 contentDescription = null,
@@ -458,18 +457,3 @@ private fun Thumbnail(
         }
     }
 }
-
-/** Icono de línea de la máquina de un cardio (uno por tipo; los que no tienen icono propio usan el de carrera). */
-private fun cardioIconFor(type: com.example.kpkn.data.models.CardioType): androidx.compose.ui.graphics.vector.ImageVector =
-    when (type) {
-        com.example.kpkn.data.models.CardioType.BIKE_STATIONARY,
-        com.example.kpkn.data.models.CardioType.BIKE_OUTDOOR,
-        com.example.kpkn.data.models.CardioType.AIR_BIKE,
-        -> KpknLineIcons.Bike
-        com.example.kpkn.data.models.CardioType.ROW_MACHINE,
-        com.example.kpkn.data.models.CardioType.SKI_ERG,
-        -> KpknLineIcons.Row
-        com.example.kpkn.data.models.CardioType.WALK -> KpknLineIcons.Walk
-        com.example.kpkn.data.models.CardioType.STAIR_CLIMBER -> KpknLineIcons.Stairs
-        else -> KpknLineIcons.Run
-    }

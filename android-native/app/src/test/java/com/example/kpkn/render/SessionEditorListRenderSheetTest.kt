@@ -53,6 +53,8 @@ import com.example.kpkn.screens.sessioneditor.DragLiftPreview
 import com.example.kpkn.screens.sessioneditor.DragPartLiftPreview
 import com.example.kpkn.screens.sessioneditor.SessionEditorInvalidDropBanner
 import com.example.kpkn.screens.sessioneditor.SupersetDraft
+import com.example.kpkn.screens.sessioneditor.components.CardioCatalogSheet
+import com.example.kpkn.screens.sessioneditor.components.CardioEditorCard
 import com.example.kpkn.screens.sessioneditor.components.ExerciseEditorCard
 import com.example.kpkn.screens.sessioneditor.components.GroupEditorCard
 import com.example.kpkn.screens.sessioneditor.components.SessionEditorEmptyState
@@ -241,6 +243,30 @@ class SessionEditorListRenderSheetTest {
                 Folded(dominadas, SessionModuleEdge.TOP)
                 Folded(sentadilla, SessionModuleEdge.BOTTOM)
             }
+        }
+    }
+
+    /** El Air Bike es de interior: su editor no lleva la celda GPS (ER2b). */
+    @Test
+    fun renderAirBikeSinCeldaGps() {
+        assumeTrue("sin KPKN_RENDER_DIR no se dibuja nada", System.getenv("KPKN_RENDER_DIR") != null)
+        renderSheet("cardio_air_bike", heightDp = 700) {
+            Column(Modifier.padding(16.dp)) {
+                CardioEditorCard(
+                    details = CardioDetails(type = CardioType.AIR_BIKE, targetDurationSeconds = 20 * 60),
+                    accentColor = Color(0xFFF49A6E),
+                    onChange = {},
+                )
+            }
+        }
+    }
+
+    /** «Añadir cardio»: un icono distinto por máquina; solo comparten las cintas y las bicis (ER2b). */
+    @Test
+    fun renderAnadirCardio() {
+        assumeTrue("sin KPKN_RENDER_DIR no se dibuja nada", System.getenv("KPKN_RENDER_DIR") != null)
+        renderSheet("anadir_cardio", heightDp = 1000) {
+            CardioCatalogSheet(onAdd = {})
         }
     }
 

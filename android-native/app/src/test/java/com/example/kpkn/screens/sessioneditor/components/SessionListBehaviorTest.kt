@@ -21,6 +21,7 @@ import com.example.kpkn.data.models.RepRange
 import com.example.kpkn.data.models.SessionPart
 import com.example.kpkn.data.models.SupersetGroup
 import com.example.kpkn.data.models.TrainingMode
+import com.example.kpkn.screens.sessioneditor.components.sheets.SupersetPickRow
 import com.example.kpkn.screens.sessioneditor.design.SessionExerciseUndoNotice
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -225,5 +226,16 @@ class SessionListBehaviorTest {
             autoExpand = false,
             onAutoExpandHandled = noop,
         )
+    }
+
+    /** ER2b: el selector de superserie pinta la miniatura de la lista (el glifo), no la inicial del nombre. */
+    @Test
+    fun elSelectorDeSuperserieNoPintaLaInicialComoMiniatura() {
+        rule.setContent {
+            SupersetPickRow(exercise = exercise("zan", "Zancada"), checked = false, selectable = true, onToggle = noop)
+        }
+
+        rule.onNodeWithText("Zancada").assertIsDisplayed()
+        rule.onNodeWithText("Z").assertDoesNotExist()
     }
 }

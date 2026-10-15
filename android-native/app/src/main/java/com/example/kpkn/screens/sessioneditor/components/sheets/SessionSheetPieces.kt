@@ -1,6 +1,5 @@
 package com.example.kpkn.screens.sessioneditor.components.sheets
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -10,7 +9,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.defaultMinSize
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -22,7 +20,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -30,9 +27,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
@@ -41,6 +36,8 @@ import com.example.kpkn.data.exercises.ExerciseTechniqueImageLookup
 import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.effectiveRepRange
 import com.example.kpkn.screens.onboarding.design.WizardColors
+import com.example.kpkn.screens.onboarding.design.entreno.plan.exercisePatternOf
+import com.example.kpkn.screens.sessioneditor.components.Thumbnail
 import com.example.kpkn.ui.components.icons.KpknLineIcons
 import com.example.kpkn.ui.design.KpknSetFormat
 import com.example.kpkn.ui.design.KpknSurface
@@ -91,30 +88,13 @@ internal fun SessionExerciseThumb(exercise: Exercise, dimension: Dp = 40.dp) {
             selectedImplementation = exercise.selectedExecutionOption ?: exercise.selectedAspects?.values?.firstOrNull(),
         )
     }
-    Box(
-        modifier = Modifier
-            .size(dimension)
-            .clip(RoundedCornerShape(12.dp))
-            .background(KpknSurface.inset),
-        contentAlignment = Alignment.Center,
-    ) {
-        if (imageRes != null) {
-            Image(
-                painter = painterResource(imageRes),
-                contentDescription = null,
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(4.dp),
-                contentScale = ContentScale.Fit,
-            )
-        } else {
-            Text(
-                text = exercise.name.trim().firstOrNull()?.uppercaseChar()?.toString().orEmpty(),
-                style = KpknType.bodyStrong,
-                color = WizardColors.textMuted,
-            )
-        }
-    }
+    // La misma pieza que la fila de la lista (ER2b): la imagen del catálogo, el glifo del patrón o el icono del cardio; nunca la inicial.
+    Thumbnail(
+        cardio = exercise.cardioDetails?.type,
+        imageRes = imageRes,
+        pattern = remember(exercise.name) { exercisePatternOf(exercise.name) },
+        dimension = dimension,
+    )
 }
 
 /** Casilla de 20 dp de la app: anillo que pasa a tinta y, marcada, relleno de tinta con el check en negro. */
