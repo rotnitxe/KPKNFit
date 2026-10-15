@@ -32,6 +32,7 @@ import com.example.kpkn.screens.auge.AugeViewModel
 import com.example.kpkn.screens.workout.components.VolumeAdvanceModal
 import com.example.kpkn.ui.components.KpknGlass
 import com.example.kpkn.ui.components.KpknGlassDialog
+import com.example.kpkn.ui.design.KpknChip
 import com.example.kpkn.screens.workout.components.WorkoutReadinessSheet
 import dev.chrisbanes.haze.HazeState
 import java.time.LocalDate
@@ -153,18 +154,13 @@ internal fun WorkoutSessionOverlaysHost(
         }
         WorkoutDrawer(title = "Historial", onDismiss = { viewModel.hideHistorySheet() }, hazeState = bottomHazeState) {
             if (historyTag != null) {
-                Surface(
-                    shape = RoundedCornerShape(999.dp),
-                    color = MaterialTheme.colorScheme.secondaryContainer,
+                // Chip informativo: muestra qué etiqueta sale primero; tocarlo no hace nada.
+                KpknChip(
+                    text = "Mostrando primero: $historyTag",
+                    selected = true,
+                    onClick = {},
                     modifier = Modifier.padding(bottom = 4.dp),
-                ) {
-                    Text(
-                        "Mostrando primero: $historyTag",
-                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSecondaryContainer,
-                    )
-                }
+                )
             }
             ExerciseHistoryContent(history = history, activeTag = historyTag)
         }
