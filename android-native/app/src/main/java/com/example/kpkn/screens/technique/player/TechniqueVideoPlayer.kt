@@ -57,8 +57,9 @@ import kotlin.math.max
  * El reproductor de técnica (VT7a): posee el ExoPlayer de [file] y le dibuja encima la capa de [overlay] sincronizada con el
  * fotograma que se ve. Todo lo que se hace con él (reproducir, pausar, buscar, paso a paso, velocidad, bucle) pasa por [state].
  *
- * - **Vídeo:** Media3 1.5.1 con `PlayerView` (sin controles, FIT) sobre un `TextureView` —como el de la bienvenida—, para que
- *   reciba los recortes redondeados, la opacidad y las transformaciones de Compose; `SeekParameters.EXACT`.
+ * - **Vídeo:** Media3 1.5.1 con `PlayerView` (sin controles, FIT) sobre un `TextureView` —su propio layout,
+ *   `technique_player_view`, y no el de la bienvenida—, para que reciba los recortes redondeados, la opacidad y las
+ *   transformaciones de Compose; `SeekParameters.EXACT`.
  * - **Capa sin sondeo:** `setVideoFrameMetadataListener` anota el PTS y la hora de salida de cada fotograma; un bucle `withFrameNanos`
  *   copia al estado el que ya se ve en esa pantalla, y la capa lo lee SOLO al dibujar: ni una recomposición por fotograma. En pausa el
  *   bucle duerme hasta que el reproductor pinte otro fotograma (una búsqueda o un paso).
@@ -180,7 +181,7 @@ fun TechniqueVideoPlayer(
         AndroidView(
             modifier = Modifier.fillMaxSize(),
             factory = { ctx ->
-                (LayoutInflater.from(ctx).inflate(R.layout.welcome_video_player, null) as PlayerView).apply {
+                (LayoutInflater.from(ctx).inflate(R.layout.technique_player_view, null) as PlayerView).apply {
                     useController = false
                     resizeMode = AspectRatioFrameLayout.RESIZE_MODE_FIT
                     this.player = player
