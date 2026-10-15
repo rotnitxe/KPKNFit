@@ -1,9 +1,9 @@
 # VT8a · Grabador de técnica a pantalla completa (encuadre, 60 fps, REC, metadatos) y arreglos de la captura
 
 
-- **Worktree y rama:** `C:\kw\vt-a`, rama `vt/vt8a`, desde `feat/video-technique` con VT7b integrado.
+- **Worktree y rama:** `C:\kw\vt-a`, rama `vt/vt8a`. La crea el orquestador desde `feat/video-technique`, con VT4c, VT7b y `sessions-v1` @5f78eb4a4 ya integrados.
 - **Antes de empezar, lee:**
-  - `VT_COMUN.md`, `S_COMUN.md` y `KPKN_UI_V2.md`;
+  - `docs/video-technique/briefs/VT_COMUN.md`, `docs/screens-v1/briefs/S_COMUN.md` y `docs/design/KPKN_UI_V2.md`;
   - `VIDEO_TECHNIQUE_V1.md` §1 punto 1, §4 punto 14 (`FramingEvaluator`), los «Convenios fijados por VT1b» de §4 y §9 punto 6;
   - el código de hoy:
     - `screens/workout/WorkoutMediaCaptureController.kt`;
@@ -19,8 +19,18 @@
 
 **Sesión en vivo ORIGINAL (PR11; U7, D28).** El rediseño LS se retiró.
 - `SetCardExerciseMediaBack`, `WorkoutMediaCaptureController`, `WorkoutMediaPreviewDialog` y `screens/workout/technique/` son tuyos.
-- La sesión «KPKN Wizard definitivo» va a refinar SOLO el aspecto de `SetExecutionCard` y `WorkoutRestOverlay`: misma disposición y mismos controles. Antes de lanzar este paquete, el orquestador confirma que no hay un paquete suyo en curso sobre esos archivos.
+- La sesión «KPKN Wizard definitivo» refina SOLO el aspecto de la sesión, con la misma disposición y los mismos controles.
+  - Comprobado el 14-oct: sus paquetes en curso (LR1b, LR1c1, LR1c2 y LR1d) no tocan tus archivos.
+  - LR1b añade el icono `Mic` al final de `KpknLineIcons.kt`: no uses ese nombre.
 - En `SetExecutionCard.kt`, `WorkoutV2Body.kt` y `WorkoutScreen.kt`: cambios mínimos, con los parámetros nuevos al final y con valor por defecto.
+
+## Heredado de VT4c (ya integrado; los nombres REALES mandan)
+- **`CaptureMetadata`** (`data/media/technique/CaptureMetadata.kt`): `requestedFps`, `grantedFps`, `gravityRollDeg`, `gravityPitchDeg`, `focalLengthPx`, `lens`, `deviceModel` y `recordedAtMs`, todos opcionales.
+  - Se escribe con `CaptureMetadataFile.update(file) { it.copy(…) }` o `write(file, metadata)`, sobre `TechniqueSidecars.captureFile(videoFile)`.
+  - Conserva las claves que no conoce, incluidas las del usuario (`userProfileOverride`, `plateSeed` y `plateDiameterMm`).
+- **`focalLengthPx`** va en píxeles del vídeo GRABADO, ya girado (`displayWidth × displayHeight`). El pipeline la lleva al fotograma de análisis.
+- **El pipeline lee de ahí** la gravedad y la focal. Los fps reales los saca del contenedor; `requestedFps` y `grantedFps` son para el informe y la insignia.
+- **`AnalysisGate.cameraBusy`** (VT5b): ponlo a `true` mientras se graba. El pipeline espera cada 30 fotogramas.
 
 ## Archivos permitidos
 - **Nuevos en `screens/workout/technique/`:**
@@ -40,6 +50,34 @@
   - `ui/components/icons/KpknLineIcons.kt`: añadir AL FINAL `Camera` y `Record`.
 - **Depuración:** `src/debug/.../debug/TechniqueBenchActivity.kt`, con el modo `recorder_preview`.
 - **Pruebas:** `src/test/.../screens/workout/technique/`, `src/test/.../render/TechniqueRecorderRenderSheetTest.kt` y `src/test/.../data/media/WorkoutMediaSidesTest.kt`.
+- **Solo para el paso 0:**
+  - `data/media/technique/CaptureMetadata.kt`, `TechniqueAnalyzer.kt` y `TechniqueAnalysisPipeline.kt`;
+  - `data/repository/VideoAnalysisRepository.kt`: solo `CaptureOverridesFile`, `completeDone` y `upsertDoneRow`;
+  - `data/work/TechniqueAnalysisWorker.kt`;
+  - sus pruebas en `src/test/.../data/{media/technique,repository,work}/`.
+
+## Paso 0 · Dos arreglos heredados de VT4c (commit aparte, ANTES del grabador)
+1. **Un solo candado para `<id>.capture.json`.**
+   - Hoy `CaptureOverridesFile` (en `VideoAnalysisRepository.kt`, ~L486) y `CaptureMetadataFile` (en `CaptureMetadata.kt`, ~L67) tienen cada uno su `private val lock`. Si escriben a la vez, uno pierde la escritura del otro.
+   - Crea `internal object CaptureFileLock` en `CaptureMetadata.kt` y haz que los dos sincronicen sobre él.
+   - Tu grabador escribirá ahí al terminar, justo cuando el usuario puede estar calibrando el disco de otro vídeo.
+   - **Prueba:** 2 hilos × 200 actualizaciones, uno con cada escritor, sobre el mismo archivo. Al final están todas las claves de los dos.
+2. **El informe guarda el ejercicio completo y la versión de la pose.**
+   - Hoy `TechniqueAnalysisOutcome.Done` solo lleva el informe. El Worker escribe en `analysis.json` el `ExerciseRef` PARCIAL de la petición (sin patrón, material ni lateralidad; un vídeo anterior a v29 queda como «propio»). La fila guarda `poseVersion` por defecto y `poseEngine = null`.
+   - Añade a `Done` tres parámetros AL FINAL, con valor por defecto: `exercise: ExerciseRef? = null`, `poseEngine: String? = null` y `poseVersion: Int? = null`.
+   - **El pipeline los rellena:**
+     - en FULL, el ejercicio completado, una cadena corta del motor (motor, modelo y delegado; mira qué da `estimator.engine`) y `POSE_VERSION`;
+     - en RECOMPUTE y PLATE_ONLY, solo el ejercicio.
+   - **El Worker:**
+     - pasa `outcome.exercise ?: request.exercise` a `completeDone`;
+     - en FULL, la fila toma `poseVersion` y `poseEngine` del resultado;
+     - en los otros modos, conserva los anteriores, como hoy.
+   - **Pruebas:**
+     - Worker con un analizador falso que devuelve `Done` con ejercicio y pose → `analysis.json` lleva el ref completo y la fila lleva `poseVersion` y `poseEngine`;
+     - un `Done` sin esos campos se comporta como hoy.
+3. **Comprobación del paso 0:** `:app:compileBaseDebugKotlin` y luego `:app:testBaseDebugUnitTest --tests "com.example.kpkn.data.media.technique.*" --tests "com.example.kpkn.data.work.*" --tests "com.example.kpkn.data.repository.*VideoAnalysis*"`.
+   - Es además la primera compilación de la rama con VT4c, VT7b y la fusión de `sessions-v1`.
+   - Si algo falla por código ajeno a tu paquete, para y descríbelo en el informe.
 
 ## Qué haces
 1. **Abrir el grabador.**
@@ -119,6 +157,7 @@
   5. `-I C:/kw/tools/dbg-suffix.init.gradle :app:assembleBaseDebug`, y el modo `recorder_preview` en el emulador.
 
 ## Commits
+- `fix(technique): un solo candado para capture.json; el informe guarda el ejercicio completo y la versión de la pose` (paso 0)
 - `feat(technique): grabador a pantalla completa con encuadre, 60 fps y metadatos de captura`
 - `fix(workout): lado normalizado, cifras al finalizar y miniaturas por serie en los vídeos de la serie`
 - `test(technique): hoja de render del grabador`
