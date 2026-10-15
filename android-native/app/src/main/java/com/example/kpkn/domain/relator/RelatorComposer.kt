@@ -37,6 +37,7 @@ object RelatorComposer {
             fingerprint = RelatorSelector.fingerprint(candidate, variant),
             spokenConceptId = candidate.spokenConceptId,
             actions = candidate.actions,
+            variant = variant,
         ) to longTerm
     }
 

@@ -37,7 +37,7 @@ object MilestoneObserver : RelatorObserver {
                 topic = RelatorTopic.MILESTONE,
                 priority = 86,
                 relevance = 1.0,
-                lines = padVariants(lines),
+                lines = realVariants(lines),
                 fingerprintBase = "MILESTONE:${context.progress.completedWorkingSets}",
                 actions = actions,
                 isReaction = m.prJustNow,

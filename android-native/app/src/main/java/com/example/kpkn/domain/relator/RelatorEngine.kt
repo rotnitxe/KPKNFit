@@ -6,6 +6,7 @@ object RelatorEngine {
         HistoryObserver,
         SessionProgressObserver,
         RestObserver,
+        SetOutcomeObserver,
         ReadinessObserver,
         TechniqueObserver,
         MilestoneObserver,
@@ -65,6 +66,7 @@ object RelatorEngine {
                 setKey = context.setKey,
                 conceptId = line.spokenConceptId,
                 exerciseId = context.exerciseId,
+                variant = line.variant,
             )
         }
         return RelatorEngineResult(

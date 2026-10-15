@@ -1,11 +1,29 @@
 package com.example.kpkn.domain.relator
 
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class RelatorComposerTest {
     private val rotulos = listOf("Ahora", "Ojo", "Dato", "Plan", "Siguiente", "Hoy", "Carga", "Recuerda")
+
+    /** Frases genéricas que se quitaron de `padVariants` y del plan (LR1h): ninguna vuelve a salir. */
+    private val relleno = listOf(
+        "va como está escrito en la receta",
+        "No adelantes el plan de",
+        "Si dudas, baja 2,5",
+        "sigue en el programa",
+        "El estímulo de",
+        "Respeta series y descanso",
+        "Sigue la receta de",
+        "entra como va escrito",
+        "Esta pieza de",
+        "Cumple el esquema de",
+        "hoy no improvisamos",
+        "cuenta con esta serie",
+        "marca esta serie de",
+    )
 
     @Test
     fun sin_rotulos_aunque_haya_ciclo_de_ociosidad() {
@@ -80,8 +98,12 @@ class RelatorComposerTest {
         assertTrue(line.text!!.contains("lista"))
     }
 
+    /**
+     * LR1h: los observadores ya no completan hasta seis frases con relleno. Cada candidato tiene al menos una frase real y
+     * ninguna de las frases genéricas que se quitaron de `padVariants` y del plan.
+     */
     @Test
-    fun observers_pad_to_at_least_six_variants() {
+    fun observers_sin_relleno_generico() {
         val ctx = relatorContext(
             isAmrap = true,
             isTopSet = true,
@@ -98,10 +120,10 @@ class RelatorComposerTest {
         )
         RelatorEngine.defaultObservers().forEach { observer ->
             observer.observe(ctx).forEach { candidate ->
-                assertTrue(
-                    "${candidate.topic} has ${candidate.lines.size} lines",
-                    candidate.lines.size >= 6,
-                )
+                assertTrue("${candidate.topic} sin frases", candidate.lines.isNotEmpty())
+                candidate.lines.forEach { line ->
+                    assertFalse("relleno en «$line»", relleno.any { line.contains(it) })
+                }
             }
         }
     }

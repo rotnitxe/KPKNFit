@@ -22,7 +22,7 @@ object PlanObserver : RelatorObserver {
             competitionLine(context)?.let(::add)
             protocolLine(context)?.let(::add)
             autoregLine(context)?.let(::add)
-        }.distinct().ifEmpty { fallbackLines(context) }
+        }.distinct().ifEmpty { setLine(context) }
         val actions = buildList {
             if (shouldOfferLoadAdjust(context)) {
                 val pct = if ((context.readiness.dailyScore ?: 100) < 50) -10.0 else -5.0
@@ -55,7 +55,7 @@ object PlanObserver : RelatorObserver {
                 topic = RelatorTopic.PLAN,
                 priority = 52,
                 relevance = if (context.plan.sourceProtocolId != null || context.slotRole != null) 0.85 else 0.35,
-                lines = padVariants(lines),
+                lines = realVariants(lines),
                 fingerprintBase = "PLAN:${context.progress.completedWorkingSets}",
                 actions = actions,
                 cooldownSets = 2,
@@ -199,17 +199,24 @@ object PlanObserver : RelatorObserver {
         return score < 60
     }
 
-    private fun fallbackLines(context: RelatorContext): List<String> {
-        val protocol = context.plan.sourceProtocolName ?: context.plan.sourceProtocolId
-        val protocolBit = protocol?.let { " ($it)" }.orEmpty()
-        return listOf(
-            "El plan$protocolBit marca esta serie de {ex}.",
-            "Sigue la receta de {ex}; hoy no improvisamos el estímulo.",
-            "{ex} entra como va escrito. Cambia solo si el cuerpo pide recorte.",
-            "Esta pieza de {ex} es del bloque, no un extra suelto.",
-            "Cumple el esquema de {ex}; el volumen ya está pensado.",
-            "El protocolo$protocolBit cuenta con esta serie de {ex}.",
-        )
+    /**
+     * Sin estructura de receta, el plan dice la serie que toca: «Serie 2 de 4: 95 kg × 6 a RIR 2.» (LR1h). Siempre hay una
+     * línea, aunque no haya carga ni reps, para que el candidato exista.
+     */
+    private fun setLine(context: RelatorContext): List<String> {
+        val number = context.setIndex + 1
+        val total = context.setCount.takeIf { it > 1 && it >= number }
+        val head = if (total != null) "Serie $number de $total" else "Serie $number"
+        val kg = (context.prescribedWeightKg ?: context.suggestedWeightKg)?.takeIf { it > 0.0 }
+        val reps = context.targetReps?.takeIf { it > 0 }
+        val mark = when {
+            kg != null && reps != null -> relatorSetMark(kg, reps)
+            kg != null -> relatorKg(kg)
+            reps != null -> "$reps reps"
+            else -> null
+        }
+        val rir = context.targetRir?.let { " a RIR $it" }.orEmpty()
+        return listOf(if (mark != null) "$head: $mark$rir." else "$head$rir.")
     }
 }
 
@@ -227,16 +234,9 @@ internal object RelatorActionKind {
     const val OPEN_ALBUM = "OPEN_ALBUM"
 }
 
-internal fun padVariants(lines: List<String>, min: Int = 6): List<String> {
-    val cleaned = lines.map { it.trim() }.filter { it.isNotEmpty() }
-    if (cleaned.size >= min) return cleaned
-    val extras = listOf(
-        "{ex} va como está escrito en la receta.",
-        "No adelantes el plan de {ex}; esta serie tiene trabajo.",
-        "Si dudas, baja 2,5 kg en {ex} y conserva el gesto.",
-        "{ex} sigue en el programa. Ejecuta limpio.",
-        "El estímulo de {ex} está en cumplir, no en inventar.",
-        "Respeta series y descanso de {ex}; el bloque se sostiene así.",
-    )
-    return (cleaned + extras).distinct().take(min.coerceAtLeast(cleaned.size))
-}
+/**
+ * Las frases reales de un observador, sin vacías ni repetidas (LR1h). Nunca se completan con relleno: un observador con
+ * pocas frases tiene pocas variantes, y el selector rota entre ellas.
+ */
+internal fun realVariants(lines: List<String>): List<String> =
+    lines.map { it.trim() }.filter { it.isNotEmpty() }.distinct()

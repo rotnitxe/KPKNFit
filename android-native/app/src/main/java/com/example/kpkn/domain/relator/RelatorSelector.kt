@@ -54,10 +54,20 @@ object RelatorSelector {
         }
     }
 
+    /**
+     * Variante del candidato para este momento (LR1h). Dentro de un momento sale siempre la misma: depende solo de la
+     * semilla y del estado. Entre usos del tema rota por módulo: la siguiente vez sale la frase siguiente a la última
+     * que dijo ese tema, así que con dos frases no se repite de inmediato. La primera vez decide la semilla.
+     */
     fun variantIndex(candidate: RelatorCandidate, seed: Int, state: RelatorSelectorState): Int {
         val n = candidate.lines.size.coerceAtLeast(1)
         if (n == 1) return 0
-        val start = kotlin.math.abs(seed + candidate.topic.ordinal * 13) % n
+        val last = state.lastVariantByTopic[candidate.topic]
+        val start = if (last == null) {
+            Math.floorMod(seed + candidate.topic.ordinal * 13, n)
+        } else {
+            (last + 1) % n
+        }
         for (offset in 0 until n) {
             val idx = (start + offset) % n
             val fp = fingerprint(candidate, idx)

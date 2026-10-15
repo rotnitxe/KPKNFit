@@ -22,6 +22,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.SemanticsActions
+import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
@@ -66,6 +68,10 @@ private const val DOCK_DP = 229f
 private val ACCENT = Color(0xFFF49A6E)
 private const val LINE_ONE = "Serie 2 de 4: 6 reps a RIR 2."
 private const val LINE_TWO = "Hoy: pesos libres: la barra no te guía. Tú estabilizas la trayectoria."
+/** Serie registrada por encima de lo previsto (LR1h): la frase más larga de la serie registrada. */
+private const val LINE_REGISTRADA = "Te sobró margen: la próxima puede subir 2,5 kg."
+/** Mitad del descanso sin historial (LR1h): cuánto queda y qué sigue. */
+private const val LINE_MITAD = "Quedan 2:00. Después, serie 2 de 4: 95 kg × 6."
 
 /**
  * HOJA DE RENDER de la sesión en vivo con el relator (LR1g). Sin `KPKN_RENDER_DIR` se salta. Dibuja a 360 × 880 dp la
@@ -126,13 +132,41 @@ class LiveSessionRelatorRenderSheetTest {
         draw(1.3f, "descanso_pagina_130", Variant.DESCANSO_PAGINA)
     }
 
+    /** LR1h: la frase de la serie registrada y la de la mitad del descanso, en la página de descanso, a 100 % y 130 %. */
+    @Test
+    fun descanso_registrada_100() {
+        onlyWhenAsked()
+        draw(1f, "descanso_registrada_100", Variant.DESCANSO_PAGINA, LINE_REGISTRADA)
+    }
+
+    @Test
+    fun descanso_registrada_130() {
+        onlyWhenAsked()
+        draw(1.3f, "descanso_registrada_130", Variant.DESCANSO_PAGINA, LINE_REGISTRADA)
+    }
+
+    @Test
+    fun descanso_mitad_100() {
+        onlyWhenAsked()
+        draw(1f, "descanso_mitad_100", Variant.DESCANSO_PAGINA, LINE_MITAD)
+    }
+
+    @Test
+    fun descanso_mitad_130() {
+        onlyWhenAsked()
+        draw(1.3f, "descanso_mitad_130", Variant.DESCANSO_PAGINA, LINE_MITAD)
+    }
+
     @Test
     fun descanso_overlay_100() {
         onlyWhenAsked()
         drawOverlay(1f, "descanso_overlay_100")
     }
 
-    private fun draw(fontScale: Float, name: String, variant: Variant) {
+    /** Texto del relator de cada variante: la serie de una línea lleva la frase corta; el resto, la de dos líneas. */
+    private fun textoPara(variant: Variant): String = if (variant == Variant.SERIE_UNA_LINEA) LINE_ONE else LINE_TWO
+
+    private fun draw(fontScale: Float, name: String, variant: Variant, text: String = textoPara(variant)) {
         rule.mainClock.autoAdvance = false
         rule.setContent {
             hostView = LocalView.current
@@ -159,7 +193,7 @@ class LiveSessionRelatorRenderSheetTest {
                                         .fillMaxWidth()
                                         .padding(bottom = DOCK_DP.dp),
                                 ) {
-                                    RelatorBandAndCard(variant, fontScale)
+                                    RelatorBandAndCard(variant, fontScale, text)
                                 }
                             }
                             Box(
@@ -189,7 +223,8 @@ class LiveSessionRelatorRenderSheetTest {
             }
         }
         rule.waitForIdle()
-        val medidas = medir(fontScale, variant)
+        val lineas = lineasDeTexto(text)
+        val medidas = medir(fontScale, variant, text) + "lineas_texto=$lineas"
         File(System.getenv("KPKN_RENDER_DIR")!!).mkdirs()
         File(System.getenv("KPKN_RENDER_DIR")!!, "medidas_$name.txt").writeText(medidas.joinToString("\n"))
         save(PHONE_TAG, name)
@@ -197,15 +232,24 @@ class LiveSessionRelatorRenderSheetTest {
         val gapBelow = medidas.value("hueco_texto_tarjeta")
         assertTrue("huecos $gapAbove / $gapBelow", kotlin.math.abs(gapAbove - gapBelow) <= 2f)
         assertTrue("la tarjeta debe quedar 12 dp por encima del cajón", medidas.value("hueco_tarjeta_cajon") >= 12f)
+        assertTrue("el relator debe caber en dos líneas: $lineas", lineas in 1..2)
+    }
+
+    /** Líneas que ocupa el texto del relator en pantalla (LR1h): la banda admite dos. Sin texto encontrado, -1. */
+    private fun lineasDeTexto(text: String): Int {
+        val layouts = mutableListOf<TextLayoutResult>()
+        val config = rule.onNode(hasText(text), useUnmergedTree = true).fetchSemanticsNode().config
+        config[SemanticsActions.GetTextLayoutResult].action?.invoke(layouts)
+        return layouts.firstOrNull()?.lineCount ?: -1
     }
 
     @Composable
-    private fun BoxScope.RelatorBandAndCard(variant: Variant, fontScale: Float) {
+    private fun BoxScope.RelatorBandAndCard(variant: Variant, fontScale: Float, text: String) {
         val density = LocalDensity.current
         val bandHeight = WorkoutUiTokens.liveRelatorBandHeight(density)
         // Como en la pantalla (WorkoutV2Body): la línea recibe la altura de la banda por su propio modifier.
         WorkoutLiveRelatorLine(
-            text = if (variant == Variant.SERIE_UNA_LINEA) LINE_ONE else LINE_TWO,
+            text = text,
             phaseKey = "lr1g",
             modifier = Modifier
                 .align(Alignment.TopCenter)
@@ -323,12 +367,12 @@ class LiveSessionRelatorRenderSheetTest {
     }
 
     /** Medidas en dp de la maqueta, con el texto medido en su caja de línea (sin contar el aire del Box). */
-    private fun medir(fontScale: Float, variant: Variant): List<String> {
+    private fun medir(fontScale: Float, variant: Variant, text: String): List<String> {
         val density = 3f
         fun dp(rect: Rect): Pair<Float, Float> = rect.top / density to rect.bottom / density
         val chips = dp(rule.onNodeWithTag(CHIPS_TAG).fetchSemanticsNode().boundsInRoot)
         val band = dp(rule.onNodeWithTag(BAND_TAG).fetchSemanticsNode().boundsInRoot)
-        val texto = rule.onNode(hasText(if (variant == Variant.SERIE_UNA_LINEA) LINE_ONE else LINE_TWO), useUnmergedTree = true)
+        val texto = rule.onNode(hasText(text), useUnmergedTree = true)
             .fetchSemanticsNode().boundsInRoot
         val textoDp = dp(texto)
         val card = dp(rule.onNodeWithTag(CARD_TAG).fetchSemanticsNode().boundsInRoot)
