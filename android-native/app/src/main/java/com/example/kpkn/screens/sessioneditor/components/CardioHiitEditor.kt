@@ -2,6 +2,7 @@ package com.example.kpkn.screens.sessioneditor.components
 
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
+import com.example.kpkn.domain.cardio.CardioPrescriptionFormatter
 
 internal fun formatMmSs(totalSeconds: Int): String {
     val capped = totalSeconds.coerceIn(0, 99 * 60 + 59)
@@ -10,11 +11,8 @@ internal fun formatMmSs(totalSeconds: Int): String {
     return "%02d:%02d".format(m, s)
 }
 
-private fun formatSeconds(totalSeconds: Int): String {
-    val minutes = totalSeconds.coerceAtLeast(0) / 60
-    val seconds = totalSeconds.coerceAtLeast(0) % 60
-    return if (seconds == 0) "$minutes min" else "$minutes min ${seconds}s"
-}
+private fun formatSeconds(totalSeconds: Int): String =
+    if (totalSeconds <= 0) "0 min" else CardioPrescriptionFormatter.formatDuration(totalSeconds)
 
 private fun rpeAnchor(value: Double): String = when (value.coerceIn(1.0, 10.0)) {
     in 1.0..2.0 -> "Muy suave"

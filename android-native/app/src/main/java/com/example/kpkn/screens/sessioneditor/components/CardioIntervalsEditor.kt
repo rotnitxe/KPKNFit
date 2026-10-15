@@ -136,7 +136,7 @@ internal fun CardioIntervalsEditor(
             Text(
                 "Modo intervalos",
                 style = KpknType.eyebrow,
-                color = accentColor,
+                color = WizardColors.text,
             )
         }
 
@@ -342,7 +342,7 @@ internal fun CardioIntervalsEditor(
                     text = "Plantilla",
                     onClick = { showTemplatePicker = true },
                     leadingIcon = KpknLineIcons.Layers,
-                    color = accentColor,
+                    color = WizardColors.text,
                     modifier = Modifier.weight(1f),
                 )
             }
@@ -934,8 +934,9 @@ private fun shortPhaseLabel(type: CardioBlockType): String = when (type) {
     CardioBlockType.COOLDOWN -> "ENF"
 }
 
-private fun formatMinutes(totalSeconds: Int): String {
-    val m = totalSeconds / 60
-    val s = totalSeconds % 60
-    return if (s == 0) "${m} min" else "${m}m ${s}s"
-}
+/**
+ * Duración con el formato de la dosis («11 min 30 s»), con espacios inseparables entre cifra y unidad para que no se parta la «s».
+ * Sin tiempo, «0 min».
+ */
+private fun formatMinutes(totalSeconds: Int): String =
+    if (totalSeconds <= 0) "0 min" else CardioPrescriptionFormatter.formatDuration(totalSeconds).replace(' ', ' ')
