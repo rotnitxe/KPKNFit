@@ -37,4 +37,9 @@ class TechniqueCommaWeightTest {
 
         assertEquals(62.5, fase.suggestedWeight, 0.001)
     }
+
+    @Test
+    fun dropGuiadoEscritoConComaGuardaSuPeso() {
+        assertEquals(62.5, parseGuidedDropWeightKg("62,5")!!, 0.001)
+    }
 }

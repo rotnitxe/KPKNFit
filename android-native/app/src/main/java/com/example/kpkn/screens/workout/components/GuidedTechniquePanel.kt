@@ -1,11 +1,14 @@
 package com.example.kpkn.screens.workout.components
 
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -20,7 +23,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.example.kpkn.screens.onboarding.design.WizardColors
 import com.example.kpkn.screens.sessioneditor.components.RestPausePlanDefaults
@@ -31,7 +36,6 @@ import com.example.kpkn.ui.components.icons.KpknLineIcons
 import com.example.kpkn.ui.design.KpknDangerPill
 import com.example.kpkn.ui.design.KpknModule
 import com.example.kpkn.ui.design.KpknProgressBar
-import com.example.kpkn.ui.design.KpknTextAction
 import com.example.kpkn.ui.design.KpknTextField
 import com.example.kpkn.ui.design.KpknType
 
@@ -151,7 +155,7 @@ internal fun GuidedTechniquePanel(
                 }
             }
 
-            KpknTextAction(
+            GuidedSkipAction(
                 text = "Saltar técnica y registrar solo la serie",
                 onClick = { confirmSkipTechnique = true },
             )
@@ -193,6 +197,33 @@ internal fun GuidedTechniquePanel(
                     }
                 }
             },
+        )
+    }
+}
+
+/**
+ * Acción de texto de la técnica guiada (LR1c2): el mismo estilo que `KpknTextAction` (tinta, `KpknType.action`, sin ripple y con 48 dp de
+ * zona táctil), pero con hasta dos líneas antes que cortarse con «…» al 130 % de letra.
+ */
+@Composable
+private fun GuidedSkipAction(
+    text: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val interaction = remember { MutableInteractionSource() }
+    Row(
+        modifier = modifier
+            .defaultMinSize(minHeight = 48.dp)
+            .clickable(interactionSource = interaction, indication = null, role = Role.Button, onClick = onClick),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(
+            text = text,
+            style = KpknType.action,
+            color = WizardColors.text,
+            maxLines = 2,
+            overflow = TextOverflow.Ellipsis,
         )
     }
 }
