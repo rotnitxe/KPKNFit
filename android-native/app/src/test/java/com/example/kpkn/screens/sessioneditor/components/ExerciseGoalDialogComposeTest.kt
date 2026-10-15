@@ -3,7 +3,7 @@ package com.example.kpkn.screens.sessioneditor.components
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.test.assertTextEquals
+import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.test.hasSetTextAction
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.performTextInput
@@ -43,7 +43,8 @@ class ExerciseGoalDialogComposeTest {
         }
         val field = rule.onNode(hasSetTextAction())
         listOf("1", "0", "2", ",", "5").forEach { key -> field.performTextInput(key) }
-        field.assertTextEquals("102,5")
+        // El rótulo («Meta 1RM kg (opcional)») también cuenta como Text: se mira solo el valor escrito.
+        assertEquals("102,5", field.fetchSemanticsNode().config[SemanticsProperties.EditableText].text)
         assertEquals(102.5, model.value.goal1RM!!, 1e-9)
     }
 }
