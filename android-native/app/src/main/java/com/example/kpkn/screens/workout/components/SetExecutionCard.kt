@@ -678,17 +678,24 @@ private fun IntegratedLoadInput(
 }
 
 /**
- * Botón secundario de la tarjeta de la serie (LR1a): píldora con borde de tinta al 24 %, sin relleno, Inter SemiBold 13 (`KpknType.chip`).
- * El texto puede pasar a dos líneas (y a tres al 130 % de letra) para leerse entero dentro de la mitad de la fila: nunca se corta ni se
- * abrevia. Al pulsar escala a 0,97 con resorte y sin ripple.
+ * Relleno final de «Ver ejercicio/Fotos» (LR1a2), en una pantalla de 360 dp. El ✓ flotante mide 58 dp y queda a 16 dp del borde derecho
+ * (`WorkoutRecordFabPlacement.kt`): su borde izquierdo está a 286 dp. La tarjeta (272 dp, centrada) termina a 316 dp y su contenido
+ * deja 10 dp, así que la píldora acaba a 306 dp: el ✓ le pisa 20 dp. El texto debe acabar 8 dp antes del círculo: 20 + 8 = 28 dp.
+ */
+private val SetRecordFabEndPadding = 28.dp
+
+/**
+ * Botón secundario de la tarjeta de la serie (LR1a, LR1a2): píldora con borde de tinta al 24 %, sin relleno, Inter SemiBold 13 / 16
+ * (`KpknType.chip`). A 360 dp cada texto ocupa dos líneas enteras («Opciones / avanzadas», «Ver ejercicio/ / Fotos») y nunca se corta
+ * ni se abrevia. Al pulsar escala a 0,97 con resorte y sin ripple.
  */
 @Composable
 private fun SetSecondaryPill(
     text: String,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
-    // Relleno al final de la píldora: aparta el texto del ✓ flotante que tapa la esquina (LR1a).
-    trailingInset: Dp = 0.dp,
+    // Relleno final de la píldora: el estándar de 10 dp, o el de «Ver ejercicio/Fotos» para no quedar bajo el ✓ (LR1a2).
+    endPadding: Dp = 10.dp,
 ) {
     val interaction = remember { MutableInteractionSource() }
     val pressed by interaction.collectIsPressedAsState()
@@ -717,13 +724,13 @@ private fun SetSecondaryPill(
                 .defaultMinSize(minHeight = 48.dp)
                 .clip(KpknShape.pill)
                 .border(1.dp, WizardColors.text.copy(alpha = 0.24f), KpknShape.pill)
-                .padding(start = 8.dp, top = 8.dp, end = 8.dp + trailingInset, bottom = 8.dp),
+                .padding(start = 10.dp, top = 8.dp, end = endPadding, bottom = 8.dp),
             contentAlignment = Alignment.Center,
         ) {
             Text(
                 text = text,
-                // 14 sp con interlineado de 18: compacta y se lee entera en dos líneas (LR1a).
-                style = KpknType.action.copy(lineHeight = 18.sp),
+                // 13 sp con interlineado de 16 (`KpknType.chip`): dos líneas por texto, con 48 dp de alto mínimo (LR1a2).
+                style = KpknType.chip,
                 color = WizardColors.text,
                 textAlign = TextAlign.Center,
             )
@@ -2376,18 +2383,18 @@ internal fun SetInputCardV2(
                         modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Min),
                         horizontalArrangement = Arrangement.spacedBy(6.dp),
                     ) {
-                        // Botones secundarios (LR1a): píldora con borde de tinta al 24 %, mismo sitio y orden. El texto se lee entero
-                        // en dos líneas, sin abreviar (la mitad de la fila es estrecha).
+                        // Botones secundarios (LR1a, LR1a2): mismo sitio y orden. Anchos de 42 % y 58 %: cada texto ocupa dos líneas
+                        // enteras y el de la derecha deja sitio al ✓ flotante.
                         SetSecondaryPill(
                             text = "Opciones avanzadas",
                             onClick = { cardFace = SetCardFace.Technique },
-                            modifier = Modifier.weight(1f).fillMaxHeight(),
+                            modifier = Modifier.weight(0.42f).fillMaxHeight(),
                         )
                         SetSecondaryPill(
                             text = "Ver ejercicio/Fotos",
                             onClick = { cardFace = SetCardFace.ExerciseMedia },
-                            modifier = Modifier.weight(1f).fillMaxHeight(),
-                            trailingInset = 28.dp,
+                            modifier = Modifier.weight(0.58f).fillMaxHeight(),
+                            endPadding = SetRecordFabEndPadding,
                         )
                     }
 

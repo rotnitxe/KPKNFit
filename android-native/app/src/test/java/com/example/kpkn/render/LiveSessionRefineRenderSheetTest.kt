@@ -21,11 +21,15 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.onAllNodesWithContentDescription
+import androidx.compose.ui.test.onFirst
 import androidx.compose.ui.test.onNodeWithTag
+import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import com.example.kpkn.data.models.CompletedSet
 import com.example.kpkn.data.models.Exercise
+import com.example.kpkn.data.models.ExerciseReadiness
 import com.example.kpkn.data.models.ExerciseSet
 import com.example.kpkn.data.models.IntensityMode
 import com.example.kpkn.data.models.LoadModeV2
@@ -35,14 +39,17 @@ import com.example.kpkn.screens.onboarding.design.WizardColors
 import com.example.kpkn.screens.workout.PendingRestSuggestion
 import com.example.kpkn.screens.workout.RecordActionHolder
 import com.example.kpkn.screens.workout.WeightSuggestion
+import com.example.kpkn.screens.workout.WorkoutHeaderBar
 import com.example.kpkn.screens.workout.WorkoutRestModalState
 import com.example.kpkn.screens.workout.components.RestTimerOverlay
 import com.example.kpkn.screens.workout.components.SetInputCardV2
+import com.example.kpkn.screens.workout.components.WorkoutRecordFab
 import com.example.kpkn.ui.design.KpknModule
 import com.example.kpkn.ui.design.KpknPrimaryPill
 import com.example.kpkn.ui.design.KpknType
 import com.example.kpkn.ui.theme.KPKNTheme
 import dev.chrisbanes.haze.HazeState
+import org.junit.Assert.assertTrue
 import org.junit.Assume.assumeTrue
 import org.junit.BeforeClass
 import org.junit.Rule
@@ -57,6 +64,13 @@ import java.io.FileOutputStream
 private const val SERIE_TAG = "lr1a-serie-sheet"
 private const val DESCANSO_TAG = "lr1a-descanso-sheet"
 private const val DESCANSO_HEIGHT_DP = 760
+
+// Geometría a 360 dp (LR1a2): etiquetas de los nodos, altura a la que va la tarjeta en el teléfono y escala de densidad.
+private const val CHECK_TAG = "lr1a2-check-sheet"
+private const val CARD_TAG = "lr1a2-card"
+private const val HEADER_TAG = "lr1a2-header-sheet"
+private const val CARD_TOP_DP = 215
+private const val DENSITY = 3f
 
 // Datos de ejemplo tomados de la captura original (Peso Muerto Convencional, 100,5 kg, 6 reps, RIR 2).
 private val SAMPLE_SET = ExerciseSet(
@@ -92,8 +106,31 @@ private val SAMPLE_SUGGESTION = PendingRestSuggestion(
     advancedFeedback = null,
 )
 
+// Readiness de ejemplo (82 %): el chip verde de la cabecera del teléfono.
+private val SAMPLE_READINESS = ExerciseReadiness(
+    exerciseId = "sentadilla",
+    exerciseName = "Sentadilla Trasera con Barra Alta",
+    overallScore = 82,
+    muscularComponent = 82,
+    cnsComponent = 82,
+    spinalComponent = 82,
+    articularComponent = 82,
+    structuralComponent = 82,
+    relatedArticular = emptyList(),
+    muscularWeight = 1.0,
+    cnsWeight = 1.0,
+    spinalWeight = 1.0,
+    articularWeight = 1.0,
+    setsPenaltyFactor = 1.0,
+    intensityPenaltyFactor = 1.0,
+    ermProximityFactor = 1.0,
+    patternId = null,
+    involvedMuscleIds = emptyList(),
+)
+
 /**
- * HOJA DE RENDER del refinado de la serie y del descanso (LR1a). No comprueba nada: escribe PNG. Solo corre con la variable de
+ * HOJA DE RENDER del refinado de la serie y del descanso (LR1a). Escribe PNG; las dos pruebas de geometría a 360 dp (LR1a2) además
+ * comprueban el ✓ frente al texto y los chips de la cabecera. Solo corre con la variable de
  * entorno `KPKN_RENDER_DIR` apuntando a una carpeta; sin ella se salta. Dibuja las piezas REALES de la sesión (`SetInputCardV2` y
  * `RestTimerOverlay`) con datos de ejemplo, a 360 dp, con la letra al 100 % y al 130 %. El bloque de feedback del descanso es una
  * pieza de ejemplo: el real lo pone el anfitrión de la sesión.
@@ -166,6 +203,133 @@ class LiveSessionRefineRenderSheetTest {
     fun descansoConFeedback130() {
         onlyWhenAsked()
         drawDescanso(withFeedback = true, fontScale = 1.3f, name = "descanso_feedback_130")
+    }
+
+    /**
+     * Geometría de la serie a 360 × 880 dp (LR1a2): la tarjeta a la altura del teléfono y el ✓ real encima, en su sitio. Mide el borde
+     * derecho del texto «Ver ejercicio/Fotos» frente al borde izquierdo del ✓, y la base de la tarjeta frente al cajón plegado (652 dp).
+     * Escribe el PNG de la pantalla y falla si el texto pisa el ✓ o si la tarjeta queda a menos de 12 dp del cajón.
+     */
+    @Test
+    fun serieCheckGeometria360() {
+        onlyWhenAsked()
+        rule.setContent {
+            hostView = LocalView.current
+            CompositionLocalProvider(LocalDensity provides Density(DENSITY, 1f)) {
+                KPKNTheme {
+                    MaterialTheme {
+                        // El ✓ va anclado a 16 dp del borde derecho y a 241 dp del borde inferior (su base queda sobre el cajón plegado).
+                        Box(
+                            Modifier
+                                .width(360.dp)
+                                .height(880.dp)
+                                .background(Color.Black)
+                                .testTag(CHECK_TAG),
+                        ) {
+                            Box(
+                                Modifier
+                                    .width(272.dp)
+                                    .align(Alignment.TopCenter)
+                                    .padding(top = CARD_TOP_DP.dp)
+                                    .testTag(CARD_TAG),
+                            ) {
+                                SetInputCardV2(
+                                    exercise = SAMPLE_EXERCISE,
+                                    setIndex = 0,
+                                    currentSet = SAMPLE_SET,
+                                    ghostSet = null,
+                                    weightSuggestion = WeightSuggestion(suggestedWeight = 98.0, reason = "Ajuste por RIR"),
+                                    previousSessionFirstSetWeight = 122.5,
+                                    sessionAccentColor = Color(0xFFF49A6E),
+                                    initialBodyWeight = 80.0,
+                                    recordActionHolder = RecordActionHolder(),
+                                    onShowHistory = {},
+                                    onSetBodyWeight = {},
+                                    onRecordV2 = { _, _, _, _, _, _, _, _, _, _ -> },
+                                )
+                            }
+                            WorkoutRecordFab(
+                                sessionAccentColor = Color(0xFFF49A6E),
+                                isUpdateMode = false,
+                                enabled = true,
+                                onClick = {},
+                                modifier = Modifier
+                                    .align(Alignment.BottomEnd)
+                                    .padding(end = 16.dp, bottom = 241.dp),
+                            )
+                        }
+                    }
+                }
+            }
+        }
+        rule.waitForIdle()
+        // El texto va sin fusionar con la píldora (que es clicable) para medir el propio Text.
+        val textoDerecho = rule.onNodeWithText("Ver ejercicio/Fotos", useUnmergedTree = true)
+            .fetchSemanticsNode().boundsInRoot.right / DENSITY
+        val checkIzquierdo = rule.onAllNodesWithContentDescription("Registrar serie").onFirst()
+            .fetchSemanticsNode().boundsInRoot.left / DENSITY
+        val baseTarjeta = rule.onNodeWithTag(CARD_TAG).fetchSemanticsNode().boundsInRoot.bottom / DENSITY
+        println("LR1a2 geometria 360 dp: texto derecho $textoDerecho; check izquierdo $checkIzquierdo; base tarjeta $baseTarjeta")
+        save(CHECK_TAG, "serie_check_360_100")
+        assertTrue(
+            "el texto «Ver ejercicio/Fotos» acaba en $textoDerecho dp y el ✓ empieza en $checkIzquierdo dp",
+            textoDerecho < checkIzquierdo,
+        )
+        assertTrue(
+            "la base de la tarjeta queda en $baseTarjeta dp: a menos de 12 dp del cajón plegado (652 dp)",
+            baseTarjeta <= 640f,
+        )
+    }
+
+    /**
+     * Cabecera a 360 dp (LR1a2): la fila de chips (cronómetro, «82 %», «Sin etiquetas») ocupa todo el ancho, debajo del subtítulo. Mide
+     * que los chips de texto fijo acaban dentro del margen de 16 dp (344 dp) y escribe el PNG de la cabecera.
+     */
+    @Test
+    fun cabeceraChips360() {
+        onlyWhenAsked()
+        rule.setContent {
+            hostView = LocalView.current
+            CompositionLocalProvider(LocalDensity provides Density(DENSITY, 1f)) {
+                KPKNTheme {
+                    MaterialTheme {
+                        Box(
+                            Modifier
+                                .width(360.dp)
+                                .height(150.dp)
+                                .background(Color.Black)
+                                .testTag(HEADER_TAG),
+                        ) {
+                            WorkoutHeaderBar(
+                                exerciseName = "Sentadilla Trasera con Barra Alta",
+                                protocolLabel = "Accesorio",
+                                sessionName = "Pierna A",
+                                groupName = null,
+                                startTimeMs = System.currentTimeMillis() - 3_586_000L,
+                                isComplete = false,
+                                background = null,
+                                sessionTimeRemainingSeconds = null,
+                                onAdjustTimeLimit = {},
+                                exerciseReadiness = SAMPLE_READINESS,
+                                hasCreatedTags = false,
+                                onOpenTagList = {},
+                            )
+                        }
+                    }
+                }
+            }
+        }
+        rule.waitForIdle()
+        // Borde derecho de cada chip = borde del texto + su relleno lateral (8 dp en «Sin etiquetas», 9 dp en «82 %»).
+        val sinEtiquetasDerecho = rule.onNodeWithText("Sin etiquetas", useUnmergedTree = true)
+            .fetchSemanticsNode().boundsInRoot.right / DENSITY + 8f
+        // El % va con espacio inseparable (U+00A0), igual que en WorkoutHeaderBar.kt.
+        val readinessDerecho = rule.onNodeWithText("82 %", useUnmergedTree = true)
+            .fetchSemanticsNode().boundsInRoot.right / DENSITY + 9f
+        println("LR1a2 cabecera 360 dp: sin etiquetas acaba en $sinEtiquetasDerecho; 82 % acaba en $readinessDerecho")
+        save(HEADER_TAG, "cabecera_chips_360_100")
+        assertTrue("«Sin etiquetas» acaba en $sinEtiquetasDerecho dp, fuera del margen de 344 dp", sinEtiquetasDerecho <= 344f)
+        assertTrue("«82 %» acaba en $readinessDerecho dp, fuera del margen de 344 dp", readinessDerecho <= 344f)
     }
 
     private fun drawSerie(withSuggestion: Boolean, fontScale: Float, name: String) {
