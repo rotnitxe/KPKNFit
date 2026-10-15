@@ -8,10 +8,8 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -22,9 +20,13 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.example.kpkn.screens.onboarding.design.WizardColors
 import com.example.kpkn.screens.sessioneditor.NativeWheelPicker
 import com.example.kpkn.ui.components.KpknAlertDialog
 import com.example.kpkn.ui.components.KpknSheetTokens
+import com.example.kpkn.ui.design.KpknPrimaryPill
+import com.example.kpkn.ui.design.KpknTextAction
+import com.example.kpkn.ui.design.KpknType
 import kotlin.math.roundToInt
 
 internal enum class CardioMagnitudeKind {
@@ -356,23 +358,22 @@ private fun CardioWheelDialogScaffold(
 ) {
     KpknAlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text(title, fontWeight = FontWeight.Black) },
+        title = { Text(title, style = KpknType.dialogTitle, color = WizardColors.text) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
                 content()
                 Text(
                     preview,
-                    style = MaterialTheme.typography.labelLarge,
-                    fontWeight = FontWeight.Bold,
+                    style = KpknType.metricM,
                     color = accentColor,
                 )
             }
         },
         confirmButton = {
-            FilledTonalButton(onClick = onConfirm) { Text("Aplicar") }
+            KpknPrimaryPill(text = "Aplicar", onClick = onConfirm)
         },
         dismissButton = {
-            TextButton(onClick = onDismiss) { Text("Cancelar") }
+            KpknTextAction(text = "Cancelar", onClick = onDismiss)
         },
     )
 }
