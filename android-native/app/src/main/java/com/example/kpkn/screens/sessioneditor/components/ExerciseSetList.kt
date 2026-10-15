@@ -358,7 +358,7 @@ private fun SetSummaryRow(
 }
 
 /** Lo que se ve de una serie sin abrirla. */
-private data class SetRowSummary(
+internal data class SetRowSummary(
     val dose: String,
     val load: String?,
     val intensity: String?,
@@ -369,7 +369,7 @@ private data class SetRowSummary(
  * Resume una serie (o su lado) con la misma lógica que la fila: la carga sugerida si la hay, las reps o el rango, el tiempo o la
  * distancia según el modo, y la intensidad y la técnica. Los decimales van con coma y las unidades con espacio inseparable.
  */
-private fun setRowSummary(
+internal fun setRowSummary(
     set: ExerciseSet,
     side: String?,
     mode: TrainingMode,
@@ -382,7 +382,8 @@ private fun setRowSummary(
     val isAmrap = set.isAmrap || mode == TrainingMode.AMRAP
     val rpe = pick(set.targetRPE, target?.targetRPE)
     val rir = pick(set.targetRIR, target?.targetRIR)
-    val weight = predictedWeight ?: pick(set.weight, target?.weight)
+    // ER2a: la fila enseña la carga guardada; la calculada solo aparece si la serie no tiene ninguna.
+    val weight = pick(set.weight, target?.weight)?.takeIf { it > 0.0 } ?: predictedWeight
     val reps = pick(set.targetReps, target?.targetReps)
     val range = pick(set.targetRepsRange, target?.targetRepsRange)
     val duration = pick(set.targetDuration, target?.targetDuration)

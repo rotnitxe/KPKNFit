@@ -641,8 +641,14 @@ internal fun ExerciseSet.normalizeSet(exercise: Exercise): ExerciseSet {
             }
         }
     }
-    val autoWeight = calculateSuggestedLoad(exercise, normalized)
-    return normalized.copy(weight = if (usesExplicitTmPercent) autoWeight else autoWeight ?: normalized.weight)
+    // ER2a: en %RM la carga guardada manda. Normalizar solo la calcula si falta, o si la serie no tenía %RM que la respalde; el
+    // cambio explícito de %RM, de referencia o a RM la recalcula en `withExplicitRmLoads` (SessionEditorRmLoads.kt).
+    val plainRm = exercise.trainingMode == TrainingMode.RM && !usesExplicitTmPercent &&
+        (normalized.loadModeV2 ?: LoadModeV2.LOAD) == LoadModeV2.LOAD
+    val autoWeight = if (plainRm) rmSetLoadKg(exercise, normalized) else calculateSuggestedLoad(exercise, normalized)
+    val savedRmKg = weight?.takeIf { plainRm && targetPercentageRM != null && it > 0.0 }
+    val computedKg = if (usesExplicitTmPercent) autoWeight else autoWeight ?: normalized.weight
+    return normalized.copy(weight = savedRmKg ?: computedKg)
 }
 
 internal fun createNextSetTemplate(exercise: Exercise, template: ExerciseSet): ExerciseSet {
@@ -660,6 +666,8 @@ internal fun createNextSetTemplate(exercise: Exercise, template: ExerciseSet): E
     return base.copy(
         targetPercentageRM = ((template.targetPercentageRM ?: 100.0) - fatigueDrop).coerceAtLeast(45.0),
         intensityMode = null,
+        // ER2a: la carga copiada es la de la serie anterior; esta tiene otro %RM, así que su carga la calcula normalizar.
+        weight = null,
     )
 }
 

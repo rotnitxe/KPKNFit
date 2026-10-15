@@ -196,7 +196,6 @@ internal fun InlineSetRow(
             localSliderPercent = sliderPercent.toFloat()
         }
     }
-    val displayedWeight = predictedWeight
     val metricLabel = when (trainingMode) {
         TrainingMode.RM -> if (usesExplicitTmPercent) "Reps" else "Reps est."
         TrainingMode.REPS -> if (isAmrapMode) "Reps mín." else "Reps / rango"
@@ -209,6 +208,9 @@ internal fun InlineSetRow(
     val activeSideTarget = if (isUnilateral) {
         if (activeUniSide == "L") set.leftTarget else set.rightTarget
     } else null
+    // ER2a: la línea de carga enseña la guardada (la de la serie o la de su lado); la calculada solo si no hay ninguna.
+    val savedWeight = (if (isUnilateral && activeSideTarget != null) activeSideTarget.weight else set.weight)?.takeIf { it > 0.0 }
+    val displayedWeight = savedWeight ?: predictedWeight
     val externalPlannedIntensity = shouldShowPlannedIntensity(
         set = set,
         isUnilateral = isUnilateral,
