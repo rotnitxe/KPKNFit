@@ -1,7 +1,11 @@
 package com.example.kpkn.ui.components
 
 import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
@@ -15,10 +19,12 @@ import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.example.kpkn.ui.components.icons.KpknLineIcons
 
 enum class SnackbarType { SUCCESS, DANGER, ACHIEVEMENT, SUGGESTION }
 
@@ -36,20 +42,25 @@ private fun SnackbarType.contentColor(): Color = when (this) {
     SnackbarType.SUGGESTION -> Color.White
 }
 
+/** Prefijo de cada aviso. El éxito no lleva emoji: la marca KPKN lo pinta delante (SE9). */
 private fun SnackbarType.emoji(): String = when (this) {
-    SnackbarType.SUCCESS -> "\u2705"
-    SnackbarType.DANGER -> "\u274C"
-    SnackbarType.ACHIEVEMENT -> "\uD83C\uDFC6"
-    SnackbarType.SUGGESTION -> "\uD83D\uDCA1"
+    SnackbarType.SUCCESS -> ""
+    SnackbarType.DANGER -> "❌"
+    SnackbarType.ACHIEVEMENT -> "🏆"
+    SnackbarType.SUGGESTION -> "💡"
 }
 
-private fun inferSnackbarType(message: String): SnackbarType = when {
-    message.startsWith(SnackbarType.SUCCESS.emoji()) -> SnackbarType.SUCCESS
+/** Tipo del aviso por el emoji de su texto; sin emoji, el aviso es de éxito. */
+internal fun inferSnackbarType(message: String): SnackbarType = when {
     message.startsWith(SnackbarType.DANGER.emoji()) -> SnackbarType.DANGER
     message.startsWith(SnackbarType.ACHIEVEMENT.emoji()) -> SnackbarType.ACHIEVEMENT
     message.startsWith(SnackbarType.SUGGESTION.emoji()) -> SnackbarType.SUGGESTION
     else -> SnackbarType.SUCCESS
 }
+
+/** Texto que se muestra: el éxito va sin prefijo; los demás tipos, con su emoji delante. */
+internal fun snackbarText(type: SnackbarType, message: String): String =
+    if (type == SnackbarType.SUCCESS) message else "${type.emoji()} $message"
 
 suspend fun SnackbarHostState.showKpknSnackbar(
     message: String,
@@ -58,7 +69,7 @@ suspend fun SnackbarHostState.showKpknSnackbar(
     actionLabel: String? = null,
 ): SnackbarResult {
     return showSnackbar(
-        message = "${type.emoji()} $message",
+        message = snackbarText(type, message),
         actionLabel = actionLabel,
         withDismissAction = true,
         duration = duration,
@@ -99,10 +110,26 @@ fun KpknSnackbar(data: SnackbarData) {
             }
         },
     ) {
-        Text(
-            text = data.visuals.message,
-            fontWeight = FontWeight.Bold,
-        )
+        KpknSnackbarMessage(type = type, text = data.visuals.message)
+    }
+}
+
+/** Texto del aviso: el éxito lleva delante la marca KPKN (SE9); los demás tipos, solo el texto. */
+@Composable
+private fun KpknSnackbarMessage(type: SnackbarType, text: String) {
+    if (type == SnackbarType.SUCCESS) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Icon(
+                imageVector = KpknLineIcons.Tower,
+                contentDescription = null,
+                tint = type.contentColor(),
+                modifier = Modifier.size(20.dp),
+            )
+            Spacer(Modifier.width(8.dp))
+            Text(text = text, fontWeight = FontWeight.Bold)
+        }
+    } else {
+        Text(text = text, fontWeight = FontWeight.Bold)
     }
 }
 
@@ -124,9 +151,6 @@ fun KpknSnackbarBanner(
         containerColor = Color.Transparent,
         contentColor = type.contentColor(),
     ) {
-        Text(
-            text = "${type.emoji()} $message",
-            fontWeight = FontWeight.Bold,
-        )
+        KpknSnackbarMessage(type = type, text = snackbarText(type, message))
     }
 }
