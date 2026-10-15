@@ -206,6 +206,7 @@ internal fun DragLiftPreview(
                     titleOverride ?: exercise.name.ifBlank { "Ejercicio" },
                     style = MaterialTheme.typography.labelLarge,
                     fontWeight = FontWeight.Black,
+                    color = WizardColors.text,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                 )
@@ -213,7 +214,7 @@ internal fun DragLiftPreview(
                     subtitleOverride
                         ?: "${exercise.sets.size} series · ${trainingModeLabel(exercise.trainingMode)}",
                     style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    color = WizardColors.textMuted,
                 )
             }
         }
@@ -266,6 +267,7 @@ internal fun DragPartLiftPreview(
                 partName.ifBlank { "Grupo" }.uppercase(),
                 style = MaterialTheme.typography.labelLarge,
                 fontWeight = FontWeight.Black,
+                color = WizardColors.text,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
             )
