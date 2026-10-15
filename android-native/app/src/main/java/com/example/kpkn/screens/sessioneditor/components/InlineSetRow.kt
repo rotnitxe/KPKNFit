@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
@@ -57,6 +58,9 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.text.rememberTextMeasurer
 import com.example.kpkn.data.models.*
 import com.example.kpkn.data.protocols.LoadBasis
 import com.example.kpkn.domain.exercises.*
@@ -428,58 +432,78 @@ internal fun InlineSetRow(
     }
 
     // Piezas de la fila: cada una tiene la piel de la tarjeta (Card) o la de la fila (List).
+    /**
+     * Tipo de carga de la fila (ER1c1, pulido): un segmentado compacto «Externa · Corporal · Lastre · Asistido». Si al tamaño de letra
+     * actual el texto más largo no cabe en su segmento, pasa a una rejilla 2 × 2 de celdas iguales (nunca chips desiguales).
+     */
     @Composable
-    fun LoadTypeChips() {
-        FlowRow(
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            listOf(
-                LoadModeV2.LOAD to "Carga externa",
-                LoadModeV2.BODYWEIGHT to "Peso corporal",
-                LoadModeV2.LASTRE to "Lastre",
-                LoadModeV2.ASSISTED to "Asistido",
-            ).forEach { (mode, label) ->
-                KpknChip(
-                    text = label,
-                    selected = (set.loadModeV2 ?: LoadModeV2.LOAD) == mode,
-                    onClick = { commitEditedField { current -> current.copy(loadModeV2 = mode) } },
+    fun LoadTypeRow() {
+        val loadOptions = listOf(LoadModeV2.LOAD, LoadModeV2.BODYWEIGHT, LoadModeV2.LASTRE, LoadModeV2.ASSISTED)
+        val labels = listOf("Externa", "Corporal", "Lastre", "Asistido")
+        val spokenNames = listOf("Carga externa", "Peso corporal", "Lastre", "Asistido")
+        val selectedIndex = loadOptions.indexOf(set.loadModeV2 ?: LoadModeV2.LOAD)
+        val measurer = rememberTextMeasurer()
+        val density = LocalDensity.current
+        val segmentStyle = KpknType.segment.copy(fontSize = 13.sp, lineHeight = 18.sp)
+        BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
+            // Cada segmento necesita su texto más ancho con 6 dp de aire a cada lado; la pista añade 4 dp por cada borde.
+            val widest = with(density) { labels.maxOf { measurer.measure(it, segmentStyle).size.width }.toDp() }
+            val fitsOnOneLine = maxWidth >= (widest + 12.dp) * 4f + 8.dp
+            if (fitsOnOneLine) {
+                KpknSegmentedControl(
+                    options = labels,
+                    selectedIndex = selectedIndex,
+                    onSelect = { index -> commitEditedField { current -> current.copy(loadModeV2 = loadOptions[index]) } },
+                    modifier = Modifier.fillMaxWidth(),
+                    size = KpknSegmentedSize.Compact,
+                    descriptions = spokenNames,
                 )
+            } else {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    listOf(0 to 1, 2 to 3).forEach { (first, second) ->
+                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            listOf(first, second).forEach { index ->
+                                KpknChip(
+                                    text = labels[index],
+                                    selected = selectedIndex == index,
+                                    onClick = { commitEditedField { current -> current.copy(loadModeV2 = loadOptions[index]) } },
+                                    modifier = Modifier.weight(1f),
+                                )
+                            }
+                        }
+                    }
+                }
             }
         }
     }
 
-    /** Intensidad de la fila: el segmentado RPE / RIR / Fallo y su valor, o «+ Intensidad» si aún no se programó. */
+    /** Intensidad de la fila (segunda línea de la fila): el segmentado RPE / RIR / Fallo a todo el ancho, o «+ Intensidad» si no hay. */
     @Composable
-    fun RowScope.IntensityRowFields(options: List<IntensityMode>, selectedIndex: Int) {
+    fun IntensityRow(options: List<IntensityMode>, selectedIndex: Int) {
         if (!showPlannedIntensity) {
-            Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                // Hueco del rótulo: el chip queda a la altura de las cifras de la fila.
-                Text(" ", style = KpknType.caption, minLines = 2, maxLines = 2)
-                KpknChip(
-                    text = "+ Intensidad",
-                    selected = false,
-                    onClick = {
-                        showPlannedIntensity = true
-                        commitEditedField { current ->
-                            current.copy(
-                                intensityMode = IntensityMode.RPE,
-                                targetRPE = current.targetRPE ?: 8.0,
-                                targetRIR = null,
-                                isFailure = false,
-                                isAmrap = false,
-                            )
-                        }
-                    },
-                )
-            }
+            KpknChip(
+                text = "+ Intensidad",
+                selected = false,
+                onClick = {
+                    showPlannedIntensity = true
+                    commitEditedField { current ->
+                        current.copy(
+                            intensityMode = IntensityMode.RPE,
+                            targetRPE = current.targetRPE ?: 8.0,
+                            targetRIR = null,
+                            isFailure = false,
+                            isAmrap = false,
+                        )
+                    }
+                },
+            )
             return
         }
         Column(
-            modifier = Modifier.weight(1.6f),
+            modifier = Modifier.fillMaxWidth(),
             verticalArrangement = Arrangement.spacedBy(4.dp),
         ) {
-            Text("Intensidad", style = KpknType.caption, color = WizardColors.textMuted, minLines = 2, maxLines = 2)
+            Text("Intensidad", style = KpknType.caption, color = WizardColors.textMuted, maxLines = 1)
             KpknSegmentedControl(
                 options = listOf("RPE", "RIR", "Fallo"),
                 selectedIndex = selectedIndex,
@@ -488,16 +512,91 @@ internal fun InlineSetRow(
                 size = KpknSegmentedSize.Compact,
             )
         }
-        if ((set.intensityMode ?: IntensityMode.RPE) != IntensityMode.FAILURE) {
-            SetValueCell(
-                label = intensityValueLabel,
-                value = intensityValue,
-                stateKey = "intensity-${set.id}-${setStateKeySuffix}",
-                listSkin = true,
-                modifier = Modifier.weight(1f),
-                keyboardType = if ((set.intensityMode ?: IntensityMode.RPE) == IntensityMode.RPE) KeyboardType.Decimal else KeyboardType.Number,
-                onCommit = onIntensityValueCommit,
-            )
+    }
+
+    /**
+     * Cifras de la fila en lista (ER1c1, pulido): una rejilla de columnas iguales, cada rótulo justo encima de su celda. La intensidad
+     * va debajo, a todo el ancho, porque el segmentado no cabe en una columna.
+     */
+    @Composable
+    fun ListFieldsGrid() {
+        val showValue = !isAmrapMode && !isRmMode && !isSoloRpeMode &&
+            showPlannedIntensity && (set.intensityMode ?: IntensityMode.RPE) != IntensityMode.FAILURE
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            if (isRmMode) {
+                SetValueCell(
+                    label = if (usesExplicitTmPercent) "% del TM" else "%RM",
+                    value = formatEditableNumber(set.targetPercentageRM ?: sliderPercent),
+                    stateKey = "percent-${set.id}",
+                    listSkin = true,
+                    modifier = Modifier.weight(1f),
+                    keyboardType = KeyboardType.Decimal,
+                    onCommit = onPercentCommit,
+                )
+                SetValueCell(
+                    label = metricLabel,
+                    value = metricValue,
+                    stateKey = "metric-${set.id}",
+                    listSkin = true,
+                    modifier = Modifier.weight(1f),
+                    enabled = false,
+                    onCommit = {},
+                )
+            } else if (isSoloRpeMode) {
+                SetValueCell(
+                    label = metricLabel,
+                    value = metricValue,
+                    stateKey = "metric-${set.id}-${setStateKeySuffix}",
+                    listSkin = true,
+                    modifier = Modifier.weight(1f),
+                    keyboardType = KeyboardType.Decimal,
+                    onCommit = onSoloRpeCommit,
+                )
+            } else {
+                SetValueCell(
+                    label = metricLabel,
+                    value = metricValue,
+                    stateKey = "metric-${set.id}-${setStateKeySuffix}",
+                    listSkin = true,
+                    modifier = Modifier.weight(1f),
+                    keyboardType = if (trainingMode == TrainingMode.REPS || trainingMode == TrainingMode.AMRAP) KeyboardType.Ascii else KeyboardType.Number,
+                    onCommit = onMetricCommit,
+                )
+                if (isAmrapMode) {
+                    // Columna sin cifra: el rótulo en blanco mantiene la píldora a la altura de la celda de al lado.
+                    Column(
+                        modifier = Modifier.weight(1f),
+                        verticalArrangement = Arrangement.spacedBy(4.dp),
+                    ) {
+                        Text(" ", style = KpknType.caption, maxLines = 1)
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(48.dp),
+                            contentAlignment = Alignment.Center,
+                        ) {
+                            AmrapTag(calibrator = set.isCalibrator, modifier = Modifier.fillMaxWidth())
+                        }
+                    }
+                }
+                if (showValue) {
+                    SetValueCell(
+                        label = intensityValueLabel,
+                        value = intensityValue,
+                        stateKey = "intensity-${set.id}-${setStateKeySuffix}",
+                        listSkin = true,
+                        modifier = Modifier.weight(1f),
+                        keyboardType = if ((set.intensityMode ?: IntensityMode.RPE) == IntensityMode.RPE) KeyboardType.Decimal else KeyboardType.Number,
+                        onCommit = onIntensityValueCommit,
+                    )
+                }
+            }
+        }
+        if (!isAmrapMode && !isRmMode && !isSoloRpeMode) {
+            IntensityRow(intensityOptions, intensitySelectedIndex)
         }
     }
 
@@ -554,9 +653,7 @@ internal fun InlineSetRow(
                 )
             }
             if (!isAmrapMode && !isRmMode && !isSoloRpeMode) {
-                if (listSkin) {
-                    IntensityRowFields(intensityOptions, intensitySelectedIndex)
-                } else if (!showPlannedIntensity) {
+                if (!showPlannedIntensity) {
                     // Botón "Intensidad" con el mismo componente y tamaño que el input de reps.
                     Box(modifier = Modifier.weight(1f)) {
                         OutlinedTextField(
@@ -779,8 +876,8 @@ internal fun InlineSetRow(
             modifier = Modifier.fillMaxWidth(),
             verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
-            LoadTypeChips()
-            FieldsRow()
+            LoadTypeRow()
+            ListFieldsGrid()
             EstimateBox()
             TechniqueSection()
         }
@@ -928,21 +1025,29 @@ private fun SetValueCell(
             modifier = modifier,
             verticalArrangement = Arrangement.spacedBy(4.dp),
         ) {
-            // Dos líneas fijas: un rótulo largo al 130 % baja a la segunda y las cifras de la fila quedan alineadas.
+            // Rótulo de una línea justo encima de su celda, con el mismo borde izquierdo.
             Text(
                 label,
                 style = KpknType.caption,
                 color = WizardColors.textMuted,
-                minLines = 2,
-                maxLines = 2,
+                maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
             )
-            KpknNumberCell(
-                value = value.replace('.', ','),
-                input = if (enabled) KpknCellInput.Text(keyboardType = keyboardType, onCommit = onCommit) else KpknCellInput.ReadOnly,
-                contentDescription = label,
-                modifier = Modifier.fillMaxWidth(),
-            )
+            // Celda de 48 dp con filete blanco al 12 %: se lee como campo también sobre el panel.
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(48.dp)
+                    .border(1.dp, Color.White.copy(alpha = 0.12f), RoundedCornerShape(12.dp)),
+                contentAlignment = Alignment.Center,
+            ) {
+                KpknNumberCell(
+                    value = value.replace('.', ','),
+                    input = if (enabled) KpknCellInput.Text(keyboardType = keyboardType, onCommit = onCommit) else KpknCellInput.ReadOnly,
+                    contentDescription = label,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+            }
         }
     } else {
         EditorMiniField(

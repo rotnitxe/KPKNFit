@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -48,6 +49,7 @@ import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.example.kpkn.data.models.MobilityConfig
@@ -517,7 +519,7 @@ internal fun PreparationDashedPill(
     val edge = Color.White.copy(alpha = 0.24f)
     Box(
         modifier = modifier
-            .height(40.dp)
+            .heightIn(min = 40.dp)
             .clip(RoundedCornerShape(20.dp))
             .clickable(onClick = onClick)
             .drawBehind {
@@ -533,6 +535,6 @@ internal fun PreparationDashedPill(
             .padding(horizontal = 14.dp),
         contentAlignment = Alignment.Center,
     ) {
-        Text(text, style = KpknType.chip, color = WizardColors.text, maxLines = 1)
+        Text(text, style = KpknType.chip, color = WizardColors.text, maxLines = 2, textAlign = TextAlign.Center)
     }
 }

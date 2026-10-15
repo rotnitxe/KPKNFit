@@ -78,46 +78,46 @@ class ExerciseSetListComposeTest {
     fun unaFilaSeAbreYSoloUnaEstaAbiertaALaVez() {
         renderList(exerciseWith(ExerciseSet(id = "s1", targetReps = 8), ExerciseSet(id = "s2", targetReps = 10)))
         openRow("s1")
-        rule.onAllNodesWithText("Carga externa").fetchSemanticsNodes().let { assertEquals(1, it.size) }
+        rule.onAllNodesWithText("Externa").fetchSemanticsNodes().let { assertEquals(1, it.size) }
         openRow("s2")
-        rule.onAllNodesWithText("Carga externa").fetchSemanticsNodes().let { assertEquals(1, it.size) }
+        rule.onAllNodesWithText("Externa").fetchSemanticsNodes().let { assertEquals(1, it.size) }
         openRow("s2")
-        rule.onAllNodesWithText("Carga externa").fetchSemanticsNodes().let { assertEquals(0, it.size) }
+        rule.onAllNodesWithText("Externa").fetchSemanticsNodes().let { assertEquals(0, it.size) }
     }
 
     @Test
     fun laFilaDeRepsTieneSusControles() {
-        openedRowShows(TrainingMode.REPS, "Carga externa", "Reps / rango", "RPE", "RIR", "Fallo", "Drop-set", "Rest-pause")
+        openedRowShows(TrainingMode.REPS, "Externa", "Reps / rango", "RPE", "RIR", "Fallo", "Drop-set", "Rest-pause")
     }
 
     @Test
     fun laFilaDeAmrapTieneSusControles() {
-        openedRowShows(TrainingMode.AMRAP, "AMRAP / mín.", "AMRAP", "Carga externa", "Drop-set", "Rest-pause")
+        openedRowShows(TrainingMode.AMRAP, "AMRAP / mín.", "AMRAP", "Externa", "Drop-set", "Rest-pause")
     }
 
     @Test
     fun laFilaDeRmTieneSusControles() {
-        openedRowShows(TrainingMode.RM, "%RM", "Reps est.", "Carga externa", "Drop-set", "Rest-pause")
+        openedRowShows(TrainingMode.RM, "%RM", "Reps est.", "Externa", "Drop-set", "Rest-pause")
     }
 
     @Test
     fun laFilaDeSoloRpeTieneSuRpeObjetivo() {
-        openedRowShows(TrainingMode.SOLO_RPE, "RPE obj.", "Carga externa", "Drop-set", "Rest-pause")
+        openedRowShows(TrainingMode.SOLO_RPE, "RPE obj.", "Externa", "Drop-set", "Rest-pause")
     }
 
     @Test
     fun laFilaDeTiempoTieneSuTiempo() {
-        openedRowShows(TrainingMode.TIME, "Tiempo", "Carga externa", "Drop-set", "Rest-pause")
+        openedRowShows(TrainingMode.TIME, "Tiempo", "Externa", "Drop-set", "Rest-pause")
     }
 
     @Test
     fun laFilaDeDistanciaTieneSuDistancia() {
-        openedRowShows(TrainingMode.DISTANCE, "Dist.", "Carga externa", "Drop-set", "Rest-pause")
+        openedRowShows(TrainingMode.DISTANCE, "Dist.", "Externa", "Drop-set", "Rest-pause")
     }
 
     @Test
     fun laFilaDePersonalizadoTieneSuUnidad() {
-        openedRowShows(TrainingMode.CUSTOM, "vatios", "Carga externa", "Drop-set", "Rest-pause", customUnit = "vatios")
+        openedRowShows(TrainingMode.CUSTOM, "vatios", "Externa", "Drop-set", "Rest-pause", customUnit = "vatios")
     }
 
     @Test

@@ -101,7 +101,7 @@ internal fun InlineSetRowTechniqueChips(
             TechniqueToggleChip(
                 label = "Drop-set",
                 selected = hasDropSet,
-                modifier = Modifier.weight(1f),
+                modifier = if (listSkin) Modifier else Modifier.weight(1f),
                 listSkin = listSkin,
                 onClick = {
                     if (hasDropSet) {
@@ -149,7 +149,7 @@ internal fun InlineSetRowTechniqueChips(
             TechniqueToggleChip(
                 label = "Rest-pause",
                 selected = hasRestPause,
-                modifier = Modifier.weight(1f),
+                modifier = if (listSkin) Modifier else Modifier.weight(1f),
                 listSkin = listSkin,
                 onClick = {
                     if (hasRestPause) {
