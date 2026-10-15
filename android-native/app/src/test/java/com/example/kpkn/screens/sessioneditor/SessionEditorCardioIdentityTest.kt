@@ -85,6 +85,67 @@ class SessionEditorCardioIdentityTest {
         assertEquals(4, replaced.targetDurationMinutes)
     }
 
+    @Test
+    fun legacy_cardio_blocks_the_gate_until_the_save_heals_it() {
+        val legacy = Exercise(
+            id = "cardio-old",
+            name = "Cinta de correr",
+            exerciseDbId = "cardio_treadmill",
+            cardioDetails = CardioDetails(type = CardioType.TREADMILL, intensity = CardioIntensity.MEDIA, targetDurationSeconds = 20 * 60),
+        )
+        val session = sessionWithCardio(legacy)
+
+        assertTrue(session.normalizeSession().catalogV2SelectionIssues().isNotEmpty())
+
+        val saved = session.healLegacyCardioIdentities().normalizeSession()
+        assertEquals(emptyList<String>(), saved.catalogV2SelectionIssues().map { it.code })
+        val cured = session.healLegacyCardioIdentities().parts.single().exercises.single()
+        assertEquals("cardio-old", cured.id)
+        assertEquals("Cinta de correr", cured.name)
+        assertEquals("custom:cardio-treadmill", cured.exerciseDbId)
+        assertEquals(legacy.cardioDetails, cured.cardioDetails)
+        assertEquals(legacy.targetDurationMinutes, cured.targetDurationMinutes)
+    }
+
+    @Test
+    fun strength_catalog_and_generated_cardio_are_not_touched() {
+        val strength = Exercise(id = "bench", name = "Press banca", exerciseDbId = "bench_press")
+        val catalog = Exercise(
+            id = "occ-1",
+            name = "Press banca",
+            exerciseDbId = "bench_press__standard",
+            catalogRevision = "v2",
+            catalogDefinitionId = "bench_press",
+            catalogConfigurationId = "bench_press__standard",
+            performanceProfileId = "profile",
+            occurrenceId = "occ-1",
+        )
+        val generated = CardioBuilder.exercise(id = "generated", details = CardioDetails(type = CardioType.TREADMILL))
+        val session = Session(id = "session-sab", name = "Pierna A", exercises = listOf(strength, catalog, generated))
+
+        assertEquals(session.exercises, session.healLegacyCardioIdentities().exercises)
+    }
+
+    @Test
+    fun healing_twice_gives_the_same_session() {
+        val legacy = Exercise(
+            id = "cardio-old",
+            name = "Cinta de correr",
+            exerciseDbId = "cardio_treadmill",
+            cardioDetails = CardioDetails(type = CardioType.TREADMILL),
+        )
+        val once = sessionWithCardio(legacy).healLegacyCardioIdentities()
+
+        assertEquals(once, once.healLegacyCardioIdentities())
+    }
+
+    @Test
+    fun cardio_without_any_identity_gets_the_generator_identity() {
+        val blank = Exercise(id = "cardio-blank", name = "Bici", cardioDetails = CardioDetails(type = CardioType.BIKE_STATIONARY))
+
+        assertEquals("custom:cardio-bike_stationary", blank.healedLegacyCardioIdentity().exerciseDbId)
+    }
+
     private fun sessionWithCardio(exercise: Exercise): Session = Session(
         id = "session-sab",
         name = "Pierna A",
