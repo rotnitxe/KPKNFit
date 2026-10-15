@@ -20,7 +20,7 @@ import com.example.kpkn.domain.sessionassistant.SessionAssistantInput
 import com.example.kpkn.domain.sessionassistant.TimeCoachEngine
 import com.example.kpkn.domain.energy.TrainingEnergyEngine
 import com.example.kpkn.domain.calculations.calculateSessionTimeBreakdown
-import com.example.kpkn.domain.training.SessionDurationEstimator
+import com.example.kpkn.domain.calculations.estimateSessionDurationMinutes
 import com.example.kpkn.domain.exercises.normalizedIdentityFields
 import com.example.kpkn.domain.exercises.catalogv2.SessionCatalogNameReconciler
 import com.example.kpkn.domain.exercises.resolvedCanonicalExerciseId
@@ -939,11 +939,10 @@ class SessionEditorViewModel(
     }
 
     private fun recalcAndPushAuge(state: SessionEditorUiState, session: Session) {
+        val settingsEarly = repository.settings.value
         val exercises = session.allExercises()
         val totalSets = exercises.sumOf { it.sets.size.coerceAtLeast(1) }
-        // SE12: la duración es la del estimador común (la de Inicio y la del programa), medida sobre el borrador.
-        val durationEstimate = runCatching { SessionDurationEstimator.estimate(session) }.getOrNull()
-        val durationMinutes = durationEstimate?.totalMinutes ?: 0
+        val averageRest = exercises.mapNotNull { it.restTime }.ifEmpty { listOf(settingsEarly.restTimerDefaultSeconds) }.average().toInt()
         val draftAwareWeekSessions = if (state.weekSessions.any { it.id == session.id }) {
             state.weekSessions.map { if (it.id == session.id) session else it }
         } else {
@@ -1008,13 +1007,22 @@ class SessionEditorViewModel(
                     sessionDrain = PredictedDrain(0, 0, 0),
                     weeklyDrain = PredictedDrain(0, 0, 0),
                     sessionSetCount = totalSets,
-                    sessionDurationMinutes = durationMinutes,
+                    sessionDurationMinutes = estimateSessionDurationMinutes(totalSets, averageRest),
                     sessionEnergy = sessionEnergy,
                 )
             }
         }
-        // La cabecera y las reglas leen este desglose, ya del estimador común (SessionEditorDuration.kt).
-        val timeBreakdown = durationEstimate?.toSessionTimeBreakdown(session)
+        val timeBreakdown = runCatching {
+            calculateSessionTimeBreakdown(
+                exercises = exercises,
+                supersetGroups = session.allSupersetGroups(),
+                sessionWarmup = session.warmup,
+                globalMobilitySeries = session.parts
+                    .filter { it.isMobilityGroup }
+                    .flatMap { it.mobilitySeries },
+                restTimerDefaultSeconds = settingsVal.restTimerDefaultSeconds,
+            )
+        }.getOrNull()
         // Assistant bajo demanda: inmediato si AUGE abierto, si no debounce 2500ms
         val shouldEvaluateAssistantNow = state.sheet == SessionEditorSheet.AUGE
         if (shouldEvaluateAssistantNow) {
@@ -1048,13 +1056,15 @@ class SessionEditorViewModel(
             }.getOrNull()
             _uiState.update {
                 it.copy(
-                    estimatedDurationMinutes = durationMinutes,
+                    estimatedDurationMinutes = timeBreakdown?.totalMinutes
+                        ?: estimateSessionDurationMinutes(totalSets, averageRest),
                     sessionTimeBreakdown = timeBreakdown,
                     predictedDrain = summary.sessionDrain,
                     augeSummary = summary.copy(
                         sessionEnergy = sessionEnergy,
                         sessionTimeBreakdown = timeBreakdown,
-                        sessionDurationMinutes = durationMinutes,
+                        sessionDurationMinutes = timeBreakdown?.totalMinutes
+                            ?: estimateSessionDurationMinutes(totalSets, averageRest),
                     ),
                     assistantReport = assistantReport,
                     ghostExerciseCards = assistantReport?.tarjetasFantasma ?: emptyList(),
@@ -1064,13 +1074,15 @@ class SessionEditorViewModel(
             // Rings/volumen sin assistant inmediato
             _uiState.update {
                 it.copy(
-                    estimatedDurationMinutes = durationMinutes,
+                    estimatedDurationMinutes = timeBreakdown?.totalMinutes
+                        ?: estimateSessionDurationMinutes(totalSets, averageRest),
                     sessionTimeBreakdown = timeBreakdown,
                     predictedDrain = summary.sessionDrain,
                     augeSummary = summary.copy(
                         sessionEnergy = sessionEnergy,
                         sessionTimeBreakdown = timeBreakdown,
-                        sessionDurationMinutes = durationMinutes,
+                        sessionDurationMinutes = timeBreakdown?.totalMinutes
+                            ?: estimateSessionDurationMinutes(totalSets, averageRest),
                     ),
                 )
             }

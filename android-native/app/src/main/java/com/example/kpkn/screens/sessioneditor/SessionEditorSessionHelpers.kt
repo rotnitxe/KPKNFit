@@ -9,13 +9,6 @@ import com.example.kpkn.domain.calculations.suggestRestSeconds
 import com.example.kpkn.domain.exercises.TechnicalAspectEngine
 import com.example.kpkn.domain.exercises.normalizedIdentityFields
 import com.example.kpkn.domain.exercises.resolvedCanonicalExerciseId
-import com.example.kpkn.domain.training.generator.ExKind
-import com.example.kpkn.domain.training.generator.ItemRole
-import com.example.kpkn.domain.training.generator.Prescriber
-import com.example.kpkn.domain.training.generator.Rx
-import com.example.kpkn.domain.training.generator.RoutineLevel
-import com.example.kpkn.domain.training.generator.RoutineMode
-import com.example.kpkn.domain.training.generator.RoutinePattern
 import com.example.kpkn.domain.workout.SupersetRules
 import java.time.LocalDate
 import java.util.UUID
@@ -42,7 +35,6 @@ internal fun createExerciseFromInfo(info: ExerciseMuscleInfo, history: List<Work
             null
         }
 
-        val prescription = newExerciseRx(info)
         return Exercise(
             id = occurrenceId,
             name = info.name,
@@ -56,9 +48,8 @@ internal fun createExerciseFromInfo(info: ExerciseMuscleInfo, history: List<Work
             selectedAspects = variantResult?.selectedAspects,
             effectiveMuscles = effectiveMuscles,
             trainingMode = trainingMode,
-            // SE11: un aislamiento o un compuesto entra con la prescripción del generador; el resto, como antes.
-            restTime = prescription?.rest ?: suggestRestSeconds(3, 8.0),
-            sets = prescription?.let { rx -> newExerciseSets(rx) } ?: listOf(
+            restTime = suggestRestSeconds(3, 8.0),
+            sets = listOf(
                 ExerciseSet(
                     id = UUID.randomUUID().toString(),
                     targetReps = if (info.category.equals("Fuerza", true)) 5 else 8,
@@ -77,38 +68,6 @@ internal fun createExerciseFromInfo(info: ExerciseMuscleInfo, history: List<Work
             selectedMovementPattern = info.movementPattern,
         ).withSharedPerformanceFromHistory(history)
     }
-
-/**
- * Prescripción de un ejercicio añadido (SE11): un aislamiento o un compuesto entra con lo que le daría el generador para su papel
- * de accesorio. El editor no conoce el nivel de la persona, así que usa el intermedio. Los demás tipos no cambian (null).
- */
-internal fun newExerciseRx(info: ExerciseMuscleInfo): Rx? {
-    val kind = when {
-        com.example.kpkn.domain.templates.SessionTemplateQualityRules.isCompound(info) -> ExKind.COMPOUND
-        com.example.kpkn.domain.templates.SessionTemplateQualityRules.isIsolation(info) -> ExKind.ISOLATION
-        else -> return null
-    }
-    // El patrón solo cambia la prescripción de la pantorrilla (más repeticiones); en lo demás no pesa. Se mira el nombre.
-    val calf = listOf("pantorrilla", "gemelo", "talon").any { info.name.contains(it, ignoreCase = true) }
-    return Prescriber.rx(
-        kind = kind,
-        role = ItemRole.ACCESSORY,
-        level = RoutineLevel.INTERMEDIATE,
-        mode = RoutineMode.GENERAL_STRENGTH_MUSCLE,
-        pattern = if (calf) RoutinePattern.CALF else RoutinePattern.QUAD_ISOLATION,
-    )
-}
-
-/** Series de un ejercicio añadido con su prescripción (SE11): el mismo rango, RIR y número de series que el generador. */
-internal fun newExerciseSets(rx: Rx): List<ExerciseSet> = List(rx.baseSets) {
-    ExerciseSet(
-        id = UUID.randomUUID().toString(),
-        targetReps = rx.repMax,
-        targetRepsRange = RepRange(rx.repMin, rx.repMax).takeIf { rx.repMin != rx.repMax },
-        targetRIR = rx.rir,
-        intensityMode = IntensityMode.RIR,
-    )
-}
 
 internal fun Exercise.withSessionEditorDefaults(
     defaults: SessionEditorRuleDefaults,
@@ -611,10 +570,11 @@ internal fun ExerciseSet.normalizeSet(exercise: Exercise): ExerciseSet {
         else -> when (exercise.trainingMode) {
             // En el editor, RM no programa intensidad de esfuerzo (solo %RM).
             // intensityMode=null: no usar LOAD como "modo de reporte".
-            // SE11: el rango, el RIR y el RPE de la serie (la prescripción híbrida del generador) se conservan: normalizar
-            // no borra lo que la persona no ha tocado. Solo se quita el marcador de intensidad que no es el %.
             TrainingMode.RM -> copy(
-                intensityMode = if (intensityMode == IntensityMode.SOLO_RM) IntensityMode.SOLO_RM else null,
+                intensityMode = null,
+                targetRepsRange = null,
+                targetRPE = null,
+                targetRIR = null,
                 isFailure = false,
                 isAmrap = false,
                 targetPercentageRM = if (usesExplicitTmPercent) {

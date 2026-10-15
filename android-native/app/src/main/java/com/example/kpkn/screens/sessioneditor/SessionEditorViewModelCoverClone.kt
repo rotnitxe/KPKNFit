@@ -218,8 +218,3 @@ internal fun SessionTransferOutcome.freezeTransferredSessionOverrides(): Program
     return frozen
 }
 
-/** Quita la portada de la sesión: sin fondo, la sesión usa el degradado por defecto (`sessionCoverColors`). Solo cambia `background`. */
-fun SessionEditorViewModel.clearSessionBackground() = updateSession { session ->
-    session.copy(background = null)
-}
-

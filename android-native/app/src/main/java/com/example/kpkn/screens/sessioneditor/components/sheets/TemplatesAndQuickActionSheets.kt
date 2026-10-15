@@ -70,24 +70,6 @@ import kotlinx.coroutines.withContext
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.getValue
 import com.example.kpkn.ui.components.KpknAlertDialog
-import androidx.compose.foundation.background
-import androidx.compose.foundation.horizontalScroll
-import androidx.compose.foundation.layout.defaultMinSize
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.height
-import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.draw.clip
-import com.example.kpkn.screens.onboarding.design.WizardColors
-import com.example.kpkn.ui.components.icons.KpknLineIcons
-import com.example.kpkn.ui.design.KpknModule
-import com.example.kpkn.ui.design.KpknModuleHeader
-import com.example.kpkn.ui.design.KpknShape
-import com.example.kpkn.ui.design.KpknSurface
-import com.example.kpkn.ui.design.KpknType
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -191,6 +173,7 @@ internal fun TemplatesSheet(
                     // snapshot base solo contiene las definiciones padre y no
                     // puede resolver esos IDs ni sus chips.
                     exerciseIndex = catalogExerciseIndex(),
+                    glassDark = true,
                     modifier = Modifier.fillMaxWidth(),
                 )
             }
@@ -247,8 +230,6 @@ internal fun ExerciseQuickActionsSheet(
         return
     }
 
-    // Eliminar pide confirmación: hasta que la confirmen, el ejercicio sigue en la sesión.
-    var confirmDelete by remember { mutableStateOf(false) }
     val catalogLookup = catalogExerciseIndex()
     val selectedInfo = remember(exercise.id, catalogLookup) {
         resolveCatalogExerciseInfo(exercise, catalogLookup)
@@ -320,24 +301,30 @@ internal fun ExerciseQuickActionsSheet(
             .fillMaxWidth()
             .heightIn(max = 620.dp)
             .verticalScroll(rememberScrollState())
-            .padding(horizontal = 16.dp, vertical = 8.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
+            .padding(horizontal = 20.dp, vertical = 16.dp),
+        verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
-        Text(text = "Información del ejercicio", style = KpknType.title, color = WizardColors.text)
-        Text(text = exercise.name, style = KpknType.bodyStrong, color = WizardColors.text)
+        Text("Información del ejercicio", fontWeight = FontWeight.Black, fontSize = 18.sp)
+        Text(
+            exercise.name,
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Bold,
+            color = Color.White,
+        )
         if (tags.isNotEmpty()) {
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(6.dp),
-                modifier = Modifier.horizontalScroll(rememberScrollState()),
-            ) {
-                tags.forEach { tag ->
-                    Box(
-                        modifier = Modifier
-                            .clip(KpknShape.pill)
-                            .background(KpknSurface.inset)
-                            .padding(horizontal = 10.dp, vertical = 6.dp),
+            LazyRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                items(tags, key = { it }) { tag ->
+                    Surface(
+                        shape = RoundedCornerShape(999.dp),
+                        color = Color.White.copy(alpha = 0.09f),
                     ) {
-                        Text(text = tag, style = KpknType.caption, color = WizardColors.textMuted)
+                        Text(
+                            tag,
+                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White.copy(alpha = 0.84f),
+                        )
                     }
                 }
             }
@@ -351,13 +338,38 @@ internal fun ExerciseQuickActionsSheet(
                 ?: selectedInfo?.description?.takeIf { it.isNotBlank() }
         }
 
-        KpknModule {
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                KpknModuleHeader(label = "Descripción del ejercicio")
+        Surface(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(14.dp),
+            color = Color.White.copy(alpha = 0.06f),
+            border = BorderStroke(1.dp, Color.White.copy(alpha = 0.10f)),
+        ) {
+            Column(
+                modifier = Modifier.padding(horizontal = 14.dp, vertical = 12.dp),
+                verticalArrangement = Arrangement.spacedBy(6.dp),
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                ) {
+                    Icon(
+                        Icons.Default.MenuBook,
+                        contentDescription = null,
+                        tint = Color.White.copy(alpha = 0.85f),
+                        modifier = Modifier.size(16.dp),
+                    )
+                    Text(
+                        "Descripción del ejercicio",
+                        style = MaterialTheme.typography.labelMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White.copy(alpha = 0.95f),
+                    )
+                }
                 Text(
-                    text = exactDescription ?: "No hay una descripción editorial disponible para este ejercicio.",
-                    style = KpknType.body,
-                    color = WizardColors.textMuted,
+                    exactDescription ?: "No hay una descripción editorial disponible para este ejercicio.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    lineHeight = 20.sp,
+                    color = Color.White.copy(alpha = 0.88f),
                 )
             }
         }
@@ -374,130 +386,16 @@ internal fun ExerciseQuickActionsSheet(
             )
         }
 
-        // Una fila de 56 dp por cada acción que llega (SE8). «Eliminar», aparte y en peligro, pide confirmación.
-        KpknModule(contentPadding = PaddingValues(horizontal = 20.dp, vertical = 4.dp)) {
-            QuickActionRow(
-                icon = KpknLineIcons.Info,
-                label = "Ficha del ejercicio",
-                tag = "session_quick_action_detail",
-                onClick = { onOpenExerciseDetail(exercise.id) },
-            )
-            QuickActionDivider()
-            QuickActionRow(
-                icon = KpknLineIcons.Repeat,
-                label = "Cambiar ejercicio",
-                tag = "session_quick_action_replace",
-                onClick = onOpenPicker,
-            )
-            QuickActionDivider()
-            QuickActionRow(
-                icon = KpknLineIcons.Flame,
-                label = "Calentamiento",
-                tag = "session_quick_action_warmup",
-                onClick = onOpenWarmup,
-            )
-            QuickActionDivider()
-            QuickActionRow(
-                icon = KpknLineIcons.Joint,
-                label = "Movilidad",
-                tag = "session_quick_action_mobility",
-                onClick = onOpenMobility,
-            )
-            QuickActionDivider()
-            QuickActionRow(
-                icon = KpknLineIcons.Link,
-                label = if (exercise.isInSuperset()) "Gestionar superserie" else "Crear superserie",
-                tag = "session_quick_action_superset",
-                onClick = onManageSuperset,
-            )
-        }
-        KpknModule(contentPadding = PaddingValues(horizontal = 20.dp, vertical = 4.dp)) {
-            QuickActionRow(
-                icon = KpknLineIcons.Trash,
-                label = "Eliminar ejercicio",
-                tag = "session_quick_action_delete",
-                onClick = { confirmDelete = true },
-                danger = true,
-            )
+        FilledTonalButton(
+            onClick = onOpenPicker,
+            modifier = Modifier.fillMaxWidth(),
+            colors = kpknSheetWhiteTonalButtonColors(),
+        ) {
+            Icon(Icons.Default.Search, null, modifier = Modifier.size(16.dp))
+            Spacer(Modifier.width(8.dp))
+            Text("Cambiar")
         }
     }
-
-    if (confirmDelete) {
-        KpknAlertDialog(
-            onDismissRequest = { confirmDelete = false },
-            title = "¿Eliminar el ejercicio?",
-            text = "«${exercise.name}» sale de esta sesión con todas sus series.",
-            confirmLabel = "Eliminar",
-            onConfirm = {
-                confirmDelete = false
-                onDelete()
-            },
-            dismissLabel = "Cancelar",
-            onDismiss = { confirmDelete = false },
-            destructive = true,
-        )
-    }
-}
-
-/**
- * Fila de 56 dp de las acciones rápidas: el icono KPKN Line, el nombre en `bodyStrong` y, si lleva a otra pantalla, la flecha. Con
- * [danger] va en peligro y sin flecha. Sin ripple de Material: la pulsación no pinta el fondo.
- */
-@Composable
-private fun QuickActionRow(
-    icon: ImageVector,
-    label: String,
-    tag: String,
-    onClick: () -> Unit,
-    danger: Boolean = false,
-) {
-    val tint = if (danger) WizardColors.danger else WizardColors.text
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .heightIn(min = 56.dp)
-            .testTag(tag)
-            .clickable(
-                interactionSource = remember { MutableInteractionSource() },
-                indication = null,
-                role = Role.Button,
-                onClick = onClick,
-            ),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Icon(
-            imageVector = icon,
-            contentDescription = null,
-            modifier = Modifier.size(20.dp),
-            tint = tint,
-        )
-        Spacer(Modifier.width(14.dp))
-        Text(
-            text = label,
-            style = KpknType.bodyStrong,
-            color = tint,
-            modifier = Modifier.weight(1f),
-        )
-        if (!danger) {
-            Icon(
-                imageVector = KpknLineIcons.ChevronRight,
-                contentDescription = null,
-                modifier = Modifier.size(20.dp),
-                tint = WizardColors.textMuted,
-            )
-        }
-    }
-}
-
-/** Separador de 1 dp dentro del módulo de acciones (`divider`). */
-@Composable
-private fun QuickActionDivider() {
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(1.dp)
-            .background(KpknSurface.divider),
-    )
 }
 
 private fun articulationLabel(value: String): String = when (value.uppercase()) {

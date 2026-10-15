@@ -2,9 +2,7 @@ package com.example.kpkn.screens.sessioneditor
 
 import android.app.Application
 import android.content.Context
-import androidx.lifecycle.ViewModelStore
 import androidx.test.core.app.ApplicationProvider
-import com.example.kpkn.data.db.KpknDatabase
 import com.example.kpkn.data.models.ExerciseMuscleInfo
 import com.example.kpkn.data.models.Macrocycle
 import com.example.kpkn.data.models.Block
@@ -15,7 +13,6 @@ import com.example.kpkn.data.models.ProgramWeek
 import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.models.TrainingMode
 import com.example.kpkn.data.repository.ProgramRepository
-import com.example.kpkn.data.repository.SessionTemplateRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
@@ -27,7 +24,6 @@ import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
-import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -41,19 +37,13 @@ class SessionEditorViewModelCatalogTest {
 
     private val dispatcher = UnconfinedTestDispatcher()
     private lateinit var repository: ProgramRepository
-    private val viewModelStore = ViewModelStore()
-    private var nextViewModelKey = 0
 
     @Before
     fun setup() = runBlocking {
         Dispatchers.setMain(dispatcher)
         val context = ApplicationProvider.getApplicationContext<Context>()
-        // El repositorio de plantillas del editor es un singleton: que no llegue vivo desde otra prueba.
-        SessionTemplateRepository.resetForTests()
         ProgramRepository.initForTests(context)
         repository = ProgramRepository.getInstance()
-        // Y que lea la base en memoria de ESTA prueba, no el kpkn.db del disco.
-        setDatabaseSingletonForTest(repository.databaseForTests())
         repository.clearPrograms()
         repository.clearActiveProgram()
         repository.clearOngoingWorkout()
@@ -66,35 +56,8 @@ class SessionEditorViewModelCatalogTest {
 
     @After
     fun tearDown() {
-        try {
-            // Primero los editores (cancela su viewModelScope), luego el repositorio de plantillas y al final la base.
-            viewModelStore.clear()
-            SessionTemplateRepository.resetForTests()
-            ProgramRepository.closeInstance()
-        } finally {
-            setDatabaseSingletonForTest(null)
-            Dispatchers.resetMain()
-        }
-    }
-
-    /** Cada editor va al store de la prueba: [tearDown] lo limpia antes de cerrar la base. */
-    private fun createEditor(programId: String, sessionId: String): SessionEditorViewModel {
-        val app = ApplicationProvider.getApplicationContext<Application>()
-        return SessionEditorViewModel(
-            application = app,
-            programId = programId,
-            sessionId = sessionId,
-            draftWeekId = "week",
-            draftMacroIndex = 0,
-            draftMesoIndex = 0,
-            draftDayOfWeek = null,
-        ).also { viewModel -> viewModelStore.put("session-editor-${nextViewModelKey++}", viewModel) }
-    }
-
-    private fun setDatabaseSingletonForTest(database: KpknDatabase?) {
-        KpknDatabase::class.java.getDeclaredField("INSTANCE").apply {
-            isAccessible = true
-        }.set(null, database)
+        ProgramRepository.closeInstance()
+        Dispatchers.resetMain()
     }
 
     @Test
@@ -133,7 +96,16 @@ class SessionEditorViewModelCatalogTest {
                 ),
             )
         )
-        val vm = createEditor(programId, sessionId)
+        val app = ApplicationProvider.getApplicationContext<Application>()
+        val vm = SessionEditorViewModel(
+            application = app,
+            programId = programId,
+            sessionId = sessionId,
+            draftWeekId = "week",
+            draftMacroIndex = 0,
+            draftMesoIndex = 0,
+            draftDayOfWeek = null,
+        )
         vm.awaitSessionLoaded()
 
         vm.addExerciseToPart(
@@ -148,8 +120,7 @@ class SessionEditorViewModelCatalogTest {
 
         val exercise = vm.uiState.value.session!!.exercises.single()
         assertEquals(TrainingMode.REPS, exercise.trainingMode)
-        // SE11: un ejercicio de fuerza nuevo trae la prescripción del generador (RIR), no un %RM.
-        assertTrue(exercise.sets.all { it.targetPercentageRM == null })
-        assertTrue(exercise.sets.all { it.targetRIR == 2 })
+        assertNull(exercise.sets.single().targetPercentageRM)
+        assertNull(exercise.sets.single().intensityMode)
     }
 }

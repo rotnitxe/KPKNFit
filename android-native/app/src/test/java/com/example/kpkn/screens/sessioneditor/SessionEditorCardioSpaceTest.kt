@@ -2,9 +2,7 @@ package com.example.kpkn.screens.sessioneditor
 
 import android.app.Application
 import android.content.Context
-import androidx.lifecycle.ViewModelStore
 import androidx.test.core.app.ApplicationProvider
-import com.example.kpkn.data.db.KpknDatabase
 import com.example.kpkn.data.models.Block
 import com.example.kpkn.data.models.CardioCatalogItem
 import com.example.kpkn.data.models.CardioType
@@ -21,7 +19,6 @@ import com.example.kpkn.data.models.hasCardioPart
 import com.example.kpkn.data.models.isCardio
 import com.example.kpkn.data.models.isCardioPart
 import com.example.kpkn.data.repository.ProgramRepository
-import com.example.kpkn.data.repository.SessionTemplateRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
@@ -48,19 +45,13 @@ class SessionEditorCardioSpaceTest {
 
     private val dispatcher = UnconfinedTestDispatcher()
     private lateinit var repository: ProgramRepository
-    private val viewModelStore = ViewModelStore()
-    private var nextViewModelKey = 0
 
     @Before
     fun setup() = runBlocking {
         Dispatchers.setMain(dispatcher)
         val context = ApplicationProvider.getApplicationContext<Context>()
-        // El repositorio de plantillas que crean los editores es un singleton: que no llegue vivo desde otra prueba.
-        SessionTemplateRepository.resetForTests()
         ProgramRepository.initForTests(context)
         repository = ProgramRepository.getInstance()
-        // Y que lea la base en memoria de ESTA prueba, no el kpkn.db del disco.
-        setDatabaseSingletonForTest(repository.databaseForTests())
         repository.clearPrograms()
         repository.clearActiveProgram()
         repository.clearOngoingWorkout()
@@ -73,35 +64,8 @@ class SessionEditorCardioSpaceTest {
 
     @After
     fun tearDown() {
-        try {
-            // Primero los editores (cancela su viewModelScope), luego el repositorio de plantillas y al final la base.
-            viewModelStore.clear()
-            SessionTemplateRepository.resetForTests()
-            ProgramRepository.closeInstance()
-        } finally {
-            setDatabaseSingletonForTest(null)
-            Dispatchers.resetMain()
-        }
-    }
-
-    /** Cada editor va al store de la prueba: [tearDown] lo limpia antes de cerrar la base. */
-    private fun createEditor(programId: String, sessionId: String): SessionEditorViewModel {
-        val app = ApplicationProvider.getApplicationContext<Application>()
-        return SessionEditorViewModel(
-            application = app,
-            programId = programId,
-            sessionId = sessionId,
-            draftWeekId = "week",
-            draftMacroIndex = 0,
-            draftMesoIndex = 0,
-            draftDayOfWeek = null,
-        ).also { viewModel -> viewModelStore.put("session-editor-${nextViewModelKey++}", viewModel) }
-    }
-
-    private fun setDatabaseSingletonForTest(database: KpknDatabase?) {
-        KpknDatabase::class.java.getDeclaredField("INSTANCE").apply {
-            isAccessible = true
-        }.set(null, database)
+        ProgramRepository.closeInstance()
+        Dispatchers.resetMain()
     }
 
     @Test
@@ -172,7 +136,16 @@ class SessionEditorCardioSpaceTest {
         )
         repository.addProgram(program)
 
-        val vm = createEditor(programId, sessionId)
+        val app = ApplicationProvider.getApplicationContext<Application>()
+        val vm = SessionEditorViewModel(
+            application = app,
+            programId = programId,
+            sessionId = sessionId,
+            draftWeekId = "week",
+            draftMacroIndex = 0,
+            draftMesoIndex = 0,
+            draftDayOfWeek = null,
+        )
 
         vm.awaitSessionLoaded()
 
@@ -277,7 +250,16 @@ class SessionEditorCardioSpaceTest {
         )
         repository.addProgram(program)
 
-        val vm = createEditor(programId, sessionId)
+        val app = ApplicationProvider.getApplicationContext<Application>()
+        val vm = SessionEditorViewModel(
+            application = app,
+            programId = programId,
+            sessionId = sessionId,
+            draftWeekId = "week",
+            draftMacroIndex = 0,
+            draftMesoIndex = 0,
+            draftDayOfWeek = null,
+        )
 
         vm.awaitSessionLoaded()
 
@@ -464,7 +446,16 @@ class SessionEditorCardioSpaceTest {
     }
 
     private suspend fun loadEditor(programId: String, sessionId: String): SessionEditorViewModel {
-        val vm = createEditor(programId, sessionId)
+        val app = ApplicationProvider.getApplicationContext<Application>()
+        val vm = SessionEditorViewModel(
+            application = app,
+            programId = programId,
+            sessionId = sessionId,
+            draftWeekId = "week",
+            draftMacroIndex = 0,
+            draftMesoIndex = 0,
+            draftDayOfWeek = null,
+        )
         vm.awaitSessionLoaded()
         return vm
     }

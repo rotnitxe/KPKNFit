@@ -322,13 +322,6 @@ private data class SessionEditorDurableSaveAttempt(
     val editorPreferencesSaved: Boolean = true,
 )
 
-/**
- * La sesión tal como se guarda: cura el cardio con id viejo y normaliza. Función pura: la prueba de SE11 usa esta misma cadena
- * (normalizar no debe borrar los básicos del programa).
- */
-internal fun Session.normalizedForEditorSave(): Session =
-    normalizeEditorScheduledTechniques().healLegacyCardioIdentities().normalizeSession()
-
 suspend fun SessionEditorViewModel.saveSession(scope: SessionSaveScope = SessionSaveScope.SESSION_ONLY, skipRefresh: Boolean = false): SessionEditorSaveResult {
     val state = currentUiState
     val rawDraft = state.session ?: return SessionEditorSaveResult(false, "No hay una sesión activa para guardar.")
@@ -348,8 +341,7 @@ suspend fun SessionEditorViewModel.saveSession(scope: SessionSaveScope = Session
         return saveEditorRulePreferencesOnly(state, skipRefresh)
     }
     val editorPreferencesWriteRevision = nextEditorRulePreferencesWriteRevision(rawDraft.id)
-    // SE10: el cardio guardado con id viejo se cura antes de normalizar y antes del cortafuegos.
-    val normalized = rawDraft.normalizedForEditorSave()
+    val normalized = rawDraft.normalizeEditorScheduledTechniques().normalizeSession()
     // D6 del plan 2026-09-16: el guardado auto-cura nombres históricos con el
     // derivado del catálogo cuando el runtime v2 está listo.
     val reconciledDraft = if (isExerciseCatalogV2RuntimeReady()) {
@@ -372,14 +364,13 @@ suspend fun SessionEditorViewModel.saveSession(scope: SessionSaveScope = Session
             com.example.kpkn.data.exercises.catalogConfigurationDisplayNameIndex(),
         )
         if (catalogIssues.isNotEmpty()) {
-            // SE10: el detalle técnico va al log; a la persona se le explica con catalogGateBlockMessage.
-            android.util.Log.w(
-                "SessionEditor",
-                "Guardado bloqueado por el cortafuegos del catálogo: " + catalogIssues.joinToString(" | ") { issue ->
-                    "${issue.exerciseId}: ${issue.code}${issue.detail?.let { detail -> " ($detail)" }.orEmpty()}"
-                },
+            val details = catalogIssues.take(3).joinToString(" | ") { issue ->
+                "${issue.exerciseId}: ${issue.code}${issue.detail?.let { detail -> " ($detail)" }.orEmpty()}"
+            }
+            return SessionEditorSaveResult(
+                false,
+                "El catálogo de ejercicios bloqueó el guardado: $details",
             )
-            return SessionEditorSaveResult(false, catalogGateBlockMessage(catalogIssues, draft))
         }
     }
 
