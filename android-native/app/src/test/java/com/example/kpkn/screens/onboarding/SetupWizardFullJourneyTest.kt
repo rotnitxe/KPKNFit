@@ -1,5 +1,6 @@
 package com.example.kpkn.screens.onboarding
 
+import com.example.kpkn.testsupport.SyncRoomExecutor
 import android.app.Application
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModelStore
@@ -116,6 +117,7 @@ class SetupWizardFullJourneyTest {
 
     @Before
     fun setUp() {
+        SyncRoomExecutor.install()
         Dispatchers.setMain(dispatcher)
         app = ApplicationProvider.getApplicationContext()
         // Robolectric recrea su shadow SQLite en cada método; los singletons de
@@ -155,6 +157,7 @@ class SetupWizardFullJourneyTest {
         KpknDatabase.closeInstance()
         db.close()
         Dispatchers.resetMain()
+        SyncRoomExecutor.uninstall()
     }
 
     /**
