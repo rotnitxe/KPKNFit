@@ -12,14 +12,15 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -27,35 +28,31 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.example.kpkn.domain.exercises.GodModeTechniqueScope
 import com.example.kpkn.domain.sessionassistant.SeriesTechnique
+import com.example.kpkn.screens.onboarding.design.WizardColors
 import com.example.kpkn.ui.adapt.LocalViewportAdapt
-import com.example.kpkn.ui.components.KpknGlass
 import com.example.kpkn.ui.components.KpknGlassDialog
-import com.example.kpkn.ui.components.KpknSheetWhiteButton
+import com.example.kpkn.ui.components.icons.KpknLineIcons
+import com.example.kpkn.ui.design.KpknPrimaryPill
+import com.example.kpkn.ui.design.KpknShape
+import com.example.kpkn.ui.design.KpknSurface
+import com.example.kpkn.ui.design.KpknTextAction
+import com.example.kpkn.ui.design.KpknType
 
 internal fun godModeEnterSpec() = tween<Float>(
     durationMillis = WorkoutUiTokens.GodModeEnterMs,
@@ -82,6 +79,7 @@ internal fun Modifier.godModeScrim(active: Boolean): Modifier {
     }
 }
 
+/** Insignia de la tira del GodMode (LR1c2): círculo `inset` con filete de 1 dp y el icono en tinta; la de borrar va en `danger`. */
 @Composable
 internal fun GodModeRoadmapBadge(
     icon: ImageVector,
@@ -92,27 +90,29 @@ internal fun GodModeRoadmapBadge(
     danger: Boolean = false,
 ) {
     val visual = WorkoutUiTokens.GodModeBadgeVisual
+    val interaction = remember { MutableInteractionSource() }
     Box(
         modifier = modifier
             .size(WorkoutUiTokens.MinTouchTarget)
-            .clickable(enabled = enabled, role = Role.Button, onClick = onClick),
+            .clickable(interactionSource = interaction, indication = null, enabled = enabled, role = Role.Button, onClick = onClick),
         contentAlignment = Alignment.Center,
     ) {
         Box(
             modifier = Modifier
                 .size(visual)
                 .clip(CircleShape)
-                .background(
-                    if (danger) WorkoutUiTokens.dangerColor().copy(alpha = 0.92f)
-                    else KpknGlass.FallbackScrim.copy(alpha = 0.94f),
-                )
-                .border(1.dp, KpknGlass.BorderColor, CircleShape),
+                .background(if (danger) WizardColors.danger else KpknSurface.inset, CircleShape)
+                .border(1.dp, Color.White.copy(alpha = 0.12f), CircleShape),
             contentAlignment = Alignment.Center,
         ) {
             Icon(
                 imageVector = icon,
                 contentDescription = contentDescription,
-                tint = if (danger) Color.White else Color.White.copy(alpha = if (enabled) 0.82f else 0.38f),
+                tint = when {
+                    danger -> WizardColors.ctaContent
+                    enabled -> WizardColors.text
+                    else -> WizardColors.text.copy(alpha = 0.38f)
+                },
                 modifier = Modifier.size(11.dp),
             )
         }
@@ -137,7 +137,7 @@ internal fun BoxScope.GodModeRoadmapBadges(
             .wrapContentSize(unbounded = true, align = Alignment.TopEnd),
     ) {
         GodModeRoadmapBadge(
-            icon = Icons.Default.Close,
+            icon = KpknLineIcons.Close,
             contentDescription = "Eliminar ejercicio",
             onClick = onDelete,
             enabled = canDelete,
@@ -147,6 +147,11 @@ internal fun BoxScope.GodModeRoadmapBadges(
     }
 }
 
+/**
+ * Tarjeta «+» de la tira del GodMode (LR1c2): píldora `inset` con filete y el «+» en tinta. El acento de la sesión ya no la tiñe; la
+ * firma se conserva porque la tira de LR1a la llama con el acento.
+ */
+@Suppress("UNUSED_PARAMETER")
 @Composable
 internal fun GodModePlusCard(
     onClick: () -> Unit,
@@ -154,24 +159,26 @@ internal fun GodModePlusCard(
     accent: Color = Color.White,
 ) {
     val chromeScale = LocalViewportAdapt.current.uniformScale
+    val interaction = remember { MutableInteractionSource() }
     Box(
         modifier = modifier
             .width(WorkoutUiTokens.GodModePlusCardWidth)
             .height(WorkoutUiTokens.liveRoadmapCarouselCardHeight(chromeScale))
-            .clip(WorkoutUiTokens.InnerCardShape)
-            .background(accent.copy(alpha = 0.26f))
-            .border(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.22f), WorkoutUiTokens.InnerCardShape)
-            .clickable(onClick = onClick),
+            .clip(KpknShape.pill)
+            .background(KpknSurface.inset, KpknShape.pill)
+            .border(1.dp, Color.White.copy(alpha = 0.12f), KpknShape.pill)
+            .clickable(interactionSource = interaction, indication = null, role = Role.Button, onClick = onClick),
         contentAlignment = Alignment.Center,
     ) {
         Icon(
-            imageVector = Icons.Default.Add,
+            imageVector = KpknLineIcons.Plus,
             contentDescription = "Agregar ejercicio",
-            tint = Color.White.copy(alpha = 0.86f),
+            tint = WizardColors.text,
         )
     }
 }
 
+/** Barra del modo por lotes (LR1c2): el contador en `metricM` y las acciones como píldoras `inset`; «Eliminar», en `danger`. */
 @Composable
 internal fun GodModeBatchBar(
     selectedCount: Int,
@@ -191,9 +198,8 @@ internal fun GodModeBatchBar(
     ) {
         Text(
             text = "$selectedCount",
-            style = MaterialTheme.typography.labelLarge,
-            fontWeight = androidx.compose.ui.text.font.FontWeight.Black,
-            color = Color.White,
+            style = KpknType.metricM,
+            color = WizardColors.text,
         )
         GodModeTextAction("Superserie", onCreateSuperset, enabled = selectedCount >= 2)
         GodModeTextAction("Omitir", onSkip)
@@ -210,24 +216,49 @@ private fun GodModeTextAction(
     enabled: Boolean = true,
     danger: Boolean = false,
 ) {
-    Surface(
-        onClick = onClick,
-        enabled = enabled,
-        shape = RoundedCornerShape(8.dp),
-        color = if (danger) WorkoutUiTokens.dangerColor().copy(alpha = 0.22f) else Color(0xFF2B2B2B),
-        modifier = Modifier.heightIn(min = 36.dp),
+    val interaction = remember { MutableInteractionSource() }
+    Box(
+        modifier = Modifier
+            .defaultMinSize(minHeight = 48.dp)
+            .clickable(
+                interactionSource = interaction,
+                indication = null,
+                enabled = enabled,
+                role = Role.Button,
+                onClick = onClick,
+            ),
+        contentAlignment = Alignment.Center,
     ) {
-        Text(
-            text = label,
-            modifier = Modifier.padding(horizontal = 10.dp, vertical = 8.dp),
-            style = MaterialTheme.typography.labelMedium,
-            fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold,
-            color = if (danger) WorkoutUiTokens.dangerColor() else Color.White.copy(alpha = if (enabled) 0.88f else 0.38f),
-            maxLines = 1,
-        )
+        Box(
+            modifier = Modifier
+                .clip(KpknShape.pill)
+                .background(KpknSurface.inset, KpknShape.pill)
+                .border(
+                    1.dp,
+                    if (danger) WizardColors.danger.copy(alpha = 0.45f) else Color.White.copy(alpha = 0.12f),
+                    KpknShape.pill,
+                )
+                .padding(horizontal = 12.dp, vertical = 8.dp),
+            contentAlignment = Alignment.Center,
+        ) {
+            Text(
+                text = label,
+                style = KpknType.chip,
+                color = when {
+                    danger -> WizardColors.danger
+                    enabled -> WizardColors.text
+                    else -> WizardColors.text.copy(alpha = 0.38f)
+                },
+                maxLines = 1,
+            )
+        }
     }
 }
 
+/**
+ * Acciones de la serie (C5, LR1c2): la franja se queda como estaba, con su velo oscuro; dentro, un rótulo en eyebrow, la explicación,
+ * las opciones de técnica (la activa en tinta) y las dos acciones de serie, la de eliminar en `danger`.
+ */
 @Composable
 internal fun GodModeSetActionsOverlay(
     visible: Boolean,
@@ -251,31 +282,30 @@ internal fun GodModeSetActionsOverlay(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(Color.Black.copy(alpha = 0.42f))
+                .background(KpknSurface.canvas.copy(alpha = 0.42f))
                 .padding(horizontal = 10.dp, vertical = 8.dp),
             contentAlignment = Alignment.Center,
         ) {
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(6.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 Text(
-                    text = "Convertir serie normal a:",
-                    style = MaterialTheme.typography.labelSmall,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.White.copy(alpha = 0.88f),
+                    text = "Convertir serie normal a:".uppercase(),
+                    style = KpknType.eyebrow,
+                    color = WizardColors.textMuted,
                     textAlign = TextAlign.Center,
                 )
                 Text(
                     text = if (isDropSet) {
-                        "Dropset: baja ~5 kg para 3 reps más. No tires la carga."
+                        "Dropset: baja ~5 kg para 3 reps más. No tires la carga."
                     } else if (isRestPause) {
-                        "Rest-pause: mismo peso, 15 s de pausa, luego 3 reps."
+                        "Rest-pause: mismo peso, 15 s de pausa, luego 3 reps."
                     } else {
-                        "Dropset = −5 kg / 3 reps. Rest-pause = mismo peso, 15 s, 3 reps."
+                        "Dropset = −5 kg / 3 reps. Rest-pause = mismo peso, 15 s, 3 reps."
                     },
-                    style = MaterialTheme.typography.labelSmall,
-                    color = Color.White.copy(alpha = 0.62f),
+                    style = KpknType.caption,
+                    color = WizardColors.textMuted,
                     textAlign = TextAlign.Center,
                 )
                 Row(
@@ -321,35 +351,45 @@ private fun GodModeOverlayAction(
     enabled: Boolean = true,
     danger: Boolean = false,
 ) {
-    Surface(
-        onClick = onClick,
-        enabled = enabled,
-        shape = RoundedCornerShape(8.dp),
-        color = when {
-            selected -> Color.White.copy(alpha = 0.22f)
-            danger -> WorkoutUiTokens.dangerColor().copy(alpha = 0.22f)
-            else -> Color(0xFF2B2B2B).copy(alpha = 0.92f)
-        },
-        border = androidx.compose.foundation.BorderStroke(
-            1.dp,
-            when {
-                selected -> Color.White.copy(alpha = 0.55f)
-                danger -> WorkoutUiTokens.dangerColor().copy(alpha = 0.45f)
-                else -> Color.White.copy(alpha = 0.14f)
-            },
-        ),
-        modifier = modifier.heightIn(min = 34.dp),
+    val interaction = remember { MutableInteractionSource() }
+    Box(
+        modifier = modifier
+            .defaultMinSize(minHeight = 48.dp)
+            .clickable(
+                interactionSource = interaction,
+                indication = null,
+                enabled = enabled,
+                role = Role.Button,
+                onClick = onClick,
+            ),
+        contentAlignment = Alignment.Center,
     ) {
-        Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxWidth()) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .defaultMinSize(minHeight = 40.dp)
+                .clip(KpknShape.pill)
+                .background(if (selected) WizardColors.text else KpknSurface.inset, KpknShape.pill)
+                .border(
+                    1.dp,
+                    when {
+                        selected -> Color.Transparent
+                        danger -> WizardColors.danger.copy(alpha = 0.45f)
+                        else -> Color.White.copy(alpha = 0.12f)
+                    },
+                    KpknShape.pill,
+                )
+                .padding(horizontal = 8.dp, vertical = 8.dp),
+            contentAlignment = Alignment.Center,
+        ) {
             Text(
                 text = label,
-                modifier = Modifier.padding(horizontal = 8.dp, vertical = 7.dp),
-                style = MaterialTheme.typography.labelMedium,
-                fontWeight = FontWeight.SemiBold,
+                style = KpknType.chip,
                 color = when {
-                    danger -> WorkoutUiTokens.dangerColor()
-                    selected -> Color.White
-                    else -> Color.White.copy(alpha = if (enabled) 0.88f else 0.38f)
+                    selected -> WizardColors.ctaContent
+                    danger -> WizardColors.danger
+                    enabled -> WizardColors.text
+                    else -> WizardColors.text.copy(alpha = 0.38f)
                 },
                 maxLines = 1,
                 textAlign = TextAlign.Center,
@@ -358,6 +398,10 @@ private fun GodModeOverlayAction(
     }
 }
 
+/**
+ * Alcance de la técnica «Esta serie / Restantes / Todas» (B9, LR1c2): el título en `dialogTitle`, las tres opciones como píldoras de
+ * tinta (en lugar del botón blanco compartido, que no se toca) y «Cancelar» como acción de texto.
+ */
 @Composable
 internal fun GodModeTechniqueScopeDialog(
     technique: SeriesTechnique,
@@ -372,15 +416,26 @@ internal fun GodModeTechniqueScopeDialog(
         ) {
             Text(
                 "Aplicar $label",
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = androidx.compose.ui.text.font.FontWeight.Black,
-                color = Color.White,
+                style = KpknType.dialogTitle,
+                color = WizardColors.text,
             )
-            KpknSheetWhiteButton(text = "Esta serie", onClick = { onPick(GodModeTechniqueScope.THIS) })
-            KpknSheetWhiteButton(text = "Restantes", onClick = { onPick(GodModeTechniqueScope.REMAINING) })
-            KpknSheetWhiteButton(text = "Todas", onClick = { onPick(GodModeTechniqueScope.ALL) })
-            TextButton(onClick = onDismiss, modifier = Modifier.fillMaxWidth()) {
-                Text("Cancelar", color = Color.White)
+            KpknPrimaryPill(
+                text = "Esta serie",
+                onClick = { onPick(GodModeTechniqueScope.THIS) },
+                modifier = Modifier.fillMaxWidth(),
+            )
+            KpknPrimaryPill(
+                text = "Restantes",
+                onClick = { onPick(GodModeTechniqueScope.REMAINING) },
+                modifier = Modifier.fillMaxWidth(),
+            )
+            KpknPrimaryPill(
+                text = "Todas",
+                onClick = { onPick(GodModeTechniqueScope.ALL) },
+                modifier = Modifier.fillMaxWidth(),
+            )
+            Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                KpknTextAction(text = "Cancelar", onClick = onDismiss)
             }
         }
     }

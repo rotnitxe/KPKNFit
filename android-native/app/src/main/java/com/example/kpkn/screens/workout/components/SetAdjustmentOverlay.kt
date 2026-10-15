@@ -1,29 +1,53 @@
 package com.example.kpkn.screens.workout.components
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Info
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.Icon
+import androidx.compose.material3.Slider
+import androidx.compose.material3.SliderDefaults
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import com.example.kpkn.data.models.*
 import com.example.kpkn.data.exercises.displayNameWithSelectedChips
+import com.example.kpkn.data.models.*
 import com.example.kpkn.domain.auge.ExerciseReadinessEngine
+import com.example.kpkn.screens.onboarding.design.WizardColors
+import com.example.kpkn.screens.onboarding.design.entreno.SymbolPalette
 import com.example.kpkn.screens.workout.*
 import com.example.kpkn.ui.components.KpknSheet
+import com.example.kpkn.ui.components.icons.KpknLineIcons
+import com.example.kpkn.ui.design.KpknIconButton
+import com.example.kpkn.ui.design.KpknModule
+import com.example.kpkn.ui.design.KpknPrimaryPill
+import com.example.kpkn.ui.design.KpknSecondaryPill
+import com.example.kpkn.ui.design.KpknSurface
+import com.example.kpkn.ui.design.KpknType
 import kotlin.math.roundToInt
 
-@OptIn(ExperimentalMaterial3Api::class)
+/**
+ * «Ajuste por estado actual» (LR1c2): la piel de LR1a dentro del `KpknSheet`. Las tarjetas son módulos, el semáforo pasa a `ok` /
+ * acento / `danger`, el deslizador va en tinta y los botones son píldoras. Los cálculos y el orden de los elementos no cambian.
+ */
 @Composable
 internal fun SetAdjustmentOverlay(
     exercise: Exercise,
@@ -62,10 +86,11 @@ internal fun SetAdjustmentOverlay(
         )
     }
 
+    // Semáforo: lo listo en `ok`, lo intermedio en el acento de la sesión y lo bajo en `danger`.
     val readinessColor = when {
-        exerciseReadiness.overallScore >= 75 -> Color(0xFF4CAF50)
-        exerciseReadiness.overallScore >= 50 -> Color(0xFFFFC107)
-        else -> Color(0xFFFF5252)
+        exerciseReadiness.overallScore >= 75 -> WizardColors.done
+        exerciseReadiness.overallScore >= 50 -> SymbolPalette.musculo
+        else -> WizardColors.danger
     }
     val readinessLabel = ExerciseReadinessEngine.readinessLabel(exerciseReadiness.overallScore)
 
@@ -77,7 +102,7 @@ internal fun SetAdjustmentOverlay(
     }
     val plannedWeightText = when (loadMode) {
         LoadModeV2.BODYWEIGHT -> "BW"
-        else -> "${plannedWeight.toTrimmedNumberString()}kg"
+        else -> "${plannedWeight.toTrimmedNumberString()} kg"
     }
 
     val suggestedModeText = when (adjustment.suggestedLoadMode) {
@@ -88,7 +113,12 @@ internal fun SetAdjustmentOverlay(
     }
     val suggestedWeightText = when (adjustment.suggestedLoadMode) {
         LoadModeV2.BODYWEIGHT -> "BW"
-        else -> "${adjustment.suggestedWeight.toTrimmedNumberString()}kg"
+        else -> "${adjustment.suggestedWeight.toTrimmedNumberString()} kg"
+    }
+    val applyText = when (adjustment.suggestedLoadMode) {
+        LoadModeV2.BODYWEIGHT -> "Aplicar Peso Corporal"
+        LoadModeV2.ASSISTED -> "Aplicar +${adjustment.suggestedWeight.toTrimmedNumberString()} kg Asist."
+        else -> "Aplicar ${adjustment.suggestedWeight.toTrimmedNumberString()} kg"
     }
     KpknSheet(
         onDismissRequest = {},
@@ -110,68 +140,59 @@ internal fun SetAdjustmentOverlay(
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
                         "Ajuste por estado actual",
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurface,
+                        style = KpknType.dialogTitle,
+                        color = WizardColors.text,
                     )
                     Text(
                         "${exercise.displayNameWithSelectedChips()} · Serie ${setIndex + 1}/${exercise.sets.size}",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                        style = KpknType.caption,
+                        color = WizardColors.textMuted,
                     )
                 }
-                IconButton(onClick = onDismiss) {
-                    Icon(
-                        Icons.Default.Close,
-                        contentDescription = "Cerrar",
-                        tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
-                    )
-                }
+                KpknIconButton(
+                    icon = KpknLineIcons.Close,
+                    contentDescription = "Cerrar",
+                    onClick = onDismiss,
+                )
             }
 
             // ── Info Card ──
-            Card(
-                shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)
-                ),
-                elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
-            ) {
+            KpknModule(contentPadding = PaddingValues(16.dp)) {
                 Row(
-                    modifier = Modifier.padding(16.dp),
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
+                    // 48 dp: «62 %» en Inter 13 sp, con la letra al 130 %, no se corta.
                     Box(
                         modifier = Modifier
-                            .size(40.dp)
+                            .size(48.dp)
                             .clip(CircleShape)
-                            .background(readinessColor.copy(alpha = 0.25f)),
+                            .background(KpknSurface.inset, CircleShape),
                         contentAlignment = Alignment.Center,
                     ) {
                         Text(
-                            "${exerciseReadiness.overallScore}%",
-                            style = MaterialTheme.typography.labelLarge,
-                            fontWeight = FontWeight.Black,
+                            "${exerciseReadiness.overallScore} %",
+                            style = KpknType.chip,
                             color = readinessColor,
+                            maxLines = 1,
                         )
                     }
                     Column {
                         Text(
                             "Preparación: $readinessLabel",
-                            style = MaterialTheme.typography.bodyMedium,
-                            fontWeight = FontWeight.Bold,
+                            style = KpknType.bodyStrong,
+                            color = WizardColors.text,
                         )
                         Text(
                             buildString {
-                                append("Músc. ${exerciseReadiness.muscularComponent}%")
-                                append(" · SNC ${exerciseReadiness.cnsComponent}%")
+                                append("Músc. ${exerciseReadiness.muscularComponent} %")
+                                append(" · SNC ${exerciseReadiness.cnsComponent} %")
                                 if (exerciseReadiness.spinalWeight > 0.01) {
-                                    append(" · Col. ${exerciseReadiness.spinalComponent}%")
+                                    append(" · Col. ${exerciseReadiness.spinalComponent} %")
                                 }
                             },
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                            style = KpknType.caption,
+                            color = WizardColors.textMuted,
                         )
                     }
                 }
@@ -181,28 +202,23 @@ internal fun SetAdjustmentOverlay(
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
+                verticalAlignment = Alignment.CenterVertically,
             ) {
-                Surface(
+                KpknModule(
                     modifier = Modifier.weight(1f),
-                    shape = RoundedCornerShape(14.dp),
-                    color = MaterialTheme.colorScheme.surfaceVariant,
+                    contentPadding = PaddingValues(14.dp),
                 ) {
-                    Column(
-                        modifier = Modifier.padding(14.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                    ) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Text(
                             plannedModeText.uppercase(),
-                            style = MaterialTheme.typography.labelSmall,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
+                            style = KpknType.eyebrow,
+                            color = WizardColors.textMuted,
                         )
                         Spacer(Modifier.height(4.dp))
                         Text(
                             plannedWeightText,
-                            style = MaterialTheme.typography.titleLarge,
-                            fontWeight = FontWeight.Black,
-                            color = MaterialTheme.colorScheme.onSurface,
+                            style = KpknType.metricM,
+                            color = WizardColors.text,
                         )
                     }
                 }
@@ -210,43 +226,36 @@ internal fun SetAdjustmentOverlay(
                 Box(contentAlignment = Alignment.Center, modifier = Modifier.padding(horizontal = 4.dp)) {
                     Text(
                         "→",
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold,
+                        style = KpknType.bodyStrong,
                         color = readinessColor,
                     )
                 }
 
-                Surface(
+                KpknModule(
                     modifier = Modifier.weight(1f),
-                    shape = RoundedCornerShape(14.dp),
-                    color = readinessColor.copy(alpha = 0.15f),
+                    accent = readinessColor,
+                    contentPadding = PaddingValues(14.dp),
                 ) {
-                    Column(
-                        modifier = Modifier.padding(14.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                    ) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Text(
                             suggestedModeText.uppercase(),
-                            style = MaterialTheme.typography.labelSmall,
-                            fontWeight = FontWeight.Bold,
+                            style = KpknType.eyebrow,
                             color = readinessColor,
                         )
                         Spacer(Modifier.height(4.dp))
                         Text(
                             suggestedWeightText,
-                            style = MaterialTheme.typography.titleLarge,
-                            fontWeight = FontWeight.Black,
+                            style = KpknType.metricM,
                             color = readinessColor,
                         )
                         Text(
                             if (loadMode == LoadModeV2.ASSISTED) {
-                                "+${(adjustment.suggestedWeight - plannedWeight).roundToInt()}kg asist."
+                                "+${(adjustment.suggestedWeight - plannedWeight).roundToInt()} kg asist."
                             } else {
-                                "−${(adjustment.reductionPercent * 100).roundToInt()}%"
+                                "−${(adjustment.reductionPercent * 100).roundToInt()} %"
                             },
-                            style = MaterialTheme.typography.labelSmall,
-                            fontWeight = FontWeight.SemiBold,
-                            color = readinessColor.copy(alpha = 0.8f),
+                            style = KpknType.caption,
+                            color = readinessColor,
                         )
                     }
                 }
@@ -259,14 +268,15 @@ internal fun SetAdjustmentOverlay(
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Icon(
-                        Icons.Default.Info, null,
-                        Modifier.size(12.dp),
-                        tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f),
+                        KpknLineIcons.Info,
+                        contentDescription = null,
+                        modifier = Modifier.size(12.dp),
+                        tint = WizardColors.textFaint,
                     )
                     Text(
-                        "eRM promedio: ~${averageErm.toTrimmedNumberString()}kg",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
+                        "eRM promedio: ~${averageErm.toTrimmedNumberString()} kg",
+                        style = KpknType.caption,
+                        color = WizardColors.textFaint,
                     )
                 }
             }
@@ -274,9 +284,9 @@ internal fun SetAdjustmentOverlay(
             // ── Slider de severidad ──
             Column {
                 Text(
-                    "Intensidad del ajuste",
-                    style = MaterialTheme.typography.labelLarge,
-                    fontWeight = FontWeight.SemiBold,
+                    "Intensidad del ajuste".uppercase(),
+                    style = KpknType.eyebrow,
+                    color = WizardColors.textMuted,
                 )
                 Spacer(Modifier.height(8.dp))
                 Slider(
@@ -284,9 +294,9 @@ internal fun SetAdjustmentOverlay(
                     onValueChange = { severitySlider = it },
                     modifier = Modifier.fillMaxWidth(),
                     colors = SliderDefaults.colors(
-                        thumbColor = readinessColor,
-                        activeTrackColor = readinessColor,
-                        inactiveTrackColor = readinessColor.copy(alpha = 0.2f),
+                        thumbColor = WizardColors.text,
+                        activeTrackColor = WizardColors.text,
+                        inactiveTrackColor = Color.White.copy(alpha = 0.08f),
                     ),
                 )
                 Row(
@@ -295,77 +305,77 @@ internal fun SetAdjustmentOverlay(
                 ) {
                     Text(
                         "Conservador",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = if (severitySlider <= 0.33f) readinessColor
-                            else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f),
+                        style = KpknType.caption,
+                        color = if (severitySlider <= 0.33f) readinessColor else WizardColors.textFaint,
                     )
                     Text(
                         "Equilibrado",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = if (severitySlider in 0.34f..0.66f) readinessColor
-                            else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f),
+                        style = KpknType.caption,
+                        color = if (severitySlider in 0.34f..0.66f) readinessColor else WizardColors.textFaint,
                     )
                     Text(
                         "Agresivo",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = if (severitySlider >= 0.67f) readinessColor
-                            else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f),
+                        style = KpknType.caption,
+                        color = if (severitySlider >= 0.67f) readinessColor else WizardColors.textFaint,
                     )
                 }
             }
 
             // ── Disclaimer ──
-            Surface(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(10.dp),
-                color = Color(0xFF1B2A3A),
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(16.dp))
+                    .background(KpknSurface.inset, RoundedCornerShape(16.dp))
+                    .padding(12.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically,
             ) {
-                Row(
-                    modifier = Modifier.padding(12.dp),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Icon(
-                        Icons.Default.Info, null,
-                        Modifier.size(14.dp),
-                        tint = Color(0xFF64B5F6),
-                    )
-                    Text(
-                        "El ajuste aplica solo para esta serie y sesión. Tu plan no se modifica permanentemente.",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = Color(0xFF90CAF9),
-                    )
-                }
+                Icon(
+                    KpknLineIcons.Info,
+                    contentDescription = null,
+                    modifier = Modifier.size(14.dp),
+                    tint = WizardColors.info,
+                )
+                Text(
+                    "El ajuste aplica solo para esta serie y sesión. Tu plan no se modifica permanentemente.",
+                    style = KpknType.caption,
+                    color = WizardColors.textMuted,
+                )
             }
 
             // ── Botones de acción ──
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-            ) {
-                OutlinedButton(
-                    onClick = onDismiss,
-                    modifier = Modifier.weight(1f),
-                    shape = RoundedCornerShape(12.dp),
+            // Con la letra al 120 % o más, «Aplicar 97,5 kg» no cabe junto a «Cancelar»: las dos píldoras se apilan a ancho completo.
+            if (LocalDensity.current.fontScale >= 1.2f) {
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
-                    Text("Cancelar", fontWeight = FontWeight.Bold)
+                    KpknPrimaryPill(
+                        text = applyText,
+                        onClick = { onApply(adjustment) },
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                    KpknSecondaryPill(
+                        text = "Cancelar",
+                        onClick = onDismiss,
+                        modifier = Modifier.fillMaxWidth(),
+                    )
                 }
-                Button(
-                    onClick = { onApply(adjustment) },
-                    modifier = Modifier.weight(1f),
-                    shape = RoundedCornerShape(12.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = readinessColor,
-                        contentColor = Color.White,
-                    ),
+            } else {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
-                    Text(
-                        when (adjustment.suggestedLoadMode) {
-                            LoadModeV2.BODYWEIGHT -> "Aplicar Peso Corporal"
-                            LoadModeV2.ASSISTED -> "Aplicar +${adjustment.suggestedWeight.toTrimmedNumberString()}kg Asist."
-                            else -> "Aplicar ${adjustment.suggestedWeight.toTrimmedNumberString()}kg"
-                        },
-                        fontWeight = FontWeight.Bold,
+                    KpknSecondaryPill(
+                        text = "Cancelar",
+                        onClick = onDismiss,
+                        modifier = Modifier.weight(0.8f),
+                    )
+                    KpknPrimaryPill(
+                        text = applyText,
+                        onClick = { onApply(adjustment) },
+                        modifier = Modifier.weight(1.2f),
                     )
                 }
             }

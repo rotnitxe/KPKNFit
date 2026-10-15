@@ -1,10 +1,16 @@
 package com.example.kpkn.screens.workout.components
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -13,22 +19,13 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.PhotoCamera
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.LocalMinimumInteractiveComponentSize
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -36,23 +33,33 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.example.kpkn.data.models.DropSetData
 import com.example.kpkn.data.models.ExerciseSet
 import com.example.kpkn.data.models.RestPauseData
+import com.example.kpkn.data.models.TechniqueType
 import com.example.kpkn.domain.workout.SetTechniqueScope
 import com.example.kpkn.domain.workout.techniqueScope
-import com.example.kpkn.data.models.TechniqueType
+import com.example.kpkn.screens.onboarding.design.WizardColors
 import com.example.kpkn.screens.sessioneditor.components.DropSetPlanDefaults
 import com.example.kpkn.screens.sessioneditor.components.RestPausePlanDefaults
 import com.example.kpkn.screens.workout.LiveSetPrPolicy
 import com.example.kpkn.screens.workout.toTrimmedNumberString
+import com.example.kpkn.ui.components.icons.KpknLineIcons
+import com.example.kpkn.ui.design.KpknIconButton
+import com.example.kpkn.ui.design.KpknModule
+import com.example.kpkn.ui.design.KpknShape
+import com.example.kpkn.ui.design.KpknSurface
+import com.example.kpkn.ui.design.KpknTextField
+import com.example.kpkn.ui.design.KpknType
 
 internal data class TechniqueCheckRow(
     val weightText: String = "",
@@ -67,6 +74,10 @@ private const val TechniqueColumnSize = 3
 /** Etiqueta de prueba del círculo «Hecho» de cada fila de drops o rest-pause (LR0). */
 internal const val TechniqueDoneToggleTag = "technique_done_toggle"
 
+/**
+ * Reverso de técnica de la tarjeta de la serie (LR1c2): la piel de LR1a. Es un `module` (con aviso teñido si la serie es fallida), los
+ * conmutadores son píldoras (activa en tinta), las filas son celdas `inset` con la cifra y la unidad, y la nota es un `KpknTextField`.
+ */
 @Suppress("UNUSED_PARAMETER")
 @Composable
 internal fun SetCardTechniqueBack(
@@ -147,21 +158,13 @@ internal fun SetCardTechniqueBack(
         }
     }
 
-    Surface(
+    KpknModule(
         modifier = modifier.fillMaxSize(),
-        shape = WorkoutUiTokens.CardShape,
-        color = if (isFailedSet) {
-            Color(0xFF8B1E1E)
-        } else {
-            WorkoutUiTokens.setCardColor()
-        },
-        tonalElevation = 0.dp,
-        shadowElevation = 0.dp,
+        contentPadding = PaddingValues(12.dp),
+        accent = if (isFailedSet) WizardColors.danger else null,
     ) {
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(horizontal = 12.dp, vertical = 12.dp),
+            modifier = Modifier.fillMaxSize(),
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             Row(
@@ -169,47 +172,23 @@ internal fun SetCardTechniqueBack(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(4.dp),
             ) {
-                IconButton(onClick = onFlipBack, modifier = Modifier.size(32.dp)) {
-                    Icon(
-                        Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = "Volver a la serie",
-                        modifier = Modifier.size(18.dp),
-                        tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.78f),
-                    )
-                }
+                KpknIconButton(
+                    icon = KpknLineIcons.ChevronLeft,
+                    contentDescription = "Volver a la serie",
+                    onClick = onFlipBack,
+                )
                 Text(
                     "Opciones avanzadas",
-                    style = MaterialTheme.typography.labelSmall,
-                    fontWeight = FontWeight.SemiBold,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.88f),
+                    style = KpknType.bodyStrong,
+                    color = WizardColors.text,
                     modifier = Modifier.weight(1f),
                 )
                 if (showPrMediaShortcut && onOpenPrMedia != null) {
-                    Surface(
+                    PrMediaShortcut(
+                        text = LiveSetPrPolicy.SHORTCUT_LABEL,
+                        accent = sessionAccentColor,
                         onClick = onOpenPrMedia,
-                        shape = RoundedCornerShape(12.dp),
-                        color = sessionAccentColor.copy(alpha = 0.18f),
-                    ) {
-                        Row(
-                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 6.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(4.dp),
-                        ) {
-                            Icon(
-                                Icons.Default.PhotoCamera,
-                                contentDescription = null,
-                                modifier = Modifier.size(14.dp),
-                                tint = sessionAccentColor,
-                            )
-                            Text(
-                                text = LiveSetPrPolicy.SHORTCUT_LABEL,
-                                style = MaterialTheme.typography.labelSmall,
-                                fontWeight = FontWeight.Bold,
-                                color = sessionAccentColor,
-                                maxLines = 1,
-                            )
-                        }
-                    }
+                    )
                 }
             }
 
@@ -236,7 +215,6 @@ internal fun SetCardTechniqueBack(
                                 dropEnabled = !dropEnabled
                                 if (dropEnabled) restPauseEnabled = false
                             },
-                            accentColor = sessionAccentColor,
                             modifier = Modifier.weight(1f),
                         )
                         SoftToggleChip(
@@ -246,7 +224,6 @@ internal fun SetCardTechniqueBack(
                                 restPauseEnabled = !restPauseEnabled
                                 if (restPauseEnabled) dropEnabled = false
                             },
-                            accentColor = sessionAccentColor,
                             modifier = Modifier.weight(1f),
                         )
                     }
@@ -258,12 +235,12 @@ internal fun SetCardTechniqueBack(
                                 onRowsChange = { dropRows = it },
                                 onAdd = {
                                     val nextIndex = dropRows.size
-                                    val suggested = suggestedDropLoadsForMainSet(
-                                        mainWeight,
-                                        mainReps,
-                                        (nextIndex + 1).coerceAtMost(DropSetPlanDefaults.MaxDrops),
-                                    ).getOrNull(nextIndex)
-                                        ?: dropRows.lastOrNull()?.weightText?.toDoubleOrNull()?.minus(DropSetPlanDefaults.DropKg)
+                                    val suggested = nextDropWeightKg(
+                                        mainWeight = mainWeight,
+                                        mainReps = mainReps,
+                                        nextIndex = nextIndex,
+                                        lastWeightText = dropRows.lastOrNull()?.weightText,
+                                    )
                                     dropRows = dropRows + TechniqueCheckRow(
                                         weightText = suggested?.takeIf { it > 0 }?.toTrimmedNumberString().orEmpty(),
                                         repsText = DropSetPlanDefaults.DropReps.toString(),
@@ -285,82 +262,62 @@ internal fun SetCardTechniqueBack(
                             )
                             else -> Text(
                                 "Elige drop-sets o rest-pause",
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.46f),
+                                style = KpknType.caption,
+                                color = WizardColors.textFaint,
                             )
                         }
                     }
                 }
 
-                Surface(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(80.dp),
-                    shape = RoundedCornerShape(14.dp),
-                    color = WorkoutUiTokens.setInnerColor(),
-                ) {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(10.dp),
-                        verticalArrangement = Arrangement.spacedBy(6.dp),
-                    ) {
-                        Text(
-                            "Notas",
-                            style = MaterialTheme.typography.labelSmall,
-                            fontWeight = FontWeight.SemiBold,
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.78f),
-                        )
-                        BasicTextField(
-                            value = noteText,
-                            onValueChange = onNoteChange,
-                            modifier = Modifier
-                                .weight(1f)
-                                .fillMaxWidth(),
-                            textStyle = MaterialTheme.typography.bodySmall.copy(
-                                color = MaterialTheme.colorScheme.onSurface,
-                            ),
-                            cursorBrush = SolidColor(sessionAccentColor),
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
-                            decorationBox = { inner ->
-                                Box(Modifier.fillMaxSize()) {
-                                    if (noteText.isBlank()) {
-                                        Text(
-                                            "Añadir una nota de esta serie",
-                                            style = MaterialTheme.typography.bodySmall,
-                                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f),
-                                        )
-                                    }
-                                    inner()
-                                }
-                            },
-                        )
-                    }
-                }
-            }
-
-            Surface(
-                onClick = { onFailedSetChange(!isFailedSet) },
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(14.dp),
-                color = if (isFailedSet) {
-                    WorkoutUiTokens.dangerColor()
-                } else {
-                    WorkoutUiTokens.dangerColor().copy(alpha = 0.18f)
-                },
-            ) {
-                Text(
-                    text = "Error de ejecución",
-                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
-                    style = MaterialTheme.typography.labelMedium,
-                    fontWeight = FontWeight.SemiBold,
-                    color = if (isFailedSet) {
-                        Color.White
-                    } else {
-                        WorkoutUiTokens.dangerColor()
-                    },
+                KpknTextField(
+                    value = noteText,
+                    onValueChange = onNoteChange,
+                    label = "Notas",
+                    placeholder = "Añadir una nota de esta serie",
+                    singleLine = false,
+                    maxLines = 2,
+                    modifier = Modifier.fillMaxWidth(),
                 )
             }
+
+            TechniquePill(
+                text = "Error de ejecución",
+                onClick = { onFailedSetChange(!isFailedSet) },
+                fill = if (isFailedSet) WizardColors.danger else KpknSurface.inset,
+                ink = if (isFailedSet) WizardColors.ctaContent else WizardColors.danger,
+                modifier = Modifier.fillMaxWidth(),
+            )
+        }
+    }
+}
+
+/** Atajo de la foto del récord: texto en el acento de la sesión sobre una píldora `inset`, sin ripple. */
+@Composable
+private fun PrMediaShortcut(
+    text: String,
+    accent: Color,
+    onClick: () -> Unit,
+) {
+    val interaction = remember { MutableInteractionSource() }
+    Box(
+        modifier = Modifier
+            .defaultMinSize(minHeight = 48.dp)
+            .clickable(interactionSource = interaction, indication = null, role = Role.Button, onClick = onClick),
+        contentAlignment = Alignment.Center,
+    ) {
+        Box(
+            modifier = Modifier
+                .clip(KpknShape.pill)
+                .background(KpknSurface.inset, KpknShape.pill)
+                .padding(horizontal = 12.dp, vertical = 8.dp),
+            contentAlignment = Alignment.Center,
+        ) {
+            Text(
+                text = text,
+                style = KpknType.chip,
+                color = accent,
+                maxLines = 1,
+            )
         }
     }
 }
@@ -376,7 +333,8 @@ private fun TechniqueCarouselBlock(
     val columns = remember(rows) { rows.chunked(TechniqueColumnSize) }
     BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
         val columnGap = 12.dp
-        val columnWidth = ((maxWidth - columnGap) / 2).coerceAtLeast(132.dp)
+        // Columna de al menos 150 dp: peso y reps caben con su unidad, y la segunda columna asoma (es un carrusel).
+        val columnWidth = ((maxWidth - columnGap) / 2).coerceAtLeast(150.dp)
         LazyRow(
             modifier = Modifier.fillMaxSize(),
             horizontalArrangement = Arrangement.spacedBy(columnGap),
@@ -422,7 +380,7 @@ private fun TechniqueCompactRow(
     Row(
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(6.dp),
+        horizontalArrangement = Arrangement.spacedBy(4.dp),
     ) {
         TechniqueDoneToggle(
             done = row.done,
@@ -430,120 +388,215 @@ private fun TechniqueCompactRow(
         )
         Text(
             "${index + 1}",
-            modifier = Modifier.width(14.dp),
-            style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.42f),
+            modifier = Modifier.width(12.dp),
+            style = KpknType.caption,
+            color = WizardColors.textFaint,
         )
         if (showWeight) {
-            WorkoutCompactNumberField(
+            TechniqueValueCell(
                 value = row.weightText,
                 onValueChange = { onChange(row.copy(weightText = it)) },
                 unit = "kg",
-                decimal = true,
-                fixedWidth = false,
+                keyboardType = KeyboardType.Decimal,
                 modifier = Modifier.weight(1.15f),
             )
         }
-        WorkoutCompactNumberField(
+        TechniqueValueCell(
             value = row.repsText,
             onValueChange = { onChange(row.copy(repsText = it)) },
             unit = "r",
-            fixedWidth = false,
+            keyboardType = KeyboardType.Number,
             modifier = Modifier.weight(0.85f),
         )
         if (!showWeight) {
-            WorkoutCompactNumberField(
+            TechniqueValueCell(
                 value = row.restText,
                 onValueChange = { onChange(row.copy(restText = it)) },
                 unit = "s",
-                fixedWidth = false,
+                keyboardType = KeyboardType.Number,
                 modifier = Modifier.weight(0.85f),
             )
         }
     }
 }
 
+/** Celda de cifra de una fila de drop o de rest-pause: `inset`, la cifra centrada y la unidad al final, con teclado decimal si toca. */
 @Composable
-private fun AddTechniqueChip(onAdd: () -> Unit) {
-    CompositionLocalProvider(LocalMinimumInteractiveComponentSize provides Dp.Unspecified) {
-        Surface(
-            onClick = onAdd,
-            shape = RoundedCornerShape(10.dp),
-            color = WorkoutUiTokens.setInnerHighestColor(),
-        ) {
-            Row(
-                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(4.dp),
-            ) {
-                Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(14.dp))
+private fun TechniqueValueCell(
+    value: String,
+    onValueChange: (String) -> Unit,
+    unit: String,
+    keyboardType: KeyboardType,
+    modifier: Modifier = Modifier,
+) {
+    val shape = RoundedCornerShape(12.dp)
+    // Hueco reservado para la unidad: «kg» es más ancha que «r» o «s». Así la cifra no se corta (LR1c2).
+    val reserve = if (unit == "kg") 16.dp else 11.dp
+    BasicTextField(
+        value = value,
+        onValueChange = onValueChange,
+        modifier = modifier
+            .height(32.dp)
+            .clip(shape)
+            .background(KpknSurface.inset, shape)
+            .padding(horizontal = 4.dp),
+        singleLine = true,
+        textStyle = KpknType.chip.copy(
+            color = WizardColors.text,
+            textAlign = TextAlign.Center,
+            fontFeatureSettings = "'tnum' 1",
+        ),
+        cursorBrush = SolidColor(WizardColors.text),
+        keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
+        decorationBox = { inner ->
+            Box(modifier = Modifier.fillMaxSize()) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(end = reserve),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    inner()
+                }
                 Text(
-                    "Añadir",
-                    style = MaterialTheme.typography.labelSmall,
-                    fontWeight = FontWeight.SemiBold,
+                    unit,
+                    modifier = Modifier.align(Alignment.CenterEnd),
+                    style = KpknType.caption,
+                    color = WizardColors.textFaint,
+                    maxLines = 1,
                 )
             }
+        },
+    )
+}
+
+/** «Añadir» de la fila de drops o de rest-pause: píldora con filete de 1 dp en blanco al 12 %, sobre el módulo (sin relleno nuevo). */
+@Composable
+private fun AddTechniqueChip(onAdd: () -> Unit) {
+    val interaction = remember { MutableInteractionSource() }
+    Box(
+        modifier = Modifier
+            .defaultMinSize(minHeight = 48.dp)
+            .clickable(interactionSource = interaction, indication = null, role = Role.Button, onClick = onAdd),
+        contentAlignment = Alignment.Center,
+    ) {
+        Row(
+            modifier = Modifier
+                .defaultMinSize(minHeight = 40.dp)
+                .clip(KpknShape.pill)
+                .border(1.dp, Color.White.copy(alpha = 0.12f), KpknShape.pill)
+                .padding(horizontal = 10.dp, vertical = 6.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(4.dp),
+        ) {
+            Icon(
+                KpknLineIcons.Plus,
+                contentDescription = null,
+                modifier = Modifier.size(14.dp),
+                tint = WizardColors.text,
+            )
+            Text(
+                "Añadir",
+                style = KpknType.chip,
+                color = WizardColors.text,
+                maxLines = 1,
+            )
         }
     }
 }
 
+/** Marca «Hecho» de una fila: `ok` cuando está hecha, `inset` mientras no. Conserva la etiqueta de prueba y la descripción. */
 @Composable
 private fun TechniqueDoneToggle(
     done: Boolean,
     onToggle: () -> Unit,
 ) {
-    CompositionLocalProvider(LocalMinimumInteractiveComponentSize provides Dp.Unspecified) {
-        Surface(
-            onClick = onToggle,
-            modifier = Modifier.size(22.dp).testTag(TechniqueDoneToggleTag),
-            shape = RoundedCornerShape(6.dp),
-            color = if (done) {
-                MaterialTheme.colorScheme.onSurface.copy(alpha = 0.78f)
-            } else {
-                Color(0xFF2E2E2E)
-            },
-        ) {
-            Box(contentAlignment = Alignment.Center) {
-                if (done) {
-                    Icon(
-                        Icons.Default.Check,
-                        contentDescription = "Hecho",
-                        modifier = Modifier.size(14.dp),
-                        tint = MaterialTheme.colorScheme.surface,
-                    )
-                }
-            }
+    val interaction = remember { MutableInteractionSource() }
+    val shape = RoundedCornerShape(7.dp)
+    Box(
+        modifier = Modifier
+            .size(20.dp)
+            .testTag(TechniqueDoneToggleTag)
+            .clip(shape)
+            .background(if (done) WizardColors.done else KpknSurface.inset, shape)
+            .toggleable(
+                value = done,
+                interactionSource = interaction,
+                indication = null,
+                role = Role.Checkbox,
+                onValueChange = { onToggle() },
+            ),
+        contentAlignment = Alignment.Center,
+    ) {
+        if (done) {
+            Icon(
+                KpknLineIcons.Check,
+                contentDescription = "Hecho",
+                modifier = Modifier.size(14.dp),
+                tint = WizardColors.ctaContent,
+            )
         }
     }
 }
 
+/**
+ * Píldora de texto tocable sin ripple de Material: zona táctil de 48 dp y píldora de 40 dp como mínimo, con el rótulo en `chip` (hasta
+ * dos líneas antes que cortarse). Sirve para los conmutadores y el «Error de ejecución».
+ */
+@Composable
+private fun TechniquePill(
+    text: String,
+    onClick: () -> Unit,
+    fill: Color,
+    ink: Color,
+    modifier: Modifier = Modifier,
+    edge: Color? = null,
+) {
+    val interaction = remember { MutableInteractionSource() }
+    Box(
+        modifier = modifier
+            .defaultMinSize(minHeight = 48.dp)
+            .clickable(interactionSource = interaction, indication = null, role = Role.Button, onClick = onClick),
+        contentAlignment = Alignment.Center,
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .defaultMinSize(minHeight = 40.dp)
+                .clip(KpknShape.pill)
+                .background(fill, KpknShape.pill)
+                .then(if (edge != null) Modifier.border(1.dp, edge, KpknShape.pill) else Modifier)
+                .padding(horizontal = 10.dp, vertical = 4.dp),
+            contentAlignment = Alignment.Center,
+        ) {
+            Text(
+                text = text,
+                style = KpknType.chip,
+                color = ink,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+                textAlign = TextAlign.Center,
+            )
+        }
+    }
+}
+
+/** Conmutador de drop-sets o rest-pause: la opción activa en tinta con texto negro; la inactiva, `inset` con filete al 8 %. */
 @Composable
 private fun SoftToggleChip(
     text: String,
     selected: Boolean,
     onClick: () -> Unit,
-    accentColor: Color,
     modifier: Modifier = Modifier,
 ) {
-    Surface(
+    TechniquePill(
+        text = text,
         onClick = onClick,
+        fill = if (selected) WizardColors.text else KpknSurface.inset,
+        ink = if (selected) WizardColors.ctaContent else WizardColors.text,
         modifier = modifier,
-        shape = RoundedCornerShape(16.dp),
-        color = if (selected) {
-            accentColor.copy(alpha = 0.18f)
-        } else {
-            Color(0xFF2E2E2E)
-        },
-    ) {
-        Text(
-            text = text,
-            modifier = Modifier.padding(horizontal = 6.dp, vertical = 5.dp),
-            style = MaterialTheme.typography.labelSmall,
-            fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Medium,
-            color = MaterialTheme.colorScheme.onSurface.copy(alpha = if (selected) 0.92f else 0.78f),
-            maxLines = 1,
-        )
-    }
+        edge = if (selected) null else Color.White.copy(alpha = 0.08f),
+    )
 }
 
 internal fun commit(
@@ -577,4 +630,22 @@ internal fun commit(
     if (drops.isEmpty() && pauses.isEmpty()) return false
     onCompleteTechniques(drops, pauses)
     return true
+}
+
+/**
+ * Peso del drop que se añade en [nextIndex]: la sugerencia del plan o, si el plan no llega (4.º y 5.º drop), el último peso menos un
+ * paso. El último peso lo escribe la persona con el teclado decimal, así que «62,5» cuenta como 62,5 (LR1c2).
+ */
+internal fun nextDropWeightKg(
+    mainWeight: Double,
+    mainReps: Int,
+    nextIndex: Int,
+    lastWeightText: String?,
+): Double? {
+    val suggested = suggestedDropLoadsForMainSet(
+        mainWeight,
+        mainReps,
+        (nextIndex + 1).coerceAtMost(DropSetPlanDefaults.MaxDrops),
+    ).getOrNull(nextIndex)
+    return suggested ?: lastWeightText?.replace(',', '.')?.toDoubleOrNull()?.minus(DropSetPlanDefaults.DropKg)
 }
