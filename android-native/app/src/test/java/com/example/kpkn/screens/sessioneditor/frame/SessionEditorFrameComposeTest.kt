@@ -109,7 +109,7 @@ class SessionEditorFrameComposeTest {
                 )
             }
         }
-        rule.onNodeWithText("54'").assertExists()
+        rule.onNodeWithText("54 min").assertExists()
     }
 
     @Test
@@ -129,6 +129,6 @@ class SessionEditorFrameComposeTest {
             }
         }
         rule.onNodeWithText("Reglas").assertExists()
-        rule.onNodeWithText("54'").assertDoesNotExist()
+        rule.onNodeWithText("54 min").assertDoesNotExist()
     }
 }

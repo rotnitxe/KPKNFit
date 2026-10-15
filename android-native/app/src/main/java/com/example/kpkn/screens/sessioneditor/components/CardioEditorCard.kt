@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
@@ -44,6 +45,7 @@ import com.example.kpkn.data.models.CardioIntensity
 import com.example.kpkn.data.models.HiitProtocol
 import com.example.kpkn.data.models.HiitRestNature
 import com.example.kpkn.data.models.HiitWorkTarget
+import com.example.kpkn.screens.sessioneditor.design.sessionLazyRowEdgeFade
 import com.example.kpkn.domain.cardio.CardioAuthoringShape
 import com.example.kpkn.domain.cardio.CardioPaceBandEngine
 import com.example.kpkn.domain.cardio.CardioPrescriptionFormatter
@@ -540,7 +542,7 @@ private fun CardioSteadyForm(
                 modifier = Modifier.weight(1f),
             )
         }
-        CardioGpsCell(details = details, onChange = onChange, modifier = Modifier.weight(1f))
+        if (cardioShowsGpsCell(details)) CardioGpsCell(details = details, onChange = onChange, modifier = Modifier.weight(1f))
     }
     KpknTextAction(
         text = "Añadir series",
@@ -676,9 +678,16 @@ private fun CardioSeriesForm(
                 modifier = Modifier.weight(1f),
             )
         }
-        CardioGpsCell(details = details, onChange = onChange, modifier = Modifier.weight(1f))
+        if (cardioShowsGpsCell(details)) CardioGpsCell(details = details, onChange = onChange, modifier = Modifier.weight(1f))
     }
 }
+
+/**
+ * La celda GPS aparece solo en los cardios al aire libre, los que admiten GPS en el catálogo (ER2b). Un cardio de interior que ya tuviera
+ * GPS puesto conserva la celda, para poder quitarlo.
+ */
+internal fun cardioShowsGpsCell(details: CardioDetails): Boolean =
+    details.requiresGps || CardioCatalog.items.any { it.type == details.type && it.requiresGps }
 
 /** GPS como celda: su estado en la cifra y un toque lo cambia. */
 @Composable
@@ -794,7 +803,13 @@ private fun CardioTemplatesRow(
     }
     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
         Text("PLANTILLAS", style = KpknType.eyebrow, color = WizardColors.textMuted)
-        LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        val templatesState = rememberLazyListState()
+        LazyRow(
+            state = templatesState,
+            // ER2b: la orilla se funde como en las filas de chips, para que una plantilla cortada no quede en seco.
+            modifier = Modifier.sessionLazyRowEdgeFade(templatesState),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
             items(templates, key = { it.first.id }) { (template, preview) ->
                 CardioTemplateCard(
                     template = template,

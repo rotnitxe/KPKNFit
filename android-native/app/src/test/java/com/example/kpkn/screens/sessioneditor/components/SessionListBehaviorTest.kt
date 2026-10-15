@@ -21,7 +21,9 @@ import com.example.kpkn.data.models.RepRange
 import com.example.kpkn.data.models.SessionPart
 import com.example.kpkn.data.models.SupersetGroup
 import com.example.kpkn.data.models.TrainingMode
+import com.example.kpkn.screens.sessioneditor.components.sheets.SupersetPickRow
 import com.example.kpkn.screens.sessioneditor.design.SessionExerciseUndoNotice
+import kotlin.math.abs
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Rule
@@ -102,10 +104,7 @@ class SessionListBehaviorTest {
         assertEquals(1, toggled)
     }
 
-    /**
-     * Deslizar la cabecera revela «Eliminar»; pulsarlo abre el diálogo de borrar grupo (ER1f: la prueba estaba desactivada). El botón del
-     * revelado va debajo de la tarjeta hasta que se desliza, así que la prueba desliza primero, como el usuario.
-     */
+    /** ER2b: el umbral abre el diálogo directamente al soltar; por eso no se pulsa la papelera, que queda bajo el velo del diálogo. */
     @Test
     fun borrarDesdeLaCabeceraAbreSuDialogo() {
         val part = SessionPart(id = "g", name = "Pierna", exercises = listOf(exercise("sent", "Sentadilla")))
@@ -115,11 +114,33 @@ class SessionListBehaviorTest {
             SemanticsMatcher.expectValue(SemanticsProperties.StateDescription, "Desliza a la izquierda para eliminar"),
         ).performTouchInput { swipeLeft() }
         rule.waitForIdle()
-        rule.onNodeWithContentDescription("Eliminar").performClick()
-        rule.waitForIdle()
 
         rule.onNodeWithText("¿Qué hacemos con los ejercicios?").assertExists()
         rule.onNodeWithText("Borrar grupo y ejercicios").assertExists()
+    }
+
+    /**
+     * ER2b: deslizar abre el diálogo directamente, y cancelarlo devuelve la cabecera a su sitio con su nombre (no queda el fondo rojo
+     * con la papelera ni el nombre tapado).
+     */
+    @Test
+    fun cancelarElBorradoDevuelveLaCabeceraConSuNombre() {
+        val part = SessionPart(id = "g", name = "Pierna", exercises = listOf(exercise("sent", "Sentadilla")))
+        rule.setContent { Header(part) }
+        val antes = rule.onNodeWithTag("session_group_name_field").fetchSemanticsNode().boundsInRoot.left
+
+        rule.onNode(
+            SemanticsMatcher.expectValue(SemanticsProperties.StateDescription, "Desliza a la izquierda para eliminar"),
+        ).performTouchInput { swipeLeft() }
+        rule.waitForIdle()
+        rule.onNodeWithText("¿Qué hacemos con los ejercicios?").assertExists()
+        rule.onNodeWithText("Cancelar").performClick()
+        rule.waitForIdle()
+
+        rule.onNodeWithText("¿Qué hacemos con los ejercicios?").assertDoesNotExist()
+        val despues = rule.onNodeWithTag("session_group_name_field").fetchSemanticsNode().boundsInRoot.left
+        assertTrue(abs(antes - despues) < 0.5f)
+        rule.onNodeWithTag("session_group_name_field").assertTextEquals("Pierna")
     }
 
     @Test
@@ -225,5 +246,16 @@ class SessionListBehaviorTest {
             autoExpand = false,
             onAutoExpandHandled = noop,
         )
+    }
+
+    /** ER2b: el selector de superserie pinta la miniatura de la lista (el glifo), no la inicial del nombre. */
+    @Test
+    fun elSelectorDeSuperserieNoPintaLaInicialComoMiniatura() {
+        rule.setContent {
+            SupersetPickRow(exercise = exercise("zan", "Zancada"), checked = false, selectable = true, onToggle = noop)
+        }
+
+        rule.onNodeWithText("Zancada").assertIsDisplayed()
+        rule.onNodeWithText("Z").assertDoesNotExist()
     }
 }

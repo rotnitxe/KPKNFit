@@ -45,10 +45,10 @@ import com.example.kpkn.data.models.MobilityConfig
 import com.example.kpkn.data.models.MobilitySeries
 import com.example.kpkn.data.models.SessionPart
 import com.example.kpkn.screens.onboarding.design.WizardColors
+import com.example.kpkn.screens.sessioneditor.design.SessionSwipeDeleteRow
 import com.example.kpkn.screens.sessioneditor.isEditorUncategorized
 import com.example.kpkn.ui.components.KpknAlertDialog
 import com.example.kpkn.ui.components.KpknAlertDismissButton
-import com.example.kpkn.ui.components.SwipeToDeleteCard
 import com.example.kpkn.ui.components.icons.KpknLineIcons
 import com.example.kpkn.ui.design.KpknDangerPill
 import com.example.kpkn.ui.design.KpknIconButton
@@ -157,8 +157,10 @@ internal fun GroupEditorCard(
                     modifier = Modifier.size(24.dp),
                 )
             }
-            SwipeToDeleteCard(
-                onDelete = {
+            // Deslizar abre el diálogo de borrar directamente, y al cancelar la cabecera vuelve con su nombre (ER2b).
+            SessionSwipeDeleteRow(
+                deleteOpen = showDeleteConfirm || showDeleteModeConfirm,
+                onRequestDelete = {
                     if (shouldShowDeleteChoice) {
                         showDeleteModeConfirm = true
                     } else {

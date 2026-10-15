@@ -554,6 +554,9 @@ internal fun SessionEditorListItem(
             )
         }
 
+        // Los ejercicios sueltos se nombran cuando la sesión tiene grupos, para que no parezcan un grupo huérfano (ER2b).
+        SessionListItem.LooseGroupLabel -> SessionGroupLabel(label = "SIN GRUPO")
+
         SessionListItem.Hero -> Unit
     }
 }

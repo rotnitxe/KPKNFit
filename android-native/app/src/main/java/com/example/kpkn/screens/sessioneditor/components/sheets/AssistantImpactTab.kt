@@ -36,6 +36,7 @@ import com.example.kpkn.screens.sessioneditor.MuscleVolumeRow
 import com.example.kpkn.screens.sessioneditor.SessionEditorUiState
 import com.example.kpkn.screens.sessioneditor.SessionSubMuscleBreakdownList
 import com.example.kpkn.screens.sessioneditor.buildMuscleVolumeRows
+import com.example.kpkn.screens.sessioneditor.sessionTimeBreakdownCaption
 import com.example.kpkn.ui.components.icons.KpknLineIcons
 import com.example.kpkn.ui.components.rings.KpknRingColors
 import com.example.kpkn.ui.components.rings.KpknTowerRings
@@ -93,9 +94,8 @@ internal fun AssistantImpactTab(uiState: SessionEditorUiState) {
             Spacer(Modifier.height(6.dp))
             KpknMetric(value = "${timeBreakdown.totalMinutes}", unit = "min", style = KpknType.metricL)
             Spacer(Modifier.height(6.dp))
-            SheetCaption(
-                "Preparación ${timeBreakdown.setupMinutes} · Ejecución ${timeBreakdown.executionMinutes} · Descansos ${timeBreakdown.restMinutes}",
-            )
+            // El mismo desglose que Reglas › Tiempo, con el calentamiento (ER2b).
+            SheetCaption(sessionTimeBreakdownCaption(timeBreakdown))
         }
     }
 

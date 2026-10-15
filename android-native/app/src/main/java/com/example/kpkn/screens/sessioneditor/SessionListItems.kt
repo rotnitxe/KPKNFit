@@ -93,6 +93,11 @@ sealed class SessionListItem {
         override val stableKey: String = "loose-end-gap"
     }
 
+    /** Rótulo «SIN GRUPO» encima de los ejercicios sueltos, solo cuando la sesión tiene grupos (ER2b). */
+    data object LooseGroupLabel : SessionListItem() {
+        override val stableKey: String = "loose-group-label"
+    }
+
     data class CardioDivider(
         val showCardioFirst: Boolean = false,
         val canMove: Boolean = false,
@@ -145,6 +150,7 @@ fun buildSessionListItems(
         // --- 2. BLOQUE FUERZA ABAJO ---
         items += SessionListItem.StrengthDivider(showCardioFirst = true, canMove = hasBothSpaces)
         if (session.exercises.isNotEmpty()) {
+            if (strengthParts.isNotEmpty()) items += SessionListItem.LooseGroupLabel
             appendExerciseItems(
                 items = items,
                 exercises = session.exercises,
@@ -165,6 +171,7 @@ fun buildSessionListItems(
             items += SessionListItem.StrengthDivider(showCardioFirst = false, canMove = hasBothSpaces)
         }
         if (session.exercises.isNotEmpty()) {
+            if (strengthParts.isNotEmpty()) items += SessionListItem.LooseGroupLabel
             appendExerciseItems(
                 items = items,
                 exercises = session.exercises,

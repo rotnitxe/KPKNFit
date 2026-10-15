@@ -47,12 +47,15 @@ import com.example.kpkn.data.models.TrainingMode
 import com.example.kpkn.data.sessions.SessionTemplate
 import com.example.kpkn.data.sessions.SessionTemplatePublicationStatus
 import com.example.kpkn.data.sessions.SessionTemplateSourceType
+import androidx.compose.ui.test.performTouchInput
 import com.example.kpkn.screens.onboarding.design.LocalWizardReducedMotion
 import com.example.kpkn.screens.onboarding.design.entreno.SymbolPalette
 import com.example.kpkn.screens.sessioneditor.DragLiftPreview
 import com.example.kpkn.screens.sessioneditor.DragPartLiftPreview
 import com.example.kpkn.screens.sessioneditor.SessionEditorInvalidDropBanner
 import com.example.kpkn.screens.sessioneditor.SupersetDraft
+import com.example.kpkn.screens.sessioneditor.components.CardioCatalogSheet
+import com.example.kpkn.screens.sessioneditor.components.CardioEditorCard
 import com.example.kpkn.screens.sessioneditor.components.ExerciseEditorCard
 import com.example.kpkn.screens.sessioneditor.components.GroupEditorCard
 import com.example.kpkn.screens.sessioneditor.components.SessionEditorEmptyState
@@ -241,6 +244,82 @@ class SessionEditorListRenderSheetTest {
                 Folded(dominadas, SessionModuleEdge.TOP)
                 Folded(sentadilla, SessionModuleEdge.BOTTOM)
             }
+        }
+    }
+
+    /** Los sueltos van arriba con su rótulo «SIN GRUPO», como en la lista real, y después el grupo (ER2b). */
+    @Test
+    fun renderSinGrupoConRotuloYGrupo() {
+        assumeTrue("sin KPKN_RENDER_DIR no se dibuja nada", System.getenv("KPKN_RENDER_DIR") != null)
+        val dominadas = strength("dom", "Dominadas", sets = 2, reps = 6)
+        val sentadilla = strength("sent", "Sentadilla trasera", sets = 3, reps = 5)
+        val press = strength("press", "Press banca", sets = 3, reps = 6)
+        renderSheet("lista_sin_grupo_con_rotulo", heightDp = 800) {
+            Column {
+                SessionGroupLabel(label = "SIN GRUPO")
+                Folded(dominadas, SessionModuleEdge.TOP)
+                Folded(sentadilla, SessionModuleEdge.BOTTOM)
+                GroupHeader(group("g1", "Empuje", listOf(press)), collapsed = false, edge = SessionModuleEdge.TOP)
+                Folded(press, SessionModuleEdge.BOTTOM)
+            }
+        }
+    }
+
+    /** Cabecera de grupo con el dedo a medio recorrido: el contenido sigue al dedo y deja ver el fondo `danger` con la papelera (ER2b). */
+    @Test
+    fun renderCabeceraDeGrupoABitadDeslizar() {
+        assumeTrue("sin KPKN_RENDER_DIR no se dibuja nada", System.getenv("KPKN_RENDER_DIR") != null)
+        val press = strength("press", "Press banca", sets = 3, reps = 6)
+        rule.setContent {
+            val base = LocalDensity.current
+            hostView = LocalView.current
+            CompositionLocalProvider(LocalDensity provides Density(base.density, fontScale = 1f)) {
+                Box(
+                    Modifier
+                        .testTag("sheet")
+                        .width(360.dp)
+                        .height(120.dp)
+                        .background(Color.Black),
+                ) {
+                    GroupHeader(group("g1", "Empuje", listOf(press)), collapsed = false, edge = SessionModuleEdge.ONLY)
+                }
+            }
+        }
+        // El dedo se queda abajo a 40 dp del borde (bajo el umbral): la cabecera queda a medio camino, sin abrir el diálogo.
+        rule.onNode(
+            SemanticsMatcher.expectValue(SemanticsProperties.StateDescription, "Desliza a la izquierda para eliminar"),
+        ).performTouchInput {
+            down(center)
+            moveBy(Offset(-120f, 0f))
+        }
+        rule.waitForIdle()
+        save("cabecera_a_medio_deslizar_100")
+        rule.onNode(
+            SemanticsMatcher.expectValue(SemanticsProperties.StateDescription, "Desliza a la izquierda para eliminar"),
+        ).performTouchInput { up() }
+    }
+
+    /** El Air Bike es de interior: su editor no lleva la celda GPS (ER2b). */
+    @Test
+    fun renderAirBikeSinCeldaGps() {
+        assumeTrue("sin KPKN_RENDER_DIR no se dibuja nada", System.getenv("KPKN_RENDER_DIR") != null)
+        renderSheet("cardio_air_bike", heightDp = 700) {
+            Column(Modifier.padding(16.dp)) {
+                CardioEditorCard(
+                    details = CardioDetails(type = CardioType.AIR_BIKE, targetDurationSeconds = 20 * 60),
+                    accentColor = Color(0xFFF49A6E),
+                    onChange = {},
+                )
+            }
+        }
+    }
+
+    /** «Añadir cardio»: un icono distinto por máquina; solo comparten las cintas y las bicis (ER2b). */
+    @Test
+    fun renderAnadirCardio() {
+        assumeTrue("sin KPKN_RENDER_DIR no se dibuja nada", System.getenv("KPKN_RENDER_DIR") != null)
+        renderSheet("anadir_cardio", heightDp = 1000) {
+            CardioCatalogSheet(onAdd = {})
         }
     }
 

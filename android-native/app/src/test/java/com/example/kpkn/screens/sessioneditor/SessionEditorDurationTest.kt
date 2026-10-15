@@ -6,6 +6,7 @@ import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.ExerciseSet
 import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.models.WarmupExercise
+import com.example.kpkn.domain.calculations.SessionTimeBreakdown
 import com.example.kpkn.domain.training.SessionDurationEstimator
 import com.example.kpkn.screens.home.estimatedSessionMinutes
 import org.junit.Assert.assertEquals
@@ -74,5 +75,47 @@ class SessionEditorDurationTest {
 
         assertNull(estimatedSessionMinutes(vacia))
         assertEquals(0, SessionDurationEstimator.estimate(vacia).toSessionTimeBreakdown(vacia).totalSeconds)
+    }
+
+    /** ER2b: el asistente y Reglas › Tiempo dicen el mismo desglose, con el calentamiento, y las partes suman el total. */
+    @Test
+    fun elDesgloseDelAsistenteYDeReglasEsElMismoYSumaElTotal() {
+        val breakdown = SessionTimeBreakdown(
+            setupSeconds = 7 * 60,
+            executionSeconds = 20 * 60,
+            restSeconds = 26 * 60,
+            warmupSeconds = 8 * 60,
+            totalSeconds = 61 * 60,
+            exerciseCount = 3,
+            totalSetCount = 12,
+        )
+        assertEquals(
+            "Preparación 7\u00A0min · Ejecución 20\u00A0min · Descansos 26\u00A0min · Calentamiento 8\u00A0min",
+            sessionTimeBreakdownCaption(breakdown),
+        )
+    }
+
+    /** Sin calentamiento, el desglose no lo nombra. */
+    @Test
+    fun elDesgloseSinCalentamientoNoLoNombra() {
+        val breakdown = SessionTimeBreakdown(
+            setupSeconds = 4 * 60,
+            executionSeconds = 30 * 60,
+            restSeconds = 20 * 60,
+            warmupSeconds = 0,
+            totalSeconds = 54 * 60,
+            exerciseCount = 2,
+            totalSetCount = 8,
+        )
+        assertEquals(
+            "Preparación 4\u00A0min · Ejecución 30\u00A0min · Descansos 20\u00A0min",
+            sessionTimeBreakdownCaption(breakdown),
+        )
+    }
+
+    /** ER2b: los minutos del botón «Reglas» van con espacio inseparable y su unidad, no con apóstrofo. */
+    @Test
+    fun losMinutosDelBotonLlevanEspacioInseparableYMin() {
+        assertEquals("60\u00A0min", sessionMinutesLabel(60))
     }
 }

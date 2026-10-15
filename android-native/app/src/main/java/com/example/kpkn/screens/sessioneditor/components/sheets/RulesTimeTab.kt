@@ -41,6 +41,7 @@ import com.example.kpkn.screens.sessioneditor.SessionEditorUiState
 import com.example.kpkn.screens.sessioneditor.design.sessionChipRowEdgeFade
 import com.example.kpkn.screens.sessioneditor.frame.FrameRingTone
 import com.example.kpkn.screens.sessioneditor.frame.frameTimeRingTone
+import com.example.kpkn.screens.sessioneditor.sessionTimeBreakdownCaption
 import com.example.kpkn.ui.components.icons.KpknLineIcons
 import com.example.kpkn.ui.components.rings.KpknRingColors
 import com.example.kpkn.ui.design.KpknCellInput
@@ -179,11 +180,8 @@ internal fun RulesTimeTab(
             }
             uiState.sessionTimeBreakdown?.let { bd ->
                 Spacer(Modifier.height(12.dp))
-                SheetCaption(
-                    "Preparación ${bd.setupMinutes} min · Ejecución ${bd.executionMinutes} min · " +
-                        "Descansos ${bd.restMinutes} min" +
-                        if (bd.warmupMinutes > 0) " · Calentamiento ${bd.warmupMinutes} min" else "",
-                )
+                // El mismo desglose que el asistente (ER2b).
+                SheetCaption(sessionTimeBreakdownCaption(bd))
             }
         }
 

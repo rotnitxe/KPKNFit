@@ -72,6 +72,7 @@ class SessionEditorFrameRenderSheetTest {
             "barra_sin_sugerencias",
             "barra_con_3",
             "barra_pasada",
+            "barra_60",
             "semana",
             "bloqueo",
         )
@@ -177,6 +178,18 @@ class SessionEditorFrameRenderSheetTest {
                         hazeState = glassHaze,
                         suggestionCount = 0,
                         estimatedMinutes = 70,
+                        limitMinutes = 60,
+                        onAdd = {},
+                        onAssistant = {},
+                        onRules = {},
+                        modifier = Modifier.padding(12.dp),
+                    )
+                }
+                "barra_60" -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.BottomCenter) {
+                    SessionEditorFrameBottomBar(
+                        hazeState = glassHaze,
+                        suggestionCount = 0,
+                        estimatedMinutes = 60,
                         limitMinutes = 60,
                         onAdd = {},
                         onAssistant = {},
