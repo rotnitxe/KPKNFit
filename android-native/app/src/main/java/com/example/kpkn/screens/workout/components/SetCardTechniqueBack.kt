@@ -258,12 +258,12 @@ internal fun SetCardTechniqueBack(
                                 onRowsChange = { dropRows = it },
                                 onAdd = {
                                     val nextIndex = dropRows.size
-                                    val suggested = suggestedDropLoadsForMainSet(
-                                        mainWeight,
-                                        mainReps,
-                                        (nextIndex + 1).coerceAtMost(DropSetPlanDefaults.MaxDrops),
-                                    ).getOrNull(nextIndex)
-                                        ?: dropRows.lastOrNull()?.weightText?.toDoubleOrNull()?.minus(DropSetPlanDefaults.DropKg)
+                                    val suggested = nextDropWeightKg(
+                                        mainWeight = mainWeight,
+                                        mainReps = mainReps,
+                                        nextIndex = nextIndex,
+                                        lastWeightText = dropRows.lastOrNull()?.weightText,
+                                    )
                                     dropRows = dropRows + TechniqueCheckRow(
                                         weightText = suggested?.takeIf { it > 0 }?.toTrimmedNumberString().orEmpty(),
                                         repsText = DropSetPlanDefaults.DropReps.toString(),
@@ -577,4 +577,22 @@ internal fun commit(
     if (drops.isEmpty() && pauses.isEmpty()) return false
     onCompleteTechniques(drops, pauses)
     return true
+}
+
+/**
+ * Peso del drop que se añade en [nextIndex]: la sugerencia del plan o, si el plan no llega (4.º y 5.º drop), el último peso menos un
+ * paso. El último peso lo escribe la persona con el teclado decimal, así que «62,5» cuenta como 62,5 (LR1c2).
+ */
+internal fun nextDropWeightKg(
+    mainWeight: Double,
+    mainReps: Int,
+    nextIndex: Int,
+    lastWeightText: String?,
+): Double? {
+    val suggested = suggestedDropLoadsForMainSet(
+        mainWeight,
+        mainReps,
+        (nextIndex + 1).coerceAtMost(DropSetPlanDefaults.MaxDrops),
+    ).getOrNull(nextIndex)
+    return suggested ?: lastWeightText?.replace(',', '.')?.toDoubleOrNull()?.minus(DropSetPlanDefaults.DropKg)
 }

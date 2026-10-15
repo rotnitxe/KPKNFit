@@ -39,7 +39,8 @@ internal fun WorkoutTechniqueProgressDraft.toGuidedPhaseOrNull(): GuidedTechniqu
             GuidedTechniquePhase.DropSet(
                 index = index,
                 total = total,
-                suggestedWeight = dropWeightText?.toDoubleOrNull()
+                // El teclado decimal escribe la coma: se lee como punto antes de convertir (LR1c2).
+                suggestedWeight = dropWeightText?.replace(',', '.')?.toDoubleOrNull()
                     ?: dropRows?.lastOrNull()?.weight
                     ?: 0.0,
             )
