@@ -52,6 +52,7 @@ import com.example.kpkn.ui.components.SwipeToDeleteCard
 import com.example.kpkn.ui.components.icons.KpknLineIcons
 import com.example.kpkn.ui.design.KpknDangerPill
 import com.example.kpkn.ui.design.KpknIconButton
+import com.example.kpkn.ui.design.KpknSurface
 import com.example.kpkn.ui.design.KpknSecondaryPill
 import com.example.kpkn.ui.design.KpknType
 import com.example.kpkn.ui.design.KpknTextAction
@@ -170,6 +171,7 @@ internal fun GroupEditorCard(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
+                        .background(KpknSurface.module, RoundedCornerShape(16.dp))
                         .padding(start = 8.dp, end = 4.dp, top = 4.dp, bottom = 4.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
