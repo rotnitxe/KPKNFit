@@ -3,6 +3,7 @@ package com.example.kpkn.screens.sessioneditor
 import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.ExerciseSet
 import com.example.kpkn.data.models.TrainingMode
+import com.example.kpkn.ui.design.KpknSetFormat
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
@@ -15,7 +16,7 @@ class SessionEditorCollapsedSummaryTest {
             trainingMode = TrainingMode.TIME,
             sets = listOf(ExerciseSet(id = "s1", targetDuration = 30)),
         )
-        assertEquals("1×30s", formatExerciseCollapsedSummary(exercise))
+        assertEquals("1 × " + KpknSetFormat.doseTime(30), formatExerciseCollapsedSummary(exercise))
     }
 
     @Test
@@ -26,6 +27,6 @@ class SessionEditorCollapsedSummaryTest {
             trainingMode = TrainingMode.REPS,
             sets = listOf(ExerciseSet(id = "s1", targetReps = 8)),
         )
-        assertEquals("1×8", formatExerciseCollapsedSummary(exercise))
+        assertEquals("1 × 8", formatExerciseCollapsedSummary(exercise))
     }
 }

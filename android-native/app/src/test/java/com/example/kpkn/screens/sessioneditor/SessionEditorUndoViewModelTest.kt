@@ -148,6 +148,31 @@ class SessionEditorUndoViewModelTest {
         assertNull(vm.uiState.value.pendingExerciseRemoval)
     }
 
+    /** ER1f: «Eliminar» de las acciones rápidas es el mismo borrado blando con «Deshacer» que deslizar en la lista, sin diálogo. */
+    @Test
+    fun eliminarDesdeLasAccionesRapidasDejaElBorradoConDeshacer() {
+        val vm = loadedViewModel()
+
+        vm.openExerciseQuickActions(null, "e1")
+        vm.triggerQuickActionDelete()
+
+        assertEquals(listOf("e1", "e2"), ids(vm))
+        assertEquals("e1", vm.uiState.value.pendingExerciseRemoval?.exerciseId)
+        assertEquals(SessionEditorSheet.NONE, vm.uiState.value.sheet)
+    }
+
+    @Test
+    fun deshacerTrasEliminarDesdeLasAccionesRapidasDejaElEjercicio() {
+        val vm = loadedViewModel()
+
+        vm.openExerciseQuickActions(null, "e1")
+        vm.triggerQuickActionDelete()
+        vm.undoExerciseRemoval()
+
+        assertEquals(listOf("e1", "e2"), ids(vm))
+        assertNull(vm.uiState.value.pendingExerciseRemoval)
+    }
+
     @Test
     fun unNuevoBorradoConfirmaElAnteriorYDejaSoloUnAviso() {
         val vm = loadedViewModel()

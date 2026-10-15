@@ -551,10 +551,16 @@ fun SessionEditorViewModel.removeMobilitySeries(partId: String?, exerciseId: Str
     }
 }
 
+/**
+ * «Eliminar» de las acciones rápidas (ER1f): sin diálogo, como deslizar un ejercicio en la lista. Es un borrado blando con «Deshacer»
+ * (`requestExerciseRemoval`); si el ejercicio es miembro de una superserie, sale de ella.
+ */
 fun SessionEditorViewModel.triggerQuickActionDelete() {
     val state = currentUiState
     val exerciseId = state.quickActionsExerciseId ?: return
-    removeExercise(state.quickActionsPartId, exerciseId)
+    val supersetGroupId = state.activeVariantSession?.allExercises()
+        ?.firstOrNull { it.id == exerciseId }
+        ?.supersetGroupRefOrLegacyId()
     updateUi {
         it.copy(
             sheet = SessionEditorSheet.NONE,
@@ -562,6 +568,7 @@ fun SessionEditorViewModel.triggerQuickActionDelete() {
             quickActionsExerciseId = null,
         )
     }
+    requestExerciseRemoval(state.quickActionsPartId, exerciseId, supersetGroupId)
 }
 
 fun SessionEditorViewModel.updateWarmupSets(partId: String?, exerciseId: String, sets: List<WarmupSetDefinition>) = updateExercise(partId, exerciseId) { it.copy(warmupSets = sets) }

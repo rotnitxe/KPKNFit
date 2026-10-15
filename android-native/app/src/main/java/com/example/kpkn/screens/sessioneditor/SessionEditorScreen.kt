@@ -83,6 +83,7 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import java.util.UUID
 
+import com.example.kpkn.screens.sessioneditor.components.SessionExerciseDetailSheet
 import com.example.kpkn.screens.sessioneditor.components.sheets.SessionEditorSheets
 import com.example.kpkn.screens.sessioneditor.components.sheets.AssistantGlassOverlay
 import com.example.kpkn.screens.sessioneditor.frame.SessionEditorFrameBlockNotice
@@ -161,6 +162,8 @@ fun SessionEditorScreen(
     var pendingAutoExpandExerciseId by rememberSaveable { mutableStateOf<String?>(null) }
     var catalogRequestInFlight by rememberSaveable { mutableStateOf(false) }
     var catalogRequestId by rememberSaveable { mutableStateOf<String?>(null) }
+    // La ficha del catálogo de un ejercicio de la sesión se abre dentro del editor (ER1f): «Ficha» de las acciones rápidas.
+    var editorDetailExerciseId by rememberSaveable { mutableStateOf<String?>(null) }
     val lifecycleOwner = LocalLifecycleOwner.current
     val focusManager = LocalFocusManager.current
     val keyboardController = LocalSoftwareKeyboardController.current
@@ -1158,6 +1161,7 @@ fun SessionEditorScreen(
         },
         onAddCardio = viewModel::addCardioToPart,
         onQuickActionDelete = viewModel::triggerQuickActionDelete,
+        onQuickActionDuplicate = viewModel::duplicateQuickActionExercise,
         onQuickActionCreateSuperset = viewModel::triggerQuickActionCreateSuperset,
         onQuickActionManageSuperset = viewModel::triggerQuickActionManageSuperset,
         onLinkExerciseRelativeTo = viewModel::linkExerciseRelativeTo,
@@ -1168,7 +1172,8 @@ fun SessionEditorScreen(
         onSupersetDraftUpdate = viewModel::updateSupersetDraft,
         onCreateSupersetGroup = viewModel::createSupersetGroupFromDraft,
         onOpenSupersetCreator = viewModel::openSupersetCreator,
-        onOpenExerciseDetail = onOpenExerciseDetail,
+        // ER1f: la ficha se abre aquí dentro; el parámetro externo `onOpenExerciseDetail` ya no recibe la acción.
+        onOpenExerciseDetail = { id -> editorDetailExerciseId = id },
         onOpenCatalog = viewModel::openPickerForUncategorized,
         useFullPageCatalog = onOpenCatalog != null,
         allTemplates = allTemplates,
@@ -1213,4 +1218,16 @@ fun SessionEditorScreen(
         onRulesInitialTabConsumed = viewModel::clearRulesSheetInitialTab,
     )
 
+    // La ficha de un ejercicio de la sesión (ER1f): el mismo cuerpo que la del catálogo, sin «Añadir/Quitar».
+    editorDetailExerciseId?.let { detailId ->
+        val detailExercise = (uiState.activeVariantSession ?: uiState.session)
+            ?.allExercises()
+            ?.firstOrNull { it.id == detailId }
+        if (detailExercise != null) {
+            SessionExerciseDetailSheet(
+                exercise = detailExercise,
+                onDismiss = { editorDetailExerciseId = null },
+            )
+        }
+    }
 }

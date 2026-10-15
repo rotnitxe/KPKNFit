@@ -38,6 +38,7 @@ import com.example.kpkn.screens.sessioneditor.rememberEditableNumber
 import com.example.kpkn.screens.sessioneditor.DarkEditorSurfaceSoft
 import com.example.kpkn.ui.design.KpknChip
 import com.example.kpkn.ui.design.KpknModule
+import com.example.kpkn.ui.design.KpknSetFormat
 import com.example.kpkn.ui.design.KpknTextAction
 import com.example.kpkn.ui.design.KpknType
 import java.util.UUID
@@ -310,13 +311,13 @@ internal fun ExerciseEditorExpanded(
                         Text("Superserie activa", style = KpknType.bodyStrong, color = accentColor)
                     }
                     Text(
-                        "Los ejercicios agrupados comparten descanso: ${exercise.supersetRestBetween ?: 60}s entre ejercicios, ${exercise.supersetRestAfter ?: 120}s post-ronda.",
+                        "Los ejercicios agrupados comparten descanso: ${KpknSetFormat.doseTime(exercise.supersetRestBetween ?: 60)} entre ejercicios, ${KpknSetFormat.doseTime(exercise.supersetRestAfter ?: 120)} post-ronda.",
                         style = KpknType.caption,
                         color = WizardColors.textMuted,
                     )
                     if (exercise.restTime != null) {
                         Text(
-                            "El descanso individual (${exercise.restTime}s) es reemplazado por los de la superserie.",
+                            "El descanso individual (${KpknSetFormat.doseTime(exercise.restTime ?: 0)}) es reemplazado por los de la superserie.",
                             style = KpknType.caption,
                             color = WizardColors.danger,
                         )

@@ -3,6 +3,8 @@ package com.example.kpkn.screens.sessioneditor.components
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.SemanticsProperties
+import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertTextEquals
 import androidx.compose.ui.test.junit4.createComposeRule
@@ -22,7 +24,6 @@ import com.example.kpkn.data.models.TrainingMode
 import com.example.kpkn.screens.sessioneditor.design.SessionExerciseUndoNotice
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -101,16 +102,22 @@ class SessionListBehaviorTest {
         assertEquals(1, toggled)
     }
 
-    @Ignore("Pendiente de verificar: en Robolectric el diálogo no aparece tras «Eliminar» (ver informe ER1b).")
+    /**
+     * Deslizar la cabecera revela «Eliminar»; pulsarlo abre el diálogo de borrar grupo (ER1f: la prueba estaba desactivada). El botón del
+     * revelado va debajo de la tarjeta hasta que se desliza, así que la prueba desliza primero, como el usuario.
+     */
     @Test
     fun borrarDesdeLaCabeceraAbreSuDialogo() {
         val part = SessionPart(id = "g", name = "Pierna", exercises = listOf(exercise("sent", "Sentadilla")))
         rule.setContent { Header(part) }
 
-        // El deslizar termina en el mismo borrado que la acción «Eliminar» del revelado.
-        rule.onNodeWithContentDescription("Eliminar").performClick()
-
+        rule.onNode(
+            SemanticsMatcher.expectValue(SemanticsProperties.StateDescription, "Desliza a la izquierda para eliminar"),
+        ).performTouchInput { swipeLeft() }
         rule.waitForIdle()
+        rule.onNodeWithContentDescription("Eliminar").performClick()
+        rule.waitForIdle()
+
         rule.onNodeWithText("¿Qué hacemos con los ejercicios?").assertExists()
         rule.onNodeWithText("Borrar grupo y ejercicios").assertExists()
     }

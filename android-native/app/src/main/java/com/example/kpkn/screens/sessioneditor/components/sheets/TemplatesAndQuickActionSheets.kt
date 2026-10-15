@@ -233,7 +233,6 @@ internal fun ExerciseQuickActionsSheet(
             selectedInfo?.variantName,
         ).filter { it.isNotBlank() }.distinct()
     }
-    var confirmDelete by rememberSaveable { mutableStateOf(false) }
 
     Column(
         modifier = Modifier
@@ -279,7 +278,8 @@ internal fun ExerciseQuickActionsSheet(
                 onOpenMobility = onOpenMobility,
                 onManageSuperset = onManageSuperset,
                 onDuplicate = onDuplicate,
-                onRequestDelete = { confirmDelete = true },
+                // ER1f: sin diálogo; el borrado es blando, con «Deshacer» en la lista (como deslizar un ejercicio).
+                onRequestDelete = onDelete,
             )
         }
 
@@ -312,22 +312,6 @@ internal fun ExerciseQuickActionsSheet(
                 joints = jointsForInvolvement,
             )
         }
-    }
-
-    if (confirmDelete) {
-        KpknAlertDialog(
-            onDismissRequest = { confirmDelete = false },
-            title = "Eliminar ejercicio",
-            text = "Se quita «${exercise.name}» de esta sesión. Si lo necesitas, lo añades otra vez desde el catálogo.",
-            confirmLabel = "Eliminar",
-            onConfirm = {
-                confirmDelete = false
-                onDelete()
-            },
-            dismissLabel = "Cancelar",
-            onDismiss = { confirmDelete = false },
-            destructive = true,
-        )
     }
 }
 

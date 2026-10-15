@@ -194,7 +194,7 @@ internal fun CardioDistanceWheelDialog(
     CardioWheelDialogScaffold(
         title = title,
         accentColor = accentColor,
-        preview = if (km == 0 && tenths == 0) "Sin distancia" else "$km.$tenths km",
+        preview = if (km == 0 && tenths == 0) "Sin distancia" else "$km,$tenths km",
         onDismiss = onDismiss,
         onConfirm = {
             val value = km + tenths / 10.0
@@ -316,7 +316,7 @@ internal fun CardioTenthsWheelDialog(
     CardioWheelDialogScaffold(
         title = title,
         accentColor = accentColor,
-        preview = "$whole.$tenths $unit",
+        preview = "$whole,$tenths $unit",
         onDismiss = onDismiss,
         onConfirm = {
             val value = whole + tenths / 10.0

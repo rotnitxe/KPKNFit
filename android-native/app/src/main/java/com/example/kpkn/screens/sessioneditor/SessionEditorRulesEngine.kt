@@ -100,7 +100,9 @@ object SessionEditorRulesEngine {
                     targetRPE = if (mode == IntensityMode.RPE) effectiveIntensity else null,
                     targetRIR = if (mode == IntensityMode.RIR) effectiveIntensity.roundToInt().coerceIn(0, 6) else null,
                     intensityMode = mode,
-                    targetPercentageRM = null,
+                    // ER1f: en modo RM el %RM de la serie lo fija el usuario y la regla no lo toca. Ponerlo a null aquí hacía que
+                    // `normalizeSet` lo devolviera a 75.
+                    targetPercentageRM = if (this.trainingMode == TrainingMode.RM) existing?.targetPercentageRM else null,
                     isFailure = mode == IntensityMode.FAILURE,
                     isAmrap = false,
                 )

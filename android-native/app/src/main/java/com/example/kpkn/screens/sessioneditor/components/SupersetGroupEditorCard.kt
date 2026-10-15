@@ -403,16 +403,16 @@ internal fun SupersetGroupEditorCard(
             onDismissRequest = { showOptionalInfo = false },
             title = {
                 Text(
-                    if (group.isOptional) "Superset opcional" else "Convertir en Superset opcional",
+                    if (group.isOptional) "Superserie opcional" else "Convertir en superserie opcional",
                     style = KpknType.dialogTitle,
                     color = WizardColors.text,
                 )
             },
             text = {
                 Text(
-                    "Un Superset opcional es un tipo de superset que se muestra únicamente cuando lo activas " +
-                        "desde tu sesión de entreno; si no lo invocas, te mostrará los ejercicios separados. " +
-                        "Esto puede ser útil si quieres usar el superset únicamente para cuando tienes poco tiempo " +
+                    "Una superserie opcional es un tipo de superserie que se muestra únicamente cuando la activas " +
+                        "desde tu sesión de entreno; si no la invocas, te mostrará los ejercicios separados. " +
+                        "Esto puede ser útil si quieres usar la superserie únicamente para cuando tienes poco tiempo " +
                         "y no como parte de tu programación recurrente.",
                     style = KpknType.caption,
                     color = WizardColors.textMuted,

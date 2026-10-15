@@ -237,11 +237,11 @@ La hoja ya recibía calentamiento, movilidad, borrar y superserie, pero solo pin
 | Paquete | Qué | Archivos (principales) |
 |---|---|---|
 | ER0 | Restaura la PR11 y porta la lógica | ver `briefs/ER0.md` |
-| ER1a | Marco: fila superior, cabecera, cambio de día, barra inferior y guardado automático | `SessionEditorScreen.kt`, `SessionHero*.kt`, `SessionContextNavigator.kt`, `DraggableHeroFabGroup.kt`, VM de navegación y borradores |
+| ER1a | Marco: fila superior, cabecera, cambio de día, barra inferior y guardado automático | `SessionEditorScreen.kt`, `SessionHero*.kt`, `SessionContextNavigator.kt`, `DraggableHeroFabGroup.kt`, `sheets/ClonerSaveWarmupSheets.kt`, VM de navegación y borradores |
 | ER1b | Lista: espacios, grupos, ejercicio plegado y superseries (vista) | `SessionEditorScrollRenderer.kt`, `SessionListItems.kt`, `GroupEditorCard.kt`, el plegado de `ExerciseEditorCard.kt`, `SupersetGroupEditorCard.kt`, `SessionEditorVisuals.kt`, `SessionEditorEmptyState.kt` |
 | ER1c | Ejercicio desplegado: preparación, barra de opciones, editor de series, acciones rápidas y crear superserie | el desplegado de `ExerciseEditorCard.kt`, `SessionEditorControls.kt`, `InlineSetRow*.kt`, `PreparationCarouselCards.kt`, `SupersetRoundsAndConfig.kt`, `SupersetCreatorAndManagerSheets.kt`, `TemplatesAndQuickActionSheets.kt` |
 | ER1d | Cardio | `Cardio*.kt`, `HiitTemplatePickerDialog.kt` |
-| ER1e | Asistente, Reglas y el resto de hojas y diálogos | `sheets/AssistantSheet.kt`, `sheets/RulesSheet.kt`, `sheets/ClonerSaveWarmupSheets.kt`, `sheets/HistorySheet.kt`, `sheets/RelationshipPickerSheet.kt`, `ExerciseEditorDialogs.kt` |
+| ER1e | Asistente, Reglas y el resto de hojas y diálogos | `sheets/AssistantSheet.kt`, `sheets/RulesSheet.kt`, `sheets/HistorySheet.kt`, `sheets/RelationshipPickerSheet.kt`, `ExerciseEditorDialogs.kt` |
 
 - Orden: ER0 → ER1a → **prueba en el teléfono y visto bueno del usuario** → ER1b, ER1c, ER1d y ER1e.
 - ER1b y ER1c tocan el mismo `ExerciseEditorCard.kt`: ER1c va después de ER1b, o lo primero que hace ER1b es separar el plegado y el
