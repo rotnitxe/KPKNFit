@@ -40,9 +40,10 @@ class DecodedFrame(
 )
 
 /**
- * Tres buffers RGBA directos (y su luma) que se reutilizan por turnos: la decodificación no asigna nada por fotograma. Con tres,
- * un consumidor que encola el fotograma (p. ej. un `Channel(2)`) lo ve intacto hasta dos fotogramas después de `onFrame`,
- * pero el contrato sigue siendo «válido solo dentro de `onFrame`».
+ * Cuatro buffers RGBA directos (y su luma) que se reutilizan por turnos: la decodificación no asigna nada por fotograma. Con un
+ * `Channel(C)` entre la decodificación y el consumidor llegan a estar vivos C + 2 fotogramas (el que procesa el consumidor, los C de
+ * la cola y el que espera en `send`), así que hacen falta `SLOTS ≥ C + 2`: con `Channel(2)`, cuatro. El contrato sigue siendo
+ * «válido solo dentro de `onFrame`»; lo que deba vivir más se COPIA.
  */
 internal class FramePool(val width: Int, val height: Int, private val slots: Int = SLOTS) {
     /** Píxeles de un fotograma. */
@@ -79,6 +80,6 @@ internal class FramePool(val width: Int, val height: Int, private val slots: Int
     }
 
     companion object {
-        const val SLOTS = 3
+        const val SLOTS = 4
     }
 }
