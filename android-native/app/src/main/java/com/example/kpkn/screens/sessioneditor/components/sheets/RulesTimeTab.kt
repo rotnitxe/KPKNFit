@@ -38,6 +38,9 @@ import com.example.kpkn.domain.sessionassistant.TimeCoachFatigueDelta
 import com.example.kpkn.domain.sessionassistant.TimeCoachSuggestion
 import com.example.kpkn.screens.onboarding.design.WizardColors
 import com.example.kpkn.screens.sessioneditor.SessionEditorUiState
+import com.example.kpkn.screens.sessioneditor.design.sessionChipRowEdgeFade
+import com.example.kpkn.screens.sessioneditor.frame.FrameRingTone
+import com.example.kpkn.screens.sessioneditor.frame.frameTimeRingTone
 import com.example.kpkn.ui.components.icons.KpknLineIcons
 import com.example.kpkn.ui.components.rings.KpknRingColors
 import com.example.kpkn.ui.design.KpknCellInput
@@ -79,17 +82,14 @@ internal sealed class DurationPickerTarget {
 internal enum class RulesClockStatus { NEUTRAL, OK, ENERGY, OVER }
 
 /**
- * Estado del reloj: `ok` por debajo del 85 % del límite, Energía hasta el 108 % y `danger` por encima. Son los umbrales del FAB de
- * tiempo del original, los mismos que la barra inferior. Función pura.
+ * Estado del reloj: `ok` por debajo del 85 % del límite, Energía hasta el 108 % y `danger` por encima. Lo decide la única función de
+ * los umbrales, [frameTimeRingTone] (ER1f: antes había una copia en coma flotante aquí). Función pura.
  */
-internal fun rulesClockStatusOf(estimatedMinutes: Int, limitMinutes: Int?): RulesClockStatus {
-    if (limitMinutes == null || limitMinutes <= 0) return RulesClockStatus.NEUTRAL
-    val ratio = estimatedMinutes.toFloat() / limitMinutes.toFloat()
-    return when {
-        ratio > RULES_CLOCK_OVER_RATIO -> RulesClockStatus.OVER
-        ratio >= RULES_CLOCK_OK_RATIO -> RulesClockStatus.ENERGY
-        else -> RulesClockStatus.OK
-    }
+internal fun rulesClockStatusOf(estimatedMinutes: Int, limitMinutes: Int?): RulesClockStatus = when (frameTimeRingTone(estimatedMinutes, limitMinutes)) {
+    FrameRingTone.NEUTRAL -> RulesClockStatus.NEUTRAL
+    FrameRingTone.OK -> RulesClockStatus.OK
+    FrameRingTone.ENERGIA -> RulesClockStatus.ENERGY
+    FrameRingTone.DANGER -> RulesClockStatus.OVER
 }
 
 /** Color del reloj por estado: `ok` (#43D18C), Energía (#F7CF73) o `danger`; neutro, en tinta atenuada. */
@@ -100,8 +100,6 @@ internal fun rulesClockColor(status: RulesClockStatus): Color = when (status) {
     RulesClockStatus.OVER -> WizardColors.danger
 }
 
-private const val RULES_CLOCK_OK_RATIO = 0.85f
-private const val RULES_CLOCK_OVER_RATIO = 1.08f
 
 /** Minutos como «45 min», «1 h 30 min» o «Sin límite» (sin límite o cero). */
 internal fun formatDurationMinutes(minutes: Int?): String {
@@ -182,8 +180,9 @@ internal fun RulesTimeTab(
             uiState.sessionTimeBreakdown?.let { bd ->
                 Spacer(Modifier.height(12.dp))
                 SheetCaption(
-                    "Prep ${bd.setupMinutes} · Ejec ${bd.executionMinutes} · Descansos ${bd.restMinutes}" +
-                        if (bd.warmupMinutes > 0) " · Warmup ${bd.warmupMinutes}" else "",
+                    "Preparación ${bd.setupMinutes} min · Ejecución ${bd.executionMinutes} min · " +
+                        "Descansos ${bd.restMinutes} min" +
+                        if (bd.warmupMinutes > 0) " · Calentamiento ${bd.warmupMinutes} min" else "",
                 )
             }
         }
@@ -211,16 +210,18 @@ internal fun RulesTimeTab(
             Spacer(Modifier.height(4.dp))
             SheetCaption("Cuenta atrás en el entreno. No corta la sesión.")
             Spacer(Modifier.height(12.dp))
+            val sessionTimeScroll = rememberScrollState()
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .horizontalScroll(rememberScrollState()),
+                    .sessionChipRowEdgeFade(sessionTimeScroll)
+                    .horizontalScroll(sessionTimeScroll),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 listOf(30, 45, 60, 90).forEach { mins ->
                     KpknChip(
-                        text = "${mins}m",
+                        text = "$mins min",
                         selected = session.targetDurationMinutes == mins,
                         onClick = { setTargetDuration(mins) },
                     )

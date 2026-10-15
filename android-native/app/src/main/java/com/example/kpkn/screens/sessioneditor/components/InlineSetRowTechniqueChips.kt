@@ -41,6 +41,7 @@ import com.example.kpkn.data.models.TechniqueType
 import com.example.kpkn.domain.workout.ScheduledTechniqueDefaults
 import com.example.kpkn.screens.onboarding.design.WizardColors
 import com.example.kpkn.ui.design.KpknChip
+import com.example.kpkn.ui.design.KpknSetFormat
 import com.example.kpkn.ui.design.KpknSurface
 import com.example.kpkn.ui.design.KpknType
 import java.util.UUID
@@ -294,7 +295,7 @@ internal fun InlineSetRowTechniqueChips(
                         }
                     }
                     Text(
-                        "Pausa fija ${RestPausePlanDefaults.PauseSeconds}s · ${RestPausePlanDefaults.Reps} reps · $rpCount mini-series",
+                        "Pausa fija ${KpknSetFormat.doseTime(RestPausePlanDefaults.PauseSeconds)} · ${RestPausePlanDefaults.Reps} reps · $rpCount miniseries",
                         style = if (listSkin) KpknType.caption else MaterialTheme.typography.labelSmall,
                         color = if (listSkin) WizardColors.textMuted else Color.White.copy(alpha = 0.45f),
                     )

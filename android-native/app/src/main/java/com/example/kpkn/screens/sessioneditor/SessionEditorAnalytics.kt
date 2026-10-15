@@ -380,7 +380,7 @@ internal fun SessionSubMuscleBreakdownList(
                         color = Color.White
                     )
                     Text(
-                        text = "${if (totalSubSets == totalSubSets.toLong().toDouble()) totalSubSets.toLong().toString() else "%.1f".format(totalSubSets)} sets",
+                        text = "${if (totalSubSets == totalSubSets.toLong().toDouble()) totalSubSets.toLong().toString() else "%.1f".format(totalSubSets)} series",
                         fontSize = 10.sp,
                         fontWeight = FontWeight.Black,
                         color = MaterialTheme.colorScheme.primary
@@ -406,7 +406,7 @@ internal fun SessionSubMuscleBreakdownList(
                                 modifier = Modifier.weight(1f)
                             )
                             Text(
-                                text = "${if (valSets == valSets.toLong().toDouble()) valSets.toLong().toString() else "%.1f".format(valSets)} sets",
+                                text = "${if (valSets == valSets.toLong().toDouble()) valSets.toLong().toString() else "%.1f".format(valSets)} series",
                                 fontSize = 9.sp,
                                 color = Color.White.copy(alpha = 0.8f)
                             )

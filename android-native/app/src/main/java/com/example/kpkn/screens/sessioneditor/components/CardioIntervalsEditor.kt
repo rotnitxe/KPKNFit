@@ -404,7 +404,7 @@ internal fun CompactRoundStepper(
 ) {
     KpknStepperMetric(
         label = label.uppercase(Locale.forLanguageTag("es")),
-        value = "${rounds}×",
+        value = "$rounds ×",
         onMinus = { onRoundsChange((rounds - 1).coerceAtLeast(minRounds)) },
         onPlus = { onRoundsChange((rounds + 1).coerceAtMost(maxRounds)) },
         contentDescription = "$rounds ${label.lowercase(Locale.forLanguageTag("es"))}",
