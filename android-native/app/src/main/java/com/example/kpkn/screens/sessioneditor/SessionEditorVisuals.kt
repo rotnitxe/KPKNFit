@@ -50,6 +50,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import com.example.kpkn.data.models.*
+import com.example.kpkn.screens.onboarding.design.WizardColors
+import com.example.kpkn.ui.components.icons.KpknLineIcons
+import com.example.kpkn.ui.design.KpknSurface
 import kotlin.math.roundToInt
 
 /** Solid or gradient accent stored in [SessionPart.color]. */
@@ -187,8 +190,8 @@ internal fun DragLiftPreview(
                 alpha = 0.96f
                 shadowElevation = 18.dp.toPx()
             },
-        shape = RoundedCornerShape(20.dp),
-        color = DarkEditorSurface.copy(alpha = 0.98f),
+        shape = RoundedCornerShape(24.dp),
+        color = KpknSurface.module,
         shadowElevation = 28.dp,
         tonalElevation = 10.dp,
     ) {
@@ -197,12 +200,13 @@ internal fun DragLiftPreview(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(10.dp),
         ) {
-            Icon(Icons.Default.DragHandle, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+            Icon(KpknLineIcons.Grip, contentDescription = null, tint = WizardColors.textMuted)
             Column(Modifier.weight(1f)) {
                 Text(
                     titleOverride ?: exercise.name.ifBlank { "Ejercicio" },
                     style = MaterialTheme.typography.labelLarge,
                     fontWeight = FontWeight.Black,
+                    color = WizardColors.text,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                 )
@@ -210,7 +214,7 @@ internal fun DragLiftPreview(
                     subtitleOverride
                         ?: "${exercise.sets.size} series · ${trainingModeLabel(exercise.trainingMode)}",
                     style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    color = WizardColors.textMuted,
                 )
             }
         }
@@ -248,8 +252,8 @@ internal fun DragPartLiftPreview(
                 alpha = 0.96f
                 shadowElevation = 18.dp.toPx()
             },
-        shape = RoundedCornerShape(16.dp),
-        color = DarkEditorSurface.copy(alpha = 0.98f),
+        shape = RoundedCornerShape(24.dp),
+        color = KpknSurface.module,
         shadowElevation = 28.dp,
         tonalElevation = 10.dp,
     ) {
@@ -258,11 +262,12 @@ internal fun DragPartLiftPreview(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(10.dp),
         ) {
-            Icon(Icons.Default.DragHandle, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+            Icon(KpknLineIcons.Grip, contentDescription = null, tint = WizardColors.textMuted)
             Text(
                 partName.ifBlank { "Grupo" }.uppercase(),
                 style = MaterialTheme.typography.labelLarge,
                 fontWeight = FontWeight.Black,
+                color = WizardColors.text,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
             )
@@ -296,7 +301,7 @@ internal fun SessionEditorDropIndicator(
                     .height(4.dp)
                     .padding(horizontal = 14.dp)
                     .clip(RoundedCornerShape(999.dp))
-                    .background(MaterialTheme.colorScheme.primary),
+                    .background(WizardColors.text),
             )
         }
     }
@@ -316,7 +321,7 @@ internal fun SessionEditorInvalidDropBanner(
     ) {
         Surface(
             shape = RoundedCornerShape(999.dp),
-            color = Color(0xE6F43F5E),
+            color = WizardColors.danger.copy(alpha = 0.92f),
             shadowElevation = 8.dp,
             tonalElevation = 0.dp,
             modifier = Modifier
@@ -329,7 +334,7 @@ internal fun SessionEditorInvalidDropBanner(
                     .padding(horizontal = 14.dp, vertical = 8.dp),
                 style = MaterialTheme.typography.labelMedium,
                 fontWeight = FontWeight.Bold,
-                color = Color.White,
+                color = WizardColors.ctaContent,
             )
         }
     }

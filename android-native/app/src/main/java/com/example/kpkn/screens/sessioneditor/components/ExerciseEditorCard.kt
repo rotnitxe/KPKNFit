@@ -1,22 +1,18 @@
 package com.example.kpkn.screens.sessioneditor.components
 
-import android.graphics.Color as AndroidColor
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
-import androidx.compose.ui.hapticfeedback.HapticFeedbackType
-import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.FlowRow
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.defaultMinSize
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -24,83 +20,75 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.DragHandle
-import androidx.compose.material.icons.filled.FitnessCenter
-import androidx.compose.material.icons.filled.Info
-import androidx.compose.material.icons.filled.KeyboardArrowDown
-import androidx.compose.material.icons.filled.KeyboardArrowUp
-import androidx.compose.material.icons.filled.Link
-import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.StarBorder
-import androidx.compose.material.icons.filled.SwapHoriz
-import androidx.compose.material3.AssistChip
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.boundsInWindow
 import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.zIndex
-import com.example.kpkn.data.models.*
+import com.example.kpkn.data.exercises.ExerciseTechniqueImageLookup
+import com.example.kpkn.data.models.Exercise
+import com.example.kpkn.data.models.ExerciseMuscleInfo
+import com.example.kpkn.data.models.ExerciseRelationshipType
+import com.example.kpkn.data.models.ExerciseSet
+import com.example.kpkn.data.models.supersetGroupRefOrLegacyId
 import com.example.kpkn.domain.calculations.calculateEstimatedMetric
 import com.example.kpkn.domain.calculations.calculateGeneralizedCapacity
-import com.example.kpkn.domain.exercises.*
 import com.example.kpkn.domain.calculations.calculateHybrid1RM
-import com.example.kpkn.domain.calculations.calculateSuggestedLoad
 import com.example.kpkn.domain.calculations.resolveReferenceCapacity
-import com.example.kpkn.screens.sessioneditor.PART_COLORS
+import com.example.kpkn.domain.exercises.exerciseDisplayParts
+import com.example.kpkn.screens.onboarding.design.WizardColors
+import com.example.kpkn.screens.onboarding.design.entreno.SymbolPalette
+import com.example.kpkn.screens.onboarding.design.entreno.plan.ExercisePattern
+import com.example.kpkn.screens.onboarding.design.entreno.plan.PatternGlyph
+import com.example.kpkn.screens.onboarding.design.entreno.plan.exercisePatternOf
 import com.example.kpkn.screens.sessioneditor.resolvePartAccent
-import com.example.kpkn.screens.sessioneditor.exerciseCardBrush
-import com.example.kpkn.screens.sessioneditor.DarkEditorSurfaceSoft
-import com.example.kpkn.screens.sessioneditor.DarkChoiceChip
-import com.example.kpkn.screens.sessioneditor.EditorMiniField
-import com.example.kpkn.screens.sessioneditor.CompactModeSelector
-import com.example.kpkn.screens.sessioneditor.CompactRestBundleButton
-import com.example.kpkn.screens.sessioneditor.SideOrderChip
-import com.example.kpkn.screens.sessioneditor.ExerciseSetsCarousel
-import com.example.kpkn.screens.sessioneditor.formatEditableNumber
-import com.example.kpkn.screens.sessioneditor.rememberEditableNumber
-import com.example.kpkn.screens.sessioneditor.formatRestSummary
-import com.example.kpkn.screens.sessioneditor.formatExerciseCollapsedSummary
-import com.example.kpkn.screens.sessioneditor.trainingModeLabel
-import com.example.kpkn.screens.sessioneditor.safeIntOrNull
 import com.example.kpkn.screens.sessioneditor.safeDoubleOrNull
-import com.example.kpkn.screens.sessioneditor.toggledBilateralUnilateral
-import com.example.kpkn.ui.components.KpknDropdownMenu
+import com.example.kpkn.screens.sessioneditor.safeIntOrNull
+import com.example.kpkn.screens.sessioneditor.sessionExerciseListDose
 import com.example.kpkn.ui.components.SwipeToDeleteCard
-import com.example.kpkn.domain.workout.warmupValidationMessages
-import java.util.UUID
-import androidx.compose.runtime.setValue
-import androidx.compose.runtime.getValue
+import com.example.kpkn.ui.components.icons.KpknLineIcons
+import com.example.kpkn.ui.design.KpknSurface
+import com.example.kpkn.ui.design.KpknType
+import com.example.kpkn.data.models.*
+import com.example.kpkn.domain.exercises.*
 
+/**
+ * Ejercicio plegado (SESSION_EDITOR_R1 §3.3 y E8): una fila de 64 dp dentro de su módulo, con el asa a la izquierda, la miniatura de 40 dp
+ * (la imagen del catálogo o el glifo del patrón), el nombre, la dosis con `KpknSetFormat`, la estrella de Meta y la flecha. Tocar la fila
+ * la despliega; la pulsación larga en el nombre abre las acciones rápidas; deslizar la quita (con «Deshacer», en la lista).
+ *
+ * Un cardio se pinta con su máquina, su dosis y su mini gráfica, sin estrella. El desplegado es [ExerciseEditorExpanded].
+ */
 @Composable
 internal fun ExerciseEditorCard(
     exercise: Exercise,
@@ -147,11 +135,6 @@ internal fun ExerciseEditorCard(
     var expanded by rememberSaveable(exercise.id) { mutableStateOf(false) }
     var showCustomUnitModal by local.showCustomUnitModal
     var showGoalSheet by local.showGoalSheet
-    val haptics = LocalHapticFeedback.current
-
-    val resolved1RM = remember(exercise.trainingMode, exercise.reference1RM, exercise.prFor1RM) {
-        resolveReferenceCapacity(exercise)
-    }
     var rmInputMode by local.rmInputMode
     var restSelectionSeconds by local.restSelectionSeconds
     // SE11: el texto de cada campo lo escribe la persona; el modelo solo lo corrige si cambia por fuera.
@@ -159,6 +142,11 @@ internal fun ExerciseEditorCard(
     val prRepsInput by local.prRepsInput
     var customUnitInput by local.customUnitInput
     var goalRmInput by local.goalRmInput
+    val haptics = LocalHapticFeedback.current
+
+    val resolved1RM = remember(exercise.trainingMode, exercise.reference1RM, exercise.prFor1RM) {
+        resolveReferenceCapacity(exercise)
+    }
     val localPrEstimatedRm = remember(prWeightInput, prRepsInput) {
         val weight = prWeightInput.safeDoubleOrNull()
         val reps = prRepsInput.safeIntOrNull()
@@ -176,24 +164,31 @@ internal fun ExerciseEditorCard(
             }
         } else null
     }
-    val accent = remember(accentHex) { resolvePartAccent(accentHex) }
-    val coverAccent = remember(coverAccentHex, accentHex) {
-        resolvePartAccent(coverAccentHex ?: accentHex)
+    // El color de grupo no se pinta (ER1b): la tinta y el acento de portada quedan como datos.
+    val accentColor = WizardColors.text
+    val coverColor = remember(coverAccentHex, accentHex) {
+        resolvePartAccent(coverAccentHex ?: accentHex).primary
     }
-    val accentColor = accent.primary
-    val coverColor = coverAccent.primary
     val displayParts = remember(exercise, exerciseInfo) {
         exerciseDisplayParts(exercise, exerciseInfo)
-    }
-    val predictedWeights = remember(exercise.trainingMode, exercise.reference1RM, exercise.prFor1RM, exercise.sets) {
-        exercise.sets.associate { set ->
-            set.id to calculateSuggestedLoad(exercise, set)
-        }
     }
     val predictedMetrics = remember(exercise.trainingMode, exercise.sets) {
         exercise.sets.associate { set ->
             set.id to calculateEstimatedMetric(exercise, set)
         }
+    }
+    val cardio = exercise.cardioDetails
+    val thumbnailRes = remember(exercise.id, exercise.exerciseDbId, exercise.exerciseId) {
+        ExerciseTechniqueImageLookup.resolveImageResId(
+            catalogDefinitionId = null,
+            exerciseDbId = exercise.exerciseDbId,
+            exerciseId = exercise.exerciseId ?: exercise.id,
+        )
+    }
+    val pattern = remember(exercise.name) { exercisePatternOf(exercise.name) }
+    val isSupersetExercise = exercise.supersetGroupRefOrLegacyId() != null
+    val dose = remember(exercise, suppressIndividualRest) {
+        sessionExerciseListDose(exercise, includeRest = !suppressIndividualRest)
     }
 
     LaunchedEffect(exercise.id, exercise.restTime) { restSelectionSeconds = exercise.restTime ?: 90 }
@@ -203,32 +198,6 @@ internal fun ExerciseEditorCard(
     LaunchedEffect(autoExpand) {
         if (autoExpand) { expanded = true; onAutoExpandHandled() }
     }
-
-    val isSupersetExercise = exercise.supersetGroupRefOrLegacyId() != null
-    val cardShape = RoundedCornerShape(16.dp)
-    val containerHighlight = when {
-        isDragging -> accentColor.copy(alpha = 0.10f)
-        isDropTarget -> accentColor.copy(alpha = 0.08f)
-        isPartDropTarget -> accentColor.copy(alpha = 0.06f)
-        else -> Color.Transparent
-    }
-    val containerModifier = Modifier
-        .clip(cardShape)
-        .background(coverAccent.exerciseCardBrush(alpha = 0.10f))
-        .then(
-            if (coverAccentHex != null && coverAccentHex != accentHex) {
-                Modifier.background(accent.exerciseCardBrush(alpha = 0.045f))
-            } else {
-                Modifier
-            },
-        )
-        .then(
-            when {
-                isSupersetExercise -> Modifier.border(1.dp, accentColor.copy(alpha = 0.20f), cardShape)
-                containerHighlight.alpha > 0f -> Modifier.background(containerHighlight)
-                else -> Modifier
-            },
-        )
 
     Column(
         modifier = modifier
@@ -240,21 +209,13 @@ internal fun ExerciseEditorCard(
                 alpha = if (isDragging) 0.22f else 1f
                 shadowElevation = if (isDragging) 6.dp.toPx() else 0f
             }
-            .zIndex(if (isDragging) 12f else 0f)
-            .then(containerModifier),
+            .zIndex(if (isDragging) 12f else 0f),
     ) {
-        // Top accent line
-        Box(
+        // Fila plegada. El asa va fuera del deslizamiento, para que borrar no cancele la pulsación larga.
+        Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(1.dp)
-                .background(accentColor.copy(alpha = if (expanded) 0.30f else 0.12f)),
-        )
-
-        // Header: drag handle lives outside SwipeToDelete + outside combinedClickable
-        // so neither Quick Actions nor horizontal swipe can steal the long-press.
-        Row(
-            modifier = Modifier.fillMaxWidth(),
+                .defaultMinSize(minHeight = 64.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             if (enableDrag) {
@@ -265,9 +226,7 @@ internal fun ExerciseEditorCard(
                 val latestOnDragCancel = rememberUpdatedState(onDragCancel)
                 Box(
                     modifier = Modifier
-                        .padding(start = 4.dp)
-                        .width(40.dp)
-                        .height(48.dp)
+                        .size(width = 48.dp, height = 64.dp)
                         .onGloballyPositioned { coords ->
                             val b = coords.boundsInWindow()
                             handleWindowOrigin = Offset(b.left, b.top)
@@ -291,32 +250,36 @@ internal fun ExerciseEditorCard(
                                     latestOnDrag.value(Offset(dragAmount.x, dragAmount.y))
                                 },
                             )
-                        },
+                        }
+                        .semantics { contentDescription = "Arrastra para reordenar ejercicio" },
                     contentAlignment = Alignment.Center,
                 ) {
                     Icon(
-                        imageVector = Icons.Default.DragHandle,
-                        contentDescription = "Arrastra para reordenar ejercicio",
-                        tint = accentColor.copy(alpha = if (isDragging) 0.9f else 0.48f),
+                        imageVector = KpknLineIcons.Grip,
+                        contentDescription = null,
+                        tint = if (isDragging) WizardColors.text else WizardColors.textFaint,
                         modifier = Modifier.size(20.dp),
                     )
                 }
             } else {
-                Spacer(Modifier.width(44.dp).height(48.dp))
+                Spacer(Modifier.width(48.dp).height(64.dp))
             }
-            // Swipe target is title + actions only — not the reorder grip.
+
+            // La zona que se desliza es el texto, la miniatura y la estrella; la flecha va aparte.
             SwipeToDeleteCard(
                 onDelete = onDeleteExercise,
                 modifier = Modifier.weight(1f),
-                shape = cardShape,
+                shape = RoundedCornerShape(12.dp),
             ) {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(start = 8.dp, end = 12.dp, top = 8.dp, bottom = 8.dp),
+                        .background(KpknSurface.module, RoundedCornerShape(12.dp))
+                        .padding(vertical = 10.dp),
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
+                    Thumbnail(cardio = cardio?.type, imageRes = thumbnailRes, pattern = pattern)
+                    Spacer(Modifier.width(12.dp))
                     Column(
                         modifier = Modifier
                             .weight(1f)
@@ -325,101 +288,83 @@ internal fun ExerciseEditorCard(
                                 onLongClick = onOpenQuickActions,
                             ),
                     ) {
-                        FlowRow(
-                            horizontalArrangement = Arrangement.spacedBy(4.dp),
-                            verticalArrangement = Arrangement.spacedBy(2.dp),
-                        ) {
-                            if (exercise.supersetGroupRefOrLegacyId() != null) {
-                                Icon(
-                                    Icons.Default.SwapHoriz,
-                                    contentDescription = null,
-                                    tint = accentColor,
-                                    modifier = Modifier.size(16.dp)
-                                )
-                            }
-                            Text(
-                                text = buildAnnotatedString {
-                                    withStyle(SpanStyle(color = Color.White.copy(alpha = 0.94f))) {
-                                        append(displayParts.parentName.ifBlank { "Seleccionar ejercicio" })
-                                    }
-                                    displayParts.chips.forEach { chip ->
-                                        append(" · ")
-                                        withStyle(SpanStyle(color = Color.White.copy(alpha = 0.55f))) {
-                                            append(chip)
-                                        }
-                                    }
-                                },
-                                style = MaterialTheme.typography.labelLarge,
-                                fontWeight = FontWeight.Bold,
-                                maxLines = 2,
-                                overflow = TextOverflow.Ellipsis,
-                            )
-                        }
                         Text(
-                            text = exercise.cardioDetails?.let { details ->
-                                com.example.kpkn.domain.cardio.CardioPrescriptionFormatter.sentence(details)
-                            } ?: buildString {
-                                    append("${exercise.sets.size} series · ")
-                                    if (!suppressIndividualRest) append("${formatRestSummary(exercise.restTime)} · ")
-                                    append(trainingModeLabel(exercise.trainingMode))
-                                    if (exercise.supersetGroupRefOrLegacyId() != null) append(" · Superserie")
-                                    formatExerciseCollapsedSummary(exercise)?.let { append(" · $it") }
+                            text = buildAnnotatedString {
+                                withStyle(SpanStyle(color = WizardColors.text)) {
+                                    append(displayParts.parentName.ifBlank { "Seleccionar ejercicio" })
+                                }
+                                displayParts.chips.forEach { chip ->
+                                    withStyle(SpanStyle(color = WizardColors.textMuted)) {
+                                        append(" · ")
+                                        append(chip)
+                                    }
+                                }
                             },
-                            style = MaterialTheme.typography.labelSmall,
-                            color = Color.White.copy(alpha = 0.58f),
-                            maxLines = 1,
+                            style = KpknType.bodyStrong,
+                            maxLines = 2,
                             overflow = TextOverflow.Ellipsis,
                         )
-                        if (!expanded) {
-                            exercise.cardioDetails?.takeIf { it.hasIntervals() }?.let { details ->
-                                com.example.kpkn.screens.workout.CardioIntervalChart(
-                                    details = details,
-                                    accentColor = accentColor,
-                                    sparkline = true,
-                                    compact = true,
-                                    showLabels = false,
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(top = 6.dp),
-                                )
-                            }
+                        Text(
+                            text = dose,
+                            style = KpknType.caption.copy(fontFeatureSettings = "'tnum' 1"),
+                            color = WizardColors.textMuted,
+                            maxLines = 2,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                        if (cardio != null && cardio.hasIntervals()) {
+                            com.example.kpkn.screens.workout.CardioIntervalChart(
+                                details = cardio,
+                                accentColor = accentColor,
+                                sparkline = true,
+                                compact = true,
+                                showLabels = false,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(top = 6.dp),
+                            )
                         }
                         if (isCompetitionMovement) {
                             Text(
-                                text = "Movimiento de competición",
-                                style = MaterialTheme.typography.labelSmall,
-                                fontWeight = FontWeight.Black,
-                                color = MaterialTheme.colorScheme.primary,
+                                text = "MOVIMIENTO DE COMPETICIÓN",
+                                style = KpknType.eyebrow,
+                                color = WizardColors.textMuted,
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis,
                             )
                         }
                     }
-                    if (exercise.cardioDetails == null) {
+                    if (cardio == null) {
+                        val starActive = exercise.isStarTarget || exercise.goal1RM != null
                         Box(
                             modifier = Modifier
-                                .size(30.dp)
-                                .clip(RoundedCornerShape(8.dp))
-                                .clickable { showGoalSheet = true },
+                                .size(48.dp)
+                                .clickable(role = Role.Button) { showGoalSheet = true }
+                                .semantics { contentDescription = "Meta del ejercicio" },
                             contentAlignment = Alignment.Center,
                         ) {
                             Icon(
-                                imageVector = if (exercise.isStarTarget || exercise.goal1RM != null) Icons.Default.Star else Icons.Default.StarBorder,
-                                contentDescription = "Meta del ejercicio",
-                                tint = if (exercise.isStarTarget || exercise.goal1RM != null) Color(0xFFFFB300) else Color.White.copy(alpha = 0.6f),
-                                modifier = Modifier.size(18.dp),
+                                imageVector = if (starActive) Icons.Default.Star else Icons.Default.StarBorder,
+                                contentDescription = null,
+                                tint = if (starActive) SymbolPalette.energia else WizardColors.textMuted,
+                                modifier = Modifier.size(20.dp),
                             )
                         }
                     }
-                    Icon(
-                        imageVector = if (expanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
-                        contentDescription = if (expanded) "Plegar" else "Desplegar",
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier
-                            .size(34.dp)
-                            .clickable { expanded = !expanded },
-                    )
                 }
+            }
+            Box(
+                modifier = Modifier
+                    .size(48.dp)
+                    .clickable(role = Role.Button) { expanded = !expanded }
+                    .semantics { contentDescription = if (expanded) "Plegar" else "Desplegar" },
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(
+                    imageVector = if (expanded) KpknLineIcons.ChevronUp else KpknLineIcons.ChevronDown,
+                    contentDescription = null,
+                    tint = WizardColors.textMuted,
+                    modifier = Modifier.size(20.dp),
+                )
             }
         }
 
@@ -477,3 +422,54 @@ internal fun ExerciseEditorCard(
         )
     }
 }
+
+/**
+ * Miniatura de 40 dp: la imagen del catálogo si la hay, o el glifo del patrón; para un cardio, su máquina en línea sobre `inset`.
+ */
+@Composable
+private fun Thumbnail(
+    cardio: com.example.kpkn.data.models.CardioType?,
+    imageRes: Int?,
+    pattern: ExercisePattern,
+) {
+    Box(
+        modifier = Modifier
+            .size(40.dp)
+            .clip(RoundedCornerShape(10.dp))
+            .background(KpknSurface.inset),
+        contentAlignment = Alignment.Center,
+    ) {
+        when {
+            cardio != null -> Icon(
+                imageVector = cardioIconFor(cardio),
+                contentDescription = null,
+                tint = WizardColors.text,
+                modifier = Modifier.size(22.dp),
+            )
+            imageRes != null -> Image(
+                painter = painterResource(imageRes),
+                contentDescription = null,
+                contentScale = ContentScale.Fit,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(3.dp),
+            )
+            else -> PatternGlyph(pattern = pattern, accent = SymbolPalette.ink, modifier = Modifier.size(24.dp))
+        }
+    }
+}
+
+/** Icono de línea de la máquina de un cardio (uno por tipo; los que no tienen icono propio usan el de carrera). */
+private fun cardioIconFor(type: com.example.kpkn.data.models.CardioType): androidx.compose.ui.graphics.vector.ImageVector =
+    when (type) {
+        com.example.kpkn.data.models.CardioType.BIKE_STATIONARY,
+        com.example.kpkn.data.models.CardioType.BIKE_OUTDOOR,
+        com.example.kpkn.data.models.CardioType.AIR_BIKE,
+        -> KpknLineIcons.Bike
+        com.example.kpkn.data.models.CardioType.ROW_MACHINE,
+        com.example.kpkn.data.models.CardioType.SKI_ERG,
+        -> KpknLineIcons.Row
+        com.example.kpkn.data.models.CardioType.WALK -> KpknLineIcons.Walk
+        com.example.kpkn.data.models.CardioType.STAIR_CLIMBER -> KpknLineIcons.Stairs
+        else -> KpknLineIcons.Run
+    }
