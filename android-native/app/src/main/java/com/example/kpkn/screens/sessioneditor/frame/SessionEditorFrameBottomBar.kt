@@ -5,6 +5,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.defaultMinSize
@@ -28,11 +29,14 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.kpkn.screens.onboarding.design.WizardColors
+import com.example.kpkn.screens.sessioneditor.sessionMinutesLabel
 import com.example.kpkn.ui.components.KpknGlassVariant
 import com.example.kpkn.ui.components.icons.KpknLineIcons
 import com.example.kpkn.ui.components.kpknGlass
@@ -98,7 +102,7 @@ internal fun SessionEditorFrameBottomBar(
             modifier = Modifier.weight(1f),
             ring = tone,
             ringFraction = fraction,
-            minutesLabel = estimatedMinutes?.takeIf { it > 0 }?.let { "$it'" },
+            minutes = estimatedMinutes?.takeIf { it > 0 },
         )
     }
 }
@@ -113,7 +117,7 @@ private fun FrameBarAction(
     badge: Int = 0,
     ring: FrameRingTone? = null,
     ringFraction: Float = 0f,
-    minutesLabel: String? = null,
+    minutes: Int? = null,
 ) {
     val toneColor = when (ring) {
         FrameRingTone.OK -> WizardColors.done
@@ -190,12 +194,38 @@ private fun FrameBarAction(
             maxLines = 1,
         )
         // Una línea reservada en los tres botones: los rótulos quedan a la misma altura. Solo «Reglas» la llena.
-        Text(
-            text = minutesLabel ?: " ",
-            style = KpknType.caption.copy(fontSize = 11.sp, lineHeight = 14.sp),
-            color = toneColor,
-            textAlign = TextAlign.Center,
-            maxLines = 1,
-        )
+        val minutesStyle = KpknType.caption.copy(fontSize = 11.sp, lineHeight = 14.sp)
+        if (minutes != null) {
+            FrameMinutesLabel(minutes = minutes, color = toneColor, style = minutesStyle)
+        } else {
+            Text(text = "\u00A0", style = minutesStyle, maxLines = 1)
+        }
+    }
+}
+
+/**
+ * Los minutos del botón «Reglas»: «60 min» con espacio inseparable, en una sola línea. Si no caben en el ancho del botón (letra grande),
+ * la cifra sola y «min» más pequeño a su lado, para que nunca se corten (ER2b).
+ */
+@Composable
+private fun FrameMinutesLabel(minutes: Int, color: Color, style: TextStyle) {
+    val measurer = rememberTextMeasurer()
+    BoxWithConstraints(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+        val full = sessionMinutesLabel(minutes)
+        val fits = measurer.measure(text = full, style = style, maxLines = 1, softWrap = false).size.width <= constraints.maxWidth
+        if (fits) {
+            Text(text = full, style = style, color = color, textAlign = TextAlign.Center, maxLines = 1, softWrap = false)
+        } else {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(text = "$minutes", style = style, color = color, maxLines = 1, softWrap = false)
+                Text(
+                    text = "\u00A0min",
+                    style = style.copy(fontSize = 9.sp, lineHeight = 12.sp),
+                    color = color,
+                    maxLines = 1,
+                    softWrap = false,
+                )
+            }
+        }
     }
 }

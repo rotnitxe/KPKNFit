@@ -36,3 +36,25 @@ internal fun sessionEditorDurationMinutes(session: Session): Int =
  */
 internal fun sessionTimeFabMinutes(hasExercises: Boolean, breakdownMinutes: Int?, fallbackMinutes: Int): Int? =
     (breakdownMinutes ?: fallbackMinutes).takeIf { hasExercises }
+
+/** Minutos con su unidad, como «7 min»: espacio inseparable antes de «min» (SESSION_EDITOR_R1 §1, formato de [KpknSetFormat]). */
+internal fun sessionMinutesLabel(minutes: Int): String = "${minutes.coerceAtLeast(0)} min"
+
+/**
+ * El desglose de la sesión en texto (ER2b): el mismo para el asistente y para Reglas › Tiempo. La ejecución es lo que resta del total,
+ * así las partes suman el total que se muestra, y el calentamiento sale siempre que lo haya.
+ */
+internal fun sessionTimeBreakdownCaption(breakdown: SessionTimeBreakdown): String {
+    val total = breakdown.totalMinutes
+    val setup = breakdown.setupMinutes.coerceAtLeast(0)
+    val rest = breakdown.restMinutes.coerceAtLeast(0)
+    val warmup = breakdown.warmupMinutes.coerceAtLeast(0)
+    val execution = (total - setup - rest - warmup).coerceAtLeast(0)
+    val parts = buildList {
+        add("Preparación" to setup)
+        add("Ejecución" to execution)
+        add("Descansos" to rest)
+        if (warmup > 0) add("Calentamiento" to warmup)
+    }
+    return parts.joinToString(" · ") { (label, minutes) -> "$label ${sessionMinutesLabel(minutes)}" }
+}
