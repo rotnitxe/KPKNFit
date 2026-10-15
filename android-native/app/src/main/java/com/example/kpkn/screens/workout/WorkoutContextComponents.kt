@@ -28,6 +28,24 @@ import com.example.kpkn.domain.calculations.calculateWeightFrom1RM
 import java.util.Locale
 import kotlin.math.roundToInt
 import com.example.kpkn.ui.components.KpknAlertDialog
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.semantics.Role
+import com.example.kpkn.screens.onboarding.design.WizardColors
+import com.example.kpkn.screens.onboarding.design.entreno.SymbolPalette
+import com.example.kpkn.ui.components.icons.KpknLineIcons
+import com.example.kpkn.ui.design.KpknChip
+import com.example.kpkn.ui.design.KpknModule
+import com.example.kpkn.ui.design.KpknModuleHeader
+import com.example.kpkn.ui.design.KpknPrimaryPill
+import com.example.kpkn.ui.design.KpknSecondaryPill
+import com.example.kpkn.ui.design.KpknShape
+import com.example.kpkn.ui.design.KpknSurface
+import com.example.kpkn.ui.design.KpknTextAction
+import com.example.kpkn.ui.design.KpknTextField
+import com.example.kpkn.ui.design.KpknType
 
 internal enum class WorkoutExerciseContextTab {
     HISTORY,
@@ -58,7 +76,7 @@ internal fun WorkoutExerciseHistoryContent(
     }
     if (visibleHistory.isEmpty()) {
         Box(Modifier.fillMaxWidth().padding(32.dp), contentAlignment = Alignment.Center) {
-            Text("Sin historial registrado", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text("Sin historial registrado", style = KpknType.body, color = WizardColors.textMuted)
         }
         return
     }
@@ -87,106 +105,64 @@ internal fun WorkoutExerciseHistoryContent(
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
         groupedHistory.forEach { (groupLabel, entries) ->
             var expanded by rememberSaveable(groupLabel) { mutableStateOf(groupLabel == "Esta semana" || groupLabel == "Semana pasada") }
-            
+
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable { expanded = !expanded }
-                        .padding(vertical = 4.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Text(
-                        text = groupLabel,
-                        style = MaterialTheme.typography.labelLarge,
-                        fontWeight = FontWeight.Black,
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                    Icon(
-                        imageVector = if (expanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
-                        contentDescription = null,
-                        modifier = Modifier.size(20.dp),
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-                
+                // Cabecera de módulo: la etiqueta a la izquierda y el chevron a la derecha; toda la fila pliega el grupo.
+                KpknModuleHeader(
+                    label = groupLabel,
+                    modifier = Modifier.clickable(
+                        interactionSource = remember { MutableInteractionSource() },
+                        indication = null,
+                        role = Role.Button,
+                    ) { expanded = !expanded },
+                    action = {
+                        Icon(
+                            imageVector = if (expanded) KpknLineIcons.ChevronUp else KpknLineIcons.ChevronDown,
+                            contentDescription = null,
+                            modifier = Modifier.size(20.dp),
+                            tint = WizardColors.textMuted,
+                        )
+                    },
+                )
+
                 AnimatedVisibility(visible = expanded) {
                     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                         entries.forEach { entry ->
                             val isTagMatch = activeTag != null && entry.tag == activeTag
-                            val entryBgColor = when (entry.latestHistoryColor) {
-                                HistoryColorV2.YELLOW -> Color(0xFFFFF9C4)
-                                HistoryColorV2.RED -> MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.5f)
-                                else -> if (isTagMatch) MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.4f)
-                                        else MaterialTheme.colorScheme.surfaceContainerLow
+                            // El récord se marca con el acento de músculo, no con amarillo; un fallo, con `danger`.
+                            val accent = when (entry.latestHistoryColor) {
+                                HistoryColorV2.YELLOW -> SymbolPalette.musculo
+                                HistoryColorV2.RED -> WizardColors.danger
+                                else -> if (isTagMatch) SymbolPalette.musculo else null
                             }
-                            Surface(
-                                shape = RoundedCornerShape(12.dp),
-                                color = entryBgColor,
+                            KpknModule(
                                 modifier = Modifier.fillMaxWidth(),
+                                accent = accent,
+                                contentPadding = PaddingValues(horizontal = 14.dp, vertical = 12.dp),
                             ) {
-                                Column(modifier = Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                                        Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
-                                            Text(entry.date.take(10), style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold)
-                                            if (entry.tag != null) {
-                                                Surface(shape = RoundedCornerShape(999.dp), color = MaterialTheme.colorScheme.secondaryContainer) {
-                                                    Text(entry.tag, modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSecondaryContainer)
-                                                }
-                                            }
-                                        }
-                                        if (entry.e1rm != null) {
-                                            Text("e1RM ${"%.1f".format(entry.e1rm)} kg", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.tertiary, fontWeight = FontWeight.Bold)
-                                        }
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically,
+                                ) {
+                                    Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
+                                        Text(entry.date.take(10), style = KpknType.bodyStrong, color = WizardColors.text)
+                                        val tag = entry.tag
+                                        if (tag != null) HistoryPill(tag)
                                     }
-                                    val workingSets = entry.sets.filter { !it.isWarmup }
-                                    workingSets.take(maxSetsPerEntry.coerceAtLeast(0)).forEach { s ->
-                                        val sideLabel = when (s.side) {
-                                            "left" -> "Izq"
-                                            "right" -> "Der"
-                                            else -> null
-                                        }
-                                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
-                                            if (s.isFailedSet || s.failureReason == "execution_error" || !s.failureReason.isNullOrBlank()) {
-                                                Surface(
-                                                    shape = RoundedCornerShape(6.dp),
-                                                    color = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.50f),
-                                                ) {
-                                                    val reason = s.failureReason?.takeIf { it.isNotBlank() && it != "execution_error" && it != "Serie marcada como fallida" }
-                                                    Text(
-                                                        text = buildString {
-                                                            if (sideLabel != null) append("$sideLabel · ")
-                                                            append("❌ Fallida")
-                                                            if (reason != null) append(": $reason")
-                                                        },
-                                                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
-                                                        style = MaterialTheme.typography.labelSmall,
-                                                        fontWeight = FontWeight.Bold,
-                                                        color = MaterialTheme.colorScheme.error,
-                                                    )
-                                                }
-                                            } else {
-                                                Text(
-                                                    buildString {
-                                                        if (sideLabel != null) append("$sideLabel · ")
-                                                        if (s.weight > 0) append("${s.weight}kg")
-                                                        if (s.weight > 0 && s.reps > 0) append(" x ")
-                                                        if (s.reps > 0) append("${s.reps} reps")
-                                                        if (s.rpe != null) append(" · RPE ${s.rpe}")
-                                                        if ((s.partialReps ?: 0) > 0) append(" · +${s.partialReps} parciales")
-                                                        if ((s.assistedReps ?: 0) > 0) append(" · ${s.assistedReps} con ayuda")
-                                                    },
-                                                    style = MaterialTheme.typography.bodySmall,
-                                                )
-                                                if (s.isFailure) {
-                                                    Surface(shape = RoundedCornerShape(999.dp), color = MaterialTheme.colorScheme.errorContainer) {
-                                                        Text("F", modifier = Modifier.padding(horizontal = 4.dp), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onErrorContainer)
-                                                    }
-                                                }
-                                            }
-                                        }
+                                    val e1rm = entry.e1rm
+                                    if (e1rm != null) {
+                                        Text(
+                                            "e1RM ${String.format(java.util.Locale("es", "CL"), "%.1f", e1rm)} kg",
+                                            style = KpknType.caption.copy(fontFeatureSettings = "'tnum' 1"),
+                                            color = WizardColors.textMuted,
+                                        )
                                     }
+                                }
+                                val workingSets = entry.sets.filter { !it.isWarmup }
+                                workingSets.take(maxSetsPerEntry.coerceAtLeast(0)).forEach { s ->
+                                    Spacer(Modifier.height(8.dp))
+                                    HistorySetLine(s)
                                 }
                             }
                         }
@@ -195,6 +171,83 @@ internal fun WorkoutExerciseHistoryContent(
             }
         }
     }
+}
+
+/** Una serie de la copia del historial del gestor de etiquetas: cifras tabulares, coma decimal y «×» con espacios. */
+@Composable
+private fun HistorySetLine(s: CompletedSet) {
+    val sideLabel = when (s.side) {
+        "left" -> "Izq"
+        "right" -> "Der"
+        else -> null
+    }
+    Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+        if (s.isFailedSet || s.failureReason == "execution_error" || !s.failureReason.isNullOrBlank()) {
+            val reason = s.failureReason?.takeIf { it.isNotBlank() && it != "execution_error" && it != "Serie marcada como fallida" }
+            HistoryDangerPill(
+                buildString {
+                    if (sideLabel != null) append("$sideLabel · ")
+                    append("❌ Fallida")
+                    if (reason != null) append(": $reason")
+                },
+            )
+        } else {
+            Text(
+                text = buildString {
+                    if (sideLabel != null) append("$sideLabel · ")
+                    if (s.weight > 0) append("${s.weight.toTrimmedNumberString()} kg")
+                    if (s.weight > 0 && s.reps > 0) append(" × ")
+                    if (s.reps > 0) append("${s.reps} reps")
+                    if (s.rpe != null) append(" · RPE ${s.rpe}")
+                    if ((s.partialReps ?: 0) > 0) append(" · +${s.partialReps} parciales")
+                    if ((s.assistedReps ?: 0) > 0) append(" · ${s.assistedReps} con ayuda")
+                },
+                style = KpknType.body.copy(fontFeatureSettings = "'tnum' 1"),
+                color = WizardColors.text,
+            )
+            if (s.isFailure) {
+                HistoryDangerPill("F")
+            }
+        }
+    }
+}
+
+/** Etiqueta de la sesión: píldora `inset` con filete de 1 dp en blanco al 12 %, sobre el módulo. */
+@Composable
+private fun HistoryPill(text: String) {
+    Box(
+        modifier = Modifier
+            .clip(KpknShape.pill)
+            .background(KpknSurface.inset, KpknShape.pill)
+            .border(1.dp, Color.White.copy(alpha = 0.12f), KpknShape.pill)
+            .padding(horizontal = 10.dp, vertical = 4.dp),
+    ) {
+        Text(text, style = KpknType.chip, color = WizardColors.text)
+    }
+}
+
+/** Aviso de serie fallida: píldora tintada de `danger`. */
+@Composable
+private fun HistoryDangerPill(text: String) {
+    Box(
+        modifier = Modifier
+            .clip(KpknShape.pill)
+            .background(WizardColors.danger.copy(alpha = 0.16f), KpknShape.pill)
+            .border(1.dp, WizardColors.danger.copy(alpha = 0.40f), KpknShape.pill)
+            .padding(horizontal = 10.dp, vertical = 4.dp),
+    ) {
+        Text(text, style = KpknType.chip, color = WizardColors.danger)
+    }
+}
+
+/** Etiqueta de sección de las hojas de contexto: eyebrow KPKN en mayúsculas, en `textMuted`. */
+@Composable
+private fun ContextLabel(text: String) {
+    Text(
+        text = text.uppercase(java.util.Locale("es")),
+        style = KpknType.eyebrow,
+        color = WizardColors.textMuted,
+    )
 }
 
 @Composable
@@ -217,50 +270,33 @@ internal fun WorkoutExerciseSetupContent(
 
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
         if (profiles.isNotEmpty()) {
-            Text("Setups guardados", style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold)
+            ContextLabel("Setups guardados")
             LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 items(profiles) { profile ->
                     val isSelected = profile.id == activeProfileId
-                    Surface(
-                        modifier = Modifier.clickable { onSelectProfile(profile.id) },
-                        shape = RoundedCornerShape(8.dp),
-                        color = if (isSelected) sessionAccentColor.copy(alpha = 0.15f) else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
-                        border = androidx.compose.foundation.BorderStroke(
-                            1.dp,
-                            if (isSelected) sessionAccentColor else Color.Transparent
-                        )
-                    ) {
-                        Text(
-                            text = profile.tagDisplayTitle().ifBlank { "Sin nombre" },
-                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
-                            style = MaterialTheme.typography.labelSmall,
-                            color = if (isSelected) sessionAccentColor else MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
+                    KpknChip(
+                        text = profile.tagDisplayTitle().ifBlank { "Sin nombre" },
+                        selected = isSelected,
+                        onClick = { onSelectProfile(profile.id) },
+                    )
                 }
                 item {
-                    OutlinedButton(
+                    KpknChip(
+                        text = "Nuevo",
+                        selected = false,
                         onClick = { showNewProfileDialog = true },
-                        shape = RoundedCornerShape(8.dp),
-                        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 0.dp),
-                        modifier = Modifier.height(32.dp)
-                    ) {
-                        Icon(Icons.Default.Add, null, modifier = Modifier.size(14.dp))
-                        Spacer(Modifier.width(4.dp))
-                        Text("Nuevo", style = MaterialTheme.typography.labelSmall)
-                    }
+                        leadingIcon = KpknLineIcons.Plus,
+                    )
                 }
             }
-            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f))
+            HorizontalDivider(color = KpknSurface.divider)
         } else {
-            OutlinedButton(
+            KpknSecondaryPill(
+                text = "Crear primer Setup",
                 onClick = { showNewProfileDialog = true },
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Icon(Icons.Default.Add, null)
-                Spacer(Modifier.width(8.dp))
-                Text("Crear primer Setup")
-            }
+                modifier = Modifier.fillMaxWidth(),
+                icon = KpknLineIcons.Plus,
+            )
         }
 
         // Details of active or temporary setup
@@ -273,7 +309,7 @@ internal fun WorkoutExerciseSetupContent(
             exercise = exercise,
         )
 
-        OutlinedTextField(
+        KpknTextField(
             value = currentMachine,
             onValueChange = { newValue ->
                 if (activeProfile != null) {
@@ -283,12 +319,12 @@ internal fun WorkoutExerciseSetupContent(
                 }
             },
             modifier = Modifier.fillMaxWidth(),
-            label = { Text("Maquina / marca") },
+            label = "Maquina / marca",
             singleLine = true,
         )
 
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
-            OutlinedTextField(
+            KpknTextField(
                 value = currentSeat,
                 onValueChange = { newValue ->
                     if (activeProfile != null) {
@@ -300,10 +336,10 @@ internal fun WorkoutExerciseSetupContent(
                     }
                 },
                 modifier = Modifier.weight(1f),
-                label = { Text("Asiento") },
+                label = "Asiento",
                 singleLine = true,
             )
-            OutlinedTextField(
+            KpknTextField(
                 value = currentPin,
                 onValueChange = { newValue ->
                     if (activeProfile != null) {
@@ -315,7 +351,7 @@ internal fun WorkoutExerciseSetupContent(
                     }
                 },
                 modifier = Modifier.weight(1f),
-                label = { Text("Pin") },
+                label = "Pin",
                 singleLine = true,
             )
         }
@@ -324,7 +360,7 @@ internal fun WorkoutExerciseSetupContent(
         var baseLoadText by remember(activeProfileId, exercise.id) {
             mutableStateOf(currentBaseLoadKg?.toTrimmedNumberString().orEmpty())
         }
-        OutlinedTextField(
+        KpknTextField(
             value = baseLoadText,
             onValueChange = { value ->
                 baseLoadText = value
@@ -372,21 +408,23 @@ internal fun WorkoutExerciseSetupContent(
                 }
             },
             modifier = Modifier.fillMaxWidth(),
-            label = { Text("Carga base (kg)") },
-            supportingText = {
-                Text(
-                    if (exerciseTag.isNullOrBlank()) {
-                        "Se guarda con una etiqueta (barra vacía, pin mínimo, stack…)"
-                    } else {
-                        "Piso de sugerencias LOAD · etiqueta activa"
-                    },
-                )
-            },
+            label = "Carga base (kg)",
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
             singleLine = true,
         )
+        // El campo no tiene pie de texto propio: la ayuda va debajo, en `caption`.
+        Text(
+            if (exerciseTag.isNullOrBlank()) {
+                "Se guarda con una etiqueta (barra vacía, pin mínimo, stack…)"
+            } else {
+                "Piso de sugerencias LOAD · etiqueta activa"
+            },
+            style = KpknType.caption,
+            color = WizardColors.textMuted,
+            modifier = Modifier.padding(start = 4.dp),
+        )
 
-        OutlinedTextField(
+        KpknTextField(
             value = currentNotes,
             onValueChange = { newValue ->
                 if (activeProfile != null) {
@@ -398,24 +436,26 @@ internal fun WorkoutExerciseSetupContent(
                 }
             },
             modifier = Modifier.fillMaxWidth(),
-            label = { Text("Notas de set-up") },
+            label = "Notas de set-up",
+            singleLine = false,
             minLines = 2,
             maxLines = 4,
         )
 
         val cues = (exercise.setupCues + exercise.executionCues).distinct()
         if (cues.isNotEmpty()) {
-            Text("Cues", style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold)
+            ContextLabel("Cues")
             Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 cues.take(maxVisibleCues.coerceAtLeast(0)).forEach { cue ->
-                    Text("- $cue", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text("- $cue", style = KpknType.caption, color = WizardColors.textMuted)
                 }
             }
         }
 
         if (exerciseTag != null) {
             Spacer(Modifier.height(4.dp))
-            Surface(
+            KpknModule(
+                modifier = Modifier.fillMaxWidth(),
                 onClick = {
                     val mirroredSetup = com.example.kpkn.domain.workout.BaseLoadPolicy.withMirroredBaseLoad(
                         ExerciseSetupDetails(
@@ -438,21 +478,20 @@ internal fun WorkoutExerciseSetupContent(
                     )
                     hasSetupChanges = false
                 },
-                shape = RoundedCornerShape(12.dp),
-                color = sessionAccentColor.copy(alpha = 0.1f),
+                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
             ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 10.dp),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Icon(Icons.Default.Link, null, Modifier.size(16.dp), tint = sessionAccentColor)
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        imageVector = KpknLineIcons.Link,
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp),
+                        tint = sessionAccentColor,
+                    )
                     Text(
                         "Asociar set-up a \"$exerciseTag\"",
                         modifier = Modifier.weight(1f),
-                        style = MaterialTheme.typography.labelMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = sessionAccentColor,
+                        style = KpknType.bodyStrong,
+                        color = WizardColors.text,
                     )
                 }
             }
@@ -463,18 +502,19 @@ internal fun WorkoutExerciseSetupContent(
         var newLabel by remember { mutableStateOf("") }
         KpknAlertDialog(
             onDismissRequest = { showNewProfileDialog = false },
-            title = { Text("Nuevo Setup", fontWeight = FontWeight.Black) },
+            title = { Text("Nuevo Setup", style = KpknType.dialogTitle, color = WizardColors.text) },
             text = {
-                OutlinedTextField(
+                KpknTextField(
                     value = newLabel,
                     onValueChange = { newLabel = it },
-                    label = { Text("Nombre del setup (ej. Maquina SmartFit)") },
+                    label = "Nombre del setup (ej. Maquina SmartFit)",
                     singleLine = true,
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
                 )
             },
             confirmButton = {
-                Button(
+                KpknPrimaryPill(
+                    text = "Guardar",
                     onClick = {
                         val sessionBase = com.example.kpkn.domain.workout.BaseLoadPolicy.resolvedForDisplay(
                             profile = null,
@@ -497,12 +537,12 @@ internal fun WorkoutExerciseSetupContent(
                         )
                         showNewProfileDialog = false
                     },
-                    enabled = newLabel.isNotBlank()
-                ) { Text("Guardar") }
+                    enabled = newLabel.isNotBlank(),
+                )
             },
             dismissButton = {
-                TextButton(onClick = { showNewProfileDialog = false }) { Text("Cancelar") }
-            }
+                KpknTextAction(text = "Cancelar", onClick = { showNewProfileDialog = false })
+            },
         )
     }
 }
