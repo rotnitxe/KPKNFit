@@ -17,6 +17,7 @@ import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.models.TrainingMode
 import com.example.kpkn.data.protocols.LoadBasis
 import com.example.kpkn.data.repository.ProgramRepository
+import java.util.UUID
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
@@ -83,11 +84,13 @@ class SessionEditorRulesRmLoadViewModelTest {
     )
 
     private suspend fun openEditor(exercise: Exercise): SessionEditorViewModel {
+        // Un programa nuevo por caso: el borrador guardado (SharedPreferences) va por programId y no puede colarse entre pruebas.
+        val programId = "program-rules-rm-${UUID.randomUUID()}"
         val session = Session(id = "pierna-a", name = "Pierna A", exercises = listOf(exercise))
-        repository.addProgram(program("program-rules-rm", session))
+        repository.addProgram(program(programId, session))
         val viewModel = SessionEditorViewModel(
             application = ApplicationProvider.getApplicationContext<Application>(),
-            programId = "program-rules-rm",
+            programId = programId,
             sessionId = session.id,
             draftWeekId = "week",
             draftMacroIndex = 0,
@@ -108,6 +111,20 @@ class SessionEditorRulesRmLoadViewModelTest {
         assertTrue(viewModel.applyRuleDefaultsToSession() is ApplyRulesOutcome.Applied)
         // Las reglas fijan series, reps y RIR; el 80 % y los 95 kg del generador se quedan.
         assertEquals(listOf(95.0, 95.0, 95.0, 95.0), viewModel.exercise("squat").sets.map { it.weight })
+    }
+
+    /**
+     * Un %RM con más de dos decimales (85,123) llega sin normalizar: nada lo ajusta al abrir el editor. La regla lo redondea a 85,12 y,
+     * al cambiar, la carga sale de ese %RM con el redondeo del generador (102,5). Sin el cableado de `withExplicitRmLoads` quedarían los 95 kg.
+     */
+    @Test
+    fun aplicarReglasQueRedondeanElPorcentajeRecalculaLaCarga() = runBlocking {
+        val squat = generatedSquat()
+        val viewModel = openEditor(squat.copy(sets = squat.sets.map { it.copy(targetPercentageRM = 85.123) }))
+        viewModel.updateRuleDefaults(setCount = 4, reps = 6, rpe = 2.0, intensityType = DefaultIntensityType.RIR)
+        assertTrue(viewModel.applyRuleDefaultsToSession() is ApplyRulesOutcome.Applied)
+        // 120 × 85,12 % = 102,14 → 102,5 en las cuatro series.
+        assertEquals(listOf(102.5, 102.5, 102.5, 102.5), viewModel.exercise("squat").sets.map { it.weight })
     }
 
     private fun program(programId: String, vararg sessions: Session) = Program(
