@@ -11,11 +11,14 @@ import com.example.kpkn.data.models.WorkoutLog
 import com.example.kpkn.data.models.isCardio
 import com.example.kpkn.data.models.isEffectivelyUnilateral
 import com.example.kpkn.data.models.supersetGroupRefOrLegacyId
+import com.example.kpkn.data.models.supersetGroupRefOrLegacyId
 import com.example.kpkn.data.models.unresolvedDiscomfortIds
 import com.example.kpkn.domain.calculations.calculateHybrid1RM
 import com.example.kpkn.domain.exercises.ExerciseMuscleResolver
 import com.example.kpkn.domain.relator.RelatorCoachSlice
 import com.example.kpkn.domain.relator.RelatorContext
+import com.example.kpkn.domain.relator.RelatorMoment
+import com.example.kpkn.domain.relator.RelatorNextResolver
 import com.example.kpkn.domain.relator.RelatorHistorySet
 import com.example.kpkn.domain.relator.RelatorHistorySlice
 import com.example.kpkn.domain.relator.RelatorMediaSlice
@@ -479,6 +482,7 @@ internal object RelatorContextBuilder {
         restRemainingSeconds: Int,
         sessionTimeRemainingSeconds: Int?,
         queries: RelatorBuilderQueries,
+        moment: RelatorMoment? = null,
     ): RelatorContext {
         val visible = queries.visibleExercises(state)
         val current = visible.getOrNull(state.currentExerciseIdx)
@@ -515,12 +519,31 @@ internal object RelatorContextBuilder {
         val warmupRemaining = (snapshot.warmupCount - (snapshot.warmupIncompleteIndex ?: snapshot.warmupCount))
             .coerceAtLeast(if (snapshot.warmupIsLastIncomplete) 1 else 0)
         val concept = snapshot.conceptCueOrNull()
+        // «Siguiente» (LR1g): la serie que toca del mismo ejercicio; el ejercicio siguiente solo cuando ya no quedan.
+        val supersetPartner = current?.let { ex ->
+            ex.supersetGroupRefOrLegacyId()?.let { group ->
+                visible.firstOrNull { it.id != ex.id && it.supersetGroupRefOrLegacyId() == group }
+            }
+        }
+        val next = RelatorNextResolver.resolve(
+            upcomingIndex = state.currentSetIdx,
+            setsTotal = current?.sets?.size ?: 0,
+            setKg = currentSet?.weight?.takeIf { it > 0.0 } ?: snapshot.suggestedWeight,
+            setReps = currentSet?.targetReps,
+            nextExerciseName = nextExercise?.let(::displayWorkoutExerciseName),
+            nextExerciseKg = nextKg,
+            supersetPartnerName = supersetPartner?.let(::displayWorkoutExerciseName),
+            supersetPartnerKg = supersetPartner?.let {
+                queries.getWeightSuggestion(it, 0, state.exerciseTags[it.id], null)?.suggestedWeight
+            },
+        )
         return RelatorContext(
             sessionId = state.session?.id.orEmpty(),
             setKey = snapshot.setKey,
             idleCycle = snapshot.idleCycle,
             feminine = snapshot.feminine,
             visible = snapshot.visible,
+            moment = moment,
             phase = snapshot.phase.toDomain(),
             exerciseId = current?.id.orEmpty(),
             exerciseName = snapshot.exerciseDisplayName,
@@ -574,9 +597,12 @@ internal object RelatorContextBuilder {
                 targetDurationMinutes = targetMin,
                 remainingSeconds = sessionTimeRemainingSeconds,
                 minutesAhead = minutesAhead,
-                nextExerciseName = nextExercise?.let(::displayWorkoutExerciseName)
-                    ?: current?.let(::displayWorkoutExerciseName),
-                nextSuggestedKg = nextKg ?: snapshot.suggestedWeight,
+                nextExerciseName = next.exerciseName,
+                nextSuggestedKg = next.kg,
+                nextSetNumber = next.setNumber,
+                nextSetTotal = next.setTotal,
+                nextSetWeightKg = next.kg.takeIf { next.setNumber != null },
+                nextSetReps = next.reps,
             ),
             rest = RelatorRestSlice(
                 active = snapshot.phase == RelatorPhase.REST,

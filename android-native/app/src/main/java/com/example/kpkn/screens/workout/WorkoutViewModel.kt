@@ -73,6 +73,8 @@ import com.example.kpkn.services.workout.VoicePipelineStage
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.channels.consumeEach
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -91,6 +93,9 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.update
 import com.example.kpkn.domain.auge.AugeRecoveryEngine
 import com.example.kpkn.domain.relator.RelatorLongTermMemory
+import com.example.kpkn.domain.relator.RelatorMoment
+import com.example.kpkn.domain.relator.RelatorMomentClock
+import com.example.kpkn.domain.relator.RelatorMomentInput
 import com.example.kpkn.domain.relator.RelatorSelectorState
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
@@ -195,15 +200,21 @@ class WorkoutViewModel(
     )
     internal val relatorResolution: StateFlow<RelatorResolution> = _relatorResolution.asStateFlow()
     private val _relatorWarmupDrafts = MutableStateFlow<Map<String, String>>(emptyMap())
-    private val _relatorIdleCycle = MutableStateFlow(0)
     private val _relatorUiHook = MutableStateFlow<RelatorUiHook?>(null)
     val relatorUiHook: StateFlow<RelatorUiHook?> = _relatorUiHook.asStateFlow()
     private val relatorChangeTracker = RelatorChangeTracker()
     private var relatorSelectorState = RelatorSelectorState()
     private var relatorLongTerm = RelatorLongTermMemory.decode(repository.settings.value.relatorMemoryJson)
     private var lastRelatorText: String? = null
-    private var relatorIdleJob: Job? = null
-    private var relatorIdleIdentity: String = ""
+    // Reloj de momentos del relator (LR1g): decide cuándo habla; el mensaje solo se resuelve en ese momento.
+    private val relatorMoments = RelatorMomentClock()
+    private val relatorTicks = Channel<Unit>(Channel.CONFLATED)
+    private var relatorWake: Job? = null
+    private var relatorLastSlice: RelatorUiSlice? = null
+    private var relatorSliceDirty = false
+    private var relatorEditRevision = 0L
+    private var relatorAssistKey: String? = null
+    private val relatorMilestonesSeen = HashSet<String>()
     private var lastPersistedRelatorMemoryJson: String? = repository.settings.value.relatorMemoryJson
     val cardioGpsState: StateFlow<CardioGpsState> = CardioGpsTracker.state
     val cardioHealthState: StateFlow<com.example.kpkn.services.cardio.CardioHealthState> = cardioHealthProvider.state
@@ -4020,110 +4031,151 @@ class WorkoutViewModel(
                 getWarmupSuggestedWeight(ex, idx, tag, anchor)
             },
         )
+        // Un único consumidor, el reloj de momentos (LR1g). Los cambios de estado, los segundos de descanso y de sesión,
+        // las ayudas y los borradores solo le avisan: el mensaje se resuelve cuando el reloj decide un momento.
         viewModelScope.launch {
-            val uiSlice = _uiState.map { RelatorUiSlice.from(it) }.distinctUntilChanged()
-            val restSampled = restTimerRemaining.map { (it / 5) * 5 }.distinctUntilChanged()
-            combine(
-                uiSlice,
-                restSampled,
-                sessionTimeRemainingSeconds,
-                combine(_relatorAssistAck, _relatorIdleCycle, _relatorWarmupDrafts) { ack, idle, drafts ->
-                    Triple(ack, idle, drafts)
-                },
-            ) { _, restSeconds, sessionRemain, extra ->
-                RelatorPipelineTick(
-                    restSeconds = restSeconds,
-                    sessionRemain = sessionRemain,
-                    ack = extra.first,
-                    idleCycle = extra.second,
-                    warmupDrafts = extra.third,
-                )
-            }
-                .debounce(RELATOR_DEBOUNCE_MS)
-                .flowOn(Dispatchers.Default)
-                .collect { tick ->
-                    val packed = withContext(Dispatchers.Default) {
-                        val state = _uiState.value
-                        val snapshot = RelatorContextBuilder.buildSnapshot(
-                            state = state,
-                            queries = queries,
-                            tracker = relatorChangeTracker,
-                            restRemainingSeconds = restTimerRemaining.value,
-                            sessionTimeRemainingSeconds = tick.sessionRemain,
-                            idleCycle = tick.idleCycle,
-                            warmupWeightDrafts = tick.warmupDrafts,
-                            assistAck = tick.ack,
-                            gender = repository.settings.value.userVitals.gender,
-                            speechMemory = RelatorSpeechMemory(relatorSelectorState.fingerprints),
-                            shownConceptIds = relatorSelectorState.conceptSpokenThisSession,
-                        )
-                        val context = RelatorContextBuilder.buildContext(
-                            state = state,
-                            snapshot = snapshot,
-                            restRemainingSeconds = restTimerRemaining.value,
-                            sessionTimeRemainingSeconds = tick.sessionRemain,
-                            queries = queries,
-                        )
-                        val result = WorkoutRelatorEngine.resolve(
-                            context = context,
-                            snapshot = snapshot,
-                            selectorState = relatorSelectorState,
-                            longTermMemory = relatorLongTerm,
-                            previousText = lastRelatorText,
-                        )
-                        Triple(snapshot, result, WorkoutRelatorEngine.toUiResolution(result))
-                    }
-                    val snapshot = packed.first
-                    val result = packed.second
-                    val ui = packed.third
-                    ensureRelatorIdle(snapshot)
-                    relatorSelectorState = result.selectorState
-                    if (result.longTermMemory != relatorLongTerm) {
-                        relatorLongTerm = result.longTermMemory
-                        val encoded = relatorLongTerm.encode()
-                        if (encoded != lastPersistedRelatorMemoryJson) {
-                            lastPersistedRelatorMemoryJson = encoded
-                            repository.updateSettings { settings ->
-                                settings.copy(relatorMemoryJson = encoded)
-                            }
-                        }
-                    }
-                    if (!ui.holdPrevious) lastRelatorText = ui.text
-                    _relatorResolution.value = ui
+            relatorTicks.consumeEach { relatorMomentStep(queries) }
+        }
+        viewModelScope.launch {
+            _uiState.map { RelatorUiSlice.from(it) }.distinctUntilChanged().collect { slice ->
+                val previous = relatorLastSlice
+                // Un cambio de borrador sin cambiar de serie ni registrar es una edición (cuenta para USER_EDIT).
+                if (previous != null &&
+                    previous.currentExerciseIdx == slice.currentExerciseIdx &&
+                    previous.currentSetIdx == slice.currentSetIdx &&
+                    previous.completedSetCount == slice.completedSetCount &&
+                    previous.restRunning == slice.restRunning &&
+                    previous.draftFingerprint != slice.draftFingerprint
+                ) {
+                    relatorEditRevision += 1L
                 }
-        }
-    }
-
-    private fun ensureRelatorIdle(snapshot: LiveRelatorSnapshot) {
-        if (snapshot.lastChangedField.isReaction) {
-            relatorIdleJob?.cancel()
-            relatorIdleJob = null
-            return
-        }
-        val identity = "${snapshot.setKey}|${snapshot.phase.name}"
-        if (identity != relatorIdleIdentity) {
-            relatorIdleIdentity = identity
-            _relatorIdleCycle.value = 0
-            relatorIdleJob?.cancel()
-            relatorIdleJob = null
-        }
-        if (relatorIdleJob?.isActive == true) return
-        val delayMs = if (snapshot.phase == RelatorPhase.REST) 18_000L else RELATOR_IDLE_ROTATE_MS
-        relatorIdleJob = viewModelScope.launch {
-            while (true) {
-                delay(delayMs)
-                _relatorIdleCycle.update { it + 1 }
+                relatorLastSlice = slice
+                relatorSliceDirty = true
+                relatorTicks.trySend(Unit)
             }
         }
+        viewModelScope.launch { restTimerRemaining.collect { relatorTicks.trySend(Unit) } }
+        viewModelScope.launch { sessionTimeRemainingSeconds.collect { relatorTicks.trySend(Unit) } }
+        viewModelScope.launch { _relatorAssistAck.collect { relatorTicks.trySend(Unit) } }
+        viewModelScope.launch { _relatorWarmupDrafts.collect { relatorTicks.trySend(Unit) } }
     }
 
-    private data class RelatorPipelineTick(
-        val restSeconds: Int,
-        val sessionRemain: Int?,
-        val ack: RelatorAssistAck?,
-        val idleCycle: Int,
-        val warmupDrafts: Map<String, String>,
+    /** Un paso del reloj de momentos (LR1g): mira las señales, y solo si toca un momento resuelve el mensaje. */
+    private suspend fun relatorMomentStep(queries: RelatorBuilderQueries) {
+        val state = _uiState.value
+        val now = relatorNowMs()
+        val visible = visibleExercises(state)
+        val current = visible.getOrNull(state.currentExerciseIdx)
+        if (relatorSliceDirty) {
+            relatorSliceDirty = false
+            // La ayuda de estructura sale del snapshot: se mira cuando cambia el estado, con un rastreador propio.
+            val probe = withContext(Dispatchers.Default) {
+                buildRelatorSnapshot(state, queries, idleCycle = 0, tracker = RelatorChangeTracker())
+            }
+            relatorAssistKey = probe.assistOffer?.stickyKey
+        }
+        val milestone = relatorMilestoneKey(state, visible)
+        val input = RelatorMomentInput(
+            nowMs = now,
+            setKey = "${current?.id.orEmpty()}|${state.currentSetIdx}|${state.activeStepKey.orEmpty()}",
+            exerciseId = current?.id.orEmpty(),
+            resting = state.isRestTimerRunning,
+            loggedKey = relatorLastSlice?.lastLoggedKey,
+            editRevision = relatorEditRevision,
+            assistKey = relatorAssistKey,
+            restRemainingSeconds = restTimerRemaining.value,
+            restPlannedSeconds = state.restModalState?.plannedSeconds ?: 0,
+            milestoneKey = milestone,
+        )
+        val moment = relatorMoments.step(input)
+        relatorWake?.cancel()
+        relatorWake = null
+        relatorMoments.nextWakeMs(now)?.let { wakeAt ->
+            relatorWake = viewModelScope.launch {
+                delay((wakeAt - relatorNowMs()).coerceAtLeast(0L))
+                relatorTicks.trySend(Unit)
+            }
+        }
+        if (moment == null) return
+        val packed = withContext(Dispatchers.Default) {
+            val snapshot = buildRelatorSnapshot(
+                state = state,
+                queries = queries,
+                idleCycle = if (moment == RelatorMoment.IDLE_NUDGE) 1 else 0,
+                tracker = relatorChangeTracker,
+            )
+            val context = RelatorContextBuilder.buildContext(
+                state = state,
+                snapshot = snapshot,
+                restRemainingSeconds = restTimerRemaining.value,
+                sessionTimeRemainingSeconds = sessionTimeRemainingSeconds.value,
+                queries = queries,
+                moment = moment,
+            )
+            val result = WorkoutRelatorEngine.resolve(
+                context = context,
+                snapshot = snapshot,
+                selectorState = relatorSelectorState,
+                longTermMemory = relatorLongTerm,
+                previousText = lastRelatorText,
+            )
+            Pair(result, WorkoutRelatorEngine.toUiResolution(result))
+        }
+        val result = packed.first
+        val ui = packed.second
+        relatorSelectorState = result.selectorState
+        if (result.longTermMemory != relatorLongTerm) {
+            relatorLongTerm = result.longTermMemory
+            val encoded = relatorLongTerm.encode()
+            if (encoded != lastPersistedRelatorMemoryJson) {
+                lastPersistedRelatorMemoryJson = encoded
+                repository.updateSettings { settings ->
+                    settings.copy(relatorMemoryJson = encoded)
+                }
+            }
+        }
+        if (!ui.holdPrevious) lastRelatorText = ui.text
+        _relatorResolution.value = ui
+    }
+
+    private fun buildRelatorSnapshot(
+        state: WorkoutUiState,
+        queries: RelatorBuilderQueries,
+        idleCycle: Int,
+        tracker: RelatorChangeTracker,
+    ): LiveRelatorSnapshot = RelatorContextBuilder.buildSnapshot(
+        state = state,
+        queries = queries,
+        tracker = tracker,
+        restRemainingSeconds = restTimerRemaining.value,
+        sessionTimeRemainingSeconds = sessionTimeRemainingSeconds.value,
+        idleCycle = idleCycle,
+        warmupWeightDrafts = _relatorWarmupDrafts.value,
+        assistAck = _relatorAssistAck.value,
+        gender = repository.settings.value.userVitals.gender,
+        speechMemory = RelatorSpeechMemory(relatorSelectorState.fingerprints),
+        shownConceptIds = relatorSelectorState.conceptSpokenThisSession,
     )
+
+    /**
+     * Hito de sesión que el reloj aún no ha visto (LR1g): mitad, último ejercicio o tiempo justo. Cada uno se entrega
+     * una sola vez; el reloj lo convierte en MILESTONE.
+     */
+    private fun relatorMilestoneKey(state: WorkoutUiState, visible: List<Exercise>): String? {
+        val total = visible.filter { !it.isCardio }.sumOf { it.sets.size }
+        val done = state.completedSets.count { (_, set) -> !set.isWarmup && !set.skipped }
+        val remaining = sessionTimeRemainingSeconds.value
+        val applicable = buildList {
+            if (total > 0 && done * 2 >= total) add("HALF")
+            if (visible.isNotEmpty() && state.currentExerciseIdx >= visible.lastIndex) add("LAST_EXERCISE")
+            if (remaining != null && remaining in 1..900) add("TIGHT_TIME")
+        }
+        val next = applicable.firstOrNull { it !in relatorMilestonesSeen } ?: return null
+        relatorMilestonesSeen += next
+        return next
+    }
+
+    private fun relatorNowMs(): Long = System.nanoTime() / 1_000_000L
 
     fun markWorkoutTagEducationSeen() {
         if (repository.settings.value.hasSeenWorkoutTagEducation) return

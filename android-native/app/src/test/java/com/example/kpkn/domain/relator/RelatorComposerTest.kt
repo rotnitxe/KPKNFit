@@ -1,16 +1,50 @@
 package com.example.kpkn.domain.relator
 
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class RelatorComposerTest {
+    private val rotulos = listOf("Ahora", "Ojo", "Dato", "Plan", "Siguiente", "Hoy", "Carga", "Recuerda")
+
     @Test
-    fun has_at_least_six_openers() {
-        assertTrue(RelatorComposer.OPENERS.size >= 6)
+    fun sin_rotulos_aunque_haya_ciclo_de_ociosidad() {
+        // Antes, con idleCycle > 0 el compositor añadía un rótulo al azar (LR1g): ya no.
+        val candidate = RelatorCandidate(
+            topic = RelatorTopic.PLAN,
+            priority = 50,
+            relevance = 1.0,
+            lines = listOf("Sigue la receta de {ex}; hoy no improvisamos el estímulo."),
+            fingerprintBase = "PLAN",
+        )
+        for (cycle in 0..3) {
+            val (line, _) = RelatorComposer.compose(
+                candidate,
+                relatorContext(idleCycle = cycle),
+                RelatorSelectorState(),
+                RelatorLongTermMemory(),
+            )
+            assertTrue(line.text!!, rotulos.none { line.text!!.startsWith("$it:") })
+        }
     }
 
     @Test
-    fun clips_to_140_chars_when_possible() {
+    fun la_misma_frase_dentro_del_mismo_momento() {
+        val candidate = RelatorCandidate(
+            topic = RelatorTopic.PLAN,
+            priority = 50,
+            relevance = 1.0,
+            lines = listOf("Primera {ex}.", "Segunda {ex}.", "Tercera {ex}."),
+            fingerprintBase = "PLAN",
+        )
+        val context = relatorContext(idleCycle = 0)
+        val first = RelatorComposer.compose(candidate, context, RelatorSelectorState(), RelatorLongTermMemory()).first
+        val second = RelatorComposer.compose(candidate, context, RelatorSelectorState(), RelatorLongTermMemory()).first
+        assertEquals(first.text, second.text)
+    }
+
+    @Test
+    fun clips_to_90_chars_when_possible() {
         val candidate = RelatorCandidate(
             topic = RelatorTopic.PLAN,
             priority = 50,
