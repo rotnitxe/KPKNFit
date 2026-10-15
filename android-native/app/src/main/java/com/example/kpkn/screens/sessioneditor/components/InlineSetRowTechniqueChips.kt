@@ -1,8 +1,5 @@
 package com.example.kpkn.screens.sessioneditor.components
 
-import com.example.kpkn.screens.sessioneditor.design.sessionEnterVertical
-import com.example.kpkn.screens.sessioneditor.design.sessionExitVertical
-
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
@@ -187,8 +184,8 @@ internal fun InlineSetRowTechniqueChips(
 
         AnimatedVisibility(
             visible = showDropSetConfig && hasDropSet,
-            enter = sessionEnterVertical(),
-            exit = sessionExitVertical(),
+            enter = expandVertically() + fadeIn(),
+            exit = shrinkVertically() + fadeOut(),
         ) {
             val dsTechnique = currentTechniques.firstOrNull { it.type == TechniqueType.DROP_SET }
             if (dsTechnique != null) {
@@ -241,8 +238,8 @@ internal fun InlineSetRowTechniqueChips(
 
         AnimatedVisibility(
             visible = showRestPauseConfig && hasRestPause,
-            enter = sessionEnterVertical(),
-            exit = sessionExitVertical(),
+            enter = expandVertically() + fadeIn(),
+            exit = shrinkVertically() + fadeOut(),
         ) {
             val rpTechnique = currentTechniques.firstOrNull { it.type == TechniqueType.REST_PAUSE }
             if (rpTechnique != null) {

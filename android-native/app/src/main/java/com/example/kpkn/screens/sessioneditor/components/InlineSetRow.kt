@@ -517,7 +517,7 @@ internal fun InlineSetRow(
                                 value = "",
                                 onValueChange = {},
                                 readOnly = true,
-                                label = { Text("Modo", style = MaterialTheme.typography.bodySmall, maxLines = 1) },
+                                label = { Text("Intensidad", style = MaterialTheme.typography.bodySmall, maxLines = 1, overflow = TextOverflow.Ellipsis) },
                                 trailingIcon = {
                                     Icon(
                                         Icons.Default.KeyboardArrowDown,
@@ -558,12 +558,12 @@ internal fun InlineSetRow(
                             horizontalArrangement = Arrangement.spacedBy(8.dp),
                             verticalAlignment = Alignment.Top,
                         ) {
-                            Box(modifier = Modifier.weight(1.3f)) {
+                            Box(modifier = Modifier.weight(1.6f)) {
                                 OutlinedTextField(
                                     value = intensityLabel,
                                     onValueChange = {},
                                     readOnly = true,
-                                    label = { Text("Modo", style = MaterialTheme.typography.bodySmall, maxLines = 1) },
+                                    label = { Text("Intensidad", style = MaterialTheme.typography.bodySmall, maxLines = 1, overflow = TextOverflow.Ellipsis) },
                                     singleLine = true,
                                     trailingIcon = {
                                         Icon(

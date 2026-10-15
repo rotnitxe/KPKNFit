@@ -172,17 +172,6 @@ class SessionListItemsTest {
     }
 
     @Test
-    fun lazyColumnIndexForExercise_contaElModuloDeImpactoDelanteDeLaLista() {
-        val ex = Exercise(id = "e1", name = "Row", exerciseDbId = "row")
-        val session = Session(id = "s1", name = "Pull", exercises = listOf(ex))
-        val scrollable = buildSessionListItems(session).drop(1)
-        val contentIndex = findListIndexForExercise(scrollable, "e1")
-        // Editor: fila superior, franja de portada y cabecera (3). Con datos del motor, el módulo de impacto se suma (4).
-        assertEquals(contentIndex + 3, lazyColumnIndexForExercise(scrollable, "e1", leadingItems = 3))
-        assertEquals(contentIndex + 4, lazyColumnIndexForExercise(scrollable, "e1", leadingItems = 4))
-    }
-
-    @Test
     fun buildSessionListItems_emptyWithoutCommitHasNoStrengthDivider() {
         val session = Session(id = "s1", name = "Push")
         val items = buildSessionListItems(session, showStrengthDivider = false)

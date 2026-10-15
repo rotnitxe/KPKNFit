@@ -1,5 +1,8 @@
 # Editor de sesiones v1 · rediseño con el lenguaje KPKN v2 (2026-10-13)
 
+> **2026-10-15: el usuario rechazó el rediseño del editor y pidió volver al de la PR11 y refinarlo.** Esta especificación queda
+> archivada con el código en la etiqueta `archive/session-editor-redesign-v1`. El refinado irá en `SESSION_EDITOR_R1.md`.
+
 ## Encargo y fuentes
 - **Encargo del usuario:**
   - «Más adelante: rediseño del editor de sesiones y sesión en vivo».

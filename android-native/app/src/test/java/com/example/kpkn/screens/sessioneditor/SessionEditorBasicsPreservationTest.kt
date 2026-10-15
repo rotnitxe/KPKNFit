@@ -3,7 +3,6 @@ package com.example.kpkn.screens.sessioneditor
 import com.example.kpkn.data.models.CardioType
 import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.ExerciseMuscleInfo
-import com.example.kpkn.data.models.ExerciseSet
 import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.models.RepRange
 import com.example.kpkn.data.models.Session
@@ -14,9 +13,6 @@ import com.example.kpkn.domain.training.generator.RoutineGenerator
 import com.example.kpkn.domain.training.generator.RoutineLevel
 import com.example.kpkn.domain.training.generator.RoutineMode
 import com.example.kpkn.domain.training.generator.RoutineTestSupport
-import com.example.kpkn.screens.sessioneditor.design.SessionSetIntensity
-import com.example.kpkn.screens.sessioneditor.design.sessionSetColumns
-import com.example.kpkn.screens.sessioneditor.design.withIntensity
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -24,7 +20,7 @@ import org.junit.Test
 /**
  * SE11: el editor no reescribe los básicos del programa. La sesión se construye como la hace el generador (con marcas de
  * sentadilla, banca y peso muerto: series con rango, RIR y %). Cada mutación del editor no debe cambiar el rango, el RIR, el %
- * ni el descanso de esos básicos.
+ * ni el descanso de esos básicos. Port del original: se quitan las aserciones de la línea de dosis y de la tabla (aspecto).
  */
 class SessionEditorBasicsPreservationTest {
 
@@ -100,31 +96,11 @@ class SessionEditorBasicsPreservationTest {
     }
 
     @Test
-    fun elRirSobreviveAPasarAlModoRirYVolverAlPorcentaje() {
+    fun elRirYElRangoSobrevivenANormalizarUnBasicoDelModoPorcentaje() {
         val basic = generated.allExercises().first { it.isHybridBasic() }
-        val back = basic.withIntensity(SessionSetIntensity.RIR).withIntensity(SessionSetIntensity.PERCENT).normalizeExercise()
+        val back = basic.normalizeExercise()
         assertEquals(basic.sets.map { it.targetRIR }, back.sets.map { it.targetRIR })
         assertEquals(basic.sets.map { it.targetRepsRange }, back.sets.map { it.targetRepsRange })
-    }
-
-    @Test
-    fun laDosisDelModoPorcentajeLlevaRangoPorcentajeRirYDescanso() {
-        val sets = (1..4).map { ExerciseSet(id = "s$it", targetRepsRange = RepRange(4, 6), targetPercentageRM = 80.0, targetRIR = 2) }
-        assertEquals("4 × 4–6 · 80 % 1RM · RIR 2 · 3:15", sessionExerciseDose(sets, TrainingMode.RM, restSeconds = 195))
-    }
-
-    @Test
-    fun laTablaDelModoPorcentajeMuestraElRirSiLasSeriesLoLlevan() {
-        val conRir = Exercise(
-            id = "sq",
-            name = "Sentadilla",
-            trainingMode = TrainingMode.RM,
-            restTime = 195,
-            sets = listOf(ExerciseSet(id = "a", targetRepsRange = RepRange(4, 6), targetPercentageRM = 80.0, targetRIR = 2)),
-        )
-        assertEquals(listOf("percent", "reps", "rir", "rest"), sessionSetColumns(conRir, withRest = true).map { it.key })
-        val sinRir = conRir.copy(sets = listOf(ExerciseSet(id = "a", targetPercentageRM = 80.0)))
-        assertEquals(listOf("percent", "reps", "rest"), sessionSetColumns(sinRir, withRest = true).map { it.key })
     }
 
     // ─── Ayudas ─────────────────────────────────────────────────────────────────────────────────────────────

@@ -256,14 +256,13 @@ fun findListIndexForExercise(items: List<SessionListItem>, exerciseId: String): 
 }
 
 /**
- * Maps an exercise id to the LazyColumn index used by SessionEditorScreen: los [leadingItems] primeros ítems van delante del
- * contenido (por defecto, solo la cabecera; el editor actual pone la fila superior, la franja de portada y la cabecera).
+ * Maps an exercise id to the LazyColumn index used by SessionEditorScreen:
+ * [0]=Hero, [1..n]=scrollable content.
  */
 fun lazyColumnIndexForExercise(
     scrollableItems: List<SessionListItem>,
     exerciseId: String,
-    leadingItems: Int = 1,
 ): Int {
     val contentIndex = findListIndexForExercise(scrollableItems, exerciseId)
-    return if (contentIndex >= 0) contentIndex + leadingItems else -1
+    return if (contentIndex >= 0) contentIndex + 1 else -1
 }

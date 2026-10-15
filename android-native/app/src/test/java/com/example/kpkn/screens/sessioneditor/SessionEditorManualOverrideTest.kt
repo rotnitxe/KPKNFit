@@ -3,7 +3,6 @@ package com.example.kpkn.screens.sessioneditor
 import com.example.kpkn.data.db.toProgram
 import android.app.Application
 import android.content.Context
-import androidx.lifecycle.ViewModelStore
 import androidx.test.core.app.ApplicationProvider
 import com.example.kpkn.data.models.Block
 import com.example.kpkn.data.models.BlockGoal
@@ -29,7 +28,6 @@ import com.example.kpkn.data.protocols.percentSets
 import com.example.kpkn.data.protocols.slot
 import com.example.kpkn.data.protocols.weekRecipe
 import com.example.kpkn.data.repository.ProgramRepository
-import com.example.kpkn.data.repository.SessionTemplateRepository
 import com.example.kpkn.domain.training.CatalogCompositionTestSupport
 import com.example.kpkn.domain.training.PlanMaterializer
 import kotlinx.coroutines.Dispatchers
@@ -71,8 +69,6 @@ class SessionEditorManualOverrideTest {
 
     private val dispatcher = UnconfinedTestDispatcher()
     private lateinit var repository: ProgramRepository
-    private val viewModelStore = ViewModelStore()
-    private var nextViewModelKey = 0
 
     companion object {
         @BeforeClass
@@ -86,12 +82,8 @@ class SessionEditorManualOverrideTest {
     fun setup() = runBlocking {
         Dispatchers.setMain(dispatcher)
         val context = ApplicationProvider.getApplicationContext<Context>()
-        // El repositorio de plantillas del editor es un singleton: que no llegue vivo desde otra prueba.
-        SessionTemplateRepository.resetForTests()
         ProgramRepository.initForTests(context)
         repository = ProgramRepository.getInstance()
-        // Y que lea la base en memoria de ESTA prueba, no el kpkn.db del disco.
-        setDatabaseSingletonForTest(repository.databaseForTests())
         repository.clearPrograms()
         repository.clearActiveProgram()
         repository.clearOngoingWorkout()
@@ -102,22 +94,9 @@ class SessionEditorManualOverrideTest {
 
     @After
     fun tearDown() {
-        try {
-            // Primero los editores (cancela su viewModelScope), luego el repositorio de plantillas y al final la base.
-            viewModelStore.clear()
-            SessionTemplateRepository.resetForTests()
-            ProgramRepository.closeInstance()
-        } finally {
-            setDatabaseSingletonForTest(null)
-            runCatching { com.example.kpkn.data.db.KpknDatabase.closeInstance() }
-            Dispatchers.resetMain()
-        }
-    }
-
-    private fun setDatabaseSingletonForTest(database: com.example.kpkn.data.db.KpknDatabase?) {
-        com.example.kpkn.data.db.KpknDatabase::class.java.getDeclaredField("INSTANCE").apply {
-            isAccessible = true
-        }.set(null, database)
+        ProgramRepository.closeInstance()
+        runCatching { com.example.kpkn.data.db.KpknDatabase.closeInstance() }
+        Dispatchers.resetMain()
     }
 
     /** Identidad materializada §14.4 para la semana 1 / ocurrencia 1 / ciclo 1. */
@@ -209,7 +188,6 @@ class SessionEditorManualOverrideTest {
         ),
     )
 
-    /** Cada editor va al store de la prueba: [tearDown] lo limpia antes de cerrar la base. */
     private fun createViewModel(programId: String, sessionId: String): SessionEditorViewModel =
         SessionEditorViewModel(
             application = ApplicationProvider.getApplicationContext<Application>(),
@@ -219,7 +197,7 @@ class SessionEditorManualOverrideTest {
             draftMacroIndex = 0,
             draftMesoIndex = 0,
             draftDayOfWeek = null,
-        ).also { viewModel -> viewModelStore.put("session-editor-${nextViewModelKey++}", viewModel) }
+        )
 
     private suspend fun awaitSession(vm: SessionEditorViewModel) = vm.awaitSessionLoaded()
 

@@ -58,6 +58,9 @@ import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
+import com.example.kpkn.ui.components.rings.KpknRingColors
+import com.example.kpkn.ui.components.rings.KpknTowerRings
+import com.example.kpkn.ui.components.rings.TowerRingValues
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.text.font.FontWeight
@@ -73,6 +76,85 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import com.example.kpkn.ui.components.KpknAlertDialog
 import com.example.kpkn.ui.components.KpknDropdownMenu
+
+@Composable
+internal fun CompactRestBundleButton(
+    primaryLabel: String,
+    primarySeconds: Int,
+    sideSeconds: Int?,
+    accentColor: Color,
+    modifier: Modifier = Modifier,
+    accentTinted: Boolean = false,
+    onConfirm: (Int, Int?) -> Unit,
+) {
+    var showPicker by remember { mutableStateOf(false) }
+    val summary = if (sideSeconds != null) {
+        "$primaryLabel ${formatRestSummary(primarySeconds)} · Lados ${formatRestSummary(sideSeconds)}"
+    } else {
+        "$primaryLabel ${formatRestSummary(primarySeconds)}"
+    }
+    Surface(
+        modifier = modifier
+            .height(48.dp)
+            .clip(RoundedCornerShape(999.dp))
+            .clickable { showPicker = true },
+        shape = RoundedCornerShape(999.dp),
+        color = if (accentTinted) accentColor.copy(alpha = 0.15f) else DarkEditorChip,
+        border = if (accentTinted) BorderStroke(1.dp, accentColor.copy(alpha = 0.35f)) else null,
+    ) {
+        Row(
+            modifier = Modifier
+                .then(if (accentTinted) Modifier.fillMaxWidth() else Modifier)
+                .padding(horizontal = 12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
+        ) {
+            Icon(Icons.Default.Timer, contentDescription = "Configurar descansos", tint = if (accentTinted) accentColor else Color.White, modifier = Modifier.size(18.dp))
+            Text(
+                summary,
+                style = MaterialTheme.typography.labelMedium,
+                fontWeight = FontWeight.Bold,
+                color = if (accentTinted) accentColor else Color.White,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                modifier = if (accentTinted) Modifier.weight(1f, fill = false) else Modifier,
+            )
+        }
+    }
+
+    if (showPicker) {
+        RestBundleDialog(
+            primaryLabel = primaryLabel,
+            initialPrimarySeconds = primarySeconds,
+            initialSideSeconds = sideSeconds,
+            accentColor = accentColor,
+            onDismiss = { showPicker = false },
+            onConfirm = { primary, side ->
+                onConfirm(primary, side)
+                showPicker = false
+            },
+        )
+    }
+}
+
+@Composable
+internal fun RestBundleDialog(
+    primaryLabel: String,
+    initialPrimarySeconds: Int,
+    initialSideSeconds: Int?,
+    accentColor: Color,
+    onDismiss: () -> Unit,
+    onConfirm: (Int, Int?) -> Unit,
+) {
+    com.example.kpkn.ui.components.KpknRestPickerChain(
+        primaryTitle = primaryLabel,
+        primarySeconds = initialPrimarySeconds,
+        secondaryTitle = initialSideSeconds?.let { "Descanso entre lados" },
+        secondarySeconds = initialSideSeconds,
+        onConfirm = { primary, side -> onConfirm(primary, side) },
+        onDismiss = onDismiss,
+    )
+}
 
 @Composable
 internal fun CompactRestPickerButton(
@@ -388,10 +470,8 @@ internal fun ExerciseSetsCarousel(
             }
     }
 
-    // SE11: ancho real del carrusel; la tarjeta de serie se ajusta a él (ver setCardWidth).
-    var carouselWidthPx by remember { mutableStateOf(0) }
     Column(
-        modifier = modifier.fillMaxWidth().onSizeChanged { carouselWidthPx = it.width },
+        modifier = modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         val showUnilateralDualCards = exercise.isEffectivelyUnilateral()
@@ -402,8 +482,6 @@ internal fun ExerciseSetsCarousel(
         val baseHeight = if (showUnilateralDualCards) 460.dp else 278.dp
         val expandedHeight = if (showUnilateralDualCards) 580.dp else 400.dp
         val density = LocalDensity.current
-        // SE11: la tarjeta de serie cabe en el carrusel (dejando 40 dp para ver la siguiente) y no pasa de 320 dp.
-        val setCardWidth = if (carouselWidthPx > 0) (with(density) { carouselWidthPx.toDp() } - 40.dp).coerceIn(264.dp, 320.dp) else 264.dp
         var setCardTotalHeight by remember { mutableStateOf(220.dp) }
         // Carousel using LazyRow
         LazyRow(
@@ -429,7 +507,7 @@ internal fun ExerciseSetsCarousel(
 
                     Box(
                         modifier = Modifier
-                            .width(setCardWidth)
+                            .width(264.dp)
                         .then(if (showUnilateralDualCards) Modifier.fillMaxHeight() else Modifier)
                         .onSizeChanged { size ->
                             if (!showUnilateralDualCards && size.height > 0) {
@@ -543,7 +621,7 @@ internal fun ExerciseSetsCarousel(
             item("add-set") {
                 Box(
                     modifier = Modifier
-                        .width(setCardWidth)
+                        .width(264.dp)
                         .then(if (showUnilateralDualCards) Modifier.fillMaxHeight() else Modifier.height(setCardTotalHeight))
                         .padding(end = 16.dp),
                     contentAlignment = Alignment.Center,
@@ -629,6 +707,73 @@ internal fun UnilateralAddGhostCard(
                 )
             }
         }
+    }
+}
+
+@Composable
+internal fun EstimatedRingsRow(
+    energy: Int,
+    spine: Int,
+) {
+    SessionEstimatedRings(
+        energyDrain = (100 - energy).coerceIn(0, 100),
+        spineDrain = (100 - spine).coerceIn(0, 100),
+        muscleDrain = 0,
+    )
+}
+
+/**
+ * Drenaje estimado de la sesión en la torre de tres anillos del logo (mismos canales que los anillos en vivo).
+ * El relleno es el coste previsto de cada canal; sin animación, porque cambia en cada edición de la sesión.
+ */
+@Composable
+internal fun SessionEstimatedRings(
+    energyDrain: Int,
+    spineDrain: Int,
+    muscleDrain: Int,
+    modifier: Modifier = Modifier,
+) {
+    val muscleColor = KpknRingColors.musculos
+    val energyColor = KpknRingColors.energia
+    val spineColor = KpknRingColors.columna
+
+    Column(
+        modifier = modifier.fillMaxWidth(),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(18.dp),
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(176.dp),
+            contentAlignment = Alignment.Center,
+        ) {
+            KpknTowerRings(
+                values = TowerRingValues(
+                    columna = spineDrain.coerceIn(0, 100),
+                    musculos = muscleDrain.coerceIn(0, 100),
+                    energia = energyDrain.coerceIn(0, 100),
+                ),
+                modifier = Modifier.fillMaxSize(),
+                animate = false,
+            )
+        }
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceEvenly,
+        ) {
+            RingCaption("MÚSCULOS", muscleDrain.coerceIn(0, 100), muscleColor)
+            RingCaption("ENERGÍA", energyDrain.coerceIn(0, 100), energyColor)
+            RingCaption("COLUMNA", spineDrain.coerceIn(0, 100), spineColor)
+        }
+    }
+}
+
+@Composable
+private fun RingCaption(label: String, pct: Int, color: Color) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Text(label, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Black, color = color)
+        Text("$pct%", style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold, color = Color.White.copy(alpha = 0.85f))
     }
 }
 
