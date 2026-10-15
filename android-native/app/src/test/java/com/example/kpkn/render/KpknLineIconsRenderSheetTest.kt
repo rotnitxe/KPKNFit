@@ -91,7 +91,7 @@ class KpknLineIconsRenderSheetTest {
         "Moon" to KpknLineIcons.Moon,
     )
 
-    /** El set completo, en el orden de la lista del documento de diseño (§4). */
+    /** El set completo, en el orden de la lista del documento de diseño (§4), y al final los del reproductor de técnica (VT7a). */
     private val todos: List<Pair<String, ImageVector>> = listOf(
         "Home" to KpknLineIcons.Home,
         "Training" to KpknLineIcons.Training,
@@ -122,6 +122,9 @@ class KpknLineIconsRenderSheetTest {
         "Apple" to KpknLineIcons.Apple,
         "Moon" to KpknLineIcons.Moon,
         "Tower" to KpknLineIcons.Tower,
+        "FrameBack" to KpknLineIcons.FrameBack,
+        "FrameForward" to KpknLineIcons.FrameForward,
+        "Target" to KpknLineIcons.Target,
     )
 
     private fun guardar(etiqueta: String, nombre: String) {
