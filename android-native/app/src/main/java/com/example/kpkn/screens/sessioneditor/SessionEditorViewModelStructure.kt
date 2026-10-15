@@ -577,12 +577,13 @@ fun SessionEditorViewModel.applyRuleDefaultsToSession(partId: String? = null): A
     val state = currentUiState
     val target = state.activeVariantSession ?: return ApplyRulesOutcome.NoChanges
     val defaults = getRuleDefaultsForPart(partId)
+    // ER2c: como `updateSession`, un cambio de %RM que haga la regla recalcula su carga con `rmSetLoadKg` (SessionEditorRmLoads.kt).
     val transformedTarget = SessionEditorRulesEngine.applyDefaults(
         session = target,
         defaults = defaults,
         partId = partId,
         exerciseIndex = exerciseIndex,
-    )
+    ).withExplicitRmLoads(target)
     val outcome = SessionEditorRulesEngine.evaluateApply(
         session = target,
         defaults = defaults,

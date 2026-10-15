@@ -9,7 +9,6 @@ import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.models.TrainingMode
 import com.example.kpkn.data.models.UnilateralTarget
 import com.example.kpkn.data.models.isEffectivelyUnilateral
-import com.example.kpkn.domain.calculations.calculateSuggestedLoad
 import com.example.kpkn.domain.calculations.suggestRestSeconds
 import com.example.kpkn.domain.training.VolumeCalculator
 import java.util.UUID
@@ -443,8 +442,8 @@ object SessionEditorRulesEngine {
                 }
             }
         }
-        val autoWeight = calculateSuggestedLoad(exercise, normalized)
-        return normalized.copy(weight = autoWeight ?: normalized.weight)
+        // ER2c: la carga la fija `normalizedLoadKg` (SessionEditorSessionHelpers), la misma que usa `normalizeSet`. En %RM manda la guardada.
+        return normalized.copy(weight = set.normalizedLoadKg(exercise, normalized))
     }
 }
 

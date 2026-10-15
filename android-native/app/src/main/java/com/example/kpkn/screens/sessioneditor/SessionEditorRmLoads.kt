@@ -26,8 +26,8 @@ internal fun rmSetLoadKg(exercise: Exercise, set: ExerciseSet): Double? {
 }
 
 /**
- * Recalcula la carga de las series en %RM cuando la persona cambia el %RM de una serie, la referencia del ejercicio (su 1RM o su
- * carga inteligente) o pasa el ejercicio a RM. Es el único camino del editor que escribe una carga RM con datos nuevos: normalizar no
+ * Recalcula la carga de las series en %RM cuando cambia el %RM de una serie (la persona, o una regla al aplicarse), la referencia del
+ * ejercicio (su 1RM o su carga inteligente) o pasa el ejercicio a RM. Es el único camino del editor que escribe una carga RM con datos nuevos: normalizar no
  * la toca (ver `normalizeSet`). Las series nuevas no entran: `createNextSetTemplate` les quita la carga copiada y `normalizeSet` la
  * calcula con su propio %RM.
  */
