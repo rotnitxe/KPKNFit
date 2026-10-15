@@ -1,6 +1,7 @@
 package com.example.kpkn.screens.sessioneditor.components
 
 import com.example.kpkn.screens.sessioneditor.design.sessionEnter
+import com.example.kpkn.screens.sessioneditor.rememberEditableNumber
 import com.example.kpkn.screens.sessioneditor.design.sessionExit
 
 import androidx.compose.animation.AnimatedVisibility
@@ -124,7 +125,8 @@ internal fun ExerciseEditorCard(
     val resolved1RM = remember(exercise.trainingMode, exercise.reference1RM, exercise.prFor1RM) {
         resolveReferenceCapacity(exercise)
     }
-    var goalRmInput by rememberSaveable(exercise.id) { mutableStateOf<String>(formatEditableNumber(exercise.goal1RM)) }
+    // SE11: el texto de la meta lo escribe la persona; el modelo solo lo corrige si cambia por fuera.
+    var goalRmInput by rememberEditableNumber(exercise.id, exercise.goal1RM)
     var customUnitInput by rememberSaveable(exercise.id) { mutableStateOf(exercise.customUnit.orEmpty()) }
     val accent = remember(accentHex) { resolvePartAccent(accentHex) }
     val coverAccent = remember(coverAccentHex, accentHex) {
@@ -143,9 +145,6 @@ internal fun ExerciseEditorCard(
             .takeIf { it.isNotBlank() }
     }
 
-    LaunchedEffect(exercise.id, exercise.goal1RM) {
-        goalRmInput = formatEditableNumber(exercise.goal1RM)
-    }
     LaunchedEffect(autoExpand) {
         if (autoExpand) { expanded = true; onAutoExpandHandled() }
     }

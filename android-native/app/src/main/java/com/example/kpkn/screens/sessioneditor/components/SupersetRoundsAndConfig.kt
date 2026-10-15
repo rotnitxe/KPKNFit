@@ -71,6 +71,7 @@ import com.example.kpkn.screens.sessioneditor.DarkEditorChip
 import com.example.kpkn.screens.sessioneditor.DarkEditorSurfaceSoft
 import com.example.kpkn.screens.sessioneditor.DarkChoiceChip
 import com.example.kpkn.screens.sessioneditor.EditorMiniField
+import com.example.kpkn.screens.sessioneditor.rememberEditableNumber
 import com.example.kpkn.screens.sessioneditor.CompactModeSelector
 import com.example.kpkn.screens.sessioneditor.formatEditableNumber
 import com.example.kpkn.screens.sessioneditor.formatExerciseConfigSummary
@@ -251,9 +252,10 @@ internal fun SupersetSmartLoadDialog(
     onDismiss: () -> Unit,
 ) {
     var rmInputMode by remember(exercise.id, exercise.prFor1RM) { mutableStateOf(if (exercise.prFor1RM != null) "pr" else "direct") }
-    var directRmInput by rememberSaveable(exercise.id, exercise.reference1RM) { mutableStateOf(formatEditableNumber(exercise.reference1RM)) }
-    var prWeightInput by rememberSaveable(exercise.id, exercise.prFor1RM) { mutableStateOf(formatEditableNumber(exercise.prFor1RM?.weight)) }
-    var prRepsInput by rememberSaveable(exercise.id, exercise.prFor1RM) { mutableStateOf(exercise.prFor1RM?.reps?.takeIf { it > 0 }?.toString().orEmpty()) }
+    // SE11: el texto de cada campo lo escribe la persona; el modelo solo lo corrige si cambia por fuera.
+    var directRmInput by rememberEditableNumber(exercise.id, exercise.reference1RM)
+    var prWeightInput by rememberEditableNumber(exercise.id, exercise.prFor1RM?.weight)
+    var prRepsInput by rememberEditableNumber(exercise.id, exercise.prFor1RM?.reps?.takeIf { it > 0 }?.toDouble())
     KpknAlertDialog(
         onDismissRequest = onDismiss,
         title = { Text("Carga inteligente", fontWeight = FontWeight.Black) },
@@ -312,7 +314,7 @@ internal fun SupersetGoalDialog(
     onUpdateExercise: ((Exercise) -> Exercise) -> Unit,
     onDismiss: () -> Unit,
 ) {
-    var goalRmInput by rememberSaveable(exercise.id, exercise.goal1RM) { mutableStateOf(formatEditableNumber(exercise.goal1RM)) }
+    var goalRmInput by rememberEditableNumber(exercise.id, exercise.goal1RM)
     KpknAlertDialog(
         onDismissRequest = onDismiss,
         title = { Text("Meta", fontWeight = FontWeight.Black) },
