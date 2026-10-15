@@ -1,18 +1,12 @@
 package com.example.kpkn.screens.sessioneditor.components
 
-import android.graphics.Color as AndroidColor
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.combinedClickable
-import androidx.compose.ui.hapticfeedback.HapticFeedbackType
-import androidx.compose.ui.platform.LocalHapticFeedback
-import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -26,17 +20,11 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.DragHandle
 import androidx.compose.material.icons.filled.FitnessCenter
-import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.Link
 import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material.icons.filled.Star
-import androidx.compose.material.icons.filled.StarBorder
-import androidx.compose.material.icons.filled.SwapHoriz
-import androidx.compose.material3.AssistChip
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -45,62 +33,45 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.MutableState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Rect
-import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.layout.boundsInWindow
-import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.zIndex
 import com.example.kpkn.data.models.*
-import com.example.kpkn.domain.calculations.calculateEstimatedMetric
+import com.example.kpkn.domain.calculations.calculateHybrid1RM
 import com.example.kpkn.domain.calculations.calculateGeneralizedCapacity
 import com.example.kpkn.domain.exercises.*
-import com.example.kpkn.domain.calculations.calculateHybrid1RM
-import com.example.kpkn.domain.calculations.calculateSuggestedLoad
-import com.example.kpkn.domain.calculations.resolveReferenceCapacity
-import com.example.kpkn.screens.sessioneditor.PART_COLORS
-import com.example.kpkn.screens.sessioneditor.resolvePartAccent
-import com.example.kpkn.screens.sessioneditor.exerciseCardBrush
-import com.example.kpkn.screens.sessioneditor.DarkEditorSurfaceSoft
-import com.example.kpkn.screens.sessioneditor.DarkChoiceChip
-import com.example.kpkn.screens.sessioneditor.EditorMiniField
+import com.example.kpkn.domain.workout.warmupValidationMessages
+import com.example.kpkn.screens.onboarding.design.WizardColors
 import com.example.kpkn.screens.sessioneditor.CompactModeSelector
 import com.example.kpkn.screens.sessioneditor.CompactRestBundleButton
-import com.example.kpkn.screens.sessioneditor.SideOrderChip
+import com.example.kpkn.screens.sessioneditor.DarkChoiceChip
+import com.example.kpkn.screens.sessioneditor.DarkEditorSurfaceSoft
+import com.example.kpkn.screens.sessioneditor.EditorMiniField
 import com.example.kpkn.screens.sessioneditor.ExerciseSetsCarousel
+import com.example.kpkn.screens.sessioneditor.SideOrderChip
 import com.example.kpkn.screens.sessioneditor.formatEditableNumber
 import com.example.kpkn.screens.sessioneditor.rememberEditableNumber
-import com.example.kpkn.screens.sessioneditor.formatRestSummary
-import com.example.kpkn.screens.sessioneditor.formatExerciseCollapsedSummary
-import com.example.kpkn.screens.sessioneditor.trainingModeLabel
-import com.example.kpkn.screens.sessioneditor.safeIntOrNull
 import com.example.kpkn.screens.sessioneditor.safeDoubleOrNull
+import com.example.kpkn.screens.sessioneditor.safeIntOrNull
 import com.example.kpkn.screens.sessioneditor.toggledBilateralUnilateral
+import com.example.kpkn.screens.sessioneditor.trainingModeLabel
 import com.example.kpkn.ui.components.KpknDropdownMenu
-import com.example.kpkn.ui.components.SwipeToDeleteCard
-import com.example.kpkn.domain.workout.warmupValidationMessages
+import com.example.kpkn.ui.design.KpknModule
+import com.example.kpkn.ui.design.KpknType
+import com.example.kpkn.ui.design.KpknSurface
 import java.util.UUID
-import androidx.compose.runtime.setValue
-import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.getValue
 
 /**
  * Estado del ejercicio que sobrevive a plegar y desplegar: los bloques de movilidad y aproximación, la entrada de RM, el descanso, el menú
@@ -245,36 +216,20 @@ internal fun ExerciseEditorExpanded(
                 )
             }
             if (exercise.cardioDetails == null) {
-                InlineEditorBlock(
-                    title = "MOVILIDAD",
-                    summary = if (exercise.mobilitySeries.isEmpty()) {
-                        "Sin series asociadas"
-                    } else {
-                        "${exercise.mobilitySeries.size} movimiento${if (exercise.mobilitySeries.size == 1) "" else "s"}"
-                    },
-                    expanded = mobilityBlockExpanded,
-                    accentColor = accentColor,
-                    onToggle = { mobilityBlockExpanded = !mobilityBlockExpanded },
-                ) {
-                    if (exercise.mobilitySeries.isEmpty()) {
-                        TextButton(
-                            onClick = onOpenMobility,
-                            colors = androidx.compose.material3.ButtonDefaults.textButtonColors(contentColor = accentColor),
-                        ) { Text("+ Agregar movilidad") }
-                    } else {
-                        MobilityPreparationCarousel(
+                // R1 §4.1: movilidad y aproximación a la vista, en su orden. Con contenido, cada una es un bloque plegable con su
+                // contador; lo que falta sigue como píldora punteada debajo, para no tener que buscarlo.
+                val hasMobility = exercise.mobilitySeries.isNotEmpty()
+                val hasWarmup = exercise.warmupSets.isNotEmpty()
+                if (hasMobility) {
+                    PreparationBlock(
+                        title = "MOVILIDAD",
+                        count = exercise.mobilitySeries.size,
+                        expanded = mobilityBlockExpanded,
+                        onToggle = { mobilityBlockExpanded = !mobilityBlockExpanded },
+                    ) {
+                        MobilityPreparationRows(
                             series = exercise.mobilitySeries,
                             mobilityConfig = exercise.mobilityConfig,
-                            accentColor = accentColor,
-                            onUpdate = { mobilityId, transform ->
-                                onUpdateExercise { current ->
-                                    current.copy(
-                                        mobilitySeries = current.mobilitySeries.map { mobility ->
-                                            if (mobility.id == mobilityId) transform(mobility) else mobility
-                                        },
-                                    )
-                                }
-                            },
                             onUpdateConfig = { config ->
                                 onUpdateExercise { current -> current.copy(mobilityConfig = config) }
                             },
@@ -283,39 +238,15 @@ internal fun ExerciseEditorExpanded(
                         )
                     }
                 }
-
-                val warmupWarnings = warmupValidationMessages(exercise.warmupSets, exercise.sets.size)
-                InlineEditorBlock(
-                    title = "APROXIMACIÓN",
-                    summary = if (exercise.warmupSets.isEmpty()) {
-                        "Sin series de aproximación"
-                    } else {
-                        "${exercise.warmupSets.size} serie${if (exercise.warmupSets.size == 1) "" else "s"}"
-                    },
-                    expanded = warmupBlockExpanded,
-                    accentColor = accentColor,
-                    onToggle = { warmupBlockExpanded = !warmupBlockExpanded },
-                ) {
-                    if (exercise.warmupSets.isEmpty()) {
-                        TextButton(
-                            onClick = {
-                                onUpdateExercise { current ->
-                                    current.copy(
-                                        warmupSets = listOf(
-                                            WarmupSetDefinition(
-                                                id = UUID.randomUUID().toString(),
-                                                percentageOfWorkingWeight = 0.5,
-                                                targetReps = 8,
-                                                restBetween = 60,
-                                            ),
-                                        ),
-                                    )
-                                }
-                            },
-                            colors = androidx.compose.material3.ButtonDefaults.textButtonColors(contentColor = accentColor),
-                        ) { Text("+ Añadir aproximación") }
-                    } else {
-                        WarmupPreparationCarousel(
+                if (hasWarmup) {
+                    val warmupWarnings = warmupValidationMessages(exercise.warmupSets, exercise.sets.size)
+                    PreparationBlock(
+                        title = "APROXIMACIÓN",
+                        count = exercise.warmupSets.size,
+                        expanded = warmupBlockExpanded,
+                        onToggle = { warmupBlockExpanded = !warmupBlockExpanded },
+                    ) {
+                        WarmupPreparationRows(
                             sets = exercise.warmupSets,
                             resolved1RM = resolved1RM,
                             accentColor = accentColor,
@@ -333,31 +264,35 @@ internal fun ExerciseEditorExpanded(
                                     current.copy(warmupSets = current.warmupSets.filterNot { it.id == warmupId })
                                 }
                             },
-                            onAdd = {
-                                onUpdateExercise { current ->
-                                    val previous = current.warmupSets.lastOrNull()
-                                    current.copy(
-                                        warmupSets = current.warmupSets + WarmupSetDefinition(
-                                            id = UUID.randomUUID().toString(),
-                                            percentageOfWorkingWeight = (
-                                                normalizeWarmupPercentageForEditor(previous?.percentageOfWorkingWeight ?: 0.5) + 0.1
-                                            ).coerceAtMost(0.9),
-                                            // As the load moves toward the working RM, the next
-                                            // approximation also becomes shorter. Keep one
-                                            // repetition as the safe floor when the previous card
-                                            // is already minimal.
-                                            targetReps = (previous?.targetReps?.minus(2) ?: 6).coerceAtLeast(1),
-                                            restBetween = previous?.restBetween ?: 60,
-                                        ),
-                                    )
-                                }
-                            },
+                            onAdd = { onAddWarmup(onUpdateExercise) },
                         )
-                    }
-                    warmupWarnings.forEach { warning ->
-                        Text(warning, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.error)
+                        warmupWarnings.forEach { warning ->
+                            Text(warning, style = KpknType.caption, color = WizardColors.danger)
+                        }
                     }
                 }
+                if (!hasMobility || !hasWarmup) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        if (!hasMobility) {
+                            PreparationDashedPill(
+                                text = "+ Movilidad",
+                                onClick = onOpenMobility,
+                                modifier = Modifier.weight(1f),
+                            )
+                        }
+                        if (!hasWarmup) {
+                            PreparationDashedPill(
+                                text = "+ Aproximación",
+                                onClick = { onAddWarmup(onUpdateExercise) },
+                                modifier = Modifier.weight(1f),
+                            )
+                        }
+                    }
+                }
+            }
 
             Text(
                 "SERIES EFECTIVAS",
@@ -711,47 +646,85 @@ internal fun ExerciseEditorExpanded(
     }
 }
 
+/** Alta de la primera aproximación (R1 §4.1): 50 %, 8 reps y 60 s, como el original. Las siguientes suben el 10 % y bajan 2 reps. */
+private fun onAddWarmup(onUpdateExercise: ((Exercise) -> Exercise) -> Unit) {
+    onUpdateExercise { current ->
+        val previous = current.warmupSets.lastOrNull()
+        if (previous == null) {
+            current.copy(
+                warmupSets = listOf(
+                    WarmupSetDefinition(
+                        id = UUID.randomUUID().toString(),
+                        percentageOfWorkingWeight = 0.5,
+                        targetReps = 8,
+                        restBetween = 60,
+                    ),
+                ),
+            )
+        } else {
+            current.copy(
+                warmupSets = current.warmupSets + WarmupSetDefinition(
+                    id = UUID.randomUUID().toString(),
+                    percentageOfWorkingWeight = (
+                        normalizeWarmupPercentageForEditor(previous.percentageOfWorkingWeight) + 0.1
+                    ).coerceAtMost(0.9),
+                    // As the load moves toward the working RM, the next
+                    // approximation also becomes shorter. Keep one
+                    // repetition as the safe floor when the previous card
+                    // is already minimal.
+                    targetReps = (previous.targetReps - 2).coerceAtLeast(1),
+                    restBetween = previous.restBetween ?: 60,
+                ),
+            )
+        }
+    }
+}
+
 private fun normalizeWarmupPercentageForEditor(rawPercentage: Double): Double {
     val asFraction = if (rawPercentage > 1.0) rawPercentage / 100.0 else rawPercentage
     return asFraction.coerceIn(0.1, 0.95)
 }
 
+/** Bloque plegable de la preparación (R1 §4.1): la ceja con su contador («APROXIMACIÓN · 3») y, desplegado, sus filas. */
 @Composable
-private fun InlineEditorBlock(
+private fun PreparationBlock(
     title: String,
-    summary: String,
+    count: Int,
     expanded: Boolean,
-    accentColor: Color,
     onToggle: () -> Unit,
-    content: @Composable () -> Unit,
+    content: @Composable ColumnScope.() -> Unit,
 ) {
-    Surface(
+    KpknModule(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(14.dp),
-        color = accentColor.copy(alpha = 0.07f),
-        border = BorderStroke(1.dp, accentColor.copy(alpha = if (expanded) 0.34f else 0.18f)),
+        contentPadding = PaddingValues(horizontal = 14.dp, vertical = 12.dp),
     ) {
-        Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 9.dp)) {
-            Row(
-                modifier = Modifier.fillMaxWidth().clickable(onClick = onToggle),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                Text(title, fontWeight = FontWeight.Black, color = accentColor, style = MaterialTheme.typography.labelSmall)
-                Text(summary, modifier = Modifier.weight(1f), style = MaterialTheme.typography.labelSmall, color = Color.White.copy(alpha = 0.66f), maxLines = 1, overflow = TextOverflow.Ellipsis)
-                Icon(
-                    imageVector = if (expanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
-                    contentDescription = if (expanded) "Plegar $title" else "Desplegar $title",
-                    tint = Color.White.copy(alpha = 0.72f),
-                    modifier = Modifier.size(18.dp),
-                )
-            }
-            AnimatedVisibility(visible = expanded) {
-                Column(
-                    modifier = Modifier.padding(top = 8.dp),
-                    verticalArrangement = Arrangement.spacedBy(5.dp),
-                ) { content() }
-            }
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable(onClick = onToggle),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            Text(
+                "$title · $count",
+                style = KpknType.eyebrow,
+                color = WizardColors.textMuted,
+                modifier = Modifier.weight(1f),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+            Icon(
+                imageVector = if (expanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
+                contentDescription = if (expanded) "Plegar $title" else "Desplegar $title",
+                tint = WizardColors.textMuted,
+                modifier = Modifier.size(18.dp),
+            )
+        }
+        AnimatedVisibility(visible = expanded) {
+            Column(
+                modifier = Modifier.padding(top = 10.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+            ) { content() }
         }
     }
 }
