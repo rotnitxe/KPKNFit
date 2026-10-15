@@ -641,14 +641,23 @@ internal fun ExerciseSet.normalizeSet(exercise: Exercise): ExerciseSet {
             }
         }
     }
-    // ER2a: en %RM la carga guardada manda. Normalizar solo la calcula si falta, o si la serie no tenía %RM que la respalde; el
-    // cambio explícito de %RM, de referencia o a RM la recalcula en `withExplicitRmLoads` (SessionEditorRmLoads.kt).
+    return normalized.copy(weight = normalizedLoadKg(exercise, normalized))
+}
+
+/**
+ * Carga que deja normalizar una serie (ER2a y ER2c). En %RM con carga externa (sin TM), la guardada manda si hay %RM y carga > 0; si
+ * falta, la de su %RM con [rmSetLoadKg]. En el resto, la calculada, y si no hay cálculo, la que ya tenía. `this` es la serie de partida
+ * y [normalized] la ya normalizada. La comparten `normalizeSet` y el motor de reglas, para que aplicar reglas y guardar den la misma
+ * carga. El cambio explícito de %RM, de referencia o a RM la recalcula en `withExplicitRmLoads` (SessionEditorRmLoads.kt).
+ */
+internal fun ExerciseSet.normalizedLoadKg(exercise: Exercise, normalized: ExerciseSet): Double? {
+    val usesExplicitTmPercent = exercise.trainingMode == TrainingMode.RM && usesExternalTrainingMax()
     val plainRm = exercise.trainingMode == TrainingMode.RM && !usesExplicitTmPercent &&
         (normalized.loadModeV2 ?: LoadModeV2.LOAD) == LoadModeV2.LOAD
     val autoWeight = if (plainRm) rmSetLoadKg(exercise, normalized) else calculateSuggestedLoad(exercise, normalized)
     val savedRmKg = weight?.takeIf { plainRm && targetPercentageRM != null && it > 0.0 }
     val computedKg = if (usesExplicitTmPercent) autoWeight else autoWeight ?: normalized.weight
-    return normalized.copy(weight = savedRmKg ?: computedKg)
+    return savedRmKg ?: computedKg
 }
 
 internal fun createNextSetTemplate(exercise: Exercise, template: ExerciseSet): ExerciseSet {
