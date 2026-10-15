@@ -2,15 +2,20 @@ package com.example.kpkn.screens.programdetail.components
 
 import com.example.kpkn.data.models.CardioType
 import com.example.kpkn.data.models.Exercise
+import com.example.kpkn.data.models.IntensityMode
 import com.example.kpkn.data.models.LoadQuantityConvention
 import com.example.kpkn.data.models.effectiveRepRange
 import com.example.kpkn.data.protocols.LoadBasis
-import com.example.kpkn.data.protocols.PlanLoadReferenceKind
-import com.example.kpkn.data.protocols.PlanLoadReferenceState
+import com.example.kpkn.domain.training.NativeProgressionText
 import com.example.kpkn.ui.design.KpknSetFormat
-import java.util.Locale
-import kotlin.math.roundToInt
 
+/** Espacio inseparable: va delante de «%», «kg» y las unidades de tiempo («80 %», «96 kg», «45 s»). */
+private const val NBSP = " "
+
+/**
+ * Línea de dosis de un ejercicio del programa (SE12): el mismo formato que el editor («4 × 4–6 · 80 % 1RM · RIR 2 · 3:15»), con las
+ * cargas en kilos y coma decimal. Sin «total», sin «descanso» y sin «carga pendiente»: una carga que falta no se escribe.
+ */
 internal fun formatExercisePrescription(exercise: Exercise): String? {
     exercise.cardioDetails?.let { cardio ->
         val minutes = cardio.effectiveDurationSeconds().takeIf { it > 0 }?.let { "${(it + 59) / 60} min" }
@@ -36,15 +41,15 @@ internal fun formatExercisePrescription(exercise: Exercise): String? {
     val parts = mutableListOf<String>()
     dose?.let { parts += it }
 
+    // La carga: los kilos si se conocen; si no, el % con su base. Una carga pendiente no tiene dato que escribir: se omite.
     val percent = first?.targetPercentageRM
     val explicitWeight = first?.weight ?: reference?.capturedLoadKg
     val convention = first?.loadQuantityConvention
         ?.takeIf { it != LoadQuantityConvention.UNSPECIFIED }
         ?: exercise.loadQuantityConvention
     val load = when {
-        explicitWeight != null -> "${formatNumber(explicitWeight)} kg${conventionLabel(convention)}"
-        percent != null -> "${formatNumber(percent)}% ${loadBasisLabel(first?.loadBasis)}"
-        reference?.state == PlanLoadReferenceState.PENDING -> pendingReferenceLabel(reference.kind, reference.repMin, reference.repMax)
+        explicitWeight != null -> "${NativeProgressionText.formatKg(explicitWeight)}${NBSP}kg${conventionLabel(convention)}"
+        percent != null -> "${NativeProgressionText.formatKg(percent)}$NBSP%${basisLabel(first?.loadBasis)}"
         else -> null
     }
     load?.let { parts += it }
@@ -53,40 +58,32 @@ internal fun formatExercisePrescription(exercise: Exercise): String? {
     val rpe = sets.mapNotNull { it.targetRPE }.distinct().singleOrNull()
     when {
         rir != null -> parts += "RIR $rir"
-        rpe != null -> parts += "RPE ${formatNumber(rpe)}"
-        sets.any { it.isAmrap || it.intensityMode == com.example.kpkn.data.models.IntensityMode.AMRAP } -> parts += "AMRAP"
-        sets.any { it.isFailure || it.intensityMode == com.example.kpkn.data.models.IntensityMode.FAILURE } -> parts += "fallo"
+        rpe != null -> parts += "RPE ${NativeProgressionText.formatKg(rpe)}"
+        sets.any { it.isAmrap || it.intensityMode == IntensityMode.AMRAP } -> parts += "AMRAP"
+        sets.isNotEmpty() && sets.all { it.isFailure || it.intensityMode == IntensityMode.FAILURE } -> parts += "hasta el fallo"
     }
+    // El descanso va solo con su tiempo, como en el editor: «3:15» o «45 s».
     val rest = first?.restAfterSeconds ?: exercise.restTime
-    rest?.takeIf { it > 0 }?.let { parts += "descanso ${KpknSetFormat.doseTime(it)}" }
+    rest?.takeIf { it > 0 }?.let { parts += KpknSetFormat.doseTime(it) }
     if (exercise.slotRole == com.example.kpkn.data.protocols.SlotRole.SPEED) parts += "SPEED"
 
     return parts.joinToString(" · ").ifBlank { null }
 }
 
-private fun loadBasisLabel(basis: LoadBasis?): String = when (basis) {
-    LoadBasis.PERCENT_TM -> "del TM"
-    LoadBasis.PERCENT_1RM -> "del 1RM"
-    LoadBasis.PERCENT_DESIRED_MAX -> "del máximo objetivo"
-    LoadBasis.PERCENT_OF_TOP_SET -> "de la serie principal"
-    LoadBasis.RPE -> "por RPE"
-    LoadBasis.REP_MAX -> "de repeticiones máximas"
-    null -> "de base no declarada"
+/** La base del % en la línea: «80 % 1RM», «80 % TM»… Sin base declarada no se inventa ninguna. */
+private fun basisLabel(basis: LoadBasis?): String = when (basis) {
+    LoadBasis.PERCENT_TM -> " TM"
+    LoadBasis.PERCENT_1RM -> " 1RM"
+    LoadBasis.PERCENT_DESIRED_MAX -> " del máximo objetivo"
+    LoadBasis.PERCENT_OF_TOP_SET -> " de la serie principal"
+    LoadBasis.RPE -> " por RPE"
+    LoadBasis.REP_MAX -> " de repeticiones máximas"
+    null -> ""
 }
 
-private fun pendingReferenceLabel(kind: PlanLoadReferenceKind, repMin: Int?, repMax: Int?): String = when (kind) {
-    PlanLoadReferenceKind.OBSERVED_WORKING_SET -> {
-        val range = if (repMin != null && repMax != null) " · referencia $repMin–$repMax reps" else ""
-        "carga pendiente$range"
-    }
-    PlanLoadReferenceKind.EXERCISE_1RM -> "carga pendiente · referencia 1RM"
-    PlanLoadReferenceKind.EXERCISE_TM -> "carga pendiente · referencia TM"
-    PlanLoadReferenceKind.BODYWEIGHT_EXTERNAL -> "lastre/asistencia pendiente"
-}
-
+/** Lo que añade la convención de la carga. El «total» sobra: la carga ya es lo que se mueve. */
 private fun conventionLabel(convention: LoadQuantityConvention): String = when (convention) {
-    LoadQuantityConvention.UNSPECIFIED -> ""
-    LoadQuantityConvention.TOTAL_EXTERNAL -> " total"
+    LoadQuantityConvention.UNSPECIFIED, LoadQuantityConvention.TOTAL_EXTERNAL -> ""
     LoadQuantityConvention.PER_IMPLEMENT -> " por implemento"
     LoadQuantityConvention.ADDITIONAL_BODYWEIGHT -> " de lastre"
     LoadQuantityConvention.ASSISTANCE -> " de asistencia"
@@ -106,6 +103,3 @@ private fun cardioTypeLabel(type: CardioType): String = when (type) {
     CardioType.CURVED_TREADMILL -> "Cinta curva"
     CardioType.SLED -> "Trineo"
 }
-
-private fun formatNumber(value: Double): String =
-    if (value % 1.0 == 0.0) value.roundToInt().toString() else String.format(Locale.US, "%.1f", value)

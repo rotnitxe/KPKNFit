@@ -32,8 +32,8 @@ import com.example.kpkn.ui.components.KpknSheetLightChip
 import com.example.kpkn.ui.components.KpknSheetTokens
 
 private enum class CardioCatalogGroup(val title: String) {
-    INDOOR("Indoor"),
-    OUTDOOR("Outdoor"),
+    INDOOR("En interior"),
+    OUTDOOR("Al aire libre"),
     SPRINT("Sprint / potencia"),
 }
 
@@ -57,7 +57,7 @@ internal fun CardioCatalogSheet(
         )
         Text(
             if (isReplacing) "Selecciona la nueva modalidad."
-            else "Elige la máquina o el entorno. Después programas con plantillas, no con un diálogo de posición.",
+            else "Elige la máquina o el lugar. Después eliges cómo programarlo.",
             style = MaterialTheme.typography.bodySmall,
             color = Color.White.copy(alpha = 0.65f),
         )

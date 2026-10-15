@@ -608,6 +608,44 @@ object KpknLineIcons {
         )
     }
 
+    /** Alerta: círculo con signo de admiración (tipo de aviso de fallo, SE12). */
+    val Alert: ImageVector by lazy {
+        icono(
+            "KpknLine.Alert",
+            listOf(
+                CIRCULO_GRANDE,
+                "M12 7.75v5.25",
+                "M12 16.25h.01",
+            ),
+        )
+    }
+
+    /** Trofeo: copa con asas, tallo y base (tipo de aviso de logro, SE12). */
+    val Trophy: ImageVector by lazy {
+        icono(
+            "KpknLine.Trophy",
+            listOf(
+                "M8 4.75h8v4.25a4 4 0 0 1-8 0z",
+                "M8 6.75H5.75v.75a2.5 2.5 0 0 0 2.25 2.5",
+                "M16 6.75h2.25v.75a2.5 2.5 0 0 1-2.25 2.5",
+                "M12 13v5.5",
+                "M8.75 18.5h6.5",
+            ),
+        )
+    }
+
+    /** Bombilla: idea o sugerencia (tipo de aviso de sugerencia, SE12). */
+    val Bulb: ImageVector by lazy {
+        icono(
+            "KpknLine.Bulb",
+            listOf(
+                "M12 3.25a5.75 5.75 0 0 0-3.75 10.1V15.5h7.5v-2.15A5.75 5.75 0 0 0 12 3.25z",
+                "M9.75 18.5h4.5",
+                "M10.75 21h2.5",
+            ),
+        )
+    }
+
     /**
      * Construye un icono con los trazados [trazados] (cadenas SVG `d` sobre la retícula de 24). Con [relleno] se pinta
      * sólido y sin trazo; si no, en trazo de 1,75 dp con extremos y uniones redondeados.
