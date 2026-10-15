@@ -57,16 +57,17 @@ fun SessionEditorViewModel.requestSessionSwitch(
         val state = currentUiState
         if (state.session?.id == targetSessionId) return
         if (state.hasUnsavedChanges) {
-            // B4: persist (encode) en IO, no bloquear UI
-            viewModelScope.launch(Dispatchers.IO) {
-                val ok = persistRecoverableSession(state)
-                withContext(Dispatchers.Main) {
-                    if (!ok) {
-                        updateUi { it.copy(snackbarMessage = "Error al guardar el borrador de la sesión actual") }
-                        return@withContext
-                    }
-                    switchToSession(targetSessionId, targetWeekId, targetMacroIndex, targetMesoIndex)
+            // ER1a: antes de cambiar, lo pendiente se guarda en el programa. Si el cortafuegos lo bloquea, el borrador local lo conserva.
+            viewModelScope.launch {
+                flushProgramAutoSaveAndAwait()
+                val pending = currentUiState
+                val ok = !pending.hasUnsavedChanges ||
+                    withContext(Dispatchers.IO) { persistRecoverableSession(pending) }
+                if (!ok) {
+                    updateUi { it.copy(snackbarMessage = "Error al guardar el borrador de la sesión actual") }
+                    return@launch
                 }
+                switchToSession(targetSessionId, targetWeekId, targetMacroIndex, targetMesoIndex)
             }
             return
         }
@@ -89,15 +90,17 @@ fun SessionEditorViewModel.selectRoadmapDay(dayOfWeek: Int): SessionEditorSaveRe
 fun SessionEditorViewModel.createSessionForDay(dayOfWeek: Int): SessionEditorSaveResult {
     val state = currentUiState
     if (state.hasUnsavedChanges) {
-        viewModelScope.launch(Dispatchers.IO) {
-            val ok = persistRecoverableSession(state)
-            withContext(Dispatchers.Main) {
-                if (!ok) {
-                    updateUi { it.copy(snackbarMessage = "Error al guardar el borrador de la sesión actual") }
-                    return@withContext
-                }
-                completeCreateSessionForDay(dayOfWeek)
+        // ER1a: lo pendiente se guarda en el programa antes de crear la sesión del día.
+        viewModelScope.launch {
+            flushProgramAutoSaveAndAwait()
+            val pending = currentUiState
+            val ok = !pending.hasUnsavedChanges ||
+                withContext(Dispatchers.IO) { persistRecoverableSession(pending) }
+            if (!ok) {
+                updateUi { it.copy(snackbarMessage = "Error al guardar el borrador de la sesión actual") }
+                return@launch
             }
+            completeCreateSessionForDay(dayOfWeek)
         }
         return SessionEditorSaveResult(success = true, message = "")
     }
@@ -329,7 +332,12 @@ private data class SessionEditorDurableSaveAttempt(
 internal fun Session.normalizedForEditorSave(): Session =
     normalizeEditorScheduledTechniques().healLegacyCardioIdentities().normalizeSession()
 
-suspend fun SessionEditorViewModel.saveSession(scope: SessionSaveScope = SessionSaveScope.SESSION_ONLY, skipRefresh: Boolean = false): SessionEditorSaveResult {
+suspend fun SessionEditorViewModel.saveSession(
+    scope: SessionSaveScope = SessionSaveScope.SESSION_ONLY,
+    skipRefresh: Boolean = false,
+    // ER1a: el guardado automático no cierra la hoja que la persona tiene abierta.
+    autoSave: Boolean = false,
+): SessionEditorSaveResult {
     val state = currentUiState
     val rawDraft = state.session ?: return SessionEditorSaveResult(false, "No hay una sesión activa para guardar.")
     if (!state.hasMeaningfulSessionChanges()) {
@@ -372,6 +380,7 @@ suspend fun SessionEditorViewModel.saveSession(scope: SessionSaveScope = Session
             com.example.kpkn.data.exercises.catalogConfigurationDisplayNameIndex(),
         )
         if (catalogIssues.isNotEmpty()) {
+            lastGateBlockExerciseId = catalogGateBlockExerciseId(catalogIssues)
             // SE10: el detalle técnico va al log; a la persona se le explica con catalogGateBlockMessage.
             android.util.Log.w(
                 "SessionEditor",
@@ -614,7 +623,8 @@ suspend fun SessionEditorViewModel.saveSession(scope: SessionSaveScope = Session
                             updateUi {
                                 it.copy(
                                     originalSession = draft,
-                                    session = draft,
+                                    // Una edición hecha mientras se guardaba sigue en pantalla: va en la pasada siguiente.
+                                    session = if (it.session != null && it.session != rawDraft) it.session else draft,
                                     savedPartRuleDefaults = if (editorPreferencesSaved) {
                                         state.partRuleDefaults
                                     } else {
@@ -631,7 +641,7 @@ suspend fun SessionEditorViewModel.saveSession(scope: SessionSaveScope = Session
                                         it.savedRuleExtras
                                     },
                                     isNewSession = false,
-                                    sheet = SessionEditorSheet.NONE,
+                                    sheet = if (autoSave) it.sheet else SessionEditorSheet.NONE,
                                     draftBundle = it.draftBundle?.copy(
                                         sessionId = draft.id,
                                         dayOfWeek = draft.dayOfWeek,

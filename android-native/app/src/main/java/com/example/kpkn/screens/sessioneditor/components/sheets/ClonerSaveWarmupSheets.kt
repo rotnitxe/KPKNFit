@@ -118,18 +118,11 @@ internal fun SessionClonerSheet(
         ) {
             Text("Transferir", fontWeight = FontWeight.Black, fontSize = 18.sp, color = KpknSheetTokens.TitleStrong)
             Text(
-                "Los cambios quedan en borrador hasta que guardes.",
+                "Se copia ahora: al confirmar, la copia va al programa en el acto.",
                 color = KpknSheetTokens.MutedStrong,
                 style = MaterialTheme.typography.bodySmall,
             )
-            if (uiState.pendingTransferToDays != null) {
-                Text(
-                    "Pendiente: ${uiState.pendingTransferToDays.targetKeys.size} día(s) al guardar.",
-                    color = KpknSheetTokens.Body,
-                    fontWeight = FontWeight.SemiBold,
-                    style = MaterialTheme.typography.labelMedium,
-                )
-            }
+            // La copia ya no queda pendiente: se aplica al confirmar, no al guardar.
 
             // One compact toolbar row: direction + apply mode (uses horizontal space).
             Row(
@@ -279,7 +272,7 @@ internal fun SessionClonerSheet(
                     .padding(KpknSheetTokens.ContentPaddingHorizontal),
             ) {
                 KpknSheetWhiteButton(
-                    text = "Preparar transferencia",
+                    text = "Copiar ahora",
                     enabled = canSubmitClone,
                     onClick = {
                         onCloneCurrentToTargets(
@@ -352,7 +345,7 @@ internal fun SessionClonerSheet(
                     .padding(KpknSheetTokens.ContentPaddingHorizontal),
             ) {
                 KpknSheetWhiteButton(
-                    text = "Traer al borrador actual",
+                    text = "Traer ahora",
                     enabled = canSubmitImport,
                     onClick = {
                         val sourceId = selectedSourceSessionId ?: return@KpknSheetWhiteButton

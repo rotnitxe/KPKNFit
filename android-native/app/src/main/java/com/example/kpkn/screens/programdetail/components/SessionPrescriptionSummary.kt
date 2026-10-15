@@ -65,7 +65,7 @@ internal fun formatExercisePrescription(exercise: Exercise): String? {
     // El descanso va solo con su tiempo, como en el editor: «3:15» o «45 s».
     val rest = first?.restAfterSeconds ?: exercise.restTime
     rest?.takeIf { it > 0 }?.let { parts += KpknSetFormat.doseTime(it) }
-    if (exercise.slotRole == com.example.kpkn.data.protocols.SlotRole.SPEED) parts += "SPEED"
+    if (exercise.slotRole == com.example.kpkn.data.protocols.SlotRole.SPEED) parts += "Velocidad"
 
     return parts.joinToString(" · ").ifBlank { null }
 }
