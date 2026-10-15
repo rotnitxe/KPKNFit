@@ -50,6 +50,12 @@ solo conecta y remata lo que ya está.
 - La configuración de un miembro de superserie (`SupersetExerciseConfigOverlay`) usa controles compartidos que se quedaron con la piel
   vieja («Reps ▾», la estrella, «Bilateral»). Que use las mismas piezas que el ejercicio desplegado de ER1c1 (`ExerciseOptionsBar`).
 - «+ Añadir ejercicio a <grupo>» queda pegado al borde del módulo: alinéalo con el contenido (16 dp).
+- Las rondas de superserie (`SupersetRoundsAndConfig`, ER1c2) pintan las series de cada miembro con la presentación «Card» de
+  `InlineSetRow`, la vieja. Pásalas a la presentación «List» que hizo ER1c1, la misma del ejercicio desplegado.
+- La píldora punteada «+ Aproximación» de la preparación vacía (`PreparationDashedPill`, `PreparationCarouselCards.kt`) roza su borde
+  inferior al 130 %: `padding(vertical = 6.dp)`.
+- Decidido: las cifras editables van en la tipografía de `KpknNumberCell` (Inter SemiBold tabular). Syne se queda para las cifras
+  grandes que solo se leen.
 
 ## Pruebas
 - Siguen en verde: `com.example.kpkn.screens.sessioneditor.*` y `com.example.kpkn.screens.workout.*`.
