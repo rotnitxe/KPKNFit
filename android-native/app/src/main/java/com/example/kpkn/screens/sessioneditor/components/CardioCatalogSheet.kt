@@ -34,7 +34,7 @@ import com.example.kpkn.ui.components.KpknSheetTokens
 private enum class CardioCatalogGroup(val title: String) {
     INDOOR("En interior"),
     OUTDOOR("Al aire libre"),
-    SPRINT("Sprint / potencia"),
+    SPRINT("Sprint y potencia"),
 }
 
 @Composable
