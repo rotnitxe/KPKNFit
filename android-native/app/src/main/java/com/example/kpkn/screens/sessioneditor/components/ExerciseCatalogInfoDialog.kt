@@ -3,17 +3,26 @@ package com.example.kpkn.screens.sessioneditor.components
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
+import androidx.compose.animation.core.AnimationSpec
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.snap
+import androidx.compose.animation.core.spring
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -24,11 +33,15 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Icon
@@ -44,13 +57,23 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.graphics.BlendMode
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.CompositingStrategy
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import com.example.kpkn.data.exercises.ExerciseTechniqueImageVariant
 import com.example.kpkn.data.exercises.catalogv2.CanonicalKnowledge
@@ -64,18 +87,47 @@ import com.example.kpkn.screens.onboarding.design.entreno.SymbolPalette
 import com.example.kpkn.screens.onboarding.design.wizardReducedMotion
 import com.example.kpkn.ui.components.CanonicalKnowledgeOverlay
 import com.example.kpkn.ui.components.KpknSheet
-import com.example.kpkn.ui.components.PagerDots
 import com.example.kpkn.ui.components.icons.KpknLineIcons
+import com.example.kpkn.ui.components.kpknHazeEffect
 import com.example.kpkn.ui.design.KpknChip
-import com.example.kpkn.ui.design.KpknProgressBar
 import com.example.kpkn.ui.design.KpknIconButton
 import com.example.kpkn.ui.design.KpknModule
 import com.example.kpkn.ui.design.KpknPrimaryPill
+import com.example.kpkn.ui.design.KpknProgressBar
 import com.example.kpkn.ui.design.KpknShape
 import com.example.kpkn.ui.design.KpknSurface
 import com.example.kpkn.ui.design.KpknTopRow
 import com.example.kpkn.ui.design.KpknType
+import dev.chrisbanes.haze.HazeState
+import dev.chrisbanes.haze.hazeSource
 import kotlinx.coroutines.flow.collectLatest
+import kotlin.math.roundToInt
+
+/** Eje de la configuración que cambia el implemento: el mismo que mueven las páginas de la foto (CF1). */
+private const val ImplementAxis = "implement"
+
+/** Etiqueta de prueba de la fila de píldoras de implemento (CF1). */
+internal const val CatalogImplementPillsTag = "catalog_implement_pills"
+
+/** Vidrio de las píldoras: filete blanco al 12 %. */
+private val ImplementEdge = Color.White.copy(alpha = 0.12f)
+
+/** Zona táctil de cada opción (48 dp) y alto visual del vidrio dentro de ella (36 dp). */
+private val ImplementTouchHeight = 48.dp
+private val ImplementGlassHeight = 36.dp
+
+/** Margen interior de la fila y alto del indicador de tinta. */
+private val ImplementInset = 4.dp
+private val ImplementIndicatorHeight = 28.dp
+
+/** Anchura del fundido de los bordes cuando la fila se desplaza. */
+private val ImplementEdgeFade = 16.dp
+
+/** Padding horizontal del texto dentro de cada píldora (CF1). */
+private val ImplementTextPad = 12.dp
+
+/** Alto de la foto (SE6b). */
+private val CatalogPhotoHeight = 248.dp
 
 /**
  * Lo que pinta la ficha, ya resuelto por quien la abre (SE6b). Sin estado: las acciones llegan como lambdas.
@@ -140,9 +192,10 @@ internal fun ExerciseCatalogInfoDialog(
 }
 
 /**
- * Cuerpo de la ficha (SE6b): la fila superior con «Cerrar definición», las imágenes a todo el ancho con radio 20 y `PagerDots`, el nombre
- * en `title`, la línea de músculo, material y patrón en `caption`, la descripción en `body`, la configuración como módulo, los módulos
- * plegables de músculos y articulaciones, y al pie «Añadir» o «Quitar». Va suelto en los tests y en la hoja de render.
+ * Cuerpo de la ficha (SE6b): la fila superior con «Cerrar definición», la foto a todo el ancho con las píldoras de implemento encima
+ * (CF1), el nombre en `title`, la línea de músculo, material y patrón en `caption`, la descripción en `body`, la configuración como módulo
+ * (sin el eje del implemento), los módulos plegables de músculos y articulaciones, y al pie «Añadir» o «Quitar». Va suelto en los tests y
+ * en la hoja de render.
  */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -155,6 +208,9 @@ internal fun CatalogDetailContent(
     modifier: Modifier = Modifier,
     startExpanded: Boolean = false,
 ) {
+    // Los implementos van sobre la foto como píldoras (CF1); el resto de ejes sigue en «Configuración».
+    val implementOptions = model.axes.firstOrNull { it.axis == ImplementAxis }?.options.orEmpty()
+    val configAxes = model.axes.filter { it.axis != ImplementAxis }
     Column(modifier = modifier.fillMaxSize()) {
         KpknTopRow(
             onBack = null,
@@ -174,14 +230,14 @@ internal fun CatalogDetailContent(
                 .padding(horizontal = 16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
-            if (model.imageVariants.isNotEmpty()) {
+            if (model.imageVariants.isNotEmpty() || implementOptions.size > 1) {
                 CatalogExerciseImageCarousel(
                     variants = model.imageVariants,
                     selectedImplementation = model.selectedImplementation,
                     onImplementationSettled = onImplementationSettled,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(248.dp),
+                    implementOptions = implementOptions,
+                    onSelectImplementation = { value -> onSelectOption(ImplementAxis, value) },
+                    modifier = Modifier.fillMaxWidth(),
                 )
             }
             Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
@@ -207,7 +263,7 @@ internal fun CatalogDetailContent(
                     color = WizardColors.textMuted,
                 )
             }
-            if (model.axes.isNotEmpty() || model.configurationLine != null) {
+            if (configAxes.isNotEmpty() || model.configurationLine != null) {
                 KpknModule(modifier = Modifier.fillMaxWidth()) {
                     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                         Text(
@@ -215,7 +271,7 @@ internal fun CatalogDetailContent(
                             style = KpknType.bodyStrong,
                             color = WizardColors.text,
                         )
-                        model.axes.forEach { axis ->
+                        configAxes.forEach { axis ->
                             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                                 Text(
                                     text = axis.label,
@@ -270,8 +326,9 @@ internal fun CatalogDetailContent(
 }
 
 /**
- * Imágenes del ejercicio (SE6b): a todo el ancho, con radio 20 y `PagerDots` si hay varias. Desliza entre implementos y, al asentarse,
- * avisa del implemento de la página (quien la usa lo elige como hasta ahora). Sin imágenes no pinta nada.
+ * Imágenes del ejercicio (SE6b) con las píldoras de implemento encima (CF1). La foto va a todo el ancho, con radio 20; desliza entre
+ * implementos y, al asentarse, avisa del implemento de la página (quien la usa lo elige como hasta ahora). Las píldoras se ven con dos o
+ * más implementos, con foto o sin ella. Sin foto ni píldoras no pinta nada.
  */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -279,20 +336,30 @@ internal fun CatalogExerciseImageCarousel(
     variants: List<ExerciseTechniqueImageVariant>,
     selectedImplementation: String?,
     onImplementationSettled: (String) -> Unit,
+    implementOptions: List<CatalogDetailOption>,
+    onSelectImplementation: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    if (variants.isEmpty()) return
-
-    val selectedIndex = selectedCatalogImageVariantIndex(variants, selectedImplementation) ?: return
-    val pagerState = rememberPagerState(initialPage = selectedIndex) { variants.size }
+    val selectedIndex = selectedCatalogImageVariantIndex(variants, selectedImplementation)
+    val showPills = implementOptions.size > 1
+    // La foto es la fuente del desenfoque de las píldoras: el vidrio emborrona lo que hay detrás.
+    val haze = remember { HazeState() }
+    val reduced = wizardReducedMotion()
+    val pagerState = rememberPagerState(initialPage = selectedIndex ?: 0) { maxOf(variants.size, 1) }
     val currentSelectedImplementation by rememberUpdatedState(selectedImplementation)
     val currentOnImplementationSettled by rememberUpdatedState(onImplementationSettled)
+    val currentSelectedIndex by rememberUpdatedState(selectedIndex)
 
+    // Al elegir un implemento, la foto va a su página: animado, o de golpe con movimiento reducido.
     LaunchedEffect(selectedIndex) {
-        pagerState.scrollToPage(selectedIndex)
+        if (selectedIndex != null && pagerState.currentPage != selectedIndex) {
+            if (reduced) pagerState.scrollToPage(selectedIndex) else pagerState.animateScrollToPage(selectedIndex)
+        }
     }
     LaunchedEffect(pagerState, variants) {
         snapshotFlow { pagerState.settledPage }.collectLatest { page ->
+            // Sin foto para la elección no hay página que avisar: la foto no debe elegir la primera sola.
+            if (currentSelectedIndex == null) return@collectLatest
             variants.getOrNull(page)?.implementation?.let { implementation ->
                 if (implementation != currentSelectedImplementation) {
                     currentOnImplementationSettled(implementation)
@@ -301,42 +368,212 @@ internal fun CatalogExerciseImageCarousel(
         }
     }
 
-    Column(modifier = modifier) {
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .weight(1f)
-                .clip(RoundedCornerShape(20.dp))
-                .background(KpknSurface.inset),
-        ) {
-            HorizontalPager(
-                state = pagerState,
-                modifier = Modifier.fillMaxSize(),
-                userScrollEnabled = variants.size > 1,
-                pageSpacing = 0.dp,
-            ) { page ->
-                val variant = variants[page]
-                Image(
-                    painter = painterResource(variant.imageResId),
-                    contentDescription = "Ilustración del ejercicio con ${variant.label}",
+    // Lo que se ve en la foto manda sobre las píldoras: al deslizar la foto, el indicador la sigue.
+    val shownImplementation = if (selectedIndex != null) {
+        variants.getOrNull(pagerState.currentPage)?.implementation
+    } else {
+        selectedImplementation
+    }
+
+    if (selectedIndex != null) {
+        Box(modifier = modifier.height(CatalogPhotoHeight)) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .clip(RoundedCornerShape(20.dp))
+                    .background(KpknSurface.inset),
+            ) {
+                Box(modifier = Modifier.fillMaxSize().hazeSource(state = haze)) {
+                    HorizontalPager(
+                        state = pagerState,
+                        modifier = Modifier.fillMaxSize(),
+                        userScrollEnabled = variants.size > 1,
+                        pageSpacing = 0.dp,
+                    ) { page ->
+                        val variant = variants[page]
+                        Image(
+                            painter = painterResource(variant.imageResId),
+                            contentDescription = "Ilustración del ejercicio con ${variant.label}",
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(14.dp),
+                            contentScale = ContentScale.Fit,
+                        )
+                    }
+                }
+            }
+            if (showPills) {
+                // A 12 dp del borde: la zona táctil de 48 dp deja 6 dp hasta la foto, y el vidrio de 36 dp queda 6 dp más arriba.
+                CatalogImplementPills(
+                    options = implementOptions,
+                    shownValue = shownImplementation,
+                    haze = haze,
+                    onSelect = onSelectImplementation,
                     modifier = Modifier
-                        .fillMaxSize()
-                        .padding(14.dp),
-                    contentScale = ContentScale.Fit,
+                        .align(Alignment.BottomCenter)
+                        .padding(start = 12.dp, end = 12.dp, bottom = 6.dp),
                 )
             }
         }
-        if (variants.size > 1) {
-            PagerDots(
-                count = variants.size,
-                current = pagerState.currentPage,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 8.dp),
-            )
+    } else if (showPills) {
+        CatalogImplementPills(
+            options = implementOptions,
+            shownValue = shownImplementation,
+            haze = haze,
+            onSelect = onSelectImplementation,
+            modifier = modifier.padding(horizontal = 12.dp),
+        )
+    }
+}
+
+/**
+ * Píldoras de implemento (CF1): una fila de vidrio con cada opción y un indicador de tinta que se desliza hasta la elegida. El vidrio mide
+ * 36 dp de alto y cada opción tiene una zona táctil de 48. Si no caben, la fila se desplaza en horizontal con un fundido en los bordes.
+ * Con movimiento reducido, el indicador salta.
+ */
+@Composable
+private fun CatalogImplementPills(
+    options: List<CatalogDetailOption>,
+    shownValue: String?,
+    haze: HazeState,
+    onSelect: (String) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val scroll = rememberScrollState()
+    val chosen = options.indexOfFirst { it.value == shownValue }
+    val measurer = rememberTextMeasurer()
+    BoxWithConstraints(
+        modifier = modifier
+            .fillMaxWidth()
+            .height(ImplementTouchHeight)
+            .testTag(CatalogImplementPillsTag),
+    ) {
+        val density = LocalDensity.current
+        // Reparto igual cuando caben: cada opción ocupa al menos su parte de la fila. Si su texto pide más, se ensancha y la fila se desplaza.
+        val share = (maxWidth - ImplementInset * 2) / options.size
+        val widths = options.map { option ->
+            val text = measurer.measure(AnnotatedString(option.label), KpknType.chip, maxLines = 1, softWrap = false)
+            maxOf(share, with(density) { text.size.width.toDp() } + ImplementTextPad * 2)
+        }
+        // Dónde empieza y cuánto mide la elegida: se suman los anchos ya calculados, sin esperar a medir en pantalla.
+        val chosenStart = if (chosen >= 0) widths.take(chosen).fold(0.dp) { sum, width -> sum + width } else 0.dp
+        val chosenWidth = if (chosen >= 0) widths[chosen] else 0.dp
+        Box(
+            modifier = Modifier
+                .align(Alignment.Center)
+                .fillMaxWidth()
+                .height(ImplementGlassHeight)
+                .clip(KpknShape.pill)
+                .kpknHazeEffect(haze)
+                .border(1.dp, ImplementEdge, KpknShape.pill),
+        )
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = ImplementInset)
+                .horizontalScroll(scroll)
+                .scrollEdgeFade(scroll),
+        ) {
+            Box {
+                if (chosen >= 0) {
+                    ImplementIndicator(
+                        x = with(density) { chosenStart.toPx() },
+                        width = with(density) { chosenWidth.toPx() },
+                    )
+                }
+                Row(
+                    modifier = Modifier
+                        .height(ImplementTouchHeight)
+                        .selectableGroup(),
+                ) {
+                    options.forEachIndexed { index, option ->
+                        val selected = index == chosen
+                        val interaction = remember { MutableInteractionSource() }
+                        Box(
+                            modifier = Modifier
+                                .width(widths[index])
+                                .height(ImplementTouchHeight)
+                                .selectable(
+                                    selected = selected,
+                                    enabled = option.enabled,
+                                    interactionSource = interaction,
+                                    indication = null,
+                                    role = Role.Tab,
+                                    onClick = { onSelect(option.value) },
+                                ),
+                            contentAlignment = Alignment.Center,
+                        ) {
+                            Text(
+                                text = option.label,
+                                style = KpknType.chip,
+                                color = when {
+                                    selected -> WizardColors.ctaContent
+                                    option.enabled -> WizardColors.text
+                                    else -> WizardColors.textFaint
+                                },
+                                maxLines = 1,
+                                softWrap = false,
+                                overflow = TextOverflow.Ellipsis,
+                            )
+                        }
+                    }
+                }
+            }
         }
     }
 }
+
+/**
+ * Indicador de tinta de la píldora elegida (CF1): se desliza con el resorte de la casa (amortiguación 0,8, rigidez media-baja, unos
+ * 300 ms) hasta la posición medida. Con movimiento reducido salta.
+ */
+@Composable
+private fun ImplementIndicator(x: Float, width: Float) {
+    val spec: AnimationSpec<Float> = if (wizardReducedMotion()) {
+        snap()
+    } else {
+        spring(dampingRatio = 0.8f, stiffness = Spring.StiffnessMediumLow)
+    }
+    val slideX by animateFloatAsState(targetValue = x, animationSpec = spec, label = "implementSlideX")
+    val slideWidth by animateFloatAsState(targetValue = width, animationSpec = spec, label = "implementSlideWidth")
+    val density = LocalDensity.current
+    val top = with(density) { ((ImplementTouchHeight - ImplementIndicatorHeight) / 2).roundToPx() }
+    Box(
+        modifier = Modifier
+            .offset { IntOffset(slideX.roundToInt(), top) }
+            .size(width = with(density) { slideWidth.toDp() }, height = ImplementIndicatorHeight)
+            .clip(KpknShape.pill)
+            .background(WizardColors.text, KpknShape.pill),
+    )
+}
+
+/**
+ * Funde los bordes de una fila que se desplaza, solo por el lado donde aún hay contenido. Es una máscara DstIn sobre la propia fila (LR1:
+ * una fila con scroll no se corta con un borde recto).
+ */
+private fun Modifier.scrollEdgeFade(scroll: ScrollState): Modifier = this
+    .graphicsLayer { compositingStrategy = CompositingStrategy.Offscreen }
+    .drawWithContent {
+        drawContent()
+        val fadeStart = scroll.value > 0
+        val fadeEnd = scroll.value < scroll.maxValue
+        if (fadeStart || fadeEnd) {
+            val edge = (ImplementEdgeFade.toPx() / size.width).coerceIn(0f, 0.5f)
+            drawRect(
+                brush = Brush.horizontalGradient(
+                    colorStops = arrayOf(
+                        0f to (if (fadeStart) Color.Transparent else Color.Black),
+                        edge to Color.Black,
+                        (1f - edge) to Color.Black,
+                        1f to (if (fadeEnd) Color.Transparent else Color.Black),
+                    ),
+                    startX = 0f,
+                    endX = size.width,
+                ),
+                blendMode = BlendMode.DstIn,
+            )
+        }
+    }
 
 /**
  * Los módulos plegables de la ficha (SE6b): «Músculos · aporte por 1 serie» y «Articulaciones», cada uno con su cabecera tocable y un
