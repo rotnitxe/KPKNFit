@@ -247,3 +247,40 @@ SE8 cierra el editor: los pendientes que dejaron SE2 a SE7, la accesibilidad y e
 - El RPE se elige con una regla KPKN de diez marcas, por toque o arrastre, en lugar de un deslizador.
 - El cardio y los ejercicios sueltos van en un módulo sin cabecera. La fila de la parte no repite el nombre de la parte.
 - La leyenda de fatiga de las plantillas va una vez arriba de la lista, y las filas muestran solo las barras y sus cifras.
+
+## QA en el teléfono (SE9)
+
+Una ronda de teléfono sobre el `.dbg` de la fase A (`C:\kw\shots\se9\app-se9-dbg-1.apk`), con datos sembrados y borrados al final (`fin --clear-dbg`). La segunda ronda no se hizo: el teléfono se desconectó y la comprueba el coordinador con la rama integrada. Las capturas están en `C:\kw\shots\screens\se9-qa\`.
+
+| Paso | Recorrido | Capturas |
+|---|---|---|
+| 0 | Siembra y arranque del arnés | `s1_activado.png`, `s2_a.png` |
+| 1 | Permisos, avisos y calibración | `s3_b_notif.png`, `s5_d_back.png`, `s6_e_ahoranno.png`, `s7_f_entreno.png`, `s8_g_mastarde.png` |
+| 2 | Programa → sesión → editor en reposo | `s9_h_scroll.png` … `s12_k_editor_abre.png`, `s13_l_editor_scroll1.png`, `s14_m_editor_scroll2.png` |
+| 3 | Ejercicio: modo, RPE, reps, series, menú «⋯» | `s15_n_ex1_abierto.png` … `s22_t_menu_mas.png` |
+| 4 | Catálogo, ficha y ejercicio añadido | `s28_x_catalogo.png`, `s29_y_ficha.png`, `s30_y2_ver_ficha.png`, `s32_y4_anadido_1.png`, `s33_y5_lista_tras_add.png` |
+| 5 | Superserie | `s23_u_superserie_crear.png` … `s27_w2_superserie_final.png` |
+| 6 | Cardio: bloque, plantillas 30/30, gráfica y mini línea | `s34_z_cardio_espacio.png` … `s41_z8_grafica_2.png` |
+| 7 | Asistente de la sesión | `s42_aa_asistente.png`, `s43_ab_sugerencias.png`, `s44_ac_plantillas.png` |
+| 8 | Meta del ejercicio y unidad personalizada | `s50_ai_menu_zancada.png` … `s62_av_unidad_guardada.png` |
+| 9 | Reordenar arrastrando | `s63_aw_zancada_plegada.png`, `s64_ax_arrastre_plancha.png` |
+| 10 | Sesión vacía | `s65_ay_selector_sesion.png`, `s66_az_sesion_nueva.png`, `s67_ba_sesion_vacia.png` |
+| 11 | Guardar, volver, reabrir y salir sin guardar | `s68_bb_volver.png`, `s69_bc_semana_tras_volver.png`, `s71_be_editar_otra_vez.png`, `s74_bi_salir_sin_guardar.png`, `s75_bj_guardar_y_salir.png`, `s76_bk_cerrar_sin_guardar.png` |
+| 12 | Vidrio y cierres: reglas, catálogo, plan de Nutrición | `s73_bg_reglas_sesion.png`, `s28_x_catalogo.png`, `s78_bm_nutricion_plan.png`, `s79_bn_nutricion_ajustes.png` |
+
+**Arreglado** (commits sobre `b96b07b86`):
+- `cbf6ac33c`: la hoja «Modo del ejercicio» lleva margen de 16 dp; «72,5 % 1RM» con espacio inseparable; sin ejercicios, la isla y la cabecera no muestran «≈ 1 min»; «Disolver» va en tinta KPKN y no en el amarillo de Material. Pruebas: `SessionModeSheetBodyTest` (nueva) y `SessionExerciseDoseTest` (actualizada).
+- `d6c644a61`: asa visible al final de cada fila, con el mismo gesto de arrastre que la miniatura. Antes no había ninguna señal visible de que la fila se arrastra.
+- `33a6df8b9`: corrige `d6c644a61`, que añadía un `Grip` duplicado y no compilaba. El set ya tenía el asa (`KpknLineIcons.Grip`, LS4).
+- `4a251f829`: el aviso de éxito lleva la marca KPKN (`KpknLineIcons.Tower`) en lugar de ✅. Pruebas: `KpknSnackbarTest` (nueva).
+- `56c46e7c5`: «10 ×» y «15 s» con espacio inseparable en la descripción de cardio y en el aviso del asistente. Pruebas: `CardioPrescriptionFormatterTest` (actualizada) y `SessionAssistantLabelTest` (nueva).
+
+**Anotado, sin tocar:**
+- **Guardado de la sesión** (VM; lo lleva el paquete SE10): «Guardar y salir» falla con `incomplete_v2_identity (catalogRevision, catalogDefinitionId, …)` para un ejercicio añadido desde el catálogo, y el banner muestra ese mensaje técnico. Pasos: Pierna A → añadir «Aperturas Inclinadas» desde el catálogo, crear superserie y añadir cardio 30/30 → «⋯» → atrás → «Guardar y salir» (`s75`). Program Detail no refleja los cambios (`s69`, `s70`) y la barra sigue en «Sin guardar» (`s71`).
+- **Program Detail ≈ 60 min frente a ≈ 75 min del editor:** probablemente consecuencia del fallo de guardado. No se toca.
+- **«Meta del ejercicio» cierra la hoja al tocar el campo «Meta 1RM kg»:** `s51` → `s52` (el valor no queda) → `s53` (la hoja reabre vacía) → `s54` (tocar el campo la cierra). La hoja «Unidad personalizada» no hace lo mismo (`s60`). No reproducible en código sin el teléfono: la sospecha está en el arrastre y desplazamiento anidado de `KpknSheet` con el teclado, sin confirmar.
+- **Reordenar:** un `swipe` lento de 1500 ms desde «Plancha Abdominal» desplaza la lista (`s64`); `phone_run` no puede pulsar largo y arrastrar. El asa nueva es la vía visible. «Mover al final» solo mueve secciones (FUERZA, CARDIO), no ejercicios.
+- **Superserie:** el panel expandido sale atenuado y la tarjeta «Ronda 1» se corta por la derecha (`s27`). Requiere revisar la pieza compartida de la superserie.
+- **Emojis en los demás tipos de aviso:** `KpknSnackbar` sigue con ❌, 🏆 y 💡 en DANGER, ACHIEVEMENT y SUGGESTION. Es una pieza compartida; el cambio se limitó al éxito.
+
+**Pruebas de la corrida final** (`C:\kw\logs\screens-se9-5.log`): `:app:compileBaseDebugKotlin`, `:app:compileBaseDebugAndroidTestKotlin` y `:app:testBaseDebugUnitTest` con `sessioneditor.*`, `programdetail.*`, `ui.*`, `domain.cardio.*`, `domain.sessionassistant.*` y `*RegexPortability*`. BUILD SUCCESSFUL: 840 pruebas, 0 fallos, 0 errores.
