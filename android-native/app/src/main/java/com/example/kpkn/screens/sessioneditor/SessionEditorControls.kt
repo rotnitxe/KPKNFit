@@ -388,8 +388,10 @@ internal fun ExerciseSetsCarousel(
             }
     }
 
+    // SE11: ancho real del carrusel; la tarjeta de serie se ajusta a él (ver setCardWidth).
+    var carouselWidthPx by remember { mutableStateOf(0) }
     Column(
-        modifier = modifier.fillMaxWidth(),
+        modifier = modifier.fillMaxWidth().onSizeChanged { carouselWidthPx = it.width },
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         val showUnilateralDualCards = exercise.isEffectivelyUnilateral()
@@ -400,6 +402,8 @@ internal fun ExerciseSetsCarousel(
         val baseHeight = if (showUnilateralDualCards) 460.dp else 278.dp
         val expandedHeight = if (showUnilateralDualCards) 580.dp else 400.dp
         val density = LocalDensity.current
+        // SE11: la tarjeta de serie cabe en el carrusel (dejando 40 dp para ver la siguiente) y no pasa de 320 dp.
+        val setCardWidth = if (carouselWidthPx > 0) (with(density) { carouselWidthPx.toDp() } - 40.dp).coerceIn(264.dp, 320.dp) else 264.dp
         var setCardTotalHeight by remember { mutableStateOf(220.dp) }
         // Carousel using LazyRow
         LazyRow(
@@ -425,7 +429,7 @@ internal fun ExerciseSetsCarousel(
 
                     Box(
                         modifier = Modifier
-                            .width(264.dp)
+                            .width(setCardWidth)
                         .then(if (showUnilateralDualCards) Modifier.fillMaxHeight() else Modifier)
                         .onSizeChanged { size ->
                             if (!showUnilateralDualCards && size.height > 0) {
@@ -539,7 +543,7 @@ internal fun ExerciseSetsCarousel(
             item("add-set") {
                 Box(
                     modifier = Modifier
-                        .width(264.dp)
+                        .width(setCardWidth)
                         .then(if (showUnilateralDualCards) Modifier.fillMaxHeight() else Modifier.height(setCardTotalHeight))
                         .padding(end = 16.dp),
                     contentAlignment = Alignment.Center,
