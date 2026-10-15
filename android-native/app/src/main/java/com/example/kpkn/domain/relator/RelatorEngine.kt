@@ -6,6 +6,7 @@ object RelatorEngine {
         HistoryObserver,
         SessionProgressObserver,
         RestObserver,
+        SetOutcomeObserver,
         ReadinessObserver,
         TechniqueObserver,
         MilestoneObserver,

@@ -161,6 +161,28 @@ data class RelatorMilestoneSlice(
     val bestTagName: String? = null,
 )
 
+/**
+ * Serie que acaba de registrarse (LR1h): lo que hizo la persona frente a lo previsto, y la serie que sigue del mismo
+ * ejercicio. No sale de los borradores de la pantalla: durante el descanso el cursor ya está en la serie siguiente.
+ */
+data class RelatorLoggedSetSlice(
+    val setNumber: Int? = null,
+    val setTotal: Int? = null,
+    val weightKg: Double? = null,
+    val reps: Int? = null,
+    val rir: Int? = null,
+    val plannedWeightKg: Double? = null,
+    val plannedReps: Int? = null,
+    /** Máximo del rango de reps de la receta; sin rango, las reps previstas. */
+    val plannedRepsMax: Int? = null,
+    val plannedRir: Int? = null,
+    /** Serie siguiente del mismo ejercicio (1-based); null si la registrada era la última. */
+    val nextSetNumber: Int? = null,
+    val nextSetTotal: Int? = null,
+    val nextSetWeightKg: Double? = null,
+    val nextSetReps: Int? = null,
+)
+
 data class RelatorContext(
     val sessionId: String,
     val setKey: String,
@@ -203,6 +225,8 @@ data class RelatorContext(
     val coach: RelatorCoachSlice = RelatorCoachSlice(),
     val media: RelatorMediaSlice = RelatorMediaSlice(),
     val milestone: RelatorMilestoneSlice = RelatorMilestoneSlice(),
+    /** Serie que acaba de registrarse (LR1h): lo que el relator dice al empezar el descanso. */
+    val loggedSet: RelatorLoggedSetSlice = RelatorLoggedSetSlice(),
 )
 
 fun interface RelatorObserver {
