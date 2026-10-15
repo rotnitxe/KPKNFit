@@ -1,5 +1,6 @@
 package com.example.kpkn.data.repository
 
+import com.example.kpkn.testsupport.SyncRoomExecutor
 import android.app.AlarmManager
 import android.app.Application
 import android.content.Context
@@ -63,6 +64,7 @@ class NutritionRepositoryStartupTest {
 
     @Before
     fun setUp() {
+        SyncRoomExecutor.install()
         ShadowAlarmManager.reset()
         ShadowAlarmManager.setCanScheduleExactAlarms(true)
         // Singletons que pueden venir de otras pruebas: sin repositorio de programas (no arranca la previsión) y con un
@@ -82,6 +84,7 @@ class NutritionRepositoryStartupTest {
         BodyProgressRepository.closeInstance()
         KpknDatabase.closeInstance()
         ShadowAlarmManager.reset()
+        SyncRoomExecutor.uninstall()
     }
 
     // ─── Utilidades ───────────────────────────────────────────────────────

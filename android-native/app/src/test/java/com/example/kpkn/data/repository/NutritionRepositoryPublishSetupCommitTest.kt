@@ -1,5 +1,6 @@
 package com.example.kpkn.data.repository
 
+import com.example.kpkn.testsupport.SyncRoomExecutor
 import android.content.Context
 import androidx.test.core.app.ApplicationProvider
 import com.example.kpkn.data.db.KpknDatabase
@@ -42,6 +43,7 @@ class NutritionRepositoryPublishSetupCommitTest {
 
     @Before
     fun setUp() {
+        SyncRoomExecutor.install()
         // La publicación del commit usa Dispatchers.Main.immediate.
         Dispatchers.setMain(mainDispatcher)
         NutritionRepository.initForTests(ApplicationProvider.getApplicationContext<Context>())
@@ -53,6 +55,7 @@ class NutritionRepositoryPublishSetupCommitTest {
         // BodyProgressRepository abre la base de archivo: que no quede enlazada a otra prueba.
         KpknDatabase.closeInstance()
         Dispatchers.resetMain()
+        SyncRoomExecutor.uninstall()
     }
 
     private fun goal(planId: String, kcal: Int) =

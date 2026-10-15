@@ -1,5 +1,6 @@
 package com.example.kpkn.screens.onboarding
 
+import com.example.kpkn.testsupport.SyncRoomExecutor
 import android.app.Application
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModelStore
@@ -70,6 +71,7 @@ class SetupAvailabilitySeedTest {
 
     @Before
     fun setUp() {
+        SyncRoomExecutor.install()
         Dispatchers.setMain(dispatcher)
         app = ApplicationProvider.getApplicationContext()
         persistence = MemoryPersistence()
@@ -79,6 +81,7 @@ class SetupAvailabilitySeedTest {
     fun tearDown() {
         viewModels.clear()
         Dispatchers.resetMain()
+        SyncRoomExecutor.uninstall()
     }
 
     /** El material tal como lo recibe el motor para estos símbolos en estos lugares (lo único que escribe el paso). */

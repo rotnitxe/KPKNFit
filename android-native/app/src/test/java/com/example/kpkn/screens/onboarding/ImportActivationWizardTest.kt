@@ -1,5 +1,6 @@
 package com.example.kpkn.screens.onboarding
 
+import com.example.kpkn.testsupport.SyncRoomExecutor
 import android.app.Application
 import android.net.Uri
 import androidx.lifecycle.SavedStateHandle
@@ -91,6 +92,7 @@ class ImportActivationWizardTest {
 
     @Before
     fun setUp() {
+        SyncRoomExecutor.install()
         Dispatchers.setMain(dispatcher)
         app = ApplicationProvider.getApplicationContext()
         ProgramRepository.closeInstance()
@@ -109,6 +111,7 @@ class ImportActivationWizardTest {
         KpknDatabase.closeInstance()
         db.close()
         Dispatchers.resetMain()
+        SyncRoomExecutor.uninstall()
     }
 
     @Test
