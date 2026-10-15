@@ -37,8 +37,9 @@ import org.json.JSONObject
 
 /**
  * SOLO DEPURACIÓN (no se integra): banco de la técnica en vídeo. El modo se pasa con `--es mode <modo>`: `decode_selftest` (el de
- * por defecto, VT4a), `pose_bench` y `telemetry_check` (VT4b, ver [PoseBench] y [TelemetryCheck]). Con `--ez quit true` la
- * actividad se cierra al terminar el modo.
+ * por defecto, VT4a), `pose_bench` y `telemetry_check` (VT4b, ver [PoseBench] y [TelemetryCheck]) y `analyze_file` (VT4c, ver
+ * [AnalyzeFileBench]: el pipeline real sobre los vídeos de `vt-bench-in`). Con `--ez quit true` la actividad se cierra al terminar
+ * el modo.
  *
  * `decode_selftest` genera con [SyntheticClipEncoder] cuatro clips de 320×240 en `getExternalFilesDir("vt-selftest")` (30 fps,
  * 60 fps, 30 fps con `setOrientationHint(90)` y VFR con saltos de 25 y 41 ms), con un disco blanco que recorre una trayectoria
@@ -73,6 +74,7 @@ class TechniqueBenchActivity : ComponentActivity() {
         }
         if (mode == MODE_POSE_BENCH) runCatching { File(BenchLayout.resolve(this).outDir, PoseBench.BENCH_FILE).delete() }
         if (mode == MODE_TELEMETRY_CHECK) runCatching { File(BenchLayout.resolve(this).outDir, TelemetryCheck.TELEMETRY_FILE).delete() }
+        if (mode == MODE_ANALYZE_FILE) runCatching { File(BenchLayout.resolve(this).outDir, ANALYZE_FILE).delete() }
         lifecycleScope.launch(Dispatchers.Default) {
             val text = try {
                 when (mode) {
@@ -100,6 +102,18 @@ class TechniqueBenchActivity : ComponentActivity() {
                         )
                         "Listo: ${check.run()}"
                     }
+                    MODE_ANALYZE_FILE -> {
+                        val bench = AnalyzeFileBench(
+                            this@TechniqueBenchActivity,
+                            BenchLayout.resolve(this@TechniqueBenchActivity),
+                            videoFilter = listExtra(EXTRA_VIDEOS),
+                            specs = AnalyzeSpec.parse(intent.getStringExtra(EXTRA_EXERCISES)),
+                            useHeavy = intent.getStringExtra(EXTRA_MODEL) == "heavy",
+                            plateMm = intent.getIntExtra(EXTRA_PLATE_MM, DEFAULT_PLATE_MM),
+                            heightCm = intent.getIntExtra(EXTRA_HEIGHT_CM, 0).takeIf { it > 0 }?.toDouble(),
+                        )
+                        "Listo: ${bench.run()}"
+                    }
                     else -> "Modo desconocido: $mode"
                 }
             } catch (cancel: CancellationException) {
@@ -124,6 +138,13 @@ private const val EXTRA_MODE = "mode"
 private const val MODE_DECODE_SELFTEST = "decode_selftest"
 private const val MODE_POSE_BENCH = "pose_bench"
 private const val MODE_TELEMETRY_CHECK = "telemetry_check"
+private const val MODE_ANALYZE_FILE = "analyze_file"
+private const val ANALYZE_FILE = "analyze.json"
+private const val EXTRA_EXERCISES = "exercises"
+private const val EXTRA_MODEL = "model"
+private const val EXTRA_PLATE_MM = "plateMm"
+private const val EXTRA_HEIGHT_CM = "heightCm"
+private const val DEFAULT_PLATE_MM = 450
 private const val EXTRA_QUIT = "quit"
 private const val EXTRA_ENGINES = "engines"
 private const val EXTRA_VIDEOS = "videos"
