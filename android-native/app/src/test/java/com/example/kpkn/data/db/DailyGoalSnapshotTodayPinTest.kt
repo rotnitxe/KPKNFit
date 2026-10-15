@@ -4,6 +4,7 @@ import androidx.test.core.app.ApplicationProvider
 import com.example.kpkn.data.models.CalculationOrigin
 import com.example.kpkn.data.models.DailyGoalSnapshot
 import com.example.kpkn.data.models.PlanDirection
+import com.example.kpkn.testsupport.RoomTestRule
 import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Assert.assertEquals
@@ -11,6 +12,7 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
@@ -25,6 +27,9 @@ import java.time.LocalDate
 @RunWith(RobolectricTestRunner::class)
 @Config(manifest = Config.NONE, sdk = [34])
 class DailyGoalSnapshotTodayPinTest {
+
+    @get:Rule
+    val roomRule = RoomTestRule()
     private lateinit var db: KpknDatabase
     private val todayDate: LocalDate = LocalDate.now()
     private val today = todayDate.toString()

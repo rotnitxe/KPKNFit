@@ -6,6 +6,7 @@ import androidx.test.core.app.ApplicationProvider
 import com.example.kpkn.data.db.GlobalFoodEntity
 import com.example.kpkn.data.db.KpknDatabase
 import com.example.kpkn.data.db.NutritionDao
+import com.example.kpkn.testsupport.RoomTestRule
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
@@ -21,6 +22,7 @@ import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
@@ -40,6 +42,9 @@ import kotlin.math.abs
 @RunWith(RobolectricTestRunner::class)
 @Config(manifest = Config.NONE, sdk = [34], application = Application::class)
 class FoodImporterUsageTest {
+
+    @get:Rule
+    val roomRule = RoomTestRule()
 
     private val context: Context get() = ApplicationProvider.getApplicationContext()
     private lateinit var db: KpknDatabase

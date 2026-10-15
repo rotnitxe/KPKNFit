@@ -19,6 +19,7 @@ import com.example.kpkn.data.models.hasCardioPart
 import com.example.kpkn.data.models.isCardio
 import com.example.kpkn.data.models.isCardioPart
 import com.example.kpkn.data.repository.ProgramRepository
+import com.example.kpkn.testsupport.RoomTestRule
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
@@ -33,6 +34,7 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
@@ -42,6 +44,9 @@ import org.robolectric.annotation.Config
 @RunWith(RobolectricTestRunner::class)
 @Config(manifest = Config.NONE, sdk = [34])
 class SessionEditorCardioSpaceTest {
+
+    @get:Rule
+    val roomRule = RoomTestRule()
 
     private val dispatcher = UnconfinedTestDispatcher()
     private lateinit var repository: ProgramRepository

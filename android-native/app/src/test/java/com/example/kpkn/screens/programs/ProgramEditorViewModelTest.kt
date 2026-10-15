@@ -13,6 +13,8 @@ import com.example.kpkn.data.models.ProgramSchedulePlan
 import com.example.kpkn.data.models.ProgramStructure
 import com.example.kpkn.data.models.ScheduleMode
 import com.example.kpkn.data.repository.ProgramRepository
+import com.example.kpkn.testsupport.RoomTestRule
+import org.junit.Rule
 import java.time.LocalDate
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
@@ -39,6 +41,9 @@ import org.robolectric.annotation.Config
 @RunWith(RobolectricTestRunner::class)
 @Config(manifest = Config.NONE, sdk = [34])
 class ProgramEditorViewModelTest {
+
+    @get:Rule
+    val roomRule = RoomTestRule()
 
     private val dispatcher = UnconfinedTestDispatcher()
     private val viewModelStore = ViewModelStore()

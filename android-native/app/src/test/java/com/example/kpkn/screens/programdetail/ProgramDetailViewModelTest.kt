@@ -33,6 +33,7 @@ import com.example.kpkn.domain.training.ProgramProgressEngine
 import com.example.kpkn.domain.training.TrainingMaxResolver
 import com.example.kpkn.data.preferences.programSnapshotStore
 import com.example.kpkn.domain.training.BlockTransitionEngine
+import com.example.kpkn.testsupport.RoomTestRule
 import com.example.kpkn.ui.components.SnackbarType
 import kotlinx.coroutines.async
 import kotlinx.coroutines.Dispatchers
@@ -53,6 +54,7 @@ import org.junit.After
 import org.junit.Assert.*
 import org.junit.Before
 import org.junit.BeforeClass
+import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
@@ -64,6 +66,9 @@ import java.time.LocalDate
 @RunWith(RobolectricTestRunner::class)
 @Config(manifest = Config.NONE, sdk = [34])
 class ProgramDetailViewModelTest {
+
+    @get:Rule
+    val roomRule = RoomTestRule()
 
     companion object {
         @BeforeClass
