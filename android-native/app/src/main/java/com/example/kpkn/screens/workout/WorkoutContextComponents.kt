@@ -320,10 +320,15 @@ internal fun WorkoutExerciseSetupContent(
             )
         }
 
+        // Texto de la carga base mientras se escribe: el modelo no guarda «102,» y la coma no debe borrarse al teclearla.
+        var baseLoadText by remember(activeProfileId, exercise.id) {
+            mutableStateOf(currentBaseLoadKg?.toTrimmedNumberString().orEmpty())
+        }
         OutlinedTextField(
-            value = currentBaseLoadKg?.toTrimmedNumberString().orEmpty(),
+            value = baseLoadText,
             onValueChange = { value ->
-                val parsed = value.toDoubleOrNull()
+                baseLoadText = value
+                val parsed = value.replace(',', '.').toDoubleOrNull()
                 val hasTag = !exerciseTag.isNullOrBlank()
                 when {
                     // Persist to tagged profile only when a tag is active.
