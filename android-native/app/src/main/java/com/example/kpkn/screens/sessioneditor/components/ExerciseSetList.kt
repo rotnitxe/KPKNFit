@@ -6,7 +6,9 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -40,6 +42,7 @@ import com.example.kpkn.ui.components.KpknAlertDialog
 import com.example.kpkn.ui.components.icons.KpknLineIcons
 import com.example.kpkn.ui.design.KpknSecondaryPill
 import com.example.kpkn.ui.design.KpknSetFormat
+import com.example.kpkn.ui.design.KpknShape
 import com.example.kpkn.ui.design.KpknSurface
 import com.example.kpkn.ui.design.KpknTextAction
 import com.example.kpkn.ui.design.KpknType
@@ -151,7 +154,8 @@ internal fun ExerciseSetList(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(bottom = 10.dp)
-                    .background(KpknSurface.inset, RoundedCornerShape(20.dp))
+                    .background(KpknSurface.module, KpknShape.module)
+                    .border(1.dp, KpknSurface.moduleBorder, KpknShape.module)
                     .padding(horizontal = 14.dp, vertical = 14.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
@@ -183,22 +187,22 @@ internal fun ExerciseSetList(
                     verticalArrangement = Arrangement.spacedBy(6.dp),
                 ) {
                     if (exercise.sets.size > 1) {
-                        KpknTextAction(text = "Aplicar a todas", onClick = { requestApply(set, side) })
+                        SetRowAction(text = "Aplicar a todas", onClick = { requestApply(set, side) })
                     }
                     if (onTransformExercise != null) {
-                        KpknTextAction(
+                        SetRowAction(
                             text = "Duplicar",
                             onClick = { onTransformExercise { current -> current.withSetDuplicated(set.id) } },
                         )
                     }
                     if (index > 0) {
-                        KpknTextAction(text = "Subir", onClick = { onMoveSet(set.id, -1) })
+                        SetRowAction(text = "Subir", onClick = { onMoveSet(set.id, -1) })
                     }
                     if (index < exercise.sets.lastIndex) {
-                        KpknTextAction(text = "Bajar", onClick = { onMoveSet(set.id, 1) })
+                        SetRowAction(text = "Bajar", onClick = { onMoveSet(set.id, 1) })
                     }
                     if (exercise.sets.size > 1) {
-                        KpknTextAction(
+                        SetRowAction(
                             text = "Eliminar",
                             color = WizardColors.danger,
                             onClick = {
@@ -457,3 +461,23 @@ private fun techniqueSummary(set: ExerciseSet): String? {
 }
 
 private fun formatSummaryNumber(value: Double): String = formatMax2Decimals(value).replace('.', ',')
+
+/**
+ * Acción de la fila abierta (ER1c1, pulido): texto de tinta de 48 dp de alto como objetivo táctil. Al 130 % de letra puede pasar a dos
+ * líneas por palabra en vez de cortarse.
+ */
+@Composable
+private fun SetRowAction(
+    text: String,
+    onClick: () -> Unit,
+    color: Color = WizardColors.text,
+) {
+    Box(
+        modifier = Modifier
+            .heightIn(min = 48.dp)
+            .clickable(role = Role.Button, onClick = onClick),
+        contentAlignment = Alignment.CenterStart,
+    ) {
+        Text(text, style = KpknType.action, color = color, maxLines = 2)
+    }
+}
