@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -71,7 +72,13 @@ import com.example.kpkn.domain.templates.TemplateGroupMode
 import com.example.kpkn.domain.templates.TemplateSessionGoal
 import com.example.kpkn.domain.templates.TemplateSessionType
 import com.example.kpkn.domain.templates.TemplateSessionZone
-import com.example.kpkn.screens.sessioneditor.CompactCatalogFilterChip
+import com.example.kpkn.screens.onboarding.design.WizardColors
+import com.example.kpkn.ui.components.icons.KpknLineIcons
+import com.example.kpkn.ui.design.KpknChip
+import com.example.kpkn.ui.design.KpknSecondaryPill
+import com.example.kpkn.ui.design.KpknShape
+import com.example.kpkn.ui.design.KpknSurface
+import com.example.kpkn.ui.design.KpknType
 import com.example.kpkn.ui.components.KpknDropdownMenu
 import kotlinx.coroutines.launch
 
@@ -246,15 +253,14 @@ internal fun TemplateCatalogBrowser(
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(
                             text = "Mis plantillas",
-                            style = MaterialTheme.typography.labelLarge,
-                            fontWeight = FontWeight.Black,
-                            color = titleColor,
+                            style = KpknType.bodyStrong,
+                            color = WizardColors.text,
                             modifier = Modifier.weight(1f),
                         )
-                        FilledTonalButton(
+                        KpknSecondaryPill(
+                            text = "Guardar sesión",
                             onClick = { showSaveDialog = true },
-                            contentPadding = PaddingValues(horizontal = 10.dp, vertical = 6.dp),
-                        ) { Text("Guardar sesión") }
+                        )
                     }
                     if (!templatesReady) {
                         Text(
@@ -308,14 +314,13 @@ internal fun TemplateCatalogBrowser(
             Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
                 Text(
                     text = "Filtros de sesión",
-                    style = MaterialTheme.typography.labelLarge,
-                    fontWeight = FontWeight.Black,
-                    color = titleColor,
+                    style = KpknType.bodyStrong,
+                    color = WizardColors.text,
                 )
                 Text(
                     text = "Grupo, nivel y duración",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = mutedColor,
+                    style = KpknType.caption,
+                    color = WizardColors.textMuted,
                 )
             }
         }
@@ -362,9 +367,8 @@ internal fun TemplateCatalogBrowser(
                         } else {
                             "${filteredTemplates.size} resultado${if (filteredTemplates.size == 1) "" else "s"}"
                         },
-                        style = MaterialTheme.typography.labelMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = titleColor,
+                        style = KpknType.bodyStrong,
+                        color = WizardColors.text,
                     )
                     if (hasConstraintFilters) {
                         TextButton(
@@ -790,18 +794,16 @@ private fun NestedGroupBlock(
     onSelectTemplate: (SessionTemplate) -> Unit,
 ) {
     Text(
-        text = "${nested.title} · ${nested.templates.size}",
-        style = MaterialTheme.typography.labelSmall,
-        fontWeight = FontWeight.Bold,
-        color = mutedColor,
+        text = "${nested.title} · ${nested.templates.size}".uppercase(),
+        style = KpknType.eyebrow,
+        color = WizardColors.textMuted,
         modifier = Modifier.padding(top = 8.dp, bottom = 4.dp),
     )
-    HorizontalDivider(
-        color = if (glassDark) {
-            Color.White.copy(alpha = 0.12f)
-        } else {
-            MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)
-        },
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(1.dp)
+            .background(KpknSurface.divider),
     )
     nested.templates.forEach { template ->
         CompactTemplateCard(
@@ -907,8 +909,8 @@ private fun FilterDropdownRow(
             } else {
                 "Elige un grupo muscular y el nivel de la sesión"
             },
-            style = MaterialTheme.typography.labelSmall,
-            color = mutedColor,
+            style = KpknType.caption,
+            color = WizardColors.textMuted,
         )
     }
 }
@@ -922,32 +924,14 @@ private fun CatalogDropdownButton(
     menuContent: @Composable () -> Unit,
 ) {
     Box {
-        FilledTonalButton(
+        KpknChip(
+            text = "$label ▾",
+            selected = false,
             onClick = { onExpandedChange(true) },
-            contentPadding = PaddingValues(horizontal = 10.dp, vertical = 4.dp),
             modifier = Modifier
-                .heightIn(min = 40.dp)
                 .widthIn(max = 180.dp)
                 .semantics { this.contentDescription = contentDescription },
-            colors = ButtonDefaults.filledTonalButtonColors(
-                containerColor = Color.White.copy(alpha = 0.12f),
-                contentColor = Color.White.copy(alpha = 0.88f),
-            ),
-        ) {
-            Text(
-                text = label,
-                style = MaterialTheme.typography.labelSmall,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.weight(1f, fill = false),
-            )
-            Spacer(modifier = Modifier.width(4.dp))
-            Icon(
-                imageVector = Icons.Default.KeyboardArrowDown,
-                contentDescription = null,
-                modifier = Modifier.size(16.dp),
-            )
-        }
+        )
         KpknDropdownMenu(
             expanded = expanded,
             onDismissRequest = { onExpandedChange(false) },
@@ -966,10 +950,9 @@ private fun SessionTypeChipsRow(
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
         Text(
-            text = "Grupo",
-            style = MaterialTheme.typography.labelLarge,
-            fontWeight = FontWeight.Bold,
-            color = if (glassDark) Color.White else MaterialTheme.colorScheme.onSurface,
+            text = "Grupo".uppercase(),
+            style = KpknType.eyebrow,
+            color = WizardColors.textMuted,
         )
         Row(
             modifier = Modifier
@@ -979,19 +962,16 @@ private fun SessionTypeChipsRow(
         ) {
             chips.forEach { chip ->
                 val selected = sessionType == chip
-                CompactCatalogFilterChip(
+                KpknChip(
+                    text = chip.label,
                     selected = selected,
                     onClick = { onToggle(chip) },
-                    label = chip.label,
-                    glassDark = glassDark,
-                    modifier = Modifier
-                        .heightIn(min = 36.dp)
-                        .semantics {
-                            contentDescription = buildString {
-                                append(chip.label)
-                                append(if (selected) ", activo, tocar para desactivar" else ", inactivo, tocar para activar")
-                            }
-                        },
+                    modifier = Modifier.semantics {
+                        contentDescription = buildString {
+                            append(chip.label)
+                            append(if (selected) ", activo, tocar para desactivar" else ", inactivo, tocar para activar")
+                        }
+                    },
                 )
             }
         }
@@ -1021,9 +1001,8 @@ private fun CatalogEmptyState(
             } else {
                 "No hay plantillas de sesión en este catálogo."
             },
-            style = MaterialTheme.typography.bodyMedium,
-            color = mutedColor,
-            fontWeight = FontWeight.Medium,
+            style = KpknType.body,
+            color = WizardColors.textMuted,
         )
         Text(
             text = if (hasQueryOrFilters) {
@@ -1031,8 +1010,8 @@ private fun CatalogEmptyState(
             } else {
                 "Guarda una sesión como plantilla o vuelve más tarde."
             },
-            style = MaterialTheme.typography.bodySmall,
-            color = mutedColor.copy(alpha = 0.85f),
+            style = KpknType.caption,
+            color = WizardColors.textFaint,
         )
     }
 }
@@ -1051,8 +1030,8 @@ private fun CatalogSection(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .clip(RoundedCornerShape(12.dp))
-                .background(rowBg)
+                .clip(KpknShape.module)
+                .background(KpknSurface.module, KpknShape.module)
                 .clickable { expanded = !expanded }
                 .padding(horizontal = 12.dp, vertical = 12.dp)
                 .heightIn(min = 48.dp)
@@ -1068,26 +1047,26 @@ private fun CatalogSection(
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = section.title,
-                    style = MaterialTheme.typography.bodyMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = bodyColor,
+                    style = KpknType.bodyStrong,
+                    color = WizardColors.text,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
                 )
                 if (!section.subtitle.isNullOrBlank()) {
                     Text(
                         text = section.subtitle,
-                        style = MaterialTheme.typography.labelSmall,
-                        color = mutedColor,
+                        style = KpknType.caption,
+                        color = WizardColors.textMuted,
                         maxLines = 2,
                         overflow = TextOverflow.Ellipsis,
                     )
                 }
             }
             Icon(
-                imageVector = if (expanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
+                imageVector = if (expanded) KpknLineIcons.ChevronUp else KpknLineIcons.ChevronDown,
                 contentDescription = if (expanded) "Colapsar sección" else "Expandir sección",
-                tint = mutedColor,
+                tint = WizardColors.textMuted,
+                modifier = Modifier.size(20.dp),
             )
         }
         AnimatedVisibility(visible = expanded) {

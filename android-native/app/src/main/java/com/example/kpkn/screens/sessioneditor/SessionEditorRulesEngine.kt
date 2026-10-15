@@ -378,11 +378,10 @@ object SessionEditorRulesEngine {
 
     private fun normalizeSet(set: ExerciseSet, exercise: Exercise): ExerciseSet {
         val normalized = when (exercise.trainingMode) {
+            // ER1e: como SE11 (`normalizedForEditorSave`), normalizar no borra el rango ni el RIR ni el RPE de la serie: al aplicar
+            // reglas solo cambia lo que la regla fija. Solo se quita el marcador de intensidad que no es el %.
             TrainingMode.RM -> set.copy(
-                intensityMode = null,
-                targetRepsRange = null,
-                targetRPE = null,
-                targetRIR = null,
+                intensityMode = if (set.intensityMode == IntensityMode.SOLO_RM) IntensityMode.SOLO_RM else null,
                 isFailure = false,
                 isAmrap = false,
                 targetPercentageRM = com.example.kpkn.screens.sessioneditor.roundToMax2Decimals(
