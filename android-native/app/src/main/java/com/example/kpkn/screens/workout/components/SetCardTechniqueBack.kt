@@ -6,7 +6,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -17,9 +16,10 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.toggleable
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
@@ -36,11 +36,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.example.kpkn.data.models.DropSetData
 import com.example.kpkn.data.models.ExerciseSet
@@ -69,7 +74,10 @@ internal data class TechniqueCheckRow(
 )
 
 private const val LiveDropSetMax = 5
-private const val TechniqueColumnSize = 3
+/** Relleno horizontal de una celda de cifra, hueco entre la cifra y su unidad, y margen de seguridad de la anchura mínima (LR1c2). */
+private val TechniqueCellPadding = 4.dp
+private val TechniqueUnitGap = 4.dp
+private val TechniqueCellSlack = 2.dp
 
 /** Etiqueta de prueba del círculo «Hecho» de cada fila de drops o rest-pause (LR0). */
 internal const val TechniqueDoneToggleTag = "technique_done_toggle"
@@ -330,42 +338,25 @@ private fun TechniqueCarouselBlock(
     onAdd: () -> Unit,
     canAdd: Boolean,
 ) {
-    val columns = remember(rows) { rows.chunked(TechniqueColumnSize) }
-    BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
-        val columnGap = 12.dp
-        // Columna de al menos 150 dp: peso y reps caben con su unidad, y la segunda columna asoma (es un carrusel).
-        val columnWidth = ((maxWidth - columnGap) / 2).coerceAtLeast(150.dp)
-        LazyRow(
-            modifier = Modifier.fillMaxSize(),
-            horizontalArrangement = Arrangement.spacedBy(columnGap),
-            verticalAlignment = Alignment.Top,
-        ) {
-            itemsIndexed(columns) { columnIndex, columnRows ->
-                Column(
-                    modifier = Modifier.width(columnWidth),
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
-                ) {
-                    columnRows.forEachIndexed { rowInColumn, row ->
-                        val index = columnIndex * TechniqueColumnSize + rowInColumn
-                        TechniqueCompactRow(
-                            index = index,
-                            row = row,
-                            showWeight = showWeight,
-                            onChange = { updated ->
-                                onRowsChange(rows.toMutableList().also { it[index] = updated })
-                            },
-                        )
-                    }
-                    if (canAdd && columnIndex == columns.lastIndex && columnRows.size < TechniqueColumnSize) {
-                        AddTechniqueChip(onAdd = onAdd)
-                    }
-                }
-            }
-            if (canAdd && (columns.isEmpty() || columns.last().size >= TechniqueColumnSize)) {
-                item {
-                    AddTechniqueChip(onAdd = onAdd)
-                }
-            }
+    // Las filas ocupan todo el ancho, una debajo de otra; «Añadir» va al final, alineado al inicio (LR1c2).
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState()),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        rows.forEachIndexed { index, row ->
+            TechniqueCompactRow(
+                index = index,
+                row = row,
+                showWeight = showWeight,
+                onChange = { updated ->
+                    onRowsChange(rows.toMutableList().also { it[index] = updated })
+                },
+            )
+        }
+        if (canAdd) {
+            AddTechniqueChip(onAdd = onAdd)
         }
     }
 }
@@ -377,6 +368,20 @@ private fun TechniqueCompactRow(
     showWeight: Boolean,
     onChange: (TechniqueCheckRow) -> Unit,
 ) {
+    // Anchura mínima de cada celda: la cifra de muestra más larga («102,5» de peso, «12» de reps y «120» de descanso) con su unidad,
+    // medida con el texto real a la letra escalada, más el relleno. Así la cifra nunca se corta, ni al 130 % (LR1c2).
+    val measurer = rememberTextMeasurer()
+    val density = LocalDensity.current
+    val estiloCifra = KpknType.chip.copy(fontFeatureSettings = "'tnum' 1")
+    val estiloUnidad = KpknType.caption
+    fun anchoDe(texto: String, estilo: TextStyle): Dp =
+        with(density) { measurer.measure(AnnotatedString(texto), estilo).size.width.toDp() }
+    val unidadKg = anchoDe("kg", estiloUnidad)
+    val unidadR = anchoDe("r", estiloUnidad)
+    val unidadS = anchoDe("s", estiloUnidad)
+    val minPeso = anchoDe("102,5", estiloCifra) + TechniqueCellPadding * 2 + TechniqueUnitGap + unidadKg + TechniqueCellSlack
+    val minReps = anchoDe("12", estiloCifra) + TechniqueCellPadding * 2 + TechniqueUnitGap + unidadR + TechniqueCellSlack
+    val minDescanso = anchoDe("120", estiloCifra) + TechniqueCellPadding * 2 + TechniqueUnitGap + unidadS + TechniqueCellSlack
     Row(
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
@@ -398,6 +403,8 @@ private fun TechniqueCompactRow(
                 onValueChange = { onChange(row.copy(weightText = it)) },
                 unit = "kg",
                 keyboardType = KeyboardType.Decimal,
+                unitWidth = unidadKg,
+                minWidth = minPeso,
                 modifier = Modifier.weight(1.15f),
             )
         }
@@ -406,6 +413,8 @@ private fun TechniqueCompactRow(
             onValueChange = { onChange(row.copy(repsText = it)) },
             unit = "r",
             keyboardType = KeyboardType.Number,
+            unitWidth = unidadR,
+            minWidth = minReps,
             modifier = Modifier.weight(0.85f),
         )
         if (!showWeight) {
@@ -414,6 +423,8 @@ private fun TechniqueCompactRow(
                 onValueChange = { onChange(row.copy(restText = it)) },
                 unit = "s",
                 keyboardType = KeyboardType.Number,
+                unitWidth = unidadS,
+                minWidth = minDescanso,
                 modifier = Modifier.weight(0.85f),
             )
         }
@@ -427,19 +438,20 @@ private fun TechniqueValueCell(
     onValueChange: (String) -> Unit,
     unit: String,
     keyboardType: KeyboardType,
+    unitWidth: Dp,
+    minWidth: Dp,
     modifier: Modifier = Modifier,
 ) {
     val shape = RoundedCornerShape(12.dp)
-    // Hueco reservado para la unidad: «kg» es más ancha que «r» o «s». Así la cifra no se corta (LR1c2).
-    val reserve = if (unit == "kg") 16.dp else 11.dp
     BasicTextField(
         value = value,
         onValueChange = onValueChange,
         modifier = modifier
+            .widthIn(min = minWidth)
             .height(32.dp)
             .clip(shape)
             .background(KpknSurface.inset, shape)
-            .padding(horizontal = 4.dp),
+            .padding(horizontal = TechniqueCellPadding),
         singleLine = true,
         textStyle = KpknType.chip.copy(
             color = WizardColors.text,
@@ -453,7 +465,7 @@ private fun TechniqueValueCell(
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(end = reserve),
+                        .padding(end = unitWidth + TechniqueUnitGap),
                     contentAlignment = Alignment.Center,
                 ) {
                     inner()
@@ -505,7 +517,10 @@ private fun AddTechniqueChip(onAdd: () -> Unit) {
     }
 }
 
-/** Marca «Hecho» de una fila: `ok` cuando está hecha, `inset` mientras no. Conserva la etiqueta de prueba y la descripción. */
+/**
+ * Casilla «Hecho» de una fila (LR1c2): tinta cuando está marcada y `inset` con filete de 1 dp al 24 % mientras no, para que se vea sobre
+ * el módulo. Conserva la etiqueta de prueba y la descripción.
+ */
 @Composable
 private fun TechniqueDoneToggle(
     done: Boolean,
@@ -518,7 +533,8 @@ private fun TechniqueDoneToggle(
             .size(20.dp)
             .testTag(TechniqueDoneToggleTag)
             .clip(shape)
-            .background(if (done) WizardColors.done else KpknSurface.inset, shape)
+            .background(if (done) WizardColors.text else KpknSurface.inset, shape)
+            .border(1.dp, Color.White.copy(alpha = 0.24f), shape)
             .toggleable(
                 value = done,
                 interactionSource = interaction,

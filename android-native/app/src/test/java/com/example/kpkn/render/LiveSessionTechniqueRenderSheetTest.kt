@@ -221,19 +221,19 @@ class LiveSessionTechniqueRenderSheetTest {
     @Test
     fun reversoTresDrops100() {
         onlyWhenAsked()
-        dibujar("reverso_tres_drops_100", 1f, 470, accion = { rellenarTresDrops() }) { ReversoDeTecnica(fallida = false) }
+        dibujar("reverso_tres_drops_100", 1f, 540, accion = { rellenarTresDrops() }) { ReversoDeTecnica(fallida = false) }
     }
 
     @Test
     fun reversoTresDrops130() {
         onlyWhenAsked()
-        dibujar("reverso_tres_drops_130", 1.3f, 470, accion = { rellenarTresDrops() }) { ReversoDeTecnica(fallida = false) }
+        dibujar("reverso_tres_drops_130", 1.3f, 540, accion = { rellenarTresDrops() }) { ReversoDeTecnica(fallida = false) }
     }
 
     @Test
     fun reversoFallida100() {
         onlyWhenAsked()
-        dibujar("reverso_fallida_100", 1f, 470, accion = { rellenarTresDrops() }) { ReversoDeTecnica(fallida = true) }
+        dibujar("reverso_fallida_100", 1f, 540, accion = { rellenarTresDrops() }) { ReversoDeTecnica(fallida = true) }
     }
 
     // ── Técnica guiada (C2) ──
@@ -370,7 +370,7 @@ class LiveSessionTechniqueRenderSheetTest {
 
     @Composable
     private fun ReversoDeTecnica(fallida: Boolean) {
-        Box(Modifier.width(272.dp).height(446.dp)) {
+        Box(Modifier.width(272.dp).height(520.dp)) {
             SetCardTechniqueBack(
                 currentSet = SERIE_REVERSO,
                 coverWeightLabel = "100 kg",
@@ -537,14 +537,14 @@ class LiveSessionTechniqueRenderSheetTest {
         guardar(nombre)
     }
 
-    /** Dos «Añadir» sobre el drop inicial (tres filas) y el peso de la 3.ª fila, que es el 5.º campo editable, pasa a «62,5». */
+    /** Dos «Añadir» sobre el drop inicial (tres filas) y el peso de la 3.ª fila, que es el 5.º campo editable, pasa a «102,5» (el caso más ancho). */
     private fun rellenarTresDrops() {
         rule.onNodeWithText("Añadir").performClick()
         rule.waitForIdle()
         rule.onNodeWithText("Añadir").performClick()
         rule.waitForIdle()
         // Campos editables en orden de composición: peso y reps de cada fila; la nota va al final.
-        rule.onAllNodes(hasSetTextAction())[4].performTextReplacement("62,5")
+        rule.onAllNodes(hasSetTextAction())[4].performTextReplacement("102,5")
         rule.waitForIdle()
     }
 
