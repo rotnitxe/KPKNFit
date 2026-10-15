@@ -21,7 +21,7 @@ class CardioPrescriptionFormatterTest {
         val sentence = CardioPrescriptionFormatter.sentence(details)
         assertTrue(sentence.contains("Cinta"))
         assertTrue(sentence.contains("Calentamiento 5 min"))
-        assertTrue(sentence.contains("8×"))
+        assertTrue(sentence.contains("8 ×"))
         assertTrue(sentence.contains("20 s esfuerzo"))
         assertTrue(sentence.contains("10 s pausa"))
         assertTrue(sentence.contains("Enfriamiento 3 min"))
