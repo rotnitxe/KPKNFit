@@ -341,7 +341,8 @@ suspend fun SessionEditorViewModel.saveSession(scope: SessionSaveScope = Session
         return saveEditorRulePreferencesOnly(state, skipRefresh)
     }
     val editorPreferencesWriteRevision = nextEditorRulePreferencesWriteRevision(rawDraft.id)
-    val normalized = rawDraft.normalizeEditorScheduledTechniques().normalizeSession()
+    // SE10: el cardio guardado con id viejo se cura antes de normalizar y antes del cortafuegos.
+    val normalized = rawDraft.normalizeEditorScheduledTechniques().healLegacyCardioIdentities().normalizeSession()
     // D6 del plan 2026-09-16: el guardado auto-cura nombres históricos con el
     // derivado del catálogo cuando el runtime v2 está listo.
     val reconciledDraft = if (isExerciseCatalogV2RuntimeReady()) {
