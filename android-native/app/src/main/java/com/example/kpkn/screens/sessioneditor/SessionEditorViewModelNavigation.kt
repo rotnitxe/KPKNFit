@@ -364,13 +364,14 @@ suspend fun SessionEditorViewModel.saveSession(scope: SessionSaveScope = Session
             com.example.kpkn.data.exercises.catalogConfigurationDisplayNameIndex(),
         )
         if (catalogIssues.isNotEmpty()) {
-            val details = catalogIssues.take(3).joinToString(" | ") { issue ->
-                "${issue.exerciseId}: ${issue.code}${issue.detail?.let { detail -> " ($detail)" }.orEmpty()}"
-            }
-            return SessionEditorSaveResult(
-                false,
-                "El catálogo de ejercicios bloqueó el guardado: $details",
+            // SE10: el detalle técnico va al log; a la persona se le explica con catalogGateBlockMessage.
+            android.util.Log.w(
+                "SessionEditor",
+                "Guardado bloqueado por el cortafuegos del catálogo: " + catalogIssues.joinToString(" | ") { issue ->
+                    "${issue.exerciseId}: ${issue.code}${issue.detail?.let { detail -> " ($detail)" }.orEmpty()}"
+                },
             )
+            return SessionEditorSaveResult(false, catalogGateBlockMessage(catalogIssues, draft))
         }
     }
 
