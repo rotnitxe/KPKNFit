@@ -309,7 +309,7 @@ private fun SetSummaryRow(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .height(56.dp)
+            .heightIn(min = 56.dp)
             .testTag(testTag)
             .clickable(role = Role.Button, onClick = onClick),
         verticalAlignment = Alignment.CenterVertically,
@@ -330,7 +330,8 @@ private fun SetSummaryRow(
                 summary.dose,
                 style = KpknType.metricM,
                 color = WizardColors.text,
-                maxLines = 1,
+                // ER2a: al 130 % de letra la dosis pasa a dos líneas antes que cortar el RIR con «…».
+                maxLines = 2,
                 overflow = TextOverflow.Ellipsis,
             )
             summary.load?.let { load ->
@@ -473,7 +474,8 @@ private fun formatSummaryNumber(value: Double): String = formatMax2Decimals(valu
 private fun rmPrescriptionDose(kgText: String?, range: RepRange?, reps: Int?, rir: Int?, estimated: Int?): String {
     val repsText = range?.format() ?: reps?.toString() ?: estimated?.toString()
     val head = if (kgText != null && repsText != null) "$kgText × $repsText" else kgText ?: repsText
-    return listOfNotNull(head, rir?.let { "RIR $it" }).joinToString(" · ").ifBlank { "—" }
+    // «RIR 2» con espacio inseparable: al partir la dosis a dos líneas, la cifra no se queda sola en la segunda.
+    return listOfNotNull(head, rir?.let { "RIR $it" }).joinToString(" · ").ifBlank { "—" }
 }
 
 /**
