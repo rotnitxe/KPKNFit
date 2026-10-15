@@ -129,7 +129,11 @@ class TechniqueAnalysisPipelineTest {
     fun aFullAnalysisCountsTheTruthRepsAndLeavesItsSidecars() {
         val video = PipelineTestKit.videoFile(folder.root)
         val result = analyze(pipeline(), PipelineTestKit.request(video))
-        val report = done(result.outcome).report
+        val doneResult = done(result.outcome)
+        val report = doneResult.report
+        assertEquals(TechniqueAnalysisPipeline.POSE_VERSION, doneResult.poseVersion)
+        assertEquals("fake/full/CPU", doneResult.poseEngine)
+        assertNotNull(doneResult.exercise)
 
         assertEquals(set.reps.count { it.kind == SynthRepKind.FULL }, report.repCount)
         assertEquals(5, report.reps.size)

@@ -64,20 +64,21 @@ data class CaptureMetadata(
  * excluyen entre sí. En la práctica no coinciden (el grabador escribe al terminar, antes de que exista un análisis, y el usuario
  * fija sus elecciones después) y el analizador NUNCA escribe aquí.
  */
+internal object CaptureFileLock
+
 object CaptureMetadataFile {
-    private val lock = Any()
     private val json = Json { ignoreUnknownKeys = true }
     private val empty = JsonObject(emptyMap())
 
     /** Los metadatos del archivo; vacíos si falta, está en blanco o no se entiende. Nunca lanza. */
-    fun read(file: File): CaptureMetadata = synchronized(lock) { parse(readObject(file)) }
+    fun read(file: File): CaptureMetadata = synchronized(CaptureFileLock) { parse(readObject(file)) }
 
     /**
      * Aplica [change] a lo que hay y lo escribe: un campo con valor se guarda y un campo `null` borra su clave. Lanza
      * [IOException] si no se puede guardar.
      */
     fun update(file: File, change: (CaptureMetadata) -> CaptureMetadata) {
-        synchronized(lock) {
+        synchronized(CaptureFileLock) {
             val current = readObject(file)
             val next = change(parse(current))
             val merged = LinkedHashMap<String, JsonElement>(current)

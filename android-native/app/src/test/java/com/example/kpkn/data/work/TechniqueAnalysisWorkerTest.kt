@@ -189,6 +189,41 @@ class TechniqueAnalysisWorkerTest {
     }
 
     @Test
+    fun a_done_outcome_with_exercise_and_pose_saves_complete_ref_and_pose_metadata() = runBlocking {
+        val media = TechniqueWorkTestKit.insertVideo(db, store, "vid-1")
+        val report = TechniqueReportSamples.fullReport()
+        val completeRef = TechniqueReportSamples.exercise().copy(
+            name = "Sentadilla frontal completa",
+            movementPatternId = "squat",
+            equipmentId = "barbell",
+            laterality = "bilateral",
+        )
+        install { _, _ ->
+            TechniqueAnalysisOutcome.Done(
+                report = report,
+                exercise = completeRef,
+                poseEngine = "mediapipe-pose/full/GPU",
+                poseVersion = 2,
+            )
+        }
+
+        val result = work("vid-1").doWork()
+
+        assertEquals(ListenableWorker.Result.success(), result)
+        val row = repository.getByMedia("vid-1")!!
+        assertEquals(VideoAnalysisStatus.DONE, row.status)
+        assertEquals(2, row.poseVersion)
+        assertEquals("mediapipe-pose/full/GPU", row.poseEngine)
+
+        val file = analysisFile(media.filePath)
+        val sidecar = TechniqueSidecars.readAnalysis(file)!!
+        assertEquals("Sentadilla frontal completa", sidecar.exercise.name)
+        assertEquals("squat", sidecar.exercise.movementPatternId)
+        assertEquals("barbell", sidecar.exercise.equipmentId)
+        assertEquals("bilateral", sidecar.exercise.laterality)
+    }
+
+    @Test
     fun the_sidecar_is_written_before_the_row_even_when_the_row_cannot_be_written() = runBlocking {
         val media = TechniqueWorkTestKit.insertVideo(db, store, "vid-1")
         install { _, _ -> TechniqueAnalysisOutcome.Done(TechniqueReportSamples.fullReport()) }

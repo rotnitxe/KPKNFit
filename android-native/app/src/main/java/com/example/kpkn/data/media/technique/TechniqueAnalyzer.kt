@@ -38,7 +38,12 @@ data class TechniqueAnalysisRequest(
 /** Cómo termina un análisis (§3.7). El Worker lo traduce al estado de `video_analysis`. */
 sealed interface TechniqueAnalysisOutcome {
     /** Informe listo: DONE. */
-    data class Done(val report: SetTechniqueReport) : TechniqueAnalysisOutcome
+    data class Done(
+        val report: SetTechniqueReport,
+        val exercise: ExerciseRef? = null,
+        val poseEngine: String? = null,
+        val poseVersion: Int? = null,
+    ) : TechniqueAnalysisOutcome
 
     /** El ejercicio no se analiza en esta versión; [reason] es un código estable de `UnsupportedReasons`: UNSUPPORTED. */
     data class Unsupported(val reason: String) : TechniqueAnalysisOutcome
