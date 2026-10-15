@@ -570,11 +570,10 @@ internal fun ExerciseSet.normalizeSet(exercise: Exercise): ExerciseSet {
         else -> when (exercise.trainingMode) {
             // En el editor, RM no programa intensidad de esfuerzo (solo %RM).
             // intensityMode=null: no usar LOAD como "modo de reporte".
+            // SE11: el rango, el RIR y el RPE de la serie (la prescripción híbrida del generador) se conservan: normalizar
+            // no borra lo que la persona no ha tocado. Solo se quita el marcador de intensidad que no es el %.
             TrainingMode.RM -> copy(
-                intensityMode = null,
-                targetRepsRange = null,
-                targetRPE = null,
-                targetRIR = null,
+                intensityMode = if (intensityMode == IntensityMode.SOLO_RM) IntensityMode.SOLO_RM else null,
                 isFailure = false,
                 isAmrap = false,
                 targetPercentageRM = if (usesExplicitTmPercent) {
