@@ -20,7 +20,6 @@ import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -35,7 +34,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.takeOrElse
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.contentDescription
@@ -50,17 +48,24 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.Hyphens
 import androidx.compose.ui.text.style.LineBreak
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withLink
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.kpkn.screens.onboarding.design.WizardColors
+import com.example.kpkn.ui.design.KpknType
 
 internal val WorkoutLiveRelatorSlotHeight = 36.dp
 internal val WorkoutLiveRelatorFontSp = 13.sp
 internal const val WorkoutLiveRelatorMaxLines = 2
 private val RelatorLineHeightSp = 16.sp
 
+/**
+ * Frase del relator (LR1c1): texto en tinta con el brillo neutro de siempre (de la tinta al 40 % a la tinta entera) y las acciones como
+ * enlaces en tinta subrayados. [accentColor] se conserva por las llamadas, pero el relator ya no lo usa: va en tinta neutra.
+ */
 @Composable
 internal fun WorkoutLiveRelatorLine(
     text: String?,
@@ -91,7 +96,6 @@ internal fun WorkoutLiveRelatorLine(
     } else {
         text + ". Acciones: " + actions.joinToString(". ") { it.clickableSpan() }
     }
-    val linkColor = accentColor.takeOrElse { MaterialTheme.colorScheme.secondary }
 
     Box(
         modifier = modifier
@@ -125,7 +129,6 @@ internal fun WorkoutLiveRelatorLine(
             ShimmerRelatorText(
                 pieces = linePieces,
                 shift = shift,
-                accentColor = linkColor,
                 onAction = onAction,
             )
         }
@@ -136,20 +139,21 @@ internal fun WorkoutLiveRelatorLine(
 private fun ShimmerRelatorText(
     pieces: List<RelatorInlinePiece>,
     shift: Float,
-    accentColor: Color,
     onAction: (RelatorAssistAction) -> Unit,
 ) {
     var textWidth by remember { mutableFloatStateOf(0f) }
-    val copyMuted = Color.White.copy(alpha = 0.40f)
-    val copyHighlight = Color.White
+    // Brillo neutro: tinta al 40 % y tinta entera (LR1c1), sin color.
+    val copyMuted = WizardColors.text.copy(alpha = 0.40f)
+    val copyHighlight = WizardColors.text
     val travel = textWidth.coerceAtLeast(1f)
     val startX = travel * (shift * 1.85f - 0.55f)
     val end = Offset(startX + travel * 0.46f, 0f)
     val start = Offset(startX, 0f)
     val copyBrush = relatorShimmerBrush(copyMuted, copyHighlight, start, end)
+    // Enlaces en tinta, con el mismo brillo neutro del texto (LR1c1).
     val actionBrush = relatorShimmerBrush(
-        accentColor.copy(alpha = 0.55f),
-        accentColor,
+        WizardColors.text.copy(alpha = 0.72f),
+        WizardColors.text,
         start,
         end,
     )
@@ -192,6 +196,7 @@ private fun ShimmerRelatorText(
                                         style = SpanStyle(
                                             brush = actionBrush,
                                             fontWeight = FontWeight.SemiBold,
+                                            textDecoration = TextDecoration.Underline,
                                         ),
                                     ),
                                     linkInteractionListener = { onActionState.value(piece.action) },
@@ -231,8 +236,8 @@ private fun ShimmerRelatorText(
                     }
                 },
             ),
-        color = Color.Unspecified,
-        style = MaterialTheme.typography.labelSmall.copy(
+        color = WizardColors.text,
+        style = KpknType.caption.copy(
             fontSize = WorkoutLiveRelatorFontSp,
             lineHeight = RelatorLineHeightSp,
             hyphens = Hyphens.None,
