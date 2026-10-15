@@ -1,57 +1,38 @@
 package com.example.kpkn.screens.sessioneditor.components.sheets
 
-import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AutoAwesome
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.MenuBook
-import androidx.compose.material.icons.filled.Search
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.FilledTonalButton
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import com.example.kpkn.ui.components.KpknSheet
-import com.example.kpkn.ui.components.KpknSheetTokens
-import com.example.kpkn.ui.components.kpknSheetWhiteFieldColors
-import com.example.kpkn.ui.components.kpknSheetWhiteTonalButtonColors
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.key
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.example.kpkn.data.exercises.catalogExerciseIndex
 import com.example.kpkn.data.exercises.catalogv2.CatalogV2ProcessCache
 import com.example.kpkn.data.models.*
@@ -60,18 +41,27 @@ import com.example.kpkn.data.sessions.SessionTemplate
 import com.example.kpkn.data.sessions.SessionTemplateApplyDecision
 import com.example.kpkn.data.sessions.SessionTemplateApplyMode
 import com.example.kpkn.domain.exercises.*
-import com.example.kpkn.screens.sessioneditor.CatalogSearchField
-import com.example.kpkn.screens.sessioneditor.CompactCatalogFilterChip
+import com.example.kpkn.screens.onboarding.design.WizardColors
 import com.example.kpkn.screens.sessioneditor.components.TemplateCatalogBrowser
 import com.example.kpkn.screens.sessioneditor.components.CatalogInvolvementAccordions
 import com.example.kpkn.screens.sessioneditor.components.resolveCatalogExerciseV2
+import com.example.kpkn.ui.components.KpknAlertDialog
+import com.example.kpkn.ui.components.KpknSheet
+import com.example.kpkn.ui.components.icons.KpknLineIcons
+import com.example.kpkn.ui.design.KpknChip
+import com.example.kpkn.ui.design.KpknIconButton
+import com.example.kpkn.ui.design.KpknModule
+import com.example.kpkn.ui.design.KpknModuleHeader
+import com.example.kpkn.ui.design.KpknPrimaryPill
+import com.example.kpkn.ui.design.KpknSecondaryPill
+import com.example.kpkn.ui.design.KpknShape
+import com.example.kpkn.ui.design.KpknSurface
+import com.example.kpkn.ui.design.KpknTextAction
+import com.example.kpkn.ui.design.KpknTextField
+import com.example.kpkn.ui.design.KpknType
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import androidx.compose.runtime.setValue
-import androidx.compose.runtime.getValue
-import com.example.kpkn.ui.components.KpknAlertDialog
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun TemplatesSheet(
     templates: List<SessionTemplate>,
@@ -111,44 +101,22 @@ internal fun TemplatesSheet(
                     .padding(horizontal = 20.dp, vertical = 12.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                Icon(
-                    imageVector = Icons.Default.AutoAwesome,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(22.dp),
-                )
-                Spacer(Modifier.width(10.dp))
                 Text(
                     text = "Plantillas de sesión",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Black,
+                    style = KpknType.dialogTitle,
+                    color = WizardColors.text,
+                    modifier = Modifier.weight(1f),
                 )
-                Spacer(Modifier.weight(1f))
-                IconButton(onClick = onDismiss) {
-                    Icon(Icons.Default.Close, contentDescription = "Cerrar")
-                }
+                KpknIconButton(icon = KpknLineIcons.Close, contentDescription = "Cerrar", onClick = onDismiss)
             }
-            OutlinedTextField(
+            KpknTextField(
                 value = searchQuery,
                 onValueChange = onSearchChange,
-                placeholder = {
-                    Text("Buscar plantilla…", color = KpknSheetTokens.ControlPlaceholder)
-                },
-                leadingIcon = {
-                    Icon(
-                        Icons.Default.Search,
-                        null,
-                        modifier = Modifier.size(18.dp),
-                        tint = KpknSheetTokens.ControlLabel,
-                    )
-                },
-                singleLine = true,
+                placeholder = "Buscar plantilla…",
+                leadingIcon = KpknLineIcons.Search,
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp, vertical = 4.dp),
-                shape = RoundedCornerShape(12.dp),
-                textStyle = MaterialTheme.typography.bodyMedium.copy(color = KpknSheetTokens.ControlLabel),
-                colors = kpknSheetWhiteFieldColors(),
             )
             Box(
                 modifier = Modifier
@@ -182,28 +150,25 @@ internal fun TemplatesSheet(
     if (applyDecision != null) {
         KpknAlertDialog(
             onDismissRequest = onCancelApply,
-            title = { Text("Aplicar plantilla", fontWeight = FontWeight.Black) },
+            title = { Text("Aplicar plantilla", style = KpknType.dialogTitle, color = WizardColors.text) },
             text = {
-                Text("La sesión ya tiene ejercicios. ¿Qué deseas hacer con la plantilla \"${applyDecision.template.name}\"?")
+                Text(
+                    "La sesión ya tiene ejercicios. ¿Qué deseas hacer con la plantilla \"${applyDecision.template.name}\"?",
+                    style = KpknType.body,
+                    color = WizardColors.textMuted,
+                )
             },
             confirmButton = {
-                Button(
+                KpknPrimaryPill(
+                    text = "Reemplazar",
                     onClick = { onConfirmApplyTemplate(SessionTemplateApplyMode.REPLACE) },
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Color.White.copy(alpha = 0.14f),
-                        contentColor = Color.White,
-                    ),
-                ) {
-                    Text("Reemplazar")
-                }
+                )
             },
             dismissButton = {
-                OutlinedButton(
+                KpknTextAction(
+                    text = "Añadir al final",
                     onClick = { onConfirmApplyTemplate(SessionTemplateApplyMode.APPEND) },
-                    colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.White.copy(alpha = 0.85f)),
-                ) {
-                    Text("Añadir al final")
-                }
+                )
             },
         )
     }
@@ -220,12 +185,14 @@ internal fun ExerciseQuickActionsSheet(
     onOpenMobility: () -> Unit,
     onDelete: () -> Unit,
     onManageSuperset: () -> Unit,
+    onDuplicate: () -> Unit = {},
 ) {
     if (exercise == null) {
         Text(
             text = "No encontramos el ejercicio seleccionado.",
             modifier = Modifier.padding(20.dp),
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            style = KpknType.body,
+            color = WizardColors.textMuted,
         )
         return
     }
@@ -252,35 +219,6 @@ internal fun ExerciseQuickActionsSheet(
             legacyInfo = selectedInfo,
         )
     }
-    val involvedMuscles = remember(exercise.id, exercise.effectiveMuscles, selectedInfo) {
-        (exercise.effectiveMuscles?.takeIf { it.isNotEmpty() }
-            ?: selectedInfo?.involvedMuscles.orEmpty())
-            .filter { it.muscle.isNotBlank() }
-    }
-    val muscleInvolvement = remember(involvedMuscles) {
-        listOf(
-            MuscleRole.PRIMARY to "Principales",
-            MuscleRole.SECONDARY to "Secundarios",
-            MuscleRole.STABILIZER to "Estabilizadores",
-            MuscleRole.NEUTRALIZER to "Neutralizadores",
-        ).mapNotNull { (role, label) ->
-            val names = involvedMuscles
-                .filter { it.role == role }
-                .map { it.muscle.trim() }
-                .filter { it.isNotBlank() }
-                .distinct()
-                .take(8)
-            names.takeIf { it.isNotEmpty() }?.let { "$label: ${it.joinToString(" · ")}" }
-        }.joinToString("\n")
-    }
-    val articularProfile = remember(exercise.id, selectedInfo) {
-        listOfNotNull(
-            selectedInfo?.articulationType?.let { "Tipo: ${articulationLabel(it)}" },
-            selectedInfo?.movementPattern?.takeIf { it.isNotBlank() }?.let { "Patrón: $it" },
-            selectedInfo?.force?.takeIf { it.isNotBlank() }?.let { "Dirección: $it" },
-            selectedInfo?.anatomicalConsiderations?.firstOrNull()?.trait?.takeIf { it.isNotBlank() }?.let { "Consideración: $it" },
-        )
-    }
     val tags = if (exercise.cardioDetails != null) {
         listOfNotNull(
             "Cardio",
@@ -295,39 +233,54 @@ internal fun ExerciseQuickActionsSheet(
             selectedInfo?.variantName,
         ).filter { it.isNotBlank() }.distinct()
     }
+    var confirmDelete by rememberSaveable { mutableStateOf(false) }
 
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .heightIn(max = 620.dp)
             .verticalScroll(rememberScrollState())
-            .padding(horizontal = 20.dp, vertical = 16.dp),
-        verticalArrangement = Arrangement.spacedBy(10.dp),
+            .padding(horizontal = 16.dp, vertical = 12.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        Text("Información del ejercicio", fontWeight = FontWeight.Black, fontSize = 18.sp)
+        Text(
+            "Información del ejercicio",
+            style = KpknType.bodyStrong,
+            color = WizardColors.textMuted,
+        )
         Text(
             exercise.name,
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.Bold,
-            color = Color.White,
+            style = KpknType.title,
+            color = WizardColors.text,
         )
         if (tags.isNotEmpty()) {
             LazyRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                 items(tags, key = { it }) { tag ->
-                    Surface(
-                        shape = RoundedCornerShape(999.dp),
-                        color = Color.White.copy(alpha = 0.09f),
+                    Box(
+                        modifier = Modifier
+                            .clip(KpknShape.pill)
+                            .background(KpknSurface.inset, KpknShape.pill)
+                            .border(1.dp, Color.White.copy(alpha = 0.12f), KpknShape.pill)
+                            .padding(horizontal = 12.dp, vertical = 6.dp),
                     ) {
-                        Text(
-                            tag,
-                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
-                            style = MaterialTheme.typography.labelSmall,
-                            fontWeight = FontWeight.Bold,
-                            color = Color.White.copy(alpha = 0.84f),
-                        )
+                        Text(tag, style = KpknType.chip, color = WizardColors.text)
                     }
                 }
             }
+        }
+
+        // Las acciones van justo debajo del nombre: con siete filas, la descripción larga no debe empujarlas fuera de la hoja.
+        KpknModule(contentPadding = PaddingValues(horizontal = 8.dp, vertical = 8.dp)) {
+            ExerciseQuickActionRows(
+                isInSuperset = exercise.isInSuperset(),
+                onOpenExerciseDetail = { onOpenExerciseDetail(exercise.id) },
+                onOpenPicker = onOpenPicker,
+                onOpenWarmup = onOpenWarmup,
+                onOpenMobility = onOpenMobility,
+                onManageSuperset = onManageSuperset,
+                onDuplicate = onDuplicate,
+                onRequestDelete = { confirmDelete = true },
+            )
         }
 
         // Descripción exacta del catálogo (o del catálogo de cardio)
@@ -338,40 +291,14 @@ internal fun ExerciseQuickActionsSheet(
                 ?: selectedInfo?.description?.takeIf { it.isNotBlank() }
         }
 
-        Surface(
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(14.dp),
-            color = Color.White.copy(alpha = 0.06f),
-            border = BorderStroke(1.dp, Color.White.copy(alpha = 0.10f)),
-        ) {
-            Column(
-                modifier = Modifier.padding(horizontal = 14.dp, vertical = 12.dp),
-                verticalArrangement = Arrangement.spacedBy(6.dp),
-            ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(6.dp),
-                ) {
-                    Icon(
-                        Icons.Default.MenuBook,
-                        contentDescription = null,
-                        tint = Color.White.copy(alpha = 0.85f),
-                        modifier = Modifier.size(16.dp),
-                    )
-                    Text(
-                        "Descripción del ejercicio",
-                        style = MaterialTheme.typography.labelMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = Color.White.copy(alpha = 0.95f),
-                    )
-                }
-                Text(
-                    exactDescription ?: "No hay una descripción editorial disponible para este ejercicio.",
-                    style = MaterialTheme.typography.bodyMedium,
-                    lineHeight = 20.sp,
-                    color = Color.White.copy(alpha = 0.88f),
-                )
-            }
+        KpknModule(contentPadding = PaddingValues(horizontal = 16.dp, vertical = 14.dp)) {
+            KpknModuleHeader(label = "Descripción del ejercicio")
+            Spacer(Modifier.height(8.dp))
+            Text(
+                exactDescription ?: "No hay una descripción editorial disponible para este ejercicio.",
+                style = KpknType.body,
+                color = WizardColors.text,
+            )
         }
 
         // Involucramiento muscular y articular con jerarquía visual de alto contraste
@@ -385,25 +312,90 @@ internal fun ExerciseQuickActionsSheet(
                 joints = jointsForInvolvement,
             )
         }
+    }
 
-        FilledTonalButton(
-            onClick = onOpenPicker,
-            modifier = Modifier.fillMaxWidth(),
-            colors = kpknSheetWhiteTonalButtonColors(),
-        ) {
-            Icon(Icons.Default.Search, null, modifier = Modifier.size(16.dp))
-            Spacer(Modifier.width(8.dp))
-            Text("Cambiar")
-        }
+    if (confirmDelete) {
+        KpknAlertDialog(
+            onDismissRequest = { confirmDelete = false },
+            title = "Eliminar ejercicio",
+            text = "Se quita «${exercise.name}» de esta sesión. Si lo necesitas, lo añades otra vez desde el catálogo.",
+            confirmLabel = "Eliminar",
+            onConfirm = {
+                confirmDelete = false
+                onDelete()
+            },
+            dismissLabel = "Cancelar",
+            onDismiss = { confirmDelete = false },
+            destructive = true,
+        )
     }
 }
 
-private fun articulationLabel(value: String): String = when (value.uppercase()) {
-    "MULTIARTICULAR" -> "Multiarticular"
-    "AISLADO" -> "Aislado"
-    else -> value.replace('_', ' ').lowercase().replaceFirstChar { it.uppercase() }
+/**
+ * Las siete acciones de la hoja, en el orden del original y con su icono (ER1c2). «Crear superserie» pasa a «Gestionar superserie»
+ * cuando el ejercicio ya es miembro; el llamador decide a qué lleva cada una.
+ */
+@Composable
+internal fun ExerciseQuickActionRows(
+    isInSuperset: Boolean,
+    onOpenExerciseDetail: () -> Unit,
+    onOpenPicker: () -> Unit,
+    onOpenWarmup: () -> Unit,
+    onOpenMobility: () -> Unit,
+    onManageSuperset: () -> Unit,
+    onDuplicate: () -> Unit,
+    onRequestDelete: () -> Unit,
+) {
+    SessionSheetActionRow(
+        icon = KpknLineIcons.Info,
+        label = "Ficha",
+        tag = "quick-action-ficha",
+        onClick = onOpenExerciseDetail,
+    )
+    SessionSheetDivider()
+    SessionSheetActionRow(
+        icon = KpknLineIcons.Swap,
+        label = "Cambiar",
+        tag = "quick-action-cambiar",
+        onClick = onOpenPicker,
+    )
+    SessionSheetDivider()
+    SessionSheetActionRow(
+        icon = KpknLineIcons.Flame,
+        label = "+ Aproximación",
+        tag = "quick-action-aproximacion",
+        onClick = onOpenWarmup,
+    )
+    SessionSheetDivider()
+    SessionSheetActionRow(
+        icon = KpknLineIcons.Joint,
+        label = "+ Movilidad",
+        tag = "quick-action-movilidad",
+        onClick = onOpenMobility,
+    )
+    SessionSheetDivider()
+    SessionSheetActionRow(
+        icon = KpknLineIcons.Link,
+        label = if (isInSuperset) "Gestionar superserie" else "Crear superserie",
+        tag = "quick-action-superserie",
+        onClick = onManageSuperset,
+    )
+    SessionSheetDivider()
+    SessionSheetActionRow(
+        icon = KpknLineIcons.Layers,
+        label = "Duplicar ejercicio",
+        tag = "quick-action-duplicar",
+        onClick = onDuplicate,
+    )
+    SessionSheetDivider()
+    SessionSheetActionRow(
+        icon = KpknLineIcons.Trash,
+        label = "Eliminar",
+        tag = "quick-action-eliminar",
+        danger = true,
+        onClick = onRequestDelete,
+    )
 }
-
 
 @Composable
 internal fun MobilityPickerSheet(
@@ -425,126 +417,119 @@ internal fun MobilityPickerSheet(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 20.dp, vertical = 16.dp),
+            .padding(horizontal = 16.dp, vertical = 12.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            Column(modifier = Modifier.weight(1f)) {
-                Text("Catálogo de movilidad", fontWeight = FontWeight.Black, fontSize = 18.sp)
+            Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Text("Catálogo de movilidad", style = KpknType.dialogTitle, color = WizardColors.text)
                 Text(
                     "${allMobility.size} movimientos en español, por articulación y objetivo",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    style = KpknType.caption,
+                    color = WizardColors.textMuted,
                 )
                 Text(
                     "Orientación práctica: no sustituye una evaluación clínica.",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    style = KpknType.caption,
+                    color = WizardColors.textMuted,
                 )
             }
-            IconButton(onClick = onDismiss) {
-                Icon(Icons.Default.Close, contentDescription = "Cerrar")
-            }
+            KpknIconButton(icon = KpknLineIcons.Close, contentDescription = "Cerrar", onClick = onDismiss)
         }
-        CatalogSearchField(
+        KpknTextField(
             value = query,
             onValueChange = { query = it },
-            modifier = Modifier.fillMaxWidth(),
             placeholder = "Buscar movilidad, zona o molestia",
+            leadingIcon = KpknLineIcons.Search,
+            modifier = Modifier.fillMaxWidth(),
         )
         // Body region filter chips
-        LazyRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+        LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             item {
-                CompactCatalogFilterChip(
+                KpknChip(
+                    text = "Todas",
                     selected = selectedRegion.isBlank(),
                     onClick = { selectedRegion = "" },
-                    label = "Todas",
-                    glassDark = true,
                 )
             }
             items(uniqueRegions) { region ->
-                CompactCatalogFilterChip(
+                KpknChip(
+                    text = mobilityBodyRegionLabel(region),
                     selected = selectedRegion == region,
                     onClick = { selectedRegion = region },
-                    label = mobilityBodyRegionLabel(region),
-                    glassDark = true,
                 )
             }
         }
         LazyColumn(
             modifier = Modifier.heightIn(max = 520.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
             items(results, key = { it.id }) { mobility ->
                 val alreadyAdded = mobility.id in selectedMobilityIds
-                Surface(
-                    shape = RoundedCornerShape(14.dp),
-                    color = KpknSheetTokens.Panel,
-                    modifier = Modifier.fillMaxWidth(),
-                ) {
-                    Row(
-                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(10.dp),
-                    ) {
-                        Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                            Text(mobility.name, fontWeight = FontWeight.Bold)
-                            val details = listOfNotNull(
-                                mobilityBodyRegionLabel(mobility.bodyRegion).takeIf { it.isNotBlank() },
-                                mobility.joints.firstOrNull()?.replaceFirstChar { it.uppercase() },
-                                mobility.discomfortIds.map { discomfortLabel(it) }.filter { it.isNotBlank() }.joinToString().takeIf { it.isNotBlank() },
-                            ).joinToString(" · ")
-                            if (details.isNotBlank()) {
-                                Text(
-                                    details,
-                                    style = MaterialTheme.typography.labelSmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                )
-                            }
-                            Text(
-                                mobility.description,
-                                style = MaterialTheme.typography.bodySmall,
-                                maxLines = if (expandedMobilityId == mobility.id) 4 else 2,
-                                overflow = TextOverflow.Ellipsis,
-                            )
-                            TextButton(
-                                onClick = {
-                                    expandedMobilityId =
-                                        if (expandedMobilityId == mobility.id) null else mobility.id
-                                },
-                                contentPadding = androidx.compose.foundation.layout.PaddingValues(0.dp),
-                            ) {
-                                Text(if (expandedMobilityId == mobility.id) "Ocultar ficha" else "Ver ficha")
-                            }
-                            if (expandedMobilityId == mobility.id) {
-                                Text(
-                                    "Objetivo: ${mobility.objective}",
-                                    style = MaterialTheme.typography.labelSmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                )
-                                Text(
-                                    "Cómo hacerlo: ${mobility.instructions.orEmpty()}",
-                                    style = MaterialTheme.typography.labelSmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                )
-                                Text(
-                                    "Material: ${mobility.equipment} · Nivel: ${mobility.level}",
-                                    style = MaterialTheme.typography.labelSmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                )
-                                Text(
-                                    "Precaución: ${mobility.precautions}",
-                                    style = MaterialTheme.typography.labelSmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                )
-                            }
-                        }
-                        FilledTonalButton(
-                            onClick = { if (alreadyAdded) onRemove(mobility) else onAdd(mobility) },
-                            colors = kpknSheetWhiteTonalButtonColors(),
-                        ) {
-                            Text(if (alreadyAdded) "Agregado (Quitar)" else "Agregar")
-                        }
+                val expanded = expandedMobilityId == mobility.id
+                KpknModule(contentPadding = PaddingValues(horizontal = 16.dp, vertical = 14.dp)) {
+                    Text(mobility.name, style = KpknType.bodyStrong, color = WizardColors.text)
+                    val details = listOfNotNull(
+                        mobilityBodyRegionLabel(mobility.bodyRegion).takeIf { it.isNotBlank() },
+                        mobility.joints.firstOrNull()?.replaceFirstChar { it.uppercase() },
+                        mobility.discomfortIds.map { discomfortLabel(it) }.filter { it.isNotBlank() }.joinToString().takeIf { it.isNotBlank() },
+                    ).joinToString(" · ")
+                    if (details.isNotBlank()) {
+                        Text(
+                            details,
+                            style = KpknType.caption,
+                            color = WizardColors.textMuted,
+                        )
+                    }
+                    Spacer(Modifier.height(4.dp))
+                    Text(
+                        mobility.description,
+                        style = KpknType.caption,
+                        color = WizardColors.text,
+                        maxLines = if (expanded) 4 else 2,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                    KpknTextAction(
+                        text = if (expanded) "Ocultar ficha" else "Ver ficha",
+                        onClick = {
+                            expandedMobilityId = if (expanded) null else mobility.id
+                        },
+                    )
+                    if (expanded) {
+                        Text(
+                            "Objetivo: ${mobility.objective}",
+                            style = KpknType.caption,
+                            color = WizardColors.textMuted,
+                        )
+                        Text(
+                            "Cómo hacerlo: ${mobility.instructions.orEmpty()}",
+                            style = KpknType.caption,
+                            color = WizardColors.textMuted,
+                        )
+                        Text(
+                            "Material: ${mobility.equipment} · Nivel: ${mobility.level}",
+                            style = KpknType.caption,
+                            color = WizardColors.textMuted,
+                        )
+                        Text(
+                            "Precaución: ${mobility.precautions}",
+                            style = KpknType.caption,
+                            color = WizardColors.textMuted,
+                        )
+                    }
+                    Spacer(Modifier.height(8.dp))
+                    if (alreadyAdded) {
+                        KpknPrimaryPill(
+                            text = "Agregado (Quitar)",
+                            onClick = { onRemove(mobility) },
+                            modifier = Modifier.fillMaxWidth(),
+                        )
+                    } else {
+                        KpknSecondaryPill(
+                            text = "Agregar",
+                            onClick = { onAdd(mobility) },
+                            modifier = Modifier.fillMaxWidth(),
+                        )
                     }
                 }
             }
