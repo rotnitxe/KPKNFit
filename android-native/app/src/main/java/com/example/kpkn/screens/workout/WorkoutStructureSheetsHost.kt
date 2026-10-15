@@ -984,7 +984,7 @@ internal fun ExerciseOptionsStrengthRows(
  * 1RM estimado con el PR que se escribe en el cajón de editar (LR1d). Pura: la prueba es WorkoutEditSeriesDecimalTest.
  */
 internal fun localPrEstimated1RM(weightText: String, repsText: String, trainingMode: TrainingMode): Double? {
-    val w = weightText.toDoubleOrNull()
+    val w = weightText.replace(',', '.').toDoubleOrNull()
     val r = repsText.toIntOrNull()
     if (w == null || w <= 0 || r == null || r <= 0) return null
     return if (trainingMode == TrainingMode.TIME || trainingMode == TrainingMode.DISTANCE || trainingMode == TrainingMode.CUSTOM) {
