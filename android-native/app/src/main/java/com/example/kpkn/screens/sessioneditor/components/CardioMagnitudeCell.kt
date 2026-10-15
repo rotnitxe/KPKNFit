@@ -55,7 +55,8 @@ internal fun CardioMagnitudeCell(
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
         )
-        KpknMetric(value = value, unit = unit, style = KpknType.metricM)
+        // ER1f: la magnitud es una cifra editable (toca y abre su selector): tipografía de KpknNumberCell, no Syne.
+        KpknMetric(value = value, unit = unit, style = KpknType.bodyStrong.copy(fontFeatureSettings = "'tnum' 1"))
     }
 }
 

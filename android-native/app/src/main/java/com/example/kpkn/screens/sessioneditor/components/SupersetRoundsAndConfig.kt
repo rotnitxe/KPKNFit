@@ -95,6 +95,10 @@ internal fun SupersetExerciseConfigOverlay(
 ) {
     var showSmartLoadSheet by remember { mutableStateOf(false) }
     var showGoalSheet by remember { mutableStateOf(false) }
+    // ER1f: el estado de la barra de opciones (ER1c1) y de la unidad personalizada, como en el ejercicio desplegado.
+    val local = rememberExerciseEditorLocalState(exercise)
+    var showCustomUnitModal by local.showCustomUnitModal
+    var customUnitInput by local.customUnitInput
     val sharedIntensity = exercise.unilateralIntensityMode == UnilateralIntensityMode.SHARED
 
     Column(
@@ -141,38 +145,26 @@ internal fun SupersetExerciseConfigOverlay(
             style = KpknType.caption,
             color = WizardColors.textMuted,
         )
-        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            CompactModeSelector(
-                currentMode = exercise.trainingMode,
-                accentColor = accentColor,
-            ) { mode -> onUpdateExercise { current -> current.copy(trainingMode = mode) } }
-            CompactGoalTrackingButton(
-                isActive = exercise.isStarTarget,
-                accentColor = accentColor,
-                onToggle = { onUpdateExercise { current -> current.copy(isStarTarget = !current.isStarTarget) } },
-                onOpenSheet = { showGoalSheet = true },
-            )
-            KpknChip(
-                text = "Medir ROM",
-                selected = exercise.trackRom,
-                onClick = { onUpdateExercise { current -> current.copy(trackRom = !current.trackRom) } },
-            )
-            KpknChip(
-                text = relationshipAnchorName?.let { "Ancla: $it" } ?: "Relacionar",
-                selected = exercise.relativeToCanonicalExerciseId != null,
-                onClick = {
-                    if (exercise.relativeToCanonicalExerciseId == null) onOpenRelationshipPicker() else onClearRelationship()
-                },
-                modifier = Modifier.widthIn(max = 170.dp),
-            )
-            UnilateralModeSelector(
-                mode = exercise.unilateralMode,
-                accentColor = accentColor,
-                onToggleUnilateral = {
-                    onUpdateExercise { current -> current.toggledBilateralUnilateral() }
-                },
-            )
-            if (exercise.isEffectivelyUnilateral()) {
+        // Las mismas piezas que el ejercicio desplegado (ER1c1): modo, meta, medir ROM, relación, bilateral y «⋯». Sin descanso propio
+        // (lo lleva la superserie) y sin «Superserie»: ya estamos dentro de ella.
+        ExerciseOptionsBar(
+            exercise = exercise,
+            local = local,
+            accentColor = accentColor,
+            isSupersetExercise = true,
+            suppressIndividualRest = true,
+            relationshipAnchorName = relationshipAnchorName,
+            onUpdateExercise = onUpdateExercise,
+            onOpenSuperset = null,
+            onOpenRelationshipPicker = onOpenRelationshipPicker,
+            onClearRelationship = onClearRelationship,
+            onOpenCustomUnit = { showCustomUnitModal = true },
+            onOpenSmartLoad = { showSmartLoadSheet = true },
+            onOpenGoal = { showGoalSheet = true },
+            onOpenRest = {},
+        )
+        if (exercise.isEffectivelyUnilateral()) {
+            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 SideOrderChip(
                     sideOrder = exercise.unilateralSideOrder,
                     accentColor = accentColor,
@@ -222,6 +214,15 @@ internal fun SupersetExerciseConfigOverlay(
 
     if (showGoalSheet) {
         SupersetGoalDialog(exercise, onUpdateExercise, onDismiss = { showGoalSheet = false })
+    }
+
+    if (showCustomUnitModal) {
+        ExerciseCustomUnitDialog(
+            customUnitInput = customUnitInput,
+            onCustomUnitInputChange = { customUnitInput = it },
+            onUpdateExercise = onUpdateExercise,
+            onDismiss = { showCustomUnitModal = false },
+        )
     }
 }
 
@@ -582,7 +583,7 @@ private fun RoundExerciseSetCard(
             predictedWeight?.let { add("~${formatEditableNumber(it)} kg") }
             set.targetRPE?.let { add("RPE ${formatEditableNumber(it)}") }
             set.targetRIR?.let { add("RIR $it") }
-            set.targetDuration?.let { add("${it}s") }
+            set.targetDuration?.let { add(KpknSetFormat.doseTime(it)) }
         }
     }.joinToString(" · ").ifBlank { "Sin objetivo configurado" }
 
@@ -654,6 +655,8 @@ private fun RoundExerciseSetCard(
                                 estimatedMetric = estimatedMetric,
                                 trainingMode = exercise.trainingMode,
                                 customUnit = exercise.customUnit,
+                                // ER1f: la misma presentación en lista que el ejercicio desplegado (ER1c1), no la tarjeta vieja.
+                                presentation = SetRowPresentation.List,
                                 // El lado se dice con la letra (I/D), no con un color: la pieza va en el acento de la superserie.
                                 accentColor = accentColor,
                                 canMoveUp = isFirstVisible && roundIndex > 0,
@@ -706,6 +709,7 @@ private fun RoundExerciseSetCard(
                         estimatedMetric = estimatedMetric,
                         trainingMode = exercise.trainingMode,
                         customUnit = exercise.customUnit,
+                        presentation = SetRowPresentation.List,
                         accentColor = accentColor,
                         canMoveUp = roundIndex > 0,
                         canMoveDown = roundIndex < exercise.sets.lastIndex,

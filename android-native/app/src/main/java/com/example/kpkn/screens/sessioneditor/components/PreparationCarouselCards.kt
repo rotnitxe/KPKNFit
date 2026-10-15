@@ -532,7 +532,8 @@ internal fun PreparationDashedPill(
                     style = Stroke(width = stroke, pathEffect = PathEffect.dashPathEffect(floatArrayOf(10f, 8f))),
                 )
             }
-            .padding(horizontal = 14.dp),
+            // ER1f: a 130 % el texto de dos líneas rozaba el borde punteado; el aire vertical lo evita.
+            .padding(horizontal = 14.dp, vertical = 6.dp),
         contentAlignment = Alignment.Center,
     ) {
         Text(text, style = KpknType.chip, color = WizardColors.text, maxLines = 2, textAlign = TextAlign.Center)

@@ -42,6 +42,7 @@ import com.example.kpkn.screens.sessioneditor.DefaultIntensityType
 import com.example.kpkn.screens.sessioneditor.RuleScope
 import com.example.kpkn.screens.sessioneditor.RuleTemplate
 import com.example.kpkn.screens.sessioneditor.SessionEditorUiState
+import com.example.kpkn.screens.sessioneditor.design.sessionChipRowEdgeFade
 import com.example.kpkn.screens.sessioneditor.safeDoubleOrNull
 import com.example.kpkn.screens.sessioneditor.safeIntOrNull
 import com.example.kpkn.ui.components.KpknAlertConfirmButton
@@ -263,10 +264,12 @@ internal fun RulesSheet(
                     )
                     if (selectedScope == RuleScope.PER_GROUP) {
                         Spacer(Modifier.height(12.dp))
+                        val partChipsScroll = rememberScrollState()
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .horizontalScroll(rememberScrollState()),
+                                .sessionChipRowEdgeFade(partChipsScroll)
+                                .horizontalScroll(partChipsScroll),
                             horizontalArrangement = Arrangement.spacedBy(8.dp),
                         ) {
                             (uiState.activeVariantSession ?: uiState.session)?.parts?.forEach { part ->
@@ -285,10 +288,12 @@ internal fun RulesSheet(
                     KpknModule(modifier = Modifier.fillMaxWidth()) {
                         KpknModuleHeader(label = "Valores de serie")
                         Spacer(Modifier.height(12.dp))
+                        val intensityChipsScroll = rememberScrollState()
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .horizontalScroll(rememberScrollState()),
+                                .sessionChipRowEdgeFade(intensityChipsScroll)
+                                .horizontalScroll(intensityChipsScroll),
                             horizontalArrangement = Arrangement.spacedBy(8.dp),
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
@@ -384,7 +389,7 @@ internal fun RulesSheet(
                                     style = KpknType.bodyStrong,
                                     color = WizardColors.text,
                                 )
-                                SheetCaption("Ejercicios, series, lados y supersets nuevos heredan estos valores.")
+                                SheetCaption("Ejercicios, series, lados y superseries nuevas heredan estos valores.")
                             }
                             KpknSwitch(
                                 checked = defaults.applyToNewItems,
@@ -624,10 +629,12 @@ private fun IntensityChipRow(
     selectedType: DefaultIntensityType,
     onSelect: (DefaultIntensityType) -> Unit,
 ) {
+    val chipScroll = rememberScrollState()
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .horizontalScroll(rememberScrollState()),
+            .sessionChipRowEdgeFade(chipScroll)
+            .horizontalScroll(chipScroll),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         RuleIntensityOptions.forEach { (type, label) ->

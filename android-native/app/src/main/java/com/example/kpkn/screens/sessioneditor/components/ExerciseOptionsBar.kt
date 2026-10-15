@@ -59,7 +59,7 @@ internal fun ExerciseOptionsBar(
     suppressIndividualRest: Boolean,
     relationshipAnchorName: String?,
     onUpdateExercise: ((Exercise) -> Exercise) -> Unit,
-    onOpenSuperset: () -> Unit,
+    onOpenSuperset: (() -> Unit)?,
     onOpenRelationshipPicker: () -> Unit,
     onClearRelationship: () -> Unit,
     onOpenCustomUnit: () -> Unit,
@@ -133,13 +133,16 @@ internal fun ExerciseOptionsBar(
                         }
                     },
                 )
-                DropdownMenuItem(
-                    text = { Text(if (exercise.isInSuperset()) "Gestionar superserie" else "Superserie") },
-                    onClick = {
-                        showExerciseOptionsMenu = false
-                        onOpenSuperset()
-                    },
-                )
+                // ER1f: sin callback (un miembro de la superserie configurándose) no hay ítem que ofrecer.
+                if (onOpenSuperset != null) {
+                    DropdownMenuItem(
+                        text = { Text(if (exercise.isInSuperset()) "Gestionar superserie" else "Superserie") },
+                        onClick = {
+                            showExerciseOptionsMenu = false
+                            onOpenSuperset()
+                        },
+                    )
+                }
                 DropdownMenuItem(
                     text = { Text("Unidad personalizada") },
                     onClick = {

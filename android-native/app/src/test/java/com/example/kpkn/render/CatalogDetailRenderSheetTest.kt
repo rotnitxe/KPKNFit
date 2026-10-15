@@ -26,9 +26,12 @@ import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import com.example.kpkn.data.exercises.ExerciseTechniqueImageLookup
 import com.example.kpkn.data.exercises.ExerciseTechniqueImageVariant
+import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.ExerciseMuscleInfo
+import com.example.kpkn.data.models.ExerciseSet
 import com.example.kpkn.data.models.InvolvedMuscle
 import com.example.kpkn.data.models.MuscleRole
+import com.example.kpkn.data.models.RepRange
 import com.example.kpkn.domain.exercises.VariantGroup
 import com.example.kpkn.domain.exercises.catalogv2.JointInvolvementV2
 import com.example.kpkn.domain.exercises.catalogv2.JointRoleV2
@@ -39,6 +42,7 @@ import com.example.kpkn.screens.sessioneditor.components.CatalogDetailAxis
 import com.example.kpkn.screens.sessioneditor.components.CatalogDetailContent
 import com.example.kpkn.screens.sessioneditor.components.CatalogDetailModel
 import com.example.kpkn.screens.sessioneditor.components.CatalogDetailOption
+import com.example.kpkn.screens.sessioneditor.components.SessionExerciseDetailSheet
 import com.example.kpkn.screens.sessioneditor.design.CatalogSupersetConfiguratorContent
 import com.example.kpkn.screens.sessioneditor.design.SmartExerciseEditorPage
 import org.junit.Assume.assumeTrue
@@ -85,6 +89,7 @@ class CatalogDetailRenderSheetTest {
         "crear_ejercicio",
         "configurar_superserie",
         "asistente_paso",
+        "ficha_desde_editor",
     )
 
     /** El caso que se dibuja ahora, y la escala de letra. Fuera de la composición para poder cambiarlos desde la prueba. */
@@ -96,7 +101,7 @@ class CatalogDetailRenderSheetTest {
 
     /** Alto de cada caso: la ficha entera cabe en 1500 dp; el editor es el más alto. */
     private fun heightOf(name: String): Int = when (name) {
-        "hoy_3_implementos", "hoy_musculos_desplegados", "ficha_3_implementos", "ficha_7_musculos" -> 1500
+        "hoy_3_implementos", "hoy_musculos_desplegados", "ficha_3_implementos", "ficha_7_musculos", "ficha_desde_editor" -> 1500
         "ficha_1_implemento", "ficha_sin_imagen" -> 1300
         "crear_ejercicio" -> 2600
         "configurar_superserie" -> 1100
@@ -178,6 +183,17 @@ class CatalogDetailRenderSheetTest {
     private val sampleDescription =
         "Empuje horizontal del tren superior con barra. Escápulas juntas y bajada controlada hasta el pecho. " +
             "El codo baja en diagonal, no pegado al cuerpo, y la barra toca la parte baja del pecho sin rebotar."
+
+    /** Press de banca con su vínculo al catálogo v2 (definición y configuración): la ficha abierta desde el editor (ER1f). */
+    private val sampleEditorExercise: Exercise by lazy {
+        Exercise(
+            id = "press-editor",
+            name = "Press banca",
+            catalogDefinitionId = ExerciseTechniqueImageLookup.FLAT_BENCH_PRESS_DEFINITION_ID,
+            catalogConfigurationId = "bench_press__barbell",
+            sets = listOf(ExerciseSet(id = "press-editor-1", targetReps = 6, targetRepsRange = RepRange(4, 6), targetRIR = 2)),
+        )
+    }
 
     /** Barra, mancuerna y máquina: los tres implementos de la muestra, con sus nombres de la configuración. */
     private val sampleImplementOptions = listOf(
@@ -285,6 +301,7 @@ class CatalogDetailRenderSheetTest {
                     onConfirm = {},
                 )
             }
+            "ficha_desde_editor" -> SessionExerciseDetailSheet(exercise = sampleEditorExercise, onDismiss = {})
             else -> CatalogSelectionWizardContent(
                 group = sampleGroup,
                 initialExercise = sampleVariants[0],

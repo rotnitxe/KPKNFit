@@ -430,14 +430,16 @@ internal fun SessionEditorListItem(
                         KpknTextAction(
                             text = "Añadir cardio",
                             onClick = { viewModel.openCardioPicker(part.id) },
-                            modifier = Modifier.padding(horizontal = 4.dp),
+                            // Mismo borde que «Añadir ejercicio» (ER1f).
+                            modifier = Modifier.padding(horizontal = 16.dp),
                             leadingIcon = KpknLineIcons.Plus,
                         )
                     } else {
                         KpknTextAction(
                             text = "Añadir ejercicio a $displayName",
                             onClick = { viewModel.openPicker(part.id) },
-                            modifier = Modifier.padding(horizontal = 4.dp),
+                            // ER1f: alineado con el contenido del módulo (16 dp), no pegado a su borde.
+                            modifier = Modifier.padding(horizontal = 16.dp),
                             leadingIcon = KpknLineIcons.Plus,
                         )
                     }

@@ -1,5 +1,6 @@
 package com.example.kpkn.screens.sessioneditor.components
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -9,33 +10,20 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.KeyboardArrowDown
-import androidx.compose.material.icons.filled.KeyboardArrowUp
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.Checkbox
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.FilledTonalButton
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -47,9 +35,14 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.boundsInWindow
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.disabled
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -73,13 +66,19 @@ import com.example.kpkn.domain.templates.TemplateSessionGoal
 import com.example.kpkn.domain.templates.TemplateSessionType
 import com.example.kpkn.domain.templates.TemplateSessionZone
 import com.example.kpkn.screens.onboarding.design.WizardColors
+import com.example.kpkn.ui.components.KpknAlertDialog
 import com.example.kpkn.ui.components.icons.KpknLineIcons
+import com.example.kpkn.ui.design.KpknCheckRow
 import com.example.kpkn.ui.design.KpknChip
+import com.example.kpkn.ui.design.KpknContextMenu
+import com.example.kpkn.ui.design.KpknContextMenuRow
+import com.example.kpkn.ui.design.KpknPrimaryPill
 import com.example.kpkn.ui.design.KpknSecondaryPill
 import com.example.kpkn.ui.design.KpknShape
 import com.example.kpkn.ui.design.KpknSurface
+import com.example.kpkn.ui.design.KpknTextAction
+import com.example.kpkn.ui.design.KpknTextField
 import com.example.kpkn.ui.design.KpknType
-import com.example.kpkn.ui.components.KpknDropdownMenu
 import kotlinx.coroutines.launch
 
 /**
@@ -448,29 +447,22 @@ internal fun TemplateCatalogBrowser(
     }
     pendingDeleteId?.let { id ->
         val pendingName = (templates + archivedUserTemplates).firstOrNull { it.id == id }?.name
-        AlertDialog(
+        KpknAlertDialog(
             onDismissRequest = { pendingDeleteId = null },
-            title = { Text("Borrar plantilla", fontWeight = FontWeight.Black) },
-            text = {
-                Text(
-                    if (pendingName.isNullOrBlank()) {
-                        "Esta acción es permanente. ¿Eliminar la plantilla?"
-                    } else {
-                        "Esta acción es permanente. ¿Eliminar \"$pendingName\"?"
-                    },
-                )
+            title = "Borrar plantilla",
+            text = if (pendingName.isNullOrBlank()) {
+                "Esta acción es permanente. ¿Eliminar la plantilla?"
+            } else {
+                "Esta acción es permanente. ¿Eliminar \"$pendingName\"?"
             },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        onDeleteUserTemplate(id)
-                        pendingDeleteId = null
-                    },
-                ) { Text("Borrar") }
+            confirmLabel = "Borrar",
+            onConfirm = {
+                onDeleteUserTemplate(id)
+                pendingDeleteId = null
             },
-            dismissButton = {
-                TextButton(onClick = { pendingDeleteId = null }) { Text("Cancelar") }
-            },
+            dismissLabel = "Cancelar",
+            onDismiss = { pendingDeleteId = null },
+            destructive = true,
         )
     }
     templateBeingEdited?.let { template ->
@@ -557,12 +549,14 @@ private fun UserTemplateMetadataDialog(
     var saveError by remember(template.id) { mutableStateOf<String?>(null) }
     val scope = rememberCoroutineScope()
 
+    // Material y no KpknAlertDialog (ER1f): la pieza ignora `properties` y su BACK cierra el diálogo, y aquí BACK primero oculta el IME
+    // sin cerrar la edición ni perder lo escrito, como en HEAD. Pendiente: que KpknAlertDialog respete dismissOnBackPress.
     AlertDialog(
         onDismissRequest = { if (!isSaving) onDismiss() },
         // A system BACK first hides the IME.  Do not let that same event
         // dismiss the dialog and bypass the durable Result contract.
         properties = DialogProperties(dismissOnBackPress = false),
-        title = { Text("Editar plantilla", fontWeight = FontWeight.Black) },
+        title = { Text("Editar plantilla") },
         text = {
             Column(
                 modifier = Modifier
@@ -571,11 +565,18 @@ private fun UserTemplateMetadataDialog(
                     .verticalScroll(rememberScrollState()),
                 verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
-                OutlinedTextField(name, { name = it }, label = { Text("Nombre") }, singleLine = true, enabled = !isSaving)
-                OutlinedTextField(
-                    description,
-                    { description = it },
-                    label = { Text("Descripción") },
+                KpknTextField(
+                    value = name,
+                    onValueChange = { name = it },
+                    label = "Nombre",
+                    singleLine = true,
+                    enabled = !isSaving,
+                )
+                KpknTextField(
+                    value = description,
+                    onValueChange = { description = it },
+                    label = "Descripción",
+                    singleLine = false,
                     minLines = 2,
                     enabled = !isSaving,
                 )
@@ -606,31 +607,33 @@ private fun UserTemplateMetadataDialog(
                     values = SessionTemplateDurationClass.entries.map { it.name },
                     onValue = { value -> duration = SessionTemplateDurationClass.entries.first { it.name == value } },
                 )
-                OutlinedTextField(
-                    splitIds,
-                    { splitIds = it },
-                    label = { Text("Split IDs (separados por coma)") },
+                KpknTextField(
+                    value = splitIds,
+                    onValueChange = { splitIds = it },
+                    label = "Split IDs (separados por coma)",
                     singleLine = true,
                 )
-                OutlinedTextField(
-                    dayLabels,
-                    { dayLabels = it },
-                    label = { Text("Etiquetas de día (separadas por coma)") },
+                KpknTextField(
+                    value = dayLabels,
+                    onValueChange = { dayLabels = it },
+                    label = "Etiquetas de día (separadas por coma)",
                     singleLine = true,
                 )
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Checkbox(checked = autoGeneration, onCheckedChange = { if (!isSaving) autoGeneration = it })
-                    Text("Permitir autogeneración semanal")
-                }
+                KpknCheckRow(
+                    checked = autoGeneration,
+                    title = "Permitir autogeneración semanal",
+                    onClick = { if (!isSaving) autoGeneration = !autoGeneration },
+                )
                 saveError?.let { error ->
                     Text(error, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
                 }
             }
         },
         confirmButton = {
-            Button(
+            KpknPrimaryPill(
+                text = if (isSaving) "Guardando…" else "Guardar",
                 onClick = {
-                    if (isSaving) return@Button
+                    if (isSaving) return@KpknPrimaryPill
                     isSaving = true
                     saveError = null
                     scope.launch {
@@ -656,21 +659,9 @@ private fun UserTemplateMetadataDialog(
                     }
                 },
                 enabled = name.isNotBlank() && !isSaving,
-            ) {
-                if (isSaving) {
-                    CircularProgressIndicator(
-                        modifier = Modifier.size(16.dp),
-                        strokeWidth = 2.dp,
-                        color = MaterialTheme.colorScheme.onPrimary,
-                    )
-                    Spacer(Modifier.width(8.dp))
-                    Text("Guardando…")
-                } else {
-                    Text("Guardar")
-                }
-            }
+            )
         },
-        dismissButton = { TextButton(onClick = onDismiss, enabled = !isSaving) { Text("Cancelar") } },
+        dismissButton = { DialogTextAction(text = "Cancelar", enabled = !isSaving, onClick = onDismiss) },
     )
 }
 
@@ -684,25 +675,27 @@ private fun SaveUserTemplateDialog(
     var saveState by remember { mutableStateOf<UserTemplateSaveState>(UserTemplateSaveState.Idle) }
     val scope = rememberCoroutineScope()
     val isSaving = saveState is UserTemplateSaveState.Saving
+    // Material y no KpknAlertDialog (ER1f), por la misma razón que la edición: BACK no debe cerrar el formulario mientras se guarda.
     AlertDialog(
         onDismissRequest = { if (!isSaving) onDismiss() },
         // Keep the form mounted while the IME is being dismissed; only the
         // Room-backed success path below may close it after a save.
         properties = DialogProperties(dismissOnBackPress = false),
-        title = { Text("Guardar sesión como plantilla", fontWeight = FontWeight.Black) },
+        title = { Text("Guardar sesión como plantilla") },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                OutlinedTextField(
+                KpknTextField(
                     value = name,
                     onValueChange = { name = it },
-                    label = { Text("Nombre") },
+                    label = "Nombre",
                     singleLine = true,
                     enabled = !isSaving,
                 )
-                OutlinedTextField(
+                KpknTextField(
                     value = description,
                     onValueChange = { description = it },
-                    label = { Text("Descripción") },
+                    label = "Descripción",
+                    singleLine = false,
                     minLines = 2,
                     enabled = !isSaving,
                 )
@@ -717,9 +710,10 @@ private fun SaveUserTemplateDialog(
             }
         },
         confirmButton = {
-            Button(
+            KpknPrimaryPill(
+                text = if (isSaving) "Guardando…" else "Guardar",
                 onClick = {
-                    if (isSaving) return@Button
+                    if (isSaving) return@KpknPrimaryPill
                     saveState = UserTemplateSaveState.Saving
                     scope.launch {
                         val result = executeUserTemplateSave(name, description, onSave)
@@ -732,23 +726,31 @@ private fun SaveUserTemplateDialog(
                     }
                 },
                 enabled = name.isNotBlank() && !isSaving,
-            ) {
-                if (isSaving) {
-                    CircularProgressIndicator(
-                        modifier = Modifier.size(16.dp),
-                        strokeWidth = 2.dp,
-                        color = MaterialTheme.colorScheme.onPrimary,
-                    )
-                    Spacer(Modifier.width(8.dp))
-                    Text("Guardando…")
-                } else {
-                    Text("Guardar")
-                }
-            }
+            )
         },
         dismissButton = {
-            TextButton(onClick = onDismiss, enabled = !isSaving) { Text("Cancelar") }
+            DialogTextAction(text = "Cancelar", enabled = !isSaving, onClick = onDismiss)
         },
+    )
+}
+
+/**
+ * Cancelar de los diálogos de plantillas. [KpknTextAction] no tiene `enabled`: aquí se apaga a mano, al 38 % y sin responder,
+ * como un TextButton deshabilitado de Material.
+ */
+@Composable
+private fun DialogTextAction(
+    text: String,
+    enabled: Boolean,
+    onClick: () -> Unit,
+) {
+    KpknTextAction(
+        text = text,
+        onClick = { if (enabled) onClick() },
+        color = WizardColors.textMuted,
+        modifier = Modifier
+            .alpha(if (enabled) 1f else 0.38f)
+            .semantics { if (!enabled) disabled() },
     )
 }
 
@@ -762,23 +764,33 @@ private fun TemplateMetadataDropdown(
     values: List<String>,
     onValue: (String) -> Unit,
 ) {
+    var anchor by remember { mutableStateOf<Rect?>(null) }
+    // BACK cierra primero el menú abierto y no el diálogo que lo contiene.
+    BackHandler(enabled = expanded) { onDismiss() }
     Box(modifier = Modifier.fillMaxWidth()) {
-        FilledTonalButton(
+        KpknSecondaryPill(
+            text = "$label: $value",
             onClick = onExpand,
-            modifier = Modifier.fillMaxWidth(),
-            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp),
-        ) {
-            Text("$label: $value", modifier = Modifier.weight(1f), maxLines = 1, overflow = TextOverflow.Ellipsis)
-        }
-        KpknDropdownMenu(expanded = expanded, onDismissRequest = onDismiss) {
-            values.forEach { option ->
-                DropdownMenuItem(
-                    text = { Text(option) },
-                    onClick = {
-                        onValue(option)
-                        onDismiss()
-                    },
-                )
+            modifier = Modifier
+                .fillMaxWidth()
+                .onGloballyPositioned { anchor = it.boundsInWindow() },
+        )
+        val menuAnchor = anchor
+        if (expanded && menuAnchor != null) {
+            KpknContextMenu(
+                anchor = menuAnchor,
+                rows = values.size,
+                onDismiss = onDismiss,
+            ) {
+                values.forEach { option ->
+                    KpknContextMenuRow(
+                        label = option,
+                        onClick = {
+                            onValue(option)
+                            onDismiss()
+                        },
+                    )
+                }
             }
         }
     }
@@ -845,10 +857,11 @@ private fun FilterDropdownRow(
                 expanded = showGroupMenu,
                 onExpandedChange = { showGroupMenu = it },
                 contentDescription = "Agrupar plantillas por ${groupMode.label}",
+                rows = visibleGroupModes.size,
             ) {
                 visibleGroupModes.forEach { mode ->
-                    DropdownMenuItem(
-                        text = { Text(mode.label) },
+                    KpknContextMenuRow(
+                        label = mode.label,
                         onClick = {
                             onGroupMode(mode)
                             showGroupMenu = false
@@ -862,17 +875,18 @@ private fun FilterDropdownRow(
                 expanded = showDifficultyMenu,
                 onExpandedChange = { showDifficultyMenu = it },
                 contentDescription = "Filtrar por nivel",
+                rows = Difficulty.entries.size + 1,
             ) {
-                DropdownMenuItem(
-                    text = { Text("Todos") },
+                KpknContextMenuRow(
+                    label = "Todos",
                     onClick = {
                         onDifficulty(null)
                         showDifficultyMenu = false
                     },
                 )
                 Difficulty.entries.forEach { option ->
-                    DropdownMenuItem(
-                        text = { Text(TemplateCatalogFilterLogic.difficultyLabel(option)) },
+                    KpknContextMenuRow(
+                        label = TemplateCatalogFilterLogic.difficultyLabel(option),
                         onClick = {
                             onDifficulty(option)
                             showDifficultyMenu = false
@@ -890,10 +904,11 @@ private fun FilterDropdownRow(
                 expanded = showDurationMenu,
                 onExpandedChange = { showDurationMenu = it },
                 contentDescription = "Filtrar por duración",
+                rows = SessionTemplateDurationBucket.entries.size,
             ) {
                 SessionTemplateDurationBucket.entries.forEach { option ->
-                    DropdownMenuItem(
-                        text = { Text(TemplateCatalogFilterLogic.durationLabel(option)) },
+                    KpknContextMenuRow(
+                        label = TemplateCatalogFilterLogic.durationLabel(option),
                         onClick = {
                             onDuration(option)
                             showDurationMenu = false
@@ -921,8 +936,12 @@ private fun CatalogDropdownButton(
     expanded: Boolean,
     onExpandedChange: (Boolean) -> Unit,
     contentDescription: String,
+    rows: Int,
     menuContent: @Composable () -> Unit,
 ) {
+    var anchor by remember { mutableStateOf<Rect?>(null) }
+    // El menú de KPKN no cierra con BACK por sí solo: BACK cierra primero el menú abierto, como hacía el de Material.
+    BackHandler(enabled = expanded) { onExpandedChange(false) }
     Box {
         KpknChip(
             text = "$label ▾",
@@ -930,13 +949,18 @@ private fun CatalogDropdownButton(
             onClick = { onExpandedChange(true) },
             modifier = Modifier
                 .widthIn(max = 180.dp)
+                .onGloballyPositioned { anchor = it.boundsInWindow() }
                 .semantics { this.contentDescription = contentDescription },
         )
-        KpknDropdownMenu(
-            expanded = expanded,
-            onDismissRequest = { onExpandedChange(false) },
-        ) {
-            menuContent()
+        val menuAnchor = anchor
+        if (expanded && menuAnchor != null) {
+            KpknContextMenu(
+                anchor = menuAnchor,
+                rows = rows,
+                onDismiss = { onExpandedChange(false) },
+            ) {
+                menuContent()
+            }
         }
     }
 }
