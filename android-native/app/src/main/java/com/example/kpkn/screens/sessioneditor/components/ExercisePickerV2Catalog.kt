@@ -96,6 +96,7 @@ import com.example.kpkn.screens.sessioneditor.design.CatalogListHeader
 import com.example.kpkn.screens.sessioneditor.design.CatalogListSkeleton
 import com.example.kpkn.screens.sessioneditor.design.CatalogLoadError
 import com.example.kpkn.screens.sessioneditor.design.CatalogNoResults
+import com.example.kpkn.screens.sessioneditor.design.CatalogPickerViewport
 import com.example.kpkn.screens.sessioneditor.design.CatalogReplaceBar
 import com.example.kpkn.screens.sessioneditor.design.CatalogReplacingCardModel
 import com.example.kpkn.screens.sessioneditor.design.CatalogSelectionIsland
@@ -879,7 +880,7 @@ private fun ColumnScope.CatalogReadyContent(
     val showIsland = !editingExisting && selectedRows.value.isNotEmpty() && !imeVisible
     // Al reemplazar (H1), la barra con la nota y el botón va siempre, salvo con el teclado abierto.
     val showReplaceBar = replacement != null && !imeVisible
-    Box(Modifier.fillMaxWidth().weight(1f)) {
+    CatalogPickerViewport {
         LazyColumn(
             state = listState,
             modifier = Modifier.fillMaxSize().drawWithContent {
@@ -1265,7 +1266,11 @@ private fun ColumnScope.CatalogReadyContent(
         }
 
         // La isla flota abajo: resumen, «Superserie» si se puede y «Añadir N». Entra con un fundido y 8 dp de subida.
-        CatalogSelectionSlot(visible = showIsland, reducedMotion = reducedMotion) {
+        CatalogSelectionSlot(
+            visible = showIsland,
+            reducedMotion = reducedMotion,
+            modifier = Modifier.onSizeChanged { bottomPanelHeight = it.height },
+        ) {
             val supersetAvailable = selectedRows.value.size >= 2 &&
                 (onCreateSupersetConfigured != null || onCreateSuperset != null || isSupersetAddMode)
             CatalogSelectionIsland(
@@ -1290,7 +1295,6 @@ private fun ColumnScope.CatalogReadyContent(
                     null
                 },
                 hazeState = hazeState,
-                modifier = Modifier.onSizeChanged { bottomPanelHeight = it.height },
                 detail = {
                     SelectedExercisesList(
                         selected = selectedRows.value.entries.toList(),

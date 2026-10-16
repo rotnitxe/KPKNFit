@@ -7,7 +7,6 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.BoxScope
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -48,14 +47,14 @@ internal fun catalogSelectionSummary(names: List<String>): String = when (names.
 internal fun BoxScope.CatalogSelectionSlot(
     visible: Boolean,
     reducedMotion: Boolean,
+    modifier: Modifier = Modifier,
     content: @Composable () -> Unit,
 ) {
     AnimatedVisibility(
         visible = visible,
-        modifier = Modifier
+        modifier = modifier
             .align(Alignment.BottomCenter)
             .fillMaxWidth()
-            .navigationBarsPadding()
             .padding(horizontal = 12.dp, vertical = 8.dp),
         enter = if (reducedMotion) {
             fadeIn(animationSpec = tween(durationMillis = 120))

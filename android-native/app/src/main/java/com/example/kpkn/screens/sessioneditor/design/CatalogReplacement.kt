@@ -19,7 +19,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.Role
@@ -97,7 +96,7 @@ internal fun CatalogReplacingCard(model: CatalogReplacingCardModel, modifier: Mo
 /**
  * La barra de abajo del catálogo de reemplazo (H1): encima, la nota de lo que se mantiene del plan («Se mantienen las series del plan:
  * 4 × 4–6 · RIR 2», la regla del bug 3) y, debajo, el botón que confirma lo elegido. Sin nada elegido el botón va apagado. Se funde
- * con el negro de la página para que la lista pase por detrás. Sin estado: [onConfirm] lo decide quien la usa.
+ * con el negro de la página; su fondo opaco mantiene la nota separada de las filas. Sin estado: [onConfirm] lo decide quien la usa.
  */
 @Composable
 internal fun CatalogReplaceBar(
@@ -111,7 +110,7 @@ internal fun CatalogReplaceBar(
         modifier = modifier
             .fillMaxWidth()
             .testTag(CatalogReplaceBarTag)
-            .background(Brush.verticalGradient(colors = listOf(Color.Transparent, Color.Black)))
+            .background(Color.Black)
             .padding(start = 16.dp, end = 16.dp, top = 14.dp, bottom = 16.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
