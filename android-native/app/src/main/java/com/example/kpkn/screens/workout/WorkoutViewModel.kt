@@ -3741,7 +3741,7 @@ class WorkoutViewModel(
         }
     }
 
-    internal fun performRelatorAssist(action: RelatorAssistAction) {
+    internal fun performRelatorAssist(action: RelatorAssistAction): RelatorAssistAck {
         val assistKey = listOf(
             action.kind.name,
             action.exerciseId,
@@ -3751,7 +3751,7 @@ class WorkoutViewModel(
             action.span,
         ).joinToString(":")
         val now = System.currentTimeMillis()
-        if (assistKey == lastRelatorAssistKey && now - lastRelatorAssistAtMs < 500L) return
+        if (assistKey == lastRelatorAssistKey && now - lastRelatorAssistAtMs < 500L) return RelatorAssistAck(action.kind, applied = false)
         lastRelatorAssistKey = assistKey
         lastRelatorAssistAtMs = now
         val targetName = relatorAssistTargetName(action)
@@ -3907,13 +3907,19 @@ class WorkoutViewModel(
                 true
             }
         }
-        publishRelatorAssistAck(
-            RelatorAssistAck(
-                kind = action.kind,
-                applied = applied,
-                detail = targetName,
-            ),
+        val loadUndo = lastRelatorLoadUndo?.takeIf {
+            applied && !action.undoPreviousLoad &&
+                (action.kind == RelatorAssistActionKind.APPLY_SUGGESTED_LOAD || action.kind == RelatorAssistActionKind.ADJUST_LOAD)
+        }
+        fun actualKg(text: String?): Double? = text?.replace(',', '.')?.toDoubleOrNull()?.takeIf { it.isFinite() && it >= 0.0 }
+        val ack = RelatorAssistAck(
+            kind = action.kind, applied = applied, detail = targetName,
+            appliedWeightKg = loadUndo?.let { actualKg(getSetDraft(it.exerciseId, it.setIndex, it.side)?.weightText) },
+            previousWeightKg = actualKg(loadUndo?.previousDraft?.weightText),
+            canUndoLoad = loadUndo != null,
         )
+        publishRelatorAssistAck(ack)
+        return ack
     }
 
     private fun relatorAssistTargetName(action: RelatorAssistAction): String {
@@ -3977,19 +3983,17 @@ class WorkoutViewModel(
         val exercise = visibleExercises(state).firstOrNull { it.id == exerciseId } ?: return false
         val setIdx = action.setIndex.takeIf { it >= 0 } ?: state.currentSetIdx
         val side = action.side.takeIf { it.isNotBlank() } ?: state.editingState?.side
-        if (action.label.startsWith("vuelve a", ignoreCase = true) &&
-            lastRelatorLoadUndo != null &&
-            lastRelatorLoadUndo?.exerciseId == exerciseId &&
-            lastRelatorLoadUndo?.setIndex == setIdx
-        ) {
-            val restored = lastRelatorLoadUndo?.previousDraft ?: WorkoutSetDraft()
+        if (action.undoPreviousLoad || action.label.startsWith("vuelve a", ignoreCase = true)) {
+            val undo = lastRelatorLoadUndo?.takeIf {
+                it.exerciseId == exerciseId && it.setIndex == setIdx && it.side == side
+            } ?: return false
+            val restored = undo.previousDraft ?: WorkoutSetDraft()
             updateSetDraft(exerciseId, setIdx, side, restored)
             lastRelatorLoadUndo = null
             triggerRelatorLoadPop()
             return true
         }
         val previous = getSetDraft(exerciseId, setIdx, side)
-        lastRelatorLoadUndo = RelatorLoadUndo(exerciseId, setIdx, side, previous)
         val currentKg = action.weightKg
             ?: previous?.weightText?.replace(',', '.')?.toDoubleOrNull()
             ?: getWeightSuggestionWithAutoRegulation(exercise, setIdx, state.exerciseTags[exerciseId], side)
@@ -4002,6 +4006,7 @@ class WorkoutViewModel(
             currentKg * (1.0 + (action.loadDeltaPercent ?: -5.0) / 100.0)
         }
         val rounded = LoadSuggestionEngine.roundLoad(next.coerceAtLeast(0.0))
+        lastRelatorLoadUndo = RelatorLoadUndo(exerciseId, setIdx, side, previous)
         updateSetDraft(
             exerciseId,
             setIdx,

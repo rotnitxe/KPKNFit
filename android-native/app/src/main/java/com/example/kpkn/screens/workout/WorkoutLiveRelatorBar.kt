@@ -112,146 +112,95 @@ internal fun WorkoutLiveRelatorLine(
     forceWorkingProgress: Float? = null,
     forceSparkProgress: Float? = null,
     onLoadPop: (() -> Unit)? = null,
+    actionContext: RelatorActionUiContext? = null,
+    reduceMotionOverride: Boolean? = null,
 ) {
-    if (silentAnimation != RelatorSilentAnimation.NONE) {
-        RelatorSilentAnimationSlot(
-            silentAnimation = silentAnimation,
-            text = text,
-            modifier = modifier,
-        )
-        return
-    }
-
-    if (text.isNullOrBlank()) return
-
-    var announcedPhase by remember { mutableStateOf<String?>(null) }
-    val announce = phaseKey != announcedPhase
-    LaunchedEffect(phaseKey) { announcedPhase = phaseKey }
-
-    val reduceMotion = rememberRelatorReduceMotion()
-
-    // Estado visual de 3 fases (H2): reposo, trabajando y hecho
-    var workingAction by remember(phaseKey) { mutableStateOf<RelatorAssistAction?>(null) }
-    var doneAction by remember(phaseKey) { mutableStateOf<RelatorAssistAction?>(null) }
-    var previousWeightForUndo by remember(phaseKey) { mutableStateOf<String?>(null) }
-    var sparkProgress by remember(phaseKey) { mutableFloatStateOf(0f) }
-
+    val context = actionContext ?: LocalRelatorActionUiContext.current
+    val scopeKey = context?.scopeKey ?: phaseKey
+    // El Ack cambia la frase/fase, no la identidad de la serie que inició este trabajo.
+    var workingAction by remember(scopeKey) { mutableStateOf<RelatorAssistAction?>(null) }
+    var doneAction by remember(scopeKey) { mutableStateOf<RelatorAssistAction?>(null) }
+    var resultAck by remember(scopeKey) { mutableStateOf<RelatorAssistAck?>(null) }
+    var sparkProgress by remember(scopeKey) { mutableFloatStateOf(0f) }
     val isWorking = workingAction != null || forceWorkingProgress != null
     val isDone = doneAction != null || forceSparkProgress != null
 
-    // Temporizador de la fase trabajando -> hecho
+    if (silentAnimation != RelatorSilentAnimation.NONE && !isWorking && !isDone) {
+        RelatorSilentAnimationSlot(silentAnimation = silentAnimation, text = text, modifier = modifier, reduceMotionOverride = reduceMotionOverride)
+        return
+    }
+    if (text.isNullOrBlank() && !isWorking && !isDone) return
+    val idleText = text.orEmpty()
+    var announcedPhase by remember { mutableStateOf<String?>(null) }
+    val announce = phaseKey != announcedPhase
+    LaunchedEffect(phaseKey) { announcedPhase = phaseKey }
+    val reduceMotion = reduceMotionOverride ?: rememberRelatorReduceMotion()
+
     LaunchedEffect(workingAction) {
         val action = workingAction ?: return@LaunchedEffect
         delay(RELATOR_WORKING_DURATION_MS)
         doneAction = action
         workingAction = null
-        onLoadPop?.invoke()
+        if (action.kind == RelatorAssistActionKind.APPLY_SUGGESTED_LOAD || action.kind == RelatorAssistActionKind.ADJUST_LOAD) onLoadPop?.invoke()
     }
-
-    // Temporizador del destello verde en hecho
-    LaunchedEffect(doneAction) {
+    LaunchedEffect(doneAction, reduceMotion) {
         if (doneAction == null) return@LaunchedEffect
+        if (reduceMotion) { sparkProgress = 1f; return@LaunchedEffect }
         val start = System.currentTimeMillis()
         while (true) {
-            val elapsed = System.currentTimeMillis() - start
-            sparkProgress = (elapsed.toFloat() / RELATOR_SPARK_DURATION_MS).coerceIn(0f, 1f)
+            sparkProgress = ((System.currentTimeMillis() - start).toFloat() / RELATOR_SPARK_DURATION_MS).coerceIn(0f, 1f)
             if (sparkProgress >= 1f) break
             delay(16L)
         }
     }
-
     val activeAction = workingAction ?: doneAction ?: actions.firstOrNull()
     val effectiveWorkingAction = activeAction ?: actions.firstOrNull()
-
-    // Frase efectiva según la fase (H2)
-    val displayData = remember(text, actions, isWorking, isDone, activeAction, previousWeightForUndo) {
+    val displayData = remember(idleText, actions, isWorking, isDone, activeAction, resultAck) {
         when {
             isWorking && activeAction != null -> {
-                val action = activeAction
-                val copy = when (action.kind) {
-                    RelatorAssistActionKind.APPLY_SUGGESTED_LOAD,
-                    RelatorAssistActionKind.ADJUST_LOAD,
-                    -> {
-                        val kg = action.weightKg?.let { formatRelatorKg(it) }
-                            ?: extractWeightFromLabel(action.label)
-                            ?: "97,5"
-                        "El equipo está cargando los discos de $kg\u00A0kg…"
+                val copy = when (activeAction.kind) {
+                    RelatorAssistActionKind.APPLY_SUGGESTED_LOAD, RelatorAssistActionKind.ADJUST_LOAD -> {
+                        val kg = resultAck?.appliedWeightKg
+                            ?: activeAction.weightKg?.takeIf { activeAction.loadDeltaPercent == null }
+                        if (kg != null) "El equipo está cargando los discos de ${formatRelatorKg(kg)}\u00A0kg…" else "Ajustando la carga…"
                     }
-                    RelatorAssistActionKind.START_REST,
-                    RelatorAssistActionKind.EXTEND_REST,
-                    -> "Ajustando el tiempo de descanso…"
+                    RelatorAssistActionKind.START_REST, RelatorAssistActionKind.EXTEND_REST -> "Ajustando el tiempo de descanso…"
                     RelatorAssistActionKind.SKIP_REMAINING_WARMUPS -> "Saltando el calentamiento restante…"
-                    else -> text
+                    else -> idleText
                 }
                 DisplayPhrase(copy, emptyList())
             }
-            isDone && activeAction != null -> {
-                val action = activeAction
-                when (action.kind) {
-                    RelatorAssistActionKind.APPLY_SUGGESTED_LOAD,
-                    RelatorAssistActionKind.ADJUST_LOAD,
-                    -> {
-                        val setNum = if (action.setIndex >= 0) (action.setIndex + 1).toString() else "1"
-                        val newKg = action.weightKg?.let { formatRelatorKg(it) }
-                            ?: extractWeightFromLabel(action.label)
-                            ?: "97,5"
-                        val prevKg = previousWeightForUndo
-                            ?: extractPreviousWeight(text)
-                            ?: "95"
-                        val undoLabel = "vuelve a $prevKg"
-                        val undoAction = RelatorAssistAction(
-                            kind = RelatorAssistActionKind.ADJUST_LOAD,
-                            label = undoLabel,
-                            exerciseId = action.exerciseId,
-                            setIndex = action.setIndex,
-                            side = action.side,
-                            span = undoLabel,
-                            weightKg = parseKg(prevKg),
-                        )
-                        DisplayPhrase(
-                            "Listo: la serie $setNum va con $newKg\u00A0kg. Si te arrepientes, $undoLabel.",
-                            listOf(undoAction),
-                        )
-                    }
-                    RelatorAssistActionKind.START_REST,
-                    RelatorAssistActionKind.EXTEND_REST,
-                    -> DisplayPhrase("Listo: descanso ajustado.", emptyList())
-                    RelatorAssistActionKind.SKIP_REMAINING_WARMUPS ->
-                        DisplayPhrase("Listo: pasamos directo a las series efectivas.", emptyList())
-                    else -> DisplayPhrase(text, actions)
+            isDone && activeAction != null -> when (activeAction.kind) {
+                RelatorAssistActionKind.APPLY_SUGGESTED_LOAD, RelatorAssistActionKind.ADJUST_LOAD -> {
+                    val kg = resultAck?.appliedWeightKg
+                    val set = activeAction.setIndex.takeIf { it >= 0 }?.plus(1)
+                    val confirmation = if (kg != null && set != null) "Listo: la serie $set va con ${formatRelatorKg(kg)}\u00A0kg." else "Carga ajustada."
+                    if (resultAck?.canUndoLoad == true) {
+                        val label = resultAck?.previousWeightKg?.let { "vuelve a ${formatRelatorKg(it)}" } ?: "Deshacer"
+                        val undo = activeAction.copy(kind = RelatorAssistActionKind.ADJUST_LOAD, label = label, span = label,
+                            weightKg = null, loadDeltaPercent = null, undoPreviousLoad = true)
+                        DisplayPhrase("$confirmation $label.", listOf(undo))
+                    } else DisplayPhrase(confirmation, emptyList())
                 }
+                RelatorAssistActionKind.START_REST, RelatorAssistActionKind.EXTEND_REST -> DisplayPhrase("Listo: descanso ajustado.", emptyList())
+                RelatorAssistActionKind.SKIP_REMAINING_WARMUPS -> DisplayPhrase("Listo: pasamos directo a las series efectivas.", emptyList())
+                else -> DisplayPhrase(idleText, actions)
             }
-            else -> DisplayPhrase(text, actions)
+            else -> DisplayPhrase(idleText, actions)
         }
     }
-
     val currentText = displayData.text
     val currentActions = displayData.actions
-
     val onActionState = rememberUpdatedState(onAction)
+    val contextState = rememberUpdatedState(context)
     val handleActionClick: (RelatorAssistAction) -> Unit = { action ->
-        if (isWorking) {
-            // No admite un segundo toque mientras trabaja (3c)
-        } else if (isDone && action.label.startsWith("vuelve a")) {
-            // Deshacer pulsado: vuelve a reposo y aplica la carga anterior
-            onActionState.value(action)
+        if (workingAction == null && forceWorkingProgress == null) {
+            val ack = contextState.value?.dispatch?.invoke(action) ?: run { onActionState.value(action); null }
             doneAction = null
             workingAction = null
-        } else {
-            // Guardar peso anterior antes de cambiar carga (para deshacer)
-            if (action.kind == RelatorAssistActionKind.APPLY_SUGGESTED_LOAD ||
-                action.kind == RelatorAssistActionKind.ADJUST_LOAD
-            ) {
-                previousWeightForUndo = extractPreviousWeight(text) ?: "95"
-            }
-
-            // Fiabilidad (manda): el EFECTO se aplica en el ViewModel en el momento del toque (3c)
-            onActionState.value(action)
-
-            // Abrir hojas es instantáneo (sin fase de trabajo)
-            if (action.kind.hasWorkingPhase()) {
-                workingAction = action
-            }
+            resultAck = ack
+            // El efecto ocurre en el toque. Sin un resultado verificado no se inventa un «Listo».
+            if (ack?.applied == true && !action.undoPreviousLoad && action.kind.hasWorkingPhase()) workingAction = action
         }
     }
 
@@ -392,6 +341,18 @@ private fun rememberWorkingProgress(reduceMotion: Boolean): Float {
     return p
 }
 
+@Composable
+private fun rememberRelatorInfiniteProgress(reduceMotion: Boolean, duration: Int, label: String): Float {
+    if (reduceMotion) return 0.5f
+    val transition = rememberInfiniteTransition(label = label)
+    val progress by transition.animateFloat(
+        initialValue = 0f, targetValue = 1f,
+        animationSpec = infiniteRepeatable(animation = tween(duration, easing = LinearEasing), repeatMode = RepeatMode.Restart),
+        label = "${label}_progress",
+    )
+    return progress
+}
+
 /** «Reducir movimiento» del sistema (escala de animación 0). */
 @Composable
 internal fun rememberRelatorReduceMotion(): Boolean {
@@ -411,18 +372,10 @@ private fun RelatorSilentAnimationSlot(
     silentAnimation: RelatorSilentAnimation,
     text: String?,
     modifier: Modifier = Modifier,
+    reduceMotionOverride: Boolean? = null,
 ) {
-    val reduceMotion = rememberRelatorReduceMotion()
-    val transition = rememberInfiniteTransition(label = "relator_silent_anim")
-    val progress by transition.animateFloat(
-        initialValue = 0f,
-        targetValue = 1f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(durationMillis = 3200, easing = LinearEasing),
-            repeatMode = RepeatMode.Restart,
-        ),
-        label = "silent_progress",
-    )
+    val reduceMotion = reduceMotionOverride ?: rememberRelatorReduceMotion()
+    val progress = rememberRelatorInfiniteProgress(reduceMotion, 3200, "relator_silent_anim")
     val talkBack = when (silentAnimation) {
         RelatorSilentAnimation.REST_BREATHING -> text?.ifBlank { null } ?: "Descansando"
         RelatorSilentAnimation.RECORD_CELEBRATION -> text?.ifBlank { null } ?: "Nuevo récord"
@@ -460,17 +413,7 @@ private fun RelatorTextLine(
 
     // Progreso del barrido de luz (5,4 s normal, 1,4 s trabajando; 55 % barrido y pausa)
     val cycleMs = if (isWorking) 1400 else 5400
-    val transition = rememberInfiniteTransition(label = "relator_shimmer")
-    val animProgress by transition.animateFloat(
-        initialValue = 0f,
-        targetValue = 1f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(durationMillis = cycleMs, easing = LinearEasing),
-            repeatMode = RepeatMode.Restart,
-        ),
-        label = "shimmer_p",
-    )
-    val progress = forceShimmerSweepProgress ?: (if (reduceMotion) 0f else animProgress)
+    val progress = forceShimmerSweepProgress ?: rememberRelatorInfiniteProgress(reduceMotion, cycleMs, "relator_shimmer")
 
     val actionByTag = remember(pieces) {
         buildMap {
@@ -652,20 +595,6 @@ internal fun formatRelatorKg(kg: Double): String {
     val asLong = rounded.toLong()
     val str = if (kotlin.math.abs(rounded - asLong) < 1e-6) asLong.toString() else rounded.toString()
     return str.replace('.', ',')
-}
-
-private fun parseKg(text: String): Double? =
-    text.replace(',', '.').trim().toDoubleOrNull()
-
-private fun extractWeightFromLabel(label: String): String? {
-    val regex = Regex("(\\d+(?:[,.]\\d+)?)\\s*kg", RegexOption.IGNORE_CASE)
-    return regex.find(label)?.groupValues?.get(1)
-}
-
-private fun extractPreviousWeight(phrase: String): String? {
-    val regex = Regex("(\\d+(?:[,.]\\d+)?)\\s*kg", RegexOption.IGNORE_CASE)
-    val matches = regex.findAll(phrase).map { it.groupValues[1] }.toList()
-    return matches.firstOrNull()
 }
 
 internal data class RelatorActionLineSegment(

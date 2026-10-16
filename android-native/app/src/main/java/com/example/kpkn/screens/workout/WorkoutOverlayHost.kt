@@ -99,6 +99,9 @@ internal fun WorkoutRestOverlayHost(
 
     if (showExpanded && restState != null) {
         RestRemainingReader(viewModel = viewModel) { restTimerRemaining ->
+            androidx.compose.runtime.CompositionLocalProvider(
+                LocalRelatorActionUiContext provides RelatorActionUiContext(relatorActionScopeKey(uiState), viewModel::performRelatorAssist),
+            ) {
             RestTimerOverlay(
                 state = restState,
                 remainingSeconds = if (isRestTimerRunning) restTimerRemaining else 0,
@@ -130,6 +133,7 @@ internal fun WorkoutRestOverlayHost(
                 headline = headline,
                 nextSet = nextSet,
             )
+            }
         }
     } else if (showOverrun && restOverrun != null) {
         // «Descanso cumplido» a pantalla completa: la capa de interfaz que queda cuando el descanso llegó a 0. «Empezar la serie» solo

@@ -51,12 +51,16 @@ data class RelatorAssistAction(
     val weightKg: Double? = null,
     val restSeconds: Int? = null,
     val loadDeltaPercent: Double? = null,
+    val undoPreviousLoad: Boolean = false,
 )
 
 data class RelatorAssistAck(
     val kind: RelatorAssistActionKind,
     val applied: Boolean,
     val detail: String = "",
+    val appliedWeightKg: Double? = null,
+    val previousWeightKg: Double? = null,
+    val canUndoLoad: Boolean = false,
 )
 
 /**
