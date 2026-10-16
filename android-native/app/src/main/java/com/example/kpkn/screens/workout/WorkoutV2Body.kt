@@ -2150,6 +2150,7 @@ internal fun WorkoutV2Body(
                                             .fillMaxWidth()
                                             .tourAnchor(TourAnchors.WORKOUT_SERIE),
                                     ) {
+                                        WorkoutSetInputOwner(targetExercise, activeSet.id) {
                                         SetInputCardV2(
                                     exercise = targetExercise,
                                     setIndex = activeSetIndex,
@@ -2203,7 +2204,7 @@ internal fun WorkoutV2Body(
                                     isSettledPage = isSettledPage,
                                     initialDraft = viewModel.getSetDraft(targetExercise.id, activeSetIndex, cardSide),
                                     onDraftChange = { draft, side ->
-                                        viewModel.updateSetDraft(targetExercise.id, activeSetIndex, side, draft)
+                                        viewModel.updateSetDraftFromExercise(targetExercise, activeSetIndex, side, draft)
                                     },
                                     activeSide = cardSide,
                                     sideLocked = targetIsUnilateral && cardSide != null,
@@ -2318,6 +2319,7 @@ internal fun WorkoutV2Body(
                                         },
                                     loadPopTrigger = relatorLoadPopTrigger,
                                         )
+                                        }
                                     }
                                 }
                             }

@@ -1882,6 +1882,18 @@ class WorkoutViewModel(
         preferredSide = preferredSide,
     )
 
+    /** Card callbacks carry catalog identity because replacement deliberately retains the session-slot ID. */
+    internal fun updateSetDraftFromExercise(
+        sourceExercise: Exercise,
+        setIdx: Int,
+        side: String? = null,
+        draft: WorkoutSetDraft,
+    ) {
+        val current = visibleExercises(_uiState.value).firstOrNull { it.id == sourceExercise.id }
+        if (!workoutSetDraftSourceIsCurrent(current, sourceExercise, setIdx)) return
+        updateSetDraft(sourceExercise.id, setIdx, side, draft)
+    }
+
     fun updateSetDraft(
         exerciseId: String,
         setIdx: Int,
