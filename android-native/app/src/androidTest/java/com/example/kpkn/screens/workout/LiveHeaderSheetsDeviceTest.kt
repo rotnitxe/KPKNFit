@@ -1,15 +1,23 @@
 package com.example.kpkn.screens.workout
 
+import android.graphics.Bitmap
+import android.graphics.Rect
 import androidx.activity.ComponentActivity
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.asAndroidBitmap
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import androidx.test.platform.app.InstrumentationRegistry
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import com.example.kpkn.data.models.*
 import com.example.kpkn.domain.sessionassistant.*
 import com.example.kpkn.screens.workout.components.*
@@ -18,6 +26,7 @@ import org.junit.Assert.*
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
+import java.io.File
 
 /** Controls are exercised on the physical target; this does not assert microphone hardware behavior. */
 @RunWith(AndroidJUnit4::class)
@@ -103,7 +112,11 @@ class LiveHeaderSheetsDeviceTest {
         var renamed: String? = null
         var saved: TagSetupInput? = null
         var reset = 0
+        lateinit var finishEditing: () -> Unit
         content {
+            val focusManager = LocalFocusManager.current
+            val keyboard = LocalSoftwareKeyboardController.current
+            SideEffect { finishEditing = { focusManager.clearFocus(force = true); keyboard?.hide() } }
             WorkoutTagManagerModal(tag, "exercise", { renamed = it; RenameTagResult.Success }, {}, { reset++ },
                 { _, _ -> }, {}, {}, emptyList(), {}, machineBrand = "Rack", baseLoadKg = "20", onSaveSetup = { saved = it })
         }
@@ -112,9 +125,16 @@ class LiveHeaderSheetsDeviceTest {
         tap("Set-up · Mostrar")
         rule.onNodeWithContentDescription("Carga base (kg)").performScrollTo().performTextReplacement("25,5")
         tap("Guardar set-up")
-        // Tap the reset button itself, excluding the enclosing merged sheet.
-        rule.onNode(hasText("Reiniciar historial") and SemanticsMatcher.expectValue(SemanticsProperties.Role, Role.Button))
-            .performScrollTo().assertIsDisplayed().performClick()
+        captureManagerDiagnostic("after-save-before-ending-edit")
+        // Finish text editing explicitly in the ComponentActivity test host, then test the real touch target.
+        rule.runOnIdle { finishEditing() }
+        rule.onNodeWithContentDescription("Carga base (kg)").assertIsNotFocused()
+        rule.waitUntil(2_000) { !managerImeVisible() }
+        rule.waitForIdle()
+        val resetButton = rule.onNode(hasText("Reiniciar historial") and SemanticsMatcher.expectValue(SemanticsProperties.Role, Role.Button))
+            .performScrollTo()
+        captureManagerDiagnostic("before-reset-touch")
+        resetButton.assertIsDisplayed().performClick()
         rule.onNodeWithText("Los registros de sesión no se borran.", substring = true, useUnmergedTree = true).assertExists()
         rule.runOnIdle { assertEquals(0, reset) }
         rule.onNodeWithText("Reiniciar", useUnmergedTree = true).assertIsDisplayed().performClick()
@@ -210,4 +230,28 @@ class LiveHeaderSheetsDeviceTest {
         rule.runOnIdle { assertEquals(mapOf("curl" to 1), submitted) }
         rule.onAllNodesWithText("Como la anterior").assertCountEquals(0)
     }
+    private fun managerImeVisible(): Boolean = rule.runOnIdle {
+        ViewCompat.getRootWindowInsets(rule.activity.window.decorView)?.isVisible(WindowInsetsCompat.Type.ime()) == true
+    }
+
+    /** Final fragile-test attempt records its focus/IME/viewport evidence before asserting the touch target. */
+    @OptIn(ExperimentalTestApi::class)
+    private fun captureManagerDiagnostic(phase: String) {
+        val instrumentation = InstrumentationRegistry.getInstrumentation()
+        val directory = File(instrumentation.targetContext.getExternalFilesDir(null), "lv12-manager-diagnostics").apply { mkdirs() }
+        val window = rule.runOnIdle {
+            val view = rule.activity.window.decorView
+            val visible = Rect().also { view.getWindowVisibleDisplayFrame(it) }
+            "imeVisible=${ViewCompat.getRootWindowInsets(view)?.isVisible(WindowInsetsCompat.Type.ime())}; " +
+                "softInputMode=${rule.activity.window.attributes.softInputMode}; decorHeight=${view.height}; visibleFrame=$visible"
+        }
+        File(directory, "$phase.txt").writeText("$window\nMERGED\n" + rule.onRoot().printToString() +
+            "\nUNMERGED\n" + rule.onRoot(useUnmergedTree = true).printToString())
+        val screenshot = instrumentation.uiAutomation.takeScreenshot()
+            ?: rule.onRoot(useUnmergedTree = true).captureToImage().asAndroidBitmap()
+        File(directory, "$phase.png").outputStream().use { output ->
+            check(screenshot.compress(Bitmap.CompressFormat.PNG, 100, output))
+        }
+    }
+
 }
