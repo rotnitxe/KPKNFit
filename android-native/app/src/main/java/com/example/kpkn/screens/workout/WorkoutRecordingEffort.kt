@@ -5,7 +5,7 @@ import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.IntensityMode
 import com.example.kpkn.data.models.TrainingMode
 import com.example.kpkn.data.models.UnitModeV2
-import com.example.kpkn.data.models.isEffectivelyUnilateral
+import com.example.kpkn.domain.workout.isSetDone
 import com.example.kpkn.data.models.isCardio
 
 internal const val RecordingEffortRequired = "Marca tu esfuerzo RIR o RPE antes de registrar la serie."
@@ -82,8 +82,8 @@ internal fun timedStrengthStepAwaitingReport(state: WorkoutUiState, exercises: L
     val step = active ?: steps.firstOrNull { it.type == WorkoutStepType.WORKING_SET && it.exerciseId == exercise.id && it.setIndex == state.currentSetIdx } ?: return null
     val index = step.setIndex ?: return null
     val completed = if (step.side != null) {
-        buildCompletedSetKey(exercise.id, index, step.side) in state.completedSets
-    } else isSetDone(state.completedSets, exercise.id, index, exercise.isEffectivelyUnilateral())
+        WorkoutStepRules.workingStepKey(exercise.id, index, step.side) in state.completedSets
+    } else exercise.isSetDone(state.completedSets, index)
     if (completed) return null
     return step
 }
