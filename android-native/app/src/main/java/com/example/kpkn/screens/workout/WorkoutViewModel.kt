@@ -33,6 +33,7 @@ import com.example.kpkn.domain.training.ProgramCalendarEngine
 import com.example.kpkn.domain.training.PlanMaterializer
 import com.example.kpkn.domain.training.canonicalEquipmentKind
 import com.example.kpkn.domain.training.machineRangeForExercise
+import com.example.kpkn.domain.workout.LiveSessionReorder
 import com.example.kpkn.domain.workout.LoadSuggestionEngine
 import com.example.kpkn.domain.workout.TagProgressionAnalyzer
 import com.example.kpkn.domain.workout.WarmupCalibrationEngine
@@ -2463,9 +2464,6 @@ class WorkoutViewModel(
     private fun Session.reorderExercisesByIds(partId: String?, orderedExerciseIds: List<String>): Session =
         WorkoutStructuralEditor.reorderExercisesByIds(this, partId, orderedExerciseIds)
 
-    private fun Session.globalReorder(orderedExerciseIds: List<String>, originalPartMap: Map<String, String>): Session =
-        WorkoutStructuralEditor.globalReorder(this, orderedExerciseIds, originalPartMap)
-
     private fun ExerciseSet.normalizeWorkoutSet(exercise: Exercise): ExerciseSet {
         val normalized = WorkoutEditingRules.normalizeLiveEditedSet(exercise.trainingMode, this)
         val autoWeight = calculateSuggestedLoad(exercise, normalized) ?: normalized.weight
@@ -2546,7 +2544,7 @@ class WorkoutViewModel(
             // and input hash instead of creating a second operation.
             val existingSnapshot = state.finishResumeSnapshot
             if (existingSnapshot != null) {
-                return@updateUiState state.copy(showFinishSheet = true)
+                return@updateUiState state.copy(showFinishSheet = true, finishClosedPending = false)
             }
             val visible = visibleExercises(state)
             val currentExercise = visible.getOrNull(state.currentExerciseIdx)
@@ -2576,6 +2574,7 @@ class WorkoutViewModel(
             )
             state.copy(
                 showFinishSheet = true,
+                finishClosedPending = false,
                 finishResumeSnapshot = snapshot,
                 postExerciseTargetIdx = -1,
                 postExerciseFeedbackTarget = null,
@@ -3022,58 +3021,42 @@ class WorkoutViewModel(
         applySessionMutation(updatedSession, preferredExerciseId = currentExerciseId, persistToProgram = false)
     }
 
-    fun reorderExercisesPreservingParts(orderedExerciseIds: List<String>) {
+    /**
+     * Ordena la sesión en vivo con [LiveSessionReorder] (LV4, 10.1): el orden pedido SE APLICA (si para lograrlo un ejercicio cambia de
+     * grupo, cambia) y los ejercicios que no vienen en la lista (los omitidos) se conservan. Antes, el reparto por partes ignoraba en
+     * silencio el orden que no cabía en ellas y, sin partes, se llevaba por delante los omitidos.
+     */
+    private fun reorderLive(orderedExerciseIds: List<String>) {
         val state = _uiState.value
         val base = state.session ?: return
         val currentExerciseId = visibleExercises(state).getOrNull(state.currentExerciseIdx)?.id
+        val ids = orderedExerciseIds.distinct()
         val updatedSession = withModeSession(base, state.activeMode) { modeSession ->
-            if (modeSession.parts.isEmpty()) {
-                val lookup = modeSession.exercises.associateBy { it.id }
-                val reordered = orderedExerciseIds.mapNotNull(lookup::get)
-                if (reordered == modeSession.exercises) modeSession
-                else modeSession.copy(exercises = reordered)
-            } else {
-                var changed = false
-                val newParts = modeSession.parts.map { part ->
-                    val partOrdered = orderedExerciseIds.filter { id -> part.exercises.any { it.id == id } }
-                    if (partOrdered.size != part.exercises.size) return@map part
-                    val lookup = part.exercises.associateBy { it.id }
-                    val reordered = partOrdered.mapNotNull(lookup::get)
-                    if (reordered == part.exercises) part
-                    else { changed = true; part.copy(exercises = reordered) }
-                }
-                if (changed) modeSession.copy(parts = newParts) else modeSession
-            }
+            LiveSessionReorder.plan(modeSession, ids).session
         }
         if (updatedSession == base) return
         applySessionMutation(updatedSession, preferredExerciseId = currentExerciseId, persistToProgram = false)
     }
 
-    fun reorderExercisesGlobally(orderedExerciseIds: List<String>, originalPartMap: Map<String, String>) {
-        val state = _uiState.value
-        val base = state.session ?: return
-        val currentExerciseId = visibleExercises(state).getOrNull(state.currentExerciseIdx)?.id
-        val updatedSession = withModeSession(base, state.activeMode) { modeSession ->
-            modeSession.globalReorder(orderedExerciseIds.distinct(), originalPartMap)
-        }
-        if (updatedSession == base) return
-        applySessionMutation(updatedSession, preferredExerciseId = currentExerciseId, persistToProgram = false)
-    }
+    fun reorderExercisesPreservingParts(orderedExerciseIds: List<String>) = reorderLive(orderedExerciseIds)
+
+    @Suppress("UNUSED_PARAMETER")
+    fun reorderExercisesGlobally(orderedExerciseIds: List<String>, originalPartMap: Map<String, String>) =
+        reorderLive(orderedExerciseIds)
 
     fun applyReorderAndPromptPersistence(orderedExerciseIds: List<String>, originalPartMap: Map<String, String>, isGlobal: Boolean) {
         val state = _uiState.value
         val base = state.session ?: return
         val snapshot = captureGodModeUndoSnapshot("Reordenar ejercicios")
-        if (isGlobal) {
-            reorderExercisesGlobally(orderedExerciseIds, originalPartMap)
-        } else {
-            reorderExercisesPreservingParts(orderedExerciseIds)
-        }
+        reorderLive(orderedExerciseIds)
         if (_uiState.value.session == base) return
-        val activeSession = _uiState.value.session?.let { withModeSession(it, _uiState.value.activeMode) { active -> active } }
+        val activeSession = _uiState.value.session?.let { sessionForActiveMode(it, _uiState.value.activeMode) }
         val orderedCanonicalKeys = activeSession?.allExercises()?.map { it.resolvedCanonicalExerciseId() }.orEmpty()
-        val orderedPartKeys = activeSession?.parts?.flatMap { part ->
-            part.exercises.map { part.name }
+        // Nombre de la parte de cada ejercicio, en el mismo orden que las claves de arriba (null = suelto).
+        val orderedPartKeys = activeSession?.let { session ->
+            session.allExercises().map { exercise ->
+                session.parts.firstOrNull { part -> part.exercises.any { it.id == exercise.id } }?.name
+            }
         }.orEmpty()
         updateUiState {
             it.copy(
@@ -3192,7 +3175,6 @@ class WorkoutViewModel(
     }
 
     fun removeSetFromExercise(exerciseId: String, setIndex: Int) {
-        pushGodModeUndo("Eliminar serie")
         val state = _uiState.value
         val exercise = visibleExercises(state).firstOrNull { it.id == exerciseId } ?: return
         if (exercise.sets.size <= 1) return
@@ -3201,6 +3183,8 @@ class WorkoutViewModel(
             WorkoutStructuralEditor.removeSetFromExercise(modeSession, exerciseId, setIndex)
         }
         if (updatedSession == base) return
+        // El «Deshacer» solo se guarda si de verdad cambia algo (LV4, 10.2): antes se guardaba al entrar, aunque no hubiera nada que quitar.
+        pushGodModeUndo("Eliminar serie")
         applySessionMutation(updatedSession, preferredExerciseId = exerciseId, persistToProgram = false)
         persistOngoingState()
         updateUiState {
@@ -3217,7 +3201,6 @@ class WorkoutViewModel(
     }
 
     fun removeExerciseFromSession(exerciseId: String) {
-        pushGodModeUndo("Eliminar ejercicio")
         val state = _uiState.value
         val visible = visibleExercises(state)
         if (visible.size <= 1) return
@@ -3231,6 +3214,9 @@ class WorkoutViewModel(
             WorkoutStructuralEditor.removeExerciseById(modeSession, exerciseId)
         }
         if (updatedSession == base) return
+        // El «Deshacer» solo se guarda si de verdad se elimina algo (LV4, 10.2): con un solo ejercicio a la vista no se puede eliminar y
+        // antes se guardaba igual una entrada que no deshacía nada.
+        pushGodModeUndo("Eliminar ejercicio")
         applySessionMutation(updatedSession, preferredExerciseId = preferredId, persistToProgram = false)
         persistOngoingState()
         updateUiState {
@@ -3248,7 +3234,6 @@ class WorkoutViewModel(
     fun removeExercisesFromSession(exerciseIds: List<String>) {
         val ids = exerciseIds.distinct()
         if (ids.isEmpty()) return
-        pushGodModeUndo("Eliminar ejercicios")
         val state = _uiState.value
         val visible = visibleExercises(state)
         if (visible.size <= ids.size) return
@@ -3259,6 +3244,7 @@ class WorkoutViewModel(
             WorkoutStructuralEditor.removeExercisesByIds(modeSession, ids)
         }
         if (updatedSession == base) return
+        pushGodModeUndo("Eliminar ejercicios")
         applySessionMutation(updatedSession, preferredExerciseId = neighborId, persistToProgram = false)
         persistOngoingState()
         updateUiState {
@@ -3645,12 +3631,16 @@ class WorkoutViewModel(
     ) = structuralPersistence.applyReplacementDecision(exerciseId, replacement, scope)
 
     fun skipExercise(exerciseId: String) {
+        // Solo se omite lo que está a la vista (LV4, 10.2): un ejercicio ya omitido o que no existe no tiene nada que omitir ni que
+        // deshacer, y antes dejaba igual su entrada de «Deshacer».
+        if (visibleExercises(_uiState.value).none { it.id == exerciseId }) return
         pushGodModeUndo("Omitir ejercicio")
         skipExerciseInternal(exerciseId)
     }
 
     fun skipExercises(exerciseIds: List<String>) {
-        val ids = exerciseIds.distinct()
+        val visibleIds = visibleExercises(_uiState.value).map { it.id }.toSet()
+        val ids = exerciseIds.distinct().filter { it in visibleIds }
         if (ids.isEmpty()) return
         pushGodModeUndo(if (ids.size == 1) "Omitir ejercicio" else "Omitir ejercicios")
         ids.forEach(::skipExerciseInternal)
@@ -3681,8 +3671,10 @@ class WorkoutViewModel(
     fun skipSet() = stepNavigator.skipSet()
 
     fun omitSet(exerciseId: String, setIdx: Int) {
-        pushGodModeUndo("Omitir serie")
         val key = WorkoutStepRules.omittedSetKey(exerciseId, setIdx)
+        // Una serie ya omitida no se omite dos veces ni deja otra entrada de «Deshacer» (LV4, 10.2).
+        if (key in _uiState.value.omittedSetKeys) return
+        pushGodModeUndo("Omitir serie")
         updateUiState { state ->
             if (key in state.omittedSetKeys) return@updateUiState state
             val nextState = state.copy(omittedSetKeys = state.omittedSetKeys + key)
@@ -4197,25 +4189,26 @@ class WorkoutViewModel(
 
     private fun moveExerciseToSessionEnd(exerciseId: String): Boolean {
         if (exerciseId.isBlank()) return false
-        pushGodModeUndo("Mover ejercicio al final")
-        restoreSkippedExercise(exerciseId)
         val state = _uiState.value
         val base = state.session ?: return false
         val modeSession = sessionForActiveMode(base, state.activeMode)
-        val ids = modeSession.allExercises().map { it.id }.toMutableList()
-        if (!ids.remove(exerciseId)) return false
-        ids.add(exerciseId)
-        val partMap = buildMap {
-            modeSession.parts.forEach { part ->
-                part.exercises.forEach { exercise -> put(exercise.id, part.name) }
-            }
+        val all = modeSession.allExercises()
+        val target = all.firstOrNull { it.id == exerciseId } ?: return false
+        // Una superserie es una unidad: si el ejercicio es miembro, se va al final con todo su bloque.
+        val groupId = target.supersetGroupRefOrLegacyId()
+        val moving = if (groupId != null) {
+            all.filter { it.supersetGroupRefOrLegacyId() == groupId }.map { it.id }
+        } else {
+            listOf(exerciseId)
         }
-        reorderExercisesGlobally(ids, partMap)
+        // El «Deshacer» se guarda ya sabiendo que el ejercicio existe (LV4, 10.2) y antes de devolverlo a la sesión si estaba omitido.
+        pushGodModeUndo("Mover ejercicio al final")
+        restoreSkippedExercise(exerciseId)
+        reorderLive(all.map { it.id }.filterNot { it in moving } + moving)
         return true
     }
 
     private fun convertRemainingIncompleteToDropsets(): Boolean {
-        pushGodModeUndo("Dropsets en lo que queda")
         val state = _uiState.value
         val base = state.session ?: return false
         val visible = visibleExercises(state)
@@ -4247,13 +4240,13 @@ class WorkoutViewModel(
             next
         }
         if (updatedSession == base) return false
+        pushGodModeUndo("Dropsets en lo que queda")
         applySessionMutation(updatedSession, persistToProgram = false)
         persistOngoingState()
         return true
     }
 
     private fun halveRemainingIncompleteSets(): Boolean {
-        pushGodModeUndo("Reducir series a la mitad")
         val state = _uiState.value
         val visible = visibleExercises(state)
         val currentIdx = state.currentExerciseIdx
@@ -4273,6 +4266,7 @@ class WorkoutViewModel(
             }
         }
         if (extraOmits.isEmpty()) return false
+        pushGodModeUndo("Reducir series a la mitad")
         updateUiState { it.copy(omittedSetKeys = it.omittedSetKeys + extraOmits) }
         persistOngoingState()
         return true
@@ -5734,6 +5728,11 @@ class WorkoutViewModel(
                 currentExerciseOmitted?.let(::add)
             }
             .toSet()
+        // El resumen se abre ANTES de omitir lo que queda: su foto de «dónde estaba la persona» (ejercicio, serie y omitidos de antes)
+        // es la de la sesión intacta y «Volver», Atrás o tocar fuera la devuelven tal cual. Antes se omitía primero y la foto ya llevaba
+        // los omitidos: al cerrar el resumen desde «Terminar hasta acá» desaparecían los ejercicios y, si aún no había hecho el actual,
+        // la sesión se quedaba sin ninguno: en negro y sin salida (LV4, 15).
+        openFinishSheet()
         updateUiState {
             it.copy(
                 skippedExerciseIds = it.skippedExerciseIds + omittedIds,
@@ -5746,7 +5745,7 @@ class WorkoutViewModel(
                 it.copy(currentExerciseIdx = (newVisible.size - 1).coerceAtLeast(0))
             }
         }
-        openFinishSheet()
+        persistOngoingState()
     }
 
     fun selectExercise(idx: Int) = stepNavigator.selectExercise(idx)
@@ -6381,8 +6380,18 @@ class WorkoutViewModel(
         abortRestTimerHard()
         updateUiState { state ->
             val snapshot = state.finishResumeSnapshot
-            val visible = visibleExercises(state)
-            val canonicalSteps = workoutStepPositions(state)
+            // Lo omitido es lo de ANTES del resumen (LV4, 15): la lista visible y el índice del cursor se calculan sobre ella, no sobre lo
+            // que el propio resumen omitió («Terminar hasta acá»). Una sesión sin un solo ejercicio a la vista no tiene nada que enseñar ni
+            // por dónde salir: si todo estaba omitido, vuelve todo.
+            val allExerciseIds = state.session
+                ?.let { sessionForActiveMode(it, state.activeMode).allExercises().map { exercise -> exercise.id } }
+                .orEmpty()
+            val restoredSkipped = (snapshot?.skippedExerciseIds ?: state.skippedExerciseIds).let { skipped ->
+                if (allExerciseIds.isNotEmpty() && allExerciseIds.all { it in skipped }) emptySet() else skipped
+            }
+            val restoredState = state.copy(skippedExerciseIds = restoredSkipped)
+            val visible = visibleExercises(restoredState)
+            val canonicalSteps = workoutStepPositions(restoredState)
             val snapshotStep = snapshot?.activeStepKey
                 ?.let { key -> canonicalSteps.firstOrNull { it.stepKey == key } }
             val fallbackStep = snapshot?.lastRenderableStepKey
@@ -6440,11 +6449,13 @@ class WorkoutViewModel(
 
             state.copy(
                 showFinishSheet = false,
+                // El cierre queda pendiente: la sesión enseña un botón para volver al resumen (LV4, 15).
+                finishClosedPending = state.showFinishSheet || snapshot != null,
                 currentExerciseIdx = restoredExerciseIdx,
                 currentSetIdx = restoredSetIdx,
                 activeStepKey = restoredStepKey,
                 editingState = restoredEditingState,
-                skippedExerciseIds = snapshot?.skippedExerciseIds ?: state.skippedExerciseIds,
+                skippedExerciseIds = restoredSkipped,
                 finishResumeSnapshot = null,
             )
         }

@@ -12,6 +12,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.example.kpkn.data.models.MuscleAdvance
 import com.example.kpkn.screens.onboarding.design.WizardColors
+import com.example.kpkn.screens.workout.BlockedBackHint
 import com.example.kpkn.ui.design.KpknModule
 import com.example.kpkn.ui.design.KpknPrimaryPill
 import com.example.kpkn.ui.design.KpknSecondaryPill
@@ -33,6 +34,8 @@ fun VolumeAdvanceModal(
         onDismiss = onDismiss,
         showCloseButton = false,
     ) {
+        // Atrás no cierra esta hoja (pide una decisión), pero ya no se queda muda: avisa de por qué (LV4, 15).
+        BlockedBackHint()
         Text(
             text = "Realizaste más series de las planificadas.",
             style = KpknType.body,

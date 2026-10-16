@@ -214,6 +214,8 @@ internal fun FinishWorkoutSheet(
     onDismiss: () -> Unit,
     onShare: () -> Unit,
     onSummaryReady: (WorkoutSessionSummary) -> Unit,
+    /** La nota que la persona llevaba escrita al cerrar el resumen sin guardar (LV4, 15): pasa a la sesión y vuelve al reabrirlo. */
+    onNotesDraft: (String) -> Unit = {},
 ) {
     val neuralSeed = postSessionPreview.neural.coerceIn(0, 100)
     val spinalSeed = postSessionPreview.spinal.coerceIn(0, 100)
@@ -274,6 +276,11 @@ internal fun FinishWorkoutSheet(
     var showMuscleSetsBreakdown by remember { mutableStateOf(false) }
     var additionalDiscomfortNote by rememberSaveable { mutableStateOf("") }
     var notes by rememberSaveable(initialSessionNotes) { mutableStateOf(initialSessionNotes) }
+    // Cerrar el resumen sin guardar (Atrás, tocar fuera o «Volver») no tira lo escrito: la nota pasa a la sesión (LV4, 15).
+    val dismissKeepingNotes: () -> Unit = {
+        if (notes != initialSessionNotes) onNotesDraft(notes)
+        onDismiss()
+    }
     var selectedDiscomforts by rememberSaveable {
         mutableStateOf(
             postExerciseFeedbackByExerciseId
@@ -358,7 +365,7 @@ internal fun FinishWorkoutSheet(
     }
 
     // Explicit back / scrim / drag closes finish sheet (does not abandon the workout).
-    BackHandler(enabled = true) { onDismiss() }
+    BackHandler(enabled = true) { dismissKeepingNotes() }
 
     val executeConfirm = {
         val muscularAdjustment = if (editedMuscleKeys.isEmpty()) {
@@ -427,7 +434,7 @@ internal fun FinishWorkoutSheet(
     }
 
     KpknSheet(
-        onDismissRequest = onDismiss,
+        onDismissRequest = dismissKeepingNotes,
         stableHeightFraction = 0.86f,
         hazeState = hazeState,
     ) {
@@ -1105,7 +1112,7 @@ internal fun FinishWorkoutSheet(
 
                     // Right: Compact ← Volver button
                     Surface(
-                        onClick = onDismiss,
+                        onClick = dismissKeepingNotes,
                         shape = RoundedCornerShape(999.dp),
                         color = Color.White.copy(alpha = 0.12f),
                         border = BorderStroke(1.dp, Color.White.copy(alpha = 0.25f)),

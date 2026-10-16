@@ -91,6 +91,7 @@ import com.example.kpkn.data.models.isEffectivelyUnilateral
 import com.example.kpkn.data.models.isInSuperset
 import com.example.kpkn.data.models.isCardio
 import com.example.kpkn.data.models.supersetGroupRefOrLegacyId
+import com.example.kpkn.domain.workout.LiveSessionReorder
 import com.example.kpkn.domain.workout.SupersetRules
 import com.example.kpkn.screens.sessioneditor.CompactModeSelector
 import com.example.kpkn.screens.sessioneditor.ExerciseSetsCarousel
@@ -172,6 +173,32 @@ internal class WorkoutStructureSheetsState {
             addExerciseAfterId != null ||
             createSupersetFromCatalogAnchorId != null ||
             showReorderSheet
+
+    /**
+     * Cierra las hojas de etiquetas, setup y editar series cuyo ejercicio ya no está (LV4, 15). Una hoja sin su ejercicio no se pinta,
+     * pero su bandera dejaba la sesión con «hay una hoja abierta»: Atrás no hacía nada y no había por dónde salir. [visibleIds] son los
+     * ejercicios a la vista (etiquetas y setup solo los encuentran ahí) y [sessionIds] todos los de la sesión (editar series también
+     * encuentra los omitidos). Devuelve `true` si cerró alguna.
+     */
+    fun closeDrawersWithoutExercise(visibleIds: Set<String>, sessionIds: Set<String>): Boolean {
+        var closed = false
+        val tagId = tagSheetExerciseId
+        if (tagId != null && tagId !in visibleIds) {
+            tagSheetExerciseId = null
+            closed = true
+        }
+        val setupId = setupSheetExerciseId
+        if (setupId != null && setupId !in visibleIds) {
+            setupSheetExerciseId = null
+            closed = true
+        }
+        val editId = editSheetExerciseId
+        if (editId != null && editId !in sessionIds) {
+            editSheetExerciseId = null
+            closed = true
+        }
+        return closed
+    }
 }
 
 @Composable
@@ -287,6 +314,21 @@ internal fun WorkoutStructureSheetsHost(
     onOpenCatalog: ((CatalogLaunchRequest) -> Unit)? = null,
 ) {
     val useFullPageCatalog = onOpenCatalog != null
+
+    // Una hoja sin su ejercicio (omitido o eliminado con la hoja abierta) no se pinta, pero su bandera dejaba la sesión con «hay una
+    // hoja abierta»: Atrás no hacía nada y no había por dónde salir (LV4, 15).
+    LaunchedEffect(
+        visibleExercises,
+        modeSession,
+        state.tagSheetExerciseId,
+        state.setupSheetExerciseId,
+        state.editSheetExerciseId,
+    ) {
+        state.closeDrawersWithoutExercise(
+            visibleIds = visibleExercises.map { it.id }.toSet(),
+            sessionIds = modeSession.allExercises().map { it.id }.toSet(),
+        )
+    }
 
     LaunchedEffect(
         useFullPageCatalog,
@@ -582,6 +624,7 @@ internal fun WorkoutStructureSheetsHost(
         visibleExercises = visibleExercises,
         originalExercisePartMap = originalExercisePartMap,
         onApplyReorder = { ids, partMap, isGlobal -> viewModel.applyReorderAndPromptPersistence(ids, partMap, isGlobal) },
+        session = modeSession,
     )
 
     WorkoutSupersetCreatorSheet(
@@ -1068,6 +1111,8 @@ internal fun WorkoutReorderSheets(
     visibleExercises: List<Exercise>,
     originalExercisePartMap: Map<String, String>,
     onApplyReorder: (orderedIds: List<String>, partMap: Map<String, String>, isGlobal: Boolean) -> Unit,
+    /** La sesión de hoy: con ella, el aviso de «Cambio de grupo» sale de [LiveSessionReorder], la misma regla que aplica el orden. */
+    session: Session? = null,
 ) {
     fun closeReorderSheet() {
         state.showReorderSheet = false
@@ -1078,20 +1123,29 @@ internal fun WorkoutReorderSheets(
     }
 
     if (state.showReorderSheet) {
+        val reorderExerciseLookup = remember(visibleExercises) { visibleExercises.associateBy { it.id } }
+
+        // Una superserie es una unidad (LV4, 10.1): al llegar al borde de su bloque, la fila salta el bloque entero.
         fun moveReorderItem(fromIndex: Int, delta: Int) {
             if (state.reorderSheetExerciseIds.isEmpty() || fromIndex !in state.reorderSheetExerciseIds.indices) return
-            val targetIndex = (fromIndex + delta).coerceIn(0, state.reorderSheetExerciseIds.lastIndex)
-            if (targetIndex == fromIndex) return
-            state.reorderSheetExerciseIds = state.reorderSheetExerciseIds.toMutableList().also { list ->
-                val moved = list.removeAt(fromIndex)
-                list.add(targetIndex, moved)
-            }
+            val moved = LiveSessionReorder.moveUnit(
+                order = state.reorderSheetExerciseIds,
+                groupOf = { id -> reorderExerciseLookup[id]?.supersetGroupRefOrLegacyId() },
+                fromIndex = fromIndex,
+                delta = delta,
+            )
+            if (moved != state.reorderSheetExerciseIds) state.reorderSheetExerciseIds = moved
         }
-
-        val reorderExerciseLookup = remember(visibleExercises) { visibleExercises.associateBy { it.id } }
 
         fun detectCrossBoundaryMoves(orderedIds: List<String>, partMap: Map<String, String>): List<String> {
             if (orderedIds.size < 2) return emptyList()
+            if (session != null) {
+                // Los ejercicios que, para aplicar el orden pedido, pasan de un grupo a otro (la misma regla que aplica el orden).
+                return LiveSessionReorder.plan(session, orderedIds).groupChanges.map { change ->
+                    val name = reorderExerciseLookup[change.exerciseId]?.name ?: change.exerciseId
+                    "$name (${change.fromGroup ?: "Sesión Principal"} → ${change.toGroup ?: "Sesión Principal"})"
+                }
+            }
             val messages = mutableListOf<String>()
             data class ExBlock(val part: String?, val ids: List<String>)
             val blocks = mutableListOf<ExBlock>()

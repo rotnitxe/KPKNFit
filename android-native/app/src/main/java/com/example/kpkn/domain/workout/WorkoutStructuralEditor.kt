@@ -106,61 +106,17 @@ object WorkoutStructuralEditor {
         }
     }
 
+    /**
+     * Pone los ejercicios en el orden pedido, repartiéndolos entre los grupos de la sesión. Antes ignoraba en silencio el orden que no
+     * cabía en los grupos y, sin partes, se llevaba por delante los ejercicios que no venían en la lista (los omitidos): ahora vive en
+     * [LiveSessionReorder], que aplica siempre el orden y no pierde nada. [originalPartMap] (ejercicio → nombre de su parte) fija la parte
+     * de la que parte cada ejercicio.
+     */
     fun globalReorder(
         session: Session,
         orderedExerciseIds: List<String>,
         originalPartMap: Map<String, String>,
-    ): Session {
-        if (orderedExerciseIds.isEmpty()) return session
-        if (session.parts.isEmpty()) {
-            val lookup = session.exercises.associateBy { it.id }
-            return session.copy(exercises = orderedExerciseIds.mapNotNull(lookup::get))
-        }
-        data class ExBlock(val partId: String?, val ids: List<String>)
-        val blocks = mutableListOf<ExBlock>()
-        var curPart: String? = originalPartMap[orderedExerciseIds[0]]
-        var curIds = mutableListOf<String>()
-        for (id in orderedExerciseIds) {
-            val p = originalPartMap[id]
-            if (p != curPart && curIds.isNotEmpty()) {
-                blocks.add(ExBlock(curPart, curIds.toList()))
-                curIds = mutableListOf()
-                curPart = p
-            }
-            curIds.add(id)
-        }
-        if (curIds.isNotEmpty()) blocks.add(ExBlock(curPart, curIds.toList()))
-
-        val newPartOf = mutableMapOf<String, String?>()
-        for (i in blocks.indices) {
-            val block = blocks[i]
-            val ids = block.ids
-            val originalBlockPart = block.partId
-            if (ids.size == 1) {
-                val prevPart = if (i > 0) blocks[i - 1].partId else null
-                val nextPart = if (i < blocks.lastIndex) blocks[i + 1].partId else null
-                if (prevPart != null && nextPart != null && prevPart == nextPart && prevPart != originalBlockPart) {
-                    newPartOf[ids[0]] = prevPart
-                    continue
-                }
-            }
-            ids.forEach { id -> newPartOf[id] = originalBlockPart }
-        }
-
-        val allEx = session.allExercises().associateBy { it.id }
-        val partGroups = mutableMapOf<String?, MutableList<Exercise>>()
-        for (id in orderedExerciseIds) {
-            val ex = allEx[id] ?: continue
-            partGroups.getOrPut(newPartOf[id]) { mutableListOf() }.add(ex)
-        }
-
-        val newParts = session.parts.map { part ->
-            val list = partGroups.remove(part.name) ?: emptyList()
-            part.copy(exercises = list)
-        }
-        val topLevel = partGroups.remove(null) ?: emptyList()
-        return session.copy(parts = newParts, exercises = topLevel + partGroups.values.flatten())
-    }
+    ): Session = LiveSessionReorder.plan(session, orderedExerciseIds, homePartNames = originalPartMap).session
 
     fun insertExerciseAfterSupersetMembers(
         session: Session,

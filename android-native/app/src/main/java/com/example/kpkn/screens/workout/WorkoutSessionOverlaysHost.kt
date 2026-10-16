@@ -119,6 +119,8 @@ internal fun WorkoutSessionOverlaysHost(
         voiceCaptureMode = voiceCaptureMode,
         onVoiceToggle = onVoiceToggle,
         onVoiceCaptureModeChange = onVoiceCaptureModeChange,
+        // Atrás o tocar fuera cierran el estado previo sin responder: la sesión se ve y el estado previo queda pendiente (LV4, 15).
+        onDismiss = onReadinessDismissed,
     )
 
     if (uiState.showVolumeAdvanceModal && uiState.pendingVolumeAdvances.isNotEmpty()) {
