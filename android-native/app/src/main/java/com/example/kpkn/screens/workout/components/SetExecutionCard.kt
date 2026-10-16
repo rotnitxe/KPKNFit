@@ -3287,13 +3287,18 @@ internal fun SetInputCardV2(
                         isSettledPage = isSettledPage,
                         setIndex = setIndex,
                         side = activeSide ?: selectedSide,
+                        // Lo que muestra la tarjeta es lo que se guarda con el medio (LV8): lo escrito o, si no, la carga y las reps previstas.
                         weightKg = reportWeightText.replace(',', '.').toDoubleOrNull()
+                            ?: plannedWeightGhost?.replace(',', '.')?.toDoubleOrNull()?.takeIf { it > 0.0 }
                             ?: sessionCompletedSet?.weight?.takeIf { it > 0.0 },
                         reps = reportValueText.toDoubleOrNull()?.roundToInt()
+                            ?: (if (supportsIndependentSides) { if (selectedSide == "left") leftValueGhost else rightValueGhost } else plannedValueGhost)
+                                .toIntOrNull()?.takeIf { it > 0 }
                             ?: sessionCompletedSet?.reps?.takeIf { it > 0 },
                         isPr = isPrSeries,
                         mediaCapture = mediaCapture,
                         onRetryPendingCaptures = onRetryPendingCaptures,
+                        effortLabel = chosenEffortItem?.let { effortValueLabel(it) }?.takeIf { it != "—" },
                     )
                     else -> SetCardTechniqueBack(
                     currentSet = currentSet,
@@ -3331,6 +3336,8 @@ internal fun SetInputCardV2(
                     },
                     showPrMediaShortcut = LiveSetPrPolicy.shouldShowMediaShortcut(isPrSeries),
                     onOpenPrMedia = { cardFace = SetCardFace.ExerciseMedia },
+                    setNumber = setIndex + 1,
+                    loadStepKg = quickLoadIncrementFor(exercise, currentSet),
                     onCompleteTechniques = { drops, pauses ->
                         dropSetEnabled = drops.isNotEmpty() || dropSetEnabled
                         dropSets = drops.map { DropSetEntry(weight = it.weight, reps = it.reps) }.ifEmpty {
