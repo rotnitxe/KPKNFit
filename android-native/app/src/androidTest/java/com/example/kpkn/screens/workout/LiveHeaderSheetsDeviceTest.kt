@@ -5,6 +5,9 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.SemanticsActions
+import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -110,9 +113,12 @@ class LiveHeaderSheetsDeviceTest {
         tap("Set-up · Mostrar")
         rule.onNodeWithContentDescription("Carga base (kg)").performScrollTo().performTextReplacement("25,5")
         tap("Guardar set-up")
-        tap("Reiniciar historial")
+        // Invoke the reset button itself, rather than a touch on the enclosing merged sheet.
+        rule.onNode(hasText("Reiniciar historial") and SemanticsMatcher.expectValue(SemanticsProperties.Role, Role.Button))
+            .performScrollTo().performSemanticsAction(SemanticsActions.OnClick) { it() }
+        rule.onNodeWithText("Los registros de sesión no se borran.", substring = true, useUnmergedTree = true).assertExists()
         rule.runOnIdle { assertEquals(0, reset) }
-        rule.onNodeWithText("Reiniciar").performClick()
+        rule.onNodeWithText("Reiniciar", useUnmergedTree = true).assertIsDisplayed().performClick()
         rule.runOnIdle { assertEquals("Máquina B", renamed); assertEquals(25.5, saved!!.baseLoadKg!!, .0001); assertEquals(1, reset) }
     }
 
@@ -200,7 +206,7 @@ class LiveHeaderSheetsDeviceTest {
         rule.onNodeWithText("Mayor riesgo").assertExists()
         tap("Permitir técnica intensa")
         rule.runOnIdle { assertFalse(override) }
-        rule.onNodeWithText("Curl + Press").performScrollTo().assertExists()
+        rule.onNodeWithText("Curl + Press", useUnmergedTree = true).performScrollTo().assertIsDisplayed()
         rule.onNodeWithText("Aplicar").performClick()
         rule.runOnIdle { assertEquals(mapOf("curl" to 1), submitted) }
         rule.onAllNodesWithText("Como la anterior").assertCountEquals(0)
