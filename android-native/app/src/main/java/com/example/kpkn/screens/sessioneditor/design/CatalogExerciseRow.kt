@@ -176,7 +176,7 @@ internal fun CatalogVariantChips(
  * de la fila ya la dice.
  */
 @Composable
-private fun CatalogRowThumbnail(thumbnailResId: Int?, pattern: ExercisePattern) {
+internal fun CatalogRowThumbnail(thumbnailResId: Int?, pattern: ExercisePattern) {
     Box(
         modifier = Modifier
             .size(48.dp)

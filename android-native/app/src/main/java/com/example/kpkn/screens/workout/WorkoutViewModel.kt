@@ -3406,24 +3406,9 @@ class WorkoutViewModel(
             ?: ""
         // Add the set to the live session immediately
         updateExerciseDefinition(currentExerciseId, persistToProgram = false) { exercise ->
-            val lastSet = exercise.sets.lastOrNull()
-            val lastSetIdx = exercise.sets.lastIndex
-            val effectiveMode = effectiveLoadModeForExercise(exercise, lastSetIdx)
-            val newSet = ExerciseSet(
-                id = UUID.randomUUID().toString(),
-                targetReps = lastSet?.targetReps,
-                targetRepsRange = lastSet?.targetRepsRange,
-                targetRPE = lastSet?.targetRPE,
-                targetRIR = lastSet?.targetRIR,
-                weight = lastSet?.weight,
-                loadModeV2 = effectiveMode,
-                unitModeV2 = lastSet?.unitModeV2,
-                intensityMode = lastSet?.intensityMode,
-                targetDuration = lastSet?.targetDuration,
-                targetPercentageRM = lastSet?.targetPercentageRM,
-                isAmrap = false,
-            )
-            exercise.copy(sets = exercise.sets + newSet)
+            // La serie nueva sale como la última, con el tipo de carga que esa serie enseña ahora (el recuerdo de la sesión o su plan).
+            val effectiveMode = effectiveLoadModeForExercise(exercise, exercise.sets.lastIndex)
+            exercise.copy(sets = exercise.sets + plannedSetAfterLast(exercise, loadMode = effectiveMode))
         }
         // Show persistence prompt
         updateUiState { it.copy(
