@@ -97,6 +97,7 @@ import com.example.kpkn.screens.sessioneditor.ExerciseSetsCarousel
 import com.example.kpkn.screens.sessioneditor.SideOrderChip
 import com.example.kpkn.screens.sessioneditor.UnilateralModeSelector
 import com.example.kpkn.screens.sessioneditor.components.CardioEditorCard
+import com.example.kpkn.screens.sessioneditor.components.CatalogReplacementContext
 import com.example.kpkn.screens.sessioneditor.components.ExercisePickerSheet
 import com.example.kpkn.screens.sessioneditor.CatalogLaunchOrigin
 import com.example.kpkn.screens.sessioneditor.CatalogLaunchRequest
@@ -247,6 +248,7 @@ private fun LiveExercisePickerWithCreator(
     onCreateSuperset: ((List<ExerciseMuscleInfo>) -> Unit)? = null,
     editingCatalogDefinitionId: String? = null,
     editingCatalogConfigurationId: String? = null,
+    replacement: CatalogReplacementContext? = null,
 ) {
     ExercisePickerSheet(
         query = query,
@@ -264,6 +266,7 @@ private fun LiveExercisePickerWithCreator(
         onDismiss = onDismiss,
         editingCatalogDefinitionId = editingCatalogDefinitionId,
         editingCatalogConfigurationId = editingCatalogConfigurationId,
+        replacement = replacement,
     )
 }
 
@@ -350,6 +353,8 @@ internal fun WorkoutStructureSheetsHost(
                     targetCatalogDefinitionId = replaceTarget?.catalogDefinitionId,
                     targetCatalogConfigurationId = replaceTarget?.catalogConfigurationId
                         ?: replaceTarget?.exerciseDbId,
+                    // El catálogo enseña «Reemplazando: …» con el nombre que la persona ve en la sesión (LV5).
+                    targetExerciseName = replaceTarget?.let(::displayWorkoutExerciseName),
                     initialQuery = state.replaceSearchQuery,
                 )
                 state.showReplaceExercisePicker = false
@@ -821,6 +826,7 @@ internal fun WorkoutStructureSheetsHost(
                 },
                 editingCatalogDefinitionId = replaceTarget?.catalogDefinitionId,
                 editingCatalogConfigurationId = replaceTarget?.catalogConfigurationId,
+                replacement = CatalogReplacementContext(exerciseName = replaceTarget?.let(::displayWorkoutExerciseName)),
             )
         }
     }

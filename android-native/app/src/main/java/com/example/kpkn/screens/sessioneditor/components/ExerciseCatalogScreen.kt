@@ -53,6 +53,26 @@ internal fun ExerciseCatalogScreen(
     val editingExisting = request.selectionMode == CatalogSelectionMode.SINGLE ||
         request.selectionMode == CatalogSelectionMode.REPLACEMENT
 
+    // Reemplazar (LV5): la página arranca en el catálogo con el ejercicio actual de contexto, no en su ficha. El nombre viene en el
+    // pedido; si no (el editor no lo manda), se saca del catálogo por su identidad.
+    val replacement = remember(request, catalog) {
+        val replacing = request.selectionMode == CatalogSelectionMode.REPLACEMENT ||
+            request.origin == CatalogLaunchOrigin.REPLACEMENT
+        if (!replacing) {
+            null
+        } else {
+            val fromCatalog = request.targetCatalogConfigurationId
+                ?.let { id ->
+                    catalog.firstOrNull {
+                        it.catalogConfigurationId.equals(id, ignoreCase = true) || it.id.equals(id, ignoreCase = true)
+                    }?.name
+                }
+                ?: request.targetCatalogDefinitionId
+                    ?.let { id -> catalog.firstOrNull { it.catalogDefinitionId == id }?.name }
+            CatalogReplacementContext(exerciseName = request.targetExerciseName?.takeIf { it.isNotBlank() } ?: fromCatalog)
+        }
+    }
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -99,6 +119,7 @@ internal fun ExerciseCatalogScreen(
                         ?: catalog.firstOrNull { it.catalogConfigurationId.equals(targetId, ignoreCase = true) }?.catalogConfigurationId
                 },
             targetGroupName = request.targetGroupName,
+            replacement = replacement,
         )
     }
 }

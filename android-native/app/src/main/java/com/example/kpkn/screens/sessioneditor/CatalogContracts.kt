@@ -52,6 +52,11 @@ data class CatalogLaunchRequest(
     val targetGroupName: String? = null,
     val selectedExerciseIds: List<String> = emptyList(),
     val initialQuery: String = "",
+    /**
+     * Nombre con el que la persona ve el ejercicio que se reemplaza (LV5). Solo lo usa la cabecera del catálogo
+     * («Reemplazando: …»); no entra en la validación del resultado. Los pedidos antiguos lo decodifican como nulo.
+     */
+    val targetExerciseName: String? = null,
 )
 
 @Serializable

@@ -197,6 +197,68 @@ internal fun toggleCatalogDefinitionExpansion(
     tappedDefinitionId: String,
 ): String? = if (currentDefinitionId == tappedDefinitionId) null else tappedDefinitionId
 
+/** Rótulo de la fila del ejercicio que se reemplaza (LV5). */
+internal const val CatalogCurrentExerciseLabel = "Ejercicio actual"
+
+/**
+ * El catálogo se abre para reemplazar un ejercicio (LV5). [exerciseName] es el que ve la persona («Reemplazando: …»); puede faltar si el
+ * ejercicio no tiene nombre resoluble, y entonces la cabecera solo cambia de título.
+ */
+internal data class CatalogReplacementContext(val exerciseName: String? = null)
+
+/** El ejercicio que se reemplaza, ya localizado en el catálogo: de él salen el patrón y los músculos que ordenan la lista (LV5). */
+internal data class CatalogReplacementAnchor(
+    val definitionId: String,
+    val movementPatternId: String?,
+    val primaryMuscles: Set<String>,
+)
+
+/**
+ * Localiza en el catálogo el ejercicio que se reemplaza. Prefiere su configuración exacta; si solo se conoce la definición, usa la
+ * configuración por defecto. Devuelve nulo para un ejercicio sin identidad de catálogo (el orden alfabético se queda como está).
+ */
+internal fun catalogReplacementAnchorFor(
+    definitionsById: Map<String, ExerciseDefinitionV2>,
+    definitionId: String?,
+    configurationId: String?,
+): CatalogReplacementAnchor? {
+    val definition = definitionId?.let(definitionsById::get)
+        ?: configurationId?.takeIf { it.isNotBlank() }?.let { id ->
+            definitionsById.values.firstOrNull { candidate -> candidate.configurations.any { it.id == id } }
+        }
+        ?: return null
+    val configuration = definition.configurations.firstOrNull { it.id == configurationId }
+        ?: definition.configurations.firstOrNull { it.id == definition.defaultConfigurationId }
+        ?: definition.configurations.firstOrNull()
+        ?: return null
+    return CatalogReplacementAnchor(
+        definitionId = definition.id,
+        movementPatternId = configuration.profile.movementPatternId.takeIf { it.isNotBlank() },
+        primaryMuscles = configuration.profile.primaryMuscles.toSet(),
+    )
+}
+
+/**
+ * Orden de la lista al reemplazar (LV5): primero el ejercicio actual, luego los de su mismo patrón de movimiento, luego los que
+ * comparten un músculo principal y al final el resto. Dentro de cada grupo se conserva el orden que traía la lista (alfabético), así que
+ * no se quita ni se esconde ningún ejercicio: solo cambia por dónde se empieza a mirar.
+ */
+internal fun orderDefinitionsForReplacement(
+    definitions: List<ExerciseDefinitionV2>,
+    anchor: CatalogReplacementAnchor?,
+): List<ExerciseDefinitionV2> {
+    if (anchor == null || definitions.size < 2) return definitions
+    fun tier(definition: ExerciseDefinitionV2): Int = when {
+        definition.id == anchor.definitionId -> 0
+        anchor.movementPatternId != null &&
+            definition.configurations.any { it.profile.movementPatternId == anchor.movementPatternId } -> 1
+        anchor.primaryMuscles.isNotEmpty() &&
+            definition.configurations.any { configuration -> configuration.profile.primaryMuscles.any { it in anchor.primaryMuscles } } -> 2
+        else -> 3
+    }
+    return definitions.sortedBy(::tier)
+}
+
 internal fun shouldShowCatalogCreateSuggestion(
     query: String,
     searchSettled: Boolean,
@@ -272,6 +334,7 @@ internal fun ExercisePickerV2Catalog(
     opaqueSurface: Boolean = false,
     dismissAfterMultiSelect: Boolean = true,
     targetGroupName: String? = null,
+    replacement: CatalogReplacementContext? = null,
 ) {
     val state by repository.state.collectAsStateWithLifecycle()
     DisposableEffect(Unit) {
@@ -334,6 +397,8 @@ internal fun ExercisePickerV2Catalog(
                 onQueryChange = benchmarkOnSearch,
                 onBack = if (opaqueSurface) onDismiss else null,
                 targetGroupName = targetGroupName,
+                isReplacement = replacement != null,
+                replacingName = replacement?.exerciseName,
                 filterRegion = filterRegion,
                 filterMuscle = filterMuscle,
                 muscleFilterExpanded = muscleFilterExpanded,
@@ -391,6 +456,7 @@ internal fun ExercisePickerV2Catalog(
                     filterRegion = filterRegion,
                     filterMuscle = filterMuscle,
                     benchmarkRequestId = repairBenchmarkPickerRequestId,
+                    replacement = replacement,
                 )
             }
         }
@@ -428,6 +494,7 @@ private fun ColumnScope.CatalogReadyContent(
     benchmarkRequestId: Long,
     benchmarkSearchRequestId: Long,
     benchmarkLatestRequestedQuery: String,
+    replacement: CatalogReplacementContext? = null,
 ) {
     val scope = rememberCoroutineScope()
     val haptics = LocalHapticFeedback.current
@@ -513,7 +580,7 @@ private fun ColumnScope.CatalogReadyContent(
     val searchHits = if (searchSettled) searchState.filteredHits else emptyList()
     val globalSearchHits = if (searchSettled) searchState.globalHits else emptyList()
     var lastStableDefinitions by remember { mutableStateOf<List<ExerciseDefinitionV2>>(emptyList()) }
-    val definitions = visibleDefinitionsForQuery(
+    val visibleDefinitions = visibleDefinitionsForQuery(
         catalog = catalog,
         query = query,
         searchSettled = searchSettled,
@@ -524,8 +591,20 @@ private fun ColumnScope.CatalogReadyContent(
         previousStable = lastStableDefinitions,
         blankQueryDefinitions = catalogProjection?.blankQueryDefinitions.orEmpty(),
     )
-    LaunchedEffect(catalogProjection, definitions, searchSettled, query) {
-        if (searchSettled || query.isBlank()) lastStableDefinitions = definitions
+    // Al reemplazar, la lista arranca con el ejercicio actual y los de su patrón (LV5). Una búsqueda manda: su orden es el de relevancia.
+    val replacementAnchor = remember(replacement != null, definitionsById, initialCatalogDefinitionId, initialCatalogConfigurationId) {
+        if (replacement == null) {
+            null
+        } else {
+            catalogReplacementAnchorFor(definitionsById, initialCatalogDefinitionId, initialCatalogConfigurationId)
+        }
+    }
+    val orderedByReplacement = replacementAnchor != null && query.isBlank()
+    val definitions = remember(visibleDefinitions, replacementAnchor, orderedByReplacement) {
+        if (orderedByReplacement) orderDefinitionsForReplacement(visibleDefinitions, replacementAnchor) else visibleDefinitions
+    }
+    LaunchedEffect(catalogProjection, visibleDefinitions, searchSettled, query) {
+        if (searchSettled || query.isBlank()) lastStableDefinitions = visibleDefinitions
     }
     val initialDraftByDefinition = remember(
         catalog,
@@ -610,7 +689,9 @@ private fun ColumnScope.CatalogReadyContent(
         if (selectedRows.value.isEmpty()) selectedListExpanded = false
     }
     // La ficha de hoy (expandedDefinitionId) y las variantes desplegadas bajo la fila (variantsDefinitionId) son estados distintos.
-    var expandedDefinitionId by rememberSaveable { mutableStateOf(initialCatalogDefinitionId) }
+    // La ficha nunca se abre sola (LV5): al reemplazar, el ejercicio actual ya encabeza la lista y su ficha queda a un toque. Antes
+    // arrancaba en el ejercicio actual y «Reemplazar» caía en su ficha en vez de en el catálogo.
+    var expandedDefinitionId by rememberSaveable { mutableStateOf<String?>(null) }
     var variantsDefinitionId by rememberSaveable { mutableStateOf<String?>(null) }
     var showSupersetConfigurator by rememberSaveable { mutableStateOf(false) }
     val customExercises by CustomExerciseRepository.customExercises.collectAsStateWithLifecycle()
@@ -692,7 +773,11 @@ private fun ColumnScope.CatalogReadyContent(
         ) {
             item("result-count") {
                 Text(
-                    if (query.isBlank()) "Todos los ejercicios" else "Resultados para «$query»",
+                    when {
+                        query.isNotBlank() -> "Resultados para «$query»"
+                        orderedByReplacement -> "Primero los más parecidos al ejercicio actual"
+                        else -> "Todos los ejercicios"
+                    },
                     color = WizardColors.textMuted,
                     style = KpknType.caption,
                     modifier = Modifier.padding(vertical = 8.dp),
@@ -855,11 +940,17 @@ private fun ColumnScope.CatalogReadyContent(
                     )
                     val subtitle = listOfNotNull(muscleLabel, materialLabel).joinToString(" · ")
                     // La línea de coincidencias no repite lo que la fila ya dice (músculo y material), y sin búsqueda no se pinta (SE6b).
-                    val matchLabel = catalogMatchLabel(
+                    val searchMatchLabel = catalogMatchLabel(
                         matchChips = searchMatchChips[definition.id].orEmpty(),
                         shownInSubtitle = listOfNotNull(muscleLabel, materialLabel),
                         query = query,
                     )
+                    // El ejercicio que se reemplaza se reconoce en la lista (LV5), con o sin búsqueda.
+                    val matchLabel = if (replacementAnchor?.definitionId == definition.id) {
+                        listOfNotNull(CatalogCurrentExerciseLabel, searchMatchLabel).joinToString(" · ")
+                    } else {
+                        searchMatchLabel
+                    }
                     val hasVariants = variantValues.isNotEmpty()
                     val variantsOpen = hasVariants && variantsDefinitionId == definition.id
                     Column(modifier = Modifier.fillMaxWidth()) {

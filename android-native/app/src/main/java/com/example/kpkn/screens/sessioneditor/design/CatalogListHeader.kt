@@ -13,6 +13,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -24,12 +25,35 @@ import com.example.kpkn.ui.design.KpknTextField
 import com.example.kpkn.ui.design.KpknTopRow
 import com.example.kpkn.ui.design.KpknType
 
+/** Etiqueta de prueba de la línea de contexto bajo el título del catálogo (LV5). */
+internal const val CatalogHeaderContextTag = "catalog_header_context"
+
+/** Título de la cabecera: «Reemplazar ejercicio» al reemplazar y «Añadir ejercicios» en el resto (LV5). */
+internal fun catalogHeaderTitle(isReplacement: Boolean): String =
+    if (isReplacement) "Reemplazar ejercicio" else "Añadir ejercicios"
+
+/**
+ * Línea de contexto bajo el título (LV5): al reemplazar, «Reemplazando: <ejercicio>» (o nada si no hay nombre: «Agrega ejercicios para…»
+ * no sería verdad); en el resto, «Agrega ejercicios para <parte>» si el catálogo se abre desde una parte de la sesión.
+ */
+internal fun catalogHeaderContextLine(
+    isReplacement: Boolean,
+    replacingName: String?,
+    targetGroupName: String?,
+): String? = when {
+    isReplacement -> replacingName?.takeIf { it.isNotBlank() }?.let { "Reemplazando: ${it.trim()}" }
+    !targetGroupName.isNullOrBlank() -> "Agrega ejercicios para $targetGroupName"
+    else -> null
+}
+
 /**
  * Cabecera del catálogo (SE6a, SESSION_EDITOR_V1 §4). En la página completa ([onBack] no es nulo): «Atrás» con `KpknTopRow` y el título
  * «Añadir ejercicios» en `display` a 24 sp, que es lo que se encoge para caber en una línea (KPKN_UI_V2 §5). En la hoja: solo el título, en `title`. Debajo, el contexto de la parte si lo hay, el buscador
  * (`KpknTextField` con la lupa) y una fila desplazable de filtros: Todos, Tren superior, Tren inferior y Músculo.
  *
  * Con un músculo elegido, su filtro se ve activo con su valor («Pectorales»). Al tocar Músculo se despliega la fila de [muscleIds].
+ * Al reemplazar un ejercicio ([isReplacement], LV5) el título pasa a «Reemplazar ejercicio» y bajo él va «Reemplazando: …» con el
+ * ejercicio actual ([replacingName]); sin nombre, solo cambia el título.
  * Sin estado: quien la usa guarda los filtros y la búsqueda.
  */
 @Composable
@@ -48,6 +72,8 @@ internal fun CatalogListHeader(
     onToggleMuscle: () -> Unit,
     onToggleMuscleId: (String) -> Unit,
     modifier: Modifier = Modifier,
+    isReplacement: Boolean = false,
+    replacingName: String? = null,
 ) {
     Column(
         modifier = modifier.fillMaxWidth(),
@@ -61,19 +87,21 @@ internal fun CatalogListHeader(
             verticalArrangement = Arrangement.spacedBy(4.dp),
         ) {
             Text(
-                text = "Añadir ejercicios",
+                text = catalogHeaderTitle(isReplacement),
                 style = if (onBack != null) KpknType.display.copy(fontSize = 24.sp, lineHeight = 28.sp) else KpknType.title,
                 color = WizardColors.text,
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis,
             )
-            if (!targetGroupName.isNullOrBlank()) {
+            val contextLine = catalogHeaderContextLine(isReplacement, replacingName, targetGroupName)
+            if (contextLine != null) {
                 Text(
-                    text = "Agrega ejercicios para $targetGroupName",
+                    text = contextLine,
                     style = KpknType.caption,
                     color = WizardColors.textMuted,
-                    maxLines = 1,
+                    maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.testTag(CatalogHeaderContextTag),
                 )
             }
         }
