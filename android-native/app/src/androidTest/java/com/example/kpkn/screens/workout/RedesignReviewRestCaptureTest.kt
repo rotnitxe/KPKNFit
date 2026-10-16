@@ -2,10 +2,15 @@ package com.example.kpkn.screens.workout
 
 import android.content.Context
 import android.graphics.Bitmap
+import android.os.Build
 import androidx.activity.ComponentActivity
+import androidx.activity.SystemBarStyle
+import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.LocalContentColor
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -26,7 +31,6 @@ import com.example.kpkn.domain.discomfort.DiscomfortInsight
 import com.example.kpkn.screens.workout.components.*
 import com.example.kpkn.ui.adapt.LocalViewportAdapt
 import com.example.kpkn.ui.adapt.LiveViewportPolicyMath
-import com.example.kpkn.ui.adapt.ViewportAdaptProvider
 import com.example.kpkn.ui.components.LocalKpknOverlayHost
 import com.example.kpkn.ui.components.kpknGlassOrFallback
 import com.example.kpkn.ui.design.KpknSurface
@@ -34,7 +38,9 @@ import com.example.kpkn.ui.theme.KPKNTheme
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.hazeSource
 import java.io.File
+import kotlin.math.roundToInt
 import org.junit.After
+import org.junit.Before
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
@@ -66,6 +72,17 @@ class RedesignReviewRestCaptureTest {
     private val insights = FeedbackInsights(likely = listOf("knee_patellar"),
         reported = listOf(ReportedDiscomfort("lumbar", now - 2 * 86_400_000L)), notice = evidence)
 
+    @Before fun configureProductionWindow() {
+        rule.activityRule.scenario.onActivity { activity ->
+            // MainActivity uses these exact dark/transparent edge-to-edge policies.
+            activity.enableEdgeToEdge(
+                statusBarStyle = SystemBarStyle.dark(android.graphics.Color.TRANSPARENT),
+                navigationBarStyle = SystemBarStyle.dark(android.graphics.Color.TRANSPARENT),
+            )
+            if (Build.VERSION.SDK_INT >= 29) activity.window.isNavigationBarContrastEnforced = false
+        }
+    }
+
     @After fun clearCaptureGamePreferences() {
         context.getSharedPreferences(gamePreferences, Context.MODE_PRIVATE).edit().clear().commit()
     }
@@ -92,7 +109,9 @@ class RedesignReviewRestCaptureTest {
     private fun render(scene: String, module: Boolean = false, tab: String? = null) {
         rule.setContent {
             KPKNTheme {
-                ViewportAdaptProvider {
+                // KPKNTheme already supplies MaterialTheme and ViewportAdaptProvider.
+                // Match MainActivity's navigation host for Text/Icon calls with inherited color.
+                CompositionLocalProvider(LocalContentColor provides MaterialTheme.colorScheme.onSurface) {
                     val haze = remember { HazeState() }
                     CompositionLocalProvider(LocalKpknOverlayHost provides null, LocalRestClockFrozen provides 1.7f) {
                         Box(Modifier.fillMaxSize().background(KpknSurface.canvas).testTag(CanvasTag)) {
@@ -100,7 +119,11 @@ class RedesignReviewRestCaptureTest {
                             when {
                                 scene.startsWith("cockpit-") -> Cockpit(haze)
                                 scene == "series-options" -> SeriesOptionsSheet(squat, SeriesTypeTarget(squat.id, 1, 3),
-                                    mapOf("${squat.id}_0" to last), emptySet(), {}, { _, _ -> }, {}, {}, {}, {})
+                                    mapOf("${squat.id}_0" to last), emptySet(), {}, { _, _ -> }, {}, {}, {}, {},
+                                    bottomClearance = resolveDockBottomClearanceDp(
+                                        measuredRoadmapHeightDp = null, roadmapExpanded = false,
+                                        compactHeightDp = WorkoutUiTokens.liveCockpitCompactHeight(LocalViewportAdapt.current.uniformScale).value.roundToInt(),
+                                    ).dp)
                                 scene == "discomfort-detail" -> DiscomfortSheet(checkNotNull(discomfortKnowledge("knee_patellar")),
                                     false, evidence, {}, {}, animated = true)
                                 scene == "rest-chip" -> Box(Modifier.align(Alignment.TopCenter).padding(16.dp).testTag(ModuleTag)) {
