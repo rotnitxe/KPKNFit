@@ -455,7 +455,7 @@ class WorkoutStructuralPersistenceController(
         } else {
             state.omittedSetKeys
         }
-        val remappedDrafts = if (previousSession != null) {
+        val remappedDraftsBefore = if (previousSession != null) {
             remapIndexKeyedMap(previousSession, normalizedSession, state.setDrafts)
         } else {
             state.setDrafts
@@ -465,7 +465,7 @@ class WorkoutStructuralPersistenceController(
         } else {
             state.manualLoadOverrides
         }
-        val remappedLoadModes = if (previousSession != null) {
+        val remappedLoadModesBefore = if (previousSession != null) {
             remapIndexKeyedMap(previousSession, normalizedSession, state.persistedLoadModeBySet)
         } else {
             state.persistedLoadModeBySet
@@ -475,6 +475,25 @@ class WorkoutStructuralPersistenceController(
         } else {
             state.setAdvancedFeedback
         }
+        // Si el plan de una serie cambia (p. ej. su tipo de carga en «Editar series»), manda sobre lo que la sesión recordaba de ella:
+        // el modo con el que se registró otra serie y los borradores. Antes ganaba lo recordado y el tipo «volvía al que había» (LV5).
+        val reconciled = if (previousSession != null) {
+            reconcileRuntimeWithPlanEdit(
+                previous = ports.sessionForActiveMode(previousSession, state.activeMode),
+                next = ports.sessionForActiveMode(normalizedSession, state.activeMode),
+                completedSets = remappedCompleted,
+                exerciseTags = state.exerciseTags,
+                runtime = LiveEditRuntime(
+                    persistedLoadModeBySet = remappedLoadModesBefore,
+                    persistedLoadModeByExercise = state.persistedLoadModeByExercise,
+                    setDrafts = remappedDraftsBefore,
+                ),
+            )
+        } else {
+            LiveEditRuntime(remappedLoadModesBefore, state.persistedLoadModeByExercise, remappedDraftsBefore)
+        }
+        val remappedLoadModes = reconciled.persistedLoadModeBySet
+        val remappedDrafts = reconciled.setDrafts
         val liveExerciseIds = normalizedSession.allExercises().map { it.id }.toSet()
         val preview = state.copy(
             session = normalizedSession,
@@ -499,35 +518,11 @@ class WorkoutStructuralPersistenceController(
             )
 
         updateState {
-            val preferredExercise = visible.getOrNull(resolvedExerciseIdx)
-                ?.takeIf { exercise -> exercise.id == preferredExerciseId }
-            val plannedLoadModesBySet = preferredExercise
-                ?.sets
-                ?.mapIndexed { index, set -> workoutSetKey(preferredExercise.id, index) to (set.loadModeV2 ?: LoadModeV2.LOAD) }
-                ?.toMap()
-                .orEmpty()
-            val plannedExerciseLoadMode = preferredExercise
-                ?.sets
-                ?.firstOrNull()
-                ?.loadModeV2
-                ?: plannedLoadModesBySet.values.firstOrNull()
-                ?: LoadModeV2.LOAD
-            val mergedLoadModes = if (preferredExercise != null) {
-                val remappedForPreferred = remappedLoadModes.filterKeys { key -> key.startsWith("${preferredExercise.id}_") }
-                plannedLoadModesBySet + remappedForPreferred
-            } else {
-                remappedLoadModes
-            }
-            val persistedByExercise = if (preferredExercise != null) {
-                val runtimeMode = it.persistedLoadModeByExercise[preferredExercise.id]
-                if (runtimeMode != null) {
-                    it.persistedLoadModeByExercise
-                } else {
-                    it.persistedLoadModeByExercise + (preferredExercise.id to plannedExerciseLoadMode)
-                }
-            } else {
-                it.persistedLoadModeByExercise
-            }.filterKeys { key ->
+            // El modo de carga recordado es SOLO lo que la sesión vio hacer (registros y ajustes de «Editar series»): el plan se queda
+            // en el plan. Antes, cada edición de un ejercicio copiaba los modos de su plan al recuerdo de todas sus series, y desde ese
+            // momento una edición posterior del plan perdía contra su propia copia: el tipo de carga «volvía al que había». Además se
+            // vaciaba el recuerdo de TODOS los demás ejercicios (LV5).
+            val persistedByExercise = it.persistedLoadModeByExercise.filterKeys { key ->
                 key in liveExerciseIds || liveExerciseIds.any { id -> key.startsWith("$id|") }
             }
             val next = it.copy(
@@ -538,7 +533,7 @@ class WorkoutStructuralPersistenceController(
                 omittedSetKeys = remappedOmitted,
                 setDrafts = remappedDrafts,
                 manualLoadOverrides = remappedOverrides,
-                persistedLoadModeBySet = mergedLoadModes,
+                persistedLoadModeBySet = remappedLoadModes,
                 persistedLoadModeByExercise = persistedByExercise,
                 setAdvancedFeedback = remappedAdvanced,
                 skippedExerciseIds = pruneExerciseIdSet(it.skippedExerciseIds, liveExerciseIds),
