@@ -40,6 +40,8 @@ class RelatorActionAckDeviceTest {
     private var scope by mutableStateOf("press:0")
     private var draft: Double? = 41.0
     private var calls = 0
+    private var fallbackCalls = 0
+    private var pops = 0
     private var undo: RelatorAssistAction? = null
 
     private fun show(applied: Boolean = true, knownWeights: Boolean = true) {
@@ -49,6 +51,8 @@ class RelatorActionAckDeviceTest {
                 Box(Modifier.width(320.dp).height(112.dp)) {
                     WorkoutLiveRelatorLine(
                         text = copy, phaseKey = phase, actions = listOf(action), reduceMotionOverride = true,
+                        onAction = { fallbackCalls += 1; calls += 1 },
+                        onLoadPop = { pops += 1 },
                         actionContext = RelatorActionUiContext(scope) { clicked ->
                             calls += 1
                             phase = "assist_confirm"
@@ -102,6 +106,7 @@ class RelatorActionAckDeviceTest {
         rule.runOnIdle { assertEquals(1, calls) }
         val done = "Listo: la serie 1 va con 39\u00A0kg. vuelve a 41."
         awaitCopy(done)
+        rule.runOnIdle { assertEquals(1, pops); assertEquals(0, fallbackCalls) }
         tapSpan(done, "vuelve a 41")
         rule.runOnIdle {
             assertEquals(41.0, draft!!, 0.0)
@@ -109,6 +114,7 @@ class RelatorActionAckDeviceTest {
             assertNull(undo!!.weightKg)
             assertNull(undo!!.loadDeltaPercent)
             assertEquals(2, calls)
+            assertEquals(0, fallbackCalls)
         }
     }
 
@@ -116,7 +122,10 @@ class RelatorActionAckDeviceTest {
         show(applied = false)
         tapSpan(idle, "Ajusta carga")
         rule.onNodeWithText("No se pudo ajustar la carga.", useUnmergedTree = true).assertExists()
-        rule.runOnIdle { assertEquals(41.0, draft!!, 0.0); assertEquals(1, calls) }
+        rule.runOnIdle {
+            assertEquals(41.0, draft!!, 0.0); assertEquals(1, calls)
+            assertEquals(0, fallbackCalls); assertEquals(0, pops)
+        }
         rule.onAllNodesWithText("Listo:", substring = true).fetchSemanticsNodes().let { assertTrue(it.isEmpty()) }
         rule.onAllNodesWithText("cargando los discos", substring = true).fetchSemanticsNodes().let { assertTrue(it.isEmpty()) }
     }
