@@ -241,7 +241,14 @@ internal fun WorkoutV2Body(
         val relatorBandHeight = WorkoutUiTokens.liveRelatorBandHeight(density)
         // La banda se oculta solo bajo un overlay a pantalla completa (descanso o feedback), que trae su propio relator.
         // El chip del descanso ocupa el sitio de la banda mientras se ve (LV6, F5), y «Descanso cumplido» a pantalla completa también la cubre.
-        val relatorBandCovered = uiState.showPostExerciseSheet ||
+        // Con el feedback en la tarjeta del descanso (B3) la banda del relator se ve: F4 pone ahí «Ejercicio terminado: …».
+        val feedbackOnCard = feedbackLivesOnCard(
+            feedbackShowing = uiState.showPostExerciseSheet,
+            isRestTimerRunning = uiState.isRestTimerRunning,
+            isRestMinimized = uiState.isRestMinimized,
+            restKind = uiState.restModalState?.kind,
+        )
+        val relatorBandCovered = (uiState.showPostExerciseSheet && !feedbackOnCard) ||
             (workingRestActive && !uiState.isRestMinimized) ||
             (uiState.restOverrun != null && !uiState.isRestMinimized) ||
             restChipHolder.visible
@@ -1935,7 +1942,24 @@ internal fun WorkoutV2Body(
                                         },
                                     )
                                 }
-                                if (restOverrun != null && restState == null) {
+                                if (feedbackOnCard) {
+                                    // El feedback de la última serie (LV6, B3, F4) en la tarjeta del descanso: el mismo borrador y el mismo
+                                    // guardado que la pantalla completa; expandir vuelve a ella con lo ya elegido.
+                                    val feedbackTarget = visibleExercises.getOrNull(uiState.postExerciseTargetIdx) ?: currentExercise
+                                    val feedbackExercises = remember(feedbackTarget, visibleExercises) {
+                                        buildFeedbackExercisesForTarget(feedbackTarget, visibleExercises)
+                                    }
+                                    WorkoutPostExerciseFeedbackCard(
+                                        feedbackExercises = feedbackExercises,
+                                        postExerciseFeedbackByExerciseId = uiState.postExerciseFeedbackByExerciseId,
+                                        viewModel = viewModel,
+                                        remainingSeconds = restTimerRemaining.coerceAtLeast(0),
+                                        totalSeconds = restState?.totalRestSeconds() ?: 90,
+                                        shape = restShape,
+                                        clockActive = isActivePage,
+                                        modifier = Modifier.fillMaxWidth().fillMaxHeight(),
+                                    )
+                                } else if (restOverrun != null && restState == null) {
                                     // «Descanso cumplido» (LV6, F6) en la tarjeta: el descanso ya se cerró, esto solo cambia lo que se ve.
                                     com.example.kpkn.screens.workout.components.RestOverrunCard(
                                         overrun = restOverrun,
@@ -2328,7 +2352,7 @@ internal fun WorkoutV2Body(
         } // header + body Column
 
         // El chip del descanso (LV6, F5) va en el sitio de la banda del relator: mismo borde, misma altura, sin mover la tarjeta.
-        if (restChipHolder.visible && headerHeightPx > 0 && !uiState.showPostExerciseSheet) {
+        if (restChipHolder.visible && headerHeightPx > 0) {
             Box(
                 modifier = Modifier
                     .align(Alignment.TopCenter)

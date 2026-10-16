@@ -47,7 +47,10 @@ internal fun WorkoutRestOverlayHost(
     feedbackExerciseCount: Int,
     forceShowForFeedback: Boolean,
 ) {
-    val showExpanded = (isRestTimerRunning && restState != null && !isRestMinimized) || forceShowForFeedback
+    // B3: si la persona minimiza el descanso mientras el feedback sigue pendiente, la tarjeta del descanso lo lleva en compacto y la
+    // pantalla completa no se fuerza. Sin descanso en marcha no hay tarjeta, y el feedback sigue a pantalla completa.
+    val feedbackOnCard = feedbackLivesOnCard(forceShowForFeedback, isRestTimerRunning, isRestMinimized, restState?.kind)
+    val showExpanded = (isRestTimerRunning && restState != null && !isRestMinimized) || (forceShowForFeedback && !feedbackOnCard)
     val showMinimized = isRestTimerRunning && isRestMinimized && restState != null && !forceShowForFeedback
     val relator by viewModel.relatorResolution.collectAsStateWithLifecycle()
     val adaptiveActive = isAdaptiveRestActive(restState, pendingRestSuggestion)
@@ -81,6 +84,10 @@ internal fun WorkoutRestOverlayHost(
             },
         )
     }
+    // La cabecera del feedback: el ejercicio terminado y lo que viene después.
+    val feedbackAfter = remember(uiState.pendingPostExerciseIdx, exercises) {
+        feedbackAfterText(uiState.pendingPostExerciseIdx, exercises, ::displayWorkoutExerciseName)
+    }
     val headline = remember(exercises, uiState.setJustLoggedKey, restState?.exerciseName) {
         restHeadline(
             exercises = exercises,
@@ -111,6 +118,8 @@ internal fun WorkoutRestOverlayHost(
                 onWarmupEffort = null,
                 postExerciseFeedbackContent = postExerciseFeedbackContent,
                 feedbackExerciseCount = feedbackExerciseCount,
+                feedbackTitle = headline.title.ifBlank { restState.exerciseName },
+                feedbackAfter = feedbackAfter,
                 onMinimize = { viewModel.toggleRestMinimized() },
                 relatorText = relator.text,
                 relatorPhaseKey = relator.phaseKey,

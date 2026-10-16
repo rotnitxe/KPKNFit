@@ -83,6 +83,8 @@ internal fun RestTimerOverlay(
     onWarmupEffort: ((Double) -> Unit)? = null,
     postExerciseFeedbackContent: (@Composable () -> Unit)? = null,
     feedbackExerciseCount: Int = 0,
+    feedbackTitle: String? = null,
+    feedbackAfter: String? = null,
     onMinimize: (() -> Unit)? = null,
     relatorText: String? = null,
     relatorPhaseKey: String = "",
@@ -140,12 +142,14 @@ internal fun RestTimerOverlay(
                     sessionAccentColor = sessionAccentColor,
                     pendingRestSuggestion = pendingRestSuggestion,
                     isAdaptiveActive = isAdaptiveActive,
-                    onDecrease = onDecrease,
-                    onIncrease = onIncrease,
+                    onSkip = onSkip,
                     onUseAdaptive = onUseAdaptive,
                     postExerciseFeedbackContent = postExerciseFeedbackContent ?: {},
                     feedbackExerciseCount = feedbackExerciseCount,
+                    title = feedbackTitle ?: state.exerciseName,
+                    after = feedbackAfter,
                     showTimerChrome = remainingSeconds > 0,
+                    onMinimize = onMinimize,
                     relatorText = relatorText,
                     relatorPhaseKey = relatorPhaseKey,
                     relatorActions = relatorActions,
@@ -248,6 +252,12 @@ private fun RestTimeReadout(
     }
 }
 
+/**
+ * El descanso cuando hay feedback pendiente (LV6, F2): arriba lo de siempre (el relator y el descanso sugerido), la cabecera con la
+ * forma de RINGS pequeña («Sentadilla trasera», «Ejercicio terminado · Descanso 2:38 · después, la superserie») y, debajo, el panel
+ * del feedback, que reparte el resto del alto y deja «Saltar descanso» y «Guardar» fijos abajo. Si la persona minimiza, la tarjeta del
+ * descanso lleva el mismo feedback en compacto (B3).
+ */
 @Composable
 private fun FeedbackContent(
     state: WorkoutRestModalState,
@@ -256,12 +266,14 @@ private fun FeedbackContent(
     sessionAccentColor: Color,
     pendingRestSuggestion: PendingRestSuggestion?,
     isAdaptiveActive: Boolean,
-    onDecrease: () -> Unit,
-    onIncrease: () -> Unit,
+    onSkip: () -> Unit,
     onUseAdaptive: (() -> Unit)?,
     postExerciseFeedbackContent: @Composable () -> Unit,
     feedbackExerciseCount: Int = 0,
+    title: String,
+    after: String?,
     showTimerChrome: Boolean = true,
+    onMinimize: (() -> Unit)? = null,
     relatorText: String? = null,
     relatorPhaseKey: String = "",
     relatorActions: List<RelatorAssistAction> = emptyList(),
@@ -269,18 +281,16 @@ private fun FeedbackContent(
     shape: RestClockShape = RestClockShape.TOWER,
     clockActive: Boolean = true,
 ) {
-    val scrollState = rememberScrollState()
     Column(
         modifier = Modifier
             .fillMaxSize()
             .statusBarsPadding()
             .navigationBarsPadding()
-            .verticalScroll(scrollState)
             .padding(
                 start = WorkoutUiTokens.ScreenHorizontalPadding,
                 end = WorkoutUiTokens.ScreenHorizontalPadding,
                 top = 8.dp,
-                bottom = 24.dp,
+                bottom = 16.dp,
             ),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
@@ -292,7 +302,7 @@ private fun FeedbackContent(
             accentColor = sessionAccentColor,
         )
 
-        // ─── ADAPTIVE REST SUGGESTION AT TOP ───
+        // El descanso sugerido sigue arriba, como siempre.
         if (pendingRestSuggestion != null && !isAdaptiveActive && onUseAdaptive != null) {
             RestFigureModule(
                 title = "Descanso sugerido",
@@ -301,77 +311,105 @@ private fun FeedbackContent(
                 sparkle = true,
                 onClick = onUseAdaptive,
             )
+            Spacer(Modifier.height(10.dp))
         }
 
-        if (showTimerChrome) {
-            Spacer(Modifier.height(16.dp))
-
-            // Shrink ANIMADO: entra con el tamaño del reloj del descanso normal y colapsa a su tamaño compacto mientras aparece el
-            // panel de feedback.
-            val shrinkTargetHeight = if (feedbackExerciseCount <= 1) 128.dp else 108.dp
-            val shrinkTargetFontSp = if (feedbackExerciseCount <= 1) 34f else 30f
-            var shrinkStarted by remember { mutableStateOf(false) }
-            LaunchedEffect(Unit) { shrinkStarted = true }
-            val clockHeight by animateDpAsState(
-                targetValue = if (shrinkStarted) shrinkTargetHeight else 230.dp,
-                animationSpec = spring(
-                    dampingRatio = Spring.DampingRatioNoBouncy,
-                    stiffness = Spring.StiffnessMediumLow,
-                ),
-                label = "rest-timer-shrink",
+        val subtitle = buildString {
+            append(if (feedbackExerciseCount > 1) "Superserie terminada" else "Ejercicio terminado")
+            if (showTimerChrome) append(" · Descanso ").append(formatRestClock(remainingSeconds.coerceAtLeast(0)))
+            if (!after.isNullOrBlank()) append(" · después, ").append(after)
+        }
+        FeedbackHeader(
+            title = title,
+            subtitle = subtitle,
+            shape = shape,
+            progress = progress,
+            clockActive = clockActive,
+            showClock = showTimerChrome,
+            onMinimize = onMinimize.takeIf { showTimerChrome },
+        )
+        if (showTimerChrome && !state.notificationsEnabled) {
+            Spacer(Modifier.height(4.dp))
+            Text(
+                text = "Sin notificaciones el aviso es solo sonoro.",
+                style = KpknType.caption,
+                color = WizardColors.textMuted,
             )
-            val fontSize = animateFloatAsState(
-                targetValue = if (shrinkStarted) shrinkTargetFontSp else 52f,
-                label = "rest-timer-font",
-            ).value.sp
-
-            Column(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalAlignment = Alignment.CenterHorizontally,
-            ) {
-                RestRingsClock(
-                    shape = shape,
-                    progress = progress,
-                    animationsOn = clockActive,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(clockHeight),
-                )
-                RestClockText(
-                    text = formatRestClock(remainingSeconds.coerceAtLeast(0)),
-                    maxFontSize = fontSize,
-                    modifier = Modifier.semantics {
-                        contentDescription = RestClockMath.spokenRemaining(remainingSeconds.coerceAtLeast(0))
-                    },
-                )
-                if (!state.notificationsEnabled) {
-                    Spacer(Modifier.height(6.dp))
-                    Text(
-                        text = "Sin notificaciones el aviso es solo sonoro.",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = Color.White.copy(alpha = 0.7f),
-                    )
-                }
-                if (!state.exactAlarmGranted) {
-                    Spacer(Modifier.height(4.dp))
-                    Text(
-                        text = "Sin alarma exacta el aviso puede retrasarse con la pantalla apagada.",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = Color.White.copy(alpha = 0.7f),
-                    )
-                }
-                Spacer(Modifier.height(2.dp))
-                Text(
-                    text = restKindText(state.kind).uppercase(),
-                    style = KpknType.eyebrow,
-                    color = WizardColors.textMuted,
-                )
-            }
-
-            Spacer(Modifier.height(16.dp))
         }
+        if (showTimerChrome && !state.exactAlarmGranted) {
+            Spacer(Modifier.height(4.dp))
+            Text(
+                text = "Sin alarma exacta el aviso puede retrasarse con la pantalla apagada.",
+                style = KpknType.caption,
+                color = WizardColors.textMuted,
+            )
+        }
+        Spacer(Modifier.height(14.dp))
 
-        postExerciseFeedbackContent()
+        // El panel reparte el resto del alto: lo de en medio se desplaza y los botones quedan fijos abajo.
+        Box(modifier = Modifier.weight(1f).fillMaxWidth()) {
+            CompositionLocalProvider(
+                LocalFeedbackBounded provides true,
+                LocalFeedbackRestSkip provides onSkip.takeIf { showTimerChrome },
+            ) {
+                postExerciseFeedbackContent()
+            }
+        }
+    }
+}
+
+/**
+ * La cabecera del feedback (F2): la forma de RINGS pequeña (la misma del descanso, sin corredor), el ejercicio que se acaba de terminar
+ * con su línea («Ejercicio terminado · Descanso 2:38 · después, …») y, mientras el descanso corre, la flecha para minimizar (la tarjeta
+ * del descanso lleva entonces el feedback en compacto).
+ */
+@Composable
+private fun FeedbackHeader(
+    title: String,
+    subtitle: String,
+    shape: RestClockShape,
+    progress: Float,
+    clockActive: Boolean,
+    showClock: Boolean,
+    onMinimize: (() -> Unit)?,
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        if (showClock) {
+            RestRingsClock(
+                shape = shape,
+                progress = progress,
+                animationsOn = clockActive,
+                runnerScale = 0f,
+                modifier = Modifier.size(width = 54.dp, height = 48.dp),
+            )
+        }
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = title,
+                style = KpknType.bodyStrong,
+                color = WizardColors.text,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+            )
+            Text(
+                text = subtitle,
+                style = KpknType.caption,
+                color = WizardColors.textMuted,
+                maxLines = 3,
+                overflow = TextOverflow.Ellipsis,
+            )
+        }
+        if (onMinimize != null) {
+            KpknIconButton(
+                icon = KpknLineIcons.ChevronDown,
+                contentDescription = "Minimizar",
+                onClick = onMinimize,
+            )
+        }
     }
 }
 

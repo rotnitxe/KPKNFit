@@ -3,8 +3,10 @@ package com.example.kpkn.render
 import android.graphics.Bitmap
 import android.view.View
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -18,6 +20,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalView
@@ -28,8 +31,27 @@ import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.example.kpkn.data.models.CompletedSet
+import com.example.kpkn.data.models.DiscomfortSection
+import com.example.kpkn.data.models.Exercise
+import com.example.kpkn.data.models.ExerciseSet
+import com.example.kpkn.data.models.InvolvedMuscle
+import com.example.kpkn.data.models.LoadModeV2
+import com.example.kpkn.data.models.MuscleRole
+import com.example.kpkn.data.models.PROFESSIONAL_ADVICE
+import com.example.kpkn.data.models.PostExerciseFeedback
+import com.example.kpkn.data.models.TrainingMode
+import com.example.kpkn.data.models.UnitModeV2
+import com.example.kpkn.data.models.discomfortKnowledge
+import com.example.kpkn.domain.discomfort.DiscomfortEvidence
+import com.example.kpkn.domain.discomfort.DiscomfortEvidenceKind
+import com.example.kpkn.domain.discomfort.DiscomfortInsight
 import com.example.kpkn.screens.onboarding.design.WizardColors
+import com.example.kpkn.screens.workout.FeedbackInsights
+import com.example.kpkn.screens.workout.LinkedDiscomfort
 import com.example.kpkn.screens.workout.PendingRestSuggestion
+import com.example.kpkn.screens.workout.PostExerciseFeedbackDraft
+import com.example.kpkn.screens.workout.PostExerciseFeedbackPanel
+import com.example.kpkn.screens.workout.ReportedDiscomfort
 import com.example.kpkn.screens.workout.RestClockShape
 import com.example.kpkn.screens.workout.RestGameEngine
 import com.example.kpkn.screens.workout.RestHeadline
@@ -37,13 +59,17 @@ import com.example.kpkn.screens.workout.RestNextSetSummary
 import com.example.kpkn.screens.workout.RestOverrun
 import com.example.kpkn.screens.workout.RestTimerKind
 import com.example.kpkn.screens.workout.WorkoutRestModalState
+import com.example.kpkn.screens.workout.components.DiscomfortScene
+import com.example.kpkn.screens.workout.components.DiscomfortSheetBody
 import com.example.kpkn.screens.workout.components.LocalRestClockFrozen
+import com.example.kpkn.screens.workout.components.RestFeedbackCard
 import com.example.kpkn.screens.workout.components.RestLiveCard
 import com.example.kpkn.screens.workout.components.RestMiniChip
 import com.example.kpkn.screens.workout.components.RestOverrunCard
 import com.example.kpkn.screens.workout.components.RestOverrunOverlay
 import com.example.kpkn.screens.workout.components.RestTimerOverlay
 import com.example.kpkn.screens.workout.components.WorkoutUiTokens
+import com.example.kpkn.screens.workout.components.discomfortZoneColor
 import com.example.kpkn.ui.design.KpknType
 import com.example.kpkn.ui.theme.KPKNTheme
 import dev.chrisbanes.haze.HazeState
@@ -407,6 +433,253 @@ class LiveRestRenderSheetTest {
 
     @Test
     fun cumplido_tarjeta_130() = cumplidoTarjeta("cumplido_tarjeta_130", RestClockShape.SPIRAL, 1.3f)
+
+    // ── la última serie: técnica, molestias y aviso del motor (fase B) ──────────────────────────────────────────────
+
+    private val finishedSquat = Exercise(
+        id = "e1",
+        name = "Sentadilla trasera con barra alta",
+        trainingMode = TrainingMode.REPS,
+        sets = listOf(
+            ExerciseSet(id = "e1-1", targetReps = 6, weight = 95.0, loadModeV2 = LoadModeV2.LOAD, unitModeV2 = UnitModeV2.REPS),
+        ),
+        effectiveMuscles = listOf(
+            InvolvedMuscle("Cuádriceps", MuscleRole.PRIMARY),
+            InvolvedMuscle("Glúteos", MuscleRole.SECONDARY),
+        ),
+    )
+    private val previousCurl = mapOf(
+        "curl" to PostExerciseFeedback(
+            exerciseId = "curl",
+            exerciseName = "Prensa de piernas",
+            technicalQuality = 8,
+            discomfortIds = listOf("knee_patellar"),
+        ),
+    )
+    private val feedbackNow = 1_792_152_000_000L
+    private val dayMs = 24L * 60L * 60L * 1000L
+
+    private val weekEvidence = DiscomfortEvidence(
+        kind = DiscomfortEvidenceKind.WEEKLY_VOLUME_RISE,
+        number = 35.0,
+        text = "+35${nbsp}% de series de cuádriceps sobre tu media",
+        headline = "Esta semana llevas un 35${nbsp}% más de series de cuádriceps que tu media. Si la rodilla avisa, empieza por ahí.",
+        advice = "Baja el volumen de cuádriceps a tu media unos días.",
+        strength = 0.9,
+    )
+    private val todayEvidence = DiscomfortEvidence(
+        kind = DiscomfortEvidenceKind.HEAVY_SETS,
+        number = 4.0,
+        text = "4 series pesadas de sentadilla",
+        headline = "Hoy llevas 4 series pesadas de sentadilla. Si la rodilla avisa, deja más repeticiones en reserva.",
+        advice = "Deja 2 repeticiones en reserva en las series pesadas de la próxima sesión.",
+        strength = 0.8,
+    )
+    private val kneeInsight = DiscomfortInsight(
+        discomfortId = "knee_patellar",
+        headline = weekEvidence.headline,
+        today = listOf(todayEvidence),
+        week = listOf(weekEvidence),
+        advice = listOf(weekEvidence.advice, todayEvidence.advice, PROFESSIONAL_ADVICE),
+        persistent = false,
+        strength = 0.9,
+    )
+    private val lastSetInsights = FeedbackInsights(
+        likely = listOf("knee_patellar", "lumbar", "hip_front"),
+        reported = listOf(ReportedDiscomfort("knee_medial", feedbackNow - 3 * dayMs)),
+        notice = kneeInsight,
+    )
+
+    private fun lastSetDraft(technical: Int, selected: List<String>) =
+        PostExerciseFeedbackDraft.from(listOf(finishedSquat), emptyMap()).also { draft ->
+            draft.setTechnical("e1", technical)
+            selected.forEach(draft::select)
+        }
+
+    private fun ultimaFull(
+        name: String,
+        technical: Int,
+        fontScale: Float,
+        selected: List<String> = emptyList(),
+        running: Boolean = true,
+        insights: FeedbackInsights = lastSetInsights,
+        previous: Map<String, PostExerciseFeedback> = emptyMap(),
+    ) {
+        onlyWhenAsked()
+        val draft = lastSetDraft(technical, selected)
+        draw(name, fontScale, 360.dp, 880.dp) {
+            RestTimerOverlay(
+                state = restState,
+                remainingSeconds = if (running) 158 else 0,
+                hazeState = HazeState(),
+                sessionAccentColor = ACCENT,
+                onDecrease = {},
+                onIncrease = {},
+                onSkip = {},
+                postExerciseFeedbackContent = {
+                    PostExerciseFeedbackPanel(
+                        feedbackExercises = listOf(finishedSquat),
+                        postExerciseFeedbackByExerciseId = previous,
+                        sessionAccentColor = ACCENT,
+                        canonicalKeyOf = { it.id },
+                        onSave = {},
+                        draft = draft,
+                        insights = insights,
+                        nowMs = feedbackNow,
+                    )
+                },
+                feedbackExerciseCount = 1,
+                onMinimize = {},
+                shape = RestClockShape.TOWER,
+                feedbackTitle = "Sentadilla trasera con barra alta",
+                feedbackAfter = "la superserie",
+                clockActive = false,
+            )
+        }
+    }
+
+    @Test
+    fun ultima_full_tecnica_alta_100() = ultimaFull("ultima_full_tecnica_alta_100", technical = 9, fontScale = 1f)
+
+    @Test
+    fun ultima_full_tecnica_baja_100() =
+        ultimaFull("ultima_full_tecnica_baja_100", technical = 3, fontScale = 1f, selected = listOf("knee_patellar"))
+
+    @Test
+    fun ultima_full_tecnica_media_100() = ultimaFull("ultima_full_tecnica_media_100", technical = 6, fontScale = 1f)
+
+    @Test
+    fun ultima_full_tecnica_alta_130() = ultimaFull("ultima_full_tecnica_alta_130", technical = 8, fontScale = 1.3f)
+
+    @Test
+    fun ultima_full_con_previas_100() =
+        ultimaFull("ultima_full_con_previas_100", technical = 7, fontScale = 1f, previous = previousCurl)
+
+    @Test
+    fun ultima_full_sin_descanso_100() =
+        ultimaFull("ultima_full_sin_descanso_100", technical = 8, fontScale = 1f, running = false, insights = FeedbackInsights.Empty)
+
+    private fun ultimaTarjeta(
+        name: String,
+        technical: Int,
+        fontScale: Float,
+        selected: List<String> = emptyList(),
+        linked: List<LinkedDiscomfort> = emptyList(),
+    ) {
+        onlyWhenAsked()
+        val cardHeight = if (fontScale > 1f) 418.dp else 388.dp
+        val draft = lastSetDraft(technical, selected)
+        draw(name, fontScale, 360.dp, cardHeight + 32.dp) {
+            Box(Modifier.fillMaxSize().padding(vertical = 16.dp), contentAlignment = Alignment.TopCenter) {
+                Box(Modifier.width(272.dp).height(cardHeight)) {
+                    RestFeedbackCard(
+                        remainingSeconds = 158,
+                        totalSeconds = 249,
+                        shape = RestClockShape.TOWER,
+                        feedbackExercises = listOf(finishedSquat),
+                        draft = draft,
+                        insights = lastSetInsights,
+                        explainDiscomfort = { null },
+                        linked = linked,
+                        onSave = {},
+                        onSkipRest = {},
+                        onExpand = {},
+                        clockActive = false,
+                        nowMs = feedbackNow,
+                    )
+                }
+            }
+        }
+    }
+
+    @Test
+    fun ultima_tarjeta_tecnica_alta_100() = ultimaTarjeta("ultima_tarjeta_tecnica_alta_100", technical = 9, fontScale = 1f)
+
+    @Test
+    fun ultima_tarjeta_tecnica_baja_100() =
+        ultimaTarjeta("ultima_tarjeta_tecnica_baja_100", technical = 3, fontScale = 1f, selected = listOf("knee_patellar"))
+
+    @Test
+    fun ultima_tarjeta_tecnica_alta_130() = ultimaTarjeta("ultima_tarjeta_tecnica_alta_130", technical = 8, fontScale = 1.3f)
+
+    @Test
+    fun ultima_tarjeta_tecnica_baja_130() =
+        ultimaTarjeta("ultima_tarjeta_tecnica_baja_130", technical = 4, fontScale = 1.3f, selected = listOf("knee_patellar"))
+
+    @Test
+    fun ultima_tarjeta_con_previas_100() = ultimaTarjeta(
+        "ultima_tarjeta_con_previas_100",
+        technical = 8,
+        fontScale = 1f,
+        linked = listOf(LinkedDiscomfort("knee_patellar", "Rodilla anterior", "Prensa de piernas")),
+    )
+
+    // ── la ficha de una molestia (F7) ───────────────────────────────────────────────────────────────────────────────
+
+    private fun ficha(name: String, fontScale: Float, id: String, insight: DiscomfortInsight?, selected: Boolean = false) {
+        onlyWhenAsked()
+        val knowledge = discomfortKnowledge(id)!!
+        draw(name, fontScale, 360.dp, 800.dp) {
+            Box(Modifier.fillMaxSize().background(Color(0xFF000000)), contentAlignment = Alignment.BottomCenter) {
+                Box(
+                    Modifier
+                        .fillMaxWidth()
+                        .height(776.dp)
+                        .clip(RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp))
+                        .background(Color(0xFF0E0E0E))
+                        .padding(top = 10.dp),
+                ) {
+                    DiscomfortSheetBody(
+                        knowledge = knowledge,
+                        selected = selected,
+                        insight = insight,
+                        onToggleReport = {},
+                    )
+                }
+            }
+        }
+    }
+
+    @Test
+    fun ficha_rodilla_100() = ficha("ficha_rodilla_100", 1f, "knee_patellar", kneeInsight)
+
+    @Test
+    fun ficha_rodilla_130() = ficha("ficha_rodilla_130", 1.3f, "knee_patellar", kneeInsight)
+
+    @Test
+    fun ficha_lumbar_sin_datos_100() = ficha("ficha_lumbar_sin_datos_100", 1f, "lumbar", null)
+
+    @Test
+    fun ficha_hombro_elegida_100() = ficha("ficha_hombro_elegida_100", 1f, "shoulder_anterior", null, selected = true)
+
+    /** Las seis escenas curadas, una por sección del catálogo, con la zona resaltada en su color. */
+    @Test
+    fun escenas_100() {
+        onlyWhenAsked()
+        val sections = DiscomfortSection.entries
+        draw("escenas_100", 1f, 360.dp, 330.dp) {
+            Column(Modifier.fillMaxSize().padding(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                sections.chunked(3).forEach { row ->
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        row.forEach { section ->
+                            Column(
+                                modifier = Modifier.weight(1f).background(Color(0xFF0E0E0E), RoundedCornerShape(16.dp)).padding(8.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                            ) {
+                                DiscomfortScene(section = section, modifier = Modifier.size(width = 110.dp, height = 120.dp))
+                                Text(
+                                    text = section.label,
+                                    style = KpknType.caption,
+                                    color = discomfortZoneColor(section),
+                                    maxLines = 1,
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
 
     // ── dibujo ──────────────────────────────────────────────────────────────────────────────────────────────────────
 

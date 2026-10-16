@@ -13,6 +13,8 @@ import com.example.kpkn.data.repository.ProgramRepository
 import com.example.kpkn.data.repository.StartWorkoutResult
 import com.example.kpkn.domain.auge.AugeFatigueEngine
 import com.example.kpkn.domain.auge.MuscularSessionImpactEngine
+import com.example.kpkn.domain.discomfort.DiscomfortHistory
+import com.example.kpkn.domain.discomfort.DiscomfortSession
 import com.example.kpkn.domain.energy.TrainingEnergyEngine
 import com.example.kpkn.domain.calculations.calculateHybrid1RM
 import com.example.kpkn.domain.calculations.calculateSuggestedLoad
@@ -6189,12 +6191,63 @@ class WorkoutViewModel(
 
     fun savePostExerciseFeedback(feedback: PostExerciseFeedback) {
         feedbackController.savePostExerciseFeedback(feedback)
+        feedbackDrafts.clear()
         voiceController.completeVoiceFeedbackPrompt()
     }
 
     fun savePostExerciseFeedbacks(feedbacks: List<PostExerciseFeedback>) {
         feedbackController.savePostExerciseFeedbacks(feedbacks)
+        feedbackDrafts.clear()
         voiceController.completeVoiceFeedbackPrompt()
+    }
+
+    // ─── Feedback tras el ejercicio: borrador compartido y motor de molestias (LV6, B1–B3) ─────────────────
+
+    private val feedbackDrafts = PostExerciseFeedbackDraftHolder()
+
+    /** El borrador del feedback de [exercises]: el MISMO para la pantalla completa y la tarjeta del descanso (lo elegido no se pierde al minimizar). */
+    internal fun feedbackDraftFor(
+        exercises: List<Exercise>,
+        saved: Map<String, PostExerciseFeedback>,
+    ): PostExerciseFeedbackDraft = feedbackDrafts.draftFor(exercises, saved)
+
+    /** Lo que el motor de molestias dice para el feedback: se calcula fuera del hilo principal y se guarda por ejercicio. */
+    internal val feedbackInsightSource: FeedbackInsightSource by lazy {
+        FeedbackInsightSource(
+            inputs = ::feedbackEngineInputs,
+            lastSessionDiscomfortIds = { _uiState.value.previousSessionDiscomforts },
+            dispatcher = Dispatchers.Default,
+        )
+    }
+
+    /** Las entradas del motor para una petición: la sesión en curso y las últimas semanas de entrenos. Corre fuera del hilo principal. */
+    private fun feedbackEngineInputs(request: FeedbackInsightsRequest): Pair<DiscomfortSession, DiscomfortHistory> {
+        val state = _uiState.value
+        val savedTechnique = state.postExerciseFeedbackByExerciseId.mapValues { it.value.technicalQuality }
+        val session = FeedbackDiscomfortInputs.session(
+            exercises = visibleExercises(state),
+            completedSets = state.completedSets,
+            technicalByExerciseId = savedTechnique + request.technicalBuckets,
+            focusExerciseIds = request.exerciseIds,
+            infoOf = { exercise ->
+                com.example.kpkn.data.exercises.resolveCatalogExerciseInfo(
+                    catalogConfigurationId = exercise.catalogConfigurationId,
+                    exerciseDbId = exercise.exerciseDbId,
+                    exerciseId = exercise.exerciseId,
+                    exerciseName = exercise.name,
+                )
+            },
+            nameOf = ::displayWorkoutExerciseName,
+        )
+        val nowMs = System.currentTimeMillis()
+        val cutoffMs = nowMs - FEEDBACK_HISTORY_DAYS * 24L * 60L * 60L * 1000L
+        val logs = repository.history.value.filter { com.example.kpkn.domain.auge.AugeUtils.logDateMs(it) >= cutoffMs }
+        val history = DiscomfortHistory(
+            logs = logs,
+            now = java.time.Instant.ofEpochMilli(nowMs),
+            exerciseCatalog = com.example.kpkn.data.exercises.exerciseCatalogSnapshot(),
+        )
+        return session to history
     }
 
     fun dismissExecutionErrorDiscomfortSheet(discomfortIds: List<String>) =
@@ -6202,6 +6255,7 @@ class WorkoutViewModel(
 
     fun dismissPostExerciseSheet() {
         feedbackController.dismissPostExerciseSheet()
+        feedbackDrafts.clear()
         voiceController.completeVoiceFeedbackPrompt()
     }
 
