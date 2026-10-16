@@ -340,6 +340,8 @@ fun WorkoutScreen(
 
 
     val settings by com.example.kpkn.data.repository.ProgramRepository.getInstance().settings.collectAsStateWithLifecycle()
+    val allPrograms by com.example.kpkn.data.repository.ProgramRepository.getInstance().programs.collectAsStateWithLifecycle()
+    val activeProgram = remember(allPrograms, programId) { allPrograms.firstOrNull { it.id == programId } }
     LaunchedEffect(settings.exerciseNicknames) {
         com.example.kpkn.domain.exercises.ExerciseNicknameResolver.nicknames = settings.exerciseNicknames
     }
@@ -1036,6 +1038,7 @@ fun WorkoutScreen(
             headerStartTimeMs = uiState.startTimeMs,
             headerIsComplete = uiState.isComplete,
             headerBackground = session.background,
+            headerProgram = activeProgram,
             headerExerciseTag = activeTagDisplay,
             onToggleVoice = onToggleVoice,
             exerciseReadinessMap = uiState.exerciseReadinessMap,

@@ -196,7 +196,7 @@ internal fun SetCardExerciseMediaBack(
                     )
                 }
                 Text(
-                    "Ver ejercicio/Fotos",
+                    "Modo visual",
                     style = MaterialTheme.typography.labelSmall,
                     fontWeight = FontWeight.SemiBold,
                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.88f),

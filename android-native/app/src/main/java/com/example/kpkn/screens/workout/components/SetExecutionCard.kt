@@ -37,6 +37,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -434,35 +435,36 @@ private fun IntegratedLoadInput(
                 singleLine = true,
                 maxLines = 1,
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                textStyle = KpknType.metricXL.copy(
+                // 5.3: La misma tipografía y el mismo tamaño que las cifras de reps e intensidad de la misma tarjeta
+                textStyle = MaterialTheme.typography.titleLarge.copy(
                     fontSize = when {
-                        value.length >= 9 -> 28.sp
-                        value.length >= 7 -> 34.sp
-                        else -> 40.sp
+                        value.length >= 9 -> 16.sp
+                        value.length >= 7 -> 18.sp
+                        else -> 22.sp
                     },
-                    lineHeight = when {
-                        value.length >= 9 -> 32.sp
-                        value.length >= 7 -> 38.sp
-                        else -> 44.sp
-                    },
+                    fontWeight = FontWeight.Bold,
                     color = WizardColors.text,
                     textAlign = TextAlign.Center,
+                    fontFeatureSettings = "'tnum' 1",
                 ),
                 decorationBox = { innerTextField ->
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .heightIn(min = 44.dp),
+                            .heightIn(min = 32.dp),
                         contentAlignment = Alignment.Center,
                     ) {
                         if (value.isBlank() && !placeholder.isNullOrBlank()) {
+                            // 5.3: Mismo estilo de marcador vacío (no cursiva, peso semi-bold y tono tenue como reps)
                             Text(
                                 text = placeholder,
-                                style = MaterialTheme.typography.bodyMedium.copy(
-                                    fontWeight = FontWeight.Bold,
-                                    fontStyle = FontStyle.Italic,
+                                style = MaterialTheme.typography.titleLarge.copy(
+                                    fontSize = 22.sp,
+                                    fontWeight = FontWeight.SemiBold,
+                                    fontStyle = FontStyle.Normal,
                                     color = WizardColors.textFaint,
                                     textAlign = TextAlign.Center,
+                                    fontFeatureSettings = "'tnum' 1",
                                 ),
                                 modifier = Modifier.fillMaxWidth(),
                                 maxLines = 1,
@@ -483,16 +485,22 @@ private fun IntegratedLoadInput(
 
     @Composable
     fun QuickSuggestionRow(modifier: Modifier = Modifier) {
+        // 5.2: Los tres chips en una fila horizontal, con el mismo ancho (weight(1f)), el mismo alto (<= 44 dp) y 8 dp entre ellos
         Row(
-            modifier = modifier.horizontalScroll(rememberScrollState()),
-            horizontalArrangement = Arrangement.spacedBy(5.dp),
+            modifier = modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            options.forEach { option ->
+            val displayOptions = options.take(3)
+            displayOptions.forEachIndexed { index, option ->
                 Surface(
                     onClick = { onChipSelected(option) },
+                    modifier = Modifier
+                        .weight(1f)
+                        .heightIn(max = 44.dp)
+                        .height(38.dp)
+                        .testTag("quick_suggestion_chip_$index"),
                     shape = KpknShape.pill,
-                    // Sin relleno nuevo: la sugerencia lleva anillo de acento; el resto, filete blanco al 12 % (LR1a).
                     color = Color.Transparent,
                     border = if (option.isAuge) {
                         BorderStroke(1.5.dp, SymbolPalette.musculo)
@@ -501,22 +509,38 @@ private fun IntegratedLoadInput(
                     },
                 ) {
                     Column(
-                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(horizontal = 4.dp, vertical = 2.dp),
                         horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.spacedBy(1.dp),
+                        verticalArrangement = Arrangement.Center,
                     ) {
-                        if (LoadSuggestionDisplayPolicy.chipShowsNumberOnly(option.isAuge)) {
+                        val isPlus = option.label.startsWith("+")
+                        if (isPlus) {
                             Text(
-                                text = option.weight.toTrimmedNumberString(),
-                                style = KpknType.chip.copy(fontSize = 13.sp, fontFeatureSettings = "'tnum' 1"),
-                                color = SymbolPalette.musculo,
+                                text = option.label,
+                                style = KpknType.chip.copy(
+                                    fontSize = 13.sp,
+                                    lineHeight = 15.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    fontFeatureSettings = "'tnum' 1",
+                                ),
+                                color = WizardColors.text,
                                 maxLines = 1,
                             )
                         } else {
+                            val chipLabel = when {
+                                option.isAuge -> "Sugerida"
+                                option.label.equals("Sugerido", ignoreCase = true) -> "Sugerida"
+                                else -> option.label
+                            }
                             Text(
-                                text = option.label,
-                                style = KpknType.caption.copy(fontSize = 12.sp, lineHeight = 16.sp),
-                                color = WizardColors.textMuted,
+                                text = chipLabel,
+                                style = KpknType.caption.copy(
+                                    fontSize = 10.sp,
+                                    lineHeight = 12.sp,
+                                ),
+                                color = if (option.isAuge) SymbolPalette.musculo else WizardColors.textMuted,
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis,
                             )
@@ -525,15 +549,22 @@ private fun IntegratedLoadInput(
                                 LoadModeV2.ASSISTED -> " asist."
                                 else -> ""
                             }
+                            val numText = if (option.targetLoadMode == LoadModeV2.BODYWEIGHT && option.weight <= 0.0) {
+                                "0 kg"
+                            } else {
+                                "${option.weight.toTrimmedNumberString()}$chipUnit"
+                            }
                             Text(
-                                text = if (option.targetLoadMode == LoadModeV2.BODYWEIGHT && option.weight <= 0.0) {
-                                    "0 kg"
-                                } else {
-                                    "${option.weight.toTrimmedNumberString()}$chipUnit"
-                                },
-                                style = KpknType.chip.copy(fontSize = 13.sp, fontFeatureSettings = "'tnum' 1"),
-                                color = WizardColors.text,
+                                text = numText,
+                                style = KpknType.chip.copy(
+                                    fontSize = 12.sp,
+                                    lineHeight = 14.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    fontFeatureSettings = "'tnum' 1",
+                                ),
+                                color = if (option.isAuge) SymbolPalette.musculo else WizardColors.text,
                                 maxLines = 1,
+                                overflow = TextOverflow.Clip,
                             )
                         }
                     }
@@ -607,94 +638,59 @@ private fun IntegratedLoadInput(
         }
     }
 
+    // 5.1: La parte de arriba de la tarjeta ES la zona de la carga:
+    // superficie #1A1A1A a todo el ancho, esquinas de arriba con radio 24 dp, sin doble borde ni márgenes laterales
     Surface(
         modifier = modifier
             .fillMaxWidth()
-            .heightIn(min = 48.dp)
             .bringIntoViewRequester(bringIntoViewRequester),
-        shape = WorkoutUiTokens.InnerCardShape,
-        color = KpknSurface.inset,
-        border = BorderStroke(1.dp, KpknSurface.moduleBorder),
+        shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp, bottomStart = 0.dp, bottomEnd = 0.dp),
+        color = Color(0xFF1A1A1A),
+        border = null,
         tonalElevation = 0.dp,
         shadowElevation = 0.dp,
     ) {
-        Box(modifier = Modifier.fillMaxWidth()) {
-            if (inlineChipsInField) {
-                val inlineOptions = inlineRomLoadOptions(options)
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 12.dp, vertical = 8.dp),
+            verticalArrangement = Arrangement.spacedBy(6.dp),
+        ) {
+            Box(modifier = Modifier.fillMaxWidth()) {
+                LoadValueField(
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 36.dp),
+                )
                 Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(start = 10.dp, end = 4.dp, top = 5.dp, bottom = 5.dp),
+                    modifier = Modifier.align(Alignment.CenterEnd),
                 ) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(end = 36.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(6.dp),
-                    ) {
-                        LoadValueField(
-                            Modifier
-                                .weight(1f)
-                                .widthIn(min = 72.dp),
-                        )
-                        inlineOptions.forEach { option -> CompactInlineChip(option) }
-                    }
-                    Box(
-                        modifier = Modifier.align(Alignment.CenterEnd),
-                    ) {
-                        LoadModeButtonWithMenu()
-                    }
-                }
-            } else {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(start = 10.dp, end = 4.dp, top = 5.dp, bottom = 5.dp),
-                    verticalArrangement = Arrangement.spacedBy(4.dp),
-                ) {
-                    Box(modifier = Modifier.fillMaxWidth()) {
-                        LoadValueField(
-                            Modifier
-                                .fillMaxWidth()
-                                .padding(end = 36.dp),
-                        )
-                        Box(
-                            modifier = Modifier.align(Alignment.CenterEnd),
-                        ) {
-                            LoadModeButtonWithMenu()
-                        }
-                    }
-                    Box(
-                        modifier = Modifier.fillMaxWidth(),
-                        contentAlignment = Alignment.Center,
-                    ) {
-                        QuickSuggestionRow()
-                    }
+                    LoadModeButtonWithMenu()
                 }
             }
+            QuickSuggestionRow(Modifier.fillMaxWidth())
         }
     }
 }
 
 /**
- * Relleno final de «Ver ejercicio/Fotos» (LR1a2), en una pantalla de 360 dp. El ✓ flotante mide 58 dp y queda a 16 dp del borde derecho
+ * Relleno final de «Modo visual» (LR1a2, LV3), en una pantalla de 360 dp. El ✓ flotante mide 58 dp y queda a 16 dp del borde derecho
  * (`WorkoutRecordFabPlacement.kt`): su borde izquierdo está a 286 dp. La tarjeta (272 dp, centrada) termina a 316 dp y su contenido
  * deja 10 dp, así que la píldora acaba a 306 dp: el ✓ le pisa 20 dp. El texto debe acabar 8 dp antes del círculo: 20 + 8 = 28 dp.
  */
 private val SetRecordFabEndPadding = 28.dp
 
 /**
- * Botón secundario de la tarjeta de la serie (LR1a, LR1a2): píldora con borde de tinta al 24 %, sin relleno, Inter SemiBold 13 / 16
- * (`KpknType.chip`). A 360 dp cada texto ocupa dos líneas enteras («Opciones / avanzadas», «Ver ejercicio/ / Fotos») y nunca se corta
- * ni se abrevia. Al pulsar escala a 0,97 con resorte y sin ripple.
+ * Botón secundario de la tarjeta de la serie (LR1a, LR1a2, LV3): píldora con borde de tinta al 24 %, sin relleno, Inter SemiBold 13 / 16
+ * (`KpknType.chip`), compacta de 36 dp de alto en una sola línea («Avanzado», «Modo visual») para no alargar la tarjeta ni quedar
+ * bajo el ✓ flotante. Al pulsar escala a 0,97 con resorte y sin ripple.
  */
 @Composable
 private fun SetSecondaryPill(
     text: String,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
-    // Relleno final de la píldora: el estándar de 10 dp, o el de «Ver ejercicio/Fotos» para no quedar bajo el ✓ (LR1a2).
+    // Relleno final de la píldora: el estándar de 10 dp, o el de «Modo visual» para no quedar bajo el ✓ (LR1a2, LV3).
     endPadding: Dp = 10.dp,
 ) {
     val interaction = remember { MutableInteractionSource() }
@@ -710,31 +706,26 @@ private fun SetSecondaryPill(
                 scaleX = scale
                 scaleY = scale
             }
+            .height(36.dp)
+            .clip(KpknShape.pill)
+            .border(1.dp, WizardColors.text.copy(alpha = 0.24f), KpknShape.pill)
             .clickable(
                 interactionSource = interaction,
                 indication = null,
                 role = Role.Button,
                 onClick = onClick,
-            ),
-    ) {
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .fillMaxHeight()
-                .defaultMinSize(minHeight = 48.dp)
-                .clip(KpknShape.pill)
-                .border(1.dp, WizardColors.text.copy(alpha = 0.24f), KpknShape.pill)
-                .padding(start = 10.dp, top = 8.dp, end = endPadding, bottom = 8.dp),
-            contentAlignment = Alignment.Center,
-        ) {
-            Text(
-                text = text,
-                // 13 sp con interlineado de 16 (`KpknType.chip`): dos líneas por texto, con 48 dp de alto mínimo (LR1a2).
-                style = KpknType.chip,
-                color = WizardColors.text,
-                textAlign = TextAlign.Center,
             )
-        }
+            .padding(start = 10.dp, end = endPadding),
+        contentAlignment = Alignment.Center,
+    ) {
+        Text(
+            text = text,
+            style = KpknType.chip,
+            color = WizardColors.text,
+            textAlign = TextAlign.Center,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+        )
     }
 }
 
@@ -1935,61 +1926,47 @@ internal fun SetInputCardV2(
 
             // Ghost 'Última' removed - base container message eliminated
 
-            Surface(
-                modifier = Modifier.fillMaxWidth(),
-                shape = WorkoutUiTokens.InnerCardShape,
-                // Sin caja propia: el contenido va sobre el módulo de la tarjeta (#111111), y solo la caja de carga es `inset` (LR1a).
-                color = Color.Transparent,
-            ) {
-                Column(
-                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 8.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
-                ) {
-                    val volumeReplacedLabel = currentSet.volumeReplacedLabel()
+            val volumeReplacedLabel = currentSet.volumeReplacedLabel()
             if (volumeReplacedLabel != null) {
-                        VolumeReplacedTechniqueBand(label = volumeReplacedLabel)
-                    } else {
-                        Spacer(Modifier.height(10.dp))
-                    }
-                    if (scheduledRestRemainingSeconds > 0) {
-                        Text(
-                            text = "Pausa técnica · ${scheduledRestRemainingSeconds}s",
-                            style = MaterialTheme.typography.labelSmall,
-                            fontWeight = FontWeight.Bold,
-                            color = Color.White.copy(alpha = 0.64f),
-                            modifier = Modifier.fillMaxWidth(),
-                            textAlign = TextAlign.Center,
-                        )
-                    }
+                VolumeReplacedTechniqueBand(label = volumeReplacedLabel)
+            }
+            if (scheduledRestRemainingSeconds > 0) {
+                Text(
+                    text = "Pausa técnica · ${scheduledRestRemainingSeconds}s",
+                    style = MaterialTheme.typography.labelSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White.copy(alpha = 0.64f),
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 10.dp),
+                    textAlign = TextAlign.Center,
+                )
+            }
 
-                    if (manualLoadRequiredNow) {
-                        val selectedSideTarget = when (selectedSide) {
-                            "left" -> currentSet.leftTarget
-                            "right" -> currentSet.rightTarget
-                            else -> null
-                        }
-                        val repsRange = selectedSideTarget?.targetRepsRange
-                            ?: currentSet.targetRepsRange
-                            ?: currentSet.effectiveRepRange()
-                        val rirTarget = selectedSideTarget?.targetRIR ?: currentSet.targetRIR
-                        val repsInstruction = repsRange?.let { "${it.format()} reps" }
-                            ?: currentSet.targetReps?.let { "$it reps" }
-                            ?: "las reps indicadas"
-                        val rirInstruction = rirTarget?.let { " dejando $it en reserva" }.orEmpty()
-                        Text(
-                            text = "Elige una carga para $repsInstruction$rirInstruction y registra la serie.",
-                            style = MaterialTheme.typography.labelSmall,
-                            fontWeight = FontWeight.Bold,
-                            color = sessionAccentColor,
-                            modifier = Modifier.fillMaxWidth(),
-                            textAlign = TextAlign.Center,
-                        )
-                    }
+            if (manualLoadRequiredNow) {
+                val selectedSideTarget = when (selectedSide) {
+                    "left" -> currentSet.leftTarget
+                    "right" -> currentSet.rightTarget
+                    else -> null
+                }
+                val repsRange = selectedSideTarget?.targetRepsRange
+                    ?: currentSet.targetRepsRange
+                    ?: currentSet.effectiveRepRange()
+                val rirTarget = selectedSideTarget?.targetRIR ?: currentSet.targetRIR
+                val repsInstruction = repsRange?.let { "${it.format()} reps" }
+                    ?: currentSet.targetReps?.let { "$it reps" }
+                    ?: "las reps indicadas"
+                val rirInstruction = rirTarget?.let { " dejando $it en reserva" }.orEmpty()
+                Text(
+                    text = "Elige una carga para $repsInstruction$rirInstruction y registra la serie.",
+                    style = MaterialTheme.typography.labelSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = sessionAccentColor,
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 10.dp),
+                    textAlign = TextAlign.Center,
+                )
+            }
 
-                    Box(
-                        modifier = Modifier.fillMaxWidth(),
-                    ) {
-                        IntegratedLoadInput(
+            // 5.1: La carga como «héroe» de la tarjeta: superficie #1A1A1A a todo el ancho, esquinas de 24 dp, sin márgenes laterales
+            IntegratedLoadInput(
                             value = reportWeightText,
                             onValueChange = { typed ->
                                 loadMode = loadModeAfterEnteredWeight(loadMode, typed)
@@ -2062,8 +2039,21 @@ internal fun SetInputCardV2(
                             loadMode = loadMode,
                             inlineChipsInField = exercise.trackRom,
                         )
-                    }
 
+            // 5.1: División limpia con la parte de abajo, más oscura (reps e intensidad)
+            Box(
+                Modifier
+                    .fillMaxWidth()
+                    .height(1.dp)
+                    .background(Color.White.copy(alpha = 0.08f)),
+            )
+
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 10.dp, vertical = 8.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
                     val roomyStepper = supportsIndependentSides || exercise.isInSuperset()
 
                     @Composable
@@ -2379,27 +2369,27 @@ internal fun SetInputCardV2(
                     }
 
                     Row(
-                        // Las dos píldoras miden lo mismo: la altura es la de la más alta (LR1a).
-                        modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Min),
+                        modifier = Modifier.fillMaxWidth().height(36.dp),
                         horizontalArrangement = Arrangement.spacedBy(6.dp),
                     ) {
-                        // Botones secundarios (LR1a, LR1a2): mismo sitio y orden. Anchos de 42 % y 58 %: cada texto ocupa dos líneas
-                        // enteras y el de la derecha deja sitio al ✓ flotante.
+                        // Botones secundarios (LV3 punto 4): «Avanzado» y «Modo visual» compactos de 36 dp en una línea.
                         SetSecondaryPill(
-                            text = "Opciones avanzadas",
+                            text = "Avanzado",
                             onClick = { cardFace = SetCardFace.Technique },
-                            modifier = Modifier.weight(0.42f).fillMaxHeight(),
+                            modifier = Modifier
+                                .weight(0.42f)
+                                .testTag("secondary_pill_avanzado"),
                         )
                         SetSecondaryPill(
-                            text = "Ver ejercicio/Fotos",
+                            text = "Modo visual",
                             onClick = { cardFace = SetCardFace.ExerciseMedia },
-                            modifier = Modifier.weight(0.58f).fillMaxHeight(),
+                            modifier = Modifier
+                                .weight(0.58f)
+                                .testTag("secondary_pill_modo_visual"),
                             endPadding = SetRecordFabEndPadding,
                         )
                     }
-
                 }
-            }
 
             if (loadMode == LoadModeV2.ASSISTED && (showBodyWeightPrompt || bodyWeightText.isBlank())) {
                 Surface(

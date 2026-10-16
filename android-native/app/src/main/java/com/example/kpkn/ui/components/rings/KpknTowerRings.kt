@@ -1,7 +1,12 @@
 package com.example.kpkn.ui.components.rings
 
 import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.snap
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
@@ -24,6 +29,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.PathEffect
@@ -36,6 +42,8 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import com.example.kpkn.screens.onboarding.design.wizardReducedMotion
 import kotlinx.coroutines.delay
+import kotlin.math.cos
+import kotlin.math.sin
 
 /*
  * Torre de tres anillos del logo de KPKN («torre anidada», `res/drawable/kpkn_logo_vertical.xml`).
@@ -188,6 +196,20 @@ private const val FullSweepDegrees = 359.9f
 /** Mínimo de área táctil con toques, en dp. */
 private val MinTouchHeight = 48.dp
 
+/** Estilo visual de la torre de RINGS. */
+enum class TowerRingsStyle {
+    /** Estilo clásico plano. */
+    CLASSIC,
+    /**
+     * Estilo luminoso (LV1 punto 12.2):
+     * - Pista más oscura con profundidad (sombra interior suave).
+     * - Arco con degradado a lo largo, más claro en la cabeza.
+     * - Resplandor suave detrás del arco (alfa <= 0,25).
+     * - Destello sutil periódico que recorre cada arco (~6 s).
+     */
+    LUMINOUS,
+}
+
 /**
  * La torre de tres anillos del logo de KPKN.
  *
@@ -197,6 +219,8 @@ private val MinTouchHeight = 48.dp
  * - [highlighted]: canal que queda a plena intensidad; los otros, atenuados al 35 %.
  * - [onRingTap]: si existe, cada banda vertical del anillo es un botón; área táctil de al menos 48 dp.
  * - [animate]: `false` (o movimiento reducido del sistema) pinta el valor final sin animación.
+ * - [style]: estilo visual (clásico plano o luminoso con profundidad, degradado, resplandor y destello).
+ * - [forcedGleamProgress]: anula el tiempo para fijar el destello en un punto (0..1), útil para hojas de render.
  */
 @Composable
 fun KpknTowerRings(
@@ -207,8 +231,11 @@ fun KpknTowerRings(
     highlighted: RingChannel? = null,
     onRingTap: ((RingChannel) -> Unit)? = null,
     animate: Boolean = true,
+    style: TowerRingsStyle = TowerRingsStyle.CLASSIC,
+    forcedGleamProgress: Float? = null,
 ) {
-    val animated = animate && !wizardReducedMotion()
+    val reduced = wizardReducedMotion()
+    val animated = animate && !reduced
     // Tras la primera composición los anillos pasan de `from` (o 0) a `values`; `revealing` da el escalón de entrada.
     var started by remember { mutableStateOf(!animated) }
     var revealing by remember { mutableStateOf(animated) }
@@ -229,13 +256,41 @@ fun KpknTowerRings(
             label = "kpknTowerRing",
         )
     }
+
+    val gleamTransition = rememberInfiniteTransition(label = "kpknRingGleam")
+    val gleamRaw = if (style == TowerRingsStyle.LUMINOUS && animated && forcedGleamProgress == null) {
+        gleamTransition.animateFloat(
+            initialValue = 0f,
+            targetValue = 6000f,
+            animationSpec = infiniteRepeatable(
+                animation = tween(durationMillis = 6000, easing = LinearEasing),
+                repeatMode = RepeatMode.Restart,
+            ),
+            label = "gleamTimer",
+        )
+    } else null
+
+    val gleamProgressForChannel: (RingChannel) -> Float = { channel ->
+        if (forcedGleamProgress != null) {
+            forcedGleamProgress
+        } else if (gleamRaw != null) {
+            val ringOffset = channel.ordinal * 600f
+            val localTime = (gleamRaw.value - ringOffset).mod(6000f)
+            if (localTime in 0f..1400f) localTime / 1400f else -1f
+        } else {
+            -1f
+        }
+    }
+
     val paths = remember { TowerPaths() }
     val description = towerRingsDescription(values, visible)
     Box(
         (if (onRingTap != null) modifier.heightIn(min = MinTouchHeight) else modifier)
             .semantics { contentDescription = description },
     ) {
-        Canvas(Modifier.fillMaxSize()) { drawTowerRings(values, anims, visible, highlighted, paths) }
+        Canvas(Modifier.fillMaxSize()) {
+            drawTowerRings(values, anims, visible, highlighted, paths, style, gleamProgressForChannel)
+        }
         if (onRingTap != null) TowerRingZones(values, visible, onRingTap)
     }
 }
@@ -252,9 +307,11 @@ private fun DrawScope.drawTowerRings(
     visible: Set<RingChannel>,
     highlighted: RingChannel?,
     paths: TowerPaths,
+    style: TowerRingsStyle = TowerRingsStyle.CLASSIC,
+    gleamProgressForChannel: (RingChannel) -> Float = { -1f },
 ) {
     val layout = TowerLayout(size.width, size.height)
-    // Primero todas las pistas: anillo completo al 12 % con el grosor del anillo; sin valor, trazo discontinuo.
+    // Primero todas las pistas: anillo completo con el grosor del anillo; sin valor, trazo discontinuo.
     for (shape in TowerShapes) {
         val channel = shape.channel
         if (channel !in visible) continue
@@ -268,7 +325,18 @@ private fun DrawScope.drawTowerRings(
                 style = Stroke(width = 1.dp.toPx(), pathEffect = dash),
             )
         } else {
-            drawPath(paths.track, KpknRingColors.ink.copy(alpha = TrackAlpha * alpha))
+            if (style == TowerRingsStyle.LUMINOUS) {
+                // Pista un poco más oscura con profundidad: fondo oscuro + sombra interior suave
+                drawPath(paths.track, Color.Black.copy(alpha = 0.50f * alpha))
+                drawPath(paths.track, KpknRingColors.ink.copy(alpha = 0.06f * alpha))
+                drawPath(
+                    paths.track,
+                    Color.Black.copy(alpha = 0.55f * alpha),
+                    style = Stroke(width = 1.5.dp.toPx()),
+                )
+            } else {
+                drawPath(paths.track, KpknRingColors.ink.copy(alpha = TrackAlpha * alpha))
+            }
         }
     }
     // Después los arcos, de abajo arriba: el anillo de arriba queda por delante, como en el logo.
@@ -277,13 +345,73 @@ private fun DrawScope.drawTowerRings(
         if (channel !in visible || values[channel] == null) continue
         val sweep = towerSweepDegrees(anims[channel.ordinal].value)
         if (sweep <= 0f) continue
-        val color = KpknRingColors.of(channel).copy(alpha = ringAlpha(channel, highlighted))
-        if (sweep >= FullSweepDegrees) {
-            paths.track.setRingTrack(shape, layout)
-            drawPath(paths.track, color)
-        } else {
+        val alpha = ringAlpha(channel, highlighted)
+        val baseColor = KpknRingColors.of(channel).copy(alpha = alpha)
+
+        if (style == TowerRingsStyle.LUMINOUS) {
+            // 1. Resplandor muy suave detrás del arco (alfa <= 0,25), sin bordes brillantes
+            val glowWidth = layout.scale * (shape.outerRy - shape.innerRy) + 5.dp.toPx()
             paths.arc.setRingSector(shape, layout, sweep)
-            drawPath(paths.arc, color)
+            drawPath(
+                paths.arc,
+                color = baseColor.copy(alpha = 0.20f * alpha),
+                style = Stroke(width = glowWidth),
+            )
+
+            // 2. Arco con degradado a lo largo, más claro en la cabeza
+            val headColor = Color(
+                red = (baseColor.red * 0.70f + 0.30f).coerceIn(0f, 1f),
+                green = (baseColor.green * 0.70f + 0.30f).coerceIn(0f, 1f),
+                blue = (baseColor.blue * 0.70f + 0.30f).coerceIn(0f, 1f),
+                alpha = baseColor.alpha,
+            )
+            val rMidX = (shape.outerRx + shape.innerRx) / 2f
+            val rMidY = (shape.outerRy + shape.innerRy) / 2f
+            val cY = (shape.outerCy + shape.innerCy) / 2f
+            val radStart = Math.toRadians(TowerStartDegrees.toDouble())
+            val radHead = Math.toRadians((TowerStartDegrees + sweep).toDouble())
+            val startX = layout.x(TowerUnits.CenterX + rMidX * cos(radStart).toFloat())
+            val startY = layout.y(cY + rMidY * sin(radStart).toFloat())
+            val headX = layout.x(TowerUnits.CenterX + rMidX * cos(radHead).toFloat())
+            val headY = layout.y(cY + rMidY * sin(radHead).toFloat())
+
+            val brush = Brush.linearGradient(
+                colors = listOf(baseColor.copy(alpha = 0.85f * alpha), headColor),
+                start = Offset(startX, startY),
+                end = Offset(headX, headY),
+            )
+
+            if (sweep >= FullSweepDegrees) {
+                paths.track.setRingTrack(shape, layout)
+                drawPath(paths.track, brush = brush)
+            } else {
+                paths.arc.setRingSector(shape, layout, sweep)
+                drawPath(paths.arc, brush = brush)
+            }
+
+            // 3. Destello: recorre cada arco al aparecer y después cada ~6 s
+            val gleamProg = gleamProgressForChannel(channel)
+            if (gleamProg in 0f..1f) {
+                val gleamSpan = minOf(30f, sweep * 0.35f)
+                val gleamCenterAngle = TowerStartDegrees + gleamProg * sweep
+                val gleamStartAngle = (gleamCenterAngle - gleamSpan / 2f).coerceAtLeast(TowerStartDegrees)
+                val actualSpan = (gleamCenterAngle + gleamSpan / 2f).coerceAtMost(TowerStartDegrees + sweep) - gleamStartAngle
+                if (actualSpan > 0f) {
+                    paths.arc.reset()
+                    paths.arc.arcTo(layout.outerRect(shape), gleamStartAngle, actualSpan, true)
+                    paths.arc.arcTo(layout.innerRect(shape), gleamStartAngle + actualSpan, -actualSpan, false)
+                    paths.arc.close()
+                    drawPath(paths.arc, Color.White.copy(alpha = 0.28f * alpha))
+                }
+            }
+        } else {
+            if (sweep >= FullSweepDegrees) {
+                paths.track.setRingTrack(shape, layout)
+                drawPath(paths.track, baseColor)
+            } else {
+                paths.arc.setRingSector(shape, layout, sweep)
+                drawPath(paths.arc, baseColor)
+            }
         }
     }
 }

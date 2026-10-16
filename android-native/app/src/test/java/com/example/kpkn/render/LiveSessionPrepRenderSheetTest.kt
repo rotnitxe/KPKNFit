@@ -243,7 +243,31 @@ class LiveSessionPrepRenderSheetTest {
         drawVoz(fontScale = 1.3f, name = "voz_130")
     }
 
-    private fun drawEstado(fontScale: Float, name: String, heightDp: Int = 880) {
+    @Test
+    fun estadoDestelloFotograma1_100() {
+        onlyWhenAsked()
+        drawEstado(fontScale = 1f, name = "estado_destello_fotograma1_100", gleamProgress = 0.35f)
+    }
+
+    @Test
+    fun estadoDestelloFotograma2_100() {
+        onlyWhenAsked()
+        drawEstado(fontScale = 1f, name = "estado_destello_fotograma2_100", gleamProgress = 0.75f)
+    }
+
+    @Test
+    fun estadoDestelloFotograma1_130() {
+        onlyWhenAsked()
+        drawEstado(fontScale = 1.3f, name = "estado_destello_fotograma1_130", gleamProgress = 0.35f)
+    }
+
+    @Test
+    fun estadoDestelloFotograma2_130() {
+        onlyWhenAsked()
+        drawEstado(fontScale = 1.3f, name = "estado_destello_fotograma2_130", gleamProgress = 0.75f)
+    }
+
+    private fun drawEstado(fontScale: Float, name: String, heightDp: Int = 880, gleamProgress: Float? = null) {
         rule.setContent {
             hostView = LocalView.current
             // 3 px por dp: pantalla de 360 dp.
@@ -269,6 +293,7 @@ class LiveSessionPrepRenderSheetTest {
                                 augeSnapshot = SAMPLE_AUGE,
                                 voiceSessionEnabled = true,
                                 voiceCaptureMode = VoiceCaptureMode.HANDS_FREE,
+                                forcedGleamProgress = gleamProgress,
                             )
                         }
                     }
