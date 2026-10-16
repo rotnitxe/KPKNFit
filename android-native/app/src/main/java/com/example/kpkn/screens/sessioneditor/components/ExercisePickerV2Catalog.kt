@@ -1007,7 +1007,9 @@ private fun ColumnScope.CatalogReadyContent(
                                 values = variantValues,
                                 labelOf = { value -> exerciseCatalogVariantTagLabel(value, definition.id) },
                                 selectedValue = if (hasExplicitDraft) firstAxis?.let(effectiveSelectedOptions::get) else null,
-                                onSelect = { value -> selectOption("implement", value) },
+                                // Las variantes son las del primer eje de la definición, que no siempre es el implemento (agarre,
+                                // lateralidad, ángulo…): elegir una cambia ESE eje. Antes llamaba siempre a «implement» y no hacía nada (LV5).
+                                onSelect = { value -> selectOption(firstAxis ?: "implement", value) },
                                 onOpenFicha = {
                                     expandedDefinitionId = toggleCatalogDefinitionExpansion(
                                         currentDefinitionId = expandedDefinitionId,
