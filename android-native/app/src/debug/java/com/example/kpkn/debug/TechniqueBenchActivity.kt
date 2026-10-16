@@ -1,5 +1,6 @@
 package com.example.kpkn.debug
 
+import android.content.Context
 import android.graphics.Color
 import android.media.MediaExtractor
 import android.media.MediaFormat
@@ -9,6 +10,7 @@ import android.util.Log
 import android.view.WindowManager
 import android.widget.TextView
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
 import androidx.lifecycle.lifecycleScope
 import com.example.kpkn.data.media.video.DecodedFrame
 import com.example.kpkn.data.media.video.FrameNeeds
@@ -68,6 +70,77 @@ class TechniqueBenchActivity : ComponentActivity() {
         setContentView(status)
         val mode = intent.getStringExtra(EXTRA_MODE) ?: MODE_DECODE_SELFTEST
         val quit = intent.getBooleanExtra(EXTRA_QUIT, false)
+        if (mode == MODE_RECORDER_PREVIEW) {
+            val outDir = getExternalFilesDir("vt-recorder")?.apply { mkdirs() }
+            val logFile = File(outDir, "recorder_log.txt")
+            logFile.writeText("TechniqueBenchActivity started mode=$mode\n")
+            val cm = getSystemService(Context.CAMERA_SERVICE) as? android.hardware.camera2.CameraManager
+            logFile.appendText("CameraManager ids: ${cm?.cameraIdList?.joinToString()}\n")
+            val repository = com.example.kpkn.data.repository.WorkoutMediaRepository.init(this)
+            val mediaCapture = com.example.kpkn.screens.workout.WorkoutMediaCaptureController(
+                appContext = applicationContext,
+                scope = lifecycleScope,
+                repository = repository,
+                sessionMeta = {
+                    com.example.kpkn.screens.workout.WorkoutMediaSessionMeta(
+                        sessionKey = "debug_recorder_session",
+                        programId = "debug",
+                        sessionId = "debug_session",
+                        sessionName = "Prueba de técnica",
+                    )
+                },
+            )
+            val fakeExercise = com.example.kpkn.data.models.Exercise(
+                id = "debug_squat",
+                name = "Sentadilla con barra",
+                catalogDefinitionId = "squat",
+                catalogConfigurationId = "barbell_squat",
+            )
+            val fakeRequest = com.example.kpkn.screens.workout.technique.TechniqueRecorderRequest(
+                captureRequest = com.example.kpkn.screens.workout.WorkoutMediaCaptureRequest(
+                    exerciseId = fakeExercise.id,
+                    exerciseName = fakeExercise.name,
+                    setIndex = 0,
+                    catalogDefinitionId = fakeExercise.catalogDefinitionId,
+                    catalogConfigurationId = fakeExercise.catalogConfigurationId,
+                ),
+                exercise = fakeExercise,
+                setLabel = "Serie 1",
+            )
+            setContent {
+                com.example.kpkn.screens.workout.technique.TechniqueRecorderScreen(
+                    request = fakeRequest,
+                    onDismiss = {
+                        lifecycleScope.launch(Dispatchers.IO) {
+                            runCatching {
+                                val outDir = getExternalFilesDir("vt-recorder")
+                                if (outDir != null) {
+                                    outDir.mkdirs()
+                                    val files = applicationContext.filesDir.walkTopDown().toList()
+                                    for (file in files) {
+                                        if (file.isFile && (file.extension == "mp4" || file.name.endsWith(".capture.json"))) {
+                                            file.copyTo(File(outDir, file.name), overwrite = true)
+                                        }
+                                    }
+                                    val statusFile = File(outDir, "recorder_status.txt")
+                                    val hasVideos = files.any { it.isFile && it.extension == "mp4" }
+                                    if (hasVideos) {
+                                        statusFile.writeText("OK: grabacion finalizada\n")
+                                    } else {
+                                        statusFile.writeText("NO_RECORDING: sin camara o grabacion no realizada\n")
+                                    }
+                                }
+                            }
+                            withContext(Dispatchers.Main) {
+                                if (quit) finish()
+                            }
+                        }
+                    },
+                    mediaCapture = mediaCapture,
+                )
+            }
+            return
+        }
         if (mode == MODE_DECODE_SELFTEST) {
             // El result.json de una corrida anterior fuera YA, antes de que termine el arranque: quien espere el archivo no debe ver el viejo.
             runCatching { File(getExternalFilesDir(SELFTEST_DIR), RESULT_FILE).delete() }
@@ -139,6 +212,7 @@ private const val MODE_DECODE_SELFTEST = "decode_selftest"
 private const val MODE_POSE_BENCH = "pose_bench"
 private const val MODE_TELEMETRY_CHECK = "telemetry_check"
 private const val MODE_ANALYZE_FILE = "analyze_file"
+private const val MODE_RECORDER_PREVIEW = "recorder_preview"
 private const val ANALYZE_FILE = "analyze.json"
 private const val EXTRA_EXERCISES = "exercises"
 private const val EXTRA_MODEL = "model"

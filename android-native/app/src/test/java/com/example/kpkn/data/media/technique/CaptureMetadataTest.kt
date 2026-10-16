@@ -9,6 +9,7 @@ import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Rule
@@ -92,6 +93,57 @@ class CaptureMetadataTest {
         CaptureMetadataFile.update(file) { it.copy(gravityPitchDeg = Float.NaN, focalLengthPx = Float.POSITIVE_INFINITY) }
         assertNull(CaptureMetadataFile.read(file).gravityPitchDeg)
         assertNull(CaptureMetadataFile.read(file).focalLengthPx)
+    }
+
+    @Test
+    fun concurrentWritersDoNotLoseEachOthersKeys() {
+        val t1 = Thread {
+            for (i in 1..200) {
+                CaptureMetadataFile.update(file) {
+                    it.copy(
+                        requestedFps = 60f,
+                        grantedFps = (i % 60 + 1).toFloat(),
+                        gravityRollDeg = 1.5f,
+                        gravityPitchDeg = 85f,
+                        focalLengthPx = 1450f,
+                        lens = "main",
+                        deviceModel = "Pixel $i",
+                        recordedAtMs = 1700000000000L + i,
+                    )
+                }
+            }
+        }
+        val t2 = Thread {
+            for (i in 1..200) {
+                CaptureOverridesFile.update(file) {
+                    it.copy(
+                        userProfileOverride = AnalysisProfileId.SQUAT,
+                        plateDiameterMm = 450,
+                        plateSeed = PlateSeed(tUs = i.toLong(), cx = 100f, cy = 100f, r = 20f, userConfirmed = true),
+                    )
+                }
+            }
+        }
+        t1.start()
+        t2.start()
+        t1.join()
+        t2.join()
+
+        val meta = CaptureMetadataFile.read(file)
+        val overrides = CaptureOverridesFile.read(file)
+
+        assertEquals(60f, meta.requestedFps)
+        assertNotNull(meta.grantedFps)
+        assertEquals(1.5f, meta.gravityRollDeg)
+        assertEquals(85f, meta.gravityPitchDeg)
+        assertEquals(1450f, meta.focalLengthPx)
+        assertEquals("main", meta.lens)
+        assertNotNull(meta.deviceModel)
+        assertNotNull(meta.recordedAtMs)
+
+        assertEquals(AnalysisProfileId.SQUAT, overrides.userProfileOverride)
+        assertEquals(450, overrides.plateDiameterMm)
+        assertNotNull(overrides.plateSeed)
     }
 
     @Test

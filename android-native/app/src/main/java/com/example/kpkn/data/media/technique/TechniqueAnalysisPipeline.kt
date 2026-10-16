@@ -260,9 +260,11 @@ class TechniqueAnalysisPipeline internal constructor(
         private var pass: FullPass? = null
         private var plateRunOutcome: PlateOnlyOutcome? = null
         private var engineMs = 0L
+        private lateinit var completedExercise: ExerciseRef
 
         suspend fun execute(): TechniqueAnalysisOutcome {
             val ref = withContext(Dispatchers.IO) { completeExercise() }
+            completedExercise = ref
             when (val resolution = AnalysisProfileResolver.resolve(ref)) {
                 is ProfileResolution.Unsupported -> return TechniqueAnalysisOutcome.Unsupported(resolution.reason)
                 is ProfileResolution.NeedsUserChoice -> return TechniqueAnalysisOutcome.NeedsProfile(resolution.guess)
@@ -373,7 +375,15 @@ class TechniqueAnalysisPipeline internal constructor(
                 if (fullPass.decodePath == VideoDecodePath.RETRIEVER) add(AnalysisFlag.DECODE_FALLBACK)
                 if (info.isHdr && deps.sdkInt < HDR_TONE_MAP_SDK) add(AnalysisFlag.HDR_SOURCE)
             }
-            return measure(storedPose, storedBar, extra)
+            val engine = storedPose.engine
+            return measure(
+                pose = storedPose,
+                bar = storedBar,
+                extraFlags = extra,
+                exercise = completedExercise,
+                poseEngine = "${engine.id}/${engine.model}/${engine.delegate}",
+                poseVersion = POSE_VERSION,
+            )
         }
 
         // ---------------------------------------------------------------------------------------------------------------
@@ -384,7 +394,7 @@ class TechniqueAnalysisPipeline internal constructor(
             val sidecars = withContext(Dispatchers.IO) { readSidecars() } ?: return full()
             val bar = sidecars.bar?.let { adoptConfirmedDisc(it) }
             val carried = withContext(Dispatchers.IO) { carriedFlags() }
-            return measure(sidecars.pose, bar, carried)
+            return measure(sidecars.pose, bar, carried, exercise = completedExercise)
         }
 
         // ---------------------------------------------------------------------------------------------------------------
@@ -455,7 +465,7 @@ class TechniqueAnalysisPipeline internal constructor(
                 if (report?.path == VideoDecodePath.RETRIEVER) add(AnalysisFlag.DECODE_FALLBACK)
                 if (info.isHdr && deps.sdkInt < HDR_TONE_MAP_SDK) add(AnalysisFlag.HDR_SOURCE)
             }
-            return measure(pose, storedBar, extra)
+            return measure(pose, storedBar, extra, exercise = completedExercise)
         }
 
         // ---------------------------------------------------------------------------------------------------------------
@@ -521,7 +531,14 @@ class TechniqueAnalysisPipeline internal constructor(
         // ---------------------------------------------------------------------------------------------------------------
 
         /** Mide con el motor y cierra el progreso. [extraFlags] son los avisos del data layer; DECODE_FALLBACK limita la confianza a MEDIA. */
-        private suspend fun measure(pose: PoseTrackV2, bar: BarTrack?, extraFlags: Set<AnalysisFlag>): TechniqueAnalysisOutcome {
+        private suspend fun measure(
+            pose: PoseTrackV2,
+            bar: BarTrack?,
+            extraFlags: Set<AnalysisFlag>,
+            exercise: ExerciseRef? = null,
+            poseEngine: String? = null,
+            poseVersion: Int? = null,
+        ): TechniqueAnalysisOutcome {
             emit(PROGRESS_DECODE)
             val started = System.nanoTime()
             val usable = bar?.takeIf { profile.usesPlate && it.samples.isNotEmpty() }
@@ -537,7 +554,12 @@ class TechniqueAnalysisPipeline internal constructor(
                 throw PipelineFailure(ERROR_ENGINE, false, error)
             }
             engineMs = (System.nanoTime() - started) / NANOS_PER_MS
-            val outcome = TechniqueAnalysisOutcome.Done(withDataLayerFlags(report, extraFlags))
+            val outcome = TechniqueAnalysisOutcome.Done(
+                report = withDataLayerFlags(report, extraFlags),
+                exercise = exercise,
+                poseEngine = poseEngine,
+                poseVersion = poseVersion,
+            )
             emit(100)
             return outcome
         }

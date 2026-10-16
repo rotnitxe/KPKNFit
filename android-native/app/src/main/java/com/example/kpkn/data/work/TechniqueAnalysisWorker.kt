@@ -134,7 +134,15 @@ class TechniqueAnalysisWorker(
             is TechniqueAnalysisOutcome.Done -> {
                 try {
                     // false = el medio se borró durante el análisis: no queda nada que guardar.
-                    repository.completeDone(media, outcome.report, request.exercise, request.loadKg, mode)
+                    repository.completeDone(
+                        media = media,
+                        report = outcome.report,
+                        exercise = outcome.exercise ?: request.exercise,
+                        loadKg = request.loadKg,
+                        mode = mode,
+                        poseVersion = if (mode == AnalysisMode.FULL) outcome.poseVersion else null,
+                        poseEngine = if (mode == AnalysisMode.FULL) outcome.poseEngine else null,
+                    )
                     Result.success()
                 } catch (cancelled: CancellationException) {
                     throw cancelled

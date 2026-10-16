@@ -876,6 +876,7 @@ internal fun SetInputCardV2(
     openMediaFace: Boolean = false,
     onMediaFaceConsumed: () -> Unit = {},
     sessionMilestones: List<com.example.kpkn.data.models.SessionMilestone> = emptyList(),
+    techniqueRecorderHolder: com.example.kpkn.screens.workout.technique.TechniqueRecorderHolder? = null,
 ) {
     val context = LocalContext.current
     val recordActionInstanceOwner = remember { Any() }
@@ -3359,6 +3360,16 @@ internal fun SetInputCardV2(
                         isPr = isPrSeries,
                         mediaCapture = mediaCapture,
                         onRetryPendingCaptures = onRetryPendingCaptures,
+                        onOpenRecorder = techniqueRecorderHolder?.let { holder ->
+                            { captureRequest ->
+                                cardFace = SetCardFace.Front
+                                holder.request = com.example.kpkn.screens.workout.technique.TechniqueRecorderRequest(
+                                    captureRequest = captureRequest,
+                                    exercise = exercise,
+                                    setLabel = "Serie ${setIndex + 1}",
+                                )
+                            }
+                        },
                     )
                     else -> SetCardTechniqueBack(
                     currentSet = currentSet,

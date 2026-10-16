@@ -12,6 +12,7 @@ import com.example.kpkn.data.db.toWorkoutMedia
 import com.example.kpkn.data.media.WorkoutMediaCaptureJournal
 import com.example.kpkn.data.media.WorkoutMediaStore
 import com.example.kpkn.data.media.technique.AnalysisMode
+import com.example.kpkn.data.media.technique.CaptureFileLock
 import com.example.kpkn.data.media.technique.TechniqueSidecars
 import com.example.kpkn.data.models.Settings
 import com.example.kpkn.data.models.VideoAnalysisStatus
@@ -260,6 +261,8 @@ class VideoAnalysisRepository internal constructor(
         exercise: ExerciseRef,
         loadKg: Double?,
         mode: AnalysisMode,
+        poseVersion: Int? = null,
+        poseEngine: String? = null,
     ): Boolean {
         val video = File(media.filePath)
         val file = TechniqueSidecars.analysisFile(video)
@@ -274,6 +277,8 @@ class VideoAnalysisRepository internal constructor(
             reportPath = file.absolutePath,
             createdAtFallbackMs = analyzedAtMs,
             keepPose = mode != AnalysisMode.FULL,
+            poseVersion = poseVersion,
+            poseEngine = poseEngine,
         )
         if (!stored) withContext(Dispatchers.IO) { TechniqueSidecars.deleteAll(video, store::isManagedPath) }
         return stored
@@ -307,6 +312,8 @@ class VideoAnalysisRepository internal constructor(
         reportPath: String,
         createdAtFallbackMs: Long,
         keepPose: Boolean,
+        poseVersion: Int? = null,
+        poseEngine: String? = null,
     ): Boolean = db.withTransaction {
         val media = db.workoutMediaDao().getById(mediaId)?.toWorkoutMedia() ?: return@withTransaction false
         val dao = db.videoAnalysisDao()
@@ -320,8 +327,8 @@ class VideoAnalysisRepository internal constructor(
             nowMs = nowMs(),
             // La versión real de la traza de pose la fijará VT4c (POSE_VERSION); hasta entonces vale la de siempre.
             poseVersion = if (keepPose) (previous?.poseVersion ?: VideoAnalysisSummary.DEFAULT_POSE_VERSION)
-            else VideoAnalysisSummary.DEFAULT_POSE_VERSION,
-            poseEngine = if (keepPose) previous?.poseEngine else null,
+            else (poseVersion ?: VideoAnalysisSummary.DEFAULT_POSE_VERSION),
+            poseEngine = if (keepPose) previous?.poseEngine else poseEngine,
             createdAtMs = previous?.createdAtMs ?: createdAtFallbackMs,
         )
         dao.upsert(summary.toEntity())
@@ -488,15 +495,14 @@ internal object CaptureOverridesFile {
     const val KEY_SEED = "plateSeed"
     const val KEY_DIAMETER = "plateDiameterMm"
 
-    private val lock = Any()
     private val json = Json { ignoreUnknownKeys = true }
     private val empty = JsonObject(emptyMap())
 
-    fun read(file: File): CaptureOverrides = synchronized(lock) { parse(readObject(file)) }
+    fun read(file: File): CaptureOverrides = synchronized(CaptureFileLock) { parse(readObject(file)) }
 
     /** Aplica [change] a lo que hay y lo escribe; lanza [IOException] si no se puede guardar. */
     fun update(file: File, change: (CaptureOverrides) -> CaptureOverrides) {
-        synchronized(lock) {
+        synchronized(CaptureFileLock) {
             val current = readObject(file)
             val next = change(parse(current))
             val merged = LinkedHashMap<String, JsonElement>(current)

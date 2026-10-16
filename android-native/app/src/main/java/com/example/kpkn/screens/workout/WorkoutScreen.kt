@@ -965,6 +965,7 @@ fun WorkoutScreen(
     }
 
     val canReturnToMobilityFromWarmup = isWarmupOverlayActive && (currentExercise?.mobilitySeries?.isNotEmpty() == true)
+    val techniqueRecorderHolder = remember { com.example.kpkn.screens.workout.technique.TechniqueRecorderHolder() }
 
     Box(modifier = Modifier.fillMaxSize()) {
         if (uiState.sessionMissingFromProgram) {
@@ -1111,6 +1112,7 @@ fun WorkoutScreen(
             onRequestLiveTagListConsumed = { structureSheets.requestLiveTagList = false },
             skipExerciseLabel = skipExerciseLabel,
             onSkipExercise = onSkipExerciseFromRest,
+            techniqueRecorderHolder = techniqueRecorderHolder,
             )
             if (roadmapSelecting) {
                 Box(
@@ -1386,6 +1388,18 @@ fun WorkoutScreen(
             onDismiss = { viewModel.mediaCapture.dismissAlbumSheet() },
             onDelete = { viewModel.removeSessionMedia(it) },
             poseOverlayEnabled = uiState.featureFlags.poseTrajectoryEnabled,
+        )
+    }
+
+    techniqueRecorderHolder.request?.let { req ->
+        val techSettings = settings.techniqueVideo
+        com.example.kpkn.screens.workout.technique.TechniqueRecorderScreen(
+            request = req,
+            onDismiss = { techniqueRecorderHolder.request = null },
+            mediaCapture = viewModel.mediaCapture,
+            prefer60FpsSetting = techSettings.prefer60Fps,
+            maxRecordSeconds = techSettings.maxRecordSeconds,
+            defaultPlateDiameterMm = techSettings.plateDiameterMm,
         )
     }
 
