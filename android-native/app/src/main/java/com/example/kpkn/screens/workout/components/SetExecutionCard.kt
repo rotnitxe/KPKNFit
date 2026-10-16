@@ -2928,6 +2928,12 @@ internal fun SetInputCardV2(
                                 return@label
                             }
                         }
+                        // LV8: el esfuerzo (RIR/RPE) es obligatorio. Sin marcarlo, el ✓ no registra: vibra suave, el slider se
+                        // balancea y sale el aviso bajo él. Una serie nunca se registra con una intensidad que la persona no eligió.
+                        if (!isFailedSet && effortIndex == null) {
+                            requireEffort()
+                            return@label
+                        }
                         val reportingSide = if (supportsIndependentSides) selectedSide else null
                         val reportedWeightTextRaw = reportingSide?.let { weightTextForSide(it) } ?: weightText
                         val rawReportedValueText = reportingSide?.let { valueTextForSide(it) } ?: valueText
