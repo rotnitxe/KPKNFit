@@ -87,6 +87,7 @@ import com.example.kpkn.screens.home.augeRingsHostHeightDp
 import com.example.kpkn.ui.components.rings.KpknTowerRings
 import com.example.kpkn.ui.components.rings.RingChannel
 import com.example.kpkn.ui.components.rings.TowerRingValues
+import com.example.kpkn.ui.components.rings.TowerRingsStyle
 import com.example.kpkn.ui.components.rings.towerRingCenter
 import java.util.Locale
 
@@ -122,6 +123,8 @@ fun WorkoutReadinessSheet(
     voiceCaptureMode: VoiceCaptureMode = VoiceCaptureMode.HANDS_FREE,
     onVoiceToggle: () -> Unit = {},
     onVoiceCaptureModeChange: (VoiceCaptureMode) -> Unit = {},
+    ringsStyle: TowerRingsStyle = TowerRingsStyle.LUMINOUS,
+    forcedGleamProgress: Float? = null,
 ) {
     if (!showReadinessSheet) return
 
@@ -217,15 +220,6 @@ fun WorkoutReadinessSheet(
                     .padding(bottom = 80.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp),
             ) {
-                // Eyebrow de KpknType en `textMuted` (LR1b): antes era el amarillo del tema.
-                Text(
-                    text = "Reporta tu estado antes de entrenar".uppercase(Locale.forLanguageTag("es")),
-                    style = KpknType.eyebrow,
-                    color = WizardColors.textMuted,
-                    modifier = Modifier.fillMaxWidth(),
-                    textAlign = TextAlign.Center,
-                )
-
                 Text(
                     text = "¿Cómo llegas a entrenar hoy?",
                     modifier = Modifier.fillMaxWidth(),
@@ -252,22 +246,10 @@ fun WorkoutReadinessSheet(
                         muscleAdjustments[muscleId] = updated
                         userEditedMuscles[muscleId] = true
                     },
+                    style = ringsStyle,
+                    forcedGleamProgress = forcedGleamProgress,
                 )
 
-                // La explicación de cada canal: el nombre en tinta y SemiBold, el resto en `body` y `textMuted` (LR1b).
-                augeSnapshot?.dashboard?.channels?.forEach { channel ->
-                    Text(
-                        text = buildAnnotatedString {
-                            withStyle(SpanStyle(color = WizardColors.text, fontWeight = FontWeight.SemiBold)) {
-                                append(channel.title)
-                            }
-                            withStyle(SpanStyle(color = WizardColors.textMuted)) {
-                                append(": ${RecoveryBands.label(channel.band)} · ${channel.action}")
-                            }
-                        },
-                        style = KpknType.body,
-                    )
-                }
                 val coaching = remember(patternReadiness, exerciseReadinessMap, sessionExercises, perMuscle) {
                     ExerciseReadinessEngine.buildPatternCoaching(
                         patternReadiness = patternReadiness,
@@ -378,6 +360,8 @@ private fun InterlacedRingsBlock(
     onNeuralChange: (Int) -> Unit,
     onSpinalChange: (Int) -> Unit,
     onMuscleChange: (String, Int) -> Unit,
+    style: TowerRingsStyle = TowerRingsStyle.LUMINOUS,
+    forcedGleamProgress: Float? = null,
 ) {
     val density = LocalDensity.current
     var ringsSize by remember { mutableStateOf(IntSize.Zero) }
@@ -401,6 +385,8 @@ private fun InterlacedRingsBlock(
                     modifier = Modifier.fillMaxSize(),
                     onRingTap = { channel -> onRingTap(channel.toReadinessTarget()) },
                     animate = false,
+                    style = style,
+                    forcedGleamProgress = forcedGleamProgress,
                 )
 
                 if (ringsSize != IntSize.Zero) {
@@ -448,7 +434,7 @@ private fun InterlacedRingsBlock(
         }
 
         Text(
-            text = "Si no te representan los rings, presiona cada uno para ajustarlo",
+            text = "Toca un anillo para ajustarlo",
             style = KpknType.caption,
             color = WizardColors.textMuted,
             textAlign = TextAlign.Center,
