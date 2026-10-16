@@ -8,6 +8,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.test.assertCountEquals
+import androidx.compose.ui.test.assertIsEnabled
+import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
@@ -18,7 +21,9 @@ import com.example.kpkn.data.models.ExerciseMuscleInfo
 import com.example.kpkn.domain.exercises.catalogv2.InMemoryExerciseCatalogRepositoryV2
 import com.example.kpkn.screens.sessioneditor.components.CatalogTestBuilders.catalog
 import com.example.kpkn.screens.sessioneditor.components.CatalogTestBuilders.definition
-import com.example.kpkn.screens.sessioneditor.design.CatalogHeaderContextTag
+import com.example.kpkn.screens.sessioneditor.design.CatalogReplaceBarTag
+import com.example.kpkn.screens.sessioneditor.design.CatalogReplaceButtonTag
+import com.example.kpkn.screens.sessioneditor.design.CatalogReplacingCardTag
 import com.example.kpkn.ui.components.KpknOverlayHostContent
 import com.example.kpkn.ui.components.KpknOverlayHostController
 import com.example.kpkn.ui.components.LocalKpknOverlayHost
@@ -33,8 +38,9 @@ import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 
 /**
- * LV5, bug 1: «Reemplazar» abre el CATÁLOGO con el ejercicio actual como punto de partida, no la ficha del ejercicio. Monta el selector
- * entero (el de la página completa) con un catálogo pequeño y comprueba lo que se ve al llegar y que la ficha sigue a un toque.
+ * LV5, bug 1 (H1): «Reemplazar» abre el CATÁLOGO con el ejercicio actual como punto de partida, no la ficha del ejercicio. Monta el
+ * selector entero (el de la página completa) con un catálogo pequeño y comprueba lo que se ve al llegar (la tarjeta «Reemplazando», los
+ * filtros, la nota y el botón de abajo), que la ficha sigue a un toque y que se elige uno y se confirma abajo.
  */
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [34], qualifiers = "w360dp-h1400dp-xxhdpi", application = android.app.Application::class)
@@ -62,7 +68,10 @@ class ExercisePickerReplaceOpensCatalogTest {
 
     /** El selector como lo monta la página del catálogo al reemplazar el press plano con mancuernas. */
     private fun setReplaceContent(
-        replacement: CatalogReplacementContext? = CatalogReplacementContext(exerciseName = "Press de Banca Plano · Mancuernas"),
+        replacement: CatalogReplacementContext? = CatalogReplacementContext(
+            exerciseName = "Press de Banca Plano · Mancuernas",
+            planSummary = "4 × 4–6 · RIR 2",
+        ),
         onSelect: (ExerciseMuscleInfo) -> Unit = {},
     ) {
         val repository = repository()
@@ -101,11 +110,21 @@ class ExercisePickerReplaceOpensCatalogTest {
     fun reemplazarAbreElCatalogoYNoLaFichaDelEjercicioActual() {
         setReplaceContent()
 
-        // El catálogo: cabecera de reemplazo, el ejercicio actual arriba y la lista.
-        rule.onNodeWithText("Reemplazar ejercicio").assertExists()
-        rule.onNodeWithTag(CatalogHeaderContextTag).assertExists()
-        rule.onNodeWithText("Reemplazando: Press de Banca Plano · Mancuernas").assertExists()
+        // El catálogo: título «Reemplazar» (y el botón de abajo, apagado, que se llama igual), la tarjeta del ejercicio actual y la lista.
+        rule.onAllNodesWithText("Reemplazar").assertCountEquals(2)
+        rule.onNodeWithText("Añadir ejercicios").assertDoesNotExist()
+        rule.onNodeWithTag(CatalogReplacingCardTag).assertExists()
+        rule.onNodeWithText("REEMPLAZANDO").assertExists()
+        rule.onNodeWithText("Press de Banca Plano · Mancuernas").assertExists()
         rule.onNodeWithText("Primero los más parecidos al ejercicio actual").assertExists()
+        // La dosis del plan sale en la tarjeta y en la nota de abajo; el botón espera a que se elija algo.
+        rule.onAllNodesWithText("4 × 4–6 · RIR 2", substring = true).assertCountEquals(2)
+        rule.onNodeWithText("Se mantienen las series del plan: 4 × 4–6 · RIR 2").assertExists()
+        rule.onNodeWithTag(CatalogReplaceButtonTag).assertIsNotEnabled()
+        // Solo dos filtros: «Mismo músculo» y «Todos».
+        rule.onNodeWithText("Mismo músculo").assertExists()
+        rule.onNodeWithText("Todos").assertExists()
+        rule.onNodeWithText("Tren superior").assertDoesNotExist()
         rule.onAllNodesWithText(CatalogCurrentExerciseLabel, substring = true).fetchSemanticsNodes().let {
             assertEquals("solo una fila lleva el rótulo del ejercicio actual", 1, it.size)
         }
@@ -150,6 +169,60 @@ class ExercisePickerReplaceOpensCatalogTest {
         setReplaceContent(replacement = null)
 
         rule.onNodeWithText("Añadir ejercicios").assertExists()
+        rule.onNodeWithTag(CatalogReplacingCardTag).assertDoesNotExist()
+        rule.onNodeWithTag(CatalogReplaceBarTag).assertDoesNotExist()
         rule.onNodeWithContentDescription("Cerrar definición").assertDoesNotExist()
+    }
+
+    @Test
+    fun elegirUnCandidatoNoReemplazaDeGolpeSeConfirmaConElBotonDeAbajo() {
+        val confirmed = mutableListOf<ExerciseMuscleInfo>()
+        setReplaceContent(onSelect = { confirmed += it })
+        rule.onNodeWithTag(CatalogReplaceButtonTag).assertIsNotEnabled()
+
+        rule.onNodeWithContentDescription("Añadir Press Inclinado a la selección").performClick()
+        rule.waitForIdle()
+
+        // Elegido: el círculo se llena y el botón se enciende, pero todavía no se reemplazó nada.
+        rule.onNodeWithContentDescription("Quitar Press Inclinado de la selección").assertExists()
+        rule.onNodeWithTag(CatalogReplaceButtonTag).assertIsEnabled()
+        assertTrue("elegir no reemplaza de golpe", confirmed.isEmpty())
+
+        rule.onNodeWithTag(CatalogReplaceButtonTag).performClick()
+        rule.waitForIdle()
+
+        assertEquals(listOf("incline_press"), confirmed.map { it.catalogDefinitionId })
+    }
+
+    @Test
+    fun soloSeEligeUnoACadaVez() {
+        setReplaceContent()
+
+        rule.onNodeWithContentDescription("Añadir Press Inclinado a la selección").performClick()
+        rule.waitForIdle()
+        rule.onNodeWithContentDescription("Añadir Aperturas a la selección").performClick()
+        rule.waitForIdle()
+
+        rule.onNodeWithContentDescription("Quitar Aperturas de la selección").assertExists()
+        rule.onNodeWithContentDescription("Añadir Press Inclinado a la selección").assertExists()
+    }
+
+    @Test
+    fun mismoMusculoDejaSoloLosQueComparten() {
+        setReplaceContent()
+        rule.onNodeWithText("Sentadilla").assertExists()
+
+        rule.onNodeWithText("Mismo músculo").performClick()
+        // La lista se recalcula aparte: se espera a que ya sea la filtrada (sigue «Aperturas» y se va «Sentadilla»).
+        rule.waitUntil(timeoutMillis = 15_000) {
+            rule.onAllNodesWithText("Aperturas").fetchSemanticsNodes().isNotEmpty() &&
+                rule.onAllNodesWithText("Sentadilla").fetchSemanticsNodes().isEmpty()
+        }
+
+        // «Todos» los devuelve a todos.
+        rule.onNodeWithText("Todos").performClick()
+        rule.waitUntil(timeoutMillis = 15_000) {
+            rule.onAllNodesWithText("Sentadilla").fetchSemanticsNodes().isNotEmpty()
+        }
     }
 }

@@ -28,20 +28,19 @@ import com.example.kpkn.ui.design.KpknType
 /** Etiqueta de prueba de la línea de contexto bajo el título del catálogo (LV5). */
 internal const val CatalogHeaderContextTag = "catalog_header_context"
 
-/** Título de la cabecera: «Reemplazar ejercicio» al reemplazar y «Añadir ejercicios» en el resto (LV5). */
+/** Título de la cabecera: «Reemplazar» al reemplazar (H1, LV5) y «Añadir ejercicios» en el resto. */
 internal fun catalogHeaderTitle(isReplacement: Boolean): String =
-    if (isReplacement) "Reemplazar ejercicio" else "Añadir ejercicios"
+    if (isReplacement) "Reemplazar" else "Añadir ejercicios"
 
 /**
- * Línea de contexto bajo el título (LV5): al reemplazar, «Reemplazando: <ejercicio>» (o nada si no hay nombre: «Agrega ejercicios para…»
- * no sería verdad); en el resto, «Agrega ejercicios para <parte>» si el catálogo se abre desde una parte de la sesión.
+ * Línea de contexto bajo el título: al reemplazar no hay (la tarjeta «Reemplazando» ocupa su lugar y «Agrega ejercicios para…» no sería
+ * verdad); en el resto, «Agrega ejercicios para <parte>» si el catálogo se abre desde una parte de la sesión.
  */
 internal fun catalogHeaderContextLine(
     isReplacement: Boolean,
-    replacingName: String?,
     targetGroupName: String?,
 ): String? = when {
-    isReplacement -> replacingName?.takeIf { it.isNotBlank() }?.let { "Reemplazando: ${it.trim()}" }
+    isReplacement -> null
     !targetGroupName.isNullOrBlank() -> "Agrega ejercicios para $targetGroupName"
     else -> null
 }
@@ -52,8 +51,10 @@ internal fun catalogHeaderContextLine(
  * (`KpknTextField` con la lupa) y una fila desplazable de filtros: Todos, Tren superior, Tren inferior y Músculo.
  *
  * Con un músculo elegido, su filtro se ve activo con su valor («Pectorales»). Al tocar Músculo se despliega la fila de [muscleIds].
- * Al reemplazar un ejercicio ([isReplacement], LV5) el título pasa a «Reemplazar ejercicio» y bajo él va «Reemplazando: …» con el
- * ejercicio actual ([replacingName]); sin nombre, solo cambia el título.
+ * Al reemplazar un ejercicio ([isReplacement], H1) el título pasa a «Reemplazar»; bajo él va la tarjeta fija «Reemplazando»
+ * ([replacingCard]), el buscador «Buscar otro ejercicio» y solo dos filtros: «Mismo músculo» ([onToggleSameMuscle], que usa el filtro de
+ * músculo de siempre con el músculo principal del ejercicio actual; sin él, no sale) y «Todos». Los filtros de región y de músculo
+ * sueltos no salen al reemplazar.
  * Sin estado: quien la usa guarda los filtros y la búsqueda.
  */
 @Composable
@@ -73,7 +74,9 @@ internal fun CatalogListHeader(
     onToggleMuscleId: (String) -> Unit,
     modifier: Modifier = Modifier,
     isReplacement: Boolean = false,
-    replacingName: String? = null,
+    replacingCard: CatalogReplacingCardModel? = null,
+    sameMuscleSelected: Boolean = false,
+    onToggleSameMuscle: (() -> Unit)? = null,
 ) {
     Column(
         modifier = modifier.fillMaxWidth(),
@@ -93,7 +96,7 @@ internal fun CatalogListHeader(
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis,
             )
-            val contextLine = catalogHeaderContextLine(isReplacement, replacingName, targetGroupName)
+            val contextLine = catalogHeaderContextLine(isReplacement, targetGroupName)
             if (contextLine != null) {
                 Text(
                     text = contextLine,
@@ -105,10 +108,13 @@ internal fun CatalogListHeader(
                 )
             }
         }
+        if (isReplacement && replacingCard != null) {
+            CatalogReplacingCard(model = replacingCard, modifier = Modifier.padding(horizontal = 16.dp))
+        }
         KpknTextField(
             value = query,
             onValueChange = onQueryChange,
-            placeholder = "Buscar ejercicio…",
+            placeholder = if (isReplacement) "Buscar otro ejercicio" else "Buscar ejercicio…",
             leadingIcon = KpknLineIcons.Search,
             modifier = Modifier
                 .fillMaxWidth()
@@ -123,36 +129,9 @@ internal fun CatalogListHeader(
                 chipRowScroll.animateScrollTo(chipRowScroll.maxValue)
             }
         }
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .horizontalScroll(chipRowScroll)
-                .padding(horizontal = 16.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            KpknChip(
-                text = "Todos",
-                selected = filterRegion == null && filterMuscle == null,
-                onClick = onClearFilters,
-            )
-            KpknChip(
-                text = "Tren superior",
-                selected = filterRegion == "UPPER",
-                onClick = onToggleUpper,
-            )
-            KpknChip(
-                text = "Tren inferior",
-                selected = filterRegion == "LOWER",
-                onClick = onToggleLower,
-            )
-            KpknChip(
-                text = filterMuscle?.let(::exerciseCatalogMuscleLabel) ?: "Músculo",
-                selected = muscleFilterExpanded || filterMuscle != null,
-                onClick = onToggleMuscle,
-            )
-        }
-        if (muscleFilterExpanded) {
+        if (isReplacement) {
+            // Al reemplazar (H1): «Mismo músculo» (el filtro de músculo de siempre, ya puesto) y «Todos». El filtro «Mismo patrón» del
+            // diseño no existe en el catálogo y no sale; el orden de la lista ya empieza por los del mismo patrón.
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -161,12 +140,65 @@ internal fun CatalogListHeader(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                muscleIds.forEach { muscleId ->
+                if (onToggleSameMuscle != null) {
                     KpknChip(
-                        text = exerciseCatalogMuscleLabel(muscleId),
-                        selected = filterMuscle == muscleId,
-                        onClick = { onToggleMuscleId(muscleId) },
+                        text = "Mismo músculo",
+                        selected = sameMuscleSelected,
+                        onClick = onToggleSameMuscle,
                     )
+                }
+                KpknChip(
+                    text = "Todos",
+                    selected = filterRegion == null && filterMuscle == null,
+                    onClick = onClearFilters,
+                )
+            }
+        } else {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .horizontalScroll(chipRowScroll)
+                    .padding(horizontal = 16.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                KpknChip(
+                    text = "Todos",
+                    selected = filterRegion == null && filterMuscle == null,
+                    onClick = onClearFilters,
+                )
+                KpknChip(
+                    text = "Tren superior",
+                    selected = filterRegion == "UPPER",
+                    onClick = onToggleUpper,
+                )
+                KpknChip(
+                    text = "Tren inferior",
+                    selected = filterRegion == "LOWER",
+                    onClick = onToggleLower,
+                )
+                KpknChip(
+                    text = filterMuscle?.let(::exerciseCatalogMuscleLabel) ?: "Músculo",
+                    selected = muscleFilterExpanded || filterMuscle != null,
+                    onClick = onToggleMuscle,
+                )
+            }
+            if (muscleFilterExpanded) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .horizontalScroll(rememberScrollState())
+                        .padding(horizontal = 16.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    muscleIds.forEach { muscleId ->
+                        KpknChip(
+                            text = exerciseCatalogMuscleLabel(muscleId),
+                            selected = filterMuscle == muscleId,
+                            onClick = { onToggleMuscleId(muscleId) },
+                        )
+                    }
                 }
             }
         }

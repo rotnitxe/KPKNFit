@@ -53,8 +53,8 @@ internal fun ExerciseCatalogScreen(
     val editingExisting = request.selectionMode == CatalogSelectionMode.SINGLE ||
         request.selectionMode == CatalogSelectionMode.REPLACEMENT
 
-    // Reemplazar (LV5): la página arranca en el catálogo con el ejercicio actual de contexto, no en su ficha. El nombre viene en el
-    // pedido; si no (el editor no lo manda), se saca del catálogo por su identidad.
+    // Reemplazar (LV5, H1): la página arranca en el catálogo con el ejercicio actual de contexto, no en su ficha. El nombre y la dosis
+    // del plan vienen en el pedido; si no hay nombre (el editor no lo manda), se saca del catálogo por su identidad.
     val replacement = remember(request, catalog) {
         val replacing = request.selectionMode == CatalogSelectionMode.REPLACEMENT ||
             request.origin == CatalogLaunchOrigin.REPLACEMENT
@@ -69,7 +69,10 @@ internal fun ExerciseCatalogScreen(
                 }
                 ?: request.targetCatalogDefinitionId
                     ?.let { id -> catalog.firstOrNull { it.catalogDefinitionId == id }?.name }
-            CatalogReplacementContext(exerciseName = request.targetExerciseName?.takeIf { it.isNotBlank() } ?: fromCatalog)
+            CatalogReplacementContext(
+                exerciseName = request.targetExerciseName?.takeIf { it.isNotBlank() } ?: fromCatalog,
+                planSummary = request.targetPlanSummary?.takeIf { it.isNotBlank() },
+            )
         }
     }
 

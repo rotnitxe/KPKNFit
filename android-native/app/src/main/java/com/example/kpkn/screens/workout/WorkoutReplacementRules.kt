@@ -7,6 +7,8 @@ import com.example.kpkn.data.models.LoadModeV2
 import com.example.kpkn.data.models.TrainingMode
 import com.example.kpkn.data.models.UnitModeV2
 import com.example.kpkn.domain.exercises.replacedWithCatalogExercise
+import com.example.kpkn.screens.sessioneditor.hardUnitSpaces
+import com.example.kpkn.screens.sessioneditor.sessionExerciseDose
 import java.util.UUID
 
 /**
@@ -67,6 +69,14 @@ internal fun replacementExerciseFor(
     }
     return replaced.copy(trainingMode = TrainingMode.REPS, sets = preservedSets)
 }
+
+/**
+ * Lo que se mantiene del plan al reemplazar, dicho para la persona: «4 × 4–6 · RIR 2» (cuántas series, su objetivo y la intensidad; sin
+ * el descanso). Es la regla de [replacementExerciseFor] en palabras, para la tarjeta y la nota del catálogo de reemplazo (H1), con el
+ * espacio inseparable antes de las unidades como en el resto de las dosis. Nulo si el hueco no tiene series.
+ */
+internal fun replacementPlanSummary(exercise: Exercise): String? =
+    sessionExerciseDose(exercise.sets, exercise.trainingMode, exercise.restTime, includeRest = false)?.let(::hardUnitSpaces)
 
 /** La serie tal como la define el hueco: sin cargas, modo de carga, técnicas ni referencias; solo lo que el producto deja pasar. */
 internal fun ExerciseSet.slotPlan(): ExerciseSet = ExerciseSet(

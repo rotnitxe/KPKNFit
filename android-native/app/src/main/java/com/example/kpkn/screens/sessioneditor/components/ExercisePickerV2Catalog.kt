@@ -66,6 +66,7 @@ import com.example.kpkn.domain.exercises.catalogv2.ExerciseCatalogStateV2
 import com.example.kpkn.domain.exercises.catalogv2.ExerciseCatalogV2
 import com.example.kpkn.domain.exercises.catalogv2.ExerciseConfigurationV2
 import com.example.kpkn.domain.exercises.catalogv2.ExerciseDefinitionV2
+import com.example.kpkn.domain.exercises.catalogv2.ExerciseLateralityV2
 import com.example.kpkn.domain.exercises.catalogv2.JointRoleV2
 import com.example.kpkn.domain.exercises.catalogv2.ExerciseSearchFiltersV2
 import com.example.kpkn.domain.exercises.catalogv2.ExerciseSearchHitV2
@@ -95,6 +96,8 @@ import com.example.kpkn.screens.sessioneditor.design.CatalogListHeader
 import com.example.kpkn.screens.sessioneditor.design.CatalogListSkeleton
 import com.example.kpkn.screens.sessioneditor.design.CatalogLoadError
 import com.example.kpkn.screens.sessioneditor.design.CatalogNoResults
+import com.example.kpkn.screens.sessioneditor.design.CatalogReplaceBar
+import com.example.kpkn.screens.sessioneditor.design.CatalogReplacingCardModel
 import com.example.kpkn.screens.sessioneditor.design.CatalogSelectionIsland
 import com.example.kpkn.screens.sessioneditor.design.CatalogSelectionSlot
 import com.example.kpkn.screens.sessioneditor.design.CatalogVariantChips
@@ -201,16 +204,27 @@ internal fun toggleCatalogDefinitionExpansion(
 internal const val CatalogCurrentExerciseLabel = "Ejercicio actual"
 
 /**
- * El catálogo se abre para reemplazar un ejercicio (LV5). [exerciseName] es el que ve la persona («Reemplazando: …»); puede faltar si el
- * ejercicio no tiene nombre resoluble, y entonces la cabecera solo cambia de título.
+ * El catálogo se abre para reemplazar un ejercicio (LV5, H1). [exerciseName] es el que ve la persona, en la tarjeta «Reemplazando»;
+ * puede faltar si el ejercicio no tiene nombre resoluble. [planSummary] es lo que se mantiene del plan, ya dicho («4 × 4–6 · RIR 2»);
+ * sin él no hay nota abajo.
  */
-internal data class CatalogReplacementContext(val exerciseName: String? = null)
+internal data class CatalogReplacementContext(
+    val exerciseName: String? = null,
+    val planSummary: String? = null,
+)
 
-/** El ejercicio que se reemplaza, ya localizado en el catálogo: de él salen el patrón y los músculos que ordenan la lista (LV5). */
+/**
+ * El ejercicio que se reemplaza, ya localizado en el catálogo (LV5, H1): de él salen el orden de la lista, el filtro «Mismo músculo»,
+ * la tarjeta «Reemplazando» y la línea de cada candidato (qué cambia respecto a él).
+ */
 internal data class CatalogReplacementAnchor(
     val definitionId: String,
     val movementPatternId: String?,
     val primaryMuscles: Set<String>,
+    val configurationId: String? = null,
+    val mainMuscle: String? = null,
+    val laterality: ExerciseLateralityV2? = null,
+    val axialLoadFactor: Double = 0.0,
 )
 
 /**
@@ -235,6 +249,10 @@ internal fun catalogReplacementAnchorFor(
         definitionId = definition.id,
         movementPatternId = configuration.profile.movementPatternId.takeIf { it.isNotBlank() },
         primaryMuscles = configuration.profile.primaryMuscles.toSet(),
+        configurationId = configuration.id,
+        mainMuscle = configuration.profile.primaryMuscles.firstOrNull(),
+        laterality = configuration.profile.laterality,
+        axialLoadFactor = configuration.profile.axialLoadFactor,
     )
 }
 
@@ -257,6 +275,75 @@ internal fun orderDefinitionsForReplacement(
         else -> 3
     }
     return definitions.sortedBy(::tier)
+}
+
+/**
+ * La tarjeta fija «Reemplazando» (H1): el ejercicio actual con su miniatura y «patrón · músculo · dosis del plan». El patrón y el músculo
+ * salen del catálogo y la dosis, de lo que trae el pedido; mientras el catálogo carga, o si el ejercicio no tiene identidad de catálogo,
+ * la tarjeta lleva el nombre y la dosis. Nulo si no hay ni un nombre que enseñar.
+ */
+internal fun catalogReplacingCardModel(
+    catalog: ExerciseCatalogV2?,
+    context: CatalogReplacementContext,
+    definitionId: String?,
+    configurationId: String?,
+): CatalogReplacingCardModel? {
+    val definitionsById = catalog?.families?.flatMap { it.definitions }?.associateBy { it.id }.orEmpty()
+    val anchor = catalogReplacementAnchorFor(definitionsById, definitionId, configurationId)
+    val definition = anchor?.let { definitionsById[it.definitionId] }
+    val name = context.exerciseName?.trim()?.takeIf { it.isNotEmpty() } ?: definition?.canonicalName ?: return null
+    val pattern = exercisePatternOf(definition?.canonicalName ?: name)
+    val subtitle = listOfNotNull(
+        pattern.label.takeIf { pattern != ExercisePattern.GENERIC },
+        anchor?.mainMuscle?.let(::exerciseCatalogMuscleLabel),
+        context.planSummary?.takeIf { it.isNotBlank() },
+    ).joinToString(" · ").takeIf { it.isNotEmpty() }
+    val thumbnail = ExerciseTechniqueImageLookup.resolveImageResId(
+        catalogDefinitionId = anchor?.definitionId ?: definitionId,
+        exerciseDbId = null,
+        exerciseId = anchor?.definitionId ?: definitionId ?: name,
+        catalogConfigurationId = anchor?.configurationId ?: configurationId,
+        selectedImplementation = null,
+    )
+    return CatalogReplacingCardModel(
+        name = name,
+        subtitle = subtitle,
+        thumbnailResId = thumbnail,
+        pattern = pattern,
+        mainMuscleId = anchor?.mainMuscle,
+    )
+}
+
+/**
+ * La línea corta de un candidato al reemplazar (H1): su implemento y lo que cambia respecto al ejercicio actual. Solo dice lo que el
+ * catálogo sabe de las dos configuraciones: «sin carga axial» (si el actual la tiene), la lateralidad si es otra o el músculo principal si
+ * es otro. Si no hay nada que decir, solo el implemento. La fila del propio ejercicio actual no lleva diferencia. Nulo si no hay
+ * configuración que mirar (la fila vuelve a su línea de siempre).
+ */
+internal fun catalogReplacementCandidateLine(
+    definition: ExerciseDefinitionV2,
+    configuration: ExerciseConfigurationV2?,
+    anchor: CatalogReplacementAnchor,
+): String? {
+    val shown = configuration ?: return null
+    val profile = shown.profile
+    val material = shown.selectedOptions["implement"]
+        ?.takeIf { it.isNotBlank() && it != "default" }
+        ?.let { exerciseCatalogOptionLabel(it, definition.id) }
+    val mainMuscle = profile.primaryMuscles.firstOrNull()
+    val difference = when {
+        definition.id == anchor.definitionId -> null
+        anchor.axialLoadFactor > 0.0 && profile.axialLoadFactor == 0.0 -> "sin carga axial"
+        anchor.laterality != null && profile.laterality != anchor.laterality -> when (profile.laterality) {
+            ExerciseLateralityV2.UNILATERAL -> "unilateral"
+            ExerciseLateralityV2.BILATERAL -> "bilateral"
+            else -> null
+        }
+        mainMuscle != null && anchor.primaryMuscles.isNotEmpty() && mainMuscle !in anchor.primaryMuscles ->
+            exerciseCatalogMuscleLabel(mainMuscle)
+        else -> null
+    }
+    return listOfNotNull(material, difference).joinToString(" · ").takeIf { it.isNotEmpty() }
 }
 
 internal fun shouldShowCatalogCreateSuggestion(
@@ -384,6 +471,21 @@ internal fun ExercisePickerV2Catalog(
     var filterMuscle by rememberSaveable { mutableStateOf<String?>(null) }
     var muscleFilterExpanded by rememberSaveable { mutableStateOf(false) }
 
+    // Al reemplazar (H1), la tarjeta fija «Reemplazando» y el filtro «Mismo músculo» salen del ejercicio actual.
+    val replacingCard = remember(replacement, state, initialCatalogDefinitionId, initialCatalogConfigurationId) {
+        if (replacement == null) {
+            null
+        } else {
+            catalogReplacingCardModel(
+                catalog = (state as? ExerciseCatalogStateV2.Ready)?.catalog,
+                context = replacement,
+                definitionId = initialCatalogDefinitionId,
+                configurationId = initialCatalogConfigurationId,
+            )
+        }
+    }
+    val sameMuscleId = replacingCard?.mainMuscleId
+
     val catalogShape = RoundedCornerShape(KpknGlass.SheetCornerRadius)
     Box(
         modifier = if (opaqueSurface) {
@@ -411,7 +513,16 @@ internal fun ExercisePickerV2Catalog(
                 onBack = if (opaqueSurface) onDismiss else null,
                 targetGroupName = targetGroupName,
                 isReplacement = replacement != null,
-                replacingName = replacement?.exerciseName,
+                replacingCard = replacingCard,
+                sameMuscleSelected = sameMuscleId != null && filterMuscle == sameMuscleId,
+                onToggleSameMuscle = if (sameMuscleId != null) {
+                    {
+                        filterRegion = null
+                        filterMuscle = if (filterMuscle == sameMuscleId) null else sameMuscleId
+                    }
+                } else {
+                    null
+                },
                 filterRegion = filterRegion,
                 filterMuscle = filterMuscle,
                 muscleFilterExpanded = muscleFilterExpanded,
@@ -684,6 +795,8 @@ private fun ColumnScope.CatalogReadyContent(
         )
     }
     LaunchedEffect(catalog, catalogProjection, selectedExercisesIds) {
+        // Al reemplazar (H1) lo elegido vive aquí y el padre no guarda ids: reconstruirlo desde ellos lo vaciaría al tocar un filtro.
+        if (replacement != null) return@LaunchedEffect
         val next = restoreSelectedCatalogRows(
             catalog = catalog,
             definitionsById = definitionsById,
@@ -757,6 +870,8 @@ private fun ColumnScope.CatalogReadyContent(
 
     // La isla solo con algo elegido, fuera de la edición de una sola pieza y sin teclado abierto.
     val showIsland = !editingExisting && selectedRows.value.isNotEmpty() && !imeVisible
+    // Al reemplazar (H1), la barra con la nota y el botón va siempre, salvo con el teclado abierto.
+    val showReplaceBar = replacement != null && !imeVisible
     Box(Modifier.fillMaxWidth().weight(1f)) {
         LazyColumn(
             state = listState,
@@ -781,7 +896,7 @@ private fun ColumnScope.CatalogReadyContent(
                 start = 16.dp,
                 top = 4.dp,
                 end = 16.dp,
-                bottom = if (showIsland) with(density) { bottomPanelHeight.toDp() } + 8.dp else 16.dp,
+                bottom = if (showIsland || showReplaceBar) with(density) { bottomPanelHeight.toDp() } + 8.dp else 16.dp,
             ),
         ) {
             item("result-count") {
@@ -809,13 +924,15 @@ private fun ColumnScope.CatalogReadyContent(
                     CatalogCustomExerciseItem(
                         exercise = custom,
                         selected = custom.id in selectedRows.value,
-                        editingExisting = editingExisting,
+                        // Al reemplazar (H1) un ejercicio propio se elige como cualquier otro candidato y se confirma abajo.
+                        editingExisting = editingExisting && replacement == null,
                         onSelect = { onSelect(custom) },
                         onToggle = {
-                            val next = if (custom.id in selectedRows.value) {
-                                selectedRows.value - custom.id
-                            } else {
-                                selectedRows.value + (custom.id to custom)
+                            val next: Map<String, ExerciseMuscleInfo> = when {
+                                replacement != null ->
+                                    if (custom.id in selectedRows.value) emptyMap() else mapOf(custom.id to custom)
+                                custom.id in selectedRows.value -> selectedRows.value - custom.id
+                                else -> selectedRows.value + (custom.id to custom)
                             }
                             selectedRows.value = next
                             onSelectionChange(next.values.toList())
@@ -912,7 +1029,12 @@ private fun ColumnScope.CatalogReadyContent(
                                 ?: bestMatchingConfigurationId(definition, newDraft, default)
                             val info = exactInfo(catalog, definition, nextConfigId)
                             if (info != null) {
-                                val key = info.catalogConfigurationId?.takeIf { it.isNotBlank() } ?: info.id
+                                // Al reemplazar (H1) lo elegido se guarda por su definición: así lo sigue cada cambio de variante.
+                                val key = if (replacement != null) {
+                                    definition.id
+                                } else {
+                                    info.catalogConfigurationId?.takeIf { it.isNotBlank() } ?: info.id
+                                }
                                 selectedRows.value = selectedRows.value
                                     .filterKeys { it != definition.id } + (key to info)
                             }
@@ -930,7 +1052,10 @@ private fun ColumnScope.CatalogReadyContent(
                         } else {
                             val info = exactInfo(catalog, definition, resolvedConfigurationId)
                             if (info != null) {
-                                if (editingExisting) {
+                                if (replacement != null) {
+                                    // Al reemplazar (H1) se elige uno y se confirma abajo: el círculo no reemplaza de golpe.
+                                    selectedRows.value = mapOf(definition.id to info)
+                                } else if (editingExisting) {
                                     onSelect(info)
                                 } else {
                                     val key = info.catalogConfigurationId?.takeIf { it.isNotBlank() } ?: info.id
@@ -954,7 +1079,10 @@ private fun ColumnScope.CatalogReadyContent(
                         defaultImplementation = default?.selectedOptions?.get("implement"),
                         definitionId = definition.id,
                     )
-                    val subtitle = listOfNotNull(muscleLabel, materialLabel).joinToString(" · ")
+                    // Al reemplazar (H1), la línea de cada candidato dice su implemento y lo que cambia respecto al ejercicio actual.
+                    val subtitle = replacementAnchor
+                        ?.let { catalogReplacementCandidateLine(definition, default, it) }
+                        ?: listOfNotNull(muscleLabel, materialLabel).joinToString(" · ")
                     // La línea de coincidencias no repite lo que la fila ya dice (músculo y material), y sin búsqueda no se pinta (SE6b).
                     val searchMatchLabel = catalogMatchLabel(
                         matchChips = searchMatchChips[definition.id].orEmpty(),
@@ -1109,6 +1237,20 @@ private fun ColumnScope.CatalogReadyContent(
                     )
                 }
             }
+        }
+
+        // Al reemplazar (H1), abajo van la nota de lo que se mantiene del plan y el botón que confirma lo elegido.
+        if (showReplaceBar) {
+            val chosen = selectedRows.value.values.firstOrNull()
+            CatalogReplaceBar(
+                note = replacement?.planSummary?.takeIf { it.isNotBlank() }?.let { "Se mantienen las series del plan: $it" },
+                buttonText = chosen?.let { "Reemplazar por ${it.name}" } ?: "Reemplazar",
+                enabled = chosen != null,
+                onConfirm = { chosen?.let(onSelect) },
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .onSizeChanged { bottomPanelHeight = it.height },
+            )
         }
 
         // La isla flota abajo: resumen, «Superserie» si se puede y «Añadir N». Entra con un fundido y 8 dp de subida.

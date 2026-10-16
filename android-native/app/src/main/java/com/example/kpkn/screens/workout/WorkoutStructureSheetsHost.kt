@@ -368,8 +368,9 @@ internal fun WorkoutStructureSheetsHost(
                     targetCatalogDefinitionId = replaceTarget?.catalogDefinitionId,
                     targetCatalogConfigurationId = replaceTarget?.catalogConfigurationId
                         ?: replaceTarget?.exerciseDbId,
-                    // El catálogo enseña «Reemplazando: …» con el nombre que la persona ve en la sesión (LV5).
+                    // La tarjeta «Reemplazando» del catálogo enseña el nombre que la persona ve en la sesión y lo que se mantiene del plan (LV5, H1).
                     targetExerciseName = replaceTarget?.let(::displayWorkoutExerciseName),
+                    targetPlanSummary = replaceTarget?.let(::replacementPlanSummary),
                     initialQuery = state.replaceSearchQuery,
                 )
                 state.showReplaceExercisePicker = false
@@ -841,7 +842,10 @@ internal fun WorkoutStructureSheetsHost(
                 },
                 editingCatalogDefinitionId = replaceTarget?.catalogDefinitionId,
                 editingCatalogConfigurationId = replaceTarget?.catalogConfigurationId,
-                replacement = CatalogReplacementContext(exerciseName = replaceTarget?.let(::displayWorkoutExerciseName)),
+                replacement = CatalogReplacementContext(
+                    exerciseName = replaceTarget?.let(::displayWorkoutExerciseName),
+                    planSummary = replaceTarget?.let(::replacementPlanSummary),
+                ),
             )
         }
     }

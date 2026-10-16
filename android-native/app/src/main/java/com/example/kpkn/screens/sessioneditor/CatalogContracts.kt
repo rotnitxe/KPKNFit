@@ -53,10 +53,15 @@ data class CatalogLaunchRequest(
     val selectedExerciseIds: List<String> = emptyList(),
     val initialQuery: String = "",
     /**
-     * Nombre con el que la persona ve el ejercicio que se reemplaza (LV5). Solo lo usa la cabecera del catálogo
-     * («Reemplazando: …»); no entra en la validación del resultado. Los pedidos antiguos lo decodifican como nulo.
+     * Nombre con el que la persona ve el ejercicio que se reemplaza (LV5). Solo lo usa la tarjeta «Reemplazando» del catálogo; no entra
+     * en la validación del resultado. Los pedidos antiguos lo decodifican como nulo.
      */
     val targetExerciseName: String? = null,
+    /**
+     * Lo que se mantiene del plan al reemplazar, ya dicho («4 × 4–6 · RIR 2»). Lo calcula quien abre el catálogo con la dosis del
+     * ejercicio; el catálogo solo lo enseña en la tarjeta «Reemplazando» y en la nota de abajo. Nulo en los pedidos antiguos.
+     */
+    val targetPlanSummary: String? = null,
 )
 
 @Serializable
