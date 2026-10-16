@@ -19,8 +19,9 @@ data class ReorderPlan(
 )
 
 /**
- * Reordenar los ejercicios de una sesión en vivo (LV4, 10.1). Una sola fuente de verdad para el cajón de «Reordenar», el arrastre del
- * modo dios, «Mover al final» del relator, el deshacer del plan y la copia del cambio al programa.
+ * Reordenar los ejercicios de una sesión en vivo (LV4, 10.1). Una sola fuente de verdad para la hoja «Orden de la sesión» (arrastrar),
+ * «Mover al final» del relator, el deshacer del plan y la copia del cambio al programa. Desde LV11 lo hecho y lo que está en curso queda
+ * fijo arriba ([keepLockedFirst]).
  *
  * El orden que ve la persona es la lista plana `Session.allExercises()`: primero los ejercicios sueltos, después cada parte (grupo) en su
  * sitio y, al final, las partes de cardio (al principio si `cardioFirst`). Esa secuencia de «contenedores» es fija; ordenar es repartir
@@ -173,6 +174,99 @@ object LiveSessionReorder {
         units.removeAt(unitIndex)
         units.add(neighbor, unit)
         return units.flatten()
+    }
+
+    // ── Reordenar arrastrando (LV11, A3) ───────────────────────────────────────────────────────────────────────────────────────
+
+    /**
+     * Las «unidades» de un orden plano: un ejercicio suelto o una racha seguida de la misma superserie. Es lo que la hoja de «Orden de la
+     * sesión» pinta como una fila y lo que arrastra de una vez.
+     */
+    fun units(order: List<String>, groupOf: (String) -> String?): List<List<String>> {
+        val units = ArrayList<MutableList<String>>()
+        for (id in order) {
+            val group = groupOf(id)
+            val last = units.lastOrNull()
+            if (group != null && last != null && groupOf(last.first()) == group) last.add(id) else units.add(mutableListOf(id))
+        }
+        return units
+    }
+
+    /** Mueve la unidad [fromUnit] a la posición [toUnit] (índices de unidad, no de ejercicio) y devuelve el orden plano. */
+    fun moveUnitTo(order: List<String>, groupOf: (String) -> String?, fromUnit: Int, toUnit: Int): List<String> {
+        val units = units(order, groupOf).toMutableList()
+        if (fromUnit !in units.indices || toUnit !in units.indices || fromUnit == toUnit) return order
+        val moved = units.removeAt(fromUnit)
+        units.add(toUnit, moved)
+        return units.flatten()
+    }
+
+    /**
+     * Cambia el orden de un miembro dentro de su superserie ([delta] −1 lo sube, 1 lo baja) sin salirse del bloque: la superserie sigue
+     * siendo una unidad y lo único que cambia es el orden de sus rondas. Un ejercicio suelto, o el miembro de un borde que ya no puede
+     * moverse hacia ese lado, deja el orden como estaba.
+     */
+    fun moveMemberWithinUnit(order: List<String>, groupOf: (String) -> String?, id: String, delta: Int): List<String> {
+        val index = order.indexOf(id)
+        if (index < 0 || delta == 0) return order
+        val group = groupOf(id) ?: return order
+        val target = index + if (delta < 0) -1 else 1
+        if (target !in order.indices || groupOf(order[target]) != group) return order
+        return order.toMutableList().also { list ->
+            val moved = list.removeAt(index)
+            list.add(target, moved)
+        }
+    }
+
+    /** Si un miembro de una superserie está fijo, la superserie entera lo está (se mueve y se queda como una unidad). */
+    fun lockWholeUnits(order: List<String>, groupOf: (String) -> String?, locked: Set<String>): Set<String> {
+        if (locked.isEmpty()) return locked
+        val result = HashSet(locked)
+        for (unit in units(order, groupOf)) if (unit.any { it in locked }) result.addAll(unit)
+        return result
+    }
+
+    /**
+     * Lo hecho y lo que está en curso queda fijo arriba (LV11, A3; regla del usuario): nada puede ponerse delante de ello.
+     *
+     * [requested] es el orden que la persona quiere, [current] el que hay ahora y [locked] los ejercicios fijos. Los fijos conservan su
+     * orden de ahora; cada ejercicio libre queda siempre detrás de todos los fijos que ya tenía delante, y entre dos fijos solo se queda
+     * donde ya estaba o más abajo. Dentro de cada hueco entre fijos, los libres siguen el orden pedido. Un ejercicio libre que ya estaba
+     * delante de un fijo (la persona saltó de uno a otro) puede quedarse donde estaba o pasar detrás, nunca delante de otro fijo.
+     *
+     * Solo cuenta lo que viene en [requested] y existe en [current]; el resto lo conserva quien aplique el orden.
+     */
+    fun keepLockedFirst(requested: List<String>, current: List<String>, locked: Set<String>): List<String> {
+        val currentSet = current.toHashSet()
+        val request = requested.distinct().filter { it in currentSet }
+        if (locked.isEmpty() || request.isEmpty()) return request
+        val requestSet = request.toHashSet()
+        val base = current.filter { it in requestSet }
+        val skeleton = base.filter { it in locked }
+        if (skeleton.isEmpty()) return request
+
+        // Cuántos fijos tenía delante cada libre.
+        val originalGap = HashMap<String, Int>()
+        var seen = 0
+        for (id in base) if (id in locked) seen++ else originalGap[id] = seen
+
+        // Hueco final de cada libre: el que pidió, pero nunca antes del que ya tenía.
+        val buckets = List(skeleton.size + 1) { ArrayList<String>() }
+        var lockedBefore = 0
+        for (id in request) {
+            if (id in locked) {
+                lockedBefore++
+                continue
+            }
+            val gap = maxOf(originalGap.getValue(id), lockedBefore.coerceAtMost(skeleton.size))
+            buckets[gap].add(id)
+        }
+        val result = ArrayList<String>(request.size)
+        for (gap in buckets.indices) {
+            result.addAll(buckets[gap])
+            if (gap < skeleton.size) result.add(skeleton[gap])
+        }
+        return result
     }
 
     private class Slot(val partPosition: Int?, val name: String?, val cardioZone: Boolean)

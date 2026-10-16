@@ -35,8 +35,6 @@ import com.example.kpkn.data.models.WorkoutSubTag
 import com.example.kpkn.data.models.WorkoutTag
 import com.example.kpkn.screens.workout.ExerciseHistoryContent
 import com.example.kpkn.screens.workout.ExerciseHistoryEntry
-import com.example.kpkn.screens.workout.ExerciseOptionsCardioRows
-import com.example.kpkn.screens.workout.ExerciseOptionsStrengthRows
 import com.example.kpkn.screens.workout.ExerciseSheetSubtitle
 import com.example.kpkn.screens.workout.ExerciseSetupSheetContent
 import com.example.kpkn.screens.workout.ExerciseTagSheetContent
@@ -47,6 +45,40 @@ import com.example.kpkn.screens.workout.WorkoutReorderSheets
 import com.example.kpkn.screens.workout.WorkoutStructureSheetsState
 import com.example.kpkn.screens.workout.WorkoutSupersetCreatorSheet
 import com.example.kpkn.screens.workout.WorkoutTagManagerModal
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Text
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.performClick
+import com.example.kpkn.data.models.CardioDetails
+import com.example.kpkn.data.models.CardioType
+import com.example.kpkn.data.models.SupersetGroup
+import com.example.kpkn.screens.onboarding.design.WizardColors
+import com.example.kpkn.screens.sessioneditor.components.sheets.SessionExerciseThumb
+import com.example.kpkn.screens.workout.SeriesTypeTarget
+import com.example.kpkn.screens.workout.TimelineElement
+import com.example.kpkn.screens.workout.WorkoutSetCardVisualState
+import com.example.kpkn.screens.workout.WorkoutSetPager
+import com.example.kpkn.screens.workout.components.ExerciseOptionsCardioContent
+import com.example.kpkn.screens.workout.components.ExerciseOptionsIconThumb
+import com.example.kpkn.screens.workout.components.ExerciseOptionsSheet
+import com.example.kpkn.screens.workout.components.ExerciseOptionsStrengthContent
+import com.example.kpkn.screens.workout.components.ExerciseOptionsSupersetContent
+import com.example.kpkn.screens.workout.components.SeriesOptionsSheet
+import com.example.kpkn.screens.workout.components.SupersetMemberOption
+import com.example.kpkn.screens.workout.components.WorkoutRoadmapBar
+import com.example.kpkn.screens.workout.components.WorkoutUiTokens
+import com.example.kpkn.screens.workout.exerciseOptionsSubtitle
+import com.example.kpkn.screens.workout.supersetOptionsSubtitle
+import com.example.kpkn.ui.components.icons.KpknLineIcons
+import com.example.kpkn.ui.design.KpknSurface
+import com.example.kpkn.ui.design.KpknType
 import com.example.kpkn.ui.theme.KPKNTheme
 import dev.chrisbanes.haze.HazeState
 import org.junit.Assume.assumeTrue
@@ -168,72 +200,56 @@ class LiveSessionOptionsRenderSheetTest {
 
     private fun onlyWhenAsked() = assumeTrue("sin KPKN_RENDER_DIR no se dibuja nada", System.getenv("KPKN_RENDER_DIR") != null)
 
+    // ── C1 · Opciones de la serie ──
+
+    @Test
+    fun opcionesSerie100() {
+        onlyWhenAsked()
+        draw("opciones_serie_100", 1f) { OpcionesSerie() }
+    }
+
+    @Test
+    fun opcionesSerie130() {
+        onlyWhenAsked()
+        draw("opciones_serie_130", 1.3f) { OpcionesSerie() }
+    }
+
+    // ── C2 · Opciones del ejercicio ──
+
     @Test
     fun opcionesFuerza100() {
         onlyWhenAsked()
-        draw("opciones_fuerza_100", 1f) {
-            WorkoutDrawer(title = SQ.name, onDismiss = {}, hazeState = HazeState()) {
-                ExerciseOptionsStrengthRows(
-                    onHistory = {},
-                    onTags = {},
-                    onEdit = {},
-                    onReplace = {},
-                    onAddOther = {},
-                    onReorder = {},
-                    onCreateSuperset = {},
-                    onSkip = {},
-                )
-            }
-        }
+        draw("opciones_fuerza_100", 1f) { OpcionesFuerza() }
     }
 
     @Test
     fun opcionesFuerza130() {
         onlyWhenAsked()
-        draw("opciones_fuerza_130", 1.3f) {
-            WorkoutDrawer(title = SQ.name, onDismiss = {}, hazeState = HazeState()) {
-                ExerciseOptionsStrengthRows(
-                    onHistory = {},
-                    onTags = {},
-                    onEdit = {},
-                    onReplace = {},
-                    onAddOther = {},
-                    onReorder = {},
-                    onCreateSuperset = {},
-                    onSkip = {},
-                )
-            }
-        }
+        draw("opciones_fuerza_130", 1.3f) { OpcionesFuerza() }
+    }
+
+    @Test
+    fun opcionesSuperserie100() {
+        onlyWhenAsked()
+        draw("opciones_superserie_100", 1f) { OpcionesSuperserie() }
+    }
+
+    @Test
+    fun opcionesSuperserie130() {
+        onlyWhenAsked()
+        draw("opciones_superserie_130", 1.3f) { OpcionesSuperserie() }
     }
 
     @Test
     fun opcionesCardio100() {
         onlyWhenAsked()
-        draw("opciones_cardio_100", 1f) {
-            WorkoutDrawer(title = "Cardio", onDismiss = {}, hazeState = HazeState()) {
-                ExerciseOptionsCardioRows(
-                    summary = "Espacio cardio · 20 min",
-                    onEdit = {},
-                    onReplace = {},
-                    onSkip = {},
-                )
-            }
-        }
+        draw("opciones_cardio_100", 1f) { OpcionesCardio() }
     }
 
     @Test
     fun opcionesCardio130() {
         onlyWhenAsked()
-        draw("opciones_cardio_130", 1.3f) {
-            WorkoutDrawer(title = "Cardio", onDismiss = {}, hazeState = HazeState()) {
-                ExerciseOptionsCardioRows(
-                    summary = "Espacio cardio · 20 min",
-                    onEdit = {},
-                    onReplace = {},
-                    onSkip = {},
-                )
-            }
-        }
+        draw("opciones_cardio_130", 1.3f) { OpcionesCardio() }
     }
 
     @Test
@@ -296,6 +312,8 @@ class LiveSessionOptionsRenderSheetTest {
         draw("historial_130", 1.3f) { HistoryDrawer() }
     }
 
+    // ── C3 · Orden de la sesión ──
+
     @Test
     fun reordenar100() {
         onlyWhenAsked()
@@ -306,6 +324,18 @@ class LiveSessionOptionsRenderSheetTest {
     fun reordenar130() {
         onlyWhenAsked()
         draw("reordenar_130", 1.3f) { ReorderSheet() }
+    }
+
+    @Test
+    fun reordenarSeleccion100() {
+        onlyWhenAsked()
+        draw("reordenar_seleccion_100", 1f, afterShow = { marcarEnLaHojaDeOrden() }) { ReorderSheet() }
+    }
+
+    @Test
+    fun reordenarSeleccion130() {
+        onlyWhenAsked()
+        draw("reordenar_seleccion_130", 1.3f, afterShow = { marcarEnLaHojaDeOrden() }) { ReorderSheet() }
     }
 
     @Test
@@ -405,18 +435,174 @@ class LiveSessionOptionsRenderSheetTest {
         }
     }
 
+    /** Lo que se ve tras abrir «Seleccionar» y marcar la extensión de cuádriceps y la superserie. */
+    private fun marcarEnLaHojaDeOrden() {
+        rule.onNodeWithText("Seleccionar").performClick()
+        rule.waitForIdle()
+        rule.onNodeWithText("Extensión de cuádriceps").performClick()
+        rule.onNodeWithText("Peso muerto rumano + Curl femoral").performClick()
+        rule.waitForIdle()
+    }
+
+    /** La sesión de la sentadilla de detrás de las hojas de las capturas (C1): cabecera y tarjeta atenuadas. */
+    @Composable
+    private fun SesionDeDetras() {
+        Column(Modifier.fillMaxSize().padding(horizontal = 20.dp, vertical = 22.dp)) {
+            Text("Sentadilla Trasera con…", style = KpknType.title, color = WizardColors.text.copy(alpha = 0.35f))
+            Box(
+                Modifier
+                    .padding(top = 24.dp)
+                    .fillMaxWidth()
+                    .height(430.dp)
+                    .clip(RoundedCornerShape(28.dp))
+                    .background(KpknSurface.module.copy(alpha = 0.35f)),
+            )
+        }
+    }
+
+    @Composable
+    private fun OpcionesSerie() {
+        val completed = mapOf(
+            "sq_0" to CompletedSet(id = "c0", weight = 120.0, reps = 6, actualIntensityMode = IntensityMode.RIR, actualIntensityValue = 2.0),
+        )
+        Box(Modifier.fillMaxSize()) {
+            SesionDeDetras()
+            SeriesOptionsSheet(
+                exercise = SQ.copy(sets = SQ.sets + sampleSet("sq-4", 120.0, 6)),
+                target = SeriesTypeTarget(exerciseId = "sq", fromSetIdx = 1, toSetIdx = 1),
+                completedSets = completed,
+                omittedSetKeys = emptySet(),
+                onDismiss = {},
+                onApply = { _, _ -> },
+                onEdit = {},
+                onAddSet = {},
+                onSkipSet = {},
+                onDeleteSet = {},
+                bottomClearance = WorkoutUiTokens.liveCockpitCompactHeight(1f) + 8.dp,
+            )
+            // La barra inferior queda por encima del velo, como en la sesión.
+            WorkoutRoadmapBar(
+                exercises = SAMPLE_EXERCISES,
+                currentIdx = 0,
+                currentSetIdx = 1,
+                completedSets = completed,
+                onSelect = {},
+                aboveCarousel = {
+                    WorkoutSetPager(
+                        elements = listOf(
+                            TimelineElement.BilateralSet(pageIndex = 0, label = "S1", state = WorkoutSetCardVisualState.COMPLETED),
+                            TimelineElement.BilateralSet(pageIndex = 1, label = "S2", state = WorkoutSetCardVisualState.ACTIVE),
+                            TimelineElement.BilateralSet(pageIndex = 2, label = "S3", state = WorkoutSetCardVisualState.FUTURE),
+                            TimelineElement.BilateralSet(pageIndex = 3, label = "S4", state = WorkoutSetCardVisualState.FUTURE),
+                        ),
+                        activeElementIndex = 1,
+                        completedCount = 1,
+                        totalCount = 4,
+                        onSelectPage = {},
+                        onAddSet = {},
+                        onLongPressPage = {},
+                    )
+                },
+                modifier = Modifier.align(Alignment.BottomCenter).padding(horizontal = 12.dp, vertical = 8.dp),
+            )
+        }
+    }
+
+    @Composable
+    private fun OpcionesFuerza() {
+        val completed = mapOf("sq_0" to CompletedSet(id = "c0", weight = 120.0, reps = 6))
+        ExerciseOptionsSheet(
+            title = SQ.name,
+            subtitle = exerciseOptionsSubtitle(SQ, completed, emptySet()),
+            onDismiss = {},
+            hazeState = HazeState(),
+            thumbnail = { SessionExerciseThumb(SQ, dimension = 52.dp) },
+        ) {
+            ExerciseOptionsStrengthContent(
+                onReplace = {}, onReorder = {}, onCreateSuperset = {}, onHistory = {}, onUltraFast = {}, onNotes = {},
+                onTags = {}, onEdit = {}, onAddOther = {}, onSkip = {}, onRemove = {},
+            )
+        }
+    }
+
+    @Composable
+    private fun OpcionesSuperserie() {
+        ExerciseOptionsSheet(
+            title = "Superserie",
+            subtitle = supersetOptionsSubtitle(rounds = 3, members = 2),
+            onDismiss = {},
+            hazeState = HazeState(),
+            thumbnail = { ExerciseOptionsIconThumb(KpknLineIcons.Link) },
+        ) {
+            ExerciseOptionsSupersetContent(
+                members = listOf(SupersetMemberOption("pm", PM.name), SupersetMemberOption("press", PRESS.name)),
+                onGo = {}, onRounds = {}, onAddFromSession = {}, onAddFromCatalog = {}, onOpenMember = {}, onDissolve = {},
+            )
+        }
+    }
+
+    @Composable
+    private fun OpcionesCardio() {
+        val cinta = Exercise(
+            id = "run",
+            name = "Cinta",
+            cardioDetails = CardioDetails(type = CardioType.TREADMILL, targetDurationSeconds = 1200),
+            sets = listOf(ExerciseSet(id = "run-0")),
+        )
+        ExerciseOptionsSheet(
+            title = cinta.name,
+            subtitle = exerciseOptionsSubtitle(cinta, emptyMap(), emptySet()),
+            onDismiss = {},
+            hazeState = HazeState(),
+            thumbnail = { SessionExerciseThumb(cinta, dimension = 52.dp) },
+        ) {
+            ExerciseOptionsCardioContent(onEdit = {}, onReplace = {}, onSkip = {}, onRemove = {})
+        }
+    }
+
+    /** La sesión del prototipo C3: lo hecho y lo en curso arriba y fijos, una superserie como una sola fila y dos ejercicios por mover. */
     @Composable
     private fun ReorderSheet() {
+        val mov = reorderExercise("mov", "Movilidad de cadera", sets = 3)
+        val sentadilla = reorderExercise("sq4", "Sentadilla trasera", sets = 4)
+        val rdl = reorderExercise("rdl", "Peso muerto rumano", sets = 3, group = "g1")
+        val curl = reorderExercise("curl", "Curl femoral", sets = 3, group = "g1")
+        val ext = reorderExercise("ext", "Extensión de cuádriceps", sets = 3)
+        val talones = reorderExercise("tal", "Elevación de talones", sets = 3)
+        val all = listOf(mov, sentadilla, rdl, curl, ext, talones)
+        val session = Session(
+            id = "pierna-a",
+            name = "Pierna A",
+            exercises = all,
+            supersetGroups = listOf(SupersetGroup(id = "g1", exerciseOrder = listOf("rdl", "curl"), rounds = 3)),
+        )
+        val completed = (0..2).associate { "mov_$it" to CompletedSet(id = "m$it", weight = 0.0, reps = 10) } +
+            mapOf("sq4_0" to CompletedSet(id = "s0", weight = 120.0, reps = 6))
         WorkoutReorderSheets(
-            state = WorkoutStructureSheetsState().apply {
-                showReorderSheet = true
-                reorderSheetExerciseIds = listOf(PM.id, SQ.id, PRESS.id)
+            state = remember {
+                WorkoutStructureSheetsState().apply {
+                    showReorderSheet = true
+                    reorderSheetExerciseIds = all.map { it.id }
+                }
             },
-            visibleExercises = SAMPLE_EXERCISES,
-            originalExercisePartMap = mapOf(PM.id to "Sesión principal", SQ.id to "Sesión principal", PRESS.id to "Superserie A"),
+            visibleExercises = all,
+            originalExercisePartMap = all.associate { it.id to "Sesión principal" },
             onApplyReorder = { _, _, _ -> },
+            session = session,
+            completedSets = completed,
+            omittedSetKeys = emptySet(),
+            hazeState = HazeState(),
         )
     }
+
+    private fun reorderExercise(id: String, name: String, sets: Int, group: String? = null) = Exercise(
+        id = id,
+        name = name,
+        trainingMode = TrainingMode.REPS,
+        sets = (0 until sets).map { sampleSet("$id-$it", 100.0, 8) },
+        supersetGroupRef = group,
+        supersetId = group,
+    )
 
     @Composable
     private fun SupersetSheet() {
@@ -434,8 +620,8 @@ class LiveSessionOptionsRenderSheetTest {
         )
     }
 
-    /** Dibuja [content] dentro de una caja de 360 × 880 dp con la letra al [fontScale] y la guarda como PNG. */
-    private fun draw(name: String, fontScale: Float, content: @Composable () -> Unit) {
+    /** Dibuja [content] dentro de una caja de 360 × 880 dp con la letra al [fontScale] y la guarda como PNG; [afterShow] toca la escena antes de guardarla. */
+    private fun draw(name: String, fontScale: Float, afterShow: (() -> Unit)? = null, content: @Composable () -> Unit) {
         rule.setContent {
             hostView = LocalView.current
             // 3 px por dp: pantalla de 360 dp.
@@ -455,6 +641,8 @@ class LiveSessionOptionsRenderSheetTest {
                 }
             }
         }
+        rule.waitForIdle()
+        afterShow?.invoke()
         rule.waitForIdle()
         save(name)
     }
