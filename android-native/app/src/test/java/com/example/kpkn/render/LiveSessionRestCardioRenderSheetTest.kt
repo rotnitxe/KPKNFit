@@ -96,7 +96,7 @@ private val SAMPLE_SUGGESTION = PendingRestSuggestion(
     advancedFeedback = null,
 )
 
-// Serie sin intensidad planeada: así la hoja de feedback muestra el deslizador de «Qué tan intenso fue».
+// Serie sin intensidad planeada: antes la hoja de feedback preguntaba «Qué tan intenso fue»; ahora el RIR/RPE se anota en cada serie.
 private val SAMPLE_FEEDBACK_SET = ExerciseSet(
     id = "sq-1",
     targetReps = 8,
@@ -452,7 +452,6 @@ class LiveSessionRestCardioRenderSheetTest {
                                 canonicalKeyOf = { exercise -> exercise.id },
                                 onSave = {},
                                 initialDiscomfortQuery = "hombro",
-                                initiallyExpanded = true,
                             )
                         }
                     }

@@ -69,6 +69,12 @@ class WorkoutRestTimerOrchestrator(
         } else {
             now + (seconds * 1000L)
         }
+        // Cuándo empezó el descanso entero: un ajuste de ±15 s lo conserva, así el total del reloj sigue siendo uno solo (LV6).
+        val startedAtMs = if (preserveElapsed) {
+            state.restModalState?.startedAtMs?.takeIf { it > 0L } ?: restStartMs
+        } else {
+            restStartMs
+        }
         val alertCapability = restTimer.capability(soundsEnabled = repository.settings.value.soundsEnabled)
 
         updateState {
@@ -115,6 +121,7 @@ class WorkoutRestTimerOrchestrator(
                     notificationsEnabled = alertCapability.notificationsEnabled,
                     exactAlarmGranted = alertCapability.exactAlarmGranted,
                     soundReady = alertCapability.soundReady,
+                    startedAtMs = startedAtMs,
                 ) ?: WorkoutRestModalState(
                     exerciseId = overlayExercise?.id,
                     exerciseName = overlayName,
@@ -128,7 +135,10 @@ class WorkoutRestTimerOrchestrator(
                     notificationsEnabled = alertCapability.notificationsEnabled,
                     exactAlarmGranted = alertCapability.exactAlarmGranted,
                     soundReady = alertCapability.soundReady,
-                )
+                    startedAtMs = startedAtMs,
+                ),
+                // Un descanso nuevo (también «+30 s») reemplaza la capa de «Descanso cumplido» (LV6).
+                restOverrun = null,
             )
         }
         ports.persistOngoingState()
@@ -214,6 +224,8 @@ class WorkoutRestTimerOrchestrator(
     fun stop() {
         restTimer.cancelJob()
         restTimer.cancelAlerts()
+        // Cerrar el descanso (o navegar, que también lo para) deja sin sentido la capa de «Descanso cumplido» (LV6).
+        updateState { if (it.restOverrun != null) it.copy(restOverrun = null) else it }
         val pending = getState().pendingPostExerciseIdx
         val currentExIdx = getState().currentExerciseIdx
         restTimer.clearActiveTimerId()
@@ -367,7 +379,10 @@ class WorkoutRestTimerOrchestrator(
                         ports.openFinishSheet()
                     }
                 } else {
-                    updateState { it.copy(isRestTimerRunning = false, restModalState = null) }
+                    // Lo que sigue es una serie normal: el cierre de siempre y, encima, la capa de «Descanso cumplido» (LV6, F6).
+                    // No toca alarmas ni servicio: el aviso ya sonó y el servicio ya paró arriba.
+                    val overrun = RestOverrunPolicy.captureOrNull(getState(), System.currentTimeMillis())
+                    updateState { it.copy(isRestTimerRunning = false, restModalState = null, restOverrun = overrun) }
                     ports.persistOngoingState()
                 }
             }

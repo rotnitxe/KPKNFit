@@ -276,6 +276,8 @@ data class WorkoutUiState(
     val showVolumeAdvanceModal: Boolean = false,
     val volumeAdvanceHandled: Boolean = false,
     val isRestMinimized: Boolean = false,
+    /** «Descanso cumplido» (LV6, F6): capa de interfaz que queda tras acabar el descanso. No se persiste. */
+    val restOverrun: RestOverrun? = null,
     val pendingEditSheetExerciseId: String? = null,
     val voiceTimedSet: VoiceTimedSetState? = null,
     val voiceExerciseQueue: List<String> = emptyList(),

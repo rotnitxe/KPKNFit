@@ -13,6 +13,8 @@ import com.example.kpkn.data.repository.ProgramRepository
 import com.example.kpkn.data.repository.StartWorkoutResult
 import com.example.kpkn.domain.auge.AugeFatigueEngine
 import com.example.kpkn.domain.auge.MuscularSessionImpactEngine
+import com.example.kpkn.domain.discomfort.DiscomfortHistory
+import com.example.kpkn.domain.discomfort.DiscomfortSession
 import com.example.kpkn.domain.energy.TrainingEnergyEngine
 import com.example.kpkn.domain.calculations.calculateHybrid1RM
 import com.example.kpkn.domain.calculations.calculateSuggestedLoad
@@ -443,6 +445,12 @@ class WorkoutViewModel(
             )
         },
         poseTrajectoryEnabled = { _uiState.value.featureFlags.poseTrajectoryEnabled },
+        // El álbum por ejercicio (LV8) nombra el esfuerzo de cada medio solo si la serie con la que se guardó está en la sesión en curso.
+        effortLabelProvider = { media ->
+            com.example.kpkn.data.media.ExerciseAlbumModel.completedSetKey(media)
+                ?.let { key -> _uiState.value.completedSets[key] }
+                ?.let(com.example.kpkn.data.media.ExerciseAlbumModel::effortLabel)
+        },
     )
 
     private val structuralPersistence = WorkoutStructuralPersistenceController(
@@ -939,6 +947,7 @@ class WorkoutViewModel(
         initExtractedControllers()
         startRelatorPipeline()
         loadTodayWellbeingForRelator()
+        watchRestOverrun()
         voiceController.initialize(viewModelScope)
         voiceController.structuralPersistenceOptionsProvider = { replacementScopeOptions().toSet() }
         voiceController.structuralPersistencePromptProvider = { voiceStructuralPersistencePrompt(replacementScopeOptions()) }
@@ -2238,7 +2247,8 @@ class WorkoutViewModel(
     ): Pair<Int, Int> = stepNavigator.resolveResumePosition(exercises, completedSets, preferredExerciseId, preferredSetId)
 
 
-    private fun visibleExercises(state: WorkoutUiState): List<Exercise> {
+    /** Los ejercicios a la vista (sin los omitidos), en el orden de la sesión. Interno: el descanso lo usa para decir qué toca después. */
+    internal fun visibleExercises(state: WorkoutUiState): List<Exercise> {
         val base = state.session ?: return emptyList()
         val byMode = sessionForActiveMode(base, state.activeMode).liveRoadmapExercises()
         if (state.skippedExerciseIds.isEmpty()) return byMode
@@ -6240,12 +6250,63 @@ class WorkoutViewModel(
 
     fun savePostExerciseFeedback(feedback: PostExerciseFeedback) {
         feedbackController.savePostExerciseFeedback(feedback)
+        feedbackDrafts.clear()
         voiceController.completeVoiceFeedbackPrompt()
     }
 
     fun savePostExerciseFeedbacks(feedbacks: List<PostExerciseFeedback>) {
         feedbackController.savePostExerciseFeedbacks(feedbacks)
+        feedbackDrafts.clear()
         voiceController.completeVoiceFeedbackPrompt()
+    }
+
+    // ─── Feedback tras el ejercicio: borrador compartido y motor de molestias (LV6, B1–B3) ─────────────────
+
+    private val feedbackDrafts = PostExerciseFeedbackDraftHolder()
+
+    /** El borrador del feedback de [exercises]: el MISMO para la pantalla completa y la tarjeta del descanso (lo elegido no se pierde al minimizar). */
+    internal fun feedbackDraftFor(
+        exercises: List<Exercise>,
+        saved: Map<String, PostExerciseFeedback>,
+    ): PostExerciseFeedbackDraft = feedbackDrafts.draftFor(exercises, saved)
+
+    /** Lo que el motor de molestias dice para el feedback: se calcula fuera del hilo principal y se guarda por ejercicio. */
+    internal val feedbackInsightSource: FeedbackInsightSource by lazy {
+        FeedbackInsightSource(
+            inputs = ::feedbackEngineInputs,
+            lastSessionDiscomfortIds = { _uiState.value.previousSessionDiscomforts },
+            dispatcher = Dispatchers.Default,
+        )
+    }
+
+    /** Las entradas del motor para una petición: la sesión en curso y las últimas semanas de entrenos. Corre fuera del hilo principal. */
+    private fun feedbackEngineInputs(request: FeedbackInsightsRequest): Pair<DiscomfortSession, DiscomfortHistory> {
+        val state = _uiState.value
+        val savedTechnique = state.postExerciseFeedbackByExerciseId.mapValues { it.value.technicalQuality }
+        val session = FeedbackDiscomfortInputs.session(
+            exercises = visibleExercises(state),
+            completedSets = state.completedSets,
+            technicalByExerciseId = savedTechnique + request.technicalBuckets,
+            focusExerciseIds = request.exerciseIds,
+            infoOf = { exercise ->
+                com.example.kpkn.data.exercises.resolveCatalogExerciseInfo(
+                    catalogConfigurationId = exercise.catalogConfigurationId,
+                    exerciseDbId = exercise.exerciseDbId,
+                    exerciseId = exercise.exerciseId,
+                    exerciseName = exercise.name,
+                )
+            },
+            nameOf = ::displayWorkoutExerciseName,
+        )
+        val nowMs = System.currentTimeMillis()
+        val cutoffMs = nowMs - FEEDBACK_HISTORY_DAYS * 24L * 60L * 60L * 1000L
+        val logs = repository.history.value.filter { com.example.kpkn.domain.auge.AugeUtils.logDateMs(it) >= cutoffMs }
+        val history = DiscomfortHistory(
+            logs = logs,
+            now = java.time.Instant.ofEpochMilli(nowMs),
+            exerciseCatalog = com.example.kpkn.data.exercises.exerciseCatalogSnapshot(),
+        )
+        return session to history
     }
 
     fun dismissExecutionErrorDiscomfortSheet(discomfortIds: List<String>) =
@@ -6253,6 +6314,7 @@ class WorkoutViewModel(
 
     fun dismissPostExerciseSheet() {
         feedbackController.dismissPostExerciseSheet()
+        feedbackDrafts.clear()
         voiceController.completeVoiceFeedbackPrompt()
     }
 
@@ -6756,6 +6818,80 @@ class WorkoutViewModel(
 
     fun toggleRestMinimized() {
         updateUiState { it.copy(isRestMinimized = !it.isRestMinimized) }
+    }
+
+    // ─── Descanso cumplido y forma del reloj (LV6) ────────────────────────────
+
+    /**
+     * La forma del reloj de descanso que eligió la persona con las pestañas «Torre · Pista · Espiral»: vale para el resto de la sesión
+     * y la ven igual la pantalla completa y la tarjeta. Nula = cada descanso toma la que le toca por su orden. Solo interfaz: no se
+     * guarda en el modelo y, si el proceso muere, vuelve a rotar.
+     */
+    private val _restClockShapeChoice = MutableStateFlow<RestClockShape?>(null)
+    val restClockShapeChoice: StateFlow<RestClockShape?> = _restClockShapeChoice.asStateFlow()
+
+    fun chooseRestClockShape(shape: RestClockShape) {
+        _restClockShapeChoice.value = shape
+    }
+
+    /** La persona cierra la capa de «Descanso cumplido» («Empezar la serie N» o Atrás). No toca alarmas ni servicio. */
+    fun dismissRestOverrun() {
+        updateUiState { if (it.restOverrun != null) it.copy(restOverrun = null) else it }
+    }
+
+    /**
+     * «Necesito +30 s»: arranca un descanso nuevo de [seconds] del mismo tipo con la vía de siempre (`startRestTimer`: mismas alarmas,
+     * mismo servicio, misma voz). El cursor ya está en la serie que toca, así que el descanso nuevo sale con el mismo ejercicio.
+     */
+    fun extendRestAfterOverrun(seconds: Int = RestOverrunPolicy.EXTEND_SECONDS) {
+        val overrun = _uiState.value.restOverrun ?: return
+        updateUiState { it.copy(restOverrun = null, pendingRestSuggestion = null) }
+        startRestTimer(seconds = seconds, kind = overrun.kind)
+    }
+
+    /** Lo que decide cuándo muere la capa: lo registrado, el cursor y el descanso. Se compara para no mirar todo el estado. */
+    private data class RestOverrunWatchKey(
+        val overrun: RestOverrun?,
+        val exerciseIdx: Int,
+        val setIdx: Int,
+        val activeStepKey: String?,
+        val setJustLoggedKey: String?,
+        val completedCount: Int,
+        val restRunning: Boolean,
+        val closing: Boolean,
+    )
+
+    /**
+     * Vigila la capa de «Descanso cumplido»: se va al registrar o tocar otra serie, al cambiar de ejercicio, al arrancar otro descanso,
+     * al ir al cierre y a los 5 minutos. La regla es [RestOverrunPolicy.shouldDismiss].
+     */
+    private fun watchRestOverrun() {
+        viewModelScope.launch {
+            _uiState
+                .map { state ->
+                    RestOverrunWatchKey(
+                        overrun = state.restOverrun,
+                        exerciseIdx = state.currentExerciseIdx,
+                        setIdx = state.currentSetIdx,
+                        activeStepKey = state.activeStepKey,
+                        setJustLoggedKey = state.setJustLoggedKey,
+                        completedCount = state.completedSets.size,
+                        restRunning = state.isRestTimerRunning,
+                        closing = state.showPostExerciseSheet || state.showFinishSheet || state.isComplete,
+                    )
+                }
+                .distinctUntilChanged()
+                .collectLatest { key ->
+                    val overrun = key.overrun ?: return@collectLatest
+                    val now = System.currentTimeMillis()
+                    if (RestOverrunPolicy.shouldDismiss(overrun, _uiState.value, now)) {
+                        dismissRestOverrun()
+                        return@collectLatest
+                    }
+                    delay(RestOverrunPolicy.remainingLifeMs(overrun, now))
+                    if (_uiState.value.restOverrun == overrun) dismissRestOverrun()
+                }
+        }
     }
 
     fun minimizeRestOverlay() {
