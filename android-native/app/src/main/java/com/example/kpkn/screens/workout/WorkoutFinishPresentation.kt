@@ -2,6 +2,7 @@ package com.example.kpkn.screens.workout
 
 import com.example.kpkn.data.models.CompletedExercise
 import com.example.kpkn.data.models.CompletedSet
+import com.example.kpkn.data.models.IntensityMode
 import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.models.WorkoutLog
 import com.example.kpkn.domain.auge.AugeUtils
@@ -64,14 +65,20 @@ internal fun buildFinishLiftProgress(completed: List<CompletedExercise>, history
 
 internal fun finishAverageRir(completed: List<CompletedExercise>): Double? {
     val values = completed.flatMap { it.sets }.filter { !it.skipped && !it.isWarmup }.mapNotNull { set ->
-        when {
+        // `isFailure` viene de reachedFailure, no de la prescripción. El modo FAILURE
+        // también puede heredarse del plan y no prueba por sí mismo que se alcanzara el fallo.
+        val rir = when {
             set.isFailure -> 0.0
+            set.actualIntensityMode == IntensityMode.RIR -> set.actualIntensityValue ?: set.rir?.toDouble()
+            set.actualIntensityMode == IntensityMode.RPE -> (set.actualIntensityValue ?: set.rpe)
+                ?.takeIf { it in 0.0..10.0 }?.let { 10.0 - it }
+            set.actualIntensityMode != null -> null
+            // Compatibilidad con registros anteriores que aún no tenían el modo explícito.
             set.rir != null -> set.rir.toDouble()
-            set.rpe != null -> 10.0 - set.rpe
-            set.actualIntensityMode?.name == "RIR" -> set.actualIntensityValue
-            set.actualIntensityMode?.name == "RPE" -> set.actualIntensityValue?.let { 10.0 - it }
-            else -> null
-        }?.takeIf { it.isFinite() && it in 0.0..10.0 }
+            else -> set.rpe?.takeIf { it in 0.0..10.0 }?.let { 10.0 - it }
+        }
+        // La rueda permite RIR >10 según el objetivo. No recortar ni descartar ese dato real.
+        rir?.takeIf { it.isFinite() && it >= 0.0 }
     }
     return values.takeIf { it.isNotEmpty() }?.average()
 }

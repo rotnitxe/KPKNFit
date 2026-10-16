@@ -1,6 +1,7 @@
 package com.example.kpkn.screens.workout
 
 import android.Manifest
+import android.content.Context
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.os.Build
@@ -29,11 +30,16 @@ import com.example.kpkn.ui.design.KpknType
 import dev.chrisbanes.haze.HazeState
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 
 internal val storyOptionsSaver = listSaver<WorkoutStoryOptions, Any>(
     save = { listOf(it.template.name,it.exerciseId.orEmpty(),it.rings,it.improvements,it.duration,it.intensity) },
     restore = { WorkoutStoryOptions(WorkoutStoryTemplate.valueOf(it[0] as String),(it[1] as String).ifBlank { null },it[2] as Boolean,it[3] as Boolean,it[4] as Boolean,it[5] as Boolean) },
 )
+
+private data class StoryPreviewRequest(val data: WorkoutStoryData, val options: WorkoutStoryOptions)
+private data class StoryPreviewResult(val request: StoryPreviewRequest, val bitmap: Bitmap)
 
 @Composable
 internal fun WorkoutStorySheet(
@@ -44,26 +50,43 @@ internal fun WorkoutStorySheet(
     shareAfterSave: Boolean,
     onShareAfterSaveChange: (Boolean) -> Unit,
     onDismiss: () -> Unit,
+    renderStory: suspend (Context, WorkoutStoryData, WorkoutStoryOptions) -> Bitmap = ::renderWorkoutStory,
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
-    var image by remember { mutableStateOf<Bitmap?>(null) }
-    var rendering by remember { mutableStateOf(true) }
+    var preview by remember { mutableStateOf<StoryPreviewResult?>(null) }
+    var failedRequest by remember { mutableStateOf<StoryPreviewRequest?>(null) }
     var busy by remember { mutableStateOf(false) }
     var message by remember { mutableStateOf<String?>(null) }
     val templates = remember(data.presentation.photos) { WorkoutStoryTemplate.entries.filter { it != WorkoutStoryTemplate.PHOTOS || data.presentation.photos.isNotEmpty() } }
     val safeOptions = options.copy(template = options.template.takeIf { it in templates } ?: WorkoutStoryTemplate.GENERAL)
-    LaunchedEffect(data, safeOptions) {
-        rendering = true
-        try { image = renderWorkoutStory(context.applicationContext,data,safeOptions); message = null }
+    val request = StoryPreviewRequest(data, safeOptions)
+    // La clave se compara durante composición: una selección nueva jamás muestra/habilita
+    // la imagen anterior, incluso antes de que arranque su LaunchedEffect.
+    val image = preview?.takeIf { it.request == request }?.bitmap
+    val rendering = image == null && failedRequest != request
+    LaunchedEffect(request, renderStory) {
+        message = null
+        try {
+            val bitmap = renderStory(context.applicationContext, data, safeOptions)
+            try { currentCoroutineContext().ensureActive() }
+            catch(error:CancellationException) { bitmap.recycle(); throw error }
+            preview = StoryPreviewResult(request, bitmap)
+            failedRequest = null
+        }
         catch(error:CancellationException) { throw error }
-        catch(_:Exception) { image = null; message = "No se pudo crear la historia. Inténtalo de nuevo." }
-        finally { rendering = false }
+        catch(_:Exception) {
+            currentCoroutineContext().ensureActive()
+            failedRequest = request
+            message = "No se pudo crear la historia. Inténtalo de nuevo."
+        }
+        // Sin `finally { rendering=false }`: un render cancelado no puede habilitar
+        // compartir mientras el que corresponde a la última selección sigue pendiente.
     }
     val save: () -> Unit = {
-        image?.let { bitmap ->
+        image?.takeIf { !busy && !rendering }?.let { bitmap ->
+            busy=true
             scope.launch {
-                busy=true
                 try { WorkoutShareService.saveImage(context,bitmap); message="Imagen guardada en Imágenes/KPKN" }
                 catch(error:CancellationException) { throw error }
                 catch(_:Exception) { message="No se pudo guardar la imagen." }
@@ -75,14 +98,15 @@ internal fun WorkoutStorySheet(
         if(granted) save() else message="Permite guardar imágenes para añadir esta historia a tu galería. Puedes compartirla directamente."
     }
     val enabled = !busy && !rendering
+    val optionsEnabled = !busy
     KpknSheet(onDismissRequest={ if(!busy) onDismiss() },stableHeightFraction=0.92f,hazeState=hazeState) {
         Column(Modifier.fillMaxSize().padding(horizontal=18.dp).testTag("story-sheet"),verticalArrangement=Arrangement.spacedBy(8.dp)) {
             Text("Compartir la sesión",style=KpknType.title,color=WizardColors.text)
             KpknSegmentedControl(options=templates.map { it.label },selectedIndex=templates.indexOf(safeOptions.template),
-                onSelect={ if(enabled) onOptionsChange(safeOptions.copy(template=templates[it])) },size=KpknSegmentedSize.Compact,modifier=Modifier.fillMaxWidth().testTag("story-templates"))
+                onSelect={ if(optionsEnabled) onOptionsChange(safeOptions.copy(template=templates[it])) },enabled=optionsEnabled,size=KpknSegmentedSize.Compact,modifier=Modifier.fillMaxWidth().testTag("story-templates"))
             if(safeOptions.template==WorkoutStoryTemplate.EXERCISE) LazyRow(horizontalArrangement=Arrangement.spacedBy(8.dp),modifier=Modifier.fillMaxWidth()) {
                 items(data.lifts,key={it.exerciseId}) { lift -> FilterChip(selected=lift.exerciseId==(safeOptions.exerciseId ?: data.defaultExerciseId),
-                    onClick={onOptionsChange(safeOptions.copy(exerciseId=lift.exerciseId))},enabled=enabled,label={Text(lift.name)}) }
+                    onClick={onOptionsChange(safeOptions.copy(exerciseId=lift.exerciseId))},enabled=optionsEnabled,label={Text(lift.name)}) }
             }
             Box(Modifier.weight(1f).fillMaxWidth(),contentAlignment=Alignment.Center) {
                 image?.let { Image(it.asImageBitmap(),"Vista previa de historia ${safeOptions.template.label}",
@@ -91,12 +115,12 @@ internal fun WorkoutStorySheet(
             }
             Text("INCLUIR",style=KpknType.eyebrow,color=WizardColors.textMuted)
             Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.spacedBy(6.dp)) {
-                StoryToggle("RINGS",safeOptions.rings,enabled) { onOptionsChange(safeOptions.copy(rings=it)) }
-                StoryToggle("Mejoras en kg",safeOptions.improvements,enabled) { onOptionsChange(safeOptions.copy(improvements=it)) }
+                StoryToggle("RINGS",safeOptions.rings,optionsEnabled) { onOptionsChange(safeOptions.copy(rings=it)) }
+                StoryToggle("Mejoras en kg",safeOptions.improvements,optionsEnabled) { onOptionsChange(safeOptions.copy(improvements=it)) }
             }
             Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.spacedBy(6.dp)) {
-                StoryToggle("Duración",safeOptions.duration,enabled) { onOptionsChange(safeOptions.copy(duration=it)) }
-                StoryToggle("Intensidad media",safeOptions.intensity,enabled) { onOptionsChange(safeOptions.copy(intensity=it)) }
+                StoryToggle("Duración",safeOptions.duration,optionsEnabled) { onOptionsChange(safeOptions.copy(duration=it)) }
+                StoryToggle("Intensidad media",safeOptions.intensity,optionsEnabled) { onOptionsChange(safeOptions.copy(intensity=it)) }
             }
             Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically) {
                 Checkbox(checked=shareAfterSave,onCheckedChange=onShareAfterSaveChange,enabled=enabled,modifier=Modifier.testTag("story-share-after-save"))
@@ -108,8 +132,9 @@ internal fun WorkoutStorySheet(
                     if(Build.VERSION.SDK_INT<=28 && ContextCompat.checkSelfPermission(context,Manifest.permission.WRITE_EXTERNAL_STORAGE)!=PackageManager.PERMISSION_GRANTED)
                         permission.launch(Manifest.permission.WRITE_EXTERNAL_STORAGE) else save()
                 },enabled=enabled&&image!=null,modifier=Modifier.weight(1f).testTag("story-save-image")) { Text("Guardar imagen") }
-                Button(onClick={ image?.let { bitmap -> scope.launch {
+                Button(onClick={ image?.takeIf { !busy && !rendering }?.let { bitmap ->
                     busy=true
+                    scope.launch {
                     try { WorkoutShareService.shareBitmap(context,bitmap) }
                     catch(error:CancellationException) { throw error }
                     catch(_:Exception) { message="No se pudo abrir la pantalla para compartir." }

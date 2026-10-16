@@ -28,6 +28,24 @@ class WorkoutStoryDeviceTest {
             buildFinishLiftProgress(listOf(exercise()),listOf(previous)))
     }
 
+    @Test fun averageRirKeepsHighReserveZeroRpeAndActualModeWithoutAssumingPlannedFailure() {
+        fun average(vararg sets:CompletedSet)=finishAverageRir(listOf(exercise().copy(sets=sets.toList())))
+        assertEquals(11.0,average(
+            CompletedSet("legacy-rir",rir=12),
+            CompletedSet("actual-rir",actualIntensityMode=IntensityMode.RIR,actualIntensityValue=12.0),
+            CompletedSet("legacy-rpe",rpe=0.0),
+            CompletedSet("actual-rpe",actualIntensityMode=IntensityMode.RPE,actualIntensityValue=0.0),
+        )!!,0.001)
+        // El modo elegido manda sobre campos legacy que una edición anterior pudiera conservar.
+        assertEquals(12.0,average(CompletedSet("rir",rpe=8.0,actualIntensityMode=IntensityMode.RIR,actualIntensityValue=12.0))!!,0.001)
+        assertEquals(10.0,average(CompletedSet("rpe",rir=2,actualIntensityMode=IntensityMode.RPE,actualIntensityValue=0.0))!!,0.001)
+        // El recorder puede heredar FAILURE del plan aunque no se haya alcanzado el fallo.
+        assertNull(average(CompletedSet("planned",rpe=8.0,actualIntensityMode=IntensityMode.FAILURE)))
+        assertEquals(0.0,average(CompletedSet("reached",isFailure=true,actualIntensityMode=IntensityMode.FAILURE))!!,0.001)
+        assertNull(average(CompletedSet("invalid-rir",rir=-1),CompletedSet("invalid-rpe",rpe=12.0),
+            CompletedSet("nan",actualIntensityMode=IntensityMode.RIR,actualIntensityValue=Double.NaN)))
+    }
+
     @Test fun progressUsesActualLoadAndSameConfigurationRatherThanEstimated1RmGain() {
         val sameLoadMoreReps=exercise(80.0,10)
         val previous=log("previous","2026-09-15T12:00:00Z",exercise(80.0,5))
