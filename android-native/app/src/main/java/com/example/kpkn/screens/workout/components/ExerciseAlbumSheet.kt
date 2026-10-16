@@ -60,6 +60,7 @@ import com.example.kpkn.ui.design.KpknSegmentedSize
 import com.example.kpkn.ui.design.KpknShape
 import com.example.kpkn.ui.design.KpknSurface
 import com.example.kpkn.ui.design.KpknTextAction
+import kotlinx.coroutines.launch
 import com.example.kpkn.ui.design.KpknType
 
 /** Etiquetas de prueba del álbum (LV8). */
@@ -119,6 +120,44 @@ internal fun ExerciseAlbumSheet(
             poseOverlayEnabled = mediaCapture.isPoseTrajectoryEnabled(),
             emptyText = "Todavía no hay fotos ni vídeos de este ejercicio.",
             modifier = Modifier.weight(1f),
+        )
+    }
+}
+
+/** El mismo álbum de LV8 desde catálogo, editor o ficha general, sin crear una sesión de captura ficticia. */
+@Composable
+internal fun ExerciseAlbumSheet(exerciseName: String, keys: List<String>, onDismiss: () -> Unit) {
+    val repository = remember { com.example.kpkn.data.repository.WorkoutMediaRepository.getInstance() }
+    val scope = rememberCoroutineScope()
+    var items by remember { mutableStateOf<List<WorkoutMedia>>(emptyList()) }
+    var efforts by remember { mutableStateOf<Map<String, String>>(emptyMap()) }
+    var loading by remember { mutableStateOf(true) }
+    var reload by remember { mutableStateOf(0) }
+    lateinit var deferred: DeferredMediaDelete
+    deferred = remember(repository) {
+        DeferredMediaDelete(scope = scope, commit = { batch ->
+            repository.deleteAlbumMediaAsync(batch).invokeOnCompletion { error ->
+                if (error != null) deferred.restoreFailed(batch)
+                scope.launch { reload += 1 }
+            }
+        })
+    }
+    LaunchedEffect(keys, reload) {
+        try {
+            val loaded = repository.listForExerciseKeys(keys)
+            efforts = repository.effortLabelsForMedia(loaded)
+            items = loaded
+        } catch (cancelled: kotlinx.coroutines.CancellationException) {
+            throw cancelled
+        } catch (_: Exception) { /* Conserva la última lectura. */ }
+        loading = false
+    }
+    DisposableEffect(deferred) { onDispose { deferred.flush() } }
+    KpknSheet(onDismissRequest = onDismiss, maxHeightFraction = 0.93f, stableHeightFraction = 0.93f) {
+        AlbumSheetContent(
+            subject = exerciseName, items = items, loading = loading, effortFor = { efforts[it.id] },
+            deferred = deferred, poseOverlayEnabled = false,
+            emptyText = "Todavía no hay fotos ni vídeos de este ejercicio.", modifier = Modifier.weight(1f),
         )
     }
 }

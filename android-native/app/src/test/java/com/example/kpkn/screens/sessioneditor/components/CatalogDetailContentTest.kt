@@ -138,7 +138,7 @@ class CatalogDetailContentTest {
         }
 
         rule.onNodeWithTag(CatalogImplementPillsTag).assertExists()
-        rule.onNodeWithText("Mancuerna").performClick()
+        rule.onNodeWithText("Mancuerna").performScrollTo().performClick()
         rule.waitForIdle()
 
         assertEquals(listOf("implement" to "dumbbells"), llamadas)
@@ -185,7 +185,7 @@ class CatalogDetailContentTest {
     }
 
     @Test
-    fun losMusculosSalenAbiertosYLasArticulacionesSePliegan() {
+    fun losMusculosYLasArticulacionesSalenAbiertosEnLaFichaCompleta() {
         rule.setContent {
             CatalogDetailContent(
                 model = model(
@@ -201,10 +201,7 @@ class CatalogDetailContentTest {
         }
 
         rule.onNodeWithText("Pectorales").assertExists()
-        rule.onNodeWithText("Hombro").assertDoesNotExist()
-        rule.onNodeWithText("Articulaciones").performScrollTo().performClick()
-        rule.waitForIdle()
-        rule.onNodeWithText("Hombro").assertExists()
+        rule.onNodeWithText("Hombro").performScrollTo().assertExists()
     }
 
     @Test
