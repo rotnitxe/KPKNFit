@@ -78,6 +78,10 @@ internal fun CockpitSessionSummary(
                 }
             }
         }
+        val paceWork = remember(exercises, completedSets, omittedSetKeys) {
+            com.example.kpkn.screens.workout.sessionPaceWork(exercises, completedSets, omittedSetKeys)
+        }
+        SessionPaceEstimate(startTimeMs, paceWork.completed, paceWork.total, targetMinutes)
         metrics.calories.hint?.let { Text(it, style = KpknType.caption, color = WizardColors.textMuted) }
         if (ringPreview != null) {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {

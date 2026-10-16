@@ -256,6 +256,9 @@ internal fun WorkoutV2Body(
                     .onSizeChanged { headerHeightPx = it.height }
                     .zIndex(8f),
             ) {
+            val paceWork = remember(visibleExercises, uiState.completedSets, uiState.omittedSetKeys) {
+                sessionPaceWork(visibleExercises, uiState.completedSets, uiState.omittedSetKeys)
+            }
             WorkoutHeaderBar(
                 exerciseName = headerExerciseName,
                 exerciseChips = headerExerciseChips,
@@ -286,6 +289,8 @@ internal fun WorkoutV2Body(
                     sessionTargetDurationMinutes = uiState.session?.targetDurationMinutes,
                 ),
                 sessionHasProgrammedTime = uiState.session?.targetDurationMinutes != null,
+                completedWorkingSetCount = paceWork.completed,
+                totalWorkingSetCount = paceWork.total,
                 pacingAlertMessage = uiState.pacingAlertMessage,
                 coachPaceAlert = uiState.coachPaceAlert,
                 exerciseTag = headerExerciseTag,
@@ -375,6 +380,33 @@ internal fun WorkoutV2Body(
                             .fillMaxSize()
                             .padding(bottom = dockBottomClearance),
                     ) {
+            val createTagAndRoute: (String, TagSetupInput?) -> CreateTagResult = { name, setup ->
+                val exercise = currentExercise
+                if (exercise == null) CreateTagResult.InvalidName else {
+                    val result = viewModel.createTag(exercise.id, name, setup)
+                    when (result) {
+                        is CreateTagResult.Created -> {
+                            showCreateTagDialog = false
+                            showTagListOverlay = false
+                            if (result.untaggedSessionCount > 0) {
+                                pendingUntaggedAdoption = PendingUntaggedAdoption(
+                                    exerciseId = exercise.id,
+                                    tagId = result.tag.id,
+                                    tagName = result.tag.name,
+                                    sessionCount = result.untaggedSessionCount,
+                                )
+                            } else {
+                                showTagListOverlay = true
+                            }
+                        }
+                        is CreateTagResult.Duplicate,
+                        CreateTagResult.InvalidName,
+                        -> Unit
+                    }
+                    result
+                }
+            }
+
             // ─── Tag manager modal ────────────────────────────────────────────
             if (tagManagerTagId != null && currentExercise != null) {
                 val tag = currentExerciseActiveMainTags.firstOrNull { it.id == tagManagerTagId }
@@ -443,7 +475,6 @@ internal fun WorkoutV2Body(
                     },
                     onSelectTag = { tagId ->
                         viewModel.selectMainTag(currentExercise.id, tagId)
-                        showTagListOverlay = false
                     },
                     onCreateTag = {
                         showTagListOverlay = false
@@ -452,34 +483,17 @@ internal fun WorkoutV2Body(
                     onDismiss = { showTagListOverlay = false },
                     hasSeenEducation = settings.hasSeenWorkoutTagEducation,
                     onOpened = { viewModel.markWorkoutTagEducationSeen() },
+                    onCreateInline = createTagAndRoute,
+                    onManageTag = { tagId -> showTagListOverlay = false; tagManagerTagId = tagId },
+                    activeSubTagIds = uiState.activeSubTagsByExercise[currentExercise.id].orEmpty(),
+                    onToggleSubTag = { viewModel.toggleSubTagActive(currentExercise.id, it) },
                 )
             }
 
             // ─── Create tag dialog ────────────────────────────────────────────
             if (showCreateTagDialog && currentExercise != null) {
                 WorkoutCreateTagOverlay(
-                    onCreate = { name, setup ->
-                        val result = viewModel.createTag(currentExercise.id, name, setup)
-                        when (result) {
-                            is CreateTagResult.Created -> {
-                                showCreateTagDialog = false
-                                if (result.untaggedSessionCount > 0) {
-                                    pendingUntaggedAdoption = PendingUntaggedAdoption(
-                                        exerciseId = currentExercise.id,
-                                        tagId = result.tag.id,
-                                        tagName = result.tag.name,
-                                        sessionCount = result.untaggedSessionCount,
-                                    )
-                                } else {
-                                    showTagListOverlay = true
-                                }
-                            }
-                            is CreateTagResult.Duplicate,
-                            CreateTagResult.InvalidName,
-                            -> Unit
-                        }
-                        result
-                    },
+                    onCreate = createTagAndRoute,
                     onDismiss = {
                         showCreateTagDialog = false
                         showTagListOverlay = true

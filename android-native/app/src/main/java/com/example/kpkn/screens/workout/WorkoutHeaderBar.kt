@@ -1,20 +1,16 @@
 package com.example.kpkn.screens.workout
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.MicOff
-import androidx.compose.material.icons.filled.KeyboardArrowDown
-import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.SwapHoriz
 import androidx.compose.material.icons.filled.Timer
 import androidx.compose.material3.*
@@ -38,17 +34,13 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.repeatOnLifecycle
+import kotlinx.coroutines.isActive
 import com.example.kpkn.data.models.ExerciseReadiness
 import com.example.kpkn.data.models.SessionBackground
-import com.example.kpkn.data.models.SessionBackgroundType
 import com.example.kpkn.data.models.WorkoutSubTag
 import com.example.kpkn.data.models.WorkoutTag
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.StateFlow
-import com.example.kpkn.ui.components.KpknAlertDialog
-import com.example.kpkn.ui.components.kpknSheetWhiteFilterChipColors
-import com.example.kpkn.ui.components.kpknSheetWhiteTonalButtonColors
 import com.example.kpkn.screens.sessioneditor.sessionCoverAccentColor
 import com.example.kpkn.ui.components.kpknCoverGlass
 import com.example.kpkn.services.workout.VoiceSessionState
@@ -181,6 +173,8 @@ internal fun WorkoutChronometer(
     onPacingAlertModeChange: (PacingAlertMode) -> Unit = {},
     currentTargetMinutes: Int? = null,
     sessionHasProgrammedTime: Boolean = false,
+    completedWorkingSetCount: Int = 0,
+    totalWorkingSetCount: Int = 0,
     pacingAlertMessage: String? = null,
     coachPaceAlert: String? = null,
     onUltraFastPreview: (() -> Unit)? = null,
@@ -195,12 +189,15 @@ internal fun WorkoutChronometer(
     var showTimePicker by remember { mutableStateOf(false) }
     var pendingChange by remember { mutableStateOf<PendingSessionTimeChange?>(null) }
 
-    LaunchedEffect(startTimeMs, isComplete) {
-        if (!isComplete) {
-            while (true) {
-                elapsedSeconds = ((System.currentTimeMillis() - startTimeMs) / 1000L).toInt().coerceAtLeast(0)
-                kotlinx.coroutines.delay(1000L)
-            }
+    val chronometerOwner = androidx.lifecycle.compose.LocalLifecycleOwner.current
+    LaunchedEffect(startTimeMs, isComplete, chronometerOwner) {
+        if (startTimeMs <= 0) return@LaunchedEffect
+        fun updateClock() {
+            elapsedSeconds = ((System.currentTimeMillis() - startTimeMs) / 1000L).coerceIn(0, Int.MAX_VALUE.toLong()).toInt()
+        }
+        updateClock()
+        if (!isComplete) chronometerOwner.lifecycle.repeatOnLifecycle(androidx.lifecycle.Lifecycle.State.RESUMED) {
+            while (kotlinx.coroutines.currentCoroutineContext().isActive) { updateClock(); delay(1000L) }
         }
     }
 
@@ -325,273 +322,23 @@ internal fun WorkoutChronometer(
     }
 
     if (showAdjustDialog) {
-        KpknAlertDialog(
-            onDismissRequest = { closeOverlay() },
-            title = { Text("Tiempo de sesión", style = MaterialTheme.typography.titleMedium) },
-            text = {
-                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                    Text(
-                        if (hasLimit) {
-                            "Restante: ${displayRemaining / 60} min."
-                        } else {
-                            "Sin límite."
-                        },
-                        style = MaterialTheme.typography.bodyMedium,
-                    )
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        modifier = Modifier.fillMaxWidth(),
-                    ) {
-                        listOf(30, 45, 60, 90).forEach { mins ->
-                            FilterChip(
-                                selected = selectedPreset == mins,
-                                onClick = { proposeMinutes(mins) },
-                                label = { Text("$mins min") },
-                                modifier = Modifier.weight(1f),
-                                colors = kpknSheetWhiteFilterChipColors(),
-                            )
-                        }
-                    }
-                    FilledTonalButton(
-                        onClick = { showTimePicker = true },
-                        modifier = Modifier.fillMaxWidth(),
-                        colors = kpknSheetWhiteTonalButtonColors(),
-                    ) {
-                        Icon(Icons.Default.Timer, null, Modifier.size(16.dp))
-                        Spacer(Modifier.width(6.dp))
-                        Text(
-                            if (hasLimit) {
-                                "Tiempo asignado: ${liveTargetMinutes ?: resolvedTargetMinutes} min"
-                            } else {
-                                "Asignar tiempo"
-                            },
-                        )
-                    }
-                    if (hasLimit) {
-                        Row(
-                            horizontalArrangement = Arrangement.spacedBy(8.dp),
-                            modifier = Modifier.fillMaxWidth(),
-                        ) {
-                            listOf(-5, 5, 15).forEach { delta ->
-                                FilterChip(
-                                    selected = false,
-                                    onClick = {
-                                        proposeMinutes((pendingMinutes ?: resolvedTargetMinutes) + delta)
-                                    },
-                                    label = { Text(if (delta > 0) "+$delta min" else "$delta min") },
-                                    colors = kpknSheetWhiteFilterChipColors(),
-                                )
-                            }
-                            FilterChip(
-                                selected = pendingChange == PendingSessionTimeChange.Clear,
-                                onClick = { proposeClear() },
-                                label = { Text("Quitar") },
-                                colors = kpknSheetWhiteFilterChipColors(),
-                            )
-                        }
-                    }
-                    if (pendingChange != null) {
-                        HorizontalDivider()
-                        Text(
-                            if (pendingChange == PendingSessionTimeChange.Clear) {
-                                "¿Quitar este tiempo?"
-                            } else {
-                                "¿Guardar este tiempo?"
-                            },
-                            style = MaterialTheme.typography.labelMedium,
-                            fontWeight = FontWeight.Bold,
-                        )
-                        Row(
-                            horizontalArrangement = Arrangement.spacedBy(8.dp),
-                            modifier = Modifier.fillMaxWidth(),
-                        ) {
-                            FilterChip(
-                                selected = false,
-                                onClick = { applyPending(false) },
-                                label = { Text("Solo esta vez") },
-                                modifier = Modifier.weight(1f),
-                                colors = kpknSheetWhiteFilterChipColors(),
-                            )
-                            FilterChip(
-                                selected = false,
-                                onClick = { applyPending(true) },
-                                label = { Text("Permanente") },
-                                modifier = Modifier.weight(1f),
-                                colors = kpknSheetWhiteFilterChipColors(),
-                            )
-                        }
-                    }
-                    Text("Avisos", style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold)
-                    FlowRow(
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        verticalArrangement = Arrangement.spacedBy(4.dp),
-                    ) {
-                        listOf(
-                            PacingAlertMode.OFF to "Nada",
-                            PacingAlertMode.FINAL to "15 y 5 min",
-                            PacingAlertMode.SOFT to "Ritmo",
-                            PacingAlertMode.STRICT to "Por ejercicio",
-                        ).forEach { (mode, label) ->
-                            FilterChip(
-                                selected = pacingAlertMode == mode,
-                                onClick = { onPacingAlertModeChange(mode) },
-                                label = { Text(label) },
-                                colors = kpknSheetWhiteFilterChipColors(),
-                            )
-                        }
-                    }
-
-                    HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
-                    var ultraFastExpanded by remember { mutableStateOf(false) }
-                    var activeTechniqueTooltip by remember { mutableStateOf<String?>(null) }
-
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable { ultraFastExpanded = !ultraFastExpanded },
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                    ) {
-                        Text(
-                            "¿Tienes poco tiempo hoy? Prueba el modo Ultrarrápido",
-                            style = MaterialTheme.typography.titleSmall,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onSurface,
-                            modifier = Modifier.weight(1f),
-                        )
-                        Icon(
-                            imageVector = if (ultraFastExpanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
-                            contentDescription = if (ultraFastExpanded) "Ocultar" else "Mostrar",
-                            tint = Color.White.copy(alpha = 0.8f),
-                        )
-                    }
-
-                    if (ultraFastExpanded) {
-                    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                        Text(
-                            text = "El modo ultrarrápido automáticamente comprime tu sesión para terminarla mucho más rápido aplicando drop-sets o rest-pauses y otras técnicas para ahorrar tiempo. Sin embargo, debes considerar que esto tiene un costo mayor en fatiga y carga a tus articulaciones, así que procura recuperarte bien.",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            lineHeight = 18.sp,
-                        )
-
-                        Row(
-                            horizontalArrangement = Arrangement.spacedBy(8.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            Text("Ver conceptos:", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                            Surface(
-                                onClick = { activeTechniqueTooltip = if (activeTechniqueTooltip == "dropset") null else "dropset" },
-                                shape = RoundedCornerShape(6.dp),
-                                color = MaterialTheme.colorScheme.surfaceContainerHigh,
-                                border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.35f)),
-                            ) {
-                                Text(
-                                    "Drop-sets ℹ️",
-                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
-                                    style = MaterialTheme.typography.labelSmall,
-                                    fontWeight = FontWeight.Bold,
-                                    color = MaterialTheme.colorScheme.primary,
-                                )
-                            }
-                            Surface(
-                                onClick = { activeTechniqueTooltip = if (activeTechniqueTooltip == "restpause") null else "restpause" },
-                                shape = RoundedCornerShape(6.dp),
-                                color = MaterialTheme.colorScheme.surfaceContainerHigh,
-                                border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.35f)),
-                            ) {
-                                Text(
-                                    "Rest-pauses ℹ️",
-                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
-                                    style = MaterialTheme.typography.labelSmall,
-                                    fontWeight = FontWeight.Bold,
-                                    color = MaterialTheme.colorScheme.primary,
-                                )
-                            }
-                        }
-
-                        if (activeTechniqueTooltip != null) {
-                            Surface(
-                                shape = RoundedCornerShape(10.dp),
-                                color = MaterialTheme.colorScheme.surfaceContainerHighest,
-                                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f)),
-                                modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
-                            ) {
-                                Column(modifier = Modifier.padding(10.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                                    Row(
-                                        modifier = Modifier.fillMaxWidth(),
-                                        horizontalArrangement = Arrangement.SpaceBetween,
-                                        verticalAlignment = Alignment.CenterVertically,
-                                    ) {
-                                        Text(
-                                            if (activeTechniqueTooltip == "dropset") "Drop-set" else "Rest-pause",
-                                            style = MaterialTheme.typography.labelMedium,
-                                            fontWeight = FontWeight.Bold,
-                                            color = MaterialTheme.colorScheme.primary,
-                                        )
-                                        Text(
-                                            "✕",
-                                            modifier = Modifier.clickable { activeTechniqueTooltip = null }.padding(4.dp),
-                                            style = MaterialTheme.typography.labelSmall,
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                        )
-                                    }
-                                    Text(
-                                        text = if (activeTechniqueTooltip == "dropset") {
-                                            "Tras la serie efectiva, baja unos 5 kg —lo bastante para sacar 3 reps más, no más. Si bajas demasiado, deja de ser un dropset."
-                                        } else {
-                                            "Mismo peso. Solo cambia el descanso: 15 segundos, y luego 3 repeticiones. El pausa corta restringe el rango, no la carga."
-                                        },
-                                        style = MaterialTheme.typography.bodySmall,
-                                        color = MaterialTheme.colorScheme.onSurface,
-                                        lineHeight = 16.sp,
-                                    )
-                                }
-                            }
-                        }
-                    }
-
-                    if (ultraFastApplied) {
-                        Surface(
-                            shape = RoundedCornerShape(10.dp),
-                            color = Color(0xFF66BB6A).copy(alpha = 0.12f),
-                            border = BorderStroke(1.dp, Color(0xFF66BB6A).copy(alpha = 0.28f)),
-                        ) {
-                            Row(
-                                modifier = Modifier.fillMaxWidth().padding(10.dp),
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                            ) {
-                                Column(modifier = Modifier.weight(1f)) {
-                                    Text("Activo", style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Black, color = Color(0xFF66BB6A))
-                                    Text(
-                                        if (ultraFastSavedSeconds > 0) "Ahorro ~${ultraFastSavedSeconds / 60}m ${ultraFastSavedSeconds % 60}s" else "Aplicado",
-                                        style = MaterialTheme.typography.bodySmall,
-                                    )
-                                }
-                                if (onRevertUltraFast != null) {
-                                    OutlinedButton(onClick = { closeOverlay(); onRevertUltraFast() }) { Text("Deshacer") }
-                                }
-                            }
-                        }
-                    } else if (onUltraFastPreview != null) {
-                        Button(
-                            onClick = { closeOverlay(); onUltraFastPreview() },
-                            modifier = Modifier.fillMaxWidth(),
-                            shape = RoundedCornerShape(12.dp),
-                            colors = ButtonDefaults.buttonColors(containerColor = Color.White, contentColor = Color.Black),
-                        ) {
-                            Text("Modo Ultrarrápido", fontWeight = FontWeight.Black)
-                        }
-                    }
-                    }
-                }
+        com.example.kpkn.screens.workout.components.SessionTimeSheet(
+            elapsedSeconds = elapsedSeconds, startTimeMs = startTimeMs,
+            targetMinutes = liveTargetMinutes ?: resolvedTargetMinutes.takeIf { hasLimit }, accent = accent,
+            completedWorkingSets = completedWorkingSetCount, totalWorkingSets = totalWorkingSetCount,
+            selectedMinutes = selectedPreset,
+            pendingDescription = when (val pending = pendingChange) {
+                is PendingSessionTimeChange.SetMinutes -> "Objetivo: ${pending.minutes} min. ¿Cómo aplicarlo?"
+                PendingSessionTimeChange.Clear -> "Quitar el objetivo. ¿Cómo aplicarlo?"
+                null -> null
             },
-            confirmButton = {
-                TextButton(onClick = { closeOverlay() }) {
-                    Text("Cerrar")
-                }
-            },
+            onProposeMinutes = ::proposeMinutes, onAssignTime = { showTimePicker = true },
+            onClear = ::proposeClear, onApplyPending = ::applyPending,
+            alertMode = pacingAlertMode, onAlertMode = onPacingAlertModeChange,
+            ultraFastApplied = ultraFastApplied, ultraFastSavedSeconds = ultraFastSavedSeconds,
+            onUltraFastPreview = onUltraFastPreview?.let { callback -> { closeOverlay(); callback() } },
+            onRevertUltraFast = onRevertUltraFast?.let { callback -> { closeOverlay(); callback() } },
+            onDismiss = ::closeOverlay,
         )
     }
 
@@ -632,6 +379,8 @@ internal fun WorkoutHeaderBar(
     onPacingAlertModeChange: (PacingAlertMode) -> Unit = {},
     currentTargetMinutes: Int? = null,
     sessionHasProgrammedTime: Boolean = false,
+    completedWorkingSetCount: Int = 0,
+    totalWorkingSetCount: Int = 0,
     pacingAlertMessage: String? = null,
     coachPaceAlert: String? = null,
     exerciseTag: String? = null,
@@ -995,6 +744,8 @@ internal fun WorkoutHeaderBar(
                         onPacingAlertModeChange = onPacingAlertModeChange,
                         currentTargetMinutes = currentTargetMinutes,
                         sessionHasProgrammedTime = sessionHasProgrammedTime,
+                        completedWorkingSetCount = completedWorkingSetCount,
+                        totalWorkingSetCount = totalWorkingSetCount,
                         pacingAlertMessage = pacingAlertMessage,
                         coachPaceAlert = coachPaceAlert,
                         onUltraFastPreview = onUltraFastPreview,
