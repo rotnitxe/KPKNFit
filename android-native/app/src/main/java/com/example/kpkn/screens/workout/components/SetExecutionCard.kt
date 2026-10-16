@@ -36,7 +36,9 @@ import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -407,18 +409,24 @@ private fun IntegratedLoadInput(
     val scope = rememberCoroutineScope()
 
     @Composable
-    fun LoadValueField(modifier: Modifier = Modifier) {
+    fun LoadValueField(modifier: Modifier = Modifier, shortenLabelOnOverflow: Boolean = false) {
+        // En la fila de los ejercicios con ROM el campo es estrecho: si «CARGA (kg)» no cabe, queda «CARGA» en vez de cortarse (LV8).
+        var useShortLabel by remember(label) { mutableStateOf(false) }
+        val fullLabel = label.uppercase(Locale("es")).replace("(KG)", "(kg)")
         Column(
             modifier = modifier,
             verticalArrangement = Arrangement.spacedBy(2.dp),
         ) {
             Text(
                 // La unidad va en minúscula: «CARGA (kg)», no «CARGA (KG)» (LR1a).
-                text = label.uppercase(Locale("es")).replace("(KG)", "(kg)"),
+                text = if (useShortLabel) fullLabel.substringBefore(" (") else fullLabel,
                 style = KpknType.eyebrow,
                 color = WizardColors.textMuted,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
+                onTextLayout = { layout ->
+                    if (shortenLabelOnOverflow && !useShortLabel && layout.hasVisualOverflow) useShortLabel = true
+                },
             )
             BasicTextField(
                 value = value,
@@ -484,6 +492,85 @@ private fun IntegratedLoadInput(
     }
 
     @Composable
+    fun LoadChip(option: QuickLoadChipOption, index: Int, modifier: Modifier = Modifier, wrapContent: Boolean = false) {
+        // 5.2: Todos los chips miden lo mismo (<= 44 dp, nominal 38 dp), en fila bajo el valor o, con ROM, junto a él (LV8).
+        Surface(
+            onClick = { onChipSelected(option) },
+            modifier = modifier
+                .heightIn(max = 44.dp)
+                .height(38.dp)
+                .testTag("quick_suggestion_chip_$index"),
+            shape = KpknShape.pill,
+            color = Color.Transparent,
+            border = if (option.isAuge) {
+                BorderStroke(1.5.dp, SymbolPalette.musculo)
+            } else {
+                BorderStroke(1.dp, Color.White.copy(alpha = 0.12f))
+            },
+        ) {
+            Column(
+                modifier = (if (wrapContent) Modifier.fillMaxHeight() else Modifier.fillMaxSize())
+                    .padding(horizontal = if (wrapContent) 8.dp else 4.dp, vertical = 2.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center,
+            ) {
+                val isPlus = option.label.startsWith("+")
+                if (isPlus) {
+                    Text(
+                        text = option.label,
+                        style = KpknType.chip.copy(
+                            fontSize = 13.sp,
+                            lineHeight = 15.sp,
+                            fontWeight = FontWeight.Bold,
+                            fontFeatureSettings = "'tnum' 1",
+                        ),
+                        color = WizardColors.text,
+                        maxLines = 1,
+                    )
+                } else {
+                    val chipLabel = when {
+                        option.isAuge -> "Sugerida"
+                        option.label.equals("Sugerido", ignoreCase = true) -> "Sugerida"
+                        else -> option.label
+                    }
+                    Text(
+                        text = chipLabel,
+                        style = KpknType.caption.copy(
+                            fontSize = 10.sp,
+                            lineHeight = 12.sp,
+                        ),
+                        color = if (option.isAuge) SymbolPalette.musculo else WizardColors.textMuted,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                    val chipUnit = when (option.targetLoadMode) {
+                        LoadModeV2.LASTRE -> " lastre"
+                        LoadModeV2.ASSISTED -> " asist."
+                        else -> ""
+                    }
+                    val numText = if (option.targetLoadMode == LoadModeV2.BODYWEIGHT && option.weight <= 0.0) {
+                        "0 kg"
+                    } else {
+                        "${option.weight.toTrimmedNumberString()}$chipUnit"
+                    }
+                    Text(
+                        text = numText,
+                        style = KpknType.chip.copy(
+                            fontSize = 12.sp,
+                            lineHeight = 14.sp,
+                            fontWeight = FontWeight.Bold,
+                            fontFeatureSettings = "'tnum' 1",
+                        ),
+                        color = if (option.isAuge) SymbolPalette.musculo else WizardColors.text,
+                        maxLines = 1,
+                        overflow = TextOverflow.Clip,
+                    )
+                }
+            }
+        }
+    }
+
+    @Composable
     fun QuickSuggestionRow(modifier: Modifier = Modifier) {
         // 5.2: Los tres chips en una fila horizontal, con el mismo ancho (weight(1f)), el mismo alto (<= 44 dp) y 8 dp entre ellos
         Row(
@@ -491,84 +578,8 @@ private fun IntegratedLoadInput(
             horizontalArrangement = Arrangement.spacedBy(8.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            val displayOptions = options.take(3)
-            displayOptions.forEachIndexed { index, option ->
-                Surface(
-                    onClick = { onChipSelected(option) },
-                    modifier = Modifier
-                        .weight(1f)
-                        .heightIn(max = 44.dp)
-                        .height(38.dp)
-                        .testTag("quick_suggestion_chip_$index"),
-                    shape = KpknShape.pill,
-                    color = Color.Transparent,
-                    border = if (option.isAuge) {
-                        BorderStroke(1.5.dp, SymbolPalette.musculo)
-                    } else {
-                        BorderStroke(1.dp, Color.White.copy(alpha = 0.12f))
-                    },
-                ) {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(horizontal = 4.dp, vertical = 2.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center,
-                    ) {
-                        val isPlus = option.label.startsWith("+")
-                        if (isPlus) {
-                            Text(
-                                text = option.label,
-                                style = KpknType.chip.copy(
-                                    fontSize = 13.sp,
-                                    lineHeight = 15.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    fontFeatureSettings = "'tnum' 1",
-                                ),
-                                color = WizardColors.text,
-                                maxLines = 1,
-                            )
-                        } else {
-                            val chipLabel = when {
-                                option.isAuge -> "Sugerida"
-                                option.label.equals("Sugerido", ignoreCase = true) -> "Sugerida"
-                                else -> option.label
-                            }
-                            Text(
-                                text = chipLabel,
-                                style = KpknType.caption.copy(
-                                    fontSize = 10.sp,
-                                    lineHeight = 12.sp,
-                                ),
-                                color = if (option.isAuge) SymbolPalette.musculo else WizardColors.textMuted,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis,
-                            )
-                            val chipUnit = when (option.targetLoadMode) {
-                                LoadModeV2.LASTRE -> " lastre"
-                                LoadModeV2.ASSISTED -> " asist."
-                                else -> ""
-                            }
-                            val numText = if (option.targetLoadMode == LoadModeV2.BODYWEIGHT && option.weight <= 0.0) {
-                                "0 kg"
-                            } else {
-                                "${option.weight.toTrimmedNumberString()}$chipUnit"
-                            }
-                            Text(
-                                text = numText,
-                                style = KpknType.chip.copy(
-                                    fontSize = 12.sp,
-                                    lineHeight = 14.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    fontFeatureSettings = "'tnum' 1",
-                                ),
-                                color = if (option.isAuge) SymbolPalette.musculo else WizardColors.text,
-                                maxLines = 1,
-                                overflow = TextOverflow.Clip,
-                            )
-                        }
-                    }
-                }
+            options.take(3).forEachIndexed { index, option ->
+                LoadChip(option = option, index = index, modifier = Modifier.weight(1f))
             }
         }
     }
@@ -611,33 +622,6 @@ private fun IntegratedLoadInput(
         }
     }
 
-    @Composable
-    fun CompactInlineChip(option: QuickLoadChipOption) {
-        Surface(
-            onClick = { onChipSelected(option) },
-            shape = KpknShape.pill,
-            color = Color.Transparent,
-            border = if (option.isAuge) {
-                BorderStroke(1.5.dp, SymbolPalette.musculo)
-            } else {
-                BorderStroke(1.dp, Color.White.copy(alpha = 0.12f))
-            },
-        ) {
-            Text(
-                modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
-                text = if (option.isAuge) {
-                    option.weight.toTrimmedNumberString()
-                } else {
-                    option.label
-                },
-                style = KpknType.chip.copy(fontSize = 13.sp, fontFeatureSettings = "'tnum' 1"),
-                color = if (option.isAuge) SymbolPalette.musculo else WizardColors.textMuted,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
-        }
-    }
-
     // 5.1: La parte de arriba de la tarjeta ES la zona de la carga:
     // superficie #1A1A1A a todo el ancho, esquinas de arriba con radio 24 dp, sin doble borde ni márgenes laterales
     Surface(
@@ -656,19 +640,53 @@ private fun IntegratedLoadInput(
                 .padding(horizontal = 12.dp, vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(6.dp),
         ) {
-            Box(modifier = Modifier.fillMaxWidth()) {
-                LoadValueField(
-                    Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 36.dp),
-                )
-                Box(
-                    modifier = Modifier.align(Alignment.CenterEnd),
-                ) {
-                    LoadModeButtonWithMenu()
+            if (inlineChipsInField) {
+                // LV8 (A3): en los ejercicios con ROM los chips van junto al valor. La fila de ROM de abajo ocupa justo el sitio de
+                // la fila de chips que se libera aquí (6 dp + 38 dp), y la tarjeta mide lo mismo que la de un ejercicio sin ROM.
+                Box(modifier = Modifier.fillMaxWidth()) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(end = 36.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    ) {
+                        LoadValueField(
+                            Modifier
+                                .weight(1f)
+                                .widthIn(min = 64.dp),
+                            shortenLabelOnOverflow = true,
+                        )
+                        inlineRomLoadOptions(options).forEachIndexed { index, option ->
+                            LoadChip(
+                                option = option,
+                                index = index,
+                                modifier = Modifier.widthIn(min = 56.dp),
+                                wrapContent = true,
+                            )
+                        }
+                    }
+                    Box(
+                        modifier = Modifier.align(Alignment.CenterEnd),
+                    ) {
+                        LoadModeButtonWithMenu()
+                    }
                 }
+            } else {
+                Box(modifier = Modifier.fillMaxWidth()) {
+                    LoadValueField(
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 36.dp),
+                    )
+                    Box(
+                        modifier = Modifier.align(Alignment.CenterEnd),
+                    ) {
+                        LoadModeButtonWithMenu()
+                    }
+                }
+                QuickSuggestionRow(Modifier.fillMaxWidth())
             }
-            QuickSuggestionRow(Modifier.fillMaxWidth())
         }
     }
 }
@@ -679,6 +697,32 @@ private fun IntegratedLoadInput(
  * deja 10 dp, así que la píldora acaba a 306 dp: el ✓ le pisa 20 dp. El texto debe acabar 8 dp antes del círculo: 20 + 8 = 28 dp.
  */
 private val SetRecordFabEndPadding = 28.dp
+
+/**
+ * Alto de la carga (la parte de arriba de la tarjeta) que el panel guiado de drops deja a la vista al ponerse encima (LV8, ley 1): el panel
+ * ocupa como máximo el resto de la tarjeta y se desplaza dentro si no cabe.
+ */
+private val GuidedPanelTopReserve = 112.dp
+
+/** Iniciar o parar el temporizador de un ejercicio por tiempo (LV8): disco `inset` de 48 dp junto al valor; el icono va en tinta o, corriendo, en el acento. */
+@Composable
+private fun TimerToggleButton(running: Boolean, accentColor: Color, onClick: () -> Unit) {
+    Box(
+        modifier = Modifier
+            .size(48.dp)
+            .clip(CircleShape)
+            .background(KpknSurface.inset, CircleShape)
+            .clickable(role = Role.Button, onClick = onClick),
+        contentAlignment = Alignment.Center,
+    ) {
+        Icon(
+            if (running) Icons.Default.Stop else Icons.Default.PlayArrow,
+            contentDescription = if (running) "Detener" else "Iniciar",
+            modifier = Modifier.size(22.dp),
+            tint = if (running) accentColor else WizardColors.text,
+        )
+    }
+}
 
 /**
  * Botón secundario de la tarjeta de la serie (LR1a, LR1a2, LV3): píldora con borde de tinta al 24 %, sin relleno, Inter SemiBold 13 / 16
@@ -867,6 +911,8 @@ internal fun SetInputCardV2(
     openMediaFace: Boolean = false,
     onMediaFaceConsumed: () -> Unit = {},
     sessionMilestones: List<com.example.kpkn.data.models.SessionMilestone> = emptyList(),
+    /** Fija el fotograma del fuego del slider de esfuerzo (hojas de render y pruebas); nulo, el fuego corre solo. */
+    effortFireSecondsOverride: Float? = null,
 ) {
     val context = LocalContext.current
     val recordActionInstanceOwner = remember { Any() }
@@ -940,9 +986,9 @@ internal fun SetInputCardV2(
         -> currentSet.plannedTargetV2?.toInt() ?: plannedRepRange?.max
         UnitModeV2.REPS -> plannedRepRange?.max ?: currentSet.plannedTargetV2?.toInt()
     }
-    // Null is meaningful here: the author explicitly left intensity unapplied.
-    // Keep the live card free of an RPE/RIR control in that case; perceived
-    // intensity is collected by the post-exercise feedback slider instead.
+    // Null means the author left the effort target unapplied.  The effort slider
+    // still shows on every strength set (LV8): there the scale simply has no plan
+    // mark and the athlete must still pick a value before the set is recorded.
     // IntensityMode.LOAD under TrainingMode.RM is a legacy marker, not effort reporting.
     val isRmLoadPrescription = exercise.trainingMode == TrainingMode.RM ||
         (currentSet.intensityMode == IntensityMode.LOAD && currentSet.targetPercentageRM != null)
@@ -961,27 +1007,6 @@ internal fun SetInputCardV2(
         currentSet.leftTarget?.targetRPE != null || currentSet.rightTarget?.targetRPE != null -> IntensityMode.RPE
         else -> null
     }
-    val hasEffortReportingModes = plannedIntensityMode in setOf(
-        IntensityMode.RPE,
-        IntensityMode.RIR,
-        IntensityMode.FAILURE,
-        IntensityMode.AMRAP,
-        IntensityMode.SOLO_RM,
-        IntensityMode.LOAD,
-    )
-    val hasPlannedIntensityInput = currentSet.targetRPE != null ||
-        currentSet.targetRIR != null ||
-        currentSet.isFailure ||
-        plannedAmrap ||
-        hasEffortReportingModes ||
-        isRmLoadPrescription ||
-        (!isRmLoadPrescription && currentSet.targetPercentageRM != null) ||
-        currentSet.leftTarget?.targetRPE != null ||
-        currentSet.leftTarget?.targetRIR != null ||
-        currentSet.rightTarget?.targetRPE != null ||
-        currentSet.rightTarget?.targetRIR != null ||
-        currentSet.leftTarget?.intensityMode in setOf(IntensityMode.RPE, IntensityMode.RIR, IntensityMode.FAILURE, IntensityMode.SOLO_RM) ||
-        currentSet.rightTarget?.intensityMode in setOf(IntensityMode.RPE, IntensityMode.RIR, IntensityMode.FAILURE, IntensityMode.SOLO_RM)
 
     val supportsIndependentSides = exercise.isEffectivelyUnilateral()
     val lockedSide = activeSide?.takeIf { supportsIndependentSides && sideLocked }
@@ -1076,13 +1101,12 @@ internal fun SetInputCardV2(
                 ?: ""
         )
     }
-    // H-VERIF: el selector de reserva/esfuerzo llega relleno con lo planificado. Solo cuenta como
-    // «reserva cumplida» para proponer una subida si el atleta lo movió; un borrador con un valor
-    // distinto de lo planificado, o una serie ya registrada, se consideran reportados.
+    // H-VERIF (LV8): el esfuerzo es obligatorio y nunca llega preseleccionado. Una intensidad solo cuenta como «reserva cumplida» para
+    // proponer una subida si la persona la marcó: un borrador con un valor o con el fallo, o una serie ya registrada, ya están reportados.
     var intensityTouched by remember(exercise.id, setIndex, lockedSide, sessionCompletedSet?.id) {
         mutableStateOf(
             sessionCompletedSet?.let { it.recordedPayloadV3?.intensityAdjusted ?: true }
-                ?: (initialDraft?.intensityText?.let { it.isNotBlank() && it != plannedIntensityGhost } == true)
+                ?: (initialDraft?.let { !it.intensityText.isNullOrBlank() || it.reachedFailure == true } == true)
         )
     }
     var bodyWeightText by remember(exercise.id) { mutableStateOf(initialBodyWeight?.toTrimmedNumberString().orEmpty()) }
@@ -1176,14 +1200,10 @@ internal fun SetInputCardV2(
     LaunchedEffect(loadMode) {
         if (loadMode != LoadModeV2.ASSISTED) showBodyWeightPrompt = false
     }
+    // LV8: el fallo del plan es solo una marca sobre la pista del esfuerzo. La serie empieza sin marcar y el fallo se elige como cualquier
+    // otro valor; una intensidad que la persona no eligió nunca se registra.
     var reachedFailure by remember(exercise.id, setIndex, sessionCompletedSet?.id) {
-        mutableStateOf(
-            initialDraft?.reachedFailure ?: (
-                sessionCompletedSet?.isFailure == true ||
-                    currentSet.isFailure ||
-                    currentSet.intensityMode == IntensityMode.FAILURE
-            )
-        )
+        mutableStateOf(initialDraft?.reachedFailure ?: (sessionCompletedSet?.isFailure == true))
     }
     LaunchedEffect(
         currentSet.isDropSet,
@@ -1197,11 +1217,8 @@ internal fun SetInputCardV2(
         if (sessionCompletedSet != null) return@LaunchedEffect
         if (!volumeReplacedTechnique) return@LaunchedEffect
         // A scheduled technique is a volume policy, not an implicit failure
-        // report.  Keep the explicit RPE/RIR/AMRAP/FALLO selection intact;
-        // only a set that is actually planned as FAILURE starts in FALLO.
-        if (currentSet.isFailure || currentSet.intensityMode == IntensityMode.FAILURE) {
-            reachedFailure = true
-        }
+        // report.  The effort stays unmarked until the athlete picks it (LV8):
+        // not even a set planned as FAILURE starts in FALLO.
         val techniqueWeight = (
             currentSet.weight?.takeIf { it > 0.0 }
                 ?: suggestedWeightText?.toDoubleOrNull()?.takeIf { it > 0.0 }
@@ -1489,27 +1506,6 @@ internal fun SetInputCardV2(
     var reportedIntensityMode by remember(exercise.id, setIndex, sessionCompletedSet?.id) {
         mutableStateOf(resolveDefaultReportedIntensityMode())
     }
-    LaunchedEffect(
-        currentSet.intensityMode,
-        currentSet.targetRPE,
-        currentSet.targetRIR,
-        currentSet.isFailure,
-        plannedIntensityMode,
-        isRmLoadPrescription,
-    ) {
-        if (sessionCompletedSet != null) return@LaunchedEffect
-        val next = resolveDefaultReportedIntensityMode()
-        if (next != reportedIntensityMode) {
-            reportedIntensityMode = next
-            intensityText = when (next) {
-                IntensityMode.RIR -> (currentSet.targetRIR ?: 2).toString()
-                IntensityMode.RPE -> (currentSet.targetRPE ?: 8.0).toTrimmedNumberString()
-                IntensityMode.FAILURE -> ""
-                else -> intensityText
-            }
-            reachedFailure = next == IntensityMode.FAILURE && currentSet.isFailure
-        }
-    }
     var timerRunning by remember(exercise.id, setIndex, sideKey) { mutableStateOf(false) }
     var timerRemainingSeconds by remember(exercise.id, setIndex, sideKey) { mutableIntStateOf(plannedTarget ?: 0) }
     var timerElapsedSeconds by remember(exercise.id, setIndex, sideKey) { mutableIntStateOf(0) }
@@ -1572,50 +1568,110 @@ internal fun SetInputCardV2(
     val activePlannedRpe = activeSideTarget?.targetRPE ?: currentSet.targetRPE
     val activePlannedRir = activeSideTarget?.targetRIR ?: currentSet.targetRIR
 
-    val intensityCarouselItems = remember(
+    // ── Esfuerzo (LV8): la escala de siempre, sin preseleccionar el plan ──────────────────────────────────────────
+    // La lista es la que daba el carrusel para el modo con el que EMPIEZA la serie y no cambia mientras la persona elige.
+    val effortScale = remember(
         plannedIntensityMode,
-        reportedIntensityMode,
+        currentSet.targetRIR,
+        isRmLoadPrescription,
+        sessionCompletedSet?.id,
         activePlannedRir,
         activePlannedRpe,
     ) {
-        buildIntensityCarouselItems(
+        buildEffortScale(
             plannedIntensityMode = plannedIntensityMode,
-            reportedIntensityMode = reportedIntensityMode,
+            reportedIntensityMode = resolveDefaultReportedIntensityMode(),
             targetRir = activePlannedRir,
             targetRpe = activePlannedRpe,
         )
     }
-    val intensityCarouselLabels = remember(intensityCarouselItems, isNarrowScreen) {
-        intensityCarouselItems.map { item ->
-            when {
-                item.isFailure -> if (isNarrowScreen) "F" else INTENSITY_CAROUSEL_FAILURE_LABEL
-                else -> item.display
-            }
+    // La marca elegida (nula = sin marcar). Una serie ya registrada, o un borrador con un valor o con el fallo, llegan marcados.
+    var effortIndex by remember(exercise.id, setIndex, lockedSide, sessionCompletedSet?.id) {
+        mutableStateOf(
+            restoreEffortIndex(
+                items = effortScale.items,
+                reachedFailure = reachedFailure,
+                intensityText = intensityText,
+                mode = reportedIntensityMode,
+            ),
+        )
+    }
+    var effortHintVisible by remember(exercise.id, setIndex, lockedSide) { mutableStateOf(false) }
+    var effortWobbleKey by remember(exercise.id, setIndex, lockedSide) { mutableIntStateOf(0) }
+    val haptic = LocalHapticFeedback.current
+    // Hasta que se marca el esfuerzo, el modo de la escala sigue al plan; ni el texto ni el fallo se rellenan solos.
+    LaunchedEffect(
+        currentSet.intensityMode,
+        currentSet.targetRPE,
+        currentSet.targetRIR,
+        currentSet.isFailure,
+        plannedIntensityMode,
+        isRmLoadPrescription,
+    ) {
+        if (sessionCompletedSet != null || effortIndex != null) return@LaunchedEffect
+        val next = resolveDefaultReportedIntensityMode()
+        if (next != reportedIntensityMode) reportedIntensityMode = next
+    }
+    // Si el plan cambia la escala (otra lista), una marca que ya no existe se descarta.
+    LaunchedEffect(effortScale.items.size) {
+        if ((effortIndex ?: 0) >= effortScale.items.size) effortIndex = null
+    }
+    // El aviso de «marca tu esfuerzo» se retira solo a los pocos segundos.
+    LaunchedEffect(effortWobbleKey) {
+        if (effortWobbleKey > 0) {
+            delay(3_000)
+            effortHintVisible = false
         }
     }
-    val intensityCarouselSelectedIndex = intensityCarouselIndexFromState(
-        items = intensityCarouselItems,
-        reachedFailure = reachedFailure,
-        intensityText = intensityText,
-        reportedIntensityMode = reportedIntensityMode,
-        plannedRir = activePlannedRir,
-        plannedRpe = activePlannedRpe,
-    )
     val repsWheelCenterIndex = remember(exercise.id, setIndex, sideKey) { mutableIntStateOf(0) }
-    val intensityWheelCenterIndex = remember(exercise.id, setIndex, sideKey) { mutableIntStateOf(intensityCarouselSelectedIndex) }
-    fun onIntensityCarouselIndexChange(index: Int) {
+    fun onEffortSelected(index: Int) {
         if (isFailedSet) return
-        val item = intensityCarouselItems.getOrNull(index) ?: return
+        val item = effortScale.items.getOrNull(index) ?: return
         val selection = intensitySelectionFromCarouselItem(item)
+        effortIndex = index
+        effortHintVisible = false
         intensityTouched = true
         reachedFailure = selection.reachedFailure
         if (selection.reportedIntensityMode != null) {
             reportedIntensityMode = selection.reportedIntensityMode
         }
         intensityText = selection.intensityText
+        // En una serie AMRAP la marca se guarda como fallo o como reserva: el AMRAP no registra un RPE suelto.
+        if (isAmrap) {
+            val amrap = amrapEffortFor(item)
+            amrapReachFailure = amrap.reachedFailure
+            amrapReserveReps = amrap.reserveReps
+        }
     }
+    // El ✓ se pulsó sin haber marcado el esfuerzo: vibra suave, el slider se balancea y sale el aviso bajo él.
+    fun requireEffort() {
+        effortHintVisible = true
+        effortWobbleKey += 1
+        if (hapticFeedbackEnabled) haptic.performHapticFeedback(HapticFeedbackType.Reject)
+    }
+    // Tras registrar un lado, el otro empieza sin marcar: una intensidad que la persona no eligió nunca se registra.
+    fun resetEffortForNextSide() {
+        effortIndex = null
+        effortHintVisible = false
+        reachedFailure = false
+        intensityText = ""
+        intensityTouched = false
+        if (isAmrap) {
+            amrapReachFailure = false
+            amrapReserveReps = null
+        }
+    }
+    val chosenEffortItem = effortIndex?.let { effortScale.items.getOrNull(it) }
+    // Lo que se registra de la marca elegida: el fallo es 10 y la marca «—» (SOLO_RM) no lleva valor. Sin marcar, nada.
+    val chosenEffortValue: Double? = when {
+        chosenEffortItem == null -> null
+        chosenEffortItem.isFailure -> 10.0
+        else -> chosenEffortItem.numericValue
+    }
+    val effortAnimate = rememberEffortAnimationAllowed(isSettledPage && isActivePage)
 
-    val registeredIntensity = intensityText.toDoubleOrNull()
+    // El teclado y `toTrimmedNumberString` escriben la coma: se lee como punto antes de convertir.
+    val registeredIntensity = intensityText.replace(',', '.').toDoubleOrNull()
     val expectedIntensity = when (reportedIntensityMode) {
         null -> null
         IntensityMode.RIR -> when (plannedIntensityMode) {
@@ -1638,47 +1694,6 @@ internal fun SetInputCardV2(
         }
     } else {
         null
-    }
-    fun fallbackIntensityForMode(mode: IntensityMode): String =
-        when (mode) {
-            IntensityMode.RIR -> (activePlannedRir ?: 1).toString()
-            else -> (activePlannedRpe ?: 9.0).toTrimmedNumberString()
-        }
-
-    fun ensureReportedIntensityText() {
-        val mode = reportedIntensityMode ?: return
-        if (intensityText.isBlank()) {
-            intensityText = fallbackIntensityForMode(mode)
-        }
-    }
-
-    val isNoFalloCase = !reachedFailure && plannedIntensityMode == IntensityMode.FAILURE
-    LaunchedEffect(isNoFalloCase, reportedIntensityMode, exercise.id, setIndex) {
-        if (isNoFalloCase) {
-            if (reportedIntensityMode == IntensityMode.FAILURE || reportedIntensityMode == null) {
-                reportedIntensityMode = if (currentSet.targetRIR != null) {
-                    IntensityMode.RIR
-                } else {
-                    IntensityMode.RPE
-                }
-            }
-            ensureReportedIntensityText()
-        }
-    }
-    LaunchedEffect(exercise.id, setIndex, hasPlannedIntensityInput, reportedIntensityMode, intensityCarouselSelectedIndex) {
-        if (isFailedSet || !hasPlannedIntensityInput || reachedFailure) return@LaunchedEffect
-        if (isRmLoadPrescription && reportedIntensityMode == null) return@LaunchedEffect
-        if (intensityText.isNotBlank()) return@LaunchedEffect
-        val item = intensityCarouselItems.getOrNull(intensityCarouselSelectedIndex)
-        if (item != null && !item.isFailure) {
-            val selection = intensitySelectionFromCarouselItem(item)
-            if (selection.reportedIntensityMode != null) {
-                reportedIntensityMode = selection.reportedIntensityMode
-            }
-            intensityText = selection.intensityText
-        } else {
-            ensureReportedIntensityText()
-        }
     }
 
     val difficultyLabel = when {
@@ -1838,36 +1853,20 @@ internal fun SetInputCardV2(
                 shadowElevation = 0.dp,
                 border = BorderStroke(1.dp, KpknSurface.moduleBorder),
             ) {
+            // La caja deja poner ENCIMA de la tarjeta lo que antes se insertaba y la alargaba (ley 1, LV8): ver los avisos de abajo.
+            Box(modifier = Modifier.fillMaxWidth()) {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
                     .wrapContentHeight(),
                 verticalArrangement = Arrangement.spacedBy(6.dp),
             ) {
-            val activeGuidedPhase = guidedPhase
             if (currentSet.plannedIntensityTechniques.any { it.type == TechniqueType.CLUSTER_SET }) {
                 Text(
                     "Cluster set: próximamente",
                     style = MaterialTheme.typography.labelSmall,
                     fontWeight = FontWeight.Bold,
                     color = Color.White.copy(alpha = 0.7f),
-                )
-            }
-            // Programmed editor techniques are VOLUME_REPLACED and use the
-            // existing top band/timeline.  The guided surface belongs only to
-            // manual STACKED_ON_SET techniques; rendering it for a scheduled
-            // plan cuts the live card (the bug shown in the beta capture).
-            if (activeGuidedPhase != null && currentSet.techniqueScope() == SetTechniqueScope.STACKED_ON_SET) {
-                GuidedTechniquePanel(
-                    phase = activeGuidedPhase,
-                    accentColor = sessionAccentColor,
-                    dropWeightText = guidedDropWeightText,
-                    dropRepsText = guidedDropRepsText,
-                    restPauseRepsText = guidedRestPauseRepsText,
-                    onDropWeightChange = { guidedDropWeightText = it },
-                    onDropRepsChange = { guidedDropRepsText = it },
-                    onRestPauseRepsChange = { guidedRestPauseRepsText = it },
-                    onSkipTechnique = { guidedSkipAction[0]?.invoke() },
                 )
             }
 
@@ -1928,9 +1927,15 @@ internal fun SetInputCardV2(
 
             val volumeReplacedLabel = currentSet.volumeReplacedLabel()
             if (volumeReplacedLabel != null) {
-                VolumeReplacedTechniqueBand(label = volumeReplacedLabel)
-            }
-            if (scheduledRestRemainingSeconds > 0) {
+                // Ley 1 (LV8): la cuenta atrás de la pausa técnica va DENTRO de la banda; antes era una línea aparte que alargaba la tarjeta al salir.
+                VolumeReplacedTechniqueBand(
+                    label = if (scheduledRestRemainingSeconds > 0) {
+                        "$volumeReplacedLabel · Pausa técnica ${scheduledRestRemainingSeconds}s"
+                    } else {
+                        volumeReplacedLabel
+                    },
+                )
+            } else if (scheduledRestRemainingSeconds > 0) {
                 Text(
                     text = "Pausa técnica · ${scheduledRestRemainingSeconds}s",
                     style = MaterialTheme.typography.labelSmall,
@@ -2080,6 +2085,23 @@ internal fun SetInputCardV2(
                                         style = KpknType.eyebrow,
                                         color = WizardColors.textMuted,
                                     )
+                                    if (isTimeMode) {
+                                        // Ley 1 (LV8): lo que decía el temporizador debajo del todo, ya sin sitio en la tarjeta, va aquí en una línea.
+                                        val timerSupport = when {
+                                            timerRunning -> "Restan ${formatTime(timerRemainingSeconds)}"
+                                            timerElapsedSeconds > 0 -> "Registrado ${timerElapsedSeconds}s"
+                                            plannedTarget != null -> "Objetivo ${plannedTarget}s"
+                                            else -> null
+                                        }
+                                        timerSupport?.let { support ->
+                                            Text(
+                                                " · $support",
+                                                style = KpknType.caption.copy(fontSize = 11.sp, lineHeight = 14.sp),
+                                                color = if (timerRunning) sessionAccentColor else WizardColors.textFaint,
+                                                maxLines = 1,
+                                            )
+                                        }
+                                    }
                                     if (!isTimeMode) {
                                         Box(
                                             modifier = Modifier
@@ -2152,44 +2174,67 @@ internal fun SetInputCardV2(
                             Spacer(modifier = Modifier.height(if (roomyStepper) 8.dp else 6.dp))
 
                             if (isTimeMode) {
-                                WorkoutStepperField(
-                                    value = if (isFailedSet) "0" else reportValueText,
-                                    onValueChange = { if (!isFailedSet) updateActiveValueText(it.filter { ch -> ch.isDigit() }) },
-                                    onDecrement = {
-                                        val ghostBase = if (supportsIndependentSides) {
-                                            if (selectedSide == "left") leftValueGhost else rightValueGhost
-                                        } else {
-                                            plannedValueGhost
-                                        }
-                                        val current = reportValueText.toIntOrNull()
-                                            ?: ghostBase.toIntOrNull()
-                                            ?: 0
-                                        updateActiveValueText((current - 1).coerceAtLeast(0).toString())
-                                    },
-                                    onIncrement = {
-                                        val ghostBase = if (supportsIndependentSides) {
-                                            if (selectedSide == "left") leftValueGhost else rightValueGhost
-                                        } else {
-                                            plannedValueGhost
-                                        }
-                                        val current = reportValueText.toIntOrNull()
-                                            ?: ghostBase.toIntOrNull()
-                                            ?: 0
-                                        updateActiveValueText((current + 1).toString())
-                                    },
-                                    buttonsEnabled = !isFailedSet,
-                                    textInputEnabled = !isFailedSet,
-                                    isError = isFailedSet,
-                                    textStyle = MaterialTheme.typography.titleLarge,
-                                    accentColor = sessionAccentColor,
-                                    roomier = roomyStepper,
-                                    placeholder = if (supportsIndependentSides) {
-                                        if (selectedSide == "left") leftValueGhost else rightValueGhost
-                                    } else {
-                                        plannedValueGhost
-                                    }.takeIf { it.isNotBlank() },
+                                Row(
                                     modifier = Modifier.fillMaxWidth(),
-                                )
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                ) {
+                                    WorkoutStepperField(
+                                        value = if (isFailedSet) "0" else reportValueText,
+                                        onValueChange = { if (!isFailedSet) updateActiveValueText(it.filter { ch -> ch.isDigit() }) },
+                                        onDecrement = {
+                                            val ghostBase = if (supportsIndependentSides) {
+                                                if (selectedSide == "left") leftValueGhost else rightValueGhost
+                                            } else {
+                                                plannedValueGhost
+                                            }
+                                            val current = reportValueText.toIntOrNull()
+                                                ?: ghostBase.toIntOrNull()
+                                                ?: 0
+                                            updateActiveValueText((current - 1).coerceAtLeast(0).toString())
+                                        },
+                                        onIncrement = {
+                                            val ghostBase = if (supportsIndependentSides) {
+                                                if (selectedSide == "left") leftValueGhost else rightValueGhost
+                                            } else {
+                                                plannedValueGhost
+                                            }
+                                            val current = reportValueText.toIntOrNull()
+                                                ?: ghostBase.toIntOrNull()
+                                                ?: 0
+                                            updateActiveValueText((current + 1).toString())
+                                        },
+                                        buttonsEnabled = !isFailedSet,
+                                        textInputEnabled = !isFailedSet,
+                                        isError = isFailedSet,
+                                        textStyle = MaterialTheme.typography.titleLarge,
+                                        accentColor = sessionAccentColor,
+                                        roomier = roomyStepper,
+                                        placeholder = if (supportsIndependentSides) {
+                                            if (selectedSide == "left") leftValueGhost else rightValueGhost
+                                        } else {
+                                            plannedValueGhost
+                                        }.takeIf { it.isNotBlank() },
+                                        modifier = Modifier.weight(1f),
+                                    )
+                                    // El temporizador va junto al valor (LV8): así la tarjeta de un ejercicio por tiempo mide lo mismo que la de reps.
+                                    TimerToggleButton(
+                                        running = timerRunning,
+                                        accentColor = sessionAccentColor,
+                                        onClick = {
+                                            if (timerRunning) {
+                                                timerRunning = false
+                                                if (timerElapsedSeconds > 0) {
+                                                    updateActiveValueText(timerElapsedSeconds.toString())
+                                                }
+                                            } else if (timerTargetSeconds > 0) {
+                                                timerElapsedSeconds = 0
+                                                timerRemainingSeconds = timerTargetSeconds
+                                                timerRunning = true
+                                            }
+                                        },
+                                    )
+                                }
                             } else {
                                 val ghostBase = if (supportsIndependentSides) {
                                     if (selectedSide == "left") leftValueGhost else rightValueGhost
@@ -2229,137 +2274,31 @@ internal fun SetInputCardV2(
                                     modifier = Modifier.fillMaxWidth(),
                                 )
                             }
-
-                            if (isTimeMode) {
-                                Spacer(modifier = Modifier.height(if (roomyStepper) 8.dp else 6.dp))
-                                Box(
-                                    modifier = Modifier.size(32.dp).clickable {
-                                        if (timerRunning) {
-                                            timerRunning = false
-                                            if (timerElapsedSeconds > 0) {
-                                                updateActiveValueText(timerElapsedSeconds.toString())
-                                            }
-                                        } else if (timerTargetSeconds > 0) {
-                                            timerElapsedSeconds = 0
-                                            timerRemainingSeconds = timerTargetSeconds
-                                            timerRunning = true
-                                        }
-                                    },
-                                    contentAlignment = Alignment.Center,
-                                ) {
-                                    Icon(
-                                        if (timerRunning) Icons.Default.Stop else Icons.Default.PlayArrow,
-                                        contentDescription = if (timerRunning) "Detener" else "Iniciar",
-                                        modifier = Modifier.size(18.dp),
-                                        tint = if (timerRunning) sessionAccentColor else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
-                                    )
-                                }
-                            }
                         }
                     }
 
                     @Composable
-                    fun IntensityStepperBlock(modifier: Modifier = Modifier) {
-                        Column(
-                            modifier = modifier,
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                        ) {
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .heightIn(min = 20.dp),
-                                horizontalArrangement = Arrangement.Center,
-                                verticalAlignment = Alignment.CenterVertically,
-                            ) {
-                                Text(
-                                    intensityFieldLabel.uppercase(),
-                                    style = KpknType.eyebrow,
-                                    color = when {
-                                        isExecutionError -> WizardColors.textFaint
-                                        reachedFailure -> WizardColors.textFaint
-                                        else -> WizardColors.textMuted
-                                    },
-                                )
-                            }
-                            Spacer(modifier = Modifier.height(if (roomyStepper) 8.dp else 6.dp))
-
-                            if (isExecutionError) {
-                                WorkoutHorizontalWheelPicker(
-                                    items = listOf("Error"),
-                                    selectedIndex = 0,
-                                    onSelectedIndexChange = {},
-                                    enabled = false,
-                                    isError = true,
-                                    accentColor = sessionAccentColor,
-                                    roomier = roomyStepper,
-                                    modifier = Modifier.fillMaxWidth(),
-                                )
-                            } else {
-                                val intensityTone = carouselToneForIntensityFeedback(
-                                    isExecutionError = isExecutionError,
-                                    reachedFailure = reachedFailure,
-                                    difficultyLabel = difficultyLabel,
-                                    intensityDelta = intensityDelta,
-                                    matchesPlanned = intensityText.isBlank() && !reachedFailure,
-                                )
-                                WorkoutHorizontalWheelPicker(
-                                    items = intensityCarouselLabels,
-                                    selectedIndex = intensityCarouselSelectedIndex,
-                                    onSelectedIndexChange = { onIntensityCarouselIndexChange(it) },
-                                    enabled = true,
-                                    isError = reachedFailure,
-                                    accentColor = sessionAccentColor,
-                                    roomier = roomyStepper,
-                                    centerGlowColor = carouselGlowForTone(intensityTone, sessionAccentColor),
-                                    centeredIndexHolder = intensityWheelCenterIndex,
-                                    modifier = Modifier.fillMaxWidth(),
-                                )
-                            }
-                        }
-                    }
-
-                    if (hasPlannedIntensityInput) {
-                        BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
-                            // El ancho de la tarjeta (con peek), no el viewport: en vivo
-                            // cada carta es más estrecha que la pantalla.
-                            val stackSteppers = maxWidth < 360.dp
-                            if (stackSteppers) {
-                                Column(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    verticalArrangement = Arrangement.spacedBy(
-                                        if (roomyStepper) 12.dp else 10.dp,
-                                    ),
-                                ) {
-                                    ValueStepperBlock(Modifier.fillMaxWidth())
-                                    IntensityStepperBlock(Modifier.fillMaxWidth())
-                                }
-                            } else {
-                                Row(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.spacedBy(
-                                        if (roomyStepper) 18.dp else 12.dp
-                                    ),
-                                    verticalAlignment = Alignment.Top,
-                                ) {
-                                    ValueStepperBlock(Modifier.weight(1f))
-                                    IntensityStepperBlock(Modifier.weight(1f))
-                                }
-                            }
-                        }
-                    } else {
-                        // A set without a planned intensity only asks for its
-                        // objective value. The friendly perceived-intensity
-                        // slider appears after the exercise instead.
-                        ValueStepperBlock(
-                            Modifier
-                                .fillMaxWidth(fraction = 0.72f)
-                                .widthIn(max = 280.dp)
-                                .align(Alignment.CenterHorizontally),
+                    fun EffortBlock() {
+                        // El esfuerzo (LV8): un slider de fuego que empieza en el mínimo y marca el plan. Sale en TODAS las series de
+                        // fuerza, también las que no traen objetivo de esfuerzo: registrar exige haberlo marcado.
+                        EffortFireSlider(
+                            scale = effortScale,
+                            selectedIndex = effortIndex,
+                            onSelect = { onEffortSelected(it) },
+                            enabled = !isFailedSet,
+                            hint = EffortRequiredHint.takeIf { effortHintVisible && effortIndex == null },
+                            wobbleKey = effortWobbleKey,
+                            animate = effortAnimate,
+                            hapticsEnabled = hapticFeedbackEnabled,
+                            forcedFireSeconds = effortFireSecondsOverride,
+                            modifier = Modifier.fillMaxWidth(),
                         )
                     }
 
+                    ValueStepperBlock(Modifier.fillMaxWidth())
+                    EffortBlock()
+
                     if (exercise.trackRom) {
-                        Spacer(modifier = Modifier.height(6.dp))
                         RomReportSlider(
                             value = romValue ?: DEFAULT_ROM_PERCENT,
                             onValueChange = { romValue = it },
@@ -2391,70 +2330,7 @@ internal fun SetInputCardV2(
                     }
                 }
 
-            if (loadMode == LoadModeV2.ASSISTED && (showBodyWeightPrompt || bodyWeightText.isBlank())) {
-                Surface(
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(14.dp),
-                    color = Color(0xFF222222),
-                ) {
-                    Row(
-                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 12.dp),
-                        horizontalArrangement = Arrangement.spacedBy(10.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        OutlinedTextField(
-                            value = bodyWeightText,
-                            onValueChange = { bodyWeightText = it },
-                            label = { Text("Peso corporal (kg)", fontWeight = FontWeight.SemiBold) },
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                            modifier = Modifier.weight(1f),
-                            singleLine = true,
-                            textStyle = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold, color = Color.White),
-                            colors = OutlinedTextFieldDefaults.colors(
-                                focusedBorderColor = sessionAccentColor,
-                                unfocusedBorderColor = Color(0xFF555555),
-                                focusedLabelColor = sessionAccentColor,
-                                unfocusedLabelColor = Color.White.copy(alpha = 0.7f),
-                                cursorColor = Color.White,
-                                focusedTextColor = Color.White,
-                                unfocusedTextColor = Color.White,
-                                focusedContainerColor = Color(0xFF2A2A2A),
-                                unfocusedContainerColor = Color(0xFF2A2A2A),
-                            ),
-                        )
-                        Button(
-                            onClick = {
-                                bodyWeightText.toDoubleOrNull()?.let {
-                                    onSetBodyWeight(it)
-                                    showBodyWeightPrompt = false
-                                }
-                            },
-                            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = sessionAccentColor,
-                                contentColor = com.example.kpkn.screens.sessioneditor.contentOn(sessionAccentColor),
-                            ),
-                        ) { Text("Guardar", fontWeight = FontWeight.Bold) }
-                    }
-                }
-            }
 
-            if (isTimeMode) {
-                val timerSupport = when {
-                    timerRunning -> "Restan ${formatTime(timerRemainingSeconds)}"
-                    timerElapsedSeconds > 0 -> "Registrado ${timerElapsedSeconds}s"
-                    plannedTarget != null -> "Objetivo ${plannedTarget}s"
-                    else -> null
-                }
-                if (timerSupport != null) {
-                    Text(
-                        timerSupport,
-                        style = MaterialTheme.typography.labelSmall,
-                        fontWeight = FontWeight.SemiBold,
-                        color = if (timerRunning) sessionAccentColor else Color.White.copy(alpha = 0.6f),
-                    )
-                }
-            }
 
             if (showAmrapSheet) {
                 AmrapConfigSheet(
@@ -2490,10 +2366,10 @@ internal fun SetInputCardV2(
             } else {
                 defaultValue
             }
-            val initialIntensityForDraft = activeSideTarget?.targetRPE?.toTrimmedNumberString()
-                ?: activeSideTarget?.targetRIR?.toString()
-                ?: currentSet.targetRPE?.toTrimmedNumberString()
-                ?: currentSet.targetRIR?.toString().orEmpty()
+            // LV8: la serie empieza sin esfuerzo marcado; solo una serie ya registrada trae el suyo.
+            val initialIntensityForDraft = sessionCompletedSet?.let {
+                it.actualIntensityValue?.toTrimmedNumberString() ?: it.rpe?.toTrimmedNumberString()
+            }.orEmpty()
             val plannedDropCountForDraft = currentSet.plannedIntensityTechniques
                 .firstOrNull { it.type == TechniqueType.DROP_SET }
                 ?.params?.get("count")?.toIntOrNull()
@@ -2616,7 +2492,7 @@ internal fun SetInputCardV2(
                     plannedLoadMode = currentSet.loadModeV2,
                     defaultCatalogMode = null,
                 )
-                val initialFailure = currentSet.isFailure || currentSet.intensityMode == IntensityMode.FAILURE
+                val initialFailure = sessionCompletedSet?.isFailure == true
                 val initialSide = lockedSide ?: "left"
                 val isDirty = techniqueProgressForDraft != null ||
                     reportWeightText != activeInitialWeight ||
@@ -2660,15 +2536,10 @@ internal fun SetInputCardV2(
                 }
             }
 
-            val resolvedCarouselIntensity = effectiveCarouselIntensityValue(
-                intensityText = intensityText,
-                reachedFailure = reachedFailure,
-                items = intensityCarouselItems,
-                selectedIndex = intensityCarouselSelectedIndex,
-            )
             val advanced = SetAdvancedFeedback(
+                // El fallo en una escala RIR no es «RIR 10»: el fallo se guarda como fallo, sin reserva (LV8).
                 rir = if (isAmrap && !amrapReachFailure) amrapReserveReps
-                      else if (reportedIntensityMode == IntensityMode.RIR) resolvedCarouselIntensity?.toInt()
+                      else if (reportedIntensityMode == IntensityMode.RIR && !reachedFailure) chosenEffortValue?.toInt()
                       else null,
                 reachedFailure = reachedFailure || (isAmrap && amrapReachFailure),
                 isFailedSet = isFailedSet,
@@ -2697,7 +2568,7 @@ internal fun SetInputCardV2(
                     isAmrap && amrapReachFailure -> 10.0
                     isAmrap && !amrapReachFailure -> amrapReserveReps?.toDouble()
                     reachedFailure -> 10.0
-                    else -> resolvedCarouselIntensity
+                    else -> chosenEffortValue
                 },
                 amrapOverride = isAmrap.takeIf { it != plannedAmrap },
                 amrapMinimumReps = amrapMinimumReps,
@@ -2792,6 +2663,7 @@ internal fun SetInputCardV2(
                     scheduledAwaitingCommit = false
                     scheduledRestRemainingSeconds = 0
                     if (supportsIndependentSides && !sideLocked) {
+                        resetEffortForNextSide()
                         selectSide(if (selectedSide == "left") "right" else "left")
                     }
                 }
@@ -2887,6 +2759,7 @@ internal fun SetInputCardV2(
                         restPauseSets = restOverride
                     }
                     if (supportsIndependentSides && !sideLocked) {
+                        resetEffortForNextSide()
                         selectSide(if (selectedSide == "left") "right" else "left")
                     }
                 }
@@ -3079,16 +2952,6 @@ internal fun SetInputCardV2(
                             )
                             updateActiveValueText(centeredRepsIndex.toString())
                         }
-                        if (!isFailedSet && hasPlannedIntensityInput && intensityCarouselItems.isNotEmpty() &&
-                            !(isRmLoadPrescription && reportedIntensityMode == null && !reachedFailure)
-                        ) {
-                            val centeredIntensityIndex = effectiveCarouselSelectedIndex(
-                                selectedIndex = intensityCarouselSelectedIndex,
-                                centeredIndex = intensityWheelCenterIndex.intValue,
-                                itemCount = intensityCarouselItems.size,
-                            )
-                            onIntensityCarouselIndexChange(centeredIntensityIndex)
-                        }
                         val syncedValueText = reportingSide?.let { valueTextForSide(it) } ?: valueText
                         val syncedWeightText = reportingSide?.let { weightTextForSide(it) } ?: weightText
                         val timeFallbackGhost = when {
@@ -3134,17 +2997,8 @@ internal fun SetInputCardV2(
                             isAmrap && amrapReachFailure -> 10.0
                             isAmrap && !amrapReachFailure -> amrapReserveReps?.toDouble()
                             reachedFailure -> 10.0
-                            isRmLoadPrescription && reportedIntensityMode == null -> null
-                            else -> effectiveCarouselIntensityValue(
-                                intensityText = intensityText,
-                                reachedFailure = reachedFailure,
-                                items = intensityCarouselItems,
-                                selectedIndex = effectiveCarouselSelectedIndex(
-                                    selectedIndex = intensityCarouselSelectedIndex,
-                                    centeredIndex = intensityWheelCenterIndex.intValue,
-                                    itemCount = intensityCarouselItems.size,
-                                ),
-                            )
+                            // Solo la marca que la persona eligió: sin ella no se llega aquí, y la marca «—» (SOLO_RM) no lleva valor.
+                            else -> chosenEffortValue
                         }
                         val resolvedUnitMode = when {
                             currentSet.unitModeV2 != null -> currentSet.unitModeV2
@@ -3304,6 +3158,7 @@ internal fun SetInputCardV2(
                             reportingSide,
                         ) {
                             if (supportsIndependentSides && !sideLocked) {
+                                resetEffortForNextSide()
                                 selectSide(if (selectedSide == "left") "right" else "left")
                             }
                         }
@@ -3315,6 +3170,90 @@ internal fun SetInputCardV2(
             }
             DisposableEffect(recordActionHolder, recordActionInstanceOwner) {
                 onDispose { recordActionHolder.clearIfOwner(recordActionInstanceOwner) }
+            }
+            }
+            // Ley 1 (LV8): la tarjeta no cambia de tamaño en ningún estado. El panel guiado de drop-set y rest-pause y el aviso del peso
+            // corporal del asistido ya no se insertan arriba (la alargaban): van ENCIMA de la parte de abajo, con la carga a la vista.
+            val guidedPhaseNow = guidedPhase
+            // Programmed editor techniques are VOLUME_REPLACED and use the existing top band/timeline.  The guided surface belongs
+            // only to manual STACKED_ON_SET techniques; rendering it for a scheduled plan cuts the live card (the bug shown in the
+            // beta capture).
+            if (guidedPhaseNow != null && currentSet.techniqueScope() == SetTechniqueScope.STACKED_ON_SET) {
+                BoxWithConstraints(modifier = Modifier.matchParentSize()) {
+                    Box(
+                        modifier = Modifier
+                            .align(Alignment.BottomCenter)
+                            .fillMaxWidth()
+                            .heightIn(max = (maxHeight - GuidedPanelTopReserve).coerceAtLeast(160.dp))
+                            .background(KpknSurface.module)
+                            .verticalScroll(rememberScrollState())
+                            .padding(10.dp),
+                    ) {
+                        GuidedTechniquePanel(
+                            phase = guidedPhaseNow,
+                            accentColor = sessionAccentColor,
+                            dropWeightText = guidedDropWeightText,
+                            dropRepsText = guidedDropRepsText,
+                            restPauseRepsText = guidedRestPauseRepsText,
+                            onDropWeightChange = { guidedDropWeightText = it },
+                            onDropRepsChange = { guidedDropRepsText = it },
+                            onRestPauseRepsChange = { guidedRestPauseRepsText = it },
+                            onSkipTechnique = { guidedSkipAction[0]?.invoke() },
+                        )
+                    }
+                }
+            }
+            if (loadMode == LoadModeV2.ASSISTED && (showBodyWeightPrompt || bodyWeightText.isBlank())) {
+                Box(modifier = Modifier.matchParentSize()) {
+                    Surface(
+                        modifier = Modifier
+                            .align(Alignment.BottomCenter)
+                            .fillMaxWidth()
+                            .padding(10.dp),
+                        shape = RoundedCornerShape(14.dp),
+                        color = Color(0xFF222222),
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 12.dp),
+                            horizontalArrangement = Arrangement.spacedBy(10.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            OutlinedTextField(
+                                value = bodyWeightText,
+                                onValueChange = { bodyWeightText = it },
+                                label = { Text("Peso corporal (kg)", fontWeight = FontWeight.SemiBold) },
+                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                                modifier = Modifier.weight(1f),
+                                singleLine = true,
+                                textStyle = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold, color = Color.White),
+                                colors = OutlinedTextFieldDefaults.colors(
+                                    focusedBorderColor = sessionAccentColor,
+                                    unfocusedBorderColor = Color(0xFF555555),
+                                    focusedLabelColor = sessionAccentColor,
+                                    unfocusedLabelColor = Color.White.copy(alpha = 0.7f),
+                                    cursorColor = Color.White,
+                                    focusedTextColor = Color.White,
+                                    unfocusedTextColor = Color.White,
+                                    focusedContainerColor = Color(0xFF2A2A2A),
+                                    unfocusedContainerColor = Color(0xFF2A2A2A),
+                                ),
+                            )
+                            Button(
+                                onClick = {
+                                    bodyWeightText.toDoubleOrNull()?.let {
+                                        onSetBodyWeight(it)
+                                        showBodyWeightPrompt = false
+                                    }
+                                },
+                                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = sessionAccentColor,
+                                    contentColor = com.example.kpkn.screens.sessioneditor.contentOn(sessionAccentColor),
+                                ),
+                            ) { Text("Guardar", fontWeight = FontWeight.Bold) }
+                        }
+                    }
+                }
             }
             }
             }
@@ -3557,58 +3496,55 @@ private fun RomReportSlider(
     accentColor: Color,
     modifier: Modifier = Modifier,
 ) {
+    // Rango de movimiento (ROM) de los ejercicios que lo miden (LV8, A3): una fila de 36 dp con la etiqueta y el valor a la izquierda y el
+    // slider a su lado. Con los 8 dp de separación entre filas ocupa justo los 44 dp que libera la fila de chips al ir junto a la carga
+    // (`inlineChipsInField`): la tarjeta de un ejercicio con ROM mide lo mismo que la de uno sin ROM. `accentColor` se conserva en la
+    // firma; el slider va en tinta, como el resto de la tarjeta.
     val clampedValue = value.coerceIn(10, 100)
     val sliderColors = SliderDefaults.colors(
-        thumbColor = accentColor,
-        activeTrackColor = accentColor.copy(alpha = 0.92f),
-        inactiveTrackColor = Color.White.copy(alpha = 0.08f),
+        thumbColor = WizardColors.text,
+        activeTrackColor = WizardColors.text.copy(alpha = 0.85f),
+        inactiveTrackColor = KpknSurface.inset,
         activeTickColor = Color.Transparent,
         inactiveTickColor = Color.Transparent,
         disabledActiveTickColor = Color.Transparent,
         disabledInactiveTickColor = Color.Transparent,
     )
-    Column(
-        modifier = modifier,
-        verticalArrangement = Arrangement.spacedBy(6.dp),
+    Row(
+        modifier = modifier.height(36.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(10.dp),
     ) {
         Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
         ) {
             Text(
                 text = "ROM",
-                style = MaterialTheme.typography.labelSmall,
-                fontWeight = FontWeight.Bold,
-                color = Color.White.copy(alpha = 0.58f),
+                style = KpknType.eyebrow,
+                color = WizardColors.textMuted,
+                maxLines = 1,
             )
             Text(
-                text = "$clampedValue%",
-                style = MaterialTheme.typography.labelSmall,
-                fontWeight = FontWeight.Bold,
-                color = accentColor,
+                text = "$clampedValue %",
+                style = KpknType.chip.copy(fontFeatureSettings = "'tnum' 1"),
+                color = WizardColors.text,
+                maxLines = 1,
             )
         }
-        Surface(
-            shape = WorkoutUiTokens.InnerCardShape,
-            color = WorkoutUiTokens.setInnerColor(),
-            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.22f)),
+        CompositionLocalProvider(
+            LocalMinimumInteractiveComponentSize provides 20.dp,
         ) {
-            CompositionLocalProvider(
-                LocalMinimumInteractiveComponentSize provides 20.dp,
-            ) {
-                Slider(
-                    value = clampedValue.toFloat(),
-                    onValueChange = { onValueChange(it.roundToInt().coerceIn(10, 100)) },
-                    valueRange = 10f..100f,
-                    steps = 0,
-                    colors = sliderColors,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 8.dp, vertical = 2.dp)
-                        .height(22.dp),
-                )
-            }
+            Slider(
+                value = clampedValue.toFloat(),
+                onValueChange = { onValueChange(it.roundToInt().coerceIn(10, 100)) },
+                valueRange = 10f..100f,
+                steps = 0,
+                colors = sliderColors,
+                modifier = Modifier
+                    .weight(1f)
+                    .height(28.dp),
+            )
         }
     }
 }
