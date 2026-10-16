@@ -452,6 +452,56 @@ class TrainingEnergyEngineTest {
     }
 
     @Test
+    fun `technical quality is read on its 1 to 10 scale`() {
+        val settings = buildSettings(weight = 80.0)
+        val exercises = listOf(
+            buildCompletedExercise(
+                "Sentadilla Trasera Barra Alta",
+                (1..10).map { buildCompletedSet(weight = 150.0, reps = 10, rpe = 9.5) },
+                "quads_sentadilla_trasera_barra_alta",
+            ),
+        )
+        fun epoc(quality: Int?): Int = TrainingEnergyEngine.estimateCompletedSession(
+            completedExercises = exercises,
+            settings = settings,
+            postExerciseFeedback = if (quality == null) {
+                emptyMap()
+            } else {
+                mapOf(
+                    "quads_sentadilla_trasera_barra_alta" to PostExerciseFeedback(
+                        exerciseId = "quads_sentadilla_trasera_barra_alta",
+                        exerciseName = "Sentadilla Trasera Barra Alta",
+                        technicalQuality = quality,
+                    ),
+                )
+            },
+        ).epocKcal.mid
+
+        // Una técnica de 6/10 es floja: antes se recortaba a 5 y contaba como perfecta.
+        assertTrue("6/10 debe costar más EPOC que sin feedback (${epoc(6)} vs ${epoc(null)})", epoc(6) > epoc(null))
+        assertTrue("6/10 debe costar más EPOC que 10/10 (${epoc(6)} vs ${epoc(10)})", epoc(6) > epoc(10))
+        assertEquals("10/10 es técnica perfecta, sin recargo", epoc(null), epoc(10))
+        assertTrue("más técnica, menos EPOC (${epoc(3)} vs ${epoc(8)})", epoc(3) > epoc(8))
+    }
+
+    @Test
+    fun `technicalQuality10ToPenaltyScale maps 1 to 10 onto 1 to 5`() {
+        assertEquals(1, TrainingEnergyEngine.technicalQuality10ToPenaltyScale(1))
+        assertEquals(3, TrainingEnergyEngine.technicalQuality10ToPenaltyScale(6))
+        assertEquals(5, TrainingEnergyEngine.technicalQuality10ToPenaltyScale(10))
+        assertEquals(1, TrainingEnergyEngine.technicalQuality10ToPenaltyScale(-4))
+        assertEquals(5, TrainingEnergyEngine.technicalQuality10ToPenaltyScale(40))
+        // Misma conversión que usa el cierre de sesión (la de la pantalla).
+        (1..10).forEach {
+            assertEquals(
+                "calidad $it",
+                com.example.kpkn.screens.workout.technicalQuality10ToPenaltyScale(it),
+                TrainingEnergyEngine.technicalQuality10ToPenaltyScale(it),
+            )
+        }
+    }
+
+    @Test
     fun `planned and completed with same inputs are in same magnitude`() {
         val settings = buildSettings(weight = 80.0)
         val planned = TrainingEnergyEngine.estimatePlannedSession(
