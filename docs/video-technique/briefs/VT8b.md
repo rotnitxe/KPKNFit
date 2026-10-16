@@ -24,6 +24,35 @@
 - **Logs:** `C:\kw\logs\vt-8b-<n>.log`.
 - **PNG:** `C:/kw/shots/vt/8b`.
 
+## Paso 1: lo pendiente del grabador (VT8a ya está integrado, `2b13a9b67`)
+Hazlo antes de lo tuyo, en un commit aparte: `fix(technique): retoques del grabador (inclinación antes de grabar, focal sin suposición, título, guía y silueta)`.
+
+**Archivos permitidos para esto:**
+- `screens/workout/technique/CaptureMetadataRecorder.kt`, `TechniqueRecorderScreen.kt` y `FramingCheckController.kt`;
+- `design/RecorderTopBar.kt`, `design/FramingGuideOverlay.kt` y `design/RecorderBadges.kt`;
+- sus pruebas y `TechniqueRecorderRenderSheetTest.kt`.
+
+**Qué haces:**
+1. **«Endereza el móvil» antes de grabar.**
+   - El sensor de gravedad solo se registra en `CaptureMetadataRecorder.start()`, es decir, al pulsar REC. Antes de grabar, `currentRollDeg` es `null` y el chip nunca aparece.
+   - Registra el sensor desde que el grabador se abre (por ejemplo, `startPreview(targetRotation)`) y quítalo en `close()`/`onDispose`.
+   - `start()` solo vacía las muestras de la mediana.
+   - `currentRollDeg` usa la `targetRotation` del momento.
+   - Prueba JVM de la lógica, con un sensor falso.
+2. **La focal, sin suposición.** En `calculateFocalLengthPx`, si no se puede leer el tamaño del vídeo, devuelve `null`, no 1920: así `PlateScale` usa su FOV de 70°.
+3. **El título se corta al 130 %** («Sentadill…»), porque las insignias le quitan el sitio.
+   - Las insignias (60 FPS y disco) pasan a una segunda fila, bajo el título.
+   - El nombre del ejercicio puede ocupar 2 líneas.
+4. **La guía de texto se monta sobre la silueta** (`fullscreen_idle_130.png`).
+   - Ponla en una franja propia sobre el botón REC, con un fondo `WizardColors.background` al 70 % y esquinas de 16 dp.
+   - O bien acorta la silueta para que no se toquen. Comprueba en la hoja, al 130 %, que no se solapan.
+5. **El disco de la silueta de lado está a la altura de la cadera.**
+   - Colócalo según el perfil: a la altura de los hombros en SQUAT y OHP, junto a la espinilla en DEADLIFT, HINGE y ROW, y sobre el pecho en BENCH (silueta tumbada si la hay).
+   - Si no hay una regla clara para el perfil, no lo dibujes: la insignia del disco ya avisa.
+6. **KDoc:** quita la mención a «Otro» de `RecorderBadges.kt`.
+
+**Corridas:** las de este paso entran en tus corridas 1 y 2, con `--tests "com.example.kpkn.screens.workout.technique.*"` añadido, y en la hoja de render del grabador.
+
 **Sesión en vivo ORIGINAL (PR11; U7, D28).** El rediseño LS se retiró.
 - La sesión «KPKN Wizard definitivo» va a refinar SOLO el aspecto de `SetExecutionCard` y `WorkoutRestOverlay`: misma disposición y mismos controles.
 - Antes de lanzar este paquete, el orquestador confirma que no hay un paquete suyo en curso sobre esos archivos y fusiona lo último de `feat/sessions-v1`.
