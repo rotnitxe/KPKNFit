@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -14,6 +15,7 @@ import androidx.compose.ui.zIndex
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.kpkn.data.models.CompletedSet
 import com.example.kpkn.data.models.SetOutcomeV2
+import com.example.kpkn.screens.workout.components.RestOverrunOverlay
 import com.example.kpkn.screens.workout.components.RestTimerOverlay
 import com.example.kpkn.screens.workout.components.RestTimerPill
 import dev.chrisbanes.haze.HazeState
@@ -23,6 +25,9 @@ import dev.chrisbanes.haze.HazeState
  * Finish sheet lives in [WorkoutFinishHost] / [FinishWorkoutSheet].
  * Stuck-at-zero is owned by [RestStuckAtZeroPolicy] / WorkoutScreen — do not call
  * [WorkoutViewModel.completeRestIfStuckAtZero] from here.
+ *
+ * LV6: también pone la forma del reloj (la elegida o la que toca por el orden del descanso), la cabecera y la siguiente serie
+ * reales, y, cuando el descanso se pasó de tiempo, la capa de «Descanso cumplido» a pantalla completa.
  */
 @Composable
 internal fun WorkoutRestOverlayHost(
@@ -42,10 +47,55 @@ internal fun WorkoutRestOverlayHost(
     feedbackExerciseCount: Int,
     forceShowForFeedback: Boolean,
 ) {
-    val showExpanded = (isRestTimerRunning && restState != null && !isRestMinimized) || forceShowForFeedback
+    // B3: si la persona minimiza el descanso mientras el feedback sigue pendiente, la tarjeta del descanso lo lleva en compacto y la
+    // pantalla completa no se fuerza. Sin descanso en marcha no hay tarjeta, y el feedback sigue a pantalla completa.
+    val feedbackOnCard = feedbackLivesOnCard(forceShowForFeedback, isRestTimerRunning, isRestMinimized, restState?.kind)
+    val showExpanded = (isRestTimerRunning && restState != null && !isRestMinimized) || (forceShowForFeedback && !feedbackOnCard)
     val showMinimized = isRestTimerRunning && isRestMinimized && restState != null && !forceShowForFeedback
     val relator by viewModel.relatorResolution.collectAsStateWithLifecycle()
     val adaptiveActive = isAdaptiveRestActive(restState, pendingRestSuggestion)
+
+    // LV6: lo que cambia entre descansos sale del estado de la sesión, no de la pantalla.
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val shapeChoice by viewModel.restClockShapeChoice.collectAsStateWithLifecycle()
+    val restOverrun = uiState.restOverrun
+    val showOverrun = restOverrun != null && !isRestTimerRunning && !isRestMinimized && !forceShowForFeedback
+    val shape = RestClockMath.shapeFor(restOrdinal(uiState.completedSets.values), shapeChoice)
+    val exercises = remember(uiState.session, uiState.activeMode, uiState.skippedExerciseIds) {
+        viewModel.visibleExercises(uiState)
+    }
+    val nextSet = remember(
+        exercises,
+        uiState.currentExerciseIdx,
+        uiState.currentSetIdx,
+        uiState.setJustLoggedKey,
+        uiState.exerciseTags,
+        uiState.loadSuggestions,
+        uiState.completedSets,
+    ) {
+        restNextSetSummary(
+            exercises = exercises,
+            currentExerciseIdx = uiState.currentExerciseIdx,
+            currentSetIdx = uiState.currentSetIdx,
+            justLoggedExerciseId = uiState.setJustLoggedKey?.let(::parseCompletedSetKey)?.exerciseId,
+            nameOf = ::displayWorkoutExerciseName,
+            suggestedKg = { exercise, setIdx ->
+                viewModel.getWeightSuggestionWithAutoRegulation(exercise, setIdx, uiState.exerciseTags[exercise.id])?.suggestedWeight
+            },
+        )
+    }
+    // La cabecera del feedback: el ejercicio terminado y lo que viene después.
+    val feedbackAfter = remember(uiState.pendingPostExerciseIdx, exercises) {
+        feedbackAfterText(uiState.pendingPostExerciseIdx, exercises, ::displayWorkoutExerciseName)
+    }
+    val headline = remember(exercises, uiState.setJustLoggedKey, restState?.exerciseName) {
+        restHeadline(
+            exercises = exercises,
+            justLoggedKey = uiState.setJustLoggedKey,
+            fallbackName = restState?.exerciseName.orEmpty(),
+            nameOf = ::displayWorkoutExerciseName,
+        )
+    }
 
     if (showExpanded && restState != null) {
         RestRemainingReader(viewModel = viewModel) { restTimerRemaining ->
@@ -68,13 +118,32 @@ internal fun WorkoutRestOverlayHost(
                 onWarmupEffort = null,
                 postExerciseFeedbackContent = postExerciseFeedbackContent,
                 feedbackExerciseCount = feedbackExerciseCount,
+                feedbackTitle = headline.title.ifBlank { restState.exerciseName },
+                feedbackAfter = feedbackAfter,
                 onMinimize = { viewModel.toggleRestMinimized() },
                 relatorText = relator.text,
                 relatorPhaseKey = relator.phaseKey,
                 relatorActions = relator.actions,
                 onRelatorAction = { viewModel.performRelatorAssist(it) },
+                shape = shape,
+                onShapeChange = { viewModel.chooseRestClockShape(it) },
+                headline = headline,
+                nextSet = nextSet,
             )
         }
+    } else if (showOverrun && restOverrun != null) {
+        // «Descanso cumplido» a pantalla completa: la capa de interfaz que queda cuando el descanso llegó a 0. «Empezar la serie» solo
+        // la cierra (la tarjeta de la serie ya es la actual); «Necesito +30 s» arranca un descanso nuevo por la vía de siempre.
+        RestOverrunOverlay(
+            overrun = restOverrun,
+            hazeState = hazeState,
+            shape = shape,
+            headline = headline,
+            nextSet = nextSet,
+            onStart = { viewModel.dismissRestOverrun() },
+            onExtend = { viewModel.extendRestAfterOverrun() },
+            onMinimize = { viewModel.toggleRestMinimized() },
+        )
     } else if (showMinimized) {
         val minimizedState = restState ?: return
         Box(

@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
@@ -23,7 +24,11 @@ import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -42,17 +47,20 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.kpkn.data.models.CompletedSet
 import com.example.kpkn.data.models.SetOutcomeV2
+import com.example.kpkn.data.workout.RestGameRecordStore
 import com.example.kpkn.screens.onboarding.design.WizardColors
 import com.example.kpkn.screens.onboarding.design.entreno.SymbolPalette
 import com.example.kpkn.screens.workout.PendingRestSuggestion
+import com.example.kpkn.screens.workout.RestClockMath
+import com.example.kpkn.screens.workout.RestClockShape
+import com.example.kpkn.screens.workout.RestGameEngine
+import com.example.kpkn.screens.workout.RestNextSetSummary
 import com.example.kpkn.screens.workout.RestTimerKind
 import com.example.kpkn.screens.workout.WorkoutRestModalState
-import com.example.kpkn.screens.workout.restLiveCardExerciseName
 import com.example.kpkn.ui.components.icons.KpknLineIcons
-import com.example.kpkn.ui.design.KpknCompactPill
 import com.example.kpkn.ui.design.KpknIconButton
 import com.example.kpkn.ui.design.KpknModule
-import com.example.kpkn.ui.design.KpknProgressBar
+import com.example.kpkn.ui.design.KpknSetFormat
 import com.example.kpkn.ui.design.KpknShape
 import com.example.kpkn.ui.design.KpknSurface
 import com.example.kpkn.ui.design.KpknType
@@ -62,8 +70,11 @@ import java.util.Locale
  * Working-set rest as a live pager card (minimized overlay view).
  * Same visual height as series cards: the pager frame locks to the working-set wrap.
  *
- * LR1c1, piel nueva: un `module` como la serie, con el reloj en Syne (como el descanso a pantalla completa), −15 s y +15 s como
- * pastillas `inset` con su texto y «Saltar» en tinta. La disposición y la conducta no cambian.
+ * LV6, F3: la tarjeta recibe las mismas mejoras que la pantalla completa. La forma de RINGS pequeña con su corredor (la MISMA forma que
+ * la pantalla completa), el tiempo «2:41 de 4:09», «Jugar», «Siguiente: Serie 2 · 95 kg × 4–6 · RIR 2» (de la serie real que toca),
+ * −15 s / Saltar / +15 s y expandir. Sin barra lineal. NUNCA cambia de tamaño: lo que no cabe (la última serie, el descanso sugerido, saltar
+ * las series que quedan) va en la franja de en medio, que se desplaza con el borde fundido. Todas las acciones son las de la pantalla
+ * completa (`RestLiveActionParity`).
  */
 @Composable
 internal fun RestLiveCard(
@@ -83,16 +94,21 @@ internal fun RestLiveCard(
     skipExerciseLabel: String? = null,
     onSkipExercise: (() -> Unit)? = null,
     modifier: Modifier = Modifier,
+    shape: RestClockShape = RestClockShape.TOWER,
+    nextSet: RestNextSetSummary? = null,
+    recordStore: RestGameRecordStore? = null,
+    clockActive: Boolean = true,
+    initiallyPlaying: Boolean = false,
+    gameEngine: RestGameEngine? = null,
 ) {
-    val safeTotal = totalSeconds.coerceAtLeast(1)
     // A delayed/restored tick may briefly carry a stale negative value.  The
     // card is a countdown surface, so clamp both the progress and the text;
     // the controller owns any separate "excedido" cue.
     val safeRemaining = remainingSeconds.coerceAtLeast(0)
-    val progress = (safeRemaining.toFloat() / safeTotal).coerceIn(0f, 1f)
-    val mm = safeRemaining / 60
-    val ss = safeRemaining % 60
-    val clock = String.format(Locale.US, "%d:%02d", mm, ss)
+    val safeTotal = totalSeconds.coerceAtLeast(safeRemaining).coerceAtLeast(1)
+    val progress = RestClockMath.progress(safeTotal, safeRemaining)
+    val clock = KpknSetFormat.rest(safeRemaining)
+    var playing by rememberSaveable { mutableStateOf(initiallyPlaying) }
     val kindLabel = when (restState?.kind) {
         RestTimerKind.SUPERSET_INTRA -> "SUPERSERIE"
         RestTimerKind.SUPERSET_ROUND -> "SIGUIENTE RONDA"
@@ -106,141 +122,176 @@ internal fun RestLiveCard(
             .fillMaxHeight(),
         contentPadding = PaddingValues(0.dp),
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(horizontal = 14.dp, vertical = 10.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
+        if (playing) {
+            // El juego vive dentro de la tarjeta, a su altura fija. El descanso manda: al llegar a 0 la página deja de componerse y el
+            // juego se cierra con ella; «Saltar» es el mismo onSkip de siempre.
+            RestGameCardContent(
+                remainingSeconds = safeRemaining,
+                totalSeconds = safeTotal,
+                nextSet = nextSet,
+                onBack = { playing = false },
+                onSkip = onSkip,
+                recordStore = recordStore,
+                engine = gameEngine,
+                running = clockActive,
+            )
+        } else {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = 14.dp, vertical = 10.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = kindLabel,
-                        style = KpknType.eyebrow,
-                        color = WizardColors.textMuted,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                    )
-                    if (!restState?.exerciseName.isNullOrBlank()) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    Column(modifier = Modifier.weight(1f)) {
                         Text(
-                            text = restLiveCardExerciseName(restState).orEmpty(),
-                            style = KpknType.body,
+                            text = kindLabel,
+                            style = KpknType.eyebrow,
                             color = WizardColors.textMuted,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,
                         )
-                    }
-                    if (restState?.notificationsEnabled == false) {
-                        Text(
-                            text = "Sin notificaciones el aviso es solo sonoro.",
-                            style = KpknType.caption,
-                            color = WizardColors.textMuted,
-                        )
-                    }
-                }
-                if (onExpand != null) {
-                    // La flecha de arriba es la de abajo girada 180 grados: la familia solo tiene el chevron hacia abajo.
-                    KpknIconButton(
-                        icon = KpknLineIcons.ChevronDown,
-                        contentDescription = "Expandir descanso",
-                        onClick = onExpand,
-                        modifier = Modifier.graphicsLayer { rotationZ = 180f },
-                    )
-                }
-            }
-
-            // El relator vive en la banda de encima de la tarjeta (WorkoutV2Body), no aquí.
-            // El reloj en Syne, en una línea, sin cero delante de los minutos (como el descanso a pantalla completa).
-            RestClockText(
-                text = clock,
-                maxFontSize = 40.sp,
-                modifier = Modifier.align(Alignment.CenterHorizontally),
-            )
-
-            KpknProgressBar(
-                progress = progress,
-                color = sessionAccentColor,
-                trackColor = Color.White.copy(alpha = 0.08f),
-                height = 8.dp,
-            )
-
-            // Columna con scroll: si no cabe todo, su borde inferior se funde (máscara DstIn) en vez de cortarse en recto (LR1c1).
-            val middleScroll = rememberScrollState()
-            Column(
-                modifier = Modifier
-                    .weight(1f, fill = true)
-                    .fillMaxWidth()
-                    .graphicsLayer { compositingStrategy = CompositingStrategy.Offscreen }
-                    .drawWithContent {
-                        drawContent()
-                        if (middleScroll.canScrollForward) {
-                            drawRect(
-                                brush = Brush.verticalGradient(
-                                    colors = listOf(Color.Black, Color.Transparent),
-                                    startY = size.height - 20.dp.toPx(),
-                                    endY = size.height,
-                                ),
-                                blendMode = BlendMode.DstIn,
+                        if (restState?.notificationsEnabled == false) {
+                            Text(
+                                text = "Sin notificaciones el aviso es solo sonoro.",
+                                style = KpknType.caption,
+                                color = WizardColors.textMuted,
                             )
                         }
                     }
-                    .verticalScroll(middleScroll),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                RestLiveLastSetSummary(
-                    lastCompletedSet = lastCompletedSet ?: pendingRestSuggestion?.lastSet,
-                    lastSetOutcome = lastSetOutcome,
-                )
-
-                if (pendingRestSuggestion != null && onUseAdaptive != null && !isAdaptiveActive) {
-                    RestLiveSuggestedPill(
-                        value = formatRestClock(pendingRestSuggestion.adaptiveSeconds),
-                        onClick = onUseAdaptive,
-                    )
+                    if (onExpand != null) {
+                        // La flecha de arriba es la de abajo girada 180 grados: la familia solo tiene el chevron hacia abajo.
+                        KpknIconButton(
+                            icon = KpknLineIcons.ChevronDown,
+                            contentDescription = "Expandir descanso",
+                            onClick = onExpand,
+                            modifier = Modifier.graphicsLayer { rotationZ = 180f },
+                        )
+                    }
                 }
 
-                if (onSkipExercise != null) {
-                    RestLiveSecondaryPill(
-                        text = skipExerciseLabel ?: "Saltar series restantes e ir al siguiente ejercicio",
-                        onClick = onSkipExercise,
+                // El relator vive en la banda de encima de la tarjeta (WorkoutV2Body), no aquí.
+                // La forma de RINGS con su corredor a la izquierda y, a la derecha, el tiempo, «de 4:09» y «Jugar» (F3).
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                ) {
+                    RestRingsClock(
+                        shape = shape,
+                        progress = progress,
+                        runnerScale = 1.4f,
+                        animationsOn = clockActive,
+                        // La pista un poco más clara que el módulo (#111111) y el trazo más grueso: a este tamaño se perderían (F3).
+                        trackColor = CardTrackColor,
+                        strokeBoost = 1.15f,
+                        modifier = Modifier.size(width = 120.dp, height = 104.dp),
+                    )
+                    Column(
+                        modifier = Modifier.weight(1f),
+                        horizontalAlignment = Alignment.Start,
+                    ) {
+                        RestClockText(
+                            text = clock,
+                            maxFontSize = 40.sp,
+                            modifier = Modifier.semantics {
+                                contentDescription = RestClockMath.spokenRemaining(safeRemaining)
+                            },
+                        )
+                        Text(
+                            text = "de ${KpknSetFormat.rest(safeTotal)}",
+                            style = KpknType.caption,
+                            color = WizardColors.textMuted,
+                            maxLines = 1,
+                        )
+                        RestPlayPill(
+                            text = "Jugar",
+                            onClick = { playing = true },
+                            compact = true,
+                        )
+                    }
+                }
+
+                // Franja con desplazamiento: si no cabe todo, su borde inferior se funde (máscara DstIn) en vez de cortarse en recto (LR1c1).
+                val middleScroll = rememberScrollState()
+                Column(
+                    modifier = Modifier
+                        .weight(1f, fill = true)
+                        .fillMaxWidth()
+                        .graphicsLayer { compositingStrategy = CompositingStrategy.Offscreen }
+                        .drawWithContent {
+                            drawContent()
+                            if (middleScroll.canScrollForward) {
+                                drawRect(
+                                    brush = Brush.verticalGradient(
+                                        colors = listOf(Color.Black, Color.Transparent),
+                                        startY = size.height - 20.dp.toPx(),
+                                        endY = size.height,
+                                    ),
+                                    blendMode = BlendMode.DstIn,
+                                )
+                            }
+                        }
+                        .verticalScroll(middleScroll),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    RestLiveLastSetSummary(
+                        lastCompletedSet = lastCompletedSet ?: pendingRestSuggestion?.lastSet,
+                        lastSetOutcome = lastSetOutcome,
+                    )
+
+                    if (pendingRestSuggestion != null && onUseAdaptive != null && !isAdaptiveActive) {
+                        RestLiveSuggestedPill(
+                            value = KpknSetFormat.rest(pendingRestSuggestion.adaptiveSeconds),
+                            onClick = onUseAdaptive,
+                        )
+                    }
+
+                    if (onSkipExercise != null) {
+                        RestLiveSecondaryPill(
+                            text = skipExerciseLabel ?: "Saltar series restantes e ir al siguiente ejercicio",
+                            onClick = onSkipExercise,
+                        )
+                    }
+                }
+
+                if (nextSet != null) RestNextBox(nextSet = nextSet)
+
+                // Tres píldoras hermanas de 44 dp: −15 s y +15 s en `inset`, y «Saltar» en tinta. Caben en 244 dp con la letra al 130 %.
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    RestStepPill(
+                        text = "−15 s",
+                        contentDescription = "Restar 15 segundos",
+                        onClick = onDecrease,
+                        modifier = Modifier.weight(1f),
+                    )
+                    RestSkipPill(
+                        text = "Saltar",
+                        onClick = onSkip,
+                        modifier = Modifier.weight(1.6f),
+                    )
+                    RestStepPill(
+                        text = "+15 s",
+                        contentDescription = "Sumar 15 segundos",
+                        onClick = onIncrease,
+                        modifier = Modifier.weight(1f),
                     )
                 }
-            }
-
-            // Tres píldoras hermanas de 44 dp: −15 s y +15 s en `inset`, y «Saltar» en tinta. Caben en 272 dp con la letra al 130 %.
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(6.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                RestLiveStepPill(
-                    text = "−15 s",
-                    contentDescription = "Restar 15 segundos",
-                    onClick = onDecrease,
-                    modifier = Modifier.weight(1f),
-                )
-                KpknCompactPill(
-                    text = "Saltar",
-                    onClick = onSkip,
-                    modifier = Modifier.weight(1.6f),
-                    height = 44.dp,
-                    filled = true,
-                    fullWidth = true,
-                )
-                RestLiveStepPill(
-                    text = "+15 s",
-                    contentDescription = "Sumar 15 segundos",
-                    onClick = onIncrease,
-                    modifier = Modifier.weight(1f),
-                )
             }
         }
     }
 }
+
+/** Pista de la forma sobre el módulo de la tarjeta: un tono por encima del módulo para que se vea. */
+internal val CardTrackColor = Color(0xFF242424)
 
 /** «Última serie» del descanso en página (LR1c1): una caja `inset` con el eyebrow y la cifra «kg × reps», como el módulo de LR1a. */
 @Composable
@@ -251,8 +302,8 @@ private fun RestLiveLastSetSummary(
     val set = lastCompletedSet ?: return
     // Espacio inseparable solo antes de la unidad («100,5 kg», «6 reps», «45 s»): alrededor de «×» el espacio normal deja que la cifra
     // parta en dos líneas antes que cortarse con elipsis al 130 % (LR1c1).
-    val loadStr = if (set.weight > 0.0) "${formatRestWeight(set.weight)} kg" else "Peso corporal"
-    val valueStr = if (set.timeSeconds != null) "${set.timeSeconds} s" else "${set.reps} reps"
+    val loadStr = if (set.weight > 0.0) "${formatRestWeight(set.weight)} kg" else "Peso corporal"
+    val valueStr = if (set.timeSeconds != null) "${set.timeSeconds} s" else "${set.reps} reps"
     val figure = "$loadStr × $valueStr"
     val outcome = lastSetOutcome ?: set.setOutcomeV2
     val boxShape = WorkoutUiTokens.InnerCardShape
@@ -400,52 +451,6 @@ private fun RestLiveSecondaryPill(
             textAlign = TextAlign.Center,
         )
     }
-}
-
-/**
- * «−15 s» y «+15 s» (LR1c1): pastilla `inset` de 44 dp con su texto, dentro de una zona táctil de 48 dp. Sin ripple.
- */
-@Composable
-private fun RestLiveStepPill(
-    text: String,
-    contentDescription: String,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    val interaction = remember { MutableInteractionSource() }
-    Box(
-        modifier = modifier
-            .defaultMinSize(minHeight = 48.dp)
-            .semantics { this.contentDescription = contentDescription }
-            .clickable(
-                interactionSource = interaction,
-                indication = null,
-                role = Role.Button,
-                onClick = onClick,
-            ),
-        contentAlignment = Alignment.Center,
-    ) {
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(44.dp)
-                .clip(KpknShape.pill)
-                .background(KpknSurface.inset, KpknShape.pill),
-            contentAlignment = Alignment.Center,
-        ) {
-            Text(
-                text = text,
-                style = KpknType.action,
-                color = WizardColors.text,
-                maxLines = 1,
-            )
-        }
-    }
-}
-
-private fun formatRestClock(seconds: Int): String {
-    val safe = seconds.coerceAtLeast(0)
-    return String.format(Locale.US, "%d:%02d", safe / 60, safe % 60)
 }
 
 /** Peso del descanso con coma decimal, como en el resto de la sesión (LR1c1): «100,5», «95». */

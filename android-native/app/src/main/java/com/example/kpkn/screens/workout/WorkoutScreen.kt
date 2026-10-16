@@ -1423,7 +1423,9 @@ fun WorkoutScreen(
         uiState.restModalState != null &&
         uiState.restModalState?.kind != RestTimerKind.WARMUP
     val showWorkingRestOverlay = workingRestActive && !uiState.isRestMinimized
-    val showRestOverlayHost = isShowingFeedback || showWorkingRestOverlay
+    // «Descanso cumplido» a pantalla completa (LV6): la capa que queda cuando el descanso llegó a 0 y la persona estaba en la pantalla completa.
+    val showRestOverrunOverlay = uiState.restOverrun != null && !uiState.isRestTimerRunning && !uiState.isRestMinimized
+    val showRestOverlayHost = isShowingFeedback || showWorkingRestOverlay || showRestOverrunOverlay
 
     if (showRestOverlayHost) {
         val currentRoundCompletedSets = currentExercise
@@ -1491,7 +1493,7 @@ fun WorkoutScreen(
             hasContextTabOpen = hasContextTabOpen,
             showReadiness = showReadinessSheet,
             canReturnToMobilityFromWarmup = canReturnToMobilityFromWarmup,
-            isRestOverlayVisible = uiState.isRestTimerRunning && !uiState.isRestMinimized,
+            isRestOverlayVisible = (uiState.isRestTimerRunning || uiState.restOverrun != null) && !uiState.isRestMinimized,
             showPostExerciseFeedback = uiState.showPostExerciseSheet,
             godModeExpanded = roadmapMode == RoadmapMode.EXPANDED,
         ),
