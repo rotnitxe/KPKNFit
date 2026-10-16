@@ -33,6 +33,7 @@ import com.example.kpkn.domain.training.ProgramCalendarEngine
 import com.example.kpkn.domain.training.PlanMaterializer
 import com.example.kpkn.domain.training.canonicalEquipmentKind
 import com.example.kpkn.domain.training.machineRangeForExercise
+import com.example.kpkn.domain.workout.LiveSessionReorder
 import com.example.kpkn.domain.workout.LoadSuggestionEngine
 import com.example.kpkn.domain.workout.TagProgressionAnalyzer
 import com.example.kpkn.domain.workout.WarmupCalibrationEngine
@@ -2463,9 +2464,6 @@ class WorkoutViewModel(
     private fun Session.reorderExercisesByIds(partId: String?, orderedExerciseIds: List<String>): Session =
         WorkoutStructuralEditor.reorderExercisesByIds(this, partId, orderedExerciseIds)
 
-    private fun Session.globalReorder(orderedExerciseIds: List<String>, originalPartMap: Map<String, String>): Session =
-        WorkoutStructuralEditor.globalReorder(this, orderedExerciseIds, originalPartMap)
-
     private fun ExerciseSet.normalizeWorkoutSet(exercise: Exercise): ExerciseSet {
         val normalized = WorkoutEditingRules.normalizeLiveEditedSet(exercise.trainingMode, this)
         val autoWeight = calculateSuggestedLoad(exercise, normalized) ?: normalized.weight
@@ -3022,58 +3020,42 @@ class WorkoutViewModel(
         applySessionMutation(updatedSession, preferredExerciseId = currentExerciseId, persistToProgram = false)
     }
 
-    fun reorderExercisesPreservingParts(orderedExerciseIds: List<String>) {
+    /**
+     * Ordena la sesión en vivo con [LiveSessionReorder] (LV4, 10.1): el orden pedido SE APLICA (si para lograrlo un ejercicio cambia de
+     * grupo, cambia) y los ejercicios que no vienen en la lista (los omitidos) se conservan. Antes, el reparto por partes ignoraba en
+     * silencio el orden que no cabía en ellas y, sin partes, se llevaba por delante los omitidos.
+     */
+    private fun reorderLive(orderedExerciseIds: List<String>) {
         val state = _uiState.value
         val base = state.session ?: return
         val currentExerciseId = visibleExercises(state).getOrNull(state.currentExerciseIdx)?.id
+        val ids = orderedExerciseIds.distinct()
         val updatedSession = withModeSession(base, state.activeMode) { modeSession ->
-            if (modeSession.parts.isEmpty()) {
-                val lookup = modeSession.exercises.associateBy { it.id }
-                val reordered = orderedExerciseIds.mapNotNull(lookup::get)
-                if (reordered == modeSession.exercises) modeSession
-                else modeSession.copy(exercises = reordered)
-            } else {
-                var changed = false
-                val newParts = modeSession.parts.map { part ->
-                    val partOrdered = orderedExerciseIds.filter { id -> part.exercises.any { it.id == id } }
-                    if (partOrdered.size != part.exercises.size) return@map part
-                    val lookup = part.exercises.associateBy { it.id }
-                    val reordered = partOrdered.mapNotNull(lookup::get)
-                    if (reordered == part.exercises) part
-                    else { changed = true; part.copy(exercises = reordered) }
-                }
-                if (changed) modeSession.copy(parts = newParts) else modeSession
-            }
+            LiveSessionReorder.plan(modeSession, ids).session
         }
         if (updatedSession == base) return
         applySessionMutation(updatedSession, preferredExerciseId = currentExerciseId, persistToProgram = false)
     }
 
-    fun reorderExercisesGlobally(orderedExerciseIds: List<String>, originalPartMap: Map<String, String>) {
-        val state = _uiState.value
-        val base = state.session ?: return
-        val currentExerciseId = visibleExercises(state).getOrNull(state.currentExerciseIdx)?.id
-        val updatedSession = withModeSession(base, state.activeMode) { modeSession ->
-            modeSession.globalReorder(orderedExerciseIds.distinct(), originalPartMap)
-        }
-        if (updatedSession == base) return
-        applySessionMutation(updatedSession, preferredExerciseId = currentExerciseId, persistToProgram = false)
-    }
+    fun reorderExercisesPreservingParts(orderedExerciseIds: List<String>) = reorderLive(orderedExerciseIds)
+
+    @Suppress("UNUSED_PARAMETER")
+    fun reorderExercisesGlobally(orderedExerciseIds: List<String>, originalPartMap: Map<String, String>) =
+        reorderLive(orderedExerciseIds)
 
     fun applyReorderAndPromptPersistence(orderedExerciseIds: List<String>, originalPartMap: Map<String, String>, isGlobal: Boolean) {
         val state = _uiState.value
         val base = state.session ?: return
         val snapshot = captureGodModeUndoSnapshot("Reordenar ejercicios")
-        if (isGlobal) {
-            reorderExercisesGlobally(orderedExerciseIds, originalPartMap)
-        } else {
-            reorderExercisesPreservingParts(orderedExerciseIds)
-        }
+        reorderLive(orderedExerciseIds)
         if (_uiState.value.session == base) return
-        val activeSession = _uiState.value.session?.let { withModeSession(it, _uiState.value.activeMode) { active -> active } }
+        val activeSession = _uiState.value.session?.let { sessionForActiveMode(it, _uiState.value.activeMode) }
         val orderedCanonicalKeys = activeSession?.allExercises()?.map { it.resolvedCanonicalExerciseId() }.orEmpty()
-        val orderedPartKeys = activeSession?.parts?.flatMap { part ->
-            part.exercises.map { part.name }
+        // Nombre de la parte de cada ejercicio, en el mismo orden que las claves de arriba (null = suelto).
+        val orderedPartKeys = activeSession?.let { session ->
+            session.allExercises().map { exercise ->
+                session.parts.firstOrNull { part -> part.exercises.any { it.id == exercise.id } }?.name
+            }
         }.orEmpty()
         updateUiState {
             it.copy(
@@ -4197,20 +4179,22 @@ class WorkoutViewModel(
 
     private fun moveExerciseToSessionEnd(exerciseId: String): Boolean {
         if (exerciseId.isBlank()) return false
-        pushGodModeUndo("Mover ejercicio al final")
-        restoreSkippedExercise(exerciseId)
         val state = _uiState.value
         val base = state.session ?: return false
         val modeSession = sessionForActiveMode(base, state.activeMode)
-        val ids = modeSession.allExercises().map { it.id }.toMutableList()
-        if (!ids.remove(exerciseId)) return false
-        ids.add(exerciseId)
-        val partMap = buildMap {
-            modeSession.parts.forEach { part ->
-                part.exercises.forEach { exercise -> put(exercise.id, part.name) }
-            }
+        val all = modeSession.allExercises()
+        val target = all.firstOrNull { it.id == exerciseId } ?: return false
+        // Una superserie es una unidad: si el ejercicio es miembro, se va al final con todo su bloque.
+        val groupId = target.supersetGroupRefOrLegacyId()
+        val moving = if (groupId != null) {
+            all.filter { it.supersetGroupRefOrLegacyId() == groupId }.map { it.id }
+        } else {
+            listOf(exerciseId)
         }
-        reorderExercisesGlobally(ids, partMap)
+        // El «Deshacer» se guarda ya sabiendo que el ejercicio existe (LV4, 10.2) y antes de devolverlo a la sesión si estaba omitido.
+        pushGodModeUndo("Mover ejercicio al final")
+        restoreSkippedExercise(exerciseId)
+        reorderLive(all.map { it.id }.filterNot { it in moving } + moving)
         return true
     }
 
