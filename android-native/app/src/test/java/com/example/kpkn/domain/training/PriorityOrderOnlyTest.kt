@@ -20,7 +20,7 @@ import org.junit.Test
 /**
  * Contrato: las prioridades musculares son SOLO ORDEN.
  *
- * La bolsa de puntos (máximo 2 por músculo, 5 en total, sin negativos) solo
+ * La bolsa de puntos (máximo 2 por músculo, 6 en total, sin negativos) solo
  * puede cambiar el orden de los ejercicios. Prohibido alterar ejercicios
  * prescritos, series, repeticiones, intensidades, frecuencia muscular ni
  * volumen directo/indirecto. `lowerEmphasisMuscles` no tiene ningún efecto.
@@ -119,7 +119,7 @@ class PriorityOrderOnlyTest {
             mapOf("Pectorales" to 2, "Dorsales" to 2, "Tríceps" to 1),
             planner.orderPoints(baseInput.copy(exerciseOrderPriorities = mapOf("Pectorales" to 2, "Dorsales" to 2, "Tríceps" to 1))),
         )
-        // No es obligatorio gastar los cinco puntos.
+        // No es obligatorio gastar los seis puntos.
         assertEquals(
             mapOf("Glúteos" to 1),
             planner.orderPoints(baseInput.copy(exerciseOrderPriorities = mapOf("Glúteos" to 1))),

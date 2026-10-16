@@ -1,5 +1,8 @@
 package com.example.kpkn.screens.workout
 
+import com.example.kpkn.domain.relator.RelatorMoment
+import com.example.kpkn.domain.relator.RelatorMomentClock
+import com.example.kpkn.domain.relator.RelatorMomentInput
 import com.example.kpkn.data.models.IntensityMode
 import com.example.kpkn.data.models.MobilityExerciseCatalog
 import org.junit.Assert.assertEquals
@@ -185,7 +188,7 @@ class WorkoutLiveRelatorTest {
         ).text
         assertNotNull(line)
         val lower = line!!.lowercase()
-        assertTrue(lower.contains("nuevo pr"))
+        assertTrue(lower.contains("récord"))
         assertTrue(lower.contains("120"))
         assertFalse(lower.contains("meta"))
     }
@@ -208,9 +211,9 @@ class WorkoutLiveRelatorTest {
         ).text
         assertNotNull(line)
         val lower = line!!.lowercase()
-        assertTrue(lower.contains("nuevo pr"))
+        assertTrue(lower.contains("récord"))
         assertTrue(lower.contains("116"))
-        assertTrue(lower.contains("83%"))
+        assertTrue(lower.contains("83 %"))
         assertTrue(lower.contains("meta"))
     }
 
@@ -226,7 +229,7 @@ class WorkoutLiveRelatorTest {
         ).text
         assertNotNull(line)
         val lower = line!!.lowercase()
-        assertTrue(lower.contains("nuevo pr"))
+        assertTrue(lower.contains("récord"))
         assertTrue(lower.contains("102"))
     }
 
@@ -745,14 +748,11 @@ class WorkoutLiveRelatorTest {
         assertEquals(36, WorkoutLiveRelatorSlotHeight.value.toInt())
         assertEquals(13, WorkoutLiveRelatorFontSp.value.toInt())
         assertEquals(2, WorkoutLiveRelatorMaxLines)
-        assertEquals(140, RELATOR_MAX_LINE_CHARS)
+        assertEquals(90, RELATOR_MAX_LINE_CHARS)
         assertEquals(48, com.example.kpkn.screens.workout.components.WorkoutUiTokens.LivePagerRelatorClearance.value.toInt())
         val tokens = com.example.kpkn.screens.workout.components.WorkoutUiTokens
-        val expectedBand = tokens.LivePagerNormalExpandedBaseHeight.value *
-            tokens.LivePagerCardScale *
-            tokens.LivePagerCardHeightGrowFactor *
-            0.05f + 48f
-        assertEquals(expectedBand, tokens.liveRelatorBandHeight().value, 0.05f)
+        // Banda del relator (LR1g): 12 dp + dos líneas de 16 sp + 12 dp. Con letra al 100 % son 56 dp.
+        assertEquals(56f, tokens.liveRelatorBandHeight(androidx.compose.ui.unit.Density(1f, 1f)).value, 0.05f)
     }
 
     @Test
@@ -1353,8 +1353,12 @@ class WorkoutLiveRelatorTest {
         assertTrue(line.contains("ultrarrápido") || line.contains("ultrarrapido") || line.contains("aplicado"))
     }
 
+    /**
+     * LR1g: el concepto ya no espera a una rotación. Sale en el momento IDLE_NUDGE (120 s sin registrar ni editar),
+     * que es el que pone idleCycle a 1. En el momento de la serie no sale.
+     */
     @Test
-    fun axialConceptWaitsForIdleCycle() {
+    fun axialConceptWaitsForIdleNudgeMoment() {
         val snap = baseSnapshot(
             family = RelatorFamily.SQUAT,
             exerciseDisplayName = "Sentadilla trasera",
@@ -1363,9 +1367,14 @@ class WorkoutLiveRelatorTest {
         val first = WorkoutLiveRelator.resolve(snap).text!!.lowercase()
         assertTrue(first.contains("serie 1"))
         assertFalse(first.contains("carga axial"))
-        val later = WorkoutLiveRelator.resolve(snap.copy(idleCycle = 1)).text!!.lowercase()
-        assertTrue(later.contains("carga axial"))
-        assertEquals(RelatorSpeechBucket.CONCEPT_CUE.phaseKey(), WorkoutLiveRelator.resolve(snap.copy(idleCycle = 1)).phaseKey)
+        val clock = RelatorMomentClock()
+        clock.step(RelatorMomentInput(nowMs = 0L, setKey = "S1", exerciseId = "E", resting = false))
+        val moment = clock.step(RelatorMomentInput(nowMs = 120_000L, setKey = "S1", exerciseId = "E", resting = false))
+        assertEquals(RelatorMoment.IDLE_NUDGE, moment)
+        val idleCycle = if (moment == RelatorMoment.IDLE_NUDGE) 1 else 0
+        val later = WorkoutLiveRelator.resolve(snap.copy(idleCycle = idleCycle))
+        assertTrue(later.text!!.lowercase().contains("carga axial"))
+        assertEquals(RelatorSpeechBucket.CONCEPT_CUE.phaseKey(), later.phaseKey)
     }
 
     @Test

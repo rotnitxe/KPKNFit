@@ -1,5 +1,6 @@
 package com.example.kpkn.screens.onboarding
 
+import com.example.kpkn.testsupport.SyncRoomExecutor
 import androidx.test.core.app.ApplicationProvider
 import com.example.kpkn.data.db.KpknDatabase
 import com.example.kpkn.data.db.toBodyObservation
@@ -29,12 +30,14 @@ class SetupActivationPayloadIdsTest {
 
     @Before
     fun setUp() {
+        SyncRoomExecutor.install()
         db = KpknDatabase.createInMemory(ApplicationProvider.getApplicationContext())
     }
 
     @After
     fun tearDown() {
         db.close()
+        SyncRoomExecutor.uninstall()
     }
 
     private val weighted = setOf(SetupStepId.WEIGHT, SetupStepId.BODY_FAT)

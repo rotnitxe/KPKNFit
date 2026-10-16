@@ -15,7 +15,7 @@ import com.example.kpkn.ui.design.KpknSurface
  * Lugar de un trozo dentro de su módulo (SESSION_EDITOR_V1 §2, punto 6). Una parte es un módulo, pero la lista del editor son ítems
  * perezosos: cada trozo (cabecera, ejercicio, superserie, pie) pinta su parte del relleno, y solo el primero y el último redondean.
  */
-internal enum class SessionModuleEdge { TOP, MIDDLE, BOTTOM, ONLY }
+enum class SessionModuleEdge { TOP, MIDDLE, BOTTOM, ONLY }
 
 /** Lugar de un trozo: [first] y [last] dicen si es el primero y el último de su módulo. Si es los dos, va como [SessionModuleEdge.ONLY]. */
 internal fun sessionModuleEdge(first: Boolean, last: Boolean): SessionModuleEdge = when {

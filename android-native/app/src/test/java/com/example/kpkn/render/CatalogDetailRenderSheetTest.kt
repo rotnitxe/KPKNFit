@@ -25,9 +25,13 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import com.example.kpkn.data.exercises.ExerciseTechniqueImageLookup
+import com.example.kpkn.data.exercises.ExerciseTechniqueImageVariant
+import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.ExerciseMuscleInfo
+import com.example.kpkn.data.models.ExerciseSet
 import com.example.kpkn.data.models.InvolvedMuscle
 import com.example.kpkn.data.models.MuscleRole
+import com.example.kpkn.data.models.RepRange
 import com.example.kpkn.domain.exercises.VariantGroup
 import com.example.kpkn.domain.exercises.catalogv2.JointInvolvementV2
 import com.example.kpkn.domain.exercises.catalogv2.JointRoleV2
@@ -38,6 +42,7 @@ import com.example.kpkn.screens.sessioneditor.components.CatalogDetailAxis
 import com.example.kpkn.screens.sessioneditor.components.CatalogDetailContent
 import com.example.kpkn.screens.sessioneditor.components.CatalogDetailModel
 import com.example.kpkn.screens.sessioneditor.components.CatalogDetailOption
+import com.example.kpkn.screens.sessioneditor.components.SessionExerciseDetailSheet
 import com.example.kpkn.screens.sessioneditor.design.CatalogSupersetConfiguratorContent
 import com.example.kpkn.screens.sessioneditor.design.SmartExerciseEditorPage
 import org.junit.Assume.assumeTrue
@@ -77,12 +82,14 @@ class CatalogDetailRenderSheetTest {
 
     /** Los casos de la hoja, en orden. */
     private val cases = listOf(
-        "ficha_con_imagen",
+        "ficha_3_implementos",
+        "ficha_1_implemento",
+        "ficha_7_musculos",
         "ficha_sin_imagen",
-        "musculos_desplegados",
         "crear_ejercicio",
         "configurar_superserie",
         "asistente_paso",
+        "ficha_desde_editor",
     )
 
     /** El caso que se dibuja ahora, y la escala de letra. Fuera de la composición para poder cambiarlos desde la prueba. */
@@ -92,11 +99,10 @@ class CatalogDetailRenderSheetTest {
     /** La vista de Compose, para dibujarla a un bitmap. */
     private var hostView: View? = null
 
-    /** Alto de cada caso: la ficha y el editor son los más altos. */
+    /** Alto de cada caso: la ficha entera cabe en 1500 dp; el editor es el más alto. */
     private fun heightOf(name: String): Int = when (name) {
-        "ficha_con_imagen" -> 1100
-        "ficha_sin_imagen" -> 900
-        "musculos_desplegados" -> 1400
+        "hoy_3_implementos", "hoy_musculos_desplegados", "ficha_3_implementos", "ficha_7_musculos", "ficha_desde_editor" -> 1500
+        "ficha_1_implemento", "ficha_sin_imagen" -> 1300
         "crear_ejercicio" -> 2600
         "configurar_superserie" -> 1100
         else -> 900
@@ -138,6 +144,21 @@ class CatalogDetailRenderSheetTest {
         )
     }
 
+    /** Siete músculos con aportes distintos: el módulo muestra cuatro y «Ver todos» el resto. */
+    private val sampleSevenMuscles: ExerciseMuscleInfo by lazy {
+        sampleInfo.copy(
+            involvedMuscles = listOf(
+                InvolvedMuscle(muscle = "Pectorales", role = MuscleRole.PRIMARY, volumeContribution = 1.0),
+                InvolvedMuscle(muscle = "Deltoides", role = MuscleRole.SECONDARY, volumeContribution = 0.8),
+                InvolvedMuscle(muscle = "Tríceps", role = MuscleRole.SECONDARY, volumeContribution = 0.6),
+                InvolvedMuscle(muscle = "Dorsales", role = MuscleRole.STABILIZER, volumeContribution = 0.5),
+                InvolvedMuscle(muscle = "Trapecio", role = MuscleRole.STABILIZER, volumeContribution = 0.4),
+                InvolvedMuscle(muscle = "Bíceps", role = MuscleRole.NEUTRALIZER, volumeContribution = 0.3),
+                InvolvedMuscle(muscle = "Romboides", role = MuscleRole.NEUTRALIZER, volumeContribution = 0.2),
+            ),
+        )
+    }
+
     private val sampleVariants: List<ExerciseMuscleInfo> by lazy {
         listOf(
             sampleInfo.copy(id = "press-barra", variantName = "Con barra", variantGroupId = "press"),
@@ -159,21 +180,44 @@ class CatalogDetailRenderSheetTest {
         JointInvolvementV2(jointId = "codo", role = JointRoleV2.SECONDARY, actions = listOf("extensión")),
     )
 
-    private fun sampleModel(withImage: Boolean) = CatalogDetailModel(
+    private val sampleDescription =
+        "Empuje horizontal del tren superior con barra. Escápulas juntas y bajada controlada hasta el pecho. " +
+            "El codo baja en diagonal, no pegado al cuerpo, y la barra toca la parte baja del pecho sin rebotar."
+
+    /** Press de banca con su vínculo al catálogo v2 (definición y configuración): la ficha abierta desde el editor (ER1f). */
+    private val sampleEditorExercise: Exercise by lazy {
+        Exercise(
+            id = "press-editor",
+            name = "Press banca",
+            catalogDefinitionId = ExerciseTechniqueImageLookup.FLAT_BENCH_PRESS_DEFINITION_ID,
+            catalogConfigurationId = "bench_press__barbell",
+            sets = listOf(ExerciseSet(id = "press-editor-1", targetReps = 6, targetRepsRange = RepRange(4, 6), targetRIR = 2)),
+        )
+    }
+
+    /** Barra, mancuerna y máquina: los tres implementos de la muestra, con sus nombres de la configuración. */
+    private val sampleImplementOptions = listOf(
+        CatalogDetailOption(value = "barbell", label = "Barra", selected = false, enabled = true),
+        CatalogDetailOption(value = "dumbbells", label = "Mancuerna", selected = false, enabled = true),
+        CatalogDetailOption(value = "machine", label = "Máquina", selected = false, enabled = true),
+    )
+
+    private fun sampleModel(
+        images: List<ExerciseTechniqueImageVariant> = sampleImages.filter { it.implementation in setOf("barbell", "dumbbells", "machine") },
+        selected: String? = "dumbbells",
+        implementOptions: List<CatalogDetailOption> = sampleImplementOptions,
+        muscles: ExerciseMuscleInfo = sampleInfo,
+    ) = CatalogDetailModel(
         name = "Press banca",
-        caption = "Pectorales · Barra · Empuje horizontal",
-        description = "Empuje horizontal del tren superior con barra. Escápulas juntas y bajada controlada hasta el pecho.",
-        imageVariants = if (withImage) sampleImages else emptyList(),
-        selectedImplementation = null,
+        caption = "Pectorales · ${implementOptions.firstOrNull { it.value == (selected ?: "barbell") }?.label ?: "Barra"} · Empuje horizontal",
+        description = sampleDescription,
+        imageVariants = images,
+        selectedImplementation = selected,
         axes = listOf(
             CatalogDetailAxis(
                 axis = "implement",
                 label = "Implemento",
-                options = listOf(
-                    CatalogDetailOption(value = "barbell", label = "Barra", selected = true, enabled = true),
-                    CatalogDetailOption(value = "dumbbells", label = "Mancuerna", selected = false, enabled = true),
-                    CatalogDetailOption(value = "machine", label = "Máquina", selected = false, enabled = true),
-                ),
+                options = implementOptions.map { it.copy(selected = it.value == selected) },
             ),
             CatalogDetailAxis(
                 axis = "grip",
@@ -186,7 +230,7 @@ class CatalogDetailRenderSheetTest {
         ),
         configurationLine = "Barra · Agarre prono",
         configurationIncomplete = false,
-        muscleInfo = sampleInfo,
+        muscleInfo = muscles,
         joints = sampleJoints,
         patternId = null,
         isSelected = false,
@@ -197,27 +241,52 @@ class CatalogDetailRenderSheetTest {
     @Composable
     private fun Case(name: String) {
         when (name) {
-            "ficha_con_imagen" -> CatalogDetailContent(
-                model = sampleModel(withImage = true),
+            "hoy_3_implementos" -> CatalogDetailContent(
+                model = sampleModel(),
+                onDismiss = {},
+                onToggleSelection = {},
+                onSelectOption = { _, _ -> },
+                onImplementationSettled = {},
+            )
+            "hoy_musculos_desplegados" -> CatalogDetailContent(
+                model = sampleModel(),
+                onDismiss = {},
+                onToggleSelection = {},
+                onSelectOption = { _, _ -> },
+                onImplementationSettled = {},
+                startExpanded = true,
+            )
+            "ficha_3_implementos" -> CatalogDetailContent(
+                model = sampleModel(),
+                onDismiss = {},
+                onToggleSelection = {},
+                onSelectOption = { _, _ -> },
+                onImplementationSettled = {},
+            )
+            "ficha_1_implemento" -> CatalogDetailContent(
+                model = sampleModel(
+                    images = sampleImages.filter { it.implementation == "barbell" },
+                    selected = "barbell",
+                    implementOptions = sampleImplementOptions.take(1),
+                ),
                 onDismiss = {},
                 onToggleSelection = {},
                 onSelectOption = { _, _ -> },
                 onImplementationSettled = {},
             )
             "ficha_sin_imagen" -> CatalogDetailContent(
-                model = sampleModel(withImage = false),
+                model = sampleModel(images = emptyList(), selected = null),
                 onDismiss = {},
                 onToggleSelection = {},
                 onSelectOption = { _, _ -> },
                 onImplementationSettled = {},
             )
-            "musculos_desplegados" -> CatalogDetailContent(
-                model = sampleModel(withImage = true),
+            "ficha_7_musculos" -> CatalogDetailContent(
+                model = sampleModel(selected = "barbell", muscles = sampleSevenMuscles),
                 onDismiss = {},
                 onToggleSelection = {},
                 onSelectOption = { _, _ -> },
                 onImplementationSettled = {},
-                startExpanded = true,
             )
             "crear_ejercicio" -> SmartExerciseEditorPage(
                 exercise = sampleInfo,
@@ -232,6 +301,7 @@ class CatalogDetailRenderSheetTest {
                     onConfirm = {},
                 )
             }
+            "ficha_desde_editor" -> SessionExerciseDetailSheet(exercise = sampleEditorExercise, onDismiss = {})
             else -> CatalogSelectionWizardContent(
                 group = sampleGroup,
                 initialExercise = sampleVariants[0],

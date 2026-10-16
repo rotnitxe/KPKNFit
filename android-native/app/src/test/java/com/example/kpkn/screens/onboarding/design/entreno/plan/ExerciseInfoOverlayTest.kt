@@ -135,15 +135,15 @@ class ExerciseInfoOverlayTest {
         openExercise("jue-1")
         val definition = definitionOf("bench_press")
         assertTrue(definition.description.isNotBlank())
-        rule.onNodeWithTag(EXERCISE_INFO_DESCRIPTION_TAG).assertTextEquals(definition.description)
+        rule.onNodeWithText(definition.description).assertExists()
     }
 
     @Test
     fun theMusclesAndJointsAreTheCatalogsWithTheAppLabels() {
         show(listOf(benchPress()))
         openExercise("jue-1")
-        rule.onNodeWithTag(EXERCISE_INFO_MUSCLES_TAG).assertTextContains(muscleLabel("pectoralis")!!, substring = true)
-        rule.onNodeWithTag(EXERCISE_INFO_JOINTS_TAG).assertTextContains(jointLabel("glenohumeral"), substring = true)
+        rule.onNodeWithText(muscleLabel("pectoralis")!!).performScrollTo().assertExists()
+        rule.onNodeWithText(jointLabel("glenohumeral")).performScrollTo().assertExists()
     }
 
     @Test
@@ -155,7 +155,7 @@ class ExerciseInfoOverlayTest {
     }
 
     @Test
-    fun anExerciseWithoutImageSaysSinImagen() {
+    fun anExerciseWithoutImageOmitsThePhotoBlock() {
         val noImage = catalog.families.asSequence()
             .flatMap { it.definitions.asSequence() }
             .first { def ->
@@ -175,8 +175,8 @@ class ExerciseInfoOverlayTest {
             ),
         )
         openExercise("jue-1")
-        rule.onNodeWithTag(EXERCISE_INFO_NOIMAGE_TAG).assertExists()
-        rule.onNodeWithText(ExerciseInfoCopy.IMAGE_MISSING).assertExists()
+        rule.onNodeWithTag(EXERCISE_INFO_NOIMAGE_TAG).assertDoesNotExist()
+        rule.onNodeWithText(ExerciseInfoCopy.IMAGE_MISSING).assertDoesNotExist()
         rule.onNodeWithTag(EXERCISE_INFO_IMAGE_TAG).assertDoesNotExist()
     }
 
@@ -189,15 +189,16 @@ class ExerciseInfoOverlayTest {
             ),
         )
         openExercise("jue-1")
-        rule.onNodeWithTag(EXERCISE_INFO_DESCRIPTION_TAG).assertTextEquals(substitute.description)
-        rule.onNodeWithTag(EXERCISE_INFO_JOINTS_TAG).assertTextContains(jointLabel("rodilla"), substring = true)
+        rule.onNodeWithText(substitute.description).assertExists()
+        rule.onNodeWithText(jointLabel("rodilla")).performScrollTo().assertExists()
     }
 
     @Test
-    fun anExerciseOutsideTheCatalogSaysSo() {
+    fun anExerciseOutsideTheCatalogDoesNotOpenAFabricatedFicha() {
         show(listOf(SetupPlanRevealExercise(instanceId = "jue-1", name = "Mi ejercicio", setsLabel = null, swappable = false)))
-        openExercise("jue-1")
-        rule.onNodeWithText(ExerciseInfoCopy.NOT_IN_CATALOG).assertExists()
+        rule.onNodeWithTag("setup-plan-day-4").performScrollTo().performClick()
+        rule.onNodeWithTag("setup-plan-exercise-jue-1").performScrollTo().performClick()
+        rule.onNodeWithTag(EXERCISE_INFO_TAG).assertDoesNotExist()
         rule.onNodeWithTag(EXERCISE_INFO_MUSCLES_TAG).assertDoesNotExist()
     }
 
@@ -214,10 +215,10 @@ class ExerciseInfoOverlayTest {
     }
 
     @Test
-    fun tappingTheVeilClosesTheSheet() {
+    fun tappingThePhotoDoesNotCloseTheFullscreenFicha() {
         show(listOf(benchPress()))
         openExercise("jue-1")
         rule.onRoot().performTouchInput { click(Offset(20f, 20f)) }
-        rule.onNodeWithTag(EXERCISE_INFO_TAG).assertDoesNotExist()
+        rule.onNodeWithTag(EXERCISE_INFO_TAG).assertExists()
     }
 }

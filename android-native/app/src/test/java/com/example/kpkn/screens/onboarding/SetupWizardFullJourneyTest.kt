@@ -1,5 +1,6 @@
 package com.example.kpkn.screens.onboarding
 
+import com.example.kpkn.testsupport.SyncRoomExecutor
 import android.app.Application
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModelStore
@@ -116,6 +117,7 @@ class SetupWizardFullJourneyTest {
 
     @Before
     fun setUp() {
+        SyncRoomExecutor.install()
         Dispatchers.setMain(dispatcher)
         app = ApplicationProvider.getApplicationContext()
         // Robolectric recrea su shadow SQLite en cada método; los singletons de
@@ -155,6 +157,7 @@ class SetupWizardFullJourneyTest {
         KpknDatabase.closeInstance()
         db.close()
         Dispatchers.resetMain()
+        SyncRoomExecutor.uninstall()
     }
 
     /**
@@ -700,7 +703,7 @@ class SetupWizardFullJourneyTest {
         // Prioridades: SOLO orden, contrastadas con el programa realmente guardado.
         val capabilities = OrderPrioritiesContract.capabilitiesOf(committed, options = draftAtReview.trainingOptions)
         assertEquals("la bolsa pedida viaja al contrato", priorityBag(), capabilities.requested)
-        assertNotNull("bolsa válida (≤2 por músculo, 5 en total)", capabilities.normalizedRequested)
+        assertNotNull("bolsa válida (≤2 por músculo, 6 en total)", capabilities.normalizedRequested)
         assertEquals(
             "la bolsa se aplicó al generar (plan=${committed.structureTemplateId}, " +
                 "bolsa aplicada=${capabilities.appliedBag}, motivos=${capabilities.reasons})",

@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Ajuste manual de Músculos</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Syne:wght@600;700;800&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#F2EEE6}a:hover{color:#ffffff}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.6}}
+.sel{animation:pulse 1.4s ease-in-out infinite}
+.mz{transition:fill .35s ease}
+.arc{transition:stroke-dasharray .4s ease}
+@media (prefers-reduced-motion: reduce){.sel{animation:none}}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: #000000; color: #F2EEE6; font-family: Inter, sans-serif; position: relative; overflow: hidden;">
+  <div style="position: absolute; inset: 0; background: rgba(0,0,0,0.5);"></div>
+  <div style="position: absolute; left: 0; right: 0; bottom: 0; top: 34px; background: #0E0E0E; border-top-left-radius: 28px; border-top-right-radius: 28px; border-top: 1px solid rgba(242,238,230,0.08); padding: 10px 18px 24px 18px; box-sizing: border-box; display: flex; flex-direction: column; gap: 12px;">
+    <div style="align-self: center; width: 36px; height: 4px; border-radius: 2px; background: rgba(242,238,230,0.22);"></div>
+    <div style="display: flex; align-items: center; justify-content: space-between;">
+      <div style="font-family: Syne, sans-serif; font-weight: 700; font-size: 22px;">Tus músculos hoy</div>
+      <div style="display: flex; padding: 3px; border-radius: 16px; background: #000000;">
+        <button onClick="{{front}}" style="height: 28px; padding: 0 12px; border-radius: 14px; border: none; background: {{frontBg}}; color: {{frontFg}}; font-family: Inter, sans-serif; font-size: 12px; font-weight: 600;">Frente</button>
+        <button onClick="{{back}}" style="height: 28px; padding: 0 12px; border-radius: 14px; border: none; background: {{backBg}}; color: {{backFg}}; font-family: Inter, sans-serif; font-size: 12px; font-weight: 600;">Espalda</button>
+      </div>
+    </div>
+
+    <div style="position: relative; height: 360px; display: flex; justify-content: center;">
+      <svg width="220" height="360" viewBox="0 0 220 360" role="img" aria-label="Mapa del cuerpo con la recuperación de cada músculo">
+        <circle cx="110" cy="30" r="20" fill="#1A1A1A"></circle>
+        <rect x="100" y="48" width="20" height="14" rx="6" fill="#1A1A1A"></rect>
+        <sc-for list="{{zones}}" as="z" hint-placeholder-count="6">
+          <g class="{{z.cls}}">
+            <sc-for list="{{z.shapes}}" as="sh" hint-placeholder-count="2">
+              <path class="mz" d="{{sh}}" fill="{{z.fill}}" stroke="{{z.stroke}}" stroke-width="2"></path>
+            </sc-for>
+          </g>
+        </sc-for>
+        <path d="M70 70 L150 70 L156 180 L64 180 Z" fill="none" stroke="rgba(242,238,230,0.08)" stroke-width="1"></path>
+      </svg>
+      <sc-for list="{{zones}}" as="z" hint-placeholder-count="6">
+        <button aria-label="{{z.aria}}" onClick="{{z.pick}}" style="position: absolute; left: {{z.hx}}; top: {{z.hy}}; width: {{z.hw}}; height: {{z.hh}}; border: none; background: transparent; cursor: pointer;"></button>
+      </sc-for>
+    </div>
+
+    <div style="border-radius: 22px; background: #161616; padding: 12px 14px; display: flex; align-items: center; gap: 14px;">
+      <svg width="62" height="62" viewBox="0 0 62 62" aria-hidden="true">
+        <circle cx="31" cy="31" r="25" fill="none" stroke="#262626" stroke-width="7"></circle>
+        <circle class="arc" cx="31" cy="31" r="25" fill="none" stroke="{{selColor}}" stroke-width="7" stroke-linecap="round" stroke-dasharray="{{selDash}}" transform="rotate(-90 31 31)"></circle>
+      </svg>
+      <div style="flex: 1;">
+        <div style="font-size: 15px; font-weight: 600;">{{selName}}</div>
+        <div style="font-size: 13px; color: rgba(242,238,230,0.62);">{{selValue}} % · {{selWord}}</div>
+      </div>
+      <button onClick="{{minus}}" aria-label="Bajar 10" style="width: 40px; height: 40px; border-radius: 20px; border: 1px solid rgba(242,238,230,0.12); background: #111111; color: #F2EEE6; font-size: 18px;">−</button>
+      <button onClick="{{plus}}" aria-label="Subir 10" style="width: 40px; height: 40px; border-radius: 20px; border: 1px solid rgba(242,238,230,0.12); background: #111111; color: #F2EEE6; font-size: 18px;">+</button>
+    </div>
+    <div style="display: flex; gap: 8px;">
+      <button onClick="{{allFresh}}" style="height: 32px; padding: 0 12px; border-radius: 16px; border: 1px solid rgba(242,238,230,0.12); background: transparent; color: #F2EEE6; font-family: Inter, sans-serif; font-size: 12px;">Todo fresco</button>
+      <button onClick="{{legsLoaded}}" style="height: 32px; padding: 0 12px; border-radius: 16px; border: 1px solid rgba(242,238,230,0.12); background: transparent; color: #F2EEE6; font-family: Inter, sans-serif; font-size: 12px;">Pierna cargada</button>
+      <button onClick="{{reset}}" style="height: 32px; padding: 0 12px; border-radius: 16px; border: 1px solid rgba(242,238,230,0.12); background: transparent; color: #F2EEE6; font-family: Inter, sans-serif; font-size: 12px;">Restablecer</button>
+    </div>
+    <div style="flex: 1;"></div>
+    <button style="height: 48px; border-radius: 24px; border: none; background: #F2EEE6; color: #0B0B0B; font-family: Inter, sans-serif; font-size: 15px; font-weight: 600;">Listo</button>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.base = { chest: 92, delts: 88, biceps: 95, abs: 90, quads: 54, calves: 76, back: 85, traps: 90, triceps: 93, glutes: 60, hams: 58 };
+    this.state = { view: 'front', sel: 'quads', v: Object.assign({}, this.base) };
+  }
+  renderVals() {
+    const { view, sel, v } = this.state;
+    const color = (p) => p >= 80 ? '#43D18C' : p >= 60 ? '#F7CF73' : '#F49A6E';
+    const names = { chest: 'Pecho', delts: 'Hombros', biceps: 'Bíceps', abs: 'Abdomen', quads: 'Cuádriceps', calves: 'Pantorrillas', back: 'Espalda', traps: 'Trapecio', triceps: 'Tríceps', glutes: 'Glúteos', hams: 'Isquiosurales' };
+    const front = [
+      { id: 'delts', shapes: ['M66 72 q-14 4 -14 22 q8 2 16 -6 z', 'M154 72 q14 4 14 22 q-8 2 -16 -6 z'], hit: [48, 66, 124, 34] },
+      { id: 'chest', shapes: ['M72 74 h36 v30 q-20 6 -36 -4 z', 'M112 74 h36 v26 q-16 10 -36 4 z'], hit: [70, 72, 80, 36] },
+      { id: 'biceps', shapes: ['M52 98 q-6 26 2 44 h12 q4 -22 -2 -44 z', 'M168 98 q6 26 -2 44 h-12 q-4 -22 2 -44 z'], hit: [44, 96, 132, 50] },
+      { id: 'abs', shapes: ['M90 110 h40 v64 q-20 8 -40 0 z'], hit: [88, 108, 44, 70] },
+      { id: 'quads', shapes: ['M82 190 q-10 50 0 96 h20 q6 -48 0 -96 z', 'M138 190 q10 50 0 96 h-20 q-6 -48 0 -96 z'], hit: [72, 188, 76, 100] },
+      { id: 'calves', shapes: ['M84 296 q-6 26 2 50 h12 q4 -26 0 -50 z', 'M136 296 q6 26 -2 50 h-12 q-4 -26 0 -50 z'], hit: [76, 294, 68, 56] }
+    ];
+    const back = [
+      { id: 'traps', shapes: ['M84 62 q26 -10 52 0 l-8 18 h-36 z'], hit: [82, 56, 56, 26] },
+      { id: 'back', shapes: ['M72 82 h76 q-6 50 -38 70 q-32 -20 -38 -70 z'], hit: [70, 82, 80, 70] },
+      { id: 'triceps', shapes: ['M52 92 q-8 26 0 48 h12 q6 -24 -2 -48 z', 'M168 92 q8 26 0 48 h-12 q-6 -24 2 -48 z'], hit: [44, 90, 132, 52] },
+      { id: 'glutes', shapes: ['M78 170 h30 v34 q-24 6 -32 -10 z', 'M112 170 h30 q2 26 -32 34 z'], hit: [74, 168, 72, 40] },
+      { id: 'hams', shapes: ['M82 210 q-8 40 0 78 h20 q6 -40 0 -78 z', 'M138 210 q8 40 0 78 h-20 q-6 -40 0 -78 z'], hit: [72, 208, 76, 82] },
+      { id: 'calves', shapes: ['M84 296 q-8 26 2 50 h12 q4 -26 0 -50 z', 'M136 296 q8 26 -2 50 h-12 q-4 -26 0 -50 z'], hit: [76, 294, 68, 56] }
+    ];
+    const list = view === 'front' ? front : back;
+    const offX = 67;
+    const zones = list.map((z) => ({
+      shapes: z.shapes,
+      fill: color(v[z.id]) + (z.id === sel ? 'CC' : '55'),
+      stroke: z.id === sel ? '#F2EEE6' : 'rgba(0,0,0,0)',
+      cls: z.id === sel ? 'sel' : '',
+      aria: names[z.id] + ' ' + v[z.id] + ' %',
+      hx: (z.hit[0] + offX) + 'px', hy: z.hit[1] + 'px', hw: z.hit[2] + 'px', hh: z.hit[3] + 'px',
+      pick: () => this.setState({ sel: z.id })
+    }));
+    const val = v[sel];
+    const C = 2 * Math.PI * 25;
+    const setVal = (n) => this.setState({ v: Object.assign({}, v, { [sel]: Math.max(0, Math.min(100, n)) }) });
+    const word = val >= 80 ? 'recuperado' : val >= 60 ? 'algo cargado' : 'cargado';
+    return {
+      zones,
+      frontBg: view === 'front' ? '#F2EEE6' : 'transparent', frontFg: view === 'front' ? '#0B0B0B' : 'rgba(242,238,230,0.62)',
+      backBg: view === 'back' ? '#F2EEE6' : 'transparent', backFg: view === 'back' ? '#0B0B0B' : 'rgba(242,238,230,0.62)',
+      front: () => this.setState({ view: 'front', sel: 'quads' }),
+      back: () => this.setState({ view: 'back', sel: 'hams' }),
+      selName: names[sel], selValue: val, selWord: word, selColor: color(val),
+      selDash: (C * val / 100).toFixed(1) + ' ' + C.toFixed(1),
+      minus: () => setVal(val - 10), plus: () => setVal(val + 10),
+      allFresh: () => this.setState({ v: Object.keys(v).reduce((o, k) => (o[k] = 95, o), {}) }),
+      legsLoaded: () => this.setState({ v: Object.assign({}, v, { quads: 45, hams: 50, glutes: 52, calves: 70 }) }),
+      reset: () => this.setState({ v: Object.assign({}, this.base) })
+    };
+  }
+}
+</script>
+</body>
+</html>

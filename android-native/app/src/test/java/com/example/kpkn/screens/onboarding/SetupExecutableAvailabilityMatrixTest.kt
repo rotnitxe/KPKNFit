@@ -1,5 +1,6 @@
 package com.example.kpkn.screens.onboarding
 
+import com.example.kpkn.testsupport.SyncRoomExecutor
 import android.app.Application
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModelStore
@@ -413,6 +414,7 @@ class SetupExecutableAvailabilityMatrixTest {
 
     @Before
     fun setUp() {
+        SyncRoomExecutor.install()
         Dispatchers.setMain(dispatcher)
         app = ApplicationProvider.getApplicationContext()
         openTrace()
@@ -444,6 +446,7 @@ class SetupExecutableAvailabilityMatrixTest {
         KpknDatabase.closeInstance()
         Dispatchers.resetMain()
         trace("LIFECYCLE after-ok test=${currentTestName()}")
+        SyncRoomExecutor.uninstall()
     }
 
     /**

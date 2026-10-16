@@ -7,14 +7,14 @@ object WarmupObserver : RelatorObserver {
         }
         val w = context.warmup
         val kg = w.suggestedKg
-        val kgBit = kg?.let { "${formatRelatorKg(it)} kg" } ?: "la aproximación"
+        val kgBit = kg?.let { relatorKg(it) } ?: "la aproximación"
         val remaining = w.remainingCount.coerceAtLeast(1)
         val lines = buildList {
             add("Aprox $kgBit. Quedan $remaining de calentamiento en {ex}.")
-            add("Suma $kgBit en {ex} y enciende el patrón.")
-            add("Calentamiento: $kgBit. No es la serie de verdad.")
-            if (w.isLastIncomplete) add("Última aprox de {ex} a $kgBit. Luego efectivas.")
-            add("Rampas de {ex}: $kgBit, gesto idéntico al de trabajo.")
+            add("Sube a $kgBit en {ex} y enciende el patrón.")
+            add("Calentamiento a $kgBit. Todavía no es la serie de verdad.")
+            if (w.isLastIncomplete) add("Última aproximación de {ex} a $kgBit. Luego, las series efectivas.")
+            add("Rampas de {ex} a $kgBit, con el gesto idéntico al de trabajo.")
             add("Si $kgBit se siente pesado, recorta el salto.")
         }
         val highReadiness = (context.readiness.dailyScore ?: context.readiness.exerciseScore ?: 70) >= 80
@@ -48,11 +48,10 @@ object WarmupObserver : RelatorObserver {
                 topic = RelatorTopic.WARMUP,
                 priority = 48,
                 relevance = 0.75,
-                lines = padVariants(lines),
+                lines = realVariants(lines),
                 fingerprintBase = "WARMUP:${context.progress.completedWorkingSets}",
                 actions = actions,
                 cooldownSets = 1,
-                openers = listOf("Ahora", "Carga"),
             ),
         )
     }

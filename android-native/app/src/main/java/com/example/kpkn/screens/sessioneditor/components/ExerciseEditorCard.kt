@@ -1,72 +1,96 @@
 package com.example.kpkn.screens.sessioneditor.components
 
-import com.example.kpkn.screens.sessioneditor.design.sessionEnter
-import com.example.kpkn.screens.sessioneditor.design.sessionExit
-
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.EnterTransition
-import androidx.compose.animation.ExitTransition
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.expandVertically
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.shrinkVertically
-import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.defaultMinSize
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.KeyboardArrowDown
-import androidx.compose.material.icons.filled.KeyboardArrowUp
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.filled.StarBorder
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.drawBehind
-import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
-import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.boundsInWindow
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
-import com.example.kpkn.data.models.*
-import com.example.kpkn.screens.sessioneditor.design.SessionCardioModule
 import com.example.kpkn.data.exercises.ExerciseTechniqueImageLookup
+import com.example.kpkn.data.models.Exercise
+import com.example.kpkn.data.models.ExerciseMuscleInfo
+import com.example.kpkn.data.models.ExerciseRelationshipType
+import com.example.kpkn.data.models.ExerciseSet
+import com.example.kpkn.data.models.supersetGroupRefOrLegacyId
+import com.example.kpkn.domain.calculations.calculateEstimatedMetric
+import com.example.kpkn.domain.calculations.calculateGeneralizedCapacity
+import com.example.kpkn.domain.calculations.calculateHybrid1RM
 import com.example.kpkn.domain.calculations.resolveReferenceCapacity
-import com.example.kpkn.domain.exercises.*
-import com.example.kpkn.domain.workout.warmupValidationMessages
+import com.example.kpkn.domain.exercises.exerciseDisplayParts
+import com.example.kpkn.screens.onboarding.design.WizardColors
+import com.example.kpkn.screens.onboarding.design.entreno.SymbolPalette
+import com.example.kpkn.screens.onboarding.design.entreno.plan.ExercisePattern
+import com.example.kpkn.screens.onboarding.design.entreno.plan.PatternGlyph
 import com.example.kpkn.screens.onboarding.design.entreno.plan.exercisePatternOf
-import com.example.kpkn.screens.onboarding.design.wizardReducedMotion
-import com.example.kpkn.screens.sessioneditor.design.SessionExerciseExpanded
-import com.example.kpkn.screens.sessioneditor.design.SessionExerciseRow
-import com.example.kpkn.screens.sessioneditor.formatEditableNumber
 import com.example.kpkn.screens.sessioneditor.resolvePartAccent
-import com.example.kpkn.screens.sessioneditor.sessionExerciseDose
-import com.example.kpkn.screens.sessioneditor.sessionExerciseSpokenDose
-import java.util.UUID
+import com.example.kpkn.screens.sessioneditor.safeDoubleOrNull
+import com.example.kpkn.screens.sessioneditor.safeIntOrNull
+import com.example.kpkn.screens.sessioneditor.sessionExerciseListDose
+import com.example.kpkn.ui.components.SwipeToDeleteCard
+import com.example.kpkn.screens.sessioneditor.design.CardioTypeIcon
+import com.example.kpkn.ui.components.icons.KpknLineIcons
+import com.example.kpkn.ui.design.KpknSurface
+import com.example.kpkn.ui.design.KpknType
+import com.example.kpkn.data.models.*
+import com.example.kpkn.domain.exercises.*
 
+/**
+ * Ejercicio plegado (SESSION_EDITOR_R1 §3.3 y E8): una fila de 64 dp dentro de su módulo, con el asa a la izquierda, la miniatura de 40 dp
+ * (la imagen del catálogo o el glifo del patrón), el nombre, la dosis con `KpknSetFormat`, la estrella de Meta y la flecha. Tocar la fila
+ * la despliega; la pulsación larga en el nombre abre las acciones rápidas; deslizar la quita (con «Deshacer», en la lista).
+ *
+ * Un cardio se pinta con su máquina, su dosis y su mini gráfica, sin estrella. El desplegado es [ExerciseEditorExpanded].
+ */
 @Composable
 internal fun ExerciseEditorCard(
     exercise: Exercise,
@@ -74,8 +98,6 @@ internal fun ExerciseEditorCard(
     accentHex: String?,
     coverAccentHex: String? = null,
     partId: String,
-    // Nombre de la parte: la fila no lo repite entre sus chips («Press banca · Pecho» dentro de «Pecho» se queda en «Press banca») (SE8).
-    partName: String? = null,
     isCompetitionMovement: Boolean,
     modifier: Modifier = Modifier,
     isDragging: Boolean,
@@ -97,7 +119,6 @@ internal fun ExerciseEditorCard(
     onOpenQuickActions: () -> Unit,
     onOpenSuperset: () -> Unit = {},
     onOpenMobility: () -> Unit = {},
-    onOpenReplacePicker: () -> Unit,
     relationshipAnchorName: String?,
     onOpenRelationshipPicker: () -> Unit,
     onClearRelationship: () -> Unit,
@@ -111,79 +132,75 @@ internal fun ExerciseEditorCard(
     showCardioPlacementChip: Boolean = false,
     onToggleCardioPlacement: (() -> Unit)? = null,
     cardioHistory: com.example.kpkn.domain.cardio.CardioTypeHistory? = null,
-    // Miembro de una superserie: su fila lleva la barra de 3 dp y su dosis no repite el descanso.
-    inSuperset: Boolean = false,
 ) {
+    val local = rememberExerciseEditorLocalState(exercise)
     var expanded by rememberSaveable(exercise.id) { mutableStateOf(false) }
-    var showCustomUnitModal by remember { mutableStateOf(false) }
-    var showGoalSheet by remember { mutableStateOf(false) }
-    var mobilityBlockExpanded by rememberSaveable(exercise.id) { mutableStateOf(exercise.mobilitySeries.isNotEmpty()) }
-    var warmupBlockExpanded by rememberSaveable(exercise.id) { mutableStateOf(exercise.warmupSets.isNotEmpty()) }
-    val reduced = wizardReducedMotion()
+    var showCustomUnitModal by local.showCustomUnitModal
+    var showGoalSheet by local.showGoalSheet
+    var rmInputMode by local.rmInputMode
+    var restSelectionSeconds by local.restSelectionSeconds
+    // SE11: el texto de cada campo lo escribe la persona; el modelo solo lo corrige si cambia por fuera.
+    val prWeightInput by local.prWeightInput
+    val prRepsInput by local.prRepsInput
+    var customUnitInput by local.customUnitInput
+    var goalRmInput by local.goalRmInput
+    val haptics = LocalHapticFeedback.current
 
     val resolved1RM = remember(exercise.trainingMode, exercise.reference1RM, exercise.prFor1RM) {
         resolveReferenceCapacity(exercise)
     }
-    var goalRmInput by rememberSaveable(exercise.id) { mutableStateOf<String>(formatEditableNumber(exercise.goal1RM)) }
-    var customUnitInput by rememberSaveable(exercise.id) { mutableStateOf(exercise.customUnit.orEmpty()) }
-    val accent = remember(accentHex) { resolvePartAccent(accentHex) }
-    val coverAccent = remember(coverAccentHex, accentHex) {
-        resolvePartAccent(coverAccentHex ?: accentHex)
+    val localPrEstimatedRm = remember(prWeightInput, prRepsInput) {
+        val weight = prWeightInput.safeDoubleOrNull()
+        val reps = prRepsInput.safeIntOrNull()
+        if (weight != null && weight > 0 && reps != null && reps > 0) {
+            when (exercise.trainingMode) {
+                TrainingMode.REPS,
+                TrainingMode.RM,
+                -> calculateHybrid1RM(weight, reps)
+                TrainingMode.TIME,
+                TrainingMode.DISTANCE,
+                TrainingMode.CUSTOM,
+                -> calculateGeneralizedCapacity(weight, reps.toDouble())
+                TrainingMode.SOLO_RPE -> null
+                TrainingMode.AMRAP -> null
+            }
+        } else null
     }
-    val accentColor = accent.primary
-    val coverColor = coverAccent.primary
+    // El color de grupo no se pinta (ER1b): la tinta y el acento de portada quedan como datos.
+    val accentColor = WizardColors.text
+    val coverColor = remember(coverAccentHex, accentHex) {
+        resolvePartAccent(coverAccentHex ?: accentHex).primary
+    }
     val displayParts = remember(exercise, exerciseInfo) {
         exerciseDisplayParts(exercise, exerciseInfo)
     }
-    // Los chips sin el nombre de la parte: no se repite lo que ya dice el módulo (SE8).
-    val chipsText = remember(displayParts, partName) {
-        displayParts.chips
-            .filterNot { chip -> partName != null && chip.trim().equals(partName.trim(), ignoreCase = true) }
-            .joinToString(" · ")
-            .takeIf { it.isNotBlank() }
+    val predictedMetrics = remember(exercise.trainingMode, exercise.sets) {
+        exercise.sets.associate { set ->
+            set.id to calculateEstimatedMetric(exercise, set)
+        }
+    }
+    val cardio = exercise.cardioDetails
+    val thumbnailRes = remember(exercise.id, exercise.exerciseDbId, exercise.exerciseId) {
+        ExerciseTechniqueImageLookup.resolveImageResId(
+            catalogDefinitionId = null,
+            exerciseDbId = exercise.exerciseDbId,
+            exerciseId = exercise.exerciseId ?: exercise.id,
+        )
+    }
+    val pattern = remember(exercise.name) { exercisePatternOf(exercise.name) }
+    val isSupersetExercise = exercise.supersetGroupRefOrLegacyId() != null
+    val dose = remember(exercise, suppressIndividualRest) {
+        sessionExerciseListDose(exercise, includeRest = !suppressIndividualRest)
     }
 
-    LaunchedEffect(exercise.id, exercise.goal1RM) {
-        goalRmInput = formatEditableNumber(exercise.goal1RM)
+    LaunchedEffect(exercise.id, exercise.restTime) { restSelectionSeconds = exercise.restTime ?: 90 }
+    LaunchedEffect(exercise.id, exercise.prFor1RM) {
+        rmInputMode = if (exercise.prFor1RM != null) "pr" else rmInputMode
     }
     LaunchedEffect(autoExpand) {
         if (autoExpand) { expanded = true; onAutoExpandHandled() }
     }
 
-    val containerHighlight = when {
-        isDragging -> accentColor.copy(alpha = 0.10f)
-        isDropTarget -> accentColor.copy(alpha = 0.08f)
-        isPartDropTarget -> accentColor.copy(alpha = 0.06f)
-        else -> Color.Transparent
-    }
-    // Miniatura: la imagen del catálogo si hay una para este ejercicio; si no, el glifo de su patrón.
-    val imageRes = remember(exercise.id, exercise.catalogDefinitionId, exercise.catalogConfigurationId, exercise.selectedExecutionOption) {
-        ExerciseTechniqueImageLookup.resolveImageResId(
-            catalogDefinitionId = exercise.catalogDefinitionId,
-            exerciseDbId = exercise.exerciseDbId,
-            exerciseId = exercise.id,
-            catalogConfigurationId = exercise.catalogConfigurationId,
-            selectedImplementation = exercise.selectedExecutionOption ?: exercise.selectedAspects?.values?.firstOrNull(),
-        )
-    }
-    val pattern = remember(exercise.name) { exercisePatternOf(exercise.name) }
-    val doseLine = exercise.cardioDetails?.let { details ->
-        com.example.kpkn.domain.cardio.CardioPrescriptionFormatter.sentence(details)
-    } ?: sessionExerciseDose(
-        sets = exercise.sets,
-        trainingMode = exercise.trainingMode,
-        restSeconds = exercise.restTime,
-        includeRest = !suppressIndividualRest,
-    ) ?: "Sin series"
-    // La misma dosis para TalkBack («3 series de 6 a 8, RIR 2…») (SE8).
-    val spokenDoseLine = remember(exercise.sets, exercise.trainingMode, exercise.restTime, suppressIndividualRest, isCompetitionMovement) {
-        sessionExerciseSpokenDose(
-            sets = exercise.sets,
-            trainingMode = exercise.trainingMode,
-            restSeconds = exercise.restTime,
-            includeRest = !suppressIndividualRest,
-        )?.let { if (isCompetitionMovement) "$it, competición" else it }
-    }
     Column(
         modifier = modifier
             .fillMaxWidth()
@@ -194,235 +211,195 @@ internal fun ExerciseEditorCard(
                 alpha = if (isDragging) 0.22f else 1f
                 shadowElevation = if (isDragging) 6.dp.toPx() else 0f
             }
-            .zIndex(if (isDragging) 12f else 0f)
-            .background(containerHighlight),
+            .zIndex(if (isDragging) 12f else 0f),
     ) {
-        // Fila plegada de 64 dp: la miniatura es el asa de arrastre; el nombre, las acciones rápidas (pulsación larga).
-        // El cardio lleva su figura del tipo, su dosis y su mini línea de tiempo (SE5); su editor se despliega debajo, como antes.
-        val cardioDetails = exercise.cardioDetails
-        if (cardioDetails != null) {
-            SessionCardioModule(
-                name = displayParts.parentName.ifBlank { "Seleccionar ejercicio" },
-                details = cardioDetails,
-                expanded = expanded,
-                onToggle = { expanded = !expanded },
-                onLongPress = onOpenQuickActions,
-                onDragStart = onDragStart,
-                onDrag = onDrag,
-                onDragEnd = onDragEnd,
-                onDragCancel = onDragCancel,
-                onDelete = onDeleteExercise,
-                chips = chipsText,
-                dragEnabled = enableDrag,
-            )
-        } else {
-            SessionExerciseRow(
-                name = displayParts.parentName.ifBlank { "Seleccionar ejercicio" },
-                chips = chipsText,
-                dose = if (isCompetitionMovement) "$doseLine · Competición" else doseLine,
-                expanded = expanded,
-                accent = accentColor,
-                imageRes = imageRes,
-                pattern = pattern,
-                onToggle = { expanded = !expanded },
-                onLongPress = onOpenQuickActions,
-                onDragStart = onDragStart,
-                onDrag = onDrag,
-                onDragEnd = onDragEnd,
-                onDragCancel = onDragCancel,
-                onDelete = onDeleteExercise,
-                superset = inSuperset,
-                dragEnabled = enableDrag,
-                spokenDose = spokenDoseLine,
-            )
-        }
-
-        // Bloque desplegado (SE3b): la tabla de series, las opciones y el calentamiento. La barra de superserie sigue la fila.
-        AnimatedVisibility(
-            visible = expanded,
-            enter = if (reduced) EnterTransition.None else expandVertically(animationSpec = tween(220)) + fadeIn(animationSpec = tween(220)),
-            exit = if (reduced) ExitTransition.None else shrinkVertically(animationSpec = tween(220)) + fadeOut(animationSpec = tween(220)),
+        // Fila plegada. El asa va fuera del deslizamiento, para que borrar no cancele la pulsación larga.
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .defaultMinSize(minHeight = 64.dp),
+            verticalAlignment = Alignment.CenterVertically,
         ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .drawBehind {
-                        if (inSuperset) {
-                            drawRoundRect(
-                                color = accentColor,
-                                topLeft = Offset(20.dp.toPx(), 0f),
-                                size = Size(3.dp.toPx(), size.height),
-                                cornerRadius = CornerRadius(1.5.dp.toPx()),
+            if (enableDrag) {
+                var handleWindowOrigin by remember(exercise.id) { mutableStateOf(Offset.Zero) }
+                val latestOnDragStart = rememberUpdatedState(onDragStart)
+                val latestOnDrag = rememberUpdatedState(onDrag)
+                val latestOnDragEnd = rememberUpdatedState(onDragEnd)
+                val latestOnDragCancel = rememberUpdatedState(onDragCancel)
+                Box(
+                    modifier = Modifier
+                        .size(width = 48.dp, height = 64.dp)
+                        .onGloballyPositioned { coords ->
+                            val b = coords.boundsInWindow()
+                            handleWindowOrigin = Offset(b.left, b.top)
+                        }
+                        .pointerInput(exercise.id) {
+                            detectDragGesturesAfterLongPress(
+                                onDragStart = { offset ->
+                                    haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+                                    latestOnDragStart.value(handleWindowOrigin + offset)
+                                },
+                                onDragCancel = {
+                                    haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                                    latestOnDragCancel.value()
+                                },
+                                onDragEnd = {
+                                    haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                                    latestOnDragEnd.value()
+                                },
+                                onDrag = { change, dragAmount ->
+                                    change.consume()
+                                    latestOnDrag.value(Offset(dragAmount.x, dragAmount.y))
+                                },
                             )
                         }
-                    }
-                    .padding(
-                        start = if (inSuperset) 32.dp else 20.dp,
-                        end = 20.dp,
-                        bottom = 16.dp,
-                    ),
-                verticalArrangement = Arrangement.spacedBy(12.dp),
+                        .semantics { contentDescription = "Arrastra para reordenar ejercicio" },
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Icon(
+                        imageVector = KpknLineIcons.Grip,
+                        contentDescription = null,
+                        tint = if (isDragging) WizardColors.text else WizardColors.textFaint,
+                        modifier = Modifier.size(20.dp),
+                    )
+                }
+            } else {
+                Spacer(Modifier.width(48.dp).height(64.dp))
+            }
+
+            // La zona que se desliza es el texto, la miniatura y la estrella; la flecha va aparte.
+            SwipeToDeleteCard(
+                onDelete = onDeleteExercise,
+                modifier = Modifier.weight(1f),
+                shape = RoundedCornerShape(12.dp),
             ) {
-                exercise.cardioDetails?.let { details ->
-                    // Sangría de 6 dp: el editor de cardio arranca en la misma columna que el texto de la fila (20 dp).
-                    Column(modifier = Modifier.padding(horizontal = 6.dp)) {
-                        CardioEditorCard(
-                            details = details,
-                            accentColor = accentColor,
-                            exerciseName = exercise.name,
-                            cardioFirst = cardioFirst,
-                            showPlacementChip = showCardioPlacementChip,
-                            onTogglePlacement = onToggleCardioPlacement,
-                            history = cardioHistory,
-                            onChange = { updated ->
-                                onUpdateExercise { current ->
-                                    current.copy(
-                                        cardioDetails = updated,
-                                        targetDurationMinutes = updated.targetDurationSeconds?.let { (it / 60).coerceAtLeast(1) } ?: 0,
-                                    )
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(KpknSurface.module, RoundedCornerShape(12.dp))
+                        .padding(vertical = 10.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Thumbnail(cardio = cardio?.type, imageRes = thumbnailRes, pattern = pattern)
+                    Spacer(Modifier.width(12.dp))
+                    Column(
+                        modifier = Modifier
+                            .weight(1f)
+                            .combinedClickable(
+                                onClick = { expanded = !expanded },
+                                onLongClick = onOpenQuickActions,
+                            ),
+                    ) {
+                        Text(
+                            text = buildAnnotatedString {
+                                withStyle(SpanStyle(color = WizardColors.text)) {
+                                    append(displayParts.parentName.ifBlank { "Seleccionar ejercicio" })
+                                }
+                                displayParts.chips.forEach { chip ->
+                                    withStyle(SpanStyle(color = WizardColors.textMuted)) {
+                                        append(" · ")
+                                        append(chip)
+                                    }
                                 }
                             },
+                            style = KpknType.bodyStrong,
+                            maxLines = 2,
+                            overflow = TextOverflow.Ellipsis,
                         )
-                    }
-                }
-                if (exercise.cardioDetails == null) {
-                    SessionExerciseExpanded(
-                        exercise = exercise,
-                        inSuperset = inSuperset,
-                        suppressRest = suppressIndividualRest,
-                        relationshipAnchorName = relationshipAnchorName,
-                        accentColor = accentColor,
-                        coverColor = coverColor,
-                        onUpdateExercise = onUpdateExercise,
-                        onUpdateSet = onUpdateSet,
-                        onAddSet = onAddSet,
-                        onRemoveSet = onRemoveSet,
-                        onMoveSet = onMoveSet,
-                        onOpenReplacePicker = onOpenReplacePicker,
-                        onOpenRelationshipPicker = onOpenRelationshipPicker,
-                        onClearRelationship = onClearRelationship,
-                        onUpdateRelationshipType = onUpdateRelationshipType,
-                        onUpdateRelationshipNotes = onUpdateRelationshipNotes,
-                        onOpenSuperset = onOpenSuperset,
-                        onOpenGoal = { showGoalSheet = true },
-                        onOpenCustomUnit = { showCustomUnitModal = true },
-                    )
-
-                    InlineEditorBlock(
-                        title = "MOVILIDAD",
-                        summary = if (exercise.mobilitySeries.isEmpty()) {
-                            "Sin series asociadas"
-                        } else {
-                            "${exercise.mobilitySeries.size} movimiento${if (exercise.mobilitySeries.size == 1) "" else "s"}"
-                        },
-                        expanded = mobilityBlockExpanded,
-                        accentColor = accentColor,
-                        onToggle = { mobilityBlockExpanded = !mobilityBlockExpanded },
-                    ) {
-                        if (exercise.mobilitySeries.isEmpty()) {
-                            TextButton(
-                                onClick = onOpenMobility,
-                                colors = androidx.compose.material3.ButtonDefaults.textButtonColors(contentColor = accentColor),
-                            ) { Text("+ Agregar movilidad") }
-                        } else {
-                            MobilityPreparationCarousel(
-                                series = exercise.mobilitySeries,
-                                mobilityConfig = exercise.mobilityConfig,
+                        Text(
+                            text = dose,
+                            style = KpknType.caption.copy(fontFeatureSettings = "'tnum' 1"),
+                            color = WizardColors.textMuted,
+                            maxLines = 2,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                        if (cardio != null && cardio.hasIntervals()) {
+                            com.example.kpkn.screens.workout.CardioIntervalChart(
+                                details = cardio,
                                 accentColor = accentColor,
-                                onUpdate = { mobilityId, transform ->
-                                    onUpdateExercise { current ->
-                                        current.copy(
-                                            mobilitySeries = current.mobilitySeries.map { mobility ->
-                                                if (mobility.id == mobilityId) transform(mobility) else mobility
-                                            },
-                                        )
-                                    }
-                                },
-                                onUpdateConfig = { config ->
-                                    onUpdateExercise { current -> current.copy(mobilityConfig = config) }
-                                },
-                                onRemove = onRemoveMobility,
-                                onAdd = onOpenMobility,
+                                sparkline = true,
+                                compact = true,
+                                showLabels = false,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(top = 6.dp),
+                            )
+                        }
+                        if (isCompetitionMovement) {
+                            Text(
+                                text = "MOVIMIENTO DE COMPETICIÓN",
+                                style = KpknType.eyebrow,
+                                color = WizardColors.textMuted,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
                             )
                         }
                     }
-
-                    val warmupWarnings = warmupValidationMessages(exercise.warmupSets, exercise.sets.size)
-                    InlineEditorBlock(
-                        title = "APROXIMACIÓN",
-                        summary = if (exercise.warmupSets.isEmpty()) {
-                            "Sin series de aproximación"
-                        } else {
-                            "${exercise.warmupSets.size} serie${if (exercise.warmupSets.size == 1) "" else "s"}"
-                        },
-                        expanded = warmupBlockExpanded,
-                        accentColor = accentColor,
-                        onToggle = { warmupBlockExpanded = !warmupBlockExpanded },
-                    ) {
-                        if (exercise.warmupSets.isEmpty()) {
-                            TextButton(
-                                onClick = {
-                                    onUpdateExercise { current ->
-                                        current.copy(
-                                            warmupSets = listOf(
-                                                WarmupSetDefinition(
-                                                    id = UUID.randomUUID().toString(),
-                                                    percentageOfWorkingWeight = 0.5,
-                                                    targetReps = 8,
-                                                    restBetween = 60,
-                                                ),
-                                            ),
-                                        )
-                                    }
-                                },
-                                colors = androidx.compose.material3.ButtonDefaults.textButtonColors(contentColor = accentColor),
-                            ) { Text("+ Añadir aproximación") }
-                        } else {
-                            WarmupPreparationCarousel(
-                                sets = exercise.warmupSets,
-                                resolved1RM = resolved1RM,
-                                accentColor = accentColor,
-                                onUpdate = { warmupId, transform ->
-                                    onUpdateExercise { current ->
-                                        current.copy(
-                                            warmupSets = current.warmupSets.map { warmup ->
-                                                if (warmup.id == warmupId) transform(warmup) else warmup
-                                            },
-                                        )
-                                    }
-                                },
-                                onRemove = { warmupId ->
-                                    onUpdateExercise { current ->
-                                        current.copy(warmupSets = current.warmupSets.filterNot { it.id == warmupId })
-                                    }
-                                },
-                                onAdd = {
-                                    onUpdateExercise { current ->
-                                        val previous = current.warmupSets.lastOrNull()
-                                        current.copy(
-                                            warmupSets = current.warmupSets + WarmupSetDefinition(
-                                                id = UUID.randomUUID().toString(),
-                                                percentageOfWorkingWeight = (
-                                                    normalizeWarmupPercentageForEditor(previous?.percentageOfWorkingWeight ?: 0.5) + 0.1
-                                                ).coerceAtMost(0.9),
-                                                // As the load moves toward the working RM, the next
-                                                // approximation also becomes shorter. Keep one
-                                                // repetition as the safe floor when the previous card
-                                                // is already minimal.
-                                                targetReps = (previous?.targetReps?.minus(2) ?: 6).coerceAtLeast(1),
-                                                restBetween = previous?.restBetween ?: 60,
-                                            ),
-                                        )
-                                    }
-                                },
+                    if (cardio == null) {
+                        val starActive = exercise.isStarTarget || exercise.goal1RM != null
+                        Box(
+                            modifier = Modifier
+                                .size(48.dp)
+                                .clickable(role = Role.Button) { showGoalSheet = true }
+                                .semantics { contentDescription = "Meta del ejercicio" },
+                            contentAlignment = Alignment.Center,
+                        ) {
+                            Icon(
+                                imageVector = if (starActive) Icons.Default.Star else Icons.Default.StarBorder,
+                                contentDescription = null,
+                                tint = if (starActive) SymbolPalette.energia else WizardColors.textMuted,
+                                modifier = Modifier.size(20.dp),
                             )
-                        }
-                        warmupWarnings.forEach { warning ->
-                            Text(warning, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.error)
                         }
                     }
                 }
             }
+            Box(
+                modifier = Modifier
+                    .size(48.dp)
+                    .clickable(role = Role.Button) { expanded = !expanded }
+                    .semantics { contentDescription = if (expanded) "Plegar" else "Desplegar" },
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(
+                    imageVector = if (expanded) KpknLineIcons.ChevronUp else KpknLineIcons.ChevronDown,
+                    contentDescription = null,
+                    tint = WizardColors.textMuted,
+                    modifier = Modifier.size(20.dp),
+                )
+            }
+        }
+
+        // Inline expanded editor
+        AnimatedVisibility(expanded) {
+            ExerciseEditorExpanded(
+                exercise = exercise,
+                local = local,
+                accentColor = accentColor,
+                coverColor = coverColor,
+                isSupersetExercise = isSupersetExercise,
+                suppressIndividualRest = suppressIndividualRest,
+                resolved1RM = resolved1RM,
+                predictedMetrics = predictedMetrics,
+                localPrEstimatedRm = localPrEstimatedRm,
+                relationshipAnchorName = relationshipAnchorName,
+                cardioFirst = cardioFirst,
+                showCardioPlacementChip = showCardioPlacementChip,
+                onToggleCardioPlacement = onToggleCardioPlacement,
+                cardioHistory = cardioHistory,
+                onUpdateExercise = onUpdateExercise,
+                onAddSet = onAddSet,
+                onUpdateSet = onUpdateSet,
+                onRemoveSet = onRemoveSet,
+                onMoveSet = onMoveSet,
+                onRemoveMobility = onRemoveMobility,
+                onOpenMobility = onOpenMobility,
+                onOpenSuperset = onOpenSuperset,
+                onOpenRelationshipPicker = onOpenRelationshipPicker,
+                onClearRelationship = onClearRelationship,
+                onUpdateRelationshipType = onUpdateRelationshipType,
+                onUpdateRelationshipNotes = onUpdateRelationshipNotes,
+            )
         }
     }
 
@@ -448,47 +425,35 @@ internal fun ExerciseEditorCard(
     }
 }
 
-private fun normalizeWarmupPercentageForEditor(rawPercentage: Double): Double {
-    val asFraction = if (rawPercentage > 1.0) rawPercentage / 100.0 else rawPercentage
-    return asFraction.coerceIn(0.1, 0.95)
-}
-
+/**
+ * Miniatura de [dimension] (40 dp por defecto): la imagen del catálogo si la hay, o el glifo del patrón; para un cardio, su icono de línea
+ * sobre `inset`. La usan la fila de la lista y el selector de superserie (ER2b): la misma pieza en los dos sitios.
+ */
 @Composable
-private fun InlineEditorBlock(
-    title: String,
-    summary: String,
-    expanded: Boolean,
-    accentColor: Color,
-    onToggle: () -> Unit,
-    content: @Composable () -> Unit,
+internal fun Thumbnail(
+    cardio: com.example.kpkn.data.models.CardioType?,
+    imageRes: Int?,
+    pattern: ExercisePattern,
+    dimension: Dp = 40.dp,
 ) {
-    Surface(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(14.dp),
-        color = accentColor.copy(alpha = 0.07f),
-        border = BorderStroke(1.dp, accentColor.copy(alpha = if (expanded) 0.34f else 0.18f)),
+    Box(
+        modifier = Modifier
+            .size(dimension)
+            .clip(RoundedCornerShape(10.dp))
+            .background(KpknSurface.inset),
+        contentAlignment = Alignment.Center,
     ) {
-        Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 9.dp)) {
-            Row(
-                modifier = Modifier.fillMaxWidth().clickable(onClick = onToggle),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                Text(title, fontWeight = FontWeight.Black, color = accentColor, style = MaterialTheme.typography.labelSmall)
-                Text(summary, modifier = Modifier.weight(1f), style = MaterialTheme.typography.labelSmall, color = Color.White.copy(alpha = 0.66f), maxLines = 1, overflow = TextOverflow.Ellipsis)
-                Icon(
-                    imageVector = if (expanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
-                    contentDescription = if (expanded) "Plegar $title" else "Desplegar $title",
-                    tint = Color.White.copy(alpha = 0.72f),
-                    modifier = Modifier.size(18.dp),
-                )
-            }
-            AnimatedVisibility(visible = expanded, enter = sessionEnter(), exit = sessionExit()) {
-                Column(
-                    modifier = Modifier.padding(top = 8.dp),
-                    verticalArrangement = Arrangement.spacedBy(5.dp),
-                ) { content() }
-            }
+        when {
+            cardio != null -> CardioTypeIcon(type = cardio, tint = WizardColors.text)
+            imageRes != null -> Image(
+                painter = painterResource(imageRes),
+                contentDescription = null,
+                contentScale = ContentScale.Fit,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(3.dp),
+            )
+            else -> PatternGlyph(pattern = pattern, accent = SymbolPalette.ink, modifier = Modifier.size(24.dp))
         }
     }
 }

@@ -115,7 +115,9 @@ class WorkoutRestModalUiTest {
             }
         }
 
-        composeRule.onNodeWithText("DESCANSO").assertExists()
+        // Cabecera del feedback (LV6, F2): el ejercicio y «Ejercicio terminado · Descanso 0:42». El «Saltar descanso» lo pone el panel.
+        composeRule.onNodeWithText("Press banca").assertExists()
+        composeRule.onNodeWithText("Ejercicio terminado · Descanso 0:42").assertExists()
         composeRule.onNodeWithText("Feedback post ejercicio").assertExists()
         composeRule.onAllNodesWithText("Saltar descanso").assertCountEquals(0)
     }

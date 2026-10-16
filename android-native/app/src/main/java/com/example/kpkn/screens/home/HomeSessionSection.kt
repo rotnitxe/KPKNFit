@@ -35,11 +35,11 @@ import com.example.kpkn.domain.auge.LoadAdvisoryEngine
 import com.example.kpkn.domain.auge.SessionMuscleFilter
 import com.example.kpkn.domain.auge.getAugeMuscleDisplayId
 import com.example.kpkn.domain.auge.lookupMuscleValue
-import com.example.kpkn.domain.calculations.calculateSessionTimeBreakdown
 import com.example.kpkn.domain.training.CompetitionHomePhase
 import com.example.kpkn.domain.training.HomeCompetitionState
 import com.example.kpkn.domain.training.HomeWeekDay
 import com.example.kpkn.domain.training.HomeWeekResolver
+import com.example.kpkn.domain.training.SessionDurationEstimator
 import com.example.kpkn.screens.home.design.HomeHeroActions
 import com.example.kpkn.screens.home.design.HomeHeroCountdown
 import com.example.kpkn.screens.home.design.HomeHeroLine
@@ -382,27 +382,13 @@ private fun estimateMeta(session: Session, exerciseCount: Int): String? {
     ).joinToString(" · ").ifEmpty { null }
 }
 
-/** Minutos estimados de una sesión a partir de su tiempo calculado; null si no hay datos para estimarla. */
-private fun estimatedSessionMinutes(session: Session): Int? {
-    val breakdown = runCatching {
-        calculateSessionTimeBreakdown(
-            exercises = session.allExercises(),
-            supersetGroups = session.allSupersetGroups(),
-            sessionWarmup = session.warmup,
-            globalMobilitySeries = session.parts
-                .filter { it.isMobilityGroup }
-                .flatMap { it.mobilitySeries },
-        )
-    }.getOrNull()
-    val partFloorSeconds = session.parts.maxOfOrNull { part ->
-        maxOf(
-            (part.targetDurationMinutes ?: 0).coerceAtLeast(0),
-            (part.mobilityConfig?.totalMinutes ?: 0).coerceAtLeast(0),
-        ) * 60
-    } ?: 0
-    val estimatedSeconds = maxOf(breakdown?.totalSeconds ?: 0, partFloorSeconds)
-    if (estimatedSeconds <= 0) return null
-    return (estimatedSeconds / 60.0).toInt().coerceAtLeast(1)
+/**
+ * Minutos estimados de una sesión con el estimador común (`SessionDurationEstimator`, SE12): los mismos que el editor y el programa.
+ * Null si la sesión no tiene nada que medir.
+ */
+internal fun estimatedSessionMinutes(session: Session): Int? {
+    val estimate = runCatching { SessionDurationEstimator.estimate(session) }.getOrNull() ?: return null
+    return estimate.totalMinutes.takeIf { estimate.totalSeconds > 0 }
 }
 
 /** La cuenta atrás de la competición para el héroe: «23 días para tu competición» o «Mañana es tu competición». */

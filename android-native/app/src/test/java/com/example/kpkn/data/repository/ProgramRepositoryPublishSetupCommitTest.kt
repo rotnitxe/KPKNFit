@@ -1,5 +1,6 @@
 package com.example.kpkn.data.repository
 
+import com.example.kpkn.testsupport.SyncRoomExecutor
 import android.content.Context
 import androidx.test.core.app.ApplicationProvider
 import com.example.kpkn.data.db.KpknDatabase
@@ -43,6 +44,7 @@ class ProgramRepositoryPublishSetupCommitTest {
 
     @Before
     fun setUp() {
+        SyncRoomExecutor.install()
         // El bootstrap publica readiness en Dispatchers.Main; con el looper de
         // Robolectric pausado la carga nunca terminaría.
         Dispatchers.setMain(mainDispatcher)
@@ -53,6 +55,7 @@ class ProgramRepositoryPublishSetupCommitTest {
         ProgramRepository.closeInstance()
         KpknDatabase.closeInstance()
         Dispatchers.resetMain()
+        SyncRoomExecutor.uninstall()
     }
 
     private suspend fun freshRepository(): ProgramRepository {

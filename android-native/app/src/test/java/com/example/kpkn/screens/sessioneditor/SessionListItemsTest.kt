@@ -172,17 +172,6 @@ class SessionListItemsTest {
     }
 
     @Test
-    fun lazyColumnIndexForExercise_contaElModuloDeImpactoDelanteDeLaLista() {
-        val ex = Exercise(id = "e1", name = "Row", exerciseDbId = "row")
-        val session = Session(id = "s1", name = "Pull", exercises = listOf(ex))
-        val scrollable = buildSessionListItems(session).drop(1)
-        val contentIndex = findListIndexForExercise(scrollable, "e1")
-        // Editor: fila superior, franja de portada y cabecera (3). Con datos del motor, el módulo de impacto se suma (4).
-        assertEquals(contentIndex + 3, lazyColumnIndexForExercise(scrollable, "e1", leadingItems = 3))
-        assertEquals(contentIndex + 4, lazyColumnIndexForExercise(scrollable, "e1", leadingItems = 4))
-    }
-
-    @Test
     fun buildSessionListItems_emptyWithoutCommitHasNoStrengthDivider() {
         val session = Session(id = "s1", name = "Push")
         val items = buildSessionListItems(session, showStrengthDivider = false)
@@ -227,5 +216,27 @@ class SessionListItemsTest {
     fun isUncategorizedPart_filtersSinGrupo() {
         val part = SessionPart(id = "p1", name = "Sin grupo")
         assertTrue(part.isUncategorizedPart())
+    }
+
+    /** ER2b: con grupos, los ejercicios sueltos llevan su rótulo «SIN GRUPO» justo encima. */
+    @Test
+    fun buildSessionListItems_sueltosConGruposLlevanElRotuloJustoEncima() {
+        val loose = Exercise(id = "e1", name = "Bench", exerciseDbId = "bench")
+        val group = SessionPart(id = "g1", name = "Grupo 1", exercises = emptyList())
+        val session = Session(id = "s1", name = "Push", exercises = listOf(loose), parts = listOf(group))
+        val items = buildSessionListItems(session)
+        val labelIdx = items.indexOfFirst { it is SessionListItem.LooseGroupLabel }
+        val looseIdx = items.indexOfFirst { it is SessionListItem.LooseExercise }
+        assertTrue(labelIdx >= 0)
+        assertEquals(labelIdx + 1, looseIdx)
+    }
+
+    /** ER2b: sin grupos, los sueltos van sin rótulo, como antes. */
+    @Test
+    fun buildSessionListItems_sueltosSinGruposNoLlevanRotulo() {
+        val loose = Exercise(id = "e1", name = "Bench", exerciseDbId = "bench")
+        val session = Session(id = "s1", name = "Push", exercises = listOf(loose))
+        val items = buildSessionListItems(session)
+        assertTrue(items.none { it is SessionListItem.LooseGroupLabel })
     }
 }

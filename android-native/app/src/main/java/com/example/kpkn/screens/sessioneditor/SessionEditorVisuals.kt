@@ -9,7 +9,6 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -52,10 +51,8 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import com.example.kpkn.data.models.*
 import com.example.kpkn.screens.onboarding.design.WizardColors
-import com.example.kpkn.screens.onboarding.design.wizardReducedMotion
-import com.example.kpkn.ui.design.KpknShape
+import com.example.kpkn.ui.components.icons.KpknLineIcons
 import com.example.kpkn.ui.design.KpknSurface
-import com.example.kpkn.ui.design.KpknType
 import kotlin.math.roundToInt
 
 /** Solid or gradient accent stored in [SessionPart.color]. */
@@ -169,52 +166,58 @@ internal fun DragLiftPreview(
 ) {
     val root = rootBounds ?: return
     val density = LocalDensity.current
-    val reduced = wizardReducedMotion()
     val baseX = rect.left - root.left
     val baseY = rect.top - root.top
     var lifted by remember { mutableStateOf(false) }
     LaunchedEffect(Unit) { lifted = true }
-    // Al levantar: escala 1,02 con resorte. Con movimiento reducido la escala queda fija, sin animar.
     val liftScale by animateFloatAsState(
-        targetValue = if (lifted && !reduced) 1.02f else 1f,
-        animationSpec = spring(dampingRatio = 0.8f, stiffness = 380f),
+        targetValue = if (lifted) 1.05f else 1f,
+        animationSpec = spring(dampingRatio = 0.5f, stiffness = 420f),
         label = "drag-lift-scale",
     )
-    Column(
+    Surface(
         modifier = modifier
             .offset {
                 val currentOffset = offsetProvider()
                 IntOffset((baseX + currentOffset.x).roundToInt(), (baseY + currentOffset.y).roundToInt())
             }
             .width(with(density) { rect.width.toDp() })
+            .heightIn(min = 70.dp)
             .zIndex(100f)
             .graphicsLayer {
                 scaleX = liftScale
                 scaleY = liftScale
-                // Sombra suave y filete en tinta al 40 %: así se ve que el ejercicio va en la mano.
-                shadowElevation = 12.dp.toPx()
-                shape = KpknShape.module
-                clip = false
-            }
-            .background(KpknSurface.module, KpknShape.module)
-            .border(1.dp, WizardColors.text.copy(alpha = 0.40f), KpknShape.module)
-            .padding(horizontal = 20.dp, vertical = 14.dp),
+                alpha = 0.96f
+                shadowElevation = 18.dp.toPx()
+            },
+        shape = RoundedCornerShape(24.dp),
+        color = KpknSurface.module,
+        shadowElevation = 28.dp,
+        tonalElevation = 10.dp,
     ) {
-        Text(
-            text = titleOverride ?: exercise.name.ifBlank { "Ejercicio" },
-            style = KpknType.bodyStrong,
-            color = WizardColors.text,
-            // Hasta dos líneas: el elemento levantado no corta palabras al 130 % de letra.
-            maxLines = 2,
-            overflow = TextOverflow.Ellipsis,
-        )
-        Text(
-            text = subtitleOverride ?: sessionExerciseDose(exercise.sets, exercise.trainingMode, exercise.restTime) ?: "Sin series",
-            style = KpknType.caption,
-            color = WizardColors.textMuted,
-            maxLines = 2,
-            overflow = TextOverflow.Ellipsis,
-        )
+        Row(
+            modifier = Modifier.padding(horizontal = 14.dp, vertical = 12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
+            Icon(KpknLineIcons.Grip, contentDescription = null, tint = WizardColors.textMuted)
+            Column(Modifier.weight(1f)) {
+                Text(
+                    titleOverride ?: exercise.name.ifBlank { "Ejercicio" },
+                    style = MaterialTheme.typography.labelLarge,
+                    fontWeight = FontWeight.Black,
+                    color = WizardColors.text,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+                Text(
+                    subtitleOverride
+                        ?: "${exercise.sets.size} series · ${trainingModeLabel(exercise.trainingMode)}",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = WizardColors.textMuted,
+                )
+            }
+        }
     }
 }
 
@@ -228,43 +231,51 @@ internal fun DragPartLiftPreview(
 ) {
     val root = rootBounds ?: return
     val density = LocalDensity.current
-    val reduced = wizardReducedMotion()
     val baseX = rect.left - root.left
     val baseY = rect.top - root.top
     var lifted by remember { mutableStateOf(false) }
     LaunchedEffect(Unit) { lifted = true }
     val liftScale by animateFloatAsState(
-        targetValue = if (lifted && !reduced) 1.02f else 1f,
-        animationSpec = spring(dampingRatio = 0.8f, stiffness = 380f),
+        targetValue = if (lifted) 1.03f else 1f,
+        animationSpec = spring(dampingRatio = 0.5f, stiffness = 420f),
         label = "drag-part-lift-scale",
     )
-    Box(
+    Surface(
         modifier = modifier
             .offset { IntOffset(baseX.roundToInt(), (baseY + offsetYProvider()).roundToInt()) }
             .width(with(density) { rect.width.toDp() })
+            .heightIn(min = 56.dp)
             .zIndex(100f)
             .graphicsLayer {
                 scaleX = liftScale
                 scaleY = liftScale
-                shadowElevation = 12.dp.toPx()
-                shape = KpknShape.module
-                clip = false
-            }
-            .background(KpknSurface.module, KpknShape.module)
-            .border(1.dp, WizardColors.text.copy(alpha = 0.40f), KpknShape.module)
-            .padding(horizontal = 20.dp, vertical = 14.dp),
+                alpha = 0.96f
+                shadowElevation = 18.dp.toPx()
+            },
+        shape = RoundedCornerShape(24.dp),
+        color = KpknSurface.module,
+        shadowElevation = 28.dp,
+        tonalElevation = 10.dp,
     ) {
-        Text(
-            text = partName.trim().ifBlank { "Parte sin nombre" },
-            style = KpknType.bodyStrong,
-            color = WizardColors.text,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-        )
+        Row(
+            modifier = Modifier.padding(horizontal = 14.dp, vertical = 12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
+            Icon(KpknLineIcons.Grip, contentDescription = null, tint = WizardColors.textMuted)
+            Text(
+                partName.ifBlank { "Grupo" }.uppercase(),
+                style = MaterialTheme.typography.labelLarge,
+                fontWeight = FontWeight.Black,
+                color = WizardColors.text,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+        }
     }
 }
 
-/** Línea de destino (KPKN_UI_V2 §7): 2 dp en tinta con los extremos redondos, sangrada 20 dp dentro del módulo. Es una superposición sin altura. */
+/** DayView-style drop cue: thin primary bar between items (overlay — no layout height). */
 @Composable
 internal fun SessionEditorDropIndicator(
     visible: Boolean,
@@ -287,8 +298,8 @@ internal fun SessionEditorDropIndicator(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(2.dp)
-                    .padding(horizontal = 20.dp)
+                    .height(4.dp)
+                    .padding(horizontal = 14.dp)
                     .clip(RoundedCornerShape(999.dp))
                     .background(WizardColors.text),
             )
@@ -296,7 +307,7 @@ internal fun SessionEditorDropIndicator(
     }
 }
 
-/** Aviso compacto de zona no válida (SESSION_EDITOR_V1 §7): una píldora en `danger` con el texto en negro. Conserva el tag de la prueba. */
+/** Inline chip while the pointer is outside a valid strength/cardio drop zone (N8). */
 @Composable
 internal fun SessionEditorInvalidDropBanner(
     visible: Boolean,
@@ -305,20 +316,24 @@ internal fun SessionEditorInvalidDropBanner(
     AnimatedVisibility(
         visible = visible,
         modifier = modifier,
-        enter = if (wizardReducedMotion()) fadeIn(tween(120)) else fadeIn(tween(90)) + expandVertically(),
-        exit = if (wizardReducedMotion()) fadeOut(tween(120)) else fadeOut(tween(80)) + shrinkVertically(),
+        enter = fadeIn(tween(90)) + expandVertically(),
+        exit = fadeOut(tween(80)) + shrinkVertically(),
     ) {
-        Box(
+        Surface(
+            shape = RoundedCornerShape(999.dp),
+            color = WizardColors.danger.copy(alpha = 0.92f),
+            shadowElevation = 8.dp,
+            tonalElevation = 0.dp,
             modifier = Modifier
                 .padding(horizontal = 16.dp)
-                .clip(KpknShape.pill)
-                .background(WizardColors.danger, KpknShape.pill)
-                .padding(horizontal = 14.dp, vertical = 8.dp)
                 .testTag("session_editor_invalid_drop_banner"),
         ) {
             Text(
                 text = "Zona no válida",
-                style = KpknType.chip,
+                modifier = Modifier
+                    .padding(horizontal = 14.dp, vertical = 8.dp),
+                style = MaterialTheme.typography.labelMedium,
+                fontWeight = FontWeight.Bold,
                 color = WizardColors.ctaContent,
             )
         }

@@ -5,7 +5,7 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
-/** Lógica pura de la torre de RINGS: barrido, bandas de toque, pista discontinua, descripción y geometría del logo. */
+/** Lógica pura de la torre de RINGS: barrido, bandas de toque, pista discontinua, descripción, geometría del logo y rutas del personaje. */
 class KpknTowerRingsTest {
 
     @Test
@@ -63,5 +63,46 @@ class KpknTowerRingsTest {
         assertEquals(65f, towerRingCenter(RingChannel.ENERGIA, 760f, 465f).y, 1e-3f) // (42 − 35,5) · 10
         // Un área más alta que la torre la centra en vertical: (600 − 465) / 2 = 67,5 px de margen.
         assertEquals(412.5f, towerRingCenter(RingChannel.COLUMNA, 760f, 600f).y, 1e-3f)
+    }
+
+    @Test
+    fun `LUMINOUS es el unico estilo activo y por defecto`() {
+        // LUMINOUS es el estilo definitivo fijado por la decision de producto
+        assertEquals("LUMINOUS", TowerRingsStyle.LUMINOUS.name)
+    }
+
+    @Test
+    fun `sin calibrar no hay arco de progreso y la pista es discontinua`() {
+        // Un canal sin calibrar (null) tiene barrido 0, nunca dibuja arco ni llega a 100
+        val sweepNull = towerSweepDegrees(null?.toFloat() ?: 0f)
+        assertEquals(0f, sweepNull, 1e-4f)
+        assertTrue(towerTrackIsDashed(null))
+        assertFalse(towerTrackIsDashed(50))
+    }
+
+    @Test
+    fun `el personaje no aterriza en un anillo sin calibrar`() {
+        // Calibrados todos: ruta completa Columna -> Músculos -> Energía
+        val all = HopRoutePlanner.resolveLandingChannels(setOf(RingChannel.COLUMNA, RingChannel.MUSCULOS, RingChannel.ENERGIA))
+        assertEquals(listOf(RingChannel.COLUMNA, RingChannel.MUSCULOS, RingChannel.ENERGIA), all)
+
+        // Sin Músculos calibrado: la ruta omite Músculos
+        val noMuscle = HopRoutePlanner.resolveLandingChannels(setOf(RingChannel.COLUMNA, RingChannel.ENERGIA))
+        assertEquals(listOf(RingChannel.COLUMNA, RingChannel.ENERGIA), noMuscle)
+        assertFalse(RingChannel.MUSCULOS in noMuscle)
+
+        // En la fase de aterrizaje intermedio (p=0.23), el personaje no aterriza en Músculos si falta Músculos
+        val poseNoMuscle = calculateHopPose(0.23f, noMuscle)
+        assertFalse("El personaje no debe aterrizar en Músculos si no está calibrado", poseNoMuscle.channel == RingChannel.MUSCULOS)
+
+        // Solo Columna calibrado: el personaje no aterriza en Energía
+        val onlyCol = HopRoutePlanner.resolveLandingChannels(setOf(RingChannel.COLUMNA))
+        assertEquals(listOf(RingChannel.COLUMNA), onlyCol)
+        val poseTop = calculateHopPose(0.52f, onlyCol)
+        assertEquals(RingChannel.COLUMNA, poseTop.channel)
+
+        // Ninguno calibrado: fallback seguro al anillo base
+        val none = HopRoutePlanner.resolveLandingChannels(emptySet())
+        assertEquals(listOf(RingChannel.COLUMNA), none)
     }
 }

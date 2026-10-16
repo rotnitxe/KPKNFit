@@ -239,7 +239,7 @@ object SetupDraftCompatibility {
     /**
      * «Trapecio» salió de los símbolos de PRIORITIES (va incluido en Espalda). Un borrador que lo trae en `priorityMuscles`
      * o en la bolsa de orden pasa a «Dorsales»: sin duplicarlo si ya estaba, y en la bolsa con el MAYOR de los puntos de
-     * los dos (nunca la suma), así no se pasa del tope de 2 puntos por músculo ni de 5 en total. Idempotente.
+     * los dos (nunca la suma), así no se pasa del tope de 2 puntos por músculo ni de 6 en total. Idempotente.
      */
     internal fun migrateRetiredTrapezius(draft: SetupWizardDraft): SetupWizardDraft {
         val bag = draft.trainingOptions.orderPriorities

@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -48,7 +49,7 @@ import java.io.FileOutputStream
  */
 @RunWith(RobolectricTestRunner::class)
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
-@Config(sdk = [34], qualifiers = "w360dp-h1800dp-xxhdpi", application = android.app.Application::class)
+@Config(sdk = [34], qualifiers = "w360dp-h2400dp-xxhdpi", application = android.app.Application::class)
 class KpknTowerRingsRenderSheetTest {
 
     companion object {
@@ -131,21 +132,29 @@ class KpknTowerRingsRenderSheetTest {
                         KpknTowerRings(TowerRingValues(100, 100, 100), Modifier.size(150.dp, 134.5.dp))
                     }
                 }
+                Column(Modifier.testTag("torre300"), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Caption("Inicio 300 dp · 100 / 100 / 100")
+                    KpknTowerRings(TowerRingValues(100, 100, 100), Modifier.width(300.dp).aspectRatio(300f / 230f))
+                    Caption("Inicio 300 dp · 25 / 30 / 20 (bajos)")
+                    KpknTowerRings(TowerRingValues(25, 30, 20), Modifier.width(300.dp).aspectRatio(300f / 230f))
+                    Caption("Inicio 300 dp · 72 / 64 / sin calibrar")
+                    KpknTowerRings(TowerRingValues(72, 64, null), Modifier.width(300.dp).aspectRatio(300f / 230f))
+                }
                 Column(Modifier.testTag("torre220"), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Caption("220 dp · 100 / 100 / 100")
+                    Caption("Estado previo 220 dp · 100 / 100 / 100")
                     KpknTowerRings(TowerRingValues(100, 100, 100), Modifier.size(220.dp))
-                    Caption("220 dp · 72 / 64 / 80")
+                    Caption("Estado previo 220 dp · 72 / 64 / 80")
                     KpknTowerRings(TowerRingValues(72, 64, 80), Modifier.size(220.dp))
-                    Caption("220 dp · 20 / 45 / sin calibrar")
+                    Caption("Estado previo 220 dp · 20 / 45 / sin calibrar")
                     KpknTowerRings(TowerRingValues(20, 45, null), Modifier.size(220.dp))
                 }
                 Column(Modifier.testTag("torre120"), verticalArrangement = Arrangement.spacedBy(14.dp)) {
                     Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                        Cell("120 dp · 100 / 100 / 100") { KpknTowerRings(TowerRingValues(100, 100, 100), Modifier.size(120.dp)) }
-                        Cell("120 dp · 72 / 64 / 80") { KpknTowerRings(TowerRingValues(72, 64, 80), Modifier.size(120.dp)) }
+                        Cell("Final 120 dp · 100 / 100 / 100") { KpknTowerRings(TowerRingValues(100, 100, 100), Modifier.size(120.dp)) }
+                        Cell("Final 120 dp · 72 / 64 / 80") { KpknTowerRings(TowerRingValues(72, 64, 80), Modifier.size(120.dp)) }
                     }
                     Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                        Cell("120 dp · 20 / 45 / sin calibrar") {
+                        Cell("Final 120 dp · 20 / 45 / sin calibrar") {
                             KpknTowerRings(TowerRingValues(20, 45, null), Modifier.size(120.dp))
                         }
                         Cell("Modo Free · solo Energía") {
@@ -176,6 +185,7 @@ class KpknTowerRingsRenderSheetTest {
         rule.mainClock.advanceTimeBy(3000L)
         rule.waitForIdle()
         save("logo", "e1_logo_frente")
+        save("torre300", "e1_torre_inicio_300")
         save("torre220", "e1_torre_220")
         save("torre120", "e1_torre_120")
         save("mini40", "e1_mini_40")

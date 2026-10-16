@@ -59,6 +59,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
+import kotlin.time.Duration.Companion.seconds
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
@@ -1398,7 +1399,8 @@ class NutritionRepository private constructor(
         }
         fun getInstance(): NutritionRepository = INSTANCE ?: error("Not initialized")
         internal fun closeInstance() {
-            INSTANCE?.let { runBlocking { it.repositoryJob.cancelAndJoin() } }
+            // Espera acotada: un hijo encolado en Main (este mismo hilo, bloqueado aquí) no terminaría nunca.
+            INSTANCE?.let { runBlocking { withTimeoutOrNull(2.seconds) { it.repositoryJob.cancelAndJoin() } } }
             INSTANCE?.takeIf { it.ownsDatabase }?.db?.close()
             INSTANCE = null
         }

@@ -1,0 +1,208 @@
+package com.example.kpkn.screens.workout
+
+import androidx.activity.ComponentActivity
+import androidx.compose.foundation.layout.*
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.runtime.*
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.test.*
+import androidx.compose.ui.test.junit4.createAndroidComposeRule
+import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.example.kpkn.data.models.*
+import com.example.kpkn.domain.sessionassistant.*
+import com.example.kpkn.screens.workout.components.*
+import com.example.kpkn.ui.theme.KPKNTheme
+import org.junit.Assert.*
+import org.junit.Rule
+import org.junit.Test
+import org.junit.runner.RunWith
+
+/** Controls are exercised on the physical target; this does not assert microphone hardware behavior. */
+@RunWith(AndroidJUnit4::class)
+class LiveHeaderSheetsDeviceTest {
+    @get:Rule val rule = createAndroidComposeRule<ComponentActivity>()
+    private val subTag = WorkoutSubTag("seat", "Asiento 3", SubTagCategory.SETUP)
+    private val tag = WorkoutTag("uuid-machine", "Máquina A", "exercise", subTags = listOf(subTag))
+    private fun content(body: @Composable () -> Unit) {
+        rule.setContent { KPKNTheme { MaterialTheme { Box(Modifier.fillMaxSize()) { body() } } } }
+    }
+    private fun tap(text: String) = rule.onNodeWithText(text).performScrollTo().performClick()
+
+    @Test fun uuidTagsSelectManageAndToggleSubtagsWithoutCommittingLegacyStrings() {
+        var selected: String? = null
+        var managed: String? = null
+        var sub: String? = null
+        var opened = 0
+        content {
+            WorkoutTagListOverlay(listOf(WorkoutTagListRow(tag, tag.name, "Última: 80 kg", true)),
+                onSelectTag = { selected = it }, onCreateTag = {}, onDismiss = {}, onOpened = { opened++ },
+                onManageTag = { managed = it }, onToggleSubTag = { sub = it })
+        }
+        rule.onNodeWithText(tag.name).performClick()
+        rule.onNodeWithText(tag.name).performTouchInput { longClick() }
+        rule.onNodeWithText(subTag.name).performClick()
+        rule.runOnIdle { assertEquals(tag.id, selected); assertEquals(tag.id, managed); assertEquals(subTag.id, sub); assertEquals(1, opened) }
+        rule.onAllNodesWithText("Esta serie").assertCountEquals(0)
+        rule.onAllNodesWithText("Color").assertCountEquals(0)
+    }
+
+
+    @Test fun tagListClosesFromItsButtonAndBackWithoutSelectingAnything() {
+        var open by mutableStateOf(true)
+        var selected = 0
+        content { if (open) WorkoutTagListOverlay(emptyList(), { selected++ }, {}, { open = false }) }
+        rule.onNodeWithText("Listo").performClick()
+        rule.waitUntil(2_000) { !open }
+        rule.runOnIdle { open = true }
+        rule.onNodeWithText("Etiquetas").assertExists()
+        rule.runOnUiThread { rule.activity.onBackPressedDispatcher.onBackPressed() }
+        rule.waitUntil(2_000) { !open }
+        rule.runOnIdle { assertEquals(0, selected) }
+    }
+
+    @Test fun inlineTagCreationKeepsSetupAndDuplicateValidation() {
+        var createdName: String? = null
+        var setup: TagSetupInput? = null
+        content {
+            WorkoutTagListOverlay(emptyList(), {}, {}, {}, hasSeenEducation = false,
+                onCreateInline = { name, input -> createdName = name; setup = input; CreateTagResult.Duplicate(name) })
+        }
+        rule.onNodeWithContentDescription("Nombre de la etiqueta nueva").performTextReplacement("Máquina A")
+        tap("Set-up opcional · Mostrar")
+        rule.onNodeWithContentDescription("Máquina o marca").performScrollTo().performTextReplacement("Rack 2")
+        rule.onNodeWithContentDescription("Carga base (kg)").performScrollTo().performTextReplacement("20,5")
+        rule.onNodeWithContentDescription("Notas de set-up").performScrollTo().performTextReplacement("Pin 3")
+        tap("Crear")
+        rule.onNodeWithText("Ya existe una etiqueta con el nombre «Máquina A».").assertExists()
+        rule.runOnIdle { assertEquals("Máquina A", createdName); assertEquals(TagSetupInput("Rack 2", 20.5, "Pin 3"), setup) }
+    }
+
+    @Test fun legacyTagsKeepTheirStringCallbacksAndCanBeCleared() {
+        val values = mutableListOf<String>()
+        var dismissed = false
+        content { ExerciseTagSheetContent("Barra", { values += it }, { dismissed = true }, userTags = listOf("Barra", "Smith")) }
+        rule.onNodeWithText("Smith").performClick()
+        rule.onNodeWithText("Eliminar etiqueta").performClick()
+        rule.onNodeWithText("Listo").performClick()
+        rule.runOnIdle { assertEquals(listOf("Smith", ""), values); assertTrue(dismissed) }
+    }
+
+    @Test fun untaggedHistoryRetainsDistinctAdoptAndCleanActions() {
+        var adopted = 0
+        var rejected = 0
+        content { WorkoutUntaggedAdoptionDialog(PendingUntaggedAdoption("exercise", tag.id, tag.name, 3), { adopted++ }, { rejected++ }, {}) }
+        rule.onNodeWithText("Usar historial").performClick()
+        rule.onNodeWithText("Dejar limpia").performClick()
+        rule.runOnIdle { assertEquals(1, adopted); assertEquals(1, rejected) }
+        rule.onNodeWithText("Default", substring = true).assertExists()
+    }
+
+    @Test fun managerRetainsRenameSetupAndResetConfirmation() {
+        var renamed: String? = null
+        var saved: TagSetupInput? = null
+        var reset = 0
+        content {
+            WorkoutTagManagerModal(tag, "exercise", { renamed = it; RenameTagResult.Success }, {}, { reset++ },
+                { _, _ -> }, {}, {}, emptyList(), {}, machineBrand = "Rack", baseLoadKg = "20", onSaveSetup = { saved = it })
+        }
+        rule.onNodeWithContentDescription("Nombre").performTextReplacement("Máquina B")
+        tap("Guardar nombre")
+        tap("Set-up · Mostrar")
+        rule.onNodeWithContentDescription("Carga base (kg)").performScrollTo().performTextReplacement("25,5")
+        tap("Guardar set-up")
+        tap("Reiniciar historial")
+        rule.runOnIdle { assertEquals(0, reset) }
+        rule.onNodeWithText("Reiniciar").performClick()
+        rule.runOnIdle { assertEquals("Máquina B", renamed); assertEquals(25.5, saved!!.baseLoadKg!!, .0001); assertEquals(1, reset) }
+    }
+
+    @Test fun realVoiceModeIsActivatedOnlyAfterExplicitStart() {
+        val chosen = mutableListOf<VoiceCaptureMode>()
+        content { VoiceCaptureModeDialog({ chosen += it }, {}) }
+        rule.onNodeWithText("Empezar").assertIsNotEnabled()
+        rule.onNodeWithText("Manos libres").performClick()
+        rule.onNodeWithText("Música").performClick()
+        rule.runOnIdle { assertTrue(chosen.isEmpty()) }
+        rule.onNodeWithText("Empezar").performClick()
+        rule.runOnIdle { assertEquals(listOf(VoiceCaptureMode.MUSIC), chosen) }
+        rule.onAllNodesWithText("Prueba de sonido").assertCountEquals(0)
+        rule.onAllNodesWithText("Te habla").assertCountEquals(0)
+    }
+
+    @Test fun decliningVoiceDoesNotActivateAMode() {
+        var open by mutableStateOf(true)
+        var activated = false
+        content { if (open) VoiceCaptureModeDialog({ activated = true }, { open = false }) }
+        rule.onNodeWithText("Ahora no").performClick()
+        rule.waitUntil(2_000) { !open }
+        rule.runOnIdle { assertFalse(activated) }
+    }
+
+    @Test fun timePresetsDeltasAndTemporaryCommitUseRealGoalCallback() {
+        var goal: Pair<Int, Boolean>? = null
+        content {
+            WorkoutChronometer(System.currentTimeMillis() - 600_000, false, 3_000, {},
+                onSetAbsoluteTimeLimit = { value, permanent -> goal = value to permanent }, currentTargetMinutes = 60,
+                sessionHasProgrammedTime = true, openSessionTimeRequest = 1)
+        }
+        listOf("30 min", "45 min", "60 min", "90 min").forEach { tap(it) }
+        tap("−5 min"); tap("+5 min"); tap("+15 min")
+        tap("Solo esta vez")
+        rule.runOnIdle { assertEquals(105 to false, goal) }
+    }
+
+    @Test fun programmedTimeClearRequiresThePermanentConfirmationAndAlertsKeepTheirModes() {
+        var cleared: Boolean? = null
+        val alerts = mutableListOf<PacingAlertMode>()
+        content {
+            WorkoutChronometer(System.currentTimeMillis() - 600_000, false, 3_000, {}, onClearTimeLimit = { cleared = it },
+                onPacingAlertModeChange = { alerts += it }, currentTargetMinutes = 60,
+                sessionHasProgrammedTime = true, openSessionTimeRequest = 1)
+        }
+        listOf("Nada", "15 y 5 min", "Ritmo", "Por ejercicio").forEach { tap(it) }
+        tap("Quitar")
+        rule.runOnIdle { assertNull(cleared) }
+        tap("Permanente")
+        rule.runOnIdle { assertEquals(true, cleared); assertEquals(listOf(PacingAlertMode.OFF, PacingAlertMode.FINAL, PacingAlertMode.SOFT, PacingAlertMode.STRICT), alerts) }
+    }
+
+    @Test fun assigningCustomTimeKeepsTheNativePickerAndPermanentCommit() {
+        var goal: Pair<Int, Boolean>? = null
+        content {
+            WorkoutChronometer(System.currentTimeMillis() - 600_000, false, 3_000, {},
+                onSetAbsoluteTimeLimit = { value, permanent -> goal = value to permanent }, currentTargetMinutes = 60,
+                sessionHasProgrammedTime = true, openSessionTimeRequest = 1)
+        }
+        tap("45 min")
+        tap("Asignar tiempo")
+        rule.onNodeWithText("Duración de sesión").assertExists()
+        rule.onNodeWithText("Aceptar").performClick()
+        tap("Permanente")
+        rule.runOnIdle { assertEquals(45 to true, goal) }
+    }
+
+    @Test fun ultraFastCountLimitsAndRecalculatedProtectionRemainReversible() {
+        var submitted: Map<String, Int>? = null
+        var override by mutableStateOf(false)
+        content {
+            val preview = UltraFastPreview(1_800, 1_200, 600, listOf(
+                UltraFastExerciseChange("curl", "Curl", 3, 2, "NORMAL", "DROPSET", UltraFastReason.ISOLATION_DENSIFIED, true, false),
+                UltraFastExerciseChange("press", "Press", 3, if (override) 2 else 3, "NORMAL", if (override) "DROPSET" else "NORMAL",
+                    if (override) UltraFastReason.MANUAL_OVERRIDE_ALLOWED else UltraFastReason.PROTECTED_BASIC, override, false),
+            ), listOf(UltraFastSupersetChange("curl", "press", "Curl", "Press", "Polea")))
+            UltraFastPreviewSheet(preview, 600, emptyList(), mapOf("press" to override), { override = !override }, { submitted = it }, {})
+        }
+        repeat(4) { rule.onNodeWithTag("ultra-plus-curl").performScrollTo().performClick() }
+        rule.onNodeWithTag("ultra-plus-curl").assertIsNotEnabled()
+        repeat(5) { rule.onNodeWithTag("ultra-minus-curl").performScrollTo().performClick() }
+        rule.onNodeWithTag("ultra-minus-curl").assertIsNotEnabled()
+        tap("Mantener protegido")
+        rule.onNodeWithText("Mayor riesgo").assertExists()
+        tap("Permitir técnica intensa")
+        rule.runOnIdle { assertFalse(override) }
+        rule.onNodeWithText("Curl + Press").performScrollTo().assertExists()
+        rule.onNodeWithText("Aplicar").performClick()
+        rule.runOnIdle { assertEquals(mapOf("curl" to 1), submitted) }
+        rule.onAllNodesWithText("Como la anterior").assertCountEquals(0)
+    }
+}

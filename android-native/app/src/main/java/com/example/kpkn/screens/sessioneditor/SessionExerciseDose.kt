@@ -2,6 +2,8 @@ package com.example.kpkn.screens.sessioneditor
 
 import com.example.kpkn.data.models.ExerciseSet
 import com.example.kpkn.data.models.TrainingMode
+import com.example.kpkn.data.models.isEffectivelyUnilateral
+import com.example.kpkn.screens.sessioneditor.components.cardioDoseLine
 import com.example.kpkn.ui.design.KpknSetFormat
 import java.util.Locale
 
@@ -31,7 +33,7 @@ internal fun sessionExerciseDose(
         else -> "$count series"
     }
     val rest = restSeconds?.takeIf { includeRest && it > 0 }?.let { KpknSetFormat.doseTime(it) }
-    return listOfNotNull(first, intensityLabel(working), rest).joinToString(" · ")
+    return listOfNotNull(first, intensityLabel(working, trainingMode), rest).joinToString(" · ")
 }
 
 /**
@@ -55,7 +57,7 @@ internal fun sessionExerciseSpokenDose(
         else -> "$count series"
     }
     val rest = restSeconds?.takeIf { includeRest && it > 0 }?.let { "descanso ${spokenDuration(it)}" }
-    return listOfNotNull(first, intensityLabel(working), rest).joinToString(", ")
+    return listOfNotNull(first, intensityLabel(working, trainingMode), rest).joinToString(", ")
 }
 
 /** Un tiempo hablado: «2 minutos 30», «1 minuto», «45 segundos». */
@@ -95,15 +97,26 @@ private fun repRangeOf(set: ExerciseSet): Pair<Int, Int>? {
 }
 
 /** Intensidad común: «hasta el fallo», o RIR, RPE o % del 1RM si todas las series lo tienen (con rango si difieren). */
-private fun intensityLabel(sets: List<ExerciseSet>): String? {
+private fun intensityLabel(sets: List<ExerciseSet>, mode: TrainingMode): String? {
     if (sets.all { it.isFailure }) return "hasta el fallo"
+    if (mode == TrainingMode.RM) return percentAndEffortLabel(sets)
     val rir = sets.mapNotNull { it.targetRIR?.toDouble() }
     if (rir.size == sets.size) return valueRange(rir, prefix = "RIR", suffix = "")
     val rpe = sets.mapNotNull { it.targetRPE }
     if (rpe.size == sets.size) return valueRange(rpe, prefix = "RPE", suffix = "")
     val pct = sets.mapNotNull { it.targetPercentageRM }
-    if (pct.size == sets.size) return valueRange(pct, prefix = "", suffix = " % 1RM")
+    if (pct.size == sets.size) return valueRange(pct, prefix = "", suffix = " % 1RM")
     return null
+}
+
+/**
+ * Modo %: el % 1RM y, detrás, el RIR (o el RPE) de la prescripción híbrida, si las series lo llevan (SE11): «80 % 1RM · RIR 2».
+ * Cada parte sale con la regla de siempre, sin el otro dato.
+ */
+private fun percentAndEffortLabel(sets: List<ExerciseSet>): String? {
+    val percent = intensityLabel(sets.map { it.copy(targetRIR = null, targetRPE = null) }, TrainingMode.REPS)
+    val effort = intensityLabel(sets.map { it.copy(targetPercentageRM = null) }, TrainingMode.REPS)
+    return listOfNotNull(percent, effort).joinToString(" · ").takeIf { it.isNotEmpty() }
 }
 
 private fun valueRange(values: List<Double>, prefix: String, suffix: String): String? {
@@ -117,3 +130,20 @@ private fun valueRange(values: List<Double>, prefix: String, suffix: String): St
 /** Un número sin decimales si es entero («8»), y con coma si no («7,5»). */
 private fun formatValue(value: Double): String =
     if (value % 1.0 == 0.0) value.toInt().toString() else String.format(Locale.forLanguageTag("es"), "%.1f", value)
+
+/**
+ * Dosis de la fila plegada (E8, SESSION_EDITOR_R1 §3.3): la de fuerza o la del cardio, con los espacios inseparables antes de «%» y de las
+ * unidades (LR1: «80 %», «45 s», «20 min»). Sin series ni objetivo, escribe «Sin series» o «Sin objetivo». En unilateral, «por lado».
+ */
+internal fun sessionExerciseListDose(exercise: com.example.kpkn.data.models.Exercise, includeRest: Boolean): String {
+    val details = exercise.cardioDetails
+    if (details != null) return cardioDoseLine(details)
+    val base = sessionExerciseDose(exercise.sets, exercise.trainingMode, exercise.restTime, includeRest) ?: "Sin series"
+    val side = if (exercise.isEffectivelyUnilateral() && exercise.sets.any { !it.isEmptySlot }) " · por lado" else ""
+    return hardUnitSpaces(base + side)
+}
+
+/** Espacio inseparable entre una cifra y su unidad o su «%»; el resto del texto no cambia. */
+internal fun hardUnitSpaces(text: String): String = text.replace(UNIT_SPACE, "$1 $2")
+
+private val UNIT_SPACE = Regex("([0-9]) (%|s|min|km|kg|h)(?![a-zA-Záéíóúñ])")

@@ -1,8 +1,6 @@
 package com.example.kpkn.screens.sessioneditor.components
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -10,32 +8,33 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.example.kpkn.data.models.CardioHiitTemplates
+import com.example.kpkn.data.models.CardioIntensity
 import com.example.kpkn.data.models.CardioType
 import com.example.kpkn.data.models.HiitTemplate
+import com.example.kpkn.domain.cardio.CardioPrescriptionFormatter
+import com.example.kpkn.domain.cardio.CardioRepeatGrammar
 import com.example.kpkn.screens.onboarding.design.WizardColors
-import com.example.kpkn.screens.sessioneditor.SessionCardioDose
-import com.example.kpkn.ui.components.KpknGlassDialog
+import com.example.kpkn.screens.workout.CardioIntervalChart
+import com.example.kpkn.ui.components.KpknSheet
+import com.example.kpkn.ui.design.KpknCompactPill
 import com.example.kpkn.ui.design.KpknModule
-import com.example.kpkn.ui.design.KpknSurface
 import com.example.kpkn.ui.design.KpknTextAction
 import com.example.kpkn.ui.design.KpknType
 
 /**
- * Plantillas de intervalos del tipo de cardio (SESSION_EDITOR_V1 §6): un módulo tocable entero por plantilla, con su nivel y sus dos
- * píldoras de resumen (los bloques por rondas y la duración). Elegir una la aplica con [onSelect]. Vidrio KPKN en el diálogo.
+ * Plantillas HIIT en una hoja KPKN: cada plantilla en su módulo, con su nombre, su dosis, su mini gráfica y «Usar». Tocar «Usar» la
+ * aplica con [onSelect]; «Cerrar» deja la hoja como estaba.
  */
 @Composable
 internal fun HiitTemplatePickerDialog(
@@ -46,73 +45,100 @@ internal fun HiitTemplatePickerDialog(
     onDismiss: () -> Unit,
 ) {
     val templates = CardioHiitTemplates.forType(cardioType)
-    KpknGlassDialog(onDismissRequest = onDismiss) {
-        Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+    KpknSheet(onDismissRequest = onDismiss) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .verticalScroll(rememberScrollState())
+                .padding(start = 16.dp, end = 16.dp, bottom = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
             Text(title, style = KpknType.dialogTitle, color = WizardColors.text)
             Text(
-                text = "Elige un circuito listo para usar. Todo queda editable después.",
+                "Elige un circuito listo para usar. Todo queda editable después.",
                 style = KpknType.caption,
                 color = WizardColors.textMuted,
             )
-            LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
-                items(templates) { tmpl ->
-                    val totalSec = (if (tmpl.warmupSeconds > 0) tmpl.warmupSeconds else 0) +
-                        tmpl.blocks.sumOf { it.durationSeconds } * tmpl.rounds.coerceAtLeast(1) +
-                        (if (tmpl.cooldownSeconds > 0) tmpl.cooldownSeconds else 0)
-                    KpknModule(
-                        modifier = Modifier.fillMaxWidth(),
-                        onClick = { onSelect(tmpl) },
-                        onClickLabel = "Elegir ${tmpl.name}",
-                        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 14.dp),
-                    ) {
-                        Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                            Text(
-                                text = tmpl.name,
-                                style = KpknType.bodyStrong,
-                                color = WizardColors.text,
-                                maxLines = 2,
-                                overflow = TextOverflow.Ellipsis,
-                                modifier = Modifier.weight(1f),
-                            )
-                            Spacer(Modifier.width(8.dp))
-                            InfoPill(text = tmpl.level)
-                        }
-                        Spacer(Modifier.height(4.dp))
-                        Text(
-                            text = tmpl.description,
-                            style = KpknType.caption,
-                            color = WizardColors.textMuted,
-                        )
-                        Spacer(Modifier.height(8.dp))
-                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            InfoPill(text = "${tmpl.blocks.size} bloques × ${tmpl.rounds} rondas")
-                            InfoPill(text = SessionCardioDose.minutesText(totalSec))
-                        }
-                    }
-                }
+            templates.forEach { template ->
+                HiitTemplateModule(
+                    template = template,
+                    cardioType = cardioType,
+                    accentColor = accentColor,
+                    onSelect = { onSelect(template) },
+                )
             }
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-                KpknTextAction(text = "Cerrar", onClick = onDismiss)
-            }
+            KpknTextAction(
+                text = "Cerrar",
+                onClick = onDismiss,
+                modifier = Modifier.fillMaxWidth(),
+            )
         }
     }
 }
 
-/** Pastilla informativa, no tocable: texto en `caption` sobre el relleno `inset`. */
+/** Una plantilla en su módulo: nombre, nivel, descripción, mini gráfica y su dosis con «Usar». */
 @Composable
-private fun InfoPill(text: String) {
-    Box(
-        modifier = Modifier
-            .clip(RoundedCornerShape(50))
-            .background(KpknSurface.inset)
-            .padding(horizontal = 10.dp, vertical = 4.dp),
-    ) {
+private fun HiitTemplateModule(
+    template: HiitTemplate,
+    cardioType: CardioType,
+    accentColor: Color,
+    onSelect: () -> Unit,
+) {
+    val details = remember(template, cardioType) { template.toDetails(cardioType, CardioIntensity.MEDIA) }
+    // Una plantilla de bloques irregulares no tiene forma uniforme: se dice cuántos bloques son.
+    val irregular = remember(template) { CardioRepeatGrammar.inferUniform(template.blocks) == null }
+    val dose = remember(details, irregular) {
+        if (irregular) "${details.intervalBlocks.size} bloques" else cardioDoseLine(details)
+    }
+    KpknModule(contentPadding = PaddingValues(18.dp)) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            Text(
+                template.name,
+                style = KpknType.bodyStrong,
+                color = WizardColors.text,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.weight(1f),
+            )
+            Text(
+                template.level.uppercase(),
+                style = KpknType.eyebrow,
+                color = WizardColors.textMuted,
+                maxLines = 1,
+            )
+        }
         Text(
-            text = text,
+            template.description,
             style = KpknType.caption,
-            color = WizardColors.text,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
+            color = WizardColors.textMuted,
         )
+        Spacer(Modifier.height(12.dp))
+        CardioIntervalChart(
+            details = details,
+            accentColor = accentColor,
+            compact = true,
+            showLabels = false,
+            modifier = Modifier.fillMaxWidth(),
+        )
+        Spacer(Modifier.height(12.dp))
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            Text(
+                "$dose · ${CardioPrescriptionFormatter.formatDuration(details.effectiveDurationSeconds())}",
+                style = KpknType.caption,
+                color = WizardColors.text,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.weight(1f),
+            )
+            KpknCompactPill(text = "Usar", onClick = onSelect, filled = true)
+        }
     }
 }

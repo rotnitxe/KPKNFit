@@ -4,8 +4,11 @@ import com.example.kpkn.data.models.*
 import com.example.kpkn.domain.exercises.normalizedIdentityFields
 import com.example.kpkn.domain.exercises.replacedWithCatalogExercise
 import com.example.kpkn.domain.exercises.resolvedCanonicalExerciseId
+import androidx.lifecycle.viewModelScope
 import com.example.kpkn.domain.workout.SupersetRules
 import java.util.UUID
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 fun SessionEditorViewModel.openSupersetManager(partId: String?, supersetId: String) {
     updateUi {
@@ -548,10 +551,16 @@ fun SessionEditorViewModel.removeMobilitySeries(partId: String?, exerciseId: Str
     }
 }
 
+/**
+ * «Eliminar» de las acciones rápidas (ER1f): sin diálogo, como deslizar un ejercicio en la lista. Es un borrado blando con «Deshacer»
+ * (`requestExerciseRemoval`); si el ejercicio es miembro de una superserie, sale de ella.
+ */
 fun SessionEditorViewModel.triggerQuickActionDelete() {
     val state = currentUiState
     val exerciseId = state.quickActionsExerciseId ?: return
-    removeExercise(state.quickActionsPartId, exerciseId)
+    val supersetGroupId = state.activeVariantSession?.allExercises()
+        ?.firstOrNull { it.id == exerciseId }
+        ?.supersetGroupRefOrLegacyId()
     updateUi {
         it.copy(
             sheet = SessionEditorSheet.NONE,
@@ -559,6 +568,7 @@ fun SessionEditorViewModel.triggerQuickActionDelete() {
             quickActionsExerciseId = null,
         )
     }
+    requestExerciseRemoval(state.quickActionsPartId, exerciseId, supersetGroupId)
 }
 
 fun SessionEditorViewModel.updateWarmupSets(partId: String?, exerciseId: String, sets: List<WarmupSetDefinition>) = updateExercise(partId, exerciseId) { it.copy(warmupSets = sets) }
@@ -567,12 +577,13 @@ fun SessionEditorViewModel.applyRuleDefaultsToSession(partId: String? = null): A
     val state = currentUiState
     val target = state.activeVariantSession ?: return ApplyRulesOutcome.NoChanges
     val defaults = getRuleDefaultsForPart(partId)
+    // ER2c: como `updateSession`, un cambio de %RM que haga la regla recalcula su carga con `rmSetLoadKg` (SessionEditorRmLoads.kt).
     val transformedTarget = SessionEditorRulesEngine.applyDefaults(
         session = target,
         defaults = defaults,
         partId = partId,
         exerciseIndex = exerciseIndex,
-    )
+    ).withExplicitRmLoads(target)
     val outcome = SessionEditorRulesEngine.evaluateApply(
         session = target,
         defaults = defaults,
@@ -735,5 +746,51 @@ fun SessionEditorViewModel.applyGlobalIntensityAdjustment(
             targetMuscles = targetMuscles,
             exerciseIndex = exerciseIndex,
         )
+    }
+}
+
+/** Ventana para deshacer el borrado de un ejercicio desde la lista (ER1b): el ejercicio sigue en la sesión mientras tanto. */
+internal const val EXERCISE_REMOVAL_UNDO_WINDOW_MS = 5_000L
+
+/**
+ * Borrado de un ejercicio pendiente de confirmar (ER1b). Con [supersetGroupId] sale de su superserie; si no, sale de la sesión o de su grupo.
+ * Lo guarda [SessionEditorUiState.pendingExerciseRemoval] y lo lee la lista para poner el aviso «Deshacer» en su sitio.
+ */
+data class PendingExerciseRemoval(
+    val token: Long,
+    val partId: String?,
+    val exerciseId: String,
+    val supersetGroupId: String?,
+)
+
+/**
+ * Deslizar un ejercicio para quitarlo (ER1b): el ejercicio se queda en la sesión 5 s, con «Ejercicio eliminado» y «Deshacer» en su sitio.
+ * Si nadie lo deshace, se quita de verdad; deshacer lo deja donde estaba, sin tocar el orden ni las superseries.
+ */
+fun SessionEditorViewModel.requestExerciseRemoval(partId: String?, exerciseId: String, supersetGroupId: String? = null) {
+    // Si había otro borrado pendiente, se confirma ya: solo hay un aviso a la vez.
+    commitPendingExerciseRemoval()
+    val token = System.nanoTime()
+    updateUi { it.copy(pendingExerciseRemoval = PendingExerciseRemoval(token, partId, exerciseId, supersetGroupId)) }
+    viewModelScope.launch {
+        delay(EXERCISE_REMOVAL_UNDO_WINDOW_MS)
+        if (uiState.value.pendingExerciseRemoval?.token == token) commitPendingExerciseRemoval()
+    }
+}
+
+/** Deshace el borrado pendiente: el ejercicio se queda donde estaba. */
+fun SessionEditorViewModel.undoExerciseRemoval() {
+    updateUi { it.copy(pendingExerciseRemoval = null) }
+}
+
+/** Quita de verdad el ejercicio cuyo borrado está pendiente, si lo hay. */
+fun SessionEditorViewModel.commitPendingExerciseRemoval() {
+    val pending = uiState.value.pendingExerciseRemoval ?: return
+    updateUi { it.copy(pendingExerciseRemoval = null) }
+    val groupId = pending.supersetGroupId
+    if (groupId != null) {
+        removeExerciseFromSupersetGroup(groupId, pending.partId, pending.exerciseId)
+    } else {
+        removeExercise(pending.partId, pending.exerciseId)
     }
 }

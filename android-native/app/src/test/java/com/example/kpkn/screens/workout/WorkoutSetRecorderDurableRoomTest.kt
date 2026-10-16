@@ -7,6 +7,7 @@ import com.example.kpkn.data.db.toOngoingWorkoutState
 import com.example.kpkn.data.models.*
 import com.example.kpkn.data.repository.ProgramRepository
 import com.example.kpkn.data.repository.StartWorkoutResult
+import com.example.kpkn.testsupport.RoomTestRule
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.*
@@ -16,6 +17,7 @@ import kotlinx.serialization.json.Json
 import org.junit.After
 import org.junit.Assert.*
 import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
@@ -30,6 +32,9 @@ import com.example.kpkn.screens.workout.components.toGuidedPhaseOrNull
 @Config(manifest = Config.NONE, sdk = [34])
 @OptIn(ExperimentalCoroutinesApi::class)
 class WorkoutSetRecorderDurableRoomTest {
+
+    @get:Rule
+    val roomRule = RoomTestRule()
     private val dispatcher = UnconfinedTestDispatcher()
     private val owner = CoroutineScope(SupervisorJob() + dispatcher)
     private lateinit var repository: ProgramRepository

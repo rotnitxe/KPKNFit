@@ -119,11 +119,11 @@ object TimeCoachEngine {
         val candidates = mutableListOf<TimeCoachSuggestion>()
 
         buildRestSuggestions(session, exercises, exerciseIndex, breakdown, limit).let { candidates += it }
-        buildSupersetSuggestions(session, exercises, exerciseIndex, breakdown).let { candidates += it }
-        buildRedundantExerciseSuggestions(session, exercises, exerciseIndex, breakdown).let { candidates += it }
-        buildDensitySuggestions(session, exercises, exerciseIndex, breakdown).let { candidates += it }
-        buildReplacementSuggestions(session, exercises, exerciseIndex, breakdown).let { candidates += it }
-        buildVolumeTrimSuggestions(session, exercises, exerciseIndex, breakdown, gap).let { candidates += it }
+        buildSupersetSuggestions(session, exercises, exerciseIndex).let { candidates += it }
+        buildRedundantExerciseSuggestions(session, exercises, exerciseIndex).let { candidates += it }
+        buildDensitySuggestions(session, exercises, exerciseIndex).let { candidates += it }
+        buildReplacementSuggestions(session, exercises, exerciseIndex).let { candidates += it }
+        buildVolumeTrimSuggestions(session, exercises, exerciseIndex, gap).let { candidates += it }
 
         return candidates
             .filter { it.id !in dismissedIds && it.minutesSaved > 0 }
@@ -177,27 +177,27 @@ object TimeCoachEngine {
             breakdown = breakdown,
             limitMinutes = limitMinutes,
         ) ?: return emptyList()
-        val minTarget = plan.values.minOrNull() ?: return emptyList()
+        val minTarget = plan.restSeconds.values.minOrNull() ?: return emptyList()
         val action = TimeCoachAction.ReduceRests(
             targetRestSeconds = minTarget,
-            perExerciseTargetRests = plan,
+            perExerciseTargetRests = plan.restSeconds,
             alsoUpdateRuleDefaults = false,
         )
-        val after = runCatching { apply(session, action) }.getOrNull() ?: return emptyList()
-        val afterBreakdown = calculateSessionTimeBreakdown(
-            exercises = after.allExercises(),
-            supersetGroups = after.allSupersetGroups(),
-            sessionWarmup = after.warmup,
-        )
-        val saved = breakdown.totalMinutes - afterBreakdown.totalMinutes
+        // El ahorro es el recorte real de los descansos, medido con la misma función a los dos lados (ER2b).
+        val saved = minutesSaved(session, action) ?: return emptyList()
         if (saved <= 0) return emptyList()
         val aggressiveCount = standalone.count { restReductionProfile(it, resolveInfo(it, exerciseIndex)).priority <= 2 }
         val compoundCount = standalone.size - aggressiveCount
         return listOf(
             TimeCoachSuggestion(
                 id = "coach_rest_dynamic",
-                title = "Ajustar descansos justo hasta el límite",
-                explanation = "Recorta más en monoarticulares viables ($aggressiveCount) y conserva más los multiarticulares ($compoundCount) para acercarte al presupuesto sin pasarte de agresivo.",
+                // Solo dice «justo hasta el límite» si con esos descansos la sesión llega al límite; si no, dice lo que recorta (ER2b).
+                title = if (plan.reachesLimit) "Ajustar descansos justo hasta el límite" else "Recortar descansos",
+                explanation = if (plan.reachesLimit) {
+                    "Recorta más en monoarticulares viables ($aggressiveCount) y conserva más los multiarticulares ($compoundCount) para acercarte al presupuesto sin pasarte de agresivo."
+                } else {
+                    "Recorta los descansos de monoarticulares ($aggressiveCount) y de multiarticulares ($compoundCount), pero la sesión no llega al límite."
+                },
                 minutesSaved = saved,
                 fatigueDelta = TimeCoachFatigueDelta.SIMILAR,
                 action = action,
@@ -209,7 +209,6 @@ object TimeCoachEngine {
         session: Session,
         exercises: List<Exercise>,
         exerciseIndex: Map<String, ExerciseMuscleInfo>,
-        breakdown: SessionTimeBreakdown,
     ): List<TimeCoachSuggestion> {
         val free = exercises.filter { it.supersetGroupRefOrLegacyId() == null }
         if (free.size < 2) return emptyList()
@@ -229,7 +228,7 @@ object TimeCoachEngine {
             used += a.id
             used += partner.id
             val action = TimeCoachAction.CreateSuperset(a.id, partner.id)
-            val saved = minutesSaved(session, breakdown, action) ?: continue
+            val saved = minutesSaved(session, action) ?: continue
             if (saved <= 0) continue
             out += TimeCoachSuggestion(
                 id = "coach_ss_${a.id}_${partner.id}",
@@ -247,7 +246,6 @@ object TimeCoachEngine {
         session: Session,
         exercises: List<Exercise>,
         exerciseIndex: Map<String, ExerciseMuscleInfo>,
-        breakdown: SessionTimeBreakdown,
     ): List<TimeCoachSuggestion> {
         val out = mutableListOf<TimeCoachSuggestion>()
         exercises
@@ -257,7 +255,7 @@ object TimeCoachEngine {
                 val info = resolveInfo(ex, exerciseIndex)
                 if (info != null && primaryMuscles(info).size <= 1) {
                     val dropAction = TimeCoachAction.ConvertToDropSets(ex.id)
-                    minutesSaved(session, breakdown, dropAction)?.takeIf { it > 0 }?.let { saved ->
+                    minutesSaved(session, dropAction)?.takeIf { it > 0 }?.let { saved ->
                         out += TimeCoachSuggestion(
                             id = "coach_drop_${ex.id}",
                             title = "Densidad con drops: ${ex.name}",
@@ -269,7 +267,7 @@ object TimeCoachEngine {
                     }
                 }
                 val rpAction = TimeCoachAction.ConvertToRestPause(ex.id)
-                minutesSaved(session, breakdown, rpAction)?.takeIf { it > 0 }?.let { saved ->
+                minutesSaved(session, rpAction)?.takeIf { it > 0 }?.let { saved ->
                     out += TimeCoachSuggestion(
                         id = "coach_rp_${ex.id}",
                         title = "Rest-pause: ${ex.name}",
@@ -287,7 +285,6 @@ object TimeCoachEngine {
         session: Session,
         exercises: List<Exercise>,
         exerciseIndex: Map<String, ExerciseMuscleInfo>,
-        breakdown: SessionTimeBreakdown,
     ): List<TimeCoachSuggestion> {
         val isolations = exercises.filter { ex ->
             val info = resolveInfo(ex, exerciseIndex)
@@ -332,7 +329,7 @@ object TimeCoachEngine {
                     restSeconds = rest,
                     insertPartId = partId,
                 )
-                val saved = minutesSaved(session, breakdown, action) ?: continue
+                val saved = minutesSaved(session, action) ?: continue
                 if (saved <= 0) continue
                 out += TimeCoachSuggestion(
                     id = "coach_replace_${a.id}_${b.id}_${replacement.id}",
@@ -351,7 +348,6 @@ object TimeCoachEngine {
         session: Session,
         exercises: List<Exercise>,
         exerciseIndex: Map<String, ExerciseMuscleInfo>,
-        breakdown: SessionTimeBreakdown,
         gap: Int,
     ): List<TimeCoachSuggestion> {
         if (gap > 12) return emptyList()
@@ -364,7 +360,7 @@ object TimeCoachEngine {
             .take(2)
             .mapNotNull { ex ->
                 val action = TimeCoachAction.RemoveLastSet(ex.id)
-                val saved = minutesSaved(session, breakdown, action) ?: return@mapNotNull null
+                val saved = minutesSaved(session, action) ?: return@mapNotNull null
                 if (saved <= 0) return@mapNotNull null
                 TimeCoachSuggestion(
                     id = "coach_trim_${ex.id}",
@@ -381,7 +377,6 @@ object TimeCoachEngine {
         session: Session,
         exercises: List<Exercise>,
         exerciseIndex: Map<String, ExerciseMuscleInfo>,
-        breakdown: SessionTimeBreakdown,
     ): List<TimeCoachSuggestion> {
         val out = mutableListOf<TimeCoachSuggestion>()
         for (i in exercises.indices) {
@@ -400,7 +395,7 @@ object TimeCoachEngine {
                 if (combinedSets <= REDUNDANT_PATTERN_MIN_SETS) continue
                 val toRemove = chooseRedundantExerciseToRemove(a, aInfo, b, bInfo)
                 val action = TimeCoachAction.RemoveExercise(toRemove.id)
-                val saved = minutesSaved(session, breakdown, action) ?: continue
+                val saved = minutesSaved(session, action) ?: continue
                 if (saved <= 0) continue
                 val keep = if (toRemove.id == a.id) b else a
                 out += TimeCoachSuggestion(
@@ -416,15 +411,21 @@ object TimeCoachEngine {
         return out
     }
 
+    /** Descansos por ejercicio que llevan la sesión al límite, y si de verdad llegan a él (ER2b). */
+    private data class RestPlan(val restSeconds: Map<String, Int>, val reachesLimit: Boolean)
+
     private fun buildDynamicRestPlan(
         session: Session,
         standalone: List<Exercise>,
         exerciseIndex: Map<String, ExerciseMuscleInfo>,
         breakdown: SessionTimeBreakdown,
         limitMinutes: Int,
-    ): Map<String, Int>? {
+    ): RestPlan? {
         val initialGap = breakdown.totalMinutes - limitMinutes
         if (initialGap <= 0) return null
+        // El desglose de la pantalla suma más que el cálculo del motor (calentamiento fijo, movilidad global...). Esa diferencia
+        // se mantiene en cada paso para medir el plan con el mismo total que ve la persona (ER2b).
+        val offsetSeconds = breakdown.totalSeconds - sessionSeconds(session)
         val currentRests = standalone.associate { it.id to (it.restTime ?: 90) }.toMutableMap()
         val profiles = standalone.associate { exercise ->
             exercise.id to restReductionProfile(exercise, resolveInfo(exercise, exerciseIndex))
@@ -450,18 +451,13 @@ object TimeCoachEngine {
                 perExerciseTargetRests = working,
             )
             val after = runCatching { apply(session, action) }.getOrNull() ?: return@repeat
-            val afterBreakdown = calculateSessionTimeBreakdown(
-                exercises = after.allExercises(),
-                supersetGroups = after.allSupersetGroups(),
-                sessionWarmup = after.warmup,
-            )
-            val diff = afterBreakdown.totalMinutes - limitMinutes
+            val diff = roundMinutes(sessionSeconds(after) + offsetSeconds) - limitMinutes
             if (bestAny == null || kotlin.math.abs(diff) < kotlin.math.abs(bestAny!!.second)) {
                 bestAny = working.toMap() to diff
             }
             if (diff >= 0 && (bestAbove == null || diff < bestAbove!!.second)) {
                 bestAbove = working.toMap() to diff
-                if (diff == 0) return bestAbove!!.first
+                if (diff == 0) return RestPlan(bestAbove!!.first, reachesLimit = true)
             }
 
             val nextExercise = stepOrder.firstOrNull { ex ->
@@ -476,22 +472,31 @@ object TimeCoachEngine {
             mutable[nextExercise.id] = (mutable[nextExercise.id] ?: 90) - step
             working = mutable.toMap()
         }
-        return bestAbove?.first ?: bestAny?.first
+        bestAbove?.let { return RestPlan(it.first, reachesLimit = it.second == 0) }
+        return bestAny?.let { RestPlan(it.first, reachesLimit = false) }
     }
 
+    /**
+     * Minutos que ahorra [action], como diferencia de dos cálculos del mismo motor. Antes se restaba del total de la pantalla, que trae
+     * el calentamiento fijo y la movilidad global: esa diferencia salía como ahorro sin que nada cambiara (ER2b).
+     */
     private fun minutesSaved(
         session: Session,
-        before: SessionTimeBreakdown,
         action: TimeCoachAction,
     ): Int? {
         val afterSession = runCatching { apply(session, action) }.getOrNull() ?: return null
-        val after = calculateSessionTimeBreakdown(
-            exercises = afterSession.allExercises(),
-            supersetGroups = afterSession.allSupersetGroups(),
-            sessionWarmup = afterSession.warmup,
-        )
-        return before.totalMinutes - after.totalMinutes
+        return roundMinutes(sessionSeconds(session) - sessionSeconds(afterSession))
     }
+
+    /** Segundos que el motor calcula para la sesión, con el mismo cálculo en todas sus medidas. */
+    private fun sessionSeconds(session: Session): Int = calculateSessionTimeBreakdown(
+        exercises = session.allExercises(),
+        supersetGroups = session.allSupersetGroups(),
+        sessionWarmup = session.warmup,
+    ).totalSeconds
+
+    /** Minutos enteros con el mismo redondeo que [SessionTimeBreakdown.totalMinutes]. */
+    private fun roundMinutes(seconds: Int): Int = (seconds / 60.0).roundToInt()
 
     private fun createSupersetPair(
         session: Session,

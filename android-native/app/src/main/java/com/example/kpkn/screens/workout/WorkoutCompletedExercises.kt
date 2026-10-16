@@ -80,9 +80,9 @@ internal fun completedSetsForExercise(
     }
     return exercise.sets.indices.flatMap { setIdx ->
         listOfNotNull(
-            completedSets["${exercise.id}_$setIdx"],
-            completedSets["${exercise.id}_${setIdx}_L"],
-            completedSets["${exercise.id}_${setIdx}_R"],
+            completedSets["${exercise.id}_$setIdx"]?.copy(setIndex = setIdx),
+            completedSets["${exercise.id}_${setIdx}_L"]?.let { it.copy(setIndex = setIdx, side = it.side ?: "left") },
+            completedSets["${exercise.id}_${setIdx}_R"]?.let { it.copy(setIndex = setIdx, side = it.side ?: "right") },
         )
     }
 }

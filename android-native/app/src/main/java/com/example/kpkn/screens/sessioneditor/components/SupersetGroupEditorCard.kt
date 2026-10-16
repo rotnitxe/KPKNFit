@@ -1,28 +1,22 @@
 package com.example.kpkn.screens.sessioneditor.components
 
-import com.example.kpkn.screens.sessioneditor.design.sessionEnterVertical
-import com.example.kpkn.screens.sessioneditor.design.sessionExitVertical
-
-import android.graphics.Color as AndroidColor
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.gestures.detectDragGestures
-import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -31,61 +25,64 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.DragHandle
-import androidx.compose.material.icons.filled.KeyboardArrowDown
-import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.key
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.graphics.lerp
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.boundsInWindow
 import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
-import java.util.UUID
-import com.example.kpkn.data.models.*
 import com.example.kpkn.data.exercises.displayNameWithSelectedChips
-import com.example.kpkn.domain.exercises.*
-import com.example.kpkn.screens.sessioneditor.PART_COLORS
-import com.example.kpkn.screens.sessioneditor.resolvePartAccent
-import com.example.kpkn.screens.sessioneditor.exerciseCardBrush
-import com.example.kpkn.screens.sessioneditor.DarkEditorSurface
-import com.example.kpkn.screens.sessioneditor.DarkChoiceChip
+import com.example.kpkn.data.models.Exercise
+import com.example.kpkn.data.models.ExerciseSet
+import com.example.kpkn.data.models.SupersetGroup
+import com.example.kpkn.screens.onboarding.design.WizardColors
 import com.example.kpkn.screens.sessioneditor.restoreExerciseSetAtRound
 import com.example.kpkn.ui.components.KpknAlertConfirmButton
 import com.example.kpkn.ui.components.KpknAlertDismissButton
 import com.example.kpkn.ui.components.KpknAlertDialog
 import com.example.kpkn.ui.components.SwipeToDeleteCard
+import com.example.kpkn.ui.components.icons.KpknLineIcons
+import com.example.kpkn.ui.design.KpknContextMenu
+import com.example.kpkn.ui.design.KpknContextMenuRow
+import com.example.kpkn.ui.design.KpknIconButton
 import com.example.kpkn.ui.design.KpknSetFormat
-import com.example.kpkn.screens.sessioneditor.design.SessionSupersetCaption
-import androidx.compose.runtime.setValue
-import androidx.compose.runtime.getValue
+import com.example.kpkn.ui.design.KpknSurface
+import com.example.kpkn.ui.design.KpknType
+import com.example.kpkn.ui.design.KpknTextAction
+import java.util.UUID
 
+/**
+ * Superserie en la lista (SESSION_EDITOR_R1 §3.4 y E13). La cabecera va siempre: «Superserie · 3 rondas · 1:00 / 2:00», el asa que mueve el
+ * bloque entero y un «⋯» con las acciones del original. Los miembros se ven siempre, unidos por un raíl de 3 dp al 30 %. «Rondas y
+ * descansos» (o tocar la cabecera) despliega lo que antes abría el original: los chips de miembros, la configuración y las rondas.
+ */
 @Composable
 internal fun SupersetGroupEditorCard(
     group: SupersetGroup,
@@ -121,55 +118,24 @@ internal fun SupersetGroupEditorCard(
     onReorderMembers: (List<String>) -> Unit = {},
     content: @Composable ColumnScope.() -> Unit,
 ) {
-    var expanded by rememberSaveable(group.id) { mutableStateOf(false) }
+    var roundsOpen by rememberSaveable(group.id) { mutableStateOf(false) }
     var configExerciseId by rememberSaveable(group.id) { mutableStateOf<String?>(null) }
     var showOptionalInfo by rememberSaveable(group.id) { mutableStateOf(false) }
     var pendingRemovalExerciseId by rememberSaveable(group.id) { mutableStateOf<String?>(null) }
     var showDeleteGroupDialog by rememberSaveable(group.id) { mutableStateOf(false) }
-    val haptics = androidx.compose.ui.platform.LocalHapticFeedback.current
-    val accent = remember(accentHex) { resolvePartAccent(accentHex) }
-    val accentColor = accent.primary
+    var menuOpen by remember { mutableStateOf(false) }
+    var moreAnchor by remember { mutableStateOf<Rect?>(null) }
+    val haptics = LocalHapticFeedback.current
+    // Sin color de grupo (ER1b): la superserie es tinta sobre su módulo.
+    val accentColor = WizardColors.text
     val rounds = (group.rounds ?: exercises.maxOfOrNull { it.sets.size } ?: 1).coerceAtLeast(1)
-    val totalSets = exercises.sumOf { it.sets.size }
     val pendingRemovalExercise = pendingRemovalExerciseId?.let { id ->
         exercises.firstOrNull { it.id == id }
     }
-
-    // Línea de la superserie: rondas y descanso entre rondas. «Editar» despliega la gestión (rondas, orden, opcional, disolver).
-    val captionText = listOfNotNull(
-        "Superserie",
-        "$rounds ${if (rounds == 1) "ronda" else "rondas"}",
-        group.restAfterSuperset.takeIf { it > 0 }?.let { "${KpknSetFormat.doseTime(it)} entre rondas" },
-        "Opcional".takeIf { group.isOptional },
-    ).joinToString(" · ")
-    var captionOrigin by remember(group.id) { mutableStateOf(Offset.Zero) }
     val latestOnDragStart = rememberUpdatedState(onDragStart)
     val latestOnDrag = rememberUpdatedState(onDrag)
     val latestOnDragEnd = rememberUpdatedState(onDragEnd)
     val latestOnDragCancel = rememberUpdatedState(onDragCancel)
-    // La pulsación larga en la línea arrastra el bloque entero.
-    val captionDrag = Modifier
-        .onGloballyPositioned { captionOrigin = it.boundsInWindow().topLeft }
-        .pointerInput(group.id) {
-            detectDragGesturesAfterLongPress(
-                onDragStart = { offset ->
-                    haptics.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
-                    latestOnDragStart.value(captionOrigin + offset)
-                },
-                onDragCancel = {
-                    haptics.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.TextHandleMove)
-                    latestOnDragCancel.value()
-                },
-                onDragEnd = {
-                    haptics.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.TextHandleMove)
-                    latestOnDragEnd.value()
-                },
-                onDrag = { change, dragAmount ->
-                    change.consume()
-                    latestOnDrag.value(Offset(dragAmount.x, dragAmount.y))
-                },
-            )
-        }
 
     Column(
         modifier = modifier
@@ -179,211 +145,256 @@ internal fun SupersetGroupEditorCard(
                 scaleX = if (isDragging) 1.02f else 1f
                 scaleY = if (isDragging) 1.02f else 1f
                 alpha = if (isDragging) 0.22f else 1f
-                shadowElevation = if (isDragging) 6.dp.toPx() else 0f
             }
             .zIndex(if (isDragging) 12f else 0f),
     ) {
-        SessionSupersetCaption(
-            text = captionText,
-            editing = expanded,
-            onEdit = { expanded = !expanded },
-            dragModifier = captionDrag,
-        )
-        // Los miembros se ven siempre, unidos por la barra de la superserie.
-        content()
-
-        AnimatedVisibility(visible = expanded, enter = sessionEnterVertical(), exit = sessionExitVertical()) {
-        Column(
-            modifier = Modifier.padding(start = 14.dp, end = 14.dp, bottom = 12.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp),
+        // Cabecera del bloque: el asa mueve la superserie entera, la línea abre el panel y el «⋯» tiene el resto.
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .defaultMinSize(minHeight = 56.dp)
+                .padding(start = 4.dp, end = 4.dp, top = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
         ) {
-            LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp), contentPadding = PaddingValues(end = 4.dp)) {
-                items(exercises, key = { it.id }) { exercise ->
-                    Surface(
-                        shape = RoundedCornerShape(999.dp),
-                        color = if (configExerciseId == exercise.id) accentColor.copy(alpha = 0.22f) else accentColor.copy(alpha = 0.10f),
-                        modifier = Modifier.clickable {
-                            configExerciseId = if (configExerciseId == exercise.id) null else exercise.id
-                        },
-                    ) {
-                        Row(
-                            modifier = Modifier.padding(start = 10.dp, end = 4.dp, top = 5.dp, bottom = 5.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(4.dp),
-                        ) {
-                            Text(
-                                exercise.displayNameWithSelectedChips(),
-                                style = MaterialTheme.typography.labelSmall,
-                                fontWeight = FontWeight.Bold,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis,
-                                modifier = Modifier.widthIn(max = 170.dp),
-                            )
-                            IconButton(
-                                onClick = { pendingRemovalExerciseId = exercise.id },
-                                modifier = Modifier.size(48.dp),
-                            ) {
-                                Icon(Icons.Default.Close, contentDescription = "Quitar de superserie", modifier = Modifier.size(14.dp))
-                            }
-                            val orderIndex = exercises.indexOfFirst { it.id == exercise.id }
-                            if (orderIndex > 0) {
-                                IconButton(
-                                    onClick = {
-                                        val ids = exercises.map { it.id }.toMutableList()
-                                        val moved = ids.removeAt(orderIndex)
-                                        ids.add(orderIndex - 1, moved)
-                                        onReorderMembers(ids)
-                                    },
-                                    modifier = Modifier.size(48.dp),
-                                ) {
-                                    Icon(
-                                        Icons.Default.KeyboardArrowUp,
-                                        contentDescription = "Subir en el orden",
-                                        modifier = Modifier.size(14.dp),
-                                    )
-                                }
-                            }
-                            if (orderIndex >= 0 && orderIndex < exercises.lastIndex) {
-                                IconButton(
-                                    onClick = {
-                                        val ids = exercises.map { it.id }.toMutableList()
-                                        val moved = ids.removeAt(orderIndex)
-                                        ids.add(orderIndex + 1, moved)
-                                        onReorderMembers(ids)
-                                    },
-                                    modifier = Modifier.size(48.dp),
-                                ) {
-                                    Icon(
-                                        Icons.Default.KeyboardArrowDown,
-                                        contentDescription = "Bajar en el orden",
-                                        modifier = Modifier.size(14.dp),
-                                    )
-                                }
-                            }
-                        }
+            var handleWindowOrigin by remember(group.id) { mutableStateOf(Offset.Zero) }
+            Box(
+                modifier = Modifier
+                    .size(48.dp)
+                    .onGloballyPositioned { coords ->
+                        val b = coords.boundsInWindow()
+                        handleWindowOrigin = Offset(b.left, b.top)
                     }
-                }
-                item {
-                    Surface(
-                        shape = RoundedCornerShape(999.dp),
-                        color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.42f),
-                        modifier = Modifier
-                            .height(48.dp)
-                            .clickable(enabled = exercises.size < 4) {
-                                onOpenSupersetCreator(partId, exercises.map { it.id })
+                    .pointerInput(group.id) {
+                        detectDragGestures(
+                            onDragStart = { offset ->
+                                haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+                                latestOnDragStart.value(handleWindowOrigin + offset)
                             },
-                    ) {
-                        Row(
-                            modifier = Modifier.padding(horizontal = 10.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(4.dp),
-                        ) {
-                            Icon(Icons.Default.Add, contentDescription = "Añadir ejercicio", tint = accentColor, modifier = Modifier.size(16.dp))
-                            Text("Añadir", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold, color = accentColor)
-                        }
-                    }
-                }
-            }
-
-            AnimatedVisibility(
-                visible = configExerciseId != null,
-                enter = sessionEnterVertical(),
-                exit = sessionExitVertical(),
-            ) {
-                exercises.firstOrNull { it.id == configExerciseId }?.let { selected ->
-                    SupersetExerciseConfigOverlay(
-                        exercise = selected,
-                        accentColor = accentColor,
-                        relationshipAnchorName = relationshipAnchorName(selected),
-                        onUpdateExercise = { updater -> onUpdateExercise(selected.id, updater) },
-                        onUpdateSet = { setId, updater -> onUpdateSet(selected.id, setId, updater) },
-                        onOpenRelationshipPicker = { onOpenRelationshipPicker(selected.id) },
-                        onClearRelationship = { onClearRelationship(selected.id) },
-                        onDismiss = { configExerciseId = null },
-                    )
-                }
-            }
-
-            SupersetRoundsCarousel(
-                group = group,
-                exercises = exercises,
-                rounds = rounds,
-                accentColor = accentColor,
-                onUpdateRoundRest = { roundIndex, restBetween, restAfter -> onUpdateRoundRest(group.id, roundIndex, restBetween, restAfter) },
-                onUpdateSet = onUpdateSet,
-                onRemoveSet = onRemoveSet,
-                onMoveSet = onMoveSet,
-                onRestoreSet = { exerciseId, roundIndex ->
-                    onUpdateExercise(exerciseId) { current ->
-                        val template = current.sets.getOrNull((roundIndex - 1).coerceAtLeast(0))
-                            ?: current.sets.lastOrNull()
-                        val restored = template?.copy(id = UUID.randomUUID().toString(), isEmptySlot = false)
-                            ?: ExerciseSet(id = UUID.randomUUID().toString(), targetReps = 8)
-                        current.copy(sets = restoreExerciseSetAtRound(current.sets, roundIndex, restored))
-                    }
-                },
-                onAddRound = onAddRound,
-                onRemoveRound = onRemoveRound,
-            )
-
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Surface(
-                    modifier = Modifier
-                        .weight(1f)
-                        .height(48.dp)
-                        .clip(RoundedCornerShape(999.dp))
-                        .clickable { showOptionalInfo = true },
-                    shape = RoundedCornerShape(999.dp),
-                    color = if (group.isOptional) accentColor.copy(alpha = 0.22f) else accentColor.copy(alpha = 0.10f),
-                    border = if (group.isOptional) {
-                        BorderStroke(1.dp, accentColor.copy(alpha = 0.40f))
-                    } else {
-                        null
+                            onDragCancel = {
+                                haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                                latestOnDragCancel.value()
+                            },
+                            onDragEnd = {
+                                haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                                latestOnDragEnd.value()
+                            },
+                            onDrag = { change, dragAmount ->
+                                change.consume()
+                                latestOnDrag.value(Offset(dragAmount.x, dragAmount.y))
+                            },
+                        )
                     },
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(
+                    imageVector = KpknLineIcons.Grip,
+                    contentDescription = "Reordenar superserie",
+                    tint = if (isDragging) WizardColors.text else WizardColors.textFaint,
+                    modifier = Modifier.size(24.dp),
+                )
+            }
+            SwipeToDeleteCard(
+                onDelete = { showDeleteGroupDialog = true },
+                modifier = Modifier.weight(1f),
+                shape = RoundedCornerShape(16.dp),
+                animateDeletion = false,
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(KpknSurface.module, RoundedCornerShape(16.dp))
+                        .combinedClickable(
+                            onClick = { roundsOpen = !roundsOpen },
+                            onLongClick = { roundsOpen = !roundsOpen },
+                        )
+                        .padding(start = 8.dp, end = 8.dp, top = 6.dp, bottom = 6.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(horizontal = 12.dp),
-                        horizontalArrangement = Arrangement.Center,
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        if (group.isOptional) {
-                            Icon(
-                                Icons.Default.Check,
-                                contentDescription = null,
-                                tint = accentColor,
-                                modifier = Modifier.size(14.dp),
-                            )
-                            Spacer(Modifier.width(4.dp))
-                        }
+                    Text(
+                        text = buildAnnotatedString {
+                            withStyle(SpanStyle(color = WizardColors.text, fontWeight = FontWeight.SemiBold, fontSize = 15.sp)) {
+                                append("Superserie")
+                            }
+                            withStyle(SpanStyle(color = WizardColors.textMuted)) {
+                                append(" · $rounds ronda${if (rounds == 1) "" else "s"}")
+                                append(" · ${KpknSetFormat.rest(group.restBetweenExercises)} / ${KpknSetFormat.rest(group.restAfterSuperset)}")
+                            }
+                        },
+                        style = KpknType.caption,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.weight(1f),
+                    )
+                    if (group.isOptional) {
                         Text(
-                            text = if (group.isOptional) {
-                                "Superset opcional activo"
-                            } else {
-                                "Convertir en Superset opcional"
-                            },
-                            fontSize = 11.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = accentColor,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
+                            text = "OPCIONAL",
+                            style = KpknType.eyebrow,
+                            color = WizardColors.textMuted,
                         )
                     }
                 }
-                TextButton(onClick = { onDissolve(group.id) }) {
-                    Text("Disolver", fontWeight = FontWeight.Bold)
+            }
+            KpknIconButton(
+                icon = KpknLineIcons.More,
+                contentDescription = "Más opciones de la superserie",
+                onClick = { menuOpen = true },
+                modifier = Modifier.onGloballyPositioned { moreAnchor = it.boundsInWindow() },
+            )
+        }
+
+        // Miembros: siempre a la vista, unidos por el raíl (el único cambio frente al original).
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(start = 20.dp)
+                .drawBehind {
+                    drawRoundRect(
+                        color = accentColor.copy(alpha = 0.30f),
+                        size = Size(3.dp.toPx(), size.height),
+                        cornerRadius = CornerRadius(1.5.dp.toPx()),
+                    )
+                },
+            content = content,
+        )
+
+        // «Rondas y descansos»: lo que abría el original al desplegar la superserie.
+        AnimatedVisibility(
+            visible = roundsOpen,
+            enter = expandVertically() + fadeIn(),
+            exit = shrinkVertically() + fadeOut(),
+        ) {
+            Column(
+                modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 4.dp, bottom = 12.dp),
+                verticalArrangement = Arrangement.spacedBy(10.dp),
+            ) {
+                LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp), contentPadding = PaddingValues(end = 4.dp)) {
+                    items(exercises, key = { it.id }) { exercise ->
+                        SupersetMemberChip(
+                            name = exercise.displayNameWithSelectedChips(),
+                            selected = configExerciseId == exercise.id,
+                            onToggleConfig = {
+                                configExerciseId = if (configExerciseId == exercise.id) null else exercise.id
+                            },
+                            onRemove = { pendingRemovalExerciseId = exercise.id },
+                            onMoveUp = if (exercises.indexOfFirst { it.id == exercise.id } > 0) {
+                                {
+                                    val ids = exercises.map { it.id }.toMutableList()
+                                    val index = ids.indexOf(exercise.id)
+                                    val moved = ids.removeAt(index)
+                                    ids.add(index - 1, moved)
+                                    onReorderMembers(ids)
+                                }
+                            } else {
+                                null
+                            },
+                            onMoveDown = if (exercises.indexOfFirst { it.id == exercise.id } in 0 until exercises.lastIndex) {
+                                {
+                                    val ids = exercises.map { it.id }.toMutableList()
+                                    val index = ids.indexOf(exercise.id)
+                                    val moved = ids.removeAt(index)
+                                    ids.add(index + 1, moved)
+                                    onReorderMembers(ids)
+                                }
+                            } else {
+                                null
+                            },
+                        )
+                    }
+                    item {
+                        Box(
+                            modifier = Modifier
+                                .height(34.dp)
+                                .clip(RoundedCornerShape(999.dp))
+                                .background(KpknSurface.inset)
+                                .border(1.dp, WizardColors.text.copy(alpha = 0.12f), RoundedCornerShape(999.dp))
+                                .clickable(enabled = exercises.size < 4) {
+                                    onOpenSupersetCreator(partId, exercises.map { it.id })
+                                }
+                                .padding(horizontal = 12.dp),
+                            contentAlignment = Alignment.Center,
+                        ) {
+                            Text("+ Añadir", style = KpknType.caption, color = WizardColors.text)
+                        }
+                    }
                 }
-                // Borrar la superserie entera: antes lo hacía el deslizamiento de la cabecera, que ya no existe.
-                TextButton(onClick = { showDeleteGroupDialog = true }) {
-                    Text("Eliminar superserie", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.error)
+
+                AnimatedVisibility(
+                    visible = configExerciseId != null,
+                    enter = expandVertically() + fadeIn(),
+                    exit = shrinkVertically() + fadeOut(),
+                ) {
+                    exercises.firstOrNull { it.id == configExerciseId }?.let { selected ->
+                        SupersetExerciseConfigOverlay(
+                            exercise = selected,
+                            accentColor = accentColor,
+                            relationshipAnchorName = relationshipAnchorName(selected),
+                            onUpdateExercise = { updater -> onUpdateExercise(selected.id, updater) },
+                            onUpdateSet = { setId, updater -> onUpdateSet(selected.id, setId, updater) },
+                            onOpenRelationshipPicker = { onOpenRelationshipPicker(selected.id) },
+                            onClearRelationship = { onClearRelationship(selected.id) },
+                            onDismiss = { configExerciseId = null },
+                        )
+                    }
                 }
+
+                SupersetRoundsCarousel(
+                    group = group,
+                    exercises = exercises,
+                    rounds = rounds,
+                    accentColor = accentColor,
+                    onUpdateRoundRest = { roundIndex, restBetween, restAfter -> onUpdateRoundRest(group.id, roundIndex, restBetween, restAfter) },
+                    onUpdateSet = onUpdateSet,
+                    onRemoveSet = onRemoveSet,
+                    onMoveSet = onMoveSet,
+                    onRestoreSet = { exerciseId, roundIndex ->
+                        onUpdateExercise(exerciseId) { current ->
+                            val template = current.sets.getOrNull((roundIndex - 1).coerceAtLeast(0))
+                                ?: current.sets.lastOrNull()
+                            val restored = template?.copy(id = UUID.randomUUID().toString(), isEmptySlot = false)
+                                ?: ExerciseSet(id = UUID.randomUUID().toString(), targetReps = 8)
+                            current.copy(sets = restoreExerciseSetAtRound(current.sets, roundIndex, restored))
+                        }
+                    },
+                    onAddRound = onAddRound,
+                    onRemoveRound = onRemoveRound,
+                )
             }
         }
+    }
+
+    val anchor = moreAnchor
+    if (menuOpen && anchor != null) {
+        KpknContextMenu(anchor = anchor, rows = 4, onDismiss = { menuOpen = false }) {
+            KpknContextMenuRow(
+                label = "Rondas y descansos",
+                onClick = {
+                    menuOpen = false
+                    roundsOpen = true
+                },
+            )
+            KpknContextMenuRow(
+                label = if (group.isOptional) "Dejar de ser opcional" else "Convertir en opcional",
+                onClick = {
+                    menuOpen = false
+                    showOptionalInfo = true
+                },
+            )
+            KpknContextMenuRow(
+                label = "Disolver",
+                onClick = {
+                    menuOpen = false
+                    onDissolve(group.id)
+                },
+            )
+            KpknContextMenuRow(
+                label = "Eliminar superserie",
+                destructive = true,
+                onClick = {
+                    menuOpen = false
+                    showDeleteGroupDialog = true
+                },
+            )
         }
     }
 
@@ -392,37 +403,32 @@ internal fun SupersetGroupEditorCard(
             onDismissRequest = { showOptionalInfo = false },
             title = {
                 Text(
-                    if (group.isOptional) "Superset opcional" else "Convertir en Superset opcional",
-                    fontWeight = FontWeight.Black,
+                    if (group.isOptional) "Superserie opcional" else "Convertir en superserie opcional",
+                    style = KpknType.dialogTitle,
+                    color = WizardColors.text,
                 )
             },
             text = {
                 Text(
-                    "Un Superset opcional es un tipo de superset que se muestra únicamente cuando lo activas " +
-                        "desde tu sesión de entreno; si no lo invocas, te mostrará los ejercicios separados. " +
-                        "Esto puede ser útil si quieres usar el superset únicamente para cuando tienes poco tiempo " +
+                    "Una superserie opcional es un tipo de superserie que se muestra únicamente cuando la activas " +
+                        "desde tu sesión de entreno; si no la invocas, te mostrará los ejercicios separados. " +
+                        "Esto puede ser útil si quieres usar la superserie únicamente para cuando tienes poco tiempo " +
                         "y no como parte de tu programación recurrente.",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    style = KpknType.caption,
+                    color = WizardColors.textMuted,
                 )
             },
             confirmButton = {
-                TextButton(
+                KpknAlertConfirmButton(
+                    text = if (group.isOptional) "Dejar de ser opcional" else "Convertir",
                     onClick = {
                         onToggleOptional(group.id)
                         showOptionalInfo = false
                     },
-                ) {
-                    Text(
-                        if (group.isOptional) "Dejar de ser opcional" else "Convertir",
-                        fontWeight = FontWeight.Bold,
-                    )
-                }
+                )
             },
             dismissButton = {
-                TextButton(onClick = { showOptionalInfo = false }) {
-                    Text("Cancelar")
-                }
+                KpknAlertDismissButton(text = "Cancelar", onClick = { showOptionalInfo = false })
             },
         )
     }
@@ -430,7 +436,9 @@ internal fun SupersetGroupEditorCard(
     pendingRemovalExercise?.let { exercise ->
         KpknAlertDialog(
             onDismissRequest = { pendingRemovalExerciseId = null },
-            title = { Text("Eliminar ejercicio de la superserie", fontWeight = FontWeight.Black) },
+            title = {
+                Text("Eliminar ejercicio de la superserie", style = KpknType.dialogTitle, color = WizardColors.text)
+            },
             text = {
                 Text(
                     if (exercises.size == 2) {
@@ -441,7 +449,8 @@ internal fun SupersetGroupEditorCard(
                         "¿Qué quieres hacer con «${exercise.displayNameWithSelectedChips()}»? Puedes conservarlo " +
                             "como ejercicio individual o borrarlo de la sesión."
                     },
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    style = KpknType.caption,
+                    color = WizardColors.textMuted,
                 )
             },
             confirmButton = {
@@ -478,11 +487,12 @@ internal fun SupersetGroupEditorCard(
     if (showDeleteGroupDialog) {
         KpknAlertDialog(
             onDismissRequest = { showDeleteGroupDialog = false },
-            title = { Text("Eliminar superserie", fontWeight = FontWeight.Black) },
+            title = { Text("Eliminar superserie", style = KpknType.dialogTitle, color = WizardColors.text) },
             text = {
                 Text(
                     "Puedes conservar sus ${exercises.size} ejercicios como individuales o borrarlos también de la sesión.",
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    style = KpknType.caption,
+                    color = WizardColors.textMuted,
                 )
             },
             confirmButton = {
@@ -515,5 +525,47 @@ internal fun SupersetGroupEditorCard(
             },
         )
     }
+}
 
+/**
+ * Chip de un miembro dentro del panel «Rondas y descansos»: su nombre (toca para configurarlo), la X para quitarlo y, si puede, las flechas
+ * de orden.
+ */
+@Composable
+private fun SupersetMemberChip(
+    name: String,
+    selected: Boolean,
+    onToggleConfig: () -> Unit,
+    onRemove: () -> Unit,
+    onMoveUp: (() -> Unit)?,
+    onMoveDown: (() -> Unit)?,
+) {
+    Row(
+        modifier = Modifier
+            .height(34.dp)
+            .clip(RoundedCornerShape(999.dp))
+            .background(if (selected) WizardColors.text.copy(alpha = 0.14f) else KpknSurface.inset)
+            .border(1.dp, WizardColors.text.copy(alpha = 0.12f), RoundedCornerShape(999.dp))
+            .padding(start = 12.dp, end = 4.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(2.dp),
+    ) {
+        Text(
+            text = name,
+            style = KpknType.caption,
+            color = WizardColors.text,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier
+                .widthIn(max = 170.dp)
+                .clickable(onClick = onToggleConfig),
+        )
+        onMoveUp?.let {
+            KpknIconButton(icon = KpknLineIcons.ChevronUp, contentDescription = "Subir en el orden", onClick = it)
+        }
+        onMoveDown?.let {
+            KpknIconButton(icon = KpknLineIcons.ChevronDown, contentDescription = "Bajar en el orden", onClick = it)
+        }
+        KpknIconButton(icon = KpknLineIcons.Close, contentDescription = "Quitar de superserie", onClick = onRemove)
+    }
 }

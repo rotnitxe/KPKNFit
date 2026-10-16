@@ -173,10 +173,10 @@ class WorkoutBackNavigationTest {
     }
 
     @Test
-    fun godModeExpandedCollapsesBeforeExit() {
+    fun cockpitExpandedCollapsesBeforeExit() {
         assertEquals(
-            WorkoutBackAction.COLLAPSE_GOD_MODE,
-            resolveWorkoutBackAction(WorkoutOverlayFlags(godModeExpanded = true)),
+            WorkoutBackAction.COLLAPSE_COCKPIT,
+            resolveWorkoutBackAction(WorkoutOverlayFlags(cockpitExpanded = true)),
         )
     }
 }

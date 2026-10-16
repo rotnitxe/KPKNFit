@@ -1,6 +1,7 @@
 package com.example.kpkn.screens.sessioneditor.components
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
@@ -11,6 +12,7 @@ import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -32,7 +34,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.boundsInWindow
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -43,22 +48,21 @@ import com.example.kpkn.data.models.CardioIntervalBlock
 import com.example.kpkn.data.models.CardioIntervalPattern
 import com.example.kpkn.data.models.CardioIntervalPatternSpec
 import com.example.kpkn.data.models.CardioIntervalPrograms
-import com.example.kpkn.domain.cardio.CardioIntervalEngine
 import com.example.kpkn.domain.cardio.CardioIntervalProgramBuilder
 import com.example.kpkn.domain.cardio.CardioPrescriptionFormatter
 import com.example.kpkn.screens.onboarding.design.WizardColors
 import com.example.kpkn.screens.onboarding.design.entreno.SymbolPalette
-import com.example.kpkn.screens.sessioneditor.SessionCardioDose
 import com.example.kpkn.screens.workout.CardioIntervalChart
 import com.example.kpkn.ui.components.icons.KpknLineIcons
 import com.example.kpkn.ui.design.KpknChip
+import com.example.kpkn.ui.design.KpknCompactPill
+import com.example.kpkn.ui.design.KpknContextMenu
+import com.example.kpkn.ui.design.KpknContextMenuRow
 import com.example.kpkn.ui.design.KpknIconButton
-import com.example.kpkn.ui.design.KpknMetric
 import com.example.kpkn.ui.design.KpknPrimaryPill
 import com.example.kpkn.ui.design.KpknSecondaryPill
-import com.example.kpkn.ui.design.KpknSegmentedControl
-import com.example.kpkn.ui.design.KpknSegmentedSize
-import com.example.kpkn.ui.design.KpknShape
+import com.example.kpkn.ui.design.KpknSetFormat
+import com.example.kpkn.ui.design.KpknStepperMetric
 import com.example.kpkn.ui.design.KpknSurface
 import com.example.kpkn.ui.design.KpknTextAction
 import com.example.kpkn.ui.design.KpknType
@@ -66,8 +70,8 @@ import java.util.Locale
 import java.util.UUID
 
 /**
- * Editor de circuitos e intervalos (SESSION_EDITOR_V1 §2, punto 7), con piel KPKN: sin cajas dentro del módulo, separado con aire y filetes.
- * Patrones, rondas, el gráfico interactivo de siempre, la tira de peldaños y el inspector del bloque o la lista. Sin cambios de lógica.
+ * Editor de bloques de un cardio por intervalos (la forma «Intervalos»): patrones, rondas, la gráfica en vivo, los peldaños, una fila
+ * por bloque con su «⋯» (duplicar, subir, bajar y quitar) y el inspector del bloque elegido.
  */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -79,7 +83,6 @@ internal fun CardioIntervalsEditor(
     val hasIntervals = details.hasIntervals()
     var showTemplatePicker by remember { mutableStateOf(false) }
     var selectedBlockIdx by remember(details.intervalBlocks.size) { mutableIntStateOf(0) }
-    var showCompactListOverview by remember { mutableStateOf(false) }
 
     // Asegurar índice válido
     val validSelectedIdx = if (details.intervalBlocks.isNotEmpty()) {
@@ -92,44 +95,72 @@ internal fun CardioIntervalsEditor(
     val catalogSupportsRpm = catalogInfo?.supportsRpm ?: false
     val catalogSupportsWatts = catalogInfo?.supportsWatts ?: false
 
-    Column(
-        modifier = Modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
-    ) {
-        // Cabecera: el nombre del editor y su resumen.
-        Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-            Text("Circuitos / Intervalos", style = KpknType.bodyStrong, color = WizardColors.text)
-            Text(
-                text = if (hasIntervals) {
-                    "${details.intervalBlocks.size} bloques · ${if (details.intervalRounds == 1) "1 ronda" else "${details.intervalRounds} rondas"} ·${formatMinutes(details.totalIntervalSeconds())}"
-                } else {
-                    "Programa velocidades por tramos y pirámides"
-                },
-                style = KpknType.caption,
-                color = WizardColors.textMuted,
-            )
-            if (hasIntervals) {
+    // Borra el bloque [idx] y deja la selección donde corresponde.
+    fun deleteBlock(idx: Int) {
+        val newBlocks = details.intervalBlocks.filterIndexed { i, _ -> i != idx }
+        val total = if (newBlocks.isEmpty()) 20 * 60 else newBlocks.sumOf { it.durationSeconds } * details.intervalRounds.coerceIn(1, 99)
+        onChange(details.copy(intervalBlocks = newBlocks, targetDurationSeconds = total))
+        selectedBlockIdx = when {
+            newBlocks.isEmpty() -> 0
+            idx < validSelectedIdx -> validSelectedIdx - 1
+            else -> validSelectedIdx.coerceAtMost(newBlocks.lastIndex)
+        }
+    }
+
+    // Intercambia el bloque [idx] con el de [other] y sigue con la selección.
+    fun swapBlocks(idx: Int, other: Int) {
+        val newBlocks = details.intervalBlocks.toMutableList()
+        val tmp = newBlocks[other]
+        newBlocks[other] = newBlocks[idx]
+        newBlocks[idx] = tmp
+        onChange(details.copy(intervalBlocks = newBlocks))
+        selectedBlockIdx = other
+    }
+
+    Column(modifier = Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        // Cabecera
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween,
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text("Circuitos / Intervalos", style = KpknType.bodyStrong, color = WizardColors.text)
                 Text(
-                    text = "Duración derivada: ${formatMinutes(details.totalIntervalSeconds())}. Ajusta los bloques y las rondas para cambiarla.",
+                    if (hasIntervals) "${details.intervalBlocks.size} bloques · ${details.intervalRounds} ronda(s) · ${formatMinutes(details.totalIntervalSeconds())}"
+                    else "Programa velocidades por tramos y pirámides",
                     style = KpknType.caption,
-                    color = WizardColors.textFaint,
+                    color = WizardColors.textMuted,
                 )
             }
+            Text(
+                "Modo intervalos",
+                style = KpknType.eyebrow,
+                color = WizardColors.text,
+            )
         }
 
-        // Selector de patrones en carrusel: la forma de cada plantilla permite reconocer una pirámide o una escalera antes de abrir el editor.
+        Text(
+            "Duración derivada: ${formatMinutes(details.totalIntervalSeconds())}. Ajusta los bloques y las rondas para cambiarla.",
+            style = KpknType.caption,
+            color = WizardColors.textMuted,
+        )
+
+        // Selector de patrones en carrusel: la forma de cada plantilla permite
+        // reconocer una pirámide o una escalera antes de abrir el editor.
         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Kicker("Patrón de intervalo")
+            Text("PATRÓN DE INTERVALO", style = KpknType.eyebrow, color = WizardColors.textMuted)
             LazyRow(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(14.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
                 contentPadding = PaddingValues(end = 12.dp),
             ) {
                 items(CardioIntervalPrograms.specs, key = { it.pattern.name }) { spec ->
                     val selected = intervalPatternLooksSelected(details, spec.pattern)
-                    IntervalPatternTemplate(
+                    IntervalPatternTemplateCard(
                         spec = spec,
                         selected = selected,
+                        accentColor = accentColor,
                         onClick = {
                             if (spec.pattern == CardioIntervalPattern.CUSTOM) {
                                 onChange(details.copy(hiit = null))
@@ -154,10 +185,10 @@ internal fun CardioIntervalsEditor(
                 spec.pattern != CardioIntervalPattern.CUSTOM && intervalPatternLooksSelected(details, spec.pattern)
             }
             Text(
-                text = selectedPattern?.description
+                selectedPattern?.description
                     ?: "Elige un patrón para crear una base o usa Personalizado para editar bloque a bloque.",
                 style = KpknType.caption,
-                color = WizardColors.textFaint,
+                color = WizardColors.textMuted,
             )
         }
 
@@ -185,20 +216,12 @@ internal fun CardioIntervalsEditor(
                 )
             }
         } else {
-            // Rondas del circuito: el contador en píldora, sin botones grandes.
-            Row(
+            // Rondas del circuito: el stepper grande, centrado, y su texto debajo.
+            Column(
                 modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween,
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(6.dp),
             ) {
-                Column {
-                    Text("Rondas del circuito", style = KpknType.bodyStrong, color = WizardColors.text)
-                    Text(
-                        text = if (details.intervalRounds > 1) "Se repite ${details.intervalRounds} veces" else "1 vuelta completa",
-                        style = KpknType.caption,
-                        color = WizardColors.textMuted,
-                    )
-                }
                 CompactRoundStepper(
                     rounds = details.intervalRounds,
                     accentColor = accentColor,
@@ -206,10 +229,17 @@ internal fun CardioIntervalsEditor(
                         val total = details.intervalBlocks.sumOf { it.durationSeconds } * newRounds
                         onChange(details.copy(intervalRounds = newRounds, targetDurationSeconds = total))
                     },
+                    modifier = Modifier.fillMaxWidth(),
+                    label = "Rondas del circuito",
+                )
+                Text(
+                    if (details.intervalRounds > 1) "Se repite ${details.intervalRounds} veces" else "1 vuelta completa",
+                    style = KpknType.caption,
+                    color = WizardColors.textMuted,
                 )
             }
 
-            // Gráfico interactivo que llena el ancho y permite seleccionar bloques al tocar.
+            // Gráfico interactivo centrado que llena el ancho y permite seleccionar bloques al tocar
             CardioIntervalChart(
                 details = details,
                 accentColor = accentColor,
@@ -222,113 +252,74 @@ internal fun CardioIntervalsEditor(
                 },
             )
             Text(
-                text = "Toca una barra para editarla · altura = intensidad · ancho = duración",
+                "Toca una barra para editarla · altura = intensidad · ancho = duración",
                 style = KpknType.caption,
-                color = WizardColors.textFaint,
+                color = WizardColors.textMuted,
             )
 
-            // Peldaños del circuito: la tira de bloques y el cambio entre inspector y lista.
+            // Peldaños del circuito: la línea de tiempo, tocable
             Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Kicker("Peldaños del circuito (${details.intervalBlocks.size})")
-                    KpknTextAction(
-                        text = if (showCompactListOverview) "Ver inspector" else "Ver lista",
-                        onClick = { showCompactListOverview = !showCompactListOverview },
-                    )
-                }
+                Text(
+                    "PELDAÑOS DEL CIRCUITO (${details.intervalBlocks.size})",
+                    style = KpknType.eyebrow,
+                    color = WizardColors.textMuted,
+                )
                 CardioIntervalStepBar(
                     blocks = details.intervalBlocks,
                     selectedIdx = validSelectedIdx,
-                    onSelectIdx = { selectedBlockIdx = it },
-                )
-            }
-
-            if (!showCompactListOverview && details.intervalBlocks.isNotEmpty()) {
-                // Inspector del bloque seleccionado.
-                val activeBlock = details.intervalBlocks[validSelectedIdx]
-
-                CardioActiveBlockInspector(
-                    block = activeBlock,
-                    index = validSelectedIdx,
-                    total = details.intervalBlocks.size,
                     accentColor = accentColor,
-                    catalogSupportsSpeed = catalogSupportsSpeed,
-                    catalogSupportsIncline = catalogSupportsIncline,
-                    catalogSupportsRpm = catalogSupportsRpm,
-                    catalogSupportsWatts = catalogSupportsWatts,
-                    onUpdate = { updated ->
-                        val newBlocks = details.intervalBlocks.toMutableList()
-                        newBlocks[validSelectedIdx] = updated
-                        val total = newBlocks.sumOf { it.durationSeconds } * details.intervalRounds.coerceIn(1, 99)
-                        onChange(details.copy(intervalBlocks = newBlocks, targetDurationSeconds = total))
-                    },
-                    onDelete = {
-                        val newBlocks = details.intervalBlocks.filterIndexed { i, _ -> i != validSelectedIdx }
-                        val total = if (newBlocks.isEmpty()) 20 * 60 else newBlocks.sumOf { it.durationSeconds } * details.intervalRounds.coerceIn(1, 99)
-                        onChange(details.copy(intervalBlocks = newBlocks, targetDurationSeconds = total))
-                        if (validSelectedIdx >= newBlocks.size && newBlocks.isNotEmpty()) {
-                            selectedBlockIdx = newBlocks.lastIndex
-                        }
-                    },
-                    onDuplicate = {
-                        val duplicate = activeBlock.copy(id = UUID.randomUUID().toString())
-                        val newBlocks = details.intervalBlocks.toMutableList()
-                        newBlocks.add(validSelectedIdx + 1, duplicate)
-                        val total = newBlocks.sumOf { it.durationSeconds } * details.intervalRounds.coerceIn(1, 99)
-                        onChange(details.copy(intervalBlocks = newBlocks, targetDurationSeconds = total))
-                        selectedBlockIdx = validSelectedIdx + 1
-                    },
-                    onPrevious = if (validSelectedIdx > 0) {
-                        { selectedBlockIdx = validSelectedIdx - 1 }
-                    } else null,
-                    onNext = if (validSelectedIdx < details.intervalBlocks.lastIndex) {
-                        { selectedBlockIdx = validSelectedIdx + 1 }
-                    } else null,
-                )
-            } else if (showCompactListOverview) {
-                // Vista de lista compacta de todos los bloques.
-                CardioCompactBlocksOverview(
-                    blocks = details.intervalBlocks,
-                    selectedIdx = validSelectedIdx,
-                    catalogSupportsSpeed = catalogSupportsSpeed,
                     onSelectIdx = { selectedBlockIdx = it },
-                    onDelete = { idx ->
-                        val newBlocks = details.intervalBlocks.filterIndexed { i, _ -> i != idx }
-                        val total = if (newBlocks.isEmpty()) 20 * 60 else newBlocks.sumOf { it.durationSeconds } * details.intervalRounds.coerceIn(1, 99)
-                        onChange(details.copy(intervalBlocks = newBlocks, targetDurationSeconds = total))
-                        if (validSelectedIdx >= newBlocks.size && newBlocks.isNotEmpty()) {
-                            selectedBlockIdx = newBlocks.lastIndex
-                        }
-                    },
-                    onMoveUp = { idx ->
-                        if (idx > 0) {
-                            val newBlocks = details.intervalBlocks.toMutableList()
-                            val tmp = newBlocks[idx - 1]
-                            newBlocks[idx - 1] = newBlocks[idx]
-                            newBlocks[idx] = tmp
-                            onChange(details.copy(intervalBlocks = newBlocks))
-                            selectedBlockIdx = idx - 1
-                        }
-                    },
-                    onMoveDown = { idx ->
-                        if (idx < details.intervalBlocks.size - 1) {
-                            val newBlocks = details.intervalBlocks.toMutableList()
-                            val tmp = newBlocks[idx + 1]
-                            newBlocks[idx + 1] = newBlocks[idx]
-                            newBlocks[idx] = tmp
-                            onChange(details.copy(intervalBlocks = newBlocks))
-                            selectedBlockIdx = idx + 1
-                        }
-                    },
                 )
             }
 
-            // Acciones inferiores: cada una a su ancho natural y a los extremos, para que a 130 % no se corten a media palabra.
-            Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
+            // Una fila de módulo por bloque: tipo, intensidad, duración y su «⋯».
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                details.intervalBlocks.forEachIndexed { idx, block ->
+                    CardioBlockRow(
+                        index = idx,
+                        total = details.intervalBlocks.size,
+                        block = block,
+                        selected = idx == validSelectedIdx,
+                        accentColor = accentColor,
+                        catalogSupportsSpeed = catalogSupportsSpeed,
+                        onSelect = { selectedBlockIdx = idx },
+                        onDuplicate = {
+                            onChange(cardioDetailsWithDuplicatedBlock(details, idx, newId = { UUID.randomUUID().toString() }))
+                            selectedBlockIdx = idx + 1
+                        },
+                        onMoveUp = { swapBlocks(idx, idx - 1) },
+                        onMoveDown = { swapBlocks(idx, idx + 1) },
+                        onDelete = { deleteBlock(idx) },
+                    )
+                }
+            }
+
+            // Inspector del bloque seleccionado: sus magnitudes y su duración.
+            CardioActiveBlockInspector(
+                block = details.intervalBlocks[validSelectedIdx],
+                index = validSelectedIdx,
+                total = details.intervalBlocks.size,
+                accentColor = accentColor,
+                catalogSupportsSpeed = catalogSupportsSpeed,
+                catalogSupportsIncline = catalogSupportsIncline,
+                catalogSupportsRpm = catalogSupportsRpm,
+                catalogSupportsWatts = catalogSupportsWatts,
+                onUpdate = { updated ->
+                    val newBlocks = details.intervalBlocks.toMutableList()
+                    newBlocks[validSelectedIdx] = updated
+                    val total = newBlocks.sumOf { it.durationSeconds } * details.intervalRounds.coerceIn(1, 99)
+                    onChange(details.copy(intervalBlocks = newBlocks, targetDurationSeconds = total))
+                },
+                onPrevious = if (validSelectedIdx > 0) {
+                    { selectedBlockIdx = validSelectedIdx - 1 }
+                } else null,
+                onNext = if (validSelectedIdx < details.intervalBlocks.lastIndex) {
+                    { selectedBlockIdx = validSelectedIdx + 1 }
+                } else null,
+            )
+
+            // Acciones inferiores
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
                 KpknTextAction(
                     text = "Añadir bloque",
                     onClick = {
@@ -345,11 +336,14 @@ internal fun CardioIntervalsEditor(
                         selectedBlockIdx = newBlocks.lastIndex
                     },
                     leadingIcon = KpknLineIcons.Plus,
+                    modifier = Modifier.weight(1f),
                 )
                 KpknTextAction(
                     text = "Plantilla",
                     onClick = { showTemplatePicker = true },
                     leadingIcon = KpknLineIcons.Layers,
+                    color = WizardColors.text,
+                    modifier = Modifier.weight(1f),
                 )
             }
         }
@@ -372,9 +366,32 @@ internal fun CardioIntervalsEditor(
 }
 
 /**
- * Contador de rondas (SESSION_EDITOR_V1 §2): una píldora `inset` con el número en `metricM` y los dos botones de icono. En el límite, el
- * botón se queda en gris y no hace nada. Firma fija: lo usan el editor de intervalos y el de cardio.
+ * Duplica el bloque [index] justo después de sí mismo, con un id nuevo, y recalcula la duración total con las rondas. Devuelve el
+ * cardio igual si el índice no existe.
  */
+internal fun cardioDetailsWithDuplicatedBlock(
+    details: CardioDetails,
+    index: Int,
+    newId: () -> String,
+): CardioDetails {
+    val active = details.intervalBlocks.getOrNull(index) ?: return details
+    val newBlocks = details.intervalBlocks.toMutableList()
+    newBlocks.add(index + 1, active.copy(id = newId()))
+    val total = newBlocks.sumOf { it.durationSeconds } * details.intervalRounds.coerceIn(1, 99)
+    return details.copy(intervalBlocks = newBlocks, targetDurationSeconds = total)
+}
+
+/**
+ * Color de un bloque, como en la gráfica: el esfuerzo en el acento, la recuperación en Columna y el calentamiento y el enfriamiento
+ * en tinta apagada.
+ */
+internal fun cardioBlockColor(type: CardioBlockType, accent: Color): Color = when (type) {
+    CardioBlockType.WORK -> accent
+    CardioBlockType.RECOVER -> SymbolPalette.columna
+    CardioBlockType.WARMUP, CardioBlockType.COOLDOWN -> WizardColors.textMuted
+}
+
+/** Paso de rondas: la cifra grande con «−» y «+» (KpknStepperMetric). [label] va en mayúsculas encima de la cifra. */
 @Composable
 internal fun CompactRoundStepper(
     rounds: Int,
@@ -383,41 +400,29 @@ internal fun CompactRoundStepper(
     modifier: Modifier = Modifier,
     minRounds: Int = 1,
     maxRounds: Int = 30,
+    label: String = "Rondas",
 ) {
-    Row(
-        modifier = modifier
-            .clip(KpknShape.pill)
-            .background(KpknSurface.inset, KpknShape.pill),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        KpknIconButton(
-            icon = KpknLineIcons.Minus,
-            contentDescription = "Quitar una ronda",
-            onClick = { if (rounds > minRounds) onRoundsChange((rounds - 1).coerceAtLeast(minRounds)) },
-            tint = if (rounds > minRounds) WizardColors.text else WizardColors.textFaint,
-        )
-        KpknMetric(
-            value = rounds.toString(),
-            unit = "×",
-            style = KpknType.metricM,
-            modifier = Modifier.padding(horizontal = 4.dp),
-        )
-        KpknIconButton(
-            icon = KpknLineIcons.Plus,
-            contentDescription = "Añadir una ronda",
-            onClick = { if (rounds < maxRounds) onRoundsChange((rounds + 1).coerceAtMost(maxRounds)) },
-            tint = if (rounds < maxRounds) WizardColors.text else WizardColors.textFaint,
-        )
-    }
+    KpknStepperMetric(
+        label = label.uppercase(Locale.forLanguageTag("es")),
+        value = "$rounds ×",
+        onMinus = { onRoundsChange((rounds - 1).coerceAtLeast(minRounds)) },
+        onPlus = { onRoundsChange((rounds + 1).coerceAtMost(maxRounds)) },
+        contentDescription = "$rounds ${label.lowercase(Locale.forLanguageTag("es"))}",
+        minusEnabled = rounds > minRounds,
+        plusEnabled = rounds < maxRounds,
+        modifier = modifier,
+    )
 }
 
-/** Peldaños del circuito: una pastilla por bloque con su índice y su marca (velocidad, nivel o vatios). */
+/** Peldaños del circuito: una pastilla por bloque, en su color, y la seleccionada en relieve. */
 @Composable
 private fun CardioIntervalStepBar(
     blocks: List<CardioIntervalBlock>,
     selectedIdx: Int,
+    accentColor: Color,
     onSelectIdx: (Int) -> Unit,
 ) {
+    val pillShape = RoundedCornerShape(12.dp)
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -426,22 +431,148 @@ private fun CardioIntervalStepBar(
         verticalAlignment = Alignment.CenterVertically,
     ) {
         blocks.forEachIndexed { idx, block ->
+            val isSelected = idx == selectedIdx
+            val blockColor = cardioBlockColor(block.type, accentColor)
+
             val badgeLabel = when {
                 block.speedKmh != null -> "${block.speedKmh.toInt()} km/h"
                 block.intensityLevel != null -> "N${block.intensityLevel}"
                 block.watts != null -> "${block.watts} W"
-                else -> CardioIntervalEngine.blockTypeShortLabel(block.type)
+                else -> shortPhaseLabel(block.type)
             }
-            KpknChip(
-                text = "#${idx + 1} · $badgeLabel",
-                selected = idx == selectedIdx,
-                onClick = { onSelectIdx(idx) },
+
+            Row(
+                modifier = Modifier
+                    .defaultMinSize(minHeight = 48.dp)
+                    .clip(pillShape)
+                    .background(if (isSelected) blockColor.copy(alpha = 0.22f) else KpknSurface.inset, pillShape)
+                    .then(if (isSelected) Modifier.border(1.dp, blockColor, pillShape) else Modifier)
+                    .clickable(role = Role.Button) { onSelectIdx(idx) }
+                    .padding(horizontal = 12.dp),
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(
+                    "#${idx + 1}",
+                    style = KpknType.caption,
+                    color = if (isSelected) WizardColors.text else WizardColors.textMuted,
+                )
+                Text(
+                    badgeLabel,
+                    style = KpknType.chip,
+                    color = if (isSelected) WizardColors.text else blockColor,
+                )
+            }
+        }
+    }
+}
+
+/** Una fila de módulo para un bloque: su tipo con su punto de color, la intensidad, la duración y el «⋯» con sus acciones. */
+@Composable
+private fun CardioBlockRow(
+    index: Int,
+    total: Int,
+    block: CardioIntervalBlock,
+    selected: Boolean,
+    accentColor: Color,
+    catalogSupportsSpeed: Boolean,
+    onSelect: () -> Unit,
+    onDuplicate: () -> Unit,
+    onMoveUp: () -> Unit,
+    onMoveDown: () -> Unit,
+    onDelete: () -> Unit,
+) {
+    var menuOpen by remember { mutableStateOf(false) }
+    var anchor by remember { mutableStateOf(Rect.Zero) }
+    val rowShape = RoundedCornerShape(16.dp)
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(rowShape)
+            .background(KpknSurface.inset, rowShape)
+            .then(if (selected) Modifier.border(1.dp, WizardColors.text.copy(alpha = 0.24f), rowShape) else Modifier)
+            .clickable(role = Role.Button, onClick = onSelect)
+            .padding(start = 14.dp, end = 4.dp, top = 4.dp, bottom = 4.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Box(
+            modifier = Modifier
+                .size(10.dp)
+                .clip(CircleShape)
+                .background(cardioBlockColor(block.type, accentColor)),
+        )
+        Spacer(Modifier.width(12.dp))
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                "${index + 1} · ${CardioPrescriptionFormatter.phaseLabel(block.type)}",
+                style = KpknType.bodyStrong,
+                color = WizardColors.text,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+            Text(
+                blockIntensityText(block, catalogSupportsSpeed),
+                style = KpknType.caption,
+                color = WizardColors.textMuted,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+        }
+        Text(
+            KpknSetFormat.doseTime(block.durationSeconds),
+            style = KpknType.metricM,
+            color = WizardColors.text,
+            maxLines = 1,
+        )
+        Box(modifier = Modifier.onGloballyPositioned { anchor = it.boundsInWindow() }) {
+            KpknIconButton(
+                icon = KpknLineIcons.More,
+                contentDescription = "Opciones del bloque ${index + 1}",
+                onClick = { menuOpen = true },
+            )
+        }
+    }
+    if (menuOpen) {
+        val rows = listOf(true, index > 0, index < total - 1, true).count { it }
+        KpknContextMenu(anchor = anchor, rows = rows, onDismiss = { menuOpen = false }) {
+            KpknContextMenuRow(
+                label = "Duplicar bloque",
+                onClick = {
+                    menuOpen = false
+                    onDuplicate()
+                },
+            )
+            if (index > 0) {
+                KpknContextMenuRow(
+                    label = "Subir",
+                    onClick = {
+                        menuOpen = false
+                        onMoveUp()
+                    },
+                )
+            }
+            if (index < total - 1) {
+                KpknContextMenuRow(
+                    label = "Bajar",
+                    onClick = {
+                        menuOpen = false
+                        onMoveDown()
+                    },
+                )
+            }
+            KpknContextMenuRow(
+                label = "Eliminar bloque",
+                destructive = true,
+                onClick = {
+                    menuOpen = false
+                    onDelete()
+                },
             )
         }
     }
 }
 
-/** Inspector único para editar el bloque seleccionado: tipo, duración y las magnitudes del aparato. Sin caja: aire y un filete arriba. */
+/** Inspector único para editar el bloque actualmente seleccionado. */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun CardioActiveBlockInspector(
@@ -454,105 +585,83 @@ private fun CardioActiveBlockInspector(
     catalogSupportsRpm: Boolean,
     catalogSupportsWatts: Boolean,
     onUpdate: (CardioIntervalBlock) -> Unit,
-    onDelete: () -> Unit,
-    onDuplicate: () -> Unit,
     onPrevious: (() -> Unit)?,
     onNext: (() -> Unit)?,
 ) {
     var showDurationPicker by remember { mutableStateOf(false) }
     var blockPicker by remember { mutableStateOf<String?>(null) }
+    val panelShape = RoundedCornerShape(16.dp)
 
     Column(
-        modifier = Modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(10.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(panelShape)
+            .background(KpknSurface.inset, panelShape)
+            .padding(14.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        Box(modifier = Modifier.fillMaxWidth().height(1.dp).background(KpknSurface.divider))
-
-        // Nombre del bloque con su posición, y la navegación entre bloques debajo.
-        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            Box(
-                modifier = Modifier
-                    .size(24.dp)
-                    .clip(CircleShape)
-                    .background(KpknSurface.inset),
-                contentAlignment = Alignment.Center,
-            ) {
-                Text(
-                    text = "${index + 1}",
-                    style = KpknType.caption.copy(fontFeatureSettings = "'tnum' 1"),
-                    color = WizardColors.text,
-                )
-            }
-            Text(
-                text = "${CardioIntervalEngine.blockTypeLabel(block.type)} (${index + 1}/$total)",
-                style = KpknType.bodyStrong,
-                color = WizardColors.text,
-            )
-        }
+        // Barra superior del inspector con navegación rápida
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween,
         ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                KpknIconButton(
-                    icon = KpknLineIcons.ChevronLeft,
-                    contentDescription = "Anterior",
-                    onClick = onPrevious ?: {},
-                    tint = if (onPrevious != null) WizardColors.text else WizardColors.textFaint,
-                )
-                KpknIconButton(
-                    icon = KpknLineIcons.ChevronRight,
-                    contentDescription = "Siguiente",
-                    onClick = onNext ?: {},
-                    tint = if (onNext != null) WizardColors.text else WizardColors.textFaint,
-                )
+            Text(
+                "${CardioPrescriptionFormatter.phaseLabel(block.type)} (${index + 1}/$total)",
+                style = KpknType.bodyStrong,
+                color = WizardColors.text,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.weight(1f),
+            )
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                if (onPrevious != null) {
+                    KpknIconButton(icon = KpknLineIcons.ChevronLeft, contentDescription = "Bloque anterior", onClick = onPrevious)
+                } else {
+                    Spacer(Modifier.size(48.dp))
+                }
+                if (onNext != null) {
+                    KpknIconButton(icon = KpknLineIcons.ChevronRight, contentDescription = "Bloque siguiente", onClick = onNext)
+                } else {
+                    Spacer(Modifier.size(48.dp))
+                }
             }
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                KpknIconButton(
-                    icon = KpknLineIcons.Repeat,
-                    contentDescription = "Duplicar bloque",
-                    onClick = onDuplicate,
-                    tint = WizardColors.text,
-                )
-                KpknIconButton(
-                    icon = KpknLineIcons.Trash,
-                    contentDescription = "Eliminar bloque",
-                    onClick = onDelete,
-                    tint = WizardColors.danger,
+        }
+
+        // Selector de tipo de bloque
+        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            CardioBlockType.entries.forEach { t ->
+                KpknChip(
+                    text = CardioPrescriptionFormatter.phaseLabel(t),
+                    selected = block.type == t,
+                    onClick = { onUpdate(block.copy(type = t)) },
                 )
             }
         }
 
-        // Tipo del bloque: esfuerzo, pausa, calentamiento o vuelta a la calma.
-        KpknSegmentedControl(
-            options = CardioBlockType.entries.map { it.segmentLabel() },
-            selectedIndex = CardioBlockType.entries.indexOf(block.type),
-            onSelect = { onUpdate(block.copy(type = CardioBlockType.entries[it])) },
-            size = KpknSegmentedSize.Compact,
-            // Los rótulos van abreviados para caber a 13 sp; TalkBack lee el nombre entero (SE8).
-            descriptions = CardioBlockType.entries.map { it.fullName() },
-        )
-
-        // Duración: la píldora abre el selector; los ajustes rápidos son acciones de texto de 48 dp.
-        Row(horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
-            CardioValuePill(
+        // Duración con ajuste rápido y selector
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.fillMaxWidth(),
+        ) {
+            val (durationValue, durationUnit) = durationCellParts(block.durationSeconds)
+            CardioMagnitudeCell(
                 label = "Duración",
-                value = formatMinutes(block.durationSeconds),
-                accentColor = accentColor,
+                value = durationValue,
+                unit = durationUnit,
                 onClick = { showDurationPicker = true },
                 modifier = Modifier.weight(1f),
             )
-            KpknTextAction(
+            KpknCompactPill(
                 text = "−15 s",
-                onClick = {
-                    val nextSec = (block.durationSeconds - 15).coerceAtLeast(15)
-                    onUpdate(block.copy(durationSeconds = nextSec))
-                },
+                onClick = { onUpdate(block.copy(durationSeconds = (block.durationSeconds - 15).coerceAtLeast(15))) },
+                filled = false,
             )
-            KpknTextAction(
+            KpknCompactPill(
                 text = "+15 s",
                 onClick = { onUpdate(block.copy(durationSeconds = block.durationSeconds + 15)) },
+                filled = true,
             )
         }
 
@@ -569,63 +678,68 @@ private fun CardioActiveBlockInspector(
             )
         }
 
-        // Magnitudes del aparato y del bloque: píldoras en fila que salta de línea.
-        FlowRow(
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-            modifier = Modifier.fillMaxWidth(),
-        ) {
+        // Magnitudes del bloque, en celdas
+        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             if (catalogSupportsSpeed) {
-                CardioValuePill(
+                CardioMagnitudeCell(
                     label = "Velocidad",
-                    value = block.speedKmh?.let { if (it % 1.0 == 0.0) "${it.toInt()} km/h" else "%.1f km/h".format(it) } ?: "—",
-                    accentColor = accentColor,
+                    value = block.speedKmh?.let { cellNumber(it) } ?: "—",
+                    unit = block.speedKmh?.let { "km/h" },
                     onClick = { blockPicker = "speed" },
+                    modifier = Modifier.width(144.dp),
                 )
             }
             if (catalogSupportsIncline) {
-                CardioValuePill(
+                CardioMagnitudeCell(
                     label = "Inclinación",
-                    value = block.inclinePercent?.let { "$it %" } ?: "—",
-                    accentColor = accentColor,
+                    value = block.inclinePercent?.let { cellNumber(it) } ?: "—",
+                    unit = block.inclinePercent?.let { "%" },
                     onClick = { blockPicker = "incline" },
+                    modifier = Modifier.width(144.dp),
                 )
             }
             if (catalogSupportsRpm) {
-                CardioValuePill(
+                CardioMagnitudeCell(
                     label = "RPM",
                     value = block.rpm?.toString() ?: "—",
-                    accentColor = accentColor,
+                    unit = null,
                     onClick = { blockPicker = "rpm" },
+                    modifier = Modifier.width(144.dp),
                 )
             }
             if (catalogSupportsWatts) {
-                CardioValuePill(
+                CardioMagnitudeCell(
                     label = "Vatios",
-                    value = block.watts?.let { "$it W" } ?: "—",
-                    accentColor = accentColor,
+                    value = block.watts?.toString() ?: "—",
+                    unit = block.watts?.let { "W" },
                     onClick = { blockPicker = "watts" },
+                    modifier = Modifier.width(144.dp),
                 )
             }
             if (!catalogSupportsSpeed) {
-                CardioValuePill(
+                CardioMagnitudeCell(
                     label = "Nivel",
                     value = block.intensityLevel?.toString() ?: "—",
-                    accentColor = accentColor,
+                    unit = block.intensityLevel?.let { "RPE" },
                     onClick = { blockPicker = "level" },
+                    modifier = Modifier.width(144.dp),
                 )
             }
-            CardioValuePill(
+            val (paceValue, paceUnit) = paceCellParts(block.targetPaceSecondsPerKm)
+            CardioMagnitudeCell(
                 label = "Ritmo",
-                value = block.targetPaceSecondsPerKm?.let { CardioPrescriptionFormatter.formatPace(it) } ?: "—",
-                accentColor = accentColor,
+                value = paceValue,
+                unit = paceUnit,
                 onClick = { blockPicker = "pace" },
+                modifier = Modifier.width(144.dp),
             )
-            CardioValuePill(
-                label = "% FC",
-                value = block.targetHrPercent?.let { "$it %" } ?: "—",
-                accentColor = accentColor,
+            val hr = block.targetHrPercent
+            CardioMagnitudeCell(
+                label = "FC",
+                value = hr?.toString() ?: "—",
+                unit = hr?.let { "%" },
                 onClick = { blockPicker = "hr" },
+                modifier = Modifier.width(144.dp),
             )
         }
         when (blockPicker) {
@@ -697,96 +811,24 @@ private fun CardioActiveBlockInspector(
     }
 }
 
-/** Vista de lista: un bloque por fila, con su posición, tipo y duración; los movimientos y la papelera van en la segunda línea. */
 @Composable
-private fun CardioCompactBlocksOverview(
-    blocks: List<CardioIntervalBlock>,
-    selectedIdx: Int,
-    catalogSupportsSpeed: Boolean,
-    onSelectIdx: (Int) -> Unit,
-    onDelete: (Int) -> Unit,
-    onMoveUp: (Int) -> Unit,
-    onMoveDown: (Int) -> Unit,
-) {
-    Column(modifier = Modifier.fillMaxWidth()) {
-        blocks.forEachIndexed { idx, block ->
-            val isSelected = idx == selectedIdx
-            if (idx > 0) {
-                Box(modifier = Modifier.fillMaxWidth().height(1.dp).background(KpknSurface.divider))
-            }
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable(role = Role.Button, onClick = { onSelectIdx(idx) })
-                    .padding(vertical = 8.dp),
-                verticalArrangement = Arrangement.spacedBy(4.dp),
-            ) {
-                Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                    Text(
-                        text = "#${idx + 1} · ${CardioIntervalEngine.blockTypeShortLabel(block.type)}",
-                        style = KpknType.bodyStrong,
-                        color = if (isSelected) WizardColors.text else WizardColors.textMuted,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier.weight(1f),
-                    )
-                    Text(
-                        text = formatMinutes(block.durationSeconds),
-                        style = KpknType.caption.copy(fontFeatureSettings = "'tnum' 1"),
-                        color = WizardColors.text,
-                    )
-                }
-                Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                    val marker = when {
-                        catalogSupportsSpeed && block.speedKmh != null -> "${block.speedKmh} km/h"
-                        block.intensityLevel != null -> "Nivel ${block.intensityLevel}"
-                        else -> ""
-                    }
-                    Text(
-                        text = marker,
-                        style = KpknType.caption,
-                        color = WizardColors.textMuted,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier.weight(1f),
-                    )
-                    KpknIconButton(
-                        icon = KpknLineIcons.ChevronUp,
-                        contentDescription = "Subir bloque ${idx + 1}",
-                        onClick = { onMoveUp(idx) },
-                        tint = if (idx > 0) WizardColors.text else WizardColors.textFaint,
-                    )
-                    KpknIconButton(
-                        icon = KpknLineIcons.ChevronDown,
-                        contentDescription = "Bajar bloque ${idx + 1}",
-                        onClick = { onMoveDown(idx) },
-                        tint = if (idx < blocks.size - 1) WizardColors.text else WizardColors.textFaint,
-                    )
-                    KpknIconButton(
-                        icon = KpknLineIcons.Trash,
-                        contentDescription = "Eliminar bloque ${idx + 1}",
-                        onClick = { onDelete(idx) },
-                        tint = WizardColors.danger,
-                    )
-                }
-            }
-        }
-    }
-}
-
-/** Plantilla de patrón: el nombre, una columna por unidad (esfuerzo en `energia`, pausa en blanco al 12 %) y su descripción. Sin caja. */
-@Composable
-private fun IntervalPatternTemplate(
+private fun IntervalPatternTemplateCard(
     spec: CardioIntervalPatternSpec,
     selected: Boolean,
+    accentColor: Color,
     onClick: () -> Unit,
 ) {
+    val cardShape = RoundedCornerShape(16.dp)
     Column(
         modifier = Modifier
             .width(178.dp)
-            .clickable(role = Role.Button, onClickLabel = spec.label, onClick = onClick)
-            .padding(vertical = 8.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp),
+            .height(142.dp)
+            .clip(cardShape)
+            .background(KpknSurface.inset, cardShape)
+            .then(if (selected) Modifier.border(1.dp, WizardColors.text.copy(alpha = 0.24f), cardShape) else Modifier)
+            .clickable(role = Role.Button, onClick = onClick)
+            .padding(horizontal = 12.dp, vertical = 10.dp),
+        verticalArrangement = Arrangement.spacedBy(7.dp),
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -794,23 +836,22 @@ private fun IntervalPatternTemplate(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Text(
-                text = spec.label,
+                spec.label,
+                color = WizardColors.text,
                 style = KpknType.bodyStrong,
-                color = if (selected) WizardColors.text else WizardColors.textMuted,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.weight(1f),
             )
             if (selected) {
-                Spacer(Modifier.width(8.dp))
                 Box(
                     modifier = Modifier
                         .size(7.dp)
                         .clip(CircleShape)
-                        .background(WizardColors.text),
+                        .background(accentColor),
                 )
             }
         }
+
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -827,37 +868,19 @@ private fun IntervalPatternTemplate(
                         .weight(1f)
                         .fillMaxHeight(heightFraction)
                         .clip(RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp))
-                        .background(
-                            if (unit.type == CardioBlockType.RECOVER) {
-                                Color.White.copy(alpha = 0.12f)
-                            } else {
-                                SymbolPalette.energia.copy(alpha = if (selected) 1f else 0.55f)
-                            },
-                        ),
+                        .background(cardioBlockColor(unit.type, accentColor).copy(alpha = if (selected) 0.9f else 0.64f)),
                 )
             }
         }
+
         Text(
-            text = spec.description,
+            spec.description,
+            color = WizardColors.textMuted,
             style = KpknType.caption,
-            color = WizardColors.textFaint,
             maxLines = 2,
             overflow = TextOverflow.Ellipsis,
         )
     }
-}
-
-/** Etiqueta de sección en mayúsculas (kicker, `eyebrow`) dentro del módulo. */
-@Composable
-private fun Kicker(text: String) {
-    Text(
-        text = text.uppercase(Locale("es")),
-        style = KpknType.eyebrow,
-        color = WizardColors.textMuted,
-        // Hasta dos líneas (KPKN_UI_V2 §5): a 130 % el rótulo se parte entre palabras antes de cortarse.
-        maxLines = 2,
-        overflow = TextOverflow.Ellipsis,
-    )
 }
 
 private fun intervalPatternLooksSelected(
@@ -895,21 +918,25 @@ private fun intervalPatternDistance(
     return (weightDistance + typeDistance).coerceAtMost(1f)
 }
 
-/** «1 min 30 s», «45 s» o «2 min»: la misma regla de duración que el resto del cardio. */
-private fun formatMinutes(totalSeconds: Int): String = SessionCardioDose.minutesText(totalSeconds)
-
-/** Rótulo corto en español del tipo de bloque para el selector; los abreviados del motor salen en inglés («WORK», «COOL»). */
-private fun CardioBlockType.segmentLabel(): String = when (this) {
-    CardioBlockType.WARMUP -> "Calent."
-    CardioBlockType.WORK -> "Trabajo"
-    CardioBlockType.RECOVER -> "Pausa"
-    CardioBlockType.COOLDOWN -> "Enfr."
+/** Intensidad de un bloque en palabras y con su unidad: «9 km/h», «120 W», «Nivel 7». */
+private fun blockIntensityText(block: CardioIntervalBlock, supportsSpeed: Boolean): String = when {
+    supportsSpeed && block.speedKmh != null -> "${cellNumber(block.speedKmh)} km/h"
+    block.watts != null -> "${block.watts} W"
+    block.intensityLevel != null -> "Nivel ${block.intensityLevel}"
+    else -> "—"
 }
 
-/** Nombre entero del tipo de bloque, que TalkBack lee cuando el rótulo va abreviado (SE8). */
-private fun CardioBlockType.fullName(): String = when (this) {
-    CardioBlockType.WARMUP -> "Calentamiento"
-    CardioBlockType.WORK -> "Trabajo"
-    CardioBlockType.RECOVER -> "Pausa"
-    CardioBlockType.COOLDOWN -> "Enfriamiento"
+/** Tres letras para el peldaño sin velocidad ni nivel. */
+private fun shortPhaseLabel(type: CardioBlockType): String = when (type) {
+    CardioBlockType.WARMUP -> "CAL"
+    CardioBlockType.WORK -> "ESF"
+    CardioBlockType.RECOVER -> "PAU"
+    CardioBlockType.COOLDOWN -> "ENF"
 }
+
+/**
+ * Duración con el formato de la dosis («11 min 30 s»), con espacios inseparables entre cifra y unidad para que no se parta la «s».
+ * Sin tiempo, «0 min».
+ */
+private fun formatMinutes(totalSeconds: Int): String =
+    if (totalSeconds <= 0) "0 min" else CardioPrescriptionFormatter.formatDuration(totalSeconds).replace(' ', ' ')

@@ -39,22 +39,43 @@ class KpknLineIconsTest {
         KpknLineIcons.Apple,
         KpknLineIcons.Moon,
         KpknLineIcons.Tower,
-        KpknLineIcons.Search,
         KpknLineIcons.Pause,
         KpknLineIcons.Minus,
         KpknLineIcons.Flag,
+        KpknLineIcons.Search,
         KpknLineIcons.Route,
         KpknLineIcons.Layers,
         KpknLineIcons.History,
         KpknLineIcons.Trash,
+        KpknLineIcons.Pulse,
+        KpknLineIcons.Run,
+        KpknLineIcons.Walk,
+        KpknLineIcons.Bike,
+        KpknLineIcons.Row,
+        KpknLineIcons.Stairs,
+        KpknLineIcons.ChevronUp,
+        KpknLineIcons.Tag,
+        KpknLineIcons.Flame,
+        KpknLineIcons.Swap,
+        KpknLineIcons.Reorder,
+        KpknLineIcons.Joint,
+        KpknLineIcons.Link,
+        KpknLineIcons.Unlink,
+        KpknLineIcons.Grip,
         KpknLineIcons.FrameBack,
         KpknLineIcons.FrameForward,
         KpknLineIcons.Target,
+        KpknLineIcons.Camera,
+        KpknLineIcons.Record,
+        KpknLineIcons.Mic,
+        KpknLineIcons.Alert,
+        KpknLineIcons.Trophy,
+        KpknLineIcons.Bulb,
     )
 
     @Test
     fun cadaIconoMide24PorVeinticuatroDp() {
-        assertEquals(40, iconos.size)
+        assertEquals(61, iconos.size)
         for (icono in iconos) {
             assertEquals("${icono.name}: ancho", 24.dp, icono.defaultWidth)
             assertEquals("${icono.name}: alto", 24.dp, icono.defaultHeight)

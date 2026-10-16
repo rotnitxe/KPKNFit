@@ -6,6 +6,8 @@ import com.example.kpkn.data.models.SessionPart
 import com.example.kpkn.data.models.isCardioPart
 import com.example.kpkn.data.models.supersetGroupRefOrLegacyId
 import com.example.kpkn.domain.workout.SupersetRules
+import com.example.kpkn.screens.sessioneditor.design.SessionModuleEdge
+import com.example.kpkn.screens.sessioneditor.design.sessionModuleEdge
 
 internal fun SessionPart.isUncategorizedPart(): Boolean {
     val normalized = name.trim().lowercase()
@@ -15,6 +17,9 @@ internal fun SessionPart.isUncategorizedPart(): Boolean {
 /**
  * Flattened list model for the session editor [LazyColumn].
  * Each exercise or superset block is its own lazy item for proper virtualization.
+ *
+ * Los ítems de un módulo (grupo, espacio de cardio o ejercicios sueltos) llevan su [SessionModuleEdge]: el primero pone el borde de arriba
+ * y el último el de abajo. Lo reparte [buildSessionListItems]. Los demás ítems van sobre el negro y no lo llevan.
  */
 sealed class SessionListItem {
     abstract val stableKey: String
@@ -27,6 +32,7 @@ sealed class SessionListItem {
         val groupId: String,
         val memberIds: List<String>,
         val indexInLoose: Int,
+        val edge: SessionModuleEdge = SessionModuleEdge.ONLY,
     ) : SessionListItem() {
         override val stableKey: String = "loose-superset-$groupId"
     }
@@ -34,12 +40,14 @@ sealed class SessionListItem {
     data class LooseExercise(
         val exerciseId: String,
         val indexInLoose: Int,
+        val edge: SessionModuleEdge = SessionModuleEdge.ONLY,
     ) : SessionListItem() {
         override val stableKey: String = "loose-exercise-$exerciseId"
     }
 
     data class PartHeader(
         val partId: String,
+        val edge: SessionModuleEdge = SessionModuleEdge.ONLY,
     ) : SessionListItem() {
         override val stableKey: String = "part-header-$partId"
     }
@@ -49,6 +57,7 @@ sealed class SessionListItem {
         val groupId: String,
         val memberIds: List<String>,
         val indexInPart: Int,
+        val edge: SessionModuleEdge = SessionModuleEdge.ONLY,
     ) : SessionListItem() {
         override val stableKey: String = "part-$partId-superset-$groupId"
     }
@@ -57,6 +66,7 @@ sealed class SessionListItem {
         val partId: String,
         val exerciseId: String,
         val indexInPart: Int,
+        val edge: SessionModuleEdge = SessionModuleEdge.ONLY,
     ) : SessionListItem() {
         override val stableKey: String = "part-$partId-exercise-$exerciseId"
     }
@@ -64,6 +74,7 @@ sealed class SessionListItem {
     /** Footer button to add an exercise into an expanded group/part. */
     data class PartAddExercise(
         val partId: String,
+        val edge: SessionModuleEdge = SessionModuleEdge.ONLY,
     ) : SessionListItem() {
         override val stableKey: String = "part-add-$partId"
     }
@@ -72,6 +83,7 @@ sealed class SessionListItem {
         override val stableKey: String = "strength-add-actions"
     }
 
+    /** Pie del espacio de cardio. Su borde lo decide quien pinta el módulo (sin cardios, va solo). */
     data object CardioAddActions : SessionListItem() {
         override val stableKey: String = "cardio-add-actions"
     }
@@ -79,6 +91,11 @@ sealed class SessionListItem {
     /** Zero-height gap after loose exercises for the end-of-loose drop indicator (N9). */
     data object LooseEndGap : SessionListItem() {
         override val stableKey: String = "loose-end-gap"
+    }
+
+    /** Rótulo «SIN GRUPO» encima de los ejercicios sueltos, solo cuando la sesión tiene grupos (ER2b). */
+    data object LooseGroupLabel : SessionListItem() {
+        override val stableKey: String = "loose-group-label"
     }
 
     data class CardioDivider(
@@ -133,6 +150,7 @@ fun buildSessionListItems(
         // --- 2. BLOQUE FUERZA ABAJO ---
         items += SessionListItem.StrengthDivider(showCardioFirst = true, canMove = hasBothSpaces)
         if (session.exercises.isNotEmpty()) {
+            if (strengthParts.isNotEmpty()) items += SessionListItem.LooseGroupLabel
             appendExerciseItems(
                 items = items,
                 exercises = session.exercises,
@@ -153,6 +171,7 @@ fun buildSessionListItems(
             items += SessionListItem.StrengthDivider(showCardioFirst = false, canMove = hasBothSpaces)
         }
         if (session.exercises.isNotEmpty()) {
+            if (strengthParts.isNotEmpty()) items += SessionListItem.LooseGroupLabel
             appendExerciseItems(
                 items = items,
                 exercises = session.exercises,
@@ -179,7 +198,7 @@ fun buildSessionListItems(
         }
     }
 
-    return items
+    return items.withModuleEdges(session)
 }
 
 private fun appendCardioPartExercises(
@@ -243,6 +262,47 @@ private fun appendExerciseItems(
     }
 }
 
+/**
+ * Reparte los bordes de cada módulo entre sus ítems consecutivos. Un módulo es un grupo de fuerza, el espacio de cardio (sus cardios y su
+ * pie) o los ejercicios sueltos. Los divisores, los huecos y las acciones de fuerza van sobre el negro y no tienen borde.
+ */
+private fun List<SessionListItem>.withModuleEdges(session: Session): List<SessionListItem> {
+    val keys = map { moduleKeyOf(it, session) }
+    return mapIndexed { index, item ->
+        val key = keys[index] ?: return@mapIndexed item
+        val edge = sessionModuleEdge(
+            first = index == 0 || keys[index - 1] != key,
+            last = index == lastIndex || keys[index + 1] != key,
+        )
+        when (item) {
+            is SessionListItem.LooseExercise -> item.copy(edge = edge)
+            is SessionListItem.LooseSuperset -> item.copy(edge = edge)
+            is SessionListItem.PartHeader -> item.copy(edge = edge)
+            is SessionListItem.PartExercise -> item.copy(edge = edge)
+            is SessionListItem.PartSuperset -> item.copy(edge = edge)
+            is SessionListItem.PartAddExercise -> item.copy(edge = edge)
+            else -> item
+        }
+    }
+}
+
+/** Clave del módulo al que pertenece un ítem, o null si el ítem va sobre el negro. */
+private fun moduleKeyOf(item: SessionListItem, session: Session): String? = when (item) {
+    is SessionListItem.LooseExercise, is SessionListItem.LooseSuperset -> LOOSE_MODULE_KEY
+    is SessionListItem.PartHeader -> "part:${item.partId}"
+    is SessionListItem.PartAddExercise -> "part:${item.partId}"
+    is SessionListItem.PartExercise -> if (isCardioPartId(session, item.partId)) CARDIO_MODULE_KEY else "part:${item.partId}"
+    is SessionListItem.PartSuperset -> if (isCardioPartId(session, item.partId)) CARDIO_MODULE_KEY else "part:${item.partId}"
+    SessionListItem.CardioAddActions -> CARDIO_MODULE_KEY
+    else -> null
+}
+
+private const val LOOSE_MODULE_KEY = "loose"
+private const val CARDIO_MODULE_KEY = "cardio"
+
+private fun isCardioPartId(session: Session, partId: String): Boolean =
+    session.parts.firstOrNull { it.id == partId }?.isCardioPart() == true
+
 fun findListIndexForExercise(items: List<SessionListItem>, exerciseId: String): Int {
     return items.indexOfFirst { item ->
         when (item) {
@@ -256,14 +316,13 @@ fun findListIndexForExercise(items: List<SessionListItem>, exerciseId: String): 
 }
 
 /**
- * Maps an exercise id to the LazyColumn index used by SessionEditorScreen: los [leadingItems] primeros ítems van delante del
- * contenido (por defecto, solo la cabecera; el editor actual pone la fila superior, la franja de portada y la cabecera).
+ * Maps an exercise id to the LazyColumn index used by SessionEditorScreen:
+ * [0]=Hero, [1..n]=scrollable content.
  */
 fun lazyColumnIndexForExercise(
     scrollableItems: List<SessionListItem>,
     exerciseId: String,
-    leadingItems: Int = 1,
 ): Int {
     val contentIndex = findListIndexForExercise(scrollableItems, exerciseId)
-    return if (contentIndex >= 0) contentIndex + leadingItems else -1
+    return if (contentIndex >= 0) contentIndex + 1 else -1
 }

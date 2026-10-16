@@ -4,11 +4,13 @@ import android.app.AlarmManager
 import androidx.test.core.app.ApplicationProvider
 import com.example.kpkn.data.models.CompetitionRecord
 import com.example.kpkn.data.models.CompetitionRecordStatus
+import com.example.kpkn.testsupport.RoomTestRule
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
@@ -20,6 +22,9 @@ import java.time.LocalDate
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [34])
 class CompetitionRepositoryCompletedReminderTest {
+
+    @get:Rule
+    val roomRule = RoomTestRule()
 
     private val context = ApplicationProvider.getApplicationContext<android.content.Context>()
 

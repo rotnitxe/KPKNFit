@@ -3,19 +3,23 @@ package com.example.kpkn.screens.workout
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.example.kpkn.screens.onboarding.design.WizardColors
+import com.example.kpkn.screens.onboarding.design.entreno.SymbolPalette
 import com.example.kpkn.ui.components.kpknGlassOrFallback
+import com.example.kpkn.ui.design.KpknShape
+import com.example.kpkn.ui.design.KpknSurface
+import com.example.kpkn.ui.design.KpknType
+import java.util.Locale
 
 enum class ExerciseDrainOverlayChannel {
     ENERGY,
@@ -35,27 +39,32 @@ data class ExerciseDrainOverlayState(
     val items: List<ExerciseDrainOverlayItem>,
 )
 
+/**
+ * Tarjeta de gasto tras una serie (LR1c1): el velo opaco de siempre, con el filete de `module`. Título en eyebrow.
+ */
 @Composable
 internal fun ExerciseDrainOverlayCard(
     state: ExerciseDrainOverlayState,
     modifier: Modifier = Modifier,
 ) {
-    val shape = RoundedCornerShape(18.dp)
+    val shape = KpknShape.module
     // Nested under workout hazeSource — FallbackScrim DarkMica (no dead live Haze).
     Box(
-        modifier = modifier.kpknGlassOrFallback(null, shape),
+        modifier = modifier
+            .kpknGlassOrFallback(null, shape)
+            .border(1.dp, KpknSurface.moduleBorder, shape),
     ) {
         Column(
             modifier = Modifier.padding(horizontal = 14.dp, vertical = 12.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             Text(
-                text = "Drenaje de ${state.exerciseName}",
-                style = MaterialTheme.typography.labelMedium,
-                fontWeight = FontWeight.Bold,
-                maxLines = 1,
+                text = "Drenaje de ${state.exerciseName}".uppercase(Locale("es")),
+                style = KpknType.eyebrow,
+                color = WizardColors.textMuted,
+                // Hasta dos líneas antes que cortar el nombre del ejercicio al 130 % (LR1c1).
+                maxLines = 2,
                 overflow = TextOverflow.Ellipsis,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
             state.items.forEachIndexed { index, item ->
                 ExerciseDrainAnimatedRow(
@@ -81,10 +90,11 @@ internal fun ExerciseDrainAnimatedRow(
         animationSpec = tween(durationMillis = 620, delayMillis = index * 45),
         label = "exercise-drain-${item.label}",
     )
+    // Los colores de los RINGS (LR1c1): Energía, Columna y Músculos.
     val accent = when (item.channel) {
-        ExerciseDrainOverlayChannel.ENERGY -> Color(0xFF58C4FF)
-        ExerciseDrainOverlayChannel.BACK -> Color(0xFFFFB85C)
-        ExerciseDrainOverlayChannel.MUSCLE -> Color(0xFFFF6F7D)
+        ExerciseDrainOverlayChannel.ENERGY -> SymbolPalette.energia
+        ExerciseDrainOverlayChannel.BACK -> SymbolPalette.columna
+        ExerciseDrainOverlayChannel.MUSCLE -> SymbolPalette.musculo
     }
 
     LaunchedEffect(item.label, item.delta) {
@@ -99,23 +109,22 @@ internal fun ExerciseDrainAnimatedRow(
         ) {
             Text(
                 text = item.label,
-                style = MaterialTheme.typography.labelSmall,
-                fontWeight = FontWeight.SemiBold,
-                color = MaterialTheme.colorScheme.onSurface,
+                style = KpknType.bodyStrong,
+                color = WizardColors.text,
             )
+            // Cifra en Syne con cifras tabulares, espacio inseparable antes del % y signo menos tipográfico.
             Text(
-                text = "-${item.delta}%",
-                style = MaterialTheme.typography.labelMedium,
-                fontWeight = FontWeight.Black,
+                text = "−${item.delta} %",
+                style = KpknType.metricM,
                 color = accent,
             )
         }
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(7.dp)
-                .clip(RoundedCornerShape(999.dp))
-                .background(MaterialTheme.colorScheme.surfaceContainerHighest),
+                .height(8.dp)
+                .clip(KpknShape.pill)
+                .background(Color.White.copy(alpha = 0.08f)),
         ) {
             Box(
                 modifier = Modifier

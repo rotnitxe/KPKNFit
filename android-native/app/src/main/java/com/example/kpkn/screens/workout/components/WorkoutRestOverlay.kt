@@ -14,6 +14,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
@@ -35,6 +36,8 @@ import androidx.compose.ui.zIndex
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.foundation.text.TextAutoSize
+import androidx.compose.runtime.saveable.rememberSaveable
+import com.example.kpkn.data.workout.RestGameRecordStore
 import com.example.kpkn.screens.onboarding.design.WizardColors
 import com.example.kpkn.screens.onboarding.design.WizardFonts
 import com.example.kpkn.screens.onboarding.design.entreno.SymbolPalette
@@ -53,7 +56,12 @@ import com.example.kpkn.data.models.*
 import com.example.kpkn.screens.workout.*
 
 /**
- * Rest timer overlay focused on countdown controls and the last completed set.
+ * Descanso a pantalla completa (LV6, F1): los RINGS como reloj, sin círculo. Arriba el ejercicio y el relator; luego las pestañas de
+ * forma (Torre · Pista · Espiral), la forma con el corredor, el tiempo, −15 s / «Saltar descanso» / +15 s y «Jugar mientras descansas».
+ * Debajo, sin perder nada de lo de siempre: la última serie, el plan de sesión y el descanso sugerido, y «Saltar series restantes…».
+ *
+ * El tiempo SIEMPRE es [remainingSeconds] (el del controlador); la forma solo lo dibuja. Las acciones (±15 s, saltar, descanso sugerido,
+ * saltar series) son las mismas funciones que usan la tarjeta, la notificación y el minijuego.
  */
 @Composable
 internal fun RestTimerOverlay(
@@ -75,15 +83,27 @@ internal fun RestTimerOverlay(
     onWarmupEffort: ((Double) -> Unit)? = null,
     postExerciseFeedbackContent: (@Composable () -> Unit)? = null,
     feedbackExerciseCount: Int = 0,
+    feedbackTitle: String? = null,
+    feedbackAfter: String? = null,
     onMinimize: (() -> Unit)? = null,
     relatorText: String? = null,
     relatorPhaseKey: String = "",
     relatorActions: List<RelatorAssistAction> = emptyList(),
     onRelatorAction: (RelatorAssistAction) -> Unit = {},
+    shape: RestClockShape = RestClockShape.TOWER,
+    onShapeChange: (RestClockShape) -> Unit = {},
+    headline: RestHeadline? = null,
+    nextSet: RestNextSetSummary? = null,
+    recordStore: RestGameRecordStore? = null,
+    clockActive: Boolean = true,
+    initiallyPlaying: Boolean = false,
+    gameEngine: RestGameEngine? = null,
 ) {
-    val totalSeconds = state.activeSeconds.coerceAtLeast(1)
-    val timerProgress = (remainingSeconds.toFloat() / totalSeconds).coerceIn(0f, 1f)
+    // El total es el del descanso entero (con los ajustes de ±15 s): así la forma no vuelve a cero al ajustar el tiempo.
+    val totalSeconds = state.totalRestSeconds().coerceAtLeast(remainingSeconds).coerceAtLeast(1)
+    val progress = RestClockMath.progress(totalSeconds, remainingSeconds)
     val hasFeedback = postExerciseFeedbackContent != null
+    var playing by rememberSaveable { mutableStateOf(initiallyPlaying) }
 
     Box(
         modifier = Modifier
@@ -118,78 +138,160 @@ internal fun RestTimerOverlay(
                 FeedbackContent(
                     state = state,
                     remainingSeconds = remainingSeconds,
-                    timerProgress = timerProgress,
+                    progress = progress,
                     sessionAccentColor = sessionAccentColor,
                     pendingRestSuggestion = pendingRestSuggestion,
                     isAdaptiveActive = isAdaptiveActive,
-                    onDecrease = onDecrease,
-                    onIncrease = onIncrease,
+                    onSkip = onSkip,
                     onUseAdaptive = onUseAdaptive,
                     postExerciseFeedbackContent = postExerciseFeedbackContent ?: {},
                     feedbackExerciseCount = feedbackExerciseCount,
+                    title = feedbackTitle ?: state.exerciseName,
+                    after = feedbackAfter,
                     showTimerChrome = remainingSeconds > 0,
+                    onMinimize = onMinimize,
                     relatorText = relatorText,
                     relatorPhaseKey = relatorPhaseKey,
                     relatorActions = relatorActions,
                     onRelatorAction = onRelatorAction,
+                    shape = shape,
+                    clockActive = clockActive,
                 )
             } else {
-                NormalRestContent(
-                    state = state,
-                    remainingSeconds = remainingSeconds,
-                    timerProgress = timerProgress,
-                    sessionAccentColor = sessionAccentColor,
-                    hazeState = hazeState,
-                    pendingRestSuggestion = pendingRestSuggestion,
-                    lastSetOutcome = lastSetOutcome,
-                    lastCompletedSet = lastCompletedSet,
-                    lastCompletedSets = lastCompletedSets,
-                    isAdaptiveActive = isAdaptiveActive,
-                    onDecrease = onDecrease,
-                    onIncrease = onIncrease,
-                    onSkip = onSkip,
-                    skipExerciseLabel = skipExerciseLabel,
-                    onSkipExercise = onSkipExercise,
-                    onUseAdaptive = onUseAdaptive,
-                    onMinimize = onMinimize,
-                    onWarmupEffort = onWarmupEffort,
-                    relatorText = relatorText,
-                    relatorPhaseKey = relatorPhaseKey,
-                    relatorActions = relatorActions,
-                    onRelatorAction = onRelatorAction,
-                )
+                AnimatedContent(
+                    targetState = playing,
+                    transitionSpec = { fadeIn(tween(200)) togetherWith fadeOut(tween(160)) },
+                    label = "rest-game-transition",
+                ) { isPlaying ->
+                    if (isPlaying) {
+                        // El juego vive dentro de la misma superficie. El descanso manda: al llegar a 0 esta capa deja de componerse y
+                        // el juego se cierra con ella; «Saltar descanso» desde aquí es el mismo onSkip.
+                        RestGameFullScreen(
+                            remainingSeconds = remainingSeconds,
+                            totalSeconds = totalSeconds,
+                            nextSet = nextSet,
+                            onBack = { playing = false },
+                            onSkip = onSkip,
+                            recordStore = recordStore,
+                            engine = gameEngine,
+                            running = clockActive,
+                        )
+                    } else {
+                        NormalRestContent(
+                            state = state,
+                            remainingSeconds = remainingSeconds,
+                            totalSeconds = totalSeconds,
+                            progress = progress,
+                            pendingRestSuggestion = pendingRestSuggestion,
+                            lastSetOutcome = lastSetOutcome,
+                            lastCompletedSet = lastCompletedSet,
+                            lastCompletedSets = lastCompletedSets,
+                            isAdaptiveActive = isAdaptiveActive,
+                            sessionAccentColor = sessionAccentColor,
+                            onDecrease = onDecrease,
+                            onIncrease = onIncrease,
+                            onSkip = onSkip,
+                            skipExerciseLabel = skipExerciseLabel,
+                            onSkipExercise = onSkipExercise,
+                            onUseAdaptive = onUseAdaptive,
+                            onMinimize = onMinimize,
+                            relatorText = relatorText,
+                            relatorPhaseKey = relatorPhaseKey,
+                            relatorActions = relatorActions,
+                            onRelatorAction = onRelatorAction,
+                            shape = shape,
+                            onShapeChange = onShapeChange,
+                            headline = headline,
+                            onPlay = { playing = true },
+                            clockActive = clockActive,
+                        )
+                    }
+                }
             }
         }
     }
 }
 
+/** El tiempo del descanso con su etiqueta: «DESCANSO», «2:41» y «de 4:09 · sugerido». Lo lee TalkBack como una sola frase. */
+@Composable
+private fun RestTimeReadout(
+    state: WorkoutRestModalState,
+    remainingSeconds: Int,
+    totalSeconds: Int,
+    isAdaptiveActive: Boolean,
+    maxFontSize: TextUnit,
+    modifier: Modifier = Modifier,
+    showTotal: Boolean = true,
+) {
+    val safeRemaining = remainingSeconds.coerceAtLeast(0)
+    val totalLabel = buildString {
+        append("de ").append(formatRestClock(totalSeconds))
+        when {
+            isAdaptiveActive -> append(" · sugerido")
+            state.isManualOverride -> append(" · manual")
+        }
+    }
+    Column(modifier = modifier, horizontalAlignment = Alignment.CenterHorizontally) {
+        Text(
+            text = restKindText(state.kind).uppercase(),
+            style = KpknType.eyebrow,
+            color = WizardColors.textMuted,
+        )
+        RestClockText(
+            text = formatRestClock(safeRemaining),
+            maxFontSize = maxFontSize,
+            modifier = Modifier.semantics { contentDescription = RestClockMath.spokenRemaining(safeRemaining) },
+        )
+        if (showTotal) {
+            Text(
+                text = totalLabel,
+                style = KpknType.caption,
+                color = WizardColors.textMuted,
+            )
+        }
+    }
+}
+
+/**
+ * El descanso cuando hay feedback pendiente (LV6, F2): arriba lo de siempre (el relator y el descanso sugerido), la cabecera con la
+ * forma de RINGS pequeña («Sentadilla trasera», «Ejercicio terminado · Descanso 2:38 · después, la superserie») y, debajo, el panel
+ * del feedback, que reparte el resto del alto y deja «Saltar descanso» y «Guardar» fijos abajo. Si la persona minimiza, la tarjeta del
+ * descanso lleva el mismo feedback en compacto (B3).
+ */
 @Composable
 private fun FeedbackContent(
     state: WorkoutRestModalState,
     remainingSeconds: Int,
-    timerProgress: Float,
+    progress: Float,
     sessionAccentColor: Color,
     pendingRestSuggestion: PendingRestSuggestion?,
     isAdaptiveActive: Boolean,
-    onDecrease: () -> Unit,
-    onIncrease: () -> Unit,
+    onSkip: () -> Unit,
     onUseAdaptive: (() -> Unit)?,
     postExerciseFeedbackContent: @Composable () -> Unit,
     feedbackExerciseCount: Int = 0,
+    title: String,
+    after: String?,
     showTimerChrome: Boolean = true,
+    onMinimize: (() -> Unit)? = null,
     relatorText: String? = null,
     relatorPhaseKey: String = "",
     relatorActions: List<RelatorAssistAction> = emptyList(),
     onRelatorAction: (RelatorAssistAction) -> Unit = {},
+    shape: RestClockShape = RestClockShape.TOWER,
+    clockActive: Boolean = true,
 ) {
-    val scrollState = rememberScrollState()
     Column(
         modifier = Modifier
             .fillMaxSize()
             .statusBarsPadding()
             .navigationBarsPadding()
-            .verticalScroll(scrollState)
-            .padding(horizontal = WorkoutUiTokens.ScreenHorizontalPadding, vertical = 24.dp),
+            .padding(
+                start = WorkoutUiTokens.ScreenHorizontalPadding,
+                end = WorkoutUiTokens.ScreenHorizontalPadding,
+                top = 8.dp,
+                bottom = 16.dp,
+            ),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         RestOverlayRelatorLine(
@@ -200,7 +302,7 @@ private fun FeedbackContent(
             accentColor = sessionAccentColor,
         )
 
-        // ─── ADAPTIVE REST SUGGESTION AT TOP ───
+        // El descanso sugerido sigue arriba, como siempre.
         if (pendingRestSuggestion != null && !isAdaptiveActive && onUseAdaptive != null) {
             RestFigureModule(
                 title = "Descanso sugerido",
@@ -209,332 +311,342 @@ private fun FeedbackContent(
                 sparkle = true,
                 onClick = onUseAdaptive,
             )
+            Spacer(Modifier.height(10.dp))
         }
 
-        if (showTimerChrome) {
-            Spacer(Modifier.height(8.dp))
-
-            // Shrink ANIMADO: entra con el tamaño del timer de descanso normal (204.dp)
-            // y colapsa a su tamaño compacto mientras aparece el panel de feedback.
-            val shrinkTargetSize = if (feedbackExerciseCount <= 1) 152.dp else 132.dp
-            val shrinkTargetStroke = if (feedbackExerciseCount <= 1) 10.dp else 8.dp
-            val shrinkTargetFontSp = if (feedbackExerciseCount <= 1) 34f else 30f
-            var shrinkStarted by remember { mutableStateOf(false) }
-            LaunchedEffect(Unit) { shrinkStarted = true }
-            val timerSize by animateDpAsState(
-                targetValue = if (shrinkStarted) shrinkTargetSize else 204.dp,
-                animationSpec = spring(
-                    dampingRatio = Spring.DampingRatioNoBouncy,
-                    stiffness = Spring.StiffnessMediumLow,
-                ),
-                label = "rest-timer-shrink",
+        val subtitle = buildString {
+            append(if (feedbackExerciseCount > 1) "Superserie terminada" else "Ejercicio terminado")
+            if (showTimerChrome) append(" · Descanso ").append(formatRestClock(remainingSeconds.coerceAtLeast(0)))
+            if (!after.isNullOrBlank()) append(" · después, ").append(after)
+        }
+        FeedbackHeader(
+            title = title,
+            subtitle = subtitle,
+            shape = shape,
+            progress = progress,
+            clockActive = clockActive,
+            showClock = showTimerChrome,
+            onMinimize = onMinimize.takeIf { showTimerChrome },
+        )
+        if (showTimerChrome && !state.notificationsEnabled) {
+            Spacer(Modifier.height(4.dp))
+            Text(
+                text = "Sin notificaciones el aviso es solo sonoro.",
+                style = KpknType.caption,
+                color = WizardColors.textMuted,
             )
-            val strokeWidth by animateDpAsState(
-                targetValue = if (shrinkStarted) shrinkTargetStroke else 10.dp,
-                label = "rest-timer-stroke",
+        }
+        if (showTimerChrome && !state.exactAlarmGranted) {
+            Spacer(Modifier.height(4.dp))
+            Text(
+                text = "Sin alarma exacta el aviso puede retrasarse con la pantalla apagada.",
+                style = KpknType.caption,
+                color = WizardColors.textMuted,
             )
-            val fontSize = animateFloatAsState(
-                targetValue = if (shrinkStarted) shrinkTargetFontSp else 45f,
-                label = "rest-timer-font",
-            ).value.sp
+        }
+        Spacer(Modifier.height(14.dp))
 
-            Box(
-                modifier = Modifier.size(timerSize),
-                contentAlignment = Alignment.Center,
+        // El panel reparte el resto del alto: lo de en medio se desplaza y los botones quedan fijos abajo.
+        Box(modifier = Modifier.weight(1f).fillMaxWidth()) {
+            CompositionLocalProvider(
+                LocalFeedbackBounded provides true,
+                LocalFeedbackRestSkip provides onSkip.takeIf { showTimerChrome },
             ) {
-                Canvas(modifier = Modifier.matchParentSize()) {
-                    val sw = strokeWidth.toPx()
-                    val center = Offset(size.width / 2f, size.height / 2f)
-                    val outerRadius = (size.minDimension - sw) / 2f
-                    val outerRect = Size(outerRadius * 2f, outerRadius * 2f)
-
-                    drawArc(
-                        color = Color.White.copy(alpha = 0.08f),
-                        startAngle = -90f,
-                        sweepAngle = 360f,
-                        useCenter = false,
-                        topLeft = Offset(center.x - outerRadius, center.y - outerRadius),
-                        size = outerRect,
-                        style = Stroke(sw, cap = StrokeCap.Round),
-                    )
-
-                    drawArc(
-                        color = SymbolPalette.musculo,
-                        startAngle = -90f,
-                        sweepAngle = 360f * timerProgress,
-                        useCenter = false,
-                        topLeft = Offset(center.x - outerRadius, center.y - outerRadius),
-                        size = outerRect,
-                        style = Stroke(sw, cap = StrokeCap.Round),
-                    )
-                }
-
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center,
-                ) {
-                    RestClockText(
-                        text = formatRestClock(remainingSeconds.coerceAtLeast(0)),
-                        maxFontSize = fontSize,
-                    )
-                    if (!state.notificationsEnabled) {
-                        Spacer(Modifier.height(6.dp))
-                        Text(
-                            text = "Sin notificaciones el aviso es solo sonoro.",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = Color.White.copy(alpha = 0.7f),
-                        )
-                    }
-                    if (!state.exactAlarmGranted) {
-                        Spacer(Modifier.height(4.dp))
-                        Text(
-                            text = "Sin alarma exacta el aviso puede retrasarse con la pantalla apagada.",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = Color.White.copy(alpha = 0.7f),
-                        )
-                    }
-                    Spacer(Modifier.height(2.dp))
-                    Text(
-                        text = restKindText(state.kind).uppercase(),
-                        style = KpknType.eyebrow,
-                        color = WizardColors.textMuted,
-                    )
-                }
+                postExerciseFeedbackContent()
             }
-
-            Spacer(Modifier.height(16.dp))
         }
-
-        postExerciseFeedbackContent()
     }
 }
 
+/**
+ * La cabecera del feedback (F2): la forma de RINGS pequeña (la misma del descanso, sin corredor), el ejercicio que se acaba de terminar
+ * con su línea («Ejercicio terminado · Descanso 2:38 · después, …») y, mientras el descanso corre, la flecha para minimizar (la tarjeta
+ * del descanso lleva entonces el feedback en compacto).
+ */
+@Composable
+private fun FeedbackHeader(
+    title: String,
+    subtitle: String,
+    shape: RestClockShape,
+    progress: Float,
+    clockActive: Boolean,
+    showClock: Boolean,
+    onMinimize: (() -> Unit)?,
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        if (showClock) {
+            RestRingsClock(
+                shape = shape,
+                progress = progress,
+                animationsOn = clockActive,
+                runnerScale = 0f,
+                modifier = Modifier.size(width = 54.dp, height = 48.dp),
+            )
+        }
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = title,
+                style = KpknType.bodyStrong,
+                color = WizardColors.text,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+            )
+            Text(
+                text = subtitle,
+                style = KpknType.caption,
+                color = WizardColors.textMuted,
+                maxLines = 3,
+                overflow = TextOverflow.Ellipsis,
+            )
+        }
+        if (onMinimize != null) {
+            KpknIconButton(
+                icon = KpknLineIcons.ChevronDown,
+                contentDescription = "Minimizar",
+                onClick = onMinimize,
+            )
+        }
+    }
+}
+
+/**
+ * El descanso normal (F1). Todo lo de siempre sigue a mano: minimizar, el relator, ajustar el tiempo, saltar, la última serie, el
+ * plan y el descanso sugerido, saltar las series que quedan. Lo que cambia es el reloj: la forma de RINGS con su corredor.
+ */
 @Composable
 private fun NormalRestContent(
     state: WorkoutRestModalState,
     remainingSeconds: Int,
-    timerProgress: Float,
-    sessionAccentColor: Color,
-    hazeState: HazeState,
+    totalSeconds: Int,
+    progress: Float,
     pendingRestSuggestion: PendingRestSuggestion?,
     lastSetOutcome: SetOutcomeV2?,
     lastCompletedSet: CompletedSet?,
     lastCompletedSets: List<Pair<String, CompletedSet>>,
     isAdaptiveActive: Boolean,
+    sessionAccentColor: Color,
     onDecrease: () -> Unit,
     onIncrease: () -> Unit,
     onSkip: () -> Unit,
     skipExerciseLabel: String?,
     onSkipExercise: (() -> Unit)?,
     onUseAdaptive: (() -> Unit)?,
-    onMinimize: (() -> Unit)? = null,
-    onWarmupEffort: ((Double) -> Unit)? = null,
-    relatorText: String? = null,
-    relatorPhaseKey: String = "",
-    relatorActions: List<RelatorAssistAction> = emptyList(),
-    onRelatorAction: (RelatorAssistAction) -> Unit = {},
+    onMinimize: (() -> Unit)?,
+    relatorText: String?,
+    relatorPhaseKey: String,
+    relatorActions: List<RelatorAssistAction>,
+    onRelatorAction: (RelatorAssistAction) -> Unit,
+    shape: RestClockShape,
+    onShapeChange: (RestClockShape) -> Unit,
+    headline: RestHeadline?,
+    onPlay: () -> Unit,
+    clockActive: Boolean,
 ) {
-    Column(
+    BoxWithConstraints(
         modifier = Modifier
             .fillMaxSize()
             .statusBarsPadding()
-            .navigationBarsPadding()
-            .verticalScroll(rememberScrollState())
-            .padding(horizontal = WorkoutUiTokens.ScreenHorizontalPadding, vertical = 24.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(20.dp),
+            .navigationBarsPadding(),
     ) {
-        Spacer(Modifier.height(10.dp))
-
-        RestOverlayRelatorLine(
-            text = relatorText,
-            phaseKey = relatorPhaseKey,
-            actions = relatorActions,
-            onAction = onRelatorAction,
-            accentColor = sessionAccentColor,
-        )
-
-        if (onMinimize != null) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.End,
-            ) {
-                KpknIconButton(
-                    icon = KpknLineIcons.ChevronDown,
-                    contentDescription = "Minimizar",
-                    onClick = onMinimize,
-                )
-            }
-        }
-
-        Box(
-            modifier = Modifier.size(204.dp),
-            contentAlignment = Alignment.Center,
+        // La forma toma lo que cabe: entre 210 y 300 dp según el alto de la pantalla.
+        val shapeHeight = (maxHeight * 0.30f).coerceIn(210.dp, 300.dp)
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+                .padding(
+                    start = WorkoutUiTokens.ScreenHorizontalPadding,
+                    end = WorkoutUiTokens.ScreenHorizontalPadding,
+                    top = 8.dp,
+                    bottom = 24.dp,
+                ),
+            horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            Canvas(modifier = Modifier.matchParentSize()) {
-                // Aro de 10 dp: pista blanca al 8 % y progreso en el acento de progreso (LR1a).
-                val sw = 10.dp.toPx()
-                val center = Offset(size.width / 2f, size.height / 2f)
-
-                val outerRadius = (size.minDimension - sw) / 2f
-                val outerRect = Size(outerRadius * 2f, outerRadius * 2f)
-
-                drawArc(
-                    color = Color.White.copy(alpha = 0.08f),
-                    startAngle = -90f,
-                    sweepAngle = 360f,
-                    useCenter = false,
-                    topLeft = Offset(center.x - outerRadius, center.y - outerRadius),
-                    size = outerRect,
-                    style = Stroke(sw, cap = StrokeCap.Round),
-                )
-
-                drawArc(
-                    color = SymbolPalette.musculo,
-                    startAngle = -90f,
-                    sweepAngle = 360f * timerProgress,
-                    useCenter = false,
-                    topLeft = Offset(center.x - outerRadius, center.y - outerRadius),
-                    size = outerRect,
-                    style = Stroke(sw, cap = StrokeCap.Round),
-                )
-            }
-
+            // El bloque de F1 va 8 dp más adentro que lo de debajo (el módulo de la última serie, el plan y el sugerido conservan su ancho de
+            // siempre: «DESCANSO SUGERIDO» tiene que seguir cabiendo en dos líneas con la letra al 130 %).
             Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center,
-                modifier = Modifier.padding(24.dp)
-            ) {
-                RestClockText(
-                    text = formatRestClock(remainingSeconds.coerceAtLeast(0)),
-                    maxFontSize = 46.sp,
-                )
-                Spacer(Modifier.height(2.dp))
-                Text(
-                    text = restKindText(state.kind).uppercase(),
-                    style = KpknType.eyebrow,
-                    color = WizardColors.textMuted,
-                )
-
-                if (state.exerciseName.isNotBlank()) {
-                    Spacer(Modifier.height(4.dp))
-                    Text(
-                        text = state.exerciseName,
-                        style = KpknType.body,
-                        color = WizardColors.textMuted,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier.widthIn(max = 140.dp)
-                    )
-                }
-            }
-        }
-
-        Row(
-            horizontalArrangement = Arrangement.spacedBy(16.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            RestRoundButton(
-                icon = KpknLineIcons.Minus,
-                contentDescription = "Restar 15 segundos",
-                onClick = onDecrease,
-            )
-
-            Surface(
-                shape = KpknShape.pill,
-                color = KpknSurface.inset,
-            ) {
-                Text(
-                    text = "Ajustar tiempo",
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp),
-                    style = KpknType.action,
-                    color = WizardColors.text,
-                )
-            }
-
-            RestRoundButton(
-                icon = KpknLineIcons.Plus,
-                contentDescription = "Sumar 15 segundos",
-                onClick = onIncrease,
-            )
-        }
-
-        if (lastCompletedSets.isNotEmpty()) {
-            lastCompletedSets.forEach { (exerciseName, set) ->
-                RestLastSetModule(
-                    title = exerciseName,
-                    titleIsEyebrow = false,
-                    set = set,
-                    outcome = lastSetOutcome ?: set.setOutcomeV2,
-                )
-            }
-        } else {
-            val referenceSet = lastCompletedSet ?: pendingRestSuggestion?.lastSet
-            val referenceOutcome = lastSetOutcome ?: referenceSet?.setOutcomeV2
-            if (referenceSet != null) {
-                RestLastSetModule(
-                    title = "Última serie",
-                    titleIsEyebrow = true,
-                    set = referenceSet,
-                    outcome = referenceOutcome,
-                )
-            }
-        }
-
-        if (pendingRestSuggestion != null) {
-            Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(IntrinsicSize.Min),
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    .padding(horizontal = 8.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
             ) {
-                RestFigureModule(
-                    title = if (isAdaptiveActive) "DESCANSO DINÁMICO" else "PLAN DE SESIÓN",
-                    value = formatRestClock(state.plannedSeconds),
-                    modifier = Modifier
-                        .weight(1f)
-                        .fillMaxHeight(),
-                    footnote = if (state.isManualOverride) "Manual" else null,
-                )
+                // Asa de minimizar a la izquierda y, al lado, el ejercicio de la serie que acabas de hacer (F1).
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    if (onMinimize != null) {
+                        KpknIconButton(
+                            icon = KpknLineIcons.ChevronDown,
+                            contentDescription = "Minimizar",
+                            onClick = onMinimize,
+                        )
+                    }
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = headline?.title ?: state.exerciseName,
+                            style = KpknType.bodyStrong,
+                            color = WizardColors.text,
+                            maxLines = 2,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                        headline?.subtitle?.let { subtitle ->
+                            Text(
+                                text = subtitle,
+                                style = KpknType.caption,
+                                color = WizardColors.textMuted,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                            )
+                        }
+                    }
+                }
 
-                if (!isAdaptiveActive && onUseAdaptive != null) {
-                    RestFigureModule(
-                        title = "Descanso sugerido",
-                        value = formatRestClock(pendingRestSuggestion.adaptiveSeconds),
+                // El relator a 12 dp de la cabecera y el reloj a 16 dp del relator (LR1g).
+                Spacer(Modifier.height(12.dp))
+                RestOverlayRelatorLine(
+                    text = relatorText,
+                    phaseKey = relatorPhaseKey,
+                    actions = relatorActions,
+                    onAction = onRelatorAction,
+                    accentColor = sessionAccentColor,
+                )
+                Spacer(Modifier.height(16.dp))
+
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .testTag("lr1g-aro"),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    RestShapeTabs(selected = shape, onSelect = onShapeChange)
+                    RestRingsClock(
+                        shape = shape,
+                        progress = progress,
+                        animationsOn = clockActive,
                         modifier = Modifier
-                            .weight(1f)
-                            .fillMaxHeight(),
-                        sparkle = true,
-                        onClick = onUseAdaptive,
+                            .fillMaxWidth()
+                            .height(shapeHeight),
+                    )
+                    RestTimeReadout(
+                        state = state,
+                        remainingSeconds = remainingSeconds,
+                        totalSeconds = totalSeconds,
+                        isAdaptiveActive = isAdaptiveActive,
+                        maxFontSize = 52.sp,
                     )
                 }
-            }
-        }
 
-        Spacer(Modifier.height(8.dp))
-
-        Column(
-            modifier = Modifier.fillMaxWidth(),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            KpknPrimaryPill(
-                text = "Saltar descanso",
-                onClick = onSkip,
-                modifier = Modifier.fillMaxWidth(),
-                icon = KpknLineIcons.PlayFilled,
-            )
-
-            if (onSkipExercise != null) {
-                RestSecondaryPill(
-                    text = skipExerciseLabel ?: "Saltar series restantes e ir al siguiente ejercicio",
-                    icon = Icons.Default.SkipNext,
-                    onClick = onSkipExercise,
+                Spacer(Modifier.height(12.dp))
+                Text(
+                    text = "Ajustar tiempo",
+                    style = KpknType.caption,
+                    color = WizardColors.textMuted,
+                )
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    RestStepPill(
+                        text = "−15 s",
+                        contentDescription = "Restar 15 segundos",
+                        onClick = onDecrease,
+                        modifier = Modifier.weight(1f),
+                    )
+                    RestSkipPill(
+                        text = "Saltar descanso",
+                        onClick = onSkip,
+                        modifier = Modifier.weight(1.8f),
+                    )
+                    RestStepPill(
+                        text = "+15 s",
+                        contentDescription = "Sumar 15 segundos",
+                        onClick = onIncrease,
+                        modifier = Modifier.weight(1f),
+                    )
+                }
+                RestPlayPill(
+                    text = "Jugar mientras descansas",
+                    onClick = onPlay,
                     modifier = Modifier.fillMaxWidth(),
                 )
             }
-        }
 
-        Spacer(Modifier.height(16.dp))
+            Spacer(Modifier.height(12.dp))
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                if (lastCompletedSets.isNotEmpty()) {
+                    lastCompletedSets.forEach { (exerciseName, set) ->
+                        RestLastSetModule(
+                            title = exerciseName,
+                            titleIsEyebrow = false,
+                            set = set,
+                            outcome = lastSetOutcome ?: set.setOutcomeV2,
+                        )
+                    }
+                } else {
+                    val referenceSet = lastCompletedSet ?: pendingRestSuggestion?.lastSet
+                    val referenceOutcome = lastSetOutcome ?: referenceSet?.setOutcomeV2
+                    if (referenceSet != null) {
+                        RestLastSetModule(
+                            title = "Última serie",
+                            titleIsEyebrow = true,
+                            set = referenceSet,
+                            outcome = referenceOutcome,
+                        )
+                    }
+                }
+
+                if (pendingRestSuggestion != null) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(IntrinsicSize.Min),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    ) {
+                        RestFigureModule(
+                            title = if (isAdaptiveActive) "DESCANSO DINÁMICO" else "PLAN DE SESIÓN",
+                            value = formatRestClock(state.plannedSeconds),
+                            modifier = Modifier
+                                .weight(1f)
+                                .fillMaxHeight(),
+                            footnote = if (state.isManualOverride) "Manual" else null,
+                        )
+
+                        if (!isAdaptiveActive && onUseAdaptive != null) {
+                            RestFigureModule(
+                                title = "Descanso sugerido",
+                                value = formatRestClock(pendingRestSuggestion.adaptiveSeconds),
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .fillMaxHeight(),
+                                sparkle = true,
+                                onClick = onUseAdaptive,
+                            )
+                        }
+                    }
+                }
+
+                if (onSkipExercise != null) {
+                    RestSecondaryPill(
+                        text = skipExerciseLabel ?: "Saltar series restantes e ir al siguiente ejercicio",
+                        icon = Icons.Default.SkipNext,
+                        onClick = onSkipExercise,
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                }
+            }
+
+            Spacer(Modifier.height(8.dp))
+        }
     }
 }
 
@@ -572,32 +684,6 @@ private fun RestTinyBadge(
             style = MaterialTheme.typography.labelSmall.copy(fontSize = 11.sp),
             fontWeight = FontWeight.Bold,
             color = color,
-        )
-    }
-}
-
-/**
- * Botón redondo de ajuste del descanso (− y +): círculo `inset` de 56 dp con el icono en tinta (LR1a).
- */
-@Composable
-private fun RestRoundButton(
-    icon: ImageVector,
-    contentDescription: String,
-    onClick: () -> Unit,
-) {
-    Box(
-        modifier = Modifier
-            .size(56.dp)
-            .background(KpknSurface.inset, CircleShape)
-            .clickable(role = Role.Button, onClick = onClick)
-            .semantics { this.contentDescription = contentDescription },
-        contentAlignment = Alignment.Center,
-    ) {
-        Icon(
-            imageVector = icon,
-            contentDescription = null,
-            modifier = Modifier.size(22.dp),
-            tint = WizardColors.text,
         )
     }
 }

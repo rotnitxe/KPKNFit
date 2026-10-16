@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Modo visual expandido</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Syne:wght@600;700;800&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#F2EEE6}a:hover{color:#ffffff}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: #000000; color: #F2EEE6; font-family: Inter, sans-serif; position: relative; overflow: hidden;">
+  <div style="padding: 22px 20px 0 20px; opacity: 0.3;">
+    <div style="font-family: Syne, sans-serif; font-weight: 700; font-size: 24px;">Sentadilla Trasera con…</div>
+  </div>
+  <div style="position: absolute; inset: 0; background: rgba(0,0,0,0.6);"></div>
+
+  <div style="position: absolute; left: 8px; right: 8px; top: 16px; bottom: 16px; border-radius: 30px; background: #111111; border: 1px solid rgba(242,238,230,0.10); box-shadow: 0 24px 60px rgba(0,0,0,0.7); overflow: hidden; display: flex; flex-direction: column;">
+    <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px 14px;">
+      <div>
+        <div style="font-size: 15px; font-weight: 600;">Modo visual · serie 3</div>
+        <div style="font-size: 12px; color: rgba(242,238,230,0.6);">95 kg × 6 · RIR 2</div>
+      </div>
+      <button aria-label="Plegar a la tarjeta" style="width: 40px; height: 40px; border-radius: 20px; border: none; background: #1F1F1F; color: #F2EEE6; display: flex; align-items: center; justify-content: center; padding: 0;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M9 4v5H4"></path><path d="M15 20v-5h5"></path><path d="M9 9L3 3"></path><path d="M15 15l6 6"></path></svg></button>
+    </div>
+    <div style="flex: 1; position: relative; margin: 0 8px 8px 8px; border-radius: 24px; overflow: hidden; background: radial-gradient(90% 70% at 50% 40%, #2A2622 0%, #121110 70%);">
+      <div style="position: absolute; inset: 0; background-image: linear-gradient(rgba(242,238,230,0.06) 1px, transparent 1px), linear-gradient(90deg, rgba(242,238,230,0.06) 1px, transparent 1px); background-size: 33.33% 33.33%;"></div>
+      <div style="position: absolute; left: 0; right: 0; top: 46%; text-align: center; font-size: 13px; color: rgba(242,238,230,0.38);">[Vista de la cámara]</div>
+      <div style="position: absolute; top: 12px; left: 12px; display: flex; padding: 3px; border-radius: 16px; background: rgba(0,0,0,0.45); backdrop-filter: blur(10px);">
+        <button style="height: 26px; padding: 0 12px; border-radius: 13px; border: none; background: transparent; color: rgba(242,238,230,0.7); font-family: Inter, sans-serif; font-size: 12px; font-weight: 600;">Foto</button>
+        <button style="height: 26px; padding: 0 12px; border-radius: 13px; border: none; background: #F2EEE6; color: #0B0B0B; font-family: Inter, sans-serif; font-size: 12px; font-weight: 600;">Vídeo</button>
+      </div>
+      <button style="position: absolute; top: 12px; right: 12px; height: 32px; padding: 0 12px; border-radius: 16px; border: 1px solid rgba(242,238,230,0.18); background: rgba(0,0,0,0.45); backdrop-filter: blur(10px); color: #F2EEE6; font-family: Inter, sans-serif; font-size: 12px; font-weight: 600;">Ficha</button>
+      <div style="position: absolute; left: 12px; bottom: 16px; display: flex; align-items: center; gap: 6px; padding: 6px; border-radius: 18px; background: rgba(0,0,0,0.45); backdrop-filter: blur(10px);">
+        <div style="width: 44px; height: 44px; border-radius: 12px; background: linear-gradient(135deg, #3B342E, #1E1B18);"></div>
+        <div style="width: 44px; height: 44px; border-radius: 12px; background: linear-gradient(135deg, #2E3440, #1A1D24);"></div>
+        <button style="height: 32px; padding: 0 10px; border-radius: 16px; border: none; background: #F2EEE6; color: #0B0B0B; font-family: Inter, sans-serif; font-size: 12px; font-weight: 600;">Ver álbum</button>
+      </div>
+      <button aria-label="Grabar vídeo" style="position: absolute; right: 16px; bottom: 14px; width: 68px; height: 68px; border-radius: 34px; border: 3px solid #F2EEE6; background: transparent; padding: 0; display: flex; align-items: center; justify-content: center;"><span style="width: 50px; height: 50px; border-radius: 25px; background: #EF6F64;"></span></button>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

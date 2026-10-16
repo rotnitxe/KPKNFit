@@ -7,7 +7,6 @@ import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.models.SessionPart
 import com.example.kpkn.domain.exercises.SmartExerciseCreator
 import com.example.kpkn.domain.workout.SupersetRules
-import com.example.kpkn.screens.sessioneditor.design.withDuplicatedSet
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -124,22 +123,6 @@ class SessionEditorIdentityPathsTest {
 
         assertEquals(120.0, exercise.goal1RM ?: 0.0, 0.0)
         assertGate(Session(id = SESSION_ID, name = SESSION_NAME, exercises = listOf(exercise)))
-    }
-
-    @Test
-    fun duplicated_set_passes_the_catalog_gate() {
-        // «Duplicar» en el menú de una serie (withDuplicatedSet): copia la serie con otro id, no el ejercicio.
-        val exercise = catalogExerciseForSession(
-            info = catalogInfo("bench_press__standard", "Press banca"),
-            history = emptyList(),
-            defaults = SessionEditorRuleDefaults(),
-            isMeetDay = false,
-        ).copy(sets = listOf(ExerciseSet(id = "set-1", targetReps = 8)))
-
-        val duplicated = exercise.withDuplicatedSet(setId = "set-1", newId = "set-2").normalizeExercise()
-
-        assertEquals(2, duplicated.sets.size)
-        assertGate(Session(id = SESSION_ID, name = SESSION_NAME, exercises = listOf(duplicated)))
     }
 
     @Test

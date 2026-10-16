@@ -57,9 +57,9 @@ internal fun formatExerciseCollapsedSummary(exercise: Exercise): String? {
     val loads = exercise.sets.mapNotNull { it.weight }.distinct()
     val repsPart = when {
         timeSets.size == exercise.sets.size && durations.size == 1 ->
-            "${exercise.sets.size}×${durations.first()}s"
+            "${exercise.sets.size} × ${KpknSetFormat.doseTime(durations.first())}"
         timeSets.size == exercise.sets.size -> "${exercise.sets.size} series"
-        reps.size == 1 -> "${exercise.sets.size}×${reps.first()}"
+        reps.size == 1 -> "${exercise.sets.size} × ${reps.first()}"
         else -> "${exercise.sets.size} series"
     }
     val loadPart = when {
@@ -228,7 +228,7 @@ internal fun estimatedMetricLabel(mode: TrainingMode, customUnit: String?): Stri
 internal fun formatEstimatedMetric(value: Double?, mode: TrainingMode, customUnit: String?): String {
     if (value == null) return "-"
     return when (mode) {
-        TrainingMode.TIME -> "${value.toInt()}s"
+        TrainingMode.TIME -> KpknSetFormat.doseTime(value.toInt())
         TrainingMode.CUSTOM -> formatEditableNumber(value)
         else -> value.toInt().toString()
     }

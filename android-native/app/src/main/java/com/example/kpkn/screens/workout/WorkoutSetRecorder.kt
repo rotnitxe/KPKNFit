@@ -22,6 +22,7 @@ import com.example.kpkn.data.models.UnitModeV2
 import com.example.kpkn.data.models.WeekVariant
 import com.example.kpkn.data.models.WorkoutContextProfile
 import com.example.kpkn.data.models.buildWorkoutContextKey
+import com.example.kpkn.data.models.isCardio
 import com.example.kpkn.data.models.isEffectivelyUnilateral
 import com.example.kpkn.data.models.supersetGroupRefOrLegacyId
 import com.example.kpkn.data.repository.ProgramRepository
@@ -155,6 +156,16 @@ class WorkoutSetRecorder(
             ports.onRecordingRejected("Cambia al lado activo antes de registrar.")
             return RecordSetResult.Rejected("Cambia al lado activo antes de registrar.")
         }
+        val recordingKey = buildCompletedSetKey(exercise.id, targetSetIdx, initialSide)
+        val requiresEffort = !exercise.isCardio && !advanced.isWarmup && !advanced.skipped
+        var report = if (requiresEffort) preserveExistingRecordingEffort(intensity, advanced, state.completedSets[recordingKey]) else advanced
+        if (requiresEffort) {
+            recordingEffortError(intensity, report)?.let { message ->
+                ports.onRecordingRejected(message)
+                return RecordSetResult.Rejected(message)
+            }
+            report = normalizeRecordingEffort(intensity, report)
+        }
         val techniqueDraftKey = workoutSetKey(exercise.id, targetSetIdx, initialSide)
         val fallbackTechniqueDraftKey = workoutSetKey(exercise.id, targetSetIdx)
         val hasPendingTechniqueProgress =
@@ -176,7 +187,6 @@ class WorkoutSetRecorder(
                 return RecordSetResult.PersistenceFailed(cause)
             }
         }
-        val recordingKey = buildCompletedSetKey(exercise.id, targetSetIdx, initialSide)
         if (!tryStartRecording(recordingKey)) {
             ports.onRecordingRejected("Espera a que termine el registro anterior.")
             return RecordSetResult.Rejected("Espera a que termine el registro anterior.")
@@ -189,7 +199,7 @@ class WorkoutSetRecorder(
             val amrapActive = resolveAmrapActive(
                 plannedSet = plannedSet,
                 requestedOverride = amrapOverride,
-                explicitOverride = advanced.amrapOverride,
+                explicitOverride = report.amrapOverride,
             )
             val activeProfile = ports.activeContextProfile(exercise.id)
 
@@ -219,7 +229,7 @@ class WorkoutSetRecorder(
             val resolvedMachineBrand = machineBrand ?: activeProfile?.machineBrand ?: plannedSet?.machineBrand
             val isUnilateralExercise = exercise.isEffectivelyUnilateral()
             val resolvedSide = if (isUnilateralExercise) initialSide else null
-            val isFailedEntry = advanced.isFailedSet || advanced.executionError
+            val isFailedEntry = report.isFailedSet || report.executionError
             if (resolvedLoadMode != LoadModeV2.BODYWEIGHT && weight <= 0.0 && !isFailedEntry) {
                 ports.onRecordingRejected("Carga inválida. Revisa el peso antes de registrar.")
                 return RecordSetResult.Rejected("Carga inválida. Revisa el peso antes de registrar.")
@@ -233,7 +243,7 @@ class WorkoutSetRecorder(
                 UnitModeV2.REPS, UnitModeV2.DISTANCE, UnitModeV2.CUSTOM -> value.coerceAtLeast(0.0)
             }
             val logicalActualValue = when (resolvedUnitMode) {
-                UnitModeV2.REPS -> actualValue + ((advanced.partialReps ?: 0).coerceAtLeast(0) * 0.5)
+                UnitModeV2.REPS -> actualValue + ((report.partialReps ?: 0).coerceAtLeast(0) * 0.5)
                 else -> actualValue
             }
             val plannedTarget = plannedSet?.let { ports.inferPlannedTarget(it, resolvedUnitMode) }
@@ -251,7 +261,7 @@ class WorkoutSetRecorder(
                     actual = logicalActualValue,
                     range = plannedRepRange,
                     amrapActive = amrapActive,
-                    amrapMinimum = advanced.amrapMinimumReps ?: plannedRepRange?.min,
+                    amrapMinimum = report.amrapMinimumReps ?: plannedRepRange?.min,
                 )?.debt ?: 0.0
             } else if (plannedTarget != null && logicalActualValue >= 0) {
                 (plannedTarget - logicalActualValue).coerceAtLeast(0.0)
@@ -276,9 +286,9 @@ class WorkoutSetRecorder(
 
             val isFirstEvaluationInSession = contextKey !in evaluatedContextKeys
 
-            val actualIntensityMode = advanced.actualIntensityMode ?: when {
-                advanced.reachedFailure -> IntensityMode.FAILURE
-                advanced.rir != null -> IntensityMode.RIR
+            val actualIntensityMode = report.actualIntensityMode ?: when {
+                report.reachedFailure -> IntensityMode.FAILURE
+                report.rir != null -> IntensityMode.RIR
                 amrapActive -> IntensityMode.AMRAP
                 intensity != null -> IntensityMode.RPE
                 plannedSet?.isFailure == true || plannedSet?.intensityMode == IntensityMode.FAILURE -> IntensityMode.FAILURE
@@ -290,25 +300,25 @@ class WorkoutSetRecorder(
                         (exercise.trainingMode == TrainingMode.RM && plannedSet.targetPercentageRM != null)
                 }
             }
-            val actualIntensityValue = advanced.actualIntensityValue ?: when (actualIntensityMode) {
-                IntensityMode.RIR -> advanced.rir?.toDouble()
+            val actualIntensityValue = report.actualIntensityValue ?: when (actualIntensityMode) {
+                IntensityMode.RIR -> report.rir?.toDouble()
                 IntensityMode.FAILURE -> null
                 IntensityMode.AMRAP -> intensity
                 else -> intensity
             }
             val actualReps = if (resolvedUnitMode == UnitModeV2.TIME) 0 else actualValue.toInt().coerceAtLeast(0)
             val durationSeconds = if (resolvedUnitMode == UnitModeV2.TIME) {
-                (advanced.timerElapsedSeconds ?: actualValue.toInt()).coerceAtLeast(0)
+                (report.timerElapsedSeconds ?: actualValue.toInt()).coerceAtLeast(0)
             } else {
                 null
             }
             val techniques = buildList {
-                if (advanced.dropSets.isNotEmpty()) add(SetTechniqueV2.DROP_SET)
-                if (advanced.restPauses.isNotEmpty()) add(SetTechniqueV2.REST_PAUSE)
-                if (scheduledPlan?.kind == ScheduledTechniqueKind.DROP_SET && advanced.dropSets.isEmpty()) add(SetTechniqueV2.DROP_SET)
-                if (scheduledPlan?.kind == ScheduledTechniqueKind.REST_PAUSE && advanced.restPauses.isEmpty()) add(SetTechniqueV2.REST_PAUSE)
-                if (advanced.isPartial) add(SetTechniqueV2.PARTIALS)
-                if (advanced.reachedFailure) add(SetTechniqueV2.FAILURE)
+                if (report.dropSets.isNotEmpty()) add(SetTechniqueV2.DROP_SET)
+                if (report.restPauses.isNotEmpty()) add(SetTechniqueV2.REST_PAUSE)
+                if (scheduledPlan?.kind == ScheduledTechniqueKind.DROP_SET && report.dropSets.isEmpty()) add(SetTechniqueV2.DROP_SET)
+                if (scheduledPlan?.kind == ScheduledTechniqueKind.REST_PAUSE && report.restPauses.isEmpty()) add(SetTechniqueV2.REST_PAUSE)
+                if (report.isPartial) add(SetTechniqueV2.PARTIALS)
+                if (report.reachedFailure) add(SetTechniqueV2.FAILURE)
                 if (amrapActive) add(SetTechniqueV2.AMRAP)
             }
             val recordedPayload = RecordedSetPayload(
@@ -329,21 +339,21 @@ class WorkoutSetRecorder(
                 assistedLoad = if (resolvedLoadMode == LoadModeV2.ASSISTED) weight.takeIf { it > 0.0 } else null,
                 bodyWeightSnapshot = resolvedBodyWeight,
                 completedReps = actualReps.takeIf { it > 0 },
-                partialReps = advanced.partialReps,
+                partialReps = report.partialReps,
                 durationSeconds = durationSeconds,
                 actualIntensityMode = actualIntensityMode,
                 actualIntensityValue = actualIntensityValue,
                 techniques = techniques,
-                failedSet = advanced.isFailedSet || advanced.executionError,
-                reachedFailure = advanced.reachedFailure,
+                failedSet = report.isFailedSet || report.executionError,
+                reachedFailure = report.reachedFailure,
                 amrapPerformed = amrapActive,
-                timerTargetSeconds = advanced.timerTargetSeconds ?: plannedSet?.targetDuration,
-                timerElapsedSeconds = advanced.timerElapsedSeconds,
-                failureReason = advanced.failureReason,
-                executionError = advanced.executionError,
-                skipped = advanced.skipped,
-                superSetWithExerciseId = advanced.superSetWithExerciseId,
-                intensityAdjusted = advanced.intensityAdjusted,
+                timerTargetSeconds = report.timerTargetSeconds ?: plannedSet?.targetDuration,
+                timerElapsedSeconds = report.timerElapsedSeconds,
+                failureReason = report.failureReason,
+                executionError = report.executionError,
+                skipped = report.skipped,
+                superSetWithExerciseId = report.superSetWithExerciseId,
+                intensityAdjusted = report.intensityAdjusted,
             )
 
             val resolvedBarWeightKg = if (!resolvedTagId.isNullOrBlank()) {
@@ -366,8 +376,8 @@ class WorkoutSetRecorder(
                 plannedIntensity = plannedSet?.let { ports.inferPlannedIntensity(it) },
                 actualIntensity = actualIntensityValue,
                 debt = debt,
-                failedSet = advanced.isFailedSet || advanced.executionError,
-                reachedFailure = advanced.reachedFailure,
+                failedSet = report.isFailedSet || report.executionError,
+                reachedFailure = report.reachedFailure,
                 amrapOverride = amrapActive,
                 techniques = techniques,
                 tagId = resolvedTagId,
@@ -376,8 +386,8 @@ class WorkoutSetRecorder(
                 contextKey = contextKey,
                 timeProgressionStrategy = plannedSet?.timeProgressionStrategyV3 ?: TimeProgressionStrategyV3.LOAD_THEN_TIME,
                 barWeightKg = resolvedBarWeightKg,
-                rom = advanced.rom,
-                assistedReps = advanced.assistedReps,
+                rom = report.rom,
+                assistedReps = report.assistedReps,
                 isFirstEvaluationInSession = isFirstEvaluationInSession,
             )
 
@@ -398,8 +408,8 @@ class WorkoutSetRecorder(
                 actualValue = logicalActualValue,
                 actualIntensity = actualIntensityValue,
                 debt = debt,
-                failedSet = advanced.isFailedSet || advanced.executionError,
-                reachedFailure = advanced.reachedFailure,
+                failedSet = report.isFailedSet || report.executionError,
+                reachedFailure = report.reachedFailure,
                 amrapOverride = amrapActive,
                 techniques = techniques,
                 metricType = if (resolvedUnitMode == UnitModeV2.TIME) "TRM" else "ERM",
@@ -426,13 +436,14 @@ class WorkoutSetRecorder(
                     step.setIndex == targetSetIdx &&
                     (resolvedSide == null || step.side == resolvedSide)
             }
-            val amrapMinimumReps = advanced.amrapMinimumReps ?: plannedSet?.effectiveRepRange()?.min
+            val amrapMinimumReps = report.amrapMinimumReps ?: plannedSet?.effectiveRepRange()?.min
             val amrapBelowMinimum = amrapActive &&
                 amrapMinimumReps != null &&
                 actualReps < amrapMinimumReps
             val recordedAfterAdvanced = applyAdvancedFeedback(
                 base = CompletedSet(
                     id = state.completedSets[recordingKey]?.id ?: UUID.randomUUID().toString(),
+                    setIndex = targetSetIdx,
                     weight = outcome.augeEquivalentLoad,
                     reps = actualReps,
                     timeSeconds = durationSeconds,
@@ -463,11 +474,11 @@ class WorkoutSetRecorder(
                     amrapMinimumReps = amrapMinimumReps,
                     amrapBelowMinimum = amrapBelowMinimum,
                 ),
-                advanced = advanced,
+                advanced = report,
             )
             val scheduledDropRows = if (plannedSet?.isInlineEditorScheduledTechnique() == true &&
                 scheduledPlan?.kind == ScheduledTechniqueKind.DROP_SET &&
-                advanced.dropSets.isEmpty() && weight > 0.0
+                report.dropSets.isEmpty() && weight > 0.0
             ) {
                 List(scheduledPlan.followUpCount) { index ->
                     com.example.kpkn.data.models.DropSetData(
@@ -480,7 +491,7 @@ class WorkoutSetRecorder(
             }
             val scheduledRestRows = if (plannedSet?.isInlineEditorScheduledTechnique() == true &&
                 scheduledPlan?.kind == ScheduledTechniqueKind.REST_PAUSE &&
-                advanced.restPauses.isEmpty()
+                report.restPauses.isEmpty()
             ) {
                 List(scheduledPlan.followUpCount) {
                     com.example.kpkn.data.models.RestPauseData(
@@ -510,7 +521,7 @@ class WorkoutSetRecorder(
             if (existingSet != null && completedSetContentMatches(
                     existing = existingSet,
                     next = completedSet,
-                    requestedNotes = advanced.notes,
+                    requestedNotes = report.notes,
                 )
             ) {
                 ports.onRecordingRejected("No hay cambios para actualizar.")
@@ -528,7 +539,7 @@ class WorkoutSetRecorder(
                     } else {
                         logicalActualValue.roundToInt().coerceAtLeast(0)
                     },
-                    advanced = advanced,
+                    advanced = report,
                     amrapMinimumReps = amrapMinimumReps,
                     suggestedWeight = outcome.suggestedNextLoad,
                 )
@@ -552,7 +563,7 @@ class WorkoutSetRecorder(
                     currentSetIdx = targetSetIdx,
                     activeStepKey = currentWorkoutStep?.stepKey
                         ?: WorkoutStepRules.workingStepKey(exercise.id, targetSetIdx, resolvedSide),
-                    setAdvancedFeedback = current.setAdvancedFeedback + (key to advanced),
+                    setAdvancedFeedback = current.setAdvancedFeedback + (key to report),
                     planDeviations = current.planDeviations + newDeviations,
                     setJustLoggedKey = key,
                     lastSetOutcomeV2 = outcome,
@@ -590,7 +601,7 @@ class WorkoutSetRecorder(
                         currentExerciseIdx = candidate.currentExerciseIdx,
                         currentSetIdx = candidate.currentSetIdx,
                         activeStepKey = candidate.activeStepKey,
-                        setAdvancedFeedback = current.setAdvancedFeedback + (key to advanced),
+                        setAdvancedFeedback = current.setAdvancedFeedback + (key to report),
                         planDeviations = current.planDeviations + newDeviations,
                         setJustLoggedKey = key,
                         lastSetOutcomeV2 = candidate.lastSetOutcomeV2,
@@ -669,7 +680,7 @@ class WorkoutSetRecorder(
                 ),
             )
 
-            val isExecutionError = advanced.isFailedSet || advanced.executionError
+            val isExecutionError = report.isFailedSet || report.executionError
             val wasLastSet = targetSetIdx == exercise.sets.lastIndex
 
             val postUpdateCompleted = getState().completedSets
@@ -681,8 +692,8 @@ class WorkoutSetRecorder(
             // keep the cursor on the red card so Revertir can remove the
             // placeholder without racing the pager/rest timer.
             val techniqueStillOpen = plannedSet?.isStackedIntensityTechnique() == true && (
-                (plannedSet.isDropSet && advanced.dropSets.isEmpty()) ||
-                    (plannedSet.isRestPause && advanced.restPauses.isEmpty())
+                (plannedSet.isDropSet && report.dropSets.isEmpty()) ||
+                    (plannedSet.isRestPause && report.restPauses.isEmpty())
                 )
             if (!isExecutionError && !unilateralPendingOtherSide && !wasExistingSet && !techniqueStillOpen) {
                 // A legacy/one-phase scheduled set still gets its deterministic
@@ -874,7 +885,7 @@ class WorkoutSetRecorder(
             val adaptiveRest = WorkoutAdaptiveRest.compute(
                 baseRestSeconds = baseRest,
                 context = WorkoutAdaptiveRest.AdaptiveRestContext(
-                    advanced = advanced,
+                    advanced = report,
                     setDrain = setDrain,
                     effectiveRpe = effectiveRpe,
                     sessionProgress = sessionProgress,
@@ -908,8 +919,8 @@ class WorkoutSetRecorder(
                 // originally planned between-set rest until those techniques
                 // have actually been recorded.
                 val techniqueStillOpen = plannedSet?.isStackedIntensityTechnique() == true && (
-                    (plannedSet.isDropSet && advanced.dropSets.isEmpty()) ||
-                        (plannedSet.isRestPause && advanced.restPauses.isEmpty())
+                    (plannedSet.isDropSet && report.dropSets.isEmpty()) ||
+                        (plannedSet.isRestPause && report.restPauses.isEmpty())
                     )
                 val effectivePlanned = if (techniqueStillOpen) 0 else adjustedPlanned
 
@@ -923,7 +934,7 @@ class WorkoutSetRecorder(
                     exerciseName = displayWorkoutExerciseName(exercise),
                     exerciseId = exercise.id,
                     lastSet = completedSet,
-                    advancedFeedback = advanced,
+                    advancedFeedback = report,
                 )
                 updateState { it.copy(pendingRestSuggestion = pendingSuggestion) }
                 if (effectivePlanned > 0 && !(isExecutionError && !wasLastSet)) {
@@ -931,7 +942,7 @@ class WorkoutSetRecorder(
                         seconds = effectivePlanned,
                         advanceOnFinish = false,
                         lastSet = completedSet,
-                        advancedFeedback = advanced,
+                        advancedFeedback = report,
                         kind = restKind,
                     )
                 }
@@ -950,7 +961,7 @@ class WorkoutSetRecorder(
 
             ports.computeAndStoreAutoRegulation(
                 completedSet = completedSet,
-                advanced = advanced,
+                advanced = report,
                 setDrain = setDrain,
                 effectiveRpe = effectiveRpe,
                 sessionProgress = sessionProgress,

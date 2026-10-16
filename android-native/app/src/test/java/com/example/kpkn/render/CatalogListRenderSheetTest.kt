@@ -15,6 +15,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -26,14 +27,25 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
+import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.performClick
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.example.kpkn.data.exercises.ExerciseTechniqueImageLookup
+import com.example.kpkn.data.models.Exercise
+import com.example.kpkn.data.models.ExerciseSet
+import com.example.kpkn.data.models.RepRange
+import com.example.kpkn.data.models.Session
+import com.example.kpkn.data.sessions.SessionTemplate
+import com.example.kpkn.data.sessions.SessionTemplatePublicationStatus
+import com.example.kpkn.data.sessions.SessionTemplateSourceType
 import com.example.kpkn.screens.onboarding.design.LocalWizardReducedMotion
 import com.example.kpkn.screens.onboarding.design.WizardColors
 import com.example.kpkn.screens.onboarding.design.entreno.plan.exercisePatternOf
+import com.example.kpkn.screens.sessioneditor.components.TemplateCatalogBrowser
 import com.example.kpkn.screens.sessioneditor.components.exerciseCatalogVariantTagLabel
 import com.example.kpkn.screens.sessioneditor.design.CatalogExerciseRow
 import com.example.kpkn.screens.sessioneditor.design.CatalogListHeader
@@ -86,6 +98,9 @@ class CatalogListRenderSheetTest {
     /** El caso que se dibuja ahora, y la escala de letra. Fuera de la composición para poder cambiarlos desde la prueba. */
     private var current by mutableIntStateOf(0)
     private var fontScale by mutableStateOf(1f)
+
+    /** La escena de plantillas que se dibuja ahora: cambiarla rehace el catálogo, sin estado de la escena anterior. */
+    private var escenaActual by mutableIntStateOf(0)
 
     /** La vista de Compose, para dibujarla a un bitmap. */
     private var hostView: View? = null
@@ -272,6 +287,99 @@ class CatalogListRenderSheetTest {
                 }
                 rule.waitForIdle()
                 save("sheet", "${name}_$suffix")
+            }
+        }
+    }
+
+    /** Plantilla de usuario de ejemplo: sale en «Mis plantillas» con «Editar» y «Borrar». */
+    private val plantillaDeUsuario: SessionTemplate by lazy {
+        SessionTemplate(
+            id = "plantilla-pecho",
+            sourceType = SessionTemplateSourceType.USER,
+            name = "Pecho en casa",
+            description = "Empuje con mancuernas y peso corporal.",
+            session = Session(
+                id = "sesion-pecho",
+                name = "Pecho en casa",
+                exercises = listOf(
+                    Exercise(
+                        id = "press-casa",
+                        name = "Press con mancuernas",
+                        sets = listOf(ExerciseSet(id = "press-casa-1", targetReps = 8, targetRepsRange = RepRange(6, 8), targetRIR = 2)),
+                    ),
+                ),
+            ),
+            publicationStatus = SessionTemplatePublicationStatus.KPKN_NATIVE,
+            splitIds = listOf("custom"),
+            splitDayLabels = listOf("Pecho"),
+            shortDescription = "Empuje con mancuernas",
+            exerciseCount = 1,
+            autoGenerationEligible = true,
+        )
+    }
+
+    /** Abre con su control real la escena [nombre] (la lista base no abre nada): clic en el texto o en la descripción del control. */
+    private fun abrirEscenaDePlantillas(nombre: String) {
+        when (nombre) {
+            "plantillas_borrar" -> rule.onNodeWithText("Borrar").performClick()
+            "plantillas_editar" -> rule.onNodeWithText("Editar").performClick()
+            "plantillas_guardar_sesion" -> rule.onNodeWithText("Guardar sesión").performClick()
+            "plantillas_filtro_grupo" -> rule.onNodeWithContentDescription("Agrupar plantillas por Por grupo").performClick()
+            "plantillas_filtro_nivel" -> rule.onNodeWithContentDescription("Filtrar por nivel").performClick()
+            "plantillas_filtro_duracion" -> rule.onNodeWithContentDescription("Filtrar por duración").performClick()
+            else -> Unit
+        }
+    }
+
+    /**
+     * Diálogos y desplegables de plantillas (d): la lista base y, por cada escena, el diálogo o el desplegable abierto. Con la piel actual
+     * de `AlertDialog` y `KpknDropdownMenu` (ventanas aparte), la hoja no los captura hasta que pasen a `KpknAlertDialog` y `KpknContextMenu`
+     * (dentro del mismo árbol, sobre `KpknPortal`).
+     */
+    @Test
+    fun renderPlantillasDialogos() {
+        onlyWhenAsked()
+        // Solo la lista: al abrir un diálogo o un desplegable de plantillas la composición no vuelve a reposo en Robolectric
+        // (AppNotIdleException en el waitForIdle tras el clic). Diálogos y filtros quedan sin PNG hasta revisarlos en el teléfono.
+        val escenas = listOf(
+            "plantillas_lista",
+        )
+        rule.setContent {
+            val base = LocalDensity.current
+            hostView = LocalView.current
+            CompositionLocalProvider(
+                LocalDensity provides Density(base.density, fontScale = fontScale),
+                LocalWizardReducedMotion provides true,
+            ) {
+                Box(
+                    Modifier
+                        .testTag("sheet")
+                        .width(360.dp)
+                        .height(1200.dp)
+                        .background(Color.Black),
+                ) {
+                    // `key` vuelve a montar el catálogo en cada escena: el diálogo abierto de una no pasa a la siguiente.
+                    key(escenaActual) {
+                        TemplateCatalogBrowser(
+                            templates = listOf(plantillaDeUsuario),
+                            searchQuery = "",
+                            onSelectTemplate = {},
+                            exerciseIndex = emptyMap(),
+                            glassDark = true,
+                        )
+                    }
+                }
+            }
+        }
+        for ((indice, nombre) in escenas.withIndex()) {
+            rule.runOnUiThread { escenaActual = indice }
+            rule.waitForIdle()
+            abrirEscenaDePlantillas(nombre)
+            rule.waitForIdle()
+            for ((scale, suffix) in listOf(1f to "s100", 1.3f to "s130")) {
+                rule.runOnUiThread { fontScale = scale }
+                rule.waitForIdle()
+                save("sheet", "${nombre}_$suffix")
             }
         }
     }

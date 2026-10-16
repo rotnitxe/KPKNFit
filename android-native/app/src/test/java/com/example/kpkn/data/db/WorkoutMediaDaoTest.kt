@@ -6,10 +6,12 @@ import androidx.test.core.app.ApplicationProvider
 import com.example.kpkn.data.models.WorkoutMedia
 import com.example.kpkn.data.models.WorkoutMediaKind
 import com.example.kpkn.data.models.WorkoutLog
+import com.example.kpkn.testsupport.RoomTestRule
 import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
+import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
@@ -18,6 +20,9 @@ import org.robolectric.annotation.Config
 @RunWith(RobolectricTestRunner::class)
 @Config(manifest = Config.NONE, sdk = [34], application = Application::class)
 class WorkoutMediaDaoTest {
+
+    @get:Rule
+    val roomRule = RoomTestRule()
     private val context: Context get() = ApplicationProvider.getApplicationContext()
     private val databases = mutableListOf<KpknDatabase>()
 

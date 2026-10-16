@@ -5,10 +5,10 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -18,24 +18,27 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.kpkn.screens.onboarding.design.WizardColors
 import com.example.kpkn.screens.sessioneditor.NativeWheelPicker
 import com.example.kpkn.ui.components.KpknAlertDialog
-import com.example.kpkn.ui.design.KpknMetric
+import com.example.kpkn.ui.components.KpknSheetTokens
 import com.example.kpkn.ui.design.KpknPrimaryPill
-import com.example.kpkn.ui.design.KpknSurface
 import com.example.kpkn.ui.design.KpknTextAction
 import com.example.kpkn.ui.design.KpknType
 import kotlin.math.roundToInt
 
-/**
- * Píldora de un valor del cardio (tiempo, distancia, ritmo, cadencia…): etiqueta en `caption` y la cifra en `metricM` tabular, con su unidad
- * en la misma línea base («30 min»). Relleno `inset` con radio 12 dp; con [selected], el acento al 22 %. Toda la píldora es un botón de 48 dp.
- * Firma fija: la sesión en vivo la usa.
- */
+internal enum class CardioMagnitudeKind {
+    MINUTES,
+    MINUTES_SECONDS,
+    SECONDS,
+    DISTANCE_KM,
+    PACE,
+    INTEGER,
+    TENTHS,
+}
+
 @Composable
 internal fun CardioValuePill(
     label: String,
@@ -47,33 +50,26 @@ internal fun CardioValuePill(
 ) {
     Column(
         modifier = modifier
-            .defaultMinSize(minHeight = 48.dp)
-            .clip(RoundedCornerShape(12.dp))
-            .background(if (selected) accentColor.copy(alpha = 0.22f) else KpknSurface.inset)
-            .clickable(role = Role.Button, onClickLabel = label, onClick = onClick)
+            .clip(RoundedCornerShape(999.dp))
+            .background(
+                if (selected) accentColor.copy(alpha = 0.22f) else KpknSheetTokens.ChipIdle,
+            )
+            .clickable(onClick = onClick)
             .padding(horizontal = 12.dp, vertical = 8.dp),
-        verticalArrangement = Arrangement.spacedBy(2.dp),
+        verticalArrangement = Arrangement.spacedBy(1.dp),
     ) {
         Text(
-            text = label,
-            style = KpknType.caption,
-            color = WizardColors.textMuted,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
+            label,
+            style = MaterialTheme.typography.labelSmall,
+            color = Color.White.copy(alpha = 0.62f),
+            fontWeight = FontWeight.Bold,
         )
-        // «30 min» se parte en cifra y unidad, con la misma línea base; un valor sin cifra inicial («—», «Libre») va entero.
-        val parts = value.split(' ', limit = 2)
-        if (parts.size == 2 && parts[0].firstOrNull()?.isDigit() == true) {
-            KpknMetric(value = parts[0], unit = parts[1], style = KpknType.metricM)
-        } else {
-            Text(
-                text = value,
-                style = KpknType.metricM,
-                color = WizardColors.text,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
-        }
+        Text(
+            value,
+            style = MaterialTheme.typography.labelLarge,
+            color = Color.White,
+            fontWeight = FontWeight.Black,
+        )
     }
 }
 
@@ -243,7 +239,7 @@ internal fun CardioPaceWheelDialog(
     CardioWheelDialogScaffold(
         title = title,
         accentColor = accentColor,
-        preview = "%d:%02d /km".format(minutes, seconds),
+        preview = "%d:%02d/km".format(minutes, seconds),
         onDismiss = onDismiss,
         onConfirm = { onConfirm(minutes * 60 + seconds) },
     ) {
@@ -351,7 +347,6 @@ internal fun CardioTenthsWheelDialog(
     }
 }
 
-/** Diálogo de rueda con la vista previa en `metricM` y las acciones KPKN: «Aplicar» como píldora y «Cancelar» como acción de texto. */
 @Composable
 private fun CardioWheelDialogScaffold(
     title: String,
@@ -368,11 +363,9 @@ private fun CardioWheelDialogScaffold(
             Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
                 content()
                 Text(
-                    text = preview,
+                    preview,
                     style = KpknType.metricM,
                     color = accentColor,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
                 )
             }
         },

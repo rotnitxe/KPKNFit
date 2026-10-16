@@ -335,7 +335,7 @@ class OwnPlanPrioritiesAndSplitTest {
     fun invalid_bags_are_rejected_with_the_existing_message_by_all_four_plans() {
         val invalidBags = listOf(
             mapOf("Pectorales" to 3),
-            mapOf("Pectorales" to 2, "Dorsales" to 2, "Tríceps" to 2),
+            mapOf("Pectorales" to 2, "Dorsales" to 2, "Tríceps" to 2, "Deltoides" to 1),
             mapOf("Pectorales" to -1),
         )
         NativeProfileKind.entries.forEach { kind ->

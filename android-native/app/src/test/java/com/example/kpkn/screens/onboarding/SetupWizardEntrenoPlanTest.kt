@@ -1,5 +1,6 @@
 package com.example.kpkn.screens.onboarding
 
+import com.example.kpkn.testsupport.SyncRoomExecutor
 import android.app.Application
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModelStore
@@ -107,6 +108,7 @@ class SetupWizardEntrenoPlanTest {
 
     @Before
     fun setUp() {
+        SyncRoomExecutor.install()
         Dispatchers.setMain(dispatcher)
         app = ApplicationProvider.getApplicationContext()
         ProgramRepository.closeInstance()
@@ -125,6 +127,7 @@ class SetupWizardEntrenoPlanTest {
         KpknDatabase.closeInstance()
         db.close()
         Dispatchers.resetMain()
+        SyncRoomExecutor.uninstall()
     }
 
     // ─── Objetivo general: revelado, semana armada y activación ─────────────────────────────────

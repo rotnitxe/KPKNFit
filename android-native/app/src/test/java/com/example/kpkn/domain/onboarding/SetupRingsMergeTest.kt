@@ -18,6 +18,7 @@ import com.example.kpkn.data.onboarding.mergeSetupWellbeing
 import com.example.kpkn.data.onboarding.previewCheckIn
 import com.example.kpkn.data.onboarding.toEvidencePatchField
 import com.example.kpkn.domain.auge.AugeRecoveryEngine
+import com.example.kpkn.testsupport.RoomTestRule
 import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Assert.assertEquals
@@ -26,12 +27,16 @@ import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
 import java.time.LocalDate
 
 @org.junit.runner.RunWith(org.robolectric.RobolectricTestRunner::class)
 @org.robolectric.annotation.Config(manifest = org.robolectric.annotation.Config.NONE, sdk = [34])
 class SetupRingsMergeTest {
+
+    @get:Rule
+    val roomRule = RoomTestRule()
     private lateinit var db: KpknDatabase
     private val date: String = LocalDate.now().toString()
 

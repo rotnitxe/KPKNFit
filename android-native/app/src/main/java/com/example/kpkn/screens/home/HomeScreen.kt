@@ -174,6 +174,11 @@ fun HomeScreen(
     val createScope = rememberCoroutineScope()
     val openCreate = onCreateProgram
     val augeViewModel = rememberAugeViewModel()
+    // Los músculos sueltos que se ajustan en el detalle de Músculos se guardan como anclas V2 por músculo (claves de pilar), la misma
+    // ruta que el final del entreno. Una sola lambda por ViewModel: el valor del local no cambia en cada recomposición.
+    val saveRingMuscles = remember(augeViewModel) {
+        { edits: Map<String, Int> -> augeViewModel.applyManualBatteries(perMuscleDelta = edits) }
+    }
     val augePerMuscle by augeViewModel.perMuscle.collectAsState()
     val augeSnapshot by augeViewModel.snapshot.collectAsState()
 
@@ -371,6 +376,7 @@ fun HomeScreen(
         }
     }
     Box(Modifier.fillMaxSize().background(WizardColors.background)) {
+        CompositionLocalProvider(LocalRingMuscleAdjustSave provides saveRingMuscles) {
             HomeWithProgram(
                 viewModel = viewModel,
                 muscularProgress = muscularProgress,
@@ -430,6 +436,7 @@ fun HomeScreen(
                      .fillMaxSize()
                      .navigationBarsPadding(),
              )
+        }
 
         // Velo fijo bajo la barra de estado (I8): va por encima de la lista y por debajo de la barra superior, que es hermana del NavHost.
         KpknStatusVeil(modifier = Modifier.align(Alignment.TopCenter))

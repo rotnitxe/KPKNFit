@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Descanso minimizado</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Syne:wght@600;700;800&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#F2EEE6}a:hover{color:#ffffff}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: #000000; color: #F2EEE6; font-family: Inter, sans-serif; position: relative; overflow: hidden;">
+  <div style="padding: 22px 20px 0 20px; display: flex; align-items: center; gap: 10px;">
+    <div style="flex: 1; min-width: 0;">
+      <div style="font-family: Syne, sans-serif; font-weight: 700; font-size: 24px; white-space: nowrap; overflow: hidden; -webkit-mask-image: linear-gradient(90deg, #000 85%, transparent 100%); mask-image: linear-gradient(90deg, #000 85%, transparent 100%);">Sentadilla Trasera con Barra Alta</div>
+      <div style="font-size: 13px; color: rgba(242,238,230,0.62); margin-top: 2px;">Principal · Pierna A</div>
+    </div>
+  </div>
+
+  <div style="margin: 14px 16px 0 16px; display: flex; justify-content: center;">
+    <button aria-label="Abrir el descanso" style="height: 40px; padding: 0 6px 0 4px; border-radius: 20px; border: 1px solid rgba(242,238,230,0.12); background: #111111; color: #F2EEE6; display: flex; align-items: center; gap: 10px; font-family: Inter, sans-serif;">
+      <span style="width: 32px; height: 32px; border-radius: 16px; background: conic-gradient(#F49A6E 0 70%, #2A2A2A 70% 100%); display: flex; align-items: center; justify-content: center;"><span style="width: 24px; height: 24px; border-radius: 12px; background: #111111;"></span></span>
+      <span style="font-size: 12px; color: rgba(242,238,230,0.6);">Descanso</span>
+      <span style="font-family: Syne, sans-serif; font-weight: 700; font-size: 16px;">2:41</span>
+      <span style="height: 28px; padding: 0 10px; border-radius: 14px; background: #1F1F1F; font-size: 12px; font-weight: 600; display: flex; align-items: center;">+15 s</span>
+    </button>
+  </div>
+
+  <div style="margin: 14px 16px 0 16px; height: 486px; border-radius: 28px; background: #111111; border: 1px solid rgba(242,238,230,0.07); overflow: hidden; opacity: 0.92;">
+    <div style="background: #1B1B1B; padding: 16px; border-bottom: 1px solid rgba(242,238,230,0.06);">
+      <div style="font-size: 12px; font-weight: 600; letter-spacing: 1.6px; color: rgba(242,238,230,0.62);">CARGA (kg) · SERIE 2</div>
+      <div style="font-family: Syne, sans-serif; font-weight: 700; font-size: 34px; line-height: 44px; text-align: center; margin-top: 4px;">95</div>
+    </div>
+    <div style="padding: 16px; color: rgba(242,238,230,0.35); font-size: 13px; text-align: center;">[La tarjeta de la serie siguiente, ya editable mientras corre el descanso]</div>
+  </div>
+
+  <div style="position: absolute; left: 0; right: 0; bottom: 0; height: 78px; background: #0D0D0D; border-top-left-radius: 26px; border-top-right-radius: 26px; border-top: 1px solid rgba(242,238,230,0.07); display: flex; flex-direction: column; align-items: center; padding-top: 8px; box-sizing: border-box;">
+    <div style="width: 36px; height: 4px; border-radius: 2px; background: rgba(242,238,230,0.22);"></div>
+    <div style="display: flex; gap: 8px; margin-top: 12px;">
+      <div style="height: 34px; padding: 0 14px; border-radius: 17px; background: #F2EEE6; color: #0B0B0B; font-size: 13px; font-weight: 600; display: flex; align-items: center;">1/7 · Sentadilla trasera</div>
+      <div style="height: 34px; padding: 0 14px; border-radius: 17px; background: #161616; color: rgba(242,238,230,0.7); font-size: 13px; display: flex; align-items: center;">Superserie</div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

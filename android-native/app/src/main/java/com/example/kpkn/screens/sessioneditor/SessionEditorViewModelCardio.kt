@@ -4,6 +4,7 @@ import com.example.kpkn.data.models.CardioCatalogItem
 import com.example.kpkn.data.models.CardioDetails
 import com.example.kpkn.data.models.DEFAULT_CARDIO_PART_COLOR
 import com.example.kpkn.data.models.Exercise
+import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.models.SessionPart
 import com.example.kpkn.data.models.cardioPart
 import com.example.kpkn.domain.training.generator.CardioBuilder
@@ -157,5 +158,34 @@ internal fun Exercise.withCardioItem(item: CardioCatalogItem): Exercise {
         exerciseFamilyId = generated.canonicalExerciseId,
         cardioDetails = synced,
         targetDurationMinutes = synced.targetDurationSeconds?.let { (it / 60).coerceAtLeast(1) } ?: 0,
+    )
+}
+
+/**
+ * SE10: cura el cardio que el editor guardó antes del arreglo (id del catálogo de cardio o sin id). Se llama al guardar,
+ * antes de normalizar, para que el cortafuegos vea la identidad del generador.
+ */
+internal fun Session.healLegacyCardioIdentities(): Session = copy(
+    exercises = exercises.map { it.healedLegacyCardioIdentity() },
+    parts = parts.map { part -> part.copy(exercises = part.exercises.map { it.healedLegacyCardioIdentity() }) },
+)
+
+/**
+ * Solo toca un cardio sin identidad `custom:` cuyo id es del catálogo de cardio (`cardio_*`) o está vacío. La identidad
+ * es la del generador (CardioBuilder.exercise). Duración, intervalos, nombre e id se quedan como estaban.
+ */
+internal fun Exercise.healedLegacyCardioIdentity(): Exercise {
+    val details = cardioDetails ?: return this
+    val identities = listOf(exerciseDbId, exerciseId, canonicalExerciseId)
+    if (identities.any { it?.startsWith("custom:", ignoreCase = true) == true }) return this
+    val legacy = identities.all { it.isNullOrBlank() } ||
+        identities.any { it?.startsWith("cardio_", ignoreCase = true) == true }
+    if (!legacy) return this
+    val generated = CardioBuilder.exercise(id = id, details = details)
+    return copy(
+        exerciseDbId = generated.exerciseDbId,
+        exerciseId = generated.exerciseId,
+        canonicalExerciseId = generated.canonicalExerciseId,
+        exerciseFamilyId = generated.canonicalExerciseId,
     )
 }

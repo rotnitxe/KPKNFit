@@ -15,6 +15,7 @@ import androidx.camera.video.VideoCapture
 import androidx.camera.video.VideoRecordEvent
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
+import com.example.kpkn.data.media.DeferredMediaDelete
 import com.example.kpkn.data.media.WorkoutAlbumGrouping
 import com.example.kpkn.data.media.WorkoutMediaCaptureJournalEntry
 import com.example.kpkn.data.media.WorkoutMediaSides
@@ -72,6 +73,8 @@ class WorkoutMediaCaptureController(
     private val repository: WorkoutMediaRepository,
     private val sessionMeta: () -> WorkoutMediaSessionMeta,
     private val poseTrajectoryEnabled: () -> Boolean = { false },
+    /** El esfuerzo («RIR 2», «Fallo») con el que se registró la serie de un medio, si la sesión en curso la tiene (álbum por ejercicio, LV8). */
+    private val effortLabelProvider: (WorkoutMedia) -> String? = { null },
 ) {
     data class ExternalPhotoCapture internal constructor(
         val uri: Uri,
@@ -633,6 +636,37 @@ class WorkoutMediaCaptureController(
                 _captureError.value = "No se pudo eliminar el medio."
             }
         }
+    }
+
+    /** Los medios de un ejercicio de TODAS las sesiones (álbum por ejercicio, LV8): por las [keys] con las que se guardaron, del más reciente al más antiguo. */
+    suspend fun listForExercise(keys: List<String>): List<WorkoutMedia> = repository.listForExerciseKeys(keys)
+
+    /** El esfuerzo («RIR 2», «RPE 7,5», «Fallo») con el que se registró la serie de [media], si la sesión en curso la tiene; nulo si no se sabe. */
+    fun effortLabelFor(media: WorkoutMedia): String? =
+        if (media.sessionKey == sessionMeta().sessionKey) effortLabelProvider(media) else null
+
+    /** Combina el historial persistido y las series de esta sesión, sin atribuir a otro día lo registrado hoy. */
+    suspend fun effortLabelsFor(items: List<WorkoutMedia>): Map<String, String> =
+        repository.effortLabelsForMedia(items) + items.mapNotNull { item -> effortLabelFor(item)?.let { item.id to it } }.toMap()
+
+    /** El aviso pertenece al álbum; una eliminación aceptada pertenece al repositorio y sobrevive al ViewModel. */
+    fun newDeferredDelete(timerScope: CoroutineScope, onCommitted: () -> Unit = {}): DeferredMediaDelete {
+        lateinit var deferred: DeferredMediaDelete
+        deferred = DeferredMediaDelete(
+            scope = timerScope,
+            commit = { items ->
+                repository.deleteAlbumMediaAsync(items).invokeOnCompletion { error ->
+                    if (error != null) {
+                        deferred.restoreFailed(items)
+                        _captureError.value = "No se pudo eliminar el medio."
+                    }
+                    refreshSessionMedia()
+                    // Solo la actualización visual se cancela si ya se cerró la sesión.
+                    scope.launch { onCommitted() }
+                }
+            },
+        )
+        return deferred
     }
 
     fun retryPendingCaptures() {

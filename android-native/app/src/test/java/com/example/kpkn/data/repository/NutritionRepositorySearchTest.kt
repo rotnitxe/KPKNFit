@@ -1,5 +1,6 @@
 package com.example.kpkn.data.repository
 
+import com.example.kpkn.testsupport.SyncRoomExecutor
 import android.app.Application
 import android.content.Context
 import androidx.test.core.app.ApplicationProvider
@@ -36,6 +37,7 @@ class NutritionRepositorySearchTest {
 
     @Before
     fun setUp() {
+        SyncRoomExecutor.install()
         ProgramRepository.closeInstance()
         BodyProgressRepository.closeInstance()
         KpknDatabase.closeInstance()
@@ -50,6 +52,7 @@ class NutritionRepositorySearchTest {
         db.close()
         BodyProgressRepository.closeInstance()
         KpknDatabase.closeInstance()
+        SyncRoomExecutor.uninstall()
     }
 
     private val noImport = object : FoodCatalogImporter {
