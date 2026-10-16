@@ -1,13 +1,35 @@
 package com.example.kpkn.screens.workout
 
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.width
+import androidx.compose.material3.Text
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Density
+import androidx.compose.ui.unit.dp
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
+import org.junit.Rule
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
+import org.robolectric.annotation.Config
+import org.robolectric.annotation.GraphicsMode
 
+@RunWith(RobolectricTestRunner::class)
+@GraphicsMode(GraphicsMode.Mode.NATIVE)
+@Config(sdk = [34], qualifiers = "w360dp-h880dp-xxhdpi")
 class RelatorActionExecutionTest {
+
+    @get:Rule
+    val rule = createComposeRule()
 
     @Test
     fun relator_inline_pieces_preserves_single_phrase_with_action() {
@@ -185,4 +207,68 @@ class RelatorActionExecutionTest {
         )
         assertEquals(RelatorSilentAnimation.PREPARATION_SQUAT, resPrep.silentAnimation)
     }
+
+    @Test
+    fun relator_action_underline_bounds_strictly_within_action_text() {
+        val text = "Hoy toca 95 kg × 6: pon 95 kg o cambia por prensa."
+        val action1 = RelatorAssistAction(
+            kind = RelatorAssistActionKind.APPLY_SUGGESTED_LOAD,
+            label = "pon 95 kg",
+            span = "pon 95 kg",
+            weightKg = 95.0,
+        )
+        val action2 = RelatorAssistAction(
+            kind = RelatorAssistActionKind.OPEN_REPLACE,
+            label = "cambia por prensa",
+            span = "cambia por prensa",
+        )
+        val actions = listOf(action1, action2)
+
+        var capturedLayout: TextLayoutResult? = null
+        rule.setContent {
+            CompositionLocalProvider(LocalDensity provides Density(3f, 1.3f)) {
+                Box(Modifier.width(360.dp)) {
+                    Text(
+                        text = text,
+                        textAlign = TextAlign.Center,
+                        onTextLayout = { capturedLayout = it },
+                    )
+                }
+            }
+        }
+        rule.waitForIdle()
+
+        val layout = capturedLayout
+        assertNotNull("TextLayoutResult debe haberse obtenido", layout)
+        val segments = relatorActionLineSegments(text, actions, layout!!)
+        assertTrue("Debe haber al menos 2 tramos de acción", segments.size >= 2)
+
+        // Acción 1 ("pon 95 kg")
+        val seg1 = segments.first { it.action == action1 }
+        val action1Start = text.indexOf("pon 95 kg")
+        val action1End = action1Start + "pon 95 kg".length
+        assertEquals(action1Start, seg1.startOffset)
+        assertEquals(action1End, seg1.endOffset)
+
+        val prefixEnd = text.indexOf("pon 95 kg")
+        val prefixRight = layout.getBoundingBox(prefixEnd - 1).right
+        // El subrayado de "pon 95 kg" debe comenzar estrictamente después del prefijo "Hoy toca 95 kg × 6: "
+        // y NO estar desplazado a la izquierda bajo "kg × 6:"
+        assertTrue("Subrayado debe empezar después del prefijo", seg1.bounds.left >= prefixRight - 2f)
+        val charPonLeft = layout.getBoundingBox(action1Start).left
+        assertEquals("Subrayado debe empezar exactamente en 'pon'", charPonLeft, seg1.bounds.left, 2f)
+        val charKgRight = layout.getBoundingBox(action1End - 1).right
+        assertEquals("Subrayado debe terminar exactamente en 'kg'", charKgRight, seg1.bounds.right, 2f)
+
+        // Acción 2 ("cambia por prensa"), que puede ocupar uno o varios tramos si salta de línea al 130 %
+        val segs2 = segments.filter { it.action == action2 }
+        assertTrue("Acción 2 debe tener al menos un tramo", segs2.isNotEmpty())
+        for (seg in segs2) {
+            val charLeft = layout.getBoundingBox(seg.startOffset).left
+            val charRight = layout.getBoundingBox(seg.endOffset - 1).right
+            assertEquals("Subrayado debe empezar exactamente en el carácter inicial del tramo", charLeft, seg.bounds.left, 2f)
+            assertEquals("Subrayado debe terminar exactamente en el carácter final del tramo", charRight, seg.bounds.right, 2f)
+        }
+    }
 }
+

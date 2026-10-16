@@ -50,8 +50,7 @@ fun RelatorWorkingScene(
 ) {
     Canvas(
         modifier = modifier
-            .fillMaxWidth()
-            .height(46.dp),
+            .fillMaxWidth(),
     ) {
         val w = size.width
         val h = size.height
@@ -59,8 +58,9 @@ fun RelatorWorkingScene(
         val strokeWidth = 1.8f * density
         val strokeCap = StrokeCap.Round
 
-        // Línea de suelo
-        val groundY = 42f * density
+        // Línea de suelo tenue al fondo de la franja (H2)
+        val groundY = h - 2f * density
+        val hipY = groundY - 7.5f * density
         drawLine(
             color = GroundColor,
             start = Offset(0f, groundY),
@@ -72,132 +72,132 @@ fun RelatorWorkingScene(
             RelatorAssistActionKind.APPLY_SUGGESTED_LOAD,
             RelatorAssistActionKind.ADJUST_LOAD,
             -> {
-                // Dos figuras que cruzan andando y llevan un disco entre ambas, y otra que aprieta con llave al final (H2)
-                val walkStartX = -70f * density
+                // Dos figuras que cruzan andando de izquierda a derecha llevando un disco entre ambas, y otra que aprieta con llave al final a la derecha (H2)
+                val walkStartX = -60f * density
                 val walkEndX = 250f * density
-                val walkX = if (reduceMotion) 90f * density else walkStartX + (walkEndX - walkStartX) * progress.coerceIn(0f, 1f)
+                val walkX = if (reduceMotion) 80f * density else walkStartX + (walkEndX - walkStartX) * progress.coerceIn(0f, 1f)
                 val walkCycles = progress * (1900f / 380f) * 2f * PI.toFloat()
-                val bob = if (reduceMotion) 0f else (if (sin(walkCycles) > 0f) -2f * density else 0f)
-                val legA = if (reduceMotion) 10f else sin(walkCycles) * 22f
+                val bob = if (reduceMotion) 0f else (if (sin(walkCycles) > 0f) -1.5f * density else 0f)
+                val legA = if (reduceMotion) 10f else sin(walkCycles) * 20f
                 val legB = -legA
 
                 // Pareja que camina con el disco
                 translate(left = walkX, top = 0f) {
-                    // Figura 1 (izquierda) en (40, 38)
-                    translate(left = 40f * density, top = (38f * density) + bob) {
+                    // Figura 1 (izquierda) en (35, hipY)
+                    translate(left = 35f * density, top = hipY + bob) {
                         // Cabeza
                         drawCircle(
                             color = InkColor,
-                            radius = 3.6f * density,
-                            center = Offset(0f, -27f * density),
+                            radius = 2.4f * density,
+                            center = Offset(0f, -17f * density),
                             style = Stroke(width = strokeWidth),
                         )
                         // Tronco
                         drawLine(
                             color = InkColor,
-                            start = Offset(0f, -23f * density),
-                            end = Offset(0f, -12f * density),
+                            start = Offset(0f, -14.5f * density),
+                            end = Offset(0f, -7.5f * density),
                             strokeWidth = strokeWidth,
                             cap = strokeCap,
                         )
                         // Brazo hacia el disco
                         drawLine(
                             color = InkColor,
-                            start = Offset(0f, -20f * density),
-                            end = Offset(9f * density, -17f * density),
+                            start = Offset(0f, -13f * density),
+                            end = Offset(7f * density, -10f * density),
                             strokeWidth = strokeWidth,
                             cap = strokeCap,
                         )
                         // Piernas
-                        translate(left = 0f, top = -12f * density) {
+                        translate(left = 0f, top = -7.5f * density) {
                             rotate(legA, pivot = Offset(0f, 0f)) {
-                                drawLine(InkColor, Offset(0f, 0f), Offset(0f, 12f * density), strokeWidth, strokeCap)
+                                drawLine(InkColor, Offset(0f, 0f), Offset(0f, 7.5f * density), strokeWidth, strokeCap)
                             }
                             rotate(legB, pivot = Offset(0f, 0f)) {
-                                drawLine(InkColor, Offset(0f, 0f), Offset(0f, 12f * density), strokeWidth, strokeCap)
+                                drawLine(InkColor, Offset(0f, 0f), Offset(0f, 7.5f * density), strokeWidth, strokeCap)
                             }
                         }
                     }
 
-                    // Disco en (58, 21)
-                    translate(left = 58f * density, top = (21f * density) + bob) {
+                    // Disco en (49, hipY - 10)
+                    translate(left = 49f * density, top = (hipY - 10f * density) + bob) {
                         drawCircle(
                             color = SymbolPalette.musculo,
-                            radius = 8f * density,
+                            radius = 5.5f * density,
                             center = Offset.Zero,
-                            style = Stroke(width = 2.2f * density),
+                            style = Stroke(width = 1.8f * density),
                         )
                         drawCircle(
                             color = SymbolPalette.musculo,
-                            radius = 2f * density,
+                            radius = 1.5f * density,
                             center = Offset.Zero,
                         )
                     }
 
-                    // Figura 2 (derecha) en (76, 38)
-                    translate(left = 76f * density, top = (38f * density) + bob) {
+                    // Figura 2 (derecha) en (63, hipY)
+                    translate(left = 63f * density, top = hipY + bob) {
                         // Cabeza
                         drawCircle(
                             color = InkColor,
-                            radius = 3.6f * density,
-                            center = Offset(0f, -27f * density),
+                            radius = 2.4f * density,
+                            center = Offset(0f, -17f * density),
                             style = Stroke(width = strokeWidth),
                         )
                         // Tronco
                         drawLine(
                             color = InkColor,
-                            start = Offset(0f, -23f * density),
-                            end = Offset(0f, -12f * density),
+                            start = Offset(0f, -14.5f * density),
+                            end = Offset(0f, -7.5f * density),
                             strokeWidth = strokeWidth,
                             cap = strokeCap,
                         )
                         // Brazo hacia el disco
                         drawLine(
                             color = InkColor,
-                            start = Offset(0f, -20f * density),
-                            end = Offset(-9f * density, -17f * density),
+                            start = Offset(0f, -13f * density),
+                            end = Offset(-7f * density, -10f * density),
                             strokeWidth = strokeWidth,
                             cap = strokeCap,
                         )
                         // Piernas
-                        translate(left = 0f, top = -12f * density) {
+                        translate(left = 0f, top = -7.5f * density) {
                             rotate(legB, pivot = Offset(0f, 0f)) {
-                                drawLine(InkColor, Offset(0f, 0f), Offset(0f, 12f * density), strokeWidth, strokeCap)
+                                drawLine(InkColor, Offset(0f, 0f), Offset(0f, 7.5f * density), strokeWidth, strokeCap)
                             }
                             rotate(legA, pivot = Offset(0f, 0f)) {
-                                drawLine(InkColor, Offset(0f, 0f), Offset(0f, 12f * density), strokeWidth, strokeCap)
+                                drawLine(InkColor, Offset(0f, 0f), Offset(0f, 7.5f * density), strokeWidth, strokeCap)
                             }
                         }
                     }
                 }
 
-                // Figura que aprieta con una llave al final (derecha)
-                val wrenchX = (w - 54f * density).coerceAtLeast(180f * density)
+                // Figura que aprieta con una llave al final a la derecha (H2)
+                val wrenchX = (w - 38f * density).coerceAtLeast(180f * density)
                 val wrenchCycles = progress * (1900f / 450f) * 2f * PI.toFloat()
-                val wrenchAngle = if (reduceMotion) -10f else sin(wrenchCycles) * 28f
-                translate(left = wrenchX, top = 38f * density) {
+                val wrenchAngle = if (reduceMotion) -10f else sin(wrenchCycles) * 25f
+                translate(left = wrenchX, top = hipY) {
                     val energy = SymbolPalette.energia
                     // Cabeza
                     drawCircle(
                         color = energy,
-                        radius = 3.6f * density,
-                        center = Offset(0f, -27f * density),
+                        radius = 2.4f * density,
+                        center = Offset(0f, -17f * density),
                         style = Stroke(width = strokeWidth),
                     )
                     // Tronco
-                    drawLine(energy, Offset(0f, -23f * density), Offset(0f, -12f * density), strokeWidth, strokeCap)
+                    drawLine(energy, Offset(0f, -14.5f * density), Offset(0f, -7.5f * density), strokeWidth, strokeCap)
                     // Piernas
-                    drawLine(energy, Offset(0f, -12f * density), Offset(-5f * density, 0f), strokeWidth, strokeCap)
-                    drawLine(energy, Offset(0f, -12f * density), Offset(5f * density, 0f), strokeWidth, strokeCap)
+                    drawLine(energy, Offset(0f, -7.5f * density), Offset(-3.5f * density, 0f), strokeWidth, strokeCap)
+                    drawLine(energy, Offset(0f, -7.5f * density), Offset(3.5f * density, 0f), strokeWidth, strokeCap)
                     // Brazo con llave que gira
-                    translate(left = 0f, top = -19f * density) {
+                    translate(left = 0f, top = -12f * density) {
                         rotate(wrenchAngle, pivot = Offset(0f, 0f)) {
-                            drawLine(energy, Offset(0f, 0f), Offset(-11f * density, 4f * density), strokeWidth, strokeCap)
+                            drawLine(energy, Offset(0f, 0f), Offset(-8f * density, 3f * density), strokeWidth, strokeCap)
                             drawCircle(
                                 color = energy,
-                                radius = 2.2f * density,
-                                center = Offset(-12f * density, 4.4f * density),
-                                style = Stroke(width = 1.5f * density),
+                                radius = 1.6f * density,
+                                center = Offset(-9f * density, 3.3f * density),
+                                style = Stroke(width = 1.2f * density),
                             )
                         }
                     }
@@ -209,7 +209,7 @@ fun RelatorWorkingScene(
                 // Figura que gira un reloj de arena
                 val centerX = w / 2f
                 val rotAngle = if (reduceMotion) 45f else (progress * 360f) % 360f
-                translate(left = centerX, top = 38f * density) {
+                translate(left = centerX, top = hipY) {
                     // Cabeza
                     drawCircle(
                         color = InkColor,
@@ -269,7 +269,7 @@ fun RelatorWorkingScene(
                 val jumpNorm = progress.coerceIn(0f, 1f)
                 val jumperX = if (reduceMotion) centerX else (centerX - 50f * density) + (100f * density * jumpNorm)
                 val jumpHeight = if (reduceMotion) 22f * density else sin(jumpNorm * PI.toFloat()) * 26f * density
-                val jumperY = 38f * density - jumpHeight
+                val jumperY = hipY - jumpHeight
 
                 translate(left = jumperX, top = jumperY) {
                     drawCircle(
@@ -303,15 +303,14 @@ fun RelatorSparkDoneScene(
 ) {
     Canvas(
         modifier = modifier
-            .fillMaxWidth()
-            .height(46.dp),
+            .fillMaxWidth(),
     ) {
         val density = this.density
         val centerX = size.width / 2f
-        val centerY = 26f * density
+        val centerY = size.height / 2f
 
         val p = progress.coerceIn(0f, 1f)
-        val ringScale = if (reduceMotion) 1f else 0.2f + 1.4f * p
+        val ringScale = if (reduceMotion) 1f else 0.2f + 1.1f * p
         val ringAlpha = if (reduceMotion) 0.6f else (1f - p).coerceIn(0f, 1f)
 
         // Anillo que se expande
@@ -319,18 +318,18 @@ fun RelatorSparkDoneScene(
             scale(ringScale, pivot = Offset.Zero) {
                 drawCircle(
                     color = SymbolPalette.energia.copy(alpha = ringAlpha),
-                    radius = 10f * density,
+                    radius = 6.5f * density,
                     center = Offset.Zero,
-                    style = Stroke(width = 1.6f * density),
+                    style = Stroke(width = 1.3f * density),
                 )
             }
 
             // Rayos verdes (#43D18C)
             val rayAlpha = if (reduceMotion) 0.85f else (1f - p).coerceIn(0f, 1f)
             val rayColor = SparkGreen.copy(alpha = rayAlpha)
-            val rayDist = if (reduceMotion) 16f * density else (14f + 8f * p) * density
-            val rayLen = 6f * density
-            val strokeW = 2f * density
+            val rayDist = if (reduceMotion) 10f * density else (7.5f + 4.5f * p) * density
+            val rayLen = 3.8f * density
+            val strokeW = 1.7f * density
 
             // 6 rayos outward
             val angles = floatArrayOf(0f, 45f, 135f, 180f, 225f, 315f)

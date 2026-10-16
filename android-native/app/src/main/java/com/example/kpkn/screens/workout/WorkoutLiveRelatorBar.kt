@@ -17,7 +17,10 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -157,21 +160,21 @@ internal fun WorkoutLiveRelatorLine(
         }
     }
 
-    val activeAction = workingAction ?: doneAction
+    val activeAction = workingAction ?: doneAction ?: actions.firstOrNull()
     val effectiveWorkingAction = activeAction ?: actions.firstOrNull()
 
     // Frase efectiva según la fase (H2)
-    val displayData = remember(text, actions, workingAction, doneAction, previousWeightForUndo) {
+    val displayData = remember(text, actions, isWorking, isDone, activeAction, previousWeightForUndo) {
         when {
-            workingAction != null -> {
-                val action = workingAction!!
+            isWorking && activeAction != null -> {
+                val action = activeAction
                 val copy = when (action.kind) {
                     RelatorAssistActionKind.APPLY_SUGGESTED_LOAD,
                     RelatorAssistActionKind.ADJUST_LOAD,
                     -> {
                         val kg = action.weightKg?.let { formatRelatorKg(it) }
                             ?: extractWeightFromLabel(action.label)
-                            ?: "95"
+                            ?: "97,5"
                         "El equipo está cargando los discos de $kg\u00A0kg…"
                     }
                     RelatorAssistActionKind.START_REST,
@@ -182,8 +185,8 @@ internal fun WorkoutLiveRelatorLine(
                 }
                 DisplayPhrase(copy, emptyList())
             }
-            doneAction != null -> {
-                val action = doneAction!!
+            isDone && activeAction != null -> {
+                val action = activeAction
                 when (action.kind) {
                     RelatorAssistActionKind.APPLY_SUGGESTED_LOAD,
                     RelatorAssistActionKind.ADJUST_LOAD,
@@ -191,8 +194,10 @@ internal fun WorkoutLiveRelatorLine(
                         val setNum = if (action.setIndex >= 0) (action.setIndex + 1).toString() else "1"
                         val newKg = action.weightKg?.let { formatRelatorKg(it) }
                             ?: extractWeightFromLabel(action.label)
+                            ?: "97,5"
+                        val prevKg = previousWeightForUndo
+                            ?: extractPreviousWeight(text)
                             ?: "95"
-                        val prevKg = previousWeightForUndo ?: "92,5"
                         val undoLabel = "vuelve a $prevKg"
                         val undoAction = RelatorAssistAction(
                             kind = RelatorAssistActionKind.ADJUST_LOAD,
@@ -237,7 +242,7 @@ internal fun WorkoutLiveRelatorLine(
             if (action.kind == RelatorAssistActionKind.APPLY_SUGGESTED_LOAD ||
                 action.kind == RelatorAssistActionKind.ADJUST_LOAD
             ) {
-                previousWeightForUndo = extractPreviousWeight(text) ?: "92,5"
+                previousWeightForUndo = extractPreviousWeight(text) ?: "95"
             }
 
             // Fiabilidad (manda): el EFECTO se aplica en el ViewModel en el momento del toque (3c)
@@ -265,57 +270,93 @@ internal fun WorkoutLiveRelatorLine(
             },
         contentAlignment = Alignment.Center,
     ) {
-        AnimatedContent(
-            targetState = currentText,
-            modifier = Modifier.fillMaxWidth(),
-            transitionSpec = {
-                val fade = if (reduceMotion) {
-                    EnterTransition.None togetherWith ExitTransition.None
-                } else {
-                    fadeIn(
-                        tween(RelatorFadeInMs, delayMillis = RelatorFadeOutMs, easing = FastOutSlowInEasing),
-                    ) togetherWith fadeOut(tween(RelatorFadeOutMs, easing = FastOutSlowInEasing))
+        if (!isWorking && !isDone) {
+            // Reposo: texto centrado en la banda para mantener simetría idéntica (Punto 2)
+            AnimatedContent(
+                targetState = currentText,
+                modifier = Modifier.fillMaxWidth(),
+                transitionSpec = {
+                    val fade = if (reduceMotion) {
+                        EnterTransition.None togetherWith ExitTransition.None
+                    } else {
+                        fadeIn(
+                            tween(RelatorFadeInMs, delayMillis = RelatorFadeOutMs, easing = FastOutSlowInEasing),
+                        ) togetherWith fadeOut(tween(RelatorFadeOutMs, easing = FastOutSlowInEasing))
+                    }
+                    fade using SizeTransform(clip = false) { _, _ -> snap() }
+                },
+                label = "relator_copy",
+            ) { line ->
+                val lineActions = if (line == currentText) currentActions else emptyList()
+                val pieces = remember(line, lineActions) { relatorInlinePieces(line, lineActions) }
+                RelatorTextLine(
+                    pieces = pieces,
+                    text = line,
+                    actions = lineActions,
+                    onAction = handleActionClick,
+                    isWorking = false,
+                    reduceMotion = reduceMotion,
+                    forceShimmerSweepProgress = forceShimmerSweepProgress,
+                )
+            }
+        } else {
+            // Fases trabajando y hecho (H2):
+            // - El texto CAMBIA a la frase de trabajo / hecho y se ubica arriba
+            // - La franja de animación de personajes / destello se ubica DEBAJO del texto, sin tocar ni tapar ninguna letra
+            Column(
+                modifier = Modifier.fillMaxSize(),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.SpaceBetween,
+            ) {
+                // Frase arriba (con barrido continuo rápido a 1,4 s si isWorking)
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 2.dp),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    val lineActions = currentActions
+                    val pieces = remember(currentText, lineActions) { relatorInlinePieces(currentText, lineActions) }
+                    RelatorTextLine(
+                        pieces = pieces,
+                        text = currentText,
+                        actions = lineActions,
+                        onAction = handleActionClick,
+                        isWorking = isWorking,
+                        reduceMotion = reduceMotion,
+                        forceShimmerSweepProgress = forceShimmerSweepProgress,
+                    )
                 }
-                fade using SizeTransform(clip = false) { _, _ -> snap() }
-            },
-            label = "relator_copy",
-        ) { line ->
-            val lineActions = if (line == currentText) currentActions else emptyList()
-            val pieces = remember(line, lineActions) { relatorInlinePieces(line, lineActions) }
-            RelatorTextLine(
-                pieces = pieces,
-                text = line,
-                actions = lineActions,
-                onAction = handleActionClick,
-                isWorking = isWorking,
-                reduceMotion = reduceMotion,
-                forceShimmerSweepProgress = forceShimmerSweepProgress,
-            )
-        }
 
-        // Animación de personajes corriendo en la franja de abajo (46 dp, H2)
-        if (isWorking && effectiveWorkingAction != null) {
-            val workingP = forceWorkingProgress ?: (rememberWorkingProgress(reduceMotion))
-            RelatorWorkingScene(
-                actionKind = effectiveWorkingAction.kind,
-                progress = workingP,
-                reduceMotion = reduceMotion,
-                modifier = Modifier
-                    .align(Alignment.BottomCenter)
-                    .fillMaxWidth(),
-            )
-        }
-
-        // Destello breve en la fase hecho (0,9 s)
-        if (isDone) {
-            val sparkP = forceSparkProgress ?: sparkProgress
-            RelatorSparkDoneScene(
-                progress = sparkP,
-                reduceMotion = reduceMotion,
-                modifier = Modifier
-                    .align(Alignment.BottomCenter)
-                    .fillMaxWidth(),
-            )
+                // Franja de abajo: personajes (trabajando) o destello breve (hecho)
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(30.dp),
+                    contentAlignment = Alignment.BottomCenter,
+                ) {
+                    if (isWorking && effectiveWorkingAction != null) {
+                        val workingP = forceWorkingProgress ?: (rememberWorkingProgress(reduceMotion))
+                        RelatorWorkingScene(
+                            actionKind = effectiveWorkingAction.kind,
+                            progress = workingP,
+                            reduceMotion = reduceMotion,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(30.dp),
+                        )
+                    } else if (isDone) {
+                        val sparkP = forceSparkProgress ?: sparkProgress
+                        RelatorSparkDoneScene(
+                            progress = sparkP,
+                            reduceMotion = reduceMotion,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(30.dp),
+                        )
+                    }
+                }
+            }
         }
     }
 }
@@ -534,37 +575,21 @@ private fun RelatorTextLine(
                 drawContent()
                 // Subrayado punteado de acento (SymbolPalette.musculo al 90 %, grosor 2 dp, 5 dp bajo línea base, 3a)
                 val layout = layoutResult ?: return@drawWithContent
+                val segments = relatorActionLineSegments(text, actions, layout)
                 val underlineColor = SymbolPalette.musculo.copy(alpha = 0.90f)
                 val strokeWidth = 2.dp.toPx()
                 val dotDash = PathEffect.dashPathEffect(floatArrayOf(2.5f * density.density, 2.5f * density.density), 0f)
 
-                spans.forEach { span ->
-                    val s = span.start.coerceIn(0, text.length)
-                    val e = span.endExclusive.coerceIn(0, text.length)
-                    if (s < e) {
-                        val startLine = layout.getLineForOffset(s)
-                        val endLine = layout.getLineForOffset(e)
-                        for (line in startLine..endLine) {
-                            val lineStart = maxOf(s, layout.getLineStart(line))
-                            val lineEnd = minOf(e, layout.getLineEnd(line))
-                            if (lineStart < lineEnd) {
-                                val left = layout.getHorizontalPosition(lineStart, usePrimaryDirection = true)
-                                val right = layout.getHorizontalPosition(lineEnd, usePrimaryDirection = true)
-                                val baseline = layout.getLineBaseline(line)
-                                val y = baseline + 5.dp.toPx()
-                                val minX = minOf(left, right)
-                                val maxX = maxOf(left, right)
-                                drawLine(
-                                    color = underlineColor,
-                                    start = Offset(minX, y),
-                                    end = Offset(maxX, y),
-                                    strokeWidth = strokeWidth,
-                                    cap = StrokeCap.Round,
-                                    pathEffect = dotDash,
-                                )
-                            }
-                        }
-                    }
+                segments.forEach { seg ->
+                    val y = seg.baseline + 5.dp.toPx()
+                    drawLine(
+                        color = underlineColor,
+                        start = Offset(seg.bounds.left, y),
+                        end = Offset(seg.bounds.right, y),
+                        strokeWidth = strokeWidth,
+                        cap = StrokeCap.Round,
+                        pathEffect = dotDash,
+                    )
                 }
             }
             .then(
@@ -575,37 +600,25 @@ private fun RelatorTextLine(
                     Modifier.pointerInput(actionByTag) {
                         detectTapGestures { pos ->
                             val layout = layoutResult ?: return@detectTapGestures
-                            val touchMarginPx = 16.dp.toPx()
+                            val segments = relatorActionLineSegments(text, actions, layout)
+                            val minTargetHeightPx = 48.dp.toPx()
+                            val horizPaddingPx = 6.dp.toPx()
 
                             // Buscar primero en tramos de acción con objetivo de 48 dp
                             var matchedAction: RelatorAssistAction? = null
-                            for (span in spans) {
-                                val s = span.start.coerceIn(0, text.length)
-                                val e = span.endExclusive.coerceIn(0, text.length)
-                                if (s >= e) continue
-                                val startLine = layout.getLineForOffset(s)
-                                val endLine = layout.getLineForOffset(e)
-                                for (line in startLine..endLine) {
-                                    val lineStart = maxOf(s, layout.getLineStart(line))
-                                    val lineEnd = minOf(e, layout.getLineEnd(line))
-                                    if (lineStart < lineEnd) {
-                                        val left = layout.getHorizontalPosition(lineStart, usePrimaryDirection = true)
-                                        val right = layout.getHorizontalPosition(lineEnd, usePrimaryDirection = true)
-                                        val top = layout.getLineTop(line)
-                                        val bottom = layout.getLineBottom(line)
-                                        val hitRect = Rect(
-                                            left = minOf(left, right) - 4.dp.toPx(),
-                                            top = top - touchMarginPx,
-                                            right = maxOf(left, right) + 4.dp.toPx(),
-                                            bottom = bottom + touchMarginPx,
-                                        )
-                                        if (hitRect.contains(pos)) {
-                                            matchedAction = span.action
-                                            break
-                                        }
-                                    }
+                            for (seg in segments) {
+                                val centerY = (seg.bounds.top + seg.bounds.bottom) / 2f
+                                val halfHeight = maxOf(minTargetHeightPx / 2f, (seg.bounds.height + 16.dp.toPx()) / 2f)
+                                val hitRect = Rect(
+                                    left = seg.bounds.left - horizPaddingPx,
+                                    top = centerY - halfHeight,
+                                    right = seg.bounds.right + horizPaddingPx,
+                                    bottom = centerY + halfHeight,
+                                )
+                                if (hitRect.contains(pos)) {
+                                    matchedAction = seg.action
+                                    break
                                 }
-                                if (matchedAction != null) break
                             }
 
                             if (matchedAction != null) {
@@ -654,3 +667,53 @@ private fun extractPreviousWeight(phrase: String): String? {
     val matches = regex.findAll(phrase).map { it.groupValues[1] }.toList()
     return matches.firstOrNull()
 }
+
+internal data class RelatorActionLineSegment(
+    val line: Int,
+    val startOffset: Int,
+    val endOffset: Int,
+    val bounds: Rect,
+    val baseline: Float,
+    val action: RelatorAssistAction,
+)
+
+internal fun relatorActionLineSegments(
+    text: String,
+    actions: List<RelatorAssistAction>,
+    layout: TextLayoutResult,
+): List<RelatorActionLineSegment> {
+    if (text.isBlank() || actions.isEmpty()) return emptyList()
+    val spans = relatorActionSpans(text, actions)
+    if (spans.isEmpty()) return emptyList()
+    val segments = mutableListOf<RelatorActionLineSegment>()
+    for (span in spans) {
+        val s = span.start.coerceIn(0, text.length)
+        val e = span.endExclusive.coerceIn(0, text.length)
+        if (s >= e) continue
+        val startLine = layout.getLineForOffset(s)
+        val endLine = layout.getLineForOffset((e - 1).coerceAtLeast(s))
+        for (line in startLine..endLine) {
+            val lineStart = maxOf(s, layout.getLineStart(line))
+            val lineEnd = minOf(e, layout.getLineEnd(line))
+            var trimmedEnd = lineEnd
+            while (trimmedEnd > lineStart && text[trimmedEnd - 1].isWhitespace()) {
+                trimmedEnd--
+            }
+            if (lineStart < trimmedEnd) {
+                val path = layout.getPathForRange(lineStart, trimmedEnd)
+                val bounds = path.getBounds()
+                val baseline = layout.getLineBaseline(line)
+                segments += RelatorActionLineSegment(
+                    line = line,
+                    startOffset = lineStart,
+                    endOffset = trimmedEnd,
+                    bounds = bounds,
+                    baseline = baseline,
+                    action = span.action,
+                )
+            }
+        }
+    }
+    return segments
+}
+

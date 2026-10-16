@@ -392,15 +392,32 @@ class LiveSessionRelatorRenderSheetTest {
         }
         rule.waitForIdle()
         val isSilent = silentAnimation != RelatorSilentAnimation.NONE
-        val lineas = if (isSilent) 0 else lineasDeTexto(text)
-        val medidas = medir(fontScale, variant, text, silentAnimation) + (if (!isSilent) listOf("lineas_texto=$lineas") else emptyList())
+        val expectedText = when {
+            isSilent -> ""
+            forceWorkingProgress != null -> "El equipo está cargando los discos de 97,5\u00A0kg…"
+            forceSparkProgress != null -> "Listo: la serie 1 va con 97,5\u00A0kg. Si te arrepientes, vuelve a 95."
+            else -> text
+        }
+        val lineas = if (isSilent) 0 else lineasDeTexto(expectedText)
+        val medidas = medir(fontScale, variant, expectedText, silentAnimation) + (if (!isSilent) listOf("lineas_texto=$lineas") else emptyList())
         File(System.getenv("KPKN_RENDER_DIR")!!).mkdirs()
         File(System.getenv("KPKN_RENDER_DIR")!!, "medidas_$name.txt").writeText(medidas.joinToString("\n"))
         save(PHONE_TAG, name)
-        if (!isSilent) {
+        val isWorkingOrDone = forceWorkingProgress != null || forceSparkProgress != null
+        if (!isSilent && !isWorkingOrDone) {
             val gapAbove = medidas.value("hueco_chips_texto")
             val gapBelow = medidas.value("hueco_texto_tarjeta")
             assertTrue("huecos $gapAbove / $gapBelow", kotlin.math.abs(gapAbove - gapBelow) <= 2f)
+            assertTrue("la tarjeta debe quedar 12 dp por encima del cajón", medidas.value("hueco_tarjeta_cajon") >= 12f)
+            assertTrue("el relator debe caber en dos líneas: $lineas", lineas in 1..2)
+        } else if (isWorkingOrDone) {
+            val bandaTop = medidas.value("banda_superior")
+            val bandaBottom = medidas.value("banda_inferior")
+            val chipsBottom = medidas.value("chips_inferior")
+            val tarjetaTop = medidas.value("tarjeta_superior")
+            val gapBandAbove = bandaTop - chipsBottom
+            val gapBandBelow = tarjetaTop - bandaBottom
+            assertTrue("huecos banda $gapBandAbove / $gapBandBelow", kotlin.math.abs(gapBandAbove - gapBandBelow) <= 2f)
             assertTrue("la tarjeta debe quedar 12 dp por encima del cajón", medidas.value("hueco_tarjeta_cajon") >= 12f)
             assertTrue("el relator debe caber en dos líneas: $lineas", lineas in 1..2)
         } else {
@@ -602,8 +619,11 @@ class LiveSessionRelatorRenderSheetTest {
         )
     }
 
-    private fun List<String>.value(key: String): Float =
-        first { it.startsWith("$key=") }.substringAfter("=").toFloat()
+    private fun List<String>.value(key: String): Float {
+        val entry = first { it.startsWith("$key=") || it.contains(" $key=") }
+        val token = if (entry.startsWith("$key=")) entry else entry.substring(entry.indexOf(" $key=") + 1)
+        return token.substringAfter("$key=").substringBefore(" ").toFloat()
+    }
 
     /** Recorta la hoja a la caja con la etiqueta [tag] y la guarda como PNG en `KPKN_RENDER_DIR`. */
     private fun save(tag: String, name: String) {
