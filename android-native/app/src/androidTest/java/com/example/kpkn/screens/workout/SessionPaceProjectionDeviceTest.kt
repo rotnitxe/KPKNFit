@@ -45,4 +45,19 @@ class SessionPaceProjectionDeviceTest {
         assertEquals(SessionPaceWork(1, 4), work)
         assertNull(projectSessionPace(600, work.completed, work.total))
     }
+    @Test fun deletedRoundSlotsDoNotInflateTheProjectionEvenWithAStaleCompletion() {
+        val lift = Exercise("lift", "Press", sets = listOf(
+            ExerciseSet("a"), ExerciseSet("deleted-a", isEmptySlot = true),
+            ExerciseSet("b"), ExerciseSet("deleted-b", isEmptySlot = true), ExerciseSet("c"),
+        ))
+        fun completedAt(index: Int) = WorkoutStepRules.completionKeysForRoadmapSet(lift, index).single() to
+            CompletedSet("record-$index", weight = 40.0, reps = 8)
+        val realCompletions = mapOf(completedAt(0), completedAt(2))
+        val work = sessionPaceWork(listOf(lift), realCompletions, emptySet())
+        assertEquals(SessionPaceWork(2, 3), work)
+        assertEquals(900L, projectSessionPace(600, work.completed, work.total)!!.totalSeconds)
+        val withStaleCompletion = realCompletions + ("${lift.id}_1" to CompletedSet("stale", weight = 40.0, reps = 8))
+        assertEquals(work, sessionPaceWork(listOf(lift), withStaleCompletion, emptySet()))
+    }
+
 }

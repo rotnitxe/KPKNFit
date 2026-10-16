@@ -8,12 +8,12 @@ import kotlin.math.ceil
 internal data class SessionPaceProjection(val totalSeconds: Long, val remainingSeconds: Long, val overTargetSeconds: Long?)
 internal data class SessionPaceWork(val completed: Int, val total: Int)
 
-/** Count whole working sets, not unilateral sides, warmups, omitted sets or cardio. */
+/** Count whole working sets, not unilateral sides, warmups, empty round slots, omitted sets or cardio. */
 internal fun sessionPaceWork(exercises: List<Exercise>, completed: Map<String, CompletedSet>, omitted: Set<String>): SessionPaceWork {
     var done = 0
     var total = 0
     exercises.filter { !it.isCardio }.forEach { exercise ->
-        exercise.sets.indices.filter { !WorkoutStepRules.isSetOmitted(exercise.id, it, omitted) }.forEach { index ->
+        exercise.sets.indices.filter { !exercise.sets[it].isEmptySlot && !WorkoutStepRules.isSetOmitted(exercise.id, it, omitted) }.forEach { index ->
             total++
             val keys = WorkoutStepRules.completionKeysForRoadmapSet(exercise, index)
             if (keys.isNotEmpty() && keys.all { key -> completed[key]?.let { !it.isWarmup && !it.skipped } == true }) done++
