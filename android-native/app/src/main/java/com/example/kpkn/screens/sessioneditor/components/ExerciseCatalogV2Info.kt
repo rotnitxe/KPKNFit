@@ -160,6 +160,10 @@ internal fun sessionExerciseDetailModel(resolved: ResolvedCatalogExerciseV2): Ca
         patternId = configuration.profile.movementPatternId,
         isSelected = true,
         canSelect = false,
+        setupCues = configuration.profile.setupCues,
+        executionCues = configuration.profile.executionCues,
+        identityKeys = setOf(definition.id, configuration.id),
+        context = ExerciseFichaContext.SESSION,
     )
 }
 
@@ -178,6 +182,10 @@ internal fun sessionExerciseFallbackDetailModel(exercise: Exercise, info: Exerci
     patternId = null,
     isSelected = true,
     canSelect = false,
+    setupCues = info?.setupCues.orEmpty(),
+    executionCues = info?.executionCues.orEmpty(),
+    identityKeys = com.example.kpkn.domain.exercises.exerciseFichaIdentityKeys(exercise),
+    context = ExerciseFichaContext.SESSION,
 )
 
 /**
@@ -185,7 +193,7 @@ internal fun sessionExerciseFallbackDetailModel(exercise: Exercise, info: Exerci
  * pinta la misma `ExerciseCatalogInfoDialog` sin el pie «Añadir/Quitar».
  */
 @Composable
-internal fun SessionExerciseDetailSheet(exercise: Exercise, onDismiss: () -> Unit) {
+internal fun SessionExerciseDetailSheet(exercise: Exercise, onDismiss: () -> Unit, onShowHistory: (() -> Unit)? = null) {
     val context = LocalContext.current
     var catalogEntry by remember { mutableStateOf(CatalogV2ProcessCache.peek()) }
     LaunchedEffect(context) {
@@ -204,8 +212,9 @@ internal fun SessionExerciseDetailSheet(exercise: Exercise, onDismiss: () -> Uni
             sessionExerciseFallbackDetailModel(exercise, legacyInfo)
         }
     }
-    ExerciseCatalogInfoDialog(
-        model = model,
+    ExerciseFicha(
+        model = model.copy(identityKeys = model.identityKeys + com.example.kpkn.domain.exercises.exerciseFichaIdentityKeys(exercise)),
+        onShowHistory = onShowHistory,
         onDismiss = onDismiss,
         onToggleSelection = {},
         onSelectOption = { _, _ -> },

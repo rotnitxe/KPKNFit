@@ -958,6 +958,11 @@ class WorkoutMediaRepository(
         else -> "No se pudo guardar la foto. Podés reintentar."
     }
 
+    /** El álbum general no depende del ViewModel de una sesión; el borrado aceptado sobrevive al cierre de su hoja. */
+    fun deleteAlbumMediaAsync(items: List<WorkoutMedia>): Deferred<Unit> = MediaPersistenceOwner.scope.async {
+        items.forEach { delete(it.id) }
+    }
+
     suspend fun delete(id: String) = withContext(Dispatchers.IO) {
         val existing = db.workoutMediaDao().getById(id)
         db.workoutMediaDao().delete(id)
