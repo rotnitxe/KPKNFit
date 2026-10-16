@@ -44,9 +44,6 @@ import com.example.kpkn.domain.sessionassistant.UltraFastReason
 import com.example.kpkn.domain.sessionassistant.UltraFastSupersetChange
 import com.example.kpkn.screens.onboarding.design.entreno.SymbolPalette
 import com.example.kpkn.screens.workout.WeightSuggestion
-import com.example.kpkn.screens.workout.components.GodModeBatchBar
-import com.example.kpkn.screens.workout.components.GodModePlusCard
-import com.example.kpkn.screens.workout.components.GodModeRoadmapBadge
 import com.example.kpkn.screens.workout.components.GuidedTechniquePanel
 import com.example.kpkn.screens.workout.components.GuidedTechniquePhase
 import com.example.kpkn.screens.workout.components.SetAdjustmentOverlay
@@ -291,11 +288,6 @@ class LiveSessionTechniqueRenderSheetTest {
 
     // ── Acciones de serie y alcance (C5, B9) ──
 
-    @Test
-    fun tiraGodMode100() {
-        onlyWhenAsked()
-        dibujar("tira_godmode_100", 1f, 170) { TiraGodMode() }
-    }
 
     // ── Ultrarrápido (B11) y adelanto de volumen (B12) ──
 
@@ -379,40 +371,6 @@ class LiveSessionTechniqueRenderSheetTest {
             onDismiss = {},
             onApply = {},
         )
-    }
-
-    @Composable
-    private fun TiraGodMode() {
-        Column(
-            modifier = Modifier.padding(12.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-        ) {
-            GodModeBatchBar(
-                selectedCount = 2,
-                onCreateSuperset = {},
-                onSkip = {},
-                onDelete = {},
-                onUltraFast = {},
-                onClear = {},
-            )
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-            ) {
-                GodModePlusCard(onClick = {}, accent = SymbolPalette.musculo)
-                GodModeRoadmapBadge(
-                    icon = KpknLineIcons.Close,
-                    contentDescription = "Eliminar ejercicio",
-                    onClick = {},
-                    danger = true,
-                )
-                GodModeRoadmapBadge(
-                    icon = KpknLineIcons.Close,
-                    contentDescription = "Eliminar ejercicio",
-                    onClick = {},
-                )
-            }
-        }
     }
 
     @Composable

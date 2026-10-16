@@ -166,6 +166,7 @@ import com.example.kpkn.screens.workout.components.SetInputCardV2
 import com.example.kpkn.screens.workout.components.VoiceCaptureModeDialog
 import com.example.kpkn.screens.workout.components.LiveUndoPillHost
 import com.example.kpkn.screens.workout.components.WorkoutRoadmapBar
+import com.example.kpkn.screens.workout.components.cockpitVerticalGesture
 import com.example.kpkn.screens.workout.components.WorkoutSessionCockpit
 import com.example.kpkn.screens.workout.components.WorkoutSessionAlbumSheet
 import com.example.kpkn.screens.workout.components.WorkoutUiTokens
@@ -309,13 +310,12 @@ fun WorkoutScreen(
     val snackbarScope = rememberCoroutineScope()
     var showExitDialog by rememberSaveable { mutableStateOf(false) }
     var roadmapMode by rememberSaveable(programId, sessionId) { mutableStateOf(RoadmapMode.COMPACT) }
-    var roadmapSelecting by remember { mutableStateOf(false) }
     val chromeScale = LocalViewportAdapt.current.uniformScale
     val compactCockpitHeightDp = WorkoutUiTokens.liveCockpitCompactHeight(chromeScale).value.roundToInt()
     var measuredRoadmapHeightDp by remember { mutableIntStateOf(0) }
     val targetDockBottomClearance = resolveDockBottomClearanceDp(
         measuredRoadmapHeightDp = measuredRoadmapHeightDp.takeIf { it > 0 },
-        roadmapExpanded = roadmapMode == RoadmapMode.EXPANDED,
+        roadmapExpanded = false,
         compactHeightDp = compactCockpitHeightDp,
     ).dp
     val dockBottomClearance by animateDpAsState(
@@ -323,7 +323,6 @@ fun WorkoutScreen(
         animationSpec = tween(durationMillis = 260, easing = FastOutSlowInEasing),
         label = "dockBottomClearance",
     )
-    var selectionClearNonce by remember { mutableIntStateOf(0) }
 
     // ─── Readiness sheet state ─────────────────────────────────────────────────
     val overlayHazeState = remember { HazeState() }
@@ -541,6 +540,30 @@ fun WorkoutScreen(
         augeRepository,
     ) {
         value = augeRepository.getAdaptiveCache()
+    }
+    val realtimeRingsEnabled = viewModel.shouldShowRealtimeRingsWidget()
+    val cockpitRingPreview by produceState<PostSessionPreview?>(
+        initialValue = null,
+        completedExercisesForSummary,
+        realtimeRingsEnabled,
+        uiState.readinessNeuralOverride,
+        uiState.readinessSpinalOverride,
+        uiState.readinessMuscularOverride,
+    ) {
+        value = null
+        if (realtimeRingsEnabled && completedExercisesForSummary.isNotEmpty()) {
+            value = try {
+                augeViewModel.computePostSessionPreview(
+                    completedExercises = completedExercisesForSummary,
+                    durationMinutes = ((System.currentTimeMillis() - uiState.startTimeMs) / 60_000L).toInt().coerceAtLeast(1),
+                    settings = settings,
+                )
+            } catch (cancelled: kotlinx.coroutines.CancellationException) {
+                throw cancelled
+            } catch (_: Exception) {
+                null
+            }
+        }
     }
     val sessionMuscleVolumeByRoleSets = remember(completedExercisesForSummary) {
         computeSessionMuscleRoleWeightedSets(completedExercisesForSummary)
@@ -792,6 +815,7 @@ fun WorkoutScreen(
                             viewModel.addExercisesAtEnd(infos)
                         }
                         structureSheets.addExerciseAfterId = null
+                        structureSheets.addExerciseAtEnd = false
                         structureSheets.addExerciseSearchQuery = ""
                         structureSheets.addExerciseSelectedIds = emptySet()
                     }
@@ -814,6 +838,7 @@ fun WorkoutScreen(
         } else {
             structureSheets.addCatalogToSupersetGroupId = null
             structureSheets.addExerciseAfterId = null
+            structureSheets.addExerciseAtEnd = false
             structureSheets.createSupersetFromCatalogAnchorId = null
             structureSheets.showReplaceExercisePicker = false
             structureSheets.replaceTargetExerciseId = null
@@ -1099,7 +1124,7 @@ fun WorkoutScreen(
             warmupWorkingWeight = warmupWorkingWeight,
             catalogV2 = catalogV2,
             overlayHazeState = overlayHazeState,
-            roadmapExpanded = roadmapMode == RoadmapMode.EXPANDED,
+            roadmapExpanded = false,
             dockBottomClearance = dockBottomClearance,
             onCreateSuperset = {
                 currentExercise?.id?.let {
@@ -1122,16 +1147,6 @@ fun WorkoutScreen(
             skipExerciseLabel = skipExerciseLabel,
             onSkipExercise = onSkipExerciseFromRest,
             )
-            if (roadmapSelecting) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .clickable(
-                            indication = null,
-                            interactionSource = remember { MutableInteractionSource() },
-                        ) { selectionClearNonce++ },
-                )
-            }
             Box(
                     modifier = Modifier
                         .align(Alignment.BottomCenter)
@@ -1164,13 +1179,13 @@ fun WorkoutScreen(
                             structureSheets.exerciseContextForceMemberActions = true
                             structureSheets.exerciseContextExerciseId = exId
                         },
-                        enableLongPress = roadmapMode != RoadmapMode.EXPANDED,
-                        godMode = roadmapMode == RoadmapMode.EXPANDED,
+                        enableLongPress = true,
                         onDeleteExercise = { viewModel.removeExerciseFromSession(it) },
                         onSkipExercise = { viewModel.skipExercise(it) },
                         onAddExercise = {
                             val afterId = currentExercise?.id ?: visibleExercises.lastOrNull()?.id
                             structureSheets.addExerciseAfterId = afterId
+                            structureSheets.addExerciseAtEnd = afterId == null
                             structureSheets.addExerciseSearchQuery = ""
                             structureSheets.addExerciseSelectedIds = emptySet()
                         },
@@ -1199,8 +1214,6 @@ fun WorkoutScreen(
                                 preferredExerciseId = currentExercise?.id,
                             )
                         },
-                        onSelectionModeChange = { roadmapSelecting = it },
-                        clearSelectionNonce = selectionClearNonce,
                         godModeUndoStack = uiState.godModeUndoStack,
                         onRevertGodModeAction = { index -> viewModel.revertGodModeChange(index) },
                         onRoadmapHeightChanged = { measuredRoadmapHeightDp = it },
@@ -1251,7 +1264,7 @@ fun WorkoutScreen(
                     )
                 }
             // El ✓ se aparta mientras las opciones de la serie están abiertas: la tarjeta flotante ocupa su sitio sobre la barra.
-            if (recordFabHolder.visible && uiState.seriesTypeTarget == null) {
+            if (recordFabHolder.visible && uiState.seriesTypeTarget == null && roadmapMode == RoadmapMode.COMPACT) {
                 val activeRecordAction = recordActionHolder.actionForPage(recordFabHolder.activePageKey)
                 // D2.2: el botón se ancla al teclado (WindowInsets.ime) cuando está visible.
                 WorkoutRecordFabHost(
@@ -1284,23 +1297,23 @@ fun WorkoutScreen(
         }
     }
 
+    val reducedCockpitMotion = com.example.kpkn.screens.onboarding.design.wizardReducedMotion()
     val cockpitSheetShape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)
     AnimatedVisibility(
         visible = roadmapMode == RoadmapMode.EXPANDED,
         modifier = Modifier
             .align(Alignment.BottomCenter)
-            .fillMaxWidth()
+            .fillMaxSize()
             .navigationBarsPadding()
-            .padding(bottom = 8.dp)
-            .offset(y = -(compactCockpitHeightDp.dp))
+            .padding(top = 24.dp, bottom = (compactCockpitHeightDp + 8).dp)
             .zIndex(6f),
         enter = expandVertically(
             expandFrom = Alignment.Bottom,
-            animationSpec = tween(durationMillis = 260, easing = FastOutSlowInEasing),
+            animationSpec = tween(durationMillis = if (reducedCockpitMotion) 0 else 260, easing = FastOutSlowInEasing),
         ),
         exit = shrinkVertically(
             shrinkTowards = Alignment.Bottom,
-            animationSpec = tween(durationMillis = 220, easing = FastOutSlowInEasing),
+            animationSpec = tween(durationMillis = if (reducedCockpitMotion) 0 else 220, easing = FastOutSlowInEasing),
         ),
         label = "cockpitOverlay",
     ) {
@@ -1315,7 +1328,8 @@ fun WorkoutScreen(
         )
         Box(
             modifier = Modifier
-                .fillMaxWidth()
+                .fillMaxSize()
+                .cockpitVerticalGesture(roadmapMode) { roadmapMode = it }
                 .graphicsLayer {
                     clip = true
                     shape = cockpitSheetShape
@@ -1329,7 +1343,16 @@ fun WorkoutScreen(
                 exercises = visibleExercises,
                 completedSets = uiState.completedSets,
                 milestones = uiState.sessionMilestones,
-                sessionProgressLabel = "Progreso: $totalCompletedCount/$totalSetsCount",
+                sessionProgressLabel = "$totalCompletedCount / $totalSetsCount",
+                sessionStartTimeMs = uiState.startTimeMs,
+                targetMinutes = resolveEffectiveSessionTargetMinutes(uiState.customTargetDurationMinutes, uiState.targetDurationMinutes, session?.targetDurationMinutes),
+                completedExercises = completedExercisesForSummary,
+                omittedSetKeys = uiState.omittedSetKeys,
+                currentExerciseId = currentExercise?.id,
+                supersetGroups = modeSession.allSupersetGroups(),
+                liveRingPreview = cockpitRingPreview,
+                onSelectExercise = { id -> visibleExercises.indexOfFirst { it.id == id }.takeIf { it >= 0 }?.let(viewModel::selectExercise) },
+                onSelectSuperset = viewModel::selectSupersetGroup,
                 liveEnergySummary = uiState.liveEnergySummary,
                 sessionNotes = uiState.sessionNotes,
                 sessionSavedNotes = uiState.sessionSavedNotes,
@@ -1495,7 +1518,7 @@ fun WorkoutScreen(
             canReturnToMobilityFromWarmup = canReturnToMobilityFromWarmup,
             isRestOverlayVisible = (uiState.isRestTimerRunning || uiState.restOverrun != null) && !uiState.isRestMinimized,
             showPostExerciseFeedback = uiState.showPostExerciseSheet,
-            godModeExpanded = roadmapMode == RoadmapMode.EXPANDED,
+            cockpitExpanded = roadmapMode == RoadmapMode.EXPANDED,
         ),
     )
     BackHandler(enabled = !showExitDialog) {
@@ -1517,7 +1540,7 @@ fun WorkoutScreen(
                 }
                 WorkoutBackAction.MINIMIZE_REST -> viewModel.minimizeRestOverlay()
                 WorkoutBackAction.DISMISS_POST_EXERCISE_FEEDBACK -> viewModel.dismissPostExerciseSheet()
-                WorkoutBackAction.COLLAPSE_GOD_MODE -> roadmapMode = RoadmapMode.COMPACT
+                WorkoutBackAction.COLLAPSE_COCKPIT -> roadmapMode = RoadmapMode.COMPACT
                 WorkoutBackAction.SHOW_EXIT_DIALOG -> showExitDialog = true
                 WorkoutBackAction.DISMISS_EXIT_DIALOG,
                 WorkoutBackAction.DISMISS_MOBILITY_PICKER,

@@ -3472,6 +3472,7 @@ class WorkoutViewModel(
             structuralPersistence.insertExerciseAfter(modeSession, exerciseId, newExercise)
         }
         if (updatedSession == base) return
+        pushGodModeUndo("Agregar ejercicio")
         applySessionMutation(updatedSession, preferredExerciseId = newId, persistToProgram = false)
         updateUiState { it.copy(
             pendingEditSheetExerciseId = newId,
@@ -3522,6 +3523,7 @@ class WorkoutViewModel(
             lastInsertedId = newId
         }
         if (updated == base) return
+        pushGodModeUndo("Agregar ejercicios")
         applySessionMutation(updated, preferredExerciseId = firstNewId, persistToProgram = false)
         updateUiState {
             it.copy(
@@ -3553,6 +3555,7 @@ class WorkoutViewModel(
                 structuralPersistence.insertExerciseAtEnd(modeSession, newExercise)
             }
             if (updated == base) return
+            pushGodModeUndo("Agregar ejercicio")
             applySessionMutation(updated, preferredExerciseId = newId, persistToProgram = false)
             updateUiState { it.copy(pendingEditSheetExerciseId = newId) }
         }
@@ -3566,7 +3569,13 @@ class WorkoutViewModel(
         if (lastEx != null) {
             addExercisesAfter(lastEx.id, infos)
         } else {
+            val previousUndo = state.godModeUndoStack
+            val snapshot = captureGodModeUndoSnapshot(if (infos.size == 1) "Agregar ejercicio" else "Agregar ejercicios")
             infos.forEach { addExerciseAtEnd(it) }
+            if (_uiState.value.session != base) {
+                // Varias altas desde el catálogo son una sola acción: las delegadas no duplican la pila.
+                updateUiState { it.copy(godModeUndoStack = previousUndo + snapshot) }
+            }
         }
     }
 
