@@ -374,10 +374,16 @@ internal fun CatalogExerciseImageCarousel(
             if (reduced) pagerState.scrollToPage(selectedIndex) else pagerState.animateScrollToPage(selectedIndex)
         }
     }
+    // La foto solo avisa de una página a la que se llegó moviéndola. La página con la que arranca no es una elección: antes, abrir la
+    // ficha sin implemento elegido avisaba de la primera foto de la lista y la dejaba elegida sin que nadie la tocara (LV5).
+    var pagerMoved by remember(pagerState) { mutableStateOf(false) }
+    LaunchedEffect(pagerState) {
+        snapshotFlow { pagerState.isScrollInProgress }.collect { moving -> if (moving) pagerMoved = true }
+    }
     LaunchedEffect(pagerState, variants) {
         snapshotFlow { pagerState.settledPage }.collectLatest { page ->
             // Sin foto para la elección no hay página que avisar: la foto no debe elegir la primera sola.
-            if (currentSelectedIndex == null) return@collectLatest
+            if (currentSelectedIndex == null || !pagerMoved) return@collectLatest
             variants.getOrNull(page)?.implementation?.let { implementation ->
                 if (implementation != currentSelectedImplementation) {
                     currentOnImplementationSettled(implementation)

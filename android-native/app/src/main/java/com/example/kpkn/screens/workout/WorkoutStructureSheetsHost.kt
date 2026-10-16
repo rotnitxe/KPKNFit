@@ -98,6 +98,7 @@ import com.example.kpkn.screens.sessioneditor.ExerciseSetsCarousel
 import com.example.kpkn.screens.sessioneditor.SideOrderChip
 import com.example.kpkn.screens.sessioneditor.UnilateralModeSelector
 import com.example.kpkn.screens.sessioneditor.components.CardioEditorCard
+import com.example.kpkn.screens.sessioneditor.components.CatalogReplacementContext
 import com.example.kpkn.screens.sessioneditor.components.ExercisePickerSheet
 import com.example.kpkn.screens.sessioneditor.CatalogLaunchOrigin
 import com.example.kpkn.screens.sessioneditor.CatalogLaunchRequest
@@ -274,6 +275,7 @@ private fun LiveExercisePickerWithCreator(
     onCreateSuperset: ((List<ExerciseMuscleInfo>) -> Unit)? = null,
     editingCatalogDefinitionId: String? = null,
     editingCatalogConfigurationId: String? = null,
+    replacement: CatalogReplacementContext? = null,
 ) {
     ExercisePickerSheet(
         query = query,
@@ -291,6 +293,7 @@ private fun LiveExercisePickerWithCreator(
         onDismiss = onDismiss,
         editingCatalogDefinitionId = editingCatalogDefinitionId,
         editingCatalogConfigurationId = editingCatalogConfigurationId,
+        replacement = replacement,
     )
 }
 
@@ -328,6 +331,21 @@ internal fun WorkoutStructureSheetsHost(
             visibleIds = visibleExercises.map { it.id }.toSet(),
             sessionIds = modeSession.allExercises().map { it.id }.toSet(),
         )
+    }
+
+    // «Reemplazar» llegue por donde llegue (opciones, relator…) cae en el selector que toca: un ejercicio de cardio no se reemplaza por
+    // uno del catálogo de fuerza (LV5). Va antes que el efecto del catálogo para que éste ya no vea el pedido.
+    LaunchedEffect(state.showReplaceExercisePicker, state.replaceTargetExerciseId) {
+        val targetId = state.replaceTargetExerciseId ?: return@LaunchedEffect
+        if (!state.showReplaceExercisePicker) return@LaunchedEffect
+        val target = modeSession.allExercises().firstOrNull { it.id == targetId }
+        if (replacePickerFor(target) == ReplacePicker.CARDIO) {
+            state.showReplaceExercisePicker = false
+            state.replaceTargetExerciseId = null
+            state.replaceSearchQuery = ""
+            state.replaceCardioTargetExerciseId = targetId
+            state.showReplaceCardioPicker = true
+        }
     }
 
     LaunchedEffect(
@@ -392,6 +410,9 @@ internal fun WorkoutStructureSheetsHost(
                     targetCatalogDefinitionId = replaceTarget?.catalogDefinitionId,
                     targetCatalogConfigurationId = replaceTarget?.catalogConfigurationId
                         ?: replaceTarget?.exerciseDbId,
+                    // La tarjeta «Reemplazando» del catálogo enseña el nombre que la persona ve en la sesión y lo que se mantiene del plan (LV5, H1).
+                    targetExerciseName = replaceTarget?.let(::displayWorkoutExerciseName),
+                    targetPlanSummary = replaceTarget?.let(::replacementPlanSummary),
                     initialQuery = state.replaceSearchQuery,
                 )
                 state.showReplaceExercisePicker = false
@@ -864,6 +885,10 @@ internal fun WorkoutStructureSheetsHost(
                 },
                 editingCatalogDefinitionId = replaceTarget?.catalogDefinitionId,
                 editingCatalogConfigurationId = replaceTarget?.catalogConfigurationId,
+                replacement = CatalogReplacementContext(
+                    exerciseName = replaceTarget?.let(::displayWorkoutExerciseName),
+                    planSummary = replaceTarget?.let(::replacementPlanSummary),
+                ),
             )
         }
     }
