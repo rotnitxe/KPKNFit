@@ -27,20 +27,23 @@ Archivos: `screens/workout/WorkoutLiveRelatorBar.kt`, `WorkoutLiveRelatorHost.kt
 - **Dónde no va:** ni sobre las acciones ni con «reducir movimiento». Tampoco fuera de pantalla ni en segundo plano.
 - **Ojo:** LR1g quitó un brillo que cansaba. Este tiene que ser más tenue y con pausa.
 
-**3b. Acciones como botones blancos.**
-- **Lo que pasa:** hoy son tramos de texto pulsables mezclados con el texto, y no casan.
+**3b. Las acciones, como énfasis DENTRO de la frase.** Ley del usuario (2026-10-16, al aprobar el prototipo):
+> «los botones del relator no deben verse demasiado grandes respecto a los demás textos del relator, debe sentirse como un todo
+> continuo, piensa en el botón como un "énfasis" dentro de esa palabra presionable. La idea es un RELATOR, entonces debe mezclarse
+> entre la oración, no es un elemento aparte; pero sí se diferencia para que se haga presionable.»
+- **Lo que pasa:** hoy son tramos de texto pulsables, pero no casan con el resto. Corregir sus detalles de alineación y de estilo.
 - **Cómo se ven ahora:**
-  - píldoras blancas: fondo `#F2EEE6`, texto `#0B0B0B` en Inter SemiBold 13 sp;
-  - 28–32 dp de alto, 12 dp de relleno horizontal y radio completo;
-  - el objetivo táctil llega a 48 dp con el relleno.
-- **Cómo se colocan:**
-  - en la misma línea que el texto si caben; si no, en una línea propia debajo;
-  - centradas, con 8 dp entre ellas y el texto;
-  - el conjunto, simétrico: alineado al centro vertical y con los mismos márgenes que el texto.
+  - La acción es una palabra o un grupo de palabras DE la oración.
+  - Mismo tamaño de letra y misma línea que el texto, y fluye con él.
+  - Se distingue por un realce ceñido a la palabra: fondo `#F2EEE6` con texto `#0B0B0B` del mismo tamaño, 2–3 dp de relleno
+    vertical, 6 dp horizontal y radio 6 dp, sin cambiar el interlineado. O el realce equivalente que mejor se lea. Mira el texto
+    «Aplicar 95 kg» de `docs/screens-v1/proposals/sesion-en-vivo/Main.dc.html`, pero en versión énfasis, no en botón aparte.
+  - El objetivo táctil llega a 48 dp con un área invisible que no mueve el texto.
+- **Simetría:** el párrafo entero sigue centrado. El realce no rompe el centrado ni la línea base.
 
 **3c. El proceso de la acción.**
 - **Al pulsar:**
-  - la píldora pasa a «en curso»: un barrido o un indicador pequeño dentro, y la etiqueta atenuada;
+  - el énfasis pasa a «en curso»: un barrido de luz dentro del realce, y la palabra atenuada. Sin cambiar de tamaño;
   - no admite un segundo toque;
   - al terminar, un ✓ breve (~600 ms) y desaparece o vuelve a su estado.
 - **Si la acción falla:** vuelve a su estado sin ✓ y el relator no cambia.
@@ -58,9 +61,9 @@ Archivos: `screens/workout/WorkoutLiveRelatorBar.kt`, `WorkoutLiveRelatorHost.kt
 - **Nuevas:** la de simetría (en la hoja de render), una por acción y las del brillo (no corre con «reducir movimiento»).
 - **Hoja de render** `render/LiveSessionRelatorRenderSheetTest`, al 100 % y al 130 %:
   - texto solo;
-  - texto con una acción en la misma línea;
-  - texto con dos acciones debajo;
-  - la píldora en curso y con ✓;
+  - texto con una acción dentro de la frase;
+  - texto de dos líneas con dos acciones;
+  - la acción en curso y con ✓;
   - dos fotogramas del brillo.
 
 ## Permitido y prohibido
