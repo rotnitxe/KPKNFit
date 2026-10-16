@@ -7154,6 +7154,26 @@ class WorkoutViewModel(
         return PersistentDiscomfortHit(id = id, label = label)
     }
 
+    /** Contexto de presentación del cierre desde los datos locales ya cargados. */
+    internal fun finishPresentationContext(): FinishPresentationContext {
+        val state = _uiState.value
+        val photos = mediaCapture.sessionMedia.value
+            .filter { it.kind == com.example.kpkn.data.models.WorkoutMediaKind.PHOTO }
+            .map { item -> StoryPhoto(item.filePath, item.exerciseName,
+                if (item.weightKg != null && item.reps != null) "${finishNumber(item.weightKg)}\u00A0kg × ${item.reps}" else item.caption) }
+        val currentLogId = listOf(programId, sessionId, state.weekId.ifBlank { "noweek" }, state.startTimeMs.toString()).joinToString("|")
+        val exerciseNames = state.session?.allExercises().orEmpty().associate { it.id to it.name }
+        val legacyPhotos = state.exercisePhotos.flatMap { (id, paths) -> paths.map { StoryPhoto(it, exerciseNames[id]) } }
+        return FinishPresentationContext(
+            program = repository.getProgramById(programId),
+            weekNumber = state.livePlanContext?.weekIndexInBlock,
+            history = repository.history.value.filter { it.id != currentLogId && com.example.kpkn.domain.auge.AugeUtils.logDateMs(it) < state.startTimeMs },
+            photos = (photos + legacyPhotos + state.sessionPhotos.map { StoryPhoto(it) }).distinctBy { it.path },
+            calories = state.liveEnergySummary.totalKcal.mid.takeIf { it > 0 },
+            records = state.sessionMilestones.count { it.kind == "pr_e1rm" },
+        )
+    }
+
     fun latestCompletedSessionSnapshot(): WorkoutShareSnapshot? {
         val last = repository.getLogsForSession(sessionId)
             .maxByOrNull { it.date }
