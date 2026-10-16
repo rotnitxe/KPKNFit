@@ -141,6 +141,29 @@ class CatalogReplacementDesignTest {
     }
 
     @Test
+    fun sinImplementoLaLineaEmpiezaPorLaDiferenciaYConMayuscula() {
+        val base = definition("leg_press", "Prensa de Piernas", "knee_dominant", listOf("quadriceps"), implements = emptyList())
+        val press = base.copy(
+            configurations = base.configurations.map { configuration ->
+                configuration.copy(
+                    profile = configuration.profile.copy(axialLoadFactor = 0.0, laterality = ExerciseLateralityV2.BILATERAL),
+                )
+            },
+        )
+
+        assertEquals("Sin carga axial", line(press, anchor(axial = 0.6)))
+        assertNull("sin implemento ni diferencia no hay línea", line(press, anchor(axial = 0.0)))
+    }
+
+    @Test
+    fun unaLateralidadQueNoSeDiceNoImpideDecirElMusculo() {
+        val hack = candidate("hack_machine", "machine", "hamstrings", axial = 0.6, laterality = ExerciseLateralityV2.NOT_APPLICABLE)
+        val material = exerciseCatalogOptionLabel("machine", "hack_machine")
+
+        assertEquals("$material · ${exerciseCatalogMuscleLabel("hamstrings")}", line(hack, anchor()))
+    }
+
+    @Test
     fun laFilaDelPropioEjercicioActualNoLlevaDiferenciaYSinConfiguracionNoHayLinea() {
         // Aunque sus datos difieran de los del ancla, es el propio ejercicio actual: solo el implemento.
         val same = candidate("back_squat", "barbell", "quadriceps", axial = 0.0, laterality = ExerciseLateralityV2.UNILATERAL)

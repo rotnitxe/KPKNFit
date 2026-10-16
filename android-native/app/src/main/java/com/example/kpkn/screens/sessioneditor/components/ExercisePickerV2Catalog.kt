@@ -331,19 +331,26 @@ internal fun catalogReplacementCandidateLine(
         ?.takeIf { it.isNotBlank() && it != "default" }
         ?.let { exerciseCatalogOptionLabel(it, definition.id) }
     val mainMuscle = profile.primaryMuscles.firstOrNull()
+    // La lateralidad solo se dice si cambia a una que significa algo (unilateral o bilateral); «no aplica» o «alterna» no dicen nada.
+    val lateralityNote = when {
+        anchor.laterality == null || profile.laterality == anchor.laterality -> null
+        profile.laterality == ExerciseLateralityV2.UNILATERAL -> "unilateral"
+        profile.laterality == ExerciseLateralityV2.BILATERAL -> "bilateral"
+        else -> null
+    }
     val difference = when {
         definition.id == anchor.definitionId -> null
         anchor.axialLoadFactor > 0.0 && profile.axialLoadFactor == 0.0 -> "sin carga axial"
-        anchor.laterality != null && profile.laterality != anchor.laterality -> when (profile.laterality) {
-            ExerciseLateralityV2.UNILATERAL -> "unilateral"
-            ExerciseLateralityV2.BILATERAL -> "bilateral"
-            else -> null
-        }
+        lateralityNote != null -> lateralityNote
         mainMuscle != null && anchor.primaryMuscles.isNotEmpty() && mainMuscle !in anchor.primaryMuscles ->
             exerciseCatalogMuscleLabel(mainMuscle)
         else -> null
     }
-    return listOfNotNull(material, difference).joinToString(" · ").takeIf { it.isNotEmpty() }
+    // Sin implemento la línea empieza por la diferencia: con mayúscula inicial, como cuando empieza por el implemento.
+    return listOfNotNull(material, difference)
+        .joinToString(" · ")
+        .replaceFirstChar { it.uppercase() }
+        .takeIf { it.isNotEmpty() }
 }
 
 internal fun shouldShowCatalogCreateSuggestion(
