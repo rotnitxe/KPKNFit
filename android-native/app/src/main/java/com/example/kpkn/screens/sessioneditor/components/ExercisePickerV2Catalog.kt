@@ -308,6 +308,19 @@ internal fun selectedCatalogImageVariantIndex(
 }
 
 /**
+ * El implemento cuya imagen se enseña en la fila y en la ficha (LV5): el que la persona eligió; si no eligió ninguno, el de la
+ * configuración que «Añadir» añadiría ([resolvedConfigurationId], la de por defecto mientras no haya elección). Nunca «la primera foto
+ * de la lista»: el orden de las fotos es del archivo de imágenes y no tiene por qué coincidir con el material que dice la fila.
+ * Nulo cuando la definición no tiene implemento (la lista de fotos solo trae la suya).
+ */
+internal fun catalogShownImplementation(
+    definition: ExerciseDefinitionV2,
+    selectedOptions: Map<String, String>,
+    resolvedConfigurationId: String?,
+): String? = selectedOptions["implement"]
+    ?: definition.configurations.firstOrNull { it.id == resolvedConfigurationId }?.selectedOptions?.get("implement")
+
+/**
  * The only runtime exercise picker. It deliberately has no legacy fallback:
  * while v2 is loading we show a stable loading surface, never the old catalog.
  *
@@ -868,11 +881,14 @@ private fun ColumnScope.CatalogReadyContent(
                     val hasOptions = definition.optionAxes.isNotEmpty()
                     val defaultMuscles = remember(default) { default?.profile?.primaryMuscles.orEmpty() }
                     val selectedImplementation = effectiveSelectedOptions["implement"]
-                    val imageVariants = remember(definition.id, resolvedConfigurationId, selectedImplementation) {
+                    // La imagen es la del implemento que se ve: el elegido y, si no hay elección, el de la configuración que «Añadir»
+                    // añadiría. Antes, sin elección se enseñaba la primera foto de la lista aunque la fila dijera otro material (LV5).
+                    val shownImplementation = catalogShownImplementation(definition, effectiveSelectedOptions, resolvedConfigurationId)
+                    val imageVariants = remember(definition.id, resolvedConfigurationId, shownImplementation) {
                         exerciseCatalogImageVariants(
                             definitionId = definition.id,
                             catalogConfigurationId = resolvedConfigurationId,
-                            selectedImplementation = selectedImplementation,
+                            selectedImplementation = shownImplementation,
                         )
                     }
                     val firstAxis = definition.optionAxes.firstOrNull()
@@ -926,7 +942,7 @@ private fun ColumnScope.CatalogReadyContent(
                         }
                     }
                     val pattern = remember(definition.canonicalName) { exercisePatternOf(definition.canonicalName) }
-                    val thumbnailResId = selectedCatalogImageVariantIndex(imageVariants, selectedImplementation)
+                    val thumbnailResId = selectedCatalogImageVariantIndex(imageVariants, shownImplementation)
                         ?.let { imageVariants[it].imageResId }
                     val muscleLabel = defaultMuscles.firstOrNull()?.let(::exerciseCatalogMuscleLabel)
                     val materialLabel = default?.selectedOptions?.get("implement")
@@ -1012,7 +1028,7 @@ private fun ColumnScope.CatalogReadyContent(
                                     ).joinToString(" · ").takeIf { it.isNotBlank() },
                                     description = definition.description.takeIf { it.isNotBlank() },
                                     imageVariants = imageVariants,
-                                    selectedImplementation = selectedImplementation,
+                                    selectedImplementation = shownImplementation,
                                     axes = if (hasOptions) {
                                         compatibility.axes.map { axis ->
                                             CatalogDetailAxis(
