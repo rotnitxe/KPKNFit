@@ -25,7 +25,10 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import java.util.concurrent.ConcurrentHashMap
 
-/** Regresión física de renders lentos que terminan después de cambiar las opciones. */
+/**
+ * Regresión física de renders lentos que terminan después de cambiar las opciones.
+ * El panel clickable de KpknSheet fusiona la imagen: su tag se busca en el árbol sin fusionar.
+ */
 @RunWith(AndroidJUnit4::class)
 class WorkoutStoryPreviewDeviceTest {
     @get:Rule val rule=createAndroidComposeRule<ComponentActivity>()
@@ -53,11 +56,11 @@ class WorkoutStoryPreviewDeviceTest {
         try {
             rule.waitUntil(10_000) { initial in started }
             rule.runOnIdle { requests.getValue(initial).complete(image(Color.GREEN)) }
-            rule.waitUntil(10_000) { rule.onAllNodesWithTag("story-preview").fetchSemanticsNodes().isNotEmpty() }
+            rule.waitUntil(10_000) { rule.onAllNodesWithTag("story-preview", useUnmergedTree = true).fetchSemanticsNodes().isNotEmpty() }
             rule.onNodeWithTag("story-share").assertIsEnabled()
             rule.onNodeWithTag("story-toggle-RINGS").performClick()
             rule.waitUntil(10_000) { second in started }
-            rule.onNodeWithTag("story-preview").assertDoesNotExist()
+            rule.onNodeWithTag("story-preview", useUnmergedTree = true).assertDoesNotExist()
             rule.onNodeWithTag("story-share").assertIsNotEnabled()
             rule.onNodeWithTag("story-save-image").assertIsNotEnabled()
             // Se permite seleccionar otra opción mientras la anterior todavía se está dibujando.
@@ -65,14 +68,14 @@ class WorkoutStoryPreviewDeviceTest {
             rule.waitUntil(10_000) { latest in started }
             rule.runOnIdle { requests.getValue(second).complete(image(Color.BLUE)) }
             rule.waitForIdle()
-            rule.onNodeWithTag("story-preview").assertDoesNotExist()
+            rule.onNodeWithTag("story-preview", useUnmergedTree = true).assertDoesNotExist()
             rule.onNodeWithTag("story-share").assertIsNotEnabled()
             rule.onNodeWithTag("story-save-image").assertIsNotEnabled()
             rule.runOnIdle { requests.getValue(latest).complete(image(Color.RED)) }
-            rule.waitUntil(10_000) { rule.onAllNodesWithTag("story-preview").fetchSemanticsNodes().isNotEmpty() }
+            rule.waitUntil(10_000) { rule.onAllNodesWithTag("story-preview", useUnmergedTree = true).fetchSemanticsNodes().isNotEmpty() }
             rule.onNodeWithTag("story-share").assertIsEnabled()
             rule.onNodeWithTag("story-save-image").assertIsEnabled()
-            val pixels=rule.onNodeWithTag("story-preview").captureToImage().asAndroidBitmap()
+            val pixels=rule.onNodeWithTag("story-preview", useUnmergedTree = true).captureToImage().asAndroidBitmap()
             assertEquals("la vista previa pertenece a la última selección",Color.RED,pixels.getPixel(pixels.width/2,pixels.height/2))
         } finally {
             // No dejar decodificaciones no cancelables esperando si una aserción falla.

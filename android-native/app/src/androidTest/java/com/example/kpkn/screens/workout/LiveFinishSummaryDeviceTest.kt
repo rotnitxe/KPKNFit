@@ -26,7 +26,10 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import kotlin.math.abs
 
-/** Ejecutar solo en el teléfono: ningún registro ni ajuste toca el repositorio de producción. */
+/**
+ * Ejecutar solo en el teléfono: ningún registro ni ajuste toca el repositorio de producción.
+ * Los tags de geometría/imagen/dial se consultan sin fusionar: el panel clickable de KpknSheet fusiona esos descendientes.
+ */
 @RunWith(AndroidJUnit4::class)
 class LiveFinishSummaryDeviceTest {
     @get:Rule val rule=createAndroidComposeRule<ComponentActivity>()
@@ -75,9 +78,9 @@ class LiveFinishSummaryDeviceTest {
         val fabTops=mutableListOf<Float>()
         listOf("Notas","Hoy","Levantamientos").forEach { tab ->
             rule.onNodeWithText(tab).performClick();rule.waitForIdle()
-            pageHeights += rule.onNodeWithTag("finish-pager").fetchSemanticsNode().boundsInRoot.height
-            val page=rule.onNodeWithTag("finish-pager").fetchSemanticsNode().boundsInRoot
-            val fab=rule.onNodeWithTag("finish-fabs").fetchSemanticsNode().boundsInRoot
+            pageHeights += rule.onNodeWithTag("finish-pager", useUnmergedTree = true).fetchSemanticsNode().boundsInRoot.height
+            val page=rule.onNodeWithTag("finish-pager", useUnmergedTree = true).fetchSemanticsNode().boundsInRoot
+            val fab=rule.onNodeWithTag("finish-fabs", useUnmergedTree = true).fetchSemanticsNode().boundsInRoot
             assertTrue("el contenido llega hasta los botones",fab.top-page.bottom in 0f..(18f*density))
             fabTops += fab.top
             screenshot("$tab-100")
@@ -97,8 +100,8 @@ class LiveFinishSummaryDeviceTest {
         rule.runOnIdle { fontScale=1.3f }
         listOf("Hoy","Levantamientos","Notas").forEach { tab ->
             rule.onNodeWithText(tab).performClick();rule.waitForIdle()
-            val page=rule.onNodeWithTag("finish-pager").fetchSemanticsNode().boundsInRoot
-            val fab=rule.onNodeWithTag("finish-fabs").fetchSemanticsNode().boundsInRoot
+            val page=rule.onNodeWithTag("finish-pager", useUnmergedTree = true).fetchSemanticsNode().boundsInRoot
+            val fab=rule.onNodeWithTag("finish-fabs", useUnmergedTree = true).fetchSemanticsNode().boundsInRoot
             assertTrue("130%: sin hueco sobre botones",fab.top-page.bottom in 0f..(18f*density))
             rule.onNodeWithTag("finish-save").assertIsDisplayed()
             screenshot("$tab-130")
@@ -112,7 +115,7 @@ class LiveFinishSummaryDeviceTest {
         rule.onNodeWithText("General").assertExists()
         rule.onNodeWithText("Ejercicio").assertExists()
         rule.onNodeWithText("Fotos").assertDoesNotExist()
-        rule.waitUntil(30_000) { rule.onAllNodesWithTag("story-preview").fetchSemanticsNodes().isNotEmpty() }
+        rule.waitUntil(30_000) { rule.onAllNodesWithTag("story-preview", useUnmergedTree = true).fetchSemanticsNodes().isNotEmpty() }
         screenshot("compartir-sin-fotos")
     }
 
@@ -133,7 +136,7 @@ class LiveFinishSummaryDeviceTest {
     @Test fun dismissKeepsNoteAndOfficialAdjustmentFeedsSameClosingFeedback() {
         show()
         rule.onNodeWithText("Energía").performClick()
-        rule.onNodeWithTag("ring-adjust-ring").performSemanticsAction(SemanticsActions.SetProgress) { it(55f) }
+        rule.onNodeWithTag("ring-adjust-ring", useUnmergedTree = true).performSemanticsAction(SemanticsActions.SetProgress) { it(55f) }
         rule.onNodeWithText("Listo").performClick()
         rule.onNodeWithTag("finish-save").performClick()
         rule.runOnIdle { assertEquals(55,saves.single().second.finalNeuralBattery);assertTrue(saves.single().second.neuralEdited) }
