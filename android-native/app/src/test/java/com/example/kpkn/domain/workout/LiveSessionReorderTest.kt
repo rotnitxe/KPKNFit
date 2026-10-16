@@ -298,4 +298,125 @@ class LiveSessionReorderTest {
         assertEquals(order, LiveSessionReorder.moveUnit(order, groupOf, fromIndex = 1, delta = 1))
         assertEquals(order, LiveSessionReorder.moveUnit(order, groupOf, fromIndex = 5, delta = 1))
     }
+
+    // ── Arrastrar unidades (LV11, A3) ──────────────────────────────────────────────────────────────────────────────────────────
+
+    @Test
+    fun theUnitsOfAnOrderAreLooseExercisesAndWholeSupersets() {
+        assertEquals(
+            listOf(listOf("x"), listOf("m1", "m2"), listOf("y")),
+            LiveSessionReorder.units(listOf("x", "m1", "m2", "y"), groupOf),
+        )
+    }
+
+    @Test
+    fun aSupersetDraggedAsAUnitKeepsItsMembersTogether() {
+        val order = listOf("x", "m1", "m2", "y", "z")
+
+        assertEquals(listOf("x", "y", "z", "m1", "m2"), LiveSessionReorder.moveUnitTo(order, groupOf, fromUnit = 1, toUnit = 3))
+        assertEquals(listOf("m1", "m2", "x", "y", "z"), LiveSessionReorder.moveUnitTo(order, groupOf, fromUnit = 1, toUnit = 0))
+        assertEquals("sin cambio de sitio no cambia nada", order, LiveSessionReorder.moveUnitTo(order, groupOf, fromUnit = 2, toUnit = 2))
+        assertEquals("fuera de la lista no cambia nada", order, LiveSessionReorder.moveUnitTo(order, groupOf, fromUnit = 9, toUnit = 0))
+    }
+
+    @Test
+    fun aMemberChangesPlaceInsideItsSupersetButNeverLeavesIt() {
+        val order = listOf("x", "m1", "m2", "y")
+
+        assertEquals(listOf("x", "m2", "m1", "y"), LiveSessionReorder.moveMemberWithinUnit(order, groupOf, "m1", delta = 1))
+        assertEquals(listOf("x", "m2", "m1", "y"), LiveSessionReorder.moveMemberWithinUnit(order, groupOf, "m2", delta = -1))
+        assertEquals("el primero no sube más allá de su bloque", order, LiveSessionReorder.moveMemberWithinUnit(order, groupOf, "m1", delta = -1))
+        assertEquals("el último no baja más allá de su bloque", order, LiveSessionReorder.moveMemberWithinUnit(order, groupOf, "m2", delta = 1))
+        assertEquals("un ejercicio suelto no tiene miembros que cambiar", order, LiveSessionReorder.moveMemberWithinUnit(order, groupOf, "x", delta = 1))
+    }
+
+    // ── Lo hecho y lo que está en curso queda fijo arriba (LV11, A3) ───────────────────────────────────────────────────────────
+
+    private val fiveInARow = listOf("a", "b", "c", "d", "e")
+
+    @Test
+    fun theLockedExercisesStayOnTopAndTheRestFollowTheRequest() {
+        val locked = setOf("a", "b")
+
+        assertEquals(
+            listOf("a", "b", "e", "c", "d"),
+            LiveSessionReorder.keepLockedFirst(listOf("a", "b", "e", "c", "d"), fiveInARow, locked),
+        )
+    }
+
+    @Test
+    fun nothingCanBePlacedInFrontOfALockedExercise() {
+        val locked = setOf("a", "b")
+
+        assertEquals(
+            "«c» pedido en primer lugar queda detrás de lo hecho",
+            listOf("a", "b", "c", "d", "e"),
+            LiveSessionReorder.keepLockedFirst(listOf("c", "a", "b", "d", "e"), fiveInARow, locked),
+        )
+        assertEquals(
+            "«e» pedido en medio de lo fijo queda detrás de ello",
+            listOf("a", "b", "e", "c", "d"),
+            LiveSessionReorder.keepLockedFirst(listOf("a", "e", "b", "c", "d"), fiveInARow, locked),
+        )
+    }
+
+    @Test
+    fun theLockedOnesKeepTheirOwnOrderEvenIfTheRequestScramblesThem() {
+        assertEquals(
+            listOf("a", "b", "d", "c", "e"),
+            LiveSessionReorder.keepLockedFirst(listOf("b", "a", "d", "c", "e"), fiveInARow, setOf("a", "b")),
+        )
+    }
+
+    @Test
+    fun anUnstartedExerciseThatWasAlreadyAheadOfALockedOneMayStayOrGoBackButNeverJumpAheadOfAnother() {
+        // «b» está sin empezar pero delante de «c» (se saltó de «a» a «c»): puede quedarse o pasar detrás de «c»; «d» no puede pasar delante de «c».
+        val current = listOf("a", "b", "c", "d")
+        val locked = setOf("a", "c")
+
+        assertEquals(listOf("a", "b", "c", "d"), LiveSessionReorder.keepLockedFirst(listOf("a", "b", "c", "d"), current, locked))
+        assertEquals(listOf("a", "c", "b", "d"), LiveSessionReorder.keepLockedFirst(listOf("a", "c", "b", "d"), current, locked))
+        assertEquals(
+            "«d» pedido delante de todo no pasa de «c»; «b» se queda donde estaba",
+            listOf("a", "b", "c", "d"),
+            LiveSessionReorder.keepLockedFirst(listOf("d", "b", "a", "c"), current, locked),
+        )
+    }
+
+    @Test
+    fun withNothingLockedTheRequestIsAppliedAsAsked() {
+        assertEquals(
+            listOf("e", "d", "c", "b", "a"),
+            LiveSessionReorder.keepLockedFirst(listOf("e", "d", "c", "b", "a"), fiveInARow, emptySet()),
+        )
+    }
+
+    @Test
+    fun theLockOnlyLooksAtWhatIsInTheRequest() {
+        // «b» está omitido hoy y no viene en la lista: no cuenta ni se pierde aquí (lo conserva `plan`).
+        assertEquals(
+            listOf("a", "d", "c"),
+            LiveSessionReorder.keepLockedFirst(listOf("d", "a", "c", "zzz"), listOf("a", "b", "c", "d"), setOf("a")),
+        )
+    }
+
+    @Test
+    fun aSupersetWithOneStartedMemberIsLockedAsAWhole() {
+        val order = listOf("x", "m1", "m2", "y")
+
+        assertEquals(setOf("m1", "m2"), LiveSessionReorder.lockWholeUnits(order, groupOf, setOf("m2")))
+        assertEquals(setOf("x"), LiveSessionReorder.lockWholeUnits(order, groupOf, setOf("x")))
+        assertEquals(emptySet<String>(), LiveSessionReorder.lockWholeUnits(order, groupOf, emptySet()))
+    }
+
+    @Test
+    fun theLockedOrderAppliedToTheSessionLeavesTheDoneExercisesOnTop() {
+        // De punta a punta: el orden que sale de `keepLockedFirst` es el que `plan` aplica a la sesión.
+        val session = loose("a", "b", "c", "d")
+        val sanitized = LiveSessionReorder.keepLockedFirst(listOf("c", "d", "a", "b"), session.order(), setOf("a", "b"))
+
+        val plan = LiveSessionReorder.plan(session, sanitized)
+
+        assertEquals(listOf("a", "b", "c", "d"), plan.session.order())
+    }
 }

@@ -48,7 +48,6 @@ import com.example.kpkn.ui.adapt.LiveViewportPolicyMath
 import com.example.kpkn.screens.workout.components.SetInputCardV2
 import com.example.kpkn.screens.workout.components.WorkoutMobilityChecklistItem
 import com.example.kpkn.screens.workout.components.WorkoutWarmupDisplaySet
-import com.example.kpkn.screens.workout.components.GodModeTechniqueScopeDialog
 import com.example.kpkn.screens.workout.components.WorkoutUiTokens
 import dev.chrisbanes.haze.HazeState
 import kotlinx.coroutines.delay
@@ -87,6 +86,8 @@ internal fun WorkoutV2Body(
     onExpandSetup: () -> Unit,
     onExpandReplace: () -> Unit,
     onExpandEdit: () -> Unit,
+    /** «Editar» de las opciones de una serie: abre las series del ejercicio en el que se pulsó (no siempre el de turno). */
+    onEditExercise: (exerciseId: String) -> Unit = {},
     onRequestCardioGps: (exerciseId: String, setIndex: Int) -> Unit = { _, _ -> },
     exerciseReadinessMap: Map<String, ExerciseReadiness> = emptyMap(),
     recordActionHolder: RecordActionHolder = remember { RecordActionHolder() },
@@ -185,10 +186,6 @@ internal fun WorkoutV2Body(
         uiState.lastDrainOverlay?.let { drainOverlayState = it }
     }
     var expandedSupersetWarmups by remember { mutableStateOf<Set<String>>(emptySet()) }
-    var pendingDeleteSet by remember { mutableStateOf<Pair<String, Int>?>(null) }
-    var pendingTechnique by remember {
-        mutableStateOf<Pair<com.example.kpkn.domain.sessionassistant.SeriesTechnique, Pair<String, Int>>?>(null)
-    }
     var warmupWeightDrafts by remember { mutableStateOf<Map<String, String>>(emptyMap()) }
     val recordActionScopeOwner = remember(
         uiState.programId,
@@ -231,6 +228,7 @@ internal fun WorkoutV2Body(
         }
         val sessionTimeRemainingSeconds by viewModel.sessionTimeRemainingSeconds.collectAsStateWithLifecycle()
         val relatorResolution by viewModel.relatorResolution.collectAsStateWithLifecycle()
+        val relatorLoadPopTrigger by viewModel.relatorLoadPopTrigger.collectAsStateWithLifecycle()
         val density = LocalDensity.current
         var headerHeightPx by remember { mutableIntStateOf(0) }
         val relatorBandHeight = WorkoutUiTokens.liveRelatorBandHeight(density)
@@ -2202,22 +2200,6 @@ internal fun WorkoutV2Body(
                                             suggestion,
                                         )
                                     },
-                                    godModeActionsVisible = false,
-                                    isDropSet = activeSet.isDropSet,
-                                    isRestPause = activeSet.isRestPause,
-                                    canDeleteSet = targetExercise.sets.size > 1,
-                                    onDropSet = if (activeSetIndex > 0) {
-                                         { pendingTechnique = SeriesTechnique.DROPSET to (targetExercise.id to activeSetIndex) }
-                                     } else null,
-                                    onRestPause = if (activeSetIndex > 0) {
-                                         { pendingTechnique = SeriesTechnique.REST_PAUSE to (targetExercise.id to activeSetIndex) }
-                                     } else null,
-                                    onDeleteSet = {
-                                        pendingDeleteSet = targetExercise.id to activeSetIndex
-                                    },
-                                    onOmitSet = {
-                                        viewModel.omitSet(targetExercise.id, activeSetIndex)
-                                    },
                                     mediaCapture = viewModel.mediaCapture,
                                     onRetryPendingCaptures = onRetryPendingCaptures,
                                     openMediaFace = isSettledPage && openMediaFaceExerciseId == targetExercise.id,
@@ -2227,6 +2209,7 @@ internal fun WorkoutV2Body(
                                         ?: uiState.lastHomologatedResultV3?.takeIf {
                                             uiState.setJustLoggedKey?.startsWith("${targetExercise.id}_$activeSetIndex") == true
                                         },
+                                    loadPopTrigger = relatorLoadPopTrigger,
                                         )
                                     }
                                 }
@@ -2263,64 +2246,36 @@ internal fun WorkoutV2Body(
             } // BoxWithConstraints body
         } // header + body Column
 
-        if (!relatorResolution.text.isNullOrBlank() && headerHeightPx > 0 && !relatorBandCovered) {
+        if ((!relatorResolution.text.isNullOrBlank() || relatorResolution.silentAnimation != RelatorSilentAnimation.NONE) && headerHeightPx > 0 && !relatorBandCovered) {
             WorkoutLiveRelatorLine(
                 text = relatorResolution.text,
                 phaseKey = relatorResolution.phaseKey,
                 actions = relatorResolution.actions,
                 onAction = { viewModel.performRelatorAssist(it) },
                 accentColor = sessionAccentColor,
+                silentAnimation = relatorResolution.silentAnimation,
+                onLoadPop = { viewModel.triggerRelatorLoadPop() },
                 modifier = Modifier
                     .align(Alignment.TopCenter)
                     .fillMaxWidth()
                     .height(relatorBandHeight)
-                    .offset(y = with(density) { headerHeightPx.toDp() })
+                    .offset(y = with(density) { (headerHeightPx - 4.5.dp.toPx()).toDp() })
                     .zIndex(12f),
             )
         }
 
-    pendingDeleteSet?.let { (exerciseId, setIndex) ->
-        KpknAlertDialog(
-            onDismissRequest = { pendingDeleteSet = null },
-            title = { Text("Eliminar serie", fontWeight = FontWeight.Black) },
-            text = { Text("¿Eliminar la serie ${setIndex + 1} de esta sesión?") },
-            confirmButton = {
-                TextButton(onClick = {
-                    viewModel.removeSetFromExercise(exerciseId, setIndex)
-                    pendingDeleteSet = null
-                }) { Text("Eliminar") }
-            },
-            dismissButton = {
-                TextButton(onClick = { pendingDeleteSet = null }) { Text("Cancelar") }
-            },
-        )
-    }
-    pendingTechnique?.let { (technique, target) ->
-        val (exerciseId, setIndex) = target
-        val ex = visibleExercises.firstOrNull { it.id == exerciseId } ?: currentExercise
-        GodModeTechniqueScopeDialog(
-            technique = technique,
-            onPick = { scope ->
-                val count = ex?.sets?.size ?: 1
-                val (from, to) = com.example.kpkn.domain.exercises.godModeTechniqueRange(setIndex, count, scope)
-                viewModel.updatePlannedSeriesTechnique(exerciseId, from, to, technique)
-                pendingTechnique = null
-            },
-            onDismiss = { pendingTechnique = null },
-        )
-    }
-
-    // ── Sheets: SeriesType + UltraFast ───────────────────────────────────
+    // ── Opciones de la serie (LV11, A1): pulsación larga en un paso de la serie ───────────────────────────────────────────────
     uiState.seriesTypeTarget?.let { target ->
         val ex = visibleExercises.firstOrNull { it.id == target.exerciseId } ?: currentExercise
         if (ex != null) {
-            val completedIdx = ex.sets.indices.filter { idx ->
-                ex.completionKeysForSet(idx).any { k -> uiState.completedSets.containsKey(k) }
-            }.toSet()
-            com.example.kpkn.screens.workout.components.SeriesTypeSheet(
+            com.example.kpkn.screens.workout.components.SeriesOptionsSheet(
                 exercise = ex,
                 target = target,
-                completedSetIndices = completedIdx,
+                completedSets = uiState.completedSets,
+                omittedSetKeys = uiState.omittedSetKeys,
+                setDraftKeys = uiState.setDrafts.keys,
+                manualLoadKeys = uiState.manualLoadOverrides.keys,
+                bottomClearance = dockBottomClearance,
                 onDismiss = { viewModel.hideSeriesTypeSheet() },
                 onApply = { t, technique ->
                     viewModel.updatePlannedSeriesTechnique(
@@ -2332,6 +2287,10 @@ internal fun WorkoutV2Body(
                     )
                     viewModel.hideSeriesTypeSheet()
                 },
+                onEdit = { onEditExercise(ex.id) },
+                onAddSet = { viewModel.addSetToCurrentExercise(ex.id) },
+                onSkipSet = { setIndex -> viewModel.omitSet(ex.id, setIndex) },
+                onDeleteSet = { setIndex -> viewModel.removeSetFromExercise(ex.id, setIndex) },
             )
         }
     }

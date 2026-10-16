@@ -12,14 +12,10 @@ import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.models.ProgramWeek
 import com.example.kpkn.data.models.ReplacementPersistenceScopeV2
 import com.example.kpkn.data.models.Session
-import com.example.kpkn.data.models.TrainingMode
-import com.example.kpkn.data.models.UnilateralMode
-import com.example.kpkn.data.models.UnitModeV2
 import com.example.kpkn.data.models.WeekVariant
 import com.example.kpkn.data.models.WorkoutContextProfile
 import com.example.kpkn.data.models.supersetGroupRefOrLegacyId
 import com.example.kpkn.data.repository.ProgramRepository
-import com.example.kpkn.domain.exercises.replacedWithCatalogExercise
 import com.example.kpkn.domain.exercises.resolvedCanonicalExerciseId
 import com.example.kpkn.domain.training.ProgramProgressEngine
 import com.example.kpkn.domain.workout.LiveSessionReorder
@@ -95,22 +91,7 @@ class WorkoutStructuralPersistenceController(
                         if (targetSession == null) return@let
                         val updatedSession = withModeSession(targetSession, state.activeMode) { modeSession ->
                             modeSession.replaceExerciseById(change.exerciseId) { ex ->
-                                val lastSet = ex.sets.lastOrNull()
-                                val newSet = ExerciseSet(
-                                    id = UUID.randomUUID().toString(),
-                                    targetReps = lastSet?.targetReps,
-                                    targetRepsRange = lastSet?.targetRepsRange,
-                                    targetRPE = lastSet?.targetRPE,
-                                    targetRIR = lastSet?.targetRIR,
-                                    weight = lastSet?.weight,
-                                    loadModeV2 = ex.sets.firstOrNull()?.loadModeV2 ?: LoadModeV2.LOAD,
-                                    unitModeV2 = lastSet?.unitModeV2,
-                                    intensityMode = lastSet?.intensityMode,
-                                    targetDuration = lastSet?.targetDuration,
-                                    targetPercentageRM = lastSet?.targetPercentageRM,
-                                    isAmrap = false,
-                                )
-                                WorkoutEditingRules.normalizeLiveEditedExercise(ex.copy(sets = ex.sets + newSet))
+                                WorkoutEditingRules.normalizeLiveEditedExercise(ex.copy(sets = ex.sets + plannedSetAfterLast(ex)))
                             }
                         }
                         persist(updatedSession)
@@ -286,22 +267,7 @@ class WorkoutStructuralPersistenceController(
                     ?: modeSession.allExercises().firstOrNull { it.id == change.exerciseId }
                     ?: return@withModeSession modeSession
                 modeSession.replaceExerciseById(targetExercise.id) { exercise ->
-                    val lastSet = exercise.sets.lastOrNull()
-                    val newSet = ExerciseSet(
-                        id = UUID.randomUUID().toString(),
-                        targetReps = lastSet?.targetReps,
-                        targetRepsRange = lastSet?.targetRepsRange,
-                        targetRPE = lastSet?.targetRPE,
-                        targetRIR = lastSet?.targetRIR,
-                        weight = lastSet?.weight,
-                        loadModeV2 = exercise.sets.firstOrNull()?.loadModeV2 ?: LoadModeV2.LOAD,
-                        unitModeV2 = lastSet?.unitModeV2,
-                        intensityMode = lastSet?.intensityMode,
-                        targetDuration = lastSet?.targetDuration,
-                        targetPercentageRM = lastSet?.targetPercentageRM,
-                        isAmrap = false,
-                    )
-                    WorkoutEditingRules.normalizeLiveEditedExercise(exercise.copy(sets = exercise.sets + newSet))
+                    WorkoutEditingRules.normalizeLiveEditedExercise(exercise.copy(sets = exercise.sets + plannedSetAfterLast(exercise)))
                 }
             }
             is PendingStructuralChange.AddExercise -> {
@@ -444,7 +410,7 @@ class WorkoutStructuralPersistenceController(
         } else {
             state.omittedSetKeys
         }
-        val remappedDrafts = if (previousSession != null) {
+        val remappedDraftsBefore = if (previousSession != null) {
             remapIndexKeyedMap(previousSession, normalizedSession, state.setDrafts)
         } else {
             state.setDrafts
@@ -454,7 +420,7 @@ class WorkoutStructuralPersistenceController(
         } else {
             state.manualLoadOverrides
         }
-        val remappedLoadModes = if (previousSession != null) {
+        val remappedLoadModesBefore = if (previousSession != null) {
             remapIndexKeyedMap(previousSession, normalizedSession, state.persistedLoadModeBySet)
         } else {
             state.persistedLoadModeBySet
@@ -464,6 +430,25 @@ class WorkoutStructuralPersistenceController(
         } else {
             state.setAdvancedFeedback
         }
+        // Si el plan de una serie cambia (p. ej. su tipo de carga en «Editar series»), manda sobre lo que la sesión recordaba de ella:
+        // el modo con el que se registró otra serie y los borradores. Antes ganaba lo recordado y el tipo «volvía al que había» (LV5).
+        val reconciled = if (previousSession != null) {
+            reconcileRuntimeWithPlanEdit(
+                previous = ports.sessionForActiveMode(previousSession, state.activeMode),
+                next = ports.sessionForActiveMode(normalizedSession, state.activeMode),
+                completedSets = remappedCompleted,
+                exerciseTags = state.exerciseTags,
+                runtime = LiveEditRuntime(
+                    persistedLoadModeBySet = remappedLoadModesBefore,
+                    persistedLoadModeByExercise = state.persistedLoadModeByExercise,
+                    setDrafts = remappedDraftsBefore,
+                ),
+            )
+        } else {
+            LiveEditRuntime(remappedLoadModesBefore, state.persistedLoadModeByExercise, remappedDraftsBefore)
+        }
+        val remappedLoadModes = reconciled.persistedLoadModeBySet
+        val remappedDrafts = reconciled.setDrafts
         val liveExerciseIds = normalizedSession.allExercises().map { it.id }.toSet()
         val preview = state.copy(
             session = normalizedSession,
@@ -488,35 +473,11 @@ class WorkoutStructuralPersistenceController(
             )
 
         updateState {
-            val preferredExercise = visible.getOrNull(resolvedExerciseIdx)
-                ?.takeIf { exercise -> exercise.id == preferredExerciseId }
-            val plannedLoadModesBySet = preferredExercise
-                ?.sets
-                ?.mapIndexed { index, set -> workoutSetKey(preferredExercise.id, index) to (set.loadModeV2 ?: LoadModeV2.LOAD) }
-                ?.toMap()
-                .orEmpty()
-            val plannedExerciseLoadMode = preferredExercise
-                ?.sets
-                ?.firstOrNull()
-                ?.loadModeV2
-                ?: plannedLoadModesBySet.values.firstOrNull()
-                ?: LoadModeV2.LOAD
-            val mergedLoadModes = if (preferredExercise != null) {
-                val remappedForPreferred = remappedLoadModes.filterKeys { key -> key.startsWith("${preferredExercise.id}_") }
-                plannedLoadModesBySet + remappedForPreferred
-            } else {
-                remappedLoadModes
-            }
-            val persistedByExercise = if (preferredExercise != null) {
-                val runtimeMode = it.persistedLoadModeByExercise[preferredExercise.id]
-                if (runtimeMode != null) {
-                    it.persistedLoadModeByExercise
-                } else {
-                    it.persistedLoadModeByExercise + (preferredExercise.id to plannedExerciseLoadMode)
-                }
-            } else {
-                it.persistedLoadModeByExercise
-            }.filterKeys { key ->
+            // El modo de carga recordado es SOLO lo que la sesión vio hacer (registros y ajustes de «Editar series»): el plan se queda
+            // en el plan. Antes, cada edición de un ejercicio copiaba los modos de su plan al recuerdo de todas sus series, y desde ese
+            // momento una edición posterior del plan perdía contra su propia copia: el tipo de carga «volvía al que había». Además se
+            // vaciaba el recuerdo de TODOS los demás ejercicios (LV5).
+            val persistedByExercise = it.persistedLoadModeByExercise.filterKeys { key ->
                 key in liveExerciseIds || liveExerciseIds.any { id -> key.startsWith("$id|") }
             }
             val next = it.copy(
@@ -527,7 +488,7 @@ class WorkoutStructuralPersistenceController(
                 omittedSetKeys = remappedOmitted,
                 setDrafts = remappedDrafts,
                 manualLoadOverrides = remappedOverrides,
-                persistedLoadModeBySet = mergedLoadModes,
+                persistedLoadModeBySet = remappedLoadModes,
                 persistedLoadModeByExercise = persistedByExercise,
                 setAdvancedFeedback = remappedAdvanced,
                 skippedExerciseIds = pruneExerciseIdSet(it.skippedExerciseIds, liveExerciseIds),
@@ -596,7 +557,7 @@ class WorkoutStructuralPersistenceController(
             )
 
             if (effectiveScope != ReplacementPersistenceScopeV2.SESSION_ONLY) {
-                val updatedProgram = applyReplacementToProgram(
+                var updatedProgram = applyReplacementToProgram(
                     program = program,
                     currentLocation = location,
                     sourceExerciseDbId = prompt.sourceExerciseDbId,
@@ -606,6 +567,24 @@ class WorkoutStructuralPersistenceController(
                     replacement = prompt.replacement,
                     scope = effectiveScope,
                 )
+                if (updatedProgram == program) {
+                    // Reemplazos encadenados (A por B «solo esta vez» y luego B por C «en todo el programa»): el programa sigue guardando
+                    // el ejercicio del plan original en ese hueco, no el B que había en la sesión. Se sustituye ése (LV5).
+                    val planned = state.plannedSessionBaseline?.allExercises()?.firstOrNull { it.id == prompt.exerciseId }
+                    val plannedConfiguration = planned?.catalogConfigurationId
+                    if (planned != null && !plannedConfiguration.equals(prompt.fromCatalogConfigurationId, ignoreCase = true)) {
+                        updatedProgram = applyReplacementToProgram(
+                            program = program,
+                            currentLocation = location,
+                            sourceExerciseDbId = planned.resolvedCanonicalExerciseId(),
+                            sourceExerciseId = prompt.exerciseId,
+                            sourceCatalogConfigurationId = plannedConfiguration,
+                            sourceExerciseSlot = prompt.sourceExerciseSlot,
+                            replacement = prompt.replacement,
+                            scope = effectiveScope,
+                        )
+                    }
+                }
                 if (updatedProgram != program) {
                     repository.updateProgram(updatedProgram)
                 }
@@ -730,7 +709,7 @@ class WorkoutStructuralPersistenceController(
                 loadSuggestions = it.loadSuggestions.filterKeys { key -> !key.startsWith("${exerciseId}_") },
                 setDrafts = it.setDrafts.filterKeys { key -> !key.startsWith("${exerciseId}_") },
                 manualLoadOverrides = it.manualLoadOverrides.filterKeys { key -> !key.startsWith("${exerciseId}_") },
-            )
+            ).withoutLoadStateOfExercise(exerciseId)
         }
         ports.refreshLoadSuggestions(getState())
         ports.persistOngoingState()
@@ -855,38 +834,23 @@ class WorkoutStructuralPersistenceController(
         updateState { it.copy(pendingReplacementPersistencePrompt = prompt) }
     }
 
+    /**
+     * El ejercicio que ocupa el hueco de [old] tras elegir [replacement]. Hereda solo lo que define el producto (series planificadas,
+     * descanso e intensidad objetivo); ver [replacementExerciseFor]. Las altas de ejercicio también pasan por aquí.
+     */
     fun buildReplacementExercise(old: Exercise, replacement: ExerciseMuscleInfo): Exercise {
         val cached = if (replacement.catalogRevision == null) {
             com.example.kpkn.screens.sessioneditor.CatalogSelectionDraftBridge.consume(replacement.id)
         } else {
             null
         }
-        val replaced = old.replacedWithCatalogExercise(
-            info = replacement,
+        return replacementExerciseFor(
+            old = old,
+            replacement = replacement,
             selectedAspects = cached?.selectedAspects,
             variantName = cached?.variantName,
             variantGroupId = cached?.variantGroupId,
             variantGroupName = cached?.variantGroupName,
-        )
-        val defaultLoadMode = replaced.sets.firstOrNull()?.loadModeV2 ?: LoadModeV2.LOAD
-        val preservedSets = replaced.sets.ifEmpty {
-            listOf(
-                ExerciseSet(
-                    id = UUID.randomUUID().toString(),
-                    loadModeV2 = defaultLoadMode,
-                    unitModeV2 = UnitModeV2.REPS,
-                ),
-            )
-        }
-        return replaced.copy(
-            trainingMode = TrainingMode.REPS,
-            reference1RM = null,
-            prFor1RM = null,
-            consolidatedWeight = null,
-            isUnilateral = false,
-            unilateralMode = UnilateralMode.BILATERAL,
-            restBetweenSidesSeconds = null,
-            sets = preservedSets,
         )
     }
 

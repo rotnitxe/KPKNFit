@@ -6,6 +6,7 @@ import com.example.kpkn.domain.relator.RelatorEngine
 import com.example.kpkn.domain.relator.RelatorEngineResult
 import com.example.kpkn.domain.relator.RelatorLongTermMemory
 import com.example.kpkn.domain.relator.RelatorSelectorState
+import com.example.kpkn.domain.relator.RelatorSessionPhase
 import com.example.kpkn.domain.relator.RelatorTopic
 
 internal object RelatorReactionObserver {
@@ -113,8 +114,17 @@ internal object WorkoutRelatorEngine {
         )
     }
 
-    fun toUiResolution(result: RelatorEngineResult): RelatorResolution {
+    fun toUiResolution(
+        result: RelatorEngineResult,
+        context: com.example.kpkn.domain.relator.RelatorContext? = null,
+    ): RelatorResolution {
         val line = result.line
+        val silent = when {
+            line.text.isNullOrBlank() && context?.phase == RelatorSessionPhase.REST -> RelatorSilentAnimation.REST_BREATHING
+            context?.milestone?.prJustNow == true -> RelatorSilentAnimation.RECORD_CELEBRATION
+            context?.phase == RelatorSessionPhase.WARMUP && context.setIndex == 0 -> RelatorSilentAnimation.PREPARATION_SQUAT
+            else -> RelatorSilentAnimation.NONE
+        }
         return RelatorResolution(
             text = line.text,
             holdPrevious = line.holdPrevious,
@@ -123,6 +133,7 @@ internal object WorkoutRelatorEngine {
             fingerprint = line.fingerprint,
             spokenConceptId = line.spokenConceptId,
             topic = line.topic?.name,
+            silentAnimation = silent,
         )
     }
 }

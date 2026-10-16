@@ -27,6 +27,7 @@ import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onAllNodesWithContentDescription
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onLast
+import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.test.performClick
@@ -43,7 +44,7 @@ import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.models.SessionPart
 import com.example.kpkn.domain.auge.SessionIntensityResult
 import com.example.kpkn.screens.workout.components.RoadmapPendingAction
-import com.example.kpkn.screens.workout.components.SeriesTypeSheet
+import com.example.kpkn.screens.workout.components.SeriesOptionsSheet
 import com.example.kpkn.screens.workout.components.SetAdjustmentOverlay
 import com.example.kpkn.screens.workout.components.UltraFastPreviewSheet
 import com.example.kpkn.screens.workout.components.VolumeAdvanceModal
@@ -204,16 +205,21 @@ class LiveLayerDismissTest {
     }
 
     @Test
-    fun theSeriesTypeSheetClosesAndLeavesTheSessionUntouched() {
+    fun theSeriesOptionsSheetClosesAndLeavesTheSessionUntouched() {
         open = true
-        // La hoja se titula con el nombre del ejercicio.
-        assertClosesWithBackAndWithATapOutside("Tipo de serie", sampleExercise.name) {
-            SeriesTypeSheet(
+        // La hoja se abre con la serie en la que se pulsó («Serie 2»).
+        assertClosesWithBackAndWithATapOutside("Opciones de la serie", "Serie 2") {
+            SeriesOptionsSheet(
                 exercise = sampleExercise,
                 target = SeriesTypeTarget(exerciseId = "a", fromSetIdx = 1, toSetIdx = 2),
-                completedSetIndices = emptySet(),
+                completedSets = emptyMap(),
+                omittedSetKeys = emptySet(),
                 onDismiss = { open = false },
                 onApply = { _, _ -> open = false },
+                onEdit = {},
+                onAddSet = {},
+                onSkipSet = {},
+                onDeleteSet = {},
             )
         }
     }
@@ -244,9 +250,9 @@ class LiveLayerDismissTest {
                 onApplyReorder = { _, _, _ -> },
             )
         }
-        rule.onNodeWithText("Reordenar ejercicios").assertExists()
+        rule.onNodeWithText("Orden de la sesión").assertExists()
         pressBack()
-        rule.onNodeWithText("Reordenar ejercicios").assertDoesNotExist()
+        rule.onNodeWithText("Orden de la sesión").assertDoesNotExist()
         assertEquals(false, state.showReorderSheet)
         assertSessionIsUntouched("Reordenar · Atrás")
 
@@ -255,9 +261,9 @@ class LiveLayerDismissTest {
             state.reorderSheetExerciseIds = listOf("a", "b")
         }
         rule.waitForIdle()
-        rule.onNodeWithText("Reordenar ejercicios").assertExists()
+        rule.onNodeWithText("Orden de la sesión").assertExists()
         tapOutside()
-        rule.onNodeWithText("Reordenar ejercicios").assertDoesNotExist()
+        rule.onNodeWithText("Orden de la sesión").assertDoesNotExist()
         assertEquals(false, state.showReorderSheet)
         assertSessionIsUntouched("Reordenar · tocar fuera")
     }
@@ -609,7 +615,16 @@ class LiveLayerDismissTest {
         rule.onNodeWithText("Terminar").assertDoesNotExist()
     }
 
-    // ── Reordenar: el cajón aplica lo que la persona fija con las flechas ──────────────────────────────────────────────────────
+    // ── Reordenar: la hoja aplica lo que la persona fija (aquí, con las acciones «Subir» y «Bajar» del asa) ───────────────────
+
+    /** Lo que hace un lector de pantalla con el asa de una fila: su acción de accesibilidad [label] («Subir» o «Bajar»). */
+    private fun moveRowWithAccessibilityAction(handleIndex: Int, label: String) {
+        val handle = rule.onAllNodesWithContentDescription("Arrastrar para reordenar")[handleIndex]
+        rule.runOnUiThread {
+            handle.fetchSemanticsNode().config[SemanticsActions.CustomActions].first { it.label == label }.action()
+        }
+        rule.waitForIdle()
+    }
 
     @Test
     fun theReorderDialogAppliesWhatThePersonSetsWithTheArrows() {
@@ -633,10 +648,9 @@ class LiveLayerDismissTest {
             )
         }
 
-        rule.onAllNodesWithContentDescription("Bajar")[0].performClick()
-        rule.waitForIdle()
+        moveRowWithAccessibilityAction(handleIndex = 0, label = "Bajar")
         assertEquals(listOf("b", "a", "c"), state.reorderSheetExerciseIds)
-        rule.onNodeWithText("Guardar").performClick()
+        rule.onNodeWithText("Listo").performClick()
         rule.waitForIdle()
 
         assertEquals(listOf("b", "a", "c"), applied)
@@ -673,13 +687,11 @@ class LiveLayerDismissTest {
         }
 
         // «Ejercicio C» sube dos filas, hasta ser el primero: pasa del grupo 2 al grupo 1.
-        rule.onAllNodesWithContentDescription("Subir")[2].performClick()
-        rule.waitForIdle()
-        rule.onAllNodesWithContentDescription("Subir")[1].performClick()
-        rule.waitForIdle()
+        moveRowWithAccessibilityAction(handleIndex = 2, label = "Subir")
+        moveRowWithAccessibilityAction(handleIndex = 1, label = "Subir")
         assertEquals(listOf("c", "a", "b", "d"), state.reorderSheetExerciseIds)
 
-        rule.onNodeWithText("Guardar").performClick()
+        rule.onNodeWithText("Listo").performClick()
         rule.waitForIdle()
         rule.onNodeWithText("Cambio de grupo").assertExists()
         rule.onNodeWithText("Ejercicio C (Grupo 2 → Grupo 1)", substring = true).assertExists()

@@ -43,16 +43,12 @@ import com.example.kpkn.domain.sessionassistant.UltraFastPreview
 import com.example.kpkn.domain.sessionassistant.UltraFastReason
 import com.example.kpkn.domain.sessionassistant.UltraFastSupersetChange
 import com.example.kpkn.screens.onboarding.design.entreno.SymbolPalette
-import com.example.kpkn.screens.workout.SeriesTypeTarget
 import com.example.kpkn.screens.workout.WeightSuggestion
 import com.example.kpkn.screens.workout.components.GodModeBatchBar
 import com.example.kpkn.screens.workout.components.GodModePlusCard
 import com.example.kpkn.screens.workout.components.GodModeRoadmapBadge
-import com.example.kpkn.screens.workout.components.GodModeSetActionsOverlay
-import com.example.kpkn.screens.workout.components.GodModeTechniqueScopeDialog
 import com.example.kpkn.screens.workout.components.GuidedTechniquePanel
 import com.example.kpkn.screens.workout.components.GuidedTechniquePhase
-import com.example.kpkn.screens.workout.components.SeriesTypeSheet
 import com.example.kpkn.screens.workout.components.SetAdjustmentOverlay
 import com.example.kpkn.screens.workout.components.SetCardTechniqueBack
 import com.example.kpkn.screens.workout.components.UltraFastPreviewSheet
@@ -296,52 +292,12 @@ class LiveSessionTechniqueRenderSheetTest {
     // ── Acciones de serie y alcance (C5, B9) ──
 
     @Test
-    fun accionesDeSerie100() {
-        onlyWhenAsked()
-        dibujar("acciones_serie_100", 1f, 240) { AccionesDeSerie() }
-    }
-
-    @Test
-    fun accionesDeSerie130() {
-        onlyWhenAsked()
-        dibujar("acciones_serie_130", 1.3f, 300) { AccionesDeSerie() }
-    }
-
-    @Test
-    fun alcanceDeTecnica100() {
-        onlyWhenAsked()
-        dibujar("alcance_tecnica_100", 1f, 340) {
-            GodModeTechniqueScopeDialog(technique = SeriesTechnique.DROPSET, onPick = {}, onDismiss = {})
-        }
-    }
-
-    @Test
-    fun alcanceDeTecnica130() {
-        onlyWhenAsked()
-        dibujar("alcance_tecnica_130", 1.3f, 400) {
-            GodModeTechniqueScopeDialog(technique = SeriesTechnique.DROPSET, onPick = {}, onDismiss = {})
-        }
-    }
-
-    @Test
     fun tiraGodMode100() {
         onlyWhenAsked()
         dibujar("tira_godmode_100", 1f, 170) { TiraGodMode() }
     }
 
-    // ── Tipo de serie (B10), ultrarrápido (B11) y adelanto de volumen (B12) ──
-
-    @Test
-    fun tipoDeSerie100() {
-        onlyWhenAsked()
-        dibujar("tipo_serie_100", 1f, 820) { TipoDeSerie() }
-    }
-
-    @Test
-    fun tipoDeSerie130() {
-        onlyWhenAsked()
-        dibujar("tipo_serie_130", 1.3f, 960) { TipoDeSerie() }
-    }
+    // ── Ultrarrápido (B11) y adelanto de volumen (B12) ──
 
     @Test
     fun ultrarapido100() {
@@ -426,22 +382,6 @@ class LiveSessionTechniqueRenderSheetTest {
     }
 
     @Composable
-    private fun AccionesDeSerie() {
-        Box(Modifier.width(360.dp)) {
-            GodModeSetActionsOverlay(
-                visible = true,
-                isDropSet = true,
-                isRestPause = false,
-                canDeleteSet = true,
-                onDropSet = {},
-                onRestPause = {},
-                onDeleteSet = {},
-                onOmitSet = {},
-            )
-        }
-    }
-
-    @Composable
     private fun TiraGodMode() {
         Column(
             modifier = Modifier.padding(12.dp),
@@ -473,22 +413,6 @@ class LiveSessionTechniqueRenderSheetTest {
                 )
             }
         }
-    }
-
-    @Composable
-    private fun TipoDeSerie() {
-        SeriesTypeSheet(
-            exercise = EJERCICIO_PM,
-            target = SeriesTypeTarget(
-                exerciseId = "pm",
-                fromSetIdx = 1,
-                toSetIdx = 1,
-                selectedSetIndices = setOf(1),
-            ),
-            completedSetIndices = setOf(0),
-            onDismiss = {},
-            onApply = { _, _ -> },
-        )
     }
 
     @Composable

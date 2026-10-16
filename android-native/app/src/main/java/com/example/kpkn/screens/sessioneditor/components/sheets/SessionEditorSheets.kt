@@ -159,7 +159,6 @@ import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
-import com.example.kpkn.screens.home.SingleRingCanvas
 import com.example.kpkn.data.models.Session
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.drawscope.Stroke
@@ -286,7 +285,6 @@ import com.example.kpkn.screens.sessioneditor.CompactRestBundleButton
 import com.example.kpkn.screens.sessioneditor.UnilateralModeSelector
 import com.example.kpkn.screens.sessioneditor.SideOrderChip
 import com.example.kpkn.screens.sessioneditor.ExerciseSetsCarousel
-import com.example.kpkn.screens.sessioneditor.EstimatedRingsRow
 import com.example.kpkn.screens.sessioneditor.UnilateralAddGhostCard
 import com.example.kpkn.screens.sessioneditor.AddSetGhostCard
 import com.example.kpkn.screens.sessioneditor.formatEditableNumber

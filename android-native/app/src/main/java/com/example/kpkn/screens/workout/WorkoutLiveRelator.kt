@@ -186,6 +186,7 @@ internal data class RelatorResolution(
     val fingerprint: String? = null,
     val spokenConceptId: String? = null,
     val topic: String? = null,
+    val silentAnimation: RelatorSilentAnimation = RelatorSilentAnimation.NONE,
 )
 
 internal object WorkoutLiveRelator {
@@ -445,6 +446,12 @@ private fun line(
         voice,
         mustKeep = actions.map { it.clickableSpan() },
     )
+    val silent = when {
+        rendered.isBlank() && snapshot.phase == RelatorPhase.REST -> RelatorSilentAnimation.REST_BREATHING
+        snapshot.shouldSpeakPr() && snapshot.prHint?.isStar == true -> RelatorSilentAnimation.RECORD_CELEBRATION
+        snapshot.phase == RelatorPhase.WARMUP && snapshot.setIndex == 0 && snapshot.warmupCount == 0 -> RelatorSilentAnimation.PREPARATION_SQUAT
+        else -> RelatorSilentAnimation.NONE
+    }
     return RelatorResolution(
         text = rendered,
         holdPrevious = false,
@@ -452,6 +459,7 @@ private fun line(
         actions = actions,
         fingerprint = fingerprint,
         spokenConceptId = spokenConceptId,
+        silentAnimation = silent,
     )
 }
 
