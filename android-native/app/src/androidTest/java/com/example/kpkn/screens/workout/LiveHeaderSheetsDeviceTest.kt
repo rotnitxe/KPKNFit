@@ -131,10 +131,15 @@ class LiveHeaderSheetsDeviceTest {
         rule.onNodeWithContentDescription("Carga base (kg)").assertIsNotFocused()
         rule.waitUntil(2_000) { !managerImeVisible() }
         rule.waitForIdle()
-        val resetButton = rule.onNode(hasText("Reiniciar historial") and SemanticsMatcher.expectValue(SemanticsProperties.Role, Role.Button))
-            .performScrollTo()
-        captureManagerDiagnostic("before-reset-touch")
-        resetButton.assertIsDisplayed().performClick()
+        // The merged panel inherits scrolling but has the wrong viewport; gesture inside the actual body.
+        val body = rule.onNode(hasScrollAction() and SemanticsMatcher.keyIsDefined(SemanticsProperties.VerticalScrollAxisRange), useUnmergedTree = true)
+            .assertIsDisplayed()
+        captureManagerDiagnostic("before-body-swipe")
+        body.performTouchInput { swipeUp(startY = height * 0.8f, endY = height * 0.2f) }
+        rule.waitForIdle()
+        captureManagerDiagnostic("after-body-swipe")
+        rule.onNode(hasText("Reiniciar historial") and SemanticsMatcher.expectValue(SemanticsProperties.Role, Role.Button))
+            .assertIsDisplayed().performClick()
         rule.onNodeWithText("Los registros de sesión no se borran.", substring = true, useUnmergedTree = true).assertExists()
         rule.runOnIdle { assertEquals(0, reset) }
         rule.onNodeWithText("Reiniciar", useUnmergedTree = true).assertIsDisplayed().performClick()
@@ -234,7 +239,7 @@ class LiveHeaderSheetsDeviceTest {
         ViewCompat.getRootWindowInsets(rule.activity.window.decorView)?.isVisible(WindowInsetsCompat.Type.ime()) == true
     }
 
-    /** Final fragile-test attempt records its focus/IME/viewport evidence before asserting the touch target. */
+    /** Records focus/IME/viewport evidence around the single physical swipe and touch target. */
     @OptIn(ExperimentalTestApi::class)
     private fun captureManagerDiagnostic(phase: String) {
         val instrumentation = InstrumentationRegistry.getInstrumentation()
