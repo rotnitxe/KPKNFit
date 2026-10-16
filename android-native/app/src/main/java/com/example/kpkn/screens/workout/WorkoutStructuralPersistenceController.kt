@@ -12,14 +12,10 @@ import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.models.ProgramWeek
 import com.example.kpkn.data.models.ReplacementPersistenceScopeV2
 import com.example.kpkn.data.models.Session
-import com.example.kpkn.data.models.TrainingMode
-import com.example.kpkn.data.models.UnilateralMode
-import com.example.kpkn.data.models.UnitModeV2
 import com.example.kpkn.data.models.WeekVariant
 import com.example.kpkn.data.models.WorkoutContextProfile
 import com.example.kpkn.data.models.supersetGroupRefOrLegacyId
 import com.example.kpkn.data.repository.ProgramRepository
-import com.example.kpkn.domain.exercises.replacedWithCatalogExercise
 import com.example.kpkn.domain.exercises.resolvedCanonicalExerciseId
 import com.example.kpkn.domain.workout.SupersetRules
 import com.example.kpkn.domain.workout.WorkoutStructuralEditor
@@ -745,7 +741,7 @@ class WorkoutStructuralPersistenceController(
                 loadSuggestions = it.loadSuggestions.filterKeys { key -> !key.startsWith("${exerciseId}_") },
                 setDrafts = it.setDrafts.filterKeys { key -> !key.startsWith("${exerciseId}_") },
                 manualLoadOverrides = it.manualLoadOverrides.filterKeys { key -> !key.startsWith("${exerciseId}_") },
-            )
+            ).withoutLoadStateOfExercise(exerciseId)
         }
         ports.refreshLoadSuggestions(getState())
         ports.persistOngoingState()
@@ -870,38 +866,23 @@ class WorkoutStructuralPersistenceController(
         updateState { it.copy(pendingReplacementPersistencePrompt = prompt) }
     }
 
+    /**
+     * El ejercicio que ocupa el hueco de [old] tras elegir [replacement]. Hereda solo lo que define el producto (series planificadas,
+     * descanso e intensidad objetivo); ver [replacementExerciseFor]. Las altas de ejercicio también pasan por aquí.
+     */
     fun buildReplacementExercise(old: Exercise, replacement: ExerciseMuscleInfo): Exercise {
         val cached = if (replacement.catalogRevision == null) {
             com.example.kpkn.screens.sessioneditor.CatalogSelectionDraftBridge.consume(replacement.id)
         } else {
             null
         }
-        val replaced = old.replacedWithCatalogExercise(
-            info = replacement,
+        return replacementExerciseFor(
+            old = old,
+            replacement = replacement,
             selectedAspects = cached?.selectedAspects,
             variantName = cached?.variantName,
             variantGroupId = cached?.variantGroupId,
             variantGroupName = cached?.variantGroupName,
-        )
-        val defaultLoadMode = replaced.sets.firstOrNull()?.loadModeV2 ?: LoadModeV2.LOAD
-        val preservedSets = replaced.sets.ifEmpty {
-            listOf(
-                ExerciseSet(
-                    id = UUID.randomUUID().toString(),
-                    loadModeV2 = defaultLoadMode,
-                    unitModeV2 = UnitModeV2.REPS,
-                ),
-            )
-        }
-        return replaced.copy(
-            trainingMode = TrainingMode.REPS,
-            reference1RM = null,
-            prFor1RM = null,
-            consolidatedWeight = null,
-            isUnilateral = false,
-            unilateralMode = UnilateralMode.BILATERAL,
-            restBetweenSidesSeconds = null,
-            sets = preservedSets,
         )
     }
 
