@@ -3317,6 +3317,7 @@ internal fun SetInputCardV2(
                         mediaCapture = mediaCapture,
                         onRetryPendingCaptures = onRetryPendingCaptures,
                         effortLabel = chosenEffortItem?.let { effortValueLabel(it) }?.takeIf { it != "—" },
+                        onShowHistory = onShowHistory,
                     )
                     else -> SetCardTechniqueBack(
                     currentSet = currentSet,
