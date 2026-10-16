@@ -434,6 +434,12 @@ class WorkoutViewModel(
             )
         },
         poseTrajectoryEnabled = { _uiState.value.featureFlags.poseTrajectoryEnabled },
+        // El álbum por ejercicio (LV8) nombra el esfuerzo de cada medio solo si la serie con la que se guardó está en la sesión en curso.
+        effortLabelProvider = { media ->
+            com.example.kpkn.data.media.ExerciseAlbumModel.completedSetKey(media)
+                ?.let { key -> _uiState.value.completedSets[key] }
+                ?.let(com.example.kpkn.data.media.ExerciseAlbumModel::effortLabel)
+        },
     )
 
     private val structuralPersistence = WorkoutStructuralPersistenceController(
