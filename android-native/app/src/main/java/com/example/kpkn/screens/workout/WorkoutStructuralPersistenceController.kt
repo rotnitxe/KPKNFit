@@ -572,7 +572,7 @@ class WorkoutStructuralPersistenceController(
             )
 
             if (effectiveScope != ReplacementPersistenceScopeV2.SESSION_ONLY) {
-                val updatedProgram = applyReplacementToProgram(
+                var updatedProgram = applyReplacementToProgram(
                     program = program,
                     currentLocation = location,
                     sourceExerciseDbId = prompt.sourceExerciseDbId,
@@ -582,6 +582,24 @@ class WorkoutStructuralPersistenceController(
                     replacement = prompt.replacement,
                     scope = effectiveScope,
                 )
+                if (updatedProgram == program) {
+                    // Reemplazos encadenados (A por B «solo esta vez» y luego B por C «en todo el programa»): el programa sigue guardando
+                    // el ejercicio del plan original en ese hueco, no el B que había en la sesión. Se sustituye ése (LV5).
+                    val planned = state.plannedSessionBaseline?.allExercises()?.firstOrNull { it.id == prompt.exerciseId }
+                    val plannedConfiguration = planned?.catalogConfigurationId
+                    if (planned != null && !plannedConfiguration.equals(prompt.fromCatalogConfigurationId, ignoreCase = true)) {
+                        updatedProgram = applyReplacementToProgram(
+                            program = program,
+                            currentLocation = location,
+                            sourceExerciseDbId = planned.resolvedCanonicalExerciseId(),
+                            sourceExerciseId = prompt.exerciseId,
+                            sourceCatalogConfigurationId = plannedConfiguration,
+                            sourceExerciseSlot = prompt.sourceExerciseSlot,
+                            replacement = prompt.replacement,
+                            scope = effectiveScope,
+                        )
+                    }
+                }
                 if (updatedProgram != program) {
                     repository.updateProgram(updatedProgram)
                 }
