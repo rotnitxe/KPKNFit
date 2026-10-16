@@ -10,6 +10,39 @@
 - **Logs:** `C:\kw\logs\vt-9a-<n>.log`.
 - **PNG:** `C:/kw/shots/vt/9a`.
 
+## Heredado (ya integrado; los nombres REALES mandan sobre este brief)
+- **`VideoAnalysisRepository`** (`data/repository`, VT5b), con `init(context)` y `getInstance()`:
+  - `observeTrend(exerciseKey): Flow<List<VideoAnalysisSummary>>`, las series de un ejercicio;
+  - `observeConfigurationPoints(configurationKey): Flow<List<VideoAnalysisLoadPoint>>`, con `mediaId`, `loadKg`, `mcvBest`, `velocityUnit` (texto) y `recordedAtMs`. Son los puntos de carga y velocidad de una configuración;
+  - `observeExerciseSummaries()` y `getByMedia(mediaId)`.
+- **`VideoAnalysisSummary`** (`data/models`): `status`, `confidence`, `repCount`, `partialReps`, `failedReps`, `tutMs`, `romMeanDeg`, `romCvPct`, `velocityUnit`, `velocityLossPct`, `mcvBest`, `mcvLast`, `loadKg`, `recordedAtMs`, `exerciseName`, `configurationKey`, `profileId`, `barDeviation`/`barDeviationUnit` y `flagsJson`.
+  - Un campo `null` es SIN DATO: no se pinta, nunca como 0.
+- **Carga-velocidad** (`domain/biomechanics/vbt/LoadVelocityProfile`):
+  - Llamada: `estimate(points: List<LoadVelocityPoint(loadKg, mcvMps, recordedAtMs)>, mvtMps, heaviestMaxMps = LoadVelocityProfile.heaviestMaxMps(profileId))`.
+  - Devuelve `LoadVelocityResult.Estimate(e1rmKg, slope, intercept, r2, points)` o `NotEnough(reason)`.
+  - **Solo con puntos en m/s** (`velocityUnit` de MPS). Sin ninguno, el módulo dice «Calibra el disco en tus vídeos para ver la velocidad real».
+  - **La MVT** sale del perfil RESUELTO del ejercicio, `AnalysisProfileResolver.resolve(sidecar.exercise)`, como en `TechniqueAnalysisViewModel` (VT7b): el resolver la ajusta al material, así que no vale la del perfil base. Si `mvtMps` es `null`, no se estima 1RM: el módulo enseña solo la dispersión, sin recta ni 1RM.
+  - **Textos de `NotEnough`** (escríbelos así, en tipo frase):
+
+    | Código | Texto |
+    |---|---|
+    | `few_loads` | «Graba series con al menos 3 cargas distintas» |
+    | `narrow_range` | «Las cargas están muy juntas: amplía el rango» |
+    | `low_velocity_spread` | «La velocidad apenas cambia entre cargas» |
+    | `heaviest_too_fast` | «Falta una serie pesada (más lenta)» |
+    | `positive_slope` | «Los datos no siguen la tendencia esperada» |
+    | `low_r2` | «Los datos están muy dispersos» |
+    | `implausible` | «La estimación no es creíble con estos datos» |
+    | `wide_interval` | «Hace falta más precisión: graba más series» |
+
+    Con un código desconocido: «Faltan datos».
+- **Pérdida de velocidad (D29):** `velocityLossPct` puede ser `null` aunque haya velocidades: el ruido no dejó medirla. Esas series no van en la gráfica de pérdida. Si todas lo son, el módulo no se pinta.
+- **Reproductor (VT7a):**
+  - `TechniqueOverlayData.from(track, bar, report, videoWidth, videoHeight)`, con los sidecars pose2, bar y analysis.json, leídos como en `TechniqueAnalysisViewModel` (VT7b);
+  - `rememberTechniquePlayerState(overlay)`, `TechniqueVideoPlayer(file, overlay, state, modifier, onTap, …)` y `state.seekToUs`.
+- **Análisis (VT7b):** `TechniqueAnalysisRoute(mediaId, onBack, onOpenTrends)`. Su ruta la registra VT9b; tú solo registras las tuyas.
+- **Honestidad (VT_COMUN, «Pantallas»):** «≈» en toda estimación; m/s solo con `velocityUnit` MPS; el 1RM con «orientativo · beta».
+
 ## Archivos permitidos
 - **Nuevos:**
   - `screens/technique/trends/`: `TechniqueTrendsScreen.kt`, `TechniqueTrendsViewModel.kt`, `TechniqueTrendsUiState.kt`;
