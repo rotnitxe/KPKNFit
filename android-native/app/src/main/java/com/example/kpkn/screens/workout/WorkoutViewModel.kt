@@ -3750,6 +3750,7 @@ class WorkoutViewModel(
             action.side,
             action.mobilityId,
             action.span,
+            action.undoPreviousLoad.toString(),
         ).joinToString(":")
         val now = System.currentTimeMillis()
         if (assistKey == lastRelatorAssistKey && now - lastRelatorAssistAtMs < 500L) return RelatorAssistAck(action.kind, applied = false)
