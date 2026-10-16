@@ -225,8 +225,10 @@ internal fun SetCardExerciseMediaBack(
     val hasCamera = ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) ==
         PackageManager.PERMISSION_GRANTED
 
-    LaunchedEffect(hasCamera) {
-        if (hasCamera) {
+    LaunchedEffect(hasCamera, mediaCapture) {
+        if (mediaCapture == null) {
+            cameraReady = false
+        } else if (hasCamera) {
             cameraReady = true
         } else {
             permissionLauncher.launch(Manifest.permission.CAMERA)
@@ -431,7 +433,18 @@ internal fun SetCardExerciseMediaBack(
             )
         }
         if (showFicha) {
-            SessionExerciseDetailSheet(exercise = exercise, onDismiss = { showFicha = false }, onShowHistory = onShowHistory)
+            SessionExerciseDetailSheet(
+                exercise = exercise,
+                onDismiss = { showFicha = false },
+                onShowHistory = onShowHistory?.let { openHistory ->
+                    {
+                        // El historial vive en el cuerpo de la sesión: liberar solo su velo,
+                        // conservando la cámara y la grabación en la cara compacta.
+                        expanded = false
+                        openHistory()
+                    }
+                },
+            )
         }
     }
     previewMedia?.let { item ->
