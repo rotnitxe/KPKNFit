@@ -169,6 +169,55 @@ object ExerciseTechniqueImageLookup {
     const val DEAD_HANG_DEFINITION_ID = "forearms_suspension_isometrica_barra_fija"
     const val PLATE_PINCH_DEFINITION_ID = "forearms_pinza_de_discos"
 
+    const val HOLLOW_BODY_HOLD_DEFINITION_ID = "hollow_body_hold"
+    const val BIRD_DOG_DEFINITION_ID = "bird_dog"
+    const val SIDE_PLANK_DEFINITION_ID = "side_plank"
+    const val FORWARD_LUNGE_DEFINITION_ID = "forward_lunge"
+    const val SUITCASE_CARRY_DEFINITION_ID = "suitcase_carry"
+    const val KNEE_PUSH_UP_DEFINITION_ID = "knee_push_up"
+    const val DIAMOND_PUSH_UP_DEFINITION_ID = "diamond_push_up"
+    const val ARCHER_PUSH_UP_DEFINITION_ID = "archer_push_up"
+    const val PIKE_PUSH_UP_DEFINITION_ID = "pike_push_up"
+    const val NEGATIVE_PULL_UP_DEFINITION_ID = "negative_pull_up"
+    const val POWER_CLEAN_DEFINITION_ID = "power_clean"
+    const val HANG_POWER_CLEAN_DEFINITION_ID = "hang_power_clean"
+    const val SQUAT_CLEAN_DEFINITION_ID = "squat_clean"
+    const val CLEAN_PULL_DEFINITION_ID = "clean_pull"
+    const val POWER_SNATCH_DEFINITION_ID = "power_snatch"
+    const val HANG_POWER_SNATCH_DEFINITION_ID = "hang_power_snatch"
+    const val SQUAT_SNATCH_DEFINITION_ID = "squat_snatch"
+    const val SNATCH_PULL_DEFINITION_ID = "snatch_pull"
+    const val PUSH_JERK_DEFINITION_ID = "push_jerk"
+    const val SPLIT_JERK_DEFINITION_ID = "split_jerk"
+
+    const val DEAD_BUG_DEFINITION_ID = "dead_bug"
+    const val CLOSE_GRIP_BENCH_PRESS_DEFINITION_ID = "close_grip_bench_press"
+    const val INCLINE_BICEPS_CURL_DEFINITION_ID = "incline_biceps_curl"
+    const val QUADS_PRENSA_PIERNAS_DEFINITION_ID = "quads_prensa_piernas"
+    const val QUADS_SENTADILLA_SIN_CARGA_DEFINITION_ID = "quads_sentadilla_sin_carga"
+    const val PAUSED_BACK_SQUAT_DEFINITION_ID = "paused_back_squat"
+    const val OVERHEAD_SQUAT_DEFINITION_ID = "overhead_squat"
+    const val QUADS_SENTADILLA_JEFFERSON_DEFINITION_ID = "quads_sentadilla_jefferson"
+    const val QUADS_EXTENSION_CUADRICEPS_PIE_POLEA_DEFINITION_ID = "quads_extension_cuadriceps_pie_polea"
+    const val QUADS_SENTADILLA_CAJON_DEFINITION_ID = "quads_sentadilla_cajon"
+    const val QUADS_SENTADILLA_SUMO_FRONTAL_DEFINITION_ID = "quads_sentadilla_sumo_frontal"
+    const val GLUTE_HAM_RAISE_DEFINITION_ID = "glute_ham_raise"
+    const val ZERCHER_CARRY_DEFINITION_ID = "zercher_carry"
+    const val BACK_JEFFERSON_CURL_DEFINITION_ID = "back_jefferson_curl"
+    const val GLUTES_ZANCADA_CRUZADA_DEFINITION_ID = "glutes_zancada_cruzada"
+    const val DEADLIFT_TO_KNEES_DEFINITION_ID = "deadlift_to_knees"
+    const val QUADS_SENTADILLA_PISTOLA_ASISTIDA_TRX_DEFINITION_ID = "quads_sentadilla_pistola_asistida_trx"
+    const val QUADS_STEP_UP_CAJON_FRONTAL_DEFINITION_ID = "quads_step_up_cajon_frontal"
+    const val QUADS_STEP_UP_CAJON_ZERCHER_DEFINITION_ID = "quads_step_up_cajon_zercher"
+    const val QUADS_ZANCADA_CAMINANDO_FRONTAL_BARRA_RECTA_DEFINITION_ID = "quads_zancada_caminando_frontal_barra_recta"
+    const val WALKING_LUNGE_DEFINITION_ID = "walking_lunge"
+
+    const val QUADS_EXTENSION_CUADRICEPS_DEFINITION_ID = "quads_extension_cuadriceps"
+    const val BACK_HIPEREXTENSION_45_ZERCHER_ESPALDA_BAJA_DEFINITION_ID = "back_hiperextension_45_zercher_espalda_baja"
+    const val QUADS_ZANCADA_CAMINANDO_ZERCHER_BARRA_RECTA_DEFINITION_ID = "quads_zancada_caminando_zercher_barra_recta"
+    const val QUADS_ZANCADA_FRONTAL_ZERCHER_DEFINITION_ID = "quads_zancada_frontal_zercher"
+    const val QUADS_SENTADILLA_SUMO_ZERCHER_DEFINITION_ID = "quads_sentadilla_sumo_zercher"
+
     private val NON_IMPLEMENT_TOKENS = setOf(
         "bilateral",
         "unilateral",
@@ -181,11 +230,191 @@ object ExerciseTechniqueImageLookup {
 
     private val KNOWN_EQUIPMENT_TOKENS = setOf(
         "ab_wheel", "band", "barbell", "bodyweight", "cable", "dumbbells", "ez_bar",
-        "ghd", "h_bar", "hex_bar", "kettlebell", "machine", "plate", "safety_bar",
-        "sliders", "smith_machine", "t_bar", "trx", "wrist_roller",
+        "ghd", "h_bar", "hex_bar", "kettlebell", "leg_press_machine", "machine", "plate", "safety_bar",
+        "seated_machine", "donkey_machine", "sliders", "smith_machine", "t_bar", "trx", "wrist_roller",
     )
 
     fun variants(definitionId: String): List<ExerciseTechniqueImageVariant> = when (definitionId) {
+        QUADS_EXTENSION_CUADRICEPS_DEFINITION_ID -> listOf(
+            ExerciseTechniqueImageVariant("machine", R.drawable.exercise_quads_extension_cuadriceps_machine_batch20261008b, "Máquina"),
+        )
+        BACK_HIPEREXTENSION_45_ZERCHER_ESPALDA_BAJA_DEFINITION_ID -> listOf(
+            ExerciseTechniqueImageVariant("barbell", R.drawable.exercise_back_hiperextension_45_zercher_espalda_baja_barbell_batch20261008b, "Barra"),
+        )
+        QUADS_ZANCADA_CAMINANDO_ZERCHER_BARRA_RECTA_DEFINITION_ID -> listOf(
+            ExerciseTechniqueImageVariant("barbell", R.drawable.exercise_quads_zancada_caminando_zercher_barra_recta_barbell_batch20261008b, "Barra"),
+        )
+        QUADS_ZANCADA_FRONTAL_ZERCHER_DEFINITION_ID -> listOf(
+            ExerciseTechniqueImageVariant("barbell", R.drawable.exercise_quads_zancada_frontal_zercher_barbell_batch20261008b, "Barra"),
+        )
+        QUADS_SENTADILLA_SUMO_ZERCHER_DEFINITION_ID -> listOf(
+            ExerciseTechniqueImageVariant("barbell", R.drawable.exercise_quads_sentadilla_sumo_zercher_barbell, "Barra"),
+        )
+        "rack_chin" -> listOf(
+            ExerciseTechniqueImageVariant("bodyweight", R.drawable.exercise_rack_chin_bodyweight, "Peso corporal"),
+        )
+        "neck_flexion_lateral_cuello" -> listOf(
+            ExerciseTechniqueImageVariant("plate", R.drawable.exercise_neck_flexion_lateral_cuello_plate, "Disco"),
+        )
+        "glutes_patada_gluteo_lateral" -> listOf(
+            ExerciseTechniqueImageVariant("cable", R.drawable.exercise_glutes_patada_gluteo_lateral_cable, "Polea"),
+            ExerciseTechniqueImageVariant("band", R.drawable.exercise_glutes_patada_gluteo_lateral_band, "Banda"),
+        )
+        "neck_extension_cuello" -> listOf(
+            ExerciseTechniqueImageVariant("plate", R.drawable.exercise_neck_extension_cuello_plate, "Disco"),
+        )
+        "neck_flexion_cuello" -> listOf(
+            ExerciseTechniqueImageVariant("plate", R.drawable.exercise_neck_flexion_cuello_plate, "Disco"),
+        )
+        "quads_zancada_inversa_frontal" -> listOf(
+            ExerciseTechniqueImageVariant("barbell", R.drawable.exercise_quads_zancada_inversa_frontal_barbell, "Barra"),
+        )
+        "quads_zancada_inversa_zercher" -> listOf(
+            ExerciseTechniqueImageVariant("barbell", R.drawable.exercise_quads_zancada_inversa_zercher_barbell, "Barra"),
+        )
+        "lateral_raise_super_rom" -> listOf(
+            ExerciseTechniqueImageVariant("dumbbells", R.drawable.exercise_lateral_raise_super_rom_dumbbells, "Mancuernas"),
+        )
+        "back_encogimientos_kelso" -> listOf(
+            ExerciseTechniqueImageVariant("barbell", R.drawable.exercise_back_encogimientos_kelso_barbell, "Barra"),
+        )
+        "deltoides_lu_raises" -> listOf(
+            ExerciseTechniqueImageVariant("dumbbells", R.drawable.exercise_deltoides_lu_raises_dumbbells, "Mancuernas"),
+        )
+        DEAD_BUG_DEFINITION_ID -> listOf(
+            ExerciseTechniqueImageVariant("bodyweight", R.drawable.exercise_dead_bug_bodyweight_batch20261008, "Peso corporal"),
+        )
+        CLOSE_GRIP_BENCH_PRESS_DEFINITION_ID -> listOf(
+            ExerciseTechniqueImageVariant("barbell", R.drawable.exercise_close_grip_bench_press_barbell_batch20261008, "Barra"),
+        )
+        INCLINE_BICEPS_CURL_DEFINITION_ID -> listOf(
+            ExerciseTechniqueImageVariant("dumbbells", R.drawable.exercise_incline_biceps_curl_dumbbells_batch20261008, "Mancuernas"),
+        )
+        QUADS_PRENSA_PIERNAS_DEFINITION_ID -> listOf(
+            ExerciseTechniqueImageVariant("machine", R.drawable.exercise_quads_prensa_piernas_machine_batch20261008b, "Máquina"),
+        )
+        QUADS_SENTADILLA_SIN_CARGA_DEFINITION_ID -> listOf(
+            ExerciseTechniqueImageVariant("bodyweight", R.drawable.exercise_quads_sentadilla_sin_carga_bodyweight_batch20261008b, "Peso corporal"),
+        )
+        PAUSED_BACK_SQUAT_DEFINITION_ID -> listOf(
+            ExerciseTechniqueImageVariant("barbell", R.drawable.exercise_paused_back_squat_barbell_batch20261008b, "Barra"),
+        )
+        OVERHEAD_SQUAT_DEFINITION_ID -> listOf(
+            ExerciseTechniqueImageVariant("barbell", R.drawable.exercise_overhead_squat_barbell_batch20261008b, "Barra"),
+        )
+        QUADS_SENTADILLA_JEFFERSON_DEFINITION_ID -> listOf(
+            ExerciseTechniqueImageVariant("barbell", R.drawable.exercise_quads_sentadilla_jefferson_barbell_batch20261008b, "Barra"),
+        )
+        QUADS_EXTENSION_CUADRICEPS_PIE_POLEA_DEFINITION_ID -> listOf(
+            ExerciseTechniqueImageVariant("cable", R.drawable.exercise_quads_extension_cuadriceps_pie_polea_cable_batch20261008b, "Polea"),
+        )
+        QUADS_SENTADILLA_CAJON_DEFINITION_ID -> listOf(
+            ExerciseTechniqueImageVariant("barbell", R.drawable.exercise_quads_sentadilla_cajon_barbell_batch20261008b, "Barra"),
+        )
+        QUADS_SENTADILLA_SUMO_FRONTAL_DEFINITION_ID -> listOf(
+            ExerciseTechniqueImageVariant("barbell", R.drawable.exercise_quads_sentadilla_sumo_frontal_barbell_batch20261008b, "Barra"),
+        )
+        GLUTE_HAM_RAISE_DEFINITION_ID -> listOf(
+            ExerciseTechniqueImageVariant("ghd", R.drawable.exercise_glute_ham_raise_ghd_batch20261008b, "GHD"),
+        )
+        ZERCHER_CARRY_DEFINITION_ID -> listOf(
+            ExerciseTechniqueImageVariant("barbell", R.drawable.exercise_zercher_carry_barbell_batch20261008b, "Barra"),
+        )
+        BACK_JEFFERSON_CURL_DEFINITION_ID -> listOf(
+            ExerciseTechniqueImageVariant("barbell", R.drawable.exercise_back_jefferson_curl_barbell_batch20261008b, "Barra"),
+            ExerciseTechniqueImageVariant("dumbbells", R.drawable.exercise_back_jefferson_curl_dumbbells_batch20261008b, "Mancuernas"),
+            ExerciseTechniqueImageVariant("cable", R.drawable.exercise_back_jefferson_curl_cable_batch20261008b, "Polea"),
+        )
+        GLUTES_ZANCADA_CRUZADA_DEFINITION_ID -> listOf(
+            ExerciseTechniqueImageVariant("dumbbells", R.drawable.exercise_glutes_zancada_cruzada_dumbbells_batch20261008b, "Mancuernas"),
+        )
+        DEADLIFT_TO_KNEES_DEFINITION_ID -> listOf(
+            ExerciseTechniqueImageVariant("barbell", R.drawable.exercise_deadlift_to_knees_barbell_batch20261008b, "Barra"),
+        )
+        QUADS_SENTADILLA_PISTOLA_ASISTIDA_TRX_DEFINITION_ID -> listOf(
+            ExerciseTechniqueImageVariant("trx", R.drawable.exercise_quads_sentadilla_pistola_asistida_trx_trx_batch20261008b, "TRX"),
+        )
+        QUADS_STEP_UP_CAJON_FRONTAL_DEFINITION_ID -> listOf(
+            ExerciseTechniqueImageVariant("barbell", R.drawable.exercise_quads_step_up_cajon_frontal_barbell_batch20261008b, "Barra"),
+        )
+        QUADS_STEP_UP_CAJON_ZERCHER_DEFINITION_ID -> listOf(
+            ExerciseTechniqueImageVariant("barbell", R.drawable.exercise_quads_step_up_cajon_zercher_barbell_batch20261008b, "Barra"),
+        )
+        QUADS_ZANCADA_CAMINANDO_FRONTAL_BARRA_RECTA_DEFINITION_ID -> listOf(
+            ExerciseTechniqueImageVariant("barbell", R.drawable.exercise_quads_zancada_caminando_frontal_barra_recta_barbell_batch20261008b, "Barra"),
+        )
+        WALKING_LUNGE_DEFINITION_ID -> listOf(
+            ExerciseTechniqueImageVariant("barbell", R.drawable.exercise_walking_lunge_barbell_batch20261008b, "Barra"),
+            ExerciseTechniqueImageVariant("dumbbells", R.drawable.exercise_walking_lunge_dumbbells_batch20261008b, "Mancuernas"),
+            ExerciseTechniqueImageVariant("kettlebell", R.drawable.exercise_walking_lunge_kettlebell_batch20261008b, "Kettlebell"),
+            ExerciseTechniqueImageVariant("bodyweight", R.drawable.exercise_walking_lunge_bodyweight_batch20261008b, "Peso corporal"),
+        )
+        HOLLOW_BODY_HOLD_DEFINITION_ID -> listOf(
+            ExerciseTechniqueImageVariant("bodyweight", R.drawable.exercise_hollow_body_hold_bodyweight_batch20261008, "Peso corporal"),
+        )
+        BIRD_DOG_DEFINITION_ID -> listOf(
+            ExerciseTechniqueImageVariant("bodyweight", R.drawable.exercise_bird_dog_bodyweight_batch20261008, "Peso corporal"),
+        )
+        SIDE_PLANK_DEFINITION_ID -> listOf(
+            ExerciseTechniqueImageVariant("bodyweight", R.drawable.exercise_side_plank_bodyweight_batch20261008, "Peso corporal"),
+        )
+        FORWARD_LUNGE_DEFINITION_ID -> listOf(
+            ExerciseTechniqueImageVariant("bodyweight", R.drawable.exercise_forward_lunge_bodyweight_batch20261008, "Peso corporal"),
+            ExerciseTechniqueImageVariant("dumbbells", R.drawable.exercise_forward_lunge_dumbbells_batch20261008, "Mancuernas"),
+            ExerciseTechniqueImageVariant("kettlebell", R.drawable.exercise_forward_lunge_kettlebell_batch20261008, "Kettlebell"),
+            ExerciseTechniqueImageVariant("barbell", R.drawable.exercise_forward_lunge_barbell_batch20261008, "Barra"),
+            ExerciseTechniqueImageVariant("smith_machine", R.drawable.exercise_forward_lunge_smith_machine_batch20261008, "Máquina Smith"),
+            ExerciseTechniqueImageVariant("cable", R.drawable.exercise_forward_lunge_cable_batch20261008, "Polea"),
+        )
+        SUITCASE_CARRY_DEFINITION_ID -> listOf(
+            ExerciseTechniqueImageVariant("dumbbells", R.drawable.exercise_suitcase_carry_dumbbells_batch20261008, "Mancuernas"),
+            ExerciseTechniqueImageVariant("kettlebell", R.drawable.exercise_suitcase_carry_kettlebell_batch20261008, "Kettlebell"),
+        )
+        KNEE_PUSH_UP_DEFINITION_ID -> listOf(
+            ExerciseTechniqueImageVariant("bodyweight", R.drawable.exercise_knee_push_up_bodyweight_batch20261008, "Peso corporal"),
+        )
+        DIAMOND_PUSH_UP_DEFINITION_ID -> listOf(
+            ExerciseTechniqueImageVariant("bodyweight", R.drawable.exercise_diamond_push_up_bodyweight_batch20261008, "Peso corporal"),
+        )
+        ARCHER_PUSH_UP_DEFINITION_ID -> listOf(
+            ExerciseTechniqueImageVariant("bodyweight", R.drawable.exercise_archer_push_up_bodyweight_batch20261008, "Peso corporal"),
+        )
+        PIKE_PUSH_UP_DEFINITION_ID -> listOf(
+            ExerciseTechniqueImageVariant("bodyweight", R.drawable.exercise_pike_push_up_bodyweight_batch20261008, "Peso corporal"),
+        )
+        NEGATIVE_PULL_UP_DEFINITION_ID -> listOf(
+            ExerciseTechniqueImageVariant("bodyweight", R.drawable.exercise_negative_pull_up_bodyweight_batch20261008, "Peso corporal"),
+        )
+        POWER_CLEAN_DEFINITION_ID -> listOf(
+            ExerciseTechniqueImageVariant("barbell", R.drawable.exercise_power_clean_barbell_batch20261008, "Barra"),
+        )
+        HANG_POWER_CLEAN_DEFINITION_ID -> listOf(
+            ExerciseTechniqueImageVariant("barbell", R.drawable.exercise_hang_power_clean_barbell_batch20261008, "Barra"),
+        )
+        SQUAT_CLEAN_DEFINITION_ID -> listOf(
+            ExerciseTechniqueImageVariant("barbell", R.drawable.exercise_squat_clean_barbell_batch20261008, "Barra"),
+        )
+        CLEAN_PULL_DEFINITION_ID -> listOf(
+            ExerciseTechniqueImageVariant("barbell", R.drawable.exercise_clean_pull_barbell_batch20261008, "Barra"),
+        )
+        POWER_SNATCH_DEFINITION_ID -> listOf(
+            ExerciseTechniqueImageVariant("barbell", R.drawable.exercise_power_snatch_barbell_batch20261008, "Barra"),
+        )
+        HANG_POWER_SNATCH_DEFINITION_ID -> listOf(
+            ExerciseTechniqueImageVariant("barbell", R.drawable.exercise_hang_power_snatch_barbell_batch20261008, "Barra"),
+        )
+        SQUAT_SNATCH_DEFINITION_ID -> listOf(
+            ExerciseTechniqueImageVariant("barbell", R.drawable.exercise_squat_snatch_barbell_batch20261008, "Barra"),
+        )
+        SNATCH_PULL_DEFINITION_ID -> listOf(
+            ExerciseTechniqueImageVariant("barbell", R.drawable.exercise_snatch_pull_barbell_batch20261008, "Barra"),
+        )
+        PUSH_JERK_DEFINITION_ID -> listOf(
+            ExerciseTechniqueImageVariant("barbell", R.drawable.exercise_push_jerk_barbell_batch20261008, "Barra"),
+        )
+        SPLIT_JERK_DEFINITION_ID -> listOf(
+            ExerciseTechniqueImageVariant("barbell", R.drawable.exercise_split_jerk_barbell_batch20261008, "Barra"),
+        )
         HIGH_BAR_BACK_SQUAT_DEFINITION_ID -> listOf(
             ExerciseTechniqueImageVariant("barbell", R.drawable.exercise_sentadilla_trasera_barra_alta, "Barra Libre"),
             ExerciseTechniqueImageVariant("smith_machine", R.drawable.exercise_sentadilla_trasera_barra_alta_smith, "Máquina Smith"),
@@ -209,8 +438,10 @@ object ExerciseTechniqueImageLookup {
             ExerciseTechniqueImageVariant("barbell", R.drawable.exercise_sentadilla_sumo, "Barra"),
             ExerciseTechniqueImageVariant("dumbbells", R.drawable.exercise_sentadilla_sumo_mancuernas, "Mancuerna"),
             ExerciseTechniqueImageVariant("kettlebell", R.drawable.exercise_sentadilla_sumo_kettlebell, "Kettlebell"),
+            ExerciseTechniqueImageVariant("bodyweight", R.drawable.exercise_sumo_squat_bodyweight, "Peso corporal"),
         )
         BULGARIAN_SPLIT_SQUAT_DEFINITION_ID -> listOf(
+            ExerciseTechniqueImageVariant("bodyweight", R.drawable.exercise_bulgarian_split_squat_bodyweight, "Peso corporal"),
             ExerciseTechniqueImageVariant("dumbbells", R.drawable.exercise_sentadilla_bulgara_mancuernas, "Mancuerna"),
             ExerciseTechniqueImageVariant("barbell", R.drawable.exercise_sentadilla_bulgara_barra, "Barra"),
             ExerciseTechniqueImageVariant("smith_machine", R.drawable.exercise_sentadilla_bulgara_smith, "Máquina Smith"),
@@ -248,6 +479,7 @@ object ExerciseTechniqueImageLookup {
             ExerciseTechniqueImageVariant("default", R.drawable.exercise_sentadilla_v_squat_invertida, "Máquina"),
         )
         SISSY_SQUAT_DEFINITION_ID -> listOf(
+            ExerciseTechniqueImageVariant("bodyweight", R.drawable.exercise_sissy_squat_bodyweight, "Peso corporal"),
             ExerciseTechniqueImageVariant("machine", R.drawable.exercise_sentadilla_sissy_maquina, "Máquina"),
             ExerciseTechniqueImageVariant("smith_machine", R.drawable.exercise_sentadilla_sissy_smith, "Máquina Smith"),
             ExerciseTechniqueImageVariant("dumbbells", R.drawable.exercise_sentadilla_sissy_mancuernas, "Mancuerna"),
@@ -277,6 +509,7 @@ object ExerciseTechniqueImageLookup {
             ExerciseTechniqueImageVariant("smith_machine", R.drawable.exercise_peso_muerto_rumano_smith, "Máquina Smith"),
             ExerciseTechniqueImageVariant("dumbbells", R.drawable.exercise_peso_muerto_rumano_mancuernas, "Mancuernas"),
             ExerciseTechniqueImageVariant("hex_bar", R.drawable.exercise_peso_muerto_rumano_hex_bar, "Barra Hexagonal"),
+            ExerciseTechniqueImageVariant("bodyweight", R.drawable.exercise_romanian_deadlift_bodyweight, "Peso corporal"),
         )
         ROMANIAN_SUMO_DEADLIFT_DEFINITION_ID -> listOf(
             ExerciseTechniqueImageVariant("barbell", R.drawable.exercise_peso_muerto_rumano_sumo, "Barra"),
@@ -295,6 +528,7 @@ object ExerciseTechniqueImageLookup {
             ExerciseTechniqueImageVariant("safety_bar", R.drawable.exercise_buenos_dias_safety_bar, "Barra de Seguridad"),
             ExerciseTechniqueImageVariant("smith_machine", R.drawable.exercise_buenos_dias_smith, "Máquina Smith"),
             ExerciseTechniqueImageVariant("machine", R.drawable.exercise_buenos_dias_maquina, "Máquina"),
+            ExerciseTechniqueImageVariant("bodyweight", R.drawable.exercise_good_morning_bodyweight, "Peso corporal"),
         )
         GOOD_MORNING_SEATED_DEFINITION_ID -> listOf(
             ExerciseTechniqueImageVariant("barbell", R.drawable.exercise_buenos_dias_sentado, "Barra"),
@@ -407,6 +641,7 @@ object ExerciseTechniqueImageLookup {
             ExerciseTechniqueImageVariant("machine", R.drawable.exercise_triceps_overhead_maquina, "Máquina"),
             ExerciseTechniqueImageVariant("dumbbells", R.drawable.exercise_triceps_overhead_mancuernas, "Mancuernas"),
             ExerciseTechniqueImageVariant("cable", R.drawable.exercise_triceps_overhead_polea, "Polea"),
+            ExerciseTechniqueImageVariant("ez_bar", R.drawable.exercise_overhead_triceps_extension_ez_bar, "Barra EZ"),
         )
         FRENCH_PRESS_DEFINITION_ID -> listOf(
             ExerciseTechniqueImageVariant("dumbbells", R.drawable.exercise_press_frances_mancuernas, "Mancuernas"),
@@ -586,6 +821,7 @@ object ExerciseTechniqueImageLookup {
         GORILLA_ROW_DEFINITION_ID -> listOf(
             ExerciseTechniqueImageVariant("dumbbells", R.drawable.exercise_gorilla_row_dumbbells, "Mancuernas"),
             ExerciseTechniqueImageVariant("kettlebell", R.drawable.exercise_gorilla_row_kettlebell, "Kettlebell"),
+            ExerciseTechniqueImageVariant("cable", R.drawable.exercise_back_remo_gorilla_mancuernas_cable, "Polea"),
         )
         INVERTED_ROW_DEFINITION_ID -> listOf(
             ExerciseTechniqueImageVariant("default", R.drawable.exercise_inverted_row_bodyweight, "Peso corporal"),
@@ -719,6 +955,7 @@ object ExerciseTechniqueImageLookup {
             ExerciseTechniqueImageVariant("bodyweight", R.drawable.exercise_quads_sentadilla_pistola_batch8, "Peso corporal"),
         )
         REVERSE_LUNGE_DEFINITION_ID -> listOf(
+            ExerciseTechniqueImageVariant("bodyweight", R.drawable.exercise_reverse_lunge_bodyweight, "Peso corporal"),
             ExerciseTechniqueImageVariant("barbell", R.drawable.exercise_reverse_lunge_barbell_batch9, "Barra"),
             ExerciseTechniqueImageVariant("cable", R.drawable.exercise_reverse_lunge_cable_batch9, "Polea"),
             ExerciseTechniqueImageVariant("dumbbells", R.drawable.exercise_reverse_lunge_dumbbells_batch9, "Mancuernas"),
@@ -731,10 +968,12 @@ object ExerciseTechniqueImageLookup {
             ExerciseTechniqueImageVariant("machine", R.drawable.exercise_reverse_pec_fly_machine_batch9, "Máquina"),
         )
         CALF_RAISE_DEFINITION_ID -> listOf(
+            ExerciseTechniqueImageVariant("bodyweight", R.drawable.exercise_calf_raise_bodyweight, "Peso corporal"),
             ExerciseTechniqueImageVariant("barbell", R.drawable.exercise_calf_raise_barbell_batch9, "Barra"),
             ExerciseTechniqueImageVariant("cable", R.drawable.exercise_calf_raise_cable_batch9, "Polea"),
             ExerciseTechniqueImageVariant("machine", R.drawable.exercise_calf_raise_machine_batch9, "Máquina"),
             ExerciseTechniqueImageVariant("smith_machine", R.drawable.exercise_calf_raise_smith_machine_batch9, "Smith"),
+            ExerciseTechniqueImageVariant("leg_press_machine", R.drawable.exercise_calf_raise_leg_press_machine, "Prensa de piernas"),
         )
         LYING_LEG_CURL_DEFINITION_ID -> listOf(
             ExerciseTechniqueImageVariant("cable", R.drawable.exercise_lying_leg_curl_cable_batch9, "Polea"),
@@ -742,6 +981,7 @@ object ExerciseTechniqueImageLookup {
             ExerciseTechniqueImageVariant("machine", R.drawable.exercise_lying_leg_curl_machine_batch9, "Máquina"),
         )
         STEP_UP_DEFINITION_ID -> listOf(
+            ExerciseTechniqueImageVariant("bodyweight", R.drawable.exercise_step_up_bodyweight, "Peso corporal"),
             ExerciseTechniqueImageVariant("barbell", R.drawable.exercise_step_up_barbell_batch10, "Barra"),
             ExerciseTechniqueImageVariant("smith_machine", R.drawable.exercise_step_up_smith_machine_batch10, "Smith"),
             ExerciseTechniqueImageVariant("dumbbells", R.drawable.exercise_step_up_dumbbells_batch10, "Mancuernas"),
@@ -749,6 +989,7 @@ object ExerciseTechniqueImageLookup {
             ExerciseTechniqueImageVariant("cable", R.drawable.exercise_step_up_cable_batch10, "Polea"),
         )
         GLUTE_BRIDGE_DEFINITION_ID -> listOf(
+            ExerciseTechniqueImageVariant("bodyweight", R.drawable.exercise_glutes_puente_gluteos_bodyweight, "Peso corporal"),
             ExerciseTechniqueImageVariant("barbell", R.drawable.exercise_glutes_puente_gluteos_barbell_batch10, "Barra"),
             ExerciseTechniqueImageVariant("dumbbells", R.drawable.exercise_glutes_puente_gluteos_dumbbells_batch10, "Mancuernas"),
             ExerciseTechniqueImageVariant("smith_machine", R.drawable.exercise_glutes_puente_gluteos_smith_machine_batch10, "Smith"),
@@ -810,6 +1051,8 @@ object ExerciseTechniqueImageLookup {
         CONVENTIONAL_ROW_DEFINITION_ID -> listOf(
             ExerciseTechniqueImageVariant("barbell", R.drawable.exercise_conventional_row_barbell, "Barra"),
             ExerciseTechniqueImageVariant("dumbbells", R.drawable.exercise_conventional_row_dumbbells, "Mancuernas"),
+            ExerciseTechniqueImageVariant("smith_machine", R.drawable.exercise_conventional_row_smith_machine, "Máquina Smith"),
+            ExerciseTechniqueImageVariant("kettlebell", R.drawable.exercise_conventional_row_kettlebell, "Kettlebell"),
         )
         CHEST_SUPPORTED_ROW_DEFINITION_ID -> listOf(
             ExerciseTechniqueImageVariant("dumbbells", R.drawable.exercise_chest_supported_row_dumbbells_medium, "Mancuernas"),
@@ -887,16 +1130,6 @@ object ExerciseTechniqueImageLookup {
             )
         ) {
             // The approved image is the dedicated machine only; never show it for the landmine/T-bar implement.
-            return null
-        }
-        if (definitionId == GORILLA_ROW_DEFINITION_ID && requestsOneOfImplement(
-                selectedImplementation = selectedImplementation,
-                catalogConfigurationId = catalogConfigurationId,
-                exerciseDbId = exerciseDbId,
-                tokens = setOf("cable"),
-            )
-        ) {
-            // Cable is catalogued, but has no approved gorilla-row image yet.
             return null
         }
         if (definitionId == PENDLAY_ROW_DEFINITION_ID && requestsOneOfImplement(

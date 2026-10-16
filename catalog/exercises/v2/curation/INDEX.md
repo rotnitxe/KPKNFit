@@ -1,8 +1,8 @@
 # Índice del catálogo de ejercicios v2
 
 Revisión: `v2-approved-2026-09-29-a` · Ontología: `wikilab-v3-2026-08-08`
-96 familias · 228 definiciones · 553 configuraciones
-Hash canónico: `81db1f950148a776…`
+96 familias · 228 definiciones · 552 configuraciones
+Hash canónico: `36079761be601f03…`
 
 Artefacto informativo generado por `scripts/merge_catalog_v2_families.py`.
 No editar a mano: se regenera en cada merge.
@@ -10,7 +10,7 @@ No editar a mano: se regenera en cada merge.
 | familia | definición | nombre | ejes | configs |
 |---|---|---|---|---|
 | back_chest_supported_row | chest_supported_row | Remo con Pecho Apoyado | implement, pulley_height, grip_width | 18 |
-| back_conventional_row | conventional_row | Remo Convencional | implement | 6 |
+| back_conventional_row | conventional_row | Remo Convencional | implement | 5 |
 | back_gironda_row | gironda_row | Remo Gironda | grip_width | 3 |
 | back_pendlay_row | pendlay_row | Remo Pendlay | implement | 6 |
 | back_seal_row | seal_row | Remo Seal | implement | 2 |

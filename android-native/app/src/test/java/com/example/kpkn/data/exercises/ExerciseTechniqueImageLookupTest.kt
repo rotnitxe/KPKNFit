@@ -434,7 +434,7 @@ class ExerciseTechniqueImageLookupTest {
         assertEquals(R.drawable.exercise_buenos_dias, res("good_morning", "good_morning__bilateral__barbell"))
         assertEquals(R.drawable.exercise_buenos_dias_safety_bar, res("good_morning", "good_morning__unilateral__safety_bar"))
         assertEquals(
-            listOf("barbell", "safety_bar", "smith_machine", "machine"),
+            listOf("barbell", "safety_bar", "smith_machine", "machine", "bodyweight"),
             ExerciseTechniqueImageLookup.variants("good_morning").map { it.implementation },
         )
         assertEquals(R.drawable.exercise_buenos_dias_sentado, res("good_morning_seated", "good_morning_seated__barbell", "barbell"))
@@ -714,7 +714,7 @@ class ExerciseTechniqueImageLookupTest {
         assertEquals(R.drawable.exercise_band_pull_apart, res("back_band_pull_apart", "back_band_pull_apart__default"))
         assertEquals(R.drawable.exercise_gorilla_row_dumbbells, res("back_remo_gorilla_mancuernas", "back_remo_gorilla_mancuernas__dumbbells"))
         assertEquals(R.drawable.exercise_gorilla_row_kettlebell, res("back_remo_gorilla_mancuernas", "back_remo_gorilla_mancuernas__kettlebell"))
-        assertNull(res("back_remo_gorilla_mancuernas", "back_remo_gorilla_mancuernas__cable"))
+        assertEquals(R.drawable.exercise_back_remo_gorilla_mancuernas_cable, res("back_remo_gorilla_mancuernas", "back_remo_gorilla_mancuernas__cable"))
         assertEquals(R.drawable.exercise_inverted_row_bodyweight, res("back_remo_invertido", "back_remo_invertido__default"))
         assertEquals(R.drawable.exercise_renegade_row_dumbbells, res("back_remo_renegado_mancuernas", "back_remo_renegado_mancuernas__dumbbells"))
         assertEquals(R.drawable.exercise_renegade_row_kettlebell, res("back_remo_renegado_mancuernas", "back_remo_renegado_mancuernas__kettlebell"))

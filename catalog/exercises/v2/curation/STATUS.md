@@ -10,7 +10,7 @@ vigente es esto:
 - Revisión del catálogo `v2-approved-2026-09-29-a` (sin cambio; los ids tampoco
   cambian, el resolver rechaza ejercicios guardados con otra revisión) y
   ontología `wikilab-v3-2026-08-08`.
-- 96 familias, 228 definiciones, 553 configuraciones, 444 pares definición ×
+- 96 familias, 228 definiciones, 552 configuraciones, 443 pares definición ×
   implemento (el 2026-10-02 se retiró `sissy_squat__barbell`; las selecciones
   guardadas se remapean a `sissy_squat__smith_machine`; el 2026-10-03 se dieron de
   alta las cinco especialidades M1-M5, ver más abajo; el 2026-10-04 se retiraron
@@ -18,8 +18,26 @@ vigente es esto:
   BW-1 de peso corporal añadió nueve definiciones y ocho configuraciones
   `__bodyweight` en definiciones ya `CURATED`, ver «Lote BW-1»; ese mismo día el lote OL-1
   de levantamientos olímpicos y acarreos añadió 13 definiciones y 14 configuraciones,
-  ver «Lote OL-1»). SHA-256 canónico compartido
-  `81db1f950148a7769b7d1d1dd8f066746439efe726ca00d35d87d52119bcf91c`.
+  ver «Lote OL-1»; el 2026-10-12 se retiró `conventional_row__cable`, con 228
+  definiciones, 552 configuraciones y 443 pares). SHA-256 canónico compartido
+  `36079761be601f03caa85e3bed2f41bbf78ffa8fe7312bdb44e9282be26e8295`.
+
+### Retiro solicitado — Remo Convencional en polea (2026-10-12)
+
+El usuario pidió literalmente «QUITAR Remo Convencional — polea». Se retiró
+solo `conventional_row__cable`; el default `conventional_row__barbell` y las
+otras cinco configuraciones siguen disponibles. Las selecciones ya guardadas
+de `conventional_row__cable` se resuelven explícitamente a
+`gironda_row__medium`, remo sentado en polea, agarre medio y tirón horizontal.
+La captura y comparación estructural antes/después está en
+`artifacts/catalog-retirement-20261012/`.
+El pipeline documentado completó merge, compile `--write`, gate estricto
+`READY` y re-pin/check con SHA-256
+`8eff05fec899ce206a744390ba73ab9cb673e0af24d2a8b6a4413e2dd9168137`.
+El recibo confirma Android/iOS idénticos, delta de 0 definiciones y −1
+configuración, y que los cinco implementos restantes y el default no cambiaron.
+El registro 5 de imágenes queda `retired_by_user`, con aprobación e integración
+en falso.
 - Fuente única de autoría: `curation/fichas/<familyId>.json` (una por familia,
   96). Se copia con `scripts/catalog_v2_apply_fichas.py`; el flujo completo y las
   reglas están en `EDITORIAL_GUIDE.md`. El gate falla si `source/` difiere de lo

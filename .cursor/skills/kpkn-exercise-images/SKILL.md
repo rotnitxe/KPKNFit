@@ -16,13 +16,13 @@ Una imagen por (definición × implemento). No reabrir lookup ni otros ejercicio
 
 | Qué | Dónde |
 |---|---|
-| PNG final | `android-native/app/src/main/res/drawable-nodpi/exercise_<slug>.png` |
+| Drawable final (WebP) | `android-native/app/src/main/res/drawable-nodpi/exercise_<slug>.webp` (calidad 90, alfa sin pérdida) |
 | Candidatos | `assets/exercise_<slug>_<letra>.png` (no pises el drawable hasta QA) |
 | Lookup | `android-native/app/src/main/java/com/example/kpkn/data/exercises/ExerciseTechniqueImageLookup.kt` |
 | Tests lookup | `android-native/app/src/test/java/com/example/kpkn/data/exercises/ExerciseTechniqueImageLookupTest.kt` |
-| Estilo catálogo | `drawable-nodpi/exercise_sentadilla_trasera_barra_alta.png` |
+| Estilo catálogo | `drawable-nodpi/exercise_sentadilla_trasera_barra_alta.webp` |
 
-Nombre: `exercise_<movimiento>_<variante>_<implemento>.png`, snake_case, sin tildes.
+Nombre: `exercise_<movimiento>_<variante>_<implemento>.webp`, snake_case, sin tildes. Los candidatos en `assets/` siguen en PNG; el drawable final va en WebP y no debe quedar un `.png` con el mismo nombre en `drawable-nodpi`.
 
 ## Flujo
 
