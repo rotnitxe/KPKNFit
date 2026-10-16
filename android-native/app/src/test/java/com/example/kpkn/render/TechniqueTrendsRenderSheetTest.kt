@@ -20,6 +20,8 @@ import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import com.example.kpkn.screens.onboarding.design.LocalWizardReducedMotion
 import com.example.kpkn.screens.technique.TechniqueSamples
+import com.example.kpkn.screens.technique.compare.TechniqueCompareScreen
+import com.example.kpkn.screens.technique.compare.design.OverlaidPathsChart
 import com.example.kpkn.screens.technique.trends.TechniqueTrendsScreen
 import com.example.kpkn.screens.technique.trends.design.LoadVelocityChart
 import com.example.kpkn.screens.technique.trends.design.RomTrendChart
@@ -211,7 +213,31 @@ class TechniqueTrendsRenderSheetTest {
         }
     }
 
-    // ── 2. Gráficas sueltas ───────────────────────────────────────────────────
+    // ── 2. Pantalla de Comparar dos vídeos ────────────────────────────────────
+
+    @Test
+    fun compareScreen100() {
+        val state = TechniqueSamples.compareUiState()
+        renderScreen("compare_screen_100", 1f) {
+            TechniqueCompareScreen(
+                state = state,
+                onBack = {},
+            )
+        }
+    }
+
+    @Test
+    fun compareScreen130() {
+        val state = TechniqueSamples.compareUiState()
+        renderScreen("compare_screen_130", 1.3f) {
+            TechniqueCompareScreen(
+                state = state,
+                onBack = {},
+            )
+        }
+    }
+
+    // ── 3. Gráficas sueltas ───────────────────────────────────────────────────
 
     @Test
     fun chartLoadVelocity100() {
@@ -274,6 +300,34 @@ class TechniqueTrendsRenderSheetTest {
         val sample = TechniqueSamples.trendsUiState(withEstimate = true).tut!!
         renderModule("chart_tut_trend_130", 1.3f) {
             TutChart(sample)
+        }
+    }
+
+    @Test
+    fun chartOverlaidPaths100() {
+        val sample = TechniqueSamples.compareUiState()
+        renderModule("chart_overlaid_paths_100", 1f) {
+            OverlaidPathsChart(
+                pathA = sample.pathA,
+                pathB = sample.pathB,
+                labelA = sample.labelA,
+                labelB = sample.labelB,
+                isCalibrated = sample.isCalibrated,
+            )
+        }
+    }
+
+    @Test
+    fun chartOverlaidPaths130() {
+        val sample = TechniqueSamples.compareUiState()
+        renderModule("chart_overlaid_paths_130", 1.3f) {
+            OverlaidPathsChart(
+                pathA = sample.pathA,
+                pathB = sample.pathB,
+                labelA = sample.labelA,
+                labelB = sample.labelB,
+                isCalibrated = sample.isCalibrated,
+            )
         }
     }
 }

@@ -51,6 +51,9 @@ import com.example.kpkn.screens.technique.analysis.buildResults
 import com.example.kpkn.domain.biomechanics.vbt.LoadVelocityPoint
 import com.example.kpkn.domain.biomechanics.vbt.LoadVelocityProfile
 import com.example.kpkn.domain.biomechanics.vbt.LoadVelocityResult
+import com.example.kpkn.screens.technique.compare.CompareMetricRowUi
+import com.example.kpkn.screens.technique.compare.TechniqueCompareUiState
+import com.example.kpkn.screens.technique.compare.design.BarPathPoint
 import com.example.kpkn.screens.technique.player.TechniqueOverlayData
 import com.example.kpkn.screens.technique.player.TechniqueRepMark
 import com.example.kpkn.screens.technique.trends.AnalyzedVideoItemUi
@@ -514,5 +517,53 @@ internal object TechniqueSamples {
                     confidence = CountConfidence.MEDIA,
                     thumbFile = null,
                 ),
+            ),
+        )
+    }
+
+    /** Estado de la pantalla de comparar con dos trazas y tabla de diferencias. */
+    fun compareUiState(): TechniqueCompareUiState {
+        val overlay = TechniqueOverlayData.from(squatResult.track, squatPlate, squatReport, VIDEO_WIDTH, VIDEO_HEIGHT)
+
+        val pathA = listOf(
+            BarPathPoint(dx = 0f, dy = 0f),
+            BarPathPoint(dx = 0.5f, dy = 15f),
+            BarPathPoint(dx = 1.2f, dy = 32f),
+            BarPathPoint(dx = 1.0f, dy = 45f),
+            BarPathPoint(dx = 0.8f, dy = 30f),
+            BarPathPoint(dx = 0.3f, dy = 12f),
+            BarPathPoint(dx = 0.0f, dy = 0f),
+        )
+
+        val pathB = listOf(
+            BarPathPoint(dx = 0f, dy = 0f),
+            BarPathPoint(dx = -0.8f, dy = 16f),
+            BarPathPoint(dx = -1.8f, dy = 35f),
+            BarPathPoint(dx = -2.1f, dy = 48f),
+            BarPathPoint(dx = -1.5f, dy = 32f),
+            BarPathPoint(dx = -0.6f, dy = 14f),
+            BarPathPoint(dx = 0.1f, dy = 0f),
+        )
+
+        return TechniqueCompareUiState(
+            isLoading = false,
+            hasError = false,
+            labelA = "Serie 2 · 80 kg × 8 · 13 oct",
+            labelB = "Serie 4 · 90 kg × 6 · 15 oct",
+            fileA = null,
+            fileB = null,
+            overlayA = overlay,
+            overlayB = overlay,
+            pathA = pathA,
+            pathB = pathB,
+            isCalibrated = true,
+            metricsTable = listOf(
+                CompareMetricRowUi("Repeticiones", "8", "6", "-2"),
+                CompareMetricRowUi("TUT", "24,2 s", "19,5 s", "-4,7 s"),
+                CompareMetricRowUi("ROM medio", "96°", "102°", "+6°"),
+                CompareMetricRowUi("Pérdida vel.", "18 %", "24 %", "+6 %"),
+                CompareMetricRowUi("MCV mejor", "0,61 m/s", "0,50 m/s", "-0,11 m/s"),
+            ),
+        )
     }
 }

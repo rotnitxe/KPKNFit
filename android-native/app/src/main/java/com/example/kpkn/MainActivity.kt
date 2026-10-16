@@ -1465,6 +1465,25 @@ private fun KPKNNavGraph(
                 },
             )
         }
+        composable(
+            route = KpknRoute.TechniqueCompare.route,
+            arguments = listOf(
+                navArgument(KpknRoute.TechniqueCompare.ARG_MEDIA_A) { type = NavType.StringType },
+                navArgument(KpknRoute.TechniqueCompare.ARG_MEDIA_B) { type = NavType.StringType },
+            ),
+        ) { backStack ->
+            val mediaA = backStack.arguments
+                ?.getString(KpknRoute.TechniqueCompare.ARG_MEDIA_A)
+                .orEmpty()
+            val mediaB = backStack.arguments
+                ?.getString(KpknRoute.TechniqueCompare.ARG_MEDIA_B)
+                .orEmpty()
+            com.example.kpkn.screens.technique.compare.TechniqueCompareRoute(
+                mediaIdA = Uri.decode(mediaA),
+                mediaIdB = Uri.decode(mediaB),
+                onBack = { navController.popBackStack() },
+            )
+        }
         composable(KpknRoute.ProgramDetail.route) { backStack ->
             val id = backStack.arguments?.getString(KpknRoute.ProgramDetail.ARG_PROGRAM_ID) ?: ""
             ProgramDetailScreen(
