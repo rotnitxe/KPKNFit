@@ -43,7 +43,7 @@ fun RomTrendChart(
     val description = remember(state) {
         val last = state.items.last().romMeanDeg.roundToInt()
         buildString {
-            append("Tendencia de rango de movimiento (ROM): último valor medio de $last grados. ")
+            append("Tendencia de rango de movimiento (ROM): último valor medio aproximado de $last grados. ")
             state.depthCaption?.let { append("$it.") }
         }
     }
@@ -59,17 +59,14 @@ fun RomTrendChart(
             verticalAlignment = Alignment.Bottom,
         ) {
             val latest = state.items.last().romMeanDeg.roundToInt()
-            Row(
-                verticalAlignment = Alignment.Bottom,
-                horizontalArrangement = Arrangement.spacedBy(6.dp),
-            ) {
+            Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
                 Text(
-                    text = "$latest°",
+                    text = "≈ $latest°",
                     style = KpknType.metricL,
                     color = Color.White,
                 )
                 Text(
-                    text = "última sesión",
+                    text = if (state.items.last().isSession) "última sesión" else "último vídeo",
                     style = KpknType.caption,
                     color = WizardColors.textMuted,
                     modifier = Modifier.padding(bottom = 2.dp),
@@ -80,6 +77,17 @@ fun RomTrendChart(
         Spacer(modifier = Modifier.height(16.dp))
 
         val items = state.items
+        val bandPath = remember { Path() }
+        val linePath = remember { Path() }
+        val lower = items.minOf { it.romMeanDeg - (it.romSdDeg ?: 0.0) }
+        val upper = items.maxOf { it.romMeanDeg + (it.romSdDeg ?: 0.0) }
+        val axisSpan = max(20.0, upper - lower)
+        val axisMin = max(0.0, lower - axisSpan * 0.15)
+        val axisMax = upper + axisSpan * 0.15
+        Text("Escala: ≈ ${axisMin.roundToInt()}–${axisMax.roundToInt()}°", style = KpknType.caption, color = WizardColors.textMuted)
+        if (items.any { it.romSdDeg != null }) {
+            Text("Banda: ± desviación estándar", style = KpknType.caption, color = WizardColors.textMuted)
+        }
 
         Canvas(
             modifier = Modifier
@@ -96,11 +104,8 @@ fun RomTrendChart(
 
             if (plotW <= 0f || plotH <= 0f) return@Canvas
 
-            var minVal = items.minOf { it.romMeanDeg - (it.romSdDeg ?: 0.0) }
-            var maxVal = items.maxOf { it.romMeanDeg + (it.romSdDeg ?: 0.0) }
-            val span = max(20.0, maxVal - minVal)
-            val yMin = max(0.0, minVal - span * 0.15)
-            val yMax = maxVal + span * 0.15
+            val yMin = axisMin
+            val yMax = axisMax
 
             fun toX(index: Int): Float =
                 if (items.size == 1) padLeft + plotW / 2f
@@ -111,41 +116,22 @@ fun RomTrendChart(
 
             // 1. Banda de desviación típica (±DE)
             val bandColor = SymbolPalette.columna.copy(alpha = 0.15f)
-            val topPath = Path()
-            val bottomPath = Path()
-
-            if (items.size > 1) {
-                for (i in items.indices) {
-                    val it = items[i]
-                    val sd = it.romSdDeg ?: 0.0
-                    val x = toX(i)
-                    val yUpper = toY(it.romMeanDeg + sd)
-                    val yLower = toY(max(0.0, it.romMeanDeg - sd))
-
-                    if (i == 0) {
-                        topPath.moveTo(x, yUpper)
-                        bottomPath.moveTo(x, yLower)
-                    } else {
-                        topPath.lineTo(x, yUpper)
-                        bottomPath.lineTo(x, yLower)
-                    }
-                }
-
-                // Construir polígono de la banda cerrando en sentido inverso
-                val bandPath = Path().apply {
-                    addPath(topPath)
-                    for (i in items.indices.reversed()) {
-                        val it = items[i]
-                        val sd = it.romSdDeg ?: 0.0
-                        lineTo(toX(i), toY(max(0.0, it.romMeanDeg - sd)))
-                    }
-                    close()
-                }
-                drawPath(bandPath, color = bandColor)
+            bandPath.reset()
+            for (i in 0 until items.lastIndex) {
+                val a = items[i]
+                val b = items[i + 1]
+                val sdA = a.romSdDeg ?: continue
+                val sdB = b.romSdDeg ?: continue
+                bandPath.moveTo(toX(i), toY(a.romMeanDeg + sdA))
+                bandPath.lineTo(toX(i + 1), toY(b.romMeanDeg + sdB))
+                bandPath.lineTo(toX(i + 1), toY(max(0.0, b.romMeanDeg - sdB)))
+                bandPath.lineTo(toX(i), toY(max(0.0, a.romMeanDeg - sdA)))
+                bandPath.close()
             }
+            drawPath(bandPath, color = bandColor)
 
             // 2. Línea principal del ROM medio
-            val linePath = Path()
+            linePath.reset()
             for (i in items.indices) {
                 val x = toX(i)
                 val y = toY(items[i].romMeanDeg)

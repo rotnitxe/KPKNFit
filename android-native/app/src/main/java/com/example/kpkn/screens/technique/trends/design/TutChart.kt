@@ -40,7 +40,7 @@ fun TutChart(
     val description = remember(state) {
         val count = state.items.size
         val avg = (state.items.map { it.tutSeconds }.average()).roundToInt()
-        "Tiempo bajo tensión por serie: $count series analizadas, con una media de $avg segundos por serie."
+        "Tiempo bajo tensión por serie: $count series analizadas, con una media aproximada de $avg segundos por serie."
     }
 
     Column(
@@ -54,12 +54,9 @@ fun TutChart(
             verticalAlignment = Alignment.Bottom,
         ) {
             val latest = state.items.last().tutSeconds.roundToInt()
-            Row(
-                verticalAlignment = Alignment.Bottom,
-                horizontalArrangement = Arrangement.spacedBy(6.dp),
-            ) {
+            Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
                 Text(
-                    text = "${latest}s",
+                    text = "≈ $latest s",
                     style = KpknType.metricL,
                     color = Color.White,
                 )
@@ -75,6 +72,7 @@ fun TutChart(
         Spacer(modifier = Modifier.height(16.dp))
 
         val items = state.items
+        Text("Escala: 0–${max(30.0, state.maxSeconds * 1.15).roundToInt()} s", style = KpknType.caption, color = WizardColors.textMuted)
 
         Canvas(
             modifier = Modifier

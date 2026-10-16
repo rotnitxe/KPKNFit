@@ -10,6 +10,7 @@ import com.example.kpkn.data.media.technique.TechniqueReportSamples
 import com.example.kpkn.data.repository.VideoAnalysisRepository
 import com.example.kpkn.data.repository.WorkoutMediaRepository
 import com.example.kpkn.data.work.TechniqueWorkTestKit
+import com.example.kpkn.domain.biomechanics.metrics.MetricKey
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.first
@@ -88,7 +89,7 @@ class TechniqueCompareViewModelTest {
     }
 
     @Test
-    fun media_without_sidecars_uses_fallback_metadata() = runBlocking<Unit> {
+    fun media_without_sidecars_keeps_metadata_out_of_measured_metrics() = runBlocking<Unit> {
         val mediaA = TechniqueWorkTestKit.insertVideo(db, store, "vid-a") {
             it.copy(
                 exerciseName = "Sentadilla trasera",
@@ -116,17 +117,7 @@ class TechniqueCompareViewModelTest {
         assertTrue(state.labelA.contains("Serie 1 · 80 kg × 8"))
         assertTrue(state.labelB.contains("Serie 2 · 90 kg × 6"))
 
-        val repsRow = state.metricsTable.find { it.label == "Repeticiones" }
-        assertNotNull(repsRow)
-        assertEquals("8", repsRow!!.valueA)
-        assertEquals("6", repsRow.valueB)
-        assertEquals("-2", repsRow.diff)
-
-        val tutRow = state.metricsTable.find { it.label == "TUT" }
-        assertNotNull(tutRow)
-        assertEquals("24,0 s", tutRow!!.valueA)
-        assertEquals("19,5 s", tutRow.valueB)
-        assertEquals("-4,5 s", tutRow.diff)
+        assertTrue("La duración y las reps declaradas del medio no son medidas del análisis", state.metricsTable.isEmpty())
     }
 
     @Test
@@ -148,8 +139,10 @@ class TechniqueCompareViewModelTest {
             )
         }
 
-        val reportA = TechniqueReportSamples.fullReport()
-        val reportB = TechniqueReportSamples.fullReport().copy(
+        val reportA = TechniqueReportSamples.fullReport().let {
+            it.copy(available = it.available + MetricKey.TUT + MetricKey.VELOCITY_RELATIVE)
+        }
+        val reportB = reportA.copy(
             romMeanDeg = 102.0,
             velocityLossPct = 25.0,
             mcvBest = 0.55,

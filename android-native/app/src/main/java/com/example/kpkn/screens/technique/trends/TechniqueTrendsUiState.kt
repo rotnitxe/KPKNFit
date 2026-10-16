@@ -49,6 +49,7 @@ data class RomTrendItemUi(
     val romMeanDeg: Double,
     val romSdDeg: Double?,
     val timestampMs: Long,
+    val isSession: Boolean = false,
 )
 
 /** Estado del módulo de ROM y profundidad. */
@@ -79,7 +80,7 @@ data class AnalyzedVideoItemUi(
     val mediaId: String,
     val dateLabel: String,
     val loadAndReps: String?,
-    val detectedReps: String,
+    val detectedReps: String?,
     val confidence: CountConfidence?,
     val thumbFile: File?,
     val isSelectedForCompare: Boolean = false,
@@ -101,6 +102,7 @@ data class TechniqueTrendsUiState(
     val videos: List<AnalyzedVideoItemUi> = emptyList(),
     val isCompareMode: Boolean = false,
     val selectedMediaIds: Set<String> = emptySet(),
+    val hasError: Boolean = false,
 ) {
     val canLaunchCompare: Boolean get() = selectedMediaIds.size == 2
 }

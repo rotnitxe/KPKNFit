@@ -12,9 +12,7 @@ import com.example.kpkn.data.repository.VideoAnalysisRepository
 import com.example.kpkn.data.repository.WorkoutMediaRepository
 import com.example.kpkn.domain.biomechanics.bar.BarTrack
 import com.example.kpkn.domain.biomechanics.bar.BarTrackCodec
-import com.example.kpkn.domain.biomechanics.metrics.MetricKey
 import com.example.kpkn.domain.biomechanics.metrics.SetTechniqueReport
-import com.example.kpkn.domain.biomechanics.metrics.VelocityUnit
 import com.example.kpkn.domain.biomechanics.pose.PoseTrackCodec
 import com.example.kpkn.domain.biomechanics.pose.PoseTrackV2
 import com.example.kpkn.screens.technique.analysis.AnalysisFormat
@@ -23,8 +21,6 @@ import com.example.kpkn.screens.technique.player.TechniqueOverlayData
 import java.io.File
 import java.io.IOException
 import java.time.ZoneId
-import kotlin.math.abs
-import kotlin.math.roundToInt
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
@@ -134,11 +130,11 @@ class TechniqueCompareViewModel @JvmOverloads constructor(
                     TechniqueOverlayData.from(trackB, barB, reportB, infoB?.displayWidth ?: 0, infoB?.displayHeight ?: 0)
                 }
 
-                val isCalibrated = (reportA?.velocityUnit == VelocityUnit.MPS || MetricKey.PATH_ABSOLUTE in (reportA?.available ?: emptySet())) &&
-                    (reportB?.velocityUnit == VelocityUnit.MPS || MetricKey.PATH_ABSOLUTE in (reportB?.available ?: emptySet()))
+                val isCalibrated = TechniqueComparisonData.calibratedScale(reportA) != null &&
+                    TechniqueComparisonData.calibratedScale(reportB) != null
 
-                val pathPointsA = withContext(computeDispatcher) { extractPath(barA, reportA, isCalibrated) }
-                val pathPointsB = withContext(computeDispatcher) { extractPath(barB, reportB, isCalibrated) }
+                val pathPointsA = withContext(computeDispatcher) { TechniqueComparisonData.extractPath(barA, reportA, isCalibrated) }
+                val pathPointsB = withContext(computeDispatcher) { TechniqueComparisonData.extractPath(barB, reportB, isCalibrated) }
 
                 val now = nowMs()
                 val zone = ZoneId.systemDefault()
@@ -146,7 +142,7 @@ class TechniqueCompareViewModel @JvmOverloads constructor(
                 val labelB = formatMediaLabel(mediaB, now, zone)
 
                 val table = withContext(computeDispatcher) {
-                    buildDifferenceTable(reportA, reportB, mediaA, mediaB)
+                    TechniqueComparisonData.differenceTable(reportA, reportB)
                 }
 
                 _uiState.value = TechniqueCompareUiState(
@@ -154,8 +150,8 @@ class TechniqueCompareViewModel @JvmOverloads constructor(
                     hasError = false,
                     labelA = labelA,
                     labelB = labelB,
-                    fileA = fileA.takeIf { it.isFile },
-                    fileB = fileB.takeIf { it.isFile },
+                    fileA = withContext(ioDispatcher) { fileA.takeIf { it.isFile } },
+                    fileB = withContext(ioDispatcher) { fileB.takeIf { it.isFile } },
                     overlayA = overlayA,
                     overlayB = overlayB,
                     pathA = pathPointsA,
@@ -169,116 +165,6 @@ class TechniqueCompareViewModel @JvmOverloads constructor(
                 _uiState.value = TechniqueCompareUiState(isLoading = false, hasError = true)
             }
         }
-    }
-
-    private fun extractPath(bar: BarTrack?, report: SetTechniqueReport?, isCalibrated: Boolean): List<BarPathPoint> {
-        val samples = bar?.samples ?: return emptyList()
-        if (samples.isEmpty()) return emptyList()
-
-        val x0 = samples.first().cx
-        val y0 = samples.first().cy
-
-        // Factor de escala: si calibrado, convertir a cm utilizando el diámetro conocido
-        val scale = if (isCalibrated && bar.plateDiameterMm != null && bar.plateDiameterMm > 0) {
-            val validR = samples.map { it.r.toDouble() }.filter { it > 0.0 }
-            val avgR = if (validR.isNotEmpty()) validR.average() else 1.0
-            (bar.plateDiameterMm.toDouble() / 10.0) / (2.0 * avgR) // cm por píxel
-        } else {
-            val romPx = report?.romMeanDeg ?: 100.0
-            100.0 / maxOf(10.0, romPx)
-        }
-
-        return samples.map { s ->
-            val dx = ((s.cx - x0) * scale).toFloat()
-            val dy = ((s.cy - y0) * scale).toFloat()
-            BarPathPoint(dx, dy)
-        }
-    }
-
-    private fun buildDifferenceTable(
-        reportA: SetTechniqueReport?,
-        reportB: SetTechniqueReport?,
-        mediaA: WorkoutMedia,
-        mediaB: WorkoutMedia,
-    ): List<CompareMetricRowUi> {
-        val rows = ArrayList<CompareMetricRowUi>(5)
-
-        // 1. Repeticiones
-        val repsA = reportA?.repCount ?: mediaA.reps
-        val repsB = reportB?.repCount ?: mediaB.reps
-        if (repsA != null && repsB != null) {
-            val diff = repsB - repsA
-            val diffStr = if (diff > 0) "+$diff" else "$diff"
-            rows.add(CompareMetricRowUi("Repeticiones", repsA.toString(), repsB.toString(), diffStr))
-        }
-
-        // 2. TUT (Tiempo bajo tensión)
-        val tutA = reportA?.tutMs?.let { it / 1000.0 } ?: mediaA.durationMs?.let { it / 1000.0 }
-        val tutB = reportB?.tutMs?.let { it / 1000.0 } ?: mediaB.durationMs?.let { it / 1000.0 }
-        if (tutA != null && tutB != null) {
-            val diff = tutB - tutA
-            val sign = if (diff > 0.0) "+" else ""
-            rows.add(
-                CompareMetricRowUi(
-                    "TUT",
-                    "${AnalysisFormat.decimal(tutA, 1)} s",
-                    "${AnalysisFormat.decimal(tutB, 1)} s",
-                    "$sign${AnalysisFormat.decimal(diff, 1)} s",
-                ),
-            )
-        }
-
-        // 3. ROM
-        val romA = reportA?.romMeanDeg
-        val romB = reportB?.romMeanDeg
-        if (romA != null && romB != null) {
-            val diff = (romB - romA).roundToInt()
-            val sign = if (diff > 0) "+" else ""
-            rows.add(
-                CompareMetricRowUi(
-                    "ROM",
-                    "${romA.roundToInt()}°",
-                    "${romB.roundToInt()}°",
-                    "$sign$diff°",
-                ),
-            )
-        }
-
-        // 4. Pérdida de velocidad
-        val lossA = reportA?.velocityLossPct
-        val lossB = reportB?.velocityLossPct
-        if (lossA != null && lossB != null) {
-            val diff = (lossB - lossA).roundToInt()
-            val sign = if (diff > 0) "+" else ""
-            rows.add(
-                CompareMetricRowUi(
-                    "Pérdida de velocidad",
-                    "${lossA.roundToInt()} %",
-                    "${lossB.roundToInt()} %",
-                    "$sign$diff %",
-                ),
-            )
-        }
-
-        // 5. MCV (Velocidad concéntrica media)
-        val mcvA = reportA?.mcvBest
-        val mcvB = reportB?.mcvBest
-        if (mcvA != null && mcvB != null) {
-            val isMps = reportA?.velocityUnit == VelocityUnit.MPS && reportB?.velocityUnit == VelocityUnit.MPS
-            val unit = if (isMps) "m/s" else "%"
-            val diff = mcvB - mcvA
-            val sign = if (diff > 0.0) "+" else ""
-            rows.add(
-                CompareMetricRowUi(
-                    "MCV (mejor)",
-                    "≈ ${AnalysisFormat.decimal(mcvA, 2)} $unit",
-                    "≈ ${AnalysisFormat.decimal(mcvB, 2)} $unit",
-                    "$sign${AnalysisFormat.decimal(diff, 2)} $unit",
-                ),
-            )
-        }
-
-        return rows
     }
 
     private fun formatMediaLabel(media: WorkoutMedia, nowMs: Long, zone: ZoneId): String {

@@ -256,6 +256,16 @@ class TechniqueTrendsRenderSheetTest {
     }
 
     @Test
+    fun chartLoadVelocityWithoutMvt130() {
+        val sample = TechniqueSamples.trendsUiState().loadVelocity!!.copy(
+            result = com.example.kpkn.domain.biomechanics.vbt.LoadVelocityResult.NotEnough("no_mvt"),
+            mvtMps = null,
+            reasonText = "Este ejercicio permite comparar la velocidad medida, pero todavía no estimar el 1RM",
+        )
+        renderModule("chart_load_velocity_without_mvt_130", 1.3f) { LoadVelocityChart(sample) }
+    }
+
+    @Test
     fun chartVelocityLoss100() {
         val sample = TechniqueSamples.trendsUiState(withEstimate = true).velocityLoss!!
         renderModule("chart_velocity_loss_100", 1f) {

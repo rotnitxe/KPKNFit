@@ -481,7 +481,7 @@ internal object TechniqueSamples {
                     RomTrendItemUi("12 oct", 96.0, 5.0, 1_780_000_000_000L),
                     RomTrendItemUi("15 oct", 101.0, 3.0, 1_780_000_000_000L),
                 ),
-                depthCaption = "22 de 24 reps bajo el paralelo",
+                depthCaption = "≈ 22 de 24 reps bajo el paralelo",
             ),
             tut = TutUiState(
                 items = listOf(
@@ -497,7 +497,7 @@ internal object TechniqueSamples {
                     mediaId = "vid-1",
                     dateLabel = "15 oct",
                     loadAndReps = "100 kg × 5",
-                    detectedReps = "5 reps detectadas",
+                    detectedReps = "≈ 5 reps detectadas",
                     confidence = CountConfidence.ALTA,
                     thumbFile = null,
                 ),
@@ -505,7 +505,7 @@ internal object TechniqueSamples {
                     mediaId = "vid-2",
                     dateLabel = "15 oct",
                     loadAndReps = "90 kg × 6",
-                    detectedReps = "6 reps detectadas",
+                    detectedReps = "≈ 6 reps detectadas",
                     confidence = CountConfidence.ALTA,
                     thumbFile = null,
                 ),
@@ -513,7 +513,7 @@ internal object TechniqueSamples {
                     mediaId = "vid-3",
                     dateLabel = "12 oct",
                     loadAndReps = "80 kg × 8",
-                    detectedReps = "8 reps detectadas",
+                    detectedReps = "≈ 8 reps detectadas",
                     confidence = CountConfidence.MEDIA,
                     thumbFile = null,
                 ),
@@ -558,11 +558,11 @@ internal object TechniqueSamples {
             pathB = pathB,
             isCalibrated = true,
             metricsTable = listOf(
-                CompareMetricRowUi("Repeticiones", "8", "6", "-2"),
-                CompareMetricRowUi("TUT", "24,2 s", "19,5 s", "-4,7 s"),
-                CompareMetricRowUi("ROM medio", "96°", "102°", "+6°"),
-                CompareMetricRowUi("Pérdida vel.", "18 %", "24 %", "+6 %"),
-                CompareMetricRowUi("MCV mejor", "0,61 m/s", "0,50 m/s", "-0,11 m/s"),
+                CompareMetricRowUi("Repeticiones", "≈ 8 reps", "≈ 6 reps", "≈ -2 reps"),
+                CompareMetricRowUi("TUT", "≈ 24,2 s", "≈ 19,5 s", "≈ -4,7 s"),
+                CompareMetricRowUi("ROM medio", "≈ 96°", "≈ 102°", "≈ +6°"),
+                CompareMetricRowUi("Pérdida de velocidad", "≈ 18 %", "≈ 24 %", "≈ +6 pp"),
+                CompareMetricRowUi("MCV (mejor)", "≈ 0,61 m/s", "≈ 0,50 m/s", "≈ -0,11 m/s"),
             ),
         )
     }

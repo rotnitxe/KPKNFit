@@ -130,7 +130,7 @@ fun TechniqueTrendsScreen(
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
             )
 
-            if (state.isEmpty) {
+            if (state.isEmpty || state.hasError) {
                 // Estado vacío sin análisis
                 Box(
                     modifier = Modifier
@@ -140,8 +140,9 @@ fun TechniqueTrendsScreen(
                 ) {
                     KpknEmptyState(
                         icon = KpknLineIcons.TrendUp,
-                        title = "Sin análisis de técnica",
-                        body = "Graba o analiza series de este ejercicio para ver sus tendencias.",
+                        title = if (state.hasError) "No se pudieron cargar las tendencias" else "Sin análisis de técnica",
+                        body = if (state.hasError) "Vuelve a abrir la pantalla para intentarlo de nuevo."
+                        else "Graba o analiza series de este ejercicio para ver sus tendencias.",
                     )
                 }
             } else {

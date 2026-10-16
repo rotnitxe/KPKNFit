@@ -5,10 +5,10 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.kpkn.data.media.technique.TechniqueSidecars
 import com.example.kpkn.data.models.VideoAnalysisSummary
+import com.example.kpkn.data.models.WorkoutMedia
 import com.example.kpkn.data.repository.VideoAnalysisRepository
 import com.example.kpkn.data.repository.WorkoutMediaRepository
 import com.example.kpkn.domain.biomechanics.metrics.DepthClass
-import com.example.kpkn.domain.biomechanics.profiles.ExerciseRef
 import com.example.kpkn.domain.biomechanics.metrics.RepKind
 import com.example.kpkn.domain.biomechanics.metrics.VelocityUnit
 import com.example.kpkn.domain.biomechanics.profiles.AnalysisProfileId
@@ -21,17 +21,20 @@ import com.example.kpkn.screens.technique.analysis.AnalysisFormat
 import java.io.File
 import java.time.ZoneId
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.ensureActive
+import kotlin.coroutines.coroutineContext
+import kotlin.math.sqrt
 
 /**
  * ViewModel de la pantalla «Tendencias por ejercicio» (VT9a).
@@ -53,14 +56,28 @@ class TechniqueTrendsViewModel @JvmOverloads constructor(
     private val isCompareMode = MutableStateFlow(false)
     private val selectedMediaIds = MutableStateFlow<Set<String>>(emptySet())
 
+    // Leer y calcular solo cuando cambian las filas; seleccionar un vídeo no vuelve a abrir archivos.
+    private val baseState = repository.observeTrend(exerciseKey)
+        .mapLatest { summaries -> assemble(summaries) }
+        .flowOn(ioDispatcher)
+        .catch { error ->
+            if (error is CancellationException) throw error
+            emit(TechniqueTrendsUiState(exerciseKey = exerciseKey, isLoading = false, hasError = true))
+        }
+
     val uiState: StateFlow<TechniqueTrendsUiState> = combine(
-        repository.observeTrend(exerciseKey),
+        baseState,
         isCompareMode,
         selectedMediaIds,
-    ) { summaries, compareMode, selectedIds ->
-        assemble(summaries, compareMode, selectedIds)
+    ) { base, compareMode, selectedIds ->
+        val existingIds = base.videos.mapTo(HashSet()) { it.mediaId }
+        val validSelection = selectedIds.intersect(existingIds)
+        base.copy(
+            isCompareMode = compareMode,
+            selectedMediaIds = validSelection,
+            videos = base.videos.map { it.copy(isSelectedForCompare = it.mediaId in validSelection) },
+        )
     }
-        .flowOn(ioDispatcher)
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5_000L),
@@ -101,8 +118,6 @@ class TechniqueTrendsViewModel @JvmOverloads constructor(
 
     private suspend fun assemble(
         summaries: List<VideoAnalysisSummary>,
-        compareMode: Boolean,
-        selectedIds: Set<String>,
     ): TechniqueTrendsUiState {
         if (summaries.isEmpty()) {
             return TechniqueTrendsUiState(
@@ -110,21 +125,23 @@ class TechniqueTrendsViewModel @JvmOverloads constructor(
                 exerciseName = exerciseKey,
                 isLoading = false,
                 isEmpty = true,
-                isCompareMode = compareMode,
-                selectedMediaIds = selectedIds,
             )
         }
 
         val now = nowMs()
         val zone = ZoneId.systemDefault()
-        val latest = summaries.last()
         val exerciseName = summaries.lastOrNull { !it.exerciseName.isNullOrBlank() }?.exerciseName ?: exerciseKey
+        val mediaById = HashMap<String, WorkoutMedia?>()
+        for (summary in summaries) {
+            coroutineContext.ensureActive()
+            mediaById[summary.mediaId] = mediaRepository.getById(summary.mediaId)
+        }
 
         // 1. Módulo «Velocidad por carga»
         val loadVelocityState = buildLoadVelocityState(summaries, now)
 
         // 2. Módulo «Pérdida de velocidad» (D29: si todas son null, no se pinta)
-        val lossSummaries = summaries.filter { it.velocityLossPct != null && it.velocityLossPct.isFinite() }
+        val lossSummaries = summaries.filter { it.velocityLossPct != null && it.velocityLossPct.isFinite() && it.velocityLossPct >= 0.0 }
         val velocityLossState = if (lossSummaries.isEmpty()) {
             null
         } else {
@@ -146,22 +163,13 @@ class TechniqueTrendsViewModel @JvmOverloads constructor(
         val romTrendState = if (romSummaries.isEmpty()) {
             null
         } else {
-            val items = romSummaries.map {
-                val cv = it.romCvPct?.takeIf { pct -> pct.isFinite() && pct >= 0.0 }
-                val sd = if (cv != null) it.romMeanDeg!! * (cv / 100.0) else null
-                RomTrendItemUi(
-                    dateLabel = AnalysisFormat.shortDate(it.recordedAtMs, now, zone),
-                    romMeanDeg = it.romMeanDeg!!,
-                    romSdDeg = sd,
-                    timestampMs = it.recordedAtMs,
-                )
-            }
+            val items = buildRomSessions(romSummaries, mediaById, now, zone)
             val depthCaption = calculateDepthCaption(summaries)
             RomTrendUiState(items = items, depthCaption = depthCaption)
         }
 
         // 4. Módulo «TUT por serie»
-        val tutSummaries = summaries.filter { it.tutMs != null && it.tutMs > 0L }
+        val tutSummaries = summaries.filter { it.tutMs != null && it.tutMs >= 0L }
         val tutState = if (tutSummaries.isEmpty()) {
             null
         } else {
@@ -180,11 +188,12 @@ class TechniqueTrendsViewModel @JvmOverloads constructor(
 
         // 5. Lista de vídeos (más recientes primero)
         val videoItems = summaries.asReversed().map { summary ->
-            val media = runCatching { mediaRepository.getById(summary.mediaId) }.getOrNull()
+            coroutineContext.ensureActive()
+            val media = mediaById[summary.mediaId]
             val thumbFile = media?.thumbPath?.let { File(it) }?.takeIf { it.isFile }
                 ?: media?.filePath?.let { File(it) }?.takeIf { it.isFile }
-            val loadAndReps = formatLoadAndReps(summary)
-            val detectedReps = "${summary.repCount ?: 0} reps"
+            val loadAndReps = formatLoadAndReps(summary, media)
+            val detectedReps = summary.repCount?.let { "≈ $it reps detectadas" }
 
             AnalyzedVideoItemUi(
                 mediaId = summary.mediaId,
@@ -193,7 +202,6 @@ class TechniqueTrendsViewModel @JvmOverloads constructor(
                 detectedReps = detectedReps,
                 confidence = summary.confidence,
                 thumbFile = thumbFile,
-                isSelectedForCompare = summary.mediaId in selectedIds,
             )
         }
 
@@ -207,8 +215,6 @@ class TechniqueTrendsViewModel @JvmOverloads constructor(
             romTrend = romTrendState,
             tut = tutState,
             videos = videoItems,
-            isCompareMode = compareMode,
-            selectedMediaIds = selectedIds,
         )
     }
 
@@ -217,21 +223,18 @@ class TechniqueTrendsViewModel @JvmOverloads constructor(
         nowMs: Long,
     ): LoadVelocityUiState? {
         // Misma configurationKey (la de la última serie realizada)
-        val targetConfigKey = summaries.lastOrNull { !it.configurationKey.isNullOrBlank() }?.configurationKey
-            ?: summaries.last().configurationKey
-
-        val configSummaries = if (targetConfigKey != null) {
-            summaries.filter { it.configurationKey == targetConfigKey }
-        } else {
-            summaries
-        }
+        val targetConfigKey = summaries.last().configurationKey?.takeIf { it.isNotBlank() } ?: return null
+        val configSummaries = summaries.filter { it.configurationKey == targetConfigKey }
 
         // Últimas 8 semanas (56 días)
         val eightWeeksMs = 56L * 86_400_000L
-        val recent = configSummaries.filter { nowMs - it.recordedAtMs <= eightWeeksMs }
+        val recent = configSummaries.filter { nowMs - it.recordedAtMs in 0L..eightWeeksMs }
 
         // Puntos con carga y MCV
-        val withLoads = recent.filter { it.loadKg != null && it.loadKg > 0.0 && it.mcvBest != null && it.mcvBest > 0.0 }
+        val withLoads = recent.filter {
+            it.loadKg != null && it.loadKg.isFinite() && it.loadKg > 0.0 &&
+                it.mcvBest != null && it.mcvBest.isFinite() && it.mcvBest > 0.0
+        }
         if (withLoads.isEmpty()) return null
 
         val hasMps = withLoads.any { it.velocityUnit == VelocityUnit.MPS }
@@ -257,8 +260,8 @@ class TechniqueTrendsViewModel @JvmOverloads constructor(
             }
             mvtMps == null -> {
                 Pair(
-                    LoadVelocityResult.NotEnough("implausible"),
-                    translateNotEnough("implausible"),
+                    LoadVelocityResult.NotEnough("no_mvt"),
+                    "Este ejercicio permite comparar la velocidad medida, pero todavía no estimar el 1RM",
                 )
             }
             else -> {
@@ -282,66 +285,22 @@ class TechniqueTrendsViewModel @JvmOverloads constructor(
     }
 
     private fun resolveProfileAndMvt(summary: VideoAnalysisSummary): Pair<Double?, AnalysisProfileId?> {
-        // Intentar leer el sidecar del disco
+        // La MVT solo procede del ejercicio real guardado; un perfil sin MVT no admite 1RM.
         val sidecar = summary.reportPath?.let { File(it) }?.takeIf { it.isFile }?.let {
             TechniqueSidecars.readAnalysis(it)
-        }
-        val canonicalDef = when (summary.exerciseKey) {
-            "back_squat" -> "high_bar_back_squat"
-            "deadlift" -> "conventional_deadlift"
-            "bench_press" -> "bench_press"
-            "ohp" -> "military_press"
-            "barbell_row" -> "seal_row"
-            else -> summary.exerciseKey
-        }
-        val canonicalPattern = when {
-            summary.exerciseKey.contains("squat") -> "knee_dominant"
-            summary.exerciseKey.contains("bench") -> "horizontal_push"
-            summary.exerciseKey.contains("deadlift") -> "deadlift"
-            summary.exerciseKey.contains("press") || summary.exerciseKey.contains("ohp") -> "vertical_push"
-            summary.exerciseKey.contains("row") -> "horizontal_pull"
-            else -> null
-        }
-        val equipment = if (summary.configurationKey?.contains("barbell") != false) "barbell" else summary.configurationKey
-        val exerciseRef = sidecar?.exercise ?: ExerciseRef(
-            definitionId = canonicalDef,
-            configurationId = summary.configurationKey,
-            movementPatternId = canonicalPattern,
-            equipmentId = equipment,
-            laterality = null,
-            name = summary.exerciseName.orEmpty(),
-            isCustom = false,
-        )
-
-        val resolved = AnalysisProfileResolver.resolve(exerciseRef) as? ProfileResolution.Supported
-        val mvt = resolved?.profile?.mvtMps
-            ?: when {
-                summary.exerciseKey.contains("squat") || summary.profileId == AnalysisProfileId.SQUAT -> 0.30
-                summary.exerciseKey.contains("bench") || summary.profileId == AnalysisProfileId.BENCH -> 0.17
-                summary.exerciseKey.contains("deadlift") || summary.profileId == AnalysisProfileId.DEADLIFT -> 0.15
-                summary.exerciseKey.contains("press") || summary.exerciseKey.contains("ohp") || summary.profileId == AnalysisProfileId.OHP -> 0.19
-                summary.exerciseKey.contains("row") || summary.profileId == AnalysisProfileId.ROW -> 0.50
-                else -> null
-            }
-        val profileId = resolved?.profile?.id ?: summary.profileId
-            ?: when {
-                summary.exerciseKey.contains("squat") -> AnalysisProfileId.SQUAT
-                summary.exerciseKey.contains("bench") -> AnalysisProfileId.BENCH
-                summary.exerciseKey.contains("deadlift") -> AnalysisProfileId.DEADLIFT
-                summary.exerciseKey.contains("press") || summary.exerciseKey.contains("ohp") -> AnalysisProfileId.OHP
-                summary.exerciseKey.contains("row") -> AnalysisProfileId.ROW
-                else -> null
-            }
-
-        return Pair(mvt, profileId)
+        } ?: return null to null
+        if (sidecar.exercise.configurationId != summary.configurationKey) return null to null
+        val resolved = AnalysisProfileResolver.resolve(sidecar.exercise) as? ProfileResolution.Supported
+        return resolved?.profile?.mvtMps?.takeIf { it.isFinite() && it > 0.0 } to resolved?.profile?.id
     }
 
-    private fun calculateDepthCaption(summaries: List<VideoAnalysisSummary>): String? {
+    private suspend fun calculateDepthCaption(summaries: List<VideoAnalysisSummary>): String? {
         var totalDepthReps = 0
         var belowReps = 0
         var isSquat = false
 
         for (summary in summaries) {
+            coroutineContext.ensureActive()
             if (summary.profileId == AnalysisProfileId.SQUAT || summary.exerciseKey.contains("squat")) isSquat = true
             val sidecar = summary.reportPath?.let { File(it) }?.takeIf { it.isFile }?.let {
                 TechniqueSidecars.readAnalysis(it)
@@ -363,9 +322,9 @@ class TechniqueTrendsViewModel @JvmOverloads constructor(
         return "Bajo el paralelo en ≈ $belowReps de $totalDepthReps repeticiones"
     }
 
-    private fun formatLoadAndReps(summary: VideoAnalysisSummary): String? {
-        val load = summary.loadKg?.takeIf { it > 0.0 }
-        val reps = summary.repCount?.takeIf { it > 0 }
+    private fun formatLoadAndReps(summary: VideoAnalysisSummary, media: WorkoutMedia?): String? {
+        val load = (media?.weightKg ?: summary.loadKg)?.takeIf { it.isFinite() && it > 0.0 }
+        val reps = media?.reps?.takeIf { it > 0 }
         return when {
             load != null && reps != null -> "${AnalysisFormat.kg(load)} × $reps"
             load != null -> AnalysisFormat.kg(load)
@@ -386,5 +345,38 @@ class TechniqueTrendsViewModel @JvmOverloads constructor(
             "wide_interval" -> "Hace falta más precisión: graba más series"
             else -> "Faltan datos"
         }
+    }
+
+    /** Media y DE combinadas sobre las FULL de la sesión; importaciones sin sesión conservan su propio punto. */
+    private fun buildRomSessions(
+        summaries: List<VideoAnalysisSummary>,
+        media: Map<String, WorkoutMedia?>,
+        now: Long,
+        zone: ZoneId,
+    ): List<RomTrendItemUi> {
+        fun sessionKey(summary: VideoAnalysisSummary): String? {
+            if (summary.repCount == null || summary.repCount <= 0) return null
+            val item = media[summary.mediaId]
+            return item?.workoutLogId?.takeIf { it.isNotBlank() }?.let { "log:$it" }
+                ?: item?.sessionKey?.takeIf { it.isNotBlank() }?.let { "session:$it" }
+        }
+        fun sd(summary: VideoAnalysisSummary): Double? = summary.romCvPct
+            ?.takeIf { it.isFinite() && it >= 0.0 }?.let { summary.romMeanDeg!! * it / 100.0 }
+        return summaries.groupBy { sessionKey(it) ?: "media:${it.mediaId}" }.values.map { group ->
+            val time = group.maxOf { it.recordedAtMs }
+            val n = group.sumOf { it.repCount?.takeIf { count -> count > 0 } ?: 1 }
+            val mean = group.sumOf { it.romMeanDeg!! * (it.repCount?.takeIf { count -> count > 0 } ?: 1) } / n
+            val combinedSd = if (group.size == 1) sd(group.single())
+            else if (n <= 1 || group.any { (it.repCount ?: 0) > 1 && sd(it) == null }) null
+            else {
+                val sumSquares = group.sumOf {
+                    val count = it.repCount!!
+                    val offset = it.romMeanDeg!! - mean
+                    (count - 1) * (sd(it) ?: 0.0).let { value -> value * value } + count * offset * offset
+                }
+                sqrt(sumSquares / (n - 1))
+            }
+            RomTrendItemUi(AnalysisFormat.shortDate(time, now, zone), mean, combinedSd, time, sessionKey(group.first()) != null)
+        }.sortedBy { it.timestampMs }
     }
 }

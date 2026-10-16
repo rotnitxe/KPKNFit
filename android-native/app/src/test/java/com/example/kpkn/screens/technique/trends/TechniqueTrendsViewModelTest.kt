@@ -6,6 +6,10 @@ import androidx.test.core.app.ApplicationProvider
 import com.example.kpkn.data.db.KpknDatabase
 import com.example.kpkn.data.db.VideoAnalysisEntity
 import com.example.kpkn.data.media.WorkoutMediaStore
+import com.example.kpkn.data.media.technique.TechniqueReportSamples
+import com.example.kpkn.data.media.technique.TechniqueSidecars
+import com.example.kpkn.domain.biomechanics.profiles.ExerciseRef
+import java.io.File
 import com.example.kpkn.data.repository.VideoAnalysisRepository
 import com.example.kpkn.data.repository.WorkoutMediaRepository
 import com.example.kpkn.data.work.TechniqueWorkTestKit
@@ -88,19 +92,30 @@ class TechniqueTrendsViewModelTest {
         velocityLossPct: Double? = 20.0,
         recordedAtMs: Long = 1_780_000_000_000L,
         status: String = "DONE",
-        repCount: Int = 8,
+        repCount: Int? = 8,
         confidence: String = "HIGH",
-        tutMs: Long = 24_000L,
-        romMeanDeg: Double = 96.0,
-        romCvPct: Double = 3.5,
+        tutMs: Long? = 24_000L,
+        romMeanDeg: Double? = 96.0,
+        romCvPct: Double? = 3.5,
+        writeReport: Boolean = true,
+        exerciseRef: ExerciseRef = TechniqueReportSamples.exercise().copy(definitionId = "high_bar_back_squat"),
+        sessionKey: String? = null,
     ) {
-        TechniqueWorkTestKit.insertVideo(db, store, mediaId) {
+        val video = TechniqueWorkTestKit.insertVideo(db, store, mediaId) {
             it.copy(
                 catalogDefinitionId = exerciseKey,
                 catalogConfigurationId = configurationKey,
                 exerciseName = exerciseName,
                 weightKg = loadKg,
                 createdAtMs = recordedAtMs,
+                sessionKey = sessionKey,
+            )
+        }
+        val reportFile = TechniqueSidecars.analysisFile(File(video.filePath))
+        if (writeReport) {
+            TechniqueSidecars.writeAnalysis(
+                reportFile, TechniqueReportSamples.fullReport(), exerciseRef.copy(configurationId = configurationKey),
+                loadKg, null, recordedAtMs,
             )
         }
         val entity = VideoAnalysisEntity(
@@ -122,6 +137,7 @@ class TechniqueTrendsViewModelTest {
             tutMs = tutMs,
             romMeanDeg = romMeanDeg,
             romCvPct = romCvPct,
+            reportPath = reportFile.absolutePath.takeIf { writeReport },
             flagsJson = "[]",
             createdAtMs = recordedAtMs,
             updatedAtMs = recordedAtMs,
@@ -168,8 +184,8 @@ class TechniqueTrendsViewModelTest {
     @Test
     fun uncalibrated_points_shows_calibration_prompt() = runBlocking<Unit> {
         val baseTime = 1_780_000_000_000L
-        insertAnalysis("vid-1", loadKg = 70.0, mcvBest = 0.72, velocityUnit = "ROM_PER_SEC", recordedAtMs = baseTime - 20_000)
-        insertAnalysis("vid-2", loadKg = 80.0, mcvBest = 0.61, velocityUnit = "ROM_PER_SEC", recordedAtMs = baseTime - 10_000)
+        insertAnalysis("vid-1", loadKg = 70.0, mcvBest = 0.72, velocityUnit = "BODY_HEIGHTS_PER_S", recordedAtMs = baseTime - 20_000)
+        insertAnalysis("vid-2", loadKg = 80.0, mcvBest = 0.61, velocityUnit = "BODY_HEIGHTS_PER_S", recordedAtMs = baseTime - 10_000)
 
         val vm = createViewModel("back_squat", nowMs = baseTime)
         val state = vm.awaitState { !it.isLoading && it.loadVelocity != null }
@@ -260,5 +276,67 @@ class TechniqueTrendsViewModelTest {
         vm.toggleCompareMode()
         val resetState = vm.awaitState { !it.isCompareMode && it.selectedMediaIds.isEmpty() }
         assertTrue(resetState.selectedMediaIds.isEmpty())
+    }
+
+    @Test
+    fun missing_report_and_profile_without_mvt_never_fabricate_a_one_rm() = runBlocking<Unit> {
+        val time = 1_780_000_000_000L
+        insertAnalysis("missing-1", loadKg = 60.0, mcvBest = 0.85, writeReport = false, recordedAtMs = time - 30_000L)
+        insertAnalysis("missing-2", loadKg = 80.0, mcvBest = 0.65, writeReport = false, recordedAtMs = time - 20_000L)
+        insertAnalysis("missing-3", loadKg = 100.0, mcvBest = 0.45, writeReport = false, recordedAtMs = time - 10_000L)
+        val missing = createViewModel(nowMs = time).awaitState().loadVelocity!!
+        assertEquals(3, missing.points.size)
+        assertNull(missing.mvtMps)
+        assertNull(missing.e1rmKg)
+
+        // El nombre sigue siendo sentadilla; el material real impide heredar la MVT de la barra.
+        val dumbbell = TechniqueReportSamples.exercise().copy(definitionId = "high_bar_back_squat", equipmentId = "dumbbell")
+        insertAnalysis("dumbbell", loadKg = 100.0, mcvBest = 0.45, exerciseRef = dumbbell, recordedAtMs = time)
+        val noMvt = createViewModel(nowMs = time).awaitState().loadVelocity!!
+        assertNull(noMvt.mvtMps)
+        assertNull(noMvt.e1rmKg)
+    }
+
+    @Test
+    fun unknown_configuration_and_missing_metrics_stay_absent() = runBlocking<Unit> {
+        insertAnalysis("unknown", configurationKey = null, repCount = null, tutMs = null, romMeanDeg = null, velocityLossPct = null)
+        val state = createViewModel().awaitState()
+        assertNull(state.loadVelocity)
+        assertNull(state.tut)
+        assertNull(state.romTrend)
+        assertNull(state.velocityLoss)
+        assertNull(state.videos.single().detectedReps)
+    }
+
+    @Test
+    fun changing_selection_reuses_prepared_data_without_new_io() = runBlocking<Unit> {
+        val time = 1_780_000_000_000L
+        insertAnalysis("one", recordedAtMs = time - 10_000L)
+        insertAnalysis("two", recordedAtMs = time)
+        var assemblies = 0
+        val vm = TechniqueTrendsViewModel(context as Application, "back_squat", analysis, media, Dispatchers.Unconfined) {
+            assemblies++
+            time
+        }
+        vm.awaitState()
+        vm.toggleCompareMode()
+        vm.awaitState { it.isCompareMode }
+        vm.toggleVideoSelection("one")
+        vm.awaitState { it.selectedMediaIds.contains("one") }
+        assertEquals("La selección solo combina el estado ya preparado", 1, assemblies)
+    }
+
+    @Test
+    fun rom_combines_known_sessions_by_full_rep_count_and_preserves_unassigned_imports() = runBlocking<Unit> {
+        val time = 1_780_000_000_000L
+        insertAnalysis("set-1", repCount = 2, romMeanDeg = 80.0, romCvPct = 0.0, sessionKey = "workout", recordedAtMs = time - 20_000L)
+        insertAnalysis("set-2", repCount = 6, romMeanDeg = 100.0, romCvPct = 0.0, sessionKey = "workout", recordedAtMs = time - 10_000L)
+        insertAnalysis("import", repCount = 8, romMeanDeg = 110.0, recordedAtMs = time)
+        val items = createViewModel(nowMs = time).awaitState().romTrend!!.items
+        assertEquals(2, items.size)
+        assertEquals(95.0, items.first().romMeanDeg, 0.001)
+        assertEquals(kotlin.math.sqrt(600.0 / 7.0), items.first().romSdDeg!!, 0.001)
+        assertTrue(items.first().isSession)
+        assertFalse(items.last().isSession)
     }
 }

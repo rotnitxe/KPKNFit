@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -52,7 +53,7 @@ fun AnalyzedVideoRow(
     val description = buildString {
         append("Vídeo del ${item.dateLabel}. ")
         item.loadAndReps?.let { append("$it. ") }
-        append("Detectadas ${item.detectedReps}.")
+        item.detectedReps?.let { append("$it.") }
         if (isCompareMode) {
             if (item.isSelectedForCompare) append(" Seleccionado para comparar.")
             else append(" No seleccionado.")
@@ -62,7 +63,7 @@ fun AnalyzedVideoRow(
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .height(72.dp)
+            .heightIn(min = 72.dp)
             .clickable(role = Role.Button, onClick = onClick)
             .padding(horizontal = 4.dp, vertical = 8.dp)
             .semantics { contentDescription = description },
@@ -125,10 +126,7 @@ fun AnalyzedVideoRow(
             modifier = Modifier.weight(1f),
             verticalArrangement = Arrangement.Center,
         ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(6.dp),
-            ) {
+            Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
                 Text(
                     text = item.dateLabel,
                     style = KpknType.bodyStrong,
@@ -136,7 +134,7 @@ fun AnalyzedVideoRow(
                 )
                 item.loadAndReps?.let { lr ->
                     Text(
-                        text = "· $lr",
+                        text = lr,
                         style = KpknType.caption,
                         color = WizardColors.textMuted,
                     )
@@ -145,27 +143,26 @@ fun AnalyzedVideoRow(
 
             Spacer(modifier = Modifier.height(2.dp))
 
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(6.dp),
-            ) {
+            Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                item.detectedReps?.let { detected ->
                 Text(
-                    text = item.detectedReps,
+                    text = detected,
                     style = KpknType.caption,
                     color = WizardColors.textMuted,
                 )
+                }
                 // Insignia de confianza si no es alta
                 when (item.confidence) {
                     CountConfidence.MEDIA -> {
                         Text(
-                            text = "· Revisar",
+                            text = "Revisar",
                             style = KpknType.caption,
                             color = SymbolPalette.energia,
                         )
                     }
                     CountConfidence.BAJA -> {
                         Text(
-                            text = "· No concluyente",
+                            text = "No concluyente",
                             style = KpknType.caption,
                             color = WizardColors.danger,
                         )

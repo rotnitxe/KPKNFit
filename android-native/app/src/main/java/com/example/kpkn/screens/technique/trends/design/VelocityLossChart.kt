@@ -40,7 +40,7 @@ fun VelocityLossChart(
 
     val description = remember(state) {
         val mean = state.meanLossPct.roundToInt()
-        "Pérdida de velocidad por serie: ${state.items.size} series registradas, con una media del $mean %."
+        "Pérdida de velocidad por serie: ${state.items.size} series registradas, con una media aproximada del $mean %."
     }
 
     Column(
@@ -53,12 +53,9 @@ fun VelocityLossChart(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.Bottom,
         ) {
-            Row(
-                verticalAlignment = Alignment.Bottom,
-                horizontalArrangement = Arrangement.spacedBy(6.dp),
-            ) {
+            Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
                 Text(
-                    text = "${state.meanLossPct.roundToInt()} %",
+                    text = "≈ ${state.meanLossPct.roundToInt()} %",
                     style = KpknType.metricL,
                     color = Color.White,
                 )
@@ -75,6 +72,7 @@ fun VelocityLossChart(
 
         val items = state.items
         val meanLoss = state.meanLossPct
+        Text("Escala: 0–${max(35.0, items.maxOf { it.lossPct } * 1.15).roundToInt()} %", style = KpknType.caption, color = WizardColors.textMuted)
 
         Canvas(
             modifier = Modifier
