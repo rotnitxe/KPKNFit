@@ -145,6 +145,7 @@ fun WorkoutSessionCockpit(
     val pages = CockpitPage.entries
     val pagerState = rememberPagerState(pageCount = { pages.size })
     val scope = rememberCoroutineScope()
+    val tabScroll = rememberScrollState()
 
     Column(modifier = modifier.fillMaxSize().padding(bottom = 8.dp)) {
         Row(
@@ -156,7 +157,7 @@ fun WorkoutSessionCockpit(
             Text(sessionProgressLabel, style = KpknType.caption, color = WizardColors.textMuted)
         }
         Row(
-            modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(horizontal = 16.dp),
+            modifier = Modifier.fillMaxWidth().fadeHorizontalWhenScrollable(tabScroll).horizontalScroll(tabScroll).padding(horizontal = 16.dp),
             horizontalArrangement = Arrangement.spacedBy(6.dp),
         ) {
             pages.forEachIndexed { index, page ->

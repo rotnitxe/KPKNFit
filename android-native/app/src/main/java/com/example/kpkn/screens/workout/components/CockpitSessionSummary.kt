@@ -60,8 +60,9 @@ internal fun CockpitSessionSummary(
         cockpitSessionMetrics(exercises, completedSets, completedExercises, omittedSetKeys, liveEnergySummary, bodyWeight)
     }
     val number = remember { NumberFormat.getNumberInstance(Locale.forLanguageTag("es-CL")).apply { maximumFractionDigits = 1 } }
+    val bodyScroll = rememberScrollState()
     Column(
-        modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp),
+        modifier = Modifier.fillMaxSize().fadeBottomWhenScrollable(bodyScroll).verticalScroll(bodyScroll).padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
