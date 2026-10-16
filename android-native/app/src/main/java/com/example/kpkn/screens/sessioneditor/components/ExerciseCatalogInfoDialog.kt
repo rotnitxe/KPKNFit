@@ -150,6 +150,13 @@ internal data class CatalogDetailModel(
     val patternId: String?,
     val isSelected: Boolean,
     val canSelect: Boolean,
+    val setupCues: List<String> = emptyList(),
+    val executionCues: List<String> = emptyList(),
+    val identityKeys: Set<String> = emptySet(),
+    val context: ExerciseFichaContext = ExerciseFichaContext.CATALOG,
+    val contextLine: String? = null,
+    val historySummary: com.example.kpkn.domain.exercises.ExerciseHistorySummary? = null,
+    val media: List<com.example.kpkn.data.models.WorkoutMedia> = emptyList(),
 )
 
 /** Un eje de la configuración con sus opciones visibles (las que el catálogo deja elegir). */
@@ -180,20 +187,14 @@ internal fun ExerciseCatalogInfoDialog(
     /** Sin el pie «Añadir/Quitar» (ER1f): la ficha del editor ya es de un ejercicio de la sesión. */
     showFooter: Boolean = true,
 ) {
-    KpknSheet(
-        onDismissRequest = onDismiss,
-        maxHeightFraction = 0.94f,
-        stableHeightFraction = 0.94f,
-    ) {
-        CatalogDetailContent(
-            model = model,
-            onDismiss = onDismiss,
-            onToggleSelection = onToggleSelection,
-            onSelectOption = onSelectOption,
-            onImplementationSettled = onImplementationSettled,
-            showFooter = showFooter,
-        )
-    }
+    ExerciseFicha(
+        model = model,
+        onDismiss = onDismiss,
+        onToggleSelection = onToggleSelection,
+        onSelectOption = onSelectOption,
+        onImplementationSettled = onImplementationSettled,
+        showFooter = showFooter,
+    )
 }
 
 /**
@@ -214,133 +215,15 @@ internal fun CatalogDetailContent(
     startExpanded: Boolean = false,
     showFooter: Boolean = true,
 ) {
-    // Los implementos van sobre la foto como píldoras (CF1); el resto de ejes sigue en «Configuración».
-    val implementOptions = model.axes.firstOrNull { it.axis == ImplementAxis }?.options.orEmpty()
-    val configAxes = model.axes.filter { it.axis != ImplementAxis }
-    var muscleKnowledge by remember { mutableStateOf<CanonicalKnowledge?>(null) }
-    Column(modifier = modifier.fillMaxSize()) {
-        KpknTopRow(
-            onBack = null,
-            actions = {
-                KpknIconButton(
-                    icon = KpknLineIcons.Close,
-                    contentDescription = "Cerrar definición",
-                    onClick = onDismiss,
-                )
-            },
-        )
-        Column(
-            modifier = Modifier
-                .weight(1f)
-                .fillMaxWidth()
-                .verticalScroll(rememberScrollState())
-                .padding(horizontal = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-        ) {
-            if (model.imageVariants.isNotEmpty() || implementOptions.size > 1) {
-                CatalogExerciseImageCarousel(
-                    variants = model.imageVariants,
-                    selectedImplementation = model.selectedImplementation,
-                    onImplementationSettled = onImplementationSettled,
-                    implementOptions = implementOptions,
-                    onSelectImplementation = { value -> onSelectOption(ImplementAxis, value) },
-                    modifier = Modifier.fillMaxWidth(),
-                )
-            }
-            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                Text(
-                    text = model.name,
-                    style = KpknType.title,
-                    color = WizardColors.text,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis,
-                )
-                model.caption?.takeIf { it.isNotBlank() }?.let { caption ->
-                    Text(
-                        text = caption,
-                        style = KpknType.caption,
-                        color = WizardColors.textMuted,
-                    )
-                }
-            }
-            model.muscleInfo?.let { info ->
-                CatalogMusclesModule(
-                    exercise = info,
-                    onKnowledge = { muscleKnowledge = it },
-                )
-            }
-            model.description?.takeIf { it.isNotBlank() }?.let { description ->
-                CatalogDescription(text = description)
-            }
-            if (configAxes.isNotEmpty() || model.configurationLine != null) {
-                KpknModule(modifier = Modifier.fillMaxWidth()) {
-                    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                        Text(
-                            text = "Configuración",
-                            style = KpknType.bodyStrong,
-                            color = WizardColors.text,
-                        )
-                        configAxes.forEach { axis ->
-                            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                                Text(
-                                    text = axis.label,
-                                    style = KpknType.caption,
-                                    color = WizardColors.textMuted,
-                                )
-                                FlowRow(
-                                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                    verticalArrangement = Arrangement.spacedBy(8.dp),
-                                ) {
-                                    axis.options.forEach { option ->
-                                        KpknChip(
-                                            text = option.label,
-                                            selected = option.selected,
-                                            enabled = option.enabled,
-                                            onClick = { onSelectOption(axis.axis, option.value) },
-                                        )
-                                    }
-                                }
-                            }
-                        }
-                        model.configurationLine?.let { line ->
-                            Text(
-                                text = line,
-                                style = KpknType.caption,
-                                color = if (model.configurationIncomplete) SymbolPalette.energia else WizardColors.text,
-                            )
-                        }
-                    }
-                }
-            }
-            // Los músculos van arriba, a la vista (CF1): aquí solo el patrón y las articulaciones.
-            CatalogInvolvementAccordions(
-                info = null,
-                joints = model.joints,
-                patternId = model.patternId,
-                startExpanded = startExpanded,
-            )
-            muscleKnowledge?.let { knowledge ->
-                CanonicalKnowledgeOverlay(
-                    knowledge = knowledge,
-                    onDismiss = { muscleKnowledge = null },
-                )
-            }
-        }
-        if (showFooter) {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 12.dp),
-            ) {
-                KpknPrimaryPill(
-                    text = if (model.isSelected) "Quitar" else "Añadir",
-                    onClick = onToggleSelection,
-                    modifier = Modifier.fillMaxWidth(),
-                    enabled = model.canSelect,
-                )
-            }
-        }
-    }
+    ExerciseFichaContent(
+        model = model,
+        onDismiss = onDismiss,
+        onToggleSelection = onToggleSelection,
+        onSelectOption = onSelectOption,
+        onImplementationSettled = onImplementationSettled,
+        modifier = modifier,
+        showFooter = showFooter,
+    )
 }
 
 /**
@@ -357,9 +240,11 @@ internal fun CatalogExerciseImageCarousel(
     implementOptions: List<CatalogDetailOption>,
     onSelectImplementation: (String) -> Unit,
     modifier: Modifier = Modifier,
+    photoHeight: androidx.compose.ui.unit.Dp = CatalogPhotoHeight,
+    showImplementPills: Boolean = true,
 ) {
     val selectedIndex = selectedCatalogImageVariantIndex(variants, selectedImplementation)
-    val showPills = implementOptions.size > 1
+    val showPills = showImplementPills && implementOptions.size > 1
     // La foto es la fuente del desenfoque de las píldoras: el vidrio emborrona lo que hay detrás.
     val haze = remember { HazeState() }
     val reduced = wizardReducedMotion()
@@ -400,7 +285,7 @@ internal fun CatalogExerciseImageCarousel(
     }
 
     if (selectedIndex != null) {
-        Box(modifier = modifier.height(CatalogPhotoHeight)) {
+        Box(modifier = modifier.height(photoHeight)) {
             Box(
                 modifier = Modifier
                     .fillMaxSize()
@@ -456,7 +341,7 @@ internal fun CatalogExerciseImageCarousel(
  * Con movimiento reducido, el indicador salta.
  */
 @Composable
-private fun CatalogImplementPills(
+internal fun CatalogImplementPills(
     options: List<CatalogDetailOption>,
     shownValue: String?,
     haze: HazeState,
@@ -614,7 +499,7 @@ private const val NonBreakingSpace = '\u00A0'
  * su definición canónica, como antes.
  */
 @Composable
-private fun CatalogMusclesModule(
+internal fun CatalogMusclesModule(
     exercise: ExerciseMuscleInfo,
     onKnowledge: (CanonicalKnowledge) -> Unit,
 ) {
@@ -704,7 +589,7 @@ internal fun muscleFigures(value: Double): String {
  * no hay botón.
  */
 @Composable
-private fun CatalogDescription(text: String) {
+internal fun CatalogDescription(text: String) {
     var expanded by remember(text) { mutableStateOf(false) }
     var clipped by remember(text) { mutableStateOf(false) }
     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {

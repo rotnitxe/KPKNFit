@@ -135,6 +135,7 @@ internal fun SetCardExerciseMediaBack(
     mediaCapture: WorkoutMediaCaptureController? = null,
     onRetryPendingCaptures: () -> Unit = {},
     effortLabel: String? = null,
+    onShowHistory: (() -> Unit)? = null,
     startExpanded: Boolean = false,
     /** Solo para hojas de render y pruebas: muestra los controles de la cámara aunque no haya controlador de captura. */
     showControlsWithoutCamera: Boolean = false,
@@ -430,7 +431,7 @@ internal fun SetCardExerciseMediaBack(
             )
         }
         if (showFicha) {
-            SessionExerciseDetailSheet(exercise = exercise, onDismiss = { showFicha = false })
+            SessionExerciseDetailSheet(exercise = exercise, onDismiss = { showFicha = false }, onShowHistory = onShowHistory)
         }
     }
     previewMedia?.let { item ->

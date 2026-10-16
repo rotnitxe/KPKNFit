@@ -119,6 +119,11 @@ data class WorkoutRestModalState(
     val exactAlarmGranted: Boolean = true,
     val soundReady: Boolean = true,
     val skipCurrentExerciseOnFinish: Boolean = false,
+    /**
+     * Cuándo empezó el descanso (ms), sin contar los ajustes de ±15 s: junto con [endsAtMs] da lo que dura el descanso entero, para
+     * que el reloj no vuelva a cero al ajustarlo (LV6). 0 en lo guardado antes de este campo: entonces vale [activeSeconds].
+     */
+    val startedAtMs: Long = 0L,
 )
 
 internal fun workoutSetKey(exerciseId: String, setIdx: Int, side: String? = null): String = when (side) {

@@ -1197,6 +1197,10 @@ private fun ColumnScope.CatalogReadyContent(
                                     patternId = effectiveConfiguration?.profile?.movementPatternId,
                                     isSelected = isSelected,
                                     canSelect = resolvedConfigurationId != null || !hasOptions,
+                                    setupCues = effectiveConfiguration?.profile?.setupCues.orEmpty(),
+                                    executionCues = effectiveConfiguration?.profile?.executionCues.orEmpty(),
+                                    identityKeys = listOfNotNull(definition.id, effectiveConfiguration?.id).toSet(),
+                                    context = if (replacement != null) ExerciseFichaContext.REPLACEMENT else ExerciseFichaContext.CATALOG,
                                 ),
                                 onDismiss = { expandedDefinitionId = null },
                                 onToggleSelection = {
