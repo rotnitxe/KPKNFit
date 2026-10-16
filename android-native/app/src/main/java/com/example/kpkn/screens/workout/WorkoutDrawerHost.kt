@@ -205,6 +205,8 @@ internal fun QuickExecutionErrorDiscomfortSheet(
         onDismissRequest = {},
         dismissible = false,
     ) {
+        // Atrás no cierra esta hoja (hay que decir si hubo molestias), pero ya no se queda muda: avisa de por qué (LV4, 15).
+        BlockedBackHint()
         QuickDiscomfortSheetBody(exerciseName = exerciseName, onSave = onSave)
     }
 }

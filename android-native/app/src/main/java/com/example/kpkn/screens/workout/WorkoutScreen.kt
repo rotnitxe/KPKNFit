@@ -171,6 +171,7 @@ import com.example.kpkn.screens.workout.components.WorkoutUiTokens
 import com.example.kpkn.ui.components.kpknGlassOrFallback
 import com.example.kpkn.ui.adapt.LocalViewportAdapt
 import com.example.kpkn.screens.workout.components.RoadmapMode
+import com.example.kpkn.screens.workout.components.RoadmapPendingAction
 import com.example.kpkn.screens.workout.components.RestTimerOverlay
 import com.example.kpkn.screens.workout.components.RestTimerPill
 import com.example.kpkn.screens.workout.components.VolumeAdvanceModal
@@ -328,6 +329,10 @@ fun WorkoutScreen(
     val overlayHazeState = remember { HazeState() }
     var readinessSheetDismissed by rememberSaveable(programId, sessionId) { mutableStateOf(false) }
     val showReadinessSheet = !readinessSheetDismissed && uiState.readinessNeuralOverride == null
+    // Lo que quedó pendiente al cerrar una capa por accidente (LV4, 15): el estado previo sin responder y el resumen final sin guardar.
+    // Mientras estén pendientes, la fila del asa del cockpit enseña la píldora que los vuelve a abrir.
+    val readinessPending = readinessSheetDismissed && uiState.readinessNeuralOverride == null
+    val finishPending = uiState.finishClosedPending && !uiState.showFinishSheet
     val structureSheets = rememberWorkoutStructureSheetsState()
     var pendingCatalogRequest by remember { mutableStateOf<CatalogLaunchRequest?>(null) }
     val hasContextTabOpen = structureSheets.selectedExerciseContextTab != null
@@ -1194,6 +1199,11 @@ fun WorkoutScreen(
                         godModeUndoStack = uiState.godModeUndoStack,
                         onRevertGodModeAction = { index -> viewModel.revertGodModeChange(index) },
                         onRoadmapHeightChanged = { measuredRoadmapHeightDp = it },
+                        pendingActions = buildList {
+                            if (readinessPending) add(RoadmapPendingAction("Estado previo") { readinessSheetDismissed = false })
+                            // «Terminar» es el mismo botón de «Terminar hasta acá» del aviso de salida: vuelve al resumen final.
+                            if (finishPending) add(RoadmapPendingAction("Terminar") { viewModel.finishUpToCurrentPoint() })
+                        },
                         sessionAccentColor = sessionAccentColor,
                         hazeState = overlayHazeState,
                         mode = roadmapMode,
@@ -1792,6 +1802,8 @@ fun WorkoutScreen(
                 )
             },
             onDismiss = { viewModel.hideFinish() },
+            // Cerrar el resumen sin guardar no tira la nota escrita: pasa a la sesión y vuelve al reabrirlo (LV4, 15).
+            onNotesDraft = { viewModel.setSessionNotes(it) },
             onShare = {
                 val sessionName = session.name
                 val completedExercises = completedExercisesForSummary

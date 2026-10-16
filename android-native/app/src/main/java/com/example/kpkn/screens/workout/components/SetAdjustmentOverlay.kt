@@ -120,9 +120,10 @@ internal fun SetAdjustmentOverlay(
         LoadModeV2.ASSISTED -> "Aplicar +${adjustment.suggestedWeight.toTrimmedNumberString()} kg Asist."
         else -> "Aplicar ${adjustment.suggestedWeight.toTrimmedNumberString()} kg"
     }
+    // Atrás, tocar fuera o arrastrar hacia abajo cierran el ajuste igual que «Cancelar»: no aplica nada y la serie queda como estaba
+    // (LV4, 15). Antes la hoja se tragaba Atrás en silencio y no había más salida que sus botones.
     KpknSheet(
-        onDismissRequest = {},
-        dismissible = false,
+        onDismissRequest = onDismiss,
     ) {
         Column(
             modifier = Modifier

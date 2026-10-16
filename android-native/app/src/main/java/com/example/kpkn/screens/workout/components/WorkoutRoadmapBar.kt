@@ -49,6 +49,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.CompositingStrategy
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -63,6 +64,7 @@ import com.example.kpkn.screens.workout.*
 import com.example.kpkn.ui.adapt.LocalViewportAdapt
 import com.example.kpkn.ui.design.KpknShape
 import com.example.kpkn.ui.design.KpknSurface
+import com.example.kpkn.ui.design.KpknType
 import dev.chrisbanes.haze.HazeState
 
 private enum class RoadmapCardScale { Full, Mini }
@@ -71,6 +73,12 @@ enum class RoadmapMode {
     COMPACT,
     EXPANDED
 }
+
+/**
+ * Lo que quedó pendiente al cerrar una capa de la sesión por accidente (LV4, 15): «Estado previo» o «Terminar». Se pinta como una píldora
+ * en la fila del asa del cockpit y solo mientras está pendiente; tocarla vuelve a abrir la capa.
+ */
+data class RoadmapPendingAction(val label: String, val onClick: () -> Unit)
 
 /**
  * WorkoutRoadmapBar / UnifiedExerciseCarousel component.
@@ -129,6 +137,7 @@ fun WorkoutRoadmapBar(
     godModeUndoStack: List<GodModeUndoSnapshot> = emptyList(),
     onRevertGodModeAction: (Int) -> Unit = {},
     onRoadmapHeightChanged: (Int) -> Unit = {},
+    pendingActions: List<RoadmapPendingAction> = emptyList(),
     modifier: Modifier = Modifier,
 ) {
     val activeMode = mode
@@ -300,24 +309,24 @@ fun WorkoutRoadmapBar(
                     },
                 contentAlignment = Alignment.Center
             ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.Center,
-                    modifier = Modifier.padding(vertical = 4.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.DragHandle,
-                        contentDescription = "Desplegar roadmap",
-                        tint = WizardColors.textFaint,
-                        modifier = Modifier.size(18.dp)
-                    )
-                    Spacer(Modifier.width(4.dp))
-                    Icon(
-                        imageVector = if (activeMode == RoadmapMode.EXPANDED) Icons.Default.KeyboardArrowDown else Icons.Default.KeyboardArrowUp,
-                        contentDescription = null,
-                        tint = WizardColors.textFaint,
-                        modifier = Modifier.size(16.dp)
-                    )
+                if (pendingActions.isEmpty()) {
+                    RoadmapHandleIcons(expanded = activeMode == RoadmapMode.EXPANDED)
+                } else {
+                    // Lo pendiente (LV4, 15): la primera acción a la izquierda del asa y la segunda a la derecha, solo mientras haya algo por
+                    // retomar. Tres huecos del mismo ancho dejan el asa centrada y hacen que una píldora ancha (letra grande) se recorte con
+                    // puntos suspensivos en vez de pisarla.
+                    Row(
+                        modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.CenterStart) {
+                            pendingActions.getOrNull(0)?.let { RoadmapPendingPill(it.label, it.onClick) }
+                        }
+                        RoadmapHandleIcons(expanded = activeMode == RoadmapMode.EXPANDED)
+                        Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.CenterEnd) {
+                            pendingActions.getOrNull(1)?.let { RoadmapPendingPill(it.label, it.onClick) }
+                        }
+                    }
                 }
             }
 
@@ -801,6 +810,61 @@ private fun Exercise.expectedSidesForSet(setIndex: Int): List<String> {
 }
 
 private val CardioRoadmapAccent = Color(0xFFE0A13A)
+
+/** El asa del cockpit: las dos marcas, juntas y centradas. */
+@Composable
+private fun RoadmapHandleIcons(expanded: Boolean) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.Center,
+        modifier = Modifier.padding(vertical = 4.dp),
+    ) {
+        Icon(
+            imageVector = Icons.Default.DragHandle,
+            contentDescription = "Desplegar roadmap",
+            tint = WizardColors.textFaint,
+            modifier = Modifier.size(18.dp),
+        )
+        Spacer(Modifier.width(4.dp))
+        Icon(
+            imageVector = if (expanded) Icons.Default.KeyboardArrowDown else Icons.Default.KeyboardArrowUp,
+            contentDescription = null,
+            tint = WizardColors.textFaint,
+            modifier = Modifier.size(16.dp),
+        )
+    }
+}
+
+/**
+ * Lo pendiente en la fila del asa (LV4, 15): píldora de 32 dp con el texto a 13 sp, como la «píldora compacta» de la app pero con menos
+ * relleno a los lados, para que «Estado previo» quepa en su hueco también con la letra al 130 %. La zona táctil es toda la altura de la fila.
+ */
+@Composable
+private fun RoadmapPendingPill(text: String, onClick: () -> Unit) {
+    Box(
+        modifier = Modifier
+            .height(WorkoutUiTokens.MinTouchTarget)
+            .clickable(role = Role.Button, onClick = onClick),
+        contentAlignment = Alignment.Center,
+    ) {
+        Box(
+            modifier = Modifier
+                .height(32.dp)
+                .clip(KpknShape.pill)
+                .border(1.dp, WizardColors.text.copy(alpha = 0.24f), KpknShape.pill)
+                .padding(horizontal = 12.dp),
+            contentAlignment = Alignment.Center,
+        ) {
+            Text(
+                text = text,
+                style = KpknType.action.copy(fontSize = 13.sp),
+                color = WizardColors.text,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+        }
+    }
+}
 
 @Composable
 private fun CardioRoadmapDivider() {

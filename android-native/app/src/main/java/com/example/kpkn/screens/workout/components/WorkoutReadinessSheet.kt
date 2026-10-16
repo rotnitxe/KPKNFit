@@ -122,6 +122,11 @@ fun WorkoutReadinessSheet(
     voiceCaptureMode: VoiceCaptureMode = VoiceCaptureMode.HANDS_FREE,
     onVoiceToggle: () -> Unit = {},
     onVoiceCaptureModeChange: (VoiceCaptureMode) -> Unit = {},
+    /**
+     * Cerrar el estado previo sin responder (Atrás, tocar fuera o arrastrar la hoja hacia abajo; LV4, 15): la sesión se ve y el estado
+     * previo queda pendiente. Con `null` la hoja sigue siendo obligatoria, como antes.
+     */
+    onDismiss: (() -> Unit)? = null,
 ) {
     if (!showReadinessSheet) return
 
@@ -185,8 +190,8 @@ fun WorkoutReadinessSheet(
         }
     }
     KpknSheet(
-        onDismissRequest = {},
-        dismissible = false,
+        onDismissRequest = { onDismiss?.invoke() },
+        dismissible = onDismiss != null,
         stableHeightFraction = 0.86f,
         hazeState = hazeState,
     ) {

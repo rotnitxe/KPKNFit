@@ -173,6 +173,32 @@ internal class WorkoutStructureSheetsState {
             addExerciseAfterId != null ||
             createSupersetFromCatalogAnchorId != null ||
             showReorderSheet
+
+    /**
+     * Cierra las hojas de etiquetas, setup y editar series cuyo ejercicio ya no está (LV4, 15). Una hoja sin su ejercicio no se pinta,
+     * pero su bandera dejaba la sesión con «hay una hoja abierta»: Atrás no hacía nada y no había por dónde salir. [visibleIds] son los
+     * ejercicios a la vista (etiquetas y setup solo los encuentran ahí) y [sessionIds] todos los de la sesión (editar series también
+     * encuentra los omitidos). Devuelve `true` si cerró alguna.
+     */
+    fun closeDrawersWithoutExercise(visibleIds: Set<String>, sessionIds: Set<String>): Boolean {
+        var closed = false
+        val tagId = tagSheetExerciseId
+        if (tagId != null && tagId !in visibleIds) {
+            tagSheetExerciseId = null
+            closed = true
+        }
+        val setupId = setupSheetExerciseId
+        if (setupId != null && setupId !in visibleIds) {
+            setupSheetExerciseId = null
+            closed = true
+        }
+        val editId = editSheetExerciseId
+        if (editId != null && editId !in sessionIds) {
+            editSheetExerciseId = null
+            closed = true
+        }
+        return closed
+    }
 }
 
 @Composable
@@ -288,6 +314,21 @@ internal fun WorkoutStructureSheetsHost(
     onOpenCatalog: ((CatalogLaunchRequest) -> Unit)? = null,
 ) {
     val useFullPageCatalog = onOpenCatalog != null
+
+    // Una hoja sin su ejercicio (omitido o eliminado con la hoja abierta) no se pinta, pero su bandera dejaba la sesión con «hay una
+    // hoja abierta»: Atrás no hacía nada y no había por dónde salir (LV4, 15).
+    LaunchedEffect(
+        visibleExercises,
+        modeSession,
+        state.tagSheetExerciseId,
+        state.setupSheetExerciseId,
+        state.editSheetExerciseId,
+    ) {
+        state.closeDrawersWithoutExercise(
+            visibleIds = visibleExercises.map { it.id }.toSet(),
+            sessionIds = modeSession.allExercises().map { it.id }.toSet(),
+        )
+    }
 
     LaunchedEffect(
         useFullPageCatalog,

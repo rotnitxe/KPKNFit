@@ -2544,7 +2544,7 @@ class WorkoutViewModel(
             // and input hash instead of creating a second operation.
             val existingSnapshot = state.finishResumeSnapshot
             if (existingSnapshot != null) {
-                return@updateUiState state.copy(showFinishSheet = true)
+                return@updateUiState state.copy(showFinishSheet = true, finishClosedPending = false)
             }
             val visible = visibleExercises(state)
             val currentExercise = visible.getOrNull(state.currentExerciseIdx)
@@ -2574,6 +2574,7 @@ class WorkoutViewModel(
             )
             state.copy(
                 showFinishSheet = true,
+                finishClosedPending = false,
                 finishResumeSnapshot = snapshot,
                 postExerciseTargetIdx = -1,
                 postExerciseFeedbackTarget = null,
@@ -5718,6 +5719,11 @@ class WorkoutViewModel(
                 currentExerciseOmitted?.let(::add)
             }
             .toSet()
+        // El resumen se abre ANTES de omitir lo que queda: su foto de «dónde estaba la persona» (ejercicio, serie y omitidos de antes)
+        // es la de la sesión intacta y «Volver», Atrás o tocar fuera la devuelven tal cual. Antes se omitía primero y la foto ya llevaba
+        // los omitidos: al cerrar el resumen desde «Terminar hasta acá» desaparecían los ejercicios y, si aún no había hecho el actual,
+        // la sesión se quedaba sin ninguno: en negro y sin salida (LV4, 15).
+        openFinishSheet()
         updateUiState {
             it.copy(
                 skippedExerciseIds = it.skippedExerciseIds + omittedIds,
@@ -5730,7 +5736,7 @@ class WorkoutViewModel(
                 it.copy(currentExerciseIdx = (newVisible.size - 1).coerceAtLeast(0))
             }
         }
-        openFinishSheet()
+        persistOngoingState()
     }
 
     fun selectExercise(idx: Int) = stepNavigator.selectExercise(idx)
@@ -6365,8 +6371,18 @@ class WorkoutViewModel(
         abortRestTimerHard()
         updateUiState { state ->
             val snapshot = state.finishResumeSnapshot
-            val visible = visibleExercises(state)
-            val canonicalSteps = workoutStepPositions(state)
+            // Lo omitido es lo de ANTES del resumen (LV4, 15): la lista visible y el índice del cursor se calculan sobre ella, no sobre lo
+            // que el propio resumen omitió («Terminar hasta acá»). Una sesión sin un solo ejercicio a la vista no tiene nada que enseñar ni
+            // por dónde salir: si todo estaba omitido, vuelve todo.
+            val allExerciseIds = state.session
+                ?.let { sessionForActiveMode(it, state.activeMode).allExercises().map { exercise -> exercise.id } }
+                .orEmpty()
+            val restoredSkipped = (snapshot?.skippedExerciseIds ?: state.skippedExerciseIds).let { skipped ->
+                if (allExerciseIds.isNotEmpty() && allExerciseIds.all { it in skipped }) emptySet() else skipped
+            }
+            val restoredState = state.copy(skippedExerciseIds = restoredSkipped)
+            val visible = visibleExercises(restoredState)
+            val canonicalSteps = workoutStepPositions(restoredState)
             val snapshotStep = snapshot?.activeStepKey
                 ?.let { key -> canonicalSteps.firstOrNull { it.stepKey == key } }
             val fallbackStep = snapshot?.lastRenderableStepKey
@@ -6424,11 +6440,13 @@ class WorkoutViewModel(
 
             state.copy(
                 showFinishSheet = false,
+                // El cierre queda pendiente: la sesión enseña un botón para volver al resumen (LV4, 15).
+                finishClosedPending = state.showFinishSheet || snapshot != null,
                 currentExerciseIdx = restoredExerciseIdx,
                 currentSetIdx = restoredSetIdx,
                 activeStepKey = restoredStepKey,
                 editingState = restoredEditingState,
-                skippedExerciseIds = snapshot?.skippedExerciseIds ?: state.skippedExerciseIds,
+                skippedExerciseIds = restoredSkipped,
                 finishResumeSnapshot = null,
             )
         }
