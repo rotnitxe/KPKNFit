@@ -55,6 +55,7 @@ import kotlinx.coroutines.withContext
 fun WorkoutMediaViewerScreen(
     mediaId: String,
     onBack: () -> Unit,
+    onOpenAnalysis: (String) -> Unit = {},
 ) {
     val context = LocalContext.current
     val viewModel: WorkoutMediaViewerViewModel = viewModel(
@@ -68,7 +69,6 @@ fun WorkoutMediaViewerScreen(
     val media by viewModel.media.collectAsState()
     val message by viewModel.message.collectAsState()
     val deleted by viewModel.deleted.collectAsState()
-    val poseOverlayEnabled by viewModel.poseOverlayEnabled.collectAsState()
     var caption by remember(media?.id, media?.caption) { mutableStateOf(media?.caption.orEmpty()) }
     var confirmDelete by remember { mutableStateOf(false) }
     var scale by remember { mutableFloatStateOf(1f) }
@@ -92,6 +92,9 @@ fun WorkoutMediaViewerScreen(
                     }
                 },
                 actions = {
+                    if (media?.kind == WorkoutMediaKind.VIDEO) {
+                        TextButton(onClick = { onOpenAnalysis(mediaId) }) { Text("Ver análisis") }
+                    }
                     IconButton(
                         onClick = {
                             val intent = viewModel.shareIntent() ?: return@IconButton
@@ -138,7 +141,6 @@ fun WorkoutMediaViewerScreen(
                     WorkoutVideoPlayer(
                         file = requireNotNull(resolvedFile),
                         modifier = Modifier.fillMaxSize(),
-                        poseOverlayEnabled = poseOverlayEnabled,
                         poseSidecarPath = item.poseTrackPath,
                     )
                 } else {

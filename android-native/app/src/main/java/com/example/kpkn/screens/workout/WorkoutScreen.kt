@@ -1336,7 +1336,6 @@ fun WorkoutScreen(
                 onRemoveChecklistItem = { viewModel.removeSessionChecklistItem(it) },
                 sessionAccentColor = sessionAccentColor,
                 bodyWeight = viewModel.currentBodyWeight(),
-                poseOverlayEnabled = uiState.featureFlags.poseTrajectoryEnabled,
             )
         }
     }
@@ -1387,7 +1386,6 @@ fun WorkoutScreen(
             media = sessionMedia,
             onDismiss = { viewModel.mediaCapture.dismissAlbumSheet() },
             onDelete = { viewModel.removeSessionMedia(it) },
-            poseOverlayEnabled = uiState.featureFlags.poseTrajectoryEnabled,
         )
     }
 

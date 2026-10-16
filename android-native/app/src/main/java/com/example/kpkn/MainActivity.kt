@@ -1197,6 +1197,7 @@ private fun KPKNNavGraph(
                     }
                 },
                 onOpenAlbums = { navController.navigate(KpknRoute.WorkoutAlbums.route) },
+                onOpenTechnique = { navController.navigate(KpknRoute.TechniqueHub.route) },
             )
         }
         composable(KpknRoute.CompetitionDetail.route) { backStack ->
@@ -1410,6 +1411,7 @@ private fun KPKNNavGraph(
                     }
                 },
                 onOpenAlbums = { navController.navigate(KpknRoute.WorkoutAlbums.route) },
+                onOpenTechnique = { navController.navigate(KpknRoute.TechniqueHub.route) },
             )
         }
         composable(KpknRoute.WorkoutAlbums.route) {
@@ -1445,6 +1447,38 @@ private fun KPKNNavGraph(
             WorkoutMediaViewerScreen(
                 mediaId = Uri.decode(mediaId),
                 onBack = { navController.popBackStack() },
+                onOpenAnalysis = { id -> navController.navigate(KpknRoute.TechniqueAnalysis.create(id)) },
+            )
+        }
+        composable(KpknRoute.TechniqueHub.route) { backStack ->
+            val catalogResultJson by backStack.savedStateHandle
+                .getStateFlow<String?>(CatalogSavedStateKeys.RESULT, null)
+                .collectAsState()
+            val catalogResult = catalogResultJson?.let { encoded ->
+                runCatching { Json.decodeFromString<CatalogResult>(encoded) }.getOrNull()
+            }
+            com.example.kpkn.screens.technique.hub.TechniqueHubRoute(
+                savedStateHandle = backStack.savedStateHandle,
+                onBack = { navController.popBackStack() },
+                onOpenTrends = { key -> navController.navigate(KpknRoute.TechniqueTrends.create(key)) },
+                onOpenAnalysis = { id -> navController.navigate(KpknRoute.TechniqueAnalysis.create(id)) },
+                onOpenCatalog = { request ->
+                    backStack.savedStateHandle[CatalogSavedStateKeys.request(request.requestId)] = Json.encodeToString(request)
+                    navController.navigate(KpknRoute.ExerciseCatalog.create(request))
+                },
+                catalogResult = catalogResult,
+                onCatalogResultConsumed = { backStack.savedStateHandle.remove<String>(CatalogSavedStateKeys.RESULT) },
+            )
+        }
+        composable(
+            route = KpknRoute.TechniqueAnalysis.route,
+            arguments = listOf(navArgument(KpknRoute.TechniqueAnalysis.ARG_MEDIA_ID) { type = NavType.StringType }),
+        ) { backStack ->
+            val mediaId = backStack.arguments?.getString(KpknRoute.TechniqueAnalysis.ARG_MEDIA_ID).orEmpty()
+            com.example.kpkn.screens.technique.analysis.TechniqueAnalysisRoute(
+                mediaId = mediaId,
+                onBack = { navController.popBackStack() },
+                onOpenTrends = { key -> navController.navigate(KpknRoute.TechniqueTrends.create(key)) },
             )
         }
         composable(
@@ -1455,10 +1489,10 @@ private fun KPKNNavGraph(
                 ?.getString(KpknRoute.TechniqueTrends.ARG_EXERCISE_KEY)
                 .orEmpty()
             com.example.kpkn.screens.technique.trends.TechniqueTrendsRoute(
-                exerciseKey = Uri.decode(exerciseKey),
+                exerciseKey = exerciseKey,
                 onBack = { navController.popBackStack() },
                 onOpenAnalysis = { mediaId ->
-                    navController.navigate("technique/analysis/${Uri.encode(mediaId)}")
+                    navController.navigate(KpknRoute.TechniqueAnalysis.create(mediaId))
                 },
                 onCompare = { mediaA, mediaB ->
                     navController.navigate(KpknRoute.TechniqueCompare.create(mediaA, mediaB))
@@ -1479,8 +1513,8 @@ private fun KPKNNavGraph(
                 ?.getString(KpknRoute.TechniqueCompare.ARG_MEDIA_B)
                 .orEmpty()
             com.example.kpkn.screens.technique.compare.TechniqueCompareRoute(
-                mediaIdA = Uri.decode(mediaA),
-                mediaIdB = Uri.decode(mediaB),
+                mediaIdA = mediaA,
+                mediaIdB = mediaB,
                 onBack = { navController.popBackStack() },
             )
         }

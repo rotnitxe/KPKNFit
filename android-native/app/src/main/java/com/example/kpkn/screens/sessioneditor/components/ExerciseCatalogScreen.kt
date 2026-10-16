@@ -63,6 +63,7 @@ internal fun ExerciseCatalogScreen(
             query = query,
             onSearch = { query = it },
             editingExisting = editingExisting,
+            singleSelectionLabel = if (request.origin == CatalogLaunchOrigin.TECHNIQUE) "Elegir" else null,
             selectedExercisesIds = selected.toSet(),
             onSelect = { info ->
                 selected = listOf(info.id)

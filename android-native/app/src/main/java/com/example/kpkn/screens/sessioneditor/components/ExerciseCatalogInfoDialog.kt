@@ -96,6 +96,7 @@ internal data class CatalogDetailModel(
     val patternId: String?,
     val isSelected: Boolean,
     val canSelect: Boolean,
+    val selectionLabel: String? = null,
 )
 
 /** Un eje de la configuración con sus opciones visibles (las que el catálogo deja elegir). */
@@ -260,7 +261,7 @@ internal fun CatalogDetailContent(
                 .padding(horizontal = 16.dp, vertical = 12.dp),
         ) {
             KpknPrimaryPill(
-                text = if (model.isSelected) "Quitar" else "Añadir",
+                text = model.selectionLabel ?: if (model.isSelected) "Quitar" else "Añadir",
                 onClick = onToggleSelection,
                 modifier = Modifier.fillMaxWidth(),
                 enabled = model.canSelect,

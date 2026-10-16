@@ -421,7 +421,6 @@ class WorkoutViewModel(
                 sessionName = state.session?.name,
             )
         },
-        poseTrajectoryEnabled = { _uiState.value.featureFlags.poseTrajectoryEnabled },
     )
 
     private val structuralPersistence = WorkoutStructuralPersistenceController(
