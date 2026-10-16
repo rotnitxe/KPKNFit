@@ -6222,7 +6222,16 @@ class WorkoutViewModel(
 
     fun handleTimerAction(action: TimerAction) {
         when (action) {
-            is TimerAction.CompleteSet -> nextSet(stopRest = true)
+            is TimerAction.CompleteSet -> {
+                val state = _uiState.value
+                val pending = timedStrengthStepAwaitingReport(state, visibleExercises(state), workoutStepPositions(state))
+                if (pending != null) {
+                    selectWorkoutStep(pending.stepKey)
+                    showWorkoutToast(RecordingEffortRequired)
+                } else {
+                    nextSet(stopRest = true)
+                }
+            }
             is TimerAction.SkipTimer -> stopRestTimer()
             is TimerAction.AddTime -> addRestTime(15)
             is TimerAction.SubtractTime -> {
