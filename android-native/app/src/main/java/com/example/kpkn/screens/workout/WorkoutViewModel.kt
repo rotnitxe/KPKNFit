@@ -209,6 +209,7 @@ class WorkoutViewModel(
         val setIndex: Int,
         val side: String?,
         val previousDraft: WorkoutSetDraft?,
+        val exerciseIdentity: String,
     )
     private var lastRelatorLoadUndo: RelatorLoadUndo? = null
     private val _relatorWarmupDrafts = MutableStateFlow<Map<String, String>>(emptyMap())
@@ -3966,7 +3967,7 @@ class WorkoutViewModel(
                 ?.suggestedWeight
             ?: return false
         val previous = getSetDraft(exerciseId, setIdx, side)
-        lastRelatorLoadUndo = RelatorLoadUndo(exerciseId, setIdx, side, previous)
+        lastRelatorLoadUndo = RelatorLoadUndo(exerciseId, setIdx, side, previous, relatorExerciseIdentity(exercise))
         updateSetDraft(
             exerciseId,
             setIdx,
@@ -3984,6 +3985,10 @@ class WorkoutViewModel(
         val setIdx = action.setIndex.takeIf { it >= 0 } ?: state.currentSetIdx
         val side = action.side.takeIf { it.isNotBlank() } ?: state.editingState?.side
         if (action.undoPreviousLoad || action.label.startsWith("vuelve a", ignoreCase = true)) {
+            if (lastRelatorLoadUndo?.exerciseIdentity != relatorExerciseIdentity(exercise)) {
+                lastRelatorLoadUndo = null
+                return false
+            }
             val undo = lastRelatorLoadUndo?.takeIf {
                 it.exerciseId == exerciseId && it.setIndex == setIdx && it.side == side
             } ?: return false
@@ -4006,7 +4011,7 @@ class WorkoutViewModel(
             currentKg * (1.0 + (action.loadDeltaPercent ?: -5.0) / 100.0)
         }
         val rounded = LoadSuggestionEngine.roundLoad(next.coerceAtLeast(0.0))
-        lastRelatorLoadUndo = RelatorLoadUndo(exerciseId, setIdx, side, previous)
+        lastRelatorLoadUndo = RelatorLoadUndo(exerciseId, setIdx, side, previous, relatorExerciseIdentity(exercise))
         updateSetDraft(
             exerciseId,
             setIdx,

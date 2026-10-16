@@ -18,6 +18,8 @@ import androidx.compose.ui.test.click
 import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.unit.dp
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.example.kpkn.data.models.Exercise
+import com.example.kpkn.data.models.WeekVariant
 import com.example.kpkn.domain.workout.LoadSuggestionEngine
 import com.example.kpkn.ui.theme.KPKNTheme
 import org.junit.Assert.assertEquals
@@ -37,7 +39,10 @@ class RelatorActionAckDeviceTest {
         exerciseId = "press", setIndex = 0, span = "Ajusta carga", loadDeltaPercent = -5.0)
     private var phase by mutableStateOf("working")
     private var copy by mutableStateOf(idle)
-    private var scope by mutableStateOf("press:0")
+    private val state = WorkoutUiState(startTimeMs = 1L, activeMode = WeekVariant.B, currentExerciseIdx = 0,
+        currentSetIdx = 0, activeStepKey = "press_0")
+    private var currentExercise by mutableStateOf(Exercise(id = "press", name = "Press A",
+        canonicalExerciseId = "press-a", catalogConfigurationId = "cfg-a", occurrenceId = "same-slot"))
     private var draft: Double? = 41.0
     private var calls = 0
     private var fallbackCalls = 0
@@ -53,7 +58,7 @@ class RelatorActionAckDeviceTest {
                         text = copy, phaseKey = phase, actions = listOf(action), reduceMotionOverride = true,
                         onAction = { fallbackCalls += 1; calls += 1 },
                         onLoadPop = { pops += 1 },
-                        actionContext = RelatorActionUiContext(scope) { clicked ->
+                        actionContext = RelatorActionUiContext(relatorActionScopeKey(state, currentExercise)) { clicked ->
                             calls += 1
                             phase = "assist_confirm"
                             if (clicked.undoPreviousLoad) {
@@ -140,12 +145,24 @@ class RelatorActionAckDeviceTest {
         rule.runOnIdle { assertNull(draft); assertTrue(undo!!.undoPreviousLoad); assertNull(undo!!.weightKg) }
     }
 
-    @Test fun cambiarDeSerieCancelaTrabajoYUndo() {
+    @Test fun reemplazarEjercicioConMismosIdsIndicesYFaseCancelaTrabajoYUndo() {
         show()
         tapSpan(idle, "Ajusta carga")
-        rule.runOnIdle { scope = "press:1"; phase = "working"; copy = "Nueva serie." }
-        rule.onNodeWithText("Nueva serie.", useUnmergedTree = true).assertExists()
+        val before = relatorActionScopeKey(state, currentExercise)
+        rule.runOnIdle {
+            currentExercise = currentExercise.copy(name = "Press B", canonicalExerciseId = "press-b", catalogConfigurationId = "cfg-b")
+            copy = "Nuevo ejercicio."
+            // Same slot, occurrence, index, step and ASSIST_CONFIRM: only real exercise identity changed.
+            assertEquals("press", currentExercise.id)
+            assertEquals("same-slot", currentExercise.occurrenceId)
+            assertEquals(0, state.currentExerciseIdx)
+            assertEquals(0, state.currentSetIdx)
+            assertEquals("press_0", state.activeStepKey)
+            assertEquals("assist_confirm", phase)
+            assertFalse(before == relatorActionScopeKey(state, currentExercise))
+        }
+        rule.onNodeWithText("Nuevo ejercicio.", useUnmergedTree = true).assertExists()
         rule.onAllNodesWithText("vuelve a", substring = true).fetchSemanticsNodes().let { assertTrue(it.isEmpty()) }
-        rule.runOnIdle { assertFalse(scope == "press:0") }
+        rule.onAllNodesWithText("cargando los discos", substring = true).fetchSemanticsNodes().let { assertTrue(it.isEmpty()) }
     }
 }

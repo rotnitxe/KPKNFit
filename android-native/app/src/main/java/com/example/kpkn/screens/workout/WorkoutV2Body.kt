@@ -2380,7 +2380,7 @@ internal fun WorkoutV2Body(
                 phaseKey = relatorResolution.phaseKey,
                 actions = relatorResolution.actions,
                 onAction = { viewModel.performRelatorAssist(it) },
-                actionContext = RelatorActionUiContext(relatorActionScopeKey(uiState), viewModel::performRelatorAssist),
+                actionContext = RelatorActionUiContext(relatorActionScopeKey(uiState, currentExercise), viewModel::performRelatorAssist),
                 accentColor = sessionAccentColor,
                 silentAnimation = relatorResolution.silentAnimation,
                 onLoadPop = { viewModel.triggerRelatorLoadPop() },
