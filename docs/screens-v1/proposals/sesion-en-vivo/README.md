@@ -20,6 +20,44 @@ El usuario aprobó TODAS estas pantallas: «Me gustan todas». Hay que aplicarla
 | `D1-…D3-Resumen*.dc.html` | Resumen final en 3 secciones deslizables (Hoy · Levantamientos · Notas) con FAB Volver ✓ Compartir | 14, 14.1 |
 | `E1-…E3-Historia*.dc.html` | Tarjetas para historias (general, ejercicio y mosaico): vidrio sobre la portada del programa | 14.2 |
 
+### Segunda tanda (16-oct): estado de cada prototipo
+
+Aprobado = se implementa tal cual (con las leyes). **Rehecho** = rehecho tras la crítica del usuario y pendiente de su visto bueno:
+no se implementa hasta que lo apruebe.
+
+| Archivo | Pantalla | Estado |
+|---|---|---|
+| `F1-DescansoCompleto` | Descanso a pantalla completa: los RINGS como reloj (Torre, Pista o Espiral), el personaje corre sobre el anillo que se llena, −15 s · Saltar · +15 s | **Rehecho** |
+| `F8-MiniJuego` | Minijuego del descanso: el corredor salta mancuernas y el descanso sigue corriendo | **Rehecho** |
+| `F2-DescansoCompletoUltima` | Descanso tras la última serie: slider de calidad técnica (color y figura que cambia), molestias con buscador y chips, aviso del motor; sin «Qué tan intenso fue» | **Rehecho** |
+| `F7-Molestia` | Ficha de una molestia: animación, causas frecuentes, «En tu caso» (hoy y esta semana), consejo y gravedad | **Rehecho** |
+| `F3-` y `F4-DescansoTarjeta*` | Las mismas mejoras en versión tarjeta (altura fija) | **Rehecho** |
+| `F5-DescansoMinimizado`, `F6-DescansoExcedido` | Descanso minimizado y excedido | Aprobado |
+| `G1-EstadoPrevio` | Estado previo con los RINGS luminosos, molestias y los dos botones de voz | **Rehecho** |
+| `G5-AjusteEnergia` | Ajuste manual de Energía y Columna: anillo grande con líquido, tocar o arrastrar, −/+, marca de antes | **Rehecho** |
+| `G6-AjusteMusculos` | Ajuste manual de Músculos sobre un cuerpo (frente y espalda), −/+ y atajos | **Rehecho** |
+| `G2-Cabecera`, `G3-ModoVisualExpandido` | Cabecera con portada y modo visual expandido | Aprobado |
+| `G4-FichaOverlay` | Ficha completa del ejercicio para TODAS las fichas: foto con implemento, historial y fotos, músculos, cómo se hace, articulaciones. Al subir, la foto se difumina y oscurece y el contenido pasa por encima | **Rehecho** |
+| `G4b-FichaScroll` | La misma ficha a mitad de desplazamiento | **Rehecho** |
+| `H1-Reemplazar` | Reemplazar ejercicio | Aprobado («excelente») |
+| `H2-RelatorAcciones` | Relator: una sola frase con brillo continuo que cubre también la acción; al pulsar, personajes trabajando y el resultado en la tarjeta | **Rehecho** |
+| `H5-RelatorMomentos` | El relator solo con animación, sin texto (descanso, récord, preparación) | **Rehecho** |
+| `H3-AjustarAnillo`, `H4-Compartir` | Ajustar anillo (lo sustituyen G5 y G6 si se aprueban) y compartir | Aprobado |
+| `I1-HomeRings` | RINGS de Inicio: brillo que orbita y un personaje que salta de anillo en anillo; tocar un anillo abre su detalle y «Ajustar» | **Rehecho** |
+
+### Decisiones del usuario del 16-oct (mandan sobre lo anterior)
+- **Los RINGS luminosos** (degradado y destello, estilo G1) son el diseño DEFINITIVO de los anillos en toda la app. En Inicio,
+  además, cosas que orbitan y un personaje que salta entre anillos.
+- **RIR/RPE pasa a ser OBLIGATORIO** al registrar la serie (antes era opcional). Desaparece «Qué tan intenso fue» del descanso.
+- **Calidad técnica**: slider interactivo con color y animación en el descanso de la última serie.
+- **Molestias**: buscador amable, chips destacados (reportes anteriores y las más probables), ficha por molestia y un MOTOR que
+  detecta posibles causas en la sesión y en la semana, y aconseja (sin diagnosticar: remite a un profesional si persiste).
+- **Descanso**: sin círculo; usa los RINGS, la forma puede cambiar en cada descanso, un personaje se mueve sobre ella y hay un
+  minijuego rápido. La tarjeta recibe las mismas mejoras.
+- **Ajuste manual de anillos**: G5 y G6, si se aprueban, son el ajuste OFICIAL en toda la app.
+- **La ficha** es la misma en toda la app (catálogo, editor, sesión en vivo) y completa. En la sesión en vivo, sin el pie
+  «Añadir».
+
 ## Las leyes que añadió el usuario al aprobar (mandan sobre los prototipos)
 1. **La tarjeta de la serie NUNCA cambia de tamaño.** En ningún estado: el anverso, «Avanzado», «Modo visual», con o sin
    teclado, con o sin drops.
@@ -35,6 +73,8 @@ El usuario aprobó TODAS estas pantallas: «Me gustan todas». Hay que aplicarla
    - Son un ÉNFASIS dentro de la palabra pulsable: el mismo tamaño y la misma línea que el texto, y se distinguen solo para que se
      vea que se pueden pulsar.
    - No son botones aparte. El conjunto se lee como una sola oración.
+   - (16-oct) Sin caja blanca y sin «Aplícalo». El brillo recorre la frase ENTERA, acción incluida. Al pulsar hay animaciones
+     reales (personajes «trabajando», fondo animado en la franja). El relator puede mostrar solo una animación, sin texto.
 4. **El resumen final nunca deja hueco abajo** entre el contenido y los FAB.
    - Sin forzar la altura de la hoja ni que cambie con cada sección: la hoja tiene una altura y cada sección reparte su contenido
      para verse llena.

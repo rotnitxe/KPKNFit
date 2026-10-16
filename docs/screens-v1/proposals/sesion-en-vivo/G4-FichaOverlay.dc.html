@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="utf-8">
-<title>Ficha en overlay</title>
+<title>Ficha del ejercicio completa</title>
 <script src="./support.js"></script>
 </head>
 <body>
@@ -12,42 +12,143 @@
 <style>
 body{margin:0}
 a{color:#F2EEE6}a:hover{color:#ffffff}
+.fx-root{timeline-scope:--fs}
+.fx-scroll{scroll-timeline-name:--fs;scroll-timeline-axis:block;scrollbar-width:none}
+.fx-scroll::-webkit-scrollbar{display:none}
+@keyframes photoFx{from{filter:blur(0px) brightness(1);transform:scale(1)}to{filter:blur(16px) brightness(.32);transform:scale(1.08)}}
+.fx-photo{animation:photoFx linear both;animation-timeline:--fs;animation-range:0px 300px;transform-origin:50% 40%}
+@keyframes barIn{from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:none}}
+.fx-bar{opacity:0;animation:barIn linear both;animation-timeline:--fs;animation-range:230px 310px}
+@keyframes hintOut{from{opacity:1}to{opacity:0}}
+.fx-hint{animation:hintOut linear both;animation-timeline:--fs;animation-range:0px 60px}
+.pill{transition:left .35s cubic-bezier(.2,.8,.2,1)}
+.lay{transition:opacity .35s ease}
 </style>
 </helmet>
-<div style="width: 390px; height: 844px; box-sizing: border-box; background: #000000; color: #F2EEE6; font-family: Inter, sans-serif; position: relative; overflow: hidden;">
-  <div style="position: absolute; inset: 0; background: radial-gradient(90% 60% at 50% 40%, #2A2622 0%, #000000 70%); opacity: 0.6;"></div>
-  <div style="position: absolute; inset: 0; background: rgba(0,0,0,0.55);"></div>
+<div class="fx-root" style="width: 390px; height: 844px; box-sizing: border-box; background: #000000; color: #F2EEE6; font-family: Inter, sans-serif; position: relative; overflow: hidden;">
 
-  <div style="position: absolute; left: 12px; right: 12px; top: 36px; bottom: 24px; border-radius: 30px; background: #0E0E0E; border: 1px solid rgba(242,238,230,0.10); box-shadow: 0 24px 60px rgba(0,0,0,0.7); overflow: hidden; display: flex; flex-direction: column;">
-    <div style="position: relative; height: 300px; margin: 10px; border-radius: 22px; background: radial-gradient(80% 70% at 50% 45%, #2B2724 0%, #151311 75%);">
-      <div style="position: absolute; left: 0; right: 0; top: 42%; text-align: center; font-size: 13px; color: rgba(242,238,230,0.38);">[Foto del ejercicio]</div>
-      <button aria-label="Cerrar la ficha" style="position: absolute; top: 10px; right: 10px; width: 36px; height: 36px; border-radius: 18px; border: none; background: rgba(0,0,0,0.45); backdrop-filter: blur(10px); color: #F2EEE6; display: flex; align-items: center; justify-content: center; padding: 0;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 6l12 12"></path><path d="M18 6L6 18"></path></svg></button>
-      <div style="position: absolute; left: 12px; right: 12px; bottom: 12px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); padding: 4px; border-radius: 18px; background: rgba(0,0,0,0.45); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.10);">
-        <button style="height: 30px; border-radius: 15px; border: none; background: #F2EEE6; color: #0B0B0B; font-family: Inter, sans-serif; font-size: 12px; font-weight: 600;">Barra</button>
-        <button style="height: 30px; border-radius: 15px; border: none; background: transparent; color: #F2EEE6; font-family: Inter, sans-serif; font-size: 12px; font-weight: 600;">Smith</button>
-        <button style="height: 30px; border-radius: 15px; border: none; background: transparent; color: #F2EEE6; font-family: Inter, sans-serif; font-size: 12px; font-weight: 600;">Safety bar</button>
-      </div>
+  <div class="fx-photo" style="position: absolute; left: 0; right: 0; top: 0; height: 440px;">
+    <svg width="390" height="440" viewBox="0 0 390 440" role="img" aria-label="Foto de la sentadilla trasera con {{implName}}">
+      <defs>
+        <radialGradient id="g4bg" cx="0.32" cy="0.42" r="0.85"><stop offset="0" stop-color="#3A2A22"></stop><stop offset="0.55" stop-color="#16110F"></stop><stop offset="1" stop-color="#070605"></stop></radialGradient>
+        <radialGradient id="g4fl" cx="0.5" cy="0.5" r="0.5"><stop offset="0" stop-color="rgba(244,154,110,0.22)"></stop><stop offset="1" stop-color="rgba(244,154,110,0)"></stop></radialGradient>
+      </defs>
+      <rect width="390" height="440" fill="url(#g4bg)"></rect>
+      <ellipse cx="205" cy="402" rx="120" ry="16" fill="url(#g4fl)"></ellipse>
+      <line class="lay" x1="196" y1="30" x2="196" y2="404" stroke="#3B342F" stroke-width="7" opacity="{{smithOp}}"></line>
+      <line class="lay" x1="186" y1="30" x2="186" y2="404" stroke="#2A2522" stroke-width="3" opacity="{{smithOp}}"></line>
+      <g stroke-linecap="round" stroke-linejoin="round" fill="none">
+        <path d="M232 396 L205 392 L238 330 L170 338" stroke="#2C2724" stroke-width="22"></path>
+        <path d="M170 338 L200 252" stroke="#2C2724" stroke-width="28"></path>
+        <path d="M200 252 L180 274 L192 254" stroke="#2C2724" stroke-width="13"></path>
+        <path d="M229 393 L203 389 L235 327 L167 335 L197 249" stroke="rgba(244,154,110,0.55)" stroke-width="2.6"></path>
+      </g>
+      <circle cx="214" cy="222" r="16" fill="#2C2724"></circle>
+      <path d="M201 214 a16 16 0 0 1 14 -8" stroke="rgba(244,154,110,0.6)" stroke-width="2.6" fill="none" stroke-linecap="round"></path>
+      <line class="lay" x1="196" y1="252" x2="236" y2="266" stroke="#5A514A" stroke-width="7" stroke-linecap="round" opacity="{{ssbOp}}"></line>
+      <circle cx="196" cy="250" r="50" fill="#141110" stroke="#3E3631" stroke-width="3"></circle>
+      <circle cx="196" cy="250" r="36" fill="none" stroke="#221D1A" stroke-width="2"></circle>
+      <circle cx="196" cy="250" r="13" fill="#2A2421"></circle>
+      <circle cx="196" cy="250" r="5" fill="#8B7F75"></circle>
+      <path d="M152 226 a50 50 0 0 1 40 -26" stroke="rgba(244,154,110,0.55)" stroke-width="3" fill="none" stroke-linecap="round"></path>
+    </svg>
+    <div style="position: absolute; left: 0; right: 0; bottom: 0; height: 120px; background: linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0.75) 100%);"></div>
+  </div>
+
+  <div class="fx-scroll" style="position: absolute; inset: 0; overflow-y: auto;">
+    <div style="height: 304px;"></div>
+    <div style="margin: 0 16px 14px 16px; position: relative; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); padding: 4px; border-radius: 18px; background: rgba(0,0,0,0.5); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.10);">
+      <div class="pill" style="position: absolute; top: 4px; bottom: 4px; left: {{pillLeft}}; width: calc((100% - 8px) / 3); border-radius: 14px; background: #F2EEE6;"></div>
+      <sc-for list="{{impls}}" as="t" hint-placeholder-count="3">
+        <button onClick="{{t.pick}}" style="position: relative; height: 30px; border-radius: 14px; border: none; background: transparent; color: {{t.fg}}; font-family: Inter, sans-serif; font-size: 12px; font-weight: 600; transition: color .3s;">{{t.label}}</button>
+      </sc-for>
     </div>
-    <div style="padding: 4px 18px 0 18px; display: flex; flex-direction: column; gap: 12px; flex: 1;">
+
+    <div style="background: #0E0E0E; border-top-left-radius: 28px; border-top-right-radius: 28px; padding: 22px 18px 132px 18px; box-shadow: 0 -24px 48px rgba(0,0,0,0.55); display: flex; flex-direction: column; gap: 14px;">
       <div>
-        <div style="font-family: Syne, sans-serif; font-weight: 700; font-size: 22px;">Sentadilla trasera con barra alta</div>
-        <div style="font-size: 13px; color: rgba(242,238,230,0.62); margin-top: 2px;">Cuádriceps · Barra · Sentadilla</div>
+        <div style="font-family: Syne, sans-serif; font-weight: 700; font-size: 26px; line-height: 31px;">Sentadilla trasera con barra alta</div>
+        <div style="font-size: 13px; color: rgba(242,238,230,0.62); margin-top: 4px;">Cuádriceps y glúteos · {{implName}}</div>
       </div>
+      <div style="display: flex; gap: 8px;">
+        <button style="height: 32px; padding: 0 12px; border-radius: 16px; border: 1px solid rgba(242,238,230,0.14); background: transparent; color: #F2EEE6; font-family: Inter, sans-serif; font-size: 12px; font-weight: 600;">Patrón · Sentadilla</button>
+      </div>
+
+      <div style="border-radius: 20px; background: #161616; padding: 14px; display: flex; flex-direction: column; gap: 12px;">
+        <div style="display: flex; justify-content: space-between; align-items: baseline;"><span style="font-size: 14px; font-weight: 600;">Tu historial</span><a href="E2-HistoriaEjercicio.dc.html" style="font-size: 13px; font-weight: 600; text-decoration: none; color: #F49A6E;">Ver historial</a></div>
+        <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px;">
+          <div><div style="font-size: 11px; color: rgba(242,238,230,0.55);">Mejor serie</div><div style="font-size: 15px; font-weight: 600;">95 kg × 6</div></div>
+          <div><div style="font-size: 11px; color: rgba(242,238,230,0.55);">1RM estimado</div><div style="font-size: 15px; font-weight: 600;">113 kg</div></div>
+          <div><div style="font-size: 11px; color: rgba(242,238,230,0.55);">Última vez</div><div style="font-size: 15px; font-weight: 600;">hace 4 días</div></div>
+        </div>
+        <div style="height: 1px; background: rgba(242,238,230,0.06);"></div>
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <div style="width: 52px; height: 52px; border-radius: 12px; background: linear-gradient(160deg, #2E2622, #141110);"></div>
+          <div style="width: 52px; height: 52px; border-radius: 12px; background: linear-gradient(160deg, #262A33, #101216);"></div>
+          <div style="width: 52px; height: 52px; border-radius: 12px; background: linear-gradient(160deg, #2E2A22, #141210);"></div>
+          <div style="flex: 1;"></div>
+          <a href="A4-Album.dc.html" style="font-size: 13px; font-weight: 600; text-decoration: none; color: #F2EEE6;">Tus fotos · 6</a>
+        </div>
+      </div>
+
       <div style="border-radius: 20px; background: #161616; padding: 14px; display: flex; flex-direction: column; gap: 10px;">
-        <div style="font-size: 13px; font-weight: 600;">Músculos · aporte por serie</div>
-        <div style="display: grid; grid-template-columns: 96px 1fr 44px; align-items: center; gap: 8px; font-size: 13px;"><span>Cuádriceps</span><span style="height: 6px; border-radius: 3px; background: #F49A6E;"></span><span style="text-align: right; color: rgba(242,238,230,0.7);">100 %</span></div>
-        <div style="display: grid; grid-template-columns: 96px 1fr 44px; align-items: center; gap: 8px; font-size: 13px;"><span>Glúteos</span><span style="height: 6px; border-radius: 3px; background: #F49A6E;"></span><span style="text-align: right; color: rgba(242,238,230,0.7);">100 %</span></div>
-        <div style="display: grid; grid-template-columns: 96px 1fr 44px; align-items: center; gap: 8px; font-size: 13px;"><span>Aductores</span><span style="height: 6px; border-radius: 3px; background: linear-gradient(90deg, #F49A6E 50%, #262626 50%);"></span><span style="text-align: right; color: rgba(242,238,230,0.7);">50 %</span></div>
-        <div style="display: grid; grid-template-columns: 96px 1fr 44px; align-items: center; gap: 8px; font-size: 13px;"><span>Erectores</span><span style="height: 6px; border-radius: 3px; background: linear-gradient(90deg, #F49A6E 40%, #262626 40%);"></span><span style="text-align: right; color: rgba(242,238,230,0.7);">40 %</span></div>
+        <div style="display: flex; justify-content: space-between; align-items: baseline;"><span style="font-size: 14px; font-weight: 600;">Músculos · aporte por 1 serie</span><span style="font-size: 13px; font-weight: 600; color: #F49A6E;">Ver todos</span></div>
+        <div style="display: grid; grid-template-columns: 92px 1fr 104px; align-items: center; gap: 8px; font-size: 13px;"><span>Cuádriceps</span><span style="height: 6px; border-radius: 3px; background: #F49A6E;"></span><span style="text-align: right; color: rgba(242,238,230,0.7);">1 serie · 100 %</span></div>
+        <div style="display: grid; grid-template-columns: 92px 1fr 104px; align-items: center; gap: 8px; font-size: 13px;"><span>Glúteo mayor</span><span style="height: 6px; border-radius: 3px; background: #F49A6E;"></span><span style="text-align: right; color: rgba(242,238,230,0.7);">1 serie · 100 %</span></div>
+        <div style="display: grid; grid-template-columns: 92px 1fr 104px; align-items: center; gap: 8px; font-size: 13px;"><span>Aductores</span><span style="height: 6px; border-radius: 3px; background: linear-gradient(90deg, #F49A6E 50%, #262626 50%);"></span><span style="text-align: right; color: rgba(242,238,230,0.7);">0,5 series · 50 %</span></div>
       </div>
-      <button style="height: 40px; border: none; background: transparent; color: rgba(242,238,230,0.7); font-family: Inter, sans-serif; font-size: 13px; font-weight: 600;">Ver la ficha completa</button>
+
+      <div style="display: flex; flex-direction: column; gap: 10px;">
+        <div style="font-size: 14px; font-weight: 600;">Cómo se hace</div>
+        <div style="font-size: 14px; line-height: 21px; color: rgba(242,238,230,0.68);">La barra olímpica descansa libre sobre la espalda y las manos la fijan a cada lado de los hombros. Nada corrige un desvío: el propio cuerpo tiene que llevarla en línea recta sobre el centro del pie…</div>
+        <div style="font-size: 13px; font-weight: 600; color: #F2EEE6;">Leer más</div>
+        <div style="display: grid; grid-template-columns: 26px 1fr; gap: 10px; align-items: start; font-size: 14px; line-height: 20px;"><span style="width: 26px; height: 26px; border-radius: 13px; background: rgba(244,154,110,0.16); color: #F49A6E; font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center;">1</span><span>Baja doblando rodillas y cadera a la vez y deja que las rodillas pasen por delante de los dedos.</span></div>
+        <div style="display: grid; grid-template-columns: 26px 1fr; gap: 10px; align-items: start; font-size: 14px; line-height: 20px;"><span style="width: 26px; height: 26px; border-radius: 13px; background: rgba(244,154,110,0.16); color: #F49A6E; font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center;">2</span><span>Sigue hasta que la cadera quede por debajo de las rodillas, con los talones en el suelo.</span></div>
+        <div style="display: grid; grid-template-columns: 26px 1fr; gap: 10px; align-items: start; font-size: 14px; line-height: 20px;"><span style="width: 26px; height: 26px; border-radius: 13px; background: rgba(244,154,110,0.16); color: #F49A6E; font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center;">3</span><span>Sube empujando el suelo con todo el pie, con los hombros subiendo al ritmo de la cadera.</span></div>
+      </div>
+
+      <div style="border-radius: 20px; background: #161616; padding: 14px; display: flex; flex-direction: column; gap: 10px;">
+        <div style="font-size: 14px; font-weight: 600;">Articulaciones</div>
+        <div style="display: flex; justify-content: space-between; font-size: 13px;"><span>Rodilla</span><span style="color: rgba(242,238,230,0.6);">Principal · flexión y extensión</span></div>
+        <div style="display: flex; justify-content: space-between; font-size: 13px;"><span>Cadera</span><span style="color: rgba(242,238,230,0.6);">Principal · flexión y extensión</span></div>
+        <div style="display: flex; justify-content: space-between; font-size: 13px;"><span>Tobillo</span><span style="color: rgba(242,238,230,0.6);">Estabiliza · dorsiflexión</span></div>
+        <div style="display: flex; justify-content: space-between; font-size: 13px;"><span>Columna lumbar</span><span style="color: rgba(242,238,230,0.6);">Estabiliza · tronco</span></div>
+        <div style="font-size: 12px; color: rgba(242,238,230,0.5);">Toca una articulación para ver su introducción.</div>
+      </div>
     </div>
+  </div>
+
+  <div class="fx-bar" style="position: absolute; left: 0; right: 0; top: 0; height: 68px; background: rgba(14,14,14,0.72); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); border-bottom: 1px solid rgba(242,238,230,0.06); display: flex; align-items: center; padding: 0 70px 0 20px; box-sizing: border-box;">
+    <div style="font-size: 15px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Sentadilla trasera con barra alta</div>
+  </div>
+  <button aria-label="Cerrar la ficha" style="position: absolute; top: 14px; right: 16px; width: 40px; height: 40px; border-radius: 20px; border: none; background: rgba(0,0,0,0.45); backdrop-filter: blur(10px); color: #F2EEE6; display: flex; align-items: center; justify-content: center; padding: 0;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 6l12 12"></path><path d="M18 6L6 18"></path></svg></button>
+
+  <div style="position: absolute; left: 0; right: 0; bottom: 0; padding: 22px 16px 24px 16px; background: linear-gradient(180deg, rgba(14,14,14,0) 0%, #0E0E0E 40%);">
+    <button style="width: 100%; height: 48px; border-radius: 24px; border: none; background: #F2EEE6; color: #0B0B0B; font-family: Inter, sans-serif; font-size: 15px; font-weight: 600;">Añadir</button>
   </div>
 </div>
 </x-dc>
 <script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
 class Component extends DCLogic {
-  renderVals() { return {}; }
+  constructor(props) {
+    super(props);
+    this.state = { impl: 0 };
+  }
+  renderVals() {
+    const labels = ['Barra', 'Smith', 'Safety bar'];
+    const names = ['barra', 'máquina Smith', 'safety bar'];
+    const i = this.state.impl;
+    return {
+      impls: labels.map((label, k) => ({
+        label,
+        fg: k === i ? '#0B0B0B' : '#F2EEE6',
+        pick: () => this.setState({ impl: k })
+      })),
+      pillLeft: 'calc(4px + ' + i + ' * (100% - 8px) / 3)',
+      implName: names[i],
+      smithOp: i === 1 ? 1 : 0,
+      ssbOp: i === 2 ? 1 : 0
+    };
+  }
 }
 </script>
 </body>
