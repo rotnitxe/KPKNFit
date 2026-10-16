@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Ficha en overlay</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Syne:wght@600;700;800&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#F2EEE6}a:hover{color:#ffffff}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: #000000; color: #F2EEE6; font-family: Inter, sans-serif; position: relative; overflow: hidden;">
+  <div style="position: absolute; inset: 0; background: radial-gradient(90% 60% at 50% 40%, #2A2622 0%, #000000 70%); opacity: 0.6;"></div>
+  <div style="position: absolute; inset: 0; background: rgba(0,0,0,0.55);"></div>
+
+  <div style="position: absolute; left: 12px; right: 12px; top: 36px; bottom: 24px; border-radius: 30px; background: #0E0E0E; border: 1px solid rgba(242,238,230,0.10); box-shadow: 0 24px 60px rgba(0,0,0,0.7); overflow: hidden; display: flex; flex-direction: column;">
+    <div style="position: relative; height: 300px; margin: 10px; border-radius: 22px; background: radial-gradient(80% 70% at 50% 45%, #2B2724 0%, #151311 75%);">
+      <div style="position: absolute; left: 0; right: 0; top: 42%; text-align: center; font-size: 13px; color: rgba(242,238,230,0.38);">[Foto del ejercicio]</div>
+      <button aria-label="Cerrar la ficha" style="position: absolute; top: 10px; right: 10px; width: 36px; height: 36px; border-radius: 18px; border: none; background: rgba(0,0,0,0.45); backdrop-filter: blur(10px); color: #F2EEE6; display: flex; align-items: center; justify-content: center; padding: 0;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 6l12 12"></path><path d="M18 6L6 18"></path></svg></button>
+      <div style="position: absolute; left: 12px; right: 12px; bottom: 12px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); padding: 4px; border-radius: 18px; background: rgba(0,0,0,0.45); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.10);">
+        <button style="height: 30px; border-radius: 15px; border: none; background: #F2EEE6; color: #0B0B0B; font-family: Inter, sans-serif; font-size: 12px; font-weight: 600;">Barra</button>
+        <button style="height: 30px; border-radius: 15px; border: none; background: transparent; color: #F2EEE6; font-family: Inter, sans-serif; font-size: 12px; font-weight: 600;">Smith</button>
+        <button style="height: 30px; border-radius: 15px; border: none; background: transparent; color: #F2EEE6; font-family: Inter, sans-serif; font-size: 12px; font-weight: 600;">Safety bar</button>
+      </div>
+    </div>
+    <div style="padding: 4px 18px 0 18px; display: flex; flex-direction: column; gap: 12px; flex: 1;">
+      <div>
+        <div style="font-family: Syne, sans-serif; font-weight: 700; font-size: 22px;">Sentadilla trasera con barra alta</div>
+        <div style="font-size: 13px; color: rgba(242,238,230,0.62); margin-top: 2px;">Cuádriceps · Barra · Sentadilla</div>
+      </div>
+      <div style="border-radius: 20px; background: #161616; padding: 14px; display: flex; flex-direction: column; gap: 10px;">
+        <div style="font-size: 13px; font-weight: 600;">Músculos · aporte por serie</div>
+        <div style="display: grid; grid-template-columns: 96px 1fr 44px; align-items: center; gap: 8px; font-size: 13px;"><span>Cuádriceps</span><span style="height: 6px; border-radius: 3px; background: #F49A6E;"></span><span style="text-align: right; color: rgba(242,238,230,0.7);">100 %</span></div>
+        <div style="display: grid; grid-template-columns: 96px 1fr 44px; align-items: center; gap: 8px; font-size: 13px;"><span>Glúteos</span><span style="height: 6px; border-radius: 3px; background: #F49A6E;"></span><span style="text-align: right; color: rgba(242,238,230,0.7);">100 %</span></div>
+        <div style="display: grid; grid-template-columns: 96px 1fr 44px; align-items: center; gap: 8px; font-size: 13px;"><span>Aductores</span><span style="height: 6px; border-radius: 3px; background: linear-gradient(90deg, #F49A6E 50%, #262626 50%);"></span><span style="text-align: right; color: rgba(242,238,230,0.7);">50 %</span></div>
+        <div style="display: grid; grid-template-columns: 96px 1fr 44px; align-items: center; gap: 8px; font-size: 13px;"><span>Erectores</span><span style="height: 6px; border-radius: 3px; background: linear-gradient(90deg, #F49A6E 40%, #262626 40%);"></span><span style="text-align: right; color: rgba(242,238,230,0.7);">40 %</span></div>
+      </div>
+      <button style="height: 40px; border: none; background: transparent; color: rgba(242,238,230,0.7); font-family: Inter, sans-serif; font-size: 13px; font-weight: 600;">Ver la ficha completa</button>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

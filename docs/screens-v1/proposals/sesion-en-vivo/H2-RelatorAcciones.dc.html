@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Relator con acciones en la frase</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Syne:wght@600;700;800&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#F2EEE6}a:hover{color:#ffffff}
+@keyframes shim{0%{background-position:160% 0}55%,100%{background-position:-60% 0}}
+.shim{background:linear-gradient(100deg,rgba(242,238,230,.62) 38%,#F2EEE6 50%,rgba(242,238,230,.62) 62%);background-size:220% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:shim 5.4s ease-in-out infinite}
+@keyframes run{0%{background-position:150% 0}100%{background-position:-50% 0}}
+.run{background:linear-gradient(100deg,#F2EEE6 30%,#FFFFFF 50%,#F2EEE6 70%);background-size:220% 100%;animation:run 1s linear infinite}
+@media (prefers-reduced-motion: reduce){.shim,.run{animation:none}}
+.emp{background:#F2EEE6;color:#0B0B0B;border-radius:6px;padding:2px 6px;font-weight:600;-webkit-box-decoration-break:clone;box-decoration-break:clone}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: #000000; color: #F2EEE6; font-family: Inter, sans-serif; position: relative; overflow: hidden; padding: 24px 16px; display: flex; flex-direction: column; gap: 26px;">
+
+  <div style="display: flex; flex-direction: column; gap: 16px;">
+    <div style="display: flex; gap: 8px; justify-content: center; opacity: 0.6;"><span style="height: 26px; padding: 0 10px; border-radius: 13px; background: #111111; font-size: 12px; display: flex; align-items: center;">32:10 / 1:00:00</span><span style="height: 26px; padding: 0 10px; border-radius: 13px; background: #111111; font-size: 12px; display: flex; align-items: center;">80 %</span></div>
+    <div style="text-align: center; font-size: 14px; line-height: 22px; padding: 0 12px;"><span class="shim">Te sugerimos 95 kg por cómo fue la última vez: </span><span class="emp">aplícalo</span><span class="shim">.</span></div>
+    <div style="height: 40px; border-radius: 22px 22px 0 0; background: #1B1B1B;"></div>
+  </div>
+
+  <div style="display: flex; flex-direction: column; gap: 16px;">
+    <div style="display: flex; gap: 8px; justify-content: center; opacity: 0.6;"><span style="height: 26px; padding: 0 10px; border-radius: 13px; background: #111111; font-size: 12px; display: flex; align-items: center;">32:10 / 1:00:00</span><span style="height: 26px; padding: 0 10px; border-radius: 13px; background: #111111; font-size: 12px; display: flex; align-items: center;">80 %</span></div>
+    <div style="text-align: center; font-size: 14px; line-height: 22px; padding: 0 12px;"><span style="color: rgba(242,238,230,0.62);">Te sugerimos 95 kg por cómo fue la última vez: </span><span class="emp run" style="color: rgba(11,11,11,0.55);">aplícalo</span><span style="color: rgba(242,238,230,0.62);">.</span></div>
+    <div style="height: 40px; border-radius: 22px 22px 0 0; background: #1B1B1B;"></div>
+  </div>
+
+  <div style="display: flex; flex-direction: column; gap: 16px;">
+    <div style="display: flex; gap: 8px; justify-content: center; opacity: 0.6;"><span style="height: 26px; padding: 0 10px; border-radius: 13px; background: #111111; font-size: 12px; display: flex; align-items: center;">32:10 / 1:00:00</span><span style="height: 26px; padding: 0 10px; border-radius: 13px; background: #111111; font-size: 12px; display: flex; align-items: center;">80 %</span></div>
+    <div style="text-align: center; font-size: 14px; line-height: 22px; padding: 0 12px;"><span style="color: rgba(242,238,230,0.75);">Te sugerimos 95 kg por cómo fue la última vez: </span><span style="background: rgba(67,209,140,0.18); color: #7FE3B0; border-radius: 6px; padding: 2px 6px; font-weight: 600;">✓ aplicado</span><span style="color: rgba(242,238,230,0.75);">.</span></div>
+    <div style="height: 40px; border-radius: 22px 22px 0 0; background: #1B1B1B; display: flex; align-items: center; justify-content: center; font-family: Syne, sans-serif; font-weight: 700; font-size: 20px;">95</div>
+  </div>
+
+  <div style="display: flex; flex-direction: column; gap: 16px;">
+    <div style="display: flex; gap: 8px; justify-content: center; opacity: 0.6;"><span style="height: 26px; padding: 0 10px; border-radius: 13px; background: #111111; font-size: 12px; display: flex; align-items: center;">Descanso 2:41</span></div>
+    <div style="text-align: center; font-size: 14px; line-height: 22px; padding: 0 12px;"><span class="shim">Te sobró margen: la próxima puede subir 2,5 kg. Si te hace falta, </span><span class="emp">alarga 15 s</span><span class="shim"> o </span><span class="emp">mira tu técnica</span><span class="shim">.</span></div>
+    <div style="height: 40px; border-radius: 22px 22px 0 0; background: #1B1B1B;"></div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

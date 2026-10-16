@@ -53,9 +53,8 @@ a{color:#F2EEE6}a:hover{color:#ffffff}
     </div>
   </div>
 
-  <div style="position: relative; margin-top: 16px; padding: 0 28px; display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 8px; min-height: 30px;">
-    <span class="shim" style="font-size: 14px; line-height: 20px; text-align: center;">Serie 1 de 4: 95 kg × 4–6 a RIR 2.</span>
-    <button style="height: 28px; padding: 0 12px; border-radius: 14px; border: none; background: #F2EEE6; color: #0B0B0B; font-family: Inter, sans-serif; font-weight: 600; font-size: 13px;">Aplicar 95 kg</button>
+  <div style="position: relative; margin-top: 16px; padding: 0 28px; text-align: center; font-size: 14px; line-height: 22px; min-height: 22px;">
+    <span class="shim">Serie 1 de 4: 95 kg × 4–6 a RIR 2. </span><span style="background: #F2EEE6; color: #0B0B0B; border-radius: 6px; padding: 2px 6px; font-weight: 600;">Aplícalo</span>
   </div>
 
   <div style="position: relative; margin: 16px 16px 0 16px; border-radius: 28px; background: #111111; border: 1px solid rgba(242,238,230,0.07); overflow: hidden;">
@@ -97,6 +96,7 @@ a{color:#F2EEE6}a:hover{color:#ffffff}
               </sc-if>
             </sc-for>
           </div>
+          <div style="position: absolute; top: -5px; left: calc(41.67% - 1px); width: 2px; height: 56px; border-radius: 1px; background: rgba(242,238,230,0.35);"></div>
           <div class="thumb" style="position: absolute; top: 5px; left: {{thumbLeft}}; width: 36px; height: 36px; border-radius: 18px; background: #F2EEE6; box-shadow: 0 2px 8px rgba(0,0,0,0.5);"></div>
           <div style="position: absolute; inset: 0; display: grid; grid-template-columns: repeat(6, minmax(0, 1fr));">
             <sc-for list="{{stops}}" as="st" hint-placeholder-count="6">
@@ -105,7 +105,7 @@ a{color:#F2EEE6}a:hover{color:#ffffff}
           </div>
         </div>
         <div style="display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); font-size: 11px; color: rgba(242,238,230,0.45); text-align: center;">
-          <span>RIR 4</span><span>3</span><span>2</span><span>1</span><span>0</span><span style="color: #F49A6E; font-weight: 600;">Fallo</span>
+          <span>RIR 4</span><span>3</span><span style="color: #F2EEE6; font-weight: 600;">2 · plan</span><span>1</span><span>0</span><span style="color: #F49A6E; font-weight: 600;">Fallo</span>
         </div>
       </div>
 
@@ -141,7 +141,7 @@ a{color:#F2EEE6}a:hover{color:#ffffff}
 class Component extends DCLogic {
   constructor(props) {
     super(props);
-    this.state = { level: 2 };
+    this.state = { level: 0 };
   }
   renderVals() {
     const level = this.state.level;
