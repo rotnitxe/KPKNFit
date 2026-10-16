@@ -11,6 +11,10 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import com.example.kpkn.screens.onboarding.design.wizardReducedMotion
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
@@ -474,8 +478,12 @@ fun HomeLivingRingsOverlay(
     forcedPose: LivingCharacterPose? = null,
     forcedTimeMillis: Float? = null,
 ) {
+    val foreground = rememberRingAdjustForeground()
+    val reduced = wizardReducedMotion()
+    var inViewport by remember { mutableStateOf(false) }
+    val active = isAnimating && foreground && inViewport && !reduced
     val transition = rememberInfiniteTransition(label = "homeLivingTransition")
-    val hopRaw = if (isAnimating && forcedPose == null && jumpProgress == null) {
+    val hopRaw = if (active && forcedPose == null && jumpProgress == null) {
         transition.animateFloat(
             initialValue = 0f,
             targetValue = 7500f,
@@ -487,7 +495,7 @@ fun HomeLivingRingsOverlay(
         )
     } else null
 
-    val orbitRaw = if (isAnimating && forcedTimeMillis == null) {
+    val orbitRaw = if (active && forcedTimeMillis == null) {
         transition.animateFloat(
             initialValue = 0f,
             targetValue = 90000f,
@@ -503,7 +511,7 @@ fun HomeLivingRingsOverlay(
 
     val currentPose = when {
         forcedPose != null -> forcedPose
-        !isAnimating -> LivingCharacterPose.STATIC_REST
+        !active -> LivingCharacterPose.STATIC_REST
         jumpProgress != null && targetChannel != null -> calculateDirectJumpPose(jumpProgress, targetChannel)
         hopRaw != null -> calculateHopPose(hopRaw.value / 7500f, landingChannels)
         else -> LivingCharacterPose.STATIC_REST
@@ -511,7 +519,7 @@ fun HomeLivingRingsOverlay(
 
     val currentOrbitTime = forcedTimeMillis ?: orbitRaw?.value ?: 0f
 
-    Canvas(modifier.fillMaxSize()) {
+    Canvas(modifier.fillMaxSize().ringAdjustVisible { inViewport = it }) {
         val scale = minOf(size.width / 300f, size.height / 230f).coerceAtLeast(0f)
         if (isAnimating) {
             drawOrbitFlares(
