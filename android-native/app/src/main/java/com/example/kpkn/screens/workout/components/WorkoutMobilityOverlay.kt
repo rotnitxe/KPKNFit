@@ -304,6 +304,8 @@ fun WorkoutMobilityOverlay(
                                 val isActive = activeMobilityKey == item.stepKey ||
                                     (activeMobilityKey?.contains(item.mobility.id) == true)
                                 val mob = item.mobility
+                                val techniqueMovementId = com.example.kpkn.data.exercises.ReviewedExerciseTechniqueImages
+                                    .mobilityMovementId(mob.catalogConfigurationId, mob.exerciseDbId, mob.id)
 
                                 val catalogMobility = remember(mob.id, mob.exerciseDbId, mob.name) {
                                     MobilityExerciseCatalog.getAllMobilityExercises().firstOrNull {
@@ -338,6 +340,11 @@ fun WorkoutMobilityOverlay(
                                             .padding(horizontal = 12.dp, vertical = 10.dp),
                                         verticalArrangement = Arrangement.spacedBy(6.dp),
                                     ) {
+                                        com.example.kpkn.ui.components.MobilityTechniqueImage(
+                                            movementId = techniqueMovementId,
+                                            contentDescription = mob.name,
+                                            modifier = Modifier.fillMaxWidth().height(if (isExpanded || isActive) 200.dp else 96.dp),
+                                        )
                                         Row(
                                             modifier = Modifier.fillMaxWidth(),
                                             verticalAlignment = Alignment.CenterVertically,
@@ -428,6 +435,8 @@ fun WorkoutMobilityOverlay(
                             val isActive = activeMobilityKey == item.stepKey ||
                                 (activeMobilityKey?.contains(item.mobility.id) == true)
                             val mob = item.mobility
+                            val techniqueMovementId = com.example.kpkn.data.exercises.ReviewedExerciseTechniqueImages
+                                .mobilityMovementId(mob.catalogConfigurationId, mob.exerciseDbId, mob.id)
 
                             val catalogMobility = remember(mob.id, mob.exerciseDbId, mob.name) {
                                 MobilityExerciseCatalog.getAllMobilityExercises().firstOrNull {
@@ -462,6 +471,11 @@ fun WorkoutMobilityOverlay(
                                         .padding(horizontal = 12.dp, vertical = 10.dp),
                                     verticalArrangement = Arrangement.spacedBy(6.dp),
                                 ) {
+                                    com.example.kpkn.ui.components.MobilityTechniqueImage(
+                                        movementId = techniqueMovementId,
+                                        contentDescription = mob.name,
+                                        modifier = Modifier.fillMaxWidth().height(if (isExpanded || isActive) 200.dp else 96.dp),
+                                    )
                                     Row(
                                         modifier = Modifier.fillMaxWidth(),
                                         verticalAlignment = Alignment.CenterVertically,

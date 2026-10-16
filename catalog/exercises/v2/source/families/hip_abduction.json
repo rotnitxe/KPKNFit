@@ -400,11 +400,12 @@
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.2,
-              "description": "Con máquina, a dos lados y de pie, la pierna se separa del centro contra la resistencia y el glúteo medio hace el trabajo. La máquina guía la trayectoria del muslo y el apoyo de pie exige que la cadera de apoyo estabilice la pelvis mientras la otra pierna abre. El glúteo medio concentra el esfuerzo y la carga se dosifica sin distracciones.",
+              "description": "Las plataformas de trabajo se abren junto con los brazos móviles de la estación. Cada muslo empuja una almohadilla lateral y ambas piernas participan de pie, con las manos sujetas a las asas fijas para estabilizar el tronco.",
               "efc": 2.8,
               "equipmentId": "machine",
               "executionCues": [
-                "Máquina de pie con ambas piernas: la pierna se separa contra la almohadilla con el glúteo medio concentrado y la pelvis estable. El apoyo de pie suma equilibrio, por lo que la apertura se dosifica sin que el tronco se incline."
+                "Separa ambos muslos hacia fuera desplazando los brazos y plataformas de trabajo de la máquina.",
+                "Vuelve despacio sin perder los contactos ni girar el tronco."
               ],
               "fatigueTier": "MEDIA",
               "jointInvolvement": [
@@ -556,7 +557,8 @@
                 "tensor_fasciae_latae"
               ],
               "setupCues": [
-                "Preparación: Máquina de pie con ambas piernas: coloca las almohadillas a la altura de la rodilla y afirma el apoyo antes de abrir."
+                "Utiliza la plataforma grande para subir y coloca después cada pie en su plataforma de trabajo.",
+                "Apoya la cara externa de los muslos contra las almohadillas y sujeta las asas fijas."
               ],
               "setupTimeSeconds": 45,
               "ssc": 0.5,

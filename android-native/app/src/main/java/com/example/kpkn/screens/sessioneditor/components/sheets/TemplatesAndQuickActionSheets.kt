@@ -584,6 +584,13 @@ internal fun MobilityPickerSheet(
                     ) {
                         Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                             Text(mobility.name, fontWeight = FontWeight.Bold)
+                            com.example.kpkn.ui.components.MobilityTechniqueImage(
+                                movementId = mobility.id,
+                                contentDescription = mobility.name,
+                                modifier = Modifier.fillMaxWidth().height(
+                                    if (expandedMobilityId == mobility.id) 200.dp else 96.dp,
+                                ),
+                            )
                             val details = listOfNotNull(
                                 mobilityBodyRegionLabel(mobility.bodyRegion).takeIf { it.isNotBlank() },
                                 mobility.joints.firstOrNull()?.replaceFirstChar { it.uppercase() },

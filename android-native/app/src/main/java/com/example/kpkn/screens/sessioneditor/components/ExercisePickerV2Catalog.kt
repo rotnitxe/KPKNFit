@@ -258,6 +258,16 @@ private fun exerciseCatalogImageVariants(
     catalogConfigurationId: String? = null,
     selectedImplementation: String? = null,
 ): List<CatalogExerciseImageVariant> {
+    com.example.kpkn.data.exercises.ReviewedExerciseTechniqueImages
+        .strengthImage(catalogConfigurationId)?.let { image ->
+            // This image belongs only to the selected full configuration, including
+            // grip/station details. It must not become another implement carousel page.
+            return listOf(ExerciseTechniqueImageVariant(
+                selectedImplementation ?: catalogConfigurationId!!.substringAfter("__"),
+                image,
+                "Técnica",
+            ))
+        }
     val variants = ExerciseTechniqueImageLookup.variants(definitionId)
     if (variants.isEmpty() || catalogConfigurationId == null) return variants
 

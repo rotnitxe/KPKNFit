@@ -859,6 +859,11 @@ object ExerciseTechniqueImageLookup {
         catalogConfigurationId: String? = null,
         selectedImplementation: String? = null,
     ): Int? {
+        // A catalog configuration is authoritative. Consult reviewed exact mappings before
+        // the legacy implement restrictions; never try another ID when one was supplied.
+        val exactId = catalogConfigurationId ?: exerciseDbId ?: exerciseId
+        ReviewedExerciseTechniqueImages.strengthImage(exactId)?.let { return it }
+        ReviewedExerciseTechniqueImages.mobilityImage(catalogDefinitionId ?: exactId)?.let { return it }
         val definitionId = resolveDefinitionId(
             catalogDefinitionId = catalogDefinitionId,
             exerciseDbId = exerciseDbId,
