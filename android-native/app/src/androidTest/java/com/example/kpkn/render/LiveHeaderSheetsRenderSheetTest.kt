@@ -29,7 +29,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import java.io.File
 
-/** Real-device render sheet: 360dp, both font scales. Export the PNGs before visual acceptance. */
+/** Real-device render sheet: 360dp wide at the physical available height, both font scales. */
 @RunWith(AndroidJUnit4::class)
 class LiveHeaderSheetsRenderSheetTest {
     @get:Rule val rule = createAndroidComposeRule<ComponentActivity>()
@@ -48,7 +48,7 @@ class LiveHeaderSheetsRenderSheetTest {
             KPKNTheme { MaterialTheme {
                 val density = LocalDensity.current
                 CompositionLocalProvider(LocalDensity provides Density(density.density, scale), LocalKpknOverlayHost provides null, LocalRestClockFrozen provides 1.7f) {
-                    Box(Modifier.requiredSize(360.dp, 760.dp).background(Color.Black).testTag("lv12-canvas")) {
+                    Box(Modifier.width(360.dp).fillMaxHeight().background(Color.Black).testTag("lv12-canvas")) {
                         when (scene) {
                             "tags" -> WorkoutTagListOverlay(listOf(
                                 WorkoutTagListRow(WorkoutTag("machine-a", "Máquina A", "row", subTags = listOf(WorkoutSubTag("pin", "Asiento 3", SubTagCategory.SETUP))), "Máquina A", "Última: 80 kg", true),
@@ -68,8 +68,26 @@ class LiveHeaderSheetsRenderSheetTest {
             } }
         }
         if (scene == "voice") rule.onNodeWithText("Música").performClick()
+        // Capture the final entry pose, with the same vertical viewport as the physical window.
+        rule.mainClock.advanceTimeBy(1_000)
         rule.waitForIdle()
-        val bitmap = rule.onNodeWithTag("lv12-canvas").captureToImage().asAndroidBitmap()
+        val canvas = rule.onNodeWithTag("lv12-canvas")
+        val canvasBounds = canvas.getUnclippedBoundsInRoot()
+        val footerLabels = when (scene) {
+            "tags", "time" -> listOf("Listo")
+            "ultrafast" -> listOf("Cancelar", "Aplicar")
+            else -> listOf("Ahora no", "Empezar")
+        }
+        footerLabels.forEach { label ->
+            val footer = rule.onNode(hasText(label) and hasClickAction()).assertIsDisplayed()
+            val bounds = footer.getUnclippedBoundsInRoot()
+            val tolerance = 0.5.dp
+            assertTrue("$scene/$scale: $label must have a visible area", bounds.width > 0.dp && bounds.height > 0.dp)
+            assertTrue("$scene/$scale: full $label bounds $bounds must fit inside canvas $canvasBounds",
+                bounds.left >= canvasBounds.left - tolerance && bounds.top >= canvasBounds.top - tolerance &&
+                    bounds.right <= canvasBounds.right + tolerance && bounds.bottom <= canvasBounds.bottom + tolerance)
+        }
+        val bitmap = canvas.captureToImage().asAndroidBitmap()
         val context = InstrumentationRegistry.getInstrumentation().targetContext
         val directory = File(context.getExternalFilesDir(null), "lv12-render").apply { mkdirs() }
         val target = File(directory, "$scene-${(scale * 100).toInt()}.png")
