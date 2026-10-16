@@ -418,7 +418,7 @@ class SetExecutionCardEffortTest {
     }
 
     @Test
-    fun enUnaSerieSoloRmLaMarcaVaciaSeRegistraSinIntensidadYUnValorSeRegistraConEl() {
+    fun enUnaSerieSoloRmLaMarcaVaciaNoCuentaComoEsfuerzo() {
         mostrar(Caso("soloRm", ejercicio(serieSoloRm(), TrainingMode.RM), serieSoloRm()))
 
         pulsarCheck()
@@ -426,9 +426,8 @@ class SetExecutionCardEffortTest {
 
         marcar(0)
         pulsarCheck()
-        assertEquals(1, registros.size)
-        assertNull("la marca «—» no lleva intensidad", registros.single().intensity)
-        assertNull(registros.single().advanced.actualIntensityMode)
+        assertTrue("el guion de carga RM no es un informe de esfuerzo", registros.isEmpty())
+        rule.onNodeWithText(EffortRequiredHint).assertExists()
     }
 
     @Test

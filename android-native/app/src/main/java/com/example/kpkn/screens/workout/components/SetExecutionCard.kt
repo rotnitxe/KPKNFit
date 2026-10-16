@@ -888,7 +888,7 @@ internal fun SetInputCardV2(
     isSettledPage: Boolean = true,
     initialDraft: WorkoutSetDraft? = null,
     onDraftChange: (WorkoutSetDraft, String?) -> Unit = { _, _ -> },
-    onExecutionError: (() -> Unit)? = null,
+    onExecutionError: ((SetAdvancedFeedback) -> Unit)? = null,
     onRevertExecutionError: (() -> Unit)? = null,
     persistedLoadModeBySet: Map<String, LoadModeV2> = emptyMap(),
     persistedLoadModeByExercise: Map<String, LoadModeV2> = emptyMap(),
@@ -1642,7 +1642,6 @@ internal fun SetInputCardV2(
     }
     val repsWheelCenterIndex = remember(exercise.id, setIndex, sideKey) { mutableIntStateOf(0) }
     fun onEffortSelected(index: Int) {
-        if (isFailedSet) return
         val item = effortScale.items.getOrNull(index) ?: return
         val selection = intensitySelectionFromCarouselItem(item)
         effortIndex = index
@@ -1679,6 +1678,7 @@ internal fun SetInputCardV2(
         }
     }
     val chosenEffortItem = effortIndex?.let { effortScale.items.getOrNull(it) }
+    val hasChosenReportedEffort = chosenEffortItem?.let { it.isFailure || it.numericValue != null } == true
     // Lo que se registra de la marca elegida: el fallo es 10 y la marca «—» (SOLO_RM) no lleva valor. Sin marcar, nada.
     val chosenEffortValue: Double? = when {
         chosenEffortItem == null -> null
@@ -2303,8 +2303,8 @@ internal fun SetInputCardV2(
                             scale = effortScale,
                             selectedIndex = effortIndex,
                             onSelect = { onEffortSelected(it) },
-                            enabled = !isFailedSet,
-                            hint = EffortRequiredHint.takeIf { effortHintVisible && effortIndex == null },
+                            enabled = true,
+                            hint = EffortRequiredHint.takeIf { effortHintVisible && !hasChosenReportedEffort },
                             wobbleKey = effortWobbleKey,
                             animate = effortAnimate,
                             hapticsEnabled = hapticFeedbackEnabled,
@@ -2561,6 +2561,7 @@ internal fun SetInputCardV2(
                       else null,
                 reachedFailure = reachedFailure || (isAmrap && amrapReachFailure),
                 isFailedSet = isFailedSet,
+                executionError = isExecutionError,
                 failureReason = if (isFailedSet) failedSetReason.ifBlank { "Serie marcada como fallida" } else null,
                 isPartial = partialRepsTotal > 0,
                 partialReps = partialRepsTotal.takeIf { it > 0 },
@@ -2582,7 +2583,6 @@ internal fun SetInputCardV2(
                     else -> reportedIntensityMode
                 },
                 actualIntensityValue = when {
-                    isExecutionError -> null
                     isAmrap && amrapReachFailure -> 10.0
                     isAmrap && !amrapReachFailure -> amrapReserveReps?.toDouble()
                     reachedFailure -> 10.0
@@ -2940,16 +2940,13 @@ internal fun SetInputCardV2(
                             ).show()
                             return@label
                         }
-                        if (isFailedSet) {
-                            if (onExecutionError != null) {
-                                onExecutionError.invoke()
-                                return@label
-                            }
-                        }
-                        // LV8: el esfuerzo (RIR/RPE) es obligatorio. Sin marcarlo, el ✓ no registra: vibra suave, el slider se
-                        // balancea y sale el aviso bajo él. Una serie nunca se registra con una intensidad que la persona no eligió.
-                        if (!isFailedSet && effortIndex == null) {
+                        // Error conserva carga y reps, pero también exige el esfuerzo elegido.
+                        if (!hasChosenReportedEffort) {
                             requireEffort()
+                            return@label
+                        }
+                        if (isFailedSet && onExecutionError != null) {
+                            onExecutionError.invoke(advanced)
                             return@label
                         }
                         val reportingSide = if (supportsIndependentSides) selectedSide else null
@@ -3017,7 +3014,6 @@ internal fun SetInputCardV2(
                         val weight = if (loadMode == LoadModeV2.BODYWEIGHT) 0.0 else (reportedWeightText.replace(',', '.').toDoubleOrNull() ?: 0.0)
                         val typedValue = if (isFailedSet) 0.0 else (reportedValueText.toDoubleOrNull() ?: 0.0)
                         val intensity = when {
-                            isFailedSet -> null
                             isAmrap && amrapReachFailure -> 10.0
                             isAmrap && !amrapReachFailure -> amrapReserveReps?.toDouble()
                             reachedFailure -> 10.0

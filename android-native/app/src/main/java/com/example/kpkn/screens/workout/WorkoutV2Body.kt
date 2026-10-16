@@ -2200,7 +2200,7 @@ internal fun WorkoutV2Body(
                                     },
                                     onSetBodyWeight = { bw: Double -> viewModel.setCurrentBodyWeight(bw) },
                                     initialBodyWeight = viewModel.currentBodyWeight(),
-                                    onExecutionError = {
+                                    onExecutionError = { effort ->
                                         viewModel.launchWorkoutCommand {
                                             viewModel.recordSetV2(
                                                 weight = 0.0,
@@ -2210,6 +2210,11 @@ internal fun WorkoutV2Body(
                                                     executionError = true,
                                                     failureReason = "execution_error",
                                                     isFailedSet = true,
+                                                    rir = effort.rir,
+                                                    reachedFailure = effort.reachedFailure,
+                                                    actualIntensityMode = effort.actualIntensityMode,
+                                                    actualIntensityValue = effort.actualIntensityValue,
+                                                    intensityAdjusted = effort.intensityAdjusted,
                                                 ),
                                                 loadMode = resolvePersistedLoadModeForSet(
                                                     exerciseId = targetExercise.id,
