@@ -10,6 +10,10 @@ import android.graphics.Path
 import android.graphics.RectF
 import android.graphics.Typeface
 import android.net.Uri
+import androidx.core.graphics.drawable.toBitmap
+import coil.imageLoader
+import coil.request.ImageRequest
+import coil.request.SuccessResult
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.drawscope.CanvasDrawScope
 import androidx.compose.ui.text.TextMeasurer
@@ -243,11 +247,16 @@ private suspend fun storyBackground(context:Context,data:WorkoutStoryData):Bitma
     val program=data.presentation.program
     val value=program?.coverImage
     val fromLibrary=programCoverEntryIdOf(value)?.let { ProgramCoverRepository.getInstance(context).load(it,1080) }
-    val photo=fromLibrary ?: value?.takeIf { it.startsWith("content:") || it.startsWith("file:") || File(it).isAbsolute }?.let { loadStoryImage(context,it,1920) }
+    // La portada personalizada admite los mismos URL que ProgramPoster (Coil), además de los archivos locales.
+    val remote=value?.takeIf { it.startsWith("https://") || it.startsWith("http://") }?.let { url ->
+        val request=ImageRequest.Builder(context).data(url).allowHardware(false).size(1080,1920).build()
+        (context.imageLoader.execute(request) as? SuccessResult)?.drawable?.toBitmap()
+    }
+    val photo=fromLibrary ?: remote ?: value?.takeIf { it.startsWith("content:") || it.startsWith("file:") || File(it).isAbsolute }?.let { loadStoryImage(context,it,1920) }
     val bitmap=Bitmap.createBitmap(1080,1920,Bitmap.Config.ARGB_8888)
     val canvas=Canvas(bitmap)
     if(photo!=null) {
-        drawCover(canvas,photo,RectF(0f,0f,1080f,1920f));if(fromLibrary==null)photo.recycle()
+        drawCover(canvas,photo,RectF(0f,0f,1080f,1920f));if(fromLibrary==null && remote==null)photo.recycle()
     } else {
         val density=Density(1f)
         val measurer=TextMeasurer(createFontFamilyResolver(context),density,LayoutDirection.Ltr)
