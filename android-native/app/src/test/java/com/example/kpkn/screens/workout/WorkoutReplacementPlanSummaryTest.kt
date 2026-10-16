@@ -9,7 +9,8 @@ import org.junit.Test
 
 /**
  * LV5, bug 1 (H1): la nota del catálogo de reemplazo dice lo que se mantiene del plan, «4 × 4–6 · RIR 2», que es la regla del bug 3 en
- * palabras: cuántas series, su objetivo y la intensidad. Sin el descanso.
+ * palabras: cuántas series, su objetivo y la intensidad. Sin el descanso, y con espacios inseparables alrededor de «×» para que la dosis
+ * no se parta entre líneas con la letra grande.
  */
 class WorkoutReplacementPlanSummaryTest {
 
@@ -20,7 +21,7 @@ class WorkoutReplacementPlanSummaryTest {
     fun laDosisDelPlanSeDiceComoEnElDisenoYSinElDescanso() {
         val exercise = Exercise(id = "slot-1", name = "Sentadilla trasera", sets = planned(4), restTime = 150)
 
-        assertEquals("4 × 4–6 · RIR 2", replacementPlanSummary(exercise))
+        assertEquals("4\u00A0×\u00A04–6 · RIR 2", replacementPlanSummary(exercise))
     }
 
     @Test
@@ -34,7 +35,7 @@ class WorkoutReplacementPlanSummaryTest {
             ),
         )
 
-        assertEquals("2 × 6–12 · RIR 2", replacementPlanSummary(exercise))
+        assertEquals("2\u00A0×\u00A06–12 · RIR 2", replacementPlanSummary(exercise))
     }
 
     @Test

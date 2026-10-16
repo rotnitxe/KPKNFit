@@ -1,28 +1,36 @@
 package com.example.kpkn.screens.sessioneditor.design
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.example.kpkn.screens.onboarding.design.WizardColors
+import com.example.kpkn.screens.onboarding.design.WizardTypography
 import com.example.kpkn.screens.onboarding.design.entreno.plan.ExercisePattern
 import com.example.kpkn.ui.design.KpknModule
-import com.example.kpkn.ui.design.KpknPrimaryPill
+import com.example.kpkn.ui.design.KpknShape
 import com.example.kpkn.ui.design.KpknType
 
 /** Etiquetas de prueba de la tarjeta «Reemplazando», de la barra de abajo y de su botón (H1, LV5). */
@@ -44,7 +52,8 @@ internal data class CatalogReplacingCardModel(
 
 /**
  * La tarjeta fija de arriba del catálogo de reemplazo (H1): «REEMPLAZANDO», el nombre del ejercicio actual y su línea de contexto, con
- * la misma miniatura de 48 dp que las filas. Sin estado y sin acciones: solo recuerda qué se está reemplazando.
+ * la misma miniatura de 48 dp que las filas. El nombre y la línea de contexto ocupan hasta dos líneas: con la letra al 130 % no se
+ * cortan. Sin estado y sin acciones: solo recuerda qué se está reemplazando.
  */
 @Composable
 internal fun CatalogReplacingCard(model: CatalogReplacingCardModel, modifier: Modifier = Modifier) {
@@ -68,7 +77,7 @@ internal fun CatalogReplacingCard(model: CatalogReplacingCardModel, modifier: Mo
                     text = model.name,
                     style = KpknType.bodyStrong,
                     color = WizardColors.text,
-                    maxLines = 1,
+                    maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
                 )
                 if (!subtitle.isNullOrBlank()) {
@@ -76,7 +85,7 @@ internal fun CatalogReplacingCard(model: CatalogReplacingCardModel, modifier: Mo
                         text = subtitle,
                         style = KpknType.caption,
                         color = WizardColors.textMuted,
-                        maxLines = 1,
+                        maxLines = 2,
                         overflow = TextOverflow.Ellipsis,
                     )
                 }
@@ -115,12 +124,53 @@ internal fun CatalogReplaceBar(
                 textAlign = TextAlign.Center,
             )
         }
-        KpknPrimaryPill(
+        CatalogReplaceButton(
             text = buttonText,
+            enabled = enabled,
             onClick = onConfirm,
             modifier = Modifier.fillMaxWidth(),
-            tag = CatalogReplaceButtonTag,
-            enabled = enabled,
+        )
+    }
+}
+
+/**
+ * El botón de confirmar de la barra de abajo: la píldora principal de siempre (tinta con texto negro; apagada si no hay nada elegido),
+ * pero con el texto hasta en dos líneas y el alto que pida, de 56 dp como mínimo. Así, con la letra al 130 %, el nombre del ejercicio
+ * elegido se lee entero en vez de quedar cortado detrás de «Reemplazar por».
+ */
+@Composable
+private fun CatalogReplaceButton(
+    text: String,
+    enabled: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val interaction = remember { MutableInteractionSource() }
+    val fill = if (enabled) WizardColors.text else WizardColors.ctaDisabled
+    val ink = if (enabled) WizardColors.ctaContent else WizardColors.ctaDisabledContent
+    Box(
+        modifier = modifier
+            .testTag(CatalogReplaceButtonTag)
+            .heightIn(min = 56.dp)
+            .clip(KpknShape.pill)
+            .background(fill, KpknShape.pill)
+            .clickable(
+                interactionSource = interaction,
+                indication = null,
+                enabled = enabled,
+                role = Role.Button,
+                onClick = onClick,
+            )
+            .padding(horizontal = 24.dp, vertical = 10.dp),
+        contentAlignment = Alignment.Center,
+    ) {
+        Text(
+            text = text,
+            style = WizardTypography.cta,
+            color = ink,
+            maxLines = 2,
+            overflow = TextOverflow.Ellipsis,
+            textAlign = TextAlign.Center,
         )
     }
 }

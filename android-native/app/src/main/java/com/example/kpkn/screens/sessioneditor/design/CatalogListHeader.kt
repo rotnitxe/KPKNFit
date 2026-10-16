@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.Text
@@ -21,6 +22,7 @@ import com.example.kpkn.screens.onboarding.design.WizardColors
 import com.example.kpkn.screens.sessioneditor.components.exerciseCatalogMuscleLabel
 import com.example.kpkn.ui.components.icons.KpknLineIcons
 import com.example.kpkn.ui.design.KpknChip
+import com.example.kpkn.ui.design.KpknIconButton
 import com.example.kpkn.ui.design.KpknTextField
 import com.example.kpkn.ui.design.KpknTopRow
 import com.example.kpkn.ui.design.KpknType
@@ -51,7 +53,8 @@ internal fun catalogHeaderContextLine(
  * (`KpknTextField` con la lupa) y una fila desplazable de filtros: Todos, Tren superior, Tren inferior y Músculo.
  *
  * Con un músculo elegido, su filtro se ve activo con su valor («Pectorales»). Al tocar Músculo se despliega la fila de [muscleIds].
- * Al reemplazar un ejercicio ([isReplacement], H1) el título pasa a «Reemplazar»; bajo él va la tarjeta fija «Reemplazando»
+ * Al reemplazar un ejercicio ([isReplacement], H1) el título pasa a «Reemplazar», con la flecha de volver a su izquierda en la misma
+ * fila (en la página completa); bajo él va la tarjeta fija «Reemplazando»
  * ([replacingCard]), el buscador «Buscar otro ejercicio» y solo dos filtros: «Mismo músculo» ([onToggleSameMuscle], que usa el filtro de
  * músculo de siempre con el músculo principal del ejercicio actual; sin él, no sale) y «Todos». Los filtros de región y de músculo
  * sueltos no salen al reemplazar.
@@ -82,30 +85,51 @@ internal fun CatalogListHeader(
         modifier = modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        if (onBack != null) {
-            KpknTopRow(onBack = onBack)
-        }
-        Column(
-            modifier = Modifier.padding(horizontal = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(4.dp),
-        ) {
-            Text(
-                text = catalogHeaderTitle(isReplacement),
-                style = if (onBack != null) KpknType.display.copy(fontSize = 24.sp, lineHeight = 28.sp) else KpknType.title,
-                color = WizardColors.text,
-                maxLines = 2,
-                overflow = TextOverflow.Ellipsis,
-            )
-            val contextLine = catalogHeaderContextLine(isReplacement, targetGroupName)
-            if (contextLine != null) {
+        if (isReplacement && onBack != null) {
+            // Al reemplazar en la página completa (H1) la flecha de volver y el título van en la misma fila.
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(56.dp)
+                    .padding(horizontal = 12.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                KpknIconButton(icon = KpknLineIcons.ChevronLeft, contentDescription = "Atrás", onClick = onBack)
                 Text(
-                    text = contextLine,
-                    style = KpknType.caption,
-                    color = WizardColors.textMuted,
+                    text = catalogHeaderTitle(isReplacement),
+                    style = KpknType.display.copy(fontSize = 24.sp, lineHeight = 28.sp),
+                    color = WizardColors.text,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.testTag(CatalogHeaderContextTag),
+                    modifier = Modifier.padding(start = 4.dp),
                 )
+            }
+        } else {
+            if (onBack != null) {
+                KpknTopRow(onBack = onBack)
+            }
+            Column(
+                modifier = Modifier.padding(horizontal = 16.dp),
+                verticalArrangement = Arrangement.spacedBy(4.dp),
+            ) {
+                Text(
+                    text = catalogHeaderTitle(isReplacement),
+                    style = if (onBack != null) KpknType.display.copy(fontSize = 24.sp, lineHeight = 28.sp) else KpknType.title,
+                    color = WizardColors.text,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                )
+                val contextLine = catalogHeaderContextLine(isReplacement, targetGroupName)
+                if (contextLine != null) {
+                    Text(
+                        text = contextLine,
+                        style = KpknType.caption,
+                        color = WizardColors.textMuted,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.testTag(CatalogHeaderContextTag),
+                    )
+                }
             }
         }
         if (isReplacement && replacingCard != null) {

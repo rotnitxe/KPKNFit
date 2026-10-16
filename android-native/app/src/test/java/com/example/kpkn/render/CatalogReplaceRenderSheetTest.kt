@@ -100,6 +100,9 @@ class CatalogReplaceRenderSheetTest {
         FileOutputStream(File(dir, "$name.png")).use { cropped.compress(Bitmap.CompressFormat.PNG, 100, it) }
     }
 
+    /** La dosis como la dice `replacementPlanSummary`: con espacios inseparables alrededor de «×». */
+    private val dose = "4\u00A0×\u00A04–6 · RIR 2"
+
     private val anchorId = "high_bar_back_squat"
     private val chosenId = "front_squat"
     private val candidateIds = listOf(chosenId, "quads_prensa_piernas", "quads_sentadilla_hack", "belt_squat", "bulgarian_split_squat")
@@ -112,7 +115,7 @@ class CatalogReplaceRenderSheetTest {
         val anchorDefinition = definitions.getValue(anchorId)
         val card = catalogReplacingCardModel(
             catalog = catalog,
-            context = CatalogReplacementContext(exerciseName = anchorDefinition.canonicalName, planSummary = "4 × 4–6 · RIR 2"),
+            context = CatalogReplacementContext(exerciseName = anchorDefinition.canonicalName, planSummary = dose),
             definitionId = anchorId,
             configurationId = anchorDefinition.defaultConfigurationId,
         )
@@ -170,7 +173,7 @@ class CatalogReplaceRenderSheetTest {
                 }
             }
             CatalogReplaceBar(
-                note = "Se mantienen las series del plan: 4 × 4–6 · RIR 2",
+                note = "Se mantienen las series del plan: $dose",
                 buttonText = if (isChosen) "Reemplazar por $chosenName" else "Reemplazar",
                 enabled = isChosen,
                 onConfirm = {},
