@@ -2,6 +2,8 @@ package com.example.kpkn.screens.workout
 
 import android.graphics.Bitmap
 import androidx.activity.ComponentActivity
+import androidx.activity.SystemBarStyle
+import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -37,6 +39,7 @@ import com.example.kpkn.ui.tour.TourSeenStore
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.hazeSource
 import org.junit.Assert.assertTrue
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -52,6 +55,16 @@ import java.time.LocalDate
 @OptIn(ExperimentalTestApi::class)
 class RedesignReviewRingsCaptureTest {
     @get:Rule val rule = createAndroidComposeRule<ComponentActivity>()
+    @Before fun configureProductionWindow() {
+        rule.activityRule.scenario.onActivity { activity ->
+            activity.enableEdgeToEdge(
+                statusBarStyle = SystemBarStyle.dark(android.graphics.Color.TRANSPARENT),
+                navigationBarStyle = SystemBarStyle.dark(android.graphics.Color.TRANSPARENT),
+            )
+            if (android.os.Build.VERSION.SDK_INT >= 29) activity.window.isNavigationBarContrastEnforced = false
+        }
+    }
+
     private enum class Scene { READINESS, ENERGY, MUSCLES, STRUCTURE, WIZARD, HOME_DETAIL }
     private var scene by mutableStateOf(Scene.READINESS)
 

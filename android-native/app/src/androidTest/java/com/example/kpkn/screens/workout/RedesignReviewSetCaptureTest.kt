@@ -4,6 +4,8 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.util.Log
 import androidx.activity.ComponentActivity
+import androidx.activity.SystemBarStyle
+import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -59,6 +61,7 @@ import java.time.LocalDate
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import org.json.JSONObject
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -68,6 +71,16 @@ import org.junit.runner.RunWith
 @RunWith(AndroidJUnit4::class)
 class RedesignReviewSetCaptureTest {
     @get:Rule val rule = createAndroidComposeRule<ComponentActivity>()
+    @Before fun configureProductionWindow() {
+        rule.activityRule.scenario.onActivity { activity ->
+            activity.enableEdgeToEdge(
+                statusBarStyle = SystemBarStyle.dark(android.graphics.Color.TRANSPARENT),
+                navigationBarStyle = SystemBarStyle.dark(android.graphics.Color.TRANSPARENT),
+            )
+            if (android.os.Build.VERSION.SDK_INT >= 29) activity.window.isNavigationBarContrastEnforced = false
+        }
+    }
+
     private val accent = Color(0xFFF49A6E)
     private val context: Context get() = ApplicationProvider.getApplicationContext()
 
