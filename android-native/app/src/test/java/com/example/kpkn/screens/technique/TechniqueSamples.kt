@@ -48,8 +48,20 @@ import com.example.kpkn.screens.technique.analysis.AnalysisPhase
 import com.example.kpkn.screens.technique.analysis.AnalysisStatusUi
 import com.example.kpkn.screens.technique.analysis.TechniqueAnalysisUiState
 import com.example.kpkn.screens.technique.analysis.buildResults
+import com.example.kpkn.domain.biomechanics.vbt.LoadVelocityPoint
+import com.example.kpkn.domain.biomechanics.vbt.LoadVelocityProfile
+import com.example.kpkn.domain.biomechanics.vbt.LoadVelocityResult
 import com.example.kpkn.screens.technique.player.TechniqueOverlayData
 import com.example.kpkn.screens.technique.player.TechniqueRepMark
+import com.example.kpkn.screens.technique.trends.AnalyzedVideoItemUi
+import com.example.kpkn.screens.technique.trends.LoadVelocityUiState
+import com.example.kpkn.screens.technique.trends.RomTrendItemUi
+import com.example.kpkn.screens.technique.trends.RomTrendUiState
+import com.example.kpkn.screens.technique.trends.TechniqueTrendsUiState
+import com.example.kpkn.screens.technique.trends.TutItemUi
+import com.example.kpkn.screens.technique.trends.TutUiState
+import com.example.kpkn.screens.technique.trends.VelocityLossItemUi
+import com.example.kpkn.screens.technique.trends.VelocityLossUiState
 
 /**
  * Datos de ejemplo de las pantallas de técnica en vídeo (VT7a en adelante): hojas de render y pruebas. Todo sale del
@@ -410,5 +422,97 @@ internal object TechniqueSamples {
         canvas.drawCircle(seed.cx, seed.cy, seed.r * 0.94f, rim)
         canvas.drawCircle(seed.cx, seed.cy, seed.r * 0.22f, rim)
         return bitmap.asImageBitmap()
+    }
+
+    /** Estado de la pantalla de tendencias con estimación o con «faltan datos». */
+    fun trendsUiState(withEstimate: Boolean = true): TechniqueTrendsUiState {
+        val points = listOf(
+            LoadVelocityPoint(70.0, 0.72, 1_780_000_000_000L),
+            LoadVelocityPoint(80.0, 0.61, 1_780_000_000_000L),
+            LoadVelocityPoint(90.0, 0.50, 1_780_000_000_000L),
+            LoadVelocityPoint(100.0, 0.39, 1_780_000_000_000L),
+        )
+        val loadVelocity = if (withEstimate) {
+            LoadVelocityUiState(
+                points = points,
+                result = LoadVelocityResult.Estimate(
+                    e1rmKg = 108.2,
+                    slope = -0.011,
+                    intercept = 1.49,
+                    r2 = 0.98,
+                    points = points.size,
+                ),
+                mvtMps = 0.30,
+                hasMpsPoints = true,
+                reasonText = null,
+            )
+        } else {
+            LoadVelocityUiState(
+                points = points.take(2),
+                result = LoadVelocityResult.NotEnough("few_loads"),
+                mvtMps = 0.30,
+                hasMpsPoints = true,
+                reasonText = "Graba series con al menos 3 cargas distintas",
+            )
+        }
+
+        return TechniqueTrendsUiState(
+            isLoading = false,
+            isEmpty = false,
+            exerciseName = "Sentadilla trasera",
+            exerciseKey = "back_squat",
+            loadVelocity = loadVelocity,
+            velocityLoss = VelocityLossUiState(
+                items = listOf(
+                    VelocityLossItemUi("v1", "12 oct", 18.5),
+                    VelocityLossItemUi("v2", "13 oct", 22.0),
+                    VelocityLossItemUi("v3", "14 oct", 15.2),
+                    VelocityLossItemUi("v4", "15 oct", 24.1),
+                ),
+                meanLossPct = 20.0,
+            ),
+            romTrend = RomTrendUiState(
+                items = listOf(
+                    RomTrendItemUi("5 oct", 95.0, 4.0, 1_780_000_000_000L),
+                    RomTrendItemUi("8 oct", 98.0, 3.0, 1_780_000_000_000L),
+                    RomTrendItemUi("12 oct", 96.0, 5.0, 1_780_000_000_000L),
+                    RomTrendItemUi("15 oct", 101.0, 3.0, 1_780_000_000_000L),
+                ),
+                depthCaption = "22 de 24 reps bajo el paralelo",
+            ),
+            tut = TutUiState(
+                items = listOf(
+                    TutItemUi("v1", "Serie 1", 21.5),
+                    TutItemUi("v2", "Serie 2", 23.0),
+                    TutItemUi("v3", "Serie 3", 24.8),
+                    TutItemUi("v4", "Serie 4", 22.2),
+                ),
+                maxSeconds = 25.0,
+            ),
+            videos = listOf(
+                AnalyzedVideoItemUi(
+                    mediaId = "vid-1",
+                    dateLabel = "15 oct",
+                    loadAndReps = "100 kg × 5",
+                    detectedReps = "5 reps detectadas",
+                    confidence = CountConfidence.ALTA,
+                    thumbFile = null,
+                ),
+                AnalyzedVideoItemUi(
+                    mediaId = "vid-2",
+                    dateLabel = "15 oct",
+                    loadAndReps = "90 kg × 6",
+                    detectedReps = "6 reps detectadas",
+                    confidence = CountConfidence.ALTA,
+                    thumbFile = null,
+                ),
+                AnalyzedVideoItemUi(
+                    mediaId = "vid-3",
+                    dateLabel = "12 oct",
+                    loadAndReps = "80 kg × 8",
+                    detectedReps = "8 reps detectadas",
+                    confidence = CountConfidence.MEDIA,
+                    thumbFile = null,
+                ),
     }
 }

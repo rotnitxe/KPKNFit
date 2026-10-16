@@ -1447,6 +1447,24 @@ private fun KPKNNavGraph(
                 onBack = { navController.popBackStack() },
             )
         }
+        composable(
+            route = KpknRoute.TechniqueTrends.route,
+            arguments = listOf(navArgument(KpknRoute.TechniqueTrends.ARG_EXERCISE_KEY) { type = NavType.StringType }),
+        ) { backStack ->
+            val exerciseKey = backStack.arguments
+                ?.getString(KpknRoute.TechniqueTrends.ARG_EXERCISE_KEY)
+                .orEmpty()
+            com.example.kpkn.screens.technique.trends.TechniqueTrendsRoute(
+                exerciseKey = Uri.decode(exerciseKey),
+                onBack = { navController.popBackStack() },
+                onOpenAnalysis = { mediaId ->
+                    navController.navigate("technique/analysis/${Uri.encode(mediaId)}")
+                },
+                onCompare = { mediaA, mediaB ->
+                    navController.navigate(KpknRoute.TechniqueCompare.create(mediaA, mediaB))
+                },
+            )
+        }
         composable(KpknRoute.ProgramDetail.route) { backStack ->
             val id = backStack.arguments?.getString(KpknRoute.ProgramDetail.ARG_PROGRAM_ID) ?: ""
             ProgramDetailScreen(
