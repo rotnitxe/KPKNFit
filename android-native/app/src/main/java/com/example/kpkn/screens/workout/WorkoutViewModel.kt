@@ -3398,12 +3398,20 @@ class WorkoutViewModel(
         }
     }
 
-    fun addSetToCurrentExercise() {
-        val currentExerciseIdx = _uiState.value.currentExerciseIdx
-        val currentExerciseId = visibleExercises(_uiState.value).getOrNull(currentExerciseIdx)?.id ?: return
-        val exerciseName = visibleExercises(_uiState.value).getOrNull(currentExerciseIdx)
-            ?.let(::displayWorkoutExerciseName)
-            ?: ""
+    /**
+     * Añade una serie al final del ejercicio de turno o, con [exerciseId], al ejercicio en el que se pidió (las opciones de la serie, LV11:
+     * en una superserie la serie pulsada puede ser de un miembro que no es el de turno). Guarda su «Deshacer» como cualquier cambio de
+     * estructura.
+     */
+    fun addSetToCurrentExercise(exerciseId: String? = null) {
+        val visible = visibleExercises(_uiState.value)
+        val target = exerciseId?.let { id -> visible.firstOrNull { it.id == id } }
+            ?: visible.getOrNull(_uiState.value.currentExerciseIdx)
+            ?: return
+        val currentExerciseId = target.id
+        val exerciseName = displayWorkoutExerciseName(target)
+        // El «Deshacer» se guarda antes del cambio: la serie nueva siempre se añade (el ejercicio existe y a la vista).
+        pushGodModeUndo("Añadir serie")
         // Add the set to the live session immediately
         updateExerciseDefinition(currentExerciseId, persistToProgram = false) { exercise ->
             // La serie nueva sale como la última, con el tipo de carga que esa serie enseña ahora (el recuerdo de la sesión o su plan).

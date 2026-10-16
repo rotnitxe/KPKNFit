@@ -1112,6 +1112,7 @@ internal fun WorkoutSetPager(
                                     rightState = element.rightState,
                                     replaced = element.volumeReplaced,
                                     onSelectPage = onSelectPage,
+                                    onLongPressPage = onLongPressPage,
                                     modifier = Modifier.keepActiveVisible(isElementActive(element)),
                                 )
                             }
@@ -1641,6 +1642,7 @@ private fun RoundSetCapsule(
                                         rightState = setElement.rightState,
                                         replaced = setElement.volumeReplaced,
                                         onSelectPage = onSelectPage,
+                                        onLongPressPage = onLongPressPage,
                                         compact = true,
                                         modifier = keepActiveVisible(isElementActive(setElement), Modifier),
                                     )
@@ -1751,7 +1753,12 @@ private fun UnilateralSetStackNode(
     onSelectPage: (Int) -> Unit,
     modifier: Modifier = Modifier,
     compact: Boolean = false,
+    /** Pulsación larga (LV11, A1): abre las opciones de la serie, igual que en un paso bilateral. Vale cualquiera de los dos lados. */
+    onLongPressPage: ((Int) -> Unit)? = null,
 ) {
+    val longPress: (() -> Unit)? = onLongPressPage?.let { open ->
+        { (leftPageIndex ?: rightPageIndex)?.let(open) }
+    }
     val hasActive = leftState == WorkoutSetCardVisualState.ACTIVE || rightState == WorkoutSetCardVisualState.ACTIVE
     val isAllComplete = leftState == WorkoutSetCardVisualState.COMPLETED && rightState == WorkoutSetCardVisualState.COMPLETED
     // Tinta para lo activo y marca verde para lo hecho; el rojo solo sigue marcando volumen reemplazado.
@@ -1781,7 +1788,20 @@ private fun UnilateralSetStackNode(
             .graphicsLayer {
                 scaleX = if (compact) 1f else activeScale
                 scaleY = if (compact) 1f else activeScale
-            },
+            }
+            .then(
+                if (longPress != null) {
+                    // La etiqueta «S1» también abre las opciones; tocarla sigue sin hacer nada, como antes.
+                    Modifier.combinedClickable(
+                        interactionSource = remember { MutableInteractionSource() },
+                        indication = null,
+                        onClick = {},
+                        onLongClick = longPress,
+                    )
+                } else {
+                    Modifier
+                },
+            ),
         shape = KpknShape.pill,
         color = KpknSurface.inset,
         border = BorderStroke(width = ringWidth, color = ringColor),
@@ -1813,6 +1833,7 @@ private fun UnilateralSetStackNode(
                 replaced = replaced,
                 compact = compact,
                 onClick = { leftPageIndex?.let { onSelectPage(it) } },
+                onLongClick = longPress,
             )
 
             // Right Dot (R)
@@ -1822,6 +1843,7 @@ private fun UnilateralSetStackNode(
                 replaced = replaced,
                 compact = compact,
                 onClick = { rightPageIndex?.let { onSelectPage(it) } },
+                onLongClick = longPress,
             )
         }
     }
@@ -1834,6 +1856,7 @@ private fun UnilateralDotNode(
     replaced: Boolean,
     onClick: () -> Unit,
     compact: Boolean = false,
+    onLongClick: (() -> Unit)? = null,
 ) {
     val isActive = state == WorkoutSetCardVisualState.ACTIVE
     val isComplete = state == WorkoutSetCardVisualState.COMPLETED
@@ -1866,10 +1889,11 @@ private fun UnilateralDotNode(
         modifier = Modifier
             .size(size)
             .clip(CircleShape)
-            .clickable(
+            .combinedClickable(
                 interactionSource = remember { MutableInteractionSource() },
                 indication = null,
                 onClick = onClick,
+                onLongClick = onLongClick,
             ),
         shape = CircleShape,
         color = KpknSurface.inset,

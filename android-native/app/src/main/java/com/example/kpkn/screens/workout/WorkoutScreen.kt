@@ -164,6 +164,7 @@ import com.example.kpkn.ui.components.SnackbarType
 import com.example.kpkn.ui.components.showKpknSnackbar
 import com.example.kpkn.screens.workout.components.SetInputCardV2
 import com.example.kpkn.screens.workout.components.VoiceCaptureModeDialog
+import com.example.kpkn.screens.workout.components.LiveUndoPillHost
 import com.example.kpkn.screens.workout.components.WorkoutRoadmapBar
 import com.example.kpkn.screens.workout.components.WorkoutSessionCockpit
 import com.example.kpkn.screens.workout.components.WorkoutSessionAlbumSheet
@@ -1075,6 +1076,8 @@ fun WorkoutScreen(
             onExpandEdit = {
                 currentExercise?.id?.let { structureSheets.editSheetExerciseId = it }
             },
+            // «Editar» de las opciones de una serie: el ejercicio en el que se pulsó (en una superserie puede no ser el de turno).
+            onEditExercise = { exerciseId -> structureSheets.editSheetExerciseId = exerciseId },
             onRequestCardioGps = { exerciseId, setIndex ->
                 if (viewModel.isCurrentCardioPageAction(exerciseId, setIndex) &&
                     CardioGpsTracker.hasLocationPermission(context)) {
@@ -1248,7 +1251,8 @@ fun WorkoutScreen(
                         },
                     )
                 }
-            if (recordFabHolder.visible) {
+            // El ✓ se aparta mientras las opciones de la serie están abiertas: la tarjeta flotante ocupa su sitio sobre la barra.
+            if (recordFabHolder.visible && uiState.seriesTypeTarget == null) {
                 val activeRecordAction = recordActionHolder.actionForPage(recordFabHolder.activePageKey)
                 // D2.2: el botón se ancla al teclado (WindowInsets.ime) cuando está visible.
                 WorkoutRecordFabHost(
@@ -1267,6 +1271,17 @@ fun WorkoutScreen(
                     onClick = { recordActionHolder.actionForPage(recordFabHolder.activePageKey)?.invoke() },
                 )
             }
+            // «Deshacer <acción>» unos segundos tras cualquier cambio de estructura (opciones, reordenar, series): la pila de siempre.
+            LiveUndoPillHost(
+                undoStack = uiState.godModeUndoStack,
+                completedSets = uiState.completedSets,
+                onUndo = { index -> viewModel.revertGodModeChange(index) },
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .navigationBarsPadding()
+                    .padding(bottom = dockBottomClearance + 8.dp)
+                    .zIndex(15f),
+            )
         }
     }
 

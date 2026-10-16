@@ -43,7 +43,7 @@ import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.models.SessionPart
 import com.example.kpkn.domain.auge.SessionIntensityResult
 import com.example.kpkn.screens.workout.components.RoadmapPendingAction
-import com.example.kpkn.screens.workout.components.SeriesTypeSheet
+import com.example.kpkn.screens.workout.components.SeriesOptionsSheet
 import com.example.kpkn.screens.workout.components.SetAdjustmentOverlay
 import com.example.kpkn.screens.workout.components.UltraFastPreviewSheet
 import com.example.kpkn.screens.workout.components.VolumeAdvanceModal
@@ -204,16 +204,21 @@ class LiveLayerDismissTest {
     }
 
     @Test
-    fun theSeriesTypeSheetClosesAndLeavesTheSessionUntouched() {
+    fun theSeriesOptionsSheetClosesAndLeavesTheSessionUntouched() {
         open = true
-        // La hoja se titula con el nombre del ejercicio.
-        assertClosesWithBackAndWithATapOutside("Tipo de serie", sampleExercise.name) {
-            SeriesTypeSheet(
+        // La hoja se abre con la serie en la que se pulsó («Serie 2»).
+        assertClosesWithBackAndWithATapOutside("Opciones de la serie", "Serie 2") {
+            SeriesOptionsSheet(
                 exercise = sampleExercise,
                 target = SeriesTypeTarget(exerciseId = "a", fromSetIdx = 1, toSetIdx = 2),
-                completedSetIndices = emptySet(),
+                completedSets = emptyMap(),
+                omittedSetKeys = emptySet(),
                 onDismiss = { open = false },
                 onApply = { _, _ -> open = false },
+                onEdit = {},
+                onAddSet = {},
+                onSkipSet = {},
+                onDeleteSet = {},
             )
         }
     }
