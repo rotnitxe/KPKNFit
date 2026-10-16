@@ -77,6 +77,7 @@ internal fun WorkoutV2Body(
     headerStartTimeMs: Long,
     headerIsComplete: Boolean,
     headerBackground: SessionBackground?,
+    headerProgram: com.example.kpkn.data.models.Program? = null,
     headerExerciseTag: String?,
     onToggleVoice: () -> Unit = {},
     rmSelectedWeight: Double? = null,
@@ -254,6 +255,7 @@ internal fun WorkoutV2Body(
                 startTimeMs = headerStartTimeMs,
                 isComplete = headerIsComplete,
                 background = headerBackground,
+                program = headerProgram,
                 sessionTimeRemainingSeconds = sessionTimeRemainingSeconds,
                 onAdjustTimeLimit = { viewModel.adjustSessionTimeLimit(it) },
                 onSetAbsoluteTimeLimit = { minutes, persist ->

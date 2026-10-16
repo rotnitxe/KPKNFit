@@ -67,7 +67,33 @@ import com.example.kpkn.ui.design.KpknShape
 import com.example.kpkn.ui.design.KpknSurface
 import com.example.kpkn.ui.design.KpknType
 
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.basicMarquee
+import androidx.compose.foundation.MarqueeAnimationMode
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.text.rememberTextMeasurer
+import coil.compose.AsyncImage
+import com.example.kpkn.data.models.Program
+import com.example.kpkn.data.programs.programCoverEntryIdOf
+import com.example.kpkn.screens.onboarding.design.entreno.plan.cover.CoverStudioArt
+import com.example.kpkn.screens.onboarding.design.entreno.plan.cover.coverIdentityFor
+import com.example.kpkn.screens.onboarding.design.entreno.plan.cover.coverIdentityForProgram
+import com.example.kpkn.screens.onboarding.design.entreno.plan.cover.parseProgramStudioCover
+import com.example.kpkn.screens.onboarding.design.entreno.plan.cover.restyled
+import com.example.kpkn.screens.onboarding.design.wizardReducedMotion
+import com.example.kpkn.screens.programdetail.components.HeroCoverKind
+import com.example.kpkn.screens.programdetail.components.heroCoverKind
+import com.example.kpkn.ui.components.rememberProgramCover
+
 private const val HeaderCompactScale = 0.80f
+
+/** Decide si el título del ejercicio debe usar el carrusel continuo lento (LV1 punto 1). */
+internal fun workoutHeaderShouldUseMarquee(
+    textWidth: Int,
+    containerWidth: Int,
+    reducedMotion: Boolean,
+): Boolean = textWidth > containerWidth && !reducedMotion
 
 /** Visible glyphs in the header title (name + " · " chips). */
 internal fun workoutHeaderTitleGlyphCount(exerciseName: String, chips: List<String>): Int =
@@ -639,6 +665,9 @@ internal fun WorkoutHeaderBar(
     onCreateSupersetClick: (() -> Unit)? = null,
     bodyHazeState: HazeState? = null,
     protocolLabel: String? = null,
+    programCover: String? = null,
+    program: Program? = null,
+    forcedMarqueeMoving: Boolean = false,
 ) {
     val headerScale = headerCompactScale()
     val typeScale = headerViewportScale()
@@ -676,6 +705,54 @@ internal fun WorkoutHeaderBar(
                     .matchParentSize()
                     .background(KpknSurface.canvas),
             )
+            // Portada del programa activo como fondo tenue (LV1 punto 13)
+            val effectiveCover = program?.coverImage ?: programCover
+            if (!effectiveCover.isNullOrBlank()) {
+                val bundledCover = rememberProgramCover(programCoverEntryIdOf(effectiveCover), with(density) { 360.dp.roundToPx() })
+                val coverKind = heroCoverKind(effectiveCover, hasBundledCover = bundledCover != null)
+                val identity = remember(program, effectiveCover) {
+                    if (program != null) {
+                        coverIdentityForProgram(program)
+                    } else {
+                        val choice = parseProgramStudioCover(effectiveCover)
+                        val base = coverIdentityFor("session_header_program", null)
+                        if (choice != null) base.restyled(choice.style, choice.palette) else base
+                    }
+                }
+                Box(
+                    modifier = Modifier
+                        .matchParentSize()
+                        .testTag("workout_header_cover_background")
+                        .graphicsLayer { alpha = 0.18f },
+                ) {
+                    when {
+                        coverKind == HeroCoverKind.REMOTE -> {
+                            AsyncImage(
+                                model = effectiveCover,
+                                contentDescription = null,
+                                modifier = Modifier.fillMaxSize(),
+                                contentScale = ContentScale.Crop,
+                            )
+                        }
+                        coverKind == HeroCoverKind.BUNDLED && bundledCover != null -> {
+                            Image(
+                                bitmap = bundledCover,
+                                contentDescription = null,
+                                modifier = Modifier.fillMaxSize(),
+                                contentScale = ContentScale.Crop,
+                            )
+                        }
+                        coverKind == HeroCoverKind.STUDIO || coverKind == HeroCoverKind.GRADIENT -> {
+                            CoverStudioArt(
+                                identity = identity,
+                                modifier = Modifier.fillMaxSize(),
+                                animate = false,
+                                reduced = true,
+                            )
+                        }
+                    }
+                }
+            }
             if (bodyHazeState != null) {
                 Box(
                     modifier = Modifier
@@ -699,37 +776,120 @@ internal fun WorkoutHeaderBar(
                 verticalAlignment = Alignment.Top,
             ) {
                 Column(modifier = Modifier.weight(1f)) {
-                    // Una línea (Syne Bold 24/28) con elipsis, como la original: sin alto reservado. La reducción por longitud es la
-                    // de la original (workoutHeaderTitleFontScale), para mostrar tanto texto como antes (LR1a).
                     val titleGlyphs = workoutHeaderTitleGlyphCount(exerciseName, exerciseChips)
                     val titleLengthScale = workoutHeaderTitleFontScale(titleGlyphs)
                     val titleBase = KpknType.title.scaledBy(typeScale)
                     val titleSlotHeight = with(density) {
                         (KpknType.title.lineHeight * typeScale).toDp()
                     }
-                    Row(
+                    val reducedMotion = wizardReducedMotion()
+                    val titleAnnotated = remember(exerciseName, exerciseChips) {
+                        buildAnnotatedString {
+                            withStyle(SpanStyle(color = WizardColors.text)) {
+                                append(exerciseName)
+                            }
+                            exerciseChips.forEach { chip ->
+                                append(" · ")
+                                withStyle(SpanStyle(color = WizardColors.textMuted)) {
+                                    append(chip)
+                                }
+                            }
+                        }
+                    }
+                    val titleStyle = remember(titleBase, titleLengthScale) {
+                        titleBase.copy(fontSize = titleBase.fontSize * titleLengthScale)
+                    }
+                    val measurer = rememberTextMeasurer()
+                    val textLayout = remember(titleAnnotated, titleStyle, measurer) {
+                        measurer.measure(titleAnnotated, style = titleStyle, maxLines = 1, softWrap = false)
+                    }
+
+                    BoxWithConstraints(
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(titleSlotHeight),
-                        verticalAlignment = Alignment.Bottom,
+                        contentAlignment = Alignment.BottomStart,
                     ) {
-                        Text(
-                            text = buildAnnotatedString {
-                                withStyle(SpanStyle(color = WizardColors.text)) {
-                                    append(exerciseName)
+                        val containerWidthPx = constraints.maxWidth
+                        val textWidthPx = textLayout.size.width
+                        val useMarquee = workoutHeaderShouldUseMarquee(
+                            textWidth = textWidthPx,
+                            containerWidth = containerWidthPx,
+                            reducedMotion = reducedMotion,
+                        )
+
+                        var isMoving by remember(useMarquee, textWidthPx, containerWidthPx) { mutableStateOf(false) }
+                        LaunchedEffect(useMarquee, textWidthPx, containerWidthPx) {
+                            if (useMarquee) {
+                                delay(1500L)
+                                while (true) {
+                                    isMoving = true
+                                    val moveDurationMs = ((textWidthPx.toFloat() / (30f * density.density)) * 1000L).toLong().coerceAtLeast(1000L)
+                                    delay(moveDurationMs)
+                                    isMoving = false
+                                    delay(2500L)
                                 }
-                                exerciseChips.forEach { chip ->
-                                    append(" · ")
-                                    withStyle(SpanStyle(color = WizardColors.textMuted)) {
-                                        append(chip)
+                            } else {
+                                isMoving = false
+                            }
+                        }
+
+                        val effectiveMoving = isMoving || forcedMarqueeMoving
+
+                        // Fundido de 16 dp en el borde derecho, y en el izquierdo mientras se mueve (LV1 punto 1)
+                        val fadeModifier = if (useMarquee) {
+                            Modifier
+                                .graphicsLayer { compositingStrategy = CompositingStrategy.Offscreen }
+                                .drawWithContent {
+                                    drawContent()
+                                    val fadePx = 16.dp.toPx()
+                                    // Fundido derecho
+                                    drawRect(
+                                        brush = Brush.horizontalGradient(
+                                            0f to Color.Black,
+                                            1f to Color.Transparent,
+                                            startX = (size.width - fadePx).coerceAtLeast(0f),
+                                            endX = size.width,
+                                        ),
+                                        blendMode = BlendMode.DstIn,
+                                    )
+                                    // Fundido izquierdo mientras se mueve
+                                    if (effectiveMoving) {
+                                        drawRect(
+                                            brush = Brush.horizontalGradient(
+                                                0f to Color.Transparent,
+                                                1f to Color.Black,
+                                                startX = 0f,
+                                                endX = fadePx,
+                                            ),
+                                            blendMode = BlendMode.DstIn,
+                                        )
                                     }
                                 }
-                            },
-                            modifier = Modifier.weight(1f),
-                            style = titleBase.copy(fontSize = titleBase.fontSize * titleLengthScale),
+                        } else Modifier
+
+                        val marqueeModifier = if (useMarquee) {
+                            Modifier
+                                .testTag("workout_header_title_marquee")
+                                .basicMarquee(
+                                    iterations = Int.MAX_VALUE,
+                                    animationMode = MarqueeAnimationMode.Immediately,
+                                    initialDelayMillis = 1500,
+                                    repeatDelayMillis = 2500,
+                                    velocity = 30.dp,
+                                )
+                        } else Modifier
+
+                        Text(
+                            text = titleAnnotated,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .then(fadeModifier)
+                                .then(marqueeModifier),
+                            style = titleStyle,
                             maxLines = 1,
                             softWrap = false,
-                            overflow = TextOverflow.Ellipsis,
+                            overflow = if (useMarquee) TextOverflow.Clip else TextOverflow.Ellipsis,
                         )
                     }
                     Text(

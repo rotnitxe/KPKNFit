@@ -332,6 +332,68 @@ class LiveSessionRefineRenderSheetTest {
         assertTrue("«82 %» acaba en $readinessDerecho dp, fuera del margen de 344 dp", readinessDerecho <= 344f)
     }
 
+    @Test
+    fun cabeceraCarruselConPortadaFotograma1_100() {
+        onlyWhenAsked()
+        drawCabeceraCarrusel(fontScale = 1f, moving = false, name = "cabecera_carrusel_fotograma1_100")
+    }
+
+    @Test
+    fun cabeceraCarruselConPortadaFotograma2_100() {
+        onlyWhenAsked()
+        drawCabeceraCarrusel(fontScale = 1f, moving = true, name = "cabecera_carrusel_fotograma2_100")
+    }
+
+    @Test
+    fun cabeceraCarruselConPortadaFotograma1_130() {
+        onlyWhenAsked()
+        drawCabeceraCarrusel(fontScale = 1.3f, moving = false, name = "cabecera_carrusel_fotograma1_130")
+    }
+
+    @Test
+    fun cabeceraCarruselConPortadaFotograma2_130() {
+        onlyWhenAsked()
+        drawCabeceraCarrusel(fontScale = 1.3f, moving = true, name = "cabecera_carrusel_fotograma2_130")
+    }
+
+    private fun drawCabeceraCarrusel(fontScale: Float, moving: Boolean, name: String) {
+        rule.setContent {
+            hostView = LocalView.current
+            CompositionLocalProvider(LocalDensity provides Density(3f, fontScale)) {
+                KPKNTheme {
+                    MaterialTheme {
+                        Box(
+                            Modifier
+                                .width(360.dp)
+                                .height(160.dp)
+                                .background(Color.Black)
+                                .testTag(HEADER_TAG),
+                        ) {
+                            WorkoutHeaderBar(
+                                exerciseName = "Press de Banca Plano con Barra y Parada de Dos Segundos en el Pecho",
+                                protocolLabel = "Principal",
+                                sessionName = "Torso Pesado",
+                                groupName = "Semana 3",
+                                startTimeMs = System.currentTimeMillis() - 1_200_000L,
+                                isComplete = false,
+                                background = null,
+                                programCover = "kpkn-studio://PLATES/NOCHE",
+                                sessionTimeRemainingSeconds = 45 * 60,
+                                onAdjustTimeLimit = {},
+                                exerciseReadiness = SAMPLE_READINESS,
+                                hasCreatedTags = false,
+                                onOpenTagList = {},
+                                forcedMarqueeMoving = moving,
+                            )
+                        }
+                    }
+                }
+            }
+        }
+        rule.waitForIdle()
+        save(HEADER_TAG, name)
+    }
+
     private fun drawSerie(withSuggestion: Boolean, fontScale: Float, name: String) {
         rule.setContent {
             hostView = LocalView.current
