@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.MaterialTheme
@@ -30,6 +31,9 @@ import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
+import com.example.kpkn.screens.workout.RelatorAssistAction
+import com.example.kpkn.screens.workout.RelatorAssistActionKind
+import com.example.kpkn.screens.workout.RelatorSilentAnimation
 import com.example.kpkn.screens.workout.RestTimerKind
 import com.example.kpkn.screens.workout.WorkoutLiveRelatorLine
 import com.example.kpkn.screens.workout.WorkoutRestModalState
@@ -40,6 +44,7 @@ import com.example.kpkn.screens.workout.components.WorkoutRecordFab
 import com.example.kpkn.screens.workout.components.WorkoutUiTokens
 import com.example.kpkn.ui.theme.KPKNTheme
 import dev.chrisbanes.haze.HazeState
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Assume.assumeTrue
 import org.junit.BeforeClass
@@ -73,8 +78,30 @@ private const val LINE_REGISTRADA = "Te sobró margen: la próxima puede subir 2
 /** Mitad del descanso sin historial (LR1h): cuánto queda y qué sigue. */
 private const val LINE_MITAD = "Quedan 2:00. Después, serie 2 de 4: 95 kg × 6."
 
+/** LV2: frases y acciones para probar brillo continuo, tramos de acción y personajes */
+private const val LINE_CON_ACCION = "Próxima serie: 95 kg × 6. Si quieres, sube a 97,5 kg."
+private val ACTION_SUBE = RelatorAssistAction(
+    kind = RelatorAssistActionKind.ADJUST_LOAD,
+    label = "sube a 97,5 kg",
+    span = "sube a 97,5 kg",
+    weightKg = 97.5,
+)
+
+private const val LINE_DOS_ACCIONES = "Hoy toca 95 kg × 6: pon 95 kg o cambia por prensa."
+private val ACTION_DOS_1 = RelatorAssistAction(
+    kind = RelatorAssistActionKind.APPLY_SUGGESTED_LOAD,
+    label = "pon 95 kg",
+    span = "pon 95 kg",
+    weightKg = 95.0,
+)
+private val ACTION_DOS_2 = RelatorAssistAction(
+    kind = RelatorAssistActionKind.OPEN_REPLACE,
+    label = "cambia por prensa",
+    span = "cambia por prensa",
+)
+
 /**
- * HOJA DE RENDER de la sesión en vivo con el relator (LR1g). Sin `KPKN_RENDER_DIR` se salta. Dibuja a 360 × 880 dp la
+ * HOJA DE RENDER de la sesión en vivo con el relator (LR1g / LV2). Sin `KPKN_RENDER_DIR` se salta. Dibuja a 360 × 880 dp la
  * serie con el relator en dos líneas y en una, y el descanso en página con el relator en la banda; mide en dp la banda,
  * el texto, la tarjeta, el cajón y el ✓, y lo deja en `medidas_<nombre>.txt` junto a los PNG.
  */
@@ -121,6 +148,12 @@ class LiveSessionRelatorRenderSheetTest {
     }
 
     @Test
+    fun serie_una_linea_130() {
+        onlyWhenAsked()
+        draw(1.3f, "serie_una_linea_130", Variant.SERIE_UNA_LINEA)
+    }
+
+    @Test
     fun descanso_pagina_100() {
         onlyWhenAsked()
         draw(1f, "descanso_pagina_100", Variant.DESCANSO_PAGINA)
@@ -163,10 +196,130 @@ class LiveSessionRelatorRenderSheetTest {
         drawOverlay(1f, "descanso_overlay_100")
     }
 
+    // --- Fotogramas LV2: brillo continuo, dos acciones, personajes trabajando, destello y momentos silenciosos ---
+
+    @Test
+    fun relator_shimmer_frame1_100() {
+        onlyWhenAsked()
+        draw(1f, "relator_shimmer_frame1_100", Variant.SERIE_DOS_LINEAS, LINE_CON_ACCION, actions = listOf(ACTION_SUBE), forceShimmerSweepProgress = 0.25f)
+    }
+
+    @Test
+    fun relator_shimmer_frame1_130() {
+        onlyWhenAsked()
+        draw(1.3f, "relator_shimmer_frame1_130", Variant.SERIE_DOS_LINEAS, LINE_CON_ACCION, actions = listOf(ACTION_SUBE), forceShimmerSweepProgress = 0.25f)
+    }
+
+    @Test
+    fun relator_shimmer_frame2_100() {
+        onlyWhenAsked()
+        draw(1f, "relator_shimmer_frame2_100", Variant.SERIE_DOS_LINEAS, LINE_CON_ACCION, actions = listOf(ACTION_SUBE), forceShimmerSweepProgress = 0.50f)
+    }
+
+    @Test
+    fun relator_shimmer_frame2_130() {
+        onlyWhenAsked()
+        draw(1.3f, "relator_shimmer_frame2_130", Variant.SERIE_DOS_LINEAS, LINE_CON_ACCION, actions = listOf(ACTION_SUBE), forceShimmerSweepProgress = 0.50f)
+    }
+
+    @Test
+    fun relator_dos_lineas_dos_acciones_100() {
+        onlyWhenAsked()
+        draw(1f, "relator_dos_lineas_dos_acciones_100", Variant.SERIE_DOS_LINEAS, LINE_DOS_ACCIONES, actions = listOf(ACTION_DOS_1, ACTION_DOS_2))
+    }
+
+    @Test
+    fun relator_dos_lineas_dos_acciones_130() {
+        onlyWhenAsked()
+        draw(1.3f, "relator_dos_lineas_dos_acciones_130", Variant.SERIE_DOS_LINEAS, LINE_DOS_ACCIONES, actions = listOf(ACTION_DOS_1, ACTION_DOS_2))
+    }
+
+    @Test
+    fun relator_trabajando_frame1_100() {
+        onlyWhenAsked()
+        draw(1f, "relator_trabajando_frame1_100", Variant.SERIE_DOS_LINEAS, LINE_CON_ACCION, actions = listOf(ACTION_SUBE), forceWorkingProgress = 0.25f)
+    }
+
+    @Test
+    fun relator_trabajando_frame1_130() {
+        onlyWhenAsked()
+        draw(1.3f, "relator_trabajando_frame1_130", Variant.SERIE_DOS_LINEAS, LINE_CON_ACCION, actions = listOf(ACTION_SUBE), forceWorkingProgress = 0.25f)
+    }
+
+    @Test
+    fun relator_trabajando_frame2_100() {
+        onlyWhenAsked()
+        draw(1f, "relator_trabajando_frame2_100", Variant.SERIE_DOS_LINEAS, LINE_CON_ACCION, actions = listOf(ACTION_SUBE), forceWorkingProgress = 0.65f)
+    }
+
+    @Test
+    fun relator_trabajando_frame2_130() {
+        onlyWhenAsked()
+        draw(1.3f, "relator_trabajando_frame2_130", Variant.SERIE_DOS_LINEAS, LINE_CON_ACCION, actions = listOf(ACTION_SUBE), forceWorkingProgress = 0.65f)
+    }
+
+    @Test
+    fun relator_hecho_destello_100() {
+        onlyWhenAsked()
+        draw(1f, "relator_hecho_destello_100", Variant.SERIE_DOS_LINEAS, LINE_CON_ACCION, actions = listOf(ACTION_SUBE), forceSparkProgress = 0.40f)
+    }
+
+    @Test
+    fun relator_hecho_destello_130() {
+        onlyWhenAsked()
+        draw(1.3f, "relator_hecho_destello_130", Variant.SERIE_DOS_LINEAS, LINE_CON_ACCION, actions = listOf(ACTION_SUBE), forceSparkProgress = 0.40f)
+    }
+
+    @Test
+    fun relator_anim_descanso_100() {
+        onlyWhenAsked()
+        draw(1f, "relator_anim_descanso_100", Variant.DESCANSO_PAGINA, "", silentAnimation = RelatorSilentAnimation.REST_BREATHING)
+    }
+
+    @Test
+    fun relator_anim_descanso_130() {
+        onlyWhenAsked()
+        draw(1.3f, "relator_anim_descanso_130", Variant.DESCANSO_PAGINA, "", silentAnimation = RelatorSilentAnimation.REST_BREATHING)
+    }
+
+    @Test
+    fun relator_anim_record_100() {
+        onlyWhenAsked()
+        draw(1f, "relator_anim_record_100", Variant.SERIE_DOS_LINEAS, "", silentAnimation = RelatorSilentAnimation.RECORD_CELEBRATION)
+    }
+
+    @Test
+    fun relator_anim_record_130() {
+        onlyWhenAsked()
+        draw(1.3f, "relator_anim_record_130", Variant.SERIE_DOS_LINEAS, "", silentAnimation = RelatorSilentAnimation.RECORD_CELEBRATION)
+    }
+
+    @Test
+    fun relator_anim_preparacion_100() {
+        onlyWhenAsked()
+        draw(1f, "relator_anim_preparacion_100", Variant.SERIE_DOS_LINEAS, "", silentAnimation = RelatorSilentAnimation.PREPARATION_SQUAT)
+    }
+
+    @Test
+    fun relator_anim_preparacion_130() {
+        onlyWhenAsked()
+        draw(1.3f, "relator_anim_preparacion_130", Variant.SERIE_DOS_LINEAS, "", silentAnimation = RelatorSilentAnimation.PREPARATION_SQUAT)
+    }
+
     /** Texto del relator de cada variante: la serie de una línea lleva la frase corta; el resto, la de dos líneas. */
     private fun textoPara(variant: Variant): String = if (variant == Variant.SERIE_UNA_LINEA) LINE_ONE else LINE_TWO
 
-    private fun draw(fontScale: Float, name: String, variant: Variant, text: String = textoPara(variant)) {
+    private fun draw(
+        fontScale: Float,
+        name: String,
+        variant: Variant,
+        text: String = textoPara(variant),
+        actions: List<RelatorAssistAction> = emptyList(),
+        silentAnimation: RelatorSilentAnimation = RelatorSilentAnimation.NONE,
+        forceShimmerSweepProgress: Float? = null,
+        forceWorkingProgress: Float? = null,
+        forceSparkProgress: Float? = null,
+    ) {
         rule.mainClock.autoAdvance = false
         rule.setContent {
             hostView = LocalView.current
@@ -180,20 +333,35 @@ class LiveSessionRelatorRenderSheetTest {
                                 .testTag(PHONE_TAG),
                         ) {
                             Column(Modifier.fillMaxSize()) {
-                                // Cabecera de maqueta: solo fija la altura de la fila de chips.
+                                // Cabecera de maqueta: fija la altura de la cabecera (CHIPS_BOTTOM_DP) y el límite inferior real de los chips (9 dp arriba del borde inferior, como WorkoutHeaderBar).
                                 Box(
                                     Modifier
                                         .fillMaxWidth()
-                                        .height(CHIPS_BOTTOM_DP.dp)
-                                        .testTag(CHIPS_TAG),
-                                )
+                                        .height(CHIPS_BOTTOM_DP.dp),
+                                ) {
+                                    Box(
+                                        Modifier
+                                            .fillMaxWidth()
+                                            .height((CHIPS_BOTTOM_DP - 9f).dp)
+                                            .testTag(CHIPS_TAG),
+                                    )
+                                }
                                 Box(
                                     Modifier
                                         .weight(1f)
                                         .fillMaxWidth()
                                         .padding(bottom = DOCK_DP.dp),
                                 ) {
-                                    RelatorBandAndCard(variant, fontScale, text)
+                                    RelatorBandAndCard(
+                                        variant = variant,
+                                        fontScale = fontScale,
+                                        text = text,
+                                        actions = actions,
+                                        silentAnimation = silentAnimation,
+                                        forceShimmerSweepProgress = forceShimmerSweepProgress,
+                                        forceWorkingProgress = forceWorkingProgress,
+                                        forceSparkProgress = forceSparkProgress,
+                                    )
                                 }
                             }
                             Box(
@@ -223,16 +391,24 @@ class LiveSessionRelatorRenderSheetTest {
             }
         }
         rule.waitForIdle()
-        val lineas = lineasDeTexto(text)
-        val medidas = medir(fontScale, variant, text) + "lineas_texto=$lineas"
+        val isSilent = silentAnimation != RelatorSilentAnimation.NONE
+        val lineas = if (isSilent) 0 else lineasDeTexto(text)
+        val medidas = medir(fontScale, variant, text, silentAnimation) + (if (!isSilent) listOf("lineas_texto=$lineas") else emptyList())
         File(System.getenv("KPKN_RENDER_DIR")!!).mkdirs()
         File(System.getenv("KPKN_RENDER_DIR")!!, "medidas_$name.txt").writeText(medidas.joinToString("\n"))
         save(PHONE_TAG, name)
-        val gapAbove = medidas.value("hueco_chips_texto")
-        val gapBelow = medidas.value("hueco_texto_tarjeta")
-        assertTrue("huecos $gapAbove / $gapBelow", kotlin.math.abs(gapAbove - gapBelow) <= 2f)
-        assertTrue("la tarjeta debe quedar 12 dp por encima del cajón", medidas.value("hueco_tarjeta_cajon") >= 12f)
-        assertTrue("el relator debe caber en dos líneas: $lineas", lineas in 1..2)
+        if (!isSilent) {
+            val gapAbove = medidas.value("hueco_chips_texto")
+            val gapBelow = medidas.value("hueco_texto_tarjeta")
+            assertTrue("huecos $gapAbove / $gapBelow", kotlin.math.abs(gapAbove - gapBelow) <= 2f)
+            assertTrue("la tarjeta debe quedar 12 dp por encima del cajón", medidas.value("hueco_tarjeta_cajon") >= 12f)
+            assertTrue("el relator debe caber en dos líneas: $lineas", lineas in 1..2)
+        } else {
+            val h = medidas.value("altura_banda")
+            val expectedHeight = WorkoutUiTokens.liveRelatorBandHeight(Density(3f, fontScale)).value
+            assertEquals(expectedHeight, h, 0.5f)
+            assertTrue("la tarjeta debe quedar 12 dp por encima del cajón", medidas.value("hueco_tarjeta_cajon") >= 12f)
+        }
     }
 
     /** Líneas que ocupa el texto del relator en pantalla (LR1h): la banda admite dos. Sin texto encontrado, -1. */
@@ -244,19 +420,34 @@ class LiveSessionRelatorRenderSheetTest {
     }
 
     @Composable
-    private fun BoxScope.RelatorBandAndCard(variant: Variant, fontScale: Float, text: String) {
+    private fun BoxScope.RelatorBandAndCard(
+        variant: Variant,
+        fontScale: Float,
+        text: String,
+        actions: List<RelatorAssistAction> = emptyList(),
+        silentAnimation: RelatorSilentAnimation = RelatorSilentAnimation.NONE,
+        forceShimmerSweepProgress: Float? = null,
+        forceWorkingProgress: Float? = null,
+        forceSparkProgress: Float? = null,
+    ) {
         val density = LocalDensity.current
         val bandHeight = WorkoutUiTokens.liveRelatorBandHeight(density)
-        // Como en la pantalla (WorkoutV2Body): la línea recibe la altura de la banda por su propio modifier.
+        // Como en la pantalla (WorkoutV2Body): la línea recibe la altura de la banda por su propio modifier y el offset de centrado (-4.5 dp).
         WorkoutLiveRelatorLine(
             text = text,
-            phaseKey = "lr1g",
+            phaseKey = "lv2",
             modifier = Modifier
                 .align(Alignment.TopCenter)
                 .fillMaxWidth()
                 .height(bandHeight)
+                .offset(y = (-4.5).dp)
                 .testTag(BAND_TAG),
+            actions = actions,
             accentColor = ACCENT,
+            silentAnimation = silentAnimation,
+            forceShimmerSweepProgress = forceShimmerSweepProgress,
+            forceWorkingProgress = forceWorkingProgress,
+            forceSparkProgress = forceSparkProgress,
         )
         // Altura visual de la tarjeta de la serie medida en LR1a (388 dp al 100 %, 418 dp al 130 %).
         val visual = if (fontScale > 1f) 418f else 388f
@@ -367,17 +558,36 @@ class LiveSessionRelatorRenderSheetTest {
     }
 
     /** Medidas en dp de la maqueta, con el texto medido en su caja de línea (sin contar el aire del Box). */
-    private fun medir(fontScale: Float, variant: Variant, text: String): List<String> {
+    private fun medir(
+        fontScale: Float,
+        variant: Variant,
+        text: String,
+        silentAnimation: RelatorSilentAnimation = RelatorSilentAnimation.NONE,
+    ): List<String> {
         val density = 3f
         fun dp(rect: Rect): Pair<Float, Float> = rect.top / density to rect.bottom / density
         val chips = dp(rule.onNodeWithTag(CHIPS_TAG).fetchSemanticsNode().boundsInRoot)
         val band = dp(rule.onNodeWithTag(BAND_TAG).fetchSemanticsNode().boundsInRoot)
-        val texto = rule.onNode(hasText(text), useUnmergedTree = true)
-            .fetchSemanticsNode().boundsInRoot
-        val textoDp = dp(texto)
         val card = dp(rule.onNodeWithTag(CARD_TAG).fetchSemanticsNode().boundsInRoot)
         val dock = dp(rule.onNodeWithTag(DOCK_TAG).fetchSemanticsNode().boundsInRoot)
         val fab = rule.onNodeWithTag(FAB_TAG).fetchSemanticsNode().boundsInRoot
+
+        if (silentAnimation != RelatorSilentAnimation.NONE) {
+            val bandHeight = band.second - band.first
+            return listOf(
+                "escala_letra=$fontScale variante=$variant",
+                "chips_inferior=${chips.second}",
+                "banda_superior=${band.first} banda_inferior=${band.second}",
+                "altura_banda=$bandHeight",
+                "tarjeta_superior=${card.first} tarjeta_inferior=${card.second}",
+                "cajon_superior=${dock.first}",
+                "hueco_tarjeta_cajon=${dock.first - card.second}",
+            )
+        }
+
+        val texto = rule.onNode(hasText(text), useUnmergedTree = true)
+            .fetchSemanticsNode().boundsInRoot
+        val textoDp = dp(texto)
         return listOf(
             "escala_letra=$fontScale variante=$variant",
             "chips_inferior=${chips.second}",
