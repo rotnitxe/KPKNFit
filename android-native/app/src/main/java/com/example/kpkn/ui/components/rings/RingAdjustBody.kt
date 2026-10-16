@@ -54,6 +54,10 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.ProgressBarRangeInfo
+import androidx.compose.ui.semantics.progressBarRangeInfo
+import androidx.compose.ui.semantics.setProgress
+import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.onClick
@@ -162,6 +166,8 @@ private fun smoothClosedPath(points: FloatArray): Path {
  * salen en una fila de chips bajo el cuerpo y se eligen igual. Los [highlighted] (los de hoy) llevan un borde fino; [initialSelected] o
  * el primero de ellos es la zona elegida al empezar.
  *
+ * [onValueCommit] confirma al soltar y permite que el wizard mantenga el arrastre como vista previa local. [estimated] identifica
+ * los valores estimados. [onResetSelected] conserva el reinicio individual además del global.
  * Con [onReset] sale «Restablecer» (no hace nada por sí solo: cada pantalla sabe qué es lo automático). Con [boxedSelection] en falso la
  * fila de la zona elegida va sin caja, para las páginas que no llevan tarjetas (el wizard). Valores en la escala visible 0–100.
  */
@@ -177,6 +183,12 @@ fun MuscleBodyAdjust(
     bodyHeight: Dp = 360.dp,
     boxedSelection: Boolean = true,
     onReset: (() -> Unit)? = null,
+    onValueCommit: ((muscleId: String, value: Int) -> Unit)? = null,
+    onResetSelected: ((muscleId: String) -> Unit)? = null,
+    edited: Set<String> = emptySet(),
+    resetEnabled: Boolean = true,
+    estimated: Set<String> = emptySet(),
+    onInteractionCancel: (() -> Unit)? = null,
 ) {
     val reduced = wizardReducedMotion()
     val foreground = rememberRingAdjustForeground()
@@ -201,6 +213,7 @@ fun MuscleBodyAdjust(
         }
         out
     }
+    val estimatedKeys = estimated.map { ringAdjustBodyPillarOf(it) ?: it }.toSet()
     val highlightedKeys: Set<String> = remember(highlighted) { highlighted.map { ringAdjustBodyPillarOf(it) ?: it }.toSet() }
 
     fun defaultKeyFor(view: RingAdjustBodyView): String {
@@ -246,6 +259,7 @@ fun MuscleBodyAdjust(
 
     val currentValue by rememberUpdatedState(selectedValue ?: RingAdjustMax)
     val currentOnChange by rememberUpdatedState(onValueChange)
+    val currentOnCommit by rememberUpdatedState(onValueCommit)
     val emit: (Int) -> Unit = { next ->
         val clamped = ringAdjustClamp(next)
         if (clamped != selectedValue) {
@@ -254,6 +268,13 @@ fun MuscleBodyAdjust(
             }
             currentOnChange(selectedId, clamped)
         }
+    }
+
+    val commit: (Int) -> Unit = { currentOnCommit?.invoke(selectedId, ringAdjustClamp(it)) }
+    fun step(delta: Int) {
+        val next = ringAdjustStep(selectedValue ?: RingAdjustMax, delta)
+        emit(next)
+        commit(next)
     }
 
     fun selectZone(key: String) {
@@ -317,6 +338,7 @@ fun MuscleBodyAdjust(
             rotation = turn.value,
             onSelect = ::selectZone,
             onVisible = { visible = it },
+            estimatedKeys = estimatedKeys,
         )
 
         if (highlightedKeys.isNotEmpty()) {
@@ -354,15 +376,29 @@ fun MuscleBodyAdjust(
             before = selectedBefore,
             boxed = boxedSelection,
             currentValue = { currentValue },
-            onMinus = { emit(ringAdjustStep(selectedValue ?: RingAdjustMax, -RingAdjustMuscleStep)) },
-            onPlus = { emit(ringAdjustStep(selectedValue ?: RingAdjustMax, RingAdjustMuscleStep)) },
+            onMinus = { step(-RingAdjustMuscleStep) },
+            onPlus = { step(RingAdjustMuscleStep) },
             onFine = { emit(it) },
+            onCommit = commit,
+            estimated = selectedKey in estimatedKeys,
+            onCancel = { onInteractionCancel?.invoke() },
         )
 
+        if (onResetSelected != null) {
+            KpknCompactPill(
+                text = "Restablecer este músculo",
+                onClick = { onResetSelected(selectedId) },
+                filled = false,
+                height = 40.dp,
+                enabled = selectedId in edited,
+                modifier = Modifier.testTag("ring-adjust-muscle-reset-$selectedId"),
+            )
+        }
         if (onReset != null) {
             KpknCompactPill(
                 text = "Restablecer",
                 onClick = onReset,
+                enabled = resetEnabled,
                 filled = false,
                 height = 40.dp,
                 modifier = Modifier.testTag("ring-adjust-reset"),
@@ -385,6 +421,7 @@ private fun BodyCanvas(
     rotation: Float,
     onSelect: (String) -> Unit,
     onVisible: (Boolean) -> Unit,
+    estimatedKeys: Set<String>,
 ) {
     val bodyWidth = bodyHeight * (RingAdjustBodyWidth / RingAdjustBodyHeight)
     val zones = RingAdjustBodyData.zonesOf(view)
@@ -443,7 +480,11 @@ private fun BodyCanvas(
                     .size(width, height)
                     .testTag("ring-adjust-zone-${zone.pillar}")
                     .semantics {
-                        contentDescription = if (value == null) "$label, sin datos" else "$label ${ringAdjustPercent(value)}"
+                        contentDescription = when {
+                            value == null -> "$label, sin datos"
+                            zone.pillar in estimatedKeys -> "$label, estimación ${ringAdjustPercent(value)}"
+                            else -> "$label ${ringAdjustPercent(value)}"
+                        }
                         role = Role.Button
                         selected = isSelected
                         onClick(label = null) {
@@ -519,9 +560,14 @@ private fun SelectionRow(
     onMinus: () -> Unit,
     onPlus: () -> Unit,
     onFine: (Int) -> Unit,
+    onCommit: (Int) -> Unit,
+    estimated: Boolean,
+    onCancel: () -> Unit,
 ) {
     val localDensity = LocalDensity.current
     val currentOnFine by rememberUpdatedState(onFine)
+    val currentOnCommit by rememberUpdatedState(onCommit)
+    val currentOnCancel by rememberUpdatedState(onCancel)
     val latestCurrent by rememberUpdatedState(currentValue)
     val stacked = localDensity.fontScale > StackedFontScale
     val shape = RoundedCornerShape(22.dp)
@@ -530,19 +576,35 @@ private fun SelectionRow(
             .fillMaxWidth()
             .then(if (boxed) Modifier.background(KpknSurface.inset, shape).padding(horizontal = 12.dp, vertical = 8.dp) else Modifier)
             .testTag("ring-adjust-selection")
+            .semantics {
+                contentDescription = "Ajuste de $label"
+                stateDescription = if (value == null) "Sin datos" else if (estimated) "Estimación ${ringAdjustPercent(value)}" else ringAdjustPercent(value)
+                progressBarRangeInfo = ProgressBarRangeInfo((value ?: RingAdjustMax).toFloat(), 0f..100f, 99)
+                setProgress { target ->
+                    val next = ringAdjustClamp(target.roundToInt())
+                    currentOnFine(next)
+                    currentOnCommit(next)
+                    true
+                }
+            }
             .pointerInput(Unit) {
                 var startValue = 0
                 var dragged = 0f
+                var lastValue = latestCurrent()
                 val pxPerPoint = RingAdjustFineDragDpPerPoint * localDensity.density
                 detectHorizontalDragGestures(
                     onDragStart = {
                         startValue = latestCurrent()
                         dragged = 0f
+                        lastValue = startValue
                     },
+                    onDragEnd = { currentOnCommit(lastValue) },
+                    onDragCancel = { currentOnCancel() },
                     onHorizontalDrag = { change, amount ->
                         change.consume()
                         dragged += amount
-                        currentOnFine(ringAdjustFineValue(startValue, dragged, pxPerPoint))
+                        lastValue = ringAdjustFineValue(startValue, dragged, pxPerPoint)
+                        currentOnFine(lastValue)
                     },
                 )
             },
@@ -564,7 +626,7 @@ private fun SelectionRow(
                     modifier = Modifier.testTag("ring-adjust-selection-name"),
                 )
                 Text(
-                    text = if (value == null) "Sin datos" else "${ringAdjustPercent(value)} · ${ringAdjustMuscleTone(value).word}",
+                    text = if (value == null) "Sin datos" else "${if (estimated) "Estimación " else ""}${ringAdjustPercent(value)} · ${ringAdjustMuscleTone(value).word}",
                     style = KpknType.caption,
                     color = WizardColors.textMuted,
                     modifier = Modifier.testTag("ring-adjust-selection-detail"),

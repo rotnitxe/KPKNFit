@@ -287,6 +287,9 @@ fun KpknTowerRings(
 ) {
     val reduced = wizardReducedMotion()
     val animated = animate && !reduced
+    val foreground = rememberRingAdjustForeground()
+    var inViewport by remember { mutableStateOf(false) }
+    val loopsActive = animated && foreground && inViewport
     // Tras la primera composición los anillos pasan de `from` (o 0) a `values`; `revealing` da el escalón de entrada.
     var started by remember { mutableStateOf(!animated) }
     var revealing by remember { mutableStateOf(animated) }
@@ -309,7 +312,7 @@ fun KpknTowerRings(
     }
 
     val gleamTransition = rememberInfiniteTransition(label = "kpknRingGleam")
-    val gleamRaw = if (style == TowerRingsStyle.LUMINOUS && animated && forcedGleamProgress == null) {
+    val gleamRaw = if (style == TowerRingsStyle.LUMINOUS && loopsActive && forcedGleamProgress == null) {
         gleamTransition.animateFloat(
             initialValue = 0f,
             targetValue = 6000f,
@@ -337,6 +340,7 @@ fun KpknTowerRings(
     val description = towerRingsDescription(values, visible)
     Box(
         (if (onRingTap != null) modifier.heightIn(min = MinTouchHeight) else modifier)
+            .ringAdjustVisible { inViewport = it }
             .semantics { contentDescription = description },
     ) {
         Canvas(Modifier.fillMaxSize()) {

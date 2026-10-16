@@ -43,6 +43,7 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.DrawScope
@@ -146,6 +147,8 @@ data class RingAdjustMuscles(
  * difiera de [before]. Para TalkBack el anillo es un deslizador (`setProgress`). Cada cambio llega a [onValueChange] ya recortado a
  * 0–100. Con «reducir movimiento» el líquido va quieto; sin la app en primer plano no corre ningún bucle.
  *
+ * [valueKnown] evita mostrar porcentajes sin datos y [estimated] identifica estimaciones. [beforeKnown] oculta una referencia
+ * desconocida. [onValueChange] da la vista previa; [onValueCommit], si existe, confirma solo al soltar, pulsar −/+ o usar TalkBack.
  * Valores en la escala VISIBLE: la Columna invertida es asunto de quien guarda, no de este componente.
  */
 @Composable
@@ -157,6 +160,13 @@ fun EnergyColumnAdjust(
     modifier: Modifier = Modifier,
     size: Dp = RingAdjustDialSize,
     onReset: (() -> Unit)? = null,
+    valueKnown: Boolean = true,
+    estimated: Boolean = false,
+    beforeKnown: Boolean = true,
+    resetEnabled: Boolean = value != before,
+    onValueCommit: ((Int) -> Unit)? = null,
+    dialTag: String = "ring-adjust-ring",
+    onInteractionCancel: (() -> Unit)? = null,
 ) {
     require(channel != RingChannel.MUSCULOS) { "EnergyColumnAdjust solo ajusta Energía y Columna; los músculos van en MuscleBodyAdjust" }
     val shown = ringAdjustClamp(value)
@@ -165,7 +175,7 @@ fun EnergyColumnAdjust(
     val reduced = wizardReducedMotion()
     val foreground = rememberRingAdjustForeground()
     var visible by remember { mutableStateOf(false) }
-    val clock = rememberRingAdjustClock(running = foreground && visible && !reduced)
+    val clock = rememberRingAdjustClock(running = foreground && visible && !reduced && valueKnown)
     var dragging by remember { mutableStateOf(false) }
     val animated by animateFloatAsState(
         targetValue = shown.toFloat(),
@@ -181,14 +191,21 @@ fun EnergyColumnAdjust(
     val lastEmitted = remember { IntArray(1) }
     SideEffect { lastEmitted[0] = shown }
     val currentOnValueChange by rememberUpdatedState(onValueChange)
+    val currentOnValueCommit by rememberUpdatedState(onValueCommit)
     val emit: (Int) -> Unit = { next ->
         val clamped = ringAdjustClamp(next)
         val previous = lastEmitted[0]
-        if (clamped != previous) {
+        if (clamped != previous || !valueKnown) {
             if (ringAdjustCrossedTick(previous, clamped)) haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
             lastEmitted[0] = clamped
             currentOnValueChange(clamped)
         }
+    }
+    val commit: (Int) -> Unit = { currentOnValueCommit?.invoke(ringAdjustClamp(it)) }
+    fun step(delta: Int) {
+        val next = ringAdjustStep(lastEmitted[0], delta)
+        emit(next)
+        commit(next)
     }
     val name = ringAdjustChannelName(channel)
 
@@ -207,6 +224,12 @@ fun EnergyColumnAdjust(
                 onValue = emit,
                 onDragging = { dragging = it },
                 onVisible = { visible = it },
+                onCommit = commit,
+                valueKnown = valueKnown,
+                estimated = estimated,
+                beforeKnown = beforeKnown,
+                dialTag = dialTag,
+                onCancel = { onInteractionCancel?.invoke() },
             )
             Text(
                 text = "Toca o arrastra por el anillo",
@@ -221,11 +244,11 @@ fun EnergyColumnAdjust(
                 KpknIconButton(
                     icon = KpknLineIcons.Minus,
                     contentDescription = "Bajar $RingAdjustDialStep",
-                    onClick = { emit(ringAdjustStep(shown, -RingAdjustDialStep)) },
+                    onClick = { step(-RingAdjustDialStep) },
                     modifier = Modifier.testTag("ring-adjust-minus"),
                 )
                 Text(
-                    text = ringAdjustWord(channel, shown),
+                    text = if (valueKnown) ringAdjustWord(channel, shown) else "Sin calibrar",
                     style = KpknType.body,
                     color = WizardColors.textMuted,
                     textAlign = TextAlign.Center,
@@ -236,7 +259,7 @@ fun EnergyColumnAdjust(
                 KpknIconButton(
                     icon = KpknLineIcons.Plus,
                     contentDescription = "Subir $RingAdjustDialStep",
-                    onClick = { emit(ringAdjustStep(shown, RingAdjustDialStep)) },
+                    onClick = { step(RingAdjustDialStep) },
                     modifier = Modifier.testTag("ring-adjust-plus"),
                 )
             }
@@ -246,7 +269,7 @@ fun EnergyColumnAdjust(
                     onClick = onReset,
                     filled = false,
                     height = 40.dp,
-                    enabled = shown != start,
+                    enabled = resetEnabled,
                     modifier = Modifier.testTag("ring-adjust-reset"),
                 )
             }
@@ -268,20 +291,32 @@ private fun RingAdjustDial(
     onValue: (Int) -> Unit,
     onDragging: (Boolean) -> Unit,
     onVisible: (Boolean) -> Unit,
+    onCommit: (Int) -> Unit,
+    valueKnown: Boolean,
+    estimated: Boolean,
+    beforeKnown: Boolean,
+    dialTag: String,
+    onCancel: () -> Unit,
 ) {
     val discPath = remember { Path() }
     val waveBack = remember { Path() }
     val waveFront = remember { Path() }
     val currentOnValue by rememberUpdatedState(onValue)
     val currentOnDragging by rememberUpdatedState(onDragging)
+    val currentOnCommit by rememberUpdatedState(onCommit)
+    val currentOnCancel by rememberUpdatedState(onCancel)
     Box(
         modifier = Modifier
             .size(dial)
-            .testTag("ring-adjust-ring")
+            .testTag(dialTag)
             .ringAdjustVisible(onVisible)
             .semantics {
                 contentDescription = "Ajuste de $name"
-                stateDescription = ringAdjustPercent(value)
+                stateDescription = when {
+                    !valueKnown -> "Sin calibrar"
+                    estimated -> "Estimación ${ringAdjustPercent(value)}"
+                    else -> ringAdjustPercent(value)
+                }
                 progressBarRangeInfo = ProgressBarRangeInfo(
                     current = value.toFloat(),
                     range = 0f..RingAdjustMax.toFloat(),
@@ -289,12 +324,15 @@ private fun RingAdjustDial(
                 )
                 setProgress { target ->
                     currentOnValue(target.roundToInt())
+                    currentOnCommit(target.roundToInt())
                     true
                 }
             }
             .ringDialGestures(
                 onValue = { currentOnValue(it) },
                 onDragging = { currentOnDragging(it) },
+                onCommit = { currentOnCommit(it) },
+                onCancel = { currentOnCancel() },
             ),
         contentAlignment = Alignment.Center,
     ) {
@@ -308,6 +346,8 @@ private fun RingAdjustDial(
                 disc = discPath,
                 waveBack = waveBack,
                 waveFront = waveFront,
+                valueKnown = valueKnown,
+                beforeKnown = beforeKnown,
             )
         }
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -318,14 +358,19 @@ private fun RingAdjustDial(
                 maxLines = 1,
             )
             Text(
-                text = ringAdjustPercent(value),
+                text = if (valueKnown) ringAdjustPercent(value) else "—",
                 style = KpknType.metricXL.copy(fontSize = 46.sp, lineHeight = 50.sp, shadow = CenterTextShadow),
                 color = WizardColors.text,
                 maxLines = 1,
                 modifier = Modifier.testTag("ring-adjust-value"),
             )
             Text(
-                text = "antes ${ringAdjustPercent(before)}",
+                text = when {
+                    !valueKnown -> "Sin calibrar"
+                    estimated -> "Estimación"
+                    beforeKnown -> "antes ${ringAdjustPercent(before)}"
+                    else -> "Ajustado por ti"
+                },
                 style = KpknType.caption.copy(shadow = CenterTextShadow),
                 color = WizardColors.textMuted,
                 maxLines = 1,
@@ -343,6 +388,8 @@ private fun RingAdjustDial(
 private fun Modifier.ringDialGestures(
     onValue: (Int) -> Unit,
     onDragging: (Boolean) -> Unit,
+    onCommit: (Int) -> Unit,
+    onCancel: () -> Unit,
 ): Modifier = this.pointerInput(Unit) {
     awaitEachGesture {
         val down = awaitFirstDown(requireUnconsumed = false)
@@ -352,12 +399,17 @@ private fun Modifier.ringDialGestures(
         if (!ringAdjustIsOnBand(first.x, first.y, half)) return@awaitEachGesture
         var last = ringAdjustValueAt(first.x, first.y)
         onDragging(true)
+        var committed = false
         try {
             onValue(last)
             while (true) {
                 val event = awaitPointerEvent()
                 val change = event.changes.firstOrNull { it.id == down.id } ?: break
-                if (!change.pressed) break
+                if (!change.pressed) {
+                    committed = true
+                    onCommit(last)
+                    break
+                }
                 if (change.positionChanged()) {
                     val offset = change.position - center
                     // Muy cerca del centro el ángulo no significa nada: se ignora hasta que el dedo vuelva a la banda.
@@ -370,6 +422,7 @@ private fun Modifier.ringDialGestures(
             }
         } finally {
             onDragging(false)
+            if (!committed) onCancel()
         }
     }
 }
@@ -383,6 +436,8 @@ private fun DrawScope.drawRingAdjustDial(
     disc: Path,
     waveBack: Path,
     waveFront: Path,
+    valueKnown: Boolean,
+    beforeKnown: Boolean,
 ) {
     val side = size.minDimension
     val unit = side / 280f
@@ -397,7 +452,7 @@ private fun DrawScope.drawRingAdjustDial(
     drawCircle(DiscColor, radius = discRadius, center = center)
     disc.reset()
     disc.addOval(Rect(center, discRadius))
-    clipPath(disc) {
+    if (valueKnown) clipPath(disc) {
         val amplitude = 5f * unit
         val wavelength = 120f * unit
         // La superficie sube del fondo (0 %) a por encima del borde (100 %) para que el disco quede lleno de verdad.
@@ -412,8 +467,12 @@ private fun DrawScope.drawRingAdjustDial(
     }
 
     // La pista y el arco: halo suave detrás, degradado y extremos redondeados.
-    drawCircle(TrackColor, radius = trackRadius, center = center, style = Stroke(width = stroke))
-    if (fraction > 0f) {
+    drawCircle(
+        TrackColor, radius = trackRadius, center = center,
+        style = Stroke(width = if (valueKnown) stroke else 2f * unit,
+            pathEffect = if (valueKnown) null else UnknownDialDash),
+    )
+    if (valueKnown && fraction > 0f) {
         val topLeft = Offset(center.x - trackRadius, center.y - trackRadius)
         val arcSize = Size(trackRadius * 2f, trackRadius * 2f)
         val sweep = 360f * fraction
@@ -440,6 +499,7 @@ private fun DrawScope.drawRingAdjustDial(
     }
 
     // La marca tenue del «antes»: una raya corta que cruza el anillo en su ángulo.
+    if (!beforeKnown) return
     val angle = Math.toRadians(ringAdjustAngleDegrees(before).toDouble())
     val sinA = sin(angle).toFloat()
     val cosA = cos(angle).toFloat()
@@ -453,6 +513,8 @@ private fun DrawScope.drawRingAdjustDial(
 }
 
 /** Capas del halo del arco: cuánto más ancha que el arco y con qué opacidad (todas del color claro del canal). */
+private val UnknownDialDash = PathEffect.dashPathEffect(floatArrayOf(8f, 8f))
+
 private val Halo = listOf(20f to 0.05f, 13f to 0.07f, 7f to 0.10f, 3f to 0.14f)
 
 /** Una ola: el borde superior es una senoide de [amplitude] y [wavelength] desplazada [phase]; por debajo, relleno hasta [bottom]. */
