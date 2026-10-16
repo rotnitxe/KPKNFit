@@ -1,6 +1,7 @@
 package com.example.kpkn.screens.workout
 
 import androidx.activity.ComponentActivity
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.*
@@ -17,9 +18,11 @@ import com.example.kpkn.data.models.*
 import com.example.kpkn.domain.auge.SessionIntensityResult
 import com.example.kpkn.screens.onboarding.design.LocalWizardReducedMotion
 import com.example.kpkn.ui.components.*
+import com.example.kpkn.ui.design.KpknSurface
 import com.example.kpkn.ui.theme.KPKNTheme
 import com.example.kpkn.ui.tour.TourSeenStore
 import dev.chrisbanes.haze.HazeState
+import dev.chrisbanes.haze.hazeSource
 import org.junit.Assert.*
 import org.junit.Rule
 import org.junit.Test
@@ -54,12 +57,16 @@ class LiveFinishSummaryDeviceTest {
                         override fun seenIds()=emptySet<String>()
                         override fun markSeen(tourId:String)=Unit
                     }) }
+                    val haze=remember { HazeState() }
                     CompositionLocalProvider(LocalKpknOverlayHost provides host) {
-                        Box(Modifier.fillMaxSize()) {
+                        Box(Modifier.fillMaxSize().background(KpknSurface.canvas)) {
+                            // Como el Scaffold de WorkoutScreen: fondo oscuro y fuente Haze detrás de las hojas.
+                            // KPKNTheme define colores, pero no pinta el fondo de la ComponentActivity de prueba.
+                            Box(Modifier.fillMaxSize().hazeSource(haze).background(KpknSurface.canvas))
                             if(open) FinishWorkoutSheet(
                                 session=Session("session","Pierna"),completedSets=mapOf("lift_0" to set),completedExercises=listOf(exercise),durationMinutes=40,
                                 sessionIntensityResult=SessionIntensityResult(8.0,8.0,"Alta",false,false,1.0,1.0),postSessionPreview=preview,
-                                hazeState=remember { HazeState() },voiceFinalNotes=spokenNotes,voiceFinalConfirmTriggered=confirm,
+                                hazeState=haze,voiceFinalNotes=spokenNotes,voiceFinalConfirmTriggered=confirm,
                                 onConfirm={ notes,_,feedback,_ -> saves += notes to feedback },onDismiss={open=false},onNotesDraft={draft=it},onShare={},onSummaryReady={})
                             KpknOverlayHostContent(host)
                         }
