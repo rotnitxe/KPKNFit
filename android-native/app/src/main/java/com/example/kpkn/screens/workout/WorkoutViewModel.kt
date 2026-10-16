@@ -3175,7 +3175,6 @@ class WorkoutViewModel(
     }
 
     fun removeSetFromExercise(exerciseId: String, setIndex: Int) {
-        pushGodModeUndo("Eliminar serie")
         val state = _uiState.value
         val exercise = visibleExercises(state).firstOrNull { it.id == exerciseId } ?: return
         if (exercise.sets.size <= 1) return
@@ -3184,6 +3183,8 @@ class WorkoutViewModel(
             WorkoutStructuralEditor.removeSetFromExercise(modeSession, exerciseId, setIndex)
         }
         if (updatedSession == base) return
+        // El «Deshacer» solo se guarda si de verdad cambia algo (LV4, 10.2): antes se guardaba al entrar, aunque no hubiera nada que quitar.
+        pushGodModeUndo("Eliminar serie")
         applySessionMutation(updatedSession, preferredExerciseId = exerciseId, persistToProgram = false)
         persistOngoingState()
         updateUiState {
@@ -3200,7 +3201,6 @@ class WorkoutViewModel(
     }
 
     fun removeExerciseFromSession(exerciseId: String) {
-        pushGodModeUndo("Eliminar ejercicio")
         val state = _uiState.value
         val visible = visibleExercises(state)
         if (visible.size <= 1) return
@@ -3214,6 +3214,9 @@ class WorkoutViewModel(
             WorkoutStructuralEditor.removeExerciseById(modeSession, exerciseId)
         }
         if (updatedSession == base) return
+        // El «Deshacer» solo se guarda si de verdad se elimina algo (LV4, 10.2): con un solo ejercicio a la vista no se puede eliminar y
+        // antes se guardaba igual una entrada que no deshacía nada.
+        pushGodModeUndo("Eliminar ejercicio")
         applySessionMutation(updatedSession, preferredExerciseId = preferredId, persistToProgram = false)
         persistOngoingState()
         updateUiState {
@@ -3231,7 +3234,6 @@ class WorkoutViewModel(
     fun removeExercisesFromSession(exerciseIds: List<String>) {
         val ids = exerciseIds.distinct()
         if (ids.isEmpty()) return
-        pushGodModeUndo("Eliminar ejercicios")
         val state = _uiState.value
         val visible = visibleExercises(state)
         if (visible.size <= ids.size) return
@@ -3242,6 +3244,7 @@ class WorkoutViewModel(
             WorkoutStructuralEditor.removeExercisesByIds(modeSession, ids)
         }
         if (updatedSession == base) return
+        pushGodModeUndo("Eliminar ejercicios")
         applySessionMutation(updatedSession, preferredExerciseId = neighborId, persistToProgram = false)
         persistOngoingState()
         updateUiState {
@@ -3628,12 +3631,16 @@ class WorkoutViewModel(
     ) = structuralPersistence.applyReplacementDecision(exerciseId, replacement, scope)
 
     fun skipExercise(exerciseId: String) {
+        // Solo se omite lo que está a la vista (LV4, 10.2): un ejercicio ya omitido o que no existe no tiene nada que omitir ni que
+        // deshacer, y antes dejaba igual su entrada de «Deshacer».
+        if (visibleExercises(_uiState.value).none { it.id == exerciseId }) return
         pushGodModeUndo("Omitir ejercicio")
         skipExerciseInternal(exerciseId)
     }
 
     fun skipExercises(exerciseIds: List<String>) {
-        val ids = exerciseIds.distinct()
+        val visibleIds = visibleExercises(_uiState.value).map { it.id }.toSet()
+        val ids = exerciseIds.distinct().filter { it in visibleIds }
         if (ids.isEmpty()) return
         pushGodModeUndo(if (ids.size == 1) "Omitir ejercicio" else "Omitir ejercicios")
         ids.forEach(::skipExerciseInternal)
@@ -3664,8 +3671,10 @@ class WorkoutViewModel(
     fun skipSet() = stepNavigator.skipSet()
 
     fun omitSet(exerciseId: String, setIdx: Int) {
-        pushGodModeUndo("Omitir serie")
         val key = WorkoutStepRules.omittedSetKey(exerciseId, setIdx)
+        // Una serie ya omitida no se omite dos veces ni deja otra entrada de «Deshacer» (LV4, 10.2).
+        if (key in _uiState.value.omittedSetKeys) return
+        pushGodModeUndo("Omitir serie")
         updateUiState { state ->
             if (key in state.omittedSetKeys) return@updateUiState state
             val nextState = state.copy(omittedSetKeys = state.omittedSetKeys + key)
@@ -4200,7 +4209,6 @@ class WorkoutViewModel(
     }
 
     private fun convertRemainingIncompleteToDropsets(): Boolean {
-        pushGodModeUndo("Dropsets en lo que queda")
         val state = _uiState.value
         val base = state.session ?: return false
         val visible = visibleExercises(state)
@@ -4232,13 +4240,13 @@ class WorkoutViewModel(
             next
         }
         if (updatedSession == base) return false
+        pushGodModeUndo("Dropsets en lo que queda")
         applySessionMutation(updatedSession, persistToProgram = false)
         persistOngoingState()
         return true
     }
 
     private fun halveRemainingIncompleteSets(): Boolean {
-        pushGodModeUndo("Reducir series a la mitad")
         val state = _uiState.value
         val visible = visibleExercises(state)
         val currentIdx = state.currentExerciseIdx
@@ -4258,6 +4266,7 @@ class WorkoutViewModel(
             }
         }
         if (extraOmits.isEmpty()) return false
+        pushGodModeUndo("Reducir series a la mitad")
         updateUiState { it.copy(omittedSetKeys = it.omittedSetKeys + extraOmits) }
         persistOngoingState()
         return true
