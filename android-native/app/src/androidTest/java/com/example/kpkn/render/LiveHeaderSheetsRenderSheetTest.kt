@@ -82,7 +82,7 @@ class LiveHeaderSheetsRenderSheetTest {
             val footer = rule.onNode(hasText(label) and hasClickAction()).assertIsDisplayed()
             val bounds = footer.getUnclippedBoundsInRoot()
             val tolerance = 0.5.dp
-            assertTrue("$scene/$scale: $label must have a visible area", bounds.width > 0.dp && bounds.height > 0.dp)
+            assertTrue("$scene/$scale: $label must have a visible area", bounds.right > bounds.left && bounds.bottom > bounds.top)
             assertTrue("$scene/$scale: full $label bounds $bounds must fit inside canvas $canvasBounds",
                 bounds.left >= canvasBounds.left - tolerance && bounds.top >= canvasBounds.top - tolerance &&
                     bounds.right <= canvasBounds.right + tolerance && bounds.bottom <= canvasBounds.bottom + tolerance)
