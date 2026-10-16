@@ -136,6 +136,7 @@ import com.example.kpkn.screens.workout.components.ExerciseOptionsIconThumb
 import com.example.kpkn.screens.workout.components.ExerciseOptionsSheet
 import com.example.kpkn.screens.workout.components.ExerciseOptionsStrengthContent
 import com.example.kpkn.screens.workout.components.ExerciseOptionsSupersetContent
+import com.example.kpkn.screens.workout.components.LiveReorderSheet
 import com.example.kpkn.screens.workout.components.SupersetMemberOption
 import com.example.kpkn.ui.components.KpknGlassDialog
 import com.example.kpkn.ui.design.KpknDangerPill
@@ -223,55 +224,6 @@ internal class WorkoutStructureSheetsState {
 @Composable
 internal fun rememberWorkoutStructureSheetsState(): WorkoutStructureSheetsState =
     remember { WorkoutStructureSheetsState() }
-
-/**
- * Opción del cajón de opciones (KPKN_UI_V2 §1 y §4): un módulo tocable con el icono en un círculo `inset` de 36 dp y el texto en
- * Inter SemiBold 15 debajo. Va en la rejilla de dos columnas de antes; [danger] pinta icono y texto en `danger` («Omitir»).
- */
-@Composable
-private fun ContextActionButton(
-    label: String,
-    icon: ImageVector,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-    danger: Boolean = false,
-) {
-    val ink = if (danger) WizardColors.danger else WizardColors.text
-    KpknModule(
-        modifier = modifier,
-        onClick = onClick,
-        onClickLabel = label,
-        contentPadding = PaddingValues(horizontal = 14.dp, vertical = 12.dp),
-    ) {
-        Box(
-            modifier = Modifier
-                .size(36.dp)
-                .clip(CircleShape)
-                .background(KpknSurface.inset),
-            contentAlignment = Alignment.Center,
-        ) {
-            Icon(imageVector = icon, contentDescription = null, modifier = Modifier.size(20.dp), tint = ink)
-        }
-        Spacer(Modifier.height(10.dp))
-        Text(
-            text = label,
-            style = KpknType.bodyStrong,
-            color = ink,
-            maxLines = 2,
-            overflow = TextOverflow.Ellipsis,
-        )
-    }
-}
-
-/** Fila de dos opciones de la rejilla del cajón: las dos tienen la misma altura, la de la más alta. */
-@Composable
-private fun OptionsRow(content: @Composable RowScope.() -> Unit) {
-    Row(
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-        modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Min),
-        content = content,
-    )
-}
 
 /**
  * Live-workout catalog host. Creation is integrated into the search flow, so
@@ -791,6 +743,13 @@ internal fun WorkoutStructureSheetsHost(
         originalExercisePartMap = originalExercisePartMap,
         onApplyReorder = { ids, partMap, isGlobal -> viewModel.applyReorderAndPromptPersistence(ids, partMap, isGlobal) },
         session = modeSession,
+        completedSets = uiState.completedSets,
+        omittedSetKeys = uiState.omittedSetKeys,
+        onCreateSuperset = { ids -> viewModel.createLiveSuperset(ids) },
+        onSkipExercises = { ids -> viewModel.skipExercises(ids) },
+        hazeState = bottomHazeState,
+        undoStack = uiState.godModeUndoStack,
+        onUndo = { index -> viewModel.revertGodModeChange(index) },
     )
 
     WorkoutSupersetCreatorSheet(
@@ -1183,40 +1142,6 @@ internal fun WorkoutStructureSheetsHost(
 }
 
 /**
- * Filas del cajón de opciones de un ejercicio de fuerza (D1): Historial, Etiquetas, Editar, Reemplazar, Agregar otro, Reordenar,
- * Crear superserie y Omitir, en el mismo orden y con las mismas filas de dos acciones. Las acciones llegan por lambdas; el anfitrión
- * decide qué hace cada una.
- */
-@Composable
-internal fun ExerciseOptionsStrengthRows(
-    onHistory: () -> Unit,
-    onTags: () -> Unit,
-    onEdit: () -> Unit,
-    onReplace: () -> Unit,
-    onAddOther: () -> Unit,
-    onReorder: () -> Unit,
-    onCreateSuperset: () -> Unit,
-    onSkip: () -> Unit,
-) {
-    OptionsRow {
-        ContextActionButton("Historial", KpknLineIcons.History, onHistory, Modifier.weight(1f).fillMaxHeight())
-        ContextActionButton("Etiquetas", KpknLineIcons.Tag, onTags, Modifier.weight(1f).fillMaxHeight())
-    }
-    OptionsRow {
-        ContextActionButton("Editar", KpknLineIcons.Edit, onEdit, Modifier.weight(1f).fillMaxHeight())
-        ContextActionButton("Reemplazar", KpknLineIcons.Swap, onReplace, Modifier.weight(1f).fillMaxHeight())
-    }
-    OptionsRow {
-        ContextActionButton("Agregar otro", KpknLineIcons.Plus, onAddOther, Modifier.weight(1f).fillMaxHeight())
-        ContextActionButton("Reordenar", KpknLineIcons.Reorder, onReorder, Modifier.weight(1f).fillMaxHeight())
-    }
-    OptionsRow {
-        ContextActionButton("Crear superserie", KpknLineIcons.Link, onCreateSuperset, Modifier.weight(1f).fillMaxHeight())
-        ContextActionButton("Omitir", KpknLineIcons.Close, onSkip, Modifier.weight(1f).fillMaxHeight(), danger = true)
-    }
-}
-
-/**
  * 1RM estimado con el PR que se escribe en el cajón de editar (LR1d). Pura: la prueba es WorkoutEditSeriesDecimalTest.
  */
 internal fun localPrEstimated1RM(weightText: String, repsText: String, trainingMode: TrainingMode): Double? {
@@ -1230,29 +1155,11 @@ internal fun localPrEstimated1RM(weightText: String, repsText: String, trainingM
     }
 }
 
-/** Filas del cajón de opciones de un ejercicio de cardio (D1): resumen, «Editar cardio», «Reemplazar» y «Omitir». */
-@Composable
-internal fun ExerciseOptionsCardioRows(
-    summary: String,
-    onEdit: () -> Unit,
-    onReplace: () -> Unit,
-    onSkip: () -> Unit,
-) {
-    Text(
-        summary,
-        style = KpknType.caption,
-        color = WizardColors.textMuted,
-    )
-    OptionsRow {
-        ContextActionButton("Editar cardio", KpknLineIcons.Edit, onEdit, Modifier.weight(1f).fillMaxHeight())
-        ContextActionButton("Reemplazar", KpknLineIcons.Swap, onReplace, Modifier.weight(1f).fillMaxHeight())
-    }
-    ContextActionButton("Omitir", KpknLineIcons.Close, onSkip, Modifier.fillMaxWidth(), danger = true)
-}
-
 /**
- * Diálogos de reordenar ejercicios y de cambio de grupo (D13 y D15). Antes vivían dentro de [WorkoutStructureSheetsHost]: la
- * conducta no cambia; se separan para poder pintarlos con datos de ejemplo.
+ * La hoja «Orden de la sesión» (LV11, A3; prototipo C3) y el aviso de cambio de grupo (D13 y D15). La hoja arrastra filas, deja fijo lo hecho
+ * y lo que está en curso y trae las acciones por lotes del antiguo modo dios; «Listo» aplica con [onApplyReorder] (y, si algún ejercicio
+ * cambia de grupo, pide confirmación antes). Antes vivía dentro de [WorkoutStructureSheetsHost]; se separa para poder pintarla con datos de
+ * ejemplo.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -1263,6 +1170,14 @@ internal fun WorkoutReorderSheets(
     onApplyReorder: (orderedIds: List<String>, partMap: Map<String, String>, isGlobal: Boolean) -> Unit,
     /** La sesión de hoy: con ella, el aviso de «Cambio de grupo» sale de [LiveSessionReorder], la misma regla que aplica el orden. */
     session: Session? = null,
+    /** Lo registrado y lo omitido: con ello la hoja sabe qué está hecho o en curso (fijo) y qué se puede mover. */
+    completedSets: Map<String, CompletedSet> = emptyMap(),
+    omittedSetKeys: Set<String> = emptySet(),
+    onCreateSuperset: (List<String>) -> Unit = {},
+    onSkipExercises: (List<String>) -> Unit = {},
+    hazeState: HazeState? = null,
+    undoStack: List<GodModeUndoSnapshot> = emptyList(),
+    onUndo: (stackIndex: Int) -> Unit = {},
 ) {
     fun closeReorderSheet() {
         state.showReorderSheet = false
@@ -1274,18 +1189,6 @@ internal fun WorkoutReorderSheets(
 
     if (state.showReorderSheet) {
         val reorderExerciseLookup = remember(visibleExercises) { visibleExercises.associateBy { it.id } }
-
-        // Una superserie es una unidad (LV4, 10.1): al llegar al borde de su bloque, la fila salta el bloque entero.
-        fun moveReorderItem(fromIndex: Int, delta: Int) {
-            if (state.reorderSheetExerciseIds.isEmpty() || fromIndex !in state.reorderSheetExerciseIds.indices) return
-            val moved = LiveSessionReorder.moveUnit(
-                order = state.reorderSheetExerciseIds,
-                groupOf = { id -> reorderExerciseLookup[id]?.supersetGroupRefOrLegacyId() },
-                fromIndex = fromIndex,
-                delta = delta,
-            )
-            if (moved != state.reorderSheetExerciseIds) state.reorderSheetExerciseIds = moved
-        }
 
         fun detectCrossBoundaryMoves(orderedIds: List<String>, partMap: Map<String, String>): List<String> {
             if (orderedIds.size < 2) return emptyList()
@@ -1325,102 +1228,39 @@ internal fun WorkoutReorderSheets(
             return messages
         }
 
-        KpknAlertDialog(
-            onDismissRequest = { closeReorderSheet() },
-            title = { Text("Reordenar ejercicios", style = KpknType.dialogTitle, color = WizardColors.text) },
-            text = {
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text(
-                        "Cambia el orden de los ejercicios de hoy.",
-                        style = KpknType.body,
-                        color = WizardColors.text,
-                    )
-                    if (state.reorderSheetExerciseIds.isEmpty()) {
-                        Text(
-                            "No hay ejercicios para mover.",
-                            style = KpknType.body,
-                            color = WizardColors.textMuted,
-                        )
+        LiveReorderSheet(
+            order = state.reorderSheetExerciseIds,
+            exercises = reorderExerciseLookup,
+            completedSets = completedSets,
+            omittedSetKeys = omittedSetKeys,
+            supersetRounds = { groupId -> session?.allSupersetGroups()?.firstOrNull { it.id == groupId }?.rounds },
+            displayName = ::displayWorkoutExerciseName,
+            onOrderChange = { next -> state.reorderSheetExerciseIds = next },
+            onDismiss = { closeReorderSheet() },
+            onDone = {
+                val ordered = state.reorderSheetExerciseIds.filter { it in reorderExerciseLookup }
+                val unchanged = ordered == visibleExercises.map { it.id }
+                if (unchanged || ordered.size < 2) {
+                    closeReorderSheet()
+                } else {
+                    val crossBoundaryMessages = detectCrossBoundaryMoves(ordered, originalExercisePartMap)
+                    if (crossBoundaryMessages.isEmpty()) {
+                        onApplyReorder(ordered, originalExercisePartMap, false)
+                        closeReorderSheet()
                     } else {
-                        LazyColumn(modifier = Modifier.heightIn(max = 400.dp)) {
-                            itemsIndexed(state.reorderSheetExerciseIds, key = { _, exId -> exId }) { index, exId ->
-                                val ex = reorderExerciseLookup[exId]
-                                val partName = originalExercisePartMap[exId]
-                                if (ex != null) {
-                                    KpknModule(
-                                        modifier = Modifier.fillMaxWidth().padding(vertical = 2.dp),
-                                        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp),
-                                    ) {
-                                        Row(
-                                            modifier = Modifier.fillMaxWidth(),
-                                            verticalAlignment = Alignment.CenterVertically,
-                                        ) {
-                                            Text(
-                                                "${index + 1}",
-                                                modifier = Modifier.width(24.dp),
-                                                style = KpknType.metricM,
-                                                color = WizardColors.text,
-                                            )
-                                            Spacer(Modifier.width(8.dp))
-                                            Column(modifier = Modifier.weight(1f)) {
-                                                Text(
-                                                    ex.name,
-                                                    style = KpknType.bodyStrong,
-                                                    color = WizardColors.text,
-                                                    maxLines = 2,
-                                                    overflow = TextOverflow.Ellipsis,
-                                                )
-                                                if (partName != null) {
-                                                    Text(
-                                                        partName,
-                                                        style = KpknType.caption,
-                                                        color = WizardColors.textMuted,
-                                                    )
-                                                }
-                                            }
-                                            // Una flecha apagada no hace nada: moveReorderItem ya ignora el movimiento fuera de la lista.
-                                            KpknIconButton(
-                                                icon = KpknLineIcons.ChevronUp,
-                                                contentDescription = "Subir",
-                                                onClick = { moveReorderItem(index, -1) },
-                                                modifier = Modifier.graphicsLayer { alpha = if (index > 0) 1f else 0.38f },
-                                            )
-                                            KpknIconButton(
-                                                icon = KpknLineIcons.ChevronDown,
-                                                contentDescription = "Bajar",
-                                                onClick = { moveReorderItem(index, 1) },
-                                                modifier = Modifier.graphicsLayer {
-                                                    alpha = if (index < state.reorderSheetExerciseIds.lastIndex) 1f else 0.38f
-                                                },
-                                            )
-                                        }
-                                    }
-                                }
-                            }
-                        }
+                        state.reorderCrossBoundaryMessages = crossBoundaryMessages
+                        state.pendingGlobalReorderIds = ordered
+                        state.showReorderCrossBoundaryConfirm = true
                     }
                 }
             },
-            confirmButton = {
-                KpknPrimaryPill(
-                    text = "Guardar",
-                    onClick = {
-                        val crossBoundaryMessages = detectCrossBoundaryMoves(state.reorderSheetExerciseIds, originalExercisePartMap)
-                        if (crossBoundaryMessages.isEmpty()) {
-                            onApplyReorder(state.reorderSheetExerciseIds, originalExercisePartMap, false)
-                            closeReorderSheet()
-                        } else {
-                            state.reorderCrossBoundaryMessages = crossBoundaryMessages
-                            state.pendingGlobalReorderIds = state.reorderSheetExerciseIds
-                            state.showReorderCrossBoundaryConfirm = true
-                        }
-                    },
-                    enabled = state.reorderSheetExerciseIds.size >= 2,
-                )
-            },
-            dismissButton = {
-                KpknTextAction(text = "Cancelar", onClick = { closeReorderSheet() })
-            },
+            onCreateSuperset = onCreateSuperset,
+            onSkip = onSkipExercises,
+            onRemove = { ids -> state.pendingRemoveExerciseIds = ids },
+            onUltraFast = { ids -> state.ultraFastTargetIds = ids },
+            hazeState = hazeState,
+            undoStack = undoStack,
+            onUndo = onUndo,
         )
     }
 
