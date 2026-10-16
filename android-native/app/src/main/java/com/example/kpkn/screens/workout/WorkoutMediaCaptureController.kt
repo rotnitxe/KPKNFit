@@ -496,29 +496,20 @@ class WorkoutMediaCaptureController(
     suspend fun effortLabelsFor(items: List<WorkoutMedia>): Map<String, String> =
         repository.effortLabelsForMedia(items) + items.mapNotNull { item -> effortLabelFor(item)?.let { item.id to it } }.toMap()
 
-    /**
-     * Borrado con «Deshacer» (álbum, LV8): el elemento deja de verse pero NO se toca nada hasta que caduca el aviso o se sale del álbum; entonces
-     * `repository.delete` quita la fila y los archivos. [timerScope] es el ámbito de la pantalla (el aviso se cancela con ella), pero el borrado
-     * definitivo corre en el ámbito del controlador, que sobrevive a la pantalla: salir del álbum no lo corta. [onCommitted] avisa al acabar.
-     */
+    /** El aviso pertenece al álbum; una eliminación aceptada pertenece al repositorio y sobrevive al ViewModel. */
     fun newDeferredDelete(timerScope: CoroutineScope, onCommitted: () -> Unit = {}): DeferredMediaDelete {
         lateinit var deferred: DeferredMediaDelete
         deferred = DeferredMediaDelete(
             scope = timerScope,
             commit = { items ->
-                scope.launch {
-                    try {
-                        items.forEach { repository.delete(it.id) }
-                        refreshSessionMedia()
-                    } catch (cancelled: CancellationException) {
-                        deferred.restoreFailed(items)
-                        throw cancelled
-                    } catch (_: Exception) {
+                repository.deleteAlbumMediaAsync(items).invokeOnCompletion { error ->
+                    if (error != null) {
                         deferred.restoreFailed(items)
                         _captureError.value = "No se pudo eliminar el medio."
-                    } finally {
-                        onCommitted()
                     }
+                    refreshSessionMedia()
+                    // Solo la actualización visual se cancela si ya se cerró la sesión.
+                    scope.launch { onCommitted() }
                 }
             },
         )
