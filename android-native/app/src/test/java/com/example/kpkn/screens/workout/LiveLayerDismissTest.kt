@@ -293,7 +293,7 @@ class LiveLayerDismissTest {
     @Test
     fun theFinishSummaryClosesAndLeavesTheSessionUntouched() {
         open = true
-        assertClosesWithBackAndWithATapOutside("Resumen final", "RESUMEN DE ENTRENAMIENTO") { SummarySheet() }
+        assertClosesWithBackAndWithATapOutside("Resumen final", "SESIÓN TERMINADA") { SummarySheet() }
     }
 
     @Composable
@@ -336,12 +336,14 @@ class LiveLayerDismissTest {
         var kept: String? = null
         show { if (open) SummarySheet(onNotesDraft = { kept = it }) }
 
-        // La nota rápida es el último campo de texto del resumen.
+        rule.onNodeWithText("Notas").performClick()
+        rule.waitForIdle()
+        // La nota rápida pertenece a la sección Notas y conserva el borrador.
         rule.onAllNodes(hasSetTextAction()).onLast().performTextReplacement("Me sentí fuerte")
         pressBack()
 
         assertEquals("la nota pasa a la sesión en vez de perderse", "Me sentí fuerte", kept)
-        assertFalse("y el resumen se cierra", hasText("RESUMEN DE ENTRENAMIENTO"))
+        assertFalse("y el resumen se cierra", hasText("SESIÓN TERMINADA"))
     }
 
     @Test

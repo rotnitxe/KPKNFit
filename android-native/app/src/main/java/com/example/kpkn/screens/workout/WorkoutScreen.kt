@@ -1727,7 +1727,12 @@ fun WorkoutScreen(
                         ?: step.exerciseName
                 }
             }
+            // Snapshot anterior al guardado: nunca comparamos la sesión consigo misma tras persistir.
+            val finishPresentation = remember(session.id, postSessionPreview.finishOperationId) { viewModel.finishPresentationContext() }
+            var preparedStory by remember(session.id) { mutableStateOf<Pair<WorkoutStoryData, WorkoutStoryOptions>?>(null) }
             FinishWorkoutSheet(
+            onStoryPrepared = { data, options -> preparedStory = data to options },
+            presentation = finishPresentation,
             session = session,
             completedSets = uiState.completedSets,
             completedExercises = completedExercisesForSummary,
@@ -1752,15 +1757,6 @@ fun WorkoutScreen(
             onConfirm = { notes, fatigue, closingFeedback, shareToStory ->
                 RepairBenchmarkTrace.workoutExitRequested("finish")
                 val share = shareToStory
-                val sessionName = session.name
-                val completedExercises = completedExercisesForSummary
-                val durationMinutes = duration
-                val totalVolume = sessionTonnage(completedExercises)
-                val totalSets = logicalSetCountFromCompleted(completedExercises)
-                val previousSnapshot = viewModel.latestCompletedSessionSnapshot()
-                val currentBestEstimated1RM = uiState.completedSets.values
-                    .filter { it.weight > 0 && it.reps > 0 }
-                    .maxOfOrNull { calculateHybrid1RM(it.weight, it.reps) }
                 viewModel.finishWorkout(
                     notes = notes,
                     fatigueLevel = fatigue,
@@ -1802,20 +1798,8 @@ fun WorkoutScreen(
                         } else {
                             augeViewModel.refresh()
                         }
-                        if (share) {
-                            viewModel.shareWorkoutToStory(
-                                context = context,
-                                sessionName = sessionName,
-                                completedExercises = completedExercises,
-                                durationMinutes = durationMinutes,
-                                totalVolume = totalVolume,
-                                totalSets = totalSets,
-                                previousTotalSets = previousSnapshot?.totalSets,
-                                previousVolume = previousSnapshot?.totalVolume,
-                                previousDurationMinutes = previousSnapshot?.durationMinutes,
-                                previousBestEstimated1RM = previousSnapshot?.bestEstimated1RM,
-                                currentBestEstimated1RM = currentBestEstimated1RM,
-                            )
+                        if (share) preparedStory?.let { (data, options) ->
+                            WorkoutShareService.shareAfterFinish(context, data, options)
                         }
                     },
                 )
@@ -1823,30 +1807,7 @@ fun WorkoutScreen(
             onDismiss = { viewModel.hideFinish() },
             // Cerrar el resumen sin guardar no tira la nota escrita: pasa a la sesión y vuelve al reabrirlo (LV4, 15).
             onNotesDraft = { viewModel.setSessionNotes(it) },
-            onShare = {
-                val sessionName = session.name
-                val completedExercises = completedExercisesForSummary
-                val durationMinutes = duration
-                val totalVolume = sessionTonnage(completedExercises)
-                val totalSets = logicalSetCountFromCompleted(completedExercises)
-                val previousSnapshot = viewModel.latestCompletedSessionSnapshot()
-                val currentBestEstimated1RM = uiState.completedSets.values
-                    .filter { it.weight > 0 && it.reps > 0 }
-                    .maxOfOrNull { calculateHybrid1RM(it.weight, it.reps) }
-                viewModel.shareWorkoutToStory(
-                    context = context,
-                    sessionName = sessionName,
-                    completedExercises = completedExercises,
-                    durationMinutes = durationMinutes,
-                    totalVolume = totalVolume,
-                    totalSets = totalSets,
-                    previousTotalSets = previousSnapshot?.totalSets,
-                    previousVolume = previousSnapshot?.totalVolume,
-                    previousDurationMinutes = previousSnapshot?.durationMinutes,
-                    previousBestEstimated1RM = previousSnapshot?.bestEstimated1RM,
-                    currentBestEstimated1RM = currentBestEstimated1RM,
-                )
-            },
+            onShare = {},
             )
         } else {
             BackHandler { viewModel.hideFinish() }
