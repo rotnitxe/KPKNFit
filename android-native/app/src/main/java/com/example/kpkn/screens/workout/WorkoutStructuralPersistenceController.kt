@@ -88,22 +88,7 @@ class WorkoutStructuralPersistenceController(
                         if (targetSession == null) return@let
                         val updatedSession = withModeSession(targetSession, state.activeMode) { modeSession ->
                             modeSession.replaceExerciseById(change.exerciseId) { ex ->
-                                val lastSet = ex.sets.lastOrNull()
-                                val newSet = ExerciseSet(
-                                    id = UUID.randomUUID().toString(),
-                                    targetReps = lastSet?.targetReps,
-                                    targetRepsRange = lastSet?.targetRepsRange,
-                                    targetRPE = lastSet?.targetRPE,
-                                    targetRIR = lastSet?.targetRIR,
-                                    weight = lastSet?.weight,
-                                    loadModeV2 = ex.sets.firstOrNull()?.loadModeV2 ?: LoadModeV2.LOAD,
-                                    unitModeV2 = lastSet?.unitModeV2,
-                                    intensityMode = lastSet?.intensityMode,
-                                    targetDuration = lastSet?.targetDuration,
-                                    targetPercentageRM = lastSet?.targetPercentageRM,
-                                    isAmrap = false,
-                                )
-                                WorkoutEditingRules.normalizeLiveEditedExercise(ex.copy(sets = ex.sets + newSet))
+                                WorkoutEditingRules.normalizeLiveEditedExercise(ex.copy(sets = ex.sets + plannedSetAfterLast(ex)))
                             }
                         }
                         persist(updatedSession)
@@ -295,22 +280,7 @@ class WorkoutStructuralPersistenceController(
                     ?: modeSession.allExercises().firstOrNull { it.id == change.exerciseId }
                     ?: return@withModeSession modeSession
                 modeSession.replaceExerciseById(targetExercise.id) { exercise ->
-                    val lastSet = exercise.sets.lastOrNull()
-                    val newSet = ExerciseSet(
-                        id = UUID.randomUUID().toString(),
-                        targetReps = lastSet?.targetReps,
-                        targetRepsRange = lastSet?.targetRepsRange,
-                        targetRPE = lastSet?.targetRPE,
-                        targetRIR = lastSet?.targetRIR,
-                        weight = lastSet?.weight,
-                        loadModeV2 = exercise.sets.firstOrNull()?.loadModeV2 ?: LoadModeV2.LOAD,
-                        unitModeV2 = lastSet?.unitModeV2,
-                        intensityMode = lastSet?.intensityMode,
-                        targetDuration = lastSet?.targetDuration,
-                        targetPercentageRM = lastSet?.targetPercentageRM,
-                        isAmrap = false,
-                    )
-                    WorkoutEditingRules.normalizeLiveEditedExercise(exercise.copy(sets = exercise.sets + newSet))
+                    WorkoutEditingRules.normalizeLiveEditedExercise(exercise.copy(sets = exercise.sets + plannedSetAfterLast(exercise)))
                 }
             }
             is PendingStructuralChange.AddExercise -> {
