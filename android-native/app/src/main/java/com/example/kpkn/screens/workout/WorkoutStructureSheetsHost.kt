@@ -291,6 +291,21 @@ internal fun WorkoutStructureSheetsHost(
 ) {
     val useFullPageCatalog = onOpenCatalog != null
 
+    // «Reemplazar» llegue por donde llegue (opciones, relator…) cae en el selector que toca: un ejercicio de cardio no se reemplaza por
+    // uno del catálogo de fuerza (LV5). Va antes que el efecto del catálogo para que éste ya no vea el pedido.
+    LaunchedEffect(state.showReplaceExercisePicker, state.replaceTargetExerciseId) {
+        val targetId = state.replaceTargetExerciseId ?: return@LaunchedEffect
+        if (!state.showReplaceExercisePicker) return@LaunchedEffect
+        val target = modeSession.allExercises().firstOrNull { it.id == targetId }
+        if (replacePickerFor(target) == ReplacePicker.CARDIO) {
+            state.showReplaceExercisePicker = false
+            state.replaceTargetExerciseId = null
+            state.replaceSearchQuery = ""
+            state.replaceCardioTargetExerciseId = targetId
+            state.showReplaceCardioPicker = true
+        }
+    }
+
     LaunchedEffect(
         useFullPageCatalog,
         state.addCatalogToSupersetGroupId,
