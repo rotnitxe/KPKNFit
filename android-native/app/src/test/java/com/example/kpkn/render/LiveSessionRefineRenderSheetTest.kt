@@ -36,11 +36,13 @@ import com.example.kpkn.data.models.LoadModeV2
 import com.example.kpkn.data.models.TrainingMode
 import com.example.kpkn.data.models.UnitModeV2
 import com.example.kpkn.screens.onboarding.design.WizardColors
+import com.example.kpkn.screens.workout.LivePagerPeekNavArrows
 import com.example.kpkn.screens.workout.PendingRestSuggestion
 import com.example.kpkn.screens.workout.RecordActionHolder
 import com.example.kpkn.screens.workout.WeightSuggestion
 import com.example.kpkn.screens.workout.WorkoutHeaderBar
 import com.example.kpkn.screens.workout.WorkoutRestModalState
+import com.example.kpkn.screens.workout.WorkoutSetDraft
 import com.example.kpkn.screens.workout.components.RestTimerOverlay
 import com.example.kpkn.screens.workout.components.SetInputCardV2
 import com.example.kpkn.screens.workout.components.WorkoutRecordFab
@@ -182,6 +184,42 @@ class LiveSessionRefineRenderSheetTest {
     }
 
     @Test
+    fun serieCargaVacia100() {
+        onlyWhenAsked()
+        drawSerie(withSuggestion = true, fontScale = 1f, name = "serie_carga_vacia_100", writtenWeightText = null)
+    }
+
+    @Test
+    fun serieCargaVacia130() {
+        onlyWhenAsked()
+        drawSerie(withSuggestion = true, fontScale = 1.3f, name = "serie_carga_vacia_130", writtenWeightText = null)
+    }
+
+    @Test
+    fun serieCargaEscrita100() {
+        onlyWhenAsked()
+        drawSerie(withSuggestion = true, fontScale = 1f, name = "serie_carga_escrita_100", writtenWeightText = "102,5")
+    }
+
+    @Test
+    fun serieCargaEscrita130() {
+        onlyWhenAsked()
+        drawSerie(withSuggestion = true, fontScale = 1.3f, name = "serie_carga_escrita_130", writtenWeightText = "102,5")
+    }
+
+    @Test
+    fun serieConFlechas100() {
+        onlyWhenAsked()
+        drawSerie(withSuggestion = true, fontScale = 1f, name = "serie_con_flechas_100", writtenWeightText = "102,5", showArrows = true)
+    }
+
+    @Test
+    fun serieConFlechas130() {
+        onlyWhenAsked()
+        drawSerie(withSuggestion = true, fontScale = 1.3f, name = "serie_con_flechas_130", writtenWeightText = "102,5", showArrows = true)
+    }
+
+    @Test
     fun descansoNormal100() {
         onlyWhenAsked()
         drawDescanso(withFeedback = false, fontScale = 1f, name = "descanso_normal_100")
@@ -207,7 +245,7 @@ class LiveSessionRefineRenderSheetTest {
 
     /**
      * Geometría de la serie a 360 × 880 dp (LR1a2): la tarjeta a la altura del teléfono y el ✓ real encima, en su sitio. Mide el borde
-     * derecho del texto «Ver ejercicio/Fotos» frente al borde izquierdo del ✓, y la base de la tarjeta frente al cajón plegado (652 dp).
+     * derecho del texto «Modo visual» frente al borde izquierdo del ✓, y la base de la tarjeta frente al cajón plegado (652 dp).
      * Escribe el PNG de la pantalla y falla si el texto pisa el ✓ o si la tarjeta queda a menos de 12 dp del cajón.
      */
     @Test
@@ -264,15 +302,17 @@ class LiveSessionRefineRenderSheetTest {
         }
         rule.waitForIdle()
         // El texto va sin fusionar con la píldora (que es clicable) para medir el propio Text.
-        val textoDerecho = rule.onNodeWithText("Ver ejercicio/Fotos", useUnmergedTree = true)
+        val textoDerecho = rule.onNodeWithText("Modo visual", useUnmergedTree = true)
             .fetchSemanticsNode().boundsInRoot.right / DENSITY
         val checkIzquierdo = rule.onAllNodesWithContentDescription("Registrar serie").onFirst()
             .fetchSemanticsNode().boundsInRoot.left / DENSITY
-        val baseTarjeta = rule.onNodeWithTag(CARD_TAG).fetchSemanticsNode().boundsInRoot.bottom / DENSITY
-        println("LR1a2 geometria 360 dp: texto derecho $textoDerecho; check izquierdo $checkIzquierdo; base tarjeta $baseTarjeta")
+        val boundsTarjeta = rule.onNodeWithTag(CARD_TAG).fetchSemanticsNode().boundsInRoot
+        val alturaTarjeta = boundsTarjeta.height / DENSITY
+        val baseTarjeta = boundsTarjeta.bottom / DENSITY
+        println("LV3 geometria 360 dp: texto derecho $textoDerecho; check izquierdo $checkIzquierdo; altura tarjeta $alturaTarjeta dp; base tarjeta $baseTarjeta dp")
         save(CHECK_TAG, "serie_check_360_100")
         assertTrue(
-            "el texto «Ver ejercicio/Fotos» acaba en $textoDerecho dp y el ✓ empieza en $checkIzquierdo dp",
+            "el texto «Modo visual» acaba en $textoDerecho dp y el ✓ empieza en $checkIzquierdo dp",
             textoDerecho < checkIzquierdo,
         )
         assertTrue(
@@ -394,7 +434,13 @@ class LiveSessionRefineRenderSheetTest {
         save(HEADER_TAG, name)
     }
 
-    private fun drawSerie(withSuggestion: Boolean, fontScale: Float, name: String) {
+    private fun drawSerie(
+        withSuggestion: Boolean,
+        fontScale: Float,
+        name: String,
+        writtenWeightText: String? = null,
+        showArrows: Boolean = false,
+    ) {
         rule.setContent {
             hostView = LocalView.current
             // 3 px por dp: pantalla de 360 dp.
@@ -412,22 +458,33 @@ class LiveSessionRefineRenderSheetTest {
                         ) {
                             Box(Modifier.width(272.dp)) {
                                 SetInputCardV2(
-                                exercise = SAMPLE_EXERCISE,
-                                setIndex = 0,
-                                currentSet = SAMPLE_SET,
-                                ghostSet = null,
-                                weightSuggestion = if (withSuggestion) {
-                                    WeightSuggestion(suggestedWeight = 98.0, reason = "Ajuste por RIR")
-                                } else {
-                                    null
-                                },
-                                previousSessionFirstSetWeight = 122.5,
-                                sessionAccentColor = Color(0xFFF49A6E),
-                                initialBodyWeight = 80.0,
-                                recordActionHolder = RecordActionHolder(),
-                                onShowHistory = {},
-                                onSetBodyWeight = {},
-                                onRecordV2 = { _, _, _, _, _, _, _, _, _, _ -> },
+                                    exercise = SAMPLE_EXERCISE,
+                                    setIndex = 0,
+                                    currentSet = SAMPLE_SET,
+                                    ghostSet = null,
+                                    weightSuggestion = if (withSuggestion) {
+                                        WeightSuggestion(suggestedWeight = 98.0, reason = "Ajuste por RIR")
+                                    } else {
+                                        null
+                                    },
+                                    previousSessionFirstSetWeight = 122.5,
+                                    sessionAccentColor = Color(0xFFF49A6E),
+                                    initialBodyWeight = 80.0,
+                                    recordActionHolder = RecordActionHolder(),
+                                    initialDraft = writtenWeightText?.let { WorkoutSetDraft(weightText = it) },
+                                    onShowHistory = {},
+                                    onSetBodyWeight = {},
+                                    onRecordV2 = { _, _, _, _, _, _, _, _, _, _ -> },
+                                )
+                            }
+                            if (showArrows) {
+                                LivePagerPeekNavArrows(
+                                    settledPage = 1,
+                                    totalPages = 3,
+                                    peekWidth = 44.dp,
+                                    onPrevious = {},
+                                    onNext = {},
+                                    modifier = Modifier.matchParentSize(),
                                 )
                             }
                         }
