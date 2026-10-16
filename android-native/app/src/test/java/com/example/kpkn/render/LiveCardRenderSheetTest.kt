@@ -4,6 +4,7 @@ import android.graphics.Bitmap
 import android.view.View
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.MaterialTheme
@@ -15,7 +16,10 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
+import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.performClick
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import com.example.kpkn.data.models.Exercise
@@ -29,6 +33,7 @@ import com.example.kpkn.data.models.UnitModeV2
 import com.example.kpkn.screens.workout.RecordActionHolder
 import com.example.kpkn.screens.workout.WeightSuggestion
 import com.example.kpkn.screens.workout.WorkoutSetDraft
+import com.example.kpkn.screens.workout.components.SetCardTechniqueBack
 import com.example.kpkn.screens.workout.components.SetInputCardV2
 import com.example.kpkn.ui.theme.KPKNTheme
 import org.junit.Assume.assumeTrue
@@ -44,6 +49,10 @@ import java.io.FileOutputStream
 
 private const val CARD_SHEET_TAG = "lv8-card-sheet"
 private const val CARD_DENSITY = 3f
+
+/** Alto en dp de la tarjeta de la serie (anverso, «Avanzado» y «Modo visual»), medido por `SetExecutionCardEffortTest` al 100 % y al 130 % de letra. */
+private const val CARD_HEIGHT_100 = 384.67f
+private const val CARD_HEIGHT_130 = 401.67f
 
 /**
  * HOJA DE RENDER de la tarjeta de la serie de la ronda LV8: el slider de esfuerzo con fuego (en el mínimo, en el plan y en el fallo, con
@@ -198,6 +207,65 @@ class LiveCardRenderSheetTest {
     fun tarjetaConRom130() {
         onlyWhenAsked()
         dibujar(serieRir, fontScale = 1.3f, nombre = "tarjeta_rom_130", conRom = true, borrador = WorkoutSetDraft(intensityText = "2"))
+    }
+
+    // ── Fase B: «Avanzado» (A2) a la altura de la tarjeta de la serie ───────────────────────────────────
+
+    @Test fun avanzadoDrop1_100() { onlyWhenAsked(); dibujarAvanzado(1f, "avanzado_drop1_100") }
+    @Test fun avanzadoDrop1_130() { onlyWhenAsked(); dibujarAvanzado(1.3f, "avanzado_drop1_130") }
+    @Test fun avanzadoRestPause100() { onlyWhenAsked(); dibujarAvanzado(1f, "avanzado_restpause_100", tecnica = "Rest-pause") }
+    @Test fun avanzadoRestPause130() { onlyWhenAsked(); dibujarAvanzado(1.3f, "avanzado_restpause_130", tecnica = "Rest-pause") }
+    @Test fun avanzadoNormal100() { onlyWhenAsked(); dibujarAvanzado(1f, "avanzado_normal_100", tecnica = "Normal") }
+    @Test fun avanzadoCincoDrops100() { onlyWhenAsked(); dibujarAvanzado(1f, "avanzado_cinco_drops_100", sumarDrops = 4) }
+
+    /** El reverso «Avanzado» con la altura de la tarjeta; [tecnica] es el segmento que se elige y [sumarDrops] los «+» que se pulsan. */
+    private fun dibujarAvanzado(fontScale: Float, nombre: String, tecnica: String? = null, sumarDrops: Int = 0) {
+        val alto = if (fontScale > 1.15f) CARD_HEIGHT_130 else CARD_HEIGHT_100
+        rule.setContent {
+            hostView = LocalView.current
+            CompositionLocalProvider(LocalDensity provides Density(CARD_DENSITY, fontScale)) {
+                KPKNTheme {
+                    MaterialTheme {
+                        Box(
+                            Modifier
+                                .width(360.dp)
+                                .background(Color.Black)
+                                .padding(vertical = 16.dp)
+                                .testTag(CARD_SHEET_TAG),
+                            contentAlignment = Alignment.TopCenter,
+                        ) {
+                            Box(Modifier.width(272.dp).height(alto.dp)) {
+                                SetCardTechniqueBack(
+                                    currentSet = serieRir,
+                                    coverWeightLabel = "95 kg",
+                                    coverValueLabel = "6",
+                                    coverIntensityLabel = null,
+                                    mainWeight = 95.0,
+                                    mainReps = 6,
+                                    sessionAccentColor = Color(0xFFF49A6E),
+                                    isFailedSet = false,
+                                    onFailedSetChange = {},
+                                    onFlipBack = {},
+                                    onCompleteTechniques = { _, _ -> },
+                                    initialDropEnabled = true,
+                                    setNumber = 3,
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        rule.waitForIdle()
+        tecnica?.let {
+            rule.onNodeWithText(it).performClick()
+            rule.waitForIdle()
+        }
+        repeat(sumarDrops) {
+            rule.onNodeWithContentDescription("Añadir drop").performClick()
+            rule.waitForIdle()
+        }
+        guardar(CARD_SHEET_TAG, nombre)
     }
 
     @Test
