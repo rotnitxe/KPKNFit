@@ -22,7 +22,7 @@ This document provides a comprehensive technical mapping of the native Android K
 
 ## 🗄️ 2. Database Schema & Data Persistence
 
-KPKN Fit uses a **local-first (offline-first)** data architecture. The Room database is defined in `data/db/KpknDatabase.kt` (**version 26**, `exportSchema = true`). Most complex objects are serialized to JSON strings using Kotlinx Serialization and stored directly in a `data` text column. Recetas de programa (`TrainingPlanRecipe`), TM/`PowerliftingProfile` y `autoregulationMode` viven en el JSON de `ProgramEntity` (sin bump de columnas). Unified workout photos/videos live in `workout_media` (`WorkoutMediaEntity`) plus private files under `filesDir/workout_media`.
+KPKN Fit uses a **local-first (offline-first)** data architecture. The Room database is defined in `data/db/KpknDatabase.kt` (**version 29**, `exportSchema = true`). Most complex objects are serialized to JSON strings using Kotlinx Serialization and stored directly in a `data` text column. Recetas de programa (`TrainingPlanRecipe`), TM/`PowerliftingProfile` y `autoregulationMode` viven en el JSON de `ProgramEntity` (sin bump de columnas). Unified workout photos/videos live in `workout_media` (`WorkoutMediaEntity`) plus private files under `filesDir/workout_media`.
 
 ### 2.1 SQLite Table Definitions
 
@@ -41,6 +41,8 @@ KPKN Fit uses a **local-first (offline-first)** data architecture. The Room data
 | `workout_context_profiles` | `WorkoutContextProfileEntity` | `id` (String) | `exerciseKey`, `lastUsedAt` | Serialized `WorkoutContextProfile` JSON string. |
 | `workout_replacement_decisions` | `WorkoutReplacementDecisionEntity` | `id` (String) | None | Serialized `ExerciseReplacementDecisionV2` JSON string. |
 | `workout_media` | `WorkoutMediaEntity` | `id` (String) | `workoutLogId`, `canonicalExerciseId`, `createdAtMs`, `isPr` | Unified session photos/videos (Room v26). File bytes stay in `filesDir/workout_media`; `WorkoutLog.exercisePhotos`/`sessionPhotos` remain read-only JSON. |
+| `workout_media_session_associations` | `WorkoutMediaSessionAssociationEntity` | `sessionKey` (String) | None | Durable session-to-workout-log association added in Room v28. |
+| `video_analysis` | `VideoAnalysisEntity` | `mediaId` (String) | `status`, `exerciseKey` + `recordedAtMs` | Reconstructible technique CACHE (v29); authoritative report and traces are private sidecars. |
 | `auge_wellbeing` | `WellbeingEntity` | `id` (String UUID) | `date` | Serialized `DailyWellbeingLog` JSON string (stores manual overrides, sleep hours, DOMS, stress). |
 | `auge_sleep` | `SleepLogEntity` | `id` (String UUID) | `date` | Serialized `SleepLog` JSON string. |
 | `auge_sleep_extended` | `SleepLogExtendedEntity` | `id` (String UUID) | `date` | Serialized `SleepLogExtended` JSON string. |
@@ -245,10 +247,12 @@ This documentary commit completes the F0.3 evidence index. Phase 1 remains open 
     *   Converting linear sets into Supersets (pairing antagonistic muscles) or Drop-sets.
     *   Dropping lower-priority auxiliary volume.
 
-### 3.7 Biomechanics Engine (`domain/biomechanics/BiomechanicsEngine.kt`)
+### 3.7 Video technique (`domain/biomechanics/`)
 
-*   **Lever Classification:** Evaluates joint angles to classify movements into First, Second, and Third-class levers.
-*   **Stickman Model:** Uses anthropometric ratios (femur length, torso length, arm span) to calculate moments of force (torques) for specific lifts (e.g., comparing High-Bar vs Low-Bar squats based on the user's femur/torso ratio).
+*   **Pure engine:** `metrics/TechniqueAnalysisEngine` prepares timestamped `PoseTrackV2` and `BarTrack`, resolves oriented signals, counts full/partial/failed repetitions and calculates available ROM, phases, TUT, path and velocity metrics. Catalog profiles come from `profiles/AnalysisProfileResolver`, including exercise/equipment-specific MVT restrictions.
+*   **Android boundary:** `data/media/video/` decodes frames; `data/media/pose/MediaPipePoseEstimator` selects the full model with CPU fallback. `data/media/technique/TechniqueAnalysisPipeline` writes pose/bar traces and the authoritative `<id>.analysis.json`. `TechniqueAnalysisWorker` serializes FULL, RECOMPUTE and PLATE_ONLY requests.
+*   **Persistence:** Room v29 adds `video_analysis`, a reconstructible CACHE with `mediaId` foreign key and delete cascade, and catalog definition/configuration IDs on `workout_media`. Migration lives in `VideoAnalysisMigration.kt`. Updating a medium uses targeted writes or `@Upsert`, never REPLACE.
+*   **Presentation:** `screens/technique/` contains analysis, player, trends, comparison, hub and gallery import. Explicit user requests work even when automatic analysis is disabled. Missing metrics stay absent; absolute velocity requires a calibrated plate and remains approximate until device validation. Technique estimates never update recorded reps automatically.
 
 ### 3.8 Supporting Domain Packages
 

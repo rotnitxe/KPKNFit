@@ -25,7 +25,7 @@ graph TD
 Responsible for persistence, local assets, and remote calls.
 
 *   **Room Database (`data/db/`):**
-    *   `KpknDatabase.kt` — single database, **version 23**, entities + JSON blobs.
+    *   `KpknDatabase.kt` — single database, **version 29**, entities + JSON blobs.
     *   Entities: `Entities.kt`, `WikiLabEntities.kt`, `PerformanceRangeEntity.kt`, `PerformanceSnapshotEntity.kt`. Complex models (`Program`, `Settings`, …) are serialized to JSON strings (Kotlinx Serialization) in a `data` column — **no Room migration** when only adding optional JSON fields.
     *   DAOs: `Daos.kt`, `WikiLabDao.kt`. FTS4 virtual table (`global_foods_fts`) powers food search.
     *   **Offline-First:** every read/write passes through Room; network sync is a secondary concern.
@@ -47,7 +47,7 @@ Pure Kotlin business logic with zero Android dependencies — the most heavily t
 *   **Workout (`domain/workout/`):** `SupersetRules`, `WorkoutContextRecurrenceEngine`, `WorkoutPerformanceHomologationEngine` (V2 performance tracking).
 *   **Exercises (`domain/exercises/`):** `ExerciseIdentity`, `ExerciseMatchEngine`, `ExerciseMuscleResolver`, `ExerciseAnatomy`, variant grouping/preference, catalog insights and filters.
 *   **Session Assistant (`domain/sessionassistant/`):** `SessionAssistantEngine` — suggests rest reductions, supersets, or volume cuts when a session exceeds its target duration.
-*   **Biomechanics (`domain/biomechanics/`):** `BiomechanicsEngine` — lever classification, anthropometric torque analysis.
+*   **Video technique (`domain/biomechanics/`):** pure Kotlin pose/bar codecs, signal preparation, catalog profile resolution, repetition segmentation, ROM/phase/TUT metrics, plate tracking and calibrated velocity. `metrics/TechniqueAnalysisEngine` combines them; `AnalysisProfileResolver` resolves exact catalog identity. Android decoding, MediaPipe and sidecar I/O live under `data/media/`, with WorkManager orchestration in `data/work/TechniqueAnalysisWorker`.
 *   **Supporting packages:** `calculations/` (`PlateCalculator` — barbell plate layout), `energy/` (`TrainingEnergyEngine`), `performance/` (`PerformanceRangeCalculator`), `templates/` (`SessionTemplateEngine`).
 
 ### 3. Presentation Layer (`screens/`, `ui/`, `navigation/`)
