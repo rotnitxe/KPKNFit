@@ -129,6 +129,16 @@ import com.example.kpkn.ui.design.KpknSurface
 import com.example.kpkn.ui.design.KpknTextAction
 import com.example.kpkn.ui.design.KpknTextField
 import com.example.kpkn.ui.design.KpknType
+import com.example.kpkn.domain.sessionassistant.SeriesTechnique
+import com.example.kpkn.screens.sessioneditor.components.sheets.SessionExerciseThumb
+import com.example.kpkn.screens.workout.components.ExerciseOptionsCardioContent
+import com.example.kpkn.screens.workout.components.ExerciseOptionsIconThumb
+import com.example.kpkn.screens.workout.components.ExerciseOptionsSheet
+import com.example.kpkn.screens.workout.components.ExerciseOptionsStrengthContent
+import com.example.kpkn.screens.workout.components.ExerciseOptionsSupersetContent
+import com.example.kpkn.screens.workout.components.SupersetMemberOption
+import com.example.kpkn.ui.components.KpknGlassDialog
+import com.example.kpkn.ui.design.KpknDangerPill
 @Stable
 internal class WorkoutStructureSheetsState {
     var exerciseContextExerciseId by mutableStateOf<String?>(null)
@@ -160,6 +170,11 @@ internal class WorkoutStructureSheetsState {
     var reorderCrossBoundaryMessages by mutableStateOf<List<String>>(emptyList())
     var pendingGlobalReorderIds by mutableStateOf<List<String>>(emptyList())
 
+    /** Opciones del ejercicio (LV11, A2): la nota que se está editando, el diálogo de ultrarrápido y la confirmación de «Quitar de la sesión». */
+    var exerciseNoteExerciseId by mutableStateOf<String?>(null)
+    var ultraFastTargetIds by mutableStateOf<List<String>>(emptyList())
+    var pendingRemoveExerciseIds by mutableStateOf<List<String>>(emptyList())
+
     fun hasOpenDrawer(): Boolean =
         exerciseContextExerciseId != null ||
             showReplaceExercisePicker ||
@@ -173,7 +188,10 @@ internal class WorkoutStructureSheetsState {
             addCatalogToSupersetGroupId != null ||
             addExerciseAfterId != null ||
             createSupersetFromCatalogAnchorId != null ||
-            showReorderSheet
+            showReorderSheet ||
+            exerciseNoteExerciseId != null ||
+            ultraFastTargetIds.isNotEmpty() ||
+            pendingRemoveExerciseIds.isNotEmpty()
 
     /**
      * Cierra las hojas de etiquetas, setup y editar series cuyo ejercicio ya no está (LV4, 15). Una hoja sin su ejercicio no se pinta,
@@ -424,53 +442,59 @@ internal fun WorkoutStructureSheetsHost(
         }
         request?.let(open)
     }
-    if (state.exerciseContextExerciseId != null) {
-        val exerciseId = state.exerciseContextExerciseId ?: return
+    // ── Opciones de un ejercicio (LV11, A2): pulsación larga en el carrusel ────────────────────────────────────────────────────
+    state.exerciseContextExerciseId?.let { exerciseId ->
         val contextExercise = visibleExercises.firstOrNull { it.id == exerciseId }
-        // Prefer the member flag, but fall back to SupersetGroup.exerciseOrder
-        // for legacy sessions whose JSON contains the group table before the
-        // member refs were backfilled.  This keeps the outer group menu
-        // reachable without changing the individual mini-card long-press path.
-        val contextSupersetGroup = contextExercise?.let(modeSession::effectiveSupersetGroupFor)
-            ?: contextExercise?.let { exercise ->
-                modeSession.allSupersetGroups().firstOrNull { group ->
-                    exercise.id in group.exerciseOrder
-                }
-            }
-        val contextSupersetGroupId = contextExercise?.supersetGroupRefOrLegacyId()
-            ?: contextSupersetGroup?.id
-        WorkoutDrawer(
-            title = when {
-                contextExercise?.isCardio == true -> "Cardio"
-                contextSupersetGroupId != null && !state.exerciseContextForceMemberActions -> "Superserie"
-                else -> contextExercise?.name ?: "Acciones del ejercicio"
-            },
-            onDismiss = {
+        if (contextExercise == null) {
+            // El ejercicio ya no está a la vista (se omitió o se quitó con las opciones abiertas): no hay nada que ofrecer.
+            LaunchedEffect(exerciseId) {
                 state.exerciseContextExerciseId = null
                 state.exerciseContextForceMemberActions = false
-            },
-            hazeState = bottomHazeState,
-        ) {
-            val actionRows: @Composable ColumnScope.() -> Unit = {
-                if (contextExercise?.isCardio == true) {
-                    val cardioExercise = contextExercise
-                    ExerciseOptionsCardioRows(
-                        summary = cardioContextSummary(cardioExercise),
+            }
+        } else {
+            // Prefer the member flag, but fall back to SupersetGroup.exerciseOrder
+            // for legacy sessions whose JSON contains the group table before the
+            // member refs were backfilled.  This keeps the outer group menu
+            // reachable without changing the individual mini-card long-press path.
+            val contextSupersetGroup = modeSession.effectiveSupersetGroupFor(contextExercise)
+                ?: modeSession.allSupersetGroups().firstOrNull { group -> contextExercise.id in group.exerciseOrder }
+            val contextSupersetGroupId = contextExercise.supersetGroupRefOrLegacyId() ?: contextSupersetGroup?.id
+            val closeContext = {
+                state.exerciseContextExerciseId = null
+                state.exerciseContextForceMemberActions = false
+            }
+            val canRemove = visibleExercises.size > 1
+            val thumbnail: @Composable () -> Unit = { SessionExerciseThumb(contextExercise, dimension = 52.dp) }
+            when {
+                contextExercise.isCardio -> ExerciseOptionsSheet(
+                    title = displayWorkoutExerciseName(contextExercise),
+                    subtitle = exerciseOptionsSubtitle(contextExercise, uiState.completedSets, uiState.omittedSetKeys),
+                    onDismiss = closeContext,
+                    hazeState = bottomHazeState,
+                    thumbnail = thumbnail,
+                ) {
+                    ExerciseOptionsCardioContent(
                         onEdit = {
-                            state.editSheetExerciseId = cardioExercise.id
-                            state.exerciseContextExerciseId = null
+                            state.editSheetExerciseId = contextExercise.id
+                            closeContext()
                         },
                         onReplace = {
-                            state.replaceCardioTargetExerciseId = cardioExercise.id
+                            state.replaceCardioTargetExerciseId = contextExercise.id
                             state.showReplaceCardioPicker = true
-                            state.exerciseContextExerciseId = null
+                            closeContext()
                         },
                         onSkip = {
-                            viewModel.skipExercise(cardioExercise.id)
-                            state.exerciseContextExerciseId = null
+                            viewModel.skipExercise(contextExercise.id)
+                            closeContext()
                         },
+                        onRemove = {
+                            state.pendingRemoveExerciseIds = listOf(contextExercise.id)
+                            closeContext()
+                        },
+                        canRemove = canRemove,
                     )
-                } else if (contextExercise != null && contextSupersetGroupId != null && !state.exerciseContextForceMemberActions) {
+                }
+                contextSupersetGroupId != null && !state.exerciseContextForceMemberActions -> {
                     val members = remember(contextSupersetGroupId, modeSession, contextSupersetGroup, visibleExercises) {
                         val ordered = SupersetRules.orderedMembers(modeSession, contextSupersetGroupId)
                         if (ordered.isNotEmpty()) ordered
@@ -478,99 +502,220 @@ internal fun WorkoutStructureSheetsHost(
                             ?.mapNotNull { id -> visibleExercises.firstOrNull { it.id == id } }
                             .orEmpty()
                     }
-                    Text(
-                        "${contextSupersetGroup?.rounds ?: SupersetRules.roundCount(modeSession, contextSupersetGroupId)} rondas · ${members.size} ejercicios",
-                        style = KpknType.caption,
-                        color = WizardColors.textMuted,
-                    )
-                    OptionsRow {
-                        ContextActionButton("Ir a la superserie", KpknLineIcons.Route, {
-                            viewModel.selectSupersetGroup(contextSupersetGroupId)
-                            state.exerciseContextExerciseId = null
-                        }, Modifier.weight(1f).fillMaxHeight())
-                        ContextActionButton("Rondas", KpknLineIcons.Repeat, {
-                            state.supersetSettingsGroupId = contextSupersetGroupId
-                            state.exerciseContextExerciseId = null
-                        }, Modifier.weight(1f).fillMaxHeight())
+                    val rounds = contextSupersetGroup?.rounds ?: SupersetRules.roundCount(modeSession, contextSupersetGroupId)
+                    ExerciseOptionsSheet(
+                        title = "Superserie",
+                        subtitle = supersetOptionsSubtitle(rounds, members.size),
+                        onDismiss = closeContext,
+                        hazeState = bottomHazeState,
+                        thumbnail = { ExerciseOptionsIconThumb(KpknLineIcons.Link) },
+                    ) {
+                        ExerciseOptionsSupersetContent(
+                            members = members.map { SupersetMemberOption(it.id, it.name) },
+                            onGo = {
+                                viewModel.selectSupersetGroup(contextSupersetGroupId)
+                                closeContext()
+                            },
+                            onRounds = {
+                                state.supersetSettingsGroupId = contextSupersetGroupId
+                                closeContext()
+                            },
+                            onAddFromSession = {
+                                state.workoutSupersetSelectedExerciseId = contextExercise.id
+                                state.showWorkoutSupersetCreator = true
+                                closeContext()
+                            },
+                            onAddFromCatalog = {
+                                state.addCatalogToSupersetGroupId = contextSupersetGroupId
+                                state.addCatalogSearchQuery = ""
+                                state.addCatalogSelectedIds = emptySet()
+                                closeContext()
+                            },
+                            onOpenMember = { memberId ->
+                                state.exerciseContextForceMemberActions = true
+                                state.exerciseContextExerciseId = memberId
+                            },
+                            onDissolve = {
+                                viewModel.dissolveLiveSuperset(contextSupersetGroupId, preferredExerciseId = contextExercise.id)
+                                closeContext()
+                            },
+                        )
                     }
-                    OptionsRow {
-                        ContextActionButton("Agregar de sesión", KpknLineIcons.Plus, {
-                            state.workoutSupersetSelectedExerciseId = contextExercise.id
-                            state.showWorkoutSupersetCreator = true
-                            state.exerciseContextExerciseId = null
-                        }, Modifier.weight(1f).fillMaxHeight())
-                        ContextActionButton("Agregar del catálogo", KpknLineIcons.Layers, {
-                            state.addCatalogToSupersetGroupId = contextSupersetGroupId
-                            state.addCatalogSearchQuery = ""
-                            state.addCatalogSelectedIds = emptySet()
-                            state.exerciseContextExerciseId = null
-                        }, Modifier.weight(1f).fillMaxHeight())
-                    }
-                    Text("Miembros".uppercase(), style = KpknType.eyebrow, color = WizardColors.textMuted)
-                    members.chunked(2).forEach { rowMembers ->
-                        OptionsRow {
-                            rowMembers.forEach { member ->
-                                ContextActionButton(member.name, KpknLineIcons.Link, {
-                                    state.exerciseContextForceMemberActions = true
-                                    state.exerciseContextExerciseId = member.id
-                                }, Modifier.weight(1f).fillMaxHeight())
-                            }
-                            if (rowMembers.size == 1) Spacer(Modifier.weight(1f))
-                        }
-                    }
-                    ContextActionButton("Disolver superserie", KpknLineIcons.Unlink, {
-                        viewModel.dissolveLiveSuperset(contextSupersetGroupId, preferredExerciseId = contextExercise.id)
-                        state.exerciseContextExerciseId = null
-                    }, Modifier.fillMaxWidth())
-                } else {
-                    val exercise = contextExercise
-                    ExerciseOptionsStrengthRows(
-                        onHistory = {
-                            exercise?.let { viewModel.showHistoryForExercise(it) }
-                            state.exerciseContextExerciseId = null
-                        },
-                        onTags = {
-                            if (exercise != null && exercise.id == currentExercise?.id) {
-                                state.requestLiveTagList = true
-                            } else {
-                                state.tagSheetExerciseId = exercise?.id
-                            }
-                            state.exerciseContextExerciseId = null
-                        },
-                        onEdit = {
-                            state.editSheetExerciseId = exercise?.id
-                            state.exerciseContextExerciseId = null
-                        },
+                }
+                else -> ExerciseOptionsSheet(
+                    title = displayWorkoutExerciseName(contextExercise),
+                    subtitle = exerciseOptionsSubtitle(contextExercise, uiState.completedSets, uiState.omittedSetKeys),
+                    onDismiss = closeContext,
+                    hazeState = bottomHazeState,
+                    thumbnail = thumbnail,
+                ) {
+                    ExerciseOptionsStrengthContent(
                         onReplace = {
-                            state.replaceTargetExerciseId = exercise?.id
-                            state.replaceSearchQuery = if (exercise?.catalogDefinitionId == null) exercise?.name.orEmpty() else ""
+                            state.replaceTargetExerciseId = contextExercise.id
+                            state.replaceSearchQuery = if (contextExercise.catalogDefinitionId == null) contextExercise.name else ""
                             state.showReplaceExercisePicker = true
-                            state.exerciseContextExerciseId = null
-                        },
-                        onAddOther = {
-                            state.addExerciseAfterId = exercise?.id
-                            state.addExerciseSearchQuery = ""
-                            state.addExerciseSelectedIds = emptySet()
-                            state.exerciseContextExerciseId = null
+                            closeContext()
                         },
                         onReorder = {
                             state.reorderSheetExerciseIds = visibleExercises.map { it.id }
                             state.showReorderSheet = true
-                            state.exerciseContextExerciseId = null
+                            closeContext()
                         },
                         onCreateSuperset = {
-                            state.workoutSupersetSelectedExerciseId = exercise?.id
+                            state.workoutSupersetSelectedExerciseId = contextExercise.id
                             state.showWorkoutSupersetCreator = true
-                            state.exerciseContextExerciseId = null
+                            closeContext()
+                        },
+                        onHistory = {
+                            viewModel.showHistoryForExercise(contextExercise)
+                            closeContext()
+                        },
+                        onUltraFast = {
+                            state.ultraFastTargetIds = listOf(contextExercise.id)
+                            closeContext()
+                        },
+                        onNotes = {
+                            state.exerciseNoteExerciseId = contextExercise.id
+                            closeContext()
+                        },
+                        onTags = {
+                            if (contextExercise.id == currentExercise?.id) {
+                                state.requestLiveTagList = true
+                            } else {
+                                state.tagSheetExerciseId = contextExercise.id
+                            }
+                            closeContext()
+                        },
+                        onEdit = {
+                            state.editSheetExerciseId = contextExercise.id
+                            closeContext()
+                        },
+                        onAddOther = {
+                            state.addExerciseAfterId = contextExercise.id
+                            state.addExerciseSearchQuery = ""
+                            state.addExerciseSelectedIds = emptySet()
+                            closeContext()
                         },
                         onSkip = {
-                            viewModel.skipExercise(exerciseId)
-                            state.exerciseContextExerciseId = null
+                            viewModel.skipExercise(contextExercise.id)
+                            closeContext()
                         },
+                        onRemove = {
+                            state.pendingRemoveExerciseIds = listOf(contextExercise.id)
+                            closeContext()
+                        },
+                        canRemove = canRemove,
                     )
                 }
             }
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp), content = actionRows)
+        }
+    }
+
+    // ── «Quitar de la sesión»: confirmación (una opción del ejercicio o el «Quitar» por lotes de la hoja de orden) ─────────────
+    if (state.pendingRemoveExerciseIds.isNotEmpty()) {
+        val ids = state.pendingRemoveExerciseIds
+        val named = ids.mapNotNull { id -> visibleExercises.firstOrNull { it.id == id } }
+        if (named.isEmpty()) {
+            LaunchedEffect(ids) { state.pendingRemoveExerciseIds = emptyList() }
+        } else {
+            val doneSlots = named.sumOf {
+                WorkoutStepRules.completedRoadmapSlotsForExercise(it, uiState.completedSets, uiState.omittedSetKeys)
+            }
+            KpknAlertDialog(
+                onDismissRequest = { state.pendingRemoveExerciseIds = emptyList() },
+                title = { Text("Quitar de la sesión", style = KpknType.dialogTitle, color = WizardColors.text) },
+                text = {
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Text(removeExercisesQuestion(named.map(::displayWorkoutExerciseName)), style = KpknType.body, color = WizardColors.text)
+                        removeExercisesWarning(doneSlots, named.size)?.let { warning ->
+                            Text(warning, style = KpknType.caption, color = WizardColors.danger)
+                        }
+                        Text("Puedes deshacerlo justo después.", style = KpknType.caption, color = WizardColors.textMuted)
+                    }
+                },
+                confirmButton = {
+                    KpknDangerPill(
+                        text = "Quitar",
+                        onClick = {
+                            if (ids.size == 1) viewModel.removeExerciseFromSession(ids.first()) else viewModel.removeExercisesFromSession(ids)
+                            state.pendingRemoveExerciseIds = emptyList()
+                        },
+                    )
+                },
+                dismissButton = {
+                    KpknTextAction(text = "Cancelar", onClick = { state.pendingRemoveExerciseIds = emptyList() })
+                },
+            )
+        }
+    }
+
+    // ── Ultrarrápido de uno o varios ejercicios (el diálogo «Modo ultrarrápido» que era del modo dios) ──────────────────────────
+    if (state.ultraFastTargetIds.isNotEmpty()) {
+        val ids = state.ultraFastTargetIds
+        val applyTechnique: (SeriesTechnique) -> Unit = { technique ->
+            ids.forEach { id ->
+                val exercise = visibleExercises.firstOrNull { it.id == id } ?: return@forEach
+                if (exercise.sets.isNotEmpty()) viewModel.updatePlannedSeriesTechnique(id, 0, exercise.sets.lastIndex, technique)
+            }
+            state.ultraFastTargetIds = emptyList()
+        }
+        KpknGlassDialog(onDismissRequest = { state.ultraFastTargetIds = emptyList() }) {
+            Column(
+                modifier = Modifier.padding(horizontal = 20.dp, vertical = 18.dp),
+                verticalArrangement = Arrangement.spacedBy(10.dp),
+            ) {
+                Text("Modo ultrarrápido", style = KpknType.dialogTitle, color = WizardColors.text)
+                Text(
+                    if (ids.size == 1) "Convierte las series que faltan de este ejercicio." else "Convierte las series que faltan de estos ${ids.size} ejercicios.",
+                    style = KpknType.body,
+                    color = WizardColors.textMuted,
+                )
+                KpknPrimaryPill(text = "Drop-set", onClick = { applyTechnique(SeriesTechnique.DROPSET) }, modifier = Modifier.fillMaxWidth())
+                KpknPrimaryPill(text = "Rest-pause", onClick = { applyTechnique(SeriesTechnique.REST_PAUSE) }, modifier = Modifier.fillMaxWidth())
+                Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                    KpknTextAction(text = "Cancelar", onClick = { state.ultraFastTargetIds = emptyList() })
+                }
+            }
+        }
+    }
+
+    // ── La nota del ejercicio ────────────────────────────────────────────────────────────────────────────────────────────────
+    state.exerciseNoteExerciseId?.let { noteId ->
+        val noteExercise = visibleExercises.firstOrNull { it.id == noteId }
+        if (noteExercise == null) {
+            LaunchedEffect(noteId) { state.exerciseNoteExerciseId = null }
+        } else {
+            var draft by remember(noteId) { mutableStateOf(uiState.exerciseNotes[noteId].orEmpty()) }
+            KpknAlertDialog(
+                onDismissRequest = { state.exerciseNoteExerciseId = null },
+                title = { Text("Nota del ejercicio", style = KpknType.dialogTitle, color = WizardColors.text) },
+                text = {
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Text(displayWorkoutExerciseName(noteExercise), style = KpknType.caption, color = WizardColors.textMuted)
+                        KpknTextField(
+                            value = draft,
+                            onValueChange = { draft = it },
+                            placeholder = "Escribe lo que quieras recordar de este ejercicio",
+                            singleLine = false,
+                            minLines = 3,
+                            maxLines = 6,
+                            modifier = Modifier.fillMaxWidth(),
+                        )
+                    }
+                },
+                confirmButton = {
+                    KpknPrimaryPill(
+                        text = "Guardar",
+                        onClick = {
+                            viewModel.setExerciseNote(noteId, draft, flush = true)
+                            state.exerciseNoteExerciseId = null
+                        },
+                    )
+                },
+                dismissButton = {
+                    KpknTextAction(text = "Cancelar", onClick = { state.exerciseNoteExerciseId = null })
+                },
+            )
         }
     }
 
@@ -1037,26 +1182,6 @@ internal fun WorkoutStructureSheetsHost(
     }
 }
 
-private fun cardioContextSummary(exercise: Exercise): String {
-    val details = exercise.cardioDetails
-    val mode = when (details?.programMode()) {
-        CardioProgramMode.HIIT_SIT -> "HIIT / SIT"
-        CardioProgramMode.INTERVALS -> "Intervalos"
-        CardioProgramMode.STEADY -> "Estático"
-        null -> "Cardio"
-    }
-    val duration = details?.effectiveDurationSeconds()?.takeIf { it > 0 }?.let { seconds ->
-        val minutes = seconds / 60
-        val remainder = seconds % 60
-        when {
-            minutes > 0 && remainder > 0 -> "${minutes}m ${remainder}s"
-            minutes > 0 -> "${minutes} min"
-            else -> "${remainder}s"
-        }
-    }
-    return listOfNotNull("Espacio cardio", mode, duration).joinToString(" · ")
-}
-
 /**
  * Filas del cajón de opciones de un ejercicio de fuerza (D1): Historial, Etiquetas, Editar, Reemplazar, Agregar otro, Reordenar,
  * Crear superserie y Omitir, en el mismo orden y con las mismas filas de dos acciones. Las acciones llegan por lambdas; el anfitrión
@@ -1356,6 +1481,22 @@ internal fun WorkoutReorderSheets(
             },
         )
     }
+}
+
+/** «¿Quitar «Sentadilla» de esta sesión?» o «¿Quitar 3 ejercicios de esta sesión?». */
+internal fun removeExercisesQuestion(names: List<String>): String =
+    if (names.size == 1) "¿Quitar «${names.first()}» de esta sesión?" else "¿Quitar ${names.size} ejercicios de esta sesión?"
+
+/**
+ * Aviso de lo que se pierde al quitar ejercicios con series ya hechas: el entrenamiento se guarda con lo que queda en la sesión, así que
+ * esas series no se guardarían. Null si no hay nada hecho.
+ */
+internal fun removeExercisesWarning(doneSlots: Int, exerciseCount: Int): String? {
+    if (doneSlots <= 0) return null
+    val subject = if (exerciseCount == 1) "Ya tiene" else "Ya tienen"
+    val series = if (doneSlots == 1) "1 serie hecha" else "$doneSlots series hechas"
+    val verb = if (doneSlots == 1) "no se guardará" else "no se guardarán"
+    return "$subject $series: $verb en el entrenamiento."
 }
 
 /**
