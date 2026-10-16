@@ -186,7 +186,7 @@ internal fun SetCardTechniqueBack(
                     onClick = onFlipBack,
                 )
                 Text(
-                    "Opciones avanzadas",
+                    "Avanzado",
                     style = KpknType.bodyStrong,
                     color = WizardColors.text,
                     modifier = Modifier.weight(1f),

@@ -2216,7 +2216,7 @@ private fun LivePagerPeekNavButton(
         modifier = modifier,
         contentAlignment = Alignment.Center,
     ) {
-        // Zona táctil de 48 dp con el círculo inset de 40 dp dentro (forma de KpknIconButton).
+        // Zona táctil de 48 dp con el círculo tenue de 32 dp dentro (LV3 punto 5.5).
         Box(
             modifier = Modifier
                 .requiredSize(48.dp)
@@ -2231,9 +2231,9 @@ private fun LivePagerPeekNavButton(
         ) {
             Box(
                 modifier = Modifier
-                    .size(40.dp)
+                    .size(32.dp)
                     .clip(CircleShape)
-                    .background(inset),
+                    .background(inset.copy(alpha = 0.72f)),
                 contentAlignment = Alignment.Center,
             ) {
                 Icon(
