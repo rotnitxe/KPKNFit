@@ -1,11 +1,14 @@
 package com.example.kpkn.screens.workout
 
+import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.example.kpkn.data.models.*
 import org.junit.Assert.*
 import org.junit.Test
+import org.junit.runner.RunWith
 
-/** Pure ownership contract. Defined for later targeted execution; no host run is required by this patch. */
-class WorkoutSetInputOwnershipTest {
+/** Ownership contract executed on the physical device alongside the card regression. */
+@RunWith(AndroidJUnit4::class)
+class WorkoutSetInputOwnershipDeviceTest {
     private val original = Exercise("slot", "Press militar", canonicalExerciseId = "overhead_press",
         catalogRevision = "rev", catalogDefinitionId = "overhead_press", catalogConfigurationId = "overhead_press__barbell",
         sets = listOf(ExerciseSet("s1", targetReps = 6, targetRIR = 2, loadModeV2 = LoadModeV2.LOAD)))
