@@ -256,6 +256,9 @@ internal fun WorkoutV2Body(
                     .onSizeChanged { headerHeightPx = it.height }
                     .zIndex(8f),
             ) {
+            val paceWork = remember(visibleExercises, uiState.completedSets, uiState.omittedSetKeys) {
+                sessionPaceWork(visibleExercises, uiState.completedSets, uiState.omittedSetKeys)
+            }
             WorkoutHeaderBar(
                 exerciseName = headerExerciseName,
                 exerciseChips = headerExerciseChips,
@@ -286,6 +289,8 @@ internal fun WorkoutV2Body(
                     sessionTargetDurationMinutes = uiState.session?.targetDurationMinutes,
                 ),
                 sessionHasProgrammedTime = uiState.session?.targetDurationMinutes != null,
+                completedWorkingSetCount = paceWork.completed,
+                totalWorkingSetCount = paceWork.total,
                 pacingAlertMessage = uiState.pacingAlertMessage,
                 coachPaceAlert = uiState.coachPaceAlert,
                 exerciseTag = headerExerciseTag,
