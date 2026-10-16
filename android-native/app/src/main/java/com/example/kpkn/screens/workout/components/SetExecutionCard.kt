@@ -1,6 +1,8 @@
 package com.example.kpkn.screens.workout.components
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.snap
 import androidx.compose.animation.core.tween
@@ -402,9 +404,19 @@ private fun IntegratedLoadInput(
     modifier: Modifier = Modifier,
     loadMode: LoadModeV2 = LoadModeV2.LOAD,
     inlineChipsInField: Boolean = false,
+    loadPopTrigger: Any? = null,
 ) {
     val bringIntoViewRequester = remember { BringIntoViewRequester() }
     val scope = rememberCoroutineScope()
+    val popScale = remember { Animatable(1f) }
+
+    LaunchedEffect(loadPopTrigger) {
+        if (loadPopTrigger != null && loadPopTrigger != 0L) {
+            popScale.snapTo(1f)
+            popScale.animateTo(1.18f, tween(180, easing = FastOutSlowInEasing))
+            popScale.animateTo(1f, tween(320, easing = FastOutSlowInEasing))
+        }
+    }
 
     @Composable
     fun LoadValueField(modifier: Modifier = Modifier) {
@@ -425,6 +437,10 @@ private fun IntegratedLoadInput(
                 onValueChange = onValueChange,
                 modifier = Modifier
                     .fillMaxWidth()
+                    .graphicsLayer {
+                        scaleX = popScale.value
+                        scaleY = popScale.value
+                    }
                     .onFocusEvent { focusState ->
                         if (focusState.isFocused) {
                             scope.launch { bringIntoViewRequester.bringIntoView() }
@@ -867,6 +883,7 @@ internal fun SetInputCardV2(
     openMediaFace: Boolean = false,
     onMediaFaceConsumed: () -> Unit = {},
     sessionMilestones: List<com.example.kpkn.data.models.SessionMilestone> = emptyList(),
+    loadPopTrigger: Any? = null,
 ) {
     val context = LocalContext.current
     val recordActionInstanceOwner = remember { Any() }
@@ -2038,6 +2055,7 @@ internal fun SetInputCardV2(
                             accentColor = sessionAccentColor,
                             loadMode = loadMode,
                             inlineChipsInField = exercise.trackRom,
+                            loadPopTrigger = loadPopTrigger,
                         )
 
             // 5.1: División limpia con la parte de abajo, más oscura (reps e intensidad)

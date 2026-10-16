@@ -31,6 +31,7 @@ import com.example.kpkn.screens.home.HomeRingsSection
 import com.example.kpkn.screens.home.HomeSamples
 import com.example.kpkn.screens.home.RingDetailSheet
 import com.example.kpkn.screens.onboarding.design.LocalWizardReducedMotion
+import com.example.kpkn.ui.components.rings.LivingCharacterPose
 import org.junit.Assume.assumeTrue
 import org.junit.BeforeClass
 import org.junit.Rule
@@ -44,8 +45,8 @@ import java.io.FileOutputStream
 
 /**
  * HOJA DE DIBUJO de Home · RINGS (no comprueba nada: escribe PNG). Pinta la sección con datos, con «Estimación inicial» y sin datos,
- * y el detalle de Músculos y el de Columna con su rango habitual, a 360 dp, con la letra al 100 % y al 130 %, sin movimiento para
- * ver el cuadro final. Solo corre con `KPKN_RENDER_DIR`; sin ella se salta.
+ * y los fotogramas del personaje (en el aire y aterrizando) con órbitas, y el detalle de Músculos y el de Columna con su rango habitual,
+ * a 360 dp, con la letra al 100 % y al 130 %, sin movimiento para ver el cuadro final. Solo corre con `KPKN_RENDER_DIR`; sin ella se salta.
  */
 @RunWith(RobolectricTestRunner::class)
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
@@ -122,7 +123,7 @@ class HomeRingsRenderSheetTest {
 /** Un caso de la hoja: la etiqueta del nodo que se recorta y lo que se pinta. */
 private class RingsRenderCase(val crop: String, val content: @Composable () -> Unit)
 
-/** Los casos: la sección con datos, con «Estimación inicial», sin datos, y el detalle de Músculos y el de Columna con rango. */
+/** Los casos: la sección con datos, con «Estimación inicial», sin datos, poses de aire/aterrizaje, y el detalle de Músculos y Columna. */
 private fun renderCases(): List<Pair<String, RingsRenderCase>> {
     val data = HomeSamples.ringsSample()
     val initial = HomeSamples.ringsSample(
@@ -136,14 +137,21 @@ private fun renderCases(): List<Pair<String, RingsRenderCase>> {
         "section_data" to RingsRenderCase(crop = "sheet") { RingsSectionCase(data) },
         "section_initial" to RingsRenderCase(crop = "sheet") { RingsSectionCase(initial) },
         "section_nodata" to RingsRenderCase(crop = "sheet") { RingsSectionCase(noData) },
+        "section_air" to RingsRenderCase(crop = "sheet") { RingsSectionCase(data, forcedPose = LivingCharacterPose.AIR, forcedOrbitTimeMillis = 2500f, animating = true) },
+        "section_landing" to RingsRenderCase(crop = "sheet") { RingsSectionCase(data, forcedPose = LivingCharacterPose.LANDING, forcedOrbitTimeMillis = 5000f, animating = true) },
         "detail_muscular" to RingsRenderCase(crop = "home-ring-sheet") { RingsDetailCase(RecoveryChannelId.MUSCULAR, data) },
         "detail_structure" to RingsRenderCase(crop = "home-ring-sheet") { RingsDetailCase(RecoveryChannelId.STRUCTURE, data) },
     )
 }
 
-/** La sección de RINGS sobre negro, a 360 dp, con la torre y sus tres filas. */
+/** La sección de RINGS sobre negro, a 360 dp, con la torre y sus tres columnas. */
 @Composable
-private fun RingsSectionCase(snapshot: AugeSnapshot) {
+private fun RingsSectionCase(
+    snapshot: AugeSnapshot,
+    forcedPose: LivingCharacterPose? = null,
+    forcedOrbitTimeMillis: Float? = null,
+    animating: Boolean? = null,
+) {
     Column(Modifier.testTag("sheet").width(360.dp).background(Color.Black).padding(bottom = 24.dp)) {
         HomeRingsSection(
             muscularProgress = snapshot.ringScore(RecoveryChannelId.MUSCULAR) / 100f,
@@ -151,6 +159,9 @@ private fun RingsSectionCase(snapshot: AugeSnapshot) {
             columnaProgress = snapshot.ringScore(RecoveryChannelId.STRUCTURE) / 100f,
             dashboard = snapshot.dashboard,
             snapshot = snapshot,
+            forcedPose = forcedPose,
+            forcedOrbitTimeMillis = forcedOrbitTimeMillis,
+            animatingOverride = animating,
         )
     }
 }

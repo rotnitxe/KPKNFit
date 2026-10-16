@@ -1,5 +1,6 @@
 package com.example.kpkn.screens.home
 
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -13,6 +14,7 @@ import androidx.compose.ui.test.performClick
 import com.example.kpkn.data.models.AugeSnapshot
 import com.example.kpkn.data.models.RecoveryChannelId
 import com.example.kpkn.data.models.ringScore
+import com.example.kpkn.screens.onboarding.design.LocalWizardReducedMotion
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Rule
@@ -21,7 +23,7 @@ import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 
-/** «Tus RINGS» de Home: el orden de las filas, abrir el detalle al tocar, la lectura sin datos y la introducción de (i). */
+/** «Tus RINGS» de Home vivo (I1): las tres columnas de la leyenda, abrir el detalle al tocar, la lectura sin datos y la introducción de (i). */
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [34], application = android.app.Application::class, qualifiers = "w360dp-h800dp-xxhdpi")
 class HomeRingsSectionTest {
@@ -49,21 +51,22 @@ class HomeRingsSectionTest {
     }
 
     @Test
-    fun `las tres filas van en orden Energía, Músculos y Columna`() {
+    fun `las tres columnas van en orden Músculos, Energía y Columna de izquierda a derecha`() {
         setSection(HomeSamples.ringsSample())
 
-        val energy = rule.onNodeWithTag("home-rings-row-SYSTEM").fetchSemanticsNode().boundsInRoot.top
-        val muscle = rule.onNodeWithTag("home-rings-row-MUSCULAR").fetchSemanticsNode().boundsInRoot.top
-        val column = rule.onNodeWithTag("home-rings-row-STRUCTURE").fetchSemanticsNode().boundsInRoot.top
-        assertTrue("Energía, Músculos y Columna de arriba abajo", energy < muscle && muscle < column)
+        val muscle = rule.onNodeWithTag("home-rings-row-MUSCULAR").fetchSemanticsNode().boundsInRoot.left
+        val energy = rule.onNodeWithTag("home-rings-row-SYSTEM").fetchSemanticsNode().boundsInRoot.left
+        val column = rule.onNodeWithTag("home-rings-row-STRUCTURE").fetchSemanticsNode().boundsInRoot.left
+        assertTrue("Músculos, Energía y Columna de izquierda a derecha", muscle < energy && energy < column)
     }
 
     @Test
-    fun `tocar una fila abre el detalle de su canal`() {
+    fun `tocar una columna abre el detalle de su canal tras el salto`() {
         val opened = mutableListOf<RecoveryChannelId>()
         setSection(HomeSamples.ringsSample(), opened)
 
         rule.onNodeWithTag("home-rings-row-MUSCULAR").performClick()
+        rule.mainClock.advanceTimeBy(600)
 
         assertEquals(listOf(RecoveryChannelId.MUSCULAR), opened)
         rule.onNodeWithTag("home-ring-sheet").assertExists()
@@ -75,6 +78,33 @@ class HomeRingsSectionTest {
         setSection(HomeSamples.ringsSample(structure = null))
 
         rule.onNodeWithTag("home-rings-row-STRUCTURE").assert(hasText("Sin calibrar", substring = true))
+    }
+
+    @Test
+    fun `con reducir movimiento se abre el detalle de inmediato sin animacion`() {
+        val opened = mutableListOf<RecoveryChannelId>()
+        rule.setContent {
+            CompositionLocalProvider(LocalWizardReducedMotion provides true) {
+                var selected by remember { mutableStateOf<RecoveryChannelId?>(null) }
+                val snapshot = HomeSamples.ringsSample()
+                HomeRingsSection(
+                    muscularProgress = snapshot.ringScore(RecoveryChannelId.MUSCULAR) / 100f,
+                    sncProgress = snapshot.ringScore(RecoveryChannelId.SYSTEM) / 100f,
+                    columnaProgress = snapshot.ringScore(RecoveryChannelId.STRUCTURE) / 100f,
+                    dashboard = snapshot.dashboard,
+                    snapshot = snapshot,
+                    selectedChannel = selected,
+                    onSelectedChannelChange = { channel ->
+                        selected = channel
+                        if (channel != null) opened += channel
+                    },
+                )
+            }
+        }
+
+        rule.onNodeWithTag("home-rings-row-MUSCULAR").performClick()
+        assertEquals(listOf(RecoveryChannelId.MUSCULAR), opened)
+        rule.onNodeWithTag("home-ring-sheet").assertExists()
     }
 
     @Test

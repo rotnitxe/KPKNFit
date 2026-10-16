@@ -200,6 +200,15 @@ class WorkoutViewModel(
         RelatorResolution(text = null, holdPrevious = false, phaseKey = "hidden"),
     )
     internal val relatorResolution: StateFlow<RelatorResolution> = _relatorResolution.asStateFlow()
+    private val _relatorLoadPopTrigger = MutableStateFlow<Long>(0L)
+    val relatorLoadPopTrigger: StateFlow<Long> = _relatorLoadPopTrigger.asStateFlow()
+    internal data class RelatorLoadUndo(
+        val exerciseId: String,
+        val setIndex: Int,
+        val side: String?,
+        val previousDraft: WorkoutSetDraft?,
+    )
+    private var lastRelatorLoadUndo: RelatorLoadUndo? = null
     private val _relatorWarmupDrafts = MutableStateFlow<Map<String, String>>(emptyMap())
     private val _relatorUiHook = MutableStateFlow<RelatorUiHook?>(null)
     val relatorUiHook: StateFlow<RelatorUiHook?> = _relatorUiHook.asStateFlow()
@@ -1647,6 +1656,7 @@ class WorkoutViewModel(
         // An already-running record is allowed to complete and is awaited by
         // WorkoutFinishController before it snapshots the log.
         if (!canStartWorkoutRecording(_uiState.value)) return RecordSetResult.Rejected("El entreno está cerrándose.")
+        lastRelatorLoadUndo = null
         val exercise = visibleExercises(_uiState.value).getOrNull(_uiState.value.currentExerciseIdx)
         val result = try {
             setRecorder.record(
@@ -3398,12 +3408,20 @@ class WorkoutViewModel(
         }
     }
 
-    fun addSetToCurrentExercise() {
-        val currentExerciseIdx = _uiState.value.currentExerciseIdx
-        val currentExerciseId = visibleExercises(_uiState.value).getOrNull(currentExerciseIdx)?.id ?: return
-        val exerciseName = visibleExercises(_uiState.value).getOrNull(currentExerciseIdx)
-            ?.let(::displayWorkoutExerciseName)
-            ?: ""
+    /**
+     * Añade una serie al final del ejercicio de turno o, con [exerciseId], al ejercicio en el que se pidió (las opciones de la serie, LV11:
+     * en una superserie la serie pulsada puede ser de un miembro que no es el de turno). Guarda su «Deshacer» como cualquier cambio de
+     * estructura.
+     */
+    fun addSetToCurrentExercise(exerciseId: String? = null) {
+        val visible = visibleExercises(_uiState.value)
+        val target = exerciseId?.let { id -> visible.firstOrNull { it.id == id } }
+            ?: visible.getOrNull(_uiState.value.currentExerciseIdx)
+            ?: return
+        val currentExerciseId = target.id
+        val exerciseName = displayWorkoutExerciseName(target)
+        // El «Deshacer» se guarda antes del cambio: la serie nueva siempre se añade (el ejercicio existe y a la vista).
+        pushGodModeUndo("Añadir serie")
         // Add the set to the live session immediately
         updateExerciseDefinition(currentExerciseId, persistToProgram = false) { exercise ->
             // La serie nueva sale como la última, con el tipo de carga que esa serie enseña ahora (el recuerdo de la sesión o su plan).
@@ -3826,6 +3844,7 @@ class WorkoutViewModel(
                     false
                 } else {
                     updateUiState { it.copy(pendingEditSheetExerciseId = exerciseId) }
+                    _relatorUiHook.value = RelatorUiHook(RelatorAssistActionKind.OPEN_TECHNIQUE, exerciseId)
                     true
                 }
             }
@@ -3909,13 +3928,15 @@ class WorkoutViewModel(
             ?: getWeightSuggestionWithAutoRegulation(exercise, setIdx, state.exerciseTags[exerciseId], side)
                 ?.suggestedWeight
             ?: return false
-        val previous = getSetDraft(exerciseId, setIdx, side) ?: WorkoutSetDraft()
+        val previous = getSetDraft(exerciseId, setIdx, side)
+        lastRelatorLoadUndo = RelatorLoadUndo(exerciseId, setIdx, side, previous)
         updateSetDraft(
             exerciseId,
             setIdx,
             side,
-            previous.copy(weightText = formatRelatorLoad(kg), isDirty = true),
+            (previous ?: WorkoutSetDraft()).copy(weightText = formatRelatorLoad(kg), isDirty = true),
         )
+        triggerRelatorLoadPop()
         return true
     }
 
@@ -3925,7 +3946,19 @@ class WorkoutViewModel(
         val exercise = visibleExercises(state).firstOrNull { it.id == exerciseId } ?: return false
         val setIdx = action.setIndex.takeIf { it >= 0 } ?: state.currentSetIdx
         val side = action.side.takeIf { it.isNotBlank() } ?: state.editingState?.side
+        if (action.label.startsWith("vuelve a", ignoreCase = true) &&
+            lastRelatorLoadUndo != null &&
+            lastRelatorLoadUndo?.exerciseId == exerciseId &&
+            lastRelatorLoadUndo?.setIndex == setIdx
+        ) {
+            val restored = lastRelatorLoadUndo?.previousDraft ?: WorkoutSetDraft()
+            updateSetDraft(exerciseId, setIdx, side, restored)
+            lastRelatorLoadUndo = null
+            triggerRelatorLoadPop()
+            return true
+        }
         val previous = getSetDraft(exerciseId, setIdx, side)
+        lastRelatorLoadUndo = RelatorLoadUndo(exerciseId, setIdx, side, previous)
         val currentKg = action.weightKg
             ?: previous?.weightText?.replace(',', '.')?.toDoubleOrNull()
             ?: getWeightSuggestionWithAutoRegulation(exercise, setIdx, state.exerciseTags[exerciseId], side)
@@ -3944,7 +3977,12 @@ class WorkoutViewModel(
             side,
             (previous ?: WorkoutSetDraft()).copy(weightText = formatRelatorLoad(rounded), isDirty = true),
         )
+        triggerRelatorLoadPop()
         return true
+    }
+
+    fun triggerRelatorLoadPop() {
+        _relatorLoadPopTrigger.value = System.currentTimeMillis()
     }
 
     fun updateRelatorWarmupDrafts(drafts: Map<String, String>) {
@@ -4096,7 +4134,7 @@ class WorkoutViewModel(
                 longTermMemory = relatorLongTerm,
                 previousText = lastRelatorText,
             )
-            Pair(result, WorkoutRelatorEngine.toUiResolution(result))
+            Pair(result, WorkoutRelatorEngine.toUiResolution(result, context))
         }
         val result = packed.first
         val ui = packed.second
@@ -5733,25 +5771,40 @@ class WorkoutViewModel(
         persistOngoingState()
     }
 
-    fun selectExercise(idx: Int) = stepNavigator.selectExercise(idx)
+    fun selectExercise(idx: Int) {
+        lastRelatorLoadUndo = null
+        stepNavigator.selectExercise(idx)
+    }
 
+    fun nextSet(stopRest: Boolean = true) {
+        lastRelatorLoadUndo = null
+        stepNavigator.nextSet(stopRest)
+    }
 
-    fun nextSet(stopRest: Boolean = true) = stepNavigator.nextSet(stopRest)
+    fun selectSupersetGroup(groupId: String) {
+        lastRelatorLoadUndo = null
+        stepNavigator.selectSupersetGroup(groupId)
+    }
 
+    fun selectWorkoutStep(stepKey: String) {
+        lastRelatorLoadUndo = null
+        stepNavigator.selectWorkoutStep(stepKey)
+    }
 
-    fun selectSupersetGroup(groupId: String) = stepNavigator.selectSupersetGroup(groupId)
+    fun navigateAdjacentWorkingStep(forward: Boolean) {
+        lastRelatorLoadUndo = null
+        stepNavigator.navigateAdjacentWorkingStep(forward)
+    }
 
+    fun selectSupersetRound(roundIdx: Int) {
+        lastRelatorLoadUndo = null
+        stepNavigator.selectSupersetRound(roundIdx)
+    }
 
-    fun selectWorkoutStep(stepKey: String) = stepNavigator.selectWorkoutStep(stepKey)
-
-
-    fun navigateAdjacentWorkingStep(forward: Boolean) = stepNavigator.navigateAdjacentWorkingStep(forward)
-
-
-    fun selectSupersetRound(roundIdx: Int) = stepNavigator.selectSupersetRound(roundIdx)
-
-
-    fun selectExerciseInSupersetRound(exerciseId: String) = stepNavigator.selectExerciseInSupersetRound(exerciseId)
+    fun selectExerciseInSupersetRound(exerciseId: String) {
+        lastRelatorLoadUndo = null
+        stepNavigator.selectExerciseInSupersetRound(exerciseId)
+    }
 
 
     fun recoverFromOrphanPostExerciseSheet() {

@@ -1,33 +1,29 @@
 package com.example.kpkn.screens.home
 
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.foundation.Canvas
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.CubicBezierEasing
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.graphics.BlendMode
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.CompositingStrategy
-import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.graphics.drawscope.DrawScope
-import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.graphics.lerp
+import androidx.compose.ui.layout.boundsInWindow
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.compose.currentStateAsState
 import com.example.kpkn.data.models.AugeSnapshot
 import com.example.kpkn.data.models.MuscleRecoveryStatus
 import com.example.kpkn.data.models.RecoveryChannelId
@@ -35,14 +31,17 @@ import com.example.kpkn.data.models.RecoveryDashboard
 import com.example.kpkn.domain.auge.RecoveryBands
 import com.example.kpkn.domain.onboarding.RingsCoverage
 import com.example.kpkn.screens.home.design.HomeModuleMargin
-import com.example.kpkn.screens.home.design.HomeRingRow
 import com.example.kpkn.screens.home.design.HomeTypography
-import com.example.kpkn.screens.home.design.RingTowerAspect
+import com.example.kpkn.screens.home.design.homeAccent
 import com.example.kpkn.screens.onboarding.design.WizardColors
+import com.example.kpkn.screens.onboarding.design.WizardTypography
+import com.example.kpkn.screens.onboarding.design.wizardReducedMotion
 import com.example.kpkn.screens.onboarding.rings.RingsIntroOverlay
 import com.example.kpkn.ui.components.icons.KpknLineIcons
+import com.example.kpkn.ui.components.rings.HomeLivingRingsOverlay
 import com.example.kpkn.ui.components.rings.KpknRingColors
 import com.example.kpkn.ui.components.rings.KpknTowerRings
+import com.example.kpkn.ui.components.rings.LivingCharacterPose
 import com.example.kpkn.ui.components.rings.RingChannel
 import com.example.kpkn.ui.components.rings.TowerRingValues
 import com.example.kpkn.ui.design.KpknIconButton
@@ -51,7 +50,8 @@ import com.example.kpkn.ui.design.KpknModuleHeader
 import com.example.kpkn.ui.design.KpknType
 import com.example.kpkn.ui.tour.TourAnchors
 import com.example.kpkn.ui.tour.tourAnchor
-import kotlin.math.*
+import kotlinx.coroutines.launch
+import java.util.Locale
 
 // ─── Ring Constants ──────────────────────────────────────────────────────────
 
@@ -62,17 +62,17 @@ internal val RingColors = listOf(
     KpknRingColors.columna,
 )
 
-/** Filas de RINGS en Home, de arriba abajo: el orden de la torre (Energía, Músculos y Columna). */
-private val RingRowOrder = listOf(
-    RecoveryChannelId.SYSTEM,
+/** Filas / columnas de RINGS en Home: orden de la leyenda I1 (Músculos, Energía, Columna). */
+private val LegendChannels = listOf(
     RecoveryChannelId.MUSCULAR,
+    RecoveryChannelId.SYSTEM,
     RecoveryChannelId.STRUCTURE,
 )
 
 /**
- * «Tus RINGS» de Home: un módulo con su cabecera (la (i) abre la introducción de RINGS en repaso), el titular del motor y, a la izquierda,
- * la torre de 112 dp; a la derecha, una fila por canal con su cifra y su banda. Tocar la torre o una fila abre el detalle del canal: el
- * canal abierto ([selectedChannel]) lo guarda HomeScreen.
+ * «Tus RINGS» de Inicio vivo (I1): la gran torre central con proporción 300:230, brillos orbitales y
+ * el personaje saltarín. Debajo, la leyenda de tres columnas (Músculos, Energía y Columna) con porcentaje
+ * y estado, tocable para saltar al anillo (0,55 s) y abrir el detalle del canal.
  */
 @Composable
 fun HomeRingsSection(
@@ -97,6 +97,11 @@ fun HomeRingsSection(
     onDismissAdvisory: (String) -> Unit = {},
     onModelNoticeShown: () -> Unit = {},
     modifier: Modifier = Modifier,
+    /** Parámetros de animación y pruebas/hojas de render */
+    animatingOverride: Boolean? = null,
+    forcedPose: LivingCharacterPose? = null,
+    forcedOrbitTimeMillis: Float? = null,
+    jumpDurationMillis: Int = 550,
 ) {
     // Sin ninguna cobertura, «sin datos»: la sección nunca afirma un porcentaje que no tenga procedencia.
     val ringsCoverage = coverage ?: snapshot?.coverage ?: RingsCoverage.NO_DATA
@@ -113,16 +118,28 @@ fun HomeRingsSection(
         }
         return (progress * 100).toInt().coerceIn(0, 100)
     }
+
     val towerValues = TowerRingValues(
         columna = scoreOf(RecoveryChannelId.STRUCTURE),
         musculos = scoreOf(RecoveryChannelId.MUSCULAR),
         energia = scoreOf(RecoveryChannelId.SYSTEM),
     )
-    // Una sola lectura de los RINGS para TalkBack, en el orden de la torre.
+
+    // Conjunto de canales calibrados para el planificador de saltos y órbitas
+    val calibratedChannels = remember(ringsCoverage, isLoading) {
+        if (isLoading) emptySet()
+        else buildSet {
+            if (ringsCoverage.channel(RecoveryChannelId.STRUCTURE).hasData) add(RingChannel.COLUMNA)
+            if (ringsCoverage.channel(RecoveryChannelId.MUSCULAR).hasData) add(RingChannel.MUSCULOS)
+            if (ringsCoverage.channel(RecoveryChannelId.SYSTEM).hasData) add(RingChannel.ENERGIA)
+        }
+    }
+
+    // Una sola lectura de los RINGS para TalkBack, en el orden de la leyenda I1.
     val towerDescription = if (isLoading) {
         "Calculando recuperación"
     } else {
-        "Rings: " + RingRowOrder.joinToString(", ") { channel ->
+        "Rings: " + LegendChannels.joinToString(", ") { channel ->
             val name = RecoveryBands.channelTitle(channel)
             val score = scoreOf(channel)
             val cov = ringsCoverage.channel(channel)
@@ -134,7 +151,51 @@ fun HomeRingsSection(
         }
     }
 
-    KpknModule(modifier = modifier.fillMaxWidth().padding(horizontal = HomeModuleMargin)) {
+    // Detección de ciclo de vida y visibilidad en pantalla para detener bucles
+    val lifecycleState by LocalLifecycleOwner.current.lifecycle.currentStateAsState()
+    val isLifecycleStarted = lifecycleState.isAtLeast(Lifecycle.State.STARTED)
+    val reducedMotion = wizardReducedMotion()
+    var isVisibleOnScreen by remember { mutableStateOf(true) }
+
+    val isAnimating = animatingOverride ?: (!reducedMotion && isLifecycleStarted && isVisibleOnScreen)
+
+    // Salto directo al pulsar un anillo o columna de la leyenda (0,55 s antes de abrir el detalle)
+    val coroutineScope = rememberCoroutineScope()
+    var jumpTargetChannel by remember { mutableStateOf<RingChannel?>(null) }
+    val jumpAnim = remember { Animatable(0f) }
+    val jumpProgress = jumpTargetChannel?.let { jumpAnim.value }
+
+    fun handleChannelClick(channel: RecoveryChannelId) {
+        if (reducedMotion || jumpDurationMillis <= 0) {
+            onSelectedChannelChange(channel)
+        } else {
+            coroutineScope.launch {
+                jumpTargetChannel = channel.ringChannel()
+                jumpAnim.snapTo(0f)
+                jumpAnim.animateTo(
+                    targetValue = 1f,
+                    animationSpec = tween(
+                        durationMillis = jumpDurationMillis,
+                        easing = CubicBezierEasing(0.3f, 0f, 0.6f, 1f),
+                    ),
+                )
+                onSelectedChannelChange(channel)
+                jumpTargetChannel = null
+            }
+        }
+    }
+
+    KpknModule(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(horizontal = HomeModuleMargin)
+            .onGloballyPositioned { coordinates ->
+                if (coordinates.isAttached) {
+                    val bounds = coordinates.boundsInWindow()
+                    isVisibleOnScreen = bounds.bottom > 0 && bounds.top < 4000f
+                }
+            },
+    ) {
         KpknModuleHeader(
             label = "Tus RINGS",
             action = {
@@ -156,52 +217,107 @@ fun HomeRingsSection(
                 overflow = TextOverflow.Ellipsis,
             )
         }
+
+        // Héroe I1: torre central con proporción 300:230 y capa viva
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 8.dp)
+                .aspectRatio(300f / 230f)
+                .tourAnchor(TourAnchors.HOME_RINGS)
+                .clearAndSetSemantics {
+                    contentDescription = towerDescription
+                    stateDescription = towerDescription
+                },
+        ) {
+            KpknTowerRings(
+                values = towerValues,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .alpha(if (hasActiveProgram || isLoading) 1f else 0.5f),
+                onRingTap = if (isLoading) null else { ring -> handleChannelClick(ring.recoveryChannel()) },
+            )
+            HomeLivingRingsOverlay(
+                calibratedChannels = calibratedChannels,
+                isAnimating = isAnimating,
+                jumpProgress = jumpProgress,
+                targetChannel = jumpTargetChannel,
+                forcedPose = forcedPose,
+                forcedTimeMillis = forcedOrbitTimeMillis,
+                modifier = Modifier.fillMaxSize(),
+            )
+        }
+
+        // Leyenda I1: 3 columnas de izquierda a derecha (MÚSCULOS, ENERGÍA, COLUMNA)
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(top = 16.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(16.dp),
+                .padding(top = 10.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            Box(
-                modifier = Modifier
-                    // La torre de Home mide 112 dp de ancho; su alto sale de la proporción del logo.
-                    .width(112.dp)
-                    .aspectRatio(RingTowerAspect)
-                    .tourAnchor(TourAnchors.HOME_RINGS)
-                    // Una sola lectura de los RINGS: la descripción del contenedor sustituye a la de la torre y sus bandas.
-                    .clearAndSetSemantics {
-                        contentDescription = towerDescription
-                        stateDescription = towerDescription
-                    },
-            ) {
-                KpknTowerRings(
-                    values = towerValues,
-                    modifier = Modifier.fillMaxSize().alpha(if (hasActiveProgram || isLoading) 1f else 0.5f),
-                    onRingTap = if (isLoading) null else { ring -> onSelectedChannelChange(ring.recoveryChannel()) },
-                )
-            }
-            Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                RingRowOrder.forEach { channel ->
-                    val score = scoreOf(channel)
-                    val cov = ringsCoverage.channel(channel)
-                    val secondary = when {
-                        isLoading -> null
-                        score == null -> "Sin calibrar"
-                        cov.isEstimated -> cov.label
-                        else -> RecoveryBands.labelForScore(score)
-                    }
-                    HomeRingRow(
-                        channel = channel,
-                        name = RecoveryBands.channelTitle(channel),
-                        score = score,
-                        secondary = secondary,
-                        loading = isLoading,
-                        onClick = { onSelectedChannelChange(channel) },
+            LegendChannels.forEach { channel ->
+                val score = scoreOf(channel)
+                val cov = ringsCoverage.channel(channel)
+                val secondary = when {
+                    isLoading -> null
+                    score == null -> "Sin calibrar"
+                    cov.isEstimated -> cov.label
+                    else -> RecoveryBands.labelForScore(score)
+                }
+                val name = RecoveryBands.channelTitle(channel)
+                val figure = when {
+                    isLoading -> "…"
+                    score == null -> "—"
+                    else -> "$score %"
+                }
+                val spoken = when {
+                    isLoading -> "calculando recuperación"
+                    score == null -> "sin datos"
+                    else -> "$score %"
+                }
+                val description = listOfNotNull(name, spoken, secondary).joinToString(", ")
+                val accent = channel.homeAccent()
+
+                Column(
+                    modifier = Modifier
+                        .weight(1f)
+                        .defaultMinSize(minHeight = 48.dp)
+                        .testTag("home-rings-row-${channel.name}")
+                        .clickable(
+                            enabled = !isLoading,
+                            role = Role.Button,
+                            onClick = { handleChannelClick(channel) },
+                        )
+                        .semantics { contentDescription = description },
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    Text(
+                        text = name.uppercase(Locale("es")),
+                        style = KpknType.eyebrow,
+                        color = accent,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
                     )
+                    Text(
+                        text = figure,
+                        style = WizardTypography.measure.copy(fontSize = 20.sp, lineHeight = 24.sp),
+                        color = WizardColors.text,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                    if (secondary != null) {
+                        Text(
+                            text = secondary,
+                            style = KpknType.caption,
+                            color = WizardColors.textFaint,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                    }
                 }
             }
         }
+
         if (dashboard != null && !isLoading) {
             Text(
                 // «por qué» va sin corte: no deja «qué» huérfano en la segunda línea.
@@ -245,10 +361,12 @@ private fun RingChannel.recoveryChannel(): RecoveryChannelId = when (this) {
     RingChannel.COLUMNA -> RecoveryChannelId.STRUCTURE
 }
 
-private val AugeRingCoreStroke = 2.dp
-internal val AugeRingBloomFar = 8.dp
-private val AugeRingBloomNear = 4.5.dp
-private val AugeRingHighlight = 1.dp
+/** Canal de Home al canal de la torre. */
+private fun RecoveryChannelId.ringChannel(): RingChannel = when (this) {
+    RecoveryChannelId.MUSCULAR -> RingChannel.MUSCULOS
+    RecoveryChannelId.SYSTEM -> RingChannel.ENERGIA
+    RecoveryChannelId.STRUCTURE -> RingChannel.COLUMNA
+}
 
 internal const val AugeRingsRadiusWidthDivisor = 5f
 internal const val AugeRingsStaggerDy = 0.48f
@@ -258,119 +376,4 @@ internal fun augeRingsHostHeightDp(contentWidthDp: Float, bloomDp: Float = 8f): 
     val radius = (contentWidthDp / AugeRingsRadiusWidthDivisor).coerceAtLeast(1f)
     val verticalExtent = radius * (1f + AugeRingsStaggerDy)
     return 2f * verticalExtent + 2f * bloomDp
-}
-
-@Composable
-internal fun SingleRingCanvas(
-    value: Float,
-    color: Color,
-    ringDiameter: Float = 140f,
-    @Suppress("UNUSED_PARAMETER") strokeWidth: Float = 8f,
-) {
-    val animatedValue by animateFloatAsState(targetValue = value, label = "ringValue")
-    Canvas(
-        Modifier
-            .size(ringDiameter.dp)
-            .graphicsLayer { compositingStrategy = CompositingStrategy.Offscreen },
-    ) {
-        val bloomFarPx = AugeRingBloomFar.toPx()
-        val r = (size.minDimension - bloomFarPx) / 2f
-        val c = Offset(size.width / 2f, size.height / 2f)
-        val progress = animatedValue.coerceIn(0f, 1f)
-        drawAugeRingTrack(c, r, color)
-        drawAugeRingBlooms(c, r, color, progress, BlendMode.Plus)
-        drawAugeRingCore(c, r, color, progress)
-    }
-}
-
-internal fun DrawScope.drawAugeRingTrack(center: Offset, radius: Float, color: Color) {
-    drawCircle(
-        color = color.copy(alpha = 0.16f),
-        radius = radius,
-        center = center,
-        style = Stroke(width = AugeRingCoreStroke.toPx()),
-        blendMode = BlendMode.SrcOver,
-    )
-}
-
-internal fun DrawScope.drawAugeRingBlooms(
-    center: Offset,
-    radius: Float,
-    color: Color,
-    progress: Float,
-    blendMode: BlendMode,
-) {
-    val clamped = progress.coerceIn(0f, 1f)
-    if (clamped <= 0f) return
-    val topLeft = Offset(center.x - radius, center.y - radius)
-    val arcSize = Size(radius * 2f, radius * 2f)
-    val full = clamped >= 1f
-    listOf(AugeRingBloomFar.toPx() to 0.10f, AugeRingBloomNear.toPx() to 0.18f).forEach { (width, alpha) ->
-        if (full) {
-            drawCircle(
-                color = color.copy(alpha = alpha),
-                radius = radius,
-                center = center,
-                style = Stroke(width = width),
-                blendMode = blendMode,
-            )
-        } else {
-            drawArc(
-                color = color.copy(alpha = alpha),
-                startAngle = -90f,
-                sweepAngle = 360f * clamped,
-                useCenter = false,
-                topLeft = topLeft,
-                size = arcSize,
-                style = Stroke(width = width, cap = StrokeCap.Butt),
-                blendMode = blendMode,
-            )
-        }
-    }
-}
-
-internal fun DrawScope.drawAugeRingCore(center: Offset, radius: Float, color: Color, progress: Float) {
-    val clamped = progress.coerceIn(0f, 1f)
-    if (clamped <= 0f) return
-    val topLeft = Offset(center.x - radius, center.y - radius)
-    val arcSize = Size(radius * 2f, radius * 2f)
-    val full = clamped >= 1f
-    val highlight = lerp(color, Color.White, 0.35f)
-    if (full) {
-        drawCircle(
-            color = color,
-            radius = radius,
-            center = center,
-            style = Stroke(width = AugeRingCoreStroke.toPx()),
-            blendMode = BlendMode.SrcOver,
-        )
-        drawCircle(
-            color = highlight,
-            radius = radius,
-            center = center,
-            style = Stroke(width = AugeRingHighlight.toPx()),
-            blendMode = BlendMode.SrcOver,
-        )
-    } else {
-        drawArc(
-            color = color,
-            startAngle = -90f,
-            sweepAngle = 360f * clamped,
-            useCenter = false,
-            topLeft = topLeft,
-            size = arcSize,
-            style = Stroke(width = AugeRingCoreStroke.toPx(), cap = StrokeCap.Round),
-            blendMode = BlendMode.SrcOver,
-        )
-        drawArc(
-            color = highlight,
-            startAngle = -90f,
-            sweepAngle = 360f * clamped,
-            useCenter = false,
-            topLeft = topLeft,
-            size = arcSize,
-            style = Stroke(width = AugeRingHighlight.toPx(), cap = StrokeCap.Round),
-            blendMode = BlendMode.SrcOver,
-        )
-    }
 }
