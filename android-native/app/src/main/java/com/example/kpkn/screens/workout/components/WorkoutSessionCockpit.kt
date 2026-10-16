@@ -6,12 +6,14 @@ import android.net.Uri
 import java.io.File
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
@@ -71,6 +73,12 @@ import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import com.example.kpkn.ui.components.LocalMediaImage
 import com.example.kpkn.ui.components.rememberLocalMediaImageSource
+import com.example.kpkn.data.models.CompletedExercise
+import com.example.kpkn.data.models.PostSessionPreview
+import com.example.kpkn.data.models.SupersetGroup
+import com.example.kpkn.ui.design.KpknChip
+import com.example.kpkn.ui.design.KpknType
+import com.example.kpkn.screens.onboarding.design.WizardColors
 import com.example.kpkn.data.models.CompletedSet
 import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.SessionChecklistItem
@@ -86,7 +94,8 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 private enum class CockpitPage(val title: String) {
-    Overview("Resumen"),
+    Session("Sesión"),
+    Overview("Hitos"),
     Photos("Fotos"),
     Tools("Herramientas"),
     Notes("Notas"),
@@ -120,89 +129,66 @@ fun WorkoutSessionCockpit(
     onRemoveChecklistItem: (String) -> Unit,
     sessionAccentColor: Color,
     bodyWeight: Double? = null,
+    sessionStartTimeMs: Long = 0L,
+    targetMinutes: Int? = null,
+    completedExercises: List<CompletedExercise> = emptyList(),
+    omittedSetKeys: Set<String> = emptySet(),
+    currentExerciseId: String? = null,
+    supersetGroups: List<SupersetGroup> = emptyList(),
+    liveRingPreview: PostSessionPreview? = null,
+    onSelectExercise: (String) -> Unit = {},
+    onSelectSuperset: (String) -> Unit = {},
     modifier: Modifier = Modifier,
     poseOverlayEnabled: Boolean = false,
 ) {
+    val reducedMotion = com.example.kpkn.screens.onboarding.design.wizardReducedMotion()
     val pages = CockpitPage.entries
     val pagerState = rememberPagerState(pageCount = { pages.size })
     val scope = rememberCoroutineScope()
 
-    Column(
-        modifier = modifier
-            .fillMaxWidth()
-            .animateContentSize(
-                animationSpec = tween(durationMillis = 220, easing = FastOutSlowInEasing),
-            )
-            .heightIn(max = 460.dp)
-            .padding(bottom = 8.dp),
-    ) {
+    Column(modifier = modifier.fillMaxSize().padding(bottom = 8.dp)) {
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 4.dp),
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Text(
-                "Cockpit de la sesión",
-                style = MaterialTheme.typography.titleSmall,
-                fontWeight = FontWeight.SemiBold,
-                color = MaterialTheme.colorScheme.onSurface,
-            )
-            Surface(
-                shape = RoundedCornerShape(999.dp),
-                color = sessionAccentColor.copy(alpha = 0.18f),
-            ) {
-                Text(
-                    sessionProgressLabel,
-                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
-                    style = MaterialTheme.typography.labelSmall,
-                    fontWeight = FontWeight.SemiBold,
-                    color = sessionAccentColor,
-                )
-            }
+            Text("Sesión", style = KpknType.title, color = WizardColors.text)
+            Text(sessionProgressLabel, style = KpknType.caption, color = WizardColors.textMuted)
         }
-
-        ScrollableTabRow(
-            selectedTabIndex = pagerState.currentPage,
-            edgePadding = 12.dp,
-            containerColor = Color.Transparent,
-            divider = {},
-            indicator = { tabPositions ->
-                if (pagerState.currentPage < tabPositions.size) {
-                    TabRowDefaults.SecondaryIndicator(
-                        modifier = Modifier.tabIndicatorOffset(tabPositions[pagerState.currentPage]),
-                        color = sessionAccentColor,
-                    )
-                }
-            },
+        Row(
+            modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(horizontal = 16.dp),
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
         ) {
             pages.forEachIndexed { index, page ->
-                val selected = pagerState.currentPage == index
-                Tab(
-                    selected = selected,
-                    onClick = { scope.launch { pagerState.animateScrollToPage(index) } },
-                    selectedContentColor = sessionAccentColor,
-                    unselectedContentColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.55f),
-                    text = {
-                        Text(
-                            page.title,
-                            style = MaterialTheme.typography.labelMedium,
-                            fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium,
-                        )
-                    },
+                KpknChip(
+                    text = page.title,
+                    selected = pagerState.currentPage == index,
+                    onClick = { scope.launch { if (reducedMotion) pagerState.scrollToPage(index) else pagerState.animateScrollToPage(index) } },
                 )
             }
         }
-
         HorizontalPager(
             state = pagerState,
             modifier = Modifier
                 .fillMaxWidth()
-                .weight(1f, fill = false)
-                .heightIn(max = 380.dp),
+                .weight(1f),
         ) { page ->
             when (pages[page]) {
+                CockpitPage.Session -> CockpitSessionSummary(
+                    exercises = exercises,
+                    completedSets = completedSets,
+                    completedExercises = completedExercises,
+                    omittedSetKeys = omittedSetKeys,
+                    currentExerciseId = currentExerciseId,
+                    supersetGroups = supersetGroups,
+                    liveEnergySummary = liveEnergySummary,
+                    bodyWeight = bodyWeight,
+                    startTimeMs = sessionStartTimeMs,
+                    targetMinutes = targetMinutes,
+                    ringPreview = liveRingPreview,
+                    onSelectExercise = onSelectExercise,
+                    onSelectSuperset = onSelectSuperset,
+                )
                 CockpitPage.Overview -> CockpitOverviewPage(
                     exercises = exercises,
                     completedSets = completedSets,

@@ -162,6 +162,7 @@ internal class WorkoutStructureSheetsState {
     var addCatalogSearchQuery by mutableStateOf("")
     var addCatalogSelectedIds by mutableStateOf<Set<String>>(emptySet())
     var addExerciseAfterId by mutableStateOf<String?>(null)
+    var addExerciseAtEnd by mutableStateOf(false)
     var addExerciseSearchQuery by mutableStateOf("")
     var addExerciseSelectedIds by mutableStateOf<Set<String>>(emptySet())
     var createSupersetFromCatalogAnchorId by mutableStateOf<String?>(null)
@@ -188,6 +189,7 @@ internal class WorkoutStructureSheetsState {
             supersetSettingsGroupId != null ||
             addCatalogToSupersetGroupId != null ||
             addExerciseAfterId != null ||
+            addExerciseAtEnd ||
             createSupersetFromCatalogAnchorId != null ||
             showReorderSheet ||
             exerciseNoteExerciseId != null ||
@@ -324,6 +326,7 @@ internal fun WorkoutStructureSheetsHost(
         state.addCatalogSearchQuery,
         state.addCatalogSelectedIds,
         state.addExerciseAfterId,
+        state.addExerciseAtEnd,
         state.createSupersetFromCatalogAnchorId,
         state.addExerciseSearchQuery,
         state.addExerciseSelectedIds,
@@ -346,7 +349,7 @@ internal fun WorkoutStructureSheetsHost(
                 state.addCatalogSelectedIds = emptySet()
                 req
             }
-            state.addExerciseAfterId != null -> {
+            state.addExerciseAfterId != null || state.addExerciseAtEnd -> {
                 val req = CatalogLaunchRequest(
                     origin = CatalogLaunchOrigin.LIVE_SESSION,
                     selectionMode = CatalogSelectionMode.MULTIPLE,
@@ -355,6 +358,7 @@ internal fun WorkoutStructureSheetsHost(
                     initialQuery = state.addExerciseSearchQuery,
                 )
                 state.addExerciseAfterId = null
+                state.addExerciseAtEnd = false
                 state.addExerciseSearchQuery = ""
                 state.addExerciseSelectedIds = emptySet()
                 req
@@ -896,13 +900,14 @@ internal fun WorkoutStructureSheetsHost(
         }
     }
 
-    if (!useFullPageCatalog && state.addExerciseAfterId != null) {
-        val targetExerciseId = state.addExerciseAfterId ?: return
+    if (!useFullPageCatalog && (state.addExerciseAfterId != null || state.addExerciseAtEnd)) {
+        val targetExerciseId = state.addExerciseAfterId
         val programRepository = remember(context) { com.example.kpkn.data.repository.ProgramRepository.getInstance() }
         val workoutLogs by programRepository.history.collectAsStateWithLifecycle()
         KpknSheet(
             onDismissRequest = {
                 state.addExerciseAfterId = null
+                state.addExerciseAtEnd = false
                 state.addExerciseSearchQuery = ""
                 state.addExerciseSelectedIds = emptySet()
             },
@@ -925,16 +930,17 @@ internal fun WorkoutStructureSheetsHost(
                 onClearExerciseSelection = { state.addExerciseSelectedIds = emptySet() },
                 onSearch = { state.addExerciseSearchQuery = it },
                 onSelect = { info ->
-                    viewModel.addExerciseAfter(targetExerciseId, info)
+                    if (targetExerciseId != null) viewModel.addExerciseAfter(targetExerciseId, info) else viewModel.addExerciseAtEnd(info)
                     state.addExerciseAfterId = null
+                    state.addExerciseAtEnd = false
                     state.addExerciseSearchQuery = ""
                     state.addExerciseSelectedIds = emptySet()
                 },
                 onMultiSelect = { infos ->
-                    infos.asReversed().forEach { info ->
-                        viewModel.addExerciseAfter(targetExerciseId, info)
-                    }
+                    if (targetExerciseId == null) viewModel.addExercisesAtEnd(infos)
+                    else infos.asReversed().forEach { info -> viewModel.addExerciseAfter(targetExerciseId, info) }
                     state.addExerciseAfterId = null
+                    state.addExerciseAtEnd = false
                     state.addExerciseSearchQuery = ""
                     state.addExerciseSelectedIds = emptySet()
                     emptyList()
@@ -942,6 +948,7 @@ internal fun WorkoutStructureSheetsHost(
                 onOpenExerciseDetail = { dbId -> onNavigateToWikiLab(dbId) },
                 onDismiss = {
                     state.addExerciseAfterId = null
+                    state.addExerciseAtEnd = false
                     state.addExerciseSearchQuery = ""
                     state.addExerciseSelectedIds = emptySet()
                 },
