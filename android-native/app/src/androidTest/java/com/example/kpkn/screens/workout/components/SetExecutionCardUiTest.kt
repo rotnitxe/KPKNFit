@@ -4,10 +4,13 @@ import androidx.activity.ComponentActivity
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
+import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performSemanticsAction
 import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.ExerciseSet
 import com.example.kpkn.data.models.IntensityMode
@@ -127,6 +130,7 @@ class SetExecutionCardUiTest {
             }
         }
 
+        markEffort()
         composeRule.runOnIdle { holder.action?.invoke() }
         composeRule.runOnIdle { assertEquals("right", recordedSide) }
     }
@@ -176,6 +180,7 @@ class SetExecutionCardUiTest {
             }
         }
 
+        markEffort()
         composeRule.runOnIdle {
             holder.actionForPage("${exercise.id}:0:B")?.invoke()
         }
@@ -184,6 +189,10 @@ class SetExecutionCardUiTest {
             assertEquals(1, activeSet.intValue)
             assertNull(holder.actionForPage("${exercise.id}:0:B"))
             assertNotNull(holder.actionForPage("${exercise.id}:1:B"))
+        }
+        // La serie 2 empieza sin marcar: registrar exige su propio esfuerzo (LV8).
+        markEffort()
+        composeRule.runOnIdle {
             holder.actionForPage("${exercise.id}:1:B")?.invoke()
         }
         composeRule.waitForIdle()
@@ -502,9 +511,16 @@ class SetExecutionCardUiTest {
                 )
             }
         }
+        markEffort()
         composeRule.runOnIdle { holder.action?.invoke() }
         composeRule.waitForIdle()
         return requireNotNull(recorded) { "The record action never reached onRecordV2" }
+    }
+
+    /** Registrar una serie exige haber marcado el esfuerzo (LV8): marca el más bajo del slider, como lo haría la accesibilidad. */
+    private fun markEffort() {
+        composeRule.onNodeWithTag(EffortSliderTag).performSemanticsAction(SemanticsActions.SetProgress) { it(0f) }
+        composeRule.waitForIdle()
     }
 
     private fun guidedExpectedFeedback(

@@ -16,19 +16,18 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.layout.layout
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.semantics.disabled
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -39,10 +38,10 @@ import com.example.kpkn.data.models.RecoveryChannelId
 import com.example.kpkn.data.models.ringScore
 import com.example.kpkn.domain.auge.LoadAdvisoryEngine
 import com.example.kpkn.domain.auge.RecoveryBands
+import com.example.kpkn.domain.auge.getAugeMusclePillarId
 import com.example.kpkn.domain.onboarding.RingsCoverage
 import com.example.kpkn.screens.home.design.HomeGlyph
 import com.example.kpkn.screens.home.design.HomeGlyphButton
-import com.example.kpkn.screens.home.design.HomePrimaryPill
 import com.example.kpkn.screens.home.design.HomeRingMuscle
 import com.example.kpkn.screens.home.design.HomeRingMuscleGrid
 import com.example.kpkn.screens.home.design.HomeRingRange
@@ -53,12 +52,15 @@ import com.example.kpkn.screens.home.design.homeAccent
 import com.example.kpkn.screens.onboarding.design.WizardColors
 import com.example.kpkn.screens.onboarding.design.WizardSpacing
 import com.example.kpkn.screens.onboarding.design.WizardTypography
-import com.example.kpkn.screens.onboarding.rings.RingsChannelSlider
 import com.example.kpkn.ui.components.KpknSheet
 import com.example.kpkn.ui.components.rings.KpknTowerRings
+import com.example.kpkn.ui.components.rings.RingAdjustLevel
+import com.example.kpkn.ui.components.rings.RingAdjustMuscles
+import com.example.kpkn.ui.components.rings.RingAdjustSheet
 import com.example.kpkn.ui.components.rings.RingChannel
 import com.example.kpkn.ui.components.rings.TowerRingValues
 import com.example.kpkn.ui.components.rings.towerRingBandFractions
+import com.example.kpkn.ui.design.KpknCompactPill
 
 /** Máximo de músculos en la rejilla del detalle de Músculos. */
 private const val MuscleGridMax = 12
@@ -67,10 +69,18 @@ private const val MuscleGridMax = 12
 private val RingArtWidth = 240.dp
 
 /**
+ * Quién guarda el ajuste de músculos sueltos que se hace en el detalle de Músculos (LV10b): recibe pilar → valor visible, solo de los
+ * músculos que la persona movió. `HomeScreen` lo da y guarda cada uno como ancla V2 por músculo, la misma ruta que el final del entreno
+ * (`AugeViewModel.applyManualBatteries(perMuscleDelta = …)`). Sin él, el detalle de Músculos no ofrece el ajuste (no tendría dónde guardarlo).
+ */
+val LocalRingMuscleAdjustSave = compositionLocalOf<((Map<String, Int>) -> Unit)?> { null }
+
+/**
  * Detalle de un canal de RINGS: una hoja de vidrio (`KpknSheet`) que, de arriba abajo, muestra el nombre del canal y su cierre,
  * el anillo grande con su cifra y su banda, tu rango habitual, por qué, qué hacer hoy, (solo Músculos) los músculos uno a uno, las
- * últimas sesiones, el aviso del canal y el ajuste con deslizador. Sin dato ([coverage]) no hay cifra ni ajuste. Etiquetas
- * `home-ring-sheet`, `home-ring-close`, `home-ring-adjust` y `home-ring-save`.
+ * últimas sesiones, el aviso del canal y el ajuste oficial (LV10b): «Ajustar» abre la hoja de ajuste en ese canal (el anillo con líquido
+ * en Energía y Columna; el cuerpo en Músculos) y «Guardar ajuste» guarda solo si algo cambió. Sin dato ([coverage]) no hay cifra ni
+ * ajuste. Etiquetas `home-ring-sheet`, `home-ring-close`, `home-ring-adjust` y `home-ring-save`.
  */
 @Composable
 fun RingDetailSheet(
@@ -104,11 +114,18 @@ fun RingDetailSheet(
             .take(MuscleGridMax)
             .map { HomeRingMuscle(name = it.muscleName, score = it.recoveryScore) }
     }
-    // Ajuste: lo elegido al soltar el deslizador y lo que se arrastra ahora (la torre lo enseña ya).
+    // Ajuste: el valor que dejó la persona en la hoja de ajuste (la torre lo enseña ya) y, en Músculos, los músculos que movió.
+    val saveMuscles = LocalRingMuscleAdjustSave.current
     var adjusted by remember(channel, score) { mutableStateOf<Int?>(null) }
-    var dragging by remember(channel, score) { mutableStateOf<Int?>(null) }
-    val shown: Int? = dragging ?: adjusted ?: score
-    val changed = score != null && adjusted != null && adjusted != score
+    var showAdjust by remember(channel) { mutableStateOf(false) }
+    val muscleEdits = remember(channel) { mutableStateMapOf<String, Int>() }
+    val bodyBefore = remember(perMuscle) { homeBodyValues(perMuscle) }
+    val isMuscular = channel == RecoveryChannelId.MUSCULAR
+    val shown: Int? = adjusted ?: score
+    val changedMuscles = muscleEdits.filter { (id, value) -> bodyBefore[id] != value }
+    val changed = if (isMuscular) changedMuscles.isNotEmpty() else score != null && adjusted != null && adjusted != score
+    // El ajuste solo se ofrece con dato y con dónde guardarlo (los músculos sueltos necesitan quien los guarde).
+    val canAdjust = score != null && (!isMuscular || saveMuscles != null)
     LaunchedEffect(showModelUpdateNotice) {
         if (showModelUpdateNotice) onModelNoticeShown()
     }
@@ -256,40 +273,58 @@ fun RingDetailSheet(
                 }
             }
 
-            if (score != null) {
+            if (canAdjust) {
                 Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     DetailEyebrow("¿TE SIENTES DISTINTO?")
-                    RingsChannelSlider(
-                        accent = accent,
-                        name = RecoveryBands.channelTitle(channel),
-                        value = shown ?: score,
-                        onPreview = { dragging = it },
-                        onCommit = { value ->
-                            adjusted = value
-                            dragging = null
-                        },
-                        tag = "home-ring-adjust",
-                        dimmed = channelCoverage.isEstimated && adjusted == null && dragging == null,
-                        stateText = "${shown ?: score} %",
-                    )
                     Text(
                         text = "Si no coincide con cómo te sientes, ajústalo. Tu ajuste manda sobre la estimación de hoy.",
                         style = WizardTypography.note,
                         color = WizardColors.textMuted,
                     )
-                    HomePrimaryPill(
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    ) {
+                        KpknCompactPill(
+                            text = "Ajustar",
+                            onClick = { showAdjust = true },
+                            filled = false,
+                            height = 40.dp,
+                            modifier = Modifier.testTag("home-ring-adjust"),
+                        )
+                        if (changed) {
+                            Text(
+                                text = adjustmentSummary(isMuscular, adjusted, changedMuscles.size),
+                                style = WizardTypography.bodySmall,
+                                color = WizardColors.text,
+                                modifier = Modifier.testTag("home-ring-adjust-summary"),
+                            )
+                        }
+                    }
+                    KpknCompactPill(
                         text = "Guardar ajuste",
                         onClick = {
-                            val value = adjusted
-                            if (value != null && value != score) {
-                                onSaveAdjustment(channel, value)
-                                onDismiss()
+                            if (isMuscular) {
+                                if (changedMuscles.isNotEmpty()) {
+                                    // Cada músculo se guarda por su pilar, como el motor lo conoce.
+                                    saveMuscles?.invoke(changedMuscles.mapKeys { (id, _) -> getAugeMusclePillarId(id) })
+                                    onDismiss()
+                                }
+                            } else {
+                                val value = adjusted
+                                if (value != null && value != score) {
+                                    onSaveAdjustment(channel, value)
+                                    onDismiss()
+                                }
                             }
                         },
+                        filled = true,
+                        height = 44.dp,
+                        fullWidth = true,
+                        enabled = changed,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .then(if (changed) Modifier else Modifier.alpha(0.4f).semantics { disabled() }),
-                        tag = "home-ring-save",
+                            .testTag("home-ring-save"),
                     )
                 }
             }
@@ -311,6 +346,46 @@ fun RingDetailSheet(
             }
         }
     }
+
+    if (showAdjust && canAdjust) {
+        val level = RingAdjustLevel(value = adjusted ?: score ?: 0, before = score ?: 0, edited = adjusted != null)
+        RingAdjustSheet(
+            initialChannel = ring,
+            channels = listOf(ring),
+            title = "Ajusta ${RecoveryBands.channelTitle(channel)}",
+            onDismiss = { showAdjust = false },
+            energy = if (ring == RingChannel.ENERGIA) level else RingAdjustLevel(0, 0),
+            spine = if (ring == RingChannel.COLUMNA) level else RingAdjustLevel(0, 0),
+            muscles = RingAdjustMuscles(
+                values = bodyBefore + muscleEdits,
+                before = bodyBefore,
+                edited = muscleEdits.keys,
+            ),
+            onEnergyChange = { adjusted = it },
+            onSpineChange = { adjusted = it },
+            onMuscleChange = { id, value -> muscleEdits[id] = value },
+            onEnergyReset = { adjusted = null },
+            onSpineReset = { adjusted = null },
+            onMusclesReset = { muscleEdits.clear() },
+        )
+    }
+}
+
+/**
+ * Los músculos con sesión registrada de [perMuscle], por nombre y con su recuperación: lo que el cuerpo del ajuste pinta y de lo que
+ * parte. Un músculo sin sesión no tiene dato (su 100 % es el valor por defecto del motor) y sale sin datos.
+ */
+internal fun homeBodyValues(perMuscle: Map<String, MuscleRecoveryStatus>): Map<String, Int> =
+    perMuscle.values
+        .filter { it.hoursSinceLastSession >= 0 }
+        .associate { it.muscleName to it.recoveryScore.coerceIn(0, 100) }
+
+/** Lo que se ha ajustado, en una línea: «Tu ajuste: 60 %» o «2 músculos ajustados». */
+internal fun adjustmentSummary(isMuscular: Boolean, adjusted: Int?, changedMuscles: Int): String = when {
+    isMuscular && changedMuscles == 1 -> "1 músculo ajustado"
+    isMuscular -> "$changedMuscles músculos ajustados"
+    adjusted != null -> "Tu ajuste: $adjusted\u00A0%"
+    else -> ""
 }
 
 /** Etiqueta de una sección del detalle: `eyebrow` en `textMuted`. */

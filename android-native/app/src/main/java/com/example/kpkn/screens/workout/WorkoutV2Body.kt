@@ -228,6 +228,7 @@ internal fun WorkoutV2Body(
         }
         val sessionTimeRemainingSeconds by viewModel.sessionTimeRemainingSeconds.collectAsStateWithLifecycle()
         val relatorResolution by viewModel.relatorResolution.collectAsStateWithLifecycle()
+        val relatorLoadPopTrigger by viewModel.relatorLoadPopTrigger.collectAsStateWithLifecycle()
         val density = LocalDensity.current
         var headerHeightPx by remember { mutableIntStateOf(0) }
         val relatorBandHeight = WorkoutUiTokens.liveRelatorBandHeight(density)
@@ -2208,6 +2209,7 @@ internal fun WorkoutV2Body(
                                         ?: uiState.lastHomologatedResultV3?.takeIf {
                                             uiState.setJustLoggedKey?.startsWith("${targetExercise.id}_$activeSetIndex") == true
                                         },
+                                    loadPopTrigger = relatorLoadPopTrigger,
                                         )
                                     }
                                 }
@@ -2244,18 +2246,20 @@ internal fun WorkoutV2Body(
             } // BoxWithConstraints body
         } // header + body Column
 
-        if (!relatorResolution.text.isNullOrBlank() && headerHeightPx > 0 && !relatorBandCovered) {
+        if ((!relatorResolution.text.isNullOrBlank() || relatorResolution.silentAnimation != RelatorSilentAnimation.NONE) && headerHeightPx > 0 && !relatorBandCovered) {
             WorkoutLiveRelatorLine(
                 text = relatorResolution.text,
                 phaseKey = relatorResolution.phaseKey,
                 actions = relatorResolution.actions,
                 onAction = { viewModel.performRelatorAssist(it) },
                 accentColor = sessionAccentColor,
+                silentAnimation = relatorResolution.silentAnimation,
+                onLoadPop = { viewModel.triggerRelatorLoadPop() },
                 modifier = Modifier
                     .align(Alignment.TopCenter)
                     .fillMaxWidth()
                     .height(relatorBandHeight)
-                    .offset(y = with(density) { headerHeightPx.toDp() })
+                    .offset(y = with(density) { (headerHeightPx - 4.5.dp.toPx()).toDp() })
                     .zIndex(12f),
             )
         }

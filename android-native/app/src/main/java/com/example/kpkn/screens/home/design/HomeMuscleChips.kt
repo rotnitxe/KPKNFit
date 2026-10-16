@@ -181,7 +181,7 @@ private fun MuscleChip(gauge: HomeMuscleGauge, play: Boolean, onOpen: () -> Unit
     }
 }
 
-/** El mini anillo de 16 dp: pista blanca al 12 % y arco de músculo de 2,5 dp con extremos redondos. Sin dato, solo la pista. */
+/** El mini anillo de 16 dp: pista luminosa, degradado Músculos (#C7704A → #FFC2A3) y halo suave. Sin dato, solo la pista. */
 @Composable
 private fun MuscleRing(fraction: () -> Float, hasData: Boolean) {
     Canvas(Modifier.size(16.dp)) {
@@ -189,8 +189,8 @@ private fun MuscleRing(fraction: () -> Float, hasData: Boolean) {
         val arcSize = Size(size.width - stroke, size.height - stroke)
         val topLeft = Offset(stroke / 2f, stroke / 2f)
         drawArc(
-            color = Color.White.copy(alpha = 0.12f),
-            startAngle = -90f,
+            color = Color(0xFF151515),
+            startAngle = 0f,
             sweepAngle = 360f,
             useCenter = false,
             topLeft = topLeft,
@@ -199,10 +199,27 @@ private fun MuscleRing(fraction: () -> Float, hasData: Boolean) {
         )
         val sweep = if (hasData) fraction() else 0f
         if (sweep > 0f) {
+            val sweepDeg = 360f * sweep
+            // Halo detrás del arco
             drawArc(
-                color = SymbolPalette.musculo,
-                startAngle = -90f,
-                sweepAngle = 360f * sweep,
+                color = Color(0xFFF49A6E).copy(alpha = 0.22f),
+                startAngle = 0f,
+                sweepAngle = sweepDeg,
+                useCenter = false,
+                topLeft = topLeft,
+                size = arcSize,
+                style = Stroke(width = stroke + 2.dp.toPx(), cap = StrokeCap.Round),
+            )
+            // Arco con degradado horizontal #C7704A → #FFC2A3
+            val brush = Brush.horizontalGradient(
+                colors = listOf(Color(0xFFC7704A), Color(0xFFFFC2A3)),
+                startX = topLeft.x,
+                endX = topLeft.x + arcSize.width,
+            )
+            drawArc(
+                brush = brush,
+                startAngle = 0f,
+                sweepAngle = sweepDeg,
                 useCenter = false,
                 topLeft = topLeft,
                 size = arcSize,

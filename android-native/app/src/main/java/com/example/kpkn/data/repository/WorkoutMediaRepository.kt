@@ -447,6 +447,32 @@ class WorkoutMediaRepository(
         db.workoutMediaDao().getByCanonicalExerciseId(canonicalExerciseId).map { it.toWorkoutMedia() }
     }
 
+    /**
+     * Álbum de un ejercicio (LV8): los medios de ese ejercicio ENTRE sesiones, por todas las claves con las que se pudo guardar
+     * (`canonicalExerciseId`: la canónica, la del catálogo o el id del ejercicio), sin repetir y del más reciente al más antiguo.
+     */
+    suspend fun listForExerciseKeys(keys: List<String>): List<WorkoutMedia> = withContext(Dispatchers.IO) {
+        keys.map { it.trim() }
+            .filter { it.isNotEmpty() }
+            .distinct()
+            .flatMap { key -> listForExercise(key) }
+            .distinctBy { it.id }
+            .sortedByDescending { it.createdAtMs }
+    }
+
+    /** Lee el esfuerzo desde el log asociado a cada medio, sin duplicar consultas por sesión. */
+    suspend fun effortLabelsForMedia(items: List<WorkoutMedia>): Map<String, String> = withContext(Dispatchers.IO) {
+        val associations = items.mapNotNull { it.sessionKey }.distinct().associateWith { key ->
+            db.workoutMediaSessionAssociationDao().getBySessionKey(key)?.workoutLogId
+        }
+        val logIds = items.associate { item -> item.id to (associations[item.sessionKey] ?: item.workoutLogId) }
+        val logs = logIds.values.filterNotNull().distinct().associateWith { id -> db.workoutLogDao().getById(id)?.toWorkoutLog() }
+        items.mapNotNull { item ->
+            val log = logs[logIds[item.id]] ?: return@mapNotNull null
+            com.example.kpkn.data.media.ExerciseAlbumModel.effortForLog(item, log)?.let { item.id to it }
+        }.toMap()
+    }
+
     suspend fun prHighlights(fromMs: Long, toMs: Long): List<WorkoutMedia> = withContext(Dispatchers.IO) {
         db.workoutMediaDao().getPrHighlights(fromMs, toMs).map { it.toWorkoutMedia() }
     }
