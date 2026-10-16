@@ -21,6 +21,7 @@ import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.test.hasSetTextAction
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
@@ -188,7 +189,7 @@ private val ADELANTOS = listOf(
 /**
  * HOJA DE RENDER de la técnica, el tipo de serie y las acciones de serie (LR1c2). No comprueba nada: escribe PNG. Solo corre con la
  * variable `KPKN_RENDER_DIR` apuntando a una carpeta; sin ella se salta. Dibuja las piezas REALES de la sesión con datos de ejemplo,
- * a 360 dp, con la letra al 100 % y al 130 %. El reverso se llena con dos «Añadir» y el peso de la 3.ª fila se escribe como «62,5».
+ * a 360 dp, con la letra al 100 % y al 130 %. El reverso se llena con dos «+» de la cadena y el peso del 3.er drop se escribe como «102,5».
  */
 @RunWith(RobolectricTestRunner::class)
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
@@ -326,7 +327,8 @@ class LiveSessionTechniqueRenderSheetTest {
 
     @Composable
     private fun ReversoDeTecnica(fallida: Boolean) {
-        Box(Modifier.width(272.dp).height(520.dp)) {
+        // La altura de la tarjeta de la serie (LV8): el reverso mide lo mismo que el anverso y lo que no cabe se desplaza por dentro.
+        Box(Modifier.width(272.dp).height(385.dp)) {
             SetCardTechniqueBack(
                 currentSet = SERIE_REVERSO,
                 coverWeightLabel = "100 kg",
@@ -461,14 +463,17 @@ class LiveSessionTechniqueRenderSheetTest {
         guardar(nombre)
     }
 
-    /** Dos «Añadir» sobre el drop inicial (tres filas) y el peso de la 3.ª fila, que es el 5.º campo editable, pasa a «102,5» (el caso más ancho). */
+    /**
+     * Dos «+» de la cadena sobre el drop inicial (tres drops) y el peso del 3.er drop, que es el eslabón abierto, pasa a «102,5» (el caso más
+     * ancho). El reverso sale con «Drop-set» elegido; los campos editables, en orden de composición, son el peso y las reps del eslabón abierto
+     * y, al final, la nota.
+     */
     private fun rellenarTresDrops() {
-        rule.onNodeWithText("Añadir").performClick()
+        rule.onNodeWithContentDescription("Añadir drop").performClick()
         rule.waitForIdle()
-        rule.onNodeWithText("Añadir").performClick()
+        rule.onNodeWithContentDescription("Añadir drop").performClick()
         rule.waitForIdle()
-        // Campos editables en orden de composición: peso y reps de cada fila; la nota va al final.
-        rule.onAllNodes(hasSetTextAction())[4].performTextReplacement("102,5")
+        rule.onAllNodes(hasSetTextAction())[0].performTextReplacement("102,5")
         rule.waitForIdle()
     }
 
