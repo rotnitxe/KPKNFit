@@ -101,15 +101,15 @@ class ExerciseAlbumModelTest {
     fun unaFotoNoTieneDuracionYSeLlamaFoto() {
         val foto = dias()[0].entries[1]
 
-        assertEquals("Foto · 18:31", foto.detail)
+        assertEquals("Esfuerzo no disponible · Foto · 18:31", foto.detail)
         assertNull(foto.durationLabel)
     }
 
     @Test
-    fun sinEsfuerzoConocidoElRegistroNoLoNombra() {
+    fun sinEsfuerzoConocidoElRegistroLoDeclaraSinInventarlo() {
         val detalle = dias()[0].entries[0].detail
 
-        assertEquals("Vídeo · 18:42", detalle)
+        assertEquals("Esfuerzo no disponible · Vídeo · 18:42", detalle)
         assertFalse(detalle.contains("RIR"))
     }
 

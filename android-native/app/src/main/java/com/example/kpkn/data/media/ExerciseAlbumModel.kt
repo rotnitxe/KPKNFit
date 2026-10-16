@@ -107,7 +107,7 @@ object ExerciseAlbumModel {
         }.joinToString(" · ").ifEmpty { media.exerciseName?.takeIf { it.isNotBlank() } ?: "Registro" }
         val time = Instant.ofEpochMilli(media.createdAtMs).atZone(zone).toLocalTime()
         val detail = listOfNotNull(
-            effort,
+            effort ?: media.setIndex?.let { "Esfuerzo no disponible" },
             if (media.kind == WorkoutMediaKind.VIDEO) "Vídeo" else "Foto",
             String.format(java.util.Locale.ROOT, "%02d:%02d", time.hour, time.minute),
         ).joinToString(" · ")
@@ -142,8 +142,25 @@ object ExerciseAlbumModel {
     /** El esfuerzo histórico pertenece al log y al lado del medio; nunca a una serie parecida de hoy. */
     fun effortForLog(media: WorkoutMedia, log: WorkoutLog): String? {
         val key = completedSetKey(media) ?: return null
-        val exercise = log.completedExercises.firstOrNull { it.exerciseId == media.exerciseId } ?: return null
-        return exercise.sets.firstOrNull { it.id == key }?.let(::effortLabel)
+        if (media.workoutLogId != null && media.workoutLogId != log.id) return null
+        val exercise = log.completedExercises.singleOrNull { it.exerciseId == media.exerciseId } ?: return null
+        // A UUID has no ordinal. Never use list position: missing/skipped sets and L/R
+        // entries compact that list. Legacy logical IDs remain exact evidence.
+        val candidates = exercise.sets.filter { set ->
+            if (set.setIndex != null) {
+                set.setIndex == media.setIndex && sideIdentity(set.side) == sideIdentity(media.side)
+            } else {
+                set.id == key
+            }
+        }
+        return candidates.singleOrNull()?.takeUnless { it.skipped }?.let(::effortLabel)
+    }
+
+    private fun sideIdentity(side: String?): String? = when (val value = side?.trim()?.lowercase()) {
+        null, "" -> null
+        "l", "left" -> "left"
+        "r", "right" -> "right"
+        else -> value
     }
 
     /** El esfuerzo que registró una serie, como «RIR 2», «RPE 7,5» o «Fallo»; nulo si no registró ninguno. */

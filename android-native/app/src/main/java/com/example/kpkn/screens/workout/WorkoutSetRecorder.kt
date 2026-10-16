@@ -443,6 +443,7 @@ class WorkoutSetRecorder(
             val recordedAfterAdvanced = applyAdvancedFeedback(
                 base = CompletedSet(
                     id = state.completedSets[recordingKey]?.id ?: UUID.randomUUID().toString(),
+                    setIndex = targetSetIdx,
                     weight = outcome.augeEquivalentLoad,
                     reps = actualReps,
                     timeSeconds = durationSeconds,
