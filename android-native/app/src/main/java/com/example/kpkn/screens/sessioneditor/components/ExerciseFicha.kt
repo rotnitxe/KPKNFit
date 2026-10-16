@@ -192,7 +192,7 @@ internal fun ExerciseFichaContent(
     val config = model.axes.filter { it.axis != "implement" }
     val footer = exerciseFichaFooter(model.context, model.isSelected, showFooter)
     val wizard = model.context == ExerciseFichaContext.WIZARD
-    val hasHero = model.imageVariants.isNotEmpty()
+    val hasHero = selectedCatalogImageVariantIndex(model.imageVariants, model.selectedImplementation) != null
     val heroHeight = 400.dp
     var knowledge by remember { mutableStateOf<CanonicalKnowledge?>(null) }
     Box(
