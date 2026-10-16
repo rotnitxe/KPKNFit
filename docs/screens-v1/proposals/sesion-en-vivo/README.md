@@ -22,28 +22,28 @@ El usuario aprobó TODAS estas pantallas: «Me gustan todas». Hay que aplicarla
 
 ### Segunda tanda (16-oct): estado de cada prototipo
 
-Aprobado = se implementa tal cual (con las leyes). **Rehecho** = rehecho tras la crítica del usuario y pendiente de su visto bueno:
-no se implementa hasta que lo apruebe.
+Todo aprobado el 16-oct («Implementa todos los artefactos a la APP»). Se implementa con las leyes y la regla de contenido:
+fiel al prototipo en el aspecto, fiel a la app en el contenido.
 
 | Archivo | Pantalla | Estado |
 |---|---|---|
-| `F1-DescansoCompleto` | Descanso a pantalla completa: los RINGS como reloj (Torre, Pista o Espiral), el personaje corre sobre el anillo que se llena, −15 s · Saltar · +15 s | **Rehecho** |
-| `F8-MiniJuego` | Minijuego del descanso: el corredor salta mancuernas y el descanso sigue corriendo | **Rehecho** |
-| `F2-DescansoCompletoUltima` | Descanso tras la última serie: slider de calidad técnica (color y figura que cambia), molestias con buscador y chips, aviso del motor; sin «Qué tan intenso fue» | **Rehecho** |
-| `F7-Molestia` | Ficha de una molestia: animación, causas frecuentes, «En tu caso» (hoy y esta semana), consejo y gravedad | **Rehecho** |
-| `F3-` y `F4-DescansoTarjeta*` | Las mismas mejoras en versión tarjeta (altura fija) | **Rehecho** |
+| `F1-DescansoCompleto` | Descanso a pantalla completa: los RINGS como reloj (Torre, Pista o Espiral), el personaje corre sobre el anillo que se llena, −15 s · Saltar · +15 s | Aprobado (16-oct) |
+| `F8-MiniJuego` | Minijuego del descanso: el corredor salta mancuernas y el descanso sigue corriendo | Aprobado (16-oct) |
+| `F2-DescansoCompletoUltima` | Descanso tras la última serie: slider de calidad técnica (color y figura que cambia), molestias con buscador y chips, aviso del motor; sin «Qué tan intenso fue» | Aprobado (16-oct) |
+| `F7-Molestia` | Ficha de una molestia: animación, causas frecuentes, «En tu caso» (hoy y esta semana), consejo y gravedad | Aprobado (16-oct) |
+| `F3-` y `F4-DescansoTarjeta*` | Las mismas mejoras en versión tarjeta (altura fija) | Aprobado (16-oct) |
 | `F5-DescansoMinimizado`, `F6-DescansoExcedido` | Descanso minimizado y excedido | Aprobado |
-| `G1-EstadoPrevio` | Estado previo con los RINGS luminosos, molestias y los dos botones de voz | **Rehecho** |
-| `G5-AjusteEnergia` | Ajuste manual de Energía y Columna: anillo grande con líquido, tocar o arrastrar, −/+, marca de antes | **Rehecho** |
-| `G6-AjusteMusculos` | Ajuste manual de Músculos sobre un cuerpo (frente y espalda), −/+ y atajos | **Rehecho** |
+| `G1-EstadoPrevio` | Estado previo con los RINGS luminosos, molestias y los dos botones de voz | Aprobado (16-oct) |
+| `G5-AjusteEnergia` | Ajuste manual de Energía y Columna: anillo grande con líquido, tocar o arrastrar, −/+, marca de antes | Aprobado (16-oct) |
+| `G6-AjusteMusculos` | Ajuste manual de Músculos sobre un cuerpo (frente y espalda), −/+ y atajos | Aprobado (16-oct) |
 | `G2-Cabecera`, `G3-ModoVisualExpandido` | Cabecera con portada y modo visual expandido | Aprobado |
-| `G4-FichaOverlay` | Ficha completa del ejercicio para TODAS las fichas: foto con implemento, historial y fotos, músculos, cómo se hace, articulaciones. Al subir, la foto se difumina y oscurece y el contenido pasa por encima | **Rehecho** |
-| `G4b-FichaScroll` | La misma ficha a mitad de desplazamiento | **Rehecho** |
+| `G4-FichaOverlay` | Ficha completa del ejercicio para TODAS las fichas: foto con implemento, historial y fotos, músculos, cómo se hace, articulaciones. Al subir, la foto se difumina y oscurece y el contenido pasa por encima | Aprobado (16-oct) |
+| `G4b-FichaScroll` | La misma ficha a mitad de desplazamiento | Aprobado (16-oct) |
 | `H1-Reemplazar` | Reemplazar ejercicio | Aprobado («excelente») |
-| `H2-RelatorAcciones` | Relator: una sola frase con brillo continuo que cubre también la acción; al pulsar, personajes trabajando y el resultado en la tarjeta | **Rehecho** |
-| `H5-RelatorMomentos` | El relator solo con animación, sin texto (descanso, récord, preparación) | **Rehecho** |
+| `H2-RelatorAcciones` | Relator: una sola frase con brillo continuo que cubre también la acción; al pulsar, personajes trabajando y el resultado en la tarjeta | Aprobado (16-oct) |
+| `H5-RelatorMomentos` | El relator solo con animación, sin texto (descanso, récord, preparación) | Aprobado (16-oct) |
 | `H3-AjustarAnillo`, `H4-Compartir` | Ajustar anillo (lo sustituyen G5 y G6 si se aprueban) y compartir | Aprobado |
-| `I1-HomeRings` | RINGS de Inicio: brillo que orbita y un personaje que salta de anillo en anillo; tocar un anillo abre su detalle y «Ajustar» | **Rehecho** |
+| `I1-HomeRings` | RINGS de Inicio: brillo que orbita y un personaje que salta de anillo en anillo; tocar un anillo abre su detalle y «Ajustar» | Aprobado (16-oct) |
 
 ### Decisiones del usuario del 16-oct (mandan sobre lo anterior)
 - **Los RINGS luminosos** (degradado y destello, estilo G1) son el diseño DEFINITIVO de los anillos en toda la app. En Inicio,
