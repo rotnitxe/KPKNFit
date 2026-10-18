@@ -93,7 +93,7 @@ class TechniqueCompareViewModelTest {
         val mediaA = TechniqueWorkTestKit.insertVideo(db, store, "vid-a") {
             it.copy(
                 exerciseName = "Sentadilla trasera",
-                setIndex = 1,
+                setIndex = 0,
                 weightKg = 80.0,
                 reps = 8,
                 durationMs = 24_000L,
@@ -102,7 +102,7 @@ class TechniqueCompareViewModelTest {
         val mediaB = TechniqueWorkTestKit.insertVideo(db, store, "vid-b") {
             it.copy(
                 exerciseName = "Sentadilla trasera",
-                setIndex = 2,
+                setIndex = 1,
                 weightKg = 90.0,
                 reps = 6,
                 durationMs = 19_500L,

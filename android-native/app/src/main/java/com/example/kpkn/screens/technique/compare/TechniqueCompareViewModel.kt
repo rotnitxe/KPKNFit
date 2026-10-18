@@ -169,7 +169,7 @@ class TechniqueCompareViewModel @JvmOverloads constructor(
 
     private fun formatMediaLabel(media: WorkoutMedia, nowMs: Long, zone: ZoneId): String {
         val date = AnalysisFormat.shortDate(media.createdAtMs, nowMs, zone)
-        val set = media.setIndex?.let { "Serie $it" }
+        val set = media.setIndex?.let { "Serie ${it + 1}" }
         val load = media.weightKg?.takeIf { it > 0.0 }
         val reps = media.reps?.takeIf { it > 0 }
         val loadReps = when {

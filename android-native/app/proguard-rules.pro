@@ -69,6 +69,15 @@
 -dontwarn com.google.auto.value.**
 -dontwarn javax.lang.model.**
 
+# Flogger encuentra el logger recorriendo la pila. Conservar ambas fronteras
+# evita que R8 inline el finder y provoque "no caller found" al iniciar Graph.
+-keep,allowobfuscation class com.google.common.flogger.FluentLogger {
+    public static com.google.common.flogger.FluentLogger forEnclosingClass();
+}
+-keep,allowobfuscation class com.google.common.flogger.backend.system.StackBasedCallerFinder {
+    public java.lang.String findLoggingClass(java.lang.Class);
+}
+
 # ── Vosk / JNA ───────────────────────────────────────────────────────────────
 -dontwarn java.awt.**
 -keep class com.sun.jna.** { *; }

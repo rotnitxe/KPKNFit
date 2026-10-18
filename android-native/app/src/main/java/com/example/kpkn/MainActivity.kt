@@ -529,6 +529,9 @@ fun KPKNApp(
     val isFullscreenWizard =
         currentRoute?.startsWith("session-editor") == true ||
         currentRoute?.startsWith("workout") == true ||
+        // El reproductor y el CTA de comparación de técnica necesitan su propio borde inferior.
+        (currentRoute == KpknRoute.TechniqueHub.route ||
+            currentRoute?.startsWith("${KpknRoute.TechniqueHub.route}/") == true) ||
         currentRoute?.startsWith(KpknRoute.ExerciseCatalog.route) == true ||
         currentRoute?.startsWith(KpknRoute.NutritionWizard.BASE_ROUTE) == true ||
         currentRoute?.startsWith(KpknRoute.NutritionPlanEditor.BASE_ROUTE) == true ||
