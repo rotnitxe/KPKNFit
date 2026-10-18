@@ -4,6 +4,13 @@ import android.view.Surface
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Test
+import org.junit.Rule
+import org.junit.rules.TemporaryFolder
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
+import org.junit.Assert.assertNotNull
+import com.example.kpkn.data.media.technique.CaptureMetadataFile
+import com.example.kpkn.data.media.technique.TechniqueSidecars
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
@@ -78,4 +85,122 @@ class CaptureMetadataRecorderTest {
         assertNull(focalPx(focalMm = 4.38f, sensorLongEdgeMm = -5.6f, videoLongEdgePx = 1920f))
         assertNull(focalPx(focalMm = 4.38f, sensorLongEdgeMm = 5.6f, videoLongEdgePx = 0f))
     }
+
+    private class FakeGravity : CaptureGravitySource {
+        var listener: ((Float, Float, Float) -> Unit)? = null
+        var starts = 0
+        var closes = 0
+        override fun start(onGravity: (Float, Float, Float) -> Unit) { starts++; listener = onGravity }
+        override fun close() { closes++; listener = null }
+        fun emit(x: Float, y: Float, z: Float = 0f) { listener?.invoke(x, y, z) }
+    }
+
+    @Test fun preview_measures_roll_before_rec_and_only_recording_samples_enter_the_median() {
+        val gravity = FakeGravity()
+        val recorder = CaptureMetadataRecorder(org.robolectric.RuntimeEnvironment.getApplication(), null, 30f, 30f, gravity)
+        recorder.startPreview(Surface.ROTATION_0)
+        val tilted = Math.toRadians(12.0)
+        gravity.emit((g * sin(tilted)).toFloat(), (g * cos(tilted)).toFloat())
+        assertEquals(12f, recorder.currentRollDeg!!, 0.05f)
+        recorder.start()
+        gravity.emit(0f, g)
+        val metadata = recorder.stop()
+        assertEquals(0f, metadata.gravityRollDeg!!, 0.01f)
+        assertNull(metadata.focalLengthPx)
+        assertEquals(1, gravity.starts)
+        gravity.emit((g * sin(tilted)).toFloat(), (g * cos(tilted)).toFloat())
+        assertEquals(12f, recorder.currentRollDeg!!, 0.05f)
+        recorder.close()
+        assertEquals(1, gravity.closes)
+        assertNull(recorder.currentRollDeg)
+    }
+
+    @Test fun preview_uses_current_rotation_without_waiting_for_another_sensor_event() {
+        val gravity = FakeGravity()
+        val recorder = CaptureMetadataRecorder(org.robolectric.RuntimeEnvironment.getApplication(), null, 30f, 30f, gravity)
+        recorder.startPreview()
+        gravity.emit(g, 0f)
+        assertNull(recorder.currentRollDeg)
+        recorder.updateTargetRotation(Surface.ROTATION_90)
+        assertEquals(0f, recorder.currentRollDeg!!, 0.01f)
+        recorder.start(Surface.ROTATION_90)
+        gravity.emit(g, 0f)
+        assertEquals(0f, recorder.stop().gravityRollDeg!!, 0.01f)
+        recorder.close()
+    }
+
+    @Test fun focal_requires_real_finite_video_dimensions() {
+        assertNull(recordedFocalPx(4.38f, 5.6f, null))
+        assertNull(recordedFocalPx(4.38f, 5.6f, Float.NaN))
+        assertNull(recordedFocalPx(4.38f, 5.6f, Float.POSITIVE_INFINITY))
+        assertNull(recordedFocalPx(null, 5.6f, 1280f))
+        assertEquals(1001.143f, recordedFocalPx(4.38f, 5.6f, 1280f)!!, 0.1f)
+    }
+    @get:Rule val files = TemporaryFolder()
+
+    @Test fun actual_start_excludes_preparation_and_freeze_excludes_finalize_io_delay_while_preview_stays_live() {
+        val gravity = FakeGravity()
+        val recorder = CaptureMetadataRecorder(org.robolectric.RuntimeEnvironment.getApplication(), null, 30f, 30f, gravity)
+        recorder.startPreview()
+        val interval = TechniqueCaptureMetadataInterval(recorder, Surface.ROTATION_0)
+        val tilt = Math.toRadians(20.0)
+        gravity.emit((g * sin(tilt)).toFloat(), (g * cos(tilt)).toFloat())
+        assertTrue(interval.onStarted())
+        gravity.emit(0f, g)
+        interval.stopCollecting()
+        gravity.emit((g * sin(tilt)).toFloat(), (g * cos(tilt)).toFloat())
+        assertEquals(20f, recorder.currentRollDeg!!, 0.05f)
+        interval.stopCollecting()
+        assertFalse(interval.onStarted())
+        val video = files.newFile("stopped.mp4")
+        interval.save(video)
+        val saved = CaptureMetadataFile.read(TechniqueSidecars.captureFile(video))
+        assertEquals(0f, saved.gravityRollDeg!!, 0.01f)
+        assertNotNull(saved.recordedAtMs)
+        recorder.close()
+    }
+
+    @Test fun cancelled_preparation_and_late_start_never_collect_or_invent_recorded_at() {
+        val gravity = FakeGravity()
+        val recorder = CaptureMetadataRecorder(org.robolectric.RuntimeEnvironment.getApplication(), null, 30f, 30f, gravity)
+        recorder.startPreview()
+        val interval = TechniqueCaptureMetadataInterval(recorder, Surface.ROTATION_0)
+        interval.stopCollecting()
+        assertFalse(interval.onStarted())
+        gravity.emit(0f, g)
+        val video = files.newFile("cancelled.mp4")
+        interval.save(video)
+        val saved = CaptureMetadataFile.read(TechniqueSidecars.captureFile(video))
+        assertNull(saved.recordedAtMs)
+        assertNull(saved.gravityRollDeg)
+        assertEquals(0f, recorder.currentRollDeg!!, 0.01f)
+        recorder.close()
+    }
+
+    @Test fun delayed_save_keeps_its_own_frozen_samples_when_another_attempt_starts() {
+        val gravity = FakeGravity()
+        val recorder = CaptureMetadataRecorder(org.robolectric.RuntimeEnvironment.getApplication(), null, 30f, 30f, gravity)
+        recorder.startPreview()
+        val first = TechniqueCaptureMetadataInterval(recorder, Surface.ROTATION_0)
+        first.onStarted()
+        gravity.emit(0f, g)
+        first.stopCollecting()
+        val startedAt = recorder.stop().recordedAtMs
+        val second = TechniqueCaptureMetadataInterval(recorder, Surface.ROTATION_0)
+        second.onStarted()
+        val tilt = Math.toRadians(20.0)
+        gravity.emit((g * sin(tilt)).toFloat(), (g * cos(tilt)).toFloat())
+        val video = files.newFile("first.mp4")
+        first.save(video)
+        val saved = CaptureMetadataFile.read(TechniqueSidecars.captureFile(video))
+        assertEquals(0f, saved.gravityRollDeg!!, 0.01f)
+        assertEquals(startedAt, saved.recordedAtMs)
+        assertEquals(20f, recorder.stop().gravityRollDeg!!, 0.05f)
+        val queuedSensorCallback = gravity.listener!!
+        recorder.close()
+        // Un callback de sensor ya en cola tampoco puede contaminar el intervalo cerrado.
+        queuedSensorCallback(0f, g, 0f)
+        assertEquals(20f, recorder.stop().gravityRollDeg!!, 0.05f)
+    }
+
 }

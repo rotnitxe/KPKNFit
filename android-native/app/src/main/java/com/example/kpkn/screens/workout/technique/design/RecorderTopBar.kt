@@ -9,11 +9,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
+import com.example.kpkn.screens.onboarding.design.WizardColors
+import com.example.kpkn.ui.design.KpknType
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.example.kpkn.ui.components.icons.KpknLineIcons
 import com.example.kpkn.ui.design.KpknIconButton
 
@@ -37,43 +36,43 @@ fun RecorderTopBar(
     modifier: Modifier = Modifier,
     onCustomPlateSelected: () -> Unit = {},
 ) {
-    Row(
+    Column(
         modifier = modifier
             .fillMaxWidth()
             .padding(horizontal = 12.dp, vertical = 8.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalArrangement = Arrangement.spacedBy(4.dp),
     ) {
-        KpknIconButton(
-            icon = KpknLineIcons.Close,
-            contentDescription = "Cerrar grabador",
-            onClick = onClose,
-        )
-
-        Column(
-            modifier = Modifier.weight(1f),
-            verticalArrangement = Arrangement.Center,
-        ) {
-            Text(
-                text = exerciseName,
-                fontSize = 15.sp,
-                fontWeight = FontWeight.SemiBold,
-                color = Color.White,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            KpknIconButton(
+                icon = KpknLineIcons.Close,
+                contentDescription = "Cerrar grabador",
+                onClick = onClose,
             )
-            if (setLabel.isNotBlank()) {
-                Text(
-                    text = setLabel,
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.Normal,
-                    color = Color.White.copy(alpha = 0.62f),
-                    maxLines = 1,
-                )
-            }
-        }
 
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.Center,
+            ) {
+                Text(
+                    text = exerciseName,
+                    style = KpknType.bodyStrong,
+                    color = WizardColors.text,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                )
+                if (setLabel.isNotBlank()) {
+                    Text(
+                        text = setLabel,
+                        style = KpknType.caption,
+                        color = WizardColors.textMuted,
+                        maxLines = 1,
+                    )
+                }
+            }
+
+        }
         Row(
+            modifier = Modifier.fillMaxWidth().padding(start = 56.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(6.dp),
         ) {

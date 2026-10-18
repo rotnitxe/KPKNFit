@@ -98,6 +98,7 @@ internal fun RestTimerOverlay(
     clockActive: Boolean = true,
     initiallyPlaying: Boolean = false,
     gameEngine: RestGameEngine? = null,
+    videoSlot: (@Composable () -> Unit)? = null,
 ) {
     // El total es el del descanso entero (con los ajustes de ±15 s): así la forma no vuelve a cero al ajustar el tiempo.
     val totalSeconds = state.totalRestSeconds().coerceAtLeast(remainingSeconds).coerceAtLeast(1)
@@ -156,6 +157,7 @@ internal fun RestTimerOverlay(
                     onRelatorAction = onRelatorAction,
                     shape = shape,
                     clockActive = clockActive,
+                    videoSlot = videoSlot,
                 )
             } else {
                 AnimatedContent(
@@ -204,6 +206,7 @@ internal fun RestTimerOverlay(
                             headline = headline,
                             onPlay = { playing = true },
                             clockActive = clockActive,
+                            videoSlot = videoSlot,
                         )
                     }
                 }
@@ -280,6 +283,7 @@ private fun FeedbackContent(
     onRelatorAction: (RelatorAssistAction) -> Unit = {},
     shape: RestClockShape = RestClockShape.TOWER,
     clockActive: Boolean = true,
+    videoSlot: (@Composable () -> Unit)? = null,
 ) {
     Column(
         modifier = Modifier
@@ -344,6 +348,7 @@ private fun FeedbackContent(
                 color = WizardColors.textMuted,
             )
         }
+        videoSlot?.invoke()
         Spacer(Modifier.height(14.dp))
 
         // El panel reparte el resto del alto: lo de en medio se desplaza y los botones quedan fijos abajo.
@@ -445,6 +450,7 @@ private fun NormalRestContent(
     headline: RestHeadline?,
     onPlay: () -> Unit,
     clockActive: Boolean,
+    videoSlot: (@Composable () -> Unit)? = null,
 ) {
     BoxWithConstraints(
         modifier = Modifier
@@ -506,6 +512,8 @@ private fun NormalRestContent(
                         }
                     }
                 }
+
+                videoSlot?.invoke()
 
                 // El relator a 12 dp de la cabecera y el reloj a 16 dp del relator (LR1g).
                 Spacer(Modifier.height(12.dp))

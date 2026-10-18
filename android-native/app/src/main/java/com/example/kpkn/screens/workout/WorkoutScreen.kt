@@ -221,6 +221,7 @@ fun WorkoutScreen(
     catalogResult: CatalogResult? = null,
     onCatalogResultConsumed: () -> Unit = {},
     onOpenExistingWorkout: (programId: String, sessionId: String) -> Unit = { _, _ -> },
+    onOpenTechniqueAnalysis: (String) -> Unit = {},
 ) {
     val augeViewModel = rememberAugeViewModel()
     val context = LocalContext.current
@@ -1148,6 +1149,7 @@ fun WorkoutScreen(
             skipExerciseLabel = skipExerciseLabel,
             onSkipExercise = onSkipExerciseFromRest,
             techniqueRecorderHolder = techniqueRecorderHolder,
+            onOpenTechniqueAnalysis = onOpenTechniqueAnalysis,
             )
             Box(
                     modifier = Modifier
@@ -1381,6 +1383,7 @@ fun WorkoutScreen(
                 },
                 onRemoveSessionPhoto = { viewModel.removeSessionPhoto(it) },
                 onRemoveSessionMedia = { viewModel.removeSessionMedia(it) },
+                onOpenAnalysis = onOpenTechniqueAnalysis,
                 onAddChecklistItem = { viewModel.addSessionChecklistItem(it) },
                 onToggleChecklistItem = { viewModel.toggleSessionChecklistItem(it) },
                 onRemoveChecklistItem = { viewModel.removeSessionChecklistItem(it) },
@@ -1436,6 +1439,7 @@ fun WorkoutScreen(
             media = sessionMedia,
             onDismiss = { viewModel.mediaCapture.dismissAlbumSheet() },
             onDelete = { viewModel.removeSessionMedia(it) },
+            onOpenAnalysis = onOpenTechniqueAnalysis,
         )
     }
 
@@ -1443,7 +1447,7 @@ fun WorkoutScreen(
         val techSettings = settings.techniqueVideo
         com.example.kpkn.screens.workout.technique.TechniqueRecorderScreen(
             request = req,
-            onDismiss = { techniqueRecorderHolder.request = null },
+            onDismiss = { if (techniqueRecorderHolder.request === req) techniqueRecorderHolder.request = null },
             mediaCapture = viewModel.mediaCapture,
             prefer60FpsSetting = techSettings.prefer60Fps,
             maxRecordSeconds = techSettings.maxRecordSeconds,
@@ -1515,6 +1519,7 @@ fun WorkoutScreen(
             },
             feedbackExerciseCount = feedbackExercises.size,
             forceShowForFeedback = isShowingFeedback,
+            onOpenTechniqueAnalysis = onOpenTechniqueAnalysis,
         )
     }
 

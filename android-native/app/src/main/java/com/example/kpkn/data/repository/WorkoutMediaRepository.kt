@@ -29,6 +29,7 @@ import com.example.kpkn.data.media.technique.AnalysisMode
 import com.example.kpkn.data.media.technique.TechniqueSidecars
 import com.example.kpkn.data.models.CompletedSet
 import com.example.kpkn.data.models.SessionMilestone
+import com.example.kpkn.data.models.UnitModeV2
 import com.example.kpkn.data.models.WorkoutMedia
 import com.example.kpkn.data.models.WorkoutMediaKind
 import com.example.kpkn.data.work.TechniqueAnalysisScheduler
@@ -530,7 +531,8 @@ class WorkoutMediaRepository(
      * con las claves de `workoutSetKey`), por ejemplo tras «Corregir N reps». El lado del vídeo es «left», «right» o `null`.
      *
      * Solo cambia un vídeo cuando su serie está registrada y trae un dato distinto: una serie omitida o sin repeticiones
-     * o sin carga (peso corporal) deja intacta la «foto» que ya tenía el vídeo. Devuelve cuántos vídeos cambiaron.
+     * o sin carga (peso corporal) deja intacta la «foto» que ya tenía el vídeo. Cero completas con parciales positivas
+     * sí actualiza las reps de una serie REPS. Devuelve cuántos vídeos cambiaron.
      */
     suspend fun syncSetSnapshots(sessionKey: String, completedSets: Map<String, CompletedSet>): Int =
         withContext(Dispatchers.IO) {
@@ -544,7 +546,10 @@ class WorkoutMediaRepository(
                     val setIndex = row.setIndex ?: continue
                     val set = lookupCompletedSet(completedSets, exerciseId, setIndex, row.side) ?: continue
                     if (set.skipped) continue
-                    val reps = set.reps.takeIf { it > 0 } ?: row.reps
+                    val isRepSet = set.recordedPayloadV3?.unitMode?.let { it == UnitModeV2.REPS }
+                        ?: (set.timeSeconds == null && set.distanceKm == null)
+                    val partialOnly = isRepSet && set.reps == 0 && (set.partialReps ?: 0) > 0
+                    val reps = set.reps.takeIf { it > 0 || partialOnly } ?: row.reps
                     val weightKg = set.weight.takeIf { it > 0.0 } ?: row.weightKg
                     if (reps == row.reps && weightKg == row.weightKg) continue
                     updated += dao.setSetSnapshot(row.id, reps, weightKg)

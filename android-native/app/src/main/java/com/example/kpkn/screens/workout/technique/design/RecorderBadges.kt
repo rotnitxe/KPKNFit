@@ -12,6 +12,8 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.defaultMinSize
+import com.example.kpkn.screens.onboarding.design.wizardReducedMotion
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -40,7 +42,7 @@ fun FpsBadge(
         modifier = modifier,
         shape = KpknShape.pill,
         color = KpknSurface.inset,
-        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.16f)),
+        border = BorderStroke(1.dp, WizardColors.text.copy(alpha = 0.16f)),
     ) {
         Row(
             modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
@@ -56,7 +58,7 @@ fun FpsBadge(
                 text = "$fps FPS",
                 fontSize = 11.sp,
                 fontWeight = FontWeight.Bold,
-                color = Color.White.copy(alpha = 0.92f),
+                color = WizardColors.text.copy(alpha = 0.92f),
                 letterSpacing = 0.5.sp,
             )
         }
@@ -65,7 +67,7 @@ fun FpsBadge(
 
 /**
  * Insignia y selector del diámetro del disco de calibración (VT8a).
- * Muestra "Disco 45 cm" (o el seleccionado) y despliega los chips 45/40/35/Otro al tocarla.
+ * Muestra "Disco 45 cm" (o el seleccionado) y despliega los chips 45/40/35 al tocarla.
  */
 @Composable
 fun PlateDiameterBadge(
@@ -76,11 +78,12 @@ fun PlateDiameterBadge(
     modifier: Modifier = Modifier,
     onCustomSelected: () -> Unit = {},
 ) {
+    val reducedMotion = wizardReducedMotion()
     val label = when (diameterMm) {
         450 -> "Disco 45 cm"
         400 -> "Disco 40 cm"
         350 -> "Disco 35 cm"
-        null -> "Disco 45 cm"
+        null -> "Disco sin calibrar"
         else -> "Disco ${diameterMm / 10} cm"
     }
 
@@ -90,24 +93,24 @@ fun PlateDiameterBadge(
         verticalArrangement = Arrangement.spacedBy(6.dp),
     ) {
         Surface(
-            modifier = Modifier.clickable(role = Role.Button, onClick = onToggleExpanded),
+            modifier = Modifier.defaultMinSize(minHeight = 48.dp).clickable(role = Role.Button, onClick = onToggleExpanded),
             shape = KpknShape.pill,
             color = if (expanded) KpknSurface.modulePressed else KpknSurface.inset,
-            border = BorderStroke(1.dp, Color.White.copy(alpha = if (expanded) 0.3f else 0.16f)),
+            border = BorderStroke(1.dp, WizardColors.text.copy(alpha = if (expanded) 0.3f else 0.16f)),
         ) {
             Text(
                 text = label,
                 fontSize = 11.sp,
                 fontWeight = FontWeight.SemiBold,
-                color = Color.White.copy(alpha = 0.90f),
+                color = WizardColors.text.copy(alpha = 0.90f),
                 modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
             )
         }
 
         AnimatedVisibility(
             visible = expanded,
-            enter = fadeIn() + expandVertically(),
-            exit = fadeOut() + shrinkVertically(),
+            enter = if (reducedMotion) fadeIn() else fadeIn() + expandVertically(),
+            exit = if (reducedMotion) fadeOut() else fadeOut() + shrinkVertically(),
         ) {
             Row(
                 horizontalArrangement = Arrangement.spacedBy(4.dp),
@@ -115,7 +118,7 @@ fun PlateDiameterBadge(
             ) {
                 DiameterChip(
                     text = "45 cm",
-                    selected = diameterMm == 450 || diameterMm == null,
+                    selected = diameterMm == 450,
                     onClick = {
                         onSelectDiameterMm(450)
                         onToggleExpanded()
@@ -149,16 +152,16 @@ private fun DiameterChip(
     onClick: () -> Unit,
 ) {
     Surface(
-        modifier = Modifier.clickable(role = Role.Button, onClick = onClick),
+        modifier = Modifier.defaultMinSize(minHeight = 48.dp, minWidth = 48.dp).clickable(role = Role.Button, onClick = onClick),
         shape = RoundedCornerShape(8.dp),
-        color = if (selected) Color.White.copy(alpha = 0.22f) else KpknSurface.inset,
-        border = BorderStroke(1.dp, if (selected) Color.White.copy(alpha = 0.40f) else Color.White.copy(alpha = 0.12f)),
+        color = if (selected) WizardColors.text.copy(alpha = 0.22f) else KpknSurface.inset,
+        border = BorderStroke(1.dp, if (selected) WizardColors.text.copy(alpha = 0.40f) else WizardColors.text.copy(alpha = 0.12f)),
     ) {
         Text(
             text = text,
             fontSize = 10.sp,
             fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium,
-            color = if (selected) Color.White else Color.White.copy(alpha = 0.72f),
+            color = if (selected) WizardColors.text else WizardColors.text.copy(alpha = 0.72f),
             modifier = Modifier.padding(horizontal = 6.dp, vertical = 3.dp),
         )
     }

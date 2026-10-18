@@ -87,6 +87,7 @@ import com.example.kpkn.screens.onboarding.design.wizardReducedMotion
 import com.example.kpkn.screens.sessioneditor.components.SessionExerciseDetailSheet
 import com.example.kpkn.screens.workout.WorkoutMediaCaptureController
 import com.example.kpkn.screens.workout.WorkoutMediaCaptureRequest
+import com.example.kpkn.screens.workout.withExerciseCaptureContext
 import com.example.kpkn.ui.components.KpknModalTracker
 import com.example.kpkn.ui.components.KpknPortal
 import com.example.kpkn.ui.components.icons.KpknLineIcons
@@ -140,6 +141,8 @@ internal fun SetCardExerciseMediaBack(
     startExpanded: Boolean = false,
     /** Solo para hojas de render y pruebas: muestra los controles de la cámara aunque no haya controlador de captura. */
     showControlsWithoutCamera: Boolean = false,
+    onOpenAnalysis: ((String) -> Unit)? = null,
+    recorderOpen: Boolean = false,
 ) {
     val context = LocalContext.current
     val density = LocalDensity.current
@@ -192,7 +195,7 @@ internal fun SetCardExerciseMediaBack(
         weightKg = weightKg,
         reps = reps,
         isPr = isPr,
-    )
+    ).withExerciseCaptureContext(exercise)
 
     val galleryLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.OpenDocument(),
@@ -247,13 +250,14 @@ internal fun SetCardExerciseMediaBack(
         )
     }
 
-    val cameraActive = isMediaCameraActive(cameraReady, isSettledPage, mediaCapture != null)
+    val cameraActive = !recorderOpen && isMediaCameraActive(cameraReady, isSettledPage, mediaCapture != null)
     val session = rememberMediaCameraSession(
         mediaCapture = mediaCapture,
         active = cameraActive,
         isRecording = recording,
         bindGeneration = bindGeneration,
         onBindFailed = { mediaCapture?.fallbackVideoCaptureToSd() },
+        stopOnDispose = !recorderOpen,
     )
 
     fun onShutter() {
@@ -441,6 +445,7 @@ internal fun SetCardExerciseMediaBack(
                 ).distinct(),
                 mediaCapture = mediaCapture,
                 onDismiss = { showAlbum = false },
+                onOpenAnalysis = onOpenAnalysis,
             )
         }
         if (showFicha) {
@@ -463,6 +468,7 @@ internal fun SetCardExerciseMediaBack(
             media = item,
             onDismiss = { previewMedia = null },
             poseOverlayEnabled = mediaCapture?.isPoseTrajectoryEnabled() == true,
+            onOpenAnalysis = onOpenAnalysis,
         )
     }
 }

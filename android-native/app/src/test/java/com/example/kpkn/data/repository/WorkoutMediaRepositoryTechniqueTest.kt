@@ -10,6 +10,8 @@ import com.example.kpkn.data.db.toEntity
 import com.example.kpkn.data.media.WorkoutMediaStore
 import com.example.kpkn.data.media.technique.TechniqueSidecars
 import com.example.kpkn.data.models.CompletedSet
+import com.example.kpkn.data.models.RecordedSetPayload
+import com.example.kpkn.data.models.UnitModeV2
 import com.example.kpkn.data.models.WorkoutMedia
 import com.example.kpkn.data.models.WorkoutMediaKind
 import kotlinx.coroutines.runBlocking
@@ -186,6 +188,42 @@ class WorkoutMediaRepositoryTechniqueTest {
         assertEquals(10 to 80.0, dao.getById("c")!!.let { it.reps to it.weightKg })
         assertEquals(0, repo.syncSetSnapshots("", mapOf("squat_0" to set("squat_0", 1.0, 1))))
         assertEquals(0, repo.syncSetSnapshots("S", emptyMap()))
+    }
+
+    @Test
+    fun syncSetSnapshots_updates_zero_full_reps_only_for_positive_partials_in_a_rep_record() = runBlocking {
+        val db = database()
+        val repo = repository(db)
+        val dao = db.workoutMediaDao()
+        val partialOnly = CompletedSet("partial", weight = 80.0, reps = 0, partialReps = 2, isPartial = true)
+        fun payload(unit: UnitModeV2) = RecordedSetPayload(exerciseId = "squat", unitMode = unit, completedReps = 0, partialReps = 2)
+        val cases = listOf(
+            partialOnly,
+            partialOnly.copy(recordedPayloadV3 = payload(UnitModeV2.REPS)),
+            partialOnly.copy(recordedPayloadV3 = payload(UnitModeV2.REPS), timeSeconds = 30, distanceKm = 2.5),
+            partialOnly.copy(recordedPayloadV3 = payload(UnitModeV2.TIME)),
+            partialOnly.copy(recordedPayloadV3 = payload(UnitModeV2.DISTANCE)),
+            partialOnly.copy(timeSeconds = 30),
+            partialOnly.copy(distanceKm = 2.5),
+            partialOnly.copy(partialReps = 0),
+            partialOnly.copy(partialReps = -1),
+            partialOnly.copy(reps = -1),
+            partialOnly.copy(skipped = true),
+        )
+        val registered = cases.mapIndexed { index, set ->
+            dao.upsert(media("partial-$index", setIndex = index).toEntity())
+            "squat_$index" to set.copy(id = "set-$index")
+        }.toMap()
+        db.videoAnalysisDao().upsert(analysis("partial-0"))
+
+        assertEquals(3, repo.syncSetSnapshots("S", registered))
+        cases.indices.forEach { index ->
+            val snapshot = dao.getById("partial-$index")!!
+            assertEquals("caso $index", if (index < 3) 0 else 5, snapshot.reps)
+            assertEquals(80.0, snapshot.weightKg!!, 0.0)
+        }
+        assertNotNull(db.videoAnalysisDao().getByMedia("partial-0"))
+        assertEquals(0, repo.syncSetSnapshots("S", registered))
     }
 
     @Test

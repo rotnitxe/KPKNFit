@@ -83,6 +83,7 @@ internal fun ExerciseAlbumSheet(
     keys: List<String>,
     mediaCapture: WorkoutMediaCaptureController,
     onDismiss: () -> Unit,
+    onOpenAnalysis: ((String) -> Unit)? = null,
 ) {
     var items by remember { mutableStateOf<List<WorkoutMedia>>(emptyList()) }
     var loading by remember { mutableStateOf(true) }
@@ -112,6 +113,7 @@ internal fun ExerciseAlbumSheet(
         stableHeightFraction = 0.93f,
     ) {
         AlbumSheetContent(
+            onOpenAnalysis = onOpenAnalysis,
             subject = exerciseName,
             items = items,
             loading = loading,
@@ -177,6 +179,7 @@ internal fun AlbumSheetContent(
     poseOverlayEnabled: Boolean,
     emptyText: String,
     modifier: Modifier = Modifier,
+    onOpenAnalysis: ((String) -> Unit)? = null,
 ) {
     var filter by remember { mutableStateOf(AlbumFilter.ALL) }
     var selecting by remember { mutableStateOf(false) }
@@ -326,6 +329,7 @@ internal fun AlbumSheetContent(
                 preview = null
             },
             poseOverlayEnabled = poseOverlayEnabled,
+            onOpenAnalysis = onOpenAnalysis,
         )
     }
 }

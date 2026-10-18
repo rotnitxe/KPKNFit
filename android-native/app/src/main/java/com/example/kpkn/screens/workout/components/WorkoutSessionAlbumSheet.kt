@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
@@ -40,6 +41,7 @@ fun WorkoutSessionAlbumSheet(
     onDismiss: () -> Unit,
     onDelete: (String) -> Unit = {},
     poseOverlayEnabled: Boolean = false,
+    onOpenAnalysis: ((String) -> Unit)? = null,
 ) {
     val scope = rememberCoroutineScope()
     val latestDelete by rememberUpdatedState(onDelete)
@@ -60,6 +62,7 @@ fun WorkoutSessionAlbumSheet(
             effortFor = { null },
             deferred = deferred,
             poseOverlayEnabled = poseOverlayEnabled,
+            onOpenAnalysis = onOpenAnalysis,
             emptyText = "Todavía no hay fotos ni vídeos en esta sesión.",
             modifier = Modifier.weight(1f),
         )
@@ -72,6 +75,7 @@ internal fun WorkoutMediaPreviewDialog(
     onDismiss: () -> Unit,
     onDelete: (() -> Unit)? = null,
     poseOverlayEnabled: Boolean = false,
+    onOpenAnalysis: ((String) -> Unit)? = null,
 ) {
     Dialog(
         onDismissRequest = onDismiss,
@@ -110,6 +114,17 @@ internal fun WorkoutMediaPreviewDialog(
                         .height(280.dp),
                     contentScale = androidx.compose.ui.layout.ContentScale.Fit,
                 )
+            }
+            if (media.kind == WorkoutMediaKind.VIDEO && onOpenAnalysis != null) {
+                val repository = remember { com.example.kpkn.data.repository.VideoAnalysisRepository.getInstance() }
+                val analysis by remember(media.id, repository) { repository.observeByMedia(media.id) }
+                    .collectAsStateWithLifecycle(initialValue = null)
+                if (analysis != null) {
+                    com.example.kpkn.ui.design.KpknTextAction("Ver análisis", onClick = {
+                        onDismiss()
+                        onOpenAnalysis(media.id)
+                    })
+                }
             }
             // El pie de la vista previa: el ejercicio, la carga con coma decimal y «Marca» si es un récord.
             val caption = listOfNotNull(

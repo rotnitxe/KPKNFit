@@ -46,6 +46,7 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -61,6 +62,7 @@ import androidx.compose.ui.window.DialogProperties
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.kpkn.data.exercises.catalogv2.CatalogV2ProcessCache
@@ -84,10 +86,16 @@ import com.example.kpkn.screens.workout.technique.design.RecorderTopBar
 import com.example.kpkn.ui.design.KpknShape
 import com.example.kpkn.ui.design.KpknSurface
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.withContext
 
 private const val TAG = "KpknRecorder"
+
+/** Nulo fuera del wrapper es pendiente; perfil nulo dentro significa resolución terminada sin perfil compatible. */
+private data class RecorderResolvedProfile(val profile: AnalysisProfile?)
 
 /**
  * Pantalla completa de grabación de técnica en vídeo (VT8a).
@@ -117,28 +125,40 @@ fun TechniqueRecorderScreen(
     val scope = rememberCoroutineScope()
 
     // Resolución asíncrona del ExerciseRef y su perfil mediante el catálogo v2
-    val resolvedProfile by produceState<AnalysisProfile?>(
+    val profileResolution by produceState<RecorderResolvedProfile?>(
         initialValue = null,
         key1 = request.exercise,
     ) {
-        value = withContext(Dispatchers.IO) {
-            val ex = request.exercise ?: return@withContext null
-            val catalog = CatalogV2ProcessCache.peek()?.catalog
-                ?: runCatching { CatalogV2ProcessCache.getOrLoad(context).catalog }.getOrNull()
-            val resolver = ExerciseRefResolver(catalog)
-            val partialRef = ExerciseRef(
-                definitionId = ex.catalogDefinitionId ?: ex.id,
-                configurationId = ex.catalogConfigurationId,
-                movementPatternId = ex.selectedMovementPattern,
-                equipmentId = null,
-                laterality = null,
-                name = ex.name,
-                isCustom = false,
-            )
-            val fullRef = resolver.resolve(partialRef, media = null)
-            (AnalysisProfileResolver.resolve(fullRef) as? ProfileResolution.Supported)?.profile
+        value = null
+        val profile = try {
+            withContext(Dispatchers.IO) {
+                val ex = request.exercise ?: return@withContext null
+                val catalog = CatalogV2ProcessCache.peek()?.catalog
+                    ?: try { CatalogV2ProcessCache.getOrLoad(context).catalog }
+                catch (cancelled: CancellationException) { throw cancelled }
+                catch (_: Exception) { null }
+                val resolver = ExerciseRefResolver(catalog)
+                val partialRef = ExerciseRef(
+                    definitionId = ex.catalogDefinitionId ?: ex.id,
+                    configurationId = ex.catalogConfigurationId,
+                    movementPatternId = ex.selectedMovementPattern,
+                    equipmentId = null,
+                    laterality = null,
+                    name = ex.name,
+                    isCustom = false,
+                )
+                val fullRef = resolver.resolve(partialRef, media = null)
+                (AnalysisProfileResolver.resolve(fullRef) as? ProfileResolution.Supported)?.profile
+            }
+        } catch (cancelled: CancellationException) {
+            throw cancelled
+        } catch (_: Exception) {
+            null
         }
+        value = RecorderResolvedProfile(profile)
     }
+    val resolvedProfile = profileResolution?.profile
+    val desiredWant60 = RecorderSessionFactory.wants60Fps(prefer60FpsSetting, resolvedProfile?.id)
 
     val preferredView = resolvedProfile?.framing?.preferredViews?.firstOrNull() ?: ViewKind.SIDE
     val usesPlate = resolvedProfile?.usesPlate == true
@@ -188,20 +208,31 @@ fun TechniqueRecorderScreen(
         CaptureMetadataRecorder(
             context = context,
             cameraInfo = activeCameraInfo,
-            requestedFps = if (RecorderSessionFactory.wants60Fps(prefer60FpsSetting, resolvedProfile?.id)) 60f else 30f,
+            requestedFps = if (desiredWant60) 60f else 30f,
             grantedFps = activeSession?.grantedFps ?: 30f,
         )
     }
 
+    DisposableEffect(metadataRecorder) {
+        metadataRecorder.startPreview(targetRotation)
+        onDispose { metadataRecorder.close() }
+    }
+    LaunchedEffect(metadataRecorder, targetRotation) { metadataRecorder.updateTargetRotation(targetRotation) }
+    val latestMetadataRecorder by rememberUpdatedState(metadataRecorder)
     val framingController = remember(framingSpec) {
         FramingCheckController(
             scope = scope,
             spec = framingSpec,
             context = context,
-            gravityRollProvider = { metadataRecorder.currentRollDeg },
+            gravityRollProvider = { latestMetadataRecorder.currentRollDeg },
         )
     }
 
+    DisposableEffect(framingController) { onDispose { framingController.close() } }
+    LaunchedEffect(previewView, activeSession, framingController) {
+        val view = previewView
+        if (view != null && activeSession != null) framingController.start { view.bitmap }
+    }
     val framingVerdict by framingController.verdict.collectAsStateWithLifecycle()
 
     var cameraPermissionGranted by remember {
@@ -232,7 +263,7 @@ fun TechniqueRecorderScreen(
     var cameraBindFailed by remember { mutableStateOf(false) }
 
     val isCameraUnavailable = cameraPermissionGranted && hasCheckedCameras && (!hasAvailableCamera || cameraBindFailed)
-    val canRecord = cameraPermissionGranted && !isCameraUnavailable && activeSession != null && mediaCapture != null
+    val canRecord = profileResolution != null && cameraPermissionGranted && !isCameraUnavailable && activeSession != null && mediaCapture != null
 
     var audioPermissionGranted by remember {
         mutableStateOf(
@@ -258,7 +289,6 @@ fun TechniqueRecorderScreen(
         if (!canRecord || isStopping) return
         activity?.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LOCKED
         framingController.isRecording = true
-        metadataRecorder.start(targetRotation)
 
         activeSession?.let { session ->
             session.videoCapture.targetRotation = targetRotation
@@ -296,10 +326,7 @@ fun TechniqueRecorderScreen(
     DisposableEffect(Unit) {
         onDispose {
             orientationListener.disable()
-            framingController.close()
-            if (mediaCapture?.isRecording?.value == true) {
-                mediaCapture.stopVideo()
-            }
+            mediaCapture?.stopIfRecording()
             AnalysisGate.cameraBusy.value = false
             activity?.requestedOrientation = originalOrientation
         }
@@ -339,9 +366,9 @@ fun TechniqueRecorderScreen(
             )
 
             // Enlace de ciclo de vida con CameraX
-            DisposableEffect(previewView, lifecycleOwner, cameraPermissionGranted) {
+            DisposableEffect(previewView, lifecycleOwner, cameraPermissionGranted, profileResolution, desiredWant60) {
                 val view = previewView ?: return@DisposableEffect onDispose {}
-                if (!cameraPermissionGranted) return@DisposableEffect onDispose {}
+                if (!cameraPermissionGranted || profileResolution == null) return@DisposableEffect onDispose {}
 
                 val cameraManager = context.getSystemService(Context.CAMERA_SERVICE) as? android.hardware.camera2.CameraManager
                 val cameraIds = runCatching { cameraManager?.cameraIdList }.getOrNull() ?: emptyArray()
@@ -353,75 +380,88 @@ fun TechniqueRecorderScreen(
                 }
 
                 val cameraProviderFuture = ProcessCameraProvider.getInstance(context.applicationContext)
+                val ownership = RecorderCameraBindingOwner()
                 val listener = Runnable {
-                    val cameraProvider = runCatching { cameraProviderFuture.get() }.getOrNull()
-                    if (cameraProvider == null) {
-                        cameraBindFailed = true
+                    ownership.bindIfActive {
+                        val cameraProvider = runCatching { cameraProviderFuture.get() }.getOrNull()
+                        if (cameraProvider == null) {
+                            cameraBindFailed = true
+                            hasCheckedCameras = true
+                            return@bindIfActive
+                        }
+
+                        val hasBack = cameraProvider.hasCamera(CameraSelector.DEFAULT_BACK_CAMERA)
+                        val hasFront = cameraProvider.hasCamera(CameraSelector.DEFAULT_FRONT_CAMERA)
                         hasCheckedCameras = true
-                        return@Runnable
-                    }
+                        hasAvailableCamera = hasBack || hasFront
 
-                    val hasBack = cameraProvider.hasCamera(CameraSelector.DEFAULT_BACK_CAMERA)
-                    val hasFront = cameraProvider.hasCamera(CameraSelector.DEFAULT_FRONT_CAMERA)
-                    hasCheckedCameras = true
-                    hasAvailableCamera = hasBack || hasFront
+                        if (!hasBack && !hasFront) {
+                            Log.w(TAG, "No hay cámaras disponibles en el dispositivo")
+                            return@bindIfActive
+                        }
 
-                    if (!hasBack && !hasFront) {
-                        Log.w(TAG, "No hay cámaras disponibles en el dispositivo")
-                        return@Runnable
-                    }
+                        val cameraSelector = if (hasBack) CameraSelector.DEFAULT_BACK_CAMERA else CameraSelector.DEFAULT_FRONT_CAMERA
+                        val want60 = desiredWant60
 
-                    val cameraSelector = if (hasBack) CameraSelector.DEFAULT_BACK_CAMERA else CameraSelector.DEFAULT_FRONT_CAMERA
-                    val want60 = RecorderSessionFactory.wants60Fps(prefer60FpsSetting, resolvedProfile?.id)
-
-                    runCatching {
-                        cameraProvider.unbindAll()
-                        val cameraInfo = cameraProvider.getCameraInfo(cameraSelector)
-                        activeCameraInfo = cameraInfo
-                        val session = RecorderSessionFactory.createSession(cameraInfo, want60)
-                        session.preview.surfaceProvider = view.surfaceProvider
-                        session.videoCapture.targetRotation = targetRotation
-                        val boundCamera = if (session.tier == RecorderFpsTier.FALLBACK_30) {
-                            cameraProvider.bindToLifecycle(
-                                lifecycleOwner,
-                                cameraSelector,
-                                session.preview,
-                                session.videoCapture,
-                            )
-                        } else {
-                            runCatching {
-                                cameraProvider.bindToLifecycle(
-                                    lifecycleOwner,
-                                    cameraSelector,
-                                    session.sessionConfig,
-                                )
-                            }.getOrElse {
+                        runCatching {
+                            cameraProvider.unbindAll()
+                            val cameraInfo = cameraProvider.getCameraInfo(cameraSelector)
+                            activeCameraInfo = cameraInfo
+                            val session = RecorderSessionFactory.createSession(cameraInfo, want60)
+                            // Capturar los casos creados por ESTE efecto antes del bind, también si un enlace falla a medias.
+                            ownership.own {
+                                if (activeSession === session) activeSession = null
+                                fun releaseOwned() {
+                                    if (cameraProvider.isBound(session.preview) || cameraProvider.isBound(session.videoCapture)) {
+                                        cameraProvider.unbind(session.preview, session.videoCapture)
+                                    }
+                                }
+                                val capture = mediaCapture
+                                if (capture?.isRecording?.value == true) {
+                                    lifecycleOwner.lifecycleScope.launch {
+                                        capture.isRecording.first { !it }
+                                        runCatching { releaseOwned() }
+                                    }
+                                } else runCatching { releaseOwned() }
+                            }
+                            session.preview.surfaceProvider = view.surfaceProvider
+                            session.videoCapture.targetRotation = targetRotation
+                            val boundCamera = if (session.tier == RecorderFpsTier.FALLBACK_30) {
                                 cameraProvider.bindToLifecycle(
                                     lifecycleOwner,
                                     cameraSelector,
                                     session.preview,
                                     session.videoCapture,
                                 )
+                            } else {
+                                runCatching {
+                                    cameraProvider.bindToLifecycle(
+                                        lifecycleOwner,
+                                        cameraSelector,
+                                        session.sessionConfig,
+                                    )
+                                }.getOrElse {
+                                    cameraProvider.bindToLifecycle(
+                                        lifecycleOwner,
+                                        cameraSelector,
+                                        session.preview,
+                                        session.videoCapture,
+                                    )
+                                }
                             }
+                            activeSession = session
+                            boundCamera
+                        }.onSuccess {
+                            cameraBindFailed = false
+                        }.onFailure { e ->
+                            Log.e(TAG, "Error al enlazar CameraX", e)
+                            cameraBindFailed = true
                         }
-                        activeSession = session
-                        boundCamera
-                    }.onSuccess {
-                        cameraBindFailed = false
-                        framingController.start { view.bitmap }
-                    }.onFailure { e ->
-                        Log.e(TAG, "Error al enlazar CameraX", e)
-                        cameraBindFailed = true
                     }
                 }
                 cameraProviderFuture.addListener(listener, ContextCompat.getMainExecutor(context))
 
-                onDispose {
-                    runCatching {
-                        val provider = cameraProviderFuture.get()
-                        provider.unbindAll()
-                    }
-                }
+                onDispose { ownership.close() }
             }
 
             // Capa con silueta anatómica de guía (solo cuando hay cámara y no está grabando)
@@ -432,11 +472,13 @@ fun TechniqueRecorderScreen(
             ) {
                 FramingGuideOverlay(
                     preferredView = preferredView,
-                    hasBarbell = usesPlate,
+                    hasBarbell = usesPlate && framingSpec.needsPlate,
+                    profileId = resolvedProfile?.id,
                 )
             }
 
             // Barra superior
+            Column(modifier = Modifier.align(Alignment.TopCenter).statusBarsPadding()) {
             RecorderTopBar(
                 exerciseName = request.exercise?.name ?: request.captureRequest.exerciseName ?: "Ejercicio",
                 setLabel = request.setLabel,
@@ -449,9 +491,7 @@ fun TechniqueRecorderScreen(
                 onClose = {
                     if (isRecordingState) stopRecording() else onDismiss()
                 },
-                modifier = Modifier
-                    .statusBarsPadding()
-                    .align(Alignment.TopCenter),
+                modifier = Modifier.fillMaxWidth(),
             )
 
             // Chip de comprobación de encuadre (arriba, bajo la barra superior, solo si no graba y hay cámara)
@@ -459,15 +499,14 @@ fun TechniqueRecorderScreen(
                 visible = !isRecordingState && cameraPermissionGranted && !isCameraUnavailable,
                 enter = fadeIn(),
                 exit = fadeOut(),
-                modifier = Modifier
-                    .align(Alignment.TopCenter)
-                    .statusBarsPadding()
-                    .padding(top = 64.dp),
+                modifier = Modifier.align(Alignment.CenterHorizontally),
             ) {
                 FramingChip(
                     verdict = framingVerdict,
                     isFrontPreferred = preferredView == ViewKind.FRONT,
                 )
+            }
+
             }
 
             // Aviso KPKN v2: Sin permiso de cámara

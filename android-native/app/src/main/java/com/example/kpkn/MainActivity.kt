@@ -1701,6 +1701,7 @@ private fun KPKNNavGraph(
                 onCatalogResultConsumed = {
                     backStack.savedStateHandle.remove<String>(CatalogSavedStateKeys.RESULT)
                 },
+                onOpenTechniqueAnalysis = { mediaId -> navController.navigate(KpknRoute.TechniqueAnalysis.create(mediaId)) },
                 onOpenExistingWorkout = { existingProgramId, existingSessionId ->
                     navController.navigate(KpknRoute.Workout.create(existingProgramId, existingSessionId)) {
                         popUpTo(KpknRoute.Workout.route) { inclusive = true }

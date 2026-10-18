@@ -59,7 +59,7 @@ fun wrap180(degrees: Double): Double {
  * Devuelve null si cualquiera de las dimensiones o la focal es <= 0.
  */
 fun focalPx(focalMm: Float, sensorLongEdgeMm: Float, videoLongEdgePx: Float): Float? {
-    if (focalMm <= 0f || sensorLongEdgeMm <= 0f || videoLongEdgePx <= 0f) return null
+    if (!focalMm.isFinite() || !sensorLongEdgeMm.isFinite() || !videoLongEdgePx.isFinite() || focalMm <= 0f || sensorLongEdgeMm <= 0f || videoLongEdgePx <= 0f) return null
     return (focalMm * videoLongEdgePx) / sensorLongEdgeMm
 }
 
@@ -94,10 +94,14 @@ class CaptureMetadataRecorder(
     private val cameraInfo: CameraInfo?,
     private val requestedFps: Float?,
     private val grantedFps: Float?,
-) : SensorEventListener {
+    private val gravitySource: CaptureGravitySource = AndroidCaptureGravitySource(context),
+) : java.io.Closeable {
 
-    private val sensorManager = context.getSystemService(Context.SENSOR_SERVICE) as? SensorManager
-    private val gravitySensor = sensorManager?.getDefaultSensor(Sensor.TYPE_GRAVITY)
+    private var previewStarted = false
+    private var collecting = false
+    private var closed = false
+    private var frozenSamples: CaptureMetadataSamples? = null
+    private var latestGravity: FloatArray? = null
 
     private val rollSamples = mutableListOf<Float>()
     private val pitchSamples = mutableListOf<Float>()
@@ -109,25 +113,49 @@ class CaptureMetadataRecorder(
     private var recordingStartedAtMs: Long? = null
 
     val currentRollDeg: Float?
-        get() = synchronized(this) { rollSamples.lastOrNull() }
+        get() = synchronized(this) { latestGravity?.let { rollForFrameDeg(it[0], it[1], activeTargetRotation) } }
+
+    /** La inclinación se mide desde la vista previa; las medianas solo incluyen la grabación. */
+    fun startPreview(targetRotation: Int = Surface.ROTATION_0) {
+        synchronized(this) {
+            if (closed) return
+            activeTargetRotation = targetRotation
+            if (previewStarted) return
+            previewStarted = true
+        }
+        gravitySource.start(::onGravity)
+    }
+
+    fun updateTargetRotation(targetRotation: Int) {
+        synchronized(this) { activeTargetRotation = targetRotation }
+    }
 
     fun start(targetRotation: Int = Surface.ROTATION_0) {
+        startPreview(targetRotation)
         synchronized(this) {
-            activeTargetRotation = targetRotation
+            if (closed) return
+            frozenSamples = null
             rollSamples.clear()
             pitchSamples.clear()
+            collecting = true
             recordingStartedAtMs = System.currentTimeMillis()
-        }
-        gravitySensor?.let { sensor ->
-            sensorManager?.registerListener(this, sensor, SensorManager.SENSOR_DELAY_UI)
         }
     }
 
-    fun stop(videoLongEdgePx: Float? = null): CaptureMetadata {
-        sensorManager?.unregisterListener(this)
-        val (medianRoll, medianPitch, startedAt) = synchronized(this) {
-            Triple(median(rollSamples), median(pitchSamples), recordingStartedAtMs)
-        }
+    /** Solo congela memoria; Camera2, las medianas y el archivo se resuelven después en IO. */
+    internal fun stopCollecting(): CaptureMetadataSamples = synchronized(this) {
+        collecting = false
+        frozenSamples ?: CaptureMetadataSamples(
+            rollSamples.toList(), pitchSamples.toList(), recordingStartedAtMs,
+        ).also { frozenSamples = it }
+    }
+
+    fun stop(videoLongEdgePx: Float? = null): CaptureMetadata = metadata(stopCollecting(), videoLongEdgePx)
+
+    private fun metadata(samples: CaptureMetadataSamples, videoLongEdgePx: Float?): CaptureMetadata {
+        val medianRoll = median(samples.roll)
+        val medianPitch = median(samples.pitch)
+        val startedAt = samples.startedAtMs
 
         val focalPx = calculateFocalLengthPx(videoLongEdgePx)
         val lensName = cameraInfo?.let { getLensName(it) } ?: "main"
@@ -146,8 +174,12 @@ class CaptureMetadataRecorder(
     }
 
     fun save(videoFile: File): CaptureMetadata {
+        return save(videoFile, stopCollecting())
+    }
+
+    internal fun save(videoFile: File, samples: CaptureMetadataSamples): CaptureMetadata {
         val longEdge = readVideoLongEdgePx(videoFile)
-        val metadata = stop(longEdge)
+        val metadata = metadata(samples, longEdge)
         val captureFile = TechniqueSidecars.captureFile(videoFile)
         runCatching {
             CaptureMetadataFile.write(captureFile, metadata)
@@ -155,26 +187,29 @@ class CaptureMetadataRecorder(
         return metadata
     }
 
-    override fun onSensorChanged(event: SensorEvent?) {
-        if (event == null || event.sensor.type != Sensor.TYPE_GRAVITY) return
-        val gx = event.values[0]
-        val gy = event.values[1]
-        val gz = event.values[2]
-
-        val targetRot = synchronized(this) { activeTargetRotation }
-        val rollDeg = rollForFrameDeg(gx, gy, targetRot)
-        // Pitch: atan2(sqrt(gx^2 + gy^2), gz) en grados (~90° en vertical, 0° horizontal pantalla arriba)
-        val pitchDeg = Math.toDegrees(atan2(sqrt((gx * gx + gy * gy).toDouble()), gz.toDouble())).toFloat()
-
+    private fun onGravity(gx: Float, gy: Float, gz: Float) {
         synchronized(this) {
-            if (rollDeg != null) {
-                rollSamples.add(rollDeg)
-            }
-            pitchSamples.add(pitchDeg)
+            if (!previewStarted) return
+            val gravity = latestGravity ?: FloatArray(3).also { latestGravity = it }
+            gravity[0] = gx
+            gravity[1] = gy
+            gravity[2] = gz
+            if (!collecting) return
+            rollForFrameDeg(gx, gy, activeTargetRotation)?.let(rollSamples::add)
+            val pitch = Math.toDegrees(atan2(sqrt((gx * gx + gy * gy).toDouble()), gz.toDouble())).toFloat()
+            pitchSamples.add(pitch)
         }
     }
 
-    override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
+    override fun close() {
+        stopCollecting()
+        synchronized(this) {
+            closed = true
+            previewStarted = false
+            latestGravity = null
+        }
+        gravitySource.close()
+    }
 
     private fun calculateFocalLengthPx(recordedLongEdge: Float? = null): Float? {
         val info = cameraInfo ?: return null
@@ -183,9 +218,9 @@ class CaptureMetadataRecorder(
             val focals = c2.getCameraCharacteristic(CameraCharacteristics.LENS_INFO_AVAILABLE_FOCAL_LENGTHS)
             val focalMm = focals?.firstOrNull() ?: return null
             val sensorSize = c2.getCameraCharacteristic(CameraCharacteristics.SENSOR_INFO_PHYSICAL_SIZE) ?: return null
-            val longEdge = recordedLongEdge ?: 1920f
+            val longEdge = recordedLongEdge ?: return null
             val sensorLongEdge = maxOf(sensorSize.width, sensorSize.height)
-            focalPx(focalMm, sensorLongEdge, longEdge)
+            recordedFocalPx(focalMm, sensorLongEdge, longEdge)
         } catch (_: Exception) {
             null
         }
@@ -212,5 +247,67 @@ class CaptureMetadataRecorder(
         } else {
             (sorted[mid - 1] + sorted[mid]) / 2f
         }
+    }
+}
+
+/** Fuente sustituible para comprobar la vista previa sin un sensor físico. */
+interface CaptureGravitySource : java.io.Closeable {
+    fun start(onGravity: (Float, Float, Float) -> Unit)
+}
+
+private class AndroidCaptureGravitySource(context: Context) : CaptureGravitySource, SensorEventListener {
+    private val manager = context.getSystemService(Context.SENSOR_SERVICE) as? SensorManager
+    private val sensor = manager?.getDefaultSensor(Sensor.TYPE_GRAVITY)
+    private var listener: ((Float, Float, Float) -> Unit)? = null
+    override fun start(onGravity: (Float, Float, Float) -> Unit) {
+        listener = onGravity
+        sensor?.let { manager?.registerListener(this, it, SensorManager.SENSOR_DELAY_UI) }
+    }
+    override fun onSensorChanged(event: SensorEvent?) {
+        if (event?.sensor?.type == Sensor.TYPE_GRAVITY && event.values.size >= 3) {
+            listener?.invoke(event.values[0], event.values[1], event.values[2])
+        }
+    }
+    override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) = Unit
+    override fun close() {
+        manager?.unregisterListener(this)
+        listener = null
+    }
+}
+
+internal data class CaptureMetadataSamples(
+    val roll: List<Float>,
+    val pitch: List<Float>,
+    val startedAtMs: Long?,
+)
+
+/** Cada intento posee su congelación: un Start tardío tras cancelar nunca vuelve a muestrear. */
+internal class TechniqueCaptureMetadataInterval(
+    private val recorder: CaptureMetadataRecorder?,
+    private val rotation: Int,
+) {
+    private var started = false
+    private var stopped = false
+    private var samples: CaptureMetadataSamples? = null
+
+    @Synchronized fun onStarted(): Boolean {
+        if (stopped) return false
+        if (!started) {
+            started = true
+            recorder?.start(rotation)
+        }
+        return true
+    }
+
+    @Synchronized fun stopCollecting() {
+        if (stopped) return
+        stopped = true
+        samples = if (started) recorder?.stopCollecting() else CaptureMetadataSamples(emptyList(), emptyList(), null)
+    }
+
+    fun save(videoFile: File) {
+        stopCollecting()
+        val frozen = synchronized(this) { samples } ?: return
+        recorder?.save(videoFile, frozen)
     }
 }

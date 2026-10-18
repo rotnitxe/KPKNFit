@@ -18,7 +18,6 @@ import androidx.core.content.FileProvider
 import com.example.kpkn.data.media.DeferredMediaDelete
 import com.example.kpkn.data.media.WorkoutAlbumGrouping
 import com.example.kpkn.data.media.WorkoutMediaCaptureJournalEntry
-import com.example.kpkn.data.media.WorkoutMediaSides
 import com.example.kpkn.data.media.technique.TechniqueSidecars
 import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.WorkoutMedia
@@ -28,6 +27,7 @@ import com.example.kpkn.data.repository.WorkoutMediaRepository
 import com.example.kpkn.data.work.AnalysisGate
 import com.example.kpkn.screens.workout.technique.CaptureMetadataRecorder
 import com.example.kpkn.screens.workout.technique.RecorderSession
+import com.example.kpkn.screens.workout.technique.TechniqueCaptureMetadataInterval
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Deferred
@@ -119,6 +119,7 @@ class WorkoutMediaCaptureController(
     private val importStarted = AtomicBoolean(false)
     private var activeRecording: Recording? = null
     private var videoStartJob: kotlinx.coroutines.Job? = null
+    private var techniqueMetadataInterval: TechniqueCaptureMetadataInterval? = null
 
     init {
         ensureLegacyImport()
@@ -449,7 +450,9 @@ class WorkoutMediaCaptureController(
         val meta = sessionMeta()
         val id = UUID.randomUUID().toString()
         val createdAtMs = System.currentTimeMillis()
-        val initialRequest = requestProvider()
+        val initialRequest = requestProvider().withExerciseCaptureContext(exercise)
+        val metadataInterval = TechniqueCaptureMetadataInterval(metadataRecorder, targetRotation)
+        techniqueMetadataInterval = metadataInterval
         videoStartJob = scope.launch {
             var preparedEntry: WorkoutMediaCaptureJournalEntry? = null
             try {
@@ -474,6 +477,7 @@ class WorkoutMediaCaptureController(
                 val pending = pendingRecording.start(ContextCompat.getMainExecutor(appContext)) { event ->
                     when (event) {
                         is VideoRecordEvent.Start -> {
+                            if (!metadataInterval.onStarted()) return@start
                             AnalysisGate.cameraBusy.value = true
                             _recordedDurationNanos.value = 0L
                         }
@@ -481,6 +485,8 @@ class WorkoutMediaCaptureController(
                             _recordedDurationNanos.value = event.recordingStats.recordedDurationNanos
                         }
                         is VideoRecordEvent.Finalize -> {
+                            metadataInterval.stopCollecting()
+                            if (techniqueMetadataInterval === metadataInterval) techniqueMetadataInterval = null
                             activeRecording = null
                             _isRecording.value = false
                             videoStartJob = null
@@ -488,17 +494,11 @@ class WorkoutMediaCaptureController(
                             _recordedDurationNanos.value = 0L
                             AnalysisGate.cameraBusy.value = false
 
-                            val latestReq = requestProvider()
-                            val normalizedSide = WorkoutMediaSides.normalize(latestReq.side, exercise)
-                            val finalRequest = latestReq.copy(
-                                catalogDefinitionId = exercise?.catalogDefinitionId ?: latestReq.catalogDefinitionId,
-                                catalogConfigurationId = exercise?.catalogConfigurationId ?: latestReq.catalogConfigurationId,
-                                side = normalizedSide,
-                            )
+                            val finalRequest = requestProvider().withExerciseCaptureContext(exercise)
 
                             scope.launch(Dispatchers.IO) {
                                 // 1. Guardar metadatos de captura (gravedad, focal y fps) en capture.json antes de entregar el vídeo
-                                metadataRecorder?.save(dest)
+                                metadataInterval.save(dest)
 
                                 // 2. Si el usuario seleccionó un diámetro distinto al de los ajustes, guardarlo con CaptureOverridesFile.update
                                 if (plateDiameterOverrideMm != null && plateDiameterOverrideMm != defaultPlateDiameterMm) {
@@ -537,10 +537,14 @@ class WorkoutMediaCaptureController(
                 activeRecording = pending
                 _isRecording.value = true
             } catch (cancelled: CancellationException) {
+                metadataInterval.stopCollecting()
+                if (techniqueMetadataInterval === metadataInterval) techniqueMetadataInterval = null
                 AnalysisGate.cameraBusy.value = false
                 repository.markCameraCaptureCompleted(id)
                 throw cancelled
             } catch (error: Exception) {
+                metadataInterval.stopCollecting()
+                if (techniqueMetadataInterval === metadataInterval) techniqueMetadataInterval = null
                 AnalysisGate.cameraBusy.value = false
                 preparedEntry?.let { repository.markCameraCaptureCompleted(it.media.id) }
                 _isRecording.value = false
@@ -552,6 +556,7 @@ class WorkoutMediaCaptureController(
     }
 
     fun stopVideo() {
+        techniqueMetadataInterval?.stopCollecting()
         AnalysisGate.cameraBusy.value = false
         _recordedDurationNanos.value = 0L
         activeRecording?.stop()
@@ -559,6 +564,7 @@ class WorkoutMediaCaptureController(
     }
 
     fun stopIfRecording() {
+        techniqueMetadataInterval?.stopCollecting()
         if (videoStartJob?.isActive == true) {
             videoStartJob?.cancel()
             videoStartJob = null

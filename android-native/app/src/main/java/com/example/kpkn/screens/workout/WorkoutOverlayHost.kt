@@ -46,6 +46,7 @@ internal fun WorkoutRestOverlayHost(
     postExerciseFeedbackContent: (@Composable () -> Unit)?,
     feedbackExerciseCount: Int,
     forceShowForFeedback: Boolean,
+    onOpenTechniqueAnalysis: (String) -> Unit = {},
 ) {
     // B3: si la persona minimiza el descanso mientras el feedback sigue pendiente, la tarjeta del descanso lo lleva en compacto y la
     // pantalla completa no se fuerza. Sin descanso en marcha no hay tarjeta, y el feedback sigue a pantalla completa.
@@ -57,6 +58,16 @@ internal fun WorkoutRestOverlayHost(
 
     // LV6: lo que cambia entre descansos sale del estado de la sesión, no de la pantalla.
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val analyses by viewModel.videoAnalysisBySetKey.collectAsStateWithLifecycle()
+    val videoKey = uiState.setJustLoggedKey
+    val video = videoKey?.let(analyses::get)
+    val videoSlot: (@Composable () -> Unit)? = if (videoKey != null && video != null) {
+        { com.example.kpkn.screens.workout.design.WorkoutCompletedVideoSuggestion(
+            value = video,
+            onPatch = { viewModel.patchCompletedSet(videoKey, it) },
+            onOpenAnalysis = onOpenTechniqueAnalysis,
+        ) }
+    } else null
     val shapeChoice by viewModel.restClockShapeChoice.collectAsStateWithLifecycle()
     val restOverrun = uiState.restOverrun
     val showOverrun = restOverrun != null && !isRestTimerRunning && !isRestMinimized && !forceShowForFeedback
@@ -129,6 +140,7 @@ internal fun WorkoutRestOverlayHost(
                 onShapeChange = { viewModel.chooseRestClockShape(it) },
                 headline = headline,
                 nextSet = nextSet,
+                videoSlot = videoSlot,
             )
         }
     } else if (showOverrun && restOverrun != null) {

@@ -211,6 +211,7 @@ internal fun WorkoutPostExerciseFeedbackCard(
     shape: RestClockShape,
     clockActive: Boolean,
     modifier: Modifier = Modifier,
+    videoSlot: (@Composable () -> Unit)? = null,
 ) {
     val draft = viewModel.feedbackDraftFor(feedbackExercises, postExerciseFeedbackByExerciseId)
     val handle = rememberFeedbackInsights(viewModel, feedbackExercises, draft)
@@ -238,6 +239,7 @@ internal fun WorkoutPostExerciseFeedbackCard(
         onExpand = { viewModel.toggleRestMinimized() },
         modifier = modifier,
         clockActive = clockActive,
+        videoSlot = videoSlot,
     )
 }
 

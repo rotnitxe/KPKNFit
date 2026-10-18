@@ -66,6 +66,11 @@ internal class MediaCameraSession(
         }
     }
 
+    /** Al ceder al grabador de técnica, su captura no pertenece a esta cara. */
+    fun stopOwnedRecording(stopOnDispose: Boolean, stop: () -> Unit) {
+        if (stopOnDispose) stop()
+    }
+
     /**
      * La cara sale de la composición o la cámara cambia de calidad: ¿se pueden soltar los casos de uso? Nunca mientras se graba: soltarlos
      * cortaría el vídeo. Devuelve si hay que soltarlos ahora.
@@ -117,12 +122,14 @@ internal fun rememberMediaCameraSession(
     isRecording: Boolean,
     bindGeneration: Int,
     onBindFailed: () -> Unit,
+    stopOnDispose: Boolean = true,
 ): MediaCameraSession {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
     // Sin controlador de captura no hay cámara: tampoco se crea ningún objeto de CameraX.
     val preview = remember(mediaCapture, active, bindGeneration, lifecycleOwner) { mediaCapture?.let { Preview.Builder().build() } }
     val recording by rememberUpdatedState(isRecording)
+    val shouldStopOnDispose by rememberUpdatedState(stopOnDispose)
     val bindFailed by rememberUpdatedState(onBindFailed)
     val session = remember(preview) {
         MediaCameraSession(showPreviewOn = { view -> preview?.surfaceProvider = (view as? PreviewView)?.surfaceProvider })
@@ -165,8 +172,8 @@ internal fun rememberMediaCameraSession(
         providerFuture.addListener(listener, ContextCompat.getMainExecutor(context))
         onDispose {
             lease.close()
-            capture.stopIfRecording()
-            if (recording) {
+            session.stopOwnedRecording(shouldStopOnDispose, capture::stopIfRecording)
+            if (shouldStopOnDispose && recording) {
                 // Espera Finalize fuera del ámbito de la composición: desmontar la tarjeta no corta el archivo.
                 lifecycleOwner.lifecycleScope.launch {
                     capture.isRecording.first { !it }

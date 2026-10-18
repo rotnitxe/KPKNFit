@@ -26,6 +26,7 @@ import androidx.compose.ui.unit.dp
 import com.example.kpkn.domain.biomechanics.framing.FramingIssue
 import com.example.kpkn.domain.biomechanics.framing.FramingVerdict
 import com.example.kpkn.domain.biomechanics.kinematics.ViewKind
+import com.example.kpkn.domain.biomechanics.profiles.AnalysisProfileId
 import com.example.kpkn.screens.workout.technique.design.FramingChip
 import com.example.kpkn.screens.workout.technique.design.FramingGuideOverlay
 import com.example.kpkn.screens.workout.technique.design.RecTimerPill
@@ -252,7 +253,7 @@ class TechniqueRecorderRenderSheetTest {
                 .height(480.dp)
                 .background(Color(0xFF222222)),
         ) {
-            FramingGuideOverlay(preferredView = ViewKind.SIDE, hasBarbell = true)
+            FramingGuideOverlay(preferredView = ViewKind.SIDE, hasBarbell = true, profileId = AnalysisProfileId.SQUAT)
         }
     }
 
@@ -264,7 +265,7 @@ class TechniqueRecorderRenderSheetTest {
                 .height(480.dp)
                 .background(Color(0xFF222222)),
         ) {
-            FramingGuideOverlay(preferredView = ViewKind.SIDE, hasBarbell = true)
+            FramingGuideOverlay(preferredView = ViewKind.SIDE, hasBarbell = true, profileId = AnalysisProfileId.SQUAT)
         }
     }
 
@@ -309,6 +310,13 @@ class TechniqueRecorderRenderSheetTest {
             }
         }
         save(name)
+    }
+
+    @Test fun benchGuide130() = renderFullScreen("guide_bench_130", 1.3f) {
+        FramingGuideOverlay(preferredView = ViewKind.SIDE, hasBarbell = true, profileId = AnalysisProfileId.BENCH)
+    }
+    @Test fun deadliftGuide130() = renderFullScreen("guide_deadlift_130", 1.3f) {
+        FramingGuideOverlay(preferredView = ViewKind.SIDE, hasBarbell = true, profileId = AnalysisProfileId.DEADLIFT)
     }
 
     @Test
@@ -374,9 +382,11 @@ private fun FullScreenRecorderPreview(
             FramingGuideOverlay(
                 preferredView = ViewKind.SIDE,
                 hasBarbell = showsPlateBadge,
+                profileId = AnalysisProfileId.SQUAT,
             )
         }
 
+        Column(Modifier.align(Alignment.TopCenter)) {
         RecorderTopBar(
             exerciseName = exerciseName,
             setLabel = setLabel,
@@ -387,19 +397,20 @@ private fun FullScreenRecorderPreview(
             onTogglePlateExpanded = {},
             onSelectPlateDiameterMm = {},
             onClose = {},
-            modifier = Modifier.align(Alignment.TopCenter),
+            modifier = Modifier.fillMaxWidth(),
         )
 
         if (!isRecording && hasCamera && hasPermission) {
             Box(
                 modifier = Modifier
-                    .align(Alignment.TopCenter)
-                    .padding(top = 64.dp),
+                    .align(Alignment.CenterHorizontally),
             ) {
                 FramingChip(
                     verdict = FramingVerdict(ok = true, issues = emptyList(), view = ViewKind.SIDE),
                 )
             }
+        }
+
         }
 
         if (!hasPermission) {
