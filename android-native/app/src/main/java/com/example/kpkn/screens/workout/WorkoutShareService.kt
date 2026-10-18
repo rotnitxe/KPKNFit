@@ -66,6 +66,49 @@ object WorkoutShareService {
         withContext(Dispatchers.Main) { launchShareIntents(context,uri) }
     }
 
+    /** Shares only the selected local photo through Android's chooser, without story/Instagram routing. */
+    internal suspend fun sharePhoto(context: Context, path: String) {
+        val chooser = createPhotoShareIntent(context, path)
+        withContext(Dispatchers.Main) { context.startActivity(chooser) }
+    }
+
+    /** Copy to the existing shares/ FileProvider root; never expose private file:// paths. */
+    internal suspend fun createPhotoShareIntent(context: Context, path: String): Intent = withContext(Dispatchers.IO) {
+        val source = if (path.startsWith("content:") || path.startsWith("file:")) Uri.parse(path) else {
+            require(File(path).isAbsolute) { "A local photo path is required" }
+            Uri.fromFile(File(path))
+        }
+        require(source.scheme == "content" || source.scheme == "file")
+        val mime = context.contentResolver.getType(source)
+            ?: android.webkit.MimeTypeMap.getSingleton().getMimeTypeFromExtension(
+                source.lastPathSegment?.substringAfterLast('.', "")?.lowercase(java.util.Locale.ROOT).orEmpty())
+            ?: "image/jpeg"
+        require(mime.startsWith("image/")) { "Only photos can use this share action" }
+        val extension = android.webkit.MimeTypeMap.getSingleton().getExtensionFromMimeType(mime) ?: "jpg"
+        val directory = File(context.cacheDir, "shares").apply { check(isDirectory || mkdirs()) }
+        val copy = File.createTempFile("workout-photo-", ".$extension", directory)
+        try {
+            checkNotNull(context.contentResolver.openInputStream(source)).use { input ->
+                copy.outputStream().use { output -> input.copyTo(output) }
+            }
+            check(copy.length() > 0)
+            val shared = FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", copy)
+            val send = Intent(Intent.ACTION_SEND).apply {
+                type = mime
+                putExtra(Intent.EXTRA_STREAM, shared)
+                clipData = ClipData.newRawUri("workout_photo", shared)
+                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            }
+            Intent.createChooser(send, "Compartir foto").apply {
+                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                if (context !is Activity) addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            }
+        } catch (error: Throwable) {
+            copy.delete()
+            throw error
+        }
+    }
+
     /** API24–28 requiere WRITE_EXTERNAL_STORAGE concedido por la hoja; API29+ usa almacenamiento acotado. */
     internal suspend fun saveImage(context: Context, bitmap: Bitmap): Uri = withContext(Dispatchers.IO) {
         val name = "KPKN-${System.currentTimeMillis()}.png"

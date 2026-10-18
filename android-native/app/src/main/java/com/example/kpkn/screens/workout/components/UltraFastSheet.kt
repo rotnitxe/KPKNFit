@@ -38,7 +38,7 @@ fun UltraFastPreviewSheet(
 ) {
     var customSetCounts by remember { mutableStateOf(emptyMap<String, Int>()) }
     // A recalculated proposal may remove/reprotect an exercise. Never submit an obsolete manual count.
-    val editable = preview?.perExercise?.filter { it.wasDensified || it.wasReduced }?.map { it.exerciseId }?.toSet().orEmpty()
+    val editable = preview?.perExercise?.filter { it.wasReduced && !it.wasDensified }?.map { it.exerciseId }?.toSet().orEmpty()
     val applicableCounts = customSetCounts.filterKeys { it in editable }
     HeaderSheet(onDismiss) { close ->
         HeaderSheetFrame("Ultrarrápido", footer = {
@@ -94,7 +94,7 @@ internal fun UltraFastPreviewContent(
 
 @Composable
 private fun UltraFastExerciseTile(change: UltraFastExerciseChange, count: Int, override: Boolean?, onCount: (Int) -> Unit, onOverride: () -> Unit, modifier: Modifier) {
-    val editable = change.wasDensified || change.wasReduced
+    val editable = change.wasReduced && !change.wasDensified
     val allowsOverride = override != null || change.reason in setOf(UltraFastReason.PROTECTED_BASIC, UltraFastReason.DANGEROUS_COMPLEX,
         UltraFastReason.MANUAL_OVERRIDE_ALLOWED, UltraFastReason.MANUAL_OVERRIDE_BLOCKED)
     KpknModule(modifier, accent = if (change.wasDensified) WizardColors.done else if (change.wasReduced) WizardColors.info else null,
@@ -108,11 +108,13 @@ private fun UltraFastExerciseTile(change: UltraFastExerciseChange, count: Int, o
             change.reason == UltraFastReason.PROTECTED_BASIC -> "Básico protegido"
             else -> "Sin cambio"
         }, style = KpknType.caption, color = WizardColors.textMuted)
-        Text("${change.beforeSets} → $count series", style = KpknType.caption, color = WizardColors.textMuted)
+        Text(if (change.wasDensified) "Mismas ${change.beforeSets} series con técnica" else "${change.beforeSets} → $count series", style = KpknType.caption, color = WizardColors.textMuted)
+        if (editable) {
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(2.dp)) {
             HeaderSheetAction("−", { onCount((count - 1).coerceIn(1, 6)) }, Modifier.weight(1f).testTag("ultra-minus-${change.exerciseId}"), enabled = editable && count > 1)
             Text("$count", style = KpknType.metricM, color = WizardColors.text)
             HeaderSheetAction("+", { onCount((count + 1).coerceIn(1, 6)) }, Modifier.weight(1f).testTag("ultra-plus-${change.exerciseId}"), enabled = editable && count < 6)
+        }
         }
         if (allowsOverride) {
             HeaderSheetAction(if (override == true) "Permitir técnica intensa" else "Mantener protegido", onOverride,

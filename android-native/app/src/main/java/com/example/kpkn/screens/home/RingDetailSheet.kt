@@ -1,5 +1,19 @@
 package com.example.kpkn.screens.home
 
+import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.unit.sp
+import com.example.kpkn.ui.design.KpknType
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -56,7 +70,7 @@ import com.example.kpkn.ui.components.KpknSheet
 import com.example.kpkn.ui.components.rings.KpknTowerRings
 import com.example.kpkn.ui.components.rings.RingAdjustLevel
 import com.example.kpkn.ui.components.rings.RingAdjustMuscles
-import com.example.kpkn.ui.components.rings.RingAdjustSheet
+import com.example.kpkn.ui.components.rings.RingAdjustPanel
 import com.example.kpkn.ui.components.rings.RingChannel
 import com.example.kpkn.ui.components.rings.TowerRingValues
 import com.example.kpkn.ui.components.rings.towerRingBandFractions
@@ -136,220 +150,15 @@ fun RingDetailSheet(
         energia = shown.takeIf { ring == RingChannel.ENERGIA },
     )
 
-    KpknSheet(
-        onDismissRequest = onDismiss,
-        modifier = Modifier.testTag("home-ring-sheet"),
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(start = WizardSpacing.gutter, end = 12.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Text(
-                text = RecoveryBands.channelTitle(channel),
-                style = WizardTypography.stepTitle,
-                color = accent,
-                modifier = Modifier.weight(1f),
-            )
-            HomeGlyphButton(
-                glyph = HomeGlyph.CLOSE,
-                description = "Cerrar",
-                onClick = onDismiss,
-                modifier = Modifier.testTag("home-ring-close"),
-            )
-        }
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .weight(1f, fill = false)
-                .verticalScroll(rememberScrollState())
-                .padding(horizontal = WizardSpacing.gutter)
-                .padding(top = 12.dp, bottom = 32.dp),
-            verticalArrangement = Arrangement.spacedBy(28.dp),
-        ) {
-            // El anillo grande, su cifra y su banda. La caja del arte es solo la franja de este anillo (I12): la cifra va justo debajo.
-            Column(modifier = Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
-                val (bandTop, bandBottom) = towerRingBandFractions(ring)
-                val towerHeight = RingArtWidth / RingTowerAspect
-                Box(
-                    modifier = Modifier
-                        .width(RingArtWidth)
-                        .height(towerHeight * (bandBottom - bandTop))
-                        .clipToBounds(),
-                ) {
-                    // La torre conserva su tamaño y su sitio en el logo; la caja solo deja ver la franja del anillo.
-                    KpknTowerRings(
-                        values = towerValues,
-                        visible = setOf(ring),
-                        highlighted = ring,
-                        modifier = Modifier.towerBand(towerWidth = RingArtWidth, towerHeight = towerHeight, top = towerHeight * bandTop),
-                    )
-                }
-                Spacer(Modifier.height(12.dp))
-                Row(verticalAlignment = Alignment.Bottom) {
-                    Text(
-                        text = shown?.toString() ?: "—",
-                        style = WizardTypography.controlValue,
-                        color = WizardColors.text,
-                    )
-                    if (shown != null) {
-                        Text(
-                            text = " %",
-                            style = WizardTypography.header,
-                            color = WizardColors.text,
-                            modifier = Modifier.padding(bottom = 8.dp),
-                        )
-                    }
-                }
-                Text(
-                    text = ringCaption(shown, channelCoverage.label, channelCoverage.isEstimated),
-                    style = WizardTypography.caption,
-                    color = WizardColors.textMuted,
-                )
-            }
-
-            // Tu rango habitual, o la nota de que aún no hay.
-            if (baseline != null) {
-                HomeRingRange(range = baseline, score = score, accent = accent, key = channel.name)
-            } else {
-                Text(
-                    text = "Tu normal aparecerá tras unas 4 sesiones con RINGS al inicio.",
-                    style = WizardTypography.bodySmall,
-                    color = WizardColors.textMuted,
-                )
-            }
-
-            if (score != null && causes.isNotEmpty()) {
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    DetailEyebrow("POR QUÉ")
-                    causes.forEach { cause ->
-                        Text(text = cause, style = WizardTypography.bodySmall, color = WizardColors.textMuted)
-                    }
-                }
-            }
-
-            if (score != null) {
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    DetailEyebrow("QUÉ HACER HOY")
-                    Text(
-                        text = channelSnap?.action?.takeIf { it.isNotBlank() } ?: RecoveryBands.action(channel, score),
-                        style = WizardTypography.body,
-                        color = WizardColors.text,
-                    )
-                    hours?.let { h ->
-                        Text(
-                            text = if (h == 0) "Ya estás en Normal o por encima." else "Vuelve a Normal en ~$h h",
-                            style = WizardTypography.bodySmall,
-                            color = WizardColors.textMuted,
-                        )
-                    }
-                }
-            }
-
-            if (channel == RecoveryChannelId.MUSCULAR && muscles.isNotEmpty()) {
-                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                    DetailEyebrow("POR MÚSCULO")
-                    HomeRingMuscleGrid(muscles = muscles)
-                }
-            }
-
-            if (spark.size >= 2) {
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    DetailEyebrow("ÚLTIMAS SESIONES")
-                    HomeRingSparkline(values = spark, accent = accent, key = channel.name)
-                }
-            }
-
-            advisory?.let { notice ->
-                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                    Text(text = notice.title, style = WizardTypography.controlLabel, color = WizardColors.text)
-                    Text(text = notice.body, style = WizardTypography.bodySmall, color = WizardColors.textMuted)
-                    if (notice.dismissible &&
-                        LoadAdvisoryEngine.rank(notice.level) >= LoadAdvisoryEngine.rank(LoadAdvisoryLevel.WATCH)
-                    ) {
-                        DetailTextAction(text = "Descartar aviso", onClick = { onDismissAdvisory(notice.id) })
-                    }
-                }
-            }
-
-            if (canAdjust) {
-                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                    DetailEyebrow("¿TE SIENTES DISTINTO?")
-                    Text(
-                        text = "Si no coincide con cómo te sientes, ajústalo. Tu ajuste manda sobre la estimación de hoy.",
-                        style = WizardTypography.note,
-                        color = WizardColors.textMuted,
-                    )
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(12.dp),
-                    ) {
-                        KpknCompactPill(
-                            text = "Ajustar",
-                            onClick = { showAdjust = true },
-                            filled = false,
-                            height = 40.dp,
-                            modifier = Modifier.testTag("home-ring-adjust"),
-                        )
-                        if (changed) {
-                            Text(
-                                text = adjustmentSummary(isMuscular, adjusted, changedMuscles.size),
-                                style = WizardTypography.bodySmall,
-                                color = WizardColors.text,
-                                modifier = Modifier.testTag("home-ring-adjust-summary"),
-                            )
-                        }
-                    }
-                    KpknCompactPill(
-                        text = "Guardar ajuste",
-                        onClick = {
-                            if (isMuscular) {
-                                if (changedMuscles.isNotEmpty()) {
-                                    // Cada músculo se guarda por su pilar, como el motor lo conoce.
-                                    saveMuscles?.invoke(changedMuscles.mapKeys { (id, _) -> getAugeMusclePillarId(id) })
-                                    onDismiss()
-                                }
-                            } else {
-                                val value = adjusted
-                                if (value != null && value != score) {
-                                    onSaveAdjustment(channel, value)
-                                    onDismiss()
-                                }
-                            }
-                        },
-                        filled = true,
-                        height = 44.dp,
-                        fullWidth = true,
-                        enabled = changed,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .testTag("home-ring-save"),
-                    )
-                }
-            }
-
-            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                if (showModelUpdateNotice) {
-                    Text(
-                        text = "Modelo actualizado: Columna ahora mide carga axial (no presses de pecho) y Energía/Columna recuperan con la misma semántica que el aprendizaje.",
-                        style = WizardTypography.bodySmall,
-                        color = WizardColors.textMuted,
-                    )
-                }
-                val data = (dataLabel ?: snapshot.dashboard.dataLabel)?.let { " · Datos: $it" }.orEmpty()
-                Text(
-                    text = "Confianza: ${snapshot.dashboard.confidenceLabel}$data",
-                    style = WizardTypography.note,
-                    color = WizardColors.textFaint,
-                )
-            }
-        }
-    }
-
-    if (showAdjust && canAdjust) {
+    var inlineDraft by remember(channel, score) { mutableStateOf((score ?: 0).toString()) }
+    var historyCount by remember(channel) { mutableStateOf(7) }
+    var selectedPoint by remember(channel, spark) { mutableStateOf(spark.lastIndex.coerceAtLeast(0)) }
+    var selectedCause by remember(channel) { mutableStateOf(0) }
+    val historyValues = spark.takeLast(historyCount)
+    KpknSheet(onDismissRequest = onDismiss, modifier = Modifier.testTag("home-ring-sheet"), stableHeightFraction = .9f) {
+        if (showAdjust && canAdjust) {
         val level = RingAdjustLevel(value = adjusted ?: score ?: 0, before = score ?: 0, edited = adjusted != null)
-        RingAdjustSheet(
+        RingAdjustPanel(
             initialChannel = ring,
             channels = listOf(ring),
             title = "Ajusta ${RecoveryBands.channelTitle(channel)}",
@@ -361,13 +170,103 @@ fun RingDetailSheet(
                 before = bodyBefore,
                 edited = muscleEdits.keys,
             ),
-            onEnergyChange = { adjusted = it },
-            onSpineChange = { adjusted = it },
+            onEnergyChange = { adjusted = it; inlineDraft = it.toString() },
+            onSpineChange = { adjusted = it; inlineDraft = it.toString() },
             onMuscleChange = { id, value -> muscleEdits[id] = value },
-            onEnergyReset = { adjusted = null },
-            onSpineReset = { adjusted = null },
+            onEnergyReset = { adjusted = null; inlineDraft = (score ?: 0).toString() },
+            onSpineReset = { adjusted = null; inlineDraft = (score ?: 0).toString() },
             onMusclesReset = { muscleEdits.clear() },
         )
+        } else {
+            Row(Modifier.fillMaxWidth().padding(horizontal = 18.dp), verticalAlignment = Alignment.CenterVertically) {
+                Text(RecoveryBands.channelTitle(channel), style = KpknType.title, color = WizardColors.text, modifier = Modifier.weight(1f))
+                HomeGlyphButton(HomeGlyph.CLOSE, "Cerrar", onDismiss, modifier = Modifier.testTag("home-ring-close"))
+            }
+            Column(Modifier.fillMaxWidth().weight(1f).verticalScroll(rememberScrollState()).padding(horizontal = 18.dp, vertical = 12.dp), verticalArrangement = Arrangement.spacedBy(18.dp)) {
+                Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
+                    val (bandTop, bandBottom) = towerRingBandFractions(ring)
+                    val towerHeight = RingArtWidth / RingTowerAspect
+                    Box(Modifier.width(RingArtWidth).height(towerHeight * (bandBottom - bandTop)).clipToBounds()) {
+                        KpknTowerRings(values = towerValues, visible = setOf(ring), highlighted = ring,
+                            modifier = Modifier.towerBand(RingArtWidth, towerHeight, towerHeight * bandTop))
+                    }
+                    Row(verticalAlignment = Alignment.Bottom) {
+                        if (canAdjust && !isMuscular) {
+                            BasicTextField(
+                                value = inlineDraft,
+                                onValueChange = { raw -> if (raw.length <= 3 && raw.all { it.isDigit() }) { inlineDraft = raw; adjusted = raw.toIntOrNull()?.takeIf { it in 0..100 } } },
+                                textStyle = KpknType.metricL.copy(color = WizardColors.text),
+                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                                singleLine = true, modifier = Modifier.width(80.dp).testTag("home-ring-inline-value"),
+                            )
+                        } else Text(shown?.toString() ?: "—", style = KpknType.metricL, color = WizardColors.text)
+                        if (shown != null) Text(" %", style = KpknType.title, color = WizardColors.text)
+                    }
+                    Text(ringCaption(shown, channelCoverage.label, channelCoverage.isEstimated), style = KpknType.caption, color = WizardColors.textMuted)
+                }
+                if (spark.size >= 2) {
+                    Column(Modifier.fillMaxWidth().background(Color(0xFF111111), androidx.compose.foundation.shape.RoundedCornerShape(22.dp)).padding(14.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                            Text("Últimos registros", style = KpknType.bodyStrong, color = WizardColors.text)
+                            Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                                listOf(7, 30).forEach { count -> KpknCompactPill("$count", onClick = { historyCount = count; selectedPoint = spark.lastIndex }, filled = historyCount == count, height = 30.dp, modifier = Modifier.testTag("home-ring-range-$count")) }
+                            }
+                        }
+                        val localPoint = (selectedPoint - (spark.size - historyValues.size)).coerceIn(0, historyValues.lastIndex)
+                        Text("Registro ${selectedPoint + 1} · ${historyValues[localPoint]} %", style = KpknType.action, color = WizardColors.text)
+                        InteractiveRingHistory(historyValues, localPoint, { selectedPoint = spark.size - historyValues.size + it }, if (isMuscular) Color(0xFFF49A6E) else Color(0xFF8FB2FF))
+                    }
+                }
+                baseline?.let { HomeRingRange(range = it, score = shown, accent = WizardColors.text, key = channel.name) }
+                if (causes.isNotEmpty()) {
+                    Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                        causes.forEachIndexed { index, cause ->
+                            KpknCompactPill(cause.substringBefore(':').take(24), onClick = { selectedCause = index }, filled = selectedCause == index, height = 34.dp)
+                        }
+                    }
+                    Text(causes[selectedCause.coerceIn(causes.indices)], style = KpknType.caption, color = WizardColors.textMuted)
+                }
+                channelSnap?.action?.takeIf { it.isNotBlank() }?.let { Text(it, style = KpknType.body, color = WizardColors.text) }
+                if (isMuscular && muscles.isNotEmpty()) HomeRingMuscleGrid(muscles)
+                advisory?.let {
+                    Text(it.title, style = KpknType.bodyStrong, color = WizardColors.text)
+                    Text(it.body, style = KpknType.caption, color = WizardColors.textMuted)
+                    if (it.dismissible) DetailTextAction("Descartar aviso", { onDismissAdvisory(it.id) })
+                }
+                if (canAdjust) {
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                        KpknCompactPill("Ajustar", onClick = { showAdjust = true }, filled = false, modifier = Modifier.testTag("home-ring-adjust"))
+                        KpknCompactPill("Guardar ajuste", onClick = {
+                            if (isMuscular) {
+                                if (changedMuscles.isNotEmpty()) { saveMuscles?.invoke(changedMuscles.mapKeys { (id, _) -> getAugeMusclePillarId(id) }); onDismiss() }
+                            } else adjusted?.takeIf { it != score }?.let { onSaveAdjustment(channel, it); onDismiss() }
+                        }, filled = true, enabled = changed, modifier = Modifier.weight(1f).testTag("home-ring-save"))
+                    }
+                }
+                if (showModelUpdateNotice) Text("Modelo actualizado", style = KpknType.caption, color = WizardColors.textMuted)
+                Text("${snapshot.dashboard.confidenceLabel}${(dataLabel ?: snapshot.dashboard.dataLabel)?.let { " · $it" }.orEmpty()}", style = KpknType.caption, color = WizardColors.textFaint)
+            }
+        }
+    }
+}
+
+@Composable
+private fun InteractiveRingHistory(values: List<Int>, selected: Int, onSelect: (Int) -> Unit, color: Color) {
+    val selectedIndex by androidx.compose.runtime.rememberUpdatedState(selected)
+    val select by androidx.compose.runtime.rememberUpdatedState(onSelect)
+    Column {
+        Canvas(Modifier.fillMaxWidth().height(112.dp).testTag("home-ring-history").pointerInput(values) {
+            detectTapGestures { tap -> select(((tap.x / size.width) * values.lastIndex).toInt().coerceIn(values.indices)) }
+        }) {
+            val points = values.mapIndexed { index, value -> Offset(index.toFloat() / values.lastIndex.coerceAtLeast(1) * size.width, size.height * (1f - value.coerceIn(0, 100) / 100f)) }
+            val path = Path().apply { points.forEachIndexed { index, point -> if (index == 0) moveTo(point.x, point.y) else lineTo(point.x, point.y) } }
+            drawPath(path, color, style = Stroke(2.dp.toPx()))
+            points.forEachIndexed { index, point -> drawCircle(if (index == selectedIndex) WizardColors.text else color, if (index == selectedIndex) 5.dp.toPx() else 3.dp.toPx(), point) }
+        }
+        // Same data points remain independently operable with TalkBack.
+        Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+            values.forEachIndexed { index, value -> KpknCompactPill("${index + 1} · $value %", onClick = { onSelect(index) }, filled = index == selected, height = 30.dp, modifier = Modifier.testTag("home-ring-point-$index")) }
+        }
     }
 }
 

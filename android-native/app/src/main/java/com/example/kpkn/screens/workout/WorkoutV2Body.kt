@@ -9,6 +9,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.pager.HorizontalPager
@@ -38,6 +39,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.kpkn.data.models.*
 import com.example.kpkn.domain.exercises.nicknameKey
 import com.example.kpkn.domain.sessionassistant.SeriesTechnique
+import com.example.kpkn.domain.workout.isSetDone
 import com.example.kpkn.domain.workout.isVolumeReplacedTechnique
 import com.example.kpkn.screens.workout.components.LocalLivePagerAdaptScale
 import com.example.kpkn.screens.workout.components.LocalLivePagerShouldReflow
@@ -108,6 +110,7 @@ internal fun WorkoutV2Body(
     overlayHazeState: HazeState = remember { HazeState() },
     roadmapExpanded: Boolean = false,
     dockBottomClearance: Dp = 140.dp,
+    recordFabBottomOffset: Dp? = null,
     onCreateSuperset: () -> Unit = {},
     onReplaceExercise: (String) -> Unit = {},
     requestLiveTagList: Boolean = false,
@@ -116,6 +119,7 @@ internal fun WorkoutV2Body(
     onSkipExercise: (() -> Unit)? = null,
     onRetryPendingCaptures: () -> Unit = {},
 ) {
+    val sharedFabBottomOffset = recordFabBottomOffset ?: rememberWorkoutRecordFabBottomOffset(dockBottomClearance)
     val allUserTags by viewModel.allUserTags.collectAsStateWithLifecycle()
     val cardioGpsState by viewModel.cardioGpsState.collectAsStateWithLifecycle()
     val cardioHealthState by viewModel.cardioHealthState.collectAsStateWithLifecycle()
@@ -128,7 +132,6 @@ internal fun WorkoutV2Body(
         uiState.restModalState?.kind == RestTimerKind.WARMUP
     // LV6: la forma del reloj que eligió la persona, «Descanso cumplido» como una página más del paginador (con el descanso minimizado)
     // y el chip «Descanso 2:41 · +15 s» de cuando el descanso sigue corriendo y otra página está a la vista.
-    val restShapeChoice by viewModel.restClockShapeChoice.collectAsStateWithLifecycle()
     val restOverrunOnCard = uiState.restOverrun != null && uiState.isRestMinimized && !uiState.isRestTimerRunning
     val restChipHolder = remember { com.example.kpkn.screens.workout.components.RestChipHolder() }
     LaunchedEffect(currentExercise?.id, currentExercise?.cardioDetails?.requiresGps) {
@@ -248,8 +251,7 @@ internal fun WorkoutV2Body(
         )
         val relatorBandCovered = (uiState.showPostExerciseSheet && !feedbackOnCard) ||
             (workingRestActive && !uiState.isRestMinimized) ||
-            (uiState.restOverrun != null && !uiState.isRestMinimized) ||
-            restChipHolder.visible
+            (uiState.restOverrun != null && !uiState.isRestMinimized)
         Column(modifier = Modifier.fillMaxSize()) {
             Box(
                 modifier = Modifier
@@ -378,7 +380,7 @@ internal fun WorkoutV2Body(
                     Column(
                         modifier = Modifier
                             .fillMaxSize()
-                            .padding(bottom = dockBottomClearance),
+                            .padding(bottom = sharedFabBottomOffset + LiveContentAboveRecordFab),
                     ) {
             val createTagAndRoute: (String, TagSetupInput?) -> CreateTagResult = { name, setup ->
                 val exercise = currentExercise
@@ -522,10 +524,13 @@ internal fun WorkoutV2Body(
                 )
             }
 
+            Spacer(Modifier.height(relatorBandHeight))
+            val stageScrollState = rememberScrollState()
             Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(horizontal = 10.dp),
+                modifier = Modifier.fillMaxSize().then(
+                    if (currentExercise?.isCardio != true && !showingPostExerciseCard)
+                        Modifier.verticalScroll(stageScrollState) else Modifier,
+                ),
             ) {
 
             if (currentExercise != null && (
@@ -1120,15 +1125,8 @@ internal fun WorkoutV2Body(
                             forcePagerScrollPage = pageIndex
                             forcePagerScrollEpoch++
                         }
-                        // El chip «Descanso 2:41 · +15 s» (LV6, F5): con el descanso minimizado y otra página a la vista, el descanso sigue arriba.
-                        // Tocarlo vuelve a la página del descanso.
-                        val restChipPageIdx = setPagerPages.indexOfFirst { it.type == LivePageType.REST }
-                        val restChipShouldShow = workingRestActive && uiState.isRestMinimized && restChipPageIdx >= 0 &&
-                            pagerState.settledPage != restChipPageIdx
-                        SideEffect {
-                            restChipHolder.visible = restChipShouldShow
-                            restChipHolder.onOpen = { requestPagerPage(restChipPageIdx) }
-                        }
+                        // El descanso se presenta en su página o a pantalla completa, sin chip flotante.
+                        SideEffect { restChipHolder.visible = false }
                         DisposableEffect(pagerScopeKey) { onDispose { restChipHolder.visible = false } }
                         val timelineElements = remember(
                             pagerExercise,
@@ -1232,7 +1230,7 @@ internal fun WorkoutV2Body(
                                 )
                             }
 
-                            // Stepper: one MOV pill + one APR pill + working-set dots only (no M1/A1).
+                            // Stepper: MOV, APROX and effective working sets only (no M1/A1).
                             if (pagerSupersetMembers.size > 1 && pagerSupersetGroupId != null) {
                                 val roundCount = pagerSupersetMembers.maxOfOrNull { it.sets.size }?.coerceAtLeast(1) ?: 1
                                 for (roundIdx in 0 until roundCount) {
@@ -1579,38 +1577,19 @@ internal fun WorkoutV2Body(
 
                     BoxWithConstraints(
                         modifier = Modifier
-                            .fillMaxWidth()
-                            .livePagerFullBleed(horizontalInset = 10.dp),
+                            .fillMaxWidth(),
                     ) {
                         val availableWidth = maxWidth
                         val cardScale = WorkoutUiTokens.effectiveLivePagerCardScale()
-                        val shouldReflow = LocalLivePagerShouldReflow.current
-                        val livePolicy = LocalLiveViewportPolicy.current
-                        val peekFraction = LiveViewportPolicyMath.livePagerPeekFraction(
-                            availableWidthDp = availableWidth.value,
-                            cardScale = cardScale * WorkoutUiTokens.LivePagerCardWidthSlimFactor,
-                            shouldReflow = shouldReflow,
-                            cardWidthMul = livePolicy.cardWidthMul,
-                            minPeekFraction = livePolicy.minPeekFraction,
-                        )
-                        val peekPadding = availableWidth * peekFraction
-                        val edgeFadeWidth = WorkoutUiTokens.LivePagerEdgeFadeWidth
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .background(Color.Transparent),
+                        val peekPadding = 24.dp
+                        Column(
+                            modifier = Modifier.fillMaxWidth().background(Color.Transparent),
                         ) {
                             HorizontalPager(
                                 state = pagerState,
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .heightIn(max = 1200.dp)
-                                    // Same offscreen alpha mask used by the
-                                    // exercise carousel below: the peek fades
-                                    // to the black rail at each viewport edge.
-                                    .graphicsLayer {
-                                        compositingStrategy = CompositingStrategy.Offscreen
-                                    }
                                     .drawWithContent {
                                         drawContent()
                                         val visiblePage = setPagerPages.getOrNull(pagerState.settledPage)
@@ -1629,22 +1608,6 @@ internal fun WorkoutV2Body(
                                             RepairBenchmarkTrace.workoutBodyDrawn(
                                                 activeStepKey = requestedStepKey,
                                                 completedSetCount = uiState.completedSets.size,
-                                            )
-                                        }
-                                        if (totalSetPages > 1 && size.width > 0f) {
-                                            val fade = (
-                                                edgeFadeWidth.toPx() / size.width
-                                            ).coerceIn(0f, 0.45f)
-                                            drawRect(
-                                                brush = Brush.horizontalGradient(
-                                                    colorStops = arrayOf(
-                                                        0f to Color.Transparent,
-                                                        fade to Color.Black,
-                                                        (1f - fade) to Color.Black,
-                                                        1f to Color.Transparent,
-                                                    ),
-                                                ),
-                                                blendMode = BlendMode.DstIn,
                                             )
                                         }
                                     },
@@ -1691,12 +1654,7 @@ internal fun WorkoutV2Body(
                                             clip = false
                                         },
                                 ) {
-                        com.example.kpkn.screens.workout.components.LivePagerCardFrame(
-                            allowContentExpansion = livePagerCardAllowsContentExpansion(pageSpec.type),
-                            lockToWorkingSetHeight = livePagerCardLocksToWorkingSetHeight(pageSpec.type),
-                            publishWorkingSetHeight = pageSpec.type == LivePageType.NORMAL,
-                            godModeActive = false,
-                        ) {
+                        LiveSessionCardFrame {
                         val pageExercise = pageSpec.exerciseId?.let { id -> visibleExercises.firstOrNull { it.id == id } } ?: currentExercise
                         val isActivePage = page == pagerState.settledPage
                         val isSettledPage = isActivePage
@@ -1929,7 +1887,7 @@ internal fun WorkoutV2Body(
                                 val restState = uiState.restModalState
                                 val restOverrun = uiState.restOverrun
                                 // La MISMA forma que la pantalla completa (LV6): la elegida o la que toca por el orden del descanso.
-                                val restShape = RestClockMath.shapeFor(restOrdinal(uiState.completedSets.values), restShapeChoice)
+                                val restShape = restClockShapeForEvent(restState, restOverrun)
                                 // «Siguiente: Serie 2 · 95 kg × 4–6 · RIR 2»: la serie real que toca.
                                 val restNext = remember(
                                     visibleExercises,
@@ -2329,19 +2287,16 @@ internal fun WorkoutV2Body(
                         } // LivePagerCardFrame
                             } // peek graphicsLayer Box
                         } // HorizontalPager
-                        if (totalSetPages > 1) {
-                            LivePagerPeekNavArrows(
-                                settledPage = pagerState.settledPage,
-                                totalPages = totalSetPages,
-                                peekWidth = peekPadding,
-                                onPrevious = { requestPagerPage(pagerState.settledPage - 1) },
-                                onNext = { requestPagerPage(pagerState.settledPage + 1) },
-                                modifier = Modifier
-                                    .matchParentSize()
-                                    .zIndex(2f),
+                        liveSetStepperHolder.snapshot?.let { snapshot ->
+                            LiveSeriesClouds(
+                                snapshot = snapshot,
+                                onSelectPage = { liveSetStepperHolder.onSelectPage(it) },
+                                onLongPressPage = liveSetStepperHolder.onLongPressPage,
+                                onAddSet = liveSetStepperHolder.onAddSet.takeIf { snapshot.canAddSet },
+                                activePageIndex = pagerState.settledPage,
                             )
                         }
-                        } // pager + edge fades
+                        } // pager and detailed series stepper
                     } // BoxWithConstraints
                     } // key(pagerScopeKey)
                     } // strength / prep pager (non-cardio)
@@ -2355,25 +2310,6 @@ internal fun WorkoutV2Body(
             } // BoxWithConstraints body
         } // header + body Column
 
-        // El chip del descanso (LV6, F5) va en el sitio de la banda del relator: mismo borde, misma altura, sin mover la tarjeta.
-        if (restChipHolder.visible && headerHeightPx > 0) {
-            Box(
-                modifier = Modifier
-                    .align(Alignment.TopCenter)
-                    .fillMaxWidth()
-                    .height(relatorBandHeight)
-                    .offset(y = with(density) { headerHeightPx.toDp() })
-                    .zIndex(12f),
-                contentAlignment = Alignment.Center,
-            ) {
-                com.example.kpkn.screens.workout.components.RestMiniChip(
-                    remainingSeconds = restTimerRemaining.coerceAtLeast(0),
-                    totalSeconds = uiState.restModalState?.totalRestSeconds() ?: 90,
-                    onOpen = restChipHolder.onOpen,
-                    onAddTime = { viewModel.addRestTime(15) },
-                )
-            }
-        }
         if ((!relatorResolution.text.isNullOrBlank() || relatorResolution.silentAnimation != RelatorSilentAnimation.NONE) && headerHeightPx > 0 && !relatorBandCovered) {
             WorkoutLiveRelatorLine(
                 text = relatorResolution.text,
@@ -2424,15 +2360,69 @@ internal fun WorkoutV2Body(
         }
     }
     if (uiState.showUltraFastSheet) {
-        com.example.kpkn.screens.workout.components.UltraFastPreviewSheet(
-            preview = uiState.ultraFastPreview,
-            savedSeconds = uiState.ultraFastSavedSeconds,
-            visibleExercises = visibleExercises,
-            ultraFastManualOverrides = uiState.ultraFastManualOverrides,
-            onToggleOverride = { viewModel.toggleUltraFastManualOverride(it) },
-            onConfirm = { counts -> viewModel.applyUltraFast(counts) },
-            onDismiss = { viewModel.hideUltraFastSheet() },
-        )
+        val quickExercise = currentExercise
+        if (quickExercise == null || isWarmupActive || isMobilityActive) {
+            com.example.kpkn.ui.components.KpknSheet(onDismissRequest = viewModel::hideUltraFastSheet) {
+                Column(Modifier.fillMaxWidth().padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Text("Ultrarrápido", style = MaterialTheme.typography.titleLarge)
+                    Text("Termina la preparación en su tarjeta antes de registrar la serie de trabajo.")
+                    TextButton(onClick = viewModel::hideUltraFastSheet) { Text("Volver a la sesión") }
+                }
+            }
+        } else {
+            val quickSetIndex = uiState.currentSetIdx
+            val quickSet = quickExercise.sets.getOrNull(quickSetIndex)
+            key(quickExercise.id, quickSetIndex, activeSide) {
+                var quickBusy by remember { mutableStateOf(false) }
+                var quickError by remember { mutableStateOf<String?>(null) }
+                com.example.kpkn.screens.workout.components.UltraFastRecordSheet(
+                    exercise = quickExercise,
+                    completedSets = uiState.completedSets,
+                    currentSetIndex = quickSetIndex,
+                    busy = quickBusy,
+                    error = quickError,
+                    onTechnique = { technique ->
+                        if (!quickBusy) {
+                            viewModel.setQuickRecordingTechnique(quickExercise.id, quickSetIndex, technique)
+                        }
+                    },
+                    onRecord = record@{ weight, reps, rir ->
+                        if (quickBusy || quickSet == null || rir == null) return@record
+                        quickBusy = true
+                        quickError = null
+                        viewModel.launchWorkoutCommand {
+                            try {
+                                val result = viewModel.recordSetV2(
+                                    weight = weight, value = reps.toDouble(), intensity = rir.toDouble(),
+                                    advanced = SetAdvancedFeedback(
+                                        rir = rir, reachedFailure = rir == 0, actualIntensityMode = IntensityMode.RIR,
+                                        actualIntensityValue = rir.toDouble(), intensityAdjusted = true,
+                                    ),
+                                    loadMode = resolvePersistedLoadModeForSet(
+                                        exerciseId = quickExercise.id, setIdx = quickSetIndex,
+                                        tagId = uiState.exerciseTags[quickExercise.id],
+                                        persistedLoadModeBySet = uiState.persistedLoadModeBySet,
+                                        persistedLoadModeByExercise = uiState.persistedLoadModeByExercise,
+                                    ) ?: quickSet.loadModeV2,
+                                    unitMode = quickSet.unitModeV2 ?: UnitModeV2.REPS,
+                                    bodyWeight = viewModel.currentBodyWeight(), side = activeSide,
+                                    tagId = uiState.exerciseTags[quickExercise.id], setupId = quickSet.setupId,
+                                    machineBrand = quickSet.machineBrand,
+                                    setIdxOverride = quickSetIndex, expectedExerciseId = quickExercise.id,
+                                    expectedSetIdx = quickSetIndex, expectedSide = activeSide,
+                                )
+                                if (result.succeeded) viewModel.hideUltraFastSheet()
+                                else quickError = when (result) {
+                                    is RecordSetResult.Rejected -> result.reason
+                                    else -> "No se pudo guardar la serie. Tus valores siguen aquí; vuelve a intentar."
+                                }
+                            } finally { quickBusy = false }
+                        }
+                    },
+                    onDismiss = { if (!quickBusy) viewModel.hideUltraFastSheet() },
+                )
+            }
+        }
     }
 
     pendingUpdateAction?.let { pending ->

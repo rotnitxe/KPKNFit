@@ -38,7 +38,7 @@ internal fun WorkoutRecordFab(
     Box(
         modifier = modifier
             .shadow(10.dp, CircleShape, clip = false)
-            .size(58.dp)
+            .size(60.dp)
             .clip(CircleShape)
             .background(fill)
             .clickable(enabled = enabled, onClick = onClick)

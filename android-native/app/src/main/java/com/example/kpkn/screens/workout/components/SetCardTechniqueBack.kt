@@ -263,7 +263,7 @@ internal fun SetCardTechniqueBack(
                     .verticalScroll(bodyScroll),
                 verticalArrangement = Arrangement.spacedBy(5.dp),
             ) {
-                KpknSegmentedControl(
+                LiveCompactSegments(
                     options = TechniqueSegments,
                     selectedIndex = segment,
                     onSelect = { index ->
@@ -282,7 +282,6 @@ internal fun SetCardTechniqueBack(
                             }
                         }
                     },
-                    size = KpknSegmentedSize.Compact,
                 )
 
                 when {

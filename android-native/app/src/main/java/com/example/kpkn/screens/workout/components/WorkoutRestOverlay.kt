@@ -55,13 +55,9 @@ import java.util.Locale
 import com.example.kpkn.data.models.*
 import com.example.kpkn.screens.workout.*
 
-/**
- * Descanso a pantalla completa (LV6, F1): los RINGS como reloj, sin círculo. Arriba el ejercicio y el relator; luego las pestañas de
- * forma (Torre · Pista · Espiral), la forma con el corredor, el tiempo, −15 s / «Saltar descanso» / +15 s y «Jugar mientras descansas».
- * Debajo, sin perder nada de lo de siempre: la última serie, el plan de sesión y el descanso sugerido, y «Saltar series restantes…».
- *
- * El tiempo SIEMPRE es [remainingSeconds] (el del controlador); la forma solo lo dibuja. Las acciones (±15 s, saltar, descanso sugerido,
- * saltar series) son las mismas funciones que usan la tarjeta, la notificación y el minijuego.
+/** Fullscreen/card rest share the controller clock. Shape is selected once per real rest by the host.
+ * No shape selector or relator is mounted here. The first-use acknowledgement is persisted by the host;
+ * entering, leaving or restarting any arcade game never changes rest time or its service.
  */
 @Composable
 internal fun RestTimerOverlay(
@@ -98,12 +94,14 @@ internal fun RestTimerOverlay(
     clockActive: Boolean = true,
     initiallyPlaying: Boolean = false,
     gameEngine: RestGameEngine? = null,
+    showIntro: Boolean = false,
+    onIntroDone: () -> Unit = {},
 ) {
     // El total es el del descanso entero (con los ajustes de ±15 s): así la forma no vuelve a cero al ajustar el tiempo.
     val totalSeconds = state.totalRestSeconds().coerceAtLeast(remainingSeconds).coerceAtLeast(1)
     val progress = RestClockMath.progress(totalSeconds, remainingSeconds)
     val hasFeedback = postExerciseFeedbackContent != null
-    var playing by rememberSaveable { mutableStateOf(initiallyPlaying) }
+    var playing by rememberSaveable(state.startedAtMs) { mutableStateOf(initiallyPlaying) }
 
     Box(
         modifier = Modifier
@@ -121,7 +119,9 @@ internal fun RestTimerOverlay(
             )
             .zIndex(6f),
     ) {
-        AnimatedContent(
+        if (showIntro) {
+            RestFirstExperience(onDone = onIntroDone, animationsOn = clockActive)
+        } else AnimatedContent(
             targetState = hasFeedback,
             transitionSpec = {
                 (if (targetState) {
@@ -233,14 +233,14 @@ private fun RestTimeReadout(
     }
     Column(modifier = modifier, horizontalAlignment = Alignment.CenterHorizontally) {
         Text(
-            text = restKindText(state.kind).uppercase(),
+            text = if (remainingSeconds < 0) "TIEMPO EXTRA" else restKindText(state.kind).uppercase(),
             style = KpknType.eyebrow,
             color = WizardColors.textMuted,
         )
         RestClockText(
-            text = formatRestClock(safeRemaining),
+            text = (if (remainingSeconds < 0) "+" else "") + formatRestClock(kotlin.math.abs(remainingSeconds)),
             maxFontSize = maxFontSize,
-            modifier = Modifier.semantics { contentDescription = RestClockMath.spokenRemaining(safeRemaining) },
+            modifier = Modifier.semantics { contentDescription = if (remainingSeconds < 0) "Tiempo extra, ${kotlin.math.abs(remainingSeconds)} segundos" else RestClockMath.spokenRemaining(safeRemaining) },
         )
         if (showTotal) {
             Text(
@@ -294,13 +294,6 @@ private fun FeedbackContent(
             ),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        RestOverlayRelatorLine(
-            text = relatorText,
-            phaseKey = relatorPhaseKey,
-            actions = relatorActions,
-            onAction = onRelatorAction,
-            accentColor = sessionAccentColor,
-        )
 
         // El descanso sugerido sigue arriba, como siempre.
         if (pendingRestSuggestion != null && !isAdaptiveActive && onUseAdaptive != null) {
@@ -507,16 +500,9 @@ private fun NormalRestContent(
                     }
                 }
 
-                // El relator a 12 dp de la cabecera y el reloj a 16 dp del relator (LR1g).
+                Spacer(Modifier.height(18.dp))
+                RestPlayHighlight(onClick = onPlay, animationsOn = clockActive)
                 Spacer(Modifier.height(12.dp))
-                RestOverlayRelatorLine(
-                    text = relatorText,
-                    phaseKey = relatorPhaseKey,
-                    actions = relatorActions,
-                    onAction = onRelatorAction,
-                    accentColor = sessionAccentColor,
-                )
-                Spacer(Modifier.height(16.dp))
 
                 Column(
                     modifier = Modifier
@@ -524,10 +510,10 @@ private fun NormalRestContent(
                         .testTag("lr1g-aro"),
                     horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
-                    RestShapeTabs(selected = shape, onSelect = onShapeChange)
                     RestRingsClock(
                         shape = shape,
                         progress = progress,
+                        overtime = remainingSeconds < 0,
                         animationsOn = clockActive,
                         modifier = Modifier
                             .fillMaxWidth()
@@ -571,11 +557,7 @@ private fun NormalRestContent(
                         modifier = Modifier.weight(1f),
                     )
                 }
-                RestPlayPill(
-                    text = "Jugar mientras descansas",
-                    onClick = onPlay,
-                    modifier = Modifier.fillMaxWidth(),
-                )
+
             }
 
             Spacer(Modifier.height(12.dp))

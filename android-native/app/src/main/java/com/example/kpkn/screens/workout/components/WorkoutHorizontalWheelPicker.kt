@@ -75,9 +75,8 @@ fun WorkoutHorizontalWheelPicker(
     val listState = rememberLazyListState(initialFirstVisibleItemIndex = safeIndex)
     val scope = rememberCoroutineScope()
     // Celda de 52 dp y círculo de 48 dp: entre cifra y cifra queda aire.
-    val cellWidth = 52.dp
-    val circleSize = 48.dp
-    val controlHeight = if (roomier) 60.dp else 56.dp
+    val circleSize = 36.dp
+    val controlHeight = if (roomier) 52.dp else 48.dp
     val density = LocalDensity.current
 
     val centerIndex by remember(items, listState) {
@@ -157,6 +156,7 @@ fun WorkoutHorizontalWheelPicker(
                 },
             contentAlignment = Alignment.Center,
         ) {
+            val cellWidth = maxWidth / 5f
             val sidePadding = (maxWidth - cellWidth).coerceAtLeast(0.dp) / 2
 
             LazyRow(
@@ -172,7 +172,7 @@ fun WorkoutHorizontalWheelPicker(
                     val fontSize = when {
                         label.length >= 7 -> 11.sp
                         label.length >= 5 -> 13.sp
-                        isCentered -> 17.sp
+                        isCentered -> 19.sp
                         else -> 15.sp
                     }
                     // La cifra elegida va en tinta, sin anillo de tono: la selección no lleva acento (LR1a).
@@ -200,13 +200,14 @@ fun WorkoutHorizontalWheelPicker(
                     ) {
                         Box(
                             modifier = Modifier
-                                .size(circleSize)
+                                .size(if (isCentered) 45.dp else circleSize)
                                 .background(fill, CircleShape),
                             contentAlignment = Alignment.Center,
                         ) {
                             Text(
                                 text = label,
                                 style = KpknType.bodyStrong.copy(
+                                    fontFamily = com.example.kpkn.screens.onboarding.design.WizardFonts.display,
                                     fontSize = fontSize,
                                     fontWeight = if (isCentered) FontWeight.Bold else FontWeight.SemiBold,
                                     textAlign = TextAlign.Center,

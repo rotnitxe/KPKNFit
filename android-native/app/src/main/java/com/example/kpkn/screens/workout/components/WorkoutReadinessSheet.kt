@@ -85,10 +85,11 @@ import com.example.kpkn.ui.components.rings.KpknRingColors
 import com.example.kpkn.ui.components.rings.KpknTowerRings
 import com.example.kpkn.ui.components.rings.RingAdjustLevel
 import com.example.kpkn.ui.components.rings.RingAdjustMuscles
-import com.example.kpkn.ui.components.rings.RingAdjustSheet
+import com.example.kpkn.ui.components.rings.RingAdjustPanel
 import com.example.kpkn.ui.components.rings.RingChannel
 import com.example.kpkn.ui.components.rings.TowerRingValues
 import com.example.kpkn.ui.components.rings.TowerRingsStyle
+import com.example.kpkn.ui.design.KpknIconButton
 import com.example.kpkn.ui.design.KpknCompactPill
 import com.example.kpkn.ui.design.KpknShape
 import com.example.kpkn.ui.design.KpknSurface
@@ -173,6 +174,8 @@ fun WorkoutReadinessSheet(
      * render los fijan sin cargar el catálogo de ejercicios.
      */
     suggestionPillars: List<String>? = null,
+    /** Opens the existing permission/mode flow; no simulated microphone state. */
+    onOpenVoice: (() -> Unit)? = null,
 ) {
     if (!showReadinessSheet) return
 
@@ -231,6 +234,55 @@ fun WorkoutReadinessSheet(
         stableHeightFraction = 0.86f,
         hazeState = hazeState,
     ) {
+        if (adjustChannel != null) {
+    // El ajuste oficial: una hoja sobre el estado previo, en el canal que se tocó. Lo que cambia va al mismo estado de arriba.
+    adjustChannel?.let { channel ->
+        val bodyValues = readinessBodyValues(muscleAdjustments, otherMuscleAdjustments, perMuscle)
+        val bodyBefore = readinessBodyBefore(sessionMuscleStartingBatteries, perMuscle)
+        val editedIds = muscleAdjustments.keys.filter { userEditedMuscles[it] == true }.toSet() + otherMuscleAdjustments.keys
+        RingAdjustPanel(
+            initialChannel = channel,
+            onDismiss = { adjustChannel = null },
+            energy = RingAdjustLevel(value = neural, before = readinessNeuralStart, edited = userEditedNeural),
+            spine = RingAdjustLevel(value = spinal, before = readinessSpinalStart, edited = userEditedSpinal),
+            muscles = RingAdjustMuscles(
+                values = bodyValues,
+                before = bodyBefore,
+                highlighted = muscleAdjustments.keys.toSet(),
+                edited = editedIds,
+            ),
+            onEnergyChange = {
+                neural = it
+                userEditedNeural = true
+            },
+            onSpineChange = {
+                spinal = it
+                userEditedSpinal = true
+            },
+            onMuscleChange = { id, value ->
+                if (muscleAdjustments.containsKey(id)) {
+                    muscleAdjustments[id] = value.coerceIn(0, 100)
+                    userEditedMuscles[id] = true
+                } else {
+                    otherMuscleAdjustments[id] = value.coerceIn(0, 100)
+                }
+            },
+            onEnergyReset = {
+                neural = readinessNeuralStart
+                userEditedNeural = false
+            },
+            onSpineReset = {
+                spinal = readinessSpinalStart
+                userEditedSpinal = false
+            },
+            onMusclesReset = {
+                sessionMuscleStartingBatteries.forEach { (muscleId, value) -> muscleAdjustments[muscleId] = value.coerceIn(0, 100) }
+                userEditedMuscles.clear()
+                otherMuscleAdjustments.clear()
+            },
+        )
+    }
+        } else {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -278,40 +330,6 @@ fun WorkoutReadinessSheet(
                     onChannelTap = { adjustChannel = it },
                 )
 
-                val coaching = remember(patternReadiness, exerciseReadinessMap, sessionExercises, perMuscle) {
-                    ExerciseReadinessEngine.buildPatternCoaching(
-                        patternReadiness = patternReadiness,
-                        exerciseReadinessMap = exerciseReadinessMap,
-                        sessionExercises = sessionExercises,
-                        perMuscle = perMuscle,
-                    )
-                }
-                coaching?.let { tip ->
-                    Column(modifier = Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                        Text(
-                            text = tip.headline,
-                            style = KpknType.bodyStrong,
-                            color = WizardColors.text,
-                        )
-                        Text(
-                            text = tip.detail,
-                            style = KpknType.caption,
-                            color = WizardColors.textMuted,
-                        )
-                    }
-                }
-                augeSnapshot?.advisories
-                    ?.firstOrNull { LoadAdvisoryEngine.rank(it.level) >= LoadAdvisoryEngine.rank(LoadAdvisoryLevel.ADJUST) }
-                    ?.let { advisory ->
-                        Text(
-                            text = "${advisory.title}: ${advisory.body}",
-                            style = KpknType.caption,
-                            // El amarillo del aviso pasa al token de la energía, el único amarillo de la marca.
-                            color = KpknRingColors.energia,
-                            modifier = Modifier.fillMaxWidth(),
-                        )
-                    }
-
                 // 2. Molestias en línea: buscador y chips.
                 val sessionPillars = suggestionPillars ?: remember(sessionExercises) { getSessionPillarMuscleIds(sessionExercises) }
                 ReadinessDiscomfortBlock(
@@ -322,13 +340,7 @@ fun WorkoutReadinessSheet(
                     sessionPillarMuscleIds = sessionPillars,
                 )
 
-                // 3. La voz, en una fila: el interruptor de Comandos de voz y, encendida, sus dos modos.
-                ReadinessVoiceRow(
-                    enabled = voiceSessionEnabled,
-                    mode = voiceCaptureMode,
-                    onToggle = onVoiceToggle,
-                    onModeChange = onVoiceCaptureModeChange,
-                )
+
             }
 
             // 4. BOTÓN PRINCIPAL — ✓ de 64 dp anclado abajo, con la piel del ✓ de la serie (LR1b)
@@ -339,6 +351,13 @@ fun WorkoutReadinessSheet(
                     .padding(bottom = 16.dp),
                 contentAlignment = Alignment.Center,
             ) {
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                    KpknIconButton(
+                        icon = KpknLineIcons.Mic,
+                        contentDescription = "Modo de voz",
+                        onClick = { onOpenVoice?.invoke() ?: onVoiceToggle() },
+                        modifier = Modifier.size(48.dp).testTag("readiness-voice-fab"),
+                    )
                 ReadinessConfirmButton(
                     onClick = {
                         val editedMuscleMap = muscleAdjustments
@@ -359,58 +378,12 @@ fun WorkoutReadinessSheet(
                         )
                     },
                 )
+                }
             }
         }
+            }
     }
 
-    // El ajuste oficial: una hoja sobre el estado previo, en el canal que se tocó. Lo que cambia va al mismo estado de arriba.
-    adjustChannel?.let { channel ->
-        val bodyValues = readinessBodyValues(muscleAdjustments, otherMuscleAdjustments, perMuscle)
-        val bodyBefore = readinessBodyBefore(sessionMuscleStartingBatteries, perMuscle)
-        val editedIds = muscleAdjustments.keys.filter { userEditedMuscles[it] == true }.toSet() + otherMuscleAdjustments.keys
-        RingAdjustSheet(
-            initialChannel = channel,
-            onDismiss = { adjustChannel = null },
-            energy = RingAdjustLevel(value = neural, before = readinessNeuralStart, edited = userEditedNeural),
-            spine = RingAdjustLevel(value = spinal, before = readinessSpinalStart, edited = userEditedSpinal),
-            muscles = RingAdjustMuscles(
-                values = bodyValues,
-                before = bodyBefore,
-                highlighted = muscleAdjustments.keys.toSet(),
-                edited = editedIds,
-            ),
-            onEnergyChange = {
-                neural = it
-                userEditedNeural = true
-            },
-            onSpineChange = {
-                spinal = it
-                userEditedSpinal = true
-            },
-            onMuscleChange = { id, value ->
-                if (muscleAdjustments.containsKey(id)) {
-                    muscleAdjustments[id] = value.coerceIn(0, 100)
-                    userEditedMuscles[id] = true
-                } else {
-                    otherMuscleAdjustments[id] = value.coerceIn(0, 100)
-                }
-            },
-            onEnergyReset = {
-                neural = readinessNeuralStart
-                userEditedNeural = false
-            },
-            onSpineReset = {
-                spinal = readinessSpinalStart
-                userEditedSpinal = false
-            },
-            onMusclesReset = {
-                sessionMuscleStartingBatteries.forEach { (muscleId, value) -> muscleAdjustments[muscleId] = value.coerceIn(0, 100) }
-                userEditedMuscles.clear()
-                otherMuscleAdjustments.clear()
-            },
-            hazeState = hazeState,
-        )
-    }
 }
 
 /** Guarda un mapa de músculos (nombre → valor) al girar o recrearse la pantalla. */
@@ -572,13 +545,7 @@ private fun ReadinessTowerBlock(
             ReadinessLegendColumn("Energía", neural, KpknRingColors.energia, RingChannel.ENERGIA, onChannelTap, Modifier.weight(1f))
             ReadinessLegendColumn("Columna", spinal, KpknRingColors.columna, RingChannel.COLUMNA, onChannelTap, Modifier.weight(LegendSideWeight))
         }
-        Text(
-            text = "Toca un anillo para ajustarlo",
-            style = KpknType.caption,
-            color = WizardColors.textFaint,
-            textAlign = TextAlign.Center,
-            modifier = Modifier.fillMaxWidth(),
-        )
+
     }
 }
 
@@ -608,7 +575,7 @@ private fun ReadinessLegendColumn(
             text = label.uppercase(Locale.forLanguageTag("es")),
             // 12 sp con menos aire entre letras: con la letra grande «MÚSCULOS» y «ENERGÍA» no se tocan.
             style = KpknType.eyebrow.copy(fontSize = 12.sp, letterSpacing = 1.sp),
-            color = color,
+            color = WizardColors.textMuted,
             maxLines = 1,
             softWrap = false,
             overflow = TextOverflow.Visible,

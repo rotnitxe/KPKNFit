@@ -58,6 +58,7 @@ import com.example.kpkn.screens.workout.SeriesTypeTarget
 import com.example.kpkn.screens.workout.completionKeysForSet
 import com.example.kpkn.screens.workout.seriesOptionsAvailability
 import com.example.kpkn.screens.workout.seriesOptionsSummary
+import com.example.kpkn.ui.components.KpknPortal
 import com.example.kpkn.ui.components.icons.KpknLineIcons
 import com.example.kpkn.ui.design.KpknCompactPill
 import com.example.kpkn.ui.design.KpknShape
@@ -151,9 +152,11 @@ internal fun SeriesOptionsSheet(
     BackHandler(onBack = onDismiss)
 
     val cardShape = RoundedCornerShape(24.dp)
+    KpknPortal {
     BoxWithConstraints(modifier = modifier.fillMaxSize().zIndex(20f)) {
         // La tarjeta nunca sube más allá de lo que cabe sobre la barra: si no cabe (letra grande), se desplaza.
-        val cardMaxHeight = (maxHeight - bottomClearance - 24.dp).coerceAtLeast(240.dp)
+        val clearance = bottomClearance.coerceAtLeast(78.dp)
+        val cardMaxHeight = (maxHeight - clearance - 24.dp).coerceAtLeast(0.dp)
         // El velo cubre la sesión pero no la barra inferior, que queda por encima (la barra vive fuera de este cuerpo).
         Box(
             modifier = Modifier
@@ -168,7 +171,7 @@ internal fun SeriesOptionsSheet(
         Column(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
-                .padding(start = 16.dp, end = 16.dp, bottom = bottomClearance + 8.dp)
+                .padding(start = 16.dp, end = 16.dp, bottom = clearance + 8.dp)
                 .fillMaxWidth()
                 .heightIn(max = cardMaxHeight)
                 .shadow(elevation = 16.dp, shape = cardShape, clip = false)
@@ -434,6 +437,7 @@ internal fun SeriesOptionsSheet(
                 )
             }
         }
+    }
     }
 }
 

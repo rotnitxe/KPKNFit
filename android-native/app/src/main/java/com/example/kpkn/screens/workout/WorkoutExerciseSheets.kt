@@ -2,6 +2,12 @@ package com.example.kpkn.screens.workout
 
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.relocation.BringIntoViewRequester
+import androidx.compose.foundation.relocation.bringIntoViewRequester
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.ime
+import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.foundation.background
@@ -172,9 +178,19 @@ internal fun WorkoutTagFilledTextField(
     modifier: Modifier = Modifier,
     singleLine: Boolean = true,
 ) {
+    val requester = remember { BringIntoViewRequester() }
+    var focused by remember { mutableStateOf(false) }
+    val imeBottom = WindowInsets.ime.getBottom(LocalDensity.current)
+    LaunchedEffect(focused, imeBottom) {
+        if (focused) {
+            kotlinx.coroutines.delay(60)
+            requester.bringIntoView()
+        }
+    }
     BasicTextField(
         value = value, onValueChange = onValueChange,
-        modifier = modifier.fillMaxWidth().semantics { contentDescription = label },
+        modifier = modifier.fillMaxWidth().bringIntoViewRequester(requester)
+            .onFocusChanged { focused = it.isFocused }.semantics { contentDescription = label },
         singleLine = singleLine,
         textStyle = KpknType.body.copy(fontSize = 14.sp, lineHeight = 18.sp, color = WizardColors.text),
         cursorBrush = SolidColor(WizardColors.text),

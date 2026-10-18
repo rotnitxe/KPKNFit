@@ -24,6 +24,7 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -58,6 +59,8 @@ import com.example.kpkn.data.workout.RestGameRecordStore
 import com.example.kpkn.screens.onboarding.design.WizardColors
 import com.example.kpkn.screens.onboarding.design.wizardReducedMotion
 import com.example.kpkn.screens.workout.RestClockMath
+import com.example.kpkn.screens.workout.RestHazard
+import com.example.kpkn.screens.workout.RestSupplement
 import com.example.kpkn.screens.workout.RestGameEngine
 import com.example.kpkn.screens.workout.RestNextSetSummary
 import com.example.kpkn.ui.components.icons.KpknLineIcons
@@ -116,16 +119,20 @@ internal fun RestGameArena(
     var frame by remember { mutableLongStateOf(0L) }
     var shownScore by remember(engine) { mutableIntStateOf(engine.score) }
     var shownBest by remember(engine) { mutableIntStateOf(engine.best) }
+    var shownLives by remember(engine) { mutableIntStateOf(engine.lives) }
+    var shownPower by remember(engine) { mutableStateOf(engine.power) }
     val lifecycleOwner = LocalLifecycleOwner.current
     LaunchedEffect(running, lifecycleOwner, engine) {
         if (!running) return@LaunchedEffect
         lifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.RESUMED) {
             var last = 0L
-            while (true) {
+            while (!engine.ended) {
                 withInfiniteAnimationFrameNanos { now ->
                     val dt = if (last == 0L) 0f else ((now - last) / 1_000_000_000.0).toFloat()
                     last = now
                     engine.step(dt)
+                    if (shownLives != engine.lives) shownLives = engine.lives
+                    if (shownPower != engine.power) shownPower = engine.power
                     if (engine.bestChanged) {
                         store?.submit(engine.best)
                         engine.markBestSaved()
@@ -177,8 +184,10 @@ internal fun RestGameArena(
                 Text(text = "Saltos", style = KpknType.caption, color = WizardColors.textMuted)
                 Text(text = shownScore.toString(), style = KpknType.metricM, color = WizardColors.text)
             }
-            Text(text = "récord $shownBest", style = KpknType.caption, color = WizardColors.textFaint)
+            Text(text = "récord $shownBest · ${"♥".repeat(shownLives.coerceAtLeast(0))}", style = KpknType.caption, color = WizardColors.textFaint)
         }
+        if (shownLives <= 0) Text("Fin de partida", style = KpknType.title, color = Ink, modifier = Modifier.align(Alignment.Center).background(Color.Black.copy(alpha = .85f)).padding(16.dp))
+        if (shownPower != null) Text(if (shownPower == RestSupplement.JUMP) "Salto potente" else "Velocidad", style = KpknType.caption, color = Color(0xFF8FB2FF), modifier = Modifier.align(Alignment.TopEnd).padding(16.dp))
         Text(
             text = "Toca para saltar",
             style = KpknType.caption,
@@ -215,7 +224,28 @@ private fun DrawScope.drawArena(engine: RestGameEngine, reduced: Boolean) {
         )
     }
     val top = groundY - (2f + RestGameEngine.OBSTACLE_H) * d
-    for (obstacle in engine.obstacles) drawDumbbell(obstacle.x * d, top, d)
+    for (obstacle in engine.obstacles) {
+        when (obstacle.kind) {
+            RestHazard.DUMBBELL -> drawDumbbell(obstacle.x * d, top, d)
+            RestHazard.BENCH -> {
+                drawRoundRect(Color(0xFF8FB2FF), Offset(obstacle.x * d, groundY - 32f * d), Size(38f * d, 7f * d), CornerRadius(2f * d))
+                drawLine(Ink, Offset((obstacle.x + 5f) * d, groundY - 25f * d), Offset((obstacle.x + 5f) * d, groundY), 3f * d)
+                drawLine(Ink, Offset((obstacle.x + 32f) * d, groundY - 25f * d), Offset((obstacle.x + 32f) * d, groundY), 3f * d)
+            }
+            RestHazard.GAP -> {
+                drawRect(Color(0xFF000000), Offset(obstacle.x * d, groundY - 3f * d), Size(obstacle.width * d, 27f * d))
+                drawLine(DumbbellPlate, Offset(obstacle.x * d, groundY), Offset(obstacle.x * d, groundY + 20f * d), 2f * d)
+                drawLine(DumbbellPlate, Offset((obstacle.x + obstacle.width) * d, groundY), Offset((obstacle.x + obstacle.width) * d, groundY + 20f * d), 2f * d)
+            }
+        }
+    }
+    for (item in engine.supplements) {
+        val center = Offset(item.x * d, groundY - 45f * d)
+        drawCircle(Color(0xFF8FB2FF).copy(alpha = .15f), 12f * d, center)
+        drawCircle(if (item.kind == RestSupplement.LIFE) DumbbellPlate else Color(0xFF8FB2FF), 7f * d, center, style = Stroke(2f * d))
+        drawLine(Ink, center - Offset(3f * d, 0f), center + Offset(3f * d, 0f), 2f * d)
+        if (item.kind == RestSupplement.LIFE) drawLine(Ink, center - Offset(0f, 3f * d), center + Offset(0f, 3f * d), 2f * d)
+    }
     drawGameRunner(
         feetX = (RestGameEngine.RUNNER_X + 12f) * d,
         feetY = groundY - engine.height * d,
@@ -345,84 +375,11 @@ internal fun RestGameFullScreen(
     running: Boolean = true,
 ) {
     val (game, store) = rememberRestGame(engine, recordStore)
-    val safeRemaining = remainingSeconds.coerceAtLeast(0)
-    Column(
-        modifier = modifier
-            .fillMaxSize()
-            .statusBarsPadding()
-            .navigationBarsPadding()
-            .padding(horizontal = 20.dp, vertical = 8.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
-    ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            KpknIconButton(
-                icon = KpknLineIcons.ChevronLeft,
-                contentDescription = "Volver al descanso",
-                onClick = onBack,
-            )
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = "Salta las mancuernas",
-                    style = KpknType.bodyStrong,
-                    color = WizardColors.text,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis,
-                )
-                Text(
-                    text = "El descanso sigue corriendo",
-                    style = KpknType.caption,
-                    color = WizardColors.textMuted,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis,
-                )
-            }
-            Column(horizontalAlignment = Alignment.End) {
-                RestClockText(
-                    text = KpknSetFormat.rest(safeRemaining),
-                    maxFontSize = 26.sp,
-                )
-                Text(
-                    text = "de ${KpknSetFormat.rest(totalSeconds)}",
-                    style = KpknType.caption,
-                    color = WizardColors.textMuted,
-                )
-            }
-        }
-        RestGameProgressBar(progress = RestClockMath.progress(totalSeconds, safeRemaining))
-        RestGameArena(
-            engine = game,
-            store = store,
-            modifier = Modifier
-                .weight(1f)
-                .fillMaxWidth()
-                .heightIn(min = 200.dp),
-            running = running,
-        )
-        if (nextSet != null) {
-            RestGameNextBox(nextSet = nextSet) {
-                KpknCompactPill(
-                    text = "Volver al descanso",
-                    onClick = onBack,
-                    height = 36.dp,
-                    filled = true,
-                )
-            }
-        } else {
-            KpknCompactPill(
-                text = "Volver al descanso",
-                onClick = onBack,
-                modifier = Modifier.fillMaxWidth(),
-                height = 44.dp,
-                filled = true,
-                fullWidth = true,
-            )
-        }
-        RestSkipTextAction(onClick = onSkip, modifier = Modifier.align(Alignment.CenterHorizontally))
-    }
+    RestArcade(
+        remainingSeconds = remainingSeconds, totalSeconds = totalSeconds, nextSet = nextSet,
+        onBack = onBack, onSkip = onSkip, modifier = modifier,
+        recordStore = store, runner = game, running = running, compact = false,
+    )
 }
 
 /**
@@ -442,69 +399,11 @@ internal fun RestGameCardContent(
     running: Boolean = true,
 ) {
     val (game, store) = rememberRestGame(engine, recordStore)
-    val safeRemaining = remainingSeconds.coerceAtLeast(0)
-    Column(
-        modifier = modifier
-            .fillMaxSize()
-            .padding(horizontal = 14.dp, vertical = 10.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp),
-    ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(6.dp),
-        ) {
-            KpknIconButton(
-                icon = KpknLineIcons.ChevronLeft,
-                contentDescription = "Volver al descanso",
-                onClick = onBack,
-            )
-            // A este ancho el título («Salta las mancuernas») no cabe junto al tiempo: queda lo que importa, que el descanso sigue.
-            Text(
-                text = "Descanso en marcha",
-                style = KpknType.caption,
-                color = WizardColors.textMuted,
-                maxLines = 2,
-                overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.weight(1f),
-            )
-            Column(horizontalAlignment = Alignment.End) {
-                RestClockText(text = KpknSetFormat.rest(safeRemaining), maxFontSize = 24.sp)
-                Text(
-                    text = "de ${KpknSetFormat.rest(totalSeconds)}",
-                    style = KpknType.caption,
-                    color = WizardColors.textMuted,
-                )
-            }
-        }
-        RestGameArena(
-            engine = game,
-            store = store,
-            modifier = Modifier
-                .weight(1f)
-                .fillMaxWidth()
-                .heightIn(min = 120.dp),
-            running = running,
-        )
-        if (nextSet != null) RestGameNextBox(nextSet = nextSet)
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(6.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            RestStepPill(
-                text = "Saltar",
-                contentDescription = "Saltar descanso",
-                onClick = onSkip,
-                modifier = Modifier.weight(1f),
-            )
-            RestSkipPill(
-                text = "Volver",
-                onClick = onBack,
-                modifier = Modifier.weight(1f),
-            )
-        }
-    }
+    RestArcade(
+        remainingSeconds = remainingSeconds, totalSeconds = totalSeconds, nextSet = nextSet,
+        onBack = onBack, onSkip = onSkip, modifier = modifier,
+        recordStore = store, runner = game, running = running, compact = true,
+    )
 }
 
 /** «Saltar descanso» como acción de texto, para la pantalla del juego: el mismo `onSkip` del descanso. */

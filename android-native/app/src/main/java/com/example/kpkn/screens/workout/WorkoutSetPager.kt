@@ -2197,30 +2197,22 @@ internal fun LivePagerPeekNavArrows(
     modifier: Modifier = Modifier,
 ) {
     if (totalPages <= 1) return
-    val slotWidth = peekWidth.coerceAtLeast(WorkoutUiTokens.MinTouchTarget)
-    val chevronLeft = com.example.kpkn.ui.components.icons.KpknLineIcons.ChevronLeft
-    val chevronRight = com.example.kpkn.ui.components.icons.KpknLineIcons.ChevronRight
-    Box(modifier = modifier) {
-        LivePagerPeekNavButton(
-            enabled = settledPage > 0,
-            onClick = onPrevious,
-            contentDescription = "Serie anterior",
-            icon = chevronLeft,
-            modifier = Modifier
-                .align(Alignment.CenterStart)
-                .width(slotWidth)
-                .fillMaxHeight(),
-        )
-        LivePagerPeekNavButton(
-            enabled = settledPage < totalPages - 1,
-            onClick = onNext,
-            contentDescription = "Serie siguiente",
-            icon = chevronRight,
-            modifier = Modifier
-                .align(Alignment.CenterEnd)
-                .width(slotWidth)
-                .fillMaxHeight(),
-        )
+    val ink = com.example.kpkn.screens.onboarding.design.WizardColors.text
+    Row(modifier, horizontalArrangement = Arrangement.spacedBy(13.dp, Alignment.CenterHorizontally),
+        verticalAlignment = Alignment.CenterVertically) {
+        LivePagerPeekNavButton(settledPage > 0, onPrevious, "Serie anterior",
+            com.example.kpkn.ui.components.icons.KpknLineIcons.ChevronLeft, Modifier.size(30.dp))
+        Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
+            val visible = totalPages.coerceAtMost(7)
+            val start = (settledPage - 3).coerceIn(0, (totalPages - visible).coerceAtLeast(0))
+            repeat(visible) { index ->
+                val active = start + index == settledPage
+                Box(Modifier.width(if (active) 18.dp else 5.dp).height(5.dp).clip(CircleShape)
+                    .background(ink.copy(alpha = if (active) 1f else .25f)))
+            }
+        }
+        LivePagerPeekNavButton(settledPage < totalPages - 1, onNext, "Serie siguiente",
+            com.example.kpkn.ui.components.icons.KpknLineIcons.ChevronRight, Modifier.size(30.dp))
     }
 }
 
@@ -2243,7 +2235,7 @@ private fun LivePagerPeekNavButton(
         // Zona táctil de 48 dp con el círculo tenue de 32 dp dentro (LV3 punto 5.5).
         Box(
             modifier = Modifier
-                .requiredSize(48.dp)
+                .requiredSize(40.dp)
                 .clickable(
                     interactionSource = interactionSource,
                     indication = null,
@@ -2255,7 +2247,7 @@ private fun LivePagerPeekNavButton(
         ) {
             Box(
                 modifier = Modifier
-                    .size(32.dp)
+                    .size(27.dp)
                     .clip(CircleShape)
                     .background(inset.copy(alpha = 0.72f)),
                 contentAlignment = Alignment.Center,
@@ -2264,7 +2256,7 @@ private fun LivePagerPeekNavButton(
                     imageVector = icon,
                     contentDescription = contentDescription,
                     tint = if (enabled) ink else inkFaint,
-                    modifier = Modifier.size(20.dp),
+                    modifier = Modifier.size(16.dp),
                 )
             }
         }

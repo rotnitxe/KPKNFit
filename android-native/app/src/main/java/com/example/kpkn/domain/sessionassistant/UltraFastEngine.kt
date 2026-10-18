@@ -187,6 +187,12 @@ object UltraFastEngine {
                     afterExercise = ex
                     reason = UltraFastReason.COMPOUND_REDUCED
                 }
+                ex.sets.any { it.isDropSet || it.isRestPause } -> {
+                    // A chosen intensive technique preserves every planned series and its identity.
+                    afterExercise = ex
+                    wasDensified = true
+                    reason = UltraFastReason.ISOLATION_DENSIFIED
+                }
                 loggedCount > 0 && (isIsolationEligible(ex, info) || allowDensifyOnProtected) -> {
                     val target = reduceTarget(beforeSets).coerceAtLeast(loggedCount)
                     if (target < beforeSets) {
@@ -227,23 +233,11 @@ object UltraFastEngine {
 
             afterExercise = halveRest(afterExercise)
             val customTarget = customSetCounts[ex.id]
-            if (customTarget != null && customTarget > 0) {
-                afterExercise = if (wasDensified) {
-                    val proto = afterExercise.sets.firstOrNull()
-                    if (proto == null) {
-                        afterExercise
-                    } else {
-                        afterExercise.copy(
-                            sets = List(customTarget.coerceIn(1, 6)) { index ->
-                                if (index == 0) proto else proto.copy(id = UUID.randomUUID().toString())
-                            },
-                        )
-                    }
-                } else {
-                    val keep = customTarget.coerceAtLeast(loggedCount).coerceAtLeast(1)
-                    val source = if (keep <= ex.sets.size) ex.sets.take(keep) else afterExercise.sets
-                    afterExercise.copy(sets = source)
-                }
+            if (customTarget != null && customTarget > 0 && !wasDensified) {
+                val keep = customTarget.coerceAtLeast(loggedCount).coerceAtLeast(1)
+                val source = if (keep <= ex.sets.size) ex.sets.take(keep) else afterExercise.sets
+                afterExercise = afterExercise.copy(sets = source)
+
             }
             transformed += afterExercise
             perExerciseChanges += UltraFastExerciseChange(
@@ -376,38 +370,26 @@ object UltraFastEngine {
     )
 
     private fun densifyExercise(exercise: Exercise, info: ExerciseMuscleInfo?): Exercise {
-        if (exercise.sets.isEmpty()) return exercise
-        val first = exercise.sets.first()
-        val anchor = first.plannedRepAnchor() ?: 8
-        val weight = first.weight ?: 0.0
-        val equipLower = (info?.equipment ?: "").lowercase()
-        val nameLower = exercise.name.lowercase()
-        val isPolea = UltraFastConfig.isPoleaEquipment(equipLower) || UltraFastConfig.isPoleaEquipment(nameLower)
-        return if (isPolea) {
-            val dense = first.copy(
-                id = UUID.randomUUID().toString(),
-                isRestPause = true,
-                isDropSet = false,
-                dropSets = emptyList(),
+        val equipment = (info?.equipment ?: "").lowercase()
+        val isPolea = UltraFastConfig.isPoleaEquipment(equipment) ||
+            UltraFastConfig.isPoleaEquipment(exercise.name.lowercase())
+        return exercise.copy(sets = exercise.sets.map { set ->
+            val anchor = set.plannedRepAnchor() ?: 8
+            val weight = set.weight ?: 0.0
+            if (isPolea) set.copy(
+                isRestPause = true, isDropSet = false, dropSets = emptyList(),
                 restPauses = listOf(
                     RestPauseData(restTime = 15, reps = (anchor / 2).coerceAtLeast(3)),
                     RestPauseData(restTime = 15, reps = (anchor / 3).coerceAtLeast(2)),
                 ),
-            )
-            exercise.copy(sets = listOf(dense))
-        } else {
-            val dense = first.copy(
-                id = UUID.randomUUID().toString(),
-                isDropSet = true,
-                isRestPause = false,
-                restPauses = emptyList(),
+            ) else set.copy(
+                isDropSet = true, isRestPause = false, restPauses = emptyList(),
                 dropSets = listOf(
-                    DropSetData(weight = (weight * 0.85).let { if (it <= 0) 0.0 else it }, reps = (anchor / 2).coerceAtLeast(4)),
-                    DropSetData(weight = (weight * 0.70).let { if (it <= 0) 0.0 else it }, reps = (anchor / 2).coerceAtLeast(4)),
+                    DropSetData(weight = (weight * .85).coerceAtLeast(0.0), reps = (anchor / 2).coerceAtLeast(4)),
+                    DropSetData(weight = (weight * .70).coerceAtLeast(0.0), reps = (anchor / 2).coerceAtLeast(4)),
                 ),
             )
-            exercise.copy(sets = listOf(dense))
-        }
+        })
     }
 
     private fun techniqueLabel(exercise: Exercise): String {

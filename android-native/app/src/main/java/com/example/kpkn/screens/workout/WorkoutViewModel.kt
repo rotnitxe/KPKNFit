@@ -2081,6 +2081,10 @@ class WorkoutViewModel(
         if (voiceController.isEnabled()) voiceController.setCaptureMode(mode)
     }
 
+    fun requestVoiceCaptureModeChoice() {
+        updateUiState { it.copy(showVoiceCaptureModeDialog = true) }
+    }
+
     fun hideVoiceCaptureModeDialog() {
         updateUiState { it.copy(showVoiceCaptureModeDialog = false) }
     }
@@ -3419,6 +3423,19 @@ class WorkoutViewModel(
 
     fun dismissUltraFastAppliedBanner() {
         updateUiState { it.copy(ultraFastApplied = false) }
+    }
+
+    fun setQuickRecordingTechnique(exerciseId: String, fromIndex: Int, technique: SeriesTechnique) {
+        val state = _uiState.value
+        val exercise = visibleExercises(state).getOrNull(state.currentExerciseIdx) ?: return
+        if (exercise.id != exerciseId || state.currentSetIdx != fromIndex) return
+        val updated = com.example.kpkn.domain.sessionassistant.applyQuickSeriesTechnique(
+            exercise, state.completedSets, fromIndex, technique,
+        )
+        if (updated == exercise) return
+        pushGodModeUndo("Técnica de Ultrarrápido")
+        updateExerciseDefinition(exerciseId) { updated }
+        refreshLoadSuggestions(_uiState.value)
     }
 
     fun updateExerciseSetPlan(exerciseId: String, setId: String, transform: (ExerciseSet) -> ExerciseSet) {
@@ -7183,7 +7200,8 @@ class WorkoutViewModel(
         val photos = mediaCapture.sessionMedia.value
             .filter { it.kind == com.example.kpkn.data.models.WorkoutMediaKind.PHOTO }
             .map { item -> StoryPhoto(item.filePath, item.exerciseName,
-                if (item.weightKg != null && item.reps != null) "${finishNumber(item.weightKg)}\u00A0kg × ${item.reps}" else item.caption) }
+                if (item.weightKg != null && item.reps != null) "${finishNumber(item.weightKg)}\u00A0kg × ${item.reps}" else item.caption,
+                setIndex = item.setIndex, createdAtMs = item.createdAtMs, isPr = item.isPr) }
         val currentLogId = listOf(programId, sessionId, state.weekId.ifBlank { "noweek" }, state.startTimeMs.toString()).joinToString("|")
         val exerciseNames = state.session?.allExercises().orEmpty().associate { it.id to it.name }
         val legacyPhotos = state.exercisePhotos.flatMap { (id, paths) -> paths.map { StoryPhoto(it, exerciseNames[id]) } }

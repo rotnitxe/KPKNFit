@@ -100,15 +100,15 @@ internal const val EffortSliderTag = "effort_fire_slider"
 /** Aviso que sale bajo el slider cuando se pulsa el ✓ sin haber marcado el esfuerzo. */
 internal const val EffortRequiredHint = "Marca tu esfuerzo para registrar la serie"
 
-private val TrackHeight = 46.dp
+private val TrackHeight = 32.dp
 private val TouchHeight = 48.dp
-private val ThumbSize = 36.dp
+private val ThumbSize = 26.dp
 
 /** Margen del centro del pulgar al borde de la pista: 5 dp de holgura más el radio del pulgar (18 dp). */
-private val ThumbInset = 23.dp
+private val ThumbInset = 18.dp
 
-/** Alto de la marca del plan: 5 dp por encima y por debajo de la pista de 46 dp. */
-private val PlanMarkHeight = 56.dp
+/** Alto de la marca del plan: 5 dp por encima y por debajo de la pista de 32 dp. */
+private val PlanMarkHeight = 38.dp
 
 // Los seis degradados del prototipo (Main): de gris frío a ascua y fuego. Cada uno, con las posiciones de sus colores.
 private val FireLevelStops: List<List<Pair<Float, Color>>> = listOf(
@@ -153,7 +153,7 @@ internal fun effortFireColors(level: Float): List<Color> {
 }
 
 /**
- * El slider de esfuerzo de la tarjeta de la serie (LV8, `Main.dc.html`): una pista de 46 dp con relleno de fuego que crece con el esfuerzo,
+ * El slider de esfuerzo de la tarjeta de la serie (LV8, `Main.dc.html`): una pista de 32 dp con relleno de fuego que crece con el esfuerzo,
  * partículas que suben dentro del relleno y un pulgar de tinta. Los valores son los de [scale] (los de siempre de la app). Empieza en el
  * MÍNIMO y sin marcar ([selectedIndex] nulo): el pulgar espera a la izquierda, sin fuego. El objetivo del plan es una marca tenue sobre la
  * pista. Se arrastra con ajuste a cada valor y también se toca un punto de la pista.
@@ -231,7 +231,7 @@ internal fun EffortFireSlider(
         ) {
             Text(
                 text = "ESFUERZO",
-                style = KpknType.eyebrow,
+                style = KpknType.eyebrow.copy(fontSize = 10.sp, lineHeight = 14.sp),
                 color = WizardColors.textMuted,
                 maxLines = 1,
             )
@@ -454,7 +454,7 @@ internal fun rememberEffortAnimationAllowed(isActive: Boolean): Boolean {
 private fun EffortScaleLabels(scale: EffortScale, modifier: Modifier = Modifier) {
     val measurer = rememberTextMeasurer()
     val density = LocalDensity.current
-    val plain = KpknType.navLabel.copy(fontSize = 11.sp, lineHeight = 14.sp, fontWeight = FontWeight.Medium)
+    val plain = KpknType.navLabel.copy(fontSize = 9.sp, lineHeight = 14.sp, fontWeight = FontWeight.Medium)
     val strong = plain.copy(fontWeight = FontWeight.SemiBold)
     val candidates = remember(scale) { effortLabelCandidates(scale) }
     BoxWithConstraints(modifier = modifier) {

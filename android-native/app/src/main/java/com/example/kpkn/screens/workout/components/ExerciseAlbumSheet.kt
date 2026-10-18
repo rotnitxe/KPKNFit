@@ -392,7 +392,7 @@ private fun AlbumRow(
                 append(entry.detail)
                 if (entry.isMark) {
                     append(" · ")
-                    withStyle(SpanStyle(color = SymbolPalette.energia)) { append("Marca") }
+                    withStyle(SpanStyle(color = Color(0xFFF2EEE6))) { append("Marca") }
                 }
             }
             Text(detail, style = KpknType.caption, color = WizardColors.textMuted, maxLines = 2, overflow = TextOverflow.Ellipsis)

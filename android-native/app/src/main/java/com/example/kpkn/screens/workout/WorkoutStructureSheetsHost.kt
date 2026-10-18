@@ -155,6 +155,7 @@ internal class WorkoutStructureSheetsState {
     var requestLiveTagList by mutableStateOf(false)
     var selectedExerciseContextTab by mutableStateOf<WorkoutExerciseContextTab?>(null)
     var editSheetExerciseId by mutableStateOf<String?>(null)
+    var rmExerciseId by mutableStateOf<String?>(null)
     var showWorkoutSupersetCreator by mutableStateOf(false)
     var workoutSupersetSelectedExerciseId by mutableStateOf<String?>(null)
     var supersetSettingsGroupId by mutableStateOf<String?>(null)
@@ -185,6 +186,7 @@ internal class WorkoutStructureSheetsState {
             tagSheetExerciseId != null ||
             requestLiveTagList ||
             editSheetExerciseId != null ||
+            rmExerciseId != null ||
             showWorkoutSupersetCreator ||
             supersetSettingsGroupId != null ||
             addCatalogToSupersetGroupId != null ||
@@ -217,6 +219,10 @@ internal class WorkoutStructureSheetsState {
         val editId = editSheetExerciseId
         if (editId != null && editId !in sessionIds) {
             editSheetExerciseId = null
+            closed = true
+        }
+        if (rmExerciseId != null && rmExerciseId !in visibleIds) {
+            rmExerciseId = null
             closed = true
         }
         return closed
@@ -561,9 +567,30 @@ internal fun WorkoutStructureSheetsHost(
                             closeContext()
                         },
                         canRemove = canRemove,
+                        onRM = { state.rmExerciseId = contextExercise.id; closeContext() },
                     )
                 }
             }
+        }
+    }
+
+    state.rmExerciseId?.let { exerciseId ->
+        val exercise = visibleExercises.firstOrNull { it.id == exerciseId }
+        if (exercise != null) {
+            val history by androidx.compose.runtime.produceState<List<ExerciseHistoryEntry>>(
+                emptyList(), exercise, uiState.exerciseTags[exerciseId],
+            ) {
+                value = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+                    viewModel.getExerciseHistory(exercise, limit = Int.MAX_VALUE, preferredTag = uiState.exerciseTags[exerciseId])
+                }
+            }
+            val currentSets = remember(uiState.completedSets, exerciseId) {
+                uiState.completedSets.filterKeys { parseCompletedSetKey(it)?.exerciseId == exerciseId }.values.toList()
+            }
+            com.example.kpkn.screens.workout.components.ExerciseRmSheet(
+                exercise = exercise, history = history, currentSets = currentSets,
+                onDismiss = { state.rmExerciseId = null }, hazeState = bottomHazeState,
+            )
         }
     }
 

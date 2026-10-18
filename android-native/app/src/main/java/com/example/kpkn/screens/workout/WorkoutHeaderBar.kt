@@ -1,5 +1,9 @@
 package com.example.kpkn.screens.workout
 
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.tween
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
@@ -230,12 +234,10 @@ internal fun WorkoutChronometer(
         0f
     }
 
-    val text = formatSessionChronometerText(
-        hasLimit = hasLimit,
-        remainingSeconds = displayRemaining,
-        elapsedSeconds = elapsedSeconds,
-        targetMinutes = liveTargetMinutes ?: resolvedTargetMinutes.takeIf { hasLimit },
-    )
+    val text = buildString {
+        append("%d:%02d".format(java.util.Locale.getDefault(), elapsedSeconds / 60, elapsedSeconds % 60))
+        if (hasLimit) append(" / " + (liveTargetMinutes ?: resolvedTargetMinutes) + "′")
+    }
 
     val accent = sessionTimeChipAccent(isExceeded = isExceeded, coachPaceAlert = coachPaceAlert)
     val countdownMessage = pacingAlertMessage?.takeIf { it in SessionTimeCues.ALL }
@@ -282,6 +284,7 @@ internal fun WorkoutChronometer(
             .clip(KpknShape.pill)
             .background(KpknSurface.inset)
             .clickable { showAdjustDialog = true }
+            .height(27.dp)
             .padding(horizontal = 9.dp * headerCompactScale(), vertical = 5.dp * headerCompactScale()),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(5.dp * headerCompactScale()),
@@ -310,15 +313,7 @@ internal fun WorkoutChronometer(
             ),
             color = accent,
         )
-        if (!countdownMessage.isNullOrBlank()) {
-            Text(
-                text = countdownMessage,
-                style = headerChipStyle(FontWeight.Medium, headerViewportScale()),
-                color = accent,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
-        }
+
     }
 
     if (showAdjustDialog) {
@@ -527,9 +522,9 @@ internal fun WorkoutHeaderBar(
                 Column(modifier = Modifier.weight(1f)) {
                     val titleGlyphs = workoutHeaderTitleGlyphCount(exerciseName, exerciseChips)
                     val titleLengthScale = workoutHeaderTitleFontScale(titleGlyphs)
-                    val titleBase = KpknType.title.scaledBy(typeScale)
+                    val titleBase = KpknType.title.copy(fontSize = 20.sp, lineHeight = 24.sp)
                     val titleSlotHeight = with(density) {
-                        (KpknType.title.lineHeight * typeScale).toDp()
+                        titleBase.lineHeight.toDp()
                     }
                     val reducedMotion = wizardReducedMotion()
                     val titleAnnotated = remember(exerciseName, exerciseChips) {
@@ -545,9 +540,7 @@ internal fun WorkoutHeaderBar(
                             }
                         }
                     }
-                    val titleStyle = remember(titleBase, titleLengthScale) {
-                        titleBase.copy(fontSize = titleBase.fontSize * titleLengthScale)
-                    }
+                    val titleStyle = titleBase
                     val measurer = rememberTextMeasurer()
                     val textLayout = remember(titleAnnotated, titleStyle, measurer) {
                         measurer.measure(titleAnnotated, style = titleStyle, maxLines = 1, softWrap = false)
@@ -567,22 +560,21 @@ internal fun WorkoutHeaderBar(
                             reducedMotion = reducedMotion,
                         )
 
-                        var isMoving by remember(useMarquee, textWidthPx, containerWidthPx) { mutableStateOf(false) }
-                        LaunchedEffect(useMarquee, textWidthPx, containerWidthPx) {
+                        val titleOffset = remember(titleAnnotated, textWidthPx, containerWidthPx) { Animatable(0f) }
+                        val overflowPx = (textWidthPx - containerWidthPx).coerceAtLeast(0).toFloat()
+                        LaunchedEffect(useMarquee, overflowPx) {
+                            titleOffset.snapTo(0f)
                             if (useMarquee) {
-                                delay(1500L)
+                                val travelMs = (overflowPx / (12f * density.density) * 1000).toInt().coerceAtLeast(1200)
                                 while (true) {
-                                    isMoving = true
-                                    val moveDurationMs = ((textWidthPx.toFloat() / (30f * density.density)) * 1000L).toLong().coerceAtLeast(1000L)
-                                    delay(moveDurationMs)
-                                    isMoving = false
-                                    delay(2500L)
+                                    delay(2500)
+                                    titleOffset.animateTo(overflowPx, tween(travelMs, easing = LinearEasing))
+                                    delay(2500)
+                                    titleOffset.animateTo(0f, tween(travelMs, easing = LinearEasing))
                                 }
-                            } else {
-                                isMoving = false
                             }
                         }
-
+                        val isMoving = titleOffset.value > 0.5f
                         val effectiveMoving = isMoving || forcedMarqueeMoving
 
                         // Fundido de 16 dp en el borde derecho, y en el izquierdo mientras se mueve (LV1 punto 1)
@@ -617,29 +609,20 @@ internal fun WorkoutHeaderBar(
                                 }
                         } else Modifier
 
-                        val marqueeModifier = if (useMarquee) {
-                            Modifier
-                                .testTag("workout_header_title_marquee")
-                                .basicMarquee(
-                                    iterations = Int.MAX_VALUE,
-                                    animationMode = MarqueeAnimationMode.Immediately,
-                                    initialDelayMillis = 1500,
-                                    repeatDelayMillis = 2500,
-                                    velocity = 30.dp,
-                                )
-                        } else Modifier
+                        Box(Modifier.fillMaxWidth().clipToBounds().then(fadeModifier)) {
+                            Text(
+                                text = titleAnnotated,
+                                modifier = Modifier
+                                    .wrapContentWidth(Alignment.Start, unbounded = true)
+                                    .graphicsLayer { translationX = -titleOffset.value }
+                                    .then(if (useMarquee) Modifier.testTag("workout_header_title_marquee") else Modifier),
+                                style = titleStyle,
+                                maxLines = 1,
+                                softWrap = false,
+                                overflow = TextOverflow.Clip,
+                            )
+                        }
 
-                        Text(
-                            text = titleAnnotated,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .then(fadeModifier)
-                                .then(marqueeModifier),
-                            style = titleStyle,
-                            maxLines = 1,
-                            softWrap = false,
-                            overflow = if (useMarquee) TextOverflow.Clip else TextOverflow.Ellipsis,
-                        )
                     }
                     Text(
                         text = buildString {
@@ -662,47 +645,6 @@ internal fun WorkoutHeaderBar(
                             icon = KpknLineIcons.History,
                             contentDescription = "Historial",
                             onClick = onHistoryClick,
-                        )
-                    }
-                    if (voiceCaptureMode != null && onVoiceCaptureModeChange != null) {
-                        val musicSelected = voiceCaptureMode == com.example.kpkn.data.models.VoiceCaptureMode.MUSIC
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier
-                                .clip(KpknShape.pill)
-                                .background(KpknSurface.inset)
-                                .padding(cs(2.dp)),
-                        ) {
-                            VoiceModeHeaderSegment(
-                                label = "Manos libres",
-                                selected = !musicSelected,
-                                onClick = {
-                                    if (musicSelected) onVoiceCaptureModeChange(com.example.kpkn.data.models.VoiceCaptureMode.HANDS_FREE)
-                                },
-                            )
-                            VoiceModeHeaderSegment(
-                                label = "Música",
-                                selected = musicSelected,
-                                onClick = {
-                                    if (!musicSelected) onVoiceCaptureModeChange(com.example.kpkn.data.models.VoiceCaptureMode.MUSIC)
-                                },
-                            )
-                        }
-                    }
-                    if (onToggleVoice != null) {
-                        KpknIconButton(
-                            icon = if (voiceSessionEnabled) Icons.Default.Mic else Icons.Default.MicOff,
-                            contentDescription = if (voiceSessionEnabled) {
-                                "Desactivar control por voz"
-                            } else {
-                                "Activar control por voz"
-                            },
-                            onClick = onToggleVoice,
-                            tint = when {
-                                voiceSessionState.isListening -> WizardColors.done
-                                voiceSessionEnabled -> MaterialTheme.colorScheme.secondary
-                                else -> null
-                            },
                         )
                     }
                 }
@@ -756,59 +698,7 @@ internal fun WorkoutHeaderBar(
                     )
                 }
 
-                // ── Chip de readiness por ejercicio ──
-                if (exerciseReadiness != null) {
-                    val score = exerciseReadiness.overallScore
-                    val chipColor = when {
-                        score >= 75 -> Color(0xFF4CAF50)
-                        score >= 50 -> Color(0xFFFFC107)
-                        else -> Color(0xFFFF5252)
-                    }
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(cs(6.dp)),
-                    ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier
-                            .clip(KpknShape.pill)
-                            .background(KpknSurface.inset)
-                            .padding(horizontal = cs(9.dp), vertical = cs(5.dp)),
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .size(cs(6.dp))
-                                .clip(CircleShape)
-                                .background(chipColor)
-                        )
-                        Spacer(Modifier.width(cs(5.dp)))
-                        Text(
-                            text = "$score %",
-                            style = headerChipStyle(FontWeight.SemiBold, typeScale),
-                            color = WizardColors.text,
-                        )
-                    }
-                    val showAdapt = onAdaptClick != null && (
-                        readinessAdjustment != null ||
-                            score < ExerciseReadinessEngine.ADJUSTMENT_THRESHOLD
-                        )
-                    if (showAdapt) {
-                        Surface(
-                            onClick = { onAdaptClick?.invoke() },
-                            shape = KpknShape.pill,
-                            color = KpknSurface.inset,
-                        ) {
-                            Text(
-                                text = if (readinessAdjustment != null) "Adaptado" else "Adaptar",
-                                modifier = Modifier.padding(horizontal = cs(9.dp), vertical = cs(5.dp)),
-                                style = headerChipStyle(FontWeight.Medium, typeScale),
-                                color = HeaderSignalRed,
-                            )
-                        }
-                    }
-                    }
-                }
-
+                // Low-score adaptation is narrated through the relator, not a percentage chip.
                 if (ultraFastApplied) {
                     Surface(
                         onClick = { openSessionTimeRequest++ },

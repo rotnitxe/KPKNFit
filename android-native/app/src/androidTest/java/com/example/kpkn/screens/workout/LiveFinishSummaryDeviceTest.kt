@@ -8,6 +8,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.asAndroidBitmap
 import java.io.File
+import java.time.LocalDate
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.SemanticsActions
@@ -41,6 +42,13 @@ class LiveFinishSummaryDeviceTest {
     private var spokenNotes by mutableStateOf<String?>(null)
     private var open by mutableStateOf(true)
     private var draft:String?=null
+    private val savedNoteCalls=mutableListOf<String>()
+    private val addedTaskCalls=mutableListOf<String>()
+    private val toggledTaskCalls=mutableListOf<String>()
+    private val removedTaskCalls=mutableListOf<String>()
+    private val checklist=mutableStateListOf(SessionChecklistItem("task-existing","Movilidad de tobillo"))
+    private val savedNotes=mutableStateListOf(SessionSavedNote("note-previous","Nota conservada del 8 de octubre","2026-10-08T12:00:00Z"))
+    private val milestones=listOf(SessionMilestone("milestone","lift","Sentadilla","pr_e1rm","Nueva marca de prueba",96.0,"80 kg × 6","2026-10-16T12:00:00Z"))
     private var density=1f
     private var fontScale by mutableStateOf(1f)
     private val set=CompletedSet("set",weight=80.0,reps=6,rir=2)
@@ -67,6 +75,13 @@ class LiveFinishSummaryDeviceTest {
                                 session=Session("session","Pierna"),completedSets=mapOf("lift_0" to set),completedExercises=listOf(exercise),durationMinutes=40,
                                 sessionIntensityResult=SessionIntensityResult(8.0,8.0,"Alta",false,false,1.0,1.0),postSessionPreview=preview,
                                 hazeState=haze,voiceFinalNotes=spokenNotes,voiceFinalConfirmTriggered=confirm,
+                                initialSessionNotes=draft.orEmpty(),
+                                presentation=FinishPresentationContext(today=LocalDate.of(2026,10,16)),
+                                sessionMilestones=milestones,sessionSavedNotes=savedNotes,sessionChecklist=checklist,
+                                onSaveSessionNote={text->savedNoteCalls+=text;savedNotes+=SessionSavedNote("saved-${savedNoteCalls.size}",text,"2026-10-16T12:00:00Z")},
+                                onAddChecklistItem={text->addedTaskCalls+=text;checklist+=SessionChecklistItem("task-added-${addedTaskCalls.size}",text)},
+                                onToggleChecklistItem={id->toggledTaskCalls+=id;val index=checklist.indexOfFirst{it.id==id};if(index>=0)checklist[index]=checklist[index].copy(done=!checklist[index].done)},
+                                onRemoveChecklistItem={id->removedTaskCalls+=id;checklist.removeAll{it.id==id}},
                                 onConfirm={ notes,_,feedback,_ -> saves += notes to feedback },onDismiss={open=false},onNotesDraft={draft=it},onShare={},onSummaryReady={})
                             KpknOverlayHostContent(host)
                         }
@@ -79,12 +94,12 @@ class LiveFinishSummaryDeviceTest {
 
     @Test fun pagesKeepNotesAndSaveWithSameFinishIdentityAndHeight() {
         show()
-        rule.onNodeWithText("Notas").performClick()
+        selectTab("Notas")
         rule.onNodeWithTag("finish-notes").performTextReplacement("Mantener este borrador")
         val pageHeights=mutableListOf<Float>()
         val fabTops=mutableListOf<Float>()
-        listOf("Notas","Hoy","Levantamientos").forEach { tab ->
-            rule.onNodeWithText(tab).performClick();rule.waitForIdle()
+        listOf("Notas","Hoy","Levantamientos","Hitos","Fotos").forEach { tab ->
+            selectTab(tab)
             pageHeights += rule.onNodeWithTag("finish-pager", useUnmergedTree = true).fetchSemanticsNode().boundsInRoot.height
             val page=rule.onNodeWithTag("finish-pager", useUnmergedTree = true).fetchSemanticsNode().boundsInRoot
             val fab=rule.onNodeWithTag("finish-fabs", useUnmergedTree = true).fetchSemanticsNode().boundsInRoot
@@ -94,7 +109,7 @@ class LiveFinishSummaryDeviceTest {
             rule.onNodeWithTag("finish-save").performClick()
         }
         rule.runOnIdle {
-            assertEquals(3,saves.size)
+            assertEquals(5,saves.size)
             saves.forEach { (note,feedback) ->
                 assertEquals("Mantener este borrador",note)
                 assertEquals("operation",feedback.finishOperationId)
@@ -105,8 +120,8 @@ class LiveFinishSummaryDeviceTest {
             assertTrue(fabTops.all { abs(it-fabTops.first())<2f })
         }
         rule.runOnIdle { fontScale=1.3f }
-        listOf("Hoy","Levantamientos","Notas").forEach { tab ->
-            rule.onNodeWithText(tab).performClick();rule.waitForIdle()
+        listOf("Hoy","Levantamientos","Hitos","Fotos","Notas").forEach { tab ->
+            selectTab(tab)
             val page=rule.onNodeWithTag("finish-pager", useUnmergedTree = true).fetchSemanticsNode().boundsInRoot
             val fab=rule.onNodeWithTag("finish-fabs", useUnmergedTree = true).fetchSemanticsNode().boundsInRoot
             assertTrue("130%: sin hueco sobre botones",fab.top-page.bottom in 0f..(18f*density))
@@ -126,6 +141,14 @@ class LiveFinishSummaryDeviceTest {
         screenshot("compartir-sin-fotos")
     }
 
+    private fun selectTab(title:String) {
+        rule.onNodeWithText(title).performScrollTo().performClick()
+        rule.waitForIdle()
+        rule.onNodeWithText(title).assertIsDisplayed()
+        val index=listOf("Hoy","Levantamientos","Hitos","Fotos","Notas").indexOf(title)
+        rule.onNodeWithTag("finish-page-$index",useUnmergedTree=true).assertIsDisplayed()
+    }
+
     private fun screenshot(name:String) {
         val image=rule.onRoot().captureToImage().asAndroidBitmap()
         val directory=File(rule.activity.getExternalFilesDir(null),"qa/lv13").apply { mkdirs() }
@@ -134,7 +157,7 @@ class LiveFinishSummaryDeviceTest {
 
     @Test fun voiceConfirmsFromNotesAndKeepsFinalFeedback() {
         show()
-        rule.onNodeWithText("Notas").performClick()
+        selectTab("Notas")
         rule.runOnIdle { spokenNotes="Cierre por voz";confirm=true }
         rule.waitForIdle()
         rule.runOnIdle { assertEquals(1,saves.size);assertEquals("Cierre por voz",saves.single().first);assertEquals("operation",saves.single().second.finishOperationId) }
@@ -142,14 +165,94 @@ class LiveFinishSummaryDeviceTest {
 
     @Test fun dismissKeepsNoteAndOfficialAdjustmentFeedsSameClosingFeedback() {
         show()
-        rule.onNodeWithText("Energía").performClick()
+        rule.onNodeWithText("ENERGÍA").performClick()
         rule.onNodeWithTag("ring-adjust-ring", useUnmergedTree = true).performSemanticsAction(SemanticsActions.SetProgress) { it(55f) }
         rule.onNodeWithText("Listo").performClick()
         rule.onNodeWithTag("finish-save").performClick()
         rule.runOnIdle { assertEquals(55,saves.single().second.finalNeuralBattery);assertTrue(saves.single().second.neuralEdited) }
-        rule.onNodeWithText("Notas").performClick()
+        selectTab("Notas")
         rule.onNodeWithTag("finish-notes").performTextReplacement("Vuelvo a entrenar")
         rule.onNodeWithTag("finish-back").performClick()
         rule.runOnIdle { assertEquals("Vuelvo a entrenar",draft);assertFalse(open) }
     }
+
+    @Test fun milestonesDatedNotesAndChecklistUseTheirExistingCallbacksWithoutSavingOnNavigation() {
+        show()
+        selectTab("Hitos")
+        rule.onNodeWithText("NUEVA MARCA DE PRUEBA").assertIsDisplayed()
+        rule.onNodeWithText("Sentadilla").assertIsDisplayed()
+        selectTab("Notas")
+        rule.onNodeWithText("2026-10-16",useUnmergedTree=true).assertIsDisplayed()
+        rule.onNodeWithText("¿Cómo te sentiste?").assertDoesNotExist()
+        rule.onNodeWithTag("finish-task-task-existing").performClick()
+        rule.runOnIdle {
+            assertEquals(listOf("task-existing"),toggledTaskCalls)
+            assertTrue(checklist.single().done)
+            assertTrue(saves.isEmpty())
+            assertTrue(savedNoteCalls.isEmpty())
+        }
+        rule.onNodeWithContentDescription("Eliminar tarea").performClick()
+        rule.runOnIdle { assertEquals(listOf("task-existing"),removedTaskCalls);assertTrue(checklist.isEmpty()) }
+        rule.onNodeWithTag("finish-new-task").performTextInput("Revisar técnica del rumano")
+        rule.onNodeWithTag("finish-add-task").performScrollTo().performClick()
+        rule.runOnIdle {
+            assertEquals(listOf("Revisar técnica del rumano"),addedTaskCalls)
+            assertEquals("Revisar técnica del rumano",checklist.single().text)
+            assertFalse(checklist.single().done)
+            assertTrue(saves.isEmpty())
+        }
+    }
+
+    @Test fun datedNoteHistoryAndDraftSurviveDismissAndReopenUntilExplicitSave() {
+        show()
+        selectTab("Notas")
+        rule.onNodeWithTag("finish-note-history").performScrollTo().performClick()
+        rule.onNodeWithText("2026-10-08",useUnmergedTree=true).performScrollTo().assertIsDisplayed()
+        rule.onNodeWithText("Nota conservada del 8 de octubre",useUnmergedTree=true).performScrollTo().assertIsDisplayed()
+        rule.onNodeWithTag("finish-notes").performTextReplacement("Borrador sin guardar")
+        selectTab("Fotos")
+        selectTab("Hitos")
+        rule.runOnIdle { assertTrue(saves.isEmpty());assertTrue(savedNoteCalls.isEmpty()) }
+        rule.onNodeWithTag("finish-back").performClick()
+        rule.runOnIdle { assertFalse(open);assertEquals("Borrador sin guardar",draft) }
+        rule.runOnIdle { open=true }
+        selectTab("Notas")
+        rule.onNodeWithTag("finish-notes").assertTextEquals("Borrador sin guardar")
+        rule.onNodeWithTag("finish-save").performClick()
+        rule.runOnIdle {
+            assertEquals(listOf("Borrador sin guardar"),savedNoteCalls)
+            assertEquals("2026-10-16T12:00:00Z",savedNotes.last().createdAtIso)
+            assertEquals("Borrador sin guardar",saves.single().first)
+        }
+    }
+
+    @Test fun inlineRingAndSharePanelsReturnToSamePageWithoutLosingDraft() {
+        show()
+        selectTab("Notas")
+        rule.onNodeWithTag("finish-notes").performTextReplacement("Conservar al ajustar")
+        rule.onNodeWithTag("finish-share").performClick()
+        rule.onNodeWithTag("finish-pager",useUnmergedTree=true).assertDoesNotExist()
+        rule.onNodeWithContentDescription("Volver al resumen").performClick()
+        rule.onNodeWithTag("finish-page-4",useUnmergedTree=true).assertIsDisplayed()
+        rule.onNodeWithTag("finish-notes").assertTextEquals("Conservar al ajustar")
+        selectTab("Hoy")
+        rule.onNodeWithText("ENERGÍA").performClick()
+        rule.onNodeWithTag("finish-pager",useUnmergedTree=true).assertDoesNotExist()
+        rule.onNodeWithTag("ring-adjust-ring",useUnmergedTree=true).performSemanticsAction(SemanticsActions.SetProgress){it(55f)}
+        rule.onNodeWithText("Columna").performClick()
+        rule.onNodeWithTag("ring-adjust-ring",useUnmergedTree=true).performSemanticsAction(SemanticsActions.SetProgress){it(60f)}
+        rule.onNodeWithText("Listo").performClick()
+        rule.onNodeWithTag("finish-page-0",useUnmergedTree=true).assertIsDisplayed()
+        selectTab("Notas")
+        rule.onNodeWithTag("finish-notes").assertTextEquals("Conservar al ajustar")
+        rule.runOnIdle { assertTrue(saves.isEmpty());assertTrue(savedNoteCalls.isEmpty()) }
+        rule.onNodeWithTag("finish-save").performClick()
+        rule.runOnIdle {
+            assertEquals(55,saves.single().second.finalNeuralBattery)
+            assertEquals(60,saves.single().second.finalSpinalBattery)
+            assertEquals("Conservar al ajustar",saves.single().first)
+            assertEquals(listOf("Conservar al ajustar"),savedNoteCalls)
+        }
+    }
+
 }

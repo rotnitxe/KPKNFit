@@ -156,21 +156,17 @@ internal fun ColumnScope.ExerciseOptionsStrengthContent(
     onSkip: () -> Unit,
     onRemove: () -> Unit,
     canRemove: Boolean = true,
+    onRM: (() -> Unit)? = null,
 ) {
     ExerciseOptionsGrid(
         options = listOf(
             ExerciseOption("Reemplazar", KpknLineIcons.Swap, onReplace),
             ExerciseOption("Reordenar", KpknLineIcons.Reorder, onReorder),
             ExerciseOption("Crear superserie", KpknLineIcons.Link, onCreateSuperset),
-            ExerciseOption("Historial", KpknLineIcons.History, onHistory),
-            ExerciseOption("Ultrarrápido", LiveOptionIcons.Bolt, onUltraFast),
-            ExerciseOption("Notas", LiveOptionIcons.Note, onNotes),
-            ExerciseOption("Etiquetas", KpknLineIcons.Tag, onTags),
             ExerciseOption("Editar", KpknLineIcons.Edit, onEdit),
-            ExerciseOption("Agregar otro", KpknLineIcons.Plus, onAddOther),
-        ),
+            ExerciseOption("Agregar ejercicio", KpknLineIcons.Plus, onAddOther),
+        ) + listOfNotNull(onRM?.let { ExerciseOption("Calculadora RM", KpknLineIcons.TrendUp, it) }),
     )
-    ExerciseOptionsFooter(onSkip = onSkip, onRemove = onRemove, canRemove = canRemove)
 }
 
 /** Las opciones de un ejercicio de cardio (A2): sus opciones de siempre con el mismo aspecto y, al pie, lo que antes hacía el modo dios. */

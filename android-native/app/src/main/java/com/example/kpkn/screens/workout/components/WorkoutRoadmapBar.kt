@@ -142,7 +142,7 @@ fun WorkoutRoadmapBar(
     val activeMode = mode
     val listState = rememberLazyListState(initialFirstVisibleItemIndex = (currentIdx - 1).coerceAtLeast(0))
     val chromeScale = LocalViewportAdapt.current.uniformScale
-    val carouselCardHeight = WorkoutUiTokens.liveRoadmapCarouselCardHeight(chromeScale)
+    val carouselCardHeight = 46.dp
     val stepperSlotHeight = WorkoutUiTokens.liveCockpitStepperHeight(chromeScale)
     // The group table is authoritative for sessions loaded from older JSON:
     // some of those records have a valid SupersetGroup.exerciseOrder but one
@@ -195,12 +195,13 @@ fun WorkoutRoadmapBar(
         }
     }
 
-    LaunchedEffect(currentIdx) {
+    LaunchedEffect(currentIdx, roadmapEntries, pendingActions.map { it.label }) {
         val currentExerciseId = exercises.getOrNull(currentIdx)?.id ?: return@LaunchedEffect
-        val currentEntryIdx = roadmapEntries.indexOfFirst { entry ->
+        val roadmapEntryIdx = roadmapEntries.indexOfFirst { entry ->
             entry is RoadmapEntry.Group && entry.group.exercises.any { it.id == currentExerciseId }
         }
-        if (currentEntryIdx < 0) return@LaunchedEffect
+        if (roadmapEntryIdx < 0) return@LaunchedEffect
+        val currentEntryIdx = roadmapEntryIdx + pendingActions.size
         val info = listState.layoutInfo
         val viewport = info.viewportEndOffset - info.viewportStartOffset
         val visible = info.visibleItemsInfo.firstOrNull { it.index == currentEntryIdx }
@@ -228,35 +229,19 @@ fun WorkoutRoadmapBar(
             .distinct().withIndex().associate { (index, groupId) -> groupId to index + 1 }
     }
     val supersetGroupById = remember(supersetGroups) { supersetGroups.associateBy { it.id } }
-    val roadmapShape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)
+    val roadmapShape = RoundedCornerShape(topStart = 26.dp, topEnd = 26.dp)
     Surface(
-        modifier = modifier.fillMaxWidth().cockpitVerticalGesture(activeMode, onModeChange),
+        modifier = modifier.fillMaxWidth(),
         shape = roadmapShape,
         color = Color.Transparent,
         contentColor = WizardColors.text,
         tonalElevation = 0.dp,
         shadowElevation = 0.dp,
     ) {
-        Column(Modifier.fillMaxWidth().clip(roadmapShape).background(KpknSurface.module)) {
-            Box(
-                modifier = Modifier.fillMaxWidth().height(WorkoutUiTokens.MinTouchTarget)
-                    .clickable { onModeChange(if (activeMode == RoadmapMode.COMPACT) RoadmapMode.EXPANDED else RoadmapMode.COMPACT) },
-                contentAlignment = Alignment.Center,
-            ) {
-                if (pendingActions.isEmpty()) {
-                    RoadmapHandleIcons(expanded = activeMode == RoadmapMode.EXPANDED)
-                } else {
-                    Row(Modifier.fillMaxWidth().padding(horizontal = 8.dp), verticalAlignment = Alignment.CenterVertically) {
-                        Box(Modifier.weight(1f), contentAlignment = Alignment.CenterStart) {
-                            pendingActions.getOrNull(0)?.let { RoadmapPendingPill(it.label, it.onClick) }
-                        }
-                        RoadmapHandleIcons(expanded = activeMode == RoadmapMode.EXPANDED)
-                        Box(Modifier.weight(1f), contentAlignment = Alignment.CenterEnd) {
-                            pendingActions.getOrNull(1)?.let { RoadmapPendingPill(it.label, it.onClick) }
-                        }
-                    }
-                }
-            }
+        Column(Modifier.fillMaxWidth().height(78.dp).clip(roadmapShape).background(Color(0xFF0D0D0D)).padding(top = 8.dp)) {
+            Box(Modifier.width(36.dp).height(4.dp).align(Alignment.CenterHorizontally)
+                .clip(CircleShape).background(WizardColors.text.copy(alpha = .22f)))
+            Spacer(Modifier.height(12.dp))
             if (aboveCarousel != null) {
                 Box(Modifier.fillMaxWidth().padding(
                     top = WorkoutUiTokens.LiveCockpitStepperSlotTopPadding,
@@ -269,8 +254,7 @@ fun WorkoutRoadmapBar(
                 }
             } else LazyRow(
                 state = listState,
-                modifier = Modifier.fillMaxWidth().padding(bottom = WorkoutUiTokens.LiveCockpitCarouselBottomPadding)
-                    .height(carouselCardHeight)
+                modifier = Modifier.fillMaxWidth().height(carouselCardHeight)
                     .graphicsLayer { compositingStrategy = CompositingStrategy.Offscreen }
                     .drawWithContent {
                         drawContent()
@@ -284,6 +268,9 @@ fun WorkoutRoadmapBar(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
+                pendingActions.forEach { action -> item(key = "pending:${action.label}") {
+                    RoadmapPendingPill(action.label, action.onClick)
+                } }
                 items(roadmapEntries.size, key = { index ->
                     when (val entry = roadmapEntries[index]) {
                         RoadmapEntry.CardioDivider -> "roadmap-cardio-divider"
@@ -616,6 +603,11 @@ private fun ExerciseRoadmapCard(
     scale: RoadmapCardScale = RoadmapCardScale.Full,
     pickedUp: Boolean = false,
 ) {
+    if (scale == RoadmapCardScale.Full) {
+        LiveExerciseDockPill(exercise.displayNameWithSelectedChips(), completedCount, totalCount,
+            isCurrent, isAllDone, onClick, onLongClick)
+        return
+    }
     val displayName = exercise.displayNameWithSelectedChips()
     val isUnilateral = exercise.isEffectivelyUnilateral()
     val nameLength = displayName.length

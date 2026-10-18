@@ -58,8 +58,10 @@ import kotlin.math.sin
  */
 
 private val FigureInk = Color(0xFFF2EEE6)
-private val SparkleGold = Color(0xFFF7CF73)
-private val SparkleGreen = Color(0xFF43D18C)
+private val SparkleGold = Color(0xFFF2EEE6)
+private val SparkleGreen = Color(0xFF8FB2FF)
+private fun techniqueInk(value: Int) = if (value >= 7) Color(0xFF8FB2FF) else Color(0xFFF49A6E)
+
 private val TrackBase = Color(0xFF1C1C1C)
 
 /** Tambaleo de la figura: ±4 grados cada 0,8 s (F2 lo tiene a 0,5 s; más pausado, sin exagerar). */
@@ -95,7 +97,7 @@ internal fun TechniqueFigure(
     val moving = animated && !reduced && visibility.visible
     val clock = rememberRestClock(moving)
     val pose = TechniqueQuality.pose(value)
-    val color = Color(TechniqueQuality.colorArgb(value))
+    val color = techniqueInk(value)
     val clean = TechniqueQuality.isClean(value)
     Canvas(modifier = modifier.then(visibility.modifier)) {
         drawTechniqueFigure(
@@ -211,12 +213,12 @@ internal fun TechniqueSlider(
     value: Int,
     onValueChange: (Int) -> Unit,
     modifier: Modifier = Modifier,
-    thumbSize: Dp = 32.dp,
-    trackHeight: Dp = 12.dp,
+    thumbSize: Dp = 24.dp,
+    trackHeight: Dp = 6.dp,
     halo: Dp = 6.dp,
 ) {
-    val color = Color(TechniqueQuality.colorArgb(value))
-    val red = Color(TechniqueQuality.redArgb())
+    val color = techniqueInk(value)
+    val red = Color(0xFFF49A6E)
     val shown = TechniqueQuality.clamp(value)
     val description = "$shown de ${TechniqueQuality.MAX}, ${TechniqueQuality.word(shown)}"
     Slider(
@@ -254,7 +256,7 @@ internal fun TechniqueSlider(
                     modifier = Modifier
                         .fillMaxHeight()
                         .fillMaxWidth(fraction)
-                        .background(Brush.horizontalGradient(listOf(red, color)), shape),
+                        .background(Brush.horizontalGradient(listOf(red, Color(0xFF8FB2FF))), shape),
                 )
             }
         },
@@ -274,8 +276,8 @@ internal fun TechniqueCard(
     animated: Boolean = true,
 ) {
     val shown = TechniqueQuality.clamp(value)
-    val color = Color(TechniqueQuality.colorArgb(shown))
-    KpknModule(modifier = modifier.fillMaxWidth(), contentPadding = PaddingValues(14.dp)) {
+    val color = techniqueInk(shown)
+    KpknModule(modifier = modifier.fillMaxWidth(), contentPadding = PaddingValues(horizontal = 18.dp, vertical = 18.dp)) {
         Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
             if (exerciseName != null) {
                 Text(exerciseName, style = KpknType.bodyStrong, color = WizardColors.text, maxLines = 2)
@@ -321,7 +323,7 @@ internal fun TechniqueQualityCompactRow(
     animated: Boolean = true,
 ) {
     val shown = TechniqueQuality.clamp(value)
-    val color = Color(TechniqueQuality.colorArgb(shown))
+    val color = techniqueInk(shown)
     Column(modifier = modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(2.dp)) {
         if (exerciseName != null) {
             Text(exerciseName, style = KpknType.caption, color = WizardColors.textMuted, maxLines = 1)
@@ -346,7 +348,7 @@ internal fun TechniqueQualityCompactRow(
                         maxLines = 1,
                     )
                 }
-                TechniqueSlider(value = shown, onValueChange = onValueChange, thumbSize = 26.dp, trackHeight = 8.dp, halo = 5.dp)
+                TechniqueSlider(value = shown, onValueChange = onValueChange, thumbSize = 22.dp, trackHeight = 5.dp, halo = 4.dp)
             }
         }
     }

@@ -12,6 +12,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.platform.testTag
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.repeatOnLifecycle
@@ -58,9 +59,13 @@ internal fun SessionTimeSheetContent(
     ultraFastApplied: Boolean, ultraFastSavedSeconds: Int,
     onUltraFastPreview: (() -> Unit)?, onRevertUltraFast: (() -> Unit)?,
 ) {
-    var ultraExpanded by remember { mutableStateOf(false) }
-    var technique by remember { mutableStateOf<String?>(null) }
     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        if (ultraFastApplied) {
+            Text("Ultrarrápido activo", style = KpknType.bodyStrong, color = WizardColors.text)
+            onRevertUltraFast?.let { HeaderSheetAction("Deshacer Ultrarrápido", it, Modifier.fillMaxWidth()) }
+        } else {
+            onUltraFastPreview?.let { HeaderSheetAction("Modo ultrarrápido", it, Modifier.fillMaxWidth().testTag("session-time-ultra"), primary = true) }
+        }
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(14.dp)) {
             Box(Modifier.size(if (androidx.compose.ui.platform.LocalDensity.current.fontScale >= 1.2f) 118.dp else 132.dp), contentAlignment = Alignment.Center) {
                 Canvas(Modifier.fillMaxSize()) {
@@ -83,7 +88,7 @@ internal fun SessionTimeSheetContent(
         }
         Text("DURACIÓN OBJETIVO", style = KpknType.eyebrow, color = WizardColors.textMuted)
         val goals = listOf(30, 45, 60, 90)
-        KpknSegmentedControl(goals.map { "$it min" }, goals.indexOf(selectedMinutes), { onProposeMinutes(goals[it]) }, size = KpknSegmentedSize.Compact)
+        LiveCompactSegments(goals.map { "$it min" }, goals.indexOf(selectedMinutes), { onProposeMinutes(goals[it]) })
         HeaderSheetAction("Asignar tiempo", onAssignTime, Modifier.fillMaxWidth())
         if (targetMinutes != null) {
             Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
@@ -103,24 +108,9 @@ internal fun SessionTimeSheetContent(
         }
         Text("AVISOS", style = KpknType.eyebrow, color = WizardColors.textMuted)
         val modes = listOf(PacingAlertMode.OFF, PacingAlertMode.FINAL, PacingAlertMode.SOFT, PacingAlertMode.STRICT)
-        KpknSegmentedControl(listOf("Nada", "15 y 5 min", "Ritmo", "Por ejercicio"), modes.indexOf(alertMode),
-            { onAlertMode(modes[it]) }, size = KpknSegmentedSize.Compact)
-        HeaderSheetAction(if (ultraExpanded) "Ultrarrápido · Ocultar" else "Ultrarrápido · Mostrar", { ultraExpanded = !ultraExpanded }, Modifier.fillMaxWidth())
-        if (ultraExpanded) {
-            Text("Comprime el plan con técnicas intensas. Aumenta la fatiga y la carga articular; cuida tu recuperación.", style = KpknType.caption, color = WizardColors.textMuted)
-            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                KpknChip("Drop-sets ⓘ", technique == "drop", { technique = if (technique == "drop") null else "drop" })
-                KpknChip("Rest-pauses ⓘ", technique == "rest", { technique = if (technique == "rest") null else "rest" })
-            }
-            technique?.let {
-                Text(if (it == "drop") "Tras la serie efectiva, baja la carga lo suficiente para unas 3 repeticiones más." else "Mismo peso: descansa unos 15 segundos y realiza unas 3 repeticiones más.", style = KpknType.caption, color = WizardColors.textMuted)
-                HeaderSheetAction("Cerrar concepto", { technique = null }, Modifier.fillMaxWidth())
-            }
-            if (ultraFastApplied) {
-                Text(if (ultraFastSavedSeconds > 0) "Activo · Ahorro ~${KpknSetFormat.rest(ultraFastSavedSeconds)}" else "Activo", style = KpknType.bodyStrong, color = WizardColors.done)
-                onRevertUltraFast?.let { HeaderSheetAction("Deshacer", it, Modifier.fillMaxWidth()) }
-            } else onUltraFastPreview?.let { HeaderSheetAction("Ver compresión del plan", it, Modifier.fillMaxWidth(), primary = true) }
-        }
+        LiveCompactSegments(listOf("Nada", "15 y 5 min", "Ritmo", "Por ejercicio"), modes.indexOf(alertMode),
+            { onAlertMode(modes[it]) })
+
     }
 }
 

@@ -71,7 +71,7 @@ class WorkoutRestTimerOrchestrator(
         }
         // Cuándo empezó el descanso entero: un ajuste de ±15 s lo conserva, así el total del reloj sigue siendo uno solo (LV6).
         val startedAtMs = if (preserveElapsed) {
-            state.restModalState?.startedAtMs?.takeIf { it > 0L } ?: restStartMs
+            state.restModalState?.restEventStartedAtMs()?.takeIf { it > 0L } ?: restStartMs
         } else {
             restStartMs
         }
@@ -206,7 +206,7 @@ class WorkoutRestTimerOrchestrator(
         }
         updateState {
             it.copy(
-                restModalState = it.restModalState?.copy(
+                restModalState = it.restModalState?.withRestEventIdentity()?.copy(
                     activeSeconds = newTotal,
                     endsAtMs = newEndsAtMs,
                     isManualOverride = true,

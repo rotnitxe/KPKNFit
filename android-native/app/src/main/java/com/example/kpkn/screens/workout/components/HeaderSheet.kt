@@ -14,6 +14,9 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
@@ -39,7 +42,7 @@ internal fun HeaderSheet(onDismiss: () -> Unit, modifier: Modifier = Modifier, d
     LaunchedEffect(closing) {
         if (closing) { if (!reduced) delay(180); onDismiss() }
     }
-    KpknSheet(onDismissRequest = onDismiss, dismissible = dismissible, modifier = modifier.graphicsLayer { translationY = exit * travel; alpha = 1f - exit }) {
+    KpknSheet(onDismissRequest = onDismiss, dismissible = dismissible, modifier = modifier.imePadding().graphicsLayer { translationY = exit * travel; alpha = 1f - exit }) {
         content { if (dismissible) closing = true }
     }
 }
@@ -67,6 +70,23 @@ internal fun HeaderSheetAction(text: String, onClick: () -> Unit, modifier: Modi
             Text(text, style = KpknType.action.copy(fontSize = 13.sp, lineHeight = 18.sp),
                 color = if (primary) KpknSurface.canvas else if (enabled) WizardColors.text else WizardColors.textFaint,
                 maxLines = if (multiline) 2 else 1, textAlign = TextAlign.Center, overflow = TextOverflow.Ellipsis)
+        }
+    }
+}
+
+/** Proposal tabs: 30dp buttons inside the 38dp inset track, scoped to live-session sheets. */
+@Composable
+internal fun LiveCompactSegments(options: List<String>, selectedIndex: Int, onSelect: (Int) -> Unit, modifier: Modifier = Modifier, enabled: Boolean = true) {
+    Row(modifier.fillMaxWidth().clip(RoundedCornerShape(19.dp)).background(Color.Black).padding(4.dp), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+        options.forEachIndexed { index, label ->
+            val active = selectedIndex == index
+            Box(Modifier.weight(1f).height(30.dp).clip(RoundedCornerShape(15.dp))
+                .background(if (active) WizardColors.text else Color.Transparent)
+                .semantics { selected = active }
+                .clickable(enabled = enabled, role = Role.Tab) { onSelect(index) }, contentAlignment = Alignment.Center) {
+                Text(label, style = KpknType.caption.copy(fontSize = 12.sp, lineHeight = 16.sp),
+                    color = if (active) KpknSurface.canvas else WizardColors.textMuted, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            }
         }
     }
 }

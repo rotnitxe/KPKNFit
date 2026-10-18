@@ -258,15 +258,9 @@ internal fun ExerciseFichaContent(
                         CatalogMusclesModule(exercise = info, onKnowledge = { knowledge = it })
                     }
                 }
-                if (!model.description.isNullOrBlank() || model.setupCues.isNotEmpty() || model.executionCues.isNotEmpty()) {
-                    Column(Modifier.testTag(if (wizard) "setup-exercise-info-description" else "exercise-ficha-how"), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                        Text("Cómo se hace", style = KpknType.bodyStrong, color = WizardColors.text)
-                        model.description?.takeIf { it.isNotBlank() }?.let { CatalogDescription(it) }
-                        if (model.setupCues.isNotEmpty()) {
-                            Text("Preparación", style = KpknType.bodyStrong, color = WizardColors.text)
-                            FichaCues(model.setupCues)
-                        }
-                        if (model.executionCues.isNotEmpty()) FichaCues(model.executionCues)
+                model.description?.takeIf { it.isNotBlank() }?.let { description ->
+                    Box(Modifier.testTag(if (wizard) "setup-exercise-info-description" else "exercise-ficha-description")) {
+                        CatalogDescription(description)
                     }
                 }
                 if (config.isNotEmpty() || !model.configurationLine.isNullOrBlank()) {

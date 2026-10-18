@@ -4,7 +4,14 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
+import android.content.Context
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.LocalContext
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -51,16 +58,24 @@ internal fun WorkoutRestOverlayHost(
     // pantalla completa no se fuerza. Sin descanso en marcha no hay tarjeta, y el feedback sigue a pantalla completa.
     val feedbackOnCard = feedbackLivesOnCard(forceShowForFeedback, isRestTimerRunning, isRestMinimized, restState?.kind)
     val showExpanded = (isRestTimerRunning && restState != null && !isRestMinimized) || (forceShowForFeedback && !feedbackOnCard)
-    val showMinimized = isRestTimerRunning && isRestMinimized && restState != null && !forceShowForFeedback
     val relator by viewModel.relatorResolution.collectAsStateWithLifecycle()
     val adaptiveActive = isAdaptiveRestActive(restState, pendingRestSuggestion)
 
     // LV6: lo que cambia entre descansos sale del estado de la sesión, no de la pantalla.
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val shapeChoice by viewModel.restClockShapeChoice.collectAsStateWithLifecycle()
     val restOverrun = uiState.restOverrun
     val showOverrun = restOverrun != null && !isRestTimerRunning && !isRestMinimized && !forceShowForFeedback
-    val shape = RestClockMath.shapeFor(restOrdinal(uiState.completedSets.values), shapeChoice)
+    val shape = restClockShapeForEvent(restState, restOverrun)
+    val appContext = LocalContext.current.applicationContext
+    var restIntroSeen by remember { mutableStateOf<Boolean?>(null) }
+    var introAcknowledged by remember { mutableStateOf(false) }
+    LaunchedEffect(appContext, introAcknowledged) {
+        restIntroSeen = withContext(Dispatchers.IO) {
+            val prefs = appContext.getSharedPreferences("workout_live_experience", Context.MODE_PRIVATE)
+            if (introAcknowledged) prefs.edit().putBoolean("fullscreen_rest_intro_seen_v2", true).commit()
+            prefs.getBoolean("fullscreen_rest_intro_seen_v2", false)
+        }
+    }
     val exercises = remember(uiState.session, uiState.activeMode, uiState.skippedExerciseIds) {
         viewModel.visibleExercises(uiState)
     }
@@ -129,9 +144,11 @@ internal fun WorkoutRestOverlayHost(
                 relatorActions = relator.actions,
                 onRelatorAction = { viewModel.performRelatorAssist(it) },
                 shape = shape,
-                onShapeChange = { viewModel.chooseRestClockShape(it) },
+                onShapeChange = {},
                 headline = headline,
                 nextSet = nextSet,
+                showIntro = isRestTimerRunning && restIntroSeen == false && !introAcknowledged,
+                onIntroDone = { introAcknowledged = true },
             )
             }
         }
@@ -148,25 +165,5 @@ internal fun WorkoutRestOverlayHost(
             onExtend = { viewModel.extendRestAfterOverrun() },
             onMinimize = { viewModel.toggleRestMinimized() },
         )
-    } else if (showMinimized) {
-        val minimizedState = restState ?: return
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .zIndex(6f)
-                .statusBarsPadding()
-                .padding(top = 10.dp),
-            contentAlignment = Alignment.TopCenter,
-        ) {
-            RestRemainingReader(viewModel = viewModel) { restTimerRemaining ->
-                RestTimerPill(
-                    remainingSeconds = if (isRestTimerRunning) restTimerRemaining else 0,
-                    totalSeconds = minimizedState.activeSeconds.coerceAtLeast(1),
-                    exerciseName = minimizedState.exerciseName,
-                    sessionAccentColor = sessionAccentColor,
-                    onClick = { viewModel.toggleRestMinimized() },
-                )
-            }
-        }
     }
 }

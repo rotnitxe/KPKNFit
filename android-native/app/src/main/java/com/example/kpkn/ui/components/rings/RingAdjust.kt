@@ -5,6 +5,7 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.snap
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.core.withInfiniteAnimationFrameNanos
+import androidx.compose.foundation.background
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
@@ -151,6 +152,7 @@ data class RingAdjustMuscles(
  * desconocida. [onValueChange] da la vista previa; [onValueCommit], si existe, confirma solo al soltar, pulsar −/+ o usar TalkBack.
  * Valores en la escala VISIBLE: la Columna invertida es asunto de quien guarda, no de este componente.
  */
+@OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
 @Composable
 fun EnergyColumnAdjust(
     channel: RingChannel,
@@ -231,11 +233,16 @@ fun EnergyColumnAdjust(
                 dialTag = dialTag,
                 onCancel = { onInteractionCancel?.invoke() },
             )
-            Text(
-                text = "Toca o arrastra por el anillo",
-                style = KpknType.caption,
-                color = WizardColors.textFaint,
-                textAlign = TextAlign.Center,
+            androidx.compose.material3.Slider(
+                value = shown.toFloat(), onValueChange = { emit(it.roundToInt()) },
+                onValueChangeFinished = { commit(lastEmitted[0]) }, valueRange = 0f..100f,
+                modifier = Modifier.width(dial).testTag("ring-adjust-slider"),
+                thumb = { Box(Modifier.size(20.dp).background(WizardColors.text, androidx.compose.foundation.shape.CircleShape)) },
+                track = {
+                    Box(Modifier.fillMaxWidth().height(4.dp).background(TrackColor, androidx.compose.foundation.shape.CircleShape)) {
+                        Box(Modifier.fillMaxWidth(shown / 100f).height(4.dp).background(WizardColors.text, androidx.compose.foundation.shape.CircleShape))
+                    }
+                },
             )
             Row(
                 modifier = Modifier.width(dial),
@@ -354,7 +361,7 @@ private fun RingAdjustDial(
             Text(
                 text = name.uppercase(Locale.forLanguageTag("es")),
                 style = KpknType.eyebrow.copy(shadow = CenterTextShadow),
-                color = light,
+                color = WizardColors.textMuted,
                 maxLines = 1,
             )
             Text(
@@ -610,8 +617,6 @@ fun RingAdjustSheet(
     title: String = "Ajusta cómo llegas",
     doneLabel: String = "Listo",
 ) {
-    require(channels.isNotEmpty()) { "La hoja necesita al menos un canal" }
-    var channel by remember(initialChannel) { mutableStateOf(initialChannel.takeIf { it in channels } ?: channels.first()) }
     KpknSheet(
         onDismissRequest = onDismiss,
         modifier = modifier.testTag("ring-adjust-sheet"),
@@ -619,20 +624,55 @@ fun RingAdjustSheet(
         hazeState = hazeState,
         additionalGlassScrim = SheetFill,
     ) {
+        RingAdjustPanel(
+            initialChannel = initialChannel, onDismiss = onDismiss,
+            energy = energy, spine = spine, muscles = muscles,
+            onEnergyChange = onEnergyChange, onSpineChange = onSpineChange, onMuscleChange = onMuscleChange,
+            onEnergyReset = onEnergyReset, onSpineReset = onSpineReset, onMusclesReset = onMusclesReset,
+            channels = channels, title = title, doneLabel = doneLabel,
+        )
+    }
+}
+
+/** Content only: replaces the caller’s panel; it never opens a second sheet. */
+@Composable
+fun RingAdjustPanel(
+    initialChannel: RingChannel,
+    onDismiss: () -> Unit,
+    modifier: Modifier = Modifier,
+    energy: RingAdjustLevel = RingAdjustLevel(value = 0, before = 0),
+    spine: RingAdjustLevel = RingAdjustLevel(value = 0, before = 0),
+    muscles: RingAdjustMuscles = RingAdjustMuscles(),
+    onEnergyChange: (Int) -> Unit = {},
+    onSpineChange: (Int) -> Unit = {},
+    onMuscleChange: (muscleId: String, value: Int) -> Unit = { _, _ -> },
+    onEnergyReset: () -> Unit = {},
+    onSpineReset: () -> Unit = {},
+    onMusclesReset: () -> Unit = {},
+    channels: List<RingChannel> = listOf(RingChannel.ENERGIA, RingChannel.COLUMNA, RingChannel.MUSCULOS),
+    title: String = "Ajusta cómo llegas",
+    doneLabel: String = "Listo",
+) {
+    require(channels.isNotEmpty()) { "El panel necesita al menos un canal" }
+    var channel by remember(initialChannel) { mutableStateOf(initialChannel.takeIf { it in channels } ?: channels.first()) }
+    androidx.activity.compose.BackHandler(onBack = onDismiss)
         Column(
-            modifier = Modifier
-                .weight(1f)
-                .fillMaxWidth()
+            modifier = modifier
+                .fillMaxSize()
                 .padding(horizontal = 18.dp)
                 .padding(bottom = 12.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                KpknIconButton(icon = KpknLineIcons.ChevronLeft, contentDescription = "Volver", onClick = onDismiss, modifier = Modifier.testTag("ring-adjust-back"))
             Text(
+                modifier = Modifier.weight(1f),
                 text = title,
                 style = KpknType.title.copy(fontSize = 22.sp, lineHeight = 28.sp),
                 color = WizardColors.text,
                 textAlign = TextAlign.Center,
             )
+            }
             Spacer(Modifier.height(10.dp))
             if (channels.size > 1) {
                 KpknSegmentedControl(
@@ -710,5 +750,4 @@ fun RingAdjustSheet(
                 )
             }
         }
-    }
 }

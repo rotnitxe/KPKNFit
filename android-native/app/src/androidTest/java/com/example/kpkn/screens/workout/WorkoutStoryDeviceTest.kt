@@ -57,7 +57,7 @@ class WorkoutStoryDeviceTest {
         assertFalse(result.isImproved)
     }
 
-    @Test fun storiesAre1080By1920AndEveryIncludeOptionChangesTheActualBitmap()=runBlocking {
+    @Test fun storiesAre1080By1920AndOnlyApplicableIncludeOptionsChangeTheActualBitmap()=runBlocking {
         val file=File(context.cacheDir,"lv13-photo-test.png")
         val photo=Bitmap.createBitmap(160,240,Bitmap.Config.ARGB_8888)
         Canvas(photo).apply { drawColor(Color.rgb(20,70,110));drawRect(0f,0f,80f,240f,android.graphics.Paint().apply { color=Color.rgb(150,75,50) }) }
@@ -72,9 +72,18 @@ class WorkoutStoryDeviceTest {
                     // Solo fixtures de prueba, exportados por Android para la inspección física del ZFlip.
                     val output=File(context.getExternalFilesDir(null),"qa-stories").apply { mkdirs() }
                     File(output,"lv13-demo-${template.name.lowercase()}.png").outputStream().use { base.compress(Bitmap.CompressFormat.PNG,100,it) }
-                    listOf(options.copy(rings=false),options.copy(improvements=false),options.copy(duration=false),options.copy(intensity=false)).forEach { alternate ->
+                    val toggles=listOf("rings" to options.copy(rings=false),"improvements" to options.copy(improvements=false),"duration" to options.copy(duration=false),"intensity" to options.copy(intensity=false))
+                    val applicable=when(template){
+                        WorkoutStoryTemplate.GENERAL->setOf("rings","improvements","duration","intensity")
+                        WorkoutStoryTemplate.EXERCISE->setOf("improvements")
+                        WorkoutStoryTemplate.PHOTOS->setOf("duration")
+                    }
+                    toggles.forEach { (name,alternate) ->
                         val rendered=renderWorkoutStory(context,data,alternate)
-                        try { assertFalse("${template.name}: $alternate debe cambiar los píxeles",base.sameAs(rendered)) } finally { rendered.recycle() }
+                        try {
+                            if(name in applicable)assertFalse("${template.name}: $name ofrecido debe cambiar los píxeles",base.sameAs(rendered))
+                            else assertTrue("${template.name}: $name no corresponde a esta composición",base.sameAs(rendered))
+                        } finally { rendered.recycle() }
                     }
                 } finally { base.recycle() }
             }
@@ -104,4 +113,33 @@ class WorkoutStoryDeviceTest {
         }
         assertTrue(empty.presentation.photos.isEmpty())
     }
+
+    @Test fun mosaicRendersOneToFourActualPhotosWithoutRepeatingOrInventingTiles()=runBlocking {
+        val colors=listOf(Color.rgb(155,50,40),Color.rgb(40,85,155),Color.rgb(40,140,75),Color.rgb(125,55,150))
+        val files=colors.mapIndexed { index,color ->
+            File(context.cacheDir,"lv13-real-grid-fixture-$index.png").also { file ->
+                val image=Bitmap.createBitmap(160,240,Bitmap.Config.ARGB_8888).apply{eraseColor(color)}
+                try{file.outputStream().use{image.compress(Bitmap.CompressFormat.PNG,100,it)}}finally{image.recycle()}
+            }
+        }
+        try {
+            for(count in 1..4){
+                val photos=files.take(count).mapIndexed{index,file->StoryPhoto(file.absolutePath,"Foto de prueba ${index+1}","Entrada real de fixture")}
+                val bitmap=renderWorkoutStory(context,data(photos),WorkoutStoryOptions(template=WorkoutStoryTemplate.PHOTOS))
+                try {
+                    assertEquals(1080,bitmap.width);assertEquals(1920,bitmap.height)
+                    val centers=when(count){
+                        1->listOf(180 to 276)
+                        2->listOf(97 to 276,263 to 276)
+                        3->listOf(97 to 276,263 to 198,263 to 354)
+                        else->listOf(97 to 276,263 to 198,263 to 354,97 to 510)
+                    }
+                    centers.forEachIndexed{index,(x,y)->assertEquals("El bloque ${index+1} debe usar su foto real para $count fotos",colors[index],bitmap.getPixel(x*3,y*3))}
+                    val output=File(context.getExternalFilesDir(null),"qa-stories").apply{mkdirs()}
+                    File(output,"lv13-demo-mosaic-$count-photos.png").outputStream().use{bitmap.compress(Bitmap.CompressFormat.PNG,100,it)}
+                }finally{bitmap.recycle()}
+            }
+        }finally{files.forEach{it.delete()}}
+    }
+
 }

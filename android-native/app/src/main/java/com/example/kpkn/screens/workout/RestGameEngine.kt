@@ -5,7 +5,13 @@ import kotlin.math.min
 import kotlin.random.Random
 
 /** Una mancuerna que llega desde la derecha: su borde izquierdo, en dp del mundo del juego. */
-internal class RestGameObstacle(var x: Float, var counted: Boolean = false)
+internal enum class RestHazard { DUMBBELL, BENCH, GAP }
+internal enum class RestSupplement { JUMP, SPEED, LIFE }
+internal class RestGameObstacle(var x: Float, var counted: Boolean = false, val kind: RestHazard = RestHazard.DUMBBELL) {
+    val width: Float get() = when (kind) { RestHazard.GAP -> 56f; RestHazard.BENCH -> 38f; else -> 30f }
+    val hitHeight: Float get() = when (kind) { RestHazard.GAP -> 7f; RestHazard.BENCH -> 29f; else -> 14f }
+}
+internal class RestGameSupplement(var x: Float, val kind: RestSupplement)
 
 /**
  * Motor del minijuego del descanso (LV6, F8): un corredor salta mancuernas que llegan desde la derecha. Puro y sin reloj propio: el
@@ -93,6 +99,16 @@ internal class RestGameEngine(
 
     val obstacles: MutableList<RestGameObstacle> = mutableListOf()
 
+    var lives = 3
+        private set
+    val ended: Boolean get() = lives <= 0
+    var power: RestSupplement? = null
+        private set
+    var powerSeconds = 0f
+        private set
+    private var invulnerable = 0f
+    private var spawned = 0
+    val supplements = mutableListOf<RestGameSupplement>()
     private var nextGap = gapFor(BASE_SPEED)
 
     private fun gapFor(speed: Float): Float = speed * (AIR_TIME + BREATHER) + random.nextFloat() * GAP_JITTER
@@ -102,8 +118,8 @@ internal class RestGameEngine(
 
     /** Salta si está en el suelo. Devuelve si saltó. */
     fun jump(): Boolean {
-        if (!onGround) return false
-        velocity = JUMP_SPEED
+        if (!onGround || ended) return false
+        velocity = JUMP_SPEED * if (power == RestSupplement.JUMP) 1.25f else 1f
         return true
     }
 
@@ -120,6 +136,13 @@ internal class RestGameEngine(
         speed = BASE_SPEED
         flash = 0f
         obstacles.clear()
+        supplements.clear()
+        lives = 3
+        power = null
+        powerSeconds = 0f
+        invulnerable = 0f
+        spawned = 0
+        elapsed = 0f
         nextGap = gapFor(BASE_SPEED)
     }
 
@@ -129,7 +152,7 @@ internal class RestGameEngine(
      */
     fun step(dtSeconds: Float): Boolean {
         val dt = dtSeconds.coerceIn(0f, MAX_STEP)
-        if (dt <= 0f) return false
+        if (dt <= 0f || ended) return false
         elapsed += dt
         speed = min(MAX_SPEED, speed + SPEED_GAIN * dt)
         if (flash > 0f) flash = max(0f, flash - dt)
@@ -143,18 +166,32 @@ internal class RestGameEngine(
             }
         }
 
-        val dx = speed * dt
+        invulnerable = max(0f, invulnerable - dt)
+        powerSeconds = max(0f, powerSeconds - dt)
+        if (powerSeconds == 0f) power = null
+        val dx = speed * dt * if (power == RestSupplement.SPEED) 1.3f else 1f
+        supplements.forEach { item ->
+            item.x -= dx
+            if (kotlin.math.abs(item.x - (RUNNER_X + 12f)) < 18f && height in 14f..78f) {
+                if (item.kind == RestSupplement.LIFE) lives = min(5, lives + 1)
+                else { power = item.kind; powerSeconds = 7f }
+                item.x = -100f
+            }
+        }
+        supplements.removeAll { it.x < -30f }
         var hit = false
         for (o in obstacles) {
             o.x -= dx
             val left = o.x + OBSTACLE_HIT_INSET
-            val right = o.x + OBSTACLE_W - OBSTACLE_HIT_INSET
+            val right = o.x + o.width - OBSTACLE_HIT_INSET
             val overlapsRunner = right > RUNNER_X + RUNNER_HIT_LEFT && left < RUNNER_X + RUNNER_HIT_RIGHT
-            if (overlapsRunner && height < OBSTACLE_HIT_H) hit = true
+            if (invulnerable == 0f && overlapsRunner && height < o.hitHeight) hit = true
         }
 
         if (hit) {
             hits++
+            lives--
+            invulnerable = 1.3f
             best = max(best, score)
             score = 0
             speed = BASE_SPEED
@@ -162,7 +199,7 @@ internal class RestGameEngine(
             obstacles.removeAll { it.x < RUNNER_X + RESTART_CLEAR }
         } else {
             for (o in obstacles) {
-                if (!o.counted && o.x + OBSTACLE_W < RUNNER_X) {
+                if (!o.counted && o.x + o.width < RUNNER_X) {
                     o.counted = true
                     score++
                     if (score > best) {
@@ -177,7 +214,10 @@ internal class RestGameEngine(
         val spawnX = worldWidth + 10f
         val last = obstacles.maxOfOrNull { it.x }
         if (last == null || spawnX - last >= nextGap) {
-            obstacles += RestGameObstacle(x = spawnX)
+            val kind = if (spawned == 0) RestHazard.DUMBBELL else RestHazard.entries[random.nextInt(RestHazard.entries.size)]
+            obstacles += RestGameObstacle(x = spawnX, kind = kind)
+            spawned++
+            if (spawned % 3 == 0) supplements += RestGameSupplement(spawnX + 105f, RestSupplement.entries[random.nextInt(RestSupplement.entries.size)])
             nextGap = gapFor(speed)
         }
         return hit

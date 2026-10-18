@@ -20,6 +20,8 @@ data class RestOverrun(
     /** Última serie registrada y cuántas había: si cambia alguna, se registró algo y la capa se va. */
     val setJustLoggedKey: String? = null,
     val completedCount: Int = 0,
+    /** Stable visual event identity, including sub-second clock precision. Zero in old state. */
+    val startedAtMs: Long = 0L,
 )
 
 /**
@@ -47,6 +49,7 @@ internal object RestOverrunPolicy {
         return RestOverrun(
             endedAtMs = rest.endsAtMs.takeIf { it > 0L } ?: nowMs,
             totalSeconds = rest.totalRestSeconds(),
+            startedAtMs = rest.restEventStartedAtMs(fallbackEndAtMs = nowMs),
             kind = rest.kind,
             exerciseIdx = state.currentExerciseIdx,
             setIdx = state.currentSetIdx,
@@ -86,3 +89,14 @@ internal object RestOverrunPolicy {
         return "+${safe / 60}:${(safe % 60).toString().padStart(2, '0')}"
     }
 }
+
+/** Infer legacy identity once, before activeSeconds becomes remainingSeconds after an adjustment. */
+internal fun WorkoutRestModalState.restEventStartedAtMs(fallbackEndAtMs: Long = 0L): Long {
+    if (startedAtMs > 0L) return startedAtMs
+    val end = endsAtMs.takeIf { it > 0L } ?: fallbackEndAtMs
+    if (end <= 0L || activeSeconds <= 0) return 0L
+    return (end - activeSeconds * 1000L).coerceAtLeast(0L)
+}
+
+internal fun WorkoutRestModalState.withRestEventIdentity(): WorkoutRestModalState =
+    if (startedAtMs > 0L) this else copy(startedAtMs = restEventStartedAtMs())

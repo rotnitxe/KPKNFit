@@ -75,6 +75,7 @@ import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.saveable.rememberSaveableStateHolder
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -102,6 +103,9 @@ import com.example.kpkn.data.models.PostExerciseFeedback
 import com.example.kpkn.data.models.PostSessionPreview
 import com.example.kpkn.data.models.RingStartSnapshot
 import com.example.kpkn.data.models.Session
+import com.example.kpkn.data.models.SessionMilestone
+import com.example.kpkn.data.models.SessionSavedNote
+import com.example.kpkn.data.models.SessionChecklistItem
 import com.example.kpkn.domain.auge.AugeFatigueEngine
 import com.example.kpkn.domain.auge.SessionDiscomfortSummary
 import com.example.kpkn.domain.auge.SessionIntensityResult
@@ -218,6 +222,14 @@ internal fun FinishWorkoutSheet(
     onNotesDraft: (String) -> Unit = {},
     presentation: FinishPresentationContext = FinishPresentationContext(),
     onStoryPrepared: (WorkoutStoryData, WorkoutStoryOptions) -> Unit = { _, _ -> },
+    sessionMilestones: List<SessionMilestone> = emptyList(),
+    sessionSavedNotes: List<SessionSavedNote> = emptyList(),
+    sessionChecklist: List<SessionChecklistItem> = emptyList(),
+    onSaveSessionNote: (String) -> Unit = {},
+    onAddChecklistItem: (String) -> Unit = {},
+    onToggleChecklistItem: (String) -> Unit = {},
+    onRemoveChecklistItem: (String) -> Unit = {},
+    onOpenSessionAlbum: (() -> Unit)? = null,
 ) {
     val neuralSeed = postSessionPreview.neural.coerceIn(0, 100)
     val spinalSeed = postSessionPreview.spinal.coerceIn(0, 100)
@@ -276,6 +288,9 @@ internal fun FinishWorkoutSheet(
     }
 
     var showMuscleSetsBreakdown by remember { mutableStateOf(false) }
+    var adjustChannel by remember { mutableStateOf<RingChannel?>(null) }
+    var showShare by remember { mutableStateOf(false) }
+    val finishPagesState = rememberSaveableStateHolder()
     var additionalDiscomfortNote by rememberSaveable { mutableStateOf("") }
     var notes by rememberSaveable(initialSessionNotes) { mutableStateOf(initialSessionNotes) }
     // Cerrar el resumen sin guardar (Atrás, tocar fuera o «Volver») no tira lo escrito: la nota pasa a la sesión (LV4, 15).
@@ -368,7 +383,15 @@ internal fun FinishWorkoutSheet(
     }
 
     // Explicit back / scrim / drag closes finish sheet (does not abandon the workout).
-    BackHandler(enabled = true) { dismissKeepingNotes() }
+    BackHandler(enabled = true) {
+        when {
+            adjustChannel != null -> adjustChannel = null
+            showShare -> showShare = false
+            showDiscomfortAccordion -> showDiscomfortAccordion = false
+            showMuscleSetsBreakdown -> showMuscleSetsBreakdown = false
+            else -> dismissKeepingNotes()
+        }
+    }
 
     val executeConfirm = {
         val muscularAdjustment = if (editedMuscleKeys.isEmpty()) {
@@ -396,6 +419,7 @@ internal fun FinishWorkoutSheet(
             finishAverageRir(completedExercises), sessionIntensityResult.displayLabel,
             TowerRingValues(musculos = derivedMuscularFinal, energia = neuralFinal, columna = spinalFinal),
             buildFinishLiftProgress(completedExercises, presentation.history)), storyOptions)
+        if (notes.isNotBlank() && sessionSavedNotes.lastOrNull()?.text != notes) onSaveSessionNote(notes)
         onConfirm(
             notes,
             inferredFatigue,
@@ -444,8 +468,6 @@ internal fun FinishWorkoutSheet(
     LaunchedEffect(voiceFinalConfirmTriggered) {
         if (voiceFinalConfirmTriggered && !isFinishingWorkout) executeConfirm()
     }
-    var adjustChannel by remember { mutableStateOf<RingChannel?>(null) }
-    var showShare by remember { mutableStateOf(false) }
     val lifts = remember(completedExercises, presentation.history) { buildFinishLiftProgress(completedExercises, presentation.history) }
     val tonnage = remember(presentation.history, session.id) {
         presentation.history.filter { it.sessionId == session.id && (presentation.program == null || it.programId == presentation.program.id) }
@@ -457,19 +479,43 @@ internal fun FinishWorkoutSheet(
         energia = postSessionPreview.preSessionNeural ?: (postSessionPreview.neural + postSessionPreview.globalCnsDrain).coerceIn(0, 100),
         columna = postSessionPreview.preSessionSpinal ?: (postSessionPreview.spinal + postSessionPreview.globalSpinalDrain).coerceIn(0, 100),
     )
+    val sessionHistory = remember(presentation.history, session.id, presentation.program?.id) {
+        presentation.history.filter { it.sessionId == session.id && (presentation.program == null || it.programId == presentation.program.id) }
+    }
     val story = WorkoutStoryData(session.name, presentation, durationMinutes, totalVolume, totalSets,
         finishAverageRir(completedExercises), sessionIntensityResult.displayLabel, values, lifts)
-    KpknSheet(onDismissRequest = dismissKeepingNotes, stableHeightFraction = 0.86f, hazeState = hazeState) {
+    KpknSheet(onDismissRequest = {
+        when { adjustChannel != null -> adjustChannel = null; showShare -> showShare = false; else -> dismissKeepingNotes() }
+    }, stableHeightFraction = 0.95f, maxHeightFraction = 0.95f, hazeState = hazeState) {
+        if (adjustChannel != null) {
+            adjustChannel?.let { channel ->
+        com.example.kpkn.ui.components.rings.RingAdjustPanel(
+            initialChannel = channel, title = "Ajusta cómo terminas", onDismiss = { adjustChannel = null },
+            energy = com.example.kpkn.ui.components.rings.RingAdjustLevel(neuralFinal, neuralSeed, neuralEdited),
+            spine = com.example.kpkn.ui.components.rings.RingAdjustLevel(spinalFinal, spinalSeed, spinalEdited),
+            muscles = com.example.kpkn.ui.components.rings.RingAdjustMuscles(muscleFinal.toMap(), muscleSeed, muscleSeed.keys, editedMuscleKeys),
+            onEnergyChange = { neuralFinal = it; neuralEdited = it != neuralSeed },
+            onSpineChange = { spinalFinal = it; spinalEdited = it != spinalSeed },
+            onMuscleChange = { id, value -> muscleFinal[id] = value; musclesEdited = true },
+            onEnergyReset = { neuralFinal = neuralSeed; neuralEdited = false },
+            onSpineReset = { spinalFinal = spinalSeed; spinalEdited = false },
+            onMusclesReset = { muscleFinal.clear(); muscleFinal.putAll(muscleSeed); musclesEdited = false },
+        )
+    }
+        } else if (showShare) {
+            WorkoutStorySheet(story, hazeState, storyOptions, onOptionsChange = { storyOptions = it },
+                shareAfterSave = shareToStory, onShareAfterSaveChange = { shareToStory = it }, onDismiss = { showShare = false }, embedded = true)
+        } else finishPagesState.SaveableStateProvider("finish-pages") {
         FinishPagerLayout(
             sessionName = session.name, saving = isFinishingWorkout, saveDescription = emptySessionGuidance,
             onBack = dismissKeepingNotes, onSave = { if (emptySessionGuidance == null && !isFinishingWorkout) executeConfirm() },
             onShare = { showShare = true },
             warnings = {
-                if (emptySessionGuidance != null) Text(emptySessionGuidance, color = Color(0xFFFFCA28),
+                if (emptySessionGuidance != null) Text(emptySessionGuidance, color = Color(0xFFF2EEE6),
                     style = MaterialTheme.typography.bodySmall, modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite })
                 if (pendingSeriesNotice != null) PendingSeriesNoticeCard(pendingSeriesNotice, onContinuePendingSeries)
                 if (hasGenericIntensityFallback) Text("Se usó intensidad genérica en ejercicios sin RPE percibido. Registra la intensidad para mejorar las estimaciones de recuperación.",
-                    style = MaterialTheme.typography.labelSmall, color = Color(0xFFFFCA28))
+                    style = MaterialTheme.typography.labelSmall, color = Color(0xFFF2EEE6))
             },
             today = {
                 FinishTodayPage(values, before,
@@ -483,14 +529,22 @@ internal fun FinishWorkoutSheet(
             lifts = { FinishLiftsPage(lifts, session.name, tonnage, totalVolume, sessionIntensityResult.displayLabel,
                 if (postExerciseFeedbackByExerciseId.isEmpty()) "Sin registro" else "${finishNumber(averageTechnique)}/10") },
             notes = {
-                OutlinedTextField(value = notes, onValueChange = { notes = it }, label = { Text("Nota rápida de la sesión (opcional)") },
-                    modifier = Modifier.weight(1f).fillMaxWidth().testTag("finish-notes"),
-                    colors = OutlinedTextFieldDefaults.colors(unfocusedBorderColor = Color.White.copy(alpha = 0.15f)))
-                OutlinedButton(onClick = { showDiscomfortAccordion = true }, modifier = Modifier.fillMaxWidth().testTag("finish-discomforts")) {
-                    Text("Molestias reportadas (${selectedDiscomforts.size})")
-                }
+                FinishNotesPage(note = notes, onNote = { notes = it; onNotesDraft(it) }, date = presentation.today.toString(),
+                    savedNotes = sessionSavedNotes, history = sessionHistory,
+                    checklist = sessionChecklist, onAddTask = onAddChecklistItem, onToggleTask = onToggleChecklistItem,
+                    onRemoveTask = onRemoveChecklistItem, discomfortCount = selectedDiscomforts.size,
+                    onDiscomforts = { showDiscomfortAccordion = true })
             },
+            milestones = { FinishMilestonesPage(sessionMilestones, sessionHistory, lifts, onEvolution = { exerciseId ->
+                storyOptions = storyOptions.copy(template = WorkoutStoryTemplate.EXERCISE, exerciseId = exerciseId)
+                showShare = true
+            }) },
+            photos = { FinishPhotosPage(presentation.photos, onOpenSessionAlbum, onCreateStory = {
+                storyOptions = storyOptions.copy(template = WorkoutStoryTemplate.PHOTOS)
+                showShare = true
+            }, sessionDate = presentation.today.toString()) },
         )
+        }
     }
     if (showMuscleSetsBreakdown) KpknSheet(onDismissRequest = { showMuscleSetsBreakdown = false }, stableHeightFraction = 0.72f, hazeState = hazeState) {
         Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(18.dp)) {
@@ -519,7 +573,7 @@ internal fun FinishWorkoutSheet(
                             Text(
                                 text = if (showMuscleSetsBreakdown) "Ocultar detalles" else "Ver detalles",
                                 style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.primary,
+                                color = FinishCream,
                                 fontWeight = FontWeight.Bold
                             )
                         }
@@ -540,7 +594,7 @@ internal fun FinishWorkoutSheet(
                                     Text(split, color = Color.White.copy(alpha = 0.7f), style = MaterialTheme.typography.labelSmall)
                                 }
                                 line.augeLine?.let {
-                                    Text(it, color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
+                                    Text(it, color = FinishCream, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
                                 }
                             }
                         }
@@ -715,7 +769,7 @@ internal fun FinishWorkoutSheet(
                                     modifier = Modifier.fillMaxWidth(),
                                     textStyle = MaterialTheme.typography.bodySmall,
                                     colors = OutlinedTextFieldDefaults.colors(
-                                        focusedBorderColor = MaterialTheme.colorScheme.primary,
+                                        focusedBorderColor = FinishCream,
                                         unfocusedBorderColor = Color.White.copy(alpha = 0.15f),
                                     ),
                                     leadingIcon = {
@@ -796,7 +850,7 @@ internal fun FinishWorkoutSheet(
                                     modifier = Modifier.fillMaxWidth(),
                                     textStyle = MaterialTheme.typography.bodySmall,
                                     colors = OutlinedTextFieldDefaults.colors(
-                                        focusedBorderColor = MaterialTheme.colorScheme.primary,
+                                        focusedBorderColor = FinishCream,
                                         unfocusedBorderColor = Color.White.copy(alpha = 0.15f),
                                     ),
                                 )
@@ -807,22 +861,7 @@ internal fun FinishWorkoutSheet(
 
         }
     }
-    adjustChannel?.let { channel ->
-        com.example.kpkn.ui.components.rings.RingAdjustSheet(
-            initialChannel = channel, title = "Ajusta cómo terminas", onDismiss = { adjustChannel = null }, hazeState = hazeState,
-            energy = com.example.kpkn.ui.components.rings.RingAdjustLevel(neuralFinal, neuralSeed, neuralEdited),
-            spine = com.example.kpkn.ui.components.rings.RingAdjustLevel(spinalFinal, spinalSeed, spinalEdited),
-            muscles = com.example.kpkn.ui.components.rings.RingAdjustMuscles(muscleFinal.toMap(), muscleSeed, muscleSeed.keys, editedMuscleKeys),
-            onEnergyChange = { neuralFinal = it; neuralEdited = it != neuralSeed },
-            onSpineChange = { spinalFinal = it; spinalEdited = it != spinalSeed },
-            onMuscleChange = { id, value -> muscleFinal[id] = value; musclesEdited = true },
-            onEnergyReset = { neuralFinal = neuralSeed; neuralEdited = false },
-            onSpineReset = { spinalFinal = spinalSeed; spinalEdited = false },
-            onMusclesReset = { muscleFinal.clear(); muscleFinal.putAll(muscleSeed); musclesEdited = false },
-        )
-    }
-    if (showShare) WorkoutStorySheet(story, hazeState, storyOptions, onOptionsChange = { storyOptions = it },
-        shareAfterSave = shareToStory, onShareAfterSaveChange = { shareToStory = it }, onDismiss = { showShare = false })
+
 
 }
 
@@ -835,7 +874,7 @@ private fun PendingSeriesNoticeCard(
     notice: PendingSeriesNotice,
     onContinue: () -> Unit,
 ) {
-    val amber = Color(0xFFFFCA28)
+    val amber = Color(0xFFF2EEE6)
     Surface(
         shape = RoundedCornerShape(14.dp),
         color = amber.copy(alpha = 0.14f),

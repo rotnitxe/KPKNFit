@@ -107,9 +107,9 @@ internal fun RestLiveCard(
     val safeRemaining = remainingSeconds.coerceAtLeast(0)
     val safeTotal = totalSeconds.coerceAtLeast(safeRemaining).coerceAtLeast(1)
     val progress = RestClockMath.progress(safeTotal, safeRemaining)
-    val clock = KpknSetFormat.rest(safeRemaining)
-    var playing by rememberSaveable { mutableStateOf(initiallyPlaying) }
-    val kindLabel = when (restState?.kind) {
+    val clock = (if (remainingSeconds < 0) "+" else "") + KpknSetFormat.rest(kotlin.math.abs(remainingSeconds))
+    var playing by rememberSaveable(restState?.startedAtMs) { mutableStateOf(initiallyPlaying) }
+    val kindLabel = if (remainingSeconds < 0) "TIEMPO EXTRA" else when (restState?.kind) {
         RestTimerKind.SUPERSET_INTRA -> "SUPERSERIE"
         RestTimerKind.SUPERSET_ROUND -> "SIGUIENTE RONDA"
         RestTimerKind.WARMUP -> "APROXIMACIÓN"
@@ -126,7 +126,7 @@ internal fun RestLiveCard(
             // El juego vive dentro de la tarjeta, a su altura fija. El descanso manda: al llegar a 0 la página deja de componerse y el
             // juego se cierra con ella; «Saltar» es el mismo onSkip de siempre.
             RestGameCardContent(
-                remainingSeconds = safeRemaining,
+                remainingSeconds = remainingSeconds,
                 totalSeconds = safeTotal,
                 nextSet = nextSet,
                 onBack = { playing = false },
@@ -174,6 +174,8 @@ internal fun RestLiveCard(
                     }
                 }
 
+                RestPlayHighlight(onClick = { playing = true }, animationsOn = clockActive, compact = true)
+
                 // El relator vive en la banda de encima de la tarjeta (WorkoutV2Body), no aquí.
                 // La forma de RINGS con su corredor a la izquierda y, a la derecha, el tiempo, «de 4:09» y «Jugar» (F3).
                 Row(
@@ -184,6 +186,7 @@ internal fun RestLiveCard(
                     RestRingsClock(
                         shape = shape,
                         progress = progress,
+                        overtime = remainingSeconds < 0,
                         runnerScale = 1.4f,
                         animationsOn = clockActive,
                         // La pista un poco más clara que el módulo (#111111) y el trazo más grueso: a este tamaño se perderían (F3).
@@ -199,7 +202,7 @@ internal fun RestLiveCard(
                             text = clock,
                             maxFontSize = 40.sp,
                             modifier = Modifier.semantics {
-                                contentDescription = RestClockMath.spokenRemaining(safeRemaining)
+                                contentDescription = if (remainingSeconds < 0) "Tiempo extra, ${kotlin.math.abs(remainingSeconds)} segundos" else RestClockMath.spokenRemaining(safeRemaining)
                             },
                         )
                         Text(
@@ -208,11 +211,7 @@ internal fun RestLiveCard(
                             color = WizardColors.textMuted,
                             maxLines = 1,
                         )
-                        RestPlayPill(
-                            text = "Jugar",
-                            onClick = { playing = true },
-                            compact = true,
-                        )
+
                     }
                 }
 

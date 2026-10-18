@@ -40,6 +40,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.input.pointer.pointerInput
@@ -176,7 +177,7 @@ internal fun WorkoutLiveRelatorLine(
                     val set = activeAction.setIndex.takeIf { it >= 0 }?.plus(1)
                     val confirmation = if (kg != null && set != null) "Listo: la serie $set va con ${formatRelatorKg(kg)}\u00A0kg." else "Carga ajustada."
                     if (resultAck?.canUndoLoad == true) {
-                        val label = resultAck?.previousWeightKg?.let { "vuelve a ${formatRelatorKg(it)}" } ?: "Deshacer"
+                        val label = resultAck?.previousWeightKg?.let { "↶ vuelve a ${formatRelatorKg(it)}" } ?: "↶ Deshacer"
                         val undo = activeAction.copy(kind = RelatorAssistActionKind.ADJUST_LOAD, label = label, span = label,
                             weightKg = null, loadDeltaPercent = null, undoPreviousLoad = true)
                         DisplayPhrase("$confirmation $label.", listOf(undo))
@@ -249,63 +250,24 @@ internal fun WorkoutLiveRelatorLine(
                 )
             }
         } else {
-            // Fases trabajando y hecho (H2):
-            // - El texto CAMBIA a la frase de trabajo / hecho y se ubica arriba
-            // - La franja de animación de personajes / destello se ubica DEBAJO del texto, sin tocar ni tapar ninguna letra
-            Column(
-                modifier = Modifier.fillMaxSize(),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.SpaceBetween,
-            ) {
-                // Frase arriba (con barrido continuo rápido a 1,4 s si isWorking)
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 2.dp),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    val lineActions = currentActions
-                    val pieces = remember(currentText, lineActions) { relatorInlinePieces(currentText, lineActions) }
-                    RelatorTextLine(
-                        pieces = pieces,
-                        text = currentText,
-                        actions = lineActions,
-                        onAction = handleActionClick,
-                        isWorking = isWorking,
+            // Text and actors share one fixed band: working never pushes the set card.
+            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                val pieces = remember(currentText, currentActions) { relatorInlinePieces(currentText, currentActions) }
+                RelatorTextLine(
+                    pieces = pieces, text = currentText, actions = currentActions,
+                    onAction = handleActionClick, isWorking = isWorking, reduceMotion = reduceMotion,
+                    forceShimmerSweepProgress = forceShimmerSweepProgress,
+                )
+                if (isWorking && effectiveWorkingAction != null) {
+                    RelatorWorkingScene(
+                        actionKind = effectiveWorkingAction.kind,
+                        progress = forceWorkingProgress ?: rememberWorkingProgress(reduceMotion),
                         reduceMotion = reduceMotion,
-                        forceShimmerSweepProgress = forceShimmerSweepProgress,
+                        modifier = Modifier.align(Alignment.TopCenter).fillMaxWidth().height(30.dp),
                     )
                 }
-
-                // Franja de abajo: personajes (trabajando) o destello breve (hecho)
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(30.dp),
-                    contentAlignment = Alignment.BottomCenter,
-                ) {
-                    if (isWorking && effectiveWorkingAction != null) {
-                        val workingP = forceWorkingProgress ?: (rememberWorkingProgress(reduceMotion))
-                        RelatorWorkingScene(
-                            actionKind = effectiveWorkingAction.kind,
-                            progress = workingP,
-                            reduceMotion = reduceMotion,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(30.dp),
-                        )
-                    } else if (isDone) {
-                        val sparkP = forceSparkProgress ?: sparkProgress
-                        RelatorSparkDoneScene(
-                            progress = sparkP,
-                            reduceMotion = reduceMotion,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(30.dp),
-                        )
-                    }
-                }
             }
+
         }
     }
 }
@@ -476,7 +438,14 @@ private fun RelatorTextLine(
                                     tag = tag,
                                     styles = TextLinkStyles(
                                         style = SpanStyle(
-                                            color = if (reduceMotion) Color(0xFFEDE6DA) else Color.Unspecified,
+                                            color = if (reduceMotion) Color(0xFFF2EEE6) else androidx.compose.ui.graphics.lerp(
+                                                Color(0xFFFFCFB6), Color.White,
+                                                ((kotlin.math.sin(progress * 2 * kotlin.math.PI) + 1) / 2).toFloat(),
+                                            ),
+                                            shadow = if (reduceMotion) null else Shadow(
+                                                color = Color(0xFFF49A6E).copy(alpha = .45f),
+                                                blurRadius = 9f * density.density,
+                                            ),
                                             fontWeight = FontWeight.SemiBold,
                                             textDecoration = TextDecoration.None,
                                         ),
@@ -514,27 +483,6 @@ private fun RelatorTextLine(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 12.dp)
-            .drawWithContent {
-                drawContent()
-                // Subrayado punteado de acento (SymbolPalette.musculo al 90 %, grosor 2 dp, 5 dp bajo línea base, 3a)
-                val layout = layoutResult ?: return@drawWithContent
-                val segments = relatorActionLineSegments(text, actions, layout)
-                val underlineColor = SymbolPalette.musculo.copy(alpha = 0.90f)
-                val strokeWidth = 2.dp.toPx()
-                val dotDash = PathEffect.dashPathEffect(floatArrayOf(2.5f * density.density, 2.5f * density.density), 0f)
-
-                segments.forEach { seg ->
-                    val y = seg.baseline + 5.dp.toPx()
-                    drawLine(
-                        color = underlineColor,
-                        start = Offset(seg.bounds.left, y),
-                        end = Offset(seg.bounds.right, y),
-                        strokeWidth = strokeWidth,
-                        cap = StrokeCap.Round,
-                        pathEffect = dotDash,
-                    )
-                }
-            }
             .then(
                 if (actionByTag.isEmpty()) {
                     Modifier

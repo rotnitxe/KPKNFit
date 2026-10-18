@@ -23,7 +23,14 @@ internal data class FinishPresentationContext(
     val today: LocalDate = LocalDate.now(),
 )
 
-internal data class StoryPhoto(val path: String, val exerciseName: String? = null, val detail: String? = null)
+internal data class StoryPhoto(
+    val path: String,
+    val exerciseName: String? = null,
+    val detail: String? = null,
+    val setIndex: Int? = null,
+    val createdAtMs: Long? = null,
+    val isPr: Boolean = false,
+)
 internal data class FinishProgressPoint(val date: String, val weight: Double, val reps: Int, val estimated1Rm: Double)
 internal data class FinishLiftProgress(
     val exerciseId: String,
@@ -63,25 +70,24 @@ internal fun buildFinishLiftProgress(completed: List<CompletedExercise>, history
             logicalSetCountFromCompleted(listOf(exercise)), points.lastOrNull(), points.takeLast(24), points.size, points.firstOrNull())
     }
 
-internal fun finishAverageRir(completed: List<CompletedExercise>): Double? {
-    val values = completed.flatMap { it.sets }.filter { !it.skipped && !it.isWarmup }.mapNotNull { set ->
-        // `isFailure` viene de reachedFailure, no de la prescripción. El modo FAILURE
-        // también puede heredarse del plan y no prueba por sí mismo que se alcanzara el fallo.
-        val rir = when {
-            set.isFailure -> 0.0
-            set.actualIntensityMode == IntensityMode.RIR -> set.actualIntensityValue ?: set.rir?.toDouble()
-            set.actualIntensityMode == IntensityMode.RPE -> (set.actualIntensityValue ?: set.rpe)
-                ?.takeIf { it in 0.0..10.0 }?.let { 10.0 - it }
-            set.actualIntensityMode != null -> null
-            // Compatibilidad con registros anteriores que aún no tenían el modo explícito.
-            set.rir != null -> set.rir.toDouble()
-            else -> set.rpe?.takeIf { it in 0.0..10.0 }?.let { 10.0 - it }
-        }
-        // La rueda permite RIR >10 según el objetivo. No recortar ni descartar ese dato real.
-        rir?.takeIf { it.isFinite() && it >= 0.0 }
+/** Real effort only: planned failure does not establish that failure was reached. */
+internal fun finishActualRir(set: CompletedSet): Double? {
+    val rir = when {
+        set.isFailure -> 0.0
+        set.actualIntensityMode == IntensityMode.RIR -> set.actualIntensityValue ?: set.rir?.toDouble()
+        set.actualIntensityMode == IntensityMode.RPE -> (set.actualIntensityValue ?: set.rpe)
+            ?.takeIf { it in 0.0..10.0 }?.let { 10.0 - it }
+        set.actualIntensityMode != null -> null
+        set.rir != null -> set.rir.toDouble()
+        else -> set.rpe?.takeIf { it in 0.0..10.0 }?.let { 10.0 - it }
     }
-    return values.takeIf { it.isNotEmpty() }?.average()
+    // The recorder allows RIR >10. Keep RPE0 and real RIR12 valid.
+    return rir?.takeIf { it.isFinite() && it >= 0.0 }
 }
+
+internal fun finishAverageRir(completed: List<CompletedExercise>): Double? = completed.flatMap { it.sets }
+    .filter { !it.skipped && !it.isWarmup }.mapNotNull(::finishActualRir)
+    .takeIf { it.isNotEmpty() }?.average()
 
 internal fun finishNumber(value: Double, decimals: Int = 1): String = NumberFormat.getNumberInstance(Locale.forLanguageTag("es-CL")).apply {
     maximumFractionDigits = decimals
