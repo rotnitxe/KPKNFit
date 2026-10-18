@@ -76,16 +76,15 @@ class CatalogShownVariantImageTest {
     }
 
     @Test
-    fun laRegulaAntiguaEnsenabaLaPrimeraFotoDeLaLista() {
+    fun sinImplementoExplicitoLaPrimeraFotoCorrespondeALaConfiguracionResuelta() {
         val definition = CatalogTestBuilders.realDefinition("hammer_curl")
         val default = definition.configurations.first { it.id == definition.defaultConfigurationId }
         val variants = exerciseCatalogImageVariants(definition.id, default.id, selectedImplementation = null)
+        val selected = selectedCatalogImageVariantIndex(variants, null)
 
-        // Sin implemento que seguir, el índice cae en la primera foto: es la que enseñaba la fila antes del arreglo.
-        val antiguo = selectedCatalogImageVariantIndex(variants, null)
-        assertEquals(0, antiguo)
-        assertNotEquals(default.selectedOptions["implement"], variants[antiguo!!].implementation)
-
+        assertEquals(0, selected)
+        assertEquals(default.selectedOptions["implement"], variants[selected!!].implementation)
+        assertEquals(defaultImage(definition), variants[selected].imageResId)
         assertEquals("dumbbells", shown(definition).shownToken)
     }
 

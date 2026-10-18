@@ -480,6 +480,11 @@ internal fun MobilityPickerSheet(
                         },
                     )
                     if (expanded) {
+                        com.example.kpkn.ui.components.MobilityTechniqueImage(
+                            movementId = mobility.id,
+                            contentDescription = "Técnica de ${mobility.name}",
+                            modifier = Modifier.fillMaxWidth().height(180.dp),
+                        )
                         Text(
                             "Objetivo: ${mobility.objective}",
                             style = KpknType.caption,

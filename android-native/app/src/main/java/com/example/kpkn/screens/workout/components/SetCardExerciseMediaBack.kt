@@ -145,7 +145,8 @@ internal fun SetCardExerciseMediaBack(
     val exerciseKey = exercise.catalogDefinitionId
         ?: exercise.exerciseDbId
         ?: exercise.id
-    val techniqueRes = remember(exercise.id, exercise.catalogDefinitionId, exercise.catalogConfigurationId) {
+    val techniqueRes = remember(exercise.id, exercise.catalogDefinitionId, exercise.catalogConfigurationId,
+        exercise.exerciseDbId, exercise.selectedExecutionOption, exercise.selectedAspects) {
         ExerciseTechniqueImageLookup.resolveImageResId(
             catalogDefinitionId = exercise.catalogDefinitionId,
             exerciseDbId = exercise.exerciseDbId,

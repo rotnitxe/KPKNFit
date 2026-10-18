@@ -372,6 +372,16 @@ internal fun exerciseCatalogImageVariants(
     catalogConfigurationId: String? = null,
     selectedImplementation: String? = null,
 ): List<ExerciseTechniqueImageVariant> {
+    com.example.kpkn.data.exercises.ReviewedExerciseTechniqueImages
+        .strengthImage(catalogConfigurationId)?.let { image ->
+            // This image belongs only to the selected full configuration, including
+            // grip/station details. It must not become another implement carousel page.
+            return listOf(ExerciseTechniqueImageVariant(
+                selectedImplementation ?: catalogConfigurationId!!.substringAfter("__"),
+                image,
+                "Técnica",
+            ))
+        }
     val variants = ExerciseTechniqueImageLookup.variants(definitionId)
     if (variants.isEmpty() || catalogConfigurationId == null) return variants
 
@@ -382,7 +392,25 @@ internal fun exerciseCatalogImageVariants(
         catalogConfigurationId = catalogConfigurationId,
         selectedImplementation = selectedImplementation,
     )
-    return variants.takeIf { selectedImage != null }.orEmpty()
+    if (selectedImage == null) return emptyList()
+    val displayVariants = variants.map { variant ->
+        if (variant.imageResId == selectedImage && variant.implementation == "default" &&
+            selectedImplementation != null
+        ) {
+            // A single approved setup may use the legacy "default" key while the
+            // catalog names its implement. Keep that image selectable in the pager.
+            variant.copy(implementation = selectedImplementation)
+        } else {
+            variant
+        }
+    }
+    // Folded cards can resolve a catalog configuration before an implement chip
+    // is selected. Their first page must still depict that resolved configuration.
+    return if (selectedImplementation == null) {
+        displayVariants.sortedBy { it.imageResId != selectedImage }
+    } else {
+        displayVariants
+    }
 }
 
 /**
