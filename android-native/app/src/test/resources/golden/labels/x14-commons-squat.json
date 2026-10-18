@@ -1,0 +1,82 @@
+{
+  "id": "x14-commons-squat",
+  "durationS": 7.1,
+  "width": 1280,
+  "height": 720,
+  "rotation": 0,
+  "fpsNominal": 30.0,
+  "fpsMeasured": 29.999,
+  "usable": true,
+  "exercise": "Sentadilla trasera con barra",
+  "exerciseDetail": "Sentadilla trasera con barra alta en rack de potencia (demostración de estudio, FitnessScape)",
+  "suggestedProfile": "SQUAT",
+  "view": "BACK",
+  "people": 1,
+  "fullBodyVisible": true,
+  "faceVisible": false,
+  "plateVisible": true,
+  "startPhase": "ECCENTRIC_FIRST",
+  "reps": {
+    "full": 2,
+    "partial": 0,
+    "failed": 0,
+    "uncertain": false,
+    "acceptableRange": [
+      2,
+      2
+    ]
+  },
+  "repTimesS": [
+    {
+      "index": 1,
+      "turnaroundS": 2.3,
+      "side": null
+    },
+    {
+      "index": 2,
+      "turnaroundS": 5.45,
+      "side": null
+    }
+  ],
+  "activeWindowS": [
+    0.4,
+    7.0
+  ],
+  "frameIntervalS": {
+    "min": 0.033,
+    "median": 0.033,
+    "max": 0.034
+  },
+  "turnaroundKind": "BOTTOM",
+  "edgeEvents": [
+    {
+      "timeS": 0.0,
+      "kind": "TITLE_CARD",
+      "description": "transición gráfica de entrada: cuña roja (~8% del encuadre) en 0,00-0,07 s, decreciente hasta ~0,2 s"
+    },
+    {
+      "timeS": 1.2,
+      "kind": "OVERLAY",
+      "description": "rótulo 'SQUAT' (caja blanca con sombra roja, abajo a la derecha) de 1,20 a 5,70 s; roza el borde del disco derecho"
+    },
+    {
+      "timeS": 7.03,
+      "kind": "TITLE_CARD",
+      "description": "cuña roja diminuta (<1%) de la transición de salida en los últimos 2-3 fotogramas (7,03-7,07 s)"
+    }
+  ],
+  "caveats": [
+    "rótulo 'SQUAT' sobre fondo blanco abajo a la derecha de 1,2 a 5,7 s (4,5 s de 7,1 s): no tapa al levantador, solo roza el borde del disco derecho",
+    "encuadre muy ajustado: el disco superior y la cabeza tocan el borde superior en el bloqueo (4,0 s) y los pies tocan el borde inferior en el fondo (2,3 s y 5,5 s)",
+    "transición gráfica de entrada (cuña roja) en 0-0,2 s",
+    "clip muy corto (7,1 s) con solo 2 repeticiones"
+  ],
+  "cameraMotion": {
+    "class": "STATIC",
+    "note": "cámara fija"
+  },
+  "softWarnings": [
+    "texto superpuesto largo: rótulo 'SQUAT' de 1.2 a 5.7 s (63% del clip); no tapa al sujeto (roza el disco/las piernas en algún instante)",
+    "clip muy corto (7.1 s)"
+  ]
+}

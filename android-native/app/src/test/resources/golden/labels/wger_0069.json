@@ -1,0 +1,85 @@
+{
+  "id": "wger_0069",
+  "durationS": 10.744,
+  "width": 640,
+  "height": 360,
+  "rotation": 0,
+  "fpsNominal": 59.94,
+  "fpsMeasured": 59.94,
+  "usable": true,
+  "exercise": "Encogimientos de hombros de pie",
+  "exerciseDetail": "Encogimientos de hombros de pie sosteniendo una barra delgada y recta delante de los muslos (posible barra de polea baja: se ve un cable vertical a la izquierda), vista frontal con la cámara a la altura del pecho",
+  "suggestedProfile": "SHRUG",
+  "view": "FRONT",
+  "people": 2,
+  "fullBodyVisible": false,
+  "faceVisible": true,
+  "plateVisible": false,
+  "startPhase": "CONCENTRIC_FIRST",
+  "reps": {
+    "full": 4,
+    "partial": 0,
+    "failed": 0,
+    "uncertain": true,
+    "acceptableRange": [
+      3,
+      5
+    ]
+  },
+  "repTimesS": [
+    {
+      "index": 1,
+      "turnaroundS": 3.3,
+      "side": null
+    },
+    {
+      "index": 2,
+      "turnaroundS": 5.1,
+      "side": null
+    },
+    {
+      "index": 3,
+      "turnaroundS": 7.0,
+      "side": null
+    },
+    {
+      "index": 4,
+      "turnaroundS": 9.0,
+      "side": null
+    }
+  ],
+  "activeWindowS": [
+    2.6,
+    10.7
+  ],
+  "frameIntervalS": {
+    "min": 0.0167,
+    "median": 0.0167,
+    "max": 0.0167
+  },
+  "turnaroundKind": "TOP",
+  "edgeEvents": [
+    {
+      "timeS": 0.0,
+      "kind": "SETUP",
+      "description": "0-2,5 s: el sujeto entra en el encuadre por la izquierda (otra persona al borde izquierdo) y la cámara se recoloca; el 1.er encogimiento termina de subir a 3,3 s dentro de ese reencuadre (rango 3-5)"
+    },
+    {
+      "timeS": 10.7,
+      "kind": "TRUNCATED_END",
+      "description": "tras el 4.º encogimiento (9,0 s) los hombros bajan y vuelven a subir en el último medio segundo: un 5.º encogimiento empieza justo al final del clip"
+    }
+  ],
+  "caveats": [
+    "el recorrido de los hombros es de pocos centímetros y el 1.er encogimiento cae dentro de la recolocación de cámara: perfil de baja fiabilidad (tier C) y recuento marcado incierto (4, rango 3-5); se apoya en el flujo en la zona de los hombros y en la comparación de fotogramas a t±0,55 s"
+  ],
+  "cameraMotion": {
+    "class": "REFRAME",
+    "note": "recolocación de mano en 0-3 s (el sujeto entra por la izquierda) y después estable. Medido con ORB+RANSAC sobre encuadre completo sin exclusión (el sujeto ocupa poco) en 3,4-10,6 s: recorrido acumulado p2p 2,5% en x y 3,3% en y, escala 0,96-1,01, velocidad media 1,46 %/s (máx. 1,6% en 1 s)"
+  },
+  "softWarnings": [
+    "reencuadre de cámara fuera de las repeticiones: recolocación de mano en 0-3 s (el sujeto entra por la izquierda) y después estable. Medido con ORB+RANSAC sobre encuadre completo sin exclusión (el sujeto ocupa poco) en 3,4-10,6 s: recorrido acumulado p2p 2,5% en x y 3,3% en y, escala 0,96-1,01, velocidad media 1,46 %/s (máx. 1,6% en 1 s)",
+    "varias personas: 2 distinguibles (el sujeto domina el encuadre; las demás son pequeñas o están al fondo)",
+    "recuento ambiguo por medio ciclo en el borde del clip o por repeticiones dudosas: rango aceptable 3-5 (ver edgeEvents)"
+  ]
+}

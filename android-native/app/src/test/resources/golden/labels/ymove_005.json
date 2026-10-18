@@ -1,0 +1,74 @@
+{
+  "id": "ymove_005",
+  "durationS": 13.08,
+  "width": 360,
+  "height": 640,
+  "rotation": 0,
+  "fpsNominal": 25.0,
+  "fpsMeasured": 25.0,
+  "usable": true,
+  "exercise": "Curl martillo con mancuernas",
+  "exerciseDetail": "Curl martillo con mancuernas de pie (agarre neutro, las dos mancuernas a la vez) hasta los hombros, con ~1,5 s de pausa abajo",
+  "suggestedProfile": "CURL",
+  "view": "OBLIQUE",
+  "people": 1,
+  "fullBodyVisible": true,
+  "faceVisible": true,
+  "plateVisible": false,
+  "startPhase": "CONCENTRIC_FIRST",
+  "reps": {
+    "full": 4,
+    "partial": 0,
+    "failed": 0,
+    "uncertain": false,
+    "acceptableRange": [
+      4,
+      4
+    ]
+  },
+  "repTimesS": [
+    {
+      "index": 1,
+      "turnaroundS": 1.5,
+      "side": null
+    },
+    {
+      "index": 2,
+      "turnaroundS": 4.6,
+      "side": null
+    },
+    {
+      "index": 3,
+      "turnaroundS": 8.0,
+      "side": null
+    },
+    {
+      "index": 4,
+      "turnaroundS": 11.4,
+      "side": null
+    }
+  ],
+  "activeWindowS": [
+    0.5,
+    12.2
+  ],
+  "frameIntervalS": {
+    "min": 0.04,
+    "median": 0.04,
+    "max": 0.04
+  },
+  "turnaroundKind": "TOP",
+  "edgeEvents": [
+    {
+      "timeS": 12.5,
+      "kind": "TRUNCATED_END",
+      "description": "tras la 4.ª repetición (11,4 s) los brazos bajan y el clip termina a los 13,08 s con ellos casi estirados"
+    }
+  ],
+  "caveats": [],
+  "cameraMotion": {
+    "class": "STATIC",
+    "note": "cámara fija de estudio con fondo blanco liso (ORB y ECC no tienen rasgos fiables): los zapatos plantados, seguidos con plantilla, se desplazan x 0..1 px e y 0..2 px en el encuadre 360x640 durante todo el clip (máx. 0,3% del ancho)"
+  },
+  "softWarnings": []
+}

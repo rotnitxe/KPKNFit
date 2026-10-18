@@ -1,0 +1,88 @@
+{
+  "id": "wger_0050",
+  "durationS": 10.45,
+  "width": 640,
+  "height": 360,
+  "rotation": 0,
+  "fpsNominal": 60.0,
+  "fpsMeasured": 60.0,
+  "usable": true,
+  "exercise": "Curl de bíceps en polea",
+  "exerciseDetail": "Curl de bíceps en polea baja con agarre corto (un asa recta) de pie, visto de lado con cámara de mano",
+  "suggestedProfile": "CURL",
+  "view": "SIDE",
+  "people": 2,
+  "fullBodyVisible": false,
+  "faceVisible": true,
+  "plateVisible": false,
+  "startPhase": "CONCENTRIC_FIRST",
+  "reps": {
+    "full": 5,
+    "partial": 0,
+    "failed": 0,
+    "uncertain": false,
+    "acceptableRange": [
+      4,
+      5
+    ]
+  },
+  "repTimesS": [
+    {
+      "index": 1,
+      "turnaroundS": 1.8,
+      "side": null
+    },
+    {
+      "index": 2,
+      "turnaroundS": 4.1,
+      "side": null
+    },
+    {
+      "index": 3,
+      "turnaroundS": 6.1,
+      "side": null
+    },
+    {
+      "index": 4,
+      "turnaroundS": 8.1,
+      "side": null
+    },
+    {
+      "index": 5,
+      "turnaroundS": 10.3,
+      "side": null
+    }
+  ],
+  "activeWindowS": [
+    0.0,
+    10.4
+  ],
+  "frameIntervalS": {
+    "min": 0.0167,
+    "median": 0.0167,
+    "max": 0.0167
+  },
+  "turnaroundKind": "TOP",
+  "edgeEvents": [
+    {
+      "timeS": 5.0,
+      "kind": "BACKGROUND_PERSONS",
+      "description": "una persona cruza por detrás del sujeto entre 4,3 y 5,6 s, sin taparle el brazo de trabajo"
+    },
+    {
+      "timeS": 10.4,
+      "kind": "TRUNCATED_END",
+      "description": "el clip termina a los 10,45 s con la 5.ª repetición recién llegada arriba (10,3 s): el pico queda a 0,15 s del final y un contador sin tiempo posterior podría no confirmarlo (rango 4-5)"
+    }
+  ],
+  "caveats": [],
+  "cameraMotion": {
+    "class": "SLOW_DRIFT",
+    "note": "deriva suave de mano. Medido con ORB+RANSAC sobre el fondo, zona del sujeto excluida en 0,0-10,4 s: recorrido acumulado p2p 1,6% en x y 10,8% en y, escala 0,97-1,00, velocidad media 1,38 %/s (máx. 4,0% en 1 s)"
+  },
+  "softWarnings": [
+    "cámara con deriva lenta: deriva suave de mano. Medido con ORB+RANSAC sobre el fondo, zona del sujeto excluida en 0,0-10,4 s: recorrido acumulado p2p 1,6% en x y 10,8% en y, escala 0,97-1,00, velocidad media 1,38 %/s (máx. 4,0% en 1 s)",
+    "varias personas: 2 distinguibles (el sujeto domina el encuadre; las demás son pequeñas o están al fondo)",
+    "recuento ambiguo por medio ciclo en el borde del clip o por repeticiones dudosas: rango aceptable 4-5 (ver edgeEvents)"
+  ]
+}

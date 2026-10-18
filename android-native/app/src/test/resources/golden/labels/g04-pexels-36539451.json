@@ -1,0 +1,122 @@
+{
+  "id": "g04-pexels-36539451",
+  "durationS": 48.367,
+  "width": 1280,
+  "height": 720,
+  "rotation": 0,
+  "fpsNominal": 30.0,
+  "fpsMeasured": 30.0,
+  "usable": true,
+  "exercise": "Extensión de cuádriceps en máquina",
+  "exerciseDetail": "Extensión de cuádriceps en máquina (sentado, ambas piernas a la vez, ~3 s por repetición y sin pausas)",
+  "suggestedProfile": "LEG_EXTENSION",
+  "view": "OBLIQUE",
+  "people": 1,
+  "fullBodyVisible": true,
+  "faceVisible": true,
+  "plateVisible": false,
+  "startPhase": "CONCENTRIC_FIRST",
+  "reps": {
+    "full": 12,
+    "partial": 0,
+    "failed": 0,
+    "uncertain": false,
+    "acceptableRange": [
+      12,
+      12
+    ]
+  },
+  "repTimesS": [
+    {
+      "index": 1,
+      "turnaroundS": 6.2,
+      "side": null
+    },
+    {
+      "index": 2,
+      "turnaroundS": 9.1,
+      "side": null
+    },
+    {
+      "index": 3,
+      "turnaroundS": 12.0,
+      "side": null
+    },
+    {
+      "index": 4,
+      "turnaroundS": 14.9,
+      "side": null
+    },
+    {
+      "index": 5,
+      "turnaroundS": 17.9,
+      "side": null
+    },
+    {
+      "index": 6,
+      "turnaroundS": 20.7,
+      "side": null
+    },
+    {
+      "index": 7,
+      "turnaroundS": 23.5,
+      "side": null
+    },
+    {
+      "index": 8,
+      "turnaroundS": 26.4,
+      "side": null
+    },
+    {
+      "index": 9,
+      "turnaroundS": 30.6,
+      "side": null
+    },
+    {
+      "index": 10,
+      "turnaroundS": 33.8,
+      "side": null
+    },
+    {
+      "index": 11,
+      "turnaroundS": 37.9,
+      "side": null
+    },
+    {
+      "index": 12,
+      "turnaroundS": 41.5,
+      "side": null
+    }
+  ],
+  "activeWindowS": [
+    5.4,
+    42.6
+  ],
+  "frameIntervalS": {
+    "min": 0.0333,
+    "median": 0.0333,
+    "max": 0.0333
+  },
+  "turnaroundKind": "TOP",
+  "edgeEvents": [
+    {
+      "timeS": 0.0,
+      "kind": "SETUP",
+      "description": "0-5,5 s: se sienta, ajusta la palanca de la máquina (1,5-3,0 s) y espera con las piernas abajo antes de la 1.ª repetición"
+    },
+    {
+      "timeS": 42.5,
+      "kind": "TRANSITION",
+      "description": "42,5-48,4 s: termina la serie, se levanta (44-46 s) y sale de la máquina"
+    }
+  ],
+  "caveats": [
+    "cámara a ras de suelo apuntando hacia arriba: perspectiva muy forzada (muslos y piernas muy acortados en reposo)",
+    "iluminación tenue; la ropa roja da buen contraste con el fondo oscuro"
+  ],
+  "cameraMotion": {
+    "class": "STATIC",
+    "note": "cámara fija a ras de suelo (deriva <1%)"
+  },
+  "softWarnings": []
+}

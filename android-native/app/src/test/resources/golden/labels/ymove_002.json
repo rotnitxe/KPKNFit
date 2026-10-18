@@ -1,0 +1,81 @@
+{
+  "id": "ymove_002",
+  "durationS": 14.84,
+  "width": 360,
+  "height": 640,
+  "rotation": 0,
+  "fpsNominal": 25.0,
+  "fpsMeasured": 25.0,
+  "usable": true,
+  "exercise": "Press de banca con barra",
+  "exerciseDetail": "Press de banca con barra y discos verdes en banco ajustable casi plano (respaldo ligeramente inclinado), visto desde el extremo de los pies y desde arriba, con pausa de ~1,5 s en el pecho",
+  "suggestedProfile": "BENCH",
+  "view": "LYING",
+  "people": 1,
+  "fullBodyVisible": true,
+  "faceVisible": false,
+  "plateVisible": true,
+  "startPhase": "ECCENTRIC_FIRST",
+  "reps": {
+    "full": 3,
+    "partial": 0,
+    "failed": 0,
+    "uncertain": false,
+    "acceptableRange": [
+      3,
+      3
+    ]
+  },
+  "repTimesS": [
+    {
+      "index": 1,
+      "turnaroundS": 2.8,
+      "side": null,
+      "windowS": [
+        2.0,
+        3.6
+      ]
+    },
+    {
+      "index": 2,
+      "turnaroundS": 7.6,
+      "side": null,
+      "windowS": [
+        6.6,
+        8.6
+      ]
+    },
+    {
+      "index": 3,
+      "turnaroundS": 12.5,
+      "side": null,
+      "windowS": [
+        11.5,
+        13.6
+      ]
+    }
+  ],
+  "activeWindowS": [
+    0.8,
+    14.5
+  ],
+  "frameIntervalS": {
+    "min": 0.04,
+    "median": 0.04,
+    "max": 0.04
+  },
+  "turnaroundKind": "BOTTOM",
+  "edgeEvents": [
+    {
+      "timeS": 14.5,
+      "kind": "TRUNCATED_END",
+      "description": "tras la 3.ª repetición (pausa en el pecho 11,5-13,6 s) sube hasta el bloqueo a ~14,3 s y el clip termina a los 14,84 s"
+    }
+  ],
+  "caveats": [],
+  "cameraMotion": {
+    "class": "STATIC",
+    "note": "cámara fija de estudio con fondo blanco liso (ORB y ECC no tienen rasgos fiables): los zapatos plantados, seguidos con plantilla, se desplazan x -1..0 px e y 0..0 px en el encuadre 360x640 durante todo el clip (máx. 0,3% del ancho)"
+  },
+  "softWarnings": []
+}

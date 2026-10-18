@@ -1,0 +1,83 @@
+{
+  "id": "x16-commons-bench",
+  "durationS": 7.1,
+  "width": 1280,
+  "height": 720,
+  "rotation": 0,
+  "fpsNominal": 30.0,
+  "fpsMeasured": 29.999,
+  "usable": true,
+  "exercise": "Press de banca con barra",
+  "exerciseDetail": "Press de banca con barra en banco ajustable plano, repeticiones lentas con un breve toque en el pecho (demostración de estudio, FitnessScape)",
+  "suggestedProfile": "BENCH",
+  "view": "LYING",
+  "people": 1,
+  "fullBodyVisible": true,
+  "faceVisible": false,
+  "plateVisible": true,
+  "startPhase": "CONCENTRIC_FIRST",
+  "reps": {
+    "full": 2,
+    "partial": 0,
+    "failed": 0,
+    "uncertain": false,
+    "acceptableRange": [
+      1,
+      3
+    ]
+  },
+  "repTimesS": [
+    {
+      "index": 1,
+      "turnaroundS": 3.4,
+      "side": null
+    },
+    {
+      "index": 2,
+      "turnaroundS": 6.4,
+      "side": null
+    }
+  ],
+  "activeWindowS": [
+    0.0,
+    7.1
+  ],
+  "frameIntervalS": {
+    "min": 0.033,
+    "median": 0.033,
+    "max": 0.034
+  },
+  "turnaroundKind": "BOTTOM",
+  "edgeEvents": [
+    {
+      "timeS": 0.0,
+      "kind": "TRUNCATED_START",
+      "description": "el clip empieza con la barra en el pecho (0-0,6 s) y se ve la subida a bloqueo (0,6-1,6 s) de una repetición previa: no tiene descenso en el clip"
+    },
+    {
+      "timeS": 0.93,
+      "kind": "OVERLAY",
+      "description": "rótulo 'BENCH PRESS' (caja blanca con sombra roja, abajo a la derecha) de 0,93 a 5,50 s; no tapa al sujeto"
+    },
+    {
+      "timeS": 7.0,
+      "kind": "TRUNCATED_END",
+      "description": "la 2.ª repetición baja (5,0-6,2 s), toca el pecho (~6,4 s) y el clip termina a 7,1 s con la barra subiendo (~0,7 s de subida): un contador que cuente al completar la subida no la ve"
+    }
+  ],
+  "caveats": [
+    "rótulo 'BENCH PRESS' sobre fondo blanco abajo a la derecha de 0,93 a 5,5 s (4,6 s de 7,1 s): no tapa a la persona ni la barra",
+    "clip muy corto (7,1 s) con solo 2 giros completos; empieza con la barra ya en el pecho y termina a mitad de la subida de la 2.ª repetición",
+    "posición atípica: piernas flexionadas y elevadas sobre el respaldo del banco (no apoyadas en el suelo)",
+    "la cabeza queda al borde derecho y medio girada: la cara no se ve con claridad"
+  ],
+  "cameraMotion": {
+    "class": "STATIC",
+    "note": "cámara fija"
+  },
+  "softWarnings": [
+    "texto superpuesto largo: rótulo 'BENCH PRESS' de 0.9 a 5.5 s (64% del clip); no tapa al sujeto",
+    "recuento ambiguo por medio ciclo en el borde del clip o por repeticiones dudosas: rango aceptable 1-3 (ver edgeEvents)",
+    "clip muy corto (7.1 s)"
+  ]
+}

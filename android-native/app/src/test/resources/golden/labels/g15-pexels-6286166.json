@@ -1,0 +1,81 @@
+{
+  "id": "g15-pexels-6286166",
+  "durationS": 12.379,
+  "width": 1280,
+  "height": 720,
+  "rotation": 0,
+  "fpsNominal": 29.97,
+  "fpsMeasured": 29.97,
+  "usable": true,
+  "exercise": "Extensión de tríceps sobre la cabeza (una mano)",
+  "exerciseDetail": "Extensión de tríceps sobre la cabeza con una mancuerna a una mano (brazo izquierdo, el cercano a la cámara si el vídeo no está espejado): el codo se flexiona dejando la mancuerna tras la cabeza y se extiende hasta el brazo vertical",
+  "suggestedProfile": "TRICEPS_EXTENDED_REST",
+  "view": "SIDE",
+  "people": 1,
+  "fullBodyVisible": false,
+  "faceVisible": true,
+  "plateVisible": false,
+  "startPhase": "ECCENTRIC_FIRST",
+  "reps": {
+    "full": 2,
+    "partial": 0,
+    "failed": 0,
+    "uncertain": false,
+    "acceptableRange": [
+      2,
+      3
+    ]
+  },
+  "repTimesS": [
+    {
+      "index": 1,
+      "turnaroundS": 2.7,
+      "side": "left"
+    },
+    {
+      "index": 2,
+      "turnaroundS": 7.8,
+      "side": "left"
+    },
+    {
+      "index": 3,
+      "turnaroundS": 12.2,
+      "side": "left"
+    }
+  ],
+  "activeWindowS": [
+    0.0,
+    12.38
+  ],
+  "frameIntervalS": {
+    "min": 0.0334,
+    "median": 0.0334,
+    "max": 0.0334
+  },
+  "turnaroundKind": "BOTTOM",
+  "edgeEvents": [
+    {
+      "timeS": 0.0,
+      "kind": "TRUNCATED_START",
+      "description": "el clip empieza con el brazo ya extendido arriba (tope de una repetición previa) y baja hasta ~2,7 s: ese tope inicial no se cuenta (rango 2-3)"
+    },
+    {
+      "timeS": 11.6,
+      "kind": "TRUNCATED_END",
+      "description": "tras el 2.º tope (10,5 s) baja y el clip termina (12,4 s) a media flexión, sin completar una 3.ª repetición"
+    }
+  ],
+  "caveats": [
+    "cabeza parcialmente tapada por el brazo que trabaja y torso cortado a la cintura",
+    "ejercicio unilateral: solo se mueve el brazo cercano a la cámara",
+    "clip corto (12,4 s) con 2 repeticiones lentas y pausas de ~1,4 s arriba",
+    "la mancuerna es pequeña y gira: el flujo óptico automático la sigue con desfase"
+  ],
+  "cameraMotion": {
+    "class": "STATIC",
+    "note": "cámara fija (los barrotes del ventanal no se mueven; un micro-reencuadre vertical del ~2% a 2,5-3 s)"
+  },
+  "softWarnings": [
+    "recuento ambiguo por medio ciclo en el borde del clip o por repeticiones dudosas: rango aceptable 2-3 (ver edgeEvents)"
+  ]
+}

@@ -1,0 +1,81 @@
+{
+  "id": "wger_0070",
+  "durationS": 18.767,
+  "width": 640,
+  "height": 360,
+  "rotation": 0,
+  "fpsNominal": 60.0,
+  "fpsMeasured": 60.0,
+  "usable": true,
+  "exercise": "Dominadas asistidas en máquina",
+  "exerciseDetail": "Dominadas asistidas en máquina con contrapeso (agarre pronado ancho en las asas de arriba), de pie sobre la plataforma, visto de espaldas",
+  "suggestedProfile": "PULL_VERTICAL",
+  "view": "BACK",
+  "people": 2,
+  "fullBodyVisible": false,
+  "faceVisible": false,
+  "plateVisible": false,
+  "startPhase": "CONCENTRIC_FIRST",
+  "reps": {
+    "full": 4,
+    "partial": 0,
+    "failed": 0,
+    "uncertain": false,
+    "acceptableRange": [
+      4,
+      4
+    ]
+  },
+  "repTimesS": [
+    {
+      "index": 1,
+      "turnaroundS": 3.4,
+      "side": null
+    },
+    {
+      "index": 2,
+      "turnaroundS": 7.4,
+      "side": null
+    },
+    {
+      "index": 3,
+      "turnaroundS": 11.5,
+      "side": null
+    },
+    {
+      "index": 4,
+      "turnaroundS": 16.0,
+      "side": null
+    }
+  ],
+  "activeWindowS": [
+    1.5,
+    18.7
+  ],
+  "frameIntervalS": {
+    "min": 0.0167,
+    "median": 0.0167,
+    "max": 0.0167
+  },
+  "turnaroundKind": "TOP",
+  "edgeEvents": [
+    {
+      "timeS": 0.0,
+      "kind": "SETUP",
+      "description": "0-1,5 s: cuelga de las asas con los brazos extendidos antes de la 1.ª dominada"
+    },
+    {
+      "timeS": 18.7,
+      "kind": "TRUNCATED_END",
+      "description": "tras la 4.ª dominada (arriba a 16,0 s) baja y el clip termina a los 18,77 s con los brazos casi extendidos"
+    }
+  ],
+  "caveats": [],
+  "cameraMotion": {
+    "class": "STATIC",
+    "note": "cámara fija. Medido con ORB+RANSAC sobre el fondo, zona del sujeto excluida en 1,5-18,7 s: recorrido acumulado p2p 2,6% en x y 2,7% en y, escala 1,00-1,02, velocidad media 0,40 %/s (máx. 1,3% en 1 s)"
+  },
+  "softWarnings": [
+    "varias personas: 2 distinguibles (el sujeto domina el encuadre; las demás son pequeñas o están al fondo)"
+  ]
+}

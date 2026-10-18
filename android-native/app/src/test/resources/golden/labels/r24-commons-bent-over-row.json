@@ -1,0 +1,81 @@
+{
+  "id": "r24-commons-bent-over-row",
+  "durationS": 5.166,
+  "width": 1280,
+  "height": 720,
+  "rotation": 0,
+  "fpsNominal": 30.0,
+  "fpsMeasured": 30.0,
+  "usable": true,
+  "exercise": "Remo con barra inclinado",
+  "exerciseDetail": "Remo con barra inclinado (bent-over row, agarre pronado, barra en rack de potencia)",
+  "suggestedProfile": "ROW",
+  "view": "OBLIQUE",
+  "people": 1,
+  "fullBodyVisible": true,
+  "faceVisible": true,
+  "plateVisible": true,
+  "startPhase": "ECCENTRIC_FIRST",
+  "reps": {
+    "full": 2,
+    "partial": 0,
+    "failed": 0,
+    "uncertain": false,
+    "acceptableRange": [
+      2,
+      3
+    ]
+  },
+  "repTimesS": [
+    {
+      "index": 1,
+      "turnaroundS": 2.2,
+      "side": null
+    },
+    {
+      "index": 2,
+      "turnaroundS": 4.3,
+      "side": null
+    }
+  ],
+  "activeWindowS": [
+    0.0,
+    5.17
+  ],
+  "frameIntervalS": {
+    "min": 0.033,
+    "median": 0.033,
+    "max": 0.034
+  },
+  "turnaroundKind": "TOP",
+  "edgeEvents": [
+    {
+      "timeS": 0.0,
+      "kind": "TRUNCATED_START",
+      "description": "el clip empieza con la barra ya arriba, a la altura del pecho bajo (final de un tirón previo, 0-0,3 s) y solo se ve su descenso (0,3-1,0 s); no se cuenta"
+    },
+    {
+      "timeS": 1.37,
+      "kind": "OVERLAY",
+      "description": "rótulo 'BENT-OVER ROW' (caja blanca con sombra roja, abajo a la derecha) de 1,37 a 5,10 s; no tapa al sujeto"
+    },
+    {
+      "timeS": 4.5,
+      "kind": "TRUNCATED_END",
+      "description": "tras el 2.º tirón (top ~4,2-4,5 s) la barra empieza a bajar y el clip termina a 5,17 s con la barra aún bajando"
+    }
+  ],
+  "caveats": [
+    "rótulo 'BENT-OVER ROW' sobre fondo blanco abajo a la derecha de 1,37 s al final (5,1 s): no tapa a la persona ni a los discos, pero ocupa la esquina inferior derecha",
+    "clip muy corto (5,2 s) con 2 repeticiones y un tirón truncado al inicio"
+  ],
+  "cameraMotion": {
+    "class": "STATIC",
+    "note": "cámara fija"
+  },
+  "softWarnings": [
+    "texto superpuesto largo: rótulo 'BENT-OVER ROW' de 1.4 a 5.1 s (72% del clip); no tapa al sujeto",
+    "recuento ambiguo por medio ciclo en el borde del clip o por repeticiones dudosas: rango aceptable 2-3 (ver edgeEvents)",
+    "clip muy corto (5.2 s)"
+  ]
+}

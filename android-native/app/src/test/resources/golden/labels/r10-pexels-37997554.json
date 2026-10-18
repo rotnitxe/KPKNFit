@@ -1,0 +1,105 @@
+{
+  "id": "r10-pexels-37997554",
+  "durationS": 33.317,
+  "width": 720,
+  "height": 1280,
+  "rotation": 0,
+  "fpsNominal": 59.94,
+  "fpsMeasured": 59.79,
+  "usable": true,
+  "exercise": "Sentadilla trasera con barra",
+  "exerciseDetail": "Sentadilla trasera con barra en rack (profunda)",
+  "suggestedProfile": "SQUAT",
+  "view": "BACK",
+  "people": 2,
+  "fullBodyVisible": true,
+  "faceVisible": false,
+  "plateVisible": true,
+  "startPhase": "ECCENTRIC_FIRST",
+  "reps": {
+    "full": 8,
+    "partial": 0,
+    "failed": 0,
+    "uncertain": false,
+    "acceptableRange": [
+      8,
+      8
+    ]
+  },
+  "repTimesS": [
+    {
+      "index": 1,
+      "turnaroundS": 6.71,
+      "side": null
+    },
+    {
+      "index": 2,
+      "turnaroundS": 9.73,
+      "side": null
+    },
+    {
+      "index": 3,
+      "turnaroundS": 12.58,
+      "side": null
+    },
+    {
+      "index": 4,
+      "turnaroundS": 15.55,
+      "side": null
+    },
+    {
+      "index": 5,
+      "turnaroundS": 18.84,
+      "side": null
+    },
+    {
+      "index": 6,
+      "turnaroundS": 21.99,
+      "side": null
+    },
+    {
+      "index": 7,
+      "turnaroundS": 25.21,
+      "side": null
+    },
+    {
+      "index": 8,
+      "turnaroundS": 28.24,
+      "side": null
+    }
+  ],
+  "activeWindowS": [
+    4.8,
+    29.8
+  ],
+  "frameIntervalS": {
+    "min": 0.0167,
+    "median": 0.0167,
+    "max": 0.0334
+  },
+  "turnaroundKind": "BOTTOM",
+  "edgeEvents": [
+    {
+      "timeS": 0.0,
+      "kind": "SETUP",
+      "description": "0-4,5 s: de pie con la barra ya en la espalda dentro del rack (0-2 s), desrackea y camina hacia atrás (2,5-4 s) y se coloca; el encuadre se corrige en 2,5-5 s"
+    },
+    {
+      "timeS": 29.5,
+      "kind": "LONG_PAUSE",
+      "description": "tras la 8.ª repetición se queda de pie con la barra ~2,5 s (29,5-32 s) y vuelve a rackear la barra caminando hacia delante (32-33,3 s)"
+    }
+  ],
+  "caveats": [
+    "la cámara se reencuadra mientras se desrackea y camina hacia atrás (~2,5-5 s: el fondo se desplaza ~25% del ancho); desde ~5 s hasta el final el encuadre es estable",
+    "personas pequeñas de otros usuarios al fondo del gimnasio (casi inapreciables)"
+  ],
+  "cameraMotion": {
+    "class": "REFRAME",
+    "note": "reencuadre de ~25% del ancho entre 2,5 y 5 s (mientras desrackea); estable de 5 s al final"
+  },
+  "softWarnings": [
+    "reencuadre de cámara fuera de las repeticiones: reencuadre de ~25% del ancho entre 2,5 y 5 s (mientras desrackea); estable de 5 s al final",
+    "varias personas: 2 distinguibles (el sujeto domina el encuadre; las demás son pequeñas o están al fondo)"
+  ]
+}

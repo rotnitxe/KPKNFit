@@ -1,0 +1,77 @@
+{
+  "id": "wger_0066",
+  "durationS": 10.124,
+  "width": 640,
+  "height": 360,
+  "rotation": 0,
+  "fpsNominal": 29.93,
+  "fpsMeasured": 29.93,
+  "usable": true,
+  "exercise": "Fondos en paralelas, de espaldas",
+  "exerciseDetail": "Fondos en paralelas con las piernas flexionadas hacia atrás, visto de espaldas y algo de lado (cámara tras el sujeto, a su derecha)",
+  "suggestedProfile": "DIP",
+  "view": "BACK",
+  "people": 2,
+  "fullBodyVisible": false,
+  "faceVisible": false,
+  "plateVisible": false,
+  "startPhase": "ECCENTRIC_FIRST",
+  "reps": {
+    "full": 4,
+    "partial": 0,
+    "failed": 0,
+    "uncertain": false,
+    "acceptableRange": [
+      4,
+      4
+    ]
+  },
+  "repTimesS": [
+    {
+      "index": 1,
+      "turnaroundS": 1.3,
+      "side": null
+    },
+    {
+      "index": 2,
+      "turnaroundS": 4.1,
+      "side": null
+    },
+    {
+      "index": 3,
+      "turnaroundS": 6.3,
+      "side": null
+    },
+    {
+      "index": 4,
+      "turnaroundS": 9.1,
+      "side": null
+    }
+  ],
+  "activeWindowS": [
+    0.0,
+    9.6
+  ],
+  "frameIntervalS": {
+    "min": 0.0334,
+    "median": 0.0334,
+    "max": 0.0334
+  },
+  "turnaroundKind": "BOTTOM",
+  "edgeEvents": [
+    {
+      "timeS": 9.8,
+      "kind": "TRUNCATED_END",
+      "description": "tras el 4.º fondo (9,1 s) el sujeto sube y se gira hacia la cámara: el clip termina a los 10,1 s con él fuera de la tarea"
+    }
+  ],
+  "caveats": [],
+  "cameraMotion": {
+    "class": "SLOW_DRIFT",
+    "note": "deriva suave de mano. Medido con ORB+RANSAC sobre bordes del encuadre en 0,0-9,6 s: recorrido acumulado p2p 3,7% en x y 5,9% en y, escala 0,99-1,02, velocidad media 1,97 %/s (máx. 2,7% en 1 s)"
+  },
+  "softWarnings": [
+    "cámara con deriva lenta: deriva suave de mano. Medido con ORB+RANSAC sobre bordes del encuadre en 0,0-9,6 s: recorrido acumulado p2p 3,7% en x y 5,9% en y, escala 0,99-1,02, velocidad media 1,97 %/s (máx. 2,7% en 1 s)",
+    "varias personas: 2 distinguibles (el sujeto domina el encuadre; las demás son pequeñas o están al fondo)"
+  ]
+}

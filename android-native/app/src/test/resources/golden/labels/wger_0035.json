@@ -1,0 +1,97 @@
+{
+  "id": "wger_0035",
+  "durationS": 15.065,
+  "width": 640,
+  "height": 360,
+  "rotation": 0,
+  "fpsNominal": 59.94,
+  "fpsMeasured": 59.94,
+  "usable": true,
+  "exercise": "Curl femoral tumbado en máquina",
+  "exerciseDetail": "Curl femoral tumbado (prone leg curl) en máquina de palanca con discos rojos, visto de lado con cámara de mano",
+  "suggestedProfile": "LEG_CURL",
+  "view": "LYING",
+  "people": 1,
+  "fullBodyVisible": true,
+  "faceVisible": false,
+  "plateVisible": true,
+  "startPhase": "CONCENTRIC_FIRST",
+  "reps": {
+    "full": 7,
+    "partial": 0,
+    "failed": 0,
+    "uncertain": false,
+    "acceptableRange": [
+      6,
+      7
+    ]
+  },
+  "repTimesS": [
+    {
+      "index": 1,
+      "turnaroundS": 2.0,
+      "side": null
+    },
+    {
+      "index": 2,
+      "turnaroundS": 4.2,
+      "side": null
+    },
+    {
+      "index": 3,
+      "turnaroundS": 5.6,
+      "side": null
+    },
+    {
+      "index": 4,
+      "turnaroundS": 7.9,
+      "side": null
+    },
+    {
+      "index": 5,
+      "turnaroundS": 9.8,
+      "side": null
+    },
+    {
+      "index": 6,
+      "turnaroundS": 11.6,
+      "side": null
+    },
+    {
+      "index": 7,
+      "turnaroundS": 13.8,
+      "side": null
+    }
+  ],
+  "activeWindowS": [
+    1.3,
+    14.4
+  ],
+  "frameIntervalS": {
+    "min": 0.0167,
+    "median": 0.0167,
+    "max": 0.0167
+  },
+  "turnaroundKind": "TOP",
+  "edgeEvents": [
+    {
+      "timeS": 0.0,
+      "kind": "SETUP",
+      "description": "0-1,3 s: tumbado con las piernas estiradas (reposo) antes de la 1.ª flexión"
+    },
+    {
+      "timeS": 14.4,
+      "kind": "TRUNCATED_END",
+      "description": "tras la 7.ª flexión (13,8 s) las piernas bajan y el clip termina a los 15,0 s"
+    }
+  ],
+  "caveats": [],
+  "cameraMotion": {
+    "class": "SLOW_DRIFT",
+    "note": "deriva suave de mano. Medido con ORB+RANSAC sobre el fondo, zona del sujeto excluida en 1,3-14,4 s: recorrido acumulado p2p 2,8% en x y 4,9% en y, escala 1,00-1,05, velocidad media 0,76 %/s (máx. 1,2% en 1 s)"
+  },
+  "softWarnings": [
+    "cámara con deriva lenta: deriva suave de mano. Medido con ORB+RANSAC sobre el fondo, zona del sujeto excluida en 1,3-14,4 s: recorrido acumulado p2p 2,8% en x y 4,9% en y, escala 1,00-1,05, velocidad media 0,76 %/s (máx. 1,2% en 1 s)",
+    "recuento ambiguo por medio ciclo en el borde del clip o por repeticiones dudosas: rango aceptable 6-7 (ver edgeEvents)"
+  ]
+}

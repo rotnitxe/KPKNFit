@@ -1,0 +1,79 @@
+{
+  "id": "ymove_018",
+  "durationS": 20.28,
+  "width": 360,
+  "height": 640,
+  "rotation": 0,
+  "fpsNominal": 25.0,
+  "fpsMeasured": 25.0,
+  "usable": true,
+  "exercise": "Curl de bíceps con cuerda en polea",
+  "exerciseDetail": "Curl de bíceps con cuerda en polea baja, a dos manos (los dos extremos de la cuerda en las manos), de pie y visto de frente",
+  "suggestedProfile": "CURL",
+  "view": "FRONT",
+  "people": 1,
+  "fullBodyVisible": true,
+  "faceVisible": true,
+  "plateVisible": false,
+  "startPhase": "CONCENTRIC_FIRST",
+  "reps": {
+    "full": 5,
+    "partial": 0,
+    "failed": 0,
+    "uncertain": false,
+    "acceptableRange": [
+      5,
+      5
+    ]
+  },
+  "repTimesS": [
+    {
+      "index": 1,
+      "turnaroundS": 1.7,
+      "side": null
+    },
+    {
+      "index": 2,
+      "turnaroundS": 5.2,
+      "side": null
+    },
+    {
+      "index": 3,
+      "turnaroundS": 9.2,
+      "side": null
+    },
+    {
+      "index": 4,
+      "turnaroundS": 13.4,
+      "side": null
+    },
+    {
+      "index": 5,
+      "turnaroundS": 17.8,
+      "side": null
+    }
+  ],
+  "activeWindowS": [
+    0.4,
+    19.0
+  ],
+  "frameIntervalS": {
+    "min": 0.04,
+    "median": 0.04,
+    "max": 0.04
+  },
+  "turnaroundKind": "TOP",
+  "edgeEvents": [
+    {
+      "timeS": 20.0,
+      "kind": "TRUNCATED_END",
+      "description": "tras la 5.ª repetición (17,8 s) los brazos bajan y el clip termina a los 20,28 s con el sujeto agachándose a soltar la cuerda (19,6-20,3 s)"
+    }
+  ],
+  "caveats": [],
+  "cameraMotion": {
+    "class": "STATIC",
+    "note": "cámara fija de estudio: ECC (traslación contra la mediana temporal sobre el fondo que el sujeto nunca cubre): desplazamiento máx. 0,84% en x y 0,29% en y del encuadre en toda la ventana"
+  },
+  "softWarnings": []
+}

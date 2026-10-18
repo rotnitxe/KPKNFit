@@ -1,0 +1,68 @@
+{
+  "id": "wger_0051",
+  "durationS": 10.367,
+  "width": 640,
+  "height": 360,
+  "rotation": 0,
+  "fpsNominal": 60.0,
+  "fpsMeasured": 60.0,
+  "usable": true,
+  "exercise": "Curl martillo con mancuernas",
+  "exerciseDetail": "Curl martillo con mancuernas de pie (agarre neutro, las dos mancuernas a la vez), visto de lado con cámara fija",
+  "suggestedProfile": "CURL",
+  "view": "SIDE",
+  "people": 1,
+  "fullBodyVisible": false,
+  "faceVisible": true,
+  "plateVisible": false,
+  "startPhase": "CONCENTRIC_FIRST",
+  "reps": {
+    "full": 4,
+    "partial": 0,
+    "failed": 0,
+    "uncertain": false,
+    "acceptableRange": [
+      4,
+      4
+    ]
+  },
+  "repTimesS": [
+    {
+      "index": 1,
+      "turnaroundS": 1.7,
+      "side": null
+    },
+    {
+      "index": 2,
+      "turnaroundS": 3.8,
+      "side": null
+    },
+    {
+      "index": 3,
+      "turnaroundS": 6.1,
+      "side": null
+    },
+    {
+      "index": 4,
+      "turnaroundS": 8.3,
+      "side": null
+    }
+  ],
+  "activeWindowS": [
+    0.4,
+    9.6
+  ],
+  "frameIntervalS": {
+    "min": 0.0167,
+    "median": 0.0167,
+    "max": 0.0167
+  },
+  "turnaroundKind": "TOP",
+  "edgeEvents": [],
+  "caveats": [],
+  "cameraMotion": {
+    "class": "STATIC",
+    "note": "cámara fija. Medido con ORB+RANSAC sobre el fondo, zona del sujeto excluida en 0,4-9,6 s: recorrido acumulado p2p 1,2% en x y 1,5% en y, escala 1,00-1,01, velocidad media 0,43 %/s (máx. 0,8% en 1 s)"
+  },
+  "softWarnings": []
+}

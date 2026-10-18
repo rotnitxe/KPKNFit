@@ -1,0 +1,88 @@
+{
+  "id": "x12-mixkit-48541",
+  "durationS": 12.2,
+  "width": 1280,
+  "height": 720,
+  "rotation": 0,
+  "fpsNominal": 25.0,
+  "fpsMeasured": 25.0,
+  "usable": true,
+  "exercise": "Sentadilla overhead",
+  "exerciseDetail": "Sentadilla overhead (barra sostenida con agarre ancho sobre la cabeza, sentadilla profunda y vuelta arriba)",
+  "suggestedProfile": "SQUAT",
+  "view": "FRONT",
+  "people": 1,
+  "fullBodyVisible": true,
+  "faceVisible": true,
+  "plateVisible": true,
+  "startPhase": "ECCENTRIC_FIRST",
+  "reps": {
+    "full": 6,
+    "partial": 0,
+    "failed": 0,
+    "uncertain": false,
+    "acceptableRange": [
+      6,
+      6
+    ]
+  },
+  "repTimesS": [
+    {
+      "index": 1,
+      "turnaroundS": 1.0,
+      "side": null
+    },
+    {
+      "index": 2,
+      "turnaroundS": 3.1,
+      "side": null
+    },
+    {
+      "index": 3,
+      "turnaroundS": 5.0,
+      "side": null
+    },
+    {
+      "index": 4,
+      "turnaroundS": 7.05,
+      "side": null
+    },
+    {
+      "index": 5,
+      "turnaroundS": 9.1,
+      "side": null
+    },
+    {
+      "index": 6,
+      "turnaroundS": 11.2,
+      "side": null
+    }
+  ],
+  "activeWindowS": [
+    0.0,
+    12.2
+  ],
+  "frameIntervalS": {
+    "min": 0.04,
+    "median": 0.04,
+    "max": 0.04
+  },
+  "turnaroundKind": "BOTTOM",
+  "edgeEvents": [
+    {
+      "timeS": 12.0,
+      "kind": "TRUNCATED_END",
+      "description": "tras la 6.ª sentadilla el clip termina (12,2 s) con él subiendo, sin llegar a empezar una 7.ª"
+    }
+  ],
+  "caveats": [
+    "sentadilla con la barra por encima de la cabeza (overhead squat): la barra y las manos están sobre la cabeza todo el tiempo, distinto de la sentadilla trasera habitual; el perfil SQUAT es una aproximación",
+    "las puntas de los discos se ven casi de canto (vista frontal), no la cara circular",
+    "el clip termina con la 6.ª repetición todavía subiendo"
+  ],
+  "cameraMotion": {
+    "class": "STATIC",
+    "note": "cámara fija"
+  },
+  "softWarnings": []
+}

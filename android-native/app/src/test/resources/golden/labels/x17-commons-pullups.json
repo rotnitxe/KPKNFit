@@ -1,0 +1,83 @@
+{
+  "id": "x17-commons-pullups",
+  "durationS": 6.0,
+  "width": 1280,
+  "height": 720,
+  "rotation": 0,
+  "fpsNominal": 30.0,
+  "fpsMeasured": 29.998,
+  "usable": true,
+  "exercise": "Dominada pronada",
+  "exerciseDetail": "Dominadas pronadas con agarre algo más ancho que los hombros en una barra fija (demostración de estudio, FitnessScape)",
+  "suggestedProfile": "PULL_VERTICAL",
+  "view": "BACK",
+  "people": 1,
+  "fullBodyVisible": false,
+  "faceVisible": false,
+  "plateVisible": false,
+  "startPhase": "ECCENTRIC_FIRST",
+  "reps": {
+    "full": 1,
+    "partial": 0,
+    "failed": 0,
+    "uncertain": false,
+    "acceptableRange": [
+      1,
+      2
+    ]
+  },
+  "repTimesS": [
+    {
+      "index": 1,
+      "turnaroundS": 4.75,
+      "side": null
+    }
+  ],
+  "activeWindowS": [
+    0.25,
+    5.97
+  ],
+  "frameIntervalS": {
+    "min": 0.033,
+    "median": 0.033,
+    "max": 0.034
+  },
+  "turnaroundKind": "TOP",
+  "edgeEvents": [
+    {
+      "timeS": 0.0,
+      "kind": "TRUNCATED_START",
+      "description": "el clip empieza en la parte final de una subida: arriba (cabeza sobre la barra) ~0,3-1,3 s, sin su arranque desde la suspensión; baja de 1,5 a 2,3 s"
+    },
+    {
+      "timeS": 0.0,
+      "kind": "TITLE_CARD",
+      "description": "transición de entrada: el fotograma 0,00 s es casi todo rojo (89,7%), 0,03 s 30%, 0,07-0,10 s 8%, decreciente hasta ~0,2 s"
+    },
+    {
+      "timeS": 0.7,
+      "kind": "OVERLAY",
+      "description": "rótulo 'PULL-UPS' (caja blanca con sombra roja, abajo a la derecha) de 0,70 a 5,23 s; roza las piernas hacia 4,2-4,6 s"
+    },
+    {
+      "timeS": 5.0,
+      "kind": "TRUNCATED_END",
+      "description": "tras el punto alto (4,75 s) empieza a bajar y el clip termina a 6,0 s con los codos aún flexionados (sin volver a la extensión completa)"
+    }
+  ],
+  "caveats": [
+    "rótulo 'PULL-UPS' sobre fondo blanco abajo a la derecha de 0,7 a 5,23 s (4,5 s de 6 s): no tapa al atleta (roza el borde de sus piernas hacia 4,2-4,6 s)",
+    "clip muy corto (6,0 s): 1 repetición completa y 2 medias repeticiones en los extremos",
+    "las piernas quedan cortadas por el borde inferior (muslos/rodillas) y hace algo de impulso con las piernas (kipping suave) en 0,5-1,0 s y 4,2-4,7 s",
+    "la cara no se ve (de espaldas, mirando a la pared)"
+  ],
+  "cameraMotion": {
+    "class": "STATIC",
+    "note": "cámara fija"
+  },
+  "softWarnings": [
+    "texto superpuesto largo: rótulo 'PULL-UPS' de 0.7 a 5.2 s (76% del clip); no tapa al sujeto (roza el disco/las piernas en algún instante)",
+    "recuento ambiguo por medio ciclo en el borde del clip o por repeticiones dudosas: rango aceptable 1-2 (ver edgeEvents)",
+    "clip muy corto (6.0 s)"
+  ]
+}

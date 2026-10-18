@@ -1,0 +1,167 @@
+{
+  "id": "r27-mixkit-11766",
+  "durationS": 30.764,
+  "width": 1280,
+  "height": 720,
+  "rotation": 0,
+  "fpsNominal": 29.97,
+  "fpsMeasured": 29.97,
+  "usable": true,
+  "exercise": "Flexión de brazos",
+  "exerciseDetail": "Flexiones de brazos en el suelo (primero rápidas y luego lentas con pausa en el fondo), pista de atletismo roja al aire libre",
+  "suggestedProfile": "PUSH_UP",
+  "view": "FRONT",
+  "people": 3,
+  "fullBodyVisible": true,
+  "faceVisible": false,
+  "plateVisible": false,
+  "startPhase": "CONCENTRIC_FIRST",
+  "reps": {
+    "full": 10,
+    "partial": 0,
+    "failed": 0,
+    "uncertain": false,
+    "acceptableRange": [
+      10,
+      11
+    ]
+  },
+  "repTimesS": [
+    {
+      "index": 1,
+      "turnaroundS": 1.6,
+      "side": null,
+      "windowS": [
+        1.45,
+        1.75
+      ]
+    },
+    {
+      "index": 2,
+      "turnaroundS": 2.7,
+      "side": null,
+      "windowS": [
+        2.55,
+        2.85
+      ]
+    },
+    {
+      "index": 3,
+      "turnaroundS": 3.9,
+      "side": null,
+      "windowS": [
+        3.75,
+        4.05
+      ]
+    },
+    {
+      "index": 4,
+      "turnaroundS": 5.3,
+      "side": null,
+      "windowS": [
+        5.15,
+        5.45
+      ]
+    },
+    {
+      "index": 5,
+      "turnaroundS": 6.8,
+      "side": null,
+      "windowS": [
+        6.65,
+        6.95
+      ]
+    },
+    {
+      "index": 6,
+      "turnaroundS": 8.0,
+      "side": null,
+      "windowS": [
+        7.85,
+        8.15
+      ]
+    },
+    {
+      "index": 7,
+      "turnaroundS": 9.1,
+      "side": null,
+      "windowS": [
+        8.95,
+        9.25
+      ]
+    },
+    {
+      "index": 8,
+      "turnaroundS": 16.4,
+      "side": null,
+      "windowS": [
+        16.0,
+        16.8
+      ]
+    },
+    {
+      "index": 9,
+      "turnaroundS": 20.45,
+      "side": null,
+      "windowS": [
+        19.6,
+        21.3
+      ]
+    },
+    {
+      "index": 10,
+      "turnaroundS": 25.9,
+      "side": null,
+      "windowS": [
+        24.6,
+        27.2
+      ]
+    }
+  ],
+  "activeWindowS": [
+    0.0,
+    28.0
+  ],
+  "frameIntervalS": {
+    "min": 0.0334,
+    "median": 0.0334,
+    "max": 0.0334
+  },
+  "turnaroundKind": "BOTTOM",
+  "edgeEvents": [
+    {
+      "timeS": 0.2,
+      "kind": "TRUNCATED_START",
+      "description": "el clip empieza en el fondo de una flexión previa (cabeza abajo hacia 0,0-0,4 s) y se ve su subida hasta ~0,9 s; no se ve el descenso y no se cuenta (si un contador la cuenta salen 11)"
+    },
+    {
+      "timeS": 10.0,
+      "kind": "LONG_PAUSE",
+      "description": "plancha quieta con los brazos extendidos de ~10,0 a ~15,6 s (5,6 s sin movimiento)"
+    },
+    {
+      "timeS": 16.0,
+      "kind": "LONG_PAUSE",
+      "description": "3 flexiones lentas: baja rápido y mantiene el fondo (bajada 15,6-16,0 s, fondo 16,0-16,8 s; 19,6-21,3 s; 24,6-27,2 s) con la cabeza casi al suelo y sube en ~0,8 s"
+    },
+    {
+      "timeS": 28.0,
+      "kind": "LONG_PAUSE",
+      "description": "plancha quieta en el punto alto de ~28 s al final del clip (30,8 s)"
+    }
+  ],
+  "caveats": [
+    "vista frontal a ras de suelo con la cabeza hacia la cámara: escorzo fuerte, el cuerpo se ve acortado (no es la vista lateral habitual de la flexión)",
+    "tempo mixto: 7 repeticiones rápidas (~1,3 s) con la primera ya empezada, una larga pausa en plancha (10-15,5 s) y 3 repeticiones lentas con pausa larga en el fondo (1-2,5 s)",
+    "con muestreo de 2 fps las rápidas se ven aliasadas: contar a ≥6 fps",
+    "peatones minúsculos (hasta 2 a la vez: uno en la calle detrás de la pista y otro en las gradas) y coches al fondo"
+  ],
+  "cameraMotion": {
+    "class": "STATIC",
+    "note": "fija (deriva ~5%, sin efecto)"
+  },
+  "softWarnings": [
+    "varias personas: 3 distinguibles (el sujeto domina el encuadre; las demás son pequeñas o están al fondo)",
+    "recuento ambiguo por medio ciclo en el borde del clip o por repeticiones dudosas: rango aceptable 10-11 (ver edgeEvents)"
+  ]
+}
