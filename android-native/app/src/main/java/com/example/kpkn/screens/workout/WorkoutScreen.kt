@@ -166,6 +166,8 @@ import com.example.kpkn.screens.workout.components.SetInputCardV2
 import com.example.kpkn.screens.workout.components.VoiceCaptureModeDialog
 import com.example.kpkn.screens.workout.components.LiveUndoPillHost
 import com.example.kpkn.screens.workout.components.WorkoutRoadmapBar
+import com.example.kpkn.screens.workout.components.WorkoutSessionCockpit
+import com.example.kpkn.screens.workout.components.cockpitVerticalGesture
 import com.example.kpkn.screens.workout.components.WorkoutSessionAlbumSheet
 import com.example.kpkn.screens.workout.components.WorkoutUiTokens
 import com.example.kpkn.ui.components.kpknGlassOrFallback
@@ -308,7 +310,7 @@ fun WorkoutScreen(
     val snackbarHostState = remember { SnackbarHostState() }
     val snackbarScope = rememberCoroutineScope()
     var showExitDialog by rememberSaveable { mutableStateOf(false) }
-    val roadmapMode = RoadmapMode.COMPACT
+    var roadmapMode by rememberSaveable(programId, sessionId) { mutableStateOf(RoadmapMode.COMPACT) }
     val chromeScale = LocalViewportAdapt.current.uniformScale
     val compactCockpitHeightDp = 78
     var measuredRoadmapHeightDp by remember { mutableIntStateOf(0) }
@@ -541,6 +543,30 @@ fun WorkoutScreen(
         augeRepository,
     ) {
         value = augeRepository.getAdaptiveCache()
+    }
+    val realtimeRingsEnabled = viewModel.shouldShowRealtimeRingsWidget()
+    val cockpitRingPreview by produceState<PostSessionPreview?>(
+        initialValue = null,
+        completedExercisesForSummary,
+        realtimeRingsEnabled,
+        uiState.readinessNeuralOverride,
+        uiState.readinessSpinalOverride,
+        uiState.readinessMuscularOverride,
+    ) {
+        value = null
+        if (realtimeRingsEnabled && completedExercisesForSummary.isNotEmpty()) {
+            value = try {
+                augeViewModel.computePostSessionPreview(
+                    completedExercises = completedExercisesForSummary,
+                    durationMinutes = ((System.currentTimeMillis() - uiState.startTimeMs) / 60_000L).toInt().coerceAtLeast(1),
+                    settings = settings,
+                )
+            } catch (cancelled: kotlinx.coroutines.CancellationException) {
+                throw cancelled
+            } catch (_: Exception) {
+                null
+            }
+        }
     }
     val sessionMuscleVolumeByRoleSets = remember(completedExercisesForSummary) {
         computeSessionMuscleRoleWeightedSets(completedExercisesForSummary)
