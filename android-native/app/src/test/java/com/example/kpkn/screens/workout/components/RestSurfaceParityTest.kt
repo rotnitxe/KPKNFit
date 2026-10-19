@@ -176,14 +176,13 @@ class RestSurfaceParityTest {
     fun theFullScreenGameKeepsSkippingTheRestAndGoesBackToTheRest() {
         val taps = Taps()
         overlay(taps, playing = true)
-        rule.onNodeWithText("Salta las mancuernas").assertExists()
+        // master opens the arcade picker first; selecting a game keeps the same rest clock active.
+        rule.onNodeWithText("Salta las mancuernas").performClick()
         rule.onNodeWithText("El descanso sigue corriendo").assertExists()
-        rule.onNodeWithText("Después").assertExists()
-        // «Saltar descanso» desde el juego es el mismo onSkip.
+        rule.onNodeWithText("Después", substring = true).assertExists()
         rule.onNodeWithText("Saltar descanso").performClick()
         assertEquals(1, taps.skip)
-        // Y «Volver al descanso» devuelve la pantalla del descanso con sus controles.
-        rule.onNodeWithContentDescription("Volver al descanso").performClick()
+        rule.onNodeWithText("Volver").performClick()
         rule.onNodeWithText("Ajustar tiempo").assertExists()
         rule.onNodeWithContentDescription("Sumar 15 segundos").performClick()
         assertEquals(1, taps.plus)
@@ -193,11 +192,11 @@ class RestSurfaceParityTest {
     fun theCardGameKeepsSkippingTheRestAndGoesBackToTheCard() {
         val taps = Taps()
         card(taps, playing = true)
-        rule.onNodeWithText("Descanso en marcha").assertExists()
-        rule.onNodeWithContentDescription("Saltar descanso").performClick()
+        rule.onNodeWithText("Salta las mancuernas").performClick()
+        rule.onNodeWithText("Saltar descanso").performClick()
         assertEquals(1, taps.skip)
         rule.onNodeWithText("Volver").performClick()
-        rule.onNodeWithText("Jugar").assertExists()
+        rule.onNodeWithText("Jugar mientras descansas").assertExists()
         rule.onNodeWithContentDescription("Restar 15 segundos").performClick()
         assertEquals(1, taps.minus)
     }
@@ -206,26 +205,26 @@ class RestSurfaceParityTest {
     fun thePlayButtonsOpenTheGameInsideTheSameSurface() {
         overlay(Taps())
         rule.onNodeWithText("Jugar mientras descansas").performClick()
-        rule.onNodeWithText("Salta las mancuernas").assertExists()
+        rule.onNodeWithText("Salta las mancuernas").performClick()
         rule.onNodeWithText("Toca para saltar").assertExists()
     }
 
     @Test
     fun theCardPlayButtonOpensTheGameInsideTheCard() {
         card(Taps())
-        rule.onNodeWithText("Jugar").performClick()
-        rule.onNodeWithText("Descanso en marcha").assertExists()
+        rule.onNodeWithText("Jugar mientras descansas").performClick()
+        rule.onNodeWithText("Salta las mancuernas").performClick()
         rule.onNodeWithText("Toca para saltar").assertExists()
     }
 
     @Test
-    fun theShapeTabsReportTheShapeThePersonPicks() {
+    fun theHostControlsClockShapeWithoutShowingSelectionTabs() {
         val taps = Taps()
         overlay(taps)
-        rule.onNodeWithText("Pista").performClick()
-        rule.onNodeWithText("Espiral").performClick()
-        rule.onNodeWithText("Torre").performClick()
-        assertEquals(listOf(RestClockShape.TRACK, RestClockShape.SPIRAL, RestClockShape.TOWER), taps.shapes)
+        rule.onNodeWithText("Pista").assertDoesNotExist()
+        rule.onNodeWithText("Espiral").assertDoesNotExist()
+        rule.onNodeWithText("Torre").assertDoesNotExist()
+        assertEquals(emptyList<RestClockShape>(), taps.shapes)
     }
 
     @Test
