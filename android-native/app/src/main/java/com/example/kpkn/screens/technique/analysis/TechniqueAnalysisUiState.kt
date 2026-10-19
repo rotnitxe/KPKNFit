@@ -644,7 +644,7 @@ internal fun buildBreakdown(report: SetTechniqueReport, marks: List<TechniqueRep
     val metrics = listOfNotNull(
         velocityMetric(report, reps),
         romMetric(report, reps),
-        timeMetric(marks),
+        timeMetric(report, marks),
     )
     if (metrics.isEmpty()) return null
     val bars = marks.mapIndexed { i, mark -> RepBarUi(mark.kind, i + 1, repDetail(report, i + 1, mark, reps[i])) }
@@ -706,7 +706,10 @@ private fun romMetric(report: SetTechniqueReport, reps: List<RepReport?>): RepMe
     return RepMetricUi(RepMetricKind.ROM, heights, labels, best, description)
 }
 
-private fun timeMetric(marks: List<TechniqueRepMark>): RepMetricUi? {
+private fun timeMetric(report: SetTechniqueReport, marks: List<TechniqueRepMark>): RepMetricUi? {
+    // Marks remain useful for seek/loop when the engine only provides coarse count anchors.
+    // Their interval is a measured duration only when PHASES is explicitly available.
+    if (MetricKey.PHASES !in report.available) return null
     val values: List<Double?> = marks.map { m -> ((m.endUs - m.startUs) / 1_000_000.0).takeIf { it > 0.0 } }
     if (values.count { it != null } < 2) return null
     val (heights, best, worst) = relativeHeights(values)
@@ -730,8 +733,10 @@ private fun repDetail(report: SetTechniqueReport, number: Int, mark: TechniqueRe
     }
     if (rep == null) return parts.joinToString(" · ")
     val (down, up) = phaseWords(report.profileId)
-    rep.eccentricMs?.takeIf { it > 0 }?.let { parts.add("$down ${AnalysisFormat.seconds(it)}") }
-    rep.concentricMs?.takeIf { it > 0 }?.let { parts.add("$up ${AnalysisFormat.seconds(it)}") }
+    if (MetricKey.PHASES in report.available) {
+        rep.eccentricMs?.takeIf { it > 0 }?.let { parts.add("$down ${AnalysisFormat.seconds(it)}") }
+        rep.concentricMs?.takeIf { it > 0 }?.let { parts.add("$up ${AnalysisFormat.seconds(it)}") }
+    }
     rep.romDeg?.takeIf { it.isFinite() && it > 0.0 }?.let { parts.add("ROM ${if (report.isOblique()) "≈ " else ""}${it.roundToInt()}°") }
     if (report.velocityUnit == VelocityUnit.MPS) {
         rep.mcv?.takeIf { it.isFinite() && it > 0.0 }?.let { parts.add("≈ ${AnalysisFormat.decimal(it, 2)} m/s") }

@@ -489,4 +489,61 @@ class TechniqueAnalysisUiStateTest {
         val original = "Bajo el paralelo en ≈ 7 de 8"
         assertEquals(original, original.keepTogether().replace(nbsp, " "))
     }
+
+    @Test
+    fun reps_only_report_keeps_navigation_anchors_without_publishing_a_time_chart() {
+        val source = TechniqueSamples.analysisReport
+        val report = source.copy(
+            available = setOf(MetricKey.REPS),
+            tutMs = null, setDurationMs = null, restPositionMs = null, tempo = null,
+            velocityUnit = null, velocityLossPct = null, mcvBest = null,
+            reps = source.reps.map { it.copy(
+                eccentricMs = null, turnPauseMs = null, concentricMs = null, restPauseMs = null,
+                romDeg = null, depthClass = null, mcv = null, peakVelocity = null,
+            ) },
+        )
+        val marks = marksOf(report)
+        assertEquals(source.reps.size, marks.size)
+        assertTrue(marks.all { it.endUs > it.startUs })
+        assertTrue(marks.any { it.isLoopable })
+        val originalAnchors = marksOf(source)
+        assertEquals(originalAnchors, marks)
+        assertNull("Coarse seek/loop intervals are not measured rep durations", buildBreakdown(report, marks))
+        assertEquals(listOf(SummaryTileId.REPS), buildSummary(report).tiles.map { it.id })
+        assertEquals(source.repCount, report.repCount)
+        assertEquals(source.confidence, report.confidence)
+        assertEquals(originalAnchors, marksOf(report)) // UI preparation must not rewrite navigation.
+    }
+
+    @Test
+    fun unavailable_phases_do_not_leak_through_nonnull_rep_fields_while_rom_and_speed_remain() {
+        val source = TechniqueSamples.analysisReport
+        val report = source.copy(available = source.available - MetricKey.PHASES)
+        // Deliberately retain non-null phase fields to require availability, not incidental nulls.
+        assertTrue(report.reps.any { it.eccentricMs != null || it.concentricMs != null })
+        val breakdown = buildBreakdown(report, marksOf(report))!!
+        assertEquals(listOf(RepMetricKind.VELOCITY, RepMetricKind.ROM), breakdown.metrics.map { it.kind })
+        assertTrue(breakdown.reps.none { it.detail.contains("bajada ") || it.detail.contains("subida ") })
+        assertTrue(breakdown.reps.first().detail.contains("ROM 112°"))
+        assertTrue(breakdown.reps.first().detail.contains("≈ 0,62 m/s"))
+        assertEquals(source.reps.map { it.kind }, breakdown.reps.map { it.kind })
+        assertEquals((1..source.reps.size).toList(), breakdown.reps.map { it.number })
+        assertTrue(breakdown.metrics.none { it.description.startsWith("Tiempo:") })
+    }
+
+    @Test
+    fun measured_phases_keep_time_chart_and_details_without_requiring_tut_or_tempo_aggregates() {
+        val source = TechniqueSamples.analysisReport
+        val report = source.copy(
+            available = source.available - MetricKey.TUT - MetricKey.TEMPO,
+            tutMs = null, tempo = null,
+        )
+        assertTrue(MetricKey.PHASES in report.available)
+        val expected = buildBreakdown(source, marksOf(source))!!
+        val actual = buildBreakdown(report, marksOf(report))!!
+        assertEquals(expected.metrics.first { it.kind == RepMetricKind.TIME }, actual.metrics.first { it.kind == RepMetricKind.TIME })
+        assertEquals(expected.reps, actual.reps)
+        assertTrue(actual.reps.first().detail.contains("bajada 2,8 s"))
+        assertTrue(actual.reps.first().detail.contains("subida 0,9 s"))
+    }
 }
