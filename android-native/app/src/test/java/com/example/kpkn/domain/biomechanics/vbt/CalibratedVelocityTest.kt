@@ -1,5 +1,9 @@
 package com.example.kpkn.domain.biomechanics.vbt
 
+import com.example.kpkn.domain.biomechanics.bar.PlateSeed
+
+import com.example.kpkn.domain.biomechanics.bar.PlateTrackingContinuity
+
 import com.example.kpkn.domain.biomechanics.bar.BarSample
 import com.example.kpkn.domain.biomechanics.bar.BarSampleSource
 import com.example.kpkn.domain.biomechanics.bar.BarTrack
@@ -43,7 +47,7 @@ class CalibratedVelocityTest {
             val y = 800.0 - dyPx * minJerk((t - startS) / durationS)
             samples.add(BarSample((t * 1e6).roundToLong(), 360f, y.toFloat(), 90f, 1f, 0.9f, BarSampleSource.HOUGH))
         }
-        return BarTrack("synthetic-rise", 720, 1280, 450, null, samples)
+        return BarTrack("synthetic-rise", 720, 1280, 450, PlateSeed(0L, 360f, 800f, 90f, true), samples, trackingContinuity = PlateTrackingContinuity.UNINTERRUPTED)
     }
 
     private val scale = ScaleInfo(ScaleSource.PLATE, 450, 0.0025, 0.0025, 1.0, 0.0)

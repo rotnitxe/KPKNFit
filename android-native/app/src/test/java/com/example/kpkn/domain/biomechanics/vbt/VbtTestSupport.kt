@@ -1,8 +1,11 @@
 package com.example.kpkn.domain.biomechanics.vbt
 
+import com.example.kpkn.domain.biomechanics.bar.PlateTrackingContinuity
+
 import com.example.kpkn.domain.biomechanics.bar.BarSample
 import com.example.kpkn.domain.biomechanics.bar.BarSampleSource
 import com.example.kpkn.domain.biomechanics.bar.BarTrack
+import com.example.kpkn.domain.biomechanics.bar.PlateSeed
 import com.example.kpkn.domain.biomechanics.pose.PoseLandmark
 import com.example.kpkn.domain.biomechanics.testing.SynthCamera
 import com.example.kpkn.domain.biomechanics.testing.SynthResult
@@ -55,7 +58,9 @@ internal object VbtTestSupport {
                 source = source,
             )
         }
-        return BarTrack(track.mediaId, track.frameWidth, track.frameHeight, diameterMm, null, samples)
+        // Known synthetic object selected explicitly; no video/corpus label is changed.
+        val selected = samples.firstOrNull()?.let { PlateSeed(it.tUs, it.cx, it.cy, it.r, true) }
+        return BarTrack(track.mediaId, track.frameWidth, track.frameHeight, diameterMm, selected, samples, trackingContinuity = PlateTrackingContinuity.UNINTERRUPTED)
     }
 
     /**
@@ -97,6 +102,7 @@ internal object VbtTestSupport {
                 ),
             )
         }
-        return BarTrack("synthetic-plate", width, height, diameterMm, null, samples)
+        val selected = samples.firstOrNull()?.let { PlateSeed(it.tUs, it.cx, it.cy, it.r, true) }
+        return BarTrack("synthetic-plate", width, height, diameterMm, selected, samples, trackingContinuity = PlateTrackingContinuity.UNINTERRUPTED)
     }
 }

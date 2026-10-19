@@ -114,12 +114,30 @@ object RepPhases {
                 turnStart = t
                 turnEnd = t
             }
-            events.add(Events(c, depart, turnStart, max(turnEnd, turnStart), max(arrive, turnEnd), fall != null))
+            // Do not turn incompatible movement fits into a measured return by clamping arrive
+            // to the merged turn. A partial set summary would also misstate whole-set TUT/tempo.
+            if (!depart.isFinite() || !turnStart.isFinite() || !turnEnd.isFinite() || !arrive.isFinite() ||
+                turnStart < depart || turnEnd < turnStart || arrive < turnEnd ||
+                (rise != null && fall != null && (turnStart <= depart || arrive <= turnEnd))) return empty
+            events.add(Events(c, depart, turnStart, turnEnd, arrive, fall != null))
         }
 
         fun us(index: Double): Long = series.t0Us + (index / fs * MICROS).roundToLong()
         fun ms(samples: Double): Int = max(0, (samples / fs * 1000.0).roundToInt())
         fun pauseMs(samples: Double): Int = if (samples >= pauseMin) ms(samples) else 0
+
+        // Independent fits must describe a compatible chronology for the same body/limb.
+        // Compare the published microsecond clock, avoiding arbitrary sub-microsecond tolerances.
+        // A null side is a whole-body interval and conflicts with either named limb. Distinct
+        // limbs may move concurrently. Mini-set labels do not make overlapping time support valid.
+        val previousBySide = HashMap<Side?, Events>()
+        for (event in events) {
+            val side = event.cycle.side
+            val previous = if (side == null) previousBySide.values else
+                listOfNotNull(previousBySide[side], previousBySide[null])
+            if (previous.any { us(event.depart) < us(it.arrive) }) return empty
+            previousBySide[side] = event
+        }
 
         val reps = ArrayList<RepPhaseResult>(events.size)
         var tut = 0.0

@@ -15,6 +15,31 @@ import kotlin.math.abs
 
 class BarTrackCodecTest {
     @Test
+    fun continuityRoundTripAndLegacyDecodeFailClosedWithoutChangingHistoricalConfirmation() {
+        val selected = syntheticBar(count = 30, diameterMm = 450, withSeed = true)
+        for (state in PlateTrackingContinuity.entries) {
+            val input = selected.copy(trackingContinuity = state,
+                continuityBreakUs = if (state == PlateTrackingContinuity.INTERRUPTED) 2_500_000L else null)
+            val decoded = checkNotNull(BarTrackCodec.decode(BarTrackCodec.encode(input)))
+            assertEquals(state, decoded.trackingContinuity)
+            assertEquals(input.continuityBreakUs, decoded.continuityBreakUs)
+            assertTrue(checkNotNull(decoded.seed).userConfirmed)
+            assertEquals(2, decoded.version)
+        }
+        val v2 = gunzip(BarTrackCodec.encode(selected.copy(trackingContinuity = PlateTrackingContinuity.UNINTERRUPTED)))
+        // A real old sidecar lacks these fields; even a stray future field in v1 cannot upgrade legacy evidence.
+        val v1 = v2.replaceFirst("\"v\":2", "\"v\":1")
+            .replace(",\"trackingContinuity\":\"UNINTERRUPTED\"", "").replace(",\"continuityBreakUs\":null", "")
+        val legacy = checkNotNull(BarTrackCodec.decode(gzip(v1)))
+        assertEquals(1, legacy.version)
+        assertEquals(PlateTrackingContinuity.UNKNOWN, legacy.trackingContinuity)
+        assertTrue(checkNotNull(legacy.seed).userConfirmed)
+        org.junit.Assert.assertFalse(PlatePublicationPolicy.canUsePlate(legacy))
+        val malformed = v2.replace("UNINTERRUPTED", "FUTURE_UNKNOWN_STATE")
+        assertEquals(PlateTrackingContinuity.UNKNOWN, checkNotNull(BarTrackCodec.decode(gzip(malformed))).trackingContinuity)
+    }
+
+    @Test
     fun roundTripKeepsHeaderSeedAndQuantizedSamples() {
         val track = syntheticBar(count = 250, diameterMm = 450, withSeed = true)
         val decoded = BarTrackCodec.decode(BarTrackCodec.encode(track))
@@ -26,7 +51,7 @@ class BarTrackCodecTest {
         assertEquals(track.frameHeight, decoded.frameHeight)
         assertEquals(450, decoded.plateDiameterMm)
         assertEquals(track.seed, decoded.seed)
-        assertEquals(1, decoded.version)
+        assertEquals(2, decoded.version)
         assertEquals(track.samples.size, decoded.samples.size)
 
         val sources = HashSet<BarSampleSource>()
@@ -86,10 +111,10 @@ class BarTrackCodecTest {
         assertNull(BarTrackCodec.decode(gzip("no es JSON")))
         assertNull(BarTrackCodec.decode(gzip("{}")))
         val json = gunzip(BarTrackCodec.encode(syntheticBar(count = 10, diameterMm = 450, withSeed = true)))
-        assertTrue(json.startsWith("{\"v\":1,"))
+        assertTrue(json.startsWith("{\"v\":2,"))
         assertNotNull(BarTrackCodec.decode(gzip(json)))
-        assertNull("v = 2", BarTrackCodec.decode(gzip(json.replaceFirst("\"v\":1", "\"v\":2"))))
-        assertNull("v = 0", BarTrackCodec.decode(gzip(json.replaceFirst("\"v\":1", "\"v\":0"))))
+        assertNull("v = 3", BarTrackCodec.decode(gzip(json.replaceFirst("\"v\":2", "\"v\":3"))))
+        assertNull("v = 0", BarTrackCodec.decode(gzip(json.replaceFirst("\"v\":2", "\"v\":0"))))
     }
 
     @Test

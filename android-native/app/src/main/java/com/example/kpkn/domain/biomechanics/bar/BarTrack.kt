@@ -26,6 +26,9 @@ data class PlateSeed(
     val userConfirmed: Boolean,
 )
 
+/** Geometric association evidence only; UNINTERRUPTED does not certify semantic object identity. */
+enum class PlateTrackingContinuity { UNKNOWN, UNINTERRUPTED, INTERRUPTED }
+
 /** Trayectoria del disco de un vídeo (§3.2). */
 data class BarTrack(
     val mediaId: String,
@@ -34,5 +37,8 @@ data class BarTrack(
     val plateDiameterMm: Int?,          // null = sin calibrar (sirve como señal, sin m/s)
     val seed: PlateSeed?,
     val samples: List<BarSample>,
-    val version: Int = 1,
+    val version: Int = 2,
+    /** UNKNOWN for legacy/restarted tracker state; INTERRUPTED is sticky within one tracking session. */
+    val trackingContinuity: PlateTrackingContinuity = PlateTrackingContinuity.UNKNOWN,
+    val continuityBreakUs: Long? = null,
 )

@@ -25,13 +25,13 @@ class PathMetricsTest {
         val profile = RepTestSupport.profile(AnalysisProfileId.DEADLIFT, plate = true)
         val bar = RepTestSupport.plateFromWrist(r)
         val base = MetricsTestSupport.scene(r, profile, bar)!!
-        val basePath = PathMetrics.compute(base.ctx)
+        val basePath = PathMetrics.compute(base.ctx, bar = bar)
 
         // De lado, el atleta mira a la izquierda de la imagen (f = −1): −30 px es hacia delante.
         val shiftPx = -30f
         val deviated = 2
         val shifted = MetricsTestSupport.scene(r, profile, MetricsTestSupport.withLateralDrift(bar, r.reps[deviated], shiftPx))!!
-        val path = PathMetrics.compute(shifted.ctx)
+        val path = PathMetrics.compute(shifted.ctx, bar = MetricsTestSupport.withLateralDrift(bar, r.reps[deviated], shiftPx))
         val bodyHeightFh = base.ctx.bodyHeightFh!!
         val expectedBh = (-shiftPx / base.run.prepared.track.frameHeight) / bodyHeightFh
         println(
@@ -88,7 +88,7 @@ class PathMetricsTest {
         val deviated = 2
         val bumped = MetricsTestSupport.withPathBump(bar, r.reps[deviated], 12f)
         val s = MetricsTestSupport.scene(r, profile, bumped)!!
-        val path = PathMetrics.compute(s.ctx)
+        val path = PathMetrics.compute(s.ctx, bar = bumped)
         val pds = path.reps.map { it.deviationRmsBh }
         println(
             "[trayectoria] banca: fuente=${s.run.series.source} vista=${s.ctx.view} ${MetricsTestSupport.describe(s)} | PD ${pds.map { fmt(it) }} BH | " +

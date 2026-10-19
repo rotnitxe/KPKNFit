@@ -1,5 +1,7 @@
 package com.example.kpkn.domain.biomechanics.vbt
 
+import com.example.kpkn.domain.biomechanics.bar.PlatePublicationPolicy
+
 import com.example.kpkn.domain.biomechanics.bar.BarSample
 import com.example.kpkn.domain.biomechanics.bar.BarSampleSource
 import com.example.kpkn.domain.biomechanics.bar.BarTrack
@@ -54,17 +56,19 @@ class PlateVerticalSeries private constructor(
      */
     fun meanSpeed(fromUs: Long, toUs: Long, metersPerPx: Double, minSeconds: Double): Double {
         val seconds = (toUs - fromUs) / MICROS
-        if (!(seconds >= minSeconds) || !(metersPerPx > 0.0)) return Double.NaN
+        if (!seconds.isFinite() || !(seconds > 0.0) || !minSeconds.isFinite() || !(minSeconds > 0.0) ||
+            !(seconds >= minSeconds) || !metersPerPx.isFinite() || !(metersPerPx > 0.0)) return Double.NaN
         if (!complete(fromUs, toUs)) return Double.NaN
         val y0 = valueAt(fromUs)
         val y1 = valueAt(toUs)
         if (y0.isNaN() || y1.isNaN()) return Double.NaN
-        return abs(y1 - y0) * metersPerPx / seconds
+        val speed = abs(y1 - y0) * metersPerPx / seconds
+        return if (speed.isFinite()) speed else Double.NaN
     }
 
     /** Velocidad máxima del disco entre [fromUs] y [toUs], en m/s (derivada central de la señal filtrada). NaN si no hay dato. */
     fun peakSpeed(fromUs: Long, toUs: Long, metersPerPx: Double): Double {
-        if (!(metersPerPx > 0.0) || !complete(fromUs, toUs)) return Double.NaN
+        if (!metersPerPx.isFinite() || !(metersPerPx > 0.0) || !complete(fromUs, toUs)) return Double.NaN
         val from = max(1, ceil(indexOf(fromUs)).toInt())
         val to = min(y.size - 2, floor(indexOf(toUs)).toInt())
         var best = 0.0
@@ -76,15 +80,16 @@ class PlateVerticalSeries private constructor(
             best = max(best, abs(a - b) * fs / 2.0)
             found = true
         }
-        return if (found) best * metersPerPx else Double.NaN
+        val speed = best * metersPerPx
+        return if (found && speed.isFinite()) speed else Double.NaN
     }
 
     /** `true` si todas las muestras entre [fromUs] y [toUs] (y las dos de sus extremos) tienen valor. */
     private fun complete(fromUs: Long, toUs: Long): Boolean {
         val a = indexOf(fromUs)
         val b = indexOf(toUs)
-        if (a.isNaN() || b.isNaN() || a < -0.5 || b > y.size - 0.5) return false
-        for (k in max(0, floor(a).toInt())..min(y.size - 1, ceil(b).toInt())) if (y[k].isNaN()) return false
+        if (!a.isFinite() || !b.isFinite() || b < a || a < -0.5 || b > y.size - 0.5) return false
+        for (k in max(0, floor(a).toInt())..min(y.size - 1, ceil(b).toInt())) if (!y[k].isFinite()) return false
         return true
     }
 
@@ -96,12 +101,13 @@ class PlateVerticalSeries private constructor(
          * `null` si hay menos de dos muestras, la cadencia no se puede medir o no hay ninguna muestra de detector.
          */
         fun of(bar: BarTrack, rollDeg: Double, tuning: AnalysisTuning = AnalysisTuning.DEFAULT): PlateVerticalSeries? {
+            if (!PlatePublicationPolicy.canUsePlate(bar) || bar.frameWidth <= 0 || bar.frameHeight <= 0 || !rollDeg.isFinite()) return null
             val samples = if (isSorted(bar.samples)) bar.samples else bar.samples.sortedBy { it.tUs }
             val n = samples.size
             if (n < 2) return null
             val times = LongArray(n) { samples[it].tUs }
             val tb = Resampler.timebase(times)
-            if (!(tb.fs > 0.0) || tb.n < 2) return null
+            if (!tb.fs.isFinite() || !(tb.fs > 0.0) || tb.n < 2) return null
 
             val cosR = cos(Math.toRadians(-rollDeg))
             val sinR = sin(Math.toRadians(-rollDeg))
@@ -111,7 +117,8 @@ class PlateVerticalSeries private constructor(
             val values = DoubleArray(n)
             for (i in 0 until n) {
                 val s = samples[i]
-                if (s.source == BarSampleSource.HOUGH || s.source == BarSampleSource.NCC) {
+                if ((s.source == BarSampleSource.HOUGH || s.source == BarSampleSource.NCC) &&
+                    s.cx.isFinite() && s.cy.isFinite()) {
                     // Y con la vertical de la gravedad: el giro −roll alrededor del centro del fotograma.
                     values[i] = (s.cx - cx0) * sinR + (s.cy - cy0) * cosR + cy0
                     detected++
@@ -121,15 +128,27 @@ class PlateVerticalSeries private constructor(
             }
             if (detected < 2) return null
 
-            val grid = Resampler.toUniform(times, values, tb, MAX_TIME_GAP_S)
+            // The same existing plate gap budget applies to absent PTS and absent detections.
+            val grid = Resampler.toUniform(times, values, tb, tuning.vbt.plateMaxGapS)
             val filled = GapFiller.fill(grid, tb.fs, tuning.vbt.plateMaxGapS).values
+            // GapFiller counts missing grid slots; that can bridge a longer elapsed span.
+            // Restore NaN strictly between finite detector observations more than 0.1 s apart,
+            // including PTS that were omitted entirely. Both native timing and velocity share this mask.
+            var previous = -1
+            val maxGapUs = tuning.vbt.plateMaxGapS * MICROS
+            for (i in times.indices) {
+                if (!values[i].isFinite()) continue
+                if (previous >= 0 && times[i] - times[previous] > maxGapUs) {
+                    val from = floor((times[previous] - tb.t0Us) * tb.fs / MICROS).toInt() + 1
+                    val to = ceil((times[i] - tb.t0Us) * tb.fs / MICROS).toInt() - 1
+                    for (k in max(0, from)..min(filled.lastIndex, to)) filled[k] = Double.NaN
+                }
+                previous = i
+            }
             val fc = if (tb.fs >= tuning.plateFastMinFps) tuning.plateLowPassHzFast else tuning.vbt.plateLowPassSlowHz
             val smooth = ZeroPhaseLowPass.filter(filled, tb.fs, fc)
             return PlateVerticalSeries(tb.t0Us, tb.fs, smooth, filled)
         }
-
-        /** Un salto de tiempo entre dos muestras del disco mayor que esto deja la rejilla en NaN (no es un hueco de valores). */
-        private const val MAX_TIME_GAP_S = 0.6
 
         private fun isSorted(samples: List<BarSample>): Boolean {
             for (i in 1 until samples.size) if (samples[i].tUs < samples[i - 1].tUs) return false
@@ -155,7 +174,8 @@ object CalibratedVelocity {
         val n = ctx.cycles.size
         val none = VelocitySummary(false, false, null, List(n) { RepVelocity.NONE }, null, null, null, null, null)
         val metersPerPx = scale.metersPerPxV
-        if (n == 0 || scale.source != ScaleSource.PLATE || metersPerPx == null || !(metersPerPx > 0.0)) return none
+        if (n == 0 || scale.source != ScaleSource.PLATE || metersPerPx == null ||
+            !metersPerPx.isFinite() || !(metersPerPx > 0.0)) return none
         if (ctx.series.source != CountSeriesBuilder.SOURCE_PLATE || !ctx.geometryOk || ctx.phases.reps.isEmpty()) return none
         val tuning = ctx.tuning
         val plate = PlateVerticalSeries.of(bar, ctx.prepared.geo.rollDeg, tuning) ?: return none

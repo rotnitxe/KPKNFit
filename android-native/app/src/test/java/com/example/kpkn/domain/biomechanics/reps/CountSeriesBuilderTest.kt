@@ -26,6 +26,10 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 import kotlin.math.abs
 import kotlin.math.roundToInt
+import kotlin.math.roundToLong
+import com.example.kpkn.domain.biomechanics.metrics.AnalysisTuning
+import com.example.kpkn.domain.biomechanics.signal.Timebase
+import com.example.kpkn.domain.biomechanics.testing.SynthTestSupport
 
 /** La señal de conteo por perfil: orientación, unidades, disco, huecos, caminar, punto de barra y lado de trabajo. */
 class CountSeriesBuilderTest {
@@ -255,6 +259,105 @@ class CountSeriesBuilderTest {
         val ext = ok(build(extension.track, RepTestSupport.profile(AnalysisProfileId.LEG_EXTENSION))).series
         fails.check(ext.walk.none { it }) { "extensión de cuádriceps con ${ext.walk.count { it }} muestras de caminar" }
         fails.assertNone()
+    }
+
+    /** Constant world/image foot identity, with hip motion independent of visibility switches. */
+    @Test
+    fun stationaryFeetNeverBecomeWalkingWhenVisibilitySwitchesBetweenBothLeftAndRight() {
+        val truth = gen(SynthMovement.SQUAT, camera = SynthTestSupport.LANDSCAPE_FAR)
+        val hips = setOf(PoseLandmark.LEFT_HIP, PoseLandmark.RIGHT_HIP)
+        fun fixture(alternate: Boolean) = truth.track.mapFrames { i, image, _ ->
+            val t = truth.track.frames[i].tUs / 1e6
+            for (lm in hips) image[lm]?.let { p ->
+                image[lm] = p.copy(x = p.x + (0.08 * kotlin.math.sin(2.0 * Math.PI * 0.4 * t)).toFloat())
+            }
+            val mode = if (alternate) (i / 20) % 4 else 0
+            for ((lm, fixedX) in listOf(PoseLandmark.LEFT_ANKLE to 0.4f, PoseLandmark.RIGHT_ANKLE to 0.6f)) {
+                val p = checkNotNull(image[lm])
+                val visible = !(mode == 1 && lm == PoseLandmark.RIGHT_ANKLE || mode == 3 && lm == PoseLandmark.LEFT_ANKLE)
+                image[lm] = p.copy(x = fixedX, visibility = if (visible) 1f else 0f, presence = 1f)
+            }
+        }
+        val full = fixture(false)
+        val alternating = fixture(true)
+        val prepared = TrackPreparation.prepare(alternating)
+        val s = checkNotNull(prepared.scale).bodyHeightFh
+        val times = LongArray(prepared.track.frames.size) { prepared.track.frames[it].tUs }
+        val hx = DoubleArray(times.size) {
+            checkNotNull(prepared.geo.mid(it, PoseLandmark.LEFT_HIP, PoseLandmark.RIGHT_HIP)).x / s
+        }
+        val hipSpeed = CountSeriesBuilder.horizontalSpeed(hx, times, prepared.timebase, 3, AnalysisTuning.DEFAULT)
+        assertTrue("positive control: hips really cross the existing speed gate", hipSpeed.count { abs(it) > AnalysisTuning.DEFAULT.walkSpeedBhPerS } > 30)
+        val baseline = ok(build(full, RepTestSupport.profile(AnalysisProfileId.SQUAT))).series
+        val switched = ok(build(alternating, RepTestSupport.profile(AnalysisProfileId.SQUAT))).series
+        assertTrue(baseline.walk.none { it })
+        assertTrue("identity switches are not foot motion", switched.walk.none { it })
+        org.junit.Assert.assertArrayEquals("vertical counting signal is unchanged", baseline.r, switched.r, 0.0)
+    }
+
+    @Test
+    fun constantWalkingRemainsMaskedWithEitherAnkleTemporarilyHiddenAndAbstainsInLongDoubleOcclusion() {
+        val truth = gen(SynthMovement.SQUAT, listOf(SynthSegment.Idle(6.0)), camera = SynthTestSupport.LANDSCAPE_FAR)
+        val base = TrackPreparation.prepare(truth.track)
+        val s = checkNotNull(base.scale).bodyHeightFh
+        val normalizedSpeed = 0.3 * s / (truth.track.frameWidth.toDouble() / truth.track.frameHeight)
+        fun fixture(mirror: Boolean, bothMissing: Boolean) = truth.track.mapFrames { i, image, _ ->
+            val t = truth.track.frames[i].tUs / 1e6
+            val shift = (normalizedSpeed * (t - 3.0)).toFloat()
+            for ((lm, p) in image.toMap()) image[lm] = p.copy(x = p.x + shift)
+            val mode = (i / 20) % 4
+            for (lm in listOf(PoseLandmark.LEFT_ANKLE, PoseLandmark.RIGHT_ANKLE)) {
+                val p = checkNotNull(image[lm])
+                val hideLeft = if (mirror) mode == 1 else mode == 3
+                val hideRight = if (mirror) mode == 3 else mode == 1
+                val hidden = bothMissing && t in 2.0..4.0 ||
+                    lm == PoseLandmark.LEFT_ANKLE && hideLeft || lm == PoseLandmark.RIGHT_ANKLE && hideRight
+                image[lm] = p.copy(visibility = if (hidden) 0f else 1f, presence = 1f)
+            }
+        }
+        for (mirror in listOf(false, true)) {
+            val walking = ok(build(fixture(mirror, false), RepTestSupport.profile(AnalysisProfileId.SQUAT))).series
+            val interior = (0 until walking.size).filter { it / walking.fs in 1.0..5.0 }
+            val covered = interior.count { walking.walk[it] }.toDouble() / interior.size
+            assertTrue("known 0.3 BH/s translation must retain walking with either occlusion order: $covered", covered >= 0.6)
+            val unsupported = ok(build(fixture(mirror, true), RepTestSupport.profile(AnalysisProfileId.SQUAT))).series
+            val core = (0 until unsupported.size).filter { it / unsupported.fs in 2.5..3.5 }
+            assertTrue(core.isNotEmpty())
+            assertTrue("no walking measurement inside unsupported core, beyond existing dilation", core.none { unsupported.walk[it] })
+        }
+    }
+
+    @Test
+    fun horizontalSpeedNeverBridgesMissingTimestampsOrVisibilityBeyondTheExistingFillLimit() {
+        val tuning = AnalysisTuning.DEFAULT
+        val tb = Timebase(0L, 30.0, 360, false, 1.0)
+        val times = LongArray(360) { (it * 1_000_000.0 / 30.0).roundToLong() }
+        // Eighteen missing grid cells are 0.6 s, but their actual observed endpoints are 0.633333 s apart.
+        // Two stationary supported spans with unknown intervening motion must not become a measured ramp.
+        val keep = times.indices.filter { it !in 120..137 }
+        val omittedPts = LongArray(keep.size) { times[keep[it]] }
+        val x = DoubleArray(keep.size) { if (keep[it] < 120) 0.2 else 0.6 }
+        val omittedSpeed = CountSeriesBuilder.horizontalSpeed(x, omittedPts, tb, 3, tuning)
+        val missing = DoubleArray(times.size) { if (it in 120..137) Double.NaN else if (it < 120) 0.2 else 0.6 }
+        val hiddenSpeed = CountSeriesBuilder.horizontalSpeed(missing, times, tb, 3, tuning)
+        for (v in listOf(omittedSpeed, hiddenSpeed)) {
+            assertTrue((119..138).all { v[it].isNaN() })
+            assertTrue((30..100).all { abs(v[it]) < 1e-9 })
+            assertTrue((160..320).all { abs(v[it]) < 1e-9 })
+        }
+        // Even adjacent grid points cannot establish a slope if observations exceed fillCountGapS.
+        val sparse = CountSeriesBuilder.horizontalSpeed(doubleArrayOf(0.0, 0.3, 0.6),
+            longArrayOf(0L, 1_000_000L, 2_000_000L), Timebase(0L, 1.0, 3, false, 1.0), 2, tuning)
+        assertTrue(sparse.all { it.isNaN() })
+    }
+
+    @Test
+    fun aShortOcclusionWithinTheSameAnkleRetainsItsKnownHorizontalVelocity() {
+        val tb = Timebase(0L, 30.0, 360, false, 1.0)
+        val times = LongArray(360) { (it * 1_000_000.0 / 30.0).roundToLong() }
+        val x = DoubleArray(360) { if (it in 120..125) Double.NaN else 0.3 * times[it] / 1e6 }
+        val speed = CountSeriesBuilder.horizontalSpeed(x, times, tb, 3, AnalysisTuning.DEFAULT)
+        for (i in 90..240) org.junit.Assert.assertEquals("analytic 0.3 BH/s at $i", 0.3, speed[i], 1e-6)
     }
 
     @Test

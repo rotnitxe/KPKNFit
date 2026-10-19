@@ -3,6 +3,7 @@ package com.example.kpkn.screens.technique.player
 import androidx.compose.runtime.Immutable
 import com.example.kpkn.domain.biomechanics.bar.BarSampleSource
 import com.example.kpkn.domain.biomechanics.bar.BarTrack
+import com.example.kpkn.domain.biomechanics.bar.PlatePublicationPolicy
 import com.example.kpkn.domain.biomechanics.kinematics.NearSideSelector
 import com.example.kpkn.domain.biomechanics.kinematics.Side
 import com.example.kpkn.domain.biomechanics.metrics.MetricKey
@@ -429,7 +430,7 @@ class TechniqueOverlayData internal constructor(
 
         /** El disco sirve de punto de barra si al menos el 85 % de sus muestras vienen de un detector (HOUGH o NCC). */
         private fun plateCovers(bar: BarTrack): Boolean {
-            if (bar.samples.size < 2 || bar.frameWidth <= 0 || bar.frameHeight <= 0) return false
+            if (!PlatePublicationPolicy.canUsePlate(bar) || bar.samples.size < 2 || bar.frameWidth <= 0 || bar.frameHeight <= 0) return false
             var strong = 0
             for (s in bar.samples) if (s.source == BarSampleSource.HOUGH || s.source == BarSampleSource.NCC) strong++
             return strong >= PLATE_MIN_COVERAGE * bar.samples.size

@@ -25,6 +25,7 @@ import com.example.kpkn.domain.biomechanics.bar.BarSampleSource
 import com.example.kpkn.domain.biomechanics.bar.BarTrack
 import com.example.kpkn.domain.biomechanics.bar.BarTrackCodec
 import com.example.kpkn.domain.biomechanics.bar.PlateSeed
+import com.example.kpkn.domain.biomechanics.metrics.TechniqueAnalysisEngine
 import com.example.kpkn.domain.biomechanics.profiles.AnalysisProfileId
 import java.io.File
 import kotlinx.coroutines.Dispatchers
@@ -112,7 +113,7 @@ class TechniqueAnalysisViewModelTest {
     private suspend fun TechniqueAnalysisViewModel.awaitState(predicate: (TechniqueAnalysisUiState) -> Boolean): TechniqueAnalysisUiState =
         withTimeout(20_000L) { uiState.first(predicate) }
 
-    private suspend fun doneRow(id: String, engineVersion: Int = 1): com.example.kpkn.data.models.WorkoutMedia {
+    private suspend fun doneRow(id: String, engineVersion: Int = TechniqueAnalysisEngine.ENGINE_VERSION): com.example.kpkn.data.models.WorkoutMedia {
         val item = TechniqueWorkTestKit.insertVideo(db, store, id)
         analysis.completeDone(
             item,

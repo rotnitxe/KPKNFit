@@ -1,5 +1,9 @@
 package com.example.kpkn.screens.technique.analysis
 
+import com.example.kpkn.domain.biomechanics.bar.PlatePublicationPolicy
+
+import com.example.kpkn.domain.biomechanics.bar.PlateTrackingContinuity
+
 import androidx.compose.runtime.Immutable
 import com.example.kpkn.data.models.WorkoutMedia
 import com.example.kpkn.data.repository.CaptureOverrides
@@ -798,8 +802,15 @@ internal fun buildPlate(
         frameUs = frameUs,
         frameWidth = frameWidth,
         frameHeight = frameHeight,
-        inMetersPerSecond = report.velocityUnit == VelocityUnit.MPS,
-        warnings = plateWarnings(report.flags),
+        inMetersPerSecond = report.velocityUnit == VelocityUnit.MPS && bar != null && PlatePublicationPolicy.canUsePlate(bar),
+        warnings = plateWarnings(report.flags) + when {
+            confirmedSeed == null -> emptyList()
+            bar?.trackingContinuity == PlateTrackingContinuity.INTERRUPTED -> listOf(
+                "Se perdió el seguimiento continuo del disco. Se han omitido sus medidas; usamos la pose cuando hay señal. Pulsa Cambiar para volver a marcarlo.")
+            bar?.trackingContinuity != PlateTrackingContinuity.UNINTERRUPTED -> listOf(
+                "No podemos comprobar el seguimiento completo del disco. Pulsa Cambiar para volver a marcarlo y recalcular sus medidas.")
+            else -> emptyList()
+        },
     )
 }
 

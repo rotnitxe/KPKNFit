@@ -1,5 +1,7 @@
 package com.example.kpkn.data.media.technique
 
+import com.example.kpkn.domain.biomechanics.bar.PlateTrackingContinuity
+
 import android.content.Context
 import android.media.MediaCodec
 import android.os.Build
@@ -28,6 +30,7 @@ import com.example.kpkn.data.work.AnalysisGate
 import com.example.kpkn.domain.biomechanics.bar.BarSample
 import com.example.kpkn.domain.biomechanics.bar.BarSampleSource
 import com.example.kpkn.domain.biomechanics.bar.BarTrack
+import com.example.kpkn.domain.biomechanics.bar.PlatePublicationPolicy
 import com.example.kpkn.domain.biomechanics.bar.BarTrackCodec
 import com.example.kpkn.domain.biomechanics.bar.PlateSeed
 import com.example.kpkn.domain.biomechanics.kinematics.BodyScaleEstimator
@@ -129,6 +132,10 @@ internal data class PipelineRunStats(
     val poseMs: Double,
     val plateMs: Double,
     val engineMs: Long,
+    /** First failing acquisition guard, counted only when a new pose reaches pending(). Not elapsed time. */
+    val plateWaitingCounts: Map<String, Int> = emptyMap(),
+    val plateLastWaitingReason: String? = null,
+    val plateSeedState: String = "none",
 )
 
 /**
@@ -392,7 +399,12 @@ class TechniqueAnalysisPipeline internal constructor(
 
         private suspend fun recompute(): TechniqueAnalysisOutcome {
             val sidecars = withContext(Dispatchers.IO) { readSidecars() } ?: return full()
-            val bar = sidecars.bar?.let { adoptConfirmedDisc(it) }
+            val selected = request.plateSeed
+            if (profile.usesPlate && selected != null && !PlatePublicationPolicy.matchesSelection(sidecars.bar?.seed, selected)) {
+                return plateOnly() // A changed selection cannot confer identity on the old samples.
+            }
+            val adopted = sidecars.bar?.let { adoptConfirmedDisc(it) }
+            val bar = if (adopted != sidecars.bar) withContext(Dispatchers.IO) { storeBar(adopted) } else adopted
             val carried = withContext(Dispatchers.IO) { carriedFlags() }
             return measure(sidecars.pose, bar, carried, exercise = completedExercise)
         }
@@ -610,6 +622,9 @@ class TechniqueAnalysisPipeline internal constructor(
                 poseMs = (full?.poseNanos ?: 0L) / NANOS_PER_MS_D,
                 plateMs = (session?.plateNanos ?: 0L) / NANOS_PER_MS_D,
                 engineMs = engineMs,
+                plateWaitingCounts = session?.waitingCounts?.toMap().orEmpty(),
+                plateLastWaitingReason = session?.lastWaitingReason,
+                plateSeedState = session?.seed?.let { if (it.userConfirmed) "selected" else "provisional" } ?: "none",
             )
             Log.i(TAG, "Pasada de ${request.mediaId}: $stats")
             try {
@@ -822,7 +837,7 @@ class TechniqueAnalysisPipeline internal constructor(
                     seedKey = AnalysisCheckpoint.seedKey(request.plateSeed),
                     poseErrors = poseErrors,
                 )
-                val checkpoint = AnalysisCheckpoint(header, pose, plate?.barTrack(request.mediaId, null, false))
+                val checkpoint = AnalysisCheckpoint(header, pose, plate?.barTrack(request.mediaId, null, request.plateSeed != null))
                 try {
                     withContext(Dispatchers.IO) { AnalysisCheckpoints.write(partFile, checkpoint) }
                 } catch (cancelled: CancellationException) {
@@ -1277,12 +1292,31 @@ private class PlateSession(
     val settled: Boolean get() = stage != Stage.PENDING
     val sampleCount: Int get() = backward.size + forward.size
 
+    val waitingCounts: Map<String, Int> get() = waiting
+    var lastWaitingReason: String? = null
+        private set
+    private val waiting = LinkedHashMap<String, Int>()
+
+    private fun waitFor(reason: String): Boolean {
+        waiting[reason] = (waiting[reason] ?: 0) + 1
+        lastWaitingReason = reason
+        return false
+    }
+
     private val config = PlateTrackerConfig(plateDiameterMm = diameterMm)
     private val ring = LumaRing(ringCapacity(), width * height)
     private val history = WristHistory()
     private val athleteWrists = FloatArray(4)
     private val scratch = WristSet()
     private var tracker: PlateTracker? = null
+    private var trackingContinuity = PlateTrackingContinuity.UNKNOWN
+    private var continuityBreakUs: Long? = null
+
+    private fun observeContinuity(current: PlateTracker) {
+        val at = current.continuityBreakUs ?: return
+        trackingContinuity = PlateTrackingContinuity.INTERRUPTED
+        continuityBreakUs = continuityBreakUs?.let { minOf(it, at) } ?: at
+    }
     private val forward = ArrayList<BarSample>()
     private val backward = ArrayList<BarSample>() // del más reciente al más antiguo
     private var lastX = Float.NaN
@@ -1322,6 +1356,7 @@ private class PlateSession(
                 activate(pinned, luma, tUs, wrists)
                 return
             }
+            if (newPose) waitFor("awaiting_seed")
         } else {
             if (newPose && tryAcquire(luma, tUs, wrists)) return
             if (tUs - first >= tuning.acquireDeadlineUs || attempts >= tuning.maxAttempts) {
@@ -1334,17 +1369,17 @@ private class PlateSession(
 
     /** Un intento de adquisición si las muñecas llevan quietas la ventana; `true` si encontró el disco y ya está siguiéndolo. */
     private fun tryAcquire(luma: ByteArray, tUs: Long, wrists: WristSet): Boolean {
-        val view = athlete ?: return false
+        val view = athlete ?: return waitFor("no_athlete")
         if (!view.wristsPx(athleteWrists)) {
             history.pushMissing(tUs)
-            return false
+            return waitFor("no_wrist")
         }
         history.push(tUs, athleteWrists)
         val last = lastAttemptTUs
-        if (last != null && tUs - last < tuning.attemptCooldownUs) return false
-        if (!history.isStill(tUs, tuning.stillWindowUs, (tuning.stillMaxFh * height).toFloat())) return false
+        if (last != null && tUs - last < tuning.attemptCooldownUs) return waitFor("cooldown")
+        if (!history.isStill(tUs, tuning.stillWindowUs, (tuning.stillMaxFh * height).toFloat())) return waitFor("no_still")
         val body = view.bodyHeightPx()
-        if (!(body > 0.0) || !body.isFinite()) return false
+        if (!(body > 0.0) || !body.isFinite()) return waitFor("no_scale")
         lastAttemptTUs = tUs
         attempts++
         val expected = (0.5 * (diameterMm / MM_PER_M) * body / userHeightM).toFloat()
@@ -1352,7 +1387,7 @@ private class PlateSession(
         if (!athleteWrists[0].isNaN()) points.add(Pair(athleteWrists[0], athleteWrists[1]))
         if (!athleteWrists[2].isNaN()) points.add(Pair(athleteWrists[2], athleteWrists[3]))
         val candidates = PlateDetector.propose(LumaFrame(width, height, luma), points, expected, CANDIDATES)
-        val best = candidates.firstOrNull { it.coverage >= tuning.minSeedCoverage } ?: return false
+        val best = candidates.firstOrNull { it.coverage >= tuning.minSeedCoverage } ?: return waitFor("no_candidate")
         Log.i(TAG, "Disco automático en $tUs µs: c=(${best.cx}, ${best.cy}) r=${best.r} cobertura=${best.coverage} (previo $expected, intento $attempts).")
         activate(PlateSeed(tUs, best.cx, best.cy, best.r, false), luma, tUs, wrists)
         return true
@@ -1361,6 +1396,9 @@ private class PlateSession(
     /** Fija la semilla: el rastreador hacia delante arranca en este fotograma y otro repasa hacia atrás lo que hay en el búfer. */
     private fun activate(chosen: PlateSeed, luma: ByteArray, tUs: Long, wrists: WristSet) {
         seed = chosen
+        trackingContinuity = PlateTrackingContinuity.UNINTERRUPTED
+        continuityBreakUs = null
+        lastWaitingReason = null
         tracker = PlateTracker(chosen, fps, config)
         lastX = chosen.cx
         lastY = chosen.cy
@@ -1375,6 +1413,7 @@ private class PlateSession(
         val prior = wrists.nearest(tUs, lastX, lastY, WristSet.PRIOR_MAX_AGE_US)
         val sample = current.track(LumaFrame(width, height, luma), tUs, prior)
         forward.add(sample)
+        observeContinuity(current)
         lastX = sample.cx
         lastY = sample.cy
     }
@@ -1389,6 +1428,7 @@ private class PlateSession(
             val prior = scratch.nearest(tUs, x, y, WristSet.PRIOR_MAX_AGE_US)
             val sample = back.track(LumaFrame(width, height, ring.lumaAt(k)), tUs, prior)
             backward.add(sample)
+            observeContinuity(back)
             x = sample.cx
             y = sample.cy
         }
@@ -1404,6 +1444,10 @@ private class PlateSession(
     fun restore(bar: BarTrack, checkpointStage: String) {
         forward.addAll(bar.samples)
         seed = bar.seed
+        continuityBreakUs = bar.continuityBreakUs
+        // Kalman/template state is not serialized: restarting from a last sample cannot establish the old chain.
+        trackingContinuity = if (bar.trackingContinuity == PlateTrackingContinuity.INTERRUPTED)
+            PlateTrackingContinuity.INTERRUPTED else PlateTrackingContinuity.UNKNOWN
         if (checkpointStage == AnalysisCheckpoint.STAGE_GAVE_UP || bar.samples.isEmpty()) {
             giveUp()
             return
@@ -1423,7 +1467,8 @@ private class PlateSession(
         val samples = ArrayList<BarSample>(backward.size + forward.size)
         for (i in backward.indices.reversed()) samples.add(backward[i])
         samples.addAll(forward)
-        return BarTrack(mediaId, width, height, diameterMm, seed?.copy(userConfirmed = confirmed), samples)
+        return BarTrack(mediaId, width, height, diameterMm, seed?.copy(userConfirmed = confirmed), samples,
+            trackingContinuity = trackingContinuity, continuityBreakUs = continuityBreakUs)
     }
 
     private companion object {

@@ -240,7 +240,7 @@ internal object GoldenReport {
         )
     }
 
-    /** Solo para la ejecución final de reserva. Antes de llamarla hay que exigir las 97 extracciones. */
+    /** Historical range regression only; NOT the original acceptance contract. See OriginalContractAcceptanceTest. */
     fun countGateErrors(results: List<GoldenResult>): List<String> = buildList {
         val accepted = results.filter { it.exclusions.isEmpty() }
         val groups = accepted.groupBy { it.profile.id }.filterValues { it.size >= 3 }
@@ -319,8 +319,8 @@ internal object GoldenReport {
         appendLine()
         appendLine("Motor ${TechniqueAnalysisEngine.ENGINE_VERSION}; manifiesto congelado SHA-256 `${corpus.manifestSha256}`.")
         val status = when {
-            finalGate -> "Evaluación final de reserva; el veredicto de conteo está en el gate."
-            holdoutEvaluation -> "Evaluación temporal final de reserva; el veredicto de tiempos está en GoldenTimingTest. Los conteos de este documento son descriptivos."
+            finalGate -> "Regresión histórica de reserva con acceptableRange; NO acredita aceptación del contrato original."
+            holdoutEvaluation -> "Regresión temporal histórica de 250 ms; NO acredita MAE 50 ms ni ICC. Los conteos son descriptivos."
             corpus.external -> "DIAGNÓSTICO EXTERNO: no constituye aceptación del banco compatible ni mezcla sus porcentajes."
             else -> "DIAGNÓSTICO PARCIAL: no constituye aceptación ni evalúa la reserva ciega."
         }
@@ -380,7 +380,7 @@ internal object GoldenReport {
         if (finalGate) {
             val errors = countGateErrors(results)
             appendLine()
-            appendLine(if (errors.isEmpty()) "Gate de conteo: PASS para los perfiles medibles de esta reserva; las limitaciones anteriores siguen abiertas." else "Gate de conteo: FAIL.")
+            appendLine(if (errors.isEmpty()) "Regresión histórica de rango: PASS; aceptación original NOT_VALIDATED. Ver OriginalContractAcceptanceTest." else "Regresión histórica de rango: FAIL; sin veredicto de aceptación original.")
             errors.forEach { appendLine("- $it") }
         }
     }

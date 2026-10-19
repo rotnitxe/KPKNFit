@@ -1,6 +1,7 @@
 package com.example.kpkn.domain.biomechanics.metrics
 
 import com.example.kpkn.domain.biomechanics.bar.BarTrack
+import com.example.kpkn.domain.biomechanics.bar.PlatePublicationPolicy
 import com.example.kpkn.domain.biomechanics.pose.PoseTrackV2
 import com.example.kpkn.domain.biomechanics.profiles.AnalysisProfile
 import com.example.kpkn.domain.biomechanics.reps.CountSeries
@@ -10,7 +11,7 @@ import com.example.kpkn.domain.biomechanics.reps.PreparedTrack
 import com.example.kpkn.domain.biomechanics.reps.RepConfidence
 import com.example.kpkn.domain.biomechanics.reps.RepCycle
 import com.example.kpkn.domain.biomechanics.reps.RepFlags
-import com.example.kpkn.domain.biomechanics.reps.RepPhases
+import com.example.kpkn.domain.biomechanics.reps.NativePlatePhases
 import com.example.kpkn.domain.biomechanics.reps.RepSegmenter
 import com.example.kpkn.domain.biomechanics.reps.TrackPreparation
 import com.example.kpkn.domain.biomechanics.vbt.CalibratedVelocity
@@ -52,7 +53,7 @@ data class TechniqueAnalysisInput(
  * Las observaciones de técnica (`Observations`) se calculan al final, sobre el informe ya armado.
  */
 object TechniqueAnalysisEngine {
-    const val ENGINE_VERSION = 1
+    const val ENGINE_VERSION = 5
 
     /** Unidad de las cifras de trayectoria sin calibrar: porcentaje del recorrido vertical de la barra (ROM_v). */
     const val PERCENT_ROM = "%ROM"
@@ -77,14 +78,14 @@ object TechniqueAnalysisEngine {
         // Si el segmentador dio la vuelta a la señal, los índices de sus ciclos son los de la señal al revés: las fases y las
         // métricas deben ver la misma señal.
         val oriented = if (seg.polarityFlipped) negated(series) else series
-        val phases = RepPhases.compute(oriented, seg, profile, tuning)
+        val phases = NativePlatePhases.compute(oriented, seg, profile, input.bar, prepared.geo.rollDeg, tuning)
         val ctx = MetricContext(prepared, oriented, seg, phases, profile, tuning)
 
         // Escala por disco (VT3b): con un disco de diámetro conocido hay escala y avisos; los m/s y los cm, además, exigen que
         // el disco sea la señal de conteo (su traslación es la de la barra).
         val bar = input.bar
         val plate: PlateScaleResult? =
-            if (bar != null && bar.plateDiameterMm != null) {
+            if (bar != null && PlatePublicationPolicy.canUsePlate(bar) && bar.plateDiameterMm != null) {
                 PlateScale.estimate(bar, prepared.timebase.fs, input.pose.focalLengthPx, tuning)
             } else {
                 null
@@ -104,8 +105,10 @@ object TechniqueAnalysisEngine {
         val rom = RomMetrics.compute(ctx)
         val depth = DepthRules.compute(ctx)
         val trunk = TrunkMetrics.compute(ctx)
-        val path = PathMetrics.compute(ctx, calibration)
-        val relative = RelativeVelocity.compute(ctx)
+        val path = PathMetrics.compute(ctx, calibration, bar)
+        val relative = if (input.bar != null && oriented.source == CountSeriesBuilder.SOURCE_PLATE) {
+            NativePlateRelativeVelocity.compute(ctx, input.bar)
+        } else RelativeVelocity.compute(ctx)
         val mps = if (calibratedBar != null && scale != null) CalibratedVelocity.compute(ctx, calibratedBar, scale) else null
         val velocity = if (mps != null && mps.available) mps else relative
         val inMps = velocity === mps

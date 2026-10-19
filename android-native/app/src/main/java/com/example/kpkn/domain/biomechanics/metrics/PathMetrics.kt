@@ -1,5 +1,9 @@
 package com.example.kpkn.domain.biomechanics.metrics
 
+import com.example.kpkn.domain.biomechanics.bar.PlatePublicationPolicy
+
+import com.example.kpkn.domain.biomechanics.bar.BarTrack
+
 import com.example.kpkn.domain.biomechanics.kinematics.Side
 import com.example.kpkn.domain.biomechanics.kinematics.heel
 import com.example.kpkn.domain.biomechanics.kinematics.toe
@@ -124,16 +128,20 @@ class PathSummary(
  * (PARALLAX_SUPPRESSED), el desvío absoluto queda sin dato.
  */
 object PathMetrics {
-    fun compute(ctx: MetricContext, calibration: PathCalibration? = null): PathSummary {
+    fun compute(ctx: MetricContext, calibration: PathCalibration? = null, bar: BarTrack? = null): PathSummary {
         val n = ctx.cycles.size
         val rule = ctx.profile.pathRule
         val none = PathSummary(false, rule, List(n) { RepPath.NONE }, null, null, null)
         if (rule == PathRule.NONE || n == 0 || !ctx.metricViewOk) return none
+        val approvedPlate = bar != null && PlatePublicationPolicy.canUsePlate(bar)
+        if (ctx.series.source == com.example.kpkn.domain.biomechanics.reps.CountSeriesBuilder.SOURCE_PLATE && !approvedPlate) return none
+        val acceptedCalibration = calibration?.takeIf { approvedPlate &&
+            ctx.series.source == com.example.kpkn.domain.biomechanics.reps.CountSeriesBuilder.SOURCE_PLATE }
         val x = ctx.barXSmooth ?: return none
         val y = ctx.barYSmooth ?: return none
         return when (rule) {
-            PathRule.MIDFOOT_VERTICAL -> midfoot(ctx, x, y, none, calibration)
-            PathRule.CONSISTENCY -> consistency(ctx, x, y, none, calibration)
+            PathRule.MIDFOOT_VERTICAL -> midfoot(ctx, x, y, none, acceptedCalibration)
+            PathRule.CONSISTENCY -> consistency(ctx, x, y, none, acceptedCalibration)
             PathRule.NONE -> none
         }
     }

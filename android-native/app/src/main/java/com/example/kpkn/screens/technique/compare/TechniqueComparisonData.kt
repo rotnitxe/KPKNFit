@@ -1,8 +1,11 @@
 package com.example.kpkn.screens.technique.compare
 
+import com.example.kpkn.domain.biomechanics.bar.PlatePublicationPolicy
+
 import com.example.kpkn.domain.biomechanics.bar.BarSampleSource
 import com.example.kpkn.domain.biomechanics.bar.BarTrack
 import com.example.kpkn.domain.biomechanics.metrics.MetricKey
+import com.example.kpkn.domain.biomechanics.metrics.TechniqueAnalysisEngine
 import com.example.kpkn.domain.biomechanics.metrics.ScaleInfo
 import com.example.kpkn.domain.biomechanics.metrics.ScaleSource
 import com.example.kpkn.domain.biomechanics.metrics.SetTechniqueReport
@@ -12,8 +15,9 @@ import com.example.kpkn.screens.technique.compare.design.BarPathPoint
 
 /** Prepara la comparación sin sustituir una medida ausente por los metadatos de la grabación. */
 internal object TechniqueComparisonData {
-    fun calibratedScale(report: SetTechniqueReport?): ScaleInfo? {
-        if (report == null) return null
+    fun calibratedScale(report: SetTechniqueReport?, bar: BarTrack? = null): ScaleInfo? {
+        if (report == null || report.engineVersion < TechniqueAnalysisEngine.ENGINE_VERSION ||
+            bar == null || !PlatePublicationPolicy.canUsePlate(bar)) return null
         return report.scale?.takeIf { scale ->
         scale.source == ScaleSource.PLATE &&
             scale.metersPerPxH?.let { it.isFinite() && it > 0.0 } == true &&
@@ -23,6 +27,8 @@ internal object TechniqueComparisonData {
     }
 
     fun extractPath(bar: BarTrack?, report: SetTechniqueReport?, inCentimetres: Boolean): List<BarPathPoint> {
+        if (bar == null || !PlatePublicationPolicy.canUsePlate(bar) ||
+            report != null && report.engineVersion < TechniqueAnalysisEngine.ENGINE_VERSION) return emptyList()
         val fromUs = report?.reps?.minOfOrNull { it.phases.departUs }
         val toUs = report?.reps?.maxOfOrNull { it.phases.arriveUs }
         val samples = bar?.samples?.filter {
@@ -32,7 +38,7 @@ internal object TechniqueComparisonData {
         }?.sortedBy { it.tUs } ?: return emptyList()
         if (samples.size < 2) return emptyList()
 
-        val scale = calibratedScale(report)
+        val scale = calibratedScale(report, bar)
         val verticalExcursionPx = samples.maxOf { it.cy }.toDouble() - samples.minOf { it.cy }
         if (!inCentimetres && verticalExcursionPx <= 0.0) return emptyList()
         if (inCentimetres && scale == null) return emptyList()
@@ -48,7 +54,9 @@ internal object TechniqueComparisonData {
         }
     }
 
-    fun differenceTable(a: SetTechniqueReport?, b: SetTechniqueReport?): List<CompareMetricRowUi> = buildList {
+    fun differenceTable(reportA: SetTechniqueReport?, reportB: SetTechniqueReport?, barA: BarTrack? = null, barB: BarTrack? = null): List<CompareMetricRowUi> = buildList {
+        val a = reportA?.takeIf { it.engineVersion >= TechniqueAnalysisEngine.ENGINE_VERSION }
+        val b = reportB?.takeIf { it.engineVersion >= TechniqueAnalysisEngine.ENGINE_VERSION }
         fun metric(report: SetTechniqueReport?, key: MetricKey, value: Double?): Double? =
             value?.takeIf { report != null && key in report.available && it.isFinite() && it >= 0.0 }
 
@@ -68,9 +76,9 @@ internal object TechniqueComparisonData {
         addMetric("Pérdida de velocidad", metric(a, MetricKey.VELOCITY_RELATIVE, a?.velocityLossPct), metric(b, MetricKey.VELOCITY_RELATIVE, b?.velocityLossPct), 0, " %", " pp")
 
         // Sin calibrar solo se compara la pérdida (%); BH/s no es una velocidad absoluta ni se resta a m/s.
-        fun mcv(report: SetTechniqueReport?): Double? = report?.takeIf {
-            it.velocityUnit == VelocityUnit.MPS && calibratedScale(it) != null
+        fun mcv(report: SetTechniqueReport?, bar: BarTrack?): Double? = report?.takeIf {
+            it.velocityUnit == VelocityUnit.MPS && calibratedScale(it, bar) != null
         }?.let { metric(it, MetricKey.VELOCITY_MPS, it.mcvBest) }
-        addMetric("MCV (mejor)", mcv(a), mcv(b), 2, " m/s")
+        addMetric("MCV (mejor)", mcv(a, barA), mcv(b, barB), 2, " m/s")
     }
 }

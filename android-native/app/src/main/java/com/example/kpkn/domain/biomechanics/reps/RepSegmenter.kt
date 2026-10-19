@@ -274,7 +274,14 @@ internal object MovementPieces {
             }
             if (!moved) break
         }
-        return Piece(th[2], th[2] + th[3], th[2] + 0.5 * th[3])
+        // A transition whose midpoint is outside the observed fitting window is not identified
+        // by these samples. Its unconstrained terminal level/duration can otherwise extrapolate
+        // past the entire return of the cycle. Reject it and let cycle() consider the crossing fit.
+        val midpoint = th[2] + 0.5 * th[3]
+        val end = th[2] + th[3]
+        if (!th.all { it.isFinite() } || !end.isFinite() || !(th[3] > 0.0) ||
+            midpoint < lo.toDouble() || midpoint > hi.toDouble()) return null
+        return Piece(th[2], end, midpoint)
     }
 
     /** Resuelve (JᵀJ + λ·diag(JᵀJ))·δ = Jᵀr por eliminación gaussiana con pivote; `null` si es singular. */

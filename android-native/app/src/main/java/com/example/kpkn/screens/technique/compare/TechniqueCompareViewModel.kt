@@ -1,5 +1,7 @@
 package com.example.kpkn.screens.technique.compare
 
+import com.example.kpkn.domain.biomechanics.metrics.TechniqueAnalysisEngine
+
 import android.app.Application
 import androidx.compose.runtime.Immutable
 import androidx.lifecycle.AndroidViewModel
@@ -120,8 +122,8 @@ class TechniqueCompareViewModel @JvmOverloads constructor(
                 val infoA = withContext(ioDispatcher) { probe(fileA) }
                 val infoB = withContext(ioDispatcher) { probe(fileB) }
 
-                val reportA = sidecarA?.report
-                val reportB = sidecarB?.report
+                val reportA = sidecarA?.report?.takeIf { it.engineVersion >= TechniqueAnalysisEngine.ENGINE_VERSION }
+                val reportB = sidecarB?.report?.takeIf { it.engineVersion >= TechniqueAnalysisEngine.ENGINE_VERSION }
 
                 val overlayA = withContext(computeDispatcher) {
                     TechniqueOverlayData.from(trackA, barA, reportA, infoA?.displayWidth ?: 0, infoA?.displayHeight ?: 0)
@@ -130,8 +132,8 @@ class TechniqueCompareViewModel @JvmOverloads constructor(
                     TechniqueOverlayData.from(trackB, barB, reportB, infoB?.displayWidth ?: 0, infoB?.displayHeight ?: 0)
                 }
 
-                val isCalibrated = TechniqueComparisonData.calibratedScale(reportA) != null &&
-                    TechniqueComparisonData.calibratedScale(reportB) != null
+                val isCalibrated = TechniqueComparisonData.calibratedScale(reportA, barA) != null &&
+                    TechniqueComparisonData.calibratedScale(reportB, barB) != null
 
                 val pathPointsA = withContext(computeDispatcher) { TechniqueComparisonData.extractPath(barA, reportA, isCalibrated) }
                 val pathPointsB = withContext(computeDispatcher) { TechniqueComparisonData.extractPath(barB, reportB, isCalibrated) }
@@ -142,7 +144,7 @@ class TechniqueCompareViewModel @JvmOverloads constructor(
                 val labelB = formatMediaLabel(mediaB, now, zone)
 
                 val table = withContext(computeDispatcher) {
-                    TechniqueComparisonData.differenceTable(reportA, reportB)
+                    TechniqueComparisonData.differenceTable(reportA, reportB, barA, barB)
                 }
 
                 _uiState.value = TechniqueCompareUiState(

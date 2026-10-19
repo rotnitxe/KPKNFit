@@ -208,7 +208,10 @@ object RelativeVelocity {
     fun compute(ctx: MetricContext): VelocitySummary {
         val n = ctx.cycles.size
         val none = VelocitySummary(false, false, null, List(n) { RepVelocity.NONE }, null, null, null, null, null)
-        if (n == 0 || !ctx.geometryOk || ctx.phases.reps.isEmpty() || ctx.view !in ctx.profile.countViews) return none
+        // Native plate phases can exist while pose/count remains below 20 Hz.
+        // Preserve the existing low-FPS abstention for this pose-grid velocity estimator.
+        if (n == 0 || ctx.series.fs < ctx.tuning.lowFpsBelow || !ctx.geometryOk ||
+            ctx.phases.reps.isEmpty() || ctx.view !in ctx.profile.countViews) return none
 
         val tuning = ctx.tuning
         val angular = ctx.series.unit == SignalUnit.DEGREES

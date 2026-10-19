@@ -173,19 +173,42 @@ class RepPhasesTest {
     }
 
     @Test
+    fun overlappingNoisyFitsAbstainEvenWhenRoundedTempoWouldLookPlausible() {
+        val fails = RepTestSupport.Failures()
+        // Preserve the original noisy zero-rest fixtures and the diagnosed 0.2-s variants.
+        // Their independent fits overlap: 55.227/24.733 ms at rest 0, 4.366/54.078 ms at rest 0.2.
+        // Conservative publication loses coverage here; it does not improve the estimator's accuracy.
+        for (rest in listOf(0.0, 0.2)) for (con in listOf(1.0, 0.4)) {
+            val p = phased(SynthMovement.PUSH_UP, AnalysisProfileId.PUSH_UP,
+                repScript(5, 2.0, 1.0, con, rest, lead = 2.0, tail = 2.0))
+            val s = p.summary
+            fails.check(s.reps.isEmpty() && s.tutMs == null && s.setDurationMs == null &&
+                s.restPositionMs == null && s.tempo == null) {
+                "solape con reposo $rest / CON $con debe abstener: $s"
+            }
+        }
+        fails.assertNone()
+    }
+
+    @Test
     fun theTempoIsTheMedianOfTheFullRepsAndLabelsLikeThis() {
         val fails = RepTestSupport.Failures()
-        val e = phased(SynthMovement.PUSH_UP, AnalysisProfileId.PUSH_UP, repScript(5, 2.0, 1.0, 1.0, 0.0, lead = 2.0, tail = 2.0))
-        fails.check(e.summary.tempo?.label() == "2-1-1-0") { "tempo de flexiones: ${e.summary.tempo} ${e.summary.tempo?.label()}" }
-        // La etiqueta con decimales sale al décimo de segundo: sin ruido, exacta.
+        fun compatible(summary: PhaseSummary): Boolean = summary.reps.size == 5 &&
+            summary.reps.zipWithNext().all { (a, b) -> a.arriveUs <= b.departUs }
+        // Formatting/median positives require identifiable, compatible temporal intervals.
+        // A full second of rest is specified in the generator; noise and tolerances are unchanged.
+        val e = phased(SynthMovement.PUSH_UP, AnalysisProfileId.PUSH_UP, repScript(5, 2.0, 1.0, 1.0, 1.0, lead = 2.0, tail = 2.0))
+        fails.check(compatible(e.summary)) { "cronología de flexiones: ${e.summary}" }
+        fails.check(e.summary.tempo?.label() == "2-1-1-1") { "tempo de flexiones: ${e.summary.tempo} ${e.summary.tempo?.label()}" }
+        // Original noise-free zero-rest fixture: unchanged.
         val exact = phased(SynthMovement.PUSH_UP, AnalysisProfileId.PUSH_UP, repScript(5, 2.0, 1.0, 1.0, 0.0, lead = 2.0, tail = 2.0), noise = SynthNoise.NONE)
         fails.check(exact.summary.tempo?.detailLabel() == "2,0-1,0-1,0-0,0") { "tempo detallado de flexiones: ${exact.summary.tempo?.detailLabel()}" }
-        // Arranque C: excéntrica, pausa de reposo (P1), concéntrica y pausa arriba (P2).
+        // Original noisy concentric-first zero-rest fixture: unchanged.
         val c = phased(SynthMovement.DEADLIFT, AnalysisProfileId.DEADLIFT, repScript(5, 2.0, 1.0, 1.0, 0.0, lead = 2.0, tail = 2.0))
         fails.check(c.summary.tempo?.label() == "2-1-1-0") { "tempo de peso muerto: ${c.summary.tempo} ${c.summary.tempo?.label()}" }
-        // Una concéntrica de 0,4 s es «X».
-        val x = phased(SynthMovement.PUSH_UP, AnalysisProfileId.PUSH_UP, repScript(5, 2.0, 1.0, 0.4, 0.0, lead = 2.0, tail = 2.0))
-        fails.check(x.summary.tempo?.label() == "2-1-X-0") { "tempo con concéntrica explosiva: ${x.summary.tempo?.label()}" }
+        val x = phased(SynthMovement.PUSH_UP, AnalysisProfileId.PUSH_UP, repScript(5, 2.0, 1.0, 0.4, 1.0, lead = 2.0, tail = 2.0))
+        fails.check(compatible(x.summary)) { "cronología de flexiones explosivas: ${x.summary}" }
+        fails.check(x.summary.tempo?.label() == "2-1-X-1") { "tempo con concéntrica explosiva: ${x.summary.tempo?.label()}" }
         fails.assertNone()
     }
 

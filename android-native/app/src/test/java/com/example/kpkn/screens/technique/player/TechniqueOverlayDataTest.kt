@@ -129,6 +129,20 @@ class TechniqueOverlayDataTest {
     }
 
     @Test
+    fun anAutomaticCircleOrLegacyTrackCannotPublishAPlateTrailEvenWithFullCoverage() {
+        val selected = TechniqueSamples.squatPlate
+        val seed = checkNotNull(selected.seed)
+        for (bar in listOf(selected.copy(seed = seed.copy(userConfirmed = false)), selected.copy(seed = null))) {
+            val provisional = TechniqueOverlayData.from(track, bar, report,
+                TechniqueSamples.VIDEO_WIDTH, TechniqueSamples.VIDEO_HEIGHT)
+            assertEquals(TechniqueTrailSource.POSE, provisional.trailSource)
+            assertTrue(data.trail!!.timesUs.contentEquals(provisional.trail!!.timesUs))
+            assertTrue(data.trail!!.x.contentEquals(provisional.trail!!.x))
+            assertTrue(data.trail!!.y.contentEquals(provisional.trail!!.y))
+        }
+    }
+
+    @Test
     fun aBarTrackWithoutCoverageFallsBackToThePose() {
         val weak = TechniqueOverlayData.from(
             track,

@@ -122,6 +122,9 @@ class PlateTracker(
     private var lastTUs: Long = seed.tUs
     private var lastMeasUs: Long = seed.tUs
     private var misses = 0
+    /** Sticky evidence of the existing reacquisition/lost-support branch, not a semantic classifier. */
+    var continuityBreakUs: Long? = null
+        private set
 
     /** Radio r̂ actual (mediana de los últimos radios aceptados), en píxeles. */
     val radiusHat: Double get() = rHat
@@ -153,6 +156,7 @@ class PlateTracker(
         val wristY = wristPriorPx?.second?.toDouble() ?: Double.NaN
         val wristOk = wristX.isFinite() && wristY.isFinite()
         val reacquire = abs(tUs - lastMeasUs) / MICROS >= cfg.reacquireAfterS
+        if (reacquire && continuityBreakUs == null) continuityBreakUs = tUs
         val r = rHat
 
         // 1) El Hough, cerca de la predicción o, tras un rato perdido, cerca de la muñeca.

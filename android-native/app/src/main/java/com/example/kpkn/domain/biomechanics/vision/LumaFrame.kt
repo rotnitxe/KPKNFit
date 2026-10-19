@@ -26,8 +26,9 @@ class LumaFrame(val width: Int, val height: Int, val data: ByteArray) {
     fun sample(x: Double, y: Double): Double {
         val fx = x - 0.5
         val fy = y - 0.5
-        val ix = Math.floor(fx).toInt()
-        val iy = Math.floor(fy).toInt()
+        // Nonnegative truncation equals floor, avoiding two JNI calls on the hot sampling path.
+        val ix = if (fx >= 0.0) fx.toInt() else Math.floor(fx).toInt()
+        val iy = if (fy >= 0.0) fy.toInt() else Math.floor(fy).toInt()
         val wx = fx - ix
         val wy = fy - iy
         val xa = if (ix < 0) 0 else if (ix >= width) width - 1 else ix

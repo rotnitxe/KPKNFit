@@ -15,7 +15,7 @@ import java.util.zip.GZIPOutputStream
  * La cuantización de `r`, `ax` y `q` es la propia de este formato: 0,1 px, 0,001 y 0,01.
  */
 object BarTrackCodec {
-    private const val FORMAT_VERSION = 1
+    private const val FORMAT_VERSION = 2
 
     /** Tope de JSON descomprimido (una hora de vídeo a 60 fps ocuparía ~35 MB). Protege de ficheros corruptos. */
     private const val MAX_JSON_BYTES = 128 * 1024 * 1024
@@ -54,6 +54,8 @@ object BarTrackCodec {
             plateDiameterMm = t.plateDiameterMm,
             seed = t.seed?.let { SeedDto(it.tUs, it.cx, it.cy, it.r, it.userConfirmed) },
             t = time, cx = cx, cy = cy, r = r, ax = ax, q = q, src = src,
+            trackingContinuity = t.trackingContinuity.name,
+            continuityBreakUs = t.continuityBreakUs,
         )
         val text = json.encodeToString(BarTrackDto.serializer(), dto)
         val out = ByteArrayOutputStream(maxOf(256, text.length / 6))
@@ -61,12 +63,12 @@ object BarTrackCodec {
         return out.toByteArray()
     }
 
-    /** Decodifica un `bar.json.gz`; `null` si no es gzip válido, no es JSON, `v` ≠ 1 o las columnas no cuadran. */
+    /** Decodifica un `bar.json.gz`; `null` si no es gzip válido, no es JSON, `v` no soportada o las columnas no cuadran. V1 conserva datos con continuidad UNKNOWN. */
     fun decode(b: ByteArray): BarTrack? {
         return try {
             val raw = gunzip(b) ?: return null
             val dto = json.decodeFromString(BarTrackDto.serializer(), String(raw, Charsets.UTF_8))
-            if (dto.v != FORMAT_VERSION) return null
+            if (dto.v != 1 && dto.v != FORMAT_VERSION) return null
             toTrack(dto)
         } catch (e: Exception) {
             // Gzip corrupto, JSON mal formado o de otra forma, o columnas incoherentes: «no es un bar válido».
@@ -95,6 +97,9 @@ object BarTrackCodec {
                 source = source,
             )
         }
+        var continuity = if (dto.v == 1) PlateTrackingContinuity.UNKNOWN else
+            PlateTrackingContinuity.entries.firstOrNull { it.name == dto.trackingContinuity } ?: PlateTrackingContinuity.UNKNOWN
+        if (continuity == PlateTrackingContinuity.UNINTERRUPTED && dto.continuityBreakUs != null) continuity = PlateTrackingContinuity.UNKNOWN
         return BarTrack(
             mediaId = dto.mediaId,
             frameWidth = dto.w,
@@ -102,7 +107,9 @@ object BarTrackCodec {
             plateDiameterMm = dto.plateDiameterMm,
             seed = dto.seed?.let { PlateSeed(it.t, it.cx, it.cy, it.r, it.userConfirmed) },
             samples = samples,
-            version = FORMAT_VERSION,
+            version = dto.v,
+            trackingContinuity = continuity,
+            continuityBreakUs = if (dto.v == 1) null else dto.continuityBreakUs,
         )
     }
 
@@ -153,5 +160,7 @@ object BarTrackCodec {
         val ax: IntArray,
         val q: IntArray,
         val src: IntArray,
+        val trackingContinuity: String? = null,
+        val continuityBreakUs: Long? = null,
     )
 }

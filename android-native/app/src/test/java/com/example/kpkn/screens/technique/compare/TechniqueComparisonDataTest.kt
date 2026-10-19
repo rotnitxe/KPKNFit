@@ -1,5 +1,9 @@
 package com.example.kpkn.screens.technique.compare
 
+import com.example.kpkn.domain.biomechanics.bar.PlateSeed
+
+import com.example.kpkn.domain.biomechanics.bar.PlateTrackingContinuity
+
 import com.example.kpkn.data.media.technique.TechniqueReportSamples
 import com.example.kpkn.domain.biomechanics.bar.BarSample
 import com.example.kpkn.domain.biomechanics.bar.BarSampleSource
@@ -13,7 +17,8 @@ import org.junit.Test
 
 class TechniqueComparisonDataTest {
     private fun measuredTrack() = BarTrack(
-        mediaId = "test", frameWidth = 320, frameHeight = 240, plateDiameterMm = 450, seed = null,
+        mediaId = "test", frameWidth = 320, frameHeight = 240, plateDiameterMm = 450, seed = PlateSeed(0L, 100f, 100f, 20f, true),
+        trackingContinuity = PlateTrackingContinuity.UNINTERRUPTED,
         samples = listOf(
             BarSample(0L, 100f, 100f, 20f, 1f, 1f, BarSampleSource.HOUGH),
             BarSample(30_000L, 900f, 900f, 100f, 1f, 1f, BarSampleSource.PREDICTED),
@@ -48,13 +53,29 @@ class TechniqueComparisonDataTest {
     fun mixed_velocity_units_never_produce_an_absolute_value_or_delta_for_uncalibrated_video() {
         val a = TechniqueReportSamples.fullReport().let { it.copy(available = it.available + MetricKey.VELOCITY_RELATIVE) }
         val b = a.copy(velocityUnit = VelocityUnit.BODY_HEIGHTS_PER_S, mcvBest = 0.7, velocityLossPct = 24.5)
-        val rows = TechniqueComparisonData.differenceTable(a, b)
+        val rows = TechniqueComparisonData.differenceTable(a, b, measuredTrack(), measuredTrack())
         val mcv = rows.single { it.label == "MCV (mejor)" }
         assertTrue(mcv.valueA.endsWith("m/s"))
         assertEquals("—", mcv.valueB)
         assertEquals("—", mcv.diff)
         assertTrue(rows.single { it.label == "Pérdida de velocidad" }.diff.endsWith("pp"))
-        assertFalse(TechniqueComparisonData.differenceTable(b, b).any { it.label == "MCV (mejor)" })
+        assertFalse(TechniqueComparisonData.differenceTable(b, b, measuredTrack(), measuredTrack()).any { it.label == "MCV (mejor)" })
+    }
+
+    @Test
+    fun anOldCalibratedReportCannotAuthorizeAnInterruptedOrUnknownCurrentTrack() {
+        val oldReport = TechniqueReportSamples.fullReport()
+        for (state in listOf(PlateTrackingContinuity.UNKNOWN, PlateTrackingContinuity.INTERRUPTED)) {
+            val bar = measuredTrack().copy(trackingContinuity = state)
+            assertEquals(null, TechniqueComparisonData.calibratedScale(oldReport, bar))
+            assertTrue(TechniqueComparisonData.extractPath(bar, oldReport, true).isEmpty())
+            assertTrue(TechniqueComparisonData.extractPath(bar, oldReport, false).isEmpty())
+            assertFalse(TechniqueComparisonData.differenceTable(oldReport, oldReport, bar, bar).any { it.label == "MCV (mejor)" })
+        }
+        val stale = oldReport.copy(engineVersion = oldReport.engineVersion - 1)
+        assertEquals(null, TechniqueComparisonData.calibratedScale(stale, measuredTrack()))
+        assertTrue(TechniqueComparisonData.extractPath(measuredTrack(), stale, true).isEmpty())
+        assertTrue(TechniqueComparisonData.differenceTable(stale, stale, measuredTrack(), measuredTrack()).isEmpty())
     }
 
     @Test

@@ -1,5 +1,7 @@
 package com.example.kpkn.domain.biomechanics.reps
 
+import com.example.kpkn.domain.biomechanics.bar.PlateTrackingContinuity
+
 import com.example.kpkn.domain.biomechanics.NormalizedPoint
 import com.example.kpkn.domain.biomechanics.PoseFrame
 import com.example.kpkn.domain.biomechanics.PoseJoint
@@ -8,6 +10,7 @@ import com.example.kpkn.domain.biomechanics.TrajectoryFamily
 import com.example.kpkn.domain.biomechanics.bar.BarSample
 import com.example.kpkn.domain.biomechanics.bar.BarSampleSource
 import com.example.kpkn.domain.biomechanics.bar.BarTrack
+import com.example.kpkn.domain.biomechanics.bar.PlateSeed
 import com.example.kpkn.domain.biomechanics.metrics.AnalysisTuning
 import com.example.kpkn.domain.biomechanics.metrics.RepKind
 import com.example.kpkn.domain.biomechanics.pose.PoseLandmark
@@ -144,8 +147,10 @@ internal object RepTestSupport {
             frameWidth = track.frameWidth,
             frameHeight = track.frameHeight,
             plateDiameterMm = null,
-            seed = null,
+            // Synthetic truth is deliberately selected; real automatic proposals remain unconfirmed.
+            seed = samples.firstOrNull()?.let { PlateSeed(it.tUs, it.cx, it.cy, it.r, true) },
             samples = samples,
+            trackingContinuity = PlateTrackingContinuity.UNINTERRUPTED,
         )
     }
 

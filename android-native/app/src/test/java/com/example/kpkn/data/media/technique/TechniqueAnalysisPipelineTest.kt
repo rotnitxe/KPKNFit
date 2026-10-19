@@ -1,5 +1,7 @@
 package com.example.kpkn.data.media.technique
 
+import com.example.kpkn.domain.biomechanics.bar.PlateTrackingContinuity
+
 import android.app.Application
 import com.example.kpkn.data.media.pose.PoseEstimator
 import com.example.kpkn.data.media.video.VideoDecodeException
@@ -459,7 +461,7 @@ class TechniqueAnalysisPipelineTest {
     // ---- Disco ---------------------------------------------------------------------------------------------------------
 
     /** Una sentadilla limpia de 720×1280 con un disco DIBUJADO que sigue la muñeca izquierda, y lo necesario para pasarlo por el pipeline. */
-    private inner class PlateCase(val reps: Int = 3) {
+    private inner class PlateCase(val reps: Int = 3, val occlusion: ClosedFloatingPointRange<Double>? = null) {
         val camera = SynthCamera()
         val lifter = PipelineTestKit.squat(
             reps = reps, width = camera.widthPx, height = camera.heightPx, noise = SynthNoise.NONE,
@@ -475,7 +477,7 @@ class TechniqueAnalysisPipelineTest {
                 11L,
                 SceneOptions(
                     width = camera.widthPx, height = camera.heightPx, radiusPx = radius, contrast = 45.0, polarity = 1, noiseSigma = 3.0,
-                    exposureS = 1.0 / 90.0, rackBars = false, distractor = false,
+                    exposureS = 1.0 / 90.0, rackBars = false, distractor = false, fullOcclusion = occlusion,
                 ),
             ),
             SampledPath(DoubleArray(frames.size) { pts[it] / 1e6 }, xs, ys),
@@ -496,8 +498,8 @@ class TechniqueAnalysisPipelineTest {
             return xs[k] to ys[k]
         }
 
-        fun pipeline(failAfter: Int = -1, failure: Throwable? = null) = TechniqueAnalysisPipeline(
-            PipelineTestKit.deps({ newSource(failAfter, failure) }, { newEstimator() }, onStats = { stats.add(it) }),
+        fun pipeline(failAfter: Int = -1, failure: Throwable? = null, noPose: Boolean = false) = TechniqueAnalysisPipeline(
+            PipelineTestKit.deps({ newSource(failAfter, failure) }, { if (noPose) FakePoseEstimator(frames, failAlways = true).also { estimators.add(it) } else newEstimator() }, onStats = { stats.add(it) }),
             tuning,
         )
 
@@ -512,6 +514,18 @@ class TechniqueAnalysisPipelineTest {
     }
 
     private fun fmt(x: Double) = String.format(Locale.ROOT, "%.2f", x)
+
+    @Test
+    fun missingWristsExplainZeroAcquisitionAttemptsWithoutBlamingScaleOrTheDetector() {
+        val case = PlateCase()
+        val video = PipelineTestKit.videoFile(folder.root)
+        analyze(case.pipeline(noPose = true), case.request(video))
+        val run = stats.single()
+        assertEquals(0, run.plateAttempts)
+        assertEquals("none", run.plateSeedState)
+        assertTrue((run.plateWaitingCounts["no_wrist"] ?: 0) > 0)
+        assertEquals(setOf("no_wrist"), run.plateWaitingCounts.keys)
+    }
 
     @Test
     fun theDiscIsFoundByItselfAndTrackedForwardAndBackward() {
@@ -552,6 +566,8 @@ class TechniqueAnalysisPipelineTest {
         assertTrue(run.usesPlate)
         assertEquals("TRACKING", run.plateStage)
         assertNotNull(run.autoSeed)
+        assertEquals("provisional", run.plateSeedState)
+        assertTrue((run.plateWaitingCounts["no_still"] ?: 0) > 0)
         assertEquals(samples.size, run.barSamples)
         assertEquals(case.reps, report.repCount)
         assertEquals(engineOn(storedPose(video), bar, equipment = "barbell"), report)
@@ -560,11 +576,24 @@ class TechniqueAnalysisPipelineTest {
     }
 
     @Test
-    fun plateOnlyTracksFromTheConfirmedSeedBackAndForwardAndWritesTheDiameter() {
+    fun selectConfirmRecomputeReusesOnlyTheSameSeedAndRetracksAChangedSelection() {
         val case = PlateCase()
         val video = PipelineTestKit.videoFile(folder.root)
         done(analyze(case.pipeline(), case.request(video)).outcome)
         val poseBefore = TechniqueSidecars.poseFile(video).readBytes()
+        val provisionalBefore = TechniqueSidecars.barFile(video).readBytes()
+        done(analyze(case.pipeline(), case.request(video, AnalysisMode.RECOMPUTE)).outcome)
+        assertTrue(provisionalBefore.contentEquals(TechniqueSidecars.barFile(video).readBytes()))
+        assertFalse(checkNotNull(checkNotNull(BarTrackCodec.decode(provisionalBefore)).seed).userConfirmed)
+
+        // Selecting the same geometry may adopt confirmation/diameter without decoding again.
+        val sameSeed = checkNotNull(checkNotNull(BarTrackCodec.decode(provisionalBefore)).seed)
+        val sourcesBeforeSameSeed = sources.size
+        done(analyze(case.pipeline(), case.request(video, AnalysisMode.RECOMPUTE, sameSeed)).outcome)
+        assertEquals(sourcesBeforeSameSeed, sources.size)
+        val sameSelected = checkNotNull(BarTrackCodec.decode(TechniqueSidecars.barFile(video).readBytes()))
+        assertTrue(checkNotNull(sameSelected.seed).userConfirmed)
+        assertEquals(450, sameSelected.plateDiameterMm)
 
         // El usuario fija el disco en un instante cualquiera de la 1.ª repetición.
         val seedAt = case.pts.first { it >= 3_000_000L }
@@ -572,7 +601,7 @@ class TechniqueAnalysisPipelineTest {
         val seed = PlateSeed(seedAt, sx.toFloat(), sy.toFloat(), case.radius.toFloat(), userConfirmed = true)
         val sourcesBefore = sources.size
         val estimatorsBefore = estimators.size
-        val result = analyze(case.pipeline(), case.request(video, AnalysisMode.PLATE_ONLY, seed))
+        val result = analyze(case.pipeline(), case.request(video, AnalysisMode.RECOMPUTE, seed))
         val report = done(result.outcome).report
 
         // Solo luma, desde 3 s antes de la semilla.
@@ -599,6 +628,14 @@ class TechniqueAnalysisPipelineTest {
         assertEquals(case.reps, report.repCount)
         assertEquals(VideoDecodePath.GL, stats.last().decodePath)
         assertTrue(abs(stats.last().barSamples - samples.size) == 0)
+        assertEquals("selected", stats.last().plateSeedState)
+        val selectedBytes = TechniqueSidecars.barFile(video).readBytes()
+        val sourcesBeforeRecompute = sources.size
+        val recomputed = done(analyze(case.pipeline(), case.request(video, AnalysisMode.RECOMPUTE)).outcome).report
+        assertEquals(sourcesBeforeRecompute, sources.size)
+        assertTrue(selectedBytes.contentEquals(TechniqueSidecars.barFile(video).readBytes()))
+        assertTrue(checkNotNull(checkNotNull(BarTrackCodec.decode(selectedBytes)).seed).userConfirmed)
+        assertEquals(report, recomputed)
     }
 
     @Test
@@ -627,6 +664,64 @@ class TechniqueAnalysisPipelineTest {
         assertNull("no hubo semilla automática", run.autoSeed)
         assertEquals("sin adquisición: la semilla es la del usuario", 0, run.plateAttempts)
         assertEquals(case.reps, report.repCount)
+    }
+
+    @Test
+    fun interruptedConfirmedTrackStaysInterruptedThroughRecomputeAndCanOnlyBeReassessedByPlateOnly() {
+        val case = PlateCase()
+        val video = PipelineTestKit.videoFile(folder.root)
+        val (x, y) = case.truthAt(0L)
+        val seed = PlateSeed(0L, x.toFloat(), y.toFloat(), case.radius.toFloat(), true)
+        done(analyze(case.pipeline(), case.request(video, AnalysisMode.FULL, seed)).outcome)
+        val file = TechniqueSidecars.barFile(video)
+        val measured = checkNotNull(BarTrackCodec.decode(file.readBytes()))
+        val interrupted = measured.copy(trackingContinuity = PlateTrackingContinuity.INTERRUPTED, continuityBreakUs = 4_000_000L)
+        TechniqueSidecars.writeAtomically(file, BarTrackCodec.encode(interrupted))
+        val sourcesBefore = sources.size
+        done(analyze(case.pipeline(), case.request(video, AnalysisMode.RECOMPUTE, seed)).outcome)
+        assertEquals(sourcesBefore, sources.size)
+        val kept = checkNotNull(BarTrackCodec.decode(file.readBytes()))
+        assertTrue(checkNotNull(kept.seed).userConfirmed)
+        assertEquals(PlateTrackingContinuity.INTERRUPTED, kept.trackingContinuity)
+        assertEquals(4_000_000L, kept.continuityBreakUs)
+        assertFalse(com.example.kpkn.domain.biomechanics.bar.PlatePublicationPolicy.canUsePlate(kept))
+        done(analyze(case.pipeline(), case.request(video, AnalysisMode.PLATE_ONLY, seed)).outcome)
+        val reassessed = checkNotNull(BarTrackCodec.decode(file.readBytes()))
+        assertTrue(checkNotNull(reassessed.seed).userConfirmed)
+        assertEquals(PlateTrackingContinuity.UNINTERRUPTED, reassessed.trackingContinuity)
+        assertNull(reassessed.continuityBreakUs)
+    }
+
+    @Test
+    fun confirmedCheckpointPreservesHistoryAndResumesWithUnknownAssociationState() {
+        val case = PlateCase()
+        val video = PipelineTestKit.videoFile(folder.root)
+        val (x, y) = case.truthAt(0L)
+        val seed = PlateSeed(0L, x.toFloat(), y.toFloat(), case.radius.toFloat(), true)
+        failed(analyze(case.pipeline(failAfter = 260, failure = IOException("checkpoint")), case.request(video, AnalysisMode.FULL, seed)).outcome)
+        val checkpoint = checkNotNull(AnalysisCheckpoints.read(TechniqueSidecars.partFile(video)))
+        assertTrue(checkNotNull(checkNotNull(checkpoint.bar).seed).userConfirmed)
+        done(analyze(case.pipeline(), case.request(video, AnalysisMode.FULL, seed)).outcome)
+        val bar = checkNotNull(BarTrackCodec.decode(TechniqueSidecars.barFile(video).readBytes()))
+        assertTrue(checkNotNull(bar.seed).userConfirmed)
+        assertEquals(PlateTrackingContinuity.UNKNOWN, bar.trackingContinuity)
+        assertFalse(com.example.kpkn.domain.biomechanics.bar.PlatePublicationPolicy.canUsePlate(bar))
+    }
+
+    @Test
+    fun plateOnlyThatLosesSupportAgainCannotRecoverPublicationByReconfirmingTheSeed() {
+        val case = PlateCase(occlusion = 3.0..3.5)
+        val video = PipelineTestKit.videoFile(folder.root)
+        val (x, y) = case.truthAt(0L)
+        val seed = PlateSeed(0L, x.toFloat(), y.toFloat(), case.radius.toFloat(), true)
+        done(analyze(case.pipeline(), case.request(video, AnalysisMode.FULL, seed)).outcome)
+        done(analyze(case.pipeline(), case.request(video, AnalysisMode.PLATE_ONLY, seed)).outcome)
+        val bar = checkNotNull(BarTrackCodec.decode(TechniqueSidecars.barFile(video).readBytes()))
+        assertTrue(checkNotNull(bar.seed).userConfirmed)
+        assertEquals(PlateTrackingContinuity.INTERRUPTED, bar.trackingContinuity)
+        assertNotNull(bar.continuityBreakUs)
+        assertTrue(bar.samples.any { it.tUs > 4_000_000L && it.source == BarSampleSource.HOUGH })
+        assertFalse(com.example.kpkn.domain.biomechanics.bar.PlatePublicationPolicy.canUsePlate(bar))
     }
 
     @Test

@@ -39,10 +39,11 @@ object SyntheticClipEncoder {
     private const val EGL_RECORDABLE_ANDROID = 0x3142
 
     /** Un clip por generar: [orientationHint] es el giro del contenedor y [variableRate] alterna saltos de 25 y 41 ms. */
-    class Spec(val name: String, val fps: Int, val seconds: Int, val orientationHint: Int, val variableRate: Boolean)
+    class Spec(val name: String, val fps: Int, val seconds: Int, val orientationHint: Int, val variableRate: Boolean,
+        val maxBFrames: Int = 0, val frameCodes: Boolean = false)
 
     /** El clip escrito: [ptsUs] son los PTS que recibió el muxer, ordenados. */
-    class Clip(val file: File, val spec: Spec, val ptsUs: LongArray)
+    class Clip(val file: File, val spec: Spec, val ptsUs: LongArray, val muxerPtsInWriteOrder: LongArray)
 
     /** X del centro del disco en el fotograma codificado (píxeles continuos, origen arriba a la izquierda) en el instante [tUs]. */
     fun diskX(tUs: Long): Double = WIDTH / 2.0 + 0.30 * WIDTH * sin(2 * PI * 0.5 * tUs / 1e6)
@@ -89,6 +90,11 @@ object SyntheticClipEncoder {
             setInteger(MediaFormat.KEY_BIT_RATE, BIT_RATE)
             setInteger(MediaFormat.KEY_FRAME_RATE, spec.fps)
             setInteger(MediaFormat.KEY_I_FRAME_INTERVAL, 1)
+            if (spec.maxBFrames > 0) {
+                check(android.os.Build.VERSION.SDK_INT >= 29) { "B-frame request requires API 29" }
+                setInteger(MediaFormat.KEY_MAX_B_FRAMES, spec.maxBFrames)
+                setInteger(MediaFormat.KEY_PROFILE, MediaCodecInfo.CodecProfileLevel.AVCProfileHigh)
+            }
         }
         var encoder: MediaCodec? = null
         var inputSurface: Surface? = null
@@ -110,18 +116,20 @@ object SyntheticClipEncoder {
             muxer = output
             output.setOrientationHint(spec.orientationHint)
             val sink = MuxSink(codec, output)
-            for (t in times) {
+            for ((frameIndex, t) in times.withIndex()) {
                 sink.drain(false)
                 painter.draw(diskX(t), diskY(t))
+                if (spec.frameCodes) painter.drawFrameCode(frameIndex)
                 window.present(t * 1000L)
             }
             codec.signalEndOfInputStream()
             sink.drain(true)
             if (sink.started) output.stop()
             check(sink.written.isNotEmpty()) { "El codificador no produjo ningún fotograma" }
-            val written = sink.written.toLongArray()
+            val writeOrder = sink.written.toLongArray()
+            val written = writeOrder.copyOf()
             written.sort()
-            return Clip(file, spec, written)
+            return Clip(file, spec, written, writeOrder)
         } finally {
             runCatching { drawer?.release() }
             runCatching { egl?.release() }
@@ -267,6 +275,18 @@ object SyntheticClipEncoder {
             GLES20.glUniform2f(uCenter, x.toFloat(), (HEIGHT - y).toFloat())
             GLES20.glUniform1f(uRadius, DISK_RADIUS)
             GLES20.glDrawArrays(GLES20.GL_TRIANGLE_STRIP, 0, 4)
+        }
+
+        /** 8-bit logical input-frame ID, separate from disc geometry; used only by B-frame diagnostics. */
+        fun drawFrameCode(index: Int) {
+            GLES20.glEnable(GLES20.GL_SCISSOR_TEST)
+            for (bit in 0 until 8) {
+                val value = if ((index and (1 shl bit)) != 0) 1f else 0f
+                GLES20.glScissor(8 + bit * 12, 8, 8, 8)
+                GLES20.glClearColor(value, value, value, 1f)
+                GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT)
+            }
+            GLES20.glDisable(GLES20.GL_SCISSOR_TEST)
         }
 
         fun release() {

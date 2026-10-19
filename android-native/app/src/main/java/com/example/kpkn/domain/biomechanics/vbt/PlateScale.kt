@@ -1,5 +1,7 @@
 package com.example.kpkn.domain.biomechanics.vbt
 
+import com.example.kpkn.domain.biomechanics.bar.PlatePublicationPolicy
+
 import com.example.kpkn.domain.biomechanics.bar.BarSample
 import com.example.kpkn.domain.biomechanics.bar.BarSampleSource
 import com.example.kpkn.domain.biomechanics.bar.BarTrack
@@ -83,6 +85,7 @@ object PlateScale {
         focalLengthPx: Float?,
         tuning: AnalysisTuning = AnalysisTuning.DEFAULT,
     ): PlateScaleResult {
+        if (!PlatePublicationPolicy.canUsePlate(bar)) return none("plate_tracking_continuity_unavailable")
         val vbt = tuning.vbt
         val diameterMm = bar.plateDiameterMm
         if (diameterMm == null || diameterMm <= 0) return none("no_diameter")

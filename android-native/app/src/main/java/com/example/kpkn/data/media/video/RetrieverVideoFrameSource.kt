@@ -4,11 +4,11 @@ import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Paint
 import android.media.MediaMetadataRetriever
+import android.media.MediaExtractor
 import android.os.Build
 import java.io.File
 import java.util.concurrent.Executors
 import java.util.concurrent.atomic.AtomicBoolean
-import kotlin.math.ceil
 import kotlin.math.min
 import kotlin.math.roundToLong
 import kotlinx.coroutines.CancellationException
@@ -28,8 +28,9 @@ private const val MAX_CONSECUTIVE_NULLS = 3
 /**
  * Respaldo con `MediaMetadataRetriever`: más lento y menos preciso que [GlVideoFrameSource], pero no necesita GL.
  * - Con API 28+, `getFramesAtIndex` en bloques (de hasta 30 fotogramas, menos si el vídeo es grande para no pasar de ~64 MB):
- *   todos los fotogramas, con PTS = índice / fps nominal (no son los reales: en un vídeo VFR se desvían).
- * - Con una API anterior (o si la anterior no sirve para ese archivo), `getScaledFrameAtTime(OPTION_CLOSEST)` a ≤ 15 fps.
+ *   MP4 AVC/HEVC con PTS del contenedor, conteo exacto y política explícita de orden de composición.
+ * - El modo por tiempo (≤ 15 fps) solo se permite con opt-in diagnóstico: sus tiempos pedidos NO son PTS medidos.
+ *   Sin correspondencia temporal demostrada, el análisis se abstiene con VideoDecodeException.
  *
  * Los Bitmap pasan a RGBA y luma con los mismos tamaños que GL. La confianza del conteo con este camino no pasa de MEDIA.
  * [openFailure] es el motivo por el que se llegó al respaldo, solo para [VideoDecodeReport.fallbackReason].
@@ -39,6 +40,7 @@ class RetrieverVideoFrameSource(
     override val info: VideoInfo,
     private val indexed: Boolean = Build.VERSION.SDK_INT >= Build.VERSION_CODES.P,
     private val openFailure: String? = null,
+    private val allowUnverifiedTimedDiagnostic: Boolean = false,
 ) : ResumableVideoFrameSource, VideoDecodeReport {
     private val executor = Executors.newSingleThreadExecutor { runnable ->
         Thread(runnable, "vt-decode-rt").apply { isDaemon = true }
@@ -76,7 +78,7 @@ class RetrieverVideoFrameSource(
         try {
             withContext(dispatcher) {
                 val run = RetrieverRun(
-                    file, info, indexed, fromUs.coerceAtLeast(0L), targetLongEdge, needs, onFrame, currentCoroutineContext().job, startIndex,
+                    file, info, indexed, fromUs.coerceAtLeast(0L), targetLongEdge, needs, onFrame, currentCoroutineContext().job, startIndex, allowUnverifiedTimedDiagnostic,
                 )
                 try {
                     run.run()
@@ -106,6 +108,7 @@ private class RetrieverRun(
     private val onFrame: suspend (DecodedFrame) -> Unit,
     private val job: Job,
     startIndex: Int,
+    private val allowUnverifiedTimedDiagnostic: Boolean,
 ) {
     private val out = VideoFrameMath.outputSize(info.displayWidth, info.displayHeight, targetLongEdge)
     private val pool = FramePool(out.width, out.height)
@@ -126,7 +129,12 @@ private class RetrieverRun(
             retriever.setDataSource(file.absolutePath)
             val fps = info.nominalFps ?: info.captureFps ?: DEFAULT_FPS
             val done = indexed && Build.VERSION.SDK_INT >= Build.VERSION_CODES.P && runIndexed(retriever, fps)
-            if (!done) runTimed(retriever, fps)
+            if (!done) {
+                if (!allowUnverifiedTimedDiagnostic) {
+                    throw VideoDecodeException("retriever_timestamp_correspondence_unverified: $mode")
+                }
+                runTimed(retriever, fps)
+            }
         } catch (cancel: CancellationException) {
             throw cancel
         } catch (consumer: ConsumerFailure) {
@@ -141,46 +149,96 @@ private class RetrieverRun(
         }
     }
 
-    /** Fotogramas de [fromUs] en adelante por índice. `false` si la API no sirve para este archivo (se pasa al modo por tiempo). */
-    private suspend fun runIndexed(retriever: MediaMetadataRetriever, fps: Float): Boolean {
-        val reported = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_FRAME_COUNT)?.toIntOrNull()?.takeIf { it > 0 }
-        val frameCount = reported ?: ceil(info.durationUs.toDouble() * fps / 1_000_000.0).toInt()
-        val bytesPerFrame = info.displayWidth.toLong() * info.displayHeight * 4
+    /** MP4 composition-order mapping, with exact access-unit/frame count and complete bitmap blocks. */
+    private suspend fun runIndexed(retriever: MediaMetadataRetriever, @Suppress("UNUSED_PARAMETER") fps: Float): Boolean {
+        val reported = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_FRAME_COUNT)
+            ?.toIntOrNull()?.takeIf { it > 0 }
+        val mime = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_MIMETYPE)
+        val verified = readIndexTimes(reported, mime == "video/mp4" && info.mime in setOf("video/avc", "video/hevc"))
+        val table = when (verified) {
+            is IndexedPtsValidation.Verified -> verified.times
+            is IndexedPtsValidation.Rejected -> {
+                mode = "indexed-rejected reason=${verified.reason} timing=unverified"
+                return false
+            }
+        }
+        val bytesPerFrame = info.displayWidth.toLong() * info.displayHeight * 4L
+        if (bytesPerFrame <= 0L || bytesPerFrame > BLOCK_BUDGET_BYTES) {
+            mode = "indexed-rejected reason=bitmap_memory_budget timing=unverified"
+            return false
+        }
         val block = (BLOCK_BUDGET_BYTES / bytesPerFrame).toInt().coerceIn(1, MAX_BLOCK)
-        mode = "indexed block=$block frames=$frameCount"
-        var index = VideoFrameMath.firstIndexAtOrAfter(fromUs, fps)
-        var first = true
-        while (index < frameCount) {
+        mode = "indexed block=$block frames=${table.size} pts=container-index timing=verified reorderedMp4=${table.reorderedForMp4Presentation}"
+        var index = table.firstIndexAtOrAfter(fromUs)
+        while (index < table.size) {
             job.ensureActive()
-            val count = min(block, frameCount - index)
-            val bitmaps = try {
-                retriever.getFramesAtIndex(index, count)
-            } catch (error: Exception) {
-                if (first) return false
-                break
-            }
-            if (bitmaps.isNullOrEmpty()) {
-                if (first) return false
-                break
-            }
-            first = false
-            for (k in bitmaps.indices) {
-                val bitmap = bitmaps[k]
-                try {
-                    deliver(bitmap, VideoFrameMath.indexedPtsUs(index + k, fps))
-                } finally {
-                    bitmap.recycle()
+            val count = min(block, table.size - index)
+            val params = MediaMetadataRetriever.BitmapParams().apply { preferredConfig = Bitmap.Config.ARGB_8888 }
+            val bitmaps = retriever.getFramesAtIndex(index, count, params)
+            try {
+                if (bitmaps.size != count) {
+                    throw VideoDecodeException("retriever_index_block_incomplete: index=$index expected=$count actual=${bitmaps.size}")
                 }
+                for (k in bitmaps.indices) {
+                    job.ensureActive()
+                    deliver(bitmaps[k], table.ptsUs(index + k))
+                }
+            } finally {
+                // Cancellation/consumer failure must also release the unconsumed tail of this block.
+                for (bitmap in bitmaps) if (!bitmap.isRecycled) bitmap.recycle()
             }
-            index += bitmaps.size
+            index += count
         }
         return true
+    }
+
+    /** Read PTS only, never compressed payloads. One bounded allocation; release on every exit. */
+    private fun readIndexTimes(reported: Int?, mp4Compatible: Boolean): IndexedPtsValidation {
+        if (!mp4Compatible) return IndexedPtsValidation.Rejected("unsupported_container_or_codec")
+        if (reported == null || reported <= 0) return IndexedPtsValidation.Rejected("no_frame_count")
+        if (reported > IndexedPresentationTimes.MAX_ENTRIES) return IndexedPtsValidation.Rejected("pts_memory_budget")
+        val extractor = MediaExtractor()
+        try {
+            job.ensureActive()
+            extractor.setDataSource(file.absolutePath)
+            var selected = -1
+            var videos = 0
+            for (i in 0 until extractor.trackCount) {
+                if (extractor.getTrackFormat(i).getString(android.media.MediaFormat.KEY_MIME).orEmpty().startsWith("video/")) {
+                    videos++
+                    selected = i
+                }
+            }
+            if (videos != 1) return IndexedPtsValidation.Rejected("ambiguous_video_tracks")
+            extractor.selectTrack(selected)
+            val times = LongArray(reported)
+            var count = 0
+            while (extractor.sampleTime >= 0L) {
+                job.ensureActive()
+                if (count == reported) return IndexedPtsValidation.Rejected("sample_frame_count_mismatch")
+                val flags = extractor.sampleFlags
+                if ((flags and (MediaExtractor.SAMPLE_FLAG_ENCRYPTED or MediaExtractor.SAMPLE_FLAG_PARTIAL_FRAME)) != 0) {
+                    return IndexedPtsValidation.Rejected("encrypted_or_partial_access_unit")
+                }
+                times[count++] = extractor.sampleTime
+                if (!extractor.advance()) break
+            }
+            if (count != reported) return IndexedPtsValidation.Rejected("sample_frame_count_mismatch")
+            return IndexedPresentationTimes.verify(times, reported, videos, mp4Compatible)
+        } catch (cancel: CancellationException) {
+            throw cancel
+        } catch (error: Exception) {
+            return IndexedPtsValidation.Rejected("container_pts_read_failed:${error.javaClass.simpleName}")
+        } finally {
+            runCatching { extractor.release() }
+        }
     }
 
     /** Fotogramas a ≤ 15 fps con `getScaledFrameAtTime`/`getFrameAtTime`; el PTS es el instante pedido. */
     private suspend fun runTimed(retriever: MediaMetadataRetriever, fps: Float) {
         val stepUs = maxOf(1_000_000L / TIMED_MAX_FPS, (1_000_000.0 / fps).roundToLong())
-        mode = "timed step=${stepUs}us"
+        val rejected = mode
+        mode = "timed step=${stepUs}us pts=requested-time timing=unverified diagnosticOnly=true indexReason=$rejected"
         var timeUs = fromUs
         var nulls = 0
         while (timeUs <= info.durationUs) {

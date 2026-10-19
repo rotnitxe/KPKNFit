@@ -2,6 +2,7 @@ package com.example.kpkn.domain.biomechanics.reps
 
 import com.example.kpkn.domain.biomechanics.bar.BarSampleSource
 import com.example.kpkn.domain.biomechanics.bar.BarTrack
+import com.example.kpkn.domain.biomechanics.bar.PlatePublicationPolicy
 import com.example.kpkn.domain.biomechanics.kinematics.Angles
 import com.example.kpkn.domain.biomechanics.kinematics.FrameGeometry
 import com.example.kpkn.domain.biomechanics.kinematics.Side
@@ -119,7 +120,7 @@ object CountSeriesBuilder {
         val geo = prepared.geo
 
         // ---- fuente: el disco si el perfil lo usa y se ve en ≥ 85 % de los fotogramas con pose ----
-        val plate = if (profile.usesPlate && profile.plateSignal != null && bar != null) {
+        val plate = if (profile.usesPlate && profile.plateSignal != null && bar != null && PlatePublicationPolicy.canUsePlate(bar)) {
             PlateFrames.of(bar, geo, times, tuning)
         } else {
             null
@@ -649,8 +650,9 @@ object CountSeriesBuilder {
     // ------------------------------------------------------------------------------------------------------------
 
     /**
-     * Máscara de caminar: la X de los tobillos (media de los fiables) y la de las caderas, en BH, sin atípicos, suavizadas a
-     * 1 Hz y derivadas; camina cuando LAS DOS se mueven a más de 0,12 BH/s durante ≥ 0,3 s (dilatado ±0,3 s). Con solo los
+     * Máscara de caminar: velocidad de cada tobillo por separado, combinando las velocidades fiables (nunca posiciones
+     * de identidades distintas), y velocidad de caderas en BH. Mismos Hampel, LP 1 Hz y compuertas de >0,12 BH/s durante
+     * ≥0,3 s, dilatadas ±0,3 s. Ambas señales deben moverse. Con solo los
      * tobillos, la extensión de cuádriceps o el curl femoral (el pie se mueve, el cuerpo no) contarían como caminar.
      */
     private fun walkMask(
@@ -664,20 +666,28 @@ object CountSeriesBuilder {
         val n = timebase.n
         val fs = timebase.fs
         val half = max(tuning.hampelMinHalfWindow, (tuning.hampelWindowFraction * fs).roundToInt())
-        val ax = DoubleArray(nFrames) { Double.NaN }
+        val lx = DoubleArray(nFrames) { Double.NaN }
+        val rx = DoubleArray(nFrames) { Double.NaN }
         val hx = DoubleArray(nFrames) { Double.NaN }
         for (i in 0 until nFrames) {
             val l = reader.strongPoint(i, PoseLandmark.LEFT_ANKLE)
             val r = reader.strongPoint(i, PoseLandmark.RIGHT_ANKLE)
-            ax[i] = when {
-                l != null && r != null -> (l.x + r.x) * 0.5 / s
-                l != null -> l.x / s
-                r != null -> r.x / s
-                else -> Double.NaN
-            }
+            lx[i] = (l?.x ?: Double.NaN) / s
+            rx[i] = (r?.x ?: Double.NaN) / s
             hx[i] = (reader.mid(i, PoseLandmark.LEFT_HIP, PoseLandmark.RIGHT_HIP)?.x ?: Double.NaN) / s
         }
-        val ankleSpeed = horizontalSpeed(ax, times, timebase, half, tuning)
+        val leftSpeed = horizontalSpeed(lx, times, timebase, half, tuning)
+        val rightSpeed = horizontalSpeed(rx, times, timebase, half, tuning)
+        val ankleSpeed = DoubleArray(n) { i ->
+            val l = leftSpeed[i]
+            val r = rightSpeed[i]
+            when {
+                l.isFinite() && r.isFinite() -> (l + r) * 0.5
+                l.isFinite() -> l
+                r.isFinite() -> r
+                else -> Double.NaN
+            }
+        }
         val hipSpeed = horizontalSpeed(hx, times, timebase, half, tuning)
         val moving = BooleanArray(n) { abs(ankleSpeed[it]) > tuning.walkSpeedBhPerS && abs(hipSpeed[it]) > tuning.walkSpeedBhPerS }
         val mask = BooleanArray(n)
@@ -699,11 +709,78 @@ object CountSeriesBuilder {
         return mask
     }
 
-    /** Velocidad horizontal (BH/s) de una coordenada por fotograma: sin atípicos, en la rejilla, suavizada y derivada. */
-    private fun horizontalSpeed(x: DoubleArray, times: LongArray, timebase: Timebase, half: Int, tuning: AnalysisTuning): DoubleArray {
-        val clean = Hampel.filter(x, half, tuning.hampelSigmas)
-        val grid = GapFiller.fill(Resampler.toUniform(times, clean, timebase, tuning.fillCountGapS), timebase.fs, tuning.fillCountGapS).values
-        return Derivative.central(ZeroPhaseLowPass.filter(grid, timebase.fs, tuning.walkLowPassHz), timebase.fs)
+    /**
+     * Horizontal BH/s, keeping one landmark's identity. Missing support > fillCountGapS is a barrier
+     * for Hampel, interpolation, LP and the derivative stencil, even when the grid has no interior sample.
+     * Internal only so analytic support regressions can inspect abstentions; not a publication API.
+     */
+    internal fun horizontalSpeed(x: DoubleArray, times: LongArray, timebase: Timebase, half: Int, tuning: AnalysisTuning): DoubleArray {
+        require(x.size == times.size)
+        val none = DoubleArray(timebase.n) { Double.NaN }
+        if (x.isEmpty() || timebase.n < 2 || !(timebase.fs > 0.0) || !timebase.fs.isFinite()) return none
+        if ((1 until times.size).any { times[it] <= times[it - 1] }) return none
+        val maxGapUs = tuning.fillCountGapS * MICROS
+        val clean = DoubleArray(x.size) { Double.NaN }
+        val barriers = ArrayList<Pair<Long, Long>>()
+        fun cleanSpan(start: Int, end: Int) {
+            val raw = x.copyOfRange(start, end + 1)
+            for (i in raw.indices) if (!raw[i].isFinite()) raw[i] = Double.NaN
+            val part = Hampel.filter(raw, half, tuning.hampelSigmas)
+            System.arraycopy(part, 0, clean, start, part.size)
+        }
+        var start = -1
+        var previous = -1
+        for (i in x.indices) {
+            if (!x[i].isFinite()) continue
+            if (previous >= 0 && (times[i] - times[previous]).toDouble() > maxGapUs) {
+                cleanSpan(start, previous)
+                barriers.add(times[previous] to times[i])
+                start = i
+            } else if (start < 0) {
+                start = i
+            }
+            previous = i
+        }
+        if (start < 0) return none
+        cleanSpan(start, previous)
+        val sampled = Resampler.toUniform(times, clean, timebase, tuning.fillCountGapS)
+        val grid = GapFiller.fill(sampled, timebase.fs, tuning.fillCountGapS).values
+        val stepUs = MICROS / timebase.fs
+        fun gridUs(k: Int): Double = timebase.t0Us + k * stepUs
+        // GapFiller counts missing grid cells. It must not undo a longer gap between actual observations.
+        val filterCuts = ArrayList<Int>()
+        var k = 0
+        for ((left, right) in barriers) {
+            while (k < grid.size && gridUs(k) <= left) k++
+            filterCuts.add(k)
+            while (k < grid.size && gridUs(k) < right) {
+                // Preserve an observed endpoint accepted by Resampler's existing rounding tolerance.
+                if (sampled[k].isNaN()) grid[k] = Double.NaN
+                k++
+            }
+        }
+        // A sparse grid may have no NaN cell inside a support break. Still isolate the LP kernels.
+        val smooth = DoubleArray(grid.size) { Double.NaN }
+        var from = 0
+        for (cut in filterCuts + grid.size) {
+            if (cut > from) {
+                val filtered = ZeroPhaseLowPass.filter(grid.copyOfRange(from, cut), timebase.fs, tuning.walkLowPassHz)
+                System.arraycopy(filtered, 0, smooth, from, filtered.size)
+                from = cut
+            }
+        }
+        val speed = Derivative.central(smooth, timebase.fs)
+        var barrier = 0
+        for (i in speed.indices) {
+            val lo = max(0, i - 1)
+            val hi = minOf(speed.lastIndex, i + 1)
+            val fromUs = gridUs(lo)
+            val toUs = gridUs(hi)
+            while (barrier < barriers.size && barriers[barrier].second <= fromUs) barrier++
+            val crossesGap = barrier < barriers.size && barriers[barrier].first < toUs && barriers[barrier].second > fromUs
+            if (crossesGap || !smooth[lo].isFinite() || !smooth[i].isFinite() || !smooth[hi].isFinite()) speed[i] = Double.NaN
+        }
+        return speed
     }
 
     /** El punto de barra del perfil en BH: el disco si cuenta, o el sustituto de pose de la regla. */

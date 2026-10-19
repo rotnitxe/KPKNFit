@@ -1,5 +1,7 @@
 package com.example.kpkn.screens.technique.analysis
 
+import com.example.kpkn.domain.biomechanics.bar.PlateTrackingContinuity
+
 import com.example.kpkn.data.media.technique.TechniqueReportSamples
 import com.example.kpkn.data.models.WorkoutMedia
 import com.example.kpkn.data.models.WorkoutMediaKind
@@ -354,9 +356,16 @@ class TechniqueAnalysisUiStateTest {
         assertEquals(seed, suggested.circle)
         assertEquals(4_000_000L, suggested.frameUs)
 
-        val confirmed = plate(found, CaptureOverrides(plateSeed = seed.copy(userConfirmed = true), plateDiameterMm = 400))!!
+        val confirmed = plate(found.copy(seed = seed.copy(userConfirmed = true)), CaptureOverrides(plateSeed = seed.copy(userConfirmed = true), plateDiameterMm = 400))!!
         assertEquals(PlateModuleState.CONFIRMED, confirmed.state)
         assertEquals(400, confirmed.diameterMm)
+        val broken = plate(found.copy(seed = seed.copy(userConfirmed = true), trackingContinuity = PlateTrackingContinuity.INTERRUPTED))!!
+        assertEquals(PlateModuleState.CONFIRMED, broken.state)
+        assertFalse(broken.inMetersPerSecond)
+        assertTrue(broken.warnings.any { it.contains("Se perdió el seguimiento") })
+        val unknown = plate(found.copy(seed = seed.copy(userConfirmed = true), trackingContinuity = PlateTrackingContinuity.UNKNOWN))!!
+        assertFalse(unknown.inMetersPerSecond)
+        assertTrue(unknown.warnings.any { it.contains("No podemos comprobar") })
         assertTrue("con velocityUnit MPS se dice en m/s", confirmed.inMetersPerSecond)
 
         val notFound = plate(null)!!

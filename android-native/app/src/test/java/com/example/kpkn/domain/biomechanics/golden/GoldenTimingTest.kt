@@ -22,7 +22,8 @@ class GoldenTimingTest {
         assertTrue(results.none { it.fixture.subset == "holdout" })
     }
 
-    /** Mismo cierre que conteo: no ejecutar durante el ajuste; exige el banco completo antes de leer reserva. */
+    /** Historical 250 ms regression, NOT MAE50/ICC acceptance. Keep this assertion unchanged.
+     * Do not run during tuning; OriginalContractAcceptanceTest selects full acceptance explicitly. */
     @Test
     fun completeReservedReliableTurnsAreWithin250Milliseconds() {
         val corpus = GoldenReport.load()

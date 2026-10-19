@@ -15,6 +15,7 @@ import androidx.lifecycle.lifecycleScope
 import com.example.kpkn.data.media.video.DecodedFrame
 import com.example.kpkn.data.media.video.FrameNeeds
 import com.example.kpkn.data.media.video.RetrieverVideoFrameSource
+import com.example.kpkn.data.media.video.ResumableVideoFrameSource
 import com.example.kpkn.data.media.video.VideoDecodePath
 import com.example.kpkn.data.media.video.VideoDecodeReport
 import com.example.kpkn.data.media.video.VideoFrameMath
@@ -23,12 +24,14 @@ import com.example.kpkn.data.media.video.VideoFrameSources
 import com.example.kpkn.data.media.video.VideoInfo
 import com.example.kpkn.data.media.video.VideoInfoProbe
 import java.io.File
+import java.util.concurrent.atomic.AtomicInteger
 import kotlin.math.abs
 import kotlin.math.hypot
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancelAndJoin
+import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -93,8 +96,8 @@ class TechniqueBenchActivity : ComponentActivity() {
             val fakeExercise = com.example.kpkn.data.models.Exercise(
                 id = "debug_squat",
                 name = "Sentadilla con barra",
-                catalogDefinitionId = "squat",
-                catalogConfigurationId = "barbell_squat",
+                catalogDefinitionId = "high_bar_back_squat",
+                catalogConfigurationId = "high_bar_back_squat__barbell",
             )
             val fakeRequest = com.example.kpkn.screens.workout.technique.TechniqueRecorderRequest(
                 captureRequest = com.example.kpkn.screens.workout.WorkoutMediaCaptureRequest(
@@ -287,7 +290,7 @@ private fun nearestIndex(sorted: LongArray, ptsUs: Long): Int {
 }
 
 /** PTS de las muestras de vídeo del contenedor, ordenados (lo que el archivo dice de verdad). */
-private fun readContainerPts(file: File): LongArray {
+private fun readContainerPts(file: File, sortForPresentation: Boolean = true): LongArray {
     val extractor = MediaExtractor()
     try {
         extractor.setDataSource(file.absolutePath)
@@ -308,7 +311,7 @@ private fun readContainerPts(file: File): LongArray {
             if (!extractor.advance()) break
         }
         val sorted = times.toLongArray()
-        sorted.sort()
+        if (sortForPresentation) sorted.sort()
         return sorted
     } finally {
         extractor.release()
@@ -398,35 +401,20 @@ private class DecodeSelfTest(private val dir: File) {
                 summary.append(summaryOf(outcome)).append(' ')
             }
             report.put("clips", clips)
-            val cancellation = try {
-                runCancelCheck()
-            } catch (cancel: CancellationException) {
-                throw cancel
-            } catch (error: Throwable) {
-                JSONObject().put("error", describe(error)).put("ok", false)
-            }
+            val bFrames = runBFrameCheck()
+            report.put("bFrames", bFrames)
+            // An ignored/unsupported encoder request is explicitly NOT_VALIDATED, never a B-frame PASS.
+            if (bFrames.optString("estado") != "NOT_VALIDATED") allOk = allOk && bFrames.optBoolean("ok")
+            summary.append("bFrames=").append(bFrames.optString("estado")).append(' ')
+            val cancellation = runLifecyclePair(listOf(SPECS[1], SPECS[3])) { route, spec -> runCancelCheck(route, spec) }
             report.put("cancelacion", cancellation)
             allOk = allOk && cancellation.optBoolean("ok")
             summary.append("cancel=").append(cancellation.optBoolean("ok")).append(' ')
-            val needsCheck = try {
-                JSONObject().put("gl", runNeedsCheck(forceRetriever = false)).put("retriever", runNeedsCheck(forceRetriever = true))
-            } catch (cancel: CancellationException) {
-                throw cancel
-            } catch (error: Throwable) {
-                JSONObject().put("error", describe(error))
-            }
-            val needsOk = needsCheck.optJSONObject("gl")?.optBoolean("ok") == true && needsCheck.optJSONObject("retriever")?.optBoolean("ok") == true
-            needsCheck.put("ok", needsOk)
+            val needsCheck = runLifecyclePair(listOf(SPECS[0], SPECS[3])) { route, spec -> runNeedsCheck(route, spec) }
             report.put("necesidades", needsCheck)
-            allOk = allOk && needsOk
-            summary.append("needs=").append(needsOk).append(' ')
-            val resume = try {
-                runSeekCheck()
-            } catch (cancel: CancellationException) {
-                throw cancel
-            } catch (error: Throwable) {
-                JSONObject().put("error", describe(error)).put("ok", false)
-            }
+            allOk = allOk && needsCheck.optBoolean("ok")
+            summary.append("needs=").append(needsCheck.optBoolean("ok")).append(' ')
+            val resume = runLifecyclePair(listOf(SPECS[1], SPECS[3])) { route, spec -> runSeekCheck(route, spec) }
             report.put("desdeUnInstante", resume)
             allOk = allOk && resume.optBoolean("ok")
             summary.append("seek=").append(resume.optBoolean("ok"))
@@ -445,6 +433,60 @@ private class DecodeSelfTest(private val dir: File) {
             Log.i(TAG, "decode_selftest ok=$allOk $summary")
         }
         return "decode_selftest ${if (allOk) "OK" else "CON FALLOS"} · $summary"
+    }
+
+    /** Instrumented diagnostic with a known logical frame ID, not merely a requested B-frame count. */
+    private suspend fun runBFrameCheck(): JSONObject {
+        val json = JSONObject().put("solicitudMaxBFrames", 2).put("estado", "NOT_VALIDATED").put("ok", false)
+        if (Build.VERSION.SDK_INT < 29) return json.put("motivo", "encoder_api_unsupported")
+        try {
+            val spec = SyntheticClipEncoder.Spec("e_bframes", 30, 3, 0, false, maxBFrames = 2, frameCodes = true)
+            val clip = withContext(Dispatchers.IO) { SyntheticClipEncoder.encodeWithTimeout(File(dir, "e_bframes.mp4"), spec) }
+            val sampleOrder = readContainerPts(clip.file, sortForPresentation = false)
+            val reordered = (1 until sampleOrder.size).any { sampleOrder[it] < sampleOrder[it - 1] }
+            val encoderReordered = (1 until clip.muxerPtsInWriteOrder.size).any {
+                clip.muxerPtsInWriteOrder[it] < clip.muxerPtsInWriteOrder[it - 1]
+            }
+            json.put("reordenacionContenedorObservada", reordered)
+            json.put("reordenacionEncoderObservada", encoderReordered)
+            json.put("ptsMuestrasPrimeros", JSONArray(sampleOrder.take(12)))
+            json.put("ptsMuxerOrdenEscrituraPrimeros", JSONArray(clip.muxerPtsInWriteOrder.take(12)))
+            if (!reordered) return json.put("motivo", "encoder_ignored_b_request_or_muxer_did_not_preserve_reorder")
+            val info = VideoInfoProbe.probe(clip.file)
+            val ids = ArrayList<Int>()
+            val outputPts = ArrayList<Long>()
+            val source = RetrieverVideoFrameSource(clip.file, info)
+            source.use { src ->
+                src.decode(targetLongEdge = TARGET_LONG_EDGE, needs = { _, _ -> FrameNeeds.LUMA }) { frame ->
+                    val luma = checkNotNull(frame.luma)
+                    check(frame.width == SyntheticClipEncoder.WIDTH && frame.height == SyntheticClipEncoder.HEIGHT)
+                    var code = 0
+                    for (bit in 0 until 8) {
+                        val x = 12 + bit * 12
+                        val y = frame.height - 12
+                        if ((luma[y * frame.width + x].toInt() and 255) > 128) code = code or (1 shl bit)
+                    }
+                    ids.add(code)
+                    outputPts.add(frame.ptsUs)
+                }
+                json.put("detalles", (src as VideoDecodeReport).details)
+            }
+            val sameCount = ids.size == clip.ptsUs.size && ids.size == sampleOrder.size
+            val idsOk = sameCount && ids.indices.all { ids[it] == it }
+            val timesOk = sameCount && outputPts.indices.all { outputPts[it] == clip.ptsUs[it] }
+            val ok = idsOk && timesOk
+            json.put("estado", if (ok) "PASS" else "FAIL")
+            json.put("ok", ok).put("precisionTemporalVerificada", ok)
+            json.put("idsPresentacionCorrectos", idsOk).put("ptsPresentacionCorrectos", timesOk)
+            json.put("idsDecodificados", JSONArray(ids)).put("ptsDecodificados", JSONArray(outputPts))
+        } catch (cancel: CancellationException) {
+            throw cancel
+        } catch (error: Throwable) {
+            // If reorder was already demonstrated, this is a route failure, not an unsupported encoder.
+            if (json.optBoolean("reordenacionContenedorObservada")) json.put("estado", "FAIL")
+            json.put("motivo", describe(error))
+        }
+        return json
     }
 
     private fun summaryOf(clip: JSONObject): String {
@@ -527,7 +569,7 @@ private class DecodeSelfTest(private val dir: File) {
             note("${spec.name}: decodificando ($label)")
             val info = VideoInfoProbe.probe(file)
             val source: VideoFrameSource =
-                if (forceRetriever) RetrieverVideoFrameSource(file, info, indexed = indexed) else VideoFrameSources.open(file)
+                if (forceRetriever) RetrieverVideoFrameSource(file, info, indexed = indexed, allowUnverifiedTimedDiagnostic = !indexed) else VideoFrameSources.open(file)
             source.use { src ->
                 val log = FrameLog(clip.ptsUs.size)
                 var callbackNs = 0L
@@ -545,7 +587,7 @@ private class DecodeSelfTest(private val dir: File) {
                 json.put("camino", path.name)
                 json.put("motivoRespaldo", report?.fallbackReason ?: JSONObject.NULL)
                 json.put("detalles", report?.details.orEmpty())
-                fill(json, log, clip, container, wallNs, callbackNs, firstFrameNs, expectedSize, path, forceRetriever)
+                fill(json, log, clip, container, wallNs, callbackNs, firstFrameNs, expectedSize, path, forceRetriever, indexed)
             }
         } catch (cancel: CancellationException) {
             throw cancel
@@ -568,6 +610,7 @@ private class DecodeSelfTest(private val dir: File) {
         expectedSize: VideoFrameMath.Size,
         path: VideoDecodePath,
         forceRetriever: Boolean,
+        indexed: Boolean,
     ) {
         val spec = clip.spec
         val decoded = log.pts.size
@@ -678,8 +721,14 @@ private class DecodeSelfTest(private val dir: File) {
         }
 
         val sizeOk = log.width == expectedSize.width && log.height == expectedSize.height
+        val preciseTimeRequired = !forceRetriever || indexed
+        val exactContainerTime = container != null && sameCountAsMuxer && mismatchVsContainer == 0
+        json.put("precisionTemporalVerificada", preciseTimeRequired && exactContainerTime)
+        json.put("ptsSemantica", if (preciseTimeRequired) "presentacion_contenedor" else "solicitud_no_pts_del_bitmap")
+        json.put("alcance", if (preciseTimeRequired) "fotogramas_y_reloj" else "geometria_sin_validacion_temporal")
         val ok = if (forceRetriever) {
-            decoded > 0 && sizeOk && errMax <= RETRIEVER_CENTROID_TOLERANCE_PX && log.lumaVsRgbaMaxDiff == 0
+            val timesOk = if (indexed) exactContainerTime else true
+            decoded > 0 && sizeOk && timesOk && errMax <= RETRIEVER_CENTROID_TOLERANCE_PX && log.lumaVsRgbaMaxDiff == 0
         } else {
             val timesOk = if (container != null) mismatchVsContainer == 0 else maxVsMuxerUs in 0L..2L
             path == VideoDecodePath.GL && sameCountAsMuxer && timesOk && sizeOk &&
@@ -688,31 +737,120 @@ private class DecodeSelfTest(private val dir: File) {
         json.put("ok", ok)
     }
 
-    /**
-     * `FrameNeeds` por fotograma: índice 0 de cada tres pide RGBA, el 1 LUMA y el 2 SKIP. Se entregan solo los dos primeros,
-     * con el campo pedido y el otro a `null`, y los índices son los de todos los fotogramas (el SKIP también gasta el suyo).
-     */
-    private suspend fun runNeedsCheck(forceRetriever: Boolean): JSONObject {
-        val json = JSONObject()
-        val spec = SPECS[0]
+    /** A requested GL case must actually finish through GL; fallback never earns a GL PASS. */
+    private class LifecycleRoute(
+        val name: String,
+        val expectedPath: VideoDecodePath,
+        val open: (File) -> VideoFrameSource,
+    )
+
+    private val lifecycleRoutes = listOf(
+        LifecycleRoute("gl", VideoDecodePath.GL) { VideoFrameSources.open(it) },
+        LifecycleRoute("retrieverIndexed", VideoDecodePath.RETRIEVER) {
+            RetrieverVideoFrameSource(it, VideoInfoProbe.probe(it), indexed = true, allowUnverifiedTimedDiagnostic = false)
+        },
+    )
+
+    /** Isolate every route/fixture failure, so GL failure does not prevent testing forced retriever. */
+    private suspend fun runLifecyclePair(
+        specs: List<SyntheticClipEncoder.Spec>,
+        check: suspend (LifecycleRoute, SyntheticClipEncoder.Spec) -> JSONObject,
+    ): JSONObject {
+        val result = JSONObject().put("esquemaCicloVida", 2)
+        var allOk = true
+        for (route in lifecycleRoutes) {
+            val cases = JSONArray()
+            var routeOk = true
+            for (spec in specs) {
+                val item = try {
+                    check(route, spec)
+                } catch (cancel: CancellationException) {
+                    throw cancel
+                } catch (error: Throwable) {
+                    JSONObject().put("error", describe(error)).put("ok", false)
+                }
+                item.put("fixture", spec.name).put("rutaSolicitada", route.name)
+                cases.put(item)
+                routeOk = routeOk && item.optBoolean("ok")
+            }
+            result.put(if (route.expectedPath == VideoDecodePath.GL) "gl" else "retriever",
+                JSONObject().put("casos", cases).put("ok", routeOk))
+            allOk = allOk && routeOk
+        }
+        return result.put("ok", allOk)
+    }
+
+    /** The oracle is the measured container clock of the SAME generated fixture for both routes. */
+    private fun lifecyclePts(file: File, spec: SyntheticClipEncoder.Spec): LongArray {
+        check(file.isFile) { "sin el clip ${spec.name}" }
+        val expected = checkNotNull(expectedFrames[spec.name]) { "sin conteo muxer ${spec.name}" }
+        val pts = readContainerPts(file)
+        check(pts.size == expected && pts.size > CANCEL_AFTER_FRAMES) { "conteo contenedor/muxer no coincide" }
+        check((1 until pts.size).all { pts[it] > pts[it - 1] }) { "PTS repetidos/no crecientes" }
+        if (spec.variableRate) {
+            check(hasExpectedVfrCadence(pts)) { "fixture VFR no conservó la alternancia 25/41 ms (±1 µs)" }
+        }
+        return pts
+    }
+
+    /** The fixture requests 25/41 ms, not merely two different microsecond deltas (CFR quantizes too). */
+    private fun hasExpectedVfrCadence(pts: LongArray): Boolean {
+        if (pts.size < 3) return false
+        for (i in 1 until pts.size) {
+            val expectedDeltaUs = if (i % 2 == 1) 25_000L else 41_000L
+            val deltaUs = pts[i] - pts[i - 1]
+            if (deltaUs !in (expectedDeltaUs - 1L)..(expectedDeltaUs + 1L)) return false
+        }
+        return true
+    }
+
+    private fun lifecycleProvenance(json: JSONObject, src: VideoFrameSource, route: LifecycleRoute): Boolean {
+        val report = src as? VideoDecodeReport
+        val details = report?.details.orEmpty()
+        val pathOk = report?.path == route.expectedPath
+        val indexedOk = route.expectedPath != VideoDecodePath.RETRIEVER ||
+            (details.startsWith("retriever mode=indexed ") && details.contains("pts=container-index") && details.contains("timing=verified"))
+        json.put("caminoObservado", report?.path?.name ?: JSONObject.NULL)
+            .put("detalles", details).put("motivoRespaldo", report?.fallbackReason ?: JSONObject.NULL)
+            .put("procedenciaCorrecta", pathOk && indexedOk)
+            .put("timedDiagnosticoPermitido", false)
+        return pathOk && indexedOk
+    }
+
+    private fun lifecycleThreads(): JSONObject {
+        val names = Thread.getAllStackTraces().keys.filter { it.isAlive }.map { it.name }
+        return JSONObject().put("vtFrames", names.count { it == "vt-frames" })
+            .put("vtDecode", names.count { it.startsWith("vt-decode") })
+            .put("vtDecodeRt", names.count { it == "vt-decode-rt" })
+    }
+
+    private fun noLifecycleThreads(json: JSONObject): Boolean =
+        json.getInt("vtFrames") == 0 && json.getInt("vtDecode") == 0 && json.getInt("vtDecodeRt") == 0
+
+    /** Every needs() call, including SKIP, must carry the exact indexed container PTS. */
+    private suspend fun runNeedsCheck(route: LifecycleRoute, spec: SyntheticClipEncoder.Spec): JSONObject {
         val file = File(dir, "${spec.name}.mp4")
-        val total = expectedFrames[spec.name] ?: return json.put("error", "sin el clip ${spec.name}").put("ok", false)
-        note("necesidades: ${if (forceRetriever) "retriever" else "gl"}")
-        val info = VideoInfoProbe.probe(file)
-        val source: VideoFrameSource = if (forceRetriever) RetrieverVideoFrameSource(file, info) else VideoFrameSources.open(file)
+        val expectedPts = lifecyclePts(file, spec)
+        val askedIndices = ArrayList<Int>()
+        val askedPts = ArrayList<Long>()
         val indices = ArrayList<Int>()
+        val deliveredPts = ArrayList<Long>()
         var wrongFields = 0
-        source.use { src ->
-            src.decode(
-                needs = { index, _ ->
-                    when (index % 3) {
-                        0 -> FrameNeeds.RGBA
-                        1 -> FrameNeeds.LUMA
-                        else -> FrameNeeds.SKIP
-                    }
-                },
-            ) { frame ->
+        val json = JSONObject()
+        var provenanceOk = false
+        note("necesidades ${route.name}: ${spec.name}")
+        route.open(file).use { src ->
+            src.decode(targetLongEdge = TARGET_LONG_EDGE, needs = { index, ptsUs ->
+                askedIndices.add(index)
+                askedPts.add(ptsUs)
+                when (index % 3) {
+                    0 -> FrameNeeds.RGBA
+                    1 -> FrameNeeds.LUMA
+                    else -> FrameNeeds.SKIP
+                }
+            }) { frame ->
                 indices.add(frame.index)
+                deliveredPts.add(frame.ptsUs)
                 val fieldsOk = when (frame.index % 3) {
                     0 -> frame.rgba != null && frame.luma == null
                     1 -> frame.rgba == null && frame.luma != null
@@ -720,60 +858,101 @@ private class DecodeSelfTest(private val dir: File) {
                 }
                 if (!fieldsOk) wrongFields++
             }
+            provenanceOk = lifecycleProvenance(json, src, route)
         }
-        val expectedIndices = (0 until total).filter { it % 3 != 2 }
-        json.put("entregados", indices.size)
-        json.put("esperados", expectedIndices.size)
-        json.put("camposMal", wrongFields)
-        json.put("ok", wrongFields == 0 && indices == expectedIndices)
-        return json
+        val allIndices = expectedPts.indices.toList()
+        val expectedIndices = allIndices.filter { it % 3 != 2 }
+        val expectedDeliveredPts = expectedIndices.map { expectedPts[it] }
+        val ptsOk = askedPts == expectedPts.toList() && deliveredPts == expectedDeliveredPts
+        return json.put("entregados", indices.size).put("esperados", expectedIndices.size)
+            .put("camposMal", wrongFields).put("indicesSolicitados", JSONArray(askedIndices))
+            .put("indicesEntregados", JSONArray(indices)).put("ptsSolicitados", JSONArray(askedPts))
+            .put("ptsEntregados", JSONArray(deliveredPts)).put("ptsContenedor", JSONArray(expectedPts.toList()))
+            .put("ptsExactos", ptsOk)
+            .put("ok", provenanceOk && wrongFields == 0 && indices == expectedIndices && askedIndices == allIndices && ptsOk)
     }
 
-    /** `fromUs > 0`: salta al sincronismo anterior, descarta hasta `fromUs` y numera desde 0, con los PTS del contenedor. */
-    private suspend fun runSeekCheck(): JSONObject {
-        val json = JSONObject()
-        val spec = SPECS[1]
+    /** Exact, between-samples and EOF lower bounds; resume offset only through the public optional API. */
+    private suspend fun runSeekCheck(route: LifecycleRoute, spec: SyntheticClipEncoder.Spec): JSONObject {
         val file = File(dir, "${spec.name}.mp4")
-        if (!file.isFile) return json.put("error", "sin el clip ${spec.name}").put("ok", false)
-        val fromUs = 1_500_000L
-        val expected = readContainerPts(file).filter { it >= fromUs }
-        val seenPts = ArrayList<Long>()
-        val seenIndex = ArrayList<Int>()
-        note("desde $fromUs us: decodificando ${spec.name}")
-        VideoFrameSources.open(file).use { source ->
-            source.decode(fromUs = fromUs, needs = { _, _ -> FrameNeeds.LUMA }) { frame ->
-                seenPts.add(frame.ptsUs)
-                seenIndex.add(frame.index)
+        val pts = lifecyclePts(file, spec)
+        val middle = pts.size / 2
+        val cuts = listOf(1_500_000L, pts[middle], pts[middle] + 1L, pts.last() + 1L).distinct()
+        val cases = JSONArray()
+        var allOk = true
+        for (fromUs in cuts) {
+            val expected = pts.filter { it >= fromUs }
+            val seenPts = ArrayList<Long>()
+            val seenIndex = ArrayList<Int>()
+            val json = JSONObject().put("desdeUs", fromUs)
+            var provenanceOk = false
+            route.open(file).use { source ->
+                source.decode(fromUs = fromUs, targetLongEdge = TARGET_LONG_EDGE,
+                    needs = { _, _ -> FrameNeeds.LUMA }) { frame ->
+                    seenPts.add(frame.ptsUs)
+                    seenIndex.add(frame.index)
+                }
+                provenanceOk = lifecycleProvenance(json, source, route)
+            }
+            val ok = provenanceOk && seenPts == expected && seenIndex == expected.indices.toList() &&
+                (fromUs != 1_500_000L || seenPts.isNotEmpty()) // Preserve the original positive seek assertion.
+            cases.put(json.put("ptsEsperados", JSONArray(expected)).put("ptsDecodificados", JSONArray(seenPts))
+                .put("indices", JSONArray(seenIndex)).put("ok", ok))
+            allOk = allOk && ok
+        }
+        val resume = JSONObject().put("startIndex", 37)
+        val fromUs = pts[middle] + 1L
+        val expected = pts.filter { it >= fromUs }
+        var supported = false
+        var resumeOk = false
+        route.open(file).use { source ->
+            val resumable = source as? ResumableVideoFrameSource
+            supported = resumable != null
+            if (resumable != null) {
+                val seenPts = ArrayList<Long>()
+                val indices = ArrayList<Int>()
+                resumable.decodeFrom(fromUs, TARGET_LONG_EDGE, { _, _ -> FrameNeeds.LUMA }, { frame ->
+                    seenPts.add(frame.ptsUs)
+                    indices.add(frame.index)
+                }, startIndex = 37)
+                resumeOk = lifecycleProvenance(resume, source, route) && seenPts == expected &&
+                    indices == expected.indices.map { it + 37 }
+                resume.put("desdeUs", fromUs).put("ptsEsperados", JSONArray(expected))
+                    .put("ptsDecodificados", JSONArray(seenPts)).put("indices", JSONArray(indices))
             }
         }
-        json.put("desdeUs", fromUs)
-        json.put("fotogramasEsperados", expected.size)
-        json.put("fotogramasDecodificados", seenPts.size)
-        json.put("primerPtsUs", seenPts.firstOrNull() ?: JSONObject.NULL)
-        json.put("primerIndice", seenIndex.firstOrNull() ?: JSONObject.NULL)
-        val samePts = seenPts.size == expected.size && seenPts.indices.all { seenPts[it] == expected[it] }
-        val countedFromZero = seenIndex.indices.all { seenIndex[it] == it }
-        json.put("ok", samePts && countedFromZero && seenPts.isNotEmpty())
-        return json
+        resume.put("apiExpuesta", supported).put("estado", if (!supported) "NOT_EXPOSED" else if (resumeOk) "PASS" else "FAIL")
+        // Retriever implements ResumableVideoFrameSource. GL's public source does not expose this extension.
+        val resumeRequired = route.expectedPath == VideoDecodePath.RETRIEVER
+        return JSONObject().put("cortes", cases).put("resumeConOffset", resume)
+            .put("ok", allOk && if (resumeRequired || supported) resumeOk else true)
     }
 
-    /** Cancelar a mitad de una decodificación libera todo (hilos incluidos) y la fuente se puede abrir otra vez. */
-    private suspend fun runCancelCheck(): JSONObject {
-        val json = JSONObject()
-        val spec = SPECS[1]
+    /** Suspend inside frame 12, leaving the indexed block tail unconsumed, then cancel and join. */
+    private suspend fun runCancelCheck(route: LifecycleRoute, spec: SyntheticClipEncoder.Spec): JSONObject {
         val file = File(dir, "${spec.name}.mp4")
-        val expected = expectedFrames[spec.name] ?: return json.put("error", "sin el clip ${spec.name}").put("ok", false)
-        note("cancelación: abriendo ${spec.name}")
-        var seen = 0
-        var cancelMs = -1L
+        val pts = lifecyclePts(file, spec)
+        val json = JSONObject()
+        val callbacks = AtomicInteger()
+        val needsCalls = AtomicInteger()
+        val cancelledPts = ArrayList<Long>()
         var arrived = false
-        VideoFrameSources.open(file).use { source ->
+        var cancelMs = -1L
+        var provenanceOk = false
+        route.open(file).use { source ->
             coroutineScope {
                 val reached = CompletableDeferred<Unit>()
                 val worker = launch(Dispatchers.Default) {
-                    source.decode(needs = { _, _ -> FrameNeeds.LUMA }) { _ ->
-                        seen++
-                        if (seen == CANCEL_AFTER_FRAMES) reached.complete(Unit)
+                    source.decode(targetLongEdge = TARGET_LONG_EDGE, needs = { _, _ ->
+                        needsCalls.incrementAndGet()
+                        FrameNeeds.LUMA
+                    }) { frame ->
+                        cancelledPts.add(frame.ptsUs)
+                        val n = callbacks.incrementAndGet()
+                        if (n == CANCEL_AFTER_FRAMES) {
+                            reached.complete(Unit)
+                            awaitCancellation() // No race in which the entire clip finishes before cancelAndJoin().
+                        }
                     }
                 }
                 arrived = withTimeoutOrNull(30_000L) { reached.await() } != null
@@ -781,24 +960,38 @@ private class DecodeSelfTest(private val dir: File) {
                 worker.cancelAndJoin()
                 cancelMs = (System.nanoTime() - requestedNs) / 1_000_000L
             }
+            provenanceOk = lifecycleProvenance(json, source, route)
         }
-        if (!arrived) json.put("error", "no llegaron $CANCEL_AFTER_FRAMES fotogramas en 30 s")
+        val callbacksAtClose = callbacks.get()
+        val needsAtClose = needsCalls.get()
         delay(500L)
-        val threads = Thread.getAllStackTraces().keys.filter { it.isAlive }
-        val frameThreads = threads.count { it.name == "vt-frames" }
-        val decodeThreads = threads.count { it.name.startsWith("vt-decode") }
-        note("cancelación: reabriendo")
-        var reopened = 0
-        VideoFrameSources.open(file).use { source ->
-            source.decode(needs = { _, _ -> FrameNeeds.LUMA }) { _ -> reopened++ }
+        val closedThreads = lifecycleThreads()
+        val noTail = callbacks.get() == callbacksAtClose && needsCalls.get() == needsAtClose &&
+            callbacksAtClose == CANCEL_AFTER_FRAMES && needsAtClose == CANCEL_AFTER_FRAMES
+        val prefixOk = cancelledPts == pts.take(CANCEL_AFTER_FRAMES)
+        val reopen = JSONObject()
+        val reopenedPts = ArrayList<Long>()
+        val reopenedIndices = ArrayList<Int>()
+        var reopenProvenanceOk = false
+        note("cancelación ${route.name}: reabriendo ${spec.name}")
+        route.open(file).use { source ->
+            source.decode(targetLongEdge = TARGET_LONG_EDGE, needs = { _, _ -> FrameNeeds.LUMA }) { frame ->
+                reopenedPts.add(frame.ptsUs)
+                reopenedIndices.add(frame.index)
+            }
+            reopenProvenanceOk = lifecycleProvenance(reopen, source, route)
         }
-        json.put("fotogramasAntesDeCancelar", seen)
-        json.put("cancelarMs", cancelMs)
-        json.put("hilosVtFramesVivos", frameThreads)
-        json.put("hilosVtDecodeVivos", decodeThreads)
-        json.put("fotogramasTrasReabrir", reopened)
-        json.put("fotogramasEsperados", expected)
-        json.put("ok", !json.has("error") && seen >= CANCEL_AFTER_FRAMES && cancelMs in 0L..1500L && frameThreads == 0 && decodeThreads == 0 && reopened == expected)
-        return json
+        delay(500L)
+        val reopenedThreads = lifecycleThreads()
+        val reopenedOk = reopenProvenanceOk && reopenedPts == pts.toList() && reopenedIndices == pts.indices.toList()
+        reopen.put("ptsDecodificados", JSONArray(reopenedPts)).put("indices", JSONArray(reopenedIndices))
+            .put("hilosTrasCerrar", reopenedThreads).put("ok", reopenedOk && noLifecycleThreads(reopenedThreads))
+        return json.put("fotogramasAntesDeCancelar", callbacksAtClose).put("cancelarMs", cancelMs)
+            .put("alcanzoPuntoCancelacion", arrived).put("ptsAntesDeCancelar", JSONArray(cancelledPts))
+            .put("prefijoPtsExacto", prefixOk).put("sinCallbacksNiNeedsTardios", noTail)
+            .put("hilosTrasCancelarYCerrar", closedThreads).put("reapertura", reopen)
+            .put("recicladoBitmapsNoConsumidos", "NOT_OBSERVABLE_FROM_PUBLIC_SOURCE_API")
+            .put("ok", arrived && provenanceOk && prefixOk && noTail && cancelMs in 0L..1500L &&
+                noLifecycleThreads(closedThreads) && reopen.optBoolean("ok"))
     }
 }
