@@ -470,6 +470,7 @@ internal fun ExercisePickerV2Catalog(
     opaqueSurface: Boolean = false,
     dismissAfterMultiSelect: Boolean = true,
     targetGroupName: String? = null,
+    singleSelectionLabel: String? = null,
     replacement: CatalogReplacementContext? = null,
 ) {
     val state by repository.state.collectAsStateWithLifecycle()
@@ -600,6 +601,7 @@ internal fun ExercisePickerV2Catalog(
                     benchmarkSearchRequestId = repairBenchmarkSearchRequestId.value,
                     benchmarkLatestRequestedQuery = repairBenchmarkLatestSearchQuery.value,
                     editingExisting = editingExisting,
+                    singleSelectionLabel = singleSelectionLabel,
                     selectedExercisesIds = selectedExercisesIds,
                     onSelect = onSelect,
                     onMultiSelect = onMultiSelect,
@@ -654,6 +656,7 @@ private fun ColumnScope.CatalogReadyContent(
     benchmarkRequestId: Long,
     benchmarkSearchRequestId: Long,
     benchmarkLatestRequestedQuery: String,
+    singleSelectionLabel: String? = null,
     replacement: CatalogReplacementContext? = null,
 ) {
     val scope = rememberCoroutineScope()
@@ -1226,6 +1229,7 @@ private fun ColumnScope.CatalogReadyContent(
                                     patternId = effectiveConfiguration?.profile?.movementPatternId,
                                     isSelected = isSelected,
                                     canSelect = resolvedConfigurationId != null || !hasOptions,
+                                    selectionLabel = singleSelectionLabel,
                                     setupCues = effectiveConfiguration?.profile?.setupCues.orEmpty(),
                                     executionCues = effectiveConfiguration?.profile?.executionCues.orEmpty(),
                                     identityKeys = listOfNotNull(definition.id, effectiveConfiguration?.id).toSet(),

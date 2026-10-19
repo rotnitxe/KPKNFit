@@ -1,0 +1,61 @@
+{
+  "id": "r06-mixkit-735",
+  "durationS": 23.583,
+  "width": 1280,
+  "height": 720,
+  "rotation": 0,
+  "fpsNominal": 24.0,
+  "fpsMeasured": 24.0,
+  "usable": true,
+  "exercise": "Dominada pronada",
+  "exerciseDetail": "Dominada pronada (barra fija, agarre ancho)",
+  "suggestedProfile": "PULL_VERTICAL",
+  "view": "FRONT",
+  "people": 1,
+  "fullBodyVisible": false,
+  "faceVisible": true,
+  "plateVisible": false,
+  "startPhase": "ECCENTRIC_FIRST",
+  "reps": {
+    "full": 1,
+    "partial": 0,
+    "failed": 0,
+    "uncertain": false,
+    "acceptableRange": [
+      1,
+      2
+    ]
+  },
+  "repTimesS": [
+    {
+      "index": 1,
+      "turnaroundS": 6.7,
+      "side": null
+    }
+  ],
+  "activeWindowS": [
+    0.0,
+    9.3
+  ],
+  "frameIntervalS": {
+    "min": 0.0417,
+    "median": 0.0417,
+    "max": 0.0417
+  },
+  "turnaroundKind": "TOP",
+  "edgeEvents": [
+    {
+      "timeS": 0.5,
+      "kind": "TRUNCATED_START",
+      "description": "descenso final de una dominada previa (el clip empieza en el punto alto, 0-1,8 s); no tiene subida en el clip"
+    }
+  ],
+  "caveats": [],
+  "cameraMotion": {
+    "class": "STATIC",
+    "note": "cámara fija"
+  },
+  "softWarnings": [
+    "recuento ambiguo por medio ciclo en el borde del clip o por repeticiones dudosas: rango aceptable 1-2 (ver edgeEvents)"
+  ]
+}

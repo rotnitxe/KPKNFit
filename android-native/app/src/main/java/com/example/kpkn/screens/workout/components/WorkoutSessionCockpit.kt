@@ -140,6 +140,7 @@ fun WorkoutSessionCockpit(
     onSelectSuperset: (String) -> Unit = {},
     modifier: Modifier = Modifier,
     poseOverlayEnabled: Boolean = false,
+    onOpenAnalysis: ((String) -> Unit)? = null,
 ) {
     val reducedMotion = com.example.kpkn.screens.onboarding.design.wizardReducedMotion()
     val pages = CockpitPage.entries
@@ -209,6 +210,7 @@ fun WorkoutSessionCockpit(
                     onRemoveMedia = onRemoveSessionMedia,
                     sessionAccentColor = sessionAccentColor,
                     poseOverlayEnabled = poseOverlayEnabled,
+                    onOpenAnalysis = onOpenAnalysis,
                 )
                 CockpitPage.Tools -> CockpitToolsPage(
                     liveEnergySummary = liveEnergySummary,
@@ -352,6 +354,7 @@ private fun CockpitPhotosPage(
     onRemoveMedia: (String) -> Unit,
     sessionAccentColor: Color,
     poseOverlayEnabled: Boolean = false,
+    onOpenAnalysis: ((String) -> Unit)? = null,
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -495,6 +498,7 @@ private fun CockpitPhotosPage(
             media = item,
             onDismiss = { preview = null },
             poseOverlayEnabled = poseOverlayEnabled,
+            onOpenAnalysis = onOpenAnalysis,
         )
     }
 }

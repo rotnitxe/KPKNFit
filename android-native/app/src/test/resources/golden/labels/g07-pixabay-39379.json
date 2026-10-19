@@ -1,0 +1,120 @@
+{
+  "id": "g07-pixabay-39379",
+  "durationS": 15.872,
+  "width": 1280,
+  "height": 720,
+  "rotation": 0,
+  "fpsNominal": 30.0,
+  "fpsMeasured": 30.0,
+  "usable": true,
+  "exercise": "Press militar de pie con barra",
+  "exerciseDetail": "Press militar de pie con barra (frontal, estricto): la barra parte de los hombros, por delante del cuello, y sube a brazos rectos sobre la cabeza; sin flexión de piernas apreciable",
+  "suggestedProfile": "OHP",
+  "view": "BACK",
+  "people": 1,
+  "fullBodyVisible": false,
+  "faceVisible": false,
+  "plateVisible": true,
+  "startPhase": "CONCENTRIC_FIRST",
+  "reps": {
+    "full": 6,
+    "partial": 0,
+    "failed": 0,
+    "uncertain": false,
+    "acceptableRange": [
+      5,
+      6
+    ]
+  },
+  "repTimesS": [
+    {
+      "index": 1,
+      "turnaroundS": 2.65,
+      "side": null,
+      "windowS": [
+        2.4,
+        2.9
+      ]
+    },
+    {
+      "index": 2,
+      "turnaroundS": 4.15,
+      "side": null,
+      "windowS": [
+        3.9,
+        4.4
+      ]
+    },
+    {
+      "index": 3,
+      "turnaroundS": 6.1,
+      "side": null,
+      "windowS": [
+        5.9,
+        6.3
+      ]
+    },
+    {
+      "index": 4,
+      "turnaroundS": 8.25,
+      "side": null,
+      "windowS": [
+        8.0,
+        8.5
+      ]
+    },
+    {
+      "index": 5,
+      "turnaroundS": 10.6,
+      "side": null,
+      "windowS": [
+        10.0,
+        11.3
+      ]
+    },
+    {
+      "index": 6,
+      "turnaroundS": 13.5,
+      "side": null,
+      "windowS": [
+        13.0,
+        15.8
+      ]
+    }
+  ],
+  "activeWindowS": [
+    2.0,
+    15.87
+  ],
+  "frameIntervalS": {
+    "min": 0.0333,
+    "median": 0.0333,
+    "max": 0.0333
+  },
+  "turnaroundKind": "TOP",
+  "edgeEvents": [
+    {
+      "timeS": 0.0,
+      "kind": "SETUP",
+      "description": "0-2,0 s: de pie con la barra ya apoyada en los hombros (por delante del cuello), ajusta la postura; sin repeticiones"
+    },
+    {
+      "timeS": 15.0,
+      "kind": "TRUNCATED_END",
+      "description": "la 6.ª repetición llega arriba hacia 13,0 s y mantiene el bloqueo hasta el final del clip (15,87 s) sin bajar: un contador que exige el descenso marcaría 5"
+    }
+  ],
+  "caveats": [
+    "los pies y tobillos quedan cortados por el borde inferior",
+    "tempo decreciente (de ~1,5 s a ~2,9 s por repetición)",
+    "la 6.ª repetición queda bloqueada arriba hasta el final del clip: rango aceptable 5-6",
+    "el vídeo viene de una fuente de 24 fps conformada a 30 fps (1 de cada 5 fotogramas del contenedor es una copia): fps efectivo 24"
+  ],
+  "cameraMotion": {
+    "class": "STATIC",
+    "note": "cámara fija (deriva <2%)"
+  },
+  "softWarnings": [
+    "recuento ambiguo por medio ciclo en el borde del clip o por repeticiones dudosas: rango aceptable 5-6 (ver edgeEvents)"
+  ]
+}

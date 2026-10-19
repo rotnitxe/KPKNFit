@@ -1,0 +1,74 @@
+{
+  "id": "wger_0009",
+  "durationS": 6.367,
+  "width": 640,
+  "height": 360,
+  "rotation": 0,
+  "fpsNominal": 60.0,
+  "fpsMeasured": 60.0,
+  "usable": true,
+  "exercise": "Elevaciones posteriores sentado con mancuernas",
+  "exerciseDetail": "Elevaciones posteriores (pájaros) con mancuernas sentado en un banco, visto de frente",
+  "suggestedProfile": "RAISE",
+  "view": "FRONT",
+  "people": 3,
+  "fullBodyVisible": false,
+  "faceVisible": false,
+  "plateVisible": false,
+  "startPhase": "ECCENTRIC_FIRST",
+  "reps": {
+    "full": 3,
+    "partial": 0,
+    "failed": 0,
+    "uncertain": false,
+    "acceptableRange": [
+      3,
+      4
+    ]
+  },
+  "repTimesS": [
+    {
+      "index": 1,
+      "turnaroundS": 1.9,
+      "side": null
+    },
+    {
+      "index": 2,
+      "turnaroundS": 3.7,
+      "side": null
+    },
+    {
+      "index": 3,
+      "turnaroundS": 5.4,
+      "side": null
+    }
+  ],
+  "activeWindowS": [
+    0.0,
+    6.2
+  ],
+  "frameIntervalS": {
+    "min": 0.0167,
+    "median": 0.0167,
+    "max": 0.0167
+  },
+  "turnaroundKind": "TOP",
+  "edgeEvents": [
+    {
+      "timeS": 0.0,
+      "kind": "TRUNCATED_START",
+      "description": "el clip empieza con los brazos ya en lo más alto de una elevación (brazos abiertos a la horizontal) y baja primero: ese pico inicial no cuenta como repetición completa (rango aceptable 3-4)"
+    }
+  ],
+  "caveats": [],
+  "cameraMotion": {
+    "class": "SLOW_DRIFT",
+    "note": "deriva suave de mano. Medido con ORB+RANSAC sobre el fondo, zona del sujeto excluida en 0,0-6,2 s: recorrido acumulado p2p 2,0% en x y 3,8% en y, escala 0,99-1,02, velocidad media 0,91 %/s (máx. 1,5% en 1 s)"
+  },
+  "softWarnings": [
+    "cámara con deriva lenta: deriva suave de mano. Medido con ORB+RANSAC sobre el fondo, zona del sujeto excluida en 0,0-6,2 s: recorrido acumulado p2p 2,0% en x y 3,8% en y, escala 0,99-1,02, velocidad media 0,91 %/s (máx. 1,5% en 1 s)",
+    "varias personas: 3 distinguibles (el sujeto domina el encuadre; las demás son pequeñas o están al fondo)",
+    "recuento ambiguo por medio ciclo en el borde del clip o por repeticiones dudosas: rango aceptable 3-4 (ver edgeEvents)",
+    "clip muy corto (6.4 s)"
+  ]
+}

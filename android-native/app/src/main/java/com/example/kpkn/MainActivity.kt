@@ -197,6 +197,11 @@ class MainActivity : ComponentActivity() {
             runCatching {
                 com.example.kpkn.data.repository.WorkoutMediaRepository.getInstance().importLegacyIfNeeded()
             }.onFailure { logKpknError("MainActivity", "Error importing workout media", it) }
+            // Técnica en vídeo: rehace las filas que falten desde sus sidecars y limpia huérfanos, ya con los medios importados.
+            // Corre una vez por proceso aunque la Activity se recree.
+            runCatching {
+                com.example.kpkn.data.work.TechniqueAnalysisScheduler.reconcileInBackground(this@MainActivity)
+            }.onFailure { logKpknError("MainActivity", "Error reconciling technique analysis", it) }
         }
 
         lifecycleScope.launch(Dispatchers.IO) {
@@ -524,6 +529,9 @@ fun KPKNApp(
     val isFullscreenWizard =
         currentRoute?.startsWith("session-editor") == true ||
         currentRoute?.startsWith("workout") == true ||
+        // El reproductor y el CTA de comparación de técnica necesitan su propio borde inferior.
+        (currentRoute == KpknRoute.TechniqueHub.route ||
+            currentRoute?.startsWith("${KpknRoute.TechniqueHub.route}/") == true) ||
         currentRoute?.startsWith(KpknRoute.ExerciseCatalog.route) == true ||
         currentRoute?.startsWith(KpknRoute.NutritionWizard.BASE_ROUTE) == true ||
         currentRoute?.startsWith(KpknRoute.NutritionPlanEditor.BASE_ROUTE) == true ||
@@ -1192,6 +1200,7 @@ private fun KPKNNavGraph(
                     }
                 },
                 onOpenAlbums = { navController.navigate(KpknRoute.WorkoutAlbums.route) },
+                onOpenTechnique = { navController.navigate(KpknRoute.TechniqueHub.route) },
             )
         }
         composable(KpknRoute.CompetitionDetail.route) { backStack ->
@@ -1405,6 +1414,7 @@ private fun KPKNNavGraph(
                     }
                 },
                 onOpenAlbums = { navController.navigate(KpknRoute.WorkoutAlbums.route) },
+                onOpenTechnique = { navController.navigate(KpknRoute.TechniqueHub.route) },
             )
         }
         composable(KpknRoute.WorkoutAlbums.route) {
@@ -1439,6 +1449,75 @@ private fun KPKNNavGraph(
                 .orEmpty()
             WorkoutMediaViewerScreen(
                 mediaId = Uri.decode(mediaId),
+                onBack = { navController.popBackStack() },
+                onOpenAnalysis = { id -> navController.navigate(KpknRoute.TechniqueAnalysis.create(id)) },
+            )
+        }
+        composable(KpknRoute.TechniqueHub.route) { backStack ->
+            val catalogResultJson by backStack.savedStateHandle
+                .getStateFlow<String?>(CatalogSavedStateKeys.RESULT, null)
+                .collectAsState()
+            val catalogResult = catalogResultJson?.let { encoded ->
+                runCatching { Json.decodeFromString<CatalogResult>(encoded) }.getOrNull()
+            }
+            com.example.kpkn.screens.technique.hub.TechniqueHubRoute(
+                savedStateHandle = backStack.savedStateHandle,
+                onBack = { navController.popBackStack() },
+                onOpenTrends = { key -> navController.navigate(KpknRoute.TechniqueTrends.create(key)) },
+                onOpenAnalysis = { id -> navController.navigate(KpknRoute.TechniqueAnalysis.create(id)) },
+                onOpenCatalog = { request ->
+                    backStack.savedStateHandle[CatalogSavedStateKeys.request(request.requestId)] = Json.encodeToString(request)
+                    navController.navigate(KpknRoute.ExerciseCatalog.create(request))
+                },
+                catalogResult = catalogResult,
+                onCatalogResultConsumed = { backStack.savedStateHandle.remove<String>(CatalogSavedStateKeys.RESULT) },
+            )
+        }
+        composable(
+            route = KpknRoute.TechniqueAnalysis.route,
+            arguments = listOf(navArgument(KpknRoute.TechniqueAnalysis.ARG_MEDIA_ID) { type = NavType.StringType }),
+        ) { backStack ->
+            val mediaId = backStack.arguments?.getString(KpknRoute.TechniqueAnalysis.ARG_MEDIA_ID).orEmpty()
+            com.example.kpkn.screens.technique.analysis.TechniqueAnalysisRoute(
+                mediaId = mediaId,
+                onBack = { navController.popBackStack() },
+                onOpenTrends = { key -> navController.navigate(KpknRoute.TechniqueTrends.create(key)) },
+            )
+        }
+        composable(
+            route = KpknRoute.TechniqueTrends.route,
+            arguments = listOf(navArgument(KpknRoute.TechniqueTrends.ARG_EXERCISE_KEY) { type = NavType.StringType }),
+        ) { backStack ->
+            val exerciseKey = backStack.arguments
+                ?.getString(KpknRoute.TechniqueTrends.ARG_EXERCISE_KEY)
+                .orEmpty()
+            com.example.kpkn.screens.technique.trends.TechniqueTrendsRoute(
+                exerciseKey = exerciseKey,
+                onBack = { navController.popBackStack() },
+                onOpenAnalysis = { mediaId ->
+                    navController.navigate(KpknRoute.TechniqueAnalysis.create(mediaId))
+                },
+                onCompare = { mediaA, mediaB ->
+                    navController.navigate(KpknRoute.TechniqueCompare.create(mediaA, mediaB))
+                },
+            )
+        }
+        composable(
+            route = KpknRoute.TechniqueCompare.route,
+            arguments = listOf(
+                navArgument(KpknRoute.TechniqueCompare.ARG_MEDIA_A) { type = NavType.StringType },
+                navArgument(KpknRoute.TechniqueCompare.ARG_MEDIA_B) { type = NavType.StringType },
+            ),
+        ) { backStack ->
+            val mediaA = backStack.arguments
+                ?.getString(KpknRoute.TechniqueCompare.ARG_MEDIA_A)
+                .orEmpty()
+            val mediaB = backStack.arguments
+                ?.getString(KpknRoute.TechniqueCompare.ARG_MEDIA_B)
+                .orEmpty()
+            com.example.kpkn.screens.technique.compare.TechniqueCompareRoute(
+                mediaIdA = mediaA,
+                mediaIdB = mediaB,
                 onBack = { navController.popBackStack() },
             )
         }
@@ -1625,6 +1704,7 @@ private fun KPKNNavGraph(
                 onCatalogResultConsumed = {
                     backStack.savedStateHandle.remove<String>(CatalogSavedStateKeys.RESULT)
                 },
+                onOpenTechniqueAnalysis = { mediaId -> navController.navigate(KpknRoute.TechniqueAnalysis.create(mediaId)) },
                 onOpenExistingWorkout = { existingProgramId, existingSessionId ->
                     navController.navigate(KpknRoute.Workout.create(existingProgramId, existingSessionId)) {
                         popUpTo(KpknRoute.Workout.route) { inclusive = true }

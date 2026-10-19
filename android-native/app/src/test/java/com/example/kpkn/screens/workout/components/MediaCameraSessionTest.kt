@@ -151,4 +151,25 @@ class MediaCameraSessionTest {
         grabando = false
         assertTrue("al acabar de grabar ya se puede soltar", sesion.release(isRecording = grabando))
     }
+
+    @Test fun cederAlGrabadorLiberaSoloLaCamaraAnteriorSinDetenerLaCapturaNueva() {
+        val session = sesion()
+        session.onBound()
+        var stops = 0
+        session.stopOwnedRecording(stopOnDispose = false) { stops++ }
+        assertTrue(session.release(isRecording = false))
+        assertEquals(0, stops)
+        assertFalse(session.bound)
+        assertEquals(1, session.unbindCount)
+    }
+
+    @Test fun cerrarNormalmenteConservaLaOrdenDeDetenerLaGrabacionPropia() {
+        val session = sesion()
+        session.onBound()
+        var stops = 0
+        session.stopOwnedRecording(stopOnDispose = true) { stops++ }
+        assertEquals(1, stops)
+        assertFalse(session.release(isRecording = true))
+        assertTrue(session.release(isRecording = false))
+    }
 }

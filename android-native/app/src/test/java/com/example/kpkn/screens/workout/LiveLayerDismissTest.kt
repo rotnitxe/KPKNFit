@@ -191,7 +191,7 @@ class LiveLayerDismissTest {
     @Test
     fun theUltraFastSheetClosesAndLeavesTheSessionUntouched() {
         open = true
-        assertClosesWithBackAndWithATapOutside("Ultrarrápido", "Calculando compresión de sesión…") {
+        assertClosesWithBackAndWithATapOutside("Ultrarrápido", "Ultrarrápido") {
             UltraFastPreviewSheet(
                 preview = null,
                 savedSeconds = 0,

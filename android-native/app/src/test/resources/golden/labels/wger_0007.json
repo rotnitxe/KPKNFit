@@ -1,0 +1,78 @@
+{
+  "id": "wger_0007",
+  "durationS": 7.6,
+  "width": 640,
+  "height": 360,
+  "rotation": 0,
+  "fpsNominal": 60.0,
+  "fpsMeasured": 60.0,
+  "usable": true,
+  "exercise": "Elevaciones posteriores sentado con mancuernas",
+  "exerciseDetail": "Elevaciones posteriores (pájaros) con mancuernas sentado en un banco, tronco inclinado hacia delante",
+  "suggestedProfile": "RAISE",
+  "view": "OBLIQUE",
+  "people": 2,
+  "fullBodyVisible": true,
+  "faceVisible": false,
+  "plateVisible": false,
+  "startPhase": "CONCENTRIC_FIRST",
+  "reps": {
+    "full": 4,
+    "partial": 0,
+    "failed": 0,
+    "uncertain": false,
+    "acceptableRange": [
+      4,
+      4
+    ]
+  },
+  "repTimesS": [
+    {
+      "index": 1,
+      "turnaroundS": 1.3,
+      "side": null
+    },
+    {
+      "index": 2,
+      "turnaroundS": 3.1,
+      "side": null
+    },
+    {
+      "index": 3,
+      "turnaroundS": 4.9,
+      "side": null
+    },
+    {
+      "index": 4,
+      "turnaroundS": 6.7,
+      "side": null
+    }
+  ],
+  "activeWindowS": [
+    0.4,
+    7.2
+  ],
+  "frameIntervalS": {
+    "min": 0.0167,
+    "median": 0.0167,
+    "max": 0.0167
+  },
+  "turnaroundKind": "TOP",
+  "edgeEvents": [
+    {
+      "timeS": 7.2,
+      "kind": "TRUNCATED_END",
+      "description": "tras la 4.ª elevación los brazos bajan y el clip termina a los 7,6 s"
+    }
+  ],
+  "caveats": [],
+  "cameraMotion": {
+    "class": "SLOW_DRIFT",
+    "note": "deriva suave de mano. Medido con ORB+RANSAC sobre el fondo, zona del sujeto excluida en 0,4-7,2 s: recorrido acumulado p2p 1,7% en x y 3,3% en y, escala 0,98-1,00, velocidad media 1,31 %/s (máx. 2,4% en 1 s)"
+  },
+  "softWarnings": [
+    "cámara con deriva lenta: deriva suave de mano. Medido con ORB+RANSAC sobre el fondo, zona del sujeto excluida en 0,4-7,2 s: recorrido acumulado p2p 1,7% en x y 3,3% en y, escala 0,98-1,00, velocidad media 1,31 %/s (máx. 2,4% en 1 s)",
+    "varias personas: 2 distinguibles (el sujeto domina el encuadre; las demás son pequeñas o están al fondo)",
+    "clip muy corto (7.6 s)"
+  ]
+}

@@ -1,0 +1,86 @@
+{
+  "id": "wger_0011",
+  "durationS": 12.267,
+  "width": 640,
+  "height": 360,
+  "rotation": 0,
+  "fpsNominal": 60.0,
+  "fpsMeasured": 60.0,
+  "usable": true,
+  "exercise": "Press de hombros en máquina",
+  "exerciseDetail": "Press de hombros en máquina (sentado, agarres paralelos), visto de frente",
+  "suggestedProfile": "OHP",
+  "view": "FRONT",
+  "people": 1,
+  "fullBodyVisible": false,
+  "faceVisible": true,
+  "plateVisible": false,
+  "startPhase": "CONCENTRIC_FIRST",
+  "reps": {
+    "full": 6,
+    "partial": 0,
+    "failed": 0,
+    "uncertain": false,
+    "acceptableRange": [
+      6,
+      6
+    ]
+  },
+  "repTimesS": [
+    {
+      "index": 1,
+      "turnaroundS": 1.0,
+      "side": null
+    },
+    {
+      "index": 2,
+      "turnaroundS": 3.4,
+      "side": null
+    },
+    {
+      "index": 3,
+      "turnaroundS": 5.5,
+      "side": null
+    },
+    {
+      "index": 4,
+      "turnaroundS": 7.5,
+      "side": null
+    },
+    {
+      "index": 5,
+      "turnaroundS": 9.3,
+      "side": null
+    },
+    {
+      "index": 6,
+      "turnaroundS": 11.2,
+      "side": null
+    }
+  ],
+  "activeWindowS": [
+    0.0,
+    12.3
+  ],
+  "frameIntervalS": {
+    "min": 0.0167,
+    "median": 0.0167,
+    "max": 0.0167
+  },
+  "turnaroundKind": "TOP",
+  "edgeEvents": [
+    {
+      "timeS": 0.0,
+      "kind": "TRUNCATED_START",
+      "description": "el clip empieza con las manos ya a la altura de los hombros (fondo del recorrido) y sube de inmediato: la 1.ª repetición queda completa (0,0-2,0 s)"
+    }
+  ],
+  "caveats": [],
+  "cameraMotion": {
+    "class": "SLOW_DRIFT",
+    "note": "deriva suave de mano. Medido con ORB+RANSAC sobre el fondo, zona del sujeto excluida en 0,0-12,3 s: recorrido acumulado p2p 4,7% en x y 4,4% en y, escala 0,92-1,00, velocidad media 1,49 %/s (máx. 2,8% en 1 s)"
+  },
+  "softWarnings": [
+    "cámara con deriva lenta: deriva suave de mano. Medido con ORB+RANSAC sobre el fondo, zona del sujeto excluida en 0,0-12,3 s: recorrido acumulado p2p 4,7% en x y 4,4% en y, escala 0,92-1,00, velocidad media 1,49 %/s (máx. 2,8% en 1 s)"
+  ]
+}

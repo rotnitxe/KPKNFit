@@ -1,0 +1,95 @@
+{
+  "id": "g26-pixabay-44005",
+  "durationS": 24.107,
+  "width": 1280,
+  "height": 720,
+  "rotation": 0,
+  "fpsNominal": 30.0,
+  "fpsMeasured": 30.0,
+  "usable": true,
+  "exercise": "Sentadilla frontal con barra",
+  "exerciseDetail": "Sentadilla frontal con barra (barra sobre los deltoides delante del cuello, antebrazos cruzados sobre ella): fondo profundo con los muslos por debajo de la horizontal y pausa de ~1 s de pie entre repeticiones",
+  "suggestedProfile": "SQUAT",
+  "view": "SIDE",
+  "people": 1,
+  "fullBodyVisible": true,
+  "faceVisible": true,
+  "plateVisible": true,
+  "startPhase": "ECCENTRIC_FIRST",
+  "reps": {
+    "full": 6,
+    "partial": 0,
+    "failed": 0,
+    "uncertain": false,
+    "acceptableRange": [
+      6,
+      7
+    ]
+  },
+  "repTimesS": [
+    {
+      "index": 1,
+      "turnaroundS": 2.9,
+      "side": null
+    },
+    {
+      "index": 2,
+      "turnaroundS": 6.4,
+      "side": null
+    },
+    {
+      "index": 3,
+      "turnaroundS": 9.9,
+      "side": null
+    },
+    {
+      "index": 4,
+      "turnaroundS": 13.3,
+      "side": null
+    },
+    {
+      "index": 5,
+      "turnaroundS": 17.0,
+      "side": null
+    },
+    {
+      "index": 6,
+      "turnaroundS": 20.6,
+      "side": null
+    }
+  ],
+  "activeWindowS": [
+    1.0,
+    24.1
+  ],
+  "frameIntervalS": {
+    "min": 0.0333,
+    "median": 0.0333,
+    "max": 0.0333
+  },
+  "turnaroundKind": "BOTTOM",
+  "edgeEvents": [
+    {
+      "timeS": 0.0,
+      "kind": "SETUP",
+      "description": "0-1,0 s: de pie con la barra ya en la posición frontal sobre los deltoides, ajusta la postura; la 1.ª bajada empieza hacia 1,0 s"
+    },
+    {
+      "timeS": 23.0,
+      "kind": "TRUNCATED_END",
+      "description": "la 7.ª bajada empieza hacia 23,0 s y llega al fondo en ~24,0 s, justo cuando termina el clip (24,11 s), sin subir: no se cuenta (un contador que cuente al llegar al fondo marcaría 7)"
+    }
+  ],
+  "caveats": [
+    "el ejercicio no es el del título (peso muerto rumano / rack pull / encogimiento): es una sentadilla frontal profunda",
+    "la 7.ª bajada llega al fondo justo al terminar el clip: rango aceptable 6-7",
+    "el vídeo viene de una fuente de 24 fps conformada a 30 fps (1 de cada 5 fotogramas del contenedor es una copia): fps efectivo ~24"
+  ],
+  "cameraMotion": {
+    "class": "STATIC",
+    "note": "cámara fija (deriva <0,2%)"
+  },
+  "softWarnings": [
+    "recuento ambiguo por medio ciclo en el borde del clip o por repeticiones dudosas: rango aceptable 6-7 (ver edgeEvents)"
+  ]
+}

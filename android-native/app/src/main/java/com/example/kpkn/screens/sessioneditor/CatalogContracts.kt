@@ -15,6 +15,7 @@ enum class CatalogLaunchOrigin {
     REPLACEMENT,
     SUPERSET,
     MOBILITY,
+    TECHNIQUE,
 }
 
 @Serializable
@@ -152,6 +153,9 @@ data class CatalogResult(
     fun isValidFor(request: CatalogLaunchRequest): Boolean {
         if (!matches(request)) return false
         if (contractVersion !in LEGACY_CONTRACT_VERSION..CURRENT_CONTRACT_VERSION) return false
+        if (request.origin == CatalogLaunchOrigin.TECHNIQUE &&
+            (request.selectionMode != CatalogSelectionMode.SINGLE || targetExerciseId != null)
+        ) return false
         if (canceled) return true
         if (selectedExerciseIds.isEmpty()) return false
         if (selectedConfigurationIds.isNotEmpty() && selectedConfigurationIds.size != selectedExerciseIds.size) return false

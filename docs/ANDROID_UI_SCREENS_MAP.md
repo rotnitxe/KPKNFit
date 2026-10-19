@@ -25,6 +25,10 @@ Single-activity app: `MainActivity.kt` hosts a Compose `NavHost` + bottom naviga
 | `settings/health-connect` (health flavor only) | Health Connect route via `addHealthConnectRoute` |
 | `competitions`, `competition/{competitionId}` | `screens/competitions/CompetitionScreen.kt` |
 | `profile` | `screens/profile/ProfileScreen.kt` |
+| `technique` | `screens/technique/hub/TechniqueHubScreen.kt` (gallery import and recording/analysis settings) |
+| `technique/analysis/{mediaId}` | `screens/technique/analysis/TechniqueAnalysisScreen.kt` |
+| `technique/trends/{exerciseKey}` | `screens/technique/trends/TechniqueTrendsScreen.kt` |
+| `technique/compare/{mediaA}/{mediaB}` | `screens/technique/compare/TechniqueCompareScreen.kt` |
 | `wikilab/exercises`, `/exercise-creator`, `/exercise/{exerciseId}` | `screens/wikilab/*` |
 | `wikilab/muscles`, `/muscle/{muscleId}` | `screens/wikilab/MuscleCategoryScreen.kt`, `MuscleGroupDetailScreen.kt` |
 | `wikilab/joints`, `/joint/{jointId}` | `screens/wikilab/JointsListScreen.kt`, `JointDetailScreen.kt` |
@@ -262,6 +266,12 @@ Shows the physiological diagnostic overview from the AUGE Engine.
 *   **Glassmorphism:** Haze library effects wired in `MainActivity.kt`.
 
 ---
+
+## Video technique
+
+Profile and the media viewer open the technique hub/analysis destinations. The hub groups analyzed exercises and only schedules old videos on explicit request. Gallery import uses the system photo picker, the catalog's TECHNIQUE/SINGLE result contract, optional load and a persisted import draft. Capture is hosted full-screen by the live workout rather than a separate navigation route.
+
+Analysis exposes available repetition, timing, ROM and calibrated plate metrics with the synchronized overlay player. Trends require exact configuration identity for load–velocity estimates; comparison aligns the first repetition and preserves each video's coordinate scale. ViewModels publish read-only StateFlow and keep media/sidecar work off the UI thread. Validation and device limitations are recorded in `video-technique/ESTADO.md`; these mappings do not assert that acceptance gates passed.
 
 ## 🛠️ 7. Swift (iOS) Presentation Parity Strategy
 

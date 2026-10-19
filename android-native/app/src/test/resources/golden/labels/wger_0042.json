@@ -1,0 +1,83 @@
+{
+  "id": "wger_0042",
+  "durationS": 11.95,
+  "width": 640,
+  "height": 360,
+  "rotation": 0,
+  "fpsNominal": 60.0,
+  "fpsMeasured": 60.0,
+  "usable": true,
+  "exercise": "Sentadilla en máquina Smith",
+  "exerciseDetail": "Sentadilla trasera con barra en máquina Smith (la barra va guiada por los raíles amarillos), vista oblicua trasera con la cámara a un lado",
+  "suggestedProfile": "MACHINE_SQUAT",
+  "view": "OBLIQUE",
+  "people": 2,
+  "fullBodyVisible": true,
+  "faceVisible": false,
+  "plateVisible": true,
+  "startPhase": "CONCENTRIC_FIRST",
+  "reps": {
+    "full": 4,
+    "partial": 0,
+    "failed": 0,
+    "uncertain": false,
+    "acceptableRange": [
+      4,
+      5
+    ]
+  },
+  "repTimesS": [
+    {
+      "index": 1,
+      "turnaroundS": 2.8,
+      "side": null
+    },
+    {
+      "index": 2,
+      "turnaroundS": 5.1,
+      "side": null
+    },
+    {
+      "index": 3,
+      "turnaroundS": 7.7,
+      "side": null
+    },
+    {
+      "index": 4,
+      "turnaroundS": 10.0,
+      "side": null
+    }
+  ],
+  "activeWindowS": [
+    1.4,
+    11.9
+  ],
+  "frameIntervalS": {
+    "min": 0.0167,
+    "median": 0.0167,
+    "max": 0.0167
+  },
+  "turnaroundKind": "BOTTOM",
+  "edgeEvents": [
+    {
+      "timeS": 0.4,
+      "kind": "TRUNCATED_START",
+      "description": "el clip empieza en el fondo de una sentadilla ya empezada (fondo a ~0,4 s) y sube hasta de pie hacia 1,5 s: ese fondo inicial no se cuenta (rango aceptable 4-5)"
+    },
+    {
+      "timeS": 11.9,
+      "kind": "TRUNCATED_END",
+      "description": "tras el 4.º fondo (10,0 s) sube y el clip termina a los 11,95 s con él de pie"
+    }
+  ],
+  "caveats": [],
+  "cameraMotion": {
+    "class": "SLOW_DRIFT",
+    "note": "deriva suave de mano. Medido con ORB+RANSAC sobre el fondo, zona del sujeto excluida en 1,4-11,9 s: recorrido acumulado p2p 0,8% en x y 9,1% en y, escala 0,98-1,00, velocidad media 0,95 %/s (máx. 2,0% en 1 s)"
+  },
+  "softWarnings": [
+    "cámara con deriva lenta: deriva suave de mano. Medido con ORB+RANSAC sobre el fondo, zona del sujeto excluida en 1,4-11,9 s: recorrido acumulado p2p 0,8% en x y 9,1% en y, escala 0,98-1,00, velocidad media 0,95 %/s (máx. 2,0% en 1 s)",
+    "varias personas: 2 distinguibles (el sujeto domina el encuadre; las demás son pequeñas o están al fondo)",
+    "recuento ambiguo por medio ciclo en el borde del clip o por repeticiones dudosas: rango aceptable 4-5 (ver edgeEvents)"
+  ]
+}

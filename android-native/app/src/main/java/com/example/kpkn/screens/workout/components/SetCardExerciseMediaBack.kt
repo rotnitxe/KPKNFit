@@ -87,6 +87,7 @@ import com.example.kpkn.screens.onboarding.design.wizardReducedMotion
 import com.example.kpkn.screens.sessioneditor.components.SessionExerciseDetailSheet
 import com.example.kpkn.screens.workout.WorkoutMediaCaptureController
 import com.example.kpkn.screens.workout.WorkoutMediaCaptureRequest
+import com.example.kpkn.screens.workout.withExerciseCaptureContext
 import com.example.kpkn.ui.components.KpknModalTracker
 import com.example.kpkn.ui.components.KpknPortal
 import com.example.kpkn.ui.components.icons.KpknLineIcons
@@ -134,11 +135,14 @@ internal fun SetCardExerciseMediaBack(
     isPr: Boolean = false,
     mediaCapture: WorkoutMediaCaptureController? = null,
     onRetryPendingCaptures: () -> Unit = {},
+    onOpenRecorder: ((WorkoutMediaCaptureRequest) -> Unit)? = null,
     effortLabel: String? = null,
     onShowHistory: (() -> Unit)? = null,
     startExpanded: Boolean = false,
     /** Solo para hojas de render y pruebas: muestra los controles de la cámara aunque no haya controlador de captura. */
     showControlsWithoutCamera: Boolean = false,
+    onOpenAnalysis: ((String) -> Unit)? = null,
+    recorderOpen: Boolean = false,
 ) {
     val context = LocalContext.current
     val density = LocalDensity.current
@@ -164,11 +168,15 @@ internal fun SetCardExerciseMediaBack(
     val recording by (mediaCapture?.isRecording ?: idleRecording).collectAsStateWithLifecycle()
     val captureError by (mediaCapture?.captureError ?: idleError).collectAsStateWithLifecycle()
     val bindGeneration by (mediaCapture?.bindGeneration ?: idleBind).collectAsStateWithLifecycle()
-    val exerciseFiles = remember(sessionMedia, exercise.id, exerciseKey) {
+    val normalizedActiveSide = com.example.kpkn.data.media.WorkoutMediaSides.normalize(side, exercise)
+    val exerciseFiles = remember(sessionMedia, exercise.id, exerciseKey, setIndex, normalizedActiveSide) {
         sessionMedia.filter { item ->
-            item.exerciseId == exercise.id ||
+            val matchesExercise = item.exerciseId == exercise.id ||
                 item.canonicalExerciseId == exerciseKey ||
                 item.exerciseId == exerciseKey
+            val matchesSet = item.setIndex == null || item.setIndex == setIndex
+            val matchesSide = com.example.kpkn.data.media.WorkoutMediaSides.normalize(item.side, exercise) == normalizedActiveSide
+            matchesExercise && matchesSet && matchesSide
         }
     }
     var cameraReady by remember { mutableStateOf(false) }
@@ -188,7 +196,7 @@ internal fun SetCardExerciseMediaBack(
         weightKg = weightKg,
         reps = reps,
         isPr = isPr,
-    )
+    ).withExerciseCaptureContext(exercise)
 
     val galleryLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.OpenDocument(),
@@ -243,16 +251,22 @@ internal fun SetCardExerciseMediaBack(
         )
     }
 
-    val cameraActive = isMediaCameraActive(cameraReady, isSettledPage, mediaCapture != null)
+    val cameraActive = !recorderOpen && isMediaCameraActive(cameraReady, isSettledPage, mediaCapture != null)
     val session = rememberMediaCameraSession(
         mediaCapture = mediaCapture,
         active = cameraActive,
         isRecording = recording,
         bindGeneration = bindGeneration,
         onBindFailed = { mediaCapture?.fallbackVideoCaptureToSd() },
+        stopOnDispose = !recorderOpen,
     )
 
     fun onShutter() {
+        if (mode == MediaMode.VIDEO && !recording && onOpenRecorder != null) {
+            expanded = false
+            onOpenRecorder(captureRequest)
+            return
+        }
         if (mediaCapture == null) return
         if (mode == MediaMode.PHOTO) mediaCapture.takePhoto(captureRequest) else toggleVideo()
     }
@@ -277,7 +291,8 @@ internal fun SetCardExerciseMediaBack(
             mode = mode,
             onModeChange = { mode = it },
             recording = recording,
-            captureEnabled = (cameraReady && mediaCapture != null) || showControlsWithoutCamera,
+            captureEnabled = (cameraReady && mediaCapture != null) ||
+                (mode == MediaMode.VIDEO && onOpenRecorder != null) || showControlsWithoutCamera,
             onShutter = { onShutter() },
             onGallery = { galleryLauncher.launch(arrayOf("image/*", "video/*")) },
             galleryEnabled = mediaCapture != null || showControlsWithoutCamera,
@@ -431,6 +446,7 @@ internal fun SetCardExerciseMediaBack(
                 ).distinct(),
                 mediaCapture = mediaCapture,
                 onDismiss = { showAlbum = false },
+                onOpenAnalysis = onOpenAnalysis,
             )
         }
         if (showFicha) {
@@ -453,6 +469,7 @@ internal fun SetCardExerciseMediaBack(
             media = item,
             onDismiss = { previewMedia = null },
             poseOverlayEnabled = mediaCapture?.isPoseTrajectoryEnabled() == true,
+            onOpenAnalysis = onOpenAnalysis,
         )
     }
 }

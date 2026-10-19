@@ -1,0 +1,104 @@
+{
+  "id": "ymove_003",
+  "durationS": 20.0,
+  "width": 360,
+  "height": 640,
+  "rotation": 0,
+  "fpsNominal": 25.0,
+  "fpsMeasured": 25.0,
+  "usable": true,
+  "exercise": "Peso muerto con barra",
+  "exerciseDetail": "Peso muerto convencional con barra (discos verdes de goma): sube desde el suelo hasta el bloqueo con ~1,5 s de pausa arriba y baja la barra hasta el suelo entre repeticiones",
+  "suggestedProfile": "DEADLIFT",
+  "view": "OBLIQUE",
+  "people": 1,
+  "fullBodyVisible": true,
+  "faceVisible": true,
+  "plateVisible": true,
+  "startPhase": "CONCENTRIC_FIRST",
+  "reps": {
+    "full": 5,
+    "partial": 0,
+    "failed": 0,
+    "uncertain": false,
+    "acceptableRange": [
+      5,
+      5
+    ]
+  },
+  "repTimesS": [
+    {
+      "index": 1,
+      "turnaroundS": 1.3,
+      "side": null,
+      "windowS": [
+        0.8,
+        1.8
+      ]
+    },
+    {
+      "index": 2,
+      "turnaroundS": 5.0,
+      "side": null,
+      "windowS": [
+        4.4,
+        5.6
+      ]
+    },
+    {
+      "index": 3,
+      "turnaroundS": 8.8,
+      "side": null,
+      "windowS": [
+        8.2,
+        9.5
+      ]
+    },
+    {
+      "index": 4,
+      "turnaroundS": 12.8,
+      "side": null,
+      "windowS": [
+        12.1,
+        13.5
+      ]
+    },
+    {
+      "index": 5,
+      "turnaroundS": 16.9,
+      "side": null,
+      "windowS": [
+        16.0,
+        17.8
+      ]
+    }
+  ],
+  "activeWindowS": [
+    0.0,
+    19.5
+  ],
+  "frameIntervalS": {
+    "min": 0.04,
+    "median": 0.04,
+    "max": 0.04
+  },
+  "turnaroundKind": "TOP",
+  "edgeEvents": [
+    {
+      "timeS": 0.0,
+      "kind": "SETUP",
+      "description": "el clip empieza con la barra en el suelo y las manos en ella (fondo de la 1.ª repetición) y sube de inmediato"
+    },
+    {
+      "timeS": 19.5,
+      "kind": "TRUNCATED_END",
+      "description": "tras la 5.ª repetición (bloqueo 16,0-17,8 s) baja la barra y el clip termina a los 20,0 s con la barra casi en el suelo"
+    }
+  ],
+  "caveats": [],
+  "cameraMotion": {
+    "class": "STATIC",
+    "note": "cámara fija de estudio con fondo blanco liso (ORB y ECC no tienen rasgos fiables): los zapatos plantados, seguidos con plantilla, se desplazan x -2..1 px e y 0..1 px en el encuadre 360x640 durante todo el clip (máx. 0,6% del ancho)"
+  },
+  "softWarnings": []
+}

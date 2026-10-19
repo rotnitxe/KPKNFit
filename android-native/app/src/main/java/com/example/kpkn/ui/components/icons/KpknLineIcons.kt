@@ -595,6 +595,64 @@ object KpknLineIcons {
         )
     }
 
+    // ── Reproductor de técnica (VT7a) ───────────────────────────────────────────
+
+    /** Fotograma anterior: una barra a la izquierda y un triángulo que apunta a ella, con las esquinas redondeadas. */
+    val FrameBack: ImageVector by lazy {
+        icono(
+            "KpknLine.FrameBack",
+            listOf(
+                "M4.25 6.25v11.5",
+                "M19.75 6.4v11.2a.9.9 0 0 1-1.37.77l-8.4-5.6a.9.9 0 0 1 0-1.54l8.4-5.6a.9.9 0 0 1 1.37.77z",
+            ),
+        )
+    }
+
+    /** Fotograma siguiente: un triángulo que apunta a una barra a la derecha. El espejo de `FrameBack`. */
+    val FrameForward: ImageVector by lazy {
+        icono(
+            "KpknLine.FrameForward",
+            listOf(
+                "M4.25 6.4v11.2a.9.9 0 0 0 1.37.77l8.4-5.6a.9.9 0 0 0 0-1.54l-8.4-5.6a.9.9 0 0 0-1.37.77z",
+                "M19.75 6.25v11.5",
+            ),
+        )
+    }
+
+    /** Disco o diana: dos anillos concéntricos (radio 8,75 y 4,25) y el punto del centro. El disco de la barra, de frente. */
+    val Target: ImageVector by lazy {
+        icono(
+            "KpknLine.Target",
+            listOf(
+                CIRCULO_GRANDE,
+                "M12 16.25a4.25 4.25 0 1 0 0-8.5 4.25 4.25 0 0 0 0 8.5z",
+                "M12 12h.01",
+            ),
+        )
+    }
+
+    /** Cámara de fotos / vídeo (VT8a). */
+    val Camera: ImageVector by lazy {
+        icono(
+            "KpknLine.Camera",
+            listOf(
+                "M3.75 8.25a2 2 0 0 1 2-2h2.5l1.5-2h4.5l1.5 2h2.5a2 2 0 0 1 2 2v9.5a2 2 0 0 1-2 2h-12.5a2 2 0 0 1-2-2z",
+                "M12 16.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7z",
+            ),
+        )
+    }
+
+    /** Grabación / REC (VT8a). */
+    val Record: ImageVector by lazy {
+        icono(
+            "KpknLine.Record",
+            listOf(
+                CIRCULO_GRANDE,
+                "M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z",
+            ),
+        )
+    }
+
     /** Voz: cápsula de micrófono con su arco de sujeción, el pie y la base (LR1b). */
     val Mic: ImageVector by lazy {
         icono(
@@ -612,11 +670,7 @@ object KpknLineIcons {
     val Alert: ImageVector by lazy {
         icono(
             "KpknLine.Alert",
-            listOf(
-                CIRCULO_GRANDE,
-                "M12 7.75v5.25",
-                "M12 16.25h.01",
-            ),
+            listOf(CIRCULO_GRANDE, "M12 7.75v5.25", "M12 16.25h.01"),
         )
     }
 

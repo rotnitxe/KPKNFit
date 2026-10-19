@@ -219,6 +219,7 @@ fun WorkoutScreen(
     catalogResult: CatalogResult? = null,
     onCatalogResultConsumed: () -> Unit = {},
     onOpenExistingWorkout: (programId: String, sessionId: String) -> Unit = { _, _ -> },
+    onOpenTechniqueAnalysis: (String) -> Unit = {},
 ) {
     val augeViewModel = rememberAugeViewModel()
     val context = LocalContext.current
@@ -973,6 +974,7 @@ fun WorkoutScreen(
     }
 
     val canReturnToMobilityFromWarmup = isWarmupOverlayActive && (currentExercise?.mobilitySeries?.isNotEmpty() == true)
+    val techniqueRecorderHolder = remember { com.example.kpkn.screens.workout.technique.TechniqueRecorderHolder() }
 
     Box(modifier = Modifier.fillMaxSize()) {
         if (uiState.sessionMissingFromProgram) {
@@ -1123,6 +1125,8 @@ fun WorkoutScreen(
             onRequestLiveTagListConsumed = { structureSheets.requestLiveTagList = false },
             skipExerciseLabel = skipExerciseLabel,
             onSkipExercise = onSkipExerciseFromRest,
+            techniqueRecorderHolder = techniqueRecorderHolder,
+            onOpenTechniqueAnalysis = onOpenTechniqueAnalysis,
             )
             Box(
                     modifier = Modifier
@@ -1256,6 +1260,98 @@ fun WorkoutScreen(
         }
     }
 
+    val reducedCockpitMotion = com.example.kpkn.screens.onboarding.design.wizardReducedMotion()
+    val cockpitSheetShape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)
+    AnimatedVisibility(
+        visible = roadmapMode == RoadmapMode.EXPANDED,
+        modifier = Modifier
+            .align(Alignment.BottomCenter)
+            .fillMaxSize()
+            .navigationBarsPadding()
+            .padding(top = 24.dp, bottom = (compactCockpitHeightDp + 8).dp)
+            .zIndex(6f),
+        enter = expandVertically(
+            expandFrom = Alignment.Bottom,
+            animationSpec = tween(durationMillis = if (reducedCockpitMotion) 0 else 260, easing = FastOutSlowInEasing),
+        ),
+        exit = shrinkVertically(
+            shrinkTowards = Alignment.Bottom,
+            animationSpec = tween(durationMillis = if (reducedCockpitMotion) 0 else 220, easing = FastOutSlowInEasing),
+        ),
+        label = "cockpitOverlay",
+    ) {
+        val totalCompletedCount = WorkoutStepRules.completedRoadmapSlotsForExercises(
+            exercises = visibleExercises,
+            completedSets = uiState.completedSets,
+            omittedSetKeys = uiState.omittedSetKeys,
+        )
+        val totalSetsCount = WorkoutStepRules.totalRoadmapSlotsForExercises(
+            exercises = visibleExercises,
+            omittedSetKeys = uiState.omittedSetKeys,
+        )
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .cockpitVerticalGesture(roadmapMode) { roadmapMode = it }
+                .graphicsLayer {
+                    clip = true
+                    shape = cockpitSheetShape
+                }
+                .kpknGlassOrFallback(
+                    hazeState = overlayHazeState,
+                    shape = cockpitSheetShape,
+                ),
+        ) {
+            WorkoutSessionCockpit(
+                exercises = visibleExercises,
+                completedSets = uiState.completedSets,
+                milestones = uiState.sessionMilestones,
+                sessionProgressLabel = "$totalCompletedCount / $totalSetsCount",
+                sessionStartTimeMs = uiState.startTimeMs,
+                targetMinutes = resolveEffectiveSessionTargetMinutes(uiState.customTargetDurationMinutes, uiState.targetDurationMinutes, session?.targetDurationMinutes),
+                completedExercises = completedExercisesForSummary,
+                omittedSetKeys = uiState.omittedSetKeys,
+                currentExerciseId = currentExercise?.id,
+                supersetGroups = modeSession.allSupersetGroups(),
+                liveRingPreview = cockpitRingPreview,
+                onSelectExercise = { id -> visibleExercises.indexOfFirst { it.id == id }.takeIf { it >= 0 }?.let(viewModel::selectExercise) },
+                onSelectSuperset = viewModel::selectSupersetGroup,
+                liveEnergySummary = uiState.liveEnergySummary,
+                sessionNotes = uiState.sessionNotes,
+                sessionSavedNotes = uiState.sessionSavedNotes,
+                sessionPhotos = uiState.sessionPhotos,
+                sessionMedia = sessionMedia,
+                mediaCaptureError = mediaCaptureError,
+                onRetryPendingMediaCaptures = viewModel::retryPendingMediaCaptures,
+                sessionChecklist = uiState.sessionChecklist,
+                onSessionNotesChange = { viewModel.setSessionNotes(it) },
+                onSaveSessionNote = { viewModel.saveSessionNote(it) },
+                onAddSessionPhoto = { viewModel.addSessionPhoto(it) },
+                onBeginSessionCameraCapture = {
+                    viewModel.mediaCapture.beginExternalPhotoCapture(
+                        com.example.kpkn.screens.workout.WorkoutMediaCaptureRequest(),
+                    )
+                },
+                onCompleteSessionCameraCapture = { captureId, succeeded ->
+                    viewModel.mediaCapture.completeExternalPhotoCaptureById(captureId, succeeded)
+                    Unit
+                },
+                onSessionCameraLaunchFailed = { captureId ->
+                    viewModel.mediaCapture.failExternalCameraLaunch(captureId)
+                    Unit
+                },
+                onRemoveSessionPhoto = { viewModel.removeSessionPhoto(it) },
+                onRemoveSessionMedia = { viewModel.removeSessionMedia(it) },
+                onOpenAnalysis = onOpenTechniqueAnalysis,
+                onAddChecklistItem = { viewModel.addSessionChecklistItem(it) },
+                onToggleChecklistItem = { viewModel.toggleSessionChecklistItem(it) },
+                onRemoveChecklistItem = { viewModel.removeSessionChecklistItem(it) },
+                sessionAccentColor = sessionAccentColor,
+                bodyWeight = viewModel.currentBodyWeight(),
+            )
+        }
+    }
+
     LaunchedEffect(uiState.pendingEditSheetExerciseId) {
         uiState.pendingEditSheetExerciseId?.let { exId ->
             structureSheets.editSheetExerciseId = exId
@@ -1302,7 +1398,19 @@ fun WorkoutScreen(
             media = sessionMedia,
             onDismiss = { viewModel.mediaCapture.dismissAlbumSheet() },
             onDelete = { viewModel.removeSessionMedia(it) },
-            poseOverlayEnabled = uiState.featureFlags.poseTrajectoryEnabled,
+            onOpenAnalysis = onOpenTechniqueAnalysis,
+        )
+    }
+
+    techniqueRecorderHolder.request?.let { req ->
+        val techSettings = settings.techniqueVideo
+        com.example.kpkn.screens.workout.technique.TechniqueRecorderScreen(
+            request = req,
+            onDismiss = { if (techniqueRecorderHolder.request === req) techniqueRecorderHolder.request = null },
+            mediaCapture = viewModel.mediaCapture,
+            prefer60FpsSetting = techSettings.prefer60Fps,
+            maxRecordSeconds = techSettings.maxRecordSeconds,
+            defaultPlateDiameterMm = techSettings.plateDiameterMm,
         )
     }
 
@@ -1370,6 +1478,7 @@ fun WorkoutScreen(
             },
             feedbackExerciseCount = feedbackExercises.size,
             forceShowForFeedback = isShowingFeedback,
+            onOpenTechniqueAnalysis = onOpenTechniqueAnalysis,
         )
     }
 

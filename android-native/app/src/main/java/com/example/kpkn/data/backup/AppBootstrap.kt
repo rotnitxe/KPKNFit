@@ -2,6 +2,7 @@ package com.example.kpkn.data.backup
 
 import android.content.Context
 import com.example.kpkn.data.repository.*
+import com.example.kpkn.data.work.TechniqueAnalysisScheduler
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -25,6 +26,8 @@ object AppBootstrap {
             CompetitionRepository.init(context)
             AugeRepository.getInstance(context)
             WorkoutMediaRepository.init(context)
+            // Técnica en vídeo: rehace desde sus sidecars las filas que falten y limpia huérfanos, sin retrasar el arranque.
+            TechniqueAnalysisScheduler.reconcileInBackground(context)
             CustomExerciseRepository.initialize(context)
             SessionTemplateRepository.getInstance(context).refreshFromStorage()
             NutritionRepository.init(context)

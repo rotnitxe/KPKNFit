@@ -1,0 +1,125 @@
+{
+  "id": "x02-pexels-32363351",
+  "durationS": 37.067,
+  "width": 720,
+  "height": 1280,
+  "rotation": 0,
+  "fpsNominal": 30.0,
+  "fpsMeasured": 30.0,
+  "usable": true,
+  "exercise": "Dominada pronada",
+  "exerciseDetail": "Dominadas pronadas en barras tipo escalera (parque de calistenia al aire libre), con algo de balanceo de piernas",
+  "suggestedProfile": "PULL_VERTICAL",
+  "view": "BACK",
+  "people": 1,
+  "fullBodyVisible": true,
+  "faceVisible": false,
+  "plateVisible": false,
+  "startPhase": "CONCENTRIC_FIRST",
+  "reps": {
+    "full": 9,
+    "partial": 2,
+    "failed": 0,
+    "uncertain": true,
+    "acceptableRange": [
+      9,
+      11
+    ]
+  },
+  "repTimesS": [
+    {
+      "index": 1,
+      "turnaroundS": 0.7,
+      "side": null
+    },
+    {
+      "index": 2,
+      "turnaroundS": 4.8,
+      "side": null
+    },
+    {
+      "index": 3,
+      "turnaroundS": 8.7,
+      "side": null
+    },
+    {
+      "index": 4,
+      "turnaroundS": 10.9,
+      "side": null
+    },
+    {
+      "index": 5,
+      "turnaroundS": 12.3,
+      "side": null
+    },
+    {
+      "index": 6,
+      "turnaroundS": 14.3,
+      "side": null
+    },
+    {
+      "index": 7,
+      "turnaroundS": 16.0,
+      "side": null
+    },
+    {
+      "index": 8,
+      "turnaroundS": 19.8,
+      "side": null
+    },
+    {
+      "index": 9,
+      "turnaroundS": 24.0,
+      "side": null
+    },
+    {
+      "index": 10,
+      "turnaroundS": 28.9,
+      "side": null
+    },
+    {
+      "index": 11,
+      "turnaroundS": 34.2,
+      "side": null
+    }
+  ],
+  "activeWindowS": [
+    0.0,
+    36.0
+  ],
+  "frameIntervalS": {
+    "min": 0.0333,
+    "median": 0.0333,
+    "max": 0.0333
+  },
+  "turnaroundKind": "TOP",
+  "edgeEvents": [
+    {
+      "timeS": 0.0,
+      "kind": "TRUNCATED_START",
+      "description": "el clip empieza a mitad de la 1.ª dominada (0,0-0,5 s: cabeza subiendo hacia la barra, top en ~0,7 s): solo se ve el último tramo de la subida y la bajada"
+    },
+    {
+      "timeS": 10.9,
+      "kind": "REDUCED_ROM",
+      "description": "dos medias dominadas (10,9 s y 14,3 s: la cabeza queda a ~1 cabeza por debajo de la barra / a su altura sin pasarla) con ~40% de la amplitud de las completas"
+    },
+    {
+      "timeS": 36.0,
+      "kind": "TRANSITION",
+      "description": "a ~36,0-36,5 s suelta la barra y cae al suelo con los brazos arriba; el clip termina a 37,07 s"
+    }
+  ],
+  "caveats": [
+    "contraluz fuerte: el atleta es casi una silueta (camiseta azul oscura, pantalón oscuro) contra un cielo nublado",
+    "la serie mezcla dominadas completas con 2 medias dominadas (10,9 y 14,3 s) y balanceos de piernas entre repeticiones",
+    "no se ve la cara (de espaldas)"
+  ],
+  "cameraMotion": {
+    "class": "STATIC",
+    "note": "cámara fija"
+  },
+  "softWarnings": [
+    "recuento ambiguo por medio ciclo en el borde del clip o por repeticiones dudosas: rango aceptable 9-11 (ver edgeEvents)"
+  ]
+}

@@ -118,8 +118,21 @@ internal fun WorkoutV2Body(
     skipExerciseLabel: String? = null,
     onSkipExercise: (() -> Unit)? = null,
     onRetryPendingCaptures: () -> Unit = {},
+    techniqueRecorderHolder: com.example.kpkn.screens.workout.technique.TechniqueRecorderHolder? = null,
+    onOpenTechniqueAnalysis: (String) -> Unit = {},
 ) {
     val sharedFabBottomOffset = recordFabBottomOffset ?: rememberWorkoutRecordFabBottomOffset(dockBottomClearance)
+    val videoAnalysis by viewModel.videoAnalysisBySetKey.collectAsStateWithLifecycle()
+    val restVideoKey = uiState.setJustLoggedKey
+    val restVideo = restVideoKey?.let(videoAnalysis::get)
+    val restVideoSlot: (@Composable () -> Unit)? = if (restVideoKey != null && restVideo != null) {
+        { com.example.kpkn.screens.workout.design.WorkoutCompletedVideoSuggestion(
+            value = restVideo,
+            onPatch = { viewModel.patchCompletedSet(restVideoKey, it) },
+            onOpenAnalysis = onOpenTechniqueAnalysis,
+        ) }
+    } else null
+
     val allUserTags by viewModel.allUserTags.collectAsStateWithLifecycle()
     val cardioGpsState by viewModel.cardioGpsState.collectAsStateWithLifecycle()
     val cardioHealthState by viewModel.cardioHealthState.collectAsStateWithLifecycle()
@@ -1928,6 +1941,7 @@ internal fun WorkoutV2Body(
                                         shape = restShape,
                                         clockActive = isActivePage,
                                         modifier = Modifier.fillMaxWidth().fillMaxHeight(),
+                                        videoSlot = restVideoSlot,
                                     )
                                 } else if (restOverrun != null && restState == null) {
                                     // «Descanso cumplido» (LV6, F6) en la tarjeta: el descanso ya se cerró, esto solo cambia lo que se ve.
@@ -1963,6 +1977,7 @@ internal fun WorkoutV2Body(
                                         shape = restShape,
                                         nextSet = restNext,
                                         clockActive = isActivePage,
+                                        videoSlot = restVideoSlot,
                                     )
                                 }
                             }
@@ -2120,6 +2135,24 @@ internal fun WorkoutV2Body(
                                     adaptActionHolder = adaptActionHolder,
                                     ghostSet = activeGhostSet,
                                     sessionCompletedSet = sessionCompletedSet,
+                                    videoAnalysis = videoAnalysis[workoutSetKey(targetExercise.id, activeSetIndex, com.example.kpkn.data.media.WorkoutMediaSides.normalize(cardSide, targetExercise))],
+                                    onVideoCorrect = { result ->
+                                        viewModel.patchCompletedSet(
+                                            workoutSetKey(targetExercise.id, activeSetIndex, com.example.kpkn.data.media.WorkoutMediaSides.normalize(cardSide, targetExercise)),
+                                            CompletedSetPatch(
+                                                edit = com.example.kpkn.services.workout.VoiceSetEditPatch(metricValue = result.counted),
+                                                partialReps = result.partials,
+                                                reachedFailure = true.takeIf { result.failed > 0 },
+                                            ),
+                                        )
+                                    },
+                                    onVideoMarkFailure = {
+                                        viewModel.patchCompletedSet(
+                                            workoutSetKey(targetExercise.id, activeSetIndex, com.example.kpkn.data.media.WorkoutMediaSides.normalize(cardSide, targetExercise)),
+                                            CompletedSetPatch(reachedFailure = true),
+                                        )
+                                    },
+                                    onOpenAnalysis = onOpenTechniqueAnalysis,
                                     weightSuggestion = activeWeightSuggestion,
                                     previousSessionFirstSetWeight = if (isActivePage) {
                                         viewModel.getPreviousSessionFirstSetWeight(
@@ -2275,6 +2308,7 @@ internal fun WorkoutV2Body(
                                         ?: uiState.lastHomologatedResultV3?.takeIf {
                                             uiState.setJustLoggedKey?.startsWith("${targetExercise.id}_$activeSetIndex") == true
                                         },
+                                    techniqueRecorderHolder = techniqueRecorderHolder,
                                     loadPopTrigger = relatorLoadPopTrigger,
                                         )
                                         }

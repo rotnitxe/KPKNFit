@@ -1,0 +1,71 @@
+{
+  "id": "r14-pexels-4921641",
+  "durationS": 9.36,
+  "width": 720,
+  "height": 1298,
+  "rotation": 0,
+  "fpsNominal": 50.0,
+  "fpsMeasured": 50.0,
+  "usable": true,
+  "exercise": "Sentadilla trasera con barra alta",
+  "exerciseDetail": "Sentadilla trasera con barra alta (high-bar) en rack, descenso profundo",
+  "suggestedProfile": "SQUAT",
+  "view": "SIDE",
+  "people": 2,
+  "fullBodyVisible": true,
+  "faceVisible": true,
+  "plateVisible": true,
+  "startPhase": "CONCENTRIC_FIRST",
+  "reps": {
+    "full": 2,
+    "partial": 0,
+    "failed": 0,
+    "uncertain": false,
+    "acceptableRange": [
+      2,
+      3
+    ]
+  },
+  "repTimesS": [
+    {
+      "index": 1,
+      "turnaroundS": 3.9,
+      "side": null
+    },
+    {
+      "index": 2,
+      "turnaroundS": 7.1,
+      "side": null
+    }
+  ],
+  "activeWindowS": [
+    0.0,
+    9.0
+  ],
+  "frameIntervalS": {
+    "min": 0.02,
+    "median": 0.02,
+    "max": 0.02
+  },
+  "turnaroundKind": "BOTTOM",
+  "edgeEvents": [
+    {
+      "timeS": 0.0,
+      "kind": "TRUNCATED_START",
+      "description": "el clip empieza en el fondo de una sentadilla previa; solo se ve su ascenso (0-1,7 s)"
+    }
+  ],
+  "caveats": [
+    "clip muy corto (9,4 s) con 2 sentadillas completas y el ascenso de una tercera al inicio",
+    "una segunda persona (camiseta blanca y vaqueros) trabaja al fondo, pequeña, ~3-6 s",
+    "al subir (1,7 s, 5,1 s, 8,4 s) la parte superior de la cabeza queda a ~8% del borde superior (sin cortarse)"
+  ],
+  "cameraMotion": {
+    "class": "STATIC",
+    "note": "cámara fija"
+  },
+  "softWarnings": [
+    "varias personas: 2 distinguibles (el sujeto domina el encuadre; las demás son pequeñas o están al fondo)",
+    "recuento ambiguo por medio ciclo en el borde del clip o por repeticiones dudosas: rango aceptable 2-3 (ver edgeEvents)"
+  ]
+}

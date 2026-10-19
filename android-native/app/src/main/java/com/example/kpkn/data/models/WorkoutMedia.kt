@@ -34,4 +34,11 @@ data class WorkoutMedia(
     val height: Int? = null,
     val caption: String? = null,
     val poseTrackPath: String? = null,
+    /**
+     * Definición del catálogo v2 (`bench_press`) del ejercicio grabado, si es del catálogo (Room v29). Con
+     * [catalogConfigurationId] resuelve el perfil de análisis de técnica y da la clave `exerciseKey` del vídeo.
+     */
+    val catalogDefinitionId: String? = null,
+    /** Configuración exacta del catálogo (`bench_press__barbell`): la clave del perfil carga-velocidad (Room v29). */
+    val catalogConfigurationId: String? = null,
 )

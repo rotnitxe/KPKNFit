@@ -1,0 +1,67 @@
+{
+  "id": "wger_0027",
+  "durationS": 8.25,
+  "width": 640,
+  "height": 360,
+  "rotation": 0,
+  "fpsNominal": 60.0,
+  "fpsMeasured": 60.0,
+  "usable": true,
+  "exercise": "Sentadilla frontal con barra, de espaldas",
+  "exerciseDetail": "Sentadilla frontal con barra en un rack, vista exacta de espaldas (la barra queda oculta detrás del torso y solo asoman los discos a ambos lados de los hombros, como en la sentadilla frontal)",
+  "suggestedProfile": "SQUAT",
+  "view": "BACK",
+  "people": 3,
+  "fullBodyVisible": true,
+  "faceVisible": false,
+  "plateVisible": true,
+  "startPhase": "ECCENTRIC_FIRST",
+  "reps": {
+    "full": 2,
+    "partial": 0,
+    "failed": 0,
+    "uncertain": false,
+    "acceptableRange": [
+      2,
+      2
+    ]
+  },
+  "repTimesS": [
+    {
+      "index": 1,
+      "turnaroundS": 3.4,
+      "side": null
+    },
+    {
+      "index": 2,
+      "turnaroundS": 7.0,
+      "side": null
+    }
+  ],
+  "activeWindowS": [
+    1.2,
+    8.2
+  ],
+  "frameIntervalS": {
+    "min": 0.0167,
+    "median": 0.0167,
+    "max": 0.0167
+  },
+  "turnaroundKind": "BOTTOM",
+  "edgeEvents": [
+    {
+      "timeS": 0.0,
+      "kind": "SETUP",
+      "description": "0-1,2 s: de pie con la barra en los hombros antes de bajar"
+    }
+  ],
+  "caveats": [],
+  "cameraMotion": {
+    "class": "STATIC",
+    "note": "cámara fija. Medido con ORB+RANSAC sobre el fondo, zona del sujeto excluida en 1,2-8,2 s: recorrido acumulado p2p 1,9% en x y 2,8% en y, escala 1,00-1,01, velocidad media 0,64 %/s (máx. 1,5% en 1 s)"
+  },
+  "softWarnings": [
+    "varias personas: 3 distinguibles (el sujeto domina el encuadre; las demás son pequeñas o están al fondo)",
+    "muy pocas repeticiones (2): clip de demostración"
+  ]
+}

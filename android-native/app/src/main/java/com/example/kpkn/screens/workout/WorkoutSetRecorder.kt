@@ -234,7 +234,9 @@ class WorkoutSetRecorder(
                 ports.onRecordingRejected("Carga inválida. Revisa el peso antes de registrar.")
                 return RecordSetResult.Rejected("Carga inválida. Revisa el peso antes de registrar.")
             }
-            if (resolvedUnitMode != UnitModeV2.TIME && value <= 0.0 && !isFailedEntry) {
+            val hasOnlyPartialReps = resolvedUnitMode == UnitModeV2.REPS && value == 0.0 &&
+                (report.partialReps ?: 0) > 0
+            if (resolvedUnitMode != UnitModeV2.TIME && value <= 0.0 && !isFailedEntry && !hasOnlyPartialReps) {
                 ports.onRecordingRejected("Reps/tiempo inválidos. Revisa el valor antes de registrar.")
                 return RecordSetResult.Rejected("Reps/tiempo inválidos. Revisa el valor antes de registrar.")
             }
@@ -338,7 +340,7 @@ class WorkoutSetRecorder(
                 },
                 assistedLoad = if (resolvedLoadMode == LoadModeV2.ASSISTED) weight.takeIf { it > 0.0 } else null,
                 bodyWeightSnapshot = resolvedBodyWeight,
-                completedReps = actualReps.takeIf { it > 0 },
+                completedReps = actualReps.takeIf { it > 0 || hasOnlyPartialReps },
                 partialReps = report.partialReps,
                 durationSeconds = durationSeconds,
                 actualIntensityMode = actualIntensityMode,

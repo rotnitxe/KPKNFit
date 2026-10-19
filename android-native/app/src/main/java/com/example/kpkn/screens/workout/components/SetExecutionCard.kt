@@ -883,9 +883,14 @@ internal fun SetInputCardV2(
     openMediaFace: Boolean = false,
     onMediaFaceConsumed: () -> Unit = {},
     sessionMilestones: List<com.example.kpkn.data.models.SessionMilestone> = emptyList(),
+    techniqueRecorderHolder: com.example.kpkn.screens.workout.technique.TechniqueRecorderHolder? = null,
     loadPopTrigger: Any? = null,
     /** Fija el fotograma del fuego del slider de esfuerzo (hojas de render y pruebas); nulo, el fuego corre solo. */
     effortFireSecondsOverride: Float? = null,
+    videoAnalysis: com.example.kpkn.screens.workout.SetVideoAnalysisUi? = null,
+    onVideoCorrect: (com.example.kpkn.screens.workout.SetVideoAnalysisState.Mismatch) -> Unit = {},
+    onVideoMarkFailure: () -> Unit = {},
+    onOpenAnalysis: (String) -> Unit = {},
 ) {
     val context = LocalContext.current
     val recordActionInstanceOwner = remember { Any() }
@@ -938,7 +943,9 @@ internal fun SetInputCardV2(
         UnitModeV2.DISTANCE,
         UnitModeV2.CUSTOM,
         -> sessionCompletedSet?.reps?.takeIf { it > 0 }?.toString()
-        UnitModeV2.REPS -> sessionCompletedSet?.reps?.takeIf { it > 0 }?.toString()
+        UnitModeV2.REPS -> sessionCompletedSet?.let { completed ->
+            completed.reps.takeIf { it > 0 || (it == 0 && (completed.partialReps ?: 0) > 0) }?.toString()
+        }
     }.orEmpty()
     val plannedValueGhost = when (resolvedPlannedUnitMode) {
         UnitModeV2.TIME -> (currentSet.targetDuration ?: currentSet.plannedTargetV2?.toInt() ?: ghostSet?.timeSeconds)?.toString()
@@ -983,9 +990,13 @@ internal fun SetInputCardV2(
 
     val supportsIndependentSides = exercise.isEffectivelyUnilateral()
     val lockedSide = activeSide?.takeIf { supportsIndependentSides && sideLocked }
-    val initialSelectedSide = initialDraft?.selectedSide ?: lockedSide ?: "left"
-    val draftWeightText = initialDraft?.weightText?.takeIf { it.isNotBlank() }
-    val draftValueText = initialDraft?.valueText?.takeIf { it.isNotBlank() }
+    // Un parche persistido puede conservar el id. Su snapshot nuevo prevalece sobre el borrador anterior;
+    // con el mismo snapshot las recomposiciones no reinicializan lo que la persona está editando.
+    val draftBaseline = remember(exercise.id, setIndex, lockedSide) { sessionCompletedSet }
+    val restoredDraft = initialDraft.takeIf { sessionCompletedSet == draftBaseline }
+    val initialSelectedSide = restoredDraft?.selectedSide ?: lockedSide ?: "left"
+    val draftWeightText = restoredDraft?.weightText?.takeIf { it.isNotBlank() }
+    val draftValueText = restoredDraft?.valueText?.takeIf { it.isNotBlank() }
     val volumeReplacedTechnique = currentSet.techniqueScope() == SetTechniqueScope.VOLUME_REPLACED
     val initialTechniqueWeight = if (volumeReplacedTechnique) {
         (currentSet.weight?.takeIf { it > 0 } ?: suggestedWeightText?.toDoubleOrNull()?.takeIf { it > 0 })?.toTrimmedNumberString()
@@ -999,14 +1010,14 @@ internal fun SetInputCardV2(
         !currentSet.isInlineEditorScheduledTechnique()
     ) "3" else null
 
-    var weightText by remember(exercise.id, setIndex, lockedSide, sessionCompletedSet?.id) {
+    var weightText by remember(exercise.id, setIndex, lockedSide, sessionCompletedSet) {
         mutableStateOf(draftWeightText ?: completedWeightText ?: initialTechniqueWeight ?: "")
     }
-    var lastAutoFilledWeight by remember(exercise.id, setIndex, lockedSide, sessionCompletedSet?.id) { mutableStateOf(defaultWeight) }
-    var hasManualWeightOverride by remember(exercise.id, setIndex, lockedSide, sessionCompletedSet?.id) {
+    var lastAutoFilledWeight by remember(exercise.id, setIndex, lockedSide, sessionCompletedSet) { mutableStateOf(defaultWeight) }
+    var hasManualWeightOverride by remember(exercise.id, setIndex, lockedSide, sessionCompletedSet) {
         mutableStateOf(!draftWeightText.isNullOrBlank() || completedWeightText != null)
     }
-    var valueText by remember(exercise.id, setIndex, lockedSide, sessionCompletedSet?.id) {
+    var valueText by remember(exercise.id, setIndex, lockedSide, sessionCompletedSet) {
         mutableStateOf(draftValueText ?: initialTechniqueValue ?: defaultValue.ifBlank { plannedValueGhost })
     }
     var showReadinessAdjustmentSheet by remember { mutableStateOf(false) }
@@ -1017,8 +1028,8 @@ internal fun SetInputCardV2(
     }
     val targetLeftWeight = currentSet.leftTarget?.weight?.toTrimmedNumberString().orEmpty()
     val targetRightWeight = currentSet.rightTarget?.weight?.toTrimmedNumberString().orEmpty()
-    val initialLeftWeight = if (initialSelectedSide == "left") (draftWeightText ?: initialTechniqueWeight).orEmpty() else ""
-    val initialRightWeight = if (initialSelectedSide == "right") (draftWeightText ?: initialTechniqueWeight).orEmpty() else ""
+    val initialLeftWeight = if (initialSelectedSide == "left") (draftWeightText ?: completedWeightText ?: initialTechniqueWeight).orEmpty() else ""
+    val initialRightWeight = if (initialSelectedSide == "right") (draftWeightText ?: completedWeightText ?: initialTechniqueWeight).orEmpty() else ""
     fun sideTargetValueText(target: UnilateralTarget?): String = when {
         target == null -> plannedValueGhost
         isTimeMode -> target.targetDuration?.toString() ?: plannedValueGhost
@@ -1030,9 +1041,9 @@ internal fun SetInputCardV2(
     val initialRightValue = ""
     val leftValueGhost = sideTargetValueText(currentSet.leftTarget)
     val rightValueGhost = sideTargetValueText(currentSet.rightTarget)
-    var leftWeightText by remember(exercise.id, setIndex, sessionCompletedSet?.id) { mutableStateOf(initialLeftWeight) }
-    var rightWeightText by remember(exercise.id, setIndex, sessionCompletedSet?.id) { mutableStateOf(initialRightWeight) }
-    var leftValueText by remember(exercise.id, setIndex, sessionCompletedSet?.id) {
+    var leftWeightText by remember(exercise.id, setIndex, sessionCompletedSet) { mutableStateOf(initialLeftWeight) }
+    var rightWeightText by remember(exercise.id, setIndex, sessionCompletedSet) { mutableStateOf(initialRightWeight) }
+    var leftValueText by remember(exercise.id, setIndex, sessionCompletedSet) {
         mutableStateOf(
             if (initialSelectedSide == "left") {
                 (draftValueText ?: initialTechniqueValue ?: defaultValue).ifBlank { leftValueGhost }
@@ -1041,7 +1052,7 @@ internal fun SetInputCardV2(
             },
         )
     }
-    var rightValueText by remember(exercise.id, setIndex, sessionCompletedSet?.id) {
+    var rightValueText by remember(exercise.id, setIndex, sessionCompletedSet) {
         mutableStateOf(
             if (initialSelectedSide == "right") {
                 (draftValueText ?: initialTechniqueValue ?: defaultValue).ifBlank { rightValueGhost }
@@ -1066,9 +1077,9 @@ internal fun SetInputCardV2(
             ?: currentSet.targetRPE?.toTrimmedNumberString()
             ?: currentSet.targetRIR?.toString()
     ).orEmpty()
-    var intensityText by remember(exercise.id, setIndex, lockedSide, sessionCompletedSet?.id) {
+    var intensityText by remember(exercise.id, setIndex, lockedSide, sessionCompletedSet) {
         mutableStateOf(
-            initialDraft?.intensityText
+            restoredDraft?.intensityText
                 ?: sessionCompletedSet?.actualIntensityValue?.toTrimmedNumberString()
                 ?: sessionCompletedSet?.rpe?.toTrimmedNumberString()
                 ?: ""
@@ -1076,10 +1087,10 @@ internal fun SetInputCardV2(
     }
     // H-VERIF (LV8): el esfuerzo es obligatorio y nunca llega preseleccionado. Una intensidad solo cuenta como «reserva cumplida» para
     // proponer una subida si la persona la marcó: un borrador con un valor o con el fallo, o una serie ya registrada, ya están reportados.
-    var intensityTouched by remember(exercise.id, setIndex, lockedSide, sessionCompletedSet?.id) {
+    var intensityTouched by remember(exercise.id, setIndex, lockedSide, sessionCompletedSet) {
         mutableStateOf(
             sessionCompletedSet?.let { it.recordedPayloadV3?.intensityAdjusted ?: true }
-                ?: (initialDraft?.let { !it.intensityText.isNullOrBlank() || it.reachedFailure == true } == true)
+                ?: (restoredDraft?.let { !it.intensityText.isNullOrBlank() || it.reachedFailure == true } == true)
         )
     }
     var bodyWeightText by remember(exercise.id) { mutableStateOf(initialBodyWeight?.toTrimmedNumberString().orEmpty()) }
@@ -1090,8 +1101,8 @@ internal fun SetInputCardV2(
     // completed set is kept so editing it never erases recorded data.
     val tracksRom = exercise.trackRom
     val pristineRomValue: Int? = sessionCompletedSet?.rom ?: (if (tracksRom) DEFAULT_ROM_PERCENT else null)
-    var romValue by remember(exercise.id, setIndex, lockedSide, sessionCompletedSet?.id, tracksRom) {
-        mutableStateOf<Int?>((if (tracksRom) initialDraft?.rom else null) ?: pristineRomValue)
+    var romValue by remember(exercise.id, setIndex, lockedSide, sessionCompletedSet, tracksRom) {
+        mutableStateOf<Int?>((if (tracksRom) restoredDraft?.rom else null) ?: pristineRomValue)
     }
     var selectedSide by remember(exercise.id, setIndex, lockedSide) { mutableStateOf(initialSelectedSide) }
     val sideKey = if (supportsIndependentSides) lockedSide ?: selectedSide else "B"
@@ -1146,7 +1157,7 @@ internal fun SetInputCardV2(
     var loadMode by remember(exercise.id, setIndex, persistedLoadMode, currentSet.loadModeV2) {
         mutableStateOf(
             resolveEffectiveLoadMode(
-                draftLoadMode = initialDraft?.loadMode,
+                draftLoadMode = restoredDraft?.loadMode,
                 persistedLoadMode = persistedLoadMode,
                 plannedLoadMode = currentSet.loadModeV2,
                 defaultCatalogMode = null,
@@ -1175,8 +1186,8 @@ internal fun SetInputCardV2(
     }
     // LV8: el fallo del plan es solo una marca sobre la pista del esfuerzo. La serie empieza sin marcar y el fallo se elige como cualquier
     // otro valor; una intensidad que la persona no eligió nunca se registra.
-    var reachedFailure by remember(exercise.id, setIndex, sessionCompletedSet?.id) {
-        mutableStateOf(initialDraft?.reachedFailure ?: (sessionCompletedSet?.isFailure == true))
+    var reachedFailure by remember(exercise.id, setIndex, sessionCompletedSet) {
+        mutableStateOf(restoredDraft?.reachedFailure ?: (sessionCompletedSet?.isFailure == true))
     }
     LaunchedEffect(
         currentSet.isDropSet,
@@ -1184,7 +1195,7 @@ internal fun SetInputCardV2(
         currentSet.weight,
         currentSet.targetReps,
         currentSet.isFailure,
-        sessionCompletedSet?.id,
+        sessionCompletedSet,
         volumeReplacedTechnique,
     ) {
         if (sessionCompletedSet != null) return@LaunchedEffect
@@ -1200,39 +1211,42 @@ internal fun SetInputCardV2(
             updateActiveWeightText(techniqueWeight, markManual = false)
         }
     }
-    var isFailedSet by remember(exercise.id, setIndex, sideKey, sessionCompletedSet?.id) {
+    var isFailedSet by remember(exercise.id, setIndex, sideKey, sessionCompletedSet) {
         mutableStateOf(sessionCompletedSet?.isFailedSet == true)
     }
-    var failedSetReason by remember(exercise.id, setIndex, sideKey, sessionCompletedSet?.id) {
+    var failedSetReason by remember(exercise.id, setIndex, sideKey, sessionCompletedSet) {
         mutableStateOf(
             sessionCompletedSet?.failureReason?.takeIf { it != "execution_error" && it != "Serie marcada como fallida" } ?: ""
         )
     }
-    var isAmrap by remember(exercise.id, setIndex, sideKey, initialDraft?.amrapOverride) {
-        mutableStateOf(initialDraft?.amrapOverride ?: plannedAmrap)
+    var isAmrap by remember(exercise.id, setIndex, sideKey, restoredDraft?.amrapOverride) {
+        mutableStateOf(restoredDraft?.amrapOverride ?: plannedAmrap)
     }
     var showAmrapSheet by remember(exercise.id, setIndex, sideKey) { mutableStateOf(false) }
     var amrapReachFailure by remember(
         exercise.id,
         setIndex,
         sideKey,
-        sessionCompletedSet?.id,
-        initialDraft?.amrapReachFailure,
+        sessionCompletedSet,
+        restoredDraft?.amrapReachFailure,
     ) {
-        mutableStateOf(initialDraft?.amrapReachFailure ?: defaultAmrapReachFailure)
+        mutableStateOf(restoredDraft?.amrapReachFailure ?: defaultAmrapReachFailure)
     }
-    var amrapReserveReps by remember(exercise.id, setIndex, sideKey, initialDraft?.amrapReserveReps) {
-        mutableStateOf(initialDraft?.amrapReserveReps)
+    var amrapReserveReps by remember(exercise.id, setIndex, sideKey, restoredDraft?.amrapReserveReps) {
+        mutableStateOf(restoredDraft?.amrapReserveReps)
     }
-    var amrapMinimumReps by remember(exercise.id, setIndex, sideKey, initialDraft?.amrapMinimumReps) {
-        mutableStateOf(initialDraft?.amrapMinimumReps ?: plannedRepRange?.min ?: currentSet.targetReps)
+    var amrapMinimumReps by remember(exercise.id, setIndex, sideKey, restoredDraft?.amrapMinimumReps) {
+        mutableStateOf(restoredDraft?.amrapMinimumReps ?: plannedRepRange?.min ?: currentSet.targetReps)
     }
     var dropSetEnabled by remember(exercise.id, setIndex, sideKey) { mutableStateOf(false) }
     var restPauseEnabled by remember(exercise.id, setIndex, sideKey) { mutableStateOf(false) }
-    var showPartialsMode by remember(exercise.id, setIndex, sideKey) { mutableStateOf(false) }
+    val restoredPartialReps = if (!supportsIndependentSides || selectedSide == initialSelectedSide) {
+        (restoredDraft?.partialReps ?: sessionCompletedSet?.partialReps ?: 0).coerceAtLeast(0)
+    } else 0
+    var showPartialsMode by remember(exercise.id, setIndex, sideKey, sessionCompletedSet) { mutableStateOf(restoredPartialReps > 0) }
     var showFeedbackExtrasPopup by remember(exercise.id, setIndex, sideKey) { mutableStateOf(false) }
-    var assistedRepsValue by remember(exercise.id, setIndex, sessionCompletedSet?.id) {
-        mutableIntStateOf(initialDraft?.assistedReps ?: sessionCompletedSet?.assistedReps ?: 0)
+    var assistedRepsValue by remember(exercise.id, setIndex, sessionCompletedSet) {
+        mutableIntStateOf(restoredDraft?.assistedReps ?: sessionCompletedSet?.assistedReps ?: 0)
     }
     var adjustmentsTab by remember(exercise.id, setIndex, sideKey) { mutableIntStateOf(-1) }
     var cardFace by remember(exercise.id, setIndex, sideKey) { mutableStateOf(SetCardFace.Front) }
@@ -1243,7 +1257,7 @@ internal fun SetInputCardV2(
         }
     }
     var setNoteText by remember(exercise.id, setIndex, sideKey) {
-        mutableStateOf(initialDraft?.notes.orEmpty())
+        mutableStateOf(restoredDraft?.notes.orEmpty())
     }
     var loadModeMenuExpanded by remember(exercise.id, setIndex, sideKey) { mutableStateOf(false) }
     var dropSets by remember(exercise.id, setIndex, sideKey) {
@@ -1252,10 +1266,10 @@ internal fun SetInputCardV2(
     var restPauseSets by remember(exercise.id, setIndex, sideKey) {
         mutableStateOf(listOf(RestPauseData(restTime = RestPausePlanDefaults.PauseSeconds, reps = 0)))
     }
-    var partialSets by remember(exercise.id, setIndex, sideKey) {
-        mutableStateOf(listOf(0))
+    var partialSets by remember(exercise.id, setIndex, sideKey, sessionCompletedSet) {
+        mutableStateOf(listOf(restoredPartialReps))
     }
-    val savedTechniqueProgress = initialDraft?.techniqueProgress
+    val savedTechniqueProgress = restoredDraft?.techniqueProgress
     var guidedPhase by remember(exercise.id, setIndex, sideKey) {
         mutableStateOf(savedTechniqueProgress?.toGuidedPhaseOrNull())
     }
@@ -1350,16 +1364,16 @@ internal fun SetInputCardV2(
         restPauseEnabled = false
         dropSets = listOf(DropSetEntry(weight = 0.0, reps = 0))
         restPauseSets = listOf(RestPauseData(restTime = RestPausePlanDefaults.PauseSeconds, reps = RestPausePlanDefaults.Reps))
-        partialSets = listOf(0)
-        isAmrap = initialDraft?.amrapOverride ?: plannedAmrap
+        partialSets = listOf(restoredPartialReps)
+        isAmrap = restoredDraft?.amrapOverride ?: plannedAmrap
         showAmrapSheet = false
-        amrapReachFailure = initialDraft?.amrapReachFailure ?: defaultAmrapReachFailure
-        amrapReserveReps = initialDraft?.amrapReserveReps
-        amrapMinimumReps = initialDraft?.amrapMinimumReps ?: plannedRepRange?.min ?: currentSet.targetReps
-        showPartialsMode = false
+        amrapReachFailure = restoredDraft?.amrapReachFailure ?: defaultAmrapReachFailure
+        amrapReserveReps = restoredDraft?.amrapReserveReps
+        amrapMinimumReps = restoredDraft?.amrapMinimumReps ?: plannedRepRange?.min ?: currentSet.targetReps
+        showPartialsMode = restoredPartialReps > 0
         showFeedbackExtrasPopup = false
         isFailedSet = false
-        val savedProgress = initialDraft?.techniqueProgress
+        val savedProgress = restoredDraft?.techniqueProgress
         guidedPhase = savedProgress?.toGuidedPhaseOrNull()
         guidedMainCapture = savedProgress?.mainCapture.toGuidedMainCaptureOrNull()
         guidedDropDrafts = if (savedProgress?.kind == WorkoutTechniqueDraftKind.GUIDED_DROP) {
@@ -1476,7 +1490,7 @@ internal fun SetInputCardV2(
         isRmLoadPrescription -> null
         else -> plannedIntensityMode
     }
-    var reportedIntensityMode by remember(exercise.id, setIndex, sessionCompletedSet?.id) {
+    var reportedIntensityMode by remember(exercise.id, setIndex, sessionCompletedSet) {
         mutableStateOf(resolveDefaultReportedIntensityMode())
     }
     var timerRunning by remember(exercise.id, setIndex, sideKey) { mutableStateOf(false) }
@@ -1547,7 +1561,7 @@ internal fun SetInputCardV2(
         plannedIntensityMode,
         currentSet.targetRIR,
         isRmLoadPrescription,
-        sessionCompletedSet?.id,
+        sessionCompletedSet,
         activePlannedRir,
         activePlannedRpe,
     ) {
@@ -1559,7 +1573,7 @@ internal fun SetInputCardV2(
         )
     }
     // La marca elegida (nula = sin marcar). Una serie ya registrada, o un borrador con un valor o con el fallo, llegan marcados.
-    var effortIndex by remember(exercise.id, setIndex, lockedSide, sessionCompletedSet?.id) {
+    var effortIndex by remember(exercise.id, setIndex, lockedSide, sessionCompletedSet) {
         mutableStateOf(
             restoreEffortIndex(
                 items = effortScale.items,
@@ -1596,7 +1610,8 @@ internal fun SetInputCardV2(
             effortHintVisible = false
         }
     }
-    val repsWheelCenterIndex = remember(exercise.id, setIndex, sideKey) { mutableIntStateOf(0) }
+    val repsWheelCenterIndex = remember(exercise.id, setIndex, sideKey, sessionCompletedSet) { mutableIntStateOf(0) }
+    var repsInputGeneration by remember(exercise.id, setIndex, sideKey) { mutableIntStateOf(0) }
     fun onEffortSelected(index: Int) {
         val item = effortScale.items.getOrNull(index) ?: return
         val selection = intensitySelectionFromCarouselItem(item)
@@ -2221,20 +2236,22 @@ internal fun SetInputCardV2(
                                 ).let { tone ->
                                     if (reportValueText.isBlank() && !isFailedSet) CarouselValueTone.OnPlan else tone
                                 }
-                                WorkoutHorizontalWheelPicker(
-                                    items = repsItems,
-                                    selectedIndex = repsSelectedIndex,
-                                    onSelectedIndexChange = { index ->
-                                        if (!isFailedSet) updateActiveValueText(index.toString())
-                                    },
-                                    enabled = !isFailedSet,
-                                    isError = isFailedSet,
-                                    accentColor = sessionAccentColor,
-                                    roomier = roomyStepper,
-                                    centerGlowColor = carouselGlowForTone(repsCarouselTone, sessionAccentColor),
-                                    centeredIndexHolder = repsWheelCenterIndex,
-                                    modifier = Modifier.fillMaxWidth(),
-                                )
+                                key(repsInputGeneration, sessionCompletedSet) {
+                                    WorkoutHorizontalWheelPicker(
+                                        items = repsItems,
+                                        selectedIndex = repsSelectedIndex,
+                                        onSelectedIndexChange = { index ->
+                                            if (!isFailedSet) updateActiveValueText(index.toString())
+                                        },
+                                        enabled = !isFailedSet,
+                                        isError = isFailedSet,
+                                        accentColor = sessionAccentColor,
+                                        roomier = roomyStepper,
+                                        centerGlowColor = carouselGlowForTone(repsCarouselTone, sessionAccentColor),
+                                        centeredIndexHolder = repsWheelCenterIndex,
+                                        modifier = Modifier.fillMaxWidth(),
+                                    )
+                                }
                             }
                         }
                     }
@@ -2258,6 +2275,27 @@ internal fun SetInputCardV2(
                     }
 
                     ValueStepperBlock(Modifier.fillMaxWidth())
+                    videoAnalysis?.let { analysis ->
+                        com.example.kpkn.screens.workout.design.WorkoutVideoRepsSuggestion(
+                            value = analysis,
+                            onUse = { result ->
+                                if (sessionCompletedSet == null && resolvedPlannedUnitMode == UnitModeV2.REPS && !isFailedSet) {
+                                    updateActiveValueText(result.reps.toString())
+                                    repsWheelCenterIndex.intValue = result.reps
+                                    // «Usar» sustituye también el scroll anterior: el centro viejo no puede sobrescribir el borrador.
+                                    repsInputGeneration++
+                                    partialSets = listOf(result.partials.coerceAtLeast(0))
+                                    showPartialsMode = result.partials > 0
+                                }
+                            },
+                            onCorrect = onVideoCorrect,
+                            onMarkFailure = {
+                                if (sessionCompletedSet != null) onVideoMarkFailure()
+                                else effortScale.items.indexOfFirst { it.isFailure }.takeIf { it >= 0 }?.let(::onEffortSelected)
+                            },
+                            onOpenAnalysis = onOpenAnalysis,
+                        )
+                    }
                     EffortBlock()
 
                     if (exercise.trackRom) {
@@ -2390,7 +2428,7 @@ internal fun SetInputCardV2(
             }
 
             fun publishTechniqueProgressDraft(progress: WorkoutTechniqueProgressDraft) {
-                val base = initialDraft ?: WorkoutSetDraft()
+                val base = restoredDraft ?: WorkoutSetDraft()
                 onDraftChange(
                     base.copy(
                         weightText = reportWeightText,
@@ -2449,7 +2487,7 @@ internal fun SetInputCardV2(
             ) {
                 if (!isActivePage) return@LaunchedEffect
                 val initialLoadMode = resolveEffectiveLoadMode(
-                    draftLoadMode = initialDraft?.loadMode,
+                    draftLoadMode = restoredDraft?.loadMode,
                     persistedLoadMode = persistedLoadMode,
                     plannedLoadMode = currentSet.loadModeV2,
                     defaultCatalogMode = null,
@@ -2462,17 +2500,17 @@ internal fun SetInputCardV2(
                     intensityText != initialIntensityForDraft ||
                     loadMode != initialLoadMode ||
                     reachedFailure != initialFailure ||
-                    isAmrap != (initialDraft?.amrapOverride ?: plannedAmrap) ||
-                    amrapMinimumReps != initialDraft?.amrapMinimumReps ||
-                    amrapReachFailure != (initialDraft?.amrapReachFailure ?: defaultAmrapReachFailure) ||
-                    amrapReserveReps != initialDraft?.amrapReserveReps ||
-                    partialRepsTotal != (initialDraft?.partialReps ?: 0) ||
+                    isAmrap != (restoredDraft?.amrapOverride ?: plannedAmrap) ||
+                    amrapMinimumReps != restoredDraft?.amrapMinimumReps ||
+                    amrapReachFailure != (restoredDraft?.amrapReachFailure ?: defaultAmrapReachFailure) ||
+                    amrapReserveReps != restoredDraft?.amrapReserveReps ||
+                    partialRepsTotal != (restoredDraft?.partialReps ?: 0) ||
                     (supportsIndependentSides && selectedSide != initialSide) ||
                     romValue != pristineRomValue ||
-                    assistedRepsValue != (initialDraft?.assistedReps ?: 0) ||
-                    setNoteText.trim() != (initialDraft?.notes.orEmpty()) ||
-                    liveDropCountForDraft != (initialDraft?.dropSetCount ?: plannedDropCountForDraft)
-                if (isDirty || initialDraft != null || techniqueProgressForDraft != null) {
+                    assistedRepsValue != (restoredDraft?.assistedReps ?: 0) ||
+                    setNoteText.trim() != (restoredDraft?.notes.orEmpty()) ||
+                    liveDropCountForDraft != (restoredDraft?.dropSetCount ?: plannedDropCountForDraft)
+                if (isDirty || restoredDraft != null || techniqueProgressForDraft != null) {
                     onDraftChange(
                         WorkoutSetDraft(
                             weightText = reportWeightText,
@@ -2924,7 +2962,10 @@ internal fun SetInputCardV2(
                             plannedTarget != null -> plannedTarget.toString()
                             else -> valueGhost
                         }
-                        val reportedValueText = if (isTimeMode) {
+                        // Un cero explícito no se sustituye por las reps del plan: solo es válido con parciales en REPS.
+                        val reportedValueText = if (syncedValueText.trim() == "0" && (!isTimeMode || timerElapsedSeconds == 0)) {
+                            "0"
+                        } else if (isTimeMode) {
                             effectiveCarouselRepsText(
                                 if (timerElapsedSeconds > 0) timerElapsedSeconds.toString() else syncedValueText,
                                 timeFallbackGhost,
@@ -2946,7 +2987,7 @@ internal fun SetInputCardV2(
                         }
                         if (!isFailedSet) {
                             val parsedValue = reportedValueText.toDoubleOrNull()
-                            if (parsedValue == null || parsedValue <= 0.0) {
+                            if (parsedValue == null || parsedValue < 0.0 || (parsedValue == 0.0 && !(resolvedPlannedUnitMode == UnitModeV2.REPS && partialRepsTotal > 0))) {
                                 android.widget.Toast.makeText(
                                     context,
                                     "Reps/tiempo inválidos. Revisa el valor antes de registrar.",
@@ -3256,8 +3297,20 @@ internal fun SetInputCardV2(
                         isPr = isPrSeries,
                         mediaCapture = mediaCapture,
                         onRetryPendingCaptures = onRetryPendingCaptures,
+                        onOpenRecorder = techniqueRecorderHolder?.let { holder ->
+                            { captureRequest ->
+                                cardFace = SetCardFace.Front
+                                holder.request = com.example.kpkn.screens.workout.technique.TechniqueRecorderRequest(
+                                    captureRequest = captureRequest,
+                                    exercise = exercise,
+                                    setLabel = "Serie ${setIndex + 1}",
+                                )
+                            }
+                        },
                         effortLabel = chosenEffortItem?.let { effortValueLabel(it) }?.takeIf { it != "—" },
                         onShowHistory = onShowHistory,
+                        onOpenAnalysis = onOpenAnalysis,
+                        recorderOpen = techniqueRecorderHolder?.request != null,
                     )
                     else -> SetCardTechniqueBack(
                     currentSet = currentSet,

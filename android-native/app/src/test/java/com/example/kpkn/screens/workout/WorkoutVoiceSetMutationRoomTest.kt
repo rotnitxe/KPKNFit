@@ -13,6 +13,7 @@ import com.example.kpkn.services.workout.VoiceUndoPayload
 import com.example.kpkn.testsupport.RoomTestRule
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.SupervisorJob
@@ -69,6 +70,8 @@ class WorkoutVoiceSetMutationRoomTest {
     private var persistCalls = 0
     private var publicationFailures = 0
     private var roomKeysAtPublish: Set<String>? = null
+    private var roomSetsAtPublish: Map<String, CompletedSet>? = null
+    private var roomDraftsAtPublish: Map<String, WorkoutSetDraft>? = null
     private var tokenAtPublish: VoiceUndoPayload? = null
     private var persistEntered: CompletableDeferred<Unit>? = null
     private var persistRelease: CompletableDeferred<Unit>? = null
@@ -154,6 +157,8 @@ class WorkoutVoiceSetMutationRoomTest {
             if (next != previous) {
                 events += "publish"
                 roomKeysAtPublish = repository.ongoingWorkout.value?.completedSets?.keys.orEmpty().toSet()
+                roomSetsAtPublish = repository.ongoingWorkout.value?.completedSets
+                roomDraftsAtPublish = repository.ongoingWorkout.value?.setDrafts
                 tokenAtPublish = token.get()
                 state = next.copy(persistenceRevision = previous.persistenceRevision + 1)
             }
@@ -983,6 +988,254 @@ class WorkoutVoiceSetMutationRoomTest {
 
         assertEquals(WorkoutVoiceMutationResult.SessionChanged, controller.patchLast(weightPatch(50.0)))
         assertEquals(20.0, state.completedSets.getValue("exercise_1").weight, 0.0)
+    }
+
+    @Test
+    fun patchAtCommitsTheRequestedOlderSetBeforePublicationAndPreservesTheLatestSetAndRest() = runBlocking<Unit> {
+        val originalLatest = state.completedSets.getValue("exercise_1")
+        val undo = armUndo()
+        holdPersist()
+        val patch = CompletedSetPatch(VoiceSetEditPatch(metricValue = 7), partialReps = 2, reachedFailure = true)
+        val pending = async { controller.patchAt("exercise_0", patch) }
+        awaitPersistEntered()
+        assertEquals(6, room().completedSets.getValue("exercise_0").reps)
+        assertEquals(6, state.completedSets.getValue("exercise_0").reps)
+        assertTrue(events.isEmpty())
+        releasePersist()
+        val result = pending.await() as WorkoutVoiceMutationResult.Committed
+        assertEquals("exercise_0", result.setKey)
+        assertEquals(7, room().completedSets.getValue("exercise_0").reps)
+        assertEquals(2, room().completedSets.getValue("exercise_0").partialReps)
+        assertTrue(room().completedSets.getValue("exercise_0").isFailure)
+        assertFalse(room().completedSets.getValue("exercise_0").isFailedSet)
+        assertEquals(room().completedSets, state.completedSets)
+        assertEquals(result.set, state.completedSets.getValue("exercise_0"))
+        assertEquals(result.set, roomSetsAtPublish?.get("exercise_0"))
+        assertEquals(originalLatest, state.completedSets.getValue("exercise_1"))
+        assertEquals(listOf("publish"), events)
+        assertEquals(listOf("exercise"), refreshedExercises)
+        assertSame(undo, token.get())
+        assertEquals(0, aborts)
+        assertTrue(state.isRestTimerRunning)
+        assertEquals("exercise_1", state.setJustLoggedKey)
+    }
+
+    @Test
+    fun patchAtRoomFailureNeverPublishesAndCanBeRetried() = runBlocking<Unit> {
+        val drafts = mapOf(
+            "uni_0_L" to WorkoutSetDraft(valueText = "8", partialReps = 0, isDirty = true, updatedAtMs = 1L),
+            "uni_0" to WorkoutSetDraft(valueText = "6", isDirty = true, updatedAtMs = 2L),
+            "uni_0_R" to WorkoutSetDraft(valueText = "11", partialReps = 2, isDirty = true, updatedAtMs = 3L),
+            "uni_1_L" to WorkoutSetDraft(valueText = "9", isDirty = true, updatedAtMs = 4L),
+        )
+        seed(unilateralState().copy(setDrafts = drafts))
+        val before = state
+        failWrites()
+        val patch = CompletedSetPatch(VoiceSetEditPatch(metricValue = 7), partialReps = 1)
+        assertTrue(controller.patchAt("uni_0_L", patch) is WorkoutVoiceMutationResult.PersistenceFailed)
+        assertEquals(before, state)
+        assertEquals(before.completedSets, room().completedSets)
+        assertEquals(drafts, state.setDrafts)
+        assertEquals(drafts, room().setDrafts)
+        assertTrue(events.isEmpty())
+        assertTrue(refreshedExercises.isEmpty())
+        assertFalse(gate.isBusy())
+        allowWrites()
+        assertTrue(controller.patchAt("uni_0_L", patch).isCommitted)
+        assertEquals(room().completedSets, state.completedSets)
+        assertEquals(7, state.completedSets.getValue("uni_0_L").reps)
+        assertEquals(drafts - listOf("uni_0_L", "uni_0"), state.setDrafts)
+        assertEquals(drafts - listOf("uni_0_L", "uni_0"), room().setDrafts)
+    }
+
+    @Test
+    fun patchAtNoChangeMissingClosingAndBusyNeverPersist() = runBlocking<Unit> {
+        val drafts = mapOf(
+            "uni_0_L" to WorkoutSetDraft(valueText = "8", isDirty = true, updatedAtMs = 1L),
+            "uni_0" to WorkoutSetDraft(valueText = "6", isDirty = true, updatedAtMs = 2L),
+            "uni_0_R" to WorkoutSetDraft(valueText = "11", isDirty = true, updatedAtMs = 3L),
+            "uni_1_L" to WorkoutSetDraft(valueText = "9", isDirty = true, updatedAtMs = 4L),
+        )
+        seed(unilateralState().copy(setDrafts = drafts))
+        val patch = CompletedSetPatch(VoiceSetEditPatch(metricValue = 7))
+        assertEquals(WorkoutVoiceMutationResult.NoChange, controller.patchAt("uni_0_L", CompletedSetPatch()))
+        assertEquals(WorkoutVoiceMutationResult.NoRecentSet, controller.patchAt("missing", patch))
+        state = state.copy(isFinishingWorkout = true)
+        assertEquals(WorkoutVoiceMutationResult.Closing, controller.patchAt("uni_0_L", patch))
+        state = state.copy(isFinishingWorkout = false)
+        controller = newController(gateWaitMs = 0L)
+        assertTrue(gate.tryStart("other-recorder"))
+        try {
+            assertEquals(WorkoutVoiceMutationResult.Busy, controller.patchAt("uni_0_L", patch))
+            assertTrue(gate.isBusy())
+        } finally {
+            gate.finish("other-recorder")
+        }
+        assertEquals(0, persistCalls)
+        assertTrue(events.isEmpty())
+        assertEquals(drafts, state.setDrafts)
+        assertEquals(drafts, room().setDrafts)
+    }
+
+    @Test
+    fun patchAtRetriesSkippedOnceThenReturnsStaleWithoutPublishing() = runBlocking<Unit> {
+        val patch = CompletedSetPatch(VoiceSetEditPatch(metricValue = 7))
+        val before = state
+        persistScript.addLast(WorkoutPersistResult.Skipped)
+        persistScript.addLast(WorkoutPersistResult.Skipped)
+        assertEquals(WorkoutVoiceMutationResult.Stale, controller.patchAt("exercise_0", patch))
+        assertEquals(2, persistCalls)
+        assertEquals(before, state)
+        assertEquals(before.completedSets, room().completedSets)
+        persistScript.addLast(WorkoutPersistResult.Skipped)
+        assertTrue(controller.patchAt("exercise_0", patch).isCommitted)
+        assertEquals(4, persistCalls)
+        assertEquals(7, room().completedSets.getValue("exercise_0").reps)
+        assertEquals(room().completedSets, state.completedSets)
+    }
+
+    @Test
+    fun patchAtSessionChangedAndCancelledPersistenceNeverPublish() = runBlocking<Unit> {
+        val drafts = mapOf(
+            "uni_0_L" to WorkoutSetDraft(valueText = "8", isDirty = true, updatedAtMs = 1L),
+            "uni_0" to WorkoutSetDraft(valueText = "6", isDirty = true, updatedAtMs = 2L),
+            "uni_0_R" to WorkoutSetDraft(valueText = "11", isDirty = true, updatedAtMs = 3L),
+            "uni_1_L" to WorkoutSetDraft(valueText = "9", isDirty = true, updatedAtMs = 4L),
+        )
+        seed(unilateralState().copy(setDrafts = drafts))
+        val before = state
+        val patch = CompletedSetPatch(VoiceSetEditPatch(metricValue = 7))
+        state = state.copy(session = session.copy(id = "other-session"))
+        assertEquals(WorkoutVoiceMutationResult.SessionChanged, controller.patchAt("uni_0_L", patch))
+        assertEquals(0, persistCalls)
+        state = before
+        persistScript.addLast(WorkoutPersistResult.Cancelled)
+        assertEquals(WorkoutVoiceMutationResult.SessionChanged, controller.patchAt("uni_0_L", patch))
+        assertEquals(before, state)
+        assertEquals(before.completedSets, room().completedSets)
+        assertEquals(drafts, state.setDrafts)
+        assertEquals(drafts, room().setDrafts)
+        assertTrue(events.isEmpty())
+        assertFalse(gate.isBusy())
+    }
+
+    @Test
+    fun patchAtRejectsAReplacementExecutionAfterWaitingForTheGate() = runBlocking<Unit> {
+        val roomBefore = room()
+        val undo = armUndo()
+        controller = newController(gateWaitMs = 10_000L)
+        assertTrue(gate.tryStart("other-recorder"))
+        val pending = async(start = CoroutineStart.UNDISPATCHED) {
+            controller.patchAt("exercise_0", CompletedSetPatch(VoiceSetEditPatch(metricValue = 7)))
+        }
+        assertFalse(pending.isCompleted)
+        state = state.copy(startTimeMs = START_MS + 1)
+        val replacement = state
+        gate.finish("other-recorder")
+
+        assertEquals(WorkoutVoiceMutationResult.SessionChanged, pending.await())
+        assertEquals(replacement, state)
+        assertEquals(roomBefore.completedSets, room().completedSets)
+        assertEquals(0, persistCalls)
+        assertEquals(0, energyCalls)
+        assertEquals(0, aborts)
+        assertEquals(0, reconciles)
+        assertTrue(events.isEmpty())
+        assertTrue(refreshedExercises.isEmpty())
+        assertSame(undo, token.get())
+        assertFalse(gate.isBusy())
+    }
+
+    @Test
+    fun patchAtRejectsAReplacementExecutionBeforeRetryingASkippedSnapshot() = runBlocking<Unit> {
+        val roomBefore = room()
+        val undo = armUndo()
+        holdPersist()
+        persistScript.addLast(WorkoutPersistResult.Skipped)
+        val pending = async {
+            controller.patchAt("exercise_0", CompletedSetPatch(VoiceSetEditPatch(metricValue = 7)))
+        }
+        awaitPersistEntered()
+        state = state.copy(startTimeMs = START_MS + 1)
+        val replacement = state
+        releasePersist()
+
+        assertEquals(WorkoutVoiceMutationResult.SessionChanged, pending.await())
+        assertEquals(1, persistCalls)
+        assertEquals(1, energyCalls)
+        assertEquals(replacement, state)
+        assertEquals(roomBefore.completedSets, room().completedSets)
+        assertEquals(0, aborts)
+        assertEquals(0, reconciles)
+        assertTrue(events.isEmpty())
+        assertTrue(refreshedExercises.isEmpty())
+        assertSame(undo, token.get())
+        assertFalse(gate.isBusy())
+    }
+
+    @Test
+    fun patchAtRejectsAnOmittedSetWithoutChangingRoomStateOrEffects() = runBlocking<Unit> {
+        seed(state.copy(completedSets = state.completedSets + ("exercise_0" to CompletedSet("omitted", skipped = true))))
+        val before = state
+        val undo = armUndo()
+        val result = controller.patchAt(
+            "exercise_0",
+            CompletedSetPatch(VoiceSetEditPatch(metricValue = 8), partialReps = 1, reachedFailure = true),
+        )
+
+        assertEquals(WorkoutVoiceMutationResult.NoRecentSet, result)
+        assertEquals(before, state)
+        assertEquals(before.completedSets, room().completedSets)
+        assertEquals(0, persistCalls)
+        assertEquals(0, energyCalls)
+        assertEquals(0, aborts)
+        assertEquals(0, reconciles)
+        assertTrue(events.isEmpty())
+        assertTrue(refreshedExercises.isEmpty())
+        assertSame(undo, token.get())
+        assertFalse(gate.isBusy())
+    }
+
+    @Test
+    fun patchAtCommitInvalidatesOnlyTheTargetDraftInRoomAndPublishedState() = runBlocking<Unit> {
+        val targetKey = workoutSetKey("uni", 0, "left")
+        val fallbackKey = workoutSetKey("uni", 0)
+        val otherKey = workoutSetKey("uni", 0, "right")
+        val otherSetDraftKey = workoutSetKey("uni", 1, "left")
+        val staleDraft = WorkoutSetDraft(valueText = "8", partialReps = 0, reachedFailure = false, isDirty = true, updatedAtMs = 1L)
+        val otherDraft = WorkoutSetDraft(valueText = "11", partialReps = 2, isDirty = true, updatedAtMs = 2L)
+        val otherSetDraft = WorkoutSetDraft(valueText = "9", isDirty = true, updatedAtMs = 3L)
+        val fallbackDraft = WorkoutSetDraft(valueText = "6", isDirty = true, updatedAtMs = 4L)
+        val drafts = mapOf(targetKey to staleDraft, fallbackKey to fallbackDraft, otherKey to otherDraft, otherSetDraftKey to otherSetDraft)
+        seed(unilateralState().copy(setDrafts = drafts))
+        val otherSet = state.completedSets.getValue(otherKey)
+        val restBefore = state.restModalState
+        val undo = armUndo(setKey = otherKey, exerciseId = "uni", setIdx = 0, side = "right")
+        holdPersist()
+        val pending = async {
+            controller.patchAt(targetKey, CompletedSetPatch(VoiceSetEditPatch(metricValue = 7), partialReps = 1))
+        }
+        awaitPersistEntered()
+        assertEquals(drafts, state.setDrafts)
+        assertEquals(drafts, room().setDrafts)
+        assertTrue(events.isEmpty())
+        releasePersist()
+
+        val result = pending.await() as WorkoutVoiceMutationResult.Committed
+        val expectedDrafts = mapOf(otherKey to otherDraft, otherSetDraftKey to otherSetDraft)
+        val reopened = room()
+        assertEquals(targetKey, result.setKey)
+        assertEquals(result.set, reopened.completedSets.getValue(targetKey))
+        assertEquals(7, reopened.completedSets.getValue(targetKey).reps)
+        assertEquals(expectedDrafts, reopened.setDrafts)
+        assertEquals(expectedDrafts, state.setDrafts)
+        assertEquals(expectedDrafts, roomDraftsAtPublish)
+        assertEquals(otherSet, reopened.completedSets.getValue(otherKey))
+        assertEquals(restBefore, state.restModalState)
+        assertTrue(state.isRestTimerRunning)
+        assertSame(undo, token.get())
+        assertEquals(0, aborts)
+        assertEquals(listOf("publish"), events)
     }
 
     private companion object {

@@ -1,0 +1,97 @@
+{
+  "id": "r19-pexels-5319102",
+  "durationS": 27.24,
+  "width": 1280,
+  "height": 720,
+  "rotation": 0,
+  "fpsNominal": 25.0,
+  "fpsMeasured": 25.0,
+  "usable": true,
+  "exercise": "Elevaciones laterales con mancuernas",
+  "exerciseDetail": "Elevaciones laterales con mancuernas de pie (ambos brazos a la vez)",
+  "suggestedProfile": "RAISE",
+  "view": "FRONT",
+  "people": 1,
+  "fullBodyVisible": false,
+  "faceVisible": true,
+  "plateVisible": false,
+  "startPhase": "ECCENTRIC_FIRST",
+  "reps": {
+    "full": 7,
+    "partial": 0,
+    "failed": 0,
+    "uncertain": false,
+    "acceptableRange": [
+      7,
+      8
+    ]
+  },
+  "repTimesS": [
+    {
+      "index": 1,
+      "turnaroundS": 3.7,
+      "side": null
+    },
+    {
+      "index": 2,
+      "turnaroundS": 7.0,
+      "side": null
+    },
+    {
+      "index": 3,
+      "turnaroundS": 10.9,
+      "side": null
+    },
+    {
+      "index": 4,
+      "turnaroundS": 14.0,
+      "side": null
+    },
+    {
+      "index": 5,
+      "turnaroundS": 17.4,
+      "side": null
+    },
+    {
+      "index": 6,
+      "turnaroundS": 20.8,
+      "side": null
+    },
+    {
+      "index": 7,
+      "turnaroundS": 24.1,
+      "side": null
+    }
+  ],
+  "activeWindowS": [
+    0.0,
+    27.2
+  ],
+  "frameIntervalS": {
+    "min": 0.04,
+    "median": 0.04,
+    "max": 0.04
+  },
+  "turnaroundKind": "TOP",
+  "edgeEvents": [
+    {
+      "timeS": 0.0,
+      "kind": "TRUNCATED_START",
+      "description": "el clip empieza con los brazos arriba (punto alto de una repetición previa) y solo se ve el descenso hasta el fondo en ~1,7-2,0 s: no se cuenta"
+    },
+    {
+      "timeS": 27.0,
+      "kind": "TRUNCATED_END",
+      "description": "8.ª elevación: empieza a subir en ~26,0 s (fondo ~25,7-26,0 s) y alcanza la altura del hombro hacia 27,0 s, justo al terminar el clip (27,24 s), sin descenso: un contador que cuente al llegar arriba marcaría 8"
+    }
+  ],
+  "caveats": [],
+  "cameraMotion": {
+    "class": "SLOW_DRIFT",
+    "note": "deriva de mano de ~9% del encuadre en 27 s"
+  },
+  "softWarnings": [
+    "cámara con deriva lenta: deriva de mano de ~9% del encuadre en 27 s",
+    "recuento ambiguo por medio ciclo en el borde del clip o por repeticiones dudosas: rango aceptable 7-8 (ver edgeEvents)"
+  ]
+}

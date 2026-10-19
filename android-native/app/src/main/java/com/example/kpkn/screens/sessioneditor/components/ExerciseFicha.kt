@@ -190,7 +190,7 @@ internal fun ExerciseFichaContent(
     val insets = WindowInsets.safeDrawing.asPaddingValues()
     val implement = model.axes.firstOrNull { it.axis == "implement" }?.options.orEmpty()
     val config = model.axes.filter { it.axis != "implement" }
-    val footer = exerciseFichaFooter(model.context, model.isSelected, showFooter)
+    val footer = exerciseFichaFooter(model.context, model.isSelected, showFooter)?.let { default -> model.selectionLabel ?: default }
     val wizard = model.context == ExerciseFichaContext.WIZARD
     val hasHero = selectedCatalogImageVariantIndex(model.imageVariants, model.selectedImplementation) != null
     val heroHeight = 400.dp

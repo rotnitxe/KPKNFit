@@ -66,6 +66,7 @@ internal fun RestFeedbackCard(
     modifier: Modifier = Modifier,
     clockActive: Boolean = true,
     nowMs: Long = System.currentTimeMillis(),
+    videoSlot: (@Composable () -> Unit)? = null,
 ) {
     val safeRemaining = remainingSeconds.coerceAtLeast(0)
     val safeTotal = totalSeconds.coerceAtLeast(safeRemaining).coerceAtLeast(1)
@@ -142,6 +143,7 @@ internal fun RestFeedbackCard(
                     .padding(horizontal = 14.dp, vertical = 8.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
+                videoSlot?.invoke()
                 feedbackExercises.forEach { exercise ->
                     TechniqueQualityCompactRow(
                         value = draft.technical(exercise.id),

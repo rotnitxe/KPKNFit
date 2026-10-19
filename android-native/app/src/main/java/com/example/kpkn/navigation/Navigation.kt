@@ -223,6 +223,26 @@ sealed class KpknRoute(val route: String) {
         const val ARG_ACTION = "action"
     }
 
+    // ─── Video Technique ───────────────────────────────────────────────
+    object TechniqueHub : KpknRoute("technique")
+
+    object TechniqueAnalysis : KpknRoute("technique/analysis/{mediaId}") {
+        const val ARG_MEDIA_ID = "mediaId"
+        fun create(mediaId: String) = "technique/analysis/${Uri.encode(mediaId)}"
+    }
+
+    object TechniqueTrends : KpknRoute("technique/trends/{exerciseKey}") {
+        const val ARG_EXERCISE_KEY = "exerciseKey"
+        fun create(exerciseKey: String) = "technique/trends/${Uri.encode(exerciseKey)}"
+    }
+
+    object TechniqueCompare : KpknRoute("technique/compare/{mediaA}/{mediaB}") {
+        const val ARG_MEDIA_A = "mediaA"
+        const val ARG_MEDIA_B = "mediaB"
+        fun create(mediaA: String, mediaB: String) =
+            "technique/compare/${Uri.encode(mediaA)}/${Uri.encode(mediaB)}"
+    }
+
     // ─── Health Connect ───────────────────────────────────────────────
     object HealthConnect : KpknRoute("settings/health-connect")
 

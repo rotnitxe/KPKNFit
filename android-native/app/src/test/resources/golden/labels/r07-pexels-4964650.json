@@ -1,0 +1,105 @@
+{
+  "id": "r07-pexels-4964650",
+  "durationS": 20.65,
+  "width": 1280,
+  "height": 720,
+  "rotation": 0,
+  "fpsNominal": 25.0,
+  "fpsMeasured": 25.0,
+  "usable": true,
+  "exercise": "Flexión de brazos",
+  "exerciseDetail": "Flexiones de brazos en el suelo (push-up estándar)",
+  "suggestedProfile": "PUSH_UP",
+  "view": "SIDE",
+  "people": 1,
+  "fullBodyVisible": true,
+  "faceVisible": true,
+  "plateVisible": false,
+  "startPhase": "CONCENTRIC_FIRST",
+  "reps": {
+    "full": 5,
+    "partial": 0,
+    "failed": 0,
+    "uncertain": false,
+    "acceptableRange": [
+      5,
+      6
+    ]
+  },
+  "repTimesS": [
+    {
+      "index": 1,
+      "turnaroundS": 3.95,
+      "side": null,
+      "windowS": [
+        3.5,
+        4.4
+      ]
+    },
+    {
+      "index": 2,
+      "turnaroundS": 7.5,
+      "side": null,
+      "windowS": [
+        7.0,
+        7.9
+      ]
+    },
+    {
+      "index": 3,
+      "turnaroundS": 11.0,
+      "side": null,
+      "windowS": [
+        10.5,
+        11.5
+      ]
+    },
+    {
+      "index": 4,
+      "turnaroundS": 14.85,
+      "side": null,
+      "windowS": [
+        14.4,
+        15.3
+      ]
+    },
+    {
+      "index": 5,
+      "turnaroundS": 18.55,
+      "side": null,
+      "windowS": [
+        18.0,
+        19.1
+      ]
+    }
+  ],
+  "activeWindowS": [
+    0.0,
+    20.6
+  ],
+  "frameIntervalS": {
+    "min": 0.04,
+    "median": 0.04,
+    "max": 0.04
+  },
+  "turnaroundKind": "BOTTOM",
+  "edgeEvents": [
+    {
+      "timeS": 0.4,
+      "kind": "TRUNCATED_START",
+      "description": "el clip empieza en el fondo de una flexión previa; solo se ve su ascenso (0,4-2,0 s)"
+    }
+  ],
+  "caveats": [
+    "deriva lenta de la cámara de mano (el fondo se desplaza ~12% de la altura del encuadre a lo largo de los 20 s, sin seguir al sujeto)",
+    "el fondo de la flexión es una pausa de ~1 s (el giro se anota en el centro de la pausa)"
+  ],
+  "cameraMotion": {
+    "class": "SLOW_DRIFT",
+    "note": "deriva vertical lenta de ~12% de la altura en 20 s"
+  },
+  "softWarnings": [
+    "cámara con deriva lenta: deriva vertical lenta de ~12% de la altura en 20 s",
+    "recuento ambiguo por medio ciclo en el borde del clip o por repeticiones dudosas: rango aceptable 5-6 (ver edgeEvents)"
+  ]
+}

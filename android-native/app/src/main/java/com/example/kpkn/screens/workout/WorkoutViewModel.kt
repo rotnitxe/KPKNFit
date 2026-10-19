@@ -445,7 +445,6 @@ class WorkoutViewModel(
                 sessionName = state.session?.name,
             )
         },
-        poseTrajectoryEnabled = { _uiState.value.featureFlags.poseTrajectoryEnabled },
         // El álbum por ejercicio (LV8) nombra el esfuerzo de cada medio solo si la serie con la que se guardó está en la sesión en curso.
         effortLabelProvider = { media ->
             com.example.kpkn.data.media.ExerciseAlbumModel.completedSetKey(media)
@@ -7637,5 +7636,51 @@ class WorkoutViewModel(
                 override fun <T : ViewModel> create(modelClass: Class<T>): T =
                     WorkoutViewModel(appContext.applicationContext, programId, sessionId, restAlertManager) as T
             }
+    }
+
+    private val videoMediaRepository by lazy {
+        com.example.kpkn.data.repository.WorkoutMediaRepository.init(appContext)
+    }
+
+    private val videoAnalysisController by lazy {
+        WorkoutVideoAnalysisController(
+            scope = viewModelScope,
+            sessionKeys = uiState.map { state ->
+                state.session?.let {
+                    WorkoutMediaCaptureController.sessionKey(programId, sessionId, state.startTimeMs)
+                }
+            },
+            completedSets = uiState.map { it.completedSets }.distinctUntilChanged(),
+            exercises = uiState.map(::visibleExercises).distinctUntilChanged(),
+            repository = com.example.kpkn.data.repository.VideoAnalysisRepository.init(appContext),
+            mediaRepository = videoMediaRepository,
+        )
+    }
+
+    internal val videoAnalysisBySetKey: StateFlow<Map<String, SetVideoAnalysisUi>>
+        get() = videoAnalysisController.videoAnalysisBySetKey
+
+    /** Solo una acción explícita corrige la serie; primero Room, después la foto del vídeo. */
+    internal fun patchCompletedSet(setKey: String, patch: CompletedSetPatch) {
+        val requestedStart = _uiState.value.startTimeMs
+        viewModelScope.launch {
+            if (_uiState.value.startTimeMs != requestedStart) return@launch
+            val result = voiceSetMutations.patchAt(setKey, patch)
+            if (result is WorkoutVoiceMutationResult.Committed) {
+                val committed = result.set ?: return@launch
+                try {
+                    videoMediaRepository.syncSetSnapshots(
+                        WorkoutMediaCaptureController.sessionKey(programId, sessionId, requestedStart),
+                        mapOf(result.setKey to committed),
+                    )
+                } catch (cancelled: kotlinx.coroutines.CancellationException) {
+                    throw cancelled
+                } catch (_: Exception) {
+                    showWorkoutToast("La serie quedó guardada, pero no se pudo actualizar el vídeo.")
+                }
+            } else {
+                WorkoutVoiceMutationFeedback.forEdit(result)?.let(::showWorkoutToast)
+            }
+        }
     }
 }

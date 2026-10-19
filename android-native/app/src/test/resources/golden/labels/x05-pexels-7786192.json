@@ -1,0 +1,85 @@
+{
+  "id": "x05-pexels-7786192",
+  "durationS": 15.103,
+  "width": 720,
+  "height": 1280,
+  "rotation": 0,
+  "fpsNominal": 30.0,
+  "fpsMeasured": 30.0,
+  "usable": true,
+  "exercise": "Sentadilla trasera con barra",
+  "exerciseDetail": "Sentadilla trasera con barra en rack (barra baja, profunda, discos bumper de colores)",
+  "suggestedProfile": "SQUAT",
+  "view": "OBLIQUE",
+  "people": 1,
+  "fullBodyVisible": true,
+  "faceVisible": false,
+  "plateVisible": true,
+  "startPhase": "ECCENTRIC_FIRST",
+  "reps": {
+    "full": 5,
+    "partial": 0,
+    "failed": 0,
+    "uncertain": false,
+    "acceptableRange": [
+      4,
+      5
+    ]
+  },
+  "repTimesS": [
+    {
+      "index": 1,
+      "turnaroundS": 0.9,
+      "side": null
+    },
+    {
+      "index": 2,
+      "turnaroundS": 4.1,
+      "side": null
+    },
+    {
+      "index": 3,
+      "turnaroundS": 7.2,
+      "side": null
+    },
+    {
+      "index": 4,
+      "turnaroundS": 10.3,
+      "side": null
+    },
+    {
+      "index": 5,
+      "turnaroundS": 13.6,
+      "side": null
+    }
+  ],
+  "activeWindowS": [
+    0.0,
+    14.8
+  ],
+  "frameIntervalS": {
+    "min": 0.0333,
+    "median": 0.0333,
+    "max": 0.0333
+  },
+  "turnaroundKind": "BOTTOM",
+  "edgeEvents": [
+    {
+      "timeS": 0.0,
+      "kind": "TRUNCATED_START",
+      "description": "el clip empieza a mitad del descenso de la 1.ª sentadilla (ya a ~60% de profundidad); el fondo, en 0,9 s, y la subida sí se ven"
+    }
+  ],
+  "caveats": [
+    "la 1.ª repetición empieza a mitad del descenso (clip recortado en 0 s)",
+    "cabeza tapada por una capucha blanca y de espaldas: no se ve la cara",
+    "clip corto (15 s) con 5 sentadillas"
+  ],
+  "cameraMotion": {
+    "class": "STATIC",
+    "note": "cámara fija"
+  },
+  "softWarnings": [
+    "recuento ambiguo por medio ciclo en el borde del clip o por repeticiones dudosas: rango aceptable 4-5 (ver edgeEvents)"
+  ]
+}

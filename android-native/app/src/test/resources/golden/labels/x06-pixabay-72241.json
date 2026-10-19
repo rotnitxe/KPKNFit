@@ -1,0 +1,101 @@
+{
+  "id": "x06-pixabay-72241",
+  "durationS": 19.5,
+  "width": 1280,
+  "height": 720,
+  "rotation": 0,
+  "fpsNominal": 30.0,
+  "fpsMeasured": 30.0,
+  "usable": true,
+  "exercise": "Remo con barra inclinado",
+  "exerciseDetail": "Remo con barra inclinado (torso a ~40° de la horizontal, agarre pronado; la barra baja casi hasta el suelo en cada repetición)",
+  "suggestedProfile": "ROW",
+  "view": "SIDE",
+  "people": 1,
+  "fullBodyVisible": false,
+  "faceVisible": true,
+  "plateVisible": true,
+  "startPhase": "CONCENTRIC_FIRST",
+  "reps": {
+    "full": 10,
+    "partial": 0,
+    "failed": 0,
+    "uncertain": false,
+    "acceptableRange": [
+      10,
+      10
+    ]
+  },
+  "repTimesS": [
+    {
+      "index": 1,
+      "turnaroundS": 0.8,
+      "side": null
+    },
+    {
+      "index": 2,
+      "turnaroundS": 2.55,
+      "side": null
+    },
+    {
+      "index": 3,
+      "turnaroundS": 4.2,
+      "side": null
+    },
+    {
+      "index": 4,
+      "turnaroundS": 5.85,
+      "side": null
+    },
+    {
+      "index": 5,
+      "turnaroundS": 7.7,
+      "side": null
+    },
+    {
+      "index": 6,
+      "turnaroundS": 9.55,
+      "side": null
+    },
+    {
+      "index": 7,
+      "turnaroundS": 11.5,
+      "side": null
+    },
+    {
+      "index": 8,
+      "turnaroundS": 13.45,
+      "side": null
+    },
+    {
+      "index": 9,
+      "turnaroundS": 15.5,
+      "side": null
+    },
+    {
+      "index": 10,
+      "turnaroundS": 17.6,
+      "side": null
+    }
+  ],
+  "activeWindowS": [
+    0.0,
+    19.4
+  ],
+  "frameIntervalS": {
+    "min": 0.0333,
+    "median": 0.0333,
+    "max": 0.0333
+  },
+  "turnaroundKind": "TOP",
+  "edgeEvents": [],
+  "caveats": [
+    "rango de movimiento decreciente (la amplitud de la última repetición es ~70% de la primera, sin llegar a ser parcial)",
+    "los pies y parte de las espinillas quedan fuera del encuadre y el disco se corta por el borde inferior en el punto bajo"
+  ],
+  "cameraMotion": {
+    "class": "STATIC",
+    "note": "cámara fija"
+  },
+  "softWarnings": []
+}

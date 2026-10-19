@@ -1,0 +1,105 @@
+{
+  "id": "x07-pixabay-67789",
+  "durationS": 18.005,
+  "width": 1280,
+  "height": 720,
+  "rotation": 0,
+  "fpsNominal": 30.0,
+  "fpsMeasured": 30.0,
+  "usable": true,
+  "exercise": "Zancada estática con barra (sentadilla dividida)",
+  "exerciseDetail": "Zancada estática / sentadilla dividida con barra a la espalda (misma pierna adelantada, sin dar pasos)",
+  "suggestedProfile": "LUNGE",
+  "view": "SIDE",
+  "people": 1,
+  "fullBodyVisible": true,
+  "faceVisible": false,
+  "plateVisible": true,
+  "startPhase": "CONCENTRIC_FIRST",
+  "reps": {
+    "full": 8,
+    "partial": 0,
+    "failed": 0,
+    "uncertain": false,
+    "acceptableRange": [
+      8,
+      9
+    ]
+  },
+  "repTimesS": [
+    {
+      "index": 1,
+      "turnaroundS": 2.15,
+      "side": null
+    },
+    {
+      "index": 2,
+      "turnaroundS": 3.9,
+      "side": null
+    },
+    {
+      "index": 3,
+      "turnaroundS": 5.75,
+      "side": null
+    },
+    {
+      "index": 4,
+      "turnaroundS": 7.65,
+      "side": null
+    },
+    {
+      "index": 5,
+      "turnaroundS": 9.45,
+      "side": null
+    },
+    {
+      "index": 6,
+      "turnaroundS": 11.35,
+      "side": null
+    },
+    {
+      "index": 7,
+      "turnaroundS": 13.25,
+      "side": null
+    },
+    {
+      "index": 8,
+      "turnaroundS": 15.1,
+      "side": null
+    }
+  ],
+  "activeWindowS": [
+    0.0,
+    16.2
+  ],
+  "frameIntervalS": {
+    "min": 0.0333,
+    "median": 0.0333,
+    "max": 0.0333
+  },
+  "turnaroundKind": "BOTTOM",
+  "edgeEvents": [
+    {
+      "timeS": 0.0,
+      "kind": "TRUNCATED_START",
+      "description": "el clip empieza en el fondo de una repetición (rodilla trasera abajo, 0-0,5 s) y solo se ve su ascenso hasta ~1,2 s; no se cuenta (un contador que cuente fondos marcaría 9)"
+    },
+    {
+      "timeS": 15.3,
+      "kind": "RERACK",
+      "description": "tras la 8.ª repetición sube (~16 s) y camina hacia el rack con la barra (16,0-17,5 s); no hay más repeticiones"
+    }
+  ],
+  "caveats": [
+    "la cabeza queda tapada por el disco rojo en todo el clip (cámara lateral, barra apuntando a la cámara)",
+    "un montante del rack blanco cruza el borde derecho del encuadre y tapa a ratos al levantador",
+    "el clip empieza en el fondo de una repetición y termina con el re-rack"
+  ],
+  "cameraMotion": {
+    "class": "STATIC",
+    "note": "cámara fija"
+  },
+  "softWarnings": [
+    "recuento ambiguo por medio ciclo en el borde del clip o por repeticiones dudosas: rango aceptable 8-9 (ver edgeEvents)"
+  ]
+}

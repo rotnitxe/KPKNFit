@@ -5,8 +5,6 @@ import android.content.Intent
 import androidx.core.content.FileProvider
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.kpkn.data.db.KpknDatabase
-import com.example.kpkn.data.db.toSettings
 import com.example.kpkn.data.media.WorkoutAlbum
 import com.example.kpkn.data.media.WorkoutAlbumGrouping
 import com.example.kpkn.data.media.WorkoutMediaGallerySaver
@@ -118,21 +116,11 @@ class WorkoutMediaViewerViewModel(
     val message: StateFlow<String?> = _message.asStateFlow()
     private val _deleted = MutableStateFlow(false)
     val deleted: StateFlow<Boolean> = _deleted.asStateFlow()
-    private val _poseOverlayEnabled = MutableStateFlow(false)
-    val poseOverlayEnabled: StateFlow<Boolean> = _poseOverlayEnabled.asStateFlow()
 
     init {
         viewModelScope.launch {
             repository.importLegacyIfNeeded()
             _media.value = repository.getById(mediaId)
-            _poseOverlayEnabled.value = withContext(Dispatchers.IO) {
-                KpknDatabase.getInstance(getApplication())
-                    .settingsDao()
-                    .get()
-                    ?.toSettings()
-                    ?.workoutFeatureFlags
-                    ?.poseTrajectoryEnabled == true
-            }
         }
     }
 

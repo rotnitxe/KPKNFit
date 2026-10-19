@@ -150,6 +150,7 @@ internal data class CatalogDetailModel(
     val patternId: String?,
     val isSelected: Boolean,
     val canSelect: Boolean,
+    val selectionLabel: String? = null,
     val setupCues: List<String> = emptyList(),
     val executionCues: List<String> = emptyList(),
     val identityKeys: Set<String> = emptySet(),

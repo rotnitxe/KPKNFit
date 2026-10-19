@@ -1,0 +1,86 @@
+{
+  "id": "g02-pexels-6739974",
+  "durationS": 16.52,
+  "width": 720,
+  "height": 1280,
+  "rotation": 0,
+  "fpsNominal": 25.0,
+  "fpsMeasured": 25.0,
+  "usable": true,
+  "exercise": "Step-up a cajón (peso corporal)",
+  "exerciseDetail": "Step-up (subida a cajón) con peso corporal y manos en la cintura: sube al cajón de madera «50/60» con una pierna, queda de pie arriba con la otra pierna colgando y baja hacia atrás con la pierna libre hasta apoyar los dos pies en el suelo",
+  "suggestedProfile": "STEP_UP",
+  "view": "SIDE",
+  "people": 1,
+  "fullBodyVisible": true,
+  "faceVisible": true,
+  "plateVisible": false,
+  "startPhase": "CONCENTRIC_FIRST",
+  "reps": {
+    "full": 4,
+    "partial": 0,
+    "failed": 0,
+    "uncertain": false,
+    "acceptableRange": [
+      3,
+      4
+    ]
+  },
+  "repTimesS": [
+    {
+      "index": 1,
+      "turnaroundS": 1.6,
+      "side": null
+    },
+    {
+      "index": 2,
+      "turnaroundS": 6.7,
+      "side": null
+    },
+    {
+      "index": 3,
+      "turnaroundS": 10.8,
+      "side": null
+    },
+    {
+      "index": 4,
+      "turnaroundS": 14.6,
+      "side": null
+    }
+  ],
+  "activeWindowS": [
+    0.0,
+    16.4
+  ],
+  "frameIntervalS": {
+    "min": 0.04,
+    "median": 0.04,
+    "max": 0.04
+  },
+  "turnaroundKind": "TOP",
+  "edgeEvents": [
+    {
+      "timeS": 0.0,
+      "kind": "TRUNCATED_START",
+      "description": "el clip empieza con el pie adelantado ya apoyado en el cajón (subida iniciada): el apoyo de los dos pies en el suelo previo a la 1.ª subida no está en el clip"
+    },
+    {
+      "timeS": 16.3,
+      "kind": "TRUNCATED_END",
+      "description": "tras el 4.º punto alto (14,6 s) baja y el clip termina (16,5 s) justo al apoyar los dos pies en el suelo: no hay 5.ª subida"
+    }
+  ],
+  "caveats": [
+    "turnaroundKind TOP (de pie sobre el cajón) en lugar del BOTTOM por defecto de STEP_UP; los fondos (dos pies en el suelo) están en ~4,5 / 8,4 / 12,5 / 16,3 s",
+    "cámara de mano con balanceo de ~±7% del ancho (el cajón, objeto estático, oscila 14,7% de extremo a extremo en x y 5,6% en y)",
+    "no se determina con seguridad cuál es la pierna de ataque ni si alterna"
+  ],
+  "cameraMotion": {
+    "class": "SLOW_DRIFT",
+    "note": "balanceo de mano: el cajón (objeto estático) oscila ±7% del ancho (14,7% de extremo a extremo en x, 5,6% en y, hasta ~6%/s) sin seguir al sujeto ni cambiar de vista"
+  },
+  "softWarnings": [
+    "cámara con deriva lenta: balanceo de mano: el cajón (objeto estático) oscila ±7% del ancho (14,7% de extremo a extremo en x, 5,6% en y, hasta ~6%/s) sin seguir al sujeto ni cambiar de vista",
+    "recuento ambiguo por medio ciclo en el borde del clip o por repeticiones dudosas: rango aceptable 3-4 (ver edgeEvents)"
+  ]
+}

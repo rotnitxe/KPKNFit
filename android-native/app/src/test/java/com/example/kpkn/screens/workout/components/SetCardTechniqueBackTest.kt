@@ -34,6 +34,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
+import org.robolectric.annotation.GraphicsMode
 
 /**
  * El reverso «Avanzado» con Compose sobre Robolectric (LR0, LV8): el segmentado «Normal · Drop-set · Rest-pause», la cadena de la serie
@@ -150,6 +151,7 @@ class SetCardTechniqueBackTest {
     }
 
     @Test
+    @GraphicsMode(GraphicsMode.Mode.NATIVE)
     fun conLaLetraGrandeElChipSugeridoPasaALaCargaSolaYSuDescripcionSigueCompleta() {
         val sugerido = NativeProgressionText.formatKg(suggestedDropLoadsForMainSet(100.0, 8, 1).first())
         rule.setContent {

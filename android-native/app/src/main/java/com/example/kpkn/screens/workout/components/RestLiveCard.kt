@@ -100,6 +100,7 @@ internal fun RestLiveCard(
     clockActive: Boolean = true,
     initiallyPlaying: Boolean = false,
     gameEngine: RestGameEngine? = null,
+    videoSlot: (@Composable () -> Unit)? = null,
 ) {
     // A delayed/restored tick may briefly carry a stale negative value.  The
     // card is a countdown surface, so clamp both the progress and the text;
@@ -238,6 +239,7 @@ internal fun RestLiveCard(
                         .verticalScroll(middleScroll),
                     verticalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
+                    videoSlot?.invoke()
                     RestLiveLastSetSummary(
                         lastCompletedSet = lastCompletedSet ?: pendingRestSuggestion?.lastSet,
                         lastSetOutcome = lastSetOutcome,
