@@ -9,6 +9,7 @@ import com.example.kpkn.data.media.WorkoutMediaStore
 import com.example.kpkn.data.media.technique.TechniqueReportSamples
 import com.example.kpkn.data.media.technique.TechniqueSidecars
 import com.example.kpkn.domain.biomechanics.profiles.ExerciseRef
+import com.example.kpkn.domain.biomechanics.metrics.TechniqueAnalysisEngine
 import java.io.File
 import com.example.kpkn.data.repository.VideoAnalysisRepository
 import com.example.kpkn.data.repository.WorkoutMediaRepository
@@ -100,6 +101,7 @@ class TechniqueTrendsViewModelTest {
         writeReport: Boolean = true,
         exerciseRef: ExerciseRef = TechniqueReportSamples.exercise().copy(definitionId = "high_bar_back_squat"),
         sessionKey: String? = null,
+        engineVersion: Int = TechniqueAnalysisEngine.ENGINE_VERSION,
     ) {
         val video = TechniqueWorkTestKit.insertVideo(db, store, mediaId) {
             it.copy(
@@ -114,7 +116,7 @@ class TechniqueTrendsViewModelTest {
         val reportFile = TechniqueSidecars.analysisFile(File(video.filePath))
         if (writeReport) {
             TechniqueSidecars.writeAnalysis(
-                reportFile, TechniqueReportSamples.fullReport(), exerciseRef.copy(configurationId = configurationKey),
+                reportFile, TechniqueReportSamples.fullReport().copy(engineVersion = engineVersion), exerciseRef.copy(configurationId = configurationKey),
                 loadKg, null, recordedAtMs,
             )
         }
@@ -122,7 +124,7 @@ class TechniqueTrendsViewModelTest {
             mediaId = mediaId,
             status = status,
             progressPct = 100,
-            engineVersion = 1,
+            engineVersion = engineVersion,
             poseVersion = 1,
             exerciseKey = exerciseKey,
             configurationKey = configurationKey,
@@ -338,5 +340,146 @@ class TechniqueTrendsViewModelTest {
         assertEquals(kotlin.math.sqrt(600.0 / 7.0), items.first().romSdDeg!!, 0.001)
         assertTrue(items.first().isSession)
         assertFalse(items.last().isSession)
+    }
+
+    @Test
+    fun only_current_temporal_metrics_enter_charts_while_all_rom_and_videos_remain() = runBlocking<Unit> {
+        val time = 1_780_000_000_000L
+        val current = TechniqueAnalysisEngine.ENGINE_VERSION
+        insertAnalysis("old", engineVersion = current - 1, loadKg = 40.0, mcvBest = 1.2,
+            velocityLossPct = 99.0, tutMs = 99_000L, recordedAtMs = time - 40_000L)
+        insertAnalysis("current-1", loadKg = 60.0, mcvBest = 0.85, recordedAtMs = time - 30_000L)
+        insertAnalysis("current-2", loadKg = 80.0, mcvBest = 0.65, recordedAtMs = time - 20_000L)
+        insertAnalysis("current-3", loadKg = 100.0, mcvBest = 0.45, recordedAtMs = time - 10_000L)
+
+        val vm = createViewModel(nowMs = time)
+        val state = vm.awaitState { !it.isLoading && it.videos.size == 4 }
+        val expected = setOf("current-1", "current-2", "current-3")
+        assertEquals(expected, state.tut!!.items.map { it.mediaId }.toSet())
+        assertEquals(expected, state.velocityLoss!!.items.map { it.mediaId }.toSet())
+        assertEquals(20.0, state.velocityLoss!!.meanLossPct, 0.001)
+        assertEquals(listOf(60.0, 80.0, 100.0), state.loadVelocity!!.points.map { it.loadKg })
+        assertTrue(state.loadVelocity!!.isEstimated)
+        assertEquals(4, state.romTrend!!.items.size)
+        assertEquals(listOf("current-3", "current-2", "current-1", "old"), state.videos.map { it.mediaId })
+        assertEquals(current - 1, db.videoAnalysisDao().getByMedia("old")!!.engineVersion)
+        assertEquals("DONE", db.videoAnalysisDao().getByMedia("old")!!.status)
+
+        vm.toggleCompareMode()
+        vm.awaitState { it.isCompareMode }
+        vm.toggleVideoSelection("old")
+        vm.toggleVideoSelection("current-1")
+        val selected = vm.awaitState { it.selectedMediaIds.size == 2 }
+        assertTrue(selected.canLaunchCompare)
+        assertEquals(setOf("old", "current-1"), selected.selectedMediaIds)
+    }
+
+    @Test
+    fun all_old_rows_omit_temporal_and_one_rm_modules_but_preserve_rom_depth_and_navigation() = runBlocking<Unit> {
+        val time = 1_780_000_000_000L
+        val old = TechniqueAnalysisEngine.ENGINE_VERSION - 1
+        insertAnalysis("old-1", engineVersion = old, loadKg = 60.0, mcvBest = 0.85, recordedAtMs = time - 30_000L)
+        insertAnalysis("old-2", engineVersion = old, loadKg = 80.0, mcvBest = 0.65, recordedAtMs = time - 20_000L)
+        insertAnalysis("old-3", engineVersion = old, loadKg = 100.0, mcvBest = 0.45, recordedAtMs = time - 10_000L)
+
+        val state = createViewModel(nowMs = time).awaitState { !it.isLoading && it.videos.size == 3 }
+        assertFalse(state.isEmpty)
+        assertNull(state.loadVelocity) // No beta 1RM, including no legacy calibrated points.
+        assertNull(state.velocityLoss)
+        assertNull(state.tut)
+        assertEquals(3, state.romTrend!!.items.size)
+        assertEquals("Bajo el paralelo en ≈ 0 de 6 repeticiones", state.romTrend!!.depthCaption)
+        assertEquals(setOf("old-1", "old-2", "old-3"), state.videos.map { it.mediaId }.toSet())
+        for (id in listOf("old-1", "old-2", "old-3")) {
+            val stored = db.videoAnalysisDao().getByMedia(id)!!
+            assertEquals(old, stored.engineVersion)
+            assertEquals("DONE", stored.status)
+            assertEquals(24_000L, stored.tutMs!!)
+        }
+    }
+
+    @Test
+    fun a_row_updated_to_current_reappears_only_with_the_newly_stored_measurements() = runBlocking<Unit> {
+        val time = 1_780_000_000_000L
+        val current = TechniqueAnalysisEngine.ENGINE_VERSION
+        insertAnalysis("updating", engineVersion = current - 1, recordedAtMs = time)
+        val vm = createViewModel(nowMs = time)
+        val old = vm.awaitState { !it.isLoading && it.videos.size == 1 }
+        assertNull(old.tut); assertNull(old.velocityLoss); assertNull(old.loadVelocity)
+        val row = db.videoAnalysisDao().getByMedia("updating")!!
+        // This models a completed external RECOMPUTE writing its summary. The ViewModel
+        // never requests or runs analysis; Room's new row is its authoritative input.
+        db.videoAnalysisDao().upsert(row.copy(engineVersion = current, tutMs = 30_000L,
+            velocityLossPct = 12.0, mcvBest = 0.52, updatedAtMs = time + 1L))
+        val updated = vm.awaitState { it.tut?.items?.singleOrNull()?.tutSeconds == 30.0 }
+        assertEquals(12.0, updated.velocityLoss!!.items.single().lossPct, 0.001)
+        assertEquals(0.52, updated.loadVelocity!!.points.single().mcvMps, 0.001)
+        assertEquals(old.romTrend, updated.romTrend)
+        assertEquals(old.videos, updated.videos)
+
+        // A current recompute that abstains must not resurrect the old metrics either.
+        db.videoAnalysisDao().upsert(row.copy(engineVersion = current, tutMs = null,
+            velocityLossPct = null, mcvBest = null, updatedAtMs = time + 2L))
+        val abstained = vm.awaitState { it.tut == null && it.velocityLoss == null && it.loadVelocity == null }
+        assertEquals(1, abstained.videos.size)
+        assertEquals(old.romTrend, abstained.romTrend)
+    }
+
+    @Test
+    fun version_gate_does_not_switch_to_an_older_configuration_with_current_points() = runBlocking<Unit> {
+        val time = 1_780_000_000_000L
+        val current = TechniqueAnalysisEngine.ENGINE_VERSION
+        insertAnalysis("a-1", loadKg = 60.0, mcvBest = 0.85, recordedAtMs = time - 30_000L)
+        insertAnalysis("a-2", loadKg = 80.0, mcvBest = 0.65, recordedAtMs = time - 20_000L)
+        insertAnalysis("a-3", loadKg = 100.0, mcvBest = 0.45, recordedAtMs = time - 10_000L)
+        insertAnalysis("latest-b", engineVersion = current - 1, configurationKey = "other_config", recordedAtMs = time)
+        val state = createViewModel(nowMs = time).awaitState { !it.isLoading && it.videos.size == 4 }
+        assertNull(state.loadVelocity)
+        assertEquals(3, state.tut!!.items.size)
+        assertEquals(3, state.velocityLoss!!.items.size)
+        assertEquals(4, state.romTrend!!.items.size)
+    }
+
+    @Test
+    fun a_latest_row_without_configuration_still_prevents_load_velocity_fallback() = runBlocking<Unit> {
+        val time = 1_780_000_000_000L
+        insertAnalysis("current-a", recordedAtMs = time - 10_000L)
+        insertAnalysis("latest-unknown", engineVersion = TechniqueAnalysisEngine.ENGINE_VERSION - 1,
+            configurationKey = null, recordedAtMs = time)
+        val state = createViewModel(nowMs = time).awaitState { !it.isLoading && it.videos.size == 2 }
+        assertNull(state.loadVelocity)
+        assertEquals(listOf("current-a"), state.tut!!.items.map { it.mediaId })
+    }
+
+    @Test
+    fun latest_same_configuration_still_defines_profile_metadata_without_adding_its_old_velocity() = runBlocking<Unit> {
+        val time = 1_780_000_000_000L
+        insertAnalysis("current-1", loadKg = 60.0, mcvBest = 0.85, recordedAtMs = time - 30_000L)
+        insertAnalysis("current-2", loadKg = 80.0, mcvBest = 0.65, recordedAtMs = time - 20_000L)
+        insertAnalysis("current-3", loadKg = 100.0, mcvBest = 0.45, recordedAtMs = time - 10_000L)
+        val dumbbell = TechniqueReportSamples.exercise().copy(definitionId = "high_bar_back_squat", equipmentId = "dumbbell")
+        insertAnalysis("latest-old", engineVersion = TechniqueAnalysisEngine.ENGINE_VERSION - 1,
+            exerciseRef = dumbbell, recordedAtMs = time)
+        val state = createViewModel(nowMs = time).awaitState { !it.isLoading && it.videos.size == 4 }
+        assertEquals(3, state.loadVelocity!!.points.size)
+        assertNull(state.loadVelocity!!.mvtMps)
+        assertNull(state.loadVelocity!!.e1rmKg)
+    }
+
+    @Test
+    fun integer_versions_follow_compare_compatibility_and_invalid_or_old_versions_never_supply_metrics() = runBlocking<Unit> {
+        val time = 1_780_000_000_000L
+        val current = TechniqueAnalysisEngine.ENGINE_VERSION
+        insertAnalysis("negative", engineVersion = -1, recordedAtMs = time - 40_000L)
+        insertAnalysis("zero", engineVersion = 0, recordedAtMs = time - 30_000L)
+        insertAnalysis("old", engineVersion = current - 1, recordedAtMs = time - 20_000L)
+        // Compare's established contract is >= current, not exact equality.
+        insertAnalysis("newer", engineVersion = current + 1, recordedAtMs = time - 10_000L)
+        val state = createViewModel(nowMs = time).awaitState { !it.isLoading && it.videos.size == 4 }
+        assertEquals(listOf("newer"), state.tut!!.items.map { it.mediaId })
+        assertEquals(listOf("newer"), state.velocityLoss!!.items.map { it.mediaId })
+        assertEquals(1, state.loadVelocity!!.points.size)
+        assertEquals(4, state.romTrend!!.items.size)
+        assertEquals(4, state.videos.size)
     }
 }

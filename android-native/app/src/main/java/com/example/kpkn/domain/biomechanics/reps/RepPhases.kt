@@ -63,9 +63,11 @@ object RepPhases {
         tuning: AnalysisTuning = AnalysisTuning.DEFAULT,
     ): PhaseSummary {
         val empty = PhaseSummary(emptyList(), null, null, null, null)
-        if (series.fs < tuning.lowFpsBelow || seg.cycles.isEmpty()) return empty
+        if (!series.fs.isFinite() || series.fs < tuning.lowFpsBelow || series.size < 2 ||
+            series.t0Us < 0L || seg.cycles.isEmpty()) return empty
 
         val fs = series.fs
+        fun us(index: Double): Long = series.t0Us + (index / fs * MICROS).roundToLong()
         val fc = if (series.source == CountSeriesBuilder.SOURCE_PLATE && fs >= tuning.plateFastMinFps) {
             tuning.plateLowPassHzFast
         } else {
@@ -94,12 +96,24 @@ object RepPhases {
         val events = ArrayList<Events>(seg.cycles.size)
         for (c in seg.cycles) {
             val x = signalOf(c.side)
+            // The sampled signal may begin after the clip origin or end before its duration.
+            // Check its observed envelope in the same published microsecond clock, not at zero.
+            val firstObserved = x.indexOfFirst { it.isFinite() }
+            val lastObserved = x.indexOfLast { it.isFinite() }
+            if (firstObserved < 0 || lastObserved <= firstObserved) return empty
+            val firstUs = us(firstObserved.toDouble())
+            val lastUs = us(lastObserved.toDouble())
+            fun supported(index: Double): Boolean = index.isFinite() &&
+                us(index) in firstUs..lastUs
             val peak = c.peak
             val vl = c.leftValley
             val vr = c.rightValley ?: -1
             val pieces = MovementPieces.cycle(x, if (vl < peak) vl else -1, peak, vr, halfWin)
             val rise = pieces.rise
             val fall = pieces.fall
+            // Both the refined fit and the original crossing fallback extrapolate. Neither
+            // may publish unseen motion. Check before merging the turn can hide an endpoint.
+            if (listOfNotNull(rise, fall).any { !supported(it.start) || !supported(it.end) }) return empty
             val depart = rise?.start ?: (if (vl in 0 until peak) vl.toDouble() else peak.toDouble())
             val riseEnd = rise?.end ?: peak.toDouble()
             val fallStart = fall?.start ?: peak.toDouble()
@@ -116,13 +130,12 @@ object RepPhases {
             }
             // Do not turn incompatible movement fits into a measured return by clamping arrive
             // to the merged turn. A partial set summary would also misstate whole-set TUT/tempo.
-            if (!depart.isFinite() || !turnStart.isFinite() || !turnEnd.isFinite() || !arrive.isFinite() ||
+            if (!supported(depart) || !supported(turnStart) || !supported(turnEnd) || !supported(arrive) ||
                 turnStart < depart || turnEnd < turnStart || arrive < turnEnd ||
                 (rise != null && fall != null && (turnStart <= depart || arrive <= turnEnd))) return empty
             events.add(Events(c, depart, turnStart, turnEnd, arrive, fall != null))
         }
 
-        fun us(index: Double): Long = series.t0Us + (index / fs * MICROS).roundToLong()
         fun ms(samples: Double): Int = max(0, (samples / fs * 1000.0).roundToInt())
         fun pauseMs(samples: Double): Int = if (samples >= pauseMin) ms(samples) else 0
 

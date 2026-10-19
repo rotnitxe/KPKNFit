@@ -10,6 +10,7 @@ import com.example.kpkn.data.repository.VideoAnalysisRepository
 import com.example.kpkn.data.repository.WorkoutMediaRepository
 import com.example.kpkn.domain.biomechanics.metrics.DepthClass
 import com.example.kpkn.domain.biomechanics.metrics.RepKind
+import com.example.kpkn.domain.biomechanics.metrics.TechniqueAnalysisEngine
 import com.example.kpkn.domain.biomechanics.metrics.VelocityUnit
 import com.example.kpkn.domain.biomechanics.profiles.AnalysisProfileId
 import com.example.kpkn.domain.biomechanics.profiles.AnalysisProfileResolver
@@ -137,11 +138,15 @@ class TechniqueTrendsViewModel @JvmOverloads constructor(
             mediaById[summary.mediaId] = mediaRepository.getById(summary.mediaId)
         }
 
+        // Temporal/velocity semantics can change across engines. Keep historical rows for
+        // ROM, depth and navigation; only compatible measurements enter these charts.
+        val currentMetrics = summaries.filter { it.engineVersion >= TechniqueAnalysisEngine.ENGINE_VERSION }
+
         // 1. Módulo «Velocidad por carga»
         val loadVelocityState = buildLoadVelocityState(summaries, now)
 
         // 2. Módulo «Pérdida de velocidad» (D29: si todas son null, no se pinta)
-        val lossSummaries = summaries.filter { it.velocityLossPct != null && it.velocityLossPct.isFinite() && it.velocityLossPct >= 0.0 }
+        val lossSummaries = currentMetrics.filter { it.velocityLossPct != null && it.velocityLossPct.isFinite() && it.velocityLossPct >= 0.0 }
         val velocityLossState = if (lossSummaries.isEmpty()) {
             null
         } else {
@@ -169,7 +174,7 @@ class TechniqueTrendsViewModel @JvmOverloads constructor(
         }
 
         // 4. Módulo «TUT por serie»
-        val tutSummaries = summaries.filter { it.tutMs != null && it.tutMs >= 0L }
+        val tutSummaries = currentMetrics.filter { it.tutMs != null && it.tutMs >= 0L }
         val tutState = if (tutSummaries.isEmpty()) {
             null
         } else {
@@ -222,8 +227,9 @@ class TechniqueTrendsViewModel @JvmOverloads constructor(
         summaries: List<VideoAnalysisSummary>,
         nowMs: Long,
     ): LoadVelocityUiState? {
-        // Misma configurationKey (la de la última serie realizada)
-        val targetConfigKey = summaries.last().configurationKey?.takeIf { it.isNotBlank() } ?: return null
+        // Choose the last performed configuration before filtering measurement versions.
+        // An old/unknown latest configuration must not silently switch the exercise.
+        val targetConfigKey = summaries.lastOrNull()?.configurationKey?.takeIf { it.isNotBlank() } ?: return null
         val configSummaries = summaries.filter { it.configurationKey == targetConfigKey }
 
         // Últimas 8 semanas (56 días)
@@ -232,7 +238,8 @@ class TechniqueTrendsViewModel @JvmOverloads constructor(
 
         // Puntos con carga y MCV
         val withLoads = recent.filter {
-            it.loadKg != null && it.loadKg.isFinite() && it.loadKg > 0.0 &&
+            it.engineVersion >= TechniqueAnalysisEngine.ENGINE_VERSION &&
+                it.loadKg != null && it.loadKg.isFinite() && it.loadKg > 0.0 &&
                 it.mcvBest != null && it.mcvBest.isFinite() && it.mcvBest > 0.0
         }
         if (withLoads.isEmpty()) return null
@@ -248,6 +255,8 @@ class TechniqueTrendsViewModel @JvmOverloads constructor(
             )
         }
 
+        // Configuration/profile metadata still comes from the latest performed series.
+        // withLoads is nonempty, so its superset recent is nonempty here.
         // Resolución del perfil y MVT
         val (mvtMps, profileId) = resolveProfileAndMvt(recent.last())
 

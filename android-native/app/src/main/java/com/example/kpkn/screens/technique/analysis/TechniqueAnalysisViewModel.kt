@@ -64,7 +64,8 @@ class PlateFrame(val bitmap: Bitmap, val atUs: Long, val width: Int, val height:
  * - **Estados:** sin fila → «sin analizar»; QUEUED y RUNNING → analizando (el avance va de 0 a 100 y nunca baja); UNSUPPORTED,
  *   NEEDS_PROFILE y FAILED, con su motivo; DONE → los resultados. Si el informe no se puede leer, «sin informe».
  * - **RECOMPUTE perezoso:** si la fila DONE que se abre tiene una `engineVersion` menor que la del motor, se pide un RECOMPUTE UNA vez por
- *   apertura y, sin pasar por las cifras viejas, el estado dice «Actualizando el análisis…» hasta que termina.
+ *   apertura y, sin pasar por las cifras viejas, el estado dice «Actualizando el análisis…» hasta que termina. Si no se puede
+ *   pedir o no se obtiene una versión vigente, muestra un fallo reintentable sin resultados ni capa antiguos; el vídeo sigue accesible.
  * - **Acciones:** [reanalyze], [analyze], [chooseProfile], [confirmPlate], [savePlateSeed] y [requestPlateFrame]. Todas son peticiones
  *   explícitas del usuario: corren aunque el ajuste «Analizar la técnica de los vídeos» esté apagado (D31). Si una no se puede guardar,
  *   [TechniqueAnalysisUiState.notice] lo dice.
@@ -120,7 +121,11 @@ class TechniqueAnalysisViewModel @JvmOverloads constructor(
     @Volatile
     private var recomputeInFlight = false
 
-    // La fila DONE vieja que provocó la petición: otra DONE distinta (la del recálculo, o cualquier otra) ya se enseña.
+    // Sólo presentación: un enqueue fallido puede dejar Room en QUEUED, sin un trabajo que vaya a dar progreso.
+    @Volatile
+    private var recomputeRequestFailed = false
+
+    // Sello de la DONE vieja: identifica la espera antes de QUEUED; sólo una versión vigente vuelve a mostrar resultados.
     @Volatile
     private var recomputeStaleStamp = -1L
 
@@ -158,7 +163,14 @@ class TechniqueAnalysisViewModel @JvmOverloads constructor(
 
     /** «Reanalizar»: vuelve a decodificar el vídeo y a estimar la pose con la versión actual. */
     fun reanalyze() {
-        launchAction("No se pudo pedir el análisis. Inténtalo de nuevo.") { analysis.reanalyze(mediaId) }
+        launchAction("No se pudo pedir el análisis. Inténtalo de nuevo.") {
+            analysis.reanalyze(mediaId).also { queued ->
+                if (queued) {
+                    recomputeRequestFailed = false
+                    refresh.value += 1
+                }
+            }
+        }
     }
 
     /** «Analizar»: el análisis completo de un vídeo que no tenía. */
@@ -236,7 +248,8 @@ class TechniqueAnalysisViewModel @JvmOverloads constructor(
                 false
             }
             if (!queued) {
-                // Sin RECOMPUTE se siguen enseñando las cifras que hay.
+                // La fila puede seguir DONE o haber pasado a QUEUED antes de fallar el enqueue. No hay resultados vigentes.
+                recomputeRequestFailed = true
                 recomputeInFlight = false
                 refresh.value += 1
             }
@@ -271,6 +284,13 @@ class TechniqueAnalysisViewModel @JvmOverloads constructor(
             progressFloor.set(0)
             return base.copy(status = AnalysisStatusUi.NotAnalyzed)
         }
+        // Un Worker en marcha o una versión vigente sustituye el fallo local de aquella petición.
+        if (row.status == VideoAnalysisStatus.RUNNING || row.engineVersion >= TechniqueAnalysisEngine.ENGINE_VERSION) {
+            recomputeRequestFailed = false
+        }
+        if (recomputeRequestFailed && (row.status == VideoAnalysisStatus.DONE || row.status == VideoAnalysisStatus.QUEUED)) {
+            return staleReportFailure(base)
+        }
         // La fila ya no es la DONE vieja: el recálculo pedido está en marcha (o terminó) y manda lo que diga la fila.
         if (row.status != VideoAnalysisStatus.DONE) recomputeInFlight = false
         return when (row.status) {
@@ -301,6 +321,9 @@ class TechniqueAnalysisViewModel @JvmOverloads constructor(
                 if (row.engineVersion < TechniqueAnalysisEngine.ENGINE_VERSION) {
                     val waiting = requestRecomputeOnce(row) || (recomputeInFlight && row.updatedAtMs == recomputeStaleStamp)
                     if (waiting) return base.copy(status = AnalysisStatusUi.Analyzing(progressPct = 0, updating = true, queued = true))
+                    // Tampoco se puede mostrar otra DONE que siga usando el motor viejo tras el intento único.
+                    recomputeRequestFailed = true
+                    return staleReportFailure(base)
                 }
                 progressFloor.set(0)
                 val content = loadDone(item, row, overrides)
@@ -317,6 +340,13 @@ class TechniqueAnalysisViewModel @JvmOverloads constructor(
                 }
             }
         }
+    }
+
+    private fun staleReportFailure(base: TechniqueAnalysisUiState): TechniqueAnalysisUiState {
+        progressFloor.set(0)
+        return base.copy(status = AnalysisStatusUi.Failed(
+            "No se pudo actualizar el análisis. Pulsa Reintentar. Ocultamos los resultados anteriores hasta actualizarlos.",
+        ))
     }
 
     /**

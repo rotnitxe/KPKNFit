@@ -8,6 +8,7 @@ import androidx.lifecycle.ViewModelStore
 import androidx.test.core.app.ApplicationProvider
 import androidx.work.WorkInfo
 import androidx.work.WorkManager
+import androidx.work.impl.WorkManagerImpl
 import com.example.kpkn.data.db.KpknDatabase
 import com.example.kpkn.data.media.WorkoutMediaStore
 import com.example.kpkn.data.media.technique.AnalysisMode
@@ -28,9 +29,13 @@ import com.example.kpkn.domain.biomechanics.bar.PlateSeed
 import com.example.kpkn.domain.biomechanics.metrics.TechniqueAnalysisEngine
 import com.example.kpkn.domain.biomechanics.profiles.AnalysisProfileId
 import java.io.File
+import java.util.concurrent.CopyOnWriteArrayList
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
@@ -235,7 +240,7 @@ class TechniqueAnalysisViewModelTest {
         assertEquals(WorkInfo.State.ENQUEUED, queued.state)
         assertEquals("la petición deja la fila en cola con sus medidas", VideoAnalysisStatus.QUEUED, analysis.getByMedia("vid-1")!!.status)
 
-        // Si el recálculo termina y la fila sigue con un motor viejo, no se vuelve a pedir en esta apertura.
+        // Otra DONE vieja tampoco es publicable; no se vuelve a pedir automáticamente en esta apertura.
         delay(20L)
         analysis.completeDone(
             item,
@@ -244,9 +249,93 @@ class TechniqueAnalysisViewModelTest {
             item.weightKg,
             AnalysisMode.RECOMPUTE,
         )
-        vm.awaitState { it.status == AnalysisStatusUi.Done }
+        val stillOld = vm.awaitState { it.status is AnalysisStatusUi.Failed }
+        assertNull(stillOld.results)
+        assertNull(stillOld.overlay)
+        assertNotNull(stillOld.videoPath)
+        assertFalse(stillOld.canOpenTrends)
         delay(400L)
-        assertEquals("sigue siendo el mismo trabajo", queued.id, infos("vid-1").single().id)
+        assertEquals("sigue siendo el mismo trabajo, sin otra petición automática", queued.id, infos("vid-1").single().id)
+
+        // El progreso de la fila y una versión vigente sustituyen el error local.
+        analysis.markState("vid-1", VideoAnalysisStatus.RUNNING, 40)
+        val running = vm.awaitState { (it.status as? AnalysisStatusUi.Analyzing)?.progressPct == 40 }
+        assertNull(running.results)
+        assertNull(running.overlay)
+        analysis.completeDone(item, TechniqueReportSamples.fullReport(), TechniqueReportSamples.exercise(), item.weightKg, AnalysisMode.RECOMPUTE)
+        val current = vm.awaitState { it.status == AnalysisStatusUi.Done }
+        assertNotNull(current.results)
+        assertNotNull(current.overlay)
+        assertEquals(TechniqueAnalysisEngine.ENGINE_VERSION, analysis.getByMedia("vid-1")!!.engineVersion)
+    }
+
+    @Test
+    fun failed_lazy_enqueue_keeps_stale_results_hidden_and_explicit_retry_can_recover() = runBlocking<Unit> {
+        val item = doneRow("vid-1", engineVersion = 0)
+        val reportFile = TechniqueSidecars.analysisFile(File(item.filePath))
+        val oldBytes = reportFile.readBytes()
+        assertEquals(0, checkNotNull(TechniqueSidecars.readAnalysis(reportFile)).report.engineVersion)
+        assertTrue(File(item.filePath).isFile)
+
+        // Fallo real de inserción en la cola: Room de KPKN sigue abierto. Scheduler deja la fila QUEUED y
+        // enqueueUniqueWork().await() falla al insertar WorkSpec, sin falsear filas ni cerrar/reiniciar la cola.
+        val queue = WorkManager.getInstance(context) as WorkManagerImpl
+        val queueDatabase = queue.workDatabase.openHelper.writableDatabase
+        queueDatabase.execSQL(
+            "CREATE TRIGGER kpkn_fail_technique_enqueue BEFORE INSERT ON WorkSpec " +
+                "BEGIN SELECT RAISE(ABORT, 'kpkn_test_enqueue_failure'); END",
+        )
+        val vm = viewModel("vid-1")
+        val seen = CopyOnWriteArrayList<TechniqueAnalysisUiState>()
+        val collector = launch(Dispatchers.Unconfined) { vm.uiState.collect { seen.add(it) } }
+        try {
+            val failed = vm.awaitState { it.status is AnalysisStatusUi.Failed }
+            assertEquals(AnalysisStatusUi.Failed(
+                "No se pudo actualizar el análisis. Pulsa Reintentar. Ocultamos los resultados anteriores hasta actualizarlos.",
+            ), failed.status)
+            assertEquals(VideoAnalysisStatus.QUEUED, analysis.getByMedia("vid-1")!!.status)
+            assertEquals(0, analysis.getByMedia("vid-1")!!.engineVersion)
+            assertNull(failed.results)
+            assertNull(failed.overlay)
+            assertFalse(failed.isAnalyzing)
+            assertFalse(failed.canOpenTrends)
+            assertEquals(item.filePath, failed.videoPath)
+            assertTrue("no hubo un destello de resultados u overlay obsoletos", seen.none { it.results != null || it.overlay != null })
+            assertTrue("el informe viejo se conserva en disco, no se borra para aprobar", oldBytes.contentEquals(reportFile.readBytes()))
+
+            // Reintentar mientras la cola sigue averiada conserva el fallo reintentable, sin spinner ni cifras viejas.
+            vm.reanalyze()
+            vm.awaitState { it.notice != null }
+            assertTrue(vm.uiState.value.status is AnalysisStatusUi.Failed)
+            assertNull(vm.uiState.value.results)
+            assertNull(vm.uiState.value.overlay)
+            vm.dismissNotice()
+
+            // Una cola operativa no provoca otra petición automática; la recuperación requiere la acción explícita.
+            queueDatabase.execSQL("DROP TRIGGER kpkn_fail_technique_enqueue")
+            delay(300L)
+            assertTrue(infos("vid-1").isEmpty())
+            vm.reanalyze()
+            val started = TechniqueWorkTestKit.awaitStarted(1).single()
+            assertEquals("FULL", started.getString(TechniqueAnalysisWorker.KEY_MODE))
+            val queued = vm.awaitState { it.status is AnalysisStatusUi.Analyzing }
+            assertNull(queued.results)
+            assertNull(queued.overlay)
+            assertEquals(item.filePath, queued.videoPath)
+            assertEquals(1, infos("vid-1").size)
+            analysis.completeDone(item, TechniqueReportSamples.fullReport(), TechniqueReportSamples.exercise(), item.weightKg, AnalysisMode.FULL)
+            val ready = vm.awaitState { it.status == AnalysisStatusUi.Done }
+            assertNotNull(ready.results)
+            assertNotNull(ready.overlay)
+            assertTrue(ready.canOpenTrends)
+            assertEquals(item.filePath, ready.videoPath)
+        } finally {
+            try {
+                queueDatabase.execSQL("DROP TRIGGER IF EXISTS kpkn_fail_technique_enqueue")
+            } finally {
+                collector.cancelAndJoin()
+            }
+        }
     }
 
     @Test

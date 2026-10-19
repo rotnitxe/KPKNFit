@@ -53,7 +53,7 @@ data class TechniqueAnalysisInput(
  * Las observaciones de técnica (`Observations`) se calculan al final, sobre el informe ya armado.
  */
 object TechniqueAnalysisEngine {
-    const val ENGINE_VERSION = 5
+    const val ENGINE_VERSION = 6
 
     /** Unidad de las cifras de trayectoria sin calibrar: porcentaje del recorrido vertical de la barra (ROM_v). */
     const val PERCENT_ROM = "%ROM"
@@ -256,7 +256,7 @@ object TechniqueAnalysisEngine {
         val times = if (ph != null) {
             RepPhaseTimes(ph.departUs, ph.turnStartUs, ph.turnEndUs, ph.arriveUs)
         } else {
-            // Sin fases (fs < 20): solo los instantes del segmentador, sin duraciones.
+            // Sin fases medidas (bajo fps o ajuste sin soporte): anclas del segmentador, sin duraciones.
             val turn = usOf(ctx, cycle.peak)
             RepPhaseTimes(usOf(ctx, cycle.leftValley), turn, turn, usOf(ctx, cycle.rightValley ?: cycle.peak))
         }
