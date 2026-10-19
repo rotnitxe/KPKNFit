@@ -528,11 +528,11 @@ class TechniqueAnalysisPipelineTest {
     }
 
     @Test
-    fun theDiscIsFoundByItselfAndTrackedForwardAndBackward() {
+    fun automaticProposalDefersTrackingThenExplicitSelectionKeepsForwardBackwardAccuracy() {
         val case = PlateCase()
         val video = PipelineTestKit.videoFile(folder.root)
         val result = analyze(case.pipeline(), case.request(video))
-        val report = done(result.outcome).report
+        val automaticReport = done(result.outcome).report
 
         val bar = checkNotNull(BarTrackCodec.decode(TechniqueSidecars.barFile(video).readBytes())) { "bar ilegible" }
         val seed = checkNotNull(bar.seed) { "sin semilla automática" }
@@ -541,8 +541,21 @@ class TechniqueAnalysisPipelineTest {
         assertEquals(720, bar.frameWidth)
         assertEquals(1280, bar.frameHeight)
 
+        val proposalStats = stats.single()
+        assertEquals("PROPOSED", proposalStats.plateStage)
+        assertTrue(proposalStats.plateTrackingDeferred)
+        assertEquals(0, proposalStats.plateTrackingFrames)
+        assertTrue(bar.samples.isEmpty())
+        assertEquals(PlateTrackingContinuity.UNKNOWN, bar.trackingContinuity)
+        assertEquals(engineOn(storedPose(video), equipment = "barbell"), automaticReport)
+        assertNotNull(proposalStats.autoSeed)
+        assertEquals("provisional", proposalStats.plateSeedState)
+        assertTrue((proposalStats.plateWaitingCounts["no_still"] ?: 0) > 0)
+        val selected = done(analyze(case.pipeline(), case.request(video, AnalysisMode.PLATE_ONLY, seed)).outcome).report
+        val selectedBar = checkNotNull(BarTrackCodec.decode(TechniqueSidecars.barFile(video).readBytes()))
+
         // Una muestra por fotograma, en orden de tiempo, desde el primero (el búfer cubre lo anterior a la semilla).
-        val samples = bar.samples
+        val samples = selectedBar.samples
         assertTrue("muestras ${samples.size} de ${case.pts.size}", samples.size >= case.pts.size - 2)
         assertTrue(samples.zipWithNext().all { (a, b) -> b.tUs > a.tUs })
         assertEquals(case.pts.first(), samples.first().tUs)
@@ -556,21 +569,22 @@ class TechniqueAnalysisPipelineTest {
         val errors = detector.map { hypot(it.cx - case.truthAt(it.tUs).first, it.cy - case.truthAt(it.tUs).second) }.sorted()
         val median = errors[errors.size / 2]
         val p95 = errors[(errors.size * 95 / 100).coerceAtMost(errors.size - 1)]
-        println("[pipeline/disco] semilla ${seed.tUs} µs r=${fmt(seed.r.toDouble())} (verdad ${fmt(case.radius)}) | ${samples.size} muestras, ${detector.size} medidas | error mediana ${fmt(median)} px P95 ${fmt(p95)} px | ${report.repCount} reps ${report.confidence}")
+        println("[pipeline/disco] semilla ${seed.tUs} µs r=${fmt(seed.r.toDouble())} (verdad ${fmt(case.radius)}) | ${samples.size} muestras, ${detector.size} medidas | error mediana ${fmt(median)} px P95 ${fmt(p95)} px | ${selected.repCount} reps ${selected.confidence}")
         assertTrue("error mediano ${fmt(median)} px", median <= 3.0)
         assertTrue("P95 ${fmt(p95)} px", p95 <= 10.0)
         val before = detector.filter { it.tUs < seed.tUs }.map { hypot(it.cx - case.truthAt(it.tUs).first, it.cy - case.truthAt(it.tUs).second) }
         assertTrue("las muestras hacia atrás también miden el disco", before.isNotEmpty() && before.max() <= 6.0)
 
-        val run = stats.single()
+        val run = stats.last()
         assertTrue(run.usesPlate)
         assertEquals("TRACKING", run.plateStage)
-        assertNotNull(run.autoSeed)
-        assertEquals("provisional", run.plateSeedState)
-        assertTrue((run.plateWaitingCounts["no_still"] ?: 0) > 0)
+        assertNull(run.autoSeed)
+        assertEquals("selected", run.plateSeedState)
         assertEquals(samples.size, run.barSamples)
-        assertEquals(case.reps, report.repCount)
-        assertEquals(engineOn(storedPose(video), bar, equipment = "barbell"), report)
+        assertEquals(samples.size, run.plateTrackingFrames)
+        assertFalse(run.plateTrackingDeferred)
+        assertEquals(case.reps, selected.repCount)
+        assertEquals(engineOn(storedPose(video), selectedBar, equipment = "barbell"), selected)
         assertTrue(estimators.single().staleReads.isEmpty())
         assertFalse(TechniqueSidecars.partFile(video).exists())
     }
@@ -586,14 +600,28 @@ class TechniqueAnalysisPipelineTest {
         assertTrue(provisionalBefore.contentEquals(TechniqueSidecars.barFile(video).readBytes()))
         assertFalse(checkNotNull(checkNotNull(BarTrackCodec.decode(provisionalBefore)).seed).userConfirmed)
 
-        // Selecting the same geometry may adopt confirmation/diameter without decoding again.
+        // The same circle with no samples is only a proposal: selection must run PLATE_ONLY.
         val sameSeed = checkNotNull(checkNotNull(BarTrackCodec.decode(provisionalBefore)).seed)
         val sourcesBeforeSameSeed = sources.size
-        done(analyze(case.pipeline(), case.request(video, AnalysisMode.RECOMPUTE, sameSeed)).outcome)
-        assertEquals(sourcesBeforeSameSeed, sources.size)
+        val sameSelectedReport = done(analyze(case.pipeline(), case.request(video, AnalysisMode.RECOMPUTE, sameSeed)).outcome).report
+        assertEquals(sourcesBeforeSameSeed + 1, sources.size)
         val sameSelected = checkNotNull(BarTrackCodec.decode(TechniqueSidecars.barFile(video).readBytes()))
         assertTrue(checkNotNull(sameSelected.seed).userConfirmed)
         assertEquals(450, sameSelected.plateDiameterMm)
+        assertEquals(sameSeed.copy(userConfirmed = true), sameSelected.seed)
+        assertTrue(sameSelected.samples.isNotEmpty())
+        assertTrue(stats.last().plateTrackingFrames > 0)
+        val selectedBytesForSameSeed = TechniqueSidecars.barFile(video).readBytes()
+        val estimatorsBeforeDirect = estimators.size
+        val directSelectedReport = done(analyze(case.pipeline(), case.request(video, AnalysisMode.PLATE_ONLY, sameSeed)).outcome).report
+        // Both routes execute the same selected PLATE_ONLY pipeline on the same cached pose/PTS.
+        assertTrue(selectedBytesForSameSeed.contentEquals(TechniqueSidecars.barFile(video).readBytes()))
+        assertEquals(sameSelectedReport, directSelectedReport)
+        assertEquals(estimatorsBeforeDirect, estimators.size)
+        val sourcesBeforeSelectedRecompute = sources.size
+        done(analyze(case.pipeline(), case.request(video, AnalysisMode.RECOMPUTE, sameSeed)).outcome)
+        assertEquals(sourcesBeforeSelectedRecompute, sources.size)
+        assertTrue(poseBefore.contentEquals(TechniqueSidecars.poseFile(video).readBytes()))
 
         // El usuario fija el disco en un instante cualquiera de la 1.ª repetición.
         val seedAt = case.pts.first { it >= 3_000_000L }
@@ -728,15 +756,22 @@ class TechniqueAnalysisPipelineTest {
     fun aPlateCheckpointResumesTrackingFromTheLastReliableSample() {
         val case = PlateCase()
         val video = PipelineTestKit.videoFile(folder.root)
+        val seedAt = 500_000L
+        assertTrue(case.pts.contains(seedAt))
+        val (seedX, seedY) = case.truthAt(seedAt)
+        val selectedSeed = PlateSeed(seedAt, seedX.toFloat(), seedY.toFloat(), case.radius.toFloat(), true)
         // Un fallo transitorio de E/S a los 260 fotogramas deja el punto de control de los 150, con el disco ya siguiéndose.
-        val failure = failed(analyze(case.pipeline(failAfter = 260, failure = IOException("el disco")), case.request(video)).outcome)
+        val failure = failed(analyze(case.pipeline(failAfter = 260, failure = IOException("el disco")), case.request(video, AnalysisMode.FULL, selectedSeed)).outcome)
         assertTrue(failure.transient)
         val checkpoint = checkNotNull(AnalysisCheckpoints.read(TechniqueSidecars.partFile(video)))
         assertEquals(150, checkpoint.header.nextIndex)
         assertEquals(AnalysisCheckpoint.STAGE_TRACKING, checkpoint.header.plateStage)
+        assertEquals(AnalysisCheckpoint.seedKey(selectedSeed), checkpoint.header.seedKey)
+        assertEquals(selectedSeed, checkNotNull(checkpoint.bar).seed)
+        assertTrue(checkNotNull(checkNotNull(checkpoint.bar).seed).userConfirmed)
         assertEquals("una muestra por fotograma procesado, hacia atrás incluidas", 150, checkNotNull(checkpoint.bar).samples.size)
 
-        val resumed = analyze(case.pipeline(), case.request(video))
+        val resumed = analyze(case.pipeline(), case.request(video, AnalysisMode.FULL, selectedSeed))
         val report = done(resumed.outcome).report
         val bar = checkNotNull(BarTrackCodec.decode(TechniqueSidecars.barFile(video).readBytes()))
         assertEquals("ningún fotograma repetido ni perdido", case.pts.size, bar.samples.size)
@@ -745,7 +780,14 @@ class TechniqueAnalysisPipelineTest {
         assertTrue("pocas medidas: ${errors.size} de ${bar.samples.size}", errors.size >= bar.samples.size * 9 / 10)
         assertTrue("error mediano ${fmt(errors[errors.size / 2])} px", errors[errors.size / 2] <= 3.0)
         assertEquals(case.pts[149], stats.last().resumedFromPtsUs)
-        assertEquals("la semilla automática del primer intento se conserva", 500_000L, checkNotNull(bar.seed).tUs)
+        assertEquals("la selección explícita histórica se conserva", selectedSeed, bar.seed)
+        assertEquals(500_000L, checkNotNull(bar.seed).tUs)
+        assertTrue(checkNotNull(bar.seed).userConfirmed)
+        val expectedContinuity = if (checkNotNull(checkpoint.bar).trackingContinuity == PlateTrackingContinuity.INTERRUPTED)
+            PlateTrackingContinuity.INTERRUPTED else PlateTrackingContinuity.UNKNOWN
+        assertEquals(expectedContinuity, bar.trackingContinuity)
+        assertEquals(checkNotNull(checkpoint.bar).continuityBreakUs, bar.continuityBreakUs)
+        assertFalse(com.example.kpkn.domain.biomechanics.bar.PlatePublicationPolicy.canUsePlate(bar))
         assertEquals(case.reps, report.repCount)
         assertFalse(TechniqueSidecars.partFile(video).exists())
     }
@@ -753,4 +795,151 @@ class TechniqueAnalysisPipelineTest {
     private companion object {
         const val TIMEOUT_MS = 180_000L
     }
+    @Test
+    fun proposedCheckpointResumesWithoutTrackingOrLosingSeedPtsAndAcquisitionDiagnostics() {
+        val case = PlateCase()
+        val video = PipelineTestKit.videoFile(folder.root)
+        failed(analyze(case.pipeline(failAfter = 260, failure = IOException("checkpoint")), case.request(video)).outcome)
+        val checkpoint = checkNotNull(AnalysisCheckpoints.read(TechniqueSidecars.partFile(video)))
+        assertEquals(AnalysisCheckpoint.STAGE_PROPOSED, checkpoint.header.plateStage)
+        val proposal = checkNotNull(checkpoint.bar)
+        assertNotNull(proposal.seed)
+        assertTrue(proposal.samples.isEmpty())
+        assertTrue(checkpoint.header.plateAttempts > 0)
+        val report = done(analyze(case.pipeline(), case.request(video)).outcome).report
+        val back = checkNotNull(BarTrackCodec.decode(TechniqueSidecars.barFile(video).readBytes()))
+        assertEquals(proposal.seed, back.seed)
+        assertTrue(back.samples.isEmpty())
+        assertEquals(0, stats.last().plateTrackingFrames)
+        assertTrue(stats.last().plateTrackingDeferred)
+        assertEquals(checkpoint.header.plateAttempts, stats.last().plateAttempts)
+        assertEquals(checkpoint.header.plateWaitingCounts, stats.last().plateWaitingCounts)
+        assertNotNull(stats.last().resumedFromPtsUs)
+        assertEquals(engineOn(storedPose(video), equipment = "barbell"), report)
+    }
+
+    @Test
+    fun legacyAutomaticCheckpointRetainsProposalButDiscardsOnlyItsUnpublishedAssociations() {
+        val case = PlateCase()
+        val video = PipelineTestKit.videoFile(folder.root)
+        failed(analyze(case.pipeline(failAfter = 260, failure = IOException("checkpoint")), case.request(video)).outcome)
+        val part = TechniqueSidecars.partFile(video)
+        val checkpoint = checkNotNull(AnalysisCheckpoints.read(part))
+        val proposal = checkNotNull(checkpoint.bar)
+        val seed = checkNotNull(proposal.seed)
+        val historical = com.example.kpkn.domain.biomechanics.bar.BarSample(seed.tUs, seed.cx, seed.cy,
+            seed.r, 1f, 0.9f, BarSampleSource.HOUGH)
+        for (stage in listOf(AnalysisCheckpoint.STAGE_TRACKING, AnalysisCheckpoint.STAGE_GAVE_UP)) {
+            AnalysisCheckpoints.write(part, AnalysisCheckpoint(checkpoint.header.copy(plateStage = stage),
+                checkpoint.pose, proposal.copy(samples = listOf(historical))))
+            done(analyze(case.pipeline(), case.request(video)).outcome)
+            val back = checkNotNull(BarTrackCodec.decode(TechniqueSidecars.barFile(video).readBytes()))
+            assertEquals(seed, back.seed)
+            assertTrue(back.samples.isEmpty())
+            assertEquals(PlateTrackingContinuity.UNKNOWN, back.trackingContinuity)
+            assertEquals(0, stats.last().plateTrackingFrames)
+            assertEquals("PROPOSED", stats.last().plateStage)
+        }
+    }
+
+
+    @Test
+    fun proposedStrideTwoSkipCheckpointRestoresAllPosePtsAndGlobalIndexParity() {
+        val case = PlateCase()
+        val whole = PipelineTestKit.videoFile(folder.newFolder("whole-stride2"))
+        val cut = PipelineTestKit.videoFile(folder.newFolder("cut-stride2"))
+        val wholeNeeds = CopyOnWriteArrayList<Triple<Int, Long, com.example.kpkn.data.media.video.FrameNeeds>>()
+        val cutNeeds = CopyOnWriteArrayList<Triple<Int, Long, com.example.kpkn.data.media.video.FrameNeeds>>()
+        val resumeNeeds = CopyOnWriteArrayList<Triple<Int, Long, com.example.kpkn.data.media.video.FrameNeeds>>()
+
+        fun observedPipeline(
+            log: MutableList<Triple<Int, Long, com.example.kpkn.data.media.video.FrameNeeds>>,
+            failAfter: Int = -1,
+            recommendedStride: Int = 2,
+        ): TechniqueAnalysisPipeline {
+            val deps = PipelineTestKit.deps(
+                open = {
+                    val delegate = case.newSource(failAfter, if (failAfter >= 0) IOException("stride2 checkpoint") else null)
+                    object : VideoFrameSource, com.example.kpkn.data.media.video.VideoDecodeReport {
+                        override val info get() = delegate.info
+                        override val path get() = delegate.path
+                        override val details get() = delegate.details
+                        override val fallbackReason get() = delegate.fallbackReason
+                        override suspend fun decode(
+                            fromUs: Long,
+                            targetLongEdge: Int,
+                            needs: (Int, Long) -> com.example.kpkn.data.media.video.FrameNeeds,
+                            onFrame: suspend (com.example.kpkn.data.media.video.DecodedFrame) -> Unit,
+                        ) = delegate.decode(fromUs, targetLongEdge, { index, ptsUs ->
+                            needs(index, ptsUs).also { log.add(Triple(index, ptsUs, it)) }
+                        }, onFrame)
+                        override fun close() = delegate.close()
+                    }
+                },
+                pose = { case.newEstimator() },
+                onStats = { stats.add(it) },
+            ).copy(recommendedPoseStride = { recommendedStride })
+            return TechniqueAnalysisPipeline(deps, case.tuning)
+        }
+
+        done(analyze(observedPipeline(wholeNeeds), case.request(whole)).outcome)
+        val wholePose = storedPose(whole)
+        val expectedPosePts = case.pts.filterIndexed { index, _ -> index % 2 == 0 }
+        assertEquals(expectedPosePts, wholePose.frames.map { it.tUs })
+        assertEquals(case.pts.indices.toList(), wholeNeeds.map { it.first })
+        assertEquals(case.pts, wholeNeeds.map { it.second })
+        assertTrue(wholeNeeds.any { it.third == com.example.kpkn.data.media.video.FrameNeeds.SKIP })
+        assertEquals(0, stats.last().plateTrackingFrames)
+        assertEquals("PROPOSED", stats.last().plateStage)
+        assertFalse(TechniqueSidecars.partFile(whole).exists())
+
+        // 160 delivered callbacks, not source indices: leaves the 150-callback checkpoint after SKIP began.
+        val failure = failed(analyze(observedPipeline(cutNeeds, failAfter = 160), case.request(cut)).outcome)
+        assertTrue(failure.transient)
+        val part = TechniqueSidecars.partFile(cut)
+        val checkpoint = checkNotNull(AnalysisCheckpoints.read(part))
+        val header = checkpoint.header
+        assertEquals(2, header.poseStride)
+        assertEquals(AnalysisCheckpoint.STAGE_PROPOSED, header.plateStage)
+        assertTrue(header.nextIndex > 150) // SKIP consumes an index without a callback.
+        assertEquals(1, header.nextIndex % 2) // checkpoint callback is an even, pose-due global frame.
+        assertEquals(case.pts[header.nextIndex - 1], header.lastPtsUs)
+        val checkpointRequest = cutNeeds.single { it.second == header.lastPtsUs }
+        assertEquals(header.nextIndex, checkpointRequest.first + 1)
+        assertEquals(case.pts.take(header.nextIndex).filterIndexed { index, _ -> index % 2 == 0 },
+            checkpoint.pose.frames.map { it.tUs })
+        assertTrue(cutNeeds.any { it.third == com.example.kpkn.data.media.video.FrameNeeds.SKIP })
+        assertEquals(0, stats.last().plateTrackingFrames)
+        assertTrue(checkNotNull(checkpoint.bar).samples.isEmpty())
+
+        // A different recommendation must not replace the stride preserved by this checkpoint.
+        done(analyze(observedPipeline(resumeNeeds, recommendedStride = 1), case.request(cut)).outcome)
+        assertEquals(2, stats.last().poseStride)
+        assertEquals(listOf(header.lastPtsUs + 1L), sources.last().decodeStarts.toList())
+        assertEquals(header.lastPtsUs, stats.last().resumedFromPtsUs)
+        assertEquals(0, resumeNeeds.first().first)
+        assertEquals(case.pts[header.nextIndex], resumeNeeds.first().second)
+        assertEquals(com.example.kpkn.data.media.video.FrameNeeds.SKIP, resumeNeeds.first().third)
+        assertEquals(case.pts.drop(header.nextIndex), resumeNeeds.map { it.second })
+        for ((localIndex, ptsUs, need) in resumeNeeds) {
+            val globalIndex = header.nextIndex + localIndex
+            assertEquals(case.pts[globalIndex], ptsUs)
+            assertEquals(if (globalIndex % 2 == 0) com.example.kpkn.data.media.video.FrameNeeds.RGBA
+                else com.example.kpkn.data.media.video.FrameNeeds.SKIP, need)
+        }
+        val resumedPose = storedPose(cut)
+        assertEquals(expectedPosePts, resumedPose.frames.map { it.tUs })
+        assertEquals(wholePose.frames.map { it.tUs }, resumedPose.frames.map { it.tUs })
+        assertEquals(expectedPosePts.size, resumedPose.frames.map { it.tUs }.distinct().size)
+        val bar = checkNotNull(BarTrackCodec.decode(TechniqueSidecars.barFile(cut).readBytes()))
+        assertEquals(checkNotNull(checkpoint.bar).seed, bar.seed)
+        assertFalse(checkNotNull(bar.seed).userConfirmed)
+        assertTrue(bar.samples.isEmpty())
+        assertEquals(0, stats.last().plateTrackingFrames)
+        assertTrue(stats.last().plateTrackingDeferred)
+        assertFalse(part.exists())
+        assertTrue(estimators.all { it.staleReads.isEmpty() && it.notIncreasing.isEmpty() })
+    }
+
+
 }

@@ -3,6 +3,7 @@ package com.example.kpkn.data.media.technique
 import com.example.kpkn.domain.biomechanics.bar.BarTrack
 import com.example.kpkn.domain.biomechanics.bar.BarTrackCodec
 import com.example.kpkn.domain.biomechanics.bar.PlateSeed
+import com.example.kpkn.domain.biomechanics.bar.PlateTrackingContinuity
 import com.example.kpkn.domain.biomechanics.pose.PoseTrackCodec
 import com.example.kpkn.domain.biomechanics.pose.PoseTrackV2
 import kotlinx.serialization.Serializable
@@ -40,7 +41,7 @@ internal class AnalysisCheckpoint(
      * @property timeScale µs reales por µs del contenedor (1 salvo en cámara lenta de galería).
      * @property lastPtsUs PTS del contenedor del último fotograma ya procesado: se reanuda desde el siguiente.
      * @property nextIndex índice (contando todos los fotogramas decodificados) que tendrá el primero tras reanudar.
-     * @property plateStage `NONE` (sin disco), `TRACKING` o `GAVE_UP`.
+     * @property plateStage `NONE` (sin disco), `TRACKING`, `PROPOSED` (semilla automática sin seguimiento) o `GAVE_UP`.
      * @property seedKey identidad de la semilla confirmada por el usuario con la que se hizo (`null` si no había).
      * @property poseErrors fotogramas cuya pose falló hasta ahora.
      */
@@ -61,6 +62,10 @@ internal class AnalysisCheckpoint(
         val plateStage: String,
         val seedKey: String? = null,
         val poseErrors: Int = 0,
+        // Optional diagnostic history; absent in old checkpoints. Never used to infer identity.
+        val plateAttempts: Int = 0,
+        val plateWaitingCounts: Map<String, Int> = emptyMap(),
+        val plateLastWaitingReason: String? = null,
     )
 
     companion object {
@@ -68,6 +73,7 @@ internal class AnalysisCheckpoint(
         const val STAGE_NONE = "NONE"
         const val STAGE_TRACKING = "TRACKING"
         const val STAGE_GAVE_UP = "GAVE_UP"
+        const val STAGE_PROPOSED = "PROPOSED"
 
         /** La identidad de una semilla confirmada: cambia si el usuario la mueve, y entonces el punto de control ya no vale. */
         fun seedKey(seed: PlateSeed?): String? = seed?.let { "${it.tUs}:${it.cx}:${it.cy}:${it.r}" }
@@ -186,16 +192,33 @@ internal object AnalysisCheckpoints {
         if (h.frameWidth != frameWidth || h.frameHeight != frameHeight) return false
         if (abs(h.timeScale - timeScale) > TIME_SCALE_EPSILON) return false
         if (h.poseStride !in 1..2 || h.nextIndex <= 0 || h.lastPtsUs < 0L) return false
+        if (h.plateAttempts < 0 || h.plateWaitingCounts.values.any { it < 0 }) return false
         val expectedStage = if (usesPlate) h.plateStage == AnalysisCheckpoint.STAGE_TRACKING ||
-            h.plateStage == AnalysisCheckpoint.STAGE_GAVE_UP else h.plateStage == AnalysisCheckpoint.STAGE_NONE
+            h.plateStage == AnalysisCheckpoint.STAGE_GAVE_UP ||
+            h.plateStage == AnalysisCheckpoint.STAGE_PROPOSED else h.plateStage == AnalysisCheckpoint.STAGE_NONE
         if (!expectedStage) return false
         val pose = checkpoint.pose
         if (pose.mediaId != mediaId || pose.frameWidth != frameWidth || pose.frameHeight != frameHeight || pose.poseStride != h.poseStride) return false
         if (pose.frames.isEmpty()) return false
         if (usesPlate && h.plateStage == AnalysisCheckpoint.STAGE_TRACKING && checkpoint.bar?.samples.isNullOrEmpty()) return false
         if ((checkpoint.bar != null) != usesPlate) return false
+        val bar = checkpoint.bar
+        val automaticSeed = bar?.seed?.takeIf { !it.userConfirmed }
+        if (usesPlate && h.seedKey == null && automaticSeed != null &&
+            (bar == null || bar.mediaId != mediaId || bar.frameWidth != frameWidth || bar.frameHeight != frameHeight ||
+                !validProposalSeed(automaticSeed, h))) return false
+        if (h.plateStage == AnalysisCheckpoint.STAGE_PROPOSED) {
+            if (bar == null || automaticSeed == null || h.seedKey != null || bar.samples.isNotEmpty() ||
+                bar.plateDiameterMm != null || bar.trackingContinuity != PlateTrackingContinuity.UNKNOWN ||
+                bar.continuityBreakUs != null || !validProposalSeed(automaticSeed, h)) return false
+        }
         return true
     }
+
+    private fun validProposalSeed(seed: PlateSeed, header: AnalysisCheckpoint.Header): Boolean =
+        seed.tUs >= 0L && seed.cx.isFinite() && seed.cy.isFinite() && seed.r.isFinite() && seed.r > 0f &&
+            header.timeScale.isFinite() && header.timeScale > 0.0 &&
+            seed.tUs <= Math.round(header.lastPtsUs * header.timeScale)
 
     // Marca, formato, tres longitudes y el CRC: lo mínimo que puede medir un archivo con algo dentro.
     private const val MIN_BYTES = 4 + 4 + 4 + 1 + 4 + 1 + 4 + Long.SIZE_BYTES

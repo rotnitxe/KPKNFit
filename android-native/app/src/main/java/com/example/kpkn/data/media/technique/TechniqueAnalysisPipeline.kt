@@ -136,6 +136,9 @@ internal data class PipelineRunStats(
     val plateWaitingCounts: Map<String, Int> = emptyMap(),
     val plateLastWaitingReason: String? = null,
     val plateSeedState: String = "none",
+    /** Actual tracker invocations in this pass; excludes automatic proposal acquisition. */
+    val plateTrackingFrames: Int = 0,
+    val plateTrackingDeferred: Boolean = false,
 )
 
 /**
@@ -400,8 +403,9 @@ class TechniqueAnalysisPipeline internal constructor(
         private suspend fun recompute(): TechniqueAnalysisOutcome {
             val sidecars = withContext(Dispatchers.IO) { readSidecars() } ?: return full()
             val selected = request.plateSeed
-            if (profile.usesPlate && selected != null && !PlatePublicationPolicy.matchesSelection(sidecars.bar?.seed, selected)) {
-                return plateOnly() // A changed selection cannot confer identity on the old samples.
+            if (profile.usesPlate && selected != null &&
+                (!PlatePublicationPolicy.matchesSelection(sidecars.bar?.seed, selected) || sidecars.bar?.samples.isNullOrEmpty())) {
+                return plateOnly() // A changed selection or an untracked proposal needs a real selected tracking pass.
             }
             val adopted = sidecars.bar?.let { adoptConfirmedDisc(it) }
             val bar = if (adopted != sidecars.bar) withContext(Dispatchers.IO) { storeBar(adopted) } else adopted
@@ -625,6 +629,8 @@ class TechniqueAnalysisPipeline internal constructor(
                 plateWaitingCounts = session?.waitingCounts?.toMap().orEmpty(),
                 plateLastWaitingReason = session?.lastWaitingReason,
                 plateSeedState = session?.seed?.let { if (it.userConfirmed) "selected" else "provisional" } ?: "none",
+                plateTrackingFrames = session?.trackingFrames ?: 0,
+                plateTrackingDeferred = session?.stage == PlateSession.Stage.PROPOSED,
             )
             Log.i(TAG, "Pasada de ${request.mediaId}: $stats")
             try {
@@ -713,7 +719,7 @@ class TechniqueAnalysisPipeline internal constructor(
             init {
                 if (resume != null) {
                     assembler.resumeFrom(resume.pose.frames)
-                    plate?.restore(checkNotNull(resume.bar), resume.header.plateStage)
+                    plate?.restore(checkNotNull(resume.bar), resume.header)
                 }
             }
 
@@ -746,7 +752,7 @@ class TechniqueAnalysisPipeline internal constructor(
             }
 
             /**
-             * La traza del disco para guardar: `null` si el perfil no lo usa; vacía (sin semilla ni muestras) si se buscó y no se vio.
+             * La traza del disco: `null` si no se usa; vacía sin semilla si no se vio, o con semilla si se difirió su seguimiento.
              * Con la semilla del usuario lleva su diámetro; con una automática, `null`.
              */
             fun barTrack(): BarTrack? {
@@ -832,10 +838,14 @@ class TechniqueAnalysisPipeline internal constructor(
                     plateStage = when (plate?.stage) {
                         null -> AnalysisCheckpoint.STAGE_NONE
                         PlateSession.Stage.TRACKING -> AnalysisCheckpoint.STAGE_TRACKING
+                        PlateSession.Stage.PROPOSED -> AnalysisCheckpoint.STAGE_PROPOSED
                         else -> AnalysisCheckpoint.STAGE_GAVE_UP
                     },
                     seedKey = AnalysisCheckpoint.seedKey(request.plateSeed),
                     poseErrors = poseErrors,
+                    plateAttempts = plate?.attempts ?: 0,
+                    plateWaitingCounts = plate?.waitingCounts?.toMap().orEmpty(),
+                    plateLastWaitingReason = plate?.lastWaitingReason,
                 )
                 val checkpoint = AnalysisCheckpoint(header, pose, plate?.barTrack(request.mediaId, null, request.plateSeed != null))
                 try {
@@ -1254,7 +1264,7 @@ private class LumaRing(private val capacity: Int, private val frameBytes: Int) {
 /**
  * La búsqueda y el seguimiento del disco de una pasada (§8). Estados: [Stage.PENDING] (se llena el búfer circular de luma mientras
  * se espera la semilla: la del usuario, cuando llegue su instante, o la automática, cuando una adquisición acierte),
- * [Stage.TRACKING] (rastreador hacia delante en cada fotograma) y [Stage.GAVE_UP] (sin disco: ya no se pide luma).
+ * [Stage.TRACKING] (semilla seleccionada, seguimiento), [Stage.PROPOSED] (círculo automático aún sin seguimiento) y [Stage.GAVE_UP] (sin disco).
  *
  * Sin semilla del usuario ([confirmedSeed] `null`) busca con las muñecas casi quietas: pasada la ventana de quietud, y con un
  * intervalo mínimo entre intentos, `PlateDetector.propose` mira cerca de las muñecas con el radio previo de la escala corporal
@@ -1271,7 +1281,7 @@ private class PlateSession(
     private val confirmedSeed: PlateSeed?,
     private val athlete: AthleteView?,
 ) {
-    enum class Stage { PENDING, TRACKING, GAVE_UP }
+    enum class Stage { PENDING, TRACKING, GAVE_UP, PROPOSED }
 
     @Volatile
     var stage: Stage = Stage.PENDING
@@ -1289,7 +1299,10 @@ private class PlateSession(
     var plateNanos = 0L
         private set
 
+    /** Includes a proposal whose tracking is intentionally deferred until explicit selection. */
     val settled: Boolean get() = stage != Stage.PENDING
+    var trackingFrames = 0
+        private set
     val sampleCount: Int get() = backward.size + forward.size
 
     val waitingCounts: Map<String, Int> get() = waiting
@@ -1336,7 +1349,7 @@ private class PlateSession(
         try {
             when (stage) {
                 Stage.TRACKING -> trackForward(luma, tUs, wrists)
-                Stage.GAVE_UP -> Unit
+                Stage.GAVE_UP, Stage.PROPOSED -> Unit
                 Stage.PENDING -> pending(luma, tUs, wrists, newPose)
             }
         } catch (error: Exception) {
@@ -1367,7 +1380,7 @@ private class PlateSession(
         ring.push(luma, tUs, wrists)
     }
 
-    /** Un intento de adquisición si las muñecas llevan quietas la ventana; `true` si encontró el disco y ya está siguiéndolo. */
+    /** Un intento de adquisición si las muñecas llevan quietas la ventana; `true` si conservó la primera propuesta (sin seguirla aún). */
     private fun tryAcquire(luma: ByteArray, tUs: Long, wrists: WristSet): Boolean {
         val view = athlete ?: return waitFor("no_athlete")
         if (!view.wristsPx(athleteWrists)) {
@@ -1389,8 +1402,21 @@ private class PlateSession(
         val candidates = PlateDetector.propose(LumaFrame(width, height, luma), points, expected, CANDIDATES)
         val best = candidates.firstOrNull { it.coverage >= tuning.minSeedCoverage } ?: return waitFor("no_candidate")
         Log.i(TAG, "Disco automático en $tUs µs: c=(${best.cx}, ${best.cy}) r=${best.r} cobertura=${best.coverage} (previo $expected, intento $attempts).")
-        activate(PlateSeed(tUs, best.cx, best.cy, best.r, false), luma, tUs, wrists)
+        propose(PlateSeed(tUs, best.cx, best.cy, best.r, false))
         return true
+    }
+
+    /** Keep the same first automatic circle and absolute PTS, without claiming tracking support. */
+    private fun propose(chosen: PlateSeed) {
+        check(!chosen.userConfirmed)
+        seed = chosen
+        stage = Stage.PROPOSED
+        wantsLuma = false
+        tracker = null
+        trackingContinuity = PlateTrackingContinuity.UNKNOWN
+        continuityBreakUs = null
+        lastWaitingReason = null
+        ring.release()
     }
 
     /** Fija la semilla: el rastreador hacia delante arranca en este fotograma y otro repasa hacia atrás lo que hay en el búfer. */
@@ -1411,6 +1437,7 @@ private class PlateSession(
     private fun trackForward(luma: ByteArray, tUs: Long, wrists: WristSet) {
         val current = tracker ?: return
         val prior = wrists.nearest(tUs, lastX, lastY, WristSet.PRIOR_MAX_AGE_US)
+        trackingFrames++
         val sample = current.track(LumaFrame(width, height, luma), tUs, prior)
         forward.add(sample)
         observeContinuity(current)
@@ -1426,6 +1453,7 @@ private class PlateSession(
             val tUs = ring.timeAt(k)
             scratch.copyFrom(ring.wristsAt(k))
             val prior = scratch.nearest(tUs, x, y, WristSet.PRIOR_MAX_AGE_US)
+            trackingFrames++
             val sample = back.track(LumaFrame(width, height, ring.lumaAt(k)), tUs, prior)
             backward.add(sample)
             observeContinuity(back)
@@ -1441,14 +1469,23 @@ private class PlateSession(
     }
 
     /** Reanuda desde un punto de control: las muestras de entonces y, si seguía, un rastreador nuevo que arranca de la última fiable. */
-    fun restore(bar: BarTrack, checkpointStage: String) {
+    fun restore(bar: BarTrack, header: AnalysisCheckpoint.Header) {
+        attempts = header.plateAttempts
+        waiting.putAll(header.plateWaitingCounts)
+        lastWaitingReason = header.plateLastWaitingReason
+        // New proposals and legacy automatic checkpoints have no selected object to track.
+        // Discard only unpublished legacy associations; explicit selections retain their history below.
+        if (confirmedSeed == null && bar.seed?.userConfirmed == false) {
+            propose(checkNotNull(bar.seed))
+            return
+        }
         forward.addAll(bar.samples)
         seed = bar.seed
         continuityBreakUs = bar.continuityBreakUs
         // Kalman/template state is not serialized: restarting from a last sample cannot establish the old chain.
         trackingContinuity = if (bar.trackingContinuity == PlateTrackingContinuity.INTERRUPTED)
             PlateTrackingContinuity.INTERRUPTED else PlateTrackingContinuity.UNKNOWN
-        if (checkpointStage == AnalysisCheckpoint.STAGE_GAVE_UP || bar.samples.isEmpty()) {
+        if (header.plateStage == AnalysisCheckpoint.STAGE_GAVE_UP || bar.samples.isEmpty()) {
             giveUp()
             return
         }

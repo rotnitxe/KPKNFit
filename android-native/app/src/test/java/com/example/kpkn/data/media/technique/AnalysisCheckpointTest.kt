@@ -125,4 +125,43 @@ class AnalysisCheckpointTest {
         assertFalse(usable(AnalysisCheckpoint(header(true, AnalysisCheckpoint.STAGE_NONE), partial, bar()), plate = true))
         assertTrue(usable(AnalysisCheckpoint(header(true, AnalysisCheckpoint.STAGE_GAVE_UP), partial, BarTrack("clip", 406, 720, null, null, emptyList())), plate = true))
     }
+    @Test
+    fun proposedCheckpointRoundTripsSeedAndDiagnosticsWithoutASelectedTrack() {
+        val proposal = bar().copy(samples = emptyList())
+        val h = header(true, AnalysisCheckpoint.STAGE_PROPOSED).copy(plateAttempts = 2,
+            plateWaitingCounts = mapOf("no_still" to 17))
+        val original = AnalysisCheckpoint(h, partial, proposal)
+        val decoded = checkNotNull(AnalysisCheckpoints.decode(AnalysisCheckpoints.encode(original)))
+        assertTrue(usable(decoded, plate = true))
+        assertEquals(h, decoded.header)
+        assertEquals(proposal, decoded.bar)
+        assertEquals(120, decoded.header.nextIndex)
+        assertEquals(partial.frames.last().tUs, decoded.header.lastPtsUs)
+    }
+
+    @Test
+    fun proposedCheckpointRejectsSelectionSupportOrMalformedSeedRatherThanInventingTracking() {
+        val h = header(true, AnalysisCheckpoint.STAGE_PROPOSED)
+        val proposal = bar().copy(samples = emptyList())
+        fun valid(b: BarTrack, header: AnalysisCheckpoint.Header = h) =
+            usable(AnalysisCheckpoint(header, partial, b), plate = true, scale = header.timeScale, seedKey = header.seedKey)
+        assertTrue(valid(proposal))
+        assertFalse(valid(proposal.copy(seed = proposal.seed?.copy(userConfirmed = true))))
+        assertFalse(valid(proposal, h.copy(seedKey = AnalysisCheckpoint.seedKey(proposal.seed))))
+        assertFalse(valid(bar()))
+        assertFalse(valid(proposal.copy(plateDiameterMm = 450)))
+        assertFalse(valid(proposal.copy(trackingContinuity = com.example.kpkn.domain.biomechanics.bar.PlateTrackingContinuity.UNINTERRUPTED)))
+        assertFalse(valid(proposal.copy(continuityBreakUs = 500_000L)))
+        assertFalse(valid(proposal.copy(mediaId = "other")))
+        assertFalse(valid(proposal.copy(frameWidth = 720)))
+        assertFalse(valid(proposal.copy(seed = proposal.seed?.copy(cx = Float.NaN))))
+        assertFalse(valid(proposal.copy(seed = proposal.seed?.copy(tUs = h.lastPtsUs + 1))))
+        assertFalse(valid(proposal, h.copy(plateAttempts = -1)))
+        assertFalse(valid(proposal, h.copy(plateWaitingCounts = mapOf("no_still" to -1))))
+        // Seed time is real analysis time, not unscaled container PTS (slow motion).
+        assertTrue(valid(proposal.copy(seed = proposal.seed?.copy(tUs = h.lastPtsUs + 1)), h.copy(timeScale = 2.0)))
+        assertFalse(valid(proposal.copy(seed = proposal.seed?.copy(tUs = h.lastPtsUs + 1)), h.copy(timeScale = 1.0)))
+    }
+
+
 }

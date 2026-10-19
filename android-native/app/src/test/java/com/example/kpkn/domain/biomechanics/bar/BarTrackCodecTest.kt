@@ -15,6 +15,18 @@ import kotlin.math.abs
 
 class BarTrackCodecTest {
     @Test
+    fun anUntrackedProposalRoundTripsItsSeedAndPtsWithoutManufacturingSamples() {
+        val seed = PlateSeed(1_234_567L, 123.25f, 321.5f, 36.25f, false)
+        val input = BarTrack("proposal", 406, 720, null, seed, emptyList(),
+            trackingContinuity = PlateTrackingContinuity.UNKNOWN)
+        val decoded = checkNotNull(BarTrackCodec.decode(BarTrackCodec.encode(input)))
+        assertEquals(input, decoded)
+        assertTrue(decoded.samples.isEmpty())
+        org.junit.Assert.assertFalse(PlatePublicationPolicy.canUsePlate(decoded))
+    }
+
+
+    @Test
     fun continuityRoundTripAndLegacyDecodeFailClosedWithoutChangingHistoricalConfirmation() {
         val selected = syntheticBar(count = 30, diameterMm = 450, withSeed = true)
         for (state in PlateTrackingContinuity.entries) {

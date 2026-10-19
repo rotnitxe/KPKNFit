@@ -300,6 +300,8 @@ internal class AnalyzeFileBench(
             .put("esperasAdquisicionDisco", JSONObject(s.plateWaitingCounts))
             .put("ultimaEsperaAdquisicionDisco", s.plateLastWaitingReason ?: JSONObject.NULL)
             .put("estadoSemillaDisco", s.plateSeedState)
+            .put("fotogramasSeguimientoDisco", s.plateTrackingFrames)
+            .put("seguimientoDiscoDiferido", s.plateTrackingDeferred)
             .put("reanudadoDesdeUs", s.resumedFromPtsUs ?: JSONObject.NULL)
             .put("totalMs", s.wallMs)
             .put("msPorFotogramaTotal", round2(perFrame))
