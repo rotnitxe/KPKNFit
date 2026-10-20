@@ -20,6 +20,7 @@ import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -36,6 +37,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Brush
@@ -46,6 +48,7 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.liveRegion
@@ -67,6 +70,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.kpkn.screens.onboarding.design.entreno.SymbolPalette
 import com.example.kpkn.ui.design.KpknType
+import com.example.kpkn.screens.workout.components.WorkoutUiTokens
 import kotlinx.coroutines.delay
 
 internal val WorkoutLiveRelatorSlotHeight = 36.dp
@@ -250,22 +254,24 @@ internal fun WorkoutLiveRelatorLine(
                 )
             }
         } else {
-            // Text and actors share one fixed band: working never pushes the set card.
-            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            // Separate measured lanes inside the same reserved band, including at large font sizes.
+            Column(Modifier.fillMaxSize(), verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally) {
+                if (isWorking && effectiveWorkingAction != null) {
+                    RelatorWorkingScene(
+                        actionKind = effectiveWorkingAction.kind,
+                        progress = forceWorkingProgress ?: rememberWorkingProgress(reduceMotion),
+                        reduceMotion = reduceMotion,
+                        modifier = Modifier.fillMaxWidth().height(WorkoutUiTokens.LiveRelatorAnimationLaneHeight)
+                            .clipToBounds().testTag("relator-working-lane"),
+                    )
+                    Spacer(Modifier.height(WorkoutUiTokens.LiveRelatorAnimationGap))
+                }
                 val pieces = remember(currentText, currentActions) { relatorInlinePieces(currentText, currentActions) }
                 RelatorTextLine(
                     pieces = pieces, text = currentText, actions = currentActions,
                     onAction = handleActionClick, isWorking = isWorking, reduceMotion = reduceMotion,
                     forceShimmerSweepProgress = forceShimmerSweepProgress,
                 )
-                if (isWorking && effectiveWorkingAction != null) {
-                    RelatorWorkingScene(
-                        actionKind = effectiveWorkingAction.kind,
-                        progress = forceWorkingProgress ?: rememberWorkingProgress(reduceMotion),
-                        reduceMotion = reduceMotion,
-                        modifier = Modifier.align(Alignment.TopCenter).fillMaxWidth().height(30.dp),
-                    )
-                }
             }
 
         }

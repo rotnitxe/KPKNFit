@@ -751,8 +751,10 @@ class WorkoutLiveRelatorTest {
         assertEquals(90, RELATOR_MAX_LINE_CHARS)
         assertEquals(48, com.example.kpkn.screens.workout.components.WorkoutUiTokens.LivePagerRelatorClearance.value.toInt())
         val tokens = com.example.kpkn.screens.workout.components.WorkoutUiTokens
-        // Banda del relator (LR1g): 12 dp + dos líneas de 16 sp + 12 dp. Con letra al 100 % son 56 dp.
-        assertEquals(56f, tokens.liveRelatorBandHeight(androidx.compose.ui.unit.Density(1f, 1f)).value, 0.05f)
+        // Fixed reservation for actors (32), separation (6), two lines (32) and padding (12).
+        assertEquals(82f, tokens.liveRelatorBandHeight(androidx.compose.ui.unit.Density(1f, 1f)).value, 0.05f)
+        // Compose may use nonlinear font scaling: verify growth instead of assuming sp * 1.3.
+        assertTrue(tokens.liveRelatorBandHeight(androidx.compose.ui.unit.Density(1f, 1.3f)).value > 82f)
     }
 
     @Test

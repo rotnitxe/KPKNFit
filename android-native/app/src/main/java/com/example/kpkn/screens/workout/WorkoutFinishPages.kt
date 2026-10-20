@@ -2,6 +2,8 @@ package com.example.kpkn.screens.workout
 
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.text.BasicText
+import androidx.compose.foundation.text.TextAutoSize
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -163,22 +165,38 @@ internal fun ColumnScope.FinishTodayPage(
 @Composable
 internal fun ColumnScope.FinishLiftsPage(lifts: List<FinishLiftProgress>, sessionName: String, tonnage: List<Double>, totalVolume: Double, intensity: String, technique: String) {
     val star = lifts.filter { it.isImproved }.maxByOrNull { it.deltaKg ?: 0.0 } ?: lifts.firstOrNull { it.best != null }
+    val otherLifts = lifts.filter { it.exerciseId != star?.exerciseId }
     if (star != null) {
-        Column(Modifier.fillMaxWidth().background(FinishSurface, RoundedCornerShape(20.dp)).border(1.dp, FinishCream.copy(alpha = .18f), RoundedCornerShape(20.dp)).padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Column(Modifier.fillMaxWidth().weight(1f)
+            .testTag("finish-lift-highlight").background(FinishSurface, RoundedCornerShape(20.dp))
+            .border(1.dp, FinishCream.copy(alpha = .18f), RoundedCornerShape(20.dp)).padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                 Text(if (star.isImproved) "MEJOR PROGRESO" else "MEJOR SERIE DE HOY", style = KpknType.eyebrow.copy(fontSize = 11.sp), color = FinishMuted)
-                Text(finishDeltaLabel(star.deltaKg), style = KpknType.caption, color = if(star.isImproved) Color(0xFF7FE3B0) else FinishMuted)
+                if (star.deltaKg != null) Text(finishDeltaLabel(star.deltaKg), style = KpknType.caption, color = if(star.isImproved) Color(0xFF7FE3B0) else FinishMuted)
             }
             Text(star.name, style = KpknType.bodyStrong.copy(fontSize = 16.sp), color = FinishCream, maxLines = 1, overflow = TextOverflow.Ellipsis)
-            FinishSparkline(star.history.map { it.weight } + listOfNotNull(star.best?.weight), Modifier.fillMaxWidth().height(70.dp))
+            if (star.history.isNotEmpty()) {
+                FinishSparkline(star.history.map { it.weight } + listOfNotNull(star.best?.weight),
+                    Modifier.fillMaxWidth().weight(1f))
+            } else {
+                // A first set is a datum, not a trend with a lone point at the bottom.
+                Box(Modifier.fillMaxWidth().weight(1f),
+                    contentAlignment = Alignment.Center) {
+                    BasicText(finishSetLabel(star.best),
+                        style = KpknType.title.copy(color = FinishCream, lineHeight = androidx.compose.ui.unit.TextUnit.Unspecified,
+                            textAlign = androidx.compose.ui.text.style.TextAlign.Center),
+                        maxLines = 1, softWrap = false,
+                        autoSize = remember { TextAutoSize.StepBased(minFontSize = 24.sp, maxFontSize = 52.sp, stepSize = 1.sp) })
+                }
+            }
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                 Text(star.previous?.let { "${finishNumber(it.weight)} kg × ${it.reps}" } ?: "Sin registro previo", style = KpknType.caption, color = FinishMuted)
-                Text("Hoy: ${finishSetLabel(star.best)}", style = KpknType.caption, color = FinishMuted, maxLines = 1)
+                if (star.history.isNotEmpty()) Text("Hoy: ${finishSetLabel(star.best)}", style = KpknType.caption, color = FinishMuted, maxLines = 1)
             }
         }
     }
-    LazyColumn(Modifier.weight(1f).fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-        items(lifts.filter { it.exerciseId != star?.exerciseId }, key = { it.exerciseId }) { lift ->
+    if (otherLifts.isNotEmpty()) LazyColumn(Modifier.heightIn(max = 160.dp).fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        items(otherLifts, key = { it.exerciseId }) { lift ->
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 Column(Modifier.weight(1f)) {
                     Text(lift.name, style = KpknType.bodyStrong.copy(fontSize = 14.sp), color = FinishCream, maxLines = 2)
@@ -189,7 +207,9 @@ internal fun ColumnScope.FinishLiftsPage(lifts: List<FinishLiftProgress>, sessio
             }
         }
     }
-    Column(Modifier.fillMaxWidth().heightIn(min = 126.dp, max = 180.dp).background(FinishSurface, RoundedCornerShape(20.dp)).padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+    Column(Modifier.fillMaxWidth().testTag("finish-tonnage")
+        .then(if (star == null) Modifier.weight(1f) else Modifier.heightIn(min = 126.dp, max = 180.dp))
+        .background(FinishSurface, RoundedCornerShape(20.dp)).padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
             Text("Tonelaje de $sessionName", style = KpknType.caption.copy(fontSize = 13.sp, fontWeight = FontWeight.SemiBold), color = FinishCream, modifier = Modifier.weight(1f), maxLines = 1, overflow = TextOverflow.Ellipsis)
             Text("${finishNumber(totalVolume, 0)} kg hoy", style = KpknType.caption, color = FinishMuted)
@@ -200,12 +220,14 @@ internal fun ColumnScope.FinishLiftsPage(lifts: List<FinishLiftProgress>, sessio
 
 @Composable
 private fun FinishTonnageBars(values: List<Double>, modifier: Modifier) {
-    Canvas(modifier.semantics { contentDescription = "Tonelaje de las últimas ${values.size} sesiones" }) {
+    Canvas(modifier.testTag("finish-tonnage-bars").semantics { contentDescription = "Tonelaje de las últimas ${values.size} sesiones" }) {
         val peak = (values.maxOrNull() ?: 1.0).coerceAtLeast(1.0)
-        val gap = 10.dp.toPx(); val width = ((size.width - gap * (values.size - 1)) / values.size.coerceAtLeast(1)).coerceAtLeast(1f)
+        val gap = 10.dp.toPx()
+        val width = minOf(36.dp.toPx(), ((size.width - gap * (values.size - 1)) / values.size.coerceAtLeast(1)).coerceAtLeast(1f))
+        val start = (size.width - (values.size * width + (values.size - 1) * gap)) / 2f
         values.forEachIndexed { index, value ->
             val height = (value.coerceAtLeast(0.0) / peak).toFloat() * size.height
-            drawRoundRect(if(index == values.lastIndex) FinishPeach else Color(0xFF2A2A2A), Offset(index*(width+gap),size.height-height),
+            drawRoundRect(if(index == values.lastIndex) FinishPeach else Color(0xFF2A2A2A), Offset(start + index*(width+gap),size.height-height),
                 androidx.compose.ui.geometry.Size(width,height), androidx.compose.ui.geometry.CornerRadius(6.dp.toPx()))
         }
     }
