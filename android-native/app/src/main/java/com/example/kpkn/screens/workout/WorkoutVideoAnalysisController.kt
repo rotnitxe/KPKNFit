@@ -21,6 +21,7 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
@@ -34,6 +35,7 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 
 internal data class SetVideoAnalysisUi(val mediaId: String, val state: SetVideoAnalysisState)
 
@@ -54,6 +56,17 @@ internal sealed interface SetVideoAnalysisState {
     data object Inconclusive : SetVideoAnalysisState
     data class Unsupported(val reasonText: String) : SetVideoAnalysisState
     data class Failed(val errorCode: String?) : SetVideoAnalysisState
+}
+
+/** Petición explícita de la interfaz: el repositorio encola FULL aunque el ajuste automático esté apagado. */
+internal class WorkoutVideoAnalysisRetry(
+    private val scope: CoroutineScope,
+    private val repository: () -> VideoAnalysisRepository = { VideoAnalysisRepository.getInstance() },
+    private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
+) {
+    fun retry(mediaId: String): Job = scope.launch(ioDispatcher) {
+        repository().reanalyze(mediaId)
+    }
 }
 
 /**

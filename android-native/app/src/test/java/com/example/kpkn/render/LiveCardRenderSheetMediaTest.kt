@@ -24,9 +24,8 @@ import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.test.click
 import androidx.compose.ui.test.junit4.createComposeRule
-import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
-import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performSemanticsAction
 import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.unit.Density
@@ -46,6 +45,7 @@ import com.example.kpkn.screens.workout.components.MediaFaceTag
 import com.example.kpkn.screens.workout.components.SetCardExerciseMediaBack
 import com.example.kpkn.screens.workout.design.VideoThumbBadge
 import com.example.kpkn.screens.workout.design.VisualModeAnalysisAction
+import com.example.kpkn.screens.workout.design.VisualModeAnalysisLine
 import com.example.kpkn.screens.workout.design.videoThumbContentDescription
 import com.example.kpkn.screens.workout.design.visualModeAnalysisLine
 import com.example.kpkn.ui.components.KpknOverlayHostContent
@@ -136,19 +136,24 @@ class LiveCardRenderSheetMediaTest {
             "discrepancia" to SetVideoAnalysisState.Mismatch(8, 7, 0, 0, CountConfidence.ALTA),
             "coincide" to SetVideoAnalysisState.Agrees(8),
             "intento_fallido" to SetVideoAnalysisState.Suggest(0, 0, 1, CountConfidence.ALTA),
+            "discrepancia_larga" to SetVideoAnalysisState.Mismatch(12, 8, 3, 2, CountConfidence.ALTA, loggedPartials = 2),
+            "error_guardado_largo" to SetVideoAnalysisState.Suggest(8, 1, 0, CountConfidence.ALTA),
+            "sin_soporte_largo" to SetVideoAnalysisState.Unsupported("Este ejercicio todavía no admite análisis de técnica con esta variante. Puedes grabarlo y conservarlo en el álbum de la sesión para revisarlo después."),
+            "sin_insignia" to null,
         )
         val badges = linkedMapOf(
             "analizando" to VideoThumbBadge.Analyzing(42),
             "exacto" to VideoThumbBadge.Reps(8, approximate = false),
             "incierto" to VideoThumbBadge.Inconclusive,
         )
-        val thumbs = badges.keys.map { id ->
-            WorkoutMedia(id, WorkoutMediaKind.VIDEO, "", createdAtMs = 1L, exerciseId = ejercicio.id, setIndex = 2)
+        val thumbs = badges.keys.mapIndexed { index, id ->
+            WorkoutMedia(id, WorkoutMediaKind.VIDEO, "", createdAtMs = 1L, exerciseId = ejercicio.id, setIndex = 2,
+                durationMs = if (index == 1) 65_000L else 12_000L)
         }
         var current by mutableStateOf<SetVideoAnalysisState?>(null)
+        var currentCaptureError by mutableStateOf<String?>(null)
         var currentBadges by mutableStateOf<Map<String, VideoThumbBadge>>(badges)
-        val opened = mutableListOf<String>()
-        val retried = mutableListOf<String>()
+        val actions = mutableListOf<String>()
         val actionFailures = mutableListOf<String>()
         val alto = alturaDeLaTarjeta(fontScale)
         rule.setContent {
@@ -173,8 +178,10 @@ class LiveCardRenderSheetMediaTest {
                                     mediaFilesOverride = thumbs,
                                     videoThumbBadges = currentBadges,
                                     videoAnalysis = current?.let { SetVideoAnalysisUi("serie-3", it) },
-                                    onOpenAnalysis = { opened += it },
-                                    onRetryAnalysis = { retried += it },
+                                    captureErrorOverride = currentCaptureError,
+                                    onOpenAnalysis = { actions += "open:$it" },
+                                    onRetryAnalysis = { actions += "analysis-retry:$it" },
+                                    onRetryPendingCaptures = { actions += "capture-retry" },
                                 )
                             }
                             KpknOverlayHostContent(anfitrion)
@@ -189,9 +196,11 @@ class LiveCardRenderSheetMediaTest {
         states.forEach { (name, state) ->
             rule.runOnIdle {
                 current = state
+                currentCaptureError = if (name == "error_guardado_largo") "No se pudo guardar el medio seleccionado. Puedes reintentar." else null
                 currentBadges = when (name) {
                     "media" -> badges + ("exacto" to VideoThumbBadge.Reps(8, approximate = true))
                     "fallo" -> badges + ("incierto" to VideoThumbBadge.Failed)
+                    "sin_insignia" -> emptyMap()
                     else -> badges
                 }
             }
@@ -206,36 +215,63 @@ class LiveCardRenderSheetMediaTest {
             val layout = layouts.single()
             assertFalse("La frase se corta en $name al $escala %", layout.hasVisualOverflow)
             assertTrue(layout.lineCount <= 2)
-            for (badge in currentBadges.values) {
-                val thumb = rule.onNodeWithContentDescription(videoThumbContentDescription(badge)).fetchSemanticsNode()
+            if (name == "sin_soporte_largo") assertTrue(layout.layoutInput.text.text.endsWith('…'))
+            val message = rule.onNodeWithTag("media_camera_message").fetchSemanticsNode().boundsInRoot
+            val messageArea = rule.onNodeWithTag("media_camera_message_area").fetchSemanticsNode().boundsInRoot
+            val strip = rule.onNodeWithTag("media_thumb_strip").fetchSemanticsNode().boundsInRoot
+            assertTrue("El mensaje se monta sobre las miniaturas", message.bottom < strip.top)
+            assertEquals(messageArea.center.y, message.center.y, 1f)
+            for (media in thumbs) {
+                val badge = currentBadges[media.id]
+                val thumb = rule.onNodeWithTag("media_thumb_${media.id}").fetchSemanticsNode()
+                assertEquals(listOf(videoThumbContentDescription(badge, media.durationMs)), thumb.config[SemanticsProperties.ContentDescription])
                 assertEquals(Role.Button, thumb.config[SemanticsProperties.Role])
                 assertTrue(thumb.boundsInRoot.height >= 48f * MEDIA_DENSITY)
                 assertTrue(thumb.boundsInRoot.width >= 48f * MEDIA_DENSITY)
+                val play = rule.onNodeWithTag("media_play_${media.id}", useUnmergedTree = true).fetchSemanticsNode().boundsInRoot
+                assertEquals(12f, play.width / MEDIA_DENSITY, 0.01f)
+                if (badge != null) {
+                    val badgeBounds = rule.onNodeWithTag("media_badge_${media.id}", useUnmergedTree = true).fetchSemanticsNode().boundsInRoot
+                    assertEquals(16f, badgeBounds.height / MEDIA_DENSITY, 0.01f)
+                    assertTrue(badgeBounds.width >= 16f * MEDIA_DENSITY)
+                    assertFalse("Play e insignia se superponen", play.overlaps(badgeBounds))
+                    rule.onNodeWithTag("media_duration_${media.id}", useUnmergedTree = true).assertDoesNotExist()
+                } else {
+                    val duration = rule.onNodeWithTag("media_duration_${media.id}", useUnmergedTree = true).fetchSemanticsNode().boundsInRoot
+                    assertFalse("Play y duración se superponen", play.overlaps(duration))
+                    rule.onNodeWithTag("media_badge_${media.id}", useUnmergedTree = true).assertDoesNotExist()
+                }
             }
             guardar(MEDIA_SHEET_TAG, "modo_visual_analisis_${name}_$escala")
             if (state != null) {
-                val model = visualModeAnalysisLine(state, 2)
+                val model = currentCaptureError?.let { VisualModeAnalysisLine("$it · reintentar", "reintentar", VisualModeAnalysisAction.RETRY) }
+                    ?: visualModeAnalysisLine(state, 2)
                 assertEquals(listOf(model.text), node.config[SemanticsProperties.ContentDescription])
-                val openBefore = opened.size
-                val retryBefore = retried.size
+                val before = actions.size
                 if (model.action != VisualModeAnalysisAction.NONE) {
                     assertEquals(Role.Button, node.config[SemanticsProperties.Role])
-                    fun checkActionCount(expected: Int, target: String) {
-                        // La inyección de MotionEvent puede terminar antes de que Compose resuelva el gesto.
+                    val expected = when {
+                        currentCaptureError != null -> "capture-retry"
+                        model.action == VisualModeAnalysisAction.OPEN -> "open:serie-3"
+                        else -> "analysis-retry:serie-3"
+                    }
+                    fun checkActionCount(count: Int, target: String) {
                         rule.runOnIdle {
-                            val expectedOpen = openBefore + if (model.action == VisualModeAnalysisAction.OPEN) expected else 0
-                            val expectedRetry = retryBefore + if (model.action == VisualModeAnalysisAction.RETRY) expected else 0
-                            if (opened.size != expectedOpen || retried.size != expectedRetry) {
-                                actionFailures += "$name/$escala/$target: abrir ${opened.size}/$expectedOpen, reintentar ${retried.size}/$expectedRetry"
-                            }
-                            if ((if (model.action == VisualModeAnalysisAction.OPEN) opened else retried).lastOrNull() != "serie-3") {
-                                actionFailures += "$name/$escala/$target: identificador de vídeo incorrecto"
+                            val expectedActions = List(count) { expected }
+                            if (actions.drop(before) != expectedActions) {
+                                actionFailures += "$name/$escala/$target: ${actions.drop(before)}; esperado $expectedActions"
                             }
                         }
                     }
-                    line.performClick()
+                    line.performSemanticsAction(SemanticsActions.OnClick) { it() }
                     checkActionCount(1, "TalkBack")
-                    val start = model.text.lastIndexOf(model.actionLabel!!)
+                    val actionLabel = model.actionLabel!!.replace(' ', '\u00A0')
+                    val displayed = layout.layoutInput.text.text
+                    val start = displayed.lastIndexOf(actionLabel)
+                    assertTrue("Falta la acción completa en $name", start >= 0)
+                    assertTrue(displayed.endsWith(actionLabel))
+                    assertTrue(layout.getLineEnd(layout.lineCount - 1, visibleEnd = true) >= start + actionLabel.length)
+                    if (name == "discrepancia_larga" || (name == "error_guardado_largo" && fontScale > 1f)) assertTrue(displayed.contains('…'))
                     val glyph = layout.getBoundingBox(start)
                     val textTop = (node.boundsInRoot.height - layout.size.height) / 2f
                     line.performTouchInput { click(Offset(glyph.center.x, textTop + glyph.center.y)) }

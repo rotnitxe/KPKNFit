@@ -4,6 +4,7 @@ import android.app.Application
 import androidx.test.core.app.ApplicationProvider
 import com.example.kpkn.data.db.KpknDatabase
 import com.example.kpkn.data.db.VideoAnalysisSessionRow
+import com.example.kpkn.data.db.toSettings
 import com.example.kpkn.data.media.WorkoutMediaStore
 import com.example.kpkn.data.models.CompletedSet
 import com.example.kpkn.data.models.Exercise
@@ -11,9 +12,12 @@ import com.example.kpkn.data.models.VideoAnalysisStatus
 import com.example.kpkn.data.repository.VideoAnalysisRepository
 import com.example.kpkn.data.repository.WorkoutMediaRepository
 import com.example.kpkn.data.work.TechniqueWorkTestKit
+import com.example.kpkn.data.work.TechniqueAnalysisWorker
 import com.example.kpkn.domain.biomechanics.metrics.CountConfidence
 import com.example.kpkn.screens.workout.design.VideoThumbBadge
 import com.example.kpkn.screens.workout.design.VisualModeAnalysisAction
+import com.example.kpkn.screens.workout.design.VisualModeAnalysisLine
+import com.example.kpkn.screens.workout.design.fitVisualModeAnalysisText
 import com.example.kpkn.screens.workout.design.videoThumbBadgeFor
 import com.example.kpkn.screens.workout.design.videoThumbContentDescription
 import com.example.kpkn.screens.workout.design.visualModeAnalysisLine
@@ -38,6 +42,7 @@ import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -47,6 +52,38 @@ import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 
 class VisualModeAnalysisTest {
+
+    @Test fun fitting_keeps_the_entire_action_and_only_shortens_the_description() {
+        val line = visualModeAnalysisLine(SetVideoAnalysisState.Mismatch(8, 7, 2, 1, CountConfidence.ALTA, loggedPartials = 1), 0)
+        val fitted = fitVisualModeAnalysisText(line) { it.length <= 44 }
+        assertTrue(fitted.length <= 44)
+        assertTrue(fitted.endsWith("… · ver análisis"))
+        assertTrue(line.text.contains("+2 parciales · 1 al fallo"))
+        assertEquals(line.text, fitVisualModeAnalysisText(line) { true })
+    }
+
+    @Test fun fitting_a_capture_error_keeps_retry_and_the_original_talkback_phrase() {
+        val full = "No se pudo guardar el medio seleccionado. Puedes reintentar. · reintentar"
+        val line = VisualModeAnalysisLine(full, "reintentar", VisualModeAnalysisAction.RETRY)
+        val fitted = fitVisualModeAnalysisText(line) { it.length <= 42 }
+        assertTrue(fitted.length <= 42)
+        assertTrue(fitted.endsWith("… · reintentar"))
+        assertEquals(full, line.text)
+    }
+
+    @Test fun fitting_a_reason_without_action_uses_one_ellipsis_without_breaking_code_points() {
+        val line = VisualModeAnalysisLine("📷 Este ejercicio todavía no admite este tipo de análisis de técnica")
+        val fitted = fitVisualModeAnalysisText(line) { it.length <= 28 }
+        assertTrue(fitted.startsWith("📷 "))
+        assertTrue(fitted.endsWith("…"))
+        assertTrue(fitted.length <= 28)
+    }
+
+    @Test fun video_duration_is_always_in_talkback_even_with_a_badge() {
+        assertEquals("Vídeo, unas 8 repeticiones, duración 0:12", videoThumbContentDescription(VideoThumbBadge.Reps(8, true), 12_000L))
+        assertEquals("Vídeo, no se pudo analizar, duración 1:05", videoThumbContentDescription(VideoThumbBadge.Failed, 65_000L))
+        assertEquals("Vídeo, duración 1:05", videoThumbContentDescription(null, 65_000L))
+    }
 
     // Cada estado mantiene el texto y la acción explícita de su frase.
 
@@ -306,6 +343,49 @@ class VisualModeAnalysisTest {
         val badge = videoThumbBadgeFor(status = VideoAnalysisStatus.FAILED.name, progressPct = 0, repCount = null, confidence = null)
         assertEquals(VideoThumbBadge.Failed, badge)
         assertNotEquals(VideoThumbBadge.Inconclusive, badge)
+    }
+}
+
+/** Ejecuta la misma pieza que usa el método fino del ViewModel, con Room y WorkManager reales. */
+@RunWith(RobolectricTestRunner::class)
+@Config(manifest = Config.NONE, sdk = [34], application = Application::class)
+class VisualModeAnalysisRetryTest {
+    @get:Rule val folder = TemporaryFolder()
+    private lateinit var db: KpknDatabase
+    private lateinit var store: WorkoutMediaStore
+    private lateinit var repository: VideoAnalysisRepository
+    private lateinit var scope: CoroutineScope
+
+    @Before fun setUp() {
+        val context = ApplicationProvider.getApplicationContext<Application>()
+        db = KpknDatabase.createInMemory(context)
+        store = WorkoutMediaStore(folder.newFolder("files"))
+        repository = VideoAnalysisRepository.forDatabase(context, db, store)
+        scope = CoroutineScope(SupervisorJob() + Dispatchers.Unconfined)
+        TechniqueWorkTestKit.initWorkManager(context)
+    }
+
+    @After fun tearDown() {
+        scope.cancel()
+        TechniqueWorkTestKit.tearDownWorkManager()
+        db.close()
+    }
+
+    @Test fun retry_queues_full_explicit_with_automatic_analysis_off() = runBlocking<Unit> {
+        TechniqueWorkTestKit.putSettings(db, analyzeVideos = false)
+        TechniqueWorkTestKit.insertVideo(db, store, "retry-video")
+        repository.markState("retry-video", VideoAnalysisStatus.FAILED, errorCode = "ERR_CODEC")
+        assertEquals(false, db.settingsDao().get()!!.toSettings().techniqueVideo.analyzeVideos)
+        val retry = WorkoutVideoAnalysisRetry(scope, { repository }, Dispatchers.Unconfined)
+        withTimeout(10_000L) {
+            retry.retry("retry-video").join()
+            val input = TechniqueWorkTestKit.awaitStarted(1).single()
+            assertEquals("retry-video", input.getString(TechniqueAnalysisWorker.KEY_MEDIA_ID))
+            assertEquals("FULL", input.getString(TechniqueAnalysisWorker.KEY_MODE))
+            assertTrue(input.getBoolean(TechniqueAnalysisWorker.KEY_USER_INITIATED, false))
+            assertTrue(input.getBoolean(TechniqueAnalysisWorker.KEY_EXPLICIT, false))
+            assertEquals(VideoAnalysisStatus.QUEUED, repository.getByMedia("retry-video")!!.status)
+        }
     }
 }
 
