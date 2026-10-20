@@ -63,6 +63,14 @@ class TechniqueBenchActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+        // El banco corre en el teléfono bloqueado (VT11b): se muestra y enciende la pantalla sobre el bloqueo.
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
+            setShowWhenLocked(true)
+            setTurnScreenOn(true)
+        } else {
+            @Suppress("DEPRECATION")
+            window.addFlags(WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED or WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON)
+        }
         status = TextView(this).apply {
             setBackgroundColor(Color.BLACK)
             setTextColor(Color.WHITE)
