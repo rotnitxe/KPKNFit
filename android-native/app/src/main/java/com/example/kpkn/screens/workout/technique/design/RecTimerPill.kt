@@ -1,5 +1,6 @@
 package com.example.kpkn.screens.workout.technique.design
 
+import com.example.kpkn.screens.onboarding.design.wizardReducedMotion
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
@@ -34,21 +35,21 @@ import com.example.kpkn.screens.onboarding.design.WizardColors
 fun RecTimerPill(
     elapsedSeconds: Long,
     modifier: Modifier = Modifier,
+    animate: Boolean = true,
 ) {
     val minutes = elapsedSeconds / 60
     val secs = elapsedSeconds % 60
     val formatted = "%d:%02d".format(minutes, secs)
 
-    val transition = rememberInfiniteTransition(label = "recDotPulse")
-    val dotAlpha by transition.animateFloat(
-        initialValue = 1f,
-        targetValue = 0.35f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(600),
-            repeatMode = RepeatMode.Reverse,
-        ),
-        label = "recDotAlpha",
-    )
+    val dotAlpha = if (animate && !wizardReducedMotion()) {
+        val transition = rememberInfiniteTransition(label = "recDotPulse")
+        val alpha by transition.animateFloat(
+            initialValue = 1f, targetValue = 0.35f,
+            animationSpec = infiniteRepeatable(animation = tween(600), repeatMode = RepeatMode.Reverse),
+            label = "recDotAlpha",
+        )
+        alpha
+    } else 1f
 
     Surface(
         modifier = modifier,

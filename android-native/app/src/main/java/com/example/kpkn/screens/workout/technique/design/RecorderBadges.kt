@@ -7,6 +7,9 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -77,6 +80,7 @@ fun PlateDiameterBadge(
     onSelectDiameterMm: (Int?) -> Unit,
     modifier: Modifier = Modifier,
     onCustomSelected: () -> Unit = {},
+    visualMode: Boolean = false,
 ) {
     val reducedMotion = wizardReducedMotion()
     val label = when (diameterMm) {
@@ -92,6 +96,20 @@ fun PlateDiameterBadge(
         horizontalAlignment = Alignment.End,
         verticalArrangement = Arrangement.spacedBy(6.dp),
     ) {
+        if (visualMode) Box(
+            modifier = Modifier.defaultMinSize(minHeight = 48.dp)
+                .clickable(role = Role.Button, onClick = onToggleExpanded),
+            contentAlignment = Alignment.Center,
+        ) {
+            Text(
+                text = label.replace(" cm", "\u00A0cm"),
+                style = com.example.kpkn.ui.design.KpknType.caption,
+                color = WizardColors.text,
+                modifier = Modifier.background(KpknSurface.inset, KpknShape.pill)
+                    .border(1.dp, WizardColors.text.copy(alpha = 0.16f), KpknShape.pill)
+                    .padding(horizontal = 10.dp, vertical = 4.dp),
+            )
+        } else {
         Surface(
             modifier = Modifier.defaultMinSize(minHeight = 48.dp).clickable(role = Role.Button, onClick = onToggleExpanded),
             shape = KpknShape.pill,
@@ -106,11 +124,12 @@ fun PlateDiameterBadge(
                 modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
             )
         }
+        }
 
         AnimatedVisibility(
             visible = expanded,
-            enter = if (reducedMotion) fadeIn() else fadeIn() + expandVertically(),
-            exit = if (reducedMotion) fadeOut() else fadeOut() + shrinkVertically(),
+            enter = if (reducedMotion) androidx.compose.animation.EnterTransition.None else fadeIn() + expandVertically(),
+            exit = if (reducedMotion) androidx.compose.animation.ExitTransition.None else fadeOut() + shrinkVertically(),
         ) {
             Row(
                 horizontalArrangement = Arrangement.spacedBy(4.dp),

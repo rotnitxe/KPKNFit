@@ -16,6 +16,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.StrokeJoin
@@ -37,6 +39,8 @@ fun FramingGuideOverlay(
     hasBarbell: Boolean = false,
     modifier: Modifier = Modifier,
     profileId: AnalysisProfileId? = null,
+    expandedScene: Boolean = false,
+    showSilhouette: Boolean = true,
 ) {
     val isFront = preferredView == ViewKind.FRONT
 
@@ -44,7 +48,12 @@ fun FramingGuideOverlay(
         modifier = modifier.fillMaxSize(),
         contentAlignment = Alignment.Center,
     ) {
-        Canvas(modifier = Modifier.fillMaxSize().padding(top = 128.dp, bottom = 232.dp)) {
+        if (showSilhouette) Canvas(
+            modifier = Modifier.fillMaxSize().padding(
+                top = if (expandedScene) 0.dp else 128.dp,
+                bottom = if (expandedScene) 128.dp else 232.dp,
+            ),
+        ) {
             val w = size.width
             val h = size.height
             val cx = w * 0.5f
@@ -187,8 +196,9 @@ fun FramingGuideOverlay(
         Column(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
-                .padding(bottom = 128.dp, start = 16.dp, end = 16.dp)
-                .background(WizardColors.background.copy(alpha = 0.70f), RoundedCornerShape(16.dp))
+                .padding(bottom = if (expandedScene) 0.dp else 128.dp, start = 16.dp, end = 16.dp)
+                .testTag("technique_guide_text")
+                .background(Color.Black.copy(alpha = if (expandedScene) 0.55f else 0.70f), RoundedCornerShape(16.dp))
                 .padding(horizontal = 12.dp, vertical = 10.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(4.dp),
