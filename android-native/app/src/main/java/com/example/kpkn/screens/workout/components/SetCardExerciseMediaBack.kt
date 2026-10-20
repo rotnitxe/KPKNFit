@@ -88,6 +88,7 @@ import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withLink
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
@@ -110,6 +111,7 @@ import com.example.kpkn.screens.workout.WorkoutMediaCaptureRequest
 import com.example.kpkn.screens.workout.design.VideoThumbBadge
 import com.example.kpkn.screens.workout.design.VisualModeAnalysisAction
 import com.example.kpkn.screens.workout.design.VisualModeAnalysisLine
+import com.example.kpkn.screens.workout.design.fitVisualModeAnalysisText
 import com.example.kpkn.screens.workout.design.videoThumbContentDescription
 import com.example.kpkn.screens.workout.design.visualModeAnalysisLine
 import com.example.kpkn.screens.workout.withExerciseCaptureContext
@@ -173,6 +175,8 @@ internal fun SetCardExerciseMediaBack(
     videoThumbBadges: Map<String, VideoThumbBadge> = emptyMap(),
     onRetryAnalysis: ((String) -> Unit)? = null,
     videoAnalysis: SetVideoAnalysisUi? = null,
+    /** Error de ejemplo para comprobar el pie sin iniciar una captura. */
+    captureErrorOverride: String? = null,
 ) {
     val context = LocalContext.current
     val density = LocalDensity.current
@@ -196,7 +200,8 @@ internal fun SetCardExerciseMediaBack(
     val idleBind = remember { kotlinx.coroutines.flow.MutableStateFlow(0) }
     val sessionMedia by (mediaCapture?.sessionMedia ?: emptyMedia).collectAsStateWithLifecycle()
     val recording by (mediaCapture?.isRecording ?: idleRecording).collectAsStateWithLifecycle()
-    val captureError by (mediaCapture?.captureError ?: idleError).collectAsStateWithLifecycle()
+    val observedCaptureError by (mediaCapture?.captureError ?: idleError).collectAsStateWithLifecycle()
+    val captureError = captureErrorOverride ?: observedCaptureError
     val bindGeneration by (mediaCapture?.bindGeneration ?: idleBind).collectAsStateWithLifecycle()
     val normalizedActiveSide = com.example.kpkn.data.media.WorkoutMediaSides.normalize(side, exercise)
     val exerciseFiles = remember(sessionMedia, exercise.id, exerciseKey, setIndex, normalizedActiveSide, mediaFilesOverride) {
@@ -499,32 +504,52 @@ private fun MediaAnalysisLine(
     modifier: Modifier = Modifier,
 ) {
     var layout by remember { mutableStateOf<TextLayoutResult?>(null) }
+    val measurer = rememberTextMeasurer()
+    val captionStyle = KpknType.caption
     val label = line.actionLabel
-    val actionStart = if (label != null && onAction != null) line.text.lastIndexOf(label) else -1
-    val annotated = buildAnnotatedString {
-        if (actionStart >= 0 && label != null) {
-            append(line.text.substring(0, actionStart))
-            withLink(LinkAnnotation.Clickable(
-                tag = "visual-analysis-${line.action}",
-                styles = TextLinkStyles(SpanStyle(fontWeight = FontWeight.SemiBold, color = WizardColors.text, textDecoration = TextDecoration.None)),
-                linkInteractionListener = { onAction?.invoke() },
-            )) { append(label.replace(' ', '\u00A0')) }
-        } else append(line.text)
+    fun annotated(text: String) = buildAnnotatedString {
+        val start = if (label != null && onAction != null) text.lastIndexOf(label) else -1
+        if (start >= 0 && label != null) {
+            append(text.substring(0, start))
+            val actionStyle = SpanStyle(fontWeight = FontWeight.SemiBold, color = WizardColors.text, textDecoration = TextDecoration.None)
+            withStyle(actionStyle) {
+                withLink(LinkAnnotation.Clickable(
+                    tag = "visual-analysis-${line.action}",
+                    styles = TextLinkStyles(actionStyle),
+                    linkInteractionListener = { onAction?.invoke() },
+                )) { append(label.replace(' ', '\u00A0')) }
+            }
+        } else append(text)
     }
-    Box(
+    BoxWithConstraints(
         modifier = modifier
             .height(48.dp)
             .testTag("media_analysis_line")
             .clearAndSetSemantics {
                 contentDescription = line.text
-                text = AnnotatedString(line.text)
+                text = AnnotatedString(layout?.layoutInput?.text?.text ?: line.text)
                 getTextLayoutResult { results -> layout?.let { results.add(it) } ?: false }
                 if (onAction != null) {
                     role = Role.Button
                     onClick(label = label) { onAction(); true }
                 }
+            },
+        contentAlignment = Alignment.CenterStart,
+    ) {
+        val limits = constraints
+        val displayed = remember(line, limits, measurer, captionStyle, onAction) {
+            val fitted = fitVisualModeAnalysisText(line) { candidate ->
+                !measurer.measure(
+                    text = annotated(candidate), style = captionStyle,
+                    maxLines = 2, overflow = TextOverflow.Clip, constraints = limits,
+                ).hasVisualOverflow
             }
-            .then(if (actionStart >= 0 && label != null) Modifier.pointerInput(line, onAction) {
+            annotated(fitted)
+        }
+        val actionStart = if (label != null && onAction != null) displayed.text.lastIndexOf(label.replace(' ', '\u00A0')) else -1
+        Box(
+            modifier = Modifier.fillMaxSize()
+            .then(if (actionStart >= 0 && label != null) Modifier.pointerInput(displayed.text, onAction) {
                 awaitEachGesture {
                     val down = awaitFirstDown(pass = PointerEventPass.Initial)
                     val measured = layout ?: return@awaitEachGesture
@@ -549,17 +574,18 @@ private fun MediaAnalysisLine(
                     }
                 }
             } else Modifier),
-        contentAlignment = Alignment.CenterStart,
-    ) {
-        Text(
-            text = annotated,
-            modifier = Modifier.fillMaxWidth().testTag("media_analysis_text"),
-            style = KpknType.caption,
-            color = color,
-            maxLines = 2,
-            overflow = TextOverflow.Ellipsis,
-            onTextLayout = { layout = it },
-        )
+            contentAlignment = Alignment.CenterStart,
+        ) {
+            Text(
+                text = displayed,
+                modifier = Modifier.fillMaxWidth().testTag("media_analysis_text"),
+                style = captionStyle,
+                color = color,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+                onTextLayout = { layout = it },
+            )
+        }
     }
 }
 

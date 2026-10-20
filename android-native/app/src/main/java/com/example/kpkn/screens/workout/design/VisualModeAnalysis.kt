@@ -59,6 +59,24 @@ internal data class VisualModeAnalysisLine(
     val action: VisualModeAnalysisAction = VisualModeAnalysisAction.NONE,
 )
 
+/** Se abrevia solo la descripción; el sufijo de la acción nunca se entrega a la elipsis de Text. */
+internal fun fitVisualModeAnalysisText(line: VisualModeAnalysisLine, fits: (String) -> Boolean): String {
+    if (fits(line.text)) return line.text
+    val suffix = line.actionLabel?.takeIf { line.action != VisualModeAnalysisAction.NONE }
+        ?.let { " · $it" }.orEmpty()
+    val description = line.text.removeSuffix(suffix)
+    fun candidate(codePoints: Int): String =
+        description.substring(0, description.offsetByCodePoints(0, codePoints))
+            .trimEnd(' ', '·', ';', ',', '…') + "…" + suffix
+    var low = 0
+    var high = description.codePointCount(0, description.length)
+    while (low < high) {
+        val middle = (low + high + 1) / 2
+        if (fits(candidate(middle))) low = middle else high = middle - 1
+    }
+    return candidate(low)
+}
+
 /** Una frase y, cuando procede, una acción explícita dentro de ella. */
 internal fun visualModeAnalysisLine(state: SetVideoAnalysisState, setIndex: Int): VisualModeAnalysisLine {
     fun extras(partials: Int, failed: Int): String = buildString {
