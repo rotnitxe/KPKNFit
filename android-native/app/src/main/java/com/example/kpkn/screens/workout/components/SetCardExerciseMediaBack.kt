@@ -35,6 +35,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -711,12 +712,37 @@ private fun MediaStage(
                 ),
             ),
     ) {
+        val leftMax = maxWidth - 12.dp - (shutterOuter + 16.dp + 8.dp)
+        val leftBottom = 14.dp + (shutterOuter - 48.dp) / 2
+        val galleryWidth = when {
+            !galleryEnabled -> 0.dp
+            compact -> 48.dp
+            else -> with(density) { measurer.measure(AnnotatedString("Galería"), KpknType.chip).size.width.toDp() } + 24.dp
+        }
+        val albumWidth = if (albumEnabled) {
+            with(density) { measurer.measure(AnnotatedString("Ver álbum"), KpknType.chip).size.width.toDp() } + 20.dp
+        } else 0.dp
+        val maxShown = minOf(maxThumbs, thumbs.size)
+        val oneRowRoom = leftMax - 12.dp - (if (galleryEnabled) galleryWidth + 6.dp else 0.dp) - (if (albumEnabled) albumWidth + 6.dp else 0.dp)
+        val oneRowThumbs = thumbCountThatFits(oneRowRoom, thumbTarget, 6.dp, maxShown)
+        val twoRows = compact || oneRowThumbs < minOf(2, maxShown)
+        val room = leftMax - (if (compact) 0.dp else 12.dp) - (if (galleryEnabled && !compact) galleryWidth + 6.dp else 0.dp)
+        val shown = thumbs.take(if (twoRows) thumbCountThatFits(room, thumbTarget, 6.dp, maxShown) else oneRowThumbs)
+        val firstRowHeight = if (shown.isNotEmpty() || (!compact && galleryEnabled)) 48.dp else 0.dp
+        val secondRowHeight = if (albumEnabled || (compact && galleryEnabled)) 48.dp else 0.dp
+        val groupHeight = (if (twoRows) firstRowHeight + secondRowHeight else 48.dp) + if (compact) 0.dp else 12.dp
+        val occupiedBottom = maxOf(shutterOuter + 14.dp, groupHeight + leftBottom - if (compact) 0.dp else 6.dp)
         if (showPreview && cameraReady) {
             MediaCameraSurface(session = session, modifier = Modifier.fillMaxSize())
         } else if (!cameraReady) {
-            Box(Modifier.fillMaxSize().padding(horizontal = 16.dp), contentAlignment = Alignment.Center) {
+            Box(
+                Modifier.fillMaxSize().padding(start = 16.dp, end = 16.dp, top = 60.dp, bottom = occupiedBottom + 8.dp)
+                    .testTag("media_camera_message_area"),
+                contentAlignment = Alignment.Center,
+            ) {
                 Text(
                     "Activa la cámara para grabar desde esta tarjeta",
+                    modifier = Modifier.testTag("media_camera_message"),
                     style = KpknType.caption,
                     color = Color.White.copy(alpha = 0.55f),
                     maxLines = 3,
@@ -764,23 +790,6 @@ private fun MediaStage(
         // Abajo a la izquierda: «Galería», las miniaturas de la sesión y «Ver álbum»; abajo a la derecha, el botón redondo (A3, G3). Van en una sola
         // fila si caben al menos dos miniaturas junto a los dos botones; si no (la tarjeta, que es estrecha, y los teléfonos de 360 dp), en dos filas:
         // arriba «Galería» y las miniaturas que caben y debajo «Ver álbum». Así las miniaturas de la sesión se conservan en las dos vistas.
-        val leftMax = maxWidth - 12.dp - (shutterOuter + 16.dp + 8.dp)
-        // El grupo se centra en vertical con el botón redondo.
-        val leftBottom = 14.dp + (shutterOuter - 48.dp) / 2
-        val galleryWidth = when {
-            !galleryEnabled -> 0.dp
-            compact -> 48.dp
-            else -> with(density) { measurer.measure(AnnotatedString("Galería"), KpknType.chip).size.width.toDp() } + 24.dp
-        }
-        val albumWidth = if (albumEnabled) {
-            with(density) { measurer.measure(AnnotatedString("Ver álbum"), KpknType.chip).size.width.toDp() } + 20.dp
-        } else {
-            0.dp
-        }
-        val maxShown = minOf(maxThumbs, thumbs.size)
-        val oneRowRoom = leftMax - 12.dp - (if (galleryEnabled) galleryWidth + 6.dp else 0.dp) - (if (albumEnabled) albumWidth + 6.dp else 0.dp)
-        val oneRowThumbs = thumbCountThatFits(oneRowRoom, thumbTarget, 6.dp, maxShown)
-        val twoRows = compact || oneRowThumbs < minOf(2, maxShown)
         val galleryButton: @Composable () -> Unit = {
             if (galleryEnabled) {
                 if (compact) {
@@ -803,24 +812,28 @@ private fun MediaStage(
             list.forEach { media ->
                 val badge = if (media.kind == WorkoutMediaKind.VIDEO) videoThumbBadges[media.id] else null
                 val talkBackDesc = if (media.kind == WorkoutMediaKind.VIDEO) {
-                    videoThumbContentDescription(badge)
+                    videoThumbContentDescription(badge, media.durationMs)
                 } else "Foto de ${media.exerciseName ?: "la serie"}"
                 Box(
                     modifier = Modifier
                         .size(thumbTarget)
+                        .testTag("media_thumb_${media.id}")
                         .clickable(role = Role.Button, onClick = { onThumb(media) })
                         .semantics { contentDescription = talkBackDesc },
                     contentAlignment = Alignment.Center,
                 ) {
-                    Box(Modifier.size(thumbSize).clip(RoundedCornerShape(12.dp)).clearAndSetSemantics {}) {
+                    Box(Modifier.size(thumbSize).clearAndSetSemantics {}) {
                         WorkoutMediaThumb(
                             media = media,
-                            modifier = Modifier.fillMaxSize(),
+                            modifier = Modifier.fillMaxSize().clip(RoundedCornerShape(12.dp)),
+                            visualModeOverlay = true,
+                            hasAnalysisBadge = badge != null,
                         )
                         if (badge != null) {
                             VideoThumbBadgeOverlay(
                                 badge = badge,
-                                modifier = Modifier.align(Alignment.BottomEnd).padding(3.dp),
+                                modifier = Modifier.align(Alignment.BottomEnd).offset(x = 4.dp, y = 4.dp)
+                                    .testTag("media_badge_${media.id}"),
                             )
                         }
                     }
@@ -832,6 +845,7 @@ private fun MediaStage(
             Modifier
                 .align(Alignment.BottomStart)
                 .padding(start = 12.dp, bottom = leftBottom)
+                .testTag("media_thumb_strip")
         } else {
             Modifier
                 .align(Alignment.BottomStart)
@@ -839,10 +853,9 @@ private fun MediaStage(
                 .clip(RoundedCornerShape(18.dp))
                 .background(Color.Black.copy(alpha = 0.45f), RoundedCornerShape(18.dp))
                 .padding(6.dp)
+                .testTag("media_thumb_strip")
         }
         if (twoRows) {
-            val room = leftMax - (if (compact) 0.dp else 12.dp) - (if (galleryEnabled && !compact) galleryWidth + 6.dp else 0.dp)
-            val shown = thumbs.take(thumbCountThatFits(room, thumbTarget, 6.dp, maxShown))
             Column(modifier = groupModifier) {
                 if (galleryEnabled || shown.isNotEmpty()) {
                     Row(
@@ -864,7 +877,7 @@ private fun MediaStage(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(6.dp),
             ) {
-                thumbTiles(thumbs.take(oneRowThumbs))
+                thumbTiles(shown)
                 galleryButton()
                 if (albumEnabled) AlbumPill(onClick = onAlbum)
             }
@@ -889,13 +902,14 @@ private fun MediaStage(
 @Composable
 private fun VideoThumbBadgeOverlay(badge: VideoThumbBadge, modifier: Modifier = Modifier) {
     Box(
-        modifier = modifier.size(20.dp)
+        modifier = modifier.height(16.dp).widthIn(min = 16.dp)
             .background(Color.Black.copy(alpha = 0.72f), CircleShape)
-            .border(1.dp, WizardColors.text.copy(alpha = 0.28f), CircleShape),
+            .border(1.dp, WizardColors.text.copy(alpha = 0.28f), CircleShape)
+            .padding(horizontal = 4.dp),
         contentAlignment = Alignment.Center,
     ) {
         if (badge is VideoThumbBadge.Analyzing) {
-            Canvas(Modifier.size(14.dp)) {
+            Canvas(Modifier.size(12.dp)) {
                 val stroke = Stroke(width = 2.dp.toPx(), cap = StrokeCap.Round)
                 drawCircle(WizardColors.text.copy(alpha = 0.20f), style = stroke)
                 drawArc(
@@ -913,7 +927,7 @@ private fun VideoThumbBadgeOverlay(badge: VideoThumbBadge, modifier: Modifier = 
             }
             Text(
                 text,
-                style = KpknType.chip.copy(fontSize = 11.sp, lineHeight = 11.sp),
+                style = KpknType.chip.copy(fontSize = 10.sp, lineHeight = 10.sp),
                 color = when (badge) {
                     VideoThumbBadge.Failed -> WizardColors.danger
                     VideoThumbBadge.Inconclusive -> WizardColors.textMuted

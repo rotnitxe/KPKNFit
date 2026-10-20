@@ -1,6 +1,7 @@
 package com.example.kpkn.screens.workout.design
 
 import com.example.kpkn.data.db.VideoAnalysisSessionRow
+import com.example.kpkn.data.media.WorkoutAlbumGrouping
 import com.example.kpkn.data.models.VideoAnalysisStatus
 import com.example.kpkn.domain.biomechanics.metrics.CountConfidence
 import com.example.kpkn.screens.workout.SetVideoAnalysisState
@@ -39,16 +40,19 @@ internal fun videoThumbBadgeFor(row: VideoAnalysisSessionRow): VideoThumbBadge? 
     videoThumbBadgeFor(row.status, row.progressPct, row.repCount, row.confidence)
 
 /** La descripción sustituye las etiquetas del vídeo y de su insignia. */
-internal fun videoThumbContentDescription(badge: VideoThumbBadge?): String = when (badge) {
-    null -> "Vídeo"
-    is VideoThumbBadge.Analyzing -> "Vídeo, analizando ${badge.progress.coerceIn(0, 100)}\u00A0%"
-    is VideoThumbBadge.Reps -> if (badge.approximate) {
-        "Vídeo, unas ${badge.count} repeticiones"
-    } else {
-        "Vídeo, ${badge.count} repeticiones"
+internal fun videoThumbContentDescription(badge: VideoThumbBadge?, durationMs: Long? = null): String {
+    val state = when (badge) {
+        null -> "Vídeo"
+        is VideoThumbBadge.Analyzing -> "Vídeo, analizando ${badge.progress.coerceIn(0, 100)}\u00A0%"
+        is VideoThumbBadge.Reps -> if (badge.approximate) {
+            "Vídeo, unas ${badge.count} repeticiones"
+        } else {
+            "Vídeo, ${badge.count} repeticiones"
+        }
+        VideoThumbBadge.Inconclusive -> "Vídeo no concluyente"
+        VideoThumbBadge.Failed -> "Vídeo, no se pudo analizar"
     }
-    VideoThumbBadge.Inconclusive -> "Vídeo no concluyente"
-    VideoThumbBadge.Failed -> "Vídeo, no se pudo analizar"
+    return WorkoutAlbumGrouping.formatDurationMs(durationMs)?.let { "$state, duración $it" } ?: state
 }
 
 internal enum class VisualModeAnalysisAction { OPEN, RETRY, NONE }
