@@ -187,14 +187,10 @@ class TechniqueBenchActivity : ComponentActivity() {
                         "Listo: ${check.run()}"
                     }
                     MODE_ANALYZE_FILE -> {
-                        val bench = AnalyzeFileBench(
+                        val bench = AnalyzeFileBench.fromIntent(
                             this@TechniqueBenchActivity,
                             BenchLayout.resolve(this@TechniqueBenchActivity),
-                            videoFilter = listExtra(EXTRA_VIDEOS),
-                            specs = AnalyzeSpec.parse(intent.getStringExtra(EXTRA_EXERCISES)),
-                            useHeavy = intent.getStringExtra(EXTRA_MODEL) == "heavy",
-                            plateMm = intent.getIntExtra(EXTRA_PLATE_MM, DEFAULT_PLATE_MM),
-                            heightCm = intent.getIntExtra(EXTRA_HEIGHT_CM, 0).takeIf { it > 0 }?.toDouble(),
+                            intent,
                         )
                         "Listo: ${bench.run()}"
                     }
@@ -225,11 +221,6 @@ private const val MODE_TELEMETRY_CHECK = "telemetry_check"
 private const val MODE_ANALYZE_FILE = "analyze_file"
 private const val MODE_RECORDER_PREVIEW = "recorder_preview"
 private const val ANALYZE_FILE = "analyze.json"
-private const val EXTRA_EXERCISES = "exercises"
-private const val EXTRA_MODEL = "model"
-private const val EXTRA_PLATE_MM = "plateMm"
-private const val EXTRA_HEIGHT_CM = "heightCm"
-private const val DEFAULT_PLATE_MM = 450
 private const val EXTRA_QUIT = "quit"
 private const val EXTRA_ENGINES = "engines"
 private const val EXTRA_VIDEOS = "videos"

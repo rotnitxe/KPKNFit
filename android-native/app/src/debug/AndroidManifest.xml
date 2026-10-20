@@ -2,6 +2,11 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
     <application>
+        <!-- SOLO DEPURACIÓN: el mismo analyze_file, sin actividad ni pantalla. Los permisos ya están en main. -->
+        <service
+            android:name="com.example.kpkn.debug.TechniqueBenchService"
+            android:exported="true"
+            android:foregroundServiceType="dataSync|mediaProcessing" />
         <!-- SOLO DEPURACIÓN: vista previa de los símbolos de Entreno (lugares e implementos); no se integra. -->
         <activity
             android:name="com.example.kpkn.debug.EntrenoSymbolsPreviewActivity"
