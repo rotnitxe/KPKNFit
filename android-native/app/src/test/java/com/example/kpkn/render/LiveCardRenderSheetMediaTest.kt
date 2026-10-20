@@ -9,14 +9,26 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.SemanticsActions
+import androidx.compose.ui.semantics.SemanticsProperties
+import androidx.compose.ui.test.click
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
+import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performTouchInput
+import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import com.example.kpkn.data.models.Exercise
@@ -25,7 +37,17 @@ import com.example.kpkn.data.models.IntensityMode
 import com.example.kpkn.data.models.LoadModeV2
 import com.example.kpkn.data.models.TrainingMode
 import com.example.kpkn.data.models.UnitModeV2
+import com.example.kpkn.data.models.WorkoutMedia
+import com.example.kpkn.data.models.WorkoutMediaKind
+import com.example.kpkn.domain.biomechanics.metrics.CountConfidence
+import com.example.kpkn.screens.workout.SetVideoAnalysisState
+import com.example.kpkn.screens.workout.SetVideoAnalysisUi
+import com.example.kpkn.screens.workout.components.MediaFaceTag
 import com.example.kpkn.screens.workout.components.SetCardExerciseMediaBack
+import com.example.kpkn.screens.workout.design.VideoThumbBadge
+import com.example.kpkn.screens.workout.design.VisualModeAnalysisAction
+import com.example.kpkn.screens.workout.design.videoThumbContentDescription
+import com.example.kpkn.screens.workout.design.visualModeAnalysisLine
 import com.example.kpkn.ui.components.KpknOverlayHostContent
 import com.example.kpkn.ui.components.LocalKpknOverlayHost
 import com.example.kpkn.ui.components.rememberKpknOverlayHostController
@@ -33,6 +55,9 @@ import com.example.kpkn.ui.theme.KPKNTheme
 import java.io.File
 import java.io.FileOutputStream
 import org.junit.Assume.assumeTrue
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.BeforeClass
 import org.junit.Rule
 import org.junit.Test
@@ -94,6 +119,135 @@ class LiveCardRenderSheetMediaTest {
     @Test fun modoVisualTarjeta130() { onlyWhenAsked(); dibujar(1.3f, "modo_visual_tarjeta_130") }
     @Test fun modoVisualExpandido100() { onlyWhenAsked(); dibujar(1f, "modo_visual_expandido_100", expandido = true) }
     @Test fun modoVisualExpandido130() { onlyWhenAsked(); dibujar(1.3f, "modo_visual_expandido_130", expandido = true) }
+
+    @Test fun analisisEnLaTarjeta100() { onlyWhenAsked(); dibujarAnalisis(1f, "100") }
+    @Test fun analisisEnLaTarjeta130() { onlyWhenAsked(); dibujarAnalisis(1.3f, "130") }
+
+    /** Cada captura usa la misma instancia y las mismas medidas; solo cambia el resultado de Room. */
+    private fun dibujarAnalisis(fontScale: Float, escala: String) {
+        val states = listOf(
+            "sin_video" to null,
+            "analizando" to SetVideoAnalysisState.Analyzing(42),
+            "alta" to SetVideoAnalysisState.Suggest(8, 1, 0, CountConfidence.ALTA),
+            "media" to SetVideoAnalysisState.Suggest(8, 0, 0, CountConfidence.MEDIA),
+            "no_concluyente" to SetVideoAnalysisState.Inconclusive,
+            "fallo" to SetVideoAnalysisState.Failed("ERR_CODEC"),
+            "sin_soporte" to SetVideoAnalysisState.Unsupported("Este ejercicio todavía no admite análisis de técnica"),
+            "discrepancia" to SetVideoAnalysisState.Mismatch(8, 7, 0, 0, CountConfidence.ALTA),
+            "coincide" to SetVideoAnalysisState.Agrees(8),
+            "intento_fallido" to SetVideoAnalysisState.Suggest(0, 0, 1, CountConfidence.ALTA),
+        )
+        val badges = linkedMapOf(
+            "analizando" to VideoThumbBadge.Analyzing(42),
+            "exacto" to VideoThumbBadge.Reps(8, approximate = false),
+            "incierto" to VideoThumbBadge.Inconclusive,
+        )
+        val thumbs = badges.keys.map { id ->
+            WorkoutMedia(id, WorkoutMediaKind.VIDEO, "", createdAtMs = 1L, exerciseId = ejercicio.id, setIndex = 2)
+        }
+        var current by mutableStateOf<SetVideoAnalysisState?>(null)
+        var currentBadges by mutableStateOf<Map<String, VideoThumbBadge>>(badges)
+        val opened = mutableListOf<String>()
+        val retried = mutableListOf<String>()
+        val actionFailures = mutableListOf<String>()
+        val alto = alturaDeLaTarjeta(fontScale)
+        rule.setContent {
+            hostView = LocalView.current
+            val anfitrion = rememberKpknOverlayHostController()
+            CompositionLocalProvider(
+                LocalDensity provides Density(MEDIA_DENSITY, fontScale),
+                LocalKpknOverlayHost provides anfitrion,
+            ) {
+                KPKNTheme {
+                    MaterialTheme {
+                        Box(Modifier.width(360.dp).height((alto + 32).dp).background(Color.Black).testTag(MEDIA_SHEET_TAG)) {
+                            Box(Modifier.align(Alignment.TopCenter).padding(top = 16.dp).width(272.dp).height(alto.dp)) {
+                                SetCardExerciseMediaBack(
+                                    exercise = ejercicio,
+                                    onFlipBack = {},
+                                    setIndex = 2,
+                                    weightKg = 95.0,
+                                    reps = 6,
+                                    effortLabel = "RIR 2",
+                                    showControlsWithoutCamera = true,
+                                    mediaFilesOverride = thumbs,
+                                    videoThumbBadges = currentBadges,
+                                    videoAnalysis = current?.let { SetVideoAnalysisUi("serie-3", it) },
+                                    onOpenAnalysis = { opened += it },
+                                    onRetryAnalysis = { retried += it },
+                                )
+                            }
+                            KpknOverlayHostContent(anfitrion)
+                        }
+                    }
+                }
+            }
+        }
+        rule.waitForIdle()
+        val border = rule.onNodeWithTag(MediaFaceTag).fetchSemanticsNode().boundsInRoot
+        val camera = rule.onNodeWithTag("media_stage_compact").fetchSemanticsNode().boundsInRoot
+        states.forEach { (name, state) ->
+            rule.runOnIdle {
+                current = state
+                currentBadges = when (name) {
+                    "media" -> badges + ("exacto" to VideoThumbBadge.Reps(8, approximate = true))
+                    "fallo" -> badges + ("incierto" to VideoThumbBadge.Failed)
+                    else -> badges
+                }
+            }
+            rule.waitForIdle()
+            assertEquals("El borde cambia con $name al $escala %", border, rule.onNodeWithTag(MediaFaceTag).fetchSemanticsNode().boundsInRoot)
+            assertEquals("La cámara cambia con $name al $escala %", camera, rule.onNodeWithTag("media_stage_compact").fetchSemanticsNode().boundsInRoot)
+            val line = rule.onNodeWithTag("media_analysis_line")
+            val node = line.fetchSemanticsNode()
+            assertEquals(48f, node.boundsInRoot.height / MEDIA_DENSITY, 0.01f)
+            val layouts = mutableListOf<TextLayoutResult>()
+            rule.runOnIdle { node.config[SemanticsActions.GetTextLayoutResult].action?.invoke(layouts) }
+            val layout = layouts.single()
+            assertFalse("La frase se corta en $name al $escala %", layout.hasVisualOverflow)
+            assertTrue(layout.lineCount <= 2)
+            for (badge in currentBadges.values) {
+                val thumb = rule.onNodeWithContentDescription(videoThumbContentDescription(badge)).fetchSemanticsNode()
+                assertEquals(Role.Button, thumb.config[SemanticsProperties.Role])
+                assertTrue(thumb.boundsInRoot.height >= 48f * MEDIA_DENSITY)
+                assertTrue(thumb.boundsInRoot.width >= 48f * MEDIA_DENSITY)
+            }
+            guardar(MEDIA_SHEET_TAG, "modo_visual_analisis_${name}_$escala")
+            if (state != null) {
+                val model = visualModeAnalysisLine(state, 2)
+                assertEquals(listOf(model.text), node.config[SemanticsProperties.ContentDescription])
+                val openBefore = opened.size
+                val retryBefore = retried.size
+                if (model.action != VisualModeAnalysisAction.NONE) {
+                    assertEquals(Role.Button, node.config[SemanticsProperties.Role])
+                    fun checkActionCount(expected: Int, target: String) {
+                        // La inyección de MotionEvent puede terminar antes de que Compose resuelva el gesto.
+                        rule.runOnIdle {
+                            val expectedOpen = openBefore + if (model.action == VisualModeAnalysisAction.OPEN) expected else 0
+                            val expectedRetry = retryBefore + if (model.action == VisualModeAnalysisAction.RETRY) expected else 0
+                            if (opened.size != expectedOpen || retried.size != expectedRetry) {
+                                actionFailures += "$name/$escala/$target: abrir ${opened.size}/$expectedOpen, reintentar ${retried.size}/$expectedRetry"
+                            }
+                            if ((if (model.action == VisualModeAnalysisAction.OPEN) opened else retried).lastOrNull() != "serie-3") {
+                                actionFailures += "$name/$escala/$target: identificador de vídeo incorrecto"
+                            }
+                        }
+                    }
+                    line.performClick()
+                    checkActionCount(1, "TalkBack")
+                    val start = model.text.lastIndexOf(model.actionLabel!!)
+                    val glyph = layout.getBoundingBox(start)
+                    val textTop = (node.boundsInRoot.height - layout.size.height) / 2f
+                    line.performTouchInput { click(Offset(glyph.center.x, textTop + glyph.center.y)) }
+                    checkActionCount(2, "palabra")
+                    // Tocar debajo de la palabra prueba el objetivo de 48 dp, sin separar la acción de la frase.
+                    line.performTouchInput { click(Offset(glyph.center.x, node.boundsInRoot.height - 1f)) }
+                    checkActionCount(3, "banda48")
+                } else assertFalse(node.config.contains(SemanticsActions.OnClick))
+            }
+        }
+        assertTrue("Acciones del Modo visual:\n${actionFailures.joinToString("\n")}", actionFailures.isEmpty())
+    }
 
     private fun dibujar(fontScale: Float, nombre: String, expandido: Boolean = false) {
         val alto = alturaDeLaTarjeta(fontScale)
