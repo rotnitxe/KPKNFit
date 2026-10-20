@@ -675,7 +675,7 @@ fun calculateSessionTimeBreakdown(
             return@forEach
         }
 
-        val sets = exercise.sets
+        val sets = exercise.sets.filterNot { it.isEmptySlot }
         if (sets.isEmpty()) return@forEach
 
         sets.forEachIndexed { setIndex, set ->
@@ -731,23 +731,25 @@ fun calculateSessionTimeBreakdown(
             val group = supersetGroups.firstOrNull { it.id == supersetRef }
             if (group != null && supersetRef !in supersetGroupsProcessed) {
                 // Descanso intra-superset y post-superset se cuentan 1 sola vez por grupo
-                val rounds = sets.size.coerceAtLeast(1)
-                // F2 D2: respetar descansos por ronda si existen
-                var intraRest = 0
-                var roundRest = 0
-                for (r in 0 until rounds) {
-                    intraRest += group.roundRestBetweenExercises?.get(r) ?: group.restBetweenExercises
-                    if (r < rounds - 1) {
-                        roundRest += group.roundRestAfterSuperset?.get(r) ?: group.restAfterSuperset
+                // Round indices remain stable across deleted slots. Count only
+                // members that execute in each round, independently of list order.
+                val members = group.exerciseOrder.mapNotNull { id -> exercises.firstOrNull { it.id == id } }
+                val rounds = maxOf(group.rounds ?: 0, members.maxOfOrNull { it.sets.size } ?: 0)
+                val activeRounds = (0 until rounds).mapNotNull { round ->
+                    val count = members.count { it.sets.getOrNull(round)?.isEmptySlot == false }
+                    (round to count).takeIf { count > 0 }
+                }
+                activeRounds.forEachIndexed { index, (round, memberCount) ->
+                    restSec += (group.roundRestBetweenExercises[round] ?: group.restBetweenExercises) * (memberCount - 1)
+                    if (index < activeRounds.lastIndex) {
+                        restSec += group.roundRestAfterSuperset[round] ?: group.restAfterSuperset
                     }
                 }
-                restSec += intraRest * (group.exerciseOrder.size - 1)
-                restSec += roundRest
                 supersetGroupsProcessed.add(supersetRef)
             }
             // Para miembros adicionales del superset no se añade descanso individual
         } else {
-            restSec += exerciseRestSec * (sets.size - 1).coerceAtLeast(0)
+            restSec += sets.dropLast(1).sumOf { (it.restAfterSeconds ?: exerciseRestSec).coerceAtLeast(0) }
         }
     }
 
@@ -763,7 +765,7 @@ fun calculateSessionTimeBreakdown(
         // sessions may still carry synthetic ExerciseSet rows, so do not let
         // those legacy rows leak into editor/time summaries.
         totalSetCount    = exercises.sumOf { exercise ->
-            if (exercise.cardioDetails != null) 0 else exercise.sets.size
+            if (exercise.cardioDetails != null) 0 else exercise.sets.count { !it.isEmptySlot }
         },
     )
 }

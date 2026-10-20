@@ -22,8 +22,12 @@ internal fun SessionDurationBreakdown.toSessionTimeBreakdown(session: Session): 
         warmupSeconds = warmupSeconds,
         totalSeconds = total,
         exerciseCount = exercises.size,
-        totalSetCount = exercises.sumOf { if (it.cardioDetails != null) 0 else it.sets.size },
+        totalSetCount = session.workingSetCount(),
     )
+}
+
+internal fun Session.workingSetCount(): Int = allExercises().sumOf { exercise ->
+    if (exercise.cardioDetails != null) 0 else exercise.sets.count { !it.isEmptySlot }
 }
 
 /** Minutos de la sesión con el estimador común, para el resumen de la Auge del editor. 0 si el estimador no puede medirla. */

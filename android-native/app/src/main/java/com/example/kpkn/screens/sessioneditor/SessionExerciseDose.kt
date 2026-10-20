@@ -22,11 +22,12 @@ internal fun sessionExerciseDose(
     trainingMode: TrainingMode,
     restSeconds: Int?,
     includeRest: Boolean = true,
+    customUnit: String? = null,
 ): String? {
     val working = sets.filterNot { it.isEmptySlot }
     if (working.isEmpty()) return null
     val count = working.size
-    val reps = repsLabel(working, trainingMode)
+    val reps = repsLabel(working, trainingMode, customUnit)
     val first = when {
         reps != null -> "$count × $reps"
         count == 1 -> "1 serie"
@@ -45,11 +46,12 @@ internal fun sessionExerciseSpokenDose(
     trainingMode: TrainingMode,
     restSeconds: Int?,
     includeRest: Boolean = true,
+    customUnit: String? = null,
 ): String? {
     val working = sets.filterNot { it.isEmptySlot }
     if (working.isEmpty()) return null
     val count = working.size
-    val reps = repsLabel(working, trainingMode)?.replace("–", " a ")
+    val reps = repsLabel(working, trainingMode, customUnit)?.replace("–", " a ")
     val first = when {
         count == 1 && reps != null -> "1 serie de $reps"
         count == 1 -> "1 serie"
@@ -74,7 +76,13 @@ private fun spokenDuration(seconds: Int): String {
 }
 
 /** Repeticiones de todas las series: «AMRAP», un rango («6–8»), un número («8») o una duración («45 s»). Null si no hay un patrón común. */
-private fun repsLabel(sets: List<ExerciseSet>, mode: TrainingMode): String? {
+private fun repsLabel(sets: List<ExerciseSet>, mode: TrainingMode, customUnit: String?): String? {
+    if (mode == TrainingMode.DISTANCE || mode == TrainingMode.CUSTOM) {
+        val values = sets.mapNotNull { it.plannedTargetV2 }
+        if (values.size != sets.size) return null
+        val unit = if (mode == TrainingMode.DISTANCE) "m" else customUnit?.takeIf { it.isNotBlank() } ?: "u"
+        return valueRange(values, prefix = "", suffix = " $unit")
+    }
     val amrap = sets.count { it.isAmrap || mode == TrainingMode.AMRAP }
     if (amrap == sets.size) return "AMRAP"
     if (amrap > 0) return null
@@ -138,7 +146,7 @@ private fun formatValue(value: Double): String =
 internal fun sessionExerciseListDose(exercise: com.example.kpkn.data.models.Exercise, includeRest: Boolean): String {
     val details = exercise.cardioDetails
     if (details != null) return cardioDoseLine(details)
-    val base = sessionExerciseDose(exercise.sets, exercise.trainingMode, exercise.restTime, includeRest) ?: "Sin series"
+    val base = sessionExerciseDose(exercise.sets, exercise.trainingMode, exercise.restTime, includeRest, exercise.customUnit) ?: "Sin series"
     val side = if (exercise.isEffectivelyUnilateral() && exercise.sets.any { !it.isEmptySlot }) " · por lado" else ""
     return hardUnitSpaces(base + side)
 }

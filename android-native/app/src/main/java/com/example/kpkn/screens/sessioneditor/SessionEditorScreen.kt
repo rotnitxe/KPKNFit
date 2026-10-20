@@ -705,7 +705,7 @@ fun SessionEditorScreen(
         )
         val summary = sessionFrameSummary(
             exercises = allExercisesForUi.size,
-            sets = allExercisesForUi.sumOf { if (it.cardioDetails != null) 0 else it.sets.size },
+            sets = session.workingSetCount(),
             minutes = timeMinutes,
         )
 
