@@ -663,6 +663,8 @@ private fun ColumnScope.CatalogReadyContent(
     val haptics = LocalHapticFeedback.current
     val reducedMotion = wizardReducedMotion()
     val imeVisible = WindowInsets.isImeVisible
+    val customExercises by CustomExerciseRepository.customExercises.collectAsStateWithLifecycle()
+    var replacementSelectionIds by rememberSaveable { mutableStateOf<List<String>?>(null) }
     val projectionCache = remember(catalog) {
         object : LinkedHashMap<CatalogDefinitionFilterKey, CatalogDefinitionProjection>(8, 0.75f, true) {}
     }
@@ -774,6 +776,7 @@ private fun ColumnScope.CatalogReadyContent(
         catalogProjection,
         initialCatalogDefinitionId,
         initialCatalogConfigurationId,
+        replacementSelectionIds,
     ) {
         val definition = when {
             initialCatalogDefinitionId != null -> definitionsById[initialCatalogDefinitionId]
@@ -783,7 +786,13 @@ private fun ColumnScope.CatalogReadyContent(
             else -> null
         }
         val configuration = definition?.configurations?.firstOrNull { it.id == initialCatalogConfigurationId }
-        if (definition != null && configuration != null) mapOf(definition.id to configuration.selectedOptions) else emptyMap()
+        val initial = if (definition != null && configuration != null) mapOf(definition.id to configuration.selectedOptions) else emptyMap()
+        val restoredChoices = replacementSelectionIds.orEmpty().mapNotNull { id ->
+            val chosenDefinition = definitionsById.values.firstOrNull { candidate -> candidate.configurations.any { it.id == id } }
+                ?: return@mapNotNull null
+            chosenDefinition.id to chosenDefinition.configurations.first { it.id == id }.selectedOptions
+        }.toMap()
+        initial + restoredChoices
     }
     val draftByDefinition = remember(initialDraftByDefinition) { mutableStateOf(initialDraftByDefinition) }
     val suggestedDrafts = remember(searchHits, definitionsById) {
@@ -824,29 +833,32 @@ private fun ColumnScope.CatalogReadyContent(
             restoreSelectedCatalogRows(
                 catalog = catalog,
                 definitionsById = definitionsById,
-                selectedIds = selectedExercisesIds,
+                selectedIds = if (replacement != null) replacementSelectionIds ?: selectedExercisesIds else selectedExercisesIds,
                 previous = emptyMap(),
                 draftByDefinition = initialDraftByDefinition,
                 initialCatalogDefinitionId = initialCatalogDefinitionId,
                 initialCatalogConfigurationId = initialCatalogConfigurationId,
+                customExercises = customExercises,
             ),
             neverEqualPolicy(),
         )
     }
-    LaunchedEffect(catalog, catalogProjection, selectedExercisesIds) {
-        // Al reemplazar (H1) lo elegido vive aquí y el padre no guarda ids: reconstruirlo desde ellos lo vaciaría al tocar un filtro.
-        if (replacement != null) return@LaunchedEffect
+    LaunchedEffect(catalog, catalogProjection, selectedExercisesIds, customExercises, replacementSelectionIds) {
         val next = restoreSelectedCatalogRows(
             catalog = catalog,
             definitionsById = definitionsById,
-            selectedIds = selectedExercisesIds,
+            selectedIds = if (replacement != null) replacementSelectionIds ?: selectedExercisesIds else selectedExercisesIds,
             previous = selectedRows.value,
             draftByDefinition = draftByDefinition.value,
             initialCatalogDefinitionId = initialCatalogDefinitionId,
             initialCatalogConfigurationId = initialCatalogConfigurationId,
+            customExercises = customExercises,
         )
-        if (next != selectedRows.value) {
-            selectedRows.value = next
+        val restored = if (replacement != null) {
+            next.values.associateBy { it.catalogDefinitionId ?: it.id }
+        } else next
+        if (restored != selectedRows.value) {
+            selectedRows.value = restored
         }
     }
     var selectedListExpanded by rememberSaveable { mutableStateOf(false) }
@@ -859,7 +871,6 @@ private fun ColumnScope.CatalogReadyContent(
     var expandedDefinitionId by rememberSaveable { mutableStateOf<String?>(null) }
     var variantsDefinitionId by rememberSaveable { mutableStateOf<String?>(null) }
     var showSupersetConfigurator by rememberSaveable { mutableStateOf(false) }
-    val customExercises by CustomExerciseRepository.customExercises.collectAsStateWithLifecycle()
     val editingCustomExercise = remember { mutableStateOf<ExerciseMuscleInfo?>(null) }
     val deletingCustomExercise = remember { mutableStateOf<ExerciseMuscleInfo?>(null) }
     val normalizedCustomQuery = remember(query) { ExerciseMatchLexicon.normalize(query) }
@@ -974,6 +985,7 @@ private fun ColumnScope.CatalogReadyContent(
                                 else -> selectedRows.value + (custom.id to custom)
                             }
                             selectedRows.value = next
+                            if (replacement != null) replacementSelectionIds = next.values.map { it.id }
                             onSelectionChange(next.values.toList())
                         },
                         onEdit = { editingCustomExercise.value = custom },
@@ -1076,6 +1088,10 @@ private fun ColumnScope.CatalogReadyContent(
                                 }
                                 selectedRows.value = selectedRows.value
                                     .filterKeys { it != definition.id } + (key to info)
+                                if (replacement != null) {
+                                    replacementSelectionIds = selectedRows.value.values.map { it.id }
+                                    onSelectionChange(selectedRows.value.values.toList())
+                                }
                             }
                         }
                     }
@@ -1087,6 +1103,7 @@ private fun ColumnScope.CatalogReadyContent(
                                     selectedRows.value[key]?.catalogDefinitionId != definition.id
                             }
                             selectedRows.value = next
+                            if (replacement != null) replacementSelectionIds = next.values.map { it.id }
                             onSelectionChange(next.values.toList())
                         } else {
                             val info = exactInfo(catalog, definition, resolvedConfigurationId)
@@ -1094,6 +1111,8 @@ private fun ColumnScope.CatalogReadyContent(
                                 if (replacement != null) {
                                     // Al reemplazar (H1) se elige uno y se confirma abajo: el círculo no reemplaza de golpe.
                                     selectedRows.value = mapOf(definition.id to info)
+                                    replacementSelectionIds = listOf(info.id)
+                                    onSelectionChange(listOf(info))
                                 } else if (editingExisting) {
                                     onSelect(info)
                                 } else {
@@ -1303,7 +1322,7 @@ private fun ColumnScope.CatalogReadyContent(
             reducedMotion = reducedMotion,
             modifier = Modifier.onSizeChanged { bottomPanelHeight = it.height },
         ) {
-            val supersetAvailable = selectedRows.value.size >= 2 &&
+            val supersetAvailable = selectedRows.value.size in 2..4 &&
                 (onCreateSupersetConfigured != null || onCreateSuperset != null || isSupersetAddMode)
             CatalogSelectionIsland(
                 count = selectedRows.value.size,
@@ -1346,10 +1365,17 @@ private fun ColumnScope.CatalogReadyContent(
                         },
                         onTap = { id ->
                             val customOffset = if (visibleCustomExercises.isNotEmpty()) visibleCustomExercises.size + 1 else 0
-                            val indexInDefinitions = definitions.indexOfFirst { it.id == id }
-                            if (indexInDefinitions >= 0) {
+                            val customIndex = visibleCustomExercises.indexOfFirst { it.id == id }
+                            val definitionId = selectedRows.value[id]?.catalogDefinitionId ?: id
+                            val definitionIndex = definitions.indexOfFirst { it.id == definitionId }
+                            val targetIndex = when {
+                                customIndex >= 0 -> 2 + customIndex
+                                definitionIndex >= 0 -> 1 + customOffset + definitionIndex
+                                else -> null
+                            }
+                            if (targetIndex != null) {
                                 scope.launch {
-                                    listState.animateScrollToItem(1 + customOffset + indexInDefinitions)
+                                    listState.animateScrollToItem(targetIndex)
                                 }
                             }
                         },
@@ -1710,6 +1736,7 @@ internal fun restoreSelectedCatalogRows(
     draftByDefinition: Map<String, Map<String, String>>,
     initialCatalogDefinitionId: String? = null,
     initialCatalogConfigurationId: String? = null,
+    customExercises: List<ExerciseMuscleInfo> = emptyList(),
 ): Map<String, ExerciseMuscleInfo> {
     val restored = linkedMapOf<String, ExerciseMuscleInfo>()
     selectedIds.forEach { selectedId ->
@@ -1723,7 +1750,8 @@ internal fun restoreSelectedCatalogRows(
         }
         val definition = definitionById ?: definitionByConfig
         if (definition == null) {
-            previous[selectedId]?.let { restored[selectedId] = it }
+            val custom = customExercises.firstOrNull { it.id.equals(selectedId, ignoreCase = true) }
+            (custom ?: previous[selectedId]?.takeUnless { it.isCustom })?.let { restored[it.id] = it }
             return@forEach
         }
         val previousInfo = previous[definition.id]
