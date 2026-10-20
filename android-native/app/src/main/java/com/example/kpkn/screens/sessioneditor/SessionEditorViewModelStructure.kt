@@ -226,6 +226,7 @@ fun SessionEditorViewModel.addExercisesAsSupersetToPart(
     config: CatalogSupersetConfig,
 ): List<String> {
     if (infos.size < 2) return addExercisesToPart(partId, infos)
+    if (infos.size > 4) return emptyList()
     val currentSession = currentUiState.activeVariantSession ?: return emptyList()
     if (partId != null && currentSession.parts.none { it.id == partId }) return emptyList()
     val rounds = config.rounds.coerceAtLeast(1)
@@ -558,9 +559,6 @@ fun SessionEditorViewModel.removeMobilitySeries(partId: String?, exerciseId: Str
 fun SessionEditorViewModel.triggerQuickActionDelete() {
     val state = currentUiState
     val exerciseId = state.quickActionsExerciseId ?: return
-    val supersetGroupId = state.activeVariantSession?.allExercises()
-        ?.firstOrNull { it.id == exerciseId }
-        ?.supersetGroupRefOrLegacyId()
     updateUi {
         it.copy(
             sheet = SessionEditorSheet.NONE,
@@ -568,7 +566,8 @@ fun SessionEditorViewModel.triggerQuickActionDelete() {
             quickActionsExerciseId = null,
         )
     }
-    requestExerciseRemoval(state.quickActionsPartId, exerciseId, supersetGroupId)
+    // The explicit Delete action deletes the exercise; swipe still offers ungrouping.
+    requestExerciseRemoval(state.quickActionsPartId, exerciseId)
 }
 
 fun SessionEditorViewModel.updateWarmupSets(partId: String?, exerciseId: String, sets: List<WarmupSetDefinition>) = updateExercise(partId, exerciseId) { it.copy(warmupSets = sets) }

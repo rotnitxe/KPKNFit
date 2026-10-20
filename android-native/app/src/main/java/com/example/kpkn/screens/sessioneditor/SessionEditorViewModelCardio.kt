@@ -58,7 +58,7 @@ fun SessionEditorViewModel.toggleCardioPlacement() {
         session.copy(cardioFirst = newCardioFirst)
     }
     updateUi {
-        val isFirst = currentUiState.session?.cardioFirst == true
+        val isFirst = it.activeVariantSession?.cardioFirst == true
         it.copy(
             cardioSpacePlacement = if (isFirst) CardioSpacePlacement.START else CardioSpacePlacement.END,
         )
@@ -69,7 +69,7 @@ fun SessionEditorViewModel.addCardioToPart(item: CardioCatalogItem) {
     val targetPartId = currentUiState.pickerTargetPartId
     val targetExerciseId = currentUiState.pickerTargetExerciseId
     val placement = currentUiState.cardioSpacePlacement
-        ?: if (currentUiState.session?.cardioFirst == true) CardioSpacePlacement.START else CardioSpacePlacement.END
+        ?: if (currentUiState.activeVariantSession?.cardioFirst == true) CardioSpacePlacement.START else CardioSpacePlacement.END
 
     if (targetExerciseId != null) {
         updateExercise(targetPartId, targetExerciseId) { current -> current.withCardioItem(item) }

@@ -491,6 +491,7 @@ class SessionEditorViewModel(
     }
 
     fun saveDraftForExit() {
+        commitPendingExerciseRemoval()
         val state = _uiState.value
         // A clean lifecycle transition must not recreate the draft that Save or
         // Discard just removed. Explicit editor-only draft writes already use
@@ -510,6 +511,7 @@ class SessionEditorViewModel(
     }
 
     suspend fun saveDraftForExitAndAwait(): Boolean {
+        commitPendingExerciseRemoval()
         autoSaveJob?.cancel()
         val state = _uiState.value
         if (!state.hasUnsavedChanges) {
@@ -533,6 +535,7 @@ class SessionEditorViewModel(
     }
 
     override fun onCleared() {
+        commitPendingExerciseRemoval()
         autoSaveJob?.cancel()
         programAutoSave.cancel()
         val state = _uiState.value
@@ -586,6 +589,7 @@ class SessionEditorViewModel(
                 ruleLimits = state.savedRuleLimits,
                 activeVariant = WeekVariant.A,
                 availableVariants = restored?.let(::computeAvailableVariants) ?: listOf(WeekVariant.A),
+                pendingExerciseRemoval = null,
             )
         }
         textHistoryBaseline = null
@@ -1349,8 +1353,13 @@ calculateSessionTimeBreakdown(
     fun restoreDraftSnapshot(snapshot: SessionDraftSnapshot) {
         updateUi { state ->
             val restoredSession = snapshot.session
+            val variants = computeAvailableVariants(restoredSession)
             state.copy(
                 session = restoredSession,
+                availableVariants = variants,
+                activeVariant = state.activeVariant.takeIf { it in variants } ?: WeekVariant.A,
+                pendingExerciseRemoval = null,
+                targetDurationMinutes = restoredSession.targetDurationMinutes,
                 sheet = SessionEditorSheet.NONE,
                 snackbarMessage = "Versión restaurada · ${formatHistoryTimestamp(snapshot.savedAtMs)}",
             )
