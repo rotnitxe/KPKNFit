@@ -45,6 +45,22 @@ investigación del 20-oct.
 - **Por qué:** un motor ajustado con los mismos vídeos con los que se le califica parece mejor de lo que es. El número que se
   publica es el del examen.
 
+## Listón (de `MERCADO_FIABILIDAD.md`, 20-oct)
+| Métrica | Listón con encuadre bueno | Referencia publicada |
+|---|---|---|
+| Serie exacta, básicos | ≥ 95 % | Metric VBT en sentadilla: precisión y recall de 1,000; en banca, 0,959 y 0,985 (Trowell 2024) |
+| Serie exacta, el resto de ejercicios admitidos | ≥ 90 % | — |
+| Series exactas entre las que dicen «seguro» (ALTA) | ≥ 99 %, sin esconder la abstención | Qwik VBT, sin omisiones ni fantasmas en 589 reps; Metric VBT, 52 omisiones y 16 fantasmas (Renner 2024) |
+| MCV con el disco calibrado | MAE ≤ 0,03 m/s y RMSE ≤ 0,04 m/s | Qwik VBT, RMSE de 0,01–0,04 m/s (Renner 2024) |
+| Pérdida de velocidad | MAE ≤ 5 puntos porcentuales | — |
+| Fases y TUT | MAE ≤ 0,15 s por fase y ≤ 0,20 s por repetición (provisional) | — |
+
+- **Cualquier encuadre:** no hay garantía publicada que comparar. Se mide, y la app se abstiene cuando la captura no da para más.
+- **Con D40, MEDIA** también ofrece el número. Su precisión se publica aparte, y el objetivo es que la serie exacta en MEDIA no baje
+  del 90 %.
+- **Lo que el banco no puede probar:** m/s, pérdida de velocidad y fases. Requieren el teléfono con una referencia, por ejemplo un
+  desplazamiento conocido o un transductor.
+
 ## Pasos
 1. **M1** (en marcha): la pose nunca baja de 20 Hz.
 2. **VT11a, herramientas** (Codex, sin emulador; brief `briefs/VT11a.md`):
