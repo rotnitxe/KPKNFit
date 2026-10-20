@@ -4,6 +4,7 @@ import com.example.kpkn.domain.biomechanics.bar.BarSample
 import com.example.kpkn.domain.biomechanics.bar.BarSampleSource
 import com.example.kpkn.domain.biomechanics.bar.BarTrack
 import com.example.kpkn.domain.biomechanics.bar.PlateSeed
+import com.example.kpkn.domain.biomechanics.metrics.AnalysisTuning
 import com.example.kpkn.domain.biomechanics.pose.PoseTrackV2
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
@@ -52,7 +53,31 @@ class AnalysisCheckpointTest {
         height: Int = 720,
         scale: Double = 1.0,
         seedKey: String? = null,
-    ) = AnalysisCheckpoints.isUsable(cp, mediaId, bytes, modified, version, plate, width, height, scale, seedKey)
+        realFps: Double = 30.0,
+        minPoseFps: Double = AnalysisTuning.DEFAULT.lowFpsBelow,
+    ) = AnalysisCheckpoints.isUsable(cp, mediaId, bytes, modified, version, plate, width, height, scale, seedKey, realFps, minPoseFps)
+
+    @Test
+    fun aCheckpointNeedsEnoughPoseCadenceForTheCurrentVideo() {
+        // La cadencia nominal antigua no sustituye a la del vídeo que se está abriendo.
+        val cp = AnalysisCheckpoint(header(stride = 2), partial.copy(poseStride = 2, nominalFps = 60f), null)
+        assertFalse(usable(cp, realFps = 25.0))
+        assertFalse(usable(cp, realFps = 30.0))
+        assertFalse(usable(cp, realFps = 39.99))
+        assertTrue("el mínimo exacto basta para reanudar", usable(cp, realFps = 40.0))
+        assertTrue(usable(cp, realFps = 60.0))
+        assertFalse(usable(cp, realFps = 48.0, minPoseFps = 25.0))
+        assertTrue(usable(cp, realFps = 50.0, minPoseFps = 25.0))
+        assertFalse(usable(AnalysisCheckpoint(header(), partial, null), realFps = 15.0))
+    }
+
+    @Test
+    fun aCheckpointCannotResumeWithoutAValidCurrentVideoCadence() {
+        val cp = AnalysisCheckpoint(header(), partial, null)
+        for (fps in listOf(Double.NaN, Double.POSITIVE_INFINITY, Double.NEGATIVE_INFINITY, 0.0, -1.0)) {
+            assertFalse("cadencia $fps", usable(cp, realFps = fps))
+        }
+    }
 
     @Test
     fun aCheckpointRoundTripsWithItsPoseBarAndHeader() {
@@ -118,7 +143,7 @@ class AnalysisCheckpointTest {
         assertFalse("otra escala de tiempo (cámara lenta)", usable(cp, scale = 0.5))
         assertFalse("otra semilla confirmada", usable(cp, seedKey = "1:2:3:4"))
         // Un salto de pose que no es 1 ni 2, o un punto de control sin fotogramas procesados, tampoco valen.
-        assertFalse(usable(AnalysisCheckpoint(header(stride = 3), partial, null)))
+        assertFalse(usable(AnalysisCheckpoint(header(stride = 3), partial.copy(poseStride = 3), null), realFps = 120.0))
         assertFalse(usable(AnalysisCheckpoint(header().copy(nextIndex = 0), partial, null)))
         assertFalse(usable(AnalysisCheckpoint(header(), partial.copy(frames = emptyList()), null)))
         // Un perfil con disco necesita que el punto de control ya no esté buscándolo.

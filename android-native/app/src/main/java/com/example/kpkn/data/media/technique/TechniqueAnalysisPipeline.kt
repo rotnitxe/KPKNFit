@@ -36,6 +36,7 @@ import com.example.kpkn.domain.biomechanics.bar.PlateSeed
 import com.example.kpkn.domain.biomechanics.kinematics.BodyScaleEstimator
 import com.example.kpkn.domain.biomechanics.kinematics.FrameGeometry
 import com.example.kpkn.domain.biomechanics.metrics.AnalysisFlag
+import com.example.kpkn.domain.biomechanics.metrics.AnalysisTuning
 import com.example.kpkn.domain.biomechanics.metrics.CountConfidence
 import com.example.kpkn.domain.biomechanics.metrics.SetTechniqueReport
 import com.example.kpkn.domain.biomechanics.metrics.TechniqueAnalysisEngine
@@ -79,6 +80,7 @@ import kotlinx.coroutines.withContext
  *
  * - **Decodificación:** [targetLongEdge] px del lado largo; pose en todos los fotogramas si la cadencia no pasa de [maxPoseFps] y,
  *   si no, en uno de cada dos. [channelCapacity] es el `Channel` entre decodificación y pose: exige `FramePool.SLOTS ≥ capacidad + 2`.
+ * - **Modo degradado:** solo sube un paso si la pose conserva ≥ [AnalysisTuning.lowFpsBelow] × 1,2 Hz y el punto de control lo admite.
  * - **Cadencias:** punto de control cada [checkpointEveryFrames] fotogramas, pausa de cámara cada [gateEveryFrames].
  * - **Pose:** más de [maxPoseErrors] fotogramas con error de pose tiran el análisis.
  * - **Disco:** adquisición con las muñecas casi quietas ([stillMaxFh] de alto de fotograma de recorrido durante [stillWindowUs]),
@@ -196,7 +198,7 @@ internal data class PipelineDependencies(
  * El analizador real (§9 punto 4): del vídeo de una serie a su informe, en UNA pasada.
  *
  * **FULL.** Decodifica el vídeo (`VideoFrameSources.open`: GL y, si falla, el respaldo del retriever), estima la pose de cada
- * fotograma (o de uno de cada dos con más de 35 fps, o si el móvil va justo) y, si el perfil usa el disco, lo busca y lo sigue sobre
+ * fotograma (o los que permita la cadencia real y el modo degradado) y, si el perfil usa el disco, lo busca y lo sigue sobre
  * la luma. Decodificación y pose van solapadas por un `Channel(2)`; el pool de VT4a tiene 4 huecos porque llegan a estar vivos
  * 2 + 2 fotogramas. Escribe `<id>.pose2.json.gz` y `<id>.bar.json.gz`, mide con `TechniqueAnalysisEngine` y devuelve
  * [Done][TechniqueAnalysisOutcome.Done]. Sobre la marcha:
@@ -334,6 +336,7 @@ class TechniqueAnalysisPipeline internal constructor(
             val clock = timeOf(info)
             val out = VideoFrameMath.outputSize(info.displayWidth, info.displayHeight, tuning.targetLongEdge)
             val partFile = TechniqueSidecars.partFile(video)
+            val minPoseFps = AnalysisTuning.DEFAULT.lowFpsBelow
 
             // Un punto de control de un intento anterior, si sirve para ESTE análisis; si no, fuera.
             val checkpoint = withContext(Dispatchers.IO) {
@@ -341,12 +344,19 @@ class TechniqueAnalysisPipeline internal constructor(
                 val usable = found != null && AnalysisCheckpoints.isUsable(
                     found, request.mediaId, video.length(), video.lastModified(), POSE_VERSION, profile.usesPlate,
                     out.width, out.height, clock.scale, AnalysisCheckpoint.seedKey(request.plateSeed),
+                    realFps = clock.realFps.toDouble(), minPoseFps = minPoseFps,
                 )
                 if (!usable) partFile.delete()
                 found.takeIf { usable }
             }
+            // La reanudación actual exige stride ≤ 2: a 120 fps degradados se conserva 2 (excepción de M1).
             val stride = checkpoint?.header?.poseStride
-                ?: if (clock.realFps > tuning.maxPoseFps || deps.recommendedPoseStride() >= 2) 2 else 1
+                ?: poseStrideFor(
+                    realFps = clock.realFps.toDouble(),
+                    maxPoseFps = tuning.maxPoseFps.toDouble(),
+                    minPoseFps = minPoseFps,
+                    degraded = deps.recommendedPoseStride() >= 2,
+                ).coerceAtMost(AnalysisCheckpoints.MAX_POSE_STRIDE)
             val focal = meta.focalLengthPx
                 ?.takeIf { it.isFinite() && it > 0f }
                 ?.let { it * out.width / info.displayWidth.toFloat() }
