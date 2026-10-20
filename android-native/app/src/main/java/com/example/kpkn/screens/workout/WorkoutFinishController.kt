@@ -128,7 +128,7 @@ class WorkoutFinishController(
             var onCompleteAttempted = false
             try {
                 if (!awaitRecordingIdle(10_000L)) {
-                    val warning = "No pude cerrar la sesión porque una serie sigue grabándose. Reintentá cuando termine."
+                    val warning = "No pude cerrar la sesión porque una serie sigue grabándose. Reintenta cuando termine."
                     KpknDiagnosticLogger.event(
                         namespace = "workout",
                         name = "session_finish_blocked_recording_timeout",

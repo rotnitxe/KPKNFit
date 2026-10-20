@@ -1583,7 +1583,7 @@ class WorkoutVoiceCommandHandler(
             voiceController.onVoiceSetPersistenceFailed(
                 when {
                     missingValue -> "Faltan datos para registrar la serie."
-                    else -> "El peso debe ser mayor a cero. Podés decir 'peso corporal' si entrenás sin carga."
+                    else -> "El peso debe ser mayor a cero. Puedes decir 'peso corporal' si entrenas sin carga."
                 },
             )
             return

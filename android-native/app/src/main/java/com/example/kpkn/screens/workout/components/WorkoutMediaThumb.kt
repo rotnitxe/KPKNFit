@@ -5,6 +5,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -21,13 +22,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.example.kpkn.data.media.WorkoutAlbumGrouping
 import com.example.kpkn.data.models.WorkoutMedia
 import com.example.kpkn.data.models.WorkoutMediaKind
 import com.example.kpkn.ui.components.LocalMediaImage
 import com.example.kpkn.ui.components.LocalMediaImageSource
 import com.example.kpkn.ui.components.localMediaImageSource
+import com.example.kpkn.ui.design.KpknType
 import java.io.File
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -37,6 +41,8 @@ fun WorkoutMediaThumb(
     media: WorkoutMedia,
     modifier: Modifier = Modifier,
     onClick: (() -> Unit)? = null,
+    visualModeOverlay: Boolean = false,
+    hasAnalysisBadge: Boolean = false,
 ) {
     // Archivo + clave de caché de Coil resueltos juntos en IO (sin FileKeyer en Main).
     val preview by produceState<LocalMediaImageSource?>(null, media.filePath, media.thumbPath, media.kind) {
@@ -64,22 +70,33 @@ fun WorkoutMediaThumb(
                 Icons.Default.PlayArrow,
                 contentDescription = "Vídeo",
                 tint = Color.White,
-                modifier = Modifier
+                modifier = if (visualModeOverlay) Modifier
+                    .align(Alignment.TopStart)
+                    .padding(3.dp)
+                    .size(12.dp)
+                    .testTag("media_play_${media.id}")
+                else Modifier
                     .align(Alignment.Center)
                     .background(Color.Black.copy(alpha = 0.45f), CircleShape)
                     .padding(4.dp),
             )
             WorkoutAlbumGrouping.formatDurationMs(media.durationMs)?.let { label ->
-                Text(
-                    label,
-                    style = MaterialTheme.typography.labelSmall,
-                    color = Color.White,
-                    modifier = Modifier
-                        .align(Alignment.BottomEnd)
-                        .padding(4.dp)
-                        .background(Color.Black.copy(alpha = 0.55f), RoundedCornerShape(4.dp))
-                        .padding(horizontal = 4.dp, vertical = 1.dp),
-                )
+                // En 36 dp, la duración y la insignia no caben juntas con letra grande.
+                // El padre conserva siempre la duración completa en la descripción de TalkBack.
+                if (!visualModeOverlay || !hasAnalysisBadge) {
+                    Text(
+                        label,
+                        style = if (visualModeOverlay) KpknType.chip.copy(fontSize = 10.sp, lineHeight = 10.sp)
+                            else MaterialTheme.typography.labelSmall,
+                        color = Color.White,
+                        modifier = Modifier
+                            .align(if (visualModeOverlay) Alignment.BottomStart else Alignment.BottomEnd)
+                            .padding(if (visualModeOverlay) 2.dp else 4.dp)
+                            .testTag("media_duration_${media.id}")
+                            .background(Color.Black.copy(alpha = 0.55f), RoundedCornerShape(4.dp))
+                            .padding(horizontal = if (visualModeOverlay) 2.dp else 4.dp, vertical = 1.dp),
+                    )
+                }
             }
         }
         if (media.isPr) {

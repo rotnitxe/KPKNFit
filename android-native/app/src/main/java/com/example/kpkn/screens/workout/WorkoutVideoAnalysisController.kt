@@ -13,12 +13,15 @@ import com.example.kpkn.data.repository.VideoAnalysisRepository
 import com.example.kpkn.data.repository.WorkoutMediaRepository
 import com.example.kpkn.domain.biomechanics.metrics.CountConfidence
 import com.example.kpkn.domain.biomechanics.profiles.UnsupportedReasons
+import com.example.kpkn.screens.workout.design.VideoThumbBadge
+import com.example.kpkn.screens.workout.design.videoThumbBadgeFor
 import kotlin.coroutines.coroutineContext
 import kotlin.math.roundToInt
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
@@ -30,7 +33,9 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.mapLatest
+import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 
 internal data class SetVideoAnalysisUi(val mediaId: String, val state: SetVideoAnalysisState)
 
@@ -50,6 +55,18 @@ internal sealed interface SetVideoAnalysisState {
     data class Agrees(val counted: Int) : SetVideoAnalysisState
     data object Inconclusive : SetVideoAnalysisState
     data class Unsupported(val reasonText: String) : SetVideoAnalysisState
+    data class Failed(val errorCode: String?) : SetVideoAnalysisState
+}
+
+/** Petición explícita de la interfaz: el repositorio encola FULL aunque el ajuste automático esté apagado. */
+internal class WorkoutVideoAnalysisRetry(
+    private val scope: CoroutineScope,
+    private val repository: () -> VideoAnalysisRepository = { VideoAnalysisRepository.getInstance() },
+    private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
+) {
+    fun retry(mediaId: String): Job = scope.launch(ioDispatcher) {
+        repository().reanalyze(mediaId)
+    }
 }
 
 /**
@@ -110,7 +127,7 @@ internal class WorkoutVideoAnalysisController(
             if (sessions.size >= 2) references[key] = sessions.values.max()
         }
         Snapshot(entries, references)
-    }.flowOn(ioDispatcher)
+    }.flowOn(ioDispatcher).shareIn(scope, SharingStarted.WhileSubscribed(5_000L), replay = 1)
 
     val videoAnalysisBySetKey: StateFlow<Map<String, SetVideoAnalysisUi>> = combine(snapshots, completedSets, exercises) { snapshot, completed, currentExercises ->
         val byExercise = currentExercises.associateBy { it.id }
@@ -156,6 +173,9 @@ internal class WorkoutVideoAnalysisController(
             val reason = entry.summary?.errorCode
             return SetVideoAnalysisState.Unsupported(reason?.let(UnsupportedReasons::textOf) ?: "Este ejercicio todavía no admite análisis de técnica")
         }
+        if (row.status == VideoAnalysisStatus.FAILED.name) {
+            return SetVideoAnalysisState.Failed(entry.summary?.errorCode)
+        }
         if (row.status != VideoAnalysisStatus.DONE.name) return SetVideoAnalysisState.Inconclusive
         val confidence = CountConfidence.entries.firstOrNull { it.name == row.confidence }
         if (confidence == null || confidence == CountConfidence.BAJA) return SetVideoAnalysisState.Inconclusive
@@ -173,4 +193,15 @@ internal class WorkoutVideoAnalysisController(
             ?.takeIf { it.isFinite() && it > 0.0 }?.let { (it / reference * 20.0).roundToInt() * 5 } else null
         return SetVideoAnalysisState.Suggest(count, partials, failed, confidence, romPercent)
     }
+
+    val videoThumbBadgeByMediaId: StateFlow<Map<String, VideoThumbBadge>> = snapshots.mapLatest { snapshot ->
+        buildMap {
+            for (entry in snapshot.entries) {
+                val badge = videoThumbBadgeFor(entry.row)
+                if (badge != null) {
+                    put(entry.row.mediaId, badge)
+                }
+            }
+        }
+    }.stateIn(scope, SharingStarted.WhileSubscribed(5_000L), emptyMap())
 }

@@ -7683,4 +7683,11 @@ class WorkoutViewModel(
             }
         }
     }
+
+    internal val videoThumbBadgeByMediaId: StateFlow<Map<String, com.example.kpkn.screens.workout.design.VideoThumbBadge>>
+        get() = videoAnalysisController.videoThumbBadgeByMediaId
+
+    private val videoAnalysisRetry by lazy { WorkoutVideoAnalysisRetry(viewModelScope) }
+
+    internal fun retryVideoAnalysis(mediaId: String) { videoAnalysisRetry.retry(mediaId) }
 }
