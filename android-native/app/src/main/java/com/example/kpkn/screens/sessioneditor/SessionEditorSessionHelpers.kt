@@ -661,7 +661,7 @@ internal fun ExerciseSet.normalizedLoadKg(exercise: Exercise, normalized: Exerci
 }
 
 internal fun createNextSetTemplate(exercise: Exercise, template: ExerciseSet): ExerciseSet {
-    val base = template.copy(id = UUID.randomUUID().toString())
+    val base = template.freshPlannedCopy(preserveEmptySlot = false)
     // En modo RM se estima reducción de carga por fatiga; el resto mantiene la intensidad elegida
     if (exercise.trainingMode != TrainingMode.RM) return base
 
