@@ -218,7 +218,7 @@ class WorkoutMediaCaptureController(
                 repository.markCameraCaptureCompleted(entry.media.id)
                 repository.abandonEmptyCaptureAsync(entry)
             }
-            _captureError.value = "No se pudo preparar la cámara. Podés reintentar."
+            _captureError.value = "No se pudo preparar la cámara. Puedes reintentar."
             null
         }
     }
@@ -236,7 +236,7 @@ class WorkoutMediaCaptureController(
                 entry = entry,
                 request = capture.request,
                 work = work,
-                failureMessage = "No se pudo guardar la foto. Podés reintentar.",
+                failureMessage = "No se pudo guardar la foto. Puedes reintentar.",
             )
             return work
         }
@@ -250,7 +250,7 @@ class WorkoutMediaCaptureController(
             } catch (cancelled: CancellationException) {
                 throw cancelled
             } catch (error: Exception) {
-                _captureError.value = "La captura quedó pendiente. Podés reintentar."
+                _captureError.value = "La captura quedó pendiente. Puedes reintentar."
             }
             refreshSessionMedia()
         }
@@ -286,7 +286,7 @@ class WorkoutMediaCaptureController(
             try {
                 work.await()
                 _captureError.value = if (launchFailed) {
-                    "No se pudo abrir la cámara. Podés reintentar."
+                    "No se pudo abrir la cámara. Puedes reintentar."
                 } else {
                     null
                 }
@@ -294,8 +294,8 @@ class WorkoutMediaCaptureController(
                 throw cancelled
             } catch (_: Exception) {
                 _captureError.value = when {
-                    launchFailed || !succeeded -> "La foto quedó pendiente. Podés reintentar."
-                    else -> "No se pudo guardar la foto. Podés reintentar."
+                    launchFailed || !succeeded -> "La foto quedó pendiente. Puedes reintentar."
+                    else -> "No se pudo guardar la foto. Puedes reintentar."
                 }
             }
             refreshSessionMedia()
@@ -343,7 +343,7 @@ class WorkoutMediaCaptureController(
                             // This checks the file on the repository IO owner; a non-empty
                             // output remains journaled for the visible manual retry action.
                             repository.abandonEmptyCaptureAsync(entry)
-                            _captureError.value = "No se pudo guardar la foto. Podés reintentar."
+                            _captureError.value = "No se pudo guardar la foto. Puedes reintentar."
                         }
                     },
                 )
@@ -598,7 +598,7 @@ class WorkoutMediaCaptureController(
             entry = observerEntry,
             request = request,
             work = repository.submitUriCapture(uri, mediaSeed),
-            failureMessage = "No se pudo guardar el medio seleccionado. Podés reintentar.",
+            failureMessage = "No se pudo guardar el medio seleccionado. Puedes reintentar.",
         )
     }
 
@@ -685,7 +685,7 @@ class WorkoutMediaCaptureController(
             } catch (cancelled: CancellationException) {
                 throw cancelled
             } catch (error: Exception) {
-                _captureError.value = "No se pudo recuperar el medio. Podés reintentar."
+                _captureError.value = "No se pudo recuperar el medio. Puedes reintentar."
             }
         }
     }
@@ -793,9 +793,9 @@ class WorkoutMediaCaptureController(
                 throw cancelled
             } catch (error: Exception) {
                 _captureError.value = failureMessage ?: if (entry.media.kind == WorkoutMediaKind.VIDEO) {
-                    "No se pudo guardar el vídeo. Podés reintentar."
+                    "No se pudo guardar el vídeo. Puedes reintentar."
                 } else {
-                    "No se pudo guardar la foto. Podés reintentar."
+                    "No se pudo guardar la foto. Puedes reintentar."
                 }
             }
             refreshSessionMedia()

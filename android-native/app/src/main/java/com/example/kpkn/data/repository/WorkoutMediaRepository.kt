@@ -223,7 +223,7 @@ class WorkoutMediaRepository(
 
     /** The returned work belongs to the process-level repository owner, not the caller's VM. */
     fun submitReadyCapture(entry: WorkoutMediaCaptureJournalEntry): Deferred<WorkoutMedia?> =
-        enqueueTracked(entry, "No se pudo guardar el medio. Podés reintentar.") {
+        enqueueTracked(entry, "No se pudo guardar el medio. Puedes reintentar.") {
             check(!entry.discardedByRetention) { "La captura fue rechazada por la política de retención." }
             captureJournal.writeReady(entry)
             persistJournalEntry(entry.copy(readyToIngest = true))
@@ -239,9 +239,9 @@ class WorkoutMediaRepository(
     ): Deferred<WorkoutMedia?> = enqueueTracked(
         entry,
         if (entry.media.kind == WorkoutMediaKind.VIDEO) {
-            "No se pudo guardar el vídeo. Podés reintentar."
+            "No se pudo guardar el vídeo. Puedes reintentar."
         } else {
-            "No se pudo guardar la foto. Podés reintentar."
+            "No se pudo guardar la foto. Puedes reintentar."
         },
     ) {
         val existing = db.workoutMediaDao().getById(entry.media.id)
@@ -282,7 +282,7 @@ class WorkoutMediaRepository(
             sourceUri = uri.toString(),
             deleteSourceAfterCommit = true,
         )
-        return enqueueTracked(entry, "No se pudo guardar el medio seleccionado. Podés reintentar.") {
+        return enqueueTracked(entry, "No se pudo guardar el medio seleccionado. Puedes reintentar.") {
             persistUriCapture(uri, mediaSeed)
         }
     }
@@ -291,7 +291,7 @@ class WorkoutMediaRepository(
     fun submitUriCapture(entry: WorkoutMediaCaptureJournalEntry): Deferred<WorkoutMedia?> {
         val uri = Uri.parse(entry.sourceUri ?: "")
         rememberPendingUriRequest(uri, entry.media)
-        return enqueueTracked(entry, "No se pudo guardar el medio seleccionado. Podés reintentar.") {
+        return enqueueTracked(entry, "No se pudo guardar el medio seleccionado. Puedes reintentar.") {
             if (entry.sourceUri.isNullOrBlank()) {
                 throw IOException("La captura seleccionada no conserva su URI de origen.")
             }
@@ -318,7 +318,7 @@ class WorkoutMediaRepository(
         val ingest = enqueueTracked(entry, captureRetryMessage(entry)) {
             val abandoned = abandonEmptyCapture(entry)
             if (!abandoned) {
-                throw IOException("La captura conserva un archivo recuperable. Reintentá desde el historial.")
+                throw IOException("La captura conserva un archivo recuperable. Reintenta desde el historial.")
             }
             null
         }
@@ -788,7 +788,7 @@ class WorkoutMediaRepository(
             } ?: supportedExtension(source.extension)
                 ?: detectSupportedExtension(source)
                 ?: resolveUriMimeType(appContext.contentResolver.getType(uri))?.extension
-                ?: throw IOException("No se pudo recuperar el formato del medio pendiente. Podés reintentar.")
+                ?: throw IOException("No se pudo recuperar el formato del medio pendiente. Puedes reintentar.")
             val detectedKind = kindForExtension(extension)
             if (detectedKind != null && detectedKind != entry.media.kind) {
                 throw IOException("El formato del medio pendiente no coincide con su tipo guardado.")
@@ -799,9 +799,9 @@ class WorkoutMediaRepository(
                 ?.substringBefore(';')
                 ?.trim()
                 ?.takeIf { it.isNotEmpty() }
-                ?: throw IOException("No se pudo identificar el tipo del medio seleccionado. Podés reintentar.")
+                ?: throw IOException("No se pudo identificar el tipo del medio seleccionado. Puedes reintentar.")
             resolveUriMimeType(mime)
-                ?: throw IOException("El tipo del medio seleccionado no es compatible. Podés reintentar.")
+                ?: throw IOException("El tipo del medio seleccionado no es compatible. Puedes reintentar.")
         }
         val resolvedEntry = entry.copy(
             media = entry.media.copy(kind = uriFormat.kind),
@@ -1069,22 +1069,22 @@ class WorkoutMediaRepository(
                         // A process restart cannot prove CameraX finished writing
                         // this file. Keep the capturing marker and let an explicit
                         // user retry promote it to READY after the writer is gone.
-                        throw IOException("La captura de cámara no se marcó como finalizada. Reintentá desde el historial.")
+                        throw IOException("La captura de cámara no se marcó como finalizada. Reintenta desde el historial.")
                     } else {
                         // A non-READY camera journal may belong to an external
                         // camera activity whose ActivityResult is being restored
                         // after process death. Preserve even an empty marker so
                         // that callback can resolve the UUID and clean it safely.
-                        throw IOException("La captura de cámara espera el resultado de la actividad. Reintentá desde el historial.")
+                        throw IOException("La captura de cámara espera el resultado de la actividad. Reintenta desde el historial.")
                     }
                 }
             }
         }
 
     private fun captureRetryMessage(entry: WorkoutMediaCaptureJournalEntry): String = when {
-        entry.sourceUri != null -> "No se pudo recuperar el medio seleccionado. Podés reintentar."
-        entry.media.kind == WorkoutMediaKind.VIDEO -> "No se pudo guardar el vídeo. Podés reintentar."
-        else -> "No se pudo guardar la foto. Podés reintentar."
+        entry.sourceUri != null -> "No se pudo recuperar el medio seleccionado. Puedes reintentar."
+        entry.media.kind == WorkoutMediaKind.VIDEO -> "No se pudo guardar el vídeo. Puedes reintentar."
+        else -> "No se pudo guardar la foto. Puedes reintentar."
     }
 
     /** El álbum general conserva el borrado aceptado aunque se cierre la hoja o el ViewModel de la sesión. */
