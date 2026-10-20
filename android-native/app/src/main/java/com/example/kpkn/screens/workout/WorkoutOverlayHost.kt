@@ -78,7 +78,7 @@ internal fun WorkoutRestOverlayHost(
 
     val restOverrun = uiState.restOverrun
     val showOverrun = restOverrun != null && !isRestTimerRunning && !isRestMinimized && !forceShowForFeedback
-    val shape = restClockShapeForEvent(restState, restOverrun)
+    val shape = restClockShapeForEvent(restState, restOverrun, shapeChoice)
     val appContext = LocalContext.current.applicationContext
     var restIntroSeen by remember { mutableStateOf<Boolean?>(null) }
     var introAcknowledged by remember { mutableStateOf(false) }
@@ -157,7 +157,7 @@ internal fun WorkoutRestOverlayHost(
                 relatorActions = relator.actions,
                 onRelatorAction = { viewModel.performRelatorAssist(it) },
                 shape = shape,
-                onShapeChange = {},
+                onShapeChange = viewModel::chooseRestClockShape,
                 headline = headline,
                 nextSet = nextSet,
                 showIntro = isRestTimerRunning && restIntroSeen == false && !introAcknowledged,

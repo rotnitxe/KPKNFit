@@ -207,7 +207,11 @@ internal fun RestLiveCard(
                             },
                         )
                         Text(
-                            text = "de ${KpknSetFormat.rest(safeTotal)}",
+                            text = "de ${KpknSetFormat.rest(safeTotal)}" + when {
+                                restState?.isManualOverride == true -> " · manual"
+                                isAdaptiveActive -> " · sugerido"
+                                else -> ""
+                            },
                             style = KpknType.caption,
                             color = WizardColors.textMuted,
                             maxLines = 1,
@@ -244,6 +248,10 @@ internal fun RestLiveCard(
                         lastCompletedSet = lastCompletedSet ?: pendingRestSuggestion?.lastSet,
                         lastSetOutcome = lastSetOutcome,
                     )
+                    if (restState != null && restState.plannedSeconds > 0) {
+                        Text("Plan de sesión · ${KpknSetFormat.rest(restState.plannedSeconds)}",
+                            style = KpknType.caption, color = WizardColors.textMuted)
+                    }
 
                     if (pendingRestSuggestion != null && onUseAdaptive != null && !isAdaptiveActive) {
                         RestLiveSuggestedPill(

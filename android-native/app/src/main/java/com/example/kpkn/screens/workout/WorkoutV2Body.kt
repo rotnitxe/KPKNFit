@@ -137,6 +137,7 @@ internal fun WorkoutV2Body(
     val cardioGpsState by viewModel.cardioGpsState.collectAsStateWithLifecycle()
     val cardioHealthState by viewModel.cardioHealthState.collectAsStateWithLifecycle()
     val restTimerRemaining by viewModel.restTimerRemaining.collectAsStateWithLifecycle()
+    val restShapeChoice by viewModel.restClockShapeChoice.collectAsStateWithLifecycle()
     val openMediaFaceExerciseId by viewModel.mediaCapture.requestOpenMediaFaceExerciseId.collectAsStateWithLifecycle()
     val workingRestActive = uiState.isRestTimerRunning &&
         uiState.restModalState != null &&
@@ -1900,7 +1901,7 @@ internal fun WorkoutV2Body(
                                 val restState = uiState.restModalState
                                 val restOverrun = uiState.restOverrun
                                 // La MISMA forma que la pantalla completa (LV6): la elegida o la que toca por el orden del descanso.
-                                val restShape = restClockShapeForEvent(restState, restOverrun)
+                                val restShape = restClockShapeForEvent(restState, restOverrun, restShapeChoice)
                                 // «Siguiente: Serie 2 · 95 kg × 4–6 · RIR 2»: la serie real que toca.
                                 val restNext = remember(
                                     visibleExercises,

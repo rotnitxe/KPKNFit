@@ -597,7 +597,7 @@ private fun NormalRestContent(
                     }
                 }
 
-                if (pendingRestSuggestion != null) {
+                if (state.plannedSeconds > 0 || pendingRestSuggestion != null) {
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -605,15 +605,15 @@ private fun NormalRestContent(
                         horizontalArrangement = Arrangement.spacedBy(12.dp),
                     ) {
                         RestFigureModule(
-                            title = if (isAdaptiveActive) "DESCANSO DINÁMICO" else "PLAN DE SESIÓN",
+                            title = "PLAN DE SESIÓN",
                             value = formatRestClock(state.plannedSeconds),
                             modifier = Modifier
                                 .weight(1f)
                                 .fillMaxHeight(),
-                            footnote = if (state.isManualOverride) "Manual" else null,
+                            footnote = "Referencia del plan",
                         )
 
-                        if (!isAdaptiveActive && onUseAdaptive != null) {
+                        if (pendingRestSuggestion != null && !isAdaptiveActive && onUseAdaptive != null) {
                             RestFigureModule(
                                 title = "Descanso sugerido",
                                 value = formatRestClock(pendingRestSuggestion.adaptiveSeconds),

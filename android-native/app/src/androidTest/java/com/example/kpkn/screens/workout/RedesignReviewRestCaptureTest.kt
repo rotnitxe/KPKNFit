@@ -91,6 +91,8 @@ class RedesignReviewRestCaptureTest {
     @Test fun restTrack() = render("rest-track")
     @Test fun restSpiral() = render("rest-spiral")
     @Test fun restMinimizedCard() = render("rest-card", module = true)
+    @Test fun restTrackCard() = render("rest-track-card", module = true)
+    @Test fun restSpiralCard() = render("rest-spiral-card", module = true)
     @Test fun restMinimizedChip() = render("rest-chip", module = true)
     @Test fun restOvertimeFull() = render("rest-overtime-full")
     @Test fun restOvertimeCard() = render("rest-overtime-card", module = true)
@@ -204,7 +206,11 @@ class RedesignReviewRestCaptureTest {
                             { evidence }, emptyList(), {}, {}, {}, clockActive = false, nowMs = now)
                     }
                     else -> RestLiveCard(158, 249, accent, rest, suggestion, null, last, {}, {}, {}, {}, {},
-                        isAdaptiveActive = true, shape = RestClockShape.TOWER, nextSet = next,
+                        isAdaptiveActive = true, shape = when (scene) {
+                            "rest-track-card" -> RestClockShape.TRACK
+                            "rest-spiral-card" -> RestClockShape.SPIRAL
+                            else -> RestClockShape.TOWER
+                        }, nextSet = next,
                         clockActive = false, initiallyPlaying = scene == "rest-game-card",
                         gameEngine = remember { game() }, recordStore = remember { gameStore() })
                 }
