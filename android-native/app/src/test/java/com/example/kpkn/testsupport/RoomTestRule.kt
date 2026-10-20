@@ -1,10 +1,6 @@
 package com.example.kpkn.testsupport
 
 import com.example.kpkn.data.repository.SessionTemplateRepository
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.withTimeout
 import org.junit.rules.TestRule
 import org.junit.runner.Description
 import org.junit.runners.model.Statement
@@ -33,11 +29,6 @@ class RoomTestRule : TestRule {
 
     /** Join the IO reader before Robolectric or the next fixture closes its Room database. */
     private fun closeTemplateFixture() {
-        val instanceField = SessionTemplateRepository::class.java.getDeclaredField("INSTANCE").apply { isAccessible = true }
-        val repository = instanceField.get(null) ?: return
-        val scopeField = SessionTemplateRepository::class.java.getDeclaredField("scope").apply { isAccessible = true }
-        val job = (scopeField.get(repository) as CoroutineScope).coroutineContext[Job]
         SessionTemplateRepository.resetForTests()
-        runBlocking { withTimeout(10_000) { job?.join() } }
     }
 }
