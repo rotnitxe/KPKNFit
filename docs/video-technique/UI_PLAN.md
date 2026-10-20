@@ -46,7 +46,18 @@ Problemas encontrados en esta revisión:
 - **D38. Perfil:** «Técnica en vídeo» pasa a ser un módulo con contenido (últimos vídeos con su estado y su número de vídeos
   analizados) que abre el hub. El hub gana una cabecera con resumen y una tira de vídeos recientes.
 
-## Paquetes (Antigravity, Gemini 3.8 Flash High; UNO a la vez, pantalla por pantalla)
+- **D39. El modo degradado nunca baja la pose de 20 Hz.**
+  - El diagnóstico del 20-oct (`INFORME_CONFIANZA_20261020.md`) encontró la causa principal del «cero ALTA»: con poca RAM o con el
+    móvil caliente, el stride 2 se aplicaba también a 25 y 30 fps. Eso deja 12,5 y 15 Hz → `LOW_FPS` → BAJA, aunque la puntuación
+    sea 1.
+  - En el banco, sin ese veto, las ALTA de ajuste pasan de 5 a 11, todas en rango.
+  - La regla nueva: degradar solo si la pose sigue en ≥ 24 Hz (20 Hz más un 20 % de margen).
+  - No se toca ningún umbral, peso ni fórmula de confianza. La reserva está gastada: la validación de precisión queda pendiente de
+    una reserva nueva o del teléfono.
+  - El resto de las propuestas del informe (DIP frontal, CURL con barra, ventana del banco y desglose publicado) esperan datos
+    nuevos.
+
+## Paquetes (Codex Sol 6.1 Max desde el 20-oct; antes, Antigravity con Gemini 3.8 Flash High. Uno a la vez por carril)
 | Paquete | Pantalla | Brief |
 |---|---|---|
 | UI-1a | Modo visual: estado del análisis (miniaturas y línea), «reintentar» y textos sin voseo | `briefs/UI1a.md` |
@@ -54,6 +65,7 @@ Problemas encontrados en esta revisión:
 | UI-2 | Anverso de la tarjeta: chip del vídeo en la línea de REPS y menú anclado; fuera la fila que crece | `briefs/UI2.md` |
 | UI-3 | Descanso (tarjeta y pantalla completa): la misma pieza compacta | `briefs/UI3.md` |
 | UI-4 | Perfil (módulo con datos) y hub (cabecera y vídeos recientes) | `briefs/UI4.md` |
+| M1 | Motor (carril `C:\kw\vt-b`): el modo degradado ya no baja la pose de 20 Hz (D39) | `briefs/M1.md` |
 
 El orquestador revisa cada entrega: diff, pruebas, PNG y emulador (`Medium_Phone`, con cámara virtual) o teléfono. Integra en
 `feat/vt-ui` con `--no-ff` y, al final, propone la integración en `master`.
