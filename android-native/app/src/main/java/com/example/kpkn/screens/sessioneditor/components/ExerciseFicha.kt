@@ -251,7 +251,7 @@ internal fun ExerciseFichaContent(
                 model.patternId?.let(::canonicalPatternKnowledge)?.let { pattern ->
                     KpknChip(text = "Patrón · ${pattern.name}", selected = false, onClick = { knowledge = pattern })
                 }
-                if (!wizard && (model.historySummary != null || model.media.any { it.kind == com.example.kpkn.data.models.WorkoutMediaKind.PHOTO })) {
+                if (!wizard && (model.historySummary != null || model.media.isNotEmpty())) {
                     FichaHistory(model, onShowHistory, onOpenAlbum)
                 }
                 model.muscleInfo?.takeIf { it.involvedMuscles.isNotEmpty() }?.let { info ->
@@ -338,13 +338,18 @@ private fun FichaHistory(model: CatalogDetailModel, onShowHistory: (() -> Unit)?
                     Text("Última vez · " + when (days) { 0L -> "hoy"; 1L -> "ayer"; else -> "hace $days días" }, style = KpknType.caption, color = WizardColors.textMuted)
                 }
             }
-            val photos = model.media.filter { it.kind == com.example.kpkn.data.models.WorkoutMediaKind.PHOTO }
-            if (photos.isNotEmpty()) {
+            val mediaItems = model.media
+            if (mediaItems.isNotEmpty()) {
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
-                    photos.take(3).forEach { media ->
+                    mediaItems.take(3).forEach { media ->
                         WorkoutMediaThumb(media = media, modifier = Modifier.size(52.dp).clip(RoundedCornerShape(12.dp)), onClick = onOpenAlbum ?: {})
                     }
-                    if (onOpenAlbum != null) KpknTextAction("Tus fotos · ${photos.size}", onClick = onOpenAlbum, modifier = Modifier.weight(1f))
+                    val label = when {
+                        mediaItems.all { it.kind == com.example.kpkn.data.models.WorkoutMediaKind.PHOTO } -> "Tus fotos"
+                        mediaItems.all { it.kind == com.example.kpkn.data.models.WorkoutMediaKind.VIDEO } -> "Tus vídeos"
+                        else -> "Tus archivos"
+                    }
+                    if (onOpenAlbum != null) KpknTextAction("$label · ${mediaItems.size}", onClick = onOpenAlbum, modifier = Modifier.weight(1f))
                 }
             }
         }

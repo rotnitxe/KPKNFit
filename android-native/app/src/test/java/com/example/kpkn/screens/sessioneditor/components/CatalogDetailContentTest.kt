@@ -15,6 +15,7 @@ import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performSemanticsAction
 import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performTextReplacement
 import com.example.kpkn.data.exercises.ExerciseTechniqueImageLookup
@@ -238,7 +239,8 @@ class CatalogDetailContentTest {
         }
 
         rule.onNodeWithText("Trapecio").assertDoesNotExist()
-        rule.onNodeWithText("Ver todos").performScrollTo().performClick()
+        rule.onNodeWithText("Ver todos").performScrollTo()
+            .performSemanticsAction(androidx.compose.ui.semantics.SemanticsActions.OnClick) { it() }
         rule.waitForIdle()
         rule.onNodeWithText("Trapecio").assertExists()
     }
