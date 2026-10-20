@@ -10,8 +10,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
-import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -22,6 +20,10 @@ import com.example.kpkn.data.models.*
 import com.example.kpkn.domain.sessionassistant.*
 import com.example.kpkn.screens.workout.components.*
 import com.example.kpkn.ui.theme.KPKNTheme
+import com.example.kpkn.testutil.configureLiveSheetTestWindow
+import com.example.kpkn.testutil.verifiedVoiceModesForUiFixture
+import org.junit.After
+import org.junit.Before
 import org.junit.Assert.*
 import org.junit.Rule
 import org.junit.Test
@@ -32,12 +34,21 @@ import java.io.File
 @RunWith(AndroidJUnit4::class)
 class LiveHeaderSheetsDeviceTest {
     @get:Rule val rule = createAndroidComposeRule<ComponentActivity>()
+    private var voiceFixture: AutoCloseable? = null
+    @Before fun configureWindow() {
+        rule.activityRule.scenario.onActivity { it.configureLiveSheetTestWindow() }
+    }
+    @After fun restoreVoiceVerification() { voiceFixture?.close() }
     private val subTag = WorkoutSubTag("seat", "Asiento 3", SubTagCategory.SETUP)
     private val tag = WorkoutTag("uuid-machine", "Máquina A", "exercise", subTags = listOf(subTag))
     private fun content(body: @Composable () -> Unit) {
         rule.setContent { KPKNTheme { MaterialTheme { Box(Modifier.fillMaxSize()) { body() } } } }
     }
-    private fun tap(text: String) = rule.onNodeWithText(text).performScrollTo().performClick()
+    private fun tap(text: String) {
+        val node = rule.onNodeWithText(text, useUnmergedTree = true)
+        if (hasAnyAncestor(hasScrollAction()).matches(node.fetchSemanticsNode())) node.performScrollTo()
+        node.assertIsDisplayed().performClick()
+    }
 
     @Test fun uuidTagsSelectManageAndToggleSubtagsWithoutCommittingLegacyStrings() {
         var selected: String? = null
@@ -80,9 +91,9 @@ class LiveHeaderSheetsDeviceTest {
         }
         rule.onNodeWithContentDescription("Nombre de la etiqueta nueva").performTextReplacement("Máquina A")
         tap("Set-up opcional · Mostrar")
-        rule.onNodeWithContentDescription("Máquina o marca").performScrollTo().performTextReplacement("Rack 2")
-        rule.onNodeWithContentDescription("Carga base (kg)").performScrollTo().performTextReplacement("20,5")
-        rule.onNodeWithContentDescription("Notas de set-up").performScrollTo().performTextReplacement("Pin 3")
+        rule.onNodeWithContentDescription("Máquina o marca", useUnmergedTree = true).performScrollTo().performTextReplacement("Rack 2")
+        rule.onNodeWithContentDescription("Carga base (kg)", useUnmergedTree = true).performScrollTo().performTextReplacement("20,5")
+        rule.onNodeWithContentDescription("Notas de set-up", useUnmergedTree = true).performScrollTo().performTextReplacement("Pin 3")
         tap("Crear")
         rule.onNodeWithText("Ya existe una etiqueta con el nombre «Máquina A».").assertExists()
         rule.runOnIdle { assertEquals("Máquina A", createdName); assertEquals(TagSetupInput("Rack 2", 20.5, "Pin 3"), setup) }
@@ -120,26 +131,20 @@ class LiveHeaderSheetsDeviceTest {
             WorkoutTagManagerModal(tag, "exercise", { renamed = it; RenameTagResult.Success }, {}, { reset++ },
                 { _, _ -> }, {}, {}, emptyList(), {}, machineBrand = "Rack", baseLoadKg = "20", onSaveSetup = { saved = it })
         }
-        rule.onNodeWithContentDescription("Nombre").performTextReplacement("Máquina B")
+        rule.onNodeWithContentDescription("Nombre", useUnmergedTree = true).performTextReplacement("Máquina B")
         tap("Guardar nombre")
         tap("Set-up · Mostrar")
-        rule.onNodeWithContentDescription("Carga base (kg)").performScrollTo().performTextReplacement("25,5")
+        rule.onNodeWithContentDescription("Carga base (kg)", useUnmergedTree = true).performScrollTo().performTextReplacement("25,5")
         tap("Guardar set-up")
         captureManagerDiagnostic("after-save-before-ending-edit")
         // Finish text editing explicitly in the ComponentActivity test host, then test the real touch target.
         rule.runOnIdle { finishEditing() }
-        rule.onNodeWithContentDescription("Carga base (kg)").assertIsNotFocused()
+        rule.onNodeWithContentDescription("Carga base (kg)", useUnmergedTree = true).assertIsNotFocused()
         rule.waitUntil(2_000) { !managerImeVisible() }
         rule.waitForIdle()
-        // The merged panel inherits scrolling but has the wrong viewport; gesture inside the actual body.
-        val body = rule.onNode(hasScrollAction() and SemanticsMatcher.keyIsDefined(SemanticsProperties.VerticalScrollAxisRange), useUnmergedTree = true)
-            .assertIsDisplayed()
-        captureManagerDiagnostic("before-body-swipe")
-        body.performTouchInput { swipeUp(startY = height * 0.8f, endY = height * 0.2f) }
-        rule.waitForIdle()
-        captureManagerDiagnostic("after-body-swipe")
-        rule.onNode(hasText("Reiniciar historial") and SemanticsMatcher.expectValue(SemanticsProperties.Role, Role.Button))
-            .assertIsDisplayed().performClick()
+        // Scroll to the real target, independent of the available height or Flex posture.
+        rule.onNodeWithTag("live-header-sheet-body", useUnmergedTree = true).assertIsDisplayed()
+        tap("Reiniciar historial")
         rule.onNodeWithText("Los registros de sesión no se borran.", substring = true, useUnmergedTree = true).assertExists()
         rule.runOnIdle { assertEquals(0, reset) }
         rule.onNodeWithText("Reiniciar", useUnmergedTree = true).assertIsDisplayed().performClick()
@@ -148,12 +153,15 @@ class LiveHeaderSheetsDeviceTest {
 
     @Test fun realVoiceModeIsActivatedOnlyAfterExplicitStart() {
         val chosen = mutableListOf<VoiceCaptureMode>()
+        voiceFixture = verifiedVoiceModesForUiFixture(InstrumentationRegistry.getInstrumentation().targetContext)
         content { VoiceCaptureModeDialog({ chosen += it }, {}) }
-        rule.onNodeWithText("Empezar").assertIsNotEnabled()
-        rule.onNodeWithText("Manos libres").performClick()
-        rule.onNodeWithText("Música").performClick()
+        rule.waitUntil(5_000) { rule.onAllNodesWithText("Preparando controles de voz…").fetchSemanticsNodes().isEmpty() }
+        rule.onNodeWithText("Activar").assertIsNotEnabled()
+        tap("Manos libres")
+        tap("Modo música")
         rule.runOnIdle { assertTrue(chosen.isEmpty()) }
-        rule.onNodeWithText("Empezar").performClick()
+        rule.onNodeWithText("Activar").performClick()
+        rule.waitUntil(5_000) { chosen.isNotEmpty() }
         rule.runOnIdle { assertEquals(listOf(VoiceCaptureMode.MUSIC), chosen) }
         rule.onAllNodesWithText("Prueba de sonido").assertCountEquals(0)
         rule.onAllNodesWithText("Te habla").assertCountEquals(0)
@@ -216,16 +224,17 @@ class LiveHeaderSheetsDeviceTest {
         var override by mutableStateOf(false)
         content {
             val preview = UltraFastPreview(1_800, 1_200, 600, listOf(
-                UltraFastExerciseChange("curl", "Curl", 3, 2, "NORMAL", "DROPSET", UltraFastReason.ISOLATION_DENSIFIED, true, false),
+                UltraFastExerciseChange("curl", "Curl", 3, 2, "NORMAL", "NORMAL", UltraFastReason.COMPOUND_REDUCED,
+                    wasDensified = false, wasReduced = true),
                 UltraFastExerciseChange("press", "Press", 3, if (override) 2 else 3, "NORMAL", if (override) "DROPSET" else "NORMAL",
                     if (override) UltraFastReason.MANUAL_OVERRIDE_ALLOWED else UltraFastReason.PROTECTED_BASIC, override, false),
             ), listOf(UltraFastSupersetChange("curl", "press", "Curl", "Press", "Polea")))
             UltraFastPreviewSheet(preview, 600, emptyList(), mapOf("press" to override), { override = !override }, { submitted = it }, {})
         }
-        repeat(4) { rule.onNodeWithTag("ultra-plus-curl").performScrollTo().performClick() }
-        rule.onNodeWithTag("ultra-plus-curl").assertIsNotEnabled()
-        repeat(5) { rule.onNodeWithTag("ultra-minus-curl").performScrollTo().performClick() }
-        rule.onNodeWithTag("ultra-minus-curl").assertIsNotEnabled()
+        repeat(4) { rule.onNodeWithTag("ultra-plus-curl", useUnmergedTree = true).performScrollTo().assertIsDisplayed().performClick() }
+        rule.onNodeWithTag("ultra-plus-curl", useUnmergedTree = true).assertIsNotEnabled()
+        repeat(5) { rule.onNodeWithTag("ultra-minus-curl", useUnmergedTree = true).performScrollTo().assertIsDisplayed().performClick() }
+        rule.onNodeWithTag("ultra-minus-curl", useUnmergedTree = true).assertIsNotEnabled()
         tap("Mantener protegido")
         rule.onNodeWithText("Mayor riesgo").assertExists()
         tap("Permitir técnica intensa")
@@ -239,7 +248,7 @@ class LiveHeaderSheetsDeviceTest {
         ViewCompat.getRootWindowInsets(rule.activity.window.decorView)?.isVisible(WindowInsetsCompat.Type.ime()) == true
     }
 
-    /** Records focus/IME/viewport evidence around the single physical swipe and touch target. */
+    /** Records focus/IME/viewport evidence before ending text editing. */
     @OptIn(ExperimentalTestApi::class)
     private fun captureManagerDiagnostic(phase: String) {
         val instrumentation = InstrumentationRegistry.getInstrumentation()

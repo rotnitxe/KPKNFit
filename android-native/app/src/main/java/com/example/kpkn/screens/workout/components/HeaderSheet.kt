@@ -20,6 +20,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -53,7 +54,7 @@ internal fun HeaderSheetFrame(title: String, footer: @Composable ColumnScope.() 
     val scroll = rememberScrollState()
     Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
         Text(title, style = KpknType.title, color = WizardColors.text)
-        Column(Modifier.weight(1f, fill = false).fillMaxWidth().fadeBottomWhenScrollable(scroll).verticalScroll(scroll),
+        Column(Modifier.weight(1f, fill = false).fillMaxWidth().testTag("live-header-sheet-body").fadeBottomWhenScrollable(scroll).verticalScroll(scroll),
             verticalArrangement = Arrangement.spacedBy(10.dp), content = body)
         Column(Modifier.fillMaxWidth().padding(bottom = 4.dp), verticalArrangement = Arrangement.spacedBy(2.dp), content = footer)
     }

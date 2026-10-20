@@ -14,6 +14,8 @@ import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollTo
+import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.performSemanticsAction
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
@@ -104,7 +106,7 @@ class Lv8SetCardDeviceTest {
     private fun markExecutionErrorAndReturn(): Float {
         val original = rule.onNodeWithTag("lv8-device-card").fetchSemanticsNode().boundsInRoot.height
         rule.onNodeWithTag("secondary_pill_avanzado").performClick()
-        rule.onNodeWithText("Error de ejecución").performClick()
+        rule.onNodeWithText("Error de ejecución", useUnmergedTree = true).performScrollTo().assertIsDisplayed().performClick()
         rule.onNodeWithContentDescription("Volver a la serie").performClick()
         rule.waitForIdle()
         val failed = rule.onNodeWithTag("lv8-device-card").fetchSemanticsNode().boundsInRoot.height

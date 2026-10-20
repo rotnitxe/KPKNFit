@@ -23,6 +23,10 @@ import com.example.kpkn.screens.workout.*
 import com.example.kpkn.screens.workout.components.*
 import com.example.kpkn.ui.components.LocalKpknOverlayHost
 import com.example.kpkn.ui.theme.KPKNTheme
+import com.example.kpkn.testutil.configureLiveSheetTestWindow
+import com.example.kpkn.testutil.verifiedVoiceModesForUiFixture
+import org.junit.After
+import org.junit.Before
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
@@ -33,6 +37,11 @@ import java.io.File
 @RunWith(AndroidJUnit4::class)
 class LiveHeaderSheetsRenderSheetTest {
     @get:Rule val rule = createAndroidComposeRule<ComponentActivity>()
+    private var voiceFixture: AutoCloseable? = null
+    @Before fun configureWindow() {
+        rule.activityRule.scenario.onActivity { it.configureLiveSheetTestWindow() }
+    }
+    @After fun restoreVoiceVerification() { voiceFixture?.close() }
     @Test fun tags100() = render("tags", 1f)
     @Test fun tags130() = render("tags", 1.3f)
     @Test fun time100() = render("time", 1f)
@@ -44,6 +53,7 @@ class LiveHeaderSheetsRenderSheetTest {
 
     @OptIn(ExperimentalTestApi::class)
     private fun render(scene: String, scale: Float) {
+        if (scene == "voice") voiceFixture = verifiedVoiceModesForUiFixture(InstrumentationRegistry.getInstrumentation().targetContext)
         rule.setContent {
             KPKNTheme { MaterialTheme {
                 val density = LocalDensity.current
@@ -67,7 +77,10 @@ class LiveHeaderSheetsRenderSheetTest {
                 }
             } }
         }
-        if (scene == "voice") rule.onNodeWithText("Música").performClick()
+        if (scene == "voice") {
+            rule.waitUntil(5_000) { rule.onAllNodesWithText("Preparando controles de voz…").fetchSemanticsNodes().isEmpty() }
+            rule.onNodeWithText("Modo música", useUnmergedTree = true).performScrollTo().performClick()
+        }
         // Capture the final entry pose, with the same vertical viewport as the physical window.
         rule.mainClock.advanceTimeBy(1_000)
         rule.waitForIdle()
@@ -76,7 +89,7 @@ class LiveHeaderSheetsRenderSheetTest {
         val footerLabels = when (scene) {
             "tags", "time" -> listOf("Listo")
             "ultrafast" -> listOf("Cancelar", "Aplicar")
-            else -> listOf("Ahora no", "Empezar")
+            else -> listOf("Ahora no", "Activar")
         }
         footerLabels.forEach { label ->
             val footer = rule.onNode(hasText(label) and hasClickAction()).assertIsDisplayed()
