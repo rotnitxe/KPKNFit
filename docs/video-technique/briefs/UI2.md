@@ -57,12 +57,15 @@ ley 1. Además el texto se parte («ROM ≈ 95» y «%» en otra línea) y no ti
 - **Contenido:**
   - la frase (`workoutVideoRepsText`, sin cortes raros: «ROM ≈ 95 %» con espacio inseparable);
   - debajo, las acciones que ya existen hoy, con `KpknTextAction` en una fila que puede partirse:
-    - «Usar» (Suggest ALTA con reps o parciales);
-    - «Corregir» (Mismatch ALTA con conteos distintos);
-    - «Marcar fallo» (fallos > 0 con ALTA);
+    - «Usar» (Suggest ALTA o MEDIA, con reps o parciales). Con MEDIA, la etiqueta es «Usar ≈ 8» (D40);
+    - «Corregir» (Mismatch ALTA o MEDIA con conteos distintos). Con MEDIA, «Corregir a ≈ 7» (D40);
+    - «Marcar fallo» (fallos > 0, SOLO con ALTA);
     - «Ver análisis» (siempre);
     - «Reintentar» (`Failed`, con `onRetryAnalysis` de UI-1a);
-  - con MEDIA o BAJA, solo «Ver análisis». Ninguna acción aplica nada sola.
+  - con BAJA, solo «Ver análisis». Ninguna acción aplica nada sola.
+  - Lo que hacen «Usar» y «Corregir» con MEDIA es EXACTAMENTE lo mismo que con ALTA: el mismo parche, el mismo reinicio del selector y
+    las mismas parciales. Si el permiso de «Usar» o «Corregir» depende hoy de ALTA en otro sitio (el controlador o la pieza), ábrelo
+    también a MEDIA y cúbrelo con una prueba.
 - **Cierre:** al tocar fuera o tras ejecutar una acción.
 - **Pieza:** `WorkoutVideoRepsSuggestion` pasa a ser el contenido de este menú (renómbralo o reutilízalo). Mantén `workoutVideoRepsText`
   y sus pruebas.
@@ -85,7 +88,7 @@ ley 1. Además el texto se parte («ROM ≈ 95» y «%» en otra línea) y no ti
 - **Hoja de render**, al 100 % y al 130 %:
   - la tarjeta sin vídeo;
   - el chip en cada estado de la tabla;
-  - el menú abierto con ALTA (Usar), con Mismatch (Corregir) y con MEDIA;
+  - el menú abierto con ALTA (Usar), con Mismatch (Corregir), con MEDIA («Usar ≈ 8») y con Mismatch MEDIA («Corregir a ≈ 7»);
   - el borde de la tarjeta, idéntico en todas.
 
 ## Corridas

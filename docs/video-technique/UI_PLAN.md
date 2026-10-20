@@ -57,6 +57,15 @@ Problemas encontrados en esta revisión:
   - El resto de las propuestas del informe (DIP frontal, CURL con barra, ventana del banco y desglose publicado) esperan datos
     nuevos.
 
+- **D40. Con confianza MEDIA también se ofrece aplicar el número** (el usuario, 20-oct: «Ofrecer "Usar ≈ 8"»).
+  - En el menú del chip (UI-2) aparecen «Usar ≈ 8» o «Corregir a ≈ 7», un toque más y nunca automático. El «≈» sigue visible.
+  - En el descanso (UI-3) pasa lo mismo: «corregir» dentro de la frase.
+  - «Marcar fallo» sigue siendo solo con ALTA.
+  - Con BAJA, solo «ver por qué».
+  - Motivo: el usuario exige que la función sea USABLE, como las apps que muestran el conteo y dejan corregirlo.
+- **D41. Banco completo:** todas las pruebas usan los 1.000 vídeos del banco (el usuario, 20-oct: «Tenemos un banco de 1000
+  vídeos. Te ordeno a que los uses todos para las pruebas»). El plan está en `BANCO_COMPLETO.md`.
+
 ## Paquetes (Codex Sol 6.1 Max desde el 20-oct; antes, Antigravity con Gemini 3.8 Flash High. Uno a la vez por carril)
 | Paquete | Pantalla | Brief |
 |---|---|---|
@@ -66,6 +75,7 @@ Problemas encontrados en esta revisión:
 | UI-3 | Descanso (tarjeta y pantalla completa): la misma pieza compacta | `briefs/UI3.md` |
 | UI-4 | Perfil (módulo con datos) y hub (cabecera y vídeos recientes) | `briefs/UI4.md` |
 | M1 | Motor (carril `C:\kw\vt-b`): el modo degradado ya no baja la pose de 20 Hz (D39) | `briefs/M1.md` |
+| VT11a | Banco completo (carril `C:\kw\vt-c`): manifiesto congelado, conductor de la extracción y evaluador (D41) | `briefs/VT11a.md` |
 
 El orquestador revisa cada entrega: diff, pruebas, PNG y emulador (`Medium_Phone`, con cámara virtual) o teléfono. Integra en
 `feat/vt-ui` con `--no-ff` y, al final, propone la integración en `master`.

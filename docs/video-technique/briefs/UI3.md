@@ -32,7 +32,8 @@ la tarjeta de descanso.
   | `Mismatch` ALTA con conteos distintos | «Registraste 8; el vídeo cuenta 7 · corregir» | corregir |
   | `Mismatch` ALTA con fallos | añade « · marcar fallo» | corregir y marcar fallo |
   | `Agrees` | «El vídeo confirma 8 · ver análisis» | abrir |
-  | MEDIA | «El vídeo cuenta unas 7 · revisar» | abrir |
+  | `Mismatch` MEDIA con conteos distintos (D40) | «Registraste 8; el vídeo cuenta unas 7 · corregir · ver análisis» | corregir y abrir |
+  | MEDIA sin diferencia | «El vídeo cuenta unas 8 · ver análisis» | abrir |
   | `Inconclusive` | «Vídeo no concluyente · ver por qué» | abrir |
   | `Failed` | «No se pudo analizar el vídeo · reintentar» | reintentar |
 
@@ -40,6 +41,9 @@ la tarjeta de descanso.
   - Las acciones hacen EXACTAMENTE lo que hacen hoy: «corregir» llama a `onPatch` con el mismo `CompletedSetPatch` que
     `WorkoutCompletedVideoSuggestion`, y «marcar fallo» igual.
   - «Reintentar» va por `retryVideoAnalysis` (UI-1a).
+  - Con MEDIA, «corregir» envía el MISMO parche que con ALTA (D40). Si hoy está restringido a ALTA en
+    `WorkoutCompletedVideoSuggestion` o en el controlador, ábrelo a MEDIA y cúbrelo con una prueba. «Marcar fallo» sigue solo con
+    ALTA.
 - **La miniatura:** `WorkoutMedia` sale de `mediaCapture.sessionMedia` por `mediaId`, donde se arma `videoSlot`: `WorkoutOverlayHost`
   y `WorkoutV2Body`. La insignia sale de `videoThumbBadgeByMediaId` (UI-1a).
 - **Dónde va** en la tarjeta de descanso (`RestLiveCard`, `RestFeedbackCard`) y en el descanso completo (`WorkoutRestOverlay`): en el
