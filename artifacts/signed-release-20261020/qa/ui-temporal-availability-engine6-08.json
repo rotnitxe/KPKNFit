@@ -1,0 +1,103 @@
+{
+  "createdUtc": "2026-10-19T04:55:34.233440+00:00",
+  "status": "PASS_FOCAL_UI_TEMPORAL_AVAILABILITY",
+  "sourceFreezeSha256": "e586be6717f8accfcc3f8326bb5c78564b790ece748c3a3cc33e6b087bc82699",
+  "installedApkSha256": "603f07484a03f79f12d044300cbe86116b619d6afc2d8078405ebfde85bab843",
+  "checks": {
+    "x05CountAndConfidencePreserved": true,
+    "x05FiveNavigationChipsPreserved": true,
+    "x05UnsupportedBreakdownAbsentBetweenSummaryAndCalibration": true,
+    "x05Rep3SelectionAccepted": true,
+    "r14AvailableTutTempoRomPreserved": true,
+    "r14AvailableTimeChartPreserved": true,
+    "trendsTwoCurrentTemporalSeries": true
+  },
+  "rep3Attributes": [
+    {
+      "selected": "true",
+      "checked": "false",
+      "checkable": "false",
+      "clickable": "false"
+    }
+  ],
+  "visualObservationByRoot": {
+    "x05DisplayedPositionBefore": "0:00",
+    "x05DisplayedPositionAfterRep3": "0:05",
+    "selectedChipAfter": 3
+  },
+  "evidence": [
+    {
+      "path": "candidate-ui-inspect-x05-metrics-engine6-01\\nodes.json",
+      "sha256": "ec7ef78d26a0864b9f4a62809cb0ca584a1e4e13338d99ca2f1b7bc66cdc0dec"
+    },
+    {
+      "path": "candidate-ui-inspect-x05-metrics-engine6-01\\ui.xml",
+      "sha256": "f3c16d18fd506bfb7e91416cebb9465f62221ea525b67f8349ef2c7fba95c9f2"
+    },
+    {
+      "path": "candidate-ui-inspect-x05-metrics-engine6-01\\screen.png",
+      "sha256": "d3012094680b46207993c0bb6cd834f811e75608c1e33026bf1e1543c083db68"
+    },
+    {
+      "path": "candidate-ui-inspect-x05-metrics-engine6-08-01\\nodes.json",
+      "sha256": "c4b43b9aa47f4f8e25797dddb910b092aba5f837794feababe0b7af50b06b30e"
+    },
+    {
+      "path": "candidate-ui-inspect-x05-metrics-engine6-08-01\\ui.xml",
+      "sha256": "4f922f6ea5a9ac10e00d4c616bcffd07b32183dd1ae350761c4cc9fd4f0c0d60"
+    },
+    {
+      "path": "candidate-ui-inspect-x05-metrics-engine6-08-01\\screen.png",
+      "sha256": "339044bd7d6c8d30b6a5e2267daef2f52a856b068f0dbfe05a6b86bd1e2b09c8"
+    },
+    {
+      "path": "candidate-ui-inspect-x05-rep3-engine6-08-01\\nodes.json",
+      "sha256": "14e44f8af6c0231f315071af662c035f1e5eacdc62d0dbc7d43f7ba6d8fd3159"
+    },
+    {
+      "path": "candidate-ui-inspect-x05-rep3-engine6-08-01\\ui.xml",
+      "sha256": "f119967a0b79a30d4ba6d54d6366634ac78495eed33ef319b50b6d3b12457f5f"
+    },
+    {
+      "path": "candidate-ui-inspect-x05-rep3-engine6-08-01\\screen.png",
+      "sha256": "4c9459f00de313aeeb2f14869d9811b8c87cf70e650425aa47fa1b8b2c468475"
+    },
+    {
+      "path": "candidate-ui-inspect-r14-metrics-engine6-08-01\\nodes.json",
+      "sha256": "3fe18760243df15ceb22c868a8784bc30127d80c5684d9f6e58f9e11c2737841"
+    },
+    {
+      "path": "candidate-ui-inspect-r14-metrics-engine6-08-01\\ui.xml",
+      "sha256": "7d1d972d89a4880ef10a3a9f6853da747283fa4a42dedcac5e5152848847ce8b"
+    },
+    {
+      "path": "candidate-ui-inspect-r14-metrics-engine6-08-01\\screen.png",
+      "sha256": "fb3c0ab710402d310fb309b8c9ff115a61dc736f5b72f6616f54a572f859ce01"
+    },
+    {
+      "path": "candidate-ui-inspect-r14-time-engine6-08-01\\nodes.json",
+      "sha256": "b8d0625ac49347c253d2f7afff99a383bb0b9601596b405388b25b860db6bbac"
+    },
+    {
+      "path": "candidate-ui-inspect-r14-time-engine6-08-01\\ui.xml",
+      "sha256": "9a685130b772d0413e56779d6d2d218e5572e87c05fbc2ecf60769fc07e7b8b5"
+    },
+    {
+      "path": "candidate-ui-inspect-r14-time-engine6-08-01\\screen.png",
+      "sha256": "d5979c710b0e6c088a70a38873781af603bf31a7dabdcbdef29d8139e22e8ed5"
+    },
+    {
+      "path": "candidate-ui-inspect-trends-engine6-08-01\\nodes.json",
+      "sha256": "0aca3b3760a0d5bd55b656faf99a582193fcea8cd155133cb3de5ddac02d4a04"
+    },
+    {
+      "path": "candidate-ui-inspect-trends-engine6-08-01\\ui.xml",
+      "sha256": "723ae7fcd84c0fb9301fb9f632da411909861a7c519d1b48cbb91aef747a48e0"
+    },
+    {
+      "path": "candidate-ui-inspect-trends-engine6-08-01\\screen.png",
+      "sha256": "646462303e6a91feec28b523e47b4bb95dc5e2300b5198fc75f4448a96451058"
+    }
+  ],
+  "scope": "Current debug08 real UI and persisted QA reports; no independent timing/count accuracy or exact player PTS claim. Current R8 installation remains separate."
+}

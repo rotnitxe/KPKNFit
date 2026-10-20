@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.domain.multisport.HybridTrainingPolicyTest" tests="9" skipped="0" failures="0" errors="0" timestamp="2026-10-20T04:06:57.697Z" hostname="VF" time="0.033">
+  <properties/>
+  <testcase name="searchChecksWeeklyMinimumAfterOptionalOmissionAndMaximumBeforeAccepting" classname="com.example.kpkn.domain.multisport.HybridTrainingPolicyTest" time="0.006"/>
+  <testcase name="unavailableOptionalSessionCannotSilentlySatisfyMinimumOrGoalCoverage" classname="com.example.kpkn.domain.multisport.HybridTrainingPolicyTest" time="0.0"/>
+  <testcase name="declarationsRoundTripWithRecipeProvenanceAndLegacyDefaults" classname="com.example.kpkn.domain.multisport.HybridTrainingPolicyTest" time="0.001"/>
+  <testcase name="infeasibleSeparationHasTypedCauseAndAlternativeWithoutEditingIntent" classname="com.example.kpkn.domain.multisport.HybridTrainingPolicyTest" time="0.001"/>
+  <testcase name="validationRejectsUnknownDuplicateAndOutOfRangeDeclarations" classname="com.example.kpkn.domain.multisport.HybridTrainingPolicyTest" time="0.019"/>
+  <testcase name="repeatingBoundaryChecksSundayToMondayAndPreservesDeclaredOrder" classname="com.example.kpkn.domain.multisport.HybridTrainingPolicyTest" time="0.001"/>
+  <testcase name="searchBacktracksUntilDeclaredOrderAndRestBothFit" classname="com.example.kpkn.domain.multisport.HybridTrainingPolicyTest" time="0.004"/>
+  <testcase name="exactMinuteGapInsideOneDayDoesNotBecomeTwentyFourHours" classname="com.example.kpkn.domain.multisport.HybridTrainingPolicyTest" time="0.0"/>
+  <testcase name="surplusPlacementBudgetCannotBeCreditedAsTrainingDose" classname="com.example.kpkn.domain.multisport.HybridTrainingPolicyTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

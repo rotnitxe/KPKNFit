@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.domain.multisport.field.FieldSportEngineTest" tests="11" skipped="0" failures="0" errors="0" timestamp="2026-10-20T04:06:58.032Z" hostname="VF" time="0.083">
+  <properties/>
+  <testcase name="sprintRejectsInconsistentSplitsAndPreservesRealRestSeparately" classname="com.example.kpkn.domain.multisport.field.FieldSportEngineTest" time="0.019"/>
+  <testcase name="malformedProtocolAndZeroMeasurementsAreRejectedNotCoerced" classname="com.example.kpkn.domain.multisport.field.FieldSportEngineTest" time="0.008"/>
+  <testcase name="jumpSeparatesFailedAndInvalidatedAttemptsAndRequiresExplicitDropContext" classname="com.example.kpkn.domain.multisport.field.FieldSportEngineTest" time="0.002"/>
+  <testcase name="registryBindsPayloadAndEnvelopeSportAndPreservesTypedPlanCodec" classname="com.example.kpkn.domain.multisport.field.FieldSportEngineTest" time="0.007"/>
+  <testcase name="sprintDurationNeedsACompleteAuthoredPrescriptionAndNeverUsesBestTime" classname="com.example.kpkn.domain.multisport.field.FieldSportEngineTest" time="0.005"/>
+  <testcase name="jumpUsesPerformanceLabForHeightDistanceAndContactMarksWithoutCombiningTests" classname="com.example.kpkn.domain.multisport.field.FieldSportEngineTest" time="0.008"/>
+  <testcase name="sprintSummariesUseOnlyManualMarksAndKeepProtocolContextAndWindSeparated" classname="com.example.kpkn.domain.multisport.field.FieldSportEngineTest" time="0.005"/>
+  <testcase name="climbingPlanDurationIsExplicitAndDoesNotAppendFinalRest" classname="com.example.kpkn.domain.multisport.field.FieldSportEngineTest" time="0.007"/>
+  <testcase name="sprintSplitUnitConversionIsExplicitAndExactAcrossSecondsAndMilliseconds" classname="com.example.kpkn.domain.multisport.field.FieldSportEngineTest" time="0.0"/>
+  <testcase name="hangboardStoresLoadComponentsWithoutSubstitutingMissingBodyMass" classname="com.example.kpkn.domain.multisport.field.FieldSportEngineTest" time="0.009"/>
+  <testcase name="climbingKeepsRouteRevisionGradeSystemAndDeclaredAttemptOutcomesDistinct" classname="com.example.kpkn.domain.multisport.field.FieldSportEngineTest" time="0.011"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

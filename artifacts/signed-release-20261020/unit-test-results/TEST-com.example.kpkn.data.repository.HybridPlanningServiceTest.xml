@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.data.repository.HybridPlanningServiceTest" tests="6" skipped="0" failures="0" errors="0" timestamp="2026-10-20T04:06:54.913Z" hostname="VF" time="0.041">
+  <properties/>
+  <testcase name="savesOnlyProposalAndConfigurationWithoutMovingOrRegeneratingSessions" classname="com.example.kpkn.data.repository.HybridPlanningServiceTest" time="0.017"/>
+  <testcase name="cancellationPropagatesInsteadOfBecomingAStorageResult" classname="com.example.kpkn.data.repository.HybridPlanningServiceTest" time="0.006"/>
+  <testcase name="editBetweenPlanningAndCommitIsNotOverwritten" classname="com.example.kpkn.data.repository.HybridPlanningServiceTest" time="0.006"/>
+  <testcase name="storageFailureIsNotReportedAsSaved" classname="com.example.kpkn.data.repository.HybridPlanningServiceTest" time="0.006"/>
+  <testcase name="missingProgramIsExplicitAndDoesNotWrite" classname="com.example.kpkn.data.repository.HybridPlanningServiceTest" time="0.003"/>
+  <testcase name="invalidInputNeverCallsTheWriter" classname="com.example.kpkn.data.repository.HybridPlanningServiceTest" time="0.003"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

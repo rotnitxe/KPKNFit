@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.domain.nutrition.CompletedTrainingDayAccountingTest" tests="5" skipped="0" failures="0" errors="0" timestamp="2026-10-20T04:06:58.347Z" hostname="VF" time="0.007">
+  <properties/>
+  <testcase name="conflict across days stays excluded on both days" classname="com.example.kpkn.domain.nutrition.CompletedTrainingDayAccountingTest" time="0.003"/>
+  <testcase name="planned and live estimates do not enter actual burn and missing is not known zero" classname="com.example.kpkn.domain.nutrition.CompletedTrainingDayAccountingTest" time="0.001"/>
+  <testcase name="mixed activity and exact repeats contribute one final session total" classname="com.example.kpkn.domain.nutrition.CompletedTrainingDayAccountingTest" time="0.0"/>
+  <testcase name="actual date wins and instant fallback uses injected local zone without crashing" classname="com.example.kpkn.domain.nutrition.CompletedTrainingDayAccountingTest" time="0.002"/>
+  <testcase name="aggregate outside Int range remains Long and cannot wrap into nutrition balance" classname="com.example.kpkn.domain.nutrition.CompletedTrainingDayAccountingTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

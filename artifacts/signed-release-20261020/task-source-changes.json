@@ -1,0 +1,38 @@
+[
+  {
+    "path": "android-native/app/src/main/java/com/example/kpkn/domain/multisport/endurance/EnduranceSportModels.kt",
+    "sha256": "ccb95eef5c76dc894d4bb61cafcfcfe4034cb9761855704a50ac44503b1151c1"
+  },
+  {
+    "path": "android-native/app/src/main/java/com/example/kpkn/domain/multisport/HybridProgramPlanner.kt",
+    "sha256": "aae99e33f729539faf8bd94493fba160daf14a2f044101cb1ca6e2bfeb222f64"
+  },
+  {
+    "path": "android-native/app/src/main/java/com/example/kpkn/domain/multisport/HybridRemainingWeekPlanner.kt",
+    "sha256": "bab8fa234147e22f2680d3327ebbe1c994bc83d66454ebac4b4f288cddde29b2"
+  },
+  {
+    "path": "android-native/app/src/test/java/com/example/kpkn/data/repository/SportTrackingRoomTest.kt",
+    "sha256": "cd51b047403ab596b6cb22bbc725ca71b3daf0c114474a602a415a6f8493ceeb"
+  },
+  {
+    "path": "android-native/app/src/test/java/com/example/kpkn/domain/multisport/combat/CombatSportEngineTest.kt",
+    "sha256": "fe35b3dd4dba467f1b7a7a487f890ffd349ac8447fff78f681f84a98dd6da71d"
+  },
+  {
+    "path": "android-native/app/src/test/java/com/example/kpkn/domain/multisport/field/FieldSportEngineTest.kt",
+    "sha256": "417a205360a38ee9cf3a2a650509390e621540b4e8b1694819a39928c2f8f8ba"
+  },
+  {
+    "path": "android-native/app/src/test/java/com/example/kpkn/domain/multisport/HybridProgramPlannerTest.kt",
+    "sha256": "33f9e530803a7bcc0d6d6bc33293e6c00bfc90e7ef9cfc49e12d47d9b74ff48d"
+  },
+  {
+    "path": "android-native/app/src/test/java/com/example/kpkn/domain/multisport/HybridSessionDurationPolicyTest.kt",
+    "sha256": "0cd8baf0f71503a9cac56dea597b0c3a510cce7ee17ec4953335c450a83c060e"
+  },
+  {
+    "path": "android-native/app/src/test/java/com/example/kpkn/domain/multisport/strength/StrengthSportEngineTest.kt",
+    "sha256": "64d813de1207905dda0997e18067caffba3597a93b94e7610d220986fa2eec10"
+  }
+]

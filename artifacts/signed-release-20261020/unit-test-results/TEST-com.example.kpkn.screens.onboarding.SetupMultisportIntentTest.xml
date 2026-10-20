@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.screens.onboarding.SetupMultisportIntentTest" tests="8" skipped="0" failures="0" errors="0" timestamp="2026-10-20T04:07:17.809Z" hostname="VF" time="0.04">
+  <properties/>
+  <testcase name="activationStoresIntentWithoutChangingAuthoredProgramContent" classname="com.example.kpkn.screens.onboarding.SetupMultisportIntentTest" time="0.005"/>
+  <testcase name="projectionUsesPrimaryIdentityAndOnlyExactLegacySportProfiles" classname="com.example.kpkn.screens.onboarding.SetupMultisportIntentTest" time="0.0"/>
+  <testcase name="legacyOnlyDraftDoesNotEraseExistingProgramIntent" classname="com.example.kpkn.screens.onboarding.SetupMultisportIntentTest" time="0.001"/>
+  <testcase name="legacyDraftDoesNotInventSportSelections" classname="com.example.kpkn.screens.onboarding.SetupMultisportIntentTest" time="0.024"/>
+  <testcase name="draftRoundTripAndLegacyEditPreserveEveryOrderedGoal" classname="com.example.kpkn.screens.onboarding.SetupMultisportIntentTest" time="0.005"/>
+  <testcase name="invalidSecondaryGoalCannotBeSilentlyReducedToValidPrimary" classname="com.example.kpkn.screens.onboarding.SetupMultisportIntentTest" time="0.0"/>
+  <testcase name="competitionCalendarActivationAlsoRetainsOrderedIntent" classname="com.example.kpkn.screens.onboarding.SetupMultisportIntentTest" time="0.004"/>
+  <testcase name="invalidExplicitIntentRejectsActivationWithOriginalDomainErrors" classname="com.example.kpkn.screens.onboarding.SetupMultisportIntentTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

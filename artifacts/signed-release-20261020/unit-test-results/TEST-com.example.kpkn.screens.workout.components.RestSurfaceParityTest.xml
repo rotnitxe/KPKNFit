@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.screens.workout.components.RestSurfaceParityTest" tests="12" skipped="0" failures="0" errors="0" timestamp="2026-10-20T04:07:28.463Z" hostname="VF" time="6.798">
+  <properties/>
+  <testcase name="theCardAdjustsSkipsAndSkipsTheRestOfTheExerciseWithTheSameCallbacks" classname="com.example.kpkn.screens.workout.components.RestSurfaceParityTest" time="5.035"/>
+  <testcase name="theFullScreenGameKeepsSkippingTheRestAndGoesBackToTheRest" classname="com.example.kpkn.screens.workout.components.RestSurfaceParityTest" time="0.455"/>
+  <testcase name="theCardGameKeepsSkippingTheRestAndGoesBackToTheCard" classname="com.example.kpkn.screens.workout.components.RestSurfaceParityTest" time="0.173"/>
+  <testcase name="theHostControlsClockShapeWithoutShowingSelectionTabs" classname="com.example.kpkn.screens.workout.components.RestSurfaceParityTest" time="0.111"/>
+  <testcase name="theFullScreenAdjustsSkipsAndSkipsTheRestOfTheExerciseWithTheCallbacksItIsGiven" classname="com.example.kpkn.screens.workout.components.RestSurfaceParityTest" time="0.14"/>
+  <testcase name="theCardShowsTheNextSetFromTheRealPlan" classname="com.example.kpkn.screens.workout.components.RestSurfaceParityTest" time="0.116"/>
+  <testcase name="theMiniChipOpensTheRestAndAddsFifteenSeconds" classname="com.example.kpkn.screens.workout.components.RestSurfaceParityTest" time="0.086"/>
+  <testcase name="theFullScreenOverrunStartsTheSetAndAsksForThirtyMoreSecondsWithoutTouchingTheRest" classname="com.example.kpkn.screens.workout.components.RestSurfaceParityTest" time="0.158"/>
+  <testcase name="theCardPlayButtonOpensTheGameInsideTheCard" classname="com.example.kpkn.screens.workout.components.RestSurfaceParityTest" time="0.15"/>
+  <testcase name="theCardOverrunHasTheSameActions" classname="com.example.kpkn.screens.workout.components.RestSurfaceParityTest" time="0.098"/>
+  <testcase name="thePlayButtonsOpenTheGameInsideTheSameSurface" classname="com.example.kpkn.screens.workout.components.RestSurfaceParityTest" time="0.163"/>
+  <testcase name="theFullScreenShowsWhatEverythingElseKeepsShowing" classname="com.example.kpkn.screens.workout.components.RestSurfaceParityTest" time="0.112"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

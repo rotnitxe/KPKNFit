@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.screens.workout.components.SetExecutionCardVideoTest" tests="10" skipped="0" failures="0" errors="0" timestamp="2026-10-20T04:07:35.493Z" hostname="VF" time="1.846">
+  <properties/>
+  <testcase name="manual_reps_selection_after_use_remains_authoritative" classname="com.example.kpkn.screens.workout.components.SetExecutionCardVideoTest" time="0.632"/>
+  <testcase name="ordinary_recomposition_preserves_manual_edit_after_persisted_correction" classname="com.example.kpkn.screens.workout.components.SetExecutionCardVideoTest" time="0.204"/>
+  <testcase name="restored_draft_partials_are_recorded_without_being_lost" classname="com.example.kpkn.screens.workout.components.SetExecutionCardVideoTest" time="0.101"/>
+  <testcase name="muscular_failure_patch_with_same_id_updates_effort_and_does_not_become_execution_error" classname="com.example.kpkn.screens.workout.components.SetExecutionCardVideoTest" time="0.165"/>
+  <testcase name="zero_complete_reps_with_partials_can_be_registered" classname="com.example.kpkn.screens.workout.components.SetExecutionCardVideoTest" time="0.131"/>
+  <testcase name="use_only_updates_local_draft_and_keeps_effort_until_explicit_registration" classname="com.example.kpkn.screens.workout.components.SetExecutionCardVideoTest" time="0.122"/>
+  <testcase name="correcting_mounted_completed_set_with_same_id_survives_explicit_update" classname="com.example.kpkn.screens.workout.components.SetExecutionCardVideoTest" time="0.137"/>
+  <testcase name="zero_seconds_cannot_become_valid_by_adding_partials" classname="com.example.kpkn.screens.workout.components.SetExecutionCardVideoTest" time="0.153"/>
+  <testcase name="zero_without_partials_is_rejected" classname="com.example.kpkn.screens.workout.components.SetExecutionCardVideoTest" time="0.097"/>
+  <testcase name="mounting_completed_zero_full_with_partials_without_draft_keeps_zero" classname="com.example.kpkn.screens.workout.components.SetExecutionCardVideoTest" time="0.104"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>
