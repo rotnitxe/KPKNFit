@@ -64,6 +64,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
@@ -158,7 +159,7 @@ fun WorkoutSessionCockpit(
             Text(sessionProgressLabel, style = KpknType.caption, color = WizardColors.textMuted)
         }
         Row(
-            modifier = Modifier.fillMaxWidth().fadeHorizontalWhenScrollable(tabScroll).horizontalScroll(tabScroll).padding(horizontal = 16.dp),
+            modifier = Modifier.fillMaxWidth().testTag("cockpit-tabs").fadeHorizontalWhenScrollable(tabScroll).horizontalScroll(tabScroll).padding(horizontal = 16.dp),
             horizontalArrangement = Arrangement.spacedBy(6.dp),
         ) {
             pages.forEachIndexed { index, page ->
@@ -171,6 +172,7 @@ fun WorkoutSessionCockpit(
         }
         HorizontalPager(
             state = pagerState,
+            verticalAlignment = Alignment.Top,
             modifier = Modifier
                 .fillMaxWidth()
                 .weight(1f),

@@ -43,7 +43,7 @@ fun exerciseHistorySummary(history: List<WorkoutLog>, identityKeys: Set<String>,
     return ExerciseHistorySummary(best?.first, best?.second, last)
 }
 
-data class ExerciseFichaEffects(val blurDp: Float, val darkness: Float, val scale: Float, val headerAlpha: Float)
+data class ExerciseFichaEffects(val blurDp: Float, val darkness: Float, val scale: Float, val headerAlpha: Float, val titleAlpha: Float)
 
 /** Efectos ligados al desplazamiento; sin reloj ni animación continua. */
 fun exerciseFichaEffects(scrollDp: Float, reducedMotion: Boolean = false, canBlur: Boolean = true): ExerciseFichaEffects {
@@ -53,6 +53,8 @@ fun exerciseFichaEffects(scrollDp: Float, reducedMotion: Boolean = false, canBlu
         blurDp = if (canBlur) 16f * fraction else 0f,
         darkness = 0.68f * fraction,
         scale = if (reducedMotion) 1f else 1f + 0.08f * fraction,
-        headerAlpha = ((scroll - 230f) / 80f).coerceIn(0f, 1f),
+        // Finish fading the large title before the fixed title starts appearing.
+        titleAlpha = (1f - (scroll - 230f) / 40f).coerceIn(0f, 1f),
+        headerAlpha = ((scroll - 270f) / 40f).coerceIn(0f, 1f),
     )
 }

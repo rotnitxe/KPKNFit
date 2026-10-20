@@ -99,6 +99,13 @@ private val BodyBottom = Color(0xFF171717)
 private val Ink = Color(0xFFF2EEE6)
 private val SelectionTrack = Color(0xFF262626)
 
+/** G6 uses recovery thresholds, independently of the channel colors of the RINGS. */
+internal fun muscleRecoveryColor(value: Int): Color = when {
+    value >= 80 -> Color(0xFF43D18C)
+    value >= 60 -> Color(0xFFF7CF73)
+    else -> Color(0xFFF49A6E)
+}
+
 /** Relleno de los botones − y +: más oscuro que la caja de la fila, como en el prototipo, para que se vean sobre ella. */
 private val StepFill = Color(0xFF0E0E0E)
 
@@ -327,7 +334,7 @@ fun MuscleBodyAdjust(
 
     // El color de cada zona se anima al cambiar su valor.
     val zoneColors: Map<String, Color> = RingAdjustBodyPillars.associateWith { pillar ->
-        val target = byPillar[pillar]?.value?.let { if (it >= 80) Color(0xFF8FB2FF) else Color(0xFFF49A6E) } ?: Color.Transparent
+        val target = byPillar[pillar]?.value?.let(::muscleRecoveryColor) ?: Color.Transparent
         animateColorAsState(
             targetValue = target,
             animationSpec = if (reduced) tween(0) else tween(350),
@@ -376,6 +383,20 @@ fun MuscleBodyAdjust(
             onVisible = { visible = it },
             estimatedKeys = estimatedKeys,
         )
+
+        FlowRow(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            verticalArrangement = Arrangement.spacedBy(6.dp),
+        ) {
+            listOf(80 to "Recuperado · 80–100 %", 60 to "Algo cargado · 60–79 %", 0 to "Cargado · 0–59 %").forEach { (value, label) ->
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(5.dp)) {
+                    Box(Modifier.size(8.dp).background(muscleRecoveryColor(value), CircleShape))
+                    Text(label, style = KpknType.caption, color = WizardColors.textMuted)
+                }
+            }
+        }
+        Text("Borde grueso: músculo elegido", style = KpknType.caption, color = WizardColors.textFaint)
 
         if (highlightedKeys.isNotEmpty()) {
             Text(
@@ -757,7 +778,7 @@ private fun MiniRing(value: Int?, modifier: Modifier = Modifier) {
         val sweep = 360f * value / RingAdjustMax
         if (sweep > 0f) {
             drawArc(
-                if (value >= 80) Color(0xFF8FB2FF) else Color(0xFFF49A6E),
+                muscleRecoveryColor(value),
                 -90f,
                 sweep,
                 false,

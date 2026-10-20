@@ -243,7 +243,8 @@ internal fun ExerciseFichaContent(
                 verticalArrangement = Arrangement.spacedBy(16.dp),
             ) {
                 Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                    Text(model.name, style = KpknType.title, color = WizardColors.text)
+                    Text(model.name, style = KpknType.title, color = WizardColors.text,
+                        modifier = Modifier.graphicsLayer { alpha = effects.titleAlpha })
                     model.caption?.takeIf { it.isNotBlank() }?.let { Text(it, style = KpknType.caption, color = WizardColors.textMuted) }
                     model.contextLine?.takeIf { it.isNotBlank() }?.let { Text(it, style = KpknType.caption, color = WizardColors.textMuted) }
                 }
