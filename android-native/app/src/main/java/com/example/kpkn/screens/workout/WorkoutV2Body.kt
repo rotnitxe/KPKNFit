@@ -123,6 +123,7 @@ internal fun WorkoutV2Body(
 ) {
     val sharedFabBottomOffset = recordFabBottomOffset ?: rememberWorkoutRecordFabBottomOffset(dockBottomClearance)
     val videoAnalysis by viewModel.videoAnalysisBySetKey.collectAsStateWithLifecycle()
+    val videoThumbBadges by viewModel.videoThumbBadgeByMediaId.collectAsStateWithLifecycle()
     val restVideoKey = uiState.setJustLoggedKey
     val restVideo = restVideoKey?.let(videoAnalysis::get)
     val restVideoSlot: (@Composable () -> Unit)? = if (restVideoKey != null && restVideo != null) {
@@ -2310,6 +2311,8 @@ internal fun WorkoutV2Body(
                                         },
                                     techniqueRecorderHolder = techniqueRecorderHolder,
                                     loadPopTrigger = relatorLoadPopTrigger,
+                                    videoThumbBadges = videoThumbBadges,
+                                    onRetryAnalysis = { viewModel.retryVideoAnalysis(it) },
                                         )
                                         }
                                     }

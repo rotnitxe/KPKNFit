@@ -891,6 +891,8 @@ internal fun SetInputCardV2(
     onVideoCorrect: (com.example.kpkn.screens.workout.SetVideoAnalysisState.Mismatch) -> Unit = {},
     onVideoMarkFailure: () -> Unit = {},
     onOpenAnalysis: (String) -> Unit = {},
+    onRetryAnalysis: ((String) -> Unit)? = null,
+    videoThumbBadges: Map<String, com.example.kpkn.screens.workout.design.VideoThumbBadge> = emptyMap(),
 ) {
     val context = LocalContext.current
     val recordActionInstanceOwner = remember { Any() }
@@ -3311,6 +3313,9 @@ internal fun SetInputCardV2(
                         onShowHistory = onShowHistory,
                         onOpenAnalysis = onOpenAnalysis,
                         recorderOpen = techniqueRecorderHolder?.request != null,
+                        videoThumbBadges = videoThumbBadges,
+                        videoAnalysis = videoAnalysis,
+                        onRetryAnalysis = onRetryAnalysis,
                     )
                     else -> SetCardTechniqueBack(
                     currentSet = currentSet,

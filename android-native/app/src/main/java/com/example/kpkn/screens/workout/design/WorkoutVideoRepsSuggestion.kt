@@ -52,7 +52,7 @@ internal fun WorkoutVideoRepsSuggestion(
                         KpknIconButton(icon = KpknLineIcons.ChevronRight, contentDescription = "Ver análisis", onClick = { onOpenAnalysis(value.mediaId) })
                     } else KpknTextAction("Revisar", onClick = { onOpenAnalysis(value.mediaId) })
                 }
-                SetVideoAnalysisState.Inconclusive -> KpknTextAction("Ver análisis", onClick = { onOpenAnalysis(value.mediaId) })
+                SetVideoAnalysisState.Inconclusive, is SetVideoAnalysisState.Failed -> KpknTextAction("Ver análisis", onClick = { onOpenAnalysis(value.mediaId) })
                 else -> Unit
             }
         }
@@ -81,6 +81,7 @@ internal fun workoutVideoRepsText(state: SetVideoAnalysisState): String {
         }
         is SetVideoAnalysisState.Agrees -> "El vídeo confirma ${state.counted}"
         SetVideoAnalysisState.Inconclusive -> "Vídeo no concluyente"
+        is SetVideoAnalysisState.Failed -> "No se pudo analizar el vídeo"
         is SetVideoAnalysisState.Unsupported -> state.reasonText
     }
 }

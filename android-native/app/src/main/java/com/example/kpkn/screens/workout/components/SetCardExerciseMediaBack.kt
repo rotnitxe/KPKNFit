@@ -13,7 +13,10 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.gestures.waitForUpOrCancellation
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -57,20 +60,34 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.boundsInRoot
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.getTextLayoutResult
+import androidx.compose.ui.semantics.onClick
+import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.text
 import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.LinkAnnotation
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.TextLayoutResult
+import androidx.compose.ui.text.TextLinkStyles
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.rememberTextMeasurer
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.withLink
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
@@ -82,11 +99,19 @@ import com.example.kpkn.data.exercises.ExerciseTechniqueImageLookup
 import com.example.kpkn.data.media.ExerciseAlbumModel
 import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.WorkoutMedia
+import com.example.kpkn.data.models.WorkoutMediaKind
 import com.example.kpkn.screens.onboarding.design.WizardColors
 import com.example.kpkn.screens.onboarding.design.wizardReducedMotion
 import com.example.kpkn.screens.sessioneditor.components.SessionExerciseDetailSheet
+import com.example.kpkn.screens.workout.SetVideoAnalysisState
+import com.example.kpkn.screens.workout.SetVideoAnalysisUi
 import com.example.kpkn.screens.workout.WorkoutMediaCaptureController
 import com.example.kpkn.screens.workout.WorkoutMediaCaptureRequest
+import com.example.kpkn.screens.workout.design.VideoThumbBadge
+import com.example.kpkn.screens.workout.design.VisualModeAnalysisAction
+import com.example.kpkn.screens.workout.design.VisualModeAnalysisLine
+import com.example.kpkn.screens.workout.design.videoThumbContentDescription
+import com.example.kpkn.screens.workout.design.visualModeAnalysisLine
 import com.example.kpkn.screens.workout.withExerciseCaptureContext
 import com.example.kpkn.ui.components.KpknModalTracker
 import com.example.kpkn.ui.components.KpknPortal
@@ -95,8 +120,8 @@ import com.example.kpkn.ui.design.KpknModule
 import com.example.kpkn.ui.design.KpknShape
 import com.example.kpkn.ui.design.KpknSurface
 import com.example.kpkn.ui.design.KpknType
-import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
+import kotlinx.coroutines.launch
 
 /** Etiquetas de prueba de «Modo visual» (LV8). */
 internal const val MediaFaceTag = "media_face"
@@ -143,6 +168,11 @@ internal fun SetCardExerciseMediaBack(
     showControlsWithoutCamera: Boolean = false,
     onOpenAnalysis: ((String) -> Unit)? = null,
     recorderOpen: Boolean = false,
+    /** Datos de ejemplo para hojas de render, sin abrir la cámara ni leer Room. */
+    mediaFilesOverride: List<WorkoutMedia>? = null,
+    videoThumbBadges: Map<String, VideoThumbBadge> = emptyMap(),
+    onRetryAnalysis: ((String) -> Unit)? = null,
+    videoAnalysis: SetVideoAnalysisUi? = null,
 ) {
     val context = LocalContext.current
     val density = LocalDensity.current
@@ -169,7 +199,8 @@ internal fun SetCardExerciseMediaBack(
     val captureError by (mediaCapture?.captureError ?: idleError).collectAsStateWithLifecycle()
     val bindGeneration by (mediaCapture?.bindGeneration ?: idleBind).collectAsStateWithLifecycle()
     val normalizedActiveSide = com.example.kpkn.data.media.WorkoutMediaSides.normalize(side, exercise)
-    val exerciseFiles = remember(sessionMedia, exercise.id, exerciseKey, setIndex, normalizedActiveSide) {
+    val exerciseFiles = remember(sessionMedia, exercise.id, exerciseKey, setIndex, normalizedActiveSide, mediaFilesOverride) {
+        if (mediaFilesOverride != null) return@remember mediaFilesOverride
         sessionMedia.filter { item ->
             val matchesExercise = item.exerciseId == exercise.id ||
                 item.canonicalExerciseId == exerciseKey ||
@@ -301,6 +332,7 @@ internal fun SetCardExerciseMediaBack(
             onThumb = { previewMedia = it },
             onAlbum = { showAlbum = true },
             albumEnabled = mediaCapture != null || showControlsWithoutCamera,
+            videoThumbBadges = videoThumbBadges,
         )
     }
 
@@ -379,45 +411,29 @@ internal fun SetCardExerciseMediaBack(
                         contentScale = ContentScale.Fit,
                     )
                 }
-                Column(modifier = Modifier.weight(1f)) {
-                    if (captureError != null) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        ) {
-                            Text(
-                                captureError.orEmpty(),
-                                modifier = Modifier.weight(1f, fill = false),
-                                style = KpknType.caption,
-                                color = WizardColors.danger,
-                                maxLines = 2,
-                                overflow = TextOverflow.Ellipsis,
-                            )
-                            Text(
-                                "Reintentar",
-                                modifier = Modifier
-                                    .defaultMinSize(minHeight = 32.dp)
-                                    .clickable(
-                                        interactionSource = remember { MutableInteractionSource() },
-                                        indication = null,
-                                        role = Role.Button,
-                                        onClick = onRetryPendingCaptures,
-                                    )
-                                    .padding(vertical = 6.dp),
-                                style = KpknType.action,
-                                color = WizardColors.text,
-                            )
-                        }
-                    } else {
-                        Text(
-                            saveLine,
-                            style = KpknType.caption,
-                            color = WizardColors.textMuted,
-                            maxLines = 3,
-                            overflow = TextOverflow.Ellipsis,
-                        )
-                    }
+                val line = when {
+                    captureError != null -> VisualModeAnalysisLine(
+                        "${captureError.orEmpty()} · reintentar", "reintentar", VisualModeAnalysisAction.RETRY,
+                    )
+                    videoAnalysis != null -> visualModeAnalysisLine(videoAnalysis.state, setIndex)
+                    else -> VisualModeAnalysisLine(saveLine)
                 }
+                val onLineAction: (() -> Unit)? = when {
+                    captureError != null -> onRetryPendingCaptures
+                    line.action == VisualModeAnalysisAction.OPEN -> onOpenAnalysis?.let { open -> { open(videoAnalysis!!.mediaId) } }
+                    line.action == VisualModeAnalysisAction.RETRY -> onRetryAnalysis?.let { retry -> { retry(videoAnalysis!!.mediaId) } }
+                    else -> null
+                }
+                MediaAnalysisLine(
+                    line = line,
+                    onAction = onLineAction,
+                    color = when {
+                        captureError != null -> WizardColors.danger
+                        videoAnalysis?.state is SetVideoAnalysisState.Unsupported -> WizardColors.textFaint
+                        else -> WizardColors.textMuted
+                    },
+                    modifier = Modifier.weight(1f),
+                )
             }
         }
 
@@ -470,6 +486,79 @@ internal fun SetCardExerciseMediaBack(
             onDismiss = { previewMedia = null },
             poseOverlayEnabled = mediaCapture?.isPoseTrajectoryEnabled() == true,
             onOpenAnalysis = onOpenAnalysis,
+        )
+    }
+}
+
+/** La banda mide siempre 48 dp: ni el texto ni el enlace desplazan la cámara. */
+@Composable
+private fun MediaAnalysisLine(
+    line: VisualModeAnalysisLine,
+    onAction: (() -> Unit)?,
+    color: Color,
+    modifier: Modifier = Modifier,
+) {
+    var layout by remember { mutableStateOf<TextLayoutResult?>(null) }
+    val label = line.actionLabel
+    val actionStart = if (label != null && onAction != null) line.text.lastIndexOf(label) else -1
+    val annotated = buildAnnotatedString {
+        if (actionStart >= 0 && label != null) {
+            append(line.text.substring(0, actionStart))
+            withLink(LinkAnnotation.Clickable(
+                tag = "visual-analysis-${line.action}",
+                styles = TextLinkStyles(SpanStyle(fontWeight = FontWeight.SemiBold, color = WizardColors.text, textDecoration = TextDecoration.None)),
+                linkInteractionListener = { onAction?.invoke() },
+            )) { append(label.replace(' ', '\u00A0')) }
+        } else append(line.text)
+    }
+    Box(
+        modifier = modifier
+            .height(48.dp)
+            .testTag("media_analysis_line")
+            .clearAndSetSemantics {
+                contentDescription = line.text
+                text = AnnotatedString(line.text)
+                getTextLayoutResult { results -> layout?.let { results.add(it) } ?: false }
+                if (onAction != null) {
+                    role = Role.Button
+                    onClick(label = label) { onAction(); true }
+                }
+            }
+            .then(if (actionStart >= 0 && label != null) Modifier.pointerInput(line, onAction) {
+                awaitEachGesture {
+                    val down = awaitFirstDown(pass = PointerEventPass.Initial)
+                    val measured = layout ?: return@awaitEachGesture
+                    // La palabra conserva su ancho; su objetivo ocupa los 48 dp de alto de la banda.
+                    val onLink = (0 until measured.lineCount).any { index ->
+                        val start = maxOf(actionStart, measured.getLineStart(index))
+                        val end = minOf(actionStart + label.length, measured.getLineEnd(index, visibleEnd = true))
+                        if (start < end) {
+                            val bounds = measured.getPathForRange(start, end).getBounds()
+                            down.position.x in (bounds.left - 6.dp.toPx())..(bounds.right + 6.dp.toPx())
+                        } else false
+                    }
+                    if (onLink) {
+                        // Resolver antes del enlace de Text evita que su área propia absorba
+                        // el toque de la banda sin activar la acción o la active dos veces.
+                        down.consume()
+                        val up = waitForUpOrCancellation(pass = PointerEventPass.Initial)
+                        if (up != null) {
+                            up.consume()
+                            onAction?.invoke()
+                        }
+                    }
+                }
+            } else Modifier),
+        contentAlignment = Alignment.CenterStart,
+    ) {
+        Text(
+            text = annotated,
+            modifier = Modifier.fillMaxWidth().testTag("media_analysis_text"),
+            style = KpknType.caption,
+            color = color,
+            maxLines = 2,
+            overflow = TextOverflow.Ellipsis,
+            onTextLayout = { layout = it },
         )
     }
 }
@@ -575,6 +664,7 @@ private fun MediaStage(
     onThumb: (WorkoutMedia) -> Unit,
     onAlbum: () -> Unit,
     albumEnabled: Boolean,
+    videoThumbBadges: Map<String, VideoThumbBadge> = emptyMap(),
 ) {
     val measurer = rememberTextMeasurer()
     val density = LocalDensity.current
@@ -582,9 +672,11 @@ private fun MediaStage(
     val shutterOuter = if (compact) 60.dp else 68.dp
     val shutterInner = if (compact) 44.dp else 50.dp
     val thumbSize = if (compact) 36.dp else 44.dp
+    val thumbTarget = 48.dp
     val maxThumbs = if (compact) 3 else 4
     BoxWithConstraints(
         modifier = modifier
+            .testTag(if (compact) "media_stage_compact" else "media_stage_expanded")
             .clip(shape)
             .background(
                 Brush.radialGradient(
@@ -661,7 +753,7 @@ private fun MediaStage(
         }
         val maxShown = minOf(maxThumbs, thumbs.size)
         val oneRowRoom = leftMax - 12.dp - (if (galleryEnabled) galleryWidth + 6.dp else 0.dp) - (if (albumEnabled) albumWidth + 6.dp else 0.dp)
-        val oneRowThumbs = thumbCountThatFits(oneRowRoom, thumbSize, 6.dp, maxShown)
+        val oneRowThumbs = thumbCountThatFits(oneRowRoom, thumbTarget, 6.dp, maxShown)
         val twoRows = compact || oneRowThumbs < minOf(2, maxShown)
         val galleryButton: @Composable () -> Unit = {
             if (galleryEnabled) {
@@ -683,13 +775,30 @@ private fun MediaStage(
         }
         val thumbTiles: @Composable (List<WorkoutMedia>) -> Unit = { list ->
             list.forEach { media ->
-                WorkoutMediaThumb(
-                    media = media,
+                val badge = if (media.kind == WorkoutMediaKind.VIDEO) videoThumbBadges[media.id] else null
+                val talkBackDesc = if (media.kind == WorkoutMediaKind.VIDEO) {
+                    videoThumbContentDescription(badge)
+                } else "Foto de ${media.exerciseName ?: "la serie"}"
+                Box(
                     modifier = Modifier
-                        .size(thumbSize)
-                        .clip(RoundedCornerShape(12.dp)),
-                    onClick = { onThumb(media) },
-                )
+                        .size(thumbTarget)
+                        .clickable(role = Role.Button, onClick = { onThumb(media) })
+                        .semantics { contentDescription = talkBackDesc },
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Box(Modifier.size(thumbSize).clip(RoundedCornerShape(12.dp)).clearAndSetSemantics {}) {
+                        WorkoutMediaThumb(
+                            media = media,
+                            modifier = Modifier.fillMaxSize(),
+                        )
+                        if (badge != null) {
+                            VideoThumbBadgeOverlay(
+                                badge = badge,
+                                modifier = Modifier.align(Alignment.BottomEnd).padding(3.dp),
+                            )
+                        }
+                    }
+                }
             }
         }
         // Expandido, el grupo lleva su fondo translúcido como en G3 (el contenedor mide 12 dp más que las filas); en la tarjeta, no.
@@ -706,19 +815,22 @@ private fun MediaStage(
                 .padding(6.dp)
         }
         if (twoRows) {
-            val room = leftMax - (if (compact) 0.dp else 12.dp) - (if (galleryEnabled) galleryWidth + 6.dp else 0.dp)
-            val shown = thumbs.take(thumbCountThatFits(room, thumbSize, 6.dp, maxShown))
+            val room = leftMax - (if (compact) 0.dp else 12.dp) - (if (galleryEnabled && !compact) galleryWidth + 6.dp else 0.dp)
+            val shown = thumbs.take(thumbCountThatFits(room, thumbTarget, 6.dp, maxShown))
             Column(modifier = groupModifier) {
                 if (galleryEnabled || shown.isNotEmpty()) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(6.dp),
                     ) {
-                        galleryButton()
+                        if (!compact) galleryButton()
                         thumbTiles(shown)
                     }
                 }
-                if (albumEnabled) AlbumPill(onClick = onAlbum)
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    if (compact) galleryButton()
+                    if (albumEnabled) AlbumPill(onClick = onAlbum)
+                }
             }
         } else {
             Row(
@@ -744,6 +856,46 @@ private fun MediaStage(
                 .align(Alignment.BottomEnd)
                 .padding(end = 16.dp, bottom = 14.dp),
         )
+    }
+}
+
+/** Insignia estática: el arco cambia solo cuando llega otro porcentaje, también con movimiento reducido. */
+@Composable
+private fun VideoThumbBadgeOverlay(badge: VideoThumbBadge, modifier: Modifier = Modifier) {
+    Box(
+        modifier = modifier.size(20.dp)
+            .background(Color.Black.copy(alpha = 0.72f), CircleShape)
+            .border(1.dp, WizardColors.text.copy(alpha = 0.28f), CircleShape),
+        contentAlignment = Alignment.Center,
+    ) {
+        if (badge is VideoThumbBadge.Analyzing) {
+            Canvas(Modifier.size(14.dp)) {
+                val stroke = Stroke(width = 2.dp.toPx(), cap = StrokeCap.Round)
+                drawCircle(WizardColors.text.copy(alpha = 0.20f), style = stroke)
+                drawArc(
+                    WizardColors.text, startAngle = -90f,
+                    sweepAngle = 360f * badge.progress.coerceIn(0, 100) / 100f,
+                    useCenter = false, style = stroke,
+                )
+            }
+        } else {
+            val text = when (badge) {
+                is VideoThumbBadge.Reps -> if (badge.approximate) "≈${badge.count}" else "${badge.count}"
+                VideoThumbBadge.Inconclusive -> "?"
+                VideoThumbBadge.Failed -> "!"
+                else -> ""
+            }
+            Text(
+                text,
+                style = KpknType.chip.copy(fontSize = 11.sp, lineHeight = 11.sp),
+                color = when (badge) {
+                    VideoThumbBadge.Failed -> WizardColors.danger
+                    VideoThumbBadge.Inconclusive -> WizardColors.textMuted
+                    else -> WizardColors.text
+                },
+                maxLines = 1,
+            )
+        }
     }
 }
 
