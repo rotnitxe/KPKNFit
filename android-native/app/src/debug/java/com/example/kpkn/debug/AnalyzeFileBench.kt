@@ -1,8 +1,10 @@
 package com.example.kpkn.debug
 
 import android.content.Context
+import android.content.Intent
 import android.os.Build
 import android.os.Debug
+import android.os.PowerManager
 import android.util.Log
 import com.example.kpkn.data.media.pose.MediaPipePoseEstimators
 import com.example.kpkn.data.media.pose.PoseEstimator
@@ -71,6 +73,8 @@ internal class AnalyzeFileBench(
     private val useHeavy: Boolean,
     private val plateMm: Int,
     private val heightCm: Double?,
+    private val clearPreviousSummary: Boolean = true,
+    private val onVideo: (Int, Int) -> Unit = { _, _ -> },
 ) {
     private val progressFile = File(layout.outDir, PROGRESS_FILE)
     private val json = Json {
@@ -84,7 +88,7 @@ internal class AnalyzeFileBench(
     }
 
     suspend fun run(): String {
-        runCatching { File(layout.outDir, SUMMARY_FILE).delete() }
+        if (clearPreviousSummary) runCatching { File(layout.outDir, SUMMARY_FILE).delete() }
         runCatching { progressFile.delete() }
         val report = JSONObject()
             .put("modo", "analyze_file")
@@ -99,15 +103,21 @@ internal class AnalyzeFileBench(
         try {
             val videos = videoFiles()
             val results = JSONArray()
-            for (video in videos) {
+            for ((index, video) in videos.withIndex()) {
+                onVideo(index + 1, videos.size)
+                val started = System.nanoTime()
+                val thermalStart = thermalStatus()
                 val outcome = try {
-                    analyze(video)
+                    analyze(video, thermalStart)
                 } catch (cancel: CancellationException) {
                     throw cancel
                 } catch (error: Throwable) {
                     note("${video.name}: fallo del banco: ${describeError(error)}")
                     JSONObject().put("video", video.name).put("error", describeError(error)).put("ok", false)
                 }
+                if (!outcome.has("totalMs")) outcome.put("totalMs", round2((System.nanoTime() - started) / 1e6))
+                if (!outcome.has("estadoTermicoInicio")) outcome.put("estadoTermicoInicio", thermalStart ?: JSONObject.NULL)
+                if (!outcome.has("estadoTermicoFin")) outcome.put("estadoTermicoFin", thermalStatus() ?: JSONObject.NULL)
                 results.put(outcome)
                 allOk = allOk && outcome.optBoolean("ok")
                 summary.append(outcome.optString("resumen", video.name)).append(' ')
@@ -118,7 +128,7 @@ internal class AnalyzeFileBench(
                 report.put("error", "sin vídeos en ${layout.inDir.absolutePath}")
             }
         } catch (cancel: CancellationException) {
-            report.put("error", "cancelado: la actividad se cerró antes de terminar")
+            report.put("error", "cancelado: el banco se detuvo antes de terminar")
             allOk = false
             throw cancel
         } catch (error: Throwable) {
@@ -126,13 +136,15 @@ internal class AnalyzeFileBench(
             allOk = false
         } finally {
             report.put("ok", allOk)
-            val tmp = File(layout.outDir, "$SUMMARY_FILE.tmp")
-            tmp.writeText(report.toString(2))
-            check(tmp.renameTo(File(layout.outDir, SUMMARY_FILE))) { "No se pudo renombrar $SUMMARY_FILE" }
+            writeReport(layout.outDir, SUMMARY_FILE, report)
             Log.i(TAG, "analyze_file ok=$allOk $summary")
         }
         return "analyze_file ${if (allOk) "OK" else "CON FALLOS"} · $summary"
     }
+
+    private fun thermalStatus(): Int? = if (Build.VERSION.SDK_INT >= 29) {
+        runCatching { context.getSystemService(PowerManager::class.java).currentThermalStatus }.getOrNull()
+    } else null
 
     private fun videoFiles(): List<File> = layout.inDir.listFiles()
         ?.filter { it.isFile && it.extension.lowercase() in VIDEO_EXTENSIONS }
@@ -140,8 +152,9 @@ internal class AnalyzeFileBench(
         .orEmpty()
         .filter { file -> videoFilter.isEmpty() || videoFilter.any { file.name.contains(it) } }
 
-    private suspend fun analyze(video: File): JSONObject {
+    private suspend fun analyze(video: File, thermalStart: Int?): JSONObject {
         val json = JSONObject().put("video", video.name).put("bytes", video.length())
+            .put("estadoTermicoInicio", thermalStart ?: JSONObject.NULL)
         val spec = specs.firstOrNull { video.name.contains(it.key) }
         if (spec == null) {
             note("${video.name}: sin ejercicio (usa --es exercises ${video.nameWithoutExtension.substringBefore('-')}=PERFIL/material)")
@@ -242,9 +255,8 @@ internal class AnalyzeFileBench(
             }
             json.put("sidecars", sizes)
             json.put("pendienteDeBorrar", TechniqueSidecars.partFile(copy).isFile)
-            val tmp = File(layout.outDir, "${video.nameWithoutExtension}.analysis.json.tmp")
-            tmp.writeText(json.toString(2))
-            check(tmp.renameTo(File(layout.outDir, "${video.nameWithoutExtension}.analysis.json"))) { "No se pudo renombrar el informe" }
+            json.put("estadoTermicoFin", thermalStatus() ?: JSONObject.NULL)
+            writeReport(layout.outDir, "${video.nameWithoutExtension}.analysis.json", json)
             TechniqueSidecars.deleteAll(copy)
             copy.delete()
         }
@@ -312,7 +324,51 @@ internal class AnalyzeFileBench(
             .put("motorMs", s.engineMs)
     }
 
-    private companion object {
+    companion object {
+        /** Una sola traducción de extras para la actividad y el servicio (incluidos los opcionales). */
+        fun fromIntent(
+            context: Context,
+            layout: BenchLayout,
+            intent: Intent,
+            clearPreviousSummary: Boolean = true,
+            onVideo: (Int, Int) -> Unit = { _, _ -> },
+        ): AnalyzeFileBench =
+            AnalyzeFileBench(
+                context, layout,
+                videoFilter = intent.getStringExtra("videos")?.split(',')?.map { it.trim() }?.filter { it.isNotEmpty() }.orEmpty(),
+                specs = AnalyzeSpec.parse(intent.getStringExtra("exercises")),
+                useHeavy = intent.getStringExtra("model") == "heavy",
+                plateMm = intent.getIntExtra("plateMm", 450),
+                heightCm = intent.getIntExtra("heightCm", 0).takeIf { it > 0 }?.toDouble(),
+                clearPreviousSummary = clearPreviousSummary,
+                onVideo = onVideo,
+            )
+
+        private val reportLock = Any()
+
+        fun writeReport(directory: File, name: String, report: JSONObject) = synchronized(reportLock) {
+            val tmp = File(directory, "$name.tmp")
+            tmp.writeText(report.toString(2))
+            check(tmp.renameTo(File(directory, name))) { "No se pudo renombrar $name" }
+        }
+
+        /** Nunca modifica el temporal, progreso ni sidecars del ejecutor activo. Su informe final gana. */
+        fun writeBusy(layout: BenchLayout) = synchronized(reportLock) {
+            val report = JSONObject().put("modo", "analyze_file").put("ok", false).put("error", "ocupado")
+            val current = File(layout.outDir, SUMMARY_FILE)
+            // En la breve salida de la corrutina puede existir ya el informe final: se conserva.
+            val finished = current.isFile && runCatching {
+                JSONObject(current.readText()).optString("error") != "ocupado"
+            }.getOrDefault(true)
+            if (finished) {
+                writeReport(File(layout.outDir, "busy").apply { mkdirs() }, SUMMARY_FILE, report)
+            } else {
+                val tmp = File(layout.outDir, "$SUMMARY_FILE.busy.tmp")
+                tmp.writeText(report.toString(2))
+                check(tmp.renameTo(current)) { "No se pudo publicar ocupado" }
+            }
+        }
+
         const val TAG = "KpknTechniqueBench"
         const val SUMMARY_FILE = "analyze.json"
         const val PROGRESS_FILE = "progress.txt"
