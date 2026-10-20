@@ -322,13 +322,11 @@ private fun defaultReplacementLoadMode(info: ExerciseMuscleInfo): LoadModeV2 {
         .orEmpty()
     val name = normalizeExerciseIdentityToken(info.name)
     return when {
+        equipment.contains("asist") || name.contains("asist") ||
+            equipment.contains("assisted") || name.contains("assisted") -> LoadModeV2.ASSISTED
         equipment.contains("peso corporal") ||
             equipment.contains("bodyweight") ||
             equipment.contains("calistenia") -> LoadModeV2.BODYWEIGHT
-        equipment.contains("asist") ||
-            name.contains("asist") ||
-            equipment.contains("assisted") ||
-            name.contains("assisted") -> LoadModeV2.ASSISTED
         else -> LoadModeV2.LOAD
     }
 }
