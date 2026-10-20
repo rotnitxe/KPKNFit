@@ -47,6 +47,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
@@ -100,6 +101,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.kpkn.data.exercises.ExerciseTechniqueImageLookup
 import com.example.kpkn.data.media.ExerciseAlbumModel
 import com.example.kpkn.data.models.Exercise
+import com.example.kpkn.data.models.TechniqueVideoSettings
 import com.example.kpkn.data.models.WorkoutMedia
 import com.example.kpkn.data.models.WorkoutMediaKind
 import com.example.kpkn.screens.onboarding.design.WizardColors
@@ -115,6 +117,9 @@ import com.example.kpkn.screens.workout.design.VisualModeAnalysisLine
 import com.example.kpkn.screens.workout.design.fitVisualModeAnalysisText
 import com.example.kpkn.screens.workout.design.videoThumbContentDescription
 import com.example.kpkn.screens.workout.design.visualModeAnalysisLine
+import com.example.kpkn.screens.workout.technique.TechniqueRecorderRequest
+import com.example.kpkn.screens.workout.technique.TechniqueRecorderStage
+import com.example.kpkn.screens.workout.technique.stopTechniqueRecorderBeforeExit
 import com.example.kpkn.screens.workout.withExerciseCaptureContext
 import com.example.kpkn.ui.components.KpknModalTracker
 import com.example.kpkn.ui.components.KpknPortal
@@ -163,14 +168,12 @@ internal fun SetCardExerciseMediaBack(
     isPr: Boolean = false,
     mediaCapture: WorkoutMediaCaptureController? = null,
     onRetryPendingCaptures: () -> Unit = {},
-    onOpenRecorder: ((WorkoutMediaCaptureRequest) -> Unit)? = null,
     effortLabel: String? = null,
     onShowHistory: (() -> Unit)? = null,
     startExpanded: Boolean = false,
     /** Solo para hojas de render y pruebas: muestra los controles de la cámara aunque no haya controlador de captura. */
     showControlsWithoutCamera: Boolean = false,
     onOpenAnalysis: ((String) -> Unit)? = null,
-    recorderOpen: Boolean = false,
     /** Datos de ejemplo para hojas de render, sin abrir la cámara ni leer Room. */
     mediaFilesOverride: List<WorkoutMedia>? = null,
     videoThumbBadges: Map<String, VideoThumbBadge> = emptyMap(),
@@ -178,6 +181,7 @@ internal fun SetCardExerciseMediaBack(
     videoAnalysis: SetVideoAnalysisUi? = null,
     /** Error de ejemplo para comprobar el pie sin iniciar una captura. */
     captureErrorOverride: String? = null,
+    techniqueVideoSettings: TechniqueVideoSettings = TechniqueVideoSettings(),
 ) {
     val context = LocalContext.current
     val density = LocalDensity.current
@@ -220,6 +224,8 @@ internal fun SetCardExerciseMediaBack(
     var previewMedia by remember { mutableStateOf<WorkoutMedia?>(null) }
     var mode by remember { mutableStateOf(MediaMode.VIDEO) }
     var expanded by remember { mutableStateOf(startExpanded) }
+    var techniqueOpen by remember { mutableStateOf(false) }
+    var foldRequested by remember { mutableStateOf(false) }
     var showAlbum by remember { mutableStateOf(false) }
     var showFicha by remember { mutableStateOf(false) }
     var faceBounds by remember { mutableStateOf(Rect.Zero) }
@@ -240,27 +246,6 @@ internal fun SetCardExerciseMediaBack(
     ) { uri ->
         uri ?: return@rememberLauncherForActivityResult
         mediaCapture?.ingestUri(uri, captureRequest)
-    }
-
-    val audioLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.RequestPermission(),
-    ) { granted ->
-        mediaCapture?.toggleVideo(granted, captureRequest)
-    }
-
-    fun toggleVideo() {
-        if (mediaCapture == null) return
-        if (recording) {
-            mediaCapture.stopVideo()
-            return
-        }
-        val audioGranted = ContextCompat.checkSelfPermission(context, Manifest.permission.RECORD_AUDIO) ==
-            PackageManager.PERMISSION_GRANTED
-        if (!audioGranted) {
-            audioLauncher.launch(Manifest.permission.RECORD_AUDIO)
-            return
-        }
-        mediaCapture.toggleVideo(true, captureRequest)
     }
 
     val permissionLauncher = rememberLauncherForActivityResult(
@@ -284,28 +269,29 @@ internal fun SetCardExerciseMediaBack(
         onMediaPageSettledChanged(
             isSettledPage = isSettledPage,
             stopIfRecording = { mediaCapture?.stopIfRecording() },
-            foldExpanded = { expanded = false },
+            foldExpanded = { expanded = false; techniqueOpen = false; foldRequested = false },
         )
     }
 
-    val cameraActive = !recorderOpen && isMediaCameraActive(cameraReady, isSettledPage, mediaCapture != null)
+    val cameraActive = !techniqueOpen && isMediaCameraActive(cameraReady, isSettledPage, mediaCapture != null)
     val session = rememberMediaCameraSession(
         mediaCapture = mediaCapture,
         active = cameraActive,
         isRecording = recording,
         bindGeneration = bindGeneration,
         onBindFailed = { mediaCapture?.fallbackVideoCaptureToSd() },
-        stopOnDispose = !recorderOpen,
+        stopOnDispose = !techniqueOpen,
     )
 
+    fun openExpanded() {
+        foldRequested = false
+        techniqueOpen = mode == MediaMode.VIDEO
+        expanded = true
+    }
+
     fun onShutter() {
-        if (mode == MediaMode.VIDEO && !recording && onOpenRecorder != null) {
-            expanded = false
-            onOpenRecorder(captureRequest)
-            return
-        }
-        if (mediaCapture == null) return
-        if (mode == MediaMode.PHOTO) mediaCapture.takePhoto(captureRequest) else toggleVideo()
+        if (mode == MediaMode.VIDEO) openExpanded()
+        else mediaCapture?.takePhoto(captureRequest)
     }
 
     val loadLabel = ExerciseAlbumModel.loadLabel(weightKg, reps)
@@ -329,7 +315,7 @@ internal fun SetCardExerciseMediaBack(
             onModeChange = { mode = it },
             recording = recording,
             captureEnabled = (cameraReady && mediaCapture != null) ||
-                (mode == MediaMode.VIDEO && onOpenRecorder != null) || showControlsWithoutCamera,
+                (mode == MediaMode.VIDEO) || showControlsWithoutCamera,
             onShutter = { onShutter() },
             onGallery = { galleryLauncher.launch(arrayOf("image/*", "video/*")) },
             galleryEnabled = mediaCapture != null || showControlsWithoutCamera,
@@ -387,7 +373,7 @@ internal fun SetCardExerciseMediaBack(
                 MediaFacePill(
                     text = if (fontScale > 1.15f) null else "Expandir",
                     leading = { ExpandGlyph(expand = true) },
-                    onClick = { expanded = true },
+                    onClick = { openExpanded() },
                     description = "Expandir",
                     modifier = Modifier.testTag("media_expand"),
                 )
@@ -450,9 +436,27 @@ internal fun SetCardExerciseMediaBack(
                     startBounds = faceBounds,
                     title = "Modo visual · serie ${setIndex + 1}",
                     subtitle = details,
-                    onFolded = { expanded = false },
+                    onFolded = { expanded = false; techniqueOpen = false; foldRequested = false },
+                    foldRequested = foldRequested,
+                    beforeFold = {
+                        if (techniqueOpen) mediaCapture?.let {
+                            stopTechniqueRecorderBeforeExit(it::stopIfRecording, it.isRecording)
+                        }
+                    },
                 ) { stageModifier ->
-                    Stage(stageModifier = stageModifier, compact = false, showPreview = true)
+                    if (techniqueOpen) TechniqueRecorderStage(
+                        request = TechniqueRecorderRequest(captureRequest, exercise, "Serie ${setIndex + 1}"),
+                        mediaCapture = mediaCapture,
+                        prefer60FpsSetting = techniqueVideoSettings.prefer60Fps,
+                        maxRecordSeconds = techniqueVideoSettings.maxRecordSeconds,
+                        defaultPlateDiameterMm = techniqueVideoSettings.plateDiameterMm,
+                        onFinished = { foldRequested = true },
+                        onSwitchToPhoto = { mode = MediaMode.PHOTO; foldRequested = true },
+                        onOpenFicha = { showFicha = true },
+                        modifier = stageModifier,
+                        onOpenAlbum = { showAlbum = true },
+                        onOpenGallery = { galleryLauncher.launch(arrayOf("image/*", "video/*")) },
+                    ) else Stage(stageModifier = stageModifier, compact = false, showPreview = true)
                 }
             }
         }
@@ -479,7 +483,9 @@ internal fun SetCardExerciseMediaBack(
                     {
                         // El historial vive en el cuerpo de la sesión: liberar solo su velo,
                         // conservando la cámara y la grabación en la cara compacta.
+                        if (techniqueOpen) mediaCapture?.stopIfRecording()
                         expanded = false
+                        techniqueOpen = false
                         openHistory()
                     }
                 },
@@ -771,7 +777,7 @@ private fun MediaStage(
                 .padding(12.dp),
         )
         // Arriba a la derecha: «Ficha». Su zona táctil de 48 dp sobresale 8 dp de la píldora: sube 8 dp para quedar a la altura del selector.
-        OverlayPill(
+        MediaOverlayPill(
             modifier = Modifier
                 .align(Alignment.TopEnd)
                 .padding(top = 4.dp, end = 12.dp),
@@ -802,7 +808,7 @@ private fun MediaStage(
                         )
                     }
                 } else {
-                    OverlayPill(description = "Galería", onClick = onGallery) {
+                    MediaOverlayPill(description = "Galería", onClick = onGallery) {
                         Text("Galería", style = KpknType.chip, color = WizardColors.text, maxLines = 1)
                     }
                 }
@@ -868,7 +874,7 @@ private fun MediaStage(
                 }
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                     if (compact) galleryButton()
-                    if (albumEnabled) AlbumPill(onClick = onAlbum)
+                    if (albumEnabled) MediaAlbumPill(onClick = onAlbum)
                 }
             }
         } else {
@@ -879,7 +885,7 @@ private fun MediaStage(
             ) {
                 thumbTiles(shown)
                 galleryButton()
-                if (albumEnabled) AlbumPill(onClick = onAlbum)
+                if (albumEnabled) MediaAlbumPill(onClick = onAlbum)
             }
         }
 
@@ -941,7 +947,7 @@ private fun VideoThumbBadgeOverlay(badge: VideoThumbBadge, modifier: Modifier = 
 
 /** «Ver álbum» (A3): píldora de tinta de 32 dp con texto oscuro; la zona táctil mide 48 dp. */
 @Composable
-private fun AlbumPill(onClick: () -> Unit) {
+internal fun MediaAlbumPill(onClick: () -> Unit) {
     val interaction = remember { MutableInteractionSource() }
     Box(
         modifier = Modifier
@@ -1013,7 +1019,7 @@ private fun ModeSwitch(
 
 /** Píldora translúcida sobre la cámara (A3: «Ficha», «Galería»): 32 dp con filete al 18 %; la zona táctil mide 48 dp. */
 @Composable
-private fun OverlayPill(
+internal fun MediaOverlayPill(
     description: String,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
@@ -1114,17 +1120,20 @@ private fun ShutterButton(
  * [onFolded] avisa cuando ya está plegado. El escenario va en [stage]; la tarjeta de debajo no cambia de tamaño.
  */
 @Composable
-private fun ExpandedMediaOverlay(
+internal fun ExpandedMediaOverlay(
     startBounds: Rect,
     title: String,
     subtitle: String,
     onFolded: () -> Unit,
+    foldRequested: Boolean = false,
+    beforeFold: suspend () -> Unit = {},
     stage: @Composable (Modifier) -> Unit,
 ) {
     val reduced = wizardReducedMotion()
     val density = LocalDensity.current
     val progress = remember { Animatable(if (reduced) 1f else 0f) }
     var folding by remember { mutableStateOf(false) }
+    val latestBeforeFold by rememberUpdatedState(beforeFold)
     val scope = rememberCoroutineScope()
     LaunchedEffect(Unit) {
         if (!reduced) progress.animateTo(1f, tween(durationMillis = ExpandMillis, easing = FastOutSlowInEasing))
@@ -1134,12 +1143,14 @@ private fun ExpandedMediaOverlay(
         if (!folding) {
             folding = true
             scope.launch {
+                latestBeforeFold()
                 if (reduced) progress.snapTo(0f) else progress.animateTo(0f, tween(durationMillis = ExpandMillis, easing = FastOutSlowInEasing))
                 onFolded()
             }
         }
     }
     BackHandler(enabled = true) { fold() }
+    LaunchedEffect(foldRequested) { if (foldRequested) fold() }
 
     BoxWithConstraints(
         modifier = Modifier

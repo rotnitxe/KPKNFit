@@ -883,7 +883,6 @@ internal fun SetInputCardV2(
     openMediaFace: Boolean = false,
     onMediaFaceConsumed: () -> Unit = {},
     sessionMilestones: List<com.example.kpkn.data.models.SessionMilestone> = emptyList(),
-    techniqueRecorderHolder: com.example.kpkn.screens.workout.technique.TechniqueRecorderHolder? = null,
     loadPopTrigger: Any? = null,
     /** Fija el fotograma del fuego del slider de esfuerzo (hojas de render y pruebas); nulo, el fuego corre solo. */
     effortFireSecondsOverride: Float? = null,
@@ -893,6 +892,7 @@ internal fun SetInputCardV2(
     onOpenAnalysis: (String) -> Unit = {},
     onRetryAnalysis: ((String) -> Unit)? = null,
     videoThumbBadges: Map<String, com.example.kpkn.screens.workout.design.VideoThumbBadge> = emptyMap(),
+    techniqueVideoSettings: com.example.kpkn.data.models.TechniqueVideoSettings = com.example.kpkn.data.models.TechniqueVideoSettings(),
 ) {
     val context = LocalContext.current
     val recordActionInstanceOwner = remember { Any() }
@@ -3299,23 +3299,13 @@ internal fun SetInputCardV2(
                         isPr = isPrSeries,
                         mediaCapture = mediaCapture,
                         onRetryPendingCaptures = onRetryPendingCaptures,
-                        onOpenRecorder = techniqueRecorderHolder?.let { holder ->
-                            { captureRequest ->
-                                cardFace = SetCardFace.Front
-                                holder.request = com.example.kpkn.screens.workout.technique.TechniqueRecorderRequest(
-                                    captureRequest = captureRequest,
-                                    exercise = exercise,
-                                    setLabel = "Serie ${setIndex + 1}",
-                                )
-                            }
-                        },
                         effortLabel = chosenEffortItem?.let { effortValueLabel(it) }?.takeIf { it != "—" },
                         onShowHistory = onShowHistory,
                         onOpenAnalysis = onOpenAnalysis,
-                        recorderOpen = techniqueRecorderHolder?.request != null,
                         videoThumbBadges = videoThumbBadges,
                         videoAnalysis = videoAnalysis,
                         onRetryAnalysis = onRetryAnalysis,
+                        techniqueVideoSettings = techniqueVideoSettings,
                     )
                     else -> SetCardTechniqueBack(
                     currentSet = currentSet,

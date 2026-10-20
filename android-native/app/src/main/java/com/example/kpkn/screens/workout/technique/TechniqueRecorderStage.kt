@@ -92,6 +92,9 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import com.example.kpkn.domain.biomechanics.framing.FramingVerdict
 import com.example.kpkn.domain.biomechanics.profiles.AnalysisProfileId
+import com.example.kpkn.data.models.Exercise
+import com.example.kpkn.screens.workout.components.MediaAlbumPill
+import com.example.kpkn.screens.workout.components.MediaOverlayPill
 import com.example.kpkn.screens.workout.WorkoutMediaCaptureRequest
 import com.example.kpkn.screens.workout.technique.design.FpsBadge
 import com.example.kpkn.screens.workout.technique.design.PlateDiameterBadge
@@ -101,6 +104,20 @@ import com.example.kpkn.ui.design.KpknSegmentedSize
 import com.example.kpkn.ui.design.KpknTextAction
 import com.example.kpkn.ui.design.KpknType
 import kotlinx.coroutines.flow.StateFlow
+
+/**
+ * Petición para abrir el grabador de técnica a pantalla completa (VT8a).
+ *
+ * @property captureRequest datos de la captura que se pasarán al controlador al grabar.
+ * @property exercise ejercicio de la serie para resolver perfil, silueta y calibración de disco.
+ * @property setLabel etiqueta visible en la barra superior (p. ej. "Serie 2").
+ */
+data class TechniqueRecorderRequest(
+    val captureRequest: WorkoutMediaCaptureRequest,
+    val exercise: Exercise? = null,
+    val setLabel: String = "",
+)
+
 
 private const val TAG = "KpknRecorder"
 
@@ -137,13 +154,19 @@ internal fun TechniqueRecorderStage(
     val activity = remember(context) { context.findActivity() }
     val lifecycleOwner = (activity as? LifecycleOwner) ?: LocalLifecycleOwner.current
     val scope = rememberCoroutineScope()
+    val mounted = remember { java.util.concurrent.atomic.AtomicBoolean(true) }
 
     // Resolución asíncrona del ExerciseRef y su perfil mediante el catálogo v2
     val profileResolution by produceState<RecorderResolvedProfile?>(
         initialValue = null,
         key1 = request.exercise,
+        key2 = mediaCapture,
     ) {
         value = null
+        if (mediaCapture == null) {
+            value = RecorderResolvedProfile(null)
+            return@produceState
+        }
         val profile = try {
             withContext(Dispatchers.IO) {
                 val ex = request.exercise ?: return@withContext null
@@ -213,7 +236,7 @@ internal fun TechniqueRecorderStage(
     }
 
     LaunchedEffect(Unit) {
-        if (orientationListener.canDetectOrientation()) {
+        if (mediaCapture != null && orientationListener.canDetectOrientation()) {
             orientationListener.enable()
         }
     }
@@ -314,10 +337,12 @@ internal fun TechniqueRecorderStage(
                 exercise = request.exercise,
                 metadataRecorder = metadataRecorder,
                 onFinalized = { file ->
-                    activity?.requestedOrientation = originalOrientation
-                    framingController.isRecording = false
-                    isStopping = false
-                    if (file != null) latestOnFinished()
+                    if (mounted.get()) {
+                        activity?.requestedOrientation = originalOrientation
+                        framingController.isRecording = false
+                        isStopping = false
+                        if (file != null) latestOnFinished()
+                    }
                 },
                 targetRotation = targetRotation,
                 maxRecordSeconds = maxRecordSeconds,
@@ -342,6 +367,7 @@ internal fun TechniqueRecorderStage(
     // Detener grabación al salir o desmontarse el composable
     DisposableEffect(Unit) {
         onDispose {
+            mounted.set(false)
             orientationListener.disable()
             mediaCapture?.stopIfRecording()
             AnalysisGate.cameraBusy.value = false
@@ -548,10 +574,9 @@ internal fun TechniqueRecorderStageContent(
                     descriptions = listOf("Cambiar a foto", "Vídeo de técnica"),
                 )
                 Spacer(Modifier.weight(1f))
-                if (onOpenFicha != null) KpknTextAction(
-                    text = "Ficha", onClick = onOpenFicha,
-                    modifier = Modifier.semantics { contentDescription = "Ficha del ejercicio" },
-                )
+                if (onOpenFicha != null) MediaOverlayPill(
+                    description = "Ficha del ejercicio", onClick = onOpenFicha,
+                ) { Text("Ficha", style = KpknType.chip, color = WizardColors.text) }
             }
             if (is60FpsGranted || showsPlateBadge) Row(
                 Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp, Alignment.End),
@@ -592,7 +617,7 @@ internal fun TechniqueRecorderStageContent(
             ) {
                 Column(Modifier.weight(1f)) {
                     if (onOpenGallery != null) KpknTextAction("Galería", onOpenGallery)
-                    if (onOpenAlbum != null) KpknTextAction("Ver álbum", onOpenAlbum)
+                    if (onOpenAlbum != null) MediaAlbumPill(onOpenAlbum)
                 }
                 Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     if (isRecording) RecTimerPill(elapsedSeconds = elapsedSeconds, animate = false)
