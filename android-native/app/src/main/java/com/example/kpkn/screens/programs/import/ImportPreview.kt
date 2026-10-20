@@ -417,8 +417,11 @@ internal fun ImportCatalogSearch(
 ) {
     var query by rememberSaveable(key) { mutableStateOf("") }
     var results by remember(key) { mutableStateOf<List<ExerciseNameCandidate>>(emptyList()) }
-    LaunchedEffect(query) {
+    var resultsQuery by remember(key) { mutableStateOf<String?>(null) }
+    LaunchedEffect(key, query) {
         val text = query.trim()
+        results = emptyList()
+        resultsQuery = null
         if (text.isEmpty()) {
             results = emptyList()
         } else {
@@ -430,6 +433,7 @@ internal fun ImportCatalogSearch(
             } catch (error: Exception) {
                 emptyList()
             }
+            resultsQuery = text
         }
     }
     SetupFormTextField(
@@ -438,7 +442,7 @@ internal fun ImportCatalogSearch(
         label = "Buscar en el catálogo",
         testTag = "import-choice-search",
     )
-    results.forEach { candidate ->
+    results.takeIf { resultsQuery == query.trim() }.orEmpty().forEach { candidate ->
         ImportCandidateRow(candidate = candidate, onClick = { onPick(candidate) })
     }
 }
