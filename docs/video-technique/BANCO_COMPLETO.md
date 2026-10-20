@@ -79,3 +79,63 @@ investigación del 20-oct.
   - uno solo, `Medium_Phone`, con los vídeos subidos por lotes y borrados tras cada lote;
   - durante la extracción no arranca ningún otro.
 - **Disco:** las trazas pesan poco, unos MB por clip. Los vídeos nunca entran en el repo.
+
+## Manifiesto
+
+Congelado por VT11a el 20-oct-2026, antes de la extracción nueva:
+
+- Archivo externo: `C:/kw/vt-bench/full-20261020/manifest.json` (1.076 filas, versión 1).
+- SHA-256 literal: `8168ab0909e3c93d4776af713c5fafda1ae91e82ba910a5aa9868b49bfeafb71`.
+- Semilla: **20261020**. No se sobrescribe este manifiesto: cualquier corrección requiere otro nombre y otra versión.
+- **471 grupos**: desarrollo **377 grupos / 895 clips**; examen **94 grupos / 181 clips**. El 20 % redondeado se aplica a grupos
+  (94/471 = 19,96 %), por eso el porcentaje de clips del examen es distinto.
+
+| Fuente | Clips totales | Grupos totales | Clips desarrollo | Clips examen | Grupos desarrollo | Grupos examen |
+|---|---:|---:|---:|---:|---:|---:|
+| Kaggle_WorkoutFitness | 418 | 22 | 371 | 47 | 18 | 4 |
+| UCF101 | 480 | 271 | 382 | 98 | 217 | 54 |
+| wger | 77 | 77 | 62 | 15 | 62 | 15 |
+| YMove | 25 | 25 | 20 | 5 | 20 | 5 |
+| pexels | 45 | 45 | 36 | 9 | 36 | 9 |
+| pixabay | 14 | 14 | 11 | 3 | 11 | 3 |
+| mixkit | 9 | 9 | 7 | 2 | 7 | 2 |
+| commons | 8 | 8 | 6 | 2 | 6 | 2 |
+| **Total** | **1.076** | **471** | **895** | **181** | **377** | **94** |
+
+| Categoría | Clips totales | Clips desarrollo | Clips examen | Grupos presentes | Grupos desarrollo | Grupos examen |
+|---|---:|---:|---:|---:|---:|---:|
+| G1 · usable | 513 | 431 | 82 | 231 | 186 | 45 |
+| G2 · problemas, perfil soportado | 278 | 232 | 46 | 128 | 103 | 25 |
+| G3 · no soportado | 285 | 232 | 53 | 137 | 108 | 29 |
+
+Los grupos de la tabla por categoría son incidencias: un mismo grupo puede contener G1 y G2, de modo que esas columnas no se
+suman. Las fuentes sí forman una partición. Ningún grupo cruza desarrollo/examen ni los folds. Los folds de desarrollo 0–4
+contienen respectivamente **77, 73, 77, 75 y 75 grupos**.
+
+**Agrupación y estratificación.** Se leyeron `02_catalogo/clasificacion.csv` y `corpus` de las etiquetas. En Kaggle, las 418 filas
+conservan `source_group=unknown`; `original_filename` identifica cada fragmento y `source_url` el dataset, sin una identidad fiable
+del vídeo original previo al recorte. Se aplica la alternativa del brief: **un grupo por ejercicio de origen**, 22 en total,
+sin tratar los nombres numerados como grabaciones independientes. En UCF se usa **clase + gXX**: gXX es el grupo de grabación dentro
+de la clase y su numeración se reutiliza entre clases. En las demás fuentes se usa el id del clip, con prefijo de fuente.
+
+Las cuotas de examen por fuente se redondean por restos mayores hasta 94 grupos. Dentro de cada fuente se estratifica por
+**categoría × perfil sugerido**, usando la incidencia del grupo en todos sus estratos cuando es mixto: 512 sorteos con la semilla
+fija y cambios que reducen el desequilibrio. No se utiliza ninguna predicción. Los estratos con pocos grupos no permiten un 20 %
+exacto. Los folds se asignan también por grupos y estratos. El algoritmo está en el script externo `prepare_full_bank.py`; el
+control local reprodujo las asignaciones sin reescribir el manifiesto. `partition-audit.json`, en la misma carpeta, conserva
+los recuentos de cada estrato y fold.
+
+**Integridad.** No faltó ninguna ruta de vídeo y no hubo hashes discrepantes: **0 ausentes / 0 diferencias**. Se contrastaron
+los 1.000 SHA-256 de vídeo del catálogo; para los 76 públicos sin un hash previo independiente se calculó el SHA-256 ahora.
+Todos los vídeos se leyeron por bloques. Cada fila conserva la ruta absoluta original, los SHA de vídeo y etiqueta (bytes
+literales, sin normalizar CRLF), fuente, grupo, categoría, especificación de ejercicio, fold y examen. `input-audit.json` conserva
+el resultado fuera del repo.
+
+**Límite de extracción G3.** El `AnalyzeSpec` actual solo admite perfiles del enum soportado. Para obtener trazas de esos 285
+vídeos, sus filas declaran `benchProfile=SQUAT` y `forcedProfileProbe=true`, conservando `profile=UNSUPPORTED`. Es un perfil de
+transporte: las tasas G3 bajo perfil forzado se publican como diagnóstico y el rechazo real del resolver/UI queda
+`NOT_VALIDATED`. Medirlo exige ampliar `AnalyzeFileBench`, fuera de los archivos autorizados para VT11a. Esto no se sustituye
+por una abstención inferida de la etiqueta.
+
+El manifiesto de validación histórica es **otro archivo**, `full-20261020/validation-old/manifest.json`: solo los 59 clips de ajuste
+y los 416 externos, sin las 37 reservas antiguas ni x14. No cambia el manifiesto congelado ni ejecuta el examen nuevo.
