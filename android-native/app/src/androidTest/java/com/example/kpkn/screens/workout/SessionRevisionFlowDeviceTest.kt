@@ -22,6 +22,7 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import com.example.kpkn.MainActivity
+import com.example.kpkn.BuildConfig
 import com.example.kpkn.data.db.KpknDatabase
 import com.example.kpkn.data.models.*
 import com.example.kpkn.data.repository.AugeRepository
@@ -117,8 +118,10 @@ class SessionRevisionFlowDeviceTest {
                 "Esta prueba solo admite el paquete .dbg; no se ha inicializado ningún fixture."
             }
             val info = app.packageManager.getPackageInfo(app.packageName, 0)
-            check(info.longVersionCode == 49L && info.versionName == "KPKN Pre Release 16") {
-                "This fixture only accepts revision16/code49"
+            // Refuse an APK/test mismatch before replacing any repository singleton.
+            // The .dbg guard above owns data isolation; releases may advance independently.
+            check(info.longVersionCode == BuildConfig.VERSION_CODE.toLong() && info.versionName == BuildConfig.VERSION_NAME) {
+                "Installed app does not match the version this fixture was compiled against"
             }
             context = FixtureContext(app, suffix)
             NutritionRepository.closeInstance()
@@ -783,7 +786,7 @@ class SessionRevisionFlowDeviceTest {
                 .put("description", node.config.getOrNull(SemanticsProperties.ContentDescription)?.joinToString().orEmpty())
                 .put("left", b.left).put("top", b.top).put("right", b.right).put("bottom", b.bottom))
         }
-        File(folder, "$name.json").writeText(JSONObject().put("evidence", "MainActivity real; fixture .dbg; in-memory Room").put("versionCode", 49).put("versionName", "KPKN Pre Release 16")
+        File(folder, "$name.json").writeText(JSONObject().put("evidence", "MainActivity real; fixture .dbg; in-memory Room").put("versionCode", BuildConfig.VERSION_CODE).put("versionName", BuildConfig.VERSION_NAME)
             .put("fixtureSessionId", sessionId).put("width", bitmap.width).put("height", bitmap.height)
             .put("boundsCoordinateSpace", "Compose root px; screenshot includes system bars")
             .put("nodes", bounds).toString(2))
