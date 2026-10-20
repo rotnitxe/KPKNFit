@@ -28,6 +28,7 @@ import com.example.kpkn.data.protocols.percentSets
 import com.example.kpkn.data.protocols.slot
 import com.example.kpkn.data.protocols.weekRecipe
 import com.example.kpkn.data.repository.ProgramRepository
+import com.example.kpkn.data.repository.SessionTemplateRepository
 import com.example.kpkn.domain.training.CatalogCompositionTestSupport
 import com.example.kpkn.domain.training.PlanMaterializer
 import com.example.kpkn.testsupport.RoomTestRule
@@ -99,6 +100,7 @@ class SessionEditorManualOverrideTest {
 
     @After
     fun tearDown() {
+        SessionTemplateRepository.resetForTests()
         ProgramRepository.closeInstance()
         runCatching { com.example.kpkn.data.db.KpknDatabase.closeInstance() }
         Dispatchers.resetMain()
