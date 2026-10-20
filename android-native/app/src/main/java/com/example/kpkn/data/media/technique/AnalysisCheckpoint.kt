@@ -37,7 +37,7 @@ internal class AnalysisCheckpoint(
      * @property poseVersion `TechniqueAnalysisPipeline.POSE_VERSION` con la que se escribió: otra versión descarta el punto de control.
      * @property videoBytes tamaño del vídeo; con [videoModifiedMs] dice que sigue siendo el mismo archivo.
      * @property usesPlate si el perfil seguía el disco.
-     * @property poseStride 1 o 2: se conserva al reanudar, aunque el móvil recomiende otro ahora.
+     * @property poseStride 1 o 2: se conserva al reanudar si la cadencia de este vídeo mantiene el mínimo de pose.
      * @property timeScale µs reales por µs del contenedor (1 salvo en cámara lenta de galería).
      * @property lastPtsUs PTS del contenedor del último fotograma ya procesado: se reanuda desde el siguiente.
      * @property nextIndex índice (contando todos los fotogramas decodificados) que tendrá el primero tras reanudar.
@@ -82,6 +82,9 @@ internal class AnalysisCheckpoint(
 
 /** Lectura y escritura de [AnalysisCheckpoint]. E/S bloqueante: llamar desde `Dispatchers.IO`. */
 internal object AnalysisCheckpoints {
+    /** Stride máximo que admite la reanudación actual; el pipeline no produce uno mayor. */
+    const val MAX_POSE_STRIDE = 2
+
     private const val MAGIC = 0x4B504350 // «KPCP»
     private const val MAX_HEADER_BYTES = 1 shl 16
     private const val TIME_SCALE_EPSILON = 1e-9
@@ -171,7 +174,8 @@ internal object AnalysisCheckpoints {
     /**
      * Si el punto de control [checkpoint] sirve para este análisis: el mismo vídeo (tamaño y fecha), la misma versión de pose, el mismo
      * disco (si lo usa, con la misma semilla confirmada), el mismo tamaño de fotograma y la misma escala de tiempo, y unas trazas
-     * coherentes con el último PTS procesado. Si no, se descarta y se empieza de cero.
+     * coherentes con el último PTS procesado. [realFps] es la cadencia real de ESTE vídeo: con el stride guardado debe mantener
+     * al menos [minPoseFps] Hz de pose. Si no, se descarta y se empieza de cero.
      */
     fun isUsable(
         checkpoint: AnalysisCheckpoint,
@@ -184,6 +188,8 @@ internal object AnalysisCheckpoints {
         frameHeight: Int,
         timeScale: Double,
         seedKey: String?,
+        realFps: Double,
+        minPoseFps: Double,
     ): Boolean {
         val h = checkpoint.header
         if (h.format != AnalysisCheckpoint.FORMAT || h.mediaId != mediaId || h.poseVersion != poseVersion) return false
@@ -191,7 +197,8 @@ internal object AnalysisCheckpoints {
         if (h.usesPlate != usesPlate || h.seedKey != seedKey) return false
         if (h.frameWidth != frameWidth || h.frameHeight != frameHeight) return false
         if (abs(h.timeScale - timeScale) > TIME_SCALE_EPSILON) return false
-        if (h.poseStride !in 1..2 || h.nextIndex <= 0 || h.lastPtsUs < 0L) return false
+        if (h.poseStride !in 1..MAX_POSE_STRIDE || h.nextIndex <= 0 || h.lastPtsUs < 0L) return false
+        if (!realFps.isFinite() || realFps <= 0.0 || realFps / h.poseStride < minPoseFps) return false
         if (h.plateAttempts < 0 || h.plateWaitingCounts.values.any { it < 0 }) return false
         val expectedStage = if (usesPlate) h.plateStage == AnalysisCheckpoint.STAGE_TRACKING ||
             h.plateStage == AnalysisCheckpoint.STAGE_GAVE_UP ||
