@@ -22,14 +22,12 @@ import androidx.camera.core.CameraSelector
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
@@ -73,7 +71,6 @@ import com.example.kpkn.screens.workout.technique.design.FramingChip
 import com.example.kpkn.screens.workout.technique.design.FramingGuideOverlay
 import com.example.kpkn.screens.workout.technique.design.RecTimerPill
 import com.example.kpkn.screens.workout.technique.design.RecordButton
-import com.example.kpkn.ui.design.KpknShape
 import com.example.kpkn.ui.design.KpknSurface
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.CancellationException
@@ -103,6 +100,7 @@ import com.example.kpkn.ui.design.KpknSegmentedControl
 import com.example.kpkn.ui.design.KpknSegmentedSize
 import com.example.kpkn.ui.design.KpknTextAction
 import com.example.kpkn.ui.design.KpknType
+import java.io.File
 import kotlinx.coroutines.flow.StateFlow
 
 /**
@@ -130,6 +128,18 @@ internal suspend fun stopTechniqueRecorderBeforeExit(stop: () -> Unit, recording
     recording.first { !it }
 }
 
+/** El callback nulo también llega con vídeos válidos al alcanzar el límite de duración. */
+internal class TechniqueRecorderCompletion {
+    private var active = true
+
+    fun callback(onFinished: () -> Unit): (File?) -> Unit = {
+        if (active) onFinished()
+    }
+
+    /** Un Finalize tardío no puede cerrar la escena siguiente. */
+    fun close() { active = false }
+}
+
 /** Nulo fuera del wrapper es pendiente; perfil nulo dentro significa resolución terminada sin perfil compatible. */
 private data class RecorderResolvedProfile(val profile: AnalysisProfile?)
 
@@ -154,7 +164,7 @@ internal fun TechniqueRecorderStage(
     val activity = remember(context) { context.findActivity() }
     val lifecycleOwner = (activity as? LifecycleOwner) ?: LocalLifecycleOwner.current
     val scope = rememberCoroutineScope()
-    val mounted = remember { java.util.concurrent.atomic.AtomicBoolean(true) }
+    val completion = remember { TechniqueRecorderCompletion() }
 
     // Resolución asíncrona del ExerciseRef y su perfil mediante el catálogo v2
     val profileResolution by produceState<RecorderResolvedProfile?>(
@@ -336,13 +346,11 @@ internal fun TechniqueRecorderStage(
                 session = session,
                 exercise = request.exercise,
                 metadataRecorder = metadataRecorder,
-                onFinalized = { file ->
-                    if (mounted.get()) {
-                        activity?.requestedOrientation = originalOrientation
-                        framingController.isRecording = false
-                        isStopping = false
-                        if (file != null) latestOnFinished()
-                    }
+                onFinalized = completion.callback {
+                    activity?.requestedOrientation = originalOrientation
+                    framingController.isRecording = false
+                    isStopping = false
+                    latestOnFinished()
                 },
                 targetRotation = targetRotation,
                 maxRecordSeconds = maxRecordSeconds,
@@ -367,7 +375,7 @@ internal fun TechniqueRecorderStage(
     // Detener grabación al salir o desmontarse el composable
     DisposableEffect(Unit) {
         onDispose {
-            mounted.set(false)
+            completion.close()
             orientationListener.disable()
             mediaCapture?.stopIfRecording()
             AnalysisGate.cameraBusy.value = false
@@ -580,9 +588,9 @@ internal fun TechniqueRecorderStageContent(
             }
             if (is60FpsGranted || showsPlateBadge) Row(
                 Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp, Alignment.End),
-                verticalAlignment = Alignment.CenterVertically,
+                verticalAlignment = Alignment.Top,
             ) {
-                if (is60FpsGranted) FpsBadge()
+                if (is60FpsGranted) Box(Modifier.height(48.dp), contentAlignment = Alignment.Center) { FpsBadge() }
                 if (showsPlateBadge) PlateDiameterBadge(
                     diameterMm = plateDiameterMm, expanded = plateBadgeExpanded,
                     onToggleExpanded = onTogglePlateExpanded,
@@ -591,7 +599,7 @@ internal fun TechniqueRecorderStageContent(
                 )
             }
             if (available && !isRecording) FramingChip(
-                verdict = verdict, isFrontPreferred = preferredView == ViewKind.FRONT,
+                verdict = verdict, isFrontPreferred = preferredView == ViewKind.FRONT, visualMode = true,
                 modifier = Modifier.align(Alignment.CenterHorizontally).testTag("technique_framing"),
             )
             Box(Modifier.weight(1f).fillMaxWidth().testTag("technique_guide_area")) {

@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.width
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertContentDescriptionEquals
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
@@ -62,7 +63,8 @@ class SetCardExerciseMediaBackRequestTest {
         show(exercise, side)
         rule.onNodeWithTag(MediaShutterTag).performClick()
         rule.waitForIdle()
-        rule.onNodeWithTag(MediaExpandedTag).assertExists()
+        rule.onNodeWithTag(MediaExpandedTag).assertIsDisplayed()
+        rule.onNodeWithTag(TechniqueRecorderStageTag).assertIsDisplayed()
         return rule.onNodeWithTag(TechniqueRecorderStageTag).fetchSemanticsNode().config[TechniqueRecorderRequestKey]
     }
 
@@ -89,8 +91,8 @@ class SetCardExerciseMediaBackRequestTest {
     @Test fun expandir_en_video_monta_la_escena_del_grabador() {
         show()
         rule.onNodeWithTag("media_expand").performClick()
-        rule.onNodeWithTag(MediaExpandedTag).assertExists()
-        rule.onNodeWithTag(TechniqueRecorderStageTag).assertExists()
+        rule.onNodeWithTag(MediaExpandedTag).assertIsDisplayed()
+        rule.onNodeWithTag(TechniqueRecorderStageTag).assertIsDisplayed()
     }
 
     @Test fun foto_desde_el_grabador_pliega_y_deja_la_tarjeta_en_foto() {
@@ -103,7 +105,7 @@ class SetCardExerciseMediaBackRequestTest {
         rule.onNodeWithTag(MediaFaceTag).assertExists()
         rule.onNodeWithTag(MediaShutterTag).assertContentDescriptionEquals("Hacer foto")
         rule.onNodeWithTag("media_expand").performClick()
-        rule.onNodeWithTag(MediaExpandedTag).assertExists()
+        rule.onNodeWithTag(MediaExpandedTag).assertIsDisplayed()
         rule.onNodeWithTag(TechniqueRecorderStageTag).assertDoesNotExist()
     }
 
@@ -112,7 +114,7 @@ class SetCardExerciseMediaBackRequestTest {
         val initial = rule.onNodeWithTag(MediaFaceTag).fetchSemanticsNode().boundsInRoot
         repeat(2) {
             rule.onNodeWithTag(MediaShutterTag).performClick()
-            rule.onNodeWithTag(TechniqueRecorderStageTag).assertExists()
+            rule.onNodeWithTag(TechniqueRecorderStageTag).assertIsDisplayed()
             rule.onNodeWithTag("media_fold").performClick()
             rule.waitForIdle()
             rule.onNodeWithTag(MediaExpandedTag).assertDoesNotExist()

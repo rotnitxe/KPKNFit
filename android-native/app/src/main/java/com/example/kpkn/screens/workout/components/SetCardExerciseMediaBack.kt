@@ -151,8 +151,8 @@ private enum class MediaMode { PHOTO, VIDEO }
  * conserva la imagen «Técnica KPKN» (pequeña) y el icono del álbum. «Expandir» la lleva a casi toda la pantalla ENCIMA de todo (la tarjeta
  * crece desde su sitio, 320 ms) y plegar o Atrás la devuelve; la tarjeta de debajo no cambia de tamaño.
  *
- * La cámara (CameraX) respeta [isSettledPage] y `stopIfRecording` y no se suelta mientras se graba, tampoco al expandir y plegar: solo
- * cambia la vista donde se pinta ([MediaCameraSession]). [effortLabel] es el esfuerzo marcado en la tarjeta («RIR 2»); [startExpanded]
+ * En «Foto», expandir y plegar solo traslada la superficie de [MediaCameraSession]. En «Vídeo», la tarjeta cede la cámara al grabador
+ * y el plegado espera Finalize antes de devolverla. [effortLabel] es el esfuerzo marcado en la tarjeta («RIR 2»); [startExpanded]
  * abre el overlay de entrada (pruebas y hojas de render).
  */
 @Composable
@@ -481,8 +481,7 @@ internal fun SetCardExerciseMediaBack(
                 onDismiss = { showFicha = false },
                 onShowHistory = onShowHistory?.let { openHistory ->
                     {
-                        // El historial vive en el cuerpo de la sesión: liberar solo su velo,
-                        // conservando la cámara y la grabación en la cara compacta.
+                        // El historial vive en el cuerpo de la sesión; salir del grabador detiene primero su captura.
                         if (techniqueOpen) mediaCapture?.stopIfRecording()
                         expanded = false
                         techniqueOpen = false
@@ -1197,9 +1196,9 @@ internal fun ExpandedMediaOverlay(
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Column(modifier = Modifier.weight(1f)) {
-                    Text(title, style = KpknType.bodyStrong, color = WizardColors.text, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    Text(title, modifier = Modifier.fillMaxWidth(), style = KpknType.bodyStrong, color = WizardColors.text, maxLines = 1, overflow = TextOverflow.Ellipsis)
                     if (subtitle.isNotBlank()) {
-                        Text(subtitle, style = KpknType.caption, color = WizardColors.textMuted, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                        Text(subtitle, modifier = Modifier.fillMaxWidth(), style = KpknType.caption, color = WizardColors.textMuted, maxLines = 1, overflow = TextOverflow.Ellipsis)
                     }
                 }
                 val interaction = remember { MutableInteractionSource() }
