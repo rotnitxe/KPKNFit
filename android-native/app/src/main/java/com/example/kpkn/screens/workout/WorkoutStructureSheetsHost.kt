@@ -53,6 +53,7 @@ import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -95,6 +96,7 @@ import com.example.kpkn.domain.workout.LiveSessionReorder
 import com.example.kpkn.domain.workout.SupersetRules
 import com.example.kpkn.screens.sessioneditor.CompactModeSelector
 import com.example.kpkn.screens.sessioneditor.ExerciseSetsCarousel
+import com.example.kpkn.screens.sessioneditor.freshPlannedCopy
 import com.example.kpkn.screens.sessioneditor.SideOrderChip
 import com.example.kpkn.screens.sessioneditor.UnilateralModeSelector
 import com.example.kpkn.screens.sessioneditor.components.CardioEditorCard
@@ -231,7 +233,7 @@ internal class WorkoutStructureSheetsState {
 
 @Composable
 internal fun rememberWorkoutStructureSheetsState(): WorkoutStructureSheetsState =
-    remember { WorkoutStructureSheetsState() }
+    rememberSaveable(saver = WorkoutStructureSheetsStateSaver) { WorkoutStructureSheetsState() }
 
 /**
  * Live-workout catalog host. Creation is integrated into the search flow, so
@@ -1578,11 +1580,13 @@ internal fun WorkoutEditSeriesSheet(
     if (state.editSheetExerciseId != null) {
         val editEx = modeSession.allExercises().firstOrNull { it.id == state.editSheetExerciseId }
         if (editEx != null) {
-            var draftExercise by remember(state.editSheetExerciseId, editEx) { mutableStateOf(editEx) }
+            var draftExercise by rememberSaveable(state.editSheetExerciseId, stateSaver = WorkoutEditSeriesDraftSaver) { mutableStateOf(editEx) }
+            var draftBaseline by rememberSaveable(state.editSheetExerciseId, stateSaver = WorkoutEditSeriesDraftSaver) { mutableStateOf(editEx) }
             LaunchedEffect(editEx) {
-                if (draftExercise.id == editEx.id && draftExercise == modeSession.allExercises().firstOrNull { it.id == editEx.id }) {
+                if (draftExercise == draftBaseline) {
                     draftExercise = editEx
                 }
+                draftBaseline = editEx
             }
 
             var showSmartLoadDialog by remember { mutableStateOf(false) }
@@ -1761,27 +1765,19 @@ internal fun WorkoutEditSeriesSheet(
                         accentColor = sessionAccentColor,
                         onAddSet = { side ->
                             val lastSet = draftExercise.sets.lastOrNull()
+                            val seed = lastSet?.freshPlannedCopy(preserveEmptySlot = false)
+                                ?: ExerciseSet(id = UUID.randomUUID().toString(), targetReps = 8)
                             val baseTarget = UnilateralTarget(
                                 weight = lastSet?.weight,
                                 targetReps = lastSet?.targetReps,
                                 targetRepsRange = lastSet?.targetRepsRange,
                                 targetDuration = lastSet?.targetDuration,
+                                targetValue = lastSet?.plannedTargetV2,
                                 targetRPE = lastSet?.targetRPE,
                                 targetRIR = lastSet?.targetRIR,
                                 intensityMode = lastSet?.intensityMode,
                             )
-                            val newSet = ExerciseSet(
-                                id = UUID.randomUUID().toString(),
-                                targetReps = lastSet?.targetReps,
-                                targetRepsRange = lastSet?.targetRepsRange,
-                                targetDuration = lastSet?.targetDuration,
-                                targetRPE = lastSet?.targetRPE,
-                                targetRIR = lastSet?.targetRIR,
-                                weight = lastSet?.weight,
-                                loadModeV2 = lastSet?.loadModeV2,
-                                unitModeV2 = lastSet?.unitModeV2,
-                                intensityMode = lastSet?.intensityMode,
-                                targetPercentageRM = lastSet?.targetPercentageRM,
+                            val newSet = seed.copy(
                                 leftTarget = when (side) {
                                     "left" -> baseTarget
                                     "right" -> null
