@@ -99,8 +99,10 @@ class TechniqueAnalysisPipelineTest {
         gateIsClosed: () -> Boolean = { false },
         awaitGate: suspend () -> Unit = {},
         sdkInt: Int = 34,
+        recommendedStride: Int = 1,
     ) = TechniqueAnalysisPipeline(
-        PipelineTestKit.deps(open, pose, gateIsClosed = gateIsClosed, awaitGate = awaitGate, onStats = { stats.add(it) }, sdkInt = sdkInt),
+        PipelineTestKit.deps(open, pose, gateIsClosed = gateIsClosed, awaitGate = awaitGate, onStats = { stats.add(it) }, sdkInt = sdkInt)
+            .copy(recommendedPoseStride = { recommendedStride }),
         tuning,
     )
 
@@ -119,6 +121,23 @@ class TechniqueAnalysisPipelineTest {
     private fun storedPose(video: File): PoseTrackV2 =
         checkNotNull(PoseTrackCodec.decode(TechniqueSidecars.poseFile(video).readBytes())) { "pose2 ilegible" }
 
+    private fun writeStrideTwoCheckpoint(video: File, track: PoseTrackV2, ptsScale: Long = 1L): AnalysisCheckpoint {
+        val nextIndex = 101
+        val partial = track.copy(
+            mediaId = video.nameWithoutExtension,
+            nominalFps = track.nominalFps / 2f,
+            poseStride = 2,
+            frames = track.frames.take(nextIndex).filterIndexed { index, _ -> index % 2 == 0 },
+        )
+        val header = AnalysisCheckpoint.Header(
+            mediaId = video.nameWithoutExtension, poseVersion = TechniqueAnalysisPipeline.POSE_VERSION,
+            videoBytes = video.length(), videoModifiedMs = video.lastModified(), usesPlate = false,
+            poseStride = 2, timeScale = 1.0 / ptsScale, frameWidth = track.frameWidth, frameHeight = track.frameHeight,
+            lastPtsUs = track.frames[nextIndex - 1].tUs * ptsScale, nextIndex = nextIndex, plateStage = AnalysisCheckpoint.STAGE_NONE,
+        )
+        return AnalysisCheckpoint(header, partial, null).also { AnalysisCheckpoints.write(TechniqueSidecars.partFile(video), it) }
+    }
+
     private fun profile(equipment: String? = null): AnalysisProfile =
         (AnalysisProfileResolver.resolve(PipelineTestKit.exercise(equipmentId = equipment)) as ProfileResolution.Supported).profile
 
@@ -126,6 +145,47 @@ class TechniqueAnalysisPipelineTest {
         TechniqueAnalysisEngine.analyze(TechniqueAnalysisInput(track, bar, profile(equipment), null, null, emptySet()))
 
     // ---- FULL ----------------------------------------------------------------------------------------------------------
+
+    @Test
+    fun degradedDevicePreservesEveryPoseAndPhasesAt25And30Fps() {
+        for (fps in listOf(25.0, 30.0)) {
+            val synthetic = PipelineTestKit.squat(reps = 3, fps = fps, noise = SynthNoise.NONE)
+            val pts = synthetic.track.frames.map { it.tUs }
+            val video = PipelineTestKit.videoFile(folder.root, "degraded-${fps.toInt()}.mp4")
+            val src = FakeFrameSource(PipelineTestKit.videoInfo(406, 720, pts.last(), fps = fps.toFloat()), pts)
+                .also { sources.add(it) }
+            val est = FakePoseEstimator(synthetic.track.frames).also { estimators.add(it) }
+            val report = done(analyze(pipeline(open = { src }, pose = { est }, recommendedStride = 2), PipelineTestKit.request(video)).outcome).report
+
+            assertEquals("stride a $fps fps", 1, stats.last().poseStride)
+            assertEquals(pts, storedPose(video).frames.map { it.tUs })
+            assertEquals(pts.size, est.calls.get())
+            assertEquals(fps, report.analyzedFps, 0.01)
+            assertFalse(AnalysisFlag.LOW_FPS in report.flags)
+            assertEquals(3, report.repCount)
+            assertNotNull(report.tempo)
+            assertTrue(checkNotNull(report.tutMs) > 0L)
+        }
+    }
+
+    @Test
+    fun degradedHighFrameRatesKeepStrideWithinCheckpointSupport() {
+        for (fps in listOf(60.0, 120.0)) {
+            val synthetic = PipelineTestKit.squat(reps = 3, fps = fps, noise = SynthNoise.NONE)
+            val pts = synthetic.track.frames.map { it.tUs }
+            val video = PipelineTestKit.videoFile(folder.root, "degraded-${fps.toInt()}.mp4")
+            val src = FakeFrameSource(PipelineTestKit.videoInfo(406, 720, pts.last(), fps = fps.toFloat()), pts)
+                .also { sources.add(it) }
+            val est = FakePoseEstimator(synthetic.track.frames).also { estimators.add(it) }
+            val report = done(analyze(pipeline(open = { src }, pose = { est }, recommendedStride = 2), PipelineTestKit.request(video)).outcome).report
+
+            assertEquals(2, stats.last().poseStride)
+            assertEquals(pts.filterIndexed { index, _ -> index % 2 == 0 }, storedPose(video).frames.map { it.tUs })
+            assertEquals(fps / 2.0, report.analyzedFps, 0.01)
+            assertFalse(AnalysisFlag.LOW_FPS in report.flags)
+            assertEquals(3, report.repCount)
+        }
+    }
 
     @Test
     fun aFullAnalysisCountsTheTruthRepsAndLeavesItsSidecars() {
@@ -231,6 +291,70 @@ class TechniqueAnalysisPipelineTest {
     }
 
     // ---- Puntos de control ---------------------------------------------------------------------------------------------
+
+    @Test
+    fun aStrideTwoCheckpointAt30FpsIsRemovedBeforeStartingAgain() {
+        val video = PipelineTestKit.videoFile(folder.root)
+        writeStrideTwoCheckpoint(video, set.track)
+        val part = TechniqueSidecars.partFile(video)
+        val partExistedAtPoseCreation = AtomicBoolean()
+        val src = source()
+        val est = estimator()
+        val result = analyze(pipeline(
+            open = { src },
+            pose = { partExistedAtPoseCreation.set(part.exists()); est },
+            recommendedStride = 2,
+        ), PipelineTestKit.request(video))
+
+        done(result.outcome)
+        assertFalse("el .part de 15 Hz se borra antes de estimar", partExistedAtPoseCreation.get())
+        assertEquals(listOf(0L), src.decodeStarts.toList())
+        assertNull(stats.last().resumedFromPtsUs)
+        assertEquals(1, stats.last().poseStride)
+        assertEquals(times, storedPose(video).frames.map { it.tUs })
+        assertEquals(times.size, est.calls.get())
+    }
+
+    @Test
+    fun aStrideTwoCheckpointAt60FpsCanResumeOnAHealthyDevice() {
+        val synthetic = PipelineTestKit.squat(reps = 3, fps = 60.0)
+        val pts = synthetic.track.frames.map { it.tUs }
+        val video = PipelineTestKit.videoFile(folder.root)
+        val checkpoint = writeStrideTwoCheckpoint(video, synthetic.track)
+        val src = FakeFrameSource(PipelineTestKit.videoInfo(406, 720, pts.last(), fps = 60f), pts).also { sources.add(it) }
+        val est = FakePoseEstimator(synthetic.track.frames).also { estimators.add(it) }
+        val result = analyze(pipeline(open = { src }, pose = { est }), PipelineTestKit.request(video))
+
+        done(result.outcome)
+        assertEquals(listOf(checkpoint.header.lastPtsUs + 1L), src.decodeStarts.toList())
+        assertEquals(checkpoint.header.lastPtsUs, stats.last().resumedFromPtsUs)
+        assertEquals(2, stats.last().poseStride)
+        assertEquals(pts.filterIndexed { index, _ -> index % 2 == 0 }, storedPose(video).frames.map { it.tUs })
+        assertEquals((pts.size + 1) / 2 - checkpoint.pose.frames.size, est.calls.get())
+        assertFalse(TechniqueSidecars.partFile(video).exists())
+    }
+
+    @Test
+    fun aSlowMotionCheckpointUsesTheRealCaptureCadenceForReuse() {
+        val synthetic = PipelineTestKit.squat(reps = 3, fps = 60.0, noise = SynthNoise.NONE)
+        val real = synthetic.track.frames.map { it.tUs }
+        val container = real.map { it * 2L }
+        val video = PipelineTestKit.videoFile(folder.root)
+        val checkpoint = writeStrideTwoCheckpoint(video, synthetic.track, ptsScale = 2L)
+        val info = PipelineTestKit.videoInfo(406, 720, container.last(), fps = 30f, captureFps = 60f)
+        val src = FakeFrameSource(info, container).also { sources.add(it) }
+        val est = FakePoseEstimator(synthetic.track.frames, ptsScale = 2L).also { estimators.add(it) }
+        val result = analyze(pipeline(open = { src }, pose = { est }, recommendedStride = 2), PipelineTestKit.request(video))
+        val report = done(result.outcome).report
+
+        assertEquals(listOf(checkpoint.header.lastPtsUs + 1L), src.decodeStarts.toList())
+        assertEquals(checkpoint.header.lastPtsUs, stats.last().resumedFromPtsUs)
+        assertEquals(real.filterIndexed { index, _ -> index % 2 == 0 }, storedPose(video).frames.map { it.tUs })
+        assertEquals(30.0, report.analyzedFps, 0.01)
+        assertFalse(AnalysisFlag.LOW_FPS in report.flags)
+        assertTrue(est.staleReads.isEmpty())
+        assertTrue(est.notIncreasing.isEmpty())
+    }
 
     @Test
     fun aCheckpointInTheMiddleMakesTheNextAttemptResumeWithTheSameResult() {
@@ -461,11 +585,12 @@ class TechniqueAnalysisPipelineTest {
     // ---- Disco ---------------------------------------------------------------------------------------------------------
 
     /** Una sentadilla limpia de 720×1280 con un disco DIBUJADO que sigue la muñeca izquierda, y lo necesario para pasarlo por el pipeline. */
-    private inner class PlateCase(val reps: Int = 3, val occlusion: ClosedFloatingPointRange<Double>? = null) {
+    private inner class PlateCase(val reps: Int = 3, val occlusion: ClosedFloatingPointRange<Double>? = null, val fps: Double = 30.0) {
         val camera = SynthCamera()
         val lifter = PipelineTestKit.squat(
             reps = reps, width = camera.widthPx, height = camera.heightPx, noise = SynthNoise.NONE,
             lead = 1.5, tail = 1.0, eccS = 1.2, p1S = 0.3, conS = 1.2, p2S = 0.3,
+            fps = fps,
         )
         val frames = lifter.track.frames
         val pts = frames.map { it.tUs }
@@ -485,7 +610,7 @@ class TechniqueAnalysisPipelineTest {
         val tuning = PipelineTuning(targetLongEdge = camera.heightPx)
 
         fun newSource(failAfter: Int = -1, failure: Throwable? = null) = FakeFrameSource(
-            PipelineTestKit.videoInfo(camera.widthPx, camera.heightPx, pts.last()), pts, VideoDecodePath.GL,
+            PipelineTestKit.videoInfo(camera.widthPx, camera.heightPx, pts.last(), fps = fps.toFloat()), pts, VideoDecodePath.GL,
             painter = { tUs, out -> scene.render(tUs / 1e6, (tUs / 1000L).toInt(), out) },
             failAfterDelivered = failAfter,
             failure = failure,
@@ -845,7 +970,8 @@ class TechniqueAnalysisPipelineTest {
 
     @Test
     fun proposedStrideTwoSkipCheckpointRestoresAllPosePtsAndGlobalIndexParity() {
-        val case = PlateCase()
+        // Stride 2 is safe at 60 fps; a degraded 30 fps source must now keep every pose.
+        val case = PlateCase(fps = 60.0)
         val whole = PipelineTestKit.videoFile(folder.newFolder("whole-stride2"))
         val cut = PipelineTestKit.videoFile(folder.newFolder("cut-stride2"))
         val wholeNeeds = CopyOnWriteArrayList<Triple<Int, Long, com.example.kpkn.data.media.video.FrameNeeds>>()
