@@ -242,9 +242,10 @@ internal fun ExerciseFichaContent(
                     .padding(bottom = insets.calculateBottomPadding()),
                 verticalArrangement = Arrangement.spacedBy(16.dp),
             ) {
-                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                Column(Modifier.graphicsLayer { alpha = effects.titleAlpha }.testTag("exercise-ficha-large-heading"),
+                    verticalArrangement = Arrangement.spacedBy(6.dp)) {
                     Text(model.name, style = KpknType.title, color = WizardColors.text,
-                        modifier = Modifier.graphicsLayer { alpha = effects.titleAlpha })
+                        modifier = Modifier.testTag("exercise-ficha-large-title"))
                     model.caption?.takeIf { it.isNotBlank() }?.let { Text(it, style = KpknType.caption, color = WizardColors.textMuted) }
                     model.contextLine?.takeIf { it.isNotBlank() }?.let { Text(it, style = KpknType.caption, color = WizardColors.textMuted) }
                 }
@@ -291,7 +292,7 @@ internal fun ExerciseFichaContent(
             }
         }
         if (effects.headerAlpha > 0f) {
-            Box(Modifier.fillMaxWidth().background(Color(0xB80E0E0E)).graphicsLayer { alpha = effects.headerAlpha }
+            Box(Modifier.fillMaxWidth().testTag("exercise-ficha-fixed-heading").background(Color(0xB80E0E0E)).graphicsLayer { alpha = effects.headerAlpha }
                 .padding(top = insets.calculateTopPadding()).height(60.dp).padding(start = 20.dp, end = 76.dp), contentAlignment = Alignment.CenterStart) {
                 Text(model.name, style = KpknType.bodyStrong, color = WizardColors.text, maxLines = 1, overflow = TextOverflow.Ellipsis)
             }

@@ -31,6 +31,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.graphics.BlendMode
@@ -216,6 +217,11 @@ internal fun RestLiveCard(
                             color = WizardColors.textMuted,
                             maxLines = 1,
                         )
+                        if (restState != null && restState.plannedSeconds > 0) {
+                            Text("Plan de sesión · ${KpknSetFormat.rest(restState.plannedSeconds)}",
+                                style = KpknType.caption, color = WizardColors.textMuted,
+                                modifier = Modifier.testTag("rest-plan-reference"))
+                        }
 
                     }
                 }
@@ -240,7 +246,7 @@ internal fun RestLiveCard(
                                 )
                             }
                         }
-                        .verticalScroll(middleScroll),
+                        .testTag("rest-card-details").verticalScroll(middleScroll),
                     verticalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
                     videoSlot?.invoke()
@@ -248,10 +254,6 @@ internal fun RestLiveCard(
                         lastCompletedSet = lastCompletedSet ?: pendingRestSuggestion?.lastSet,
                         lastSetOutcome = lastSetOutcome,
                     )
-                    if (restState != null && restState.plannedSeconds > 0) {
-                        Text("Plan de sesión · ${KpknSetFormat.rest(restState.plannedSeconds)}",
-                            style = KpknType.caption, color = WizardColors.textMuted)
-                    }
 
                     if (pendingRestSuggestion != null && onUseAdaptive != null && !isAdaptiveActive) {
                         RestLiveSuggestedPill(

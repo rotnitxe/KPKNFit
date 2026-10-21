@@ -322,7 +322,9 @@ class LiveQaLayoutTest {
         }
         rule.onNodeWithContentDescription("Reloj de descanso: ${shape.label}").assertIsDisplayed()
         rule.onNodeWithText("de 4:09 · sugerido").assertExists()
-        rule.onNodeWithText("Plan de sesión · 3:00").performScrollTo().assertIsDisplayed()
+        val reference = rule.onNodeWithText("Plan de sesión · 3:00").assertIsDisplayed().fetchSemanticsNode().boundsInRoot
+        val card = rule.onNodeWithTag("qa-rest-card").fetchSemanticsNode().boundsInRoot
+        assertTrue("La referencia del plan queda completa junto al reloj", reference.top >= card.top && reference.bottom <= card.bottom)
         save("qa-rest-card", "rest-card-${shape.name}")
     }
 
