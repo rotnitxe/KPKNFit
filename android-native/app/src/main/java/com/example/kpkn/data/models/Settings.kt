@@ -83,6 +83,7 @@ data class Settings(
     /** Display nicknames keyed by catalogDefinitionId / exerciseDbId / canonical id. */
     val exerciseNicknames: Map<String, String> = emptyMap(),
     val showPRsInWorkout: Boolean = true,
+    /** Preferencia heredada: se conserva al importar; el cálculo usa el modelo único versionado StrengthModel. */
     val oneRMFormula: OneRMFormula = OneRMFormula.BRZYCKI,
     val workoutLoggerMode: WorkoutLoggerMode = WorkoutLoggerMode.PRO,
     val sessionCompactView: Boolean = false,
