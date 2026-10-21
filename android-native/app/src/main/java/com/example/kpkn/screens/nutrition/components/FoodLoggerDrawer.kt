@@ -100,6 +100,15 @@ import com.example.kpkn.ui.design.KpknModule
 import com.example.kpkn.ui.design.KpknType
 import com.example.kpkn.ui.design.KpknModuleHeader
 import com.example.kpkn.ui.components.icons.KpknLineIcons
+import com.example.kpkn.ui.design.KpknIconButton
+import com.example.kpkn.ui.design.KpknTextAction
+import com.example.kpkn.screens.nutrition.customfood.CustomFoodFormOverlay
+import com.example.kpkn.screens.nutrition.scan.BarcodeIcon
+import com.example.kpkn.screens.nutrition.scan.BarcodeScanFlow
+import com.example.kpkn.screens.nutrition.scan.CameraPreviewSurface
+import com.example.kpkn.screens.nutrition.scan.rememberCameraBarcodeSource
+import com.example.kpkn.screens.nutrition.scan.scannedFoodTag
+import androidx.compose.runtime.saveable.rememberSaveable
 import com.example.kpkn.domain.nutrition.MealSlots
 import com.example.kpkn.screens.onboarding.design.wizardReducedMotion
 import java.time.LocalDate
@@ -237,6 +246,10 @@ fun FoodLoggerDrawer(
     // IT3: utensilios configurables (ml por utensilio).
     var showUtensilDialog by remember { mutableStateOf(false) }
     var showPrivacyInfo by remember { mutableStateOf(false) }
+    // N3: escáner de códigos de barras y formulario de alimento propio (alta, o edición si hay un alimento).
+    var showScanner by rememberSaveable { mutableStateOf(false) }
+    var showCustomForm by remember { mutableStateOf(false) }
+    var customFoodToEdit by remember { mutableStateOf<FoodItem?>(null) }
     // Detalle técnico de un aviso de análisis: oculto hasta pedir «Ver detalle»; cada aviso empieza oculto.
     var showNoticeDetail by remember(analysisNotice) { mutableStateOf(false) }
     // WP-U12 (C11): el diálogo parte de lo vigente (base + lo guardado), no solo de la base.
@@ -1160,6 +1173,12 @@ fun FoodLoggerDrawer(
         tags = tags.map { if (it.id == tagId) it.copy(isExpanded = !it.isExpanded) else it }
     }
 
+    // N3: un producto confirmado en el escáner entra como cualquier fila del buscador (misma ficha, mismo guardado).
+    fun addScannedFood(food: FoodItem, grams: Double) {
+        tags = tags + scannedFoodTag(food, grams)
+        saveError = null
+    }
+
     fun performSearch() {
         searchJob?.cancel()
         if (searchQuery.isBlank()) {
@@ -1524,10 +1543,33 @@ fun FoodLoggerDrawer(
             // ── Buscar ───────────────────────────────────────────────────────
             if (activeTab == 1) {
                 item {
-                    LoggerSearchField(
-                        query = searchQuery,
-                        onQueryChange = { searchQuery = it },
-                        onImeSearch = { performSearch() },
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        LoggerSearchField(
+                            query = searchQuery,
+                            onQueryChange = { searchQuery = it },
+                            onImeSearch = { performSearch() },
+                            modifier = Modifier.weight(1f),
+                        )
+                        KpknIconButton(
+                            icon = BarcodeIcon.Barcode,
+                            contentDescription = "Escanear código de barras",
+                            onClick = { showScanner = true },
+                        )
+                    }
+                }
+                item(key = "custom_food_create") {
+                    KpknTextAction(
+                        text = "Crear alimento propio",
+                        onClick = {
+                            customFoodToEdit = null
+                            showCustomForm = true
+                        },
+                        leadingIcon = KpknLineIcons.Plus,
+                        color = WizardColors.textMuted,
                     )
                 }
                 // Mientras el catálogo se prepara, los resultados salen de lo que ya hay: el aviso lo dice.
@@ -1535,6 +1577,7 @@ fun FoodLoggerDrawer(
                     item(key = "catalog_import_progress") { LoggerCatalogProgress(progress) }
                 }
                 items(searchResults, key = { "search_" + it.foodId.ifBlank { "${it.food.name}_${it.food.brand.orEmpty()}" } }) { food ->
+                  Column {
                     LoggerSearchRow(
                         name = food.food.name.trim().replaceFirstChar { it.uppercase() },
                         kcal = kotlin.math.round(food.food.calories).toInt(),
@@ -1587,6 +1630,20 @@ fun FoodLoggerDrawer(
                             searchResults = emptyList()
                         },
                     )
+                    // N3: acceso discreto a editar un alimento propio (los del catálogo no se editan).
+                    if (food.food.isCustom && !food.food.isAiInferred) {
+                        KpknTextAction(
+                            text = "Editar alimento propio",
+                            onClick = {
+                                customFoodToEdit = food.food
+                                showCustomForm = true
+                            },
+                            leadingIcon = KpknLineIcons.Edit,
+                            color = WizardColors.textMuted,
+                            modifier = Modifier.padding(start = 16.dp),
+                        )
+                    }
+                  }
                 }
                 // Sin resultados de una búsqueda ya hecha: lo dice y ofrece describir la comida en lugar de buscarla.
                 if (searchQuery.isNotBlank() && searchResults.isEmpty() && searchedQuery == searchQuery) {
@@ -1655,6 +1712,43 @@ fun FoodLoggerDrawer(
             modifier = Modifier.imePadding().padding(horizontal = 20.dp),
         )
     }
+    }
+
+    // ── N3: escáner de códigos de barras y alimentos propios (pantallas completas sobre la hoja) ──
+    if (showScanner) {
+        val cameraSource = rememberCameraBarcodeSource()
+        BarcodeScanFlow(
+            source = cameraSource,
+            lookup = { code -> nutritionRepo.findFoodByBarcode(code) },
+            saveCustomFood = { food -> nutritionRepo.saveCustomFood(food) },
+            onConfirm = { food, grams ->
+                addScannedFood(food, grams)
+                showScanner = false
+            },
+            onDismiss = { showScanner = false },
+            preview = { previewModifier -> CameraPreviewSurface(cameraSource, previewModifier) },
+        )
+    }
+    if (showCustomForm) {
+        val closeCustomForm = {
+            showCustomForm = false
+            customFoodToEdit = null
+        }
+        CustomFoodFormOverlay(
+            initial = customFoodToEdit,
+            save = { food -> nutritionRepo.saveCustomFood(food) },
+            onSaved = {
+                closeCustomForm()
+                if (searchQuery.isNotBlank()) performSearch()
+            },
+            onDismiss = closeCustomForm,
+            delete = { id -> nutritionRepo.deleteCustomFood(id) },
+            onDeleted = {
+                val removedId = customFoodToEdit?.id
+                closeCustomForm()
+                if (removedId != null) searchResults = searchResults.filterNot { it.foodId == removedId }
+            },
+        )
     }
 
     // ── Éxito: el check se queda en la barra y la hoja se cierra al acabar (600 ms; 300 ms con movimiento reducido) ──
