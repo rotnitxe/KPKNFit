@@ -16,21 +16,18 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
+import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
-import androidx.compose.ui.test.performSemanticsAction
-import androidx.compose.ui.semantics.SemanticsActions
-import androidx.compose.ui.text.TextLayoutResult
 import com.example.kpkn.data.models.MuscleRole
 import com.example.kpkn.screens.onboarding.design.LocalWizardReducedMotion
 import com.example.kpkn.screens.programdetail.design.*
 import com.example.kpkn.ui.design.KpknSurface
 import org.junit.Assume.assumeTrue
-import org.junit.Assert.assertFalse
-import org.junit.Assert.assertTrue
 import org.junit.BeforeClass
 import org.junit.Rule
 import org.junit.Test
@@ -80,7 +77,7 @@ class ProgramVolumeT2RenderSheetTest {
                 LocalDensity provides Density(density, fontScale),
                 LocalWizardReducedMotion provides true,
             ) {
-                Box(Modifier.width(360.dp).height(1500.dp).background(KpknSurface.canvas).padding(16.dp)) {
+                Box(Modifier.width(360.dp).height(1500.dp).testTag("volumen_ventana_prueba").background(KpknSurface.canvas).padding(16.dp)) {
                     ProgramVolumeModule(
                         muscles = listOf(muscle), scope = scope,
                         onSelectKind = {}, onPreviousScope = {}, onNextScope = {},
@@ -107,12 +104,19 @@ class ProgramVolumeT2RenderSheetTest {
             rule.runOnUiThread { fontScale = scale }
             rule.waitForIdle()
             rule.onNodeWithContentDescription("6 series/sem", useUnmergedTree = true).assertExists()
-            for (text in listOf("series/sem", "Real 4 series/sem", "Deltoides Anterior · Directo", "Deltoides Lateral · Secundario")) {
-                val layouts = mutableListOf<TextLayoutResult>()
-                rule.onNodeWithText(text, useUnmergedTree = true)
-                    .performSemanticsAction(SemanticsActions.GetTextLayoutResult) { it(layouts) }
-                assertTrue(layouts.isNotEmpty())
-                assertFalse("sin recortes al $scale: $text", layouts.single().hasVisualOverflow)
+            val row = rule.onNodeWithTag("volumen_fila_${muscle.name}")
+            for (text in listOf("series/sem", "Real 4 series/sem")) {
+                assertVolumeTextComplete(
+                    rule.onNodeWithText(text, useUnmergedTree = true), row, text,
+                    context = "render al $scale",
+                )
+            }
+            val window = rule.onNodeWithTag("volumen_ventana_prueba")
+            for (text in listOf("Deltoides Anterior · Directo", "Deltoides Lateral · Secundario")) {
+                assertVolumeTextComplete(
+                    rule.onNodeWithText(text, useUnmergedTree = true), window, text,
+                    context = "porción al $scale", singleLine = false,
+                )
             }
         }
     }

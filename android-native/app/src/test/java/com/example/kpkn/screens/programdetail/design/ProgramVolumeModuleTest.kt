@@ -10,12 +10,14 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.test.assertHasClickAction
+import androidx.compose.ui.test.getBoundsInRoot
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performSemanticsAction
+import androidx.compose.ui.test.SemanticsNodeInteraction
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import com.example.kpkn.screens.onboarding.design.LocalWizardReducedMotion
@@ -166,12 +168,12 @@ class ProgramVolumeModuleTest {
         }
         val unit = if (totalVolume) "series" else "series/sem"
         composeRule.onNodeWithContentDescription("6 $unit", useUnmergedTree = true).assertExists()
+        val row = composeRule.onNodeWithTag("volumen_fila_${muscle.name}")
         for (text in listOf(unit, "Real 4 $unit")) {
-            val layouts = mutableListOf<TextLayoutResult>()
-            composeRule.onNodeWithText(text, useUnmergedTree = true)
-                .performSemanticsAction(SemanticsActions.GetTextLayoutResult) { it(layouts) }
-            assertTrue(layouts.isNotEmpty())
-            assertFalse("la unidad debe quedar completa: $text", layouts.single().hasVisualOverflow)
+            assertVolumeTextComplete(
+                composeRule.onNodeWithText(text, useUnmergedTree = true), row, text,
+                context = "unidad al $fontScale",
+            )
         }
     }
 
@@ -235,4 +237,48 @@ class ProgramVolumeModuleTest {
         assertTrue(layouts.isNotEmpty())
         assertFalse("el nombre y el rol deben quedar completos", layouts.single().hasVisualOverflow)
     }
+}
+
+/**
+ * Comprueba el texto dispuesto y su caja visible; conserva las métricas de overflow como diagnóstico.
+ * Con softWrap=false, el párrafo puede retener el ancho máximo aunque la línea quepa en su caja intrínseca.
+ */
+internal fun assertVolumeTextComplete(
+    node: SemanticsNodeInteraction,
+    container: SemanticsNodeInteraction,
+    text: String,
+    context: String,
+    singleLine: Boolean = true,
+) {
+    val layouts = mutableListOf<TextLayoutResult>()
+    node.performSemanticsAction(SemanticsActions.GetTextLayoutResult) { it(layouts) }
+    assertTrue("$context: se esperaba un layout para «$text», recibidos ${layouts.size}", layouts.size == 1)
+    val layout = layouts.single()
+    val bounds = node.getBoundsInRoot()
+    val containerBounds = container.getBoundsInRoot()
+    val visibleWidthPx = node.fetchSemanticsNode().boundsInRoot.width
+    val naturalWidth = layout.multiParagraph.intrinsics.maxIntrinsicWidth
+    val lines = 0 until layout.lineCount
+    val visibleEnd = if (layout.lineCount > 0) layout.getLineEnd(layout.lineCount - 1, visibleEnd = true) else 0
+    val ellipsized = lines.any { layout.isLineEllipsized(it) }
+    val lineWidths = lines.map { layout.getLineRight(it) - layout.getLineLeft(it) }
+    val complete = layout.lineCount > 0 && visibleEnd == text.length && !ellipsized
+    val fitsLineCount = !singleLine || layout.lineCount == 1
+    // Una línea debe caber tanto en la caja medida como en la parte visible tras el recorte de sus padres.
+    val fitsWidth = if (singleLine) {
+        naturalWidth <= layout.size.width && naturalWidth <= visibleWidthPx
+    } else {
+        lineWidths.all { it <= layout.size.width && it <= visibleWidthPx }
+    }
+    val inside = bounds.left >= containerBounds.left && bounds.right <= containerBounds.right &&
+        bounds.top >= containerBounds.top && bounds.bottom <= containerBounds.bottom
+    val diagnostic = "$context: «$text», lineCount=${layout.lineCount}, size=${layout.size}, " +
+        "paragraphWidth=${layout.multiParagraph.width}, maxIntrinsicWidth=$naturalWidth, " +
+        "didOverflowWidth=${layout.didOverflowWidth}, didOverflowHeight=${layout.didOverflowHeight}, " +
+        "hasVisualOverflow=${layout.hasVisualOverflow}, visibleEnd=$visibleEnd/${text.length}, " +
+        "ellipsized=$ellipsized, lineWidths=$lineWidths, visibleWidthPx=$visibleWidthPx, " +
+        "nodeBounds=$bounds, containerBounds=$containerBounds, " +
+        "complete=$complete, fitsLineCount=$fitsLineCount, fitsWidth=$fitsWidth, inside=$inside"
+    println("[VolumenTexto] $diagnostic")
+    assertTrue(diagnostic, complete && fitsLineCount && fitsWidth && inside)
 }
