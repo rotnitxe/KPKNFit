@@ -6,25 +6,35 @@ import android.app.Application
 import android.content.Context
 import android.content.ContextWrapper
 import android.content.res.AssetManager
+import android.util.Log
 import androidx.test.core.app.ApplicationProvider
 import com.example.kpkn.data.db.GlobalFoodEntity
 import com.example.kpkn.data.db.KpknDatabase
+import com.example.kpkn.data.db.MealTemplateEntity
 import com.example.kpkn.data.db.NutritionActiveStateEntity
 import com.example.kpkn.data.db.NutritionLogEntity
+import com.example.kpkn.data.db.NutritionPlanEntity
 import com.example.kpkn.data.db.toEntity
 import com.example.kpkn.data.food.FoodImporter
+import com.example.kpkn.data.models.DailyGoalSnapshot
 import com.example.kpkn.data.models.LoggedFood
 import com.example.kpkn.data.models.MeasurementSchedule
+import com.example.kpkn.data.models.MealTemplate
 import com.example.kpkn.data.models.NutritionLog
 import com.example.kpkn.data.models.NutritionPlan
 import com.example.kpkn.services.nutrition.NutritionNotificationManager
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
+import kotlinx.coroutines.test.resetMain
+import kotlinx.coroutines.test.setMain
 import kotlinx.coroutines.withTimeout
 import org.junit.After
 import org.junit.Assert.assertEquals
@@ -41,6 +51,7 @@ import org.robolectric.RobolectricTestRunner
 import org.robolectric.Shadows.shadowOf
 import org.robolectric.annotation.Config
 import org.robolectric.shadows.ShadowAlarmManager
+import org.robolectric.shadows.ShadowLog
 import java.time.LocalDate
 import java.util.concurrent.CopyOnWriteArrayList
 import java.util.concurrent.atomic.AtomicInteger
@@ -53,6 +64,7 @@ import java.util.concurrent.atomic.AtomicInteger
  */
 @RunWith(RobolectricTestRunner::class)
 @Config(manifest = Config.NONE, sdk = [34], application = Application::class)
+@OptIn(ExperimentalCoroutinesApi::class)
 class NutritionRepositoryStartupTest {
 
     private val context: Context get() = ApplicationProvider.getApplicationContext()
@@ -65,6 +77,7 @@ class NutritionRepositoryStartupTest {
     @Before
     fun setUp() {
         SyncRoomExecutor.install()
+        Dispatchers.setMain(UnconfinedTestDispatcher())
         ShadowAlarmManager.reset()
         ShadowAlarmManager.setCanScheduleExactAlarms(true)
         // Singletons que pueden venir de otras pruebas: sin repositorio de programas (no arranca la previsión) y con un
@@ -84,6 +97,7 @@ class NutritionRepositoryStartupTest {
         BodyProgressRepository.closeInstance()
         KpknDatabase.closeInstance()
         ShadowAlarmManager.reset()
+        Dispatchers.resetMain()
         SyncRoomExecutor.uninstall()
     }
 
@@ -95,12 +109,23 @@ class NutritionRepositoryStartupTest {
         foods = listOf(LoggedFood(foodName = "Arroz cocido", amount = 200.0, calories = 260.0, protein = 5.0, carbs = 56.0, fats = 1.0)),
     )
 
-    /** Un log, un plan y el plan activo: las filas que NO deben depender de la importación del catálogo. */
+    private fun template() = MealTemplate(id = "template-startup", name = "Comida guardada", foods = meal().foods)
+
+    private fun snapshot() = DailyGoalSnapshot(
+        date = LocalDate.now().minusDays(1).toString(),
+        planId = planId,
+        calorieTargetKcal = 2100,
+        capturedAtEpochMs = 1L,
+    )
+
+    /** Filas sanas que deben publicarse aunque el catálogo o alguna otra fila fallen. */
     private suspend fun seedUserRows() {
         val dao = db.nutritionDao()
         dao.upsertLog(meal().toEntity())
         dao.upsertPlan(NutritionPlan(id = planId, name = "Plan startup", calorieTarget = 2200, isActive = true).toEntity())
         dao.upsertActiveState(NutritionActiveStateEntity(activePlanId = planId))
+        dao.upsertTemplate(template().toEntity())
+        dao.insertDailyGoalSnapshot(snapshot().toEntity())
     }
 
     private fun importer(
@@ -207,10 +232,13 @@ class NutritionRepositoryStartupTest {
     }
 
     @Test
-    fun `an unreadable user row falls back to the static catalog and still lets the import run`() = runBlocking {
-        db.nutritionDao().upsertLog(
-            NutritionLogEntity(id = "corrupt", date = "2026-10-01T12:00:00.000Z", mealType = "LUNCH", data = "{not json"),
+    fun `una comida ilegible queda en cuarentena y las filas sanas y el catalogo se cargan`() = runBlocking {
+        seedUserRows()
+        val corrupt = NutritionLogEntity(
+            id = "corrupt", date = "2026-10-01T12:00:00.000Z", mealType = "LUNCH", data = "{contenido privado ilegible",
         )
+        db.nutritionDao().upsertLog(corrupt)
+        ShadowLog.clear()
         val importerEntered = CompletableDeferred<Unit>()
         val repo = repository(
             importer { _, _, _ ->
@@ -223,8 +251,114 @@ class NutritionRepositoryStartupTest {
         withTimeout(TIMEOUT_MS) { importerEntered.await() }
         withTimeout(TIMEOUT_MS) { repo.awaitStartupLoadForTests() }
 
-        assertTrue(repo.nutritionLogs.value.isEmpty())
-        assertTrue("minimal fallback keeps the static catalog", repo.foodDatabase.value.size >= 215)
+        assertEquals(listOf(meal()), repo.nutritionLogs.value)
+        assertEquals(listOf(template()), repo.mealTemplates.value)
+        assertEquals(planId, repo.activeNutritionPlan?.id)
+        assertEquals(listOf(snapshot()), repo.dailyGoalSnapshots.value)
+        assertEquals(listOf(UnreadableNutritionRow(corrupt.id, "nutrition_logs")), repo.unreadableRows.value)
+        assertEquals(corrupt, db.nutritionDao().getAllLogs().single { it.id == corrupt.id })
+        assertTrue("el catálogo estático se publica con normalidad", repo.foodDatabase.value.size >= 215)
+
+        val warning = ShadowLog.getLogsForTag("NutritionRepository").single { it.msg.startsWith("Fila ilegible") }
+        assertEquals(Log.WARN, warning.type)
+        assertTrue(warning.msg.contains(corrupt.id) && warning.msg.contains("nutrition_logs"))
+        assertFalse(warning.msg.contains(corrupt.data))
+        assertNull("la excepción de JSON puede contener datos privados", warning.throwable)
+
+        repo.saveNutritionLog(meal().copy(id = "new-meal"))
+        assertEquals(corrupt, db.nutritionDao().getAllLogs().single { it.id == corrupt.id })
+    }
+
+    @Test
+    fun `una plantilla ilegible no oculta las sanas ni se borra al olvidar el aprendizaje`() = runBlocking {
+        seedUserRows()
+        val corrupt = MealTemplateEntity(id = "corrupt", name = "Plantilla ilegible", data = "{no es json")
+        db.nutritionDao().upsertTemplate(corrupt)
+        val repo = repository(importer { _, _, _ -> false })
+
+        repo.refreshData(context)
+        withTimeout(TIMEOUT_MS) { repo.awaitStartupLoadForTests() }
+
+        assertEquals(listOf(template()), repo.mealTemplates.value)
+        assertEquals(listOf(meal()), repo.nutritionLogs.value)
+        assertEquals(planId, repo.activeNutritionPlan?.id)
+        assertEquals(listOf(snapshot()), repo.dailyGoalSnapshots.value)
+        assertEquals(listOf(UnreadableNutritionRow(corrupt.id, "nutrition_templates")), repo.unreadableRows.value)
+        assertEquals(corrupt, db.nutritionDao().getAllTemplates().single { it.id == corrupt.id })
+
+        repo.clearLearnedResolutions()
+
+        assertTrue(repo.mealTemplates.value.isEmpty())
+        assertEquals(listOf(corrupt), db.nutritionDao().getAllTemplates())
+        assertEquals(listOf(UnreadableNutritionRow(corrupt.id, "nutrition_templates")), repo.unreadableRows.value)
+        assertEquals(listOf(mealId), db.nutritionDao().getAllLogs().map { it.id })
+    }
+
+    @Test
+    fun `un plan ilegible se conserva al activar y republicar un plan sano`() = runBlocking {
+        seedUserRows()
+        val corrupt = NutritionPlanEntity(id = "corrupt", name = "Plan ilegible", isActive = false, data = "{no es json")
+        db.nutritionDao().upsertPlan(corrupt)
+        db.nutritionDao().upsertPlan(NutritionPlan(id = "other-plan", name = "Otro plan").toEntity())
+        val repo = repository(importer { _, _, _ -> false })
+
+        repo.refreshData(context)
+        withTimeout(TIMEOUT_MS) { repo.awaitStartupLoadForTests() }
+
+        assertEquals(setOf(planId, "other-plan"), repo.nutritionPlans.value.map { it.id }.toSet())
+        assertEquals(planId, repo.activeNutritionPlan?.id)
+        assertEquals(listOf(meal()), repo.nutritionLogs.value)
+        assertEquals(listOf(template()), repo.mealTemplates.value)
+        assertEquals(listOf(snapshot()), repo.dailyGoalSnapshots.value)
+        assertEquals(listOf(UnreadableNutritionRow(corrupt.id, "nutrition_plans")), repo.unreadableRows.value)
+
+        repo.activatePlan("other-plan")
+        withTimeout(TIMEOUT_MS) {
+            while (db.nutritionDao().getActiveState()?.activePlanId != "other-plan") delay(10)
+        }
+        repo.publishNutritionPlanCommit()
+
+        assertEquals("other-plan", repo.activeNutritionPlan?.id)
+        assertEquals(setOf(planId, "other-plan"), repo.nutritionPlans.value.map { it.id }.toSet())
+        assertTrue(repo.dailyGoalSnapshots.value.contains(snapshot()))
+        assertEquals(corrupt, db.nutritionDao().getAllPlans().single { it.id == corrupt.id })
+        assertEquals(listOf(UnreadableNutritionRow(corrupt.id, "nutrition_plans")), repo.unreadableRows.value)
+    }
+
+    @Test
+    fun `la cuarentena distingue tablas con el mismo id y se actualiza tras reparar una fila`() = runBlocking {
+        seedUserRows()
+        val corruptLog = NutritionLogEntity("corrupt", "2026-10-01", "LUNCH", "{log ilegible")
+        val corruptTemplate = MealTemplateEntity("corrupt", "Plantilla", "{plantilla ilegible")
+        val corruptPlan = NutritionPlanEntity("corrupt", "Plan", false, "{plan ilegible")
+        val dao = db.nutritionDao()
+        dao.upsertLog(corruptLog)
+        dao.upsertTemplate(corruptTemplate)
+        dao.upsertPlan(corruptPlan)
+        val repo = repository(importer { _, _, _ -> false })
+
+        repo.refreshData(context)
+        withTimeout(TIMEOUT_MS) { repo.awaitStartupLoadForTests() }
+
+        assertEquals(
+            setOf("nutrition_logs", "nutrition_templates", "nutrition_plans").map { UnreadableNutritionRow("corrupt", it) }.toSet(),
+            repo.unreadableRows.value.toSet(),
+        )
+        repo.publishNutritionPlanCommit()
+        assertEquals("releer solo planes no borra el diagnóstico de las otras tablas", 3, repo.unreadableRows.value.size)
+
+        // Simula una reparación externa explícita; el repositorio nunca reescribe la fila en cuarentena.
+        dao.upsertLog(meal().copy(id = corruptLog.id).toEntity())
+        repo.refreshData(context)
+        withTimeout(TIMEOUT_MS) { repo.awaitStartupLoadForTests() }
+
+        assertEquals(setOf(mealId, corruptLog.id), repo.nutritionLogs.value.map { it.id }.toSet())
+        assertEquals(
+            setOf(UnreadableNutritionRow("corrupt", "nutrition_templates"), UnreadableNutritionRow("corrupt", "nutrition_plans")),
+            repo.unreadableRows.value.toSet(),
+        )
+        assertEquals(corruptTemplate, dao.getAllTemplates().single { it.id == "corrupt" })
+        assertEquals(corruptPlan, dao.getAllPlans().single { it.id == "corrupt" })
     }
 
     // ─── Cableado hacia el importador ─────────────────────────────────────

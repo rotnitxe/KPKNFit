@@ -94,6 +94,9 @@ internal interface FoodCatalogImporter {
     }
 }
 
+/** Fila excluida de la publicación por ser ilegible; su contenido permanece intacto en Room. */
+data class UnreadableNutritionRow(val id: String, val table: String)
+
 /**
  * NutritionRepository — Write-through cache para estado nutricional.
  */
@@ -196,15 +199,13 @@ class NutritionRepository private constructor(
     private val _nutritionLogs = MutableStateFlow<List<NutritionLog>>(emptyList())
     val nutritionLogs: StateFlow<List<NutritionLog>> = _nutritionLogs.asStateFlow()
 
+    private val _unreadableRows = MutableStateFlow<List<UnreadableNutritionRow>>(emptyList())
+    /** Diagnóstico de la última lectura de cada tabla, sin incluir el contenido de las filas. */
+    val unreadableRows: StateFlow<List<UnreadableNutritionRow>> = _unreadableRows.asStateFlow()
+
     private val _dailyGoalSnapshots = MutableStateFlow<List<DailyGoalSnapshot>>(emptyList())
     /** Immutable per-day targets exposed for historical charts and audits. */
     val dailyGoalSnapshots: StateFlow<List<DailyGoalSnapshot>> = _dailyGoalSnapshots.asStateFlow()
-
-    fun addNutritionLog(log: NutritionLog) {
-        _nutritionLogs.update { it + log }
-        scope.launch { db.nutritionDao().upsertLog(log.toEntity()) }
-        captureDailyGoalSnapshot(log.date.take(10))
-    }
 
     /** Await durable storage before publishing success or teaching a confirmed habit. */
     suspend fun saveNutritionLog(log: NutritionLog, confirmations: List<FoodLearningConfirmation> = emptyList()) = foodSaveMutex.withLock {
@@ -516,7 +517,7 @@ class NutritionRepository private constructor(
      */
     suspend fun publishNutritionPlanCommit() {
         val committedPlans = withContext(Dispatchers.IO) {
-            db.nutritionDao().getAllPlans().map { it.toNutritionPlan() }
+            decodeUserRows(db.nutritionDao().getAllPlans(), "nutrition_plans", { it.id }) { it.toNutritionPlan() }
         }
         val committedActiveId = withContext(Dispatchers.IO) {
             db.nutritionDao().getActiveState()?.activePlanId
@@ -988,7 +989,15 @@ class NutritionRepository private constructor(
                 habitualPortionsGrams = emptyMap(), maturePortionsGrams = emptyMap(), confirmedPortions = emptyMap(),
                 identityMappings = emptyMap(), statePreferences = emptyMap(), preparationProfiles = emptyMap(), oilProfiles = emptyMap(),
             ) }
-            db.withTransaction { db.nutritionDao().getAllTemplates().forEach { db.nutritionDao().deleteTemplate(it.id) } }
+            db.withTransaction {
+                val dao = db.nutritionDao()
+                // Olvidar el aprendizaje no elimina las plantillas en cuarentena.
+                val readableIds = decodeUserRows(dao.getAllTemplates(), "nutrition_templates", { it.id }) {
+                    it.toMealTemplate()
+                    it.id
+                }
+                readableIds.forEach { dao.deleteTemplate(it) }
+            }
             _mealTemplates.value = emptyList()
             _foodQueryLearning.value = emptyMap()
             check(foodPrefs.edit().remove("food_query_learning_v2").commit()) { "Could not clear food selection memory" }
@@ -1012,6 +1021,31 @@ class NutritionRepository private constructor(
     }
 
     // ─── Bootstrap ──────────────────────────────────────────────────────────
+
+    /** Una fila ilegible no impide publicar las demás ni modifica su representación en Room. */
+    private fun <E, T : Any> decodeUserRows(
+        rows: List<E>,
+        table: String,
+        id: (E) -> String,
+        decode: (E) -> T,
+    ): List<T> {
+        val unreadable = mutableListOf<UnreadableNutritionRow>()
+        val readable = rows.mapNotNull { row ->
+            try {
+                decode(row)
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (_: Exception) {
+                val diagnostic = UnreadableNutritionRow(id(row), table)
+                unreadable += diagnostic
+                // Las excepciones de JSON pueden contener datos del usuario: solo se registra la identidad de la fila.
+                android.util.Log.w("NutritionRepository", "Fila ilegible en $table (id=${diagnostic.id})")
+                null
+            }
+        }
+        _unreadableRows.update { current -> current.filterNot { it.table == table } + unreadable }
+        return readable
+    }
 
     /** Última carga de arranque; las pruebas la esperan para observar el final de sus tres fases. */
     @Volatile
@@ -1082,11 +1116,11 @@ class NutritionRepository private constructor(
             // espera el catálogo sabe que el resto del estado ya está publicado.
             foodSaveMutex.withLock {
                 val dao = db.nutritionDao()
-                val logs = dao.getAllLogs().map { it.toNutritionLog() }
-                val templates = dao.getAllTemplates().map { it.toMealTemplate() }
+                val logs = decodeUserRows(dao.getAllLogs(), "nutrition_logs", { it.id }) { it.toNutritionLog() }
+                val templates = decodeUserRows(dao.getAllTemplates(), "nutrition_templates", { it.id }) { it.toMealTemplate() }
                 val learning = loadFoodLearning()
                 val snapshots = dao.getAllDailyGoalSnapshots().mapNotNull { it.toDailyGoalSnapshot() }
-                val plans = dao.getAllPlans().map { it.toNutritionPlan() }
+                val plans = decodeUserRows(dao.getAllPlans(), "nutrition_plans", { it.id }) { it.toNutritionPlan() }
                 val activeId = dao.getActiveState()?.activePlanId
 
                 _nutritionLogs.value = logs

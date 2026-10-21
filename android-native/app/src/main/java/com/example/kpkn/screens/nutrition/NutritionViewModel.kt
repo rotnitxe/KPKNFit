@@ -15,7 +15,9 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
@@ -364,8 +366,17 @@ class NutritionViewModel(
     }
 
     fun addLog(log: NutritionLog) {
-        maybePromptCreatineOnboarding(log)
-        nutritionRepo.addNutritionLog(log)
+        viewModelScope.launch {
+            try {
+                nutritionRepo.saveNutritionLog(log)
+                maybePromptCreatineOnboarding(log)
+            } catch (error: Exception) {
+                // Room también puede cancelar su propio scope al cerrar la base: eso es un fallo de guardado.
+                if (error is CancellationException) currentCoroutineContext().ensureActive()
+                android.util.Log.w("NutritionViewModel", "No se pudo guardar la comida", error)
+                _uiMessage.value = "No se pudo guardar la comida. Inténtalo de nuevo."
+            }
+        }
     }
 
     // ─── Deshacer, editar y avisos (WP-U11 / C9) ──────────────────────────────
@@ -377,7 +388,7 @@ class NutritionViewModel(
 
     private val _uiMessage = MutableStateFlow<String?>(null)
 
-    /** Aviso para el usuario (un borrado o una restauración que falló); la pantalla lo muestra y lo consume. */
+    /** Aviso para el usuario cuando falla una operación; la pantalla lo muestra y lo consume. */
     val uiMessage: StateFlow<String?> = _uiMessage.asStateFlow()
 
     fun consumeUiMessage() {
