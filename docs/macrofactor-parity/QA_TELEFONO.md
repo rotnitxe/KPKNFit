@@ -39,3 +39,11 @@ Protocolo en `README.md` (D12). Aquí, el procedimiento paso a paso y qué se co
 - Al primer arranque la app pide notificaciones y ubicación (dos diálogos del sistema) y su propio aviso «Activa tus avisos»: se elige «No permitir» / «Ahora no» (`tap:540,2327` y `tap:540,1828`).
 - Receta que funcionó: instalar con `--apk … --fresh`, `launch:WizardHarnessActivity|--es|scope|full|--es|persona|qa|--ei|autonext|600|--es|until|REVIEW_ACTIVATE|--ei|activate|1500|--ez|pro|true` (~2 min), luego `launch:DemoSeedActivity|--ez|pro|true`, y `deeplink:kpkn://settings` para Ajustes.
 - Coordenadas útiles (píxeles reales): pestañas inferiores Inicio 161·2408, Entreno 416·2408, Nutrición 667·2408, Cuerpo 920·2408; en el detalle del programa, pestaña Volumen 859·426 (con el encabezado fijo); en Ajustes, «Mi material → Editar» 891·957.
+
+## 6. Notas del segundo ciclo (21-oct, N2a + N2b)
+- `mfp_phone.py --user-ok`: solo con autorización EXPRESA de la persona en el chat («Prueba ahora. No te preocupes por el resto»); omite la regla de 20 min y la de audio. Siguen activos: bloqueo (nunca se desbloquea), plegado, batería, temperatura, candado de otro agente y el corte si la persona toma el teléfono.
+- Instalar el APK nuevo SIN `--fresh` encima de los datos previos prueba la migración de Room con datos reales (v29→v30 salió bien).
+- `NutritionHistorySeedActivity` (`--ei scenario 1|2`) vuelve a abrir `MainActivity` y reescribe las preferencias del check-in (la introducción reaparece). En cada arranque de `MainActivity` sale «Activa tus avisos»: `tap:540,1828` («Ahora no»).
+- Coordenadas útiles (píxeles reales, 1080×2640): pestaña Nutrición 667·2408; en Nutrición, icono de ajustes arriba a la derecha 971·211 (abre «Editar plan»); retroceso de pantalla 156·189; «Empezar» de la tarjeta del check-in, tras desplazar 800 px hacia arriba desde 1900: 540·972–1410 según el desplazamiento (leer la captura). Tras «Continuar» la página NO se desplaza al módulo (pulido pendiente): hay que subir con `swipe:540,700,540,1900,500`.
+- Un ciclo de prueba largo (≈ 10 min) cabe en sesiones de una o dos acciones encadenadas con `--leave-open`; la última sin él (hace `force-stop` y devuelve la pantalla a lo que hubiera detrás).
+- Imágenes mostradas a 818 px de ancho: multiplicar por 1,32.
