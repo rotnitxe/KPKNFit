@@ -119,13 +119,17 @@ class Rings110IntegrationTest {
                 score = 65,
             )
         )
+        val batteries = GlobalBatteries(
+            muscular = 65,
+            energy = 100,
+            spinal = 100,
+            overallReadiness = 72,
+        )
         val detail = AugeRecoveryEngine.calculateRecoveryDashboardDetail(
-            muscularScore = 65.0,
-            systemScore = 100.0,
-            spinalScore = 100.0,
+            batteries = batteries,
             perMuscle = emptyMap(),
-            energyEstimate = null,
-            spinalEstimate = null,
+            articularBatteries = emptyMap(),
+            wellbeing = null,
             coverage = coverage,
         )
         // Score general ponderado se calcula matemáticamente igual
