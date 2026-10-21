@@ -62,5 +62,15 @@
             android:name="com.example.kpkn.debug.TechniqueBenchActivity"
             android:exported="true"
             android:theme="@style/Theme.KPKN" />
+        <!-- SOLO DEPURACIÓN: escáner de códigos de barras y formulario de alimento propio con datos en memoria y una fuente de códigos falsa (N3); no se integra. -->
+        <activity
+            android:name="com.example.kpkn.debug.BarcodeScanHarnessActivity"
+            android:exported="true"
+            android:theme="@style/Theme.KPKN" />
+        <!-- SOLO DEPURACIÓN: autocomprobación del lector de ML Kit SIN cámara (códigos dibujados en memoria); resultado en logcat con la etiqueta MfpBarcodeSelfTest (N3); no se integra. -->
+        <activity
+            android:name="com.example.kpkn.debug.BarcodeSelfTestActivity"
+            android:exported="true"
+            android:theme="@style/Theme.KPKN" />
     </application>
 </manifest>
