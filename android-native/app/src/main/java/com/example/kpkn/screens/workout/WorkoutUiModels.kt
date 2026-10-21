@@ -165,6 +165,8 @@ data class WorkoutUiState(
     val restTimerTotal: Int = 0,
     val isRestTimerRunning: Boolean = false,
     val showFinishSheet: Boolean = false,
+    /** El resumen final se cerró sin guardar (LV4, 15): el cierre queda pendiente y la sesión enseña cómo volver a él. */
+    val finishClosedPending: Boolean = false,
     val isFinishingWorkout: Boolean = false,
     val showPostExerciseSheet: Boolean = false,
     val postExerciseTargetIdx: Int = -1,      // exercise index for feedback
@@ -274,6 +276,8 @@ data class WorkoutUiState(
     val showVolumeAdvanceModal: Boolean = false,
     val volumeAdvanceHandled: Boolean = false,
     val isRestMinimized: Boolean = false,
+    /** «Descanso cumplido» (LV6, F6): capa de interfaz que queda tras acabar el descanso. No se persiste. */
+    val restOverrun: RestOverrun? = null,
     val pendingEditSheetExerciseId: String? = null,
     val voiceTimedSet: VoiceTimedSetState? = null,
     val voiceExerciseQueue: List<String> = emptyList(),

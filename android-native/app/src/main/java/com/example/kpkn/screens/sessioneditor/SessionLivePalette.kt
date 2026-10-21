@@ -190,7 +190,3 @@ fun resolveSessionLivePalette(background: SessionBackground?): SessionLivePalett
     val accent = if (raw.luminance() < 0.28f) lerp(raw, Color.White, 0.45f) else raw
     return palette(accent = accent)
 }
-
-/** @deprecated Prefer [resolveSessionLivePalette]; kept for call-site compatibility. */
-fun sessionCoverAccentFromPalette(background: SessionBackground?): Color =
-    resolveSessionLivePalette(background).accent

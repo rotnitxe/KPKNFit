@@ -25,6 +25,16 @@ object TrainingEnergyEngine {
     /** Elevated metabolism during inter-set rest (kcal/min), scaled by EFC/RPE. */
     private const val REST_KCAL_PER_MIN_BASE = 3.2
 
+    /**
+     * El feedback guarda la calidad técnica en escala 1–10, pero `calculateTechniquePenalty` espera 1–5.
+     * Misma conversión que `technicalQuality10ToPenaltyScale` de la pantalla (que no se puede importar desde
+     * `domain/`): antes se hacía `coerceIn(1, 5)` y cualquier técnica de 5/10 o más contaba como perfecta.
+     */
+    fun technicalQuality10ToPenaltyScale(technicalQuality: Int): Int {
+        val q = technicalQuality.coerceIn(1, 10)
+        return (1 + ((q - 1) * 4) / 9).coerceIn(1, 5)
+    }
+
     private fun resolveDbInfo(
         catalogConfigurationId: String?,
         exerciseDbId: String?,
@@ -384,7 +394,7 @@ object TrainingEnergyEngine {
 
                 val techniqueRecoveryMultiplier = if (postFeedback != null) {
                     AugeFatigueEngine.calculateTechniquePenalty(
-                        technicalQuality = postFeedback.technicalQuality.coerceIn(1, 5),
+                        technicalQuality = technicalQuality10ToPenaltyScale(postFeedback.technicalQuality),
                         effortSignal = exerciseSetScores.map { it.rpe }.average().takeIf { !it.isNaN() } ?: 7.0,
                     )
                 } else {

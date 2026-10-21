@@ -16,10 +16,14 @@ import com.example.kpkn.domain.onboarding.WizChatAnswerSource
 import com.example.kpkn.domain.onboarding.WizChatProgress
 import com.example.kpkn.domain.onboarding.WizChatQuestionId
 import com.example.kpkn.domain.onboarding.WizChatStage
+import com.example.kpkn.domain.onboarding.MuscleSymbol
+import com.example.kpkn.domain.onboarding.MuscleSymbols
+import com.example.kpkn.domain.training.orderPointsFromBag
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertSame
 import org.junit.Assert.assertTrue
@@ -760,6 +764,43 @@ class SetupDraftCompatibilityTest {
     fun aDraftWithoutTheRetiredTrapeziusIsNotTouched() {
         val clean = withPriorities(setOf("Pectorales"), mapOf("Pectorales" to 1))
         assertSame(clean, SetupDraftCompatibility.migrateRetiredTrapezius(clean))
+    }
+
+    // ── «Brazos» une bíceps y tríceps ──────────────────────────────────────────
+
+    @Test
+    fun aDraftWithOnlyBicepsReadsAsBrazosAndSavesBothPoints() {
+        val old = withPriorities(setOf("Bíceps"), mapOf("Bíceps" to 1))
+        // Se guarda como JSON y vuelve a abrirse: el enum no viaja, solo los textos canónicos.
+        val json = Json { ignoreUnknownKeys = true; encodeDefaults = true }
+        val reopened = json.decodeFromString<SetupWizardDraft>(json.encodeToString(SetupWizardDraft.serializer(), old))
+        val repaired = SetupDraftCompatibility.repair(reopened)
+        assertEquals(setOf(MuscleSymbol.ARMS), MuscleSymbols.symbolsOf(repaired.trainingOptions.orderPriorities))
+        assertEquals(mapOf("Bíceps" to 1, "Tríceps" to 1), repaired.trainingOptions.orderPriorities)
+        // Al guardar la selección, la bolsa lleva los dos puntos de Brazos.
+        val saved = repaired.withMuscles(MuscleSymbols.symbolsOf(repaired.trainingOptions.orderPriorities))
+        assertEquals(mapOf("Bíceps" to 1, "Tríceps" to 1), saved.trainingOptions.orderPriorities)
+        assertEquals(setOf("Bíceps", "Tríceps"), saved.priorityMuscles)
+        // Idempotente: abrirlo otra vez no cambia nada.
+        assertEquals(repaired.trainingOptions.orderPriorities, SetupDraftCompatibility.repair(repaired).trainingOptions.orderPriorities)
+    }
+
+    @Test
+    fun aDraftWithOnlyTricepsOrFiveSymbolsWithBrazosReadsOnceAndStaysInTheCap() {
+        val tri = SetupDraftCompatibility.repair(withPriorities(setOf("Tríceps"), mapOf("Tríceps" to 1)))
+        assertEquals(mapOf("Tríceps" to 1, "Bíceps" to 1), tri.trainingOptions.orderPriorities)
+        // Cinco símbolos con Brazos dentro: seis puntos, válidos para el motor, y Brazos cuenta una sola vez.
+        val full = withPriorities(
+            setOf("Bíceps", "Tríceps", "Pectorales", "Dorsales", "Deltoides", "Abdomen"),
+            mapOf("Bíceps" to 1, "Tríceps" to 1, "Pectorales" to 1, "Dorsales" to 1, "Deltoides" to 1, "Abdomen" to 1),
+        )
+        val merged = SetupDraftCompatibility.repair(full)
+        assertEquals(
+            setOf(MuscleSymbol.ARMS, MuscleSymbol.CHEST, MuscleSymbol.BACK, MuscleSymbol.SHOULDERS, MuscleSymbol.ABS),
+            MuscleSymbols.symbolsOf(merged.trainingOptions.orderPriorities),
+        )
+        assertEquals(6, merged.trainingOptions.orderPriorities.values.sum())
+        assertNotNull(orderPointsFromBag(merged.trainingOptions.orderPriorities))
     }
 
     @Test

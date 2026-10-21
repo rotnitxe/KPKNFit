@@ -5,8 +5,10 @@ import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.lifecycle.ViewModelStore
 import androidx.test.core.app.ApplicationProvider
 import com.example.kpkn.domain.training.importer.ImportSheet
+import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
@@ -29,6 +31,18 @@ class ImportKnownProgramNoticeTest {
 
     private val app: Application = ApplicationProvider.getApplicationContext()
 
+    /** Cada VM va al store de la prueba: [tearDown] lo limpia y cancela su viewModelScope antes de que acabe la prueba. */
+    private val viewModelStore = ViewModelStore()
+    private var nextViewModelKey = 0
+
+    private fun newViewModel(): ImportProgramViewModel =
+        ImportProgramViewModel(app).also { vm -> viewModelStore.put("import-${nextViewModelKey++}", vm) }
+
+    @After
+    fun tearDown() {
+        viewModelStore.clear()
+    }
+
     /** Una hoja con una sentadilla: lo que decide el aviso es el título del archivo. */
     private fun oneSheet(): List<ImportSheet> = listOf(
         ImportSheet("Semana 1", listOf(listOf("Ejercicio", "Series", "Reps"), listOf("Sentadilla", "4", "6"))),
@@ -47,7 +61,7 @@ class ImportKnownProgramNoticeTest {
 
     @Test
     fun aRecognizedProgramShowsItsNoticeAndUsingItGivesItsId() {
-        val vm = ImportProgramViewModel(app)
+        val vm = newViewModel()
         vm.importFromSheets(oneSheet(), "GZCLP")
         settle(vm)
         val used = mutableListOf<String>()
@@ -63,7 +77,7 @@ class ImportKnownProgramNoticeTest {
 
     @Test
     fun seguirConMiArchivoRemovesTheNoticeAndKeepsTheFile() {
-        val vm = ImportProgramViewModel(app)
+        val vm = newViewModel()
         vm.importFromSheets(oneSheet(), "GZCLP")
         settle(vm)
         rule.setContent {
@@ -79,7 +93,7 @@ class ImportKnownProgramNoticeTest {
 
     @Test
     fun aFileThatIsNotAKnownProgramShowsNoNotice() {
-        val vm = ImportProgramViewModel(app)
+        val vm = newViewModel()
         vm.importFromSheets(oneSheet(), "Mi rutina")
         settle(vm)
         rule.setContent {

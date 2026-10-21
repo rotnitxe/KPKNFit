@@ -4,12 +4,14 @@
       "public": {
         "configurations": {
           "lateral_raise_super_rom__cable": {
-            "description": "Con polea, el arco lateral se alarga por debajo del punto de partida con la polea cruzada por detrás. Con la polea, la tensión sobre el deltoide se mantiene viva de principio a fin.",
+            "description": "Un cable bajo cruza por delante del cuerpo hacia la mano alejada de la columna. El brazo describe el arco lateral hasta una Y alta y recibe resistencia unilateral mientras los pies estabilizan el cuerpo de pie.",
             "executionCues": [
-              "Polea con recorrido completo: subes más allá del hombro, por encima de la cabeza. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
+              "Eleva el brazo hacia fuera y ligeramente hacia delante hasta una Y alta por encima de la línea del hombro, con el codo suavemente flexionado.",
+              "Desciende controladamente; evita balancear el tronco o convertir el movimiento en un press."
             ],
             "setupCues": [
-              "Preparación: Polea con recorrido completo: subes más allá del hombro, por encima de la cabeza."
+              "Coloca la polea en posición baja y sitúate de lado, con el brazo de trabajo alejado de la columna.",
+              "Sujeta el asa con ese brazo dejando que el cable cruce por delante del cuerpo; estabiliza los pies y el tronco."
             ]
           },
           "lateral_raise_super_rom__dumbbells": {
@@ -22,16 +24,18 @@
             ]
           },
           "lateral_raise_super_rom__machine": {
-            "description": "Con máquina, el arco lateral se alarga por debajo del punto de partida con la polea cruzada por detrás. El deltoide trabaja en la máquina, con el recorrido guiado y sin distracciones.",
+            "description": "Los rodillos móviles reciben la parte superior de ambos brazos mientras la espalda descansa en el respaldo. El arco bilateral continúa por encima de los hombros hasta formar una Y alta, dentro del recorrido disponible del aparato.",
             "executionCues": [
-              "Máquina con recorrido completo: el guiado acompaña el arco hasta arriba. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
+              "Eleva ambos brazos lateralmente hasta una Y alta por encima de la línea de hombros, dentro del recorrido de la máquina y sin dolor.",
+              "Desciende controladamente sin despegar el tronco del respaldo."
             ],
             "setupCues": [
-              "Preparación: Máquina con recorrido completo: el guiado acompaña el arco hasta arriba."
+              "Ajusta el asiento para que el eje de elevación quede próximo a los hombros y apoya la espalda en el respaldo.",
+              "Coloca la parte superior de los brazos en contacto con los rodillos de la máquina; deja las manos libres y los pulgares hacia arriba."
             ]
           }
         },
-        "description": "Las Elevaciones Laterales Super ROM alargan el recorrido por debajo del punto de partida: la polea cruza por detrás y el deltoide medio trabaja desde un estiramiento que la versión normal no toca. Se ejecutan con la polea baja cruzada, subiendo en el arco lateral completo hasta la horizontal. El rango extra se traduce en más tiempo bajo tensión por repetición. La evolución del clásico para quien ya exprimió el gesto estándar."
+        "description": "Las elevaciones laterales Super ROM llevan el brazo en un arco lateral hasta una Y alta, por encima de la línea de los hombros. La variante de polea utiliza un cable bajo y la de máquina unos apoyos móviles sobre los brazos. Se mantiene el tronco estable y se elige un recorrido que el montaje permita controlar. El deltoides participa en la elevación de los brazos."
       },
       "status": "LEGACY"
     },

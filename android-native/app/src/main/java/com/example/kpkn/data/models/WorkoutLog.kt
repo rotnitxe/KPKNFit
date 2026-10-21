@@ -181,6 +181,8 @@ data class CompletedSet(
     val notes: String? = null,
     /** Seconds per completed GPS kilometre; empty keeps old strength/cardio logs valid. */
     val kmSplitPaces: List<Int> = emptyList(),
+    /** Original zero-based plan ordinal, independent of UUID and compacted history order. Null in legacy logs. */
+    val setIndex: Int? = null,
 )
 
 fun CompletedSet.effectiveRepEquivalent(): Double =

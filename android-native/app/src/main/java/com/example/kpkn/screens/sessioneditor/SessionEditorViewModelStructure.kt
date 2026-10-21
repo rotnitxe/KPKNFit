@@ -4,8 +4,11 @@ import com.example.kpkn.data.models.*
 import com.example.kpkn.domain.exercises.normalizedIdentityFields
 import com.example.kpkn.domain.exercises.replacedWithCatalogExercise
 import com.example.kpkn.domain.exercises.resolvedCanonicalExerciseId
+import androidx.lifecycle.viewModelScope
 import com.example.kpkn.domain.workout.SupersetRules
 import java.util.UUID
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 fun SessionEditorViewModel.openSupersetManager(partId: String?, supersetId: String) {
     updateUi {
@@ -49,10 +52,6 @@ fun SessionEditorViewModel.updatePartName(partId: String, name: String) = update
 
 fun SessionEditorViewModel.updatePartColor(partId: String, color: String) = updateSession { session ->
     session.copy(parts = session.parts.map { if (it.id == partId) it.copy(color = color) else it })
-}
-
-fun SessionEditorViewModel.movePart(partId: String, direction: Int) = updateSession { session ->
-    session.copy(parts = moveItem(session.parts, partId, direction) { it.id })
 }
 
 fun SessionEditorViewModel.movePartToIndex(partId: String, targetIndex: Int) = updateSession { session ->
@@ -109,11 +108,6 @@ fun SessionEditorViewModel.setSearchQuery(query: String) { updateUi { it.copy(se
 fun SessionEditorViewModel.toggleExerciseSelection(exerciseId: String) {
     val current = currentUiState.selectedExercisesIds
     updateUi { it.copy(selectedExercisesIds = if (exerciseId in current) current - exerciseId else current + exerciseId) }
-    persistDraft()
-}
-
-fun SessionEditorViewModel.setExerciseSelection(ids: Set<String>) {
-    updateUi { it.copy(selectedExercisesIds = ids) }
     persistDraft()
 }
 
@@ -180,9 +174,12 @@ fun SessionEditorViewModel.getRuleDefaultsForPart(partId: String?): SessionEdito
 
 fun SessionEditorViewModel.addExerciseToPart(partId: String?, info: ExerciseMuscleInfo): String {
     val currentSession = currentUiState.activeVariantSession
-    val newExercise = createExerciseFromInfo(info, repository.history.value).let { base ->
-        if (currentSession?.isMeetDay == true) base.asCompetitionMovement() else base
-    }.withSessionEditorDefaults(getRuleDefaultsForPart(partId), info)
+    val newExercise = catalogExerciseForSession(
+        info = info,
+        history = repository.history.value,
+        defaults = getRuleDefaultsForPart(partId),
+        isMeetDay = currentSession?.isMeetDay == true,
+    )
     updateSession { session ->
         if (partId == null) {
             session.copy(exercises = session.exercises + newExercise)
@@ -197,9 +194,12 @@ fun SessionEditorViewModel.addExerciseToPart(partId: String?, info: ExerciseMusc
 fun SessionEditorViewModel.addExercisesToPart(partId: String?, infos: List<ExerciseMuscleInfo>): List<String> {
     val currentSession = currentUiState.activeVariantSession
     val newExercises = infos.map { info ->
-        createExerciseFromInfo(info, repository.history.value).let { base ->
-            if (currentSession?.isMeetDay == true) base.asCompetitionMovement() else base
-        }.withSessionEditorDefaults(getRuleDefaultsForPart(partId), info)
+        catalogExerciseForSession(
+            info = info,
+            history = repository.history.value,
+            defaults = getRuleDefaultsForPart(partId),
+            isMeetDay = currentSession?.isMeetDay == true,
+        )
     }
     updateSession { session ->
         if (partId == null) {
@@ -230,9 +230,12 @@ fun SessionEditorViewModel.addExercisesAsSupersetToPart(
     if (partId != null && currentSession.parts.none { it.id == partId }) return emptyList()
     val rounds = config.rounds.coerceAtLeast(1)
     val newExercises = infos.map { info ->
-        val base = createExerciseFromInfo(info, repository.history.value).let { exercise ->
-            if (currentSession.isMeetDay) exercise.asCompetitionMovement() else exercise
-        }.withSessionEditorDefaults(getRuleDefaultsForPart(partId), info)
+        val base = catalogExerciseForSession(
+            info = info,
+            history = repository.history.value,
+            defaults = getRuleDefaultsForPart(partId),
+            isMeetDay = currentSession.isMeetDay,
+        )
         base.copy(
             sets = List(rounds) { index ->
                 val existing = base.sets.getOrNull(index)
@@ -277,44 +280,44 @@ fun SessionEditorViewModel.addExercisesAsSupersetToPart(
     return newExercises.map { it.id }
 }
 
-fun SessionEditorViewModel.addBlankExerciseToPart(partId: String?): String {
-    val currentSession = currentUiState.activeVariantSession
-    val newExercise = createBlankExercise().let { base ->
-        if (currentSession?.isMeetDay == true) base.asCompetitionMovement() else base
-    }.withSessionEditorDefaults(getRuleDefaultsForPart(partId))
-    updateSession { session ->
-        if (partId == null) {
-            session.copy(exercises = session.exercises + newExercise)
-        } else {
-            session.copy(parts = session.parts.map { if (it.id == partId) it.copy(exercises = it.exercises + newExercise) else it })
-        }
-    }
-    return newExercise.id
-}
-
-fun SessionEditorViewModel.addCompetitionMovement(name: String): String {
-    val movementName = name.ifBlank { "Movimiento competición" }
-    val newExercise = createBlankExercise().copy(name = movementName).asCompetitionMovement()
-    updateSession { session ->
-        if (!session.isMeetDay) return@updateSession session
-        session.copy(exercises = session.exercises + newExercise)
-    }
-    return newExercise.id
-}
-
 fun SessionEditorViewModel.replaceExerciseInPart(partId: String?, exerciseId: String, info: ExerciseMuscleInfo) {
     updateExercise(partId, exerciseId) { current ->
         val cached = if (info.catalogRevision == null) CatalogSelectionDraftBridge.consume(info.id) else null
-        current.replacedWithCatalogExercise(
-            info = info,
-            selectedAspects = cached?.selectedAspects,
-            variantName = cached?.variantName,
-            variantGroupId = cached?.variantGroupId,
-            variantGroupName = cached?.variantGroupName,
-        ).withSharedPerformanceFromHistory(repository.history.value)
+        current.replacedWithCatalogInfo(info = info, cached = cached, history = repository.history.value)
     }
     closeSheet()
 }
+
+/**
+ * Reemplazo desde el catálogo. SE10: el ejercicio reemplazado lleva la identidad v2 de la configuración elegida y un
+ * occurrenceId: el que ya tenía o, si la sesión venía sin él (antes del campo), uno nuevo. Sin él el cortafuegos bloquea.
+ */
+internal fun Exercise.replacedWithCatalogInfo(
+    info: ExerciseMuscleInfo,
+    cached: CatalogSelectionDraftBridge.VariantSelection?,
+    history: List<WorkoutLog>,
+): Exercise {
+    val replaced = replacedWithCatalogExercise(
+        info = info,
+        selectedAspects = cached?.selectedAspects,
+        variantName = cached?.variantName,
+        variantGroupId = cached?.variantGroupId,
+        variantGroupName = cached?.variantGroupName,
+    )
+    return replaced
+        .copy(occurrenceId = replaced.occurrenceId?.takeIf { it.isNotBlank() } ?: UUID.randomUUID().toString())
+        .withSharedPerformanceFromHistory(history)
+}
+
+/** Ejercicio de catálogo listo para la sesión (SE10: helper extraído de addExerciseToPart, addExercisesToPart y la superserie). */
+internal fun catalogExerciseForSession(
+    info: ExerciseMuscleInfo,
+    history: List<WorkoutLog>,
+    defaults: SessionEditorRuleDefaults,
+    isMeetDay: Boolean,
+): Exercise = createExerciseFromInfo(info, history)
+    .let { base -> if (isMeetDay) base.asCompetitionMovement() else base }
+    .withSessionEditorDefaults(defaults, info)
 
 fun SessionEditorViewModel.removeExercise(partId: String?, exerciseId: String) = updateSession { session ->
     val stripped = if (partId == null) {
@@ -548,10 +551,16 @@ fun SessionEditorViewModel.removeMobilitySeries(partId: String?, exerciseId: Str
     }
 }
 
+/**
+ * «Eliminar» de las acciones rápidas (ER1f): sin diálogo, como deslizar un ejercicio en la lista. Es un borrado blando con «Deshacer»
+ * (`requestExerciseRemoval`); si el ejercicio es miembro de una superserie, sale de ella.
+ */
 fun SessionEditorViewModel.triggerQuickActionDelete() {
     val state = currentUiState
     val exerciseId = state.quickActionsExerciseId ?: return
-    removeExercise(state.quickActionsPartId, exerciseId)
+    val supersetGroupId = state.activeVariantSession?.allExercises()
+        ?.firstOrNull { it.id == exerciseId }
+        ?.supersetGroupRefOrLegacyId()
     updateUi {
         it.copy(
             sheet = SessionEditorSheet.NONE,
@@ -559,40 +568,7 @@ fun SessionEditorViewModel.triggerQuickActionDelete() {
             quickActionsExerciseId = null,
         )
     }
-}
-
-fun SessionEditorViewModel.triggerQuickActionLinkSuperset() {
-    val state = currentUiState
-    val exerciseId = state.quickActionsExerciseId ?: return
-    val sourceExercises = state.quickActionsPartId?.let { partId ->
-        state.activeVariantSession?.parts?.firstOrNull { it.id == partId }?.exercises
-    } ?: state.activeVariantSession?.exercises
-    val currentIndex = sourceExercises?.indexOfFirst { it.id == exerciseId } ?: -1
-    val nextExerciseId = sourceExercises?.getOrNull(currentIndex + 1)?.id
-    if (nextExerciseId != null) {
-        openSupersetCreator(state.quickActionsPartId, listOf(exerciseId, nextExerciseId))
-        return
-    }
-    updateUi {
-        it.copy(
-            sheet = SessionEditorSheet.NONE,
-            quickActionsPartId = null,
-            quickActionsExerciseId = null,
-        )
-    }
-}
-
-fun SessionEditorViewModel.triggerQuickActionUnlinkSuperset() {
-    val state = currentUiState
-    val exerciseId = state.quickActionsExerciseId ?: return
-    unlinkExerciseFromSuperset(state.quickActionsPartId, exerciseId)
-    updateUi {
-        it.copy(
-            sheet = SessionEditorSheet.NONE,
-            quickActionsPartId = null,
-            quickActionsExerciseId = null,
-        )
-    }
+    requestExerciseRemoval(state.quickActionsPartId, exerciseId, supersetGroupId)
 }
 
 fun SessionEditorViewModel.updateWarmupSets(partId: String?, exerciseId: String, sets: List<WarmupSetDefinition>) = updateExercise(partId, exerciseId) { it.copy(warmupSets = sets) }
@@ -601,12 +577,13 @@ fun SessionEditorViewModel.applyRuleDefaultsToSession(partId: String? = null): A
     val state = currentUiState
     val target = state.activeVariantSession ?: return ApplyRulesOutcome.NoChanges
     val defaults = getRuleDefaultsForPart(partId)
+    // ER2c: como `updateSession`, un cambio de %RM que haga la regla recalcula su carga con `rmSetLoadKg` (SessionEditorRmLoads.kt).
     val transformedTarget = SessionEditorRulesEngine.applyDefaults(
         session = target,
         defaults = defaults,
         partId = partId,
         exerciseIndex = exerciseIndex,
-    )
+    ).withExplicitRmLoads(target)
     val outcome = SessionEditorRulesEngine.evaluateApply(
         session = target,
         defaults = defaults,
@@ -769,5 +746,51 @@ fun SessionEditorViewModel.applyGlobalIntensityAdjustment(
             targetMuscles = targetMuscles,
             exerciseIndex = exerciseIndex,
         )
+    }
+}
+
+/** Ventana para deshacer el borrado de un ejercicio desde la lista (ER1b): el ejercicio sigue en la sesión mientras tanto. */
+internal const val EXERCISE_REMOVAL_UNDO_WINDOW_MS = 5_000L
+
+/**
+ * Borrado de un ejercicio pendiente de confirmar (ER1b). Con [supersetGroupId] sale de su superserie; si no, sale de la sesión o de su grupo.
+ * Lo guarda [SessionEditorUiState.pendingExerciseRemoval] y lo lee la lista para poner el aviso «Deshacer» en su sitio.
+ */
+data class PendingExerciseRemoval(
+    val token: Long,
+    val partId: String?,
+    val exerciseId: String,
+    val supersetGroupId: String?,
+)
+
+/**
+ * Deslizar un ejercicio para quitarlo (ER1b): el ejercicio se queda en la sesión 5 s, con «Ejercicio eliminado» y «Deshacer» en su sitio.
+ * Si nadie lo deshace, se quita de verdad; deshacer lo deja donde estaba, sin tocar el orden ni las superseries.
+ */
+fun SessionEditorViewModel.requestExerciseRemoval(partId: String?, exerciseId: String, supersetGroupId: String? = null) {
+    // Si había otro borrado pendiente, se confirma ya: solo hay un aviso a la vez.
+    commitPendingExerciseRemoval()
+    val token = System.nanoTime()
+    updateUi { it.copy(pendingExerciseRemoval = PendingExerciseRemoval(token, partId, exerciseId, supersetGroupId)) }
+    viewModelScope.launch {
+        delay(EXERCISE_REMOVAL_UNDO_WINDOW_MS)
+        if (uiState.value.pendingExerciseRemoval?.token == token) commitPendingExerciseRemoval()
+    }
+}
+
+/** Deshace el borrado pendiente: el ejercicio se queda donde estaba. */
+fun SessionEditorViewModel.undoExerciseRemoval() {
+    updateUi { it.copy(pendingExerciseRemoval = null) }
+}
+
+/** Quita de verdad el ejercicio cuyo borrado está pendiente, si lo hay. */
+fun SessionEditorViewModel.commitPendingExerciseRemoval() {
+    val pending = uiState.value.pendingExerciseRemoval ?: return
+    updateUi { it.copy(pendingExerciseRemoval = null) }
+    val groupId = pending.supersetGroupId
+    if (groupId != null) {
+        removeExerciseFromSupersetGroup(groupId, pending.partId, pending.exerciseId)
+    } else {
+        removeExercise(pending.partId, pending.exerciseId)
     }
 }

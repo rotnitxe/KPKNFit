@@ -124,7 +124,8 @@ internal object LiftMarkDefaults {
  *
  * [repsByLift] son las repeticiones de una serie de trabajo («kg × reps», de 2 a 10) por levantamiento; ausentes = 1RM.
  * [onReps] recibe las repeticiones elegidas, o `null` al volver a «1RM». [variantLabels] pone la variante en el nombre de la
- * fila («Sentadilla · Frontal»). Quien no los pasa ve la regla de siempre.
+ * fila («Sentadilla · Frontal»). Quien no los pasa ve la regla de siempre. [showUnitSwitch] en `false` oculta el conmutador «kg · lb»
+ * (las hojas de máximos usan la unidad de Ajustes).
  *
  * Declarar es mover: la posición de arranque de una regla no es una respuesta; el primer contacto (arrastrar o tocar)
  * declara el valor. Marcas de prueba: `setup-mark-<NAME>` (fila), `setup-mark-<NAME>-ruler`, `setup-mark-<NAME>-unknown`,
@@ -136,11 +137,12 @@ fun LiftMarksPicker(
     valuesKg: Map<LiftMark, Double>,
     unit: String,
     onValueKg: (LiftMark, Double?) -> Unit,
-    onUnit: (String) -> Unit,
+    onUnit: (String) -> Unit = {},
     modifier: Modifier = Modifier,
     repsByLift: Map<LiftMark, Int> = emptyMap(),
     onReps: (LiftMark, Int?) -> Unit = { _, _ -> },
     variantLabels: Map<LiftMark, String> = emptyMap(),
+    showUnitSwitch: Boolean = true,
 ) {
     val u = MarksMath.normalizeUnit(unit)
     val reduced = wizardReducedMotion()
@@ -149,8 +151,10 @@ fun LiftMarksPicker(
     val clock = rememberFigClock(active = !reduced && expanded != null)
 
     Column(modifier = modifier.fillMaxWidth()) {
-        Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.CenterEnd) {
-            UnitSwitch(unit = u, onUnit = onUnit)
+        if (showUnitSwitch) {
+            Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.CenterEnd) {
+                UnitSwitch(unit = u, onUnit = onUnit)
+            }
         }
         // Las filas se componen repartidas en cuadros (la primera, la desplegada, de golpe): ver `rememberProgressiveCount`.
         val shown = rememberProgressiveCount(total = lifts.size, first = 1)
@@ -174,12 +178,6 @@ fun LiftMarksPicker(
                 Hairline()
             }
         }
-        Text(
-            text = "Con una serie de 2 a 10 repeticiones estimamos tu 1RM.",
-            style = WizardTypography.note,
-            color = WizardColors.textFaint,
-            modifier = Modifier.padding(top = 12.dp),
-        )
     }
 }
 
@@ -500,6 +498,14 @@ private fun RepsBlock(
             color = WizardColors.textMuted,
             textAlign = TextAlign.Center,
             modifier = Modifier.fillMaxWidth().padding(top = 8.dp).testTag("${markTag(lift)}-estimate"),
+        )
+        // La nota de la regla solo sale en «Mi mejor serie» (P7): en «1RM» no hay repeticiones que estimar.
+        Text(
+            text = "Con una serie de 2 a 10 repeticiones estimamos tu 1RM.",
+            style = WizardTypography.note,
+            color = WizardColors.textFaint,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.fillMaxWidth().padding(top = 6.dp),
         )
     }
 }

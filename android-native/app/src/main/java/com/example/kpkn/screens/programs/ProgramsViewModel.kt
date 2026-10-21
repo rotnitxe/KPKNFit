@@ -354,17 +354,6 @@ class ProgramsViewModel(application: Application) : AndroidViewModel(application
         repository.resumeProgram()
     }
 
-    /**
-     * Navigate to program detail screen.
-     * Invokes the callback provided by the UI layer (composable).
-     * Used for screen navigation (Navigation Compose NavController handled by UI).
-     *
-     * @param programId ID of program to view.
-     * @param onNavigate Callback: (programId: String) -> Unit. Called by composable to trigger navigation.
-     */
-    fun navigateToProgram(programId: String, onNavigate: (String) -> Unit) {
-        onNavigate(programId)
-    }
 }
 
 // ─── Data Classes ──────────────────────────────────────────────────────────

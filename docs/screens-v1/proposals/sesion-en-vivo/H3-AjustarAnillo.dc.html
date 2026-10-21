@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Ajustar un anillo</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Syne:wght@600;700;800&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#F2EEE6}a:hover{color:#ffffff}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: #000000; color: #F2EEE6; font-family: Inter, sans-serif; position: relative; overflow: hidden;">
+  <div style="position: absolute; inset: 0; background: rgba(0,0,0,0.5);"></div>
+  <div style="position: absolute; left: 0; right: 0; bottom: 0; background: #0E0E0E; border-top-left-radius: 28px; border-top-right-radius: 28px; border-top: 1px solid rgba(242,238,230,0.08); padding: 10px 20px 112px 20px; display: flex; flex-direction: column; align-items: center; gap: 14px;">
+    <div style="width: 36px; height: 4px; border-radius: 2px; background: rgba(242,238,230,0.22);"></div>
+    <div style="font-family: Syne, sans-serif; font-weight: 700; font-size: 26px; line-height: 32px; text-align: center; margin-top: 6px;">¿Cómo llegas a entrenar hoy?</div>
+
+    <svg width="300" height="230" viewBox="0 0 300 230" role="img" aria-label="Energía seleccionada en 72 %">
+      <defs><filter id="g3" x="-20%" y="-40%" width="140%" height="180%"><feGaussianBlur stdDeviation="6"></feGaussianBlur></filter></defs>
+      <g opacity="0.3">
+        <ellipse cx="150" cy="178" rx="138" ry="40" fill="none" stroke="#151515" stroke-width="18"></ellipse>
+        <ellipse cx="150" cy="178" rx="138" ry="40" fill="none" stroke="#8FB2FF" stroke-width="18" stroke-dasharray="470 560" stroke-linecap="round"></ellipse>
+        <ellipse cx="150" cy="112" rx="104" ry="30" fill="none" stroke="#151515" stroke-width="16"></ellipse>
+        <ellipse cx="150" cy="112" rx="104" ry="30" fill="none" stroke="#F49A6E" stroke-width="16" stroke-dasharray="395 460" stroke-linecap="round"></ellipse>
+      </g>
+      <ellipse cx="150" cy="54" rx="70" ry="21" fill="none" stroke="#151515" stroke-width="16"></ellipse>
+      <ellipse cx="150" cy="54" rx="70" ry="21" fill="none" stroke="#F7CF73" stroke-width="16" stroke-dasharray="218 320" stroke-linecap="round" opacity="0.35" filter="url(#g3)"></ellipse>
+      <ellipse cx="150" cy="54" rx="70" ry="21" fill="none" stroke="#F7CF73" stroke-width="16" stroke-dasharray="218 320" stroke-linecap="round"></ellipse>
+    </svg>
+
+    <div style="width: 100%; border-radius: 22px; background: #161616; padding: 14px; display: flex; flex-direction: column; gap: 12px; box-sizing: border-box;">
+      <div style="display: flex; align-items: baseline; justify-content: space-between;">
+        <div style="font-size: 12px; font-weight: 600; letter-spacing: 1.6px; color: #F7CF73;">ENERGÍA</div>
+        <div><span style="font-family: Syne, sans-serif; font-weight: 700; font-size: 26px;">72 %</span> <span style="font-size: 13px; color: rgba(242,238,230,0.5);">antes 88 %</span></div>
+      </div>
+      <div style="position: relative; height: 34px;">
+        <div style="position: absolute; left: 0; right: 0; top: 13px; height: 8px; border-radius: 4px; background: #262626;"></div>
+        <div style="position: absolute; left: 0; width: 72%; top: 13px; height: 8px; border-radius: 4px; background: linear-gradient(90deg, #8A6E2E, #F7CF73);"></div>
+        <div style="position: absolute; left: calc(88% - 2px); top: 9px; width: 4px; height: 16px; border-radius: 2px; background: rgba(242,238,230,0.35);"></div>
+        <div style="position: absolute; left: calc(72% - 15px); top: 2px; width: 30px; height: 30px; border-radius: 15px; background: #F2EEE6; box-shadow: 0 0 0 6px rgba(247,207,115,0.18);"></div>
+      </div>
+      <div style="display: flex; justify-content: space-between;">
+        <button style="height: 32px; padding: 0 12px; border-radius: 16px; border: 1px solid rgba(242,238,230,0.12); background: transparent; color: #F2EEE6; font-family: Inter, sans-serif; font-size: 12px; font-weight: 600;">Restablecer</button>
+        <button style="height: 32px; padding: 0 14px; border-radius: 16px; border: none; background: #F2EEE6; color: #0B0B0B; font-family: Inter, sans-serif; font-size: 12px; font-weight: 600;">Listo</button>
+      </div>
+    </div>
+  </div>
+  <button aria-label="Empezar la sesión" style="position: absolute; left: 163px; bottom: 30px; width: 64px; height: 64px; border-radius: 32px; border: none; background: #F2EEE6; color: #0B0B0B; display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 22px rgba(0,0,0,0.6);"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg></button>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

@@ -75,8 +75,8 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
 /**
- * SOLO DEPURACIÓN (no se integra): abre el asistente de alta REAL (`SetupWizardScreen`, modo solo entreno) con un borrador de
- * prueba ya colocado en el paso que se pida, para revisar el bloque de Entreno sin recorrer los datos básicos.
+ * SOLO DEPURACIÓN (no se integra): abre el asistente de alta REAL (`SetupWizardScreen`: solo entreno o, con `scope full`, el alta
+ * completa) con un borrador de prueba ya colocado en el paso que se pida, para revisar ese paso sin recorrer los anteriores.
  *
  * El borrador se construye caminando la ruta de verdad (ver `buildHarnessDraft`): los pasos anteriores quedan confirmados y
  * plegados en su fila-resumen, el paso pedido queda activo y el siguiente asoma. Todo lo demás es el asistente de siempre:
@@ -87,6 +87,23 @@ import kotlinx.serialization.json.Json
  *  - `start` (nombre de `SetupStepId`, por defecto `EXPERIENCE`): el paso activo. Los pasos anteriores se dan por contestados
  *    con la persona elegida; los posteriores quedan sin tocar.
  *  - `persona` (`gym` por defecto, `home`, `park`, `multi`, `all`): con qué datos se contestaron los pasos anteriores.
+ *  - `scope` (`training` por defecto, o `full`): `training` es el alta de solo entreno de siempre. `full` es el alta COMPLETA
+ *    (`SetupWizardMode.FULL`, igual que el alta real): los datos básicos, Entreno, Nutrición (automática, con el peso objetivo y los
+ *    pesajes) y RINGS se contestan con la persona elegida, y `start` puede ser cualquier paso de Nutrición o de RINGS. Con `full`,
+ *    `until` sigue siendo `MILESTONE_TRAINING` por defecto: para el recorrido hasta la revisión, pásalo como `until REVIEW_ACTIVATE`.
+ *    Componente: `com.example.kpkn.dbg/com.example.kpkn.debug.WizardHarnessActivity`. Un `am start` por pantalla (todos con `--ez pro true`):
+ *      - peso objetivo: `--es scope full --es start NUTRITION_TARGET --es persona gym --ez pro true`;
+ *      - pesajes: `--es scope full --es start NUTRITION_WEIGH_INS --es persona gym --ez pro true`;
+ *      - intro de RINGS (overlay): `--es scope full --es start RINGS_INTRO --es persona gym --ez pro true`;
+ *      - días: `--es scope full --es start RINGS_SESSION_DAYS --es persona gym --ez pro true`;
+ *      - ejercicios principales: `--es scope full --es start RINGS_MAIN_LIFTS --es persona gym --ez pro true`;
+ *      - series por grupo: `--es scope full --es start RINGS_GROUP_SETS --es persona gym --ez pro true`;
+ *      - intensidad (la llama): `--es scope full --es start RINGS_INTENSITY --es persona gym --ez pro true`;
+ *      - sensaciones: `--es scope full --es start RINGS_FEELINGS --es persona gym --ez pro true`;
+ *      - resultado con los músculos a mano: `--es scope full --es start RINGS_RESULT --es persona gym --ez pro true`;
+ *      - revisión y «Activar»: `--es scope full --es start REVIEW_ACTIVATE --es persona gym --ez pro true`;
+ *      - activación para sembrar Home: `--es scope full --es persona qa --ei autonext 600 --es until REVIEW_ACTIVATE --ei activate 1500 --ez pro true`,
+ *        y luego `DemoSeedActivity`.
  *  - `pro` (`--ez pro true`): activa Pro solo en depuración, en memoria (`BuildEntitlementOverride`), antes de montar el asistente.
  *  - `answers` (`clave=valor/clave=valor`, sin espacios ni `;`): datos del paso activo ya elegidos, sin confirmarlo. Claves: `places=GYM,HOME`,
  *    `material=BARBELL,RACK` o `material=+RINGS,-BARBELL`, `goal=POWERLIFTING`, `fresh=4`, `days=1,3,5`, `startday=4`,
@@ -127,8 +144,8 @@ import kotlinx.serialization.json.Json
  *    min; (b) casa con mancuernas y banco, Culturismo, 3 días × 75 min con dos músculos; (c) espacios públicos, Calistenia con pocas
  *    dominadas, 5 días × 45 min; (d) gimnasio y casa, Powerlifting con marcas en kg, 3 días; (e) solo peso corporal, Funcional y
  *    saludable, 7 días × 180 min; (f) Halterofilia en gimnasio, 4 días × 90 min.
- *  - Hasta ACTIVAR: con `autonext` y `until REVIEW_ACTIVATE` el recorrido llega a la revisión final (el último paso del alta de solo
- *    entreno) y se detiene con el botón «Activar y entrar a KPKN» a la vista; ese botón es el de siempre (guarda en Room y
+ *  - Hasta ACTIVAR: con `autonext` y `until REVIEW_ACTIVATE` el recorrido llega a la revisión final (el último paso del alta, con
+ *    `scope full` o de solo entreno) y se detiene con el botón «Activar y entrar a KPKN» a la vista; ese botón es el de siempre (guarda en Room y
  *    publica en el repositorio) y, al activar, el arnés enseña el RESUMEN de lo que quedó. `activate` (milisegundos, 0 = apagado)
  *    lo pulsa solo (`commit()`, la misma función que el botón) tras esa espera, para recorridos sin dedo.
  *  - `summary` (`names`, `only` o `only,names`): el resumen de la activación (nombre, días, minutos, lugar y número de ejercicios de
@@ -195,6 +212,8 @@ class WizardHarnessActivity : ComponentActivity() {
 private class HarnessConfig(
     val start: SetupStepId,
     val persona: HarnessPersona,
+    /** Alcance del borrador: solo entreno (por defecto) o el alta completa (`full`). */
+    val scope: HarnessScope,
     val answers: String,
     val widthDp: Float,
     val fontScale: Float,
@@ -222,6 +241,7 @@ private class HarnessConfig(
                 ?.let { name -> SetupStepId.entries.firstOrNull { it.name.equals(name, ignoreCase = true) } }
                 ?: SetupStepId.EXPERIENCE,
             persona = HarnessPersona.of(intent.getStringExtra("persona")),
+            scope = HarnessScope.of(intent.getStringExtra("scope")),
             answers = intent.getStringExtra("answers").orEmpty(),
             widthDp = intent.numberExtra("width", "widthDp"),
             fontScale = intent.numberExtra("fontscale", "fontScale"),
@@ -270,6 +290,9 @@ private const val FILL_AT = 0.4
 /** Tope de «Continuar» automáticos: el arnés nunca da vueltas sin fin si un paso no se deja confirmar. */
 private const val MAX_AUTO_STEPS = 40
 
+/** Con `scope full` el recorrido tiene más pasos (Nutrición y RINGS): más margen que a solo entreno. */
+private const val MAX_AUTO_STEPS_FULL = 90
+
 /** Cuánto espera el recorrido a que el generador de programas termine (el barrido tarda en un teléfono real). */
 private const val PLAN_WAIT_MS = 90_000L
 
@@ -313,7 +336,7 @@ private fun HarnessRoot(config: HarnessConfig, onClose: () -> Unit) {
     LaunchedEffect(viewModel, draftId, config) {
         if (config.autoNextMs <= 0 || draftId == null) return@LaunchedEffect
         viewModel.state.first { !it.isLoading && it.machineState == WizChatMachineState.AwaitingAnswer }
-        repeat(MAX_AUTO_STEPS) {
+        repeat(if (config.scope == HarnessScope.FULL) MAX_AUTO_STEPS_FULL else MAX_AUTO_STEPS) {
             val step = viewModel.state.value.currentStep
             if (step == config.until) {
                 tourLabel = "$step · fin"
@@ -390,7 +413,8 @@ private fun HarnessRoot(config: HarnessConfig, onClose: () -> Unit) {
                 } else {
                     draftId?.let { id ->
                         SetupWizardScreen(
-                            mode = SetupWizardMode.TRAINING_ONLY,
+                            // El alta completa usa el modo FULL del asistente (como la real); el de solo entreno, TRAINING_ONLY.
+                            mode = if (config.scope == HarnessScope.FULL) SetupWizardMode.FULL else SetupWizardMode.TRAINING_ONLY,
                             draftId = id,
                             preselectedPlanId = config.preselect,
                             viewModel = viewModel,
@@ -437,7 +461,7 @@ private suspend fun seedHarnessDraft(app: Application, config: HarnessConfig): S
     if (persistence.load(draftId) == null) {
         // Revisión en segundos: siempre mayor que la de cualquier borrador anterior del arnés.
         val revision = (System.currentTimeMillis() / 1000L).toInt()
-        val draft = buildHarnessDraft(draftId, config.persona, config.start, config.answers, revision)
+        val draft = buildHarnessDraft(draftId, config.persona, config.start, config.answers, revision, config.scope)
         val json = Json { ignoreUnknownKeys = true; encodeDefaults = true }
         persistence.save(draftId, json.encodeToString(draft), revision.toLong(), PersonalizedPlanCatalog.REVISION)
     }

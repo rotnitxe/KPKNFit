@@ -25,6 +25,7 @@ import com.example.kpkn.screens.onboarding.selectedEquipmentSymbols
 import com.example.kpkn.screens.onboarding.stepContext
 import com.example.kpkn.screens.onboarding.touchStep
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -160,6 +161,44 @@ class WizardHarnessDraftsTest {
         assertEquals("matar el proceso o girar la pantalla reabre el borrador", last, harnessDraftIdFor(reset = false, previous = last, nowMs = 1_760_000_500_000L))
         assertEquals("sin borrador recordado se crea uno", "$HARNESS_DRAFT_BASE-1760000500", harnessDraftIdFor(reset = false, previous = null, nowMs = 1_760_000_500_000L))
         assertEquals("un id en blanco no cuenta como recordado", "$HARNESS_DRAFT_BASE-1760000500", harnessDraftIdFor(reset = false, previous = "  ", nowMs = 1_760_000_500_000L))
+    }
+
+    @Test
+    fun withScopeFullTheCursorStopsOnEachNutritionAndRingsStepRequested() {
+        listOf(
+            SetupStepId.NUTRITION_TARGET, SetupStepId.NUTRITION_WEIGH_INS, SetupStepId.RINGS_INTRO, SetupStepId.RINGS_SESSION_DAYS,
+            SetupStepId.RINGS_GROUP_SETS, SetupStepId.RINGS_INTENSITY, SetupStepId.RINGS_RESULT, SetupStepId.REVIEW_ACTIVATE,
+        ).forEach { start ->
+            val draft = buildHarnessDraft("q2-full-${start.name}", HarnessPersona.GYM, start, "", revision = 1, scope = HarnessScope.FULL)
+            assertEquals("full: el cursor se queda en $start", start, draft.stepProgress.currentStepId)
+            assertEquals("full: es el alta completa", "full", draft.draftScope)
+            assertTrue("full: incluye Nutrición", draft.includeNutrition)
+            assertTrue("full: incluye RINGS", draft.stepContext().includeRings)
+        }
+    }
+
+    @Test
+    fun withoutScopeTheHarnessStillBuildsTheTrainingOnlyDraftAsBefore() {
+        // Sin `scope` el borrador es el de solo entreno de siempre: Nutrición no está en su ruta, así que se para en el hito.
+        val draft = buildHarnessDraft("q2-sin-scope", HarnessPersona.GYM, SetupStepId.NUTRITION_TARGET, "", revision = 1)
+        assertEquals("training_only", draft.draftScope)
+        assertFalse("sin scope no hay Nutrición", draft.includeNutrition)
+        assertEquals(SetupStepId.MILESTONE_TRAINING, draft.stepProgress.currentStepId)
+    }
+
+    @Test
+    fun theFullDraftReachesTheReviewWithNutritionAndRingsValidAndNothingBlockingActivation() {
+        val persona = HarnessPersona.QA
+        val draft = buildHarnessDraft("q2-full-review", persona, SetupStepId.REVIEW_ACTIVATE, "", revision = 1, scope = HarnessScope.FULL)
+        assertEquals(SetupStepId.REVIEW_ACTIVATE, draft.stepProgress.currentStepId)
+        val route = SetupStepGraph.stepIds(draft.stepContext())
+        assertTrue("full: la ruta incluye Nutrición y RINGS", route.containsAll(listOf(SetupStepId.NUTRITION_WEIGH_INS, SetupStepId.RINGS_GROUP_SETS)))
+        val unconfirmed = route.filter { it != SetupStepId.REVIEW_ACTIVATE && it !in draft.stepProgress.answers }
+        assertTrue("full: pasos sin confirmar $unconfirmed", unconfirmed.isEmpty())
+        assertTrue("full: faltan datos de la persona", SetupDraftCompatibility.pendingMandatoryVitals(draft).isEmpty())
+        assertEquals("full: el programa «a medida» quedó elegido", GeneratedPlans.entryIdFor(persona.goal), draft.selectedCatalogId)
+        val blocking = SetupWizardValidation.validateAll(draft).filter { it.isBlocking }
+        assertTrue("full: bloquea la activación: ${blocking.map { it.message }}", blocking.isEmpty())
     }
 
     /** Los nombres canónicos de los músculos de la persona (b): espalda y hombros. */

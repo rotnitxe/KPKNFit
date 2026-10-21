@@ -1,165 +1,285 @@
 package com.example.kpkn.screens.workout.components
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.MaterialTheme
+import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
+import androidx.compose.runtime.*
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.collect
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.example.kpkn.data.models.VoiceCaptureMode
-import com.example.kpkn.ui.components.KpknGlassDialog
+import com.example.kpkn.screens.onboarding.design.WizardColors
+import com.example.kpkn.screens.onboarding.design.wizardReducedMotion
+import com.example.kpkn.ui.design.KpknModule
+import com.example.kpkn.ui.design.KpknType
 
-/**
- * Diálogo obligatorio de primera elección del modo de captura de voz.
- * La primera vez no se puede cerrar (onDismissRequest vacío): el usuario debe elegir.
- */
+private enum class VoiceCheckStep { CHOICES, INTRO, CONNECTING, LISTENING, PASSED, FAILED }
+private const val VoiceCheckPrefs = "workout_voice_first_use_v2"
+
+/** The shared voice port is leased only after the caller has disabled live voice. No commands are parsed. */
 @Composable
-fun VoiceCaptureModeDialog(
-    onChosen: (VoiceCaptureMode) -> Unit,
-    onDismissRequest: () -> Unit = {},
-    modifier: Modifier = Modifier,
-) {
+fun VoiceCaptureModeDialog(onChosen: (VoiceCaptureMode) -> Unit, onDismissRequest: (() -> Unit)? = null, modifier: Modifier = Modifier) {
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val scope = rememberCoroutineScope()
+    val latestChosen by rememberUpdatedState(onChosen)
+    val latestDismiss by rememberUpdatedState(onDismissRequest)
+    val engine = remember(context) {
+        com.example.kpkn.services.workout.WorkoutVoiceRuntime.apply { initialize(context) }.speechEngine()
+    }
+    var verified by remember { mutableStateOf<Set<VoiceCaptureMode>?>(null) }
+    LaunchedEffect(context) {
+        verified = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+            val prefs = context.getSharedPreferences(VoiceCheckPrefs, android.content.Context.MODE_PRIVATE)
+            VoiceCaptureMode.entries.filter { prefs.getBoolean(it.name, false) }.toSet()
+        }
+    }
     var selected by remember { mutableStateOf<VoiceCaptureMode?>(null) }
+    var step by remember { mutableStateOf(VoiceCheckStep.CHOICES) }
+    var message by remember { mutableStateOf<String?>(null) }
+    var heard by remember { mutableStateOf("") }
+    var ownsCapture by remember { mutableStateOf(false) }
+    var transitioning by remember { mutableStateOf(false) }
+    var exitDelivered by remember { mutableStateOf(false) }
+    var epoch by remember { mutableIntStateOf(0) }
+    val testJob = remember { arrayOfNulls<kotlinx.coroutines.Job>(1) }
+    val rms by engine.rmsLevel.collectAsState()
+    val route by engine.activeRouteLabel.collectAsState()
 
-    KpknGlassDialog(
-        onDismissRequest = onDismissRequest,
-        shape = RoundedCornerShape(40.dp),
-        modifier = modifier,
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(24.dp)
-                .verticalScroll(rememberScrollState()),
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
-            Text(
-                "¿Cómo quieres entrenar hoy?",
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Black,
-                letterSpacing = 2.sp,
-                color = MaterialTheme.colorScheme.onSurface,
-                textAlign = TextAlign.Center,
-            )
-
-            Spacer(Modifier.height(16.dp))
-
-            VoiceModeOptionCard(
-                title = "Modo Música",
-                description = "Sabemos que entrenar con música te encanta, por eso diseñamos este modo donde tus canciones favoritas no se escucharán en baja calidad como si estuvieras en una llamada; solo necesitas acercar tu teléfono para registrar las series, sin necesidad de desbloquearlo. Así entrenas sin distracciones y disfrutando de tu playlist favorita.",
-                selected = selected == VoiceCaptureMode.MUSIC,
-                onClick = { selected = VoiceCaptureMode.MUSIC },
-            )
-
-            Spacer(Modifier.height(12.dp))
-
-            VoiceModeOptionCard(
-                title = "Modo Manos Libres",
-                description = "Si eres de esos usuarios que quiere la máxima concentración en sus entrenamientos y olvidarse del celular durante la sesión, puedes registrar tus entrenamientos usando directamente el micrófono de tus auriculares, sin necesidad de sacar tu teléfono. Esto degradará la calidad de tu música, pero será tu forma favorita de registrar tus marcas si quieres máxima libertad y cero distracciones.",
-                selected = selected == VoiceCaptureMode.HANDS_FREE,
-                onClick = { selected = VoiceCaptureMode.HANDS_FREE },
-            )
-
-            Spacer(Modifier.height(20.dp))
-
-            Button(
-                onClick = { selected?.let(onChosen) },
-                enabled = selected != null,
-                shape = RoundedCornerShape(12.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.onSurface,
-                ),
-            ) {
-                Text(
-                    "Empezar",
-                    fontSize = 10.sp,
-                    fontWeight = FontWeight.Black,
-                    letterSpacing = 2.sp,
-                )
+    fun stopBefore(action: suspend () -> Unit) {
+        if (transitioning || exitDelivered) return
+        transitioning = true
+        epoch += 1
+        testJob[0]?.cancel()
+        scope.launch {
+            try {
+                // This finishes before onChosen can enable the normal voice controller.
+                if (engine.stopAndAwait()) {
+                    ownsCapture = false
+                    action()
+                } else {
+                    step = VoiceCheckStep.FAILED
+                    message = "No se pudo cerrar el micrófono. Intenta de nuevo."
+                }
+            } catch (cancelled: kotlinx.coroutines.CancellationException) {
+                throw cancelled
+            } catch (_: Exception) {
+                step = VoiceCheckStep.FAILED
+                message = "No se pudo cerrar el micrófono. Intenta de nuevo."
+            } finally { transitioning = false }
+        }
+    }
+    fun activate() {
+        val mode = selected ?: return
+        if (mode !in verified.orEmpty() && step != VoiceCheckStep.PASSED) return
+        stopBefore {
+            val saved = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+                context.getSharedPreferences(VoiceCheckPrefs, android.content.Context.MODE_PRIVATE)
+                    .edit().putBoolean(mode.name, true).commit()
             }
-            TextButton(onClick = onDismissRequest) {
-                Text("Ahora no", fontWeight = FontWeight.Bold)
+            if (saved) {
+                verified = verified.orEmpty() + mode
+                if (!exitDelivered) { exitDelivered = true; latestChosen(mode) }
+            }
+            else { step = VoiceCheckStep.FAILED; message = "No se pudo guardar la prueba. Intenta de nuevo." }
+        }
+    }
+
+    fun dismiss() {
+        if (latestDismiss == null) return
+        stopBefore {
+            if (!exitDelivered) { exitDelivered = true; latestDismiss?.invoke() }
+        }
+    }
+
+    fun startTest() {
+        val mode = selected ?: return
+        if (transitioning || exitDelivered || step == VoiceCheckStep.CONNECTING || step == VoiceCheckStep.LISTENING) return
+        epoch += 1
+        val token = epoch
+        testJob[0]?.cancel()
+        step = VoiceCheckStep.CONNECTING; message = null; heard = ""
+        testJob[0] = scope.launch {
+            try {
+            if (!engine.stopAndAwait()) {
+                step = VoiceCheckStep.FAILED; message = "El micrófono sigue ocupado. Intenta de nuevo."
+                return@launch
+            }
+            if (epoch != token) return@launch
+            ownsCapture = true
+            kotlinx.coroutines.coroutineScope {
+                launch(start = kotlinx.coroutines.CoroutineStart.UNDISPATCHED) {
+                    engine.finalResults.collect { hypotheses ->
+                        if (epoch != token || step != VoiceCheckStep.LISTENING) return@collect
+                        val transcript = hypotheses.firstOrNull()?.text.orEmpty().trim()
+                        heard = transcript
+                        if (transcript.lowercase(java.util.Locale.ROOT).split(Regex("[^a-záéíóúñ]+" )).contains("listo")) {
+                            step = VoiceCheckStep.PASSED
+                            engine.pause()
+                        } else if (transcript.isNotBlank()) message = "Di la palabra «Listo» para probar este modo."
+                    }
+                }
+                launch(start = kotlinx.coroutines.CoroutineStart.UNDISPATCHED) {
+                    engine.errors.collect { error ->
+                        if (epoch == token && step != VoiceCheckStep.PASSED) {
+                            step = VoiceCheckStep.FAILED; message = error; engine.pause()
+                        }
+                    }
+                }
+                engine.updateCommandContext(null, com.example.kpkn.services.workout.VoicePipelineStage.LISTENING)
+                engine.start(this, holdMicRouteAcrossPause = true, captureMode = mode)
+                step = VoiceCheckStep.LISTENING
+                kotlinx.coroutines.delay(20_000)
+                if (epoch == token && step == VoiceCheckStep.LISTENING) {
+                    step = VoiceCheckStep.FAILED
+                    message = "No se reconoció «Listo». Acerca el micrófono y vuelve a intentar."
+                    engine.pause()
+                }
+            }
+            } catch (cancelled: kotlinx.coroutines.CancellationException) {
+                throw cancelled
+            } catch (error: Exception) {
+                if (epoch == token) {
+                    step = VoiceCheckStep.FAILED
+                    message = error.message ?: "No se pudo iniciar el micrófono. Intenta de nuevo."
+                    if (ownsCapture) engine.pause()
+                }
+            }
+        }
+    }
+    val permission = androidx.activity.compose.rememberLauncherForActivityResult(
+        androidx.activity.result.contract.ActivityResultContracts.RequestPermission(),
+    ) { granted ->
+        if (granted) startTest()
+        else { step = VoiceCheckStep.FAILED; message = "Permite usar el micrófono para probar tu voz." }
+    }
+    fun requestTest() {
+        if (androidx.core.content.ContextCompat.checkSelfPermission(context, android.Manifest.permission.RECORD_AUDIO) == android.content.pm.PackageManager.PERMISSION_GRANTED) startTest()
+        else permission.launch(android.Manifest.permission.RECORD_AUDIO)
+    }
+    val owner = androidx.lifecycle.compose.LocalLifecycleOwner.current
+    DisposableEffect(engine, owner) {
+        val observer = androidx.lifecycle.LifecycleEventObserver { _, event ->
+            if (event == androidx.lifecycle.Lifecycle.Event.ON_STOP && ownsCapture) {
+                epoch += 1; testJob[0]?.cancel(); engine.stop(); ownsCapture = false
+                step = VoiceCheckStep.INTRO
+            }
+        }
+        owner.lifecycle.addObserver(observer)
+        onDispose {
+            owner.lifecycle.removeObserver(observer)
+            epoch += 1; testJob[0]?.cancel()
+            // Never stop a controller that onChosen just enabled: ownership was released before its callback.
+            if (ownsCapture) { engine.stop(); ownsCapture = false }
+        }
+    }
+    androidx.activity.compose.BackHandler(enabled = onDismissRequest != null) { dismiss() }
+    // A drag animation must not hide this sheet before asynchronous stop has succeeded.
+    HeaderSheet(onDismiss = { dismiss() }, modifier = modifier, dismissible = false) { _ ->
+        HeaderSheetFrame(if (step == VoiceCheckStep.CHOICES) "Modo de voz" else "Probemos tu voz", footer = {
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                HeaderSheetAction("Ahora no", { dismiss() }, Modifier.weight(1f), enabled = onDismissRequest != null && !transitioning)
+                when (step) {
+                    VoiceCheckStep.CHOICES -> HeaderSheetAction("Activar", ::activate, Modifier.weight(1f), primary = true, enabled = selected != null && verified != null && !transitioning)
+                    VoiceCheckStep.INTRO, VoiceCheckStep.FAILED -> HeaderSheetAction(if (step == VoiceCheckStep.FAILED) "Reintentar" else "Comenzar prueba", ::requestTest, Modifier.weight(1f), primary = true, enabled = !transitioning)
+                    VoiceCheckStep.PASSED -> HeaderSheetAction("Activar", ::activate, Modifier.weight(1f), primary = true, enabled = !transitioning)
+                    else -> HeaderSheetAction("Escuchando…", {}, Modifier.weight(1f), enabled = false)
+                }
+            }
+        }) {
+            if (step == VoiceCheckStep.CHOICES) {
+                VoiceModeChoices(selected) { mode ->
+                    if (verified != null && !transitioning) {
+                        selected = mode; message = null
+                        step = if (mode in verified.orEmpty()) VoiceCheckStep.CHOICES else VoiceCheckStep.INTRO
+                    }
+                }
+                if (verified == null) Text("Preparando controles de voz…", style = KpknType.caption, color = WizardColors.textMuted)
+            } else {
+                VoiceFirstUseArt(listening = step == VoiceCheckStep.LISTENING, passed = step == VoiceCheckStep.PASSED, rms = rms)
+                Text(when (step) {
+                    VoiceCheckStep.PASSED -> "Te escuchamos"
+                    VoiceCheckStep.CONNECTING -> "Preparando micrófono…"
+                    VoiceCheckStep.LISTENING -> "Di «Listo»"
+                    VoiceCheckStep.FAILED -> "Probemos otra vez"
+                    else -> "Di una palabra"
+                }, style = KpknType.title, color = WizardColors.text)
+                Text(if (selected == VoiceCaptureMode.HANDS_FREE) "Usa el micrófono de tus audífonos. La música puede perder calidad mientras escucha."
+                    else "Usa el micrófono del teléfono y conserva la calidad de la música. Acerca el teléfono al hablar.", style = KpknType.body, color = WizardColors.textMuted)
+                if (step == VoiceCheckStep.INTRO) Text("Listo", style = KpknType.metricM, color = WizardColors.text)
+                if (heard.isNotBlank()) Text("«" + heard + "»", style = KpknType.bodyStrong, color = WizardColors.text)
+                route?.takeIf { ownsCapture && it.isNotBlank() }?.let { Text(it, style = KpknType.caption, color = WizardColors.textMuted) }
+                message?.let { Text(it, style = KpknType.caption, color = WizardColors.textMuted) }
+                HeaderSheetAction("Cambiar modo", { stopBefore { selected = null; step = VoiceCheckStep.CHOICES; message = null; heard = "" } }, Modifier.fillMaxWidth(), enabled = !transitioning)
             }
         }
     }
 }
 
 @Composable
-private fun VoiceModeOptionCard(
-    title: String,
-    description: String,
-    selected: Boolean,
-    onClick: () -> Unit,
-) {
-    val shape = RoundedCornerShape(20.dp)
-    val borderColor = if (selected) {
-        MaterialTheme.colorScheme.primary
-    } else {
-        MaterialTheme.colorScheme.outlineVariant
-    }
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(shape)
-            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f))
-            .border(1.5.dp, borderColor, shape)
-            .clickable(onClick = onClick)
-            .padding(16.dp),
-    ) {
-        Column {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Box(
-                    modifier = Modifier
-                        .size(10.dp)
-                        .clip(RoundedCornerShape(5.dp))
-                        .background(
-                            if (selected) MaterialTheme.colorScheme.primary
-                            else MaterialTheme.colorScheme.outlineVariant,
-                        ),
-                )
-                Spacer(Modifier.size(10.dp))
-                Text(
-                    title,
-                    fontSize = 13.sp,
-                    fontWeight = FontWeight.Black,
-                    color = MaterialTheme.colorScheme.onSurface,
-                )
+private fun VoiceFirstUseArt(listening: Boolean, passed: Boolean, rms: Float) {
+    val reduced = wizardReducedMotion()
+    val visibility = rememberFeedbackAnimationVisibility()
+    val clock = rememberRestClock(listening && visibility.visible && !reduced)
+    val level = if (rms.isFinite() && rms != 0f) ((rms + 70f) / 50f).coerceIn(0f, 1f) else 0f
+    val ink = WizardColors.text
+    Canvas(Modifier.fillMaxWidth().height(138.dp).then(visibility.modifier)) {
+        val center = Offset(size.width / 2, size.height / 2)
+        val radius = 42.dp.toPx()
+        drawCircle(ink.copy(alpha = .06f), radius, center)
+        drawCircle(ink.copy(alpha = .18f), radius, center, style = Stroke(1.dp.toPx()))
+        if (listening && !reduced) {
+            val pulse = (clock.seconds % 1.8f) / 1.8f
+            drawCircle(ink.copy(alpha = (1f - pulse) * .2f), radius + pulse * 14.dp.toPx(), center, style = Stroke(1.dp.toPx()))
+        }
+        if (passed) {
+            drawLine(ink, center + Offset(-13.dp.toPx(), 0f), center + Offset(-3.dp.toPx(), 10.dp.toPx()), 3.dp.toPx(), StrokeCap.Round)
+            drawLine(ink, center + Offset(-3.dp.toPx(), 10.dp.toPx()), center + Offset(16.dp.toPx(), -12.dp.toPx()), 3.dp.toPx(), StrokeCap.Round)
+        } else {
+            repeat(9) { i ->
+                val h = (5f + level * (if (i % 2 == 0) 22f else 14f)).dp.toPx()
+                val x = center.x + (i - 4) * 5.dp.toPx()
+                drawLine(ink, Offset(x, center.y - h / 2), Offset(x, center.y + h / 2), 2.dp.toPx(), StrokeCap.Round)
             }
-            Spacer(Modifier.height(8.dp))
-            Text(
-                description,
-                fontSize = 11.sp,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                lineHeight = 17.sp,
-                textAlign = TextAlign.Start,
-            )
+        }
+    }
+}
+
+@Composable
+internal fun VoiceModeChoices(selected: VoiceCaptureMode?, onSelect: (VoiceCaptureMode) -> Unit) {
+    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+        listOf(VoiceCaptureMode.HANDS_FREE, VoiceCaptureMode.MUSIC).forEach { mode ->
+            val active = selected == mode
+            KpknModule(modifier = Modifier.weight(1f).semantics { this.selected = active }, onClick = { onSelect(mode) },
+                accent = if (active) WizardColors.text else null, contentPadding = PaddingValues(12.dp)) {
+                val visibility = rememberFeedbackAnimationVisibility()
+                val reduced = wizardReducedMotion()
+                val clock = rememberRestClock(active && mode == VoiceCaptureMode.MUSIC && visibility.visible && !reduced)
+                val ink = if (active) WizardColors.text else WizardColors.textMuted
+                Canvas(Modifier.fillMaxWidth().height(66.dp).then(visibility.modifier)) {
+                    val cx = size.width / 2
+                    val cy = size.height / 2
+                    val stroke = Stroke(2.dp.toPx(), cap = StrokeCap.Round)
+                    if (mode == VoiceCaptureMode.HANDS_FREE) {
+                        drawArc(ink, 180f, 180f, false, Offset(cx - 22.dp.toPx(), cy - 22.dp.toPx()), androidx.compose.ui.geometry.Size(44.dp.toPx(), 44.dp.toPx()), style = stroke)
+                        listOf(-1, 1).forEach { side -> drawLine(ink, Offset(cx + side * 22.dp.toPx(), cy), Offset(cx + side * 22.dp.toPx(), cy + 16.dp.toPx()), 7.dp.toPx(), StrokeCap.Round) }
+                    } else {
+                        listOf(-14f, -5f, 5f, 14f).forEachIndexed { i, x ->
+                            val wave = if (active && !reduced) .6f + .4f * kotlin.math.sin(clock.seconds * 2 + i) else .7f
+                            val h = (if (i == 1 || i == 2) 20.dp.toPx() else 11.dp.toPx()) * wave
+                            drawLine(ink, Offset(cx + x.dp.toPx(), cy - h), Offset(cx + x.dp.toPx(), cy + h), 4.dp.toPx(), StrokeCap.Round)
+                        }
+                    }
+                }
+                Text(if (mode == VoiceCaptureMode.HANDS_FREE) "Manos libres" else "Modo música", style = KpknType.bodyStrong, color = ink)
+                Spacer(Modifier.height(6.dp))
+                Text(if (mode == VoiceCaptureMode.HANDS_FREE) "Micrófono de auriculares; reduce la calidad de la música." else "Micrófono del teléfono; acércalo al hablar.", style = KpknType.caption, color = WizardColors.textMuted)
+            }
         }
     }
 }

@@ -1,0 +1,74 @@
+{
+  "id": "r28-mixkit-49436",
+  "durationS": 9.4,
+  "width": 1280,
+  "height": 720,
+  "rotation": 0,
+  "fpsNominal": 25.0,
+  "fpsMeasured": 25.0,
+  "usable": true,
+  "exercise": "Peso muerto con barra",
+  "exerciseDetail": "Peso muerto con barra (touch and go; mujer en un gimnasio en casa)",
+  "suggestedProfile": "DEADLIFT",
+  "view": "OBLIQUE",
+  "people": 1,
+  "fullBodyVisible": true,
+  "faceVisible": true,
+  "plateVisible": true,
+  "startPhase": "ECCENTRIC_FIRST",
+  "reps": {
+    "full": 2,
+    "partial": 0,
+    "failed": 0,
+    "uncertain": false,
+    "acceptableRange": [
+      1,
+      2
+    ]
+  },
+  "repTimesS": [
+    {
+      "index": 1,
+      "turnaroundS": 4.0,
+      "side": null
+    },
+    {
+      "index": 2,
+      "turnaroundS": 9.0,
+      "side": null
+    }
+  ],
+  "activeWindowS": [
+    0.0,
+    9.4
+  ],
+  "frameIntervalS": {
+    "min": 0.04,
+    "median": 0.04,
+    "max": 0.04
+  },
+  "turnaroundKind": "TOP",
+  "edgeEvents": [
+    {
+      "timeS": 0.0,
+      "kind": "TRUNCATED_START",
+      "description": "el clip empieza ya inclinada, bajando la barra desde las rodillas; la primera bajada (0-2,0 s) es parcial"
+    },
+    {
+      "timeS": 9.4,
+      "kind": "TRUNCATED_END",
+      "description": "la 2.ª subida llega al bloqueo hacia 9,0-9,2 s, casi en el último fotograma"
+    }
+  ],
+  "caveats": [
+    "clip muy corto (9,4 s) con 2 repeticiones",
+    "un maniquí de boxeo con mascarilla al fondo puede dar un falso positivo de persona"
+  ],
+  "cameraMotion": {
+    "class": "STATIC",
+    "note": "cámara fija"
+  },
+  "softWarnings": [
+    "recuento ambiguo por medio ciclo en el borde del clip o por repeticiones dudosas: rango aceptable 1-2 (ver edgeEvents)"
+  ]
+}

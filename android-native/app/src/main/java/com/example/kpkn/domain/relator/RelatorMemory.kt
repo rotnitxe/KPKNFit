@@ -60,8 +60,17 @@ data class RelatorSelectorState(
     val lastTopicAtSet: Map<RelatorTopic, Int> = emptyMap(),
     val conceptSpokenThisSession: Set<String> = emptySet(),
     val conceptSpokenForExercise: Set<String> = emptySet(),
+    /** Variante que dijo cada tema la última vez (LR1h): la siguiente vez que sale, rota a la siguiente. */
+    val lastVariantByTopic: Map<RelatorTopic, Int> = emptyMap(),
 ) {
-    fun record(fingerprint: String, topic: RelatorTopic, setKey: String, conceptId: String?, exerciseId: String): RelatorSelectorState {
+    fun record(
+        fingerprint: String,
+        topic: RelatorTopic,
+        setKey: String,
+        conceptId: String?,
+        exerciseId: String,
+        variant: Int? = null,
+    ): RelatorSelectorState {
         val trimmed = fingerprint.trim()
         if (trimmed.isEmpty()) return this
         val advanced = if (setKey.isNotBlank() && setKey != lastSetKey) setsSeen + 1 else setsSeen
@@ -71,6 +80,7 @@ data class RelatorSelectorState(
             lastSetKey = setKey.ifBlank { lastSetKey },
             setsSeen = advanced,
             lastTopicAtSet = lastTopicAtSet + (topic to advanced),
+            lastVariantByTopic = if (variant == null) lastVariantByTopic else lastVariantByTopic + (topic to variant),
             conceptSpokenThisSession = if (conceptId.isNullOrBlank()) {
                 conceptSpokenThisSession
             } else {

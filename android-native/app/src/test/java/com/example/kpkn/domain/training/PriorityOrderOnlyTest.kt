@@ -20,7 +20,7 @@ import org.junit.Test
 /**
  * Contrato: las prioridades musculares son SOLO ORDEN.
  *
- * La bolsa de puntos (máximo 2 por músculo, 5 en total, sin negativos) solo
+ * La bolsa de puntos (máximo 2 por músculo, 6 en total, sin negativos) solo
  * puede cambiar el orden de los ejercicios. Prohibido alterar ejercicios
  * prescritos, series, repeticiones, intensidades, frecuencia muscular ni
  * volumen directo/indirecto. `lowerEmphasisMuscles` no tiene ningún efecto.
@@ -119,16 +119,22 @@ class PriorityOrderOnlyTest {
             mapOf("Pectorales" to 2, "Dorsales" to 2, "Tríceps" to 1),
             planner.orderPoints(baseInput.copy(exerciseOrderPriorities = mapOf("Pectorales" to 2, "Dorsales" to 2, "Tríceps" to 1))),
         )
-        // No es obligatorio gastar los cinco puntos.
+        // No es obligatorio gastar los seis puntos.
         assertEquals(
             mapOf("Glúteos" to 1),
             planner.orderPoints(baseInput.copy(exerciseOrderPriorities = mapOf("Glúteos" to 1))),
         )
         // Máximo 2 puntos por músculo.
         assertNull(planner.orderPoints(baseInput.copy(exerciseOrderPriorities = mapOf("Pectorales" to 3))))
-        // Máximo 5 puntos en total.
-        assertNull(
+        // Máximo 6 puntos en total (Brazos escribe dos): seis caben, siete no.
+        assertEquals(
+            mapOf("Pectorales" to 2, "Dorsales" to 2, "Tríceps" to 2),
             planner.orderPoints(baseInput.copy(exerciseOrderPriorities = mapOf("Pectorales" to 2, "Dorsales" to 2, "Tríceps" to 2))),
+        )
+        assertNull(
+            planner.orderPoints(
+                baseInput.copy(exerciseOrderPriorities = mapOf("Pectorales" to 2, "Dorsales" to 2, "Tríceps" to 2, "Deltoides" to 1)),
+            ),
         )
         // Nada de negativos: la despriorización no existe.
         assertNull(planner.orderPoints(baseInput.copy(exerciseOrderPriorities = mapOf("Pectorales" to -1))))
@@ -137,7 +143,15 @@ class PriorityOrderOnlyTest {
             mapOf("Pectorales" to 1, "Bíceps" to 1),
             planner.orderPoints(baseInput.copy(priorityMuscles = setOf("Pecho", "Bíceps"))),
         )
-        assertNull(planner.orderPoints(baseInput.copy(priorityMuscles = setOf("Pecho", "Bíceps", "Tríceps", "Dorsales", "Glúteos", "Cuádriceps"))))
+        assertEquals(
+            6,
+            planner.orderPoints(baseInput.copy(priorityMuscles = setOf("Pecho", "Bíceps", "Tríceps", "Dorsales", "Glúteos", "Cuádriceps")))?.values?.sum(),
+        )
+        assertNull(
+            planner.orderPoints(
+                baseInput.copy(priorityMuscles = setOf("Pecho", "Bíceps", "Tríceps", "Dorsales", "Glúteos", "Cuádriceps", "Isquios")),
+            ),
+        )
 
         // Una bolsa inválida se rechaza con motivo y sin programa.
         val rejected = planner.personalize("bolsa-invalida", baseInput.copy(exerciseOrderPriorities = mapOf("Pectorales" to 5)))

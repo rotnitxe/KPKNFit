@@ -1332,7 +1332,7 @@ class WorkoutVoiceCommandHandler(
                 WorkoutVoiceDiagnosticLogger.event("voice_finalize_blocked_empty_session")
                 voiceController.speakFeedbackUpdated(
                     "No registré ninguna serie en esta sesión, así que no guardé nada. " +
-                        "Registrá series o decí cancelar sesión para descartarla."
+                        "Registra series o di cancelar sesión para descartarla."
                 )
                 return
             }
@@ -1403,8 +1403,8 @@ class WorkoutVoiceCommandHandler(
             // (P0) Fallback hablado: la frase no aportó campos ni cierre → en vez de
             // silencio total se instruye la keyword de cierre esperada.
             voiceController.speakFeedbackUpdated(
-                "No entendí. Para guardar y cerrar, decí sesión terminada. " +
-                    "También podés dictar notas, molestias o baterías."
+                "No entendí. Para guardar y cerrar, di «sesión terminada». " +
+                    "También puedes dictar notas, molestias o baterías."
             )
         }
     }

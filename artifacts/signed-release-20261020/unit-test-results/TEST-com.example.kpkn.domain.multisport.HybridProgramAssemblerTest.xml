@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.domain.multisport.HybridProgramAssemblerTest" tests="5" skipped="0" failures="0" errors="0" timestamp="2026-10-20T04:06:57.452Z" hostname="VF" time="0.206">
+  <properties/>
+  <testcase name="a contribution cannot silently replace an existing session or reuse a variant id" classname="com.example.kpkn.domain.multisport.HybridProgramAssemblerTest" time="0.125"/>
+  <testcase name="native authored force and external MMA share one program without rewriting content" classname="com.example.kpkn.domain.multisport.HybridProgramAssemblerTest" time="0.046"/>
+  <testcase name="activation reprepare is idempotent rather than adding the same class twice" classname="com.example.kpkn.domain.multisport.HybridProgramAssemblerTest" time="0.01"/>
+  <testcase name="specialized declared duration is separate from native estimates and spare budget" classname="com.example.kpkn.domain.multisport.HybridProgramAssemblerTest" time="0.005"/>
+  <testcase name="missing resources rejects combination without lowering goals or altering recipe" classname="com.example.kpkn.domain.multisport.HybridProgramAssemblerTest" time="0.02"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

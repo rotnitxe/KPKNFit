@@ -39,12 +39,13 @@ import com.example.kpkn.data.protocols.Protocol
 import com.example.kpkn.data.protocols.isVisibleForApplication
 import com.example.kpkn.domain.onboarding.PlanGoalMatcher
 import com.example.kpkn.domain.onboarding.PlanGoalProfile
+import com.example.kpkn.screens.programdetail.design.structure.catalogDurationLabel
 import com.example.kpkn.ui.components.KpknSheet
 import com.example.kpkn.ui.components.KpknSheetLightChip
 import com.example.kpkn.ui.components.KpknSheetTokens
 import com.example.kpkn.ui.components.KpknSheetWhiteButton
 
-private enum class LibraryProfileFilter(val label: String) {
+internal enum class LibraryProfileFilter(val label: String) {
     ALL("Todos"), STRENGTH("Fuerza"), MUSCLE("Músculo"), STRENGTH_MUSCLE("Fuerza y músculo"),
     COMPLETE_ATHLETE("Atleta completo"), OTHER("Otros"),
 }
@@ -177,6 +178,22 @@ internal fun libraryTapFor(
 internal fun isLibraryFamilyEntry(entry: CatalogEntry): Boolean =
     entry.familyId == null || entry.origin == PlanOrigin.ORIGINAL
 
+/**
+ * Los planes que enseña la biblioteca con los filtros puestos (null = «Todos» o «Todas»). Es la regla que la hoja aplica a
+ * sus chips, en una función pura para fijarla con una prueba sobre el catálogo real, sin depender de un clic.
+ */
+internal fun libraryVisibleEntries(
+    entries: List<CatalogEntry>,
+    days: Int?,
+    duration: CatalogDuration?,
+    profile: LibraryProfileFilter,
+    origin: LibraryOriginFilter,
+): List<CatalogEntry> = entries.filter { entry ->
+    (days == null || days in entry.supportedFrequencies) &&
+        (duration == null || entry.duration == duration) &&
+        profileMatches(entry, profile) && originMatches(entry, origin)
+}
+
 /** La hoja de una tarjeta abierta y lo que hace su botón principal. */
 private data class LibrarySheet(val entry: CatalogEntry, val primary: LibraryPrimary?)
 
@@ -213,11 +230,7 @@ fun CreateProgramTemplateSheet(
                 .filter { it.publication == PublicationState.PUBLISHED && isLibraryFamilyEntry(it) },
         )
     }
-    val visible = entries.filter { entry ->
-        (daysFilter == null || daysFilter in entry.supportedFrequencies) &&
-            (durationFilter == null || entry.duration == durationFilter) &&
-            profileMatches(entry, profileFilter) && originMatches(entry, originFilter)
-    }
+    val visible = libraryVisibleEntries(entries, daysFilter, durationFilter, profileFilter, originFilter)
 
     KpknSheet(onDismissRequest = onDismiss) {
         Column(
@@ -245,39 +258,31 @@ fun CreateProgramTemplateSheet(
 
             FilterRow(
                 label = "Perfil",
-                options = LibraryProfileFilter.entries.map { it.label },
-                selected = profileFilter.label,
-                onSelect = { label -> profileFilter = LibraryProfileFilter.entries.first { it.label == label } },
+                options = LibraryProfileFilter.entries,
+                optionLabel = { option -> option.label },
+                isSelected = { option -> option == profileFilter },
+                onSelect = { option -> profileFilter = option },
             )
             FilterRow(
                 label = "Días",
-                options = listOf("Todos") + (1..6).map(Int::toString),
-                selected = daysFilter?.toString() ?: "Todos",
-                onSelect = { label -> daysFilter = label.toIntOrNull() },
+                options = listOf<Int?>(null) + (1..6).toList(),
+                optionLabel = { option -> option?.toString() ?: "Todos" },
+                isSelected = { option -> option == daysFilter },
+                onSelect = { option -> daysFilter = option },
             )
             FilterRow(
                 label = "Duración",
-                options = listOf("Todas", "Semana repetible", "Ciclo repetible", "Ciclo finito"),
-                selected = when (durationFilter) {
-                    null -> "Todas"
-                    CatalogDuration.REPEATING_WEEK -> "Semana repetible"
-                    CatalogDuration.REPEATING_CYCLE -> "Ciclo repetible"
-                    CatalogDuration.FINITE_CYCLE -> "Ciclo finito"
-                },
-                onSelect = { label ->
-                    durationFilter = when (label) {
-                        "Semana repetible" -> CatalogDuration.REPEATING_WEEK
-                        "Ciclo repetible" -> CatalogDuration.REPEATING_CYCLE
-                        "Ciclo finito" -> CatalogDuration.FINITE_CYCLE
-                        else -> null
-                    }
-                },
+                options = listOf<CatalogDuration?>(null) + CatalogDuration.entries,
+                optionLabel = { option -> option?.let(::catalogDurationLabel) ?: "Todas" },
+                isSelected = { option -> option == durationFilter },
+                onSelect = { option -> durationFilter = option },
             )
             FilterRow(
                 label = "Procedencia",
-                options = LibraryOriginFilter.entries.map { it.label },
-                selected = originFilter.label,
-                onSelect = { label -> originFilter = LibraryOriginFilter.entries.first { it.label == label } },
+                options = LibraryOriginFilter.entries,
+                optionLabel = { option -> option.label },
+                isSelected = { option -> option == originFilter },
+                onSelect = { option -> originFilter = option },
             )
 
             Column(
@@ -312,9 +317,9 @@ fun CreateProgramTemplateSheet(
                         color = KpknSheetTokens.ControlFill,
                     ) {
                         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                            Text("Importar (Excel, CSV o texto)", fontWeight = FontWeight.Black, color = KpknSheetTokens.ControlLabel)
+                            Text("Importar un programa", fontWeight = FontWeight.Black, color = KpknSheetTokens.ControlLabel)
                             Text(
-                                "Trae tu programa desde un archivo o pégalo.",
+                                "Desde Excel, Word, PDF, texto o una foto de tu rutina.",
                                 color = KpknSheetTokens.ControlLabel.copy(alpha = 0.72f),
                                 style = MaterialTheme.typography.bodySmall,
                             )
@@ -385,18 +390,20 @@ private fun LibraryCard(entry: CatalogEntry, onClick: () -> Unit) {
     }
 }
 
+/** Una fila de filtro: cada opción es su valor (enum o número) y el texto solo se pinta, así nadie compara cadenas. */
 @Composable
-private fun FilterRow(
+private fun <T> FilterRow(
     label: String,
-    options: List<String>,
-    selected: String,
-    onSelect: (String) -> Unit,
+    options: List<T>,
+    optionLabel: (T) -> String,
+    isSelected: (T) -> Boolean,
+    onSelect: (T) -> Unit,
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
         Text(label, style = MaterialTheme.typography.labelSmall, color = Color.White.copy(alpha = 0.58f))
         Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
             options.forEach { option ->
-                KpknSheetLightChip(label = option, selected = selected == option, onClick = { onSelect(option) })
+                KpknSheetLightChip(label = optionLabel(option), selected = isSelected(option), onClick = { onSelect(option) })
             }
         }
     }

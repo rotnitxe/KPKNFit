@@ -1,0 +1,74 @@
+{
+  "id": "ymove_006",
+  "durationS": 12.84,
+  "width": 360,
+  "height": 640,
+  "rotation": 0,
+  "fpsNominal": 25.0,
+  "fpsMeasured": 25.0,
+  "usable": true,
+  "exercise": "Remo a un brazo con mancuerna",
+  "exerciseDetail": "Remo a un brazo con mancuerna con apoyo amplio (piernas separadas en tijera, la mano libre en la rodilla), con la mancuerna bajando casi hasta el suelo entre repeticiones",
+  "suggestedProfile": "ROW",
+  "view": "OBLIQUE",
+  "people": 1,
+  "fullBodyVisible": true,
+  "faceVisible": true,
+  "plateVisible": false,
+  "startPhase": "CONCENTRIC_FIRST",
+  "reps": {
+    "full": 4,
+    "partial": 0,
+    "failed": 0,
+    "uncertain": false,
+    "acceptableRange": [
+      4,
+      4
+    ]
+  },
+  "repTimesS": [
+    {
+      "index": 1,
+      "turnaroundS": 1.6,
+      "side": null
+    },
+    {
+      "index": 2,
+      "turnaroundS": 4.6,
+      "side": null
+    },
+    {
+      "index": 3,
+      "turnaroundS": 8.0,
+      "side": null
+    },
+    {
+      "index": 4,
+      "turnaroundS": 11.4,
+      "side": null
+    }
+  ],
+  "activeWindowS": [
+    0.6,
+    12.3
+  ],
+  "frameIntervalS": {
+    "min": 0.04,
+    "median": 0.04,
+    "max": 0.04
+  },
+  "turnaroundKind": "TOP",
+  "edgeEvents": [
+    {
+      "timeS": 12.4,
+      "kind": "TRUNCATED_END",
+      "description": "tras la 4.ª repetición (11,4 s) la mancuerna baja y el clip termina a los 12,84 s con ella casi en el suelo"
+    }
+  ],
+  "caveats": [],
+  "cameraMotion": {
+    "class": "STATIC",
+    "note": "cámara fija de estudio con fondo blanco liso (ORB y ECC no tienen rasgos fiables): los zapatos plantados, seguidos con plantilla, se desplazan x -2..1 px e y -1..0 px en el encuadre 360x640 durante todo el clip (máx. 0,6% del ancho)"
+  },
+  "softWarnings": []
+}

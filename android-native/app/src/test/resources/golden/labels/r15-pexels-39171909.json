@@ -1,0 +1,126 @@
+{
+  "id": "r15-pexels-39171909",
+  "durationS": 44.6,
+  "width": 720,
+  "height": 1280,
+  "rotation": 0,
+  "fpsNominal": 30.0,
+  "fpsMeasured": 29.978,
+  "usable": true,
+  "exercise": "Sentadilla en máquina Smith",
+  "exerciseDetail": "Sentadilla en máquina Smith (barra guiada a la espalda, descalzo)",
+  "suggestedProfile": "MACHINE_SQUAT",
+  "view": "OBLIQUE",
+  "people": 1,
+  "fullBodyVisible": true,
+  "faceVisible": true,
+  "plateVisible": true,
+  "startPhase": "ECCENTRIC_FIRST",
+  "reps": {
+    "full": 13,
+    "partial": 0,
+    "failed": 0,
+    "uncertain": false,
+    "acceptableRange": [
+      13,
+      13
+    ]
+  },
+  "repTimesS": [
+    {
+      "index": 1,
+      "turnaroundS": 7.8,
+      "side": null
+    },
+    {
+      "index": 2,
+      "turnaroundS": 10.9,
+      "side": null
+    },
+    {
+      "index": 3,
+      "turnaroundS": 13.4,
+      "side": null
+    },
+    {
+      "index": 4,
+      "turnaroundS": 15.9,
+      "side": null
+    },
+    {
+      "index": 5,
+      "turnaroundS": 18.3,
+      "side": null
+    },
+    {
+      "index": 6,
+      "turnaroundS": 20.6,
+      "side": null
+    },
+    {
+      "index": 7,
+      "turnaroundS": 23.1,
+      "side": null
+    },
+    {
+      "index": 8,
+      "turnaroundS": 26.1,
+      "side": null
+    },
+    {
+      "index": 9,
+      "turnaroundS": 28.7,
+      "side": null
+    },
+    {
+      "index": 10,
+      "turnaroundS": 31.8,
+      "side": null
+    },
+    {
+      "index": 11,
+      "turnaroundS": 34.9,
+      "side": null
+    },
+    {
+      "index": 12,
+      "turnaroundS": 38.2,
+      "side": null
+    },
+    {
+      "index": 13,
+      "turnaroundS": 41.1,
+      "side": null
+    }
+  ],
+  "activeWindowS": [
+    6.6,
+    42.4
+  ],
+  "frameIntervalS": {
+    "min": 0.0333,
+    "median": 0.0333,
+    "max": 0.0667
+  },
+  "turnaroundKind": "BOTTOM",
+  "edgeEvents": [
+    {
+      "timeS": 0.0,
+      "kind": "SETUP",
+      "description": "0-6,6 s: bajo la barra de la Smith, se coloca el pelo y se ajusta el agarre/hombros (casi inmóvil) antes de desbloquear y empezar a bajar hacia 7,0 s"
+    },
+    {
+      "timeS": 42.0,
+      "kind": "RERACK",
+      "description": "tras el fondo de la 13.ª (41,1 s) sube y rackea la barra (~42-43 s) y camina fuera hacia 44 s"
+    }
+  ],
+  "caveats": [],
+  "cameraMotion": {
+    "class": "SLOW_DRIFT",
+    "note": "deriva de ~7% en 44 s"
+  },
+  "softWarnings": [
+    "cámara con deriva lenta: deriva de ~7% en 44 s"
+  ]
+}

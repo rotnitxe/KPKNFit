@@ -1,29 +1,12 @@
 package com.example.kpkn.screens.programdetail
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
 import com.example.kpkn.data.models.PowerliftingProfile
 import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.models.ProgramWeek
 import com.example.kpkn.data.programs.CatalogEntry
 import com.example.kpkn.data.programs.PersonalizedPlanCatalog
 import com.example.kpkn.data.programs.PlanLabels
+import com.example.kpkn.data.protocols.KPKN_OWN_PLAN_DISCLAIMER
 import com.example.kpkn.data.protocols.PROTOCOL_LIBRARY
 import com.example.kpkn.data.protocols.PlanProvenance
 import com.example.kpkn.data.protocols.PlanProvenanceClass
@@ -56,14 +39,11 @@ internal data class ProgramPlanDisplaySummary(
     val pendingLoadCount: Int,
 )
 
-/** Texto que ocupa el lugar de un dato que falta («—»). */
-private const val MISSING_VALUE = "—"
-
 /** Las notas del plan que se enseñan antes de resumir el resto en «+N notas más». */
-private const val MAX_PLAN_NOTES = 6
+internal const val MAX_PLAN_NOTES = 6
 
 /** Los cambios registrados que se enseñan antes de resumir el resto en «+N cambios más». */
-private const val MAX_CHANGES = 4
+internal const val MAX_CHANGES = 4
 
 internal fun buildProgramPlanDisplaySummary(program: Program): ProgramPlanDisplaySummary {
     val entry = PersonalizedPlanCatalog.findForProgram(program)
@@ -173,122 +153,60 @@ private fun provenanceLabelWithoutEntry(program: Program, provenance: PlanProven
 private fun authorLine(program: Program): String? =
     program.author?.trim()?.takeIf { it.isNotEmpty() }?.let { "Autor · $it" }
 
-@Composable
-internal fun PlanDetailsSummary(
-    program: Program,
-    onOpenPlanInfo: ((CatalogEntry) -> Unit)? = null,
-) {
-    val summary = remember(program) { buildProgramPlanDisplaySummary(program) }
-    Card(
-        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
-        shape = RoundedCornerShape(18.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.45f)),
-    ) {
-        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(7.dp)) {
-            Text("Plan y procedencia", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Black)
-            PlanNameRow(planName = summary.planName, entry = summary.catalogEntry, onOpenPlanInfo = onOpenPlanInfo)
-            Text(summary.provenanceLabel, style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
-            summary.sourceLine?.let { Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant) }
-            summary.summary?.let { text ->
-                Text("Qué haces", style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold)
-                Text(text, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            }
-            if (summary.planNotes.isNotEmpty()) {
-                Text("Notas del plan", style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold)
-                summary.planNotes.take(MAX_PLAN_NOTES).forEach { note ->
-                    Text("• $note", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                }
-                if (summary.planNotes.size > MAX_PLAN_NOTES) {
-                    Text(
-                        moreLabel(summary.planNotes.size - MAX_PLAN_NOTES, "nota", "notas"),
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                }
-            }
-            SummaryLine("Material requerido", summary.requiredMaterial)
-            SummaryLine("Calendario", summary.daysPerWeek)
-            SummaryLine("Sesión más larga", summary.maxSessionMinutes?.let { "~$it min (estimación)" } ?: "Sin sesiones materializadas")
-            SummaryLine("Volumen real", summary.weeklyVolume)
-            if (summary.pendingLoadCount > 0) {
-                SummaryLine("Cargas de referencia", "${summary.pendingLoadCount} pendientes de resolver")
-            }
-            if (summary.changes.isNotEmpty()) {
-                Text("Cambios registrados", style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold)
-                summary.changes.take(MAX_CHANGES).forEach { change ->
-                    Text("• $change", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                }
-                if (summary.changes.size > MAX_CHANGES) {
-                    Text(
-                        moreLabel(summary.changes.size - MAX_CHANGES, "cambio", "cambios"),
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                }
-            }
-        }
-    }
-}
-
-/**
- * Fila «Plan: {nombre}». Con una entrada del catálogo y un destino para [onOpenPlanInfo], lleva el botón de
- * texto «Ver cómo funciona», que abre la hoja del plan en modo solo lectura.
- */
-@Composable
-private fun PlanNameRow(
-    planName: String,
-    entry: CatalogEntry?,
-    onOpenPlanInfo: ((CatalogEntry) -> Unit)?,
-) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-    ) {
-        Text(
-            text = "Plan: $planName",
-            modifier = Modifier.weight(1f),
-            style = MaterialTheme.typography.bodyMedium,
-            fontWeight = FontWeight.Bold,
-        )
-        if (entry != null && onOpenPlanInfo != null) {
-            TextButton(
-                onClick = { onOpenPlanInfo(entry) },
-                modifier = Modifier.testTag("plan_details_info_button"),
-            ) {
-                Text("Ver cómo funciona", maxLines = 1)
-            }
-        }
-    }
-}
-
-@Composable
-private fun SummaryLine(label: String, value: String) {
-    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        Text(label, modifier = Modifier.weight(0.38f), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        Text(value, modifier = Modifier.weight(0.62f), style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.SemiBold)
-    }
-}
-
 /** «+1 nota más», «+3 notas más»: concuerda con la cantidad que se resume. */
-private fun moreLabel(remaining: Int, singular: String, plural: String): String =
+internal fun moreLabel(remaining: Int, singular: String, plural: String): String =
     "+${SpanishPlurals.withNoun(remaining, singular, plural)} más"
 
 /**
  * Línea de máximos de entrenamiento del detalle: «TM: sentadilla 180 · banca 120 · peso muerto 220 kg».
- * Los enteros van sin decimales, los demás con coma («110,5»), y un máximo que falta se escribe «—». La unidad
- * solo acompaña a la línea si hay al menos un valor.
+ * Solo sale lo que existe: un máximo que falta no aparece (nunca un «—» suelto), y con un único valor la línea es, por ejemplo,
+ * «TM: banca 120 kg». Los enteros van sin decimales y los demás con coma («110,5»). Sin ningún máximo, null: la fila no se pinta.
  */
-internal fun trainingMaxLine(profile: PowerliftingProfile?): String {
-    val squat = trainingMaxValue(profile?.squatTM)
-    val bench = trainingMaxValue(profile?.benchTM)
-    val deadlift = trainingMaxValue(profile?.deadliftTM)
-    val line = "TM: sentadilla $squat · banca $bench · peso muerto $deadlift"
-    return if (listOf(squat, bench, deadlift).any { it != MISSING_VALUE }) "$line kg" else line
+internal fun trainingMaxLine(profile: PowerliftingProfile?): String? {
+    val parts = listOfNotNull(
+        trainingMaxValue(profile?.squatTM)?.let { "sentadilla $it" },
+        trainingMaxValue(profile?.benchTM)?.let { "banca $it" },
+        trainingMaxValue(profile?.deadliftTM)?.let { "peso muerto $it" },
+    )
+    if (parts.isEmpty()) return null
+    return "TM: " + parts.joinToString(" · ") + " kg"
 }
 
-private fun trainingMaxValue(value: Double?): String =
-    value?.takeIf { it.isFinite() }?.let(PlanInfoModelBuilder::formatNumber) ?: MISSING_VALUE
+/** Un máximo que existe, con su formato; null si falta, no es un número finito o no es positivo. */
+private fun trainingMaxValue(value: Double?): String? =
+    value?.takeIf { it.isFinite() && it > 0.0 }?.let(PlanInfoModelBuilder::formatNumber)
+
+/** Qué dice la fila de máximos de Propuestas: lo que hay fijado, la invitación a fijarlo si el programa usa TM, o nada. */
+internal sealed interface TrainingMaxRow {
+    /** Los máximos que existen, en una línea («TM: sentadilla 108 kg»). */
+    data class Value(val line: String) : TrainingMaxRow
+
+    /** El programa usa TM y ningún máximo está fijado: «Añadir» abre el editor. */
+    object Unset : TrainingMaxRow
+
+    /** El programa no usa TM: no hay fila. */
+    object None : TrainingMaxRow
+}
+
+/**
+ * La fila de máximos de Propuestas. [usesTm] es la regla de siempre (la receta, o el perfil si no hay receta). Si el programa usa TM y no
+ * hay ningún máximo, la fila invita a fijarlos; si no usa TM, no hay fila aunque haya máximos guardados.
+ */
+internal fun trainingMaxRowOf(usesTm: Boolean, profile: PowerliftingProfile?): TrainingMaxRow {
+    if (!usesTm) return TrainingMaxRow.None
+    val line = trainingMaxLine(profile) ?: return TrainingMaxRow.Unset
+    return TrainingMaxRow.Value(line)
+}
+
+/**
+ * La línea de procedencia de «Sobre este programa». «Plan KPKN · Plan propio de KPKN.» repetía la etiqueta: con la descripción genérica
+ * (el «Plan propio de KPKN.» de siempre) la línea pasa a ser el resumen de la ficha del catálogo, si existe; si no, no se pinta (null).
+ */
+internal fun aboutProvenanceLine(summary: ProgramPlanDisplaySummary): String? {
+    val source = summary.sourceLine?.trim()?.takeIf { it.isNotEmpty() }
+    if (source != null && source.trimEnd('.') == KPKN_OWN_PLAN_DISCLAIMER.trimEnd('.')) return summary.summary
+    return listOfNotNull(summary.provenanceLabel.takeIf { it.isNotBlank() }, source).joinToString(" · ").ifEmpty { null }
+}
 
 private fun sourceLine(provenance: PlanProvenance): String? = listOfNotNull(
     provenance.sourceTitle,

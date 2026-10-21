@@ -1,0 +1,85 @@
+{
+  "id": "wger_0068",
+  "durationS": 11.0,
+  "width": 640,
+  "height": 360,
+  "rotation": 0,
+  "fpsNominal": 60.0,
+  "fpsMeasured": 58.725,
+  "usable": true,
+  "exercise": "Encogimientos de hombros en Smith",
+  "exerciseDetail": "Encogimientos de hombros con barra en máquina Smith (la barra cuelga delante de los muslos), de pie y visto de frente",
+  "suggestedProfile": "SHRUG",
+  "view": "FRONT",
+  "people": 2,
+  "fullBodyVisible": false,
+  "faceVisible": true,
+  "plateVisible": false,
+  "startPhase": "CONCENTRIC_FIRST",
+  "reps": {
+    "full": 4,
+    "partial": 0,
+    "failed": 0,
+    "uncertain": false,
+    "acceptableRange": [
+      4,
+      5
+    ]
+  },
+  "repTimesS": [
+    {
+      "index": 1,
+      "turnaroundS": 4.4,
+      "side": null
+    },
+    {
+      "index": 2,
+      "turnaroundS": 6.1,
+      "side": null
+    },
+    {
+      "index": 3,
+      "turnaroundS": 8.0,
+      "side": null
+    },
+    {
+      "index": 4,
+      "turnaroundS": 10.0,
+      "side": null
+    }
+  ],
+  "activeWindowS": [
+    1.0,
+    10.9
+  ],
+  "frameIntervalS": {
+    "min": 0.0167,
+    "median": 0.0167,
+    "max": 0.0333
+  },
+  "turnaroundKind": "TOP",
+  "edgeEvents": [
+    {
+      "timeS": 0.0,
+      "kind": "SETUP",
+      "description": "0-2,0 s: se agacha a coger la barra de la Smith y se incorpora (la subida hasta de pie a ~2,0 s no es un encogimiento); a partir de ~3 s empiezan los encogimientos"
+    },
+    {
+      "timeS": 10.9,
+      "kind": "TRUNCATED_END",
+      "description": "tras el 4.º encogimiento (10,0 s) baja y el clip termina a los 11,0 s con los hombros abajo"
+    }
+  ],
+  "caveats": [
+    "el recorrido de los hombros es de pocos centímetros: perfil de baja fiabilidad (tier C); el recuento se apoya en el flujo en la zona de los hombros y en la comparación de fotogramas a t±0,7 s"
+  ],
+  "cameraMotion": {
+    "class": "SLOW_DRIFT",
+    "note": "deriva suave de mano. Medido con ORB+RANSAC sobre el fondo, zona del sujeto excluida en 1,0-10,9 s: recorrido acumulado p2p 0,8% en x y 7,8% en y, escala 0,97-1,00, velocidad media 1,00 %/s (máx. 2,8% en 1 s)"
+  },
+  "softWarnings": [
+    "cámara con deriva lenta: deriva suave de mano. Medido con ORB+RANSAC sobre el fondo, zona del sujeto excluida en 1,0-10,9 s: recorrido acumulado p2p 0,8% en x y 7,8% en y, escala 0,97-1,00, velocidad media 1,00 %/s (máx. 2,8% en 1 s)",
+    "varias personas: 2 distinguibles (el sujeto domina el encuadre; las demás son pequeñas o están al fondo)",
+    "recuento ambiguo por medio ciclo en el borde del clip o por repeticiones dudosas: rango aceptable 4-5 (ver edgeEvents)"
+  ]
+}

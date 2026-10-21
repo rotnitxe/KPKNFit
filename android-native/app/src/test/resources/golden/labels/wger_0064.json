@@ -1,0 +1,88 @@
+{
+  "id": "wger_0064",
+  "durationS": 12.654,
+  "width": 640,
+  "height": 360,
+  "rotation": 0,
+  "fpsNominal": 29.951,
+  "fpsMeasured": 29.951,
+  "usable": true,
+  "exercise": "Fondos en paralelas",
+  "exerciseDetail": "Fondos en paralelas en una estación de fondos (agarres paralelos a la altura de la cadera), con las piernas flexionadas hacia atrás, vista lateral",
+  "suggestedProfile": "DIP",
+  "view": "SIDE",
+  "people": 2,
+  "fullBodyVisible": true,
+  "faceVisible": true,
+  "plateVisible": false,
+  "startPhase": "ECCENTRIC_FIRST",
+  "reps": {
+    "full": 5,
+    "partial": 0,
+    "failed": 0,
+    "uncertain": false,
+    "acceptableRange": [
+      5,
+      6
+    ]
+  },
+  "repTimesS": [
+    {
+      "index": 1,
+      "turnaroundS": 2.8,
+      "side": null
+    },
+    {
+      "index": 2,
+      "turnaroundS": 5.4,
+      "side": null
+    },
+    {
+      "index": 3,
+      "turnaroundS": 7.6,
+      "side": null
+    },
+    {
+      "index": 4,
+      "turnaroundS": 9.9,
+      "side": null
+    },
+    {
+      "index": 5,
+      "turnaroundS": 12.2,
+      "side": null
+    }
+  ],
+  "activeWindowS": [
+    1.8,
+    12.65
+  ],
+  "frameIntervalS": {
+    "min": 0.0334,
+    "median": 0.0334,
+    "max": 0.0334
+  },
+  "turnaroundKind": "BOTTOM",
+  "edgeEvents": [
+    {
+      "timeS": 0.0,
+      "kind": "SETUP",
+      "description": "0-1,8 s: el sujeto se coloca en las paralelas con la cámara que se recoloca (reencuadre a ~0,6 s); posible fondo a 0,0-0,3 s no contado (rango 5-6)"
+    },
+    {
+      "timeS": 12.65,
+      "kind": "TRUNCATED_END",
+      "description": "tras el 5.º fondo (12,2 s) sube y el clip termina a los 12,65 s"
+    }
+  ],
+  "caveats": [],
+  "cameraMotion": {
+    "class": "REFRAME",
+    "note": "reencuadre de mano a ~0,6 s (antes de las repeticiones) y después estable con vibración de mano de ±2,5% (tremor). Medido con ORB+RANSAC sobre bordes laterales del encuadre (x < 15% y x > 85%) en 1,8-12,7 s: recorrido acumulado p2p 3,8% en x y 6,8% en y, escala 1,00-1,01, velocidad media 2,84 %/s (máx. 4,7% en 1 s)"
+  },
+  "softWarnings": [
+    "reencuadre de cámara fuera de las repeticiones: reencuadre de mano a ~0,6 s (antes de las repeticiones) y después estable con vibración de mano de ±2,5% (tremor). Medido con ORB+RANSAC sobre bordes laterales del encuadre (x < 15% y x > 85%) en 1,8-12,7 s: recorrido acumulado p2p 3,8% en x y 6,8% en y, escala 1,00-1,01, velocidad media 2,84 %/s (máx. 4,7% en 1 s)",
+    "varias personas: 2 distinguibles (el sujeto domina el encuadre; las demás son pequeñas o están al fondo)",
+    "recuento ambiguo por medio ciclo en el borde del clip o por repeticiones dudosas: rango aceptable 5-6 (ver edgeEvents)"
+  ]
+}

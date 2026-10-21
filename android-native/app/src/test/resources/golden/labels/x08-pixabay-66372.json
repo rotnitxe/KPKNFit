@@ -1,0 +1,92 @@
+{
+  "id": "x08-pixabay-66372",
+  "durationS": 18.005,
+  "width": 1280,
+  "height": 720,
+  "rotation": 0,
+  "fpsNominal": 30.0,
+  "fpsMeasured": 30.0,
+  "usable": true,
+  "exercise": "Zancada estática con barra (sentadilla dividida)",
+  "exerciseDetail": "Zancada estática / sentadilla dividida con barra a la espalda (misma pierna adelantada, sin dar pasos), vista de espaldas",
+  "suggestedProfile": "LUNGE",
+  "view": "BACK",
+  "people": 1,
+  "fullBodyVisible": true,
+  "faceVisible": false,
+  "plateVisible": true,
+  "startPhase": "ECCENTRIC_FIRST",
+  "reps": {
+    "full": 6,
+    "partial": 0,
+    "failed": 0,
+    "uncertain": false,
+    "acceptableRange": [
+      6,
+      6
+    ]
+  },
+  "repTimesS": [
+    {
+      "index": 1,
+      "turnaroundS": 7.45,
+      "side": "left"
+    },
+    {
+      "index": 2,
+      "turnaroundS": 9.1,
+      "side": "left"
+    },
+    {
+      "index": 3,
+      "turnaroundS": 11.0,
+      "side": "left"
+    },
+    {
+      "index": 4,
+      "turnaroundS": 12.8,
+      "side": "left"
+    },
+    {
+      "index": 5,
+      "turnaroundS": 14.7,
+      "side": "left"
+    },
+    {
+      "index": 6,
+      "turnaroundS": 16.6,
+      "side": "left"
+    }
+  ],
+  "activeWindowS": [
+    5.6,
+    17.9
+  ],
+  "frameIntervalS": {
+    "min": 0.0333,
+    "median": 0.0333,
+    "max": 0.0333
+  },
+  "turnaroundKind": "BOTTOM",
+  "edgeEvents": [
+    {
+      "timeS": 0.0,
+      "kind": "SETUP",
+      "description": "0-5,5 s: ya con la barra en la espalda, da pasos fuera del rack y coloca la zancada (pies escalonados); sin repeticiones"
+    },
+    {
+      "timeS": 17.5,
+      "kind": "TRUNCATED_END",
+      "description": "la 6.ª repetición termina de subir hacia 17,5 s y el clip acaba a los 18,0 s antes de que se mueva más"
+    }
+  ],
+  "caveats": [
+    "el manifiesto lo daba como 'sentadilla trasera' pero es una zancada estática (sentadilla dividida) con barra, vista de espaldas",
+    "unos 5,5 s de preparación (sacar la barra del rack y colocar la zancada) antes de la primera repetición"
+  ],
+  "cameraMotion": {
+    "class": "STATIC",
+    "note": "cámara fija"
+  },
+  "softWarnings": []
+}

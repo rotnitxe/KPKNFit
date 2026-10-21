@@ -13,6 +13,8 @@ import com.example.kpkn.data.repository.ProgramRepository
 import com.example.kpkn.data.repository.StartWorkoutResult
 import com.example.kpkn.domain.auge.AugeFatigueEngine
 import com.example.kpkn.domain.auge.MuscularSessionImpactEngine
+import com.example.kpkn.domain.discomfort.DiscomfortHistory
+import com.example.kpkn.domain.discomfort.DiscomfortSession
 import com.example.kpkn.domain.energy.TrainingEnergyEngine
 import com.example.kpkn.domain.calculations.calculateHybrid1RM
 import com.example.kpkn.domain.calculations.calculateSuggestedLoad
@@ -33,6 +35,7 @@ import com.example.kpkn.domain.training.ProgramCalendarEngine
 import com.example.kpkn.domain.training.PlanMaterializer
 import com.example.kpkn.domain.training.canonicalEquipmentKind
 import com.example.kpkn.domain.training.machineRangeForExercise
+import com.example.kpkn.domain.workout.LiveSessionReorder
 import com.example.kpkn.domain.workout.LoadSuggestionEngine
 import com.example.kpkn.domain.workout.TagProgressionAnalyzer
 import com.example.kpkn.domain.workout.WarmupCalibrationEngine
@@ -73,6 +76,8 @@ import com.example.kpkn.services.workout.VoicePipelineStage
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.channels.consumeEach
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -91,6 +96,9 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.update
 import com.example.kpkn.domain.auge.AugeRecoveryEngine
 import com.example.kpkn.domain.relator.RelatorLongTermMemory
+import com.example.kpkn.domain.relator.RelatorMoment
+import com.example.kpkn.domain.relator.RelatorMomentClock
+import com.example.kpkn.domain.relator.RelatorMomentInput
 import com.example.kpkn.domain.relator.RelatorSelectorState
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
@@ -194,16 +202,32 @@ class WorkoutViewModel(
         RelatorResolution(text = null, holdPrevious = false, phaseKey = "hidden"),
     )
     internal val relatorResolution: StateFlow<RelatorResolution> = _relatorResolution.asStateFlow()
+    private val _relatorLoadPopTrigger = MutableStateFlow<Long>(0L)
+    val relatorLoadPopTrigger: StateFlow<Long> = _relatorLoadPopTrigger.asStateFlow()
+    internal data class RelatorLoadUndo(
+        val exerciseId: String,
+        val setIndex: Int,
+        val side: String?,
+        val previousDraft: WorkoutSetDraft?,
+        val exerciseIdentity: String,
+    )
+    private var lastRelatorLoadUndo: RelatorLoadUndo? = null
     private val _relatorWarmupDrafts = MutableStateFlow<Map<String, String>>(emptyMap())
-    private val _relatorIdleCycle = MutableStateFlow(0)
     private val _relatorUiHook = MutableStateFlow<RelatorUiHook?>(null)
     val relatorUiHook: StateFlow<RelatorUiHook?> = _relatorUiHook.asStateFlow()
     private val relatorChangeTracker = RelatorChangeTracker()
     private var relatorSelectorState = RelatorSelectorState()
     private var relatorLongTerm = RelatorLongTermMemory.decode(repository.settings.value.relatorMemoryJson)
     private var lastRelatorText: String? = null
-    private var relatorIdleJob: Job? = null
-    private var relatorIdleIdentity: String = ""
+    // Reloj de momentos del relator (LR1g): decide cuándo habla; el mensaje solo se resuelve en ese momento.
+    private val relatorMoments = RelatorMomentClock()
+    private val relatorTicks = Channel<Unit>(Channel.CONFLATED)
+    private var relatorWake: Job? = null
+    private var relatorLastSlice: RelatorUiSlice? = null
+    private var relatorSliceDirty = false
+    private var relatorEditRevision = 0L
+    private var relatorAssistKey: String? = null
+    private val relatorMilestonesSeen = HashSet<String>()
     private var lastPersistedRelatorMemoryJson: String? = repository.settings.value.relatorMemoryJson
     val cardioGpsState: StateFlow<CardioGpsState> = CardioGpsTracker.state
     val cardioHealthState: StateFlow<com.example.kpkn.services.cardio.CardioHealthState> = cardioHealthProvider.state
@@ -421,7 +445,12 @@ class WorkoutViewModel(
                 sessionName = state.session?.name,
             )
         },
-        poseTrajectoryEnabled = { _uiState.value.featureFlags.poseTrajectoryEnabled },
+        // El álbum por ejercicio (LV8) nombra el esfuerzo de cada medio solo si la serie con la que se guardó está en la sesión en curso.
+        effortLabelProvider = { media ->
+            com.example.kpkn.data.media.ExerciseAlbumModel.completedSetKey(media)
+                ?.let { key -> _uiState.value.completedSets[key] }
+                ?.let(com.example.kpkn.data.media.ExerciseAlbumModel::effortLabel)
+        },
     )
 
     private val structuralPersistence = WorkoutStructuralPersistenceController(
@@ -918,6 +947,7 @@ class WorkoutViewModel(
         initExtractedControllers()
         startRelatorPipeline()
         loadTodayWellbeingForRelator()
+        watchRestOverrun()
         voiceController.initialize(viewModelScope)
         voiceController.structuralPersistenceOptionsProvider = { replacementScopeOptions().toSet() }
         voiceController.structuralPersistencePromptProvider = { voiceStructuralPersistencePrompt(replacementScopeOptions()) }
@@ -1635,6 +1665,7 @@ class WorkoutViewModel(
         // An already-running record is allowed to complete and is awaited by
         // WorkoutFinishController before it snapshots the log.
         if (!canStartWorkoutRecording(_uiState.value)) return RecordSetResult.Rejected("El entreno está cerrándose.")
+        lastRelatorLoadUndo = null
         val exercise = visibleExercises(_uiState.value).getOrNull(_uiState.value.currentExerciseIdx)
         val result = try {
             setRecorder.record(
@@ -1851,6 +1882,18 @@ class WorkoutViewModel(
         preferredSide = preferredSide,
     )
 
+    /** Card callbacks carry catalog identity because replacement deliberately retains the session-slot ID. */
+    internal fun updateSetDraftFromExercise(
+        sourceExercise: Exercise,
+        setIdx: Int,
+        side: String? = null,
+        draft: WorkoutSetDraft,
+    ) {
+        val current = visibleExercises(_uiState.value).firstOrNull { it.id == sourceExercise.id }
+        if (!workoutSetDraftSourceIsCurrent(current, sourceExercise, setIdx)) return
+        updateSetDraft(sourceExercise.id, setIdx, side, draft)
+    }
+
     fun updateSetDraft(
         exerciseId: String,
         setIdx: Int,
@@ -2037,6 +2080,10 @@ class WorkoutViewModel(
         if (voiceController.isEnabled()) voiceController.setCaptureMode(mode)
     }
 
+    fun requestVoiceCaptureModeChoice() {
+        updateUiState { it.copy(showVoiceCaptureModeDialog = true) }
+    }
+
     fun hideVoiceCaptureModeDialog() {
         updateUiState { it.copy(showVoiceCaptureModeDialog = false) }
     }
@@ -2216,7 +2263,8 @@ class WorkoutViewModel(
     ): Pair<Int, Int> = stepNavigator.resolveResumePosition(exercises, completedSets, preferredExerciseId, preferredSetId)
 
 
-    private fun visibleExercises(state: WorkoutUiState): List<Exercise> {
+    /** Los ejercicios a la vista (sin los omitidos), en el orden de la sesión. Interno: el descanso lo usa para decir qué toca después. */
+    internal fun visibleExercises(state: WorkoutUiState): List<Exercise> {
         val base = state.session ?: return emptyList()
         val byMode = sessionForActiveMode(base, state.activeMode).liveRoadmapExercises()
         if (state.skippedExerciseIds.isEmpty()) return byMode
@@ -2452,9 +2500,6 @@ class WorkoutViewModel(
     private fun Session.reorderExercisesByIds(partId: String?, orderedExerciseIds: List<String>): Session =
         WorkoutStructuralEditor.reorderExercisesByIds(this, partId, orderedExerciseIds)
 
-    private fun Session.globalReorder(orderedExerciseIds: List<String>, originalPartMap: Map<String, String>): Session =
-        WorkoutStructuralEditor.globalReorder(this, orderedExerciseIds, originalPartMap)
-
     private fun ExerciseSet.normalizeWorkoutSet(exercise: Exercise): ExerciseSet {
         val normalized = WorkoutEditingRules.normalizeLiveEditedSet(exercise.trainingMode, this)
         val autoWeight = calculateSuggestedLoad(exercise, normalized) ?: normalized.weight
@@ -2535,7 +2580,7 @@ class WorkoutViewModel(
             // and input hash instead of creating a second operation.
             val existingSnapshot = state.finishResumeSnapshot
             if (existingSnapshot != null) {
-                return@updateUiState state.copy(showFinishSheet = true)
+                return@updateUiState state.copy(showFinishSheet = true, finishClosedPending = false)
             }
             val visible = visibleExercises(state)
             val currentExercise = visible.getOrNull(state.currentExerciseIdx)
@@ -2565,6 +2610,7 @@ class WorkoutViewModel(
             )
             state.copy(
                 showFinishSheet = true,
+                finishClosedPending = false,
                 finishResumeSnapshot = snapshot,
                 postExerciseTargetIdx = -1,
                 postExerciseFeedbackTarget = null,
@@ -3011,58 +3057,42 @@ class WorkoutViewModel(
         applySessionMutation(updatedSession, preferredExerciseId = currentExerciseId, persistToProgram = false)
     }
 
-    fun reorderExercisesPreservingParts(orderedExerciseIds: List<String>) {
+    /**
+     * Ordena la sesión en vivo con [LiveSessionReorder] (LV4, 10.1): el orden pedido SE APLICA (si para lograrlo un ejercicio cambia de
+     * grupo, cambia) y los ejercicios que no vienen en la lista (los omitidos) se conservan. Antes, el reparto por partes ignoraba en
+     * silencio el orden que no cabía en ellas y, sin partes, se llevaba por delante los omitidos.
+     */
+    private fun reorderLive(orderedExerciseIds: List<String>) {
         val state = _uiState.value
         val base = state.session ?: return
         val currentExerciseId = visibleExercises(state).getOrNull(state.currentExerciseIdx)?.id
+        val ids = orderedExerciseIds.distinct()
         val updatedSession = withModeSession(base, state.activeMode) { modeSession ->
-            if (modeSession.parts.isEmpty()) {
-                val lookup = modeSession.exercises.associateBy { it.id }
-                val reordered = orderedExerciseIds.mapNotNull(lookup::get)
-                if (reordered == modeSession.exercises) modeSession
-                else modeSession.copy(exercises = reordered)
-            } else {
-                var changed = false
-                val newParts = modeSession.parts.map { part ->
-                    val partOrdered = orderedExerciseIds.filter { id -> part.exercises.any { it.id == id } }
-                    if (partOrdered.size != part.exercises.size) return@map part
-                    val lookup = part.exercises.associateBy { it.id }
-                    val reordered = partOrdered.mapNotNull(lookup::get)
-                    if (reordered == part.exercises) part
-                    else { changed = true; part.copy(exercises = reordered) }
-                }
-                if (changed) modeSession.copy(parts = newParts) else modeSession
-            }
+            LiveSessionReorder.plan(modeSession, ids).session
         }
         if (updatedSession == base) return
         applySessionMutation(updatedSession, preferredExerciseId = currentExerciseId, persistToProgram = false)
     }
 
-    fun reorderExercisesGlobally(orderedExerciseIds: List<String>, originalPartMap: Map<String, String>) {
-        val state = _uiState.value
-        val base = state.session ?: return
-        val currentExerciseId = visibleExercises(state).getOrNull(state.currentExerciseIdx)?.id
-        val updatedSession = withModeSession(base, state.activeMode) { modeSession ->
-            modeSession.globalReorder(orderedExerciseIds.distinct(), originalPartMap)
-        }
-        if (updatedSession == base) return
-        applySessionMutation(updatedSession, preferredExerciseId = currentExerciseId, persistToProgram = false)
-    }
+    fun reorderExercisesPreservingParts(orderedExerciseIds: List<String>) = reorderLive(orderedExerciseIds)
+
+    @Suppress("UNUSED_PARAMETER")
+    fun reorderExercisesGlobally(orderedExerciseIds: List<String>, originalPartMap: Map<String, String>) =
+        reorderLive(orderedExerciseIds)
 
     fun applyReorderAndPromptPersistence(orderedExerciseIds: List<String>, originalPartMap: Map<String, String>, isGlobal: Boolean) {
         val state = _uiState.value
         val base = state.session ?: return
         val snapshot = captureGodModeUndoSnapshot("Reordenar ejercicios")
-        if (isGlobal) {
-            reorderExercisesGlobally(orderedExerciseIds, originalPartMap)
-        } else {
-            reorderExercisesPreservingParts(orderedExerciseIds)
-        }
+        reorderLive(orderedExerciseIds)
         if (_uiState.value.session == base) return
-        val activeSession = _uiState.value.session?.let { withModeSession(it, _uiState.value.activeMode) { active -> active } }
+        val activeSession = _uiState.value.session?.let { sessionForActiveMode(it, _uiState.value.activeMode) }
         val orderedCanonicalKeys = activeSession?.allExercises()?.map { it.resolvedCanonicalExerciseId() }.orEmpty()
-        val orderedPartKeys = activeSession?.parts?.flatMap { part ->
-            part.exercises.map { part.name }
+        // Nombre de la parte de cada ejercicio, en el mismo orden que las claves de arriba (null = suelto).
+        val orderedPartKeys = activeSession?.let { session ->
+            session.allExercises().map { exercise ->
+                session.parts.firstOrNull { part -> part.exercises.any { it.id == exercise.id } }?.name
+            }
         }.orEmpty()
         updateUiState {
             it.copy(
@@ -3181,7 +3211,6 @@ class WorkoutViewModel(
     }
 
     fun removeSetFromExercise(exerciseId: String, setIndex: Int) {
-        pushGodModeUndo("Eliminar serie")
         val state = _uiState.value
         val exercise = visibleExercises(state).firstOrNull { it.id == exerciseId } ?: return
         if (exercise.sets.size <= 1) return
@@ -3190,6 +3219,8 @@ class WorkoutViewModel(
             WorkoutStructuralEditor.removeSetFromExercise(modeSession, exerciseId, setIndex)
         }
         if (updatedSession == base) return
+        // El «Deshacer» solo se guarda si de verdad cambia algo (LV4, 10.2): antes se guardaba al entrar, aunque no hubiera nada que quitar.
+        pushGodModeUndo("Eliminar serie")
         applySessionMutation(updatedSession, preferredExerciseId = exerciseId, persistToProgram = false)
         persistOngoingState()
         updateUiState {
@@ -3206,7 +3237,6 @@ class WorkoutViewModel(
     }
 
     fun removeExerciseFromSession(exerciseId: String) {
-        pushGodModeUndo("Eliminar ejercicio")
         val state = _uiState.value
         val visible = visibleExercises(state)
         if (visible.size <= 1) return
@@ -3220,6 +3250,9 @@ class WorkoutViewModel(
             WorkoutStructuralEditor.removeExerciseById(modeSession, exerciseId)
         }
         if (updatedSession == base) return
+        // El «Deshacer» solo se guarda si de verdad se elimina algo (LV4, 10.2): con un solo ejercicio a la vista no se puede eliminar y
+        // antes se guardaba igual una entrada que no deshacía nada.
+        pushGodModeUndo("Eliminar ejercicio")
         applySessionMutation(updatedSession, preferredExerciseId = preferredId, persistToProgram = false)
         persistOngoingState()
         updateUiState {
@@ -3237,7 +3270,6 @@ class WorkoutViewModel(
     fun removeExercisesFromSession(exerciseIds: List<String>) {
         val ids = exerciseIds.distinct()
         if (ids.isEmpty()) return
-        pushGodModeUndo("Eliminar ejercicios")
         val state = _uiState.value
         val visible = visibleExercises(state)
         if (visible.size <= ids.size) return
@@ -3248,6 +3280,7 @@ class WorkoutViewModel(
             WorkoutStructuralEditor.removeExercisesByIds(modeSession, ids)
         }
         if (updatedSession == base) return
+        pushGodModeUndo("Eliminar ejercicios")
         applySessionMutation(updatedSession, preferredExerciseId = neighborId, persistToProgram = false)
         persistOngoingState()
         updateUiState {
@@ -3391,6 +3424,19 @@ class WorkoutViewModel(
         updateUiState { it.copy(ultraFastApplied = false) }
     }
 
+    fun setQuickRecordingTechnique(exerciseId: String, fromIndex: Int, technique: SeriesTechnique) {
+        val state = _uiState.value
+        val exercise = visibleExercises(state).getOrNull(state.currentExerciseIdx) ?: return
+        if (exercise.id != exerciseId || state.currentSetIdx != fromIndex) return
+        val updated = com.example.kpkn.domain.sessionassistant.applyQuickSeriesTechnique(
+            exercise, state.completedSets, fromIndex, technique,
+        )
+        if (updated == exercise) return
+        pushGodModeUndo("Técnica de Ultrarrápido")
+        updateExerciseDefinition(exerciseId) { updated }
+        refreshLoadSuggestions(_uiState.value)
+    }
+
     fun updateExerciseSetPlan(exerciseId: String, setId: String, transform: (ExerciseSet) -> ExerciseSet) {
         updateExerciseDefinition(exerciseId) { exercise ->
             exercise.copy(
@@ -3401,32 +3447,25 @@ class WorkoutViewModel(
         }
     }
 
-    fun addSetToCurrentExercise() {
-        val currentExerciseIdx = _uiState.value.currentExerciseIdx
-        val currentExerciseId = visibleExercises(_uiState.value).getOrNull(currentExerciseIdx)?.id ?: return
-        val exerciseName = visibleExercises(_uiState.value).getOrNull(currentExerciseIdx)
-            ?.let(::displayWorkoutExerciseName)
-            ?: ""
+    /**
+     * Añade una serie al final del ejercicio de turno o, con [exerciseId], al ejercicio en el que se pidió (las opciones de la serie, LV11:
+     * en una superserie la serie pulsada puede ser de un miembro que no es el de turno). Guarda su «Deshacer» como cualquier cambio de
+     * estructura.
+     */
+    fun addSetToCurrentExercise(exerciseId: String? = null) {
+        val visible = visibleExercises(_uiState.value)
+        val target = exerciseId?.let { id -> visible.firstOrNull { it.id == id } }
+            ?: visible.getOrNull(_uiState.value.currentExerciseIdx)
+            ?: return
+        val currentExerciseId = target.id
+        val exerciseName = displayWorkoutExerciseName(target)
+        // El «Deshacer» se guarda antes del cambio: la serie nueva siempre se añade (el ejercicio existe y a la vista).
+        pushGodModeUndo("Añadir serie")
         // Add the set to the live session immediately
         updateExerciseDefinition(currentExerciseId, persistToProgram = false) { exercise ->
-            val lastSet = exercise.sets.lastOrNull()
-            val lastSetIdx = exercise.sets.lastIndex
-            val effectiveMode = effectiveLoadModeForExercise(exercise, lastSetIdx)
-            val newSet = ExerciseSet(
-                id = UUID.randomUUID().toString(),
-                targetReps = lastSet?.targetReps,
-                targetRepsRange = lastSet?.targetRepsRange,
-                targetRPE = lastSet?.targetRPE,
-                targetRIR = lastSet?.targetRIR,
-                weight = lastSet?.weight,
-                loadModeV2 = effectiveMode,
-                unitModeV2 = lastSet?.unitModeV2,
-                intensityMode = lastSet?.intensityMode,
-                targetDuration = lastSet?.targetDuration,
-                targetPercentageRM = lastSet?.targetPercentageRM,
-                isAmrap = false,
-            )
-            exercise.copy(sets = exercise.sets + newSet)
+            // La serie nueva sale como la última, con el tipo de carga que esa serie enseña ahora (el recuerdo de la sesión o su plan).
+            val effectiveMode = effectiveLoadModeForExercise(exercise, exercise.sets.lastIndex)
+            exercise.copy(sets = exercise.sets + plannedSetAfterLast(exercise, loadMode = effectiveMode))
         }
         // Show persistence prompt
         updateUiState { it.copy(
@@ -3462,6 +3501,7 @@ class WorkoutViewModel(
             structuralPersistence.insertExerciseAfter(modeSession, exerciseId, newExercise)
         }
         if (updatedSession == base) return
+        pushGodModeUndo("Agregar ejercicio")
         applySessionMutation(updatedSession, preferredExerciseId = newId, persistToProgram = false)
         updateUiState { it.copy(
             pendingEditSheetExerciseId = newId,
@@ -3512,6 +3552,7 @@ class WorkoutViewModel(
             lastInsertedId = newId
         }
         if (updated == base) return
+        pushGodModeUndo("Agregar ejercicios")
         applySessionMutation(updated, preferredExerciseId = firstNewId, persistToProgram = false)
         updateUiState {
             it.copy(
@@ -3543,6 +3584,7 @@ class WorkoutViewModel(
                 structuralPersistence.insertExerciseAtEnd(modeSession, newExercise)
             }
             if (updated == base) return
+            pushGodModeUndo("Agregar ejercicio")
             applySessionMutation(updated, preferredExerciseId = newId, persistToProgram = false)
             updateUiState { it.copy(pendingEditSheetExerciseId = newId) }
         }
@@ -3556,7 +3598,13 @@ class WorkoutViewModel(
         if (lastEx != null) {
             addExercisesAfter(lastEx.id, infos)
         } else {
+            val previousUndo = state.godModeUndoStack
+            val snapshot = captureGodModeUndoSnapshot(if (infos.size == 1) "Agregar ejercicio" else "Agregar ejercicios")
             infos.forEach { addExerciseAtEnd(it) }
+            if (_uiState.value.session != base) {
+                // Varias altas desde el catálogo son una sola acción: las delegadas no duplican la pila.
+                updateUiState { it.copy(godModeUndoStack = previousUndo + snapshot) }
+            }
         }
     }
 
@@ -3634,12 +3682,16 @@ class WorkoutViewModel(
     ) = structuralPersistence.applyReplacementDecision(exerciseId, replacement, scope)
 
     fun skipExercise(exerciseId: String) {
+        // Solo se omite lo que está a la vista (LV4, 10.2): un ejercicio ya omitido o que no existe no tiene nada que omitir ni que
+        // deshacer, y antes dejaba igual su entrada de «Deshacer».
+        if (visibleExercises(_uiState.value).none { it.id == exerciseId }) return
         pushGodModeUndo("Omitir ejercicio")
         skipExerciseInternal(exerciseId)
     }
 
     fun skipExercises(exerciseIds: List<String>) {
-        val ids = exerciseIds.distinct()
+        val visibleIds = visibleExercises(_uiState.value).map { it.id }.toSet()
+        val ids = exerciseIds.distinct().filter { it in visibleIds }
         if (ids.isEmpty()) return
         pushGodModeUndo(if (ids.size == 1) "Omitir ejercicio" else "Omitir ejercicios")
         ids.forEach(::skipExerciseInternal)
@@ -3670,8 +3722,10 @@ class WorkoutViewModel(
     fun skipSet() = stepNavigator.skipSet()
 
     fun omitSet(exerciseId: String, setIdx: Int) {
-        pushGodModeUndo("Omitir serie")
         val key = WorkoutStepRules.omittedSetKey(exerciseId, setIdx)
+        // Una serie ya omitida no se omite dos veces ni deja otra entrada de «Deshacer» (LV4, 10.2).
+        if (key in _uiState.value.omittedSetKeys) return
+        pushGodModeUndo("Omitir serie")
         updateUiState { state ->
             if (key in state.omittedSetKeys) return@updateUiState state
             val nextState = state.copy(omittedSetKeys = state.omittedSetKeys + key)
@@ -3704,7 +3758,7 @@ class WorkoutViewModel(
         }
     }
 
-    internal fun performRelatorAssist(action: RelatorAssistAction) {
+    internal fun performRelatorAssist(action: RelatorAssistAction): RelatorAssistAck {
         val assistKey = listOf(
             action.kind.name,
             action.exerciseId,
@@ -3712,9 +3766,10 @@ class WorkoutViewModel(
             action.side,
             action.mobilityId,
             action.span,
+            action.undoPreviousLoad.toString(),
         ).joinToString(":")
         val now = System.currentTimeMillis()
-        if (assistKey == lastRelatorAssistKey && now - lastRelatorAssistAtMs < 500L) return
+        if (assistKey == lastRelatorAssistKey && now - lastRelatorAssistAtMs < 500L) return RelatorAssistAck(action.kind, applied = false)
         lastRelatorAssistKey = assistKey
         lastRelatorAssistAtMs = now
         val targetName = relatorAssistTargetName(action)
@@ -3838,6 +3893,7 @@ class WorkoutViewModel(
                     false
                 } else {
                     updateUiState { it.copy(pendingEditSheetExerciseId = exerciseId) }
+                    _relatorUiHook.value = RelatorUiHook(RelatorAssistActionKind.OPEN_TECHNIQUE, exerciseId)
                     true
                 }
             }
@@ -3869,13 +3925,19 @@ class WorkoutViewModel(
                 true
             }
         }
-        publishRelatorAssistAck(
-            RelatorAssistAck(
-                kind = action.kind,
-                applied = applied,
-                detail = targetName,
-            ),
+        val loadUndo = lastRelatorLoadUndo?.takeIf {
+            applied && !action.undoPreviousLoad &&
+                (action.kind == RelatorAssistActionKind.APPLY_SUGGESTED_LOAD || action.kind == RelatorAssistActionKind.ADJUST_LOAD)
+        }
+        fun actualKg(text: String?): Double? = text?.replace(',', '.')?.toDoubleOrNull()?.takeIf { it.isFinite() && it >= 0.0 }
+        val ack = RelatorAssistAck(
+            kind = action.kind, applied = applied, detail = targetName,
+            appliedWeightKg = loadUndo?.let { actualKg(getSetDraft(it.exerciseId, it.setIndex, it.side)?.weightText) },
+            previousWeightKg = actualKg(loadUndo?.previousDraft?.weightText),
+            canUndoLoad = loadUndo != null,
         )
+        publishRelatorAssistAck(ack)
+        return ack
     }
 
     private fun relatorAssistTargetName(action: RelatorAssistAction): String {
@@ -3921,13 +3983,15 @@ class WorkoutViewModel(
             ?: getWeightSuggestionWithAutoRegulation(exercise, setIdx, state.exerciseTags[exerciseId], side)
                 ?.suggestedWeight
             ?: return false
-        val previous = getSetDraft(exerciseId, setIdx, side) ?: WorkoutSetDraft()
+        val previous = getSetDraft(exerciseId, setIdx, side)
+        lastRelatorLoadUndo = RelatorLoadUndo(exerciseId, setIdx, side, previous, relatorExerciseIdentity(exercise))
         updateSetDraft(
             exerciseId,
             setIdx,
             side,
-            previous.copy(weightText = formatRelatorLoad(kg), isDirty = true),
+            (previous ?: WorkoutSetDraft()).copy(weightText = formatRelatorLoad(kg), isDirty = true),
         )
+        triggerRelatorLoadPop()
         return true
     }
 
@@ -3937,6 +4001,20 @@ class WorkoutViewModel(
         val exercise = visibleExercises(state).firstOrNull { it.id == exerciseId } ?: return false
         val setIdx = action.setIndex.takeIf { it >= 0 } ?: state.currentSetIdx
         val side = action.side.takeIf { it.isNotBlank() } ?: state.editingState?.side
+        if (action.undoPreviousLoad || action.label.startsWith("vuelve a", ignoreCase = true)) {
+            if (lastRelatorLoadUndo?.exerciseIdentity != relatorExerciseIdentity(exercise)) {
+                lastRelatorLoadUndo = null
+                return false
+            }
+            val undo = lastRelatorLoadUndo?.takeIf {
+                it.exerciseId == exerciseId && it.setIndex == setIdx && it.side == side
+            } ?: return false
+            val restored = undo.previousDraft ?: WorkoutSetDraft()
+            updateSetDraft(exerciseId, setIdx, side, restored)
+            lastRelatorLoadUndo = null
+            triggerRelatorLoadPop()
+            return true
+        }
         val previous = getSetDraft(exerciseId, setIdx, side)
         val currentKg = action.weightKg
             ?: previous?.weightText?.replace(',', '.')?.toDoubleOrNull()
@@ -3950,13 +4028,19 @@ class WorkoutViewModel(
             currentKg * (1.0 + (action.loadDeltaPercent ?: -5.0) / 100.0)
         }
         val rounded = LoadSuggestionEngine.roundLoad(next.coerceAtLeast(0.0))
+        lastRelatorLoadUndo = RelatorLoadUndo(exerciseId, setIdx, side, previous, relatorExerciseIdentity(exercise))
         updateSetDraft(
             exerciseId,
             setIdx,
             side,
             (previous ?: WorkoutSetDraft()).copy(weightText = formatRelatorLoad(rounded), isDirty = true),
         )
+        triggerRelatorLoadPop()
         return true
+    }
+
+    fun triggerRelatorLoadPop() {
+        _relatorLoadPopTrigger.value = System.currentTimeMillis()
     }
 
     fun updateRelatorWarmupDrafts(drafts: Map<String, String>) {
@@ -4020,110 +4104,151 @@ class WorkoutViewModel(
                 getWarmupSuggestedWeight(ex, idx, tag, anchor)
             },
         )
+        // Un único consumidor, el reloj de momentos (LR1g). Los cambios de estado, los segundos de descanso y de sesión,
+        // las ayudas y los borradores solo le avisan: el mensaje se resuelve cuando el reloj decide un momento.
         viewModelScope.launch {
-            val uiSlice = _uiState.map { RelatorUiSlice.from(it) }.distinctUntilChanged()
-            val restSampled = restTimerRemaining.map { (it / 5) * 5 }.distinctUntilChanged()
-            combine(
-                uiSlice,
-                restSampled,
-                sessionTimeRemainingSeconds,
-                combine(_relatorAssistAck, _relatorIdleCycle, _relatorWarmupDrafts) { ack, idle, drafts ->
-                    Triple(ack, idle, drafts)
-                },
-            ) { _, restSeconds, sessionRemain, extra ->
-                RelatorPipelineTick(
-                    restSeconds = restSeconds,
-                    sessionRemain = sessionRemain,
-                    ack = extra.first,
-                    idleCycle = extra.second,
-                    warmupDrafts = extra.third,
-                )
-            }
-                .debounce(RELATOR_DEBOUNCE_MS)
-                .flowOn(Dispatchers.Default)
-                .collect { tick ->
-                    val packed = withContext(Dispatchers.Default) {
-                        val state = _uiState.value
-                        val snapshot = RelatorContextBuilder.buildSnapshot(
-                            state = state,
-                            queries = queries,
-                            tracker = relatorChangeTracker,
-                            restRemainingSeconds = restTimerRemaining.value,
-                            sessionTimeRemainingSeconds = tick.sessionRemain,
-                            idleCycle = tick.idleCycle,
-                            warmupWeightDrafts = tick.warmupDrafts,
-                            assistAck = tick.ack,
-                            gender = repository.settings.value.userVitals.gender,
-                            speechMemory = RelatorSpeechMemory(relatorSelectorState.fingerprints),
-                            shownConceptIds = relatorSelectorState.conceptSpokenThisSession,
-                        )
-                        val context = RelatorContextBuilder.buildContext(
-                            state = state,
-                            snapshot = snapshot,
-                            restRemainingSeconds = restTimerRemaining.value,
-                            sessionTimeRemainingSeconds = tick.sessionRemain,
-                            queries = queries,
-                        )
-                        val result = WorkoutRelatorEngine.resolve(
-                            context = context,
-                            snapshot = snapshot,
-                            selectorState = relatorSelectorState,
-                            longTermMemory = relatorLongTerm,
-                            previousText = lastRelatorText,
-                        )
-                        Triple(snapshot, result, WorkoutRelatorEngine.toUiResolution(result))
-                    }
-                    val snapshot = packed.first
-                    val result = packed.second
-                    val ui = packed.third
-                    ensureRelatorIdle(snapshot)
-                    relatorSelectorState = result.selectorState
-                    if (result.longTermMemory != relatorLongTerm) {
-                        relatorLongTerm = result.longTermMemory
-                        val encoded = relatorLongTerm.encode()
-                        if (encoded != lastPersistedRelatorMemoryJson) {
-                            lastPersistedRelatorMemoryJson = encoded
-                            repository.updateSettings { settings ->
-                                settings.copy(relatorMemoryJson = encoded)
-                            }
-                        }
-                    }
-                    if (!ui.holdPrevious) lastRelatorText = ui.text
-                    _relatorResolution.value = ui
+            relatorTicks.consumeEach { relatorMomentStep(queries) }
+        }
+        viewModelScope.launch {
+            _uiState.map { RelatorUiSlice.from(it) }.distinctUntilChanged().collect { slice ->
+                val previous = relatorLastSlice
+                // Un cambio de borrador sin cambiar de serie ni registrar es una edición (cuenta para USER_EDIT).
+                if (previous != null &&
+                    previous.currentExerciseIdx == slice.currentExerciseIdx &&
+                    previous.currentSetIdx == slice.currentSetIdx &&
+                    previous.completedSetCount == slice.completedSetCount &&
+                    previous.restRunning == slice.restRunning &&
+                    previous.draftFingerprint != slice.draftFingerprint
+                ) {
+                    relatorEditRevision += 1L
                 }
-        }
-    }
-
-    private fun ensureRelatorIdle(snapshot: LiveRelatorSnapshot) {
-        if (snapshot.lastChangedField.isReaction) {
-            relatorIdleJob?.cancel()
-            relatorIdleJob = null
-            return
-        }
-        val identity = "${snapshot.setKey}|${snapshot.phase.name}"
-        if (identity != relatorIdleIdentity) {
-            relatorIdleIdentity = identity
-            _relatorIdleCycle.value = 0
-            relatorIdleJob?.cancel()
-            relatorIdleJob = null
-        }
-        if (relatorIdleJob?.isActive == true) return
-        val delayMs = if (snapshot.phase == RelatorPhase.REST) 18_000L else RELATOR_IDLE_ROTATE_MS
-        relatorIdleJob = viewModelScope.launch {
-            while (true) {
-                delay(delayMs)
-                _relatorIdleCycle.update { it + 1 }
+                relatorLastSlice = slice
+                relatorSliceDirty = true
+                relatorTicks.trySend(Unit)
             }
         }
+        viewModelScope.launch { restTimerRemaining.collect { relatorTicks.trySend(Unit) } }
+        viewModelScope.launch { sessionTimeRemainingSeconds.collect { relatorTicks.trySend(Unit) } }
+        viewModelScope.launch { _relatorAssistAck.collect { relatorTicks.trySend(Unit) } }
+        viewModelScope.launch { _relatorWarmupDrafts.collect { relatorTicks.trySend(Unit) } }
     }
 
-    private data class RelatorPipelineTick(
-        val restSeconds: Int,
-        val sessionRemain: Int?,
-        val ack: RelatorAssistAck?,
-        val idleCycle: Int,
-        val warmupDrafts: Map<String, String>,
+    /** Un paso del reloj de momentos (LR1g): mira las señales, y solo si toca un momento resuelve el mensaje. */
+    private suspend fun relatorMomentStep(queries: RelatorBuilderQueries) {
+        val state = _uiState.value
+        val now = relatorNowMs()
+        val visible = visibleExercises(state)
+        val current = visible.getOrNull(state.currentExerciseIdx)
+        if (relatorSliceDirty) {
+            relatorSliceDirty = false
+            // La ayuda de estructura sale del snapshot: se mira cuando cambia el estado, con un rastreador propio.
+            val probe = withContext(Dispatchers.Default) {
+                buildRelatorSnapshot(state, queries, idleCycle = 0, tracker = RelatorChangeTracker())
+            }
+            relatorAssistKey = probe.assistOffer?.stickyKey
+        }
+        val milestone = relatorMilestoneKey(state, visible)
+        val input = RelatorMomentInput(
+            nowMs = now,
+            setKey = "${current?.id.orEmpty()}|${state.currentSetIdx}|${state.activeStepKey.orEmpty()}",
+            exerciseId = current?.id.orEmpty(),
+            resting = state.isRestTimerRunning,
+            loggedKey = relatorLastSlice?.lastLoggedKey,
+            editRevision = relatorEditRevision,
+            assistKey = relatorAssistKey,
+            restRemainingSeconds = restTimerRemaining.value,
+            restPlannedSeconds = state.restModalState?.plannedSeconds ?: 0,
+            milestoneKey = milestone,
+        )
+        val moment = relatorMoments.step(input)
+        relatorWake?.cancel()
+        relatorWake = null
+        relatorMoments.nextWakeMs(now)?.let { wakeAt ->
+            relatorWake = viewModelScope.launch {
+                delay((wakeAt - relatorNowMs()).coerceAtLeast(0L))
+                relatorTicks.trySend(Unit)
+            }
+        }
+        if (moment == null) return
+        val packed = withContext(Dispatchers.Default) {
+            val snapshot = buildRelatorSnapshot(
+                state = state,
+                queries = queries,
+                idleCycle = if (moment == RelatorMoment.IDLE_NUDGE) 1 else 0,
+                tracker = relatorChangeTracker,
+            )
+            val context = RelatorContextBuilder.buildContext(
+                state = state,
+                snapshot = snapshot,
+                restRemainingSeconds = restTimerRemaining.value,
+                sessionTimeRemainingSeconds = sessionTimeRemainingSeconds.value,
+                queries = queries,
+                moment = moment,
+            )
+            val result = WorkoutRelatorEngine.resolve(
+                context = context,
+                snapshot = snapshot,
+                selectorState = relatorSelectorState,
+                longTermMemory = relatorLongTerm,
+                previousText = lastRelatorText,
+            )
+            Pair(result, WorkoutRelatorEngine.toUiResolution(result, context))
+        }
+        val result = packed.first
+        val ui = packed.second
+        relatorSelectorState = result.selectorState
+        if (result.longTermMemory != relatorLongTerm) {
+            relatorLongTerm = result.longTermMemory
+            val encoded = relatorLongTerm.encode()
+            if (encoded != lastPersistedRelatorMemoryJson) {
+                lastPersistedRelatorMemoryJson = encoded
+                repository.updateSettings { settings ->
+                    settings.copy(relatorMemoryJson = encoded)
+                }
+            }
+        }
+        if (!ui.holdPrevious) lastRelatorText = ui.text
+        _relatorResolution.value = ui
+    }
+
+    private fun buildRelatorSnapshot(
+        state: WorkoutUiState,
+        queries: RelatorBuilderQueries,
+        idleCycle: Int,
+        tracker: RelatorChangeTracker,
+    ): LiveRelatorSnapshot = RelatorContextBuilder.buildSnapshot(
+        state = state,
+        queries = queries,
+        tracker = tracker,
+        restRemainingSeconds = restTimerRemaining.value,
+        sessionTimeRemainingSeconds = sessionTimeRemainingSeconds.value,
+        idleCycle = idleCycle,
+        warmupWeightDrafts = _relatorWarmupDrafts.value,
+        assistAck = _relatorAssistAck.value,
+        gender = repository.settings.value.userVitals.gender,
+        speechMemory = RelatorSpeechMemory(relatorSelectorState.fingerprints),
+        shownConceptIds = relatorSelectorState.conceptSpokenThisSession,
     )
+
+    /**
+     * Hito de sesión que el reloj aún no ha visto (LR1g): mitad, último ejercicio o tiempo justo. Cada uno se entrega
+     * una sola vez; el reloj lo convierte en MILESTONE.
+     */
+    private fun relatorMilestoneKey(state: WorkoutUiState, visible: List<Exercise>): String? {
+        val total = visible.filter { !it.isCardio }.sumOf { it.sets.size }
+        val done = state.completedSets.count { (_, set) -> !set.isWarmup && !set.skipped }
+        val remaining = sessionTimeRemainingSeconds.value
+        val applicable = buildList {
+            if (total > 0 && done * 2 >= total) add("HALF")
+            if (visible.isNotEmpty() && state.currentExerciseIdx >= visible.lastIndex) add("LAST_EXERCISE")
+            if (remaining != null && remaining in 1..900) add("TIGHT_TIME")
+        }
+        val next = applicable.firstOrNull { it !in relatorMilestonesSeen } ?: return null
+        relatorMilestonesSeen += next
+        return next
+    }
+
+    private fun relatorNowMs(): Long = System.nanoTime() / 1_000_000L
 
     fun markWorkoutTagEducationSeen() {
         if (repository.settings.value.hasSeenWorkoutTagEducation) return
@@ -4145,25 +4270,26 @@ class WorkoutViewModel(
 
     private fun moveExerciseToSessionEnd(exerciseId: String): Boolean {
         if (exerciseId.isBlank()) return false
-        pushGodModeUndo("Mover ejercicio al final")
-        restoreSkippedExercise(exerciseId)
         val state = _uiState.value
         val base = state.session ?: return false
         val modeSession = sessionForActiveMode(base, state.activeMode)
-        val ids = modeSession.allExercises().map { it.id }.toMutableList()
-        if (!ids.remove(exerciseId)) return false
-        ids.add(exerciseId)
-        val partMap = buildMap {
-            modeSession.parts.forEach { part ->
-                part.exercises.forEach { exercise -> put(exercise.id, part.name) }
-            }
+        val all = modeSession.allExercises()
+        val target = all.firstOrNull { it.id == exerciseId } ?: return false
+        // Una superserie es una unidad: si el ejercicio es miembro, se va al final con todo su bloque.
+        val groupId = target.supersetGroupRefOrLegacyId()
+        val moving = if (groupId != null) {
+            all.filter { it.supersetGroupRefOrLegacyId() == groupId }.map { it.id }
+        } else {
+            listOf(exerciseId)
         }
-        reorderExercisesGlobally(ids, partMap)
+        // El «Deshacer» se guarda ya sabiendo que el ejercicio existe (LV4, 10.2) y antes de devolverlo a la sesión si estaba omitido.
+        pushGodModeUndo("Mover ejercicio al final")
+        restoreSkippedExercise(exerciseId)
+        reorderLive(all.map { it.id }.filterNot { it in moving } + moving)
         return true
     }
 
     private fun convertRemainingIncompleteToDropsets(): Boolean {
-        pushGodModeUndo("Dropsets en lo que queda")
         val state = _uiState.value
         val base = state.session ?: return false
         val visible = visibleExercises(state)
@@ -4195,13 +4321,13 @@ class WorkoutViewModel(
             next
         }
         if (updatedSession == base) return false
+        pushGodModeUndo("Dropsets en lo que queda")
         applySessionMutation(updatedSession, persistToProgram = false)
         persistOngoingState()
         return true
     }
 
     private fun halveRemainingIncompleteSets(): Boolean {
-        pushGodModeUndo("Reducir series a la mitad")
         val state = _uiState.value
         val visible = visibleExercises(state)
         val currentIdx = state.currentExerciseIdx
@@ -4221,6 +4347,7 @@ class WorkoutViewModel(
             }
         }
         if (extraOmits.isEmpty()) return false
+        pushGodModeUndo("Reducir series a la mitad")
         updateUiState { it.copy(omittedSetKeys = it.omittedSetKeys + extraOmits) }
         persistOngoingState()
         return true
@@ -5682,6 +5809,11 @@ class WorkoutViewModel(
                 currentExerciseOmitted?.let(::add)
             }
             .toSet()
+        // El resumen se abre ANTES de omitir lo que queda: su foto de «dónde estaba la persona» (ejercicio, serie y omitidos de antes)
+        // es la de la sesión intacta y «Volver», Atrás o tocar fuera la devuelven tal cual. Antes se omitía primero y la foto ya llevaba
+        // los omitidos: al cerrar el resumen desde «Terminar hasta acá» desaparecían los ejercicios y, si aún no había hecho el actual,
+        // la sesión se quedaba sin ninguno: en negro y sin salida (LV4, 15).
+        openFinishSheet()
         updateUiState {
             it.copy(
                 skippedExerciseIds = it.skippedExerciseIds + omittedIds,
@@ -5694,28 +5826,43 @@ class WorkoutViewModel(
                 it.copy(currentExerciseIdx = (newVisible.size - 1).coerceAtLeast(0))
             }
         }
-        openFinishSheet()
+        persistOngoingState()
     }
 
-    fun selectExercise(idx: Int) = stepNavigator.selectExercise(idx)
+    fun selectExercise(idx: Int) {
+        lastRelatorLoadUndo = null
+        stepNavigator.selectExercise(idx)
+    }
 
+    fun nextSet(stopRest: Boolean = true) {
+        lastRelatorLoadUndo = null
+        stepNavigator.nextSet(stopRest)
+    }
 
-    fun nextSet(stopRest: Boolean = true) = stepNavigator.nextSet(stopRest)
+    fun selectSupersetGroup(groupId: String) {
+        lastRelatorLoadUndo = null
+        stepNavigator.selectSupersetGroup(groupId)
+    }
 
+    fun selectWorkoutStep(stepKey: String) {
+        lastRelatorLoadUndo = null
+        stepNavigator.selectWorkoutStep(stepKey)
+    }
 
-    fun selectSupersetGroup(groupId: String) = stepNavigator.selectSupersetGroup(groupId)
+    fun navigateAdjacentWorkingStep(forward: Boolean) {
+        lastRelatorLoadUndo = null
+        stepNavigator.navigateAdjacentWorkingStep(forward)
+    }
 
+    fun selectSupersetRound(roundIdx: Int) {
+        lastRelatorLoadUndo = null
+        stepNavigator.selectSupersetRound(roundIdx)
+    }
 
-    fun selectWorkoutStep(stepKey: String) = stepNavigator.selectWorkoutStep(stepKey)
-
-
-    fun navigateAdjacentWorkingStep(forward: Boolean) = stepNavigator.navigateAdjacentWorkingStep(forward)
-
-
-    fun selectSupersetRound(roundIdx: Int) = stepNavigator.selectSupersetRound(roundIdx)
-
-
-    fun selectExerciseInSupersetRound(exerciseId: String) = stepNavigator.selectExerciseInSupersetRound(exerciseId)
+    fun selectExerciseInSupersetRound(exerciseId: String) {
+        lastRelatorLoadUndo = null
+        stepNavigator.selectExerciseInSupersetRound(exerciseId)
+    }
 
 
     fun recoverFromOrphanPostExerciseSheet() {
@@ -6114,7 +6261,16 @@ class WorkoutViewModel(
 
     fun handleTimerAction(action: TimerAction) {
         when (action) {
-            is TimerAction.CompleteSet -> nextSet(stopRest = true)
+            is TimerAction.CompleteSet -> {
+                val state = _uiState.value
+                val pending = timedStrengthStepAwaitingReport(state, visibleExercises(state), workoutStepPositions(state))
+                if (pending != null) {
+                    selectWorkoutStep(pending.stepKey)
+                    showWorkoutToast(RecordingEffortRequired)
+                } else {
+                    nextSet(stopRest = true)
+                }
+            }
             is TimerAction.SkipTimer -> stopRestTimer()
             is TimerAction.AddTime -> addRestTime(15)
             is TimerAction.SubtractTime -> {
@@ -6151,12 +6307,63 @@ class WorkoutViewModel(
 
     fun savePostExerciseFeedback(feedback: PostExerciseFeedback) {
         feedbackController.savePostExerciseFeedback(feedback)
+        feedbackDrafts.clear()
         voiceController.completeVoiceFeedbackPrompt()
     }
 
     fun savePostExerciseFeedbacks(feedbacks: List<PostExerciseFeedback>) {
         feedbackController.savePostExerciseFeedbacks(feedbacks)
+        feedbackDrafts.clear()
         voiceController.completeVoiceFeedbackPrompt()
+    }
+
+    // ─── Feedback tras el ejercicio: borrador compartido y motor de molestias (LV6, B1–B3) ─────────────────
+
+    private val feedbackDrafts = PostExerciseFeedbackDraftHolder()
+
+    /** El borrador del feedback de [exercises]: el MISMO para la pantalla completa y la tarjeta del descanso (lo elegido no se pierde al minimizar). */
+    internal fun feedbackDraftFor(
+        exercises: List<Exercise>,
+        saved: Map<String, PostExerciseFeedback>,
+    ): PostExerciseFeedbackDraft = feedbackDrafts.draftFor(exercises, saved)
+
+    /** Lo que el motor de molestias dice para el feedback: se calcula fuera del hilo principal y se guarda por ejercicio. */
+    internal val feedbackInsightSource: FeedbackInsightSource by lazy {
+        FeedbackInsightSource(
+            inputs = ::feedbackEngineInputs,
+            lastSessionDiscomfortIds = { _uiState.value.previousSessionDiscomforts },
+            dispatcher = Dispatchers.Default,
+        )
+    }
+
+    /** Las entradas del motor para una petición: la sesión en curso y las últimas semanas de entrenos. Corre fuera del hilo principal. */
+    private fun feedbackEngineInputs(request: FeedbackInsightsRequest): Pair<DiscomfortSession, DiscomfortHistory> {
+        val state = _uiState.value
+        val savedTechnique = state.postExerciseFeedbackByExerciseId.mapValues { it.value.technicalQuality }
+        val session = FeedbackDiscomfortInputs.session(
+            exercises = visibleExercises(state),
+            completedSets = state.completedSets,
+            technicalByExerciseId = savedTechnique + request.technicalBuckets,
+            focusExerciseIds = request.exerciseIds,
+            infoOf = { exercise ->
+                com.example.kpkn.data.exercises.resolveCatalogExerciseInfo(
+                    catalogConfigurationId = exercise.catalogConfigurationId,
+                    exerciseDbId = exercise.exerciseDbId,
+                    exerciseId = exercise.exerciseId,
+                    exerciseName = exercise.name,
+                )
+            },
+            nameOf = ::displayWorkoutExerciseName,
+        )
+        val nowMs = System.currentTimeMillis()
+        val cutoffMs = nowMs - FEEDBACK_HISTORY_DAYS * 24L * 60L * 60L * 1000L
+        val logs = repository.history.value.filter { com.example.kpkn.domain.auge.AugeUtils.logDateMs(it) >= cutoffMs }
+        val history = DiscomfortHistory(
+            logs = logs,
+            now = java.time.Instant.ofEpochMilli(nowMs),
+            exerciseCatalog = com.example.kpkn.data.exercises.exerciseCatalogSnapshot(),
+        )
+        return session to history
     }
 
     fun dismissExecutionErrorDiscomfortSheet(discomfortIds: List<String>) =
@@ -6164,6 +6371,7 @@ class WorkoutViewModel(
 
     fun dismissPostExerciseSheet() {
         feedbackController.dismissPostExerciseSheet()
+        feedbackDrafts.clear()
         voiceController.completeVoiceFeedbackPrompt()
     }
 
@@ -6329,8 +6537,18 @@ class WorkoutViewModel(
         abortRestTimerHard()
         updateUiState { state ->
             val snapshot = state.finishResumeSnapshot
-            val visible = visibleExercises(state)
-            val canonicalSteps = workoutStepPositions(state)
+            // Lo omitido es lo de ANTES del resumen (LV4, 15): la lista visible y el índice del cursor se calculan sobre ella, no sobre lo
+            // que el propio resumen omitió («Terminar hasta acá»). Una sesión sin un solo ejercicio a la vista no tiene nada que enseñar ni
+            // por dónde salir: si todo estaba omitido, vuelve todo.
+            val allExerciseIds = state.session
+                ?.let { sessionForActiveMode(it, state.activeMode).allExercises().map { exercise -> exercise.id } }
+                .orEmpty()
+            val restoredSkipped = (snapshot?.skippedExerciseIds ?: state.skippedExerciseIds).let { skipped ->
+                if (allExerciseIds.isNotEmpty() && allExerciseIds.all { it in skipped }) emptySet() else skipped
+            }
+            val restoredState = state.copy(skippedExerciseIds = restoredSkipped)
+            val visible = visibleExercises(restoredState)
+            val canonicalSteps = workoutStepPositions(restoredState)
             val snapshotStep = snapshot?.activeStepKey
                 ?.let { key -> canonicalSteps.firstOrNull { it.stepKey == key } }
             val fallbackStep = snapshot?.lastRenderableStepKey
@@ -6388,11 +6606,13 @@ class WorkoutViewModel(
 
             state.copy(
                 showFinishSheet = false,
+                // El cierre queda pendiente: la sesión enseña un botón para volver al resumen (LV4, 15).
+                finishClosedPending = state.showFinishSheet || snapshot != null,
                 currentExerciseIdx = restoredExerciseIdx,
                 currentSetIdx = restoredSetIdx,
                 activeStepKey = restoredStepKey,
                 editingState = restoredEditingState,
-                skippedExerciseIds = snapshot?.skippedExerciseIds ?: state.skippedExerciseIds,
+                skippedExerciseIds = restoredSkipped,
                 finishResumeSnapshot = null,
             )
         }
@@ -6521,7 +6741,7 @@ class WorkoutViewModel(
             },
             onFailure = {
                 voiceController.speakFeedbackUpdated(
-                    "No pude guardar la sesión. Intentá decir sesión terminada de nuevo o tocá guardar en pantalla."
+                    "No pude guardar la sesión. Intenta decir «sesión terminada» de nuevo o toca guardar en pantalla."
                 )
             },
         )
@@ -6537,7 +6757,7 @@ class WorkoutViewModel(
         if (voiceController.isEnabled()) {
             voiceController.speakFeedbackUpdated(
                 "No registré ninguna serie en esta sesión, así que no guardé nada. " +
-                    "Registrá series o decí cancelar sesión para descartarla."
+                    "Registra series o di cancelar sesión para descartarla."
             )
         }
     }
@@ -6681,6 +6901,80 @@ class WorkoutViewModel(
 
     fun toggleRestMinimized() {
         updateUiState { it.copy(isRestMinimized = !it.isRestMinimized) }
+    }
+
+    // ─── Descanso cumplido y forma del reloj (LV6) ────────────────────────────
+
+    /**
+     * La forma del reloj de descanso que eligió la persona con las pestañas «Torre · Pista · Espiral»: vale para el resto de la sesión
+     * y la ven igual la pantalla completa y la tarjeta. Nula = cada descanso toma la que le toca por su orden. Solo interfaz: no se
+     * guarda en el modelo y, si el proceso muere, vuelve a rotar.
+     */
+    private val _restClockShapeChoice = MutableStateFlow<RestClockShape?>(null)
+    val restClockShapeChoice: StateFlow<RestClockShape?> = _restClockShapeChoice.asStateFlow()
+
+    fun chooseRestClockShape(shape: RestClockShape) {
+        _restClockShapeChoice.value = shape
+    }
+
+    /** La persona cierra la capa de «Descanso cumplido» («Empezar la serie N» o Atrás). No toca alarmas ni servicio. */
+    fun dismissRestOverrun() {
+        updateUiState { if (it.restOverrun != null) it.copy(restOverrun = null) else it }
+    }
+
+    /**
+     * «Necesito +30 s»: arranca un descanso nuevo de [seconds] del mismo tipo con la vía de siempre (`startRestTimer`: mismas alarmas,
+     * mismo servicio, misma voz). El cursor ya está en la serie que toca, así que el descanso nuevo sale con el mismo ejercicio.
+     */
+    fun extendRestAfterOverrun(seconds: Int = RestOverrunPolicy.EXTEND_SECONDS) {
+        val overrun = _uiState.value.restOverrun ?: return
+        updateUiState { it.copy(restOverrun = null, pendingRestSuggestion = null) }
+        startRestTimer(seconds = seconds, kind = overrun.kind)
+    }
+
+    /** Lo que decide cuándo muere la capa: lo registrado, el cursor y el descanso. Se compara para no mirar todo el estado. */
+    private data class RestOverrunWatchKey(
+        val overrun: RestOverrun?,
+        val exerciseIdx: Int,
+        val setIdx: Int,
+        val activeStepKey: String?,
+        val setJustLoggedKey: String?,
+        val completedCount: Int,
+        val restRunning: Boolean,
+        val closing: Boolean,
+    )
+
+    /**
+     * Vigila la capa de «Descanso cumplido»: se va al registrar o tocar otra serie, al cambiar de ejercicio, al arrancar otro descanso,
+     * al ir al cierre y a los 5 minutos. La regla es [RestOverrunPolicy.shouldDismiss].
+     */
+    private fun watchRestOverrun() {
+        viewModelScope.launch {
+            _uiState
+                .map { state ->
+                    RestOverrunWatchKey(
+                        overrun = state.restOverrun,
+                        exerciseIdx = state.currentExerciseIdx,
+                        setIdx = state.currentSetIdx,
+                        activeStepKey = state.activeStepKey,
+                        setJustLoggedKey = state.setJustLoggedKey,
+                        completedCount = state.completedSets.size,
+                        restRunning = state.isRestTimerRunning,
+                        closing = state.showPostExerciseSheet || state.showFinishSheet || state.isComplete,
+                    )
+                }
+                .distinctUntilChanged()
+                .collectLatest { key ->
+                    val overrun = key.overrun ?: return@collectLatest
+                    val now = System.currentTimeMillis()
+                    if (RestOverrunPolicy.shouldDismiss(overrun, _uiState.value, now)) {
+                        dismissRestOverrun()
+                        return@collectLatest
+                    }
+                    delay(RestOverrunPolicy.remainingLifeMs(overrun, now))
+                    if (_uiState.value.restOverrun == overrun) dismissRestOverrun()
+                }
+        }
     }
 
     fun minimizeRestOverlay() {
@@ -6923,6 +7217,27 @@ class WorkoutViewModel(
         val id = consecutive.first()
         val label = DISCOMFORT_CATALOG.find { it.id == id }?.label ?: id
         return PersistentDiscomfortHit(id = id, label = label)
+    }
+
+    /** Contexto de presentación del cierre desde los datos locales ya cargados. */
+    internal fun finishPresentationContext(): FinishPresentationContext {
+        val state = _uiState.value
+        val photos = mediaCapture.sessionMedia.value
+            .filter { it.kind == com.example.kpkn.data.models.WorkoutMediaKind.PHOTO }
+            .map { item -> StoryPhoto(item.filePath, item.exerciseName,
+                if (item.weightKg != null && item.reps != null) "${finishNumber(item.weightKg)}\u00A0kg × ${item.reps}" else item.caption,
+                setIndex = item.setIndex, createdAtMs = item.createdAtMs, isPr = item.isPr) }
+        val currentLogId = listOf(programId, sessionId, state.weekId.ifBlank { "noweek" }, state.startTimeMs.toString()).joinToString("|")
+        val exerciseNames = state.session?.allExercises().orEmpty().associate { it.id to it.name }
+        val legacyPhotos = state.exercisePhotos.flatMap { (id, paths) -> paths.map { StoryPhoto(it, exerciseNames[id]) } }
+        return FinishPresentationContext(
+            program = repository.getProgramById(programId),
+            weekNumber = state.livePlanContext?.weekIndexInBlock,
+            history = repository.history.value.filter { it.id != currentLogId && com.example.kpkn.domain.auge.AugeUtils.logDateMs(it) < state.startTimeMs },
+            photos = (photos + legacyPhotos + state.sessionPhotos.map { StoryPhoto(it) }).distinctBy { it.path },
+            calories = state.liveEnergySummary.totalKcal.mid.takeIf { it > 0 },
+            records = state.sessionMilestones.count { it.kind == "pr_e1rm" },
+        )
     }
 
     fun latestCompletedSessionSnapshot(): WorkoutShareSnapshot? {
@@ -7347,5 +7662,51 @@ class WorkoutViewModel(
                 override fun <T : ViewModel> create(modelClass: Class<T>): T =
                     WorkoutViewModel(appContext.applicationContext, programId, sessionId, restAlertManager) as T
             }
+    }
+
+    private val videoMediaRepository by lazy {
+        com.example.kpkn.data.repository.WorkoutMediaRepository.init(appContext)
+    }
+
+    private val videoAnalysisController by lazy {
+        WorkoutVideoAnalysisController(
+            scope = viewModelScope,
+            sessionKeys = uiState.map { state ->
+                state.session?.let {
+                    WorkoutMediaCaptureController.sessionKey(programId, sessionId, state.startTimeMs)
+                }
+            },
+            completedSets = uiState.map { it.completedSets }.distinctUntilChanged(),
+            exercises = uiState.map(::visibleExercises).distinctUntilChanged(),
+            repository = com.example.kpkn.data.repository.VideoAnalysisRepository.init(appContext),
+            mediaRepository = videoMediaRepository,
+        )
+    }
+
+    internal val videoAnalysisBySetKey: StateFlow<Map<String, SetVideoAnalysisUi>>
+        get() = videoAnalysisController.videoAnalysisBySetKey
+
+    /** Solo una acción explícita corrige la serie; primero Room, después la foto del vídeo. */
+    internal fun patchCompletedSet(setKey: String, patch: CompletedSetPatch) {
+        val requestedStart = _uiState.value.startTimeMs
+        viewModelScope.launch {
+            if (_uiState.value.startTimeMs != requestedStart) return@launch
+            val result = voiceSetMutations.patchAt(setKey, patch)
+            if (result is WorkoutVoiceMutationResult.Committed) {
+                val committed = result.set ?: return@launch
+                try {
+                    videoMediaRepository.syncSetSnapshots(
+                        WorkoutMediaCaptureController.sessionKey(programId, sessionId, requestedStart),
+                        mapOf(result.setKey to committed),
+                    )
+                } catch (cancelled: kotlinx.coroutines.CancellationException) {
+                    throw cancelled
+                } catch (_: Exception) {
+                    showWorkoutToast("La serie quedó guardada, pero no se pudo actualizar el vídeo.")
+                }
+            } else {
+                WorkoutVoiceMutationFeedback.forEdit(result)?.let(::showWorkoutToast)
+            }
+        }
     }
 }

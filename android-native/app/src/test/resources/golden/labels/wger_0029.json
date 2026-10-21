@@ -1,0 +1,86 @@
+{
+  "id": "wger_0029",
+  "durationS": 12.983,
+  "width": 640,
+  "height": 360,
+  "rotation": 0,
+  "fpsNominal": 60.0,
+  "fpsMeasured": 60.0,
+  "usable": true,
+  "exercise": "Zancada estática con barra",
+  "exerciseDetail": "Zancada estática (sentadilla dividida) con barra olímpica sin discos sobre la espalda, visto de frente y a un lado",
+  "suggestedProfile": "LUNGE",
+  "view": "OBLIQUE",
+  "people": 1,
+  "fullBodyVisible": true,
+  "faceVisible": true,
+  "plateVisible": false,
+  "startPhase": "ECCENTRIC_FIRST",
+  "reps": {
+    "full": 6,
+    "partial": 0,
+    "failed": 0,
+    "uncertain": false,
+    "acceptableRange": [
+      6,
+      6
+    ]
+  },
+  "repTimesS": [
+    {
+      "index": 1,
+      "turnaroundS": 1.6,
+      "side": null
+    },
+    {
+      "index": 2,
+      "turnaroundS": 3.4,
+      "side": null
+    },
+    {
+      "index": 3,
+      "turnaroundS": 5.4,
+      "side": null
+    },
+    {
+      "index": 4,
+      "turnaroundS": 7.4,
+      "side": null
+    },
+    {
+      "index": 5,
+      "turnaroundS": 9.4,
+      "side": null
+    },
+    {
+      "index": 6,
+      "turnaroundS": 12.1,
+      "side": null
+    }
+  ],
+  "activeWindowS": [
+    0.3,
+    12.9
+  ],
+  "frameIntervalS": {
+    "min": 0.0167,
+    "median": 0.0167,
+    "max": 0.0167
+  },
+  "turnaroundKind": "BOTTOM",
+  "edgeEvents": [
+    {
+      "timeS": 12.9,
+      "kind": "TRUNCATED_END",
+      "description": "tras el 6.º fondo (12,1 s) sube y el clip termina a los 13,0 s con él casi arriba"
+    }
+  ],
+  "caveats": [],
+  "cameraMotion": {
+    "class": "SLOW_DRIFT",
+    "note": "deriva suave de mano. Medido con ORB+RANSAC sobre el fondo, zona del sujeto excluida en 0,3-12,9 s: recorrido acumulado p2p 8,0% en x y 7,1% en y, escala 0,99-1,00, velocidad media 1,38 %/s (máx. 2,3% en 1 s)"
+  },
+  "softWarnings": [
+    "cámara con deriva lenta: deriva suave de mano. Medido con ORB+RANSAC sobre el fondo, zona del sujeto excluida en 0,3-12,9 s: recorrido acumulado p2p 8,0% en x y 7,1% en y, escala 0,99-1,00, velocidad media 1,38 %/s (máx. 2,3% en 1 s)"
+  ]
+}

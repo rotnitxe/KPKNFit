@@ -121,6 +121,37 @@ internal class WorkoutVoiceSetMutationController(
             }
         }
 
+    /** Corrige una clave concreta con la misma puerta, persistencia y efectos que la voz. */
+    suspend fun patchAt(setKey: String, patch: CompletedSetPatch): WorkoutVoiceMutationResult {
+        val requestedStart = getState().startTimeMs
+        return execute(op = "patch_at") { captured ->
+            if (captured.startTimeMs != requestedStart) {
+                return@execute Prepared.Rejected(WorkoutVoiceMutationResult.SessionChanged)
+            }
+            val current = captured.completedSets[setKey]?.takeUnless { it.skipped }
+                ?: return@execute Prepared.Rejected(WorkoutVoiceMutationResult.NoRecentSet)
+            val updated = applyCompletedSetPatch(current, patch)
+            if (updated == current) {
+                Prepared.Rejected(WorkoutVoiceMutationResult.NoChange)
+            } else {
+                val fallbackKey = parseCompletedSetKey(setKey)?.takeIf { it.side != null }
+                    ?.let { workoutSetKey(it.exerciseId, it.setIdx) }
+                Prepared.Ready(
+                    setKey = setKey,
+                    exerciseId = exerciseIdOf(captured, setKey, current),
+                    resultSet = updated,
+                    undoPayload = null,
+                    transform = { state ->
+                        state.copy(
+                            completedSets = state.completedSets + (setKey to updated),
+                            setDrafts = state.setDrafts - listOfNotNull(setKey, fallbackKey),
+                        )
+                    },
+                )
+            }
+        }
+    }
+
     private sealed interface Prepared {
         class Ready(
             val setKey: String,

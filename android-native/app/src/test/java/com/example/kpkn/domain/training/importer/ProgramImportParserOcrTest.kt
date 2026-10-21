@@ -2,6 +2,7 @@ package com.example.kpkn.domain.training.importer
 
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /** Filas de OCR (H4d): nombre y prescripción en líneas distintas, días repetidos, pirámides, notación larga y por lado. */
@@ -61,7 +62,7 @@ class ProgramImportParserOcrTest {
     }
 
     @Test
-    fun `en una hoja de OCR, una etiqueta de dia repetida fuera de la cabecera de pagina abre otro dia`() {
+    fun `en una hoja de OCR sin semanas, una etiqueta de dia repetida fuera de la cabecera de pagina abre la semana siguiente`() {
         val rows = listOf(listOf("Día 1"), listOf("Sentadilla 4x8"), listOf("Press 3x8"), listOf("DÍA 1"), listOf("Prensa 3x10"))
 
         val draft = ProgramImportParser.parseSheets(
@@ -69,14 +70,14 @@ class ProgramImportParserOcrTest {
             title = "OCR",
         )
 
-        assertEquals(listOf("Día 1", "DÍA 1"), draft.weeks.single().days.map { it.name })
+        assertEquals(listOf(listOf("Día 1"), listOf("DÍA 1")), draft.weeks.map { week -> week.days.map { it.name } })
     }
 
     @Test
-    fun `fuera de una hoja de OCR, una etiqueta de dia repetida abre otro dia, como antes`() {
+    fun `fuera de una hoja de OCR, una etiqueta de dia repetida sin semanas abre la semana siguiente`() {
         val draft = ProgramImportParser.parseText("Día 1\nSentadilla 4x8\nDÍA 1\nPrensa 3x10", title = "Texto")
 
-        assertEquals(listOf("Día 1", "DÍA 1"), draft.weeks.single().days.map { it.name })
+        assertEquals(listOf(listOf("Día 1"), listOf("DÍA 1")), draft.weeks.map { week -> week.days.map { it.name } })
     }
 
     @Test
@@ -209,5 +210,37 @@ class ProgramImportParserOcrTest {
         assertEquals(1, exercise.repsMin)
         assertEquals(3, exercise.repsMax)
         assertEquals("Pirámide: 3-2-1-3-2-1.", exercise.notes)
+    }
+
+    @Test
+    fun `en una hoja de OCR la prosa con cifras cuenta como linea de texto y no da avisos`() {
+        val rows = listOf(
+            listOf("Cómo leer esta tabla: RPE 8 significa que al final de la serie te quedan unas 2 repeticiones."),
+            listOf("Regla de progresión: cuando el cliente llega al máximo del rango en todas las series, sube la carga."),
+            listOf("• Cómo sumar las series de calentamiento: no cuentan para la progresión de cada ejercicio."),
+            listOf("Sentadilla 4x8"),
+        )
+
+        val draft = ProgramImportParser.parseSheets(
+            listOf(ImportSheet(name = "Hoja", rows = rows, pageStarts = listOf(0))),
+            title = "Prosa OCR",
+        )
+
+        assertEquals(listOf("Sentadilla"), exercisesOf(draft).map { it.rawName })
+        assertEquals(emptyList<String>(), skippedMessages(draft))
+        assertTrue(draft.warnings.any { it.message.contains("3 líneas de texto") })
+    }
+
+    @Test
+    fun `la misma prosa con cifras en una hoja normal sigue avisando como antes`() {
+        val rows = listOf(
+            listOf("Cómo leer esta tabla: RPE 8 significa que al final de la serie te quedan unas 2 repeticiones."),
+            listOf("Regla de progresión: cuando el cliente llega al máximo del rango en todas las series, sube la carga."),
+            listOf("Sentadilla 4x8"),
+        )
+
+        val draft = ProgramImportParser.parseSheets(listOf(ImportSheet(name = "Hoja", rows = rows)), title = "Prosa normal")
+
+        assertTrue("avisos: ${draft.warnings.map { it.message }}", skippedMessages(draft).isNotEmpty())
     }
 }

@@ -1,0 +1,90 @@
+{
+  "id": "ymove_021",
+  "durationS": 18.52,
+  "width": 360,
+  "height": 640,
+  "rotation": 0,
+  "fpsNominal": 25.0,
+  "fpsMeasured": 25.0,
+  "usable": true,
+  "exercise": "Extensión de rodilla en máquina",
+  "exerciseDetail": "Extensión de rodilla en máquina (leg extension) con discos, sentado con el respaldo reclinado, vista oblicua frontal",
+  "suggestedProfile": "LEG_EXTENSION",
+  "view": "OBLIQUE",
+  "people": 1,
+  "fullBodyVisible": true,
+  "faceVisible": true,
+  "plateVisible": true,
+  "startPhase": "CONCENTRIC_FIRST",
+  "reps": {
+    "full": 4,
+    "partial": 0,
+    "failed": 0,
+    "uncertain": false,
+    "acceptableRange": [
+      4,
+      4
+    ]
+  },
+  "repTimesS": [
+    {
+      "index": 1,
+      "turnaroundS": 1.4,
+      "side": null,
+      "windowS": [
+        0.9,
+        2.1
+      ]
+    },
+    {
+      "index": 2,
+      "turnaroundS": 6.0,
+      "side": null,
+      "windowS": [
+        5.4,
+        6.6
+      ]
+    },
+    {
+      "index": 3,
+      "turnaroundS": 10.6,
+      "side": null,
+      "windowS": [
+        10.0,
+        11.2
+      ]
+    },
+    {
+      "index": 4,
+      "turnaroundS": 15.7,
+      "side": null,
+      "windowS": [
+        15.1,
+        16.2
+      ]
+    }
+  ],
+  "activeWindowS": [
+    0.0,
+    18.4
+  ],
+  "frameIntervalS": {
+    "min": 0.04,
+    "median": 0.04,
+    "max": 0.04
+  },
+  "turnaroundKind": "TOP",
+  "edgeEvents": [
+    {
+      "timeS": 18.4,
+      "kind": "TRUNCATED_END",
+      "description": "tras la 4.ª extensión (15,7 s) las piernas bajan y el clip termina a los 18,52 s casi en reposo"
+    }
+  ],
+  "caveats": [],
+  "cameraMotion": {
+    "class": "STATIC",
+    "note": "cámara fija de estudio: ECC (traslación contra la mediana temporal sobre el fondo que el sujeto nunca cubre): desplazamiento máx. 0,24% en x y 0,02% en y del encuadre en toda la ventana"
+  },
+  "softWarnings": []
+}

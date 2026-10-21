@@ -1,0 +1,112 @@
+{
+  "id": "g24-pixabay-44001",
+  "durationS": 33.535,
+  "width": 1280,
+  "height": 720,
+  "rotation": 0,
+  "fpsNominal": 30.0,
+  "fpsMeasured": 30.0,
+  "usable": true,
+  "exercise": "Curl predicador a una mano",
+  "exerciseDetail": "Curl predicador (banco Scott) a una mano con una mancuerna con disco: el brazo derecho apoya sobre la almohadilla inclinada y la mancuerna sube hasta el hombro; 12 repeticiones regulares de ~2,7 s sin pausas",
+  "suggestedProfile": "CURL",
+  "view": "OBLIQUE",
+  "people": 1,
+  "fullBodyVisible": false,
+  "faceVisible": true,
+  "plateVisible": true,
+  "startPhase": "CONCENTRIC_FIRST",
+  "reps": {
+    "full": 12,
+    "partial": 0,
+    "failed": 0,
+    "uncertain": false,
+    "acceptableRange": [
+      12,
+      12
+    ]
+  },
+  "repTimesS": [
+    {
+      "index": 1,
+      "turnaroundS": 1.4,
+      "side": "right"
+    },
+    {
+      "index": 2,
+      "turnaroundS": 4.1,
+      "side": "right"
+    },
+    {
+      "index": 3,
+      "turnaroundS": 6.6,
+      "side": "right"
+    },
+    {
+      "index": 4,
+      "turnaroundS": 9.4,
+      "side": "right"
+    },
+    {
+      "index": 5,
+      "turnaroundS": 12.2,
+      "side": "right"
+    },
+    {
+      "index": 6,
+      "turnaroundS": 14.7,
+      "side": "right"
+    },
+    {
+      "index": 7,
+      "turnaroundS": 17.3,
+      "side": "right"
+    },
+    {
+      "index": 8,
+      "turnaroundS": 20.1,
+      "side": "right"
+    },
+    {
+      "index": 9,
+      "turnaroundS": 23.0,
+      "side": "right"
+    },
+    {
+      "index": 10,
+      "turnaroundS": 25.8,
+      "side": "right"
+    },
+    {
+      "index": 11,
+      "turnaroundS": 28.5,
+      "side": "right"
+    },
+    {
+      "index": 12,
+      "turnaroundS": 31.5,
+      "side": "right"
+    }
+  ],
+  "activeWindowS": [
+    0.2,
+    33.3
+  ],
+  "frameIntervalS": {
+    "min": 0.0333,
+    "median": 0.0333,
+    "max": 0.0333
+  },
+  "turnaroundKind": "TOP",
+  "edgeEvents": [],
+  "caveats": [
+    "el ejercicio no es el del título (curl en banco inclinado): es un curl predicador (Scott) a una mano; el brazo apoya sobre la almohadilla y el torso se inclina sobre el banco",
+    "en el punto alto la mancuerna queda junto a la cara y la tapa parcialmente",
+    "el vídeo viene de una fuente de 24 fps conformada a 30 fps (1 de cada 5 fotogramas del contenedor es una copia): fps efectivo 24"
+  ],
+  "cameraMotion": {
+    "class": "STATIC",
+    "note": "cámara fija (deriva <2,5%)"
+  },
+  "softWarnings": []
+}

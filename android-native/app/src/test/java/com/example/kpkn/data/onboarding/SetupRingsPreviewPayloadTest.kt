@@ -10,11 +10,13 @@ import com.example.kpkn.domain.onboarding.RingsCalibration
 import com.example.kpkn.domain.onboarding.SetupRingsInput
 import com.example.kpkn.domain.onboarding.SetupRingsMapper
 import com.example.kpkn.domain.onboarding.SetupRingsResponseMapping
+import com.example.kpkn.testsupport.RoomTestRule
 import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotEquals
 import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
 import java.time.Instant
 import java.time.ZoneId
@@ -27,6 +29,9 @@ import java.time.ZoneId
 @org.junit.runner.RunWith(org.robolectric.RobolectricTestRunner::class)
 @org.robolectric.annotation.Config(manifest = org.robolectric.annotation.Config.NONE, sdk = [34])
 class SetupRingsPreviewPayloadTest {
+
+    @get:Rule
+    val roomRule = RoomTestRule()
     private lateinit var db: KpknDatabase
 
     @Before

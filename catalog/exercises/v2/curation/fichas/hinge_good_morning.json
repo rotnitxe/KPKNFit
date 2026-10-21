@@ -167,15 +167,14 @@
             ]
           },
           "good_morning__bilateral__machine": {
-            "description": "Un brazo de palanca acolchado recibe la espalda alta y un apoyo anterior delimita la posición de la pelvis. El ajuste de esos contactos permite inclinar el torso con ambos pies en la plataforma.",
+            "description": "La resistencia llega a la espalda alta mediante el rodillo móvil de la estación Wenning. Los apoyos delanteros retienen muslos y espinillas mientras ambos pies permanecen sobre la plataforma y los brazos cruzan el pecho.",
             "executionCues": [
-              "Abre la cadera para bajar el torso y desplazar la palanca acolchada.",
-              "Respeta el recorrido de la estación sin doblar la zona lumbar.",
-              "Devuelve la palanca extendiendo la cadera."
+              "Inicia la bisagra llevando la pelvis hacia el apoyo posterior; el tronco se inclina como una unidad y las rodillas conservan su pequeña flexión.",
+              "Extiende la cadera para volver a erguirte sin hiperextender la zona lumbar."
             ],
             "setupCues": [
-              "Ajusta el apoyo anterior a la pelvis y el respaldo móvil a la espalda alta.",
-              "Coloca ambos pies en la plataforma y toma las asas de la estación."
+              "Apoya ambos pies en la plataforma y ajusta los rodillos delanteros contra la parte proximal de los muslos, justo por debajo del pliegue de la cadera.",
+              "Ajusta el rodillo inferior contra las espinillas y el rodillo móvil contra la espalda alta; cruza los brazos sobre el pecho."
             ]
           },
           "good_morning__bilateral__safety_bar": {

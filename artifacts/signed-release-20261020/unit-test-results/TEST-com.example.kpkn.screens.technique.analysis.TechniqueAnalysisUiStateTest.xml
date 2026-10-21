@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.screens.technique.analysis.TechniqueAnalysisUiStateTest" tests="34" skipped="0" failures="0" errors="0" timestamp="2026-10-20T04:07:25.985Z" hostname="VF" time="0.146">
+  <properties/>
+  <testcase name="partials_failures_and_sides_are_counted_apart_from_the_full_reps" classname="com.example.kpkn.screens.technique.analysis.TechniqueAnalysisUiStateTest" time="0.02"/>
+  <testcase name="observations_are_painted_as_the_engine_wrote_them" classname="com.example.kpkn.screens.technique.analysis.TechniqueAnalysisUiStateTest" time="0.004"/>
+  <testcase name="depth_is_counted_over_the_full_reps_and_is_an_estimate" classname="com.example.kpkn.screens.technique.analysis.TechniqueAnalysisUiStateTest" time="0.0"/>
+  <testcase name="a_single_rep_has_no_chart" classname="com.example.kpkn.screens.technique.analysis.TechniqueAnalysisUiStateTest" time="0.0"/>
+  <testcase name="the_bars_follow_the_overlay_order_and_are_relative_to_the_best" classname="com.example.kpkn.screens.technique.analysis.TechniqueAnalysisUiStateTest" time="0.006"/>
+  <testcase name="the_state_only_opens_trends_with_results_and_a_key" classname="com.example.kpkn.screens.technique.analysis.TechniqueAnalysisUiStateTest" time="0.096"/>
+  <testcase name="without_set_data_only_the_date_remains_and_an_old_year_is_named" classname="com.example.kpkn.screens.technique.analysis.TechniqueAnalysisUiStateTest" time="0.001"/>
+  <testcase name="a_loss_that_needs_more_full_reps_says_so" classname="com.example.kpkn.screens.technique.analysis.TechniqueAnalysisUiStateTest" time="0.001"/>
+  <testcase name="the_oblique_rom_and_the_inverted_exercises_use_the_right_words" classname="com.example.kpkn.screens.technique.analysis.TechniqueAnalysisUiStateTest" time="0.001"/>
+  <testcase name="the_tips_follow_the_flags_in_order_of_importance_with_at_most_three" classname="com.example.kpkn.screens.technique.analysis.TechniqueAnalysisUiStateTest" time="0.001"/>
+  <testcase name="a_long_time_under_tension_reads_as_minutes" classname="com.example.kpkn.screens.technique.analysis.TechniqueAnalysisUiStateTest" time="0.0"/>
+  <testcase name="unsupported_and_failed_rows_become_sentences" classname="com.example.kpkn.screens.technique.analysis.TechniqueAnalysisUiStateTest" time="0.001"/>
+  <testcase name="the_plate_module_has_three_states_and_only_appears_when_it_makes_sense" classname="com.example.kpkn.screens.technique.analysis.TechniqueAnalysisUiStateTest" time="0.0"/>
+  <testcase name="the_rom_of_an_oblique_view_is_an_estimate" classname="com.example.kpkn.screens.technique.analysis.TechniqueAnalysisUiStateTest" time="0.0"/>
+  <testcase name="a_missing_measure_removes_its_tile_instead_of_inventing_a_zero" classname="com.example.kpkn.screens.technique.analysis.TechniqueAnalysisUiStateTest" time="0.0"/>
+  <testcase name="medium_confidence_estimates_the_count_and_asks_to_review_it" classname="com.example.kpkn.screens.technique.analysis.TechniqueAnalysisUiStateTest" time="0.0"/>
+  <testcase name="a_loss_without_a_reliable_value_is_never_painted_as_zero" classname="com.example.kpkn.screens.technique.analysis.TechniqueAnalysisUiStateTest" time="0.0"/>
+  <testcase name="low_confidence_says_the_video_is_not_conclusive" classname="com.example.kpkn.screens.technique.analysis.TechniqueAnalysisUiStateTest" time="0.0"/>
+  <testcase name="a_tempo_with_nothing_measured_is_not_painted" classname="com.example.kpkn.screens.technique.analysis.TechniqueAnalysisUiStateTest" time="0.0"/>
+  <testcase name="a_rep_that_is_not_on_the_timeline_does_not_jump_to_the_wrong_one" classname="com.example.kpkn.screens.technique.analysis.TechniqueAnalysisUiStateTest" time="0.0"/>
+  <testcase name="no_loss_and_no_relative_velocity_means_no_loss_tile" classname="com.example.kpkn.screens.technique.analysis.TechniqueAnalysisUiStateTest" time="0.0"/>
+  <testcase name="the_scale_warnings_each_carry_their_cause" classname="com.example.kpkn.screens.technique.analysis.TechniqueAnalysisUiStateTest" time="0.0"/>
+  <testcase name="percent_is_kept_between_zero_and_one_hundred" classname="com.example.kpkn.screens.technique.analysis.TechniqueAnalysisUiStateTest" time="0.0"/>
+  <testcase name="the_profile_list_puts_the_guess_first_and_folds_to_five" classname="com.example.kpkn.screens.technique.analysis.TechniqueAnalysisUiStateTest" time="0.001"/>
+  <testcase name="the_set_line_says_series_load_reps_and_date" classname="com.example.kpkn.screens.technique.analysis.TechniqueAnalysisUiStateTest" time="0.0"/>
+  <testcase name="a_calibrated_set_gives_every_tile_and_meters_per_second_with_an_approximate_sign" classname="com.example.kpkn.screens.technique.analysis.TechniqueAnalysisUiStateTest" time="0.001"/>
+  <testcase name="short_lines_keep_the_approximate_sign_the_unit_and_the_last_words_together" classname="com.example.kpkn.screens.technique.analysis.TechniqueAnalysisUiStateTest" time="0.006"/>
+  <testcase name="measured_phases_keep_time_chart_and_details_without_requiring_tut_or_tempo_aggregates" classname="com.example.kpkn.screens.technique.analysis.TechniqueAnalysisUiStateTest" time="0.002"/>
+  <testcase name="reps_only_report_keeps_navigation_anchors_without_publishing_a_time_chart" classname="com.example.kpkn.screens.technique.analysis.TechniqueAnalysisUiStateTest" time="0.0"/>
+  <testcase name="with_the_disc_calibrated_every_speed_carries_an_approximate_sign" classname="com.example.kpkn.screens.technique.analysis.TechniqueAnalysisUiStateTest" time="0.001"/>
+  <testcase name="unavailable_phases_do_not_leak_through_nonnull_rep_fields_while_rom_and_speed_remain" classname="com.example.kpkn.screens.technique.analysis.TechniqueAnalysisUiStateTest" time="0.001"/>
+  <testcase name="the_detail_line_of_a_rep_only_says_what_was_measured" classname="com.example.kpkn.screens.technique.analysis.TechniqueAnalysisUiStateTest" time="0.0"/>
+  <testcase name="a_video_without_reps_explains_why_and_has_no_figures" classname="com.example.kpkn.screens.technique.analysis.TechniqueAnalysisUiStateTest" time="0.002"/>
+  <testcase name="without_a_calibrated_disc_there_is_no_meters_per_second_anywhere" classname="com.example.kpkn.screens.technique.analysis.TechniqueAnalysisUiStateTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

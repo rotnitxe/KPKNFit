@@ -217,4 +217,26 @@ class SessionListItemsTest {
         val part = SessionPart(id = "p1", name = "Sin grupo")
         assertTrue(part.isUncategorizedPart())
     }
+
+    /** ER2b: con grupos, los ejercicios sueltos llevan su rótulo «SIN GRUPO» justo encima. */
+    @Test
+    fun buildSessionListItems_sueltosConGruposLlevanElRotuloJustoEncima() {
+        val loose = Exercise(id = "e1", name = "Bench", exerciseDbId = "bench")
+        val group = SessionPart(id = "g1", name = "Grupo 1", exercises = emptyList())
+        val session = Session(id = "s1", name = "Push", exercises = listOf(loose), parts = listOf(group))
+        val items = buildSessionListItems(session)
+        val labelIdx = items.indexOfFirst { it is SessionListItem.LooseGroupLabel }
+        val looseIdx = items.indexOfFirst { it is SessionListItem.LooseExercise }
+        assertTrue(labelIdx >= 0)
+        assertEquals(labelIdx + 1, looseIdx)
+    }
+
+    /** ER2b: sin grupos, los sueltos van sin rótulo, como antes. */
+    @Test
+    fun buildSessionListItems_sueltosSinGruposNoLlevanRotulo() {
+        val loose = Exercise(id = "e1", name = "Bench", exerciseDbId = "bench")
+        val session = Session(id = "s1", name = "Push", exercises = listOf(loose))
+        val items = buildSessionListItems(session)
+        assertTrue(items.none { it is SessionListItem.LooseGroupLabel })
+    }
 }

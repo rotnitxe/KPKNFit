@@ -1,0 +1,81 @@
+{
+  "id": "wger_0048",
+  "durationS": 10.933,
+  "width": 640,
+  "height": 360,
+  "rotation": 0,
+  "fpsNominal": 60.0,
+  "fpsMeasured": 60.0,
+  "usable": true,
+  "exercise": "Curl de bíceps con mancuernas",
+  "exerciseDetail": "Curl de bíceps con mancuernas de pie (agarre supino), visto de lado con cámara fija",
+  "suggestedProfile": "CURL",
+  "view": "SIDE",
+  "people": 1,
+  "fullBodyVisible": false,
+  "faceVisible": true,
+  "plateVisible": false,
+  "startPhase": "ECCENTRIC_FIRST",
+  "reps": {
+    "full": 4,
+    "partial": 0,
+    "failed": 0,
+    "uncertain": false,
+    "acceptableRange": [
+      4,
+      5
+    ]
+  },
+  "repTimesS": [
+    {
+      "index": 1,
+      "turnaroundS": 2.4,
+      "side": null
+    },
+    {
+      "index": 2,
+      "turnaroundS": 4.5,
+      "side": null
+    },
+    {
+      "index": 3,
+      "turnaroundS": 6.8,
+      "side": null
+    },
+    {
+      "index": 4,
+      "turnaroundS": 8.9,
+      "side": null
+    }
+  ],
+  "activeWindowS": [
+    0.0,
+    10.0
+  ],
+  "frameIntervalS": {
+    "min": 0.0167,
+    "median": 0.0167,
+    "max": 0.0167
+  },
+  "turnaroundKind": "TOP",
+  "edgeEvents": [
+    {
+      "timeS": 0.0,
+      "kind": "TRUNCATED_START",
+      "description": "el clip empieza con la mancuerna ya arriba (final de una repetición: pico a ~0,0 s) y baja primero: ese pico inicial no cuenta como repetición completa (rango aceptable 4-5)"
+    },
+    {
+      "timeS": 10.0,
+      "kind": "TRUNCATED_END",
+      "description": "tras la 4.ª repetición (8,9 s) la mancuerna baja y el clip termina a los 10,9 s con el brazo estirado"
+    }
+  ],
+  "caveats": [],
+  "cameraMotion": {
+    "class": "STATIC",
+    "note": "cámara fija. Medido con ORB+RANSAC sobre el fondo, zona del sujeto excluida en 0,0-10,0 s: recorrido acumulado p2p 2,7% en x y 3,5% en y, escala 1,00-1,02, velocidad media 0,58 %/s (máx. 1,5% en 1 s)"
+  },
+  "softWarnings": [
+    "recuento ambiguo por medio ciclo en el borde del clip o por repeticiones dudosas: rango aceptable 4-5 (ver edgeEvents)"
+  ]
+}

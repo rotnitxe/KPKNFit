@@ -1,8 +1,6 @@
 package com.example.kpkn.screens.workout
 
-import com.example.kpkn.screens.programdetail.components.fatigueSummaryText
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Test
 
@@ -11,7 +9,7 @@ import org.junit.Test
  *
  * a. La claridad mental no se inventa: si nadie la pregunta, `clarityRating` es null (antes era 5).
  * b. Sin claridad preguntada, el factor de estrés es neutro; con valor se mantiene la lógica anterior.
- * c. La fatiga se etiqueta como estimación en escala 1–5, nunca como «X/10».
+ * El historial antiguo y su etiqueta de fatiga desaparecieron con la limpieza de Programa (P0).
  *
  * Son funciones puras: ninguna prueba usa reloj.
  */
@@ -55,25 +53,6 @@ class InferredFeedbackTest {
     fun clarityStressFactor_claridadMediaEsNeutra() {
         assertEquals(1.0, clarityStressFactor(5), DELTA)
         assertEquals(1.0, clarityStressFactor(7), DELTA)
-    }
-
-    // ─── c. Etiqueta de la fatiga en el historial ─────────────────────────────────────────────────
-
-    @Test
-    fun fatigueSummaryText_conDatoSeLeeComoEstimacionDeCinco() {
-        assertEquals("Fatiga estimada: 3/5 (según tu esfuerzo)", fatigueSummaryText(3))
-    }
-
-    @Test
-    fun fatigueSummaryText_nuncaUsaLaEscalaDeDiez() {
-        (1..5).forEach { level ->
-            assertFalse("nivel $level", fatigueSummaryText(level).contains("/10"))
-        }
-    }
-
-    @Test
-    fun fatigueSummaryText_sinDatoSeMantieneComoEstaba() {
-        assertEquals("Fatiga: Sin dato", fatigueSummaryText(null))
     }
 
     private companion object {

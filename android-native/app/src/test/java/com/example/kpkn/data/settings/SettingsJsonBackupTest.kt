@@ -15,9 +15,11 @@ import com.example.kpkn.data.models.EquipmentAvailability
 import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.models.Settings
 import com.example.kpkn.data.repository.NutritionRepository
+import com.example.kpkn.testsupport.RoomTestRule
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
+import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
@@ -27,6 +29,9 @@ import java.util.UUID
 @RunWith(RobolectricTestRunner::class)
 @Config(manifest = Config.NONE, sdk = [34], application = Application::class)
 class SettingsJsonBackupTest {
+
+    @get:Rule
+    val roomRule = RoomTestRule()
 
     private val context: Context = ApplicationProvider.getApplicationContext()
 

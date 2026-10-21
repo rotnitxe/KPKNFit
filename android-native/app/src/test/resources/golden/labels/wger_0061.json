@@ -1,0 +1,88 @@
+{
+  "id": "wger_0061",
+  "durationS": 15.167,
+  "width": 640,
+  "height": 360,
+  "rotation": 0,
+  "fpsNominal": 30.0,
+  "fpsMeasured": 30.0,
+  "usable": true,
+  "exercise": "Press francés con barra Z",
+  "exerciseDetail": "Press francés (skull crusher) con barra Z con discos en banco plano, visto de lado exacto",
+  "suggestedProfile": "TRICEPS_EXTENDED_REST",
+  "view": "LYING",
+  "people": 2,
+  "fullBodyVisible": false,
+  "faceVisible": true,
+  "plateVisible": true,
+  "startPhase": "CONCENTRIC_FIRST",
+  "reps": {
+    "full": 5,
+    "partial": 0,
+    "failed": 0,
+    "uncertain": false,
+    "acceptableRange": [
+      5,
+      6
+    ]
+  },
+  "repTimesS": [
+    {
+      "index": 1,
+      "turnaroundS": 2.7,
+      "side": null
+    },
+    {
+      "index": 2,
+      "turnaroundS": 5.6,
+      "side": null
+    },
+    {
+      "index": 3,
+      "turnaroundS": 8.4,
+      "side": null
+    },
+    {
+      "index": 4,
+      "turnaroundS": 11.3,
+      "side": null
+    },
+    {
+      "index": 5,
+      "turnaroundS": 14.0,
+      "side": null
+    }
+  ],
+  "activeWindowS": [
+    0.0,
+    15.2
+  ],
+  "frameIntervalS": {
+    "min": 0.0333,
+    "median": 0.0333,
+    "max": 0.0333
+  },
+  "turnaroundKind": "BOTTOM",
+  "edgeEvents": [
+    {
+      "timeS": 0.0,
+      "kind": "TRUNCATED_START",
+      "description": "el clip empieza con la barra en el punto más bajo (cerca de la cabeza) y sube primero: esa subida inicial (0-1,3 s) cierra una repetición ya empezada y no se cuenta (rango 5-6)"
+    },
+    {
+      "timeS": 14.3,
+      "kind": "OCCLUSION",
+      "description": "sacudida de la cámara en 14,3-15,2 s durante la subida final de la 5.ª repetición"
+    }
+  ],
+  "caveats": [],
+  "cameraMotion": {
+    "class": "SLOW_DRIFT",
+    "note": "deriva suave de mano. Medido con ORB+RANSAC sobre franja izquierda y franja superior (sin el sujeto ni el banco) en 0,0-14,2 s: recorrido acumulado p2p 7,9% en x y 8,5% en y, escala 0,94-0,98, velocidad media 1,70 %/s (máx. 3,1% en 1 s)"
+  },
+  "softWarnings": [
+    "cámara con deriva lenta: deriva suave de mano. Medido con ORB+RANSAC sobre franja izquierda y franja superior (sin el sujeto ni el banco) en 0,0-14,2 s: recorrido acumulado p2p 7,9% en x y 8,5% en y, escala 0,94-0,98, velocidad media 1,70 %/s (máx. 3,1% en 1 s)",
+    "varias personas: 2 distinguibles (el sujeto domina el encuadre; las demás son pequeñas o están al fondo)",
+    "recuento ambiguo por medio ciclo en el borde del clip o por repeticiones dudosas: rango aceptable 5-6 (ver edgeEvents)"
+  ]
+}

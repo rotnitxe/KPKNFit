@@ -47,6 +47,8 @@ object BackupTableManifest {
         "performance_range" to Category.USER_DATA,
         "performance_snapshot" to Category.USER_DATA,
         "workout_media" to Category.USER_DATA,
+        // Desde la v28 (faltaba aquí). No viaja en el JSON: la cascada de `workout_logs` la vacía al restaurar.
+        "workout_media_session_associations" to Category.USER_DATA,
         "setup_drafts" to Category.USER_DATA,
         "setup_commit_receipts" to Category.USER_DATA,
         "muscle_groups" to Category.REGENERABLE,
@@ -57,6 +59,9 @@ object BackupTableManifest {
         "global_foods" to Category.REGENERABLE,
         "global_foods_fts" to Category.REGENERABLE,
         "auge_pending" to Category.CACHE,
+        // Caché del análisis de técnica en vídeo (v29): la fuente de verdad es `<id>.analysis.json`. Restaurar hace
+        // `DELETE FROM workout_media` y la cascada vacía esta tabla; `TechniqueAnalysisScheduler.reconcile()` la rehace.
+        "video_analysis" to Category.CACHE,
     )
 
     /** Tables always replaced from the core JSON payload (schema v1+). */

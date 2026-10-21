@@ -124,13 +124,19 @@ class WorkoutMediaMigration27To28FullRoomTest {
         }
 
         val upgraded = Room.databaseBuilder(shortPathContext, KpknDatabase::class.java, databaseName)
-            .addMigrations(KpknDatabase.MIGRATION_27_28)
+            // La base actual es la v29: la 27→28 se encadena con la 28→29 (VT5a), que solo añade.
+            .addMigrations(KpknDatabase.MIGRATION_27_28, videoAnalysisMigration(28))
             .allowMainThreadQueries()
             .build()
         try {
-            // Opening through Room triggers the real 27→28 migration and full v28 schema validation.
+            // Opening through Room triggers the real 27→28→29 migrations and full v29 schema validation.
             val db = upgraded.openHelper.writableDatabase
-            assertEquals(28, scalarLong(db, "PRAGMA user_version"))
+            assertEquals(29, scalarLong(db, "PRAGMA user_version"))
+            assertEquals(0L, scalarLong(db, "SELECT COUNT(*) FROM video_analysis"))
+            assertEquals(
+                4L,
+                scalarLong(db, "SELECT COUNT(*) FROM workout_media WHERE catalogDefinitionId IS NULL AND catalogConfigurationId IS NULL"),
+            )
 
             assertTextBytes(db, "SELECT data FROM programs WHERE id = ?", arrayOf(programId), programJson)
             assertTextBytes(db, "SELECT data FROM active_program WHERE rowId = 1", emptyArray(), activeProgramJson)

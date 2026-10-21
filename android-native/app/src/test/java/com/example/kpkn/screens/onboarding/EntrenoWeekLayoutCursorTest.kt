@@ -1,5 +1,6 @@
 package com.example.kpkn.screens.onboarding
 
+import com.example.kpkn.testsupport.SyncRoomExecutor
 import android.app.Application
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModelStore
@@ -68,6 +69,7 @@ class EntrenoWeekLayoutCursorTest {
 
     @Before
     fun setUp() {
+        SyncRoomExecutor.install()
         Dispatchers.setMain(dispatcher)
         app = ApplicationProvider.getApplicationContext()
         ProgramRepository.closeInstance()
@@ -84,6 +86,7 @@ class EntrenoWeekLayoutCursorTest {
         NutritionRepository.closeInstance()
         KpknDatabase.closeInstance()
         Dispatchers.resetMain()
+        SyncRoomExecutor.uninstall()
     }
 
     /** La persona: gimnasio, «Fuerza y masa muscular», cuatro días, el jueves como día fuerte y 60 min por sesión. */

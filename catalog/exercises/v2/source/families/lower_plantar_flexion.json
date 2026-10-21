@@ -1848,11 +1848,12 @@
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 1.5,
-              "description": "En la máquina de gemelo donkey el tronco queda inclinado hacia delante con la carga sobre la espalda y la cadera flexionada. El talón sube y baja sobre la plataforma mientras el gemelo se mantiene largo por la postura.",
+              "description": "Elevación bilateral de talones con el torso inclinado, antebrazos apoyados y almohadilla de carga sobre la parte posterior de la pelvis.",
               "efc": 2.0,
               "equipmentId": "machine",
               "executionCues": [
-                "Máquina donkey con el pecho apoyado hacia delante y la carga en la espalda alta: la cadera flexionada estira el gemelo antes de subir a la punta y las rodillas permanecen extendidas."
+                "Eleva ambos talones manteniendo las rodillas y el tronco estables.",
+                "Desciende controladamente permitiendo que los talones bajen sin perder el apoyo de los antepiés."
               ],
               "fatigueTier": "BAJA",
               "jointInvolvement": [
@@ -1997,7 +1998,8 @@
               },
               "secondaryMuscles": [],
               "setupCues": [
-                "Preparación: Máquina donkey con el pecho apoyado hacia delante y la carga en la espalda alta: la cadera flexionada estira el gemelo antes de subir a la punta y las rodillas permanecen extendidas."
+                "Apoya los antebrazos en el soporte delantero y sitúa ambos antepiés sobre el borde de la plataforma.",
+                "Ajusta el acolchado de carga sobre la región posterior de la pelvis, sin colocarlo sobre los hombros."
               ],
               "setupTimeSeconds": 45,
               "ssc": 0.2,

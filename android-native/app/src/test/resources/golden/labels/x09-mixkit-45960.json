@@ -1,0 +1,71 @@
+{
+  "id": "x09-mixkit-45960",
+  "durationS": 12.72,
+  "width": 1280,
+  "height": 720,
+  "rotation": 0,
+  "fpsNominal": 25.0,
+  "fpsMeasured": 25.0,
+  "usable": true,
+  "exercise": "Zancada con paso (peso corporal)",
+  "exerciseDetail": "Zancada hacia delante con paso y vuelta a la posición inicial (peso corporal, manos en la cintura) en un salón; atuendo muy colorido",
+  "suggestedProfile": "LUNGE",
+  "view": "SIDE",
+  "people": 1,
+  "fullBodyVisible": true,
+  "faceVisible": true,
+  "plateVisible": false,
+  "startPhase": "CONCENTRIC_FIRST",
+  "reps": {
+    "full": 1,
+    "partial": 0,
+    "failed": 0,
+    "uncertain": true,
+    "acceptableRange": [
+      1,
+      3
+    ]
+  },
+  "repTimesS": [
+    {
+      "index": 1,
+      "turnaroundS": 6.9,
+      "side": null
+    }
+  ],
+  "activeWindowS": [
+    0.0,
+    12.7
+  ],
+  "frameIntervalS": {
+    "min": 0.04,
+    "median": 0.04,
+    "max": 0.04
+  },
+  "turnaroundKind": "BOTTOM",
+  "edgeEvents": [
+    {
+      "timeS": 0.0,
+      "kind": "TRUNCATED_START",
+      "description": "el clip empieza ya en el fondo de una zancada (0-2,2 s, centro ~1,5 s) y se ve su ascenso (2,5-3,2 s) y la vuelta a pies juntos (3,5-4,8 s); sin descenso, no se cuenta como completa (un contador que cuente subidas marcaría 2 en total)"
+    },
+    {
+      "timeS": 10.0,
+      "kind": "TRUNCATED_END",
+      "description": "3.ª zancada: da el paso a ~10,0 s, baja hasta el fondo (11,2-12,5 s) y el clip termina a 12,7 s sin que suba"
+    }
+  ],
+  "caveats": [
+    "solo 1 repetición completa dentro del clip (la 1.ª empieza ya en el fondo y la 3.ª no llega a subir)",
+    "paneo lento de ~11% del ancho y el sujeto avanza/retrocede ±25% del ancho al dar pasos (zancada con paso)",
+    "ritmo muy lento con pausas largas en el fondo (~1,5 s) y de pie (~1,5 s)"
+  ],
+  "cameraMotion": {
+    "class": "SLOW_DRIFT",
+    "note": "paneo lento de ~11% del ancho; el sujeto avanza y retrocede ±25% del ancho"
+  },
+  "softWarnings": [
+    "cámara con deriva lenta: paneo lento de ~11% del ancho; el sujeto avanza y retrocede ±25% del ancho",
+    "recuento ambiguo por medio ciclo en el borde del clip o por repeticiones dudosas: rango aceptable 1-3 (ver edgeEvents)"
+  ]
+}

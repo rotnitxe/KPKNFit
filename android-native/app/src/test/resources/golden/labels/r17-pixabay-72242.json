@@ -1,0 +1,131 @@
+{
+  "id": "r17-pixabay-72242",
+  "durationS": 27.533,
+  "width": 1280,
+  "height": 720,
+  "rotation": 0,
+  "fpsNominal": 30.0,
+  "fpsMeasured": 30.0,
+  "usable": true,
+  "exercise": "Remo con barra inclinado",
+  "exerciseDetail": "Remo con barra inclinado (agarre pronado, torso a ~45°)",
+  "suggestedProfile": "ROW",
+  "view": "SIDE",
+  "people": 1,
+  "fullBodyVisible": false,
+  "faceVisible": true,
+  "plateVisible": true,
+  "startPhase": "CONCENTRIC_FIRST",
+  "reps": {
+    "full": 7,
+    "partial": 6,
+    "failed": 0,
+    "uncertain": true,
+    "acceptableRange": [
+      10,
+      13
+    ]
+  },
+  "repTimesS": [
+    {
+      "index": 1,
+      "turnaroundS": 5.3,
+      "side": null
+    },
+    {
+      "index": 2,
+      "turnaroundS": 7.3,
+      "side": null
+    },
+    {
+      "index": 3,
+      "turnaroundS": 9.4,
+      "side": null
+    },
+    {
+      "index": 4,
+      "turnaroundS": 11.7,
+      "side": null
+    },
+    {
+      "index": 5,
+      "turnaroundS": 14.0,
+      "side": null
+    },
+    {
+      "index": 6,
+      "turnaroundS": 16.5,
+      "side": null
+    },
+    {
+      "index": 7,
+      "turnaroundS": 18.4,
+      "side": null
+    },
+    {
+      "index": 8,
+      "turnaroundS": 19.6,
+      "side": null
+    },
+    {
+      "index": 9,
+      "turnaroundS": 20.7,
+      "side": null
+    },
+    {
+      "index": 10,
+      "turnaroundS": 21.7,
+      "side": null
+    },
+    {
+      "index": 11,
+      "turnaroundS": 22.9,
+      "side": null
+    },
+    {
+      "index": 12,
+      "turnaroundS": 23.9,
+      "side": null
+    },
+    {
+      "index": 13,
+      "turnaroundS": 25.0,
+      "side": null
+    }
+  ],
+  "activeWindowS": [
+    4.2,
+    27.5
+  ],
+  "frameIntervalS": {
+    "min": 0.0333,
+    "median": 0.0333,
+    "max": 0.0333
+  },
+  "turnaroundKind": "TOP",
+  "edgeEvents": [
+    {
+      "timeS": 0.0,
+      "kind": "SETUP",
+      "description": "0-4,3 s: de pie con la barra a los muslos (0-2,7 s) y luego se inclina hasta ~45° y baja la barra a media espinilla; sin tirones"
+    },
+    {
+      "timeS": 19.0,
+      "kind": "REDUCED_ROM",
+      "description": "desde ~19 s el rango de la barra baja a ~65% (la barra no baja más allá de media espinilla) y el ritmo sube a ~1,1 s por tirón: repeticiones 8-13 anotadas como parciales (frontera subjetiva)"
+    },
+    {
+      "timeS": 27.0,
+      "kind": "TRUNCATED_END",
+      "description": "a 27,0-27,5 s empieza otro tirón que no llega a completarse antes del final del clip (27,53 s): no se cuenta"
+    }
+  ],
+  "caveats": [],
+  "cameraMotion": {
+    "class": "STATIC",
+    "note": "cámara fija"
+  },
+  "softWarnings": [
+    "recuento ambiguo por medio ciclo en el borde del clip o por repeticiones dudosas: rango aceptable 10-13 (ver edgeEvents)"
+  ]
+}

@@ -10,13 +10,13 @@ object MediaObserver : RelatorObserver {
             if (count > 0) {
                 val noun = if (count == 1) "foto" else "fotos"
                 add("Hay $count $noun de $name de la última vez.")
-                add("Álbum: $count de $name. Abre si quieres comparar {ex}.")
+                add("Álbum de $name: $count. Ábrelo si quieres comparar {ex}.")
                 add("La vez pasada grabaste $count de $name. Úsalo de referencia.")
             }
             if (pr) {
                 add("PR de {ex}: captura ahora para el álbum.")
                 add("Marca nueva. Una foto o vídeo deja constancia de {ex}.")
-                add("No dejes el PR de {ex} solo en el log.")
+                add("No dejes el PR de {ex} solo en el registro.")
             }
         }
         val actions = buildList {
@@ -47,11 +47,10 @@ object MediaObserver : RelatorObserver {
                 topic = RelatorTopic.MEDIA,
                 priority = 22,
                 relevance = if (pr) 0.8 else 0.4,
-                lines = padVariants(lines),
+                lines = realVariants(lines),
                 fingerprintBase = "MEDIA:${context.progress.completedWorkingSets}",
                 actions = actions,
                 cooldownSets = 3,
-                openers = listOf("Dato", "Hoy"),
             ),
         )
     }

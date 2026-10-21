@@ -4,11 +4,13 @@ import com.example.kpkn.data.models.InitialRecoveryIntensity
 import com.example.kpkn.data.models.RingsLiftPattern
 import com.example.kpkn.data.models.RingsMuscleGroup
 import com.example.kpkn.data.programs.PersonalizedPlanCatalog
+import com.example.kpkn.domain.nutrition.EerActivity
 import com.example.kpkn.domain.onboarding.CapabilityLevel
 import com.example.kpkn.domain.onboarding.CapabilitySkill
 import com.example.kpkn.domain.onboarding.CardioChoice
 import com.example.kpkn.domain.onboarding.CompetitionAnswer
 import com.example.kpkn.domain.onboarding.EquipmentSymbolId
+import com.example.kpkn.domain.onboarding.GeneratedPlans
 import com.example.kpkn.domain.onboarding.LiftMark
 import com.example.kpkn.domain.onboarding.MuscleSymbol
 import com.example.kpkn.domain.onboarding.SetupStepDefinitions
@@ -20,9 +22,11 @@ import com.example.kpkn.domain.onboarding.WizChatCopyCatalog
 import com.example.kpkn.domain.onboarding.WizChatGraph
 import com.example.kpkn.domain.onboarding.WizChatGraphContext
 import com.example.kpkn.domain.onboarding.WizChatProgress
+import com.example.kpkn.screens.nutrition.NutritionWizardDraft
 import com.example.kpkn.screens.onboarding.SetupModuleChoice
 import com.example.kpkn.screens.onboarding.SetupProgramRoute
 import com.example.kpkn.screens.onboarding.SetupTrainingPath
+import com.example.kpkn.screens.onboarding.SetupWeighIn
 import com.example.kpkn.screens.onboarding.SetupWizardDraft
 import com.example.kpkn.screens.onboarding.capabilitySkills
 import com.example.kpkn.screens.onboarding.confirmCurrentStep
@@ -45,11 +49,13 @@ import com.example.kpkn.screens.onboarding.withMuscles
 import com.example.kpkn.screens.onboarding.withPlaces
 import com.example.kpkn.screens.onboarding.withSessionMinutes
 import com.example.kpkn.screens.onboarding.withStepChoice
+import com.example.kpkn.screens.onboarding.withStepChoices
 import com.example.kpkn.screens.onboarding.withStepNumber
 import com.example.kpkn.screens.onboarding.withStepText
 import com.example.kpkn.screens.onboarding.withTrainedDayToggled
 import com.example.kpkn.screens.onboarding.withWeekStart
 import com.example.kpkn.screens.onboarding.withWeekdays
+import java.time.LocalDate
 import java.util.UUID
 
 /*
@@ -182,13 +188,30 @@ internal enum class HarnessPersona(
 }
 
 /**
- * El borrador del arnés: parte de uno nuevo de solo entreno (como `newDraft` del ViewModel), responde y confirma todos los
- * pasos de la ruta ANTES de [start] con la persona [persona] y deja el cursor en [start]. [answers] (ver [withAnswers]) escribe
- * además datos del paso activo sin confirmarlo, para abrirlo ya con elecciones hechas.
+ * Alcance del borrador del arnés: `training` (por defecto) es el alta de solo entreno de siempre; `full` es el alta completa
+ * (Entreno, Nutrición y RINGS), con los mismos valores que `newDraft` del ViewModel para `SetupWizardMode.FULL`.
+ */
+internal enum class HarnessScope {
+    TRAINING,
+    FULL;
+
+    companion object {
+        /** `full` (sin distinguir mayúsculas) es el alta completa; cualquier otro valor, o ninguno, es solo entreno. */
+        fun of(name: String?): HarnessScope = if (name?.trim()?.equals("full", ignoreCase = true) == true) FULL else TRAINING
+    }
+}
+
+/**
+ * El borrador del arnés: parte de uno nuevo (como `newDraft` del ViewModel), responde y confirma todos los pasos de la ruta ANTES
+ * de [start] con la persona [persona] y deja el cursor en [start]. [answers] (ver [withAnswers]) escribe además datos del paso
+ * activo sin confirmarlo, para abrirlo ya con elecciones hechas.
  *
- * Los hitos entre bloques (el de datos básicos) se confirman por el camino, como al pulsar «Continuar» en su overlay. Si [start]
- * no está en la ruta de esa persona, el cursor se queda en el hito del bloque de Entreno (el overlay de «bloque completado»),
- * sin confirmarlo, y nunca llega a la revisión ni a «Activar».
+ * Con [HarnessScope.TRAINING] (por defecto) es el alta de solo entreno: los hitos entre bloques (el de datos básicos) se confirman
+ * por el camino, como al pulsar «Continuar» en su overlay. Si [start] no está en la ruta de esa persona, el cursor se queda en el
+ * hito del bloque de Entreno (el overlay de «bloque completado»), sin confirmarlo, y nunca llega a la revisión ni a «Activar».
+ *
+ * Con [HarnessScope.FULL] la ruta pasa también por Nutrición y RINGS, y la persona elige su programa «a medida» al pasar por PLAN
+ * (como al tocar «Elegir»). El cursor se para en [start] o, si no está en la ruta, en la revisión final.
  */
 internal fun buildHarnessDraft(
     draftId: String,
@@ -196,33 +219,49 @@ internal fun buildHarnessDraft(
     start: SetupStepId,
     answers: String,
     revision: Int,
+    scope: HarnessScope = HarnessScope.TRAINING,
 ): SetupWizardDraft {
-    val scope = "training_only"
-    val first = WizChatGraph.firstFor(WizChatGraphContext(includeTraining = true, includeNutrition = false))
+    val full = scope == HarnessScope.FULL
+    // Los valores de `newDraft` del ViewModel: `FULL` (todo el alta, nutrición en modo «create») o `TRAINING_ONLY`.
+    val draftScope = if (full) "full" else "training_only"
+    val first = WizChatGraph.firstFor(WizChatGraphContext(includeTraining = true, includeNutrition = full))
     val base = SetupWizardDraft(
         draftId = draftId,
         commitId = UUID.randomUUID().toString(),
-        draftScope = scope,
+        draftScope = draftScope,
         revision = revision,
-        moduleChoice = SetupModuleChoice.TRAINING,
+        moduleChoice = if (full) SetupModuleChoice.TRAINING_AND_NUTRITION else SetupModuleChoice.TRAINING,
         includeTraining = true,
-        includeNutrition = false,
+        includeNutrition = full,
+        nutritionDraft = if (full) NutritionWizardDraft(mode = "create", planId = null, weightUnit = "kg") else null,
         programRoute = SetupProgramRoute.CUSTOMIZABLE,
         trainingPath = SetupTrainingPath.PERSONALIZE,
         catalogRevision = PersonalizedPlanCatalog.REVISION,
         wizChat = WizChatProgress(
             scriptVersion = WizChatCopyCatalog.SCRIPT_VERSION,
-            draftScope = scope,
+            draftScope = draftScope,
             currentQuestionId = first,
             stage = WizChatGraph.stageFor(first),
         ),
     )
     var draft = base.copy(stepProgress = SetupStepProgress.initial(base.stepContext()))
+    // Solo entreno: también se para en el hito del bloque. Alta completa: el recorrido sigue hasta la revisión.
+    val stops = if (full) {
+        setOf(start, SetupStepId.REVIEW_ACTIVATE)
+    } else {
+        setOf(start, SetupStepId.MILESTONE_TRAINING, SetupStepId.REVIEW_ACTIVATE)
+    }
     var guard = 0
     while (guard++ < MAX_STEPS) {
         val step = draft.stepProgress.currentStepId
-        if (step == start || step == SetupStepId.MILESTONE_TRAINING || step == SetupStepId.REVIEW_ACTIVATE) break
-        draft = draft.answeredAs(step, persona).touchStep(step).confirmCurrentStep(step)
+        if (step in stops) break
+        // Alta completa: la persona elige su programa «a medida» al pasar por PLAN; sin él, la revisión bloquea la activación.
+        val chosen = if (full && step == SetupStepId.PLAN) {
+            draft.copy(selectedCatalogId = GeneratedPlans.entryIdFor(persona.goal))
+        } else {
+            draft
+        }
+        draft = chosen.answeredAs(step, persona).touchStep(step).confirmCurrentStep(step)
     }
     return draft.withAnswers(answers)
 }
@@ -281,13 +320,30 @@ internal fun SetupWizardDraft.answeredAs(step: SetupStepId, persona: HarnessPers
     SetupStepId.TRAINING_MAX -> marksLifts()
         .fold(this) { draft, lift -> draft.withLiftMark(lift, persona.marks[lift] ?: markFor(lift)) }
         .withMarksUnit(persona.marksUnit)
-    // RINGS v2: ayer y hace tres días (uno cae en las 72 h, así que sale la pregunta de series), dos ejercicios principales, series
-    // de dos grupos, intensidad y sensaciones. Son datos válidos para recorrer la ruta de RINGS hasta la revisión.
+    // Nutrición en automático, «Definir» de 64 a 60 kg: sin calorías manuales (ese modo no las pregunta) y con dos pesajes de los
+    // últimos días, el de ayer con % de grasa. El motor calcula el plan con estos datos.
+    SetupStepId.NUTRITION_START -> withStepChoice(step, "automatic")
+    SetupStepId.NUTRITION_ELIGIBILITY -> withStepChoices(step, setOf("none"))
+    SetupStepId.NUTRITION_DIRECTION -> withStepChoice(step, "deficit")
+    SetupStepId.NUTRITION_RHYTHM -> withStepChoice(step, "medium")
+    // Como la pantalla: el objetivo va en el borrador de nutrición, en el texto del paso y en su número.
+    SetupStepId.NUTRITION_TARGET -> copy(
+        nutritionDraft = (nutritionDraft ?: NutritionWizardDraft(mode = nutritionMode, planId = nutritionPlanId))
+            .copy(targetWeightText = "60", weightUnit = "kg"),
+    ).withStepText(step, "60").withStepNumber(step, 60.0)
+    SetupStepId.NUTRITION_HISTORY_CONTEXT -> withStepChoice(step, "falling")
+    SetupStepId.NUTRITION_ACTIVITY -> withStepChoice(step, EerActivity.ACTIVE.name)
+    SetupStepId.NUTRITION_DISTRIBUTION -> withStepChoice(step, "uniform")
+    SetupStepId.NUTRITION_WEIGH_INS -> copy(historicalWeighIns = harnessWeighIns())
+    // RINGS: ayer y hace tres días (uno cae en las 72 h, así que sale la pregunta de series), dos ejercicios principales, series
+    // por grupo (piernas 12, pecho 9), intensidad «Dura», sensaciones medias (3 de 5) y sin molestias: ruta de RINGS hasta la revisión.
     SetupStepId.RINGS_SESSION_DAYS -> withTrainedDayToggled(1).withTrainedDayToggled(3)
     SetupStepId.RINGS_MAIN_LIFTS -> withMainLiftToggled(RingsLiftPattern.SQUAT).withMainLiftToggled(RingsLiftPattern.BENCH)
-    SetupStepId.RINGS_GROUP_SETS -> withGroupSets(RingsMuscleGroup.LEGS, 12).withGroupSets(RingsMuscleGroup.CHEST, 10)
-    SetupStepId.RINGS_INTENSITY -> withStepChoice(step, InitialRecoveryIntensity.MODERATE.name)
-    SetupStepId.RINGS_FEELINGS -> withFeelings(muscular = 2, energy = 3, structure = 2)
+    SetupStepId.RINGS_GROUP_SETS -> withGroupSets(RingsMuscleGroup.LEGS, 12).withGroupSets(RingsMuscleGroup.CHEST, 9)
+    SetupStepId.RINGS_INTENSITY -> withStepChoice(step, InitialRecoveryIntensity.HARD.name)
+    SetupStepId.RINGS_FEELINGS -> withFeelings(muscular = 3, energy = 3, structure = 3)
+    // La molestia se escribe con la selección múltiple: es la que proyecta «Sin molestias» (con `withStepChoice` no llega).
+    SetupStepId.RINGS_DISCOMFORT -> withStepChoices(step, setOf("none"))
     else -> this
 }
 
@@ -306,6 +362,15 @@ private fun markFor(lift: LiftMark): Double = when (lift) {
     LiftMark.SNATCH -> 60.0
     LiftMark.CLEAN_AND_JERK -> 80.0
 }
+
+/**
+ * Dos pesajes de los últimos días, con fechas distintas (la activación rechaza dos en el mismo día): el de ayer con % de grasa.
+ * Del más reciente al más viejo, como los ordena la pantalla de pesajes.
+ */
+private fun harnessWeighIns(today: LocalDate = LocalDate.now()): List<SetupWeighIn> = listOf(
+    SetupWeighIn(id = UUID.randomUUID().toString(), dateIso = today.minusDays(1).toString(), weightKg = 64.2, bodyFatPercent = 23.8),
+    SetupWeighIn(id = UUID.randomUUID().toString(), dateIso = today.minusDays(3).toString(), weightKg = 64.8),
+)
 
 /**
  * Escribe datos del paso activo (y los marca como declarados) SIN confirmarlo: `clave=valor/clave=valor` (la barra separa los

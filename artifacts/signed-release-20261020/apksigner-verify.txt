@@ -1,0 +1,18 @@
+Verifies
+Verified using v1 scheme (JAR signing): false
+Verified using v2 scheme (APK Signature Scheme v2): true
+Verified using v3 scheme (APK Signature Scheme v3): true
+Verified using v3.1 scheme (APK Signature Scheme v3.1): false
+Verified using v3.2 scheme (APK Signature Scheme v3.2): false
+Verified using v4 scheme (APK Signature Scheme v4): false
+Verified for SourceStamp: false
+Number of signers: 1
+V3.0 Signer: certificate DN: CN=KPKN Fit, OU=Mobile, O=KPKN, L=Unknown, ST=Unknown, C=US
+V3.0 Signer: certificate SHA-256 digest: 9e8bb57415e409a1f107e70c62b85aa65ce73576e6196470808231f256464bc1
+V3.0 Signer: certificate SHA-1 digest: ae17e9902b4f0c2f669e85c196a584436a6787da
+V3.0 Signer: certificate MD5 digest: daa70530ae0f233b8179560d3e8bd7f3
+V3.0 Signer: key algorithm: RSA
+V3.0 Signer: key size (bits): 2048
+V3.0 Signer: public key SHA-256 digest: 8e41c2113a9027607242421cfc5b61e1c10b911395a35714f0ccce5b3b0b98ba
+V3.0 Signer: public key SHA-1 digest: 08337060e099afd57c1c19ac50489175898c4a35
+V3.0 Signer: public key MD5 digest: 2ddc9629445d242b734a2d2cff386820

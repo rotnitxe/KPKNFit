@@ -92,6 +92,40 @@ class WorkoutMediaLateRetryInstrumentedTest {
     }
 
     @Test
+    fun album_flush_after_workout_scope_cancel_keeps_undo_and_finishes_accepted_delete(): Unit = runBlocking {
+        val store = com.example.kpkn.data.media.WorkoutMediaStore(mediaFilesDir)
+        val file = store.destinationFile("delete-$suffix", WorkoutMediaKind.PHOTO, 1L)
+        file.writeBytes(pngBytes())
+        val media = WorkoutMedia("delete-$suffix", WorkoutMediaKind.PHOTO, file.absolutePath, createdAtMs = 1L)
+        db.workoutMediaDao().insertIgnore(media.toEntity())
+        val closedWorkout = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
+        closedWorkout.cancel()
+        val timerScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
+        try {
+            val controller = onMain {
+                WorkoutMediaCaptureController(application, closedWorkout, repository,
+                    sessionMeta = { WorkoutMediaSessionMeta("delete-session", "p", "s", "A") })
+            }
+            val deferred = controller.newDeferredDelete(timerScope)
+            deferred.schedule(listOf(media))
+            assertEquals(listOf(media), deferred.undo())
+            deferred.flush()
+            assertTrue(file.isFile)
+            assertTrue(db.workoutMediaDao().getById(media.id) != null)
+            deferred.schedule(listOf(media))
+            timerScope.cancel() // Album onDispose can run after both UI owners are cancelled.
+            deferred.flush()
+            withTimeout(5_000) {
+                while (db.workoutMediaDao().getById(media.id) != null || file.exists()) delay(25)
+            }
+            assertTrue(media.id in deferred.committedIds.value)
+            assertFalse(file.exists())
+        } finally {
+            timerScope.cancel()
+        }
+    }
+
+    @Test
     fun observer_cancelled_room_failure_is_visible_in_history_and_retries_same_uuid(): Unit = runBlocking {
         val sessionKey = "late-session-$suffix"
         val log = WorkoutLog(

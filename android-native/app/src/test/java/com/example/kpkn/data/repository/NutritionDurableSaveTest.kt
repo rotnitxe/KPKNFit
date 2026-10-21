@@ -7,9 +7,12 @@ import androidx.test.core.app.ApplicationProvider
 import com.example.kpkn.data.db.*
 import com.example.kpkn.data.models.*
 import com.example.kpkn.domain.nutrition.FoodLearningConfirmation
+import com.example.kpkn.testsupport.SyncRoomExecutor
 import kotlinx.coroutines.*
 import kotlinx.serialization.decodeFromString
 import org.junit.Assert.*
+import org.junit.After
+import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
@@ -19,6 +22,16 @@ import java.util.UUID
 @RunWith(RobolectricTestRunner::class)
 @Config(manifest = Config.NONE, sdk = [34], application = Application::class)
 class NutritionDurableSaveTest {
+    @Before
+    fun setUp() {
+        SyncRoomExecutor.install()
+    }
+
+    @After
+    fun tearDown() {
+        SyncRoomExecutor.uninstall()
+    }
+
     private val repositories = mutableListOf<NutritionRepository>()
     private val context get() = ApplicationProvider.getApplicationContext<Context>()
     private fun repository(db: KpknDatabase): NutritionRepository {

@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Ultrarrápido</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Syne:wght@600;700;800&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#F2EEE6}a:hover{color:#ffffff}
+@keyframes sweep{0%{transform:translateX(-100%)}100%{transform:translateX(100%)}}
+.sw{animation:sweep 1.6s ease-in-out infinite}
+@media (prefers-reduced-motion: reduce){.sw{animation:none;opacity:0}}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: #000000; color: #F2EEE6; font-family: Inter, sans-serif; position: relative; overflow: hidden;">
+  <div style="position: absolute; inset: 0; background: rgba(0,0,0,0.55);"></div>
+  <div style="position: absolute; left: 0; right: 0; bottom: 0; background: #0E0E0E; border-top-left-radius: 28px; border-top-right-radius: 28px; border-top: 1px solid rgba(242,238,230,0.08); padding: 10px 16px 24px 16px; display: flex; flex-direction: column; gap: 16px;">
+    <div style="align-self: center; width: 36px; height: 4px; border-radius: 2px; background: rgba(242,238,230,0.22);"></div>
+    <div>
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#F7CF73" stroke-width="2" aria-hidden="true"><path d="M13 2L4 14h7l-1 8 9-12h-7z"></path></svg>
+        <div style="font-family: Syne, sans-serif; font-weight: 700; font-size: 20px;">Ultrarrápido</div>
+      </div>
+      <div style="font-size: 13px; color: rgba(242,238,230,0.62); margin-top: 4px;">Sentadilla trasera · quedan 3 series</div>
+    </div>
+
+    <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px;">
+      <div style="position: relative; overflow: hidden; border-radius: 18px; background: rgba(67,209,140,0.12); border: 1px solid #43D18C; padding: 12px 10px; display: flex; flex-direction: column; align-items: center; gap: 4px;">
+        <span style="font-size: 11px; color: #43D18C; font-weight: 600;">S2 · hecha</span>
+        <span style="font-family: Syne, sans-serif; font-weight: 700; font-size: 20px;">95</span>
+        <span style="font-size: 12px; color: rgba(242,238,230,0.7);">× 6 · RIR 2</span>
+      </div>
+      <div style="position: relative; overflow: hidden; border-radius: 18px; background: #161616; border: 1px solid #F2EEE6; padding: 12px 10px; display: flex; flex-direction: column; align-items: center; gap: 4px;">
+        <span class="sw" style="position: absolute; inset: 0; background: linear-gradient(90deg, transparent, rgba(242,238,230,0.10), transparent);"></span>
+        <span style="font-size: 11px; color: rgba(242,238,230,0.7); font-weight: 600;">S3</span>
+        <span style="font-family: Syne, sans-serif; font-weight: 700; font-size: 20px;">95</span>
+        <span style="font-size: 12px; color: rgba(242,238,230,0.7);">× 6 · RIR 2</span>
+      </div>
+      <div style="position: relative; overflow: hidden; border-radius: 18px; background: #161616; border: 1px solid rgba(242,238,230,0.10); padding: 12px 10px; display: flex; flex-direction: column; align-items: center; gap: 4px;">
+        <span style="font-size: 11px; color: rgba(242,238,230,0.55); font-weight: 600;">S4</span>
+        <span style="font-family: Syne, sans-serif; font-weight: 700; font-size: 20px;">95</span>
+        <span style="font-size: 12px; color: rgba(242,238,230,0.55);">× 6 · RIR 2</span>
+      </div>
+    </div>
+
+    <div style="border-radius: 20px; background: #161616; padding: 12px; display: flex; flex-direction: column; gap: 10px;">
+      <div style="font-size: 13px; font-weight: 600;">S3: ajusta antes de registrar</div>
+      <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px;">
+        <div style="height: 40px; border-radius: 14px; background: #0B0B0B; display: flex; align-items: center; justify-content: space-between; padding: 0 4px;"><button aria-label="Menos carga" style="width: 30px; height: 30px; border-radius: 15px; border: none; background: #222222; color: #F2EEE6;">−</button><span style="font-size: 14px; font-weight: 600;">95</span><button aria-label="Más carga" style="width: 30px; height: 30px; border-radius: 15px; border: none; background: #222222; color: #F2EEE6;">+</button></div>
+        <div style="height: 40px; border-radius: 14px; background: #0B0B0B; display: flex; align-items: center; justify-content: space-between; padding: 0 4px;"><button aria-label="Menos reps" style="width: 30px; height: 30px; border-radius: 15px; border: none; background: #222222; color: #F2EEE6;">−</button><span style="font-size: 14px; font-weight: 600;">6</span><button aria-label="Más reps" style="width: 30px; height: 30px; border-radius: 15px; border: none; background: #222222; color: #F2EEE6;">+</button></div>
+        <div style="height: 40px; border-radius: 14px; background: #0B0B0B; display: flex; align-items: center; justify-content: space-between; padding: 0 4px;"><button aria-label="Menos RIR" style="width: 30px; height: 30px; border-radius: 15px; border: none; background: #222222; color: #F2EEE6;">−</button><span style="font-size: 14px; font-weight: 600;">RIR 2</span><button aria-label="Más RIR" style="width: 30px; height: 30px; border-radius: 15px; border: none; background: #222222; color: #F2EEE6;">+</button></div>
+      </div>
+    </div>
+
+    <div style="display: flex; gap: 8px;">
+      <button style="height: 44px; padding: 0 16px; border-radius: 22px; border: 1px solid rgba(242,238,230,0.12); background: #161616; color: #F2EEE6; font-family: Inter, sans-serif; font-size: 13px; font-weight: 600;">Como la anterior</button>
+      <button style="flex: 1; height: 44px; border-radius: 22px; border: none; background: #F2EEE6; color: #0B0B0B; font-family: Inter, sans-serif; font-size: 14px; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 6px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg>Registrar S3</button>
+    </div>
+    <div style="font-size: 12px; color: rgba(242,238,230,0.45); text-align: center;">Cada serie registrada se pinta de verde y pasa a la siguiente sola.</div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

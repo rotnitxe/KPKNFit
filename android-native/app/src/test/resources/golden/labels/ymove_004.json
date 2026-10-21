@@ -1,0 +1,79 @@
+{
+  "id": "ymove_004",
+  "durationS": 23.0,
+  "width": 360,
+  "height": 640,
+  "rotation": 0,
+  "fpsNominal": 25.0,
+  "fpsMeasured": 25.0,
+  "usable": true,
+  "exercise": "Elevaciones laterales con mancuernas",
+  "exerciseDetail": "Elevaciones laterales con mancuernas de pie (dos brazos a la vez, hasta la horizontal) con ~2 s de pausa abajo, sobre fondo blanco de estudio",
+  "suggestedProfile": "RAISE",
+  "view": "OBLIQUE",
+  "people": 1,
+  "fullBodyVisible": true,
+  "faceVisible": true,
+  "plateVisible": false,
+  "startPhase": "CONCENTRIC_FIRST",
+  "reps": {
+    "full": 5,
+    "partial": 0,
+    "failed": 0,
+    "uncertain": false,
+    "acceptableRange": [
+      5,
+      5
+    ]
+  },
+  "repTimesS": [
+    {
+      "index": 1,
+      "turnaroundS": 1.25,
+      "side": null
+    },
+    {
+      "index": 2,
+      "turnaroundS": 4.9,
+      "side": null
+    },
+    {
+      "index": 3,
+      "turnaroundS": 8.6,
+      "side": null
+    },
+    {
+      "index": 4,
+      "turnaroundS": 12.2,
+      "side": null
+    },
+    {
+      "index": 5,
+      "turnaroundS": 15.85,
+      "side": null
+    }
+  ],
+  "activeWindowS": [
+    0.2,
+    16.6
+  ],
+  "frameIntervalS": {
+    "min": 0.04,
+    "median": 0.04,
+    "max": 0.04
+  },
+  "turnaroundKind": "TOP",
+  "edgeEvents": [
+    {
+      "timeS": 17.0,
+      "kind": "TRUNCATED_END",
+      "description": "tras la 5.ª elevación (15,85 s) los brazos bajan y el sujeto permanece de pie quieto hasta los 23,0 s (6 s sin repeticiones al final)"
+    }
+  ],
+  "caveats": [],
+  "cameraMotion": {
+    "class": "STATIC",
+    "note": "cámara fija de estudio con fondo blanco liso (ORB y ECC no tienen rasgos fiables): los zapatos plantados, seguidos con plantilla, se desplazan x -1..1 px e y -1..1 px en el encuadre 360x640 durante todo el clip (máx. 0,3% del ancho)"
+  },
+  "softWarnings": []
+}

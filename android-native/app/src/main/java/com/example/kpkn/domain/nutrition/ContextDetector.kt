@@ -30,7 +30,7 @@ object ContextDetector {
         ABUELA_CHILENA(1.3, 0.0, "Abuela chilena"),
         OFICINA(0.8, 0.0, "Oficina"),
         ESTUDIANTE(1.1, 0.0, "Estudiante"),
-        SNACK(0.5, 0.0, "Snack"),
+        SNACK(0.5, 0.0, "Merienda"),
         DESAYUNO(0.9, 0.1, "Desayuno"),
         ALMUERZO(1.1, 0.0, "Almuerzo"),
         CENA(0.9, 0.0, "Cena"),

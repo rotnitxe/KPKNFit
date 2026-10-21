@@ -13,7 +13,7 @@ enum class WorkoutBackAction {
     DISMISS_DRAWER,
     MINIMIZE_REST,
     DISMISS_POST_EXERCISE_FEEDBACK,
-    COLLAPSE_GOD_MODE,
+    COLLAPSE_COCKPIT,
     RETURN_TO_MOBILITY_FROM_WARMUP,
     SHOW_EXIT_DIALOG,
 }
@@ -30,7 +30,7 @@ data class WorkoutOverlayFlags(
     val canReturnToMobilityFromWarmup: Boolean = false,
     val isRestOverlayVisible: Boolean = false,
     val showPostExerciseFeedback: Boolean = false,
-    val godModeExpanded: Boolean = false,
+    val cockpitExpanded: Boolean = false,
 )
 
 fun resolveWorkoutBackAction(flags: WorkoutOverlayFlags): WorkoutBackAction = when {
@@ -42,7 +42,7 @@ fun resolveWorkoutBackAction(flags: WorkoutOverlayFlags): WorkoutBackAction = wh
     flags.hasDrawerOpen || flags.hasContextTabOpen -> WorkoutBackAction.DISMISS_DRAWER
     flags.isRestOverlayVisible -> WorkoutBackAction.MINIMIZE_REST
     flags.showPostExerciseFeedback -> WorkoutBackAction.DISMISS_POST_EXERCISE_FEEDBACK
-    flags.godModeExpanded -> WorkoutBackAction.COLLAPSE_GOD_MODE
+    flags.cockpitExpanded -> WorkoutBackAction.COLLAPSE_COCKPIT
     flags.showReadiness -> WorkoutBackAction.CONSUME_NON_DISMISSIBLE_MODAL
     flags.canReturnToMobilityFromWarmup -> WorkoutBackAction.RETURN_TO_MOBILITY_FROM_WARMUP
     else -> WorkoutBackAction.SHOW_EXIT_DIALOG

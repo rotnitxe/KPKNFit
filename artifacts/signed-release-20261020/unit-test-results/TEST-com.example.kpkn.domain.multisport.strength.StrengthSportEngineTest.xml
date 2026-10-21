@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.domain.multisport.strength.StrengthSportEngineTest" tests="14" skipped="0" failures="0" errors="0" timestamp="2026-10-20T04:06:58.232Z" hostname="VF" time="0.053">
+  <properties/>
+  <testcase name="calisthenicsProgressionRequiresAuthoredEdgeAndExplicitPrerequisiteEvidence" classname="com.example.kpkn.domain.multisport.strength.StrengthSportEngineTest" time="0.008"/>
+  <testcase name="calisthenicsKeepsHoldRepsAssistanceAndAddedLoadInSeparateBuckets" classname="com.example.kpkn.domain.multisport.strength.StrengthSportEngineTest" time="0.007"/>
+  <testcase name="durationIsOnlyADeclaredPositiveValueAndPayloadsAreVersionedSerializable" classname="com.example.kpkn.domain.multisport.strength.StrengthSportEngineTest" time="0.017"/>
+  <testcase name="failedCalisthenicsCanRecordZeroOrUnknownDoseWithoutInventingCompletedWork" classname="com.example.kpkn.domain.multisport.strength.StrengthSportEngineTest" time="0.0"/>
+  <testcase name="strongmanScoresOnlyDeclaredCriterionAndNeverCombinesDifferentImplements" classname="com.example.kpkn.domain.multisport.strength.StrengthSportEngineTest" time="0.004"/>
+  <testcase name="calisthenicsRejectsMissingOrMixedDoseAndExternalLoadContext" classname="com.example.kpkn.domain.multisport.strength.StrengthSportEngineTest" time="0.0"/>
+  <testcase name="armwrestlingKeepsSidePositionGripLoadModeAndDoseSeparate" classname="com.example.kpkn.domain.multisport.strength.StrengthSportEngineTest" time="0.005"/>
+  <testcase name="weightliftingDoesNotTurnMissingLoadIntoZeroAndConvertsPoundsExplicitly" classname="com.example.kpkn.domain.multisport.strength.StrengthSportEngineTest" time="0.004"/>
+  <testcase name="weightliftingComplexCountsIndividualSuccessfulLiftsAndSeparatesFailedAttempts" classname="com.example.kpkn.domain.multisport.strength.StrengthSportEngineTest" time="0.001"/>
+  <testcase name="weightliftingSlotIdentityDoesNotCollideWhenIdsContainSeparators" classname="com.example.kpkn.domain.multisport.strength.StrengthSportEngineTest" time="0.0"/>
+  <testcase name="strongmanNormalizesFeetAndUsesDeclaredMinimizeDirectionWithoutOfficialScoringClaims" classname="com.example.kpkn.domain.multisport.strength.StrengthSportEngineTest" time="0.003"/>
+  <testcase name="weightliftingRejectsDuplicateSuccessAndReferenceFromAnotherMovement" classname="com.example.kpkn.domain.multisport.strength.StrengthSportEngineTest" time="0.0"/>
+  <testcase name="failedArmwrestlingCanRecordZeroOrUnknownAndStillRejectsMixedModes" classname="com.example.kpkn.domain.multisport.strength.StrengthSportEngineTest" time="0.001"/>
+  <testcase name="failedStrongmanHasNoRequiredScoreAndNeverBecomesBest" classname="com.example.kpkn.domain.multisport.strength.StrengthSportEngineTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

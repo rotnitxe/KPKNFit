@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Estado previo con molestias y voz</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Syne:wght@600;700;800&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#F2EEE6}a:hover{color:#ffffff}
+@keyframes glint{0%{stroke-dashoffset:420}60%,100%{stroke-dashoffset:-420}}
+.gl{animation:glint 6s ease-in-out infinite}
+@media (prefers-reduced-motion: reduce){.gl{animation:none;opacity:0}}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: #000000; color: #F2EEE6; font-family: Inter, sans-serif; position: relative; overflow: hidden;">
+  <div style="position: absolute; inset: 0; background: rgba(0,0,0,0.5);"></div>
+  <div style="position: absolute; left: 0; right: 0; bottom: 0; top: 34px; background: #0E0E0E; border-top-left-radius: 28px; border-top-right-radius: 28px; border-top: 1px solid rgba(242,238,230,0.08); padding: 10px 18px 104px 18px; box-sizing: border-box; display: flex; flex-direction: column; align-items: center; gap: 12px;">
+    <div style="width: 36px; height: 4px; border-radius: 2px; background: rgba(242,238,230,0.22);"></div>
+    <div style="font-family: Syne, sans-serif; font-weight: 700; font-size: 24px; line-height: 30px; text-align: center;">¿Cómo llegas a entrenar hoy?</div>
+
+    <svg width="250" height="186" viewBox="0 0 300 230" role="img" aria-label="Músculos 89 %, Energía 88 %, Columna 82 %">
+      <defs>
+        <filter id="g1" x="-20%" y="-40%" width="140%" height="180%"><feGaussianBlur stdDeviation="5"></feGaussianBlur></filter>
+        <linearGradient id="cB" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#5E7EC4"></stop><stop offset="1" stop-color="#B9CFFF"></stop></linearGradient>
+        <linearGradient id="cM" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#C7704A"></stop><stop offset="1" stop-color="#FFC2A3"></stop></linearGradient>
+        <linearGradient id="cE" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#C9A04A"></stop><stop offset="1" stop-color="#FFE7A8"></stop></linearGradient>
+      </defs>
+      <ellipse cx="150" cy="178" rx="138" ry="40" fill="none" stroke="#151515" stroke-width="18"></ellipse>
+      <ellipse cx="150" cy="178" rx="138" ry="40" fill="none" stroke="#8FB2FF" stroke-width="18" stroke-dasharray="470 560" stroke-linecap="round" opacity="0.22" filter="url(#g1)"></ellipse>
+      <ellipse cx="150" cy="178" rx="138" ry="40" fill="none" stroke="url(#cB)" stroke-width="18" stroke-dasharray="470 560" stroke-linecap="round"></ellipse>
+      <ellipse class="gl" cx="150" cy="178" rx="138" ry="40" fill="none" stroke="rgba(255,255,255,0.55)" stroke-width="5" stroke-dasharray="40 900" stroke-linecap="round"></ellipse>
+      <ellipse cx="150" cy="112" rx="104" ry="30" fill="none" stroke="#151515" stroke-width="16"></ellipse>
+      <ellipse cx="150" cy="112" rx="104" ry="30" fill="none" stroke="#F49A6E" stroke-width="16" stroke-dasharray="395 460" stroke-linecap="round" opacity="0.22" filter="url(#g1)"></ellipse>
+      <ellipse cx="150" cy="112" rx="104" ry="30" fill="none" stroke="url(#cM)" stroke-width="16" stroke-dasharray="395 460" stroke-linecap="round"></ellipse>
+      <ellipse class="gl" cx="150" cy="112" rx="104" ry="30" fill="none" stroke="rgba(255,255,255,0.55)" stroke-width="4" stroke-dasharray="34 900" stroke-linecap="round" style="animation-delay: 1.2s"></ellipse>
+      <ellipse cx="150" cy="54" rx="70" ry="21" fill="none" stroke="#151515" stroke-width="14"></ellipse>
+      <ellipse cx="150" cy="54" rx="70" ry="21" fill="none" stroke="#F7CF73" stroke-width="14" stroke-dasharray="265 320" stroke-linecap="round" opacity="0.22" filter="url(#g1)"></ellipse>
+      <ellipse cx="150" cy="54" rx="70" ry="21" fill="none" stroke="url(#cE)" stroke-width="14" stroke-dasharray="265 320" stroke-linecap="round"></ellipse>
+      <ellipse class="gl" cx="150" cy="54" rx="70" ry="21" fill="none" stroke="rgba(255,255,255,0.55)" stroke-width="3.5" stroke-dasharray="26 900" stroke-linecap="round" style="animation-delay: 2.4s"></ellipse>
+    </svg>
+    <div style="width: 100%; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); text-align: center;">
+      <div><div style="font-size: 11px; font-weight: 600; letter-spacing: 1.6px; color: #F49A6E;">MÚSCULOS</div><div style="font-family: Syne, sans-serif; font-weight: 700; font-size: 22px;">89 %</div></div>
+      <div><div style="font-size: 11px; font-weight: 600; letter-spacing: 1.6px; color: #F7CF73;">ENERGÍA</div><div style="font-family: Syne, sans-serif; font-weight: 700; font-size: 22px;">88 %</div></div>
+      <div><div style="font-size: 11px; font-weight: 600; letter-spacing: 1.6px; color: #8FB2FF;">COLUMNA</div><div style="font-family: Syne, sans-serif; font-weight: 700; font-size: 22px;">82 %</div></div>
+    </div>
+    <div style="font-size: 12px; color: rgba(242,238,230,0.5);">Toca un anillo para ajustarlo</div>
+
+    <div style="width: 100%; display: flex; flex-direction: column; gap: 8px;">
+      <div style="font-size: 12px; font-weight: 600; letter-spacing: 1.6px; color: rgba(242,238,230,0.55);">¿ALGUNA MOLESTIA HOY?</div>
+      <label style="display: flex; align-items: center; gap: 8px; height: 40px; border-radius: 20px; background: #161616; border: 1px solid rgba(242,238,230,0.08); padding: 0 14px;">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(242,238,230,0.6)" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-4-4"></path></svg>
+        <span style="position: absolute; left: -9999px;">Buscar molestia</span>
+        <input type="text" placeholder="Busca o elige abajo" style="flex: 1; border: none; background: transparent; color: #F2EEE6; font-family: Inter, sans-serif; font-size: 13px; outline: none;">
+      </label>
+      <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+        <button style="height: 30px; padding: 0 12px; border-radius: 15px; border: none; background: #F2EEE6; color: #0B0B0B; font-family: Inter, sans-serif; font-size: 12px; font-weight: 600;">Ninguna</button>
+        <button style="height: 30px; padding: 0 10px 0 5px; border-radius: 15px; border: none; background: #1A1A1A; color: #F2EEE6; font-family: Inter, sans-serif; font-size: 12px; display: flex; align-items: center; gap: 6px;"><span style="width: 18px; height: 18px; border-radius: 9px; background: rgba(239,111,100,0.18); display: flex; align-items: center; justify-content: center;"><span style="width: 6px; height: 6px; border-radius: 3px; background: #EF6F64;"></span></span>Rodilla izq. · lunes</button>
+        <button style="height: 30px; padding: 0 10px 0 5px; border-radius: 15px; border: none; background: #1A1A1A; color: #F2EEE6; font-family: Inter, sans-serif; font-size: 12px; display: flex; align-items: center; gap: 6px;"><span style="width: 18px; height: 18px; border-radius: 9px; background: rgba(247,207,115,0.18); display: flex; align-items: center; justify-content: center;"><span style="width: 6px; height: 6px; border-radius: 3px; background: #F7CF73;"></span></span>Zona lumbar</button>
+      </div>
+    </div>
+
+    <div style="width: 100%; display: flex; align-items: center; gap: 8px;">
+      <div style="font-size: 12px; font-weight: 600; letter-spacing: 1.6px; color: rgba(242,238,230,0.55); flex: 1;">VOZ</div>
+      <button style="height: 34px; padding: 0 12px; border-radius: 17px; border: 1px solid #F2EEE6; background: rgba(242,238,230,0.06); color: #F2EEE6; font-family: Inter, sans-serif; font-size: 12px; font-weight: 600; display: flex; align-items: center; gap: 6px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 10v4h4l5 4V6L8 10z"></path><path d="M16 9a4 4 0 0 1 0 6"></path></svg>Te habla</button>
+      <button style="height: 34px; padding: 0 12px; border-radius: 17px; border: 1px solid rgba(242,238,230,0.12); background: transparent; color: #F2EEE6; font-family: Inter, sans-serif; font-size: 12px; font-weight: 600; display: flex; align-items: center; gap: 6px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"></rect><path d="M5 11a7 7 0 0 0 14 0"></path></svg>Manos libres</button>
+    </div>
+  </div>
+  <button aria-label="Empezar la sesión" style="position: absolute; left: 163px; bottom: 26px; width: 64px; height: 64px; border-radius: 32px; border: none; background: #F2EEE6; color: #0B0B0B; display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 22px rgba(0,0,0,0.6);"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg></button>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

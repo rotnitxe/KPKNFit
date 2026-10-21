@@ -1,0 +1,98 @@
+{
+  "id": "r08-pixabay-66368",
+  "durationS": 25.343,
+  "width": 1280,
+  "height": 720,
+  "rotation": 0,
+  "fpsNominal": 30.0,
+  "fpsMeasured": 30.0,
+  "usable": true,
+  "exercise": "Zancada estática con barra (sentadilla dividida)",
+  "exerciseDetail": "Zancada estática / sentadilla dividida con barra a la espalda (misma pierna adelantada)",
+  "suggestedProfile": "LUNGE",
+  "view": "SIDE",
+  "people": 1,
+  "fullBodyVisible": true,
+  "faceVisible": false,
+  "plateVisible": true,
+  "startPhase": "ECCENTRIC_FIRST",
+  "reps": {
+    "full": 10,
+    "partial": 0,
+    "failed": 0,
+    "uncertain": false,
+    "acceptableRange": [
+      10,
+      10
+    ]
+  },
+  "repTimesS": [
+    {
+      "index": 1,
+      "turnaroundS": 6.7,
+      "side": null
+    },
+    {
+      "index": 2,
+      "turnaroundS": 8.5,
+      "side": null
+    },
+    {
+      "index": 3,
+      "turnaroundS": 10.4,
+      "side": null
+    },
+    {
+      "index": 4,
+      "turnaroundS": 12.4,
+      "side": null
+    },
+    {
+      "index": 5,
+      "turnaroundS": 14.3,
+      "side": null
+    },
+    {
+      "index": 6,
+      "turnaroundS": 16.2,
+      "side": null
+    },
+    {
+      "index": 7,
+      "turnaroundS": 18.3,
+      "side": null
+    },
+    {
+      "index": 8,
+      "turnaroundS": 20.5,
+      "side": null
+    },
+    {
+      "index": 9,
+      "turnaroundS": 22.7,
+      "side": null
+    },
+    {
+      "index": 10,
+      "turnaroundS": 24.8,
+      "side": null
+    }
+  ],
+  "activeWindowS": [
+    5.6,
+    25.3
+  ],
+  "frameIntervalS": {
+    "min": 0.0333,
+    "median": 0.0333,
+    "max": 0.0333
+  },
+  "turnaroundKind": "BOTTOM",
+  "edgeEvents": [],
+  "caveats": [],
+  "cameraMotion": {
+    "class": "STATIC",
+    "note": "cámara fija"
+  },
+  "softWarnings": []
+}

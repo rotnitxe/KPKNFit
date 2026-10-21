@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Descanso con los RINGS como reloj</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Syne:wght@600;700;800&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#F2EEE6}a:hover{color:#ffffff}
+@keyframes legA{0%,100%{transform:rotate(26deg)}50%{transform:rotate(-26deg)}}
+@keyframes legB{0%,100%{transform:rotate(-26deg)}50%{transform:rotate(26deg)}}
+.la{animation:legA .34s ease-in-out infinite}.lb{animation:legB .34s ease-in-out infinite}
+@keyframes shim{0%{background-position:390px 0}55%,100%{background-position:-390px 0}}
+.shim{background-image:linear-gradient(100deg,rgba(242,238,230,.58) 0px,rgba(242,238,230,.58) 300px,#FFFFFF 390px,rgba(242,238,230,.58) 480px,rgba(242,238,230,.58) 780px);background-size:780px 100%;background-attachment:fixed;-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-fill-color:transparent;animation:shim 5.4s ease-in-out infinite}
+.arc{transition:stroke-dasharray .25s linear}
+@media (prefers-reduced-motion: reduce){.la,.lb,.shim{animation:none}}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: #000000; color: #F2EEE6; font-family: Inter, sans-serif; position: relative; overflow: hidden; display: flex; flex-direction: column; padding: 20px 20px 26px 20px;">
+  <div style="display: flex; align-items: center; gap: 12px;">
+    <button aria-label="Minimizar el descanso" style="width: 40px; height: 40px; border-radius: 20px; border: 1px solid rgba(242,238,230,0.10); background: #111111; color: #F2EEE6; display: flex; align-items: center; justify-content: center; padding: 0;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 9l6 6 6-6"></path></svg></button>
+    <div style="flex: 1; min-width: 0;">
+      <div style="font-size: 15px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Sentadilla trasera con barra alta</div>
+      <div style="font-size: 13px; color: rgba(242,238,230,0.6);">Serie 1 de 4 hecha</div>
+    </div>
+  </div>
+  <div style="margin-top: 16px; text-align: center; font-size: 14px; line-height: 22px; padding: 0 8px;"><span class="shim">95 kg × 6 a RIR 2: lo previsto. Respira, la serie 2 te espera.</span></div>
+
+  <div style="margin-top: 14px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; padding: 4px; border-radius: 18px; background: #0B0B0B; align-self: center; width: 240px;">
+    <sc-for list="{{shapes}}" as="s" hint-placeholder-count="3">
+      <button onClick="{{s.pick}}" style="height: 28px; border-radius: 14px; border: none; background: {{s.bg}}; color: {{s.fg}}; font-family: Inter, sans-serif; font-size: 12px; font-weight: 600;">{{s.label}}</button>
+    </sc-for>
+  </div>
+
+  <div style="flex: 1; position: relative; display: flex; align-items: center; justify-content: center;">
+    <svg width="320" height="300" viewBox="0 0 300 280" role="img" aria-label="{{aria}}">
+      <defs>
+        <linearGradient id="gB" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#5E7EC4"></stop><stop offset="1" stop-color="#B9CFFF"></stop></linearGradient>
+        <linearGradient id="gM" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#C7704A"></stop><stop offset="1" stop-color="#FFC2A3"></stop></linearGradient>
+        <linearGradient id="gE" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#C9A04A"></stop><stop offset="1" stop-color="#FFE7A8"></stop></linearGradient>
+        <filter id="glw" x="-20%" y="-40%" width="140%" height="180%"><feGaussianBlur stdDeviation="5"></feGaussianBlur></filter>
+      </defs>
+
+      <sc-if value="{{isTower}}" hint-placeholder-val="{{true}}">
+        <g>
+          <ellipse cx="150" cy="220" rx="130" ry="38" fill="none" stroke="#151515" stroke-width="18"></ellipse>
+          <ellipse class="arc" cx="150" cy="220" rx="130" ry="38" fill="none" stroke="#8FB2FF" stroke-width="18" stroke-linecap="round" stroke-dasharray="{{d0}}" opacity="0.25" filter="url(#glw)"></ellipse>
+          <ellipse class="arc" cx="150" cy="220" rx="130" ry="38" fill="none" stroke="url(#gB)" stroke-width="18" stroke-linecap="round" stroke-dasharray="{{d0}}"></ellipse>
+          <ellipse cx="150" cy="150" rx="98" ry="28" fill="none" stroke="#151515" stroke-width="16"></ellipse>
+          <ellipse class="arc" cx="150" cy="150" rx="98" ry="28" fill="none" stroke="#F49A6E" stroke-width="16" stroke-linecap="round" stroke-dasharray="{{d1}}" opacity="0.25" filter="url(#glw)"></ellipse>
+          <ellipse class="arc" cx="150" cy="150" rx="98" ry="28" fill="none" stroke="url(#gM)" stroke-width="16" stroke-linecap="round" stroke-dasharray="{{d1}}"></ellipse>
+          <ellipse cx="150" cy="88" rx="66" ry="20" fill="none" stroke="#151515" stroke-width="14"></ellipse>
+          <ellipse class="arc" cx="150" cy="88" rx="66" ry="20" fill="none" stroke="#F7CF73" stroke-width="14" stroke-linecap="round" stroke-dasharray="{{d2}}" opacity="0.25" filter="url(#glw)"></ellipse>
+          <ellipse class="arc" cx="150" cy="88" rx="66" ry="20" fill="none" stroke="url(#gE)" stroke-width="14" stroke-linecap="round" stroke-dasharray="{{d2}}"></ellipse>
+        </g>
+      </sc-if>
+      <sc-if value="{{isTrack}}" hint-placeholder-val="{{false}}">
+        <g>
+          <path d="M80 70 H220 A70 70 0 0 1 220 210 H80 A70 70 0 0 1 80 70 Z" fill="none" stroke="#151515" stroke-width="20"></path>
+          <path d="M80 70 H220 A70 70 0 0 1 220 210 H80 A70 70 0 0 1 80 70 Z" fill="none" stroke="rgba(242,238,230,0.08)" stroke-width="1" stroke-dasharray="4 8"></path>
+          <path class="arc" d="M80 70 H220 A70 70 0 0 1 220 210 H80 A70 70 0 0 1 80 70 Z" fill="none" stroke="url(#gM)" stroke-width="20" stroke-linecap="round" stroke-dasharray="{{dT}}"></path>
+        </g>
+      </sc-if>
+      <sc-if value="{{isSpiral}}" hint-placeholder-val="{{false}}">
+        <g>
+          <path d="M150 140 m0 -12 a12 12 0 1 1 0 24 a24 24 0 1 1 0 -48 a36 36 0 1 1 0 72 a48 48 0 1 1 0 -96 a60 60 0 1 1 0 120 a72 72 0 1 1 0 -144" fill="none" stroke="#151515" stroke-width="12" stroke-linecap="round"></path>
+          <path class="arc" d="M150 140 m0 -12 a12 12 0 1 1 0 24 a24 24 0 1 1 0 -48 a36 36 0 1 1 0 72 a48 48 0 1 1 0 -96 a60 60 0 1 1 0 120 a72 72 0 1 1 0 -144" fill="none" stroke="url(#gE)" stroke-width="12" stroke-linecap="round" stroke-dasharray="{{dS}}"></path>
+        </g>
+      </sc-if>
+
+      <g>
+        <animateMotion dur="{{runDur}}" repeatCount="indefinite" path="{{runPath}}"></animateMotion>
+        <g transform="translate(0 -10)">
+          <circle cx="0" cy="-15" r="3.6" fill="#0B0B0B" stroke="#F2EEE6" stroke-width="1.8"></circle>
+          <line x1="0" y1="-11" x2="0" y2="-2" stroke="#F2EEE6" stroke-width="1.8" stroke-linecap="round"></line>
+          <line x1="0" y1="-8" x2="6" y2="-4" stroke="#F2EEE6" stroke-width="1.8" stroke-linecap="round"></line>
+          <g transform="translate(0 -2)"><line class="la" x1="0" y1="0" x2="0" y2="9" stroke="#F2EEE6" stroke-width="1.8" stroke-linecap="round"></line><line class="lb" x1="0" y1="0" x2="0" y2="9" stroke="#F2EEE6" stroke-width="1.8" stroke-linecap="round"></line></g>
+        </g>
+      </g>
+    </svg>
+    <div style="position: absolute; left: 0; right: 0; bottom: 0; text-align: center;">
+      <div style="font-family: Syne, sans-serif; font-weight: 700; font-size: 52px; line-height: 56px;">{{time}}</div>
+      <div style="font-size: 13px; color: rgba(242,238,230,0.55);">de 4:09 · sugerido</div>
+    </div>
+  </div>
+
+  <div style="display: grid; grid-template-columns: 1fr 1.6fr 1fr; gap: 8px; margin-top: 16px;">
+    <button onClick="{{minus}}" style="height: 44px; border-radius: 22px; border: 1px solid rgba(242,238,230,0.12); background: #111111; color: #F2EEE6; font-family: Inter, sans-serif; font-size: 14px; font-weight: 600;">−15 s</button>
+    <button style="height: 44px; border-radius: 22px; border: none; background: #F2EEE6; color: #0B0B0B; font-family: Inter, sans-serif; font-size: 14px; font-weight: 600;">Saltar descanso</button>
+    <button onClick="{{plus}}" style="height: 44px; border-radius: 22px; border: 1px solid rgba(242,238,230,0.12); background: #111111; color: #F2EEE6; font-family: Inter, sans-serif; font-size: 14px; font-weight: 600;">+15 s</button>
+  </div>
+  <a href="F8-MiniJuego.dc.html" style="margin-top: 10px; height: 40px; border-radius: 20px; border: 1px dashed rgba(242,238,230,0.22); color: #F2EEE6; font-size: 13px; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 8px; text-decoration: none;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3" y="7" width="18" height="11" rx="4"></rect><path d="M8 11v3M6.5 12.5h3"></path><circle cx="16" cy="11.5" r="1"></circle><circle cx="17.5" cy="14" r="1"></circle></svg>Jugar mientras descansas</a>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { remaining: 161, total: 249, shape: 'tower' };
+    this.iv = null;
+  }
+  componentDidMount() {
+    this.iv = setInterval(() => {
+      const r = this.state.remaining - 1;
+      this.setState({ remaining: r <= 0 ? this.state.total : r });
+    }, 220);
+  }
+  componentWillUnmount() { if (this.iv) clearInterval(this.iv); }
+  renderVals() {
+    const { remaining, total, shape } = this.state;
+    const p = Math.max(0, Math.min(1, (total - remaining) / total));
+    const elC = (rx, ry) => Math.PI * (3 * (rx + ry) - Math.sqrt((3 * rx + ry) * (rx + 3 * ry)));
+    const c0 = elC(130, 38), c1 = elC(98, 28), c2 = elC(66, 20);
+    const f = (i) => Math.max(0, Math.min(1, p * 3 - i));
+    const dash = (fr, c) => (fr * c).toFixed(1) + ' ' + c.toFixed(1);
+    const ell = (cx, cy, rx, ry) => 'M' + (cx - rx) + ' ' + cy + ' a' + rx + ' ' + ry + ' 0 1 0 ' + (2 * rx) + ' 0 a' + rx + ' ' + ry + ' 0 1 0 ' + (-2 * rx) + ' 0';
+    const active = f(0) < 1 ? 0 : (f(1) < 1 ? 1 : 2);
+    const towerPaths = [ell(150, 220, 130, 38), ell(150, 150, 98, 28), ell(150, 88, 66, 20)];
+    const trackPath = 'M80 70 H220 A70 70 0 0 1 220 210 H80 A70 70 0 0 1 80 70 Z';
+    const spiralPath = 'M150 140 m0 -12 a12 12 0 1 1 0 24 a24 24 0 1 1 0 -48 a36 36 0 1 1 0 72 a48 48 0 1 1 0 -96 a60 60 0 1 1 0 120 a72 72 0 1 1 0 -144';
+    const trackLen = 2 * 140 + 2 * Math.PI * 70;
+    const spiralLen = Math.PI * (12 + 24 + 36 + 48 + 60 + 72);
+    const m = Math.floor(remaining / 60), s = remaining % 60;
+    const shapes = [['tower', 'Torre'], ['track', 'Pista'], ['spiral', 'Espiral']].map(([id, label]) => ({
+      label,
+      bg: shape === id ? '#F2EEE6' : 'transparent',
+      fg: shape === id ? '#0B0B0B' : 'rgba(242,238,230,0.62)',
+      pick: () => this.setState({ shape: id })
+    }));
+    return {
+      shapes,
+      isTower: shape === 'tower',
+      isTrack: shape === 'track',
+      isSpiral: shape === 'spiral',
+      d0: dash(f(0), c0), d1: dash(f(1), c1), d2: dash(f(2), c2),
+      dT: dash(p, trackLen), dS: dash(p, spiralLen),
+      runPath: shape === 'tower' ? towerPaths[active] : (shape === 'track' ? trackPath : spiralPath),
+      runDur: shape === 'spiral' ? '9s' : '4.5s',
+      time: m + ':' + String(s).padStart(2, '0'),
+      aria: 'Descanso: quedan ' + m + ' minutos y ' + s + ' segundos',
+      minus: () => this.setState({ remaining: Math.max(1, this.state.remaining - 15) }),
+      plus: () => this.setState({ remaining: Math.min(this.state.total, this.state.remaining + 15) })
+    };
+  }
+}
+</script>
+</body>
+</html>

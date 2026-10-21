@@ -1,0 +1,68 @@
+{
+  "id": "ymove_001",
+  "durationS": 14.0,
+  "width": 360,
+  "height": 640,
+  "rotation": 0,
+  "fpsNominal": 25.0,
+  "fpsMeasured": 25.0,
+  "usable": true,
+  "exercise": "Sentadilla trasera con barra",
+  "exerciseDetail": "Sentadilla trasera con barra (barra alta, discos verdes de goma) hasta el fondo profundo, de pie sobre suelo de estudio blanco",
+  "suggestedProfile": "SQUAT",
+  "view": "OBLIQUE",
+  "people": 1,
+  "fullBodyVisible": true,
+  "faceVisible": true,
+  "plateVisible": true,
+  "startPhase": "ECCENTRIC_FIRST",
+  "reps": {
+    "full": 4,
+    "partial": 0,
+    "failed": 0,
+    "uncertain": false,
+    "acceptableRange": [
+      4,
+      4
+    ]
+  },
+  "repTimesS": [
+    {
+      "index": 1,
+      "turnaroundS": 1.35,
+      "side": null
+    },
+    {
+      "index": 2,
+      "turnaroundS": 5.1,
+      "side": null
+    },
+    {
+      "index": 3,
+      "turnaroundS": 8.7,
+      "side": null
+    },
+    {
+      "index": 4,
+      "turnaroundS": 12.35,
+      "side": null
+    }
+  ],
+  "activeWindowS": [
+    0.0,
+    14.0
+  ],
+  "frameIntervalS": {
+    "min": 0.04,
+    "median": 0.04,
+    "max": 0.04
+  },
+  "turnaroundKind": "BOTTOM",
+  "edgeEvents": [],
+  "caveats": [],
+  "cameraMotion": {
+    "class": "STATIC",
+    "note": "cámara fija de estudio con fondo blanco liso (ORB y ECC no tienen rasgos fiables): los zapatos plantados, seguidos con plantilla, se desplazan x -3..0 px e y 0..1 px en el encuadre 360x640 durante todo el clip (máx. 0,8% del ancho)"
+  },
+  "softWarnings": []
+}

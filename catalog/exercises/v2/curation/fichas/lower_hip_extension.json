@@ -155,14 +155,14 @@
               {
                 "id": "muñeca",
                 "role": "NONE",
-                "why": "El soporte posterior y los rieles reciben el peso; el agarre de manos solo fija el contacto y no se equipara al de las mancuernas o disco."
+                "why": "Los brazos están cruzados y las manos no agarran carga externa; la barra fija recibe los muslos."
               }
             ],
             "muscles": [
               {
                 "id": "forearm",
                 "role": "NONE",
-                "why": "La carga queda recibida por la espalda y sus extremos están guiados; las manos la afirman sin soportarla como un peso suspendido."
+                "why": "No hay peso suspendido de las manos ni agarre de barra: los brazos permanecen cruzados."
               }
             ]
           }
@@ -207,19 +207,20 @@
             ]
           },
           "glutes_hiperextension_45__smith_machine": {
-            "description": "La barra apoyada sobre la espalda queda sujeta a un recorrido vertical que debe encajar con el banco inclinado. La colocación del banco limita la bisagra disponible y no permite suponer el mismo arco que con una barra libre.",
+            "description": "La barra Smith queda bloqueada y acolchada como apoyo fijo para la parte anterior alta de los muslos. Con los pies en el suelo detrás del apoyo, la cadera permite plegar y elevar el tronco; la barra no descansa sobre la espalda ni se desplaza por los rieles.",
             "executionCues": [
-              "Pliega la cadera hasta donde puedas conservar los contactos con el banco y la barra.",
-              "Interrumpe la bajada si la guía te desplaza fuera del acolchado.",
-              "Regresa con la cadera sin arquear la zona lumbar."
+              "Pliega el tronco desde las caderas sobre el apoyo acolchado manteniendo los pies plantados.",
+              "Regresa extendiendo las caderas hasta la línea corporal, sin añadir un arqueo lumbar.",
+              "Mantén el contacto anterior con el pad y la barra bloqueada durante todo el movimiento."
             ],
             "setupCues": [
-              "Alinea el banco con la barra y prueba un recorrido breve sin añadir discos.",
-              "Ajusta los topes y apoya la barra en la espalda alta con ambas manos."
+              "Bloquea la barra Smith sobre ambos ganchos a una altura que permita apoyar la parte anterior alta de los muslos sobre un acolchado firme.",
+              "Coloca los pies en el suelo detrás del apoyo, con rodillas suaves y espacio para plegar el tronco por delante de la barra.",
+              "Cruza los brazos sobre el pecho y comprueba que la barra permanece fija."
             ]
           }
         },
-        "description": "Las Hiperextensiones a 45° para Glúteos son una extensión de cadera sobre banco inclinado que trabaja el glúteo mayor y los isquiosurales. El borde del acolchado queda debajo del pliegue de cadera para que el torso se incline como una unidad y vuelva a la línea de las piernas. La espalda conserva su forma y el regreso termina al extender la cadera, sin añadir un arqueo de cintura. El disco cercano al pecho o la carga suspendida bajo los hombros cambian dónde queda el peso durante esa bisagra."
+        "description": "Estas variantes realizan una extensión de cadera con apoyo en la parte alta de los muslos. En banco inclinado se retienen los tobillos y puede añadirse carga; en la variante Smith la barra queda bloqueada y acolchada como apoyo fijo, con los pies en el suelo y el peso del tronco como resistencia. La cadera queda libre para plegar y elevar el torso sin añadir un arqueo lumbar. El glúteo mayor y los isquiosurales participan en la extensión de cadera."
       },
       "sources": [
         {
@@ -273,16 +274,16 @@
       ],
       "status": "CURATED",
       "technique": {
-        "identity": "Con los tobillos anclados en un banco romano de cuarenta y cinco grados, la cadera libre sobre el borde permite inclinar y levantar el torso de forma estable. El recorrido concluye en la diagonal de las piernas sin cambiar deliberadamente la curvatura lumbar.",
+        "identity": "Extensión de cadera con muslos apoyados y columna estable. En banco romano a cuarenta y cinco grados se sujetan los tobillos; en Smith fija ambos pies permanecen en el suelo detrás del apoyo. El torso se pliega desde la cadera y regresa hasta la alineación corporal.",
         "keyPositions": [
-          "Arriba: tronco y piernas forman una línea diagonal sin arqueo extra de cintura.",
-          "Abajo: flexión de cadera por encima del apoyo, espalda con su forma inicial y carga por encima del suelo."
+          "Arriba: tronco y piernas alcanzan su alineación dentro del montaje elegido, sin arqueo adicional de cintura.",
+          "Abajo: cadera flexionada sobre el apoyo, perfil lumbar estable y torso por encima del suelo."
         ],
         "mistakes": [
           "Apoyar el abdomen tan arriba que el borde impida el pivote de cadera.",
           "Enrollar la zona lumbar para ganar profundidad.",
           "Añadir una extensión de espalda al final de la subida.",
-          "Flexionar las rodillas o perder sujeción en los rodillos."
+          "Perder los contactos inferiores del montaje: rodillos y plataforma en banco, o pies en el suelo en Smith fija."
         ],
         "phases": [
           {
@@ -290,21 +291,21 @@
             "name": "Pivote de cadera"
           },
           {
-            "description": "Los extensores de cadera elevan el torso hasta quedar en continuidad con las piernas sujetas, sin sobrepasar esa alineación.",
+            "description": "Los extensores de cadera elevan el torso hasta alinearlo con las piernas, manteniendo los contactos correspondientes al banco o a la Smith fija.",
             "name": "Extensión hasta la línea"
           }
         ],
         "setup": [
-          "Acolchado bajo la parte alta de los muslos sin tapar el pliegue de cadera, tobillos bajo rodillos y pies en la plataforma.",
-          "Disco abrazado en el pecho, dos mancuernas agarradas con brazos largos o barra recibida en la espalda alta según configuración.",
-          "Smith: banco alineado y rango probado con la barra guiada antes de aumentar carga."
+          "Banco romano: apoyo bajo la parte alta de los muslos, tobillos bajo rodillos y pies en la plataforma.",
+          "En banco, disco abrazado, dos mancuernas en brazos largos o barra sobre la espalda alta según configuración. En Smith fija, brazos cruzados y peso corporal.",
+          "Smith: barra bloqueada y acolchada como apoyo anterior de muslos, pies en el suelo; no hay banco romano ni carga guiada sobre la espalda."
         ]
       },
       "visual": {
         "base": {
-          "camera": "Vista lateral completa del banco inclinado, el borde bajo la cadera y todos los contactos inferiores.",
-          "contacts": "Muslos en el acolchado bajo el pliegue de cadera, tobillos bajo rodillos y pies sobre plataforma.",
-          "load": "Resistencia unida al cuerpo por su agarre o apoyo superior, situada por encima del suelo.",
+          "camera": "Vista lateral completa del cuerpo y de todos los apoyos: banco romano inclinado o marco Smith completo según variante.",
+          "contacts": "Banco: muslos en acolchado, tobillos bajo rodillos y pies en plataforma. Smith fija: parte anterior alta de muslos sobre pad de barra bloqueada y ambos pies en el suelo.",
+          "load": "En banco, carga externa recibida por manos o espalda según implemento. En Smith fija, el peso del tronco es la resistencia y la barra es sólo apoyo inmóvil.",
           "orientation": "Pecho y cabeza hacia la izquierda y abajo, piernas en diagonal hacia la derecha.",
           "phase": "Fotograma inferior de flexión de cadera con el torso estable inclinado por delante del apoyo.",
           "posture": "Cadera doblada y tronco con perfil neutro sin enrollamiento lumbar; rodillas aproximadamente extendidas."
@@ -320,7 +321,7 @@
             "geometry": "Un disco agarrado por sus bordes y pegado al pecho, codos doblados y antebrazos recibiéndolo; la cadera está libre sobre el borde del banco de cuarenta y cinco grados."
           },
           "smith_machine": {
-            "geometry": "Banco inclinado dentro de una estación Smith, barra guiada tocando la espalda alta y manos alrededor del eje; ambos extremos conectados a rieles verticales, rodillos de tobillos y topes visibles por debajo."
+            "geometry": "Estación Smith completa con barra bloqueada en ambos ganchos, un único pad cilíndrico bajo la parte anterior alta de los muslos y pies en el suelo detrás. Tronco plegado por delante, brazos cruzados, columna estable. La barra es apoyo fijo y no toca la espalda."
           }
         },
         "forbidden": [
@@ -334,14 +335,14 @@
           "barbell": "An athlete frozen at the BOTTOM of a 45-degree Roman chair hip extension, viewed from the side. A loaded straight barbell rests against the upper back below the neck and both hands grip it outside the shoulders. Upper thighs touch the pad below the hip crease, ankles stay under rollers and feet touch the platform. Hips flex forward with a neutral lumbar spine. Barbell plates are clear of the bench and floor.",
           "dumbbells": "Side view frozen at the BOTTOM of a 45-degree Roman chair hip extension. Upper thighs touch the pad below the hip crease, ankles under rollers and feet on the platform. Hips are flexed while the spine keeps a neutral profile. Each straight arm hangs below its shoulder and each hand grips one dumbbell. Both weights hang clear of the bench and floor. The movement is a hip hinge, not a rounded spinal curl.",
           "plate": "Side view at the BOTTOM of a weighted 45-degree Roman chair hip extension. Both hands grip the edges of one weight plate held pressed against the chest, elbows bent. Thighs touch the pad below the hip crease and ankles are secured under rollers with feet on the platform. Hips are visibly flexed, torso inclines forward as a straight unit and the lumbar spine stays neutral. The plate remains above the floor.",
-          "smith_machine": "Side view frozen at the BOTTOM of a Smith-loaded 45-degree Roman chair hip extension. The bench sits inside visible vertical rails. Both hands grip the guided bar touching the upper back, both bar ends attached to the rails. Thighs touch the pad below the hip crease, ankles under rollers and feet on the platform. Hips show a modest flexion angle, spine neutral. Plates remain above the floor and mechanical safety stops."
+          "smith_machine": "Full view of a real Smith machine used as a FIXED padded anterior thigh support. The bar is locked on both hooks and does not move. Athlete stands with both feet on the floor behind the padded bar, folds the torso forward at the hips over the pad, arms crossed over chest. No Roman chair, no bar on the back, no extra weights. Entire machine and athlete inside frame with transparent margins."
         },
         "qa": [
-          "¿El torso está abajo con una cadera visiblemente flexionada y una espalda de perfil estable?",
-          "¿El borde del acolchado queda debajo del pliegue de cadera?",
-          "¿Tobillos y pies permanecen sujetos en el banco?",
-          "¿Las manos sujetan la carga y esta toca su apoyo o cuelga de un agarre real?",
-          "¿La carga está libre del suelo y los rieles se ven conectados cuando hay Smith?"
+          "¿El torso se pliega desde la cadera con el perfil lumbar estable?",
+          "¿El apoyo deja libre el pliegue de cadera?",
+          "¿Los contactos inferiores corresponden al montaje elegido?",
+          "¿Las cargas externas están sujetas cuando existen y la barra Smith está fija cuando sirve de apoyo?",
+          "¿Cuerpo, apoyos y estructura necesaria están completos dentro del encuadre?"
         ]
       }
     },
@@ -583,12 +584,15 @@
       "public": {
         "configurations": {
           "glutes_patada_gluteo__band": {
-            "description": "Con banda elástica, la pierna se extiende hacia atrás y arriba con el glúteo contrayéndose en lo alto del arco. El glúteo mayor trabaja con la banda, cuya resistencia crece con el recorrido.",
+            "description": "En cuadrupedia, un solo lazo elástico pasa bajo la rodilla de apoyo y alrededor de la suela del pie activo. La pierna empuja hacia atrás contra la banda mientras la pelvis permanece estable.",
             "executionCues": [
-              "Banda en el tobillo: la resistencia elástica sube al estirar la pierna. La pelvis se extiende hasta quedar alineada con el tronco; el recorrido termina antes de sustituir el glúteo por una hiperextensión lumbar."
+              "Extiende la cadera llevando el pie activo hacia atrás contra la banda.",
+              "Mantén la pelvis orientada al suelo y detén la subida antes de arquear la zona lumbar.",
+              "Vuelve despacio conservando la banda apoyada en la suela."
             ],
             "setupCues": [
-              "Preparación: Banda en el tobillo: la resistencia elástica sube al estirar la pierna."
+              "Apoya las manos bajo los hombros y una rodilla bajo la cadera.",
+              "Fija una parte del lazo bajo la rodilla de apoyo y coloca la parte opuesta alrededor de la suela del pie activo, sin torsiones."
             ]
           },
           "glutes_patada_gluteo__cable": {

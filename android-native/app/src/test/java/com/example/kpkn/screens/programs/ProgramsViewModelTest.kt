@@ -1,7 +1,9 @@
 package com.example.kpkn.screens.programs
 
 import android.content.Context
+import androidx.lifecycle.ViewModelStore
 import androidx.test.core.app.ApplicationProvider
+import com.example.kpkn.data.db.KpknDatabase
 import com.example.kpkn.data.models.Block
 import com.example.kpkn.data.models.Macrocycle
 import com.example.kpkn.data.models.Mesocycle
@@ -13,6 +15,8 @@ import com.example.kpkn.data.programs.PersonalizedPlanCatalog
 import com.example.kpkn.data.programs.programModeFor
 import com.example.kpkn.data.programs.programNameFor
 import com.example.kpkn.data.repository.ProgramRepository
+import com.example.kpkn.data.repository.SessionTemplateRepository
+import com.example.kpkn.testsupport.RoomTestRule
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
@@ -27,6 +31,7 @@ import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
@@ -37,13 +42,22 @@ import org.robolectric.annotation.Config
 @Config(manifest = Config.NONE, sdk = [34])
 class ProgramsViewModelTest {
 
+    @get:Rule
+    val roomRule = RoomTestRule()
+
     private val dispatcher = UnconfinedTestDispatcher()
+    private val viewModelStore = ViewModelStore()
+    private var nextViewModelKey = 0
 
     @Before
     fun setup() = runBlocking {
         Dispatchers.setMain(dispatcher)
         val context = ApplicationProvider.getApplicationContext<Context>()
-        ProgramRepository.initForTests(context)
+        // El repositorio de plantillas que crea el VM es un singleton: que no llegue vivo desde otra prueba.
+        SessionTemplateRepository.resetForTests()
+        val repository = ProgramRepository.initForTests(context)
+        // Y que lea la base en memoria de ESTA prueba, no el kpkn.db del disco.
+        setDatabaseSingletonForTest(repository.databaseForTests())
         withTimeout(10_000) {
             while (!ProgramRepository.getInstance().isReady.value) delay(25)
         }
@@ -52,13 +66,32 @@ class ProgramsViewModelTest {
 
     @After
     fun tearDown() {
-        ProgramRepository.closeInstance()
-        Dispatchers.resetMain()
+        try {
+            // Primero los VM (cancela su viewModelScope), luego el repositorio de plantillas y solo al final la base.
+            viewModelStore.clear()
+            SessionTemplateRepository.resetForTests()
+            ProgramRepository.closeInstance()
+        } finally {
+            setDatabaseSingletonForTest(null)
+            Dispatchers.resetMain()
+        }
+    }
+
+    /** Cada VM va al store de la prueba: [tearDown] lo limpia antes de cerrar la base. */
+    private fun createViewModel(): ProgramsViewModel =
+        ProgramsViewModel(ApplicationProvider.getApplicationContext()).also { viewModel ->
+            viewModelStore.put("programs-${nextViewModelKey++}", viewModel)
+        }
+
+    private fun setDatabaseSingletonForTest(database: KpknDatabase?) {
+        KpknDatabase::class.java.getDeclaredField("INSTANCE").apply {
+            isAccessible = true
+        }.set(null, database)
     }
 
     @Test
     fun getProgramStats_excludes_loop_weeks() {
-        val vm = ProgramsViewModel(ApplicationProvider.getApplicationContext())
+        val vm = createViewModel()
         val stats = vm.getProgramStats(
             Program(
                 id = "p",
@@ -105,7 +138,7 @@ class ProgramsViewModelTest {
 
     @Test
     fun createBlankProgram_uses_unified_block_names() {
-        val vm = ProgramsViewModel(ApplicationProvider.getApplicationContext())
+        val vm = createViewModel()
         val id = vm.createBlankProgram()
         val created = ProgramRepository.getInstance().getProgramById(id)!!
 
@@ -117,7 +150,7 @@ class ProgramsViewModelTest {
     @Test
     fun createProgramFromProtocol_requires_calibration_before_materializing() {
         com.example.kpkn.domain.training.CatalogCompositionTestSupport.install()
-        val vm = ProgramsViewModel(ApplicationProvider.getApplicationContext())
+        val vm = createViewModel()
         val profile = com.example.kpkn.data.models.PowerliftingProfile(
             squat1RM = 200.0,
             bench1RM = 140.0,
@@ -129,7 +162,7 @@ class ProgramsViewModelTest {
     @Test
     fun createProgramFromProtocol_materializes_recipe_and_training_max() {
         com.example.kpkn.domain.training.CatalogCompositionTestSupport.install()
-        val vm = ProgramsViewModel(ApplicationProvider.getApplicationContext())
+        val vm = createViewModel()
         val profile = com.example.kpkn.data.models.PowerliftingProfile(
             squat1RM = 200.0,
             bench1RM = 140.0,
@@ -153,7 +186,7 @@ class ProgramsViewModelTest {
     @Test
     fun createProgramFromProtocol_is_named_after_its_library_card_and_takes_its_discipline_mode() {
         com.example.kpkn.domain.training.CatalogCompositionTestSupport.install()
-        val vm = ProgramsViewModel(ApplicationProvider.getApplicationContext())
+        val vm = createViewModel()
         val repository = ProgramRepository.getInstance()
         val profile = com.example.kpkn.data.models.PowerliftingProfile(
             squat1RM = 200.0,
@@ -188,7 +221,7 @@ class ProgramsViewModelTest {
     @Test
     fun createProgramFromTemplate_is_named_after_its_library_card() = runBlocking {
         com.example.kpkn.domain.training.CatalogCompositionTestSupport.install()
-        val vm = ProgramsViewModel(ApplicationProvider.getApplicationContext())
+        val vm = createViewModel()
         val repository = ProgramRepository.getInstance()
         val calibration = com.example.kpkn.screens.programdetail.components.buildVolumeCalibration(
             style = com.example.kpkn.data.models.TrainingStyle.BODYBUILDER,
@@ -208,7 +241,7 @@ class ProgramsViewModelTest {
     @Test
     fun createProgramFromTemplate_requires_calibration_before_materializing() = runBlocking {
         com.example.kpkn.domain.training.CatalogCompositionTestSupport.install()
-        val vm = ProgramsViewModel(ApplicationProvider.getApplicationContext())
+        val vm = createViewModel()
         val outcome = vm.createProgramFromTemplateGated("simple-1")
         assertEquals(ProgramsViewModel.TemplateApplyOutcome.RequiresCalibration, outcome)
     }
@@ -216,7 +249,7 @@ class ProgramsViewModelTest {
     @Test
     fun createProgramFromTemplate_activates_program_and_materializes_executable_sessions() = runBlocking {
         com.example.kpkn.domain.training.CatalogCompositionTestSupport.install()
-        val vm = ProgramsViewModel(ApplicationProvider.getApplicationContext())
+        val vm = createViewModel()
         val repository = ProgramRepository.getInstance()
         val calibration = com.example.kpkn.screens.programdetail.components.buildVolumeCalibration(
             style = com.example.kpkn.data.models.TrainingStyle.BODYBUILDER,

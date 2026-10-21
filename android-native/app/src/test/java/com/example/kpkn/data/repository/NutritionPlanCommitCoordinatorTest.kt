@@ -1,5 +1,6 @@
 package com.example.kpkn.data.repository
 
+import com.example.kpkn.testsupport.SyncRoomExecutor
 import androidx.room.withTransaction
 import com.example.kpkn.data.db.KpknDatabase
 import com.example.kpkn.data.db.toDailyGoalSnapshot
@@ -39,6 +40,7 @@ class NutritionPlanCommitCoordinatorTest {
 
     @Before
     fun setUp() {
+        SyncRoomExecutor.install()
         db = KpknDatabase.createInMemory(androidx.test.core.app.ApplicationProvider.getApplicationContext())
         coordinator = NutritionPlanCommitCoordinator(db)
     }
@@ -46,6 +48,7 @@ class NutritionPlanCommitCoordinatorTest {
     @After
     fun tearDown() {
         db.close()
+        SyncRoomExecutor.uninstall()
     }
 
     private fun plan(id: String = "plan-1", calories: Int = 2215) = NutritionPlan(

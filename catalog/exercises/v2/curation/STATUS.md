@@ -19,7 +19,7 @@ vigente es esto:
   `__bodyweight` en definiciones ya `CURATED`, ver «Lote BW-1»; ese mismo día el lote OL-1
   de levantamientos olímpicos y acarreos añadió 13 definiciones y 14 configuraciones,
   ver «Lote OL-1»). SHA-256 canónico compartido
-  `8e70937474a217c8314eb53f17a94456fee0ec3d93f9587695ec4727dd8f33f9`.
+  `81db1f950148a7769b7d1d1dd8f066746439efe726ca00d35d87d52119bcf91c`.
 - Fuente única de autoría: `curation/fichas/<familyId>.json` (una por familia,
   96). Se copia con `scripts/catalog_v2_apply_fichas.py`; el flujo completo y las
   reglas están en `EDITORIAL_GUIDE.md`. El gate falla si `source/` difiere de lo

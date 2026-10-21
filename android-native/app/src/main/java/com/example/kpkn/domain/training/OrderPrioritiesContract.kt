@@ -129,7 +129,7 @@ object OrderPrioritiesContract {
         val reasons = mutableListOf<String>()
         val status = when {
             normalized == null -> {
-                reasons += "La bolsa de prioridades de orden no es válida: máximo 2 puntos por músculo, 5 en total y ningún punto negativo."
+                reasons += "La bolsa de prioridades de orden no es válida: máximo 2 puntos por músculo, 6 en total y ningún punto negativo."
                 OrderPrioritiesStatus.INVALID
             }
             normalized.isEmpty() -> OrderPrioritiesStatus.NOT_REQUESTED

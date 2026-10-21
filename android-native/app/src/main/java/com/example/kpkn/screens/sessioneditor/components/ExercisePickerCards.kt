@@ -13,7 +13,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
@@ -61,79 +60,6 @@ internal fun shouldShowExerciseAspectChips(
     hasHighlightedOptions: Boolean,
     showAspects: Boolean,
 ): Boolean = hasAspects && (isSelected || hasHighlightedOptions || showAspects)
-
-@Composable
-internal fun ExercisePickerCompactCard(
-    info: ExerciseMuscleInfo,
-    isSelected: Boolean,
-    onSelect: () -> Unit,
-    onInfo: () -> Unit,
-    onOpenVariantFlow: (() -> Unit)? = null,
-) {
-    val bgAlpha = if (isSelected) 0.40f else 0.24f
-    Surface(
-        modifier = Modifier
-            .width(220.dp)
-            .clip(RoundedCornerShape(14.dp))
-            .clickable { onSelect() },
-        shape = RoundedCornerShape(14.dp),
-        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = bgAlpha),
-        contentColor = KpknSheetTokens.Body,
-    ) {
-        Column(
-            modifier = Modifier.padding(12.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(6.dp),
-            ) {
-                Text(
-                    info.name,
-                    modifier = Modifier.weight(1f),
-                    style = MaterialTheme.typography.bodySmall,
-                    fontWeight = if (isSelected) FontWeight.Black else FontWeight.SemiBold,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis,
-                    color = KpknSheetTokens.Body,
-                )
-                if (onOpenVariantFlow != null && !info.variantGroupId.isNullOrBlank()) {
-                    IconButton(onClick = onOpenVariantFlow, modifier = Modifier.size(26.dp)) {
-                        Icon(
-                            Icons.Default.Tune,
-                            contentDescription = "Configuración avanzada",
-                            tint = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.size(16.dp),
-                        )
-                    }
-                }
-                if (isSelected) {
-                    Icon(
-                        Icons.Default.CheckCircle,
-                        contentDescription = "Seleccionado",
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(20.dp),
-                    )
-                }
-                IconButton(onClick = onInfo, modifier = Modifier.size(26.dp)) {
-                    Icon(
-                        Icons.Default.Info,
-                        contentDescription = "Ver detalle",
-                        tint = KpknSheetTokens.MutedStrong,
-                        modifier = Modifier.size(16.dp),
-                    )
-                }
-            }
-            Text(
-                listOfNotNull(resolvePrimaryMuscleLabel(info), info.equipment).joinToString(" · "),
-                style = MaterialTheme.typography.labelSmall,
-                color = KpknSheetTokens.MutedStrong,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
-        }
-    }
-}
 
 @Composable
 internal fun ExercisePickerDetailedCard(

@@ -159,7 +159,6 @@ import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
-import com.example.kpkn.screens.home.SingleRingCanvas
 import com.example.kpkn.data.models.Session
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.drawscope.Stroke
@@ -286,7 +285,6 @@ import com.example.kpkn.screens.sessioneditor.CompactRestBundleButton
 import com.example.kpkn.screens.sessioneditor.UnilateralModeSelector
 import com.example.kpkn.screens.sessioneditor.SideOrderChip
 import com.example.kpkn.screens.sessioneditor.ExerciseSetsCarousel
-import com.example.kpkn.screens.sessioneditor.EstimatedRingsRow
 import com.example.kpkn.screens.sessioneditor.UnilateralAddGhostCard
 import com.example.kpkn.screens.sessioneditor.AddSetGhostCard
 import com.example.kpkn.screens.sessioneditor.formatEditableNumber
@@ -389,6 +387,8 @@ internal fun SessionEditorSheets(
     onRemoveMobilityExercise: (MobilityExercise) -> Unit = {},
     onAddCardio: (CardioCatalogItem) -> Unit = {},
     onQuickActionDelete: () -> Unit,
+    /** «Duplicar ejercicio» de las acciones rápidas (ER1f): sin esto la fila no hacía nada. */
+    onQuickActionDuplicate: () -> Unit = {},
     onQuickActionCreateSuperset: () -> Unit,
     onQuickActionManageSuperset: () -> Unit,
     onLinkExerciseRelativeTo: (String?, String, String?) -> Unit,
@@ -660,6 +660,8 @@ internal fun SessionEditorSheets(
                     onConfirm = onCreateSupersetGroup,
                     onOpenCatalog = onOpenCatalog,
                     onDismiss = onDismiss,
+                    // ER1f: sin las partes, la lista de miembros sale sin grupos.
+                    sessionParts = session.parts,
                 )
             }
             SessionEditorSheet.RELATIONSHIP_PICKER -> {
@@ -689,6 +691,7 @@ internal fun SessionEditorSheets(
                 onOpenWarmup = onQuickActionOpenWarmup,
                 onOpenMobility = onQuickActionOpenMobility,
                 onDelete = onQuickActionDelete,
+                onDuplicate = onQuickActionDuplicate,
                 onManageSuperset = {
                     if (quickActionExercise?.isInSuperset() == true) {
                         onQuickActionManageSuperset()

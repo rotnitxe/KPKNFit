@@ -1,5 +1,6 @@
 package com.example.kpkn.data.repository
 
+import com.example.kpkn.testsupport.SyncRoomExecutor
 import android.content.Context
 import androidx.test.core.app.ApplicationProvider
 import com.example.kpkn.data.db.KpknDatabase
@@ -70,6 +71,7 @@ class ProgramRepositoryAutoregulationAcceptanceTest {
 
     @Before
     fun setUp() {
+        SyncRoomExecutor.install()
         Dispatchers.setMain(mainDispatcher)
     }
 
@@ -78,6 +80,7 @@ class ProgramRepositoryAutoregulationAcceptanceTest {
         ProgramRepository.closeInstance()
         KpknDatabase.closeInstance()
         Dispatchers.resetMain()
+        SyncRoomExecutor.uninstall()
     }
 
     private class SeqIds : IdProvider {

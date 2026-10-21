@@ -2,6 +2,8 @@ package com.example.kpkn.screens.programdetail.components
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import com.example.kpkn.data.models.BlockGoal
+import com.example.kpkn.data.models.BlockProgressionScheme
 import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.models.ProgramKeyDate
 
@@ -19,10 +21,9 @@ fun MacrocycleEditor(
     onAddProgramCopy: (Program) -> Unit = {},
     onCompetitionKeyDateSaved: (updatedProgram: Program, keyDate: ProgramKeyDate) -> Unit = { _, _ -> },
     onFocusWeek: (blockId: String, weekId: String) -> Unit = { _, _ -> },
-    onCreateSessionForWeek: (weekId: String, preferredDayOfWeek: Int, keyDateId: String?) -> Unit = { _, _, _ -> },
     onApplyProgramTemplate: (com.example.kpkn.data.programs.ProgramTemplateOption) -> Unit = {},
-    onApplyProgramTemplateOverwrite: (com.example.kpkn.data.programs.ProgramTemplateOption, Boolean) -> Unit = { template, overwrite ->
-        if (overwrite) onApplyProgramTemplate(template) else onApplyProgramTemplate(template)
+    onApplyProgramTemplateOverwrite: (com.example.kpkn.data.programs.ProgramTemplateOption, Boolean) -> Unit = { template, _ ->
+        onApplyProgramTemplate(template)
     },
     onApplyProtocol: (com.example.kpkn.data.protocols.Protocol, Boolean) -> Unit = { _, _ -> },
     programSnapshots: List<com.example.kpkn.domain.training.ProgramSnapshot> = emptyList(),
@@ -56,6 +57,17 @@ fun MacrocycleEditor(
     onMacrocycleManualEndDateChange: (String) -> Unit = {},
     macrocycleCompetitionDate: String? = null,
     onMacrocycleCompetitionDateChange: (String) -> Unit = {},
+    selectedWeekId: String? = null,
+    copiedWeekId: String? = null,
+    onCopyWeek: (weekId: String) -> Unit = {},
+    onPasteWeek: (weekId: String) -> Unit = {},
+    onUpdateBlock: (blockId: String, name: String, description: String?, goal: BlockGoal?, progressionScheme: BlockProgressionScheme?) -> Unit =
+        { _, _, _, _, _ -> },
+    blockProgressionPreview: (blockId: String) -> String? = { null },
+    onDeleteBlock: (blockId: String) -> Unit = {},
+    onUpdateWeek: (weekId: String, name: String, description: String?) -> Unit = { _, _, _ -> },
+    onDeleteWeek: (weekId: String) -> Unit = {},
+    onAddSimpleWeek: () -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     MacrocycleEditorLegacy(
@@ -64,7 +76,6 @@ fun MacrocycleEditor(
         onAddProgramCopy = onAddProgramCopy,
         onCompetitionKeyDateSaved = onCompetitionKeyDateSaved,
         onFocusWeek = onFocusWeek,
-        onCreateSessionForWeek = onCreateSessionForWeek,
         onApplyProgramTemplate = onApplyProgramTemplate,
         onApplyProgramTemplateOverwrite = onApplyProgramTemplateOverwrite,
         onApplyProtocol = onApplyProtocol,
@@ -99,6 +110,16 @@ fun MacrocycleEditor(
         onMacrocycleManualEndDateChange = onMacrocycleManualEndDateChange,
         macrocycleCompetitionDate = macrocycleCompetitionDate,
         onMacrocycleCompetitionDateChange = onMacrocycleCompetitionDateChange,
+        selectedWeekId = selectedWeekId,
+        copiedWeekId = copiedWeekId,
+        onCopyWeek = onCopyWeek,
+        onPasteWeek = onPasteWeek,
+        onUpdateBlock = onUpdateBlock,
+        blockProgressionPreview = blockProgressionPreview,
+        onDeleteBlock = onDeleteBlock,
+        onUpdateWeek = onUpdateWeek,
+        onDeleteWeek = onDeleteWeek,
+        onAddSimpleWeek = onAddSimpleWeek,
         modifier = modifier,
     )
 }

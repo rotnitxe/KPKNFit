@@ -1,0 +1,105 @@
+{
+  "id": "g21-pexels-4367541",
+  "durationS": 24.625,
+  "width": 1280,
+  "height": 720,
+  "rotation": 0,
+  "fpsNominal": 29.97,
+  "fpsMeasured": 29.97,
+  "usable": true,
+  "exercise": "Press de hombros sentado con mancuernas",
+  "exerciseDetail": "Press de hombros SENTADO con mancuernas (redondas, con discos) en un banco de respaldo casi vertical, visto de perfil; 4 repeticiones muy lentas (~6,8 s) con pausas de ~2,5 s con los brazos bloqueados arriba",
+  "suggestedProfile": "OHP",
+  "view": "SIDE",
+  "people": 2,
+  "fullBodyVisible": false,
+  "faceVisible": true,
+  "plateVisible": true,
+  "startPhase": "CONCENTRIC_FIRST",
+  "reps": {
+    "full": 4,
+    "partial": 0,
+    "failed": 0,
+    "uncertain": false,
+    "acceptableRange": [
+      3,
+      4
+    ]
+  },
+  "repTimesS": [
+    {
+      "index": 1,
+      "turnaroundS": 3.0,
+      "side": null,
+      "windowS": [
+        1.8,
+        4.2
+      ]
+    },
+    {
+      "index": 2,
+      "turnaroundS": 10.3,
+      "side": null,
+      "windowS": [
+        9.0,
+        11.7
+      ]
+    },
+    {
+      "index": 3,
+      "turnaroundS": 17.0,
+      "side": null,
+      "windowS": [
+        15.8,
+        18.2
+      ]
+    },
+    {
+      "index": 4,
+      "turnaroundS": 23.75,
+      "side": null,
+      "windowS": [
+        22.9,
+        24.6
+      ]
+    }
+  ],
+  "activeWindowS": [
+    0.1,
+    24.6
+  ],
+  "frameIntervalS": {
+    "min": 0.0334,
+    "median": 0.0334,
+    "max": 0.0334
+  },
+  "turnaroundKind": "TOP",
+  "edgeEvents": [
+    {
+      "timeS": 1.8,
+      "kind": "LONG_PAUSE",
+      "description": "pausas de ~2,5 s con los brazos bloqueados arriba en cada repetición (ventanas en repTimesS[].windowS)"
+    },
+    {
+      "timeS": 23.0,
+      "kind": "TRUNCATED_END",
+      "description": "la 4.ª repetición llega al bloqueo hacia 22,9 s y el clip termina (24,6 s) sin bajar: un contador que exige el descenso marcaría 3"
+    }
+  ],
+  "caveats": [
+    "el ejercicio no es el del título (press con barra): es un press de hombros con mancuernas, sentado en un banco con respaldo",
+    "el slider lateral desplaza el fondo ~20% del ancho entre 0 y 13 s (ligeramente por encima del umbral nominal de deriva lenta del 16%); sin sacudidas ni cambio de vista",
+    "el primer fotograma (t=0) está negro (artefacto)",
+    "repeticiones muy lentas con pausas de ~2,5 s arriba: el giro se anota en el centro de la pausa (±1 s)",
+    "la 4.ª repetición queda bloqueada arriba hasta el final del clip: rango aceptable 3-4"
+  ],
+  "cameraMotion": {
+    "class": "SLOW_DRIFT",
+    "note": "slider lateral suave de ida y vuelta: el fondo se desplaza ~20% del ancho entre 0 y 13 s y regresa a ~2% hacia 24 s (≈1,6%/s), escala 1,00-1,04, sin sacudidas ni cambio de vista; ligeramente por encima del umbral nominal del 16%"
+  },
+  "softWarnings": [
+    "cámara con deriva lenta: slider lateral suave de ida y vuelta: el fondo se desplaza ~20% del ancho entre 0 y 13 s y regresa a ~2% hacia 24 s (≈1,6%/s), escala 1,00-1,04, sin sacudidas ni cambio de vista; ligeramente por encima del umbral nominal del 16%",
+    "varias personas: 2 distinguibles (el sujeto domina el encuadre; las demás son pequeñas o están al fondo)",
+    "recuento ambiguo por medio ciclo en el borde del clip o por repeticiones dudosas: rango aceptable 3-4 (ver edgeEvents)"
+  ]
+}

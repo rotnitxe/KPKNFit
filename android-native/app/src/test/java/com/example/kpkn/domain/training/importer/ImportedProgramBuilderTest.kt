@@ -248,6 +248,60 @@ class ImportedProgramBuilderTest {
         assertEquals(expected, actual)
     }
 
+    @Test
+    fun `un nombre con dos opciones resuelto por la primera lleva la nota de la alternativa`() {
+        val name = "Dominadas o jalón agarre cerrado"
+
+        val program = ImportedProgramBuilder.build(
+            oneExercise(name),
+            resolved = mapOf(name to "pull_up__pronated__medium"),
+            weekdays = emptyList(),
+            programId = "imp-alt",
+            catalog = loadCatalog(),
+        )
+
+        val exercise = program.firstWeekSessions()[0].exercises[0]
+        assertEquals("Dominadas", exercise.name)
+        assertEquals(listOf("Alternativa: jalón agarre cerrado."), exercise.executionCues)
+    }
+
+    @Test
+    fun `sin resolver o con otra configuracion elegida no hay nota de alternativa`() {
+        val name = "Dominadas o jalón agarre cerrado"
+
+        val unresolved = ImportedProgramBuilder.build(
+            oneExercise(name), resolved = emptyMap(), weekdays = emptyList(), programId = "imp-alt-2", catalog = loadCatalog(),
+        )
+        val chosen = ImportedProgramBuilder.build(
+            oneExercise(name),
+            resolved = mapOf(name to "lat_pulldown__bilateral__cable"),
+            weekdays = emptyList(),
+            programId = "imp-alt-3",
+            catalog = loadCatalog(),
+        )
+
+        assertEquals(emptyList<String>(), unresolved.firstWeekSessions()[0].exercises[0].executionCues)
+        assertEquals(emptyList<String>(), chosen.firstWeekSessions()[0].exercises[0].executionCues)
+    }
+
+    private fun oneExercise(name: String) = ImportedProgramDraft(
+        title = "Alternativa",
+        weeks = listOf(
+            ImportedWeek(
+                index = 1,
+                days = listOf(
+                    ImportedDay(
+                        id = "w1-d1",
+                        name = "Día 1",
+                        exercises = listOf(
+                            ImportedExercise(id = "w1-d1-e1", rawName = name, sets = 3, repsMin = 6, repsMax = 10),
+                        ),
+                    ),
+                ),
+            ),
+        ),
+    )
+
     private fun Program.firstWeekSessions(): List<Session> =
         macrocycles.single().blocks.single().mesocycles.single().weeks.first().sessions
 

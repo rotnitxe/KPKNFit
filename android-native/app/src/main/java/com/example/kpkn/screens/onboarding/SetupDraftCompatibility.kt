@@ -137,11 +137,12 @@ object SetupDraftCompatibility {
      *   (20 o 25) se lee como 30 y deja SESSION_TIME por revisar. No confirma nada (la respuesta que ya hubiera queda como
      *   estaba, marcada por revisar) ni toca el resto de lo respondido; el cursor vuelve a ese paso para que la persona decida.
      * - «Trapecio» salió de la cuadrícula de músculos: pasa a «Dorsales» ([migrateRetiredTrapezius]).
+     * - «Bíceps» y «Tríceps» pasan a «Brazos» ([migrateRetiredArms]): llevan los dos, con un punto cada uno.
      * - Si el bloque de entreno ya estaba completo, sus pasos nuevos sin responder lo marcan como pendiente de revisión.
      */
     internal fun migrateEntrenoV2(draft: SetupWizardDraft): SetupWizardDraft {
         // Antes del interruptor de entreno: la bolsa de prioridades no depende de que el bloque esté incluido.
-        val withoutTrapezius = migrateRetiredTrapezius(draft)
+        val withoutTrapezius = migrateRetiredArms(migrateRetiredTrapezius(draft))
         if (!withoutTrapezius.includeTraining) return withoutTrapezius
         var current = withoutTrapezius
         // Lugares ← entorno.
@@ -238,19 +239,44 @@ object SetupDraftCompatibility {
     /**
      * «Trapecio» salió de los símbolos de PRIORITIES (va incluido en Espalda). Un borrador que lo trae en `priorityMuscles`
      * o en la bolsa de orden pasa a «Dorsales»: sin duplicarlo si ya estaba, y en la bolsa con el MAYOR de los puntos de
-     * los dos (nunca la suma), así no se pasa del tope de 2 puntos por músculo ni de 5 en total. Idempotente.
+     * los dos (nunca la suma), así no se pasa del tope de 2 puntos por músculo ni de 6 en total. Idempotente.
      */
     internal fun migrateRetiredTrapezius(draft: SetupWizardDraft): SetupWizardDraft {
         val bag = draft.trainingOptions.orderPriorities
         if (draft.priorityMuscles.none { it in RETIRED_TRAPEZIUS_KEYS } && bag.keys.none { it in RETIRED_TRAPEZIUS_KEYS }) {
             return draft
         }
-        val back = MuscleSymbols.canonical(MuscleSymbol.BACK)
+        val back = MuscleSymbols.canonicals(MuscleSymbol.BACK).single()
         val priorities = draft.priorityMuscles.mapTo(linkedSetOf<String>()) { if (it in RETIRED_TRAPEZIUS_KEYS) back else it }
         val migratedBag = linkedMapOf<String, Int>()
         for ((muscle, points) in bag) {
             val target = if (muscle in RETIRED_TRAPEZIUS_KEYS) back else muscle
             migratedBag[target] = maxOf(migratedBag[target] ?: 0, points)
+        }
+        return draft.copy(
+            priorityMuscles = priorities,
+            trainingOptions = draft.trainingOptions.copy(orderPriorities = migratedBag),
+        )
+    }
+
+    /**
+     * «Brazos» une bíceps y tríceps: un símbolo escribe un punto en cada uno (`MuscleSymbols.orderBagOf`). Un borrador que
+     * trae «Bíceps», «Tríceps» o los dos en `priorityMuscles` o en la bolsa pasa a llevar los dos, con un punto cada uno:
+     * así se lee como Brazos y el motor aplica los dos. No cambia el número de símbolos (ni repite ninguno) y la bolsa no
+     * pasa del tope de puntos, porque cada bíceps o tríceps que falta suma uno solo. Sin condición de revisión, como el
+     * trapecio. Idempotente.
+     */
+    internal fun migrateRetiredArms(draft: SetupWizardDraft): SetupWizardDraft {
+        val arms = MuscleSymbols.canonicals(MuscleSymbol.ARMS)
+        val bag = draft.trainingOptions.orderPriorities
+        val armsInPriorities = draft.priorityMuscles.any { it in arms }
+        val armsInBag = bag.keys.any { it in arms }
+        if (!armsInPriorities && !armsInBag) return draft
+        // Como `withMuscles`: si Brazos está, sus dos músculos canónicos van juntos en `priorityMuscles`.
+        val priorities = if (armsInPriorities || armsInBag) draft.priorityMuscles + arms else draft.priorityMuscles
+        val migratedBag: Map<String, Int> = if (!armsInBag) bag else linkedMapOf<String, Int>().also { out ->
+            for ((muscle, points) in bag) if (muscle !in arms) out[muscle] = points
+            for (muscle in arms) out[muscle] = 1
         }
         return draft.copy(
             priorityMuscles = priorities,

@@ -714,13 +714,13 @@
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.2,
-              "description": "La barra apoyada sobre la espalda queda sujeta a un recorrido vertical que debe encajar con el banco inclinado. La colocación del banco limita la bisagra disponible y no permite suponer el mismo arco que con una barra libre.",
+              "description": "La barra Smith queda bloqueada y acolchada como apoyo fijo para la parte anterior alta de los muslos. Con los pies en el suelo detrás del apoyo, la cadera permite plegar y elevar el tronco; la barra no descansa sobre la espalda ni se desplaza por los rieles.",
               "efc": 2.8,
               "equipmentId": "smith_machine",
               "executionCues": [
-                "Pliega la cadera hasta donde puedas conservar los contactos con el banco y la barra.",
-                "Interrumpe la bajada si la guía te desplaza fuera del acolchado.",
-                "Regresa con la cadera sin arquear la zona lumbar."
+                "Pliega el tronco desde las caderas sobre el apoyo acolchado manteniendo los pies plantados.",
+                "Regresa extendiendo las caderas hasta la línea corporal, sin añadir un arqueo lumbar.",
+                "Mantén el contacto anterior con el pad y la barra bloqueada durante todo el movimiento."
               ],
               "fatigueTier": "MEDIA",
               "jointInvolvement": [
@@ -756,7 +756,7 @@
               ],
               "kineticChain": "POSTERIOR",
               "laterality": "NOT_APPLICABLE",
-              "loadMode": "guided_external_load",
+              "loadMode": "bodyweight",
               "movementPatternId": "hip_extension",
               "performanceProfileId": "glutes_hiperextension_45__smith_machine",
               "primaryMuscles": [
@@ -765,7 +765,7 @@
               ],
               "replacementGroup": null,
               "replacementPriority": null,
-              "resistanceProfile": "guided_constant",
+              "resistanceProfile": "gravity_arc",
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
@@ -822,7 +822,7 @@
                   "equipmentId": "smith_machine",
                   "kineticChain": "POSTERIOR",
                   "laterality": "NOT_APPLICABLE",
-                  "loadMode": "guided_external_load",
+                  "loadMode": "bodyweight",
                   "movementPatternId": "hip_extension",
                   "relevantJoints": [
                     "cadera",
@@ -830,7 +830,7 @@
                     "columna-lumbar",
                     "sacroiliaca"
                   ],
-                  "resistanceProfile": "guided_constant",
+                  "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
                 },
                 "display": {
@@ -892,8 +892,9 @@
               },
               "secondaryMuscles": [],
               "setupCues": [
-                "Alinea el banco con la barra y prueba un recorrido breve sin añadir discos.",
-                "Ajusta los topes y apoya la barra en la espalda alta con ambas manos."
+                "Bloquea la barra Smith sobre ambos ganchos a una altura que permita apoyar la parte anterior alta de los muslos sobre un acolchado firme.",
+                "Coloca los pies en el suelo detrás del apoyo, con rodillas suaves y espacio para plegar el tronco por delante de la barra.",
+                "Cruza los brazos sobre el pecho y comprueba que la barra permanece fija."
               ],
               "setupTimeSeconds": 40,
               "ssc": 0.5,
@@ -910,7 +911,7 @@
           }
         ],
         "defaultConfigurationId": "glutes_hiperextension_45__plate",
-        "description": "Las Hiperextensiones a 45° para Glúteos son una extensión de cadera sobre banco inclinado que trabaja el glúteo mayor y los isquiosurales. El borde del acolchado queda debajo del pliegue de cadera para que el torso se incline como una unidad y vuelva a la línea de las piernas. La espalda conserva su forma y el regreso termina al extender la cadera, sin añadir un arqueo de cintura. El disco cercano al pecho o la carga suspendida bajo los hombros cambian dónde queda el peso durante esa bisagra.",
+        "description": "Estas variantes realizan una extensión de cadera con apoyo en la parte alta de los muslos. En banco inclinado se retienen los tobillos y puede añadirse carga; en la variante Smith la barra queda bloqueada y acolchada como apoyo fijo, con los pies en el suelo y el peso del tronco como resistencia. La cadera queda libre para plegar y elevar el torso sin añadir un arqueo lumbar. El glúteo mayor y los isquiosurales participan en la extensión de cadera.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
@@ -1344,11 +1345,13 @@
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.2,
-              "description": "Con banda elástica, la pierna se extiende hacia atrás y arriba con el glúteo contrayéndose en lo alto del arco. El glúteo mayor trabaja con la banda, cuya resistencia crece con el recorrido.",
+              "description": "En cuadrupedia, un solo lazo elástico pasa bajo la rodilla de apoyo y alrededor de la suela del pie activo. La pierna empuja hacia atrás contra la banda mientras la pelvis permanece estable.",
               "efc": 2.8,
               "equipmentId": "band",
               "executionCues": [
-                "Banda en el tobillo: la resistencia elástica sube al estirar la pierna. La pelvis se extiende hasta quedar alineada con el tronco; el recorrido termina antes de sustituir el glúteo por una hiperextensión lumbar."
+                "Extiende la cadera llevando el pie activo hacia atrás contra la banda.",
+                "Mantén la pelvis orientada al suelo y detén la subida antes de arquear la zona lumbar.",
+                "Vuelve despacio conservando la banda apoyada en la suela."
               ],
               "fatigueTier": "MEDIA",
               "jointInvolvement": [
@@ -1510,7 +1513,8 @@
               },
               "secondaryMuscles": [],
               "setupCues": [
-                "Preparación: Banda en el tobillo: la resistencia elástica sube al estirar la pierna."
+                "Apoya las manos bajo los hombros y una rodilla bajo la cadera.",
+                "Fija una parte del lazo bajo la rodilla de apoyo y coloca la parte opuesta alrededor de la suela del pie activo, sin torsiones."
               ],
               "setupTimeSeconds": 10,
               "ssc": 0.5,

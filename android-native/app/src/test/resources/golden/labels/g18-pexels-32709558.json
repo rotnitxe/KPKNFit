@@ -1,0 +1,77 @@
+{
+  "id": "g18-pexels-32709558",
+  "durationS": 9.733,
+  "width": 720,
+  "height": 1280,
+  "rotation": 0,
+  "fpsNominal": 30.0,
+  "fpsMeasured": 30.0,
+  "usable": true,
+  "exercise": "Extensión de cuádriceps en máquina",
+  "exerciseDetail": "Extensión de cuádriceps en máquina (sentado, ambas piernas a la vez, ciclo regular de 2,0 s y sin pausas)",
+  "suggestedProfile": "LEG_EXTENSION",
+  "view": "OBLIQUE",
+  "people": 1,
+  "fullBodyVisible": false,
+  "faceVisible": true,
+  "plateVisible": false,
+  "startPhase": "CONCENTRIC_FIRST",
+  "reps": {
+    "full": 5,
+    "partial": 0,
+    "failed": 0,
+    "uncertain": false,
+    "acceptableRange": [
+      5,
+      5
+    ]
+  },
+  "repTimesS": [
+    {
+      "index": 1,
+      "turnaroundS": 0.75,
+      "side": null
+    },
+    {
+      "index": 2,
+      "turnaroundS": 2.8,
+      "side": null
+    },
+    {
+      "index": 3,
+      "turnaroundS": 4.8,
+      "side": null
+    },
+    {
+      "index": 4,
+      "turnaroundS": 6.8,
+      "side": null
+    },
+    {
+      "index": 5,
+      "turnaroundS": 8.85,
+      "side": null
+    }
+  ],
+  "activeWindowS": [
+    0.0,
+    9.7
+  ],
+  "frameIntervalS": {
+    "min": 0.0333,
+    "median": 0.0333,
+    "max": 0.0333
+  },
+  "turnaroundKind": "TOP",
+  "edgeEvents": [],
+  "caveats": [
+    "los pies y los tobillos salen por el borde izquierdo del encuadre en la extensión máxima de cada repetición (cuerpo entero visible solo en reposo)",
+    "clip corto (9,7 s) con 5 repeticiones",
+    "plano muy cercano y desde abajo: perspectiva forzada"
+  ],
+  "cameraMotion": {
+    "class": "STATIC",
+    "note": "cámara fija (deriva <0,5%)"
+  },
+  "softWarnings": []
+}

@@ -114,7 +114,7 @@ class MuscleFamilyRenderSheetTest {
     }
 
     @Test
-    fun contractionFramesOfBicepsQuadsAndBack() {
+    fun contractionFramesOfArmsQuadsAndBack() {
         onlyWhenAsked()
         rule.setContent {
             hostView = LocalView.current
@@ -122,7 +122,7 @@ class MuscleFamilyRenderSheetTest {
                 Modifier.testTag("sheet").background(Color.Black).padding(12.dp),
                 verticalArrangement = Arrangement.spacedBy(10.dp),
             ) {
-                for (m in listOf(MuscleSymbol.BICEPS, MuscleSymbol.QUADS, MuscleSymbol.BACK)) {
+                for (m in listOf(MuscleSymbol.ARMS, MuscleSymbol.QUADS, MuscleSymbol.BACK)) {
                     Text(text = m.label, color = Color.White)
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         // Reposo, un tercio, dos tercios y contraído: los cuatro fotogramas del bucle.
@@ -154,5 +154,30 @@ class MuscleFamilyRenderSheetTest {
         }
         rule.waitForIdle()
         save("sheet", "muscle_sixty_dp")
+    }
+
+    @Test
+    fun k1ArmsForearmsAndBackAtRestAndContractedAt56And96() {
+        onlyWhenAsked()
+        rule.setContent {
+            hostView = LocalView.current
+            Column(
+                Modifier.testTag("sheet").background(Color.Black).padding(12.dp),
+                verticalArrangement = Arrangement.spacedBy(10.dp),
+            ) {
+                for (cell in listOf(56, 96)) {
+                    for (m in listOf(MuscleSymbol.ARMS, MuscleSymbol.FOREARMS, MuscleSymbol.BACK)) {
+                        // Reposo y contraído, en el mismo tamaño: así se ve si se lee sin el nombre.
+                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            for (k in listOf(0f, 1f)) {
+                                MuscleArtCanvas(m, selected = true, contraction = k, modifier = Modifier.size(cell.dp))
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        rule.waitForIdle()
+        save("sheet", "k1_arms_forearms_back")
     }
 }

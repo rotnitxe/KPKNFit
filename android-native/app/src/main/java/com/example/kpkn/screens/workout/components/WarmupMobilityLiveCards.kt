@@ -76,7 +76,21 @@ import com.example.kpkn.screens.sessioneditor.contentOn
 import com.example.kpkn.screens.workout.inlineRestRemainingOrNull
 import com.example.kpkn.screens.workout.toTrimmedNumberString
 import com.example.kpkn.screens.workout.WorkoutStepRules
+import com.example.kpkn.screens.onboarding.design.WizardColors
 import com.example.kpkn.ui.adapt.LiveViewportPolicyMath
+import com.example.kpkn.ui.components.icons.KpknLineIcons
+import com.example.kpkn.ui.design.KpknIconButton
+import com.example.kpkn.ui.design.KpknPrimaryPill
+import com.example.kpkn.ui.design.KpknSecondaryPill
+import com.example.kpkn.ui.design.KpknShape
+import com.example.kpkn.ui.design.KpknSurface
+import com.example.kpkn.ui.design.KpknTextAction
+import com.example.kpkn.ui.design.KpknType
+import androidx.compose.foundation.border
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.selection.toggleable
+import androidx.compose.ui.semantics.Role
+import java.util.Locale
 import kotlin.math.roundToInt
 
 /**
@@ -176,19 +190,18 @@ internal fun MobilityPhaseLiveCard(
     ) {
         items.forEachIndexed { index, item ->
             if (index > 0) {
-                HorizontalDivider(color = Color.White.copy(alpha = 0.06f))
+                HorizontalDivider(color = KpknSurface.divider)
             }
             val mob = item.mobility
             val subtitle = buildList {
                 if (showExerciseBadge && item.exerciseName.isNotBlank()) add(item.exerciseName)
                 mob.reps?.takeIf { it.isNotBlank() }?.let { add("$it reps") }
-                mob.durationSeconds?.takeIf { it > 0 }?.let { add("${it}s") }
+                mob.durationSeconds?.takeIf { it > 0 }?.let { add("${it} s") }
             }.joinToString(" · ")
             ChecklistLine(
                 title = mob.name,
                 subtitle = subtitle,
                 isCompleted = item.stepKey in completedStepKeys,
-                accent = sessionAccentColor,
                 onToggle = { onToggleComplete(item, it) },
             )
         }
@@ -280,23 +293,11 @@ internal fun WarmupPhaseLiveCard(
                     )
                 } else {
                     if (onAddSet != null) {
-                        OutlinedButton(
+                        KpknSecondaryPill(
+                            text = "Agregar serie",
                             onClick = onAddSet,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(40.dp),
-                            shape = RoundedCornerShape(12.dp),
-                            border = BorderStroke(1.dp, sessionAccentColor.copy(alpha = 0.45f)),
-                            colors = ButtonDefaults.outlinedButtonColors(
-                                contentColor = sessionAccentColor,
-                            ),
-                        ) {
-                            Text(
-                                text = "Agregar serie",
-                                style = MaterialTheme.typography.labelMedium,
-                                fontWeight = FontWeight.Bold,
-                            )
-                        }
+                            modifier = Modifier.fillMaxWidth(),
+                        )
                     }
                     PrepPhaseSkipBar(onSkip = onSkip)
                 }
@@ -305,7 +306,7 @@ internal fun WarmupPhaseLiveCard(
     ) {
         rows.forEachIndexed { index, row ->
             if (index > 0) {
-                HorizontalDivider(color = Color.White.copy(alpha = 0.06f))
+                HorizontalDivider(color = KpknSurface.divider)
             }
             val pct = formatLiveWarmupPercent(row.warmup.percentageOfWorkingWeight)
             val subtitle = buildList {
@@ -396,10 +397,16 @@ internal fun LivePagerCardFrame(
     val scaleY = scale * WorkoutUiTokens.LivePagerCardHeightGrowFactor
     val slotHeight = WorkoutUiTokens.effectiveLivePagerStableHeight()
     val baseHeight = WorkoutUiTokens.LivePagerNormalExpandedBaseHeight
+    val density = LocalDensity.current
+    // Banda del relator (LR1g): la tarjeta empieza justo debajo y el margen sale de la misma fórmula que la banda.
+    val relatorBand = WorkoutUiTokens.liveRelatorBandHeight(density)
     val topNudgeFraction = policy.topNudgeFraction
     val topNudge = slotHeight * topNudgeFraction + WorkoutUiTokens.LivePagerRelatorClearance
     if (!allowContentExpansion) {
         val widthFraction = if (scaleX >= 1f) (1f / scaleX).coerceIn(0.01f, 1f) else 1f
+        // El borde inferior de la tarjeta se queda donde estaba: la tarjeta crece por arriba lo que ahorra la banda.
+        val cardBottom = topNudge + baseHeight * scaleY
+        val cardScaleY = ((cardBottom - relatorBand) / baseHeight).coerceAtLeast(0.01f)
         Box(
             modifier = modifier
                 .fillMaxWidth()
@@ -408,27 +415,20 @@ internal fun LivePagerCardFrame(
         ) {
             Box(
                 modifier = Modifier
-                    .padding(top = topNudge)
+                    .padding(top = relatorBand)
                     .fillMaxWidth(widthFraction)
                     .height(baseHeight)
-                    .then(
-                        if (kotlin.math.abs(scaleX - scaleY) < 0.001f) {
-                            Modifier.scale(scaleX)
-                        } else {
-                            Modifier.graphicsLayer {
-                                this.scaleX = scaleX
-                                this.scaleY = scaleY
-                                transformOrigin = TransformOrigin(0.5f, 0f)
-                            }
-                        },
-                    ),
+                    .graphicsLayer {
+                        this.scaleX = scaleX
+                        this.scaleY = cardScaleY
+                        transformOrigin = TransformOrigin(0.5f, 0f)
+                    },
                 content = content,
             )
         }
         return
     }
 
-    val density = LocalDensity.current
     val workingSetHeightHolder = LocalLivePagerWorkingSetVisualHeightPx.current
     val workingSetHeightPx = workingSetHeightHolder?.intValue ?: 0
     val lockHeightPx = if (lockToWorkingSetHeight) workingSetHeightPx else 0
@@ -497,17 +497,23 @@ internal fun LivePagerCardFrame(
         }
         val unscaledHeight = if (lockHeightPx > 0) lockHeightPx else placeable.height
         val scaledHeight = (unscaledHeight * scaleY).roundToInt()
+        // Borde inferior de siempre (no se mueve): la tarjeta empieza bajo la banda del relator y crece por arriba
+        // lo que ahorra (LR1g). Así el ✓ y el cajón quedan igual que antes, y el hueco es el mismo en serie y descanso.
         val topNudgePx = (scaledHeight * topNudgeFraction).roundToInt() +
             WorkoutUiTokens.LivePagerRelatorClearance.roundToPx()
-        val layoutHeight = scaledHeight + topNudgePx
+        val footPx = scaledHeight + topNudgePx
+        val bandPx = relatorBand.roundToPx()
+        val cardPx = (footPx - bandPx).coerceAtLeast(1)
+        val cardScaleY = if (unscaledHeight > 0) cardPx.toFloat() / unscaledHeight else scaleY
+        val layoutHeight = footPx
 
         layout(layoutWidth, layoutHeight) {
             placeable.placeRelativeWithLayer(
                 x = ((layoutWidth - scaledWidth) / 2f).roundToInt(),
-                y = topNudgePx,
+                y = bandPx,
             ) {
                 this.scaleX = scaleX
-                this.scaleY = scaleY
+                this.scaleY = cardScaleY
                 transformOrigin = TransformOrigin(0f, 0f)
                 clip = lockToWorkingSetHeight
             }
@@ -527,20 +533,18 @@ private fun PrepChecklistShell(
     content: @Composable () -> Unit,
 ) {
     val bodyScrollState = rememberScrollState()
-    Surface(
+    // Tarjeta de la página con la piel nueva (LR1b): módulo y su filete, como la tarjeta de la serie (LR1a).
+    Box(
         modifier = modifier
             .fillMaxWidth()
-            .fillMaxHeight(),
-        shape = WorkoutUiTokens.CardShape,
-        color = WorkoutUiTokens.setCardColor(),
-        tonalElevation = 0.dp,
-        shadowElevation = 0.dp,
-        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.08f)),
+            .fillMaxHeight()
+            .background(KpknSurface.module, KpknShape.module)
+            .border(1.dp, KpknSurface.moduleBorder, KpknShape.module),
     ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(horizontal = 12.dp, vertical = 12.dp),
+                .padding(horizontal = 16.dp, vertical = 14.dp),
             verticalArrangement = Arrangement.spacedBy(6.dp),
         ) {
             Column(
@@ -554,16 +558,13 @@ private fun PrepChecklistShell(
                 ) {
                     Text(
                         title,
-                        style = MaterialTheme.typography.labelSmall,
-                        fontWeight = FontWeight.Black,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.60f),
-                        letterSpacing = 1.sp,
+                        style = KpknType.eyebrow,
+                        color = WizardColors.textMuted,
                     )
                     Text(
                         "$doneCount/$totalCount",
-                        style = MaterialTheme.typography.labelMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.60f),
+                        style = KpknType.chip.copy(fontFeatureSettings = "'tnum' 1"),
+                        color = WizardColors.textMuted,
                     )
                 }
                 headerExtra?.invoke()
@@ -586,7 +587,6 @@ private fun ChecklistLine(
     title: String,
     subtitle: String,
     isCompleted: Boolean,
-    accent: Color,
     onToggle: (Boolean) -> Unit,
 ) {
     Row(
@@ -594,32 +594,65 @@ private fun ChecklistLine(
             .fillMaxWidth()
             .padding(vertical = 4.dp),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(10.dp),
+        horizontalArrangement = Arrangement.spacedBy(4.dp),
     ) {
-        Checkbox(
-            checked = isCompleted,
-            onCheckedChange = onToggle,
-            colors = CheckboxDefaults.colors(
-                checkedColor = accent,
-                uncheckedColor = Color.White.copy(alpha = 0.30f),
-                checkmarkColor = Color.Black,
-            ),
-            modifier = Modifier.size(22.dp),
-        )
+        PrepCheckBox(checked = isCompleted, onCheckedChange = onToggle)
         Column(modifier = Modifier.weight(1f)) {
             Text(
                 title,
-                style = MaterialTheme.typography.bodyMedium,
-                fontWeight = FontWeight.SemiBold,
-                color = if (isCompleted) accent else Color.White,
+                style = KpknType.bodyStrong,
+                color = if (isCompleted) WizardColors.textMuted else WizardColors.text,
                 maxLines = 2,
             )
             if (subtitle.isNotBlank()) {
                 Text(
                     subtitle,
-                    style = MaterialTheme.typography.labelSmall,
-                    color = Color.White.copy(alpha = 0.55f),
-                    maxLines = 1,
+                    style = KpknType.caption,
+                    color = WizardColors.textMuted,
+                    maxLines = 2,
+                )
+            }
+        }
+    }
+}
+
+/**
+ * Marca de hecho de la aproximación y la movilidad (LR1b): cuadro de 22 dp con anillo de 1,75 dp. Hecho, relleno de `ok` con el check
+ * en negro. Solo la marca responde al toque, en una zona de 48 dp, como la casilla de antes.
+ */
+@Composable
+private fun PrepCheckBox(
+    checked: Boolean,
+    onCheckedChange: (Boolean) -> Unit,
+) {
+    val interaction = remember { MutableInteractionSource() }
+    val corner = RoundedCornerShape(6.dp)
+    Box(
+        modifier = Modifier
+            .size(48.dp)
+            .toggleable(
+                value = checked,
+                role = Role.Checkbox,
+                interactionSource = interaction,
+                indication = null,
+                onValueChange = onCheckedChange,
+            ),
+        contentAlignment = Alignment.Center,
+    ) {
+        Box(
+            modifier = Modifier
+                .size(22.dp)
+                .clip(corner)
+                .background(if (checked) WizardColors.done else Color.Transparent, corner)
+                .border(1.75.dp, if (checked) WizardColors.done else WizardColors.textFaint, corner),
+            contentAlignment = Alignment.Center,
+        ) {
+            if (checked) {
+                Icon(
+                    imageVector = KpknLineIcons.Check,
+                    contentDescription = null,
+                    modifier = Modifier.size(15.dp),
+                    tint = WizardColors.ctaContent,
                 )
             }
         }
@@ -627,7 +660,7 @@ private fun ChecklistLine(
 }
 
 @Composable
-private fun WarmupChecklistLine(
+internal fun WarmupChecklistLine(
     title: String,
     subtitle: String,
     suggestedWeightKg: Double?,
@@ -646,74 +679,60 @@ private fun WarmupChecklistLine(
             .fillMaxWidth()
             .padding(vertical = 4.dp),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        horizontalArrangement = Arrangement.spacedBy(4.dp),
     ) {
-        Checkbox(
+        PrepCheckBox(
             checked = isCompleted,
             onCheckedChange = { checked ->
-                val kg = textValue.toDoubleOrNull()
+                // El teclado decimal escribe la coma: se lee como punto antes de convertir (LR0).
+                val kg = textValue.replace(',', '.').toDoubleOrNull()
                     ?: suggestedWeightKg
                     ?: 0.0
                 onToggle(checked, kg)
             },
-            colors = CheckboxDefaults.colors(
-                checkedColor = accent,
-                uncheckedColor = Color.White.copy(alpha = 0.30f),
-                checkmarkColor = Color.Black,
-            ),
-            modifier = Modifier.size(22.dp),
         )
         Column(modifier = Modifier.weight(1f)) {
             Text(
                 title,
-                style = MaterialTheme.typography.bodyMedium,
-                fontWeight = FontWeight.SemiBold,
-                color = if (isCompleted) accent else Color.White,
+                style = KpknType.bodyStrong,
+                color = if (isCompleted) WizardColors.textMuted else WizardColors.text,
                 maxLines = 1,
             )
             if (subtitle.isNotBlank()) {
                 Text(
                     subtitle,
-                    style = MaterialTheme.typography.labelSmall,
-                    color = Color.White.copy(alpha = 0.55f),
-                    maxLines = 1,
+                    style = KpknType.caption,
+                    color = WizardColors.textMuted,
+                    maxLines = 2,
                 )
             }
         }
-        Surface(
-            shape = RoundedCornerShape(10.dp),
-            color = Color.White.copy(alpha = 0.08f),
-            border = BorderStroke(1.dp, accent.copy(alpha = 0.35f)),
-            modifier = Modifier.height(34.dp),
+        // Celda de peso `inset`: la cifra en Syne y la unidad junto a ella, con coma decimal (LR1b).
+        Row(
+            modifier = Modifier
+                .height(40.dp)
+                .clip(RoundedCornerShape(14.dp))
+                .background(KpknSurface.inset)
+                .padding(horizontal = 12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(4.dp),
         ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.padding(horizontal = 8.dp),
-                horizontalArrangement = Arrangement.spacedBy(4.dp),
-            ) {
-                BasicTextField(
-                    value = textValue,
-                    onValueChange = {
-                        textValue = it
-                        onWeightDraft?.invoke(it)
-                    },
-                    textStyle = TextStyle(
-                        color = Color.White,
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.Bold,
-                        textAlign = TextAlign.End,
-                        fontFamily = FontFamily.Monospace,
-                    ),
-                    cursorBrush = SolidColor(accent),
-                    keyboardOptions = KeyboardOptions(
-                        keyboardType = KeyboardType.Decimal,
-                        imeAction = ImeAction.Done,
-                    ),
-                    singleLine = true,
-                    modifier = Modifier.widthIn(min = 36.dp, max = 56.dp),
-                )
-                Text("kg", style = MaterialTheme.typography.labelSmall, color = Color.White.copy(alpha = 0.55f))
-            }
+            BasicTextField(
+                value = textValue,
+                onValueChange = {
+                    textValue = it
+                    onWeightDraft?.invoke(it)
+                },
+                textStyle = KpknType.metricM.copy(color = WizardColors.text, textAlign = TextAlign.End),
+                cursorBrush = SolidColor(accent),
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Decimal,
+                    imeAction = ImeAction.Done,
+                ),
+                singleLine = true,
+                modifier = Modifier.widthIn(min = 36.dp, max = 56.dp),
+            )
+            Text("kg", style = KpknType.unit, color = WizardColors.textMuted)
         }
     }
 }
@@ -729,54 +748,49 @@ private fun CompactMobilityTimer(
     onAddSeconds: (Int) -> Unit,
     onReset: () -> Unit,
 ) {
-    Row(
+    Column(
         modifier = Modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween,
     ) {
+        // Fila 1: el reloj a la izquierda y iniciar/pausar a la derecha. Las acciones de texto van debajo: en una sola fila no caben a 130 %.
         Row(
+            modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(6.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
         ) {
-            Icon(Icons.Default.Timer, null, tint = sessionAccentColor, modifier = Modifier.size(14.dp))
-            Text(
-                "%02d:%02d".format(remainingSeconds / 60, remainingSeconds % 60),
-                style = MaterialTheme.typography.labelLarge,
-                fontWeight = FontWeight.Black,
-                fontFamily = FontFamily.Monospace,
-                color = if (remainingSeconds in 1..10) Color(0xFFFF5252) else Color.White,
-            )
-            Text(
-                "/ ${totalMinutes}m",
-                style = MaterialTheme.typography.labelSmall,
-                color = Color.White.copy(alpha = 0.40f),
-            )
-        }
-        Row(horizontalArrangement = Arrangement.spacedBy(2.dp), verticalAlignment = Alignment.CenterVertically) {
-            IconButton(onClick = { if (isRunning) onPause() else onStart() }, modifier = Modifier.size(28.dp)) {
-                Icon(
-                    if (isRunning) Icons.Default.Pause else Icons.Default.PlayArrow,
-                    null,
-                    tint = sessionAccentColor,
-                    modifier = Modifier.size(16.dp),
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+            ) {
+                Icon(KpknLineIcons.Clock, null, tint = sessionAccentColor, modifier = Modifier.size(16.dp))
+                // Reloj en Syne con cifras tabulares, como el del descanso (LR1b). Los últimos 10 s, en `danger`.
+                Text(
+                    "%02d:%02d".format(remainingSeconds / 60, remainingSeconds % 60),
+                    style = KpknType.metricM,
+                    color = if (remainingSeconds in 1..10) WizardColors.danger else WizardColors.text,
+                )
+                Text(
+                    "/ ${totalMinutes} m",
+                    style = KpknType.caption,
+                    color = WizardColors.textMuted,
                 )
             }
-            TinyChip("+30s") { onAddSeconds(30) }
-            TinyChip("Reset", onReset)
+            KpknIconButton(
+                icon = if (isRunning) KpknLineIcons.Pause else KpknLineIcons.PlayFilled,
+                contentDescription = if (isRunning) "Pausar temporizador" else "Iniciar temporizador",
+                onClick = { if (isRunning) onPause() else onStart() },
+                tint = sessionAccentColor,
+            )
+        }
+        // Fila 2: «+30 s» y «Reset», a la derecha de la fila.
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(16.dp, Alignment.End),
+        ) {
+            KpknTextAction(text = "+30 s", onClick = { onAddSeconds(30) })
+            KpknTextAction(text = "Reset", onClick = onReset)
         }
     }
-}
-
-@Composable
-private fun TinyChip(label: String, onClick: () -> Unit) {
-    Text(
-        text = label,
-        modifier = Modifier
-            .clickable(onClick = onClick)
-            .padding(horizontal = 8.dp, vertical = 4.dp),
-        style = MaterialTheme.typography.labelSmall,
-        color = Color.White.copy(alpha = 0.75f),
-    )
 }
 
 /**
@@ -802,31 +816,27 @@ private fun PrepInlineRestBar(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Text(
-                text = "Descanso %02d:%02d".format(mins, secs),
-                style = MaterialTheme.typography.labelLarge,
-                fontWeight = FontWeight.Black,
-                color = Color.White,
-            )
-            Button(
-                onClick = onSkip,
-                modifier = Modifier.height(36.dp),
-                shape = RoundedCornerShape(10.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = sessionAccentColor,
-                    contentColor = contentOn(sessionAccentColor),
-                ),
-                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 0.dp),
-            ) {
-                Text("Saltar", style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold)
+            Column {
+                Text(
+                    text = "Descanso".uppercase(Locale.forLanguageTag("es")),
+                    style = KpknType.eyebrow,
+                    color = WizardColors.textMuted,
+                )
+                Text(
+                    text = "%02d:%02d".format(mins, secs),
+                    style = KpknType.metricM,
+                    color = WizardColors.text,
+                )
             }
+            // «Saltar» es la acción principal del descanso, en tinta, como el «Saltar descanso» de la serie (LR1a).
+            KpknPrimaryPill(text = "Saltar", onClick = onSkip)
         }
         Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(5.dp)
                 .clip(RoundedCornerShape(999.dp))
-                .background(Color.White.copy(alpha = 0.08f)),
+                .background(KpknSurface.inset),
         ) {
             Box(
                 modifier = Modifier
@@ -843,23 +853,14 @@ internal fun PrepPhaseSkipBar(
     onSkip: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    Button(
+    KpknSecondaryPill(
+        text = "Omitir",
         onClick = onSkip,
-        modifier = modifier
-            .fillMaxWidth()
-            .height(40.dp),
-        shape = RoundedCornerShape(12.dp),
-        colors = ButtonDefaults.buttonColors(
-            containerColor = Color(0xFF1B232E).copy(alpha = 0.90f),
-            contentColor = Color.White,
-        ),
-        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.16f)),
-    ) {
-        Text("Omitir", style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold)
-    }
+        modifier = modifier.fillMaxWidth(),
+    )
 }
 
 private fun formatLiveWarmupPercent(raw: Double): String {
     val pct = if (raw <= 1.0) raw * 100.0 else raw
-    return "${pct.roundToInt()}%"
+    return "${pct.roundToInt()} %"
 }

@@ -1,0 +1,327 @@
+To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/9.4.1/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+Daemon will be stopped at the end of the build 
+
+> Configure project :app
+WARNING: The option setting 'android.disallowKotlinSourceSets=false' is experimental.
+The current default is 'true'.
+
+> Task :app:generateFoodDataManifest UP-TO-DATE
+> Task :app:preBuild UP-TO-DATE
+> Task :app:preBaseDebugBuild UP-TO-DATE
+> Task :app:compileBaseDebugAidl UP-TO-DATE
+> Task :app:generateBaseDebugBuildConfig UP-TO-DATE
+> Task :app:generateBaseDebugResources UP-TO-DATE
+> Task :app:packageBaseDebugResources UP-TO-DATE
+> Task :app:processBaseDebugNavigationResources UP-TO-DATE
+> Task :app:parseBaseDebugLocalResources UP-TO-DATE
+> Task :app:generateBaseDebugRFile UP-TO-DATE
+> Task :app:kspBaseDebugKotlin UP-TO-DATE
+> Task :app:compileBaseDebugKotlin UP-TO-DATE
+> Task :app:javaPreCompileBaseDebug UP-TO-DATE
+> Task :app:compileBaseDebugJavaWithJavac UP-TO-DATE
+> Task :app:checkBaseDebugAarMetadata UP-TO-DATE
+> Task :app:mapBaseDebugSourceSetPaths UP-TO-DATE
+> Task :app:compileBaseDebugNavigationResources UP-TO-DATE
+> Task :app:mergeBaseDebugResources UP-TO-DATE
+> Task :app:createBaseDebugCompatibleScreenManifests UP-TO-DATE
+> Task :app:extractDeepLinksBaseDebug UP-TO-DATE
+> Task :app:processBaseDebugMainManifest UP-TO-DATE
+> Task :app:processBaseDebugManifest UP-TO-DATE
+> Task :app:processBaseDebugManifestForPackage UP-TO-DATE
+> Task :app:processBaseDebugResources UP-TO-DATE
+> Task :app:bundleBaseDebugClassesToRuntimeJar UP-TO-DATE
+> Task :app:bundleBaseDebugClassesToCompileJar UP-TO-DATE
+> Task :app:kspBaseDebugUnitTestKotlin
+> Task :app:preBaseDebugUnitTestBuild UP-TO-DATE
+> Task :app:compileBaseDebugUnitTestKotlin
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/test/java/com/example/kpkn/data/db/VideoAnalysisMigrationValidateTest.kt:214:13 Type argument for reified type parameter 'T' was inferred to the intersection of ['Comparable<*>' & 'Serializable']. Reification of an intersection type results in the common supertype being used. This may lead to subtle issues and an explicit type argument is encouraged. This will become an error in a future release.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/test/java/com/example/kpkn/data/db/WorkoutMediaMigration27To28FullRoomTest.kt:91:17 Type argument for reified type parameter 'T' was inferred to the intersection of ['Comparable<*>' & 'Serializable']. Reification of an intersection type results in the common supertype being used. This may lead to subtle issues and an explicit type argument is encouraged. This will become an error in a future release.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/test/java/com/example/kpkn/data/db/WorkoutMediaMigration27To28FullRoomTest.kt:112:17 Type argument for reified type parameter 'T' was inferred to the intersection of ['Comparable<*>' & 'Serializable']. Reification of an intersection type results in the common supertype being used. This may lead to subtle issues and an explicit type argument is encouraged. This will become an error in a future release.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/test/java/com/example/kpkn/data/db/WorkoutMediaMigration27To28FullRoomTest.kt:248:13 Type argument for reified type parameter 'T' was inferred to the intersection of ['Comparable<*>?' & 'Serializable?']. Reification of an intersection type results in the common supertype being used. This may lead to subtle issues and an explicit type argument is encouraged. This will become an error in a future release.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/test/java/com/example/kpkn/data/exercises/catalogv2/ExerciseCatalogV2LegacyPersistedDataTest.kt:170:23 Redundant creation of Json format. Creating instances for each usage can be slow.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/test/java/com/example/kpkn/data/media/WorkoutMediaLegacyImporterTest.kt:175:9 Only safe (?.) or non-null asserted (!!.) calls are allowed on a nullable receiver of type 'File?'.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/test/java/com/example/kpkn/data/programs/PersonalizedPlanCatalogTest.kt:96:37 'val title: String' is deprecated. Usa displayName.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/test/java/com/example/kpkn/data/programs/PersonalizedPlanCatalogTest.kt:96:62 'val description: String' is deprecated. Usa summary.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/test/java/com/example/kpkn/data/protocols/RecipeContractInventoryTest.kt:127:25 Java type mismatch: inferred type is 'String?', but 'String' was expected.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/test/java/com/example/kpkn/data/repository/HybridPlanningRoomTest.kt:126:23 Redundant creation of Json format. Creating instances for each usage can be slow.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/test/java/com/example/kpkn/domain/biomechanics/vision/PlateTrackerPerfTest.kt:39:112 'val id: Long' is deprecated. Deprecated in Java.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/test/java/com/example/kpkn/domain/nutrition/BlindMealCorpusProbeTest.kt:786:23 Redundant creation of Json format. Creating instances for each usage can be slow.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/test/java/com/example/kpkn/domain/nutrition/BlindMealCorpusTest.kt:997:23 Redundant creation of Json format. Creating instances for each usage can be slow.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/test/java/com/example/kpkn/domain/nutrition/IndependentNutritionCorpusTest.kt:172:85 Only safe (?.) or non-null asserted (!!.) calls are allowed on a nullable receiver of type 'File?'.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/test/java/com/example/kpkn/domain/nutrition/IndependentNutritionCorpusTest.kt:172:116 Redundant creation of Json format. Creating instances for each usage can be slow.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/test/java/com/example/kpkn/domain/training/EquipmentReachTest.kt:300:9 Only safe (?.) or non-null asserted (!!.) calls are allowed on a nullable receiver of type 'File?'.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/test/java/com/example/kpkn/domain/training/NativeProfileSpecCatalogTest.kt:67:56 'val title: String' is deprecated. Usa displayName.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/test/java/com/example/kpkn/domain/training/NativeProfileSpecCatalogTest.kt:68:61 'val description: String' is deprecated. Usa summary.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/test/java/com/example/kpkn/domain/training/PlanCoverageContractTest.kt:661:25 Java type mismatch: inferred type is 'String?', but 'String' was expected.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/test/java/com/example/kpkn/domain/training/generator/RoutineGeneratorSweepTest.kt:71:9 Only safe (?.) or non-null asserted (!!.) calls are allowed on a nullable receiver of type 'File?'.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/test/java/com/example/kpkn/domain/training/generator/RoutineMatrixReportTest.kt:203:9 Only safe (?.) or non-null asserted (!!.) calls are allowed on a nullable receiver of type 'File?'.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/test/java/com/example/kpkn/domain/training/generator/RoutineSamplesReportTest.kt:147:9 Only safe (?.) or non-null asserted (!!.) calls are allowed on a nullable receiver of type 'File?'.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/test/java/com/example/kpkn/domain/training/importer/OcrLayoutTest.kt:139:9 Name contains character(s) that can cause problems on Windows: %
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/test/java/com/example/kpkn/domain/training/importer/ProgramImportParserLayoutTest.kt:154:9 Name contains character(s) that can cause problems on Windows: %
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/test/java/com/example/kpkn/domain/training/importer/ProgramImportParserLayoutTest.kt:254:19 Redundant creation of Json format. Creating instances for each usage can be slow.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/test/java/com/example/kpkn/domain/training/importer/ProgramImportParserSetRowsTest.kt:58:9 Name contains character(s) that can cause problems on Windows: %
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/test/java/com/example/kpkn/screens/onboarding/CompetitionActivationTest.kt:229:28 'field operation: PendingIntent!' is deprecated. Deprecated in Java.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/test/java/com/example/kpkn/screens/onboarding/EntrenoDeclarationEffectTest.kt:704:9 Only safe (?.) or non-null asserted (!!.) calls are allowed on a nullable receiver of type 'File?'.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/test/java/com/example/kpkn/screens/onboarding/EntrenoMaterialCoherenceSweepTest.kt:397:9 Only safe (?.) or non-null asserted (!!.) calls are allowed on a nullable receiver of type 'File?'.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/test/java/com/example/kpkn/screens/onboarding/EntrenoMaterialCoherenceSweepTest.kt:452:9 Only safe (?.) or non-null asserted (!!.) calls are allowed on a nullable receiver of type 'File?'.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/test/java/com/example/kpkn/screens/onboarding/SetupExecutableAvailabilityMatrixTest.kt:633:17 Condition is always 'true'.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/test/java/com/example/kpkn/screens/onboarding/WizardPluralCopyTest.kt:94:90 'val technicalSubtitle: String' is deprecated. Usa PlanLabels.subtitle(entry).
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/test/java/com/example/kpkn/screens/onboarding/WizardPluralCopyTest.kt:95:92 'val technicalSubtitle: String' is deprecated. Usa PlanLabels.subtitle(entry).
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/test/java/com/example/kpkn/screens/onboarding/WizardPluralCopyTest.kt:103:52 'val technicalSubtitle: String' is deprecated. Usa PlanLabels.subtitle(entry).
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/test/java/com/example/kpkn/screens/onboarding/WizardPluralCopyTest.kt:105:52 'val technicalSubtitle: String' is deprecated. Usa PlanLabels.subtitle(entry).
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/test/java/com/example/kpkn/screens/onboarding/WizardPluralCopyTest.kt:113:23 'val title: String' is deprecated. Usa displayName.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/test/java/com/example/kpkn/screens/onboarding/WizardPluralCopyTest.kt:114:23 'val technicalSubtitle: String' is deprecated. Usa PlanLabels.subtitle(entry).
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/test/java/com/example/kpkn/screens/onboarding/WizardPluralCopyTest.kt:115:23 'val description: String' is deprecated. Usa summary.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/test/java/com/example/kpkn/screens/sessioneditor/SessionEditorDraftPersistenceTest.kt:37:9 This declaration needs opt-in. Its usage should be marked with '@kotlinx.coroutines.ExperimentalCoroutinesApi' or '@OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)'
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/test/java/com/example/kpkn/screens/sessioneditor/SessionEditorDraftPersistenceTest.kt:52:9 This declaration needs opt-in. Its usage should be marked with '@kotlinx.coroutines.ExperimentalCoroutinesApi' or '@OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)'
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/test/java/com/example/kpkn/screens/sessioneditor/SessionEditorDraftPersistenceTest.kt:65:9 This declaration needs opt-in. Its usage should be marked with '@kotlinx.coroutines.ExperimentalCoroutinesApi' or '@OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)'
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/test/java/com/example/kpkn/screens/sessioneditor/SessionEditorDraftPersistenceTest.kt:71:9 This declaration needs opt-in. Its usage should be marked with '@kotlinx.coroutines.ExperimentalCoroutinesApi' or '@OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)'
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/test/java/com/example/kpkn/screens/sessioneditor/SessionEditorDraftPersistenceTest.kt:100:9 This declaration needs opt-in. Its usage should be marked with '@kotlinx.coroutines.ExperimentalCoroutinesApi' or '@OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)'
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/test/java/com/example/kpkn/screens/sessioneditor/SessionEditorLoadGenerationTest.kt:38:30 This declaration needs opt-in. Its usage should be marked with '@kotlinx.coroutines.ExperimentalCoroutinesApi' or '@OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)'
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/test/java/com/example/kpkn/screens/sessioneditor/SessionEditorLoadGenerationTest.kt:43:21 This declaration needs opt-in. Its usage should be marked with '@kotlinx.coroutines.ExperimentalCoroutinesApi' or '@OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)'
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/test/java/com/example/kpkn/screens/sessioneditor/SessionEditorLoadGenerationTest.kt:57:21 This declaration needs opt-in. Its usage should be marked with '@kotlinx.coroutines.ExperimentalCoroutinesApi' or '@OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)'
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/test/java/com/example/kpkn/screens/sessioneditor/SessionEditorRmLoadEditTest.kt:43:30 This declaration needs opt-in. Its usage should be marked with '@kotlinx.coroutines.ExperimentalCoroutinesApi' or '@OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)'
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/test/java/com/example/kpkn/screens/sessioneditor/SessionEditorRmLoadEditTest.kt:48:21 This declaration needs opt-in. Its usage should be marked with '@kotlinx.coroutines.ExperimentalCoroutinesApi' or '@OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)'
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/test/java/com/example/kpkn/screens/sessioneditor/SessionEditorRmLoadEditTest.kt:62:21 This declaration needs opt-in. Its usage should be marked with '@kotlinx.coroutines.ExperimentalCoroutinesApi' or '@OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)'
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/test/java/com/example/kpkn/screens/sessioneditor/SessionEditorRulesRmLoadViewModelTest.kt:44:30 This declaration needs opt-in. Its usage should be marked with '@kotlinx.coroutines.ExperimentalCoroutinesApi' or '@OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)'
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/test/java/com/example/kpkn/screens/sessioneditor/SessionEditorRulesRmLoadViewModelTest.kt:49:21 This declaration needs opt-in. Its usage should be marked with '@kotlinx.coroutines.ExperimentalCoroutinesApi' or '@OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)'
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/test/java/com/example/kpkn/screens/sessioneditor/SessionEditorRulesRmLoadViewModelTest.kt:63:21 This declaration needs opt-in. Its usage should be marked with '@kotlinx.coroutines.ExperimentalCoroutinesApi' or '@OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)'
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/test/java/com/example/kpkn/screens/sessioneditor/SessionEditorUnilateralToggleTest.kt:51:42 'val restBetweenSides: Int?' is deprecated. Usa Exercise.restBetweenSidesSeconds.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/test/java/com/example/kpkn/screens/sessioneditor/SessionEditorViewModelRulesTest.kt:460:25 'suspend fun SessionEditorViewModel.saveCurrentSessionAsTemplate(name: String, description: String, tags: List<SessionTemplateTag>): Result<SessionTemplate>' is deprecated. Use saveCurrentSessionAsTemplateDurably or saveCurrentSessionAsTemplateNow.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/test/java/com/example/kpkn/screens/sessioneditor/components/ExerciseCatalogImageCoverageTest.kt:79:13 Only safe (?.) or non-null asserted (!!.) calls are allowed on a nullable receiver of type 'File?'.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/test/java/com/example/kpkn/services/workout/WorkoutRestForegroundServiceStartStopOrderTest.kt:145:20 'fun withIntent(p0: Intent!): ServiceController<WorkoutRestForegroundService!>!' is deprecated. Deprecated in Java.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/test/java/com/example/kpkn/services/workout/WorkoutRestForegroundServiceStartStopOrderTest.kt:146:20 'fun withIntent(p0: Intent!): ServiceController<WorkoutRestForegroundService!>!' is deprecated. Deprecated in Java.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/test/java/com/example/kpkn/services/workout/WorkoutRestForegroundServiceStartStopOrderTest.kt:182:20 'fun withIntent(p0: Intent!): ServiceController<WorkoutRestForegroundService!>!' is deprecated. Deprecated in Java.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/test/java/com/example/kpkn/services/workout/WorkoutRestForegroundServiceStartStopOrderTest.kt:186:20 'fun withIntent(p0: Intent!): ServiceController<WorkoutRestForegroundService!>!' is deprecated. Deprecated in Java.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/test/java/com/example/kpkn/services/workout/WorkoutRestForegroundServiceStartStopOrderTest.kt:263:20 'fun withIntent(p0: Intent!): ServiceController<WorkoutRestForegroundService!>!' is deprecated. Deprecated in Java.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/test/java/com/example/kpkn/ui/tour/TourControllerTest.kt:80:9 This declaration needs opt-in. Its usage should be marked with '@kotlinx.coroutines.ExperimentalCoroutinesApi' or '@OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)'
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/test/java/com/example/kpkn/ui/tour/TourControllerTest.kt:81:9 This declaration needs opt-in. Its usage should be marked with '@kotlinx.coroutines.ExperimentalCoroutinesApi' or '@OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)'
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/test/java/com/example/kpkn/ui/tour/TourControllerTest.kt:84:9 This declaration needs opt-in. Its usage should be marked with '@kotlinx.coroutines.ExperimentalCoroutinesApi' or '@OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)'
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/test/java/com/example/kpkn/ui/tour/TourControllerTest.kt:85:9 This declaration needs opt-in. Its usage should be marked with '@kotlinx.coroutines.ExperimentalCoroutinesApi' or '@OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)'
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/test/java/com/example/kpkn/ui/tour/TourControllerTest.kt:94:9 This declaration needs opt-in. Its usage should be marked with '@kotlinx.coroutines.ExperimentalCoroutinesApi' or '@OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)'
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/test/java/com/example/kpkn/ui/tour/TourControllerTest.kt:95:9 This declaration needs opt-in. Its usage should be marked with '@kotlinx.coroutines.ExperimentalCoroutinesApi' or '@OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)'
+
+> Task :app:javaPreCompileBaseDebugUnitTest UP-TO-DATE
+> Task :app:compileBaseDebugUnitTestJavaWithJavac NO-SOURCE
+> Task :app:generateBaseDebugAssets UP-TO-DATE
+> Task :app:mergeBaseDebugAssets UP-TO-DATE
+> Task :app:packageBaseDebugUnitTestForUnitTest UP-TO-DATE
+> Task :app:processBaseDebugUnitTestManifest UP-TO-DATE
+> Task :app:generateBaseDebugUnitTestConfig UP-TO-DATE
+> Task :app:processBaseDebugJavaRes UP-TO-DATE
+> Task :app:processBaseDebugUnitTestJavaRes UP-TO-DATE
+> Task :app:testBaseDebugUnitTest
+> Task :app:preBaseReleaseBuild UP-TO-DATE
+> Task :app:mergeBaseReleaseJniLibFolders
+> Task :app:mergeBaseReleaseNativeLibs
+
+> Task :app:stripBaseReleaseDebugSymbols
+Unable to strip the following libraries, packaging them as they are: libandroidx.graphics.path.so, libdatastore_shared_counter.so, libimage_processing_util_jni.so, libjnidispatch.so, libmediapipe_tasks_jni.so, libmlkit_google_ocr_pipeline.so, libsurface_util_jni.so, libvosk.so. Run with --info option to learn more.
+
+> Task :app:extractBaseReleaseNativeSymbolTables
+> Task :app:mergeBaseReleaseNativeDebugMetadata NO-SOURCE
+> Task :app:mergeBaseReleaseArtProfile
+> Task :app:expandBaseReleaseL8ArtProfileWildcards
+> Task :app:checkBaseReleaseDuplicateClasses
+> Task :app:compileBaseReleaseAidl
+> Task :app:generateBaseReleaseBuildConfig
+> Task :app:generateBaseReleaseResources
+> Task :app:packageBaseReleaseResources
+> Task :app:processBaseReleaseNavigationResources
+> Task :app:parseBaseReleaseLocalResources
+> Task :app:generateBaseReleaseRFile
+> Task :app:kspBaseReleaseKotlin
+> Task :app:compileBaseReleaseKotlin
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/MainActivity.kt:436:31 'fun get(p0: String!): Any?' is deprecated. Deprecated in Java.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/data/media/technique/AnalysisCheckpoint.kt:208:14 Condition is always 'false'.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/data/models/Program.kt:535:55 'val repeatEveryXCycles: Int?' is deprecated. Use loops[] instead.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/data/onboarding/SetupSettingsPatch.kt:103:33 Unchecked cast of 'Boolean' to 'T (of fun <T> SetupPatchField<T>.resolve)'.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/data/onboarding/SetupSettingsPatch.kt:104:26 Unchecked cast of 'Nothing?' to 'T (of fun <T> SetupPatchField<T>.resolve)'.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/data/settings/SettingsJsonBackup.kt:272:13 Condition is always 'true'.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/domain/concepts/ConceptosClaveIndex.kt:18:62 'constructor(p0: String!, p1: String!): Locale' is deprecated. Deprecated in Java.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/domain/exercises/ExerciseMatchEngine.kt:195:24 'fun inferExerciseMetrics(type: String, force: String, equipment: String, category: String, isAxialLoaded: Boolean, exerciseName: String): InferredExerciseMetrics' is deprecated. Solo para prefill de UI en creaci�n de ejercicios. Para drain calculations, usa AugeFatigueEngine.getDynamicAugeMetrics que retorna null cuando la DB no tiene datos.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/domain/multisport/MultisportModels.kt:197:17 This declaration needs opt-in. Its usage should be marked with '@kotlinx.serialization.ExperimentalSerializationApi' or '@OptIn(kotlinx.serialization.ExperimentalSerializationApi::class)'
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/domain/multisport/endurance/EnduranceSportModels.kt:250:5 Redundant creation of Json format. Creating instances for each usage can be slow.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/domain/multisport/functional/FunctionalSportModels.kt:257:5 Redundant creation of Json format. Creating instances for each usage can be slow.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/domain/multisport/tracking/SportTrackingDocument.kt:111:9 'when' is exhaustive so 'else' is redundant here.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/domain/onboarding/EntrenoContracts.kt:232:111 'constructor(p0: String!): Locale' is deprecated. Deprecated in Java.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/domain/onboarding/SetupStepDefinitions.kt:1095:30 'static enum entry GENDER: SetupStepId' is deprecated. Identidad de g�nero de flujos legacy: nunca se convierte en sexo de c�lculo.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/domain/onboarding/SetupStepDefinitions.kt:1104:30 'static enum entry HOME_EQUIPMENT: SetupStepId' is deprecated. Material en casa de flujos legacy: reemplazado por los pasos INVENTORY_*.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/domain/onboarding/SetupStepDefinitions.kt:1115:30 'static enum entry NUTRITION_SEX: SetupStepId' is deprecated. Sexo de nutrici�n legacy: los valores expl�citos migran a EQUATION_SEX.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/domain/onboarding/SetupStepDefinitions.kt:1123:30 'static enum entry RINGS_START: SetupStepId' is deprecated. Acci�n de inicio de Rings legacy: el bloque RINGS es obligatorio.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/domain/onboarding/SetupStepGraph.kt:266:21 'static enum entry GENDER: SetupStepId' is deprecated. Identidad de g�nero de flujos legacy: nunca se convierte en sexo de c�lculo.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/domain/onboarding/SetupStepGraph.kt:267:21 'static enum entry HOME_EQUIPMENT: SetupStepId' is deprecated. Material en casa de flujos legacy: reemplazado por los pasos INVENTORY_*.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/domain/onboarding/SetupStepGraph.kt:268:21 'static enum entry NUTRITION_SEX: SetupStepId' is deprecated. Sexo de nutrici�n legacy: los valores expl�citos migran a EQUATION_SEX.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/domain/onboarding/SetupStepGraph.kt:269:21 'static enum entry RINGS_START: SetupStepId' is deprecated. Acci�n de inicio de Rings legacy: el bloque RINGS es obligatorio.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/domain/performance/lab/PerformanceLabModels.kt:144:5 Redundant creation of Json format. Creating instances for each usage can be slow.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/domain/training/LoopEngine.kt:480:55 'val repeatEveryXCycles: Int?' is deprecated. Use loops[] instead.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/domain/training/LoopEngine.kt:494:47 'val repeatEveryXCycles: Int?' is deprecated. Use loops[] instead.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/domain/training/ProgramDetailHelpers.kt:199:26 'val repeatEveryXCycles: Int?' is deprecated. Use loops[] instead.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/domain/training/ProgramDetailHelpers.kt:205:47 'val repeatEveryXCycles: Int?' is deprecated. Use loops[] instead.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/domain/training/ProgramProgressEngine.kt:1081:13 Condition is always 'true'.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/domain/training/SimpleCyclePersonalizer.kt:605:36 'val description: String' is deprecated. Usa summary.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/domain/training/SimpleCyclePersonalizer.kt:1509:34 'val description: String' is deprecated. Usa summary.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/domain/training/SimpleCyclePersonalizer.kt:1842:29 'val description: String' is deprecated. Usa summary.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/screens/competitions/ProfileCompetitionsArchive.kt:189:86 'constructor(p0: String!): Locale' is deprecated. Deprecated in Java.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/screens/competitions/wizard/CompetitionWizardEventStep.kt:98:83 'constructor(p0: String!): Locale' is deprecated. Deprecated in Java.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/screens/competitions/wizard/CompetitionWizardScreen.kt:156:48 'val Icons.Filled.ArrowBack: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.ArrowBack.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/screens/home/HomeRingsSection.kt:295:47 'constructor(p0: String!): Locale' is deprecated. Deprecated in Java.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/screens/home/HomeScreen.kt:985:27 'fun <T> updateTransition(transitionState: MutableTransitionState<T>, label: String? = ...): Transition<T>' is deprecated. Use rememberTransition() instead.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/screens/home/HomeScreen.kt:1347:37 Condition is always 'true'.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/screens/home/design/HomeDesign.kt:101:35 'constructor(p0: String!): Locale' is deprecated. Deprecated in Java.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/screens/home/design/HomeMasthead.kt:51:65 'constructor(p0: String!): Locale' is deprecated. Deprecated in Java.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/screens/home/design/HomeMasthead.kt:51:90 'constructor(p0: String!): Locale' is deprecated. Deprecated in Java.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/screens/home/design/HomeRingRow.kt:74:35 'constructor(p0: String!): Locale' is deprecated. Deprecated in Java.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/screens/home/design/HomeSessionHero.kt:496:73 'constructor(p0: String!): Locale' is deprecated. Deprecated in Java.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/screens/home/design/HomeSessionHero.kt:517:76 'constructor(p0: String!): Locale' is deprecated. Deprecated in Java.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/screens/nutrition/design/NutritionHeader.kt:44:44 'constructor(p0: String!): Locale' is deprecated. Deprecated in Java.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/screens/onboarding/SetupStepAnswers.kt:291:17 'static enum entry HOME_EQUIPMENT: SetupStepId' is deprecated. Material en casa de flujos legacy: reemplazado por los pasos INVENTORY_*.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/screens/onboarding/SetupStepAnswers.kt:324:43 'static enum entry NUTRITION_SEX: SetupStepId' is deprecated. Sexo de nutrici�n legacy: los valores expl�citos migran a EQUATION_SEX.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/screens/onboarding/SetupStepAnswers.kt:408:17 'static enum entry GENDER: SetupStepId' is deprecated. Identidad de g�nero de flujos legacy: nunca se convierte en sexo de c�lculo.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/screens/onboarding/SetupStepAnswers.kt:511:17 'static enum entry RINGS_START: SetupStepId' is deprecated. Acci�n de inicio de Rings legacy: el bloque RINGS es obligatorio.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/screens/onboarding/SetupStepAnswers.kt:1344:17 'static enum entry HOME_EQUIPMENT: SetupStepId' is deprecated. Material en casa de flujos legacy: reemplazado por los pasos INVENTORY_*.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/screens/onboarding/SetupStepAnswers.kt:1370:17 'static enum entry GENDER: SetupStepId' is deprecated. Identidad de g�nero de flujos legacy: nunca se convierte en sexo de c�lculo.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/screens/onboarding/SetupWeekLayouts.kt:106:38 Condition is always 'true'.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/screens/onboarding/SetupWizardModels.kt:1630:25 'static enum entry GENDER: SetupStepId' is deprecated. Identidad de g�nero de flujos legacy: nunca se convierte en sexo de c�lculo.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/screens/onboarding/SetupWizardModels.kt:1707:25 'static enum entry HOME_EQUIPMENT: SetupStepId' is deprecated. Material en casa de flujos legacy: reemplazado por los pasos INVENTORY_*.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/screens/onboarding/SetupWizardModels.kt:1805:25 'static enum entry NUTRITION_SEX: SetupStepId' is deprecated. Sexo de nutrici�n legacy: los valores expl�citos migran a EQUATION_SEX.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/screens/onboarding/SetupWizardModels.kt:1898:25 'static enum entry RINGS_START: SetupStepId' is deprecated. Acci�n de inicio de Rings legacy: el bloque RINGS es obligatorio.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/screens/onboarding/SetupWizardModels.kt:1960:45 'static enum entry NUTRITION_SEX: SetupStepId' is deprecated. Sexo de nutrici�n legacy: los valores expl�citos migran a EQUATION_SEX.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/screens/onboarding/SetupWizardViewModel.kt:3646:68 'static enum entry HOME_EQUIPMENT: SetupStepId' is deprecated. Material en casa de flujos legacy: reemplazado por los pasos INVENTORY_*.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/screens/onboarding/SetupWizardViewModel.kt:3647:52 'static enum entry HOME_EQUIPMENT: SetupStepId' is deprecated. Material en casa de flujos legacy: reemplazado por los pasos INVENTORY_*.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/screens/onboarding/SetupWizardViewModel.kt:3689:74 'static enum entry GENDER: SetupStepId' is deprecated. Identidad de g�nero de flujos legacy: nunca se convierte en sexo de c�lculo.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/screens/onboarding/design/WizardSystemBars.kt:32:47 'var statusBarColor: Int' is deprecated. Deprecated in Java.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/screens/onboarding/design/WizardSystemBars.kt:33:44 'var navigationBarColor: Int' is deprecated. Deprecated in Java.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/screens/onboarding/design/WizardSystemBars.kt:34:21 'var statusBarColor: Int' is deprecated. Deprecated in Java.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/screens/onboarding/design/WizardSystemBars.kt:35:21 'var navigationBarColor: Int' is deprecated. Deprecated in Java.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/screens/onboarding/design/WizardSystemBars.kt:39:57 'var statusBarColor: Int' is deprecated. Deprecated in Java.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/screens/onboarding/design/WizardSystemBars.kt:40:54 'var navigationBarColor: Int' is deprecated. Deprecated in Java.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/screens/onboarding/entreno/EntrenoCompetitionStep.kt:269:75 'constructor(p0: String!): Locale' is deprecated. Deprecated in Java.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/screens/onboarding/entreno/EntrenoCompetitionStep.kt:307:73 'constructor(p0: String!): Locale' is deprecated. Deprecated in Java.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/screens/onboarding/rings/RingsResultStep.kt:198:38 Condition is always 'false'.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/screens/onboarding/rings/RingsResultStep.kt:199:39 Condition is always 'false'.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/screens/onboarding/welcome/WelcomeVideoPlayer.kt:52:40 This annotation is currently applied to the value parameter only, but in the future it will also be applied to field.
+- To opt in to applying to both value parameter and field, add '-Xannotation-default-target=param-property' to your compiler arguments.
+- To keep applying to the value parameter only, use the '@param:' annotation target.
+
+See https://youtrack.jetbrains.com/issue/KT-73255 for more details.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/screens/onboarding/welcome/WelcomeVideoPlayer.kt:52:64 This annotation is currently applied to the value parameter only, but in the future it will also be applied to field.
+- To opt in to applying to both value parameter and field, add '-Xannotation-default-target=param-property' to your compiler arguments.
+- To keep applying to the value parameter only, use the '@param:' annotation target.
+
+See https://youtrack.jetbrains.com/issue/KT-73255 for more details.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/screens/onboarding/welcome/WelcomeVideoPlayer.kt:162:76 'static fun buildRawResourceUri(p0: Int): Uri' is deprecated. Deprecated in Java.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/screens/programdetail/components/ProgramAnalyticsCards.kt:119:26 'constructor(p0: String!): Locale' is deprecated. Deprecated in Java.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/screens/programdetail/components/ProgramAnalyticsCards.kt:128:26 'constructor(p0: String!): Locale' is deprecated. Deprecated in Java.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/screens/programdetail/components/ProgramAnalyticsCards.kt:137:26 'constructor(p0: String!): Locale' is deprecated. Deprecated in Java.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/screens/programdetail/components/editor/CyclesSection.kt:64:71 'val repeatEveryXCycles: Int?' is deprecated. Use loops[] instead.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/screens/programdetail/design/ProgramCopyWeekSheet.kt:157:42 'constructor(p0: String!): Locale' is deprecated. Deprecated in Java.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/screens/programdetail/design/ProgramDayDialogs.kt:181:42 'constructor(p0: String!): Locale' is deprecated. Deprecated in Java.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/screens/programdetail/design/ProgramDayModule.kt:315:40 'constructor(p0: String!): Locale' is deprecated. Deprecated in Java.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/screens/programdetail/design/ProgramHeader.kt:247:63 'constructor(p0: String!): Locale' is deprecated. Deprecated in Java.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/screens/programdetail/design/ProgramHeaderModel.kt:129:38 'constructor(p0: String!): Locale' is deprecated. Deprecated in Java.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/screens/programdetail/design/ProgramPhasesModule.kt:78:36 'constructor(p0: String!): Locale' is deprecated. Deprecated in Java.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/screens/programdetail/design/ProgramPhasesModule.kt:95:44 'constructor(p0: String!): Locale' is deprecated. Deprecated in Java.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/screens/programdetail/design/ProgramVolumeBreakdownList.kt:42:63 'constructor(p0: String!): Locale' is deprecated. Deprecated in Java.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/screens/programdetail/design/ProgramVolumeBreakdownList.kt:66:47 'constructor(p0: String!): Locale' is deprecated. Deprecated in Java.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/screens/programdetail/design/ProgramVolumeDiscomfortRows.kt:54:31 'constructor(p0: String!): Locale' is deprecated. Deprecated in Java.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/screens/programdetail/design/structure/ProgramBlockModule.kt:204:35 'constructor(p0: String!): Locale' is deprecated. Deprecated in Java.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/screens/programdetail/design/structure/ProgramSheetParts.kt:28:31 'constructor(p0: String!): Locale' is deprecated. Deprecated in Java.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/screens/programs/ProgramEditorScreen.kt:82:44 'val Icons.Filled.ArrowBack: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.ArrowBack.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/screens/programs/ProgramsScreen.kt:599:53 'val Icons.Filled.KeyboardArrowRight: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.KeyboardArrowRight.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/screens/sessioneditor/SessionEditorCloneHelpers.kt:44:37 Condition is always 'true'.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/screens/sessioneditor/SessionEditorScreen.kt:690:29 Condition is always 'true'.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/screens/sessioneditor/components/InlineSetRow.kt:121:9 Condition is always 'false'.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/screens/sessioneditor/components/sheets/SheetPieces.kt:43:31 'constructor(p0: String!): Locale' is deprecated. Deprecated in Java.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/screens/settings/SettingsViewModel.kt:273:108 Condition is always 'true'.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/screens/workout/CardioLiveCard.kt:424:34 'constructor(p0: String!): Locale' is deprecated. Deprecated in Java.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/screens/workout/EffortScale.kt:103:97 'constructor(p0: String!): Locale' is deprecated. Deprecated in Java.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/screens/workout/RepairBenchmarkTrace.kt:245:47 'val id: Long' is deprecated. Deprecated in Java.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/screens/workout/RepairBenchmarkTrace.kt:269:60 'val id: Long' is deprecated. Deprecated in Java.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/screens/workout/WorkoutContextComponents.kt:97:102 'constructor(p0: String!, p1: String!): Locale' is deprecated. Deprecated in Java.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/screens/workout/WorkoutContextComponents.kt:156:77 'constructor(p0: String!, p1: String!): Locale' is deprecated. Deprecated in Java.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/screens/workout/WorkoutContextComponents.kt:247:41 'constructor(p0: String!): Locale' is deprecated. Deprecated in Java.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/screens/workout/WorkoutDrainOverlayUi.kt:62:69 'constructor(p0: String!): Locale' is deprecated. Deprecated in Java.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/screens/workout/WorkoutExerciseSheets.kt:91:31 'constructor(p0: String!): Locale' is deprecated. Deprecated in Java.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/screens/workout/WorkoutFinishPages.kt:241:44 'val Icons.Filled.ArrowForward: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.ArrowForward.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/screens/workout/WorkoutMediaCaptureController.kt:79:37 Non-public primary constructor is exposed via the generated 'copy()' method of the 'data' class.
+
+The generated 'copy()' will change its visibility in future releases.
+
+To suppress the warning do one of the following:
+- Annotate the data class with the '@ConsistentCopyVisibility' annotation.
+- Use the '-Xconsistent-data-class-copy-visibility' compiler flag.
+- Annotate the data class with the '@ExposedCopyVisibility' annotation 
+  (Discouraged, but can be used to keep binary compatibility).
+
+To learn more, see the documentation of the '@ConsistentCopyVisibility' and '@ExposedCopyVisibility' annotations.
+
+This will become an error in language version 2.3.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/screens/workout/WorkoutOverlayHost.kt:170:31 Condition is always 'true'.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/screens/workout/WorkoutStoryRenderer.kt:121:29 Type argument for reified type parameter 'T' was inferred to the intersection of ['Number?' & 'Comparable<*>?']. Reification of an intersection type results in the common supertype being used. This may lead to subtle issues and an explicit type argument is encouraged. This will become an error in a future release.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/screens/workout/WorkoutStoryRenderer.kt:121:89 Type argument for reified type parameter 'T' was inferred to the intersection of ['Number?' & 'Comparable<*>?']. Reification of an intersection type results in the common supertype being used. This may lead to subtle issues and an explicit type argument is encouraged. This will become an error in a future release.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/screens/workout/WorkoutStoryRenderer.kt:121:136 Type argument for reified type parameter 'T' was inferred to the intersection of ['Number?' & 'Comparable<*>?']. Reification of an intersection type results in the common supertype being used. This may lead to subtle issues and an explicit type argument is encouraged. This will become an error in a future release.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/screens/workout/WorkoutUiCommon.kt:14:60 'constructor(p0: String!, p1: String!): Locale' is deprecated. Deprecated in Java.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/screens/workout/components/SetExecutionCard.kt:431:41 'constructor(p0: String!): Locale' is deprecated. Deprecated in Java.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/screens/workout/components/SetExecutionCard.kt:2513:57 Condition is always 'false'.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/screens/workout/components/WorkoutRestOverlay.kt:714:40 'constructor(p0: String!): Locale' is deprecated. Deprecated in Java.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/screens/workout/components/WorkoutRestOverlay.kt:773:64 'constructor(p0: String!): Locale' is deprecated. Deprecated in Java.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/services/cardio/CardioCuePlayer.kt:86:60 'static field VIBRATOR_SERVICE: String' is deprecated. Deprecated in Java.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/services/workout/WorkoutRemoteVoiceEngineClient.kt:89:17 Expected performance impact from inlining is insignificant. Inlining works best for functions with parameters of function types.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/services/workout/WorkoutRestAlertManager.kt:597:60 'static field VIBRATOR_SERVICE: String' is deprecated. Deprecated in Java.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/services/workout/WorkoutTtsManager.kt:67:42 'constructor(p0: String!, p1: String!): Locale' is deprecated. Deprecated in Java.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/services/workout/WorkoutTtsManager.kt:68:60 'constructor(p0: String!, p1: String!): Locale' is deprecated. Deprecated in Java.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/services/workout/WorkoutTtsManager.kt:74:46 'constructor(p0: String!, p1: String!): Locale' is deprecated. Deprecated in Java.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/services/workout/WorkoutTtsManager.kt:75:62 'constructor(p0: String!, p1: String!): Locale' is deprecated. Deprecated in Java.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/ui/design/KpknModule.kt:114:40 'constructor(p0: String!): Locale' is deprecated. Deprecated in Java.
+
+> Task :app:javaPreCompileBaseRelease
+> Task :app:compileBaseReleaseJavaWithJavac
+> Task :app:checkBaseReleaseAarMetadata
+> Task :app:mapBaseReleaseSourceSetPaths
+> Task :app:compileBaseReleaseNavigationResources
+> Task :app:mergeBaseReleaseResources
+> Task :app:createBaseReleaseCompatibleScreenManifests
+> Task :app:extractDeepLinksBaseRelease
+
+> Task :app:processBaseReleaseMainManifest
+C:\Users\valen\Documents\KPKNFit\android-native\app\src\main\AndroidManifest.xml:113:9-116:47 Warning:
+	service#com.google.android.datatransport.runtime.scheduling.jobscheduling.JobInfoSchedulerService@android:enabled was tagged at AndroidManifest.xml:113 to replace other declarations but no other declaration present
+C:\Users\valen\Documents\KPKNFit\android-native\app\src\main\AndroidManifest.xml:118:9-121:47 Warning:
+	receiver#com.google.android.datatransport.runtime.scheduling.jobscheduling.AlarmManagerSchedulerBroadcastReceiver@android:enabled was tagged at AndroidManifest.xml:118 to replace other declarations but no other declaration present
+C:\Users\valen\Documents\KPKNFit\android-native\app\src\main\AndroidManifest.xml:203:9-205:35 Warning:
+	activity-alias#leakcanary.internal.activity.LeakLauncherActivity was tagged at AndroidManifest.xml:203 to remove other declarations but no other declaration present
+
+> Task :app:processBaseReleaseManifest
+> Task :app:processBaseReleaseManifestForPackage
+> Task :app:processBaseReleaseResources
+> Task :app:expandBaseReleaseArtProfileWildcards
+> Task :app:extractProguardFiles
+> Task :app:mergeBaseReleaseGeneratedProguardFiles
+> Task :app:processBaseReleaseJavaRes
+> Task :app:mergeBaseReleaseJavaResource
+> Task :app:mergeBaseReleaseStartupProfile
+> Task :app:minifyBaseReleaseWithR8
+> Task :app:l8DexDesugarLibBaseRelease
+> Task :app:compileBaseReleaseArtProfile
+> Task :app:generateBaseReleaseAssets UP-TO-DATE
+> Task :app:mergeBaseReleaseAssets
+> Task :app:compressBaseReleaseAssets
+> Task :app:extractBaseReleaseVersionControlInfo
+> Task :app:generateBaseReleaseLintVitalReportModel
+> Task :app:lintVitalAnalyzeBaseRelease
+> Task :app:lintVitalReportBaseRelease
+> Task :app:lintVitalBaseRelease
+> Task :app:convertShrunkResourcesToBinaryBaseRelease
+> Task :app:optimizeBaseReleaseResources
+> Task :app:collectBaseReleaseDependencies
+> Task :app:sdkBaseReleaseDependencyData
+> Task :app:validateSigningBaseRelease UP-TO-DATE
+> Task :app:writeBaseReleaseAppMetadata
+> Task :app:writeBaseReleaseSigningConfigVersions
+> Task :app:packageBaseRelease
+> Task :app:createBaseReleaseApkListingFileRedirect
+> Task :app:assembleBaseRelease
+
+BUILD SUCCESSFUL in 16m 22s
+87 actionable tasks: 55 executed, 32 up-to-date

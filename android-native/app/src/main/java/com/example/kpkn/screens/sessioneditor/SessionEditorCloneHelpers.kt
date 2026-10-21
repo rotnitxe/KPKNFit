@@ -117,19 +117,6 @@ internal fun Program.destinationRecipeDayId(weekId: String, dayOfWeek: Int, exis
         ?: recipeDayIdForTarget(weekId, dayOfWeek)
 }
 
-internal fun Program.recordTransferReceipt(sessionId: String, receipt: String): Program {
-    if (hasTransferReceipt(sessionId, receipt)) return this
-    return copy(
-        manualSessionOverrides = manualSessionOverrides.map { override ->
-            if (override.sessionId == sessionId && override.scope == ManualOverrideScope.SESSION) {
-                override.copy(reason = listOf(override.reason, receipt).filter(String::isNotBlank).distinct().joinToString(" · "))
-            } else {
-                override
-            }
-        },
-    )
-}
-
 private fun transferLocationFromOptionKey(key: String): SessionTransferLocation? {
     val parts = key.split('|')
     if (parts.size < 4) return null

@@ -12,7 +12,7 @@ import kotlin.math.abs
  */
 object WorkoutMediaPrFlags {
     fun completedSetKey(exerciseId: String, setIndex: Int, side: String?): String {
-        val token = sideToken(side)
+        val token = WorkoutMediaSides.token(side)
         return if (token == null) "${exerciseId}_$setIndex" else "${exerciseId}_${setIndex}_$token"
     }
 
@@ -75,12 +75,5 @@ object WorkoutMediaPrFlags {
         return completedSets["${exerciseId}_$setIndex"]
     }
 
-    private fun sideToken(side: String?): String? {
-        val raw = side?.trim()?.takeIf { it.isNotEmpty() } ?: return null
-        return when (raw.lowercase()) {
-            "l", "left" -> "L"
-            "r", "right" -> "R"
-            else -> raw.take(1).uppercase()
-        }
-    }
+    private fun sideToken(side: String?): String? = WorkoutMediaSides.token(side)
 }

@@ -87,7 +87,7 @@ class AprendeCatalogAuditTest {
         assertEquals(0, report.duplicateDescriptionCount)
         assertEquals(0, report.desynchronizedMetadataCount)
         assertEquals(0, report.reverseLinkConsistencyIssueCount)
-        assertEquals("8e70937474a217c8314eb53f17a94456fee0ec3d93f9587695ec4727dd8f33f9", report.sourceSha256)
+        assertEquals("81db1f950148a7769b7d1d1dd8f066746439efe726ca00d35d87d52119bcf91c", report.sourceSha256)
         assertTrue("músculos sin puente: ${report.unmappedMuscleIds}", report.unmappedMuscleIds.isEmpty())
         assertTrue("patrones sin puente: ${report.unmappedPatternIds}", report.unmappedPatternIds.isEmpty())
         assertTrue(report.unknownJointIds.isEmpty())
@@ -207,7 +207,8 @@ class AprendeCatalogAuditTest {
             File("src/main/java/com/example/kpkn/screens/home/HomeWikiLabSection.kt"),
             File("app/src/main/java/com/example/kpkn/screens/home/HomeWikiLabSection.kt"),
         ).first { it.exists() }.readText()
-        assertTrue(home.contains("\"CONCEPTOS CLAVE\""))
+        // La cabecera pasa el texto a mayúsculas (KpknModuleHeader): el literal es «Aprende».
+        assertTrue(home.contains("\"Aprende\""))
         assertTrue(!home.contains(".shuffled()"))
     }
 

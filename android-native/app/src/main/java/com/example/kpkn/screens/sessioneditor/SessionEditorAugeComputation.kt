@@ -1,18 +1,12 @@
 package com.example.kpkn.screens.sessioneditor
 
-import com.example.kpkn.data.exercises.exerciseCatalogSnapshot
-import com.example.kpkn.data.exercises.catalogSearchRedirects
 import com.example.kpkn.data.exercises.resolveCatalogExerciseInfoInIndex
 import com.example.kpkn.data.models.*
 import com.example.kpkn.domain.auge.AugeClassifiers
 import com.example.kpkn.domain.auge.AugeFatigueEngine
 import com.example.kpkn.domain.auge.AugeUtils
 import com.example.kpkn.domain.auge.CardioRingDrainEngine
-import com.example.kpkn.domain.calculations.calculateSessionTimeBreakdown
-import com.example.kpkn.domain.calculations.estimateSessionDurationMinutes
-import com.example.kpkn.domain.energy.TrainingEnergyEngine
 import com.example.kpkn.domain.exercises.ExerciseMuscleResolver
-import com.example.kpkn.domain.exercises.resolvedCanonicalExerciseId
 import com.example.kpkn.domain.training.VolumeCalculator
 import kotlin.math.roundToInt
 
@@ -705,7 +699,6 @@ internal fun computeSessionAugeComputation(
         insight
     }
 
-    val averageRest = exercises.mapNotNull { it.restTime }.ifEmpty { listOf(settings.restTimerDefaultSeconds) }.average().toInt()
     val predictedDrain = run {
         val fromPass = PredictedDrain(
             cns = pipelinedTotalCns.roundToInt().coerceIn(0, 100),
@@ -752,7 +745,7 @@ internal fun computeSessionAugeComputation(
     return SessionAugeComputation(
         drain = predictedDrain,
         setCount = totalSets,
-        durationMinutes = estimateSessionDurationMinutes(totalSets, averageRest),
+        durationMinutes = sessionEditorDurationMinutes(session),
         difficulty = computeDifficulty(
             averageRpe = if (rpeCount > 0) rpeSum / rpeCount else 0.0,
             averageRm = if (rmCount > 0) rmSum / rmCount else 0.0,
@@ -959,33 +952,6 @@ internal fun ExerciseSet.effectiveTargetRpe(): Double {
     targetRPE?.let { return it.coerceIn(1.0, 10.0) }
     targetRIR?.let { return (10 - it).toDouble().coerceIn(1.0, 10.0) }
     return 8.0
-}
-
-internal fun ExerciseSet.lowerAugeIntensity(capRpe: Double? = null): ExerciseSet {
-    val effectiveRpe = effectiveTargetRpe()
-    if (effectiveRpe < 7.0 && capRpe == null) return this
-
-    val targetRpe = maxOf(6.0, (capRpe ?: (effectiveRpe - 0.5)))
-    return when (intensityMode ?: IntensityMode.RPE) {
-        IntensityMode.SOLO_RM -> copy(
-            targetPercentageRM = ((targetPercentageRM ?: 100.0) - 5.0).coerceAtLeast(55.0),
-        )
-        IntensityMode.RIR -> copy(
-            targetRIR = ((targetRIR ?: 2) + 1).coerceAtMost(5),
-            isFailure = false,
-        )
-        IntensityMode.FAILURE -> copy(
-            intensityMode = IntensityMode.RIR,
-            targetRIR = 1,
-            targetRPE = null,
-            isFailure = false,
-        )
-        else -> copy(
-            targetRPE = targetRpe.coerceAtMost(capRpe ?: 10.0),
-            targetRIR = null,
-            isFailure = false,
-        )
-    }
 }
 
 internal data class ClonePayload(

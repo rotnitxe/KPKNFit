@@ -42,5 +42,10 @@
             android:name="com.example.kpkn.debug.ImportOcrHarnessActivity"
             android:exported="true"
             android:theme="@style/Theme.KPKN" />
+        <!-- SOLO DEPURACIÓN: banco de la técnica en vídeo; en el modo decode_selftest genera clips sintéticos, los decodifica y escribe «vt-selftest/result.json» (VT4a); no se integra. -->
+        <activity
+            android:name="com.example.kpkn.debug.TechniqueBenchActivity"
+            android:exported="true"
+            android:theme="@style/Theme.KPKN" />
     </application>
 </manifest>

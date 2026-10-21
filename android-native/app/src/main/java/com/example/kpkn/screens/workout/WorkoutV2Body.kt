@@ -3,28 +3,18 @@ package com.example.kpkn.screens.workout
 import com.example.kpkn.ui.tour.TourAnchors
 import com.example.kpkn.ui.tour.tourAnchor
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.core.FastOutSlowInEasing
-import androidx.compose.animation.expandHorizontally
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.animation.shrinkHorizontally
-import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.LocalFireDepartment
-import androidx.compose.material.icons.filled.SelfImprovement
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -43,19 +33,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import kotlin.math.absoluteValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.example.kpkn.data.exercises.exerciseCatalogSnapshot
-import com.example.kpkn.data.exercises.catalogExerciseIndex
-import com.example.kpkn.data.exercises.resolveCatalogExerciseInfo
 import com.example.kpkn.data.models.*
 import com.example.kpkn.domain.exercises.nicknameKey
 import com.example.kpkn.domain.sessionassistant.SeriesTechnique
+import com.example.kpkn.domain.workout.isSetDone
 import com.example.kpkn.domain.workout.isVolumeReplacedTechnique
-import com.example.kpkn.domain.calculations.resolveReferenceCapacity
-import com.example.kpkn.domain.exercises.exerciseDisplayParts
 import com.example.kpkn.screens.workout.components.LocalLivePagerAdaptScale
 import com.example.kpkn.screens.workout.components.LocalLivePagerShouldReflow
 import com.example.kpkn.screens.workout.components.LocalLivePagerWorkingSetVisualHeightPx
@@ -66,20 +51,12 @@ import com.example.kpkn.screens.workout.components.SetInputCardV2
 import com.example.kpkn.screens.workout.components.readinessLoadSnapFor
 import com.example.kpkn.screens.workout.components.WorkoutMobilityChecklistItem
 import com.example.kpkn.screens.workout.components.WorkoutWarmupDisplaySet
-import com.example.kpkn.screens.workout.components.GodModeTechniqueScopeDialog
 import com.example.kpkn.screens.workout.components.WorkoutUiTokens
 import dev.chrisbanes.haze.HazeState
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.isActive
 import com.example.kpkn.ui.components.KpknAlertDialog
-
-internal data class WorkoutStageTransitionTarget(
-    val exerciseId: String,
-    val order: Int,
-    val label: String,
-)
 
 
 @Composable
@@ -102,6 +79,7 @@ internal fun WorkoutV2Body(
     headerStartTimeMs: Long,
     headerIsComplete: Boolean,
     headerBackground: SessionBackground?,
+    headerProgram: com.example.kpkn.data.models.Program? = null,
     headerExerciseTag: String?,
     onToggleVoice: () -> Unit = {},
     rmSelectedWeight: Double? = null,
@@ -111,6 +89,8 @@ internal fun WorkoutV2Body(
     onExpandSetup: () -> Unit,
     onExpandReplace: () -> Unit,
     onExpandEdit: () -> Unit,
+    /** «Editar» de las opciones de una serie: abre las series del ejercicio en el que se pulsó (no siempre el de turno). */
+    onEditExercise: (exerciseId: String) -> Unit = {},
     onRequestCardioGps: (exerciseId: String, setIndex: Int) -> Unit = { _, _ -> },
     exerciseReadinessMap: Map<String, ExerciseReadiness> = emptyMap(),
     recordActionHolder: RecordActionHolder = remember { RecordActionHolder() },
@@ -131,6 +111,7 @@ internal fun WorkoutV2Body(
     overlayHazeState: HazeState = remember { HazeState() },
     roadmapExpanded: Boolean = false,
     dockBottomClearance: Dp = 140.dp,
+    recordFabBottomOffset: Dp? = null,
     onCreateSuperset: () -> Unit = {},
     onReplaceExercise: (String) -> Unit = {},
     requestLiveTagList: Boolean = false,
@@ -138,7 +119,21 @@ internal fun WorkoutV2Body(
     skipExerciseLabel: String? = null,
     onSkipExercise: (() -> Unit)? = null,
     onRetryPendingCaptures: () -> Unit = {},
+    techniqueRecorderHolder: com.example.kpkn.screens.workout.technique.TechniqueRecorderHolder? = null,
+    onOpenTechniqueAnalysis: (String) -> Unit = {},
 ) {
+    val sharedFabBottomOffset = recordFabBottomOffset ?: rememberWorkoutRecordFabBottomOffset(dockBottomClearance)
+    val videoAnalysis by viewModel.videoAnalysisBySetKey.collectAsStateWithLifecycle()
+    val restVideoKey = uiState.setJustLoggedKey
+    val restVideo = restVideoKey?.let(videoAnalysis::get)
+    val restVideoSlot: (@Composable () -> Unit)? = if (restVideoKey != null && restVideo != null) {
+        { com.example.kpkn.screens.workout.design.WorkoutCompletedVideoSuggestion(
+            value = restVideo,
+            onPatch = { viewModel.patchCompletedSet(restVideoKey, it) },
+            onOpenAnalysis = onOpenTechniqueAnalysis,
+        ) }
+    } else null
+
     val allUserTags by viewModel.allUserTags.collectAsStateWithLifecycle()
     val cardioGpsState by viewModel.cardioGpsState.collectAsStateWithLifecycle()
     val cardioHealthState by viewModel.cardioHealthState.collectAsStateWithLifecycle()
@@ -149,6 +144,10 @@ internal fun WorkoutV2Body(
         uiState.restModalState?.kind != RestTimerKind.WARMUP
     val warmupRestActive = uiState.isRestTimerRunning &&
         uiState.restModalState?.kind == RestTimerKind.WARMUP
+    // LV6: la forma del reloj que eligió la persona, «Descanso cumplido» como una página más del paginador (con el descanso minimizado)
+    // y el chip «Descanso 2:41 · +15 s» de cuando el descanso sigue corriendo y otra página está a la vista.
+    val restOverrunOnCard = uiState.restOverrun != null && uiState.isRestMinimized && !uiState.isRestTimerRunning
+    val restChipHolder = remember { com.example.kpkn.screens.workout.components.RestChipHolder() }
     LaunchedEffect(currentExercise?.id, currentExercise?.cardioDetails?.requiresGps) {
         currentExercise
             ?.takeIf { it.isCardio && it.cardioDetails?.requiresGps == true }
@@ -209,10 +208,6 @@ internal fun WorkoutV2Body(
         uiState.lastDrainOverlay?.let { drainOverlayState = it }
     }
     var expandedSupersetWarmups by remember { mutableStateOf<Set<String>>(emptySet()) }
-    var pendingDeleteSet by remember { mutableStateOf<Pair<String, Int>?>(null) }
-    var pendingTechnique by remember {
-        mutableStateOf<Pair<com.example.kpkn.domain.sessionassistant.SeriesTechnique, Pair<String, Int>>?>(null)
-    }
     var warmupWeightDrafts by remember { mutableStateOf<Map<String, String>>(emptyMap()) }
     val recordActionScopeOwner = remember(
         uiState.programId,
@@ -255,29 +250,31 @@ internal fun WorkoutV2Body(
         }
         val sessionTimeRemainingSeconds by viewModel.sessionTimeRemainingSeconds.collectAsStateWithLifecycle()
         val relatorResolution by viewModel.relatorResolution.collectAsStateWithLifecycle()
+        val relatorLoadPopTrigger by viewModel.relatorLoadPopTrigger.collectAsStateWithLifecycle()
         val density = LocalDensity.current
         var headerHeightPx by remember { mutableIntStateOf(0) }
-        val windowAdaptForRelator = LocalViewportAdapt.current
-        val relatorBandHeight = remember(
-            windowAdaptForRelator.widthDp,
-            windowAdaptForRelator.heightDp,
-            windowAdaptForRelator.uniformScale,
-        ) {
-            val policy = LiveViewportPolicyMath.compute(
-                widthDp = windowAdaptForRelator.widthDp,
-                heightDp = windowAdaptForRelator.heightDp,
-            )
-            WorkoutUiTokens.liveRelatorBandHeight(
-                topNudgeFraction = policy.topNudgeFraction,
-                uniformScale = windowAdaptForRelator.uniformScale,
-            )
-        }
+        val relatorBandHeight = WorkoutUiTokens.liveRelatorBandHeight(density)
+        // La banda se oculta solo bajo un overlay a pantalla completa (descanso o feedback), que trae su propio relator.
+        // El chip del descanso ocupa el sitio de la banda mientras se ve (LV6, F5), y «Descanso cumplido» a pantalla completa también la cubre.
+        // Con el feedback en la tarjeta del descanso (B3) la banda del relator se ve: F4 pone ahí «Ejercicio terminado: …».
+        val feedbackOnCard = feedbackLivesOnCard(
+            feedbackShowing = uiState.showPostExerciseSheet,
+            isRestTimerRunning = uiState.isRestTimerRunning,
+            isRestMinimized = uiState.isRestMinimized,
+            restKind = uiState.restModalState?.kind,
+        )
+        val relatorBandCovered = (uiState.showPostExerciseSheet && !feedbackOnCard) ||
+            (workingRestActive && !uiState.isRestMinimized) ||
+            (uiState.restOverrun != null && !uiState.isRestMinimized)
         Column(modifier = Modifier.fillMaxSize()) {
             Box(
                 modifier = Modifier
                     .onSizeChanged { headerHeightPx = it.height }
                     .zIndex(8f),
             ) {
+            val paceWork = remember(visibleExercises, uiState.completedSets, uiState.omittedSetKeys) {
+                sessionPaceWork(visibleExercises, uiState.completedSets, uiState.omittedSetKeys)
+            }
             WorkoutHeaderBar(
                 exerciseName = headerExerciseName,
                 exerciseChips = headerExerciseChips,
@@ -291,6 +288,7 @@ internal fun WorkoutV2Body(
                 startTimeMs = headerStartTimeMs,
                 isComplete = headerIsComplete,
                 background = headerBackground,
+                program = headerProgram,
                 sessionTimeRemainingSeconds = sessionTimeRemainingSeconds,
                 onAdjustTimeLimit = { viewModel.adjustSessionTimeLimit(it) },
                 onSetAbsoluteTimeLimit = { minutes, persist ->
@@ -307,6 +305,8 @@ internal fun WorkoutV2Body(
                     sessionTargetDurationMinutes = uiState.session?.targetDurationMinutes,
                 ),
                 sessionHasProgrammedTime = uiState.session?.targetDurationMinutes != null,
+                completedWorkingSetCount = paceWork.completed,
+                totalWorkingSetCount = paceWork.total,
                 pacingAlertMessage = uiState.pacingAlertMessage,
                 coachPaceAlert = uiState.coachPaceAlert,
                 exerciseTag = headerExerciseTag,
@@ -394,8 +394,35 @@ internal fun WorkoutV2Body(
                     Column(
                         modifier = Modifier
                             .fillMaxSize()
-                            .padding(bottom = dockBottomClearance),
+                            .padding(bottom = sharedFabBottomOffset + LiveContentAboveRecordFab),
                     ) {
+            val createTagAndRoute: (String, TagSetupInput?) -> CreateTagResult = { name, setup ->
+                val exercise = currentExercise
+                if (exercise == null) CreateTagResult.InvalidName else {
+                    val result = viewModel.createTag(exercise.id, name, setup)
+                    when (result) {
+                        is CreateTagResult.Created -> {
+                            showCreateTagDialog = false
+                            showTagListOverlay = false
+                            if (result.untaggedSessionCount > 0) {
+                                pendingUntaggedAdoption = PendingUntaggedAdoption(
+                                    exerciseId = exercise.id,
+                                    tagId = result.tag.id,
+                                    tagName = result.tag.name,
+                                    sessionCount = result.untaggedSessionCount,
+                                )
+                            } else {
+                                showTagListOverlay = true
+                            }
+                        }
+                        is CreateTagResult.Duplicate,
+                        CreateTagResult.InvalidName,
+                        -> Unit
+                    }
+                    result
+                }
+            }
+
             // ─── Tag manager modal ────────────────────────────────────────────
             if (tagManagerTagId != null && currentExercise != null) {
                 val tag = currentExerciseActiveMainTags.firstOrNull { it.id == tagManagerTagId }
@@ -464,7 +491,6 @@ internal fun WorkoutV2Body(
                     },
                     onSelectTag = { tagId ->
                         viewModel.selectMainTag(currentExercise.id, tagId)
-                        showTagListOverlay = false
                     },
                     onCreateTag = {
                         showTagListOverlay = false
@@ -473,34 +499,17 @@ internal fun WorkoutV2Body(
                     onDismiss = { showTagListOverlay = false },
                     hasSeenEducation = settings.hasSeenWorkoutTagEducation,
                     onOpened = { viewModel.markWorkoutTagEducationSeen() },
+                    onCreateInline = createTagAndRoute,
+                    onManageTag = { tagId -> showTagListOverlay = false; tagManagerTagId = tagId },
+                    activeSubTagIds = uiState.activeSubTagsByExercise[currentExercise.id].orEmpty(),
+                    onToggleSubTag = { viewModel.toggleSubTagActive(currentExercise.id, it) },
                 )
             }
 
             // ─── Create tag dialog ────────────────────────────────────────────
             if (showCreateTagDialog && currentExercise != null) {
                 WorkoutCreateTagOverlay(
-                    onCreate = { name, setup ->
-                        val result = viewModel.createTag(currentExercise.id, name, setup)
-                        when (result) {
-                            is CreateTagResult.Created -> {
-                                showCreateTagDialog = false
-                                if (result.untaggedSessionCount > 0) {
-                                    pendingUntaggedAdoption = PendingUntaggedAdoption(
-                                        exerciseId = currentExercise.id,
-                                        tagId = result.tag.id,
-                                        tagName = result.tag.name,
-                                        sessionCount = result.untaggedSessionCount,
-                                    )
-                                } else {
-                                    showTagListOverlay = true
-                                }
-                            }
-                            is CreateTagResult.Duplicate,
-                            CreateTagResult.InvalidName,
-                            -> Unit
-                        }
-                        result
-                    },
+                    onCreate = createTagAndRoute,
                     onDismiss = {
                         showCreateTagDialog = false
                         showTagListOverlay = true
@@ -529,10 +538,13 @@ internal fun WorkoutV2Body(
                 )
             }
 
+            Spacer(Modifier.height(relatorBandHeight))
+            val stageScrollState = rememberScrollState()
             Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(horizontal = 10.dp),
+                modifier = Modifier.fillMaxSize().then(
+                    if (currentExercise?.isCardio != true && !showingPostExerciseCard)
+                        Modifier.verticalScroll(stageScrollState) else Modifier,
+                ),
             ) {
 
             if (currentExercise != null && (
@@ -773,6 +785,7 @@ internal fun WorkoutV2Body(
                         prepMobilityMembers,
                         prepWarmupMembers,
                         workingRestActive,
+                        restOverrunOnCard,
                         uiState.currentSetIdx,
                         uiState.setJustLoggedKey,
                         uiState.omittedSetKeys,
@@ -888,7 +901,7 @@ internal fun WorkoutV2Body(
                             }
                         }
 
-                        if (workingRestActive) {
+                        if (workingRestActive || restOverrunOnCard) {
                             val restPage = WorkoutSetSwipePage(
                                 type = LivePageType.REST,
                                 setIndex = uiState.currentSetIdx,
@@ -1061,8 +1074,8 @@ internal fun WorkoutV2Body(
                         }
                         var forcePagerScrollEpoch by remember { mutableStateOf(0) }
                         var forcePagerScrollPage by remember { mutableStateOf<Int?>(null) }
-                        LaunchedEffect(activeSwipePageIndex, totalSetPages, uiState.isRestMinimized, workingRestActive) {
-                            if (workingRestActive && uiState.isRestMinimized) return@LaunchedEffect
+                        LaunchedEffect(activeSwipePageIndex, totalSetPages, uiState.isRestMinimized, workingRestActive, restOverrunOnCard) {
+                            if ((workingRestActive || restOverrunOnCard) && uiState.isRestMinimized) return@LaunchedEffect
                             val settledType = setPagerPages.getOrNull(pagerState.settledPage)?.type
                             val targetType = setPagerPages.getOrNull(activeSwipePageIndex)?.type
                             if (shouldIgnoreCanonicalMobilityScroll(targetType, settledType)) {
@@ -1126,6 +1139,9 @@ internal fun WorkoutV2Body(
                             forcePagerScrollPage = pageIndex
                             forcePagerScrollEpoch++
                         }
+                        // El descanso se presenta en su página o a pantalla completa, sin chip flotante.
+                        SideEffect { restChipHolder.visible = false }
+                        DisposableEffect(pagerScopeKey) { onDispose { restChipHolder.visible = false } }
                         val timelineElements = remember(
                             pagerExercise,
                             pagerSupersetGroupId,
@@ -1228,7 +1244,7 @@ internal fun WorkoutV2Body(
                                 )
                             }
 
-                            // Stepper: one MOV pill + one APR pill + working-set dots only (no M1/A1).
+                            // Stepper: MOV, APROX and effective working sets only (no M1/A1).
                             if (pagerSupersetMembers.size > 1 && pagerSupersetGroupId != null) {
                                 val roundCount = pagerSupersetMembers.maxOfOrNull { it.sets.size }?.coerceAtLeast(1) ?: 1
                                 for (roundIdx in 0 until roundCount) {
@@ -1575,38 +1591,19 @@ internal fun WorkoutV2Body(
 
                     BoxWithConstraints(
                         modifier = Modifier
-                            .fillMaxWidth()
-                            .livePagerFullBleed(horizontalInset = 10.dp),
+                            .fillMaxWidth(),
                     ) {
                         val availableWidth = maxWidth
                         val cardScale = WorkoutUiTokens.effectiveLivePagerCardScale()
-                        val shouldReflow = LocalLivePagerShouldReflow.current
-                        val livePolicy = LocalLiveViewportPolicy.current
-                        val peekFraction = LiveViewportPolicyMath.livePagerPeekFraction(
-                            availableWidthDp = availableWidth.value,
-                            cardScale = cardScale * WorkoutUiTokens.LivePagerCardWidthSlimFactor,
-                            shouldReflow = shouldReflow,
-                            cardWidthMul = livePolicy.cardWidthMul,
-                            minPeekFraction = livePolicy.minPeekFraction,
-                        )
-                        val peekPadding = availableWidth * peekFraction
-                        val edgeFadeWidth = WorkoutUiTokens.LivePagerEdgeFadeWidth
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .background(Color.Transparent),
+                        val peekPadding = 24.dp
+                        Column(
+                            modifier = Modifier.fillMaxWidth().background(Color.Transparent),
                         ) {
                             HorizontalPager(
                                 state = pagerState,
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .heightIn(max = 1200.dp)
-                                    // Same offscreen alpha mask used by the
-                                    // exercise carousel below: the peek fades
-                                    // to the black rail at each viewport edge.
-                                    .graphicsLayer {
-                                        compositingStrategy = CompositingStrategy.Offscreen
-                                    }
                                     .drawWithContent {
                                         drawContent()
                                         val visiblePage = setPagerPages.getOrNull(pagerState.settledPage)
@@ -1625,22 +1622,6 @@ internal fun WorkoutV2Body(
                                             RepairBenchmarkTrace.workoutBodyDrawn(
                                                 activeStepKey = requestedStepKey,
                                                 completedSetCount = uiState.completedSets.size,
-                                            )
-                                        }
-                                        if (totalSetPages > 1 && size.width > 0f) {
-                                            val fade = (
-                                                edgeFadeWidth.toPx() / size.width
-                                            ).coerceIn(0f, 0.45f)
-                                            drawRect(
-                                                brush = Brush.horizontalGradient(
-                                                    colorStops = arrayOf(
-                                                        0f to Color.Transparent,
-                                                        fade to Color.Black,
-                                                        (1f - fade) to Color.Black,
-                                                        1f to Color.Transparent,
-                                                    ),
-                                                ),
-                                                blendMode = BlendMode.DstIn,
                                             )
                                         }
                                     },
@@ -1687,12 +1668,7 @@ internal fun WorkoutV2Body(
                                             clip = false
                                         },
                                 ) {
-                        com.example.kpkn.screens.workout.components.LivePagerCardFrame(
-                            allowContentExpansion = livePagerCardAllowsContentExpansion(pageSpec.type),
-                            lockToWorkingSetHeight = livePagerCardLocksToWorkingSetHeight(pageSpec.type),
-                            publishWorkingSetHeight = pageSpec.type == LivePageType.NORMAL,
-                            godModeActive = false,
-                        ) {
+                        LiveSessionCardFrame {
                         val pageExercise = pageSpec.exerciseId?.let { id -> visibleExercises.firstOrNull { it.id == id } } ?: currentExercise
                         val isActivePage = page == pagerState.settledPage
                         val isSettledPage = isActivePage
@@ -1922,31 +1898,88 @@ internal fun WorkoutV2Body(
                                 }
                             }
                             LivePageType.REST -> {
-                                if (shouldRenderRestLiveCard(uiState.isRestMinimized)) {
                                 val restState = uiState.restModalState
-                                val total = (restState?.activeSeconds ?: restState?.plannedSeconds ?: 90).coerceAtLeast(1)
-                                com.example.kpkn.screens.workout.components.RestLiveCard(
-                                    remainingSeconds = restTimerRemaining.coerceAtLeast(0),
-                                    totalSeconds = total,
-                                    sessionAccentColor = sessionAccentColor,
-                                    restState = restState,
-                                    pendingRestSuggestion = uiState.pendingRestSuggestion,
-                                    lastSetOutcome = uiState.lastSetOutcomeV2,
-                                    lastCompletedSet = uiState.setJustLoggedKey?.let { uiState.completedSets[it] },
-                                    onDecrease = { viewModel.addRestTime(-15) },
-                                    onIncrease = { viewModel.addRestTime(15) },
-                                    onSkip = { viewModel.stopRestTimer() },
-                                    onUseAdaptive = { viewModel.resolvePendingRestSuggestion(useAdaptive = true) },
-                                    onExpand = { viewModel.toggleRestMinimized() },
-                                    isAdaptiveActive = isAdaptiveRestActive(restState, uiState.pendingRestSuggestion),
-                                    skipExerciseLabel = skipExerciseLabel,
-                                    onSkipExercise = onSkipExercise,
-                                    relatorText = relatorResolution.text,
-                                    relatorPhaseKey = relatorResolution.phaseKey,
-                                    relatorActions = relatorResolution.actions,
-                                    onRelatorAction = { viewModel.performRelatorAssist(it) },
-                                    modifier = Modifier.fillMaxWidth().fillMaxHeight(),
-                                )
+                                val restOverrun = uiState.restOverrun
+                                // La MISMA forma que la pantalla completa (LV6): la elegida o la que toca por el orden del descanso.
+                                val restShape = restClockShapeForEvent(restState, restOverrun)
+                                // «Siguiente: Serie 2 · 95 kg × 4–6 · RIR 2»: la serie real que toca.
+                                val restNext = remember(
+                                    visibleExercises,
+                                    uiState.currentExerciseIdx,
+                                    uiState.currentSetIdx,
+                                    uiState.setJustLoggedKey,
+                                    uiState.exerciseTags,
+                                    uiState.loadSuggestions,
+                                ) {
+                                    restNextSetSummary(
+                                        exercises = visibleExercises,
+                                        currentExerciseIdx = uiState.currentExerciseIdx,
+                                        currentSetIdx = uiState.currentSetIdx,
+                                        justLoggedExerciseId = uiState.setJustLoggedKey?.let(::parseCompletedSetKey)?.exerciseId,
+                                        nameOf = ::displayWorkoutExerciseName,
+                                        suggestedKg = { exercise, setIdx ->
+                                            viewModel.getWeightSuggestionWithAutoRegulation(
+                                                exercise,
+                                                setIdx,
+                                                uiState.exerciseTags[exercise.id],
+                                            )?.suggestedWeight
+                                        },
+                                    )
+                                }
+                                if (feedbackOnCard) {
+                                    // El feedback de la última serie (LV6, B3, F4) en la tarjeta del descanso: el mismo borrador y el mismo
+                                    // guardado que la pantalla completa; expandir vuelve a ella con lo ya elegido.
+                                    val feedbackTarget = visibleExercises.getOrNull(uiState.postExerciseTargetIdx) ?: currentExercise
+                                    val feedbackExercises = remember(feedbackTarget, visibleExercises) {
+                                        buildFeedbackExercisesForTarget(feedbackTarget, visibleExercises)
+                                    }
+                                    WorkoutPostExerciseFeedbackCard(
+                                        feedbackExercises = feedbackExercises,
+                                        postExerciseFeedbackByExerciseId = uiState.postExerciseFeedbackByExerciseId,
+                                        viewModel = viewModel,
+                                        remainingSeconds = restTimerRemaining.coerceAtLeast(0),
+                                        totalSeconds = restState?.totalRestSeconds() ?: 90,
+                                        shape = restShape,
+                                        clockActive = isActivePage,
+                                        modifier = Modifier.fillMaxWidth().fillMaxHeight(),
+                                        videoSlot = restVideoSlot,
+                                    )
+                                } else if (restOverrun != null && restState == null) {
+                                    // «Descanso cumplido» (LV6, F6) en la tarjeta: el descanso ya se cerró, esto solo cambia lo que se ve.
+                                    com.example.kpkn.screens.workout.components.RestOverrunCard(
+                                        overrun = restOverrun,
+                                        shape = restShape,
+                                        nextSet = restNext,
+                                        onStart = { viewModel.dismissRestOverrun() },
+                                        onExtend = { viewModel.extendRestAfterOverrun() },
+                                        onExpand = { viewModel.toggleRestMinimized() },
+                                        clockActive = isActivePage,
+                                        modifier = Modifier.fillMaxWidth().fillMaxHeight(),
+                                    )
+                                } else {
+                                    val total = restState?.totalRestSeconds() ?: 90
+                                    com.example.kpkn.screens.workout.components.RestLiveCard(
+                                        remainingSeconds = restTimerRemaining.coerceAtLeast(0),
+                                        totalSeconds = total,
+                                        sessionAccentColor = sessionAccentColor,
+                                        restState = restState,
+                                        pendingRestSuggestion = uiState.pendingRestSuggestion,
+                                        lastSetOutcome = uiState.lastSetOutcomeV2,
+                                        lastCompletedSet = uiState.setJustLoggedKey?.let { uiState.completedSets[it] },
+                                        onDecrease = { viewModel.addRestTime(-15) },
+                                        onIncrease = { viewModel.addRestTime(15) },
+                                        onSkip = { viewModel.stopRestTimer() },
+                                        onUseAdaptive = { viewModel.resolvePendingRestSuggestion(useAdaptive = true) },
+                                        onExpand = { viewModel.toggleRestMinimized() },
+                                        isAdaptiveActive = isAdaptiveRestActive(restState, uiState.pendingRestSuggestion),
+                                        skipExerciseLabel = skipExerciseLabel,
+                                        onSkipExercise = onSkipExercise,
+                                        modifier = Modifier.fillMaxWidth().fillMaxHeight(),
+                                        shape = restShape,
+                                        nextSet = restNext,
+                                        clockActive = isActivePage,
+                                        videoSlot = restVideoSlot,
+                                    )
                                 }
                             }
                             LivePageType.NORMAL -> {
@@ -2091,6 +2124,7 @@ internal fun WorkoutV2Body(
                                             .fillMaxWidth()
                                             .tourAnchor(TourAnchors.WORKOUT_SERIE),
                                     ) {
+                                        WorkoutSetInputOwner(targetExercise, activeSet.id) {
                                         SetInputCardV2(
                                     exercise = targetExercise,
                                     setIndex = activeSetIndex,
@@ -2102,6 +2136,24 @@ internal fun WorkoutV2Body(
                                     adaptActionHolder = adaptActionHolder,
                                     ghostSet = activeGhostSet,
                                     sessionCompletedSet = sessionCompletedSet,
+                                    videoAnalysis = videoAnalysis[workoutSetKey(targetExercise.id, activeSetIndex, com.example.kpkn.data.media.WorkoutMediaSides.normalize(cardSide, targetExercise))],
+                                    onVideoCorrect = { result ->
+                                        viewModel.patchCompletedSet(
+                                            workoutSetKey(targetExercise.id, activeSetIndex, com.example.kpkn.data.media.WorkoutMediaSides.normalize(cardSide, targetExercise)),
+                                            CompletedSetPatch(
+                                                edit = com.example.kpkn.services.workout.VoiceSetEditPatch(metricValue = result.counted),
+                                                partialReps = result.partials,
+                                                reachedFailure = true.takeIf { result.failed > 0 },
+                                            ),
+                                        )
+                                    },
+                                    onVideoMarkFailure = {
+                                        viewModel.patchCompletedSet(
+                                            workoutSetKey(targetExercise.id, activeSetIndex, com.example.kpkn.data.media.WorkoutMediaSides.normalize(cardSide, targetExercise)),
+                                            CompletedSetPatch(reachedFailure = true),
+                                        )
+                                    },
+                                    onOpenAnalysis = onOpenTechniqueAnalysis,
                                     weightSuggestion = activeWeightSuggestion,
                                     previousSessionFirstSetWeight = if (isActivePage) {
                                         viewModel.getPreviousSessionFirstSetWeight(
@@ -2144,7 +2196,7 @@ internal fun WorkoutV2Body(
                                     isSettledPage = isSettledPage,
                                     initialDraft = viewModel.getSetDraft(targetExercise.id, activeSetIndex, cardSide),
                                     onDraftChange = { draft, side ->
-                                        viewModel.updateSetDraft(targetExercise.id, activeSetIndex, side, draft)
+                                        viewModel.updateSetDraftFromExercise(targetExercise, activeSetIndex, side, draft)
                                     },
                                     activeSide = cardSide,
                                     sideLocked = targetIsUnilateral && cardSide != null,
@@ -2155,7 +2207,7 @@ internal fun WorkoutV2Body(
                                     },
                                     onSetBodyWeight = { bw: Double -> viewModel.setCurrentBodyWeight(bw) },
                                     initialBodyWeight = viewModel.currentBodyWeight(),
-                                    onExecutionError = {
+                                    onExecutionError = { effort ->
                                         viewModel.launchWorkoutCommand {
                                             viewModel.recordSetV2(
                                                 weight = 0.0,
@@ -2165,6 +2217,11 @@ internal fun WorkoutV2Body(
                                                     executionError = true,
                                                     failureReason = "execution_error",
                                                     isFailedSet = true,
+                                                    rir = effort.rir,
+                                                    reachedFailure = effort.reachedFailure,
+                                                    actualIntensityMode = effort.actualIntensityMode,
+                                                    actualIntensityValue = effort.actualIntensityValue,
+                                                    intensityAdjusted = effort.intensityAdjusted,
                                                 ),
                                                 loadMode = resolvePersistedLoadModeForSet(
                                                     exerciseId = targetExercise.id,
@@ -2246,22 +2303,6 @@ internal fun WorkoutV2Body(
                                             suggestion,
                                         )
                                     },
-                                    godModeActionsVisible = false,
-                                    isDropSet = activeSet.isDropSet,
-                                    isRestPause = activeSet.isRestPause,
-                                    canDeleteSet = targetExercise.sets.size > 1,
-                                    onDropSet = if (activeSetIndex > 0) {
-                                         { pendingTechnique = SeriesTechnique.DROPSET to (targetExercise.id to activeSetIndex) }
-                                     } else null,
-                                    onRestPause = if (activeSetIndex > 0) {
-                                         { pendingTechnique = SeriesTechnique.REST_PAUSE to (targetExercise.id to activeSetIndex) }
-                                     } else null,
-                                    onDeleteSet = {
-                                        pendingDeleteSet = targetExercise.id to activeSetIndex
-                                    },
-                                    onOmitSet = {
-                                        viewModel.omitSet(targetExercise.id, activeSetIndex)
-                                    },
                                     mediaCapture = viewModel.mediaCapture,
                                     onRetryPendingCaptures = onRetryPendingCaptures,
                                     openMediaFace = isSettledPage && openMediaFaceExerciseId == targetExercise.id,
@@ -2271,7 +2312,10 @@ internal fun WorkoutV2Body(
                                         ?: uiState.lastHomologatedResultV3?.takeIf {
                                             uiState.setJustLoggedKey?.startsWith("${targetExercise.id}_$activeSetIndex") == true
                                         },
+                                    techniqueRecorderHolder = techniqueRecorderHolder,
+                                    loadPopTrigger = relatorLoadPopTrigger,
                                         )
+                                        }
                                     }
                                 }
                             }
@@ -2281,19 +2325,16 @@ internal fun WorkoutV2Body(
                         } // LivePagerCardFrame
                             } // peek graphicsLayer Box
                         } // HorizontalPager
-                        if (totalSetPages > 1) {
-                            LivePagerPeekNavArrows(
-                                settledPage = pagerState.settledPage,
-                                totalPages = totalSetPages,
-                                peekWidth = peekPadding,
-                                onPrevious = { requestPagerPage(pagerState.settledPage - 1) },
-                                onNext = { requestPagerPage(pagerState.settledPage + 1) },
-                                modifier = Modifier
-                                    .matchParentSize()
-                                    .zIndex(2f),
+                        liveSetStepperHolder.snapshot?.let { snapshot ->
+                            LiveSeriesClouds(
+                                snapshot = snapshot,
+                                onSelectPage = { liveSetStepperHolder.onSelectPage(it) },
+                                onLongPressPage = liveSetStepperHolder.onLongPressPage,
+                                onAddSet = liveSetStepperHolder.onAddSet.takeIf { snapshot.canAddSet },
+                                activePageIndex = pagerState.settledPage,
                             )
                         }
-                        } // pager + edge fades
+                        } // pager and detailed series stepper
                     } // BoxWithConstraints
                     } // key(pagerScopeKey)
                     } // strength / prep pager (non-cardio)
@@ -2307,64 +2348,37 @@ internal fun WorkoutV2Body(
             } // BoxWithConstraints body
         } // header + body Column
 
-        if (!relatorResolution.text.isNullOrBlank() && headerHeightPx > 0 && !workingRestActive) {
+        if ((!relatorResolution.text.isNullOrBlank() || relatorResolution.silentAnimation != RelatorSilentAnimation.NONE) && headerHeightPx > 0 && !relatorBandCovered) {
             WorkoutLiveRelatorLine(
                 text = relatorResolution.text,
                 phaseKey = relatorResolution.phaseKey,
                 actions = relatorResolution.actions,
                 onAction = { viewModel.performRelatorAssist(it) },
+                actionContext = RelatorActionUiContext(relatorActionScopeKey(uiState, currentExercise), viewModel::performRelatorAssist),
                 accentColor = sessionAccentColor,
+                silentAnimation = relatorResolution.silentAnimation,
+                onLoadPop = { viewModel.triggerRelatorLoadPop() },
                 modifier = Modifier
                     .align(Alignment.TopCenter)
                     .fillMaxWidth()
                     .height(relatorBandHeight)
-                    .offset(y = with(density) { headerHeightPx.toDp() })
+                    .offset(y = with(density) { (headerHeightPx - 4.5.dp.toPx()).toDp() })
                     .zIndex(12f),
             )
         }
 
-    pendingDeleteSet?.let { (exerciseId, setIndex) ->
-        KpknAlertDialog(
-            onDismissRequest = { pendingDeleteSet = null },
-            title = { Text("Eliminar serie", fontWeight = FontWeight.Black) },
-            text = { Text("¿Eliminar la serie ${setIndex + 1} de esta sesión?") },
-            confirmButton = {
-                TextButton(onClick = {
-                    viewModel.removeSetFromExercise(exerciseId, setIndex)
-                    pendingDeleteSet = null
-                }) { Text("Eliminar") }
-            },
-            dismissButton = {
-                TextButton(onClick = { pendingDeleteSet = null }) { Text("Cancelar") }
-            },
-        )
-    }
-    pendingTechnique?.let { (technique, target) ->
-        val (exerciseId, setIndex) = target
-        val ex = visibleExercises.firstOrNull { it.id == exerciseId } ?: currentExercise
-        GodModeTechniqueScopeDialog(
-            technique = technique,
-            onPick = { scope ->
-                val count = ex?.sets?.size ?: 1
-                val (from, to) = com.example.kpkn.domain.exercises.godModeTechniqueRange(setIndex, count, scope)
-                viewModel.updatePlannedSeriesTechnique(exerciseId, from, to, technique)
-                pendingTechnique = null
-            },
-            onDismiss = { pendingTechnique = null },
-        )
-    }
-
-    // ── Sheets: SeriesType + UltraFast ───────────────────────────────────
+    // ── Opciones de la serie (LV11, A1): pulsación larga en un paso de la serie ───────────────────────────────────────────────
     uiState.seriesTypeTarget?.let { target ->
         val ex = visibleExercises.firstOrNull { it.id == target.exerciseId } ?: currentExercise
         if (ex != null) {
-            val completedIdx = ex.sets.indices.filter { idx ->
-                ex.completionKeysForSet(idx).any { k -> uiState.completedSets.containsKey(k) }
-            }.toSet()
-            com.example.kpkn.screens.workout.components.SeriesTypeSheet(
+            com.example.kpkn.screens.workout.components.SeriesOptionsSheet(
                 exercise = ex,
                 target = target,
-                completedSetIndices = completedIdx,
+                completedSets = uiState.completedSets,
+                omittedSetKeys = uiState.omittedSetKeys,
+                setDraftKeys = uiState.setDrafts.keys,
+                manualLoadKeys = uiState.manualLoadOverrides.keys,
+                bottomClearance = dockBottomClearance,
                 onDismiss = { viewModel.hideSeriesTypeSheet() },
                 onApply = { t, technique ->
                     viewModel.updatePlannedSeriesTechnique(
@@ -2376,19 +2390,77 @@ internal fun WorkoutV2Body(
                     )
                     viewModel.hideSeriesTypeSheet()
                 },
+                onEdit = { onEditExercise(ex.id) },
+                onAddSet = { viewModel.addSetToCurrentExercise(ex.id) },
+                onSkipSet = { setIndex -> viewModel.omitSet(ex.id, setIndex) },
+                onDeleteSet = { setIndex -> viewModel.removeSetFromExercise(ex.id, setIndex) },
             )
         }
     }
     if (uiState.showUltraFastSheet) {
-        com.example.kpkn.screens.workout.components.UltraFastPreviewSheet(
-            preview = uiState.ultraFastPreview,
-            savedSeconds = uiState.ultraFastSavedSeconds,
-            visibleExercises = visibleExercises,
-            ultraFastManualOverrides = uiState.ultraFastManualOverrides,
-            onToggleOverride = { viewModel.toggleUltraFastManualOverride(it) },
-            onConfirm = { counts -> viewModel.applyUltraFast(counts) },
-            onDismiss = { viewModel.hideUltraFastSheet() },
-        )
+        val quickExercise = currentExercise
+        if (quickExercise == null || isWarmupActive || isMobilityActive) {
+            com.example.kpkn.ui.components.KpknSheet(onDismissRequest = viewModel::hideUltraFastSheet) {
+                Column(Modifier.fillMaxWidth().padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Text("Ultrarrápido", style = MaterialTheme.typography.titleLarge)
+                    Text("Termina la preparación en su tarjeta antes de registrar la serie de trabajo.")
+                    TextButton(onClick = viewModel::hideUltraFastSheet) { Text("Volver a la sesión") }
+                }
+            }
+        } else {
+            val quickSetIndex = uiState.currentSetIdx
+            val quickSet = quickExercise.sets.getOrNull(quickSetIndex)
+            key(quickExercise.id, quickSetIndex, activeSide) {
+                var quickBusy by remember { mutableStateOf(false) }
+                var quickError by remember { mutableStateOf<String?>(null) }
+                com.example.kpkn.screens.workout.components.UltraFastRecordSheet(
+                    exercise = quickExercise,
+                    completedSets = uiState.completedSets,
+                    currentSetIndex = quickSetIndex,
+                    busy = quickBusy,
+                    error = quickError,
+                    onTechnique = { technique ->
+                        if (!quickBusy) {
+                            viewModel.setQuickRecordingTechnique(quickExercise.id, quickSetIndex, technique)
+                        }
+                    },
+                    onRecord = record@{ weight, reps, rir ->
+                        if (quickBusy || quickSet == null || rir == null) return@record
+                        quickBusy = true
+                        quickError = null
+                        viewModel.launchWorkoutCommand {
+                            try {
+                                val result = viewModel.recordSetV2(
+                                    weight = weight, value = reps.toDouble(), intensity = rir.toDouble(),
+                                    advanced = SetAdvancedFeedback(
+                                        rir = rir, reachedFailure = rir == 0, actualIntensityMode = IntensityMode.RIR,
+                                        actualIntensityValue = rir.toDouble(), intensityAdjusted = true,
+                                    ),
+                                    loadMode = resolvePersistedLoadModeForSet(
+                                        exerciseId = quickExercise.id, setIdx = quickSetIndex,
+                                        tagId = uiState.exerciseTags[quickExercise.id],
+                                        persistedLoadModeBySet = uiState.persistedLoadModeBySet,
+                                        persistedLoadModeByExercise = uiState.persistedLoadModeByExercise,
+                                    ) ?: quickSet.loadModeV2,
+                                    unitMode = quickSet.unitModeV2 ?: UnitModeV2.REPS,
+                                    bodyWeight = viewModel.currentBodyWeight(), side = activeSide,
+                                    tagId = uiState.exerciseTags[quickExercise.id], setupId = quickSet.setupId,
+                                    machineBrand = quickSet.machineBrand,
+                                    setIdxOverride = quickSetIndex, expectedExerciseId = quickExercise.id,
+                                    expectedSetIdx = quickSetIndex, expectedSide = activeSide,
+                                )
+                                if (result.succeeded) viewModel.hideUltraFastSheet()
+                                else quickError = when (result) {
+                                    is RecordSetResult.Rejected -> result.reason
+                                    else -> "No se pudo guardar la serie. Tus valores siguen aquí; vuelve a intentar."
+                                }
+                            } finally { quickBusy = false }
+                        }
+                    },
+                    onDismiss = { if (!quickBusy) viewModel.hideUltraFastSheet() },
+                )
+            }
+        }
     }
 
     pendingUpdateAction?.let { pending ->
@@ -2489,24 +2561,6 @@ internal fun Exercise.completionKeysForSet(setIndex: Int): List<String> {
         hasLeftOnly -> listOf("${id}_${setIndex}_L")
         hasRightOnly -> listOf("${id}_${setIndex}_R")
         else -> listOf("${id}_${setIndex}_L", "${id}_${setIndex}_R")
-    }
-}
-
-@Composable
-internal fun InfoPill(label: String, value: String, color: Color) {
-    Surface(
-        shape = RoundedCornerShape(8.dp),
-        color = color.copy(alpha = 0.12f),
-        border = BorderStroke(1.dp, color.copy(alpha = 0.25f))
-    ) {
-        Row(
-            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(4.dp)
-        ) {
-            Text(label, style = MaterialTheme.typography.labelSmall, color = color.copy(alpha = 0.7f))
-            Text(value, style = MaterialTheme.typography.labelSmall, color = color, fontWeight = FontWeight.Bold)
-        }
     }
 }
 

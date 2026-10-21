@@ -199,6 +199,7 @@ fun ProfileScreen(
     onCreateCompetition: () -> Unit = {},
     onOpenAlbums: () -> Unit = {},
     viewModel: ProfileViewModel = viewModel { ProfileViewModel() },
+    onOpenTechnique: () -> Unit = {},
 ) {
     // Recorrido de Perfil: la primera vez que se abre. El icono de ajustes y la competición están en esta pantalla.
     val tourHost = LocalKpknOverlayHost.current
@@ -305,6 +306,7 @@ fun ProfileScreen(
 
             StarredExercisesCard(state.starredExercises)
             ProfileAlbumsCard(onOpenAlbums = onOpenAlbums)
+            ProfileTechniqueCard(onOpenTechnique = onOpenTechnique)
             Box(Modifier.fillMaxWidth().tourAnchor(TourAnchors.PROFILE_COMPETICION)) {
                 ProfileCompetitionsArchive(
                     onOpenCompetition = onOpenCompetition,
@@ -487,6 +489,20 @@ private fun ProfileAlbumsCard(onOpenAlbums: () -> Unit) {
         )
         TextButton(onClick = onOpenAlbums, contentPadding = androidx.compose.foundation.layout.PaddingValues(0.dp)) {
             Text("Ver álbumes")
+        }
+    }
+}
+
+@Composable
+private fun ProfileTechniqueCard(onOpenTechnique: () -> Unit) {
+    ProfileCard(title = "Técnica en vídeo", icon = com.example.kpkn.ui.components.icons.KpknLineIcons.TrendUp) {
+        Text(
+            "Analiza tus series y sigue las tendencias de tu técnica.",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        TextButton(onClick = onOpenTechnique, contentPadding = androidx.compose.foundation.layout.PaddingValues(0.dp)) {
+            Text("Ver técnica en vídeo")
         }
     }
 }

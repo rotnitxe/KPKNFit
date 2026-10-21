@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.domain.multisport.HybridWeekPlannerTest" tests="15" skipped="0" failures="0" errors="0" timestamp="2026-10-20T04:06:57.736Z" hostname="VF" time="0.021">
+  <properties/>
+  <testcase name="prioritizesPrimaryGoalAndNormalizesInputSetAndListOrder" classname="com.example.kpkn.domain.multisport.HybridWeekPlannerTest" time="0.0"/>
+  <testcase name="rejectsFutureIntentVersionBeforePlanningItsKnownFields" classname="com.example.kpkn.domain.multisport.HybridWeekPlannerTest" time="0.001"/>
+  <testcase name="impossibleRequiredSetDoesNotReturnPartialSuccess" classname="com.example.kpkn.domain.multisport.HybridWeekPlannerTest" time="0.001"/>
+  <testcase name="placesCandidateAfterFixedClassAndDoesNotOverlapIt" classname="com.example.kpkn.domain.multisport.HybridWeekPlannerTest" time="0.0"/>
+  <testcase name="returnsExplicitSearchLimitInsteadOfClaimingInfeasibility" classname="com.example.kpkn.domain.multisport.HybridWeekPlannerTest" time="0.0"/>
+  <testcase name="findsMinuteBoundaryBetweenDisjointNarrowSessions" classname="com.example.kpkn.domain.multisport.HybridWeekPlannerTest" time="0.001"/>
+  <testcase name="equipmentMustExistAtTheAssignedPlaceForEachSession" classname="com.example.kpkn.domain.multisport.HybridWeekPlannerTest" time="0.0"/>
+  <testcase name="rejectsOvernightRangesAndExplicitlyEmptyAllowedWeekdaysAsInvalid" classname="com.example.kpkn.domain.multisport.HybridWeekPlannerTest" time="0.004"/>
+  <testcase name="supportsAWeekWithOnlyOneSport" classname="com.example.kpkn.domain.multisport.HybridWeekPlannerTest" time="0.001"/>
+  <testcase name="plansThreeStrengthAndTwoRunningCandidatesWithoutChangingPrescriptions" classname="com.example.kpkn.domain.multisport.HybridWeekPlannerTest" time="0.009"/>
+  <testcase name="acceptsLateNightWindowWithinTheSameConventionalWeekday" classname="com.example.kpkn.domain.multisport.HybridWeekPlannerTest" time="0.001"/>
+  <testcase name="sameDaySessionsMayBeAdjacentButMayNotOverlap" classname="com.example.kpkn.domain.multisport.HybridWeekPlannerTest" time="0.0"/>
+  <testcase name="equipmentFromDifferentPlacesIsNeverCombined" classname="com.example.kpkn.domain.multisport.HybridWeekPlannerTest" time="0.001"/>
+  <testcase name="backtracksWhenPrimaryGoalFirstChoiceBlocksAnotherGoal" classname="com.example.kpkn.domain.multisport.HybridWeekPlannerTest" time="0.0"/>
+  <testcase name="omittedOptionalSessionsIncludeAnExplanation" classname="com.example.kpkn.domain.multisport.HybridWeekPlannerTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

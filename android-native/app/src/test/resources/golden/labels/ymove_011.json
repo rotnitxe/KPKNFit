@@ -1,0 +1,79 @@
+{
+  "id": "ymove_011",
+  "durationS": 17.2,
+  "width": 360,
+  "height": 640,
+  "rotation": 0,
+  "fpsNominal": 25.0,
+  "fpsMeasured": 25.0,
+  "usable": true,
+  "exercise": "Sentadilla goblet con kettlebell",
+  "exerciseDetail": "Sentadilla goblet con kettlebell azul (la kettlebell sujeta por los cuernos contra el pecho), sentadilla profunda",
+  "suggestedProfile": "SQUAT",
+  "view": "OBLIQUE",
+  "people": 1,
+  "fullBodyVisible": true,
+  "faceVisible": true,
+  "plateVisible": false,
+  "startPhase": "ECCENTRIC_FIRST",
+  "reps": {
+    "full": 5,
+    "partial": 0,
+    "failed": 0,
+    "uncertain": false,
+    "acceptableRange": [
+      5,
+      5
+    ]
+  },
+  "repTimesS": [
+    {
+      "index": 1,
+      "turnaroundS": 1.5,
+      "side": null
+    },
+    {
+      "index": 2,
+      "turnaroundS": 4.9,
+      "side": null
+    },
+    {
+      "index": 3,
+      "turnaroundS": 8.3,
+      "side": null
+    },
+    {
+      "index": 4,
+      "turnaroundS": 11.8,
+      "side": null
+    },
+    {
+      "index": 5,
+      "turnaroundS": 15.7,
+      "side": null
+    }
+  ],
+  "activeWindowS": [
+    0.0,
+    16.6
+  ],
+  "frameIntervalS": {
+    "min": 0.04,
+    "median": 0.04,
+    "max": 0.04
+  },
+  "turnaroundKind": "BOTTOM",
+  "edgeEvents": [
+    {
+      "timeS": 16.6,
+      "kind": "TRUNCATED_END",
+      "description": "tras la 5.ª sentadilla (15,7 s) sube y el clip termina a los 17,2 s con el sujeto casi de pie"
+    }
+  ],
+  "caveats": [],
+  "cameraMotion": {
+    "class": "STATIC",
+    "note": "cámara fija de estudio con fondo blanco liso (ORB y ECC no tienen rasgos fiables): los zapatos plantados, seguidos con plantilla, se desplazan x -3..4 px e y -5..1 px en el encuadre 360x640 durante todo el clip (máx. 1,1% del ancho)"
+  },
+  "softWarnings": []
+}

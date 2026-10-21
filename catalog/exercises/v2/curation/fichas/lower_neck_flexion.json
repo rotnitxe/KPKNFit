@@ -4,12 +4,14 @@
       "public": {
         "configurations": {
           "neck_flexion_cuello__cable": {
-            "description": "Con polea, la barbilla baja hacia el pecho contra la carga sujeta en la frente. El cuello trabaja con la polea, que mantiene la tensión constante en todo el arco.",
+            "description": "El cable llega desde detrás de la cabeza hasta la anilla occipital del arnés. La altura de los ojos sitúa la tracción en sentido posterior y permite flexionar el cuello de pie, sin arrastrar el torso hacia la máquina.",
             "executionCues": [
-              "Arnés o polea: llevas la cabeza hacia delante contra la tensión. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
+              "Acerca suavemente la barbilla al pecho mediante flexión del cuello, conservando el torso estable.",
+              "Regresa despacio hacia la posición neutra sin tirar con el cuerpo ni forzar el final del recorrido."
             ],
             "setupCues": [
-              "Preparación: Arnés o polea: llevas la cabeza hacia delante contra la tensión."
+              "Ajusta la polea a la altura de los ojos y sitúate de espaldas a ella.",
+              "Coloca un arnés de cabeza apto para cable y conecta la anilla occipital posterior; recoge el cabello para dejar la conexión libre."
             ]
           },
           "neck_flexion_cuello__plate": {

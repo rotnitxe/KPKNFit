@@ -1,0 +1,458 @@
+package com.example.kpkn.screens.nutrition
+
+import com.example.kpkn.data.models.DailyEnergyBalance
+import com.example.kpkn.data.models.DailyEnergyStatus
+import com.example.kpkn.data.models.DailyGoalSnapshot
+import com.example.kpkn.data.models.DailyMacroTotals
+import com.example.kpkn.data.models.GoalMetric
+import com.example.kpkn.data.models.LoggedFood
+import com.example.kpkn.data.models.MealGroup
+import com.example.kpkn.data.models.MealType
+import com.example.kpkn.data.models.NutritionCalibrationProfile
+import com.example.kpkn.data.models.NutritionLog
+import com.example.kpkn.data.models.NutritionPlanCalculationSnapshot
+import com.example.kpkn.data.models.NutritionStatus
+import com.example.kpkn.data.models.PlanDirection
+import com.example.kpkn.data.models.PortionPreset
+import com.example.kpkn.data.models.Settings
+import com.example.kpkn.domain.nutrition.ClarificationRequest
+import com.example.kpkn.domain.nutrition.DayGoalsResult
+import com.example.kpkn.domain.nutrition.EerActivity
+import com.example.kpkn.domain.nutrition.EerSex
+import com.example.kpkn.domain.nutrition.GoalsAbsence
+import com.example.kpkn.domain.nutrition.MacroGoals
+import com.example.kpkn.domain.nutrition.NutritionCalibrationWizardEngine
+import com.example.kpkn.domain.nutrition.NutritionCalibrationWizardState
+import com.example.kpkn.domain.nutrition.NutritionCalibrationWizardStep
+import com.example.kpkn.domain.nutrition.NutritionEditorBase
+import com.example.kpkn.domain.nutrition.NutritionEditorDayTarget
+import com.example.kpkn.domain.nutrition.NutritionEditorProvenance
+import com.example.kpkn.domain.nutrition.NutritionPlanEditorDraft
+import com.example.kpkn.domain.nutrition.NutritionPlanEditorMode
+import com.example.kpkn.domain.nutrition.NutritionPlanRecommendation
+import com.example.kpkn.domain.nutrition.NutritionWeeklyDistributionMode
+import com.example.kpkn.domain.nutrition.ResolvedTag
+import com.example.kpkn.domain.nutrition.computeMealGroups
+import com.example.kpkn.screens.nutrition.design.NutritionWeekBar
+import java.time.LocalDate
+import java.util.Locale
+
+/**
+ * Datos de ejemplo de las hojas de render y las pruebas de Nutrición. No son datos de la app: solo sirven para dibujar las pantallas
+ * sin base de datos ni repositorios. En la raíz (N1), «hoy» es el 13 de octubre de 2026 y la tira va de hoy −3 a hoy +3.
+ */
+internal object NutritionSamples {
+
+    /** Lo que una persona escribiría en «¿Qué comiste?». */
+    const val DESCRIBE_TEXT = "Dos huevos con tostadas y un café"
+
+    /** Una fila de resultado de búsqueda, con lo que pinta la fila. */
+    data class SearchRow(val name: String, val caption: String?, val kcal: Int, val basisGrams: Int)
+
+    /** Cinco resultados para la búsqueda «pan», con su marca o su nota de coincidencia cuando la tienen. */
+    val panResults: List<SearchRow> = listOf(
+        SearchRow("Pan integral de molde", "Bimbo", 247, 100),
+        SearchRow("Pan blanco de molde", "Coincidencia media", 265, 100),
+        SearchRow("Pan árabe", "Coincidencia baja", 275, 100),
+        SearchRow("Pan de hamburguesa", null, 258, 100),
+        SearchRow("Pan de centeno", "Marca blanca", 259, 100),
+    )
+
+    val today: LocalDate = LocalDate.of(2026, 10, 13)
+
+    /** Siete días de la tira con sus kcal (en el orden de la tira) y una meta común. */
+    fun week(kcals: List<Int>, goal: Int?): List<NutritionWeekDay> = (-3L..3L).mapIndexed { index, offset ->
+        NutritionWeekDay(
+            date = today.plusDays(offset).toString(),
+            kcal = kcals[index],
+            kcalGoal = goal,
+            isToday = offset == 0L,
+        )
+    }
+
+    /** Un día con meta: 2.300 kcal, de las que van comidas 1.240 y quedan 1.060. */
+    val goals: DayGoalsResult = DayGoalsResult.Present(
+        MacroGoals(calorieGoal = 2300, proteinGoal = 160, carbGoal = 260, fatGoal = 75),
+    )
+
+    /** Sin meta, con plan activo: solo seguimiento. */
+    val trackingOnly: DayGoalsResult = DayGoalsResult.Absent(GoalsAbsence.TRACKING_ONLY)
+
+    val totals: DailyMacroTotals = DailyMacroTotals(
+        calories = 1240.0,
+        protein = 92.0,
+        carbs = 118.0,
+        fats = 38.0,
+        caffeineMg = 120.0,
+        creatineG = 5.0,
+    )
+
+    /** Pasado de kcal: 120 por encima de la meta. */
+    val totalsOver: DailyMacroTotals = DailyMacroTotals(calories = 2420.0, protein = 150.0, carbs = 280.0, fats = 90.0, caffeineMg = 180.0, creatineG = 5.0)
+
+    val balance: DailyEnergyBalance = DailyEnergyBalance(
+        consumedKcal = 1240,
+        trainingBurnKcal = 320,
+        netKcal = 1240,
+        targetKcal = 2300,
+        deltaFromTarget = -1060,
+        status = DailyEnergyStatus.DEFICIT,
+    )
+
+    /** Un caso de la hoja de render: lo que pintan la cabecera, «Tu día», el balance y los suplementos. */
+    data class RenderCase(
+        val loaded: Boolean,
+        val hasPlan: Boolean,
+        val days: List<NutritionWeekDay>,
+        val totals: DailyMacroTotals,
+        val goals: DayGoalsResult,
+        val balance: DailyEnergyBalance,
+    )
+
+    /** Los casos de la hoja, con su nombre de archivo: con plan, pasado de kcal, sin plan, solo seguimiento y cargando. */
+    fun renderCases(): List<Pair<String, RenderCase>> {
+        val weekKcals = listOf(2120, 2480, 1930, 1240, 0, 0, 0)
+        return listOf(
+            "con_plan" to RenderCase(
+                loaded = true,
+                hasPlan = true,
+                days = week(weekKcals, goal = 2300),
+                totals = totals,
+                goals = goals,
+                balance = balance,
+            ),
+            "pasado" to RenderCase(
+                loaded = true,
+                hasPlan = true,
+                days = week(weekKcals, goal = 2300),
+                totals = totalsOver,
+                goals = goals,
+                balance = balance.copy(consumedKcal = 2420, trainingBurnKcal = 0, deltaFromTarget = 120),
+            ),
+            "sin_plan" to RenderCase(
+                loaded = true,
+                hasPlan = false,
+                days = week(listOf(0, 0, 0, 1240, 0, 0, 0), goal = null),
+                totals = totals,
+                goals = DayGoalsResult.Absent(GoalsAbsence.NO_GOAL),
+                balance = balance.copy(targetKcal = 0, trainingBurnKcal = 0, deltaFromTarget = 0, status = DailyEnergyStatus.MAINTENANCE),
+            ),
+            "solo_seguimiento" to RenderCase(
+                loaded = true,
+                hasPlan = true,
+                days = week(listOf(0, 0, 0, 1240, 0, 0, 0), goal = null),
+                totals = totals,
+                goals = trackingOnly,
+                balance = balance.copy(targetKcal = 0, trainingBurnKcal = 0, deltaFromTarget = 0, status = DailyEnergyStatus.MAINTENANCE),
+            ),
+            "cargando" to RenderCase(
+                loaded = false,
+                hasPlan = false,
+                days = emptyList(),
+                totals = DailyMacroTotals(),
+                goals = DayGoalsResult.Absent(GoalsAbsence.TRACKING_ONLY),
+                balance = DailyEnergyBalance(),
+            ),
+        )
+    }
+
+    /** Alimento interpretado y resuelto, sin dudas: la fila normal. */
+    val chickenTag: ResolvedTag = ResolvedTag(
+        tag = "pollo a la plancha",
+        portion = PortionPreset.MEDIUM,
+        amountGrams = 150.0,
+        baseAmountGrams = 150.0,
+        isResolved = true,
+        loggedFood = LoggedFood(
+            id = "pollo",
+            foodName = "Pollo a la plancha",
+            amount = 150.0,
+            calories = 248.0,
+            protein = 46.0,
+            carbs = 0.0,
+            fats = 5.4,
+        ),
+    )
+
+    /** Tortilla con la composición por aclarar: su fila lleva la pregunta pendiente ([tortillaQuestion]). */
+    val tortillaTag: ResolvedTag = ResolvedTag(
+        tag = "tortilla",
+        portion = PortionPreset.LARGE,
+        amountGrams = 180.0,
+        baseAmountGrams = 180.0,
+        isResolved = false,
+        loggedFood = LoggedFood(
+            id = "tortilla",
+            foodName = "Tortilla de papas",
+            amount = 180.0,
+            calories = 320.0,
+            protein = 11.0,
+            carbs = 28.0,
+            fats = 18.0,
+        ),
+    )
+
+    /** La pregunta de la tortilla: qué llevaba, con dos candidatos y las composiciones fijas de la hoja. */
+    val tortillaQuestion: ClarificationRequest = ClarificationRequest.Identity(
+        requestId = "tortilla_composition",
+        candidateIds = listOf("tortilla_maiz", "tortilla_papa"),
+        candidateLabels = listOf("Tortilla de maíz", "Tortilla de papas"),
+    )
+
+    /** Arroz estimado con rango: la cifra lleva «≈» y su rango de kcal. */
+    val riceTag: ResolvedTag = ResolvedTag(
+        tag = "arroz blanco",
+        portion = PortionPreset.MEDIUM,
+        amountGrams = 200.0,
+        baseAmountGrams = 200.0,
+        isResolved = true,
+        isUncertain = true,
+        loggedFood = LoggedFood(
+            id = "arroz",
+            foodName = "Arroz blanco cocido",
+            amount = 200.0,
+            calories = 260.0,
+            protein = 5.0,
+            carbs = 57.0,
+            fats = 0.6,
+            caloriesMin = 220.0,
+            caloriesMax = 300.0,
+            isUncertain = true,
+        ),
+    )
+
+    // ─── Módulos de comida y «Últimos 7 días» (N2) ───────────────────────
+
+    /** Un alimento de ejemplo: kcal y macros del alimento; [min] y [max] si su estimación tiene rango. */
+    fun food(
+        name: String,
+        amount: Double,
+        unit: String,
+        kcal: Double,
+        protein: Double,
+        carbs: Double,
+        fats: Double,
+        min: Double? = null,
+        max: Double? = null,
+    ): LoggedFood = LoggedFood(
+        id = "food-${name.replace(' ', '-')}",
+        foodName = name,
+        amount = amount,
+        unit = unit,
+        calories = kcal,
+        protein = protein,
+        carbs = carbs,
+        fats = fats,
+        caloriesMin = min,
+        caloriesMax = max,
+        isUncertain = min != null,
+    )
+
+    /** Un registro de ejemplo del día de la muestra, en la comida [meal]. */
+    fun mealLog(id: String, meal: MealType, vararg foods: LoggedFood): NutritionLog = NutritionLog(
+        id = id,
+        date = today.toString() + "T12:00:00.000Z",
+        mealType = meal,
+        foods = foods.toList(),
+        status = NutritionStatus.CONSUMED,
+    )
+
+    /** Los registros del día de la muestra: desayuno con una estimación con rango, almuerzo, merienda vacía y cena con dos registros. */
+    val mealLogs: List<NutritionLog> = listOf(
+        mealLog("log-avena", MealType.BREAKFAST, food("Avena con leche", 250.0, "g", 230.0, 9.0, 40.0, 4.0)),
+        mealLog(
+            "log-pan",
+            MealType.BREAKFAST,
+            food("Pan integral", 60.0, "g", 150.0, 5.0, 28.0, 2.0, min = 140.0, max = 160.0),
+            food("Queso fresco", 40.0, "g", 90.0, 6.0, 1.0, 7.0, min = 80.0, max = 110.0),
+        ),
+        mealLog("log-pollo", MealType.LUNCH, food("Pollo con arroz", 350.0, "g", 520.0, 45.0, 60.0, 10.0)),
+        mealLog("log-atun", MealType.DINNER, food("Ensalada de atún", 300.0, "g", 380.0, 30.0, 20.0, 18.0)),
+        mealLog("log-yogur", MealType.DINNER, food("Yogur griego", 150.0, "g", 95.0, 15.0, 6.0, 1.0)),
+    )
+
+    /** Los cuatro grupos de comida del día de la muestra, como los entrega el ViewModel. */
+    val mealGroups: List<MealGroup> = computeMealGroups(mealLogs)
+
+    /** Las siete barras de «Últimos 7 días» (del 7 al 13 de octubre): dos días sin registros, un día con banda incierta y hoy. */
+    val weekBars: List<NutritionWeekBar> = listOf(
+        NutritionWeekBar(date = "2026-10-07", kcal = 2120, goal = 2300),
+        NutritionWeekBar(date = "2026-10-08", kcal = null, goal = 2300),
+        NutritionWeekBar(date = "2026-10-09", kcal = 1930, kcalMin = 1800, kcalMax = 2100, goal = 2300),
+        NutritionWeekBar(date = "2026-10-10", kcal = 2480, goal = 2300),
+        NutritionWeekBar(date = "2026-10-11", kcal = null, goal = 2300),
+        NutritionWeekBar(date = "2026-10-12", kcal = 1240, goal = 2300),
+        NutritionWeekBar(date = "2026-10-13", kcal = 1820, goal = 2300, isToday = true),
+    )
+}
+
+/** Datos de ejemplo del editor de Nutrición para las hojas de render y las pruebas de su raíz. Deterministas: sin reloj ni azar. */
+object NutritionEditorSamples {
+
+    /** Base revisada de la muestra: 2.150 kcal, con el total Atwater distinto (2.110), para que se lea la línea del total. */
+    val base = NutritionEditorBase(caloriesKcal = 2150, proteinG = 160, carbsG = 210, fatG = 70)
+
+    /** Base con la que se cargó el plan: el «antes» del cambio que muestra «Guardar». */
+    val originalBase = NutritionEditorBase(caloriesKcal = 2300, proteinG = 170, carbsG = 230, fatG = 70)
+
+    /** Plan existente con meta de peso, datos de cálculo completos y ecuación elegida. */
+    val fullDraft = NutritionPlanEditorDraft(
+        planId = "plan-muestra",
+        direction = PlanDirection.DEFICIT,
+        goalMetric = GoalMetric.WEIGHT,
+        targetValueText = "68,5",
+        ageText = "34",
+        heightText = "178",
+        weightText = "74,2",
+        weightUnit = "kg",
+        equationSex = EerSex.MALE,
+        activity = EerActivity.ACTIVE,
+        base = base,
+        baseEdited = true,
+        provenance = NutritionEditorProvenance.AUTOMATIC,
+        mode = NutritionPlanEditorMode.ACTIVE_PLAN,
+        weeklyDistribution = NutritionWeeklyDistributionMode.VARIABLE,
+    )
+
+    /** Recomendación con el mantenimiento (EER) de la muestra: el anillo exterior lleva su marca del 100 %. */
+    val recommendation = NutritionPlanRecommendation(
+        direction = PlanDirection.DEFICIT,
+        eerKcal = 2380.0,
+        calorieTargetKcal = 2150,
+        snapshot = NutritionPlanCalculationSnapshot(
+            engineVersion = "eer-2023-v1",
+            formula = "muestra",
+            calculatedAt = "2026-10-13T00:00:00Z",
+        ),
+    )
+
+    /** La semana de la muestra, de lunes a domingo, con sus kcal y macros. */
+    val weekly: List<NutritionEditorDayTarget> = listOf(
+        NutritionEditorDayTarget(LocalDate.of(2026, 10, 12), 2150, 160, 210, 70),
+        NutritionEditorDayTarget(LocalDate.of(2026, 10, 13), 2080, 150, 200, 70),
+        NutritionEditorDayTarget(LocalDate.of(2026, 10, 14), 2400, 170, 260, 75),
+        NutritionEditorDayTarget(LocalDate.of(2026, 10, 15), 2150, 160, 210, 70),
+        NutritionEditorDayTarget(LocalDate.of(2026, 10, 16), 2300, 165, 230, 72),
+        NutritionEditorDayTarget(LocalDate.of(2026, 10, 17), 1950, 150, 190, 65),
+        NutritionEditorDayTarget(LocalDate.of(2026, 10, 18), 2200, 160, 220, 70),
+    )
+
+    /** Un plan existente con cambios sin guardar: base revisada, semana y el «antes» de la base. */
+    fun editedPlanState(): NutritionPlanEditorUiState = NutritionPlanEditorUiState(
+        isLoading = false,
+        draft = fullDraft,
+        recommendation = recommendation,
+        base = base,
+        originalBase = originalBase,
+        weeklyTargets = weekly,
+        isDirty = true,
+    )
+}
+
+/**
+ * Datos del historial y de la calibración (N5): tres meses de registros, con un día de rango incierto (el 12 de octubre) y un día sin meta
+ * (el 15 de septiembre), y los estados de la calibración con ajuste, sin datos suficientes y con el asistente en el paso 2.
+ */
+internal object NutritionHistorySamples {
+
+    /** El «hoy» de la hoja: la fecha no depende del reloj. */
+    val today: LocalDate = LocalDate.of(2026, 10, 13)
+
+    /** Un alimento registrado; con [rango] es una estimación de kcal entre dos cifras. */
+    private fun alimento(
+        nombre: String,
+        gramos: Double,
+        kcal: Double,
+        proteina: Double,
+        hidratos: Double,
+        grasa: Double,
+        rango: Pair<Double, Double>? = null,
+    ): LoggedFood = LoggedFood(
+        id = nombre,
+        foodName = nombre,
+        amount = gramos,
+        unit = "g",
+        calories = kcal,
+        protein = proteina,
+        carbs = hidratos,
+        fats = grasa,
+        isUncertain = rango != null,
+        caloriesMin = rango?.first,
+        caloriesMax = rango?.second,
+    )
+
+    private fun registro(id: String, fecha: String, tipo: MealType, vararg alimentos: LoggedFood): NutritionLog =
+        NutritionLog(id = id, date = fecha, mealType = tipo, foods = alimentos.toList(), status = NutritionStatus.CONSUMED)
+
+    /** Los registros de agosto, septiembre y octubre. */
+    val logs: List<NutritionLog> = listOf(
+        registro("o13-d", "2026-10-13", MealType.BREAKFAST, alimento("Avena con leche", 80.0, 310.0, 12.0, 52.0, 6.0)),
+        registro("o13-a", "2026-10-13", MealType.LUNCH, alimento("Pollo con arroz", 350.0, 620.0, 48.0, 70.0, 14.0)),
+        registro("o13-c", "2026-10-13", MealType.DINNER, alimento("Ensalada de atún", 250.0, 310.0, 24.0, 18.0, 16.0)),
+        registro("o12-a", "2026-10-12", MealType.LUNCH, alimento("Pasta a la boloñesa", 380.0, 690.0, 32.0, 84.0, 22.0, 620.0 to 780.0)),
+        registro("o12-c", "2026-10-12", MealType.DINNER, alimento("Tortilla de patata", 220.0, 370.0, 16.0, 30.0, 20.0, 320.0 to 420.0)),
+        registro("s28-a", "2026-09-28", MealType.LUNCH, alimento("Lentejas estofadas", 320.0, 540.0, 30.0, 80.0, 8.0)),
+        registro("s28-c", "2026-09-28", MealType.DINNER, alimento("Merluza al horno", 230.0, 310.0, 40.0, 4.0, 10.0)),
+        registro("s15-a", "2026-09-15", MealType.LUNCH, alimento("Arroz con pollo", 360.0, 680.0, 46.0, 84.0, 12.0)),
+        registro("a30-c", "2026-08-30", MealType.DINNER, alimento("Sopa de verduras", 300.0, 180.0, 6.0, 26.0, 4.0)),
+    )
+
+    /** Las metas guardadas de los días con meta; el 15 de septiembre no tiene ninguna. */
+    val snapshots: List<DailyGoalSnapshot> = listOf("2026-10-13", "2026-10-12", "2026-09-28", "2026-08-30").map { fecha ->
+        DailyGoalSnapshot(date = fecha, calorieTargetKcal = 2300, proteinGoalG = 160, carbGoalG = 260, fatGoalG = 75)
+    }
+
+    /** Los tres meses del historial, tal como los arma la pantalla. */
+    val history: List<MealHistoryMonth> = buildMealHistoryPage(
+        logs = logs,
+        settings = Settings(),
+        activePlan = null,
+        snapshots = snapshots,
+        today = today,
+        locale = Locale.forLanguageTag("es"),
+        monthCount = MEAL_HISTORY_MONTHS_PER_PAGE,
+    ).months
+
+    /** El día con rango incierto, para el detalle: el 12 de octubre. */
+    val diaConRango: MealHistoryDay = history.flatMap { it.days }.first { it.dateKey == "2026-10-12" }
+
+    /** Un perfil con ajuste sugerido: 14 días, 8 pesajes, 12 días completos y −120 kcal. */
+    private val perfilConAjuste = NutritionCalibrationProfile(
+        status = "ready",
+        observedDays = 14,
+        completeDays = 12,
+        weightReadings = 8,
+        recommendedAdjustmentKcal = -120,
+        baselineKcal = 2300,
+        currentKcal = 2180,
+    )
+
+    /** Un perfil sin datos suficientes: 9 días de 14, sin ajuste todavía. */
+    private val perfilSinDatos = NutritionCalibrationProfile(
+        status = "incomplete",
+        observedDays = 9,
+        completeDays = 7,
+        weightReadings = 5,
+    )
+
+    /** La calibración con el ajuste sugerido. */
+    val calibracionConAjuste = NutritionCalibrationUiState(
+        profile = perfilConAjuste,
+        wizard = NutritionCalibrationWizardEngine.start(perfilConAjuste),
+    )
+
+    /** La calibración sin datos suficientes para ajustar. */
+    val calibracionSinDatos = NutritionCalibrationUiState(
+        profile = perfilSinDatos,
+        wizard = NutritionCalibrationWizardEngine.start(perfilSinDatos),
+    )
+
+    /** La calibración con el asistente en el paso 2, «Medidas domésticas». */
+    val calibracionPaso2 = NutritionCalibrationUiState(
+        profile = perfilSinDatos,
+        wizard = NutritionCalibrationWizardState(
+            profile = perfilSinDatos,
+            step = NutritionCalibrationWizardStep.UTENSILS,
+        ),
+    )
+}

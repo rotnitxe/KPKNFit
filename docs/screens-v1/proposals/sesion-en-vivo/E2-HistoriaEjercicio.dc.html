@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Historia: ejercicio</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Syne:wght@600;700;800&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#F2EEE6}a:hover{color:#ffffff}
+</style>
+</helmet>
+<div style="width: 360px; height: 640px; box-sizing: border-box; background: #0B0907; color: #F2EEE6; font-family: Inter, sans-serif; position: relative; overflow: hidden;">
+  <div style="position: absolute; inset: 0; background: radial-gradient(70% 55% at 78% 18%, rgba(244,154,110,0.85) 0%, rgba(244,154,110,0) 70%), radial-gradient(60% 50% at 15% 70%, rgba(143,178,255,0.45) 0%, rgba(143,178,255,0) 70%), radial-gradient(50% 40% at 60% 95%, rgba(247,207,115,0.5) 0%, rgba(247,207,115,0) 70%), #120E0B;"></div>
+  <div style="position: absolute; right: -40px; top: 110px; width: 260px; height: 260px; border-radius: 130px; border: 24px solid rgba(242,238,230,0.08);"></div>
+  <div style="position: absolute; left: 14px; top: 12px; font-size: 10px; color: rgba(242,238,230,0.55);">[Portada del programa]</div>
+
+  <div style="position: absolute; left: 18px; right: 18px; top: 56px; display: flex; align-items: center; justify-content: space-between;">
+    <span style="font-family: Syne, sans-serif; font-weight: 800; font-size: 16px; letter-spacing: 1px;">KPKN</span>
+    <span style="font-size: 12px; color: rgba(242,238,230,0.8);">Jueves 15 oct</span>
+  </div>
+
+  <div style="position: absolute; left: 18px; right: 18px; top: 120px; border-radius: 26px; background: rgba(18,16,14,0.38); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); border: 1px solid rgba(255,255,255,0.14); padding: 18px; display: flex; flex-direction: column; gap: 14px;">
+    <div style="display: flex; align-items: center; justify-content: space-between;">
+      <div style="font-size: 14px; font-weight: 600;">Sentadilla trasera</div>
+      <div style="height: 26px; padding: 0 10px; border-radius: 13px; background: rgba(247,207,115,0.22); border: 1px solid rgba(247,207,115,0.6); color: #FBE3A6; font-size: 12px; font-weight: 700; display: flex; align-items: center;">Marca +5 kg</div>
+    </div>
+    <div>
+      <div style="font-family: Syne, sans-serif; font-weight: 800; font-size: 46px; line-height: 50px;">95 kg</div>
+      <div style="font-size: 14px; color: rgba(242,238,230,0.8); margin-top: 2px;">× 6 reps · RIR 2 · 1RM estimado 113 kg</div>
+    </div>
+    <svg width="288" height="150" viewBox="0 0 288 150" role="img" aria-label="Evolución de la mejor serie: de 80 a 95 kg entre agosto y octubre">
+      <line x1="0" y1="140" x2="288" y2="140" stroke="rgba(255,255,255,0.14)"></line>
+      <line x1="0" y1="90" x2="288" y2="90" stroke="rgba(255,255,255,0.07)"></line>
+      <line x1="0" y1="40" x2="288" y2="40" stroke="rgba(255,255,255,0.07)"></line>
+      <polyline points="6,128 44,120 82,118 120,100 158,92 196,80 234,62 280,28" fill="none" stroke="#F2EEE6" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"></polyline>
+      <circle cx="280" cy="28" r="6" fill="#F7CF73"></circle>
+      <circle cx="280" cy="28" r="12" fill="none" stroke="rgba(247,207,115,0.45)" stroke-width="2"></circle>
+    </svg>
+    <div style="display: flex; justify-content: space-between; font-size: 11px; color: rgba(242,238,230,0.7);"><span>Ago</span><span>Sep</span><span>Oct</span></div>
+    <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px;">
+      <div><div style="font-size: 11px; color: rgba(242,238,230,0.7);">Sesiones</div><div style="font-size: 15px; font-weight: 700;">8</div></div>
+      <div><div style="font-size: 11px; color: rgba(242,238,230,0.7);">Desde</div><div style="font-size: 15px; font-weight: 700;">80 kg</div></div>
+      <div><div style="font-size: 11px; color: rgba(242,238,230,0.7);">Subida</div><div style="font-size: 15px; font-weight: 700; color: #7FE3B0;">+19 %</div></div>
+    </div>
+  </div>
+
+  <div style="position: absolute; left: 0; right: 0; bottom: 22px; text-align: center; font-size: 11px; letter-spacing: 1.4px; color: rgba(242,238,230,0.7);">BASE SÓLIDA · SEMANA 3</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":360,"height":640}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

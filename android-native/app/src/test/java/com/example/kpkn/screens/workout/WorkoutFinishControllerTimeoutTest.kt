@@ -7,6 +7,7 @@ import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.models.WeekVariant
 import com.example.kpkn.data.repository.ProgramRepository
 import com.example.kpkn.services.workout.WorkoutRestAlertManager
+import com.example.kpkn.testsupport.RoomTestRule
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import org.junit.After
@@ -14,6 +15,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
+import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
@@ -24,6 +26,9 @@ import java.util.concurrent.TimeoutException
 @RunWith(RobolectricTestRunner::class)
 @Config(manifest = Config.NONE, sdk = [28])
 class WorkoutFinishControllerTimeoutTest {
+
+    @get:Rule
+    val roomRule = RoomTestRule()
     @After
     fun tearDown() {
         ProgramRepository.closeInstance()

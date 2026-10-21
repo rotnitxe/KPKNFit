@@ -358,6 +358,6 @@ class AuthoredProgressionEngineTest {
         val several = AuthoredProgressionEngine.noticeText("Nuevo ciclo", change, 3, false)
         assertEquals("Nuevo ciclo: TM sentadilla 180 → 185 kg. 3 sesiones con ajustes manuales se conservaron sin cambios.", several)
         val pending = AuthoredProgressionEngine.noticeText("Nuevo ciclo", change, 0, true)
-        assertTrue(pending, pending.endsWith("Las cargas nuevas se aplican al pulsar RE-MATERIALIZAR."))
+        assertTrue(pending, pending.endsWith("Las cargas nuevas se aplican al pulsar «Re-materializar»."))
     }
 }

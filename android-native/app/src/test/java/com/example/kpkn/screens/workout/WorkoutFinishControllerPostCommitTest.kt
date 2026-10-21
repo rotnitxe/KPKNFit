@@ -12,6 +12,7 @@ import com.example.kpkn.data.models.WeekVariant
 import com.example.kpkn.data.repository.ProgramRepository
 import com.example.kpkn.data.repository.AugeRepository
 import com.example.kpkn.services.workout.WorkoutRestAlertManager
+import com.example.kpkn.testsupport.RoomTestRule
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
@@ -28,6 +29,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
+import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
@@ -37,6 +39,9 @@ import org.robolectric.annotation.Config
 @RunWith(RobolectricTestRunner::class)
 @Config(manifest = Config.NONE, sdk = [28])
 class WorkoutFinishControllerPostCommitTest {
+
+    @get:Rule
+    val roomRule = RoomTestRule()
     @Before
     fun installMainDispatcher() {
         Dispatchers.setMain(UnconfinedTestDispatcher())

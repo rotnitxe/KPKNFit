@@ -1,0 +1,337 @@
+diff --git a/android-native/app/src/main/java/com/example/kpkn/domain/multisport/endurance/EnduranceSportModels.kt b/android-native/app/src/main/java/com/example/kpkn/domain/multisport/endurance/EnduranceSportModels.kt
+--- a/android-native/app/src/main/java/com/example/kpkn/domain/multisport/endurance/EnduranceSportModels.kt
++++ b/android-native/app/src/main/java/com/example/kpkn/domain/multisport/endurance/EnduranceSportModels.kt
+@@ -2,7 +2,7 @@
+ 
+ import com.example.kpkn.domain.multisport.SportId
+ import kotlinx.serialization.Serializable
+-import kotlinx.serialization.encodeToJsonElement
++import kotlinx.serialization.json.encodeToJsonElement
+ import kotlinx.serialization.json.Json
+ import kotlinx.serialization.json.JsonObject
+ import kotlinx.serialization.json.jsonObject
+diff --git a/android-native/app/src/main/java/com/example/kpkn/domain/multisport/HybridProgramPlanner.kt b/android-native/app/src/main/java/com/example/kpkn/domain/multisport/HybridProgramPlanner.kt
+--- a/android-native/app/src/main/java/com/example/kpkn/domain/multisport/HybridProgramPlanner.kt
++++ b/android-native/app/src/main/java/com/example/kpkn/domain/multisport/HybridProgramPlanner.kt
+@@ -1,6 +1,7 @@
+ package com.example.kpkn.domain.multisport
+ 
+ import com.example.kpkn.data.models.HybridPlannedSession
++import com.example.kpkn.data.models.HybridProtectedSessionKind
+ import com.example.kpkn.data.models.HybridPlanningConfiguration
+ import com.example.kpkn.data.models.HybridProposalScope
+ import com.example.kpkn.data.models.HybridSessionGoalBinding
+@@ -101,6 +102,14 @@
+         weekId: String,
+         bindings: List<HybridSessionGoalBinding>,
+         searchNodeBudget: Int = HybridWeekPlanRequest.DEFAULT_SEARCH_NODE_BUDGET,
++    ): HybridProgramPlanResult = prepareAdapted(program, weekId, bindings, null, searchNodeBudget)
++
++    internal fun prepareAdapted(
++        program: Program,
++        weekId: String,
++        bindings: List<HybridSessionGoalBinding>,
++        adaptation: HybridPlanningAdaptation?,
++        searchNodeBudget: Int = HybridWeekPlanRequest.DEFAULT_SEARCH_NODE_BUDGET,
+     ): HybridProgramPlanResult {
+         if (program.id.isBlank()) {
+             return HybridProgramPlanResult.Invalid(listOf(HybridProgramPlanningError.EmptyProgramId))
+@@ -287,16 +296,34 @@
+             ?: return HybridProgramPlanResult.Invalid(
+                 listOf(HybridProgramPlanningError.WeekFingerprintUnavailable),
+             )
++        val protected = adaptation?.context?.protectedSessions.orEmpty()
++        val protectedIds = protected.mapTo(mutableSetOf()) { it.sessionId }
++        val coveredGoalIds = protected.filter { it.kind == HybridProtectedSessionKind.COMPLETED }
++            .mapTo(mutableSetOf()) { it.goalId }
++        val anchor = adaptation?.context?.weekStartDate?.let(java.time.LocalDate::parse)
++        val fixedAssignments = protected.mapNotNull { evidence ->
++            val previous = evidence.previousAssignment ?: return@mapNotNull null
++            val date = evidence.calendarDate?.let(java.time.LocalDate::parse) ?: return@mapNotNull null
++            if (anchor == null || date.isBefore(anchor) || !date.isBefore(anchor.plusDays(7))) return@mapNotNull null
++            val candidate = candidates.single { it.id == evidence.sessionId }
++            SessionAssignment(candidate.copy(durationMinutes = previous.endMinute - previous.startMinute),
++                date.dayOfWeek.value, previous.startMinute, previous.endMinute,
++                previous.placeId, previous.windowId)
++        }
+         val plannerResult = HybridWeekPlanner.plan(
+             HybridWeekPlanRequest(
+                 intent = intent,
+                 availableWindows = configurationSnapshot.availableWindows,
+                 fixedCommitments = configurationSnapshot.fixedCommitments,
+-                candidateSessions = candidates,
++                candidateSessions = candidates.filter { it.id !in protectedIds },
+                 searchNodeBudget = searchNodeBudget,
+                 separationRules = configurationSnapshot.separationRules,
+-                weeklyGoalRequirements = configurationSnapshot.weeklyGoalRequirements,
++                weeklyGoalRequirements = adaptation?.adjustedRequirements ?: configurationSnapshot.weeklyGoalRequirements,
+                 requireIntentGoalCoverage = true,
++                fixedSessionAssignments = fixedAssignments,
++                coveredGoalIds = coveredGoalIds,
++                minimumStartMinuteByWeekday = adaptation?.minimumStarts.orEmpty(),
++                weekStartDay = anchor?.dayOfWeek?.value ?: 1,
+             ),
+         )
+         if (plannerResult !is HybridWeekPlanResult.Ready) {
+@@ -315,7 +342,7 @@
+             return HybridProgramPlanResult.PlacementFailed(plannerResult)
+         }
+ 
+-        val assignedGoalIds = plannerResult.assignments.mapTo(mutableSetOf()) { it.session.goalId }
++        val assignedGoalIds = plannerResult.assignments.mapTo(mutableSetOf()) { it.session.goalId } + coveredGoalIds
+         val uncoveredGoals = intent.goals.filter { it.id !in assignedGoalIds }
+         if (uncoveredGoals.isNotEmpty()) {
+             val omittedByGoal = plannerResult.omittedOptionalSessions.groupBy(
+@@ -332,9 +359,14 @@
+             )
+         }
+ 
++        val occurrenceContext = adaptation?.context?.let { context ->
++            context.copy(weeklyDose = HybridRemainingWeekPlanner.summarizeDose(context,
++                intent.goals.map { it.id }, plannerResult.assignments, configurationSnapshot.weeklyGoalRequirements))
++        }
+         val proposal = HybridWeekProposal(
+             schemaVersion = CURRENT_PROPOSAL_SCHEMA_VERSION,
+-            scope = HybridProposalScope.TEMPLATE_BASE_SESSIONS,
++            scope = if (adaptation == null) HybridProposalScope.TEMPLATE_BASE_SESSIONS
++                else HybridProposalScope.ACTIVE_OCCURRENCE_REMAINING_SESSIONS,
+             sourceWeekFingerprint = sourceWeekFingerprint,
+             intentSnapshot = intent,
+             configurationSnapshot = configurationSnapshot,
+@@ -354,7 +386,9 @@
+                 omission.copy(reasons = omission.reasons.toList())
+             },
+             sourceProgramId = program.id,
+-            trainingAssessment = plannerResult.trainingAssessment,
++            trainingAssessment = occurrenceContext?.let { HybridRemainingWeekPlanner.assessment(it, configurationSnapshot) }
++                ?: plannerResult.trainingAssessment,
++            occurrenceContext = occurrenceContext,
+         )
+         return HybridProgramPlanResult.Ready(
+             proposal = proposal,
+diff --git a/android-native/app/src/main/java/com/example/kpkn/domain/multisport/HybridRemainingWeekPlanner.kt b/android-native/app/src/main/java/com/example/kpkn/domain/multisport/HybridRemainingWeekPlanner.kt
+--- a/android-native/app/src/main/java/com/example/kpkn/domain/multisport/HybridRemainingWeekPlanner.kt
++++ b/android-native/app/src/main/java/com/example/kpkn/domain/multisport/HybridRemainingWeekPlanner.kt
+@@ -154,8 +154,13 @@
+             val date = HybridOccurrenceResolver.dateForWeekday(anchor, day)
+             when { date.isBefore(today) -> 1440; date == today -> currentMinute; else -> 0 }
+         }
+-        return when (val plan = HybridProgramPlanner.prepareAdapted(program, week.id, bindings,
+-            HybridPlanningAdaptation(context, adjusted, starts), searchNodeBudget)) {
++        val adapted = try {
++            HybridProgramPlanner.prepareAdapted(program, week.id, bindings,
++                HybridPlanningAdaptation(context, adjusted, starts), searchNodeBudget)
++        } catch (_: ArithmeticException) {
++            return invalid(HybridRemainingPlanningError.NumericOverflow)
++        }
++        return when (val plan = adapted) {
+             is HybridProgramPlanResult.Ready -> HybridRemainingPlanResult.Ready(plan.proposal)
+             else -> HybridRemainingPlanResult.PlanningFailed(plan)
+         }
+diff --git a/android-native/app/src/test/java/com/example/kpkn/data/repository/SportTrackingRoomTest.kt b/android-native/app/src/test/java/com/example/kpkn/data/repository/SportTrackingRoomTest.kt
+--- a/android-native/app/src/test/java/com/example/kpkn/data/repository/SportTrackingRoomTest.kt
++++ b/android-native/app/src/test/java/com/example/kpkn/data/repository/SportTrackingRoomTest.kt
+@@ -89,8 +89,18 @@
+         assertTrue(service.upsertCompletedResults("missing", listOf(doc("bad", SportDocumentPurpose.PLAN))) is SportTrackingSaveResult.Invalid)
+         assertTrue(service.upsertCompletedResults("missing", listOf(doc("valid", SportDocumentPurpose.RESULT))) is SportTrackingSaveResult.NotFound)
+         val before = repo.history.value
+-        repo.databaseForTests().close()
+-        assertTrue(service.upsertCompletedResults("existing", listOf(doc("valid", SportDocumentPurpose.RESULT))) is SportTrackingSaveResult.StorageFailure)
+-        assertEquals(before, repo.history.value)
++        val database = repo.databaseForTests()
++        // Room can reopen after close(); reject the actual write instead.
++        database.openHelper.writableDatabase.execSQL(
++            "CREATE TRIGGER kpkn_fail_sport_write BEFORE INSERT ON workout_logs " +
++                "BEGIN SELECT RAISE(ABORT, 'kpkn_test_sport_storage_failure'); END",
++        )
++        try {
++            assertTrue(service.upsertCompletedResults("existing", listOf(doc("valid", SportDocumentPurpose.RESULT))) is SportTrackingSaveResult.StorageFailure)
++            assertEquals(before, repo.history.value)
++            assertEquals(before.single(), database.workoutLogDao().getById("existing")!!.toWorkoutLog())
++        } finally {
++            database.openHelper.writableDatabase.execSQL("DROP TRIGGER kpkn_fail_sport_write")
++        }
+     }
+ }
+diff --git a/android-native/app/src/test/java/com/example/kpkn/domain/multisport/combat/CombatSportEngineTest.kt b/android-native/app/src/test/java/com/example/kpkn/domain/multisport/combat/CombatSportEngineTest.kt
+--- a/android-native/app/src/test/java/com/example/kpkn/domain/multisport/combat/CombatSportEngineTest.kt
++++ b/android-native/app/src/test/java/com/example/kpkn/domain/multisport/combat/CombatSportEngineTest.kt
+@@ -11,6 +11,7 @@
+ import kotlinx.serialization.json.Json
+ import kotlinx.serialization.json.JsonObject
+ import kotlinx.serialization.json.encodeToJsonElement
++import kotlinx.serialization.json.jsonObject
+ import org.junit.Assert.assertEquals
+ import org.junit.Assert.assertFalse
+ import org.junit.Assert.assertNull
+@@ -341,13 +342,13 @@
+             version = boxingEngine.version,
+             sportId = SportId.BOXING.name,
+             purpose = SportDocumentPurpose.PLAN.name,
+-            payload = json.encodeToJsonElement(plan),
++            payload = json.encodeToJsonElement(plan).jsonObject,
+         )
+         assertEquals(SportDocumentValidation.Valid, registry.validate(document))
+         assertEquals(270L, registry.plannedDurationSeconds(document))
+ 
+         val forgedSport = plan.copy(sportId = CombatDiscipline.BJJ)
+-        val rejected = registry.validate(document.copy(payload = json.encodeToJsonElement(forgedSport)))
++        val rejected = registry.validate(document.copy(payload = json.encodeToJsonElement(forgedSport).jsonObject))
+         assertTrue(rejected is SportDocumentValidation.InvalidPayload)
+         assertTrue((rejected as SportDocumentValidation.InvalidPayload).issues.any {
+             it.code == CombatSportIssueCode.SPORT_MISMATCH.name
+@@ -355,7 +356,7 @@
+ 
+         val envelopeMismatch = registry.validate(document.copy(sportId = SportId.BJJ.name))
+         assertTrue(envelopeMismatch is SportDocumentValidation.InvalidMetadata)
+-        val resultJson = json.encodeToJsonElement(result(rounds = listOf(round(1, CombatRoundStatus.COMPLETED, 20))))
++        val resultJson = json.encodeToJsonElement(result(rounds = listOf(round(1, CombatRoundStatus.COMPLETED, 20)))).jsonObject
+         assertTrue(boxingEngine.validate(resultJson, SportDocumentPurpose.RESULT).isEmpty())
+     }
+ 
+diff --git a/android-native/app/src/test/java/com/example/kpkn/domain/multisport/field/FieldSportEngineTest.kt b/android-native/app/src/test/java/com/example/kpkn/domain/multisport/field/FieldSportEngineTest.kt
+--- a/android-native/app/src/test/java/com/example/kpkn/domain/multisport/field/FieldSportEngineTest.kt
++++ b/android-native/app/src/test/java/com/example/kpkn/domain/multisport/field/FieldSportEngineTest.kt
+@@ -518,7 +518,7 @@
+             ),
+             ),
+         ))
+-        val encoded = json.encodeToJsonElement(plan)
++        val encoded = json.encodeToJsonElement(plan).jsonObject
+         val registry = SportTrackingRegistry(FieldSportEngine.all)
+         val document = SportTrackingDocument(
+             id = "jump-plan",
+@@ -534,7 +534,7 @@
+         assertEquals(75L, registry.plannedDurationSeconds(document))
+ 
+         val payloadMismatch = registry.validate(document.copy(
+-            payload = json.encodeToJsonElement(plan.copy(sportId = FieldSportDiscipline.SPRINT)),
++            payload = json.encodeToJsonElement(plan.copy(sportId = FieldSportDiscipline.SPRINT)).jsonObject,
+         ))
+         assertTrue(payloadMismatch is SportDocumentValidation.InvalidPayload)
+         assertTrue((payloadMismatch as SportDocumentValidation.InvalidPayload).issues.any {
+diff --git a/android-native/app/src/test/java/com/example/kpkn/domain/multisport/HybridProgramPlannerTest.kt b/android-native/app/src/test/java/com/example/kpkn/domain/multisport/HybridProgramPlannerTest.kt
+--- a/android-native/app/src/test/java/com/example/kpkn/domain/multisport/HybridProgramPlannerTest.kt
++++ b/android-native/app/src/test/java/com/example/kpkn/domain/multisport/HybridProgramPlannerTest.kt
+@@ -7,6 +7,13 @@
+ import com.example.kpkn.data.models.Exercise
+ import com.example.kpkn.data.models.ExerciseSet
+ import com.example.kpkn.data.models.HybridPlannedSession
++import com.example.kpkn.data.models.HybridCompletedActivityEvidence
++import com.example.kpkn.data.models.HybridOccurrenceIdentity
++import com.example.kpkn.data.models.HybridOccurrencePlanningContext
++import com.example.kpkn.data.models.HybridProtectedSessionEvidence
++import com.example.kpkn.data.models.HybridProtectedSessionKind
++import com.example.kpkn.data.models.HybridProposalScope
++import com.example.kpkn.data.models.HybridRecordedDurationSource
+ import com.example.kpkn.data.models.HybridPlanningConfiguration
+ import com.example.kpkn.data.models.HybridSessionGoalBinding
+ import com.example.kpkn.data.models.Macrocycle
+@@ -26,6 +33,63 @@
+ 
+ class HybridProgramPlannerTest {
+     @Test
++    fun remainingAdapterPreservesCompletedPlacementAndPlansOnlyAfterCurrentTime() {
++        val sourceWeek = week(session("done", duration = 30), session("remaining", duration = 30))
++        val source = program(sourceWeek).let { it.copy(hybridPlanning = it.hybridPlanning!!.copy(
++            weeklyGoalRequirements = listOf(HybridWeeklyGoalRequirement("strength", minimumSessions = 2)),
++            separationRules = listOf(HybridSessionSeparationRule("gap", "done", "remaining", 0)),
++        )) }
++        val context = remainingContext()
++        val result = HybridProgramPlanner.prepareAdapted(source, "week",
++            listOf(binding("done", "strength"), binding("remaining", "strength")),
++            HybridPlanningAdaptation(context, listOf(HybridWeeklyGoalRequirement("strength", minimumSessions = 1)),
++                mapOf(1 to 555))) as HybridProgramPlanResult.Ready
++        assertEquals(HybridProposalScope.ACTIVE_OCCURRENCE_REMAINING_SESSIONS, result.proposal.scope)
++        assertEquals(listOf("remaining"), result.proposal.assignments.map { it.sessionId })
++        assertTrue(result.proposal.assignments.single().startMinute >= 570)
++        assertEquals(context.protectedSessions, result.proposal.occurrenceContext!!.protectedSessions)
++        val dose = result.proposal.occurrenceContext!!.weeklyDose.single()
++        assertEquals(1, dose.recordedActivitiesInWeek)
++        assertEquals(1800L, dose.recordedExactSecondsInWeek)
++        assertEquals(1, dose.plannedRemainingSessions)
++        assertEquals(sourceWeek, ProgramHierarchyIndex(source).locateWeek("week")!!.week)
++    }
++
++    @Test
++    fun remainingAdapterCannotPlaceIntoAnElapsedDay() {
++        val source = program(week(session("done", duration = 30), session("remaining", duration = 30)))
++        val result = HybridProgramPlanner.prepareAdapted(source, "week",
++            listOf(binding("done", "strength"), binding("remaining", "strength")),
++            HybridPlanningAdaptation(remainingContext(), emptyList(), mapOf(1 to 1440)))
++        assertTrue(result is HybridProgramPlanResult.PlacementFailed)
++    }
++
++    @Test
++    fun remainingAdapterKeepsUnknownHistoricalDoseUnassessed() {
++        val source = program(week(session("done", duration = 30), session("remaining", duration = 30)))
++            .let { it.copy(hybridPlanning = it.hybridPlanning!!.copy(weeklyGoalRequirements =
++                listOf(HybridWeeklyGoalRequirement("strength", minimumMinutes = 30)))) }
++        val context = remainingContext().let { it.copy(protectedSessions = it.protectedSessions.map { row ->
++            row.copy(activities = emptyList())
++        }) }
++        val result = HybridProgramPlanner.prepareAdapted(source, "week",
++            listOf(binding("done", "strength"), binding("remaining", "strength")),
++            HybridPlanningAdaptation(context, emptyList(), mapOf(1 to 555))) as HybridProgramPlanResult.Ready
++        assertEquals(HybridDeclaredConstraintsStatus.UNASSESSED, result.proposal.trainingAssessment.declaredConstraints)
++    }
++
++    private fun remainingContext() = HybridOccurrencePlanningContext(
++        identity = HybridOccurrenceIdentity("run", 1, "instance", "week"),
++        weekStartDate = "2026-10-19", asOfDate = "2026-10-19", asOfMinute = 555,
++        zoneId = "UTC", sourceHistoryFingerprint = "fixture",
++        protectedSessions = listOf(HybridProtectedSessionEvidence("done", "strength",
++            HybridProtectedSessionKind.COMPLETED, "2026-10-19",
++            HybridPlannedSession("done", "strength", 1, 540, 570, "gym", "gym-window"),
++            listOf(HybridCompletedActivityEvidence("log", "2026-10-19", "2026-10-19", 1800L,
++                "RECORDED", durationSource = HybridRecordedDurationSource.EXACT_RECORDED_SECONDS)))),
++    )
++
++    @Test
+     fun preparesOnlyExplicitlyBoundBaseSessionsAndPreservesTheProgram() {
+         val base = session(
+             id = "strength-session",
+@@ -97,7 +161,10 @@
+         val sourceWeek = week(session("ambiguous-name", name = "Morning workout", duration = 25))
+         val source = program(
+             sourceWeek,
+-            intent = validIntent(includeRunning = true),
++            intent = TrainingIntent(
++                goals = validIntent(includeRunning = true).goals.filter { it.id == "running" },
++                primaryGoalId = "running",
++            ),
+             windows = listOf(
+                 window("wrong-day", 1, 480, 540, "track", setOf("treadmill")),
+                 window("wrong-place", 2, 480, 540, "gym", setOf("treadmill")),
+diff --git a/android-native/app/src/test/java/com/example/kpkn/domain/multisport/HybridSessionDurationPolicyTest.kt b/android-native/app/src/test/java/com/example/kpkn/domain/multisport/HybridSessionDurationPolicyTest.kt
+--- a/android-native/app/src/test/java/com/example/kpkn/domain/multisport/HybridSessionDurationPolicyTest.kt
++++ b/android-native/app/src/test/java/com/example/kpkn/domain/multisport/HybridSessionDurationPolicyTest.kt
+@@ -36,7 +36,7 @@
+         assertTrue(result is HybridSessionDurationPolicyResult.Ready)
+         val resolution = (result as HybridSessionDurationPolicyResult.Ready).resolution
+         assertEquals(10, resolution.placementMinutes)
+-        assertTrue(resolution.estimatedMinutes < resolution.placementMinutes)
++        assertTrue(checkNotNull(resolution.estimatedMinutes) < resolution.placementMinutes)
+         assertEquals(HybridSessionDurationProvenance.BUDGET, resolution.provenance)
+         assertEquals(HybridSessionDurationBudgetSource.SESSION_TARGET, resolution.budgetSource)
+     }
+diff --git a/android-native/app/src/test/java/com/example/kpkn/domain/multisport/strength/StrengthSportEngineTest.kt b/android-native/app/src/test/java/com/example/kpkn/domain/multisport/strength/StrengthSportEngineTest.kt
+--- a/android-native/app/src/test/java/com/example/kpkn/domain/multisport/strength/StrengthSportEngineTest.kt
++++ b/android-native/app/src/test/java/com/example/kpkn/domain/multisport/strength/StrengthSportEngineTest.kt
+@@ -10,6 +10,7 @@
+ import kotlinx.serialization.json.Json
+ import kotlinx.serialization.json.JsonObject
+ import kotlinx.serialization.json.encodeToJsonElement
++import kotlinx.serialization.json.jsonObject
+ import org.junit.Assert.assertEquals
+ import org.junit.Assert.assertFalse
+ import org.junit.Assert.assertNull
+@@ -431,7 +432,7 @@
+             version = StrongmanEngine.version,
+             sportId = SportId.STRONGMAN.name,
+             purpose = SportDocumentPurpose.PLAN.name,
+-            payload = json.encodeToJsonElement(payload),
++            payload = json.encodeToJsonElement(payload).jsonObject,
+         )
+         assertEquals(SportDocumentValidation.Valid, registry.validate(document))
+         assertEquals(600L, registry.plannedDurationSeconds(document))

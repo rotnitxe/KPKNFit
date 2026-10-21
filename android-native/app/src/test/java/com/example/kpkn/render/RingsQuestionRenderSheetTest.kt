@@ -4,17 +4,22 @@ import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.view.View
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
+import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import com.example.kpkn.data.models.InitialRecoveryIntensity
 import com.example.kpkn.data.models.RingsLiftPattern
@@ -23,6 +28,8 @@ import com.example.kpkn.domain.onboarding.RingsMainLiftsState
 import com.example.kpkn.domain.onboarding.RingsSessionDaysState
 import com.example.kpkn.screens.onboarding.SetupRingsAnswers
 import com.example.kpkn.screens.onboarding.design.LocalWizardReducedMotion
+import com.example.kpkn.screens.onboarding.design.entreno.IntensityFlameArt
+import com.example.kpkn.screens.onboarding.design.entreno.SymbolClock
 import com.example.kpkn.screens.onboarding.rings.RingsFeelingsContent
 import com.example.kpkn.screens.onboarding.rings.RingsGroupSetsContent
 import com.example.kpkn.screens.onboarding.rings.RingsIntensityContent
@@ -69,11 +76,15 @@ class RingsQuestionRenderSheetTest {
 
     private fun onlyWhenAsked() = assumeTrue("sin KPKN_RENDER_DIR no se dibuja nada", System.getenv("KPKN_RENDER_DIR") != null)
 
-    /** Pinta [content] en una columna de 360 dp sobre negro, con la animación en su cuadro final. */
-    private fun sheet(content: @Composable () -> Unit) {
+    /** Pinta [content] en una columna de 360 dp sobre negro, con la animación en su cuadro final. [fontScale] 1,3 = letra al 130 %. */
+    private fun sheet(fontScale: Float = 1f, content: @Composable () -> Unit) {
         rule.setContent {
             hostView = LocalView.current
-            CompositionLocalProvider(LocalWizardReducedMotion provides true) {
+            val density = LocalDensity.current
+            CompositionLocalProvider(
+                LocalWizardReducedMotion provides true,
+                LocalDensity provides Density(density.density, fontScale),
+            ) {
                 Column(
                     Modifier
                         .testTag("sheet")
@@ -160,17 +171,18 @@ class RingsQuestionRenderSheetTest {
     @Test
     fun groupSetsWithLegsOpen() {
         onlyWhenAsked()
-        sheet {
+        // Tres grupos respondidos (Pecho, Hombros con «No lo sé» y Core) y Piernas en edición, sin cifra todavía. A 130 %.
+        sheet(fontScale = 1.3f) {
             RingsGroupSetsContent(
                 answers = SetupRingsAnswers(
                     sessionDaysState = RingsSessionDaysState.DECLARED,
                     trainedDayOffsets = setOf(1),
-                    groupSets = mapOf(RingsMuscleGroup.CHEST to 10, RingsMuscleGroup.LEGS to 12, RingsMuscleGroup.CORE to 4),
+                    groupSets = mapOf(RingsMuscleGroup.CHEST to 10, RingsMuscleGroup.CORE to 4),
                     groupSetsUnknown = setOf(RingsMuscleGroup.SHOULDERS),
                 ),
                 today = today,
                 onSets = { _, _ -> },
-                initialOpen = RingsMuscleGroup.LEGS,
+                initialSelected = RingsMuscleGroup.LEGS,
             )
         }
         save("rings_group_sets")
@@ -199,5 +211,70 @@ class RingsQuestionRenderSheetTest {
             )
         }
         save("rings_feelings")
+    }
+
+    /** Reloj de símbolos con los segundos fijados: cada cuadro de la hoja es el que se pide, sin correr. */
+    private fun clockAt(seconds: Float): SymbolClock = SymbolClock().also { it.seconds = seconds }
+
+    @Test
+    fun k7IntensidadSinRespuesta() {
+        onlyWhenAsked()
+        sheet {
+            RingsIntensityContent(selected = null, onSelect = {})
+        }
+        save("k7_intensidad_sin_respuesta")
+    }
+
+    @Test
+    fun k7IntensidadDuraA130() {
+        onlyWhenAsked()
+        sheet(fontScale = 1.3f) {
+            RingsIntensityContent(selected = InitialRecoveryIntensity.HARD, onSelect = {})
+        }
+        save("k7_intensidad_dura_130")
+    }
+
+    @Test
+    fun k7LlamaEnLosCuatroNivelesYDosCuadrosDeParpadeo() {
+        onlyWhenAsked()
+        sheet {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                // La llama encendida en Suave, Moderada, Dura y Muy dura (t = 0, 1/3, 2/3 y 1).
+                listOf(0f, 1f / 3f, 2f / 3f, 1f).forEach { t ->
+                    IntensityFlameArt(
+                        level = { t },
+                        lit = { 1f },
+                        clock = clockAt(0f),
+                        reducedMotion = false,
+                        modifier = Modifier.fillMaxWidth().height(160.dp),
+                    )
+                }
+                // Dos cuadros de parpadeo y de chispas en «Muy dura».
+                listOf(0.35f, 0.8f).forEach { seconds ->
+                    IntensityFlameArt(
+                        level = { 1f },
+                        lit = { 1f },
+                        clock = clockAt(seconds),
+                        reducedMotion = false,
+                        modifier = Modifier.fillMaxWidth().height(160.dp),
+                    )
+                }
+            }
+        }
+        save("k7_llama_niveles")
+    }
+
+    @Test
+    fun groupSetsUnanswered() {
+        onlyWhenAsked()
+        // El mosaico sin ninguna respuesta: el editor arranca en Pecho. A 130 %.
+        sheet(fontScale = 1.3f) {
+            RingsGroupSetsContent(
+                answers = SetupRingsAnswers(sessionDaysState = RingsSessionDaysState.DECLARED, trainedDayOffsets = setOf(1)),
+                today = today,
+                onSets = { _, _ -> },
+            )
+        }
+        save("rings_group_sets_unanswered")
     }
 }

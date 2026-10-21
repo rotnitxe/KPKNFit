@@ -16,17 +16,22 @@ import com.example.kpkn.data.onboarding.SetupCommitRequest
 import com.example.kpkn.data.onboarding.SetupSettingsPatch
 import com.example.kpkn.data.onboarding.previewCheckIn
 import com.example.kpkn.data.onboarding.toEvidencePatchField
+import com.example.kpkn.testsupport.RoomTestRule
 import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
 import java.time.LocalDate
 
 @org.junit.runner.RunWith(org.robolectric.RobolectricTestRunner::class)
 @org.robolectric.annotation.Config(manifest = org.robolectric.annotation.Config.NONE, sdk = [34])
 class SetupRingsCheckInPersistenceTest {
+
+    @get:Rule
+    val roomRule = RoomTestRule()
     private lateinit var db: KpknDatabase
 
     @Before

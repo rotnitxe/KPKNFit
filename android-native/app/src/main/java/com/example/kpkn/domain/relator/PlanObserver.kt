@@ -22,7 +22,7 @@ object PlanObserver : RelatorObserver {
             competitionLine(context)?.let(::add)
             protocolLine(context)?.let(::add)
             autoregLine(context)?.let(::add)
-        }.distinct().ifEmpty { fallbackLines(context) }
+        }.distinct().ifEmpty { setLine(context) }
         val actions = buildList {
             if (shouldOfferLoadAdjust(context)) {
                 val pct = if ((context.readiness.dailyScore ?: 100) < 50) -10.0 else -5.0
@@ -41,8 +41,8 @@ object PlanObserver : RelatorObserver {
                 add(
                     RelatorActionSpec(
                         kind = RelatorActionKind.APPLY_SUGGESTED_LOAD,
-                        label = "Usa ${formatRelatorKg(kg)} kg",
-                        span = "Usa ${formatRelatorKg(kg)} kg",
+                        label = "Usa ${formatRelatorKg(kg)}\u00A0kg",
+                        span = "Usa ${formatRelatorKg(kg)}\u00A0kg",
                         exerciseId = context.exerciseId,
                         setIndex = context.setIndex,
                         weightKg = kg,
@@ -55,11 +55,10 @@ object PlanObserver : RelatorObserver {
                 topic = RelatorTopic.PLAN,
                 priority = 52,
                 relevance = if (context.plan.sourceProtocolId != null || context.slotRole != null) 0.85 else 0.35,
-                lines = padVariants(lines),
+                lines = realVariants(lines),
                 fingerprintBase = "PLAN:${context.progress.completedWorkingSets}",
                 actions = actions,
                 cooldownSets = 2,
-                openers = listOf("Plan", "Hoy", "Carga"),
             ),
         )
     }
@@ -75,12 +74,9 @@ object PlanObserver : RelatorObserver {
         }
         val sets = context.setCount.coerceAtLeast(1)
         val reps = context.targetReps?.toString() ?: "—"
-        val pct = context.targetPercentageRm?.let { "${formatRelatorKg(it)} %" } 
-        val kg = (context.prescribedWeightKg ?: context.suggestedWeightKg)?.let { "≈ ${formatRelatorKg(it)} kg" }
-        val scheme = listOfNotNull("$sets×$reps", pct, kg).joinToString(" ")
-        val serie = context.setIndex + 1
-        val done = context.progress.completedWorkingSets
-        return "$label de {ex}, $scheme (serie $serie/$sets, $done hechas)."
+        val kg = (context.prescribedWeightKg ?: context.suggestedWeightKg)?.let { "≈ ${relatorKg(it)}" }
+        val scheme = listOfNotNull("$sets series de $reps", kg).joinToString(", ")
+        return "$label de {ex}: $scheme."
     }
 
     private fun schemeLine(context: RelatorContext): String? {
@@ -93,9 +89,9 @@ object PlanObserver : RelatorObserver {
             LoadBasis.PERCENT_OF_TOP_SET -> "top set"
             else -> null
         }
-        val kgPart = kg?.let { " ≈ ${formatRelatorKg(it)} kg" }.orEmpty()
+        val kgPart = kg?.let { " ≈ ${relatorKg(it)}" }.orEmpty()
         val basisPart = basis?.let { " del $it" }.orEmpty()
-        return "{ex} va al ${formatRelatorKg(pct)} %$basisPart$kgPart."
+        return "{ex} va al ${relatorPercent(pct)}$basisPart$kgPart."
     }
 
     private const val GENERIC_AMRAP_LINE = "AMRAP de {ex}: deja 1 limpia; no caces el fallo si no es el test."
@@ -120,33 +116,33 @@ object PlanObserver : RelatorObserver {
         if (percent == null || percent < ProgramAutoregulationEngine.AMRAP_TM_MIN_PERCENT) return GENERIC_AMRAP_LINE
         val raise = when {
             rule.fourToFiveKg > 0.0 && rule.sixPlusKg > 0.0 ->
-                "con 4 o 5 reps el TM sube ${kgText(rule.fourToFiveKg)} kg y con 6 o más, ${kgText(rule.sixPlusKg)} kg"
-            rule.sixPlusKg > 0.0 -> "con 6 o más reps el TM sube ${kgText(rule.sixPlusKg)} kg"
-            rule.fourToFiveKg > 0.0 -> "con 4 o 5 reps el TM sube ${kgText(rule.fourToFiveKg)} kg"
+                "TM +${kgText(rule.fourToFiveKg)}\u00A0kg con 4-5 reps; +${kgText(rule.sixPlusKg)}\u00A0kg con 6+"
+            rule.sixPlusKg > 0.0 -> "TM +${kgText(rule.sixPlusKg)}\u00A0kg con 6+ reps"
+            rule.fourToFiveKg > 0.0 -> "TM +${kgText(rule.fourToFiveKg)}\u00A0kg con 4-5 reps"
             else -> return GENERIC_AMRAP_LINE
         }
-        return "AMRAP de {ex}: para con 1 limpia en reserva salvo PR; $raise."
+        return "AMRAP de {ex}: 1 limpia en reserva salvo PR. $raise."
     }
 
     /** `RepTargetDrivenTm`: el porcentaje por repetición sobre el objetivo y por repetición que falta. */
     private fun repTargetLine(rule: ProgressionRule.RepTargetDrivenTm): String {
         if (rule.extraRepPercent <= 0.0) return GENERIC_AMRAP_LINE
         val miss = if (rule.missedRepPercent > 0.0) {
-            "; si te faltan ${rule.missThreshold} o más, baja un ${kgText(rule.missedRepPercent)} % por rep"
+            " Si faltan ${rule.missThreshold} o más, baja ${kgText(rule.missedRepPercent)} % por rep."
         } else {
             ""
         }
-        return "AMRAP de {ex}: cada rep sobre el objetivo sube el TM un ${kgText(rule.extraRepPercent)} %$miss."
+        return "AMRAP de {ex}: cada rep extra sube el TM ${kgText(rule.extraRepPercent)} %.$miss"
     }
 
     /** `62.5` → «62,5», `5.0` → «5»: coma decimal y sin ceros sobrantes. */
-    private fun kgText(value: Double): String = NativeProgressionText.formatKg(value)
+    private fun kgText(value: Double): String = NativeProgressionText.formatKg(value).replace('.', ',')
 
     private fun topSetLine(context: RelatorContext): String? {
         if (!context.isTopSet) return null
-        val kg = (context.prescribedWeightKg ?: context.suggestedWeightKg)?.let { formatRelatorKg(it) }
+        val kg = (context.prescribedWeightKg ?: context.suggestedWeightKg)?.let { relatorKg(it) }
         return if (kg != null) {
-            "Top set de {ex} a $kg kg. Calidad sobre ego."
+            "Top set de {ex} a $kg. Calidad antes que ego."
         } else {
             "Esta es la serie pesada de {ex}. Una limpia vale más que forzar."
         }
@@ -155,7 +151,7 @@ object PlanObserver : RelatorObserver {
     private fun techniqueLine(context: RelatorContext): String? {
         val modifier = context.techniqueModifier ?: return null
         return when (modifier) {
-            TechniqueModifier.PAUSE_2S -> "Pausa 2 s abajo en {ex}. Cuenta quieto antes de subir."
+            TechniqueModifier.PAUSE_2S -> "Pausa 2 s abajo en {ex}. Cuenta quieto antes de subir."
             TechniqueModifier.TEMPO_3_0_3 -> "Tempo 3-0-3 en {ex}: baja 3, sin rebote, sube 3."
             else -> "${modifier.displayName()} en {ex}. Ese detalle es el estímulo."
         }
@@ -171,15 +167,15 @@ object PlanObserver : RelatorObserver {
 
     private fun competitionLine(context: RelatorContext): String? {
         if (!context.isCompetitionLift) return null
-        return "Lift de competición: cues de plataforma en {ex}. Pausas, marcas y jueces importan."
+        return "Competición: cuida la plataforma en {ex}. Pausas y jueces importan."
     }
 
     private fun protocolLine(context: RelatorContext): String? {
         val id = context.plan.sourceProtocolId?.lowercase() ?: return null
-        val pct = context.targetPercentageRm?.let { formatRelatorKg(it) }
+        val pct = context.targetPercentageRm?.let { relatorPercent(it) }
         return when {
             id.contains("smolov") && pct != null ->
-                "Smolov: {ex} al $pct % 1RM. El volumen es el estímulo."
+                "Smolov: {ex} al $pct 1RM. El volumen es el estímulo."
             id.contains("westside") || context.loadBasis == LoadBasis.REP_MAX ->
                 "Westside ME: {ex} busca un RM limpio. Cero reps sucias."
             id.contains("531") && context.isAmrap ->
@@ -191,7 +187,7 @@ object PlanObserver : RelatorObserver {
     private fun autoregLine(context: RelatorContext): String? {
         return when (context.plan.autoregulationMode) {
             AutoregulationMode.PROPOSE -> "Autorregulación propone: mira la carga de {ex} y confirma."
-            AutoregulationMode.AUTO -> "Autorregulación auto: {ex} ya viene ajustado al readiness."
+            AutoregulationMode.AUTO -> "Autorregulación automática: {ex} ya viene ajustado a tu disponibilidad."
             AutoregulationMode.OFF -> null
         }
     }
@@ -203,17 +199,24 @@ object PlanObserver : RelatorObserver {
         return score < 60
     }
 
-    private fun fallbackLines(context: RelatorContext): List<String> {
-        val protocol = context.plan.sourceProtocolName ?: context.plan.sourceProtocolId
-        val protocolBit = protocol?.let { " ($it)" }.orEmpty()
-        return listOf(
-            "El plan$protocolBit marca esta serie de {ex}.",
-            "Sigue la receta de {ex}; hoy no improvisamos el estímulo.",
-            "{ex} entra como va escrito. Cambia solo si el cuerpo pide recorte.",
-            "Esta pieza de {ex} es del bloque, no un extra suelto.",
-            "Cumple el esquema de {ex}; el volumen ya está pensado.",
-            "El protocolo$protocolBit cuenta con esta serie de {ex}.",
-        )
+    /**
+     * Sin estructura de receta, el plan dice la serie que toca: «Serie 2 de 4: 95 kg × 6 a RIR 2.» (LR1h). Siempre hay una
+     * línea, aunque no haya carga ni reps, para que el candidato exista.
+     */
+    private fun setLine(context: RelatorContext): List<String> {
+        val number = context.setIndex + 1
+        val total = context.setCount.takeIf { it > 1 && it >= number }
+        val head = if (total != null) "Serie $number de $total" else "Serie $number"
+        val kg = (context.prescribedWeightKg ?: context.suggestedWeightKg)?.takeIf { it > 0.0 }
+        val reps = context.targetReps?.takeIf { it > 0 }
+        val mark = when {
+            kg != null && reps != null -> relatorSetMark(kg, reps)
+            kg != null -> relatorKg(kg)
+            reps != null -> "$reps reps"
+            else -> null
+        }
+        val rir = context.targetRir?.let { " a RIR $it" }.orEmpty()
+        return listOf(if (mark != null) "$head: $mark$rir." else "$head$rir.")
     }
 }
 
@@ -231,16 +234,9 @@ internal object RelatorActionKind {
     const val OPEN_ALBUM = "OPEN_ALBUM"
 }
 
-internal fun padVariants(lines: List<String>, min: Int = 6): List<String> {
-    val cleaned = lines.map { it.trim() }.filter { it.isNotEmpty() }
-    if (cleaned.size >= min) return cleaned
-    val extras = listOf(
-        "Mantén el recetario: {ex} cuenta tal cual.",
-        "No adelantes el plan de {ex}; esta serie tiene trabajo.",
-        "Si dudas, baja 2,5 kg en {ex} y conserva el gesto.",
-        "{ex} sigue en el programa. Ejecuta limpio.",
-        "El estímulo de {ex} está en cumplir, no en inventar.",
-        "Respeta series y descanso de {ex}; el bloque se sostiene así.",
-    )
-    return (cleaned + extras).distinct().take(min.coerceAtLeast(cleaned.size))
-}
+/**
+ * Las frases reales de un observador, sin vacías ni repetidas (LR1h). Nunca se completan con relleno: un observador con
+ * pocas frases tiene pocas variantes, y el selector rota entre ellas.
+ */
+internal fun realVariants(lines: List<String>): List<String> =
+    lines.map { it.trim() }.filter { it.isNotEmpty() }.distinct()
