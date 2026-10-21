@@ -19,6 +19,7 @@ import java.time.Instant
 class BatteryPercentNanSafeTest {
     private val origin = Instant.parse("2026-09-12T18:00:00Z").toEpochMilli()
     private val settings = Settings()
+    private fun cacheHeredado(field: String) = AugeAdaptiveCacheMigration.migrate(kotlinx.serialization.json.Json { ignoreUnknownKeys = true }.decodeFromString<AugeAdaptiveCache>("""{"schemaVersion":3,"$field":"NaN"}"""), 3)
 
     // ─── Fixtures ───────────────────────────────────────────────────────────
 
@@ -46,19 +47,19 @@ class BatteryPercentNanSafeTest {
 
     @Test
     fun cnsLearningDeltaNaN_noLanzaYDaUnEnteroAcotado() {
-        val g = globales(AugeAdaptiveCache(cnsLearningDelta = Double.NaN))
+        val g = globales(cacheHeredado("cnsLearningDelta"))
         assertTrue("Energía fuera de 0..100: ${g.cnc}", g.cnc in 0..100)
     }
 
     @Test
     fun spinalLearningDeltaNaN_noLanzaYDaUnEnteroAcotado() {
-        val g = globales(AugeAdaptiveCache(spinalLearningDelta = Double.NaN))
+        val g = globales(cacheHeredado("spinalLearningDelta"))
         assertTrue("Columna fuera de 0..100: ${g.spinal}", g.spinal in 0..100)
     }
 
     @Test
     fun muscleDeltaNaN_noLanzaYDaUnEnteroAcotado() {
-        val g = globales(AugeAdaptiveCache(muscleDeltas = mapOf("pectorales" to Double.NaN)))
+        val g = globales(cacheHeredado("muscleDeltas"))
         assertTrue("Músculos fuera de 0..100: ${g.muscular}", g.muscular in 0..100)
     }
 

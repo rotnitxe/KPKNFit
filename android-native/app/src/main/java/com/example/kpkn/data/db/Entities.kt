@@ -220,22 +220,14 @@ data class PendingQuestionnaireEntity(@PrimaryKey val rowId: Int = 1, val data: 
 
 @Entity(tableName = "auge_adaptive_cache")
 data class AugeAdaptiveCacheEntity(@PrimaryKey val rowId: Int = 1, val data: String)
-fun com.example.kpkn.data.models.AugeAdaptiveCache.toEntity() = AugeAdaptiveCacheEntity(data = dbJson.encodeToString(this))
+fun com.example.kpkn.data.models.AugeAdaptiveCache.toEntity(): AugeAdaptiveCacheEntity =
+    AugeAdaptiveCacheEntity(data = com.example.kpkn.domain.auge.AugeAdaptiveCacheMigration.encodeAdaptiveCache(this))
+
+fun AugeAdaptiveCacheEntity.decodeAdaptiveCache(): com.example.kpkn.data.models.AugeAdaptiveCacheDecodeResult =
+    com.example.kpkn.domain.auge.AugeAdaptiveCacheMigration.decodeAdaptiveCache(data)
+
 fun AugeAdaptiveCacheEntity.toAdaptiveCache(): com.example.kpkn.data.models.AugeAdaptiveCache =
-    runCatching {
-        val decoded = dbJson.decodeFromString<com.example.kpkn.data.models.AugeAdaptiveCache>(data.ifBlank { "{}" })
-        val storedVersion = runCatching {
-            dbJson.parseToJsonElement(data.ifBlank { "{}" })
-                .jsonObject["schemaVersion"]?.jsonPrimitive?.intOrNull ?: 1
-        }.getOrDefault(1)
-        if (storedVersion < 2) {
-            // v1 muscular τ/deltas/multipliers were learned from finish-sheet
-            // inversions (hoursSince≈0.5). Drop all three; keep CNS/spinal until v3.
-            decoded
-        } else {
-            decoded
-        }.let { com.example.kpkn.domain.auge.AugeAdaptiveCacheMigration.migrate(it, storedVersion) }
-    }.getOrDefault(com.example.kpkn.data.models.AugeAdaptiveCache())
+    decodeAdaptiveCache().cache
 
 @Entity(tableName = "nutrition_logs", indices = [Index("date")])
 data class NutritionLogEntity(@PrimaryKey val id: String, val date: String, val mealType: String, val data: String)

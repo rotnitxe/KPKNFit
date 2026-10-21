@@ -6,7 +6,6 @@ import com.example.kpkn.data.models.WorkoutLog
 import com.example.kpkn.domain.auge.AugeSnapshotInputs
 import com.example.kpkn.domain.auge.NutritionRecoveryContext
 import com.example.kpkn.domain.auge.remapMuscleIntMapToPillars
-import com.example.kpkn.domain.auge.remapMuscleMultiplierMapToPillars
 import com.example.kpkn.domain.nutrition.resolveDayGoalsByDate
 import java.time.Instant
 import java.time.ZoneId
@@ -37,7 +36,7 @@ internal suspend fun loadAugeSnapshotInputs(
         sleepLogs = auge.getLastNSleepLogs(7),
         nutritionLogs = nutrition.nutritionLogs.value,
         feedbacks = auge.getPostSessionFeedbacks(),
-        adaptiveCache = cache.copy(muscleDrainMultipliers = remapMuscleMultiplierMapToPillars(cache.muscleDrainMultipliers)),
+        adaptiveCache = cache,
         nutritionContext = nutrition.augeRecoveryContext(settings, nowMs, zone),
     )
 }

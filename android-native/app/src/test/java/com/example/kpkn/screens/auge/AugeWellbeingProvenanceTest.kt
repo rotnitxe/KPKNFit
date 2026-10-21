@@ -243,10 +243,10 @@ class AugeWellbeingProvenanceTest {
         val after = cache()
         assertEquals(
             "una edición real cuenta como una observación (antes=$before, después=$after)",
-            before.totalObservations + 1,
+            before.totalObservations,
             after.totalObservations,
         )
-        assertNotNull("Energía debía enseñar su τ (antes=$before, después=$after)", after.cnsRecoveryHours)
+        assertEquals("EMA suspendido en v4", before.cnsRecoveryHours, after.cnsRecoveryHours)
         assertEquals(
             "los Pectorales copiados que viajan con la edición no enseñan",
             before.personalizedRecoveryHours,

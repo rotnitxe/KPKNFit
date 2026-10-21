@@ -11,7 +11,6 @@ class SessionDrainRecipeTest {
     private val fixtures = SessionDrainCharacterizationFixtures
 
     private fun options() = RecipeOptions(
-        muscleMultiplierSource = RecipeOptions.MuscleMultiplierSource.NONE,
         cardioHandling = RecipeOptions.CardioHandling.CONSUMER_HOOK,
         softCapUnits = RecipeOptions.SoftCapUnits.CHANNEL_PERCENT,
     )
@@ -164,23 +163,11 @@ class SessionDrainRecipeTest {
         assertEquals(12.24, gated.spinal * 1.2, 1e-14)
     }
 
-    @Test fun multiplicadoresConservanClaveDirectaPromedioRemapeadoONinguno() {
-        val cache = fixtures.cache.copy(muscleDrainMultipliers = linkedMapOf("pectorales" to 1.4, "Pectorales" to 0.8))
-        val direct = completed(options().copy(muscleMultiplierSource = RecipeOptions.MuscleMultiplierSource.DIRECT_KEYS), cache = cache).single()
-        val remapped = completed(options().copy(muscleMultiplierSource = RecipeOptions.MuscleMultiplierSource.REMAPPED_PILLARS), cache = cache).single()
-        val none = completed(options(), cache = cache).single()
-        assertEquals(1.4, direct.context.muscleMultiplier, 0.0)
-        assertEquals(1.1, remapped.context.muscleMultiplier, 1e-15)
-        assertEquals(1.0, none.context.muscleMultiplier, 0.0)
-        assertTrue(direct.raw.muscularDrainPct > remapped.raw.muscularDrainPct)
-        assertTrue(remapped.raw.muscularDrainPct > none.raw.muscularDrainPct)
-    }
-
-    @Test fun migracionV2YV3ConservaMultiplicadoresMuscularesNoVacios() {
-        listOf(2, 3).forEach { version ->
-            val migrated = AugeAdaptiveCacheMigration.migrate(fixtures.cache, version)
-            assertEquals(fixtures.cache.muscleDrainMultipliers, migrated.muscleDrainMultipliers)
-            assertEquals(1.07, migrated.muscleDrainMultipliers.getValue("pectorales"), 0.0)
+    @Test fun migracionDescartaLaCalibracionAnterior() {
+        listOf(1, 2, 3).forEach { version ->
+            val migrated = AugeAdaptiveCacheMigration.migrate(fixtures.cache.copy(personalizedRecoveryHours = mapOf("pectorales" to 55.0)), version)
+            assertEquals(emptyMap<String, Double>(), migrated.personalizedRecoveryHours)
+            assertEquals(completed(options(), cache = AugeAdaptiveCache()), completed(options(), cache = migrated))
         }
     }
 
