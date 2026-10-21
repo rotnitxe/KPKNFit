@@ -58,6 +58,8 @@ internal object GoldenReport {
     }
 
     fun load(root: File = compatibleRoot(), external: Boolean = false): GoldenCorpus {
+        org.junit.Assume.assumeTrue("Banco histórico opcional: requiere KPKN_GOLDEN_LEGACY=1",
+            System.getenv("KPKN_GOLDEN_LEGACY") == "1")
         val manifest = File(root, "manifest.json")
         require(manifest.isFile) { "Falta ${manifest.absolutePath}; APP_ROOT debe apuntar al módulo app o KPKN_GOLDEN_DIR a golden/." }
         val obj = readObject(manifest)

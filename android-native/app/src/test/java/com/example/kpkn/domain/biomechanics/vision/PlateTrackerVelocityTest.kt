@@ -1,6 +1,8 @@
 package com.example.kpkn.domain.biomechanics.vision
 
 import com.example.kpkn.domain.biomechanics.bar.BarTrack
+import com.example.kpkn.domain.biomechanics.bar.PlateSeed
+import com.example.kpkn.domain.biomechanics.bar.PlateTrackingContinuity
 import com.example.kpkn.domain.biomechanics.metrics.AnalysisFlag
 import com.example.kpkn.domain.biomechanics.metrics.MetricKey
 import com.example.kpkn.domain.biomechanics.metrics.MetricsTestSupport
@@ -70,7 +72,9 @@ class PlateTrackerVelocityTest {
             val run = PlateTrackingSupport.run(scene, case.fps, times.last() + 1.0 / case.fps)
             println("[rastreador m/s] " + run.summary("peso muerto ${case.fps.toInt()} fps cámara ${case.camera.distanceM} m R=${fmt(radiusPx)}"))
 
-            val bar = BarTrack(track.mediaId, track.frameWidth, track.frameHeight, 450, null, run.samples)
+            val seed = run.samples.first().let { PlateSeed(it.tUs, it.cx, it.cy, it.r, true) }
+            val bar = BarTrack(track.mediaId, track.frameWidth, track.frameHeight, 450, seed, run.samples,
+                trackingContinuity = PlateTrackingContinuity.UNINTERRUPTED)
             val profile = RepTestSupport.profile(AnalysisProfileId.DEADLIFT, plate = true)
             val report = TechniqueAnalysisEngine.analyze(TechniqueAnalysisInput(r.track, bar, profile, null, null, emptySet()))
             val mcvs = report.reps.map { it.mcv }
