@@ -384,12 +384,13 @@ class AugeClockDeterminismTest {
     }
 
     @Test
-    fun theLatestGlobalOrV2AnchorPreventsTodayFromRewritingEarlierSpinalDrain() {
+    fun energyAnchorsPreserveThePriorGuardAndMuscleAnchorsKeepTheirTemporalCut() {
         val sesionEn = pasado - 5 * hora
         val sesion = log("temprano", sesionEn, pesados(), impactoV2(sesionEn, "Isquiosurales" to 600.0))
         val neutral = DailyWellbeingLog(id = "hoy", date = "2025-03-03")
         val guardiasPrevias = guardiasAncladas(sesionEn - 2 * hora)
         val anclaGlobal = neutral.copy(
+            manualNeuralBattery = 40,
             manualBatteryAnchorMs = pasado - hora,
             manualMuscleOverridesV2 = guardiasPrevias,
         )
@@ -399,8 +400,11 @@ class AugeClockDeterminismTest {
             ),
         )
         val sinAnclas = columna(listOf(sesion), pasado, neutral)
-        // El corte más reciente manda aunque otras anclas sean anteriores a la sesión.
-        assertEquals(sinAnclas, columna(listOf(sesion), pasado, anclaGlobal))
+        val conGuardiasPrevias = columna(listOf(sesion), pasado, neutral.copy(manualMuscleOverridesV2 = guardiasPrevias))
+        // Energía no borra la guardia que ya existía: 2.5 sustituye el corte global (73 → 64 en este caso).
+        assertEquals(conGuardiasPrevias, columna(listOf(sesion), pasado, anclaGlobal))
+        assertTrue(conGuardiasPrevias < sinAnclas)
+        // El corte temporal muscular de 1.7 se conserva.
         assertEquals(sinAnclas, columna(listOf(sesion), pasado, anclaV2))
     }
 

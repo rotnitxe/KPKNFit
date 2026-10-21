@@ -24,11 +24,14 @@ import com.example.kpkn.data.models.DailyWellbeingLog
 import com.example.kpkn.data.models.DailyGoalSnapshot
 import com.example.kpkn.data.models.NutritionPlan
 import com.example.kpkn.data.models.Program
+import com.example.kpkn.data.models.RecoveryChannelId
 import com.example.kpkn.data.models.Settings
 import com.example.kpkn.data.persistence.PersistenceWriteCoordinator
 import com.example.kpkn.data.repository.NutritionRepository
 import com.example.kpkn.data.repository.ProgramRepository
 import com.example.kpkn.domain.body.validateBodyValue
+import com.example.kpkn.domain.auge.manualAnchorMs
+import com.example.kpkn.domain.auge.legacyMuscleAnchorMs
 import com.example.kpkn.domain.training.ProgramActiveStateEngine
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.NonCancellable
@@ -428,7 +431,11 @@ class SetupCommitCoordinator(
  * (sensación muscular global), "energy" y "structure" preservan ceros
  * explícitos y los canales manuales no tocados quedan intactos.
  */
-internal fun mergeSetupWellbeing(existing: DailyWellbeingLog?, incoming: DailyWellbeingLog): DailyWellbeingLog {
+internal fun mergeSetupWellbeing(
+    existing: DailyWellbeingLog?,
+    incoming: DailyWellbeingLog,
+    zone: ZoneId = ZoneId.systemDefault(),
+): DailyWellbeingLog {
     if (existing == null) return incoming
     val fields = existing.capturedFields + incoming.capturedFields
     val incomingHas = { key: String -> key in incoming.capturedFields }
@@ -438,6 +445,14 @@ internal fun mergeSetupWellbeing(existing: DailyWellbeingLog?, incoming: DailyWe
         manualMuscleBatteries = if (incomingHas("muscle_batteries")) existing.manualMuscleBatteries + incoming.manualMuscleBatteries else existing.manualMuscleBatteries,
         manualMuscleOverridesV2 = if (incomingHas("muscle_batteries")) existing.manualMuscleOverridesV2 + incoming.manualMuscleOverridesV2 else existing.manualMuscleOverridesV2,
         manualBatteryAnchorMs = if (incomingHas("muscle_batteries")) incoming.manualBatteryAnchorMs else existing.manualBatteryAnchorMs,
+        manualNeuralAnchorMs = if (incomingHas("energy")) incoming.manualAnchorMs(RecoveryChannelId.SYSTEM, zone)
+            else existing.manualNeuralAnchorMs ?: existing.manualNeuralBattery?.let { existing.manualAnchorMs(RecoveryChannelId.SYSTEM, zone) },
+        manualSpinalAnchorMs = if (incomingHas("structure")) incoming.manualAnchorMs(RecoveryChannelId.STRUCTURE, zone)
+            else existing.manualSpinalAnchorMs ?: existing.manualSpinalBattery?.let { existing.manualAnchorMs(RecoveryChannelId.STRUCTURE, zone) },
+        manualMuscularAnchorMs = if (incomingHas("muscular")) incoming.manualAnchorMs(RecoveryChannelId.MUSCULAR, zone)
+            else existing.manualMuscularAnchorMs ?: existing.manualMuscularBattery?.let { existing.manualAnchorMs(RecoveryChannelId.MUSCULAR, zone) },
+        manualMuscleAnchorMs = existing.manualMuscleBatteries.keys.associateWith { existing.legacyMuscleAnchorMs(it, zone) } +
+            if (incomingHas("muscle_batteries")) incoming.manualMuscleBatteries.keys.associateWith { incoming.legacyMuscleAnchorMs(it, zone) } else emptyMap(),
         manualNeuralBattery = if (incomingHas("energy")) incoming.manualNeuralBattery else existing.manualNeuralBattery,
         manualSpinalBattery = if (incomingHas("structure")) incoming.manualSpinalBattery else existing.manualSpinalBattery,
         preWorkoutDiscomforts = if (incomingHas("discomforts")) incoming.preWorkoutDiscomforts else existing.preWorkoutDiscomforts,

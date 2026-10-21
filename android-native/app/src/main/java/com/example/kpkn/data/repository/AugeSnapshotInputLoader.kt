@@ -6,7 +6,6 @@ import com.example.kpkn.data.models.WorkoutLog
 import com.example.kpkn.domain.auge.AugeSnapshotInputs
 import com.example.kpkn.domain.auge.NutritionRecoveryContext
 import com.example.kpkn.domain.auge.remapMuscleIntMapToPillars
-import com.example.kpkn.domain.auge.remapMuscleMultiplierMapToPillars
 import com.example.kpkn.domain.nutrition.resolveDayGoalsByDate
 import java.time.Instant
 import java.time.ZoneId
@@ -20,12 +19,7 @@ internal suspend fun loadAugeSnapshotInputs(
     nowMs: Long,
     zone: ZoneId,
 ): AugeSnapshotInputs {
-    val today = auge.getTodayWellbeing()
-    val active = auge.getActiveWellbeingWithManualOverrides()
-    val todayHasManual = today != null && (today.manualNeuralBattery != null ||
-        today.manualSpinalBattery != null || today.manualMuscularBattery != null ||
-        today.manualMuscleBatteries.isNotEmpty() || today.manualMuscleOverridesV2.isNotEmpty())
-    val wellbeing = if (active != null && !todayHasManual) active else today
+    val wellbeing = auge.getEffectiveManualAnchors(nowMs, zone)
     val cache = auge.getAdaptiveCache()
     return AugeSnapshotInputs(
         history = history,
@@ -37,7 +31,7 @@ internal suspend fun loadAugeSnapshotInputs(
         sleepLogs = auge.getLastNSleepLogs(7),
         nutritionLogs = nutrition.nutritionLogs.value,
         feedbacks = auge.getPostSessionFeedbacks(),
-        adaptiveCache = cache.copy(muscleDrainMultipliers = remapMuscleMultiplierMapToPillars(cache.muscleDrainMultipliers)),
+        adaptiveCache = cache,
         nutritionContext = nutrition.augeRecoveryContext(settings, nowMs, zone),
     )
 }

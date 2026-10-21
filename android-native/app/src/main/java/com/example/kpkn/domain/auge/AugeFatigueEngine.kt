@@ -674,7 +674,6 @@ object AugeFatigueEngine {
             adaptiveCache = adaptiveCache,
             exerciseDb = exerciseDb,
             options = RecipeOptions(
-                muscleMultiplierSource = RecipeOptions.MuscleMultiplierSource.REMAPPED_PILLARS,
                 cardioHandling = RecipeOptions.CardioHandling.CONSUMER_HOOK,
                 softCapUnits = RecipeOptions.SoftCapUnits.CHANNEL_PERCENT,
             ),
@@ -689,16 +688,16 @@ object AugeFatigueEngine {
                     ?: return@cardio
                 val rpe = ex.sets.firstOrNull { (it.timeSeconds ?: 0) > 0 }?.rpe ?: cardio.resolvedRpe()
                 val cardioDrain = CardioRingDrainEngine.drain(cardio, duration, rpe, settings)
-                val cns = recipe.softCap(cardioDrain.cns * adaptiveCache.cnsDrainMultiplier, acc.totalCns, cnsCap)
+                val cns = recipe.softCap(cardioDrain.cns, acc.totalCns, cnsCap)
                 val muscular = recipe.softCap(cardioDrain.muscular, acc.totalMuscular, muscularCap)
-                val spinal = recipe.softCap(cardioDrain.spinal * adaptiveCache.spinalDrainMultiplier, acc.totalSpinal, spinalCap)
+                val spinal = recipe.softCap(cardioDrain.spinal, acc.totalSpinal, spinalCap)
                 acc.totalCns += cns
                 acc.totalMuscular += muscular
                 acc.totalSpinal += spinal
                 recipe.accumulateCardio( // El cardio alimenta cada canal antes del tope, sin el promedio de F-60.
                     muscular = cardioDrain.muscular, // Conserva la escala muscular del gancho de cierre.
-                    cns = cardioDrain.cns * adaptiveCache.cnsDrainMultiplier, // Conserva la calibración neural.
-                    spinal = cardioDrain.spinal * adaptiveCache.spinalDrainMultiplier, // Conserva la calibración espinal.
+                    cns = cardioDrain.cns, // Porcentaje neural anterior al tope.
+                    spinal = cardioDrain.spinal, // Porcentaje espinal anterior al tope.
                 ) // La conservación del cardio sigue siendo propia del consumidor.
                 cardioDrain.muscleDrains.forEach { (pillar, value) ->
                     acc.perMuscleMuscular[pillar] = (acc.perMuscleMuscular[pillar] ?: 0.0) + value
@@ -819,7 +818,6 @@ object AugeFatigueEngine {
             adaptiveCache = adaptiveCache,
             exerciseDb = exerciseDb,
             options = RecipeOptions(
-                muscleMultiplierSource = RecipeOptions.MuscleMultiplierSource.REMAPPED_PILLARS,
                 cardioHandling = RecipeOptions.CardioHandling.CONSUMER_HOOK,
                 softCapUnits = RecipeOptions.SoftCapUnits.CHANNEL_PERCENT,
             ),
@@ -834,16 +832,16 @@ object AugeFatigueEngine {
                 val duration = cardio.effectiveDurationSeconds().coerceAtLeast(0)
                 if (duration > 0) {
                     val cardioDrain = CardioRingDrainEngine.drain(cardio, duration, cardio.resolvedRpe(), settings)
-                    val cns = recipe.softCap(cardioDrain.cns * adaptiveCache.cnsDrainMultiplier, acc.totalCns, cnsCap)
+                    val cns = recipe.softCap(cardioDrain.cns, acc.totalCns, cnsCap)
                     val muscular = recipe.softCap(cardioDrain.muscular, acc.totalMuscular, muscularCap)
-                    val spinal = recipe.softCap(cardioDrain.spinal * adaptiveCache.spinalDrainMultiplier, acc.totalSpinal, spinalCap)
+                    val spinal = recipe.softCap(cardioDrain.spinal, acc.totalSpinal, spinalCap)
                     acc.totalCns += cns
                     acc.totalMuscular += muscular
                     acc.totalSpinal += spinal
                     recipe.accumulateCardio( // El plan usa los mismos acumulados por canal que el cierre.
                         muscular = cardioDrain.muscular, // Porcentaje muscular anterior al tope.
-                        cns = cardioDrain.cns * adaptiveCache.cnsDrainMultiplier, // Porcentaje neural calibrado anterior al tope.
-                        spinal = cardioDrain.spinal * adaptiveCache.spinalDrainMultiplier, // Porcentaje espinal calibrado anterior al tope.
+                        cns = cardioDrain.cns, // Porcentaje neural anterior al tope.
+                        spinal = cardioDrain.spinal, // Porcentaje espinal anterior al tope.
                     ) // No añade conservación ni amortiguación al gancho de cardio.
                     cardioDrain.muscleDrains.forEach { (pillar, value) ->
                         acc.perMuscleMuscular[pillar] = (acc.perMuscleMuscular[pillar] ?: 0.0) + value

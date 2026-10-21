@@ -58,7 +58,7 @@ class AugeSnapshotComputerTest {
         val inputs = AugeSnapshotInputs(
             history.logs, manualWellbeing(last.completionMs - 6 * AugeGoldenCorpus.HORA_MS),
             AugeSyntheticUserHarness.settingsFor(history.user), AugeSyntheticUserHarness.exerciseDb, last.completionMs, zone,
-            adaptiveCache = AugeAdaptiveCache(cnsRecoveryHours = 41.0, spinalRecoveryHours = 63.0, cnsLearningDelta = -2.0),
+            adaptiveCache = AugeAdaptiveCache(cnsRecoveryHours = 41.0, spinalRecoveryHours = 63.0),
         )
         assertEquals(computeHomeAugeSnapshot(inputs), computeProgramAugeSnapshot(inputs))
         assertEquals(AugeSnapshotComputer.compute(inputs), computeProgramAugeSnapshot(inputs))

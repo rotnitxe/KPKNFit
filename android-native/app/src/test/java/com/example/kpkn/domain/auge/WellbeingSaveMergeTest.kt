@@ -114,14 +114,16 @@ class WellbeingSaveMergeTest {
     }
 
     @Test
-    fun changedGlobalTakesIncomingChannelsAndAnchor() {
+    fun changedGlobalKeepsTheOtherChannelsAndTheirAnchor() {
         val existing = log(neural = 60, spinal = 55, anchorMs = 5_000L)
         val incoming = log(neural = 72, anchorMs = 9_000L)
 
         val merged = mergeWellbeingForSave(existing, incoming)
 
         assertEquals(72, merged.manualNeuralBattery)
-        assertNull(merged.manualSpinalBattery)
+        assertEquals(55, merged.manualSpinalBattery)
+        assertEquals(5_000L, merged.manualSpinalAnchorMs)
+        assertEquals(9_000L, merged.manualNeuralAnchorMs)
         assertEquals(9_000L, merged.manualBatteryAnchorMs)
     }
 
@@ -133,6 +135,8 @@ class WellbeingSaveMergeTest {
         val merged = mergeWellbeingForSave(existing, incoming)
 
         assertEquals(mapOf("Dorsales" to 40), merged.manualMuscleBatteries)
+        assertEquals(5_000L, merged.manualNeuralAnchorMs)
+        assertEquals(mapOf("Dorsales" to 9_000L), merged.manualMuscleAnchorMs)
         assertEquals(9_000L, merged.manualBatteryAnchorMs)
     }
 

@@ -4,13 +4,14 @@ import android.content.Context
 import com.example.kpkn.data.db.*
 import com.example.kpkn.data.diagnostics.KpknDiagnosticLogger
 import com.example.kpkn.data.models.*
+import com.example.kpkn.domain.auge.effectiveManualAnchors
+import com.example.kpkn.domain.auge.getAugeMusclePillarId
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.intOrNull
-import kotlinx.serialization.json.jsonObject
-import kotlinx.serialization.json.jsonPrimitive
 import java.time.LocalDate
+import java.time.Instant
+import java.time.ZoneId
+import java.util.UUID
 
 /** Caché sin fila persistida: no hay una actualización pendiente que anunciar. */
 internal fun adaptiveCacheWhenEntityIsMissing(): AugeAdaptiveCache =
@@ -25,7 +26,6 @@ internal fun adaptiveCacheWhenEntityIsMissing(): AugeAdaptiveCache =
 class AugeRepository private constructor(context: Context) {
 
     private val dao = KpknDatabase.getInstance(context).augeDao()
-    @Volatile private var muscularResetDiagnosticEmitted = false
 
     // ─── DailyWellbeingLog ────────────────────────────────────────────────────
 
@@ -51,37 +51,49 @@ class AugeRepository private constructor(context: Context) {
         dao.getWellbeingForDate(LocalDate.now().toString())?.toWellbeingLog()
     }
 
-    suspend fun getActiveWellbeingWithManualOverrides(): DailyWellbeingLog? = withContext(Dispatchers.IO) {
-        val today = LocalDate.now()
-        val todayStr = today.toString()
-        val now = System.currentTimeMillis()
-        val eighteenHoursAgo = now - 18L * 3_600_000L
-        // Only today, or yesterday if the manual anchor is still within ~one night (18h)
-        dao.getWellbeingInRange(today.minusDays(1).toString(), todayStr)
-            .mapNotNull { it.toWellbeingLog() }
-            .firstOrNull { w ->
-                val hasManual = w.manualNeuralBattery != null ||
-                    w.manualMuscularBattery != null ||
-                    w.manualSpinalBattery != null ||
-                    w.manualMuscleBatteries.isNotEmpty() ||
-                    w.manualMuscleOverridesV2.isNotEmpty()
-                if (!hasManual) return@firstOrNull false
-                if (w.date == todayStr) true
-                else (w.manualBatteryAnchorMs ?: 0L) >= eighteenHoursAgo
-            }
+    /** Punto único de lectura: bienestar de hoy con la última ancla vigente de cada canal. */
+    suspend fun getEffectiveManualAnchors(nowMs: Long, zone: ZoneId): DailyWellbeingLog? = withContext(Dispatchers.IO) {
+        val today = Instant.ofEpochMilli(nowMs).atZone(zone).toLocalDate()
+        effectiveManualAnchors(
+            dao.getWellbeingInRange(today.minusDays(10).toString(), today.toString()).mapNotNull { it.toWellbeingLog() },
+            nowMs, zone,
+        )
     }
 
-    /** Clears all manual battery overrides on today's wellbeing (or a no-op if none). */
-    suspend fun clearManualBatteryOverrides() = withContext(Dispatchers.IO) {
-        val today = getTodayWellbeing() ?: return@withContext
+    /** Compatibilidad para consumidores antiguos; comparte la misma resolución sin corte de 18 h. */
+    suspend fun getActiveWellbeingWithManualOverrides(): DailyWellbeingLog? =
+        getEffectiveManualAnchors(System.currentTimeMillis(), ZoneId.systemDefault())
+
+    /** Restablece un canal global, un músculo o todos; la marca neutraliza también las filas anteriores. */
+    suspend fun clearManualBatteryOverrides(
+        channel: RecoveryChannelId? = null,
+        muscle: String? = null,
+        nowMs: Long = System.currentTimeMillis(),
+        zone: ZoneId = ZoneId.systemDefault(),
+    ) = withContext(Dispatchers.IO) {
+        require(channel == null || muscle == null)
+        val date = Instant.ofEpochMilli(nowMs).atZone(zone).toLocalDate().toString()
+        val today = dao.getWellbeingForDate(date)?.toWellbeingLog()
+            ?: DailyWellbeingLog(id = UUID.randomUUID().toString(), date = date)
+        val all = channel == null && muscle == null
+        val effective = getEffectiveManualAnchors(nowMs, zone)
+        val localKeys = if (all) {
+            effective?.manualMuscleBatteries.orEmpty().keys + effective?.manualMuscleOverridesV2.orEmpty().keys +
+                today.manualMuscleBatteries.keys + today.manualMuscleOverridesV2.keys
+        } else setOfNotNull(muscle)
+        val resetMuscles = localKeys.map { getAugeMusclePillarId(it) }.toSet()
+        fun keepLocal(key: String) = getAugeMusclePillarId(key) !in resetMuscles
         saveWellbeingLog(
             today.copy(
-                manualNeuralBattery = null,
-                manualSpinalBattery = null,
-                manualMuscularBattery = null,
-                manualMuscleBatteries = emptyMap(),
-                manualBatteryAnchorMs = null,
-                manualMuscleOverridesV2 = emptyMap(),
+                manualNeuralBattery = if (all || channel == RecoveryChannelId.SYSTEM) null else today.manualNeuralBattery,
+                manualSpinalBattery = if (all || channel == RecoveryChannelId.STRUCTURE) null else today.manualSpinalBattery,
+                manualMuscularBattery = if (all || channel == RecoveryChannelId.MUSCULAR) null else today.manualMuscularBattery,
+                manualMuscleBatteries = today.manualMuscleBatteries.filterKeys(::keepLocal),
+                manualMuscleAnchorMs = today.manualMuscleAnchorMs.filterKeys(::keepLocal),
+                manualMuscleOverridesV2 = today.manualMuscleOverridesV2.filterKeys(::keepLocal),
+                manualBatteryResetMs = today.manualBatteryResetMs +
+                    (if (all) RecoveryChannelId.entries else listOfNotNull(channel)).associateWith { nowMs },
+                manualMuscleResetMs = today.manualMuscleResetMs + resetMuscles.associateWith { nowMs },
             ),
         )
     }
@@ -132,26 +144,19 @@ class AugeRepository private constructor(context: Context) {
     // ─── Adaptive Cache ─────────────────────────────────────────────────────
 
     suspend fun getAdaptiveCache(): AugeAdaptiveCache = withContext(Dispatchers.IO) {
-        val entity = dao.getAdaptiveCache()
-        val rawVersion = entity?.data?.let { raw ->
-            runCatching {
-                Json.parseToJsonElement(raw).jsonObject["schemaVersion"]?.jsonPrimitive?.intOrNull ?: 1
-            }.getOrDefault(1)
-        } ?: 2
-        if (rawVersion < 2 && !muscularResetDiagnosticEmitted) {
-            muscularResetDiagnosticEmitted = true
-            KpknDiagnosticLogger.event(
-                namespace = "auge",
-                name = "muscular_calibration_reset_v2",
-                fields = mapOf("previousSchemaVersion" to rawVersion, "preservedChannels" to listOf("cns", "spinal")),
-                priority = com.example.kpkn.data.diagnostics.TelemetryPriority.CRITICAL,
-            )
+        val result = dao.getAdaptiveCache()?.decodeAdaptiveCache()
+        result?.diagnostics?.forEach { diagnostic ->
+            KpknDiagnosticLogger.event(namespace = "auge", name = "adaptive_cache_v4", fields = mapOf("diagnostic" to diagnostic))
         }
-        entity?.toAdaptiveCache() ?: adaptiveCacheWhenEntityIsMissing()
+        result?.cache ?: adaptiveCacheWhenEntityIsMissing()
     }
 
     suspend fun saveAdaptiveCache(cache: AugeAdaptiveCache) = withContext(Dispatchers.IO) {
-        dao.upsertAdaptiveCache(cache.toEntity())
+        // Releer también al guardar: ni los avisos ni otro escritor deben tapar un esquema futuro.
+        val stored = dao.getAdaptiveCache()?.decodeAdaptiveCache()
+        if (stored?.writable != false) {
+            dao.upsertAdaptiveCache(com.example.kpkn.domain.auge.AugeAdaptiveCacheMigration.normalize(cache).toEntity())
+        }
     }
 
     suspend fun resetAdaptiveCache() = withContext(Dispatchers.IO) {

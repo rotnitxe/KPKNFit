@@ -17,8 +17,8 @@ import com.example.kpkn.domain.auge.AugeSnapshotCore
 import com.example.kpkn.domain.auge.AugeSnapshotInputs
 import com.example.kpkn.domain.auge.InitialRecoveryEvidencePolicy
 import com.example.kpkn.domain.auge.InitialRecoveryPolicyInput
+import com.example.kpkn.domain.auge.effectiveManualAnchors
 import com.example.kpkn.domain.auge.remapMuscleIntMapToPillars
-import com.example.kpkn.domain.auge.remapMuscleMultiplierMapToPillars
 import com.example.kpkn.domain.onboarding.RingsCalibration
 import com.example.kpkn.domain.onboarding.RingsCoverage
 import com.example.kpkn.domain.onboarding.RingsEvidenceHandling
@@ -96,6 +96,18 @@ internal fun stagePreviewWellbeing(
     muscleOverridesV2 = muscleOverrides,
 )
 
+/** La propuesta de un día nuevo conserva sus metadatos y solo hereda las anclas anteriores. */
+internal fun mergePreviewWellbeing(
+    existing: DailyWellbeingLog?,
+    incoming: DailyWellbeingLog?,
+    nowMs: Long,
+    zone: ZoneId,
+): DailyWellbeingLog? = when {
+    incoming == null -> existing
+    existing?.date == incoming.date -> mergeSetupWellbeing(existing, incoming, zone)
+    else -> effectiveManualAnchors(listOfNotNull(existing, incoming), nowMs, zone)
+}
+
 /** Propuesta del alta: el check-in que se guardaría y los datos que el motor lee con él. */
 private class RingsProposal(
     val incoming: DailyWellbeingLog?,
@@ -143,16 +155,11 @@ class SetupRingsPreviewCalculator(private val context: Context) {
     ): SetupRingsPreview {
         val auge = AugeRepository.getInstance(context)
         val history = ProgramRepository.getInstance().history.value
-        val today = auge.getTodayWellbeing()
-        val active = auge.getActiveWellbeingWithManualOverrides()
-        val todayHasManual = today != null && (today.manualNeuralBattery != null ||
-            today.manualSpinalBattery != null || today.manualMuscularBattery != null ||
-            today.manualMuscleBatteries.isNotEmpty() || today.manualMuscleOverridesV2.isNotEmpty())
-        val existing = if (active != null && !todayHasManual) active else today
+        val existing = auge.getEffectiveManualAnchors(nowMs, ZoneId.systemDefault())
         val feedbacks = auge.getPostSessionFeedbacks()
         val sleep = auge.getLastNSleepLogs(7)
         val nutrition = NutritionRepository.getInstance().nutritionLogs.value
-        val cache = auge.getAdaptiveCache().let { it.copy(muscleDrainMultipliers = remapMuscleMultiplierMapToPillars(it.muscleDrainMultipliers)) }
+        val cache = auge.getAdaptiveCache()
         val catalog = catalogExerciseIndex()
         val candidateSettings = when (evidenceInput) {
             is SetupRingsEvidenceInput.Available -> settings.copy(initialRecoveryEvidence = evidenceInput.evidence)
@@ -178,8 +185,7 @@ class SetupRingsPreviewCalculator(private val context: Context) {
                     ManualMuscleBatteryOverride(battery, nowMs, null, automatic)
                 }
                 val incoming = stagePreviewWellbeing(commitId, staged, nowMs, overrides)
-                val onCommitToday = if (incoming == null) existing else today
-                val proposed = if (incoming == null) onCommitToday else mergeSetupWellbeing(onCommitToday, incoming)
+                val proposed = mergePreviewWellbeing(existing, incoming, nowMs, zone)
                 val normalized = proposed?.copy(manualMuscleBatteries = remapMuscleIntMapToPillars(proposed.manualMuscleBatteries))
                 return RingsProposal(
                     incoming = incoming,

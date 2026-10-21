@@ -1,20 +1,32 @@
 # Rings v4 · tablero de estado
 
-Lo mantiene el orquestador. Última actualización: **2026-10-21 13:48**. Detalle de decisiones: `DECISIONES_AUTORRESPONDIDAS.md`. Informes por paquete: `reports/<ID>.md`. Convivencia de agentes: `BRIEF_PARALELO.md`.
+Lo mantiene el orquestador. Última actualización: **2026-10-21 17:30**. Detalle de decisiones: `DECISIONES_AUTORRESPONDIDAS.md`. Informes por paquete: `reports/<ID>.md`. Convivencia de agentes: `BRIEF_PARALELO.md`.
 
-## AVISO · Codex sin cuota (21-oct 13:38)
-La cuenta de Codex llegó a su límite de uso y no vuelve hasta el **27 de octubre a las 12:38**. Los tres agentes Codex en curso (2.5, 3.1, 1.9v2) se detuvieron a mitad con su trabajo guardado en cada worktree; los continúa Antigravity Gemini 3.8 Flash High (vía autorizada por el usuario), con el arnés JVM para iterar y UNA corrida Android oficial al final. Para lo más delicado (aprendiz EKF 3.2, 2.6, 2.4, 3.3–3.5) queda pendiente la decisión del usuario sobre el ejecutor; mientras tanto se sigue con Gemini/DeepSeek y revisión estricta.
+## AVISO · Codex y Antigravity sin cuota
+- **Codex** (21-oct 13:38): sin cuota hasta el **27 de octubre a las 12:38**.
+- **Antigravity / Gemini** (21-oct 15:35): «Individual quota reached», cuota de toda la cuenta agotada por cinco agentes en paralelo; renovación estimada entre las 17:36 y las 18:10 (el plazo se mueve). Los cinco agentes Gemini murieron (2.5b, 3.1, 1.9v2, 1.10v2, 3.2b) y **al morir un agente se llevan por delante sus tareas de fondo** (la corrida Android de 1.9v2 en cola y la corrida completa del arnés de 3.1 se perdieron). Su trabajo quedó en cada worktree.
+- Mientras tanto cierran con **OpenCode DeepSeek v4.1 Flash (gratis)** los pasos mecánicos de 2.5, 3.1 y 3.2b; el resto espera a Gemini (máx. 2 agentes a la vez cuando vuelva) o a una decisión tuya sobre ejecutores Claude. La máquina está además al límite de RAM (otras sesiones con Android): las colas de Gradle y del arnés se mueven despacio.
+
+## Política de verificación (desde las 14:50)
+La cola compartida de Gradle (otras 10 sesiones) lleva horas de espera, así que **el arnés JVM es la compuerta principal** y Android pasa a tandas mías:
+- El arnés ya regenera el máster dorado (`-Pr4GoldenUpdate=true`: escribe solo en `android-native/app/build/auge-golden/`) y corre la simulación completa (`-Pr4SimFull=true`). Comprobado en `feat/rings-v4`: el archivo regenerado es **idéntico, byte a byte**, al que produjo Android.
+- Los agentes **no lanzan corridas Android** salvo las que ya tenían en cola (3.1: la de Codex `r4-3-1-1.log`; 1.9v2: `r4-1-9-4.log`); terminan con arnés verde + informe y listan las clases que el arnés no cubre.
+- Yo reviso el diff, fusiono en `feat/rings-v4` y lanzo UNA tanda Android (`r4-verify.sh`) con todo lo que el arnés no cubre (Robolectric, `screens/*`, `AugeSnapshotCoverageTest`, `AugeWriteMutexTest`, 1.11…). Los paquetes siguientes parten de lo ya fusionado, sin esperar esa tanda.
+- Hallazgo de la revisión de 3.1 (14:55): el nuevo códec JSON del caché había perdido `coerceInputValues`, que sí tenía el decodificador original; se devuelve al agente para corregirlo antes de la corrida Android.
 
 ## Resumen
-- **Plan en alcance: 29 paquetes** (32 del plan menos 3.6 opcional, 4.1 y 4.2 que dependen de tus datos). **Integrados: 16** (1.11 pendiente de verificar en Android). En curso: 2.5 y los carriles de abajo. Pendientes tras ellos: ver «Grafo».
+- **Plan en alcance: 29 paquetes** (32 del plan menos 3.6 opcional, 4.1 y 4.2 que dependen de tus datos). **Integrados: 19** (1.11, 1.9v2, 2.5 y 3.1 pendientes de la tanda Android). En curso: 2.5 y los carriles de abajo. Pendientes tras ellos: ver «Grafo».
 - Aplazado por tu decisión: backtest (BT1). Fuera de esta entrega: AUGE Pro (13 decisiones tuyas pendientes), 3.6, 4.2, sugerencias S1–S14 salvo «Precisión del modelo» (en 3.5).
 
 ## Carriles en marcha
 | Carril | Paquete | Agente / modelo | Worktree · rama | Estado |
 |---|---|---|---|---|
-| A | 2.5 anclas como estado + evidencia multiplicativa | Gemini 3.8 Flash High (continúa lo de Codex Sol) | `v3c` · `r4/2-5` | etapa A commiteada y validada; etapa B escrita, sin commit: en verificación (relevo 13:46) |
-| B | 3.1 caché v4, migración, anillo de observaciones | Gemini 3.8 Flash High (continúa lo de Codex Sol) | `sb` · `r4/3-1` | producción commiteada, pruebas sin commit: en verificación (relevo 13:46) |
-| C | 1.9v2 textos y umbrales | Gemini 3.8 Flash High (continúa lo de Codex Luna) | `u1` · `r4/1-9v2` | 17 archivos de producción sin commit: en revisión (relevo 13:46) |
+| A | 2.5 anclas como estado + evidencia multiplicativa | Codex (A) + DeepSeek (cierre de B) | `v3c` · `r4/2-5` | **FUSIONADO 17:25 (`4fbe555c5`)**: arnés 73 clases / 383 pruebas / 0 fallos; máster dorado: solo D04 a 6/12/24 h; informe `reports/2.5.md` |
+| B | 3.1 caché v4, migración, anillo de observaciones | Codex + Gemini + DeepSeek (cierre) | `sb` · `r4/3-1` | **FUSIONADO 16:55 (`b848c4607`)**: arnés 74 clases / 384 pruebas / 0 fallos; la compilación Android de producción pasó; informe `reports/3.1.md` |
+| C | 1.9v2 textos y umbrales | Gemini (murió sin informe) | `u1` · `r4/1-9v2` | **fusionado en `feat/rings-v4` (`0c8a9a06c`)**; informe `reports/1.9.md` escrito por mí; su corrida Android se perdió: va en la tanda consolidada |
+| D2 | 1.10v2 «sin datos» no es 100 % | Gemini (murió) | `r4n` · `r4/1-10v2` (apilada sobre 1.9v2) | 1 commit (estado sin datos en el snapshot y titular por canal limitante); espera a Gemini (trabajo de interfaz con compilación solo en Android) |
+| F | 3.2b núcleo EKF + oráculo independiente | DeepSeek cierra (antes Gemini) | `r4l` · `r4/3-2` (apilada sobre `r4/3-1`) | los **vectores del oráculo independiente pasan** (12 + cadena de 4 pasos, a 1e-9); DeepSeek corrige 3 errores de las pruebas (clave canónica, versión 0 inválida, prior de Energía) y falta el arnés completo (en cola) |
+| G | 3.2a-1 lectura continua del motor (variantes exactas, sin cambiar cifras) | DeepSeek v4.1 Flash | `r4e` · `r4/3-2a` (desde `feat/rings-v4` con 2.5 y 3.1) | lanzado 17:27; gate: máster dorado idéntico + conformidad entero/exacto en todo el corpus |
 | D | 1.11 creador sin Core por defecto | Antigravity · Gemini 3.8 Flash High | `r4s` · `r4/1-11` | **integrado 13:30** (diff de 7 líneas + prueba nueva); su corrida Android murió con el agente: se verificará en la próxima tanda |
 | E | DOC1 README de la auditoría y arquitectura (solo documentación) | OpenCode · DeepSeek v4.1 Flash (gratis) | `r4d` · `r4/5-3a` | **integrado 12:49** (README de la auditoría + arquitectura) |
 | T | JVM1 arnés JVM para pruebas puras de AUGE (herramienta, fuera del repo) | Codex Sol 6.1 · máximo | `C:\kw\r4-jvm` | **listo 13:28**: 70 clases / 365 pruebas de AUGE, 0 discrepancias con Android; compilación en frío 202 s, caliente 1,5 s, completo 83 s, una clase 17 s; un arnés por worktree (`C:\kw\r4-jvm-<wt>`); no cubre `screens/`, `data/repository/`, Robolectric/Compose/Room ni 3 clases (`AugeEditorCompletedParityTest`, `AugeSnapshotComputerTest`, `BatteryRoundingTest`) |
@@ -28,7 +40,7 @@ Cola de lanzamiento (cuando se integre lo anterior): 3.2 (tras 3.1) → 3.3 → 
 - Cierre: 5.1 regresión amplia (incluye contraste con `master` de `RingsResultStepTest` y `VideoAnalysisRepositoryTest`) → 5.2 QA en el Flip → 5.3 documentación.
 
 ## Integrados en `feat/rings-v4`
-Fase 0: 0.1, 0.2, 0.3 · Fase 1: 1.1, 1.2a, 1.2b, 1.3, 1.4, 1.5, 1.5b, 1.6, 1.7, 1.8, 1.12a, 1.12b, 1.12c · M0 (master fusionado) · Fase 2: 2.1, 2.2a, 2.2b1, 2.2b2, 2.3 · 1.11 (13:30, verificación pendiente) · DOC1 (índice de la auditoría y arquitectura, parte de 5.3).
+Fase 0: 0.1, 0.2, 0.3 · Fase 1: 1.1, 1.2a, 1.2b, 1.3, 1.4, 1.5, 1.5b, 1.6, 1.7, 1.8, 1.12a, 1.12b, 1.12c · M0 (master fusionado) · Fase 2: 2.1, 2.2a, 2.2b1, 2.2b2, 2.3, **2.5 (17:25)** · Fase 3: **3.1 (16:55)** · **1.9v2 (15:15)** · 1.11 (13:30, verificación pendiente) · DOC1 (índice de la auditoría y arquitectura, parte de 5.3).
 
 ## Verificaciones
 - `r4-rev-23m` (árbol con 2.3): 513 clases / 4 833 pruebas / 2 fallos ajenos a AUGE (`VideoAnalysisRepositoryTest` solo falla en la corrida conjunta; `RingsResultStepTest` pendiente de contrastar con `master`).

@@ -35,8 +35,10 @@ import com.example.kpkn.domain.auge.RecoveryBands
 import com.example.kpkn.domain.auge.SystemicLoadMonitor
 import com.example.kpkn.domain.auge.detectWellbeingEdits
 import com.example.kpkn.domain.auge.mergeWellbeingForSave
+import com.example.kpkn.domain.auge.manualAnchorMs
+import com.example.kpkn.domain.auge.legacyMuscleAnchorMs
+import com.example.kpkn.domain.auge.getAugeMusclePillarId
 import com.example.kpkn.domain.auge.remapMuscleIntMapToPillars
-import com.example.kpkn.domain.auge.remapMuscleMultiplierMapToPillars
 import com.example.kpkn.domain.auge.toAugeAdaptiveMuscleKey
 import com.example.kpkn.domain.onboarding.RingsCoverage
 import com.example.kpkn.domain.training.VolumeCalculator
@@ -201,11 +203,9 @@ class AugeViewModel(application: Application) : AndroidViewModel(application) {
     private suspend fun <T> withWriteLock(held: Boolean, block: suspend () -> T): T =
         if (held) block() else augeWriteMutex.withLock { block() }
 
-    /** Caché adaptativo tal como lo lee el motor: multiplicadores musculares remapeados a pilares. */
+    /** Caché normalizado por el repositorio. */
     private suspend fun readAdaptiveCacheForEngine(): AugeAdaptiveCache =
-        augeRepo.getAdaptiveCache().let { raw ->
-            raw.copy(muscleDrainMultipliers = remapMuscleMultiplierMapToPillars(raw.muscleDrainMultipliers))
-        }
+        augeRepo.getAdaptiveCache()
 
     /**
      * Recalcula y publica el snapshot. [lockHeld] = true si el llamador ya tiene [augeWriteMutex]
@@ -408,7 +408,14 @@ class AugeViewModel(application: Application) : AndroidViewModel(application) {
             // Stamp anchor only when real manual overrides are present (not auto-filled predictions)
             val hasManualOverrides = !edits.isEmpty() || log.manualMuscleOverridesV2.isNotEmpty()
             val anchoredLog = if (hasManualOverrides) {
-                remappedLog.copy(manualBatteryAnchorMs = System.currentTimeMillis())
+                val now = System.currentTimeMillis()
+                remappedLog.copy(
+                    manualBatteryAnchorMs = now,
+                    manualNeuralAnchorMs = if (edits.neural != null) now else remappedLog.manualNeuralAnchorMs,
+                    manualSpinalAnchorMs = if (edits.spinal != null) now else remappedLog.manualSpinalAnchorMs,
+                    manualMuscularAnchorMs = if (edits.muscular != null) now else remappedLog.manualMuscularAnchorMs,
+                    manualMuscleAnchorMs = remappedLog.manualMuscleAnchorMs + edits.muscles.keys.associateWith { now },
+                )
             } else {
                 remappedLog.copy(manualBatteryAnchorMs = null)
             }
@@ -623,13 +630,15 @@ class AugeViewModel(application: Application) : AndroidViewModel(application) {
                 manualMuscularBattery = muscular?.coerceIn(0, 100) ?: base?.manualMuscularBattery,
                 manualNeuralBattery = neural?.coerceIn(0, 100) ?: base?.manualNeuralBattery,
                 manualSpinalBattery = invertedSpinal?.coerceIn(0, 100) ?: base?.manualSpinalBattery,
-                // New writes use V2 per-muscle anchors. Keep legacy V1 only when
-                // this call did not touch a muscle, for backwards compatibility.
-                manualMuscleBatteries = if (touchedMuscles) emptyMap() else existingPillarMuscles,
-                manualBatteryAnchorMs = when {
-                    touched -> manualBatteryAnchorMs ?: System.currentTimeMillis()
-                    else -> base?.manualBatteryAnchorMs
-                },
+                // Un gesto local conserva los demás músculos legados y sus instantes.
+                manualMuscleBatteries = existingPillarMuscles.filterKeys { key -> canonicalDelta.keys.none { getAugeMusclePillarId(it) == key } },
+                manualBatteryAnchorMs = if (touched) anchor else target.manualBatteryAnchorMs,
+                manualNeuralAnchorMs = if (neural != null) anchor else if (touched && target.manualNeuralBattery != null) target.manualAnchorMs(RecoveryChannelId.SYSTEM, ZoneId.systemDefault()) else target.manualNeuralAnchorMs,
+                manualSpinalAnchorMs = if (spinal != null) anchor else if (touched && target.manualSpinalBattery != null) target.manualAnchorMs(RecoveryChannelId.STRUCTURE, ZoneId.systemDefault()) else target.manualSpinalAnchorMs,
+                manualMuscularAnchorMs = if (muscular != null) anchor else if (touched && target.manualMuscularBattery != null) target.manualAnchorMs(RecoveryChannelId.MUSCULAR, ZoneId.systemDefault()) else target.manualMuscularAnchorMs,
+                manualMuscleAnchorMs = if (touched) existingPillarMuscles.keys
+                    .filter { key -> canonicalDelta.keys.none { getAugeMusclePillarId(it) == key } }
+                    .associateWith { target.legacyMuscleAnchorMs(it, ZoneId.systemDefault()) } else target.manualMuscleAnchorMs,
                 manualMuscleOverridesV2 = updatedV2,
             )
             augeRepo.saveWellbeingLog(updated)
@@ -692,6 +701,8 @@ class AugeViewModel(application: Application) : AndroidViewModel(application) {
         predictedMuscleBatteries: Map<String, Int>,
         wellbeing: DailyWellbeingLog,
     ) {
+        // Puente v4: las anclas ya se guardaron; el EMA queda suspendido hasta 3.3/3.4.
+        if (augeRepo.getAdaptiveCache().schemaVersion >= 4) return
         val hasSystemSignal = (manualNeural != null && predictedNeuralBattery != null && manualNeural != predictedNeuralBattery) ||
             (manualSpinal != null && predictedSpinalBattery != null && manualSpinal != predictedSpinalBattery)
         val hasMuscleSignal = manualMuscleBatteries.isNotEmpty()
@@ -710,9 +721,7 @@ class AugeViewModel(application: Application) : AndroidViewModel(application) {
         if (derivedHoursSince < AugeAdaptiveEngine.MIN_HOURS_FOR_TAU_LEARNING) return
         if (derivedHoursSince > MAX_HOURS_FOR_TAU_LEARNING) return
 
-        val cache = augeRepo.getAdaptiveCache().let { raw ->
-            raw.copy(muscleDrainMultipliers = remapMuscleMultiplierMapToPillars(raw.muscleDrainMultipliers))
-        }
+        val cache = augeRepo.getAdaptiveCache()
         var updatedCache = cache
         var learned = false
 
@@ -824,6 +833,8 @@ class AugeViewModel(application: Application) : AndroidViewModel(application) {
         feedbacks: List<PostSessionFeedback>,
         lockHeld: Boolean,
     ): AugeAdaptiveCache {
+        // No sellar como aprendido un rendimiento cuyo aprendizaje está suspendido.
+        if (cache.schemaVersion >= 4) return cache
         val newest = history
             .filter { AugeUtils.logDateMs(it) > 0L }
             .maxByOrNull { AugeUtils.logDateMs(it) }
@@ -973,15 +984,14 @@ class AugeViewModel(application: Application) : AndroidViewModel(application) {
     ): DailyWellbeingLog? {
         if (wellbeing == null) return null
         val finishWindowStart = finishedMs - 5L * 60_000L
-        val finishAnchor = (wellbeing.manualBatteryAnchorMs ?: 0L) >= finishWindowStart
+        fun finishAnchor(channel: RecoveryChannelId) = wellbeing.manualAnchorMs(channel, ZoneId.systemDefault()) >= finishWindowStart
         val v2 = wellbeing.manualMuscleOverridesV2.filterValues { it.anchorEpochMs < finishWindowStart }
         return wellbeing.copy(
-            manualNeuralBattery = if (finishAnchor) null else wellbeing.manualNeuralBattery,
-            manualSpinalBattery = if (finishAnchor) null else wellbeing.manualSpinalBattery,
-            manualMuscularBattery = if (finishAnchor) null else wellbeing.manualMuscularBattery,
-            manualMuscleBatteries = if (finishAnchor) emptyMap() else wellbeing.manualMuscleBatteries,
+            manualNeuralBattery = if (finishAnchor(RecoveryChannelId.SYSTEM)) null else wellbeing.manualNeuralBattery,
+            manualSpinalBattery = if (finishAnchor(RecoveryChannelId.STRUCTURE)) null else wellbeing.manualSpinalBattery,
+            manualMuscularBattery = if (finishAnchor(RecoveryChannelId.MUSCULAR)) null else wellbeing.manualMuscularBattery,
+            manualMuscleBatteries = wellbeing.manualMuscleBatteries.filterKeys { wellbeing.legacyMuscleAnchorMs(it, ZoneId.systemDefault()) < finishWindowStart },
             manualMuscleOverridesV2 = v2,
-            manualBatteryAnchorMs = if (finishAnchor) null else wellbeing.manualBatteryAnchorMs,
         )
     }
 
@@ -991,14 +1001,14 @@ class AugeViewModel(application: Application) : AndroidViewModel(application) {
     ): PerformanceTauManualTouches {
         if (wellbeing == null) return PerformanceTauManualTouches()
         val finishWindowStart = finishedMs - 5L * 60_000L
-        val finishAnchor = (wellbeing.manualBatteryAnchorMs ?: 0L) >= finishWindowStart
+        fun finishAnchor(channel: RecoveryChannelId) = wellbeing.manualAnchorMs(channel, ZoneId.systemDefault()) >= finishWindowStart
         val v2Muscles = wellbeing.manualMuscleOverridesV2
             .filterValues { it.anchorEpochMs >= finishWindowStart }
             .keys
-        val v1Muscles = if (finishAnchor) wellbeing.manualMuscleBatteries.keys else emptySet()
+        val v1Muscles = wellbeing.manualMuscleBatteries.keys.filter { wellbeing.legacyMuscleAnchorMs(it, ZoneId.systemDefault()) >= finishWindowStart }.toSet()
         return PerformanceTauManualTouches(
-            energy = finishAnchor && wellbeing.manualNeuralBattery != null,
-            structure = finishAnchor && wellbeing.manualSpinalBattery != null,
+            energy = finishAnchor(RecoveryChannelId.SYSTEM) && wellbeing.manualNeuralBattery != null,
+            structure = finishAnchor(RecoveryChannelId.STRUCTURE) && wellbeing.manualSpinalBattery != null,
             muscles = v2Muscles + v1Muscles,
         )
     }

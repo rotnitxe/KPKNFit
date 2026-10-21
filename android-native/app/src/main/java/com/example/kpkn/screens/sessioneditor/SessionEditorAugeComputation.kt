@@ -516,7 +516,6 @@ internal fun computeSessionAugeComputation(
         tanks = tanks,
         adaptiveCache = AugeAdaptiveCache(),
         options = RecipeOptions(
-            muscleMultiplierSource = RecipeOptions.MuscleMultiplierSource.NONE,
             cardioHandling = RecipeOptions.CardioHandling.CONSUMER_HOOK,
             softCapUnits = RecipeOptions.SoftCapUnits.CHANNEL_PERCENT,
         ),

@@ -2,6 +2,8 @@ package com.example.kpkn.domain.auge
 
 import com.example.kpkn.data.models.DailyWellbeingLog
 import com.example.kpkn.data.models.WellbeingSource
+import com.example.kpkn.data.models.RecoveryChannelId
+import java.time.ZoneId
 
 /**
  * Lo que un guardado de bienestar CAMBIA de verdad respecto a lo ya guardado ese día (ver [detectWellbeingEdits]).
@@ -47,12 +49,16 @@ fun detectWellbeingEdits(existing: DailyWellbeingLog?, incoming: DailyWellbeingL
  *
  * - V2 por músculo: se conservan las de [existing], salvo los músculos que [incoming]
  *   cambia en V1 o declara en V2; de esos gana [incoming].
- * - Globales, V1 y ancla: si [incoming] cambia alguno, valen los suyos; si no, los de
- *   [existing] con su ancla (así no se reinicia su decaimiento).
+ * - Globales y V1: cada edición cambia solo su canal, con su propia ancla. Las copias
+ *   y los canales omitidos conservan el valor y el instante guardados.
  * - `capturedFields`: unión. `source`: el de [existing] si la fila nació en el alta (`ONBOARDING_INITIAL`), si no el
  *   de [incoming]. El resto de campos son los de [incoming].
  */
-fun mergeWellbeingForSave(existing: DailyWellbeingLog?, incoming: DailyWellbeingLog): DailyWellbeingLog {
+fun mergeWellbeingForSave(
+    existing: DailyWellbeingLog?,
+    incoming: DailyWellbeingLog,
+    zone: ZoneId = ZoneId.systemDefault(),
+): DailyWellbeingLog {
     if (existing == null) return incoming
 
     val edits = detectWellbeingEdits(existing, incoming)
@@ -61,15 +67,29 @@ fun mergeWellbeingForSave(existing: DailyWellbeingLog?, incoming: DailyWellbeing
     val keptV2 = existing.manualMuscleOverridesV2
         .filterKeys { getAugeMusclePillarId(it) !in declaredMuscles }
 
-    val channels = if (edits.isEmpty()) existing else incoming
+    fun anchor(channel: RecoveryChannelId, edited: Boolean, value: Int?, explicit: Long?): Long? = when {
+        edited -> incoming.manualAnchorMs(channel, zone)
+        !edits.isEmpty() && value != null -> existing.manualAnchorMs(channel, zone)
+        else -> explicit
+    }
+    val v1 = remapMuscleIntMapToPillars(existing.manualMuscleBatteries) + edits.muscles
+    val muscleAnchors = if (edits.isEmpty()) existing.manualMuscleAnchorMs else v1.keys.associateWith { muscle ->
+        if (muscle in edits.muscles) incoming.legacyMuscleAnchorMs(muscle, zone) else existing.legacyMuscleAnchorMs(muscle, zone)
+    }
 
     return incoming.copy(
-        manualMuscularBattery = channels.manualMuscularBattery,
-        manualNeuralBattery = channels.manualNeuralBattery,
-        manualSpinalBattery = channels.manualSpinalBattery,
-        manualMuscleBatteries = channels.manualMuscleBatteries,
-        manualBatteryAnchorMs = channels.manualBatteryAnchorMs,
+        manualMuscularBattery = edits.muscular ?: existing.manualMuscularBattery,
+        manualNeuralBattery = edits.neural ?: existing.manualNeuralBattery,
+        manualSpinalBattery = edits.spinal ?: existing.manualSpinalBattery,
+        manualMuscularAnchorMs = anchor(RecoveryChannelId.MUSCULAR, edits.muscular != null, existing.manualMuscularBattery, existing.manualMuscularAnchorMs),
+        manualNeuralAnchorMs = anchor(RecoveryChannelId.SYSTEM, edits.neural != null, existing.manualNeuralBattery, existing.manualNeuralAnchorMs),
+        manualSpinalAnchorMs = anchor(RecoveryChannelId.STRUCTURE, edits.spinal != null, existing.manualSpinalBattery, existing.manualSpinalAnchorMs),
+        manualMuscleBatteries = if (edits.isEmpty()) existing.manualMuscleBatteries else v1,
+        manualMuscleAnchorMs = muscleAnchors,
+        manualBatteryAnchorMs = if (edits.isEmpty()) existing.manualBatteryAnchorMs else incoming.manualBatteryAnchorMs,
         manualMuscleOverridesV2 = keptV2 + incoming.manualMuscleOverridesV2,
+        manualBatteryResetMs = mergeManualResetTimes(existing.manualBatteryResetMs, incoming.manualBatteryResetMs),
+        manualMuscleResetMs = mergeManualResetTimes(existing.manualMuscleResetMs, incoming.manualMuscleResetMs),
         capturedFields = existing.capturedFields + incoming.capturedFields,
         // La fila que nació en el alta conserva su procedencia: el chequeo previo la reenvía como DAILY_CHECK_IN y
         // `declaredCheckInChannels` la usa de respaldo para las filas sin `capturedFields`.
@@ -79,3 +99,9 @@ fun mergeWellbeingForSave(existing: DailyWellbeingLog?, incoming: DailyWellbeing
 
 /** Valor informado que no coincide con el guardado; `null` si no se informa o es el mismo. */
 private fun Int?.editedFrom(stored: Int?): Int? = this?.takeIf { it != stored }
+
+/** Una copia antigua no puede hacer retroceder un restablecimiento ya persistido. */
+private fun <K> mergeManualResetTimes(stored: Map<K, Long>, incoming: Map<K, Long>): Map<K, Long> =
+    (stored.keys + incoming.keys).associateWith { key ->
+        maxOf(stored[key] ?: Long.MIN_VALUE, incoming[key] ?: Long.MIN_VALUE)
+    }
