@@ -975,6 +975,39 @@ class NutritionRepository private constructor(
         return template
     }
 
+    // ─── Plantillas de comida durables (N4) ─────────────────────────────────────
+
+    /**
+     * Guarda una plantilla ESPERANDO el commit de Room y solo entonces la publica en [mealTemplates]: si Room falla, la excepción llega a
+     * quien llama y nada queda publicado. Reintentar con el mismo id no duplica (upsert por id); también sirve para renombrar. A diferencia
+     * de [upsertMealTemplate] (que publica antes y escribe en segundo plano), este es el camino de la interfaz.
+     */
+    suspend fun saveMealTemplate(template: MealTemplate) {
+        require(template.id.isNotBlank()) { "La plantilla necesita un id" }
+        require(template.name.isNotBlank()) { "La plantilla necesita un nombre" }
+        require(template.foods.isNotEmpty()) { "La plantilla necesita al menos un alimento" }
+        require(template.foods.all { food ->
+            food.amount.isFinite() && food.amount > 0.0 &&
+                listOf(food.calories, food.protein, food.carbs, food.fats).all { it.isFinite() && it >= 0.0 }
+        }) { "Cantidad o nutrientes no válidos en la plantilla" }
+        foodSaveMutex.withLock {
+            withContext(Dispatchers.IO) {
+                db.withTransaction { db.nutritionDao().upsertTemplate(template.toEntity()) }
+                _mealTemplates.update { current -> current.filterNot { it.id == template.id } + template }
+            }
+        }
+    }
+
+    /** Borra una plantilla esperando el commit; las comidas ya registradas con ella no cambian (guardan su propia copia). */
+    suspend fun deleteMealTemplate(id: String) {
+        foodSaveMutex.withLock {
+            withContext(Dispatchers.IO) {
+                db.withTransaction { db.nutritionDao().deleteTemplate(id) }
+                _mealTemplates.update { current -> current.filterNot { it.id == id } }
+            }
+        }
+    }
+
     // ─── SmartFoodResolver Integration (Phase B) ────────────────────────────────
 
     /** Serializa las reconstrucciones del índice: una llamada que espera encuentra la generación ya vigente. */
