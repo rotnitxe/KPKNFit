@@ -7,7 +7,9 @@ Hoy un «día completo» es cualquier día con un total > 0 (`NutritionCalibrati
 
 ## Cambio exacto
 
-### 1. Room v30 — dos tablas nuevas (UNA sola migración 29 → 30)
+### 1. Room v30 — dos tablas nuevas y un índice (UNA sola migración 29 → 30)
+**Además de las dos tablas:** añade un índice sobre `global_foods.sourceRecordId` (el código de barras de OFF; hoy sin índice): declara `Index("sourceRecordId")` en `@Entity(tableName = "global_foods", indices = [...])` y créalo en la migración con `CREATE INDEX IF NOT EXISTS` (idempotente; la tabla ya está poblada en las instalaciones existentes). Lo usa N3 para buscar por código sin escanear toda la tabla. Incluye en el test de migración que el índice existe tras migrar y que no se pierde ni una fila de `global_foods`. No cambies ninguna otra columna de esa tabla.
+
 Sigue el patrón de `data/db/VideoAnalysisMigration.kt`: función `xxxMigration(from: Int)` en archivo propio, **solo AÑADE** (`CREATE TABLE IF NOT EXISTS`), idempotente, con el DDL idéntico al de `schemas/…/30.json` (lo genera KSP; no se edita a mano), registrada en `addMigrations(...)` de `KpknDatabase` y `version = 30`. Un test que vigile que el DDL de la migración coincide con la entidad (como `VideoAnalysisMigrationValidateTest`).
 - `nutrition_day_marks`: `date TEXT PK` (`yyyy-MM-dd`, día local), `mark TEXT NOT NULL` (`PARTIAL` | `COMPLETE_CONFIRMED` | `FASTING`), `source TEXT NOT NULL` (`USER` | `REVIEW_ACCEPTED` | `REVIEW_REJECTED`), `updatedAt TEXT NOT NULL`. Una fila solo existe cuando el usuario (o una revisión aceptada/rechazada) declaró algo; sin fila = `DayMark.NONE`.
 - `nutrition_checkins` (la usa N2b; créala ahora para no tener una v31): `weekKey TEXT PK` (fecha ISO del inicio de la semana de check-in), `status TEXT NOT NULL` (`PENDING` | `APPLIED` | `DECLINED` | `POSTPONED` | `DISMISSED`), `decidedAt TEXT`, `proposalJson TEXT` (instantánea de la propuesta: estimación, objetivo anterior, objetivo propuesto, versión del modelo), `appliedPlanId TEXT`, `updatedAt TEXT NOT NULL`.
