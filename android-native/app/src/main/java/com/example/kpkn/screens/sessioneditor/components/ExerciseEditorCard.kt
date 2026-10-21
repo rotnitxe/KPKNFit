@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Star
@@ -45,6 +46,9 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.boundsInWindow
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
@@ -127,6 +131,8 @@ internal fun ExerciseEditorCard(
     autoExpand: Boolean,
     onAutoExpandHandled: () -> Unit,
     suppressIndividualRest: Boolean = false,
+    // La letra del miembro dentro de su superserie («A1», «A2»…): sustituye a la miniatura (ED-A · C1).
+    memberBadge: String? = null,
     enableDrag: Boolean = true,
     cardioFirst: Boolean = false,
     showCardioPlacementChip: Boolean = false,
@@ -280,7 +286,11 @@ internal fun ExerciseEditorCard(
                         .padding(vertical = 10.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    Thumbnail(cardio = cardio?.type, imageRes = thumbnailRes, pattern = pattern)
+                    if (memberBadge != null) {
+                        SupersetMemberBadge(label = memberBadge)
+                    } else {
+                        Thumbnail(cardio = cardio?.type, imageRes = thumbnailRes, pattern = pattern)
+                    }
                     Spacer(Modifier.width(12.dp))
                     Column(
                         modifier = Modifier
@@ -422,6 +432,34 @@ internal fun ExerciseEditorCard(
             onUpdateExercise = onUpdateExercise,
             onDismiss = { showCustomUnitModal = false },
         )
+    }
+}
+
+/**
+ * La insignia de un miembro de superserie (ED-A · C1): un círculo de 28 dp en `mente` con su letra («A1»), centrado en el mismo hueco de 40 dp
+ * que la miniatura, para que el texto de la fila no se mueva.
+ */
+@Composable
+internal fun SupersetMemberBadge(label: String) {
+    Box(
+        modifier = Modifier
+            .size(40.dp)
+            .testTag("session_superset_member_badge"),
+        contentAlignment = Alignment.Center,
+    ) {
+        Box(
+            modifier = Modifier
+                .size(28.dp)
+                .clip(CircleShape)
+                .background(SymbolPalette.mente.copy(alpha = 0.14f)),
+            contentAlignment = Alignment.Center,
+        ) {
+            Text(
+                text = label,
+                style = KpknType.caption.copy(fontSize = 12.sp, lineHeight = 16.sp, fontWeight = FontWeight.Bold),
+                color = SymbolPalette.mente,
+            )
+        }
     }
 }
 

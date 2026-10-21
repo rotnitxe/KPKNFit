@@ -171,7 +171,9 @@ class SessionListBehaviorTest {
         rule.onNodeWithText("Press inclinado").assertIsDisplayed()
         rule.onNodeWithText("Aperturas").assertIsDisplayed()
         rule.onNodeWithText("Cruces en polea").assertIsDisplayed()
-        rule.onNodeWithText("Superserie", substring = true).assertIsDisplayed()
+        // ED-A · C1: la cabecera lleva el rótulo «SUPERSERIE» en `mente` y sus fichas de rondas y descansos.
+        rule.onNodeWithText("SUPERSERIE").assertIsDisplayed()
+        rule.onNodeWithText("3 rondas").assertIsDisplayed()
     }
 
     @Test

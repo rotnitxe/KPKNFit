@@ -969,6 +969,7 @@ private fun LooseSupersetItem(
                             if (pendingAutoExpandExerciseId == member.id) onPendingAutoExpandHandled(member.id)
                         },
                         suppressIndividualRest = true,
+                        memberBadge = "A${position + 1}",
                     )
                 }
             }
@@ -1122,6 +1123,7 @@ private fun PartSupersetItem(
                             if (pendingAutoExpandExerciseId == member.id) onPendingAutoExpandHandled(member.id)
                         },
                         suppressIndividualRest = true,
+                        memberBadge = "A${position + 1}",
                     )
                 }
             }
