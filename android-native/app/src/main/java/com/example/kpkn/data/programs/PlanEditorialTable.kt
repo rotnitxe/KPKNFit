@@ -57,7 +57,7 @@ internal object PlanEditorialTable {
     private const val NOTE_SHEIKO =
         "Repite el mismo levantamiento varias veces en la sesión, como en el método."
     private const val NOTE_NSUNS =
-        "9 series del principal y 8 del complementario el mismo día, como en el método."
+        "9 series del principal y 8 o 9 del complementario el mismo día, como en el método."
     private const val NOTE_COAN =
         "Se suma a tu plan."
     private const val NOTE_LEGACY =
@@ -902,11 +902,10 @@ internal object PlanEditorialTable {
             "protocol:nsuns-531-lp-4d",
             thirdParty(
                 displayName = "nSuns 5/3/1",
-                summary = "4 días por semana, ciclos de 4 semanas: cada día haces 9 series de un levantamiento " +
-                    "principal y 8 de uno complementario. En sentadilla, peso muerto y banca pesada, la " +
-                    "tercera serie es un intento al 95 % de tu máximo de entrenamiento, hecho al máximo de " +
-                    "repeticiones: según cuántas hagas, el plan puede proponerte subir o bajar ese máximo. " +
-                    "Es muy exigente.",
+                summary = "4 días por semana, ciclos de 4 semanas: cada día, 9 series de un levantamiento " +
+                    "principal y 8 o 9 de uno complementario. En el principal (press militar, sentadilla, banca " +
+                    "pesada o peso muerto), la tercera serie es un intento al 95 % de tu máximo de entrenamiento, " +
+                    "al máximo de repeticiones: con 2 o 3 sube ese máximo 2,5 kg, con 4 o 5, 5 kg y con 6 o más, 7,5 kg.",
                 rank = 461,
                 level = CatalogLevel.ADVANCED,
                 methodName = "nSuns 5/3/1",

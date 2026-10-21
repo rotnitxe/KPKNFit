@@ -45,10 +45,16 @@ class ProtocolRecipeFidelityTest {
 
     @Test
     fun nsuns_t1_bench_has_nine_sets() {
+        // CAL5: la banca de volumen (9 series al 65-75-85-85-85-80-75-70-65 %) es ahora el complementario del primer día; su T1 es el press militar pesado.
         val protocol = visible().first { it.id == "nsuns-531-lp-4d" }
-        val t1 = protocol.recipe!!.weeks.first().days.first().slots.first { it.role == SlotRole.T1_MAIN }
-        assertEquals(9, t1.sets.size)
-        assertEquals(listOf(65.0, 75.0, 85.0, 85.0, 85.0, 80.0, 75.0, 70.0, 65.0), t1.sets.map { it.percent })
+        val day1 = protocol.recipe!!.weeks.first().days.first()
+        val bench = day1.slots.first { it.role == SlotRole.T2_SUPPLEMENTAL }
+        assertEquals(CatalogIds.BP, bench.lift.configurationId)
+        assertEquals(9, bench.sets.size)
+        assertEquals(listOf(65.0, 75.0, 85.0, 85.0, 85.0, 80.0, 75.0, 70.0, 65.0), bench.sets.map { it.percent })
+        val ohp = day1.slots.first { it.role == SlotRole.T1_MAIN }
+        assertEquals(CatalogIds.OHP, ohp.lift.configurationId)
+        assertEquals(9, ohp.sets.size)
     }
 
     @Test
@@ -114,8 +120,9 @@ class ProtocolRecipeFidelityTest {
 
     @Test
     fun nsuns_t2_has_eight_sets() {
+        // CAL5: el T2 del primer día es la banca de volumen (9 series); el de los demás días sigue siendo la tabla de 8.
         val protocol = visible().first { it.id == "nsuns-531-lp-4d" }
-        val t2 = protocol.recipe!!.weeks.first().days.first().slots.first { it.role == SlotRole.T2_SUPPLEMENTAL }
+        val t2 = protocol.recipe!!.weeks.first().days[1].slots.first { it.role == SlotRole.T2_SUPPLEMENTAL }
         assertEquals(8, t2.sets.size)
     }
 
@@ -521,14 +528,11 @@ class ProtocolRecipeFidelityTest {
                 val t1 = day.slots.single { it.id == "t1" }
                 val amraps = t1.sets.filter { it.amrap }
                 val label = "w${week.weekNumber}/${day.label}"
-                if (day.label == "Banca/OHP") {
-                    assertTrue("$label: la banca de volumen ya no lleva AMRAP", amraps.isEmpty())
-                } else {
-                    val amrap = amraps.single()
-                    assertEquals("$label: AMRAP en la serie 1+", 1, amrap.reps)
-                    assertEquals("$label: al 95 % del TM", 95.0, amrap.percent!!, 1e-9)
-                    assertEquals("$label: la tercera serie", 2, t1.sets.indexOf(amrap))
-                }
+                // CAL5: los cuatro T1 (press militar, sentadilla, banca pesada y peso muerto) llevan su 1+ al 95 % en la tercera serie.
+                val amrap = amraps.single()
+                assertEquals("$label: AMRAP en la serie 1+", 1, amrap.reps)
+                assertEquals("$label: al 95 % del TM", 95.0, amrap.percent!!, 1e-9)
+                assertEquals("$label: la tercera serie", 2, t1.sets.indexOf(amrap))
             }
         }
         val tooLight = slotsOf(recipe).flatMap { slot -> workSets(slot).filter { it.amrap && (it.percent ?: 0.0) < ProgramAutoregulationEngine.AMRAP_TM_MIN_PERCENT } }
@@ -537,10 +541,10 @@ class ProtocolRecipeFidelityTest {
         val closeGrip = recipe.weeks.first().days.first { it.label == "Banca/Cerrado" }.slots.first { it.id == "t2" }
         assertEquals(CatalogIds.BP_CLOSE_GRIP, closeGrip.lift.configurationId)
         assertNull(closeGrip.technique)
-        // C1: las cuatro series de 9 se declaran por slot (el `t1` de cada día), nunca con un comodín.
+        // C1: las series de 9 se declaran por slot (el `t1` de cada día y la banca de volumen, T2 del primer día), nunca con un comodín.
         val c1Exemptions = recipe.exemptions.filter { it.rule == RecipeContractPolicy.C1_SET_RANGE }
         assertEquals(
-            listOf("w*/Banca/OHP/t1", "w*/Sentadilla/Sumo/t1", "w*/Banca/Cerrado/t1", "w*/Peso muerto/Frontal/t1"),
+            listOf("w*/Banca/OHP/t1", "w*/Banca/OHP/t2", "w*/Sentadilla/Sumo/t1", "w*/Banca/Cerrado/t1", "w*/Peso muerto/Frontal/t1"),
             c1Exemptions.map { it.scope },
         )
         assertTrue(c1Exemptions.all { it.justification.length >= 25 && it.sourceUrl != null })
