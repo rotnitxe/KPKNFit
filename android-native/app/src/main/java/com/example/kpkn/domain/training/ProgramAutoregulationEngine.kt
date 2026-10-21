@@ -5,6 +5,7 @@ import com.example.kpkn.data.models.AutoregulationMode
 import com.example.kpkn.data.models.AutoregulationProposal
 import com.example.kpkn.data.models.AutoregulationProposalKind
 import com.example.kpkn.data.models.AppliedRecipeProposal
+import com.example.kpkn.data.models.CalibrationScope
 import com.example.kpkn.data.models.CompletedExercise
 import com.example.kpkn.data.models.CompletedSet
 import com.example.kpkn.data.models.Exercise
@@ -19,20 +20,29 @@ import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.models.ProgramWeek
 import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.models.Settings
+import com.example.kpkn.data.models.SetPurpose
 import com.example.kpkn.data.models.WorkoutLog
 import com.example.kpkn.data.protocols.AutoregulationHookKind
 import com.example.kpkn.data.protocols.LiftSlot
 import com.example.kpkn.data.protocols.LoadBasis
 import com.example.kpkn.data.protocols.ProgressionRule
 import com.example.kpkn.data.protocols.SlotRecipe
+import com.example.kpkn.data.protocols.SlotRole
 import com.example.kpkn.data.protocols.TechniqueModifier
 import com.example.kpkn.data.protocols.TrainingPlanRecipe
 import com.example.kpkn.domain.auge.AugeUtils
 import com.example.kpkn.domain.auge.LoadAdvisoryEngine
 import com.example.kpkn.domain.calculations.calculateHybrid1RM
+import com.example.kpkn.domain.calibration.CalibrationContext
+import com.example.kpkn.domain.calibration.CalibrationDecisionType
+import com.example.kpkn.domain.calibration.CalibrationEngine
+import com.example.kpkn.domain.calibration.CalibrationReferenceCandidates
+import com.example.kpkn.domain.calibration.DeclaredCalibrationOneRm
+import com.example.kpkn.domain.calibration.RecordedCalibrationSet
 import com.example.kpkn.domain.text.SpanishPlurals
 import kotlin.math.abs
 import kotlin.math.floor
+import kotlin.math.roundToInt
 
 /**
  * Una serie AMRAP realizada. [liftSlot] es null cuando el ejercicio no declara levantamiento en su
@@ -46,7 +56,25 @@ data class AmrapHit(
     val actualReps: Int,
     val meanRpe: Double? = null,
     val weightRatio: Double? = null,
-)
+    /** Carga realmente levantada (kg normalizados); null si el registro no la trae. */
+    val weightKg: Double? = null,
+    /** Propósito PRESCRITO de la serie: `AMRAP` (rinde y alimenta la regla del programa) o `CALIBRATOR`. */
+    val purpose: SetPurpose = SetPurpose.AMRAP,
+    /** Alcance del calibrador prescrito; solo cuenta con `CALIBRATOR`. */
+    val calibrationScope: CalibrationScope? = null,
+    /** Reserva declarada al terminar la serie (RIR) y si llegó al fallo: elegibilidad del calibrador. */
+    val declaredRir: Int? = null,
+    val reachedFailure: Boolean = false,
+    val partialReps: Int = 0,
+    /** Configuración del catálogo del ejercicio: contexto exacto del calibrador. */
+    val configurationId: String? = null,
+    /** true si es la ÚLTIMA serie AMRAP de su ejercicio en el registro (la serie 4 de APRE); con una sola AMRAP, siempre. */
+    val isLastAmrapOfExercise: Boolean = true,
+) {
+    /** true si la serie es un calibrador de «próximas sesiones»: su canal es la propuesta de TM del programa. */
+    val isNextSessionsCalibrator: Boolean
+        get() = purpose == SetPurpose.CALIBRATOR && calibrationScope == CalibrationScope.NEXT_SESSIONS
+}
 
 /** Un top set realizado (serie con `isTopSet` de un slot con levantamiento), para `TopSetPr`. */
 data class TopSetHit(
@@ -567,8 +595,8 @@ object ProgramAutoregulationEngine {
         week.sessions.forEach { session ->
             val sessionLogs = logsOfSession(weekLogs, session, weekSessionIds)
             session.allExercises().forEach { exercise ->
-                pairedSets(exercise, sessionLogs, isTarget = { it.purpose.isAmrap }, isFlagged = { it.performedPurpose()?.isAmrap == true })
-                    .forEach { pair ->
+                val amrapPairs = pairedSets(exercise, sessionLogs, isTarget = { it.purpose.isAmrap }, isFlagged = { it.performedPurpose()?.isAmrap == true })
+                amrapPairs.forEachIndexed { pairIndex, pair ->
                         out += AmrapHit(
                             liftSlot = lifts.liftSlotFor(exercise),
                             percent = pair.prescribed.targetPercentageRM,
@@ -578,6 +606,14 @@ object ProgramAutoregulationEngine {
                             actualReps = pair.performed.reps,
                             meanRpe = pair.performed.rpe ?: pair.prescribed.targetRPE,
                             weightRatio = weightRatio(pair.prescribed, pair.performed),
+                            weightKg = pair.performed.weight.takeIf { it > 0.0 },
+                            purpose = if (pair.prescribed.purpose == SetPurpose.CALIBRATOR) SetPurpose.CALIBRATOR else SetPurpose.AMRAP,
+                            calibrationScope = pair.prescribed.calibrationScope.takeIf { pair.prescribed.purpose == SetPurpose.CALIBRATOR },
+                            declaredRir = pair.performed.rir ?: pair.performed.rpe?.let { rpe -> (10.0 - rpe).roundToInt().coerceAtLeast(0) },
+                            reachedFailure = pair.performed.isFailure,
+                            partialReps = (pair.performed.partialReps ?: 0).coerceAtLeast(0),
+                            configurationId = exercise.catalogConfigurationId ?: exercise.exerciseDbId,
+                            isLastAmrapOfExercise = pairIndex == amrapPairs.lastIndex,
                         )
                     }
             }
@@ -626,7 +662,8 @@ object ProgramAutoregulationEngine {
 
     /**
      * Series al máximo realizadas en [week] para `RepMaxAutoregulated`: series con base `REP_MAX` (o top
-     * set sin porcentaje) del levantamiento de COMPETICIÓN de la receta (`recipe.liftSlots`). Las
+     * set sin porcentaje), series AMRAP con porcentaje (el RM semanal de J&T 2.0, CAL5) y el single del test
+     * al 100 % del 1RM, del levantamiento de COMPETICIÓN de la receta (`recipe.liftSlots`). Las
      * variantes (cajón, buenos días, press con cadenas…) no cuentan: su máximo no se compara con el 1RM
      * del levantamiento. Solo series de 1 a [REP_MAX_MAX_REPS] repeticiones con carga.
      */
@@ -649,10 +686,22 @@ object ProgramAutoregulationEngine {
                 val lift = lifts.liftSlotFor(exercise) ?: return@forEach
                 val configurationId = exercise.catalogConfigurationId ?: exercise.exerciseDbId
                 if (configurationId == null || recipe.liftSlots[lift] != configurationId) return@forEach
+                // CAL5 (J&T 2.0): el RM semanal del T1 es una serie AMRAP con porcentaje («1×10+ al 77,5 %»), no una serie con base
+                // REP_MAX ni un top set sin porcentaje: por eso el gancho nunca se disparaba. Cuenta también el single del test al 100 %.
                 val isRepMaxSet = { set: ExerciseSet ->
-                    set.loadBasis == LoadBasis.REP_MAX || (set.isTopSet && set.targetPercentageRM == null)
+                    set.loadBasis == LoadBasis.REP_MAX ||
+                        (set.isTopSet && set.targetPercentageRM == null) ||
+                        isMaxRepsAtPercent(set) ||
+                        isOneRmTestSet(set)
                 }
-                pairedSets(exercise, sessionLogs, isTarget = isRepMaxSet, isFlagged = null)
+                val positional = pairedSets(exercise, sessionLogs, isTarget = isRepMaxSet, isFlagged = null)
+                val flagged = pairedSets(
+                    exercise, sessionLogs,
+                    isTarget = { it.purpose.isAmrap },
+                    isFlagged = { it.performedPurpose()?.isAmrap == true },
+                )
+                (positional + flagged)
+                    .distinctBy { it.performed.id }
                     .forEach { pair ->
                         val reps = pair.performed.reps
                         val weight = pair.performed.weight
@@ -685,6 +734,145 @@ object ProgramAutoregulationEngine {
         .flatMap { week -> collectAmrapHits(week, logs, cycleNumber, programId, runId, recipe) }
         .filter { hit -> isShortAmrap(hit) }
         .mapNotNullTo(linkedSetOf<LiftSlot>()) { hit -> hit.liftSlot }
+
+    /** Una serie al máximo de repeticiones con un porcentaje prescrito (el RM semanal de J&T): `AMRAP` y `%`, sin ser un calibrador de sesión. */
+    internal fun isMaxRepsAtPercent(set: ExerciseSet): Boolean =
+        set.purpose.isAmrap && set.targetPercentageRM != null && set.loadBasis != LoadBasis.RPE
+
+    /** El single del test de 1RM: un top set de 1 repetición al 100 % o más del 1RM (`PERCENT_1RM`). */
+    internal fun isOneRmTestSet(set: ExerciseSet): Boolean =
+        set.isTopSet && set.loadBasis == LoadBasis.PERCENT_1RM &&
+            (set.targetPercentageRM ?: 0.0) >= 100.0 &&
+            (set.targetReps ?: set.targetRepsRange?.min ?: 1) <= 1
+
+    /**
+     * CAL5 · 5/3/1: ciclos SEGUIDOS, contando el que se cierra ([closingCycle]), en los que cada levantamiento tuvo un AMRAP
+     * corto (no alcanzó las repeticiones mínimas). Solo salen los levantamientos congelados en el ciclo que se cierra. El
+     * reinicio del TM llega cada [CycleIncrement.resetAfterFrozenCycles] ciclos congelados seguidos: con 2, en la racha 2, 4,
+     * 6… (tras un reinicio la cuenta vuelve a empezar). Lee los registros de cada ciclo: no guarda estado.
+     */
+    internal fun frozenCycleStreaks(
+        weeks: List<ProgramWeek>,
+        logs: List<WorkoutLog>,
+        closingCycle: Int,
+        programId: String,
+        runId: String?,
+        recipe: TrainingPlanRecipe,
+    ): Map<LiftSlot, Int> {
+        val streaks = mutableMapOf<LiftSlot, Int>()
+        var alive: Set<LiftSlot>? = null
+        var cycle = closingCycle
+        while (cycle >= 1) {
+            val frozen = shortAmrapLifts(weeks, logs, cycle, programId, runId, recipe)
+            val current = alive?.intersect(frozen) ?: frozen
+            if (current.isEmpty()) break
+            current.forEach { lift -> streaks[lift] = (streaks[lift] ?: 0) + 1 }
+            alive = current
+            cycle--
+        }
+        return streaks
+    }
+
+    /**
+     * Resultado de un T1, T2 o T3 de GZCLP en una semana: repeticiones prescritas (volumen base de la etapa: 15, 12 o 10 en el
+     * T1; 30, 24 o 18 en el T2) frente a las hechas, y las de la última serie (el T3 sube cuando esa serie llega a 25). El T3 no
+     * declara levantamiento ([liftSlot] null).
+     */
+    data class GzclpTierCheck(
+        val liftSlot: LiftSlot?,
+        val role: SlotRole,
+        val plannedReps: Int,
+        val doneReps: Int,
+        val lastSetReps: Int?,
+        val exerciseName: String? = null,
+    ) {
+        val completedBaseVolume: Boolean get() = doneReps >= plannedReps
+    }
+
+    /**
+     * CAL5 · GZCLP: por cada sesión de [weeks] con un T1 o un T2 de levantamiento conocido (y cada T3), el volumen hecho frente
+     * al prescrito en el registro más reciente de la sesión. «No completar el volumen base» (Lefever) es quedarse por debajo de
+     * las repeticiones prescritas del slot; un ejercicio sin registro no da dato.
+     */
+    internal fun collectGzclpTierChecks(
+        weeks: List<ProgramWeek>,
+        logs: List<WorkoutLog>,
+        cycleNumber: Int,
+        programId: String,
+        runId: String?,
+        recipe: TrainingPlanRecipe,
+    ): List<GzclpTierCheck> {
+        val lifts = RecipeLiftResolver(recipe)
+        val out = mutableListOf<GzclpTierCheck>()
+        weeks.forEach { week ->
+            val weekLogs = weekLogsOf(week, logs, cycleNumber, programId, runId)
+            if (weekLogs.isEmpty()) return@forEach
+            val weekSessionIds = week.sessions.mapTo(mutableSetOf()) { it.id }
+            week.sessions.forEach { session ->
+                val sessionLogs = logsOfSession(weekLogs, session, weekSessionIds)
+                session.allExercises().forEach { exercise ->
+                    val role = exercise.slotRole
+                    if (role != SlotRole.T1_MAIN && role != SlotRole.T2_SUPPLEMENTAL && role != SlotRole.T3_ACCESSORY) return@forEach
+                    val lift = lifts.liftSlotFor(exercise)
+                    if (role != SlotRole.T3_ACCESSORY && lift == null) return@forEach
+                    val plannedReps = exercise.sets.filterNot { it.isEmptySlot }
+                        .sumOf { set -> set.targetReps ?: set.targetRepsRange?.min ?: 0 }
+                    if (plannedReps <= 0) return@forEach
+                    val done = sessionLogs.firstNotNullOfOrNull { log ->
+                        loggedExercisesOf(log, exercise).flatMap { it.sets }
+                            .filter { !it.isWarmup && !it.skipped }
+                            .takeIf { it.isNotEmpty() }
+                    } ?: return@forEach
+                    out += GzclpTierCheck(
+                        liftSlot = lift,
+                        role = role,
+                        plannedReps = plannedReps,
+                        doneReps = done.sumOf { it.reps },
+                        lastSetReps = done.last().reps,
+                        exerciseName = exercise.name,
+                    )
+                }
+            }
+        }
+        return out
+    }
+
+    /** El single de un test de 1RM realizado: levantamiento, carga y repeticiones (CAL5, precarga del test de bloques). */
+    data class OneRmTestHit(val liftSlot: LiftSlot, val weightKg: Double, val reps: Int)
+
+    /**
+     * CAL5: las series «Test» de [weeks] ([isOneRmTestSet]: el single al 100 % del 1RM de un top set) realizadas en los
+     * registros, para precargar el test de 1RM al cerrar el bloque. Solo cuentan las series con repeticiones y carga y las
+     * no marcadas como fallidas. Sin [cycleNumber] y [programId] se leen todos los registros de la semana plantilla.
+     */
+    fun collectOneRmTestHits(
+        weeks: List<ProgramWeek>,
+        logs: List<WorkoutLog>,
+        recipe: TrainingPlanRecipe?,
+        cycleNumber: Int? = null,
+        programId: String? = null,
+        runId: String? = null,
+    ): List<OneRmTestHit> {
+        val lifts = RecipeLiftResolver(recipe)
+        val out = mutableListOf<OneRmTestHit>()
+        weeks.forEach { week ->
+            val weekLogs = weekLogsOf(week, logs, cycleNumber, programId, runId)
+            if (weekLogs.isEmpty()) return@forEach
+            val weekSessionIds = week.sessions.mapTo(mutableSetOf()) { it.id }
+            week.sessions.forEach { session ->
+                val sessionLogs = logsOfSession(weekLogs, session, weekSessionIds)
+                session.allExercises().forEach { exercise ->
+                    val lift = lifts.liftSlotFor(exercise) ?: return@forEach
+                    pairedSets(exercise, sessionLogs, isTarget = { isOneRmTestSet(it) }, isFlagged = null).forEach { pair ->
+                        val performed = pair.performed
+                        if (performed.reps < 1 || performed.weight <= 0.0 || performed.isFailedSet) return@forEach
+                        out += OneRmTestHit(lift, performed.weight, performed.reps)
+                    }
+                }
+            }
+        }
+        return out
+    }
 
     /** Un par serie prescrita / serie registrada del mismo ejercicio. */
     private class SetPair(val prescribed: ExerciseSet, val performed: CompletedSet)
@@ -1006,16 +1194,19 @@ object ProgramAutoregulationEngine {
     // ─── Progresión por rendimiento: propuestas ADJUST_TM ──────────────────────────────
 
     /**
-     * Propuestas `ADJUST_TM` de la progresión por rendimiento: el AMRAP de la semana (cualquier regla
-     * puede bajar el TM si el AMRAP quedó corto; solo `AmrapDrivenTm` y `RepTargetDrivenTm` lo suben), el
+     * Propuestas `ADJUST_TM` de la progresión por rendimiento: el AMRAP de la semana (solo `AmrapDrivenTm` y
+     * `RepTargetDrivenTm`, más una regla o un gancho genéricos, lo traducen a TM), el calibrador de «próximas sesiones», el
      * top set de `TopSetPr` y la serie al máximo de `RepMaxAutoregulated`. Un levantamiento sin ajuste
      * (hit sin levantamiento, cambio nulo) no genera propuesta.
      *
      * H-05 (B.S6 parte 2b): el AMRAP de una receta SIN regla de progresión (`None`) y sin el gancho
-     * `AMRAP_TM` no mueve el TM, ni para subirlo ni para bajarlo ([amrapMovesTm]). Cube, Lilliebridge y la
-     * plantilla de powerlifting de 12 semanas llevan series AMRAP marcadas como parte de su tabla, pero su
-     * método no usa el AMRAP para ajustar el TM: antes un AMRAP corto de esas recetas caía en la rama «otra
-     * regla» y proponía bajar el TM un 2,5 %.
+     * `AMRAP_TM` no mueve el TM, ni para subirlo ni para bajarlo ([amrapMovesTm]).
+     *
+     * CAL5: el AMRAP de cada programa de autor sigue la regla de su fuente (RES1 §12.6). En 5/3/1 la serie «+» no mueve el TM
+     * (lo sube el ciclo y lo congela o reinicia un ciclo sin repeticiones mínimas); en Juggernaut y GZCLP el AMRAP actúa al
+     * cerrar la ola o el ciclo; en J&T lo mide la serie al máximo. Ninguna de esas reglas pasa por esta función
+     * ([amrapMovesTm]). El calibrador de «próximas sesiones» (plantillas `power-*`) sí: su capacidad se compara con el 1RM que
+     * implica el TM y el factor del calibrador, acotado por `CalibrationPolicy`, se propone como cambio porcentual del TM.
      */
     private fun performanceProposals(
         recipe: TrainingPlanRecipe,
@@ -1026,9 +1217,18 @@ object ProgramAutoregulationEngine {
         val proposals = mutableListOf<AutoregulationProposal>()
         val amrapCanMoveTm = amrapMovesTm(recipe)
         signals.amrapHits.forEach { hit ->
-            if (!amrapCanMoveTm) return@forEach
             // Sin levantamiento en la receta (las dominadas de Texas) el hit solo se registra: no hay TM que ajustar.
             val lift = hit.liftSlot ?: return@forEach
+            if (hit.isNextSessionsCalibrator) {
+                calibratorProposal(recipe, profile, hit, lift)?.let { proposals += it }
+                return@forEach
+            }
+            val apre = recipe.progression as? ProgressionRule.ApreXrm
+            if (apre != null) {
+                apreProposal(recipe, apre, profile, hit, lift)?.let { proposals += it }
+                return@forEach
+            }
+            if (!amrapCanMoveTm) return@forEach
             val change = amrapTmChange(recipe.progression, hit) ?: return@forEach
             proposals += tmProposal(lift, change, amrapExplanation(hit, lift, change, readiness))
         }
@@ -1052,6 +1252,103 @@ object ProgramAutoregulationEngine {
         return proposals.sortedBy { proposal -> if (proposal.isReduction()) 0 else 1 }
     }
 
+    /**
+     * CAL5/CAL6 · canal de propuestas del calibrador de «próximas sesiones» en programas con TM (`power-*`): la capacidad C de
+     * la serie (e1RM del motor común, tope de 10 repeticiones, reserva declarada 0-1 o fallo) se compara con la referencia B,
+     * el 1RM que implica el TM (`TM ÷ trainingMaxPercent`), y el factor del calibrador (zona muerta 0,97-1,025, topes +5 % y
+     * −8 %) pasa a ser un cambio porcentual del TM. Una serie no elegible (sin esfuerzo declarado, reserva alta, sin carga
+     * externa…) o con una capacidad dentro de la zona muerta no genera propuesta: el calibrador nunca pasa por encima de la
+     * receta. Respeta OFF, PROPOSE y AUTO porque sale de [evaluate].
+     */
+    internal fun calibratorProposal(
+        recipe: TrainingPlanRecipe,
+        profile: PowerliftingProfile?,
+        hit: AmrapHit,
+        lift: LiftSlot,
+    ): AutoregulationProposal? {
+        val decision = calibratorDecision(recipe, profile, hit, lift) ?: return null
+        if (decision.type != CalibrationDecisionType.RAISE && decision.type != CalibrationDecisionType.LOWER) return null
+        val percent = (decision.factor - 1.0) * 100.0
+        if (abs(percent) < 1e-9) return null
+        val capacity = decision.capacityKg ?: return null
+        val weight = hit.weightKg ?: return null
+        val implied = decision.referenceKg ?: return null
+        val change = TmChange(percentDelta = percent)
+        return tmProposal(
+            lift,
+            change,
+            "Calibrador de ${AuthoredProgressionEngine.liftName(lift)}: ${SpanishPlurals.reps(hit.actualReps)} con " +
+                "${NativeProgressionText.formatKg(weight)} kg estiman ${NativeProgressionText.formatKg(capacity)} kg de 1RM " +
+                "frente a los ${NativeProgressionText.formatKg(implied)} kg que implica tu TM: TM ${changeText(change)}",
+        )
+    }
+
+    /**
+     * CAL6 · APRE (Mann): las repeticiones válidas de la serie 4 y su carga fijan el XRM de la semana siguiente con la tabla de Mann
+     * (redondeado al material); como el TM de la receta es el 1RM con el porcentaje del plan, el XRM nuevo se propone como el cambio
+     * porcentual del TM que lleva el XRM prescrito (el TM por el porcentaje de la serie) al XRM nuevo. Solo la última AMRAP de cada
+     * ejercicio cuenta: la serie 3 solo fija la serie 4 de la misma sesión ([Apre.set4LoadKg]).
+     */
+    internal fun apreProposal(
+        recipe: TrainingPlanRecipe,
+        rule: ProgressionRule.ApreXrm,
+        profile: PowerliftingProfile?,
+        hit: AmrapHit,
+        lift: LiftSlot,
+    ): AutoregulationProposal? {
+        if (!hit.isLastAmrapOfExercise) return null
+        val variant = Apre.variantOfXrmReps(hit.prescribedReps) ?: return null
+        val weight = hit.weightKg ?: return null
+        val percent = hit.percent?.takeIf { it > 0.0 } ?: return null
+        if (profile == null || recipe.trainingMaxPercent <= 0.0) return null
+        val tm = TrainingMaxResolver.trainingMax(profile, lift, recipe.trainingMaxPercent) ?: return null
+        val validReps = Apre.validReps(hit.actualReps)
+        val newXrm = Apre.nextWeekXrmKg(weight, validReps, variant, rule.incrementKg)
+        val plannedXrm = tm * percent / 100.0
+        if (plannedXrm <= 0.0 || newXrm <= 0.0) return null
+        val delta = (newXrm / plannedXrm - 1.0) * 100.0
+        if (abs(delta) < 1e-9) return null
+        val change = TmChange(percentDelta = delta)
+        return tmProposal(
+            lift,
+            change,
+            "${variant.label} de ${AuthoredProgressionEngine.liftName(lift)}: ${SpanishPlurals.reps(validReps)} con " +
+                "${NativeProgressionText.formatKg(weight)} kg en la serie 4: tu ${variant.xrmReps}RM de la semana próxima es " +
+                "${NativeProgressionText.formatKg(newXrm)} kg (TM ${changeText(change)})",
+        )
+    }
+
+    /** La decisión del motor de calibración (CAL2) para [hit] contra el 1RM que implica el TM del programa; null sin carga, TM o perfil. */
+    internal fun calibratorDecision(
+        recipe: TrainingPlanRecipe,
+        profile: PowerliftingProfile?,
+        hit: AmrapHit,
+        lift: LiftSlot,
+    ): com.example.kpkn.domain.calibration.CalibrationDecision? {
+        val weight = hit.weightKg ?: return null
+        if (profile == null || recipe.trainingMaxPercent <= 0.0) return null
+        val tm = TrainingMaxResolver.trainingMax(profile, lift, recipe.trainingMaxPercent) ?: return null
+        val implied = tm / recipe.trainingMaxPercent
+        val configurationId = hit.configurationId ?: lift.name
+        val context = CalibrationContext(configurationId = configurationId, equipmentKey = "programa")
+        return CalibrationEngine.calibrate(
+            source = RecordedCalibrationSet(
+                setId = "programa-${lift.name}",
+                exerciseId = configurationId,
+                context = context,
+                externalLoadKg = weight,
+                fullReps = hit.actualReps,
+                partialReps = hit.partialReps,
+                declaredRir = hit.declaredRir,
+                reachedFailure = hit.reachedFailure,
+            ),
+            pendingSets = emptyList(),
+            references = CalibrationReferenceCandidates(declaredOneRm = DeclaredCalibrationOneRm(context, implied)),
+            nowEpochMillis = 0L,
+            scope = CalibrationScope.NEXT_SESSIONS,
+        )
+    }
+
     private fun tmProposal(lift: LiftSlot, change: TmChange, explanation: String): AutoregulationProposal =
         AutoregulationProposal(
             kind = AutoregulationProposalKind.ADJUST_TM,
@@ -1065,13 +1362,27 @@ object ProgramAutoregulationEngine {
         (kgDelta ?: 0.0) < 0.0 || (percentDelta ?: 0.0) < 0.0
 
     /**
-     * true si el AMRAP de [recipe] puede mover el TM: la receta declara una regla de progresión o el
-     * gancho `AMRAP_TM`. Sin ninguna de las dos (`None` y sin gancho) el AMRAP es solo una serie al máximo
-     * de la tabla del autor y no genera propuestas de TM (H-05).
+     * true si el AMRAP de [recipe] puede mover el TM por la vía semanal (propuesta `ADJUST_TM`): la receta declara
+     * `AmrapDrivenTm` o `RepTargetDrivenTm`, o una regla o el gancho `AMRAP_TM` genéricos. Sin ninguna de las dos (`None` y
+     * sin gancho) el AMRAP es solo una serie al máximo de la tabla del autor y no genera propuestas de TM (H-05).
+     *
+     * CAL5: el AMRAP de las reglas de ciclo u ola no mueve el TM aquí, porque en su fuente actúa al cerrar el ciclo o la ola:
+     * `CycleIncrement` (5/3/1: la serie «+» no mueve el TM), `RepsOverStandardTm` (Juggernaut) y `StagedVolume` (GZCLP), y
+     * `RepMaxAutoregulated` lo mide con el e1RM de la serie al máximo (J&T), no con el AMRAP corto.
      */
-    internal fun amrapMovesTm(recipe: TrainingPlanRecipe): Boolean =
-        recipe.progression != ProgressionRule.None ||
+    internal fun amrapMovesTm(recipe: TrainingPlanRecipe): Boolean = when (recipe.progression) {
+        is ProgressionRule.AmrapDrivenTm,
+        is ProgressionRule.RepTargetDrivenTm,
+        is ProgressionRule.ApreXrm,
+        -> true
+        is ProgressionRule.CycleIncrement,
+        is ProgressionRule.RepsOverStandardTm,
+        is ProgressionRule.StagedVolume,
+        ProgressionRule.RepMaxAutoregulated,
+        -> false
+        else -> recipe.progression != ProgressionRule.None ||
             recipe.autoregulationHooks.any { it.kind == AutoregulationHookKind.AMRAP_TM }
+    }
 
     /**
      * AMRAP corto: menos repeticiones que el objetivo. Un AMRAP corto nunca sube el TM.
@@ -1086,9 +1397,10 @@ object ProgramAutoregulationEngine {
     /**
      * Cambio de TM de un AMRAP según la regla de la receta, o null si no mueve el TM. Lo corto se evalúa
      * PRIMERO y nunca sube:
-     * - corto con `AmrapDrivenTm`: baja [TM_DOWN_PERCENT] % (su tabla en kilos no define bajadas); con
-     *   `RepTargetDrivenTm`: `missedRepPercent` por repetición que falta, solo si faltan `missThreshold` o
-     *   más; con cualquier otra regla: [TM_DOWN_PERCENT] % si faltaron repeticiones.
+     * - corto con `AmrapDrivenTm` (nSuns): sin cambio (CAL5: la tabla de su fuente va de «0-1 repeticiones: sin subida» y no
+     *   define bajadas); con `RepTargetDrivenTm`: `missedRepPercent` por repetición que falta, solo si faltan `missThreshold` o
+     *   más; con las reglas de ciclo, de ola y de etapas y con `RepMaxAutoregulated`: sin cambio (su AMRAP actúa al cerrar o
+     *   por el e1RM); con cualquier otra regla genérica: [TM_DOWN_PERCENT] % si faltaron repeticiones.
      * - no corto con `AmrapDrivenTm`: los kilos de su tabla (0-1, 2-3, 4-5 y 6 o más repeticiones; 0 kg =
      *   nada) y solo desde [AMRAP_TM_MIN_PERCENT] % del TM; con `RepTargetDrivenTm`: `extraRepPercent` por
      *   repetición sobre el objetivo. Si se levantó menos de lo prescrito ([LIGHTER_LOAD_RATIO]) no sube.
@@ -1103,7 +1415,13 @@ object ProgramAutoregulationEngine {
                     } else {
                         null
                     }
-                is ProgressionRule.AmrapDrivenTm -> TmChange(percentDelta = TM_DOWN_PERCENT)
+                is ProgressionRule.AmrapDrivenTm,
+                is ProgressionRule.CycleIncrement,
+                is ProgressionRule.RepsOverStandardTm,
+                is ProgressionRule.StagedVolume,
+                is ProgressionRule.ApreXrm,
+                ProgressionRule.RepMaxAutoregulated,
+                -> null
                 else -> if (extra < 0) TmChange(percentDelta = TM_DOWN_PERCENT) else null
             }
             carriedLighter(hit.weightRatio) -> null

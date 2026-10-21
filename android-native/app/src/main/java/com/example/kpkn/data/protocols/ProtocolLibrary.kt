@@ -385,6 +385,7 @@ private val VERIFIED_PROTOCOL_LIBRARY: List<Protocol> = listOf(
     com.example.kpkn.data.protocols.definitions.KpknNativeHypertrophyProtocols.rpStyle,
     com.example.kpkn.data.protocols.definitions.KpknNativeAutoregFrameworks.rts,
     com.example.kpkn.data.protocols.definitions.KpknNativeAutoregFrameworks.sbs,
+    com.example.kpkn.data.protocols.definitions.ApreProtocols.definition,
 )
 
 /**

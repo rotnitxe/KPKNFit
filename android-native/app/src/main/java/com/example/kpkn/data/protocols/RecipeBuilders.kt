@@ -305,3 +305,45 @@ fun DayRecipe.mainWorkPercentOfOneRm(): DayRecipe = copy(
         )
     },
 )
+
+/**
+ * CAL5: la serie AMRAP de un método que solo la REGISTRA (Cube, Lilliebridge, The Rippler: ninguna fuente le da una regla de
+ * carga) queda como AMRAP de registro explícito: `purpose = AMRAP` con su mínimo (las repeticiones prescritas) y sin efecto
+ * sobre la carga. Se guarda en el historial y en los récords; el programa no pretende que haga más.
+ */
+fun DayRecipe.amrapAsRecord(): DayRecipe = copy(
+    slots = slots.map { slot ->
+        slot.copy(
+            sets = slot.sets.map { set ->
+                if (set.isWarmup || !set.amrap) set
+                else set.copy(
+                    amrap = true,
+                    purpose = com.example.kpkn.data.models.SetPurpose.AMRAP,
+                    amrapMinimumReps = (set.repsMin ?: set.reps)?.takeIf { it > 0 },
+                    calibrationScope = null,
+                )
+            },
+        )
+    },
+)
+
+/**
+ * CAL5/CAL6: el AMRAP de las plantillas propias de KPKN (`power-12-3`, `power-16-4`, `power-20-5`) es un CALIBRADOR de
+ * «próximas sesiones»: su capacidad se compara con el 1RM que implica el TM y el cambio sale por el canal de propuestas del
+ * programa (OFF, PROPONER y AUTO), nunca por encima de la receta. Conserva `amrap = true` para los lectores antiguos.
+ */
+fun DayRecipe.amrapAsCalibrator(): DayRecipe = copy(
+    slots = slots.map { slot ->
+        slot.copy(
+            sets = slot.sets.map { set ->
+                if (set.isWarmup || !set.amrap) set
+                else set.copy(
+                    amrap = true,
+                    purpose = com.example.kpkn.data.models.SetPurpose.CALIBRATOR,
+                    amrapMinimumReps = (set.repsMin ?: set.reps)?.takeIf { it > 0 },
+                    calibrationScope = com.example.kpkn.data.models.CalibrationScope.NEXT_SESSIONS,
+                )
+            },
+        )
+    },
+)

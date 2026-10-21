@@ -1158,10 +1158,21 @@ class ProgramProgressCycleCloseTest {
 
     private fun publishedRecipe(id: String): TrainingPlanRecipe = PROTOCOL_LIBRARY.first { it.id == id }.recipe!!
 
+    /** El registro del AMRAP de realización (la última serie del T1) de [configurationId] en la semana [weekIndex], con [amrapReps]. Más reciente que el registro simple. */
+    private fun realizationLog(program: Program, weekIndex: Int, configurationId: String, amrapReps: Int): WorkoutLog {
+        val week = weeksOf(program)[weekIndex]
+        val session = week.sessions.first { candidate ->
+            candidate.allExercises().any { it.slotRole == SlotRole.T1_MAIN && it.catalogConfigurationId == configurationId }
+        }
+        return amrapLog(program, week, session, configurationId, amrapReps)
+            .copy(id = "real-$configurationId-$weekIndex", date = "2026-01-02T10:00:00.000Z")
+    }
+
     @Test
-    fun real_juggernaut_raises_the_tm_once_per_wave_entered_and_never_at_the_end_of_the_3s_wave() {
+    fun real_juggernaut_sets_the_tm_from_the_realization_amrap_when_the_next_wave_starts_and_never_after_the_3s_wave() {
         val recipe = publishedRecipe("juggernaut-2")
-        assertEquals(ProgressionRule.CycleIncrement(2.5, 5.0, IncrementScope.BLOCK), recipe.progression)
+        // CAL5: Juggernaut no sube un salto fijo por ola: TM nuevo = TM + (reps del AMRAP de realización − estándar) × 2,5 kg (tren inferior) o 1,25 kg (superior).
+        assertEquals(ProgressionRule.RepsOverStandardTm(lowerKgPerRep = 2.5, upperKgPerRep = 1.25, maxExtraReps = 10), recipe.progression)
         val program = PlanMaterializer.materialize(
             Program(id = "jug", name = "Juggernaut"),
             recipe,
@@ -1173,7 +1184,6 @@ class ProgramProgressCycleCloseTest {
         assertEquals(16, weeksOf(program).size)
         val blocks = program.macrocycles.first().blocks
         assertEquals(listOf("10s", "8s", "5s", "3s"), blocks.map { it.name })
-        // Las cuatro semanas de cada ola son 3 de entrenamiento y la de descarga (la 4, 8, 12 y 16).
         assertEquals(
             List(4) { listOf(false, false, false, true) }.flatten(),
             weeksOf(program).map { it.executionKind == com.example.kpkn.data.models.WeekExecutionKind.DELOAD },
@@ -1195,56 +1205,67 @@ class ProgramProgressCycleCloseTest {
             assertTrue("semana ${index + 1}: sin avisos", userNotices(current).isEmpty())
         }
 
-        // Semana 4, la descarga: al entrar en la ola de 8s el TM sube UNA vez (+5 sentadilla y peso muerto, +2,5 banca y press militar).
-        val entering8s = advanceWave(current, 3)
+        // Semana 4, la descarga: al entrar en la ola de 8s el TM sale del AMRAP de realización (semana 3, 10+ al 75 %). Sentadilla: 13 reps → (13 − 10) × 2,5 = +7,5 kg.
+        // Banca: 8 reps (por debajo del estándar) y peso muerto: 10 reps (justo el estándar): el TM no cambia y se avisa. El press militar no tiene AMRAP registrado: igual.
+        val realization = listOf(
+            realizationLog(current, 2, CatalogIds.SQ_LOW, amrapReps = 13),
+            realizationLog(current, 2, CatalogIds.BP, amrapReps = 8),
+            realizationLog(current, 2, CatalogIds.DL, amrapReps = 10),
+        )
+        val entering8s = advanceWave(current, 3, extraLogs = realization)
         assertTrue(entering8s.advancedWeek)
         val tm8 = tmOf(entering8s.program)
-        assertEquals(185.0, tm8.squatTM!!, 1e-9)
-        assertEquals(110.5, tm8.benchTM!!, 1e-9)
-        assertEquals(203.0, tm8.deadliftTM!!, 1e-9)
-        assertEquals(74.5, tm8.overheadTM!!, 1e-9)
+        assertEquals(187.5, tm8.squatTM!!, 1e-9)
+        assertEquals(108.0, tm8.benchTM!!, 1e-9)
+        assertEquals(198.0, tm8.deadliftTM!!, 1e-9)
+        assertEquals(72.0, tm8.overheadTM!!, 1e-9)
         assertEquals("los 1RM no se tocan", 200.0, tm8.squat1RM!!, 1e-9)
         val notice = userNotices(entering8s.program).single()
         assertEquals("author-block-b1", notice.proposalId)
         assertEquals(
-            "Nuevo bloque: TM sentadilla 180 → 185 kg, banca 108 → 110,5 kg, peso muerto 198 → 203 kg, press militar 72 → 74,5 kg.",
+            "Nuevo bloque: TM sentadilla 180 → 187,5 kg (13 reps con estándar de 10: TM +7,5 kg); " +
+                "banca se mantiene en 108 kg (8 reps, por debajo del estándar de 10: el TM no cambia y quizá esté alto) " +
+                "y peso muerto se mantiene en 198 kg (10 reps, justo el estándar de 10: el TM no cambia).",
             notice.reason,
         )
         assertEquals(1, appliedProposals(entering8s.program, "author-block-b1").size)
-        // La ola de 10s (ya entrenada) conserva su carga; la de 8s toma el TM nuevo (65 % de 185 kg la primera serie).
+        // La ola de 10s (ya entrenada) conserva su carga; la de 8s toma el TM nuevo (65 % de 187,5 kg la primera serie).
         assertEquals(0.60 * 180.0, squatKg(entering8s.program, 0), 1e-6)
-        assertEquals(0.65 * 185.0, squatKg(entering8s.program, 4), 1e-6)
-        // Entrar otra vez en la misma ola no vuelve a subir el TM (idempotente por la marca author-block-b1).
+        assertEquals(0.65 * 187.5, squatKg(entering8s.program, 4), 1e-6)
+        // Entrar otra vez en la misma ola no vuelve a mover el TM (idempotente por la marca author-block-b1).
         val again = AuthoredProgressionEngine.applyAtBlockClose(
             entering8s.program, blocks[1].id, CatalogCompositionTestSupport.metadata, inventory = null,
         )
         assertEquals(entering8s.program, again)
 
-        // Dentro de la ola de 8s (semanas 5 a 7) no sube; al entrar en la de 5s sube otra vez y al entrar en la de 3s, otra.
+        // Ola de 8s (estándar 8): sentadilla con 20 repeticiones son 12 extra, pero cuentan 10 → +25 kg; el press militar con 11 reps → +3 × 1,25 = +3,75 kg.
         current = entering8s.program
         (4..6).forEach { index -> current = advanceWave(current, index).program }
-        assertEquals(185.0, tmOf(current).squatTM!!, 1e-9)
-        val entering5s = advanceWave(current, 7)
-        assertEquals(190.0, tmOf(entering5s.program).squatTM!!, 1e-9)
-        assertEquals(0.70 * 190.0, squatKg(entering5s.program, 8), 1e-6)
+        assertEquals(187.5, tmOf(current).squatTM!!, 1e-9)
+        val entering5s = advanceWave(
+            current, 7,
+            extraLogs = listOf(
+                realizationLog(current, 6, CatalogIds.SQ_LOW, amrapReps = 20),
+                realizationLog(current, 6, CatalogIds.OHP, amrapReps = 11),
+            ),
+        )
+        assertEquals("tope de 10 repeticiones extra", 212.5, tmOf(entering5s.program).squatTM!!, 1e-9)
+        assertEquals("3,75 kg con el paso de 0,5 kg", 76.0, tmOf(entering5s.program).overheadTM!!, 1e-9)
+        assertEquals(0.70 * 212.5, squatKg(entering5s.program, 8), 1e-6)
+        assertEquals(
+            listOf("author-block-b1", "author-block-b2"),
+            userNotices(entering5s.program).map { it.proposalId },
+        )
+
+        // Al terminar la ola de 3s (la última, semana 16) no hay ola siguiente: el AMRAP de realización ya no mueve nada.
         current = entering5s.program
         (8..10).forEach { index -> current = advanceWave(current, index).program }
         val entering3s = advanceWave(current, 11)
-        val tm3 = tmOf(entering3s.program)
-        assertEquals(195.0, tm3.squatTM!!, 1e-9)
-        assertEquals(115.5, tm3.benchTM!!, 1e-9)
-        assertEquals(213.0, tm3.deadliftTM!!, 1e-9)
-        assertEquals(79.5, tm3.overheadTM!!, 1e-9)
-        assertEquals(0.75 * 195.0, squatKg(entering3s.program, 12), 1e-6)
-        assertEquals(listOf("author-block-b1", "author-block-b2", "author-block-b3"), userNotices(entering3s.program).map { it.proposalId })
-
-        // Dentro de la ola de 3s (semanas 13 a 15) y al terminarla (semana 16) NO sube nada: no hay ola siguiente.
+        assertEquals("sin AMRAP registrado el TM no cambia", tmOf(entering5s.program), tmOf(entering3s.program))
         current = entering3s.program
         (12..14).forEach { index -> current = advanceWave(current, index).program }
-        val finished = advanceWave(current, 15)
-        assertEquals("el final de la ola de 3s no sube el TM", tm3, tmOf(finished.program))
-        assertEquals(3, userNotices(finished.program).size)
-        assertEquals(3, finished.program.effectiveWeekRecipes.flatMap { it.appliedProposals }.count { it.proposalId.startsWith("author-block-b") })
+        val finished = advanceWave(current, 15, extraLogs = listOf(realizationLog(current, 14, CatalogIds.SQ_LOW, amrapReps = 9)))
+        assertEquals("el final de la ola de 3s no mueve el TM", tmOf(entering3s.program), tmOf(finished.program))
     }
 
     @Test

@@ -45,10 +45,16 @@ class ProtocolRecipeFidelityTest {
 
     @Test
     fun nsuns_t1_bench_has_nine_sets() {
+        // CAL5: la banca de volumen (9 series al 65-75-85-85-85-80-75-70-65 %) es ahora el complementario del primer día; su T1 es el press militar pesado.
         val protocol = visible().first { it.id == "nsuns-531-lp-4d" }
-        val t1 = protocol.recipe!!.weeks.first().days.first().slots.first { it.role == SlotRole.T1_MAIN }
-        assertEquals(9, t1.sets.size)
-        assertEquals(listOf(65.0, 75.0, 85.0, 85.0, 85.0, 80.0, 75.0, 70.0, 65.0), t1.sets.map { it.percent })
+        val day1 = protocol.recipe!!.weeks.first().days.first()
+        val bench = day1.slots.first { it.role == SlotRole.T2_SUPPLEMENTAL }
+        assertEquals(CatalogIds.BP, bench.lift.configurationId)
+        assertEquals(9, bench.sets.size)
+        assertEquals(listOf(65.0, 75.0, 85.0, 85.0, 85.0, 80.0, 75.0, 70.0, 65.0), bench.sets.map { it.percent })
+        val ohp = day1.slots.first { it.role == SlotRole.T1_MAIN }
+        assertEquals(CatalogIds.OHP, ohp.lift.configurationId)
+        assertEquals(9, ohp.sets.size)
     }
 
     @Test
@@ -114,8 +120,9 @@ class ProtocolRecipeFidelityTest {
 
     @Test
     fun nsuns_t2_has_eight_sets() {
+        // CAL5: el T2 del primer día es la banca de volumen (9 series); el de los demás días sigue siendo la tabla de 8.
         val protocol = visible().first { it.id == "nsuns-531-lp-4d" }
-        val t2 = protocol.recipe!!.weeks.first().days.first().slots.first { it.role == SlotRole.T2_SUPPLEMENTAL }
+        val t2 = protocol.recipe!!.weeks.first().days[1].slots.first { it.role == SlotRole.T2_SUPPLEMENTAL }
         assertEquals(8, t2.sets.size)
     }
 
@@ -521,14 +528,11 @@ class ProtocolRecipeFidelityTest {
                 val t1 = day.slots.single { it.id == "t1" }
                 val amraps = t1.sets.filter { it.amrap }
                 val label = "w${week.weekNumber}/${day.label}"
-                if (day.label == "Banca/OHP") {
-                    assertTrue("$label: la banca de volumen ya no lleva AMRAP", amraps.isEmpty())
-                } else {
-                    val amrap = amraps.single()
-                    assertEquals("$label: AMRAP en la serie 1+", 1, amrap.reps)
-                    assertEquals("$label: al 95 % del TM", 95.0, amrap.percent!!, 1e-9)
-                    assertEquals("$label: la tercera serie", 2, t1.sets.indexOf(amrap))
-                }
+                // CAL5: los cuatro T1 (press militar, sentadilla, banca pesada y peso muerto) llevan su 1+ al 95 % en la tercera serie.
+                val amrap = amraps.single()
+                assertEquals("$label: AMRAP en la serie 1+", 1, amrap.reps)
+                assertEquals("$label: al 95 % del TM", 95.0, amrap.percent!!, 1e-9)
+                assertEquals("$label: la tercera serie", 2, t1.sets.indexOf(amrap))
             }
         }
         val tooLight = slotsOf(recipe).flatMap { slot -> workSets(slot).filter { it.amrap && (it.percent ?: 0.0) < ProgramAutoregulationEngine.AMRAP_TM_MIN_PERCENT } }
@@ -537,10 +541,10 @@ class ProtocolRecipeFidelityTest {
         val closeGrip = recipe.weeks.first().days.first { it.label == "Banca/Cerrado" }.slots.first { it.id == "t2" }
         assertEquals(CatalogIds.BP_CLOSE_GRIP, closeGrip.lift.configurationId)
         assertNull(closeGrip.technique)
-        // C1: las cuatro series de 9 se declaran por slot (el `t1` de cada día), nunca con un comodín.
+        // C1: las series de 9 se declaran por slot (el `t1` de cada día y la banca de volumen, T2 del primer día), nunca con un comodín.
         val c1Exemptions = recipe.exemptions.filter { it.rule == RecipeContractPolicy.C1_SET_RANGE }
         assertEquals(
-            listOf("w*/Banca/OHP/t1", "w*/Sentadilla/Sumo/t1", "w*/Banca/Cerrado/t1", "w*/Peso muerto/Frontal/t1"),
+            listOf("w*/Banca/OHP/t1", "w*/Banca/OHP/t2", "w*/Sentadilla/Sumo/t1", "w*/Banca/Cerrado/t1", "w*/Peso muerto/Frontal/t1"),
             c1Exemptions.map { it.scope },
         )
         assertTrue(c1Exemptions.all { it.justification.length >= 25 && it.sourceUrl != null })
@@ -695,16 +699,19 @@ class ProtocolRecipeFidelityTest {
                 assertTrue("$label: T3 de 15 a 20 repeticiones", t3a.sets.all { it.repsMin == 15 && it.repsMax == 20 })
             }
         }
-        assertEquals(ProgressionRule.CycleIncrement(upperKg = 2.5, lowerKg = 5.0), recipe.progression)
+        // CAL5: la regla de GZCLP son sus etapas (el T1 que no completa su volumen base pasa de 5×3+ a 6×2+ y a 10×1+ con la misma carga).
+        assertEquals(ProgressionRule.StagedVolume(upperKg = 2.5, lowerKg = 5.0, t1AmrapCap = 10, t3RaiseReps = 25), recipe.progression)
         val description = protocol.description
         listOf(
             "4 días, 4 semanas",
             "T1 5×3+ al 85 % del TM",
             "T2 3×10 al 65 %",
             "T3 de 15 a 20 repeticiones",
+            "6×2+",
+            "10×1+",
             "2,5 kg (banca y press)",
-            "5 kg (sentadilla y peso muerto)",
-            "sin cambio de etapa ni reinicio por fallo",
+            "llega a 25",
+            "5RM",
         ).forEach { fragment ->
             assertTrue("la descripción de GZCLP debe decir «$fragment»: $description", description.contains(fragment))
         }
@@ -1064,11 +1071,12 @@ class ProtocolRecipeFidelityTest {
 
     @Test
     fun juggernaut_closes_each_wave_with_a_deload_week_and_raises_the_tm_when_entering_a_wave() {
-        // B.S6 parte 2b: `CycleIncrement(2,5; 5; BLOCK)` (Juggernaut no se repite: sube al entrar en cada ola, no al cerrar un ciclo) y la cuarta
-        // semana de cada ola (4, 8, 12 y 16) es la descarga del método (`kind = DELOAD`, T2 y T3 a 2 series de RPE 6; el T1 conserva su tabla).
+        // B.S6 parte 2b: Juggernaut no se repite: su TM cambia al entrar en cada ola, no al cerrar un ciclo; y la cuarta semana de cada ola (4, 8, 12 y 16)
+        // es la descarga del método (`kind = DELOAD`, T2 y T3 a 2 series de RPE 6; el T1 conserva su tabla). CAL5: el cambio sale de las repeticiones del
+        // AMRAP de realización (`RepsOverStandardTm`: 2,5 kg por repetición sobre el estándar en tren inferior y 1,25 kg en superior, hasta 10 extra).
         val protocol = visible().first { it.id == "juggernaut-2" }
         val recipe = protocol.recipe!!
-        assertEquals(ProgressionRule.CycleIncrement(upperKg = 2.5, lowerKg = 5.0, scope = IncrementScope.BLOCK), recipe.progression)
+        assertEquals(ProgressionRule.RepsOverStandardTm(lowerKgPerRep = 2.5, upperKgPerRep = 1.25, maxExtraReps = 10), recipe.progression)
         assertEquals(listOf(4, 8, 12, 16), recipe.weeks.filter { it.kind == WeekExecutionKind.DELOAD }.map { it.weekNumber })
         assertEquals("4 olas de 4 semanas", listOf(4, 4, 4, 4), recipe.weeks.groupBy { it.blockIndex }.values.map { it.size })
         recipe.weeks.forEach { week ->
@@ -1284,16 +1292,24 @@ class ProtocolRecipeFidelityTest {
     fun the_recipes_changed_in_b_s6_carry_content_version_2_and_the_untouched_ones_stay_at_1() {
         // `contentVersion` es parte de la identidad (recipeId, contentVersion, ocurrencia, día, slot) de los programas NUEVOS; los activados
         // conservan su snapshot de la versión 1 en `Program.sourceRecipe`. Ninguna otra prueba fija el número de una receta publicada.
+        // CAL5: 5/3/1 (reinicio), nSuns (press militar con su 1+), Juggernaut (reps sobre el estándar), GZCLP (etapas), Cube y Lilliebridge (AMRAP de
+        // registro explícito) pasan a la versión 3, The Rippler a la 2 y las tres plantillas `power-*` a la 3 (AMRAP calibrador).
         val bumped = listOf(
-            "madcow-5x5", "texas-method-3d", "texas-method-4d", "kpkn-native-sbd-4", "lilliebridge", "smolov", "smolov-jr", "wendler-531-bbb",
-            "wendler-531-fsl", "nsuns-531-lp-4d", "kpkn-ppl-6", "kpkn-rp-style", "kpkn-rts-style", "kpkn-sbs-rtf", "candito-6", "gzcl-uhf-9",
-            "tsa-9", "calgary-16", "gzclp", "gzcl-jt-2", "cube-method", "westside-conjugate", "sheiko-29-32", "juggernaut-2",
+            "madcow-5x5", "texas-method-3d", "texas-method-4d", "kpkn-native-sbd-4", "smolov", "smolov-jr",
+            "kpkn-ppl-6", "kpkn-rp-style", "kpkn-rts-style", "kpkn-sbs-rtf", "candito-6", "gzcl-uhf-9",
+            "tsa-9", "calgary-16", "gzcl-jt-2", "westside-conjugate", "sheiko-29-32",
         )
         bumped.forEach { id -> assertEquals("$id: contentVersion", 2, recipeOf(id).contentVersion) }
-        listOf("gzcl-rippler", "coan-phillipi-dl", "korte-3x3", "phul-verified", "phat-verified").forEach { id ->
+        listOf(
+            "lilliebridge", "wendler-531-bbb", "wendler-531-fsl", "nsuns-531-lp-4d", "gzclp", "cube-method", "juggernaut-2",
+        ).forEach { id -> assertEquals("$id: contentVersion", 3, recipeOf(id).contentVersion) }
+        assertEquals("gzcl-rippler: AMRAP de registro", 2, recipeOf("gzcl-rippler").contentVersion)
+        listOf("coan-phillipi-dl", "korte-3x3", "phul-verified", "phat-verified", "apre-mann").forEach { id ->
             assertEquals("$id: sin cambios de contenido", 1, recipeOf(id).contentVersion)
         }
-        PROGRAM_TEMPLATES.mapNotNull { it.recipe }.forEach { assertEquals("${it.id}: contentVersion", 2, it.contentVersion) }
+        PROGRAM_TEMPLATES.mapNotNull { it.recipe }.forEach {
+            assertEquals("${it.id}: contentVersion", if (it.id.startsWith("power-")) 3 else 2, it.contentVersion)
+        }
         AuthoredPhulPhatRecipes.all.forEach { assertEquals("${it.id}: contentVersion", 2, it.contentVersion) }
     }
 

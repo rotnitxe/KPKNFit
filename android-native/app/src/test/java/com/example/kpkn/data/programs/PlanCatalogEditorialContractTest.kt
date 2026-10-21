@@ -539,7 +539,7 @@ class PlanCatalogEditorialContractTest {
 
     @Test
     fun hidden_entries_stay_in_the_catalog_but_not_in_the_listed_entries() {
-        // `entries()` conserva las 85 (programas ya activados, `lookup`, ruta histórica del personalizador y los
+        // `entries()` conserva las 86 (programas ya activados, `lookup`, ruta histórica del personalizador y los
         // programas «a medida» del asistente, con sus variantes).
         assertEquals(EXPECTED_ENTRIES, entries.size)
         val hidden = HIDDEN_HISTORICALS + GENERATED
@@ -549,7 +549,7 @@ class PlanCatalogEditorialContractTest {
             entries.filterNot { it.listed }.map { it.id }.toSet(),
         )
 
-        // `listedEntries()` ofrece 47: las mismas sin las treinta y ocho ocultas, en el mismo orden.
+        // `listedEntries()` ofrece 48: las mismas sin las treinta y ocho ocultas, en el mismo orden.
         val listed = PersonalizedPlanCatalog.listedEntries()
         assertEquals(EXPECTED_ENTRIES - hidden.size, listed.size)
         assertEquals(entries.filter { it.id !in hidden }.map { it.id }, listed.map { it.id })
@@ -586,17 +586,19 @@ class PlanCatalogEditorialContractTest {
     }
 
     @Test
-    fun juggernaut_summary_distinguishes_method_increment_from_performance_proposal() {
+    fun juggernaut_summary_says_how_the_tm_moves_after_each_wave() {
+        // CAL5: Juggernaut ya no sube un salto fijo por ola: el máximo de entrenamiento sale de las repeticiones del AMRAP de realización.
         val entry = entry("protocol:juggernaut-2")
         val recipe = requireNotNull(entry.recipe)
-        val rule = recipe.progression as ProgressionRule.CycleIncrement
-        assertEquals(IncrementScope.BLOCK, rule.scope)
-        assertEquals(2.5, rule.upperKg, 0.0)
-        assertEquals(5.0, rule.lowerKg, 0.0)
+        val rule = recipe.progression as ProgressionRule.RepsOverStandardTm
+        assertEquals(2.5, rule.lowerKgPerRep, 0.0)
+        assertEquals(1.25, rule.upperKgPerRep, 0.0)
+        assertEquals(10, rule.maxExtraReps)
         assertEquals(setOf(4, 8, 12, 16), recipe.weeks.filter { it.kind == WeekExecutionKind.DELOAD }.map { it.weekNumber }.toSet())
-        assertTrue("el rendimiento se presenta como propuesta", entry.summary.contains("puede proponer ajustar"))
-        assertTrue("el incremento se asocia a la ola siguiente", entry.summary.contains("Al empezar la siguiente ola"))
-        assertTrue("el cierre corto no promete subir", entry.summary.contains("si cumpliste las repeticiones previstas"))
+        assertTrue("el cambio se asocia a la ola siguiente", entry.summary.contains("Al empezar la siguiente ola"))
+        assertTrue("cada repetición sobre el objetivo cuenta", entry.summary.contains("por cada repetición sobre el objetivo"))
+        assertTrue("el tope de repeticiones extra", entry.summary.contains("hasta 10 extra"))
+        assertTrue("sin superar el objetivo no cambia", entry.summary.contains("no cambia"))
     }
 
     // ─── Ayudas ───────────────────────────────────────────────────────────────
@@ -645,8 +647,8 @@ class PlanCatalogEditorialContractTest {
     )
 
     private companion object {
-        /** 55 del catálogo de planes + los 10 programas «a medida» del generador y sus 20 variantes (Entreno v2, punto 12). */
-        const val EXPECTED_ENTRIES = 85
+        /** 56 del catálogo de planes (CAL6 añadió APRE de Mann) + los 10 programas «a medida» del generador y sus 20 variantes (Entreno v2, punto 12). */
+        const val EXPECTED_ENTRIES = 86
 
         /** Entreno v2: los programas «a medida» del generador (semana simple y variantes), sin listar: los ofrece solo el asistente. */
         val GENERATED = (PersonalizedPlanCatalog.GENERATED_IDS + PersonalizedPlanCatalog.GENERATED_VARIANT_IDS).toSet()

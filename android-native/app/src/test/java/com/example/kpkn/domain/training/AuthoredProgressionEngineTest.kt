@@ -301,8 +301,14 @@ class AuthoredProgressionEngineTest {
 
     @Test
     fun the_consumer_registry_lists_the_author_engine_and_the_autoregulation_rules() {
+        // CAL5: Juggernaut (`RepsOverStandardTm`) y GZCLP (`StagedVolume`) también las consume el motor de autor.
         assertEquals(
-            setOf(ProgressionRule.CycleIncrement::class, ProgressionRule.WeeklyKg::class),
+            setOf(
+                ProgressionRule.CycleIncrement::class,
+                ProgressionRule.WeeklyKg::class,
+                ProgressionRule.RepsOverStandardTm::class,
+                ProgressionRule.StagedVolume::class,
+            ),
             ProgressionConsumers.authored,
         )
         // B.S4: el top set y la serie al máximo se suman al AMRAP como propuestas ADJUST_TM.
@@ -312,6 +318,8 @@ class AuthoredProgressionEngineTest {
                 ProgressionRule.RepTargetDrivenTm::class,
                 ProgressionRule.TopSetPr::class,
                 ProgressionRule.RepMaxAutoregulated::class,
+                // CAL6: el XRM de la semana siguiente de APRE sale como propuesta de TM.
+                ProgressionRule.ApreXrm::class,
             ),
             ProgressionConsumers.autoregulation,
         )

@@ -41,6 +41,11 @@ class ProgressionConsumerCoverageTest {
         is ProgressionRule.TopSetPr -> Consumer.AUTOREGULATION
         is ProgressionRule.WeeklyPercent -> Consumer.PENDING
         ProgressionRule.RepMaxAutoregulated -> Consumer.AUTOREGULATION
+        // CAL5: Juggernaut (reps sobre el estándar al entrar en la ola) y GZCLP (etapas al cerrar el ciclo) las consume el motor de autor.
+        is ProgressionRule.RepsOverStandardTm -> Consumer.AUTHOR_ENGINE
+        is ProgressionRule.StagedVolume -> Consumer.AUTHOR_ENGINE
+        // CAL6: APRE propone el XRM de la semana siguiente como una propuesta de TM de `ProgramAutoregulationEngine`.
+        is ProgressionRule.ApreXrm -> Consumer.AUTOREGULATION
     }
 
     /** Una instancia de cada regla (y de cada alcance de `CycleIncrement`). */
@@ -54,6 +59,9 @@ class ProgressionConsumerCoverageTest {
         ProgressionRule.TopSetPr(),
         ProgressionRule.WeeklyPercent(2.5),
         ProgressionRule.RepMaxAutoregulated,
+        ProgressionRule.RepsOverStandardTm(),
+        ProgressionRule.StagedVolume(),
+        ProgressionRule.ApreXrm(),
     )
 
     /**
@@ -206,22 +214,26 @@ class ProgressionConsumerCoverageTest {
     }
 
     @Test
-    fun juggernaut_raises_the_tm_by_block_and_the_other_cycle_increment_recipes_by_cycle() {
-        // B.S6 parte 2b: Juggernaut (4 olas, no se repite) pasa a BLOCK; 5/3/1, Madcow y GZCLP (un solo bloque que se repite) siguen por ciclo.
+    fun juggernaut_moves_the_tm_by_wave_and_the_cycle_increment_recipes_by_cycle() {
+        // B.S6 parte 2b: Juggernaut (4 olas, no se repite) sube el TM al entrar en cada ola; 5/3/1 y Madcow (un solo bloque que se repite) por ciclo.
+        // CAL5: Juggernaut pasa a `RepsOverStandardTm` (reps sobre el estándar, al entrar en la ola) y GZCLP a `StagedVolume` (etapas, al cerrar el ciclo).
         val byId = published().associate { it.recipe.id to it.recipe }
         val scopes = byId.values.mapNotNull { recipe ->
             (recipe.progression as? ProgressionRule.CycleIncrement)?.let { recipe.id to it.scope }
         }.toMap()
         assertEquals(
             mapOf(
-                "juggernaut-2" to IncrementScope.BLOCK,
                 "wendler-531-bbb" to IncrementScope.CYCLE,
                 "wendler-531-fsl" to IncrementScope.CYCLE,
                 "madcow-5x5" to IncrementScope.CYCLE,
-                "gzclp" to IncrementScope.CYCLE,
             ),
             scopes,
         )
+        assertTrue(byId.getValue("juggernaut-2").progression is ProgressionRule.RepsOverStandardTm)
+        assertTrue(AuthoredProgressionEngine.appliesAtBlockClose(byId.getValue("juggernaut-2").progression))
+        assertTrue(byId.getValue("gzclp").progression is ProgressionRule.StagedVolume)
+        assertTrue(AuthoredProgressionEngine.appliesAtCycleClose(byId.getValue("gzclp").progression))
+        assertEquals(ProgressionRule.ApreXrm(), byId.getValue("apre-mann").progression)
         assertTrue("sin entradas pendientes de alcance", scopePending.isEmpty())
     }
 

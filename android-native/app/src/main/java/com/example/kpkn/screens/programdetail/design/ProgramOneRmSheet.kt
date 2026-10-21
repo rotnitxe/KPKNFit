@@ -75,9 +75,20 @@ fun ProgramOneRmSheet(
     onValueKg: (LiftMark, Double?) -> Unit,
     onSave: (squatKg: Double, benchKg: Double, deadliftKg: Double) -> Unit,
     onDismiss: () -> Unit,
+    lifts: List<LiftMark> = OneRmLifts,
+    prefilled: Boolean = false,
+    onSaveMarks: ((Map<LiftMark, Double>) -> Unit)? = null,
 ) {
     KpknSheet(onDismissRequest = onDismiss, stableHeightFraction = 0.9f) {
-        OneRmSheetBody(valuesKg = valuesKg, unit = unit, onValueKg = onValueKg, onSave = onSave)
+        OneRmSheetBody(
+            valuesKg = valuesKg,
+            unit = unit,
+            onValueKg = onValueKg,
+            onSave = onSave,
+            lifts = lifts,
+            prefilled = prefilled,
+            onSaveMarks = onSaveMarks,
+        )
     }
 }
 
@@ -91,10 +102,16 @@ internal fun OneRmSheetBody(
     unit: String,
     onValueKg: (LiftMark, Double?) -> Unit,
     onSave: (squatKg: Double, benchKg: Double, deadliftKg: Double) -> Unit,
+    lifts: List<LiftMark> = OneRmLifts,
+    prefilled: Boolean = false,
+    onSaveMarks: ((Map<LiftMark, Double>) -> Unit)? = null,
 ) {
     val squat = valuesKg[LiftMark.SQUAT]?.takeIf { it > 0 }
     val bench = valuesKg[LiftMark.BENCH]?.takeIf { it > 0 }
     val deadlift = valuesKg[LiftMark.DEADLIFT]?.takeIf { it > 0 }
+    // CAL5: solo los levantamientos del programa; guardar exige un valor mayor que cero en cada uno de ellos.
+    val marks = lifts.mapNotNull { lift -> valuesKg[lift]?.takeIf { it > 0 }?.let { lift to it } }.toMap()
+    val complete = lifts.isNotEmpty() && marks.size == lifts.size
     val scroll = rememberScrollState()
     // Solo cambia el booleano: la franja aparece o se va sin recomponer la hoja en cada tick del scroll.
     val canScrollMore by remember { derivedStateOf { scroll.canScrollForward } }
@@ -114,13 +131,17 @@ internal fun OneRmSheetBody(
                 )
                 Spacer(Modifier.height(6.dp))
                 Text(
-                    text = "Los máximos válidos de tu sesión de test.",
+                    text = if (prefilled) {
+                        "Los máximos válidos de tu sesión de test. Los de tus series de test ya están puestos: confírmalos o corrígelos."
+                    } else {
+                        "Los máximos válidos de tu sesión de test."
+                    },
                     style = KpknType.caption.copy(lineBreak = LineBreak.Paragraph),
                     color = WizardColors.textMuted,
                 )
                 Spacer(Modifier.height(16.dp))
                 LiftMarksPicker(
-                    lifts = OneRmLifts,
+                    lifts = lifts,
                     valuesKg = valuesKg,
                     unit = unit,
                     onValueKg = onValueKg,
@@ -133,11 +154,15 @@ internal fun OneRmSheetBody(
             KpknPrimaryPill(
                 text = "Guardar y continuar",
                 onClick = {
-                    if (squat != null && bench != null && deadlift != null) onSave(squat, bench, deadlift)
+                    if (onSaveMarks != null) {
+                        if (complete) onSaveMarks(marks)
+                    } else if (squat != null && bench != null && deadlift != null) {
+                        onSave(squat, bench, deadlift)
+                    }
                 },
                 modifier = Modifier.fillMaxWidth(),
                 tag = ONE_RM_SAVE_TAG,
-                enabled = squat != null && bench != null && deadlift != null,
+                enabled = if (onSaveMarks != null) complete else squat != null && bench != null && deadlift != null,
             )
         }
     }
