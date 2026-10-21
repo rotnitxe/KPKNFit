@@ -7,6 +7,7 @@ import android.content.Context
 import android.content.pm.ServiceInfo
 import androidx.test.core.app.ApplicationProvider
 import androidx.work.ListenableWorker
+import androidx.work.WorkInfo
 import androidx.work.testing.TestListenableWorkerBuilder
 import androidx.work.workDataOf
 import com.example.kpkn.data.db.KpknDatabase
@@ -26,8 +27,11 @@ import com.example.kpkn.data.repository.VideoAnalysisRepository
 import com.example.kpkn.domain.biomechanics.bar.PlateSeed
 import com.example.kpkn.domain.biomechanics.metrics.CountConfidence
 import com.example.kpkn.domain.biomechanics.profiles.AnalysisProfileId
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitCancellation
+import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
@@ -402,6 +406,80 @@ class TechniqueAnalysisWorkerTest {
 
         assertEquals(ListenableWorker.Result.success(), result)
         assertEquals(VideoAnalysisStatus.DONE, repository.getByMedia("vid-1")!!.status)
+    }
+
+    @Test
+    fun a_system_timeout_requeues_the_row_with_zero_progress_even_in_a_cancelled_context() = runBlocking {
+        val media = TechniqueWorkTestKit.insertVideo(db, store, "vid-1")
+        val progressed = CompletableDeferred<Unit>()
+        install { _, onProgress ->
+            onProgress(42)
+            progressed.complete(Unit)
+            awaitCancellation()
+        }
+        val worker = work("vid-1")
+        val running = async(Dispatchers.Default) { worker.doWork() }
+        withTimeout(10_000L) { progressed.await() }
+        assertEquals(VideoAnalysisStatus.RUNNING, repository.getByMedia("vid-1")!!.status)
+        assertEquals(42, repository.getByMedia("vid-1")!!.progressPct)
+
+        // WorkManager fija primero el motivo y después cancela la corrutina del Worker.
+        worker.stop(WorkInfo.STOP_REASON_FOREGROUND_SERVICE_TIMEOUT)
+        withTimeout(10_000L) { running.cancelAndJoin() }
+
+        val row = repository.getByMedia("vid-1")!!
+        assertEquals(VideoAnalysisStatus.QUEUED, row.status)
+        assertEquals(0, row.progressPct)
+        assertNull(row.errorCode)
+        assertTrue(running.isCancelled)
+        assertFalse(AnalysisGate.mutex.isLocked)
+        assertTrue("el vídeo sigue disponible para el reintento", File(media.filePath).isFile)
+        assertFalse("el paro no inventa un informe completo", analysisFile(media.filePath).exists())
+    }
+
+    @Test
+    fun cancelling_from_the_app_keeps_the_previous_row_unchanged() = runBlocking {
+        TechniqueWorkTestKit.insertVideo(db, store, "vid-1")
+        val progressed = CompletableDeferred<Unit>()
+        install { _, onProgress ->
+            onProgress(42)
+            progressed.complete(Unit)
+            awaitCancellation()
+        }
+        val worker = work("vid-1")
+        val running = async(Dispatchers.Default) { worker.doWork() }
+        withTimeout(10_000L) { progressed.await() }
+        val before = repository.getByMedia("vid-1")
+
+        worker.stop(WorkInfo.STOP_REASON_CANCELLED_BY_APP)
+        withTimeout(10_000L) { running.cancelAndJoin() }
+
+        assertEquals(before, repository.getByMedia("vid-1"))
+        assertTrue(running.isCancelled)
+        assertFalse(AnalysisGate.mutex.isLocked)
+    }
+
+    @Test
+    fun cancelling_after_deleting_the_media_does_not_recreate_its_row() = runBlocking {
+        TechniqueWorkTestKit.insertVideo(db, store, "vid-1")
+        val progressed = CompletableDeferred<Unit>()
+        install { _, onProgress ->
+            onProgress(42)
+            progressed.complete(Unit)
+            awaitCancellation()
+        }
+        val worker = work("vid-1")
+        val running = async(Dispatchers.Default) { worker.doWork() }
+        withTimeout(10_000L) { progressed.await() }
+
+        db.workoutMediaDao().delete("vid-1")
+        worker.stop(WorkInfo.STOP_REASON_CANCELLED_BY_APP)
+        withTimeout(10_000L) { running.cancelAndJoin() }
+
+        assertNull(repository.getByMedia("vid-1"))
+        assertEquals(0, db.videoAnalysisDao().count())
+        assertTrue(running.isCancelled)
+        assertFalse(AnalysisGate.mutex.isLocked)
     }
 
     @Test
