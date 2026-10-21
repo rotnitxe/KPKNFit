@@ -130,46 +130,55 @@ class RingAdjustMathTest {
     // ── palabras y tonos ─────────────────────────────────────────────────────────────────────────
 
     @Test
-    fun `las palabras de Energia cambian en 80, 60 y 40`() {
+    fun `las palabras de Energia siguen las bandas compartidas`() {
         assertEquals("Con mucha energía", ringAdjustEnergyWord(100))
-        assertEquals("Con mucha energía", ringAdjustEnergyWord(80))
-        assertEquals("Bien, sin más", ringAdjustEnergyWord(79))
-        assertEquals("Bien, sin más", ringAdjustEnergyWord(60))
-        assertEquals("Algo cansado", ringAdjustEnergyWord(59))
-        assertEquals("Algo cansado", ringAdjustEnergyWord(40))
-        assertEquals("Muy cansado", ringAdjustEnergyWord(39))
+        assertEquals("Con mucha energía", ringAdjustEnergyWord(85))
+        assertEquals("Energía normal", ringAdjustEnergyWord(84))
+        assertEquals("Energía normal", ringAdjustEnergyWord(70))
+        assertEquals("Algo cansado", ringAdjustEnergyWord(69))
+        assertEquals("Algo cansado", ringAdjustEnergyWord(50))
+        assertEquals("Energía baja", ringAdjustEnergyWord(49))
+        assertEquals("Energía baja", ringAdjustEnergyWord(35))
+        assertEquals("Muy cansado", ringAdjustEnergyWord(34))
         assertEquals("Muy cansado", ringAdjustEnergyWord(0))
     }
 
     @Test
-    fun `las palabras de Columna cambian en 80, 60 y 40`() {
-        assertEquals("Espalda descansada", ringAdjustSpineWord(80))
-        assertEquals("Algo cargada", ringAdjustSpineWord(79))
-        assertEquals("Algo cargada", ringAdjustSpineWord(60))
-        assertEquals("Cargada", ringAdjustSpineWord(59))
-        assertEquals("Cargada", ringAdjustSpineWord(40))
-        assertEquals("Muy cargada", ringAdjustSpineWord(39))
+    fun `las palabras de Columna siguen las bandas compartidas`() {
+        assertEquals("Espalda descansada", ringAdjustSpineWord(85))
+        assertEquals("Carga normal", ringAdjustSpineWord(84))
+        assertEquals("Carga normal", ringAdjustSpineWord(70))
+        assertEquals("Algo cargada", ringAdjustSpineWord(69))
+        assertEquals("Algo cargada", ringAdjustSpineWord(50))
+        assertEquals("Cargada", ringAdjustSpineWord(49))
+        assertEquals("Cargada", ringAdjustSpineWord(35))
+        assertEquals("Muy cargada", ringAdjustSpineWord(34))
     }
 
     @Test
     fun `cada canal usa su propia palabra`() {
-        assertEquals("Bien, sin más", ringAdjustWord(RingChannel.ENERGIA, 72))
-        assertEquals("Algo cargada", ringAdjustWord(RingChannel.COLUMNA, 72))
-        assertEquals("algo cargado", ringAdjustWord(RingChannel.MUSCULOS, 72))
+        assertEquals("Energía normal", ringAdjustWord(RingChannel.ENERGIA, 72))
+        assertEquals("Carga normal", ringAdjustWord(RingChannel.COLUMNA, 72))
+        assertEquals("en rango", ringAdjustWord(RingChannel.MUSCULOS, 72))
     }
 
     @Test
-    fun `un musculo se pinta verde desde 80, ambar desde 60 y salmon por debajo`() {
-        assertEquals(RingAdjustMuscleTone.RECOVERED, ringAdjustMuscleTone(80))
-        assertEquals(RingAdjustMuscleTone.MID, ringAdjustMuscleTone(79))
-        assertEquals(RingAdjustMuscleTone.MID, ringAdjustMuscleTone(60))
-        assertEquals(RingAdjustMuscleTone.LOADED, ringAdjustMuscleTone(59))
+    fun `un musculo sigue las cinco bandas compartidas`() {
+        assertEquals(RingAdjustMuscleTone.RECOVERED, ringAdjustMuscleTone(85))
+        assertEquals(RingAdjustMuscleTone.NORMAL, ringAdjustMuscleTone(70))
+        assertEquals(RingAdjustMuscleTone.MID, ringAdjustMuscleTone(50))
+        assertEquals(RingAdjustMuscleTone.LOADED, ringAdjustMuscleTone(35))
+        assertEquals(RingAdjustMuscleTone.CRITICAL, ringAdjustMuscleTone(34))
         assertEquals(0xFF43D18C, colorArgb(RingAdjustMuscleTone.RECOVERED))
+        assertEquals(0xFF43D18C, colorArgb(RingAdjustMuscleTone.NORMAL))
         assertEquals(0xFFF7CF73, colorArgb(RingAdjustMuscleTone.MID))
         assertEquals(0xFFF49A6E, colorArgb(RingAdjustMuscleTone.LOADED))
+        assertEquals(0xFFEF4444, colorArgb(RingAdjustMuscleTone.CRITICAL))
         assertEquals("recuperado", RingAdjustMuscleTone.RECOVERED.word)
+        assertEquals("en rango", RingAdjustMuscleTone.NORMAL.word)
         assertEquals("algo cargado", RingAdjustMuscleTone.MID.word)
         assertEquals("cargado", RingAdjustMuscleTone.LOADED.word)
+        assertEquals("muy cargado", RingAdjustMuscleTone.CRITICAL.word)
     }
 
     private fun colorArgb(tone: RingAdjustMuscleTone): Long {
