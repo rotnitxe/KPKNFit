@@ -163,7 +163,14 @@ graph TD
 *   Articular points tracked: `SHOULDER`, `ELBOW`, `KNEE`, `HIP`, `ANKLE`, `CERVICAL`, `LUMBAR` (via `ExerciseReadinessEngine.kt`).
 *   Alerts user if there is a severe gap between muscle strength capacities and tendon recovery statuses (`TendonImbalanceAlert`), suggesting biomechanical or nutritional compensations.
 
-#### 5. Supporting AUGE Engines (`domain/auge/`)
+#### 5. Rings v4 shared core (integrated)
+*   `AugeParameters.kt` — versioned registry for τ by recovery profile and pillar, channel constants `C` (muscle 90, Energy 75, Spine 70) and τ defaults; engines read it instead of keeping local copies.
+*   `SessionDrainRecipe.kt` — single set → exercise → session aggregation recipe, shared by finish, editor and ring consumers; each consumer declares only the options it legitimately needs.
+*   `AugeSnapshotComputer.kt` — pure `AugeSnapshotComputer.compute(AugeSnapshotInputs): AugeSnapshotCore`. Inputs carry `nowMs` and `zone`; it loads no data, learns no parameters and reads no clock. `data/repository/AugeSnapshotInputLoader.kt` normalizes the shared inputs for Home and program, while the onboarding and finish previews feed the same computer. The finish preview adds the current session impact and evaluates at the frozen instant, so preview ≡ Home.
+*   Explicit clock — engines receive `nowMs`/`nowOverrideMs`; `AugeNoHiddenClockTest` fails on hidden clock reads inside `domain/auge/`.
+*   **In progress, not yet integrated:** EKF learner (3.2), forward projection (2.4) and v4 adaptive cache with the observation ring (3.1).
+
+#### 6. Supporting AUGE Engines (`domain/auge/`)
 *   `AugeAdaptiveEngine.kt` — learns from user feedback to adapt recovery curves (`auge_adaptive_cache` table).
 *   `AugeFatigueEngine.kt` — per-set stress and fatigue math.
 *   `AugeClock.kt` — injectable clock for Energy/Columna tests and recovery.
