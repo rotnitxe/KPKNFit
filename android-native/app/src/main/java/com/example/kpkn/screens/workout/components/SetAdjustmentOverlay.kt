@@ -32,6 +32,7 @@ import com.example.kpkn.data.exercises.displayNameWithSelectedChips
 import com.example.kpkn.data.exercises.resolveCatalogExerciseInfo
 import com.example.kpkn.data.models.*
 import com.example.kpkn.domain.auge.ExerciseReadinessEngine
+import com.example.kpkn.domain.auge.RecoveryBands
 import com.example.kpkn.domain.training.canonicalEquipmentKind
 import com.example.kpkn.domain.training.machineRangeForExercise
 import com.example.kpkn.domain.training.reachableWarmupLoad
@@ -71,6 +72,12 @@ internal fun readinessLoadSnapFor(
     val equipmentKind = canonicalEquipmentKind(info?.equipment)
     val machine = inventory.machineRangeForExercise(exercise.catalogConfigurationId, equipmentKind)
     return { requestedKg -> reachableWarmupLoad(requestedKg, equipmentKind, inventory, machine) }
+}
+
+internal fun setAdjustmentReadinessColor(score: Int): Color = when (RecoveryBands.band(score)) {
+    RecoveryBand.HIGH, RecoveryBand.NORMAL -> WizardColors.done
+    RecoveryBand.MODERATE -> SymbolPalette.musculo
+    RecoveryBand.LOW, RecoveryBand.CRITICAL -> WizardColors.danger
 }
 
 /**
@@ -117,12 +124,8 @@ internal fun SetAdjustmentOverlay(
         )
     }
 
-    // Semáforo: lo listo en `ok`, lo intermedio en el acento de la sesión y lo bajo en `danger`.
-    val readinessColor = when {
-        exerciseReadiness.overallScore >= 75 -> WizardColors.done
-        exerciseReadiness.overallScore >= 50 -> SymbolPalette.musculo
-        else -> WizardColors.danger
-    }
+    // Semáforo según las mismas bandas que el resto de las superficies.
+    val readinessColor = setAdjustmentReadinessColor(exerciseReadiness.overallScore)
     val readinessLabel = ExerciseReadinessEngine.readinessLabel(exerciseReadiness.overallScore)
 
     val plannedModeText = when (loadMode) {
