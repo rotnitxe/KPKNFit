@@ -1,5 +1,6 @@
 package com.example.kpkn.data.sessions
 
+import com.example.kpkn.data.models.SetPurpose
 import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.ExerciseSet
 import com.example.kpkn.data.models.IntensityMode
@@ -350,11 +351,13 @@ private fun SetRecipe.toExerciseSet(id: String): ExerciseSet = ExerciseSet(
     targetRPE = rpe,
     targetRIR = rir,
     targetPercentageRM = percent,
-    isAmrap = amrap,
+    purpose = resolvedPurpose,
+    amrapMinimumReps = if (resolvedPurpose.isAmrap) effectiveAmrapMinimumReps else null,
+    calibrationScope = if (resolvedPurpose == SetPurpose.CALIBRATOR) calibrationScope ?: com.example.kpkn.data.models.CalibrationScope.SESSION else null,
     intensityMode = when {
         rir != null -> IntensityMode.RIR
         rpe != null -> IntensityMode.RPE
-        amrap -> IntensityMode.AMRAP
+        resolvedPurpose.isAmrap -> null
         else -> IntensityMode.LOAD
     },
 )

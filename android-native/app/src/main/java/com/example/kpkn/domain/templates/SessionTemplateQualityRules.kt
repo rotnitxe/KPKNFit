@@ -248,7 +248,7 @@ object SessionTemplateQualityRules {
             val compound = isCompound(info)
             exercise.sets.forEachIndexed { index, set ->
                 val rpe = set.targetRPE ?: set.targetRIR?.let { (10 - it).toDouble() }
-                if (set.isFailure || set.isAmrap || set.targetRIR == 0) {
+                if (set.isFailure || set.purpose.isAmrap || set.targetRIR == 0) {
                     issues += TemplateQualityIssue(
                         TemplateQualitySeverity.P0,
                         "SYSTEM_FAILURE_SET",

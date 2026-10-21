@@ -1,5 +1,6 @@
 package com.example.kpkn.domain.training
 
+import com.example.kpkn.data.models.SetPurpose
 import com.example.kpkn.data.models.AutoregulationMode
 import com.example.kpkn.data.models.AppliedRecipeProposal
 import com.example.kpkn.data.models.Block
@@ -1142,7 +1143,7 @@ object PlanMaterializer {
             sets
         } else {
             sets.map { set ->
-                if (set.isCalibrator || set.isTopSet || set.isDropSet || set.isRestPause || set.isAmrap) set
+                if (set.purpose.isAmrap || set.isTopSet || set.isDropSet || set.isRestPause) set
                 else set.copy(manualLoadRequiredSides = set.manualLoadRequiredSides + manualLoadSides)
             }
         }.mapIndexed { index, set ->
@@ -1218,8 +1219,14 @@ object PlanMaterializer {
             // valor legacy; con referencia declarada SOLO si es 1RM capturado.
             // Una carga de trabajo de 3-5 reps JAMÁS acá (§14.2).
             reference1RM = when {
-                explicit == null -> legacyReference
+                explicit == null -> oneRm
                 explicit.kind == PlanLoadReferenceKind.EXERCISE_1RM &&
+                    explicit.state == PlanLoadReferenceState.CAPTURED -> explicit.capturedLoadKg?.takeIf { it > 0.0 }
+                else -> null
+            },
+            referenceTrainingMax = when {
+                explicit == null -> tm
+                explicit.kind == PlanLoadReferenceKind.EXERCISE_TM &&
                     explicit.state == PlanLoadReferenceState.CAPTURED -> explicit.capturedLoadKg?.takeIf { it > 0.0 }
                 else -> null
             },
@@ -1342,7 +1349,7 @@ object PlanMaterializer {
         }
         val range = if (set.repsMin != null && set.repsMax != null) RepRange(set.repsMin, set.repsMax) else null
         val mode = when {
-            set.amrap -> IntensityMode.AMRAP
+            set.resolvedPurpose.isAmrap -> null
             percent != null -> IntensityMode.SOLO_RM
             set.rir != null -> IntensityMode.RIR
             set.rpe != null -> IntensityMode.RPE
@@ -1357,7 +1364,9 @@ object PlanMaterializer {
             intensityMode = mode,
             targetPercentageRM = percent,
             weight = weight,
-            isAmrap = set.amrap,
+            purpose = set.resolvedPurpose,
+            amrapMinimumReps = if (set.resolvedPurpose.isAmrap) set.effectiveAmrapMinimumReps else null,
+            calibrationScope = if (set.resolvedPurpose == SetPurpose.CALIBRATOR) set.calibrationScope ?: com.example.kpkn.data.models.CalibrationScope.SESSION else null,
             restAfterSeconds = slot.restSeconds,
             isTopSet = set.isTopSet,
             loadBasis = set.loadBasis,

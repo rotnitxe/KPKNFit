@@ -25,6 +25,7 @@ class ExerciseIdentityTest {
             exerciseDbId = "bench",
             trainingMode = TrainingMode.RM,
             reference1RM = 180.0,
+            referenceTrainingMax = 160.0,
             warmupSets = listOf(WarmupSetDefinition(id = "w1", percentageOfWorkingWeight = 50.0, targetReps = 5)),
             sets = listOf(
                 ExerciseSet(
@@ -69,6 +70,7 @@ class ExerciseIdentityTest {
         assertTrue(set.restPauses.isEmpty())
         assertTrue(updated.warmupSets.isEmpty())
         assertNull(updated.reference1RM)
+        assertNull(updated.referenceTrainingMax)
         assertEquals(TrainingMode.REPS, updated.trainingMode)
     }
 

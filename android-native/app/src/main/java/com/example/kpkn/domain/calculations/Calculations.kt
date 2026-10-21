@@ -20,16 +20,19 @@ import kotlin.math.roundToInt
 // ─── 1RM Formulas ────────────────────────────────────────────────────────────
 // 1:1 port from utils/calculations.ts
 
+/** v2 removes the AMRAP label bonus. Stored v1 evaluations remain historical snapshots. */
+const val CAPACITY_ESTIMATOR_VERSION = 2
+
 /**
  * Brzycki formula. Best for ≤10 reps.
  * Partial reps NOT included — they don't contribute to 1RM.
  */
+@Suppress("UNUSED_PARAMETER") // Source compatibility; the label never changes capacity.
 fun calculateBrzycki1RM(weight: Double, reps: Int, isAmrap: Boolean = false): Double {
     if (weight <= 0 || reps <= 0) return 0.0
     if (reps == 1) return weight
     val effectiveReps = reps.coerceAtMost(30)
-    var e1rm = weight * (36.0 / (37 - effectiveReps))
-    if (isAmrap && reps > 3) e1rm *= 1.025
+    val e1rm = weight * (36.0 / (37 - effectiveReps))
     return round(e1rm * 10.0) / 10.0
 }
 
@@ -57,6 +60,7 @@ fun calculateLander1RM(weight: Double, reps: Int): Double {
  * Hybrid: Brzycki ≤10, Epley 11–20, smooth extrapolation >20.
  * 1:1 port of calculateHybrid1RM from calculations.ts.
  */
+@Suppress("UNUSED_PARAMETER") // Kept for callers compiled against v1; no AMRAP bonus in v2.
 fun calculateHybrid1RM(weight: Double, reps: Int, isAmrap: Boolean = false): Double {
     if (weight <= 0 || reps <= 0) return 0.0
     if (reps == 1) return weight
@@ -66,8 +70,7 @@ fun calculateHybrid1RM(weight: Double, reps: Int, isAmrap: Boolean = false): Dou
         r <= 20 -> weight * (1 + r / 30.0)
         else    -> weight * (1 + 20.0 / 30) * (1 + (r - 20) / 80.0).pow(0.9)
     }
-    val adjusted = if (isAmrap && reps > 3) e1rm * 1.025 else e1rm
-    return round(adjusted * 10.0) / 10.0
+    return round(e1rm * 10.0) / 10.0
 }
 
 /** Inverse of Hybrid1RM: weight from 1RM and target reps. */
@@ -94,7 +97,7 @@ fun calculateWeightFrom1RMAndIntensity(reference1RM: Double, set: ExerciseSet): 
 
     val effectiveReps = when {
         set.intensityMode == IntensityMode.FAILURE ||
-        set.intensityMode == IntensityMode.AMRAP ||
+        set.purpose.isAmrap ||
         set.intensityMode == IntensityMode.SOLO_RM -> reps
         set.targetRIR != null -> reps + set.targetRIR
         set.targetRPE != null -> reps + (10 - set.targetRPE).toInt()
@@ -191,7 +194,7 @@ private fun effectiveMetricForSuggestion(set: ExerciseSet, trainingMode: Trainin
     return when (trainingMode) {
         TrainingMode.REPS -> when {
             set.intensityMode == IntensityMode.FAILURE ||
-                set.intensityMode == IntensityMode.AMRAP ||
+                set.purpose.isAmrap ||
                 set.intensityMode == IntensityMode.SOLO_RM -> baseMetric
             set.targetRIR != null -> baseMetric + set.targetRIR
             set.targetRPE != null -> baseMetric + (10 - set.targetRPE).roundToInt()
@@ -203,7 +206,7 @@ private fun effectiveMetricForSuggestion(set: ExerciseSet, trainingMode: Trainin
         -> {
             val multiplier = when {
                 set.intensityMode == IntensityMode.FAILURE ||
-                    set.intensityMode == IntensityMode.AMRAP -> 1.0
+                    set.purpose.isAmrap -> 1.0
                 set.targetRIR != null -> 1.0 + (set.targetRIR * 0.05)
                 set.targetRPE != null -> 1.0 + ((10.0 - set.targetRPE).coerceAtLeast(0.0) * 0.05)
                 else -> 1.10
@@ -251,7 +254,7 @@ fun resolveReferenceCapacity(
 
 /** PERCENT_TM declares the reference base, not authorship or a guessed history 1RM. */
 private fun explicitTrainingMaxLoad(exercise: Exercise, set: ExerciseSet): Double? {
-    val trainingMax = exercise.reference1RM?.takeIf { it.isFinite() && it > 0.0 } ?: return null
+    val trainingMax = exercise.referenceTrainingMax?.takeIf { it.isFinite() && it > 0.0 } ?: return null
     val percent = set.targetPercentageRM?.takeIf { it.isFinite() && it > 0.0 } ?: return null
     return TrainingMaxResolver.loadKg(percent, trainingMax)?.takeIf { it.isFinite() && it > 0.0 }
 }
@@ -525,8 +528,9 @@ fun estimatePercent1RM(repsToFailure: Int): Double {
 
 fun getEffectiveRepsForRM(set: ExerciseSet): Int? {
     val reps = set.plannedRepAnchor() ?: return null
+    if (set.purpose.isAmrap) return reps
     return when (set.intensityMode) {
-        IntensityMode.FAILURE, IntensityMode.AMRAP, IntensityMode.SOLO_RM -> reps
+        IntensityMode.FAILURE, IntensityMode.SOLO_RM -> reps
         IntensityMode.RIR -> reps + (set.targetRIR ?: 0)
         IntensityMode.RPE -> reps + (10 - (set.targetRPE ?: 8.0)).roundToInt()
         else -> reps + 2

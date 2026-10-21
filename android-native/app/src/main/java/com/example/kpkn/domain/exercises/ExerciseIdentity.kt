@@ -290,6 +290,7 @@ fun Exercise.replacedWithCatalogExercise(
         sets = sets.map { it.resetForCatalogReplacement(defaultLoadMode) },
         warmupSets = emptyList(),
         reference1RM = null,
+        referenceTrainingMax = null,
         targetSessionGoal = null,
         isStarTarget = false,
         setupDetails = setup,

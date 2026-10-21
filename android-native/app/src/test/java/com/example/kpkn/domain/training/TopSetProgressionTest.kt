@@ -524,7 +524,7 @@ class TopSetProgressionTest {
                     val exercises = session.allExercises()
                     if (exercises.size != recipeDay.slots.size) return@forEachIndexed
                     val marked = exercises.indices.filter { index ->
-                        exercises[index].sets.any { it.isAmrap || it.isTopSet }
+                        exercises[index].sets.any { it.purpose.isAmrap || it.isTopSet }
                     }
                     if (marked.isEmpty()) return@forEachIndexed
 
@@ -548,7 +548,7 @@ class TopSetProgressionTest {
                                         id = "${exercise.id}-$setIndex",
                                         weight = planned.weight ?: 60.0,
                                         reps = planned.targetReps ?: planned.targetRepsRange?.min ?: 5,
-                                        amrapPerformed = planned.isAmrap,
+                                        amrapPerformed = planned.purpose.isAmrap,
                                     )
                                 },
                             )
@@ -556,7 +556,7 @@ class TopSetProgressionTest {
                     )
 
                     val expectedAmrap = marked.flatMap { index ->
-                        List(exercises[index].sets.count { it.isAmrap }) { recipeDay.slots[index].lift.liftSlot }
+                        List(exercises[index].sets.count { it.purpose.isAmrap }) { recipeDay.slots[index].lift.liftSlot }
                     }
                     val actualAmrap = ProgramAutoregulationEngine
                         .collectAmrapHits(week, listOf(log), recipe = recipe)

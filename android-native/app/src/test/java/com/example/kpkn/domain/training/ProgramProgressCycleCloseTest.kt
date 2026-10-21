@@ -814,8 +814,8 @@ class ProgramProgressCycleCloseTest {
                         CompletedSet(
                             id = "set$index",
                             weight = planned.weight ?: 60.0,
-                            reps = if (planned.isAmrap) amrapReps else planned.targetReps ?: 5,
-                            amrapPerformed = planned.isAmrap,
+                            reps = if (planned.purpose.isAmrap) amrapReps else planned.targetReps ?: 5,
+                            amrapPerformed = planned.purpose.isAmrap,
                         )
                     },
                 ),

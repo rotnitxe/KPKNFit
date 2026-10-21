@@ -206,7 +206,7 @@ fun ExerciseSet.resolveScheduledTechniqueExecution(
         }
     }
     val plannedMode = when {
-        isAmrap || intensityMode == IntensityMode.AMRAP -> IntensityMode.AMRAP
+        purpose.isAmrap -> IntensityMode.AMRAP
         targetRIR != null -> IntensityMode.RIR
         targetRPE != null -> IntensityMode.RPE
         isFailure || intensityMode == IntensityMode.FAILURE -> IntensityMode.FAILURE

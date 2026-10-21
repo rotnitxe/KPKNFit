@@ -9,6 +9,7 @@ import com.example.kpkn.data.models.CompletedExercise
 import com.example.kpkn.data.models.CompletedSet
 import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.ExerciseSet
+import com.example.kpkn.data.models.performedPurpose
 import com.example.kpkn.data.models.LoadAdvisoryLevel
 import com.example.kpkn.data.models.PendingActionResolutionStatus
 import com.example.kpkn.data.models.PendingProgramAction
@@ -566,15 +567,14 @@ object ProgramAutoregulationEngine {
         week.sessions.forEach { session ->
             val sessionLogs = logsOfSession(weekLogs, session, weekSessionIds)
             session.allExercises().forEach { exercise ->
-                pairedSets(exercise, sessionLogs, isTarget = { it.isAmrap }, isFlagged = { it.amrapPerformed })
+                pairedSets(exercise, sessionLogs, isTarget = { it.purpose.isAmrap }, isFlagged = { it.performedPurpose()?.isAmrap == true })
                     .forEach { pair ->
                         out += AmrapHit(
                             liftSlot = lifts.liftSlotFor(exercise),
                             percent = pair.prescribed.targetPercentageRM,
-                            prescribedReps = pair.prescribed.targetReps
-                                ?: pair.prescribed.targetRepsRange?.min
-                                ?: pair.performed.amrapMinimumReps
-                                ?: 0,
+                            prescribedReps = (if (pair.performed.purpose != null || pair.performed.recordedPayloadV3?.purpose != null) {
+                                pair.performed.amrapMinimumReps
+                            } else pair.performed.amrapMinimumReps ?: pair.prescribed.amrapMinimumReps) ?: 0,
                             actualReps = pair.performed.reps,
                             meanRpe = pair.performed.rpe ?: pair.prescribed.targetRPE,
                             weightRatio = weightRatio(pair.prescribed, pair.performed),
@@ -661,7 +661,7 @@ object ProgramAutoregulationEngine {
                             liftSlot = lift,
                             weightKg = weight,
                             reps = reps,
-                            estimatedOneRmKg = calculateHybrid1RM(weight, reps, isAmrap = pair.performed.amrapPerformed),
+                            estimatedOneRmKg = calculateHybrid1RM(weight, reps),
                         )
                     }
             }
@@ -754,13 +754,24 @@ object ProgramAutoregulationEngine {
     ): List<SetPair> {
         val planned = exercise.sets.filterNot { it.isEmptySlot }
         val targets = planned.withIndex().filter { isTarget(it.value) }
-        if (targets.isEmpty()) return emptyList()
+        if (targets.isEmpty() && isFlagged == null) return emptyList()
         for (log in logs) {
             val working = loggedExercisesOf(log, exercise)
                 .flatMap { it.sets }
                 .filter { !it.isWarmup && !it.skipped }
             if (working.isEmpty()) continue
             val flagged: List<CompletedSet> = if (isFlagged == null) emptyList() else working.filter(isFlagged)
+            if (isFlagged != null && working.any { it.performedPurpose() != null }) {
+                // Modern evidence, including NONE, belongs to this occurrence. Never revive
+                // an opt-out from the plan's ordinal or an older session's AMRAP.
+                return flagged.mapIndexedNotNull { flaggedIndex, performed ->
+                    val prescribed = performed.setIndex?.let { exercise.sets.getOrNull(it) }
+                        ?: planned.firstOrNull { it.id == performed.id }
+                        ?: working.indexOf(performed).takeIf { working.size == planned.size }?.let(planned::getOrNull)
+                        ?: targets.getOrNull(flaggedIndex)?.value
+                    prescribed?.let { SetPair(it, performed) }
+                }
+            }
             val pairs: List<SetPair> = when {
                 flagged.isNotEmpty() ->
                     targets.zip(flagged) { target, performed -> SetPair(target.value, performed) }
@@ -790,7 +801,7 @@ object ProgramAutoregulationEngine {
         weekLogs.flatMap { it.completedExercises }.forEach { exercise ->
             val slot = liftSlotFromConfigurationId(exercise.catalogConfigurationId ?: exercise.exerciseDbId) ?: return@forEach
             exercise.sets.filter { !it.isWarmup && it.weight > 0 && it.reps > 0 }.forEach { set ->
-                val e1 = calculateHybrid1RM(set.weight, set.reps, isAmrap = set.amrapPerformed)
+                val e1 = calculateHybrid1RM(set.weight, set.reps)
                 acc[slot] = maxOf(acc[slot] ?: 0.0, e1)
             }
         }
@@ -802,7 +813,7 @@ object ProgramAutoregulationEngine {
         logs.flatMap { it.completedExercises }.forEach { exercise ->
             val slot = liftSlotFromConfigurationId(exercise.catalogConfigurationId ?: exercise.exerciseDbId) ?: return@forEach
             exercise.sets.filter { !it.isWarmup && it.weight > 0 && it.reps > 0 }.forEach { set ->
-                val e1 = calculateHybrid1RM(set.weight, set.reps, isAmrap = set.amrapPerformed)
+                val e1 = calculateHybrid1RM(set.weight, set.reps)
                 acc[slot] = maxOf(acc[slot] ?: 0.0, e1)
             }
         }

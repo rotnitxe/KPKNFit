@@ -445,8 +445,8 @@ class ProgramAutoregulationEngineTest {
             CompletedSet(
                 id = "$id-$index",
                 weight = planned.weight ?: 100.0,
-                reps = if (planned.isAmrap) amrapReps else 4,
-                amrapPerformed = planned.isAmrap && flagAmrap,
+                reps = if (planned.purpose.isAmrap) amrapReps else 4,
+                amrapPerformed = planned.purpose.isAmrap && flagAmrap,
             )
         }
         return WorkoutLog(
@@ -644,7 +644,7 @@ class ProgramAutoregulationEngineTest {
         val week = firstWeek(program)
         val session = week.sessions.first()
         val logged = session.allExercises()
-            .filter { exercise -> exercise.sets.any { it.isAmrap } }
+            .filter { exercise -> exercise.sets.any { it.purpose.isAmrap } }
             .filter { exercise -> onlyConfigurations == null || exercise.catalogConfigurationId in onlyConfigurations }
             .map { exercise ->
                 CompletedExercise(
@@ -655,8 +655,8 @@ class ProgramAutoregulationEngineTest {
                         CompletedSet(
                             id = "$id-${exercise.id}-$index",
                             weight = planned.weight ?: 80.0,
-                            reps = if (planned.isAmrap) amrapReps else planned.targetReps ?: 5,
-                            amrapPerformed = planned.isAmrap,
+                            reps = if (planned.purpose.isAmrap) amrapReps else planned.targetReps ?: 5,
+                            amrapPerformed = planned.purpose.isAmrap,
                         )
                     },
                 )
@@ -966,7 +966,7 @@ class ProgramProgressEngineAutoregulationTest {
         val week = program.macrocycles.first().blocks.first().mesocycles.first().weeks.first()
         val session = week.sessions.first()
         val bench = session.allExercises().first { it.catalogConfigurationId == CatalogIds.BP }
-        val amrapSet = bench.sets.single { it.isAmrap }
+        val amrapSet = bench.sets.single { it.purpose.isAmrap }
         assertEquals(5, amrapSet.targetReps)
         assertEquals(85.0, amrapSet.targetPercentageRM ?: -1.0, 0.001)
         assertEquals(153.0, amrapSet.weight ?: -1.0, 0.001)

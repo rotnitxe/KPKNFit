@@ -186,9 +186,8 @@ object SessionTemplateEngine {
 
     private fun isExecutableSet(set: ExerciseSet): Boolean {
         if (set.isEmptySlot) return false
-        val explicitFailureOrAmrap = set.isFailure || set.isAmrap ||
-            set.intensityMode == com.example.kpkn.data.models.IntensityMode.FAILURE ||
-            set.intensityMode == com.example.kpkn.data.models.IntensityMode.AMRAP
+        val explicitFailureOrAmrap = set.isFailure || set.purpose.isAmrap ||
+            set.intensityMode == com.example.kpkn.data.models.IntensityMode.FAILURE
         return (set.effectiveRepRange()?.max ?: 0) > 0 ||
             (set.targetDuration ?: 0) > 0 ||
             set.targetRPE != null ||

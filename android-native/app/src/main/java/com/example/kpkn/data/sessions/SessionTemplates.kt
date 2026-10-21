@@ -1,5 +1,6 @@
 package com.example.kpkn.data.sessions
 
+import com.example.kpkn.data.models.SetPurpose
 import com.example.kpkn.data.exercises.catalogExerciseIndex
 import com.example.kpkn.data.models.*
 import com.example.kpkn.data.protocols.displayName
@@ -3602,7 +3603,7 @@ private fun normalizeV3LegacyIntensity(exercise: Exercise): Exercise =
                 targetRIR = rir,
                 intensityMode = if (rpe != null || rir == null) IntensityMode.RPE else IntensityMode.RIR,
                 isFailure = false,
-                isAmrap = false,
+                purpose = SetPurpose.NONE, amrapMinimumReps = null, calibrationScope = null,
             )
         },
     )
