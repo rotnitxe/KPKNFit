@@ -16,6 +16,8 @@ import com.example.kpkn.domain.nutrition.FoodKnowledge
 import com.example.kpkn.domain.nutrition.FoodState
 import com.example.kpkn.domain.nutrition.FoodIdentity
 import com.example.kpkn.domain.nutrition.FoodSearchRanker
+import com.example.kpkn.domain.nutrition.Gtin
+import com.example.kpkn.domain.nutrition.NutrientBasis
 import com.example.kpkn.domain.nutrition.HouseholdPortions
 import com.example.kpkn.domain.nutrition.NutritionGoalResolver
 import com.example.kpkn.domain.nutrition.NutritionGoalSource
@@ -382,6 +384,75 @@ class NutritionRepository private constructor(
         // E16/IT2: el resolver debe ver los alimentos del usuario.
         foodIndex.addStaticFood(normalized)
         scope.launch { db.nutritionDao().upsertCustomFood(normalized.toEntity()) }
+    }
+
+    // ─── Alimentos propios y búsqueda por código de barras (N3) ──────────────────
+
+    /**
+     * Guarda un alimento propio ESPERANDO el commit de Room y solo entonces lo publica en [foodDatabase] y en el índice del
+     * resolvedor: si Room falla, la excepción llega a quien llama y nada queda publicado. Reintentar con el mismo id no duplica
+     * (es un upsert por id). A diferencia de [addCustomFood] (caché de la IA, sin esperar), este es el camino de la interfaz.
+     * Editar un alimento ya publicado sube la generación del catálogo: el índice no sabe quitar nombres viejos y se reconstruye.
+     */
+    suspend fun saveCustomFood(food: FoodItem) {
+        require(food.id.isNotBlank()) { "El alimento propio necesita un id" }
+        require(food.name.isNotBlank()) { "El alimento propio necesita un nombre" }
+        require(food.servingSize.isFinite() && food.servingSize > 0.0) { "La porción tiene que ser mayor que cero" }
+        require(listOf(food.calories, food.protein, food.carbs, food.fats).all { it.isFinite() && it >= 0.0 }) {
+            "Los nutrientes tienen que ser números finitos y no negativos"
+        }
+        foodSaveMutex.withLock {
+            withContext(Dispatchers.IO) {
+                val normalized = normalizeFoodItem(food.copy(isCustom = true, isAiInferred = false))
+                db.withTransaction { db.nutritionDao().upsertCustomFood(normalized.toEntity()) }
+                val replaced = _foodDatabase.value.any { it.id == normalized.id }
+                _foodDatabase.update { current -> current.filterNot { it.id == normalized.id } + normalized }
+                foodIndex.addStaticFood(normalized)
+                if (replaced) bumpCatalogGeneration()
+            }
+        }
+    }
+
+    /**
+     * Borra un alimento propio. Las comidas ya registradas con él no cambian (guardan su propia copia de los nutrientes).
+     * Espera el commit; solo toca la tabla de alimentos propios, nunca el catálogo estático ni el global.
+     */
+    suspend fun deleteCustomFood(id: String) {
+        foodSaveMutex.withLock {
+            withContext(Dispatchers.IO) {
+                db.withTransaction { db.nutritionDao().deleteCustomFood(id) }
+                _foodDatabase.update { current -> current.filterNot { it.id == id && it.isCustom } }
+                bumpCatalogGeneration()
+            }
+        }
+    }
+
+    /**
+     * Busca un código de barras SIN red: primero entre los alimentos propios de la persona (su código va en `sourceRecordId`) y
+     * después en el catálogo global, probando las variantes de [Gtin.candidates] (con y sin ceros a la izquierda). Un producto
+     * con nutrientes incompletos se devuelve con sus banderas de calidad para que la interfaz lo diga; nunca se completan macros.
+     */
+    suspend fun findFoodByBarcode(code: String): BarcodeLookup = withContext(Dispatchers.IO) {
+        val candidates = Gtin.candidates(code)
+        if (candidates.isEmpty()) return@withContext BarcodeLookup.Invalid
+        val wanted = candidates.toSet()
+        val dao = db.nutritionDao()
+        val own = dao.getAllCustomFoods()
+            .mapNotNull { row -> runCatching { row.toFoodItem() }.getOrNull() }
+            .filter { food -> !food.isAiInferred && food.sourceRecordId?.let { it in wanted } == true }
+            .sortedWith(compareByDescending<FoodItem> { it.usageCount }.thenByDescending { it.verifiedScore }.thenBy { it.id })
+            .firstOrNull()
+        if (own != null) return@withContext BarcodeLookup.Found(normalizeFoodItem(own), BarcodeOrigin.PROPIO)
+        val row = dao.getGlobalFoodsByBarcodes(candidates).firstOrNull() ?: return@withContext BarcodeLookup.NotFound
+        BarcodeLookup.Found(withIncompleteFlag(row.toFoodItem()), BarcodeOrigin.CATALOGO)
+    }
+
+    /** Una ficha sin energía ni macros (y que no se declara de energía nula) lleva la bandera INCOMPLETE aunque la fila no la traiga. */
+    private fun withIncompleteFlag(food: FoodItem): FoodItem {
+        val empty = listOf(food.calories, food.protein, food.carbs, food.fats).all { it <= 0.0 }
+        return if (empty && !NutrientBasis.isZeroEnergy(food) && "INCOMPLETE" !in food.qualityFlags) {
+            food.copy(qualityFlags = food.qualityFlags + "INCOMPLETE")
+        } else food
     }
 
     /**

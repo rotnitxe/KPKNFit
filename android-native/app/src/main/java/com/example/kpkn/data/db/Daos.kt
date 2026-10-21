@@ -406,6 +406,21 @@ interface NutritionDao {
     @Query("SELECT * FROM global_foods WHERE foodId = :foodId LIMIT 1")
     suspend fun getGlobalFoodById(foodId: String): GlobalFoodEntity?
 
+    /**
+     * Productos del catálogo global cuyo código de barras (`sourceRecordId`, con índice) es uno de [codes] (las variantes de
+     * `Gtin.candidates`). Las fichas de USDA guardan allí un FDC ID, no un código: se excluyen. Con duplicados gana la de mejor
+     * puntuación verificada y prioridad de fuente; el resto del orden es fijo para que el resultado no dependa de Room.
+     */
+    @Query(
+        """
+        SELECT * FROM global_foods
+        WHERE sourceRecordId IN (:codes) AND source NOT LIKE 'USDA%'
+        ORDER BY verifiedScore DESC, sourcePriority DESC, foodId ASC
+        LIMIT 5
+        """
+    )
+    suspend fun getGlobalFoodsByBarcodes(codes: List<String>): List<GlobalFoodEntity>
+
     @Query(
         """
         SELECT * FROM global_foods

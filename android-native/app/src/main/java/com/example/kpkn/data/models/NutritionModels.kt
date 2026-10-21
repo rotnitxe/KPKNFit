@@ -507,3 +507,20 @@ data class MeasurementSchedule(
     val reminderHour: Int = 9,
     val reminderMinute: Int = 0,
 )
+
+// ─── Búsqueda por código de barras (N3) ──────────────────────────────────────
+
+/** De dónde sale el producto que devolvió la búsqueda por código: un alimento propio de la persona o el catálogo global. */
+enum class BarcodeOrigin { PROPIO, CATALOGO }
+
+/** Resultado de buscar un código de barras en el teléfono (sin red). */
+sealed interface BarcodeLookup {
+    /** El producto, con sus banderas de calidad tal como las guarda la fila (nunca se completan macros que falten). */
+    data class Found(val food: FoodItem, val origin: BarcodeOrigin) : BarcodeLookup
+
+    /** El código es válido pero ni los alimentos propios ni el catálogo global lo tienen. */
+    data object NotFound : BarcodeLookup
+
+    /** El texto no es un código de producto válido (longitud, caracteres o dígito de control). */
+    data object Invalid : BarcodeLookup
+}
