@@ -168,11 +168,11 @@ class RingsUiCopyConsistencyTest {
         val at70 = ReadinessObserver.observe(relatorContext(dailyScore = RecoveryBands.NORMAL_MIN)).single()
         assertFalse(at70.actions.any { it.kind == RelatorActionKind.ADJUST_LOAD })
         val below70 = ReadinessObserver.observe(relatorContext(dailyScore = RecoveryBands.NORMAL_MIN - 1)).single()
-        assertEquals(-5.0, below70.actions.single { it.kind == RelatorActionKind.ADJUST_LOAD }.loadDeltaPercent, 0.0)
+        assertEquals(-5.0, requireNotNull(below70.actions.single { it.kind == RelatorActionKind.ADJUST_LOAD }.loadDeltaPercent), 0.0)
         val at50 = ReadinessObserver.observe(relatorContext(dailyScore = RecoveryBands.MODERATE_MIN)).single()
-        assertEquals(-5.0, at50.actions.single { it.kind == RelatorActionKind.ADJUST_LOAD }.loadDeltaPercent, 0.0)
+        assertEquals(-5.0, requireNotNull(at50.actions.single { it.kind == RelatorActionKind.ADJUST_LOAD }.loadDeltaPercent), 0.0)
         val below50 = ReadinessObserver.observe(relatorContext(dailyScore = RecoveryBands.MODERATE_MIN - 1)).single()
-        assertEquals(-10.0, below50.actions.single { it.kind == RelatorActionKind.ADJUST_LOAD }.loadDeltaPercent, 0.0)
+        assertEquals(-10.0, requireNotNull(below50.actions.single { it.kind == RelatorActionKind.ADJUST_LOAD }.loadDeltaPercent), 0.0)
 
         fun skipsWarmup(score: Int?) = WarmupObserver.observe(
             relatorContext(dailyScore = score, warmupRemaining = 2),

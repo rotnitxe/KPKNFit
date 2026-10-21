@@ -202,11 +202,13 @@ class AugeLearnerBiasCharacterizationTest {
         // Músculo sobreestima τ; el redondeo cerca de la recuperación completa reduce el cociente implícito.
         assertTrue("músculo: cociente mínimo ${muscle.ratios().min()}", muscle.ratios().all { it > 1.0 })
         assertTrue("músculo ≤24 h: cociente mínimo", muscle.filter { it.hours <= 24 }.ratios().all { it > 1.1 })
-        // Energía cambia de signo con el tiempo: subestima hasta 24 h y deja de subestimar a las 48 h.
+        // Energía cambia de signo con el tiempo: subestima hasta 24 h y a las 48 h queda en torno a 1.
+        // Re-anclado por D3 (2.6): antes el cociente a 48 h era ≥ 0,95 en todas las sesiones; con el
+        // progresivo neural global la sesión muy grande queda en 0,94 (rango 0,94–1,41).
         assertTrue("Energía ≤24 h: cociente máximo", energy.filter { it.hours <= 24 }.ratios().all { it < 0.95 })
         assertTrue("Energía ≤12 h: cociente máximo", energy.filter { it.hours <= 12 }.ratios().all { it < 0.7 })
         assertTrue("Energía: cociente mínimo ${energy.ratios().min()}", energy.ratios().all { it > 0.4 })
-        assertTrue("Energía 48 h: ya no subestima", energy.filter { it.hours == 48 }.ratios().all { it >= 0.95 })
+        assertTrue("Energía 48 h: cociente mínimo ${energy.filter { it.hours == 48 }.ratios().min()}", energy.filter { it.hours == 48 }.ratios().all { it >= 0.90 })
         // Columna sobreestima τ; las sesiones con poca carga axial amplifican el cociente a 24–48 h.
         assertTrue("Columna: cociente mínimo ${spinal.ratios().min()}", spinal.ratios().all { it > 0.95 })
         assertTrue("Columna ≤12 h fuera de [0,95; 2,0]", spinal.filter { it.hours <= 12 }.ratios().all { it in 0.95..2.0 })
@@ -474,7 +476,7 @@ class AugeLearnerBiasCharacterizationTest {
         val learner = CurrentEmaLearner()
         learner.onGesture(gesture(squat, 24.0, differs))
         val drain = AugeFatigueEngine.calculateCompletedSessionDrain(squat.completedExercises, db, settings, durationMinutes = squat.durationMinutes)
-        val (cns, spinal) = AugeAdaptiveEngine.updateSystemRecoveryHours(
+        val (cns, spinal) = LegacyEmaReference.updateSystemRecoveryHours(
             currentCnsTau = null,
             currentSpinalTau = null,
             cnsObservation = RecoveryLearningObservation("cns", 90, 80, drain.cns.toDouble(), 24.0),
@@ -482,7 +484,7 @@ class AugeLearnerBiasCharacterizationTest {
             totalObservations = 0,
         )
         val stress = squat.muscularImpactV2!!.perMuscle.getValue("Cuádriceps").immediateDrainPct
-        val muscles = AugeAdaptiveEngine.updatePersonalizedRecoveryHours(
+        val muscles = LegacyEmaReference.updatePersonalizedRecoveryHours(
             current = emptyMap(),
             observation = RecoveryLearningObservation("Cuádriceps", 75, 60, stress, 24.0),
             totalObservations = 0,

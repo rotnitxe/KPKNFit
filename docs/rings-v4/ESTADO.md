@@ -1,6 +1,6 @@
 # Rings v4 · tablero de estado
 
-Lo mantiene el orquestador. Última actualización: **2026-10-21 17:30**. Detalle de decisiones: `DECISIONES_AUTORRESPONDIDAS.md`. Informes por paquete: `reports/<ID>.md`. Convivencia de agentes: `BRIEF_PARALELO.md`.
+Lo mantiene el orquestador. Última actualización: **2026-10-21 19:35**. Detalle de decisiones: `DECISIONES_AUTORRESPONDIDAS.md`. Informes por paquete: `reports/<ID>.md`. Convivencia de agentes: `BRIEF_PARALELO.md`.
 
 ## AVISO · Codex y Antigravity sin cuota
 - **Codex** (21-oct 13:38): sin cuota hasta el **27 de octubre a las 12:38**.
@@ -15,7 +15,7 @@ La cola compartida de Gradle (otras 10 sesiones) lleva horas de espera, así que
 - Hallazgo de la revisión de 3.1 (14:55): el nuevo códec JSON del caché había perdido `coerceInputValues`, que sí tenía el decodificador original; se devuelve al agente para corregirlo antes de la corrida Android.
 
 ## Resumen
-- **Plan en alcance: 29 paquetes** (32 del plan menos 3.6 opcional, 4.1 y 4.2 que dependen de tus datos). **Integrados: 19** (1.11, 1.9v2, 2.5 y 3.1 pendientes de la tanda Android). En curso: 2.5 y los carriles de abajo. Pendientes tras ellos: ver «Grafo».
+- **Plan en alcance: 29 paquetes** (32 del plan menos 3.6 opcional, 4.1 y 4.2 que dependen de tus datos). **Integrados: 22** (1.11, 1.9v2, 2.5 y 3.1 pendientes de la tanda Android; más 3.2b, 3.2a-1 y 2.6 pasada 1). En curso: 2.5 y los carriles de abajo. Pendientes tras ellos: ver «Grafo».
 - Aplazado por tu decisión: backtest (BT1). Fuera de esta entrega: AUGE Pro (13 decisiones tuyas pendientes), 3.6, 4.2, sugerencias S1–S14 salvo «Precisión del modelo» (en 3.5).
 
 ## Carriles en marcha
@@ -24,9 +24,12 @@ La cola compartida de Gradle (otras 10 sesiones) lleva horas de espera, así que
 | A | 2.5 anclas como estado + evidencia multiplicativa | Codex (A) + DeepSeek (cierre de B) | `v3c` · `r4/2-5` | **FUSIONADO 17:25 (`4fbe555c5`)**: arnés 73 clases / 383 pruebas / 0 fallos; máster dorado: solo D04 a 6/12/24 h; informe `reports/2.5.md` |
 | B | 3.1 caché v4, migración, anillo de observaciones | Codex + Gemini + DeepSeek (cierre) | `sb` · `r4/3-1` | **FUSIONADO 16:55 (`b848c4607`)**: arnés 74 clases / 384 pruebas / 0 fallos; la compilación Android de producción pasó; informe `reports/3.1.md` |
 | C | 1.9v2 textos y umbrales | Gemini (murió sin informe) | `u1` · `r4/1-9v2` | **fusionado en `feat/rings-v4` (`0c8a9a06c`)**; informe `reports/1.9.md` escrito por mí; su corrida Android se perdió: va en la tanda consolidada |
-| D2 | 1.10v2 «sin datos» no es 100 % | Gemini (murió) | `r4n` · `r4/1-10v2` (apilada sobre 1.9v2) | 1 commit (estado sin datos en el snapshot y titular por canal limitante); espera a Gemini (trabajo de interfaz con compilación solo en Android) |
-| F | 3.2b núcleo EKF + oráculo independiente | DeepSeek cierra (antes Gemini) | `r4l` · `r4/3-2` (apilada sobre `r4/3-1`) | los **vectores del oráculo independiente pasan** (12 + cadena de 4 pasos, a 1e-9); DeepSeek corrige 3 errores de las pruebas (clave canónica, versión 0 inválida, prior de Energía) y falta el arnés completo (en cola) |
-| G | 3.2a-1 lectura continua del motor (variantes exactas, sin cambiar cifras) | DeepSeek v4.1 Flash | `r4e` · `r4/3-2a` (desde `feat/rings-v4` con 2.5 y 3.1) | lanzado 17:27; gate: máster dorado idéntico + conformidad entero/exacto en todo el corpus |
+| F | 3.2b núcleo EKF + oráculo independiente | DeepSeek cierra (antes Gemini) | `r4l` · `r4/3-2` | **FUSIONADO 17:37 (`8f06e450e`)**: los 16 vectores del oráculo Python pasan a 1e-9; arnés 75 clases / 389 pruebas / 0 fallos; informe `reports/3.2b.md` |
+| G | 3.2a-1 lectura continua del motor | DeepSeek v4.1 Flash | `r4e` · `r4/3-2a` | **FUSIONADO 18:21 (`13eba7dd0`)**: máster idéntico; conformidad entero⇄exacto 0 diferencias en 4 301 lecturas musculares y Energía/Columna cruda, 35 de 400 compuestas con máx. 1 punto; informe `reports/3.2a.md`. Hueco anotado: falta `energyShown` (3.2c-1) |
+| H | 3.2c-1 modelo de observación real (`SnapshotObservationModel`), `energyShown`, refuerzo del criterio (c) y referencia EMA congelada | DeepSeek | `r4l` · `r4/3-2` | en curso desde 18:25 (arnés en cola) |
+| I | 2.6 pasada 1 (D8 avisos ACWR + D3 SNC por sesión dura) | DeepSeek | `v3c` · `r4/2-6` | **FUSIONADO 19:03 (`082ef7384`)**: arnés 80/425/0; máster: 95 líneas / 235 campos, todos de Energía; D8 cambia el aviso en 3 de 200 instantes; tablas en `reports/2.6-tablas.md` |
+| J | 2.6 pasada 2 (A = D5 escalas explícitas sin cambios; B = D1+D2 global de Músculos sin coeficiente articular) | DeepSeek | `v3c` · `r4/2-6` | en curso desde 19:05 |
+| K | 1.10v2 «sin datos» no es 100 % | Gemini 3.8 Flash High (cuota de vuelta desde ≈18:20) | `r4n` · `r4/1-10v2` | fusionó `feat/rings-v4`, pruebas de integración de dominio en arnés; sin Android hasta la tanda |
 | D | 1.11 creador sin Core por defecto | Antigravity · Gemini 3.8 Flash High | `r4s` · `r4/1-11` | **integrado 13:30** (diff de 7 líneas + prueba nueva); su corrida Android murió con el agente: se verificará en la próxima tanda |
 | E | DOC1 README de la auditoría y arquitectura (solo documentación) | OpenCode · DeepSeek v4.1 Flash (gratis) | `r4d` · `r4/5-3a` | **integrado 12:49** (README de la auditoría + arquitectura) |
 | T | JVM1 arnés JVM para pruebas puras de AUGE (herramienta, fuera del repo) | Codex Sol 6.1 · máximo | `C:\kw\r4-jvm` | **listo 13:28**: 70 clases / 365 pruebas de AUGE, 0 discrepancias con Android; compilación en frío 202 s, caliente 1,5 s, completo 83 s, una clase 17 s; un arnés por worktree (`C:\kw\r4-jvm-<wt>`); no cubre `screens/`, `data/repository/`, Robolectric/Compose/Room ni 3 clases (`AugeEditorCompletedParityTest`, `AugeSnapshotComputerTest`, `BatteryRoundingTest`) |
@@ -41,6 +44,10 @@ Cola de lanzamiento (cuando se integre lo anterior): 3.2 (tras 3.1) → 3.3 → 
 
 ## Integrados en `feat/rings-v4`
 Fase 0: 0.1, 0.2, 0.3 · Fase 1: 1.1, 1.2a, 1.2b, 1.3, 1.4, 1.5, 1.5b, 1.6, 1.7, 1.8, 1.12a, 1.12b, 1.12c · M0 (master fusionado) · Fase 2: 2.1, 2.2a, 2.2b1, 2.2b2, 2.3, **2.5 (17:25)** · Fase 3: **3.1 (16:55)** · **1.9v2 (15:15)** · 1.11 (13:30, verificación pendiente) · DOC1 (índice de la auditoría y arquitectura, parte de 5.3).
+
+## Tanda Android
+- Tanda 1 (18:36): la **producción compiló entera** (1.9v2, 2.5, 3.1, 3.2b y 3.2a-1) y cayó al compilar las PRUEBAS por 3 errores de tipo en `RingsUiCopyConsistencyTest` (corregidos, `7f0c42871`). Tanda 2 enviada a las 19:04 (`r4-batch-2.log`), en cola; mientras espera solo se fusionan paquetes cuyas pruebas nuevas ya compilan en el arnés (dominio).
+- Arnés de integración (punta de `feat/rings-v4` a las 19:03): **81 clases / 428 pruebas / 0 fallos**.
 
 ## Verificaciones
 - `r4-rev-23m` (árbol con 2.3): 513 clases / 4 833 pruebas / 2 fallos ajenos a AUGE (`VideoAnalysisRepositoryTest` solo falla en la corrida conjunta; `RingsResultStepTest` pendiente de contrastar con `master`).

@@ -58,6 +58,10 @@ internal data class StructureRingDetail(
 internal data class GlobalBatteriesDetail(
     val batteries: GlobalBatteries,
     val energyExact: Double,
+    /** Energía visible antes del último redondeo: desaceleración → suelo → evidencia inicial. */
+    val energyShownExact: Double,
+    /** Verdadero si la desaceleración deja la Energía en el suelo antes de componer la evidencia. */
+    val energyShownAtFloor: Boolean,
     val spineRawExact: Double,
     val finalSpinalExact: Double,
     val musclesGlobalExact: Double,
@@ -1286,6 +1290,10 @@ object AugeRecoveryEngine {
                 floor.muscular.toDouble(),
             ),
         )
+        val decelCncExact = decelerateBattery(
+            clamp(systemic.exact, 0.0, 100.0),
+        )
+        val finalCncExact = max(decelCncExact, floor.cns.toDouble())
         val finalCnc = batteryPercent(
             max(
                 decelerateBattery(
@@ -1360,6 +1368,8 @@ object AugeRecoveryEngine {
                 sourceExpiresAtMs = settings.initialRecoveryEvidence?.expiresAtMs?.takeIf { estimated },
             ),
             energyExact = systemic.exact,
+            energyShownExact = combineExact(finalCncExact, initialContribution.system, systemEstimated, floor.cns),
+            energyShownAtFloor = decelCncExact <= floor.cns + 1e-9,
             spineRawExact = spinalDetail.exact,
             finalSpinalExact = combineExact(finalSpinalExact, initialContribution.structure, structureEstimated, floor.spinal),
             musclesGlobalExact = muscularComposedExact,
