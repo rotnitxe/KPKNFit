@@ -383,13 +383,14 @@ class AcwrReliabilityTest {
 
     @Test
     fun thresholds_singleMapKeepsEveryValueAndFeedsZonesAndAdvisories() {
-        // Ningún valor cambia con la unificación (alinear avisos y zonas es decisión de producto).
+        // Re-anclado por D8 (2.6): avisos antes 1,2/1,4/1,6 → después 1,3/1,5/1,7.
+        // Las zonas no cambian (0,8/1,3/1,5) ni la histéresis (0,10).
         assertEquals(0.8, AcwrThresholds.UNDER, 0.0)
         assertEquals(1.3, AcwrThresholds.CAUTION, 0.0)
         assertEquals(1.5, AcwrThresholds.DANGER, 0.0)
-        assertEquals(1.2, AcwrThresholds.WATCH, 0.0)
-        assertEquals(1.4, AcwrThresholds.ADJUST, 0.0)
-        assertEquals(1.6, AcwrThresholds.UNLOAD, 0.0)
+        assertEquals(1.3, AcwrThresholds.WATCH, 0.0)
+        assertEquals(1.5, AcwrThresholds.ADJUST, 0.0)
+        assertEquals(1.7, AcwrThresholds.UNLOAD, 0.0)
         assertEquals(0.10, AcwrThresholds.HYSTERESIS, 0.0)
 
         // Zonas: leen del mapa (bordes inclusivos hacia abajo).

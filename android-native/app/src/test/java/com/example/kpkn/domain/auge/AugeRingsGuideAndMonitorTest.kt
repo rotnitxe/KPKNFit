@@ -56,11 +56,13 @@ class PersonalBaselineTest {
 class LoadAdvisoryHysteresisTest {
     @Test
     fun dropsAtMostOneLevelPerDayAndKeepsHysteresisBand() {
+        // Re-anclado por D8: la banda de UNLOAD pasa de 1,6·0,90=1,44 a 1,7·0,90=1,53.
+        // Antes 1,50 se mantenía en UNLOAD; después cae un nivel hasta ADJUST.
         val fromUnload = LoadAdvisoryEngine.applyHysteresis(
             raw = LoadAdvisoryLevel.WATCH,
             previous = LoadAdvisoryLevel.UNLOAD,
             allowDrop = true,
-            acwr = 1.50,
+            acwr = 1.55,
         )
         assertEquals(LoadAdvisoryLevel.UNLOAD, fromUnload)
         val drop = LoadAdvisoryEngine.applyHysteresis(
