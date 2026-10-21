@@ -115,6 +115,41 @@ class HomeBodyTrendTest {
 
         assertNull(sinPlan.goalMonth)
         assertEquals("enero de 2027", conPlan.goalMonth)
-        assertTrue(conPlan.trendKg == sinPlan.trendKg)
+        assertEquals(sinPlan.trendKg!!, conPlan.trendKg!!, 1e-12)
+    }
+
+    @Test
+    fun `el cambio de 30 dias por tendencia de dos pesajes es la mitad del heredado`() {
+        val state = homeBodyState(listOf(weight(1, 80.0), weight(0, 79.0)), emptyList(), null, today, zone)
+
+        assertEquals(-0.5, state.trendChange30d!!, 1e-9)
+        assertEquals(-1.0, state.weightChange30d!!, 1e-9)
+    }
+
+    @Test
+    fun `el cambio de 30 dias de Inicio es el mismo que el de Cuerpo`() {
+        val cuerpo = summarizeWeight(bajada, BodyChartRange.ONE_MONTH, null, zone, today)
+
+        val inicio = homeBodyState(bajada, emptyList(), null, today, zone)
+
+        assertEquals(cuerpo.trendChange!!, inicio.trendChange30d!!, 1e-12)
+    }
+
+    @Test
+    fun `un pico de dos kilos el ultimo dia no invierte el cambio ni su sentido hacia la meta`() {
+        val conPico = bajada.dropLast(1) + weight(0, 77.2 + 2.0)
+
+        val state = homeBodyState(conPico, listOf(weightGoal(72.0)), null, today, zone)
+
+        assertTrue(state.trendChange30d!! < -2.0)
+        assertEquals(true, state.trendChangeTowardGoal)
+    }
+
+    @Test
+    fun `sin tendencia no hay cambio por tendencia`() {
+        val state = homeBodyState(listOf(weight(0, 78.4)), listOf(weightGoal(72.0)), null, today, zone)
+
+        assertNull(state.trendChange30d)
+        assertNull(state.trendChangeTowardGoal)
     }
 }

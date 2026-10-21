@@ -455,8 +455,110 @@ class BodyWeightTrendTest {
         assertEquals(YearMonth.of(2027, 2), summary.eta)
         assertEquals(78.0, summary.current!!, 1e-9)
         assertEquals(-8.0, summary.remaining!!, 1e-9)
-        assertNotNull(summary.trendKg)
+        // La tendencia de una recta sin ruido llega ≈ 0,06 kg por encima del último pesaje (valor validado con la simulación).
+        assertEquals(78.06, summary.trendKg!!, 0.02)
+        assertEquals(-8.06, summary.trendRemaining!!, 0.02)
         assertNotNull(summary.etaRange)
-        assertEquals(70.0 - summary.trendKg!!, summary.trendRemaining!!, 1e-9)
+    }
+
+    // ── Una sola tendencia: serie de la gráfica y cambio ────────────────────────────────────────────────────
+
+    @Test
+    fun `la serie de la tendencia termina exactamente en la cifra de la tendencia`() {
+        val observations = bajada28()
+
+        val series = bodyWeightTrendSeries(observations, zone, today)
+
+        assertEquals(28, series.size)
+        assertEquals(today.minusDays(27), series.first().date)
+        assertEquals(today, series.last().date)
+        assertEquals(bodyWeightTrendSnapshot(observations, zone, today)!!.trendKg, series.last().value, 1e-12)
+    }
+
+    @Test
+    fun `la serie de la tendencia esta vacia con menos de dos dias con pesaje`() {
+        assertTrue(bodyWeightTrendSeries(emptyList(), zone, today).isEmpty())
+        assertTrue(bodyWeightTrendSeries(daily(78.4), zone, today).isEmpty())
+    }
+
+    @Test
+    fun `un pico de dos kilos el ultimo dia no mueve el ultimo punto de la linea mas de 0,3 kg`() {
+        fun lineaDeLaGrafica(observations: List<BodyObservation>): List<BodyMetricPoint> = weightChartTrend(
+            bodyWeightTrendSeries(observations, zone, today),
+            bodyDailySeries(observations, zone),
+            firstVisibleDay = null,
+        )
+
+        val limpia = lineaDeLaGrafica(bajada28())
+        val conPico = lineaDeLaGrafica(bajada28(picoKg = 2.0))
+
+        assertEquals(limpia.last().value, conPico.last().value, 0.3)
+        // La línea no se dobla hacia arriba con el pico: su último punto sigue por debajo del anterior más el pico.
+        assertTrue(conPico.last().value < conPico[conPico.size - 2].value + 0.3)
+    }
+
+    @Test
+    fun `la linea de la grafica se recorta al rango visible`() {
+        val observations = bajada28()
+        val trendSeries = bodyWeightTrendSeries(observations, zone, today)
+        val primerDia = today.minusDays(9)
+
+        val linea = weightChartTrend(trendSeries, bodyDailySeries(observations, zone), primerDia)
+
+        assertEquals(10, linea.size)
+        assertEquals(primerDia, linea.first().date)
+    }
+
+    @Test
+    fun `sin serie de tendencia la linea de la grafica es la EWMA de siempre`() {
+        val serie = bodyDailySeries(daily(80.0), zone)
+
+        assertEquals(ewmaTrend(serie), weightChartTrend(emptyList(), serie, firstVisibleDay = null))
+    }
+
+    @Test
+    fun `el cambio por tendencia de dos pesajes seguidos es la mitad del cambio heredado`() {
+        // Tendencia: 80,0 el primer día (un solo dato) y 79,5 el segundo (mediana de 80 y 79). El cambio heredado es 79 − 80.
+        val summary = summarizeWeight(daily(80.0, 79.0), BodyChartRange.ALL, null, zone, today)
+
+        assertEquals(-0.5, summary.trendChange!!, 1e-9)
+        assertEquals(-1.0, summary.change!!, 1e-9)
+    }
+
+    @Test
+    fun `un pico de dos kilos no invierte el signo del cambio mostrado`() {
+        val limpio = summarizeWeight(bajada28(), BodyChartRange.ALL, null, zone, today)
+        val conPico = summarizeWeight(bajada28(picoKg = 2.0), BodyChartRange.ALL, null, zone, today)
+
+        // De 82,2 kg (primer día) a una tendencia de ≈ 80,17 kg: −2,03 kg, con o sin el pico.
+        assertEquals(-2.03, limpio.trendChange!!, 0.05)
+        assertEquals(-2.02, conPico.trendChange!!, 0.05)
+        // El cambio heredado (último pesaje menos primero) sí se da la vuelta con el pico y no cambia de cálculo.
+        assertTrue(conPico.change!! > 0.0)
+    }
+
+    @Test
+    fun `sin tendencia no hay cambio por tendencia y el heredado se conserva`() {
+        val summary = summarizeWeight(daily(78.4), BodyChartRange.ALL, null, zone, today)
+
+        assertNull(summary.trendChange)
+        assertEquals(0.0, summary.change!!, 1e-9)
+    }
+
+    @Test
+    fun `el cambio usa el dia con dato mas cercano al inicio`() {
+        val d = today
+        val serie = listOf(
+            BodyMetricPoint(d.minusDays(4), 80.0, emptyList()),
+            BodyMetricPoint(d.minusDays(2), 79.0, emptyList()),
+            BodyMetricPoint(d, 78.0, emptyList()),
+        )
+
+        // Antes del primer dato: el más cercano es el primero. En un día con dato: ese día.
+        assertEquals(-2.0, bodyTrendChange(serie, d.minusDays(9))!!, 1e-12)
+        assertEquals(-1.0, bodyTrendChange(serie, d.minusDays(2))!!, 1e-12)
+        // A igual distancia de dos días con dato gana el anterior.
+        assertEquals(-2.0, bodyTrendChange(serie, d.minusDays(3))!!, 1e-12)
+        assertNull(bodyTrendChange(emptyList(), d))
     }
 }

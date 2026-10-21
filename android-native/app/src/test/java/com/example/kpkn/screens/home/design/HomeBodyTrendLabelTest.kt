@@ -37,4 +37,20 @@ class HomeBodyTrendLabelTest {
         rule.onNodeWithText("Tendencia", useUnmergedTree = true).assertDoesNotExist()
         rule.onNodeWithContentDescription("Peso: 78,4 kilos", substring = true).assertIsDisplayed()
     }
+
+    @Test
+    fun `con cambio por tendencia la descripcion dice el cambio de la tendencia`() {
+        val state = HomeSamples.bodyWithTrendAndGoal().copy(trendKg = 78.2, trendChange30d = -1.1)
+        rule.setContent { HomeBodyToday(state = state, onOpen = {}) }
+
+        rule.onNodeWithContentDescription("−1,1 kilos en 30 días", substring = true).assertIsDisplayed()
+    }
+
+    @Test
+    fun `sin cambio por tendencia la descripcion dice el cambio heredado`() {
+        val state = HomeSamples.bodyWithTrendAndGoal().copy(trendKg = null, trendChange30d = null)
+        rule.setContent { HomeBodyToday(state = state, onOpen = {}) }
+
+        rule.onNodeWithContentDescription("−1,2 kilos en 30 días", substring = true).assertIsDisplayed()
+    }
 }

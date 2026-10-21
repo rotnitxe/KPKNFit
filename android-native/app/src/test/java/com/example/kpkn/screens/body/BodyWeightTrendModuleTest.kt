@@ -8,8 +8,10 @@ import com.example.kpkn.data.models.BodyChartRange
 import com.example.kpkn.domain.body.BodyWeightSummary
 import com.example.kpkn.domain.body.EtaRange
 import com.example.kpkn.screens.body.design.BodyWeightModule
+import com.example.kpkn.screens.body.design.bodyIslandChangeText
 import com.example.kpkn.screens.onboarding.design.WizardMassUnit
 import java.time.YearMonth
+import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -130,5 +132,30 @@ class BodyWeightTrendModuleTest {
 
         rule.onNodeWithContentDescription("142,6 lb").assertIsDisplayed()
         rule.onNodeWithText("Último pesaje: 142,2 lb · hoy").assertIsDisplayed()
+    }
+
+    @Test
+    fun `el cambio de la linea sale de la tendencia cuando la hay`() {
+        // El cambio heredado de la muestra es −2,4 kg; el de la tendencia, −1,0 kg.
+        montar(conTendencia().copy(trendChange = -1.0))
+
+        rule.onNodeWithText("−1,0 kg desde el 15 de julio").assertIsDisplayed()
+        rule.onNodeWithText("−2,4 kg desde el 15 de julio").assertDoesNotExist()
+    }
+
+    @Test
+    fun `sin cambio por tendencia se conserva el cambio heredado`() {
+        montar(conTendencia().copy(trendChange = null))
+
+        rule.onNodeWithText("−2,4 kg desde el 15 de julio").assertIsDisplayed()
+    }
+
+    @Test
+    fun `la isla usa el cambio por tendencia y sin el, el heredado`() {
+        val menos = "−"
+        val conTrend = bodySampleSummary30().copy(trendKg = 64.7, trendChange = -0.3)
+
+        assertEquals("${menos}0,3 kg en 30 días", bodyIslandChangeText(conTrend, WizardMassUnit.KG))
+        assertEquals("${menos}0,6 kg en 30 días", bodyIslandChangeText(bodySampleSummary30(), WizardMassUnit.KG))
     }
 }

@@ -29,9 +29,10 @@ import com.example.kpkn.data.models.BodyObservation
 import com.example.kpkn.data.models.GoalMetric
 import com.example.kpkn.domain.body.ResolvedBodyGoal
 import com.example.kpkn.domain.body.bodyDailySeries
-import com.example.kpkn.domain.body.ewmaTrend
+import com.example.kpkn.domain.body.bodyWeightTrendSeries
 import com.example.kpkn.domain.body.observationsInLastDays
 import com.example.kpkn.domain.body.summarizeWeight
+import com.example.kpkn.domain.body.weightChartTrend
 import com.example.kpkn.screens.body.design.BodyWeightModule
 import com.example.kpkn.screens.body.design.buildBodyChartPoints
 import com.example.kpkn.screens.home.design.HomeBodyToday
@@ -146,7 +147,10 @@ class BodyTrendRenderSheetTest {
                     BodyWeightModule(
                         summary = summary,
                         goalKg = goalKg,
-                        points = buildBodyChartPoints(series, ewmaTrend(series)),
+                        points = buildBodyChartPoints(
+                            series,
+                            weightChartTrend(bodyWeightTrendSeries(observations, zone, today), series, range.days?.let { today.minusDays(it - 1) }),
+                        ),
                         range = range,
                         today = today,
                         weightUnit = WizardMassUnit.KG,
