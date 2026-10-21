@@ -1,9 +1,11 @@
 # Rings v4 · tablero de estado
 
-Lo mantiene el orquestador. Última actualización: **2026-10-21 15:05**. Detalle de decisiones: `DECISIONES_AUTORRESPONDIDAS.md`. Informes por paquete: `reports/<ID>.md`. Convivencia de agentes: `BRIEF_PARALELO.md`.
+Lo mantiene el orquestador. Última actualización: **2026-10-21 16:10**. Detalle de decisiones: `DECISIONES_AUTORRESPONDIDAS.md`. Informes por paquete: `reports/<ID>.md`. Convivencia de agentes: `BRIEF_PARALELO.md`.
 
-## AVISO · Codex sin cuota (21-oct 13:38)
-La cuenta de Codex llegó a su límite de uso y no vuelve hasta el **27 de octubre a las 12:38**. Los tres agentes Codex en curso (2.5, 3.1, 1.9v2) se detuvieron a mitad con su trabajo guardado en cada worktree; los continúa Antigravity Gemini 3.8 Flash High (vía autorizada por el usuario), con el arnés JVM para iterar y UNA corrida Android oficial al final. Para lo más delicado (aprendiz EKF 3.2, 2.6, 2.4, 3.3–3.5) queda pendiente la decisión del usuario sobre el ejecutor; mientras tanto se sigue con Gemini/DeepSeek y revisión estricta.
+## AVISO · Codex y Antigravity sin cuota
+- **Codex** (21-oct 13:38): sin cuota hasta el **27 de octubre a las 12:38**.
+- **Antigravity / Gemini** (21-oct 15:35): «Individual quota reached», cuota de toda la cuenta agotada por cinco agentes en paralelo; renovación estimada entre las 17:36 y las 18:10 (el plazo se mueve). Los cinco agentes Gemini murieron (2.5b, 3.1, 1.9v2, 1.10v2, 3.2b) y **al morir un agente se llevan por delante sus tareas de fondo** (la corrida Android de 1.9v2 en cola y la corrida completa del arnés de 3.1 se perdieron). Su trabajo quedó en cada worktree.
+- Mientras tanto cierran con **OpenCode DeepSeek v4.1 Flash (gratis)** los pasos mecánicos de 2.5, 3.1 y 3.2b; el resto espera a Gemini (máx. 2 agentes a la vez cuando vuelva) o a una decisión tuya sobre ejecutores Claude. La máquina está además al límite de RAM (otras sesiones con Android): las colas de Gradle y del arnés se mueven despacio.
 
 ## Política de verificación (desde las 14:50)
 La cola compartida de Gradle (otras 10 sesiones) lleva horas de espera, así que **el arnés JVM es la compuerta principal** y Android pasa a tandas mías:
@@ -19,9 +21,11 @@ La cola compartida de Gradle (otras 10 sesiones) lleva horas de espera, así que
 ## Carriles en marcha
 | Carril | Paquete | Agente / modelo | Worktree · rama | Estado |
 |---|---|---|---|---|
-| A | 2.5 anclas como estado + evidencia multiplicativa | Gemini 3.8 Flash High (continúa lo de Codex Sol) | `v3c` · `r4/2-5` | etapa A commiteada y validada; etapa B escrita (arnés: 72 clases, solo roja la del máster dorado, esperado). El primer relevo esperó 45 min una corrida Android: se descartó y desde las 14:52 corre el segundo, solo con arnés (regenera el máster, commits, informe) |
-| B | 3.1 caché v4, migración, anillo de observaciones | Gemini 3.8 Flash High (continúa lo de Codex Sol) | `sb` · `r4/3-1` | 4 commits (producción, desacople del códec, pruebas, tablas); arnés 72 clases / 373 pruebas verdes; revisado: un ajuste pedido (`coerceInputValues`); espera la corrida Android de Codex que sigue en la cola (puesto 2) |
-| C | 1.9v2 textos y umbrales | Gemini 3.8 Flash High (continúa lo de Codex Luna) | `u1` · `r4/1-9v2` | 3 commits + fusión de `feat/rings-v4`; arnés verde; revisado sin reparos; espera su corrida Android (en cola desde las 14:43) y escribe el informe |
+| A | 2.5 anclas como estado + evidencia multiplicativa | DeepSeek v4.1 Flash cierra (antes Gemini; antes Codex) | `v3c` · `r4/2-5` | etapa A commiteada; etapa B escrita; máster regenerado con el arnés (solo cambia D04 a 6/12/24 h); DeepSeek copia el máster, commitea, fusiona `feat/rings-v4` y corre el arnés completo (en cola). El informe lo escribo yo |
+| B | 3.1 caché v4, migración, anillo de observaciones | DeepSeek cierra (antes Gemini) | `sb` · `r4/3-1` | 8 commits; ajuste `coerceInputValues` hecho; fusión de `feat/rings-v4` hecha por DeepSeek (un conflicto, resuelto como pedí); falta el arnés completo; la corrida Android de Codex compiló TODA la producción y solo falló en 2 imports de una prueba (corregidos) |
+| C | 1.9v2 textos y umbrales | Gemini (murió sin informe) | `u1` · `r4/1-9v2` | **fusionado en `feat/rings-v4` (`0c8a9a06c`)**; informe `reports/1.9.md` escrito por mí; su corrida Android se perdió: va en la tanda consolidada |
+| D2 | 1.10v2 «sin datos» no es 100 % | Gemini (murió) | `r4n` · `r4/1-10v2` (apilada sobre 1.9v2) | 1 commit (estado sin datos en el snapshot y titular por canal limitante); espera a Gemini (trabajo de interfaz con compilación solo en Android) |
+| F | 3.2b núcleo EKF + oráculo independiente | DeepSeek cierra (antes Gemini) | `r4l` · `r4/3-2` (apilada sobre `r4/3-1`) | `AugeLearner.kt` y pruebas escritos (revisados a ojo: siguen la especificación); falta correr los vectores del oráculo y el arnés completo (en cola) |
 | D | 1.11 creador sin Core por defecto | Antigravity · Gemini 3.8 Flash High | `r4s` · `r4/1-11` | **integrado 13:30** (diff de 7 líneas + prueba nueva); su corrida Android murió con el agente: se verificará en la próxima tanda |
 | E | DOC1 README de la auditoría y arquitectura (solo documentación) | OpenCode · DeepSeek v4.1 Flash (gratis) | `r4d` · `r4/5-3a` | **integrado 12:49** (README de la auditoría + arquitectura) |
 | T | JVM1 arnés JVM para pruebas puras de AUGE (herramienta, fuera del repo) | Codex Sol 6.1 · máximo | `C:\kw\r4-jvm` | **listo 13:28**: 70 clases / 365 pruebas de AUGE, 0 discrepancias con Android; compilación en frío 202 s, caliente 1,5 s, completo 83 s, una clase 17 s; un arnés por worktree (`C:\kw\r4-jvm-<wt>`); no cubre `screens/`, `data/repository/`, Robolectric/Compose/Room ni 3 clases (`AugeEditorCompletedParityTest`, `AugeSnapshotComputerTest`, `BatteryRoundingTest`) |
