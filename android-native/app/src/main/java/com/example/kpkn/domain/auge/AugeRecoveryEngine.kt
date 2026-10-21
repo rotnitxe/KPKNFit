@@ -1129,9 +1129,9 @@ object AugeRecoveryEngine {
         val structureEstimated = initialContribution.isEstimated && (wellbeing?.manualSpinalBattery == null || wellbeing.manualAnchorMs(RecoveryChannelId.STRUCTURE, zone) !in anchorWindow)
         val estimated = muscularEstimated || systemEstimated || structureEstimated
         fun combine(real: Int, initial: Int?, enabled: Boolean, minimum: Int): Int =
-            if (enabled && initial != null) (real - (100 - initial)).coerceIn(minimum, 100) else real
+            if (enabled && initial != null) batteryPercent(real * initial / 100.0).coerceIn(minimum, 100) else real
         // Con evidencia v2 y los pilares de precomputedMuscles (getPerMuscleBatteries), la parte muscular ya está
-        // dentro de los pilares: no restarla otra vez.
+        // dentro de los pilares: no componerla otra vez.
         val initialInPillars = precomputedMuscles != null &&
             PILLAR_MUSCLES.all { it in precomputedMuscles } &&
             (settings.initialRecoveryEvidence?.estimatorVersion ?: 0) >= 2
@@ -1200,7 +1200,7 @@ object AugeRecoveryEngine {
             )
         }
 
-        // Evidencia v2 de RINGS (E3a): cada pilar con carga resta su parte con la misma combinación del global.
+        // Evidencia v2 de RINGS (E3a): cada pilar compone su carga con la misma ley multiplicativa del global.
         // Se omite con ajustes manuales musculares, como calculateGlobalBatteries, para no contar dos veces.
         // Un ajuste posterior al corte no sustituye la evidencia inicial de los pilares.
         val hasManualMuscularAnchors = hasManualMuscularAnchorsAt(wellbeing, evaluationNow, zone)
@@ -1239,14 +1239,14 @@ object AugeRecoveryEngine {
         }
     }
 
-    /** Combinación de calculateGlobalBatteries para un pilar: real − (100 − inicial), con suelo. */
+    /** Sumar fatigas antes de la exponencial equivale a real · inicial / 100; se conserva el suelo. */
     private fun combineWithInitialEvidence(
         status: MuscleRecoveryStatus,
         initial: Int,
         floor: Int,
     ): MuscleRecoveryStatus {
         if (initial >= 100) return status
-        val score = (status.recoveryScore - (100 - initial)).coerceIn(floor, 100)
+        val score = batteryPercent(status.recoveryScore * initial / 100.0).coerceIn(floor, 100)
         return status.copy(recoveryScore = score, status = recoveryStatusFor(score))
     }
 
