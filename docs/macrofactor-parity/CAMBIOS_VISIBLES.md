@@ -4,6 +4,7 @@ Cada paquete añade aquí lo que la persona ya veía y ahora cambia (cifras, ró
 
 | Paquete | Qué cambia | Antes → después | Por qué |
 |---|---|---|---|
+| N2b | Calibración y revisión semanal | Propuesta oculta basada solo en peso y sin aplicar → tarjeta accesible, estimación N1 con banda y calidad, revisión de parciales/ayuno y decisión semanal durable; aceptar aplica una vez desde mañana | Estabilidad, trazabilidad y confirmación explícita; los objetivos históricos y el de hoy se conservan. La serie cambia solo desde la fecha editada; el motor anterior y sus pruebas conservan su comportamiento |
 | N2b · Parte 0 | Copia local y acción del estado del día | Copia que podía omitir el WAL → checkpoint comprobado antes de copiar; «· Marcar» → «Marcar» | Conservar las escrituras recientes y quitar la viñeta suelta |
 | H1 | Guardar una comida desde el atajo de creatina o desde `addLog` | Parecía guardada al instante aunque Room fallara (se perdía al reiniciar) → ahora espera a que Room confirme y, si falla, no la publica y avisa «No se pudo guardar la comida. Inténtalo de nuevo.» | Evita el falso éxito |
 | H1 | Carga de nutrición con una fila ilegible | Una sola fila rota dejaba vacíos el diario, las plantillas y los planes → ahora cargan las filas sanas y la ilegible queda intacta en cuarentena (no se borra ni se sobrescribe) | No ocultar datos sanos |

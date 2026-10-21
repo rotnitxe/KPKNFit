@@ -52,6 +52,7 @@ class NutritionViewModel(
     private val clock: AppClock = SystemAppClock,
     private val zoneProvider: () -> ZoneId = { ZoneId.systemDefault() },
     private val computeDispatcher: CoroutineDispatcher = Dispatchers.Default,
+    private val checkinRecords: Flow<List<com.example.kpkn.domain.nutrition.checkin.CheckinRecord>> = flowOf(emptyList()),
 ) : ViewModel() {
 
     private val nutritionRepo = NutritionRepository.getInstance()
@@ -652,6 +653,19 @@ class NutritionViewModel(
             }
         }
     }
+
+    private val checkinWeekStart = combine(programRepo.programs, programRepo.activeProgramState) { programs, active ->
+        com.example.kpkn.screens.nutrition.checkin.checkinWeekStart(programs.find { it.id == active?.programId })
+    }
+
+    val checkinAvailability: StateFlow<com.example.kpkn.domain.nutrition.checkin.CheckinAvailability> = combine(
+        activePlan, programRepo.settings, _today, checkinRecords, checkinWeekStart,
+    ) { plan, settings, today, records, weekStart ->
+        val day = settings.nutritionCheckin.dayOfWeek?.takeIf { it in 1..7 }?.let(java.time.DayOfWeek::of) ?: weekStart
+        val key = com.example.kpkn.domain.nutrition.checkin.CheckinPolicy.weekKey(today, weekStart, day)
+        com.example.kpkn.domain.nutrition.checkin.CheckinPolicy.state(today, weekStart, records.find { it.weekKey == key },
+            plan != null && !settings.nutritionTrackingOnly, day)
+    }.stateIn(viewModelScope, SharingStarted.Lazily, com.example.kpkn.domain.nutrition.checkin.CheckinAvailability.NONE)
 }
 
 /**

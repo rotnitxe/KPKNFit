@@ -455,7 +455,8 @@ fun KPKNApp(
     val telemetryHelper = remember { TelemetryHelper(context) }
     val navController = rememberNavController()
     val programsViewModel: ProgramsViewModel = viewModel()
-    val nutritionViewModel: NutritionViewModel = viewModel { NutritionViewModel() }
+    val nutritionCheckinStore = remember { com.example.kpkn.screens.nutrition.checkin.NutritionCheckinRuntime.store(context) }
+    val nutritionViewModel: NutritionViewModel = viewModel { NutritionViewModel(checkinRecords = nutritionCheckinStore.records) }
     val activeProgram by programsViewModel.activeProgram.collectAsState()
     val allPrograms by programsViewModel.programs.collectAsState()
     val currentBackStack by navController.currentBackStackEntryAsState()
@@ -1215,6 +1216,7 @@ private fun KPKNNavGraph(
         composable(KpknRoute.Nutrition.route) {
             NutritionScreen(
                 viewModel = nutritionViewModel,
+                onOpenCheckin = { navController.navigate(KpknRoute.NutritionCalibration.route) { launchSingleTop = true } },
                 onNavigateToMealHistory = {
                     navController.navigate(KpknRoute.MealHistory.route)
                 },
@@ -1405,7 +1407,16 @@ private fun KPKNNavGraph(
             )
         }
         composable(KpknRoute.NutritionCalibration.route) {
-            NutritionCalibrationScreen(onBack = { navController.popBackStack() })
+            NutritionCalibrationScreen(
+                onBack = { navController.popBackStack() },
+                onResumeLogging = {
+                    navController.navigate(KpknRoute.Nutrition.route) { launchSingleTop = true }
+                    nutritionViewModel.refreshToday()
+                    nutritionViewModel.setSelectedDate(nutritionViewModel.today.value.toString())
+                    nutritionViewModel.requestFoodLoggerOpen()
+                },
+                onWeighIn = { navController.navigate(KpknRoute.BodyProgress.route) { launchSingleTop = true } },
+            )
         }
         addHealthConnectRoute(navController)
         composable(KpknRoute.Profile.route) {

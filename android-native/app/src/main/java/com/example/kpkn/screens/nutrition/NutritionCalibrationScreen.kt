@@ -23,7 +23,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.kpkn.data.models.NutritionCalibrationProfile
-import com.example.kpkn.domain.nutrition.NutritionCalibrationEngine
+import com.example.kpkn.screens.nutrition.checkin.*
 import com.example.kpkn.screens.nutrition.design.NutritionSubpageHeader
 import com.example.kpkn.screens.nutrition.design.calibration.CalibrationStatusModule
 import com.example.kpkn.screens.nutrition.design.calibration.CalibrationWizardModule
@@ -40,7 +40,7 @@ import com.example.kpkn.ui.design.KpknType
 internal fun weighingConventionLabel(convention: String?): String =
     if (convention == null) "sin definir" else WEIGHING_CONVENTIONS.firstOrNull { it.first == convention }?.second ?: convention
 
-/** El estado de la calibración tal como lo escribe `NutritionCalibrationEngine`, dicho para el usuario. */
+/** Etiquetas conservadas para leer perfiles de calibración anteriores. */
 internal fun calibrationStatusLabel(status: String): String = when (status) {
     "incomplete" -> "Faltan días de registro"
     "needs_more_weights_or_complete_days" -> "Faltan pesajes o días completos"
@@ -50,15 +50,26 @@ internal fun calibrationStatusLabel(status: String): String = when (status) {
 }
 
 /**
- * Calibración de Nutrición (N5, NUTRITION_V1 §5): el módulo de estado con la cobertura y el ajuste sugerido, «Evaluar mis últimos datos», el
- * asistente «Calibrar tus hábitos» y, al pie, «Restablecer calibración», que pide confirmación. El motor y su ViewModel no cambian.
+ * Detalle del estimador y revisión semanal; conserva el asistente de hábitos y el enlace de calibración.
  */
 @Composable
 fun NutritionCalibrationScreen(
     onBack: () -> Unit,
     viewModel: NutritionCalibrationViewModel = viewModel(),
+    onResumeLogging: () -> Unit = onBack,
+    onWeighIn: () -> Unit = {},
 ) {
     val state by viewModel.uiState.collectAsState()
+    val checkinState by viewModel.checkinState.collectAsState()
+    androidx.compose.runtime.LaunchedEffect(Unit) { viewModel.evaluate() }
+    val owner = androidx.lifecycle.compose.LocalLifecycleOwner.current
+    androidx.compose.runtime.DisposableEffect(owner, viewModel) {
+        val observer = androidx.lifecycle.LifecycleEventObserver { _, event ->
+            if (event == androidx.lifecycle.Lifecycle.Event.ON_RESUME) viewModel.checkin.refresh()
+        }
+        owner.lifecycle.addObserver(observer)
+        onDispose { owner.lifecycle.removeObserver(observer) }
+    }
     NutritionCalibrationContent(
         state = state,
         onBack = onBack,
@@ -67,6 +78,10 @@ fun NutritionCalibrationScreen(
         onAnswerWizard = viewModel::answerWizard,
         onSkipWizard = viewModel::skipWizard,
         onResumeWizard = viewModel::resumeWizard,
+        checkinState = checkinState,
+        checkinController = viewModel.checkin,
+        onResumeLogging = onResumeLogging,
+        onWeighIn = onWeighIn,
     )
 }
 
@@ -83,6 +98,10 @@ internal fun NutritionCalibrationContent(
     onAnswerWizard: (String) -> Unit,
     onSkipWizard: () -> Unit,
     onResumeWizard: () -> Unit,
+    checkinState: NutritionCheckinUiState = NutritionCheckinUiState(loading = false),
+    checkinController: NutritionCheckinController? = null,
+    onResumeLogging: () -> Unit = {},
+    onWeighIn: () -> Unit = {},
 ) {
     val wizard = state.wizard
     // La respuesta en curso se borra al cambiar de paso; así un paso nuevo nunca arrastra lo escrito en el anterior.
@@ -102,9 +121,7 @@ internal fun NutritionCalibrationContent(
             }
             item(key = "calibration-intro") {
                 Text(
-                    text = "Ajusta el objetivo solo con tendencia real: hacen falta ${NutritionCalibrationEngine.MINIMUM_DAYS} días, " +
-                        "${NutritionCalibrationEngine.MIN_WEIGHT_READINGS} pesajes y ${NutritionCalibrationEngine.MIN_COMPLETE_DAYS} " +
-                        "días completos.",
+                    text = "Revisa tu gasto estimado, confirma los días que quieras usar y decide sobre tu objetivo. Hoy y el historial conservan sus metas.",
                     style = KpknType.body,
                     color = WizardColors.textMuted,
                     modifier = pagePadding,
@@ -112,9 +129,23 @@ internal fun NutritionCalibrationContent(
             }
             item(key = "calibration-status") {
                 CalibrationStatusModule(
-                    profile = state.profile ?: NutritionCalibrationProfile(),
+                    estimate = checkinState.plan?.estimate,
                     modifier = pagePadding,
                 )
+            }
+            item(key = "calibration-checkin") {
+                NutritionCheckinContent(
+                    state = checkinState,
+                    onNext = { checkinController?.next() }, onPrevious = { checkinController?.back() },
+                    onAccept = { checkinController?.accept() }, onDecline = { checkinController?.decline() },
+                    onPostpone = { checkinController?.postpone() }, onDismissModule = { checkinController?.dismissModule(it) },
+                    onPartial = { checkinController?.markPartial(it) }, onComplete = { checkinController?.keepComplete(it) },
+                    onFasting = { checkinController?.confirmFasting(it) }, onResumeLogging = onResumeLogging,
+                    onWeighIn = onWeighIn, modifier = pagePadding,
+                )
+            }
+            item(key = "calibration-checkin-day") {
+                CheckinDaySetting(checkinState.checkinDay, { checkinController?.setCheckinDay(it) }, pagePadding)
             }
             item(key = "calibration-evaluate") {
                 KpknPrimaryPill(

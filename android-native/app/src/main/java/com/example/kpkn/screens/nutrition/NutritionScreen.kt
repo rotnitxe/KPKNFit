@@ -80,9 +80,11 @@ fun NutritionScreen(
     onNavigateToPlanEditor: (planId: String?) -> Unit = { _ -> },
     /** Borrador pendiente (pauta profesional a medias) → editor directo. */
     onOpenPendingDraft: (draftId: String) -> Unit = {},
+    onOpenCheckin: () -> Unit = {},
 ) {
     val dailyTotals by viewModel.dailyTotals.collectAsState()
     val dayState by viewModel.dayState.collectAsState()
+    val checkinAvailability by viewModel.checkinAvailability.collectAsState()
     val goals by viewModel.goals.collectAsState()
     // Recorrido de Nutrición: se lanza al montar la pantalla (su ViewModel no expone señal de carga). Visto = no arranca.
     val tourHost = LocalKpknOverlayHost.current
@@ -286,6 +288,14 @@ fun NutritionScreen(
                             onAcceptSuggestion = { viewModel.acceptPartialDaySuggestion() },
                             onRejectSuggestion = { viewModel.rejectPartialDaySuggestion() },
                             modifier = Modifier.padding(horizontal = 24.dp),
+                        )
+                    }
+                }
+
+                if (userStateLoaded && checkinAvailability == com.example.kpkn.domain.nutrition.checkin.CheckinAvailability.NOW) {
+                    item(key = "weekly-checkin") {
+                        com.example.kpkn.screens.nutrition.checkin.NutritionCheckinCard(
+                            onOpenCheckin, Modifier.padding(horizontal = 16.dp, vertical = 6.dp).kpknEntrance("nutrition-checkin", 0),
                         )
                     }
                 }
