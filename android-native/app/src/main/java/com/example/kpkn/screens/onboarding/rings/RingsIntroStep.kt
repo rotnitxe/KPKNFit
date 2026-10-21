@@ -64,9 +64,9 @@ internal fun RingsIntroStep(modifier: Modifier = Modifier) {
 /** Lo que dice un anillo encendido, o la invitación a tocar uno (copia de la intro de siempre). */
 internal fun highlightText(channel: RingChannelId?): String = when (channel) {
     null -> "Toca un anillo para ver qué mide."
-    RingChannelId.MUSCULOS -> "Cuánto se han recuperado tus músculos."
-    RingChannelId.ENERGIA -> "Tu reserva para entrenar fuerte."
-    RingChannelId.COLUMNA -> "La carga que acumula tu espalda."
+    RingChannelId.MUSCULOS -> "Estimación de la recuperación de tus músculos."
+    RingChannelId.ENERGIA -> "Estimación de tu energía para entrenar."
+    RingChannelId.COLUMNA -> "Estimación de la carga acumulada en tu espalda."
 }
 
 /** Nombre de un anillo en español. */

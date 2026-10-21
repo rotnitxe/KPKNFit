@@ -1,5 +1,7 @@
 package com.example.kpkn.domain.relator
 
+import com.example.kpkn.domain.auge.RecoveryBands
+
 object WarmupObserver : RelatorObserver {
     override fun observe(context: RelatorContext): List<RelatorCandidate> {
         if (context.phase != RelatorSessionPhase.WARMUP && context.warmup.remainingCount <= 0) {
@@ -17,7 +19,8 @@ object WarmupObserver : RelatorObserver {
             add("Rampas de {ex} a $kgBit, con el gesto idéntico al de trabajo.")
             add("Si $kgBit se siente pesado, recorta el salto.")
         }
-        val highReadiness = (context.readiness.dailyScore ?: context.readiness.exerciseScore ?: 70) >= 80
+        val score = context.readiness.dailyScore ?: context.readiness.exerciseScore
+        val highReadiness = score != null && score >= RecoveryBands.HIGH_MIN
         val timeCrunch = (context.progress.remainingSeconds ?: Int.MAX_VALUE) in 1..480
         val actions = buildList {
             kg?.let {

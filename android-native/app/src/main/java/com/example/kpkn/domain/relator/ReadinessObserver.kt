@@ -1,10 +1,12 @@
 package com.example.kpkn.domain.relator
 
+import com.example.kpkn.domain.auge.RecoveryBands
+
 object ReadinessObserver : RelatorObserver {
     override fun observe(context: RelatorContext): List<RelatorCandidate> {
         val r = context.readiness
         val score = r.dailyScore ?: r.exerciseScore ?: return emptyList()
-        if (score >= 75 && r.preWorkoutDiscomforts.isEmpty() && (r.doms ?: 1) < 4) return emptyList()
+        if (score >= RecoveryBands.HIGH_MIN && r.preWorkoutDiscomforts.isEmpty() && (r.doms ?: 1) < 4) return emptyList()
         val done = context.progress.completedWorkingSets
         val lines = buildList {
             r.dailyLabel?.let { add("Disponibilidad de hoy: $it ($score). {ex} necesita ese margen.") }
@@ -17,7 +19,7 @@ object ReadinessObserver : RelatorObserver {
             r.preWorkoutDiscomforts.firstOrNull()?.let { add("Molestia previa: $it. Mira la disponibilidad o sustituye {ex}.") }
         }
         val actions = buildList {
-            if (score < 60) {
+            if (score < RecoveryBands.NORMAL_MIN) {
                 add(
                     RelatorActionSpec(
                         kind = RelatorActionKind.ADJUST_LOAD,
@@ -25,7 +27,7 @@ object ReadinessObserver : RelatorObserver {
                         span = "Ajusta carga",
                         exerciseId = context.exerciseId,
                         setIndex = context.setIndex,
-                        loadDeltaPercent = if (score < 45) -10.0 else -5.0,
+                        loadDeltaPercent = if (score < RecoveryBands.MODERATE_MIN) -10.0 else -5.0,
                     ),
                 )
                 add(
@@ -50,7 +52,7 @@ object ReadinessObserver : RelatorObserver {
             RelatorCandidate(
                 topic = RelatorTopic.READINESS,
                 priority = 64,
-                relevance = if (score < 55) 0.95 else 0.6,
+                relevance = if (score < RecoveryBands.NORMAL_MIN) 0.95 else 0.6,
                 lines = realVariants(lines),
                 fingerprintBase = "READINESS:${score}:$done",
                 actions = actions,

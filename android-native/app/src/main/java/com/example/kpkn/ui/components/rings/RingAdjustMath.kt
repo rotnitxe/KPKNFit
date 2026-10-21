@@ -1,7 +1,9 @@
 package com.example.kpkn.ui.components.rings
 
 import androidx.compose.ui.graphics.Color
+import com.example.kpkn.data.models.RecoveryBand
 import com.example.kpkn.domain.auge.AugeParameters
+import com.example.kpkn.domain.auge.RecoveryBands
 import com.example.kpkn.domain.auge.getAugeMusclePillarId
 import kotlin.math.PI
 import kotlin.math.abs
@@ -77,20 +79,22 @@ internal fun ringAdjustIsOnBand(dx: Float, dy: Float, halfSize: Float): Boolean 
 internal fun ringAdjustFineValue(start: Int, dragPx: Float, pxPerPoint: Float): Int =
     ringAdjustClamp(start + (dragPx / pxPerPoint.coerceAtLeast(1f)).toInt())
 
-/** Palabra de Energía: «Con mucha energía», «Bien, sin más», «Algo cansado» o «Muy cansado». */
-internal fun ringAdjustEnergyWord(value: Int): String = when {
-    value >= 80 -> "Con mucha energía"
-    value >= 60 -> "Bien, sin más"
-    value >= 40 -> "Algo cansado"
-    else -> "Muy cansado"
+/** Palabra de Energía según las bandas compartidas. */
+internal fun ringAdjustEnergyWord(value: Int): String = when (RecoveryBands.band(value)) {
+    RecoveryBand.HIGH -> "Con mucha energía"
+    RecoveryBand.NORMAL -> "Energía normal"
+    RecoveryBand.MODERATE -> "Algo cansado"
+    RecoveryBand.LOW -> "Energía baja"
+    RecoveryBand.CRITICAL -> "Muy cansado"
 }
 
-/** Palabra de Columna: «Espalda descansada», «Algo cargada», «Cargada» o «Muy cargada». */
-internal fun ringAdjustSpineWord(value: Int): String = when {
-    value >= 80 -> "Espalda descansada"
-    value >= 60 -> "Algo cargada"
-    value >= 40 -> "Cargada"
-    else -> "Muy cargada"
+/** Palabra de Columna según las bandas compartidas. */
+internal fun ringAdjustSpineWord(value: Int): String = when (RecoveryBands.band(value)) {
+    RecoveryBand.HIGH -> "Espalda descansada"
+    RecoveryBand.NORMAL -> "Carga normal"
+    RecoveryBand.MODERATE -> "Algo cargada"
+    RecoveryBand.LOW -> "Cargada"
+    RecoveryBand.CRITICAL -> "Muy cargada"
 }
 
 /** Palabra del canal de un dial: solo Energía y Columna tienen. */
@@ -100,17 +104,21 @@ internal fun ringAdjustWord(channel: RingChannel, value: Int): String = when (ch
     RingChannel.MUSCULOS -> ringAdjustMuscleTone(value).word
 }
 
-/** Cómo está un músculo: recuperado (80 o más), algo cargado (60 o más) o cargado. */
+/** Estado muscular derivado de la misma banda que usa el motor. */
 internal enum class RingAdjustMuscleTone(val word: String, val color: Color) {
     RECOVERED("recuperado", Color(0xFF43D18C)),
+    NORMAL("en rango", Color(0xFF43D18C)),
     MID("algo cargado", Color(0xFFF7CF73)),
     LOADED("cargado", Color(0xFFF49A6E)),
+    CRITICAL("muy cargado", Color(0xFFEF4444)),
 }
 
-internal fun ringAdjustMuscleTone(value: Int): RingAdjustMuscleTone = when {
-    value >= 80 -> RingAdjustMuscleTone.RECOVERED
-    value >= 60 -> RingAdjustMuscleTone.MID
-    else -> RingAdjustMuscleTone.LOADED
+internal fun ringAdjustMuscleTone(value: Int): RingAdjustMuscleTone = when (RecoveryBands.band(value)) {
+    RecoveryBand.HIGH -> RingAdjustMuscleTone.RECOVERED
+    RecoveryBand.NORMAL -> RingAdjustMuscleTone.NORMAL
+    RecoveryBand.MODERATE -> RingAdjustMuscleTone.MID
+    RecoveryBand.LOW -> RingAdjustMuscleTone.LOADED
+    RecoveryBand.CRITICAL -> RingAdjustMuscleTone.CRITICAL
 }
 
 /** «72 %» con espacio inseparable antes del signo. */

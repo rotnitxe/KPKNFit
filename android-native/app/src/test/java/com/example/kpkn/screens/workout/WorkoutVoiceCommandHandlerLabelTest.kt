@@ -40,4 +40,22 @@ class WorkoutVoiceCommandHandlerLabelTest {
         assertEquals("wrist", discomfortLabel("wrist"))
         assertEquals("hip", discomfortLabel("hip"))
     }
+
+    @Test
+    fun dictated_battery_values_use_the_ring_names_and_percent_unit() {
+        assertEquals("Energía en 42 por ciento", voiceEnergyValueConfirmation(42))
+        assertEquals("Columna en 71 por ciento", voiceColumnValueConfirmation(71))
+    }
+
+    @Test
+    fun session_drain_says_what_was_spent_including_column_when_spoken() {
+        assertEquals(
+            "Has gastado 12 por ciento en Músculos, 15 por ciento en Energía y 10 por ciento en Columna durante esta sesión.",
+            voiceSessionDrainSummary(Triple(15, 12, 10)),
+        )
+        assertEquals(
+            "Has gastado 12 por ciento en Músculos y 15 por ciento en Energía durante esta sesión.",
+            voiceSessionDrainSummary(Triple(15, 12, 9)),
+        )
+    }
 }

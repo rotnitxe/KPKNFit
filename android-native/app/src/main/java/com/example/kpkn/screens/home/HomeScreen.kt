@@ -131,6 +131,12 @@ typealias HomeGlassOverlayChange = (
     expectedCurrent: HomeGlassOverlay?,
 ) -> Unit
 
+internal const val OvertrainingRecommendationIntro =
+    "El historial de entrenamiento muestra señales de carga que conviene revisar."
+
+internal fun overtrainingMusclesMessage(muscles: List<String>): String =
+    "Zonas que conviene revisar según el historial: ${muscles.joinToString(", ")}."
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
@@ -462,10 +468,10 @@ fun HomeScreen(
                 title = { Text("Recomendación de recuperación", fontWeight = FontWeight.Black) },
                 text = {
                     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                        Text("KPKN detectó señales de fatiga y te muestra una recomendación calculada para tu sesión.")
+                        Text(OvertrainingRecommendationIntro)
                         augeSnapshot.autoDeloadMessage?.takeIf { it.isNotBlank() }?.let { Text(it) }
                         if (uiState.overtrainedMuscles.isNotEmpty()) {
-                            Text("Zonas con fatiga acumulada: ${uiState.overtrainedMuscles.joinToString(", ")}.")
+                            Text(overtrainingMusclesMessage(uiState.overtrainedMuscles))
                         }
                         Text("Es una sugerencia a partir de tu historial, no un diagnóstico. Puedes seguir entrenando o bajar volumen según cómo te sientas.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
