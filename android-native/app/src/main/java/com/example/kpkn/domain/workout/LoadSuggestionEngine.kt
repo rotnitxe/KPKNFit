@@ -31,9 +31,10 @@ object LoadSuggestionEngine {
         val suggestedLoadMode: LoadModeV2? = null,
     )
 
-    fun roundLoad(weight: Double): Double {
+    fun roundLoad(weight: Double, incrementKg: Double = 0.5): Double {
+        require(incrementKg.isFinite() && incrementKg > 0.0)
         if (weight <= 0.0) return 0.0
-        return ((weight / 0.5).roundToInt() * 0.5).coerceAtLeast(0.5)
+        return ((weight / incrementKg).roundToInt() * incrementKg).coerceAtLeast(incrementKg)
     }
 
     fun fatigueFactorForPriorCompletedSets(priorCompletedCount: Int): Double =

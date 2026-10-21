@@ -9,6 +9,7 @@ import com.example.kpkn.data.models.resolveMuscleVolumeContribution
 import com.example.kpkn.domain.auge.getAugeMusclePillarId
 import com.example.kpkn.domain.calculations.calculateSuggestedLoad
 import com.example.kpkn.domain.calculations.calculateHybrid1RM
+import com.example.kpkn.domain.calibration.sessionCapacityAdjustmentFactor
 import com.example.kpkn.domain.workout.WarmupCalibrationEngine
 import com.example.kpkn.domain.exercises.ExerciseMuscleResolver
 import com.example.kpkn.domain.workout.BaseLoadPolicy
@@ -703,15 +704,7 @@ class WorkoutLoadSuggestionController(
             .maxOrNull()
             ?: return 1.0
 
-        if (historyBaselineRm != null && historyBaselineRm > 0.0) {
-            val ratio = sessionBestEstimatedRm / historyBaselineRm
-            return when {
-                ratio >= 1.025 -> ratio.coerceAtMost(1.05)
-                ratio <= 0.97 -> ratio.coerceAtLeast(0.92)
-                else -> 1.0
-            }
-        }
-        return 1.0
+        return sessionCapacityAdjustmentFactor(sessionBestEstimatedRm, historyBaselineRm)
     }
 
     private fun performanceRatioForSet(set: CompletedSet): Double? {
