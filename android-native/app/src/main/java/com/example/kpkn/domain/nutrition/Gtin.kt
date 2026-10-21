@@ -45,25 +45,29 @@ object Gtin {
      * Las variantes con las que probar la búsqueda de [raw] en una base: Open Food Facts a veces guarda el código sin los ceros
      * de la izquierda o en su forma corta. Sin repetidos y sin variantes de otra longitud significativa:
      * - la canónica de 13 dígitos (siempre), la de 14 con un cero delante y la de 12 si el 13 empieza por cero (UPC-A);
-     * - la de 8 si el código es un EAN-8 (cinco ceros delante en su forma de 13);
+     * - la de 8 si la forma de 13 empieza por cinco ceros (un EAN-8 con sus ceros delante);
      * - la misma sin ningún cero a la izquierda.
-     * Nunca incluye el UPC-E tal como se leyó: sus 8 dígitos podrían coincidir con el EAN-8 de OTRO producto. Un código de 8 dígitos que
-     * cuadra por las dos vías (EAN-8 y UPC-E) lleva además las variantes de su expansión a UPC-A.
+     * Nunca incluye el UPC-E tal como se leyó: sus 8 dígitos podrían coincidir con el EAN-8 de OTRO producto. Una forma de 13 que empieza
+     * por cinco ceros procede de 8 dígitos que pueden ser también un UPC-E: lleva además las variantes de su expansión a UPC-A.
+     * Solo depende de la forma canónica: el mismo producto da las mismas variantes lo teclee el usuario como lo teclee.
      * Vacía si [raw] no es un código válido.
      */
     fun candidates(raw: String): List<String> {
         val parsed = parse(raw) ?: return emptyList()
         val e = parsed.ean13
+        // Cinco ceros delante de la forma de 13 vienen de un código de 8 dígitos (un EAN-8, o un UPC-E que cuadra como EAN-8). Se mira la
+        // forma canónica y no el formato de origen: el mismo producto da las mismas variantes lo teclee el usuario como lo teclee.
+        val deOcho = e.startsWith("00000")
         return buildList {
             add(e)
             add("0$e")
             if (e.startsWith("0")) add(e.drop(1))
-            if (e.startsWith("00000")) add(e.takeLast(8))
+            if (deOcho) add(e.takeLast(8))
             e.trimStart('0').takeIf { it.isNotEmpty() }?.let { add(it) }
-            // Un código de 8 dígitos que cuadra como EAN-8 puede ser también un UPC-E (siempre pasa con compresión de 5 a 9): si el
-            // lector no dijo cuál era, se prueban las dos lecturas.
-            if (parsed.format == Format.EAN8) {
-                upcEToUpcA(parsed.digits)?.let { upcA ->
+            // Un código de 8 dígitos puede ser también un UPC-E (con compresión de 5 a 9 siempre cuadra como EAN-8): si el lector no
+            // dijo cuál era, se prueban las dos lecturas.
+            if (deOcho) {
+                upcEToUpcA(e.takeLast(8))?.let { upcA ->
                     add("0$upcA")
                     add(upcA)
                     upcA.trimStart('0').takeIf { it.isNotEmpty() }?.let { add(it) }

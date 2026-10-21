@@ -43,7 +43,9 @@ class GtinTest {
     }
 
     @Test fun `un UPC-A y su EAN-13 con cero delante dan la misma forma canonica`() {
-        assertEquals(Gtin.normalize("036000291452"), Gtin.normalize("0036000291452"))
+        // A mano: un UPC-A es un EAN-13 con un cero delante (036000291452 → 0036000291452).
+        assertEquals("0036000291452", Gtin.normalize("036000291452"))
+        assertEquals("0036000291452", Gtin.normalize("0036000291452"))
     }
 
     @Test fun `un codigo de 8 digitos que cuadra como EAN-8 y como UPC-E se lee como EAN-8 pero prueba las dos lecturas`() {
@@ -52,6 +54,14 @@ class GtinTest {
         assertEquals("0000001234565", Gtin.normalize("01234565"))
         val variantes = Gtin.candidates("01234565")
         assertTrue(variantes.containsAll(listOf("0000001234565", "1234565".padStart(8, '0'), "0012345000065", "012345000065", "12345000065")))
+    }
+
+    @Test fun `un codigo de 8 digitos y su forma de 13 dan las mismas variantes incluido el UPC-A de su expansion`() {
+        // A mano: 01234565 cuadra como EAN-8 y su UPC-E se expande a 012345000065 (sistema 0, cifra de compresión 6 → «12345 0000 6»).
+        listOf("01234565", "0000001234565").forEach { leido ->
+            assertTrue("variantes de $leido", Gtin.candidates(leido).containsAll(listOf("012345000065", "0012345000065")))
+        }
+        assertEquals(Gtin.candidates("01234565"), Gtin.candidates("0000001234565"))
     }
 
     @Test fun `con compresion de 5 a 9 todo UPC-E cuadra tambien como EAN-8 y la camara lo expande antes`() {
