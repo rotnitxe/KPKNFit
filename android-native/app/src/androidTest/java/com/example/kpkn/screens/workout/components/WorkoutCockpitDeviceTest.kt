@@ -1,12 +1,12 @@
 package com.example.kpkn.screens.workout.components
 
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.unit.dp
@@ -19,104 +19,77 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 
-/** QA del cockpit en el dispositivo: gesto, navegación, métricas y prioridad de Atrás. */
+/** Historical suite name retained for the orchestrator; checks V1 and the migrated sheets. */
 @RunWith(AndroidJUnit4::class)
 class WorkoutCockpitDeviceTest {
     @get:Rule val rule = createAndroidComposeRule<ComponentActivity>()
-    private val lift = Exercise(id = "lv11-lift", name = "Levantamiento LV11", sets = List(3) { ExerciseSet(id = "s$it") })
-    private val row = Exercise(id = "lv11-row", name = "Remo LV11", sets = listOf(ExerciseSet(id = "r")))
-    private val sets = listOf(
-        CompletedSet(id = "s0", weight = 100.0, reps = 5, rpe = 8.0),
-        CompletedSet(id = "s1", weight = 80.0, reps = 10, rir = 1),
-        CompletedSet(id = "s2", weight = 50.0, reps = 4),
-        CompletedSet(id = "warmup", weight = 20.0, reps = 10, rpe = 3.0, isWarmup = true),
-    )
-
-    @Test
-    fun metricsKeepRealTonnageAndOnlyAverageReportedEffort() {
-        val metrics = cockpitSessionMetrics(
-            listOf(lift), sets.take(3).mapIndexed { index, set -> "${lift.id}_$index" to set }.toMap(),
-            listOf(CompletedExercise(lift.id, lift.name, sets = sets)), emptySet(), SessionEnergySummary(), 80.0,
-        )
-        assertEquals(3, metrics.completed)
-        assertEquals(3, metrics.total)
-        assertEquals(1500.0, metrics.tonnage, 0.0001)
-        assertEquals(1.5, metrics.averageRir!!, 0.0001)
+    private val lift = Exercise("lv11-lift", "Levantamiento LV11", sets = List(3) { ExerciseSet("s$it") })
+    private val row = Exercise("lv11-row", "Remo LV11", sets = listOf(ExerciseSet("r")))
+    private val sets = listOf(CompletedSet("s0", weight = 100.0, reps = 5, rpe = 8.0),
+        CompletedSet("s1", weight = 80.0, reps = 10, rir = 1), CompletedSet("s2", weight = 50.0, reps = 4),
+        CompletedSet("warmup", weight = 20.0, reps = 10, rpe = 3.0, isWarmup = true))
+    private fun content(body: @Composable () -> Unit) {
+        rule.setContent { KPKNTheme { MaterialTheme { Box(Modifier.fillMaxSize()) { body() } } } }
+    }
+    @Test fun metricsKeepRealTonnageAndOnlyAverageReportedEffort() {
+        val metrics = cockpitSessionMetrics(listOf(lift), sets.take(3).mapIndexed { index, set -> "${lift.id}_$index" to set }.toMap(),
+            listOf(CompletedExercise(lift.id, lift.name, sets = sets)), emptySet(), SessionEnergySummary(), 80.0)
+        assertEquals(3, metrics.completed); assertEquals(3, metrics.total)
+        assertEquals(1500.0, metrics.tonnage, .0001); assertEquals(1.5, metrics.averageRir!!, .0001)
         assertNull("sin estimación real no se inventan kcal", metrics.calories.kcal)
     }
-
-    @Test
-    fun swipingTheSameBarOpensAndClosesWithoutEditingChrome() {
-        rule.setContent {
-            KPKNTheme {
-                MaterialTheme {
-                    var mode by remember { mutableStateOf(RoadmapMode.COMPACT) }
-                    Column {
-                        Text(if (mode == RoadmapMode.EXPANDED) "Abierto" else "Plegado")
-                        WorkoutRoadmapBar(
-                            exercises = listOf(lift, row), currentIdx = 0, completedSets = emptyMap(), onSelect = {},
-                            mode = mode, onModeChange = { mode = it },
-                            godMode = true, // Compatibilidad: este parámetro antiguo ya no activa nada.
-                            modifier = Modifier.testTag("lv11-bar"),
-                        )
-                    }
-                }
-            }
+    @Test fun routeOpensFromTheIntegratedLineAndClosesWithoutEditingChrome() {
+        var destination by mutableStateOf<LiveSessionDestination?>(null)
+        val snapshot = LiveSetStepperSnapshot(listOf(TimelineElement.BilateralSet(pageIndex = 0, label = "S1", state = WorkoutSetCardVisualState.ACTIVE)), 0, 0, 1, null, true)
+        content {
+            LiveSessionLine(listOf(lift, row), lift.id, snapshot, { destination = LiveSessionDestination.ROUTE }, {}, {}, {}, {}, true, true,
+                modifier = Modifier.width(328.dp))
+            LiveSessionSheetsHost(destination, { destination = it }, exercises = listOf(lift, row))
         }
-        rule.onNodeWithTag("lv11-bar").performTouchInput { swipeUp() }
-        rule.onNodeWithText("Abierto").assertExists()
+        rule.onNodeWithContentDescription("Abrir ruta de la sesión").performClick()
+        rule.onNodeWithText("Ruta de la sesión").assertIsDisplayed()
         rule.onAllNodesWithContentDescription("Eliminar ejercicio").assertCountEquals(0)
         rule.onAllNodesWithContentDescription("Agregar ejercicio").assertCountEquals(0)
-        rule.onNodeWithTag("lv11-bar").performTouchInput { swipeDown() }
-        rule.onNodeWithText("Plegado").assertExists()
+        rule.onNodeWithContentDescription("Cerrar Ruta de la sesión").performClick()
+        rule.waitUntil(5_000) { destination == null }
+        rule.onNodeWithContentDescription("Abrir ruta de la sesión").assertIsDisplayed()
     }
-
-    @Test
-    fun sessionKeepsAllPagesAndItsRouteSelectsTheRealExercise() {
+    @Test fun sessionKeepsItsMetricsAndRouteSelectsTheRealExercise() {
         var selected: String? = null
-        rule.setContent {
-            KPKNTheme {
-                MaterialTheme {
-                    Box(Modifier.fillMaxSize()) {
-                        WorkoutSessionCockpit(
-                            exercises = listOf(lift, row), completedSets = emptyMap(), milestones = emptyList(),
-                            sessionProgressLabel = "0 / 4", liveEnergySummary = SessionEnergySummary(), sessionNotes = "",
-                            sessionPhotos = emptyList(), sessionChecklist = emptyList(), onSessionNotesChange = {},
-                            onAddSessionPhoto = {}, onRemoveSessionPhoto = {}, onAddChecklistItem = {},
-                            onToggleChecklistItem = {}, onRemoveChecklistItem = {}, sessionAccentColor = androidx.compose.ui.graphics.Color(0xFFF49A6E),
-                            currentExerciseId = lift.id, onSelectExercise = { selected = it },
-                        )
-                    }
-                }
-            }
-        }
-        rule.onNodeWithText("Tonelaje").assertExists()
-        rule.onNodeWithText("RIR medio").assertExists()
-        rule.onNodeWithText("Hitos").assertExists()
-        rule.onNodeWithText("Fotos").assertExists()
-        rule.onNodeWithText("Herramientas").assertExists()
-        rule.onNodeWithText("Notas").assertExists()
+        content { LiveSessionSheetsHost(LiveSessionDestination.ROUTE, {}, exercises = listOf(lift, row),
+            currentExerciseId = lift.id, onSelectExercise = { selected = it }) }
+        rule.onNodeWithText("Tonelaje").assertExists(); rule.onNodeWithText("RIR medio").assertExists()
         rule.onAllNodesWithText("RINGS EN VIVO").assertCountEquals(0)
         rule.onNodeWithText("Remo LV11").performScrollTo().performClick()
         rule.runOnIdle { assertEquals(row.id, selected) }
     }
-
-    @Test
-    fun anEmptySessionStillHasAVisibleAddAction() {
+    @Test fun everyOldCockpitFunctionHasAnExplicitMenuDestination() {
+        content { LiveSessionSheetsHost(LiveSessionDestination.MENU, {}) }
+        for (item in LiveSessionDestination.entries.filter { it != LiveSessionDestination.MENU })
+            rule.onNodeWithTag("live-session-menu-${item.name.lowercase()}").performScrollTo().assertIsDisplayed()
+    }
+    @Test fun anEmptySessionStillHasAVisibleAddActionInTheRoute() {
         var adds = 0
-        rule.setContent {
-            KPKNTheme { MaterialTheme {
-                WorkoutRoadmapBar(exercises = emptyList(), currentIdx = 0, completedSets = emptyMap(), onSelect = {}, onAddExercise = { adds++ })
-            } }
-        }
-        rule.onNodeWithText("Añadir ejercicio").performClick()
+        content { LiveSessionSheetsHost(LiveSessionDestination.ROUTE, {}, onAddExercise = { adds++ }) }
+        rule.onNodeWithText("Añadir ejercicio").performScrollTo().performClick()
         rule.runOnIdle { assertEquals(1, adds) }
     }
-
-    @Test
-    fun backCollapsesTheCockpitAfterHigherPriorityOverlays() {
-        assertEquals(WorkoutBackAction.COLLAPSE_COCKPIT, resolveWorkoutBackAction(WorkoutOverlayFlags(cockpitExpanded = true)))
-        assertEquals(WorkoutBackAction.MINIMIZE_REST, resolveWorkoutBackAction(WorkoutOverlayFlags(cockpitExpanded = true, isRestOverlayVisible = true)))
-        assertEquals(WorkoutBackAction.DISMISS_FINISH_SHEET, resolveWorkoutBackAction(WorkoutOverlayFlags(cockpitExpanded = true, showFinishSheet = true)))
+    @Test fun backClosesTheHigherSheetThenTheRouteBeforeExiting() {
+        var destination by mutableStateOf<LiveSessionDestination?>(LiveSessionDestination.ROUTE)
+        var child by mutableStateOf(true)
+        var exits = 0
+        content {
+            BackHandler { exits++ }
+            LiveSessionSheetsHost(destination, { destination = it }, exercises = listOf(lift))
+            if (child) HeaderSheet({ child = false }) { Text("Hoja superior") }
+        }
+        rule.runOnUiThread { rule.activity.onBackPressedDispatcher.onBackPressed() }
+        rule.waitUntil(5_000) { !child }
+        rule.runOnIdle { assertNotNull(destination); assertEquals(0, exits) }
+        rule.runOnUiThread { rule.activity.onBackPressedDispatcher.onBackPressed() }
+        rule.waitUntil(5_000) { destination == null }
+        rule.runOnIdle { assertEquals(0, exits) }
+        rule.runOnUiThread { rule.activity.onBackPressedDispatcher.onBackPressed() }
+        rule.runOnIdle { assertEquals(1, exits) }
     }
 }

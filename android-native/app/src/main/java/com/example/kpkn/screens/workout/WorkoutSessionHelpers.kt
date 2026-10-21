@@ -200,6 +200,7 @@ internal data class LiveSetStepperSnapshot(
     val totalCount: Int,
     val sessionAccentColor: Color?,
     val canAddSet: Boolean,
+    val activePageIndex: Int? = null,
 )
 
 internal class LiveSetStepperHolder {

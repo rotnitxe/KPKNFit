@@ -14,6 +14,11 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Undo
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -26,6 +31,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.example.kpkn.data.models.CompletedSet
@@ -67,6 +74,7 @@ internal fun LiveUndoPillHost(
     onUndo: (stackIndex: Int) -> Unit,
     modifier: Modifier = Modifier,
     visibleMillis: Long = UNDO_PILL_VISIBLE_MS,
+    compact: Boolean = false,
 ) {
     var seenSize by remember { mutableIntStateOf(undoStack.size) }
     var shown by remember { mutableStateOf(false) }
@@ -88,16 +96,26 @@ internal fun LiveUndoPillHost(
     AnimatedVisibility(
         visible = target != null,
         modifier = modifier,
-        enter = if (reduced) fadeIn(tween(0)) else fadeIn(tween(200)) + slideInVertically(tween(260, easing = FastOutSlowInEasing)) { it / 2 },
-        exit = if (reduced) fadeOut(tween(0)) else fadeOut(tween(200)) + slideOutVertically(tween(200, easing = FastOutSlowInEasing)) { it / 2 },
+        enter = when {
+            reduced -> fadeIn(tween(0))
+            compact -> fadeIn(tween(200))
+            else -> fadeIn(tween(200)) + slideInVertically(tween(260, easing = FastOutSlowInEasing)) { it / 2 }
+        },
+        exit = when {
+            reduced -> fadeOut(tween(0))
+            compact -> fadeOut(tween(200))
+            else -> fadeOut(tween(200)) + slideOutVertically(tween(200, easing = FastOutSlowInEasing)) { it / 2 }
+        },
     ) {
-        LiveUndoPill(
-            text = lastText,
-            onClick = {
+        val undo = {
                 onUndo(undoStack.lastIndex)
                 shown = false
-            },
-        )
+        }
+        if (compact) Box(Modifier.size(44.dp).clip(CircleShape).background(WizardColors.text)
+            .clickable(role = Role.Button, onClick = undo).semantics { contentDescription = lastText },
+            contentAlignment = Alignment.Center) {
+            Icon(Icons.AutoMirrored.Filled.Undo, null, Modifier.size(20.dp), tint = WizardColors.ctaContent)
+        } else LiveUndoPill(text = lastText, onClick = undo)
     }
 }
 

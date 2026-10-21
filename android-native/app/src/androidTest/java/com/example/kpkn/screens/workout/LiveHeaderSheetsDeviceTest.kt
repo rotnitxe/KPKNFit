@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
@@ -246,6 +247,44 @@ class LiveHeaderSheetsDeviceTest {
     }
     private fun managerImeVisible(): Boolean = rule.runOnIdle {
         ViewCompat.getRootWindowInsets(rule.activity.window.decorView)?.isVisible(WindowInsetsCompat.Type.ime()) == true
+    }
+
+    @Test fun voiceFromTheHeaderOpensTheSameExplicitModeChoice() {
+        var choosing by mutableStateOf(false)
+        var enabled = false
+        content {
+            WorkoutHeaderBar("Sentadilla", sessionName = "Pierna A", groupName = null, startTimeMs = 0L,
+                isComplete = false, background = null, sessionTimeRemainingSeconds = null, onAdjustTimeLimit = {},
+                onToggleVoice = { choosing = true }, onStoryClick = {}, onMoreClick = {})
+            if (choosing) VoiceCaptureModeDialog({ enabled = true; choosing = false }, { choosing = false })
+        }
+        rule.onNodeWithTag("workout-voice-header").assertIsDisplayed().performClick()
+        rule.onNodeWithText("Ahora no").assertIsDisplayed().performClick()
+        rule.waitUntil(5_000) { !choosing }
+        rule.runOnIdle { assertFalse(enabled) }
+        rule.onNodeWithTag("workout-voice-fab").assertDoesNotExist()
+    }
+
+    @Test fun headerMenuOpensTheMigratedTimerAndShortCardRowKeepsHistory() {
+        var destination by mutableStateOf<LiveSessionDestination?>(null)
+        var history = 0
+        content {
+            Column(Modifier.width(360.dp).height(740.dp)) {
+                WorkoutHeaderBar("Sentadilla", sessionName = "Pierna A", groupName = null, startTimeMs = 0L,
+                    isComplete = false, background = null, sessionTimeRemainingSeconds = null, onAdjustTimeLimit = {},
+                    onToggleVoice = {}, onStoryClick = {}, onMoreClick = { destination = LiveSessionDestination.MENU }, compactLayout = true)
+                Box(Modifier.width(284.dp)) { LiveSetCardActions({}, {}, { history++ }) }
+            }
+            LiveSessionSheetsHost(destination, { destination = it })
+        }
+        rule.onNodeWithTag("secondary_pill_historial").assertIsDisplayed().performClick()
+        rule.runOnIdle { assertEquals(1, history) }
+        rule.onNodeWithTag("workout-more-header").performClick()
+        rule.onNodeWithTag("live-session-menu-timer").performScrollTo().performClick()
+        rule.onNodeWithText("Iniciar").assertIsDisplayed().performClick()
+        rule.onNodeWithText("Pausar").assertIsDisplayed().performClick()
+        rule.onNodeWithText("Reiniciar").performClick()
+        rule.onNodeWithTag("live-session-timer-value", true).assertTextEquals("0:00")
     }
 
     /** Records focus/IME/viewport evidence before ending text editing. */

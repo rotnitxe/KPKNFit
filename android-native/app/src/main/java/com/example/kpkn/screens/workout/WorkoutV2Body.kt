@@ -29,6 +29,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.layout
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
@@ -81,6 +82,8 @@ internal fun WorkoutV2Body(
     headerProgram: com.example.kpkn.data.models.Program? = null,
     headerExerciseTag: String?,
     onToggleVoice: () -> Unit = {},
+    onStoryClick: () -> Unit = {},
+    onMoreSessionOptionsClick: () -> Unit = {},
     rmSelectedWeight: Double? = null,
     onRmWeightConsumed: () -> Unit = {},
     onExpandHistory: () -> Unit,
@@ -110,7 +113,6 @@ internal fun WorkoutV2Body(
     overlayHazeState: HazeState = remember { HazeState() },
     roadmapExpanded: Boolean = false,
     dockBottomClearance: Dp = 140.dp,
-    recordFabBottomOffset: Dp? = null,
     onCreateSuperset: () -> Unit = {},
     onReplaceExercise: (String) -> Unit = {},
     requestLiveTagList: Boolean = false,
@@ -121,7 +123,6 @@ internal fun WorkoutV2Body(
     techniqueRecorderHolder: com.example.kpkn.screens.workout.technique.TechniqueRecorderHolder? = null,
     onOpenTechniqueAnalysis: (String) -> Unit = {},
 ) {
-    val sharedFabBottomOffset = recordFabBottomOffset ?: rememberWorkoutRecordFabBottomOffset(dockBottomClearance)
     val videoAnalysis by viewModel.videoAnalysisBySetKey.collectAsStateWithLifecycle()
     val restVideoKey = uiState.setJustLoggedKey
     val restVideo = restVideoKey?.let(videoAnalysis::get)
@@ -243,7 +244,8 @@ internal fun WorkoutV2Body(
         }
     }
 
-    Box(modifier = modifier) {
+    BoxWithConstraints(modifier = modifier) {
+        val compactHeaderLayout = maxHeight < 800.dp
         val currentExerciseReadiness = currentExercise?.let { exerciseReadinessMap[it.id] }
         val currentReadinessAdjustment = currentExercise?.let { ex ->
             uiState.readinessAdjustments["${ex.id}_${uiState.currentSetIdx}"]
@@ -253,7 +255,14 @@ internal fun WorkoutV2Body(
         val relatorLoadPopTrigger by viewModel.relatorLoadPopTrigger.collectAsStateWithLifecycle()
         val density = LocalDensity.current
         var headerHeightPx by remember { mutableIntStateOf(0) }
-        val relatorBandHeight = WorkoutUiTokens.liveRelatorBandHeight(density)
+        val navigationBottom = with(density) { WindowInsets.navigationBars.getBottom(this).toDp() }
+        val imeBottom = with(density) { WindowInsets.ime.getBottom(this).toDp() }
+        val stageBottomClearance = maxOf(navigationBottom, imeBottom) + dockBottomClearance
+        val relatorBandHeight = liveSessionRelatorBandHeight(
+            maxHeight.value, with(density) { headerHeightPx.toDp().value },
+            (maxWidth.value - 48f).coerceIn(240f, 358f) / LiveCardWidthToHeight,
+            stageBottomClearance.value,
+        ).dp
         // La banda se oculta solo bajo un overlay a pantalla completa (descanso o feedback), que trae su propio relator.
         // El chip del descanso ocupa el sitio de la banda mientras se ve (LV6, F5), y «Descanso cumplido» a pantalla completa también la cubre.
         // Con el feedback en la tarjeta del descanso (B3) la banda del relator se ve: F4 pone ahí «Ejercicio terminado: …».
@@ -329,6 +338,9 @@ internal fun WorkoutV2Body(
                 voiceSessionEnabled = uiState.voiceSessionEnabled,
                 voiceSessionState = uiState.voiceSessionState,
                 onToggleVoice = onToggleVoice,
+                onStoryClick = onStoryClick,
+                onMoreClick = onMoreSessionOptionsClick,
+                compactLayout = compactHeaderLayout,
                 onUltraFastPreview = { viewModel.previewUltraFast() },
                 ultraFastApplied = uiState.ultraFastApplied,
                 ultraFastSavedSeconds = uiState.ultraFastSavedSeconds,
@@ -345,7 +357,6 @@ internal fun WorkoutV2Body(
                 } else {
                     null
                 },
-                onHistoryClick = onExpandHistory,
                 onReplaceClick = onExpandReplace,
                 nicknameKey = currentExercise?.nicknameKey(),
                 nicknameValue = currentExercise?.nicknameKey()?.let { key ->
@@ -386,6 +397,7 @@ internal fun WorkoutV2Body(
                 )
                 val workingSetVisualHeightPx = remember { mutableIntStateOf(0) }
                 CompositionLocalProvider(
+                    LocalLiveSessionCompactLayout provides compactHeaderLayout,
                     LocalLivePagerAdaptScale provides liveAdaptScale,
                     LocalLivePagerShouldReflow provides pagerAdapt.shouldReflow,
                     LocalLivePagerWorkingSetVisualHeightPx provides workingSetVisualHeightPx,
@@ -394,7 +406,7 @@ internal fun WorkoutV2Body(
                     Column(
                         modifier = Modifier
                             .fillMaxSize()
-                            .padding(bottom = sharedFabBottomOffset + LiveContentAboveRecordFab),
+                            .padding(bottom = stageBottomClearance + 12.dp),
                     ) {
             val createTagAndRoute: (String, TagSetupInput?) -> CreateTagResult = { name, setup ->
                 val exercise = currentExercise
@@ -1574,6 +1586,7 @@ internal fun WorkoutV2Body(
                             totalCount = totalTimelineSetsCount,
                             sessionAccentColor = sessionAccentColor,
                             canAddSet = canAddSetToCurrentExercise,
+                            activePageIndex = pagerState.settledPage,
                         )
                         if (liveSetStepperHolder.snapshot != next) {
                             liveSetStepperHolder.snapshot = next
@@ -2322,15 +2335,6 @@ internal fun WorkoutV2Body(
                         } // LivePagerCardFrame
                             } // peek graphicsLayer Box
                         } // HorizontalPager
-                        liveSetStepperHolder.snapshot?.let { snapshot ->
-                            LiveSeriesClouds(
-                                snapshot = snapshot,
-                                onSelectPage = { liveSetStepperHolder.onSelectPage(it) },
-                                onLongPressPage = liveSetStepperHolder.onLongPressPage,
-                                onAddSet = liveSetStepperHolder.onAddSet.takeIf { snapshot.canAddSet },
-                                activePageIndex = pagerState.settledPage,
-                            )
-                        }
                         } // pager and detailed series stepper
                     } // BoxWithConstraints
                     } // key(pagerScopeKey)
@@ -2359,7 +2363,8 @@ internal fun WorkoutV2Body(
                     .align(Alignment.TopCenter)
                     .fillMaxWidth()
                     .height(relatorBandHeight)
-                    .offset(y = with(density) { (headerHeightPx - 4.5.dp.toPx()).toDp() })
+                    .offset(y = with(density) { headerHeightPx.toDp() })
+                    .testTag("live-session-relator")
                     .zIndex(12f),
             )
         }

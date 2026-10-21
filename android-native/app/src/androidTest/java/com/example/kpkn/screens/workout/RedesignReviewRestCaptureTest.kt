@@ -119,7 +119,7 @@ class RedesignReviewRestCaptureTest {
                         Box(Modifier.fillMaxSize().background(KpknSurface.canvas).testTag(CanvasTag)) {
                             Box(Modifier.fillMaxSize().hazeSource(haze).background(KpknSurface.canvas))
                             when {
-                                scene.startsWith("cockpit-") -> Cockpit(haze)
+                                scene.startsWith("cockpit-") -> MigratedSessionSheet(tab)
                                 scene == "series-options" -> SeriesOptionsSheet(squat, SeriesTypeTarget(squat.id, 1, 3),
                                     mapOf("${squat.id}_0" to last), emptySet(), {}, { _, _ -> }, {}, {}, {}, {},
                                     bottomClearance = resolveDockBottomClearanceDp(
@@ -141,7 +141,6 @@ class RedesignReviewRestCaptureTest {
                 }
             }
         }
-        if (tab != null) rule.onNode(hasText(tab) and hasClickAction()).performScrollTo().performClick()
         rule.mainClock.advanceTimeBy(1_000)
         rule.waitForIdle()
         if (scene.endsWith("-card")) rule.onNodeWithTag(CalibrationTag).assertDoesNotExist()
@@ -153,7 +152,13 @@ class RedesignReviewRestCaptureTest {
             "series-options" -> rule.onNodeWithText("Aplicar").assertIsDisplayed()
             "feedback-technique", "feedback-search", "feedback-card" -> rule.onNodeWithText("Guardar").assertIsDisplayed()
         }
-        val target = rule.onNodeWithTag(if (module) ModuleTag else CanvasTag).assertIsDisplayed()
+        val targetTag = when (scene) {
+            "cockpit-hitos" -> "live-session-sheet-milestones"
+            "cockpit-notas" -> "live-session-sheet-notes"
+            "cockpit-fotos" -> "live-session-album"
+            else -> if (module) ModuleTag else CanvasTag
+        }
+        val target = rule.onNodeWithTag(targetTag, useUnmergedTree = true).assertIsDisplayed()
         val image = target.captureToImage().asAndroidBitmap()
         assertTrue("Capture must contain the physical component", image.width > 0 && image.height > 0)
         val directory = File(context.getExternalFilesDir(null), "review-rest").apply { mkdirs() }
@@ -218,25 +223,19 @@ class RedesignReviewRestCaptureTest {
         }
     }
 
-    @Composable private fun Cockpit(haze: HazeState) {
-        val scale = LocalViewportAdapt.current.uniformScale
-        val shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)
-        Box(Modifier.fillMaxSize().navigationBarsPadding()
-            .padding(top = 24.dp, bottom = WorkoutUiTokens.liveCockpitCompactHeight(scale) + 8.dp)) {
-            Box(Modifier.fillMaxSize().clip(shape).kpknGlassOrFallback(haze, shape).testTag(ModuleTag)) {
-                WorkoutSessionCockpit(listOf(squat, row), mapOf("${squat.id}_0" to last),
-                    milestones = listOf(SessionMilestone("pr", squat.id, squat.name, "PR", "Nuevo récord de repeticiones",
-                        6.0, "95 kg × 6 · antes, 5 repeticiones", "2026-10-16T18:00:00Z")),
-                    sessionProgressLabel = "1 / 7", liveEnergySummary = SessionEnergySummary(),
-                    sessionNotes = "Mantener el abdomen firme y no apresurar las últimas repeticiones.",
-                    sessionSavedNotes = listOf(SessionSavedNote("note", "La primera serie se sintió estable.", "2026-10-16T18:00:00Z")),
-                    sessionPhotos = emptyList(), sessionChecklist = listOf(SessionChecklistItem("water", "Beber agua", true),
-                        SessionChecklistItem("load", "Revisar la carga de la siguiente serie")),
-                    onSessionNotesChange = {}, onSaveSessionNote = {}, onAddSessionPhoto = {}, onRemoveSessionPhoto = {},
-                    onAddChecklistItem = {}, onToggleChecklistItem = {}, onRemoveChecklistItem = {}, sessionAccentColor = accent,
-                    bodyWeight = 75.0, currentExerciseId = squat.id)
-            }
-        }
+    @Composable private fun MigratedSessionSheet(tab: String?) {
+        if (tab == "Fotos") WorkoutSessionAlbumSheet(emptyList(), {}, captureActions = {
+            SessionPhotoCaptureActions({}, { null }, { _, _ -> }, {}, null, {})
+        }) else LiveSessionSheetsHost(
+            destination = if (tab == "Hitos") LiveSessionDestination.MILESTONES else LiveSessionDestination.NOTES,
+            onDestination = {}, exercises = listOf(squat, row), completedSets = mapOf("${squat.id}_0" to last),
+            milestones = listOf(SessionMilestone("pr", squat.id, squat.name, "PR", "Nuevo récord de repeticiones",
+                6.0, "95 kg × 6 · antes, 5 repeticiones", "2026-10-16T18:00:00Z")),
+            sessionNotes = "Mantener el abdomen firme y no apresurar las últimas repeticiones.",
+            sessionSavedNotes = listOf(SessionSavedNote("note", "La primera serie se sintió estable.", "2026-10-16T18:00:00Z")),
+            sessionChecklist = listOf(SessionChecklistItem("water", "Beber agua", true), SessionChecklistItem("load", "Revisar la carga de la siguiente serie")),
+            sessionAccentColor = accent, bodyWeight = 75.0, currentExerciseId = squat.id,
+        )
     }
 
     private fun gameStore() = RestGameRecordStore(context.getSharedPreferences(gamePreferences, Context.MODE_PRIVATE))

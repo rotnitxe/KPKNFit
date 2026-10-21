@@ -9,6 +9,8 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.text.BasicText
+import androidx.compose.foundation.text.TextAutoSize
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -26,6 +28,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.unit.TextUnit
 import com.example.kpkn.screens.onboarding.design.WizardColors
 import com.example.kpkn.screens.onboarding.design.wizardReducedMotion
 import com.example.kpkn.ui.components.KpknSheet
@@ -35,7 +38,7 @@ import kotlinx.coroutines.delay
 
 /** KpknSheet owns entry/drag/Back. Explicit close actions also leave with an animation. */
 @Composable
-internal fun HeaderSheet(onDismiss: () -> Unit, modifier: Modifier = Modifier, dismissible: Boolean = true, content: @Composable (close: () -> Unit) -> Unit) {
+internal fun HeaderSheet(onDismiss: () -> Unit, modifier: Modifier = Modifier, dismissible: Boolean = true, stableHeightFraction: Float? = null, content: @Composable (close: () -> Unit) -> Unit) {
     var closing by remember { mutableStateOf(false) }
     val reduced = wizardReducedMotion()
     val exit by animateFloatAsState(if (closing) 1f else 0f, tween(if (reduced) 0 else 180), label = "header-sheet-exit")
@@ -43,7 +46,7 @@ internal fun HeaderSheet(onDismiss: () -> Unit, modifier: Modifier = Modifier, d
     LaunchedEffect(closing) {
         if (closing) { if (!reduced) delay(180); onDismiss() }
     }
-    KpknSheet(onDismissRequest = onDismiss, dismissible = dismissible, modifier = modifier.imePadding().graphicsLayer { translationY = exit * travel; alpha = 1f - exit }) {
+    KpknSheet(onDismissRequest = onDismiss, dismissible = dismissible, stableHeightFraction = stableHeightFraction, modifier = modifier.imePadding().graphicsLayer { translationY = exit * travel; alpha = 1f - exit }) {
         content { if (dismissible) closing = true }
     }
 }
@@ -64,13 +67,17 @@ internal fun HeaderSheetFrame(title: String, footer: @Composable ColumnScope.() 
 @Composable
 internal fun HeaderSheetAction(text: String, onClick: () -> Unit, modifier: Modifier = Modifier, primary: Boolean = false, enabled: Boolean = true, multiline: Boolean = false) {
     val shape = RoundedCornerShape(20.dp)
+    val compactAutoSize = remember { TextAutoSize.StepBased(minFontSize = 11.sp, maxFontSize = 13.sp, stepSize = .5.sp) }
     Box(modifier.defaultMinSize(minWidth = 48.dp, minHeight = 48.dp).clickable(enabled = enabled, role = Role.Button, onClick = onClick), contentAlignment = Alignment.Center) {
         Box(Modifier.fillMaxWidth().height(if (multiline) 40.dp else 36.dp).clip(shape)
             .background(if (primary) WizardColors.text.copy(alpha = if (enabled) 1f else .3f) else KpknSurface.inset)
-            .border(1.dp, WizardColors.textFaint.copy(alpha = .25f), shape).padding(horizontal = 12.dp), contentAlignment = Alignment.Center) {
-            Text(text, style = KpknType.action.copy(fontSize = 13.sp, lineHeight = 18.sp),
-                color = if (primary) KpknSurface.canvas else if (enabled) WizardColors.text else WizardColors.textFaint,
-                maxLines = if (multiline) 2 else 1, textAlign = TextAlign.Center, overflow = TextOverflow.Ellipsis)
+            .border(1.dp, WizardColors.textFaint.copy(alpha = .25f), shape).padding(horizontal = if (multiline) 8.dp else 12.dp), contentAlignment = Alignment.Center) {
+            val ink = if (primary) KpknSurface.canvas else if (enabled) WizardColors.text else WizardColors.textFaint
+            if (multiline) BasicText(text,
+                style = KpknType.action.copy(color = ink, lineHeight = TextUnit.Unspecified, textAlign = TextAlign.Center),
+                maxLines = 2, autoSize = compactAutoSize)
+            else Text(text, style = KpknType.action.copy(fontSize = 13.sp, lineHeight = 18.sp),
+                color = ink, maxLines = 1, textAlign = TextAlign.Center, overflow = TextOverflow.Ellipsis)
         }
     }
 }

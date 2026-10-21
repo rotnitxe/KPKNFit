@@ -562,8 +562,8 @@ internal fun WorkoutRmCalcContent(
     sessionAccentColor: Color = MaterialTheme.colorScheme.primary,
     softInputs: Boolean = false,
 ) {
-    var rmWeightText by remember { mutableStateOf("") }
-    var rmRepsText by remember { mutableStateOf("") }
+    var rmWeightText by androidx.compose.runtime.saveable.rememberSaveable { mutableStateOf("") }
+    var rmRepsText by androidx.compose.runtime.saveable.rememberSaveable { mutableStateOf("") }
     val isAssisted = currentLoadMode == LoadModeV2.ASSISTED
     val isLastre = currentLoadMode == LoadModeV2.LASTRE
     val weightLabel = when (currentLoadMode) {

@@ -19,6 +19,7 @@ import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -215,7 +216,7 @@ internal fun WorkoutLiveRelatorLine(
         currentText + ". Acciones: " + currentActions.joinToString(". ") { it.clickableSpan() }
     }
 
-    Box(
+    BoxWithConstraints(
         modifier = modifier
             .fillMaxWidth()
             .semantics(mergeDescendants = currentActions.isEmpty()) {
@@ -224,6 +225,7 @@ internal fun WorkoutLiveRelatorLine(
             },
         contentAlignment = Alignment.Center,
     ) {
+        val availableBandHeight = maxHeight
         if (!isWorking && !isDone) {
             // Reposo: texto centrado en la banda para mantener simetría idéntica (Punto 2)
             AnimatedContent(
@@ -256,12 +258,14 @@ internal fun WorkoutLiveRelatorLine(
         } else {
             // Separate measured lanes inside the same reserved band, including at large font sizes.
             Column(Modifier.fillMaxSize(), verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally) {
-                if (isWorking && effectiveWorkingAction != null) {
+                val textHeight = with(androidx.compose.ui.platform.LocalDensity.current) { (WorkoutLiveRelatorLineHeight * WorkoutLiveRelatorMaxLines).toDp() }
+                val laneHeight = (availableBandHeight - textHeight - WorkoutUiTokens.LiveRelatorAnimationGap).coerceIn(0.dp, WorkoutUiTokens.LiveRelatorAnimationLaneHeight)
+                if (isWorking && effectiveWorkingAction != null && laneHeight > 0.dp) {
                     RelatorWorkingScene(
                         actionKind = effectiveWorkingAction.kind,
                         progress = forceWorkingProgress ?: rememberWorkingProgress(reduceMotion),
                         reduceMotion = reduceMotion,
-                        modifier = Modifier.fillMaxWidth().height(WorkoutUiTokens.LiveRelatorAnimationLaneHeight)
+                        modifier = Modifier.fillMaxWidth().height(laneHeight)
                             .clipToBounds().testTag("relator-working-lane"),
                     )
                     Spacer(Modifier.height(WorkoutUiTokens.LiveRelatorAnimationGap))

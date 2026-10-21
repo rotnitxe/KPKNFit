@@ -711,6 +711,7 @@ private fun SetSecondaryPill(
     modifier: Modifier = Modifier,
     // Relleno final de la píldora: el estándar de 10 dp, o el de «Modo visual» para no quedar bajo el ✓ (LR1a2, LV3).
     endPadding: Dp = 10.dp,
+    iconOnly: Boolean = false,
 ) {
     val interaction = remember { MutableInteractionSource() }
     val pressed by interaction.collectIsPressedAsState()
@@ -725,7 +726,8 @@ private fun SetSecondaryPill(
                 scaleX = scale
                 scaleY = scale
             }
-            .height(30.dp)
+            .height(44.dp)
+            .semantics { contentDescription = text }
             .clip(KpknShape.pill)
             .border(1.dp, WizardColors.text.copy(alpha = 0.24f), KpknShape.pill)
             .clickable(
@@ -739,8 +741,26 @@ private fun SetSecondaryPill(
     ) {
         Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
             Icon(icon, contentDescription = null, modifier = Modifier.size(14.dp), tint = WizardColors.text)
-            Text(text, style = KpknType.chip.copy(fontSize = 11.sp, lineHeight = 14.sp),
+            if (!iconOnly) Text(text, style = KpknType.chip.copy(fontSize = 11.sp, lineHeight = 14.sp),
                 color = WizardColors.text, maxLines = 1, softWrap = false)
+        }
+    }
+}
+
+/** V3 keeps the same single row and accessible labels when secondary actions need icons. */
+@Composable
+internal fun LiveSetCardActions(onAdvanced: () -> Unit, onVisual: () -> Unit, onHistory: () -> Unit, modifier: Modifier = Modifier) {
+    val shortScreen = com.example.kpkn.screens.workout.LocalLiveSessionCompactLayout.current || LocalConfiguration.current.screenHeightDp < 800
+    val fontScale = LocalDensity.current.fontScale
+    BoxWithConstraints(modifier.fillMaxWidth().height(44.dp).testTag("live-card-actions")) {
+        val icons = shortScreen || maxWidth < 260.dp || fontScale > 1.2f
+        Row(Modifier.fillMaxSize(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+            SetSecondaryPill("Avanzado", LiveCardReferenceIcons.Advanced, onAdvanced,
+                Modifier.weight(1f).testTag("secondary_pill_avanzado"), iconOnly = icons)
+            SetSecondaryPill("Modo visual", LiveCardReferenceIcons.Camera, onVisual,
+                Modifier.weight(1f).testTag("secondary_pill_modo_visual"), iconOnly = icons)
+            SetSecondaryPill("Historial del ejercicio", KpknLineIcons.History, onHistory,
+                Modifier.width(44.dp).testTag("secondary_pill_historial"), iconOnly = true)
         }
     }
 }
@@ -2308,27 +2328,11 @@ internal fun SetInputCardV2(
                         )
                     }
 
-                    Row(
-                        modifier = Modifier.fillMaxWidth().height(30.dp),
-                        horizontalArrangement = Arrangement.spacedBy(6.dp),
-                    ) {
-                        // Botones secundarios (LV3 punto 4): «Avanzado» y «Modo visual» compactos de 36 dp en una línea.
-                        SetSecondaryPill(
-                            text = "Avanzado",
-                            icon = LiveCardReferenceIcons.Advanced,
-                            onClick = { cardFace = SetCardFace.Technique },
-                            modifier = Modifier
-                                .testTag("secondary_pill_avanzado"),
-                        )
-                        SetSecondaryPill(
-                            text = "Modo visual",
-                            icon = LiveCardReferenceIcons.Camera,
-                            onClick = { cardFace = SetCardFace.ExerciseMedia },
-                            modifier = Modifier
-                                .testTag("secondary_pill_modo_visual"),
-                            endPadding = SetRecordFabEndPadding,
-                        )
-                    }
+                    LiveSetCardActions(
+                        onAdvanced = { cardFace = SetCardFace.Technique },
+                        onVisual = { cardFace = SetCardFace.ExerciseMedia },
+                        onHistory = onShowHistory,
+                    )
                 }
 
 

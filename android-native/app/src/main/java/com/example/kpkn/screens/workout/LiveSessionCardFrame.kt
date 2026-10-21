@@ -13,8 +13,13 @@ import com.example.kpkn.screens.workout.components.LocalLivePagerWorkingSetVisua
 import com.example.kpkn.screens.workout.components.publishLivePagerWorkingSetVisualHeight
 
 /** Original G2 outer frame, narrowed by the user's later 24 dp gutter amendment. */
-internal const val LiveCardWidthToHeight = 358f / 488f
+internal const val LiveCardWidthToHeight = 312f / 425f
 private val LocalLiveSessionCardHeight = staticCompositionLocalOf { 0.dp }
+internal val LocalLiveSessionCompactLayout = staticCompositionLocalOf { false }
+
+/** The narrator takes the remainder; the card and the integrated line keep their approved dimensions. */
+internal fun liveSessionRelatorBandHeight(viewportHeightDp: Float, headerHeightDp: Float, cardHeightDp: Float, bottomReservedDp: Float): Float =
+    (viewportHeightDp - headerHeightDp - cardHeightDp - bottomReservedDp - 12f).coerceAtLeast(0f)
 
 @Composable
 internal fun liveSessionCardHeight(): Dp {

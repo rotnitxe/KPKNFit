@@ -168,7 +168,7 @@ class WorkoutV2UiTest {
         }
 
         composeRule.onNodeWithText("Sentadilla frontal").performTouchInput { longClick() }
-        composeRule.onNodeWithText("context-opened")
+        composeRule.onNodeWithText("context-opened").assertExists()
     }
 
     @Test

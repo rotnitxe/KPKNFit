@@ -67,7 +67,7 @@ class SessionRevisionFlowDeviceTest {
         get() = caseName.methodName == "realActivityWeightImeKeepsFrameAndReturnsToSameSeries"
     private val isLiveControlsFixture: Boolean
         get() = caseName.methodName == "realActivityLiveControlsKeepMovApproxAndEffectiveSetsWithoutScrolling" ||
-            isWeightImeFixture
+            isWeightImeFixture || caseName.methodName == "realActivityReducedHeightKeepsCardAndLineComplete"
     private val suffix = System.nanoTime().toString()
     private val programId = "review-native-program-$suffix"
     private val sessionId = "review-native-session-$suffix"
@@ -253,12 +253,12 @@ class SessionRevisionFlowDeviceTest {
         assertLiveActionsClear(visualFrame)
         activeNode(hasContentDescription("Volver a la serie")).performClick()
         activeTag("secondary_pill_avanzado").assertIsDisplayed()
-        compose.onNodeWithTag("live-series-clouds", true).performScrollTo().assertIsDisplayed()
+        compose.onNodeWithTag("live-session-steps", true).assertIsDisplayed()
         capture("03b-live-series-navigation")
         val secondSeries = compose.onNode(
             (hasText("S2") or hasAnyDescendant(hasText("S2"))) and
                 SemanticsMatcher.keyIsDefined(SemanticsActions.OnLongClick) and
-                hasAnyAncestor(hasTestTag("live-series-clouds")), useUnmergedTree = true)
+                hasAnyAncestor(hasTestTag("live-session-steps")), useUnmergedTree = true)
         secondSeries.assertIsDisplayed().performTouchInput { longClick() }
         compose.waitUntil(15_000) {
             compose.onAllNodesWithText("Aplicar").fetchSemanticsNodes().isNotEmpty()
@@ -271,6 +271,20 @@ class SessionRevisionFlowDeviceTest {
         compose.onNodeWithContentDescription("Abrir resumen de sesión").assertDoesNotExist()
         compose.onNodeWithContentDescription("Plegar resumen de sesión").assertDoesNotExist()
         compose.onNodeWithText("Hitos de la sesión").assertDoesNotExist()
+    }
+
+    @Test fun realActivityReducedHeightKeepsCardAndLineComplete() {
+        launchWorkout()
+        val root = compose.onRoot(true).fetchSemanticsNode().boundsInRoot
+        val density = context.resources.displayMetrics.density
+        assertEquals("El contenido Android real está restringido a 760dp", 760f, root.height / density, 1f)
+        val card = activeTag("live-card-frame").fetchSemanticsNode().boundsInRoot
+        assertReferenceFrame(card)
+        assertLiveActionsClear(card)
+        assertInitialLiveStepperVisible(card, listOf("MOV", "APROX", "S1", "S2", "S3", "S4"))
+        val line = activeTag("live-session-line").fetchSemanticsNode().boundsInRoot
+        assertTrue("Tarjeta y línea caben enteras en el viewport reducido", card.top >= root.top && card.bottom <= line.top && line.bottom <= root.bottom)
+        capture("19-live-reduced-height-760")
     }
 
     @Test fun realActivityLiveControlsKeepMovApproxAndEffectiveSetsWithoutScrolling() {
@@ -292,12 +306,12 @@ class SessionRevisionFlowDeviceTest {
             expectedPills = listOf("MOV", "APROX", "S1", "S2", "S3", "S4"))
         capture("18-live-controls-initial-mov-approx-series")
 
-        val voice = compose.onNodeWithTag("workout-voice-fab", useUnmergedTree = true).assertIsDisplayed()
+        val voice = compose.onNodeWithTag("workout-voice-header", useUnmergedTree = true).assertIsDisplayed()
         val register = compose.onNode(hasContentDescription("Registrar serie") and hasClickAction())
             .assertIsDisplayed().assertIsEnabled()
         val voiceBounds = voice.fetchSemanticsNode().boundsInRoot
         val registerBounds = register.fetchSemanticsNode().boundsInRoot
-        assertFalse("Los dos FAB conservan zonas independientes", voiceBounds.overlaps(registerBounds))
+        assertFalse("Voz y registro conservan zonas independientes", voiceBounds.overlaps(registerBounds))
         assertFalse("El stepper no queda cubierto por voz", stepper.overlaps(voiceBounds))
         assertFalse("El stepper no queda cubierto por registrar", stepper.overlaps(registerBounds))
 
@@ -307,18 +321,18 @@ class SessionRevisionFlowDeviceTest {
         assertEquals("La actividad real inicia en S1; MOV/APROX se seleccionan desde el stepper",
             workingKey, vm.uiState.value.activeStepKey)
         compose.onNode(hasContentDescription("Movilidad") and
-            hasAnyAncestor(hasTestTag("live-series-clouds")), useUnmergedTree = true)
+            hasAnyAncestor(hasTestTag("live-session-steps")), useUnmergedTree = true)
             .assertIsDisplayed().performClick()
         compose.waitUntil(10_000) { vm.uiState.value.activeStepKey == mobilityKey }
         compose.onNode(hasContentDescription("Aproximación") and
-            hasAnyAncestor(hasTestTag("live-series-clouds")), useUnmergedTree = true)
+            hasAnyAncestor(hasTestTag("live-session-steps")), useUnmergedTree = true)
             .assertIsDisplayed().performClick()
         compose.waitUntil(10_000) { vm.uiState.value.activeStepKey == warmupKey }
         compose.onNode(hasContentDescription("Movilidad") and
-            hasAnyAncestor(hasTestTag("live-series-clouds")), useUnmergedTree = true)
+            hasAnyAncestor(hasTestTag("live-session-steps")), useUnmergedTree = true)
             .assertIsDisplayed().performClick()
         compose.waitUntil(10_000) { vm.uiState.value.activeStepKey == mobilityKey }
-        compose.onNode(hasText("S1") and hasAnyAncestor(hasTestTag("live-series-clouds")),
+        compose.onNode(hasText("S1") and hasAnyAncestor(hasTestTag("live-session-steps")),
             useUnmergedTree = true).assertIsDisplayed().performClick()
         compose.waitUntil(10_000) { vm.uiState.value.activeStepKey == workingKey }
 
@@ -327,7 +341,7 @@ class SessionRevisionFlowDeviceTest {
             includeNotifications = true,
         )
         if (voicePermissionsNeeded.isEmpty()) {
-            compose.onNodeWithTag("workout-voice-fab", useUnmergedTree = true).performClick()
+            compose.onNodeWithTag("workout-voice-header", useUnmergedTree = true).performClick()
             compose.onNodeWithText("Modo de voz", useUnmergedTree = true).assertIsDisplayed()
             compose.onNodeWithText("Ahora no", useUnmergedTree = true).assertIsDisplayed().performClick()
             compose.waitForIdle()
@@ -358,9 +372,8 @@ class SessionRevisionFlowDeviceTest {
 
     @Test fun exerciseMenuOpensRmAndQuickRecordsOneCanonicalSetWithoutReducingFour() {
         val vm = launchWorkout()
-        val roadmap = compose.onNode(hasText(exerciseName, substring = true) and
-            SemanticsMatcher.keyIsDefined(SemanticsActions.OnLongClick))
-        roadmap.performTouchInput { longClick() }
+        // The exercise's long press moved from the old roadmap card to the route heading.
+        compose.onNodeWithTag("live-session-route").performTouchInput { longClick() }
         compose.onNodeWithText("Calculadora RM").assertIsDisplayed().performClick()
         compose.onNodeWithTag("exercise-rm-sheet", true).assertExists()
         compose.onNodeWithText("Todavía no hay una referencia de RM").assertIsDisplayed()
@@ -387,7 +400,7 @@ class SessionRevisionFlowDeviceTest {
         check(isWeightImeFixture)
         val vm = launchWorkout()
         if (isLiveControlsFixture) {
-            compose.onNode(hasText("S1") and hasAnyAncestor(hasTestTag("live-series-clouds")),
+            compose.onNode(hasText("S1") and hasAnyAncestor(hasTestTag("live-session-steps")),
                 useUnmergedTree = true).assertIsDisplayed().performClick()
             compose.waitUntil(10_000) {
                 vm.uiState.value.activeStepKey == WorkoutStepRules.workingStepKey(exerciseId, 0, null)
@@ -450,9 +463,9 @@ class SessionRevisionFlowDeviceTest {
             fieldWithIme.overlaps(keyboardBounds))
         val registerWithIme = compose.onNode(hasContentDescription("Registrar serie") and hasClickAction())
             .assertIsDisplayed().fetchSemanticsNode().boundsInWindow
-        val voiceWithIme = compose.onNodeWithTag("workout-voice-fab", useUnmergedTree = true)
+        val voiceWithIme = compose.onNodeWithTag("workout-voice-header", useUnmergedTree = true)
             .assertIsDisplayed().fetchSemanticsNode().boundsInWindow
-        val stepperWithIme = compose.onNodeWithTag("live-series-clouds", useUnmergedTree = true)
+        val stepperWithIme = compose.onNodeWithTag("live-session-steps", useUnmergedTree = true)
             .fetchSemanticsNode().boundsInWindow
         assertFalse("El stepper no puede tapar registrar con IME", stepperWithIme.overlaps(registerWithIme))
         assertFalse("El stepper no puede tapar voz con IME", stepperWithIme.overlaps(voiceWithIme))
@@ -541,6 +554,46 @@ class SessionRevisionFlowDeviceTest {
         compose.onNodeWithText("Iniciar GPS").assertDoesNotExist()
     }
 
+    @Test fun migratedNotesAndTasksPersistAndReachTheRealFinalSummary() {
+        val vm = launchWorkout()
+        recordThroughQuickForm(vm)
+        compose.runOnUiThread { vm.stopRestTimer() }
+        compose.waitUntil(15_000) { !vm.uiState.value.isRestTimerRunning }
+        compose.onNodeWithTag("workout-more-header").performClick()
+        compose.onNodeWithTag("live-session-menu-notes").performScrollTo().performClick()
+        val note = "Nota desde la hoja migrada $suffix"
+        compose.onNode(hasSetTextAction() and hasText("Anotaciones generales de la sesión…", substring = true))
+            .performTextReplacement(note)
+        compose.onNodeWithText("Guardar nota").performScrollTo().performClick()
+        compose.onNode(hasSetTextAction() and hasText("Nueva tarea")).performScrollTo().performTextReplacement("Beber agua QA")
+        compose.onNodeWithText("Añadir").performScrollTo().performClick()
+        runBlocking { withTimeout(20_000) { repository.ongoingWorkout.first { state ->
+            state?.let { it.sessionNotes == note && it.sessionChecklist.any { task -> task.text == "Beber agua QA" } } == true
+        } } }
+        compose.onNodeWithContentDescription("Cerrar Notas y tareas").performClick()
+        compose.waitUntil(5_000) { compose.onAllNodesWithTag("live-session-sheet-notes").fetchSemanticsNodes().isEmpty() }
+        compose.runOnUiThread { vm.showFinish() }
+        waitForTag("finish-tabs")
+        compose.onNodeWithText("Notas").performScrollTo().performClick()
+        compose.onNodeWithTag("finish-notes", true).assertTextContains(note)
+        compose.onNodeWithText("Beber agua QA").assertExists()
+        assertEquals(note, vm.uiState.value.sessionSavedNotes.last().text)
+        capture("20-migrated-notes-in-final-summary")
+    }
+
+    @Test fun storyFromTheHeaderOpensTheExistingStoryWithoutSavingTheWorkout() {
+        val vm = launchWorkout()
+        recordThroughQuickForm(vm)
+        compose.runOnUiThread { vm.stopRestTimer() }
+        compose.waitUntil(15_000) { !vm.uiState.value.isRestTimerRunning }
+        compose.onNodeWithTag("workout-story-header").performClick()
+        waitForTag("story-sheet")
+        compose.onNodeWithTag("story-templates").assertIsDisplayed()
+        assertFalse("La entrada a Historia no guarda ni termina la sesión", vm.uiState.value.isComplete)
+        assertEquals(sessionId, repository.ongoingWorkout.value?.session?.id)
+        capture("21-story-from-live-header")
+    }
+
     @Test fun closingBackReturnsToRealSessionAndReopenedNotesRetainPersistedDraft() {
         val vm = launchWorkout()
         recordThroughQuickForm(vm)
@@ -619,6 +672,12 @@ class SessionRevisionFlowDeviceTest {
     private fun launchWorkout(): WorkoutViewModel {
         compose.activityRule.scenario.onActivity { activity ->
             launchedActivity = activity
+            if (caseName.methodName == "realActivityReducedHeightKeepsCardAndLineComplete") {
+                // Constrain the real Android content view; no setContent fixture, device resize or scaled screenshot.
+                val content = activity.findViewById<android.view.View>(android.R.id.content)
+                content.layoutParams = content.layoutParams.apply { height = (760f * activity.resources.displayMetrics.density).toInt() }
+                content.requestLayout()
+            }
             originalLaunchIntent = Intent(activity.intent)
             activity.startActivity(Intent(activity, MainActivity::class.java)
                 .setAction(Intent.ACTION_VIEW).setData(Uri.parse("kpkn://workout/$programId/$sessionId"))
@@ -660,7 +719,7 @@ class SessionRevisionFlowDeviceTest {
         runBlocking { withTimeout(20_000) { repository.ongoingWorkout.first { it?.completedSets?.size == 1 } } }
     }
 
-    /** Card/page queries are scoped to the workout window, anchored by its voice FAB.
+    /** Card/page queries are scoped to the workout window, anchored by its header voice action.
      * Nonzero bounds alone also match unplaced retained pager content. isDisplayed() checks
      * placement/window visibility; then clipped area distinguishes active card from side peeks
      * and the full modal rest control from the compact card underneath it.
@@ -682,7 +741,7 @@ class SessionRevisionFlowDeviceTest {
         try {
             compose.waitUntil(10_000) {
                 try {
-                    val anchors = compose.onAllNodesWithTag("workout-voice-fab", useUnmergedTree = true)
+                    val anchors = compose.onAllNodesWithTag("workout-voice-header", useUnmergedTree = true)
                     val anchorNodes = anchors.fetchSemanticsNodes(atLeastOneRootRequired = false)
                     val workoutRoots = anchorNodes.mapIndexedNotNull { index, node ->
                         if (anchors[index].isDisplayed()) semanticsRootId(node) else null
@@ -724,48 +783,60 @@ class SessionRevisionFlowDeviceTest {
         val availableDp = context.resources.configuration.screenWidthDp
         val expectedWidth = (availableDp - 48).coerceAtMost(358) * metrics.density
         assertEquals("24dp gutters and original max width", expectedWidth, frame.width, 2f)
-        assertEquals("Original G2 outer proportions", 488f / 358f, frame.height / frame.width, .01f)
+        assertEquals("Proporción V1 de 312 × 425 dp", 425f / 312f, frame.height / frame.width, .002f)
+        if (availableDp == 360) {
+            assertEquals("Ancho V1 exacto en 360dp", 312f * metrics.density, frame.width, 2f)
+            assertEquals("Alto V1 exacto en 360dp", 425f * metrics.density, frame.height, 2f)
+        }
     }
 
     private fun assertLiveActionsClear(cardContent: Rect) {
         val register = compose.onNode(hasContentDescription("Registrar serie") and hasClickAction())
-        val mic = compose.onNodeWithTag("workout-voice-fab", true)
-        register.assertIsDisplayed()
-        mic.assertIsDisplayed()
+        val mic = compose.onNodeWithTag("workout-voice-header", true)
+        register.assertIsDisplayed(); mic.assertIsDisplayed()
         val r = register.fetchSemanticsNode().boundsInRoot
         val m = mic.fetchSemanticsNode().boundsInRoot
         val density = context.resources.displayMetrics.density
-        assertTrue("El objetivo táctil de voz es de al menos 48dp", m.width / density >= 48f && m.height / density >= 48f)
-        assertTrue("El objetivo táctil de registro es de al menos 48dp", r.width / density >= 48f && r.height / density >= 48f)
-        assertTrue("Voz queda en el extremo izquierdo y registrar en el derecho", m.center.x < r.center.x)
-        val windowWidth = compose.runOnIdle { compose.activity.window.decorView.width.toFloat() }
-        assertTrue("Voz queda hacia el margen izquierdo", m.left < windowWidth * .30f)
-        assertTrue("Registrar queda hacia el margen derecho", r.right > windowWidth * .70f)
-        assertFalse("Voz y registrar no deben solaparse", r.overlaps(m))
-        assertTrue("La acción debe quedar debajo del contenido de tarjeta", r.top >= cardContent.bottom - 1f)
-        val dock = compose.onNode(hasText(exerciseName, substring = true) and
-            SemanticsMatcher.keyIsDefined(SemanticsActions.OnLongClick)).fetchSemanticsNode().boundsInRoot
-        assertFalse("El dock no debe tapar registrar", dock.overlaps(r))
-        assertFalse("El dock no debe tapar voz", dock.overlaps(m))
+        assertTrue("Voz conserva al menos 48dp táctiles", m.width / density >= 48f && m.height / density >= 48f)
+        assertTrue("Registrar conserva al menos 48dp táctiles", r.width / density >= 48f && r.height / density >= 48f)
+        assertTrue("Voz vive en la cabecera, encima de la tarjeta", m.bottom <= cardContent.top)
+        assertFalse("Voz y registrar no se solapan", r.overlaps(m))
+        assertTrue("Registrar queda debajo de la tarjeta", r.top >= cardContent.bottom - 1f)
+        val line = compose.onNodeWithTag("live-session-line", true).fetchSemanticsNode().boundsInRoot
+        assertTrue("El registro queda integrado entero en la isla", r.left >= line.left && r.right <= line.right && r.top >= line.top && r.bottom <= line.bottom)
+        val route = compose.onNodeWithTag("live-session-route", true).fetchSemanticsNode().boundsInRoot
+        assertFalse("Ruta no tapa registrar", route.overlaps(r))
+        assertFalse("Ruta no tapa voz", route.overlaps(m))
+        compose.onNodeWithTag("workout-voice-fab", true).assertDoesNotExist()
     }
 
-    /** Assert the detailed stepper in its opening viewport, without scrolling it into view. */
+    /** V1 centers the selected step and compresses distant steps. The rail is fully visible initially;
+     * all old destinations remain reachable through its horizontal viewport, including preparation icons.
+     */
     private fun assertInitialLiveStepperVisible(cardContent: Rect, expectedPills: List<String> = emptyList()): Rect {
-        val node = activeTag("live-series-clouds").assertIsDisplayed().fetchSemanticsNode()
+        val node = activeTag("live-session-steps").assertIsDisplayed().fetchSemanticsNode()
         val bounds = node.boundsInRoot
         val density = context.resources.displayMetrics.density
         val rootBounds = compose.onRoot(useUnmergedTree = true).fetchSemanticsNode().boundsInRoot
-        assertEquals("La fila detallada conserva sus 35dp", 35f * density, bounds.height, 1f)
-        assertTrue("Stepper íntegro en el viewport inicial y debajo de la tarjeta: root=$rootBounds card=$cardContent stepper=$bounds",
-            bounds.top >= rootBounds.top && bounds.bottom <= rootBounds.bottom && bounds.top >= cardContent.bottom - 1f)
+        assertEquals("La línea de pasos conserva 56dp íntegros", 56f * density, bounds.height, 1f)
+        val island = activeTag("live-session-line").fetchSemanticsNode().boundsInRoot
+        assertEquals("La isla V1 conserva 112dp", 112f * density, island.height, 1f)
+        assertTrue("Línea íntegra debajo de tarjeta: root=$rootBounds card=$cardContent line=$island",
+            island.top >= cardContent.bottom - 1f && island.bottom <= rootBounds.bottom)
         expectedPills.forEach { label ->
-            val pill = compose.onNode(hasText(label) and hasAnyAncestor(hasTestTag("live-series-clouds")),
-                useUnmergedTree = true).assertIsDisplayed().fetchSemanticsNode().boundsInRoot
-            assertTrue("$label queda completo dentro de la fila inicial: $pill / $bounds",
-                bounds.contains(pill.center))
+            val matcher = when (label) {
+                "MOV" -> hasContentDescription("Movilidad")
+                "APROX" -> hasContentDescription("Aproximación")
+                else -> hasText(label)
+            }
+            compose.onNodeWithTag("live-session-steps", true).performScrollToNode(matcher)
+            val pill = compose.onNode(matcher and hasAnyAncestor(hasTestTag("live-session-steps")), true)
+                .assertIsDisplayed().fetchSemanticsNode().boundsInRoot
+            assertTrue("$label queda entero en la ventana de la línea", pill.left >= bounds.left - 1f && pill.right <= bounds.right + 1f)
         }
-        compose.onNodeWithContentDescription("Serie anterior", useUnmergedTree = true).assertDoesNotExist()
-        compose.onNodeWithContentDescription("Serie siguiente", useUnmergedTree = true).assertDoesNotExist()
+        if (expectedPills.isNotEmpty()) compose.onNodeWithTag("live-session-steps", true).performScrollToNode(hasText("S1"))
+        compose.onNodeWithContentDescription("Serie anterior", true).assertDoesNotExist()
+        compose.onNodeWithContentDescription("Serie siguiente", true).assertDoesNotExist()
         return bounds
     }
 

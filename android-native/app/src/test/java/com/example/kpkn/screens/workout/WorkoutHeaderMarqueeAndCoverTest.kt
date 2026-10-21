@@ -56,7 +56,9 @@ class WorkoutHeaderMarqueeAndCoverTest {
                             background = null,
                             sessionTimeRemainingSeconds = null,
                             onAdjustTimeLimit = {},
-                            onHistoryClick = {},
+                            onStoryClick = {},
+                            onToggleVoice = {},
+                            onMoreClick = {},
                             voiceCaptureMode = com.example.kpkn.data.models.VoiceCaptureMode.HANDS_FREE,
                             onVoiceCaptureModeChange = {},
                         )
@@ -86,7 +88,9 @@ class WorkoutHeaderMarqueeAndCoverTest {
                             background = null,
                             sessionTimeRemainingSeconds = null,
                             onAdjustTimeLimit = {},
-                            onHistoryClick = {},
+                            onStoryClick = {},
+                            onToggleVoice = {},
+                            onMoreClick = {},
                             voiceCaptureMode = com.example.kpkn.data.models.VoiceCaptureMode.HANDS_FREE,
                             onVoiceCaptureModeChange = {},
                         )
@@ -113,6 +117,9 @@ class WorkoutHeaderMarqueeAndCoverTest {
                             background = null,
                             sessionTimeRemainingSeconds = null,
                             onAdjustTimeLimit = {},
+                            onStoryClick = {},
+                            onToggleVoice = {},
+                            onMoreClick = {},
                         )
                     }
                 }

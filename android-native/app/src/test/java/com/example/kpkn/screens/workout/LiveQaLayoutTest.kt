@@ -222,27 +222,28 @@ class LiveQaLayoutTest {
         assertEquals(mapOf("curl" to 1), submitted)
     }
 
-    @Test fun cockpitMilestonesStartBelowTabs() = cockpit("Hitos", "Hitos de la sesión")
-    @Test fun cockpitPhotosStartBelowTabs() = cockpit("Fotos", "Cámara")
-    @Test fun cockpitNotesStartBelowTabs() = cockpit("Notas", "Notas de sesión")
+    @Test fun migratedMilestonesStartBelowTheSheetHeading() = migratedSheet(LiveSessionDestination.MILESTONES, "Hitos de la sesión")
+    @Test fun migratedPhotosKeepCaptureActionsVisible() = migratedSheet(LiveSessionDestination.PHOTOS, "Cámara")
+    @Test fun migratedNotesStartBelowTheSheetHeading() = migratedSheet(LiveSessionDestination.NOTES, "Notas de sesión")
 
-    private fun cockpit(tab: String, heading: String) {
+    private fun migratedSheet(destination: LiveSessionDestination, heading: String) {
         content {
-            Box(Modifier.size(360.dp, 720.dp).background(Color.Black).testTag("qa-cockpit")) {
-                WorkoutSessionCockpit(
-                    exercises = emptyList(), completedSets = emptyMap(), milestones = emptyList(), sessionProgressLabel = "0 / 1",
-                    liveEnergySummary = SessionEnergySummary(), sessionNotes = "", sessionPhotos = emptyList(), sessionChecklist = emptyList(),
-                    onSessionNotesChange = {}, onAddSessionPhoto = {}, onRemoveSessionPhoto = {},
-                    onAddChecklistItem = {}, onToggleChecklistItem = {}, onRemoveChecklistItem = {}, sessionAccentColor = peach,
-                )
-            }
+            if (destination == LiveSessionDestination.PHOTOS) {
+                WorkoutSessionAlbumSheet(emptyList(), {}, captureActions = {
+                    SessionPhotoCaptureActions({}, { null }, { _, _ -> }, {}, null, {})
+                })
+            } else LiveSessionSheetsHost(destination, {}, sessionAccentColor = peach)
         }
-        rule.onNode(hasText(tab) and hasClickAction()).performScrollTo().performClick()
         rule.waitForIdle()
-        val tabs = rule.onNodeWithTag("cockpit-tabs", true).fetchSemanticsNode().boundsInRoot
         val title = rule.onNodeWithText(heading, useUnmergedTree = true).assertIsDisplayed().fetchSemanticsNode().boundsInRoot
-        assertTrue("Content starts directly below tabs", title.top >= tabs.bottom && title.top - tabs.bottom < 32 * density)
-        save("qa-cockpit", "cockpit-$tab")
+        if (destination != LiveSessionDestination.PHOTOS) {
+            val header = rule.onNodeWithTag("live-session-sheet-heading", true).fetchSemanticsNode().boundsInRoot
+            assertTrue("El contenido empieza bajo la cabecera sin hueco ni cruce", title.top >= header.bottom && title.top - header.bottom < 32 * density)
+            save("live-session-sheet-${destination.name.lowercase()}", "migrated-${destination.name.lowercase()}")
+        } else {
+            val actions = rule.onNodeWithTag("live-session-photo-actions", true).fetchSemanticsNode().boundsInRoot
+            assertTrue("Cámara cabe entera en la entrada del álbum", title.top >= actions.top && title.bottom <= actions.bottom)
+        }
     }
 
     @Test fun singletonLiftAt100() = singletonLift(1f)

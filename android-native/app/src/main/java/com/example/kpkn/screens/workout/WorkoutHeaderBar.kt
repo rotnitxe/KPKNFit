@@ -30,6 +30,7 @@ import androidx.compose.ui.graphics.CompositingStrategy
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
@@ -400,7 +401,8 @@ internal fun WorkoutHeaderBar(
     readinessAdjustment: SetAdjustmentSuggestion? = null,
     onAdaptClick: (() -> Unit)? = null,
     godModeActive: Boolean = false,
-    onHistoryClick: (() -> Unit)? = null,
+    onStoryClick: (() -> Unit)? = null,
+    onMoreClick: (() -> Unit)? = null,
     onReplaceClick: (() -> Unit)? = null,
     nicknameKey: String? = null,
     nicknameValue: String = "",
@@ -412,9 +414,12 @@ internal fun WorkoutHeaderBar(
     programCover: String? = null,
     program: Program? = null,
     forcedMarqueeMoving: Boolean = false,
+    compactLayout: Boolean? = null,
+    statusBarInsets: WindowInsets = WindowInsets.statusBars,
 ) {
     val headerScale = headerCompactScale()
     val typeScale = headerViewportScale()
+    val compactHeader = compactLayout ?: (LocalConfiguration.current.screenHeightDp < 800)
     fun cs(dp: androidx.compose.ui.unit.Dp): androidx.compose.ui.unit.Dp = dp * headerScale
 
     val density = LocalDensity.current
@@ -510,9 +515,10 @@ internal fun WorkoutHeaderBar(
             modifier = Modifier
                 .fillMaxWidth()
                 .onSizeChanged { headerContentHeightPx = it.height }
-                .statusBarsPadding()
-                .padding(start = cs(16.dp), end = cs(16.dp), top = cs(13.dp), bottom = cs(9.dp)),
-            verticalArrangement = Arrangement.spacedBy(cs(4.dp)),
+                .windowInsetsPadding(statusBarInsets)
+                .padding(start = 12.dp, end = 12.dp, top = if (compactHeader) 4.dp else 10.dp, bottom = if (compactHeader) 2.dp else 7.dp)
+                .testTag("live-session-header"),
+            verticalArrangement = Arrangement.spacedBy(if (compactHeader) 0.dp else 3.dp),
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -638,14 +644,23 @@ internal fun WorkoutHeaderBar(
                 }
                 Row(
                     verticalAlignment = Alignment.Top,
-                    horizontalArrangement = Arrangement.spacedBy(cs(8.dp)),
+                    horizontalArrangement = Arrangement.spacedBy(0.dp),
                 ) {
-                    if (onHistoryClick != null) {
+                    if (onStoryClick != null) {
                         KpknIconButton(
-                            icon = KpknLineIcons.History,
-                            contentDescription = "Historial",
-                            onClick = onHistoryClick,
+                            icon = KpknLineIcons.Book,
+                            contentDescription = "Historia de la sesión",
+                            onClick = onStoryClick,
+                            modifier = Modifier.testTag("workout-story-header"),
                         )
+                    }
+                    onToggleVoice?.let { toggle ->
+                        KpknIconButton(KpknLineIcons.Mic, if (voiceSessionEnabled) "Desactivar voz" else "Activar voz", toggle,
+                            modifier = Modifier.testTag("workout-voice-header"), filled = voiceSessionEnabled)
+                    }
+                    onMoreClick?.let { more ->
+                        KpknIconButton(KpknLineIcons.More, "Más opciones de sesión", more,
+                            modifier = Modifier.testTag("workout-more-header"))
                     }
                 }
             }

@@ -166,9 +166,9 @@ import com.example.kpkn.screens.workout.components.SetInputCardV2
 import com.example.kpkn.screens.workout.components.VoiceCaptureModeDialog
 import com.example.kpkn.screens.workout.components.LiveUndoPillHost
 import com.example.kpkn.screens.workout.components.WorkoutRoadmapBar
-import com.example.kpkn.screens.workout.components.WorkoutSessionCockpit
 import com.example.kpkn.screens.workout.components.cockpitVerticalGesture
 import com.example.kpkn.screens.workout.components.WorkoutSessionAlbumSheet
+import com.example.kpkn.screens.workout.components.SessionPhotoCaptureActions
 import com.example.kpkn.screens.workout.components.WorkoutUiTokens
 import com.example.kpkn.ui.components.kpknGlassOrFallback
 import com.example.kpkn.ui.adapt.LocalViewportAdapt
@@ -310,22 +310,11 @@ fun WorkoutScreen(
     val snackbarHostState = remember { SnackbarHostState() }
     val snackbarScope = rememberCoroutineScope()
     var showExitDialog by rememberSaveable { mutableStateOf(false) }
-    var roadmapMode by rememberSaveable(programId, sessionId) { mutableStateOf(RoadmapMode.COMPACT) }
-    val chromeScale = LocalViewportAdapt.current.uniformScale
-    val compactCockpitHeightDp = 78
-    var measuredRoadmapHeightDp by remember { mutableIntStateOf(0) }
-    val targetDockBottomClearance = resolveDockBottomClearanceDp(
-        measuredRoadmapHeightDp = measuredRoadmapHeightDp.takeIf { it > 0 },
-        roadmapExpanded = false,
-        compactHeightDp = compactCockpitHeightDp,
-        gapDp = 0,
-    ).dp
-    val dockBottomClearance by animateDpAsState(
-        targetValue = targetDockBottomClearance,
-        animationSpec = tween(durationMillis = 260, easing = FastOutSlowInEasing),
-        label = "dockBottomClearance",
-    )
-    val recordFabBottomOffset = rememberWorkoutRecordFabBottomOffset(dockBottomClearance)
+    var liveSessionDestination by rememberSaveable(programId, sessionId) { mutableStateOf<LiveSessionDestination?>(null) }
+    val liveSessionTimer = rememberLiveSessionTimer(programId, sessionId, uiState.startTimeMs)
+    var storyFromHeader by rememberSaveable { mutableStateOf(false) }
+    LaunchedEffect(uiState.showFinishSheet) { if (!uiState.showFinishSheet) storyFromHeader = false }
+    val dockBottomClearance = LiveSessionLineHeight + 8.dp
 
     // ─── Readiness sheet state ─────────────────────────────────────────────────
     val overlayHazeState = remember { HazeState() }
@@ -1075,6 +1064,8 @@ fun WorkoutScreen(
             headerProgram = activeProgram,
             headerExerciseTag = activeTagDisplay,
             onToggleVoice = onToggleVoice,
+            onStoryClick = { storyFromHeader = true; viewModel.showFinish() },
+            onMoreSessionOptionsClick = { liveSessionDestination = LiveSessionDestination.MENU },
             exerciseReadinessMap = uiState.exerciseReadinessMap,
             recordActionHolder = recordActionHolder,
             recordFabHolder = recordFabHolder,
@@ -1130,7 +1121,6 @@ fun WorkoutScreen(
             overlayHazeState = overlayHazeState,
             roadmapExpanded = false,
             dockBottomClearance = dockBottomClearance,
-            recordFabBottomOffset = recordFabBottomOffset,
             onCreateSuperset = {
                 currentExercise?.id?.let {
                     structureSheets.workoutSupersetSelectedExerciseId = it
@@ -1154,229 +1144,86 @@ fun WorkoutScreen(
             techniqueRecorderHolder = techniqueRecorderHolder,
             onOpenTechniqueAnalysis = onOpenTechniqueAnalysis,
             )
-            Box(
-                    modifier = Modifier
-                        .align(Alignment.BottomCenter)
-                        .fillMaxWidth()
-                        .navigationBarsPadding()
-                        .zIndex(5f)
-                        .background(Color.Transparent),
-                ) {
-                    WorkoutRoadmapBar(
-                        exercises = visibleExercises,
-                        parts = renderedParts,
-                        supersetGroups = modeSession.allSupersetGroups(),
-                        currentIdx = uiState.currentExerciseIdx,
-                        currentSetIdx = uiState.currentSetIdx,
-                        currentSide = activeDockSide,
-                        completedSets = uiState.completedSets,
-                        omittedSetKeys = uiState.omittedSetKeys,
-                        onSelect = { viewModel.selectExercise(it) },
-                        onSelectStep = { stepKey ->
-                            RepairBenchmarkTrace.selectionRequested(stepKey)
-                            viewModel.selectWorkoutStep(stepKey)
-                        },
-                        onSelectGroup = { viewModel.selectSupersetGroup(it) },
-                        onOpenContext = { exId ->
-                            structureSheets.exerciseContextForceMemberActions = false
-                            structureSheets.exerciseContextExerciseId = exId
-                        },
-                        onOpenMemberContext = { exId ->
-                            structureSheets.exerciseContextForceMemberActions = true
-                            structureSheets.exerciseContextExerciseId = exId
-                        },
-                        enableLongPress = true,
-                        onDeleteExercise = { viewModel.removeExerciseFromSession(it) },
-                        onSkipExercise = { viewModel.skipExercise(it) },
-                        onAddExercise = {
-                            val afterId = currentExercise?.id ?: visibleExercises.lastOrNull()?.id
-                            structureSheets.addExerciseAfterId = afterId
-                            structureSheets.addExerciseAtEnd = afterId == null
-                            structureSheets.addExerciseSearchQuery = ""
-                            structureSheets.addExerciseSelectedIds = emptySet()
-                        },
-                        onReorderExercises = { orderedIds ->
-                            val partMap = visibleExercises.associate { ex ->
-                                ex.id to (renderedParts.firstOrNull { part ->
-                                    part.exercises.any { it.id == ex.id }
-                                }?.name ?: "")
-                            }
-                            viewModel.applyReorderAndPromptPersistence(orderedIds, partMap, isGlobal = true)
-                        },
-                        onCreateSupersetFrom = { ids -> viewModel.createLiveSuperset(ids) },
-                        onBatchSkip = { ids -> viewModel.skipExercises(ids) },
-                        onBatchDelete = { viewModel.removeExercisesFromSession(it) },
-                        onBatchUltraFast = { ids, technique ->
-                            ids.forEach { id ->
-                                val ex = visibleExercises.firstOrNull { it.id == id } ?: return@forEach
-                                if (ex.sets.isNotEmpty()) {
-                                    viewModel.updatePlannedSeriesTechnique(id, 0, ex.sets.lastIndex, technique)
-                                }
-                            }
-                        },
-                        onDissolveSuperset = { groupId ->
-                            viewModel.dissolveLiveSuperset(
-                                groupId,
-                                preferredExerciseId = currentExercise?.id,
-                            )
-                        },
-                        godModeUndoStack = uiState.godModeUndoStack,
-                        onRevertGodModeAction = { index -> viewModel.revertGodModeChange(index) },
-                        onRoadmapHeightChanged = { measuredRoadmapHeightDp = it },
-                        pendingActions = buildList {
-                            if (readinessPending) add(RoadmapPendingAction("Estado previo") { readinessSheetDismissed = false })
-                            // «Terminar» es el mismo botón de «Terminar hasta acá» del aviso de salida: vuelve al resumen final.
-                            if (finishPending) add(RoadmapPendingAction("Terminar") { viewModel.finishUpToCurrentPoint() })
-                        },
-                        sessionAccentColor = sessionAccentColor,
-                        hazeState = overlayHazeState,
-                        mode = roadmapMode,
-                        onModeChange = {},
-                        milestones = uiState.sessionMilestones,
-                        liveEnergySummary = uiState.liveEnergySummary,
-                        sessionNotes = uiState.sessionNotes,
-                        sessionSavedNotes = uiState.sessionSavedNotes,
-                        sessionPhotos = uiState.sessionPhotos,
-                        sessionChecklist = uiState.sessionChecklist,
-                        onSessionNotesChange = { viewModel.setSessionNotes(it) },
-                        onSaveSessionNote = { viewModel.saveSessionNote(it) },
-                        onAddSessionPhoto = { viewModel.addSessionPhoto(it) },
-                        onRemoveSessionPhoto = { viewModel.removeSessionPhoto(it) },
-                        onAddChecklistItem = { viewModel.addSessionChecklistItem(it) },
-                        onToggleChecklistItem = { viewModel.toggleSessionChecklistItem(it) },
-                        onRemoveChecklistItem = { viewModel.removeSessionChecklistItem(it) },
-                        bodyWeight = viewModel.currentBodyWeight(),
-
-                    )
-                }
-            // El ✓ se aparta mientras las opciones de la serie están abiertas: la tarjeta flotante ocupa su sitio sobre la barra.
-            if (recordFabHolder.visible && uiState.seriesTypeTarget == null && roadmapMode == RoadmapMode.COMPACT) {
-                val activeRecordAction = recordActionHolder.actionForPage(recordFabHolder.activePageKey)
-                // D2.2: el botón se ancla al teclado (WindowInsets.ime) cuando está visible.
-                WorkoutRecordFabHost(
-                    dockBottomClearance = dockBottomClearance,
-                    bottomOffset = recordFabBottomOffset,
-                    sessionAccentColor = Color(0xFFF2EEE6),
-                    onVoiceClick = onToggleVoice,
-                    voiceEnabled = uiState.voiceSessionEnabled,
-                    isUpdateMode = recordFabHolder.isUpdateMode,
-                    enabled = canStartWorkoutRecording(uiState) && canInvokeWorkoutRecordFab(
-                        hasActivePageAction = activeRecordAction != null,
-                        isRecording = uiState.recordingSetKey != null,
-                        isFinishing = uiState.isFinishingWorkout,
-                        isCancelling = uiState.isCancellingWorkout,
-                        startPersistenceError = uiState.startPersistenceError,
-                        isComplete = uiState.isComplete,
-                        finishSheetOpen = uiState.showFinishSheet,
-                    ),
-                    onClick = { recordActionHolder.actionForPage(recordFabHolder.activePageKey)?.invoke() },
-                )
-            }
-            // «Deshacer <acción>» unos segundos tras cualquier cambio de estructura (opciones, reordenar, series): la pila de siempre.
-            LiveUndoPillHost(
+            LiveSessionLine(
+                exercises = visibleExercises,
+                currentExerciseId = currentExercise?.id,
+                snapshot = liveSetStepperHolder.snapshot,
+                supersetGroups = modeSession.allSupersetGroups(),
+                onOpenRoute = { liveSessionDestination = LiveSessionDestination.ROUTE },
+                onSelectPage = { liveSetStepperHolder.onSelectPage(it) },
+                onSelectExercise = { id -> visibleExercises.indexOfFirst { it.id == id }.takeIf { it >= 0 }?.let(viewModel::selectExercise) },
+                onSelectSuperset = viewModel::selectSupersetGroup,
+                onOpenExerciseOptions = { id ->
+                    structureSheets.exerciseContextForceMemberActions = false
+                    structureSheets.exerciseContextExerciseId = id
+                },
+                onAddSet = liveSetStepperHolder.onAddSet,
+                onLongPressPage = liveSetStepperHolder.onLongPressPage,
+                onNavigateAdjacentExercise = liveSetStepperHolder.onNavigateAdjacentExercise,
+                recordVisible = recordFabHolder.visible && uiState.seriesTypeTarget == null,
+                recordEnabled = canStartWorkoutRecording(uiState) && canInvokeWorkoutRecordFab(
+                    hasActivePageAction = recordActionHolder.actionForPage(recordFabHolder.activePageKey) != null,
+                    isRecording = uiState.recordingSetKey != null,
+                    isFinishing = uiState.isFinishingWorkout,
+                    isCancelling = uiState.isCancellingWorkout,
+                    startPersistenceError = uiState.startPersistenceError,
+                    isComplete = uiState.isComplete,
+                    finishSheetOpen = uiState.showFinishSheet,
+                ),
+                isUpdateMode = recordFabHolder.isUpdateMode,
+                onRecord = { recordActionHolder.actionForPage(recordFabHolder.activePageKey)?.invoke() },
+                pendingActions = buildList {
+                    if (readinessPending) add(RoadmapPendingAction("Estado previo") { readinessSheetDismissed = false })
+                    if (finishPending) add(RoadmapPendingAction("Terminar") { viewModel.finishUpToCurrentPoint() })
+                },
                 undoStack = uiState.godModeUndoStack,
                 completedSets = uiState.completedSets,
                 onUndo = { index -> viewModel.revertGodModeChange(index) },
-                modifier = Modifier
-                    .align(Alignment.BottomCenter)
-                    .navigationBarsPadding()
-                    .padding(bottom = dockBottomClearance + 8.dp)
-                    .zIndex(15f),
+                modifier = Modifier.align(Alignment.BottomCenter).imePadding().navigationBarsPadding()
+                    .padding(start = 16.dp, end = 16.dp, bottom = 8.dp).zIndex(5f),
             )
         }
     }
 
-    val reducedCockpitMotion = com.example.kpkn.screens.onboarding.design.wizardReducedMotion()
-    val cockpitSheetShape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)
-    AnimatedVisibility(
-        visible = roadmapMode == RoadmapMode.EXPANDED,
-        modifier = Modifier
-            .align(Alignment.BottomCenter)
-            .fillMaxSize()
-            .navigationBarsPadding()
-            .padding(top = 24.dp, bottom = (compactCockpitHeightDp + 8).dp)
-            .zIndex(6f),
-        enter = expandVertically(
-            expandFrom = Alignment.Bottom,
-            animationSpec = tween(durationMillis = if (reducedCockpitMotion) 0 else 260, easing = FastOutSlowInEasing),
-        ),
-        exit = shrinkVertically(
-            shrinkTowards = Alignment.Bottom,
-            animationSpec = tween(durationMillis = if (reducedCockpitMotion) 0 else 220, easing = FastOutSlowInEasing),
-        ),
-        label = "cockpitOverlay",
-    ) {
-        val totalCompletedCount = WorkoutStepRules.completedRoadmapSlotsForExercises(
-            exercises = visibleExercises,
-            completedSets = uiState.completedSets,
-            omittedSetKeys = uiState.omittedSetKeys,
-        )
-        val totalSetsCount = WorkoutStepRules.totalRoadmapSlotsForExercises(
-            exercises = visibleExercises,
-            omittedSetKeys = uiState.omittedSetKeys,
-        )
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .cockpitVerticalGesture(roadmapMode) { roadmapMode = it }
-                .graphicsLayer {
-                    clip = true
-                    shape = cockpitSheetShape
-                }
-                .kpknGlassOrFallback(
-                    hazeState = overlayHazeState,
-                    shape = cockpitSheetShape,
-                ),
-        ) {
-            WorkoutSessionCockpit(
-                exercises = visibleExercises,
-                completedSets = uiState.completedSets,
-                milestones = uiState.sessionMilestones,
-                sessionProgressLabel = "$totalCompletedCount / $totalSetsCount",
-                sessionStartTimeMs = uiState.startTimeMs,
-                targetMinutes = resolveEffectiveSessionTargetMinutes(uiState.customTargetDurationMinutes, uiState.targetDurationMinutes, session?.targetDurationMinutes),
-                completedExercises = completedExercisesForSummary,
-                omittedSetKeys = uiState.omittedSetKeys,
-                currentExerciseId = currentExercise?.id,
-                supersetGroups = modeSession.allSupersetGroups(),
-                liveRingPreview = cockpitRingPreview,
-                onSelectExercise = { id -> visibleExercises.indexOfFirst { it.id == id }.takeIf { it >= 0 }?.let(viewModel::selectExercise) },
-                onSelectSuperset = viewModel::selectSupersetGroup,
-                liveEnergySummary = uiState.liveEnergySummary,
-                sessionNotes = uiState.sessionNotes,
-                sessionSavedNotes = uiState.sessionSavedNotes,
-                sessionPhotos = uiState.sessionPhotos,
-                sessionMedia = sessionMedia,
-                mediaCaptureError = mediaCaptureError,
-                onRetryPendingMediaCaptures = viewModel::retryPendingMediaCaptures,
-                sessionChecklist = uiState.sessionChecklist,
-                onSessionNotesChange = { viewModel.setSessionNotes(it) },
-                onSaveSessionNote = { viewModel.saveSessionNote(it) },
-                onAddSessionPhoto = { viewModel.addSessionPhoto(it) },
-                onBeginSessionCameraCapture = {
-                    viewModel.mediaCapture.beginExternalPhotoCapture(
-                        com.example.kpkn.screens.workout.WorkoutMediaCaptureRequest(),
-                    )
-                },
-                onCompleteSessionCameraCapture = { captureId, succeeded ->
-                    viewModel.mediaCapture.completeExternalPhotoCaptureById(captureId, succeeded)
-                    Unit
-                },
-                onSessionCameraLaunchFailed = { captureId ->
-                    viewModel.mediaCapture.failExternalCameraLaunch(captureId)
-                    Unit
-                },
-                onRemoveSessionPhoto = { viewModel.removeSessionPhoto(it) },
-                onRemoveSessionMedia = { viewModel.removeSessionMedia(it) },
-                onOpenAnalysis = onOpenTechniqueAnalysis,
-                onAddChecklistItem = { viewModel.addSessionChecklistItem(it) },
-                onToggleChecklistItem = { viewModel.toggleSessionChecklistItem(it) },
-                onRemoveChecklistItem = { viewModel.removeSessionChecklistItem(it) },
-                sessionAccentColor = sessionAccentColor,
-                bodyWeight = viewModel.currentBodyWeight(),
-            )
-        }
-    }
+    LiveSessionSheetsHost(
+        destination = liveSessionDestination,
+        onDestination = { liveSessionDestination = it },
+        exercises = visibleExercises,
+        completedSets = uiState.completedSets,
+        completedExercises = completedExercisesForSummary,
+        omittedSetKeys = uiState.omittedSetKeys,
+        currentExerciseId = currentExercise?.id,
+        supersetGroups = modeSession.allSupersetGroups(),
+        liveEnergySummary = uiState.liveEnergySummary,
+        bodyWeight = viewModel.currentBodyWeight(),
+        startTimeMs = uiState.startTimeMs,
+        targetMinutes = resolveEffectiveSessionTargetMinutes(uiState.customTargetDurationMinutes, uiState.targetDurationMinutes, session?.targetDurationMinutes),
+        ringPreview = cockpitRingPreview,
+        onSelectExercise = { id -> visibleExercises.indexOfFirst { it.id == id }.takeIf { it >= 0 }?.let(viewModel::selectExercise) },
+        onSelectSuperset = viewModel::selectSupersetGroup,
+        onOpenExerciseOptions = { id ->
+            structureSheets.exerciseContextForceMemberActions = false
+            structureSheets.exerciseContextExerciseId = id
+        },
+        onAddExercise = {
+            structureSheets.addExerciseAfterId = currentExercise?.id ?: visibleExercises.lastOrNull()?.id
+            structureSheets.addExerciseAtEnd = structureSheets.addExerciseAfterId == null
+            structureSheets.addExerciseSearchQuery = ""
+            structureSheets.addExerciseSelectedIds = emptySet()
+        },
+        milestones = uiState.sessionMilestones,
+        sessionNotes = uiState.sessionNotes,
+        sessionSavedNotes = uiState.sessionSavedNotes,
+        sessionChecklist = uiState.sessionChecklist,
+        onSessionNotesChange = viewModel::setSessionNotes,
+        onSaveSessionNote = viewModel::saveSessionNote,
+        onAddChecklistItem = viewModel::addSessionChecklistItem,
+        onToggleChecklistItem = viewModel::toggleSessionChecklistItem,
+        onRemoveChecklistItem = viewModel::removeSessionChecklistItem,
+        onOpenPhotos = { viewModel.mediaCapture.openAlbumSheet() },
+        timer = liveSessionTimer,
+        sessionAccentColor = sessionAccentColor,
+    )
 
     LaunchedEffect(uiState.pendingEditSheetExerciseId) {
         uiState.pendingEditSheetExerciseId?.let { exId ->
@@ -1425,6 +1272,16 @@ fun WorkoutScreen(
             onDismiss = { viewModel.mediaCapture.dismissAlbumSheet() },
             onDelete = { viewModel.removeSessionMedia(it) },
             onOpenAnalysis = onOpenTechniqueAnalysis,
+            captureActions = {
+                SessionPhotoCaptureActions(
+                    onAddPhoto = viewModel::addSessionPhoto,
+                    onBeginCameraCapture = { viewModel.mediaCapture.beginExternalPhotoCapture(WorkoutMediaCaptureRequest()) },
+                    onCompleteCameraCapture = { id, succeeded -> viewModel.mediaCapture.completeExternalPhotoCaptureById(id, succeeded); Unit },
+                    onCameraLaunchFailed = { id -> viewModel.mediaCapture.failExternalCameraLaunch(id); Unit },
+                    captureError = mediaCaptureError,
+                    onRetryPendingCaptures = viewModel::retryPendingMediaCaptures,
+                )
+            },
         )
     }
 
@@ -1523,7 +1380,7 @@ fun WorkoutScreen(
             cockpitExpanded = false,
         ),
     )
-    BackHandler(enabled = !showExitDialog) {
+    BackHandler(enabled = !showExitDialog && liveSessionDestination == null && !showSessionAlbumSheet) {
         if (!hasChildBackOverlay) {
             when (backAction) {
                 WorkoutBackAction.CONSUME_VOLUME_ADVANCE,
@@ -1760,6 +1617,7 @@ fun WorkoutScreen(
             val finishPresentation = remember(finishSnapshot, finishPhotos) { finishSnapshot.copy(photos = finishPhotos) }
             var preparedStory by remember(session.id) { mutableStateOf<Pair<WorkoutStoryData, WorkoutStoryOptions>?>(null) }
             FinishWorkoutSheet(
+            initialShowStory = storyFromHeader,
             onStoryPrepared = { data, options -> preparedStory = data to options },
             presentation = finishPresentation,
             session = session,

@@ -230,6 +230,7 @@ internal fun FinishWorkoutSheet(
     onToggleChecklistItem: (String) -> Unit = {},
     onRemoveChecklistItem: (String) -> Unit = {},
     onOpenSessionAlbum: (() -> Unit)? = null,
+    initialShowStory: Boolean = false,
 ) {
     val neuralSeed = postSessionPreview.neural.coerceIn(0, 100)
     val spinalSeed = postSessionPreview.spinal.coerceIn(0, 100)
@@ -289,7 +290,7 @@ internal fun FinishWorkoutSheet(
 
     var showMuscleSetsBreakdown by remember { mutableStateOf(false) }
     var adjustChannel by remember { mutableStateOf<RingChannel?>(null) }
-    var showShare by remember { mutableStateOf(false) }
+    var showShare by remember { mutableStateOf(initialShowStory) }
     val finishPagesState = rememberSaveableStateHolder()
     var additionalDiscomfortNote by rememberSaveable { mutableStateOf("") }
     var notes by rememberSaveable(initialSessionNotes) { mutableStateOf(initialSessionNotes) }

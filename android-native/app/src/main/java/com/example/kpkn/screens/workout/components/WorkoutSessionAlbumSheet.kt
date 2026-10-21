@@ -35,6 +35,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
@@ -61,6 +62,7 @@ fun WorkoutSessionAlbumSheet(
     onDelete: (String) -> Unit = {},
     poseOverlayEnabled: Boolean = false,
     onOpenAnalysis: ((String) -> Unit)? = null,
+    captureActions: (@Composable () -> Unit)? = null,
 ) {
     val scope = rememberCoroutineScope()
     val latestDelete by rememberUpdatedState(onDelete)
@@ -70,10 +72,12 @@ fun WorkoutSessionAlbumSheet(
     // Salir del álbum borra ya lo que seguía en espera: «Deshacer» solo vale mientras el álbum está abierto.
     DisposableEffect(deferred) { onDispose { deferred.flush() } }
     KpknSheet(
+        modifier = Modifier.testTag("live-session-album"),
         onDismissRequest = onDismiss,
         maxHeightFraction = 0.93f,
         stableHeightFraction = 0.93f,
     ) {
+        captureActions?.invoke()
         AlbumSheetContent(
             subject = "Esta sesión",
             items = media,

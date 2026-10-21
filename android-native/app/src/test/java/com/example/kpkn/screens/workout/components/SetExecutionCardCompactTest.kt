@@ -2,7 +2,6 @@ package com.example.kpkn.screens.workout.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.MaterialTheme
@@ -15,6 +14,11 @@ import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.hasSetTextAction
+import androidx.compose.ui.test.hasText
+import androidx.compose.ui.test.hasContentDescription
+import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollToNode
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import com.example.kpkn.data.models.Exercise
@@ -23,7 +27,10 @@ import com.example.kpkn.data.models.IntensityMode
 import com.example.kpkn.data.models.LoadModeV2
 import com.example.kpkn.data.models.TrainingMode
 import com.example.kpkn.data.models.UnitModeV2
-import com.example.kpkn.screens.workout.LivePagerPeekNavArrows
+import com.example.kpkn.screens.workout.LiveSessionLine
+import com.example.kpkn.screens.workout.LiveSetStepperSnapshot
+import com.example.kpkn.screens.workout.TimelineElement
+import com.example.kpkn.screens.workout.WorkoutSetCardVisualState
 import com.example.kpkn.screens.workout.RecordActionHolder
 import com.example.kpkn.screens.workout.WeightSuggestion
 import com.example.kpkn.screens.workout.WorkoutSetDraft
@@ -40,7 +47,7 @@ import kotlin.math.abs
 
 @RunWith(RobolectricTestRunner::class)
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
-@Config(sdk = [34])
+@Config(sdk = [34], qualifiers = "w360dp-h880dp-xxhdpi")
 class SetExecutionCardCompactTest {
 
     @get:Rule
@@ -128,8 +135,8 @@ class SetExecutionCardCompactTest {
     }
 
     /**
-     * LV3 punto 4: Los botones secundarios «Avanzado» y «Modo visual» en píldoras de 36 dp de alto,
-     * reemplazando los textos antiguos «Opciones avanzadas» y «Ver ejercicio/Fotos».
+     * LV-A/V3: los accesos compactos siguen disponibles por su nombre accesible,
+     * aunque a este ancho se presentan como iconos junto a Historial.
      */
     @Test
     fun botonesAvanzadoYModoVisualCompactos() {
@@ -162,9 +169,9 @@ class SetExecutionCardCompactTest {
         }
         rule.waitForIdle()
 
-        // Textos nuevos existen
-        rule.onNodeWithText("Avanzado").assertExists()
-        rule.onNodeWithText("Modo visual").assertExists()
+        rule.onNodeWithContentDescription("Avanzado").assertExists()
+        rule.onNodeWithContentDescription("Modo visual").assertExists()
+        rule.onNodeWithContentDescription("Historial del ejercicio").assertExists()
 
         // Textos antiguos ya no existen
         rule.onNodeWithText("Opciones avanzadas").assertDoesNotExist()
@@ -205,27 +212,40 @@ class SetExecutionCardCompactTest {
         }
         rule.waitForIdle()
 
-        rule.onNodeWithText("102,5").assertExists()
+        // Distingue el valor editable de la sugerencia que también puede mostrar esa carga.
+        rule.onNode(hasSetTextAction() and hasText("102,5")).assertExists()
     }
 
     /**
-     * LV3 punto 5.5: Flechas de paginación compactas con objetivo táctil de 48 dp.
+     * V1 reemplaza las flechas por pasos y el registro integrado. Conserva destinos
+     * y objetivos táctiles de al menos 48 dp sin depender de controles ya desmontados.
      */
     @Test
-    fun flechasPaginadorCompactas() {
+    fun pasosV1ConservanNavegacionYObjetivosTactiles() {
         val densityFactor = 3f
+        var selectedPage: Int? = null
+        var records = 0
         rule.setContent {
             CompositionLocalProvider(LocalDensity provides Density(densityFactor, 1f)) {
                 KPKNTheme {
                     MaterialTheme {
                         Box(Modifier.size(360.dp, 200.dp)) {
-                            LivePagerPeekNavArrows(
-                                settledPage = 1,
-                                totalPages = 3,
-                                peekWidth = 44.dp,
-                                onPrevious = {},
-                                onNext = {},
-                                modifier = Modifier.fillMaxSize(),
+                            LiveSessionLine(
+                                exercises = listOf(sampleExercise.copy(sets = listOf(sampleSet, sampleSet.copy(id = "set-2")))),
+                                currentExerciseId = sampleExercise.id,
+                                snapshot = LiveSetStepperSnapshot(listOf(
+                                    TimelineElement.BilateralSet(pageIndex = 0, label = "S1", state = WorkoutSetCardVisualState.ACTIVE),
+                                    TimelineElement.BilateralSet(pageIndex = 1, label = "S2", state = WorkoutSetCardVisualState.FUTURE),
+                                ), 0, 0, 2, null, true),
+                                onOpenRoute = {},
+                                onSelectPage = { selectedPage = it },
+                                onSelectExercise = {},
+                                onOpenExerciseOptions = {},
+                                onSelectSuperset = {},
+                                onRecord = { records++ },
+                                recordVisible = true,
+                                recordEnabled = true,
+                                modifier = Modifier.width(328.dp),
                             )
                         }
                     }
@@ -234,20 +254,19 @@ class SetExecutionCardCompactTest {
         }
         rule.waitForIdle()
 
-        val prevNode = rule.onNodeWithContentDescription("Serie anterior")
-        val nextNode = rule.onNodeWithContentDescription("Serie siguiente")
-
-        prevNode.assertExists()
-        nextNode.assertExists()
-
-        // El objetivo táctil del botón clickable es de 48 dp
-        val prevBounds = prevNode.fetchSemanticsNode().boundsInRoot
-        val nextBounds = nextNode.fetchSemanticsNode().boundsInRoot
-
-        val prevHeightDp = prevBounds.height / densityFactor
-        val nextHeightDp = nextBounds.height / densityFactor
-
-        assertEquals(48f, prevHeightDp, 1f)
-        assertEquals(48f, nextHeightDp, 1f)
+        val step = rule.onNodeWithContentDescription("S2")
+        val record = rule.onNodeWithTag("live-session-record")
+        rule.onNodeWithTag("live-session-steps").performScrollToNode(hasContentDescription("S2"))
+        val stepBounds = step.fetchSemanticsNode().boundsInRoot
+        val recordBounds = record.fetchSemanticsNode().boundsInRoot
+        assertTrue(stepBounds.width / densityFactor >= 48f)
+        assertEquals(56f, stepBounds.height / densityFactor, 1f)
+        assertEquals(52f, recordBounds.width / densityFactor, 1f)
+        assertEquals(52f, recordBounds.height / densityFactor, 1f)
+        step.performClick()
+        record.performClick()
+        rule.runOnIdle { assertEquals(1, selectedPage); assertEquals(1, records) }
+        rule.onNodeWithContentDescription("Serie anterior").assertDoesNotExist()
+        rule.onNodeWithContentDescription("Serie siguiente").assertDoesNotExist()
     }
 }
