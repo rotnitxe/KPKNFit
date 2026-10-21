@@ -40,7 +40,7 @@ internal fun WorkoutVideoRepsSuggestion(
                 is SetVideoAnalysisState.Suggest -> {
                     if (state.confidence != CountConfidence.BAJA) {
                         if (state.reps > 0 || state.partials > 0) KpknTextAction(
-                            if (state.confidence == CountConfidence.MEDIA) "Usar ≈ ${state.reps}" else "Usar",
+                            if (state.confidence == CountConfidence.MEDIA) "Usar ${approxCount(state.reps)}" else "Usar",
                             onClick = { onUse(state) }, modifier = Modifier.defaultMinSize(minWidth = 48.dp),
                         )
                         if (state.failed > 0 && state.confidence == CountConfidence.ALTA) KpknTextAction("Marcar fallo", onClick = onMarkFailure)
@@ -49,7 +49,7 @@ internal fun WorkoutVideoRepsSuggestion(
                 is SetVideoAnalysisState.Mismatch -> {
                     if (state.confidence != CountConfidence.BAJA) {
                         if (state.countsDiffer && (state.counted > 0 || state.partials > 0)) KpknTextAction(
-                            if (state.confidence == CountConfidence.MEDIA) "Corregir a ≈ ${state.counted}" else "Corregir",
+                            if (state.confidence == CountConfidence.MEDIA) "Corregir a ${approxCount(state.counted)}" else "Corregir",
                             onClick = { onCorrect(state) },
                         )
                         if (state.failed > 0 && state.confidence == CountConfidence.ALTA) KpknTextAction("Marcar fallo", onClick = onMarkFailure)
@@ -75,6 +75,6 @@ internal fun workoutVideoRepsText(state: SetVideoAnalysisState): String {
     val description = line.actionLabel?.let { line.text.removeSuffix(" · $it") } ?: line.text
     val rom = (state as? SetVideoAnalysisState.Suggest)
         ?.takeIf { it.confidence != CountConfidence.BAJA }
-        ?.romPercent?.let { " · ROM\u00A0≈\u00A0$it\u00A0%" }.orEmpty()
+        ?.romPercent?.let { " · ROM\u00A0${approxCount(it)}\u00A0%" }.orEmpty()
     return description + rom
 }

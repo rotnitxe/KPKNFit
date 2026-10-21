@@ -51,12 +51,12 @@ internal fun workoutVideoChipContent(state: SetVideoAnalysisState): VideoChipCon
     is SetVideoAnalysisState.Analyzing -> state.progress.coerceIn(0, 100).let { VideoChipContent("$it\u00A0%", progress = it) }
     is SetVideoAnalysisState.Suggest -> when (state.confidence) {
         CountConfidence.ALTA -> VideoChipContent("${state.reps}" + if (state.partials > 0) " ·${state.partials}p" else "")
-        CountConfidence.MEDIA -> VideoChipContent("≈ ${state.reps}")
+        CountConfidence.MEDIA -> VideoChipContent(approxCount(state.reps))
         CountConfidence.BAJA -> VideoChipContent("?", VideoChipTone.MUTED)
     }
     is SetVideoAnalysisState.Mismatch -> when (state.confidence) {
         CountConfidence.ALTA -> VideoChipContent("${state.counted}", if (state.countsDiffer) VideoChipTone.ACCENT else VideoChipTone.TEXT)
-        CountConfidence.MEDIA -> VideoChipContent("≈ ${state.counted}")
+        CountConfidence.MEDIA -> VideoChipContent(approxCount(state.counted))
         CountConfidence.BAJA -> VideoChipContent("?", VideoChipTone.MUTED)
     }
     is SetVideoAnalysisState.Agrees -> VideoChipContent("✓ ${state.counted}")

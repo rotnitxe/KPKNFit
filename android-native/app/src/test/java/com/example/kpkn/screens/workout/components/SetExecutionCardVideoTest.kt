@@ -239,7 +239,7 @@ class SetExecutionCardVideoTest {
         // El selector tenía una cifra distinta: «Usar» debe sustituir también su centro.
         rule.onNodeWithText("9").performClick()
         openMenu()
-        rule.onNodeWithText("Usar ≈ 7").performClick()
+        rule.onNodeWithText("Usar ≈\u00A07").performClick()
         rule.onNodeWithTag(WorkoutVideoMenuTag).assertDoesNotExist()
         rule.runOnIdle {
             assertNull(recordedValue)
@@ -260,7 +260,7 @@ class SetExecutionCardVideoTest {
         rule.onNodeWithText("9").performClick()
         openMenu()
         rule.onNodeWithText("Marcar fallo").assertDoesNotExist()
-        rule.onNodeWithText("Corregir a ≈ 7").performClick()
+        rule.onNodeWithText("Corregir a ≈\u00A07").performClick()
         rule.onNodeWithTag(WorkoutVideoMenuTag).assertDoesNotExist()
         rule.runOnIdle {
             assertEquals("stable-id", completed.value.id)
@@ -279,7 +279,7 @@ class SetExecutionCardVideoTest {
     @Test fun medium_partials_with_zero_full_reps_can_be_used() {
         show(0, 2, confidence = CountConfidence.MEDIA)
         openMenu()
-        rule.onNodeWithText("Usar ≈ 0").performClick()
+        rule.onNodeWithText("Usar ≈\u00A00").performClick()
         rule.runOnIdle { holder.actionForPage("page")!!.invoke() }
         rule.runOnIdle {
             assertEquals(0.0, recordedValue!!, 0.0)
