@@ -9,6 +9,8 @@ import com.example.kpkn.data.models.resolveMuscleVolumeContribution
 import com.example.kpkn.domain.auge.getAugeMusclePillarId
 import com.example.kpkn.domain.calculations.calculateSuggestedLoad
 import com.example.kpkn.domain.calculations.calculateHybrid1RM
+import com.example.kpkn.domain.calculations.percentLoadReferenceKg
+import com.example.kpkn.data.protocols.LoadBasis
 import com.example.kpkn.domain.calibration.sessionCapacityAdjustmentFactor
 import com.example.kpkn.domain.workout.WarmupCalibrationEngine
 import com.example.kpkn.domain.exercises.ExerciseMuscleResolver
@@ -478,22 +480,33 @@ class WorkoutLoadSuggestionController(
 
         plannedWorkingWeightForSet(exercise, 0)?.takeIf { it > 0.0 }?.let { return it }
 
-        val referenceRm = exercise.reference1RM?.takeIf { it > 0.0 }
-            ?: exercise.prFor1RM?.takeIf { it.weight > 0.0 && it.reps > 0 }?.let {
-                calculateHybrid1RM(it.weight, it.reps)
-            }
-        val plannedPercent = exercise.sets.firstOrNull()?.targetPercentageRM?.takeIf { it > 0.0 }
-        if (referenceRm != null && plannedPercent != null) {
-            return LoadSuggestionEngine.roundLoad(referenceRm * plannedPercent / 100.0)
+        val firstSet = exercise.sets.firstOrNull()
+        val usesTrainingMaxPercent = firstSet?.loadBasis == LoadBasis.PERCENT_TM
+        val plannedPercent = firstSet?.targetPercentageRM?.takeIf { it > 0.0 }
+        // El %RM se lee sobre la referencia de SU base: PERCENT_TM sobre el TM declarado (jamás el 1RM ni un PR);
+        // las demás bases sobre el 1RM (declarado o, a falta, el estimado desde el PR).
+        val referenceKg = if (usesTrainingMaxPercent) {
+            percentLoadReferenceKg(exercise, firstSet!!)
+        } else {
+            exercise.reference1RM?.takeIf { it > 0.0 }
+                ?: exercise.prFor1RM?.takeIf { it.weight > 0.0 && it.reps > 0 }?.let {
+                    calculateHybrid1RM(it.weight, it.reps)
+                }
+        }
+        if (referenceKg != null && plannedPercent != null) {
+            return LoadSuggestionEngine.roundLoad(referenceKg * plannedPercent / 100.0)
         }
 
-        completedSessionSetsForExercise(exercise, activeTag)
-            .mapNotNull { estimatedSessionCapacity(it.completedSet) }
-            .maxOrNull()
-            ?.takeIf { it > 0.0 }
-            ?.let { estimatedRm ->
-                return LoadSuggestionEngine.roundLoad(estimatedRm * ((plannedPercent ?: 75.0) / 100.0))
-            }
+        // Una capacidad (1RM estimado) × un %TM mezclaría bases: con %TM sin TM no se deduce carga desde la capacidad.
+        if (!usesTrainingMaxPercent) {
+            completedSessionSetsForExercise(exercise, activeTag)
+                .mapNotNull { estimatedSessionCapacity(it.completedSet) }
+                .maxOrNull()
+                ?.takeIf { it > 0.0 }
+                ?.let { estimatedRm ->
+                    return LoadSuggestionEngine.roundLoad(estimatedRm * ((plannedPercent ?: 75.0) / 100.0))
+                }
+        }
 
         return completedSessionSetsForExercise(exercise, activeTag)
             .firstOrNull { it.completedSet.weight > 0.0 }

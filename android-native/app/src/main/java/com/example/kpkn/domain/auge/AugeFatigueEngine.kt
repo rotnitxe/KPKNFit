@@ -892,11 +892,9 @@ object AugeFatigueEngine {
 
             ex.sets.forEach { s ->
                 if (s.isIneffective) return@forEach
-                val calculatedWeight = if (ex.trainingMode == TrainingMode.RM && s.targetPercentageRM != null && ex.reference1RM != null && ex.reference1RM!! > 0.0) {
-                    (s.targetPercentageRM / 100.0) * ex.reference1RM!!
-                } else {
-                    s.weight ?: 60.0
-                }
+                // %RM sobre la referencia de SU base: PERCENT_TM lee el TM, el resto el 1RM.
+                val calculatedWeight = (if (ex.trainingMode == TrainingMode.RM) com.example.kpkn.domain.calculations.percentLoadKg(ex, s) else null)
+                    ?: s.weight ?: 60.0
                 // Planned sets are modeled as bilateral equivalents (no L/R side on targets).
                 val syntheticSet = CompletedSet(
                     id = "",

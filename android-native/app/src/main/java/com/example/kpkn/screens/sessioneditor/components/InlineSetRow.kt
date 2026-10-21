@@ -128,6 +128,8 @@ internal fun InlineSetRow(
     reference1RM: Double?,
     predictedWeight: Double?,
     estimatedMetric: Double?,
+    /** TM declarado del ejercicio: referencia de las series `PERCENT_TM` (el 1RM no la sustituye). */
+    trainingMax: Double? = null,
     trainingMode: TrainingMode,
     customUnit: String?,
     accentColor: Color,
@@ -187,10 +189,12 @@ internal fun InlineSetRow(
         onUpdate(updater)
     }
     val setStateKeySuffix = if (isUnilateral) activeUniSide else "B"
-    val sliderPercent = remember(set.targetPercentageRM, set.targetReps, set.targetRepsRange, set.intensityMode, predictedWeight, reference1RM) {
+    // El %RM de la serie se lee sobre la referencia de SU base: el TM en PERCENT_TM, el 1RM en el resto.
+    val percentReference = if (usesExplicitTmPercent) trainingMax else reference1RM
+    val sliderPercent = remember(set.targetPercentageRM, set.targetReps, set.targetRepsRange, set.intensityMode, predictedWeight, percentReference) {
         when {
             isRmMode && set.targetPercentageRM != null -> set.targetPercentageRM
-            predictedWeight != null && reference1RM != null && reference1RM > 0 -> ((predictedWeight / reference1RM) * 100.0).coerceIn(40.0, 100.0)
+            predictedWeight != null && percentReference != null && percentReference > 0 -> ((predictedWeight / percentReference) * 100.0).coerceIn(40.0, 100.0)
             set.plannedRepAnchor() != null -> estimatePercent1RM(set.plannedRepAnchor()!!)
             else -> 75.0
         }
@@ -850,7 +854,7 @@ internal fun InlineSetRow(
         }
         return buildString {
             append(displayedWeight?.let { "${decimal(it)}${space}kg" } ?: "Usa carga inteligente para estimar la carga inicial")
-            if (isRmMode && reference1RM != null) {
+            if (isRmMode && percentReference != null) {
                 val basis = if (usesExplicitTmPercent) "del TM" else "RM"
                 val percentSpace = if (listSkin) " " else ""
                 append(" · ${decimal(sliderPercent.toDouble())}$percentSpace% $basis")
@@ -880,7 +884,7 @@ internal fun InlineSetRow(
                         onValueChange = { localSliderPercent = it },
                         onValueChangeFinished = onSliderFinished,
                         valueRange = 45f..100f,
-                        enabled = reference1RM != null,
+                        enabled = percentReference != null,
                         colors = inkSliderColors(),
                     )
                 }
@@ -906,7 +910,7 @@ internal fun InlineSetRow(
                             onValueChange = { localSliderPercent = it },
                             onValueChangeFinished = onSliderFinished,
                             valueRange = 45f..100f,
-                            enabled = reference1RM != null,
+                            enabled = percentReference != null,
                         )
                     }
                 }
