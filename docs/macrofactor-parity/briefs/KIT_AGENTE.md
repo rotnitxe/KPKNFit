@@ -25,6 +25,7 @@
 
 ## 3. Calidad: lo que más se rompe con modelos pequeños
 - **Lee antes de escribir:** firmas, nombres y paquetes reales salen del código (grep/Read), no de la memoria. Una importación inventada cuesta una vuelta entera de cola.
+- **Nombres de test entre acentos graves:** la JVM rechaza `.` `;` `:` `[` `]` `/` `\` `<` `>` en ellos («Name contains illegal characters», error de compilación que ya costó una vuelta de cola a N3 y a T3). Se admiten tildes, espacios, comas y guiones. Antes de entrar en la cola: `grep -rnE 'fun `[^`]*[.;:/<>\[\]\\][^`]*`' <tus archivos de test>` debe salir vacío.
 - **Sin efectos colaterales:** antes de cambiar una función compartida, `grep` de todos sus consumidores. Los consumidores fuera de tu lista NO cambian de cifra: añade una API paralela. No reescribas la expectativa de un test que no es tuyo.
 - **Datos del usuario:** nada de migraciones destructivas ni de reescribir registros históricos. Guardados durables: espera a Room y publica DESPUÉS.
 - **Texto de la app en español**, tono breve; accesibilidad real (≥ 48 dp, descripciones); nada de color como única señal.
