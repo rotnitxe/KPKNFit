@@ -1,0 +1,91 @@
+M0 · Fallos heredados de interfaz contrastados
+
+Corrida 1: clases=111 pruebas=740 fallos=22 errores=0 omitidas=0 tiempo_suma=121.4s
+Corrida 2: clases=4 pruebas=60 fallos=22 errores=0 omitidas=0 tiempo_suma=19.7s
+Corrida 3: clases=111 pruebas=741 fallos=22 errores=0 omitidas=0 tiempo_suma=117.4s
+Logs: C:\kw\logs\r4-M0-1.log, C:\kw\logs\r4-M0-2.log y C:\kw\logs\r4-M0-3.log.
+
+La corrida 2 mantuvo el proyecto fusionado y sustituyó temporalmente sólo
+WorkoutReadinessSheet.kt por el blob exacto de master @ 8ac57c9d4:
+b95e63e7e5fdecd5eae00d0705833d3beb20ff83. No fue una ejecución del árbol
+completo de master. RingDetailSheet.kt, RingAdjust.kt y WorkoutFinishPages.kt
+coinciden con master. Las cuatro clases originales se ejecutaron sin cambios
+en el contraste. En WorkoutFinishHost.kt las diferencias se limitan al estado guardable de anillos
+y a claridad nullable; el bloque de notas que ejercita el fallo coincide.
+
+Se reprodujeron exactamente los mismos 22 casos y primeros mensajes.
+En la corrida 3, con la resolución definitiva, se mantuvieron esos mismos 22
+fallos y pasó la nueva regresión M0 de restauración de Energía y músculos de
+dentro y fuera de la sesión desde el panel actual. Golden (4) y pines (2): verdes.
+Los selectores antiguos esperan la etiqueta del Sheet aunque ahora se usa
+el panel inline, textos retirados y los controles anteriores de voz. En
+notas, el selector genérico del último campo editable ya no identifica la nota.
+Se documentan sin reparar estas pruebas ajenas, conforme al encargo M0.
+
+Nombre completo y primera línea del fallo:
+
+1. com.example.kpkn.screens.home.RingDetailSheetTest.mover el anillo activa Guardar ajuste
+   java.lang.AssertionError: Failed to assert the following: (Text + EditableText = [Tu ajuste: 60 %])
+
+2. com.example.kpkn.screens.home.RingDetailSheetTest.sin personalBaseline sale el texto de 4 sesiones
+   java.lang.AssertionError: Failed: assertExists.
+
+3. com.example.kpkn.screens.home.RingDetailSheetTest.Musculos abre el cuerpo y guarda cada musculo por su pilar
+   java.lang.AssertionError: Failed to assert the following: (Text + EditableText = [1 músculo ajustado])
+
+4. com.example.kpkn.screens.home.RingDetailSheetTest.Ajustar abre la hoja de ajuste en ese canal y sin pestañas
+   java.lang.AssertionError: Failed: assertExists.
+
+5. com.example.kpkn.screens.workout.components.WorkoutReadinessSheetAdjustTest.la Columna se entrega en la escala visible y solo si se edito
+   java.lang.AssertionError: Failed: assertExists.
+
+6. com.example.kpkn.screens.workout.components.WorkoutReadinessSheetAdjustTest.Restablecer en Musculos devuelve todos a su valor y quita las marcas
+   java.lang.AssertionError: Failed: assertExists.
+
+7. com.example.kpkn.screens.workout.components.WorkoutReadinessSheetAdjustTest.restablecer devuelve el canal a su valor automatico y deja de ser ajuste manual
+   java.lang.AssertionError: Failed: assertExists.
+
+8. com.example.kpkn.screens.workout.components.WorkoutReadinessSheetAdjustTest.los musculos de hoy salen marcados y los demas tambien se pueden tocar
+   java.lang.AssertionError: Failed: assertExists.
+
+9. com.example.kpkn.screens.workout.components.WorkoutReadinessSheetAdjustTest.con la voz encendida salen Manos libres y Musica y cambiar de modo avisa
+   java.lang.AssertionError: Failed to assert the following: (ToggleableState = 'On')
+
+10. com.example.kpkn.screens.workout.components.WorkoutReadinessSheetAdjustTest.el i abre la explicacion de la voz
+   java.lang.AssertionError: Failed to perform OnClick action.
+
+11. com.example.kpkn.screens.workout.components.WorkoutReadinessSheetAdjustTest.un musculo de hoy se ajusta en el cuerpo y sale como editado
+   java.lang.AssertionError: Failed: assertExists.
+
+12. com.example.kpkn.screens.workout.components.WorkoutReadinessSheetAdjustTest.un musculo que no es de hoy se entrega como editado sin mover el promedio de los de hoy
+   java.lang.AssertionError: Failed: assertExists.
+
+13. com.example.kpkn.screens.workout.components.WorkoutReadinessSheetAdjustTest.tocar la leyenda de un anillo abre el ajuste en ese canal
+   java.lang.AssertionError: Failed: assertExists.
+
+14. com.example.kpkn.screens.workout.components.WorkoutReadinessSheetAdjustTest.la voz sale en una fila con su interruptor y sin modos mientras esta apagada
+   java.lang.AssertionError: Failed: assertExists.
+
+15. com.example.kpkn.screens.workout.components.WorkoutReadinessSheetAdjustTest.el estado previo conserva su titulo, la torre, la leyenda y el aviso
+   java.lang.AssertionError: Failed: assertExists.
+
+16. com.example.kpkn.screens.workout.components.WorkoutReadinessSheetAdjustTest.pulsar el modo ya elegido no lo cambia
+   java.lang.AssertionError: Failed to perform OnClick action.
+
+17. com.example.kpkn.screens.workout.components.WorkoutReadinessSheetAdjustTest.un ajuste que vuelve al valor de partida con los botones sigue contando como editado hasta restablecer
+   java.lang.AssertionError: Failed: assertExists.
+
+18. com.example.kpkn.screens.workout.components.WorkoutReadinessSheetAdjustTest.recrear conserva los valores y las marcas de los musculos ajustados
+   java.lang.AssertionError: Failed: assertExists.
+
+19. com.example.kpkn.screens.workout.components.WorkoutReadinessSheetAdjustTest.ajustar Energia y confirmar entrega solo Energia
+   java.lang.AssertionError: Failed: assertExists.
+
+20. com.example.kpkn.screens.workout.components.WorkoutReadinessSheetAdjustTest.tocar un anillo de la torre tambien abre el ajuste
+   java.lang.AssertionError: Failed: assertExists.
+
+21. com.example.kpkn.screens.workout.components.WorkoutReadinessSheetCompactTest.hojaDeEstadoNoTieneTextoSuperiorNiLasTresExplicaciones
+   java.lang.AssertionError: Failed: assertExists.
+
+22. com.example.kpkn.screens.workout.LiveLayerDismissTest.theNoteTypedInTheSummaryIsKeptWhenTheSummaryIsClosed
+   java.lang.AssertionError: la nota pasa a la sesión en vez de perderse expected:<Me sentí fuerte> but was:<null>
