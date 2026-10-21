@@ -9,8 +9,8 @@ import kotlin.math.min
  * ([AugeClassifiers.classifyAcwrZone]) y los niveles de aviso de Columna/Energía
  * ([LoadAdvisoryEngine]) leen de aquí; no se repiten literales en ningún otro archivo.
  *
- * Los de aviso (1.2 / 1.4 / 1.6) no coinciden con los de zona (1.3 / 1.5): alinearlos es
- * una decisión de producto pendiente, así que aquí no se ha cambiado ningún valor.
+ * Los avisos comparten los cortes de zona desde D8 (WATCH=CAUTION, ADJUST=DANGER y
+ * UNLOAD un tramo más alto): la alineación es de valores, no de comparadores ni de histéresis.
  */
 object AcwrThresholds {
     // Zonas (AugeClassifiers.classifyAcwrZone): < UNDER sub-entrena · hasta CAUTION segura · hasta DANGER riesgo · más, alto riesgo.
@@ -19,9 +19,9 @@ object AcwrThresholds {
     const val DANGER = 1.5
 
     // Avisos (LoadAdvisoryEngine): WATCH desde WATCH (≥) · ADJUST por encima de ADJUST (>) · UNLOAD por encima de UNLOAD (>, con tendencia).
-    const val WATCH = 1.2
-    const val ADJUST = 1.4
-    const val UNLOAD = 1.6
+    const val WATCH = 1.3
+    const val ADJUST = 1.5
+    const val UNLOAD = 1.7
 
     /** Histéresis relativa de los avisos: un nivel se mantiene hasta bajar de `umbral · (1 − HYSTERESIS)`. */
     const val HYSTERESIS = 0.10

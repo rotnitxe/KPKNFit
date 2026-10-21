@@ -69,6 +69,8 @@ internal class SessionDrainRecipe(
     } // B/D/E no realimentan el cardio; C conserva su recorrido legacy de series para el aprendiz sin V2.
 
     private val halfVolume = mutableMapOf<String, Double>()
+    /** D3: series duras de la sesión, independientes del pilar y de la llamada (el editor recorre por ejercicio). */
+    private var hardSetCount = 0.0
 
     fun softCap(drain: Double, accumulated: Double, cap: Double): Double =
         if (options.softCapUnits == RecipeOptions.SoftCapUnits.NONE) drain
@@ -150,6 +152,8 @@ internal class SessionDrainRecipe(
                 val set = complete(exercise, sourceSet)
                 halfCount += if (set.side != null) 0.5 else 1.0 // Una pareja de lados equivale a una serie por pilar.
                 val accumulatedSets = halfCount.roundToInt() // El multiplicador progresivo recibe el mismo conteo en A–F.
+                val isHard = AugeFatigueEngine.isSetEffective(set) && AugeFatigueEngine.getEffectiveRPE(set) >= 8.0
+                if (isHard) hardSetCount += if (set.side != null) 0.5 else 1.0 // Sube antes del factor de la serie actual.
                 val drain = AugeFatigueEngine.calculateSetBatteryDrain(
                     set = set,
                     metrics = context.metrics,
@@ -158,6 +162,7 @@ internal class SessionDrainRecipe(
                     restTime = context.restTime,
                     densityMultiplier = context.densityMultiplier,
                     weightUnit = settings.weightUnit,
+                    hardSessionSets = hardSetCount.roundToInt(),
                 )
                 val base = adjustSet(drain, accumulatedDrain, context.axialGate) // La puerta axial siempre precede al acumulado.
                 accumulatedDrain = base.accumulatedDrain

@@ -418,6 +418,12 @@ object AugeFatigueEngine {
         spinalMultiplier: Double = 1.0,
         muscleMultiplier: Double = 1.0,
         weightUnit: WeightUnit = WeightUnit.KG,
+        /**
+         * D3 (2.6): series duras ya contadas en la sesión, incluida la actual. Quien recorre la sesión
+         * lo pasa para que el progresivo neural dependa de las series duras globales; `null` conserva
+         * el comportamiento heredado (progresivo por pilar) de los consumidores que no recorren sesión.
+         */
+        hardSessionSets: Int? = null,
     ): SetDrain {
         if (set.skipped) return SetDrain(cnsDrainPct = 0.0, muscularDrainPct = 0.0, spinalDrainPct = 0.0)
         // Unilateral L/R halves: each side is half a logical set so L+R ≈ one bilateral set
@@ -445,7 +451,13 @@ object AugeFatigueEngine {
         
         // Bifurcación de Volumen Progresivo (Junk Volume vs. Estimulante)
         val muscularProgressiveMult = calculateMuscularProgressiveMultiplier(accumulatedSets)
-        val systemicProgressiveMult = calculateSystemicProgressiveMultiplier(accumulatedSets)
+        // La columna conserva el conteo por pilar; el SNC pasa al conteo global de series duras (D3).
+        val spinalProgressiveMult = calculateSystemicProgressiveMultiplier(accumulatedSets)
+        val cnsProgressiveMult = when {
+            hardSessionSets == null -> spinalProgressiveMult
+            isSetEffective(set) && rpe >= 8.0 -> calculateSystemicProgressiveMultiplier(hardSessionSets)
+            else -> 1.0 // Una serie suave no incrementa el progresivo neural de la sesión.
+        }
         
         // Cruce de Descansos (Descansos cortos reducen daño muscular mecánico pero disparan SNC)
         val localRestMult = when {
@@ -520,10 +532,10 @@ object AugeFatigueEngine {
             metrics.efc * repsFactorMuscular * rpeMult * muscularProgressiveMult * localRestMult * muscularBias *
                 muscularTechniqueFactor * muscularDensityMult * (1.0 + (nearRmMult - 1.0) * 0.35) * 1.85 * assistedMultiplier * muscleMultiplier
         val rawCns =
-            metrics.cnc * repsFactorCns * rpeMult * systemicProgressiveMult * systemRestMult * systemBias *
+            metrics.cnc * repsFactorCns * rpeMult * cnsProgressiveMult * systemRestMult * systemBias *
                 systemicTechniqueFactor * systemDensityMult * nearRmMult * 1.15 * assistedMultiplier * cnsMultiplier
         val rawSpinal =
-            metrics.ssc * repsFactorSpinal * rpeMult * systemicProgressiveMult * structureRestMult * structureBias * loadFactor *
+            metrics.ssc * repsFactorSpinal * rpeMult * spinalProgressiveMult * structureRestMult * structureBias * loadFactor *
                 systemicTechniqueFactor * structureDensityMult * (1.0 + (nearRmMult - 1.0) * 1.20) * 5.2 * assistedMultiplier * spinalMultiplier
 
         return SetDrain(
