@@ -47,7 +47,7 @@ object RepFlags {
 }
 
 /**
- * Confianza del conteo (§6, «Confianza del conteo»), al pie de la letra:
+ * Confianza del conteo (§6, «Confianza del conteo»), con publicación conservadora M2:
  * ```
  * c_track = clamp((fracción válida observada − 0,70)/0,25, 0, 1)
  * c_snr   = clamp(log10(Afull/σn/5)/log10(6), 0, 1)
@@ -60,6 +60,8 @@ object RepFlags {
  * ```
  * Además, con solo el lado cercano (SIDE_UNKNOWN) o con el lado que trabaja lejos de la cámara (FAR_SIDE_WORKING) el
  * máximo es MEDIA (§4.11 y §6 p9). Con menos de 3 FULL el CV no es de fiar y c_amp y c_rhy valen 0,5.
+ * M2 fuerza BAJA con varias personas, vista no admitida, ciclos ambiguos o censura en el borde. Un single/doble
+ * completamente observado y rodeado por reposo medido puede usar tracking y SNR sin imputar regularidad entre reps.
  */
 object RepConfidence {
     fun score(
@@ -102,14 +104,24 @@ object RepConfidence {
             else -> tuning.viewOther
         }
         val nAmb = seg.ambiguousCycles
-        val score = sqrt(cTrack) * cView *
+        val evidence = countEvidence(series, seg, tuning)
+        val repeatedScore = sqrt(cTrack) * cView *
             (tuning.snrWeight * cSnr + tuning.ampWeight * cAmp + tuning.rhythmWeight * cRhy) *
             tuning.ambiguityPenalty.pow(nAmb)
+        // For a single/double, do not invent a CV. Complete observed excursions bounded by measured rest use
+        // tracking and SNR directly; the neutral cAmp/cRhy remain explicit in the diagnostic breakdown.
+        val score = if (evidence.closedShortSet && cTrack == 1.0 && cSnr == 1.0) sqrt(cTrack) * cView * cSnr else repeatedScore
 
         val forced = when {
             fulls.isEmpty() -> "no_full_reps"
             series.validFraction < tuning.minValidFraction -> "low_valid_fraction"
             series.fs < tuning.lowFpsBelow -> "low_fps"
+            AnalysisFlag.MULTI_PERSON in flags -> "multiple_people"
+            view.kind !in profile.countViews -> "unsupported_view"
+            evidence.censoredStart -> "censored_start"
+            evidence.censoredReturn -> "censored_return"
+            nAmb > tuning.metrics.countReliability.maxOfferedAmbiguousCycles -> "ambiguous_cycles"
+            fulls.size < tuning.minCvReps && seg.cycles.any { it.kind != RepKind.FULL } -> "uncertain_partial_cycles"
             else -> null
         }
         val polarityFlipped = seg.polarityFlipped || AnalysisFlag.POLARITY_FLIPPED in flags

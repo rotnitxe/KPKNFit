@@ -154,7 +154,15 @@ class RepConfidenceTest {
         flipped: Boolean = false,
         fs: Double = 30.0,
     ): ConfidenceBreakdown {
-        val series = SignalBuilder(fs = fs).hold(1.0).rep().hold(1.0).series(validFraction = validFraction)
+        // Formula fixtures must have real support at their declared valleys and peaks.
+        val raw = DoubleArray((cycles.maxOfOrNull { it.rightValley ?: it.peak } ?: 0) + 60)
+        for (c in cycles) {
+            for (k in c.leftValley..c.peak) raw[k] = (k - c.leftValley).toDouble() / (c.peak - c.leftValley)
+            val right = c.rightValley ?: c.peak
+            for (k in c.peak + 1..right) raw[k] = (right - k).toDouble() / (right - c.peak)
+        }
+        val oriented = if (flipped) DoubleArray(raw.size) { -raw[it] } else raw
+        val series = SignalBuilder.seriesOf(oriented, fs = fs, validFraction = validFraction)
         return RepConfidence.score(series, seg(cycles, aFull, sigma, mode, ambiguous, flipped), view(kind), profile, flags)
     }
 
@@ -236,10 +244,10 @@ class RepConfidenceTest {
     @Test
     fun theLevelsFollowTheScoreAndTheBlockers() {
         assertEquals(CountConfidence.ALTA, score().level)
-        // Un ciclo dudoso, una traza v1, una segunda persona, la señal dada la vuelta o solo el lado cercano: como mucho MEDIA.
-        assertEquals(CountConfidence.MEDIA, score(ambiguous = 1).level)
+        // Un ciclo dudoso o varias personas no ofrecen un número; los demás topes siguen en MEDIA.
+        assertEquals(CountConfidence.BAJA, score(ambiguous = 1).level)
         assertEquals(CountConfidence.MEDIA, score(flags = setOf(AnalysisFlag.LEGACY_TRACK)).level)
-        assertEquals(CountConfidence.MEDIA, score(flags = setOf(AnalysisFlag.MULTI_PERSON)).level)
+        assertEquals(CountConfidence.BAJA, score(flags = setOf(AnalysisFlag.MULTI_PERSON)).level)
         assertEquals(CountConfidence.MEDIA, score(flags = setOf(AnalysisFlag.POLARITY_FLIPPED)).level)
         assertEquals(CountConfidence.MEDIA, score(flipped = true).level)
         assertEquals(CountConfidence.MEDIA, score(mode = SideMode.NEAR_ONLY).level)

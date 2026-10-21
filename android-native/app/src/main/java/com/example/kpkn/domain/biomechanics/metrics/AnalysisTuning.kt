@@ -342,6 +342,20 @@ data class MetricsTuning(
     val peakMinFps: Double = 50.0,
     /** Una concéntrica más corta que esto (s) no da MCV. */
     val minConcentricS: Double = 0.10,
+    /** Count publication checks; kept in a group because AnalysisTuning's JVM constructor is full. */
+    val countReliability: CountReliabilityTuning = CountReliabilityTuning(),
+)
+
+/**
+ * M2: conservative leave-one-fold-out calibration on development folds 0–3.
+ * A quarter second resolves several measured samples at the supported 20 Hz minimum. A short set needs both
+ * boundaries inside 10% of its observed excursion with no gaps or weak samples. Ambiguous cycles do not offer a number.
+ * No dataset identity or truth is available to these checks.
+ */
+data class CountReliabilityTuning(
+    val boundaryWindowS: Double = 0.25,
+    val shortRestFraction: Double = 0.10,
+    val maxOfferedAmbiguousCycles: Int = 0,
 )
 
 /**
