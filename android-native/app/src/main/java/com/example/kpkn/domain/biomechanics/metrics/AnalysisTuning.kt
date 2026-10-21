@@ -351,6 +351,8 @@ data class MetricsTuning(
     val minConcentricS: Double = 0.10,
     /** Count publication checks; kept in a group because AnalysisTuning's JVM constructor is full. */
     val countReliability: CountReliabilityTuning = CountReliabilityTuning(),
+    /** M4: parciales (fantasmas, referencia de recorrido, zona y confianza propia), en su propio grupo. */
+    val partials: PartialsTuning = PartialsTuning(),
 )
 
 /**
@@ -394,6 +396,57 @@ data class CountReliabilityTuning(
     val preservingAmbiguityPenalized: Boolean = false,
     /** Descartes admitidos (motivos de `DiscardedCycle`); `null`: cualquiera. */
     val preservingAmbiguityDiscards: Set<String>? = setOf("noise", "setdown", "rerack"),
+)
+
+/**
+ * M4: las repeticiones PARCIALES. Una repetición no pasa a PARCIAL solo por quedar algo más corta que las completas de la
+ * serie: hace falta una caída clara frente a una referencia estable; un ciclo cortado por el borde del vídeo mientras aún se
+ * movía no se juzga por el lado cortado; y una fallida necesita ver la dejada que la sigue.
+ *
+ * Las reglas y sus números salen de la validación cruzada dejando un fold fuera sobre el banco completo (folds 0–3): en cada
+ * rotación, entre las variantes que cumplen las guardas del banco (ALTA sin errores, MEDIA ≥ 93 %, G2 equivocadas ≤ 10 %) y
+ * las de los bancos de parciales (FULL exacto sin referencia no peor que el motor 8, la fatiga sin parciales y una precisión
+ * de las parciales ≥ 95 %), la de menos parciales fantasma en G1; empate: más ofrecidas exactas; empate: más exhaustividad de
+ * las parciales con referencia; empate: la más conservadora. En cada parámetro, el valor más conservador de las cuatro
+ * rotaciones. [referenceGate] y [profileReferenceTrust] no tienen datos del banco (no trae referencias): salen de los bancos
+ * de parciales y se dejan conservadores.
+ */
+data class PartialsTuning(
+    /** Completas que hacen falta para que la amplitud completa de la propia serie sea una referencia estable. Con menos y sin
+     * referencia de fuera, ningún ciclo pasa a PARCIAL (cuenta como completa dudosa). Rotaciones: 2, 2, 2 y 2 (con 3, el FULL
+     * exacto semi-sintético cae del 50 al 31 %: no cumple la guarda). */
+    val minStableFull: Int = 2,
+    /** Una PARCIAL aislada entre dos completas necesita a ≤ fullFraction − esto (0,58). Rotaciones: 0,12, 0,12, 0,12 y 0,12
+     * (con 0,15 el FULL exacto sintético queda por debajo del motor 8). */
+    val sandwichMargin: Double = 0.12,
+    /** Una PARCIAL más estrecha a media altura que esto por la anchura mediana de las completas es un bache de ruido y no
+     * cuenta. Rotaciones: 0,3 ×4 (con 0 o 0,2 la precisión sintética de las parciales, sin las fallidas concéntricas que el
+     * generador no distingue, no llega al 95 %; con 0,4 se pierde exhaustividad). 0: apagado. */
+    val minPartialWidth: Double = 0.30,
+    /** Borde censurado: el valle del lado cortado está a ≤ [censorEdgeS] del borde de la serie y la velocidad media de los
+     * últimos (o primeros) [censorWindowS] es al menos [censorSpeedRatio] de la máxima de ese tramo. Rotaciones del
+     * cociente: 0,4, 0,4, 0,6 y 0,4 (el más conservador, el que más censura: 0,4). */
+    val censorEdges: Boolean = true,
+    val censorEdgeS: Double = 0.25,
+    val censorWindowS: Double = 0.10,
+    val censorSpeedRatio: Double = 0.4,
+    /** Una fallida con arranque E necesita la dejada observada, que acabe la serie y que no sea otro rebote a medias. El banco
+     * no la mueve; las rotaciones la eligen por la exhaustividad de las parciales (sí ×4). */
+    val failedNeedsSetdown: Boolean = true,
+    /** El último ciclo que vuelve entre el 30 y el 70 % se juzga por su recorrido: no es un bloqueo (arranque C) ni una dejada
+     * (arranque E). Rotaciones: sí ×4 (sin ella, el FULL exacto sintético queda por debajo del motor 8); y no exigir además un
+     * tiempo quieto al final (0 s frente a 0,5 y 1 s). */
+    val lastReturnByAmplitude: Boolean = true,
+    /** La referencia de recorrido se aplica solo si la amplitud completa de la serie queda por debajo de esto por la
+     * referencia: una serie de completas algo más corta de lo habitual no se vuelve de parciales. */
+    val referenceGate: Double = 0.80,
+    /** Una referencia del perfil (PROFILE) se usa por esta fracción de su amplitud; la PERSONAL, entera. */
+    val profileReferenceTrust: Double = 0.75,
+    /** Una serie solo de parciales (con referencia PERSONAL aplicada) se puede ofrecer con al menos estas parciales, y como
+     * mucho en MEDIA. */
+    val minPartialsOnly: Int = 3,
+    /** Una duda «completa corta» (SHORT_FULL) cuesta un nivel como las demás dudas por amplitud (true) o fuerza BAJA (false). */
+    val shortFullCostsOneLevel: Boolean = false,
 )
 
 /**

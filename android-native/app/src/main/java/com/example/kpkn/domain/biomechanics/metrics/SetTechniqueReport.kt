@@ -2,7 +2,9 @@ package com.example.kpkn.domain.biomechanics.metrics
 
 import com.example.kpkn.domain.biomechanics.kinematics.ViewKind
 import com.example.kpkn.domain.biomechanics.profiles.AnalysisProfileId
+import com.example.kpkn.domain.biomechanics.profiles.CountSignal
 import com.example.kpkn.domain.biomechanics.profiles.ProfileTier
+import com.example.kpkn.domain.biomechanics.reps.SignalUnit
 import kotlinx.serialization.Serializable
 
 // El informe de una serie (§3.5): lo que el motor mide de un vídeo. Es la FUENTE DE VERDAD del análisis: se guarda tal
@@ -52,6 +54,9 @@ data class RepPhaseTimes(val departUs: Long, val turnStartUs: Long, val turnEndU
  * - [pathDeviationRms]: banca, desviación RMS de la trayectoria respecto de la mediana, en % de ROM_v.
  * - [trunkAtTurnDeg], [trunkRangeDeg], [trunkEarlyDeltaDeg] y [trunkMaxDeg]: inclinación del tronco τ (+ hacia delante) en el
  *   giro, su rango, el cambio del inicio de la concéntrica al 30 % de su desplazamiento y su máximo.
+ * - [zone] (M4): la zona muscular de una PARTIAL (en estiramiento o acortada); `null` en las demás. Su fracción de recorrido
+ *   es [amplitudeFraction].
+ * - [amplitude] (M4): el recorrido de la repetición en la unidad de la señal de conteo (`SetTechniqueReport.countUnit`).
  */
 @Serializable
 data class RepReport(
@@ -80,6 +85,9 @@ data class RepReport(
     val trunkEarlyDeltaDeg: Double? = null,
     // Añadido por VT3a (§7: «τ máx.»).
     val trunkMaxDeg: Double? = null,
+    // Añadidos por M4, con valor por defecto (los informes viejos no los traen).
+    val zone: PartialZone? = null,
+    val amplitude: Double? = null,
 )
 
 /**
@@ -131,6 +139,13 @@ data class TechniqueObservation(
  * - [analyzedFps]: cadencia de los fotogramas analizados; [sourceFps], la de la grabación.
  * - [noRepsReason] (VT3a): por qué no hay repeticiones, si no las hay (`no_pose`, `no_scale`, `too_short`, `low_amplitude`…).
  * - [romSlopeDegPerRep] (VT3a): pendiente OLS del ROM de las FULL, en °/rep, con las mismas FULL que [romTrendDeg].
+ * - [countSignal] y [countUnit] (M4): la señal de conteo y su unidad. Una referencia de recorrido solo vale entre informes
+ *   de la misma señal.
+ * - [fullAmplitude] (M4): la mediana del recorrido (`RepReport.amplitude`) de las FULL, en [countUnit]. La referencia
+ *   PERSONAL de las series siguientes es la mediana de este valor en las series anteriores (ALTA o MEDIA).
+ * - [rangeReference] (M4): la referencia de recorrido que recibió el análisis y si se aplicó.
+ * - [partialConfidence] (M4): la confianza propia del número de parciales ([partialReps]): ALTA, el número; MEDIA, «≈»;
+ *   BAJA, no se ofrece. `null` sin salida.
  */
 @Serializable
 data class SetTechniqueReport(
@@ -173,4 +188,10 @@ data class SetTechniqueReport(
     // Añadidos por VT3a, con valor por defecto.
     val noRepsReason: String? = null,
     val romSlopeDegPerRep: Double? = null,
+    // Añadidos por M4, con valor por defecto (los informes viejos no los traen).
+    val countSignal: CountSignal? = null,
+    val countUnit: SignalUnit? = null,
+    val fullAmplitude: Double? = null,
+    val rangeReference: RangeReferenceUse? = null,
+    val partialConfidence: CountConfidence? = null,
 )

@@ -5,6 +5,7 @@ import com.example.kpkn.domain.biomechanics.kinematics.ViewKind
 import com.example.kpkn.domain.biomechanics.metrics.AnalysisFlag
 import com.example.kpkn.domain.biomechanics.metrics.AnalysisTuning
 import com.example.kpkn.domain.biomechanics.metrics.CountConfidence
+import com.example.kpkn.domain.biomechanics.metrics.RangeReferenceSource
 import com.example.kpkn.domain.biomechanics.metrics.RepKind
 import com.example.kpkn.domain.biomechanics.profiles.AnalysisProfile
 import kotlin.math.log10
@@ -95,17 +96,23 @@ object RepConfidence {
         }
 
         val fulls = seg.cycles.filter { it.kind == RepKind.FULL }
-        val cAmp = if (fulls.size >= tuning.minCvReps) {
-            clamp01(1.0 - (coefficientOfVariation(fulls.map { it.amplitudeFraction }) - tuning.ampCvBase) / tuning.ampCvSpan)
+        // M4: una serie solo de parciales sostenida por una referencia PERSONAL se puede ofrecer (como mucho en MEDIA); su
+        // regularidad se mide en las parciales.
+        val partialCycles = seg.cycles.filter { it.kind == RepKind.PARTIAL }
+        val partialsOnly = fulls.isEmpty() && seg.referenceApplied && seg.reference?.source == RangeReferenceSource.PERSONAL &&
+            partialCycles.size >= tuning.metrics.partials.minPartialsOnly
+        val repeated = if (partialsOnly) partialCycles else fulls
+        val cAmp = if (repeated.size >= tuning.minCvReps) {
+            clamp01(1.0 - (coefficientOfVariation(repeated.map { it.amplitudeFraction }) - tuning.ampCvBase) / tuning.ampCvSpan)
         } else {
             tuning.neutralScore
         }
         val intervals = ArrayList<Double>()
-        for (i in 1 until fulls.size) {
-            if (fulls[i].miniSet != fulls[i - 1].miniSet) continue
-            intervals.add((fulls[i].peak - fulls[i - 1].peak) / series.fs)
+        for (i in 1 until repeated.size) {
+            if (repeated[i].miniSet != repeated[i - 1].miniSet) continue
+            intervals.add((repeated[i].peak - repeated[i - 1].peak) / series.fs)
         }
-        val cRhy = if (fulls.size >= tuning.minCvReps && intervals.size >= tuning.minCvReps - 1) {
+        val cRhy = if (repeated.size >= tuning.minCvReps && intervals.size >= tuning.minCvReps - 1) {
             clamp01(1.0 - (coefficientOfVariation(intervals) - tuning.rhythmCvBase) / tuning.rhythmCvSpan)
         } else {
             tuning.neutralScore
@@ -144,10 +151,12 @@ object RepConfidence {
         // Todo lo que ALTA exige, salvo la ausencia de ciclos dudosos.
         val altaEvidence = AnalysisFlag.LEGACY_TRACK !in flags && AnalysisFlag.MULTI_PERSON !in flags && !polarityFlipped &&
             !sideCap && view.kind in profile.countViews && !seg.captureLimited
+        // M4: una completa corta (SHORT_FULL) puede ser una parcial: no cuesta solo un nivel salvo que se diga.
+        val shortFullBlocks = !tuning.metrics.partials.shortFullCostsOneLevel && seg.ambiguity.any { it.kind == AmbiguityKind.SHORT_FULL }
         val ambiguityCostsOneLevel = nAmb > reliability.maxOfferedAmbiguousCycles &&
-            seg.cycles.all { it.kind == RepKind.FULL } && score >= tuning.altaScore && altaEvidence
+            seg.cycles.all { it.kind == RepKind.FULL } && score >= tuning.altaScore && altaEvidence && !shortFullBlocks
         val forced = when {
-            fulls.isEmpty() -> "no_full_reps"
+            fulls.isEmpty() && !partialsOnly -> "no_full_reps"
             series.validFraction < tuning.minValidFraction -> "low_valid_fraction"
             series.fs < tuning.lowFpsBelow -> "low_fps"
             AnalysisFlag.MULTI_PERSON in flags -> "multiple_people"
@@ -155,7 +164,7 @@ object RepConfidence {
             evidence.censoredStart -> "censored_start"
             evidence.censoredReturn -> "censored_return"
             nAmb > reliability.maxOfferedAmbiguousCycles && !ambiguityCostsOneLevel && !countPreservingAmbiguity -> "ambiguous_cycles"
-            fulls.size < tuning.minCvReps && seg.cycles.any { it.kind != RepKind.FULL } -> "uncertain_partial_cycles"
+            fulls.size < tuning.minCvReps && seg.cycles.any { it.kind != RepKind.FULL } && !partialsOnly -> "uncertain_partial_cycles"
             else -> null
         }
         // ALTA sigue exigiendo cero dudosos, también de reposo.
@@ -163,11 +172,39 @@ object RepConfidence {
         val level = when {
             forced != null -> CountConfidence.BAJA
             ambiguityCostsOneLevel -> CountConfidence.MEDIA
-            score >= tuning.altaScore && altaAllowed -> CountConfidence.ALTA
+            score >= tuning.altaScore && altaAllowed && !partialsOnly -> CountConfidence.ALTA
             score >= tuning.mediaScore -> CountConfidence.MEDIA
             else -> CountConfidence.BAJA
         }
         return ConfidenceBreakdown(cTrack, cSnr, cAmp, cRhy, cView, nAmb, score, level, forced)
+    }
+
+    /**
+     * M4 · confianza propia del número de parciales. Nunca pasa de la del conteo ([count]); con ella:
+     * - sin parciales: la del conteo, o como mucho MEDIA si hay dudas que pueden crear una (una completa corta, un ciclo cerca
+     *   del 0,30 o del 0,70, o un ciclo apartado como preparación o recolocación);
+     * - con parciales sin una referencia estable (ver `PartialEvidence.stableReference`): BAJA, no se ofrecen;
+     * - como mucho MEDIA («≈») si alguna parcial está cerca de un umbral, si hay completas cortas, si la referencia aplicada es
+     *   la del perfil, si la referencia es la de la propia serie con menos de 3 completas o si se apartó algún ciclo como
+     *   preparación o recolocación (una parcial antes de la primera completa o tras la última no se cuenta).
+     */
+    fun partialLevel(seg: SegmentationResult, count: ConfidenceBreakdown, tuning: AnalysisTuning = AnalysisTuning.DEFAULT): CountConfidence {
+        if (count.level == CountConfidence.BAJA) return CountConfidence.BAJA
+        val evidence = seg.partialEvidence
+        val doubts = seg.ambiguity.count {
+            it.kind == AmbiguityKind.SHORT_FULL || it.kind == AmbiguityKind.NEAR_FULL || it.kind == AmbiguityKind.NEAR_PARTIAL
+        }
+        fun capped(level: CountConfidence) = if (level == CountConfidence.ALTA) CountConfidence.MEDIA else level
+        // Un ciclo apartado como preparación o recolocación puede ser una parcial antes de la primera completa o tras la última.
+        val setAside = seg.discarded.any { it.reason == "setup" || it.reason == "rerack" }
+        if (seg.partialCount == 0) return if (doubts > 0 || setAside) capped(count.level) else count.level
+        if (!evidence.stableReference) return CountConfidence.BAJA
+        var level = count.level
+        if (evidence.borderline > 0 || doubts > 0) level = capped(level)
+        if (evidence.referenceApplied && evidence.externalSource != RangeReferenceSource.PERSONAL) level = capped(level)
+        if (!evidence.referenceApplied && evidence.fullCycles < tuning.minCvReps) level = capped(level)
+        if (setAside) level = capped(level)
+        return level
     }
 
     private fun clamp01(x: Double): Double = if (x.isNaN()) 0.0 else x.coerceIn(0.0, 1.0)
