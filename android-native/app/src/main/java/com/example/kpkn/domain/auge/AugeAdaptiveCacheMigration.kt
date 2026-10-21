@@ -16,6 +16,7 @@ object AugeAdaptiveCacheMigration {
     val codecJson = Json {
         ignoreUnknownKeys = true
         encodeDefaults = true
+        coerceInputValues = true
         allowSpecialFloatingPointValues = true
     }
 

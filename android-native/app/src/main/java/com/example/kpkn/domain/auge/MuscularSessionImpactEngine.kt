@@ -299,8 +299,6 @@ object MuscularSessionImpactEngine {
             settings.weightUnit,
             settings.algorithmSettings.augeFatigueSensitivity,
             adaptiveCache.schemaVersion,
-
-
         ).joinToString("|")
     )
 
