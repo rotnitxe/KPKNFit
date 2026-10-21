@@ -588,7 +588,6 @@ object AugeRecoveryEngine {
 
             val recipe = sessionDrainRecipe(settings, tanks, adaptiveCache, exerciseDb, RecipeOptions(
                 volumeCounting = RecipeOptions.VolumeCounting.EFFECTIVE_SET_COUNT,
-                axialGatePosition = RecipeOptions.AxialGatePosition.NOT_APPLIED,
                 muscleMultiplierSource = RecipeOptions.MuscleMultiplierSource.DIRECT_KEYS,
                 cardioHandling = RecipeOptions.CardioHandling.CONSUMER_HOOK,
                 softCapUnits = RecipeOptions.SoftCapUnits.MUSCLE_STRESS_UNITS,
@@ -697,7 +696,6 @@ object AugeRecoveryEngine {
 
         val recipe = sessionDrainRecipe(settings, tanks, adaptiveCache, exerciseDb, RecipeOptions(
             volumeCounting = RecipeOptions.VolumeCounting.EFFECTIVE_SET_COUNT,
-            axialGatePosition = RecipeOptions.AxialGatePosition.NOT_APPLIED,
             muscleMultiplierSource = RecipeOptions.MuscleMultiplierSource.REMAPPED_PILLARS,
             cardioHandling = RecipeOptions.CardioHandling.LEGACY_STRENGTH,
             softCapUnits = RecipeOptions.SoftCapUnits.NONE,
@@ -765,7 +763,6 @@ object AugeRecoveryEngine {
 
             val recipe = sessionDrainRecipe(settings, tanks, adaptiveCache, exerciseDb, RecipeOptions(
                 volumeCounting = RecipeOptions.VolumeCounting.EFFECTIVE_SET_COUNT,
-                axialGatePosition = RecipeOptions.AxialGatePosition.NOT_APPLIED,
                 muscleMultiplierSource = RecipeOptions.MuscleMultiplierSource.DIRECT_KEYS,
                 cardioHandling = RecipeOptions.CardioHandling.CONSUMER_HOOK,
                 softCapUnits = RecipeOptions.SoftCapUnits.LOG_PERCENT,
@@ -944,7 +941,6 @@ object AugeRecoveryEngine {
 
             val recipe = sessionDrainRecipe(settings, tanks, adaptiveCache, exerciseDb, RecipeOptions(
                 volumeCounting = RecipeOptions.VolumeCounting.EFFECTIVE_SET_COUNT,
-                axialGatePosition = RecipeOptions.AxialGatePosition.AFTER_ACCUMULATION,
                 muscleMultiplierSource = RecipeOptions.MuscleMultiplierSource.DIRECT_KEYS,
                 cardioHandling = RecipeOptions.CardioHandling.CONSUMER_HOOK,
                 softCapUnits = RecipeOptions.SoftCapUnits.LOG_PERCENT,
@@ -966,8 +962,8 @@ object AugeRecoveryEngine {
                     sessionSoftAccum += capped
                     sessionSpinalLoad += capped
                 },
-                onSet = { _, _, context, _, adjusted, _ ->
-                    val contrib = adjusted.spinal * spineProtectionMultiplier * context.postAccumulationAxialGate
+                onSet = { _, _, _, _, adjusted, _ -> // La receta ya aplicó la puerta axial antes de acumular.
+                    val contrib = adjusted.spinal * spineProtectionMultiplier // SPF conserva su posición posterior a la receta.
                     val capped = recipe.softCap(contrib, sessionSoftAccum, spinalCap)
                     sessionSoftAccum += capped
                     sessionSpinalLoad += capped

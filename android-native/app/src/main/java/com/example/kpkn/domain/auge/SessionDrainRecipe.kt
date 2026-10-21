@@ -6,14 +6,12 @@ import kotlin.math.roundToInt
 /** Decisiones pendientes de 2.2b2, salvo el estado muscular zombi que se retira en 3.1. */
 internal data class RecipeOptions(
     val volumeCounting: VolumeCounting,
-    val axialGatePosition: AxialGatePosition,
     /** Se elimina en 3.1 junto con el campo zombi del caché; conserva sus tres variantes hasta entonces. */
     val muscleMultiplierSource: MuscleMultiplierSource,
     val cardioHandling: CardioHandling,
     val softCapUnits: SoftCapUnits,
 ) {
     enum class VolumeCounting { UNILATERAL_HALVES_ROUNDED, EFFECTIVE_SET_COUNT }
-    enum class AxialGatePosition { BEFORE_ACCUMULATION, AFTER_ACCUMULATION, NOT_APPLIED }
     /** Se elimina en 3.1 junto con el campo zombi del caché; no activar calibraciones antiguas. */
     enum class MuscleMultiplierSource { REMAPPED_PILLARS, DIRECT_KEYS, NONE }
     enum class CardioHandling { CONSUMER_HOOK, LEGACY_STRENGTH }
@@ -49,7 +47,6 @@ internal data class RecipeExerciseContext(
     val restTime: Int,
     val densityMultiplier: Double,
     val axialGate: Double,
-    val postAccumulationAxialGate: Double,
 )
 
 /**
@@ -186,7 +183,7 @@ internal class SessionDrainRecipe(
                     muscleMultiplier = context.muscleMultiplier,
                     weightUnit = settings.weightUnit,
                 )
-                val base = adjustSet(drain, accumulatedDrain, options, context.axialGate)
+                val base = adjustSet(drain, accumulatedDrain, context.axialGate) // La puerta axial siempre precede al acumulado.
                 accumulatedDrain = base.accumulatedDrain
                 val adjusted = withHeavySingleBonus(base, set)
                 onSet(exercise, sourceSet, context, drain, adjusted, accumulatedSets)
@@ -240,7 +237,6 @@ internal class SessionDrainRecipe(
             restTime = rest,
             densityMultiplier = density,
             axialGate = gate,
-            postAccumulationAxialGate = if (options.axialGatePosition == RecipeOptions.AxialGatePosition.AFTER_ACCUMULATION) gate else 1.0,
         )
     }
 
@@ -254,17 +250,13 @@ internal class SessionDrainRecipe(
          * Por inducción, el acumulado de cada canal es monótono en su drenaje crudo y en la carga.
          * Los topes y los bonos históricos se aplican después, sin alterar esta recurrencia.
          */
-        fun adjustSet(drain: SetDrain, accumulatedDrain: ChannelDrainAccumulation, options: RecipeOptions, axialGate: Double): AdjustedSetDrain { // Estado por canal.
+        fun adjustSet(drain: SetDrain, accumulatedDrain: ChannelDrainAccumulation, axialGate: Double): AdjustedSetDrain { // Puerta anterior al acumulado en todos.
             val conservationFactor = AugeUtils.SESSION_CONSERVATION_FACTOR
             val decayK = AugeUtils.SESSION_DECAY_K
             fun diminishing(accumulated: Double) = 1.0 / (1.0 + decayK * (accumulated / 100.0)) // Mismo K, un acumulado por canal.
             val muscular = drain.muscularDrainPct * conservationFactor * diminishing(accumulatedDrain.muscular) // Solo fatiga muscular.
             val cns = drain.cnsDrainPct * conservationFactor * diminishing(accumulatedDrain.cns) // Solo fatiga neural.
-            val spinal = if (options.axialGatePosition == RecipeOptions.AxialGatePosition.BEFORE_ACCUMULATION) {
-                drain.spinalDrainPct * conservationFactor * diminishing(accumulatedDrain.spinal) * axialGate // Acumula lo aplicado.
-            } else {
-                drain.spinalDrainPct * conservationFactor * diminishing(accumulatedDrain.spinal) // La posición axial se unifica en el bloque siguiente.
-            }
+            val spinal = drain.spinalDrainPct * conservationFactor * diminishing(accumulatedDrain.spinal) * axialGate // Acumula solo lo aplicado por la puerta.
             return AdjustedSetDrain(muscular, cns, spinal, ChannelDrainAccumulation( // Sin tope blando ni promedio.
                 muscular = accumulatedDrain.muscular + muscular, // El canal muscular no recibe SNC ni Columna.
                 cns = accumulatedDrain.cns + cns, // El canal neural no recibe músculo ni Columna.

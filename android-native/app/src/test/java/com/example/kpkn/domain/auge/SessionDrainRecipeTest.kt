@@ -12,7 +12,6 @@ class SessionDrainRecipeTest {
 
     private fun options() = RecipeOptions(
         volumeCounting = RecipeOptions.VolumeCounting.EFFECTIVE_SET_COUNT,
-        axialGatePosition = RecipeOptions.AxialGatePosition.NOT_APPLIED,
         muscleMultiplierSource = RecipeOptions.MuscleMultiplierSource.NONE,
         cardioHandling = RecipeOptions.CardioHandling.CONSUMER_HOOK,
         softCapUnits = RecipeOptions.SoftCapUnits.CHANNEL_PERCENT,
@@ -69,7 +68,7 @@ class SessionDrainRecipeTest {
 
     @Test fun conservacionSinAcumuladoSeCalculaAMano() {
         val result = SessionDrainRecipe.adjustSet(
-            SetDrain(muscularDrainPct = 10.0, cnsDrainPct = 20.0, spinalDrainPct = 30.0), ChannelDrainAccumulation(), options(), 1.0,
+            SetDrain(muscularDrainPct = 10.0, cnsDrainPct = 20.0, spinalDrainPct = 30.0), ChannelDrainAccumulation(), 1.0,
         )
         assertEquals(8.5, result.muscular, 0.0)
         assertEquals(17.0, result.cns, 0.0)
@@ -79,7 +78,7 @@ class SessionDrainRecipeTest {
 
     @Test fun rendimientosDeCadaCanalSeCalculanConSuPropioAcumulado() {
         val result = SessionDrainRecipe.adjustSet(
-            SetDrain(muscularDrainPct = 10.0, cnsDrainPct = 20.0, spinalDrainPct = 30.0), ChannelDrainAccumulation(100.0, 0.0, 200.0), options(), 1.0,
+            SetDrain(muscularDrainPct = 10.0, cnsDrainPct = 20.0, spinalDrainPct = 30.0), ChannelDrainAccumulation(100.0, 0.0, 200.0), 1.0,
         )
         assertEquals(5.151515151515152, result.muscular, 1e-14)
         assertEquals(17.0, result.cns, 1e-14)
@@ -94,7 +93,7 @@ class SessionDrainRecipeTest {
             var acc = ChannelDrainAccumulation()
             repeat(12) {
                 acc = SessionDrainRecipe.adjustSet(
-                    SetDrain(muscularDrainPct = 20.0, cnsDrainPct = 10.0, spinalDrainPct = spinal), acc, options(), 1.0,
+                    SetDrain(muscularDrainPct = 20.0, cnsDrainPct = 10.0, spinalDrainPct = spinal), acc, 1.0,
                 ).accumulatedDrain
             }
             return acc
@@ -137,25 +136,20 @@ class SessionDrainRecipeTest {
 
     @Test fun puertaAxialSoloAfectaAlAcumuladoEspinal() {
         val raw = SetDrain(muscularDrainPct = 10.0, cnsDrainPct = 20.0, spinalDrainPct = 30.0)
-        val beforeOptions = options().copy(axialGatePosition = RecipeOptions.AxialGatePosition.BEFORE_ACCUMULATION)
-        val afterOptions = options().copy(axialGatePosition = RecipeOptions.AxialGatePosition.AFTER_ACCUMULATION)
-        val before = SessionDrainRecipe.adjustSet(raw, ChannelDrainAccumulation(), beforeOptions, 0.4)
-        val after = SessionDrainRecipe.adjustSet(raw, ChannelDrainAccumulation(), afterOptions, 0.4)
-        val none = SessionDrainRecipe.adjustSet(raw, ChannelDrainAccumulation(), options(), 0.4)
-        assertEquals(10.2, before.spinal, 1e-14)
-        assertEquals(ChannelDrainAccumulation(8.5, 17.0, 10.200000000000001), before.accumulatedDrain)
-        assertEquals(25.5, after.spinal, 0.0)
-        assertEquals(ChannelDrainAccumulation(8.5, 17.0, 25.5), after.accumulatedDrain)
-        assertEquals(after, none)
+        val gated = SessionDrainRecipe.adjustSet(raw, ChannelDrainAccumulation(), 0.4)
+        val full = SessionDrainRecipe.adjustSet(raw, ChannelDrainAccumulation(), 1.0)
+        val zero = SessionDrainRecipe.adjustSet(raw, ChannelDrainAccumulation(), 0.0)
+        assertEquals(10.2, gated.spinal, 1e-14)
+        assertEquals(ChannelDrainAccumulation(8.5, 17.0, 10.200000000000001), gated.accumulatedDrain)
+        assertEquals(25.5, full.spinal, 0.0)
+        assertEquals(0.0, zero.accumulatedDrain.spinal, 0.0)
+        assertEquals(full.muscular, zero.muscular, 0.0)
+        assertEquals(full.cns, zero.cns, 0.0)
 
         val db = fixtures.db + ("bench" to fixtures.db.getValue("bench").copy(axialLoadFactor = 0.4))
-        val beforeContext = completed(beforeOptions, db = db).single().context
-        val afterContext = completed(afterOptions, db = db).single().context
-        val noneContext = completed(options(), db = db).single().context
-        assertEquals(1.0, beforeContext.postAccumulationAxialGate, 0.0)
-        assertEquals(0.4, afterContext.postAccumulationAxialGate, 0.0)
-        assertEquals(1.0, noneContext.postAccumulationAxialGate, 0.0)
-        assertEquals(12.24, after.spinal * 1.2 * afterContext.postAccumulationAxialGate, 1e-14)
+        val context = completed(options(), db = db).single().context
+        assertEquals(0.4, context.axialGate, 0.0)
+        assertEquals(12.24, gated.spinal * 1.2, 1e-14)
     }
 
     @Test fun multiplicadoresConservanClaveDirectaPromedioRemapeadoONinguno() {
@@ -341,7 +335,6 @@ class SessionDrainRecipeTest {
             var index = 0
             val choices = options().copy(
                 volumeCounting = RecipeOptions.VolumeCounting.UNILATERAL_HALVES_ROUNDED,
-                axialGatePosition = RecipeOptions.AxialGatePosition.BEFORE_ACCUMULATION,
             )
             recipe(choices).forEachCompleted(
                 fixtures.completed.getValue(id), onCardio = {},

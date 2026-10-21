@@ -307,13 +307,13 @@ class AugeLearnerBiasCharacterizationTest {
                 muscleParam to Measured(7.3, 6.9), cns to Measured(3.7, -3.6), spinalParam to Measured(22.9, 22.9),
             ),
             AugeLearnerSimulator.SCENARIOS[1].name to mapOf(
-                muscleParam to Measured(5.2, -4.4), cns to Measured(9.4, -9.4), spinalParam to Measured(14.2, 14.1),
+                muscleParam to Measured(5.2, -4.4), cns to Measured(9.4, -9.4), spinalParam to Measured(14.3, 14.2),
             ),
             AugeLearnerSimulator.SCENARIOS[2].name to mapOf(
-                muscleParam to Measured(17.4, 17.4), cns to Measured(3.4, 3.0), spinalParam to Measured(34.6, 34.6),
+                muscleParam to Measured(17.4, 17.4), cns to Measured(3.4, 3.0), spinalParam to Measured(34.5, 34.5),
             ),
             AugeLearnerSimulator.SCENARIOS[3].name to mapOf(
-                muscleParam to Measured(7.7, 7.2), cns to Measured(2.9, -1.3), spinalParam to Measured(25.0, 25.0),
+                muscleParam to Measured(7.7, 7.2), cns to Measured(2.9, -1.3), spinalParam to Measured(25.1, 25.1),
             ),
         )
         expected.forEach { (scenarioName, perParam) ->
@@ -347,7 +347,7 @@ class AugeLearnerBiasCharacterizationTest {
         // Guarda de planta (sentido == predicho): ~27 % de las observaciones con σ=4 y ~25 % con σ=7 (antes ~10 % y ~5,5 %). Con la
         // batería redondeada un canal recuperado lee 100 tanto en la verdad como en lo predicho, y el ruido positivo se recorta en 100.
         val plantaSigma4 = mapOf(SimChannel.MUSCLE to 27.4, SimChannel.ENERGY to 26.9, SimChannel.SPINAL to 31.9)
-        val plantaSigma7 = mapOf(SimChannel.MUSCLE to 24.2, SimChannel.ENERGY to 23.1, SimChannel.SPINAL to 27.9)
+        val plantaSigma7 = mapOf(SimChannel.MUSCLE to 24.2, SimChannel.ENERGY to 23.1, SimChannel.SPINAL to 27.8)
         SimChannel.entries.forEach { ch ->
             assertNear("planta σ=4 $ch", plantaPct.getValue("${names[0]}|$ch"), plantaSigma4.getValue(ch), absTol = 1.5)
             assertNear("planta σ=7 $ch", plantaPct.getValue("${names[3]}|$ch"), plantaSigma7.getValue(ch), absTol = 1.5)

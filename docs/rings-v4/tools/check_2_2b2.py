@@ -81,7 +81,9 @@ def golden_changes(before, after):
 
 def by_channel(rows):
     grouped = defaultdict(list)
+    fields = defaultdict(int)
     for row in rows:
+        sizes = {key: len(value) for key, value in grouped.items()}
         a, b, field = row["antes"], row["despues"], row["campo"]
         if field == "rings":
             for channel, av, bv in zip(("Músculos", "Energía", "Columna"), a.split("=")[1].split(","), b.split("=")[1].split(",")):
@@ -98,9 +100,19 @@ def by_channel(rows):
             grouped["Energía"] += row["deltas"]
         elif field in {"spinal", "raw"}:
             grouped["Columna"] += row["deltas"]
+        elif field == "dash":
+            old, new = a.split(";"), b.split(";")
+            grouped["Panel/mixto"] += deltas(old[0], new[0])
+            for av, bv in zip(old[2:], new[2:]):
+                channel = {"MUSCULAR": "Músculos", "SYSTEM": "Energía", "STRUCTURE": "Columna"}[av.split(":")[0]]
+                grouped[channel] += deltas(av, bv)
         else:
             grouped["Panel/mixto"] += row["deltas"]
-    return {channel: stats(grouped[channel]) for channel in ("Músculos", "Energía", "Columna", "Panel/mixto")}
+        for key, value in grouped.items():
+            if len(value) > sizes.get(key, 0):
+                fields[key] += 1
+    return {channel: dict(campos_distintos=fields[channel], **stats(grouped[channel]))
+            for channel in ("Músculos", "Energía", "Columna", "Panel/mixto")}
 
 
 def independent(trace, per_channel):
@@ -282,7 +294,10 @@ def markdown(evidence):
               [[r["caso"], r["instante"], r["campo"], r["antes"], r["despues"],
                 f"{stats(r['deltas'])['maximo']}/{stats(r['deltas'])['media']:.6f}"] for r in data["golden"]])
         lines += ["### Caracterizaciones: todas las líneas distintas", ""]
-        table(["Consumidor/caso", "Antes", "Después"], [[r["caso"], r["antes"], r["despues"]] for r in data["caracterizaciones"]])
+        table(["Consumidor/caso", "Antes", "Después", "Máximo/media"],
+              [[r["caso"], r["antes"], r["despues"],
+                f"{stats(deltas(r['antes'], r['despues']))['maximo']}/{stats(deltas(r['antes'], r['despues']))['media']:.6f}"]
+               for r in data["caracterizaciones"]])
         for key, title in (("pines", "Pines F0"), ("realismo", "Realismo muscular"), ("aprendiz", "Aprendiz: inversión, 30 gestos, observaciones propias y diagnósticos")):
             lines += [f"### {title}", ""]
             table(["Antes", "Después"], [[r["antes"], r["despues"]] for r in data["cambios_"+key]])
@@ -295,6 +310,40 @@ def markdown(evidence):
     table(["Sesión", "Horas", "Antes M/E/C", "Después M/E/C"],
           [[a.split("|")[1], a.split("|")[2], "/".join(a.split("|")[3:]), "/".join(b.split("|")[3:])]
            for a, b in zip(base["impacto"], final["impacto"])])
+    lines += ["## F0 y realismo: comparación completa con la base", ""]
+    table(["Antes", "Después"], [[a, b] for key in ("pines", "realismo") for a, b in zip(base[key], final[key])])
+    lines += ["## Aprendiz: línea base completa que debe batir 3.2", "", "Horas de MAE y sesgo, cocientes y porcentajes identificados en cada fila; mismos usuarios, semillas y observaciones. Incluye valores que permanecen iguales.", ""]
+    table(["Antes", "Después"], [[a, b] for a, b in zip(base["aprendiz"], final["aprendiz"])])
+    lines += ["## Monotonía y decisiones de alcance", "",
+              "Para x′ = x + a/(1 + 0,0065x), las derivadas son ∂x′/∂x = 1 − 0,0065a/(1 + 0,0065x)² y ∂x′/∂a = 1/(1 + 0,0065x). Ambas son positivas con x≥0 y 0,0065a<1. Músculos/Energía tienen a≤0,85·32=27,2 (producto ≤0,1768); Columna conserva su tope real 35: a≤29,75 (≤0,193375). La puerta axial [0,1] no aumenta ese límite. La inducción sobre las series elimina la realimentación cruzada de F-60. Los bonos históricos siguen fuera de la recurrencia y preceden a los topes; no se recalibra ninguna constante.", "",
+              "SessionDrainBoundsTest conserva 32/32/35 y sus cinco pruebas. No se cambian Room, JSON, capacidad, estrés local V2, progresión muscular/neural, SPF, fallback ni el algoritmo de aprendizaje. La unificación del conteo solo modifica el argumento accumulatedSets por pilar. El planificador no materializa side: el editor adopta el mismo contador, sin inventar lados ni cambiar su volumen de UI.", "",
+              "El contrafactual zombi gana diferencias de redondeo tras F-60; se re-ancla su prueba sin aplicar remapeos. La tabla de impacto usa las sesiones existentes C01/C04, con cargas distintas: no aísla causalmente la frecuencia (F-32 sigue para 2.6).", ""]
+    lines += ["## Ejecuciones y reproducción", "", "Base antes de editar producción; tres bloques numéricos con regeneración; verificación final sin regeneración. Los fallos de captura son snapshots anteriores, detallados en el JSON.", ""]
+    rows = []
+    for n, (stage, data) in enumerate(evidence["stages"].items(), 1):
+        t = data["tests"]
+        rows.append([f"C:\\kw\\logs\\r4-2-2b2-{n}.log", stage, t["classes"], t["tests"], t["failures"], t["errors"], t["skipped"]])
+    if "verificacion_final" in evidence:
+        t = evidence["verificacion_final"]
+        rows.append(["C:\\kw\\logs\\r4-2-2b2-5.log", "Verificación final", t["classes"], t["tests"], t["failures"], t["errors"], t["skipped"]])
+    table(["Log", "Propósito", "Clases", "Pruebas", "Fallos", "Errores", "Omitidas"], rows)
+    classes = [
+        "domain.auge.SessionDrainRecipeCharacterizationTest", "screens.sessioneditor.SessionEditorAugeCharacterizationTest",
+        "domain.auge.SessionDrainRecipeTest", "domain.auge.AugeGoldenMasterTest", "domain.auge.AugeRingCharacterizationTest",
+        "domain.auge.AugeRingDrainRealismTest", "domain.auge.SessionDrainBoundsTest", "domain.auge.AugeEditorCompletedParityTest",
+        "domain.auge.AugeLearnerBiasCharacterizationTest", "domain.auge.AugeSyntheticUserInvariantsTest", "domain.auge.RingsIntroSimulatorTest",
+        "screens.sessioneditor.SessionEditorAugeAxialGateTest", "domain.auge.AugePostSessionPreviewImmediateTest",
+        "domain.auge.AugeUnitsConsistencyTest", "domain.auge.BatteryRoundingTest",
+    ]
+    filters = " ".join("--tests 'com.example.kpkn."+name+"'" for name in classes)
+    lines += ["Desde C:\\kw\\v3c; `<n>`=1 base, 2 canales, 3 axial, 4 volumen, 5 verificación. En 2/3/4 se antepone `AUGE_GOLDEN_UPDATE=1` a `bash` dentro de `-c`.", "", "```powershell",
+              "& 'C:\\Program Files\\Git\\bin\\bash.exe' -c \"bash /c/kw/tools/gradle_solo.sh /c/kw/v3c/android-native :app:compileBaseDebugKotlin :app:testBaseDebugUnitTest "+filters+" > /c/kw/logs/r4-2-2b2-<n>.log 2>&1\"",
+              "python -I docs/rings-v4/tools/count_tests.py --clases",
+              "python -I docs/rings-v4/tools/check_2_2b2.py --stage base",
+              "python -I docs/rings-v4/tools/check_2_2b2.py --stage canales --reanchor",
+              "python -I docs/rings-v4/tools/check_2_2b2.py --stage axial --reanchor",
+              "python -I docs/rings-v4/tools/check_2_2b2.py --stage volumen --reanchor",
+              "python -I docs/rings-v4/tools/check_2_2b2.py --verify", "```", ""]
     TABLES.write_text("\n".join(lines), encoding="utf-8")
 
 
@@ -306,11 +355,16 @@ def main():
     parser.add_argument("--refresh", action="store_true", help="Actualiza solo diagnósticos adicionales desde los mismos XML")
     args = parser.parse_args()
     evidence = json.loads(read(REPORT)) if REPORT.exists() else dict(base=BASE, stages={})
+    for recorded in evidence["stages"].values():
+        if "golden" in recorded:
+            recorded["resumen"].update(by_channel(recorded["golden"]))
     if args.refresh:
         latest = next(reversed(evidence["stages"].values()))
         actual = capture(latest["stage"])
         assert latest["snapshots"] == actual["snapshots"]
         latest["contrafactual_zombi"] = actual["contrafactual_zombi"]
+        if "golden" in latest:
+            latest["resumen"].update(by_channel(latest["golden"]))
         REPORT.write_text(json.dumps(evidence, ensure_ascii=False, indent=2)+"\n", encoding="utf-8")
         markdown(evidence)
         print("Diagnósticos actualizados; se conservan las comparaciones antes→después.")
@@ -324,6 +378,9 @@ def main():
         assert hashlib.sha256(read(ROOT/GOLDEN).encode()).hexdigest() == latest["golden_sha256"]
         for key in ("impacto", "series", "aprendiz", "pines", "realismo", "paridad"):
             assert latest[key] == actual[key], key
+        evidence["verificacion_final"] = actual["tests"]
+        REPORT.write_text(json.dumps(evidence, ensure_ascii=False, indent=2)+"\n", encoding="utf-8")
+        markdown(evidence)
         print("Verificación final: recurso, capturas, aprendiz, pines y recálculo Python coinciden; 0 fallos.")
         print(json.dumps(actual["python"], ensure_ascii=False))
         return

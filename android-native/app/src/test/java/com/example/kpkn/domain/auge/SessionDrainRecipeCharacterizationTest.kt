@@ -169,7 +169,7 @@ class SessionDrainRecipeCharacterizationTest(private val caseId: String) {
                 history[6][Cuádriceps]=MuscleRecoveryStatus(muscleName=Cuádriceps, recoveryScore=100, hoursToRecovery=0, hoursSinceLastSession=-1, effectiveSets=0, status=FRESH)
                 history[6][Erectores Espinales]=MuscleRecoveryStatus(muscleName=Erectores Espinales, recoveryScore=97, hoursToRecovery=0, hoursSinceLastSession=6, effectiveSets=5, status=FRESH)
                 history[24].energy=(95, 5, 0)
-                history[24].spinal=100
+                history[24].spinal=99
                 history[24][Pectorales]=MuscleRecoveryStatus(muscleName=Pectorales, recoveryScore=92, hoursToRecovery=0, hoursSinceLastSession=24, effectiveSets=9, status=OPTIMAL)
                 history[24][Cuádriceps]=MuscleRecoveryStatus(muscleName=Cuádriceps, recoveryScore=100, hoursToRecovery=0, hoursSinceLastSession=-1, effectiveSets=0, status=FRESH)
                 history[24][Erectores Espinales]=MuscleRecoveryStatus(muscleName=Erectores Espinales, recoveryScore=98, hoursToRecovery=0, hoursSinceLastSession=24, effectiveSets=5, status=FRESH)

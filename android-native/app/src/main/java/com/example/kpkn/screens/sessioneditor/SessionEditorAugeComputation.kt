@@ -517,7 +517,6 @@ internal fun computeSessionAugeComputation(
         adaptiveCache = AugeAdaptiveCache(),
         options = RecipeOptions(
             volumeCounting = RecipeOptions.VolumeCounting.EFFECTIVE_SET_COUNT,
-            axialGatePosition = RecipeOptions.AxialGatePosition.BEFORE_ACCUMULATION,
             muscleMultiplierSource = RecipeOptions.MuscleMultiplierSource.NONE,
             cardioHandling = RecipeOptions.CardioHandling.CONSUMER_HOOK,
             softCapUnits = RecipeOptions.SoftCapUnits.CHANNEL_PERCENT,
