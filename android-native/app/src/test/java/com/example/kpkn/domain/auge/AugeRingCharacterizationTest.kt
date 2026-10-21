@@ -65,14 +65,14 @@ class AugeRingCharacterizationTest {
         pin("energyHard@0", energy(hard, 0), 81)
         pin("spinalHard@0", spinal(hard, 0), 93)
         pin("chestHard@0", chest(hard, 0), 73)
-        pin("energyHard@12", energy(hard, 12), 92)
-        pin("spinalHard@12", spinal(hard, 12), 97)
+        pin("energyHard@12", energy(hard, 12), 93)
+        pin("spinalHard@12", spinal(hard, 12), 96)
         pin("chestHard@12", chest(hard, 12), 80)
         pin("energyHard@24", energy(hard, 24), 97)
         pin("spinalHard@24", spinal(hard, 24), 99)
         pin("energyHard@48", energy(hard, 48), 100)
         pin("energyHard@72", energy(hard, 72), 100)
-        pin("energyLight@0", energy(light, 0), 90)
+        pin("energyLight@0", energy(light, 0), 91)
         pin("chestLight@0", chest(light, 0), 93)
     }
 

@@ -69,22 +69,48 @@ class SessionDrainRecipeTest {
 
     @Test fun conservacionSinAcumuladoSeCalculaAMano() {
         val result = SessionDrainRecipe.adjustSet(
-            SetDrain(muscularDrainPct = 10.0, cnsDrainPct = 20.0, spinalDrainPct = 30.0), 0.0, options(), 1.0,
+            SetDrain(muscularDrainPct = 10.0, cnsDrainPct = 20.0, spinalDrainPct = 30.0), ChannelDrainAccumulation(), options(), 1.0,
         )
         assertEquals(8.5, result.muscular, 0.0)
         assertEquals(17.0, result.cns, 0.0)
         assertEquals(25.5, result.spinal, 0.0)
-        assertEquals(17.0, result.accumulatedDrain, 0.0)
+        assertEquals(ChannelDrainAccumulation(8.5, 17.0, 25.5), result.accumulatedDrain)
     }
 
-    @Test fun rendimientosYPromedioDeTresCanalesSeCalculanAMano() {
+    @Test fun rendimientosDeCadaCanalSeCalculanConSuPropioAcumulado() {
         val result = SessionDrainRecipe.adjustSet(
-            SetDrain(muscularDrainPct = 10.0, cnsDrainPct = 20.0, spinalDrainPct = 30.0), 100.0, options(), 1.0,
+            SetDrain(muscularDrainPct = 10.0, cnsDrainPct = 20.0, spinalDrainPct = 30.0), ChannelDrainAccumulation(100.0, 0.0, 200.0), options(), 1.0,
         )
         assertEquals(5.151515151515152, result.muscular, 1e-14)
-        assertEquals(10.303030303030304, result.cns, 1e-14)
-        assertEquals(15.454545454545455, result.spinal, 1e-14)
-        assertEquals(110.3030303030303, result.accumulatedDrain, 1e-13)
+        assertEquals(17.0, result.cns, 1e-14)
+        assertEquals(11.08695652173913, result.spinal, 1e-14)
+        assertEquals(105.15151515151516, result.accumulatedDrain.muscular, 1e-13)
+        assertEquals(17.0, result.accumulatedDrain.cns, 0.0)
+        assertEquals(211.08695652173913, result.accumulatedDrain.spinal, 1e-13)
+    }
+
+    @Test fun mayorCargaEspinalNoReduceMusculoNiEnergiaEnLasSeriesSiguientes() {
+        fun totals(spinal: Double): ChannelDrainAccumulation {
+            var acc = ChannelDrainAccumulation()
+            repeat(12) {
+                acc = SessionDrainRecipe.adjustSet(
+                    SetDrain(muscularDrainPct = 20.0, cnsDrainPct = 10.0, spinalDrainPct = spinal), acc, options(), 1.0,
+                ).accumulatedDrain
+            }
+            return acc
+        }
+        val light = totals(1.0)
+        val heavy = totals(35.0)
+        assertEquals(light.muscular, heavy.muscular, 0.0)
+        assertEquals(light.cns, heavy.cns, 0.0)
+        assertTrue(heavy.spinal > light.spinal)
+    }
+
+    @Test fun cardioSumaSusPorcentajesPorCanalAntesDelTope() {
+        val recipe = recipe(options())
+        recipe.accumulateCardio(muscular = 10.0, cns = 20.0, spinal = 30.0)
+        recipe.accumulateCardio(muscular = 2.0, cns = 3.0, spinal = 4.0)
+        assertEquals(ChannelDrainAccumulation(12.0, 23.0, 34.0), recipe.accumulatedDrain)
     }
 
     @Test fun descansoCrudoEsDelEjercicioYElDefaultPlanificadoEsDelUsuario() {
@@ -109,17 +135,17 @@ class SessionDrainRecipeTest {
         assertNotEquals(integer[1].raw, halves[1].raw)
     }
 
-    @Test fun puertaAxialCambiaElPromedioSoloSiSeAplicaAntesDeAcumular() {
+    @Test fun puertaAxialSoloAfectaAlAcumuladoEspinal() {
         val raw = SetDrain(muscularDrainPct = 10.0, cnsDrainPct = 20.0, spinalDrainPct = 30.0)
         val beforeOptions = options().copy(axialGatePosition = RecipeOptions.AxialGatePosition.BEFORE_ACCUMULATION)
         val afterOptions = options().copy(axialGatePosition = RecipeOptions.AxialGatePosition.AFTER_ACCUMULATION)
-        val before = SessionDrainRecipe.adjustSet(raw, 0.0, beforeOptions, 0.4)
-        val after = SessionDrainRecipe.adjustSet(raw, 0.0, afterOptions, 0.4)
-        val none = SessionDrainRecipe.adjustSet(raw, 0.0, options(), 0.4)
+        val before = SessionDrainRecipe.adjustSet(raw, ChannelDrainAccumulation(), beforeOptions, 0.4)
+        val after = SessionDrainRecipe.adjustSet(raw, ChannelDrainAccumulation(), afterOptions, 0.4)
+        val none = SessionDrainRecipe.adjustSet(raw, ChannelDrainAccumulation(), options(), 0.4)
         assertEquals(10.2, before.spinal, 1e-14)
-        assertEquals(11.9, before.accumulatedDrain, 1e-14)
+        assertEquals(ChannelDrainAccumulation(8.5, 17.0, 10.200000000000001), before.accumulatedDrain)
         assertEquals(25.5, after.spinal, 0.0)
-        assertEquals(17.0, after.accumulatedDrain, 0.0)
+        assertEquals(ChannelDrainAccumulation(8.5, 17.0, 25.5), after.accumulatedDrain)
         assertEquals(after, none)
 
         val db = fixtures.db + ("bench" to fixtures.db.getValue("bench").copy(axialLoadFactor = 0.4))
@@ -253,11 +279,11 @@ class SessionDrainRecipeTest {
     }
 
     @Test fun singlePesadoSumaQuincePorCientoSoloAlNeuralAntesDelTope() {
-        val base = AdjustedSetDrain(8.5, 17.0, 25.5, 17.0)
+        val base = AdjustedSetDrain(8.5, 17.0, 25.5, ChannelDrainAccumulation(8.5, 17.0, 25.5))
         val single = CompletedSet("single", weight = 100.0, reps = 1, rpe = 9.5)
         val actual = SessionDrainRecipe.withHeavySingleBonus(base, single)
         assertEquals(19.55, actual.cns, 1e-14)
-        assertEquals(base.accumulatedDrain, actual.accumulatedDrain, 0.0)
+        assertEquals(base.accumulatedDrain, actual.accumulatedDrain)
         assertEquals(base.muscular, actual.muscular, 0.0)
         assertEquals(base.spinal, actual.spinal, 0.0)
         assertEquals(actual, SessionDrainRecipe.withHeavySingleBonus(base, single.copy(reps = 3)))

@@ -48,11 +48,10 @@ class AugeSyntheticUserInvariantsTest {
         const val ACWR_VIOLATION_BUDGET = 0
 
         /**
-         * Monotonía del drenaje: 2 violaciones medidas hoy, ambas en la misma cadena (usuario F2, sesión de tirón, carga
-         * ×0,5 → ×0,75: drenaje muscular 66→65 y V2 global 66→65), de 3.298 comparaciones (ligero, sin F2: 0) y 10.064
-         * (completo). La prueba añade F2 en ambos modos para que el caso quede siempre fijado.
+         * F-60 corregido en 2.2b2: los acumulados por canal eliminan las dos bajadas 66→65 al subir la carga
+         * ×0,5 → ×0,75 en F2/tirón (muscular y V2 global). F2 sigue presente en ambos modos.
          */
-        const val DRAIN_VIOLATION_BUDGET = 2
+        const val DRAIN_VIOLATION_BUDGET = 0
 
         /**
          * Divergencia máxima |vista previa − Home| medida hoy + 1 (F-23): 7 en el modo ligero (126 puntos; la sesión
@@ -255,16 +254,11 @@ class AugeSyntheticUserInvariantsTest {
         }
         println("[SIM-INV] monotonía del drenaje: cadenas=$chains comparaciones=$comparisons violaciones=${violations.size}")
         violations.take(15).forEach { println("[SIM-INV]   $it") }
-        // BUG CONOCIDO F-60 (receta de agregación de sesión; la violación concreta no figura como hallazgo): en
-        // `aggregateSetIntoSessionDrain` el factor de rendimientos decrecientes usa el promedio de los TRES canales
-        // (`accumulatedDrain += (muscular + SNC + columna) / 3`). Subir la carga solo debería subir Columna, pero al crecer ese
-        // promedio las series siguientes pesan menos y el drenaje muscular (y el V2 global, que lo reutiliza) baja 1 punto
-        // (66→65). Presupuesto = 2 violaciones medidas hoy; series y RPE: 0.
-        assertTrue(
+        // Cada canal amortigua su propio acumulado: ninguna subida de carga reduce el drenaje de otro canal.
+        assertEquals(
             "Violaciones de monotonía del drenaje: ${violations.size} (presupuesto $DRAIN_VIOLATION_BUDGET). Primeras: ${violations.take(5)}",
-            violations.size <= DRAIN_VIOLATION_BUDGET,
+            DRAIN_VIOLATION_BUDGET, violations.size,
         )
-        assertTrue("Solo la carga puede violar la monotonía hoy: $violations", violations.all { "más carga" in it })
         assertTrue("La prueba no comparó nada", comparisons > 0)
     }
 

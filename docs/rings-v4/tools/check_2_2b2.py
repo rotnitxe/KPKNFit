@@ -120,6 +120,8 @@ def independent(trace, per_channel):
             counts[pillar] += 1.0 if side == "bilateral" else 0.5
             assert int(count) == math.floor(counts[pillar] + 0.5), (case, index, counts)
             raw, actual = list(map(float, values[:3])), list(map(float, values[3:]))
+            assert all(math.isfinite(value) and 0.0 <= value <= cap for value, cap in zip(raw, (32.0, 32.0, 35.0)))
+            assert all(math.isfinite(value) for value in actual)
             expected = [raw[i] * 0.85 / (1.0 + 0.65 * ((acc[i] if per_channel else shared) / 100.0)) for i in range(3)]
             expected[2] *= float(gate)
             if per_channel:
@@ -151,18 +153,111 @@ def capture(stage):
         pattern = rf"\[2\.2b1-{kind}\]\[([^\]]+)\]\n(.*?)\n\[/2\.2b1-{kind}\]"
         snapshots[kind] = dict(re.findall(pattern, output, re.S))
         assert len(snapshots[kind]) == (7 if kind == "domain" else 6)
+    remapped = dict(re.findall(r"\[2\.2b2-remap\]\[([^\]]+)\]\n(.*?)\n\[/2\.2b2-remap\]", stdout("SessionDrainRecipeCharacterizationTest"), re.S))
+    counterfactual = [dict(caso=case, **row) for case, value in remapped.items()
+                      for row in changed_lines(snapshots["domain"][case].splitlines(), value.splitlines())]
     learner = [line for line in stdout("AugeLearnerBiasCharacterizationTest").splitlines()
                if line.startswith(("[SIM-INV-RATIO]", "[SIM-BUCLE] escenario=", "[SIM-BUCLE-LARGO] escenario=", "[SIM-F11]"))]
     pins = [line for line in stdout("AugeRingCharacterizationTest").splitlines() if line.startswith("[PIN]")]
+    realism = [line for line in stdout("AugeRingDrainRealismTest").splitlines() if line.startswith("[PIN]")]
     invariants = [line for line in stdout("AugeSyntheticUserInvariantsTest").splitlines()
                   if line.startswith("[SIM-INV]") and any(key in line for key in ("violaciones=", "divergencia", "máximo", "discrepancias=", "comparaciones="))]
-    return dict(stage=stage, tests=counts, snapshots=snapshots, impacto=impact, series=trace,
-                python=independent(trace, stage != "base"), aprendiz=learner, pines=pins, invariantes=invariants)
+    parity = [re.sub(r" tiempo=\d+ ms", "", line) for line in stdout("AugeSyntheticUserInvariantsTest").splitlines()
+              if line.startswith("[SIM-PARIDAD] RESUMEN")]
+    assert len(parity) == 4
+    assert int(re.search(r"máx\|Δ\|=(\d+)", parity[-1])[1]) <= 8, parity
+    failures = [dict(prueba=case.get("classname", "")+"."+case.get("name", ""),
+                     mensaje=node.get("message", "").splitlines()[0])
+                for root in roots for case in root.iter("testcase") for node in case if node.tag in {"failure", "error"}]
+    return dict(stage=stage, tests=counts, fallos=failures, snapshots=snapshots, impacto=impact, series=trace,
+                python=independent(trace, stage != "base"), aprendiz=learner, pines=pins, realismo=realism,
+                invariantes=invariants, paridad=parity, contrafactual_zombi=counterfactual)
 
 
 def changed_lines(before, after):
     assert len(before) == len(after), "Cambió la estructura de la captura"
     return [dict(antes=a, despues=b) for a, b in zip(before, after) if a != b]
+
+
+def reanchor_pins(data):
+    """Los nuevos pines proceden exclusivamente de la salida ya calculada por JUnit."""
+    changes = []
+    pending = []
+    path = ROOT/TEST/"domain/auge/AugeRingCharacterizationTest.kt"
+    source = read(path)
+    values = {}
+    for line in data["pines"]:
+        hour = re.search(r"t=(\d+)h", line)
+        if hour:
+            values.update({f"{key}@{hour[1]}": value for key, value in re.findall(r"(energyHard|spinalHard|chestHard|energyLight|chestLight)=(\d+)", line)})
+        else:
+            values.update({f"energy{key}x": value for key, value in re.findall(r"([135])x=(\d+)", line)})
+    def pin(match):
+        label = match[1]
+        assert label in values, label
+        after = match[0][:-len(match[3])-1] + values[label] + ")"
+        if after != match[0]:
+            changes.append(dict(archivo=str(path.relative_to(ROOT)), antes=match[0], despues=after))
+        return after
+    updated = re.sub(r'pin\("([^"]+)", (.*), (\d+)\)', pin, source)
+    if updated != source:
+        pending.append((path, updated))
+
+    path = ROOT/TEST/"domain/auge/AugeLearnerBiasCharacterizationTest.kt"
+    source = read(path)
+    summaries = []
+    for line in data["aprendiz"]:
+        match = re.search(r'^\[SIM-BUCLE\] escenario="([^"]+)" parámetro=(\S+) n=30 .*MAE=(-?[\d.]+) h .*sesgo=(-?[\d.]+) h', line)
+        if match:
+            summaries.append(match.groups())
+    assert len(summaries) == 12, summaries
+    start, end = source.index("        val expected: Map<String, Map<String, Measured>>"), source.index("        expected.forEach")
+    measured = iter(summaries)
+    def pair(match):
+        _, param, mae, bias = next(measured)
+        assert param == {"muscleParam": "pectorales", "cns": "cns", "spinalParam": "spinal"}[match[1]]
+        return f"{match[1]} to Measured({mae}, {bias})"
+    updated = source[:start] + re.sub(r"(muscleParam|cns|spinalParam) to Measured\([-\d., ]+\)", pair, source[start:end]) + source[end:]
+    assert next(measured, None) is None
+    # Los diagnósticos conservan sus márgenes; se actualiza solo el centro medido.
+    away = [re.search(r"alejan\[todos los parámetros\]: ([\d.]+)", line)[1]
+            for line in data["aprendiz"] if "alejan[todos los parámetros]" in line]
+    assert len(away) == 4
+    updated = re.sub(r"listOf\([\d., ]+\)\.forEachIndexed \{ i, want ->", "listOf(" + ", ".join(away) + ").forEachIndexed { i, want ->", updated)
+    guards = [line for line in data["aprendiz"] if "guarda de planta" in line]
+    assert len(guards) == 4
+    for variable, line in (("plantaSigma4", guards[0]), ("plantaSigma7", guards[3])):
+        measurements = re.findall(r"(MUSCLE|ENERGY|SPINAL): planta \d+ de \d+ \(([\d.]+) %\)", line)
+        assert len(measurements) == 3
+        replacement = "val " + variable + " = mapOf(" + ", ".join(f"SimChannel.{key} to {value}" for key, value in measurements) + ")"
+        updated = re.sub(r"val " + variable + r" = mapOf\([^\n]+\)", replacement, updated)
+    # Seis pines de la corrida larga: misma semilla, usuarios y número de observaciones.
+    scenarios = list(dict.fromkeys(row[0] for row in summaries))
+    long_rows = {}
+    for line in data["aprendiz"]:
+        match = re.search(r'^\[SIM-BUCLE-LARGO\] escenario="([^"]+)" parámetro=(\S+) tras (\d+) (observaciones propias|gestos) .*MAE=(-?[\d.]+) h sesgo=(-?[\d.]+) h', line)
+        if match:
+            scenario, param, count, unit, mae, bias = match.groups()
+            long_rows[(scenario, param, count, unit)] = (mae, bias)
+    targets = {
+        "pectorales obs30 MAE": (0, "pectorales", "30", "observaciones propias", 0),
+        "pectorales obs30 sesgo": (0, "pectorales", "30", "observaciones propias", 1),
+        "columna obs30 sesgo": (0, "spinal", "30", "observaciones propias", 1),
+        "columna g100 sesgo": (0, "spinal", "100", "gestos", 1),
+        "pectorales ×0,75 obs30 sesgo": (2, "pectorales", "30", "observaciones propias", 1),
+        "energía ×1,25 obs30 sesgo": (1, "cns", "30", "observaciones propias", 1),
+    }
+    for label, (scenario, param, count, unit, metric) in targets.items():
+        value = long_rows[(scenarios[scenario], param, count, unit)][metric]
+        pattern = r'(assertNear\("' + re.escape(label) + r'", .*?\.(?:mae|bias), )-?[\d.]+'
+        updated, n = re.subn(pattern, lambda m: m[1]+value, updated)
+        assert n == 1, label
+    changes += [dict(archivo=str(path.relative_to(ROOT)), **row) for row in changed_lines(source.splitlines(), updated.splitlines())]
+    if updated != source:
+        pending.append((path, updated))
+    for path, updated in pending:
+        path.write_text(updated, encoding="utf-8")
+    data["reanclajes"] = changes
 
 
 def markdown(evidence):
@@ -188,9 +283,13 @@ def markdown(evidence):
                 f"{stats(r['deltas'])['maximo']}/{stats(r['deltas'])['media']:.6f}"] for r in data["golden"]])
         lines += ["### Caracterizaciones: todas las líneas distintas", ""]
         table(["Consumidor/caso", "Antes", "Después"], [[r["caso"], r["antes"], r["despues"]] for r in data["caracterizaciones"]])
-        for key, title in (("pines", "Pines F0"), ("aprendiz", "Aprendiz: inversión, 30 gestos, observaciones propias y diagnósticos")):
+        for key, title in (("pines", "Pines F0"), ("realismo", "Realismo muscular"), ("aprendiz", "Aprendiz: inversión, 30 gestos, observaciones propias y diagnósticos")):
             lines += [f"### {title}", ""]
             table(["Antes", "Después"], [[r["antes"], r["despues"]] for r in data["cambios_"+key]])
+        lines += ["### Literales re-anclados desde la medición", ""]
+        table(["Archivo", "Antes", "Después"], [[r["archivo"], r["antes"], r["despues"]] for r in data.get("reanclajes", [])])
+        lines += ["### Contrafactual del caché zombi, sin aplicar el remapeo", "", "Se conserva el estado y las tres variantes hasta 3.1. Esta tabla compara la lectura actual con el remapeo hipotético, no dos cambios aplicados.", ""]
+        table(["Caso", "Lectura conservada", "Remapeo hipotético"], [[r["caso"], r["antes"], r["despues"]] for r in data.get("contrafactual_zombi", [])])
     base, final = evidence["stages"]["base"], next(reversed(evidence["stages"].values()))
     lines += ["## Impacto acumulado para el usuario", "", "M/E/C = Músculos/Energía/Columna; relojes UTC. Pecho usa A02 (empuje superior), pierna A01, cuerpo completo/un día C01, cinco días C04 (pierna/empuje/tirón alternados); cardio es remo 120 min, RPE 7. Todos con Settings por defecto y sin bienestar manual.", ""]
     table(["Sesión", "Horas", "Antes M/E/C", "Después M/E/C"],
@@ -204,8 +303,18 @@ def main():
     parser.add_argument("--stage", choices=("base", "canales", "axial", "volumen"))
     parser.add_argument("--reanchor", action="store_true")
     parser.add_argument("--verify", action="store_true")
+    parser.add_argument("--refresh", action="store_true", help="Actualiza solo diagnósticos adicionales desde los mismos XML")
     args = parser.parse_args()
     evidence = json.loads(read(REPORT)) if REPORT.exists() else dict(base=BASE, stages={})
+    if args.refresh:
+        latest = next(reversed(evidence["stages"].values()))
+        actual = capture(latest["stage"])
+        assert latest["snapshots"] == actual["snapshots"]
+        latest["contrafactual_zombi"] = actual["contrafactual_zombi"]
+        REPORT.write_text(json.dumps(evidence, ensure_ascii=False, indent=2)+"\n", encoding="utf-8")
+        markdown(evidence)
+        print("Diagnósticos actualizados; se conservan las comparaciones antes→después.")
+        return
     if args.verify:
         latest = next(reversed(evidence["stages"].values()))
         actual = capture(latest["stage"])
@@ -213,7 +322,7 @@ def main():
         for kind, path in SNAPSHOTS.items():
             assert literals(read(ROOT/path)) == actual["snapshots"][kind]
         assert hashlib.sha256(read(ROOT/GOLDEN).encode()).hexdigest() == latest["golden_sha256"]
-        for key in ("impacto", "series", "aprendiz", "pines"):
+        for key in ("impacto", "series", "aprendiz", "pines", "realismo", "paridad"):
             assert latest[key] == actual[key], key
         print("Verificación final: recurso, capturas, aprendiz, pines y recálculo Python coinciden; 0 fallos.")
         print(json.dumps(actual["python"], ensure_ascii=False))
@@ -235,14 +344,21 @@ def main():
             rows = [r for r in data["golden"] if r["caso"].startswith(category)]
             data["resumen"][category] = dict(campos_distintos=len(rows), **stats([d for r in rows for d in r["deltas"]]))
         data["resumen"].update(by_channel(data["golden"]))
+        assert all(row["campo"] != "v2" for row in data["golden"]), "El estrés local V2 queda fuera de 2.2b2"
+        if args.stage == "axial":
+            assert data["resumen"]["Músculos"]["numeros_distintos"] == 0, "La puerta axial contaminó Músculos"
+            assert data["resumen"]["Energía"]["numeros_distintos"] == 0, "La puerta axial contaminó Energía"
+        if args.stage == "volumen":
+            assert all(row["caso"] == "A09" for row in data["golden"]), "El conteo movió un caso bilateral"
         data["caracterizaciones"] = []
         for kind, path in SNAPSHOTS.items():
             current = literals(read(ROOT/path))
             assert current == previous["snapshots"][kind], f"La base de {kind} ya fue alterada"
             for case, before in current.items():
                 data["caracterizaciones"] += [dict(caso=f"{kind}/{case}", **row) for row in changed_lines(before.splitlines(), data["snapshots"][kind][case].splitlines())]
-        for key in ("pines", "aprendiz"):
+        for key in ("pines", "realismo", "aprendiz"):
             data["cambios_"+key] = changed_lines(previous[key], data[key])
+        reanchor_pins(data)
         for kind, path in SNAPSHOTS.items():
             updated = LITERAL.sub(lambda m: f'            "{m[1]}" to """\n' + textwrap.indent(data["snapshots"][kind][m[1]], "                ") + '\n            """.trimIndent()', read(ROOT/path))
             (ROOT/path).write_text(updated, encoding="utf-8")

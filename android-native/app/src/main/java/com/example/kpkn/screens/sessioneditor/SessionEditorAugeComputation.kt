@@ -548,7 +548,11 @@ internal fun computeSessionAugeComputation(
             pipelinedTotalCns += cappedCns
             pipelinedTotalMuscular += cappedMuscular
             pipelinedTotalSpinal += cappedSpinal
-            recipe.accumulatedDrain += (cappedCns + cappedMuscular + cappedSpinal) / 3.0
+            recipe.accumulateCardio( // El editor usa la misma suma por canal y antes del tope que el cierre.
+                muscular = cardioDrain.muscular, // Cardio muscular sin conservación adicional.
+                cns = cardioDrain.cns, // El editor trabaja con caché vacía.
+                spinal = cardioDrain.spinal, // La puerta axial solo corresponde a las series de fuerza.
+            ) // El reparto y los insights de cardio conservan sus unidades.
             totalSets += 1
             rpeSum += rpe
             rpeCount += 1

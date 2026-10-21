@@ -20,11 +20,18 @@ internal data class RecipeOptions(
     enum class SoftCapUnits { CHANNEL_PERCENT, MUSCLE_STRESS_UNITS, LOG_PERCENT, NONE }
 }
 
+/** Acumulados independientes, antes de topes y bonos del consumidor (F-60). */
+internal data class ChannelDrainAccumulation( // Cada canal amortigua solamente su propio drenaje.
+    val muscular: Double = 0.0, // Porcentaje muscular ajustado de la sesión.
+    val cns: Double = 0.0, // Porcentaje neural ajustado de la sesión.
+    val spinal: Double = 0.0, // Porcentaje espinal tras la puerta axial cuando procede.
+) // Las unidades son porcentajes, nunca unidades de estrés muscular.
+
 internal data class AdjustedSetDrain(
     val muscular: Double,
     val cns: Double,
     val spinal: Double,
-    val accumulatedDrain: Double,
+    val accumulatedDrain: ChannelDrainAccumulation, // Sin promedio ni realimentación entre canales.
 )
 
 internal data class RecipeExerciseIdentity(
@@ -57,7 +64,17 @@ internal class SessionDrainRecipe(
     private val options: RecipeOptions,
     private val resolveInfo: (RecipeExerciseIdentity) -> ExerciseMuscleInfo?,
 ) {
-    var accumulatedDrain: Double = 0.0
+    var accumulatedDrain = ChannelDrainAccumulation() // Estado independiente de los topes del consumidor.
+        private set // El cardio también entra mediante una suma explícita por canal.
+
+    /** El gancho conserva su escala de cardio; el acumulado recibe sus porcentajes antes del tope. */
+    fun accumulateCardio(muscular: Double, cns: Double, spinal: Double) { // Cardio no adopta la conservación de fuerza.
+        accumulatedDrain = ChannelDrainAccumulation( // No mezcla la carga neural con la muscular.
+            muscular = accumulatedDrain.muscular + muscular, // Porcentaje muscular del gancho.
+            cns = accumulatedDrain.cns + cns, // Porcentaje neural del gancho.
+            spinal = accumulatedDrain.spinal + spinal, // Porcentaje espinal del gancho.
+        ) // Los topes siguen aplicándose únicamente en cada consumidor.
+    } // B–E mantienen sus ganchos históricos sin esta realimentación de cardio.
 
     private val integerVolume = mutableMapOf<String, Int>()
     private val halfVolume = mutableMapOf<String, Double>()
@@ -228,24 +245,36 @@ internal class SessionDrainRecipe(
     }
 
     companion object {
-        /** Se mantiene el promedio de tres canales sin topar, incluso su dependencia cruzada (F-60). */
-        fun adjustSet(drain: SetDrain, accumulatedDrain: Double, options: RecipeOptions, axialGate: Double): AdjustedSetDrain {
+        /**
+         * F-60: cada canal usa x' = x + a/(1 + K·x/100), sin promediar otros canales.
+         * Para x ≥ 0, ∂x'/∂x = 1 − (a·K/100)/(1 + K·x/100)² > 0 si a·K/100 < 1;
+         * también ∂x'/∂a > 0. Con conservación 0,85, K = 0,65 y tope muscular/neural 32,
+         * a ≤ 27,2 y a·0,0065 ≤ 0,1768. Columna permite 35: a ≤ 29,75 y el producto
+         * sigue siendo ≤ 0,193375. Una puerta axial en [0,1] solo reduce ese límite.
+         * Por inducción, el acumulado de cada canal es monótono en su drenaje crudo y en la carga.
+         * Los topes y los bonos históricos se aplican después, sin alterar esta recurrencia.
+         */
+        fun adjustSet(drain: SetDrain, accumulatedDrain: ChannelDrainAccumulation, options: RecipeOptions, axialGate: Double): AdjustedSetDrain { // Estado por canal.
             val conservationFactor = AugeUtils.SESSION_CONSERVATION_FACTOR
             val decayK = AugeUtils.SESSION_DECAY_K
-            val diminishingFactor = 1.0 / (1.0 + decayK * (accumulatedDrain / 100.0))
-            val muscular = drain.muscularDrainPct * conservationFactor * diminishingFactor
-            val cns = drain.cnsDrainPct * conservationFactor * diminishingFactor
+            fun diminishing(accumulated: Double) = 1.0 / (1.0 + decayK * (accumulated / 100.0)) // Mismo K, un acumulado por canal.
+            val muscular = drain.muscularDrainPct * conservationFactor * diminishing(accumulatedDrain.muscular) // Solo fatiga muscular.
+            val cns = drain.cnsDrainPct * conservationFactor * diminishing(accumulatedDrain.cns) // Solo fatiga neural.
             val spinal = if (options.axialGatePosition == RecipeOptions.AxialGatePosition.BEFORE_ACCUMULATION) {
-                drain.spinalDrainPct * conservationFactor * diminishingFactor * axialGate
+                drain.spinalDrainPct * conservationFactor * diminishing(accumulatedDrain.spinal) * axialGate // Acumula lo aplicado.
             } else {
-                drain.spinalDrainPct * conservationFactor * diminishingFactor
+                drain.spinalDrainPct * conservationFactor * diminishing(accumulatedDrain.spinal) // La posición axial se unifica en el bloque siguiente.
             }
-            return AdjustedSetDrain(muscular, cns, spinal, accumulatedDrain + (muscular + cns + spinal) / 3.0)
+            return AdjustedSetDrain(muscular, cns, spinal, ChannelDrainAccumulation( // Sin tope blando ni promedio.
+                muscular = accumulatedDrain.muscular + muscular, // El canal muscular no recibe SNC ni Columna.
+                cns = accumulatedDrain.cns + cns, // El canal neural no recibe músculo ni Columna.
+                spinal = accumulatedDrain.spinal + spinal, // El canal espinal conserva la puerta aplicada.
+            )) // El consumidor recibe el ajuste y el nuevo estado por separado.
         }
 
         fun conserveCardio(drain: Double): Double = drain * AugeUtils.SESSION_CONSERVATION_FACTOR
 
-        /** El bono neural precede al tope blando y no realimenta el acumulado de tres canales. */
+        /** El bono neural precede al tope blando y conserva su exclusión del acumulado de la receta. */
         fun withHeavySingleBonus(drain: AdjustedSetDrain, set: CompletedSet): AdjustedSetDrain =
             if (set.weight > 0.0 && set.reps <= 3 && AugeFatigueEngine.getEffectiveRPE(set) >= 9.5) {
                 drain.copy(cns = drain.cns + drain.cns * 0.15)

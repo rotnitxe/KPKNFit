@@ -304,16 +304,16 @@ class AugeLearnerBiasCharacterizationTest {
         // −3,6 h: los gestos a 30-60 h y a >60 h (×1,34 y ×2,06) caen más en la guarda de planta y pesan menos que los de ≤30 h (×0,70).
         val expected: Map<String, Map<String, Measured>> = mapOf(
             AugeLearnerSimulator.SCENARIOS[0].name to mapOf(
-                muscleParam to Measured(7.3, 6.9), cns to Measured(3.8, -3.6), spinalParam to Measured(23.8, 23.8),
+                muscleParam to Measured(7.3, 6.9), cns to Measured(3.7, -3.6), spinalParam to Measured(22.9, 22.9),
             ),
             AugeLearnerSimulator.SCENARIOS[1].name to mapOf(
-                muscleParam to Measured(5.2, -4.4), cns to Measured(9.5, -9.5), spinalParam to Measured(14.1, 13.9),
+                muscleParam to Measured(5.2, -4.4), cns to Measured(9.4, -9.4), spinalParam to Measured(14.2, 14.1),
             ),
             AugeLearnerSimulator.SCENARIOS[2].name to mapOf(
-                muscleParam to Measured(17.4, 17.4), cns to Measured(3.3, 2.8), spinalParam to Measured(34.9, 34.9),
+                muscleParam to Measured(17.4, 17.4), cns to Measured(3.4, 3.0), spinalParam to Measured(34.6, 34.6),
             ),
             AugeLearnerSimulator.SCENARIOS[3].name to mapOf(
-                muscleParam to Measured(7.7, 7.2), cns to Measured(2.8, -1.3), spinalParam to Measured(25.7, 25.7),
+                muscleParam to Measured(7.7, 7.2), cns to Measured(2.9, -1.3), spinalParam to Measured(25.0, 25.0),
             ),
         )
         expected.forEach { (scenarioName, perParam) ->
@@ -341,13 +341,13 @@ class AugeLearnerBiasCharacterizationTest {
         assertTrue(tableByKey.getValue("${names[3]}|$spinalParam|30").mae >= tableByKey.getValue("${names[0]}|$spinalParam|30").mae)
         // Actualizaciones que alejan τ del verdadero (todos los parámetros): medido 64,8 / 44,3 / 58,9 / 64,8 % (antes del redondeo
         // 70,6 / 51,4 / 66,0 / 70,4 %; plan: ~57 %).
-        listOf(64.8, 44.3, 58.9, 64.8).forEachIndexed { i, want ->
+        listOf(64.7, 44.3, 58.8, 64.6).forEachIndexed { i, want ->
             assertNear("alejan[todos] ${names[i]}", awayAll.getValue(names[i]).pct, want, absTol = 3.0)
         }
         // Guarda de planta (sentido == predicho): ~27 % de las observaciones con σ=4 y ~25 % con σ=7 (antes ~10 % y ~5,5 %). Con la
         // batería redondeada un canal recuperado lee 100 tanto en la verdad como en lo predicho, y el ruido positivo se recorta en 100.
-        val plantaSigma4 = mapOf(SimChannel.MUSCLE to 27.4, SimChannel.ENERGY to 26.5, SimChannel.SPINAL to 32.6)
-        val plantaSigma7 = mapOf(SimChannel.MUSCLE to 24.2, SimChannel.ENERGY to 22.9, SimChannel.SPINAL to 28.9)
+        val plantaSigma4 = mapOf(SimChannel.MUSCLE to 27.4, SimChannel.ENERGY to 26.9, SimChannel.SPINAL to 31.9)
+        val plantaSigma7 = mapOf(SimChannel.MUSCLE to 24.2, SimChannel.ENERGY to 23.1, SimChannel.SPINAL to 27.9)
         SimChannel.entries.forEach { ch ->
             assertNear("planta σ=4 $ch", plantaPct.getValue("${names[0]}|$ch"), plantaSigma4.getValue(ch), absTol = 1.5)
             assertNear("planta σ=7 $ch", plantaPct.getValue("${names[3]}|$ch"), plantaSigma7.getValue(ch), absTol = 1.5)
@@ -409,10 +409,10 @@ class AugeLearnerBiasCharacterizationTest {
         val names = AugeLearnerSimulator.SCENARIOS.map { it.name }
         assertNear("pectorales obs30 MAE", byKey.getValue("${names[0]}|$muscleParam|obs30").mae, 9.9)
         assertNear("pectorales obs30 sesgo", byKey.getValue("${names[0]}|$muscleParam|obs30").bias, 9.5, absTol = 1.5)
-        assertNear("columna obs30 sesgo", byKey.getValue("${names[0]}|spinal|obs30").bias, 22.7, absTol = 1.5)
-        assertNear("columna g100 sesgo", byKey.getValue("${names[0]}|spinal|g100").bias, 37.8, absTol = 1.5)
+        assertNear("columna obs30 sesgo", byKey.getValue("${names[0]}|spinal|obs30").bias, 22.0, absTol = 1.5)
+        assertNear("columna g100 sesgo", byKey.getValue("${names[0]}|spinal|g100").bias, 36.6, absTol = 1.5)
         assertNear("pectorales ×0,75 obs30 sesgo", byKey.getValue("${names[2]}|$muscleParam|obs30").bias, 19.1, absTol = 1.5)
-        assertNear("energía ×1,25 obs30 sesgo", byKey.getValue("${names[1]}|cns|obs30").bias, -11.0, absTol = 1.5)
+        assertNear("energía ×1,25 obs30 sesgo", byKey.getValue("${names[1]}|cns|obs30").bias, -11.3, absTol = 1.5)
     }
 
     @Test
