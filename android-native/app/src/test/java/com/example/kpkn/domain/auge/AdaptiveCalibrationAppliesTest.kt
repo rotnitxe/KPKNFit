@@ -75,7 +75,7 @@ class AdaptiveCalibrationAppliesTest {
     }
 
     @Test
-    fun cnsAndSpinalLearningDeltas_moveGlobalBatteries() {
+    fun deltasHeredadosNoMuevenLosAnillos() {
         // Reloj explícito (WP 1.7): lunes 2025-03-03 10:00 UTC; ningún dato depende del reloj real.
         val now = java.time.Instant.parse("2025-03-03T10:00:00Z").toEpochMilli()
         val wellbeing = com.example.kpkn.data.models.DailyWellbeingLog(
@@ -90,26 +90,16 @@ class AdaptiveCalibrationAppliesTest {
             wellbeing = wellbeing,
             settings = Settings(),
             adaptiveCache = AugeAdaptiveCache(),
-            nowOverrideMs = now,
+            nowOverrideMs = now, zone = java.time.ZoneId.of("UTC"),
         )
         val calibrated = AugeRecoveryEngine.calculateGlobalBatteries(
             history = emptyList(),
             wellbeing = wellbeing,
             settings = Settings(),
-            adaptiveCache = AugeAdaptiveCache(
-                cnsLearningDelta = 12.0,
-                spinalLearningDelta = -10.0,
-            ),
-            nowOverrideMs = now,
+            adaptiveCache = AugeAdaptiveCacheMigration.migrate(kotlinx.serialization.json.Json { ignoreUnknownKeys = true }.decodeFromString<AugeAdaptiveCache>("""{"schemaVersion":3,"cnsLearningDelta":12.0,"spinalLearningDelta":-10.0}"""), 3),
+            nowOverrideMs = now, zone = java.time.ZoneId.of("UTC"),
         )
-        assertTrue(
-            "Positive CNS delta should raise SYSTEM ring (${baseline.cnc} → ${calibrated.cnc})",
-            calibrated.cnc > baseline.cnc,
-        )
-        assertTrue(
-            "Negative spinal delta should lower STRUCTURE ring (${baseline.spinal} → ${calibrated.spinal})",
-            calibrated.spinal < baseline.spinal,
-        )
+        assertEquals(baseline, calibrated)
     }
 
     @Test

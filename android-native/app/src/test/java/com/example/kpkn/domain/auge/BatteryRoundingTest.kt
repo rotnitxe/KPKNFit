@@ -17,6 +17,7 @@ import com.example.kpkn.data.models.WorkoutLog
 import com.example.kpkn.screens.home.ringPercent
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
+import com.example.kpkn.data.db.toAdaptiveCache
 import org.junit.Test
 import java.time.Instant
 import java.time.ZoneId
@@ -264,13 +265,9 @@ class BatteryRoundingTest {
     }
 
     @Test
-    fun losTresAnillosGlobalesRedondeanLaCorreccionDelAprendizaje() {
-        // Todo recuperado y una corrección de −0,4: el valor final es 99,6 y debe leerse 100 en los tres anillos.
-        val cache = AugeAdaptiveCache(
-            muscleDeltas = mapOf("pectorales" to -0.4),
-            cnsLearningDelta = -0.4,
-            spinalLearningDelta = -0.4,
-        )
+    fun losTresAnillosGlobalesIgnoranLaCorreccionHeredada() {
+        val cache = com.example.kpkn.data.db.AugeAdaptiveCacheEntity(data =
+            """{"schemaVersion":3,"muscleDeltas":{"pectorales":-0.4},"cnsLearningDelta":-0.4,"spinalLearningDelta":-0.4}""").toAdaptiveCache()
         val globales = AugeRecoveryEngine.calculateGlobalBatteries(
             history = emptyList(), wellbeing = null, settings = settings, adaptiveCache = cache,
             precomputedMuscles = freshPillars(), nowOverrideMs = origin,

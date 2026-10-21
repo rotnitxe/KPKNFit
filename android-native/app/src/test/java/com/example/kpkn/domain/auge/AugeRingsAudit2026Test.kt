@@ -125,27 +125,13 @@ class CardioSystemicDrainTest {
 }
 
 class AdaptiveCacheSchema3MigrationTest {
-    @Test
-    fun schema2ResetsSystemTauAndKeepsMuscles() {
-        val v2 = AugeAdaptiveCache(
-            schemaVersion = 2,
-            personalizedRecoveryHours = mapOf("pectorales" to 55.0),
-            cnsRecoveryHours = 90.0,
-            spinalRecoveryHours = 110.0,
-            cnsLearningDelta = 8.0,
-            spinalLearningDelta = -6.0,
-            cnsDrainMultiplier = 1.2,
-            spinalDrainMultiplier = 0.8,
-        )
-        val next = AugeAdaptiveCacheMigration.migrate(v2, storedVersion = 2)
-        assertEquals(3, next.schemaVersion)
-        assertEquals(55.0, next.personalizedRecoveryHours["pectorales"])
+    @Test fun schema2DescartaTambienTauMuscular() {
+        val next = AugeAdaptiveCacheMigration.migrate(AugeAdaptiveCache(schemaVersion = 2,
+            personalizedRecoveryHours = mapOf("pectorales" to 55.0), cnsRecoveryHours = 90.0, spinalRecoveryHours = 110.0), 2)
+        assertEquals(4, next.schemaVersion)
+        assertTrue(next.personalizedRecoveryHours.isEmpty())
         assertNull(next.cnsRecoveryHours)
         assertNull(next.spinalRecoveryHours)
-        assertEquals(0.0, next.cnsLearningDelta, 0.0)
-        assertEquals(0.0, next.spinalLearningDelta, 0.0)
-        assertEquals(1.0, next.cnsDrainMultiplier, 0.0)
-        assertEquals(1.0, next.spinalDrainMultiplier, 0.0)
     }
 }
 
