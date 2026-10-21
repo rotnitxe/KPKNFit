@@ -1,6 +1,9 @@
 package com.example.kpkn.domain.auge
 
 import com.example.kpkn.data.models.*
+import com.example.kpkn.domain.onboarding.RingsCoverage
+import com.example.kpkn.domain.onboarding.RingsChannelCoverage
+import com.example.kpkn.domain.onboarding.RingsCoverageSource
 import org.junit.Assert.*
 import org.junit.Test
 import java.time.ZoneId
@@ -108,6 +111,14 @@ class Rings110IntegrationTest {
 
     @Test
     fun `dashboard conserva calculo de score general pero titular solo habla de canal con datos`() {
+        val coverage = RingsCoverage.NO_DATA.copy(
+            muscular = RingsChannelCoverage(
+                channel = RecoveryChannelId.MUSCULAR,
+                source = RingsCoverageSource.MANUAL_CHECK_IN,
+                uncertainty = 10,
+                score = 65,
+            )
+        )
         val detail = AugeRecoveryEngine.calculateRecoveryDashboardDetail(
             muscularScore = 65.0,
             systemScore = 100.0,
@@ -115,11 +126,7 @@ class Rings110IntegrationTest {
             perMuscle = emptyMap(),
             energyEstimate = null,
             spinalEstimate = null,
-            coverage = RingsCoverage(
-                muscular = ChannelCoverage(hasData = true, source = "checkin"),
-                system = ChannelCoverage(hasData = false, source = "none"),
-                structure = ChannelCoverage(hasData = false, source = "none"),
-            )
+            coverage = coverage,
         )
         // Score general ponderado se calcula matemáticamente igual
         assertEquals(72, detail.dashboard.overallScore)
