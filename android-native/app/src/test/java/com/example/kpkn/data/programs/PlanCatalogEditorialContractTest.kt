@@ -586,17 +586,19 @@ class PlanCatalogEditorialContractTest {
     }
 
     @Test
-    fun juggernaut_summary_distinguishes_method_increment_from_performance_proposal() {
+    fun juggernaut_summary_says_how_the_tm_moves_after_each_wave() {
+        // CAL5: Juggernaut ya no sube un salto fijo por ola: el máximo de entrenamiento sale de las repeticiones del AMRAP de realización.
         val entry = entry("protocol:juggernaut-2")
         val recipe = requireNotNull(entry.recipe)
-        val rule = recipe.progression as ProgressionRule.CycleIncrement
-        assertEquals(IncrementScope.BLOCK, rule.scope)
-        assertEquals(2.5, rule.upperKg, 0.0)
-        assertEquals(5.0, rule.lowerKg, 0.0)
+        val rule = recipe.progression as ProgressionRule.RepsOverStandardTm
+        assertEquals(2.5, rule.lowerKgPerRep, 0.0)
+        assertEquals(1.25, rule.upperKgPerRep, 0.0)
+        assertEquals(10, rule.maxExtraReps)
         assertEquals(setOf(4, 8, 12, 16), recipe.weeks.filter { it.kind == WeekExecutionKind.DELOAD }.map { it.weekNumber }.toSet())
-        assertTrue("el rendimiento se presenta como propuesta", entry.summary.contains("puede proponer ajustar"))
-        assertTrue("el incremento se asocia a la ola siguiente", entry.summary.contains("Al empezar la siguiente ola"))
-        assertTrue("el cierre corto no promete subir", entry.summary.contains("si cumpliste las repeticiones previstas"))
+        assertTrue("el cambio se asocia a la ola siguiente", entry.summary.contains("Al empezar la siguiente ola"))
+        assertTrue("cada repetición sobre el objetivo cuenta", entry.summary.contains("por cada repetición sobre el objetivo"))
+        assertTrue("el tope de repeticiones extra", entry.summary.contains("hasta 10 extra"))
+        assertTrue("sin superar el objetivo no cambia", entry.summary.contains("no cambia"))
     }
 
     // ─── Ayudas ───────────────────────────────────────────────────────────────

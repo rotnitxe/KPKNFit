@@ -1068,11 +1068,12 @@ class ProtocolRecipeFidelityTest {
 
     @Test
     fun juggernaut_closes_each_wave_with_a_deload_week_and_raises_the_tm_when_entering_a_wave() {
-        // B.S6 parte 2b: `CycleIncrement(2,5; 5; BLOCK)` (Juggernaut no se repite: sube al entrar en cada ola, no al cerrar un ciclo) y la cuarta
-        // semana de cada ola (4, 8, 12 y 16) es la descarga del método (`kind = DELOAD`, T2 y T3 a 2 series de RPE 6; el T1 conserva su tabla).
+        // B.S6 parte 2b: Juggernaut no se repite: su TM cambia al entrar en cada ola, no al cerrar un ciclo; y la cuarta semana de cada ola (4, 8, 12 y 16)
+        // es la descarga del método (`kind = DELOAD`, T2 y T3 a 2 series de RPE 6; el T1 conserva su tabla). CAL5: el cambio sale de las repeticiones del
+        // AMRAP de realización (`RepsOverStandardTm`: 2,5 kg por repetición sobre el estándar en tren inferior y 1,25 kg en superior, hasta 10 extra).
         val protocol = visible().first { it.id == "juggernaut-2" }
         val recipe = protocol.recipe!!
-        assertEquals(ProgressionRule.CycleIncrement(upperKg = 2.5, lowerKg = 5.0, scope = IncrementScope.BLOCK), recipe.progression)
+        assertEquals(ProgressionRule.RepsOverStandardTm(lowerKgPerRep = 2.5, upperKgPerRep = 1.25, maxExtraReps = 10), recipe.progression)
         assertEquals(listOf(4, 8, 12, 16), recipe.weeks.filter { it.kind == WeekExecutionKind.DELOAD }.map { it.weekNumber })
         assertEquals("4 olas de 4 semanas", listOf(4, 4, 4, 4), recipe.weeks.groupBy { it.blockIndex }.values.map { it.size })
         recipe.weeks.forEach { week ->

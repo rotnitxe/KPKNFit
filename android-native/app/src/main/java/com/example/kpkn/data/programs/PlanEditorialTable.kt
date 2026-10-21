@@ -882,10 +882,10 @@ internal object PlanEditorialTable {
             thirdParty(
                 displayName = "Juggernaut Method 2.0",
                 summary = "16 semanas en cuatro olas de 4, de 10, 8, 5 y 3 repeticiones, con 4 días. La tercera " +
-                    "semana incluye una serie al máximo de repeticiones que puede proponer ajustar tu máximo " +
-                    "de entrenamiento; la cuarta es de descarga. Al empezar la siguiente ola, si cumpliste " +
-                    "las repeticiones previstas, ese máximo " +
-                    "sube 2,5 kg en banca y press y 5 kg en sentadilla y peso muerto.",
+                    "semana de cada ola termina con una serie al máximo de repeticiones; la cuarta es de descarga. " +
+                    "Al empezar la siguiente ola, tu máximo de entrenamiento sube 2,5 kg (sentadilla y peso " +
+                    "muerto) o 1,25 kg (banca y press) por cada repetición sobre el objetivo, hasta 10 extra; si " +
+                    "no lo superas, no cambia.",
                 rank = 460,
                 level = CatalogLevel.ADVANCED,
                 methodName = "Juggernaut Method 2.0",
