@@ -69,7 +69,8 @@ private object VelocityBenchDiagnostic {
         }
         require(built is CountSeriesResult.Ok)
         val series = built.series
-        val segmented = RepSegmenter.segment(series, profile, emptySet(), tuning)
+        // Como el motor desde M2: la segmentación revisa la captura (encuadre y desplazamiento) con la traza preparada.
+        val segmented = RepSegmenter.segment(series, profile, emptySet(), tuning, prepared)
         require(segmented.fullCount == result.report.repCount && segmented.partialCount == result.report.partialReps && segmented.failedCount == result.report.failedReps) { "Reconstrucción distinta del motor: ${fixture.id}" }
         val oriented = if (segmented.polarityFlipped) negated(series) else series
         val phases = RepPhases.compute(oriented, segmented, profile, tuning)

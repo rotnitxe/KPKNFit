@@ -2,6 +2,8 @@ package com.example.kpkn.domain.biomechanics.metrics
 
 import com.example.kpkn.domain.biomechanics.bar.BarSample
 import com.example.kpkn.domain.biomechanics.bar.BarTrack
+import com.example.kpkn.domain.biomechanics.bar.PlateSeed
+import com.example.kpkn.domain.biomechanics.bar.PlateTrackingContinuity
 import com.example.kpkn.domain.biomechanics.kinematics.ViewKind
 import com.example.kpkn.domain.biomechanics.pose.PoseLandmark
 import com.example.kpkn.domain.biomechanics.profiles.AnalysisProfile
@@ -56,7 +58,7 @@ class ObservationsTest {
     ): Run {
         val report = TechniqueAnalysisEngine.analyze(TechniqueAnalysisInput(result.track, bar, profile, null, null, hints, tuning))
         val scene = MetricsTestSupport.scene(result, profile, bar, hints, tuning) ?: error("sin señal: ${report.noRepsReason}")
-        val path = PathMetrics.compute(scene.ctx)
+        val path = PathMetrics.compute(scene.ctx, bar = bar)
         val found = Observations.candidates(
             report, scene.run.prepared, profile, report.scale ?: ScaleInfo.NONE, tuning, if (withContext) scene.ctx else null, path, hints,
         )
@@ -899,7 +901,9 @@ class ObservationsTest {
                     source = com.example.kpkn.domain.biomechanics.bar.BarSampleSource.HOUGH,
                 )
             }
-            return BarTrack(r.track.mediaId, 720, 1280, 450, null, samples)
+            val seed = samples.first().let { PlateSeed(it.tUs, it.cx, it.cy, it.r, true) }
+            return BarTrack(r.track.mediaId, 720, 1280, 450, seed, samples,
+                trackingContinuity = PlateTrackingContinuity.UNINTERRUPTED)
         }
 
         val ahead = analyze(fixedFeet, profile(AnalysisProfileId.HINGE, plate = true), plateAhead(0.11))

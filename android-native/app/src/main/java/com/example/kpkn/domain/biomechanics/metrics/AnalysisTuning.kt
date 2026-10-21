@@ -44,8 +44,12 @@ data class AnalysisTuning(
     val fillCountGapS: Double = 0.60,
     /** Fracción mínima de fotogramas con pose para dar por buena la serie con un lado en un perfil por lado (§6 p9). */
     val perSideMinValid: Double = 0.70,
-    /** Segundos mínimos de señal observada para que haya serie. */
-    val minObservedS: Double = 2.0,
+    /**
+     * Segundos mínimos de señal observada para que haya serie. M2, iteración 2: va acoplado a [minSeriesS] y sale de la
+     * validación cruzada dejando un fold fuera (candidatos 1/1,5/2/2,5/3 s; las rotaciones eligieron 1, 1, 1 y 1,5 s): el
+     * producto usa el más conservador de los elegidos. La confianza sigue exigiendo bordes completos en un single o un doble.
+     */
+    val minObservedS: Double = 1.5,
 
     // ---------------------------------------------------------------------------------------------------------
     // §5 · disco como señal principal y caminar
@@ -73,8 +77,11 @@ data class AnalysisTuning(
     // ---------------------------------------------------------------------------------------------------------
     // §6 · segmentador
     // ---------------------------------------------------------------------------------------------------------
-    /** Menos de estos segundos de señal válida: «too_short». */
-    val minSeriesS: Double = 3.0,
+    /**
+     * Menos de estos segundos de señal válida: «too_short». Acoplado a [minObservedS] (mismo valor y misma validación
+     * cruzada): bastan para intentar un ciclo, nunca para certificarlo solo por su duración.
+     */
+    val minSeriesS: Double = 1.5,
     /** p1: σn = 1,4826·MAD(r − LP(r, 5 Hz)). */
     val noiseLowPassHz: Double = 5.0,
     /** p2: rd = LP(r, 2,5 Hz) hasta conocer T0. */
@@ -342,6 +349,32 @@ data class MetricsTuning(
     val peakMinFps: Double = 50.0,
     /** Una concéntrica más corta que esto (s) no da MCV. */
     val minConcentricS: Double = 0.10,
+    /** Count publication checks; kept in a group because AnalysisTuning's JVM constructor is full. */
+    val countReliability: CountReliabilityTuning = CountReliabilityTuning(),
+)
+
+/**
+ * M2: conservative leave-one-fold-out calibration on development folds 0–3.
+ * The 0.12 s boundary window and 5% rest band are the grouped-CV refit of the recorded window/band grid.
+ * A short set needs both boundaries at rest with no gaps or weak samples. Ambiguous cycles do not offer a number.
+ * No dataset identity or truth is available to these checks.
+ *
+ * Iteración 2: revisada la ventana con las reglas nuevas y la banda fija en el 5 % (una banda mayor relajaría ALTA). Las
+ * rotaciones eligieron 0,25/0,12/0,12/0,12 s; se usa la mediana, 0,12 s: la de 0,25 s salió por desempate en una sola
+ * rotación y dejaría 36 ALTA (todas exactas) por debajo de las 39 del brief. Con ciclos dudosos, solo una serie que sería
+ * ALTA, con todas sus repeticiones completas, se ofrece (en MEDIA): ver RepConfidence.
+ */
+data class CountReliabilityTuning(
+    val boundaryWindowS: Double = 0.12,
+    val shortRestFraction: Double = 0.05,
+    val maxOfferedAmbiguousCycles: Int = 0,
+    /**
+     * A required body region outside the image for most frames cannot certify a complete set. Iteración 2: no borra los
+     * ciclos de una serie que sin el recorte sería ALTA; esa queda en MEDIA (RepSegmenter.segment).
+     */
+    val maxClippedFraction: Double = 0.50,
+    /** Coherent travel of both planted feet, P95–P5 in BH. LOFO candidates: 0.10–0.50 BH. */
+    val maxCommonFootTravelBh: Double = 0.20,
 )
 
 /**

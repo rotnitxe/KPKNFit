@@ -53,7 +53,7 @@ data class TechniqueAnalysisInput(
  * Las observaciones de técnica (`Observations`) se calculan al final, sobre el informe ya armado.
  */
 object TechniqueAnalysisEngine {
-    const val ENGINE_VERSION = 6
+    const val ENGINE_VERSION = 7
 
     /** Unidad de las cifras de trayectoria sin calibrar: porcentaje del recorrido vertical de la barra (ROM_v). */
     const val PERCENT_ROM = "%ROM"
@@ -71,7 +71,7 @@ object TechniqueAnalysisEngine {
             is CountSeriesResult.NoSignal -> return noSignalReport(input, prepared, built.reason)
         }
         val series = ok.series
-        val seg = RepSegmenter.segment(series, profile, input.setHints, tuning)
+        val seg = RepSegmenter.segment(series, profile, input.setHints, tuning, prepared)
         val countFlags = RepFlags.of(prepared, series, seg)
         val confidence = RepConfidence.score(series, seg, prepared.view, profile, countFlags, tuning)
 

@@ -404,6 +404,7 @@ internal fun failureMessage(errorCode: String?): String = when (errorCode) {
 internal fun noRepsMessage(reason: String?): String = when (reason) {
     "no_pose" -> "No vimos a nadie en el vídeo"
     "no_scale" -> "No pudimos calcular la escala del cuerpo"
+    "poor_capture" -> "El encuadre o el desplazamiento durante la serie impidieron contarla"
     "too_short" -> "El vídeo es demasiado corto para contar repeticiones"
     "low_amplitude" -> "El movimiento fue demasiado pequeño para contarlo"
     else -> "No encontramos repeticiones en el vídeo"

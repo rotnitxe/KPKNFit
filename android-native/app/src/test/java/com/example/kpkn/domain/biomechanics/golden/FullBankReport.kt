@@ -188,7 +188,7 @@ internal object FullBankReport {
         val prepared = TrackPreparation.prepare(cropped)
         val built = CountSeriesBuilder.build(prepared, croppedBar, profile)
         val confidence: ConfidenceBreakdown? = if (built is CountSeriesResult.Ok) {
-            val segmented = RepSegmenter.segment(built.series, profile, emptySet())
+            val segmented = RepSegmenter.segment(built.series, profile, emptySet(), prepared = prepared)
             require(segmented.fullCount == report.repCount && segmented.partialCount == report.partialReps && segmented.failedCount == report.failedReps)
             RepConfidence.score(built.series, segmented, prepared.view, profile, RepFlags.of(prepared, built.series, segmented)).also {
                 require(it.level == report.confidence && abs(it.score - report.confidenceScore) <= .000501) { "Desglose distinto del motor: ${row.id}" }
@@ -198,7 +198,8 @@ internal object FullBankReport {
         return FullBankResult(row, expected, "DONE", report, confidence, prepared.timebase.fs,
             cropped.frames.maxOf { it.posesDetected },
             posed.takeIf { it.isNotEmpty() }?.let { frames -> frames.count { it.posesDetected >= 2 }.toDouble() / frames.size },
-            goodFraming(expected, profile), "Done", (built as? CountSeriesResult.Ok)?.series?.source)
+            goodFraming(expected, profile), "Done", (built as? CountSeriesResult.Ok)?.series?.source,
+            fullBankSignalDiagnostics(prepared, built, profile, croppedBar))
     }
 
     fun resolve(row: FullBankRow): AnalysisProfile {
@@ -326,6 +327,7 @@ internal object FullBankReport {
         put("multiPersonFrameFraction", r.multiPersonFraction?.let(::JsonPrimitive) ?: JsonNull)
         put("flags", JsonArray(r.report?.flags.orEmpty().map { JsonPrimitive(it.name) }))
         put("goodFraming", r.goodFraming); put("walkingLunge", r.truth.walking)
+        put("signalDiagnostics", r.signalDiagnostics ?: JsonNull)
     }
 
     fun render(results: List<FullBankResult>, groups: Map<String, List<FullBankResult>>, hash: String, exam: Boolean, validation: Boolean): String = buildString {
@@ -407,6 +409,7 @@ internal data class FullBankResult(
     val detectedPeople: Int? = null, val multiPersonFraction: Double? = null, val goodFraming: Boolean = false,
     val androidOutcome: String? = null,
     val countSource: String? = null,
+    val signalDiagnostics: JsonObject? = null,
 ) {
     val processed get() = status == "DONE" || status == "UNSUPPORTED"
     val hasOutput get() = report?.available?.contains(MetricKey.REPS) == true

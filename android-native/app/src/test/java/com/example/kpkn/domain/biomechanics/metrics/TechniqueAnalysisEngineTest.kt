@@ -62,7 +62,7 @@ class TechniqueAnalysisEngineTest {
                     "τ giro ${fmt(rep.trunkAtTurnDeg)} máx ${fmt(rep.trunkMaxDeg)} Δ ${fmt(rep.trunkEarlyDeltaDeg)}",
             )
         }
-        fails.check(report.engineVersion == TechniqueAnalysisEngine.ENGINE_VERSION && TechniqueAnalysisEngine.ENGINE_VERSION == 6) { "versión ${report.engineVersion}" }
+        fails.check(report.engineVersion == TechniqueAnalysisEngine.ENGINE_VERSION && TechniqueAnalysisEngine.ENGINE_VERSION == 7) { "versión ${report.engineVersion}" }
         fails.check(report.profileId == AnalysisProfileId.SQUAT && report.tier == ProfileTier.A) { "perfil ${report.profileId}/${report.tier}" }
         fails.check(report.repCount == 5 && report.partialReps == 0 && report.failedReps == 0) { "conteo ${report.repCount}/${report.partialReps}/${report.failedReps}" }
         fails.check(report.reps.size == 5 && report.reps.all { it.kind == RepKind.FULL }) { "repeticiones ${report.reps.map { it.kind }}" }

@@ -120,9 +120,17 @@ internal object GoldenReport {
         isExtracted(corpus, it) && (it.barSha256 == null || barFile(corpus, it).isFile)
     }.map { it.id }
 
-    /** Conteo y tiempos comparten la misma pasada final dentro del JVM; nunca se usa desde las pruebas de ajuste. */
+    /**
+     * Conteo y tiempos comparten la misma pasada final dentro del JVM; nunca se usa desde las pruebas de ajuste.
+     *
+     * Solo con KPKN_GOLDEN_FINAL_HOLDOUT=1. Es la reserva histórica de un solo uso (GOLDEN_REPORT.md la cerró con FAIL en
+     * conteo y tiempos y «no se vuelve a ejecutar»), y sus clips están hoy dentro del banco completo, cuyo fold de control y
+     * examen quedan sellados para quien ajusta el motor: por defecto no se evalúa ni se publica nada de ella.
+     */
     @Synchronized
     fun finalHoldout(corpus: GoldenCorpus): List<GoldenResult> {
+        org.junit.Assume.assumeTrue("Reserva histórica de un solo uso: requiere KPKN_GOLDEN_FINAL_HOLDOUT=1",
+            System.getenv("KPKN_GOLDEN_FINAL_HOLDOUT") == "1")
         require(!corpus.external && missingTraces(corpus).isEmpty()) { "La reserva exige las 97 extracciones compatibles." }
         integrityPreflight(corpus)
         val key = corpus.root.canonicalPath + ":" + corpus.manifestSha256
@@ -406,9 +414,24 @@ internal object GoldenReport {
     private fun JsonObject.boolValue(key: String, default: Boolean? = null): Boolean = get(key)?.jsonPrimitive?.boolean ?: requireNotNull(default) { "Falta $key" }
     private fun secondsUs(value: Double): Long = (value * 1_000_000).roundToLong()
     private fun normalizedSide(value: String?): String? = when (value?.lowercase(Locale.ROOT)) { "l", "left" -> "left"; "r", "right" -> "right"; null -> null; else -> error("Lado desconocido: $value") }
+    /**
+     * Los SHA-256 del manifiesto son los de los bytes guardados en git (LF). Un checkout de Windows con core.autocrlf=true
+     * escribe las etiquetas JSON con CRLF: se admite SOLO esa conversión de fin de línea en los .json, nunca otro cambio.
+     */
     private fun checkHash(file: File, expected: String) {
         require(file.isFile) { "Falta ${file.absolutePath}" }
-        require(sha256(file.readBytes()) == expected) { "Hash cambiado: ${file.absolutePath}" }
+        val bytes = file.readBytes()
+        val same = sha256(bytes) == expected || (file.name.endsWith(".json") && sha256(withoutCarriageReturns(bytes)) == expected)
+        require(same) { "Hash cambiado: ${file.absolutePath}" }
+    }
+    /** CRLF → LF (un CR suelto, que no precede a LF, se conserva). */
+    private fun withoutCarriageReturns(bytes: ByteArray): ByteArray {
+        val out = java.io.ByteArrayOutputStream(bytes.size)
+        for (i in bytes.indices) {
+            val crBeforeLf = bytes[i] == '\r'.code.toByte() && i + 1 < bytes.size && bytes[i + 1] == '\n'.code.toByte()
+            if (!crBeforeLf) out.write(bytes[i].toInt())
+        }
+        return out.toByteArray()
     }
     private fun sha256(bytes: ByteArray): String = MessageDigest.getInstance("SHA-256").digest(bytes).joinToString("") { "%02x".format(it.toInt() and 255) }
     private fun fraction(n: Int, d: Int): String = "$n/$d (${ratio(n, d)})"

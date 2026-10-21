@@ -81,7 +81,8 @@ internal object MetricsTestSupport {
         tuning: AnalysisTuning = AnalysisTuning.DEFAULT,
     ): Scene? {
         val run = RepTestSupport.run(result, profile, bar, hints, tuning) ?: return null
-        val phases = RepPhases.compute(run.series, run.seg, run.profile, tuning)
+        val phases = com.example.kpkn.domain.biomechanics.reps.NativePlatePhases.compute(
+            run.series, run.seg, run.profile, bar, run.prepared.geo.rollDeg, tuning)
         return Scene(result, run, phases, MetricContext(run.prepared, run.series, run.seg, phases, run.profile, tuning))
     }
 
