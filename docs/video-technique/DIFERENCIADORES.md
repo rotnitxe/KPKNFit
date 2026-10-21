@@ -82,6 +82,37 @@ siguen siendo diferenciadores, y D44 es la brecha principal.
 | D43.2 | **Marcador impreso** (estilo ArUco, con la escala de su propio lado) para mancuernas y máquinas. WL Analysis usa uno, pero escala mal | WL Analysis | media | media |
 | — | **Temporizadores EMOM, AMRAP y For Time,** con el servicio en primer plano y la voz que ya existen | WOD App (carencia de KPKN) | media | baja |
 
+### Segunda tanda (21-oct): Metric, Sportsbox, Ochy, Yogger, Fulltrack, Photo Finish, AscentAI, CaliLens, AI Punch Pulse y My Lift
+Informes en `docs/video-technique/re/`.
+- **Ninguna corrige la perspectiva con homografía ni elipse, y ninguna tiene tracking híbrido.**
+- **Exportan vídeo:** solo Metric (9:16, sencillo) y WL Analysis. Las demás graban la pantalla o lo generan en su servidor.
+- **Lo hacen todo en la nube:** Ochy, Fulltrack y parte de CaliLens y Yogger. KPKN lo hace todo en el teléfono, y eso es una ventaja de
+  privacidad, coste y uso sin conexión que conviene comunicar.
+- **No aportaron método nuevo:** My Lift (era otra app con el mismo nombre; el real está en My Jump Lab) y AI Punch Pulse.
+
+| Id | Qué | De dónde | Prioridad | Esfuerzo |
+|---|---|---|---|---|
+| D42.1 (refuerzo) | **Coordenadas métricas absolutas** desde los puntos «world»: escala antropométrica, traslación por rayos de cámara y anclaje del pie. Más ángulos articulares por marcos de segmento | Sportsbox | alta | media |
+| D47 (confirmado) | Disco por **detección geométrica de elipses**, sin ML (Metric lo hace en GPU), más un toque para confirmar | Metric y WL Analysis | alta | media |
+| D51 | **Captura cuidada:** obturación de 1/360 a 1/100 s con ISO acotado, sin parpadeo a 50/60 Hz, exposición medida y bloqueada sobre el disco, y una cadena de fps de respaldo (60 → alta velocidad → 30) con control térmico | Metric y Fulltrack | alta | baja-media |
+| D52 | **Segmentador de eventos balísticos** (pico, inversión y umbral, con máquina de estados en vivo) para saltos, lanzamientos, golpes y swings. Y la **secuencia cinemática** | Sportsbox | alta | media |
+| D53 | **Motor de isometrías:** la ventana estable más larga con una pose gruesa válida y quietud (≤ 0,15 alturas de fotograma/s), 7 filtros contra falsos sostenes y la forma fina en puntos, no en segundos | CaliLens | alta | ~1,5 semanas |
+| D54 | **Puertas de repetición válida** en dominadas, flexiones y fondos: histéresis del codo, esqueleto volteado, colgado, descenso de cadera… Y una clase de vista «invertida» para el pino | CaliLens | alta | baja-media |
+| D50 (detallado) | **Carrera:** el catálogo de métricas de Ochy. **Cronometraje:** cruce de línea con instante subfotograma, y el 505 y la lanzadera con una sola cámara (Photo Finish) | Ochy y Photo Finish | alta | media-alta |
+| D55 | **Calibración completa de la cámara** con geometría conocida (marcador impreso u objetos de medida estándar) y recalibración si el trípode se mueve. Mide pelotas e implementos y admite vistas oblicuas | Fulltrack | media | alta |
+| D56 | **Grabación sin manos:** una red pequeña o un detector de movimiento que dispara y un búfer circular que guarda 0,6–1 s previos, sin recodificar | Fulltrack | media | media |
+| D57 | **Movimientos no cíclicos:** fases preparar → alcanzar → estabilizar, centro de masas segmentario, inmovilidad y entropía geométrica (escalada…) | AscentAI | media | media |
+| D58 | **Pruebas de movilidad guiadas** (base → pico → vuelta, con simetría), gráfico ángulo–tiempo, CSV y goniómetro manual | Yogger | media | media |
+| D59 | **Catálogo de calistenia:** planche, palancas, bandera, L-sit, pino y muscle-up, con progresiones | CaliLens | media | media |
+| — | **Combate:** guardia alta y tiempo de vuelta a la guardia | AI Punch Pulse | baja | media |
+
+**No hay que copiar:**
+- de Metric: descartar los tramos lentos de la velocidad media e inventar repeticiones por cualquier bajada de 10 cm;
+- de Sportsbox: la focal supuesta sin avisar y el «percentil» = 100 − 25 |z|;
+- de Yogger: el muslo fijo de 0,40 m y los 21 fps fijos;
+- de CaliLens: los 10 fps sin PTS;
+- de todas: la subida de vídeos o datos sin decirlo.
+
 **No hay que copiar:** las escalas fijas sacadas de la primera caja; los tiempos por índice de fotograma, sin PTS; los filtros que dejan
 la velocidad en 2,7–4,0 Hz, que explican el sesgo de la velocidad pico publicado; la potencia total mal sumada; y el envío de datos a la
 nube sin decirlo (My Jump Lab usa Firestore pese a su texto de privacidad).
