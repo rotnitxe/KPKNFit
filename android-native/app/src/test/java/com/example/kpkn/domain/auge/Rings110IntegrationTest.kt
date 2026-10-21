@@ -44,6 +44,7 @@ class Rings110IntegrationTest {
     fun `check-in de un solo canal deriva titular del canal limitante conocido`() {
         // Wellbeing con ajuste manual solo en muscular (65%), sin energía ni columna
         val wellbeing = DailyWellbeingLog(
+            id = "w1",
             date = "2026-10-21",
             manualMuscularBattery = 65,
         )
@@ -121,9 +122,8 @@ class Rings110IntegrationTest {
         )
         val batteries = GlobalBatteries(
             muscular = 65,
-            energy = 100,
+            cnc = 100,
             spinal = 100,
-            overallReadiness = 72,
         )
         val detail = AugeRecoveryEngine.calculateRecoveryDashboardDetail(
             batteries = batteries,
