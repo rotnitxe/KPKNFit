@@ -306,6 +306,8 @@ class SessionEditorViewModel(
         val mesoIndex: Int,
         val settingsHash: Int,
         val catalogVersion: Int,
+        /** Huella del historial del programa: el ajuste por historial depende de él (MOT · I3). */
+        val logsFingerprint: Int,
         val perSession: Map<String, Pair<Int, SessionAugeComputation>>,
     )
 
@@ -976,10 +978,13 @@ class SessionEditorViewModel(
         val program = repository.getProgramById(state.programId)
         val settingsVal = repository.settings.value
         val index = exerciseIndex
-        val catalogVersion = index.size
+        // I3: el tamaño del índice no basta como versión (cambiar metadatos conserva el número de entradas): se usa la identidad del
+        // índice y una huella del historial, que alimenta el ajuste por historial del coste.
+        val catalogVersion = AugeCacheKeys.catalogVersion(index)
         val settingsHash = settingsVal.hashCode()
+        val logsFingerprint = AugeCacheKeys.logsFingerprint(programLogs)
         val cache = weeklyMetricsCache
-        val canReuseCache = cache != null && cache.programId == state.programId && cache.mesoIndex == state.mesoIndex && cache.settingsHash == settingsHash && cache.catalogVersion == catalogVersion
+        val canReuseCache = cache != null && cache.programId == state.programId && cache.mesoIndex == state.mesoIndex && cache.settingsHash == settingsHash && cache.catalogVersion == catalogVersion && cache.logsFingerprint == logsFingerprint
         val perSessionMutable = mutableMapOf<String, Pair<Int, SessionAugeComputation>>()
         if (canReuseCache) {
             perSessionMutable.putAll(cache!!.perSession)
@@ -1000,6 +1005,7 @@ class SessionEditorViewModel(
                 mesoIndex = state.mesoIndex,
                 settingsHash = settingsHash,
                 catalogVersion = catalogVersion,
+                logsFingerprint = logsFingerprint,
                 perSession = perSessionMutable,
             )
             buildAugeSummaryFromMetrics(
