@@ -1,7 +1,6 @@
 package com.example.kpkn.domain.auge
 
 import com.example.kpkn.data.models.*
-import com.example.kpkn.domain.training.VolumeCalculator
 import kotlin.math.roundToInt
 
 /** Decisiones que aún difieren entre consumidores; se revisan en 2.2b2. */
@@ -11,7 +10,6 @@ internal data class RecipeOptions(
     val axialGatePosition: AxialGatePosition,
     val muscleMultiplierSource: MuscleMultiplierSource,
     val densitySource: DensitySource,
-    val primaryMuscleSource: PrimaryMuscleSource,
     val cardioHandling: CardioHandling,
     val softCapUnits: SoftCapUnits,
 ) {
@@ -21,7 +19,6 @@ internal data class RecipeOptions(
     /** Se elimina en 3.1 junto con el campo zombi del caché; no activar calibraciones antiguas. */
     enum class MuscleMultiplierSource { REMAPPED_PILLARS, DIRECT_KEYS, NONE }
     enum class DensitySource { COMPLETED_METADATA, PLANNED_LEGACY_SUPERSET, PLANNED_GROUP_OR_LEGACY }
-    enum class PrimaryMuscleSource { SNAPSHOT_PILLAR, CATALOG_VOLUME_GROUP }
     enum class CardioHandling { CONSUMER_HOOK, LEGACY_STRENGTH }
     enum class SoftCapUnits { CHANNEL_PERCENT, MUSCLE_STRESS_UNITS, LOG_PERCENT, NONE }
 }
@@ -202,18 +199,10 @@ internal class SessionDrainRecipe(
         val info = resolveInfo(input.identity)
         val metrics = AugeFatigueEngine.getDynamicAugeMetrics(input.identity.exerciseName, info?.equipment, info) ?: AugeMetrics()
         val involved = AugeFatigueEngine.resolveInvolvedMuscles(input.identity.exerciseName, input.snapshot, info)
-        val primary = when (options.primaryMuscleSource) {
-            RecipeOptions.PrimaryMuscleSource.SNAPSHOT_PILLAR ->
-                involved.find { it.role == MuscleRole.PRIMARY }
-                    ?.let { getAugeMusclePillarId(it.muscle, it.emphasis) }
-                    ?: involved.firstOrNull()?.let { getAugeMusclePillarId(it.muscle, it.emphasis) }
-                    ?: ""
-            RecipeOptions.PrimaryMuscleSource.CATALOG_VOLUME_GROUP -> {
-                val muscle = info?.involvedMuscles?.firstOrNull { it.role == MuscleRole.PRIMARY }
-                    ?: info?.involvedMuscles?.firstOrNull()
-                muscle?.let { VolumeCalculator.normalizeCanonicalMuscleGroup(it.muscle, it.emphasis) } ?: "Core"
-            }
-        }
+        val primary = involved.find { it.role == MuscleRole.PRIMARY }
+            ?.let { getAugeMusclePillarId(it.muscle, it.emphasis) }
+            ?: involved.firstOrNull()?.let { getAugeMusclePillarId(it.muscle, it.emphasis) }
+            ?: ""
         val rest = when (options.restSource) {
             RecipeOptions.RestSource.SUPERSET_OR_EXERCISE -> input.supersetRestBetween ?: requireNotNull(input.restTime)
             RecipeOptions.RestSource.EXERCISE -> requireNotNull(input.restTime)

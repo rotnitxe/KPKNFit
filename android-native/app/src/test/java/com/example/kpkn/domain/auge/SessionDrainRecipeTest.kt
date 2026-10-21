@@ -16,7 +16,6 @@ class SessionDrainRecipeTest {
         axialGatePosition = RecipeOptions.AxialGatePosition.NOT_APPLIED,
         muscleMultiplierSource = RecipeOptions.MuscleMultiplierSource.NONE,
         densitySource = RecipeOptions.DensitySource.COMPLETED_METADATA,
-        primaryMuscleSource = RecipeOptions.PrimaryMuscleSource.SNAPSHOT_PILLAR,
         cardioHandling = RecipeOptions.CardioHandling.CONSUMER_HOOK,
         softCapUnits = RecipeOptions.SoftCapUnits.CHANNEL_PERCENT,
     )
@@ -187,15 +186,12 @@ class SessionDrainRecipeTest {
         assertTrue(groupId.raw.cnsDrainPct > legacyId.raw.cnsDrainPct)
     }
 
-    @Test fun pilarDelSnapshotYGrupoDelCatalogoMantienenContadoresDistintos() {
+    @Test fun pilarDelSnapshotSeparaLosContadoresAunqueCoincidaElCatalogo() {
         val first = exercise().copy(effectiveMuscles = listOf(InvolvedMuscle("Tríceps", MuscleRole.PRIMARY, 1.0)))
         val inputs = listOf(first, exercise())
         val snapshot = completed(options(), inputs)
-        val catalog = completed(options().copy(primaryMuscleSource = RecipeOptions.PrimaryMuscleSource.CATALOG_VOLUME_GROUP), inputs)
         assertEquals("Tríceps", snapshot.first().context.primaryMuscle)
-        assertEquals("Pectorales", catalog.first().context.primaryMuscle)
         assertEquals(listOf(1, 1), snapshot.map { it.count })
-        assertEquals(listOf(1, 2), catalog.map { it.count })
     }
 
     @Test fun fichaAusenteSiempreUsaHeuristicaYCuentaUnaSerie() {

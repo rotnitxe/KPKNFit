@@ -521,7 +521,6 @@ internal fun computeSessionAugeComputation(
             axialGatePosition = RecipeOptions.AxialGatePosition.BEFORE_ACCUMULATION,
             muscleMultiplierSource = RecipeOptions.MuscleMultiplierSource.NONE,
             densitySource = RecipeOptions.DensitySource.PLANNED_GROUP_OR_LEGACY,
-            primaryMuscleSource = RecipeOptions.PrimaryMuscleSource.CATALOG_VOLUME_GROUP,
             cardioHandling = RecipeOptions.CardioHandling.CONSUMER_HOOK,
             softCapUnits = RecipeOptions.SoftCapUnits.CHANNEL_PERCENT,
         ),
