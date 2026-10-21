@@ -62,5 +62,10 @@
             android:name="com.example.kpkn.debug.TechniqueBenchActivity"
             android:exported="true"
             android:theme="@style/Theme.KPKN" />
+        <!-- SOLO DEPURACIÓN: vista previa en memoria de la tendencia del peso (módulo «Peso» de Cuerpo y tarjeta «Cuerpo» de Inicio); no se integra. -->
+        <activity
+            android:name="com.example.kpkn.debug.BodyTrendHarnessActivity"
+            android:exported="true"
+            android:theme="@style/Theme.KPKN" />
     </application>
 </manifest>
