@@ -538,10 +538,7 @@ object ProgramImportParser {
         val schemePlainSets = if (sn == null && !columns.schemeHasReps && columns.schemeHasSets) leadingInt(schemeCell) else null
         val repsCell = cell(ColumnRole.REPS).ifEmpty { if (sn == null && columns.schemeHasReps) schemeCell else "" }
         val setsCell = cell(ColumnRole.SETS)
-        if (isAmrapWithoutNumber(repsCell)) {
-            row.warn(ImportWarningKind.SKIPPED_ROW, "«$name»: AMRAP sin número de repeticiones; se omite")
-            return null
-        }
+        val noMinimumAmrap = isAmrapWithoutNumber(repsCell)
         val setsNotation = if (setsCell.isNotEmpty() && leadingInt(setsCell) == null) parseNotation(setsCell) else null
         // «1x5+», «3x8-12», «3 x 10» en la celda de repeticiones; si no hay notación, un número o un rango.
         val scheme = if (hasScheme(repsCell)) parseNotation(repsCell) else null
@@ -551,7 +548,7 @@ object ProgramImportParser {
         val setLoads = setLoadsOf(cells, columns)
         // Si la columna de series tiene un número, manda; si no, la notación de la celda de repeticiones, la de esquema o la de antes.
         val sets = leadingInt(setsCell) ?: setsNotation?.sets ?: scheme?.sets ?: sn?.sets ?: schemePlainSets ?: setLoads?.count
-            ?: inline?.sets
+            ?: inline?.sets ?: if (noMinimumAmrap) 1 else null
         val repsMin = range?.first ?: scheme?.repsMin ?: setsNotation?.repsMin ?: sn?.repsMin ?: setLoads?.repsMin ?: inline?.repsMin
         val repsMax = range?.second ?: scheme?.repsMax ?: setsNotation?.repsMax ?: sn?.repsMax ?: setLoads?.repsMax ?: inline?.repsMax
         val amrap = cellAmrap(repsCell) ?: cellAmrap(schemeCell) ?: scheme?.amrapReps ?: setsNotation?.amrapReps ?:
@@ -887,13 +884,17 @@ object ProgramImportParser {
             row.warn(ImportWarningKind.SKIPPED_ROW, "«$name» tiene $sets series, fuera de rango; se omite")
             return null
         }
-        if (repsMin == null) {
+        val amrapMinimum = Regex("AMRAP: última serie, (\\d+)").find(notes.orEmpty())?.groupValues?.get(1)?.toIntOrNull()
+        val isAmrap = amrapMinimum != null || Regex("(?i)\\bAMRAP\\b").containsMatchIn(row.source)
+        if (repsMin == null && !isAmrap) {
             row.warn(ImportWarningKind.SKIPPED_ROW, "«$name» sin repeticiones; se omite")
             return null
         }
-        val high = repsMax ?: repsMin
-        val low = minOf(repsMin, high)
-        val top = maxOf(repsMin, high)
+        // Draft numeric anchors remain editable; no-minimum AMRAP emits no rep target in the plan.
+        val anchor = repsMin ?: 1
+        val high = repsMax ?: anchor
+        val low = minOf(anchor, high)
+        val top = maxOf(anchor, high)
         if (low < 1 || top > MAX_REPS) {
             row.warn(ImportWarningKind.SKIPPED_ROW, "«$name» tiene repeticiones fuera de rango; se omite")
             return null
@@ -909,8 +910,11 @@ object ProgramImportParser {
             rpe = checked(rpe, "el RPE", name, row) { it in 1.0..10.0 },
             rir = checked(rir, "las RIR", name, row) { it in 0..10 },
             restSeconds = checked(rest, "el descanso", name, row) { it in 5..MAX_REST_SECONDS },
-            notes = notes?.trim()?.takeIf { it.isNotEmpty() }?.take(MAX_NOTE_CHARS),
+            notes = (notes?.trim()?.takeIf { it.isNotEmpty() }
+                ?: "AMRAP: última serie, sin mínimo.".takeIf { isAmrap })?.take(MAX_NOTE_CHARS),
             sourceText = row.source,
+            purpose = if (isAmrap) com.example.kpkn.data.models.SetPurpose.AMRAP else com.example.kpkn.data.models.SetPurpose.NONE,
+            amrapMinimumReps = amrapMinimum,
         )
     }
 
@@ -1302,6 +1306,18 @@ object ProgramImportParser {
             }
         }
         scan(SETS_ONLY) { m -> if (sets == null) sets = m.groupValues[1].toIntOrNull() }
+        scan(Regex("(?i)\\b(\\d+)\\s*[x×]\\s*AMRAP\\b")) { m ->
+            if (sets == null) sets = m.groupValues[1].toIntOrNull()
+        }
+        scan(Regex("(?<![\\w.])(\\d+)\\s*\\+")) { m ->
+            if (sets == null) sets = 1
+            if (repsMin == null) {
+                repsMin = m.groupValues[1].toIntOrNull()
+                repsMax = repsMin
+                amrap = repsMin
+            }
+        }
+        scan(Regex("(?i)\\bAMRAP\\b")) { if (sets == null) sets = 1 }
         // Pirámide sin series («15-12-10-8»): tres cifras o más, y las series son esas cifras.
         scan(PYRAMID_LIST, accept = { m -> pyramidListFits(m.groupValues[1], atEnd = m.range.last == text.length - 1) }) { m ->
             if (repsMin == null) {
