@@ -1,0 +1,259 @@
+"""Captura y contrasta los tres bloques numéricos de 2.2b2 sin invocar Gradle.
+
+Ejecutar --stage base antes de editar producción. Tras cada bloque:
+--stage canales|axial|volumen --reanchor, con AUGE_GOLDEN_UPDATE=1 ya ejecutado.
+--verify comprueba el recurso, los snapshots y la evidencia de la última corrida.
+Las medias excluyen deltas cero; los bits de Double no son magnitudes.
+"""
+import argparse
+import hashlib
+import json
+import math
+import re
+import subprocess
+import sys
+import textwrap
+import xml.etree.ElementTree as ET
+from collections import defaultdict
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[3]
+BASE = "b8c2b91e46830cdba79f925eef8134c18920565f"
+REPORT = ROOT / "docs/rings-v4/reports/2.2b2-evidencia.json"
+TABLES = ROOT / "docs/rings-v4/reports/2.2b2-tablas.md"
+GOLDEN = Path("android-native/app/src/test/resources/auge/golden/expected.txt")
+RESULTS = ROOT / "android-native/app/build/test-results/testBaseDebugUnitTest"
+TEST = Path("android-native/app/src/test/java/com/example/kpkn")
+SNAPSHOTS = {
+    "domain": TEST / "domain/auge/SessionDrainRecipeCharacterizationTest.kt",
+    "editor": TEST / "screens/sessioneditor/SessionEditorAugeCharacterizationTest.kt",
+}
+LITERAL = re.compile(r'            "([^"]+)" to """\n(.*?)\n            """\.trimIndent\(\)', re.S)
+NUMBER = re.compile(r"-?\d+(?:\.\d+)?")
+
+
+def read(path):
+    return path.read_text(encoding="utf-8").replace("\r\n", "\n")
+
+
+def original(path):
+    return subprocess.check_output(["git", "show", f"{BASE}:{path.as_posix()}"], cwd=ROOT).decode("utf-8").replace("\r\n", "\n")
+
+
+def stdout(name):
+    roots = [ET.parse(p).getroot() for p in sorted(RESULTS.glob(f"TEST-*{name}*.xml"))]
+    assert roots, f"Falta la clase {name}"
+    return "\n".join(n.text or "" for root in roots for n in root.iter("system-out"))
+
+
+def literals(source):
+    return {case: textwrap.dedent(body) for case, body in LITERAL.findall(source)}
+
+
+def stats(deltas):
+    values = [abs(v) for v in deltas if v != 0]
+    return dict(numeros_distintos=len(values), maximo=max(values, default=0), media=sum(values) / max(1, len(values)))
+
+
+def deltas(a, b):
+    numbers = lambda s: list(map(float, NUMBER.findall(re.sub(r"\[-?\d+\]", "", s))))
+    old, new = numbers(a), numbers(b)
+    assert len(old) == len(new), (a, b)
+    return [abs(x-y) for x, y in zip(old, new) if x != y]
+
+
+def golden_changes(before, after):
+    old, new = before.splitlines(), after.splitlines()
+    assert len(old) == len(new), "Cambió la estructura del corpus"
+    changes = []
+    for a, b in zip(old, new):
+        if a == b:
+            continue
+        x, y = a.split(" | "), b.split(" | ")
+        assert len(x) == len(y) and x[:2] == y[:2], (a, b)
+        for av, bv in zip(x[2:], y[2:]):
+            if av != bv:
+                field = av.split("=", 1)[0]
+                assert field == bv.split("=", 1)[0]
+                changes.append(dict(caso=x[0], instante=x[1], campo=field, antes=av, despues=bv, deltas=deltas(av, bv)))
+    return changes
+
+
+def by_channel(rows):
+    grouped = defaultdict(list)
+    for row in rows:
+        a, b, field = row["antes"], row["despues"], row["campo"]
+        if field == "rings":
+            for channel, av, bv in zip(("Músculos", "Energía", "Columna"), a.split("=")[1].split(","), b.split("=")[1].split(",")):
+                grouped[channel] += deltas(av, bv)
+        elif field in {"drain", "drains", "tomorrow", "pre", "neural"}:
+            pattern = r"(cns|spinal|muscular|neural)[=:](-?\d+)"
+            old, new = re.findall(pattern, a), re.findall(pattern, b)
+            assert [k for k, _ in old] == [k for k, _ in new]
+            for (key, av), (_, bv) in zip(old, new):
+                grouped[{"cns": "Energía", "neural": "Energía", "spinal": "Columna", "muscular": "Músculos"}[key]] += deltas(av, bv)
+        elif field in {"pm", "v2global", "v2", "muscles"}:
+            grouped["Músculos"] += row["deltas"]
+        elif field == "energy":
+            grouped["Energía"] += row["deltas"]
+        elif field in {"spinal", "raw"}:
+            grouped["Columna"] += row["deltas"]
+        else:
+            grouped["Panel/mixto"] += row["deltas"]
+    return {channel: stats(grouped[channel]) for channel in ("Músculos", "Energía", "Columna", "Panel/mixto")}
+
+
+def independent(trace, per_channel):
+    """Recurrencia Python independiente: ningún import del motor ni del verificador anterior."""
+    sessions = defaultdict(list)
+    for line in trace:
+        cells = line.split("|")
+        assert len(cells) == 14, line
+        sessions[cells[1]].append(cells)
+    assert set(sessions) == {"axial", "unilateral", "superserie"}
+    result = {}
+    for case, rows in sessions.items():
+        acc, shared, counts, max_error = [0.0]*3, 0.0, defaultdict(float), 0.0
+        for index, cells in enumerate(rows):
+            _, _, sequence, pillar, side, count, gate, bonus, *values = cells
+            assert int(sequence) == index
+            counts[pillar] += 1.0 if side == "bilateral" else 0.5
+            assert int(count) == math.floor(counts[pillar] + 0.5), (case, index, counts)
+            raw, actual = list(map(float, values[:3])), list(map(float, values[3:]))
+            expected = [raw[i] * 0.85 / (1.0 + 0.65 * ((acc[i] if per_channel else shared) / 100.0)) for i in range(3)]
+            expected[2] *= float(gate)
+            if per_channel:
+                acc = [x+y for x, y in zip(acc, expected)]
+            else:
+                shared += sum(expected) / 3.0
+            expected[1] += expected[1] * (float(bonus)-1.0)
+            error = max(abs(x-y) for x, y in zip(expected, actual))
+            max_error = max(max_error, error)
+            assert error < 1e-12, (case, index, expected, actual, error)
+        result[case] = dict(series=len(rows), comparaciones=3*len(rows), error_maximo=max_error,
+                            acumulados=acc if per_channel else shared)
+    return result
+
+
+def capture(stage):
+    roots = [ET.parse(p).getroot() for p in sorted(RESULTS.glob("TEST-*.xml"))]
+    assert len(roots) >= 15, len(roots)
+    counts = {key: sum(int(r.get(key, 0)) for r in roots) for key in ("tests", "failures", "errors", "skipped")}
+    counts["classes"] = len(roots)
+    counts["seconds"] = round(sum(float(r.get("time", 0)) for r in roots), 1)
+    out = stdout("SessionDrainRecipeTest")
+    impact = [line for line in out.splitlines() if line.startswith("[2.2b2-impact]|")]
+    trace = [line for line in out.splitlines() if line.startswith("[2.2b2-set]|")]
+    assert len(impact) == 24, len(impact)
+    snapshots = {}
+    for kind, path in SNAPSHOTS.items():
+        output = stdout(path.stem)
+        pattern = rf"\[2\.2b1-{kind}\]\[([^\]]+)\]\n(.*?)\n\[/2\.2b1-{kind}\]"
+        snapshots[kind] = dict(re.findall(pattern, output, re.S))
+        assert len(snapshots[kind]) == (7 if kind == "domain" else 6)
+    learner = [line for line in stdout("AugeLearnerBiasCharacterizationTest").splitlines()
+               if line.startswith(("[SIM-INV-RATIO]", "[SIM-BUCLE] escenario=", "[SIM-BUCLE-LARGO] escenario=", "[SIM-F11]"))]
+    pins = [line for line in stdout("AugeRingCharacterizationTest").splitlines() if line.startswith("[PIN]")]
+    invariants = [line for line in stdout("AugeSyntheticUserInvariantsTest").splitlines()
+                  if line.startswith("[SIM-INV]") and any(key in line for key in ("violaciones=", "divergencia", "máximo", "discrepancias=", "comparaciones="))]
+    return dict(stage=stage, tests=counts, snapshots=snapshots, impacto=impact, series=trace,
+                python=independent(trace, stage != "base"), aprendiz=learner, pines=pins, invariantes=invariants)
+
+
+def changed_lines(before, after):
+    assert len(before) == len(after), "Cambió la estructura de la captura"
+    return [dict(antes=a, despues=b) for a, b in zip(before, after) if a != b]
+
+
+def markdown(evidence):
+    lines = ["# Tablas completas de 2.2b2", "", f"Base: `{BASE}`. Generado por `check_2_2b2.py` desde JUnit y el máster.", "",
+             "Máximo/media: deltas absolutos sobre números distintos, excluyendo ceros y bits de Double. El máster incluye porcentajes, horas y confianza; los campos completos conservan su unidad. Los cuatro canales de resumen separan Músculos, Energía, Columna y panel mixto.", ""]
+    escape = lambda value: str(value).replace("|", "&#124;").replace("\n", "<br>")
+    def table(headers, rows):
+        lines.append("| " + " | ".join(headers) + " |")
+        lines.append("|" + "|".join("---" for _ in headers) + "|")
+        lines.extend("| " + " | ".join(escape(v) for v in row) + " |" for row in rows)
+        lines.append("")
+    for stage, data in evidence["stages"].items():
+        lines += [f"## {stage}", "", f"Pruebas: `{data['tests']}`. Recálculo independiente: `{data['python']}`.", ""]
+        if stage == "base":
+            continue
+        lines += ["### Resumen del máster", ""]
+        table(["Agrupación", "Campos distintos", "Números distintos", "Máximo", "Media"],
+              [[key, value.get("campos_distintos", "—"), value["numeros_distintos"], value["maximo"], f"{value['media']:.6f}"]
+               for key, value in data["resumen"].items()])
+        lines += ["### Cada campo cambiado del máster", ""]
+        table(["Caso", "Instante", "Campo", "Antes", "Después", "Máximo/media"],
+              [[r["caso"], r["instante"], r["campo"], r["antes"], r["despues"],
+                f"{stats(r['deltas'])['maximo']}/{stats(r['deltas'])['media']:.6f}"] for r in data["golden"]])
+        lines += ["### Caracterizaciones: todas las líneas distintas", ""]
+        table(["Consumidor/caso", "Antes", "Después"], [[r["caso"], r["antes"], r["despues"]] for r in data["caracterizaciones"]])
+        for key, title in (("pines", "Pines F0"), ("aprendiz", "Aprendiz: inversión, 30 gestos, observaciones propias y diagnósticos")):
+            lines += [f"### {title}", ""]
+            table(["Antes", "Después"], [[r["antes"], r["despues"]] for r in data["cambios_"+key]])
+    base, final = evidence["stages"]["base"], next(reversed(evidence["stages"].values()))
+    lines += ["## Impacto acumulado para el usuario", "", "M/E/C = Músculos/Energía/Columna; relojes UTC. Pecho usa A02 (empuje superior), pierna A01, cuerpo completo/un día C01, cinco días C04 (pierna/empuje/tirón alternados); cardio es remo 120 min, RPE 7. Todos con Settings por defecto y sin bienestar manual.", ""]
+    table(["Sesión", "Horas", "Antes M/E/C", "Después M/E/C"],
+          [[a.split("|")[1], a.split("|")[2], "/".join(a.split("|")[3:]), "/".join(b.split("|")[3:])]
+           for a, b in zip(base["impacto"], final["impacto"])])
+    TABLES.write_text("\n".join(lines), encoding="utf-8")
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--stage", choices=("base", "canales", "axial", "volumen"))
+    parser.add_argument("--reanchor", action="store_true")
+    parser.add_argument("--verify", action="store_true")
+    args = parser.parse_args()
+    evidence = json.loads(read(REPORT)) if REPORT.exists() else dict(base=BASE, stages={})
+    if args.verify:
+        latest = next(reversed(evidence["stages"].values()))
+        actual = capture(latest["stage"])
+        assert actual["tests"]["failures"] == actual["tests"]["errors"] == 0
+        for kind, path in SNAPSHOTS.items():
+            assert literals(read(ROOT/path)) == actual["snapshots"][kind]
+        assert hashlib.sha256(read(ROOT/GOLDEN).encode()).hexdigest() == latest["golden_sha256"]
+        for key in ("impacto", "series", "aprendiz", "pines"):
+            assert latest[key] == actual[key], key
+        print("Verificación final: recurso, capturas, aprendiz, pines y recálculo Python coinciden; 0 fallos.")
+        print(json.dumps(actual["python"], ensure_ascii=False))
+        return
+    assert args.stage
+    data = capture(args.stage)
+    if args.stage == "base":
+        assert data["tests"]["failures"] == data["tests"]["errors"] == 0
+        assert read(ROOT/GOLDEN) == original(GOLDEN)
+        candidate = read(ROOT/GOLDEN)
+        assert not args.reanchor
+    else:
+        assert args.reanchor
+        previous = next(reversed(evidence["stages"].values()))
+        candidate = read(ROOT/"android-native/app/build/auge-golden/expected.txt")
+        data["golden"] = golden_changes(read(ROOT/GOLDEN), candidate)
+        data["resumen"] = {"Total": dict(campos_distintos=len(data["golden"]), **stats([d for row in data["golden"] for d in row["deltas"]]))}
+        for category in "ABCDE":
+            rows = [r for r in data["golden"] if r["caso"].startswith(category)]
+            data["resumen"][category] = dict(campos_distintos=len(rows), **stats([d for r in rows for d in r["deltas"]]))
+        data["resumen"].update(by_channel(data["golden"]))
+        data["caracterizaciones"] = []
+        for kind, path in SNAPSHOTS.items():
+            current = literals(read(ROOT/path))
+            assert current == previous["snapshots"][kind], f"La base de {kind} ya fue alterada"
+            for case, before in current.items():
+                data["caracterizaciones"] += [dict(caso=f"{kind}/{case}", **row) for row in changed_lines(before.splitlines(), data["snapshots"][kind][case].splitlines())]
+        for key in ("pines", "aprendiz"):
+            data["cambios_"+key] = changed_lines(previous[key], data[key])
+        for kind, path in SNAPSHOTS.items():
+            updated = LITERAL.sub(lambda m: f'            "{m[1]}" to """\n' + textwrap.indent(data["snapshots"][kind][m[1]], "                ") + '\n            """.trimIndent()', read(ROOT/path))
+            (ROOT/path).write_text(updated, encoding="utf-8")
+        (ROOT/GOLDEN).write_text(candidate, encoding="utf-8")
+    data["golden_sha256"] = hashlib.sha256(candidate.encode()).hexdigest()
+    evidence["stages"][args.stage] = data
+    REPORT.write_text(json.dumps(evidence, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    markdown(evidence)
+    print(json.dumps(dict(stage=args.stage, tests=data["tests"], resumen=data.get("resumen"), python=data["python"]), ensure_ascii=False))
+
+
+if __name__ == "__main__":
+    sys.stdout.reconfigure(encoding="utf-8")
+    main()

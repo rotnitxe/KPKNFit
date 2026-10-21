@@ -276,6 +276,59 @@ class SessionDrainRecipeTest {
         assertEquals(10.8, SessionDrainRecipe.durationSpinal(10.0, 91), 1e-14)
     }
 
+    /** Evidencia de 2.2b2: mismo corpus, instante inyectado y zona UTC en las cuatro mediciones. */
+    @Test fun exportaImpactoYSeriesCompletasParaElRecalculoIndependiente() {
+        val corpus = AugeGoldenCorpus.build(AugeGoldenCorpus.BASE_MS).associateBy { it.id }
+        val cardio = WorkoutLog(
+            id = "cardio-largo", programId = "p", sessionId = "cardio", sessionName = "Remo 120 min",
+            date = java.time.Instant.ofEpochMilli(AugeGoldenCorpus.BASE_MS).toString(), durationMinutes = 120,
+            completedExercises = listOf(CompletedExercise(
+                exerciseId = "cardio", exerciseName = "Remo cardio",
+                cardioDetails = CardioDetails(CardioType.ROW_MACHINE, targetDurationSeconds = 7200, intensityLevel = 7),
+                sets = listOf(CompletedSet("cardio", timeSeconds = 7200, rpe = 7.0)),
+            )),
+        )
+        val cases = linkedMapOf(
+            "pecho" to corpus.getValue("A02").history,
+            "pierna-pesada" to corpus.getValue("A01").history,
+            "cuerpo-completo" to corpus.getValue("C01").history,
+            "un-dia-duro" to corpus.getValue("C01").history,
+            "cinco-dias-duros" to corpus.getValue("C04").history,
+            "cardio-largo" to listOf(cardio),
+        )
+        cases.forEach { (id, history) ->
+            listOf(0, 24, 48, 72).forEach { hours ->
+                val now = AugeGoldenCorpus.BASE_MS + hours * AugeGoldenCorpus.HORA_MS
+                val muscles = AugeRecoveryEngine.getPerMuscleBatteries(
+                    history, null, Settings(), AugeGoldenCorpus.EXERCISE_DB,
+                    nowOverrideMs = now, zone = AugeGoldenCorpus.ZONE,
+                )
+                val rings = AugeRecoveryEngine.calculateGlobalBatteries(
+                    history, null, Settings(), AugeGoldenCorpus.EXERCISE_DB,
+                    precomputedMuscles = muscles, nowOverrideMs = now,
+                )
+                assertTrue(listOf(rings.muscular, rings.cnc, rings.spinal).all { it in 0..100 })
+                println("[2.2b2-impact]|$id|$hours|${rings.muscular}|${rings.cnc}|${rings.spinal}")
+            }
+        }
+        listOf("axial", "unilateral", "superserie").forEach { id ->
+            var index = 0
+            val choices = options().copy(
+                volumeCounting = RecipeOptions.VolumeCounting.UNILATERAL_HALVES_ROUNDED,
+                axialGatePosition = RecipeOptions.AxialGatePosition.BEFORE_ACCUMULATION,
+            )
+            recipe(choices).forEachCompleted(
+                fixtures.completed.getValue(id), onCardio = {},
+                onSet = { _, set, context, raw, adjusted, count ->
+                    val bonus = if (set.weight > 0.0 && set.reps <= 3 && AugeFatigueEngine.getEffectiveRPE(set) >= 9.5) 1.15 else 1.0
+                    println("[2.2b2-set]|$id|${index++}|${context.primaryMuscle}|${set.side ?: "bilateral"}|$count|${context.axialGate}|$bonus|" +
+                        "${raw.muscularDrainPct}|${raw.cnsDrainPct}|${raw.spinalDrainPct}|${adjusted.muscular}|${adjusted.cns}|${adjusted.spinal}")
+                },
+            )
+            assertTrue("Sesión completa sin series: $id", index > 5)
+        }
+    }
+
     @Test fun constantesDeLaRecetaSoloSeConsumenEnElArchivoCompartido() {
         val relative = "src/main/java/com/example/kpkn/domain/auge"
         val root = listOf(File(relative), File("app/" + relative), File("android-native/app/" + relative)).first { it.isDirectory }
