@@ -1,6 +1,7 @@
 package com.example.kpkn.domain.auge
 
 import com.example.kpkn.data.models.AugeAdaptiveCache
+import com.example.kpkn.data.models.AugeParameterState
 import com.example.kpkn.data.models.CardioDetails
 import com.example.kpkn.data.models.CardioType
 import com.example.kpkn.data.models.CompletedExercise
@@ -68,6 +69,13 @@ class AugeParametersConsistencyTest {
         assertEquals(AugeParameters.DEFAULT_TAU_ENERGY_H, InitialRecoveryV2Model.TAU_ENERGY_HOURS, 0.0)
         assertEquals(AugeParameters.DEFAULT_TAU_SPINAL_H, InitialRecoveryV2Model.TAU_SPINAL_HOURS, 0.0)
         assertEquals(AugeParameters.DEFAULT_TAU_GLOBAL_MUSCLE_H, InitialRecoveryV2Model.TAU_GLOBAL_MUSCLE_HOURS, 0.0)
+    }
+
+    @Test
+    fun varianzaPorDefectoDeAugeParameterStateCoincideConP0() {
+        val state = AugeParameterState()
+        assertEquals(0.1225, AugeParameters.LEARNER_P0, 1e-12)
+        assertEquals(AugeParameters.LEARNER_P0, state.variance, 1e-12)
     }
 
     @Test
