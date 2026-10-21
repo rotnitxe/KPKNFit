@@ -14,6 +14,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.material3.Text
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.example.kpkn.domain.sessionassistant.AssistantNoticeKind
 import com.example.kpkn.domain.sessionassistant.AssistantSuggestion
 import com.example.kpkn.screens.onboarding.design.WizardColors
 import com.example.kpkn.ui.components.icons.KpknLineIcons
@@ -32,16 +33,18 @@ internal fun AssistantSuggestionsTab(
     suggestions: List<AssistantSuggestion>,
     analysisReady: Boolean,
     onApply: (suggestionId: String, acceptedDetailIds: List<String>) -> Unit,
+    /** Notas informativas sin acción (MOT · S3): un dato verificable y una posibilidad, nunca una orden. */
+    notes: List<String> = emptyList(),
 ) {
     if (!analysisReady) {
         SheetLoadingSkeleton()
         return
     }
-    if (suggestions.isEmpty()) {
+    if (suggestions.isEmpty() && notes.isEmpty()) {
         KpknEmptyState(
             icon = KpknLineIcons.Sliders,
             title = "Sin sugerencias para esta sesión",
-            body = "Si la sesión se pone demasiado exigente, aparecerán ajustes aquí.",
+            body = "Si algo choca con el tiempo o con los límites que elegiste, aparecerá aquí.",
         )
         return
     }
@@ -51,6 +54,13 @@ internal fun AssistantSuggestionsTab(
     ) {
         suggestions.forEach { suggestion ->
             AssistantSuggestionCard(suggestion = suggestion, onApplySuggestion = onApply)
+        }
+        notes.forEach { note ->
+            KpknModule(modifier = Modifier.fillMaxWidth()) {
+                SheetCaption(text = AssistantNoticeKind.INFO.label, color = WizardColors.textFaint)
+                Spacer(Modifier.height(4.dp))
+                SheetCaption(text = note)
+            }
         }
     }
 }
@@ -74,6 +84,8 @@ internal fun AssistantSuggestionCard(
         .map { it.id }
 
     KpknModule(modifier = Modifier.fillMaxWidth()) {
+        SheetCaption(text = suggestion.kind.label, color = WizardColors.textFaint)
+        Spacer(Modifier.height(2.dp))
         Text(
             text = suggestion.title,
             style = KpknType.bodyStrong,

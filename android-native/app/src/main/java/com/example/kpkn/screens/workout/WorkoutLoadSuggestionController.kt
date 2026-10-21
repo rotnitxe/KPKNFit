@@ -48,6 +48,7 @@ class WorkoutLoadSuggestionController(
     private val updateState: ((WorkoutUiState) -> WorkoutUiState) -> Unit,
     private val ports: Ports,
     private val computeDispatcher: CoroutineDispatcher = Dispatchers.Default,
+    private val equipmentInventory: () -> com.example.kpkn.data.models.EquipmentInventory? = { null },
 ) {
     interface Ports {
         fun visibleExercises(state: WorkoutUiState): List<Exercise>
@@ -147,6 +148,14 @@ class WorkoutLoadSuggestionController(
         activeTag: String? = null,
         side: String? = null,
     ): WeightSuggestion? {
+        val liveState = getState()
+        calibrationLoadForSet(liveState, exercise, setIdx, side)?.let {
+            return WeightSuggestion(it.weight, if (it.calibrated) "calibrada" else "Carga del plan conservada",
+                suggestedLoadMode = ports.effectiveLoadModeForExercise(exercise, setIdx))
+        }
+        acceptedCalibrationLoad(liveState, exercise, setIdx, side, System.currentTimeMillis(), equipmentInventory())?.let {
+            return WeightSuggestion(it, "Referencia de calibración aceptada", suggestedLoadMode = ports.effectiveLoadModeForExercise(exercise, setIdx))
+        }
         if (LoadSuggestionEngine.shouldDeferToNativeProgression(exercise, setIdx, side)) return null
         val currentLoadMode = ports.effectiveLoadModeForExercise(exercise, setIdx)
         val currentSet = exercise.sets.getOrNull(setIdx)
@@ -523,6 +532,15 @@ class WorkoutLoadSuggestionController(
         activeTag: String?,
         side: String?,
     ): WorkoutLoadSuggestionUi? {
+        val state = getState()
+        val live = calibrationLoadForSet(state, exercise, setIdx, side)
+        val accepted = if (live == null) acceptedCalibrationLoad(state, exercise, setIdx, side, System.currentTimeMillis(), equipmentInventory()) else null
+        if (live != null || accepted != null) return WorkoutLoadSuggestionUi(
+            suggestedWeight = live?.weight ?: checkNotNull(accepted),
+            originalWeight = live?.originalWeight ?: exercise.sets.getOrNull(setIdx)?.weight ?: checkNotNull(accepted),
+            reason = if (live?.calibrated == true) "calibrada" else if (accepted != null) "Referencia de calibración aceptada" else "Carga del plan conservada",
+            isRecalculated = live?.calibrated == true || accepted != null,
+            suggestedLoadMode = ports.effectiveLoadModeForExercise(exercise, setIdx))
         if (LoadSuggestionEngine.shouldDeferToNativeProgression(exercise, setIdx, side)) return null
         val currentLoadMode = ports.effectiveLoadModeForExercise(exercise, setIdx)
         val historySuggestion = ports.getWeightSuggestion(exercise, setIdx, activeTag)
@@ -700,6 +718,7 @@ class WorkoutLoadSuggestionController(
         val sessionSets = completedSessionSetsForExercise(exercise, activeTag)
             .filter { snapshot -> snapshot.completedSet.side == side || side == null }
             .filter { snapshot -> !snapshot.completedSet.skipped }
+            .filter { snapshot -> snapshot.completedSet.purpose != com.example.kpkn.data.models.SetPurpose.CALIBRATOR }
         if (sessionSets.isEmpty()) return 1.0
 
         val historyBaselineRm = ports.canonicalExerciseKey(exercise)

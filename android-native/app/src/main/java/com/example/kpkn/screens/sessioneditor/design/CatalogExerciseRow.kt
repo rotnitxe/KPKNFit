@@ -72,6 +72,8 @@ internal fun CatalogExerciseRow(
     expandable: Boolean = false,
     expanded: Boolean = false,
     onLongClick: (() -> Unit)? = null,
+    /** Foto de portada de un ejercicio propio (miniatura del almacén privado de medios); tiene prioridad sobre la imagen y el glifo. */
+    thumbnailFile: java.io.File? = null,
 ) {
     Row(
         modifier = modifier
@@ -93,7 +95,7 @@ internal fun CatalogExerciseRow(
                 },
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            CatalogRowThumbnail(thumbnailResId = thumbnailResId, pattern = pattern)
+            CatalogRowThumbnail(thumbnailResId = thumbnailResId, pattern = pattern, thumbnailFile = thumbnailFile)
             Spacer(Modifier.width(12.dp))
             Column(modifier = Modifier.weight(1f)) {
                 Text(
@@ -176,7 +178,7 @@ internal fun CatalogVariantChips(
  * de la fila ya la dice.
  */
 @Composable
-internal fun CatalogRowThumbnail(thumbnailResId: Int?, pattern: ExercisePattern) {
+internal fun CatalogRowThumbnail(thumbnailResId: Int?, pattern: ExercisePattern, thumbnailFile: java.io.File? = null) {
     Box(
         modifier = Modifier
             .size(48.dp)
@@ -184,7 +186,14 @@ internal fun CatalogRowThumbnail(thumbnailResId: Int?, pattern: ExercisePattern)
             .background(KpknSurface.inset),
         contentAlignment = Alignment.Center,
     ) {
-        if (thumbnailResId != null) {
+        if (thumbnailFile != null) {
+            coil.compose.AsyncImage(
+                model = thumbnailFile,
+                contentDescription = null,
+                modifier = Modifier.fillMaxSize(),
+                contentScale = ContentScale.Crop,
+            )
+        } else if (thumbnailResId != null) {
             Image(
                 painter = painterResource(thumbnailResId),
                 contentDescription = null,

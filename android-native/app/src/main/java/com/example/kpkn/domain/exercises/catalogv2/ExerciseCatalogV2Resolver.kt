@@ -38,6 +38,76 @@ internal val RETIRED_ROMANIAN_SUMO_CONFIGURATION_PROFILES: Map<String, String> =
 )
 
 /**
+ * Orden editorial de las consultas de FAMILIA («sentadilla», «peso muerto», «press», «remo»…): qué definiciones van primero. Lo usan la
+ * búsqueda y el motor de parecidos de «Crear ejercicio», para que una misma consulta abierta se ordene igual en los dos. Cada id debe
+ * existir en el catálogo aprobado (lo comprueba `ExerciseCatalogV2ResolverPriorityTest`).
+ */
+internal val OPEN_QUERY_PRIORITY_TABLE: Map<String, List<String>> = run {
+    val deadlifts = listOf(
+        "conventional_deadlift",
+        "romanian_deadlift",
+        "sumo_deadlift",
+        "stiff_leg_deadlift",
+        "romanian_sumo_deadlift",
+    )
+    val squats = listOf(
+        "high_bar_back_squat",
+        "low_bar_back_squat",
+        "front_squat",
+        "sumo_squat",
+        "belt_squat",
+        "pendulum_squat",
+        "quads_sentadilla_hack",
+        "sissy_squat",
+        "bulgarian_split_squat",
+    )
+    val benchPresses = listOf("bench_press", "incline_bench_press", "decline_bench_press")
+    val rows = listOf(
+        // Las definiciones vigentes: los ids antiguos back_* se retiraron del catálogo y esta tabla no los alcanzaba.
+        "conventional_row",
+        "pendlay_row",
+        "chest_supported_row",
+        "t_bar_row",
+        "seal_row",
+        "gironda_row",
+    )
+    mapOf(
+        "peso muerto" to deadlifts,
+        "deadlift" to deadlifts,
+        "sentadilla" to squats,
+        "sentadillas" to squats,
+        "squat" to squats,
+        "press" to listOf(
+            "bench_press",
+            "incline_bench_press",
+            "decline_bench_press",
+            "military_press",
+            "seated_shoulder_press",
+            "floor_press",
+            "arnold_press",
+            "z_press",
+            "california_press",
+            "triceps_press_frances",
+        ),
+        "push" to listOf(
+            "bench_press",
+            "incline_bench_press",
+            "decline_bench_press",
+            "military_press",
+            "seated_shoulder_press",
+            "floor_press",
+            "arnold_press",
+            "z_press",
+        ),
+        "press banca" to benchPresses,
+        "press de banca" to benchPresses,
+        "bench press" to benchPresses,
+        "remo" to rows,
+        "row" to rows,
+    )
+}
+
+/**
  * Pure resolver for the v2 contract. It never falls back to a default when a
  * definition/configuration pair is invalid and it never creates combinations
  * that were not materialized by the compiler.
@@ -447,102 +517,6 @@ class ExerciseCatalogV2Resolver(
             "hip thrust",
         )
 
-        private val OPEN_QUERY_PRIORITY = mapOf(
-            "peso muerto" to listOf(
-                "conventional_deadlift",
-                "romanian_deadlift",
-                "sumo_deadlift",
-                "stiff_leg_deadlift",
-                "romanian_sumo_deadlift",
-            ),
-            "deadlift" to listOf(
-                "conventional_deadlift",
-                "romanian_deadlift",
-                "sumo_deadlift",
-                "stiff_leg_deadlift",
-                "romanian_sumo_deadlift",
-            ),
-            "sentadilla" to listOf(
-                "high_bar_back_squat",
-                "low_bar_back_squat",
-                "front_squat",
-                "sumo_squat",
-                "belt_squat",
-                "pendulum_squat",
-                "quads_sentadilla_hack",
-                "sissy_squat",
-                "bulgarian_split_squat",
-            ),
-            "sentadillas" to listOf(
-                "high_bar_back_squat",
-                "low_bar_back_squat",
-                "front_squat",
-                "sumo_squat",
-                "belt_squat",
-                "pendulum_squat",
-                "quads_sentadilla_hack",
-                "sissy_squat",
-                "bulgarian_split_squat",
-            ),
-            "squat" to listOf(
-                "high_bar_back_squat",
-                "low_bar_back_squat",
-                "front_squat",
-                "sumo_squat",
-                "belt_squat",
-                "pendulum_squat",
-                "quads_sentadilla_hack",
-                "sissy_squat",
-                "bulgarian_split_squat",
-            ),
-            "press" to listOf(
-                "bench_press",
-                "incline_bench_press",
-                "decline_bench_press",
-                "military_press",
-                "seated_shoulder_press",
-                "floor_press",
-                "arnold_press",
-                "z_press",
-                "california_press",
-                "triceps_press_frances",
-            ),
-            "push" to listOf(
-                "bench_press",
-                "incline_bench_press",
-                "decline_bench_press",
-                "military_press",
-                "seated_shoulder_press",
-                "floor_press",
-                "arnold_press",
-                "z_press",
-            ),
-            "press banca" to listOf(
-                "bench_press",
-                "incline_bench_press",
-                "decline_bench_press",
-            ),
-            "press de banca" to listOf(
-                "bench_press",
-                "incline_bench_press",
-                "decline_bench_press",
-            ),
-            "remo" to listOf(
-                "back_conventional_row",
-                "back_pendlay_row",
-                "back_chest_supported_row",
-                "back_t_bar_row",
-                "back_seal_row",
-                "back_gironda_row",
-            ),
-            "row" to listOf(
-                "back_conventional_row",
-                "back_pendlay_row",
-                "back_chest_supported_row",
-                "back_t_bar_row",
-                "back_seal_row",
-                "back_gironda_row",
-            ),
-        )
+        private val OPEN_QUERY_PRIORITY = OPEN_QUERY_PRIORITY_TABLE
     }
 }

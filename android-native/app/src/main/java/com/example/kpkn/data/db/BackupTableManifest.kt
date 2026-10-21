@@ -17,6 +17,7 @@ object BackupTableManifest {
     val tableCategory: Map<String, Category> = mapOf(
         "programs" to Category.USER_DATA,
         "workout_logs" to Category.USER_DATA,
+        "calibration_decisions" to Category.USER_DATA,
         "competition_records" to Category.USER_DATA,
         "settings" to Category.USER_DATA,
         "active_program" to Category.USER_DATA,
@@ -100,10 +101,12 @@ object BackupTableManifest {
         hasWorkoutMediaSection: Boolean,
         hasCalibrationSection: Boolean,
         hasSetupSection: Boolean = false,
+        hasCalibrationDecisionsSection: Boolean = false,
     ): List<String> {
         val tables = coreJsonBackedTables.filterNot { table ->
             (table == "setup_drafts" || table == "setup_commit_receipts") && !(schemaVersion >= 6 && hasSetupSection)
         }.toMutableList()
+        if (schemaVersion >= 6 && hasCalibrationDecisionsSection) tables += "calibration_decisions"
         if (schemaVersion >= 5) {
             if (hasCompetitionSection) tables += "competition_records"
             if (hasWorkoutV2Section) {

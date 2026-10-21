@@ -12,6 +12,7 @@ internal data class LiveSessionLineStep(
     val pageIndex: Int? = null,
     val preparationSelect: (() -> Unit)? = null,
     val preparationProgress: Float? = null,
+    val calibratedLoad: Double? = null,
 )
 
 internal fun liveSessionLineSteps(snapshot: LiveSetStepperSnapshot, activePageIndex: Int?): List<LiveSessionLineStep> = buildList {

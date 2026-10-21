@@ -60,6 +60,7 @@ internal fun CockpitSessionSummary(
     onSelectSuperset: (String) -> Unit,
     onOpenExerciseOptions: ((String) -> Unit)? = null,
     onOpenSupersetOptions: ((String) -> Unit)? = onOpenExerciseOptions,
+    calibratedLoads: Map<String, Double> = emptyMap(),
     onAddExercise: (() -> Unit)? = null,
 ) {
     val metrics = remember(exercises, completedSets, completedExercises, omittedSetKeys, liveEnergySummary, bodyWeight) {
@@ -138,6 +139,14 @@ internal fun CockpitSessionSummary(
                     verticalArrangement = Arrangement.spacedBy(4.dp)) {
                     Text(title, style = KpknType.bodyStrong, color = if (current) WizardColors.text else WizardColors.textMuted)
                     Text(status, style = KpknType.caption, color = if (complete) SymbolPalette.ok else WizardColors.textMuted)
+                    members.forEach { member -> member.sets.indices.forEach { index ->
+                        listOf(null, "left", "right").forEach { side ->
+                            calibratedLoads[com.example.kpkn.screens.workout.workoutSetKey(member.id, index, side)]?.let { load ->
+                                Text("S${index + 1}${side?.let { if(it == "left") " L" else " R" }.orEmpty()} · ${com.example.kpkn.screens.workout.finishNumber(load)} kg · calibrada",
+                                    style = KpknType.caption, color = WizardColors.textMuted)
+                            }
+                        }
+                    } }
                 }
                 val options = if (groupId != null && members.size > 1) onOpenSupersetOptions else onOpenExerciseOptions
                 options?.let { open ->

@@ -14,6 +14,10 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
+/**
+ * Contrato del asistente tras el rediseño MOT (AUD1 §2.7). El umbral interno de coste 59/60 se conserva como señal, pero ya no
+ * dispara una tarjeta «sesión demasiado exigente»: sin historial comparable informa del coste estimado y no propone recortes.
+ */
 class SessionAssistantEngineTest {
     @Test
     fun `assistant report no longer exposes verdict score risks templates or ghost cards`() {
@@ -26,37 +30,42 @@ class SessionAssistantEngineTest {
         assertTrue(report.tarjetasFantasma.isEmpty())
         assertTrue(report.plantillasCompatibles.isEmpty())
         assertTrue(report.ajustes.isEmpty())
+        assertTrue(report.notas.isEmpty())
     }
 
     @Test
-    fun `assistant suggestions only appear when session drain is clearly high`() {
+    fun `the cost signal at 60 informs but never raises a card without comparable history`() {
         val below = SessionAssistantEngine.evaluate(input(customDrain = PredictedDrain(cns = 59, muscular = 59, spinal = 59)))
         val atThreshold = SessionAssistantEngine.evaluate(input(customDrain = PredictedDrain(cns = 60, muscular = 60, spinal = 60)))
 
-        assertTrue(below.ajustes.isEmpty())
-        assertFalse(atThreshold.ajustes.isEmpty())
-        assertTrue(atThreshold.ajustes.any { it.id == "session_too_fatiguing" })
-        assertTrue(atThreshold.ajustes.first().details.isNotEmpty())
+        assertTrue(below.ajustes.isEmpty() && below.notas.isEmpty())
+        // En el umbral el coste se comunica como dato (nota); sin sesiones comparables no se propone ningún recorte.
+        assertTrue(atThreshold.ajustes.isEmpty())
+        assertEquals(1, atThreshold.notas.size)
+        assertTrue(atThreshold.notas.single().contains("Coste estimado"))
+        assertTrue(atThreshold.notas.single().contains("sesiones comparables"))
     }
 
     @Test
-    fun `assistant suggestions use human language without technical jargon`() {
+    fun `assistant notes use human language without technical jargon or alarm`() {
         val report = SessionAssistantEngine.evaluate(input(customDrain = PredictedDrain(cns = 70, muscular = 70, spinal = 65)))
 
-        assertTrue(report.ajustes.isNotEmpty())
-        assertTrue(report.ajustes.all { suggestion ->
-            val text = (suggestion.title + " " + suggestion.message).lowercase()
+        assertTrue(report.notas.isNotEmpty())
+        assertTrue(report.notas.all { note ->
+            val text = note.lowercase()
             !text.contains("snc") &&
                 !text.contains("drenaje") &&
                 !text.contains("batería") &&
                 !text.contains("axial") &&
-                !text.contains("auge")
+                !text.contains("auge") &&
+                !text.contains("demasiado") &&
+                !text.contains("fatigante") &&
+                !text.contains("recuperación")
         })
-        assertTrue(report.ajustes.any { it.message.contains("fatigante", ignoreCase = true) })
     }
 
     @Test
-    fun overlapping_week_sessions_surface_plain_language_suggestion() {
+    fun overlapping_week_sessions_surface_plain_language_information() {
         val bench = Exercise(
             id = "ex-bench",
             name = "Press banca",
@@ -100,15 +109,15 @@ class SessionAssistantEngineTest {
                 customDrain = PredictedDrain(cns = 30, muscular = 35, spinal = 20),
             ),
         )
-        assertTrue(report.ajustes.any { it.id.startsWith("overlap-") })
-        assertTrue(report.ajustes.any { it.title.contains("Poco descanso", ignoreCase = true) })
-        assertTrue(report.ajustes.filter { it.id.startsWith("overlap-") }.all { suggestion ->
-            val text = (suggestion.title + " " + suggestion.message).lowercase()
-            !text.contains("interferencia") &&
-                !text.contains("drenaje") &&
-                !text.contains("auge") &&
-                !text.contains("snc")
+        // El cruce con la sesión PREVISTA se cuenta siempre en tiempo de plan, sea una nota o una tarjeta opcional.
+        val texts = report.notas + report.ajustes.flatMap { listOf(it.title, it.message) + it.details.map { d -> d.label } }
+        assertTrue("debe mencionar el cruce: $texts", texts.any { it.contains("Pecho A") && it.contains("prevista") })
+        assertTrue(texts.none { text ->
+            val lower = text.lowercase()
+            lower.contains("entrenaste") || lower.contains("poco descanso") || lower.contains("interferencia") ||
+                lower.contains("drenaje") || lower.contains("auge") || lower.contains("snc")
         })
+        assertTrue(report.ajustes.size + report.notas.size <= SessionAdvisor.MAX_NOTICES)
     }
 
     private fun input(customDrain: PredictedDrain? = null): SessionAssistantInput {

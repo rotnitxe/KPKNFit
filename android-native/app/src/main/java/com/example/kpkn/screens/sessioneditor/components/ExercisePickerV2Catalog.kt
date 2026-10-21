@@ -54,6 +54,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.ui.draw.drawWithContent
 import com.example.kpkn.screens.sessioneditor.CatalogSupersetConfig
 import com.example.kpkn.data.exercises.catalogv2.toLegacySelection
+import com.example.kpkn.data.exercises.approvedExerciseCatalogV2
 import com.example.kpkn.data.exercises.exerciseCatalogSnapshot
 import com.example.kpkn.data.models.ExerciseMuscleInfo
 import com.example.kpkn.data.models.MuscleRole
@@ -1595,12 +1596,16 @@ private fun CatalogCustomExerciseItem(
             .take(3)
     }
     val pattern = remember(exercise.name) { exercisePatternOf(exercise.name) }
+    // MOT · E4/E5: portada del propio = su foto, la imagen de referencia de una variante próxima o, si no hay, el glifo del patrón.
+    val coverContext = androidx.compose.ui.platform.LocalContext.current
+    val cover = remember(exercise.cover, exercise.name) { com.example.kpkn.screens.sessioneditor.design.customExerciseCoverModel(coverContext, exercise) }
     Column(modifier = Modifier.fillMaxWidth()) {
         CatalogExerciseRow(
             name = exercise.name,
             subtitle = primaryMuscles.takeIf { it.isNotEmpty() }?.joinToString(" · ") { exerciseCatalogMuscleLabel(it) },
             matchLabel = null,
-            thumbnailResId = null,
+            thumbnailResId = cover.imageResId,
+            thumbnailFile = cover.photoFile,
             pattern = pattern,
             selected = selected,
             onClick = { expanded = !expanded },
@@ -1660,6 +1665,8 @@ private fun SmartCreateSuggestion(
     var creating by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
     val catalog = remember { exerciseCatalogSnapshot() }
+    // MOT · E1: el creador comparte catálogo con la búsqueda (v2 completo): comprueba la variante exacta y no inventa una.
+    val catalogV2 = remember { approvedExerciseCatalogV2() }
     CatalogNoResults(
         query = query,
         creating = creating,
@@ -1668,7 +1675,7 @@ private fun SmartCreateSuggestion(
                 creating = true
                 scope.launch {
                     val created = withContext(Dispatchers.IO) {
-                        val info = SmartExerciseCreator.createAutomatic(query, catalog)
+                        val info = SmartExerciseCreator.createAutomatic(query, catalog, catalogV2)
                         CustomExerciseRepository.upsert(info)
                         info
                     }

@@ -135,7 +135,7 @@ internal class WorkoutRecordingGate {
 }
 
 internal fun canStartWorkoutRecording(state: WorkoutUiState): Boolean =
-    !state.isFinishingWorkout && !state.isComplete && !state.isStartingWorkout && !state.isCancellingWorkout && !state.wasCancelled && state.startPersistenceError == null && state.pendingOngoingConflict == null && !state.pendingOngoingCorrupt
+    state.calibrationActionId == null && !state.isFinishingWorkout && !state.isComplete && !state.isStartingWorkout && !state.isCancellingWorkout && !state.wasCancelled && state.startPersistenceError == null && state.pendingOngoingConflict == null && !state.pendingOngoingCorrupt
 
 internal fun canRunWorkoutTimers(state: WorkoutUiState): Boolean =
     !state.isCancellingWorkout && !state.wasCancelled && !state.isComplete && !state.isFinishingWorkout &&
@@ -535,6 +535,7 @@ class WorkoutViewModel(
     )
 
     private val loadSuggestionController = WorkoutLoadSuggestionController(
+        equipmentInventory = { repository.settings.value.resolvedEquipmentInventory() },
         performanceRangeStore = performanceRangeStore,
         scope = viewModelScope,
         getState = { _uiState.value },
@@ -579,6 +580,14 @@ class WorkoutViewModel(
             recomputeLiveEnergy(completedSets, exercises, repository.settings.value)
         },
         refreshLoadSuggestions = { state, exerciseId -> refreshLoadSuggestions(state, onlyExerciseId = exerciseId) },
+        refreshCalibrations = { previous, next ->
+            if (previous.calibrationDecisions.isEmpty()) next else withContext(Dispatchers.IO) {
+                refreshCorrectedCalibrations(previous, next, repository.history.value,
+                    inventory = repository.settings.value.resolvedEquipmentInventory()) { sourceId ->
+                    repository.calibrationDecisions.accepted(System.currentTimeMillis(), sourceId)
+                }
+            }
+        },
     )
 
     private lateinit var stepNavigator: WorkoutStepNavigator
@@ -2320,6 +2329,45 @@ class WorkoutViewModel(
         val key = workoutSetKey(exerciseId, setIdx, side)
         updateUiState {
             it.copy(manualLoadOverrides = it.manualLoadOverrides + (key to load.coerceAtLeast(0.0)))
+        }
+    }
+
+    internal fun calibrationForSet(completed: CompletedSet?): com.example.kpkn.data.models.CalibrationDecisionRecord? =
+        completed?.let { done -> _uiState.value.calibrationDecisions.lastOrNull {
+            it.sourceSetId == done.id && it.status != com.example.kpkn.data.models.CalibrationStatus.SUPERSEDED
+        } }
+
+    internal fun amrapProgramPreview(exercise: Exercise, index: Int, completed: CompletedSet): LiveAmrapProgramPreview =
+        liveAmrapProgramPreview(repository.getProgramById(programId), exercise, exercise.sets[index], completed, _uiState.value.weekId)
+
+    fun resolveCalibrationDecision(id: String, action: com.example.kpkn.data.models.CalibrationStatus) {
+        if (!canStartWorkoutRecording(_uiState.value) || _uiState.value.recordingSetKey != null) return
+        val gateKey = "calibration:$id"
+        if (!recordingGate.tryStart(gateKey)) return
+        updateUiState { it.copy(calibrationActionId = id, calibrationError = null) }
+        viewModelScope.launch {
+            try {
+                val captured = _uiState.value
+                val candidate = withContext(Dispatchers.IO) {
+                    resolveCalibration(captured, id, action, System.currentTimeMillis())
+                }
+                if (candidate.calibrationDecisions == captured.calibrationDecisions) return@launch
+                val result = persistOngoingStateAndAwait(candidate) {
+                    updateUiState { it.copy(calibrationDecisions = candidate.calibrationDecisions) }
+                }
+                if (result is WorkoutPersistResult.UiPublicationFailed) updateUiState {
+                    it.copy(calibrationDecisions = candidate.calibrationDecisions)
+                }
+                if (result.succeeded) refreshLoadSuggestions(_uiState.value)
+                else updateUiState { it.copy(calibrationError = CalibrationActionFailure(id, "No se pudo guardar la decisión. Reintenta; las cargas se conservan.")) }
+            } catch (cancelled: kotlinx.coroutines.CancellationException) {
+                throw cancelled
+            } catch (error: Exception) {
+                updateUiState { it.copy(calibrationError = CalibrationActionFailure(id, "No se pudo guardar la decisión. Reintenta; las cargas se conservan.")) }
+            } finally {
+                updateUiState { it.copy(calibrationActionId = null) }
+                recordingGate.finish(gateKey)
+            }
         }
     }
 

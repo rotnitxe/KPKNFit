@@ -585,6 +585,14 @@ object AugeFatigueEngine {
         }
     }
 
+    /** Lo que una serie dejó en la sesión: su coste bruto y lo que entró en los acumuladores tras la conservación y el tope. */
+    private data class SetAggregation(
+        val drain: SetDrain,
+        val cappedMuscular: Double,
+        val cappedCns: Double,
+        val cappedSpinal: Double,
+    )
+
     private fun aggregateSetIntoSessionDrain(
         acc: AggregateDrainAcc,
         set: CompletedSet,
@@ -602,7 +610,7 @@ object AugeFatigueEngine {
         cnsCap: Double,
         spinalCap: Double,
         spinalAxialGate: Double = 1.0,
-    ) {
+    ): SetAggregation {
         val conservationFactor = AugeUtils.SESSION_CONSERVATION_FACTOR
         val decayK = AugeUtils.SESSION_DECAY_K
         var accumulated = acc.muscleVolumeMap[primaryPillar] ?: 0.0
@@ -632,6 +640,47 @@ object AugeFatigueEngine {
         acc.accumulatedDrain += (adjustedMuscular + adjustedCns + adjustedSpinal) / 3.0
         attributeMuscularDrain(acc, cappedMuscular, primaryPillar, involvementWeights)
         acc.muscleVolumeMap[primaryPillar] = accumulated
+        return SetAggregation(
+            drain = drain,
+            cappedMuscular = cappedMuscular,
+            cappedCns = cappedCns,
+            cappedSpinal = cappedSpinal,
+        )
+    }
+
+    /** Acumulado de la sesión y su valor final, ambos con decimales. */
+    private data class FinalizedDrain(
+        val accumulated: PreciseDrain,
+        val precise: PreciseDrain,
+    )
+
+    /**
+     * Finalización de la sesión SIN truncar: Columna escalada a la interfaz, topes y mínimo de sesión dura. Es el único sitio donde
+     * se decide el valor final; el contrato entero es su truncamiento.
+     */
+    private fun finalizePreciseSessionDrain(
+        acc: AggregateDrainAcc,
+        tanks: BatteryTanks,
+        muscularCap: Double,
+        cnsCap: Double,
+        spinalCap: Double,
+        hardEffectiveSets: Int,
+        hasAxialLoad: Boolean,
+    ): FinalizedDrain {
+        val scaledSpinal = scaleSpinalDrainToUi(acc.totalSpinal, tanks)
+        var cns = acc.totalCns.coerceAtMost(cnsCap)
+        var muscular = acc.totalMuscular.coerceAtMost(muscularCap)
+        var spinal = scaledSpinal.coerceAtMost(spinalCap)
+        val accumulated = PreciseDrain(cns = cns, muscular = muscular, spinal = spinal)
+        if (hardEffectiveSets >= 6) {
+            val minDrop = 10.0
+            cns = max(cns, minDrop).coerceAtMost(cnsCap)
+            muscular = max(muscular, minDrop).coerceAtMost(muscularCap)
+            if (hasAxialLoad) {
+                spinal = max(spinal, minDrop * 0.8).coerceAtMost(spinalCap)
+            }
+        }
+        return FinalizedDrain(accumulated, PreciseDrain(cns = cns, muscular = muscular, spinal = spinal))
     }
 
     private fun finalizeSessionDrain(
@@ -644,22 +693,17 @@ object AugeFatigueEngine {
         hardEffectiveSets: Int,
         hasAxialLoad: Boolean,
     ): SessionDrainBreakdown {
-        val scaledSpinal = scaleSpinalDrainToUi(acc.totalSpinal, tanks)
-        var result = PredictedDrain(
-            cns = acc.totalCns.coerceAtMost(cnsCap).toInt(),
-            muscular = acc.totalMuscular.coerceAtMost(muscularCap).toInt(),
-            spinal = scaledSpinal.coerceAtMost(spinalCap).toInt(),
-        )
-        result = ensureMinimumHardSessionDrain(
-            drain = result,
-            hardEffectiveSets = hardEffectiveSets,
+        val finalized = finalizePreciseSessionDrain(
+            acc = acc,
+            tanks = tanks,
             muscularCap = muscularCap,
             cnsCap = cnsCap,
             spinalCap = spinalCap,
+            hardEffectiveSets = hardEffectiveSets,
             hasAxialLoad = hasAxialLoad,
         )
         return SessionDrainBreakdown(
-            global = result,
+            global = finalized.precise.truncated(),
             perMuscleMuscular = acc.perMuscleMuscular.mapValues { (_, v) ->
                 v.roundToInt().coerceIn(0, muscularCap.toInt())
             },
@@ -785,27 +829,6 @@ object AugeFatigueEngine {
         adaptiveCache = adaptiveCache,
     ).perMuscleMuscular
 
-    private fun ensureMinimumHardSessionDrain(
-        drain: PredictedDrain,
-        hardEffectiveSets: Int,
-        muscularCap: Double,
-        cnsCap: Double,
-        spinalCap: Double,
-        hasAxialLoad: Boolean,
-    ): PredictedDrain {
-        if (hardEffectiveSets < 6) return drain
-        val minDrop = 10
-        return PredictedDrain(
-            cns = max(drain.cns, minDrop).coerceAtMost(cnsCap.toInt()),
-            muscular = max(drain.muscular, minDrop).coerceAtMost(muscularCap.toInt()),
-            spinal = if (hasAxialLoad) {
-                max(drain.spinal, (minDrop * 0.8).toInt()).coerceAtMost(spinalCap.toInt())
-            } else {
-                drain.spinal
-            },
-        )
-    }
-
     fun calculateCompletedSessionStress(
         completedExercises: List<CompletedExercise>,
         exerciseDb: Map<String, ExerciseMuscleInfo> = emptyMap(),
@@ -832,22 +855,59 @@ object AugeFatigueEngine {
         settings: Settings,
     ): PredictedDrain = calculateAdjustedPredictedDrain(session, exerciseDb, settings)
 
+    /**
+     * Coste del pasado en entero (trunca): la vista de siempre de [projectPlannedSession], sin ajuste por historial. Quien necesite
+     * decimales, cardio detallado o el reparto por ejercicio debe pedir la proyección.
+     */
     fun calculateAdjustedPredictedDrain(
         session: Session,
         exerciseDb: Map<String, ExerciseMuscleInfo>,
         settings: Settings,
         adaptiveCache: AugeAdaptiveCache = AugeAdaptiveCache(),
-    ): PredictedDrain {
+    ): PredictedDrain = projectPlannedSession(session, exerciseDb, settings, adaptiveCache).global
+
+    /** Carga que se modela para una serie prevista: la sugerida si el ejercicio va por %RM; si no, la escrita o 60 kg de respaldo. */
+    private fun plannedSetWeightKg(exercise: Exercise, set: ExerciseSet): Double =
+        if (exercise.trainingMode == TrainingMode.RM) {
+            com.example.kpkn.domain.calculations.calculateSuggestedLoad(exercise, set) ?: set.weight ?: 60.0
+        } else {
+            set.weight ?: 60.0
+        }
+
+    /**
+     * Proyección de coste de una sesión PREVISTA (MOT · I1/I2/I4). Es la ÚNICA pasada de coste de una sesión planificada: el editor
+     * (Impacto, Columna), el asistente y las plantillas la consumen en vez de repetir el cálculo con otros redondeos.
+     *
+     * - Incluye el cardio en los acumuladores (antes solo lo hacía la pasada general).
+     * - Conserva los decimales hasta formatear; [SessionDrainProjection.global] es su truncamiento de siempre.
+     * - Ignora series ineficaces y huecos de ronda borrada ([ExerciseSet.isEmptySlot]).
+     * - Distingue la carga axial declarada (0 incluido) de la desconocida; esta última conserva la heurística de SSC, pero queda
+     *   anotada en [SessionDrainProjection.spinalEvidence].
+     * - Aplica el ajuste por historial una sola vez, sobre los decimales, si se pasa [mesocycleEma].
+     */
+    fun projectPlannedSession(
+        session: Session,
+        exerciseDb: Map<String, ExerciseMuscleInfo>,
+        settings: Settings,
+        adaptiveCache: AugeAdaptiveCache = AugeAdaptiveCache(),
+        mesocycleEma: MesocycleStressEMA? = null,
+    ): SessionDrainProjection {
         val tanks = calculatePersonalizedBatteryTanks(settings)
         val floor = physiologicalFloor(settings)
         val muscularCap = (100 - floor.muscular).coerceAtLeast(5).toDouble()
         val cnsCap = (100 - floor.cns).coerceAtLeast(5).toDouble()
         val spinalCap = (100 - floor.spinal).coerceAtLeast(5).toDouble()
         val weightUnit = settings.weightUnit
+        val defaultRest = settings.restTimerDefaultSeconds.takeIf { it > 0 } ?: 90
         val remappedMultipliers = remapMuscleMultiplierMapToPillars(adaptiveCache.muscleDrainMultipliers)
         val acc = AggregateDrainAcc()
+        val contributions = mutableListOf<ExerciseDrainContribution>()
+        var effectiveSets = 0
+        var hardSets = 0
+        var hasAxial = false
 
-        val exercises = session.exercises + session.parts.flatMap { it.exercises }
+        // Un ejercicio reflejado en la lista suelta y en una parte cuenta una vez, como en el reloj común.
+        val exercises = session.allExercises().distinctBy { it.id }
 
         exercises.forEach { ex ->
             ex.cardioDetails?.let { cardio ->
@@ -864,9 +924,24 @@ object AugeFatigueEngine {
                     cardioDrain.muscleDrains.forEach { (pillar, value) ->
                         acc.perMuscleMuscular[pillar] = (acc.perMuscleMuscular[pillar] ?: 0.0) + value
                     }
+                    contributions += ExerciseDrainContribution(
+                        exerciseId = ex.id,
+                        isCardio = true,
+                        setCount = 1,
+                        rawMuscular = cardioDrain.muscular,
+                        rawCns = cardioDrain.cns * adaptiveCache.cnsDrainMultiplier,
+                        rawSpinal = cardioDrain.spinal * adaptiveCache.spinalDrainMultiplier,
+                        cappedMuscular = muscular,
+                        cappedCns = cns,
+                        cappedSpinal = spinal,
+                        axialLoadFactor = null,
+                        cardioMuscleDrains = cardioDrain.muscleDrains,
+                    )
                 }
                 return@forEach
             }
+            val sets = ex.sets.filter { !it.isIneffective && !it.isEmptySlot }
+            if (sets.isEmpty()) return@forEach
             val dbInfo = resolveCatalogExerciseInfoInIndex(
                 index = exerciseDb,
                 catalogConfigurationId = ex.catalogConfigurationId,
@@ -875,7 +950,8 @@ object AugeFatigueEngine {
                 exerciseName = ex.name,
             )
             val metrics = getDynamicAugeMetrics(ex.name, dbInfo?.equipment, dbInfo) ?: AugeMetrics()
-            val densityMult = getDensityMultiplierForExercise(ex.supersetId, ex.restTime ?: 90)
+            val restTime = ex.restTime ?: defaultRest
+            val densityMult = getDensityMultiplierForExercise(ex.supersetGroupRefOrLegacyId(), restTime)
             val involved = resolveInvolvedMuscles(
                 exerciseName = ex.name,
                 snapshot = ex.effectiveMuscles,
@@ -889,16 +965,20 @@ object AugeFatigueEngine {
             val involvementWeights = involvementWeightsFor(involved)
             val muscleMult = lookupMuscleDrainMultiplier(remappedMultipliers, primaryMuscle)
             val axialGate = spinalAxialGate(dbInfo?.axialLoadFactor)
+            val axial = dbInfo?.axialLoadFactor
+            if (axial == null || axial > 0.0) hasAxial = true
 
-            ex.sets.forEach { s ->
-                if (s.isIneffective) return@forEach
-                // %RM sobre la referencia de SU base: PERCENT_TM lee el TM, el resto el 1RM.
-                val calculatedWeight = (if (ex.trainingMode == TrainingMode.RM) com.example.kpkn.domain.calculations.percentLoadKg(ex, s) else null)
-                    ?: s.weight ?: 60.0
-                // Planned sets are modeled as bilateral equivalents (no L/R side on targets).
+            var rawMuscular = 0.0
+            var rawCns = 0.0
+            var rawSpinal = 0.0
+            var cappedMuscular = 0.0
+            var cappedCns = 0.0
+            var cappedSpinal = 0.0
+            sets.forEach { s ->
+                // Las series previstas se modelan como equivalentes bilaterales (los objetivos no llevan lado).
                 val syntheticSet = CompletedSet(
                     id = "",
-                    weight = calculatedWeight,
+                    weight = plannedSetWeightKg(ex, s),
                     reps = s.plannedRepAnchor() ?: 8,
                     rpe = s.targetRPE,
                     rir = s.targetRIR,
@@ -910,12 +990,12 @@ object AugeFatigueEngine {
                     },
                     isFailure = s.isFailure || s.intensityMode == IntensityMode.FAILURE,
                 )
-                aggregateSetIntoSessionDrain(
+                val aggregation = aggregateSetIntoSessionDrain(
                     acc = acc,
                     set = syntheticSet,
                     metrics = metrics,
                     tanks = tanks,
-                    restTime = ex.restTime ?: 90,
+                    restTime = restTime,
                     densityMult = densityMult,
                     primaryPillar = primaryMuscle,
                     involvementWeights = involvementWeights,
@@ -928,30 +1008,64 @@ object AugeFatigueEngine {
                     spinalCap = spinalCap,
                     spinalAxialGate = axialGate,
                 )
-            }
-        }
-
-        val hardSets = exercises.sumOf { ex ->
-            ex.sets.count { s ->
-                !s.isIneffective && (s.targetRPE ?: when {
+                rawMuscular += aggregation.drain.muscularDrainPct
+                rawCns += aggregation.drain.cnsDrainPct
+                rawSpinal += aggregation.drain.spinalDrainPct * axialGate
+                cappedMuscular += aggregation.cappedMuscular
+                cappedCns += aggregation.cappedCns
+                cappedSpinal += aggregation.cappedSpinal
+                val plannedRpe = s.targetRPE ?: when {
                     s.targetRIR != null -> (10.0 - s.targetRIR).coerceIn(1.0, 10.0)
                     else -> 7.0
-                }) >= 8.0
+                }
+                if (plannedRpe >= 8.0) hardSets += 1
             }
-        }
-        val hasAxial = exercises.any { ex ->
-            if (ex.cardioDetails != null) return@any false
-            val info = resolveCatalogExerciseInfoInIndex(
-                index = exerciseDb,
-                catalogConfigurationId = ex.catalogConfigurationId,
-                exerciseDbId = ex.exerciseDbId,
-                exerciseId = ex.exerciseId,
-                exerciseName = ex.name,
+            effectiveSets += sets.size
+            contributions += ExerciseDrainContribution(
+                exerciseId = ex.id,
+                isCardio = false,
+                setCount = sets.size,
+                rawMuscular = rawMuscular,
+                rawCns = rawCns,
+                rawSpinal = rawSpinal,
+                cappedMuscular = cappedMuscular,
+                cappedCns = cappedCns,
+                cappedSpinal = cappedSpinal,
+                axialLoadFactor = axial,
             )
-            val axial = info?.axialLoadFactor
-            axial == null || axial > 0.0
         }
-        return finalizeSessionDrain(acc, tanks, settings, muscularCap, cnsCap, spinalCap, hardSets, hasAxial).global
+
+        val finalized = finalizePreciseSessionDrain(
+            acc = acc,
+            tanks = tanks,
+            muscularCap = muscularCap,
+            cnsCap = cnsCap,
+            spinalCap = spinalCap,
+            hardEffectiveSets = hardSets,
+            hasAxialLoad = hasAxial,
+        )
+        val adjusted = mesocycleEma?.let { adjustPreciseDrainWithEMA(finalized.precise, it) } ?: finalized.precise
+
+        val strength = contributions.filter { !it.isCardio }
+        val cardioPresent = contributions.any { it.isCardio }
+        val declared = strength.count { it.axialLoadFactor != null }
+        val evidence = when {
+            strength.isEmpty() -> SpinalEvidence.DECLARED
+            declared == strength.size -> SpinalEvidence.DECLARED
+            declared > 0 || cardioPresent -> SpinalEvidence.PARTIAL
+            else -> SpinalEvidence.NONE
+        }
+        return SessionDrainProjection(
+            precise = adjusted,
+            accumulated = finalized.accumulated,
+            global = adjusted.truncated(),
+            perExercise = contributions,
+            effectiveSetCount = effectiveSets,
+            hardEffectiveSets = hardSets,
+            hasWork = contributions.isNotEmpty(),
+            spinalEvidence = evidence,
+            axialUnknownExerciseIds = strength.filter { it.axialLoadFactor == null }.map { it.exerciseId },
+        )
     }
 
     private const val EMA_ALPHA = 0.17
@@ -1011,17 +1125,15 @@ object AugeFatigueEngine {
         )
     }
 
-    fun adjustPredictedDrainWithEMA(
-        rawDrain: PredictedDrain,
-        ema: MesocycleStressEMA,
-    ): PredictedDrain {
-        if (ema.sessionCount < 2) return rawDrain
+    /** Factor del ajuste por historial: 1,0 con menos de dos sesiones con puntuación o con estrés medio. */
+    private fun emaAdjustmentFactor(ema: MesocycleStressEMA): Double {
+        if (ema.sessionCount < 2) return 1.0
 
         val avgHistoricalStress = ema.emaValue
         val highStressThreshold = 50.0
         val lowStressThreshold = 25.0
 
-        val adjustmentFactor = when {
+        return when {
             avgHistoricalStress > highStressThreshold -> {
                 val severity = ((avgHistoricalStress - highStressThreshold) / 50.0).coerceAtMost(0.5)
                 1.0 - (severity * 0.15)
@@ -1032,11 +1144,32 @@ object AugeFatigueEngine {
             }
             else -> 1.0
         }
+    }
 
+    fun adjustPredictedDrainWithEMA(
+        rawDrain: PredictedDrain,
+        ema: MesocycleStressEMA,
+    ): PredictedDrain {
+        if (ema.sessionCount < 2) return rawDrain
+        val adjustmentFactor = emaAdjustmentFactor(ema)
         return PredictedDrain(
             cns = (rawDrain.cns * adjustmentFactor).toInt().coerceIn(0, 100),
             muscular = (rawDrain.muscular * adjustmentFactor).toInt().coerceIn(0, 100),
             spinal = (rawDrain.spinal * adjustmentFactor).toInt().coerceIn(0, 100),
+        )
+    }
+
+    /** El mismo ajuste por historial sobre los decimales: un coste positivo no se convierte en cero por truncar antes de ajustar. */
+    fun adjustPreciseDrainWithEMA(
+        rawDrain: PreciseDrain,
+        ema: MesocycleStressEMA,
+    ): PreciseDrain {
+        if (ema.sessionCount < 2) return rawDrain
+        val adjustmentFactor = emaAdjustmentFactor(ema)
+        return PreciseDrain(
+            cns = (rawDrain.cns * adjustmentFactor).coerceIn(0.0, 100.0),
+            muscular = (rawDrain.muscular * adjustmentFactor).coerceIn(0.0, 100.0),
+            spinal = (rawDrain.spinal * adjustmentFactor).coerceIn(0.0, 100.0),
         )
     }
 

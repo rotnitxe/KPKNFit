@@ -90,6 +90,8 @@ data class WorkoutSetDraft(
     val dropSetCount: Int? = null,
     val voiceFields: Set<WorkoutVoiceField> = emptySet(),
     val isDirty: Boolean = false,
+    /** null preserves legacy drafts; false distinguishes an auto-filled calibration from a manual pin. */
+    val weightManuallyFixed: Boolean? = null,
     val updatedAtMs: Long = System.currentTimeMillis(),
     val rom: Int? = null,
     val assistedReps: Int? = null,

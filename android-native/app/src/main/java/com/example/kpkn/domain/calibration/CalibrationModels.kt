@@ -5,8 +5,10 @@ import com.example.kpkn.data.models.LoadModeV2
 import com.example.kpkn.data.models.LoadQuantityConvention
 import com.example.kpkn.data.models.buildRecordedSetContextKey
 import com.example.kpkn.domain.calculations.CAPACITY_ESTIMATOR_VERSION
+import kotlinx.serialization.Serializable
 
 /** Exact identity, without alias matching or fallback to a different piece of equipment/side. */
+@Serializable
 data class CalibrationContext(
     val configurationId: String,
     /** The full performance/equipment key captured by CAL1, including the selected tag/brand. */
@@ -58,16 +60,21 @@ data class CalibrationEquipment(val incrementKg: Double = CalibrationPolicy.defa
     }
 }
 
+@Serializable
 enum class CalibrationEligibility {
     OK, NO_EFFORT, RIR_TOO_HIGH, BODYWEIGHT, NO_EXTERNAL_LOAD, PARTIALS_ONLY, REPS_OUT_OF_RANGE,
 }
 
+@Serializable
 enum class CalibrationDecisionType { RAISE, HOLD, LOWER, FIRST_REFERENCE, LOW_REPS_DROP, NOT_APPLIED }
 
+@Serializable
 enum class CalibrationReferenceSource { ACCEPTED_CALIBRATION, HISTORY, DECLARED_1RM, DECLARED_PR, NONE }
 
+@Serializable
 data class CalibrationLoadChange(val setId: String, val beforeKg: Double, val afterKg: Double)
 
+@Serializable
 data class CalibrationDecision(
     val sourceSetId: String,
     val exerciseId: String,

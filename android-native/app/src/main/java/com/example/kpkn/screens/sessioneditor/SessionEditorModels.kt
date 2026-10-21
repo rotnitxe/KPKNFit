@@ -228,6 +228,13 @@ data class SessionEditorAugeSummary(
     val sessionEnergy: SessionEnergySummary = SessionEnergySummary(),
     /** Desglose detallado de tiempos (Feature 1) */
     val sessionTimeBreakdown: SessionTimeBreakdown? = null,
+    /**
+     * Proyección de coste compartida con el motor general (MOT · I1/I2): decimales, cardio y evidencia de Columna. null en un
+     * resumen vacío o de respaldo: Impacto cae entonces a los enteros de [sessionDrain].
+     */
+    val drainProjection: com.example.kpkn.domain.auge.SessionDrainProjection? = null,
+    /** Coste por músculo canónico con decimales (suma el total final de la proyección). */
+    val muscleDrainPrecise: Map<String, com.example.kpkn.domain.auge.PreciseDrain> = emptyMap(),
 ) {
     val alertCount: Int
         get() = alerts.size
