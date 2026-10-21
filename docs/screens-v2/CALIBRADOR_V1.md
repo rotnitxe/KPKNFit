@@ -169,6 +169,12 @@ Entrada: la serie calibradora registrada, las series pendientes del ejercicio, l
    - `reference1RM` deja de guardar el TM;
    - `PROMOTE_TM` compara con el 1RM, no con TM × 1,05;
    - el test pide solo los levantamientos del programa e incluye el press militar.
+6. **Decisión del 21-oct (FIX-TM):** una serie %TM sin TM **no** se rellena sola con el 1RM al editar a mano.
+   - Queda pendiente, con el aviso «Falta el TM».
+   - La preparación de la sesión la pide, como dice el punto 4, y propone 1RM × % del programa como valor que la persona confirma.
+   - Solo `PlanMaterializer` deriva el TM de la receta al materializar, y lo guarda en `referenceTrainingMax`.
+   - Así se respetan las pruebas de CAL1 y D7, que prohíben rellenar cargas %TM con un 1RM inferido del PR o del historial.
+   - CAL5b añade la fracción de TM por ejercicio y distingue el 1RM declarado del inferido.
 
 ## 6. Paquetes de implementación (Codex, uno a la vez en `C:\kw\u11`, después de AUD2)
 
