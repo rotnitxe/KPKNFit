@@ -66,6 +66,14 @@ Problemas encontrados en esta revisión:
 - **D41. Banco completo:** todas las pruebas usan los 1.000 vídeos del banco (el usuario, 20-oct: «Tenemos un banco de 1000
   vídeos. Te ordeno a que los uses todos para las pruebas»). El plan está en `BANCO_COMPLETO.md`.
 
+- **D45. En el menú anclado del chip, las acciones van en una fila de `KpknTextAction` bajo la frase**, no dentro de ella.
+  - Un menú es una lista de opciones, no una frase narrada.
+  - La ley 3 (la acción dentro de la frase) rige las líneas narradas: el relator, la línea del Modo visual y la del descanso.
+  - Con 3 o 4 acciones dentro de una frase, los objetivos táctiles de 48 dp no cabrían.
+  - El revisor de UI-2 lo marcó: es una decisión del orquestador, no un fallo.
+- **D46. Tipografía de la estimación:** «≈ 8», con un espacio inseparable, en TODAS partes: frases, chip, insignia y acciones. UI-3 lo
+  unifica.
+
 ## Paquetes (Codex Sol 6.1 Max desde el 20-oct; antes, Antigravity con Gemini 3.8 Flash High. Uno a la vez por carril)
 | Paquete | Pantalla | Brief |
 |---|---|---|
