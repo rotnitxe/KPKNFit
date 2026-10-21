@@ -134,7 +134,7 @@ class VisualModeAnalysisTest {
             confidence = CountConfidence.MEDIA,
         )
         val line = visualModeAnalysisLine(state, setIndex = 0)
-        assertEquals("El vídeo cuenta ≈8 · revisar", line.text)
+        assertEquals("El vídeo cuenta ≈\u00A08 · revisar", line.text)
         assertEquals("revisar", line.actionLabel)
         assertEquals(VisualModeAnalysisAction.OPEN, line.action)
     }
@@ -149,7 +149,7 @@ class VisualModeAnalysisTest {
             confidence = CountConfidence.MEDIA,
         )
         val line = visualModeAnalysisLine(state, setIndex = 0)
-        assertEquals("El vídeo cuenta ≈8 · revisar", line.text)
+        assertEquals("El vídeo cuenta ≈\u00A08 · revisar", line.text)
         assertEquals("revisar", line.actionLabel)
         assertEquals(VisualModeAnalysisAction.OPEN, line.action)
     }
@@ -206,9 +206,9 @@ class VisualModeAnalysisTest {
     fun line_preserves_partial_and_failed_attempts_at_both_confidences() {
         assertEquals("El vídeo cuenta 8 · +2 parciales · 1 al fallo · ver análisis",
             visualModeAnalysisLine(SetVideoAnalysisState.Suggest(8, 2, 1, CountConfidence.ALTA), 0).text)
-        assertEquals("El vídeo cuenta ≈8 · +1 parcial · 2 al fallo · revisar",
+        assertEquals("El vídeo cuenta ≈\u00A08 · +1 parcial · 2 al fallo · revisar",
             visualModeAnalysisLine(SetVideoAnalysisState.Suggest(8, 1, 2, CountConfidence.MEDIA), 0).text)
-        assertEquals("El vídeo cuenta ≈7 · +1 parcial · 1 al fallo · revisar",
+        assertEquals("El vídeo cuenta ≈\u00A07 · +1 parcial · 1 al fallo · revisar",
             visualModeAnalysisLine(SetVideoAnalysisState.Mismatch(8, 7, 1, 1, CountConfidence.MEDIA), 0).text)
     }
 

@@ -30,6 +30,17 @@ import com.example.kpkn.screens.workout.components.*
 import com.example.kpkn.screens.workout.design.WorkoutVideoRepsSuggestion
 import com.example.kpkn.screens.workout.design.WorkoutVideoChipTag
 import com.example.kpkn.screens.workout.design.WorkoutVideoMenuTag
+import com.example.kpkn.screens.workout.design.WorkoutRestVideoLine
+import com.example.kpkn.screens.workout.design.VideoThumbBadge
+import com.example.kpkn.screens.workout.design.RestVideoTextTag
+import com.example.kpkn.screens.workout.design.RestVideoThumbTag
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.semantics.SemanticsActions
+import androidx.compose.ui.test.performSemanticsAction
+import androidx.compose.ui.text.TextLayoutResult
+import org.junit.Assert.assertFalse
+import org.junit.After
+import org.junit.rules.TemporaryFolder
 import com.example.kpkn.ui.design.KpknType
 import com.example.kpkn.ui.theme.KPKNTheme
 import dev.chrisbanes.haze.HazeState
@@ -53,7 +64,9 @@ import java.io.FileOutputStream
 @Config(sdk = [34], application = android.app.Application::class, qualifiers = "w360dp-h1800dp-xxhdpi")
 class WorkoutVideoRepsRenderSheetTest {
     @get:Rule val rule = createComposeRule()
+    @get:Rule val folder = TemporaryFolder()
     private var host: View? = null
+    @After fun restoreFontScale() { RuntimeEnvironment.setFontScale(1f) }
     companion object {
         @JvmStatic @BeforeClass fun onlyWhenAsked() {
             assumeTrue("sin KPKN_RENDER_DIR no se dibuja", System.getenv("KPKN_RENDER_DIR") != null)
@@ -111,12 +124,32 @@ class WorkoutVideoRepsRenderSheetTest {
     }
 
     private fun save(name: String, includePopup: Boolean = false): Bitmap {
+        awaitRestPreviews()
         val bitmap = capture(includePopup)
         val bounds = rule.onNodeWithTag("vt8b-render").fetchSemanticsNode().boundsInRoot
         val cropped = Bitmap.createBitmap(bitmap, bounds.left.toInt(), bounds.top.toInt(), bounds.width.toInt(), bounds.height.toInt())
         FileOutputStream(File(SymbolRenderSheet.dir()!!, "$name.png")).use { cropped.compress(Bitmap.CompressFormat.PNG, 100, it) }
         if (cropped !== bitmap) cropped.recycle()
         return bitmap
+    }
+
+    /** Espera el PNG local de la miniatura; una captura no debe congelar el marcador de carga de Coil. */
+    private fun awaitRestPreviews() {
+        val thumbs = rule.onAllNodes(androidx.compose.ui.test.hasTestTag(RestVideoThumbTag), useUnmergedTree = true).fetchSemanticsNodes()
+        if (thumbs.isEmpty()) return
+        val density = host!!.resources.displayMetrics.density
+        rule.waitUntil(10_000L) {
+            val bitmap = capture()
+            try {
+                thumbs.all { thumb ->
+                    val color = bitmap.getPixel((thumb.boundsInRoot.left + 8f * density).toInt(), (thumb.boundsInRoot.top + 22f * density).toInt())
+                    kotlin.math.abs(android.graphics.Color.red(color) - 42) <= 2 &&
+                        kotlin.math.abs(android.graphics.Color.green(color) - 38) <= 2 && kotlin.math.abs(android.graphics.Color.blue(color) - 34) <= 2
+                }
+            } finally {
+                bitmap.recycle()
+            }
+        }
     }
     @Composable private fun Suggestion(state: SetVideoAnalysisState = mismatch) {
         WorkoutVideoRepsSuggestion(SetVideoAnalysisUi("video", state), {}, {}, {}, {})
@@ -212,42 +245,161 @@ class WorkoutVideoRepsRenderSheetTest {
             rule.onNodeWithText("Ver análisis").performClick()
         }
     }
-    @Composable private fun Expanded(feedback: Boolean = false) {
-        RestTimerOverlay(state = rest, remainingSeconds = 86, hazeState = remember { HazeState() },
-            lastCompletedSet = CompletedSet(id = "last", weight = 95.0, reps = 8),
-            onDecrease = {}, onIncrease = {}, onSkip = {}, clockActive = false,
-            videoSlot = { Suggestion() },
-            postExerciseFeedbackContent = if (feedback) ({ Text("¿Cómo te salió?", style = KpknType.title, color = WizardColors.text) }) else null,
-        )
+    private val restStates = listOf(
+        "analyzing" to SetVideoAnalysisState.Analyzing(42),
+        "mismatch_high" to SetVideoAnalysisState.Mismatch(8, 7, 0, 0, CountConfidence.ALTA),
+        "failure" to SetVideoAnalysisState.Mismatch(8, 7, 0, 1, CountConfidence.ALTA),
+        "agrees" to SetVideoAnalysisState.Agrees(8),
+        "mismatch_medium" to SetVideoAnalysisState.Mismatch(8, 7, 0, 0, CountConfidence.MEDIA),
+        "equal_medium" to SetVideoAnalysisState.Mismatch(8, 8, 0, 0, CountConfidence.MEDIA),
+        "inconclusive" to SetVideoAnalysisState.Inconclusive,
+        "failed" to SetVideoAnalysisState.Failed("decode"),
+        "partials" to SetVideoAnalysisState.Mismatch(12, 8, 3, 2, CountConfidence.ALTA, loggedPartials = 2),
+        "unsupported" to SetVideoAnalysisState.Unsupported("Este ejercicio todavía no admite análisis de técnica con esta variante"),
+    )
+    private fun badge(state: SetVideoAnalysisState): VideoThumbBadge? = when (state) {
+        is SetVideoAnalysisState.Analyzing -> VideoThumbBadge.Analyzing(state.progress)
+        is SetVideoAnalysisState.Mismatch -> VideoThumbBadge.Reps(state.counted, state.confidence == CountConfidence.MEDIA)
+        is SetVideoAnalysisState.Agrees -> VideoThumbBadge.Reps(state.counted, false)
+        SetVideoAnalysisState.Inconclusive -> VideoThumbBadge.Inconclusive
+        is SetVideoAnalysisState.Failed -> VideoThumbBadge.Failed
+        else -> null
     }
-    @Composable private fun Compact() {
-        Box(Modifier.padding(16.dp).height(520.dp)) {
-            RestLiveCard(remainingSeconds = 86, totalSeconds = 120, sessionAccentColor = WizardColors.text,
-                restState = rest, pendingRestSuggestion = null, lastSetOutcome = null,
-                lastCompletedSet = CompletedSet(id = "last", weight = 95.0, reps = 8),
-                onDecrease = {}, onIncrease = {}, onSkip = {}, onUseAdaptive = null, onExpand = {},
-                clockActive = false, videoSlot = { Suggestion() })
+
+    /** Miniatura local de prueba: una barra y su levantamiento; nunca abre la cámara. */
+    private val restMedia by lazy {
+        val file = folder.newFile("thumbnail")
+        val bitmap = Bitmap.createBitmap(120, 120, Bitmap.Config.ARGB_8888)
+        val canvas = Canvas(bitmap)
+        canvas.drawColor(android.graphics.Color.rgb(42, 38, 34))
+        val paint = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply {
+            color = android.graphics.Color.rgb(242, 238, 230); strokeWidth = 4f
+        }
+        canvas.drawLine(20f, 45f, 100f, 45f, paint)
+        canvas.drawLine(60f, 45f, 60f, 78f, paint)
+        canvas.drawLine(60f, 78f, 40f, 104f, paint)
+        canvas.drawLine(60f, 78f, 82f, 104f, paint)
+        canvas.drawCircle(60f, 31f, 7f, paint)
+        FileOutputStream(file).use { bitmap.compress(Bitmap.CompressFormat.PNG, 100, it) }
+        bitmap.recycle()
+        WorkoutMedia("video", WorkoutMediaKind.VIDEO, "", thumbPath = file.absolutePath, createdAtMs = 1L, durationMs = 12_000L)
+    }
+
+    @Composable private fun RestLine(state: SetVideoAnalysisState) {
+        WorkoutRestVideoLine(restMedia, SetVideoAnalysisUi("video", state), badge(state), {}, {}, {})
+    }
+
+    @Composable private fun RestSurface(kind: Int, result: SetVideoAnalysisState?) {
+        val slot: (@Composable () -> Unit)? = result?.let { { RestLine(it) } }
+        val draft = remember { PostExerciseFeedbackDraft.from(listOf(exercise), emptyMap()).also { it.setTechnical(exercise.id, 8) } }
+        RestFrame(kind) {
+            Box(Modifier.fillMaxSize().testTag("video_rest_container")) {
+                when (kind) {
+                    0 -> RestLiveCard(remainingSeconds = 86, totalSeconds = 120, sessionAccentColor = WizardColors.text,
+                        restState = rest, pendingRestSuggestion = null, lastSetOutcome = null,
+                        lastCompletedSet = CompletedSet(id = "last", weight = 95.0, reps = 8),
+                        onDecrease = {}, onIncrease = {}, onSkip = {}, onUseAdaptive = null, onExpand = {},
+                        nextSet = RestNextSetSummary(2, 4, loadKg = 95.0, repsText = "4–6", intensityText = "RIR 2"),
+                        clockActive = false, videoSlot = slot)
+                    1 -> RestFeedbackCard(remainingSeconds = 86, totalSeconds = 120, shape = RestClockShape.TOWER,
+                        feedbackExercises = listOf(exercise), draft = draft, insights = FeedbackInsights.Empty,
+                        explainDiscomfort = { null }, linked = emptyList(), onSave = {}, onSkipRest = {}, onExpand = {},
+                        clockActive = false, videoSlot = slot)
+                    else -> RestTimerOverlay(state = rest, remainingSeconds = 86, hazeState = remember { HazeState() },
+                        lastCompletedSet = CompletedSet(id = "last", weight = 95.0, reps = 8),
+                        onDecrease = {}, onIncrease = {}, onSkip = {}, clockActive = false, onMinimize = {},
+                        videoSlot = slot,
+                        postExerciseFeedbackContent = if (kind == 3) ({ PostExerciseFeedbackPanel(
+                            feedbackExercises = listOf(exercise), postExerciseFeedbackByExerciseId = emptyMap(),
+                            sessionAccentColor = SymbolPalette.musculo, canonicalKeyOf = { it.id }, onSave = {},
+                            draft = draft, insights = FeedbackInsights.Empty,
+                        ) }) else null,
+                    )
+                }
+            }
         }
     }
-    @Composable private fun CompactFeedback() {
-        val draft = remember { PostExerciseFeedbackDraft.from(listOf(exercise), emptyMap()) }
-        Box(Modifier.padding(16.dp).height(560.dp)) {
-            RestFeedbackCard(remainingSeconds = 86, totalSeconds = 120, shape = RestClockShape.TOWER,
-                feedbackExercises = listOf(exercise), draft = draft, insights = FeedbackInsights.Empty,
-                explainDiscomfort = { null }, linked = emptyList(), onSave = {}, onSkipRest = {}, onExpand = {},
-                clockActive = false, videoSlot = { Suggestion() })
+
+    @Composable private fun RestFrame(kind: Int, content: @Composable () -> Unit) {
+        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.TopCenter) {
+            if (kind < 2) Box(Modifier.padding(top = 16.dp).width(312.dp)) {
+                LiveSessionCardFrame { content() }
+            } else Box(Modifier.size(360.dp, 880.dp)) { content() }
         }
     }
+
+    /** Compara el contenedor en píxeles, no solo una altura declarada, con y sin análisis. */
+    private fun restSurface(name: String, scale: Float, kind: Int) {
+        val state = mutableStateOf<SetVideoAnalysisState?>(null)
+        render(name, scale, 880.dp, saveImmediately = false) { RestSurface(kind, state.value) }
+        val bounds = rule.onNodeWithTag("video_rest_container").fetchSemanticsNode().boundsInRoot
+        val baseline = save("${name}_none")
+        rule.runOnIdle { state.value = SetVideoAnalysisState.Mismatch(8, 7, 0, 0, CountConfidence.MEDIA) }
+        val rendered = save(name)
+        assertEquals(bounds, rule.onNodeWithTag("video_rest_container").fetchSemanticsNode().boundsInRoot)
+        if (kind == 0 && scale > 1f) {
+            val text = rule.onNodeWithTag(RestVideoTextTag)
+            val layouts = mutableListOf<TextLayoutResult>()
+            text.performSemanticsAction(SemanticsActions.GetTextLayoutResult) { it(layouts) }
+            val layout = layouts.single()
+            val range = layout.layoutInput.text.getLinkAnnotations(0, layout.layoutInput.text.length).last()
+            val link = layout.getPathForRange(range.start, range.end).getBounds()
+            val box = text.fetchSemanticsNode().boundsInRoot
+            val top = box.top + (box.height - layout.size.height) / 2f
+            var brightInk = 0
+            // La mitad inferior de la última acción debe conservar la tinta, aun con contenido desplazable debajo.
+            for (y in (top + link.center.y).toInt() until (top + link.bottom).toInt()) {
+                for (x in (box.left + link.left).toInt() until (box.left + link.right).toInt()) {
+                    if (android.graphics.Color.red(rendered.getPixel(x, y)) >= 230) brightInk++
+                }
+            }
+            assertTrue("El fundido no borra la acción de la fila del vídeo", brightInk > 5)
+        }
+        val radius = (28f * host!!.resources.displayMetrics.density).toInt()
+        for (y in bounds.top.toInt() until bounds.bottom.toInt()) {
+            for (x in bounds.left.toInt() until bounds.right.toInt()) {
+                val edgeX = minOf(x - bounds.left.toInt(), bounds.right.toInt() - 1 - x)
+                val edgeY = minOf(y - bounds.top.toInt(), bounds.bottom.toInt() - 1 - y)
+                if (edgeX < 3 || edgeY < 3 || (kind < 2 && edgeX < radius && edgeY < radius)) {
+                    assertEquals("Contenedor idéntico en $name ($x,$y)", baseline.getPixel(x, y), rendered.getPixel(x, y))
+                }
+            }
+        }
+        baseline.recycle(); rendered.recycle()
+    }
+
+    private fun restLines(scale: Float, label: String) {
+        render("video_rest_lines_$label", scale, 920.dp, saveImmediately = false) {
+            Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                restStates.forEach { (name, state) ->
+                    Column {
+                        Text(name, style = KpknType.caption, color = WizardColors.textFaint)
+                        // Ancho real de la tarjeta: 272 dp menos sus 28 dp de relleno.
+                        Box(Modifier.width(244.dp)) { RestLine(state) }
+                    }
+                }
+            }
+        }
+        save("video_rest_lines_$label").recycle()
+        rule.onAllNodes(androidx.compose.ui.test.hasTestTag(RestVideoTextTag)).fetchSemanticsNodes().forEach { node ->
+            val layouts = mutableListOf<TextLayoutResult>()
+            rule.runOnIdle { node.config[SemanticsActions.GetTextLayoutResult].action?.invoke(layouts) }
+            assertFalse("La línea no se corta: ${layouts.single().layoutInput.text}", layouts.single().hasVisualOverflow)
+        }
+    }
+
     @Test fun states100() = render("video_states_100", 1f, 1300.dp) { States() }
     @Test fun states130() = render("video_states_130", 1.3f, 1500.dp) { States() }
     @Test fun card100() = cardStates(1f, "100")
     @Test fun card130() = cardStates(1.3f, "130")
-    @Test fun rest100() = render("video_rest_100", 1f) { Expanded() }
-    @Test fun rest130() = render("video_rest_130", 1.3f) { Expanded() }
-    @Test fun restFeedback100() = render("video_rest_feedback_100", 1f) { Expanded(true) }
-    @Test fun restFeedback130() = render("video_rest_feedback_130", 1.3f) { Expanded(true) }
-    @Test fun compact100() = render("video_rest_compact_100", 1f) { Compact() }
-    @Test fun compact130() = render("video_rest_compact_130", 1.3f) { Compact() }
-    @Test fun compactFeedback100() = render("video_feedback_compact_100", 1f) { CompactFeedback() }
-    @Test fun compactFeedback130() = render("video_feedback_compact_130", 1.3f) { CompactFeedback() }
+    @Test fun rest100() = restSurface("video_rest_100", 1f, 2)
+    @Test fun rest130() = restSurface("video_rest_130", 1.3f, 2)
+    @Test fun restFeedback100() = restSurface("video_rest_feedback_100", 1f, 3)
+    @Test fun restFeedback130() = restSurface("video_rest_feedback_130", 1.3f, 3)
+    @Test fun compact100() = restSurface("video_rest_compact_100", 1f, 0)
+    @Test fun compact130() = restSurface("video_rest_compact_130", 1.3f, 0)
+    @Test fun compactFeedback100() = restSurface("video_feedback_compact_100", 1f, 1)
+    @Test fun compactFeedback130() = restSurface("video_feedback_compact_130", 1.3f, 1)
+    @Test fun restLines100() = restLines(1f, "100")
+    @Test fun restLines130() = restLines(1.3f, "130")
 }

@@ -128,12 +128,12 @@ class SetExecutionCardVideoLayoutTest {
                 val action = when (state) {
                     is SetVideoAnalysisState.Suggest -> when (state.confidence) {
                         CountConfidence.ALTA -> "Usar"
-                        CountConfidence.MEDIA -> "Usar ≈ ${state.reps}"
+                        CountConfidence.MEDIA -> "Usar ≈\u00A0${state.reps}"
                         CountConfidence.BAJA -> "Ver análisis"
                     }
                     is SetVideoAnalysisState.Mismatch -> when (state.confidence) {
                         CountConfidence.ALTA -> "Corregir"
-                        CountConfidence.MEDIA -> "Corregir a ≈ ${state.counted}"
+                        CountConfidence.MEDIA -> "Corregir a ≈\u00A0${state.counted}"
                         CountConfidence.BAJA -> "Ver análisis"
                     }
                     else -> "Ver análisis"

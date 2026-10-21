@@ -6,6 +6,9 @@ import com.example.kpkn.data.models.VideoAnalysisStatus
 import com.example.kpkn.domain.biomechanics.metrics.CountConfidence
 import com.example.kpkn.screens.workout.SetVideoAnalysisState
 
+/** La estimación y su cifra forman una unidad tipográfica (D46). */
+internal fun approxCount(n: Int): String = "≈\u00A0$n"
+
 internal sealed interface VideoThumbBadge {
     data class Analyzing(val progress: Int) : VideoThumbBadge
     data class Reps(val count: Int, val approximate: Boolean) : VideoThumbBadge
@@ -108,7 +111,7 @@ internal fun visualModeAnalysisLine(state: SetVideoAnalysisState, setIndex: Int)
                 )
             }
             CountConfidence.MEDIA -> VisualModeAnalysisLine(
-                text = "El vídeo cuenta ≈${state.reps}" + extras(state.partials, state.failed) + " · revisar",
+                text = "El vídeo cuenta ${approxCount(state.reps)}" + extras(state.partials, state.failed) + " · revisar",
                 actionLabel = "revisar",
                 action = VisualModeAnalysisAction.OPEN,
             )
@@ -132,7 +135,7 @@ internal fun visualModeAnalysisLine(state: SetVideoAnalysisState, setIndex: Int)
                 )
             }
             CountConfidence.MEDIA -> VisualModeAnalysisLine(
-                text = "El vídeo cuenta ≈${state.counted}" + extras(state.partials, state.failed) + " · revisar",
+                text = "El vídeo cuenta ${approxCount(state.counted)}" + extras(state.partials, state.failed) + " · revisar",
                 actionLabel = "revisar",
                 action = VisualModeAnalysisAction.OPEN,
             )

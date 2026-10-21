@@ -39,7 +39,7 @@ class WorkoutVideoRepsSuggestionTest {
         }
         rule.runOnIdle { assertEquals(null, used) }
         rule.onNodeWithText("Usar").assertDoesNotExist()
-        rule.onNodeWithText("Usar ≈ 8").performClick()
+        rule.onNodeWithText("Usar ≈\u00A08").performClick()
         rule.runOnIdle { assertEquals(value.state, used) }
         assertEquals("Vídeo no concluyente", workoutVideoRepsText(SetVideoAnalysisState.Suggest(27, 4, 2, CountConfidence.BAJA)))
     }
@@ -136,7 +136,7 @@ class WorkoutVideoRepsSuggestionTest {
         rule.runOnIdle { assertEquals(null, patch) }
         rule.onNodeWithText("Corregir").assertDoesNotExist()
         rule.onNodeWithText("Marcar fallo").assertDoesNotExist()
-        rule.onNodeWithText("Corregir a ≈ 7").performClick()
+        rule.onNodeWithText("Corregir a ≈\u00A07").performClick()
         rule.runOnIdle {
             assertEquals(7, patch?.edit?.metricValue)
             assertEquals(1, patch?.partialReps)
@@ -153,7 +153,7 @@ class WorkoutVideoRepsSuggestionTest {
                 onUse = {}, onCorrect = { error("Los conteos coinciden") }, onMarkFailure = {}, onOpenAnalysis = {},
             )
         }
-        rule.onNodeWithText("Corregir a ≈ 8").assertDoesNotExist()
+        rule.onNodeWithText("Corregir a ≈\u00A08").assertDoesNotExist()
         rule.onNodeWithText("Ver análisis").assertExists()
     }
 

@@ -65,13 +65,18 @@ internal fun WorkoutRestOverlayHost(
     // LV6: lo que cambia entre descansos sale del estado de la sesión, no de la pantalla.
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val analyses by viewModel.videoAnalysisBySetKey.collectAsStateWithLifecycle()
+    val videoMedia by viewModel.mediaCapture.sessionMedia.collectAsStateWithLifecycle()
+    val videoBadges by viewModel.videoThumbBadgeByMediaId.collectAsStateWithLifecycle()
     val videoKey = uiState.setJustLoggedKey
     val video = videoKey?.let(analyses::get)
     val videoSlot: (@Composable () -> Unit)? = if (videoKey != null && video != null) {
-        { com.example.kpkn.screens.workout.design.WorkoutCompletedVideoSuggestion(
+        { com.example.kpkn.screens.workout.design.WorkoutRestVideoLine(
+            media = videoMedia.firstOrNull { it.id == video.mediaId },
             value = video,
+            badge = videoBadges[video.mediaId],
             onPatch = { viewModel.patchCompletedSet(videoKey, it) },
             onOpenAnalysis = onOpenTechniqueAnalysis,
+            onRetryAnalysis = { viewModel.retryVideoAnalysis(it) },
         ) }
     } else null
     val shapeChoice by viewModel.restClockShapeChoice.collectAsStateWithLifecycle()

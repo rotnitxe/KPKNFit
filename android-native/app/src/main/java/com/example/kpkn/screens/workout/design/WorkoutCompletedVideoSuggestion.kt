@@ -3,6 +3,7 @@ package com.example.kpkn.screens.workout.design
 import androidx.compose.runtime.Composable
 import com.example.kpkn.screens.workout.CompletedSetPatch
 import com.example.kpkn.screens.workout.SetVideoAnalysisUi
+import com.example.kpkn.screens.workout.SetVideoAnalysisState
 import com.example.kpkn.services.workout.VoiceSetEditPatch
 
 /** Acciones de una serie registrada: el anfitrión conserva su clave exacta y la puerta de persistencia. */
@@ -16,13 +17,16 @@ internal fun WorkoutCompletedVideoSuggestion(
         value = value,
         onUse = {},
         onCorrect = { result ->
-            onPatch(CompletedSetPatch(
-                edit = VoiceSetEditPatch(metricValue = result.counted),
-                partialReps = result.partials,
-                reachedFailure = true.takeIf { result.failed > 0 },
-            ))
+            onPatch(completedVideoCorrectionPatch(result))
         },
         onMarkFailure = { onPatch(CompletedSetPatch(reachedFailure = true)) },
         onOpenAnalysis = onOpenAnalysis,
     )
 }
+
+/** Mismo parche para la propuesta anterior y la línea del descanso, con ALTA o MEDIA. */
+internal fun completedVideoCorrectionPatch(result: SetVideoAnalysisState.Mismatch) = CompletedSetPatch(
+    edit = VoiceSetEditPatch(metricValue = result.counted),
+    partialReps = result.partials,
+    reachedFailure = true.takeIf { result.failed > 0 },
+)

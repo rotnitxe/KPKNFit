@@ -342,7 +342,8 @@ private fun FeedbackContent(
                 color = WizardColors.textMuted,
             )
         }
-        videoSlot?.invoke()
+        // El hueco mide lo mismo antes y después de que llegue el análisis (F2, D37).
+        Box(Modifier.fillMaxWidth().height(48.dp)) { videoSlot?.invoke() }
         Spacer(Modifier.height(14.dp))
 
         // El panel reparte el resto del alto: lo de en medio se desplaza y los botones quedan fijos abajo.
@@ -507,7 +508,8 @@ private fun NormalRestContent(
                     }
                 }
 
-                videoSlot?.invoke()
+                // Reservado también sin vídeo: ni los RINGS ni el reloj cambian de posición (F1, D37).
+                Box(Modifier.fillMaxWidth().height(48.dp)) { videoSlot?.invoke() }
 
                 Spacer(Modifier.height(18.dp))
                 RestPlayHighlight(onClick = onPlay, animationsOn = clockActive)
