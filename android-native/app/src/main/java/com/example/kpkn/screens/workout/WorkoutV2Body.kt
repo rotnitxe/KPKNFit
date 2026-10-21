@@ -123,13 +123,17 @@ internal fun WorkoutV2Body(
     val sharedFabBottomOffset = recordFabBottomOffset ?: rememberWorkoutRecordFabBottomOffset(dockBottomClearance)
     val videoAnalysis by viewModel.videoAnalysisBySetKey.collectAsStateWithLifecycle()
     val videoThumbBadges by viewModel.videoThumbBadgeByMediaId.collectAsStateWithLifecycle()
+    val restVideoMedia by viewModel.mediaCapture.sessionMedia.collectAsStateWithLifecycle()
     val restVideoKey = uiState.setJustLoggedKey
     val restVideo = restVideoKey?.let(videoAnalysis::get)
     val restVideoSlot: (@Composable () -> Unit)? = if (restVideoKey != null && restVideo != null) {
-        { com.example.kpkn.screens.workout.design.WorkoutCompletedVideoSuggestion(
+        { com.example.kpkn.screens.workout.design.WorkoutRestVideoLine(
+            media = restVideoMedia.firstOrNull { it.id == restVideo.mediaId },
             value = restVideo,
+            badge = videoThumbBadges[restVideo.mediaId],
             onPatch = { viewModel.patchCompletedSet(restVideoKey, it) },
             onOpenAnalysis = onOpenTechniqueAnalysis,
+            onRetryAnalysis = { viewModel.retryVideoAnalysis(it) },
         ) }
     } else null
 

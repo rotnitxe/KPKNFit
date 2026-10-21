@@ -2,12 +2,14 @@ package com.example.kpkn.screens.workout.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
@@ -143,7 +145,7 @@ internal fun RestFeedbackCard(
                     .padding(horizontal = 14.dp, vertical = 8.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
-                videoSlot?.invoke()
+                Box(Modifier.fillMaxWidth().height(48.dp)) { videoSlot?.invoke() }
                 feedbackExercises.forEach { exercise ->
                     TechniqueQualityCompactRow(
                         value = draft.technical(exercise.id),

@@ -225,11 +225,13 @@ internal fun RestLiveCard(
                         .graphicsLayer { compositingStrategy = CompositingStrategy.Offscreen }
                         .drawWithContent {
                             drawContent()
-                            if (middleScroll.canScrollForward) {
+                            // El fundido empieza debajo de la fila del vídeo, también con letra al 130 %.
+                            val videoBottom = (48.dp.toPx() - middleScroll.value).coerceAtLeast(0f)
+                            if (middleScroll.canScrollForward && size.height > videoBottom) {
                                 drawRect(
                                     brush = Brush.verticalGradient(
                                         colors = listOf(Color.Black, Color.Transparent),
-                                        startY = size.height - 20.dp.toPx(),
+                                        startY = maxOf(size.height - 20.dp.toPx(), videoBottom),
                                         endY = size.height,
                                     ),
                                     blendMode = BlendMode.DstIn,
@@ -239,7 +241,7 @@ internal fun RestLiveCard(
                         .verticalScroll(middleScroll),
                     verticalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
-                    videoSlot?.invoke()
+                    Box(Modifier.fillMaxWidth().height(48.dp)) { videoSlot?.invoke() }
                     RestLiveLastSetSummary(
                         lastCompletedSet = lastCompletedSet ?: pendingRestSuggestion?.lastSet,
                         lastSetOutcome = lastSetOutcome,
