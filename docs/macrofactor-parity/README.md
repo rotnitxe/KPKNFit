@@ -55,7 +55,7 @@ Archivos calientes con un único dueño por paquete (no se tocan fuera de él): 
 
 | ID | Estado | Commits | Notas |
 |---|---|---|---|
-| H1 | pendiente | | |
+| H1 | **hecho y revisado** (20-oct 22:40) | `9ada85629`, `d20e0de52` | 222 tests en verde (33 suites, XML). Quita `addNutritionLog`; `addLog`/creatina esperan a Room y avisan si falla; `unreadableRows` + cuarentena por fila (registros, plantillas, planes); «olvidar aprendizaje» ya no borra plantillas en cuarentena. **Pendiente para P2-D:** `SettingsViewModel.kt:210` exporta plantillas en bloque (una ilegible puede romper la exportación) y la cuarentena en copias de seguridad sin verificar. |
 | N1 | pendiente | | |
 | T2 | pendiente | | |
 | T1 | pendiente | | |
