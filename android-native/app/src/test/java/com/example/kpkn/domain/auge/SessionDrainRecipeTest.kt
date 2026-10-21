@@ -11,8 +11,6 @@ class SessionDrainRecipeTest {
     private val fixtures = SessionDrainCharacterizationFixtures
 
     private fun options() = RecipeOptions(
-        volumeCounting = RecipeOptions.VolumeCounting.EFFECTIVE_SET_COUNT,
-        axialGatePosition = RecipeOptions.AxialGatePosition.NOT_APPLIED,
         muscleMultiplierSource = RecipeOptions.MuscleMultiplierSource.NONE,
         cardioHandling = RecipeOptions.CardioHandling.CONSUMER_HOOK,
         softCapUnits = RecipeOptions.SoftCapUnits.CHANNEL_PERCENT,
@@ -69,22 +67,48 @@ class SessionDrainRecipeTest {
 
     @Test fun conservacionSinAcumuladoSeCalculaAMano() {
         val result = SessionDrainRecipe.adjustSet(
-            SetDrain(muscularDrainPct = 10.0, cnsDrainPct = 20.0, spinalDrainPct = 30.0), 0.0, options(), 1.0,
+            SetDrain(muscularDrainPct = 10.0, cnsDrainPct = 20.0, spinalDrainPct = 30.0), ChannelDrainAccumulation(), 1.0,
         )
         assertEquals(8.5, result.muscular, 0.0)
         assertEquals(17.0, result.cns, 0.0)
         assertEquals(25.5, result.spinal, 0.0)
-        assertEquals(17.0, result.accumulatedDrain, 0.0)
+        assertEquals(ChannelDrainAccumulation(8.5, 17.0, 25.5), result.accumulatedDrain)
     }
 
-    @Test fun rendimientosYPromedioDeTresCanalesSeCalculanAMano() {
+    @Test fun rendimientosDeCadaCanalSeCalculanConSuPropioAcumulado() {
         val result = SessionDrainRecipe.adjustSet(
-            SetDrain(muscularDrainPct = 10.0, cnsDrainPct = 20.0, spinalDrainPct = 30.0), 100.0, options(), 1.0,
+            SetDrain(muscularDrainPct = 10.0, cnsDrainPct = 20.0, spinalDrainPct = 30.0), ChannelDrainAccumulation(100.0, 0.0, 200.0), 1.0,
         )
         assertEquals(5.151515151515152, result.muscular, 1e-14)
-        assertEquals(10.303030303030304, result.cns, 1e-14)
-        assertEquals(15.454545454545455, result.spinal, 1e-14)
-        assertEquals(110.3030303030303, result.accumulatedDrain, 1e-13)
+        assertEquals(17.0, result.cns, 1e-14)
+        assertEquals(11.08695652173913, result.spinal, 1e-14)
+        assertEquals(105.15151515151516, result.accumulatedDrain.muscular, 1e-13)
+        assertEquals(17.0, result.accumulatedDrain.cns, 0.0)
+        assertEquals(211.08695652173913, result.accumulatedDrain.spinal, 1e-13)
+    }
+
+    @Test fun mayorCargaEspinalNoReduceMusculoNiEnergiaEnLasSeriesSiguientes() {
+        fun totals(spinal: Double): ChannelDrainAccumulation {
+            var acc = ChannelDrainAccumulation()
+            repeat(12) {
+                acc = SessionDrainRecipe.adjustSet(
+                    SetDrain(muscularDrainPct = 20.0, cnsDrainPct = 10.0, spinalDrainPct = spinal), acc, 1.0,
+                ).accumulatedDrain
+            }
+            return acc
+        }
+        val light = totals(1.0)
+        val heavy = totals(35.0)
+        assertEquals(light.muscular, heavy.muscular, 0.0)
+        assertEquals(light.cns, heavy.cns, 0.0)
+        assertTrue(heavy.spinal > light.spinal)
+    }
+
+    @Test fun cardioSumaSusPorcentajesPorCanalAntesDelTope() {
+        val recipe = recipe(options())
+        recipe.accumulateCardio(muscular = 10.0, cns = 20.0, spinal = 30.0)
+        recipe.accumulateCardio(muscular = 2.0, cns = 3.0, spinal = 4.0)
+        assertEquals(ChannelDrainAccumulation(12.0, 23.0, 34.0), recipe.accumulatedDrain)
     }
 
     @Test fun descansoCrudoEsDelEjercicioYElDefaultPlanificadoEsDelUsuario() {
@@ -98,38 +122,46 @@ class SessionDrainRecipeTest {
         assertEquals(1.3, target.context.densityMultiplier, 0.0)
     }
 
-    @Test fun conteoUnilateralUsaMitadesRedondeadasOEnteros() {
+    @Test fun conteoUnilateralSiempreUsaMitadesRedondeadas() {
         val ex = exercise(List(4) { i ->
             CompletedSet("lr-$i", weight = 24.0, reps = 4, rpe = 7.0, side = if (i % 2 == 0) "left" else "right")
         })
-        val integer = completed(options(), listOf(ex))
-        val halves = completed(options().copy(volumeCounting = RecipeOptions.VolumeCounting.UNILATERAL_HALVES_ROUNDED), listOf(ex))
-        assertEquals(listOf(1, 2, 3, 4), integer.map { it.count })
+        val halves = completed(options(), listOf(ex))
         assertEquals(listOf(1, 1, 2, 2), halves.map { it.count })
-        assertNotEquals(integer[1].raw, halves[1].raw)
+        assertEquals(halves[0].raw, halves[1].raw)
+        assertEquals(halves[2].raw, halves[3].raw)
+        assertNotEquals(halves[1].raw, halves[2].raw)
     }
 
-    @Test fun puertaAxialCambiaElPromedioSoloSiSeAplicaAntesDeAcumular() {
+    @Test fun mitadesPersistenEntreEjerciciosYLlamadasYNoCuentanCalentamientos() {
+        val left = CompletedSet("left", weight = 24.0, reps = 4, rpe = 7.0, side = "left")
+        val right = left.copy(id = "right", side = "right")
+        val recipe = recipe(options())
+        val seen = mutableListOf<Int>()
+        fun visit(exercises: List<CompletedExercise>) = recipe.forEachCompleted(
+            exercises, onCardio = {}, onSet = { _, _, _, _, _, count -> seen += count },
+        )
+        visit(listOf(exercise(listOf(left, right.copy(id = "warmup", isWarmup = true)))))
+        visit(listOf(exercise(listOf(right)), exercise(listOf(left.copy(side = null), left))))
+        assertEquals(listOf(1, 1, 2, 3), seen)
+    }
+
+    @Test fun puertaAxialSoloAfectaAlAcumuladoEspinal() {
         val raw = SetDrain(muscularDrainPct = 10.0, cnsDrainPct = 20.0, spinalDrainPct = 30.0)
-        val beforeOptions = options().copy(axialGatePosition = RecipeOptions.AxialGatePosition.BEFORE_ACCUMULATION)
-        val afterOptions = options().copy(axialGatePosition = RecipeOptions.AxialGatePosition.AFTER_ACCUMULATION)
-        val before = SessionDrainRecipe.adjustSet(raw, 0.0, beforeOptions, 0.4)
-        val after = SessionDrainRecipe.adjustSet(raw, 0.0, afterOptions, 0.4)
-        val none = SessionDrainRecipe.adjustSet(raw, 0.0, options(), 0.4)
-        assertEquals(10.2, before.spinal, 1e-14)
-        assertEquals(11.9, before.accumulatedDrain, 1e-14)
-        assertEquals(25.5, after.spinal, 0.0)
-        assertEquals(17.0, after.accumulatedDrain, 0.0)
-        assertEquals(after, none)
+        val gated = SessionDrainRecipe.adjustSet(raw, ChannelDrainAccumulation(), 0.4)
+        val full = SessionDrainRecipe.adjustSet(raw, ChannelDrainAccumulation(), 1.0)
+        val zero = SessionDrainRecipe.adjustSet(raw, ChannelDrainAccumulation(), 0.0)
+        assertEquals(10.2, gated.spinal, 1e-14)
+        assertEquals(ChannelDrainAccumulation(8.5, 17.0, 10.200000000000001), gated.accumulatedDrain)
+        assertEquals(25.5, full.spinal, 0.0)
+        assertEquals(0.0, zero.accumulatedDrain.spinal, 0.0)
+        assertEquals(full.muscular, zero.muscular, 0.0)
+        assertEquals(full.cns, zero.cns, 0.0)
 
         val db = fixtures.db + ("bench" to fixtures.db.getValue("bench").copy(axialLoadFactor = 0.4))
-        val beforeContext = completed(beforeOptions, db = db).single().context
-        val afterContext = completed(afterOptions, db = db).single().context
-        val noneContext = completed(options(), db = db).single().context
-        assertEquals(1.0, beforeContext.postAccumulationAxialGate, 0.0)
-        assertEquals(0.4, afterContext.postAccumulationAxialGate, 0.0)
-        assertEquals(1.0, noneContext.postAccumulationAxialGate, 0.0)
-        assertEquals(12.24, after.spinal * 1.2 * afterContext.postAccumulationAxialGate, 1e-14)
+        val context = completed(options(), db = db).single().context
+        assertEquals(0.4, context.axialGate, 0.0)
+        assertEquals(12.24, gated.spinal * 1.2, 1e-14)
     }
 
     @Test fun multiplicadoresConservanClaveDirectaPromedioRemapeadoONinguno() {
@@ -253,11 +285,11 @@ class SessionDrainRecipeTest {
     }
 
     @Test fun singlePesadoSumaQuincePorCientoSoloAlNeuralAntesDelTope() {
-        val base = AdjustedSetDrain(8.5, 17.0, 25.5, 17.0)
+        val base = AdjustedSetDrain(8.5, 17.0, 25.5, ChannelDrainAccumulation(8.5, 17.0, 25.5))
         val single = CompletedSet("single", weight = 100.0, reps = 1, rpe = 9.5)
         val actual = SessionDrainRecipe.withHeavySingleBonus(base, single)
         assertEquals(19.55, actual.cns, 1e-14)
-        assertEquals(base.accumulatedDrain, actual.accumulatedDrain, 0.0)
+        assertEquals(base.accumulatedDrain, actual.accumulatedDrain)
         assertEquals(base.muscular, actual.muscular, 0.0)
         assertEquals(base.spinal, actual.spinal, 0.0)
         assertEquals(actual, SessionDrainRecipe.withHeavySingleBonus(base, single.copy(reps = 3)))
@@ -274,6 +306,56 @@ class SessionDrainRecipeTest {
         assertEquals(11.5, SessionDrainRecipe.durationCns(10.0, 91), 1e-14)
         assertEquals(10.0, SessionDrainRecipe.durationSpinal(10.0, 90), 0.0)
         assertEquals(10.8, SessionDrainRecipe.durationSpinal(10.0, 91), 1e-14)
+    }
+
+    /** Evidencia de 2.2b2: mismo corpus, instante inyectado y zona UTC en las cuatro mediciones. */
+    @Test fun exportaImpactoYSeriesCompletasParaElRecalculoIndependiente() {
+        val corpus = AugeGoldenCorpus.build(AugeGoldenCorpus.BASE_MS).associateBy { it.id }
+        val cardio = WorkoutLog(
+            id = "cardio-largo", programId = "p", sessionId = "cardio", sessionName = "Remo 120 min",
+            date = java.time.Instant.ofEpochMilli(AugeGoldenCorpus.BASE_MS).toString(), durationMinutes = 120,
+            completedExercises = listOf(CompletedExercise(
+                exerciseId = "cardio", exerciseName = "Remo cardio",
+                cardioDetails = CardioDetails(CardioType.ROW_MACHINE, targetDurationSeconds = 7200, intensityLevel = 7),
+                sets = listOf(CompletedSet("cardio", timeSeconds = 7200, rpe = 7.0)),
+            )),
+        )
+        val cases = linkedMapOf(
+            "pecho" to corpus.getValue("A02").history,
+            "pierna-pesada" to corpus.getValue("A01").history,
+            "cuerpo-completo" to corpus.getValue("C01").history,
+            "un-dia-duro" to corpus.getValue("C01").history,
+            "cinco-dias-duros" to corpus.getValue("C04").history,
+            "cardio-largo" to listOf(cardio),
+        )
+        cases.forEach { (id, history) ->
+            listOf(0, 24, 48, 72).forEach { hours ->
+                val now = AugeGoldenCorpus.BASE_MS + hours * AugeGoldenCorpus.HORA_MS
+                val muscles = AugeRecoveryEngine.getPerMuscleBatteries(
+                    history, null, Settings(), AugeGoldenCorpus.EXERCISE_DB,
+                    nowOverrideMs = now, zone = AugeGoldenCorpus.ZONE,
+                )
+                val rings = AugeRecoveryEngine.calculateGlobalBatteries(
+                    history, null, Settings(), AugeGoldenCorpus.EXERCISE_DB,
+                    precomputedMuscles = muscles, nowOverrideMs = now,
+                )
+                assertTrue(listOf(rings.muscular, rings.cnc, rings.spinal).all { it in 0..100 })
+                println("[2.2b2-impact]|$id|$hours|${rings.muscular}|${rings.cnc}|${rings.spinal}")
+            }
+        }
+        listOf("axial", "unilateral", "superserie").forEach { id ->
+            var index = 0
+            val choices = options()
+            recipe(choices).forEachCompleted(
+                fixtures.completed.getValue(id), onCardio = {},
+                onSet = { _, set, context, raw, adjusted, count ->
+                    val bonus = if (set.weight > 0.0 && set.reps <= 3 && AugeFatigueEngine.getEffectiveRPE(set) >= 9.5) 1.15 else 1.0
+                    println("[2.2b2-set]|$id|${index++}|${context.primaryMuscle}|${set.side ?: "bilateral"}|$count|${context.axialGate}|$bonus|" +
+                        "${raw.muscularDrainPct}|${raw.cnsDrainPct}|${raw.spinalDrainPct}|${adjusted.muscular}|${adjusted.cns}|${adjusted.spinal}")
+                },
+            )
+            assertTrue("Sesión completa sin series: $id", index > 5)
+        }
     }
 
     @Test fun constantesDeLaRecetaSoloSeConsumenEnElArchivoCompartido() {

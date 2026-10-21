@@ -674,8 +674,6 @@ object AugeFatigueEngine {
             adaptiveCache = adaptiveCache,
             exerciseDb = exerciseDb,
             options = RecipeOptions(
-                volumeCounting = RecipeOptions.VolumeCounting.UNILATERAL_HALVES_ROUNDED,
-                axialGatePosition = RecipeOptions.AxialGatePosition.BEFORE_ACCUMULATION,
                 muscleMultiplierSource = RecipeOptions.MuscleMultiplierSource.REMAPPED_PILLARS,
                 cardioHandling = RecipeOptions.CardioHandling.CONSUMER_HOOK,
                 softCapUnits = RecipeOptions.SoftCapUnits.CHANNEL_PERCENT,
@@ -697,7 +695,11 @@ object AugeFatigueEngine {
                 acc.totalCns += cns
                 acc.totalMuscular += muscular
                 acc.totalSpinal += spinal
-                recipe.accumulatedDrain += (cns + muscular + spinal) / 3.0
+                recipe.accumulateCardio( // El cardio alimenta cada canal antes del tope, sin el promedio de F-60.
+                    muscular = cardioDrain.muscular, // Conserva la escala muscular del gancho de cierre.
+                    cns = cardioDrain.cns * adaptiveCache.cnsDrainMultiplier, // Conserva la calibración neural.
+                    spinal = cardioDrain.spinal * adaptiveCache.spinalDrainMultiplier, // Conserva la calibración espinal.
+                ) // La conservación del cardio sigue siendo propia del consumidor.
                 cardioDrain.muscleDrains.forEach { (pillar, value) ->
                     acc.perMuscleMuscular[pillar] = (acc.perMuscleMuscular[pillar] ?: 0.0) + value
                 }
@@ -817,8 +819,6 @@ object AugeFatigueEngine {
             adaptiveCache = adaptiveCache,
             exerciseDb = exerciseDb,
             options = RecipeOptions(
-                volumeCounting = RecipeOptions.VolumeCounting.UNILATERAL_HALVES_ROUNDED,
-                axialGatePosition = RecipeOptions.AxialGatePosition.BEFORE_ACCUMULATION,
                 muscleMultiplierSource = RecipeOptions.MuscleMultiplierSource.REMAPPED_PILLARS,
                 cardioHandling = RecipeOptions.CardioHandling.CONSUMER_HOOK,
                 softCapUnits = RecipeOptions.SoftCapUnits.CHANNEL_PERCENT,
@@ -840,7 +840,11 @@ object AugeFatigueEngine {
                     acc.totalCns += cns
                     acc.totalMuscular += muscular
                     acc.totalSpinal += spinal
-                    recipe.accumulatedDrain += (cns + muscular + spinal) / 3.0
+                    recipe.accumulateCardio( // El plan usa los mismos acumulados por canal que el cierre.
+                        muscular = cardioDrain.muscular, // Porcentaje muscular anterior al tope.
+                        cns = cardioDrain.cns * adaptiveCache.cnsDrainMultiplier, // Porcentaje neural calibrado anterior al tope.
+                        spinal = cardioDrain.spinal * adaptiveCache.spinalDrainMultiplier, // Porcentaje espinal calibrado anterior al tope.
+                    ) // No añade conservación ni amortiguación al gancho de cardio.
                     cardioDrain.muscleDrains.forEach { (pillar, value) ->
                         acc.perMuscleMuscular[pillar] = (acc.perMuscleMuscular[pillar] ?: 0.0) + value
                     }

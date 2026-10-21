@@ -17,7 +17,7 @@ import kotlin.math.max
  * Caracterización numérica del SESGO ACTUAL del aprendiz de τ (hallazgo F-10, P0-B) con los motores reales y el
  * arnés de usuarios sintéticos (paquete 0.3 de Rings v4). Documenta con números lo que el actualizador nuevo
  * (paquete 3.2, enchufado a la misma [SimLearner]) tendrá que batir. No cambia código de producción.
- * 2.2b1 reevalúa la duración del log: los 39 resúmenes medidos mantienen los valores de la base.
+ * 2.2b2 re-ancla el sesgo tras separar los canales; el informe conserva todas las cifras antes→después.
  *
  * Ninguna prueba usa el reloj real: todo va con instantes explícitos y `ZoneId.of("UTC")`.
  */
@@ -198,22 +198,16 @@ class AugeLearnerBiasCharacterizationTest {
         assertTrue("No se emitió ningún τ implícito", rows.all { it.implied != null })
         fun List<InversionRow>.ratios() = map { it.ratio!! }
 
-        // Propiedades cualitativas que SÍ se cumplen hoy (anexo B del plan). Diferencias medidas con el plan. Cifras re-ancladas
-        // por el redondeo de las baterías (WP 1.5): la lectura entera ya no trunca (99,7 ⇒ 100) y el τ implícito, muy sensible a
-        // 1 punto cerca de la recuperación completa, baja; entre paréntesis lo medido antes.
-        //  - músculo: el plan da ×1,16–3,45; medido ×1,01–2,78 (antes ×1,09–3,10; el implícito se topa en 200 h con τ=72). A 48 h la
-        //    batería está saturada (98-100) y el mínimo baja a ×1,01 (τ=48, sesión media): por eso >1,0 siempre y >1,1 hasta 24 h.
+        // Desigualdades cualitativas conservadas; las mediciones vigentes y su historia están en las tablas de 2.2b2.
+        // Músculo sobreestima τ; el redondeo cerca de la recuperación completa reduce el cociente implícito.
         assertTrue("músculo: cociente mínimo ${muscle.ratios().min()}", muscle.ratios().all { it > 1.0 })
         assertTrue("músculo ≤24 h: cociente mínimo", muscle.filter { it.hours <= 24 }.ratios().all { it > 1.1 })
-        //  - Energía: el plan da ×0,41–0,79 a 8-24 h; medido ×0,43–0,74 (antes ×0,45–0,91: la sesión pequeña a 24 h pasa de ×0,91 a
-        //    ×0,69). A 48 h el sesgo CAMBIA de signo (×0,95–1,38): lo que el aprendiz hace con Energía depende del momento del gesto.
+        // Energía cambia de signo con el tiempo: subestima hasta 24 h y deja de subestimar a las 48 h.
         assertTrue("Energía ≤24 h: cociente máximo", energy.filter { it.hours <= 24 }.ratios().all { it < 0.95 })
         assertTrue("Energía ≤12 h: cociente máximo", energy.filter { it.hours <= 12 }.ratios().all { it < 0.7 })
         assertTrue("Energía: cociente mínimo ${energy.ratios().min()}", energy.ratios().all { it > 0.4 })
         assertTrue("Energía 48 h: ya no subestima", energy.filter { it.hours == 48 }.ratios().all { it >= 0.95 })
-        //  - Columna: el plan da ×1,0–1,8 a 8 h y ×1,1–1,3 a 24 h; medido ×1,00–3,46 (antes ×1,05–3,46: a 12 h con sesión media el
-        //    cociente baja de ×1,35 a ×1,00). Dentro de [0,95; 2,0] a ≤12 h; a 24-48 h las sesiones con poca carga axial (estrés
-        //    3-15 %) disparan el cociente (batería 99-100 con estrés minúsculo).
+        // Columna sobreestima τ; las sesiones con poca carga axial amplifican el cociente a 24–48 h.
         assertTrue("Columna: cociente mínimo ${spinal.ratios().min()}", spinal.ratios().all { it > 0.95 })
         assertTrue("Columna ≤12 h fuera de [0,95; 2,0]", spinal.filter { it.hours <= 12 }.ratios().all { it in 0.95..2.0 })
     }
@@ -294,26 +288,21 @@ class AugeLearnerBiasCharacterizationTest {
             }
         }
 
-        // ── Cifras medidas hoy (n = 30 gestos), con margen ±25 % (±1 h en las pequeñas) ──
-        // escenario → parámetro → (MAE, sesgo). Plan 6.6 (simulación Python simplificada): τ=defecto 24,3 h / +24,3 h;
-        // ×1,25 → 30,2 h; ×0,75 → 16,9 h; σ=7 → 18,5 h. El motor real da cifras distintas: Pectorales solo recibe ~9,4
-        // observaciones en 30 gestos (entra en el top-3 de estrés tras empuje y cuerpo completo).
-        // Re-ancladas por el redondeo de las baterías (WP 1.5). Antes (τ = defecto): Pectorales 8,1/+7,9 · Energía 1,4/−0,3 ·
-        // Columna 36,4/+36,4; ×1,25: 4,6/−2,6 · 6,4/−6,4 · 27,7; ×0,75: 18,4 · 7,0 · 51,8; σ=7: 8,5/+8,2 · 2,6/+2,0 · 39,6.
-        // Ahora Columna deriva +24 h (parte del sesgo era leer 99 en lugar de 100 con la batería ya recuperada) y Energía pasa a
-        // −3,6 h: los gestos a 30-60 h y a >60 h (×1,34 y ×2,06) caen más en la guarda de planta y pesan menos que los de ≤30 h (×0,70).
+        // Línea base medida de 2.2b2 a 30 gestos: escenario → parámetro → (MAE, sesgo), en horas.
+        // El margen original cubre ambos tamaños de población; las tablas guardan también cada diagnóstico.
+        // El aprendiz nuevo debe batir esta referencia, sin modificar el simulador ni las semillas.
         val expected: Map<String, Map<String, Measured>> = mapOf(
             AugeLearnerSimulator.SCENARIOS[0].name to mapOf(
-                muscleParam to Measured(7.3, 6.9), cns to Measured(3.8, -3.6), spinalParam to Measured(23.8, 23.8),
+                muscleParam to Measured(7.3, 6.9), cns to Measured(3.7, -3.6), spinalParam to Measured(22.9, 22.9),
             ),
             AugeLearnerSimulator.SCENARIOS[1].name to mapOf(
-                muscleParam to Measured(5.2, -4.4), cns to Measured(9.5, -9.5), spinalParam to Measured(14.1, 13.9),
+                muscleParam to Measured(5.2, -4.4), cns to Measured(9.4, -9.4), spinalParam to Measured(14.3, 14.2),
             ),
             AugeLearnerSimulator.SCENARIOS[2].name to mapOf(
-                muscleParam to Measured(17.4, 17.4), cns to Measured(3.3, 2.8), spinalParam to Measured(34.9, 34.9),
+                muscleParam to Measured(17.4, 17.4), cns to Measured(3.4, 3.0), spinalParam to Measured(34.5, 34.5),
             ),
             AugeLearnerSimulator.SCENARIOS[3].name to mapOf(
-                muscleParam to Measured(7.7, 7.2), cns to Measured(2.8, -1.3), spinalParam to Measured(25.7, 25.7),
+                muscleParam to Measured(7.7, 7.2), cns to Measured(2.9, -1.3), spinalParam to Measured(25.1, 25.1),
             ),
         )
         expected.forEach { (scenarioName, perParam) ->
@@ -332,29 +321,24 @@ class AugeLearnerBiasCharacterizationTest {
         assertTrue(tableByKey.getValue("${names[1]}|$spinalParam|30").bias > 0.0)
         assertTrue(tableByKey.getValue("${names[2]}|$muscleParam|30").bias > 0.0)
         assertTrue(tableByKey.getValue("${names[2]}|$cns|30").bias > 0.0)
-        // «con τ verdadero = defecto, el error medio tras 30 gestos supera el 15 % del τ» en Pectorales (15,2 %; antes 16,8 %) y
-        // Columna (45,8 %; antes 70 %).
+        // Con τ verdadero = defecto, el error tras 30 gestos sigue superando el 15 % en Pectorales y Columna.
         assertTrue(tableByKey.getValue("${names[0]}|$muscleParam|30").let { it.mae / it.trueTau > 0.15 })
         assertTrue(tableByKey.getValue("${names[0]}|$spinalParam|30").let { it.mae / it.trueTau > 0.15 })
         // El usuario ruidoso no mejora al aprendiz: el error en Pectorales y Columna es ≥ que con σ=4.
         assertTrue(tableByKey.getValue("${names[3]}|$muscleParam|30").mae >= tableByKey.getValue("${names[0]}|$muscleParam|30").mae)
         assertTrue(tableByKey.getValue("${names[3]}|$spinalParam|30").mae >= tableByKey.getValue("${names[0]}|$spinalParam|30").mae)
-        // Actualizaciones que alejan τ del verdadero (todos los parámetros): medido 64,8 / 44,3 / 58,9 / 64,8 % (antes del redondeo
-        // 70,6 / 51,4 / 66,0 / 70,4 %; plan: ~57 %).
-        listOf(64.8, 44.3, 58.9, 64.8).forEachIndexed { i, want ->
+        // Porcentajes medidos de actualizaciones que alejan τ del verdadero; historia completa en la tabla de 2.2b2.
+        listOf(64.7, 44.3, 58.8, 64.6).forEachIndexed { i, want ->
             assertNear("alejan[todos] ${names[i]}", awayAll.getValue(names[i]).pct, want, absTol = 3.0)
         }
-        // Guarda de planta (sentido == predicho): ~27 % de las observaciones con σ=4 y ~25 % con σ=7 (antes ~10 % y ~5,5 %). Con la
-        // batería redondeada un canal recuperado lee 100 tanto en la verdad como en lo predicho, y el ruido positivo se recorta en 100.
-        val plantaSigma4 = mapOf(SimChannel.MUSCLE to 27.4, SimChannel.ENERGY to 26.5, SimChannel.SPINAL to 32.6)
-        val plantaSigma7 = mapOf(SimChannel.MUSCLE to 24.2, SimChannel.ENERGY to 22.9, SimChannel.SPINAL to 28.9)
+        // El redondeo a 100 aumenta la guarda de planta; el ruido positivo también se recorta en 100.
+        val plantaSigma4 = mapOf(SimChannel.MUSCLE to 27.4, SimChannel.ENERGY to 26.9, SimChannel.SPINAL to 31.9)
+        val plantaSigma7 = mapOf(SimChannel.MUSCLE to 24.2, SimChannel.ENERGY to 23.1, SimChannel.SPINAL to 27.8)
         SimChannel.entries.forEach { ch ->
             assertNear("planta σ=4 $ch", plantaPct.getValue("${names[0]}|$ch"), plantaSigma4.getValue(ch), absTol = 1.5)
             assertNear("planta σ=7 $ch", plantaPct.getValue("${names[3]}|$ch"), plantaSigma7.getValue(ch), absTol = 1.5)
         }
-        // Cociente implícito/verdadero CON ruido por tramo horario (τ verdadero = defecto): Energía subestima a ≤30 h (×0,70) y
-        // sobreestima después (×1,34 a 30-60 h, ×2,06 a >60 h), con un sesgo neto negativo; Columna sobreestima en todos
-        // los tramos (×2,0 / ×3,2 / ×3,5); Pectorales solo recibe gestos a >30 h (tras empuje y cuerpo completo).
+        // El cociente implícito varía con la hora: Energía cambia de signo y Columna sobreestima; véanse las tablas.
         val defaultRuns = byScenario.getValue(names[0])
         val energyBuckets = AugeLearnerSimulator.impliedRatioByHours(defaultRuns, AugeLearnerSimulator.SCENARIOS[0]) { it == cns }
         val spinalBuckets = AugeLearnerSimulator.impliedRatioByHours(defaultRuns, AugeLearnerSimulator.SCENARIOS[0]) { it == spinalParam }
@@ -400,19 +384,15 @@ class AugeLearnerBiasCharacterizationTest {
         assertTrue(byKey.getValue("$default|$muscleParam|obs30").bias > 0.0)
         assertTrue(byKey.getValue("$default|${AugeLearnerSimulator.SPINAL}|obs30").bias > 0.0)
         assertTrue(byKey.getValue("$default|${AugeLearnerSimulator.SPINAL}|g100").bias > 0.0)
-        // Cifras medidas hoy (20 usuarios en ligero; con 100 usuarios en completo salen dentro del mismo margen ±25 %), re-ancladas
-        // por el redondeo de las baterías (WP 1.5; entre paréntesis lo medido antes):
-        // Pectorales tras 30 observaciones propias, τ=defecto: MAE 9,9 h / +9,5 h (antes 11,7 / +11,7; el plan, con su Python
-        // simplificado, da 24,3 h / +24,3 h para un parámetro de 48 h); con τ verdadero ×0,75: +19,1 h (+20,8); Columna tras 30
-        // observaciones +22,7 h (+35,1) y a 100 gestos +37,8 h (+54,6; no se estabiliza); Energía con τ verdadero ×1,25: −11,0 h
-        // (−8,1; no converge a 45 h).
+        // Corrida larga re-anclada por 2.2b2: 20 usuarios en modo ligero, 100 en completo, mismo margen original.
+        // La tabla conserva las observaciones propias y la deriva a 60/100 gestos que debe batir 3.2.
         val names = AugeLearnerSimulator.SCENARIOS.map { it.name }
         assertNear("pectorales obs30 MAE", byKey.getValue("${names[0]}|$muscleParam|obs30").mae, 9.9)
         assertNear("pectorales obs30 sesgo", byKey.getValue("${names[0]}|$muscleParam|obs30").bias, 9.5, absTol = 1.5)
-        assertNear("columna obs30 sesgo", byKey.getValue("${names[0]}|spinal|obs30").bias, 22.7, absTol = 1.5)
-        assertNear("columna g100 sesgo", byKey.getValue("${names[0]}|spinal|g100").bias, 37.8, absTol = 1.5)
+        assertNear("columna obs30 sesgo", byKey.getValue("${names[0]}|spinal|obs30").bias, 22.0, absTol = 1.5)
+        assertNear("columna g100 sesgo", byKey.getValue("${names[0]}|spinal|g100").bias, 36.6, absTol = 1.5)
         assertNear("pectorales ×0,75 obs30 sesgo", byKey.getValue("${names[2]}|$muscleParam|obs30").bias, 19.1, absTol = 1.5)
-        assertNear("energía ×1,25 obs30 sesgo", byKey.getValue("${names[1]}|cns|obs30").bias, -11.0, absTol = 1.5)
+        assertNear("energía ×1,25 obs30 sesgo", byKey.getValue("${names[1]}|cns|obs30").bias, -11.3, absTol = 1.5)
     }
 
     @Test

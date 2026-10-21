@@ -3,28 +3,33 @@ package com.example.kpkn.domain.auge
 import com.example.kpkn.data.models.*
 import kotlin.math.roundToInt
 
-/** Decisiones pendientes de 2.2b2, salvo el estado muscular zombi que se retira en 3.1. */
+/** Variantes legítimas del consumidor, salvo el estado muscular zombi reservado a 3.1. */
 internal data class RecipeOptions(
-    val volumeCounting: VolumeCounting,
-    val axialGatePosition: AxialGatePosition,
     /** Se elimina en 3.1 junto con el campo zombi del caché; conserva sus tres variantes hasta entonces. */
     val muscleMultiplierSource: MuscleMultiplierSource,
+    /** C conserva el respaldo de estrés del aprendiz sin V2; los demás usan ganchos con su propio reparto de cardio. */
     val cardioHandling: CardioHandling,
+    /** A/P/F: porcentaje por canal; B: unidades de estrés; C: sin tope; D/E: porcentaje por log. */
     val softCapUnits: SoftCapUnits,
 ) {
-    enum class VolumeCounting { UNILATERAL_HALVES_ROUNDED, EFFECTIVE_SET_COUNT }
-    enum class AxialGatePosition { BEFORE_ACCUMULATION, AFTER_ACCUMULATION, NOT_APPLIED }
     /** Se elimina en 3.1 junto con el campo zombi del caché; no activar calibraciones antiguas. */
     enum class MuscleMultiplierSource { REMAPPED_PILLARS, DIRECT_KEYS, NONE }
     enum class CardioHandling { CONSUMER_HOOK, LEGACY_STRENGTH }
     enum class SoftCapUnits { CHANNEL_PERCENT, MUSCLE_STRESS_UNITS, LOG_PERCENT, NONE }
 }
 
+/** Acumulados independientes, antes de topes y bonos del consumidor (F-60). */
+internal data class ChannelDrainAccumulation( // Cada canal amortigua solamente su propio drenaje.
+    val muscular: Double = 0.0, // Porcentaje muscular ajustado de la sesión.
+    val cns: Double = 0.0, // Porcentaje neural ajustado de la sesión.
+    val spinal: Double = 0.0, // Porcentaje espinal tras la puerta axial cuando procede.
+) // Las unidades son porcentajes, nunca unidades de estrés muscular.
+
 internal data class AdjustedSetDrain(
     val muscular: Double,
     val cns: Double,
     val spinal: Double,
-    val accumulatedDrain: Double,
+    val accumulatedDrain: ChannelDrainAccumulation, // Sin promedio ni realimentación entre canales.
 )
 
 internal data class RecipeExerciseIdentity(
@@ -42,7 +47,6 @@ internal data class RecipeExerciseContext(
     val restTime: Int,
     val densityMultiplier: Double,
     val axialGate: Double,
-    val postAccumulationAxialGate: Double,
 )
 
 /**
@@ -57,9 +61,18 @@ internal class SessionDrainRecipe(
     private val options: RecipeOptions,
     private val resolveInfo: (RecipeExerciseIdentity) -> ExerciseMuscleInfo?,
 ) {
-    var accumulatedDrain: Double = 0.0
+    var accumulatedDrain = ChannelDrainAccumulation() // Estado independiente de los topes del consumidor.
+        private set // El cardio también entra mediante una suma explícita por canal.
 
-    private val integerVolume = mutableMapOf<String, Int>()
+    /** El gancho conserva su escala de cardio; el acumulado recibe sus porcentajes antes del tope. */
+    fun accumulateCardio(muscular: Double, cns: Double, spinal: Double) { // Cardio no adopta la conservación de fuerza.
+        accumulatedDrain = ChannelDrainAccumulation( // No mezcla la carga neural con la muscular.
+            muscular = accumulatedDrain.muscular + muscular, // Porcentaje muscular del gancho.
+            cns = accumulatedDrain.cns + cns, // Porcentaje neural del gancho.
+            spinal = accumulatedDrain.spinal + spinal, // Porcentaje espinal del gancho.
+        ) // Los topes siguen aplicándose únicamente en cada consumidor.
+    } // B/D/E no realimentan el cardio; C conserva su recorrido legacy de series para el aprendiz sin V2.
+
     private val halfVolume = mutableMapOf<String, Double>()
     private val muscleMultipliers = when (options.muscleMultiplierSource) {
         RecipeOptions.MuscleMultiplierSource.REMAPPED_PILLARS ->
@@ -143,20 +156,11 @@ internal class SessionDrainRecipe(
                 continue
             }
             val context = prepare(exercise)
-            var integerCount = integerVolume[context.primaryMuscle] ?: 0
             var halfCount = halfVolume[context.primaryMuscle] ?: 0.0
             for (sourceSet in effectiveSets(exercise)) {
                 val set = complete(exercise, sourceSet)
-                val accumulatedSets = when (options.volumeCounting) {
-                    RecipeOptions.VolumeCounting.UNILATERAL_HALVES_ROUNDED -> {
-                        halfCount += if (set.side != null) 0.5 else 1.0
-                        halfCount.roundToInt()
-                    }
-                    RecipeOptions.VolumeCounting.EFFECTIVE_SET_COUNT -> {
-                        integerCount += 1
-                        integerCount
-                    }
-                }
+                halfCount += if (set.side != null) 0.5 else 1.0 // Una pareja de lados equivale a una serie por pilar.
+                val accumulatedSets = halfCount.roundToInt() // El multiplicador progresivo recibe el mismo conteo en A–F.
                 val drain = AugeFatigueEngine.calculateSetBatteryDrain(
                     set = set,
                     metrics = context.metrics,
@@ -169,15 +173,12 @@ internal class SessionDrainRecipe(
                     muscleMultiplier = context.muscleMultiplier,
                     weightUnit = settings.weightUnit,
                 )
-                val base = adjustSet(drain, accumulatedDrain, options, context.axialGate)
+                val base = adjustSet(drain, accumulatedDrain, context.axialGate) // La puerta axial siempre precede al acumulado.
                 accumulatedDrain = base.accumulatedDrain
                 val adjusted = withHeavySingleBonus(base, set)
                 onSet(exercise, sourceSet, context, drain, adjusted, accumulatedSets)
             }
-            when (options.volumeCounting) {
-                RecipeOptions.VolumeCounting.UNILATERAL_HALVES_ROUNDED -> halfVolume[context.primaryMuscle] = halfCount
-                RecipeOptions.VolumeCounting.EFFECTIVE_SET_COUNT -> integerVolume[context.primaryMuscle] = integerCount
-            }
+            halfVolume[context.primaryMuscle] = halfCount // Conserva también las mitades entre ejercicios del mismo pilar.
         }
     }
 
@@ -223,29 +224,36 @@ internal class SessionDrainRecipe(
             restTime = rest,
             densityMultiplier = density,
             axialGate = gate,
-            postAccumulationAxialGate = if (options.axialGatePosition == RecipeOptions.AxialGatePosition.AFTER_ACCUMULATION) gate else 1.0,
         )
     }
 
     companion object {
-        /** Se mantiene el promedio de tres canales sin topar, incluso su dependencia cruzada (F-60). */
-        fun adjustSet(drain: SetDrain, accumulatedDrain: Double, options: RecipeOptions, axialGate: Double): AdjustedSetDrain {
+        /**
+         * F-60: cada canal usa x' = x + a/(1 + K·x/100), sin promediar otros canales.
+         * Para x ≥ 0, ∂x'/∂x = 1 − (a·K/100)/(1 + K·x/100)² > 0 si a·K/100 < 1;
+         * también ∂x'/∂a > 0. Con conservación 0,85, K = 0,65 y tope muscular/neural 32,
+         * a ≤ 27,2 y a·0,0065 ≤ 0,1768. Columna permite 35: a ≤ 29,75 y el producto
+         * sigue siendo ≤ 0,193375. Una puerta axial en [0,1] solo reduce ese límite.
+         * Por inducción, el acumulado de cada canal es monótono en su drenaje crudo y en la carga.
+         * Los topes y los bonos históricos se aplican después, sin alterar esta recurrencia.
+         */
+        fun adjustSet(drain: SetDrain, accumulatedDrain: ChannelDrainAccumulation, axialGate: Double): AdjustedSetDrain { // Puerta anterior al acumulado en todos.
             val conservationFactor = AugeUtils.SESSION_CONSERVATION_FACTOR
             val decayK = AugeUtils.SESSION_DECAY_K
-            val diminishingFactor = 1.0 / (1.0 + decayK * (accumulatedDrain / 100.0))
-            val muscular = drain.muscularDrainPct * conservationFactor * diminishingFactor
-            val cns = drain.cnsDrainPct * conservationFactor * diminishingFactor
-            val spinal = if (options.axialGatePosition == RecipeOptions.AxialGatePosition.BEFORE_ACCUMULATION) {
-                drain.spinalDrainPct * conservationFactor * diminishingFactor * axialGate
-            } else {
-                drain.spinalDrainPct * conservationFactor * diminishingFactor
-            }
-            return AdjustedSetDrain(muscular, cns, spinal, accumulatedDrain + (muscular + cns + spinal) / 3.0)
+            fun diminishing(accumulated: Double) = 1.0 / (1.0 + decayK * (accumulated / 100.0)) // Mismo K, un acumulado por canal.
+            val muscular = drain.muscularDrainPct * conservationFactor * diminishing(accumulatedDrain.muscular) // Solo fatiga muscular.
+            val cns = drain.cnsDrainPct * conservationFactor * diminishing(accumulatedDrain.cns) // Solo fatiga neural.
+            val spinal = drain.spinalDrainPct * conservationFactor * diminishing(accumulatedDrain.spinal) * axialGate // Acumula solo lo aplicado por la puerta.
+            return AdjustedSetDrain(muscular, cns, spinal, ChannelDrainAccumulation( // Sin tope blando ni promedio.
+                muscular = accumulatedDrain.muscular + muscular, // El canal muscular no recibe SNC ni Columna.
+                cns = accumulatedDrain.cns + cns, // El canal neural no recibe músculo ni Columna.
+                spinal = accumulatedDrain.spinal + spinal, // El canal espinal conserva la puerta aplicada.
+            )) // El consumidor recibe el ajuste y el nuevo estado por separado.
         }
 
         fun conserveCardio(drain: Double): Double = drain * AugeUtils.SESSION_CONSERVATION_FACTOR
 
-        /** El bono neural precede al tope blando y no realimenta el acumulado de tres canales. */
+        /** El bono neural precede al tope blando y conserva su exclusión del acumulado de la receta. */
         fun withHeavySingleBonus(drain: AdjustedSetDrain, set: CompletedSet): AdjustedSetDrain =
             if (set.weight > 0.0 && set.reps <= 3 && AugeFatigueEngine.getEffectiveRPE(set) >= 9.5) {
                 drain.copy(cns = drain.cns + drain.cns * 0.15)
@@ -261,7 +269,10 @@ internal class SessionDrainRecipe(
         fun durationSpinal(spinal: Double, durationMinutes: Int): Double =
             if (durationMinutes > 90) spinal * 1.08 else spinal
 
-        /** Adaptación histórica: las técnicas y la duración planificadas no se añaden a la serie sintética. */
+        /**
+         * Adaptación histórica: las técnicas y la duración planificadas no se añaden a la serie sintética.
+         * Cada serie del plan es lógica: aquí no se expanden lados ni objetivos izquierdo/derecho.
+         */
         fun plannedSet(exercise: Exercise, set: ExerciseSet): CompletedSet {
             val percentage = set.targetPercentageRM
             val reference = exercise.reference1RM
