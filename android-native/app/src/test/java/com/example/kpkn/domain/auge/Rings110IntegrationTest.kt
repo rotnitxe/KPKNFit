@@ -47,6 +47,7 @@ class Rings110IntegrationTest {
             id = "w1",
             date = "2026-10-21",
             manualMuscularBattery = 65,
+            capturedFields = setOf("muscular"),
         )
         val inputs = AugeSnapshotInputs(
             history = emptyList(),
@@ -132,8 +133,8 @@ class Rings110IntegrationTest {
             wellbeing = null,
             coverage = coverage,
         )
-        // Score general ponderado se calcula matemáticamente igual
-        assertEquals(72, detail.dashboard.overallScore)
+        // Score general ponderado se calcula matemáticamente igual (65*0.35 + 100*0.40 + 100*0.25 = 87.75 ≈ 88)
+        assertEquals(88, detail.dashboard.overallScore)
         // Pero el titular y la recomendación se basan en el canal limitante conocido (muscular 65), no en energía ni columna
         assertTrue(detail.dashboard.summary.contains("Músculos"))
     }
