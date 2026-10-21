@@ -382,7 +382,7 @@ class RepSegmenterRulesTest {
     @Test
     fun noRepsComeWithTheirReason() {
         val fails = RepTestSupport.Failures()
-        val short = segment(SignalBuilder().hold(1.0).go(0.8, 1.0).go(0.8, 0.0).series(), eccentric)
+        val short = segment(SignalBuilder().hold(0.25).go(0.25, 1.0).go(0.25, 0.0).series(), eccentric)
         fails.check(short.cycles.isEmpty() && short.noRepsReason == "too_short") { "muy corta: ${describe(short)}" }
         val flat = segment(SignalBuilder().hold(20.0).series(sigma = 0.01), eccentric)
         fails.check(flat.cycles.isEmpty() && flat.noRepsReason in setOf("no_peaks", "low_amplitude", "low_snr")) { "plana: ${describe(flat)}" }
