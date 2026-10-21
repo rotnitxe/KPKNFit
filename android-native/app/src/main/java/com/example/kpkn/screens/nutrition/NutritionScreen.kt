@@ -32,6 +32,11 @@ import com.example.kpkn.screens.nutrition.design.NutritionSupplementsModule
 import com.example.kpkn.screens.nutrition.design.NutritionTopIsland
 import com.example.kpkn.screens.nutrition.design.NutritionWeekTrendModule
 import com.example.kpkn.screens.nutrition.design.buildNutritionWeekBars
+import com.example.kpkn.screens.nutrition.reuse.CopyToSheet
+import com.example.kpkn.screens.nutrition.reuse.PlannedMealsModule
+import com.example.kpkn.screens.nutrition.reuse.RepeatYesterdayDialog
+import com.example.kpkn.screens.nutrition.reuse.ReuseDayActions
+import com.example.kpkn.screens.nutrition.reuse.SaveTemplateDialog
 import com.example.kpkn.screens.nutrition.design.nutritionIslandSubtitle
 import com.example.kpkn.screens.onboarding.design.WizardColors
 import com.example.kpkn.screens.onboarding.design.entreno.SymbolPalette
@@ -68,6 +73,15 @@ private data class NutritionFoodMenuState(
     val moveExpanded: Boolean = false,
 )
 
+/** N4: lo que pidió la hoja «Copiar a…»: una comida (menú de la fila) o todo el día mirado. */
+private sealed interface NutritionCopyTarget {
+    data class Meal(val log: NutritionLog) : NutritionCopyTarget
+    data object Day : NutritionCopyTarget
+}
+
+/** N4: «Guardar como plantilla» abierto sobre [log]; [templateId] nace al abrir, así que guardar dos veces es una sola plantilla. */
+private data class NutritionTemplateDialogState(val log: NutritionLog, val templateId: String)
+
 // ═══════════════════════════════════════════════════════════════════════
 // MAIN SCREEN
 // ═══════════════════════════════════════════════════════════════════════
@@ -102,6 +116,11 @@ fun NutritionScreen(
     val foodLoggerOpenRequest by viewModel.foodLoggerOpenRequest.collectAsState()
     val pendingUndo by viewModel.pendingUndo.collectAsState()
     val uiMessage by viewModel.uiMessage.collectAsState()
+    // Reutilización del diario (N4): comidas planificadas del día, avisos de copia y la pregunta de «Repetir ayer».
+    val plannedLogs by viewModel.plannedLogs.collectAsState()
+    val reuseMessage by viewModel.reuseMessage.collectAsState()
+    val reuseBusy by viewModel.reuseBusy.collectAsState()
+    val pendingRepeat by viewModel.pendingRepeat.collectAsState()
     val dailyEnergyBalance by viewModel.dailyEnergyBalance.collectAsState()
     val caffeineLimits by viewModel.caffeineLimits.collectAsState()
     val creatineSaturation by viewModel.creatineSaturation.collectAsState()
@@ -187,6 +206,8 @@ fun NutritionScreen(
     }
     // El menú de una fila (N2): abierto desde la pulsación larga; «Mover a…» se despliega dentro del mismo menú.
     var foodMenu by remember { mutableStateOf<NutritionFoodMenuState?>(null) }
+    var copyTarget by remember { mutableStateOf<NutritionCopyTarget?>(null) }
+    var templateDialog by remember { mutableStateOf<NutritionTemplateDialogState?>(null) }
 
     LaunchedEffect(sharedDescription) {
         if (!sharedDescription.isNullOrBlank()) {
@@ -230,6 +251,17 @@ fun NutritionScreen(
         val message = uiMessage ?: return@LaunchedEffect
         snackbarHostState.showKpknSnackbar(message, SnackbarType.DANGER)
         viewModel.consumeUiMessage()
+    }
+
+    // N4: el resultado de copiar, guardar una plantilla o pasar una comida a consumida. Los fallos duran más: nombran qué falta.
+    LaunchedEffect(reuseMessage) {
+        val message = reuseMessage ?: return@LaunchedEffect
+        snackbarHostState.showKpknSnackbar(
+            message = message.text,
+            type = if (message.isError) SnackbarType.DANGER else SnackbarType.SUCCESS,
+            duration = if (message.isError) SnackbarDuration.Long else SnackbarDuration.Short,
+        )
+        viewModel.consumeReuseMessage()
     }
 
     LaunchedEffect(activePlan?.id, activePlan?.calorieTarget, activePlan?.proteinGoal, activePlan?.carbGoal, activePlan?.fatGoal) {
@@ -292,6 +324,19 @@ fun NutritionScreen(
                     }
                 }
 
+                if (userStateLoaded) {
+                    item(key = "reuse-day-actions") {
+                        val shownDay = runCatching { LocalDate.parse(selectedDate) }.getOrDefault(today)
+                        ReuseDayActions(
+                            repeatLabel = MealReuse.repeatLabel(shownDay, today),
+                            canCopyDay = mealGroups.any { it.logs.isNotEmpty() },
+                            onRepeat = { viewModel.repeatYesterday() },
+                            onCopyDay = { copyTarget = NutritionCopyTarget.Day },
+                            modifier = Modifier.padding(horizontal = 24.dp),
+                        )
+                    }
+                }
+
                 if (userStateLoaded && checkinAvailability == com.example.kpkn.domain.nutrition.checkin.CheckinAvailability.NOW) {
                     item(key = "weekly-checkin") {
                         com.example.kpkn.screens.nutrition.checkin.NutritionCheckinCard(
@@ -337,6 +382,18 @@ fun NutritionScreen(
                         onOpenLog = { log -> viewModel.requestFoodLoggerOpen(tab = 0, editLogId = log.id) },
                         onLongPressLog = { log, anchor -> foodMenu = NutritionFoodMenuState(log = log, anchor = anchor) },
                     )
+                }
+
+                if (plannedLogs.isNotEmpty()) {
+                    item(key = "planned-meals") {
+                        PlannedMealsModule(
+                            logs = plannedLogs,
+                            canMarkConsumed = selectedDate <= today.toString(),
+                            onMarkConsumed = { viewModel.markPlannedConsumed(it.id) },
+                            onRemove = { viewModel.deleteLog(it.id) },
+                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp),
+                        )
+                    }
                 }
 
                 item {
@@ -424,6 +481,58 @@ fun NutritionScreen(
             onMove = { meal -> viewModel.moveLog(menu.log.id, meal) },
             onDelete = { viewModel.deleteLog(menu.log.id) },
             onDismiss = { foodMenu = null },
+            onCopyTo = if (MealReuse.isCopyable(menu.log)) ({ copyTarget = NutritionCopyTarget.Meal(menu.log) }) else null,
+            onSaveTemplate = if (MealReuse.isCopyable(menu.log)) {
+                ({ templateDialog = NutritionTemplateDialogState(menu.log, java.util.UUID.randomUUID().toString()) })
+            } else {
+                null
+            },
+        )
+    }
+
+    // N4: «Copiar a…» / «Copiar día a…», «Guardar como plantilla» y la pregunta de «Repetir ayer».
+    copyTarget?.let { target ->
+        val sources = when (target) {
+            is NutritionCopyTarget.Meal -> listOf(target.log)
+            NutritionCopyTarget.Day -> mealGroups.flatMap { it.logs }
+        }
+        val originDay = when (target) {
+            is NutritionCopyTarget.Meal -> runCatching { LocalDate.parse(target.log.date.take(10)) }.getOrNull()
+            NutritionCopyTarget.Day -> runCatching { LocalDate.parse(selectedDate) }.getOrNull()
+        }
+        CopyToSheet(
+            title = if (target is NutritionCopyTarget.Meal) "Copiar a…" else "Copiar día a…",
+            subtitle = copySourceSubtitle(sources, originDay),
+            sources = sources,
+            today = today,
+            blocked = setOfNotNull(originDay),
+            busy = reuseBusy,
+            onConfirm = { dates ->
+                copyTarget = null
+                viewModel.copyLogsTo(sources, dates)
+            },
+            onDismiss = { copyTarget = null },
+            hazeState = nutritionHazeState,
+        )
+    }
+    templateDialog?.let { state ->
+        SaveTemplateDialog(
+            initialName = MealReuse.defaultTemplateName(state.log),
+            summary = templateDialogSummary(state.log),
+            onConfirm = { name ->
+                templateDialog = null
+                viewModel.saveLogAsTemplate(state.log, name, state.templateId)
+            },
+            onDismiss = { templateDialog = null },
+        )
+    }
+    pendingRepeat?.let { ask ->
+        RepeatYesterdayDialog(
+            existingMeals = ask.existingMeals,
+            incomingMeals = ask.plan.copies.size,
+            sourceIsYesterday = selectedDate == today.toString(),
+            onAdd = { viewModel.confirmRepeat() },
+            onCancel = { viewModel.cancelRepeat() },
         )
     }
 
@@ -546,3 +655,18 @@ private val NUTRITION_DATE_FORMAT: DateTimeFormatter = DateTimeFormatter.ofPatte
  */
 internal fun isEditSave(editingLogId: String?, saved: NutritionLog): Boolean =
     editingLogId != null && saved.id == editingLogId
+
+/** N4: la línea de la hoja «Copiar a…»: «Almuerzo · 20 oct · 560 kcal» para una comida o «3 comidas · 20 oct · 1240 kcal» para el día. */
+internal fun copySourceSubtitle(sources: List<NutritionLog>, originDay: LocalDate?): String {
+    val kcal = kotlin.math.round(computeFoodTotals(sources.flatMap { it.foods }).calories).toInt()
+    val day = originDay?.let { MealReuse.shortDateEs(it) }
+    val head = if (sources.size == 1) MealSlots.mealLabel(sources.single().mealType) else "${sources.size} comidas"
+    return listOfNotNull(head, day, "$kcal kcal").joinToString(" · ")
+}
+
+/** N4: el resumen de «Guardar como plantilla»: los alimentos y las kcal de la comida. */
+internal fun templateDialogSummary(log: NutritionLog): String {
+    val kcal = kotlin.math.round(computeFoodTotals(log.foods).calories).toInt()
+    val foods = log.foods.joinToString(", ") { it.foodName }.ifBlank { "Comida" }
+    return "$foods · $kcal kcal"
+}

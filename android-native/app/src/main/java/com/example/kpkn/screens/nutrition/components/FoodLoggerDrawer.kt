@@ -108,6 +108,11 @@ import com.example.kpkn.screens.nutrition.scan.BarcodeScanFlow
 import com.example.kpkn.screens.nutrition.scan.CameraPreviewSurface
 import com.example.kpkn.screens.nutrition.scan.rememberCameraBarcodeSource
 import com.example.kpkn.screens.nutrition.scan.scannedFoodTag
+import com.example.kpkn.screens.nutrition.reuse.QuickEntryOverlay
+import com.example.kpkn.screens.nutrition.reuse.ReuseLoggerEntries
+import com.example.kpkn.screens.nutrition.reuse.TemplatesSheet
+import com.example.kpkn.domain.nutrition.MealReuse
+import com.example.kpkn.domain.nutrition.loggedFoodToEditableTag
 import androidx.compose.runtime.saveable.rememberSaveable
 import com.example.kpkn.domain.nutrition.MealSlots
 import com.example.kpkn.screens.onboarding.design.wizardReducedMotion
@@ -250,6 +255,10 @@ fun FoodLoggerDrawer(
     var showScanner by rememberSaveable { mutableStateOf(false) }
     var showCustomForm by remember { mutableStateOf(false) }
     var customFoodToEdit by remember { mutableStateOf<FoodItem?>(null) }
+    // N4: la lista de plantillas y la entrada rápida (las dos se abren desde la fila discreta bajo las pestañas).
+    var showTemplates by remember { mutableStateOf(false) }
+    var showQuickEntry by remember { mutableStateOf(false) }
+    val mealTemplates by nutritionRepo.mealTemplates.collectAsState()
     // Detalle técnico de un aviso de análisis: oculto hasta pedir «Ver detalle»; cada aviso empieza oculto.
     var showNoticeDetail by remember(analysisNotice) { mutableStateOf(false) }
     // WP-U12 (C11): el diálogo parte de lo vigente (base + lo guardado), no solo de la base.
@@ -1179,6 +1188,21 @@ fun FoodLoggerDrawer(
         saveError = null
     }
 
+    // N4: una plantilla entra como BORRADOR editable: una tarjeta por alimento (id nuevo, su instantánea intacta, sin volver al catálogo).
+    // Las cantidades se editan alimento a alimento y nada se guarda hasta confirmar.
+    fun applyTemplate(template: MealTemplate) {
+        tags = tags + MealReuse.templateDraftFoods(template).map(::loggedFoodToEditableTag)
+        reviewRequired = tags.any { it.hasMaterialQuestion() }
+        saveError = null
+    }
+
+    // N4: la entrada rápida entra como una tarjeta más de la comida (un alimento marcado como rápido); se guarda con la comida.
+    fun addQuickEntry(food: LoggedFood, meal: MealType) {
+        tags = tags + loggedFoodToEditableTag(food)
+        mealType = meal
+        saveError = null
+    }
+
     fun performSearch() {
         searchJob?.cancel()
         if (searchQuery.isBlank()) {
@@ -1479,6 +1503,11 @@ fun FoodLoggerDrawer(
             // ── Pestañas: Describir · Buscar ─────────────────────────────────
             item { LoggerTabs(activeTab = activeTab, onTabSelect = { activeTab = it }) }
 
+            // ── N4: accesos discretos a las plantillas y a la entrada rápida ──
+            item(key = "reuse_entries") {
+                ReuseLoggerEntries(onTemplates = { showTemplates = true }, onQuickEntry = { showQuickEntry = true })
+            }
+
             // ── Describir ────────────────────────────────────────────────────
             if (activeTab == 0) {
                 item {
@@ -1748,6 +1777,30 @@ fun FoodLoggerDrawer(
                 closeCustomForm()
                 if (removedId != null) searchResults = searchResults.filterNot { it.foodId == removedId }
             },
+        )
+    }
+
+    // ── N4: plantillas (hoja) y entrada rápida (pantalla completa) ──
+    if (showTemplates) {
+        TemplatesSheet(
+            templates = mealTemplates,
+            onApply = { template ->
+                applyTemplate(template)
+                showTemplates = false
+            },
+            rename = { template, name -> nutritionRepo.saveMealTemplate(template.copy(name = name)) },
+            delete = { template -> nutritionRepo.deleteMealTemplate(template.id) },
+            onDismiss = { showTemplates = false },
+        )
+    }
+    if (showQuickEntry) {
+        QuickEntryOverlay(
+            initialMeal = mealType,
+            onAdd = { food, meal ->
+                addQuickEntry(food, meal)
+                showQuickEntry = false
+            },
+            onDismiss = { showQuickEntry = false },
         )
     }
 
