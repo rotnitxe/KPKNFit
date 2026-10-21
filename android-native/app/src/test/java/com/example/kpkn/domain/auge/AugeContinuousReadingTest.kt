@@ -42,6 +42,9 @@ class AugeContinuousReadingTest {
         var maxMusculoEvidencia = 0
         var energias = 0
         var energiasDistintas = 0
+        var energiasMostradas = 0
+        var energiasMostradasDistintas = 0
+        var maxEnergiaMostrada = 0
         var columnas = 0
         var columnasDistintas = 0
         var compuestas = 0
@@ -83,6 +86,16 @@ class AugeContinuousReadingTest {
                 energias++
                 if (AugeUtils.batteryPercent(continuo.energy.exact) != energiaCruda) energiasDistintas++
 
+                // Energía mostrada: misma cadena que batteries.cnc (desaceleración → suelo → evidencia inicial).
+                energiasMostradas++
+                val difEnergiaMostrada = abs(
+                    AugeUtils.batteryPercent(continuo.energyShown.exact) - core.batteries.cnc,
+                )
+                if (difEnergiaMostrada > 0) {
+                    energiasMostradasDistintas++
+                    maxEnergiaMostrada = maxOf(maxEnergiaMostrada, difEnergiaMostrada)
+                }
+
                 val columnaCruda = AugeRecoveryEngine.calculateSpinalBattery(
                     history = caso.history,
                     wellbeing = caso.wellbeing,
@@ -119,6 +132,8 @@ class AugeContinuousReadingTest {
                 " musculosEvidencia=$musculosEvidencia distintos=$musculosEvidenciaDistintos" +
                 " maxEvidencia=$maxMusculoEvidencia" +
                 " | energia=$energias distintas=$energiasDistintas" +
+                " | energiaMostrada=$energiasMostradas distintas=$energiasMostradasDistintas" +
+                " max=$maxEnergiaMostrada" +
                 " | columnaCruda=$columnas distintas=$columnasDistintas" +
                 " | compuestas=$compuestas distintas=$compuestasDistintas max=$maxCompuesta",
         )
@@ -128,6 +143,11 @@ class AugeContinuousReadingTest {
             maxMusculoEvidencia <= 1,
         )
         assertEquals("Energía cruda: el Double debe cuantizar al entero visible", 0, energiasDistintas)
+        assertTrue(
+            "Energía mostrada: |batteryPercent(exact) − batteries.cnc| <= 1 " +
+                "(distintos=$energiasMostradasDistintas/$energiasMostradas, máx=$maxEnergiaMostrada)",
+            maxEnergiaMostrada <= 1,
+        )
         assertEquals("Columna cruda: el Double debe cuantizar al entero visible", 0, columnasDistintas)
         assertTrue("Etapas compuestas: |redondeo(exact) − entero| <= 1 (máx=$maxCompuesta)", maxCompuesta <= 1)
         assertTrue("No se evaluó ningún caso", musculos > 0 && energias > 0)

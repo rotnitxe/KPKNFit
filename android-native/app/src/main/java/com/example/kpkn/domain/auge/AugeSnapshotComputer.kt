@@ -92,6 +92,11 @@ object AugeSnapshotComputer {
                 atFloor = globalDetail.energyExact <= floors.cns + 1e-9,
                 blocked = false,
             ),
+            energyShown = AugeChannelReading(
+                exact = globalDetail.energyShownExact,
+                atFloor = globalDetail.energyShownAtFloor,
+                blocked = false,
+            ),
             spineRaw = AugeChannelReading(
                 exact = globalDetail.spineRawExact,
                 atFloor = globalDetail.spineRawExact <= floors.spinal + 1e-9,
