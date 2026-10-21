@@ -1,0 +1,83 @@
+{
+  "id": "x13-mixkit-50761",
+  "durationS": 11.595,
+  "width": 1280,
+  "height": 720,
+  "rotation": 0,
+  "fpsNominal": 23.976,
+  "fpsMeasured": 23.976,
+  "usable": true,
+  "exercise": "Flexión de brazos",
+  "exerciseDetail": "Flexiones de brazos en el suelo sobre esterilla en una azotea (push-up estándar, ritmo rápido)",
+  "suggestedProfile": "PUSH_UP",
+  "view": "FRONT",
+  "people": 1,
+  "fullBodyVisible": true,
+  "faceVisible": false,
+  "plateVisible": false,
+  "startPhase": "ECCENTRIC_FIRST",
+  "reps": {
+    "full": 5,
+    "partial": 0,
+    "failed": 0,
+    "uncertain": false,
+    "acceptableRange": [
+      5,
+      5
+    ]
+  },
+  "repTimesS": [
+    {
+      "index": 1,
+      "turnaroundS": 0.7,
+      "side": null
+    },
+    {
+      "index": 2,
+      "turnaroundS": 2.05,
+      "side": null
+    },
+    {
+      "index": 3,
+      "turnaroundS": 3.4,
+      "side": null
+    },
+    {
+      "index": 4,
+      "turnaroundS": 4.85,
+      "side": null
+    },
+    {
+      "index": 5,
+      "turnaroundS": 6.3,
+      "side": null
+    }
+  ],
+  "activeWindowS": [
+    0.0,
+    7.3
+  ],
+  "frameIntervalS": {
+    "min": 0.0417,
+    "median": 0.0417,
+    "max": 0.0417
+  },
+  "turnaroundKind": "BOTTOM",
+  "edgeEvents": [
+    {
+      "timeS": 7.5,
+      "kind": "TRANSITION",
+      "description": "7,5-9,5 s: termina la serie arriba, camina con los pies hacia las manos (pica) y se levanta; 10-11,6 s de pie con la cabeza fuera del encuadre"
+    }
+  ],
+  "caveats": [
+    "vista frontal a ras de suelo con escorzo fuerte (el cuerpo se ve muy acortado y la cabeza queda cerca de la cámara)",
+    "tras 7,5 s deja las flexiones, camina con los pies hacia las manos y se pone de pie (10-11,6 s con la cabeza fuera del encuadre)",
+    "la cara apunta hacia el suelo (solo se ve la frente/cabeza rapada)"
+  ],
+  "cameraMotion": {
+    "class": "STATIC",
+    "note": "cámara fija"
+  },
+  "softWarnings": []
+}

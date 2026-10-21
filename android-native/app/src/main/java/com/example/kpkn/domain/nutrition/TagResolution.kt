@@ -784,7 +784,7 @@ class TagResolver(
                     contextResult.assumedLabel?.let { "Asumí $it." },
                     if (item.excludedIngredients.isNotEmpty()) "No hay una ficha verificada para esta preparación sin ${item.excludedIngredients.joinToString(", ")}." else null,
                     estimate.evidence.assumption,
-                    "Estimación de plato (${dishGrams.toInt()} g). Tocá la tarjeta para editar.",
+                    "Estimación de plato (${dishGrams.toInt()} g). Toca la tarjeta para editar.",
                     assumeStatus,
                 ).joinToString(" ")
                 val estimateSaveable = logged.calories.isFinite() && logged.protein.isFinite() &&

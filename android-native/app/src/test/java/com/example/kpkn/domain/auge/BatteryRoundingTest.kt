@@ -15,9 +15,7 @@ import com.example.kpkn.data.models.RecoveryStatus
 import com.example.kpkn.data.models.Settings
 import com.example.kpkn.data.models.WorkoutLog
 import com.example.kpkn.screens.home.ringPercent
-import com.example.kpkn.screens.home.sessionRecoveryPercent
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.time.Instant
@@ -333,11 +331,4 @@ class BatteryRoundingTest {
         assertEquals(0, ringPercent(batteryInt = null, progress = Float.NaN))
     }
 
-    @Test
-    fun elPromedioDeRecuperacionDeLaSesionRedondea() {
-        assertEquals("99,5 ⇒ 100", 100, sessionRecoveryPercent(listOf(99, 100)))
-        assertEquals("98,5 ⇒ 99", 99, sessionRecoveryPercent(listOf(98, 99)))
-        assertEquals(53, sessionRecoveryPercent(listOf(53)))
-        assertNull("Sin músculos no hay promedio", sessionRecoveryPercent(emptyList()))
-    }
 }

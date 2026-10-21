@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.data.repository.SportTrackingRoomTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-10-20T04:06:47.294Z" hostname="VF" time="4.33">
+  <properties/>
+  <testcase name="invalid purpose cannot write or create a log and storage failure cannot report saved" classname="com.example.kpkn.data.repository.SportTrackingRoomTest" time="3.811"/>
+  <testcase name="result correction retains the one existing activity its final energy and run" classname="com.example.kpkn.data.repository.SportTrackingRoomTest" time="0.203"/>
+  <testcase name="plan metadata persists without replacing native exercises or alternatives" classname="com.example.kpkn.data.repository.SportTrackingRoomTest" time="0.311"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

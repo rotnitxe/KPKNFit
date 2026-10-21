@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.domain.multisport.HybridOccurrenceResolverTest" tests="8" skipped="0" failures="0" errors="0" timestamp="2026-10-20T04:06:57.387Z" hostname="VF" time="0.061">
+  <properties/>
+  <testcase name="duplicateOrMalformedPersistedOverlaysFailClosed" classname="com.example.kpkn.domain.multisport.HybridOccurrenceResolverTest" time="0.007"/>
+  <testcase name="editedPrescriptionIntentOrAvailabilityInvalidatesAcceptedOccurrence" classname="com.example.kpkn.domain.multisport.HybridOccurrenceResolverTest" time="0.006"/>
+  <testcase name="importedBudgetCannotBeCreditedAsWeeklyTrainingDose" classname="com.example.kpkn.domain.multisport.HybridOccurrenceResolverTest" time="0.005"/>
+  <testcase name="importedMetadataCannotClaimSatisfiedConstraintsWithoutMeetingThem" classname="com.example.kpkn.domain.multisport.HybridOccurrenceResolverTest" time="0.006"/>
+  <testcase name="overlayRoundTripsAndDoesNotCreateWorkoutOrProgressRecords" classname="com.example.kpkn.domain.multisport.HybridOccurrenceResolverTest" time="0.014"/>
+  <testcase name="onlyExactRunCycleAndInstanceReceiveOverlay" classname="com.example.kpkn.domain.multisport.HybridOccurrenceResolverTest" time="0.007"/>
+  <testcase name="acceptedTemplateUsesPostPlacementFingerprintAndInvalidatesAfterEdit" classname="com.example.kpkn.domain.multisport.HybridOccurrenceResolverTest" time="0.007"/>
+  <testcase name="pastCurrentOccurrenceAndCompletedSessionCannotBeAccepted" classname="com.example.kpkn.domain.multisport.HybridOccurrenceResolverTest" time="0.008"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

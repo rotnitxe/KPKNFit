@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.domain.performance.lab.PerformanceLabEngineTest" tests="9" skipped="0" failures="0" errors="0" timestamp="2026-10-20T04:07:00.840Z" hostname="VF" time="0.009">
+  <properties/>
+  <testcase name="calculationsRejectAmbiguousSourceIdsBeforeProducingDerivedReferences" classname="com.example.kpkn.domain.performance.lab.PerformanceLabEngineTest" time="0.001"/>
+  <testcase name="rsiRequiresSameInstrumentedEventAndNeverConvertsFlightTimeToHeight" classname="com.example.kpkn.domain.performance.lab.PerformanceLabEngineTest" time="0.001"/>
+  <testcase name="videoEstimateCannotBeUsedForVelocityLossOrRsi" classname="com.example.kpkn.domain.performance.lab.PerformanceLabEngineTest" time="0.0"/>
+  <testcase name="onlyValidComparableMarksShareMedianVariationAndBest" classname="com.example.kpkn.domain.performance.lab.PerformanceLabEngineTest" time="0.0"/>
+  <testcase name="summaryExcludesInvalidMetadataAndAllAmbiguousDuplicateIdentities" classname="com.example.kpkn.domain.performance.lab.PerformanceLabEngineTest" time="0.0"/>
+  <testcase name="velocityLossUsesExplicitReferenceAndOnlyValidInstrumentedRepetitions" classname="com.example.kpkn.domain.performance.lab.PerformanceLabEngineTest" time="0.007"/>
+  <testcase name="missingValueIsNotZeroAndInvalidationNeedsReason" classname="com.example.kpkn.domain.performance.lab.PerformanceLabEngineTest" time="0.0"/>
+  <testcase name="medianOfEqualPositiveSubnormalMarksDoesNotBecomeZero" classname="com.example.kpkn.domain.performance.lab.PerformanceLabEngineTest" time="0.0"/>
+  <testcase name="summaryDoesNotTrustUnverifiedDerivedRsiValues" classname="com.example.kpkn.domain.performance.lab.PerformanceLabEngineTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

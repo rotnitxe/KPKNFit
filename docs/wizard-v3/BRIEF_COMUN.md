@@ -38,6 +38,12 @@ Aplica a TODOS los paquetes de la ola «Wizard v3» (24 correcciones del wizard)
   son MIEMBROS (de la regla o del nodo): se llaman sobre ellos y NO se importan (importarlos da «Unresolved reference»). En cambio
   `onNodeWithTag`, `onNodeWithText`, `onAllNodesWithTag`, `onAllNodesWithText`, `performClick`, `assertIsDisplayed`… son EXTENSIONES y SÍ se
   importan de `androidx.compose.ui.test.*`. `SemanticsMatcher` es `androidx.compose.ui.test.SemanticsMatcher`.
+  - **También son extensiones que SE IMPORTAN** (cada olvido ha costado una vuelta entera de la cola de Gradle):
+    - `assert(matcher)` → `androidx.compose.ui.test.assert`;
+    - dentro de `performTouchInput { … }`, `click()`, `swipe…()`, `down`, `moveTo` y `up` → `androidx.compose.ui.test.click`,
+      `androidx.compose.ui.test.swipeLeft`…;
+    - `matchParentSize` NO se importa: es miembro de `BoxScope`.
+  - Antes de lanzar Gradle, repasa los imports de cada prueba nueva.
 
 ## Hojas de render (paquetes visuales)
 - Para ver dibujos sin teléfono: pruebas Robolectric con `@GraphicsMode(NATIVE)` que escriben PNG en la carpeta de la variable

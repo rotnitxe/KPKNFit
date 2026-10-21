@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.data.repository.HybridCalendarApplicationServiceTest" tests="7" skipped="0" failures="0" errors="0" timestamp="2026-10-20T04:06:54.049Z" hostname="VF" time="0.166">
+  <properties/>
+  <testcase name="concurrentEditIsNotOverwritten" classname="com.example.kpkn.data.repository.HybridCalendarApplicationServiceTest" time="0.068"/>
+  <testcase name="explicitAcceptancePersistsExactlyOnceAndCannotRepeatFromOldRequest" classname="com.example.kpkn.data.repository.HybridCalendarApplicationServiceTest" time="0.019"/>
+  <testcase name="invalidProposalAndMissingProgramNeverCallWriter" classname="com.example.kpkn.data.repository.HybridCalendarApplicationServiceTest" time="0.011"/>
+  <testcase name="falseDurableWriterResultAndExceptionNeverMeanApplied" classname="com.example.kpkn.data.repository.HybridCalendarApplicationServiceTest" time="0.035"/>
+  <testcase name="startingProgramBetweenSnapshotAndCommitConflictsEvenIfProgramBlobIsUnchanged" classname="com.example.kpkn.data.repository.HybridCalendarApplicationServiceTest" time="0.012"/>
+  <testcase name="cancellationPropagates" classname="com.example.kpkn.data.repository.HybridCalendarApplicationServiceTest" time="0.011"/>
+  <testcase name="startingOngoingWorkoutBetweenSnapshotAndCommitConflicts" classname="com.example.kpkn.data.repository.HybridCalendarApplicationServiceTest" time="0.01"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -1,0 +1,87 @@
+{
+  "id": "wger_0032",
+  "durationS": 17.933,
+  "width": 640,
+  "height": 360,
+  "rotation": 0,
+  "fpsNominal": 60.0,
+  "fpsMeasured": 60.0,
+  "usable": true,
+  "exercise": "Zancada estática con mancuernas, lateral",
+  "exerciseDetail": "Zancada estática (sentadilla dividida) con mancuernas colgando a los lados, vista lateral con ligera oblicuidad",
+  "suggestedProfile": "LUNGE",
+  "view": "SIDE",
+  "people": 2,
+  "fullBodyVisible": true,
+  "faceVisible": true,
+  "plateVisible": false,
+  "startPhase": "ECCENTRIC_FIRST",
+  "reps": {
+    "full": 6,
+    "partial": 0,
+    "failed": 0,
+    "uncertain": false,
+    "acceptableRange": [
+      6,
+      6
+    ]
+  },
+  "repTimesS": [
+    {
+      "index": 1,
+      "turnaroundS": 2.2,
+      "side": null
+    },
+    {
+      "index": 2,
+      "turnaroundS": 5.3,
+      "side": null
+    },
+    {
+      "index": 3,
+      "turnaroundS": 7.6,
+      "side": null
+    },
+    {
+      "index": 4,
+      "turnaroundS": 10.7,
+      "side": null
+    },
+    {
+      "index": 5,
+      "turnaroundS": 13.4,
+      "side": null
+    },
+    {
+      "index": 6,
+      "turnaroundS": 15.9,
+      "side": null
+    }
+  ],
+  "activeWindowS": [
+    0.5,
+    17.9
+  ],
+  "frameIntervalS": {
+    "min": 0.0167,
+    "median": 0.0167,
+    "max": 0.0167
+  },
+  "turnaroundKind": "BOTTOM",
+  "edgeEvents": [
+    {
+      "timeS": 10.3,
+      "kind": "OCCLUSION",
+      "description": "una persona cruza por el primer plano (10,3-11,3 s) y tapa un instante la pierna trasera del sujeto en el 4.º fondo"
+    }
+  ],
+  "caveats": [],
+  "cameraMotion": {
+    "class": "SLOW_DRIFT",
+    "note": "deriva suave de mano. Medido con ORB+RANSAC sobre fondo sin el sujeto (x < 20% y x > 85%) en 0,5-17,9 s: recorrido acumulado p2p 2,8% en x y 5,5% en y, escala 1,00-1,00, velocidad media 1,01 %/s (máx. 3,5% en 1 s)"
+  },
+  "softWarnings": [
+    "cámara con deriva lenta: deriva suave de mano. Medido con ORB+RANSAC sobre fondo sin el sujeto (x < 20% y x > 85%) en 0,5-17,9 s: recorrido acumulado p2p 2,8% en x y 5,5% en y, escala 1,00-1,00, velocidad media 1,01 %/s (máx. 3,5% en 1 s)",
+    "varias personas: 2 distinguibles (el sujeto domina el encuadre; las demás son pequeñas o están al fondo)"
+  ]
+}

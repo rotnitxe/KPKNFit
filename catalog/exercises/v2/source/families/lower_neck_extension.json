@@ -24,11 +24,12 @@
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 1.5,
-              "description": "Con polea, la cabeza viaja hacia atrás contra la resistencia apoyada en la nuca. Con la polea, la tensión sobre el cuello se mantiene viva de principio a fin.",
+              "description": "La tracción procede de una polea situada delante de la cara, a la altura de los ojos. El arnés transmite la resistencia por su anilla frontal mientras el cuerpo permanece de pie; el movimiento pertenece a la región cervical.",
               "efc": 2.0,
               "equipmentId": "cable",
               "executionCues": [
-                "Arnés o polea en la cabeza: llevas la cabeza atrás contra la tensión. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
+                "Extiende suavemente el cuello contra la tracción frontal, sin inclinar el tronco ni forzar el final del recorrido.",
+                "Vuelve despacio a la posición inicial manteniendo una carga ligera y el movimiento controlado."
               ],
               "fatigueTier": "BAJA",
               "jointInvolvement": [
@@ -157,7 +158,8 @@
               },
               "secondaryMuscles": [],
               "setupCues": [
-                "Preparación: Arnés o polea en la cabeza: llevas la cabeza atrás contra la tensión."
+                "Ajusta una polea regulable a la altura de los ojos y coloca un arnés de cabeza con anilla frontal apto para cable.",
+                "Conecta el cable a la anilla frontal, toma distancia hasta tensarlo y mantén el torso estable y la cabeza neutra."
               ],
               "setupTimeSeconds": 25,
               "ssc": 0.2,

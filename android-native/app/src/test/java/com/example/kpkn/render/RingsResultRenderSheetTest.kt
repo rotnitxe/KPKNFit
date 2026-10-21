@@ -7,10 +7,14 @@ import android.view.View
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
+import androidx.compose.ui.test.performClick
+import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import com.example.kpkn.data.models.InitialRecoveryEvidenceFactory
 import com.example.kpkn.data.models.RecoveryChannelId
@@ -85,24 +89,41 @@ class RingsResultRenderSheetTest {
 
     private fun onlyWhenAsked() = assumeTrue("sin KPKN_RENDER_DIR no se dibuja nada", System.getenv("KPKN_RENDER_DIR") != null)
 
-    private fun render(name: String, coverage: RingsCoverage, answers: SetupRingsAnswers, expanded: Boolean) {
+    /** Pinta el resultado; [openChip] abre esa ficha antes de la hoja y [fontScale] fija la letra (1,3 = 130 %). */
+    private fun render(
+        name: String,
+        coverage: RingsCoverage,
+        answers: SetupRingsAnswers,
+        expanded: Boolean,
+        openChip: String? = null,
+        fontScale: Float = 1f,
+    ) {
         rule.setContent {
             hostView = LocalView.current
-            Column(Modifier.background(WizardColors.background).padding(24.dp)) {
-                RingsResultBody(
-                    coverage = coverage,
-                    muscleEstimates = PILLARS.associateWith { 60 },
-                    answers = answers,
-                    error = null,
-                    loading = false,
-                    today = TODAY,
-                    onCommitChannel = { _, _ -> },
-                    onCommitMuscle = { _, _ -> },
-                    onResetMuscles = {},
-                    onRetry = {},
-                    initiallyExpanded = expanded,
-                )
+            val density = LocalDensity.current
+            CompositionLocalProvider(LocalDensity provides Density(density.density, fontScale)) {
+                Column(Modifier.background(WizardColors.background).padding(24.dp)) {
+                    RingsResultBody(
+                        coverage = coverage,
+                        muscleEstimates = PILLARS.associateWith { 60 },
+                        answers = answers,
+                        error = null,
+                        loading = false,
+                        today = TODAY,
+                        onCommitChannel = { _, _ -> },
+                        onCommitMuscle = { _, _ -> },
+                        onResetMuscles = {},
+                        onResetMuscle = {},
+                        onRetry = {},
+                        initiallyExpanded = expanded,
+                    )
+                }
             }
+        }
+        rule.waitForIdle()
+        if (openChip != null) {
+            rule.onNodeWithTag("rings-result-muscle-chip-$openChip").performClick()
+            rule.waitForIdle()
         }
         save("rings-result-body", name)
     }
@@ -143,5 +164,29 @@ class RingsResultRenderSheetTest {
         onlyWhenAsked()
         val answers = TRAINED.copy(manualMusclesV2 = mapOf("Pectorales" to 70, "Dorsales" to 35))
         render("rings_result_musculos_desplegados", WITH_DATA, answers, expanded = true)
+    }
+
+    /** K7: el mapa de fichas, cerrado, a 360 dp y con la letra al 130 %. */
+    @Test
+    fun k7FichasCerradasA130() {
+        onlyWhenAsked()
+        val answers = TRAINED.copy(manualMusclesV2 = mapOf("Pectorales" to 70, "Dorsales" to 35))
+        render("k7_resultado_fichas_cerradas_130", WITH_DATA, answers, expanded = true, fontScale = 1.3f)
+    }
+
+    /** K7: «Glúteos» abierto (solo estimación) bajo la banda de Piernas, a 360 dp. */
+    @Test
+    fun k7GluteosAbierto() {
+        onlyWhenAsked()
+        val answers = TRAINED.copy(manualMusclesV2 = mapOf("Pectorales" to 70, "Dorsales" to 35))
+        render("k7_resultado_gluteos_abierto", WITH_DATA, answers, expanded = true, openChip = "Glúteos")
+    }
+
+    /** K7: «Glúteos» abierto con la letra al 130 %. */
+    @Test
+    fun k7GluteosAbiertoA130() {
+        onlyWhenAsked()
+        val answers = TRAINED.copy(manualMusclesV2 = mapOf("Pectorales" to 70, "Dorsales" to 35))
+        render("k7_resultado_gluteos_abierto_130", WITH_DATA, answers, expanded = true, openChip = "Glúteos", fontScale = 1.3f)
     }
 }

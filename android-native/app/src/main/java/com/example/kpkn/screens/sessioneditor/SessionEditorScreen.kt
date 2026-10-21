@@ -1,7 +1,6 @@
 package com.example.kpkn.screens.sessioneditor
 
 import android.content.Intent
-import android.graphics.Color as AndroidColor
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -15,7 +14,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.navigationBars
@@ -32,14 +30,7 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.FitnessCenter
-import androidx.compose.material.icons.filled.DirectionsRun
 import androidx.compose.material3.Button
-import androidx.compose.material3.FilledTonalButton
-import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -47,7 +38,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -68,8 +58,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.graphics.Color
-import com.example.kpkn.data.models.Session
-import com.example.kpkn.data.models.hasCardioPart
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
@@ -95,36 +83,36 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import java.util.UUID
 
-import com.example.kpkn.screens.sessioneditor.sessionBackgroundPresets
-import com.example.kpkn.screens.sessioneditor.sessionGradients
-import com.example.kpkn.screens.sessioneditor.components.SessionHero
-import com.example.kpkn.screens.sessioneditor.sessionBackgroundPresets
-import com.example.kpkn.screens.sessioneditor.sessionGradients
-import com.example.kpkn.screens.sessioneditor.components.SessionHeroCompactOverlay
-import com.example.kpkn.screens.sessioneditor.components.SessionContextNavigator
+import com.example.kpkn.screens.sessioneditor.components.SessionExerciseDetailSheet
 import com.example.kpkn.screens.sessioneditor.components.sheets.SessionEditorSheets
 import com.example.kpkn.screens.sessioneditor.components.sheets.AssistantGlassOverlay
-import com.example.kpkn.screens.sessioneditor.components.HeroGlassFab
-import com.example.kpkn.screens.sessioneditor.components.HeroTimeFab
-import com.example.kpkn.screens.sessioneditor.components.DraggableHeroFabGroup
-import androidx.compose.material3.ExperimentalMaterial3Api
+import com.example.kpkn.screens.sessioneditor.frame.SessionEditorFrameBlockNotice
+import com.example.kpkn.screens.sessioneditor.frame.SessionEditorFrameBottomBar
+import com.example.kpkn.screens.sessioneditor.frame.SessionEditorFrameBottomBarHeight
+import com.example.kpkn.screens.sessioneditor.frame.SessionEditorFrameHeader
+import com.example.kpkn.screens.sessioneditor.frame.SessionEditorFrameTopBar
+import com.example.kpkn.screens.sessioneditor.frame.SessionEditorFrameWeekSheet
+import com.example.kpkn.screens.sessioneditor.frame.adjacentWeekDay
+import com.example.kpkn.screens.sessioneditor.frame.frameDayIndex
+import com.example.kpkn.screens.sessioneditor.frame.frameDayLabel
+import com.example.kpkn.screens.sessioneditor.frame.frameVariantName
+import com.example.kpkn.screens.sessioneditor.frame.frameWeekOrder
+import com.example.kpkn.screens.sessioneditor.frame.neighbourSessionDay
+import com.example.kpkn.screens.sessioneditor.frame.nextFreeVariant
+import com.example.kpkn.screens.sessioneditor.frame.primarySessionOnDay
+import com.example.kpkn.screens.sessioneditor.frame.sessionFrameSummary
+import com.example.kpkn.screens.onboarding.design.wizardReducedMotion
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.foundation.clickable
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Save
-import androidx.compose.material3.IconButton
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.geometry.Rect
-import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.scrollBy
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.material.icons.filled.AutoAwesome
-import androidx.compose.ui.text.style.TextOverflow
 import kotlin.math.roundToInt
 import com.example.kpkn.ui.components.KpknAlertDialog
 import com.example.kpkn.screens.workout.RepairBenchmarkTrace
@@ -161,16 +149,21 @@ fun SessionEditorScreen(
     val userTemplates by viewModel.userTemplates.collectAsStateWithLifecycle()
     val templatesReady by viewModel.templatesReady.collectAsStateWithLifecycle()
     val corruptTemplateIds by viewModel.corruptTemplateIds.collectAsStateWithLifecycle()
+    // Aviso fijo del guardado automático cuando el cortafuegos o la validación lo bloquean (ER1a §5).
+    val autoSaveBlock by viewModel.autoSaveBlock.collectAsStateWithLifecycle()
     val archivedUserTemplates = remember(userTemplates) { userTemplates.filter { it.isArchived } }
     val session = uiState.activeVariantSession ?: uiState.session
     val listState = rememberLazyListState()
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
     val context = LocalContext.current
-    var showDiscardDialog by rememberSaveable { mutableStateOf(false) }
+    // La hoja «Semana» (el navegador de días y sesiones) se abre desde el texto de la píldora de la fila superior.
+    var showWeekSheet by rememberSaveable { mutableStateOf(false) }
     var pendingAutoExpandExerciseId by rememberSaveable { mutableStateOf<String?>(null) }
     var catalogRequestInFlight by rememberSaveable { mutableStateOf(false) }
     var catalogRequestId by rememberSaveable { mutableStateOf<String?>(null) }
+    // La ficha del catálogo de un ejercicio de la sesión se abre dentro del editor (ER1f): «Ficha» de las acciones rápidas.
+    var editorDetailExerciseId by rememberSaveable { mutableStateOf<String?>(null) }
     val lifecycleOwner = LocalLifecycleOwner.current
     val focusManager = LocalFocusManager.current
     val keyboardController = LocalSoftwareKeyboardController.current
@@ -186,7 +179,11 @@ fun SessionEditorScreen(
     DisposableEffect(lifecycleOwner, viewModel) {
         val observer = LifecycleEventObserver { _, event ->
             when (event) {
-                Lifecycle.Event.ON_PAUSE,
+                Lifecycle.Event.ON_PAUSE -> {
+                    // Al pasar a segundo plano, lo pendiente va también al programa (ER1a §5).
+                    viewModel.flushProgramAutoSaveInBackground()
+                    viewModel.saveDraftForExit()
+                }
                 Lifecycle.Event.ON_STOP -> viewModel.saveDraftForExit()
                 Lifecycle.Event.ON_RESUME -> {
                     // The editor ViewModel already owns the current session and
@@ -206,6 +203,12 @@ fun SessionEditorScreen(
             viewModel.saveDraftForExit()
             lifecycleOwner.lifecycle.removeObserver(observer)
         }
+    }
+
+    // Guardado automático (ER1a §5): cada cambio de la sesión o de sus reglas, y la sesión recién cargada con cambios
+    // pendientes, programan el guardado en el programa al quedarse quieta la mano (1,2 s).
+    LaunchedEffect(uiState.session, uiState.ruleDefaults, uiState.partRuleDefaults, uiState.ruleLimits, uiState.pendingTransferToDays) {
+        if (viewModel.currentUiState.hasUnsavedChanges) viewModel.scheduleProgramAutoSave()
     }
 
     val openDocument = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
@@ -243,7 +246,6 @@ fun SessionEditorScreen(
                             viewModel.discardDraftForCurrentSessionAndAwait()
                         }
                         if (discarded && !pendingSwitch) {
-                            showDiscardDialog = false
                             onBack()
                         }
                     } else {
@@ -256,7 +258,9 @@ fun SessionEditorScreen(
 
     val editorSpacing = rememberSessionEditorSpacing()
     val density = LocalDensity.current
-    val contentBottomPadding = editorSpacing.bottomContentPadding + 16.dp
+    // La lista deja sitio para la isla inferior y para la barra de gestos, para que no tape el último elemento.
+    val navigationBarBottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
+    val contentBottomPadding = navigationBarBottom + SessionEditorFrameBottomBarHeight + 24.dp
     val fabBottomPadding = editorSpacing.fabBottomPadding
     val exerciseInfoById = catalogExerciseIndex()
 
@@ -495,14 +499,6 @@ fun SessionEditorScreen(
         }
     }
 
-    fun cancelExerciseDrag() {
-        dragController.cancelExerciseDrag()
-    }
-
-    fun cancelPartDrag() {
-        dragController.cancelPartDrag()
-    }
-
     if (session == null) {
         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             val loadErrorMessage = uiState.loadErrorMessage
@@ -559,14 +555,6 @@ fun SessionEditorScreen(
         sessionListItems.drop(1)
     }
     val allExercisesForUi = remember(session.exercises, session.parts) { session.allExercises() }
-    // Sticky compact header ONLY when the expanded hero (item 0) has fully left the viewport.
-    // Es un overlay translúcido: NO empuja el contenido (empujarlo/animarlo durante
-    // el scroll hacía que el contenido se moviera más rápido que el dedo).
-    val showCompactHero by remember(listState, scrollableListItems) {
-        derivedStateOf {
-            scrollableListItems.isNotEmpty() && listState.firstVisibleItemIndex > 0
-        }
-    }
 
     // Auto-scroll al ejercicio recién añadido (índice = Hero + offset en scrollable)
     LaunchedEffect(pendingAutoExpandExerciseId) {
@@ -594,16 +582,16 @@ fun SessionEditorScreen(
         return dragController.calculateProjectedShift(activeSession, partId, index, exerciseId, itemHeight)
     }
 
-    BackHandler(enabled = !showDiscardDialog && uiState.sheet == SessionEditorSheet.NONE) {
+    // Salir (la flecha o el Atrás del sistema): guarda lo pendiente en el programa y, si lo bloquea, el borrador local. Sale igual:
+    // lo escrito queda en el borrador y el aviso se ve al volver. Sin diálogo de «Salir del editor» (ER1a §5).
+    fun exitEditor() {
         focusManager.clearFocus(force = true)
-        if (uiState.hasUnsavedChanges) {
-            showDiscardDialog = true
-        } else {
-            scope.launch {
-                if (viewModel.saveDraftForExitAndAwait()) onBack()
-            }
+        scope.launch {
+            viewModel.flushProgramAutoSaveAndAwait()
+            if (viewModel.saveDraftForExitAndAwait()) onBack()
         }
     }
+    BackHandler(enabled = uiState.sheet == SessionEditorSheet.NONE && !showWeekSheet) { exitEditor() }
     BackHandler(enabled = uiState.sheet == SessionEditorSheet.AUGE) {
         viewModel.closeSheet()
     }
@@ -703,89 +691,111 @@ fun SessionEditorScreen(
                 )
             },
     ) {
-        Scaffold(
-            snackbarHost = { SnackbarHost(snackbarHostState) { KpknSnackbar(it) } },
-            contentWindowInsets = WindowInsets(0, 0, 0, 0),
-            // Glass FAB must live OUTSIDE hazeSource (sibling overlay) — same pattern as the roadmap dock.
-        ) { padding ->
-        LazyColumn(
-            state = listState,
-            modifier = Modifier
-                .fillMaxSize()
-                .imePadding()
-                .hazeSource(state = hazeState)
-                .onGloballyPositioned { lazyColumnWindowBounds = it.boundsInWindow() },
-            contentPadding = PaddingValues(bottom = padding.calculateBottomPadding() + contentBottomPadding),
-        ) {
-            item {
-                SessionHero(
-                    session = session,
-                    latestBodyMeasurement = uiState.latestBodyMeasurement,
-                    protocolLabel = uiState.protocolLabel,
-                    onNameChange = viewModel::updateSessionName,
-                    onDescriptionChange = viewModel::updateSessionDescription,
-                    onMeetBodyweightChange = viewModel::updateSessionMeetBodyweight,
-                    onSyncMeetBodyweight = {
-                        val result = viewModel.syncMeetBodyweightFromLatestMeasurement()
-                        scope.launch {
-                            snackbarHostState.showKpknSnackbar(
-                                result.message,
-                                if (result.success) SnackbarType.SUCCESS else SnackbarType.DANGER,
-                            )
-                        }
-                    },
-                    onOpenCoverSheet = { viewModel.openSheet(SessionEditorSheet.BACKGROUND) },
-                    onOpenTransfer = { viewModel.openSheet(SessionEditorSheet.TRANSFER) },
-                    onOpenHistory = { viewModel.openSheet(SessionEditorSheet.HISTORY) },
-                    onOpenRules = { viewModel.openRulesSheet(initialTab = 0) },
-                    activeDayOfWeek = uiState.dayOfWeek,
-                    weekStartDay = uiState.weekStartDay,
-                    onSelectDay = { day -> viewModel.selectRoadmapDay(day) },
-                    roadmapContent = {
-                        val heroAccent = remember(session.background?.value) {
-                            val preset = sessionBackgroundPresets.firstOrNull { it.id == session.background?.value } ?: sessionGradients.first()
-                            val a = preset.colors.firstOrNull() ?: Color.White
-                            val b = preset.colors.getOrNull(preset.colors.lastIndex / 2) ?: a
-                            val c = preset.colors.lastOrNull() ?: b
-                            Color((a.red + b.red + c.red)/3f, (a.green + b.green + c.green)/3f, (a.blue + b.blue + c.blue)/3f, 1f)
-                        }
-                        SessionContextNavigator(
-                            sessions = uiState.siblingSessions,
-                            selectedSessionId = uiState.selectedSiblingSessionId ?: session.id,
-                            onSelectSession = viewModel::requestSessionSwitch,
-                            weekStartDay = uiState.weekStartDay,
-                            activeDayOfWeek = uiState.dayOfWeek,
-                            onSelectDay = { day ->
-                                viewModel.selectRoadmapDay(day)
-                            },
-                            roadmapOptions = uiState.roadmapOptions,
-                            onSelectRoadmapOption = viewModel::selectRoadmapOption,
-                            competitionKeyDaysInWeek = uiState.competitionKeyDaysInWeek,
-                            onCreateSessionForDay = { day ->
-                                viewModel.createSessionForDay(day)
-                            },
-                            isSimpleProgram = uiState.isSimpleProgram,
-                            hasActiveLoops = uiState.hasActiveLoops,
-                            hazeState = hazeState,
-                            onSetMainSessionForDay = viewModel::setMainSessionForDay,
-                            currentSessionId = session.id,
-                            currentDayOfWeek = uiState.dayOfWeek,
-                            currentSession = session,
-                            activeVariant = uiState.activeVariant,
-                            availableVariants = uiState.availableVariants,
-                            onCreateVariant = { variant, name -> viewModel.createVariant(variant, name) },
-                            onDeleteVariant = { viewModel.deleteVariant(it) },
-                            onSwitchVariant = {
-                                viewModel.commitActiveVariantChanges()
-                                viewModel.switchVariant(it)
-                            },
-                            embedded = true,
-                            accentColor = heroAccent,
-                        )
-                    },
+        // ER1a: fila superior fija, cabecera sin portada, lista, y barra inferior Añadir · Asistente · Reglas (sin FAB arrastrable).
+        val currentDay = uiState.dayOfWeek ?: session.dayOfWeek
+        val orderedWeekDays = remember(uiState.weekStartDay) { frameWeekOrder(uiState.weekStartDay) }
+        val sessionDays = remember(uiState.siblingSessions) { uiState.siblingSessions.mapNotNull { it.dayOfWeek }.toSet() }
+        val previousDay = neighbourSessionDay(orderedWeekDays, currentDay, sessionDays, step = -1)
+        val nextDay = neighbourSessionDay(orderedWeekDays, currentDay, sessionDays, step = 1)
+        // La duración sale de la misma fuente que el FAB de tiempo de antes (SE9/SE12): sin ejercicios, no hay minutos.
+        val timeMinutes = sessionTimeFabMinutes(
+            hasExercises = allExercisesForUi.isNotEmpty(),
+            breakdownMinutes = uiState.sessionTimeBreakdown?.totalMinutes,
+            fallbackMinutes = uiState.estimatedDurationMinutes,
+        )
+        val summary = sessionFrameSummary(
+            exercises = allExercisesForUi.size,
+            sets = allExercisesForUi.sumOf { if (it.cardioDetails != null) 0 else it.sets.size },
+            minutes = timeMinutes,
+        )
+
+        // Cambio de día: el contenido nuevo entra deslizándose desde el lado del día (220 ms); con movimiento reducido, un fundido.
+        val slideX = remember { Animatable(0f) }
+        val slideAlpha = remember { Animatable(1f) }
+        val reducedMotion = wizardReducedMotion()
+        var listWidthPx by remember { mutableIntStateOf(0) }
+        var shownSessionId by remember { mutableStateOf<String?>(null) }
+        var shownDay by remember { mutableStateOf<Int?>(null) }
+        var slideForward by remember { mutableStateOf(true) }
+        LaunchedEffect(session.id) {
+            val previousId = shownSessionId
+            val previousDayValue = shownDay
+            shownSessionId = session.id
+            shownDay = currentDay
+            if (previousId == null || previousId == session.id) return@LaunchedEffect
+            val oldIndex = frameDayIndex(orderedWeekDays, previousDayValue)
+            val newIndex = frameDayIndex(orderedWeekDays, currentDay)
+            slideForward = oldIndex < 0 || newIndex < 0 || newIndex >= oldIndex
+            if (reducedMotion) {
+                slideAlpha.snapTo(0f)
+                slideAlpha.animateTo(1f, tween(durationMillis = 120))
+            } else {
+                slideX.snapTo(if (slideForward) listWidthPx.toFloat() else -listWidthPx.toFloat())
+                slideX.animateTo(0f, tween(durationMillis = 220, easing = FastOutSlowInEasing))
+            }
+        }
+
+        // Las flechas y la píldora pasan por el mismo camino que el gesto del original (requestSessionSwitch).
+        fun goToSessionDay(day: Int?) {
+            val target = day?.let { primarySessionOnDay(uiState.siblingSessions, it) } ?: return
+            viewModel.requestSessionSwitch(target.id)
+        }
+        // El gesto de la cabecera va al día contiguo, como el original (selectRoadmapDay).
+        fun swipeToAdjacentDay(step: Int): Boolean {
+            val target = adjacentWeekDay(orderedWeekDays, currentDay, step) ?: return false
+            viewModel.selectRoadmapDay(target)
+            return true
+        }
+
+        Column(modifier = Modifier.fillMaxSize()) {
+            SessionEditorFrameTopBar(
+                dayLabel = frameDayLabel(currentDay, session.name),
+                forward = slideForward,
+                canGoPrevious = previousDay != null,
+                canGoNext = nextDay != null,
+                onBack = ::exitEditor,
+                onPrevious = { goToSessionDay(previousDay) },
+                onNext = { goToSessionDay(nextDay) },
+                onOpenWeek = { showWeekSheet = true },
+                onTransfer = { viewModel.openSheet(SessionEditorSheet.TRANSFER) },
+                onHistory = { viewModel.openSheet(SessionEditorSheet.HISTORY) },
+            )
+            // Aviso fijo: el guardado automático lo ha bloqueado (cortafuegos o validación). Lo escrito sigue en pantalla.
+            autoSaveBlock?.let { block ->
+                SessionEditorFrameBlockNotice(
+                    message = block.message,
+                    onOpenExercise = block.exerciseId?.let { exerciseId -> { pendingAutoExpandExerciseId = exerciseId } },
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
                 )
             }
-
+            Box(modifier = Modifier.weight(1f).fillMaxWidth()) {
+                LazyColumn(
+                    state = listState,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .imePadding()
+                        .onSizeChanged { listWidthPx = it.width }
+                        .graphicsLayer {
+                            translationX = slideX.value
+                            alpha = slideAlpha.value
+                        }
+                        .hazeSource(state = hazeState)
+                        .onGloballyPositioned { lazyColumnWindowBounds = it.boundsInWindow() },
+                    contentPadding = PaddingValues(bottom = contentBottomPadding),
+                ) {
+                    // Índice 0: la cabecera. La lista va después, así que los índices de auto-scroll no cambian.
+                    item {
+                        SessionEditorFrameHeader(
+                            sessionId = session.id,
+                            name = session.name,
+                            description = session.description.orEmpty(),
+                            protocolLabel = uiState.protocolLabel,
+                            summary = summary,
+                            onNameChange = viewModel::updateSessionName,
+                            onDescriptionChange = viewModel::updateSessionDescription,
+                            onDaySwipe = ::swipeToAdjacentDay,
+                        )
+                    }
             items(scrollableListItems, key = { it.stableKey }, contentType = { it::class }) { listItem ->
                 SessionEditorListItem(
                     listItem = listItem,
@@ -816,74 +826,76 @@ fun SessionEditorScreen(
                     beginExerciseDrag = ::beginExerciseDrag,
                     updateExerciseDrag = ::updateExerciseDrag,
                     endExerciseDrag = ::endExerciseDrag,
-                    cancelExerciseDrag = ::cancelExerciseDrag,
+                    cancelExerciseDrag = dragController::cancelExerciseDrag,
                     beginPartDrag = ::beginPartDrag,
-                    cancelPartDrag = ::cancelPartDrag,
+                    cancelPartDrag = dragController::cancelPartDrag,
                     projectedShiftFor = ::projectedShiftFor,
                     viewModel = viewModel,
                 )
             }
         }
+            }
         }
 
-        AnimatedVisibility(
-            visible = showCompactHero,
+        // Barra inferior fija: Añadir · Asistente · Reglas (ER1a §2.3). Va sobre la lista, con el vidrio que lee la lista.
+        SessionEditorFrameBottomBar(
+            hazeState = hazeState,
+            suggestionCount = uiState.assistantReport?.ajustes?.size ?: 0,
+            estimatedMinutes = timeMinutes,
+            limitMinutes = session.targetDurationMinutes,
+            onAdd = { viewModel.openPickerForUncategorized() },
+            onAssistant = ::openAssistantSheet,
+            onRules = { viewModel.openRulesSheet(initialTab = 1) },
             modifier = Modifier
-                .align(Alignment.TopCenter)
-                .fillMaxWidth()
-                .zIndex(270f),
-            enter = fadeIn() + slideInVertically { -it / 3 },
-            exit = fadeOut() + slideOutVertically { -it / 3 },
-        ) {
-            SessionHeroCompactOverlay(
-                session = session,
-                hazeState = hazeState,
-                onOpenCoverSheet = { viewModel.openSheet(SessionEditorSheet.BACKGROUND) },
-                onOpenTransfer = { viewModel.openSheet(SessionEditorSheet.TRANSFER) },
-                onOpenHistory = { viewModel.openSheet(SessionEditorSheet.HISTORY) },
-                onOpenRules = { viewModel.openRulesSheet(initialTab = 0) },
+                .align(Alignment.BottomCenter)
+                .navigationBarsPadding()
+                .padding(horizontal = 12.dp, vertical = 12.dp)
+                .zIndex(260f),
+        )
+
+        SnackbarHost(
+            hostState = snackbarHostState,
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .navigationBarsPadding()
+                .padding(bottom = SessionEditorFrameBottomBarHeight + 24.dp),
+        ) { KpknSnackbar(it) }
+
+        if (showWeekSheet) {
+            SessionEditorFrameWeekSheet(
+                orderedDays = orderedWeekDays,
+                sessions = uiState.siblingSessions,
+                currentSessionId = session.id,
+                currentDayOfWeek = currentDay,
+                competitionKeyDaysInWeek = uiState.competitionKeyDaysInWeek,
+                roadmapOptions = uiState.roadmapOptions,
+                currentWeekId = uiState.weekId,
+                isSimpleProgram = uiState.isSimpleProgram,
+                hasActiveLoops = uiState.hasActiveLoops,
+                activeVariant = uiState.activeVariant,
+                availableVariants = uiState.availableVariants,
+                variantName = { variant -> frameVariantName(session, variant) },
+                nextVariant = nextFreeVariant(uiState.availableVariants),
+                defaultVariantName = "${session.name.ifBlank { "Sesión" }} – Rápida",
+                onSelectSession = { id -> viewModel.requestSessionSwitch(id) },
+                onSetMainSession = { id ->
+                    // Lo pendiente se guarda antes: cambiar la principal recarga la sesión.
+                    scope.launch {
+                        viewModel.flushProgramAutoSaveAndAwait()
+                        viewModel.setMainSessionForDay(id)
+                    }
+                },
+                onCreateSessionForDay = { day -> viewModel.createSessionForDay(day) },
+                onSelectRoadmapOption = { option -> viewModel.selectRoadmapOption(option) },
+                onSelectVariant = { variant ->
+                    viewModel.commitActiveVariantChanges()
+                    viewModel.switchVariant(variant)
+                },
+                onCreateVariant = { variant, name -> viewModel.createVariant(variant, name) },
+                onDeleteActiveVariant = { viewModel.deleteVariant(uiState.activeVariant) },
+                onDismiss = { showWeekSheet = false },
             )
         }
-
-        // Assistant FAB + Time FAB: sibling OVER hazeSource (never nested inside
-        // Scaffold FAB slot). Draggable group, moves together across the screen.
-        val showTimeFab =
-            session.targetDurationMinutes != null ||
-                allExercisesForUi.isNotEmpty() ||
-                uiState.estimatedDurationMinutes > 0
-        val estimated = uiState.sessionTimeBreakdown?.totalMinutes
-            ?: uiState.estimatedDurationMinutes
-        val navBarBottomPx = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
-        DraggableHeroFabGroup(
-            navBarBottomPx = with(density) { navBarBottomPx.toPx() }.roundToInt(),
-            fabBottomPadding = fabBottomPadding,
-            onAssistantClick = ::openAssistantSheet,
-            onTimeClick = { viewModel.openRulesSheet(initialTab = 1) },
-            modifier = Modifier.zIndex(260f),
-            assistantFab = { fabModifier ->
-                HeroGlassFab(
-                    summary = uiState.augeSummary,
-                    modifier = fabModifier,
-                    hazeState = hazeState,
-                    onClick = null,
-                )
-            },
-            timeFab = if (showTimeFab) {
-                { fabModifier ->
-                    HeroTimeFab(
-                        estimatedMinutes = estimated,
-                        limitMinutes = session.targetDurationMinutes,
-                        hasSuggestions = session.targetDurationMinutes != null &&
-                            estimated > (session.targetDurationMinutes ?: Int.MAX_VALUE),
-                        modifier = fabModifier,
-                        hazeState = hazeState,
-                        onClick = null,
-                    )
-                }
-            } else {
-                null
-            },
-        )
 
         val previewExercise = draggingExerciseId?.let { activeId -> allExercisesForUi.firstOrNull { it.id == activeId } }
         val previewPartId = draggingExercisePartId
@@ -1019,7 +1031,7 @@ fun SessionEditorScreen(
                         val target = if (partId == null) "la sesión" else "el grupo"
                         val noun = if (outcome.exercisesChanged == 1) "ejercicio" else "ejercicios"
                         snackbarHostState.showKpknSnackbar(
-                            "Defaults aplicados a $target (${outcome.exercisesChanged} $noun)",
+                            "Ajustes por defecto aplicados a $target (${outcome.exercisesChanged} $noun)",
                             SnackbarType.SUCCESS,
                         )
                     }
@@ -1036,17 +1048,24 @@ fun SessionEditorScreen(
             outcome
         },
         onCloneCurrentToTargets = { targetKeys, selectedExerciseIds, applyMode ->
-            val result = viewModel.cloneCurrentSessionToTargets(targetKeys, selectedExerciseIds, applyMode)
+            // «Se copia ahora»: al confirmar, la copia va al programa en el acto (no «al guardar»).
+            val staged = viewModel.cloneCurrentSessionToTargets(targetKeys, selectedExerciseIds, applyMode)
             scope.launch {
+                if (!staged.success) {
+                    snackbarHostState.showKpknSnackbar(staged.message, SnackbarType.DANGER)
+                    return@launch
+                }
+                val saved = viewModel.flushProgramAutoSaveAndAwait()
                 snackbarHostState.showKpknSnackbar(
-                    result.message,
-                    if (result.success) SnackbarType.SUCCESS else SnackbarType.DANGER,
+                    if (saved) "Copia hecha en ${targetKeys.size} día(s)." else "La copia no se guardó. Revisa el aviso de arriba.",
+                    if (saved) SnackbarType.SUCCESS else SnackbarType.DANGER,
                 )
             }
         },
         onImportFromSource = { sourceSessionId, selectedExerciseIds, applyMode ->
             val result = viewModel.importFromSourceSession(sourceSessionId, selectedExerciseIds, applyMode)
             scope.launch {
+                if (result.success) viewModel.flushProgramAutoSaveAndAwait()
                 snackbarHostState.showKpknSnackbar(
                     result.message,
                     if (result.success) SnackbarType.SUCCESS else SnackbarType.DANGER,
@@ -1142,6 +1161,7 @@ fun SessionEditorScreen(
         },
         onAddCardio = viewModel::addCardioToPart,
         onQuickActionDelete = viewModel::triggerQuickActionDelete,
+        onQuickActionDuplicate = viewModel::duplicateQuickActionExercise,
         onQuickActionCreateSuperset = viewModel::triggerQuickActionCreateSuperset,
         onQuickActionManageSuperset = viewModel::triggerQuickActionManageSuperset,
         onLinkExerciseRelativeTo = viewModel::linkExerciseRelativeTo,
@@ -1152,7 +1172,8 @@ fun SessionEditorScreen(
         onSupersetDraftUpdate = viewModel::updateSupersetDraft,
         onCreateSupersetGroup = viewModel::createSupersetGroupFromDraft,
         onOpenSupersetCreator = viewModel::openSupersetCreator,
-        onOpenExerciseDetail = onOpenExerciseDetail,
+        // ER1f: la ficha se abre aquí dentro; el parámetro externo `onOpenExerciseDetail` ya no recibe la acción.
+        onOpenExerciseDetail = { id -> editorDetailExerciseId = id },
         onOpenCatalog = viewModel::openPickerForUncategorized,
         useFullPageCatalog = onOpenCatalog != null,
         allTemplates = allTemplates,
@@ -1197,62 +1218,16 @@ fun SessionEditorScreen(
         onRulesInitialTabConsumed = viewModel::clearRulesSheetInitialTab,
     )
 
-    if (showDiscardDialog) {
-        KpknAlertDialog(
-            onDismissRequest = { showDiscardDialog = false },
-            title = { Text("Salir del editor", fontWeight = FontWeight.Black) },
-            text = {
-                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                    Text("Tienes cambios sin guardar.")
-                    OutlinedButton(
-                        onClick = {
-                            scope.launch {
-                                if (viewModel.discardDraftForCurrentSessionAndAwait()) {
-                                    showDiscardDialog = false
-                                    onBack()
-                                }
-                            }
-                        },
-                        modifier = Modifier.fillMaxWidth(),
-                    ) {
-                        Text("Cerrar sin guardar")
-                    }
-                    Button(
-                        onClick = {
-                            focusManager.clearFocus(force = true)
-                            scope.launch {
-                                val result = viewModel.saveSession()
-                                if (result.success) {
-                                    showDiscardDialog = false
-                                    onSavedAndExit()
-                                } else {
-                                    val action = snackbarHostState.showKpknSnackbar(
-                                        result.message,
-                                        SnackbarType.DANGER,
-                                        actionLabel = "Reintentar",
-                                    )
-                                    if (action == SnackbarResult.ActionPerformed) {
-                                        val retry = viewModel.saveSession()
-                                        if (retry.success) {
-                                            showDiscardDialog = false
-                                            onSavedAndExit()
-                                        } else {
-                                            snackbarHostState.showKpknSnackbar(retry.message, SnackbarType.DANGER)
-                                        }
-                                    }
-                                }
-                            }
-                        },
-                        modifier = Modifier.fillMaxWidth(),
-                    ) {
-                        Text("Guardar y salir")
-                    }
-                }
-            },
-            confirmButton = {},
-            dismissButton = {
-                TextButton(onClick = { showDiscardDialog = false }) { Text("Continuar editando") }
-            },
-        )
+    // La ficha de un ejercicio de la sesión (ER1f): el mismo cuerpo que la del catálogo, sin «Añadir/Quitar».
+    editorDetailExerciseId?.let { detailId ->
+        val detailExercise = (uiState.activeVariantSession ?: uiState.session)
+            ?.allExercises()
+            ?.firstOrNull { it.id == detailId }
+        if (detailExercise != null) {
+            SessionExerciseDetailSheet(
+                exercise = detailExercise,
+                onDismiss = { editorDetailExerciseId = null },
+            )
+        }
     }
 }

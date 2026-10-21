@@ -1,6 +1,7 @@
 package com.example.kpkn.data.onboarding
 
 import android.app.Application
+import androidx.lifecycle.ViewModelStore
 import androidx.test.core.app.ApplicationProvider
 import com.example.kpkn.data.db.KpknDatabase
 import com.example.kpkn.data.db.toActiveProgramState
@@ -115,6 +116,7 @@ class T006PersistenceAndUseIntegrationTest {
     val testName = TestName()
 
     private val mainDispatcher = UnconfinedTestDispatcher()
+    private val viewModelStore = ViewModelStore()
     private lateinit var app: Application
     private var workoutOrdinal = 0
 
@@ -135,6 +137,8 @@ class T006PersistenceAndUseIntegrationTest {
 
     @After
     fun tearDown() {
+        // El VM primero (cancela su viewModelScope) y solo después la base.
+        viewModelStore.clear()
         closePersistentRepository()
         app.deleteDatabase(databaseName)
         // Los repositorios singleton que tocan los commits no sobreviven al test.
@@ -1167,7 +1171,7 @@ class T006PersistenceAndUseIntegrationTest {
             .days.first { it.id == recipeDay }.label
         // Restaurar con la ViewModel REAL de Detalle de programa, tras reabrir (no una lambda
         // paralela): es el código que ejecuta el botón «Restaurar esta sesión desde el plan».
-        val detail = ProgramDetailViewModel(preview.id)
+        val detail = ProgramDetailViewModel(preview.id).also { viewModel -> viewModelStore.put("detail-restore", viewModel) }
         detail.restoreManualSessionFromPlan(editedTarget.id)
         withTimeout(15_000) {
             detail.uiState.first { it.snackbarMessage?.startsWith("Sesión restaurada desde el plan.") == true }

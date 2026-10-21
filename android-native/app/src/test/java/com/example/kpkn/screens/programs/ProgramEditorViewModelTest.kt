@@ -1,6 +1,7 @@
 package com.example.kpkn.screens.programs
 
 import android.content.Context
+import androidx.lifecycle.ViewModelStore
 import androidx.test.core.app.ApplicationProvider
 import com.example.kpkn.data.db.toProgram
 import com.example.kpkn.data.models.OptionalSessionConfirmation
@@ -12,6 +13,8 @@ import com.example.kpkn.data.models.ProgramSchedulePlan
 import com.example.kpkn.data.models.ProgramStructure
 import com.example.kpkn.data.models.ScheduleMode
 import com.example.kpkn.data.repository.ProgramRepository
+import com.example.kpkn.testsupport.RoomTestRule
+import org.junit.Rule
 import java.time.LocalDate
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
@@ -39,7 +42,12 @@ import org.robolectric.annotation.Config
 @Config(manifest = Config.NONE, sdk = [34])
 class ProgramEditorViewModelTest {
 
+    @get:Rule
+    val roomRule = RoomTestRule()
+
     private val dispatcher = UnconfinedTestDispatcher()
+    private val viewModelStore = ViewModelStore()
+    private var nextViewModelKey = 0
 
     @Before
     fun setup() = runBlocking {
@@ -53,8 +61,13 @@ class ProgramEditorViewModelTest {
 
     @After
     fun tearDown() {
-        ProgramRepository.closeInstance()
-        Dispatchers.resetMain()
+        try {
+            // Primero los VM (cancela su viewModelScope) y solo después el repositorio y su base.
+            viewModelStore.clear()
+            ProgramRepository.closeInstance()
+        } finally {
+            Dispatchers.resetMain()
+        }
     }
 
     private fun repository() = ProgramRepository.getInstance()
@@ -72,7 +85,7 @@ class ProgramEditorViewModelTest {
         repository(),
         persistProgram = persist ?: { repository().addProgramNow(it) },
         editProgram = edit ?: { programId, transform -> repository().mutateProgramNow(programId, transform) },
-    )
+    ).also { viewModel -> viewModelStore.put("program-editor-${nextViewModelKey++}", viewModel) }
 
     /** Espera a que el guardado en curso (busy) haya terminado. */
     private fun runUntilIdle(vm: ProgramEditorViewModel) = runBlocking {

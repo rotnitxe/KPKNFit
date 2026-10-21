@@ -97,7 +97,7 @@ data class PersonalizerInput(
     val lowerEmphasisMuscles: Set<String> = emptySet(),
     /**
      * Bolsa de puntos de orden de ejercicios (músculo → puntos). Máximo
-     * 2 puntos por músculo, 5 en total y ningún punto negativo; no es
+     * 2 puntos por músculo, 6 en total y ningún punto negativo; no es
      * obligatorio gastarlos todos. Solo altera el orden de los ejercicios:
      * jamás ejercicios prescritos, series, repeticiones, intensidades,
      * frecuencia muscular ni volumen directo/indirecto.
@@ -304,7 +304,7 @@ class SimpleCyclePersonalizer(
         // La bolsa de [TrainingOptions] gana sobre la heredada del input
         // cuando viene con puntos; si está vacía se conserva el input intacto.
         val exerciseOrderPoints = orderPoints(options.applyTo(input)) ?: return unavailable(
-            "La bolsa de prioridades de orden no es válida: máximo 2 puntos por músculo, 5 puntos en total y ningún punto negativo. Ajusta tus prioridades."
+            "La bolsa de prioridades de orden no es válida: máximo 2 puntos por músculo, 6 puntos en total y ningún punto negativo. Ajusta tus prioridades."
         )
         val focused = focusMuscles(input.focus)
         val focusCandidates = candidates.values.filter { candidate -> candidate.primary.any { it in focused } }
@@ -559,7 +559,7 @@ class SimpleCyclePersonalizer(
             row.directSets <= minOf(row.mav, row.mrv) + 0.001 &&
                 row.directSets + row.indirectSets > minOf(row.mav, row.mrv) + 0.001
         }.forEach { row -> notes += indirectVolumeNote(row.muscle, row.directSets, row.directSets + row.indirectSets) }
-        val week = ProgramWeek("$programId-week", "Semana repetible", sessions = sessions)
+        val week = ProgramWeek("$programId-week", "Semana que se repite", sessions = sessions)
         val sourceRecipe = TrainingPlanRecipe(
             id = "$programId-onboarding-recipe",
             weeks = listOf(
@@ -567,7 +567,7 @@ class SimpleCyclePersonalizer(
                     weekNumber = 1,
                     blockIndex = 0,
                     blockName = "KPKN personalizado",
-                    weekName = "Semana repetible",
+                    weekName = "Semana que se repite",
                     days = sessions.map { session ->
                         DayRecipe(
                             label = session.name,
@@ -606,7 +606,7 @@ class SimpleCyclePersonalizer(
             mode = ProgramMode.HYPERTROPHY, structure = ProgramStructure.SIMPLE,
             simpleProgramKind = SimpleProgramKind.CYCLIC, structureTemplateId = entry.id,
             macrocycles = listOf(Macrocycle(id = "$programId-macro", name = "Mi plan", blocks = listOf(
-                Block(id = "$programId-block", name = "Semana cíclica", mesocycles = listOf(
+                Block(id = "$programId-block", name = "Semana que se repite", mesocycles = listOf(
                     Mesocycle(id = "$programId-meso", name = "Base", weeks = listOf(week)),
                 ), sourceDefinitionId = entry.id, sourceRevision = PersonalizedPlanCatalog.REVISION, prescriptionOrigin = "KPKN_NATIVE_CURATED"),
             ))),
@@ -893,7 +893,7 @@ class SimpleCyclePersonalizer(
         // se aplica y se registra en el programa al terminar el fitter (paquete A · E1, DEC-w2-08).
         val exerciseOrderPoints = orderPoints(options.applyTo(input))
             ?: return unavailable(
-                "La bolsa de prioridades de orden no es válida: máximo 2 puntos por músculo, 5 puntos en total y ningún punto negativo. Ajusta tus prioridades.",
+                "La bolsa de prioridades de orden no es válida: máximo 2 puntos por músculo, 6 puntos en total y ningún punto negativo. Ajusta tus prioridades.",
             )
 
         val doseLevel = when (input.level) {
@@ -2019,7 +2019,7 @@ class SimpleCyclePersonalizer(
     }
 
     /**
-     * Bolsa de puntos de orden: máximo 2 por músculo, 5 en total y ningún
+     * Bolsa de puntos de orden: máximo 2 por músculo, 6 en total y ningún
      * punto negativo (la despriorización no existe). No es obligatorio gastar
      * los cinco. Devuelve null cuando la bolsa no cumple el contrato.
      *
@@ -2248,9 +2248,14 @@ class SimpleCyclePersonalizer(
     )
 
     companion object {
-        /** Contrato de la bolsa de puntos de orden: máximo 2 por músculo y 5 en total. */
+        /** Contrato de la bolsa de puntos de orden: máximo 2 por músculo y 6 en total. */
         internal const val MAX_ORDER_POINTS_PER_MUSCLE = 2
-        internal const val MAX_ORDER_POINTS_TOTAL = 5
+
+        /**
+         * 6 puntos, no 5: la cuadrícula elige hasta 5 SÍMBOLOS de músculo y «Brazos» (un símbolo) escribe dos puntos,
+         * uno en bíceps y otro en tríceps. Con los cinco símbolos y Brazos entre ellos, la bolsa suma 6.
+         */
+        internal const val MAX_ORDER_POINTS_TOTAL = 6
 
         /**
          * Paquete A · E1: aviso para cuando la bolsa de orden pedida no se puede aplicar a un plan propio ya
@@ -2346,7 +2351,7 @@ private class DeterministicIdProvider(private val prefix: String) : IdProvider {
  * Contrato único de la bolsa de puntos de orden, compartido entre el motor
  * ([SimpleCyclePersonalizer.orderPoints], usado en la ruta nativa) y
  * [TrainingOptions.validate] (la configuración que el draft aplica).
- * Máximo 2 puntos por músculo, 5 en total y ningún punto negativo; no es
+ * Máximo 2 puntos por músculo, 6 en total y ningún punto negativo; no es
  * obligatorio gastarlos todos. Devuelve la bolsa con los músculos normalizados
  * o null cuando no cumple el contrato.
  */

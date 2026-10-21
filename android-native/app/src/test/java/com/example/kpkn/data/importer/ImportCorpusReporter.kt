@@ -232,7 +232,6 @@ class ImportCorpusReporter(
         }
         return files.map { (name, paths) -> Triple(name, paths.size, matches.getValue(name)) }
             .sortedWith(compareByDescending<Triple<String, Int, ExerciseNameMatch>> { it.second }.thenBy { it.first })
-            .take(UNKNOWN_LIMIT)
             .map { (name, count, match) ->
                 val best = match.best
                 UnknownName(
@@ -257,7 +256,6 @@ class ImportCorpusReporter(
         }
         return files.map { (name, paths) -> Triple(name, paths.size, matches.getValue(name)) }
             .sortedWith(compareByDescending<Triple<String, Int, ExerciseNameMatch>> { it.second }.thenBy { it.first })
-            .take(CONFIDENT_LIMIT)
             .mapNotNull { (name, count, match) ->
                 val best = match.best ?: return@mapNotNull null
                 ConfidentName(name, count, best.displayName, best.configurationId, best.confidence)
@@ -356,7 +354,7 @@ class ImportCorpusReporter(
         appendLine()
         appendLine("| # | Nombre | Archivos | Mejor candidato | Confianza |")
         appendLine("|---:|---|---:|---|---:|")
-        report.unknownNames.forEachIndexed { index, name ->
+        report.unknownNames.take(UNKNOWN_LIMIT).forEachIndexed { index, name ->
             val confidence = name.confidence?.let { rounded(it, 2) } ?: "-"
             appendLine("| ${index + 1} | ${mdCell(name.name)} | ${name.files} | ${mdCell(name.bestCandidate.orEmpty())} | $confidence |")
         }
@@ -370,7 +368,7 @@ class ImportCorpusReporter(
         appendLine()
         appendLine("| # | Nombre | Archivos | Ejercicio | Configuración | Confianza |")
         appendLine("|---:|---|---:|---|---|---:|")
-        report.confidentNames.forEachIndexed { index, name ->
+        report.confidentNames.take(CONFIDENT_LIMIT).forEachIndexed { index, name ->
             appendLine(
                 "| ${index + 1} | ${mdCell(name.name)} | ${name.files} | ${mdCell(name.displayName)} " +
                     "| ${mdCell(name.configurationId)} | ${rounded(name.confidence, 2)} |",

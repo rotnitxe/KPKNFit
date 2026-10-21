@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.domain.multisport.MultisportIntentPolicyTest" tests="9" skipped="0" failures="0" errors="0" timestamp="2026-10-20T04:06:57.764Z" hostname="VF" time="0.058">
+  <properties/>
+  <testcase name="v1KeepsRepositoryUnknownFieldPolicyAndMissingVersionDefault" classname="com.example.kpkn.domain.multisport.MultisportIntentPolicyTest" time="0.001"/>
+  <testcase name="futureVersionPreservesUnknownSportAndAllOpaqueJsonWithoutInterpretation" classname="com.example.kpkn.domain.multisport.MultisportIntentPolicyTest" time="0.006"/>
+  <testcase name="dbJsonRoundTripPreservesOrderAndKnownFields" classname="com.example.kpkn.domain.multisport.MultisportIntentPolicyTest" time="0.002"/>
+  <testcase name="validationIsDeterministicAndIdempotent" classname="com.example.kpkn.domain.multisport.MultisportIntentPolicyTest" time="0.0"/>
+  <testcase name="futureProgramLoadsAndRoundTripsButActivationAndProjectionRejectIt" classname="com.example.kpkn.domain.multisport.MultisportIntentPolicyTest" time="0.043"/>
+  <testcase name="reportsAllInvalidFieldsInStableOrderWithoutThrowing" classname="com.example.kpkn.domain.multisport.MultisportIntentPolicyTest" time="0.003"/>
+  <testcase name="preservesGoalOrderAndDefensivelyCopiesLists" classname="com.example.kpkn.domain.multisport.MultisportIntentPolicyTest" time="0.0"/>
+  <testcase name="blankPrimaryIdIsReportedAsEmptyAndMissing" classname="com.example.kpkn.domain.multisport.MultisportIntentPolicyTest" time="0.001"/>
+  <testcase name="unsupportedVersionCannotBeConstructedAsEditableV1Goals" classname="com.example.kpkn.domain.multisport.MultisportIntentPolicyTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

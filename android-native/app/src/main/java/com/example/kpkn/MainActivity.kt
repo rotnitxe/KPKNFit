@@ -31,8 +31,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
 import androidx.compose.material3.TabRowDefaults
@@ -42,7 +40,6 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.graphics.Color
 import androidx.compose.material3.LocalContentColor
@@ -116,13 +113,13 @@ import com.example.kpkn.services.workout.ActiveWorkoutHolder
 import com.example.kpkn.services.workout.WorkoutRestAlertManager
 import com.example.kpkn.telemetry.TelemetryHelper
 import com.example.kpkn.telemetry.nutrition.NutritionTelemetry
-import com.example.kpkn.ui.components.icons.BodyIcon
-import com.example.kpkn.ui.components.icons.DumbbellIcon
-import com.example.kpkn.ui.components.icons.NutritionIcon
+import com.example.kpkn.ui.components.icons.KpknLineIcons
 import com.example.kpkn.ui.components.LocalHazeState
 import com.example.kpkn.ui.components.LocalKpknOverlayHost
 import com.example.kpkn.ui.components.KpknOverlayHostContent
 import com.example.kpkn.ui.components.kpknGlass
+import com.example.kpkn.ui.components.KpknBottomBar
+import com.example.kpkn.ui.components.KpknBottomBarItem
 import com.example.kpkn.ui.components.rememberKpknOverlayHostController
 import com.example.kpkn.data.models.Block
 import com.example.kpkn.data.models.Macrocycle
@@ -144,7 +141,10 @@ import kotlinx.coroutines.withContext
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import com.example.kpkn.ui.components.KpknAlertDialog
+import com.example.kpkn.screens.onboarding.design.WizardColors
+import com.example.kpkn.screens.onboarding.design.entreno.SymbolPalette
+import com.example.kpkn.ui.components.permissions.RecommendedPermissionsDialog
+import com.example.kpkn.ui.design.KpknShape
 
 class MainActivity : ComponentActivity() {
     private val pendingDeepLinkRoute = mutableStateOf<String?>(null)
@@ -197,6 +197,11 @@ class MainActivity : ComponentActivity() {
             runCatching {
                 com.example.kpkn.data.repository.WorkoutMediaRepository.getInstance().importLegacyIfNeeded()
             }.onFailure { logKpknError("MainActivity", "Error importing workout media", it) }
+            // Técnica en vídeo: rehace las filas que falten desde sus sidecars y limpia huérfanos, ya con los medios importados.
+            // Corre una vez por proceso aunque la Activity se recree.
+            runCatching {
+                com.example.kpkn.data.work.TechniqueAnalysisScheduler.reconcileInBackground(this@MainActivity)
+            }.onFailure { logKpknError("MainActivity", "Error reconciling technique analysis", it) }
         }
 
         lifecycleScope.launch(Dispatchers.IO) {
@@ -463,6 +468,7 @@ fun KPKNApp(
     var showPermissionAlert by remember { mutableStateOf(false) }
     var missingPermissions by remember { mutableStateOf(emptyList<String>()) }
     var permissionsRequested by remember { mutableStateOf(false) }
+    var permissionsSkipped by rememberSaveable { mutableStateOf(false) }
     val settings by ProgramRepository.getInstance().settings.collectAsState()
 
     DisposableEffect(lifecycleOwner) {
@@ -477,11 +483,11 @@ fun KPKNApp(
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                         val postNotifGranted = ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED
                         if (!postNotifGranted) {
-                            missing.add("Notificaciones (Recordatorios y Alertas de Descanso)")
+                            missing.add("Notificaciones: recordatorios y avisos del descanso")
                         }
                     }
                     missingPermissions = missing
-                    showPermissionAlert = missing.isNotEmpty()
+                    showPermissionAlert = missing.isNotEmpty() && !permissionsSkipped
                 }
             }
         }
@@ -523,6 +529,9 @@ fun KPKNApp(
     val isFullscreenWizard =
         currentRoute?.startsWith("session-editor") == true ||
         currentRoute?.startsWith("workout") == true ||
+        // El reproductor y el CTA de comparación de técnica necesitan su propio borde inferior.
+        (currentRoute == KpknRoute.TechniqueHub.route ||
+            currentRoute?.startsWith("${KpknRoute.TechniqueHub.route}/") == true) ||
         currentRoute?.startsWith(KpknRoute.ExerciseCatalog.route) == true ||
         currentRoute?.startsWith(KpknRoute.NutritionWizard.BASE_ROUTE) == true ||
         currentRoute?.startsWith(KpknRoute.NutritionPlanEditor.BASE_ROUTE) == true ||
@@ -531,6 +540,7 @@ fun KPKNApp(
         // chrome de navegación: el CTA «Continuar» del visual gate no puede
         // quedar tapado por la bottom bar.
         currentRoute?.startsWith(KpknRoute.SetupWizard.SETUP_ROUTES_BASE) == true ||
+        currentRoute == KpknRoute.ImportProgram.route ||
         currentRoute == KpknRoute.CompetitionDetail.route ||
         resolvedRoute?.startsWith("competition/") == true
     val primaryProgramId = activeProgram?.id ?: allPrograms.firstOrNull()?.id
@@ -766,7 +776,7 @@ fun KPKNApp(
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
                         Surface(shape = CircleShape, color = accentColor.copy(alpha = 0.25f), modifier = Modifier.size(36.dp)) {
-                            Icon(Icons.Default.PlayArrow, null, Modifier.padding(6.dp), tint = accentColor)
+                            Icon(KpknLineIcons.PlayFilled, null, Modifier.padding(8.dp), tint = accentColor)
                         }
                         Spacer(Modifier.width(10.dp))
                         Column(Modifier.weight(1f)) {
@@ -797,7 +807,7 @@ fun KPKNApp(
                                 ),
                             ) {
                                 Icon(
-                                    imageVector = Icons.Default.PlayArrow,
+                                    imageVector = KpknLineIcons.PlayFilled,
                                     contentDescription = "Reanudar sesión",
                                     modifier = Modifier.size(20.dp),
                                     tint = Color.Black,
@@ -837,9 +847,9 @@ fun KPKNApp(
                                 ),
                             ) {
                                 Icon(
-                                    imageVector = Icons.Default.Close,
+                                    imageVector = KpknLineIcons.Close,
                                     contentDescription = "Cancelar sesión",
-                                    modifier = Modifier.size(18.dp),
+                                    modifier = Modifier.size(20.dp),
                                     tint = Color.White,
                                 )
                             }
@@ -848,113 +858,60 @@ fun KPKNApp(
                 }
             }
 
-            // ─── DarkMica bottom bar ───────────────────────────────────────
+            // ─── Barra inferior: isla de vidrio de 64 dp con las pestañas KPKN Line (I11b) ───
+            // SKIPPED oculta Nutrición (semántica intacta); el modo de solo registro nunca la oculta.
+            val nutritionTabVisible = com.example.kpkn.domain.nutrition.isNutritionVisible(settings)
+            val bottomBarItems = listOfNotNull(
+                KpknBottomBarItem(KpknRoute.Home.route, stringResource(R.string.nav_home), KpknLineIcons.Home),
+                KpknBottomBarItem(KpknRoute.Training.route, stringResource(R.string.nav_training), KpknLineIcons.Training),
+                if (nutritionTabVisible) {
+                    KpknBottomBarItem(KpknRoute.Nutrition.route, stringResource(R.string.nav_nutrition), KpknLineIcons.Nutrition)
+                } else {
+                    null
+                },
+                KpknBottomBarItem(KpknRoute.BodyProgress.route, stringResource(R.string.nav_body), KpknLineIcons.Body),
+            )
             Box(
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
                     .fillMaxWidth()
                     .navigationBarsPadding()
-                    .padding(start = 12.dp, end = 12.dp, bottom = 12.dp)
+                    .padding(start = 12.dp, end = 12.dp, bottom = 8.dp)
                     .onSizeChanged { bottomBarHeightPx = it.height }
                     .kpknGlass(
                         hazeState = hazeState,
-                        shape = RoundedCornerShape(32.dp),
+                        shape = KpknShape.island,
                     ),
             ) {
-                Column(Modifier.fillMaxWidth()) {
-                // ─── Main navigation bar ───────────────────────────────────
-                val navItemColors = NavigationBarItemDefaults.colors(
-                    indicatorColor = Color.Transparent,
-                )
-                NavigationBar(
-                    containerColor = Color.Transparent,
-                    contentColor = MaterialTheme.colorScheme.onSurface,
-                    tonalElevation = 0.dp,
-                    windowInsets = WindowInsets(0, 0, 0, 0),
-                    modifier = Modifier.height(80.dp).tourAnchor(TourAnchors.HOME_BARRA),
-                ) {
-                    val homeSel = currentTab == KpknRoute.Home.route
-                    NavigationBarItem(
-                        selected = homeSel,
-                        onClick = {
-                            navController.navigate(KpknRoute.Home.route) { launchSingleTop = true }
-                        },
-                        icon = { Icon(Icons.Default.Home, null, tint = navIconTint(homeSel)) },
-                        label = {
-                            Text(
-                                stringResource(R.string.nav_home),
-                                color = if (homeSel) MaterialTheme.colorScheme.primary else Color.White,
-                                style = MaterialTheme.typography.labelSmall,
-                                maxLines = 1,
-                            )
-                        },
-                        colors = navItemColors,
-                    )
-                    val trainSel = currentTab == KpknRoute.Training.route
-                    NavigationBarItem(
-                        selected = trainSel,
-                        onClick = {
-                            val activeProgramId = activeProgram?.id
-                            if (activeProgramId != null) {
-                                navController.navigate(KpknRoute.ProgramDetail.create(activeProgramId)) {
-                                    launchSingleTop = true
-                                }
-                            } else {
-                                navController.navigate(KpknRoute.Training.route) { launchSingleTop = true }
+                KpknBottomBar(
+                    items = bottomBarItems,
+                    selectedRoute = currentTab,
+                    onSelect = { route ->
+                        when (route) {
+                            KpknRoute.Home.route -> {
+                                navController.navigate(KpknRoute.Home.route) { launchSingleTop = true }
                             }
-                        },
-                        icon = { DumbbellIcon(tint = navIconTint(trainSel)) },
-                        label = {
-                            Text(
-                                stringResource(R.string.nav_training),
-                                color = if (trainSel) MaterialTheme.colorScheme.primary else Color.White,
-                                style = MaterialTheme.typography.labelSmall,
-                                maxLines = 1,
-                            )
-                        },
-                        colors = navItemColors,
-                    )
-                    // SKIPPED oculta Nutrición (semántica intacta); el modo de
-                    // solo registro nunca la oculta.
-                    if (com.example.kpkn.domain.nutrition.isNutritionVisible(settings)) {
-                        val nutSel = currentTab == KpknRoute.Nutrition.route
-                        NavigationBarItem(
-                            selected = nutSel,
-                            onClick = {
+                            KpknRoute.Training.route -> {
+                                val activeProgramId = activeProgram?.id
+                                if (activeProgramId != null) {
+                                    navController.navigate(KpknRoute.ProgramDetail.create(activeProgramId)) {
+                                        launchSingleTop = true
+                                    }
+                                } else {
+                                    navController.navigate(KpknRoute.Training.route) { launchSingleTop = true }
+                                }
+                            }
+                            KpknRoute.Nutrition.route -> {
                                 telemetryHelper.logNutritionOpen()
                                 navController.navigate(KpknRoute.Nutrition.route) { launchSingleTop = true }
-                            },
-                            icon = { NutritionIcon(tint = navIconTint(nutSel)) },
-                            label = {
-                                Text(
-                                    stringResource(R.string.nav_nutrition),
-                                    color = if (nutSel) MaterialTheme.colorScheme.primary else Color.White,
-                                    style = MaterialTheme.typography.labelSmall,
-                                    maxLines = 1,
-                                )
-                            },
-                            colors = navItemColors,
-                        )
-                    }
-                    val bodySel = currentTab == KpknRoute.BodyProgress.route
-                    NavigationBarItem(
-                        selected = bodySel,
-                        onClick = {
-                            navController.navigate(KpknRoute.BodyProgress.route) { launchSingleTop = true }
-                        },
-                        icon = { BodyIcon(tint = navIconTint(bodySel)) },
-                        label = {
-                            Text(
-                                stringResource(R.string.nav_body),
-                                color = if (bodySel) MaterialTheme.colorScheme.primary else Color.White,
-                                style = MaterialTheme.typography.labelSmall,
-                                maxLines = 1,
-                            )
-                        },
-                        colors = navItemColors,
-                    )
-                }
-                }
+                            }
+                            KpknRoute.BodyProgress.route -> {
+                                navController.navigate(KpknRoute.BodyProgress.route) { launchSingleTop = true }
+                            }
+                        }
+                    },
+                    modifier = Modifier.tourAnchor(TourAnchors.HOME_BARRA),
+                )
             }
         }
 
@@ -1006,97 +963,15 @@ fun KPKNApp(
     }
 
     if (showPermissionAlert) {
-        KpknAlertDialog(
-            onDismissRequest = { /* No se cierra al tocar fuera */ },
-            icon = {
-                Icon(
-                    imageVector = Icons.Default.Warning,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(40.dp)
-                )
-            },
-            title = {
-                Text(
-                    text = "Permisos Recomendados",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                    textAlign = androidx.compose.ui.text.style.TextAlign.Center,
-                    modifier = Modifier.fillMaxWidth()
-                )
-            },
-            text = {
-                Column(
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text(
-                        text = "Para garantizar la mejor experiencia en KPKN, te recomendamos habilitar los siguientes permisos:",
-                        style = MaterialTheme.typography.bodyMedium,
-                        textAlign = androidx.compose.ui.text.style.TextAlign.Center,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    
-                    missingPermissions.forEach { permissionName ->
-                        Card(
-                            colors = CardDefaults.cardColors(
-                                containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.12f)
-                            ),
-                            shape = RoundedCornerShape(8.dp),
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)
-                            ) {
-                                Box(
-                                    modifier = Modifier
-                                        .size(6.dp)
-                                        .clip(CircleShape)
-                                        .background(MaterialTheme.colorScheme.primary)
-                                )
-                                Spacer(modifier = Modifier.width(8.dp))
-                                Text(
-                                    text = permissionName,
-                                    style = MaterialTheme.typography.labelMedium,
-                                    fontWeight = FontWeight.Bold,
-                                    color = MaterialTheme.colorScheme.onPrimaryContainer
-                                )
-                            }
-                        }
-                    }
-                    
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Text(
-                        text = "Las notificaciones nos permiten enviarte tus recordatorios de entrenamiento diarios y alarmas de descanso en segundo plano, mientras que el micrófono habilita los comandos y controles por voz.",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        textAlign = androidx.compose.ui.text.style.TextAlign.Center
-                    )
+        RecommendedPermissionsDialog(
+            missing = missingPermissions,
+            onOpenSettings = {
+                val intent = Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+                    data = android.net.Uri.fromParts("package", context.packageName, null)
                 }
+                context.startActivity(intent)
             },
-            confirmButton = {
-                Button(
-                    onClick = {
-                        val intent = Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
-                            data = android.net.Uri.fromParts("package", context.packageName, null)
-                        }
-                        context.startActivity(intent)
-                    },
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text("Ir a Configuración", fontWeight = FontWeight.Bold)
-                }
-            },
-            dismissButton = {
-                TextButton(
-                    onClick = { showPermissionAlert = false },
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text("Omitir por ahora", color = MaterialTheme.colorScheme.onSurfaceVariant)
-                }
-            }
+            onSkip = { showPermissionAlert = false; permissionsSkipped = true },
         )
     }
     } // CompositionLocalProvider(LocalHazeState)
@@ -1325,6 +1200,7 @@ private fun KPKNNavGraph(
                     }
                 },
                 onOpenAlbums = { navController.navigate(KpknRoute.WorkoutAlbums.route) },
+                onOpenTechnique = { navController.navigate(KpknRoute.TechniqueHub.route) },
             )
         }
         composable(KpknRoute.CompetitionDetail.route) { backStack ->
@@ -1338,9 +1214,6 @@ private fun KPKNNavGraph(
         composable(KpknRoute.Nutrition.route) {
             NutritionScreen(
                 viewModel = nutritionViewModel,
-                onNavigateToBodyProgress = {
-                    navController.navigate(KpknRoute.BodyProgress.route)
-                },
                 onNavigateToMealHistory = {
                     navController.navigate(KpknRoute.MealHistory.route)
                 },
@@ -1474,11 +1347,29 @@ private fun KPKNNavGraph(
         }
         composable(KpknRoute.BodyProgress.route) {
             BodyProgressScreen(
-                onCreatePlan = { navController.navigate(KpknRoute.NutritionPlanEditor.create()) },
+                // La altura vive en el perfil; con plan activo, la meta se edita en el editor del plan (una sola fuente).
+                onAddHeight = { navController.navigate(KpknRoute.Profile.route) },
+                onEditNutritionPlan = { planId -> navController.navigate(KpknRoute.NutritionPlanEditor.create(planId)) },
             )
         }
         composable(KpknRoute.MealHistory.route) {
-            MealHistoryScreen(onBack = { navController.popBackStack() })
+            // Vuelve a Nutrición (si la pila no la tiene, por enlace, la abre); un día elegido queda como fecha de Nutrición.
+            fun volverANutricion() {
+                if (!navController.popBackStack(KpknRoute.Nutrition.route, inclusive = false)) {
+                    navController.navigate(KpknRoute.Nutrition.route) { launchSingleTop = true }
+                }
+            }
+            MealHistoryScreen(
+                onBack = { navController.popBackStack() },
+                onOpenDay = { date ->
+                    nutritionViewModel.setSelectedDate(date)
+                    volverANutricion()
+                },
+                onRegister = {
+                    nutritionViewModel.requestFoodLoggerOpen()
+                    volverANutricion()
+                },
+            )
         }
 
         // Conceptos Clave lives in Home; the former conceptual deep links land here.
@@ -1523,6 +1414,7 @@ private fun KPKNNavGraph(
                     }
                 },
                 onOpenAlbums = { navController.navigate(KpknRoute.WorkoutAlbums.route) },
+                onOpenTechnique = { navController.navigate(KpknRoute.TechniqueHub.route) },
             )
         }
         composable(KpknRoute.WorkoutAlbums.route) {
@@ -1557,6 +1449,75 @@ private fun KPKNNavGraph(
                 .orEmpty()
             WorkoutMediaViewerScreen(
                 mediaId = Uri.decode(mediaId),
+                onBack = { navController.popBackStack() },
+                onOpenAnalysis = { id -> navController.navigate(KpknRoute.TechniqueAnalysis.create(id)) },
+            )
+        }
+        composable(KpknRoute.TechniqueHub.route) { backStack ->
+            val catalogResultJson by backStack.savedStateHandle
+                .getStateFlow<String?>(CatalogSavedStateKeys.RESULT, null)
+                .collectAsState()
+            val catalogResult = catalogResultJson?.let { encoded ->
+                runCatching { Json.decodeFromString<CatalogResult>(encoded) }.getOrNull()
+            }
+            com.example.kpkn.screens.technique.hub.TechniqueHubRoute(
+                savedStateHandle = backStack.savedStateHandle,
+                onBack = { navController.popBackStack() },
+                onOpenTrends = { key -> navController.navigate(KpknRoute.TechniqueTrends.create(key)) },
+                onOpenAnalysis = { id -> navController.navigate(KpknRoute.TechniqueAnalysis.create(id)) },
+                onOpenCatalog = { request ->
+                    backStack.savedStateHandle[CatalogSavedStateKeys.request(request.requestId)] = Json.encodeToString(request)
+                    navController.navigate(KpknRoute.ExerciseCatalog.create(request))
+                },
+                catalogResult = catalogResult,
+                onCatalogResultConsumed = { backStack.savedStateHandle.remove<String>(CatalogSavedStateKeys.RESULT) },
+            )
+        }
+        composable(
+            route = KpknRoute.TechniqueAnalysis.route,
+            arguments = listOf(navArgument(KpknRoute.TechniqueAnalysis.ARG_MEDIA_ID) { type = NavType.StringType }),
+        ) { backStack ->
+            val mediaId = backStack.arguments?.getString(KpknRoute.TechniqueAnalysis.ARG_MEDIA_ID).orEmpty()
+            com.example.kpkn.screens.technique.analysis.TechniqueAnalysisRoute(
+                mediaId = mediaId,
+                onBack = { navController.popBackStack() },
+                onOpenTrends = { key -> navController.navigate(KpknRoute.TechniqueTrends.create(key)) },
+            )
+        }
+        composable(
+            route = KpknRoute.TechniqueTrends.route,
+            arguments = listOf(navArgument(KpknRoute.TechniqueTrends.ARG_EXERCISE_KEY) { type = NavType.StringType }),
+        ) { backStack ->
+            val exerciseKey = backStack.arguments
+                ?.getString(KpknRoute.TechniqueTrends.ARG_EXERCISE_KEY)
+                .orEmpty()
+            com.example.kpkn.screens.technique.trends.TechniqueTrendsRoute(
+                exerciseKey = exerciseKey,
+                onBack = { navController.popBackStack() },
+                onOpenAnalysis = { mediaId ->
+                    navController.navigate(KpknRoute.TechniqueAnalysis.create(mediaId))
+                },
+                onCompare = { mediaA, mediaB ->
+                    navController.navigate(KpknRoute.TechniqueCompare.create(mediaA, mediaB))
+                },
+            )
+        }
+        composable(
+            route = KpknRoute.TechniqueCompare.route,
+            arguments = listOf(
+                navArgument(KpknRoute.TechniqueCompare.ARG_MEDIA_A) { type = NavType.StringType },
+                navArgument(KpknRoute.TechniqueCompare.ARG_MEDIA_B) { type = NavType.StringType },
+            ),
+        ) { backStack ->
+            val mediaA = backStack.arguments
+                ?.getString(KpknRoute.TechniqueCompare.ARG_MEDIA_A)
+                .orEmpty()
+            val mediaB = backStack.arguments
+                ?.getString(KpknRoute.TechniqueCompare.ARG_MEDIA_B)
+                .orEmpty()
+            com.example.kpkn.screens.technique.compare.TechniqueCompareRoute(
+                mediaIdA = mediaA,
+                mediaIdB = mediaB,
                 onBack = { navController.popBackStack() },
             )
         }
@@ -1743,6 +1704,7 @@ private fun KPKNNavGraph(
                 onCatalogResultConsumed = {
                     backStack.savedStateHandle.remove<String>(CatalogSavedStateKeys.RESULT)
                 },
+                onOpenTechniqueAnalysis = { mediaId -> navController.navigate(KpknRoute.TechniqueAnalysis.create(mediaId)) },
                 onOpenExistingWorkout = { existingProgramId, existingSessionId ->
                     navController.navigate(KpknRoute.Workout.create(existingProgramId, existingSessionId)) {
                         popUpTo(KpknRoute.Workout.route) { inclusive = true }
@@ -1776,9 +1738,36 @@ private fun createProgramAndOpen(navController: androidx.navigation.NavHostContr
 }
 
 @Composable
-private fun navIconTint(selected: Boolean): Color =
-    if (selected) MaterialTheme.colorScheme.primary
-    else Color.White
+internal fun navIconTint(selected: Boolean): Color =
+    if (selected) WizardColors.text
+    else WizardColors.textMuted
+
+/** Color de la etiqueta de una pestaña: la misma tinta que su icono (cálida si está elegida, gris cálido si no). */
+private fun navLabelColor(selected: Boolean): Color =
+    if (selected) WizardColors.text
+    else WizardColors.textMuted
+
+/**
+ * Etiqueta de una pestaña de la barra inferior. La elegida lleva debajo un punto de 4 dp en el acento de músculo, separado
+ * 4 dp. El hueco del punto existe también en las demás: así las cuatro etiquetas miden lo mismo y la barra no salta al cambiar.
+ */
+@Composable
+internal fun NavLabel(text: String, selected: Boolean) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Text(
+            text,
+            color = navLabelColor(selected),
+            style = MaterialTheme.typography.labelSmall,
+            maxLines = 1,
+        )
+        Spacer(Modifier.height(4.dp))
+        Box(
+            Modifier
+                .size(4.dp)
+                .background(if (selected) SymbolPalette.musculo else Color.Transparent, CircleShape),
+        )
+    }
+}
 
 
 @Composable fun GenericScreen(t: String) { Column(Modifier.fillMaxSize(), Arrangement.Center, Alignment.CenterHorizontally) { Text(t, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold) } }

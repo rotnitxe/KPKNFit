@@ -16,13 +16,32 @@ import com.example.kpkn.data.models.ArticularBattery
 import com.example.kpkn.data.models.ArticularBatteryState
 import com.example.kpkn.data.models.RecoveryStatus
 import com.example.kpkn.data.models.MuscleRecoveryStatus
+import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
+import org.junit.Before
 import org.junit.Test
 import java.time.Instant
-import java.time.LocalDate
+import java.util.TimeZone
 
 class AugeRecoveryEngineRingTest {
+    private var zonaOriginal: TimeZone? = null
+
+    // La fecha de un bienestar sin ancla se lee en la zona local: se fija UTC para que la prueba no dependa del equipo.
+    @Before
+    fun fijarZona() {
+        zonaOriginal = TimeZone.getDefault()
+        TimeZone.setDefault(TimeZone.getTimeZone("UTC"))
+    }
+
+    @After
+    fun restaurarZona() {
+        zonaOriginal?.let { TimeZone.setDefault(it) }
+    }
+
+    /** Reloj explícito (WP 1.7): lunes 2025-03-03 10:00 UTC, mucho antes de hoy. Ninguna prueba lee el reloj real. */
+    private val ahora = Instant.parse("2025-03-03T10:00:00Z").toEpochMilli()
+    private val fecha = "2025-03-03"
 
     private val exerciseDb = mapOf(
         "bench" to ExerciseMuscleInfo(
@@ -69,12 +88,14 @@ class AugeRecoveryEngineRingTest {
             settings = settings,
             exerciseDb = exerciseDb,
             automaticImpact = impact,
+            nowOverrideMs = ahora,
         )
         val homeMuscles = AugeRecoveryEngine.getPerMuscleBatteries(
             history = listOf(previewLog),
             wellbeing = null,
             settings = settings,
             exerciseDb = exerciseDb,
+            nowOverrideMs = ahora,
         )
         val homeBatteries = AugeRecoveryEngine.calculateGlobalBatteries(
             history = listOf(previewLog),
@@ -82,12 +103,14 @@ class AugeRecoveryEngineRingTest {
             settings = settings,
             exerciseDb = exerciseDb,
             precomputedMuscles = homeMuscles,
+            nowOverrideMs = ahora,
         )
         val baseMuscles = AugeRecoveryEngine.getPerMuscleBatteries(
             history = emptyList(),
             wellbeing = null,
             settings = settings,
             exerciseDb = exerciseDb,
+            nowOverrideMs = ahora,
         )
         val baseBatteries = AugeRecoveryEngine.calculateGlobalBatteries(
             history = emptyList(),
@@ -95,6 +118,7 @@ class AugeRecoveryEngineRingTest {
             settings = settings,
             exerciseDb = exerciseDb,
             precomputedMuscles = baseMuscles,
+            nowOverrideMs = ahora,
         )
         assertEquals(homeBatteries.muscular, preview.muscular)
         val subtracted = (baseBatteries.muscular - impact.globalMuscularDrain).coerceIn(0, 100)
@@ -112,11 +136,11 @@ class AugeRecoveryEngineRingTest {
     fun fullPipeline_manualOverrideWithHistory_lowersRingsBelow100() {
         val wellbeing = DailyWellbeingLog(
             id = "today",
-            date = LocalDate.now().toString(),
+            date = fecha,
             manualNeuralBattery = 50,
             manualSpinalBattery = 50,
             manualMuscleBatteries = mapOf("Pectorales" to 50, "Cuádriceps" to 50),
-            manualBatteryAnchorMs = System.currentTimeMillis(),
+            manualBatteryAnchorMs = ahora,
         )
         val snapshot = fullCompute(history = heavySession(), wellbeing = wellbeing)
         assertTrue(snapshot.ringScore(RecoveryChannelId.SYSTEM) < 100)
@@ -135,13 +159,11 @@ class AugeRecoveryEngineRingTest {
     fun fullPipeline_manualOverrideWithoutAnchor_usesNowMs() {
         val wellbeing = DailyWellbeingLog(
             id = "today",
-            date = LocalDate.now().toString(),
+            date = fecha,
             manualNeuralBattery = 80,
             manualBatteryAnchorMs = null,
         )
-        val before = System.currentTimeMillis()
         val snapshot = fullCompute(history = heavySession(), wellbeing = wellbeing)
-        val after = System.currentTimeMillis()
         val ringValue = snapshot.ringScore(RecoveryChannelId.SYSTEM)
         assertTrue(ringValue in 0..100)
         assertTrue(ringValue < 100)
@@ -182,7 +204,7 @@ class AugeRecoveryEngineRingTest {
 
     @Test
     fun perMuscleBatteries_includeNonPillarMuscles() {
-        val now = System.currentTimeMillis()
+        val now = ahora
         val history = (1..3).map { day ->
             WorkoutLog(
                 id = "adductor-$day", programId = "p", sessionId = "s", sessionName = "Abductores",
@@ -204,6 +226,7 @@ class AugeRecoveryEngineRingTest {
             wellbeing = null,
             settings = Settings(),
             exerciseDb = exerciseDb,
+            nowOverrideMs = ahora,
         )
 
         for (muscle in listOf("Aductores", "Antebrazo", "Cuello", "Psoas")) {
@@ -229,6 +252,7 @@ class AugeRecoveryEngineRingTest {
             wellbeing = wellbeing,
             settings = settings,
             exerciseDb = exerciseDb,
+            nowOverrideMs = ahora,
         )
         val batteries = AugeRecoveryEngine.calculateGlobalBatteries(
             history = history,
@@ -236,6 +260,7 @@ class AugeRecoveryEngineRingTest {
             settings = settings,
             exerciseDb = exerciseDb,
             precomputedMuscles = perMuscle,
+            nowOverrideMs = ahora,
         )
         val dashboard = AugeRecoveryEngine.calculateRecoveryDashboard(
             batteries = batteries,
@@ -247,7 +272,7 @@ class AugeRecoveryEngineRingTest {
     }
 
     private fun heavySession(): List<WorkoutLog> {
-        val now = System.currentTimeMillis()
+        val now = ahora
         return listOf(
             WorkoutLog(
                 id = "heavy-1", programId = "p", sessionId = "s", sessionName = "Heavy",
@@ -274,7 +299,7 @@ class AugeRecoveryEngineRingTest {
     }
 
     private fun extremeFatigueSession(): List<WorkoutLog> {
-        val now = System.currentTimeMillis()
+        val now = ahora
         return (1..7).map { day ->
             WorkoutLog(
                 id = "extreme-$day", programId = "p", sessionId = "s", sessionName = "Grind",
@@ -320,7 +345,8 @@ class AugeRecoveryEngineRingTest {
             wellbeing = null,
             settings = Settings(),
             precomputedMuscles = precomputed,
-            articularBatteries = articular
+            articularBatteries = articular,
+            nowOverrideMs = ahora,
         )
         assertTrue("Muscular battery should be reduced by gating, got ${batteries.muscular}", batteries.muscular < 97)
         assertTrue("Muscular battery should not collapse to 30, got ${batteries.muscular}", batteries.muscular > 80)
@@ -343,7 +369,8 @@ class AugeRecoveryEngineRingTest {
             wellbeing = null,
             settings = Settings(),
             precomputedMuscles = precomputed,
-            articularBatteries = emptyMap()
+            articularBatteries = emptyMap(),
+            nowOverrideMs = ahora,
         )
         val articularEmpty = emptyMap<ArticularBattery, ArticularBatteryState>()
         val batteriesWithEmptyMap = AugeRecoveryEngine.calculateGlobalBatteries(
@@ -351,7 +378,8 @@ class AugeRecoveryEngineRingTest {
             wellbeing = null,
             settings = Settings(),
             precomputedMuscles = precomputed,
-            articularBatteries = articularEmpty
+            articularBatteries = articularEmpty,
+            nowOverrideMs = ahora,
         )
         assertEquals(batteriesNoGating.muscular, batteriesWithEmptyMap.muscular)
     }
@@ -390,7 +418,8 @@ class AugeRecoveryEngineRingTest {
             wellbeing = null,
             settings = Settings(),
             precomputedMuscles = precomputed,
-            articularBatteries = emptyMap()
+            articularBatteries = emptyMap(),
+            nowOverrideMs = ahora,
         )
         val articular = mapOf(
             ArticularBattery.KNEE to ArticularBatteryState(recoveryScore = 30)
@@ -400,7 +429,8 @@ class AugeRecoveryEngineRingTest {
             wellbeing = null,
             settings = Settings(),
             precomputedMuscles = precomputed,
-            articularBatteries = articular
+            articularBatteries = articular,
+            nowOverrideMs = ahora,
         )
         assertEquals(batteriesNoGating.spinal, batteriesWithGating.spinal)
     }

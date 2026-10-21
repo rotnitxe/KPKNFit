@@ -38,7 +38,7 @@ class MuscleSymbolGridUiTest {
     private var selected by mutableStateOf(setOf<MuscleSymbol>())
 
     private val five = setOf(
-        MuscleSymbol.CHEST, MuscleSymbol.BACK, MuscleSymbol.SHOULDERS, MuscleSymbol.BICEPS, MuscleSymbol.TRICEPS,
+        MuscleSymbol.CHEST, MuscleSymbol.BACK, MuscleSymbol.SHOULDERS, MuscleSymbol.ARMS, MuscleSymbol.FOREARMS,
     )
 
     private fun show(initial: Set<MuscleSymbol> = emptySet(), suggested: Set<MuscleSymbol> = emptySet(), max: Int = 5) {
@@ -146,6 +146,16 @@ class MuscleSymbolGridUiTest {
     fun withoutSuggestionsThereIsNoLabel() {
         show()
         rule.onAllNodesWithText("Sugerido").assertCountEquals(0)
+    }
+
+    @Test
+    fun theRowsOfTwoAreCenteredUnderTheRowsOfThree() {
+        show()
+        fun centerX(m: MuscleSymbol): Double = cell(m).fetchSemanticsNode().boundsInRoot.center.x.toDouble()
+        // Cada fila, de tres o de dos, tiene su punto medio en el centro de la cuadrícula.
+        val middle = (centerX(MuscleSymbol.CHEST) + centerX(MuscleSymbol.SHOULDERS)) / 2
+        assertEquals(middle, (centerX(MuscleSymbol.ARMS) + centerX(MuscleSymbol.FOREARMS)) / 2, 1.0)
+        assertEquals(middle, (centerX(MuscleSymbol.HAMSTRINGS) + centerX(MuscleSymbol.CALVES)) / 2, 1.0)
     }
 
     @Test

@@ -1,37 +1,21 @@
 package com.example.kpkn.screens.home
 
-import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.animation.shrinkVertically
-import androidx.compose.animation.expandVertically
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AccessTime
-import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.KeyboardArrowDown
-import androidx.compose.material.icons.filled.KeyboardArrowUp
-import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import com.example.kpkn.ui.adapt.LocalViewportAdapt
-import com.example.kpkn.ui.adapt.adapt
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.kpkn.data.exercises.displayNameWithSelectedChips
 import com.example.kpkn.data.exercises.exerciseCatalogReady
@@ -41,7 +25,6 @@ import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.LoadAdvisory
 import com.example.kpkn.data.models.LoadAdvisoryLevel
 import com.example.kpkn.data.models.MuscleRecoveryStatus
-import com.example.kpkn.data.models.IntensityMode
 import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.models.TodaySessionItem
@@ -52,21 +35,37 @@ import com.example.kpkn.domain.auge.LoadAdvisoryEngine
 import com.example.kpkn.domain.auge.SessionMuscleFilter
 import com.example.kpkn.domain.auge.getAugeMuscleDisplayId
 import com.example.kpkn.domain.auge.lookupMuscleValue
-import com.example.kpkn.domain.calculations.calculateSessionTimeBreakdown
 import com.example.kpkn.domain.training.CompetitionHomePhase
 import com.example.kpkn.domain.training.HomeCompetitionState
-import com.example.kpkn.screens.sessioneditor.components.SessionBackgroundLayer
-import com.example.kpkn.ui.components.SectionHeader
-import com.example.kpkn.ui.tour.TourAnchors
-import com.example.kpkn.ui.tour.tourAnchor
-import kotlin.math.roundToInt
+import com.example.kpkn.domain.training.HomeWeekDay
+import com.example.kpkn.domain.training.HomeWeekResolver
+import com.example.kpkn.domain.training.SessionDurationEstimator
+import com.example.kpkn.screens.home.design.HomeHeroActions
+import com.example.kpkn.screens.home.design.HomeHeroCountdown
+import com.example.kpkn.screens.home.design.HomeHeroLine
+import com.example.kpkn.screens.home.design.HomeHeroMode
+import com.example.kpkn.screens.home.design.HomeHeroState
+import com.example.kpkn.screens.home.design.HomeMuscleGauge
+import com.example.kpkn.screens.home.design.HomeSessionHero
+import com.example.kpkn.screens.home.design.heroDose
+import com.example.kpkn.screens.home.design.homeHeroKicker
+import com.example.kpkn.screens.home.design.homeHeroNextLine
+import com.example.kpkn.screens.onboarding.design.wizardReducedMotion
+import com.example.kpkn.screens.programdetail.design.programNextSessionOf
+import com.example.kpkn.ui.components.PagerDots
+import com.example.kpkn.ui.design.KpknTextAction
+import java.time.LocalDate
 
+/**
+ * La sesión del día (Inicio), dentro del módulo «Esta semana» (I10a): el héroe compacto del día elegido en «Tu semana», con los
+ * músculos como fila de chips dentro del propio héroe. Sin día elegido, o con hoy, es la sesión de hoy: la preferida, y un pager si
+ * hay varias. Un día fuera de «Tu semana» se trata como hoy. Cada día que no es hoy muestra su sesión (OTHER_DAY) o el descanso.
+ */
 @Composable
 fun HomeSessionSection(
     sessions: List<TodaySessionItem>,
     homeCompetition: HomeCompetitionState? = null,
     hasActiveProgram: Boolean = true,
-    currentDayOfWeek: Int,
     perMuscle: Map<String, MuscleRecoveryStatus> = emptyMap(),
     loadAdvisory: LoadAdvisory? = null,
     onStartWorkout: (Session, Program) -> Unit,
@@ -77,444 +76,330 @@ fun HomeSessionSection(
     onResumeWorkout: () -> Unit,
     onEditSession: (Session, Program) -> Unit = { _, _ -> },
     onCreateProgram: () -> Unit = {},
+    /** Lleva a elegir programa (la acción «Elige tu programa» cuando no hay programa activo). */
+    onChooseProgram: () -> Unit = {},
+    /** Día elegido en «Tu semana»; null = hoy. Si no está en [weekDays], se trata como hoy. */
+    selectedDate: LocalDate? = null,
+    /** Los días de «Tu semana» (I1): el «Siguiente», el «DÍA n DE m» y el día elegido. */
+    weekDays: List<HomeWeekDay> = emptyList(),
+    /** Programa activo: el que abre «Ver programa» en el descanso, cuando no hay sesión que abrir. */
+    activeProgram: Program? = null,
+    /** Abre el programa (la acción «Ver en el programa» de un día que no es hoy). */
+    onNavigateToProgram: (String) -> Unit = {},
+    /** Abre el detalle de Músculos desde las cifras (lo cablea I3). */
+    onOpenMuscleDetail: () -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
-    var activeIndex by remember { mutableIntStateOf(0) }
-    var anchoredSessionId by remember { mutableStateOf<String?>(null) }
-    var isProgrammaticScroll by remember { mutableStateOf(false) }
+    val customExercises by CustomExerciseRepository.customExercises.collectAsStateWithLifecycle()
+    val isCatalogReady by exerciseCatalogReady.collectAsStateWithLifecycle()
+    val reduced = wizardReducedMotion()
+    val liftPx = with(LocalDensity.current) { 12.dp.roundToPx() }
+    val today = LocalDate.now()
+    val day = selectedDate?.takeIf { it != today && weekDays.any { d -> d.date == it } } ?: today
 
-    fun preferredSessionIndex(items: List<TodaySessionItem>): Int {
-        val preferred = items.indexOfFirst { it.isToday && !it.isCompleted }
-            .takeIf { it >= 0 }
-            ?: items.indexOfFirst { !it.isCompleted }.takeIf { it >= 0 }
-            ?: items.indexOfFirst { it.isOngoing }.takeIf { it >= 0 }
-            ?: items.indexOfFirst { it.isToday }.takeIf { it >= 0 }
-            ?: 0
-        return preferred.coerceIn(0, (items.size - 1).coerceAtLeast(0))
+    val pages = remember(
+        day, today, sessions, weekDays, hasActiveProgram, homeCompetition, loadAdvisory, activeProgram,
+        customExercises, isCatalogReady,
+    ) {
+        homeHeroPages(day, today, sessions, weekDays, hasActiveProgram, homeCompetition, loadAdvisory, activeProgram)
+    }
+    val pagerState = rememberPagerState(initialPage = preferredHeroPage(pages)) { pages.size }
+    // Al cambiar de día, el pager vuelve a la sesión preferida de ese día.
+    LaunchedEffect(day) {
+        val target = preferredHeroPage(pages)
+        if (pagerState.currentPage != target) pagerState.scrollToPage(target)
+    }
+    val multi = pages.size > 1
+    val shown = pages[if (multi) pagerState.currentPage.coerceIn(0, pages.lastIndex) else 0]
+    // La fecha de competición se pide en el día de hoy y de los que entrenan; no en la competición ni sin programa.
+    val promptProgramId = competitionDatePromptProgramId?.takeIf {
+        shown.state.mode != HomeHeroMode.REGISTER && shown.state.mode != HomeHeroMode.NO_PROGRAM
     }
 
-    LaunchedEffect(sessions.map { it.session.id to it.isCompleted }) {
-        val preferred = preferredSessionIndex(sessions)
-        val preferredId = sessions.getOrNull(preferred)?.session?.id
-        if (preferredId != null && preferredId != anchoredSessionId) {
-            anchoredSessionId = preferredId
-            isProgrammaticScroll = true
-            activeIndex = preferred
-        } else if (sessions.isNotEmpty()) {
-            // Mantener ancla por id si el orden cambió.
-            val byId = anchoredSessionId?.let { id -> sessions.indexOfFirst { it.session.id == id } }
-            if (byId != null && byId >= 0 && byId != activeIndex) {
-                isProgrammaticScroll = true
-                activeIndex = byId
-            } else if (activeIndex !in sessions.indices) {
-                isProgrammaticScroll = true
-                activeIndex = preferred
-                anchoredSessionId = preferredId
-            }
-        }
+    fun actionsFor(page: HomeHeroPage): HomeHeroActions {
+        val item = page.item
+        return HomeHeroActions(
+            onStart = { item?.let { onStartWorkout(it.session, it.program) } },
+            onResume = onResumeWorkout,
+            onEdit = { item?.let { onEditSession(it.session, it.program) } },
+            // Con sesión, abre su programa; en el descanso (sin sesión), el programa activo. Sin programa, no hay botón.
+            onOpenProgram = (item?.program ?: activeProgram)?.let { program -> { onNavigateToProgram(program.id) } },
+            onChooseProgram = onChooseProgram,
+            onCreateProgram = onCreateProgram,
+            onRegister = { homeCompetition?.let { onRegisterCompetition(it.recordId) } },
+        )
     }
 
     Column(modifier.fillMaxWidth()) {
-        val current = sessions.getOrNull(activeIndex) ?: sessions.firstOrNull()
-        val isCurrentToday = current?.isToday == true
-        val registerToday = homeCompetition?.phase == CompetitionHomePhase.REGISTER
-        val headerTitle = when {
-            registerToday -> "Registrar competición"
-            !hasActiveProgram -> "Sesión de hoy"
-            sessions.isEmpty() || sessions.none { it.isToday } -> "Próxima sesión"
-            isCurrentToday -> "Sesión de hoy"
-            else -> "Próxima sesión"
-        }
-
-        SectionHeader(headerTitle, Modifier.padding(horizontal = 24.dp))
-
-        if (registerToday && homeCompetition != null) {
-            CompetitionRegisterCard(
-                state = homeCompetition,
-                onRegister = { onRegisterCompetition(homeCompetition.recordId) },
-                modifier = Modifier.padding(horizontal = 24.dp),
-            )
-        } else if (!hasActiveProgram) {
-            NoProgramSessionCard(
-                modifier = Modifier.padding(horizontal = 24.dp),
-                onCreateProgram = onCreateProgram,
-            )
-        } else if (sessions.isEmpty()) {
-            Box(Modifier.padding(horizontal = 24.dp)) {
-                RestDayCard()
-                homeCompetition?.takeIf { it.phase == CompetitionHomePhase.UPCOMING }?.let {
-                    CompetitionCountdownCanvas(it, Modifier.align(Alignment.TopCenter))
-                }
-                CompetitionDatePromptSlot(competitionDatePromptProgramId, onOpenProgramForCompetitionDate)
+        if (multi) {
+            HorizontalPager(
+                state = pagerState,
+                modifier = Modifier.fillMaxWidth(),
+            ) { index ->
+                val page = pages[index]
+                HomeSessionHero(
+                    state = page.state,
+                    actions = actionsFor(page),
+                    muscles = gaugesFor(page, perMuscle),
+                    onOpenMuscles = onOpenMuscleDetail,
+                )
             }
+            PagerDots(
+                count = pages.size,
+                current = pagerState.currentPage,
+                modifier = Modifier.fillMaxWidth().padding(top = 12.dp),
+            )
         } else {
-            val currentItem = sessions.getOrElse(activeIndex) { sessions.first() }
-            val upcoming = homeCompetition?.takeIf { it.phase == CompetitionHomePhase.UPCOMING }
-
-            if (sessions.size > 1) {
-                val pagerState = rememberPagerState(initialPage = activeIndex) { sessions.size }
-                LaunchedEffect(activeIndex, sessions.size) {
-                    val needsSnap = pagerState.currentPage != activeIndex ||
-                        pagerState.currentPageOffsetFraction != 0f
-                    if (!needsSnap) return@LaunchedEffect
-                    pagerState.scrollToPage(activeIndex)
-                    isProgrammaticScroll = false
-                }
-                LaunchedEffect(pagerState) {
-                    snapshotFlow { pagerState.settledPage }
-                        .collect { settled ->
-                            if (!isProgrammaticScroll && settled != activeIndex) {
-                                activeIndex = settled
-                                anchoredSessionId = sessions.getOrNull(settled)?.session?.id
-                            }
+            AnimatedContent(
+                targetState = pages.first(),
+                contentKey = { it.state.key },
+                transitionSpec = {
+                    when {
+                        reduced -> EnterTransition.None togetherWith ExitTransition.None
+                        // Mismo día: solo fundido. Otro día: la sesión nueva entra desde su lado, 12 dp, y se funde.
+                        initialState.date == targetState.date ->
+                            fadeIn(tween(durationMillis = 220)) togetherWith fadeOut(tween(durationMillis = 220))
+                        else -> {
+                            val side = if (targetState.date > initialState.date) 1 else -1
+                            (fadeIn(tween(durationMillis = 220)) + slideInHorizontally(tween(durationMillis = 220)) { side * liftPx })
+                                .togetherWith(fadeOut(tween(durationMillis = 220)))
                         }
-                }
-                HorizontalPager(
-                    state = pagerState,
-                    pageSpacing = 8.dp,
-                    modifier = Modifier.fillMaxWidth(),
-                ) { page ->
-                    val pageItem = sessions[page]
-                    Box(Modifier.padding(horizontal = 24.dp)) {
-                        SessionCard(
-                            item = pageItem,
-                            currentDayOfWeek = currentDayOfWeek,
-                            perMuscle = perMuscle,
-                            loadAdvisory = loadAdvisory,
-                            onStart = { onStartWorkout(pageItem.session, pageItem.program) },
-                            onResume = onResumeWorkout,
-                            onEdit = { onEditSession(pageItem.session, pageItem.program) },
-                        )
-                        upcoming?.let { CompetitionCountdownCanvas(it, Modifier.align(Alignment.TopCenter)) }
-                        CompetitionDatePromptSlot(competitionDatePromptProgramId, onOpenProgramForCompetitionDate)
                     }
-                }
-            } else {
-                Box(Modifier.padding(horizontal = 24.dp)) {
-                    SessionCard(
-                        item = currentItem,
-                        currentDayOfWeek = currentDayOfWeek,
-                        perMuscle = perMuscle,
-                        loadAdvisory = loadAdvisory,
-                        onStart = { onStartWorkout(currentItem.session, currentItem.program) },
-                        onResume = onResumeWorkout,
-                        onEdit = { onEditSession(currentItem.session, currentItem.program) },
-                    )
-                    upcoming?.let { CompetitionCountdownCanvas(it, Modifier.align(Alignment.TopCenter)) }
-                    CompetitionDatePromptSlot(competitionDatePromptProgramId, onOpenProgramForCompetitionDate)
-                }
+                },
+                label = "homeHeroDay",
+            ) { page ->
+                HomeSessionHero(
+                    state = page.state,
+                    actions = actionsFor(page),
+                    muscles = gaugesFor(page, perMuscle),
+                    onOpenMuscles = onOpenMuscleDetail,
+                )
             }
         }
+        promptProgramId?.let { CompetitionDatePrompt(programId = it, onOpenProgram = onOpenProgramForCompetitionDate) }
     }
 }
 
 /** Tag de prueba de la acción «Añadir la fecha de tu competición» (C4c). */
 internal const val COMPETITION_DATE_PROMPT_TAG = "home-competition-date-prompt"
 
-/** La acción «Añadir la fecha de tu competición» en el sitio de la cuenta atrás (C4c): solo si [programId] no es null. */
+/** La acción «Añadir la fecha de tu competición», al pie del módulo: un [KpknTextAction] (C4c). */
 @Composable
-private fun BoxScope.CompetitionDatePromptSlot(programId: String?, onOpenProgram: (String) -> Unit) {
-    programId?.let { id ->
-        TextButton(
-            onClick = { onOpenProgram(id) },
-            modifier = Modifier
-                .align(Alignment.TopCenter)
-                .defaultMinSize(minHeight = 48.dp)
-                .testTag(COMPETITION_DATE_PROMPT_TAG),
-        ) {
-            Text(
-                "Añadir la fecha de tu competición",
-                style = MaterialTheme.typography.labelMedium,
-                fontWeight = FontWeight.Bold,
-                fontSize = 13.sp,
-                maxLines = 1,
-            )
-        }
+private fun CompetitionDatePrompt(programId: String, onOpenProgram: (String) -> Unit) {
+    Box(modifier = Modifier.padding(top = 8.dp)) {
+        KpknTextAction(
+            text = "Añadir la fecha de tu competición",
+            onClick = { onOpenProgram(programId) },
+            modifier = Modifier.testTag(COMPETITION_DATE_PROMPT_TAG),
+        )
     }
 }
 
-@Composable
-private fun SessionCard(
-    item: TodaySessionItem,
-    currentDayOfWeek: Int,
-    perMuscle: Map<String, MuscleRecoveryStatus>,
-    loadAdvisory: LoadAdvisory? = null,
-    onStart: () -> Unit,
-    onResume: () -> Unit,
-    onEdit: () -> Unit,
-    modifier: Modifier = Modifier,
+/** Una página del héroe: su día, su estado, la sesión que muestra (null si no hay) y los músculos de sus cifras. */
+private data class HomeHeroPage(
+    val date: LocalDate,
+    val state: HomeHeroState,
+    val item: TodaySessionItem?,
+    val muscles: List<String>,
 ) {
-    val customExercises by CustomExerciseRepository.customExercises.collectAsStateWithLifecycle()
-    val isCatalogReady by exerciseCatalogReady.collectAsStateWithLifecycle()
+    /** Las cifras de músculos salen si la sesión es de hoy o de otro día que se ve, y tiene músculos. */
+    val showsMuscles: Boolean
+        get() = muscles.isNotEmpty() && state.mode in setOf(
+            HomeHeroMode.TODAY,
+            HomeHeroMode.ONGOING,
+            HomeHeroMode.DONE,
+            HomeHeroMode.OTHER_DAY,
+        )
+}
 
-    val sessionMuscles = remember(item.session, customExercises, isCatalogReady) {
-        getSessionInvolvedMuscles(item.session)
+/** Los músculos de una página como chips: su % de recuperación, o sin dato («—»). Vacío si la página no los muestra. */
+private fun gaugesFor(page: HomeHeroPage, perMuscle: Map<String, MuscleRecoveryStatus>): List<HomeMuscleGauge> =
+    if (page.showsMuscles) {
+        page.muscles.map { HomeMuscleGauge(it, lookupMuscleValue(perMuscle, it)?.recoveryScore) }
+    } else {
+        emptyList()
     }
 
-    val durationDisplay = remember(item.log, item.session) {
-        getSessionDurationDisplay(item.session, item.log)
+/** La página preferida: la sesión en curso, si no la que toca hoy, si no la primera. */
+private fun preferredHeroPage(pages: List<HomeHeroPage>): Int =
+    pages.indexOfFirst { it.state.mode == HomeHeroMode.ONGOING }.takeIf { it >= 0 }
+        ?: pages.indexOfFirst { it.state.mode == HomeHeroMode.TODAY }.takeIf { it >= 0 }
+        ?: 0
+
+/**
+ * Las páginas del héroe para [day]: el competidor de hoy (REGISTER), la falta de programa, el descanso o las sesiones del día.
+ * Hoy puede tener varias sesiones (pager); otro día, una sola: la principal.
+ */
+private fun homeHeroPages(
+    day: LocalDate,
+    today: LocalDate,
+    sessions: List<TodaySessionItem>,
+    weekDays: List<HomeWeekDay>,
+    hasActiveProgram: Boolean,
+    homeCompetition: HomeCompetitionState?,
+    loadAdvisory: LoadAdvisory?,
+    activeProgram: Program?,
+): List<HomeHeroPage> {
+    val onToday = day == today
+    val countdown = homeCompetition?.takeIf { it.phase == CompetitionHomePhase.UPCOMING }?.let(::heroCountdown)
+
+    val competition = homeCompetition?.takeIf { onToday && it.phase == CompetitionHomePhase.REGISTER }
+    if (competition != null) {
+        return listOf(
+            HomeHeroPage(
+                date = day,
+                state = HomeHeroState(
+                    key = "$day/REGISTER",
+                    mode = HomeHeroMode.REGISTER,
+                    kicker = homeHeroKicker(HomeHeroMode.REGISTER, day, null, null),
+                    title = "¿Cómo te fue en ${competition.title}?",
+                    meta = "${competition.countdownLabel} · ${competition.competitionDateLabel}",
+                ),
+                item = null,
+                muscles = emptyList(),
+            ),
+        )
     }
-    val axialHints = remember(item.session, customExercises, isCatalogReady) {
-        axialHintsForSession(item.session)
+
+    if (!hasActiveProgram) {
+        return listOf(
+            HomeHeroPage(
+                date = day,
+                state = HomeHeroState(
+                    key = "$day/NO_PROGRAM",
+                    mode = HomeHeroMode.NO_PROGRAM,
+                    kicker = homeHeroKicker(HomeHeroMode.NO_PROGRAM, day, null, null),
+                    title = "Aún no tienes programa",
+                    body = "Crea uno con KPKN o importa el tuyo.",
+                ),
+                item = null,
+                muscles = emptyList(),
+            ),
+        )
     }
 
-    val homeAdapt = LocalViewportAdapt.current
-    Card(
-        modifier = modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(24.dp.adapt(homeAdapt)),
-        colors = CardDefaults.cardColors(containerColor = Color.Transparent),
-    ) {
-        Column {
-            Box(
-                Modifier
-                    .fillMaxWidth()
-                    .aspectRatio(16f / 5.5f)
-            ) {
-                SessionBackgroundLayer(
-                    background = item.session.background,
-                    blurDp = (item.session.background?.style?.blur ?: 0f).dp,
-                )
+    val dayItems = sessions.filter { it.dayOfWeek == day.dayOfWeek.value }
+    if (dayItems.isEmpty()) {
+        return listOf(
+            HomeHeroPage(
+                date = day,
+                state = HomeHeroState(
+                    key = "$day/REST",
+                    mode = HomeHeroMode.REST,
+                    kicker = homeHeroKicker(HomeHeroMode.REST, day, null, null),
+                    title = "Descanso",
+                    body = homeHeroNextLine(
+                        weekDays,
+                        HomeWeekResolver.nextSession(activeProgram, sessions, weekDays, day),
+                        // Sin sesión datada, la del programa en su semana: la misma función que Program Detail.
+                        programNextSessionOf(
+                            sessions = weekDays.mapNotNull { d -> d.sessionName?.let { d.date.dayOfWeek.value to it } },
+                            today = day.dayOfWeek.value,
+                        ),
+                    ),
+                    countdown = countdown,
+                ),
+                item = null,
+                muscles = emptyList(),
+            ),
+        )
+    }
 
-                Box(
-                    Modifier
-                        .fillMaxSize()
-                        .background(Color.Black.copy(alpha = 0.3f)),
-                )
-
-                if (loadAdvisory != null &&
-                    LoadAdvisoryEngine.rank(loadAdvisory.level) >= LoadAdvisoryEngine.rank(LoadAdvisoryLevel.ADJUST)
-                ) {
-                    Surface(
-                        modifier = Modifier
-                            .align(Alignment.TopEnd)
-                            .padding(12.dp),
-                        shape = RoundedCornerShape(50),
-                        color = Color(0xCCEF4444),
-                    ) {
-                        Text(
-                            LoadAdvisoryEngine.badgeLabel(loadAdvisory, axialHints),
-                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
-                            color = Color.White,
-                            style = MaterialTheme.typography.labelSmall,
-                            fontWeight = FontWeight.Bold,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                        )
-                    }
-                }
-
-                Row(
-                    Modifier
-                        .fillMaxSize()
-                        .padding(12.dp),
-                    verticalAlignment = Alignment.Bottom,
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                ) {
-                    Column(
-                        Modifier.weight(1f).padding(end = 8.dp),
-                        verticalArrangement = Arrangement.spacedBy(2.dp)
-                    ) {
-                        Text(
-                            item.program.name,
-                            color = Color.White.copy(alpha = 0.6f),
-                            style = MaterialTheme.typography.labelSmall,
-                            fontWeight = FontWeight.Black,
-                            letterSpacing = 1.5.sp,
-                        )
-                        Text(
-                            item.session.name,
-                            color = Color.White,
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Black,
-                            maxLines = 2,
-                        )
-                        formatTodayPrescription(item.session)?.let { prescription ->
-                            Text(
-                                prescription,
-                                color = Color.White.copy(alpha = 0.85f),
-                                style = MaterialTheme.typography.labelSmall,
-                                fontWeight = FontWeight.SemiBold,
-                                maxLines = 2,
-                                overflow = TextOverflow.Ellipsis,
-                            )
-                        }
-
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(4.dp),
-                        ) {
-                            Icon(
-                                Icons.Default.AccessTime,
-                                contentDescription = null,
-                                modifier = Modifier.size(12.dp),
-                                tint = Color.White.copy(alpha = 0.7f)
-                            )
-                            Text(
-                                durationDisplay,
-                                color = Color.White.copy(alpha = 0.7f),
-                                style = MaterialTheme.typography.labelSmall,
-                                fontWeight = FontWeight.Medium,
-                            )
-                        }
-                    }
-
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        FilledIconButton(
-                            onClick = onEdit,
-                            modifier = Modifier.size(48.dp),
-                            colors = IconButtonDefaults.filledIconButtonColors(
-                                containerColor = Color.White.copy(alpha = 0.20f),
-                            ),
-                        ) {
-                            Icon(
-                                Icons.Default.Edit,
-                                contentDescription = "Editar",
-                                modifier = Modifier.size(18.dp),
-                                tint = Color.White,
-                            )
-                        }
-                        FilledIconButton(
-                            onClick = when {
-                                item.isOngoing -> onResume
-                                else -> onStart
-                            },
-                            modifier = Modifier.size(48.dp),
-                            colors = IconButtonDefaults.filledIconButtonColors(
-                                containerColor = when {
-                                    item.isCompleted -> Color(0xFF66BB6A)
-                                    else -> Color.White
-                                },
-                            ),
-                        ) {
-                            Icon(
-                                imageVector = when {
-                                    item.isCompleted -> Icons.Default.Refresh
-                                    else -> Icons.Default.PlayArrow
-                                },
-                                contentDescription = when {
-                                    item.isCompleted -> "Repetir sesión"
-                                    item.isOngoing -> "Reanudar"
-                                    else -> "Iniciar"
-                                },
-                                modifier = Modifier.size(24.dp),
-                                tint = Color.Black,
-                            )
-                        }
-                    }
-                }
-            }
-
-            var musclesExpanded by remember { mutableStateOf(false) }
-
-            Box(
-                Modifier
-                    .fillMaxWidth()
-                    .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f))
-                    .tourAnchor(TourAnchors.HOME_SESION)
-                    .clickable { musclesExpanded = !musclesExpanded }
-                    .padding(horizontal = 12.dp, vertical = 10.dp)
-            ) {
-                Row(
-                    Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Text(
-                        "Músculos involucrados",
-                        style = MaterialTheme.typography.labelSmall,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurface,
-                    )
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(6.dp),
-                    ) {
-                        // Un solo entero para el texto y el color de banda (redondeado, no truncado).
-                        val avgRecovery = sessionRecoveryPercent(
-                            sessionMuscles.map { lookupMuscleValue(perMuscle, it)?.recoveryScore ?: 100 },
-                        )
-                        Text(
-                            if (avgRecovery == null) "--%" else "$avgRecovery%",
-                            style = MaterialTheme.typography.labelSmall,
-                            fontWeight = FontWeight.Black,
-                            color = if (avgRecovery == null) {
-                                MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)
-                            } else {
-                                batteryColor(avgRecovery)
-                            },
-                        )
-                        Icon(
-                            if (musclesExpanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
-                            contentDescription = if (musclesExpanded) "Contraer" else "Expandir",
-                            modifier = Modifier.size(18.dp),
-                            tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
-                        )
-                    }
-                }
-            }
-
-            AnimatedVisibility(visible = musclesExpanded) {
-                Column(
-                    Modifier
-                        .fillMaxWidth()
-                        .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.15f))
-                        .padding(horizontal = 12.dp, vertical = 10.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
-                ) {
-                    if (sessionMuscles.isEmpty()) {
-                        Text(
-                            "Esta sesión no tiene grupos musculares detectados.",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
-                        )
-                    } else sessionMuscles.chunked(2).forEach { row ->
-                        Row(
-                            Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        ) {
-                            row.forEach { muscle ->
-                                val score = lookupMuscleValue(perMuscle, muscle)?.recoveryScore ?: 100
-                                Surface(
-                                    modifier = Modifier.weight(1f),
-                                    shape = RoundedCornerShape(12.dp),
-                                    color = Color(0xFF1F1F1F),
-                                    border = androidx.compose.foundation.BorderStroke(
-                                        1.dp,
-                                        MaterialTheme.colorScheme.onSurface.copy(alpha = 0.35f),
-                                    ),
-                                ) {
-                                    Row(
-                                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 9.dp),
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                    ) {
-                                        Text(
-                                            muscle,
-                                            modifier = Modifier.weight(1f),
-                                            style = MaterialTheme.typography.labelMedium,
-                                            color = MaterialTheme.colorScheme.onSurface,
-                                            fontWeight = FontWeight.Bold,
-                                            maxLines = 1,
-                                            overflow = TextOverflow.Ellipsis,
-                                        )
-                                        Text(
-                                            "$score%",
-                                            style = MaterialTheme.typography.labelMedium,
-                                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
-                                            fontWeight = FontWeight.Bold,
-                                        )
-                                    }
-                                }
-                            }
-                            if (row.size == 1) Spacer(Modifier.weight(1f))
-                        }
-                    }
-                }
-            }
-        }
+    // «DÍA n DE m»: la posición del día entre los que tienen sesión en «Tu semana».
+    val sessionDays = weekDays.filter { it.sessionName != null }
+    val position = sessionDays.indexOfFirst { it.date == day }.takeIf { it >= 0 }?.plus(1)
+    val count = sessionDays.size.takeIf { it > 0 }
+    val picked = if (onToday) {
+        dayItems
+    } else {
+        listOf(dayItems.firstOrNull { it.session.isMainSession } ?: dayItems.first())
+    }
+    return picked.map { item ->
+        sessionHeroPage(item, day, onToday, position, count, countdown, loadAdvisory)
     }
 }
 
+/** La página de una sesión: su modo (hoy, en curso, hecha u otro día), sus ejercicios, su meta y sus músculos. */
+private fun sessionHeroPage(
+    item: TodaySessionItem,
+    day: LocalDate,
+    onToday: Boolean,
+    position: Int?,
+    count: Int?,
+    countdown: HomeHeroCountdown?,
+    loadAdvisory: LoadAdvisory?,
+): HomeHeroPage {
+    val session = item.session
+    val mode = when {
+        !onToday -> HomeHeroMode.OTHER_DAY
+        item.isOngoing -> HomeHeroMode.ONGOING
+        item.isCompleted -> HomeHeroMode.DONE
+        else -> HomeHeroMode.TODAY
+    }
+    val exercises = session.allExercises()
+    // El aviso de carga habla de la sesión que toca ahora, así que solo sale en las sesiones de hoy que no están hechas.
+    val advisory = loadAdvisory?.takeIf {
+        (mode == HomeHeroMode.TODAY || mode == HomeHeroMode.ONGOING) &&
+            LoadAdvisoryEngine.rank(it.level) >= LoadAdvisoryEngine.rank(LoadAdvisoryLevel.ADJUST)
+    }
+    val log = item.log
+    val meta = if (mode == HomeHeroMode.DONE && log != null) doneMeta(log) else estimateMeta(session, exercises.size)
+    return HomeHeroPage(
+        date = day,
+        state = HomeHeroState(
+            key = "$day/${mode.name}/${session.id}",
+            mode = mode,
+            kicker = homeHeroKicker(mode, day, position, count),
+            title = session.name.ifBlank { "Sesión" },
+            lines = exercises.take(3).map { exercise ->
+                HomeHeroLine(name = exercise.displayNameWithSelectedChips(), dose = heroDose(exercise).orEmpty())
+            },
+            moreCount = (exercises.size - 3).coerceAtLeast(0),
+            meta = meta,
+            advisoryBadge = advisory?.let { LoadAdvisoryEngine.badgeLabel(it, axialHintsForSession(session)) },
+            countdown = countdown,
+        ),
+        item = item,
+        muscles = getSessionInvolvedMuscles(session),
+    )
+}
+
+/** La meta de una sesión hecha: duración real y series completadas, del registro. */
+private fun doneMeta(log: WorkoutLog): String {
+    val sets = log.completedExercises.sumOf { it.sets.size }
+    return listOfNotNull(
+        "${log.durationMinutes} min",
+        sets.takeIf { it > 0 }?.let { if (it == 1) "1 serie" else "$it series" },
+    ).joinToString(" · ")
+}
+
+/** La meta de una sesión por hacer: la duración estimada («≈ 60 min») y el número de ejercicios. */
+private fun estimateMeta(session: Session, exerciseCount: Int): String? {
+    val minutes = estimatedSessionMinutes(session)
+    return listOfNotNull(
+        minutes?.let { "≈ $it min" },
+        exerciseCount.takeIf { it > 0 }?.let { if (it == 1) "1 ejercicio" else "$it ejercicios" },
+    ).joinToString(" · ").ifEmpty { null }
+}
+
+/**
+ * Minutos estimados de una sesión con el estimador común (`SessionDurationEstimator`, SE12): los mismos que el editor y el programa.
+ * Null si la sesión no tiene nada que medir.
+ */
+internal fun estimatedSessionMinutes(session: Session): Int? {
+    val estimate = runCatching { SessionDurationEstimator.estimate(session) }.getOrNull() ?: return null
+    return estimate.totalMinutes.takeIf { estimate.totalSeconds > 0 }
+}
+
+/** La cuenta atrás de la competición para el héroe: «23 días para tu competición» o «Mañana es tu competición». */
+private fun heroCountdown(state: HomeCompetitionState): HomeHeroCountdown =
+    if (state.daysUntil == 1L) {
+        HomeHeroCountdown(value = "Mañana", unit = null, label = "es tu competición")
+    } else {
+        HomeHeroCountdown(value = "${state.daysUntil}", unit = "días", label = "para tu competición")
+    }
+
+/** Los músculos que trabaja una sesión, con el nombre que muestra Auge. */
 private fun getSessionInvolvedMuscles(session: Session): List<String> {
     val muscles = linkedSetOf<String>()
 
@@ -546,217 +431,6 @@ private fun getSessionInvolvedMuscles(session: Session): List<String> {
 
     return muscles.toList()
 }
-
-private fun getSessionDurationDisplay(session: Session, log: WorkoutLog?): String {
-    if (log != null) {
-        return "${log.durationMinutes} min promedio"
-    }
-
-    val exercises = session.allExercises()
-    val breakdown = runCatching {
-        calculateSessionTimeBreakdown(
-            exercises = exercises,
-            supersetGroups = session.allSupersetGroups(),
-            sessionWarmup = session.warmup,
-            globalMobilitySeries = session.parts
-                .filter { it.isMobilityGroup }
-                .flatMap { it.mobilitySeries },
-        )
-    }.getOrNull()
-    val partFloorSeconds = session.parts.maxOfOrNull { part ->
-        maxOf(
-            (part.targetDurationMinutes ?: 0).coerceAtLeast(0),
-            (part.mobilityConfig?.totalMinutes ?: 0).coerceAtLeast(0),
-        ) * 60
-    } ?: 0
-    val estimatedSeconds = maxOf(breakdown?.totalSeconds ?: 0, partFloorSeconds)
-    if (estimatedSeconds <= 0) return "Sin datos"
-    return "~${(estimatedSeconds / 60.0).toInt().coerceAtLeast(1)} min"
-}
-
-@Composable
-private fun NoProgramSessionCard(
-    modifier: Modifier = Modifier,
-    onCreateProgram: () -> Unit = {},
-) {
-    Card(
-        modifier = modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(24.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
-        ),
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 24.dp, vertical = 28.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            Text(
-                "Sin programa activo",
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Black,
-            )
-            Spacer(Modifier.height(4.dp))
-            Text(
-                "Crea un programa de entrenamiento para ver tu sesión del día aquí.",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
-                textAlign = TextAlign.Center,
-            )
-            Spacer(Modifier.height(8.dp))
-            Button(
-                onClick = onCreateProgram,
-                modifier = Modifier.fillMaxWidth().height(48.dp),
-                shape = RoundedCornerShape(12.dp),
-            ) {
-                Text("Crear programa", fontWeight = FontWeight.Bold)
-            }
-        }
-    }
-}
-
-@Composable
-private fun RestDayCard(
-    modifier: Modifier = Modifier,
-) {
-    Card(
-        modifier = modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(24.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.5f),
-        ),
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(24.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-        ) {
-            Text(
-                "Día de descanso",
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Black,
-            )
-            Text(
-                "Hoy es tu día de recuperación activa",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
-            )
-        }
-    }
-}
-
-@Composable
-private fun CompetitionCountdownCanvas(state: HomeCompetitionState, modifier: Modifier = Modifier) {
-    Surface(
-        modifier = modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(topStart = 18.dp, topEnd = 18.dp),
-        color = Color(0xFFF59E0B).copy(alpha = 0.92f),
-    ) {
-        Row(
-            modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(10.dp),
-        ) {
-            Text("COMP", fontWeight = FontWeight.Black, fontSize = 11.sp, color = Color.Black)
-            Column(Modifier.weight(1f)) {
-                Text(
-                    "Cuenta atrás · ${state.countdownLabel}",
-                    fontWeight = FontWeight.Black,
-                    fontSize = 13.sp,
-                    color = Color.Black,
-                )
-                Text(
-                    state.competitionDateLabel,
-                    fontSize = 11.sp,
-                    color = Color.Black.copy(alpha = 0.78f),
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun CompetitionRegisterCard(
-    state: HomeCompetitionState,
-    onRegister: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    Surface(
-        modifier = modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(18.dp),
-        color = Color(0xFFF59E0B).copy(alpha = 0.16f),
-        tonalElevation = 2.dp,
-    ) {
-        Column(
-            modifier = Modifier.padding(18.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-        ) {
-            Text("Día de competición", fontWeight = FontWeight.Black, fontSize = 12.sp, color = Color(0xFFF59E0B))
-            Text(state.title, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Black)
-            Text(
-                "${state.countdownLabel} · ${state.competitionDateLabel}",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-            Button(
-                onClick = onRegister,
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(14.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFF59E0B), contentColor = Color.Black),
-            ) {
-                Text("Registrar resultados", fontWeight = FontWeight.Black)
-            }
-        }
-    }
-}
-
-internal fun formatTodayPrescription(session: Session): String? {
-    val main = session.allExercises().firstOrNull { it.isCompetitionLift }
-        ?: session.allExercises().firstOrNull()
-        ?: return null
-    val working = main.sets.filter { !it.isEmptySlot }
-    if (working.isEmpty()) return main.displayNameWithSelectedChips().takeIf { it.isNotBlank() }
-    val reps = working.first().targetRepsRange?.format()
-        ?: working.first().targetReps?.toString()
-        ?: "—"
-    val percent = working.first().targetPercentageRM
-    val rpe = working.mapNotNull { it.targetRPE }.firstOrNull()
-    val rir = working.mapNotNull { it.targetRIR }.firstOrNull()
-    val amrapSet = working.firstOrNull {
-        it.isAmrap || it.intensityMode == IntensityMode.AMRAP
-    }
-    val failurePlanned = working.any {
-        it.isFailure || it.intensityMode == IntensityMode.FAILURE
-    }
-    val kg = working.first().weight
-        ?: percent?.let { p -> main.reference1RM?.let { rm -> rm * p / 100.0 } }
-    val load = when {
-        kg != null && percent != null -> "${percent.toInt()}% → ${"%.1f".format(kg)} kg"
-        kg != null -> "${"%.1f".format(kg)} kg"
-        percent != null -> "${percent.toInt()}%"
-        else -> null
-    }
-    val intensityPart = when {
-        amrapSet != null -> {
-            val minimum = amrapSet.targetRepsRange?.min ?: amrapSet.targetReps
-            " AMRAP" + (minimum?.let { " (mín. $it)" } ?: "")
-        }
-        failurePlanned -> " FALLO"
-        rir != null -> " RIR $rir"
-        rpe != null -> " RPE ${if (rpe % 1.0 == 0.0) rpe.toInt().toString() else rpe.toString()}"
-        else -> ""
-    }
-    val loadPart = load?.let { " @ $it" }.orEmpty()
-    return "${main.displayNameWithSelectedChips()}: ${working.size}×$reps$loadPart$intensityPart"
-}
-
-/** Promedio de recuperación de los músculos de la sesión como entero para mostrar (99,5 ⇒ 100); null si no hay músculos. */
-internal fun sessionRecoveryPercent(scores: List<Int>): Int? =
-    if (scores.isEmpty()) null else scores.average().roundToInt()
 
 internal fun axialHintsForSession(session: Session): List<AxialSessionExercise> =
     session.allExercises().mapNotNull { exercise ->

@@ -1,27 +1,18 @@
 package com.example.kpkn.screens.nutrition
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilterChip
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.LinearProgressIndicator
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -29,13 +20,21 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.kpkn.domain.nutrition.NutritionCalibrationWizardStep
-
-/** Cómo pesa el usuario sus alimentos: valor que guarda el perfil → nombre que se le muestra. */
-private val WEIGHING_CONVENTIONS = listOf("RAW" to "Crudo", "COOKED" to "Cocido", "DEPENDS" to "Depende")
+import com.example.kpkn.data.models.NutritionCalibrationProfile
+import com.example.kpkn.domain.nutrition.NutritionCalibrationEngine
+import com.example.kpkn.screens.nutrition.design.NutritionSubpageHeader
+import com.example.kpkn.screens.nutrition.design.calibration.CalibrationStatusModule
+import com.example.kpkn.screens.nutrition.design.calibration.CalibrationWizardModule
+import com.example.kpkn.screens.nutrition.design.calibration.WEIGHING_CONVENTIONS
+import com.example.kpkn.screens.onboarding.design.WizardColors
+import com.example.kpkn.ui.components.KpknAlertDialog
+import com.example.kpkn.ui.design.KpknModule
+import com.example.kpkn.ui.design.KpknPrimaryPill
+import com.example.kpkn.ui.design.KpknSurface
+import com.example.kpkn.ui.design.KpknTextAction
+import com.example.kpkn.ui.design.KpknType
 
 /** El nombre de la convención de pesaje: «sin definir» mientras no se haya elegido; un valor desconocido se muestra tal cual. */
 internal fun weighingConventionLabel(convention: String?): String =
@@ -50,136 +49,127 @@ internal fun calibrationStatusLabel(status: String): String = when (status) {
     else -> "En evaluación"
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+/**
+ * Calibración de Nutrición (N5, NUTRITION_V1 §5): el módulo de estado con la cobertura y el ajuste sugerido, «Evaluar mis últimos datos», el
+ * asistente «Calibrar tus hábitos» y, al pie, «Restablecer calibración», que pide confirmación. El motor y su ViewModel no cambian.
+ */
 @Composable
 fun NutritionCalibrationScreen(
     onBack: () -> Unit,
     viewModel: NutritionCalibrationViewModel = viewModel(),
 ) {
     val state by viewModel.uiState.collectAsState()
-    val profile = state.profile
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Calibración conservadora", fontWeight = FontWeight.Black) },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver")
-                    }
-                },
-            )
-        },
-    ) { padding ->
+    NutritionCalibrationContent(
+        state = state,
+        onBack = onBack,
+        onEvaluate = viewModel::evaluate,
+        onReset = viewModel::reset,
+        onAnswerWizard = viewModel::answerWizard,
+        onSkipWizard = viewModel::skipWizard,
+        onResumeWizard = viewModel::resumeWizard,
+    )
+}
+
+/**
+ * La página de calibración sin su ViewModel. Sin el error crudo: si algo falla, un aviso en lenguaje llano. Sin `LinearProgressIndicator`:
+ * mientras carga, la píldora dice «Evaluando…» y se apaga.
+ */
+@Composable
+internal fun NutritionCalibrationContent(
+    state: NutritionCalibrationUiState,
+    onBack: () -> Unit,
+    onEvaluate: () -> Unit,
+    onReset: () -> Unit,
+    onAnswerWizard: (String) -> Unit,
+    onSkipWizard: () -> Unit,
+    onResumeWizard: () -> Unit,
+) {
+    val wizard = state.wizard
+    // La respuesta en curso se borra al cambiar de paso; así un paso nuevo nunca arrastra lo escrito en el anterior.
+    var answer by remember(wizard.step, wizard.profile.lastWizardUpdatedAtEpochMs) { mutableStateOf("") }
+    var askReset by remember { mutableStateOf(false) }
+    val topInset = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
+    val pagePadding = Modifier.padding(horizontal = 16.dp)
+
+    Box(modifier = Modifier.fillMaxSize().background(KpknSurface.canvas)) {
         LazyColumn(
-            modifier = Modifier.fillMaxSize().padding(padding),
-            contentPadding = PaddingValues(16.dp),
+            modifier = Modifier.fillMaxSize().navigationBarsPadding(),
+            contentPadding = PaddingValues(bottom = 32.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            item {
-                val wizard = state.wizard
-                var answer by remember(wizard.step, wizard.profile.lastWizardUpdatedAtEpochMs) {
-                    mutableStateOf("")
-                }
-                Card(modifier = Modifier.fillMaxWidth()) {
-                    Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                        Text("Calibrar tus hábitos", fontWeight = FontWeight.Black)
-                        Text("Puedes omitirlo y reanudarlo después. Solo se guardan respuestas confirmadas; una estimación no entrena el perfil.")
-                        Text(
-                            "Paso ${wizard.step.index + 1} de ${NutritionCalibrationWizardStep.entries.size}: ${wizard.step.title}",
-                            fontWeight = FontWeight.Bold,
-                        )
-                        when (wizard.step) {
-                            NutritionCalibrationWizardStep.WEIGHING_CONVENTION -> {
-                                Text("¿Cómo pesas normalmente los alimentos?")
-                                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                                    WEIGHING_CONVENTIONS.forEach { (value, label) ->
-                                        FilterChip(
-                                            selected = wizard.profile.weighingConvention == value,
-                                            onClick = { viewModel.answerWizard(value) },
-                                            label = { Text(label) },
-                                        )
-                                    }
-                                }
-                            }
-                            NutritionCalibrationWizardStep.REVIEW -> {
-                                Text("Revisa y guarda el perfil cuando estés conforme.")
-                                Text("Pesaje: ${weighingConventionLabel(wizard.profile.weighingConvention)}")
-                                Text("Porciones maduras: ${wizard.profile.maturePortionsGrams.size}")
-                                Button(
-                                    onClick = { viewModel.answerWizard("listo") },
-                                    modifier = Modifier.fillMaxWidth(),
-                                ) { Text("Guardar perfil") }
-                            }
-                            else -> {
-                                Text(
-                                    when (wizard.step) {
-                                        NutritionCalibrationWizardStep.UTENSILS -> "Ejemplo: taza=240,vaso=250,bol=400,plato=300"
-                                        NutritionCalibrationWizardStep.STAPLE_PORTIONS -> "Ejemplo: arroz=150,pasta=180,papas=200,legumbres=180"
-                                        NutritionCalibrationWizardStep.PROTEIN_PORTIONS -> "Ejemplo: pollo=180,vacuno=160,pescado=170"
-                                        NutritionCalibrationWizardStep.PREPARATION_OIL -> "Ejemplo: plancha=3,horno=2,fritura=10,air_fryer=0"
-                                        else -> ""
-                                    },
-                                )
-                                OutlinedTextField(
-                                    value = answer,
-                                    onValueChange = { answer = it },
-                                    modifier = Modifier.fillMaxWidth(),
-                                    label = { Text("Respuesta confirmada") },
-                                    singleLine = true,
-                                )
-                                Button(
-                                    onClick = {
-                                        viewModel.answerWizard(answer.ifBlank { "confirmado" })
-                                        answer = ""
-                                    },
-                                    modifier = Modifier.fillMaxWidth(),
-                                    enabled = answer.isNotBlank(),
-                                ) { Text("Confirmar y continuar") }
-                            }
-                        }
-                        if (!wizard.isComplete) {
-                            TextButton(onClick = viewModel::skipWizard, modifier = Modifier.fillMaxWidth()) {
-                                Text("Omitir por ahora")
-                            }
-                        } else {
-                            TextButton(onClick = viewModel::resumeWizard, modifier = Modifier.fillMaxWidth()) {
-                                Text("Editar y reanudar")
-                            }
-                        }
-                    }
-                }
+            item(key = "calibration-header") {
+                NutritionSubpageHeader(title = "Calibración", topInset = topInset, onBack = onBack)
             }
-            item {
+            item(key = "calibration-intro") {
                 Text(
-                    "Ajusta el objetivo solo con tendencia real. Se requieren al menos 14 días, 7 pesajes y 10 días completos; cada ajuste queda limitado a ±150 kcal.",
+                    text = "Ajusta el objetivo solo con tendencia real: hacen falta ${NutritionCalibrationEngine.MINIMUM_DAYS} días, " +
+                        "${NutritionCalibrationEngine.MIN_WEIGHT_READINGS} pesajes y ${NutritionCalibrationEngine.MIN_COMPLETE_DAYS} " +
+                        "días completos.",
+                    style = KpknType.body,
+                    color = WizardColors.textMuted,
+                    modifier = pagePadding,
                 )
             }
-            if (state.isLoading) item { LinearProgressIndicator(modifier = Modifier.fillMaxWidth()) }
-            profile?.let { current ->
-                item {
-                    Card(modifier = Modifier.fillMaxWidth()) {
-                        Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                            Text("Estado: ${calibrationStatusLabel(current.status)}", fontWeight = FontWeight.Bold)
-                            Text("Cobertura: ${current.observedDays}/${current.targetDays} días")
-                            Text("Días completos: ${current.completeDays} · Pesajes: ${current.weightReadings}")
-                            current.recommendedAdjustmentKcal?.let { adjustment ->
-                                Text("Ajuste sugerido: ${if (adjustment >= 0) "+" else ""}$adjustment kcal")
-                            } ?: Text("Aún no hay muestra suficiente para ajustar")
-                        }
+            item(key = "calibration-status") {
+                CalibrationStatusModule(
+                    profile = state.profile ?: NutritionCalibrationProfile(),
+                    modifier = pagePadding,
+                )
+            }
+            item(key = "calibration-evaluate") {
+                KpknPrimaryPill(
+                    text = if (state.isLoading) "Evaluando…" else "Evaluar mis últimos datos",
+                    onClick = onEvaluate,
+                    modifier = pagePadding.fillMaxWidth(),
+                    enabled = !state.isLoading,
+                )
+            }
+            if (state.error != null) {
+                item(key = "calibration-error") {
+                    KpknModule(modifier = pagePadding.fillMaxWidth(), accent = WizardColors.danger) {
+                        Text(
+                            text = "No se pudo calibrar. Inténtalo de nuevo.",
+                            style = KpknType.bodyStrong,
+                            color = WizardColors.text,
+                        )
                     }
                 }
             }
-            state.error?.let { error -> item { Text("No se pudo calibrar: $error") } }
-            item {
-                Button(onClick = viewModel::evaluate, modifier = Modifier.fillMaxWidth(), enabled = !state.isLoading) {
-                    Text("Evaluar mis últimos datos")
-                }
+            item(key = "calibration-wizard") {
+                CalibrationWizardModule(
+                    wizard = wizard,
+                    answer = answer,
+                    onAnswerChange = { answer = it },
+                    onAnswer = onAnswerWizard,
+                    onSkip = onSkipWizard,
+                    onResume = onResumeWizard,
+                    modifier = pagePadding,
+                )
             }
-            item {
-                androidx.compose.material3.TextButton(onClick = viewModel::reset, modifier = Modifier.fillMaxWidth()) {
-                    Text("Restablecer calibración")
-                }
+            item(key = "calibration-reset") {
+                KpknTextAction(
+                    text = "Restablecer calibración",
+                    onClick = { askReset = true },
+                    modifier = pagePadding,
+                    color = WizardColors.danger,
+                )
             }
         }
+    }
+
+    if (askReset) {
+        KpknAlertDialog(
+            onDismissRequest = { askReset = false },
+            title = "¿Restablecer la calibración?",
+            text = "Se borra el perfil de calibración, con sus revisiones. Tus registros de comida no cambian.",
+            confirmLabel = "Restablecer",
+            onConfirm = {
+                askReset = false
+                onReset()
+            },
+            dismissLabel = "Cancelar",
+            onDismiss = { askReset = false },
+            destructive = true,
+        )
     }
 }

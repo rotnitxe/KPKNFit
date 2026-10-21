@@ -124,10 +124,11 @@ class RoutineGeneratorBehaviorTest {
 
     @Test
     fun a_priority_muscle_never_loses_volume_and_gains_it_when_it_has_room() {
-        val cases = mapOf(
+        // Brazos es un símbolo con dos músculos: se prueba cada uno con el mismo símbolo.
+        val cases = listOf(
             MuscleSymbol.CHEST to "Pectorales",
-            MuscleSymbol.BICEPS to "Bíceps",
-            MuscleSymbol.TRICEPS to "Tríceps",
+            MuscleSymbol.ARMS to "Bíceps",
+            MuscleSymbol.ARMS to "Tríceps",
             MuscleSymbol.SHOULDERS to "Deltoides",
             MuscleSymbol.CALVES to "Pantorrillas",
             MuscleSymbol.QUADS to "Cuádriceps",
@@ -170,7 +171,7 @@ class RoutineGeneratorBehaviorTest {
         fun firstIndex(session: Session, muscle: String): Int? =
             session.exercises.indexOfFirst { (entries.entry(it.catalogConfigurationId!!)!!.contributions[muscle]?.direct ?: 0.0) > 0.0 }
                 .takeIf { it >= 0 }
-        mapOf(MuscleSymbol.BICEPS to "Bíceps", MuscleSymbol.CALVES to "Pantorrillas").forEach { (symbol, muscle) ->
+        mapOf(MuscleSymbol.ARMS to "Bíceps", MuscleSymbol.CALVES to "Pantorrillas").forEach { (symbol, muscle) ->
             val base = RoutineGenerator.generate(s.request(s.gym, RoutineMode.GENERAL_STRENGTH_MUSCLE, RoutineLevel.INTERMEDIATE, 5, 90))
             val boosted = RoutineGenerator.generate(
                 s.request(s.gym, RoutineMode.GENERAL_STRENGTH_MUSCLE, RoutineLevel.INTERMEDIATE, 5, 90, priorities = listOf(symbol)),
@@ -191,7 +192,7 @@ class RoutineGeneratorBehaviorTest {
         val routine = RoutineGenerator.generate(
             s.request(
                 s.gym, RoutineMode.GENERAL_STRENGTH_MUSCLE, RoutineLevel.ADVANCED, 6, 120,
-                priorities = listOf(MuscleSymbol.CHEST, MuscleSymbol.BACK, MuscleSymbol.SHOULDERS, MuscleSymbol.BICEPS, MuscleSymbol.TRICEPS),
+                priorities = listOf(MuscleSymbol.CHEST, MuscleSymbol.BACK, MuscleSymbol.SHOULDERS, MuscleSymbol.ARMS, MuscleSymbol.FOREARMS),
             ),
         )
         routine.report.weeklyDirectSets.forEach { (muscle, sets) ->

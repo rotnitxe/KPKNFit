@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.domain.multisport.HybridProgramPlannerTest" tests="20" skipped="0" failures="0" errors="0" timestamp="2026-10-20T04:06:51.641Z" hostname="VF" time="0.322">
+  <properties/>
+  <testcase name="bindingWeekdayPlaceAndEquipmentConstraintsReachThePlacementPlanner" classname="com.example.kpkn.domain.multisport.HybridProgramPlannerTest" time="0.158"/>
+  <testcase name="fixedCommitmentsAreSnapshottedAndKeepSessionsOutsideTheirIntervals" classname="com.example.kpkn.domain.multisport.HybridProgramPlannerTest" time="0.006"/>
+  <testcase name="competitionSessionsCannotBeRepositionedAsOrdinaryTrainingCandidates" classname="com.example.kpkn.domain.multisport.HybridProgramPlannerTest" time="0.003"/>
+  <testcase name="futureOpaqueIntentIsRejectedWithoutReadingItsV1Fields" classname="com.example.kpkn.domain.multisport.HybridProgramPlannerTest" time="0.02"/>
+  <testcase name="requiredSessionsMustAllPlaceAndOptionalOmissionsAreExplicit" classname="com.example.kpkn.domain.multisport.HybridProgramPlannerTest" time="0.012"/>
+  <testcase name="everyIntentGoalMustBeBoundBeforePlacement" classname="com.example.kpkn.domain.multisport.HybridProgramPlannerTest" time="0.001"/>
+  <testcase name="rejectsLegacyProgramMissingBindingsAndMalformedDuration" classname="com.example.kpkn.domain.multisport.HybridProgramPlannerTest" time="0.012"/>
+  <testcase name="optionalOmissionCannotLeaveAnIntentGoalWithoutTrainingAfterPlacement" classname="com.example.kpkn.domain.multisport.HybridProgramPlannerTest" time="0.008"/>
+  <testcase name="searchBudgetIsReportedSeparatelyFromPlacementImpossibility" classname="com.example.kpkn.domain.multisport.HybridProgramPlannerTest" time="0.004"/>
+  <testcase name="remainingAdapterKeepsUnknownHistoricalDoseUnassessed" classname="com.example.kpkn.domain.multisport.HybridProgramPlannerTest" time="0.023"/>
+  <testcase name="plannerReportsWhenEstimatedContentExceedsTheBindingBudget" classname="com.example.kpkn.domain.multisport.HybridProgramPlannerTest" time="0.006"/>
+  <testcase name="proposalCurrentnessTracksWeekIntentAndConfiguration" classname="com.example.kpkn.domain.multisport.HybridProgramPlannerTest" time="0.005"/>
+  <testcase name="explicitSessionPlaceCannotBeRelaxedAndAllowedPlaceConflictIsInvalid" classname="com.example.kpkn.domain.multisport.HybridProgramPlannerTest" time="0.005"/>
+  <testcase name="rejectsDuplicateHierarchyAndUnknownOrDuplicateBindings" classname="com.example.kpkn.domain.multisport.HybridProgramPlannerTest" time="0.002"/>
+  <testcase name="proposalCannotBeReusedUnderAnIdenticalWeekInAnotherProgram" classname="com.example.kpkn.domain.multisport.HybridProgramPlannerTest" time="0.003"/>
+  <testcase name="preparesOnlyExplicitlyBoundBaseSessionsAndPreservesTheProgram" classname="com.example.kpkn.domain.multisport.HybridProgramPlannerTest" time="0.002"/>
+  <testcase name="loopRestAndEmptyWeeksCannotProduceProposals" classname="com.example.kpkn.domain.multisport.HybridProgramPlannerTest" time="0.001"/>
+  <testcase name="remainingAdapterPreservesCompletedPlacementAndPlansOnlyAfterCurrentTime" classname="com.example.kpkn.domain.multisport.HybridProgramPlannerTest" time="0.006"/>
+  <testcase name="proposalSnapshotsCallerCollectionsAndSurviveProgramJsonRoundTrip" classname="com.example.kpkn.domain.multisport.HybridProgramPlannerTest" time="0.041"/>
+  <testcase name="remainingAdapterCannotPlaceIntoAnElapsedDay" classname="com.example.kpkn.domain.multisport.HybridProgramPlannerTest" time="0.002"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

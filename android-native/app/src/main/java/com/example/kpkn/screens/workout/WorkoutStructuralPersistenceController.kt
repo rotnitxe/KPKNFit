@@ -12,15 +12,13 @@ import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.models.ProgramWeek
 import com.example.kpkn.data.models.ReplacementPersistenceScopeV2
 import com.example.kpkn.data.models.Session
-import com.example.kpkn.data.models.TrainingMode
-import com.example.kpkn.data.models.UnilateralMode
-import com.example.kpkn.data.models.UnitModeV2
 import com.example.kpkn.data.models.WeekVariant
 import com.example.kpkn.data.models.WorkoutContextProfile
 import com.example.kpkn.data.models.supersetGroupRefOrLegacyId
 import com.example.kpkn.data.repository.ProgramRepository
-import com.example.kpkn.domain.exercises.replacedWithCatalogExercise
 import com.example.kpkn.domain.exercises.resolvedCanonicalExerciseId
+import com.example.kpkn.domain.training.ProgramProgressEngine
+import com.example.kpkn.domain.workout.LiveSessionReorder
 import com.example.kpkn.domain.workout.SupersetRules
 import com.example.kpkn.domain.workout.WorkoutStructuralEditor
 import java.util.UUID
@@ -71,9 +69,10 @@ class WorkoutStructuralPersistenceController(
             effectiveScope != ReplacementPersistenceScopeV2.SESSION_ONLY &&
             effectiveScope != ReplacementPersistenceScopeV2.BLOCK_MATCHING) {
             val permanent = effectiveScope == ReplacementPersistenceScopeV2.PERMANENT
+            val weekIdInProgram = programWeekId(program, state.weekId)
             fun persist(session: Session) {
                 upsertEditedProgramSession(
-                    weekId = state.weekId,
+                    weekId = weekIdInProgram,
                     macroIndex = location.macroIndex,
                     mesoIndex = location.mesoIndex,
                     session = session,
@@ -86,28 +85,13 @@ class WorkoutStructuralPersistenceController(
                         .getOrNull(location.macroIndex)?.blocks
                         ?.flatMap { it.mesocycles }
                         ?.getOrNull(location.mesoIndex)?.weeks
-                        ?.firstOrNull { it.id == state.weekId }
+                        ?.firstOrNull { it.id == weekIdInProgram }
                     week?.let { targetWeek ->
                         val targetSession = targetWeek.sessions.firstOrNull { it.id == sessionId }
                         if (targetSession == null) return@let
                         val updatedSession = withModeSession(targetSession, state.activeMode) { modeSession ->
                             modeSession.replaceExerciseById(change.exerciseId) { ex ->
-                                val lastSet = ex.sets.lastOrNull()
-                                val newSet = ExerciseSet(
-                                    id = UUID.randomUUID().toString(),
-                                    targetReps = lastSet?.targetReps,
-                                    targetRepsRange = lastSet?.targetRepsRange,
-                                    targetRPE = lastSet?.targetRPE,
-                                    targetRIR = lastSet?.targetRIR,
-                                    weight = lastSet?.weight,
-                                    loadModeV2 = ex.sets.firstOrNull()?.loadModeV2 ?: LoadModeV2.LOAD,
-                                    unitModeV2 = lastSet?.unitModeV2,
-                                    intensityMode = lastSet?.intensityMode,
-                                    targetDuration = lastSet?.targetDuration,
-                                    targetPercentageRM = lastSet?.targetPercentageRM,
-                                    isAmrap = false,
-                                )
-                                WorkoutEditingRules.normalizeLiveEditedExercise(ex.copy(sets = ex.sets + newSet))
+                                WorkoutEditingRules.normalizeLiveEditedExercise(ex.copy(sets = ex.sets + plannedSetAfterLast(ex)))
                             }
                         }
                         persist(updatedSession)
@@ -172,30 +156,14 @@ class WorkoutStructuralPersistenceController(
                             .getOrNull(location.macroIndex)?.blocks
                             ?.flatMap { it.mesocycles }
                             ?.getOrNull(location.mesoIndex)?.weeks
-                            ?.firstOrNull { it.id == state.weekId }
+                            ?.firstOrNull { it.id == weekIdInProgram }
                         week?.let { targetWeek ->
                             val targetSession = targetWeek.sessions.firstOrNull { it.id == sessionId }
                             if (targetSession == null) return@let
+                            // El mismo reparto que en vivo (LiveSessionReorder): el orden pedido se aplica y los ejercicios que no
+                            // vienen en la lista (los omitidos de hoy) se conservan en el programa.
                             val updatedSession = withModeSession(targetSession, state.activeMode) { modeSession ->
-                                if (change.isGlobal) {
-                                    modeSession.globalReorder(change.orderedExerciseIds, change.originalPartMap)
-                                } else {
-                                    if (modeSession.parts.isEmpty()) {
-                                        val lookup = modeSession.exercises.associateBy { it.id }
-                                        modeSession.copy(exercises = change.orderedExerciseIds.mapNotNull(lookup::get))
-                                    } else {
-                                        var changed = false
-                                        val newParts = modeSession.parts.map { part ->
-                                            val partOrdered = change.orderedExerciseIds.filter { id -> part.exercises.any { it.id == id } }
-                                            if (partOrdered.size != part.exercises.size) return@map part
-                                            val lookup = part.exercises.associateBy { it.id }
-                                            val reordered = partOrdered.mapNotNull(lookup::get)
-                                            if (reordered == part.exercises) part
-                                            else { changed = true; part.copy(exercises = reordered) }
-                                        }
-                                        if (changed) modeSession.copy(parts = newParts) else modeSession
-                                    }
-                                }
+                                LiveSessionReorder.plan(modeSession, change.orderedExerciseIds).session
                             }
                             persist(updatedSession)
                         }
@@ -208,7 +176,7 @@ class WorkoutStructuralPersistenceController(
                         .getOrNull(location.macroIndex)?.blocks
                         ?.flatMap { it.mesocycles }
                         ?.getOrNull(location.mesoIndex)?.weeks
-                        ?.firstOrNull { it.id == state.weekId }
+                        ?.firstOrNull { it.id == weekIdInProgram }
                     week?.let { targetWeek ->
                         val targetSession = targetWeek.sessions.firstOrNull { it.id == sessionId } ?: return@let
                         val updatedSession = applyPendingStructuralChangeToSession(targetSession, change, state)
@@ -299,22 +267,7 @@ class WorkoutStructuralPersistenceController(
                     ?: modeSession.allExercises().firstOrNull { it.id == change.exerciseId }
                     ?: return@withModeSession modeSession
                 modeSession.replaceExerciseById(targetExercise.id) { exercise ->
-                    val lastSet = exercise.sets.lastOrNull()
-                    val newSet = ExerciseSet(
-                        id = UUID.randomUUID().toString(),
-                        targetReps = lastSet?.targetReps,
-                        targetRepsRange = lastSet?.targetRepsRange,
-                        targetRPE = lastSet?.targetRPE,
-                        targetRIR = lastSet?.targetRIR,
-                        weight = lastSet?.weight,
-                        loadModeV2 = exercise.sets.firstOrNull()?.loadModeV2 ?: LoadModeV2.LOAD,
-                        unitModeV2 = lastSet?.unitModeV2,
-                        intensityMode = lastSet?.intensityMode,
-                        targetDuration = lastSet?.targetDuration,
-                        targetPercentageRM = lastSet?.targetPercentageRM,
-                        isAmrap = false,
-                    )
-                    WorkoutEditingRules.normalizeLiveEditedExercise(exercise.copy(sets = exercise.sets + newSet))
+                    WorkoutEditingRules.normalizeLiveEditedExercise(exercise.copy(sets = exercise.sets + plannedSetAfterLast(exercise)))
                 }
             }
             is PendingStructuralChange.AddExercise -> {
@@ -389,13 +342,29 @@ class WorkoutStructuralPersistenceController(
         program: Program,
         location: SessionLocationCursor,
         state: WorkoutUiState,
-    ): Session? = program.macrocycles
-        .getOrNull(location.macroIndex)?.blocks
-        ?.flatMap { it.mesocycles }
-        ?.getOrNull(location.mesoIndex)?.weeks
-        ?.firstOrNull { it.id == state.weekId }
-        ?.sessions
-        ?.firstOrNull { it.id == sessionId }
+    ): Session? {
+        val weekIdInProgram = programWeekId(program, state.weekId)
+        return program.macrocycles
+            .getOrNull(location.macroIndex)?.blocks
+            ?.flatMap { it.mesocycles }
+            ?.getOrNull(location.mesoIndex)?.weeks
+            ?.firstOrNull { it.id == weekIdInProgram }
+            ?.sessions
+            ?.firstOrNull { it.id == sessionId }
+    }
+
+    /**
+     * El id con el que el programa guarda la semana de la sesión (LV4, 10.1). En un programa simple cíclico la sesión en vivo trabaja con
+     * el id de la INSTANCIA de la semana (`inst_c1_<plantilla>`) y el programa guarda la semana por el de su PLANTILLA: buscarla por el id
+     * de la instancia no encontraba nada y «guardar para siempre» (reordenar, agregar, quitar…) no guardaba nada. Si el programa ya tiene una
+     * semana con ese id exacto se usa; si no, el de su plantilla.
+     */
+    private fun programWeekId(program: Program, weekId: String): String {
+        val exact = program.macrocycles.any { macro ->
+            macro.blocks.any { block -> block.mesocycles.any { meso -> meso.weeks.any { it.id == weekId } } }
+        }
+        return if (exact) weekId else ProgramProgressEngine.templateWeekIdFromInstance(weekId) ?: weekId
+    }
 
     private fun reorderSessionByCanonicalKeys(
         session: Session,
@@ -403,28 +372,10 @@ class WorkoutStructuralPersistenceController(
     ): Session {
         val keys = change.orderedExerciseCanonicalKeys
         if (keys.isEmpty()) return session
+        // Las claves canónicas de la sesión de cada semana dan los ids de SUS ejercicios en el orden pedido (lo que no case va detrás);
+        // el reparto entre grupos es el mismo que en vivo.
         val ordered = reorderExercisesByCanonicalKeys(session.allExercises(), keys)
-        if (session.parts.isEmpty()) return session.copy(exercises = ordered)
-        if (!change.isGlobal) {
-            return session.copy(parts = session.parts.map { part ->
-                val partKeys = keys.filter { key -> part.exercises.any { it.resolvedCanonicalExerciseId().equals(key, ignoreCase = true) } }
-                part.copy(exercises = reorderExercisesByCanonicalKeys(part.exercises, partKeys))
-            })
-        }
-        if (change.orderedExercisePartKeys.size == keys.size) {
-            return session.copy(parts = session.parts.map { part ->
-                val desiredKeys = keys.zip(change.orderedExercisePartKeys)
-                    .filter { (_, partKey) -> partKey?.trim().equals(part.name.trim(), ignoreCase = true) }
-                    .map { it.first }
-                part.copy(exercises = reorderExercisesByCanonicalKeys(part.exercises, desiredKeys))
-            })
-        }
-        var cursor = 0
-        return session.copy(parts = session.parts.map { part ->
-            val slice = ordered.drop(cursor).take(part.exercises.size)
-            cursor += slice.size
-            part.copy(exercises = slice)
-        })
+        return LiveSessionReorder.plan(session, ordered.map { it.id }).session
     }
 
     private fun reorderExercisesByCanonicalKeys(
@@ -459,7 +410,7 @@ class WorkoutStructuralPersistenceController(
         } else {
             state.omittedSetKeys
         }
-        val remappedDrafts = if (previousSession != null) {
+        val remappedDraftsBefore = if (previousSession != null) {
             remapIndexKeyedMap(previousSession, normalizedSession, state.setDrafts)
         } else {
             state.setDrafts
@@ -469,7 +420,7 @@ class WorkoutStructuralPersistenceController(
         } else {
             state.manualLoadOverrides
         }
-        val remappedLoadModes = if (previousSession != null) {
+        val remappedLoadModesBefore = if (previousSession != null) {
             remapIndexKeyedMap(previousSession, normalizedSession, state.persistedLoadModeBySet)
         } else {
             state.persistedLoadModeBySet
@@ -479,6 +430,25 @@ class WorkoutStructuralPersistenceController(
         } else {
             state.setAdvancedFeedback
         }
+        // Si el plan de una serie cambia (p. ej. su tipo de carga en «Editar series»), manda sobre lo que la sesión recordaba de ella:
+        // el modo con el que se registró otra serie y los borradores. Antes ganaba lo recordado y el tipo «volvía al que había» (LV5).
+        val reconciled = if (previousSession != null) {
+            reconcileRuntimeWithPlanEdit(
+                previous = ports.sessionForActiveMode(previousSession, state.activeMode),
+                next = ports.sessionForActiveMode(normalizedSession, state.activeMode),
+                completedSets = remappedCompleted,
+                exerciseTags = state.exerciseTags,
+                runtime = LiveEditRuntime(
+                    persistedLoadModeBySet = remappedLoadModesBefore,
+                    persistedLoadModeByExercise = state.persistedLoadModeByExercise,
+                    setDrafts = remappedDraftsBefore,
+                ),
+            )
+        } else {
+            LiveEditRuntime(remappedLoadModesBefore, state.persistedLoadModeByExercise, remappedDraftsBefore)
+        }
+        val remappedLoadModes = reconciled.persistedLoadModeBySet
+        val remappedDrafts = reconciled.setDrafts
         val liveExerciseIds = normalizedSession.allExercises().map { it.id }.toSet()
         val preview = state.copy(
             session = normalizedSession,
@@ -503,35 +473,11 @@ class WorkoutStructuralPersistenceController(
             )
 
         updateState {
-            val preferredExercise = visible.getOrNull(resolvedExerciseIdx)
-                ?.takeIf { exercise -> exercise.id == preferredExerciseId }
-            val plannedLoadModesBySet = preferredExercise
-                ?.sets
-                ?.mapIndexed { index, set -> workoutSetKey(preferredExercise.id, index) to (set.loadModeV2 ?: LoadModeV2.LOAD) }
-                ?.toMap()
-                .orEmpty()
-            val plannedExerciseLoadMode = preferredExercise
-                ?.sets
-                ?.firstOrNull()
-                ?.loadModeV2
-                ?: plannedLoadModesBySet.values.firstOrNull()
-                ?: LoadModeV2.LOAD
-            val mergedLoadModes = if (preferredExercise != null) {
-                val remappedForPreferred = remappedLoadModes.filterKeys { key -> key.startsWith("${preferredExercise.id}_") }
-                plannedLoadModesBySet + remappedForPreferred
-            } else {
-                remappedLoadModes
-            }
-            val persistedByExercise = if (preferredExercise != null) {
-                val runtimeMode = it.persistedLoadModeByExercise[preferredExercise.id]
-                if (runtimeMode != null) {
-                    it.persistedLoadModeByExercise
-                } else {
-                    it.persistedLoadModeByExercise + (preferredExercise.id to plannedExerciseLoadMode)
-                }
-            } else {
-                it.persistedLoadModeByExercise
-            }.filterKeys { key ->
+            // El modo de carga recordado es SOLO lo que la sesión vio hacer (registros y ajustes de «Editar series»): el plan se queda
+            // en el plan. Antes, cada edición de un ejercicio copiaba los modos de su plan al recuerdo de todas sus series, y desde ese
+            // momento una edición posterior del plan perdía contra su propia copia: el tipo de carga «volvía al que había». Además se
+            // vaciaba el recuerdo de TODOS los demás ejercicios (LV5).
+            val persistedByExercise = it.persistedLoadModeByExercise.filterKeys { key ->
                 key in liveExerciseIds || liveExerciseIds.any { id -> key.startsWith("$id|") }
             }
             val next = it.copy(
@@ -542,7 +488,7 @@ class WorkoutStructuralPersistenceController(
                 omittedSetKeys = remappedOmitted,
                 setDrafts = remappedDrafts,
                 manualLoadOverrides = remappedOverrides,
-                persistedLoadModeBySet = mergedLoadModes,
+                persistedLoadModeBySet = remappedLoadModes,
                 persistedLoadModeByExercise = persistedByExercise,
                 setAdvancedFeedback = remappedAdvanced,
                 skippedExerciseIds = pruneExerciseIdSet(it.skippedExerciseIds, liveExerciseIds),
@@ -568,7 +514,7 @@ class WorkoutStructuralPersistenceController(
         if (state.weekId.isBlank()) return
         val program = repository.getProgramById(programId) ?: return
         if (!WorkoutEditingRules.canPersistLiveStructuralChanges(program)) return
-        val updatedProgram = program.updateWeekSessions(state.macroIndex, state.mesoIndex, state.weekId) { sessions ->
+        val updatedProgram = program.updateWeekSessions(state.macroIndex, state.mesoIndex, programWeekId(program, state.weekId)) { sessions ->
             sessions.map { session -> if (session.id == sessionId) updatedSession else session }
         }
         if (updatedProgram != program) {
@@ -611,7 +557,7 @@ class WorkoutStructuralPersistenceController(
             )
 
             if (effectiveScope != ReplacementPersistenceScopeV2.SESSION_ONLY) {
-                val updatedProgram = applyReplacementToProgram(
+                var updatedProgram = applyReplacementToProgram(
                     program = program,
                     currentLocation = location,
                     sourceExerciseDbId = prompt.sourceExerciseDbId,
@@ -621,6 +567,24 @@ class WorkoutStructuralPersistenceController(
                     replacement = prompt.replacement,
                     scope = effectiveScope,
                 )
+                if (updatedProgram == program) {
+                    // Reemplazos encadenados (A por B «solo esta vez» y luego B por C «en todo el programa»): el programa sigue guardando
+                    // el ejercicio del plan original en ese hueco, no el B que había en la sesión. Se sustituye ése (LV5).
+                    val planned = state.plannedSessionBaseline?.allExercises()?.firstOrNull { it.id == prompt.exerciseId }
+                    val plannedConfiguration = planned?.catalogConfigurationId
+                    if (planned != null && !plannedConfiguration.equals(prompt.fromCatalogConfigurationId, ignoreCase = true)) {
+                        updatedProgram = applyReplacementToProgram(
+                            program = program,
+                            currentLocation = location,
+                            sourceExerciseDbId = planned.resolvedCanonicalExerciseId(),
+                            sourceExerciseId = prompt.exerciseId,
+                            sourceCatalogConfigurationId = plannedConfiguration,
+                            sourceExerciseSlot = prompt.sourceExerciseSlot,
+                            replacement = prompt.replacement,
+                            scope = effectiveScope,
+                        )
+                    }
+                }
                 if (updatedProgram != program) {
                     repository.updateProgram(updatedProgram)
                 }
@@ -745,7 +709,7 @@ class WorkoutStructuralPersistenceController(
                 loadSuggestions = it.loadSuggestions.filterKeys { key -> !key.startsWith("${exerciseId}_") },
                 setDrafts = it.setDrafts.filterKeys { key -> !key.startsWith("${exerciseId}_") },
                 manualLoadOverrides = it.manualLoadOverrides.filterKeys { key -> !key.startsWith("${exerciseId}_") },
-            )
+            ).withoutLoadStateOfExercise(exerciseId)
         }
         ports.refreshLoadSuggestions(getState())
         ports.persistOngoingState()
@@ -870,38 +834,23 @@ class WorkoutStructuralPersistenceController(
         updateState { it.copy(pendingReplacementPersistencePrompt = prompt) }
     }
 
+    /**
+     * El ejercicio que ocupa el hueco de [old] tras elegir [replacement]. Hereda solo lo que define el producto (series planificadas,
+     * descanso e intensidad objetivo); ver [replacementExerciseFor]. Las altas de ejercicio también pasan por aquí.
+     */
     fun buildReplacementExercise(old: Exercise, replacement: ExerciseMuscleInfo): Exercise {
         val cached = if (replacement.catalogRevision == null) {
             com.example.kpkn.screens.sessioneditor.CatalogSelectionDraftBridge.consume(replacement.id)
         } else {
             null
         }
-        val replaced = old.replacedWithCatalogExercise(
-            info = replacement,
+        return replacementExerciseFor(
+            old = old,
+            replacement = replacement,
             selectedAspects = cached?.selectedAspects,
             variantName = cached?.variantName,
             variantGroupId = cached?.variantGroupId,
             variantGroupName = cached?.variantGroupName,
-        )
-        val defaultLoadMode = replaced.sets.firstOrNull()?.loadModeV2 ?: LoadModeV2.LOAD
-        val preservedSets = replaced.sets.ifEmpty {
-            listOf(
-                ExerciseSet(
-                    id = UUID.randomUUID().toString(),
-                    loadModeV2 = defaultLoadMode,
-                    unitModeV2 = UnitModeV2.REPS,
-                ),
-            )
-        }
-        return replaced.copy(
-            trainingMode = TrainingMode.REPS,
-            reference1RM = null,
-            prFor1RM = null,
-            consolidatedWeight = null,
-            isUnilateral = false,
-            unilateralMode = UnilateralMode.BILATERAL,
-            restBetweenSidesSeconds = null,
-            sets = preservedSets,
         )
     }
 
@@ -955,9 +904,6 @@ class WorkoutStructuralPersistenceController(
 
     private fun Session.replaceExerciseById(exerciseId: String, update: (Exercise) -> Exercise): Session =
         WorkoutStructuralEditor.replaceExerciseById(this, exerciseId, update)
-
-    private fun Session.globalReorder(orderedExerciseIds: List<String>, originalPartMap: Map<String, String>): Session =
-        WorkoutStructuralEditor.globalReorder(this, orderedExerciseIds, originalPartMap)
 
     private data class SessionLocationCursor(
         val macroIndex: Int,

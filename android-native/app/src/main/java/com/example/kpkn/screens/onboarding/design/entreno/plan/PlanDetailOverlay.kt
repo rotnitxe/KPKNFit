@@ -130,7 +130,7 @@ private val HEADER_STRIP = 44.dp
 private const val DESCRIPTION_LINES = 4
 
 /** Título de cada sección: Syne ExtraBold. */
-private val SECTION_STYLE = TextStyle(
+internal val SECTION_STYLE = TextStyle(
     fontFamily = WizardFonts.display,
     fontWeight = FontWeight.ExtraBold,
     fontSize = 20.sp,
@@ -246,6 +246,12 @@ internal fun DetailSheet(
     }
     // Atrás cierra primero el panel «Cambiar» y solo después la hoja.
     BackHandler(enabled = swapState.panelOf != null) { swapState.closePanel() }
+    // La ficha de un ejercicio va sobre la hoja; al abrirla se cierra el panel «Cambiar», que no puede quedar debajo.
+    val info = remember { ExerciseInfoState() }
+    val openInfo: (SetupPlanRevealExercise) -> Unit = { exercise ->
+        swapState.closePanel()
+        info.show(exercise)
+    }
     val scroll = rememberScrollState()
     val density = LocalDensity.current
     val statusTop = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
@@ -336,7 +342,7 @@ internal fun DetailSheet(
                     // Las fases de un programa de varias semanas van encima de «Tu semana», que enseña la primera.
                     PlanPhasesStrip(phases)
                     SectionTitle(PlanCopy.SECTION_WEEK)
-                    WeekStrip(model.week, accent, weekStartDay, swaps = swaps, state = swapState, reduced = reduced)
+                    WeekStrip(model.week, accent, weekStartDay, swaps = swaps, state = swapState, reduced = reduced, onInfo = openInfo)
                 }
                 if (model.reasons.isNotEmpty()) {
                     SectionTitle(PlanCopy.SECTION_REASONS)
@@ -385,6 +391,8 @@ internal fun DetailSheet(
                 .align(Alignment.BottomCenter)
                 .onSizeChanged { barPx = it.height },
         )
+        // La ficha va la última: cubre la cabecera, el pie y el resto de la hoja.
+        ExerciseInfoLayer(state = info, reduced = reduced, topInset = statusTop + HEADER_STRIP)
     }
 }
 
@@ -407,13 +415,13 @@ private fun SiblingVersionAction(label: String, onClick: () -> Unit) {
 
 /** La X de arriba a la derecha: un disco de vidrio neutro (blanco muy tenue y un filete uniforme) con su objetivo táctil de 48 dp. */
 @Composable
-private fun CloseButton(onClick: () -> Unit, modifier: Modifier = Modifier) {
+internal fun CloseButton(onClick: () -> Unit, modifier: Modifier = Modifier, tag: String = PLAN_DETAIL_CLOSE_TAG) {
     val interaction = remember { MutableInteractionSource() }
     val pressed by interaction.collectIsPressedAsState()
     Box(
         modifier = modifier
             .size(48.dp)
-            .testTag(PLAN_DETAIL_CLOSE_TAG)
+            .testTag(tag)
             .clickable(interactionSource = interaction, indication = null, role = Role.Button, onClick = onClick)
             .clearAndSetSemantics { contentDescription = PlanCopy.CLOSE },
         contentAlignment = Alignment.Center,
@@ -889,6 +897,7 @@ private fun WeekStrip(
     swaps: ExerciseSwaps,
     state: SwapPanelState,
     reduced: Boolean,
+    onInfo: (SetupPlanRevealExercise) -> Unit,
 ) {
     val byDay = remember(week) { week.filter { it.day in 1..7 }.associateBy { it.day } }
     val order = remember(weekStartDay) { slotOrder(weekStartDay) }
@@ -931,7 +940,7 @@ private fun WeekStrip(
                 enter = if (reduced) EnterTransition.None else expandVertically(tween(260)) + fadeIn(tween(260)),
                 exit = if (reduced) ExitTransition.None else shrinkVertically(tween(260)) + fadeOut(tween(260)),
             ) {
-                DayExercises(day = state.lastDay, accent = accent, swaps = swaps, state = state, reduced = reduced)
+                DayExercises(day = state.lastDay, accent = accent, swaps = swaps, state = state, reduced = reduced, onInfo = onInfo)
             }
             if (!captions) {
                 Spacer(Modifier.height(14.dp))
@@ -1116,16 +1125,24 @@ private fun Modifier.bleedHorizontally(dp: Dp): Modifier = layout { measurable, 
 
 /** Los ejercicios del día [day] de la semana tipo, uno por fila, con su «Cambiar» si el programa elegido se puede cambiar. */
 @Composable
-private fun DayExercises(day: Int?, accent: Color, swaps: ExerciseSwaps, state: SwapPanelState, reduced: Boolean) {
+private fun DayExercises(
+    day: Int?,
+    accent: Color,
+    swaps: ExerciseSwaps,
+    state: SwapPanelState,
+    reduced: Boolean,
+    onInfo: (SetupPlanRevealExercise) -> Unit,
+) {
     val exercises = day?.let { swaps.byDay[it] }.orEmpty()
     Column(Modifier.fillMaxWidth().padding(top = 8.dp)) {
-        for (exercise in exercises) ExerciseRow(exercise, accent, swaps, state, reduced)
+        for (exercise in exercises) ExerciseRow(exercise, accent, swaps, state, reduced, onInfo)
     }
 }
 
 /**
- * Un ejercicio del día: su pictograma, su nombre, «4 × 6–8» y, si el programa elegido lo permite, «Cambiar». El panel de
- * alternativas se abre bajo la fila; un ejercicio ya cambiado dice «Cambiado · Deshacer».
+ * Un ejercicio del día: su nombre y «4 × 6–8» son un solo objetivo táctil que abre su ficha del catálogo (con un chevron como
+ * pista); si el programa elegido lo permite, «Cambiar». El panel de alternativas se abre bajo la fila; un ejercicio ya cambiado
+ * dice «Cambiado · Deshacer».
  */
 @Composable
 private fun ExerciseRow(
@@ -1134,11 +1151,11 @@ private fun ExerciseRow(
     swaps: ExerciseSwaps,
     state: SwapPanelState,
     reduced: Boolean,
+    onInfo: (SetupPlanRevealExercise) -> Unit,
 ) {
     val divider = WizardColors.divider
     val canSwap = swaps.enabled && exercise.swappable
-    val pattern = remember(exercise.name) { exercisePatternOf(exercise.name) }
-    Column(Modifier.fillMaxWidth().testTag("setup-plan-exercise-${exercise.instanceId}")) {
+    Column(Modifier.fillMaxWidth()) {
         Row(
             Modifier
                 .fillMaxWidth()
@@ -1149,11 +1166,29 @@ private fun ExerciseRow(
                 },
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            PatternGlyph(pattern, accent, Modifier.size(28.dp))
-            Spacer(Modifier.width(12.dp))
-            Column(Modifier.weight(1f).padding(vertical = 8.dp)) {
-                Text(exercise.name, style = WizardTypography.controlLabel, color = WizardColors.text)
-                exercise.setsLabel?.let { Text(it, style = WizardTypography.note, color = WizardColors.textMuted) }
+            Column(Modifier.weight(1f)) {
+                // El área de toque: nombre y prescripción (48 dp como mínimo) abren la ficha del catálogo.
+                Column(
+                    Modifier
+                        .fillMaxWidth()
+                        .heightIn(min = 48.dp)
+                        .testTag("setup-plan-exercise-${exercise.instanceId}")
+                        .semantics(mergeDescendants = true) { contentDescription = ExerciseInfoCopy.SEE_EXERCISE + exercise.name }
+                        .clickable(role = Role.Button) { onInfo(exercise) }
+                        .padding(vertical = 6.dp),
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            exercise.name,
+                            style = WizardTypography.controlLabel,
+                            color = WizardColors.text,
+                            modifier = Modifier.weight(1f, fill = false),
+                        )
+                        Spacer(Modifier.width(6.dp))
+                        ChevronGlyph(Modifier.size(12.dp))
+                    }
+                    exercise.setsLabel?.let { Text(it, style = WizardTypography.note, color = WizardColors.textMuted) }
+                }
                 if (exercise.swappedConfigId != null) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text("Cambiado · ", style = WizardTypography.note, color = WizardColors.textMuted)
@@ -1225,6 +1260,17 @@ private fun SwapAction(name: String, instanceId: String, onClick: () -> Unit) {
         SwapArrows(WizardColors.text, Modifier.size(16.dp))
         Spacer(Modifier.width(6.dp))
         Text("Cambiar", style = WizardTypography.controlLabel, color = WizardColors.text)
+    }
+}
+
+/** La pista de que el nombre se abre: un chevron fino de 12 dp en tinta tenue. */
+@Composable
+private fun ChevronGlyph(modifier: Modifier = Modifier) {
+    val color = WizardColors.textFaint
+    Canvas(modifier) {
+        val w = 1.4.dp.toPx()
+        drawLine(color, Offset(size.width * 0.3f, size.height * 0.18f), Offset(size.width * 0.74f, size.height * 0.5f), w, StrokeCap.Round)
+        drawLine(color, Offset(size.width * 0.74f, size.height * 0.5f), Offset(size.width * 0.3f, size.height * 0.82f), w, StrokeCap.Round)
     }
 }
 

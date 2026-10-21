@@ -1,0 +1,65 @@
+{
+  "id": "wger_0002",
+  "durationS": 13.0,
+  "width": 640,
+  "height": 360,
+  "rotation": 0,
+  "fpsNominal": 60.0,
+  "fpsMeasured": 60.0,
+  "usable": true,
+  "exercise": "Peso muerto rumano con mancuernas",
+  "exerciseDetail": "Peso muerto rumano con mancuernas (dos mancuernas hexagonales, vista frontal exacta)",
+  "suggestedProfile": "HINGE",
+  "view": "FRONT",
+  "people": 1,
+  "fullBodyVisible": true,
+  "faceVisible": true,
+  "plateVisible": false,
+  "startPhase": "ECCENTRIC_FIRST",
+  "reps": {
+    "full": 3,
+    "partial": 0,
+    "failed": 0,
+    "uncertain": false,
+    "acceptableRange": [
+      3,
+      3
+    ]
+  },
+  "repTimesS": [
+    {
+      "index": 1,
+      "turnaroundS": 1.8,
+      "side": null
+    },
+    {
+      "index": 2,
+      "turnaroundS": 6.1,
+      "side": null
+    },
+    {
+      "index": 3,
+      "turnaroundS": 11.4,
+      "side": null
+    }
+  ],
+  "activeWindowS": [
+    0.0,
+    12.9
+  ],
+  "frameIntervalS": {
+    "min": 0.0167,
+    "median": 0.0167,
+    "max": 0.0167
+  },
+  "turnaroundKind": "BOTTOM",
+  "edgeEvents": [],
+  "caveats": [],
+  "cameraMotion": {
+    "class": "SLOW_DRIFT",
+    "note": "deriva suave de mano. Medido con ORB+RANSAC sobre el fondo, zona del sujeto excluida en 0,0-12,9 s: recorrido acumulado p2p 2,8% en x y 6,4% en y, escala 0,99-1,00, velocidad media 0,87 %/s (máx. 1,9% en 1 s)"
+  },
+  "softWarnings": [
+    "cámara con deriva lenta: deriva suave de mano. Medido con ORB+RANSAC sobre el fondo, zona del sujeto excluida en 0,0-12,9 s: recorrido acumulado p2p 2,8% en x y 6,4% en y, escala 0,99-1,00, velocidad media 0,87 %/s (máx. 1,9% en 1 s)"
+  ]
+}

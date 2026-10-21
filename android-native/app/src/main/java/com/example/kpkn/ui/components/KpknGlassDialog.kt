@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -24,6 +25,7 @@ import dev.chrisbanes.haze.HazeState
 /**
  * Centered in-composition glass dialog (via [KpknPortal]).
  * Use for custom dialog bodies that previously lived in a Material [androidx.compose.ui.window.Dialog].
+ * El contenido va con la tipografía y los colores de KPKN ([KpknDialogTheme]); cada texto puede fijar los suyos.
  */
 @Composable
 fun KpknGlassDialog(
@@ -37,6 +39,11 @@ fun KpknGlassDialog(
     content: @Composable () -> Unit,
 ) {
     val resolvedHaze = hazeState ?: LocalHazeState.current
+    // Mientras el diálogo está en composición, la isla superior se oculta (I12).
+    DisposableEffect(Unit) {
+        KpknModalTracker.onOpened()
+        onDispose { KpknModalTracker.onClosed() }
+    }
     KpknPortal {
         val panelInteraction = remember { MutableInteractionSource() }
         BackHandler(enabled = dismissOnBackPress, onBack = onDismissRequest)
@@ -69,14 +76,14 @@ fun KpknGlassDialog(
                     .padding(horizontal = 24.dp)
                     .widthIn(max = maxWidth)
                     .fillMaxWidth()
-                    .kpknGlassOrFallback(resolvedHaze, shape)
+                    .kpknGlassOrFallback(resolvedHaze, shape, variant = KpknGlassVariant.SHEET)
                     .clickable(
                         interactionSource = panelInteraction,
                         indication = null,
                         onClick = {},
                     ),
             ) {
-                KpknSheetContentTheme {
+                KpknDialogTheme {
                     content()
                 }
             }

@@ -91,10 +91,6 @@ class RuleTemplateStore(context: Context) {
         return loadAll()
     }
 
-    fun replaceAll(templates: List<RuleTemplate>) {
-        persist(templates.ifEmpty { factoryPresets() })
-    }
-
     private fun persist(templates: List<RuleTemplate>) {
         prefs.edit().putString(KEY_TEMPLATES, json.encodeToString(templates)).apply()
     }

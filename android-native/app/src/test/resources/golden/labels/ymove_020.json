@@ -1,0 +1,81 @@
+{
+  "id": "ymove_020",
+  "durationS": 13.56,
+  "width": 360,
+  "height": 640,
+  "rotation": 0,
+  "fpsNominal": 25.0,
+  "fpsMeasured": 25.0,
+  "usable": true,
+  "exercise": "Extensión de tríceps sobre la cabeza con cuerda",
+  "exerciseDetail": "Extensión de tríceps sobre la cabeza con cuerda en polea (overhead rope extension), de pie de espaldas a la torre, vista frontal con un giro leve",
+  "suggestedProfile": "TRICEPS_EXTENDED_REST",
+  "view": "FRONT",
+  "people": 1,
+  "fullBodyVisible": true,
+  "faceVisible": true,
+  "plateVisible": false,
+  "startPhase": "CONCENTRIC_FIRST",
+  "reps": {
+    "full": 4,
+    "partial": 0,
+    "failed": 0,
+    "uncertain": false,
+    "acceptableRange": [
+      3,
+      4
+    ]
+  },
+  "repTimesS": [
+    {
+      "index": 1,
+      "turnaroundS": 2.9,
+      "side": null
+    },
+    {
+      "index": 2,
+      "turnaroundS": 6.4,
+      "side": null
+    },
+    {
+      "index": 3,
+      "turnaroundS": 9.8,
+      "side": null
+    },
+    {
+      "index": 4,
+      "turnaroundS": 13.3,
+      "side": null
+    }
+  ],
+  "activeWindowS": [
+    0.0,
+    13.5
+  ],
+  "frameIntervalS": {
+    "min": 0.04,
+    "median": 0.04,
+    "max": 0.04
+  },
+  "turnaroundKind": "BOTTOM",
+  "edgeEvents": [
+    {
+      "timeS": 0.0,
+      "kind": "TRUNCATED_START",
+      "description": "el clip empieza a mitad de una extensión (brazos subiendo hacia el bloqueo de ~1,0 s): esa subida inicial no cuenta como repetición"
+    },
+    {
+      "timeS": 13.3,
+      "kind": "TRUNCATED_END",
+      "description": "la 4.ª flexión llega al fondo (manos detrás de la cabeza) a ~13,3 s y el clip termina a los 13,56 s sin volver al bloqueo: cuenta si se cuenta por fondos de flexión (rango 3-4)"
+    }
+  ],
+  "caveats": [],
+  "cameraMotion": {
+    "class": "STATIC",
+    "note": "cámara fija de estudio: ECC (traslación contra la mediana temporal sobre el fondo que el sujeto nunca cubre): desplazamiento máx. 0,07% en x y 0,05% en y del encuadre en toda la ventana"
+  },
+  "softWarnings": [
+    "recuento ambiguo por medio ciclo en el borde del clip o por repeticiones dudosas: rango aceptable 3-4 (ver edgeEvents)"
+  ]
+}

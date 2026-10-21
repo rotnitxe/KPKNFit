@@ -1,0 +1,71 @@
+{
+  "id": "g01-pexels-8401319",
+  "durationS": 9.667,
+  "width": 1280,
+  "height": 720,
+  "rotation": 0,
+  "fpsNominal": 30.0,
+  "fpsMeasured": 30.0,
+  "usable": true,
+  "exercise": "Fondos en banco (bench dips)",
+  "exerciseDetail": "Fondos en banco (bench dips) con peso corporal: manos en el borde de un banco de madera detrás del cuerpo, piernas estiradas con los talones en el suelo; baja hasta ~90° de codo y sube a brazos rectos",
+  "suggestedProfile": "DIP",
+  "view": "OBLIQUE",
+  "people": 1,
+  "fullBodyVisible": true,
+  "faceVisible": true,
+  "plateVisible": false,
+  "startPhase": "ECCENTRIC_FIRST",
+  "reps": {
+    "full": 2,
+    "partial": 0,
+    "failed": 0,
+    "uncertain": false,
+    "acceptableRange": [
+      2,
+      2
+    ]
+  },
+  "repTimesS": [
+    {
+      "index": 1,
+      "turnaroundS": 2.8,
+      "side": null
+    },
+    {
+      "index": 2,
+      "turnaroundS": 7.5,
+      "side": null
+    }
+  ],
+  "activeWindowS": [
+    1.0,
+    8.7
+  ],
+  "frameIntervalS": {
+    "min": 0.0333,
+    "median": 0.0333,
+    "max": 0.0333
+  },
+  "turnaroundKind": "BOTTOM",
+  "edgeEvents": [
+    {
+      "timeS": 3.8,
+      "kind": "LONG_PAUSE",
+      "description": "3,8-5,0 s: pausa de ~1,2 s arriba con los brazos rectos entre la 1.ª y la 2.ª repetición"
+    }
+  ],
+  "caveats": [
+    "clip corto (9,7 s) con solo 2 repeticiones lentas y una pausa de ~1,2 s arriba entre ellas",
+    "deriva de mano: el fondo se desplaza ~7% de la altura del encuadre en 9,7 s (sin seguir al sujeto)",
+    "vista oblicua (~40°), no lateral exacta: el torso se ve de 3/4 y el banco queda a la izquierda",
+    "dos figuras diminutas al fondo de la calle (un peatón agachado a 0,5-4,5 s en el borde derecho y otra persona sentada hacia 6,5-9,4 s), visibles solo al ampliar"
+  ],
+  "cameraMotion": {
+    "class": "SLOW_DRIFT",
+    "note": "deriva lenta de mano: el fondo se desplaza ~7% de la altura en 9,7 s (con el sujeto enmascarado), escala 1,00-1,025; no sigue al sujeto ni cambia de vista"
+  },
+  "softWarnings": [
+    "cámara con deriva lenta: deriva lenta de mano: el fondo se desplaza ~7% de la altura en 9,7 s (con el sujeto enmascarado), escala 1,00-1,025; no sigue al sujeto ni cambia de vista"
+  ]
+}

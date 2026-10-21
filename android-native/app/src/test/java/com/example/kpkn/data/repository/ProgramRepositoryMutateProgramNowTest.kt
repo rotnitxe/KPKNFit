@@ -1,5 +1,6 @@
 package com.example.kpkn.data.repository
 
+import com.example.kpkn.testsupport.SyncRoomExecutor
 import android.content.Context
 import androidx.test.core.app.ApplicationProvider
 import com.example.kpkn.data.db.KpknDatabase
@@ -39,6 +40,7 @@ class ProgramRepositoryMutateProgramNowTest {
 
     @Before
     fun setUp() {
+        SyncRoomExecutor.install()
         Dispatchers.setMain(mainDispatcher)
     }
 
@@ -47,6 +49,7 @@ class ProgramRepositoryMutateProgramNowTest {
         ProgramRepository.closeInstance()
         KpknDatabase.closeInstance()
         Dispatchers.resetMain()
+        SyncRoomExecutor.uninstall()
     }
 
     private suspend fun freshRepository(): ProgramRepository {

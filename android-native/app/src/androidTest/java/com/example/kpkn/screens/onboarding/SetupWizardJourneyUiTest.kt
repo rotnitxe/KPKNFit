@@ -553,7 +553,7 @@ class SetupWizardJourneyUiTest {
         seedMusclesStep(vm, TrainingGoalProfile.STRENGTH_MUSCLE)
         showMuscles(vm, draftId)
 
-        assertEquals("los once músculos", MuscleSymbol.entries.size, composeRule.onAllNodes(muscleMatcher).fetchSemanticsNodes().size)
+        assertEquals("los diez músculos", MuscleSymbol.entries.size, composeRule.onAllNodes(muscleMatcher).fetchSemanticsNodes().size)
         assertTrue("sin sugerencias la bolsa parte vacía", bag(vm).isEmpty())
 
         val revisionBefore = vm.state.value.draft.revision
@@ -566,24 +566,25 @@ class SetupWizardJourneyUiTest {
         clickMuscle(MuscleSymbol.CHEST)
         composeRule.waitUntil(TIMEOUT_MS) { bag(vm).isEmpty() }
 
-        // Cinco músculos llenan la bolsa, con un punto cada uno.
-        val five = listOf(MuscleSymbol.CHEST, MuscleSymbol.BACK, MuscleSymbol.SHOULDERS, MuscleSymbol.BICEPS, MuscleSymbol.TRICEPS)
+        // Cinco símbolos llenan la bolsa; Brazos escribe dos puntos (bíceps y tríceps), así que son seis.
+        val five = listOf(MuscleSymbol.CHEST, MuscleSymbol.BACK, MuscleSymbol.SHOULDERS, MuscleSymbol.ARMS, MuscleSymbol.FOREARMS)
+        val fiveBag = MuscleSymbols.orderBagOf(five.toSet())
         five.forEach { muscle -> clickMuscle(muscle) }
-        composeRule.waitUntil(TIMEOUT_MS) { bag(vm).size == five.size }
-        assertEquals(five.associate { MuscleSymbols.canonical(it) to 1 }, bag(vm))
+        composeRule.waitUntil(TIMEOUT_MS) { bag(vm).size == fiveBag.size }
+        assertEquals(fiveBag, bag(vm))
         composeRule.onNodeWithText(CAP_NOTE).assertExists()
 
-        // El sexto no entra: la bolsa y la revisión quedan como estaban.
+        // El sexto símbolo no entra: la bolsa y la revisión quedan como estaban.
         val revisionAtCap = vm.state.value.draft.revision
         clickMuscle(MuscleSymbol.ABS)
         composeRule.waitForIdle()
-        assertEquals("el tope de cinco no se rebasa", five.associate { MuscleSymbols.canonical(it) to 1 }, bag(vm))
+        assertEquals("el tope de cinco símbolos no se rebasa", fiveBag, bag(vm))
         assertEquals("un toque rechazado no gasta revisión", revisionAtCap, vm.state.value.draft.revision)
         assertEquals(SetupStepId.PRIORITIES, vm.state.value.currentStep)
 
-        // Quitar uno libera el sitio.
-        clickMuscle(MuscleSymbol.TRICEPS)
-        composeRule.waitUntil(TIMEOUT_MS) { bag(vm).size == five.size - 1 }
+        // Quitar Brazos libera el sitio y sus dos puntos: quedan cuatro símbolos.
+        clickMuscle(MuscleSymbol.ARMS)
+        composeRule.waitUntil(TIMEOUT_MS) { bag(vm).size == fiveBag.size - 2 }
         assertTrue(vm.state.value.stepValidation.none { it.isBlocking })
     }
 
@@ -649,7 +650,7 @@ class SetupWizardJourneyUiTest {
         // ── Medición única, en un estado idle estable, ANTES de desplazar ──
         val wrapperNode = composeRule.onNodeWithTag(VIEWPORT_TAG).fetchSemanticsNode()
         val cells = composeRule.onAllNodes(muscleMatcher).fetchSemanticsNodes()
-        assertEquals("las once celdas se componen", MuscleSymbol.entries.size, cells.size)
+        assertEquals("las diez celdas se componen", MuscleSymbol.entries.size, cells.size)
         val wrapper = wrapperNode.rawLayoutRect()
         val bounds = cells.associate { node -> node.muscle() to node.rawLayoutRect() }
         val diag = "wrapper=$wrapper celdas=" + bounds.entries.sortedBy { it.key.ordinal }.joinToString(" ") { (muscle, box) -> "${muscle.name}:$box" }

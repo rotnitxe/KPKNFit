@@ -1,5 +1,9 @@
 package com.example.kpkn.domain.relator
 
+/**
+ * Técnica (LR1h): la frase va tal cual. El nombre del ejercicio ya está en la cabecera del relator, así que no se pega
+ * al final como frase suelta.
+ */
 object TechniqueObserver : RelatorObserver {
     override fun observe(context: RelatorContext): List<RelatorCandidate> {
         val cues = context.executionCues.map { it.trim() }.filter { it.isNotEmpty() }
@@ -11,9 +15,7 @@ object TechniqueObserver : RelatorObserver {
                 topic = RelatorTopic.TECHNIQUE,
                 priority = 32,
                 relevance = 0.5,
-                lines = padVariants(lines.map { line ->
-                    if (line.contains("{ex}")) line else "$line {ex}.".trim()
-                }),
+                lines = realVariants(lines),
                 fingerprintBase = "TECHNIQUE:${context.progress.completedWorkingSets}",
                 actions = listOf(
                     RelatorActionSpec(
@@ -25,7 +27,6 @@ object TechniqueObserver : RelatorObserver {
                 ),
                 cooldownSets = 3,
                 spokenConceptId = context.conceptId,
-                openers = listOf("Recuerda", "Ojo"),
             ),
         )
     }

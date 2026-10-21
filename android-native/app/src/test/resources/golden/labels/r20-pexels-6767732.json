@@ -1,0 +1,76 @@
+{
+  "id": "r20-pexels-6767732",
+  "durationS": 17.002,
+  "width": 1280,
+  "height": 720,
+  "rotation": 0,
+  "fpsNominal": 25.0,
+  "fpsMeasured": 25.0,
+  "usable": true,
+  "exercise": "Puente de glúteo en el suelo",
+  "exerciseDetail": "Puente de glúteo en el suelo (peso corporal, sobre esterilla)",
+  "suggestedProfile": "HIP_THRUST",
+  "view": "LYING",
+  "people": 1,
+  "fullBodyVisible": true,
+  "faceVisible": true,
+  "plateVisible": false,
+  "startPhase": "ECCENTRIC_FIRST",
+  "reps": {
+    "full": 3,
+    "partial": 0,
+    "failed": 0,
+    "uncertain": false,
+    "acceptableRange": [
+      2,
+      3
+    ]
+  },
+  "repTimesS": [
+    {
+      "index": 1,
+      "turnaroundS": 5.1,
+      "side": null
+    },
+    {
+      "index": 2,
+      "turnaroundS": 9.9,
+      "side": null
+    },
+    {
+      "index": 3,
+      "turnaroundS": 14.9,
+      "side": null
+    }
+  ],
+  "activeWindowS": [
+    0.0,
+    17.0
+  ],
+  "frameIntervalS": {
+    "min": 0.04,
+    "median": 0.04,
+    "max": 0.04
+  },
+  "turnaroundKind": "TOP",
+  "edgeEvents": [
+    {
+      "timeS": 0.0,
+      "kind": "TRUNCATED_START",
+      "description": "el clip empieza con la cadera arriba y solo se ve el descenso hasta el suelo (0-2,3 s)"
+    },
+    {
+      "timeS": 17.0,
+      "kind": "TRUNCATED_END",
+      "description": "tras la 3ª elevación (14,9 s) el clip termina con la cadera todavía descendiendo, sin llegar al suelo"
+    }
+  ],
+  "caveats": [],
+  "cameraMotion": {
+    "class": "STATIC",
+    "note": "cámara fija"
+  },
+  "softWarnings": [
+    "recuento ambiguo por medio ciclo en el borde del clip o por repeticiones dudosas: rango aceptable 2-3 (ver edgeEvents)"
+  ]
+}

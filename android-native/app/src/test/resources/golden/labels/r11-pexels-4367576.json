@@ -1,0 +1,96 @@
+{
+  "id": "r11-pexels-4367576",
+  "durationS": 30.931,
+  "width": 1280,
+  "height": 720,
+  "rotation": 0,
+  "fpsNominal": 29.97,
+  "fpsMeasured": 29.97,
+  "usable": true,
+  "exercise": "Flexión de brazos (tempo lento con pausa)",
+  "exerciseDetail": "Flexiones de brazos con pausa en el fondo (tempo muy lento)",
+  "suggestedProfile": "PUSH_UP",
+  "view": "OBLIQUE",
+  "people": 1,
+  "fullBodyVisible": true,
+  "faceVisible": true,
+  "plateVisible": false,
+  "startPhase": "ECCENTRIC_FIRST",
+  "reps": {
+    "full": 4,
+    "partial": 0,
+    "failed": 0,
+    "uncertain": false,
+    "acceptableRange": [
+      4,
+      4
+    ]
+  },
+  "repTimesS": [
+    {
+      "index": 1,
+      "turnaroundS": 3.2,
+      "side": null,
+      "windowS": [
+        1.8,
+        4.7
+      ]
+    },
+    {
+      "index": 2,
+      "turnaroundS": 11.1,
+      "side": null,
+      "windowS": [
+        9.9,
+        12.3
+      ]
+    },
+    {
+      "index": 3,
+      "turnaroundS": 18.1,
+      "side": null,
+      "windowS": [
+        17.0,
+        19.2
+      ]
+    },
+    {
+      "index": 4,
+      "turnaroundS": 25.8,
+      "side": null,
+      "windowS": [
+        24.9,
+        26.7
+      ]
+    }
+  ],
+  "activeWindowS": [
+    0.3,
+    28.0
+  ],
+  "frameIntervalS": {
+    "min": 0.0334,
+    "median": 0.0334,
+    "max": 0.0334
+  },
+  "turnaroundKind": "BOTTOM",
+  "edgeEvents": [
+    {
+      "timeS": 4.7,
+      "kind": "LONG_PAUSE",
+      "description": "pausas de ~2-3 s en el fondo (1,8-4,7 / 9,9-12,3 / 17,0-19,2 / 24,9-26,7 s) y ~1-2 s arriba con los brazos extendidos entre repeticiones"
+    }
+  ],
+  "caveats": [
+    "luz muy tenue (estudio oscuro con contraluz): la persona se distingue bien pero el fondo tiene poca textura",
+    "la cámara se desliza lentamente en horizontal (deriva acumulada de hasta ~16% del ancho en 30 s, ~0,5%/s, con ±4% vertical) y la vista oblicua cambia unos grados",
+    "tempo muy lento con pausas de 2-3 s en el fondo y de 1-2 s arriba"
+  ],
+  "cameraMotion": {
+    "class": "SLOW_DRIFT",
+    "note": "deslizamiento horizontal lento de hasta ~16% del ancho en 30 s (~0,5%/s)"
+  },
+  "softWarnings": [
+    "cámara con deriva lenta: deslizamiento horizontal lento de hasta ~16% del ancho en 30 s (~0,5%/s)"
+  ]
+}

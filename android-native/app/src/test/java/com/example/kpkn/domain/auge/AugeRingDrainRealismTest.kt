@@ -18,6 +18,9 @@ import java.time.Instant
  */
 class AugeRingDrainRealismTest {
 
+    /** Reloj explícito (WP 1.7): lunes 2025-03-03 10:00 UTC, mucho antes de hoy. Ninguna prueba lee el reloj real. */
+    private val ahora = Instant.parse("2025-03-03T10:00:00Z").toEpochMilli()
+
     private val exerciseDb = mapOf(
         "bench" to ExerciseMuscleInfo(
             id = "bench", name = "Press Banca", equipment = "barra",
@@ -76,7 +79,7 @@ class AugeRingDrainRealismTest {
 
     @Test
     fun chestHard_perMuscleDrain_isCurrentlyBarelyVisible() {
-        val now = System.currentTimeMillis()
+        val now = ahora
         val log = chestHardLog(now)
         val nowOverride = now + 5 * 60_000L // 5 min después
 
@@ -103,7 +106,7 @@ class AugeRingDrainRealismTest {
 
     @Test
     fun chestHard_perMuscleAt24h_isAlreadyRecovered() {
-        val now = System.currentTimeMillis()
+        val now = ahora
         val log = chestHardLog(now)
         val now24h = now + 24 * 3_600_000L
 
@@ -127,7 +130,7 @@ class AugeRingDrainRealismTest {
 
     @Test
     fun chestLight_drainsLessThanHard() {
-        val now = System.currentTimeMillis()
+        val now = ahora
         val hard = chestHardLog(now)
         val light = chestLightLog(now)
         val nowOverride = now + 5 * 60_000L
@@ -150,7 +153,7 @@ class AugeRingDrainRealismTest {
 
     @Test
     fun capacityFloor_dominatesForNormalTraining() {
-        val now = System.currentTimeMillis()
+        val now = ahora
         // 4 semanas x 1 sesión pecho/semana = 4 logs de pecho
         val history = (0 until 4).map { w ->
             val t = now - w * 7L * 24 * 3_600_000L
@@ -176,7 +179,7 @@ class AugeRingDrainRealismTest {
 
     @Test
     fun fullbody_eachMuscleBarelyDrains() {
-        val now = System.currentTimeMillis()
+        val now = ahora
         val legDb: Map<String, ExerciseMuscleInfo> = mapOf(
             "squat" to ExerciseMuscleInfo(
                 id = "squat", name = "Sentadilla", equipment = "barra",
@@ -211,7 +214,7 @@ class AugeRingDrainRealismTest {
 
     @Test
     fun extremeWeek_doesNotCollapseToZero() {
-        val now = System.currentTimeMillis()
+        val now = ahora
         // 6 días seguidos de pecho intenso (peor caso) no debe llevar a 0%
         val history = (0 until 6).map { d ->
             val t = now - d * 24L * 3_600_000L

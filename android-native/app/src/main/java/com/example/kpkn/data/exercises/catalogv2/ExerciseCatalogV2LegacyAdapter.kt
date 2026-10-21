@@ -154,7 +154,7 @@ fun ExerciseCatalogV2.toLegacyConfigurationLookup(): Map<String, ExerciseMuscleI
 fun ExerciseCatalogV2.toConfigurationDisplayNameLookup(): Map<String, String> =
     CatalogDisplayNames.buildDisplayNameIndex(this)
 
-private fun muscleLabel(id: String): String? = mapOf(
+internal fun muscleLabel(id: String): String? = mapOf(
     "pectoralis" to "Pectorales",
     "deltoid" to "Deltoides",
     "triceps" to "Tríceps",

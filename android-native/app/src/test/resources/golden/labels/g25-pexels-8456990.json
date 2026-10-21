@@ -1,0 +1,102 @@
+{
+  "id": "g25-pexels-8456990",
+  "durationS": 24.64,
+  "width": 720,
+  "height": 1280,
+  "rotation": 0,
+  "fpsNominal": 25.0,
+  "fpsMeasured": 25.0,
+  "usable": true,
+  "exercise": "Curl simultáneo con mancuernas",
+  "exerciseDetail": "Curl de bíceps SIMULTÁNEO con dos mancuernas (agarre neutro/martillo con giro), de pie al aire libre: 4 curls lentos de ~4,2 s; antes recoge las mancuernas del suelo y al final las deja (no es una serie de peso muerto)",
+  "suggestedProfile": "CURL",
+  "view": "FRONT",
+  "people": 1,
+  "fullBodyVisible": true,
+  "faceVisible": true,
+  "plateVisible": true,
+  "startPhase": "CONCENTRIC_FIRST",
+  "reps": {
+    "full": 4,
+    "partial": 0,
+    "failed": 0,
+    "uncertain": false,
+    "acceptableRange": [
+      4,
+      4
+    ]
+  },
+  "repTimesS": [
+    {
+      "index": 1,
+      "turnaroundS": 5.5,
+      "side": null,
+      "windowS": [
+        5.2,
+        5.8
+      ]
+    },
+    {
+      "index": 2,
+      "turnaroundS": 9.4,
+      "side": null,
+      "windowS": [
+        9.0,
+        9.8
+      ]
+    },
+    {
+      "index": 3,
+      "turnaroundS": 13.8,
+      "side": null,
+      "windowS": [
+        13.3,
+        14.2
+      ]
+    },
+    {
+      "index": 4,
+      "turnaroundS": 17.9,
+      "side": null,
+      "windowS": [
+        17.3,
+        18.3
+      ]
+    }
+  ],
+  "activeWindowS": [
+    4.2,
+    20.0
+  ],
+  "frameIntervalS": {
+    "min": 0.04,
+    "median": 0.04,
+    "max": 0.04
+  },
+  "turnaroundKind": "TOP",
+  "edgeEvents": [
+    {
+      "timeS": 0.0,
+      "kind": "SETUP",
+      "description": "0-4,3 s: recoge las dos mancuernas del suelo con una bisagra de cadera (0-3,5 s) y se incorpora; no es una serie de peso muerto"
+    },
+    {
+      "timeS": 20.0,
+      "kind": "TRANSITION",
+      "description": "20-23,5 s: baja las mancuernas y las deja en el suelo con una bisagra de cadera; 23,5-24,6 s de pie sin peso"
+    }
+  ],
+  "caveats": [
+    "el ejercicio no es el del título (peso muerto/bisagra con mancuernas): es un curl simultáneo; la bisagra de 0-4,3 s y de 20-23,5 s es solo recoger y dejar las mancuernas (cola de falsos positivos para un contador de bisagra)",
+    "la persona es pequeña en el encuadre (~26% de la altura) y está contra un cielo blanco sobrexpuesto",
+    "cámara de mano con dos reencuadres rápidos fuera de las repeticiones (3,0-4,4 s y 21-22,6 s)",
+    "pausas de ~0,7 s arriba: el giro se anota en el centro"
+  ],
+  "cameraMotion": {
+    "class": "SLOW_DRIFT",
+    "note": "deriva de mano de ~11% del encuadre en 24,6 s (ORB con el sujeto enmascarado) con dos reencuadres rápidos de ~7-8% fuera de las repeticiones (recoger las mancuernas, 3,0-4,4 s, y dejarlas, 21-22,6 s); durante los curls (4,4-20 s) la deriva es <5%"
+  },
+  "softWarnings": [
+    "cámara con deriva lenta: deriva de mano de ~11% del encuadre en 24,6 s (ORB con el sujeto enmascarado) con dos reencuadres rápidos de ~7-8% fuera de las repeticiones (recoger las mancuernas, 3,0-4,4 s, y dejarlas, 21-22,6 s); durante los curls (4,4-20 s) la deriva es <5%"
+  ]
+}

@@ -3,8 +3,6 @@ package com.example.kpkn.screens.sessioneditor
 import android.content.Context
 import android.content.SharedPreferences
 import com.example.kpkn.data.models.Session
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -43,10 +41,6 @@ class TrainedSessionVersionStore(context: Context) {
             decodeSnapshots(raw).getOrDefault(emptyList())
         }
     }
-
-    /** Main-safe facade for editor and lifecycle callers. */
-    suspend fun loadForSessionOnIo(sessionId: String): List<SessionDraftSnapshot> =
-        withContext(Dispatchers.IO) { loadForSession(sessionId) }
 
     private fun decodeSnapshots(raw: String): Result<List<SessionDraftSnapshot>> =
         runCatching {
@@ -110,16 +104,6 @@ class TrainedSessionVersionStore(context: Context) {
             }
             next
         }
-    }
-
-    /** Main-safe facade; the JSON and synchronous SharedPreferences commit stay on IO. */
-    suspend fun maybeAppendAfterTrainingOnIo(
-        sessionId: String,
-        session: Session,
-        trainedAtMs: Long = System.currentTimeMillis(),
-        reason: String = "Sesión entrenada",
-    ): List<SessionDraftSnapshot> = withContext(Dispatchers.IO) {
-        maybeAppendAfterTraining(sessionId, session, trainedAtMs, reason)
     }
 
     private fun persist(sessionId: String, snapshots: List<SessionDraftSnapshot>) {

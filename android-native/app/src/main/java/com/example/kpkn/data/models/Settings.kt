@@ -165,6 +165,12 @@ data class Settings(
     val relatorMemoryJson: String? = null,
     /** Categorical equipment availability; numeric stock remains in [equipmentInventory]. */
     val equipmentAvailability: EquipmentAvailability? = null,
+    /**
+     * Técnica en vídeo (ola VT, §3.10). Campo nuevo y no la bandera vieja `poseTrajectoryEnabled`: los `Settings` se
+     * guardan con `encodeDefaults`, así que cambiar el valor por defecto de aquella no migraría a nadie. JSON con valor
+     * por defecto: sin migración de Room.
+     */
+    val techniqueVideo: TechniqueVideoSettings = TechniqueVideoSettings(),
 ) {
     /**
      * Stock efectivo para alcanzar cargas: el inventario explícito manda,
@@ -451,3 +457,19 @@ data class EquipmentInventory(
         }
     }
 }
+
+/**
+ * Ajustes de la técnica en vídeo (ola VT, §3.10): análisis automático de las series grabadas.
+ *
+ * @property analyzeVideos analiza cada vídeo al terminar la serie (reps, TUT, ROM, trayectoria y velocidad).
+ * @property prefer60Fps graba a 60 fps cuando el móvil lo garantiza (perfiles con barra).
+ * @property plateDiameterMm diámetro del disco de calibración, en mm (450 = disco olímpico de 45 cm).
+ * @property maxRecordSeconds duración máxima de una grabación, en segundos.
+ */
+@Serializable
+data class TechniqueVideoSettings(
+    val analyzeVideos: Boolean = true,
+    val prefer60Fps: Boolean = true,
+    val plateDiameterMm: Int = 450,
+    val maxRecordSeconds: Int = 180,
+)

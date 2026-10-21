@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Ajuste manual de Energía y Columna</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Syne:wght@600;700;800&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#F2EEE6}a:hover{color:#ffffff}
+@keyframes wave{from{transform:translateX(0)}to{transform:translateX(-120px)}}
+.wv{animation:wave 3s linear infinite}
+.wv2{animation:wave 4.6s linear infinite reverse}
+.lvl{transition:transform .5s cubic-bezier(.2,.8,.2,1)}
+.arc{transition:stroke-dasharray .5s cubic-bezier(.2,.8,.2,1)}
+@media (prefers-reduced-motion: reduce){.wv,.wv2{animation:none}}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: #000000; color: #F2EEE6; font-family: Inter, sans-serif; position: relative; overflow: hidden;">
+  <div style="position: absolute; inset: 0; background: rgba(0,0,0,0.5);"></div>
+  <div style="position: absolute; left: 0; right: 0; bottom: 0; top: 34px; background: #0E0E0E; border-top-left-radius: 28px; border-top-right-radius: 28px; border-top: 1px solid rgba(242,238,230,0.08); padding: 10px 18px 24px 18px; box-sizing: border-box; display: flex; flex-direction: column; align-items: center; gap: 14px;">
+    <div style="width: 36px; height: 4px; border-radius: 2px; background: rgba(242,238,230,0.22);"></div>
+    <div style="font-family: Syne, sans-serif; font-weight: 700; font-size: 22px;">Ajusta cómo llegas</div>
+    <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; padding: 4px; border-radius: 18px; background: #000000; width: 100%; box-sizing: border-box;">
+      <sc-for list="{{tabs}}" as="t" hint-placeholder-count="3">
+        <button onClick="{{t.pick}}" style="height: 32px; border-radius: 16px; border: none; background: {{t.bg}}; color: {{t.fg}}; font-family: Inter, sans-serif; font-size: 12px; font-weight: 600;">{{t.label}}</button>
+      </sc-for>
+    </div>
+
+    <div style="position: relative; width: 280px; height: 280px;">
+      <svg width="280" height="280" viewBox="0 0 280 280" role="img" aria-label="{{aria}}">
+        <defs>
+          <clipPath id="inner"><circle cx="140" cy="140" r="96"></circle></clipPath>
+          <linearGradient id="ga" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="{{c1}}"></stop><stop offset="1" stop-color="{{c2}}"></stop></linearGradient>
+          <filter id="gl" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="6"></feGaussianBlur></filter>
+        </defs>
+        <circle cx="140" cy="140" r="96" fill="#111111"></circle>
+        <g clip-path="url(#inner)">
+          <g class="lvl" style="transform: translateY({{level}})">
+            <g class="wv"><path d="M0 0 Q 30 -10 60 0 T 120 0 T 180 0 T 240 0 T 300 0 T 360 0 T 420 0 V 220 H 0 Z" fill="{{c1}}" opacity="0.35"></path></g>
+            <g class="wv2"><path d="M0 6 Q 30 -4 60 6 T 120 6 T 180 6 T 240 6 T 300 6 T 360 6 T 420 6 V 220 H 0 Z" fill="url(#ga)" opacity="0.55"></path></g>
+          </g>
+        </g>
+        <circle cx="140" cy="140" r="118" fill="none" stroke="#1A1A1A" stroke-width="18"></circle>
+        <circle class="arc" cx="140" cy="140" r="118" fill="none" stroke="{{c2}}" stroke-width="18" stroke-linecap="round" stroke-dasharray="{{dash}}" transform="rotate(-90 140 140)" opacity="0.3" filter="url(#gl)"></circle>
+        <circle class="arc" cx="140" cy="140" r="118" fill="none" stroke="url(#ga)" stroke-width="18" stroke-linecap="round" stroke-dasharray="{{dash}}" transform="rotate(-90 140 140)"></circle>
+        <line x1="{{prevX1}}" y1="{{prevY1}}" x2="{{prevX2}}" y2="{{prevY2}}" stroke="rgba(242,238,230,0.5)" stroke-width="3" stroke-linecap="round"></line>
+      </svg>
+      <div style="position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; pointer-events: none;">
+        <div style="font-size: 12px; font-weight: 600; letter-spacing: 1.6px; color: {{c2}};">{{name}}</div>
+        <div style="font-family: Syne, sans-serif; font-weight: 700; font-size: 46px; line-height: 50px;">{{value}} %</div>
+        <div style="font-size: 12px; color: rgba(242,238,230,0.55);">antes {{prev}} %</div>
+      </div>
+      <sc-for list="{{hits}}" as="h" hint-placeholder-count="12">
+        <button aria-label="{{h.aria}}" onClick="{{h.pick}}" style="position: absolute; left: {{h.x}}; top: {{h.y}}; width: 44px; height: 44px; margin: -22px 0 0 -22px; border-radius: 22px; border: none; background: transparent; cursor: pointer;"></button>
+      </sc-for>
+    </div>
+    <div style="font-size: 12px; color: rgba(242,238,230,0.5);">Toca o arrastra por el anillo</div>
+
+    <div style="display: flex; align-items: center; gap: 10px;">
+      <button onClick="{{minus}}" aria-label="Bajar 5" style="width: 44px; height: 44px; border-radius: 22px; border: 1px solid rgba(242,238,230,0.12); background: #161616; color: #F2EEE6; font-size: 18px;">−</button>
+      <div style="width: 120px; text-align: center; font-size: 13px; color: rgba(242,238,230,0.7);">{{hint}}</div>
+      <button onClick="{{plus}}" aria-label="Subir 5" style="width: 44px; height: 44px; border-radius: 22px; border: 1px solid rgba(242,238,230,0.12); background: #161616; color: #F2EEE6; font-size: 18px;">+</button>
+    </div>
+
+    <div style="flex: 1;"></div>
+    <div style="display: flex; gap: 10px; width: 100%;">
+      <button onClick="{{reset}}" style="height: 48px; padding: 0 18px; border-radius: 24px; border: 1px solid rgba(242,238,230,0.12); background: #111111; color: #F2EEE6; font-family: Inter, sans-serif; font-size: 14px; font-weight: 600;">Restablecer</button>
+      <button style="flex: 1; height: 48px; border-radius: 24px; border: none; background: #F2EEE6; color: #0B0B0B; font-family: Inter, sans-serif; font-size: 15px; font-weight: 600;">Listo</button>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { ch: 'energy', energy: 72, spine: 82 };
+  }
+  renderVals() {
+    const ch = this.state.ch;
+    const prev = ch === 'energy' ? 88 : 82;
+    const value = this.state[ch === 'energy' ? 'energy' : 'spine'];
+    const set = (v) => this.setState({ [ch === 'energy' ? 'energy' : 'spine']: Math.max(0, Math.min(100, v)) });
+    const C = 2 * Math.PI * 118;
+    const angle = (p) => (p / 100) * 2 * Math.PI - Math.PI / 2;
+    const pa = angle(prev);
+    const hits = [];
+    for (let i = 1; i <= 12; i++) {
+      const v = Math.round(i * 100 / 12);
+      const a = angle(v);
+      hits.push({ aria: 'Fijar en ' + v + ' %', x: (140 + 118 * Math.cos(a)) + 'px', y: (140 + 118 * Math.sin(a)) + 'px', pick: () => set(v) });
+    }
+    const words = value >= 80 ? 'Con mucha energía' : value >= 60 ? 'Bien, sin más' : value >= 40 ? 'Algo cansado' : 'Muy cansado';
+    const spineWords = value >= 80 ? 'Espalda descansada' : value >= 60 ? 'Algo cargada' : value >= 40 ? 'Cargada' : 'Muy cargada';
+    const tabs = [['energy', 'Energía'], ['spine', 'Columna'], ['muscles', 'Músculos']].map(([id, label]) => ({
+      label,
+      bg: ch === id ? '#F2EEE6' : 'transparent',
+      fg: ch === id ? '#0B0B0B' : 'rgba(242,238,230,0.62)',
+      pick: () => this.setState({ ch: id === 'muscles' ? ch : id })
+    }));
+    return {
+      tabs,
+      name: ch === 'energy' ? 'ENERGÍA' : 'COLUMNA',
+      c1: ch === 'energy' ? '#C9A04A' : '#5E7EC4',
+      c2: ch === 'energy' ? '#F7CF73' : '#8FB2FF',
+      value, prev,
+      dash: (C * value / 100).toFixed(1) + ' ' + C.toFixed(1),
+      level: (236 - 192 * value / 100 - 44) + 'px',
+      prevX1: 140 + 104 * Math.cos(pa), prevY1: 140 + 104 * Math.sin(pa),
+      prevX2: 140 + 132 * Math.cos(pa), prevY2: 140 + 132 * Math.sin(pa),
+      hits,
+      hint: ch === 'energy' ? words : spineWords,
+      aria: (ch === 'energy' ? 'Energía ' : 'Columna ') + value + ' %',
+      minus: () => set(value - 5),
+      plus: () => set(value + 5),
+      reset: () => set(prev)
+    };
+  }
+}
+</script>
+</body>
+</html>

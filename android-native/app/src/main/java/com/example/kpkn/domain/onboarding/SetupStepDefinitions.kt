@@ -258,7 +258,7 @@ private fun discomfortLegacyMap(): Map<String, String> = buildMap {
 
 /**
  * Canonical muscles understood by the order engine (SimpleCyclePersonalizer). Cada [MuscleSymbol] del paso
- * PRIORITIES tiene aquí su músculo canónico (`MuscleSymbols.canonical`); «Erectores Espinales» no tiene símbolo y se
+ * PRIORITIES tiene aquí su músculo canónico (`MuscleSymbols.canonicals`; «Brazos» tiene dos); «Erectores Espinales» no tiene símbolo y se
  * conserva para leer borradores antiguos. «Antebrazo» (singular) es el nombre que usan el catálogo y el volumen.
  */
 val ORDER_MUSCLE_OPTIONS: List<SetupOptionDefinition> = listOf(

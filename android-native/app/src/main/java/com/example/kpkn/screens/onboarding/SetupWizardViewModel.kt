@@ -4116,6 +4116,13 @@ class SetupWizardViewModel @JvmOverloads constructor(
         mutateDraft { latest -> latest.copy(exerciseOverrides = latest.exerciseOverrides - instanceId) }
     }
 
+    /** RINGS: «Restablecer» de un solo músculo: quita su ajuste y deja los demás; vuelve su estimación. */
+    fun resetMuscleManual(pillar: String) = mutateDraft { draft ->
+        val answers = draft.ringsAnswers
+        if (answers == null || pillar !in answers.manualMusclesV2) draft
+        else draft.copy(ringsAnswers = answers.copy(manualMusclesV2 = answers.manualMusclesV2 - pillar))
+    }
+
     companion object {
         private const val DRAFT_ID_KEY = "setup_wizard_draft_id"
         /** Plan de la biblioteca ya aplicado como intención (SavedStateHandle: sobrevive a recrear el ViewModel). */

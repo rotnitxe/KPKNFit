@@ -9,6 +9,7 @@ import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.ExerciseSet
 import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.repository.SessionTemplateRepository
+import com.example.kpkn.testsupport.RoomTestRule
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.first
@@ -24,6 +25,7 @@ import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
@@ -55,6 +57,9 @@ import org.robolectric.annotation.Config
 @Config(manifest = Config.NONE, sdk = [34], application = Application::class)
 @OptIn(ExperimentalCoroutinesApi::class)
 class SessionTemplateRepositoryTest {
+
+    @get:Rule
+    val roomRule = RoomTestRule()
 
     private val mainDispatcher = UnconfinedTestDispatcher()
     private lateinit var database: KpknDatabase

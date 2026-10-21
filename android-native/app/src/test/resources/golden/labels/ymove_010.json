@@ -1,0 +1,106 @@
+{
+  "id": "ymove_010",
+  "durationS": 25.16,
+  "width": 360,
+  "height": 640,
+  "rotation": 0,
+  "fpsNominal": 25.0,
+  "fpsMeasured": 25.0,
+  "usable": true,
+  "exercise": "Peso muerto rumano con kettlebell",
+  "exerciseDetail": "Peso muerto rumano con kettlebell azul (bisagra de cadera con piernas casi rectas hasta tocar el suelo con la kettlebell), pausa de ~1,2 s abajo y de ~1,5 s de pie",
+  "suggestedProfile": "HINGE",
+  "view": "OBLIQUE",
+  "people": 1,
+  "fullBodyVisible": true,
+  "faceVisible": true,
+  "plateVisible": false,
+  "startPhase": "CONCENTRIC_FIRST",
+  "reps": {
+    "full": 5,
+    "partial": 0,
+    "failed": 0,
+    "uncertain": false,
+    "acceptableRange": [
+      5,
+      7
+    ]
+  },
+  "repTimesS": [
+    {
+      "index": 1,
+      "turnaroundS": 4.65,
+      "side": null,
+      "windowS": [
+        4.2,
+        5.1
+      ]
+    },
+    {
+      "index": 2,
+      "turnaroundS": 8.3,
+      "side": null,
+      "windowS": [
+        7.9,
+        8.7
+      ]
+    },
+    {
+      "index": 3,
+      "turnaroundS": 12.4,
+      "side": null,
+      "windowS": [
+        11.9,
+        12.9
+      ]
+    },
+    {
+      "index": 4,
+      "turnaroundS": 16.55,
+      "side": null,
+      "windowS": [
+        16.0,
+        17.1
+      ]
+    },
+    {
+      "index": 5,
+      "turnaroundS": 20.75,
+      "side": null,
+      "windowS": [
+        20.2,
+        21.3
+      ]
+    }
+  ],
+  "activeWindowS": [
+    0.0,
+    25.1
+  ],
+  "frameIntervalS": {
+    "min": 0.04,
+    "median": 0.04,
+    "max": 0.04
+  },
+  "turnaroundKind": "BOTTOM",
+  "edgeEvents": [
+    {
+      "timeS": 0.7,
+      "kind": "TRUNCATED_START",
+      "description": "el clip empieza en el fondo de una repetición ya empezada (kettlebell en el suelo, pausa de 0,0 a ~1,5 s) y sube hasta de pie hacia 2,5 s: ese fondo inicial (~0,7 s) no se cuenta como repetición completa (rango 5-7)"
+    },
+    {
+      "timeS": 24.6,
+      "kind": "TRUNCATED_END",
+      "description": "tras la 5.ª repetición (fondo a 20,75 s) sube a de pie (22,0-23,2 s) y vuelve a bajar: el 7.º fondo llega al suelo hacia 24,5 s y el clip termina a los 25,16 s en el fondo, sin ascenso (rango 5-7)"
+    }
+  ],
+  "caveats": [],
+  "cameraMotion": {
+    "class": "STATIC",
+    "note": "cámara fija de estudio con fondo blanco liso (ORB y ECC no tienen rasgos fiables): los zapatos plantados, seguidos con plantilla, se desplazan x -1..1 px e y -1..2 px en el encuadre 360x640 durante todo el clip (máx. 0,3% del ancho)"
+  },
+  "softWarnings": [
+    "recuento ambiguo por medio ciclo en el borde del clip o por repeticiones dudosas: rango aceptable 5-7 (ver edgeEvents)"
+  ]
+}

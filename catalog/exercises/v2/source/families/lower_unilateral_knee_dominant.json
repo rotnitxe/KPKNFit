@@ -2656,13 +2656,12 @@
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.2,
-              "description": "El carro se desplaza por los raíles inclinados y transmite la carga a través de los hombros. La espalda apoyada permite que las piernas hagan la zancada con un pie estable delante y el otro retrocediendo y regresando.",
+              "description": "El carro inclinado acompaña la espalda apoyada y recibe la carga por los hombros. Un pie ocupa la plataforma mientras el antepié contrario toca el suelo exterior libre del bastidor; la rodilla de atrás permanece sin apoyo.",
               "efc": 2.8,
               "equipmentId": "machine",
               "executionCues": [
-                "Lleva un pie atrás y dobla la pierna que conserva el apoyo delantero.",
-                "Presiona con el pie delantero para elevar el carro sin separar la espalda.",
-                "Devuelve el pie posterior a su lugar habitual al completar la subida."
+                "Desciende doblando la rodilla de trabajo; el contacto posterior se limita al antepié y su rodilla se aproxima al piso sin apoyarse.",
+                "Empuja con el pie delantero para subir manteniendo el respaldo y controla la vuelta."
               ],
               "fatigueTier": "MEDIA",
               "jointInvolvement": [
@@ -2823,9 +2822,8 @@
                 "adductors"
               ],
               "setupCues": [
-                "Entra bajo las almohadillas con la espalda sobre el respaldo de la hack.",
-                "Agarra las asas y sitúa los pies en sus apoyos normales.",
-                "Comprueba una superficie estable detrás para el pie que va a retroceder."
+                "Apoya la espalda en el respaldo, coloca los hombros bajo las almohadillas y sujeta las asas.",
+                "Sitúa toda la planta delantera sobre la plataforma y lleva la otra pierna al suelo lateral exterior, dejando libre el espacio junto a los raíles."
               ],
               "setupTimeSeconds": 55,
               "ssc": 0.5,
@@ -2876,13 +2874,12 @@
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.2,
-              "description": "El brazo articulado describe un arco con los hombros bajo sus almohadillas. La espalda conserva contacto con el respaldo mientras un pie retrocede durante la bajada y regresa al apoyo habitual después del ascenso.",
+              "description": "El yugo del brazo articulado descansa sobre los hombros y acompaña la espalda contra el acolchado. La planta delantera recibe el esfuerzo sobre la plataforma; detrás, el antepié encuentra el suelo exterior al bastidor con el talón elevado.",
               "efc": 2.8,
               "equipmentId": "machine",
               "executionCues": [
-                "Lleva un pie hacia atrás sin cambiar la orientación habitual del cuerpo.",
-                "Dobla la rodilla y la cadera delanteras sin separar la espalda del respaldo.",
-                "Empuja con el pie delantero para recuperar altura y devuelve el otro al lugar inicial."
+                "Flexiona la pierna delantera mientras el antepié posterior permanece en el suelo con el talón elevado y la espalda en contacto con el respaldo.",
+                "Empuja principalmente con el pie delantero para subir y vuelve al inicio de forma controlada."
               ],
               "fatigueTier": "MEDIA",
               "jointInvolvement": [
@@ -3043,9 +3040,8 @@
                 "adductors"
               ],
               "setupCues": [
-                "Coloca los hombros bajo las almohadillas y la espalda contra el respaldo habitual.",
-                "Sitúa ambos pies en sus apoyos habituales y comprueba el espacio para llevar uno hacia atrás.",
-                "Agarra las asas y comprueba que ambos pies tienen espacio para la bajada."
+                "Colócate de espaldas al respaldo mirando hacia fuera y sitúa los hombros bajo el yugo.",
+                "Busca un apoyo delantero amplio en la plataforma y retrasa la otra pierna hacia el exterior de los tubos, donde el antepié pueda contactar el suelo sin rozar la estructura."
               ],
               "setupTimeSeconds": 55,
               "ssc": 0.5,

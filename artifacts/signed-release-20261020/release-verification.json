@@ -1,0 +1,52 @@
+{
+  "verified_utc": "2026-10-20T04:20:35.852695+00:00",
+  "apk": "C:\\Users\\valen\\Documents\\KPKNFit\\artifacts\\signed-release-20261020\\build\\app\\outputs\\apk\\base\\release\\app-base-release.apk",
+  "apk_bytes": 264852804,
+  "apk_sha256": "3dfb1087b42460d2a616c614f4fe23958ecb8b44b4671cfa5f415104be22d3fb",
+  "variant": "baseRelease",
+  "application_id": "com.example.kpkn",
+  "version_code": 50,
+  "abis": [
+    "arm64-v8a",
+    "armeabi-v7a"
+  ],
+  "version_name": "KPKN Pre Release 17",
+  "source_head": "0ba94859a7eabaf43c4d9e5465a93567e16766ba",
+  "source_sha256": "c0ca7d727e87db1f1e545304b5db3a538bffc26364469b4618d610c978fe0477",
+  "source_unchanged_during_build": true,
+  "includes_pending_local_sources": true,
+  "gradle_build_successful": true,
+  "build_log_sha256": "569002802d3ad02e1d95b3df28269c830079451808af97377333c3f89a1ee4f6",
+  "signed_and_verified": true,
+  "signature": "Verifies\nVerified using v1 scheme (JAR signing): false\nVerified using v2 scheme (APK Signature Scheme v2): true\nVerified using v3 scheme (APK Signature Scheme v3): true\nVerified using v3.1 scheme (APK Signature Scheme v3.1): false\nVerified using v3.2 scheme (APK Signature Scheme v3.2): false\nVerified using v4 scheme (APK Signature Scheme v4): false\nVerified for SourceStamp: false\nNumber of signers: 1\nV3.0 Signer: certificate DN: CN=KPKN Fit, OU=Mobile, O=KPKN, L=Unknown, ST=Unknown, C=US\nV3.0 Signer: certificate SHA-256 digest: 9e8bb57415e409a1f107e70c62b85aa65ce73576e6196470808231f256464bc1\nV3.0 Signer: certificate SHA-1 digest: ae17e9902b4f0c2f669e85c196a584436a6787da\nV3.0 Signer: certificate MD5 digest: daa70530ae0f233b8179560d3e8bd7f3\nV3.0 Signer: key algorithm: RSA\nV3.0 Signer: key size (bits): 2048\nV3.0 Signer: public key SHA-256 digest: 8e41c2113a9027607242421cfc5b61e1c10b911395a35714f0ccce5b3b0b98ba\nV3.0 Signer: public key SHA-1 digest: 08337060e099afd57c1c19ac50489175898c4a35\nV3.0 Signer: public key MD5 digest: 2ddc9629445d242b734a2d2cff386820\n",
+  "signer_certificate_sha256": [
+    "9e8bb57415e409a1f107e70c62b85aa65ce73576e6196470808231f256464bc1"
+  ],
+  "matches_historical_release_certificate": true,
+  "zipalign_16k": true,
+  "debuggable": false,
+  "debug_activities": [],
+  "debug_classes_in_mapping": [],
+  "embedded_provenance": {
+    "variant": "baseRelease",
+    "head": "0ba94859a7eabaf43c4d9e5465a93567e16766ba",
+    "branch": "master",
+    "captured_utc": "2026-10-20T01:03:15.718413-03:00",
+    "source_sha256": "c0ca7d727e87db1f1e545304b5db3a538bffc26364469b4618d610c978fe0477",
+    "source_file_count": 4299,
+    "includes_current_local_changes": true,
+    "source_root": "C:\\Users\\valen\\Documents\\KPKNFit"
+  },
+  "unit_test_suites": 36,
+  "unit_tests": {
+    "tests": 337,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "controlled_build_inputs": {
+    "fresh-build.init.gradle": "c1131a9892d8c6ae61293a6d7a7d966c75408d91b43ef3c4c13efc8781a4b3b2",
+    "release-build.json": "0edc5aa6e6121c88366d4cb6f313c45cce11403eff5cac74ebc8c8d0e56dfe13"
+  },
+  "device_installation_performed": false
+}

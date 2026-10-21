@@ -296,7 +296,10 @@ class AugeViewModel(application: Application) : AndroidViewModel(application) {
                 // de caducidad de la evidencia.
                 nowOverrideMs = evaluationNowMs,
             )
-            val articular = AugeTtcEngine.calculateArticularBatteries(history, exerciseDb, feedbacks, wellbeingNormalized)
+            val articular = AugeTtcEngine.calculateArticularBatteries(
+                history, exerciseDb, feedbacks, wellbeingNormalized,
+                nowMs = evaluationNowMs,
+            )
             val bat = AugeRecoveryEngine.calculateGlobalBatteries(
                 history = history,
                 wellbeing = wellbeingNormalized,
@@ -337,9 +340,8 @@ class AugeViewModel(application: Application) : AndroidViewModel(application) {
             // que las baterías recién calculadas (historial, evidencia inicial de
             // settings, wellbeing normalizado, confianza y scores del dashboard):
             // getPerMuscleBatteries/calculateGlobalBatteries y recentSessionCount
-            // reciben `evaluationNowMs`. AugeTtcEngine, calculateRecoveryDashboard
-            // y calculateDailyReadiness no aceptan `now` y conservan su reloj
-            // interno; no se fuerza ningún parámetro inexistente.
+            // reciben `evaluationNowMs`, igual que la articular (`nowMs`);
+            // calculateRecoveryDashboard y calculateDailyReadiness no leen el reloj.
             val coverage = computeSnapshotCoverage(
                 history = history,
                 settings = settings,
@@ -630,7 +632,9 @@ class AugeViewModel(application: Application) : AndroidViewModel(application) {
                 capacitiesAtCompletion = capacities,
             )
             val articular = AugeTtcEngine.calculateArticularBatteries(
-                baseHistory, exerciseDb, feedbacks, wellbeingNormalized
+                baseHistory, exerciseDb, feedbacks, wellbeingNormalized,
+                // El corte congelado del cierre: la articular de «ahora» de la vista previa se mide ahí, no en el reloj.
+                nowMs = frozenCompletionMs,
             )
             AugeRecoveryEngine.previewPostSessionBatteries(
                 baseHistory = baseHistory,
@@ -1055,6 +1059,7 @@ class AugeViewModel(application: Application) : AndroidViewModel(application) {
             exerciseDb,
             feedbacks,
             wellbeing,
+            nowMs = com.example.kpkn.domain.auge.AugeClock.nowMs(),
         )
         val batteries = AugeRecoveryEngine.calculateGlobalBatteries(
             history = historyWithout,
@@ -1246,9 +1251,9 @@ class AugeViewModel(application: Application) : AndroidViewModel(application) {
  * normalizado, confianza y scores del dashboard), de modo que la UI solo lee
  * `AugeSnapshot.coverage`: sin IO en composables y sin etiquetas globales.
  * En `recompute` ese corte (`evaluationNowMs`) se pasa también a
- * `getPerMuscleBatteries`/`calculateGlobalBatteries` (`nowOverrideMs`) y a
- * `recentSessionCount`; las funciones sin parámetro `now` (articular, dashboard,
- * readiness) conservan su reloj interno y no se les fuerza ningún parámetro.
+ * `getPerMuscleBatteries`/`calculateGlobalBatteries` (`nowOverrideMs`), a la
+ * articular (`nowMs`) y a `recentSessionCount`; el dashboard y la readiness no
+ * leen el reloj.
  *
  * No estima recuperación: describe procedencia. Un canal sin historial, sin
  * evidencia vigente y sin check-in declarado queda `NO_DATA` con `score = null`

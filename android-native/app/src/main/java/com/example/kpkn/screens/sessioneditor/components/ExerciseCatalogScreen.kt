@@ -53,6 +53,29 @@ internal fun ExerciseCatalogScreen(
     val editingExisting = request.selectionMode == CatalogSelectionMode.SINGLE ||
         request.selectionMode == CatalogSelectionMode.REPLACEMENT
 
+    // Reemplazar (LV5, H1): la página arranca en el catálogo con el ejercicio actual de contexto, no en su ficha. El nombre y la dosis
+    // del plan vienen en el pedido; si no hay nombre (el editor no lo manda), se saca del catálogo por su identidad.
+    val replacement = remember(request, catalog) {
+        val replacing = request.selectionMode == CatalogSelectionMode.REPLACEMENT ||
+            request.origin == CatalogLaunchOrigin.REPLACEMENT
+        if (!replacing) {
+            null
+        } else {
+            val fromCatalog = request.targetCatalogConfigurationId
+                ?.let { id ->
+                    catalog.firstOrNull {
+                        it.catalogConfigurationId.equals(id, ignoreCase = true) || it.id.equals(id, ignoreCase = true)
+                    }?.name
+                }
+                ?: request.targetCatalogDefinitionId
+                    ?.let { id -> catalog.firstOrNull { it.catalogDefinitionId == id }?.name }
+            CatalogReplacementContext(
+                exerciseName = request.targetExerciseName?.takeIf { it.isNotBlank() } ?: fromCatalog,
+                planSummary = request.targetPlanSummary?.takeIf { it.isNotBlank() },
+            )
+        }
+    }
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -63,6 +86,7 @@ internal fun ExerciseCatalogScreen(
             query = query,
             onSearch = { query = it },
             editingExisting = editingExisting,
+            singleSelectionLabel = if (request.origin == CatalogLaunchOrigin.TECHNIQUE) "Elegir" else null,
             selectedExercisesIds = selected.toSet(),
             onSelect = { info ->
                 selected = listOf(info.id)
@@ -99,6 +123,7 @@ internal fun ExerciseCatalogScreen(
                         ?: catalog.firstOrNull { it.catalogConfigurationId.equals(targetId, ignoreCase = true) }?.catalogConfigurationId
                 },
             targetGroupName = request.targetGroupName,
+            replacement = replacement,
         )
     }
 }

@@ -100,7 +100,7 @@ object RoutineGenerator {
         val assembled = results.map { requireNotNull(it) }.map { styleArmSets(normalized, ctx, it) }
         val sessions = assembled.map { it.session }
 
-        val week = ProgramWeek(id = "$programId-week", name = "Semana repetible", sessions = sessions)
+        val week = ProgramWeek(id = "$programId-week", name = "Semana que se repite", sessions = sessions)
         val name = RoutineNarrative.suggestedName(ctx)
         val oneLiner = RoutineNarrative.oneLiner(ctx, assembled)
         val missing = ctx.missing.keys.filter { it !in ctx.covered }.toSet()
@@ -126,7 +126,7 @@ object RoutineGenerator {
                     blocks = listOf(
                         Block(
                             id = "$programId-block",
-                            name = "Semana cíclica",
+                            name = "Semana que se repite",
                             mesocycles = listOf(Mesocycle(id = "$programId-meso", name = "Base", weeks = listOf(week))),
                             sourceDefinitionId = "generated:${normalized.mode.name.lowercase()}",
                             sourceRevision = REVISION,

@@ -30,6 +30,7 @@ import com.example.kpkn.data.protocols.weekRecipe
 import com.example.kpkn.data.repository.ProgramRepository
 import com.example.kpkn.domain.training.CatalogCompositionTestSupport
 import com.example.kpkn.domain.training.PlanMaterializer
+import com.example.kpkn.testsupport.RoomTestRule
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -49,6 +50,7 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.BeforeClass
+import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
@@ -66,6 +68,9 @@ import java.util.concurrent.TimeUnit
 @RunWith(RobolectricTestRunner::class)
 @Config(manifest = Config.NONE, sdk = [34])
 class SessionEditorManualOverrideTest {
+
+    @get:Rule
+    val roomRule = RoomTestRule()
 
     private val dispatcher = UnconfinedTestDispatcher()
     private lateinit var repository: ProgramRepository
@@ -1023,8 +1028,9 @@ class SessionEditorManualOverrideTest {
         assertFalse(gated.uiState.value.hasUnsavedChanges)
         val plainId = gated.addExerciseToPart(null, compoundInfo)
         val plain = gated.uiState.value.session!!.allExercises().first { it.id == plainId }
-        assertEquals("sin applyToNewItems no se aplican reglas", 1, plain.sets.size)
-        assertEquals(8, plain.sets.first().targetReps)
+        // SE11: sin reglas, un compuesto trae la prescripción del generador (3 × 6–10, RIR 2), no las reglas (2 × 5).
+        assertEquals("sin applyToNewItems no se aplican reglas", 3, plain.sets.size)
+        assertEquals(10, plain.sets.first().targetReps)
 
         setRoomCore(programId, sessionId) { it!!.copy(applyToNewItems = true) }
         val enabled = createViewModel(programId, sessionId)

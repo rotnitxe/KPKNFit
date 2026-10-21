@@ -9,7 +9,6 @@ import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.models.TrainingMode
 import com.example.kpkn.data.models.UnilateralTarget
 import com.example.kpkn.data.models.isEffectivelyUnilateral
-import com.example.kpkn.domain.calculations.calculateSuggestedLoad
 import com.example.kpkn.domain.calculations.suggestRestSeconds
 import com.example.kpkn.domain.training.VolumeCalculator
 import java.util.UUID
@@ -100,7 +99,9 @@ object SessionEditorRulesEngine {
                     targetRPE = if (mode == IntensityMode.RPE) effectiveIntensity else null,
                     targetRIR = if (mode == IntensityMode.RIR) effectiveIntensity.roundToInt().coerceIn(0, 6) else null,
                     intensityMode = mode,
-                    targetPercentageRM = null,
+                    // ER1f: en modo RM el %RM de la serie lo fija el usuario y la regla no lo toca. Ponerlo a null aquí hacía que
+                    // `normalizeSet` lo devolviera a 75.
+                    targetPercentageRM = if (this.trainingMode == TrainingMode.RM) existing?.targetPercentageRM else null,
                     isFailure = mode == IntensityMode.FAILURE,
                     isAmrap = false,
                 )
@@ -378,11 +379,10 @@ object SessionEditorRulesEngine {
 
     private fun normalizeSet(set: ExerciseSet, exercise: Exercise): ExerciseSet {
         val normalized = when (exercise.trainingMode) {
+            // ER1e: como SE11 (`normalizedForEditorSave`), normalizar no borra el rango ni el RIR ni el RPE de la serie: al aplicar
+            // reglas solo cambia lo que la regla fija. Solo se quita el marcador de intensidad que no es el %.
             TrainingMode.RM -> set.copy(
-                intensityMode = null,
-                targetRepsRange = null,
-                targetRPE = null,
-                targetRIR = null,
+                intensityMode = if (set.intensityMode == IntensityMode.SOLO_RM) IntensityMode.SOLO_RM else null,
                 isFailure = false,
                 isAmrap = false,
                 targetPercentageRM = com.example.kpkn.screens.sessioneditor.roundToMax2Decimals(
@@ -442,8 +442,8 @@ object SessionEditorRulesEngine {
                 }
             }
         }
-        val autoWeight = calculateSuggestedLoad(exercise, normalized)
-        return normalized.copy(weight = autoWeight ?: normalized.weight)
+        // ER2c: la carga la fija `normalizedLoadKg` (SessionEditorSessionHelpers), la misma que usa `normalizeSet`. En %RM manda la guardada.
+        return normalized.copy(weight = set.normalizedLoadKg(exercise, normalized))
     }
 }
 

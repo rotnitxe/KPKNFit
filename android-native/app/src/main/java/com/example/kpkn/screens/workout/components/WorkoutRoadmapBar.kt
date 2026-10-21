@@ -9,7 +9,6 @@ import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.gestures.animateScrollBy
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
-import androidx.compose.material.icons.filled.Close
 import androidx.compose.ui.input.pointer.pointerInput
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withTimeoutOrNull
@@ -45,26 +44,27 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.draw.scale
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.CompositingStrategy
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.kpkn.data.models.*
-import kotlin.math.roundToInt
 import com.example.kpkn.data.exercises.displayNameWithSelectedChips
-import com.example.kpkn.screens.sessioneditor.contentOn
+import com.example.kpkn.screens.onboarding.design.WizardColors
+import com.example.kpkn.screens.onboarding.design.entreno.SymbolPalette
 import com.example.kpkn.screens.sessioneditor.isEditorUncategorized
 import com.example.kpkn.screens.sessioneditor.resolvePartAccent
 import com.example.kpkn.screens.workout.*
 import com.example.kpkn.ui.adapt.LocalViewportAdapt
-import com.example.kpkn.ui.components.kpknGlassOrFallback
+import com.example.kpkn.ui.design.KpknShape
+import com.example.kpkn.ui.design.KpknSurface
+import com.example.kpkn.ui.design.KpknType
 import dev.chrisbanes.haze.HazeState
 
 private enum class RoadmapCardScale { Full, Mini }
@@ -75,11 +75,16 @@ enum class RoadmapMode {
 }
 
 /**
- * WorkoutRoadmapBar / UnifiedExerciseCarousel component.
- * Acts as the training roadmap cockpit with compact vs expanded modes,
- * auto-resolves muscular groups, handles completion states, and blocks
- * expansion when the virtual keyboard is visible.
+ * Lo que quedó pendiente al cerrar una capa de la sesión por accidente (LV4, 15): «Estado previo» o «Terminar». Se pinta como una píldora
+ * en la fila del asa del cockpit y solo mientras está pendiente; tocarla vuelve a abrir la capa.
  */
+data class RoadmapPendingAction(val label: String, val onClick: () -> Unit)
+
+/**
+ * Barra compacta de navegación: el asa y el gesto abren el cockpit. Las opciones y los lotes viven en sus hojas.
+ * Los parámetros antiguos de edición se conservan para los llamadores existentes; ya no activan UI ni estado de modo dios.
+ */
+@Suppress("UNUSED_PARAMETER")
 @OptIn(ExperimentalLayoutApi::class, ExperimentalFoundationApi::class)
 @Composable
 fun WorkoutRoadmapBar(
@@ -131,55 +136,14 @@ fun WorkoutRoadmapBar(
     godModeUndoStack: List<GodModeUndoSnapshot> = emptyList(),
     onRevertGodModeAction: (Int) -> Unit = {},
     onRoadmapHeightChanged: (Int) -> Unit = {},
+    pendingActions: List<RoadmapPendingAction> = emptyList(),
     modifier: Modifier = Modifier,
 ) {
     val activeMode = mode
-    val godModeActive = godMode && activeMode == RoadmapMode.EXPANDED
-    var selectedIds by remember { mutableStateOf(emptySet<String>()) }
-    var pendingDeleteExerciseId by remember { mutableStateOf<String?>(null) }
-    var pendingDissolveGroupId by remember { mutableStateOf<String?>(null) }
-    var pendingUltraFast by remember { mutableStateOf(false) }
-    var draggingEntryIndex by remember { mutableStateOf<Int?>(null) }
-    var autoScrollDirection by remember { mutableStateOf(0) }
-    LaunchedEffect(godModeActive) {
-        if (!godModeActive) {
-            selectedIds = emptySet()
-            draggingEntryIndex = null
-            autoScrollDirection = 0
-        }
-    }
-    val selectionMode = selectedIds.isNotEmpty()
-    LaunchedEffect(selectionMode) { onSelectionModeChange(selectionMode) }
-    LaunchedEffect(clearSelectionNonce) {
-        if (clearSelectionNonce > 0) selectedIds = emptySet()
-    }
-    var plusSlot by remember { mutableStateOf(godModeActive) }
-    LaunchedEffect(godModeActive) {
-        if (godModeActive) {
-            plusSlot = true
-        } else {
-            delay(WorkoutUiTokens.GodModeExitMs.toLong())
-            if (!godModeActive) plusSlot = false
-        }
-    }
-    val canDeleteAnyExercise = exercises.size > 1
-    val density = LocalDensity.current
-    val dragThresholdPx = with(density) { 12.dp.toPx() }
-    val dragStridePx = with(density) { 96.dp.toPx() }
-
-    val accentByPartId = remember(parts, sessionAccentColor) {
-        parts.associate { part ->
-            part.id to roadmapAccentForPart(part, sessionAccentColor)
-        }
-    }
-
-    val listState = rememberLazyListState(
-        initialFirstVisibleItemIndex = (currentIdx - 1).coerceAtLeast(0)
-    )
+    val listState = rememberLazyListState(initialFirstVisibleItemIndex = (currentIdx - 1).coerceAtLeast(0))
     val chromeScale = LocalViewportAdapt.current.uniformScale
-    val carouselCardHeight = WorkoutUiTokens.liveRoadmapCarouselCardHeight(chromeScale)
+    val carouselCardHeight = 46.dp
     val stepperSlotHeight = WorkoutUiTokens.liveCockpitStepperHeight(chromeScale)
-
     // The group table is authoritative for sessions loaded from older JSON:
     // some of those records have a valid SupersetGroup.exerciseOrder but one
     // or more member Exercise objects still lack supersetGroupRef.  Deriving
@@ -231,12 +195,13 @@ fun WorkoutRoadmapBar(
         }
     }
 
-    LaunchedEffect(currentIdx) {
+    LaunchedEffect(currentIdx, roadmapEntries, pendingActions.map { it.label }) {
         val currentExerciseId = exercises.getOrNull(currentIdx)?.id ?: return@LaunchedEffect
-        val currentEntryIdx = roadmapEntries.indexOfFirst { entry ->
+        val roadmapEntryIdx = roadmapEntries.indexOfFirst { entry ->
             entry is RoadmapEntry.Group && entry.group.exercises.any { it.id == currentExerciseId }
         }
-        if (currentEntryIdx < 0) return@LaunchedEffect
+        if (roadmapEntryIdx < 0) return@LaunchedEffect
+        val currentEntryIdx = roadmapEntryIdx + pendingActions.size
         val info = listState.layoutInfo
         val viewport = info.viewportEndOffset - info.viewportStartOffset
         val visible = info.visibleItemsInfo.firstOrNull { it.index == currentEntryIdx }
@@ -258,490 +223,106 @@ fun WorkoutRoadmapBar(
         }
     }
 
-    LaunchedEffect(autoScrollDirection, draggingEntryIndex) {
-        while (autoScrollDirection != 0 && draggingEntryIndex != null) {
-            listState.animateScrollBy(autoScrollDirection * dragStridePx * 0.35f)
-            delay(16)
-        }
-    }
 
     val supersetOrdinalById = remember(roadmapGroups) {
-        roadmapGroups.mapNotNull { group ->
-            group.groupId?.takeIf { group.exercises.size > 1 }
-        }.distinct().withIndex().associate { (index, groupId) -> groupId to index + 1 }
+        roadmapGroups.mapNotNull { it.groupId?.takeIf { _ -> it.exercises.size > 1 } }
+            .distinct().withIndex().associate { (index, groupId) -> groupId to index + 1 }
     }
-
     val supersetGroupById = remember(supersetGroups) { supersetGroups.associateBy { it.id } }
-
-    val roadmapShape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)
-
+    val roadmapShape = RoundedCornerShape(topStart = 26.dp, topEnd = 26.dp)
     Surface(
-        modifier = modifier
-            .fillMaxWidth(),
+        modifier = modifier.fillMaxWidth(),
         shape = roadmapShape,
         color = Color.Transparent,
-        contentColor = MaterialTheme.colorScheme.onSurface,
-        border = null,
+        contentColor = WizardColors.text,
         tonalElevation = 0.dp,
         shadowElevation = 0.dp,
     ) {
-        val cockpitGlassModifier = Modifier
-            .fillMaxWidth()
-            .clip(roadmapShape)
-            .kpknGlassOrFallback(hazeState, roadmapShape, withBorder = false)
-        Box(
-            modifier = cockpitGlassModifier
-                .clickable(enabled = activeMode == RoadmapMode.COMPACT) {
-                    onModeChange(RoadmapMode.EXPANDED)
-                }
-        ) {
-            Column(
-                modifier = Modifier.fillMaxWidth(),
-            ) {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(WorkoutUiTokens.MinTouchTarget)
-                    .clickable {
-                        onModeChange(if (activeMode == RoadmapMode.COMPACT) RoadmapMode.EXPANDED else RoadmapMode.COMPACT)
-                    },
-                contentAlignment = Alignment.Center
-            ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.Center,
-                    modifier = Modifier.padding(vertical = 4.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.DragHandle,
-                        contentDescription = "Desplegar roadmap",
-                        tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f),
-                        modifier = Modifier.size(18.dp)
-                    )
-                    Spacer(Modifier.width(4.dp))
-                    Icon(
-                        imageVector = if (activeMode == RoadmapMode.EXPANDED) Icons.Default.KeyboardArrowDown else Icons.Default.KeyboardArrowUp,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f),
-                        modifier = Modifier.size(16.dp)
-                    )
-                }
+        Column(Modifier.fillMaxWidth().height(78.dp).clip(roadmapShape).background(Color(0xFF0D0D0D)).padding(top = 8.dp)) {
+            Box(Modifier.width(36.dp).height(4.dp).align(Alignment.CenterHorizontally)
+                .clip(CircleShape).background(WizardColors.text.copy(alpha = .22f)))
+            Spacer(Modifier.height(12.dp))
+            if (aboveCarousel != null) {
+                Box(Modifier.fillMaxWidth().padding(
+                    top = WorkoutUiTokens.LiveCockpitStepperSlotTopPadding,
+                    bottom = WorkoutUiTokens.LiveCockpitStepperSlotBottomPadding,
+                ).height(stepperSlotHeight)) { aboveCarousel() }
             }
-
-            if (godModeActive && godModeUndoStack.isNotEmpty()) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .horizontalScroll(rememberScrollState())
-                        .padding(horizontal = 12.dp, vertical = 4.dp),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                ) {
-                    godModeUndoStack.forEachIndexed { index, snap ->
-                        TextButton(onClick = { onRevertGodModeAction(index) }) {
-                            Text("Deshacer ${snap.label}", fontWeight = FontWeight.Bold)
-                        }
-                    }
+            if (exercises.isEmpty()) {
+                Box(Modifier.fillMaxWidth().height(carouselCardHeight), contentAlignment = Alignment.Center) {
+                    com.example.kpkn.ui.design.KpknTextAction(text = "Añadir ejercicio", onClick = onAddExercise)
                 }
-            }
-
-            if (aboveCarousel != null || selectionMode) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(
-                            top = WorkoutUiTokens.LiveCockpitStepperSlotTopPadding,
-                            bottom = WorkoutUiTokens.LiveCockpitStepperSlotBottomPadding,
-                        )
-                        .height(stepperSlotHeight),
-                ) {
-                    AnimatedContent(
-                        targetState = selectionMode,
-                        transitionSpec = {
-                            fadeIn(tween(WorkoutUiTokens.GodModeEnterMs, easing = FastOutSlowInEasing)) togetherWith
-                                fadeOut(tween(WorkoutUiTokens.GodModeExitMs, easing = FastOutSlowInEasing))
-                        },
-                        label = "godModeBatchBar",
-                    ) { selecting ->
-                        if (selecting) {
-                            GodModeBatchBar(
-                                selectedCount = selectedIds.size,
-                                onCreateSuperset = {
-                                    onCreateSupersetFrom(selectedIds.toList())
-                                    selectedIds = emptySet()
-                                },
-                                onSkip = {
-                                    onBatchSkip(selectedIds.toList())
-                                    selectedIds = emptySet()
-                                },
-                                onDelete = {
-                                    onBatchDelete(selectedIds.toList())
-                                    selectedIds = emptySet()
-                                },
-                                onUltraFast = { pendingUltraFast = true },
-                                onClear = { selectedIds = emptySet() },
-                            )
-                        } else {
-                            aboveCarousel?.invoke()
-                        }
-                    }
-                }
-            }
-
-            LazyRow(
+            } else LazyRow(
                 state = listState,
-                userScrollEnabled = draggingEntryIndex == null,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(bottom = WorkoutUiTokens.LiveCockpitCarouselBottomPadding)
-                    .height(carouselCardHeight)
+                modifier = Modifier.fillMaxWidth().height(carouselCardHeight)
                     .graphicsLayer { compositingStrategy = CompositingStrategy.Offscreen }
                     .drawWithContent {
                         drawContent()
-                        val fadePx = 28.dp.toPx()
-                        val fadeFrac = if (size.width > 0f) (fadePx / size.width).coerceIn(0.04f, 0.18f) else 0.08f
-                        drawRect(
-                            brush = Brush.horizontalGradient(
-                                colorStops = arrayOf(
-                                    0f to Color.Transparent,
-                                    fadeFrac to Color.Black,
-                                    (1f - fadeFrac) to Color.Black,
-                                    1f to Color.Transparent,
-                                ),
-                            ),
-                            blendMode = BlendMode.DstIn,
-                        )
+                        val fade = (28.dp.toPx() / size.width.coerceAtLeast(1f)).coerceIn(0.04f, 0.18f)
+                        drawRect(Brush.horizontalGradient(colorStops = arrayOf(
+                            0f to Color.Transparent, fade to Color.Black,
+                            (1f - fade) to Color.Black, 1f to Color.Transparent,
+                        )), blendMode = BlendMode.DstIn)
                     },
                 contentPadding = PaddingValues(horizontal = 16.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.CenterVertically,
             ) {
-                items(
-                    count = roadmapEntries.size + if (plusSlot) 1 else 0,
-                    key = { entryIdx ->
-                        if (entryIdx >= roadmapEntries.size) "roadmap-plus"
-                        else when (val entry = roadmapEntries[entryIdx]) {
-                            RoadmapEntry.CardioDivider -> "roadmap-cardio-divider"
-                            is RoadmapEntry.Group -> {
-                                val group = entry.group
-                                group.groupId ?: group.exercises.firstOrNull()?.id ?: "group-$entryIdx"
-                            }
-                        }
-                    },
-                ) { entryIdx ->
-                    if (entryIdx >= roadmapEntries.size) {
-                        AnimatedVisibility(
-                            visible = godModeActive,
-                            enter = fadeIn(tween(WorkoutUiTokens.GodModeEnterMs, easing = FastOutSlowInEasing)) +
-                                scaleIn(
-                                    initialScale = 0.86f,
-                                    animationSpec = tween(WorkoutUiTokens.GodModeEnterMs, easing = FastOutSlowInEasing),
-                                ),
-                            exit = fadeOut(tween(WorkoutUiTokens.GodModeExitMs, easing = FastOutSlowInEasing)) +
-                                scaleOut(
-                                    targetScale = 0.86f,
-                                    animationSpec = tween(WorkoutUiTokens.GodModeExitMs, easing = FastOutSlowInEasing),
-                                ),
-                        ) {
-                            GodModePlusCard(onClick = onAddExercise, accent = sessionAccentColor)
-                        }
-                        return@items
+                pendingActions.forEach { action -> item(key = "pending:${action.label}") {
+                    RoadmapPendingPill(action.label, action.onClick)
+                } }
+                items(roadmapEntries.size, key = { index ->
+                    when (val entry = roadmapEntries[index]) {
+                        RoadmapEntry.CardioDivider -> "roadmap-cardio-divider"
+                        is RoadmapEntry.Group -> entry.group.groupId ?: entry.group.exercises.first().id
                     }
-                    when (val entry = roadmapEntries[entryIdx]) {
+                }) { index ->
+                    when (val entry = roadmapEntries[index]) {
                         RoadmapEntry.CardioDivider -> CardioRoadmapDivider()
                         is RoadmapEntry.Group -> {
                             val group = entry.group
                             val exercise = group.exercises.firstOrNull() ?: return@items
-
                             val idx = exercises.indexOfFirst { it.id == exercise.id }.coerceAtLeast(0)
                             val part = parts.firstOrNull { it.exercises.any { e -> e.id == exercise.id } }
-                            val isSuperset = group.groupId != null && group.exercises.size > 1
-                            val accent = when {
-                                part != null -> accentByPartId[part.id] ?: sessionAccentColor
-                                else -> sessionAccentColor
-                            }
                             val partName = normalizeWorkoutHeaderLabel(part?.name)
-
-                            val completedCount = WorkoutStepRules.completedRoadmapSlotsForExercises(
-                                exercises = group.exercises,
-                                completedSets = completedSets,
-                                omittedSetKeys = omittedSetKeys,
-                            )
-                            val totalSets = WorkoutStepRules.totalRoadmapSlotsForExercises(
-                                exercises = group.exercises,
-                                omittedSetKeys = omittedSetKeys,
-                            )
-                            val isAllDone = completedCount >= totalSets && totalSets > 0
-                            val isCurrent = group.exercises.any { it.id == exercises.getOrNull(currentIdx)?.id }
-                            val groupSelected = group.exercises.any { it.id in selectedIds }
-                            val compactLongPress = enableLongPress && !godModeActive
-                            val onCardClick: () -> Unit = {
-                                if (selectionMode) {
-                                    val id = exercise.id
-                                    selectedIds = if (id in selectedIds) selectedIds - id else selectedIds + id
-                                } else {
-                                    if (isSuperset) onSelectGroup(group.groupId) else onSelect(idx)
-                                }
-                            }
-                            val onCardLongClick: (() -> Unit)? = {
-                                onOpenContext(exercise.id)
-                            }.takeIf { compactLongPress }
-
-                            val selectedBorder by animateDpAsState(
-                                targetValue = if (groupSelected) 2.dp else 0.dp,
-                                animationSpec = if (groupSelected) {
-                                    tween(WorkoutUiTokens.GodModeEnterMs, easing = FastOutSlowInEasing)
-                                } else {
-                                    tween(WorkoutUiTokens.GodModeExitMs, easing = FastOutSlowInEasing)
-                                },
-                                label = "godModeSelectBorder",
-                            )
-                            val selectedScrim by animateFloatAsState(
-                                targetValue = if (groupSelected) 0.12f else 0f,
-                                animationSpec = if (groupSelected) {
-                                    tween(WorkoutUiTokens.GodModeEnterMs, easing = FastOutSlowInEasing)
-                                } else {
-                                    tween(WorkoutUiTokens.GodModeExitMs, easing = FastOutSlowInEasing)
-                                },
-                                label = "godModeSelectScrim",
-                            )
-                            val pickedUp = draggingEntryIndex == entryIdx
-                            var pickupOffset by remember(entryIdx) { mutableStateOf(0f) }
-
-                            Box(
-                                modifier = Modifier
-                                    .animateItem(
-                                        fadeInSpec = tween(WorkoutUiTokens.GodModeEnterMs, easing = FastOutSlowInEasing),
-                                        fadeOutSpec = tween(WorkoutUiTokens.GodModeExitMs, easing = FastOutSlowInEasing),
-                                        placementSpec = tween(WorkoutUiTokens.GodModeEnterMs, easing = FastOutSlowInEasing),
-                                    )
-                                    .graphicsLayer {
-                                        translationX = if (pickedUp) pickupOffset else 0f
-                                        shadowElevation = if (pickedUp) 8f else 0f
-                                        clip = false
-                                    }
-                                    .then(
-                                        if (selectedBorder > 0.dp || selectedScrim > 0.01f) {
-                                            Modifier
-                                                .border(selectedBorder, Color.White.copy(alpha = 0.72f), WorkoutUiTokens.InnerCardShape)
-                                                .drawWithContent {
-                                                    drawContent()
-                                                    if (selectedScrim > 0.01f) {
-                                                        drawRect(Color.Black.copy(alpha = selectedScrim))
-                                                    }
-                                                }
-                                        } else Modifier
-                                    )
-                                    .pointerInput(
-                                        godModeActive,
-                                        selectionMode,
-                                        entryIdx,
-                                        roadmapEntries.size,
-                                        dragThresholdPx,
-                                        dragStridePx,
-                                    ) {
-                                        if (!godModeActive || selectionMode) return@pointerInput
-                                        awaitEachGesture {
-                                            val down = awaitFirstDown(requireUnconsumed = false)
-                                            val touchSlop = viewConfiguration.touchSlop
-                                            val longPressTimeout = viewConfiguration.longPressTimeoutMillis
-                                            val wonLongPress = withTimeoutOrNull(longPressTimeout) {
-                                                while (true) {
-                                                    val event = awaitPointerEvent()
-                                                    val change = event.changes.firstOrNull { it.id == down.id }
-                                                        ?: return@withTimeoutOrNull false
-                                                    if (!change.pressed) return@withTimeoutOrNull false
-                                                    if ((change.position - down.position).getDistance() > touchSlop) {
-                                                        return@withTimeoutOrNull false
-                                                    }
-                                                }
-                                            }
-                                            if (wonLongPress != null) return@awaitEachGesture
-                                            draggingEntryIndex = entryIdx
-                                            var acc = 0f
-                                            var dragging = false
-                                            pickupOffset = 0f
-                                            autoScrollDirection = 0
-                                            try {
-                                                while (true) {
-                                                    val event = awaitPointerEvent()
-                                                    val change = event.changes.firstOrNull { it.id == down.id } ?: break
-                                                    if (!change.pressed) break
-                                                    acc += change.position.x - change.previousPosition.x
-                                                    if (!dragging && kotlin.math.abs(acc) >= dragThresholdPx) {
-                                                        dragging = true
-                                                    }
-                                                    if (dragging) {
-                                                        pickupOffset = acc
-                                                        autoScrollDirection = when {
-                                                            acc < -dragStridePx * 0.75f && entryIdx > 0 -> -1
-                                                            acc > dragStridePx * 0.75f && entryIdx < roadmapEntries.lastIndex -> 1
-                                                            else -> 0
-                                                        }
-                                                        change.consume()
-                                                    }
-                                                }
-                                                if (dragging) {
-                                                    val rawSteps = kotlin.math.round(acc / dragStridePx).toInt()
-                                                    val steps = when {
-                                                        rawSteps != 0 -> rawSteps
-                                                        acc > dragThresholdPx -> 1
-                                                        acc < -dragThresholdPx -> -1
-                                                        else -> 0
-                                                    }
-                                                    val target = (entryIdx + steps).coerceIn(0, roadmapEntries.lastIndex)
-                                                    if (target != entryIdx) {
-                                                        onReorderExercises(
-                                                            swappedRoadmapExerciseIds(roadmapEntries, entryIdx, target),
-                                                        )
-                                                    }
-                                                } else {
-                                                    selectedIds = selectedIds + exercise.id
-                                                }
-                                            } finally {
-                                                pickupOffset = 0f
-                                                draggingEntryIndex = null
-                                                autoScrollDirection = 0
-                                            }
-                                        }
-                                    },
-                            ) {
+                            val done = WorkoutStepRules.completedRoadmapSlotsForExercises(group.exercises, completedSets, omittedSetKeys)
+                            val total = WorkoutStepRules.totalRoadmapSlotsForExercises(group.exercises, omittedSetKeys)
+                            val isDone = done >= total && total > 0
+                            val current = group.exercises.any { it.id == exercises.getOrNull(currentIdx)?.id }
+                            val superset = group.groupId != null && group.exercises.size > 1
+                            val select: () -> Unit = { if (superset) onSelectGroup(group.groupId!!) else onSelect(idx) }
+                            val open: (() -> Unit)? = { onOpenContext(exercise.id) }.takeIf { enableLongPress }
                             if (exercise.isCardio) {
-                                CardioRoadmapCard(
-                                    exercise = exercise,
-                                    isCurrent = isCurrent,
-                                    isAllDone = isAllDone,
-                                    onClick = onCardClick,
-                                    onLongClick = onCardLongClick,
-                                    pickedUp = pickedUp,
-                                )
-                            } else if (!isSuperset) {
+                                CardioRoadmapCard(exercise, current, isDone, select, open)
+                            } else if (!superset) {
                                 ExerciseRoadmapCard(
-                                    exercise = exercise,
-                                    completedCount = completedCount,
-                                    totalCount = totalSets,
-                                    isCurrent = isCurrent,
-                                    isAllDone = isAllDone,
-                                    accent = accent,
-                                    groupName = partName,
-                                    completedSets = completedSets,
-                                    currentSetIdx = if (isCurrent) currentSetIdx else null,
-                                    currentSide = if (isCurrent) currentSide else null,
-                                    onClick = onCardClick,
-                                    onSelectStep = { setIdx, side ->
-                                        onSelectStep(WorkoutStepRules.workingStepKey(exercise.id, setIdx, side))
-                                    },
-                                    onLongClick = onCardLongClick,
-                                    pickedUp = pickedUp,
+                                    exercise = exercise, completedCount = done, totalCount = total,
+                                    isCurrent = current, isAllDone = isDone, groupName = partName,
+                                    completedSets = completedSets, currentSetIdx = currentSetIdx.takeIf { current },
+                                    currentSide = currentSide.takeIf { current }, onClick = select,
+                                    onSelectStep = { set, side -> onSelectStep(WorkoutStepRules.workingStepKey(exercise.id, set, side)) },
+                                    onLongClick = open,
                                 )
                             } else {
                                 SupersetRoadmapCard(
                                     exercises = group.exercises,
-                                    supersetNumber = group.groupId?.let(supersetOrdinalById::get) ?: 1,
+                                    supersetNumber = supersetOrdinalById[group.groupId] ?: 1,
                                     supersetCount = supersetOrdinalById.size,
-                                    roundCount = group.groupId
-                                        ?.let(supersetGroupById::get)
-                                        ?.rounds
-                                        ?.takeIf { it > 0 }
+                                    roundCount = supersetGroupById[group.groupId]?.rounds?.takeIf { it > 0 }
                                         ?: (group.exercises.maxOfOrNull { it.sets.size } ?: 0),
-                                    completedSets = completedSets,
-                                    omittedSetKeys = omittedSetKeys,
-                                    isCurrent = isCurrent,
-                                    isAllDone = isAllDone,
-                                    accent = accent,
-                                    groupName = partName,
+                                    completedSets = completedSets, omittedSetKeys = omittedSetKeys,
+                                    isCurrent = current, isAllDone = isDone, groupName = partName,
                                     currentExerciseId = exercises.getOrNull(currentIdx)?.id,
-                                    currentRound = if (isCurrent) currentSetIdx + 1 else null,
-                                    currentSide = if (isCurrent) currentSide else null,
-                                    onClick = onCardClick,
-                                    onSelectStep = { exerciseId, setIdx, side ->
-                                        onSelectStep(WorkoutStepRules.workingStepKey(exerciseId, setIdx, side))
-                                    },
-                                    onLongClick = onCardLongClick,
-                                    onMemberLongClick = {
-                                        if (godModeActive) selectedIds = selectedIds + it
-                                        else if (compactLongPress) onOpenMemberContext(it)
-                                    },
-                                    godMode = godModeActive,
-                                    onDissolve = { group.groupId?.let { pendingDissolveGroupId = it } },
-                                    onDeleteMember = { memberId -> pendingDeleteExerciseId = memberId },
-                                    pickedUp = pickedUp,
+                                    currentRound = (currentSetIdx + 1).takeIf { current },
+                                    currentSide = currentSide.takeIf { current }, onClick = select,
+                                    onSelectStep = { id, set, side -> onSelectStep(WorkoutStepRules.workingStepKey(id, set, side)) },
+                                    onLongClick = open,
+                                    onMemberLongClick = { if (enableLongPress) onOpenMemberContext(it) },
                                 )
                             }
-                            GodModeRoadmapBadges(
-                                visible = godModeActive,
-                                canDelete = if (isSuperset) true else canDeleteAnyExercise,
-                                onDelete = {
-                                    if (isSuperset) group.groupId?.let { pendingDissolveGroupId = it }
-                                    else pendingDeleteExerciseId = exercise.id
-                                },
-                            )
-                            }
                         }
                     }
                 }
-            }
-            pendingDeleteExerciseId?.let { deleteId ->
-                val name = exercises.firstOrNull { it.id == deleteId }?.displayNameWithSelectedChips() ?: "ejercicio"
-                KpknAlertDialog(
-                    onDismissRequest = { pendingDeleteExerciseId = null },
-                    title = { Text("Eliminar ejercicio", fontWeight = FontWeight.Black) },
-                    text = { Text("¿Eliminar $name de esta sesión?") },
-                    confirmButton = {
-                        TextButton(onClick = {
-                            onDeleteExercise(deleteId)
-                            pendingDeleteExerciseId = null
-                        }) { Text("Eliminar") }
-                    },
-                    dismissButton = {
-                        TextButton(onClick = { pendingDeleteExerciseId = null }) { Text("Cancelar") }
-                    },
-                )
-            }
-            pendingDissolveGroupId?.let { groupId ->
-                KpknAlertDialog(
-                    onDismissRequest = { pendingDissolveGroupId = null },
-                    title = { Text("Disolver superserie", fontWeight = FontWeight.Black) },
-                    text = { Text("Los ejercicios vuelven a ser independientes.") },
-                    confirmButton = {
-                        TextButton(onClick = {
-                            onDissolveSuperset(groupId)
-                            pendingDissolveGroupId = null
-                        }) { Text("Disolver") }
-                    },
-                    dismissButton = {
-                        TextButton(onClick = { pendingDissolveGroupId = null }) { Text("Cancelar") }
-                    },
-                )
-            }
-            if (pendingUltraFast) {
-                KpknGlassDialog(onDismissRequest = { pendingUltraFast = false }) {
-                    Column(
-                        modifier = Modifier.padding(horizontal = 20.dp, vertical = 18.dp),
-                        verticalArrangement = Arrangement.spacedBy(10.dp),
-                    ) {
-                        Text("Modo ultrarrápido", fontWeight = FontWeight.Black, color = Color.White)
-                        KpknSheetWhiteButton(
-                            text = "Drop-set",
-                            onClick = {
-                                onBatchUltraFast(selectedIds.toList(), SeriesTechnique.DROPSET)
-                                selectedIds = emptySet()
-                                pendingUltraFast = false
-                            },
-                        )
-                        KpknSheetWhiteButton(
-                            text = "Rest-pause",
-                            onClick = {
-                                onBatchUltraFast(selectedIds.toList(), SeriesTechnique.REST_PAUSE)
-                                selectedIds = emptySet()
-                                pendingUltraFast = false
-                            },
-                        )
-                        TextButton(onClick = { pendingUltraFast = false }, modifier = Modifier.fillMaxWidth()) {
-                            Text("Cancelar", color = Color.White)
-                        }
-                    }
-                }
-            }
             }
         }
     }
@@ -810,10 +391,62 @@ private fun Exercise.expectedSidesForSet(setIndex: Int): List<String> {
     return WorkoutStepRules.workingSidesForSet(this, setIndex)
 }
 
-private fun Exercise.completionKeysForSet(setIndex: Int): List<String> =
-    WorkoutStepRules.completionKeysForRoadmapSet(this, setIndex)
-
 private val CardioRoadmapAccent = Color(0xFFE0A13A)
+
+/** El asa del cockpit: las dos marcas, juntas y centradas. */
+@Composable
+private fun RoadmapHandleIcons(expanded: Boolean) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.Center,
+        modifier = Modifier.padding(vertical = 4.dp),
+    ) {
+        Icon(
+            imageVector = Icons.Default.DragHandle,
+            contentDescription = if (expanded) "Plegar resumen de sesión" else "Abrir resumen de sesión",
+            tint = WizardColors.textFaint,
+            modifier = Modifier.size(18.dp),
+        )
+        Spacer(Modifier.width(4.dp))
+        Icon(
+            imageVector = if (expanded) Icons.Default.KeyboardArrowDown else Icons.Default.KeyboardArrowUp,
+            contentDescription = null,
+            tint = WizardColors.textFaint,
+            modifier = Modifier.size(16.dp),
+        )
+    }
+}
+
+/**
+ * Lo pendiente en la fila del asa (LV4, 15): píldora de 32 dp con el texto a 13 sp, como la «píldora compacta» de la app pero con menos
+ * relleno a los lados, para que «Estado previo» quepa en su hueco también con la letra al 130 %. La zona táctil es toda la altura de la fila.
+ */
+@Composable
+private fun RoadmapPendingPill(text: String, onClick: () -> Unit) {
+    Box(
+        modifier = Modifier
+            .height(WorkoutUiTokens.MinTouchTarget)
+            .clickable(role = Role.Button, onClick = onClick),
+        contentAlignment = Alignment.Center,
+    ) {
+        Box(
+            modifier = Modifier
+                .height(32.dp)
+                .clip(KpknShape.pill)
+                .border(1.dp, WizardColors.text.copy(alpha = 0.24f), KpknShape.pill)
+                .padding(horizontal = 12.dp),
+            contentAlignment = Alignment.Center,
+        ) {
+            Text(
+                text = text,
+                style = KpknType.action.copy(fontSize = 13.sp),
+                color = WizardColors.text,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+        }
+    }
+}
 
 @Composable
 private fun CardioRoadmapDivider() {
@@ -875,15 +508,12 @@ private fun CardioRoadmapCard(
         }
     }
     val displayName = exercise.displayNameWithSelectedChips()
-    val cardColor = when {
-        isCurrent -> CardioRoadmapAccent.copy(alpha = 0.72f)
-        isAllDone -> Color(0xFF344238).copy(alpha = 0.90f)
-        else -> Color(0xFF282725).copy(alpha = 0.96f)
-    }
-    val contentColor = if (isCurrent) Color.White else MaterialTheme.colorScheme.onSurface
+    // Cardio conserva su acento ámbar como identidad; el bloque activo va en tinta.
+    val cardColor = if (isCurrent) WizardColors.text else KpknSurface.inset
+    val contentColor = if (isCurrent) WizardColors.ctaContent else WizardColors.textMuted
     val borderColor = when {
-        isCurrent -> CardioRoadmapAccent.copy(alpha = 0.82f)
-        isAllDone -> Color(0xFF7FBF8A).copy(alpha = 0.44f)
+        isCurrent -> WizardColors.text
+        isAllDone -> SymbolPalette.ok.copy(alpha = 0.44f)
         else -> CardioRoadmapAccent.copy(alpha = 0.30f)
     }
 
@@ -906,7 +536,7 @@ private fun CardioRoadmapCard(
                 onClick = onClick,
                 onLongClick = onLongClick,
             ),
-        shape = WorkoutUiTokens.InnerCardShape,
+        shape = KpknShape.pill,
         color = cardColor,
         border = BorderStroke(1.dp, borderColor),
     ) {
@@ -919,14 +549,18 @@ private fun CardioRoadmapCard(
         ) {
             Surface(
                 shape = CircleShape,
-                color = if (isCurrent) Color.White.copy(alpha = 0.18f) else CardioRoadmapAccent.copy(alpha = 0.18f),
+                color = if (isCurrent) WizardColors.ctaContent.copy(alpha = 0.12f) else CardioRoadmapAccent.copy(alpha = 0.18f),
             ) {
                 Text(
                     text = if (isAllDone) "✓" else "C",
                     modifier = Modifier.padding(horizontal = 7.dp, vertical = 4.dp),
                     style = MaterialTheme.typography.labelSmall,
                     fontWeight = FontWeight.Bold,
-                    color = if (isCurrent) Color.White else CardioRoadmapAccent,
+                    color = when {
+                        isCurrent -> WizardColors.ctaContent
+                        isAllDone -> SymbolPalette.ok
+                        else -> CardioRoadmapAccent
+                    },
                 )
             }
             Column(modifier = Modifier.weight(1f)) {
@@ -944,7 +578,7 @@ private fun CardioRoadmapCard(
                     overflow = TextOverflow.Ellipsis,
                     style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
                     fontWeight = FontWeight.Medium,
-                    color = contentColor.copy(alpha = 0.68f),
+                    color = if (isCurrent) WizardColors.ctaContent.copy(alpha = 0.7f) else WizardColors.textFaint,
                 )
             }
         }
@@ -959,7 +593,6 @@ private fun ExerciseRoadmapCard(
     totalCount: Int,
     isCurrent: Boolean,
     isAllDone: Boolean,
-    accent: Color,
     groupName: String?,
     completedSets: Map<String, CompletedSet> = emptyMap(),
     currentSetIdx: Int? = null,
@@ -970,6 +603,11 @@ private fun ExerciseRoadmapCard(
     scale: RoadmapCardScale = RoadmapCardScale.Full,
     pickedUp: Boolean = false,
 ) {
+    if (scale == RoadmapCardScale.Full) {
+        LiveExerciseDockPill(exercise.displayNameWithSelectedChips(), completedCount, totalCount,
+            isCurrent, isAllDone, onClick, onLongClick)
+        return
+    }
     val displayName = exercise.displayNameWithSelectedChips()
     val isUnilateral = exercise.isEffectivelyUnilateral()
     val nameLength = displayName.length
@@ -988,13 +626,16 @@ private fun ExerciseRoadmapCard(
     } else {
         WorkoutUiTokens.liveRoadmapCarouselCardHeight(chromeScale)
     }
-    val containerColor = when {
-        isCurrent -> accent.copy(alpha = 0.86f)
-        isAllDone -> accent.copy(alpha = 0.30f)
-        else -> accent.copy(alpha = 0.26f)
+    val containerColor = if (isCurrent) WizardColors.text else KpknSurface.inset
+    val contentColor = if (isCurrent) WizardColors.ctaContent else WizardColors.textMuted
+    val borderColor = if (isCurrent) WizardColors.text else KpknSurface.moduleBorder
+    // El acento de sesión (musculo) solo marca el progreso parcial de la serie.
+    val countColor = when {
+        isCurrent -> WizardColors.ctaContent
+        isAllDone -> SymbolPalette.ok
+        completedCount > 0 -> SymbolPalette.musculo
+        else -> WizardColors.textMuted
     }
-    val contentColor = if (isCurrent) contentOn(containerColor) else MaterialTheme.colorScheme.onSurface
-    val borderColor = if (isCurrent) Color.White.copy(alpha = 0.16f) else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.22f)
 
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
@@ -1014,7 +655,7 @@ private fun ExerciseRoadmapCard(
                 onClick = onClick,
                 onLongClick = onLongClick,
             ),
-        shape = WorkoutUiTokens.InnerCardShape,
+        shape = KpknShape.pill,
         color = containerColor,
         border = BorderStroke(1.dp, borderColor)
     ) {
@@ -1030,7 +671,7 @@ private fun ExerciseRoadmapCard(
         ) {
             Surface(
                 shape = RoundedCornerShape(999.dp),
-                color = Color.White.copy(alpha = 0.08f),
+                color = if (isCurrent) WizardColors.ctaContent.copy(alpha = 0.12f) else KpknSurface.module,
             ) {
                 Text(
                     text = if (isAllDone) "✓" else "$completedCount/$totalCount",
@@ -1042,7 +683,7 @@ private fun ExerciseRoadmapCard(
                         fontSize = if (isMini) 10.sp else MaterialTheme.typography.labelSmall.fontSize,
                     ),
                     fontWeight = FontWeight.Bold,
-                    color = contentColor,
+                    color = countColor,
                 )
             }
             Column(modifier = Modifier.weight(1f)) {
@@ -1063,7 +704,7 @@ private fun ExerciseRoadmapCard(
                         overflow = TextOverflow.Ellipsis,
                         style = MaterialTheme.typography.labelSmall.copy(fontSize = 11.sp),
                         fontWeight = FontWeight.Medium,
-                        color = contentColor.copy(alpha = 0.6f),
+                        color = if (isCurrent) WizardColors.ctaContent.copy(alpha = 0.7f) else WizardColors.textFaint,
                     )
                 }
             }
@@ -1092,7 +733,6 @@ private fun SupersetRoadmapCard(
     omittedSetKeys: Set<String> = emptySet(),
     isCurrent: Boolean,
     isAllDone: Boolean,
-    accent: Color,
     groupName: String?,
     currentExerciseId: String?,
     currentRound: Int?,
@@ -1108,16 +748,12 @@ private fun SupersetRoadmapCard(
 ) {
     val safeRoundCount = roundCount.coerceAtLeast(1)
     val currentRoundIndex = ((currentRound ?: 1) - 1).coerceIn(0, safeRoundCount - 1)
-    val motherAccent = accent
-    val cardColor = when {
-        isAllDone -> accent.copy(alpha = 0.30f)
-        isCurrent -> motherAccent.copy(alpha = 0.86f)
-        else -> motherAccent.copy(alpha = 0.26f)
-    }
-    val onCard = if (isCurrent) contentOn(cardColor) else MaterialTheme.colorScheme.onSurface
+    // El grupo es un módulo con filete; el grupo activo marca el filete en tinta.
+    val cardColor = KpknSurface.module
+    val onCard = if (isCurrent) WizardColors.text else WizardColors.textMuted
     val outline = when {
-        isCurrent -> Color.White.copy(alpha = 0.16f)
-        else -> MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.22f)
+        isCurrent -> WizardColors.text.copy(alpha = 0.72f)
+        else -> KpknSurface.moduleBorder
     }
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
@@ -1157,7 +793,11 @@ private fun SupersetRoadmapCard(
                 Text(
                     if (isAllDone) "Completada" else "Ronda ${currentRound ?: 1}/$safeRoundCount",
                     style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
-                    color = if (isCurrent) onCard.copy(alpha = 0.85f) else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.62f),
+                    color = when {
+                        isAllDone -> SymbolPalette.ok
+                        isCurrent -> onCard.copy(alpha = 0.85f)
+                        else -> WizardColors.textFaint
+                    },
                     maxLines = 1,
                 )
             }
@@ -1184,7 +824,6 @@ private fun SupersetRoadmapCard(
                         totalCount = memberTotal,
                         isCurrent = memberIsCurrent,
                         isAllDone = memberAllDone,
-                        accent = motherAccent,
                         groupName = null,
                         onClick = {
                             val side = if (member.isEffectivelyUnilateral()) {
@@ -1201,335 +840,9 @@ private fun SupersetRoadmapCard(
                         onLongClick = { onMemberLongClick(member.id) },
                         scale = RoadmapCardScale.Mini,
                     )
-                    GodModeRoadmapBadges(
-                        visible = godMode,
-                        canDelete = true,
-                        onDelete = { onDeleteMember(member.id) },
-                    )
                     }
                 }
             }
-        }
-    }
-}
-
-@OptIn(ExperimentalFoundationApi::class)
-@Composable
-private fun SupersetRoadmapCardLegacy(
-    exercises: List<Exercise>,
-    supersetNumber: Int,
-    supersetCount: Int,
-    roundCount: Int,
-    completedSets: Map<String, CompletedSet>,
-    isCurrent: Boolean,
-    isAllDone: Boolean,
-    accent: Color,
-    groupName: String?,
-    currentExerciseId: String?,
-    currentRound: Int?,
-    currentSide: String? = null,
-    onClick: () -> Unit,
-    onSelectStep: (String, Int, String?) -> Unit = { _, _, _ -> },
-    onLongClick: (() -> Unit)?,
-) {
-    val safeRoundCount = roundCount.coerceAtLeast(1)
-    val title = if (supersetCount > 1) "Superserie $supersetNumber" else "Superserie"
-
-    var isPressed by remember { mutableStateOf(false) }
-    val scale by animateFloatAsState(if (isPressed) 0.95f else 1.0f)
-
-    // Manage expanded round in accordion style
-    var userToggledRound by remember(currentRound, isCurrent, isAllDone) { mutableStateOf<Int?>(null) }
-    val activeExpandedRound = when {
-        userToggledRound != null -> if (userToggledRound == -1) null else userToggledRound
-        isCurrent && currentRound != null && !isAllDone -> (currentRound - 1).coerceIn(0, safeRoundCount - 1)
-        else -> null
-    }
-
-    val containerColor = when {
-        isCurrent -> accent.copy(alpha = 0.20f)
-        isAllDone -> accent.copy(alpha = 0.18f)
-        else -> Color.White.copy(alpha = 0.08f)
-    }
-    val borderColor = when {
-        isCurrent -> accent
-        isAllDone -> accent.copy(alpha = 0.62f)
-        else -> MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.25f)
-    }
-
-    Surface(
-        modifier = Modifier
-            .heightIn(min = 52.dp)
-            .scale(scale)
-            .combinedClickable(
-                onClick = onClick,
-                onLongClick = onLongClick,
-            ),
-        shape = WorkoutUiTokens.InnerCardShape,
-        color = containerColor,
-        border = BorderStroke(width = if (isCurrent) 1.5.dp else 1.dp, color = borderColor),
-    ) {
-        Row(
-            modifier = Modifier
-                .padding(horizontal = 10.dp, vertical = 6.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            // Superset badge & Title Header (compact)
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(6.dp),
-            ) {
-                Surface(
-                    shape = RoundedCornerShape(999.dp),
-                    color = if (isCurrent) accent else Color.White.copy(alpha = 0.18f),
-                ) {
-                    Text(
-                        text = if (isAllDone) "✓" else if (supersetCount > 1) "SS$supersetNumber" else "SS",
-                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
-                        style = MaterialTheme.typography.labelSmall,
-                        fontWeight = FontWeight.Black,
-                        color = if (isCurrent) Color.Black else MaterialTheme.colorScheme.onSurface,
-                    )
-                }
-
-                Column(
-                    modifier = Modifier.widthIn(min = 54.dp, max = 96.dp),
-                    verticalArrangement = Arrangement.spacedBy(1.dp),
-                ) {
-                    Text(
-                        text = title,
-                        style = MaterialTheme.typography.labelSmall,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurface,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                    )
-                    Text(
-                        text = if (isAllDone) "Completada" else currentRound?.let { "Ronda $it/$safeRoundCount" } ?: "$safeRoundCount rondas",
-                        style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
-                        fontWeight = FontWeight.Medium,
-                        color = if (isCurrent) accent else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.62f),
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                    )
-                }
-            }
-
-            // Divider between title and horizontal rounds
-            Box(
-                modifier = Modifier
-                    .width(1.dp)
-                    .height(28.dp)
-                    .background(MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.25f)),
-            )
-
-            // Horizontal rounds carousel
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(6.dp),
-            ) {
-                repeat(safeRoundCount) { roundIdx ->
-                    val roundKeys = exercises.flatMap { it.completionKeysForSet(roundIdx) }
-                    val roundDone = roundKeys.isNotEmpty() && roundKeys.all { completedSets.containsKey(it) }
-                    val isRoundCurrent = isCurrent && currentRound == roundIdx + 1
-                    val isExpanded = activeExpandedRound == roundIdx
-
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(4.dp),
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(8.dp))
-                            .background(
-                                when {
-                                    isExpanded -> Color.White.copy(alpha = 0.08f)
-                                    else -> Color.Transparent
-                                }
-                            )
-                            .padding(horizontal = if (isExpanded) 4.dp else 0.dp, vertical = 2.dp),
-                    ) {
-                        // R1 / R2 badge - Clickable to toggle expand / collapse!
-                        Surface(
-                            modifier = Modifier
-                                .size(if (isRoundCurrent) 22.dp else 20.dp)
-                                .clickable {
-                                    userToggledRound = if (isExpanded) -1 else roundIdx
-                                },
-                            shape = RoundedCornerShape(999.dp),
-                            color = when {
-                                roundDone -> accent
-                                isRoundCurrent -> accent
-                                else -> Color.White.copy(alpha = 0.10f)
-                            },
-                            border = BorderStroke(
-                                width = if (isRoundCurrent || roundDone) 0.dp else 1.dp,
-                                color = when {
-                                    roundDone -> accent
-                                    isRoundCurrent -> accent
-                                    else -> MaterialTheme.colorScheme.onSurface.copy(alpha = 0.35f)
-                                },
-                            ),
-                        ) {
-                            Box(contentAlignment = Alignment.Center) {
-                                Text(
-                                    text = if (roundDone && !isExpanded) "✓" else "R${roundIdx + 1}",
-                                    style = MaterialTheme.typography.labelSmall.copy(fontSize = if (isRoundCurrent) 9.sp else 8.sp),
-                                    fontWeight = FontWeight.Black,
-                                    color = if (isRoundCurrent || roundDone) Color.Black else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.85f),
-                                )
-                            }
-                        }
-
-                        // Exercises in this round - Expanded horizontally when selected or active!
-                        AnimatedVisibility(
-                            visible = isExpanded,
-                            enter = expandHorizontally(animationSpec = tween(180)) + fadeIn(animationSpec = tween(120)),
-                            exit = shrinkHorizontally(animationSpec = tween(180)) + fadeOut(animationSpec = tween(100)),
-                        ) {
-                            Row(
-                                horizontalArrangement = Arrangement.spacedBy(4.dp),
-                                verticalAlignment = Alignment.CenterVertically,
-                                modifier = Modifier.padding(start = 2.dp),
-                            ) {
-                                val roundExercises = exercises.filter { roundIdx in it.sets.indices }
-                                roundExercises.forEachIndexed { visibleExIdx, ex ->
-                                    val exKeys = ex.completionKeysForSet(roundIdx)
-                                    val exDone = exKeys.isNotEmpty() && exKeys.all { completedSets.containsKey(it) }
-                                    val isExCurrent = isRoundCurrent && currentExerciseId == ex.id
-                                    val exLetter = ('A'.code + exercises.indexOf(ex)).toChar().toString()
-                                    val sides: List<String?> = if (ex.isEffectivelyUnilateral()) {
-                                        WorkoutStepRules.workingSidesForSet(ex, roundIdx)
-                                    } else {
-                                        listOf(null)
-                                    }
-
-                                    Row(
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        horizontalArrangement = Arrangement.spacedBy(2.dp),
-                                    ) {
-                                        sides.forEach { side ->
-                                            val sideKey = side?.let { "${ex.id}_${roundIdx}_${it.take(1).uppercase()}" }
-                                            val sideDone = sideKey?.let(completedSets::containsKey) ?: exDone
-                                            val isSideCurrent = isExCurrent &&
-                                                (currentSide == null || currentSide.equals(side, ignoreCase = true))
-                                            val nodeLabel = side?.take(1)?.uppercase()?.let { "$exLetter$it" } ?: exLetter
-
-                                            Box(
-                                                modifier = Modifier
-                                                    .height(22.dp)
-                                                    .widthIn(min = 22.dp)
-                                                    .padding(horizontal = 2.dp)
-                                                    .clickable { onSelectStep(ex.id, roundIdx, side) }
-                                                    .clip(RoundedCornerShape(999.dp))
-                                                    .background(
-                                                        when {
-                                                            sideDone -> accent
-                                                            isSideCurrent -> accent
-                                                            else -> Color.White.copy(alpha = 0.12f)
-                                                        }
-                                                    )
-                                                    .border(
-                                                        width = 1.dp,
-                                                        color = when {
-                                                            sideDone -> accent
-                                                            isSideCurrent -> accent
-                                                            else -> Color.White.copy(alpha = 0.35f)
-                                                        },
-                                                        shape = RoundedCornerShape(999.dp),
-                                                    ),
-                                                contentAlignment = Alignment.Center,
-                                            ) {
-                                                Text(
-                                                    text = nodeLabel,
-                                                    style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp),
-                                                    fontWeight = FontWeight.Black,
-                                                    color = if (sideDone || isSideCurrent) Color.Black else Color.White,
-                                                    modifier = Modifier.padding(horizontal = 4.dp),
-                                                )
-                                            }
-                                        }
-                                    }
-
-                                    if (visibleExIdx < roundExercises.size - 1) {
-                                        Box(
-                                            modifier = Modifier
-                                                .width(6.dp)
-                                                .height(1.dp)
-                                                .background(
-                                                    if (roundDone) accent.copy(alpha = 0.7f)
-                                                    else Color.White.copy(alpha = 0.3f)
-                                                ),
-                                        )
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun MuscleProgressCard(
-    muscle: String,
-    doneSets: Int,
-    totalSets: Int,
-    sessionAccentColor: Color,
-    onClick: () -> Unit
-) {
-    val progress = if (totalSets > 0) doneSets.toFloat() / totalSets.toFloat() else 0f
-    val animatedProgress by animateFloatAsState(
-        targetValue = progress,
-        animationSpec = tween(durationMillis = 350),
-        label = "muscleProgress"
-    )
-    val isCompleted = doneSets >= totalSets && totalSets > 0
-
-    val cardColor = if (isCompleted) sessionAccentColor.copy(alpha = 0.08f) else Color.White.copy(alpha = 0.06f)
-    val borderColor = if (isCompleted) sessionAccentColor.copy(alpha = 0.25f) else Color.White.copy(alpha = 0.06f)
-    val accentColor = sessionAccentColor
-
-    Surface(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(onClick = onClick),
-        shape = WorkoutUiTokens.InnerCardShape,
-        color = cardColor,
-        border = BorderStroke(1.dp, borderColor)
-    ) {
-        Column(
-            modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
-            verticalArrangement = Arrangement.spacedBy(6.dp)
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = muscle,
-                    style = MaterialTheme.typography.labelMedium,
-                    fontWeight = FontWeight.Black,
-                    color = Color.White
-                )
-                Text(
-                    text = if (isCompleted) "✓ $doneSets/$totalSets" else "$doneSets/$totalSets",
-                    style = MaterialTheme.typography.labelSmall,
-                    fontWeight = FontWeight.Bold,
-                    color = accentColor
-                )
-            }
-            LinearProgressIndicator(
-                progress = { animatedProgress },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(5.dp)
-                    .clip(RoundedCornerShape(999.dp)),
-                color = accentColor,
-                trackColor = Color.White.copy(alpha = 0.1f)
-            )
         }
     }
 }

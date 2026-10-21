@@ -1,0 +1,84 @@
+{
+  "id": "r16-pixabay-30417",
+  "durationS": 15.067,
+  "width": 1280,
+  "height": 720,
+  "rotation": 0,
+  "fpsNominal": 30.0,
+  "fpsMeasured": 30.0,
+  "usable": true,
+  "exercise": "Peso muerto convencional con barra",
+  "exerciseDetail": "Peso muerto convencional con barra (repeticiones continuas, con cinturón; la barra baja hasta el nivel del suelo en cada repetición)",
+  "suggestedProfile": "DEADLIFT",
+  "view": "OBLIQUE",
+  "people": 1,
+  "fullBodyVisible": false,
+  "faceVisible": true,
+  "plateVisible": true,
+  "startPhase": "CONCENTRIC_FIRST",
+  "reps": {
+    "full": 5,
+    "partial": 0,
+    "failed": 0,
+    "uncertain": false,
+    "acceptableRange": [
+      5,
+      5
+    ]
+  },
+  "repTimesS": [
+    {
+      "index": 1,
+      "turnaroundS": 4.7,
+      "side": null
+    },
+    {
+      "index": 2,
+      "turnaroundS": 7.2,
+      "side": null
+    },
+    {
+      "index": 3,
+      "turnaroundS": 9.4,
+      "side": null
+    },
+    {
+      "index": 4,
+      "turnaroundS": 11.7,
+      "side": null
+    },
+    {
+      "index": 5,
+      "turnaroundS": 14.0,
+      "side": null
+    }
+  ],
+  "activeWindowS": [
+    3.3,
+    14.9
+  ],
+  "frameIntervalS": {
+    "min": 0.0333,
+    "median": 0.0333,
+    "max": 0.0333
+  },
+  "turnaroundKind": "TOP",
+  "edgeEvents": [
+    {
+      "timeS": 0.0,
+      "kind": "SETUP",
+      "description": "0-3,3 s: ya inclinado con las manos en la barra a la altura de la espinilla, casi estático (prepara la tracción)"
+    },
+    {
+      "timeS": 14.6,
+      "kind": "TRUNCATED_END",
+      "description": "tras el 5.º bloqueo (14,0 s) empieza a bajar la barra y el clip termina a 15,07 s antes de llegar abajo"
+    }
+  ],
+  "caveats": [],
+  "cameraMotion": {
+    "class": "STATIC",
+    "note": "cámara fija"
+  },
+  "softWarnings": []
+}

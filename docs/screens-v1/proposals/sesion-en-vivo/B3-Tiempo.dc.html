@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Tiempo de sesión</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Syne:wght@600;700;800&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#F2EEE6}a:hover{color:#ffffff}
+@keyframes tick{0%,100%{opacity:1}50%{opacity:.35}}
+.dot{animation:tick 1s ease-in-out infinite}
+@media (prefers-reduced-motion: reduce){.dot{animation:none}}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: #000000; color: #F2EEE6; font-family: Inter, sans-serif; position: relative; overflow: hidden;">
+  <div style="position: absolute; inset: 0; background: rgba(0,0,0,0.55);"></div>
+  <div style="position: absolute; left: 0; right: 0; bottom: 0; background: #0E0E0E; border-top-left-radius: 28px; border-top-right-radius: 28px; border-top: 1px solid rgba(242,238,230,0.08); padding: 10px 16px 24px 16px; display: flex; flex-direction: column; gap: 18px;">
+    <div style="align-self: center; width: 36px; height: 4px; border-radius: 2px; background: rgba(242,238,230,0.22);"></div>
+    <div style="display: flex; align-items: center; justify-content: space-between;">
+      <div style="font-family: Syne, sans-serif; font-weight: 700; font-size: 20px;">Tiempo</div>
+      <div style="display: flex; align-items: center; gap: 6px; font-size: 13px; color: rgba(242,238,230,0.62);"><span class="dot" style="width: 7px; height: 7px; border-radius: 4px; background: #43D18C;"></span>En marcha</div>
+    </div>
+
+    <div style="display: flex; align-items: center; gap: 18px;">
+      <div style="position: relative; width: 150px; height: 150px; border-radius: 75px; background: conic-gradient(#F49A6E 0 53%, #F7CF73 53% 58%, #1C1C1C 58% 100%); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+        <div style="width: 126px; height: 126px; border-radius: 63px; background: #0E0E0E; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+          <span style="font-family: Syne, sans-serif; font-weight: 700; font-size: 28px;">32:10</span>
+          <span style="font-size: 12px; color: rgba(242,238,230,0.55);">de 60 min</span>
+        </div>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 10px;">
+        <div><div style="font-size: 12px; color: rgba(242,238,230,0.55);">A este ritmo</div><div style="font-size: 16px; font-weight: 600;">terminas en 64 min</div></div>
+        <div><div style="font-size: 12px; color: rgba(242,238,230,0.55);">Fin estimado</div><div style="font-size: 16px; font-weight: 600;">19:42</div></div>
+        <div style="font-size: 12px; color: #F7CF73;">+4 min sobre tu plan</div>
+      </div>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 8px;">
+      <div style="font-size: 12px; font-weight: 600; letter-spacing: 1.6px; color: rgba(242,238,230,0.5);">DURACIÓN OBJETIVO</div>
+      <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 4px; padding: 4px; border-radius: 18px; background: #000000;">
+        <button style="height: 30px; border-radius: 15px; border: none; background: transparent; color: rgba(242,238,230,0.62); font-family: Inter, sans-serif; font-size: 12px; font-weight: 600;">45 min</button>
+        <button style="height: 30px; border-radius: 15px; border: none; background: #F2EEE6; color: #0B0B0B; font-family: Inter, sans-serif; font-size: 12px; font-weight: 600;">60 min</button>
+        <button style="height: 30px; border-radius: 15px; border: none; background: transparent; color: rgba(242,238,230,0.62); font-family: Inter, sans-serif; font-size: 12px; font-weight: 600;">75 min</button>
+        <button style="height: 30px; border-radius: 15px; border: none; background: transparent; color: rgba(242,238,230,0.62); font-family: Inter, sans-serif; font-size: 12px; font-weight: 600;">90 min</button>
+      </div>
+    </div>
+
+    <div style="display: flex; gap: 8px;">
+      <button style="flex: 1; height: 40px; border-radius: 20px; border: 1px solid rgba(242,238,230,0.12); background: #161616; color: #F2EEE6; font-family: Inter, sans-serif; font-size: 13px; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 6px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="6" y="5" width="4" height="14" rx="1"></rect><rect x="14" y="5" width="4" height="14" rx="1"></rect></svg>Pausar</button>
+      <button style="flex: 1; height: 40px; border-radius: 20px; border: 1px solid rgba(242,238,230,0.12); background: #161616; color: #F2EEE6; font-family: Inter, sans-serif; font-size: 13px; font-weight: 600;">Ajustar al plan</button>
+    </div>
+
+    <label style="display: flex; align-items: center; justify-content: space-between; height: 44px; padding: 0 4px;">
+      <span style="font-size: 14px;">Avisarme al 90 % del tiempo</span>
+      <span style="width: 44px; height: 26px; border-radius: 13px; background: #43D18C; position: relative;"><span style="position: absolute; right: 3px; top: 3px; width: 20px; height: 20px; border-radius: 10px; background: #F2EEE6;"></span></span>
+    </label>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

@@ -14,7 +14,6 @@ import com.example.kpkn.data.models.BlockGoal
 import com.example.kpkn.data.models.BlockProgressionScheme
 import com.example.kpkn.data.models.EquipmentInventory
 import com.example.kpkn.data.models.Exercise
-import com.example.kpkn.data.models.HYPERTROPHY_ROLE_MULTIPLIERS
 import com.example.kpkn.data.models.Mesocycle
 import com.example.kpkn.data.models.MesocycleGoal
 import com.example.kpkn.data.models.OptionalSessionConfirmation
@@ -23,6 +22,7 @@ import com.example.kpkn.data.models.ProgramCalendarizationMode
 import com.example.kpkn.data.models.ProgramStructure
 import com.example.kpkn.data.models.ProgramWeek
 import com.example.kpkn.data.models.ProgramStatus
+import com.example.kpkn.data.models.TodaySessionItem
 import com.example.kpkn.data.models.PendingProgramActionType
 import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.models.SimpleProgramKind
@@ -30,14 +30,12 @@ import com.example.kpkn.data.models.WorkoutLog
 import com.example.kpkn.data.models.isSimpleTemporalProgram
 import com.example.kpkn.data.models.nextSimpleCalendarStart
 import com.example.kpkn.data.models.normalizedTemporalStructure
-import com.example.kpkn.data.models.resolvedSchedulePlan
 import com.example.kpkn.data.models.resolveMuscleVolumeContribution
 import com.example.kpkn.data.models.restorePausedCyclicProgram
 import com.example.kpkn.data.models.startFreshSimpleCycle
 import com.example.kpkn.data.models.startSimpleCalendarizedBreak
 import com.example.kpkn.data.models.calendarizeSimpleCycle
 import com.example.kpkn.data.models.suggestCalendarTrainingDays
-import com.example.kpkn.data.models.toSimpleProgramSnapshot
 import com.example.kpkn.data.repository.CompetitionRepository
 import com.example.kpkn.data.protocols.TrainingPlanRecipe
 import com.example.kpkn.data.repository.ProgramRepository
@@ -51,18 +49,18 @@ import com.example.kpkn.domain.training.AppClock
 import com.example.kpkn.domain.training.IdProvider
 import com.example.kpkn.domain.training.SystemAppClock
 import com.example.kpkn.domain.training.UuidIdProvider
+import com.example.kpkn.domain.training.HomeProgramLine
+import com.example.kpkn.domain.training.HomeSessionResolver
+import com.example.kpkn.domain.training.HomeWeekResolver
 import com.example.kpkn.domain.training.ProgramCalendarEngine
-import com.example.kpkn.domain.training.ProgramKeyDateEngine
 import com.example.kpkn.domain.training.ProgramProgressEngine
 import com.example.kpkn.domain.training.RoadmapBlock
-import com.example.kpkn.domain.training.RoadmapLoopMarker
 import com.example.kpkn.domain.exercises.normalizedSessionStructures
 import com.example.kpkn.domain.training.SplitApplicationEngine
 import com.example.kpkn.domain.training.StartDaySessionMode
 import com.example.kpkn.domain.training.StartDayTemporalScope
 import com.example.kpkn.domain.training.TrainingMaxMerge
 import com.example.kpkn.domain.training.VolumeCalculator
-import com.example.kpkn.domain.training.WeekAdherence
 import com.example.kpkn.domain.training.WeekWithMeta
 import android.content.Context
 import android.util.Log
@@ -70,7 +68,6 @@ import kotlin.math.roundToInt
 import com.example.kpkn.data.repository.AugeRepository
 import com.example.kpkn.data.models.PostSessionFeedback
 import com.example.kpkn.data.models.MuscleRole
-import com.example.kpkn.data.models.VolumeRecommendation
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -80,22 +77,15 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
-import java.util.UUID
 import java.time.LocalDate
-import java.time.format.DateTimeFormatter
-import java.time.format.DateTimeParseException
-import java.util.Locale
-import kotlin.math.ceil
-import kotlin.math.floor
 
 enum class StructureSubTab { SEMANA, MACROCICLO, VOLUMEN }
-
-enum class VolumeAdjustmentResult { SUCCESS, REQUIRES_CALIBRATION, NO_WEEK_SELECTED, NO_ADJUSTABLE_VOLUME }
 
 data class ProgramDetailUiState(
     val structureSubTab: StructureSubTab = StructureSubTab.SEMANA,
@@ -222,17 +212,6 @@ class ProgramDetailViewModel(
         .map { p -> p?.let { ProgramDetailHelpers.buildRoadmapBlocks(it) } ?: emptyList() }
         .distinctUntilChanged()
         .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
-
-    val simpleRoadmapLoopMarkers: StateFlow<List<RoadmapLoopMarker>> = program
-        .map { p -> p?.let { ProgramDetailHelpers.buildSimpleRoadmapLoopMarkers(it) } ?: emptyList() }
-        .distinctUntilChanged()
-        .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
-
-    val activeBlockId: StateFlow<String?> = combine(activeProgramState, roadmapBlocks) { active, blocks ->
-        ProgramDetailHelpers.findActiveBlockId(active, programId, blocks)
-    }
-        .distinctUntilChanged()
-        .stateIn(viewModelScope, SharingStarted.Lazily, null)
 
     val currentWeeks: StateFlow<List<WeekWithMeta>> = combine(_uiState, roadmapBlocks, program) { state, blocks, p ->
         if (p == null) emptyList()
@@ -457,7 +436,7 @@ class ProgramDetailViewModel(
 
             val explanation = when {
                 isOvertrained -> "Posible exceso de volumen: ${factorsList.joinToString(", ")}."
-                isOverreaching -> "Sobreachance Funcional: Volumen alto pero buena tolerancia sistémica."
+                isOverreaching -> "Sobrecarga funcional: Volumen alto pero buena tolerancia sistémica."
                 else -> "Óptimo o acumulando volumen."
             }
 
@@ -473,18 +452,6 @@ class ProgramDetailViewModel(
         statusMap
     }
         .stateIn(viewModelScope, SharingStarted.Lazily, emptyMap())
-
-    val totalAdherence: StateFlow<Int> = combine(programLogs, program) { logs, p ->
-        if (p == null) 0 else ProgramDetailHelpers.computeTotalAdherence(logs, p)
-    }
-        .distinctUntilChanged()
-        .stateIn(viewModelScope, SharingStarted.Lazily, 0)
-
-    val weeklyAdherence: StateFlow<List<WeekAdherence>> = combine(currentWeeks, programLogs) { weeks, logs ->
-        ProgramDetailHelpers.computeWeeklyAdherence(weeks, logs)
-    }
-        .distinctUntilChanged()
-        .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
     val totalWeeks: StateFlow<Int> = program
         .map { p -> p?.let { ProgramDetailHelpers.getTotalWeeks(it) } ?: 0 }
@@ -805,25 +772,6 @@ class ProgramDetailViewModel(
         }
     }
 
-    fun clearCompetitionKeyDate() {
-        val current = program.value ?: return
-        val competition = ProgramKeyDateEngine.competitionKeyDate(current) ?: return
-        val updated = ProgramKeyDateEngine.deleteKeyDate(
-            program = current,
-            keyDateId = competition.id,
-            mode = ProgramKeyDateEngine.KeyDateDeleteMode.UNLINK_SESSION,
-            competitionRepository = com.example.kpkn.data.repository.CompetitionRepository.getInstance(),
-        )
-        val cleared = if (updated.calendarization?.activatedByCompetition == true) {
-            updated.copy(
-                calendarization = updated.calendarization.copy(activatedByCompetition = false),
-            )
-        } else {
-            updated
-        }
-        updateProgram(cleared)
-    }
-
     fun addProgramCopy(copy: Program) {
         repository.addProgram(ProgramCalendarEngine.materializeWeekDates(copy))
     }
@@ -916,6 +864,13 @@ class ProgramDetailViewModel(
             val snapshot = withContext(kotlinx.coroutines.Dispatchers.IO) {
                 store.restore(current.id, snapshotId)
             } ?: return@launch
+            // P7: lo que hay ahora se guarda en el historial antes de restaurar. La copia elegida ya está en memoria, así que
+            // guardar no la puede desplazar. Si el guardado falla, no se restaura nada y el aviso sale por el snackbar.
+            val saved = runCatching { pushProgramSnapshot(current, "Antes de restaurar una copia") }
+            if (saved.isFailure) {
+                _uiState.update { it.copy(snackbarMessage = saved.exceptionOrNull()?.message ?: "No se pudo guardar la copia.") }
+                return@launch
+            }
             updateProgram(snapshot)
             selectFirstRoadmapPosition(snapshot)
             _uiState.update { it.copy(snackbarMessage = "Copia previa restaurada.") }
@@ -941,11 +896,6 @@ class ProgramDetailViewModel(
     fun markVolumeSetupPromptSeen() {
         val current = program.value ?: return
         repository.updateProgram(current.copy(volumeSetupPromptSeen = true))
-    }
-
-    fun updateStartDay(day: Int) {
-        val current = program.value ?: return
-        repository.updateProgram(current.copy(startDay = day))
     }
 
     fun updateStartDay(
@@ -1102,35 +1052,6 @@ class ProgramDetailViewModel(
         }
     }
 
-    fun addAdvancedBlockFromRoadmap(name: String? = null, description: String? = null) {
-        val current = program.value ?: return
-        if (current.isSimpleTemporalProgram) return
-
-        val blocks = ProgramDetailHelpers.buildRoadmapBlocks(current)
-        val targetMacroIndex = blocks.lastOrNull()?.macroIndex ?: current.macrocycles.lastIndex.takeIf { it >= 0 } ?: return
-        val newWeek = defaultRoadmapWeek("Semana ${ProgramDetailHelpers.getTotalWeeks(current) + 1}")
-        val newBlock = defaultRoadmapBlock(
-            name = name?.trim()?.takeIf { it.isNotEmpty() } ?: "Bloque ${blocks.size + 1}",
-            description = description,
-            firstWeek = newWeek,
-        )
-
-        val updated = current.copy(
-            macrocycles = current.macrocycles.mapIndexed { macroIndex, macro ->
-                if (macroIndex == targetMacroIndex) macro.copy(blocks = macro.blocks + newBlock) else macro
-            }
-        ).normalizedTemporalStructure()
-
-        updateProgram(updated)
-        _uiState.update {
-            it.copy(
-                selectedBlockId = newBlock.id,
-                selectedWeekId = newWeek.id,
-                structureSubTab = StructureSubTab.SEMANA,
-            )
-        }
-    }
-
     private fun defaultRoadmapWeek(name: String, description: String? = null): ProgramWeek {
         return ProgramWeek(
             id = idProvider.newId(),
@@ -1145,15 +1066,6 @@ class ProgramDetailViewModel(
             name = "Mesociclo 1",
             goal = MesocycleGoal.ACCUMULATION,
             weeks = listOf(firstWeek),
-        )
-    }
-
-    private fun defaultRoadmapBlock(name: String, description: String?, firstWeek: ProgramWeek): Block {
-        return Block(
-            id = idProvider.newId(),
-            name = name,
-            description = description?.trim()?.takeIf { it.isNotEmpty() },
-            mesocycles = listOf(defaultRoadmapMesocycle(firstWeek)),
         )
     }
 
@@ -1494,12 +1406,6 @@ class ProgramDetailViewModel(
             "Esta sesión no tiene una sesión equivalente en la receta (la creaste tú o cambió de día); se conserva tu edición."
     }
 
-    fun setAutoregulationMode(mode: com.example.kpkn.data.models.AutoregulationMode) {
-        val current = program.value ?: return
-        if (current.autoregulationMode == mode) return
-        updateProgram(current.copy(autoregulationMode = mode))
-    }
-
     /**
      * «Guardar TM» (R-04). El asistente solo edita los 1RM y devuelve un perfil nuevo; se fusiona con el
      * que tiene el programa ([TrainingMaxMerge]: conserva las variantes y los TM ajustados de los
@@ -1542,7 +1448,7 @@ class ProgramDetailViewModel(
 
     private fun savedMessageFor(rebuild: Rematerialization?): String = when {
         rebuild == null -> "TM actualizado"
-        rebuild.failed -> "TM actualizado. Las cargas nuevas se aplican al pulsar RE-MATERIALIZAR."
+        rebuild.failed -> "TM actualizado. Las cargas nuevas se aplican al pulsar «Re-materializar»."
         else -> trainingMaxSavedMessage(rebuild.recalculatedWeeks, rebuild.preservedWeeks)
     }
 
@@ -1719,27 +1625,6 @@ class ProgramDetailViewModel(
         _blockTransitionBanner.value = null
     }
 
-    /** Legacy entrypoint retained for integrations; records SKIPPED explicitly. */
-    fun confirmPendingOneRmTestAndContinue() = skipPendingOneRmTest()
-
-    fun blockProgressLabel(): String? {
-        val p = program.value ?: return null
-        if (p.structure != ProgramStructure.COMPLEX) return null
-        val blocks = p.macrocycles.flatMap { it.blocks }
-        if (blocks.isEmpty()) return null
-        val activeId = activeBlockId.value ?: _uiState.value.selectedBlockId ?: blocks.first().id
-        val index = blocks.indexOfFirst { it.id == activeId }.takeIf { it >= 0 } ?: 0
-        val block = blocks[index]
-        val weeks = block.mesocycles.flatMap { it.weeks }
-        val weekId = _uiState.value.selectedWeekId
-        val weekIdx = weeks.indexOfFirst { it.id == weekId }.takeIf { it >= 0 } ?: 0
-        val goalLabel = block.goal?.label
-            ?: block.mesocycles.firstOrNull()?.goal?.label
-            ?: "Bloque"
-        val remaining = (weeks.size - weekIdx - 1).coerceAtLeast(0)
-        return "Bloque ${index + 1}/${blocks.size} · $goalLabel · quedan $remaining sem"
-    }
-
     fun previewBlockProgression(blockId: String): String? {
         val block = program.value?.macrocycles?.flatMap { it.blocks }?.firstOrNull { it.id == blockId }
             ?: return null
@@ -1808,63 +1693,6 @@ class ProgramDetailViewModel(
                 structureSubTab = StructureSubTab.SEMANA,
             )
         }
-    }
-
-    fun reduceCurrentWeekVolumeBy20Percent(): VolumeAdjustmentResult {
-        return adjustCurrentWeekVolumeByFactor(0.8)
-    }
-
-    fun increaseCurrentWeekVolumeBy20Percent(): VolumeAdjustmentResult {
-        return adjustCurrentWeekVolumeByFactor(1.2)
-    }
-
-    private fun adjustCurrentWeekVolumeByFactor(factor: Double): VolumeAdjustmentResult {
-        val current = program.value ?: return VolumeAdjustmentResult.NO_WEEK_SELECTED
-        if (current.volumeRecommendations.isEmpty() || current.athleteProfileScore == null) {
-            return VolumeAdjustmentResult.REQUIRES_CALIBRATION
-        }
-
-        val targetWeekId = when {
-            activeProgramState.value?.programId == programId && !activeProgramState.value?.currentWeekId.isNullOrBlank() ->
-                activeProgramState.value?.currentWeekId
-            !_uiState.value.selectedWeekId.isNullOrBlank() -> _uiState.value.selectedWeekId
-            else -> null
-        } ?: return VolumeAdjustmentResult.NO_WEEK_SELECTED
-
-        var changed = false
-        val updated = current.copy(
-            macrocycles = current.macrocycles.map { macro ->
-                macro.copy(
-                    blocks = macro.blocks.map { block ->
-                        block.copy(
-                            mesocycles = block.mesocycles.map { meso ->
-                                meso.copy(
-                                    weeks = meso.weeks.map { week ->
-                                        if (week.id != targetWeekId) {
-                                            week
-                                        } else {
-                                            val adjustedSessions = adjustWeekSessionsByCanonicalMuscle(
-                                                sessions = week.sessions,
-                                                factor = factor,
-                                                canonicalMuscles = current.volumeRecommendations.map {
-                                                    canonicalizeMuscleName(it.muscleGroup)
-                                                }.distinct(),
-                                            )
-                                            if (adjustedSessions != week.sessions) changed = true
-                                            week.copy(sessions = adjustedSessions)
-                                        }
-                                    }
-                                )
-                            }
-                        )
-                    }
-                )
-            }
-        )
-
-        if (!changed) return VolumeAdjustmentResult.NO_ADJUSTABLE_VOLUME
-        repository.updateProgram(updated)
-        return VolumeAdjustmentResult.SUCCESS
     }
 
     fun deleteSession(
@@ -2066,12 +1894,6 @@ class ProgramDetailViewModel(
         }
     }
 
-    private fun parseIsoDate(raw: String): LocalDate? = try {
-        LocalDate.parse(raw.trim())
-    } catch (_: DateTimeParseException) {
-        null
-    }
-
     private fun nextCalendarWeekStart(program: Program): LocalDate {
         val lastEnd = program.macrocycles
             .flatMap { it.blocks }
@@ -2082,121 +1904,6 @@ class ProgramDetailViewModel(
         return lastEnd?.plusDays(1)
             ?: program.timelineStartDate?.let(::parseIsoDate)
             ?: appClock.today(java.time.ZoneId.systemDefault())
-    }
-
-    private fun calendarWeekTitle(startDate: LocalDate): String =
-        "Semana: ${startDate.format(DateTimeFormatter.ofPattern("MM/dd", Locale.US))}"
-
-    private fun adjustWeekSessionsByCanonicalMuscle(
-        sessions: List<Session>,
-        factor: Double,
-        canonicalMuscles: List<String>,
-    ): List<Session> {
-        val exerciseNodes = collectExerciseNodes(sessions)
-        if (exerciseNodes.isEmpty()) return sessions
-
-        val mutableSetCounts = exerciseNodes.associate { it.exerciseId to it.setCount }.toMutableMap()
-        val muscleToExercises = linkedMapOf<String, MutableSet<String>>()
-
-        exerciseNodes.forEach { node ->
-            node.muscles.forEach { muscle ->
-                muscleToExercises.getOrPut(muscle) { linkedSetOf() }.add(node.exerciseId)
-            }
-        }
-
-        val orderedMuscles = (canonicalMuscles + muscleToExercises.keys).distinct()
-        var changed = false
-
-        orderedMuscles.forEach { muscle ->
-            val candidates = muscleToExercises[muscle].orEmpty().toList()
-            if (candidates.isEmpty()) return@forEach
-
-            val currentTotal = candidates.sumOf { mutableSetCounts[it] ?: 0 }
-            if (currentTotal == 0) return@forEach
-
-            val targetTotal = computeTargetSetTotal(currentTotal, factor)
-            when {
-                targetTotal > currentTotal -> {
-                    if (increaseMuscleVolume(candidates, mutableSetCounts, targetTotal - currentTotal)) {
-                        changed = true
-                    }
-                }
-                targetTotal < currentTotal -> {
-                    if (decreaseMuscleVolume(candidates, mutableSetCounts, currentTotal - targetTotal)) {
-                        changed = true
-                    }
-                }
-            }
-        }
-
-        if (!changed) return sessions
-        return sessions.map { applySetCountsToSession(it, mutableSetCounts) }
-    }
-
-    private fun computeTargetSetTotal(currentTotal: Int, factor: Double): Int {
-        if (currentTotal <= 0) return 0
-        return if (factor >= 1.0) {
-            ceil(currentTotal * factor).toInt()
-        } else {
-            floor(currentTotal * factor).toInt().coerceAtLeast(1)
-        }
-    }
-
-    private fun increaseMuscleVolume(
-        candidates: List<String>,
-        setCounts: MutableMap<String, Int>,
-        delta: Int,
-    ): Boolean {
-        if (delta <= 0 || candidates.isEmpty()) return false
-        var remaining = delta
-        var changed = false
-        val ordered = candidates.sortedWith(compareBy({ setCounts[it] ?: 0 }, { it }))
-
-        while (remaining > 0) {
-            ordered.forEach { exerciseId ->
-                setCounts[exerciseId] = (setCounts[exerciseId] ?: 0) + 1
-                remaining--
-                changed = true
-                if (remaining <= 0) return changed
-            }
-        }
-
-        return changed
-    }
-
-    private fun decreaseMuscleVolume(
-        candidates: List<String>,
-        setCounts: MutableMap<String, Int>,
-        delta: Int,
-    ): Boolean {
-        if (delta <= 0 || candidates.isEmpty()) return false
-        var remaining = delta
-        var changed = false
-
-        while (remaining > 0) {
-            val ordered = candidates.sortedByDescending { setCounts[it] ?: 0 }
-            var reducedThisRound = false
-
-            ordered.forEach { exerciseId ->
-                val currentCount = setCounts[exerciseId] ?: 0
-                if (currentCount > 1 && remaining > 0) {
-                    setCounts[exerciseId] = currentCount - 1
-                    remaining--
-                    changed = true
-                    reducedThisRound = true
-                }
-            }
-
-            if (!reducedThisRound) break
-        }
-
-        return changed
-    }
-
-    private fun collectExerciseNodes(sessions: List<Session>): List<ExerciseNode> {
-        val nodes = mutableListOf<ExerciseNode>()
-        sessions.forEach { session -> collectExerciseNodesFromSession(session, nodes) }
-        return nodes
     }
 
     private fun collectExerciseNodesFromSession(session: Session, destination: MutableList<ExerciseNode>) {
@@ -2334,11 +2041,6 @@ class ProgramDetailViewModel(
 
     fun setCalendarizationStartDayOfWeek(day: Int) {
         _calendarizationStartDayOfWeek.value = day
-    }
-
-    fun toggleCalendarizationTrainingDay(day: Int) {
-        val current = _calendarizationTrainingDays.value
-        _calendarizationTrainingDays.value = if (day in current) current - day else current + day
     }
 
     fun setCalendarizationTrainingDays(days: Set<Int>) {
@@ -2494,6 +2196,74 @@ class ProgramDetailViewModel(
 
     // ─── Factory ──────────────────────────────────────────────────────────
 
+    // ─── Cabecera de Program Detail (P1) ──────────────────────────────────
+    // Campos nuevos: la cabecera lee la misma sesión de hoy y la misma línea «Semana N de M» que Home.
+
+    /** true cuando el repositorio ya leyó sus programas: así se distingue «cargando» de «no existe». */
+    val programsReady: StateFlow<Boolean> = repository.isReady
+
+    /** Sesiones de hoy de este programa, solo si está activo o pausado: las resuelve Home con el mismo motor. */
+    private val headerSessions: StateFlow<List<TodaySessionItem>> = combine(
+        program,
+        activeProgramState,
+        repository.history,
+        repository.ongoingWorkout,
+    ) { p, active, history, ongoing ->
+        if (p == null || active?.programId != p.id) return@combine emptyList()
+        val today = appClock.today(java.time.ZoneId.systemDefault())
+        HomeSessionResolver.resolveTodaySessions(
+            program = p,
+            active = active,
+            currentDayOfWeek = today.dayOfWeek.value,
+            history = history,
+            ongoing = ongoing,
+            today = today,
+        )
+    }
+        .distinctUntilChanged()
+        .flowOn(kotlinx.coroutines.Dispatchers.Default)
+        .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
+
+    /** La sesión que toca ahora: la que está en curso o la primera de hoy por hacer. Null si hoy no toca ninguna. */
+    val headerPrimarySession: StateFlow<TodaySessionItem?> = headerSessions
+        .map { HomeSessionResolver.selectPrimarySession(it) }
+        .distinctUntilChanged()
+        .stateIn(viewModelScope, SharingStarted.Lazily, null)
+
+    /** La línea del programa para la cabecera («Semana N de M» y la fase), con el mismo cálculo que Home. */
+    val headerProgramLine: StateFlow<HomeProgramLine?> = combine(program, headerSessions) { p, sessions ->
+        p?.let { HomeWeekResolver.programLine(it, sessions, appClock.today(java.time.ZoneId.systemDefault())) }
+    }
+        .distinctUntilChanged()
+        .stateIn(viewModelScope, SharingStarted.Lazily, null)
+
+    /** Sesiones ya registradas del programa; la ejecución en curso no cuenta. La fila del día muestra su check (P2). */
+    val completedSessionIds: StateFlow<Set<String>> = combine(
+        program,
+        repository.history,
+        repository.ongoingWorkout,
+    ) { p, _, ongoing ->
+        val executed = p?.let { repository.executedTrainingEvidence(it).sessionIds }.orEmpty()
+        val inProgress = ongoing?.takeIf { it.programId == programId }?.session?.id
+        if (inProgress == null) executed else executed - inProgress
+    }
+        .distinctUntilChanged()
+        .stateIn(
+            viewModelScope,
+            SharingStarted.Lazily,
+            repository.getProgramById(programId)
+                ?.let { repository.executedTrainingEvidence(it).sessionIds }
+                .orEmpty(),
+        )
+
+    /** Días desplegados de la pestaña Semana y la semana a la que pertenecen: sobreviven al cambio de pestaña (P2). */
+    private val _expandedWeekDays = MutableStateFlow<Pair<String, Set<Int>>?>(null)
+    val expandedWeekDays: StateFlow<Pair<String, Set<Int>>?> = _expandedWeekDays.asStateFlow()
+
+    fun setExpandedWeekDays(weekId: String, days: Set<Int>) {
+        _expandedWeekDays.value = weekId to days
+    }
+
     companion object {
         private const val LOG_TAG = "ProgramDetailVM"
 
@@ -2555,15 +2325,4 @@ class ProgramDetailViewModel(
             return candidates.firstOrNull { it in idSet }
         }
     }
-}
-
-private fun dayLabelShort(dayOfWeek: Int): String = when (dayOfWeek) {
-    1 -> "Lun"
-    2 -> "Mar"
-    3 -> "Mié"
-    4 -> "Jue"
-    5 -> "Vie"
-    6 -> "Sáb"
-    7 -> "Dom"
-    else -> "Día"
 }

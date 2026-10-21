@@ -1,5 +1,6 @@
 package com.example.kpkn.data.repository
 
+import com.example.kpkn.testsupport.SyncRoomExecutor
 import android.app.Application
 import android.content.Context
 import android.content.SharedPreferences
@@ -46,6 +47,7 @@ class NutritionRepositoryUtensilTest {
 
     @Before
     fun setUp() {
+        SyncRoomExecutor.install()
         // El motor es global: se guarda lo que había y se parte de cero para no depender de otras pruebas.
         engineBefore = SubjectivePortionEngine.currentUtensilOverrides()
         SubjectivePortionEngine.applyUtensilOverrides(emptyMap())
@@ -63,6 +65,7 @@ class NutritionRepositoryUtensilTest {
         BodyProgressRepository.closeInstance()
         KpknDatabase.closeInstance()
         SubjectivePortionEngine.applyUtensilOverrides(engineBefore)
+        SyncRoomExecutor.uninstall()
     }
 
     private val prefs: SharedPreferences

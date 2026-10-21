@@ -24,6 +24,7 @@ import com.example.kpkn.domain.onboarding.SetupRingsInput
 import com.example.kpkn.domain.onboarding.SetupRingsMapper
 import com.example.kpkn.domain.onboarding.SetupRingsResponseMapping
 import com.example.kpkn.domain.onboarding.declaredCheckInChannels
+import com.example.kpkn.testsupport.RoomTestRule
 import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Assert.assertEquals
@@ -31,8 +32,8 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
-import java.time.LocalDate
 
 /**
  * Productor real del snapshot: `AugeViewModel.recompute` publica
@@ -44,8 +45,12 @@ import java.time.LocalDate
 @org.junit.runner.RunWith(org.robolectric.RobolectricTestRunner::class)
 @org.robolectric.annotation.Config(manifest = org.robolectric.annotation.Config.NONE, sdk = [34])
 class AugeSnapshotCoverageTest {
+
+    @get:Rule
+    val roomRule = RoomTestRule()
     private lateinit var db: KpknDatabase
-    private val date: String = LocalDate.now().toString()
+    // Fecha fija (WP 1.7): la prueba no depende del día en que corre.
+    private val date: String = "2025-03-03"
 
     @Before
     fun setUp() {

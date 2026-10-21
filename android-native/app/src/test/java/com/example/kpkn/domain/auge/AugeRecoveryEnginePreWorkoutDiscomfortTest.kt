@@ -4,9 +4,12 @@ import com.example.kpkn.data.models.*
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.time.Instant
-import java.time.LocalDate
 
 class AugeRecoveryEnginePreWorkoutDiscomfortTest {
+
+    /** Reloj explícito (WP 1.7): lunes 2025-03-03 10:00 UTC, mucho antes de hoy. Ninguna prueba lee el reloj real. */
+    private val ahora = Instant.parse("2025-03-03T10:00:00Z").toEpochMilli()
+    private val fecha = "2025-03-03"
 
     private val exerciseDb = mapOf(
         "bench" to ExerciseMuscleInfo(
@@ -48,13 +51,13 @@ class AugeRecoveryEnginePreWorkoutDiscomfortTest {
 
     @Test
     fun testPreWorkoutDiscomfortAppliesPenaltyToMuscles() {
-        val now = System.currentTimeMillis()
+        val now = ahora
         val settings = Settings()
         val history = listOf(heavyWorkoutLog(now - 8L * 3600 * 1000))
 
         val wellbeingNoDiscomfort = DailyWellbeingLog(
             id = "today",
-            date = LocalDate.now().toString(),
+            date = fecha,
             preWorkoutDiscomforts = emptyList()
         )
         val base = AugeRecoveryEngine.calculateMuscleBattery(
@@ -63,12 +66,13 @@ class AugeRecoveryEnginePreWorkoutDiscomfortTest {
             wellbeing = wellbeingNoDiscomfort,
             settings = settings,
             exerciseDb = exerciseDb,
-            precomputedCapacity = 150.0
+            precomputedCapacity = 150.0,
+            nowOverride = now,
         )
 
         val wellbeingWithDiscomfort = DailyWellbeingLog(
             id = "today",
-            date = LocalDate.now().toString(),
+            date = fecha,
             preWorkoutDiscomforts = listOf("shoulder_anterior")
         )
         val penalized = AugeRecoveryEngine.calculateMuscleBattery(
@@ -77,7 +81,8 @@ class AugeRecoveryEnginePreWorkoutDiscomfortTest {
             wellbeing = wellbeingWithDiscomfort,
             settings = settings,
             exerciseDb = exerciseDb,
-            precomputedCapacity = 150.0
+            precomputedCapacity = 150.0,
+            nowOverride = now,
         )
 
         // Penalized score should be strictly lower than base score
@@ -91,25 +96,27 @@ class AugeRecoveryEnginePreWorkoutDiscomfortTest {
     fun testPreWorkoutDiscomfortAppliesPenaltyToArticularBatteries() {
         val wellbeingNoDiscomfort = DailyWellbeingLog(
             id = "today",
-            date = LocalDate.now().toString(),
+            date = fecha,
             preWorkoutDiscomforts = emptyList()
         )
         val baseArticular = AugeTtcEngine.calculateArticularBatteries(
             history = emptyList(),
             exerciseDb = exerciseDb,
-            wellbeing = wellbeingNoDiscomfort
+            wellbeing = wellbeingNoDiscomfort,
+            nowMs = ahora,
         )
 
         // shoulder_anterior relates to ArticularBattery.SHOULDER
         val wellbeingWithDiscomfort = DailyWellbeingLog(
             id = "today",
-            date = LocalDate.now().toString(),
+            date = fecha,
             preWorkoutDiscomforts = listOf("shoulder_anterior")
         )
         val penalizedArticular = AugeTtcEngine.calculateArticularBatteries(
             history = emptyList(),
             exerciseDb = exerciseDb,
-            wellbeing = wellbeingWithDiscomfort
+            wellbeing = wellbeingWithDiscomfort,
+            nowMs = ahora,
         )
 
         val baseShoulder = baseArticular[ArticularBattery.SHOULDER]?.recoveryScore ?: 100

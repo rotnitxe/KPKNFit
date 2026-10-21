@@ -8,6 +8,7 @@ import com.example.kpkn.data.models.MealType
 import com.example.kpkn.data.repository.FoodCatalogImporter
 import com.example.kpkn.data.repository.NutritionRepository
 import com.example.kpkn.data.repository.ProgramRepository
+import com.example.kpkn.testsupport.RoomTestRule
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
@@ -17,6 +18,7 @@ import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
@@ -30,6 +32,9 @@ import org.robolectric.annotation.Config
 @RunWith(RobolectricTestRunner::class)
 @Config(manifest = Config.NONE, sdk = [34])
 class NutritionViewModelOpenRequestTest {
+
+    @get:Rule
+    val roomRule = RoomTestRule()
 
     /** Sin importación del catálogo: estas pruebas solo miran la solicitud del VM, no la base de alimentos. */
     private object NoCatalogImport : FoodCatalogImporter {

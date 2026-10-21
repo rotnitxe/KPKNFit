@@ -1,0 +1,10 @@
+// Task-owned outputs: compile current checkout sources without sharing old app/build bytecode.
+gradle.beforeProject { project ->
+    def taskProjectName = project.path == ':' ? 'root' : project.path.substring(1).replace(':', '/')
+    project.layout.buildDirectory.set(new File('C:/Users/valen/Documents/KPKNFit/artifacts/signed-release-20261020/build', taskProjectName))
+    project.pluginManager.withPlugin('com.android.application') {
+        project.extensions.getByName('android').sourceSets.maybeCreate('release').assets.srcDir(
+            'C:/Users/valen/Documents/KPKNFit/artifacts/signed-release-20261020/provenance-assets'
+        )
+    }
+}

@@ -65,6 +65,7 @@ import com.example.kpkn.domain.onboarding.CompetitionAnswer
 import com.example.kpkn.domain.onboarding.SetupStepGraph
 import com.example.kpkn.domain.onboarding.SetupStepId
 import com.example.kpkn.domain.onboarding.WizChatMachineState
+import com.example.kpkn.screens.onboarding.design.ActivationOverlay
 import com.example.kpkn.screens.onboarding.design.KpknModule
 import com.example.kpkn.screens.onboarding.design.LocalWizardGlassNote
 import com.example.kpkn.screens.onboarding.design.LocalWizardPageScroll
@@ -91,6 +92,7 @@ import com.example.kpkn.screens.onboarding.design.WizardSpacing
 import com.example.kpkn.screens.onboarding.design.WizardTopScrim
 import com.example.kpkn.screens.onboarding.design.WizardTypography
 import com.example.kpkn.screens.onboarding.design.wizardReducedMotion
+import com.example.kpkn.screens.onboarding.rings.RingsIntroOverlay
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.hazeSource
 import kotlinx.coroutines.flow.first
@@ -481,23 +483,31 @@ private fun WizardLongPage(
             exitLabel = "Salir",
             modifier = Modifier.align(Alignment.TopCenter).statusBarsPadding(),
         )
-        WizardDock(
-            enabled = checkEnabled,
-            label = if (keepsLaterAnswers) "Guardar cambio" else ctaLabel,
-            // En la revisión el botón final dice lo que hace; en los demás pasos sigue siendo el círculo con el check.
-            textLabel = ctaLabel.takeIf { step == SetupStepId.REVIEW_ACTIVATE && !keepsLaterAnswers },
-            note = if (keepsLaterAnswers) "Tus respuestas siguientes se conservan." else null,
-            onClick = {
-                haptics.performHapticFeedback(HapticFeedbackType.ContextClick)
-                when {
-                    step == SetupStepId.REVIEW_ACTIVATE -> onActivate()
-                    currentPage == SetupStepId.NAME -> viewModel.submitAliasAgePair()
-                    step == SetupStepId.HEIGHT -> viewModel.submitAnthropometryPair()
-                    else -> viewModel.submitCurrentStep(step)
-                }
-            },
-            modifier = Modifier.align(Alignment.BottomCenter),
-        )
+        // En la revisión el botón final es el del overlay de activación (abajo): aquí no se pinta el dock.
+        if (step != SetupStepId.REVIEW_ACTIVATE) {
+            WizardDock(
+                enabled = checkEnabled,
+                label = if (keepsLaterAnswers) "Guardar cambio" else ctaLabel,
+                // En la revisión el botón final dice lo que hace; en los demás pasos sigue siendo el círculo con el check.
+                textLabel = ctaLabel.takeIf { step == SetupStepId.REVIEW_ACTIVATE && !keepsLaterAnswers },
+                note = if (keepsLaterAnswers) "Tus respuestas siguientes se conservan." else null,
+                // «Omitir» de los pesajes solo sin pesajes: el paso se declara omitido igual que antes lo hacía su botón de texto.
+                secondaryLabel = "Omitir".takeIf {
+                    step == SetupStepId.NUTRITION_WEIGH_INS && state.draft.historicalWeighIns.isEmpty()
+                },
+                onSecondary = { viewModel.skipStep(step) },
+                onClick = {
+                    haptics.performHapticFeedback(HapticFeedbackType.ContextClick)
+                    when {
+                        step == SetupStepId.REVIEW_ACTIVATE -> onActivate()
+                        currentPage == SetupStepId.NAME -> viewModel.submitAliasAgePair()
+                        step == SetupStepId.HEIGHT -> viewModel.submitAnthropometryPair()
+                        else -> viewModel.submitCurrentStep(step)
+                    }
+                },
+                modifier = Modifier.align(Alignment.BottomCenter),
+            )
+        }
         // La nota de vidrio de los enlaces «¿por qué?»: hermana de la fuente de desenfoque, igual que la cabecera.
         WizardGlassNoteLayer(controller = LocalWizardGlassNote.current, hazeState = hazeState)
 
@@ -547,6 +557,34 @@ private fun WizardLongPage(
                     )
                 }
             }
+        }
+
+        // La intro de RINGS: un overlay animado sobre el paso RINGS_INTRO (la ruta no cambia). «Empezar» confirma el paso;
+        // atrás vuelve al hito de Nutrición.
+        if (step == SetupStepId.RINGS_INTRO) {
+            key(step) {
+                RingsIntroOverlay(
+                    onContinue = { viewModel.submitCurrentStep(step) },
+                    onBack = { viewModel.goBack() },
+                )
+            }
+        }
+
+        // La revisión y activación (K9): el overlay con el resumen de cada bloque y el botón «Activar y entrar a KPKN», que llama
+        // al mismo `onActivate` del dock. Con el cursor en REVIEW_ACTIVATE; la página de debajo queda vacía.
+        if (step == SetupStepId.REVIEW_ACTIVATE) {
+            // Fondo opaco bajo la revisión: la página de debajo (cabecera, resumen y filas) queda tapada. Con el velo del diálogo al 52 %
+            // (cuando el sistema dice que hay desenfoque) el texto de atrás se leía a media intensidad, encima del del overlay.
+            Box(Modifier.fillMaxSize().background(WizardColors.background))
+            ActivationOverlay(
+                state = state,
+                activateEnabled = checkEnabled,
+                onEdit = { target -> viewModel.editStep(target) },
+                onConfirmActivation = { confirmed -> viewModel.confirmActivation(confirmed) },
+                onConfirmFixedRecipe = { accepted -> viewModel.acceptFixedRecipeDifference(accepted) },
+                onActivate = onActivate,
+                onBack = { viewModel.goBack() },
+            )
         }
 
         // La pantalla de arranque: lo mismo que un hito pero sin nada completado ni color de «completado».

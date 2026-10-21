@@ -56,7 +56,6 @@ data class RelatorCandidate(
     val lines: List<String>,
     val fingerprintBase: String,
     val actions: List<RelatorActionSpec> = emptyList(),
-    val openers: List<String> = emptyList(),
     val cooldownSets: Int = 0,
     val ttlSets: Int = 1,
     val isReaction: Boolean = false,
@@ -102,6 +101,11 @@ data class RelatorProgressSlice(
     val minutesAhead: Int? = null,
     val nextExerciseName: String? = null,
     val nextSuggestedKg: Double? = null,
+    /** Número (1-based) de la serie que toca del mismo ejercicio; null si ya no quedan. */
+    val nextSetNumber: Int? = null,
+    val nextSetTotal: Int? = null,
+    val nextSetWeightKg: Double? = null,
+    val nextSetReps: Int? = null,
 )
 
 data class RelatorRestSlice(
@@ -157,12 +161,36 @@ data class RelatorMilestoneSlice(
     val bestTagName: String? = null,
 )
 
+/**
+ * Serie que acaba de registrarse (LR1h): lo que hizo la persona frente a lo previsto, y la serie que sigue del mismo
+ * ejercicio. No sale de los borradores de la pantalla: durante el descanso el cursor ya está en la serie siguiente.
+ */
+data class RelatorLoggedSetSlice(
+    val setNumber: Int? = null,
+    val setTotal: Int? = null,
+    val weightKg: Double? = null,
+    val reps: Int? = null,
+    val rir: Int? = null,
+    val plannedWeightKg: Double? = null,
+    val plannedReps: Int? = null,
+    /** Máximo del rango de reps de la receta; sin rango, las reps previstas. */
+    val plannedRepsMax: Int? = null,
+    val plannedRir: Int? = null,
+    /** Serie siguiente del mismo ejercicio (1-based); null si la registrada era la última. */
+    val nextSetNumber: Int? = null,
+    val nextSetTotal: Int? = null,
+    val nextSetWeightKg: Double? = null,
+    val nextSetReps: Int? = null,
+)
+
 data class RelatorContext(
     val sessionId: String,
     val setKey: String,
     val idleCycle: Int = 0,
     val feminine: Boolean = false,
     val visible: Boolean = true,
+    /** Momento que el reloj ha decidido (LR1g). Null fuera del reloj: el motor usa todos los temas. */
+    val moment: RelatorMoment? = null,
     val phase: RelatorSessionPhase = RelatorSessionPhase.WORKING,
     val exerciseId: String = "",
     val exerciseName: String = "",
@@ -197,6 +225,8 @@ data class RelatorContext(
     val coach: RelatorCoachSlice = RelatorCoachSlice(),
     val media: RelatorMediaSlice = RelatorMediaSlice(),
     val milestone: RelatorMilestoneSlice = RelatorMilestoneSlice(),
+    /** Serie que acaba de registrarse (LR1h): lo que el relator dice al empezar el descanso. */
+    val loggedSet: RelatorLoggedSetSlice = RelatorLoggedSetSlice(),
 )
 
 fun interface RelatorObserver {
@@ -211,6 +241,8 @@ data class RelatorLine(
     val fingerprint: String? = null,
     val spokenConceptId: String? = null,
     val actions: List<RelatorActionSpec> = emptyList(),
+    /** Índice de la frase elegida dentro del candidato (LR1h): el selector lo recuerda para rotar la siguiente vez. */
+    val variant: Int? = null,
 )
 
 data class RelatorEngineResult(
@@ -219,12 +251,32 @@ data class RelatorEngineResult(
     val longTermMemory: RelatorLongTermMemory,
 )
 
-internal const val RELATOR_LINE_MAX_CHARS = 140
+internal const val RELATOR_LINE_MAX_CHARS = 90
+
+/** Kilos en una frase: «97,5 kg», con espacio inseparable antes de «kg» (LR1g). */
+internal fun relatorKg(value: Double): String = "${formatRelatorKg(value)} kg"
+
+/** Serie en una frase: «95 kg × 6» (LR1g). Sin reps, solo el peso. */
+internal fun relatorSetMark(weightKg: Double, reps: Int): String =
+    if (reps > 0) "${relatorKg(weightKg)} × $reps" else relatorKg(weightKg)
+
+/** Porcentaje en una frase: «82 %», con espacio inseparable (LR1g). */
+internal fun relatorPercent(value: Double): String = "${formatRelatorKg(value)} %"
+
+/** Tiempo en una frase, como KpknSetFormat.doseTime: «3:15» o «45 s» (LR1g). */
+internal fun relatorDoseTime(seconds: Int): String {
+    val safe = seconds.coerceAtLeast(0)
+    return if (safe < 60) {
+        "$safe s"
+    } else {
+        "${safe / 60}:${(safe % 60).toString().padStart(2, '0')}"
+    }
+}
 
 internal fun formatRelatorKg(value: Double): String {
     val scaled = kotlin.math.round(value * 10.0) / 10.0
     val asLong = scaled.toLong()
-    return if (kotlin.math.abs(scaled - asLong) < 1e-6) asLong.toString() else scaled.toString()
+    return if (kotlin.math.abs(scaled - asLong) < 1e-6) asLong.toString() else scaled.toString().replace('.', ',')
 }
 
 internal fun RelatorContext.shortExerciseName(): String {

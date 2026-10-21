@@ -25,6 +25,7 @@ import com.example.kpkn.data.programs.toTrainingReference
 import com.example.kpkn.domain.nutrition.NutritionConfigurationMode
 import com.example.kpkn.domain.nutrition.parseLocalizedNumber
 import com.example.kpkn.domain.training.PersonalizationReport
+import com.example.kpkn.domain.training.SimpleCyclePersonalizer
 import com.example.kpkn.domain.training.importer.ImportDraftValidation
 import com.example.kpkn.domain.training.importer.ImportIssueKind
 import com.example.kpkn.domain.training.importer.ImportedProgramDraft
@@ -184,6 +185,10 @@ data class SetupWeighIn(
     val id: String,
     val dateIso: String,
     val weightKg: Double,
+    /** Porcentaje de grasa corporal del pesaje (opcional; de 0 a 100). Sin valor no hay fila de grasa. */
+    val bodyFatPercent: Double? = null,
+    /** Porcentaje de masa muscular del pesaje (opcional; de 0 a 100). Sin valor no hay fila de músculo. */
+    val muscleMassPercent: Double? = null,
 )
 
 /**
@@ -1750,14 +1755,15 @@ object SetupWizardValidation {
                 }
             }
             SetupStepId.CARDIO_TIME -> if (draft.cardioMinutes != null) ok("cardioMinutes") else absent("cardioMinutes", "Indica los minutos de cardio")
-            // Bolsa de orden: ≤5 puntos en total, ≤2 por músculo y SIN límite
+            // Bolsa de orden: ≤6 puntos en total (Brazos cuenta dos), ≤2 por músculo y SIN límite
             // al número de músculos (5×1 es válido). Vacío es válido: no es
             // obligatorio gastar los puntos.
             SetupStepId.PRIORITIES -> {
                 val bag = draft.trainingOptions.orderPriorities
                 when {
                     bag.values.any { it < 0 || it > 2 } -> invalid("priorities", "Máximo 2 puntos por músculo")
-                    bag.values.sum() > 5 -> invalid("priorities", "Reparte 5 puntos en total")
+                    bag.values.sum() > SimpleCyclePersonalizer.MAX_ORDER_POINTS_TOTAL ->
+                        invalid("priorities", "Máximo ${SimpleCyclePersonalizer.MAX_ORDER_POINTS_TOTAL} puntos en total")
                     else -> ok("priorities")
                 }
             }
@@ -1855,7 +1861,10 @@ object SetupWizardValidation {
                 val broken = rows.firstOrNull { row ->
                     val date = runCatching { LocalDate.parse(row.dateIso) }.getOrNull()
                     date == null || date.isAfter(today) ||
-                        !row.weightKg.isFinite() || row.weightKg !in 20.0..500.0
+                        !row.weightKg.isFinite() || row.weightKg !in 20.0..500.0 ||
+                        // Los porcentajes usan el mismo rango que las observaciones de Cuerpo (0 a 100).
+                        row.bodyFatPercent?.let { it !in 0.0..100.0 } == true ||
+                        row.muscleMassPercent?.let { it !in 0.0..100.0 } == true
                 }
                 when {
                     broken != null -> invalid("weighIns", "Revisa la fecha y el peso de tus pesajes")

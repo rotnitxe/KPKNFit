@@ -1,0 +1,10 @@
+.gitignore text eol=lf
+.gitattributes text eol=lf
+*.json -text whitespace=cr-at-eol
+*.xml binary
+*.log binary
+*.txt -text whitespace=cr-at-eol
+*.patch text eol=lf whitespace=-blank-at-eol
+*.py text eol=lf
+*.gradle -text whitespace=cr-at-eol
+*.md text eol=lf

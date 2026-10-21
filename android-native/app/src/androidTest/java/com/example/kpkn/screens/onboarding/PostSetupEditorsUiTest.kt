@@ -409,14 +409,14 @@ class PostSetupEditorsUiTest {
             30_000L,
         )
         macroField.performTextReplacement(NEW_PROTEIN.toString())
-        // En pantalla la base revisada adopta el macro con su total Atwater.
+        // La isla de «Guardar» enseña el cambio: la base original frente al total Atwater de los macros nuevos.
         val expectedBaseKcal = atwaterKcal(
             NEW_PROTEIN.toDouble(),
             FIXTURE_CARBS.toDouble(),
             FIXTURE_FAT.toDouble(),
         )
         composeRule.waitUntilAtLeastOneExists(
-            hasText("Base revisada que se guardará tal cual: $expectedBaseKcal kcal", substring = true),
+            hasText("${kcalEs(FIXTURE_KCAL)} → ${kcalEs(expectedBaseKcal)} kcal"),
             30_000L,
         )
         composeRule.onAllNodesWithText("Guardar").onFirst().performClick()
@@ -626,6 +626,9 @@ class PostSetupEditorsUiTest {
         }
     }
 
+    /** Cifra en español con punto de millar, como la isla del editor: 1800 se lee «1.800». */
+    private fun kcalEs(value: Int): String = value.toString().reversed().chunked(3).joinToString(".").reversed()
+
     /** Espera activa (con tope) a una condición de Room; sin sleeps fijos. */
     private fun awaitCondition(condition: suspend () -> Boolean) {
         runBlocking {
@@ -641,6 +644,6 @@ class PostSetupEditorsUiTest {
         const val FIXTURE_CARBS = 200
         const val FIXTURE_FAT = 60
         const val NEW_PROTEIN = 160
-        const val MACRO_LABEL = "Proteína (g)"
+        const val MACRO_LABEL = "Proteína"
     }
 }

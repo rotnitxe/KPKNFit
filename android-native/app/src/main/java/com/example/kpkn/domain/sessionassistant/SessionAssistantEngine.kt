@@ -28,6 +28,9 @@ import com.example.kpkn.domain.training.VolumeCalculator
 import kotlin.math.ceil
 import kotlin.math.roundToInt
 
+/** Etiqueta del aviso «bajar el descanso» (SE9): la unidad va con espacio inseparable, como en el resto de textos. */
+internal fun reduceRestLabel(seconds: Int): String = "Bajar $seconds s de descanso entre series"
+
 object SessionAssistantEngine {
 
     fun evaluate(
@@ -95,7 +98,7 @@ object SessionAssistantEngine {
         if (avgRest > 45) {
             details += AssistantSuggestionDetail(
                 id = "time_detail_rest",
-                label = "Bajar 15s de descanso entre series",
+                label = reduceRestLabel(seconds = 15),
                 action = AssistantDetailAction.ReduceRest(seconds = 15),
             )
         }
@@ -793,6 +796,7 @@ object SessionAssistantEngine {
             history = input.workoutLogs,
             exerciseDb = input.exerciseIndex,
             settings = input.settings,
+            nowMs = com.example.kpkn.domain.auge.AugeClock.nowMs(),
         ).filter { it.interferencePercent >= 10 }
             .take(2)
         return hits.map { hit ->

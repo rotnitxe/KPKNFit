@@ -7,6 +7,7 @@ import com.example.kpkn.data.db.toOngoingWorkoutState
 import com.example.kpkn.data.models.*
 import com.example.kpkn.data.repository.ProgramRepository
 import com.example.kpkn.data.repository.StartWorkoutResult
+import com.example.kpkn.testsupport.RoomTestRule
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.*
@@ -16,6 +17,7 @@ import kotlinx.serialization.json.Json
 import org.junit.After
 import org.junit.Assert.*
 import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
@@ -30,6 +32,9 @@ import com.example.kpkn.screens.workout.components.toGuidedPhaseOrNull
 @Config(manifest = Config.NONE, sdk = [34])
 @OptIn(ExperimentalCoroutinesApi::class)
 class WorkoutSetRecorderDurableRoomTest {
+
+    @get:Rule
+    val roomRule = RoomTestRule()
     private val dispatcher = UnconfinedTestDispatcher()
     private val owner = CoroutineScope(SupervisorJob() + dispatcher)
     private lateinit var repository: ProgramRepository
@@ -113,9 +118,10 @@ class WorkoutSetRecorderDurableRoomTest {
         value: Double = 6.0,
         index: Int? = null,
         advanced: SetAdvancedFeedback = SetAdvancedFeedback(),
+        unit: UnitModeV2? = UnitModeV2.REPS,
     ) = recorder.record(
         weight = 20.0, value = value, intensity = 8.0, advanced = advanced, loadMode = LoadModeV2.LOAD,
-        unitMode = UnitModeV2.REPS, setIdxOverride = index,
+        unitMode = unit, setIdxOverride = index,
     )
     private suspend fun room() = repository.databaseForTests().stateDao().getOngoingWorkout()!!.toOngoingWorkoutState()!!
 
@@ -436,4 +442,30 @@ class WorkoutSetRecorderDurableRoomTest {
         assertTrue(persistence.persistAndAwait(state) {}.succeeded)
         assertEquals(restPause, room().setDrafts["exercise_0"]!!.techniqueProgress)
     }
+    @Test fun zero_complete_with_partials_is_created_and_reopened_from_room_with_explicit_zero_payload() = runBlocking {
+        // Null forces the real recorder to resolve REPS from the plan through its port.
+        assertTrue(record(value = 0.0, advanced = SetAdvancedFeedback(partialReps = 3, isPartial = true), unit = null)
+            is RecordSetResult.Created)
+        val persisted = room().completedSets.getValue("exercise_0")
+        assertEquals(0, persisted.reps)
+        assertEquals(3, persisted.partialReps)
+        assertEquals(UnitModeV2.REPS, persisted.recordedPayloadV3?.unitMode)
+        assertEquals(0, persisted.recordedPayloadV3?.completedReps)
+        assertEquals(3, persisted.recordedPayloadV3?.partialReps)
+        assertEquals(persisted, state.completedSets.getValue("exercise_0"))
+        assertTrue(room().setDrafts.isEmpty())
+        assertEquals(1, advances)
+    }
+
+    @Test fun zero_empty_negative_reps_and_zero_distance_remain_rejected_despite_partials() = runBlocking {
+        assertTrue(record(value = 0.0) is RecordSetResult.Rejected)
+        assertTrue(record(value = -1.0, advanced = SetAdvancedFeedback(partialReps = 3, isPartial = true))
+            is RecordSetResult.Rejected)
+        assertTrue(record(value = 0.0, advanced = SetAdvancedFeedback(partialReps = 3, isPartial = true), unit = UnitModeV2.DISTANCE)
+            is RecordSetResult.Rejected)
+        assertTrue(state.completedSets.isEmpty())
+        assertTrue(room().completedSets.isEmpty())
+        assertEquals(0, advances)
+    }
+
 }

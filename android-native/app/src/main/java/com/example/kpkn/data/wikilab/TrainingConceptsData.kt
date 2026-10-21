@@ -110,7 +110,7 @@ enum class ConceptCategory(
 val TRAINING_CONCEPTS_DATABASE: List<TrainingConcept> = listOf(
     TrainingConcept(
         id = "volumen-entrenamiento",
-        name = "Volumen de Entrenamiento",
+        name = "Volumen de entrenamiento",
         category = ConceptCategory.LOAD_MANAGEMENT,
         description = """
             El volumen es la cantidad acumulada de trabajo que realizas. Puede describirse con series, repeticiones, carga externa, tiempo bajo tensión o una combinación de esas medidas. No existe una única fórmula válida para todos los objetivos: contar toneladas puede ser útil en algunos levantamientos, mientras que las series exigentes por grupo muscular suelen ser más interpretables para hipertrofia.
@@ -130,7 +130,7 @@ val TRAINING_CONCEPTS_DATABASE: List<TrainingConcept> = listOf(
     ),
     TrainingConcept(
         id = "frecuencia",
-        name = "Frecuencia de Entrenamiento",
+        name = "Frecuencia de entrenamiento",
         category = ConceptCategory.LOAD_MANAGEMENT,
         description = """
             La frecuencia es cuántas veces entrenas una cualidad, un movimiento o un grupo muscular dentro de un periodo, normalmente una semana. No es solo el número de visitas al gimnasio: una sesión cuenta para un músculo cuando recibe un estímulo relevante. Distribuir el trabajo en más días puede cambiar la calidad de las series, la práctica técnica y la fatiga de cada sesión.
@@ -140,7 +140,7 @@ val TRAINING_CONCEPTS_DATABASE: List<TrainingConcept> = listOf(
     ),
     TrainingConcept(
         id = "rir",
-        name = "RIR (Repeticiones en Reserva)",
+        name = "RIR (repeticiones en reserva)",
         category = ConceptCategory.INTENSITY,
         description = """
             RIR significa repeticiones en reserva: una estimación de cuántas repeticiones técnicamente válidas podrías haber completado al terminar una serie. RIR 0 representa el fallo concéntrico de esa tarea; RIR 2 indica que probablemente quedaban dos repeticiones. Es una predicción, no una medición directa, y su precisión cambia con el ejercicio, la experiencia, la velocidad y el estado de fatiga.
@@ -150,7 +150,7 @@ val TRAINING_CONCEPTS_DATABASE: List<TrainingConcept> = listOf(
     ),
     TrainingConcept(
         id = "rpe",
-        name = "RPE (Percepción del Esfuerzo)",
+        name = "RPE (percepción del esfuerzo)",
         category = ConceptCategory.INTENSITY,
         description = """
             RPE es una escala subjetiva que resume cuánto esfuerzo percibiste en una serie, sesión o tarea. En fuerza suele usarse una escala de 1 a 10, donde los valores altos indican que queda poco margen; en ese contexto puede relacionarse con RIR, pero no son sinónimos perfectos. RPE integra señales como respiración, tensión, velocidad, concentración y sensación de dificultad.
@@ -160,7 +160,7 @@ val TRAINING_CONCEPTS_DATABASE: List<TrainingConcept> = listOf(
     ),
     TrainingConcept(
         id = "fallo-muscular",
-        name = "Fallo Muscular",
+        name = "Fallo muscular",
         category = ConceptCategory.INTENSITY,
         description = """
             El fallo muscular es el punto en que ya no puedes completar otra repetición con la acción concéntrica y la técnica definidas. Es específico del ejercicio y de la ejecución: detenerte porque la postura se degrada no es exactamente lo mismo que agotar la capacidad de producir la fase prevista. También conviene diferenciar el fallo momentáneo de una serie simplemente muy difícil o lenta.
@@ -170,7 +170,7 @@ val TRAINING_CONCEPTS_DATABASE: List<TrainingConcept> = listOf(
     ),
     TrainingConcept(
         id = "fatiga-sistemica",
-        name = "Fatiga Sistémica",
+        name = "Fatiga sistémica",
         category = ConceptCategory.FATIGUE,
         description = """
             La fatiga sistémica es la reducción temporal de la capacidad de rendir que afecta a varios sistemas del organismo, no solo al músculo que trabajaste. Puede incluir menor activación neural, cambios en la coordinación, sensación de agotamiento, alteraciones del sueño o una menor disposición para entrenar. No es una sustancia única ni puede deducirse con certeza a partir de un solo síntoma.
@@ -180,7 +180,7 @@ val TRAINING_CONCEPTS_DATABASE: List<TrainingConcept> = listOf(
     ),
     TrainingConcept(
         id = "dano-muscular",
-        name = "Daño Muscular",
+        name = "Daño muscular",
         category = ConceptCategory.FATIGUE,
         description = """
             El daño muscular describe alteraciones estructurales y funcionales que pueden aparecer después de un esfuerzo no habitual o muy exigente. Se manifiesta junto con dolor muscular de aparición tardía, pérdida temporal de fuerza, inflamación y cambios en la sensibilidad; ninguna de esas señales, por sí sola, mide con precisión cuánto tejido se ha dañado. El cuerpo repara y remodela esas estructuras como parte de la respuesta al entrenamiento.
@@ -190,7 +190,7 @@ val TRAINING_CONCEPTS_DATABASE: List<TrainingConcept> = listOf(
     ),
     TrainingConcept(
         id = "tension-mecanica",
-        name = "Tensión Mecánica (y Torque Articular)",
+        name = "Tensión mecánica (y torque articular)",
         category = ConceptCategory.HYPERTROPHY,
         description = """
             La tensión mecánica es la fuerza que soportan las fibras musculares cuando intentan producir o resistir movimiento. En una articulación, esa demanda se relaciona con el torque: la fuerza externa multiplicada por su brazo de momento respecto del eje articular. Cambiar la carga, el ángulo, la trayectoria o la posición del segmento puede modificar cuánto esfuerzo debe generar un músculo aunque el peso no cambie.
@@ -200,7 +200,7 @@ val TRAINING_CONCEPTS_DATABASE: List<TrainingConcept> = listOf(
     ),
     TrainingConcept(
         id = "estres-metabolico",
-        name = "Estrés Metabólico",
+        name = "Estrés metabólico",
         category = ConceptCategory.HYPERTROPHY,
         description = """
             El estrés metabólico es el conjunto de cambios locales que aparecen cuando una serie sostenida aumenta la demanda energética: se acumulan metabolitos, cambia el pH, aumenta la perfusión y aparece la sensación de congestión o ardor. Suele ser más evidente con repeticiones altas, descansos cortos o tensión mantenida, aunque la sensación no permite cuantificarlo de forma exacta.
@@ -210,7 +210,7 @@ val TRAINING_CONCEPTS_DATABASE: List<TrainingConcept> = listOf(
     ),
     TrainingConcept(
         id = "rom",
-        name = "ROM (Rango de Movimiento)",
+        name = "ROM (rango de movimiento)",
         category = ConceptCategory.MOVEMENT,
         description = """
             El ROM es la amplitud articular que recorres durante una repetición, desde la posición inicial hasta la final. Puede expresarse en grados, distancia o referencias técnicas como profundidad y extensión. No existe un ROM idéntico para todas las personas: la anatomía, el control, la movilidad, el ejercicio y el objetivo cambian qué recorrido es seguro y útil. Un recorrido amplio solo cuenta si se mantiene la posición y la intención de la tarea.
@@ -220,7 +220,7 @@ val TRAINING_CONCEPTS_DATABASE: List<TrainingConcept> = listOf(
     ),
     TrainingConcept(
         id = "perfil-resistencia",
-        name = "Perfil de Resistencia y Curvas de Fuerza",
+        name = "Perfil de resistencia y curvas de fuerza",
         category = ConceptCategory.MOVEMENT,
         description = """
             El perfil de resistencia describe cómo cambia la dificultad externa a lo largo del recorrido. La gravedad, una leva, una polea, una banda o la posición de la carga determinan el brazo de momento y, por tanto, el torque que una articulación debe producir en cada ángulo. La curva de fuerza describe cómo varía la capacidad del músculo para ejercer fuerza en esas mismas posiciones; ambas curvas no siempre coinciden.
@@ -230,7 +230,7 @@ val TRAINING_CONCEPTS_DATABASE: List<TrainingConcept> = listOf(
     ),
     TrainingConcept(
         id = "fase-excentrica",
-        name = "Fase Excéntrica",
+        name = "Fase excéntrica",
         category = ConceptCategory.MOVEMENT,
         description = """
             La fase excéntrica ocurre cuando un músculo produce fuerza mientras se alarga, como al bajar una sentadilla o frenar una carga. El tejido puede resistir fuerzas elevadas con un coste energético relativamente bajo, pero eso no significa que cualquier descenso lento sea automáticamente superior. La velocidad, el rango, la carga y la capacidad de controlar la posición determinan qué estímulo recibe la persona.
@@ -240,7 +240,7 @@ val TRAINING_CONCEPTS_DATABASE: List<TrainingConcept> = listOf(
     ),
     TrainingConcept(
         id = "fase-concentrica",
-        name = "Fase Concéntrica",
+        name = "Fase concéntrica",
         category = ConceptCategory.MOVEMENT,
         description = """
             La fase concéntrica es la parte de la repetición en la que el músculo se acorta mientras supera la resistencia, como al levantarse de una sentadilla o empujar una carga. La velocidad observada depende de la fuerza disponible, la carga, la posición y la intención. Una repetición lenta no siempre significa que se haya elegido una velocidad lenta: puede ser el resultado de acercarse al límite.
@@ -270,7 +270,7 @@ val TRAINING_CONCEPTS_DATABASE: List<TrainingConcept> = listOf(
     ),
     TrainingConcept(
         id = "carga-axial",
-        name = "Carga Axial",
+        name = "Carga axial",
         category = ConceptCategory.MOVEMENT,
         description = """
             La carga axial es una fuerza aplicada aproximadamente a lo largo del eje longitudinal de un segmento o del cuerpo. En una sentadilla, una barra sobre los hombros genera compresión que debe gestionar la columna y el resto de la cadena; en otros ejercicios, la dirección y la postura redistribuyen parte de esa demanda. No es una etiqueta de “buena” o “mala” por sí misma: describe una condición mecánica.
@@ -280,7 +280,7 @@ val TRAINING_CONCEPTS_DATABASE: List<TrainingConcept> = listOf(
     ),
     TrainingConcept(
         id = "pesos-libres",
-        name = "Pesos Libres",
+        name = "Pesos libres",
         category = ConceptCategory.EQUIPMENT,
         description = """
             Los pesos libres incluyen barras, mancuernas, kettlebells y otras resistencias que no obligan a seguir una trayectoria fija. La persona debe producir fuerza y coordinar el peso en varias direcciones, por lo que la estabilidad y la habilidad técnica pueden formar parte importante de la tarea. Esa libertad permite ajustar el recorrido, trabajar unilateralmente y transferir la práctica a patrones específicos.
@@ -290,7 +290,7 @@ val TRAINING_CONCEPTS_DATABASE: List<TrainingConcept> = listOf(
     ),
     TrainingConcept(
         id = "maquinas",
-        name = "Máquinas de Entrenamiento",
+        name = "Máquinas de entrenamiento",
         category = ConceptCategory.EQUIPMENT,
         description = """
             Las máquinas guían parte de la trayectoria y ofrecen apoyos que reducen la demanda de estabilización. Esto puede facilitar que una persona concentre el esfuerzo en una articulación o grupo muscular, repita una posición y entrene cerca del límite con menor exigencia técnica global. La guía, sin embargo, no hace que el movimiento sea automáticamente adecuado: el ajuste debe respetar las proporciones y el rango de cada usuario.
@@ -300,7 +300,7 @@ val TRAINING_CONCEPTS_DATABASE: List<TrainingConcept> = listOf(
     ),
     TrainingConcept(
         id = "poleas",
-        name = "Poleas y Cables",
+        name = "Poleas y cables",
         category = ConceptCategory.EQUIPMENT,
         description = """
             Las poleas transmiten la resistencia mediante un cable y permiten cambiar el ángulo, el agarre y la posición del cuerpo con relativa libertad. La tensión que percibes depende de la relación de poleas, la dirección del cable, la distancia a la torre y la curva mecánica del ejercicio; no siempre es constante ni idéntica en todo el recorrido. La etiqueta “tensión constante” simplifica demasiado el sistema.
@@ -310,7 +310,7 @@ val TRAINING_CONCEPTS_DATABASE: List<TrainingConcept> = listOf(
     ),
     TrainingConcept(
         id = "fuerza",
-        name = "Fuerza y Generación de Torque",
+        name = "Fuerza y generación de torque",
         category = ConceptCategory.QUALITIES,
         description = """
             La fuerza es la capacidad de producir tensión para acelerar, sostener o frenar una resistencia. En un movimiento articular, esa tensión se transforma en torque según la distancia entre la línea de fuerza y el eje de rotación. Por eso ser fuerte en un ejercicio no significa ejercer la misma fuerza en todos los ángulos ni trasladarla sin cambios a otra tarea. La coordinación y la posición son parte de la expresión de fuerza.
@@ -320,7 +320,7 @@ val TRAINING_CONCEPTS_DATABASE: List<TrainingConcept> = listOf(
     ),
     TrainingConcept(
         id = "explosividad",
-        name = "Explosividad / Potencia",
+        name = "Explosividad / potencia",
         category = ConceptCategory.QUALITIES,
         description = """
             La potencia es la velocidad con la que se realiza trabajo; en términos simples, combina fuerza y velocidad. La explosividad describe la capacidad de aplicar mucha fuerza en poco tiempo, aunque en el lenguaje cotidiano ambas palabras suelen mezclarse. Un atleta puede ser muy fuerte y no expresar esa fuerza rápidamente, o mover una carga ligera con rapidez sin tener una gran fuerza máxima.
@@ -340,7 +340,7 @@ val TRAINING_CONCEPTS_DATABASE: List<TrainingConcept> = listOf(
     ),
     TrainingConcept(
         id = "resistencia-muscular",
-        name = "Resistencia Muscular",
+        name = "Resistencia muscular",
         category = ConceptCategory.QUALITIES,
         description = """
             La resistencia muscular es la capacidad de mantener o repetir una producción de fuerza durante un tiempo o número de repeticiones determinado. Puede ser local, como sostener una contracción de un músculo, o depender de varios grupos y del sistema cardiorrespiratorio. También hay que distinguir resistencia absoluta, donde se repite una carga fija, de resistencia relativa, donde la carga se relaciona con la fuerza máxima actual.
@@ -350,7 +350,7 @@ val TRAINING_CONCEPTS_DATABASE: List<TrainingConcept> = listOf(
     ),
     TrainingConcept(
         id = "sobrecarga-progresiva",
-        name = "Sobrecarga Progresiva",
+        name = "Sobrecarga progresiva",
         category = ConceptCategory.PERIODIZATION,
         description = """
             La sobrecarga progresiva es aumentar de forma planificada el desafío que recibe una persona cuando el estímulo anterior ya se ha adaptado. La progresión puede ocurrir con más carga, repeticiones, series, rango, frecuencia, velocidad o una ejecución más estable; no obliga a subir kilos en cada sesión. Para que exista sobrecarga, el cambio debe ser suficientemente relevante y mantenerse dentro de la capacidad de recuperación.
@@ -360,7 +360,7 @@ val TRAINING_CONCEPTS_DATABASE: List<TrainingConcept> = listOf(
     ),
     TrainingConcept(
         id = "deload",
-        name = "Deload (Semana de Descarga)",
+        name = "Deload (semana de descarga)",
         category = ConceptCategory.PERIODIZATION,
         description = """
             Un deload es una reducción planificada y temporal de la demanda para disipar fatiga sin abandonar la práctica. Puede lograrse con menos series, cargas más ligeras, más RIR, menos ejercicios o una combinación; no existe una receta universal ni tiene que durar exactamente una semana. La intención es conservar patrones y calidad mientras baja el coste de recuperación.

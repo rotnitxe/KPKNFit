@@ -1,7 +1,10 @@
 package com.example.kpkn.screens.onboarding
 
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Text
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.assertIsOff
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
@@ -12,7 +15,15 @@ import com.example.kpkn.domain.onboarding.CompetitionAnswer
 import com.example.kpkn.domain.onboarding.SetupStepId
 import com.example.kpkn.domain.onboarding.SetupWizardBlock
 import com.example.kpkn.domain.onboarding.TrainingGoalProfile
+import com.example.kpkn.screens.onboarding.design.ActivationButton
+import com.example.kpkn.screens.onboarding.design.ActivationFooter
+import com.example.kpkn.screens.onboarding.design.ActivationNotice
+import com.example.kpkn.screens.onboarding.design.activationNoticesOf
+import com.example.kpkn.screens.onboarding.design.ActivationMoment
+import com.example.kpkn.screens.onboarding.design.ActivationOverlayBody
+import com.example.kpkn.screens.onboarding.design.ActivationPager
 import com.example.kpkn.screens.onboarding.design.LocalWizardReducedMotion
+import com.example.kpkn.screens.onboarding.design.ReviewConfirmation
 import com.example.kpkn.screens.onboarding.design.WizardDock
 import com.example.kpkn.screens.onboarding.design.WizardGenderMark
 import com.example.kpkn.screens.onboarding.design.WizardMassUnit
@@ -21,6 +32,7 @@ import com.example.kpkn.screens.onboarding.rings.ringsTowerValues
 import com.example.kpkn.ui.components.rings.TowerRingValues
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -28,8 +40,9 @@ import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 
 /**
- * La revisión en carrusel: los destinos de «Editar», los textos que salen de los datos (solo los que cuentan), las casillas que
- * se marcan y el botón final con su etiqueta de prueba. Las lecturas puras no montan el ViewModel.
+ * La revisión y activación: las lecturas puras que dan los textos (solo los que cuentan), los destinos de «Editar», y el overlay
+ * (pager de momentos, botón de activar con su etiqueta de prueba, casillas y ausencia de «Ver cómo funciona»). Las lecturas
+ * puras no montan el ViewModel.
  */
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [34], application = android.app.Application::class, qualifiers = "w360dp-h800dp-xxhdpi")
@@ -134,59 +147,125 @@ class ReviewCarouselTest {
         assertEquals(TowerRingValues(columna = null, musculos = null, energia = null), ringsTowerValues(null))
     }
 
-    // ── Carrusel (Compose) ─────────────────────────────────────────────────
+    // ── Overlay (Compose) ──────────────────────────────────────────────────
 
-    /** Una página de prueba: su nombre, su «Editar» y un texto para reconocerla. */
-    private fun page(title: String, label: String, onEdit: (() -> Unit)? = null): ReviewPage =
-        ReviewPage(title = title, onEdit = onEdit, content = { _ -> Text(label) })
+    /** Un momento de prueba: su bloque, su rótulo, su «Editar» y un texto para reconocerlo. */
+    private fun moment(block: SetupWizardBlock, label: String, onEdit: (() -> Unit)? = null): ActivationMoment =
+        ActivationMoment(block, label, onEdit) { _ -> Text(label) }
 
     @Test
-    fun carouselHasOneDotPerPage() {
+    fun overlayHasOneMomentPerRouteBlockAndTheActivationTag() {
         rule.setContent {
             CompositionLocalProvider(LocalWizardReducedMotion provides true) {
-                ReviewCarousel(
-                    pages = listOf(
-                        page("Tú", "alias"),
-                        page("Entreno", "programa"),
-                        page("Nutrición", "kcal"),
-                        page("RINGS", "torre"),
+                ActivationOverlayBody(
+                    title = "Tu KPKN está listo",
+                    rise = { 1f },
+                    moments = listOf(
+                        moment(SetupWizardBlock.BASICS, "Tú"),
+                        moment(SetupWizardBlock.TRAINING, "Tu programa"),
+                        moment(SetupWizardBlock.RINGS, "RINGS"),
                     ),
+                    state = SetupWizardState(draft = SetupWizardDraft()),
+                    notices = listOf(ActivationNotice("Tus RINGS se ajustarán con tus primeros entrenos.")),
+                    activateEnabled = false,
+                    onConfirmActivation = { },
+                    onConfirmFixedRecipe = { },
+                    onActivate = { },
+                    modifier = Modifier.fillMaxSize(),
                 )
             }
         }
-        rule.onNodeWithContentDescription("Página 4 de 4").assertExists()
+        rule.onNodeWithTag("setup-activation-overlay").assertExists()
+        rule.onNodeWithContentDescription("Página 1 de 3").assertExists()
+        rule.onNodeWithContentDescription("Página 4 de 4").assertDoesNotExist()
+        rule.onNodeWithTag("setup-continue").assertIsNotEnabled()
     }
 
     @Test
-    fun carouselWithoutNutritionHasThreePages() {
+    fun pagerHasOneDotPerMoment() {
         rule.setContent {
             CompositionLocalProvider(LocalWizardReducedMotion provides true) {
-                ReviewCarousel(
-                    pages = listOf(page("Tú", "alias"), page("Entreno", "programa"), page("RINGS", "torre")),
+                ActivationPager(
+                    moments = listOf(
+                        moment(SetupWizardBlock.BASICS, "Tú"),
+                        moment(SetupWizardBlock.TRAINING, "Tu programa"),
+                        moment(SetupWizardBlock.NUTRITION, "Nutrición"),
+                        moment(SetupWizardBlock.RINGS, "RINGS"),
+                    ),
+                    modifier = Modifier.fillMaxSize(),
                 )
             }
         }
-        rule.onNodeWithContentDescription("Página 3 de 3").assertExists()
-        rule.onNodeWithContentDescription("Página 4 de 4").assertDoesNotExist()
+        rule.onNodeWithContentDescription("Página 1 de 4").assertExists()
+        rule.onNodeWithTag("setup-activation-page-0").assertExists()
     }
 
     @Test
-    fun editButtonOfThePageRunsItsTarget() {
+    fun editButtonOfTheMomentRunsItsBlockTarget() {
         var edits = 0
         rule.setContent {
             CompositionLocalProvider(LocalWizardReducedMotion provides true) {
-                ReviewCarousel(
-                    pages = listOf(
-                        page("Tú", "alias", onEdit = { }),
-                        page("Entreno", "programa", onEdit = { edits++ }),
+                ActivationPager(
+                    moments = listOf(
+                        moment(SetupWizardBlock.BASICS, "Tú", onEdit = { }),
+                        moment(SetupWizardBlock.TRAINING, "Tu programa", onEdit = { edits++ }),
                     ),
+                    modifier = Modifier.fillMaxSize(),
                     initialPage = 1,
                 )
             }
         }
-        rule.onNodeWithContentDescription("Editar Entreno").performClick()
+        rule.onNodeWithTag("setup-activation-edit-TRAINING").performClick()
         rule.waitForIdle()
         assertEquals(1, edits)
+    }
+
+    @Test
+    fun activationButtonKeepsItsTagAndRunsOnce() {
+        var clicks = 0
+        rule.setContent {
+            CompositionLocalProvider(LocalWizardReducedMotion provides true) {
+                ActivationButton(enabled = true, busy = false, onClick = { clicks++ })
+            }
+        }
+        rule.onNodeWithTag("setup-continue").performClick()
+        rule.waitForIdle()
+        assertEquals(1, clicks)
+    }
+
+    @Test
+    fun activationWithTheConfirmationUncheckedDoesNotPass() {
+        var activations = 0
+        rule.setContent {
+            CompositionLocalProvider(LocalWizardReducedMotion provides true) {
+                ActivationFooter(
+                    state = SetupWizardState(draft = SetupWizardDraft(), requiresActivationConfirmation = true),
+                    notices = emptyList(),
+                    // Sin la casilla marcada, el anfitrión (canConfirmStep) no deja el botón encendido.
+                    activateEnabled = false,
+                    onConfirmActivation = { },
+                    onConfirmFixedRecipe = { },
+                    onActivate = { activations++ },
+                )
+            }
+        }
+        rule.onNodeWithText("Confirmo la activación").assertIsOff()
+        rule.onNodeWithTag("setup-continue").assertIsNotEnabled().performClick()
+        rule.waitForIdle()
+        assertEquals(0, activations)
+    }
+
+    @Test
+    fun activationNoticesSpeakPlainlyAndNeverLinkToHowItWorks() {
+        val texts = activationNoticesOf(
+            state = SetupWizardState(draft = SetupWizardDraft()),
+            nutritionPage = true,
+            ringsPage = true,
+        ).map { it.text }
+        // Sin líneas de estado internas ni el enlace «Ver cómo funciona».
+        assertTrue(texts.none { it.contains("Ver cómo funciona") || it.startsWith("Estado") || it.contains("Sin datos") })
+        assertTrue("Aún falta tu plan de comidas." in texts)
+        assertTrue("Tus RINGS se ajustarán con tus primeros entrenos." in texts)
     }
 
     @Test

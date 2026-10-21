@@ -1,0 +1,115 @@
+{
+  "id": "r03-pixabay-66367",
+  "durationS": 30.677,
+  "width": 1280,
+  "height": 720,
+  "rotation": 0,
+  "fpsNominal": 30.0,
+  "fpsMeasured": 30.0,
+  "usable": true,
+  "exercise": "Hip thrust con barra",
+  "exerciseDetail": "Hip thrust con barra (almohadilla sobre la cadera, espalda alta apoyada en un banco/pad, pies en el suelo, barra con disco que baja casi hasta el suelo)",
+  "suggestedProfile": "HIP_THRUST",
+  "view": "OBLIQUE",
+  "people": 1,
+  "fullBodyVisible": true,
+  "faceVisible": true,
+  "plateVisible": true,
+  "startPhase": "ECCENTRIC_FIRST",
+  "reps": {
+    "full": 8,
+    "partial": 2,
+    "failed": 0,
+    "uncertain": true,
+    "acceptableRange": [
+      8,
+      10
+    ]
+  },
+  "repTimesS": [
+    {
+      "index": 1,
+      "turnaroundS": 2.6,
+      "side": null
+    },
+    {
+      "index": 2,
+      "turnaroundS": 6.1,
+      "side": null
+    },
+    {
+      "index": 3,
+      "turnaroundS": 9.1,
+      "side": null
+    },
+    {
+      "index": 4,
+      "turnaroundS": 12.4,
+      "side": null
+    },
+    {
+      "index": 5,
+      "turnaroundS": 15.4,
+      "side": null
+    },
+    {
+      "index": 6,
+      "turnaroundS": 18.5,
+      "side": null
+    },
+    {
+      "index": 7,
+      "turnaroundS": 21.6,
+      "side": null
+    },
+    {
+      "index": 8,
+      "turnaroundS": 24.4,
+      "side": null
+    },
+    {
+      "index": 9,
+      "turnaroundS": 26.3,
+      "side": null
+    },
+    {
+      "index": 10,
+      "turnaroundS": 28.8,
+      "side": null
+    }
+  ],
+  "activeWindowS": [
+    0.0,
+    29.0
+  ],
+  "frameIntervalS": {
+    "min": 0.0333,
+    "median": 0.0333,
+    "max": 0.0333
+  },
+  "turnaroundKind": "TOP",
+  "edgeEvents": [
+    {
+      "timeS": 0.0,
+      "kind": "TRUNCATED_START",
+      "description": "el clip empieza con la cadera arriba (bloqueo) y baja primero: la primera fase observada es la bajada (fondo en 1,7 s) y el primer bloqueo es el de 2,6 s"
+    },
+    {
+      "timeS": 24.5,
+      "kind": "REDUCED_ROM",
+      "description": "desde ~24,5 s: la subida del 9.º ciclo llega solo a media altura (26,3 s) y la del 10.º a ~28,8 s tras un fondo poco profundo (27,8 s); de 28,8 a 30,7 s mantiene la cadera arriba con micro-oscilaciones"
+    }
+  ],
+  "caveats": [
+    "vista oblicua frontal (no lateral): la barra cruza el encuadre en diagonal con el disco cercano a la izquierda y el extremo lejano tras la cadera",
+    "los últimos ~6 s (24,5-30,7 s) no son repeticiones completas: dos descensos hasta el fondo con subida a media altura (sin bloqueo) y luego micro-oscilaciones arriba",
+    "los bloqueos arriba duran ~0,5-0,8 s: el giro 'arriba' es una meseta, el fondo es más puntual"
+  ],
+  "cameraMotion": {
+    "class": "STATIC",
+    "note": "cámara fija"
+  },
+  "softWarnings": [
+    "recuento ambiguo por medio ciclo en el borde del clip o por repeticiones dudosas: rango aceptable 8-10 (ver edgeEvents)"
+  ]
+}

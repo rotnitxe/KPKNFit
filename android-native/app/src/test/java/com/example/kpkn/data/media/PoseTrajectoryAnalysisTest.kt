@@ -1,6 +1,5 @@
 package com.example.kpkn.data.media
 
-import com.example.kpkn.data.models.WorkoutFeatureFlags
 import com.example.kpkn.domain.biomechanics.NormalizedPoint
 import com.example.kpkn.domain.biomechanics.PoseFrame
 import com.example.kpkn.domain.biomechanics.PoseJoint
@@ -15,12 +14,6 @@ import java.io.File
 import kotlin.io.path.createTempDirectory
 
 class PoseTrajectoryAnalysisTest {
-    @Test
-    fun poseTrajectoryFlagDefaultsToFalse() {
-        assertFalse(WorkoutFeatureFlags().poseTrajectoryEnabled)
-        assertTrue(WorkoutFeatureFlags(poseTrajectoryEnabled = true).poseTrajectoryEnabled)
-    }
-
     @Test
     fun samplesTenFpsIncludingEndpoints() {
         val times = PoseTrajectoryAnalysis.sampleTimestampsMs(durationMs = 1_000L, fps = 10)

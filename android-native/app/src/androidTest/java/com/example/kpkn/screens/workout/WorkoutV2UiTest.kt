@@ -51,14 +51,11 @@ class WorkoutV2UiTest {
             }
         }
 
-        // The former "Técnica" tab is now the "Opciones avanzadas" face of the
-        // card (see SetExecutionCardUiTest.advancedOptionsCtaUsesNewCopyAndHidesReportLabel).
-        // AMRAP is no longer a manual toggle there: it only comes from the plan.
-        composeRule.onNodeWithText("Opciones avanzadas").performClick()
+        composeRule.onNodeWithText("Avanzado").performClick()
         composeRule.waitForIdle()
-        composeRule.onNodeWithText("Añadir drop-sets").performClick()
-        composeRule.onNodeWithText("Drop-sets").assertExists()
-        composeRule.onNodeWithText("Añadir rest-pause").assertExists()
+        composeRule.onNodeWithText("Drop-set").performClick()
+        composeRule.onNodeWithText("CADENA DE LA SERIE").assertExists()
+        composeRule.onNodeWithText("Rest-pause").assertExists()
         composeRule.onNodeWithText("Error de ejecución").assertExists()
     }
 
@@ -141,12 +138,12 @@ class WorkoutV2UiTest {
             }
         }
 
-        composeRule.onNodeWithText("Opciones avanzadas").performClick()
+        composeRule.onNodeWithText("Avanzado").performClick()
         composeRule.waitForIdle()
-        composeRule.onNodeWithText("Añadir drop-sets").performClick()
-        // The chip flips from the "add" call to the active label once toggled on.
-        composeRule.onNodeWithText("Drop-sets").assertExists()
-        composeRule.onNodeWithText("Añadir drop-sets").assertDoesNotExist()
+        composeRule.onNodeWithText("Drop-set").performClick()
+        // Choosing Drop-set in the segmented control opens the chain of the set (Principal → Drop 1) with its «+» to add drops.
+        composeRule.onNodeWithText("CADENA DE LA SERIE").assertExists()
+        composeRule.onNodeWithContentDescription("Añadir drop").assertExists()
     }
 
     @Test

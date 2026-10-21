@@ -1,0 +1,96 @@
+{
+  "id": "g23-pexels-6547801",
+  "durationS": 10.01,
+  "width": 720,
+  "height": 1280,
+  "rotation": 0,
+  "fpsNominal": 23.976,
+  "fpsMeasured": 23.976,
+  "usable": true,
+  "exercise": "Curl alterno con mancuernas",
+  "exerciseDetail": "Curl de bíceps ALTERNO con mancuernas hexagonales, de pie, con el ritmo irregular: el brazo cercano a la cámara hace curls completos y el lejano hace una media repetición y un curl que no se extiende del todo entre ambos",
+  "suggestedProfile": "CURL",
+  "view": "OBLIQUE",
+  "people": 1,
+  "fullBodyVisible": false,
+  "faceVisible": true,
+  "plateVisible": false,
+  "startPhase": "CONCENTRIC_FIRST",
+  "reps": {
+    "full": 4,
+    "partial": 2,
+    "failed": 0,
+    "uncertain": true,
+    "acceptableRange": [
+      4,
+      6
+    ]
+  },
+  "repTimesS": [
+    {
+      "index": 1,
+      "turnaroundS": 1.0,
+      "side": "left"
+    },
+    {
+      "index": 2,
+      "turnaroundS": 2.7,
+      "side": "right"
+    },
+    {
+      "index": 3,
+      "turnaroundS": 4.2,
+      "side": "right"
+    },
+    {
+      "index": 4,
+      "turnaroundS": 6.1,
+      "side": "left"
+    },
+    {
+      "index": 5,
+      "turnaroundS": 7.6,
+      "side": "left"
+    },
+    {
+      "index": 6,
+      "turnaroundS": 9.8,
+      "side": "right"
+    }
+  ],
+  "activeWindowS": [
+    0.2,
+    10.0
+  ],
+  "frameIntervalS": {
+    "min": 0.0417,
+    "median": 0.0417,
+    "max": 0.0417
+  },
+  "turnaroundKind": "TOP",
+  "edgeEvents": [
+    {
+      "timeS": 2.7,
+      "kind": "REDUCED_ROM",
+      "description": "2,7 s: el brazo lejano sube solo a ~90-100° de codo, baja un poco sin extender y vuelve a subir a 4,2 s; media repetición (parcial)"
+    },
+    {
+      "timeS": 9.8,
+      "kind": "TRUNCATED_END",
+      "description": "el clip termina (10,0 s) con el brazo lejano subiendo hacia el pecho (~9,8 s) sin llegar al hombro: repetición truncada, contada como parcial"
+    }
+  ],
+  "caveats": [
+    "ritmo irregular: hay una media repetición del brazo lejano hacia 2,7 s y el curl de 4,2 s empieza sin extender del todo; el brazo cercano repite de 6,1 a 7,6 s sin extender del todo (rango aceptable 4-6)",
+    "clip corto (10 s) con 4-6 repeticiones; la última queda cortada por el final del clip",
+    "lado asumido con el vídeo sin espejar"
+  ],
+  "cameraMotion": {
+    "class": "SLOW_DRIFT",
+    "note": "deriva/balanceo de mano de ≤6% del encuadre (ORB cada 1 s: tx 5,9%, ty 1,9%): cámara de mano muy estable; sin seguir al sujeto"
+  },
+  "softWarnings": [
+    "cámara con deriva lenta: deriva/balanceo de mano de ≤6% del encuadre (ORB cada 1 s: tx 5,9%, ty 1,9%): cámara de mano muy estable; sin seguir al sujeto",
+    "recuento ambiguo por medio ciclo en el borde del clip o por repeticiones dudosas: rango aceptable 4-6 (ver edgeEvents)"
+  ]
+}

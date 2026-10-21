@@ -7,6 +7,7 @@ import com.example.kpkn.data.models.InvolvedMuscle
 import com.example.kpkn.data.models.MuscleRole
 import com.example.kpkn.data.models.Session
 import com.example.kpkn.domain.calculations.calculateSessionTimeBreakdown
+import kotlin.math.roundToInt
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -155,6 +156,51 @@ class TimeCoachEngineTest {
             supersetGroups = applied.allSupersetGroups(),
         )
         assertTrue(after.totalMinutes >= 13)
+    }
+
+    /**
+     * ER2b: la pantalla suma más que el cálculo del motor (calentamiento fijo, movilidad). El ahorro del recorte de descansos sale de
+     * medir los dos lados con la misma función: son los minutos que quitan los descansos, no la diferencia con esa pantalla.
+     */
+    @Test
+    fun generate_restSuggestion_ahorroEsElRecorteRealNoElDesgloseDePantalla() {
+        val session = Session(
+            id = "s9",
+            name = "Desfase",
+            exercises = listOf(
+                Exercise(
+                    id = "e1",
+                    name = "Press banca",
+                    restTime = 180,
+                    sets = List(4) { ExerciseSet(id = "p$it", targetReps = 8) },
+                ),
+                Exercise(
+                    id = "e2",
+                    name = "Remo",
+                    restTime = 180,
+                    sets = List(4) { ExerciseSet(id = "r$it", targetReps = 8) },
+                ),
+            ),
+            targetDurationMinutes = 20,
+        )
+        val calc = calculateSessionTimeBreakdown(
+            exercises = session.allExercises(),
+            supersetGroups = session.allSupersetGroups(),
+        )
+        // La pantalla muestra 6 min más que el cálculo, como el estimador común con su calentamiento fijo.
+        val screen = calc.copy(totalSeconds = calc.totalSeconds + 6 * 60)
+        val limit = screen.totalMinutes - 1
+        val suggestion = TimeCoachEngine.generate(session, screen, limit, emptyMap())
+            .first { it.action is TimeCoachAction.ReduceRests }
+        val applied = TimeCoachEngine.apply(session, suggestion.action)
+        val realSeconds = calc.totalSeconds - calculateSessionTimeBreakdown(
+            exercises = applied.allExercises(),
+            supersetGroups = applied.allSupersetGroups(),
+        ).totalSeconds
+
+        assertEquals((realSeconds / 60.0).roundToInt(), suggestion.minutesSaved)
+        assertTrue(suggestion.minutesSaved <= 2)
+        assertEquals("Ajustar descansos justo hasta el límite", suggestion.title)
     }
 
     @Test

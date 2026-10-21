@@ -1,18 +1,12 @@
 package com.example.kpkn.screens.onboarding
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -20,7 +14,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.input.KeyboardType
@@ -59,14 +52,13 @@ import com.example.kpkn.screens.onboarding.design.WizardNutritionLiveState
 import com.example.kpkn.screens.onboarding.design.WizardNutritionPlanCallbacks
 import com.example.kpkn.screens.onboarding.design.WizardNutritionPlanModel
 import com.example.kpkn.screens.onboarding.design.WizardNutritionPlanPanel
-import com.example.kpkn.screens.onboarding.design.WizardShapes
 import com.example.kpkn.screens.onboarding.design.WizardSpacing
 import com.example.kpkn.screens.onboarding.design.WizardTypography
 import com.example.kpkn.screens.onboarding.design.WizardWeightRule
+import com.example.kpkn.screens.onboarding.design.WizardWeighInsBody
 import com.example.kpkn.screens.onboarding.design.WizardWeightScale
 import kotlinx.coroutines.delay
 import java.time.LocalDate
-import java.util.UUID
 import kotlin.math.abs
 
 /**
@@ -266,16 +258,19 @@ private fun NutritionTargetContent(state: SetupWizardState, vm: SetupWizardViewM
 private fun commitNutritionTarget(vm: SetupWizardViewModel, step: SetupStepId, unit: WizardMassUnit, kg: Double) {
     val display = WizardWeightScale.snap(WizardWeightScale.toDisplay(kg, unit))
     val text = WizardWeightScale.format(display)
-    vm.updateStep(step) { draft -> draft.withNutritionDraft { it.copy(targetWeightText = text, weightUnit = unit.code) } }
-    vm.setStepText(step, text)
-    vm.setStepNumber(step, display)
+    // Una sola escritura: el objetivo, el texto del paso y su número llegan juntos (una revisión, nunca mitades).
+    vm.updateStep(step) { draft ->
+        draft.withNutritionDraft { it.copy(targetWeightText = text, weightUnit = unit.code) }
+            .withStepText(step, text)
+            .withStepNumber(step, display)
+    }
 }
 
 /**
  * Peso objetivo con la regla de peso de Datos básicos ([WizardWeightRule]), la diferencia con el peso actual y la
- * estimación con el ritmo elegido. Arrastrar solo propone un peso; tocar la cifra lo fija ([onCommit], en kg). Cada
- * propuesta respeta el límite de la dirección ([goalWeightWindow]), que la regla recibe como mínimo y máximo: no se
- * puede arrastrar más allá, así lo que se ve es lo que se guarda.
+ * estimación con el ritmo elegido. Cada valor en reposo de la regla (al soltar o al tocar una marca) se guarda ya con
+ * [onCommit], en kg: lo que se ve es lo que se guarda, sin tocar la cifra. Cada valor respeta el límite de la dirección
+ * ([goalWeightWindow]), que la regla recibe como mínimo y máximo, así que no se puede arrastrar más allá.
  */
 @Composable
 internal fun NutritionTargetControl(
@@ -287,23 +282,22 @@ internal fun NutritionTargetControl(
     onCommit: (Double) -> Unit,
 ) {
     val window = remember(direction, currentKg) { goalWeightWindow(direction, currentKg) }
-    // La posición de arranque es el objetivo guardado o el peso actual (en el límite si queda fuera): no es una
-    // respuesta hasta que se fija.
+    // La posición de arranque es el objetivo guardado o el peso actual: no es una respuesta hasta que la regla se mueve o se toca.
     val ruleAnchorKg = remember(unit) { committedKg ?: currentKg }
-    var proposalKg by remember(unit) { mutableStateOf<Double?>(null) }
-    var pending by remember(unit) { mutableStateOf(false) }
-    val shownKg = proposalKg ?: committedKg
+    // Último valor en reposo: la confirmación lo vuelve a guardar por si la escritura anterior no llegó al borrador.
+    var restKg by remember(unit) { mutableStateOf<Double?>(null) }
+    val shownKg = committedKg
 
     val estimate = shownKg?.let { value ->
         goalWeeklyChangeKg(direction, pace, currentKg)?.let { weekly -> goalWeeksRange(currentKg, value, weekly) }
     }?.let { goalWeeksText(it, pace) }
-    val hint = when {
-        pending -> "Toca la cifra para fijar este objetivo."
-        shownKg == null -> window?.let {
-            "Desliza la regla y toca la cifra para fijarlo: entre ${goalDisplayText(it.start, unit)} y " +
+    val hint = if (shownKg != null) {
+        null
+    } else {
+        window?.let {
+            "Desliza la regla para elegir tu objetivo: entre ${goalDisplayText(it.start, unit)} y " +
                 "${goalDisplayText(it.endInclusive, unit)} ${unit.code}."
         }
-        else -> null
     }
 
     Column(modifier = Modifier.fillMaxWidth().testTag("setup-nutrition-target")) {
@@ -314,15 +308,11 @@ internal fun NutritionTargetControl(
             max = window?.endInclusive,
             onValueChange = { kg ->
                 // La regla no sale del límite; el coerce solo absorbe el error de coma flotante del borde.
-                proposalKg = window?.let { kg.coerceIn(it) } ?: kg
-                pending = true
+                val value = window?.let { kg.coerceIn(it) } ?: kg
+                restKg = value
+                onCommit(value)
             },
-            onConfirm = {
-                proposalKg?.let { kg ->
-                    onCommit(kg)
-                    pending = false
-                }
-            },
+            onConfirm = { restKg?.let(onCommit) },
         )
         if (shownKg != null) {
             Spacer(Modifier.height(8.dp))
@@ -567,174 +557,38 @@ private fun NutritionDistributionContent(state: SetupWizardState, vm: SetupWizar
 
 // ─── NUTRITION_WEIGH_INS ────────────────────────────────────────────────────
 
+/**
+ * Pesajes en la página: tendencia, lista sin caja y editor en su sitio ([WizardWeighInsBody]). «Omitir» no está aquí:
+ * es la acción secundaria del dock del anfitrión, que solo se pasa sin pesajes.
+ */
 @Composable
 private fun NutritionWeighInsContent(state: SetupWizardState, vm: SetupWizardViewModel) {
     val step = SetupStepId.NUTRITION_WEIGH_INS
-    val rows = state.draft.historicalWeighIns.sortedByDescending { it.dateIso }
-    var editing: SetupWeighIn? by remember { mutableStateOf(null) }
-    var creating by remember { mutableStateOf(false) }
-    val target = editing
-
-    Column(
-        modifier = Modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(WizardSpacing.cardGap),
-    ) {
-        rows.forEach { row ->
-            WeighInRow(
-                row = row,
-                onEdit = { editing = row },
-                onDelete = {
-                    vm.updateStep(step) { draft ->
-                        draft.copy(historicalWeighIns = draft.historicalWeighIns.filterNot { it.id == row.id })
-                    }
-                },
-            )
-        }
-    }
-    TextButton(
-        onClick = { creating = true },
-        modifier = Modifier
-            .fillMaxWidth()
-            .defaultMinSize(minHeight = WizardSpacing.touchTarget),
-    ) {
-        Text("Añadir pesaje", style = WizardTypography.cardSubtitle, color = WizardColors.text)
-    }
+    WizardWeighInsBody(
+        rows = state.draft.historicalWeighIns,
+        unit = wizardMassUnitOf(state.draft),
+        currentKg = state.draft.weightKg,
+        today = LocalDate.now(),
+        onSave = { saved ->
+            vm.updateStep(step) { draft ->
+                val current = draft.historicalWeighIns
+                val next = if (current.any { it.id == saved.id }) {
+                    current.map { if (it.id == saved.id) saved else it }
+                } else {
+                    current + saved
+                }
+                draft.copy(historicalWeighIns = next.sortedByDescending { it.dateIso })
+            }
+        },
+        onDelete = { id ->
+            vm.updateStep(step) { draft ->
+                draft.copy(historicalWeighIns = draft.historicalWeighIns.filterNot { it.id == id })
+            }
+        },
+    )
     SetupBodyHint(
         text = "Hacen falta unas dos semanas de pesajes y comidas para el primer ajuste.",
         modifier = Modifier.padding(top = 4.dp),
-    )
-    SetupBodySkipAction(
-        step = step,
-        vm = vm,
-        label = "No añadir pesajes",
-        visible = rows.isEmpty() && !creating && target == null,
-    )
-
-    if (creating || target != null) {
-        WeighInDialog(
-            initial = target,
-            existing = rows,
-            onDismiss = {
-                creating = false
-                editing = null
-            },
-            onSave = { saved ->
-                vm.updateStep(step) { draft ->
-                    val current = draft.historicalWeighIns
-                    val next = if (target == null) current + saved
-                    else current.map { if (it.id == target.id) saved else it }
-                    draft.copy(historicalWeighIns = next.sortedByDescending { it.dateIso })
-                }
-                creating = false
-                editing = null
-            },
-        )
-    }
-}
-
-@Composable
-private fun WeighInRow(row: SetupWeighIn, onEdit: () -> Unit, onDelete: () -> Unit) {
-    Surface(
-        color = WizardColors.cardFill,
-        shape = WizardShapes.card,
-        border = BorderStroke(WizardColors.unselectedBorderWidth, WizardColors.cardBorder),
-        modifier = Modifier.fillMaxWidth(),
-    ) {
-        Row(
-            modifier = Modifier.padding(start = 16.dp, end = 4.dp, top = 2.dp, bottom = 2.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Column(
-                modifier = Modifier
-                    .weight(1f)
-                    .padding(vertical = 8.dp),
-                verticalArrangement = Arrangement.spacedBy(2.dp),
-            ) {
-                Text(row.dateIso, style = WizardTypography.cardTitle, color = WizardColors.text)
-                Text("${formatWeight(row.weightKg)} kg", style = WizardTypography.cardSubtitle, color = WizardColors.textMuted)
-            }
-            TextButton(onClick = onEdit) { Text("Editar", color = WizardColors.text) }
-            TextButton(onClick = onDelete) { Text("Eliminar", color = WizardColors.danger) }
-        }
-    }
-}
-
-@Composable
-private fun WeighInDialog(
-    initial: SetupWeighIn?,
-    existing: List<SetupWeighIn>,
-    onDismiss: () -> Unit,
-    onSave: (SetupWeighIn) -> Unit,
-) {
-    var date by remember { mutableStateOf(initial?.dateIso.orEmpty()) }
-    var weight by remember { mutableStateOf(initial?.let { formatWeight(it.weightKg) }.orEmpty()) }
-    val today = remember { LocalDate.now() }
-    val parsedDate = remember(date) { runCatching { LocalDate.parse(date) }.getOrNull() }
-    val parsedWeight = remember(weight) { parseLocalizedNumber(weight)?.takeIf { it.isFinite() && it in 20.0..500.0 } }
-    val dateError = when {
-        date.isBlank() -> "Escribe la fecha"
-        parsedDate == null -> "Usa el formato AAAA-MM-DD"
-        parsedDate.isAfter(today) -> "La fecha no puede ser futura"
-        weighInDateTaken(existing, parsedDate.toString(), initial?.id) -> "Ya hay un pesaje ese día."
-        else -> null
-    }
-    val weightError = when {
-        weight.isBlank() -> "Escribe el peso"
-        parsedWeight == null -> "Peso entre 20 y 500 kg"
-        else -> null
-    }
-    val valid = parsedDate != null && !parsedDate.isAfter(today) && parsedWeight != null && dateError == null
-
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = {
-            Text(
-                text = if (initial == null) "Añadir pesaje" else "Editar pesaje",
-                style = WizardTypography.cardTitle,
-                color = WizardColors.text,
-            )
-        },
-        text = {
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                SetupFormTextField(
-                    value = date,
-                    onValueChange = { date = it },
-                    label = "Fecha (AAAA-MM-DD)",
-                    keyboardType = KeyboardType.Ascii,
-                )
-                SetupFormTextField(
-                    value = weight,
-                    onValueChange = { weight = it },
-                    label = "Peso (kg)",
-                    keyboardType = KeyboardType.Decimal,
-                )
-                if (date.isNotBlank() && dateError != null) {
-                    Text(dateError, style = WizardTypography.caption, color = WizardColors.danger)
-                }
-                if (weight.isNotBlank() && weightError != null) {
-                    Text(weightError, style = WizardTypography.caption, color = WizardColors.danger)
-                }
-            }
-        },
-        confirmButton = {
-            TextButton(
-                enabled = valid,
-                onClick = {
-                    val dateIso = parsedDate?.toString() ?: return@TextButton
-                    val weightKg = parsedWeight ?: return@TextButton
-                    onSave(
-                        SetupWeighIn(
-                            id = initial?.id ?: UUID.randomUUID().toString(),
-                            dateIso = dateIso,
-                            weightKg = weightKg,
-                        ),
-                    )
-                },
-            ) { Text("Guardar", color = WizardColors.text) }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) { Text("Cancelar", color = WizardColors.textMuted) }
-        },
     )
 }
 

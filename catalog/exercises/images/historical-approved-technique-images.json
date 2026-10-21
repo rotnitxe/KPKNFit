@@ -1,0 +1,4180 @@
+{
+  "schemaVersion": 1,
+  "createdAt": "2026-10-17T23:25:42.915250+00:00",
+  "targetHead": "04a04754533ac8bccfb1c66fdd0bceb8586a1886",
+  "catalogSource": "04a04754533ac8bccfb1c66fdd0bceb8586a1886:android-native/app/src/main/assets/exercise_catalog_v2.json",
+  "catalogSourceSha256": "81db1f950148a7769b7d1d1dd8f066746439efe726ca00d35d87d52119bcf91c",
+  "selection": "Historical human-approved selections omitted from HEAD; current configurations only",
+  "summary": {
+    "images": 81,
+    "definitions": 67,
+    "exactConfigurationBindings": 84,
+    "supersededHistoricalImages": 1,
+    "overlapWithCommittedReviewed213Configurations": []
+  },
+  "images": [
+    {
+      "resourceName": "exercise_archer_push_up_bodyweight_batch20261008",
+      "file": "android-native/app/src/main/res/drawable-nodpi/exercise_archer_push_up_bodyweight_batch20261008.webp",
+      "definitionId": "archer_push_up",
+      "equipmentId": "bodyweight",
+      "implementationId": "bodyweight",
+      "configurationIds": [
+        "archer_push_up__default"
+      ],
+      "configurationEvidence": [
+        {
+          "id": "archer_push_up__default",
+          "equipmentId": "bodyweight",
+          "selectedOptions": {}
+        }
+      ],
+      "sourcePng": "assets/exercise_archer_push_up_bodyweight_batch_20261008_review.png",
+      "sourcePngCurrentSha256": "6c193a25fdbc61b2aa279bd377b25b1ac1b99391bec81b1fc1c7cb495822becb",
+      "receipt": "artifacts/exercise-images-batch-20261008/integration_receipts.json",
+      "approvalDate": "2026-10-08",
+      "approvalEvidence": {
+        "manifest": "artifacts/exercise-images-batch-20261008/user_review.json",
+        "recordedHumanDecision": "Todos aprobados excepto 2, 5, 6, 12 y 19.",
+        "receiptManifest": "artifacts/exercise-images-batch-20261008/integration_receipts.json",
+        "number": 17,
+        "group": null,
+        "kind": null
+      },
+      "webpSha256": "4c7ede05180a3ec95c67fa3b78042de316aca5ee9566f2415d06422109f300b2",
+      "sourcePngRgbaEqualsWebp": false,
+      "sameWebpBytesAsAudit14": true,
+      "dimensions": [
+        1774,
+        887
+      ],
+      "visualQaEvidence": [
+        {
+          "manifest": "artifacts\\exercise-images-batch-20261008\\batch.json",
+          "number": 17,
+          "approvedByUser": true,
+          "integratedIntoApp": true,
+          "status": "integrated_approved",
+          "qaReview": {
+            "status": "independent_review_pass",
+            "note": "Pose, anatomy and visible contacts accepted after alpha cleanup."
+          }
+        }
+      ],
+      "routingScope": "Existing HEAD configuration IDs only; preserve historical same-exercise/equipment illustration across laterality-only choices as already implemented in the historical lookup. Does not expand implement or support configuration."
+    },
+    {
+      "resourceName": "exercise_back_encogimientos_kelso_barbell",
+      "file": "android-native/app/src/main/res/drawable-nodpi/exercise_back_encogimientos_kelso_barbell.webp",
+      "definitionId": "back_encogimientos_kelso",
+      "equipmentId": "barbell",
+      "implementationId": "barbell",
+      "configurationIds": [
+        "back_encogimientos_kelso__barbell"
+      ],
+      "configurationEvidence": [
+        {
+          "id": "back_encogimientos_kelso__barbell",
+          "equipmentId": "barbell",
+          "selectedOptions": {
+            "implement": "barbell"
+          }
+        }
+      ],
+      "sourcePng": "assets/exercise_back_encogimientos_kelso_barbell_batch_20261010_v2_review.png",
+      "sourcePngCurrentSha256": "70dc219a661fb125aebff97255f37f6870b7db36a64b79f6a24a2973c9a058d5",
+      "receipt": "artifacts/exercise-images-review-20261012/integration_receipts.json",
+      "approvalDate": "2026-10-12",
+      "approvalEvidence": {
+        "manifest": "artifacts/exercise-images-review-20261012/integration_receipts.json",
+        "recordedHumanDecision": "EL RESTO INTÉGRALO",
+        "receiptManifest": "artifacts/exercise-images-review-20261012/integration_receipts.json",
+        "number": null,
+        "group": null,
+        "kind": "new_batch"
+      },
+      "webpSha256": "959cfbcf5f527cfcda406d3b86938bbc7a496eb7cc4603e6deaec3bc399fe0f6",
+      "sourcePngRgbaEqualsWebp": true,
+      "sameWebpBytesAsAudit14": true,
+      "dimensions": [
+        1024,
+        1536
+      ],
+      "visualQaEvidence": [
+        {
+          "manifest": "artifacts\\exercise-images-batch-20261010\\batch.json",
+          "number": 43,
+          "approvedByUser": true,
+          "integratedIntoApp": true,
+          "status": "integrated_approved",
+          "qaReview": null
+        }
+      ],
+      "routingScope": "Existing HEAD configuration IDs only; preserve historical same-exercise/equipment illustration across laterality-only choices as already implemented in the historical lookup. Does not expand implement or support configuration."
+    },
+    {
+      "resourceName": "exercise_back_jefferson_curl_barbell_batch20261008b",
+      "file": "android-native/app/src/main/res/drawable-nodpi/exercise_back_jefferson_curl_barbell_batch20261008b.webp",
+      "definitionId": "back_jefferson_curl",
+      "equipmentId": "barbell",
+      "implementationId": "barbell",
+      "configurationIds": [
+        "back_jefferson_curl__barbell"
+      ],
+      "configurationEvidence": [
+        {
+          "id": "back_jefferson_curl__barbell",
+          "equipmentId": "barbell",
+          "selectedOptions": {
+            "implement": "barbell"
+          }
+        }
+      ],
+      "sourcePng": "assets/exercise_back_jefferson_curl_barbell_batch_20261008b_review.png",
+      "sourcePngCurrentSha256": "ba787dc230736ffce213fda48c0bfdf31c28d7e11dce465381e7646e75deb1e3",
+      "receipt": "artifacts/exercise-images-review-20261009/integration_receipts.json",
+      "approvalDate": "2026-10-09",
+      "approvalEvidence": {
+        "manifest": "artifacts/exercise-images-review-20261009/decisions.json",
+        "recordedHumanDecision": "El resto está OK; las aprobadas desde ahora deben pasar a WebP.",
+        "receiptManifest": "artifacts/exercise-images-review-20261009/integration_receipts.json",
+        "number": 15,
+        "group": "B",
+        "kind": null
+      },
+      "webpSha256": "f7ae12bb26f307ee76dbf4a7fdf2f2350fe1f115e8807ae67acc3b91e1987f3f",
+      "sourcePngRgbaEqualsWebp": true,
+      "sameWebpBytesAsAudit14": true,
+      "dimensions": [
+        1024,
+        1536
+      ],
+      "visualQaEvidence": [
+        {
+          "manifest": "artifacts\\exercise-images-batch-20261008-b\\batch.json",
+          "number": 15,
+          "approvedByUser": true,
+          "integratedIntoApp": true,
+          "status": "integrated_approved",
+          "qaReview": {
+            "status": "independently_reviewed_candidate",
+            "humanApprovalRequired": true,
+            "cameraObservation": null
+          }
+        }
+      ],
+      "routingScope": "Existing HEAD configuration IDs only; preserve historical same-exercise/equipment illustration across laterality-only choices as already implemented in the historical lookup. Does not expand implement or support configuration."
+    },
+    {
+      "resourceName": "exercise_back_jefferson_curl_cable_batch20261008b",
+      "file": "android-native/app/src/main/res/drawable-nodpi/exercise_back_jefferson_curl_cable_batch20261008b.webp",
+      "definitionId": "back_jefferson_curl",
+      "equipmentId": "cable",
+      "implementationId": "cable",
+      "configurationIds": [
+        "back_jefferson_curl__cable"
+      ],
+      "configurationEvidence": [
+        {
+          "id": "back_jefferson_curl__cable",
+          "equipmentId": "cable",
+          "selectedOptions": {
+            "implement": "cable"
+          }
+        }
+      ],
+      "sourcePng": "assets/exercise_back_jefferson_curl_cable_batch_20261008b_v2_review.png",
+      "sourcePngCurrentSha256": "238240064076b315770658baf45c161a98e855c783c8ee3cdcc657aab4cf976f",
+      "receipt": "artifacts/exercise-images-review-20261009/integration_receipts.json",
+      "approvalDate": "2026-10-09",
+      "approvalEvidence": {
+        "manifest": "artifacts/exercise-images-review-20261009/decisions.json",
+        "recordedHumanDecision": "El resto está OK; las aprobadas desde ahora deben pasar a WebP.",
+        "receiptManifest": "artifacts/exercise-images-review-20261009/integration_receipts.json",
+        "number": 18,
+        "group": "B",
+        "kind": null
+      },
+      "webpSha256": "bc9650271fe5b4e66e4b0b618f3aad668a5199bc1e4666cdb5bf283091c940ec",
+      "sourcePngRgbaEqualsWebp": true,
+      "sameWebpBytesAsAudit14": true,
+      "dimensions": [
+        1024,
+        1536
+      ],
+      "visualQaEvidence": [
+        {
+          "manifest": "artifacts\\exercise-images-batch-20261008-b\\batch.json",
+          "number": 18,
+          "approvedByUser": true,
+          "integratedIntoApp": true,
+          "status": "integrated_approved",
+          "qaReview": {
+            "status": "independently_reviewed_candidate",
+            "humanApprovalRequired": true,
+            "cameraObservation": null
+          }
+        }
+      ],
+      "routingScope": "Existing HEAD configuration IDs only; preserve historical same-exercise/equipment illustration across laterality-only choices as already implemented in the historical lookup. Does not expand implement or support configuration."
+    },
+    {
+      "resourceName": "exercise_back_jefferson_curl_dumbbells_batch20261008b",
+      "file": "android-native/app/src/main/res/drawable-nodpi/exercise_back_jefferson_curl_dumbbells_batch20261008b.webp",
+      "definitionId": "back_jefferson_curl",
+      "equipmentId": "dumbbells",
+      "implementationId": "dumbbells",
+      "configurationIds": [
+        "back_jefferson_curl__dumbbells"
+      ],
+      "configurationEvidence": [
+        {
+          "id": "back_jefferson_curl__dumbbells",
+          "equipmentId": "dumbbells",
+          "selectedOptions": {
+            "implement": "dumbbells"
+          }
+        }
+      ],
+      "sourcePng": "assets/exercise_back_jefferson_curl_dumbbells_batch_20261008b_review.png",
+      "sourcePngCurrentSha256": "e41223b346d816071698d73996dc29de6fff5b2aaebc62e5b023272a7d5ea62e",
+      "receipt": "artifacts/exercise-images-review-20261009/integration_receipts.json",
+      "approvalDate": "2026-10-09",
+      "approvalEvidence": {
+        "manifest": "artifacts/exercise-images-review-20261009/decisions.json",
+        "recordedHumanDecision": "El resto está OK; las aprobadas desde ahora deben pasar a WebP.",
+        "receiptManifest": "artifacts/exercise-images-review-20261009/integration_receipts.json",
+        "number": 16,
+        "group": "B",
+        "kind": null
+      },
+      "webpSha256": "69e5e6033415dbcaa8a7c4830f89d56b0b6cf6ae9533dfa7a778c8a18557bd9a",
+      "sourcePngRgbaEqualsWebp": true,
+      "sameWebpBytesAsAudit14": true,
+      "dimensions": [
+        1024,
+        1536
+      ],
+      "visualQaEvidence": [
+        {
+          "manifest": "artifacts\\exercise-images-batch-20261008-b\\batch.json",
+          "number": 16,
+          "approvedByUser": true,
+          "integratedIntoApp": true,
+          "status": "integrated_approved",
+          "qaReview": {
+            "status": "independently_reviewed_candidate",
+            "humanApprovalRequired": true,
+            "cameraObservation": null
+          }
+        }
+      ],
+      "routingScope": "Existing HEAD configuration IDs only; preserve historical same-exercise/equipment illustration across laterality-only choices as already implemented in the historical lookup. Does not expand implement or support configuration."
+    },
+    {
+      "resourceName": "exercise_back_remo_gorilla_mancuernas_cable",
+      "file": "android-native/app/src/main/res/drawable-nodpi/exercise_back_remo_gorilla_mancuernas_cable.webp",
+      "definitionId": "back_remo_gorilla_mancuernas",
+      "equipmentId": "cable",
+      "implementationId": "cable",
+      "configurationIds": [
+        "back_remo_gorilla_mancuernas__cable"
+      ],
+      "configurationEvidence": [
+        {
+          "id": "back_remo_gorilla_mancuernas__cable",
+          "equipmentId": "cable",
+          "selectedOptions": {
+            "implement": "cable"
+          }
+        }
+      ],
+      "sourcePng": "assets/exercise_back_remo_gorilla_mancuernas_cable_batch_20261010_v2_review.png",
+      "sourcePngCurrentSha256": "9391097d621e9719782ecf5472bfa977bd542a45776128ac784c153dcf77dae8",
+      "receipt": "artifacts/exercise-images-review-20261012/integration_receipts.json",
+      "approvalDate": "2026-10-12",
+      "approvalEvidence": {
+        "manifest": "artifacts/exercise-images-review-20261012/integration_receipts.json",
+        "recordedHumanDecision": "EL RESTO INTÉGRALO",
+        "receiptManifest": "artifacts/exercise-images-review-20261012/integration_receipts.json",
+        "number": null,
+        "group": null,
+        "kind": "new_batch"
+      },
+      "webpSha256": "83ba3a7f615be8ea1fdbf403618d07c5f6e92d7cd4ab1379d96086dad64b7032",
+      "sourcePngRgbaEqualsWebp": true,
+      "sameWebpBytesAsAudit14": true,
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "visualQaEvidence": [
+        {
+          "manifest": "artifacts\\exercise-images-batch-20261010\\batch.json",
+          "number": 42,
+          "approvedByUser": true,
+          "integratedIntoApp": true,
+          "status": "integrated_approved",
+          "qaReview": null
+        }
+      ],
+      "routingScope": "Existing HEAD configuration IDs only; preserve historical same-exercise/equipment illustration across laterality-only choices as already implemented in the historical lookup. Does not expand implement or support configuration."
+    },
+    {
+      "resourceName": "exercise_bird_dog_bodyweight_batch20261008",
+      "file": "android-native/app/src/main/res/drawable-nodpi/exercise_bird_dog_bodyweight_batch20261008.webp",
+      "definitionId": "bird_dog",
+      "equipmentId": "bodyweight",
+      "implementationId": "bodyweight",
+      "configurationIds": [
+        "bird_dog__default"
+      ],
+      "configurationEvidence": [
+        {
+          "id": "bird_dog__default",
+          "equipmentId": "bodyweight",
+          "selectedOptions": {}
+        }
+      ],
+      "sourcePng": "assets/exercise_bird_dog_bodyweight_batch_20261008_review.png",
+      "sourcePngCurrentSha256": "95c1a4f413e4fb1c43f9c9602d89f8719bbc6bb864a3d554da9215ee74352e04",
+      "receipt": "artifacts/exercise-images-batch-20261008/integration_receipts.json",
+      "approvalDate": "2026-10-08",
+      "approvalEvidence": {
+        "manifest": "artifacts/exercise-images-batch-20261008/user_review.json",
+        "recordedHumanDecision": "Todos aprobados excepto 2, 5, 6, 12 y 19.",
+        "receiptManifest": "artifacts/exercise-images-batch-20261008/integration_receipts.json",
+        "number": 3,
+        "group": null,
+        "kind": null
+      },
+      "webpSha256": "55886fe04ff403d5ca5adf4c2a043569d2493dfe52a53cf2fb36c40f12264b4b",
+      "sourcePngRgbaEqualsWebp": false,
+      "sameWebpBytesAsAudit14": true,
+      "dimensions": [
+        1774,
+        887
+      ],
+      "visualQaEvidence": [
+        {
+          "manifest": "artifacts\\exercise-images-batch-20261008\\batch.json",
+          "number": 3,
+          "approvedByUser": true,
+          "integratedIntoApp": true,
+          "status": "integrated_approved",
+          "qaReview": {
+            "status": "independent_review_pass",
+            "note": "Pose, anatomy and visible contacts accepted after alpha cleanup."
+          }
+        }
+      ],
+      "routingScope": "Existing HEAD configuration IDs only; preserve historical same-exercise/equipment illustration across laterality-only choices as already implemented in the historical lookup. Does not expand implement or support configuration."
+    },
+    {
+      "resourceName": "exercise_bulgarian_split_squat_bodyweight",
+      "file": "android-native/app/src/main/res/drawable-nodpi/exercise_bulgarian_split_squat_bodyweight.webp",
+      "definitionId": "bulgarian_split_squat",
+      "equipmentId": "bodyweight",
+      "implementationId": "bodyweight",
+      "configurationIds": [
+        "bulgarian_split_squat__bodyweight"
+      ],
+      "configurationEvidence": [
+        {
+          "id": "bulgarian_split_squat__bodyweight",
+          "equipmentId": "bodyweight",
+          "selectedOptions": {
+            "implement": "bodyweight"
+          }
+        }
+      ],
+      "sourcePng": "assets/exercise_bulgarian_split_squat_bodyweight_batch_20261010_review.png",
+      "sourcePngCurrentSha256": "97f971481ac4d25c678b5997f2718bf05d81f13e9e38df201af959030975d2c4",
+      "receipt": "artifacts/exercise-images-review-20261012/integration_receipts.json",
+      "approvalDate": "2026-10-12",
+      "approvalEvidence": {
+        "manifest": "artifacts/exercise-images-review-20261012/integration_receipts.json",
+        "recordedHumanDecision": "EL RESTO INTÉGRALO",
+        "receiptManifest": "artifacts/exercise-images-review-20261012/integration_receipts.json",
+        "number": null,
+        "group": null,
+        "kind": "new_batch"
+      },
+      "webpSha256": "48e919e52bb608247a654d29bb098e77b3487a160c8236b4d1be216c4328de7c",
+      "sourcePngRgbaEqualsWebp": true,
+      "sameWebpBytesAsAudit14": true,
+      "dimensions": [
+        1293,
+        1216
+      ],
+      "visualQaEvidence": [
+        {
+          "manifest": "artifacts\\exercise-images-batch-20261010\\batch.json",
+          "number": 39,
+          "approvedByUser": true,
+          "integratedIntoApp": true,
+          "status": "integrated_approved",
+          "qaReview": null
+        }
+      ],
+      "routingScope": "Existing HEAD configuration IDs only; preserve historical same-exercise/equipment illustration across laterality-only choices as already implemented in the historical lookup. Does not expand implement or support configuration."
+    },
+    {
+      "resourceName": "exercise_calf_raise_bodyweight",
+      "file": "android-native/app/src/main/res/drawable-nodpi/exercise_calf_raise_bodyweight.webp",
+      "definitionId": "calf_raise",
+      "equipmentId": "bodyweight",
+      "implementationId": "bodyweight",
+      "configurationIds": [
+        "calf_raise__bilateral__bodyweight"
+      ],
+      "configurationEvidence": [
+        {
+          "id": "calf_raise__bilateral__bodyweight",
+          "equipmentId": "bodyweight",
+          "selectedOptions": {
+            "implement": "bodyweight",
+            "laterality": "bilateral"
+          }
+        }
+      ],
+      "sourcePng": "assets/exercise_calf_raise_bodyweight_batch_20261010_review.png",
+      "sourcePngCurrentSha256": "15aedec44e0fa3323d0f39c86d91f59cecf118605af740598560e81297ff4981",
+      "receipt": "artifacts/exercise-images-review-20261012/integration_receipts.json",
+      "approvalDate": "2026-10-12",
+      "approvalEvidence": {
+        "manifest": "artifacts/exercise-images-review-20261012/integration_receipts.json",
+        "recordedHumanDecision": "EL RESTO INTÉGRALO",
+        "receiptManifest": "artifacts/exercise-images-review-20261012/integration_receipts.json",
+        "number": null,
+        "group": null,
+        "kind": "new_batch"
+      },
+      "webpSha256": "cc1b423a27d1c206f359166c5d2eba5d65cdb8294616b260690f0dfdec10495d",
+      "sourcePngRgbaEqualsWebp": true,
+      "sameWebpBytesAsAudit14": true,
+      "dimensions": [
+        1024,
+        1536
+      ],
+      "visualQaEvidence": [
+        {
+          "manifest": "artifacts\\exercise-images-batch-20261010\\batch.json",
+          "number": 26,
+          "approvedByUser": true,
+          "integratedIntoApp": true,
+          "status": "integrated_approved",
+          "qaReview": null
+        }
+      ],
+      "routingScope": "Existing HEAD configuration IDs only; preserve historical same-exercise/equipment illustration across laterality-only choices as already implemented in the historical lookup. Does not expand implement or support configuration."
+    },
+    {
+      "resourceName": "exercise_calf_raise_leg_press_machine",
+      "file": "android-native/app/src/main/res/drawable-nodpi/exercise_calf_raise_leg_press_machine.webp",
+      "definitionId": "calf_raise",
+      "equipmentId": "machine",
+      "implementationId": "leg_press_machine",
+      "configurationIds": [
+        "calf_raise__bilateral__leg_press_machine"
+      ],
+      "configurationEvidence": [
+        {
+          "id": "calf_raise__bilateral__leg_press_machine",
+          "equipmentId": "machine",
+          "selectedOptions": {
+            "implement": "leg_press_machine",
+            "laterality": "bilateral"
+          }
+        }
+      ],
+      "sourcePng": "assets/exercise_calf_raise_leg_press_machine_batch_20261010_v2_review.png",
+      "sourcePngCurrentSha256": "b8eb4c4ea48fc134f7e589b6a4b5c52cf249ad63712aaa77af8c43b0f3b879dd",
+      "receipt": "artifacts/exercise-images-review-20261012/integration_receipts.json",
+      "approvalDate": "2026-10-12",
+      "approvalEvidence": {
+        "manifest": "artifacts/exercise-images-review-20261012/integration_receipts.json",
+        "recordedHumanDecision": "EL RESTO INTÉGRALO",
+        "receiptManifest": "artifacts/exercise-images-review-20261012/integration_receipts.json",
+        "number": null,
+        "group": null,
+        "kind": "new_batch"
+      },
+      "webpSha256": "be85bf412a80e4a6851103f728bee29c0a4cba49cf519889d80efde8dd8b1bd0",
+      "sourcePngRgbaEqualsWebp": true,
+      "sameWebpBytesAsAudit14": true,
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "visualQaEvidence": [
+        {
+          "manifest": "artifacts\\exercise-images-batch-20261010\\batch.json",
+          "number": 29,
+          "approvedByUser": true,
+          "integratedIntoApp": true,
+          "status": "integrated_approved",
+          "qaReview": null
+        }
+      ],
+      "routingScope": "Only calf_raise__bilateral__leg_press_machine: canonical equipmentId=machine, selectedOptions.implement=leg_press_machine. No generic machine binding."
+    },
+    {
+      "resourceName": "exercise_clean_pull_barbell_batch20261008",
+      "file": "android-native/app/src/main/res/drawable-nodpi/exercise_clean_pull_barbell_batch20261008.webp",
+      "definitionId": "clean_pull",
+      "equipmentId": "barbell",
+      "implementationId": "barbell",
+      "configurationIds": [
+        "clean_pull__barbell"
+      ],
+      "configurationEvidence": [
+        {
+          "id": "clean_pull__barbell",
+          "equipmentId": "barbell",
+          "selectedOptions": {}
+        }
+      ],
+      "sourcePng": "assets/exercise_clean_pull_barbell_batch_20261008_review.png",
+      "sourcePngCurrentSha256": "e177c57fd44036c4f429c19e9971aa6e2d44fddd864880c8fec5b70597ba0b9b",
+      "receipt": "artifacts/exercise-images-batch-20261008/integration_receipts.json",
+      "approvalDate": "2026-10-08",
+      "approvalEvidence": {
+        "manifest": "artifacts/exercise-images-batch-20261008/user_review.json",
+        "recordedHumanDecision": "Todos aprobados excepto 2, 5, 6, 12 y 19.",
+        "receiptManifest": "artifacts/exercise-images-batch-20261008/integration_receipts.json",
+        "number": 24,
+        "group": null,
+        "kind": null
+      },
+      "webpSha256": "98760bdaba256bb7821b56d1a766169ac3b153c682b3195ce64273cbb5363d90",
+      "sourcePngRgbaEqualsWebp": false,
+      "sameWebpBytesAsAudit14": true,
+      "dimensions": [
+        1024,
+        1536
+      ],
+      "visualQaEvidence": [
+        {
+          "manifest": "artifacts\\exercise-images-batch-20261008\\batch.json",
+          "number": 24,
+          "approvedByUser": true,
+          "integratedIntoApp": true,
+          "status": "integrated_approved",
+          "qaReview": {
+            "status": "independent_review_observable_contacts",
+            "note": "Latest clean image inspected independently; no visible anatomical fusion or halo. Framing and static exercise posture described; image remains pending human approval."
+          }
+        }
+      ],
+      "routingScope": "Existing HEAD configuration IDs only; preserve historical same-exercise/equipment illustration across laterality-only choices as already implemented in the historical lookup. Does not expand implement or support configuration."
+    },
+    {
+      "resourceName": "exercise_close_grip_bench_press_barbell_batch20261008",
+      "file": "android-native/app/src/main/res/drawable-nodpi/exercise_close_grip_bench_press_barbell_batch20261008.webp",
+      "definitionId": "close_grip_bench_press",
+      "equipmentId": "barbell",
+      "implementationId": "barbell",
+      "configurationIds": [
+        "close_grip_bench_press__barbell"
+      ],
+      "configurationEvidence": [
+        {
+          "id": "close_grip_bench_press__barbell",
+          "equipmentId": "barbell",
+          "selectedOptions": {}
+        }
+      ],
+      "sourcePng": "assets/exercise_close_grip_bench_press_barbell_batch_20261008_v2_review.png",
+      "sourcePngCurrentSha256": "4a9e934bfeb1803006a71aca4493669580014de919c8177c1790b95a94675286",
+      "receipt": "artifacts/exercise-images-review-20261009/integration_receipts.json",
+      "approvalDate": "2026-10-09",
+      "approvalEvidence": {
+        "manifest": "artifacts/exercise-images-review-20261009/decisions.json",
+        "recordedHumanDecision": "El resto está OK; las aprobadas desde ahora deben pasar a WebP.",
+        "receiptManifest": "artifacts/exercise-images-review-20261009/integration_receipts.json",
+        "number": 5,
+        "group": "A",
+        "kind": null
+      },
+      "webpSha256": "a6d6046595c25bc322b6457f677935fbde2ca595bdc9909def1c707adda5a6bc",
+      "sourcePngRgbaEqualsWebp": true,
+      "sameWebpBytesAsAudit14": true,
+      "dimensions": [
+        1312,
+        1199
+      ],
+      "visualQaEvidence": [
+        {
+          "manifest": "artifacts\\exercise-images-batch-20261008\\batch.json",
+          "number": 5,
+          "approvedByUser": true,
+          "integratedIntoApp": true,
+          "status": "integrated_approved",
+          "qaReview": {
+            "status": "independently_reviewed_candidate",
+            "humanApprovalRequired": true,
+            "cameraObservation": "Bar lies on upper chest; exact sternum height should be reviewed by user."
+          }
+        }
+      ],
+      "routingScope": "Existing HEAD configuration IDs only; preserve historical same-exercise/equipment illustration across laterality-only choices as already implemented in the historical lookup. Does not expand implement or support configuration."
+    },
+    {
+      "resourceName": "exercise_conventional_row_kettlebell",
+      "file": "android-native/app/src/main/res/drawable-nodpi/exercise_conventional_row_kettlebell.webp",
+      "definitionId": "conventional_row",
+      "equipmentId": "kettlebell",
+      "implementationId": "kettlebell",
+      "configurationIds": [
+        "conventional_row__kettlebell"
+      ],
+      "configurationEvidence": [
+        {
+          "id": "conventional_row__kettlebell",
+          "equipmentId": "kettlebell",
+          "selectedOptions": {
+            "implement": "kettlebell"
+          }
+        }
+      ],
+      "sourcePng": "assets/exercise_conventional_row_kettlebell_batch_20261010_review.png",
+      "sourcePngCurrentSha256": "c3f59ac23b663aa552784725eb675b5639e4209636b687db9af562193e4e19f3",
+      "receipt": "artifacts/exercise-images-review-20261012/integration_receipts.json",
+      "approvalDate": "2026-10-12",
+      "approvalEvidence": {
+        "manifest": "artifacts/exercise-images-review-20261012/integration_receipts.json",
+        "recordedHumanDecision": "EL RESTO INTÉGRALO",
+        "receiptManifest": "artifacts/exercise-images-review-20261012/integration_receipts.json",
+        "number": null,
+        "group": null,
+        "kind": "new_batch"
+      },
+      "webpSha256": "a3996e0843fff137801e26b47152580fb61a9e659e8eedd4ab4982de8249ed9b",
+      "sourcePngRgbaEqualsWebp": true,
+      "sameWebpBytesAsAudit14": true,
+      "dimensions": [
+        1024,
+        1536
+      ],
+      "visualQaEvidence": [
+        {
+          "manifest": "artifacts\\exercise-images-batch-20261010\\batch.json",
+          "number": 4,
+          "approvedByUser": true,
+          "integratedIntoApp": true,
+          "status": "integrated_approved",
+          "qaReview": null
+        }
+      ],
+      "routingScope": "Existing HEAD configuration IDs only; preserve historical same-exercise/equipment illustration across laterality-only choices as already implemented in the historical lookup. Does not expand implement or support configuration."
+    },
+    {
+      "resourceName": "exercise_conventional_row_smith_machine",
+      "file": "android-native/app/src/main/res/drawable-nodpi/exercise_conventional_row_smith_machine.webp",
+      "definitionId": "conventional_row",
+      "equipmentId": "smith_machine",
+      "implementationId": "smith_machine",
+      "configurationIds": [
+        "conventional_row__smith_machine"
+      ],
+      "configurationEvidence": [
+        {
+          "id": "conventional_row__smith_machine",
+          "equipmentId": "smith_machine",
+          "selectedOptions": {
+            "implement": "smith_machine"
+          }
+        }
+      ],
+      "sourcePng": "assets/exercise_conventional_row_smith_machine_batch_20261010_v2_review.png",
+      "sourcePngCurrentSha256": "12861b165cf6649b88b7766ddd032b5650ea3a18207e52cc061545a6912d7280",
+      "receipt": "artifacts/exercise-images-review-20261012/integration_receipts.json",
+      "approvalDate": "2026-10-12",
+      "approvalEvidence": {
+        "manifest": "artifacts/exercise-images-review-20261012/integration_receipts.json",
+        "recordedHumanDecision": "EL RESTO INTÉGRALO",
+        "receiptManifest": "artifacts/exercise-images-review-20261012/integration_receipts.json",
+        "number": null,
+        "group": null,
+        "kind": "new_batch"
+      },
+      "webpSha256": "119a105d8ad6e5bc856c1b3c33ec8439ee43b10a3343b31c4c8d05a16aea16ea",
+      "sourcePngRgbaEqualsWebp": true,
+      "sameWebpBytesAsAudit14": true,
+      "dimensions": [
+        1215,
+        1295
+      ],
+      "visualQaEvidence": [
+        {
+          "manifest": "artifacts\\exercise-images-batch-20261010\\batch.json",
+          "number": 3,
+          "approvedByUser": true,
+          "integratedIntoApp": true,
+          "status": "integrated_approved",
+          "qaReview": null
+        }
+      ],
+      "routingScope": "Existing HEAD configuration IDs only; preserve historical same-exercise/equipment illustration across laterality-only choices as already implemented in the historical lookup. Does not expand implement or support configuration."
+    },
+    {
+      "resourceName": "exercise_dead_bug_bodyweight_batch20261008",
+      "file": "android-native/app/src/main/res/drawable-nodpi/exercise_dead_bug_bodyweight_batch20261008.webp",
+      "definitionId": "dead_bug",
+      "equipmentId": "bodyweight",
+      "implementationId": "bodyweight",
+      "configurationIds": [
+        "dead_bug__default"
+      ],
+      "configurationEvidence": [
+        {
+          "id": "dead_bug__default",
+          "equipmentId": "bodyweight",
+          "selectedOptions": {}
+        }
+      ],
+      "sourcePng": "assets/exercise_dead_bug_bodyweight_batch_20261008_v2_review.png",
+      "sourcePngCurrentSha256": "91fac9d4950b2c1d7cf40075093e2d83c5864a9ab046ee94b2522d1553b9eb04",
+      "receipt": "artifacts/exercise-images-review-20261009/integration_receipts.json",
+      "approvalDate": "2026-10-09",
+      "approvalEvidence": {
+        "manifest": "artifacts/exercise-images-review-20261009/decisions.json",
+        "recordedHumanDecision": "El resto está OK; las aprobadas desde ahora deben pasar a WebP.",
+        "receiptManifest": "artifacts/exercise-images-review-20261009/integration_receipts.json",
+        "number": 2,
+        "group": "A",
+        "kind": null
+      },
+      "webpSha256": "8beed9cac10fef57a18b1dd609c9e3bb2dda79c6ce2ec0d727f9285bb46e57dc",
+      "sourcePngRgbaEqualsWebp": true,
+      "sameWebpBytesAsAudit14": true,
+      "dimensions": [
+        1774,
+        887
+      ],
+      "visualQaEvidence": [
+        {
+          "manifest": "artifacts\\exercise-images-batch-20261008\\batch.json",
+          "number": 2,
+          "approvedByUser": true,
+          "integratedIntoApp": true,
+          "status": "integrated_approved",
+          "qaReview": {
+            "status": "independently_reviewed_candidate",
+            "humanApprovalRequired": true,
+            "cameraObservation": null
+          }
+        }
+      ],
+      "routingScope": "Existing HEAD configuration IDs only; preserve historical same-exercise/equipment illustration across laterality-only choices as already implemented in the historical lookup. Does not expand implement or support configuration."
+    },
+    {
+      "resourceName": "exercise_deadlift_to_knees_barbell_batch20261008b",
+      "file": "android-native/app/src/main/res/drawable-nodpi/exercise_deadlift_to_knees_barbell_batch20261008b.webp",
+      "definitionId": "deadlift_to_knees",
+      "equipmentId": "barbell",
+      "implementationId": "barbell",
+      "configurationIds": [
+        "deadlift_to_knees__barbell"
+      ],
+      "configurationEvidence": [
+        {
+          "id": "deadlift_to_knees__barbell",
+          "equipmentId": "barbell",
+          "selectedOptions": {}
+        }
+      ],
+      "sourcePng": "assets/exercise_deadlift_to_knees_barbell_batch_20261008b_review.png",
+      "sourcePngCurrentSha256": "f4a90e31388ce626f4b48cfbb12dd4929f1f00dbfaeebfc7656ca89168e7f865",
+      "receipt": "artifacts/exercise-images-review-20261009/integration_receipts.json",
+      "approvalDate": "2026-10-09",
+      "approvalEvidence": {
+        "manifest": "artifacts/exercise-images-review-20261009/decisions.json",
+        "recordedHumanDecision": "El resto está OK; las aprobadas desde ahora deben pasar a WebP.",
+        "receiptManifest": "artifacts/exercise-images-review-20261009/integration_receipts.json",
+        "number": 20,
+        "group": "B",
+        "kind": null
+      },
+      "webpSha256": "f3186c213a6d57f43e6cb115d11dbb7483cc693ba63e691360c0a73f1faaaf7c",
+      "sourcePngRgbaEqualsWebp": true,
+      "sameWebpBytesAsAudit14": true,
+      "dimensions": [
+        1342,
+        1172
+      ],
+      "visualQaEvidence": [
+        {
+          "manifest": "artifacts\\exercise-images-batch-20261008-b\\batch.json",
+          "number": 20,
+          "approvedByUser": true,
+          "integratedIntoApp": true,
+          "status": "integrated_approved",
+          "qaReview": {
+            "status": "independently_reviewed_candidate",
+            "humanApprovalRequired": true,
+            "cameraObservation": null
+          }
+        }
+      ],
+      "routingScope": "Existing HEAD configuration IDs only; preserve historical same-exercise/equipment illustration across laterality-only choices as already implemented in the historical lookup. Does not expand implement or support configuration."
+    },
+    {
+      "resourceName": "exercise_deltoides_lu_raises_dumbbells",
+      "file": "android-native/app/src/main/res/drawable-nodpi/exercise_deltoides_lu_raises_dumbbells.webp",
+      "definitionId": "deltoides_lu_raises",
+      "equipmentId": "dumbbells",
+      "implementationId": "dumbbells",
+      "configurationIds": [
+        "deltoides_lu_raises__default"
+      ],
+      "configurationEvidence": [
+        {
+          "id": "deltoides_lu_raises__default",
+          "equipmentId": "dumbbells",
+          "selectedOptions": {}
+        }
+      ],
+      "sourcePng": "assets/exercise_deltoides_lu_raises_dumbbells_batch_20261010_review.png",
+      "sourcePngCurrentSha256": "2e35044f89130023fee6a1db5e01ba6a28846123a9eed8d8ce5da48f8440af53",
+      "receipt": "artifacts/exercise-images-review-20261012/integration_receipts.json",
+      "approvalDate": "2026-10-12",
+      "approvalEvidence": {
+        "manifest": "artifacts/exercise-images-review-20261012/integration_receipts.json",
+        "recordedHumanDecision": "EL RESTO INTÉGRALO",
+        "receiptManifest": "artifacts/exercise-images-review-20261012/integration_receipts.json",
+        "number": null,
+        "group": null,
+        "kind": "new_batch"
+      },
+      "webpSha256": "2dda87e0bd55a1332882f384fdd2ed346ac7292a97209433d8ab2938dec25462",
+      "sourcePngRgbaEqualsWebp": true,
+      "sameWebpBytesAsAudit14": true,
+      "dimensions": [
+        1024,
+        1536
+      ],
+      "visualQaEvidence": [
+        {
+          "manifest": "artifacts\\exercise-images-batch-20261010\\batch.json",
+          "number": 48,
+          "approvedByUser": true,
+          "integratedIntoApp": true,
+          "status": "integrated_approved",
+          "qaReview": null
+        }
+      ],
+      "routingScope": "Existing HEAD configuration IDs only; preserve historical same-exercise/equipment illustration across laterality-only choices as already implemented in the historical lookup. Does not expand implement or support configuration."
+    },
+    {
+      "resourceName": "exercise_diamond_push_up_bodyweight_batch20261008",
+      "file": "android-native/app/src/main/res/drawable-nodpi/exercise_diamond_push_up_bodyweight_batch20261008.webp",
+      "definitionId": "diamond_push_up",
+      "equipmentId": "bodyweight",
+      "implementationId": "bodyweight",
+      "configurationIds": [
+        "diamond_push_up__default"
+      ],
+      "configurationEvidence": [
+        {
+          "id": "diamond_push_up__default",
+          "equipmentId": "bodyweight",
+          "selectedOptions": {}
+        }
+      ],
+      "sourcePng": "assets/exercise_diamond_push_up_bodyweight_batch_20261008_review.png",
+      "sourcePngCurrentSha256": "d25e71e8165d2f15b262a8e1cdf48c2d88c910e700cfdb7cdc27584fcb34b0f2",
+      "receipt": "artifacts/exercise-images-batch-20261008/integration_receipts.json",
+      "approvalDate": "2026-10-08",
+      "approvalEvidence": {
+        "manifest": "artifacts/exercise-images-batch-20261008/user_review.json",
+        "recordedHumanDecision": "Todos aprobados excepto 2, 5, 6, 12 y 19.",
+        "receiptManifest": "artifacts/exercise-images-batch-20261008/integration_receipts.json",
+        "number": 16,
+        "group": null,
+        "kind": null
+      },
+      "webpSha256": "bef673033bb3eec935fca83b7a543877317f02daf890d3c333b44d56d98cb9eb",
+      "sourcePngRgbaEqualsWebp": false,
+      "sameWebpBytesAsAudit14": true,
+      "dimensions": [
+        1774,
+        887
+      ],
+      "visualQaEvidence": [
+        {
+          "manifest": "artifacts\\exercise-images-batch-20261008\\batch.json",
+          "number": 16,
+          "approvedByUser": true,
+          "integratedIntoApp": true,
+          "status": "integrated_approved",
+          "qaReview": {
+            "status": "independent_review_pass",
+            "note": "Pose, anatomy and visible contacts accepted after alpha cleanup."
+          }
+        }
+      ],
+      "routingScope": "Existing HEAD configuration IDs only; preserve historical same-exercise/equipment illustration across laterality-only choices as already implemented in the historical lookup. Does not expand implement or support configuration."
+    },
+    {
+      "resourceName": "exercise_forward_lunge_barbell_batch20261008",
+      "file": "android-native/app/src/main/res/drawable-nodpi/exercise_forward_lunge_barbell_batch20261008.webp",
+      "definitionId": "forward_lunge",
+      "equipmentId": "barbell",
+      "implementationId": "barbell",
+      "configurationIds": [
+        "forward_lunge__barbell"
+      ],
+      "configurationEvidence": [
+        {
+          "id": "forward_lunge__barbell",
+          "equipmentId": "barbell",
+          "selectedOptions": {
+            "implement": "barbell"
+          }
+        }
+      ],
+      "sourcePng": "assets/exercise_forward_lunge_barbell_batch_20261008_review.png",
+      "sourcePngCurrentSha256": "7f6adb19e090639fda86ecbd820dc1c5fe521b3feff71ba77264a484adc066e1",
+      "receipt": "artifacts/exercise-images-batch-20261008/integration_receipts.json",
+      "approvalDate": "2026-10-08",
+      "approvalEvidence": {
+        "manifest": "artifacts/exercise-images-batch-20261008/user_review.json",
+        "recordedHumanDecision": "Todos aprobados excepto 2, 5, 6, 12 y 19.",
+        "receiptManifest": "artifacts/exercise-images-batch-20261008/integration_receipts.json",
+        "number": 10,
+        "group": null,
+        "kind": null
+      },
+      "webpSha256": "226c679bef5a113c081b8ccd4110ac8b00037f78e1d6b024bef898f83a767010",
+      "sourcePngRgbaEqualsWebp": false,
+      "sameWebpBytesAsAudit14": true,
+      "dimensions": [
+        1193,
+        1318
+      ],
+      "visualQaEvidence": [
+        {
+          "manifest": "artifacts\\exercise-images-batch-20261008\\batch.json",
+          "number": 10,
+          "approvedByUser": true,
+          "integratedIntoApp": true,
+          "status": "integrated_approved",
+          "qaReview": {
+            "status": "independent_review_pass",
+            "note": "Pose, anatomy and visible contacts accepted after alpha cleanup."
+          }
+        }
+      ],
+      "routingScope": "Existing HEAD configuration IDs only; preserve historical same-exercise/equipment illustration across laterality-only choices as already implemented in the historical lookup. Does not expand implement or support configuration."
+    },
+    {
+      "resourceName": "exercise_forward_lunge_bodyweight_batch20261008",
+      "file": "android-native/app/src/main/res/drawable-nodpi/exercise_forward_lunge_bodyweight_batch20261008.webp",
+      "definitionId": "forward_lunge",
+      "equipmentId": "bodyweight",
+      "implementationId": "bodyweight",
+      "configurationIds": [
+        "forward_lunge__bodyweight"
+      ],
+      "configurationEvidence": [
+        {
+          "id": "forward_lunge__bodyweight",
+          "equipmentId": "bodyweight",
+          "selectedOptions": {
+            "implement": "bodyweight"
+          }
+        }
+      ],
+      "sourcePng": "assets/exercise_forward_lunge_bodyweight_batch_20261008_review.png",
+      "sourcePngCurrentSha256": "0bfa9164cc809ca0833256662c4124f6c83adc44d744e9e662b4f4a816b80613",
+      "receipt": "artifacts/exercise-images-batch-20261008/integration_receipts.json",
+      "approvalDate": "2026-10-08",
+      "approvalEvidence": {
+        "manifest": "artifacts/exercise-images-batch-20261008/user_review.json",
+        "recordedHumanDecision": "Todos aprobados excepto 2, 5, 6, 12 y 19.",
+        "receiptManifest": "artifacts/exercise-images-batch-20261008/integration_receipts.json",
+        "number": 7,
+        "group": null,
+        "kind": null
+      },
+      "webpSha256": "0d7ada54e5bfb01457ce30b40d332abad65988f7eca679b06aee2319b3f62c47",
+      "sourcePngRgbaEqualsWebp": false,
+      "sameWebpBytesAsAudit14": true,
+      "dimensions": [
+        1193,
+        1318
+      ],
+      "visualQaEvidence": [
+        {
+          "manifest": "artifacts\\exercise-images-batch-20261008\\batch.json",
+          "number": 7,
+          "approvedByUser": true,
+          "integratedIntoApp": true,
+          "status": "integrated_approved",
+          "qaReview": {
+            "status": "independent_review_pass",
+            "note": "Pose, anatomy and visible contacts accepted after alpha cleanup."
+          }
+        }
+      ],
+      "routingScope": "Existing HEAD configuration IDs only; preserve historical same-exercise/equipment illustration across laterality-only choices as already implemented in the historical lookup. Does not expand implement or support configuration."
+    },
+    {
+      "resourceName": "exercise_forward_lunge_cable_batch20261008",
+      "file": "android-native/app/src/main/res/drawable-nodpi/exercise_forward_lunge_cable_batch20261008.webp",
+      "definitionId": "forward_lunge",
+      "equipmentId": "cable",
+      "implementationId": "cable",
+      "configurationIds": [
+        "forward_lunge__cable"
+      ],
+      "configurationEvidence": [
+        {
+          "id": "forward_lunge__cable",
+          "equipmentId": "cable",
+          "selectedOptions": {
+            "implement": "cable"
+          }
+        }
+      ],
+      "sourcePng": "assets/exercise_forward_lunge_cable_repair_20261009_review.png",
+      "sourcePngCurrentSha256": "4d10742e25cb6a10ff9824bc47a939c622e4c8fc52e4bad93846c3dcc5127574",
+      "receipt": "artifacts/exercise-images-batch-20261010/integration_receipts.json",
+      "approvalDate": "2026-10-10",
+      "approvalEvidence": {
+        "manifest": "artifacts/exercise-images-batch-20261010/approval.json",
+        "recordedHumanDecision": "El resto OK: aprobar A12, B6, B13, B25 y B26.",
+        "receiptManifest": "artifacts/exercise-images-batch-20261010/integration_receipts.json",
+        "number": 12,
+        "group": "A",
+        "kind": null
+      },
+      "webpSha256": "74fd5df2bf3aa5aad10f151904ee018929ff04710f055f5d52f7999e3468bfc0",
+      "sourcePngRgbaEqualsWebp": true,
+      "sameWebpBytesAsAudit14": true,
+      "dimensions": [
+        1193,
+        1318
+      ],
+      "visualQaEvidence": [
+        {
+          "manifest": "artifacts\\exercise-images-batch-20261008\\batch.json",
+          "number": 12,
+          "approvedByUser": true,
+          "integratedIntoApp": true,
+          "status": "integrated_approved",
+          "qaReview": {
+            "status": "independently_reviewed_candidate",
+            "humanApprovalRequired": true,
+            "cameraObservation": null
+          }
+        }
+      ],
+      "routingScope": "Existing HEAD configuration IDs only; preserve historical same-exercise/equipment illustration across laterality-only choices as already implemented in the historical lookup. Does not expand implement or support configuration."
+    },
+    {
+      "resourceName": "exercise_forward_lunge_dumbbells_batch20261008",
+      "file": "android-native/app/src/main/res/drawable-nodpi/exercise_forward_lunge_dumbbells_batch20261008.webp",
+      "definitionId": "forward_lunge",
+      "equipmentId": "dumbbells",
+      "implementationId": "dumbbells",
+      "configurationIds": [
+        "forward_lunge__dumbbells"
+      ],
+      "configurationEvidence": [
+        {
+          "id": "forward_lunge__dumbbells",
+          "equipmentId": "dumbbells",
+          "selectedOptions": {
+            "implement": "dumbbells"
+          }
+        }
+      ],
+      "sourcePng": "assets/exercise_forward_lunge_dumbbells_batch_20261008_review.png",
+      "sourcePngCurrentSha256": "fd0810e539bad4c24a7deada100d42a2b168bfc4b7ee3d0a61f10e19d8af03b0",
+      "receipt": "artifacts/exercise-images-batch-20261008/integration_receipts.json",
+      "approvalDate": "2026-10-08",
+      "approvalEvidence": {
+        "manifest": "artifacts/exercise-images-batch-20261008/user_review.json",
+        "recordedHumanDecision": "Todos aprobados excepto 2, 5, 6, 12 y 19.",
+        "receiptManifest": "artifacts/exercise-images-batch-20261008/integration_receipts.json",
+        "number": 8,
+        "group": null,
+        "kind": null
+      },
+      "webpSha256": "74b879a5169198eb19e98c09bc027067181871bbb3d53973452796039a15e46c",
+      "sourcePngRgbaEqualsWebp": false,
+      "sameWebpBytesAsAudit14": true,
+      "dimensions": [
+        1193,
+        1318
+      ],
+      "visualQaEvidence": [
+        {
+          "manifest": "artifacts\\exercise-images-batch-20261008\\batch.json",
+          "number": 8,
+          "approvedByUser": true,
+          "integratedIntoApp": true,
+          "status": "integrated_approved",
+          "qaReview": {
+            "status": "independent_review_pass",
+            "note": "Pose, anatomy and visible contacts accepted after alpha cleanup."
+          }
+        }
+      ],
+      "routingScope": "Existing HEAD configuration IDs only; preserve historical same-exercise/equipment illustration across laterality-only choices as already implemented in the historical lookup. Does not expand implement or support configuration."
+    },
+    {
+      "resourceName": "exercise_forward_lunge_kettlebell_batch20261008",
+      "file": "android-native/app/src/main/res/drawable-nodpi/exercise_forward_lunge_kettlebell_batch20261008.webp",
+      "definitionId": "forward_lunge",
+      "equipmentId": "kettlebell",
+      "implementationId": "kettlebell",
+      "configurationIds": [
+        "forward_lunge__kettlebell"
+      ],
+      "configurationEvidence": [
+        {
+          "id": "forward_lunge__kettlebell",
+          "equipmentId": "kettlebell",
+          "selectedOptions": {
+            "implement": "kettlebell"
+          }
+        }
+      ],
+      "sourcePng": "assets/exercise_forward_lunge_kettlebell_batch_20261008_review.png",
+      "sourcePngCurrentSha256": "9a7ac391ef2caaca09cd26a0121683db3ec2a84437e8b9ff96a6082d75dac3a9",
+      "receipt": "artifacts/exercise-images-batch-20261008/integration_receipts.json",
+      "approvalDate": "2026-10-08",
+      "approvalEvidence": {
+        "manifest": "artifacts/exercise-images-batch-20261008/user_review.json",
+        "recordedHumanDecision": "Todos aprobados excepto 2, 5, 6, 12 y 19.",
+        "receiptManifest": "artifacts/exercise-images-batch-20261008/integration_receipts.json",
+        "number": 9,
+        "group": null,
+        "kind": null
+      },
+      "webpSha256": "2d0489c5f6bd1e5bb0868e7135194d35ba7733c714401dae497cc2d49674239e",
+      "sourcePngRgbaEqualsWebp": false,
+      "sameWebpBytesAsAudit14": true,
+      "dimensions": [
+        1193,
+        1318
+      ],
+      "visualQaEvidence": [
+        {
+          "manifest": "artifacts\\exercise-images-batch-20261008\\batch.json",
+          "number": 9,
+          "approvedByUser": true,
+          "integratedIntoApp": true,
+          "status": "integrated_approved",
+          "qaReview": {
+            "status": "independent_review_pass",
+            "note": "Pose, anatomy and visible contacts accepted after alpha cleanup."
+          }
+        }
+      ],
+      "routingScope": "Existing HEAD configuration IDs only; preserve historical same-exercise/equipment illustration across laterality-only choices as already implemented in the historical lookup. Does not expand implement or support configuration."
+    },
+    {
+      "resourceName": "exercise_forward_lunge_smith_machine_batch20261008",
+      "file": "android-native/app/src/main/res/drawable-nodpi/exercise_forward_lunge_smith_machine_batch20261008.webp",
+      "definitionId": "forward_lunge",
+      "equipmentId": "smith_machine",
+      "implementationId": "smith_machine",
+      "configurationIds": [
+        "forward_lunge__smith_machine"
+      ],
+      "configurationEvidence": [
+        {
+          "id": "forward_lunge__smith_machine",
+          "equipmentId": "smith_machine",
+          "selectedOptions": {
+            "implement": "smith_machine"
+          }
+        }
+      ],
+      "sourcePng": "assets/exercise_forward_lunge_smith_machine_batch_20261008_review.png",
+      "sourcePngCurrentSha256": "0451c58ba8de5f7886d90d31d767bd1527fa12e28235ab689b91ffcd75511594",
+      "receipt": "artifacts/exercise-images-batch-20261008/integration_receipts.json",
+      "approvalDate": "2026-10-08",
+      "approvalEvidence": {
+        "manifest": "artifacts/exercise-images-batch-20261008/user_review.json",
+        "recordedHumanDecision": "Todos aprobados excepto 2, 5, 6, 12 y 19.",
+        "receiptManifest": "artifacts/exercise-images-batch-20261008/integration_receipts.json",
+        "number": 11,
+        "group": null,
+        "kind": null
+      },
+      "webpSha256": "d7aec673372549f4da2d60f9b02493bea0af91f56f8bcb348fafbf620ef39768",
+      "sourcePngRgbaEqualsWebp": false,
+      "sameWebpBytesAsAudit14": true,
+      "dimensions": [
+        1141,
+        1378
+      ],
+      "visualQaEvidence": [
+        {
+          "manifest": "artifacts\\exercise-images-batch-20261008\\batch.json",
+          "number": 11,
+          "approvedByUser": true,
+          "integratedIntoApp": true,
+          "status": "integrated_approved",
+          "qaReview": {
+            "status": "independent_review_pass",
+            "note": "Pose, anatomy and visible contacts accepted after alpha cleanup."
+          }
+        }
+      ],
+      "routingScope": "Existing HEAD configuration IDs only; preserve historical same-exercise/equipment illustration across laterality-only choices as already implemented in the historical lookup. Does not expand implement or support configuration."
+    },
+    {
+      "resourceName": "exercise_glute_ham_raise_ghd_batch20261008b",
+      "file": "android-native/app/src/main/res/drawable-nodpi/exercise_glute_ham_raise_ghd_batch20261008b.webp",
+      "definitionId": "glute_ham_raise",
+      "equipmentId": "ghd",
+      "implementationId": "ghd",
+      "configurationIds": [
+        "glute_ham_raise__default"
+      ],
+      "configurationEvidence": [
+        {
+          "id": "glute_ham_raise__default",
+          "equipmentId": "ghd",
+          "selectedOptions": {}
+        }
+      ],
+      "sourcePng": "assets/exercise_glute_ham_raise_ghd_batch_20261008b_review.png",
+      "sourcePngCurrentSha256": "72fb9ee9a9050f9dec2aed87cad74dc0a922afa41b1905ec68adf68e1cb84e97",
+      "receipt": "artifacts/exercise-images-review-20261009/integration_receipts.json",
+      "approvalDate": "2026-10-09",
+      "approvalEvidence": {
+        "manifest": "artifacts/exercise-images-review-20261009/decisions.json",
+        "recordedHumanDecision": "El resto está OK; las aprobadas desde ahora deben pasar a WebP.",
+        "receiptManifest": "artifacts/exercise-images-review-20261009/integration_receipts.json",
+        "number": 11,
+        "group": "B",
+        "kind": null
+      },
+      "webpSha256": "83244e7897a7c071684d98f6dc401a519ae01288dba61977c563a0a8bb75fa36",
+      "sourcePngRgbaEqualsWebp": true,
+      "sameWebpBytesAsAudit14": true,
+      "dimensions": [
+        1024,
+        1536
+      ],
+      "visualQaEvidence": [
+        {
+          "manifest": "artifacts\\exercise-images-batch-20261008-b\\batch.json",
+          "number": 11,
+          "approvedByUser": true,
+          "integratedIntoApp": true,
+          "status": "integrated_approved",
+          "qaReview": {
+            "status": "independently_reviewed_candidate",
+            "humanApprovalRequired": true,
+            "cameraObservation": null
+          }
+        }
+      ],
+      "routingScope": "Existing HEAD configuration IDs only; preserve historical same-exercise/equipment illustration across laterality-only choices as already implemented in the historical lookup. Does not expand implement or support configuration."
+    },
+    {
+      "resourceName": "exercise_glutes_patada_gluteo_lateral_band",
+      "file": "android-native/app/src/main/res/drawable-nodpi/exercise_glutes_patada_gluteo_lateral_band.webp",
+      "definitionId": "glutes_patada_gluteo_lateral",
+      "equipmentId": "band",
+      "implementationId": "band",
+      "configurationIds": [
+        "glutes_patada_gluteo_lateral__band"
+      ],
+      "configurationEvidence": [
+        {
+          "id": "glutes_patada_gluteo_lateral__band",
+          "equipmentId": "band",
+          "selectedOptions": {
+            "implement": "band"
+          }
+        }
+      ],
+      "sourcePng": "assets/exercise_glutes_patada_gluteo_lateral_band_batch_20261010_review.png",
+      "sourcePngCurrentSha256": "64af78b305f16f6f0e1a51e0bdaa13f6eabf1427fa0d440c366d91c235cb3a9f",
+      "receipt": "artifacts/exercise-images-review-20261012/integration_receipts.json",
+      "approvalDate": "2026-10-12",
+      "approvalEvidence": {
+        "manifest": "artifacts/exercise-images-review-20261012/integration_receipts.json",
+        "recordedHumanDecision": "EL RESTO INTÉGRALO",
+        "receiptManifest": "artifacts/exercise-images-review-20261012/integration_receipts.json",
+        "number": null,
+        "group": null,
+        "kind": "new_batch"
+      },
+      "webpSha256": "77818637f226a1f1188ae86b84e5497de821f18cf8b7c2564ab32cf730898afa",
+      "sourcePngRgbaEqualsWebp": true,
+      "sameWebpBytesAsAudit14": true,
+      "dimensions": [
+        1024,
+        1536
+      ],
+      "visualQaEvidence": [
+        {
+          "manifest": "artifacts\\exercise-images-batch-20261010\\batch.json",
+          "number": 13,
+          "approvedByUser": true,
+          "integratedIntoApp": true,
+          "status": "integrated_approved",
+          "qaReview": null
+        }
+      ],
+      "routingScope": "Existing HEAD configuration IDs only; preserve historical same-exercise/equipment illustration across laterality-only choices as already implemented in the historical lookup. Does not expand implement or support configuration."
+    },
+    {
+      "resourceName": "exercise_glutes_patada_gluteo_lateral_cable",
+      "file": "android-native/app/src/main/res/drawable-nodpi/exercise_glutes_patada_gluteo_lateral_cable.webp",
+      "definitionId": "glutes_patada_gluteo_lateral",
+      "equipmentId": "cable",
+      "implementationId": "cable",
+      "configurationIds": [
+        "glutes_patada_gluteo_lateral__cable"
+      ],
+      "configurationEvidence": [
+        {
+          "id": "glutes_patada_gluteo_lateral__cable",
+          "equipmentId": "cable",
+          "selectedOptions": {
+            "implement": "cable"
+          }
+        }
+      ],
+      "sourcePng": "assets/exercise_glutes_patada_gluteo_lateral_cable_batch_20261010_v2_review.png",
+      "sourcePngCurrentSha256": "13b93a02549e233a6974b36635a012a0d18baeaf8072e6c870acc8f856bf7308",
+      "receipt": "artifacts/exercise-images-review-20261012/integration_receipts.json",
+      "approvalDate": "2026-10-12",
+      "approvalEvidence": {
+        "manifest": "artifacts/exercise-images-review-20261012/integration_receipts.json",
+        "recordedHumanDecision": "EL RESTO INTÉGRALO",
+        "receiptManifest": "artifacts/exercise-images-review-20261012/integration_receipts.json",
+        "number": null,
+        "group": null,
+        "kind": "new_batch"
+      },
+      "webpSha256": "6cc739f026a46e647843da4578759f5ebded6955df13536d13e48ef7d28b2511",
+      "sourcePngRgbaEqualsWebp": true,
+      "sameWebpBytesAsAudit14": true,
+      "dimensions": [
+        1145,
+        1374
+      ],
+      "visualQaEvidence": [
+        {
+          "manifest": "artifacts\\exercise-images-batch-20261010\\batch.json",
+          "number": 12,
+          "approvedByUser": true,
+          "integratedIntoApp": true,
+          "status": "integrated_approved",
+          "qaReview": null
+        }
+      ],
+      "routingScope": "Existing HEAD configuration IDs only; preserve historical same-exercise/equipment illustration across laterality-only choices as already implemented in the historical lookup. Does not expand implement or support configuration."
+    },
+    {
+      "resourceName": "exercise_glutes_puente_gluteos_bodyweight",
+      "file": "android-native/app/src/main/res/drawable-nodpi/exercise_glutes_puente_gluteos_bodyweight.webp",
+      "definitionId": "glutes_puente_gluteos",
+      "equipmentId": "bodyweight",
+      "implementationId": "bodyweight",
+      "configurationIds": [
+        "glutes_puente_gluteos__bilateral__bodyweight"
+      ],
+      "configurationEvidence": [
+        {
+          "id": "glutes_puente_gluteos__bilateral__bodyweight",
+          "equipmentId": "bodyweight",
+          "selectedOptions": {
+            "implement": "bodyweight",
+            "laterality": "bilateral"
+          }
+        }
+      ],
+      "sourcePng": "assets/exercise_glutes_puente_gluteos_bodyweight_batch_20261010_review.png",
+      "sourcePngCurrentSha256": "ce4c7f14a7de89551535ac67a84fa2992565c0329855dcc2cb8de8aa6b732a96",
+      "receipt": "artifacts/exercise-images-review-20261012/integration_receipts.json",
+      "approvalDate": "2026-10-12",
+      "approvalEvidence": {
+        "manifest": "artifacts/exercise-images-review-20261012/integration_receipts.json",
+        "recordedHumanDecision": "EL RESTO INTÉGRALO",
+        "receiptManifest": "artifacts/exercise-images-review-20261012/integration_receipts.json",
+        "number": null,
+        "group": null,
+        "kind": "new_batch"
+      },
+      "webpSha256": "49c9dbd17f7eda63e62fab77f5df1d44b33304e48a73b58313c5b92836f1e554",
+      "sourcePngRgbaEqualsWebp": true,
+      "sameWebpBytesAsAudit14": true,
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "visualQaEvidence": [
+        {
+          "manifest": "artifacts\\exercise-images-batch-20261010\\batch.json",
+          "number": 21,
+          "approvedByUser": true,
+          "integratedIntoApp": true,
+          "status": "integrated_approved",
+          "qaReview": null
+        }
+      ],
+      "routingScope": "Existing HEAD configuration IDs only; preserve historical same-exercise/equipment illustration across laterality-only choices as already implemented in the historical lookup. Does not expand implement or support configuration."
+    },
+    {
+      "resourceName": "exercise_glutes_zancada_cruzada_dumbbells_batch20261008b",
+      "file": "android-native/app/src/main/res/drawable-nodpi/exercise_glutes_zancada_cruzada_dumbbells_batch20261008b.webp",
+      "definitionId": "glutes_zancada_cruzada",
+      "equipmentId": "dumbbells",
+      "implementationId": "dumbbells",
+      "configurationIds": [
+        "glutes_zancada_cruzada__default"
+      ],
+      "configurationEvidence": [
+        {
+          "id": "glutes_zancada_cruzada__default",
+          "equipmentId": "dumbbells",
+          "selectedOptions": {}
+        }
+      ],
+      "sourcePng": "assets/exercise_glutes_zancada_cruzada_dumbbells_batch_20261008b_v2_review.png",
+      "sourcePngCurrentSha256": "5a85af6c6369be9202568fb3d8cb0da018a68e3dc106b47d1967eb95a37fab56",
+      "receipt": "artifacts/exercise-images-review-20261009/integration_receipts.json",
+      "approvalDate": "2026-10-09",
+      "approvalEvidence": {
+        "manifest": "artifacts/exercise-images-review-20261009/decisions.json",
+        "recordedHumanDecision": "El resto está OK; las aprobadas desde ahora deben pasar a WebP.",
+        "receiptManifest": "artifacts/exercise-images-review-20261009/integration_receipts.json",
+        "number": 19,
+        "group": "B",
+        "kind": null
+      },
+      "webpSha256": "a6e57b2113d4fcd652fb6fed2816cc0fb103d9b5722c00d9ab122b60cd9c13c8",
+      "sourcePngRgbaEqualsWebp": true,
+      "sameWebpBytesAsAudit14": true,
+      "dimensions": [
+        1024,
+        1536
+      ],
+      "visualQaEvidence": [
+        {
+          "manifest": "artifacts\\exercise-images-batch-20261008-b\\batch.json",
+          "number": 19,
+          "approvedByUser": true,
+          "integratedIntoApp": true,
+          "status": "integrated_approved",
+          "qaReview": {
+            "status": "independently_reviewed_candidate",
+            "humanApprovalRequired": true,
+            "cameraObservation": null
+          }
+        }
+      ],
+      "routingScope": "Existing HEAD configuration IDs only; preserve historical same-exercise/equipment illustration across laterality-only choices as already implemented in the historical lookup. Does not expand implement or support configuration."
+    },
+    {
+      "resourceName": "exercise_good_morning_bodyweight",
+      "file": "android-native/app/src/main/res/drawable-nodpi/exercise_good_morning_bodyweight.webp",
+      "definitionId": "good_morning",
+      "equipmentId": "bodyweight",
+      "implementationId": "bodyweight",
+      "configurationIds": [
+        "good_morning__bilateral__bodyweight"
+      ],
+      "configurationEvidence": [
+        {
+          "id": "good_morning__bilateral__bodyweight",
+          "equipmentId": "bodyweight",
+          "selectedOptions": {
+            "implement": "bodyweight",
+            "laterality": "bilateral"
+          }
+        }
+      ],
+      "sourcePng": "assets/exercise_good_morning_bodyweight_batch_20261010_review.png",
+      "sourcePngCurrentSha256": "207514f1e59ae8925c810fe80982645fc810c4bd53077ca18f9385ecc9d41021",
+      "receipt": "artifacts/exercise-images-review-20261012/integration_receipts.json",
+      "approvalDate": "2026-10-12",
+      "approvalEvidence": {
+        "manifest": "artifacts/exercise-images-review-20261012/integration_receipts.json",
+        "recordedHumanDecision": "EL RESTO INTÉGRALO",
+        "receiptManifest": "artifacts/exercise-images-review-20261012/integration_receipts.json",
+        "number": null,
+        "group": null,
+        "kind": "new_batch"
+      },
+      "webpSha256": "e4edc7162d4d0de96dda16d6dd594c82afb026a7d8ad73b4a7acdfee9da6b0f7",
+      "sourcePngRgbaEqualsWebp": true,
+      "sameWebpBytesAsAudit14": true,
+      "dimensions": [
+        1200,
+        1311
+      ],
+      "visualQaEvidence": [
+        {
+          "manifest": "artifacts\\exercise-images-batch-20261010\\batch.json",
+          "number": 9,
+          "approvedByUser": true,
+          "integratedIntoApp": true,
+          "status": "integrated_approved",
+          "qaReview": null
+        }
+      ],
+      "routingScope": "Existing HEAD configuration IDs only; preserve historical same-exercise/equipment illustration across laterality-only choices as already implemented in the historical lookup. Does not expand implement or support configuration."
+    },
+    {
+      "resourceName": "exercise_hang_power_clean_barbell_batch20261008",
+      "file": "android-native/app/src/main/res/drawable-nodpi/exercise_hang_power_clean_barbell_batch20261008.webp",
+      "definitionId": "hang_power_clean",
+      "equipmentId": "barbell",
+      "implementationId": "barbell",
+      "configurationIds": [
+        "hang_power_clean__barbell"
+      ],
+      "configurationEvidence": [
+        {
+          "id": "hang_power_clean__barbell",
+          "equipmentId": "barbell",
+          "selectedOptions": {}
+        }
+      ],
+      "sourcePng": "assets/exercise_hang_power_clean_barbell_batch_20261008_review.png",
+      "sourcePngCurrentSha256": "f552d507f1aba33f0da8f9e42972033cc935ecaf23717245a427e2846f7ced9e",
+      "receipt": "artifacts/exercise-images-batch-20261008/integration_receipts.json",
+      "approvalDate": "2026-10-08",
+      "approvalEvidence": {
+        "manifest": "artifacts/exercise-images-batch-20261008/user_review.json",
+        "recordedHumanDecision": "Todos aprobados excepto 2, 5, 6, 12 y 19.",
+        "receiptManifest": "artifacts/exercise-images-batch-20261008/integration_receipts.json",
+        "number": 22,
+        "group": null,
+        "kind": null
+      },
+      "webpSha256": "890b9badb6e81e975bc65ad2c3befa881b001cb6be5da02c60e5fdb998ccd43c",
+      "sourcePngRgbaEqualsWebp": false,
+      "sameWebpBytesAsAudit14": true,
+      "dimensions": [
+        1178,
+        1335
+      ],
+      "visualQaEvidence": [
+        {
+          "manifest": "artifacts\\exercise-images-batch-20261008\\batch.json",
+          "number": 22,
+          "approvedByUser": true,
+          "integratedIntoApp": true,
+          "status": "integrated_approved",
+          "qaReview": {
+            "status": "independent_review_observable_contacts",
+            "note": "Latest clean image inspected independently; no visible anatomical fusion or halo. Framing and static exercise posture described; image remains pending human approval."
+          }
+        }
+      ],
+      "routingScope": "Existing HEAD configuration IDs only; preserve historical same-exercise/equipment illustration across laterality-only choices as already implemented in the historical lookup. Does not expand implement or support configuration."
+    },
+    {
+      "resourceName": "exercise_hang_power_snatch_barbell_batch20261008",
+      "file": "android-native/app/src/main/res/drawable-nodpi/exercise_hang_power_snatch_barbell_batch20261008.webp",
+      "definitionId": "hang_power_snatch",
+      "equipmentId": "barbell",
+      "implementationId": "barbell",
+      "configurationIds": [
+        "hang_power_snatch__barbell"
+      ],
+      "configurationEvidence": [
+        {
+          "id": "hang_power_snatch__barbell",
+          "equipmentId": "barbell",
+          "selectedOptions": {}
+        }
+      ],
+      "sourcePng": "assets/exercise_hang_power_snatch_barbell_batch_20261008_review.png",
+      "sourcePngCurrentSha256": "75365cac377bd566c8fb806255abea96f52a60f25c5e45f75b8106905328637e",
+      "receipt": "artifacts/exercise-images-batch-20261008/integration_receipts.json",
+      "approvalDate": "2026-10-08",
+      "approvalEvidence": {
+        "manifest": "artifacts/exercise-images-batch-20261008/user_review.json",
+        "recordedHumanDecision": "Todos aprobados excepto 2, 5, 6, 12 y 19.",
+        "receiptManifest": "artifacts/exercise-images-batch-20261008/integration_receipts.json",
+        "number": 26,
+        "group": null,
+        "kind": null
+      },
+      "webpSha256": "b72293c30740286db7d79c877c50c69f7181ed1275f4acde5c8567b0ee55d1b4",
+      "sourcePngRgbaEqualsWebp": false,
+      "sameWebpBytesAsAudit14": true,
+      "dimensions": [
+        1234,
+        1274
+      ],
+      "visualQaEvidence": [
+        {
+          "manifest": "artifacts\\exercise-images-batch-20261008\\batch.json",
+          "number": 26,
+          "approvedByUser": true,
+          "integratedIntoApp": true,
+          "status": "integrated_approved",
+          "qaReview": {
+            "status": "independent_review_observable_contacts",
+            "note": "Latest clean image inspected independently; no visible anatomical fusion or halo. Framing and static exercise posture described; image remains pending human approval."
+          }
+        }
+      ],
+      "routingScope": "Existing HEAD configuration IDs only; preserve historical same-exercise/equipment illustration across laterality-only choices as already implemented in the historical lookup. Does not expand implement or support configuration."
+    },
+    {
+      "resourceName": "exercise_hollow_body_hold_bodyweight_batch20261008",
+      "file": "android-native/app/src/main/res/drawable-nodpi/exercise_hollow_body_hold_bodyweight_batch20261008.webp",
+      "definitionId": "hollow_body_hold",
+      "equipmentId": "bodyweight",
+      "implementationId": "bodyweight",
+      "configurationIds": [
+        "hollow_body_hold__default"
+      ],
+      "configurationEvidence": [
+        {
+          "id": "hollow_body_hold__default",
+          "equipmentId": "bodyweight",
+          "selectedOptions": {}
+        }
+      ],
+      "sourcePng": "assets/exercise_hollow_body_hold_bodyweight_batch_20261008_review.png",
+      "sourcePngCurrentSha256": "7e1c92acfbf1c0563fe10bfe6db03893f46787f3943c293e56fa12108e4c5585",
+      "receipt": "artifacts/exercise-images-batch-20261008/integration_receipts.json",
+      "approvalDate": "2026-10-08",
+      "approvalEvidence": {
+        "manifest": "artifacts/exercise-images-batch-20261008/user_review.json",
+        "recordedHumanDecision": "Todos aprobados excepto 2, 5, 6, 12 y 19.",
+        "receiptManifest": "artifacts/exercise-images-batch-20261008/integration_receipts.json",
+        "number": 1,
+        "group": null,
+        "kind": null
+      },
+      "webpSha256": "82f16f9cb33fe7dd08863e9c62b9718c432fe7288350778cdf8913ca84a9849f",
+      "sourcePngRgbaEqualsWebp": false,
+      "sameWebpBytesAsAudit14": true,
+      "dimensions": [
+        1774,
+        887
+      ],
+      "visualQaEvidence": [
+        {
+          "manifest": "artifacts\\exercise-images-batch-20261008\\batch.json",
+          "number": 1,
+          "approvedByUser": true,
+          "integratedIntoApp": true,
+          "status": "integrated_approved",
+          "qaReview": {
+            "status": "independent_review_pass",
+            "note": "Pose, anatomy and visible contacts accepted after alpha cleanup."
+          }
+        }
+      ],
+      "routingScope": "Existing HEAD configuration IDs only; preserve historical same-exercise/equipment illustration across laterality-only choices as already implemented in the historical lookup. Does not expand implement or support configuration."
+    },
+    {
+      "resourceName": "exercise_incline_biceps_curl_dumbbells_batch20261008",
+      "file": "android-native/app/src/main/res/drawable-nodpi/exercise_incline_biceps_curl_dumbbells_batch20261008.webp",
+      "definitionId": "incline_biceps_curl",
+      "equipmentId": "dumbbells",
+      "implementationId": "dumbbells",
+      "configurationIds": [
+        "incline_biceps_curl__dumbbells"
+      ],
+      "configurationEvidence": [
+        {
+          "id": "incline_biceps_curl__dumbbells",
+          "equipmentId": "dumbbells",
+          "selectedOptions": {}
+        }
+      ],
+      "sourcePng": "assets/exercise_incline_biceps_curl_dumbbells_batch_20261008_v2_review.png",
+      "sourcePngCurrentSha256": "2b4a1c86d4e9ba1413b92fab7e0dc7102815a31c7c4125e4e55dc00ee8e8c1f4",
+      "receipt": "artifacts/exercise-images-review-20261009/integration_receipts.json",
+      "approvalDate": "2026-10-09",
+      "approvalEvidence": {
+        "manifest": "artifacts/exercise-images-review-20261009/decisions.json",
+        "recordedHumanDecision": "El resto está OK; las aprobadas desde ahora deben pasar a WebP.",
+        "receiptManifest": "artifacts/exercise-images-review-20261009/integration_receipts.json",
+        "number": 6,
+        "group": "A",
+        "kind": null
+      },
+      "webpSha256": "1e937b4c2ee3cce88dd90fcdeabaae878c7f6b14fd994b3f8994e34d4f9e99d7",
+      "sourcePngRgbaEqualsWebp": true,
+      "sameWebpBytesAsAudit14": true,
+      "dimensions": [
+        1230,
+        1278
+      ],
+      "visualQaEvidence": [
+        {
+          "manifest": "artifacts\\exercise-images-batch-20261008\\batch.json",
+          "number": 6,
+          "approvedByUser": true,
+          "integratedIntoApp": true,
+          "status": "integrated_approved",
+          "qaReview": {
+            "status": "independently_reviewed_candidate",
+            "humanApprovalRequired": true,
+            "cameraObservation": null
+          }
+        }
+      ],
+      "routingScope": "Existing HEAD configuration IDs only; preserve historical same-exercise/equipment illustration across laterality-only choices as already implemented in the historical lookup. Does not expand implement or support configuration."
+    },
+    {
+      "resourceName": "exercise_knee_push_up_bodyweight_batch20261008",
+      "file": "android-native/app/src/main/res/drawable-nodpi/exercise_knee_push_up_bodyweight_batch20261008.webp",
+      "definitionId": "knee_push_up",
+      "equipmentId": "bodyweight",
+      "implementationId": "bodyweight",
+      "configurationIds": [
+        "knee_push_up__default"
+      ],
+      "configurationEvidence": [
+        {
+          "id": "knee_push_up__default",
+          "equipmentId": "bodyweight",
+          "selectedOptions": {}
+        }
+      ],
+      "sourcePng": "assets/exercise_knee_push_up_bodyweight_batch_20261008_review.png",
+      "sourcePngCurrentSha256": "8715fc9d99e532730888cdea1985ab53f94cd55f407c7426245abf93fde1f421",
+      "receipt": "artifacts/exercise-images-batch-20261008/integration_receipts.json",
+      "approvalDate": "2026-10-08",
+      "approvalEvidence": {
+        "manifest": "artifacts/exercise-images-batch-20261008/user_review.json",
+        "recordedHumanDecision": "Todos aprobados excepto 2, 5, 6, 12 y 19.",
+        "receiptManifest": "artifacts/exercise-images-batch-20261008/integration_receipts.json",
+        "number": 15,
+        "group": null,
+        "kind": null
+      },
+      "webpSha256": "23cc39a27976cefe44aa358b5627fbf1bdba976f4892e5fd7d58ee4a81384353",
+      "sourcePngRgbaEqualsWebp": false,
+      "sameWebpBytesAsAudit14": true,
+      "dimensions": [
+        1774,
+        887
+      ],
+      "visualQaEvidence": [
+        {
+          "manifest": "artifacts\\exercise-images-batch-20261008\\batch.json",
+          "number": 15,
+          "approvedByUser": true,
+          "integratedIntoApp": true,
+          "status": "integrated_approved",
+          "qaReview": {
+            "status": "independent_review_observable_contacts",
+            "note": "Latest clean image inspected independently; no visible anatomical fusion or halo. Framing and static exercise posture described; image remains pending human approval."
+          }
+        }
+      ],
+      "routingScope": "Existing HEAD configuration IDs only; preserve historical same-exercise/equipment illustration across laterality-only choices as already implemented in the historical lookup. Does not expand implement or support configuration."
+    },
+    {
+      "resourceName": "exercise_lateral_raise_super_rom_dumbbells",
+      "file": "android-native/app/src/main/res/drawable-nodpi/exercise_lateral_raise_super_rom_dumbbells.webp",
+      "definitionId": "lateral_raise_super_rom",
+      "equipmentId": "dumbbells",
+      "implementationId": "dumbbells",
+      "configurationIds": [
+        "lateral_raise_super_rom__dumbbells"
+      ],
+      "configurationEvidence": [
+        {
+          "id": "lateral_raise_super_rom__dumbbells",
+          "equipmentId": "dumbbells",
+          "selectedOptions": {
+            "implement": "dumbbells"
+          }
+        }
+      ],
+      "sourcePng": "assets/exercise_lateral_raise_super_rom_dumbbells_batch_20261010_review.png",
+      "sourcePngCurrentSha256": "60145bc45238ff8c85b2ce22c56b81fdad61366208b41fd5c53c466403327edd",
+      "receipt": "artifacts/exercise-images-review-20261012/integration_receipts.json",
+      "approvalDate": "2026-10-12",
+      "approvalEvidence": {
+        "manifest": "artifacts/exercise-images-review-20261012/integration_receipts.json",
+        "recordedHumanDecision": "EL RESTO INTÉGRALO",
+        "receiptManifest": "artifacts/exercise-images-review-20261012/integration_receipts.json",
+        "number": null,
+        "group": null,
+        "kind": "new_batch"
+      },
+      "webpSha256": "5290f568d96f8bb5445f59158ef91f05238967a0fec11f94854f7d3064a92bdb",
+      "sourcePngRgbaEqualsWebp": true,
+      "sameWebpBytesAsAudit14": true,
+      "dimensions": [
+        1024,
+        1536
+      ],
+      "visualQaEvidence": [
+        {
+          "manifest": "artifacts\\exercise-images-batch-20261010\\batch.json",
+          "number": 38,
+          "approvedByUser": true,
+          "integratedIntoApp": true,
+          "status": "integrated_approved",
+          "qaReview": null
+        }
+      ],
+      "routingScope": "Existing HEAD configuration IDs only; preserve historical same-exercise/equipment illustration across laterality-only choices as already implemented in the historical lookup. Does not expand implement or support configuration."
+    },
+    {
+      "resourceName": "exercise_neck_extension_cuello_plate",
+      "file": "android-native/app/src/main/res/drawable-nodpi/exercise_neck_extension_cuello_plate.webp",
+      "definitionId": "neck_extension_cuello",
+      "equipmentId": "plate",
+      "implementationId": "plate",
+      "configurationIds": [
+        "neck_extension_cuello__plate"
+      ],
+      "configurationEvidence": [
+        {
+          "id": "neck_extension_cuello__plate",
+          "equipmentId": "plate",
+          "selectedOptions": {
+            "implement": "plate"
+          }
+        }
+      ],
+      "sourcePng": "assets/exercise_neck_extension_cuello_plate_batch_20261010_v3_review.png",
+      "sourcePngCurrentSha256": "b27c217749c95f5988f37572a44c1d63df914e203dd227fb3b6ee67af7392004",
+      "receipt": "artifacts/exercise-images-review-20261012/integration_receipts.json",
+      "approvalDate": "2026-10-12",
+      "approvalEvidence": {
+        "manifest": "artifacts/exercise-images-review-20261012/integration_receipts.json",
+        "recordedHumanDecision": "EL RESTO INTÉGRALO",
+        "receiptManifest": "artifacts/exercise-images-review-20261012/integration_receipts.json",
+        "number": null,
+        "group": null,
+        "kind": "new_batch"
+      },
+      "webpSha256": "162e974c2dabd9d59d23c4ffce6f188b26ca6603cf1cbca20419992cc938e156",
+      "sourcePngRgbaEqualsWebp": true,
+      "sameWebpBytesAsAudit14": true,
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "visualQaEvidence": [
+        {
+          "manifest": "artifacts\\exercise-images-batch-20261010\\batch.json",
+          "number": 34,
+          "approvedByUser": true,
+          "integratedIntoApp": true,
+          "status": "integrated_approved",
+          "qaReview": null
+        }
+      ],
+      "routingScope": "Existing HEAD configuration IDs only; preserve historical same-exercise/equipment illustration across laterality-only choices as already implemented in the historical lookup. Does not expand implement or support configuration."
+    },
+    {
+      "resourceName": "exercise_neck_flexion_cuello_plate",
+      "file": "android-native/app/src/main/res/drawable-nodpi/exercise_neck_flexion_cuello_plate.webp",
+      "definitionId": "neck_flexion_cuello",
+      "equipmentId": "plate",
+      "implementationId": "plate",
+      "configurationIds": [
+        "neck_flexion_cuello__plate"
+      ],
+      "configurationEvidence": [
+        {
+          "id": "neck_flexion_cuello__plate",
+          "equipmentId": "plate",
+          "selectedOptions": {
+            "implement": "plate"
+          }
+        }
+      ],
+      "sourcePng": "assets/exercise_neck_flexion_cuello_plate_batch_20261010_v2_review.png",
+      "sourcePngCurrentSha256": "98a388cf3e2fc62082d890407036913d7d2d0f9609b064f00facc282e69d1a79",
+      "receipt": "artifacts/exercise-images-review-20261012/integration_receipts.json",
+      "approvalDate": "2026-10-12",
+      "approvalEvidence": {
+        "manifest": "artifacts/exercise-images-review-20261012/integration_receipts.json",
+        "recordedHumanDecision": "EL RESTO INTÉGRALO",
+        "receiptManifest": "artifacts/exercise-images-review-20261012/integration_receipts.json",
+        "number": null,
+        "group": null,
+        "kind": "new_batch"
+      },
+      "webpSha256": "bd54a9e36d1bbbfb12cc9e6b971f66a03c35faa7755c76620a6f01d243f095d8",
+      "sourcePngRgbaEqualsWebp": true,
+      "sameWebpBytesAsAudit14": true,
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "visualQaEvidence": [
+        {
+          "manifest": "artifacts\\exercise-images-batch-20261010\\batch.json",
+          "number": 35,
+          "approvedByUser": true,
+          "integratedIntoApp": true,
+          "status": "integrated_approved",
+          "qaReview": null
+        }
+      ],
+      "routingScope": "Existing HEAD configuration IDs only; preserve historical same-exercise/equipment illustration across laterality-only choices as already implemented in the historical lookup. Does not expand implement or support configuration."
+    },
+    {
+      "resourceName": "exercise_neck_flexion_lateral_cuello_plate",
+      "file": "android-native/app/src/main/res/drawable-nodpi/exercise_neck_flexion_lateral_cuello_plate.webp",
+      "definitionId": "neck_flexion_lateral_cuello",
+      "equipmentId": "plate",
+      "implementationId": "plate",
+      "configurationIds": [
+        "neck_flexion_lateral_cuello__default"
+      ],
+      "configurationEvidence": [
+        {
+          "id": "neck_flexion_lateral_cuello__default",
+          "equipmentId": "plate",
+          "selectedOptions": {}
+        }
+      ],
+      "sourcePng": "assets/exercise_neck_flexion_lateral_cuello_plate_batch_20261010_v3_review.png",
+      "sourcePngCurrentSha256": "b579270acd6caf5448c57efa5746258f95eed3f777383ac9f29919cbb37ed699",
+      "receipt": "artifacts/exercise-images-review-20261012/integration_receipts.json",
+      "approvalDate": "2026-10-12",
+      "approvalEvidence": {
+        "manifest": "artifacts/exercise-images-review-20261012/integration_receipts.json",
+        "recordedHumanDecision": "EL RESTO INTÉGRALO",
+        "receiptManifest": "artifacts/exercise-images-review-20261012/integration_receipts.json",
+        "number": null,
+        "group": null,
+        "kind": "new_batch"
+      },
+      "webpSha256": "1c17fe24552ccc5f76eb62cf20f2ac1709034669a2607773ef245414f3e6d15a",
+      "sourcePngRgbaEqualsWebp": true,
+      "sameWebpBytesAsAudit14": true,
+      "dimensions": [
+        1672,
+        941
+      ],
+      "visualQaEvidence": [
+        {
+          "manifest": "artifacts\\exercise-images-batch-20261010\\batch.json",
+          "number": 11,
+          "approvedByUser": true,
+          "integratedIntoApp": true,
+          "status": "integrated_approved",
+          "qaReview": null
+        }
+      ],
+      "routingScope": "Existing HEAD configuration IDs only; preserve historical same-exercise/equipment illustration across laterality-only choices as already implemented in the historical lookup. Does not expand implement or support configuration."
+    },
+    {
+      "resourceName": "exercise_negative_pull_up_bodyweight_batch20261008",
+      "file": "android-native/app/src/main/res/drawable-nodpi/exercise_negative_pull_up_bodyweight_batch20261008.webp",
+      "definitionId": "negative_pull_up",
+      "equipmentId": "bodyweight",
+      "implementationId": "bodyweight",
+      "configurationIds": [
+        "negative_pull_up__default"
+      ],
+      "configurationEvidence": [
+        {
+          "id": "negative_pull_up__default",
+          "equipmentId": "bodyweight",
+          "selectedOptions": {}
+        }
+      ],
+      "sourcePng": "assets/exercise_negative_pull_up_bodyweight_batch_20261008_review.png",
+      "sourcePngCurrentSha256": "b8ff83bb2b211295adea48814cc5b7614defa265ce6e3fcf97c1e63b10cb7514",
+      "receipt": "artifacts/exercise-images-batch-20261008/integration_receipts.json",
+      "approvalDate": "2026-10-08",
+      "approvalEvidence": {
+        "manifest": "artifacts/exercise-images-batch-20261008/user_review.json",
+        "recordedHumanDecision": "Todos aprobados excepto 2, 5, 6, 12 y 19.",
+        "receiptManifest": "artifacts/exercise-images-batch-20261008/integration_receipts.json",
+        "number": 20,
+        "group": null,
+        "kind": null
+      },
+      "webpSha256": "56fab69b68490451b5d0c3d3208937e997a57d5bb04e85df484b39cd62611eab",
+      "sourcePngRgbaEqualsWebp": false,
+      "sameWebpBytesAsAudit14": true,
+      "dimensions": [
+        1024,
+        1536
+      ],
+      "visualQaEvidence": [
+        {
+          "manifest": "artifacts\\exercise-images-batch-20261008\\batch.json",
+          "number": 20,
+          "approvedByUser": true,
+          "integratedIntoApp": true,
+          "status": "integrated_approved",
+          "qaReview": {
+            "status": "independent_review_pass",
+            "note": "Pose, anatomy and visible contacts accepted after alpha cleanup."
+          }
+        }
+      ],
+      "routingScope": "Existing HEAD configuration IDs only; preserve historical same-exercise/equipment illustration across laterality-only choices as already implemented in the historical lookup. Does not expand implement or support configuration."
+    },
+    {
+      "resourceName": "exercise_overhead_squat_barbell_batch20261008b",
+      "file": "android-native/app/src/main/res/drawable-nodpi/exercise_overhead_squat_barbell_batch20261008b.webp",
+      "definitionId": "overhead_squat",
+      "equipmentId": "barbell",
+      "implementationId": "barbell",
+      "configurationIds": [
+        "overhead_squat__barbell"
+      ],
+      "configurationEvidence": [
+        {
+          "id": "overhead_squat__barbell",
+          "equipmentId": "barbell",
+          "selectedOptions": {}
+        }
+      ],
+      "sourcePng": "assets/exercise_overhead_squat_barbell_batch_20261008b_review.png",
+      "sourcePngCurrentSha256": "e789a47cad178023e51cb159ff5bd60455c7639cd2555b22f01ceab1b1083200",
+      "receipt": "artifacts/exercise-images-review-20261009/integration_receipts.json",
+      "approvalDate": "2026-10-09",
+      "approvalEvidence": {
+        "manifest": "artifacts/exercise-images-review-20261009/decisions.json",
+        "recordedHumanDecision": "El resto está OK; las aprobadas desde ahora deben pasar a WebP.",
+        "receiptManifest": "artifacts/exercise-images-review-20261009/integration_receipts.json",
+        "number": 4,
+        "group": "B",
+        "kind": null
+      },
+      "webpSha256": "1da0a7f3e5fd7f0fafbe21d8d09737046f0e61b5fab180d5aa4fc24cb386290e",
+      "sourcePngRgbaEqualsWebp": true,
+      "sameWebpBytesAsAudit14": true,
+      "dimensions": [
+        1024,
+        1536
+      ],
+      "visualQaEvidence": [
+        {
+          "manifest": "artifacts\\exercise-images-batch-20261008-b\\batch.json",
+          "number": 4,
+          "approvedByUser": true,
+          "integratedIntoApp": true,
+          "status": "integrated_approved",
+          "qaReview": {
+            "status": "independently_reviewed_candidate",
+            "humanApprovalRequired": true,
+            "cameraObservation": null
+          }
+        }
+      ],
+      "routingScope": "Existing HEAD configuration IDs only; preserve historical same-exercise/equipment illustration across laterality-only choices as already implemented in the historical lookup. Does not expand implement or support configuration."
+    },
+    {
+      "resourceName": "exercise_overhead_triceps_extension_ez_bar",
+      "file": "android-native/app/src/main/res/drawable-nodpi/exercise_overhead_triceps_extension_ez_bar.webp",
+      "definitionId": "overhead_triceps_extension",
+      "equipmentId": "ez_bar",
+      "implementationId": "ez_bar",
+      "configurationIds": [
+        "overhead_triceps__ez_bar"
+      ],
+      "configurationEvidence": [
+        {
+          "id": "overhead_triceps__ez_bar",
+          "equipmentId": "ez_bar",
+          "selectedOptions": {
+            "implement": "ez_bar"
+          }
+        }
+      ],
+      "sourcePng": "assets/exercise_overhead_triceps_extension_ez_bar_batch_20261010_review.png",
+      "sourcePngCurrentSha256": "e2ac0490104fd54d28816c24fdead46169afbf01509306375a493fc3267c9f4b",
+      "receipt": "artifacts/exercise-images-review-20261012/integration_receipts.json",
+      "approvalDate": "2026-10-12",
+      "approvalEvidence": {
+        "manifest": "artifacts/exercise-images-review-20261012/integration_receipts.json",
+        "recordedHumanDecision": "EL RESTO INTÉGRALO",
+        "receiptManifest": "artifacts/exercise-images-review-20261012/integration_receipts.json",
+        "number": null,
+        "group": null,
+        "kind": "new_batch"
+      },
+      "webpSha256": "bbb227756da10904d78ce1ae29f20f7e9f504d6198b1c37b8e58aa23ea77b4f5",
+      "sourcePngRgbaEqualsWebp": true,
+      "sameWebpBytesAsAudit14": true,
+      "dimensions": [
+        1024,
+        1536
+      ],
+      "visualQaEvidence": [
+        {
+          "manifest": "artifacts\\exercise-images-batch-20261010\\batch.json",
+          "number": 41,
+          "approvedByUser": true,
+          "integratedIntoApp": true,
+          "status": "integrated_approved",
+          "qaReview": null
+        }
+      ],
+      "routingScope": "Existing HEAD configuration IDs only; preserve historical same-exercise/equipment illustration across laterality-only choices as already implemented in the historical lookup. Does not expand implement or support configuration."
+    },
+    {
+      "resourceName": "exercise_paused_back_squat_barbell_batch20261008b",
+      "file": "android-native/app/src/main/res/drawable-nodpi/exercise_paused_back_squat_barbell_batch20261008b.webp",
+      "definitionId": "paused_back_squat",
+      "equipmentId": "barbell",
+      "implementationId": "barbell",
+      "configurationIds": [
+        "paused_back_squat__barbell"
+      ],
+      "configurationEvidence": [
+        {
+          "id": "paused_back_squat__barbell",
+          "equipmentId": "barbell",
+          "selectedOptions": {}
+        }
+      ],
+      "sourcePng": "assets/exercise_paused_back_squat_barbell_batch_20261008b_review.png",
+      "sourcePngCurrentSha256": "2285bdee67f6413c426f507ff6804cec43eb8ef2a9b37fa0f36d7efe9a4d7a06",
+      "receipt": "artifacts/exercise-images-review-20261009/integration_receipts.json",
+      "approvalDate": "2026-10-09",
+      "approvalEvidence": {
+        "manifest": "artifacts/exercise-images-review-20261009/decisions.json",
+        "recordedHumanDecision": "El resto está OK; las aprobadas desde ahora deben pasar a WebP.",
+        "receiptManifest": "artifacts/exercise-images-review-20261009/integration_receipts.json",
+        "number": 3,
+        "group": "B",
+        "kind": null
+      },
+      "webpSha256": "1a94a16c79c1f06e16f0e764bd39a54942fed243e515894198ccf05aad31baaa",
+      "sourcePngRgbaEqualsWebp": true,
+      "sameWebpBytesAsAudit14": true,
+      "dimensions": [
+        1330,
+        1183
+      ],
+      "visualQaEvidence": [
+        {
+          "manifest": "artifacts\\exercise-images-batch-20261008-b\\batch.json",
+          "number": 3,
+          "approvedByUser": true,
+          "integratedIntoApp": true,
+          "status": "integrated_approved",
+          "qaReview": {
+            "status": "independently_reviewed_candidate",
+            "humanApprovalRequired": true,
+            "cameraObservation": null
+          }
+        }
+      ],
+      "routingScope": "Existing HEAD configuration IDs only; preserve historical same-exercise/equipment illustration across laterality-only choices as already implemented in the historical lookup. Does not expand implement or support configuration."
+    },
+    {
+      "resourceName": "exercise_pike_push_up_bodyweight_batch20261008",
+      "file": "android-native/app/src/main/res/drawable-nodpi/exercise_pike_push_up_bodyweight_batch20261008.webp",
+      "definitionId": "pike_push_up",
+      "equipmentId": "bodyweight",
+      "implementationId": "bodyweight",
+      "configurationIds": [
+        "pike_push_up__flat"
+      ],
+      "configurationEvidence": [
+        {
+          "id": "pike_push_up__flat",
+          "equipmentId": "bodyweight",
+          "selectedOptions": {
+            "support_angle": "flat"
+          }
+        }
+      ],
+      "sourcePng": "assets/exercise_pike_push_up_bodyweight_batch_20261008_review.png",
+      "sourcePngCurrentSha256": "aee2f5b41ceb49634ad97ee3a57b9f56e3f5bfc0451eacf09cd98d4f1e0c055c",
+      "receipt": "artifacts/exercise-images-batch-20261008/integration_receipts.json",
+      "approvalDate": "2026-10-08",
+      "approvalEvidence": {
+        "manifest": "artifacts/exercise-images-batch-20261008/user_review.json",
+        "recordedHumanDecision": "Todos aprobados excepto 2, 5, 6, 12 y 19.",
+        "receiptManifest": "artifacts/exercise-images-batch-20261008/integration_receipts.json",
+        "number": 18,
+        "group": null,
+        "kind": null
+      },
+      "webpSha256": "c4e8175fef6a3da028cee9cebfdc1e54d3731956cab7159fa01cfb8e0656fd78",
+      "sourcePngRgbaEqualsWebp": false,
+      "sameWebpBytesAsAudit14": true,
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "visualQaEvidence": [
+        {
+          "manifest": "artifacts\\exercise-images-batch-20261008\\batch.json",
+          "number": 18,
+          "approvedByUser": true,
+          "integratedIntoApp": true,
+          "status": "integrated_approved",
+          "qaReview": {
+            "status": "independent_review_pass",
+            "note": "Pose, anatomy and visible contacts accepted after alpha cleanup."
+          }
+        }
+      ],
+      "routingScope": "Only pike_push_up__flat. Feet-elevated has committed A03 and is explicitly excluded."
+    },
+    {
+      "resourceName": "exercise_power_clean_barbell_batch20261008",
+      "file": "android-native/app/src/main/res/drawable-nodpi/exercise_power_clean_barbell_batch20261008.webp",
+      "definitionId": "power_clean",
+      "equipmentId": "barbell",
+      "implementationId": "barbell",
+      "configurationIds": [
+        "power_clean__barbell"
+      ],
+      "configurationEvidence": [
+        {
+          "id": "power_clean__barbell",
+          "equipmentId": "barbell",
+          "selectedOptions": {}
+        }
+      ],
+      "sourcePng": "assets/exercise_power_clean_barbell_batch_20261008_review.png",
+      "sourcePngCurrentSha256": "8630123d214790803b0109e4abd2599274521227e5507c91ae00507909693eb1",
+      "receipt": "artifacts/exercise-images-batch-20261008/integration_receipts.json",
+      "approvalDate": "2026-10-08",
+      "approvalEvidence": {
+        "manifest": "artifacts/exercise-images-batch-20261008/user_review.json",
+        "recordedHumanDecision": "Todos aprobados excepto 2, 5, 6, 12 y 19.",
+        "receiptManifest": "artifacts/exercise-images-batch-20261008/integration_receipts.json",
+        "number": 21,
+        "group": null,
+        "kind": null
+      },
+      "webpSha256": "9ea73beabd222c940f2d0f4cbf81328e328024937d8cae380c43505f3a5a4b3a",
+      "sourcePngRgbaEqualsWebp": false,
+      "sameWebpBytesAsAudit14": true,
+      "dimensions": [
+        1310,
+        1200
+      ],
+      "visualQaEvidence": [
+        {
+          "manifest": "artifacts\\exercise-images-batch-20261008\\batch.json",
+          "number": 21,
+          "approvedByUser": true,
+          "integratedIntoApp": true,
+          "status": "integrated_approved",
+          "qaReview": {
+            "status": "independent_review_resolved",
+            "note": "Initial perspective-based disagreement; second independent inspection confirmed a reclined bench / power reception above parallel. Do not infer physical angles solely from projection."
+          }
+        }
+      ],
+      "routingScope": "Existing HEAD configuration IDs only; preserve historical same-exercise/equipment illustration across laterality-only choices as already implemented in the historical lookup. Does not expand implement or support configuration."
+    },
+    {
+      "resourceName": "exercise_power_snatch_barbell_batch20261008",
+      "file": "android-native/app/src/main/res/drawable-nodpi/exercise_power_snatch_barbell_batch20261008.webp",
+      "definitionId": "power_snatch",
+      "equipmentId": "barbell",
+      "implementationId": "barbell",
+      "configurationIds": [
+        "power_snatch__barbell"
+      ],
+      "configurationEvidence": [
+        {
+          "id": "power_snatch__barbell",
+          "equipmentId": "barbell",
+          "selectedOptions": {}
+        }
+      ],
+      "sourcePng": "assets/exercise_power_snatch_barbell_batch_20261008_review.png",
+      "sourcePngCurrentSha256": "f4ac55bc49399fd13acbc90f1399e69bcd369ea3d173470f53c54ab4f8d35793",
+      "receipt": "artifacts/exercise-images-batch-20261008/integration_receipts.json",
+      "approvalDate": "2026-10-08",
+      "approvalEvidence": {
+        "manifest": "artifacts/exercise-images-batch-20261008/user_review.json",
+        "recordedHumanDecision": "Todos aprobados excepto 2, 5, 6, 12 y 19.",
+        "receiptManifest": "artifacts/exercise-images-batch-20261008/integration_receipts.json",
+        "number": 25,
+        "group": null,
+        "kind": null
+      },
+      "webpSha256": "7d0d8e502d6cbc279535dbf5559fc858b16079e177b3d4ef6c3b68c2c2daa27e",
+      "sourcePngRgbaEqualsWebp": false,
+      "sameWebpBytesAsAudit14": true,
+      "dimensions": [
+        1024,
+        1536
+      ],
+      "visualQaEvidence": [
+        {
+          "manifest": "artifacts\\exercise-images-batch-20261008\\batch.json",
+          "number": 25,
+          "approvedByUser": true,
+          "integratedIntoApp": true,
+          "status": "integrated_approved",
+          "qaReview": {
+            "status": "independent_review_observable_contacts",
+            "note": "Latest clean image inspected independently; no visible anatomical fusion or halo. Framing and static exercise posture described; image remains pending human approval."
+          }
+        }
+      ],
+      "routingScope": "Existing HEAD configuration IDs only; preserve historical same-exercise/equipment illustration across laterality-only choices as already implemented in the historical lookup. Does not expand implement or support configuration."
+    },
+    {
+      "resourceName": "exercise_push_jerk_barbell_batch20261008",
+      "file": "android-native/app/src/main/res/drawable-nodpi/exercise_push_jerk_barbell_batch20261008.webp",
+      "definitionId": "push_jerk",
+      "equipmentId": "barbell",
+      "implementationId": "barbell",
+      "configurationIds": [
+        "push_jerk__barbell"
+      ],
+      "configurationEvidence": [
+        {
+          "id": "push_jerk__barbell",
+          "equipmentId": "barbell",
+          "selectedOptions": {}
+        }
+      ],
+      "sourcePng": "assets/exercise_push_jerk_barbell_batch_20261008_review.png",
+      "sourcePngCurrentSha256": "8ba07266838df1e18f7bc65905f912e75e6ac83123f806c7a62d6602c2594cba",
+      "receipt": "artifacts/exercise-images-batch-20261008/integration_receipts.json",
+      "approvalDate": "2026-10-08",
+      "approvalEvidence": {
+        "manifest": "artifacts/exercise-images-batch-20261008/user_review.json",
+        "recordedHumanDecision": "Todos aprobados excepto 2, 5, 6, 12 y 19.",
+        "receiptManifest": "artifacts/exercise-images-batch-20261008/integration_receipts.json",
+        "number": 29,
+        "group": null,
+        "kind": null
+      },
+      "webpSha256": "e4c559909c90116377558866f78fcd98097856863453adc4427644dd9d6f9df5",
+      "sourcePngRgbaEqualsWebp": false,
+      "sameWebpBytesAsAudit14": true,
+      "dimensions": [
+        1024,
+        1536
+      ],
+      "visualQaEvidence": [
+        {
+          "manifest": "artifacts\\exercise-images-batch-20261008\\batch.json",
+          "number": 29,
+          "approvedByUser": true,
+          "integratedIntoApp": true,
+          "status": "integrated_approved",
+          "qaReview": {
+            "status": "independent_review_observable_contacts",
+            "note": "Latest clean image inspected independently; no visible anatomical fusion or halo. Framing and static exercise posture described; image remains pending human approval."
+          }
+        }
+      ],
+      "routingScope": "Existing HEAD configuration IDs only; preserve historical same-exercise/equipment illustration across laterality-only choices as already implemented in the historical lookup. Does not expand implement or support configuration."
+    },
+    {
+      "resourceName": "exercise_quads_extension_cuadriceps_machine_batch20261008b",
+      "file": "android-native/app/src/main/res/drawable-nodpi/exercise_quads_extension_cuadriceps_machine_batch20261008b.webp",
+      "definitionId": "quads_extension_cuadriceps",
+      "equipmentId": "machine",
+      "implementationId": "machine",
+      "configurationIds": [
+        "quads_extension_cuadriceps__machine__bilateral",
+        "quads_extension_cuadriceps__machine__unilateral"
+      ],
+      "configurationEvidence": [
+        {
+          "id": "quads_extension_cuadriceps__machine__bilateral",
+          "equipmentId": "machine",
+          "selectedOptions": {
+            "laterality": "bilateral"
+          }
+        },
+        {
+          "id": "quads_extension_cuadriceps__machine__unilateral",
+          "equipmentId": "machine",
+          "selectedOptions": {
+            "laterality": "unilateral"
+          }
+        }
+      ],
+      "sourcePng": "assets/exercise_quads_extension_cuadriceps_machine_repair_20261009_review.png",
+      "sourcePngCurrentSha256": "43355364c04a82027d3a7bdf67d9b085c15fe35f1484979424feff4ac3e1f96c",
+      "receipt": "artifacts/exercise-images-batch-20261010/integration_receipts.json",
+      "approvalDate": "2026-10-10",
+      "approvalEvidence": {
+        "manifest": "artifacts/exercise-images-batch-20261010/approval.json",
+        "recordedHumanDecision": "El resto OK: aprobar A12, B6, B13, B25 y B26.",
+        "receiptManifest": "artifacts/exercise-images-batch-20261010/integration_receipts.json",
+        "number": 6,
+        "group": "B",
+        "kind": null
+      },
+      "webpSha256": "895cab04fad5a4a5f6ee94b5bdf9c7122378ca08ea2928f40b001bd4052a23cc",
+      "sourcePngRgbaEqualsWebp": true,
+      "sameWebpBytesAsAudit14": true,
+      "dimensions": [
+        1323,
+        1189
+      ],
+      "visualQaEvidence": [
+        {
+          "manifest": "artifacts\\exercise-images-batch-20261008-b\\batch.json",
+          "number": 6,
+          "approvedByUser": true,
+          "integratedIntoApp": true,
+          "status": "integrated_approved",
+          "qaReview": {
+            "status": "independently_reviewed_candidate",
+            "humanApprovalRequired": true,
+            "cameraObservation": null
+          }
+        }
+      ],
+      "routingScope": "Existing HEAD configuration IDs only; preserve historical same-exercise/equipment illustration across laterality-only choices as already implemented in the historical lookup. Does not expand implement or support configuration."
+    },
+    {
+      "resourceName": "exercise_quads_extension_cuadriceps_pie_polea_cable_batch20261008b",
+      "file": "android-native/app/src/main/res/drawable-nodpi/exercise_quads_extension_cuadriceps_pie_polea_cable_batch20261008b.webp",
+      "definitionId": "quads_extension_cuadriceps_pie_polea",
+      "equipmentId": "cable",
+      "implementationId": "cable",
+      "configurationIds": [
+        "quads_extension_cuadriceps_pie_polea__bilateral",
+        "quads_extension_cuadriceps_pie_polea__unilateral"
+      ],
+      "configurationEvidence": [
+        {
+          "id": "quads_extension_cuadriceps_pie_polea__bilateral",
+          "equipmentId": "cable",
+          "selectedOptions": {
+            "laterality": "bilateral"
+          }
+        },
+        {
+          "id": "quads_extension_cuadriceps_pie_polea__unilateral",
+          "equipmentId": "cable",
+          "selectedOptions": {
+            "laterality": "unilateral"
+          }
+        }
+      ],
+      "sourcePng": "assets/exercise_quads_extension_cuadriceps_pie_polea_cable_batch_20261008b_v2_review.png",
+      "sourcePngCurrentSha256": "7a1354b38ed3b31b8c1afab575700e5ebc4867320a664308fb4a5a87409ac7cb",
+      "receipt": "artifacts/exercise-images-review-20261009/integration_receipts.json",
+      "approvalDate": "2026-10-09",
+      "approvalEvidence": {
+        "manifest": "artifacts/exercise-images-review-20261009/decisions.json",
+        "recordedHumanDecision": "El resto está OK; las aprobadas desde ahora deben pasar a WebP.",
+        "receiptManifest": "artifacts/exercise-images-review-20261009/integration_receipts.json",
+        "number": 7,
+        "group": "B",
+        "kind": null
+      },
+      "webpSha256": "7b71ee286715fc321fca4b3bd1a2d03aa785265b376cf5450057fd6e8b977b6d",
+      "sourcePngRgbaEqualsWebp": true,
+      "sameWebpBytesAsAudit14": true,
+      "dimensions": [
+        1024,
+        1536
+      ],
+      "visualQaEvidence": [
+        {
+          "manifest": "artifacts\\exercise-images-batch-20261008-b\\batch.json",
+          "number": 7,
+          "approvedByUser": true,
+          "integratedIntoApp": true,
+          "status": "integrated_approved",
+          "qaReview": {
+            "status": "independently_reviewed_candidate",
+            "humanApprovalRequired": true,
+            "cameraObservation": null
+          }
+        }
+      ],
+      "routingScope": "Existing HEAD configuration IDs only; preserve historical same-exercise/equipment illustration across laterality-only choices as already implemented in the historical lookup. Does not expand implement or support configuration."
+    },
+    {
+      "resourceName": "exercise_quads_prensa_piernas_machine_batch20261008b",
+      "file": "android-native/app/src/main/res/drawable-nodpi/exercise_quads_prensa_piernas_machine_batch20261008b.webp",
+      "definitionId": "quads_prensa_piernas",
+      "equipmentId": "machine",
+      "implementationId": "machine",
+      "configurationIds": [
+        "quads_prensa_piernas__bilateral",
+        "quads_prensa_piernas__unilateral"
+      ],
+      "configurationEvidence": [
+        {
+          "id": "quads_prensa_piernas__bilateral",
+          "equipmentId": "machine",
+          "selectedOptions": {
+            "laterality": "bilateral"
+          }
+        },
+        {
+          "id": "quads_prensa_piernas__unilateral",
+          "equipmentId": "machine",
+          "selectedOptions": {
+            "laterality": "unilateral"
+          }
+        }
+      ],
+      "sourcePng": "assets/exercise_quads_prensa_piernas_machine_batch_20261008b_review.png",
+      "sourcePngCurrentSha256": "19106802421db4a94ec7211c697a5813acc243428606bc59b3337a30ac5f1e67",
+      "receipt": "artifacts/exercise-images-review-20261009/integration_receipts.json",
+      "approvalDate": "2026-10-09",
+      "approvalEvidence": {
+        "manifest": "artifacts/exercise-images-review-20261009/decisions.json",
+        "recordedHumanDecision": "El resto está OK; las aprobadas desde ahora deben pasar a WebP.",
+        "receiptManifest": "artifacts/exercise-images-review-20261009/integration_receipts.json",
+        "number": 1,
+        "group": "B",
+        "kind": null
+      },
+      "webpSha256": "3cb1b2ab8535a62d8f37b8b818cf2b984e86ce9a7ad838843108f6b2ffb1c616",
+      "sourcePngRgbaEqualsWebp": true,
+      "sameWebpBytesAsAudit14": true,
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "visualQaEvidence": [
+        {
+          "manifest": "artifacts\\exercise-images-batch-20261008-b\\batch.json",
+          "number": 1,
+          "approvedByUser": true,
+          "integratedIntoApp": true,
+          "status": "integrated_approved",
+          "qaReview": {
+            "status": "independently_reviewed_candidate",
+            "humanApprovalRequired": true,
+            "cameraObservation": null
+          }
+        }
+      ],
+      "routingScope": "Existing HEAD configuration IDs only; preserve historical same-exercise/equipment illustration across laterality-only choices as already implemented in the historical lookup. Does not expand implement or support configuration."
+    },
+    {
+      "resourceName": "exercise_quads_sentadilla_cajon_barbell_batch20261008b",
+      "file": "android-native/app/src/main/res/drawable-nodpi/exercise_quads_sentadilla_cajon_barbell_batch20261008b.webp",
+      "definitionId": "quads_sentadilla_cajon",
+      "equipmentId": "barbell",
+      "implementationId": "barbell",
+      "configurationIds": [
+        "quads_sentadilla_cajon__default"
+      ],
+      "configurationEvidence": [
+        {
+          "id": "quads_sentadilla_cajon__default",
+          "equipmentId": "barbell",
+          "selectedOptions": {}
+        }
+      ],
+      "sourcePng": "assets/exercise_quads_sentadilla_cajon_barbell_batch_20261008b_review.png",
+      "sourcePngCurrentSha256": "7b7aa008b52514184ca07c126f76b6b254385050379068799afcd9b66a7584a3",
+      "receipt": "artifacts/exercise-images-review-20261009/integration_receipts.json",
+      "approvalDate": "2026-10-09",
+      "approvalEvidence": {
+        "manifest": "artifacts/exercise-images-review-20261009/decisions.json",
+        "recordedHumanDecision": "El resto está OK; las aprobadas desde ahora deben pasar a WebP.",
+        "receiptManifest": "artifacts/exercise-images-review-20261009/integration_receipts.json",
+        "number": 8,
+        "group": "B",
+        "kind": null
+      },
+      "webpSha256": "08c9b4508e95b8463225ff98c81a684340b3b5b18de92181b08879818c1198ac",
+      "sourcePngRgbaEqualsWebp": true,
+      "sameWebpBytesAsAudit14": true,
+      "dimensions": [
+        1300,
+        1210
+      ],
+      "visualQaEvidence": [
+        {
+          "manifest": "artifacts\\exercise-images-batch-20261008-b\\batch.json",
+          "number": 8,
+          "approvedByUser": true,
+          "integratedIntoApp": true,
+          "status": "integrated_approved",
+          "qaReview": {
+            "status": "independently_reviewed_candidate",
+            "humanApprovalRequired": true,
+            "cameraObservation": null
+          }
+        }
+      ],
+      "routingScope": "Existing HEAD configuration IDs only; preserve historical same-exercise/equipment illustration across laterality-only choices as already implemented in the historical lookup. Does not expand implement or support configuration."
+    },
+    {
+      "resourceName": "exercise_quads_sentadilla_jefferson_barbell_batch20261008b",
+      "file": "android-native/app/src/main/res/drawable-nodpi/exercise_quads_sentadilla_jefferson_barbell_batch20261008b.webp",
+      "definitionId": "quads_sentadilla_jefferson",
+      "equipmentId": "barbell",
+      "implementationId": "barbell",
+      "configurationIds": [
+        "quads_sentadilla_jefferson__default"
+      ],
+      "configurationEvidence": [
+        {
+          "id": "quads_sentadilla_jefferson__default",
+          "equipmentId": "barbell",
+          "selectedOptions": {}
+        }
+      ],
+      "sourcePng": "assets/exercise_quads_sentadilla_jefferson_barbell_batch_20261008b_review.png",
+      "sourcePngCurrentSha256": "da756316aada9f32aaddee19e03ced580dd97dd531834cef36c3c257e9ee904b",
+      "receipt": "artifacts/exercise-images-review-20261009/integration_receipts.json",
+      "approvalDate": "2026-10-09",
+      "approvalEvidence": {
+        "manifest": "artifacts/exercise-images-review-20261009/decisions.json",
+        "recordedHumanDecision": "El resto está OK; las aprobadas desde ahora deben pasar a WebP.",
+        "receiptManifest": "artifacts/exercise-images-review-20261009/integration_receipts.json",
+        "number": 5,
+        "group": "B",
+        "kind": null
+      },
+      "webpSha256": "3dec196b0fd73b625b8a4cd5569d1dbfd528fa4ce0152ce2be219d524bfa8050",
+      "sourcePngRgbaEqualsWebp": true,
+      "sameWebpBytesAsAudit14": true,
+      "dimensions": [
+        1310,
+        1200
+      ],
+      "visualQaEvidence": [
+        {
+          "manifest": "artifacts\\exercise-images-batch-20261008-b\\batch.json",
+          "number": 5,
+          "approvedByUser": true,
+          "integratedIntoApp": true,
+          "status": "integrated_approved",
+          "qaReview": {
+            "status": "independently_reviewed_candidate",
+            "humanApprovalRequired": true,
+            "cameraObservation": null
+          }
+        }
+      ],
+      "routingScope": "Existing HEAD configuration IDs only; preserve historical same-exercise/equipment illustration across laterality-only choices as already implemented in the historical lookup. Does not expand implement or support configuration."
+    },
+    {
+      "resourceName": "exercise_quads_sentadilla_pistola_asistida_trx_trx_batch20261008b",
+      "file": "android-native/app/src/main/res/drawable-nodpi/exercise_quads_sentadilla_pistola_asistida_trx_trx_batch20261008b.webp",
+      "definitionId": "quads_sentadilla_pistola_asistida_trx",
+      "equipmentId": "trx",
+      "implementationId": "trx",
+      "configurationIds": [
+        "quads_sentadilla_pistola_asistida_trx__default"
+      ],
+      "configurationEvidence": [
+        {
+          "id": "quads_sentadilla_pistola_asistida_trx__default",
+          "equipmentId": "trx",
+          "selectedOptions": {}
+        }
+      ],
+      "sourcePng": "assets/exercise_quads_sentadilla_pistola_asistida_trx_trx_batch_20261008b_review.png",
+      "sourcePngCurrentSha256": "5d4342dfdfdb7794195d22eaabee0d75e8bfe2d2627400fb5153e46a1cf13d91",
+      "receipt": "artifacts/exercise-images-review-20261009/integration_receipts.json",
+      "approvalDate": "2026-10-09",
+      "approvalEvidence": {
+        "manifest": "artifacts/exercise-images-review-20261009/decisions.json",
+        "recordedHumanDecision": "El resto está OK; las aprobadas desde ahora deben pasar a WebP.",
+        "receiptManifest": "artifacts/exercise-images-review-20261009/integration_receipts.json",
+        "number": 21,
+        "group": "B",
+        "kind": null
+      },
+      "webpSha256": "1a6c3346555b6e6cd726b39ccfbcf5ec61c842f3360d50d2af55f6ddb1f7f70f",
+      "sourcePngRgbaEqualsWebp": true,
+      "sameWebpBytesAsAudit14": true,
+      "dimensions": [
+        1193,
+        1318
+      ],
+      "visualQaEvidence": [
+        {
+          "manifest": "artifacts\\exercise-images-batch-20261008-b\\batch.json",
+          "number": 21,
+          "approvedByUser": true,
+          "integratedIntoApp": true,
+          "status": "integrated_approved",
+          "qaReview": {
+            "status": "independently_reviewed_candidate",
+            "humanApprovalRequired": true,
+            "cameraObservation": null
+          }
+        }
+      ],
+      "routingScope": "Existing HEAD configuration IDs only; preserve historical same-exercise/equipment illustration across laterality-only choices as already implemented in the historical lookup. Does not expand implement or support configuration."
+    },
+    {
+      "resourceName": "exercise_quads_sentadilla_sin_carga_bodyweight_batch20261008b",
+      "file": "android-native/app/src/main/res/drawable-nodpi/exercise_quads_sentadilla_sin_carga_bodyweight_batch20261008b.webp",
+      "definitionId": "quads_sentadilla_sin_carga",
+      "equipmentId": "bodyweight",
+      "implementationId": "bodyweight",
+      "configurationIds": [
+        "quads_sentadilla_sin_carga__default"
+      ],
+      "configurationEvidence": [
+        {
+          "id": "quads_sentadilla_sin_carga__default",
+          "equipmentId": "bodyweight",
+          "selectedOptions": {}
+        }
+      ],
+      "sourcePng": "assets/exercise_quads_sentadilla_sin_carga_bodyweight_batch_20261008b_review.png",
+      "sourcePngCurrentSha256": "34b7b5c336802c1e7c3bfcda030ac98687431de5294d0716be26c6b705c3aace",
+      "receipt": "artifacts/exercise-images-review-20261009/integration_receipts.json",
+      "approvalDate": "2026-10-09",
+      "approvalEvidence": {
+        "manifest": "artifacts/exercise-images-review-20261009/decisions.json",
+        "recordedHumanDecision": "El resto está OK; las aprobadas desde ahora deben pasar a WebP.",
+        "receiptManifest": "artifacts/exercise-images-review-20261009/integration_receipts.json",
+        "number": 2,
+        "group": "B",
+        "kind": null
+      },
+      "webpSha256": "abfb564a0e1a1b552ffb7be03353c2967e39799244aab71679725632d56c58fc",
+      "sourcePngRgbaEqualsWebp": true,
+      "sameWebpBytesAsAudit14": true,
+      "dimensions": [
+        1193,
+        1318
+      ],
+      "visualQaEvidence": [
+        {
+          "manifest": "artifacts\\exercise-images-batch-20261008-b\\batch.json",
+          "number": 2,
+          "approvedByUser": true,
+          "integratedIntoApp": true,
+          "status": "integrated_approved",
+          "qaReview": {
+            "status": "independently_reviewed_candidate",
+            "humanApprovalRequired": true,
+            "cameraObservation": null
+          }
+        }
+      ],
+      "routingScope": "Existing HEAD configuration IDs only; preserve historical same-exercise/equipment illustration across laterality-only choices as already implemented in the historical lookup. Does not expand implement or support configuration."
+    },
+    {
+      "resourceName": "exercise_quads_sentadilla_sumo_frontal_barbell_batch20261008b",
+      "file": "android-native/app/src/main/res/drawable-nodpi/exercise_quads_sentadilla_sumo_frontal_barbell_batch20261008b.webp",
+      "definitionId": "quads_sentadilla_sumo_frontal",
+      "equipmentId": "barbell",
+      "implementationId": "barbell",
+      "configurationIds": [
+        "quads_sentadilla_sumo_frontal__default"
+      ],
+      "configurationEvidence": [
+        {
+          "id": "quads_sentadilla_sumo_frontal__default",
+          "equipmentId": "barbell",
+          "selectedOptions": {}
+        }
+      ],
+      "sourcePng": "assets/exercise_quads_sentadilla_sumo_frontal_barbell_batch_20261008b_v2_review.png",
+      "sourcePngCurrentSha256": "5c61f5cd00cdc8e01fca81d28ca9f6a4a659fe9e854b70827f219e3d860a7a48",
+      "receipt": "artifacts/exercise-images-review-20261009/integration_receipts.json",
+      "approvalDate": "2026-10-09",
+      "approvalEvidence": {
+        "manifest": "artifacts/exercise-images-review-20261009/decisions.json",
+        "recordedHumanDecision": "El resto está OK; las aprobadas desde ahora deben pasar a WebP.",
+        "receiptManifest": "artifacts/exercise-images-review-20261009/integration_receipts.json",
+        "number": 9,
+        "group": "B",
+        "kind": null
+      },
+      "webpSha256": "4625d65c45c424ecc1a2fab8e2a637e2ddb421900eb1b666a7fcf3c7a72e0e6b",
+      "sourcePngRgbaEqualsWebp": true,
+      "sameWebpBytesAsAudit14": true,
+      "dimensions": [
+        1310,
+        1200
+      ],
+      "visualQaEvidence": [
+        {
+          "manifest": "artifacts\\exercise-images-batch-20261008-b\\batch.json",
+          "number": 9,
+          "approvedByUser": true,
+          "integratedIntoApp": true,
+          "status": "integrated_approved",
+          "qaReview": {
+            "status": "independently_reviewed_candidate",
+            "humanApprovalRequired": true,
+            "cameraObservation": null
+          }
+        }
+      ],
+      "routingScope": "Existing HEAD configuration IDs only; preserve historical same-exercise/equipment illustration across laterality-only choices as already implemented in the historical lookup. Does not expand implement or support configuration."
+    },
+    {
+      "resourceName": "exercise_quads_sentadilla_sumo_zercher_barbell",
+      "file": "android-native/app/src/main/res/drawable-nodpi/exercise_quads_sentadilla_sumo_zercher_barbell.webp",
+      "definitionId": "quads_sentadilla_sumo_zercher",
+      "equipmentId": "barbell",
+      "implementationId": "barbell",
+      "configurationIds": [
+        "quads_sentadilla_sumo_zercher__default"
+      ],
+      "configurationEvidence": [
+        {
+          "id": "quads_sentadilla_sumo_zercher__default",
+          "equipmentId": "barbell",
+          "selectedOptions": {}
+        }
+      ],
+      "sourcePng": "assets/exercise_quads_sentadilla_sumo_zercher_barbell_repair_20261010_v2_review.png",
+      "sourcePngCurrentSha256": "d51899b2ac07823d0a49f403ebafdf01cd9b7e21994b9be58ad06fcfe10058dd",
+      "receipt": "artifacts/exercise-images-review-20261012/integration_receipts.json",
+      "approvalDate": "2026-10-12",
+      "approvalEvidence": {
+        "manifest": "artifacts/exercise-images-review-20261012/integration_receipts.json",
+        "recordedHumanDecision": "EL RESTO INTÉGRALO",
+        "receiptManifest": "artifacts/exercise-images-review-20261012/integration_receipts.json",
+        "number": null,
+        "group": null,
+        "kind": "approved_correction"
+      },
+      "webpSha256": "505afa4ec8d4cc7652c72f5ff8322945d39a694dbc0d208a082308cc1bd9bac0",
+      "sourcePngRgbaEqualsWebp": true,
+      "sameWebpBytesAsAudit14": true,
+      "dimensions": [
+        1236,
+        1273
+      ],
+      "visualQaEvidence": [
+        {
+          "manifest": "artifacts\\exercise-images-batch-20261008-b\\batch.json",
+          "number": 10,
+          "approvedByUser": false,
+          "integratedIntoApp": false,
+          "status": "correction_candidate_awaiting_user_review",
+          "qaReview": {
+            "status": "independently_reviewed_candidate",
+            "humanApprovalRequired": true,
+            "cameraObservation": null
+          }
+        }
+      ],
+      "routingScope": "Existing HEAD configuration IDs only; preserve historical same-exercise/equipment illustration across laterality-only choices as already implemented in the historical lookup. Does not expand implement or support configuration."
+    },
+    {
+      "resourceName": "exercise_quads_step_up_cajon_frontal_barbell_batch20261008b",
+      "file": "android-native/app/src/main/res/drawable-nodpi/exercise_quads_step_up_cajon_frontal_barbell_batch20261008b.webp",
+      "definitionId": "quads_step_up_cajon_frontal",
+      "equipmentId": "barbell",
+      "implementationId": "barbell",
+      "configurationIds": [
+        "quads_step_up_cajon_frontal__default"
+      ],
+      "configurationEvidence": [
+        {
+          "id": "quads_step_up_cajon_frontal__default",
+          "equipmentId": "barbell",
+          "selectedOptions": {}
+        }
+      ],
+      "sourcePng": "assets/exercise_quads_step_up_cajon_frontal_barbell_batch_20261008b_review.png",
+      "sourcePngCurrentSha256": "d20de104d29eac4d8610ca957aad54371bf84d7e567f492c06b60f4615485ed3",
+      "receipt": "artifacts/exercise-images-review-20261009/integration_receipts.json",
+      "approvalDate": "2026-10-09",
+      "approvalEvidence": {
+        "manifest": "artifacts/exercise-images-review-20261009/decisions.json",
+        "recordedHumanDecision": "El resto está OK; las aprobadas desde ahora deben pasar a WebP.",
+        "receiptManifest": "artifacts/exercise-images-review-20261009/integration_receipts.json",
+        "number": 22,
+        "group": "B",
+        "kind": null
+      },
+      "webpSha256": "e488a9a880a274b09cac5820db9dddb311600e50ec25c98a01432c7d9dc36650",
+      "sourcePngRgbaEqualsWebp": true,
+      "sameWebpBytesAsAudit14": true,
+      "dimensions": [
+        1024,
+        1536
+      ],
+      "visualQaEvidence": [
+        {
+          "manifest": "artifacts\\exercise-images-batch-20261008-b\\batch.json",
+          "number": 22,
+          "approvedByUser": true,
+          "integratedIntoApp": true,
+          "status": "integrated_approved",
+          "qaReview": {
+            "status": "independently_reviewed_candidate",
+            "humanApprovalRequired": true,
+            "cameraObservation": "Front rack recognizable; exact high-elbow relationship uncertain in camera projection."
+          }
+        }
+      ],
+      "routingScope": "Existing HEAD configuration IDs only; preserve historical same-exercise/equipment illustration across laterality-only choices as already implemented in the historical lookup. Does not expand implement or support configuration."
+    },
+    {
+      "resourceName": "exercise_quads_step_up_cajon_zercher_barbell_batch20261008b",
+      "file": "android-native/app/src/main/res/drawable-nodpi/exercise_quads_step_up_cajon_zercher_barbell_batch20261008b.webp",
+      "definitionId": "quads_step_up_cajon_zercher",
+      "equipmentId": "barbell",
+      "implementationId": "barbell",
+      "configurationIds": [
+        "quads_step_up_cajon_zercher__default"
+      ],
+      "configurationEvidence": [
+        {
+          "id": "quads_step_up_cajon_zercher__default",
+          "equipmentId": "barbell",
+          "selectedOptions": {}
+        }
+      ],
+      "sourcePng": "assets/exercise_quads_step_up_cajon_zercher_barbell_batch_20261008b_review.png",
+      "sourcePngCurrentSha256": "1dcf4f5282947b1989e90eebb9bbee1ae67b7ebde9419f532da1fc83f5ec8077",
+      "receipt": "artifacts/exercise-images-review-20261009/integration_receipts.json",
+      "approvalDate": "2026-10-09",
+      "approvalEvidence": {
+        "manifest": "artifacts/exercise-images-review-20261009/decisions.json",
+        "recordedHumanDecision": "El resto está OK; las aprobadas desde ahora deben pasar a WebP.",
+        "receiptManifest": "artifacts/exercise-images-review-20261009/integration_receipts.json",
+        "number": 23,
+        "group": "B",
+        "kind": null
+      },
+      "webpSha256": "6998b76024df57784fca3980970e0c8b8c70bdb7f17bad7cdb741bcd449697df",
+      "sourcePngRgbaEqualsWebp": true,
+      "sameWebpBytesAsAudit14": true,
+      "dimensions": [
+        1024,
+        1536
+      ],
+      "visualQaEvidence": [
+        {
+          "manifest": "artifacts\\exercise-images-batch-20261008-b\\batch.json",
+          "number": 23,
+          "approvedByUser": true,
+          "integratedIntoApp": true,
+          "status": "integrated_approved",
+          "qaReview": {
+            "status": "independently_reviewed_candidate",
+            "humanApprovalRequired": true,
+            "cameraObservation": null
+          }
+        }
+      ],
+      "routingScope": "Existing HEAD configuration IDs only; preserve historical same-exercise/equipment illustration across laterality-only choices as already implemented in the historical lookup. Does not expand implement or support configuration."
+    },
+    {
+      "resourceName": "exercise_quads_zancada_caminando_frontal_barra_recta_barbell_batch20261008b",
+      "file": "android-native/app/src/main/res/drawable-nodpi/exercise_quads_zancada_caminando_frontal_barra_recta_barbell_batch20261008b.webp",
+      "definitionId": "quads_zancada_caminando_frontal_barra_recta",
+      "equipmentId": "barbell",
+      "implementationId": "barbell",
+      "configurationIds": [
+        "quads_zancada_caminando_frontal_barra_recta__default"
+      ],
+      "configurationEvidence": [
+        {
+          "id": "quads_zancada_caminando_frontal_barra_recta__default",
+          "equipmentId": "barbell",
+          "selectedOptions": {}
+        }
+      ],
+      "sourcePng": "assets/exercise_quads_zancada_caminando_frontal_barra_recta_barbell_batch_20261008b_review.png",
+      "sourcePngCurrentSha256": "2d144549b4b90cd5e94470e2f71d452532b0088b7a8b7d791ab183f5cad053d3",
+      "receipt": "artifacts/exercise-images-review-20261009/integration_receipts.json",
+      "approvalDate": "2026-10-09",
+      "approvalEvidence": {
+        "manifest": "artifacts/exercise-images-review-20261009/decisions.json",
+        "recordedHumanDecision": "El resto está OK; las aprobadas desde ahora deben pasar a WebP.",
+        "receiptManifest": "artifacts/exercise-images-review-20261009/integration_receipts.json",
+        "number": 24,
+        "group": "B",
+        "kind": null
+      },
+      "webpSha256": "c0de5a0c00c08845ade97b67b26bed902d239557432d31e42ea96262dccf2305",
+      "sourcePngRgbaEqualsWebp": true,
+      "sameWebpBytesAsAudit14": true,
+      "dimensions": [
+        1374,
+        1145
+      ],
+      "visualQaEvidence": [
+        {
+          "manifest": "artifacts\\exercise-images-batch-20261008-b\\batch.json",
+          "number": 24,
+          "approvedByUser": true,
+          "integratedIntoApp": true,
+          "status": "integrated_approved",
+          "qaReview": {
+            "status": "independently_reviewed_candidate",
+            "humanApprovalRequired": true,
+            "cameraObservation": "Front rack recognizable; exact high-elbow relationship uncertain in camera projection."
+          }
+        }
+      ],
+      "routingScope": "Existing HEAD configuration IDs only; preserve historical same-exercise/equipment illustration across laterality-only choices as already implemented in the historical lookup. Does not expand implement or support configuration."
+    },
+    {
+      "resourceName": "exercise_quads_zancada_caminando_zercher_barra_recta_barbell_batch20261008b",
+      "file": "android-native/app/src/main/res/drawable-nodpi/exercise_quads_zancada_caminando_zercher_barra_recta_barbell_batch20261008b.webp",
+      "definitionId": "quads_zancada_caminando_zercher_barra_recta",
+      "equipmentId": "barbell",
+      "implementationId": "barbell",
+      "configurationIds": [
+        "quads_zancada_caminando_zercher_barra_recta__default"
+      ],
+      "configurationEvidence": [
+        {
+          "id": "quads_zancada_caminando_zercher_barra_recta__default",
+          "equipmentId": "barbell",
+          "selectedOptions": {}
+        }
+      ],
+      "sourcePng": "assets/exercise_quads_zancada_caminando_zercher_barra_recta_barbell_repair_20261009_review.png",
+      "sourcePngCurrentSha256": "24674d15b027f25ab600f991f39833dacc454b8f6276208afb25c755b135cd55",
+      "receipt": "artifacts/exercise-images-batch-20261010/integration_receipts.json",
+      "approvalDate": "2026-10-10",
+      "approvalEvidence": {
+        "manifest": "artifacts/exercise-images-batch-20261010/approval.json",
+        "recordedHumanDecision": "El resto OK: aprobar A12, B6, B13, B25 y B26.",
+        "receiptManifest": "artifacts/exercise-images-batch-20261010/integration_receipts.json",
+        "number": 25,
+        "group": "B",
+        "kind": null
+      },
+      "webpSha256": "10be05897f79370c1f4a279448e192eb67c8b3fd1e3a4abc753cd01c887b1020",
+      "sourcePngRgbaEqualsWebp": true,
+      "sameWebpBytesAsAudit14": true,
+      "dimensions": [
+        1230,
+        1278
+      ],
+      "visualQaEvidence": [
+        {
+          "manifest": "artifacts\\exercise-images-batch-20261008-b\\batch.json",
+          "number": 25,
+          "approvedByUser": true,
+          "integratedIntoApp": true,
+          "status": "integrated_approved",
+          "qaReview": {
+            "status": "independently_reviewed_candidate",
+            "humanApprovalRequired": true,
+            "cameraObservation": null
+          }
+        }
+      ],
+      "routingScope": "Existing HEAD configuration IDs only; preserve historical same-exercise/equipment illustration across laterality-only choices as already implemented in the historical lookup. Does not expand implement or support configuration."
+    },
+    {
+      "resourceName": "exercise_quads_zancada_frontal_zercher_barbell_batch20261008b",
+      "file": "android-native/app/src/main/res/drawable-nodpi/exercise_quads_zancada_frontal_zercher_barbell_batch20261008b.webp",
+      "definitionId": "quads_zancada_frontal_zercher",
+      "equipmentId": "barbell",
+      "implementationId": "barbell",
+      "configurationIds": [
+        "quads_zancada_frontal_zercher__default"
+      ],
+      "configurationEvidence": [
+        {
+          "id": "quads_zancada_frontal_zercher__default",
+          "equipmentId": "barbell",
+          "selectedOptions": {}
+        }
+      ],
+      "sourcePng": "assets/exercise_quads_zancada_frontal_zercher_barbell_repair_20261009_review.png",
+      "sourcePngCurrentSha256": "23ebca5a26a350f8cf8029a3e63c6604f162c4526d26d53bd38a003e830cd103",
+      "receipt": "artifacts/exercise-images-batch-20261010/integration_receipts.json",
+      "approvalDate": "2026-10-10",
+      "approvalEvidence": {
+        "manifest": "artifacts/exercise-images-batch-20261010/approval.json",
+        "recordedHumanDecision": "El resto OK: aprobar A12, B6, B13, B25 y B26.",
+        "receiptManifest": "artifacts/exercise-images-batch-20261010/integration_receipts.json",
+        "number": 26,
+        "group": "B",
+        "kind": null
+      },
+      "webpSha256": "73ef4027e61075a77bb53be78656164853f930fcf5323702526700eb2599e379",
+      "sourcePngRgbaEqualsWebp": true,
+      "sameWebpBytesAsAudit14": true,
+      "dimensions": [
+        1199,
+        1312
+      ],
+      "visualQaEvidence": [
+        {
+          "manifest": "artifacts\\exercise-images-batch-20261008-b\\batch.json",
+          "number": 26,
+          "approvedByUser": true,
+          "integratedIntoApp": true,
+          "status": "integrated_approved",
+          "qaReview": {
+            "status": "independently_reviewed_candidate",
+            "humanApprovalRequired": true,
+            "cameraObservation": null
+          }
+        }
+      ],
+      "routingScope": "Existing HEAD configuration IDs only; preserve historical same-exercise/equipment illustration across laterality-only choices as already implemented in the historical lookup. Does not expand implement or support configuration."
+    },
+    {
+      "resourceName": "exercise_quads_zancada_inversa_frontal_barbell",
+      "file": "android-native/app/src/main/res/drawable-nodpi/exercise_quads_zancada_inversa_frontal_barbell.webp",
+      "definitionId": "quads_zancada_inversa_frontal",
+      "equipmentId": "barbell",
+      "implementationId": "barbell",
+      "configurationIds": [
+        "quads_zancada_inversa_frontal__default"
+      ],
+      "configurationEvidence": [
+        {
+          "id": "quads_zancada_inversa_frontal__default",
+          "equipmentId": "barbell",
+          "selectedOptions": {}
+        }
+      ],
+      "sourcePng": "assets/exercise_quads_zancada_inversa_frontal_barbell_batch_20261010_review.png",
+      "sourcePngCurrentSha256": "707279f785ecb6c5b7bddf57a774136155f69c518d30158cb6119e7ae0a4cc16",
+      "receipt": "artifacts/exercise-images-review-20261012/integration_receipts.json",
+      "approvalDate": "2026-10-12",
+      "approvalEvidence": {
+        "manifest": "artifacts/exercise-images-review-20261012/integration_receipts.json",
+        "recordedHumanDecision": "EL RESTO INTÉGRALO",
+        "receiptManifest": "artifacts/exercise-images-review-20261012/integration_receipts.json",
+        "number": null,
+        "group": null,
+        "kind": "new_batch"
+      },
+      "webpSha256": "854a063eb0d78b3d1cf2700002f91a4a1dfd703abdc217b02c00697ede420533",
+      "sourcePngRgbaEqualsWebp": true,
+      "sameWebpBytesAsAudit14": true,
+      "dimensions": [
+        1024,
+        1536
+      ],
+      "visualQaEvidence": [
+        {
+          "manifest": "artifacts\\exercise-images-batch-20261010\\batch.json",
+          "number": 33,
+          "approvedByUser": true,
+          "integratedIntoApp": true,
+          "status": "integrated_approved",
+          "qaReview": null
+        }
+      ],
+      "routingScope": "Existing HEAD configuration IDs only; preserve historical same-exercise/equipment illustration across laterality-only choices as already implemented in the historical lookup. Does not expand implement or support configuration."
+    },
+    {
+      "resourceName": "exercise_quads_zancada_inversa_zercher_barbell",
+      "file": "android-native/app/src/main/res/drawable-nodpi/exercise_quads_zancada_inversa_zercher_barbell.webp",
+      "definitionId": "quads_zancada_inversa_zercher",
+      "equipmentId": "barbell",
+      "implementationId": "barbell",
+      "configurationIds": [
+        "quads_zancada_inversa_zercher__default"
+      ],
+      "configurationEvidence": [
+        {
+          "id": "quads_zancada_inversa_zercher__default",
+          "equipmentId": "barbell",
+          "selectedOptions": {}
+        }
+      ],
+      "sourcePng": "assets/exercise_quads_zancada_inversa_zercher_barbell_batch_20261010_v2_review.png",
+      "sourcePngCurrentSha256": "0c7f28fadb2398ca94574c0c27219c79a7fd98574c8482f69758f4a6ac2b2c41",
+      "receipt": "artifacts/exercise-images-review-20261012/integration_receipts.json",
+      "approvalDate": "2026-10-12",
+      "approvalEvidence": {
+        "manifest": "artifacts/exercise-images-review-20261012/integration_receipts.json",
+        "recordedHumanDecision": "EL RESTO INTÉGRALO",
+        "receiptManifest": "artifacts/exercise-images-review-20261012/integration_receipts.json",
+        "number": null,
+        "group": null,
+        "kind": "new_batch"
+      },
+      "webpSha256": "c64a4c0ea1924963b09c6f92a1bbc1d4242c4f342be4a41ae5a2aaeb064c1dca",
+      "sourcePngRgbaEqualsWebp": true,
+      "sameWebpBytesAsAudit14": true,
+      "dimensions": [
+        1374,
+        1145
+      ],
+      "visualQaEvidence": [
+        {
+          "manifest": "artifacts\\exercise-images-batch-20261010\\batch.json",
+          "number": 36,
+          "approvedByUser": true,
+          "integratedIntoApp": true,
+          "status": "integrated_approved",
+          "qaReview": null
+        }
+      ],
+      "routingScope": "Existing HEAD configuration IDs only; preserve historical same-exercise/equipment illustration across laterality-only choices as already implemented in the historical lookup. Does not expand implement or support configuration."
+    },
+    {
+      "resourceName": "exercise_rack_chin_bodyweight",
+      "file": "android-native/app/src/main/res/drawable-nodpi/exercise_rack_chin_bodyweight.webp",
+      "definitionId": "rack_chin",
+      "equipmentId": "bodyweight",
+      "implementationId": "bodyweight",
+      "configurationIds": [
+        "rack_chin__default"
+      ],
+      "configurationEvidence": [
+        {
+          "id": "rack_chin__default",
+          "equipmentId": "bodyweight",
+          "selectedOptions": {}
+        }
+      ],
+      "sourcePng": "assets/exercise_rack_chin_bodyweight_repair_20261010_review.png",
+      "sourcePngCurrentSha256": "6d92b0a3536e6db4ccb07b8017540193564521561d380da357a37e4904f5a2f8",
+      "receipt": "artifacts/exercise-images-review-20261012/integration_receipts.json",
+      "approvalDate": "2026-10-12",
+      "approvalEvidence": {
+        "manifest": "artifacts/exercise-images-review-20261012/integration_receipts.json",
+        "recordedHumanDecision": "EL RESTO INTÉGRALO",
+        "receiptManifest": "artifacts/exercise-images-review-20261012/integration_receipts.json",
+        "number": null,
+        "group": null,
+        "kind": "approved_correction"
+      },
+      "webpSha256": "f658a61aebd9f1dbb4b96c24908f9da4184e17795b7e6f62a2bb7741d6767814",
+      "sourcePngRgbaEqualsWebp": true,
+      "sameWebpBytesAsAudit14": true,
+      "dimensions": [
+        1323,
+        1189
+      ],
+      "visualQaEvidence": [
+        {
+          "manifest": "artifacts\\exercise-images-batch-20261008\\batch.json",
+          "number": 19,
+          "approvedByUser": false,
+          "integratedIntoApp": false,
+          "status": "correction_candidate_awaiting_user_review",
+          "qaReview": {
+            "status": "independently_reviewed_candidate",
+            "humanApprovalRequired": true,
+            "cameraObservation": null
+          }
+        }
+      ],
+      "routingScope": "Existing HEAD configuration IDs only; preserve historical same-exercise/equipment illustration across laterality-only choices as already implemented in the historical lookup. Does not expand implement or support configuration."
+    },
+    {
+      "resourceName": "exercise_reverse_lunge_bodyweight",
+      "file": "android-native/app/src/main/res/drawable-nodpi/exercise_reverse_lunge_bodyweight.webp",
+      "definitionId": "reverse_lunge",
+      "equipmentId": "bodyweight",
+      "implementationId": "bodyweight",
+      "configurationIds": [
+        "reverse_lunge__bodyweight"
+      ],
+      "configurationEvidence": [
+        {
+          "id": "reverse_lunge__bodyweight",
+          "equipmentId": "bodyweight",
+          "selectedOptions": {
+            "implement": "bodyweight"
+          }
+        }
+      ],
+      "sourcePng": "assets/exercise_reverse_lunge_bodyweight_batch_20261010_review.png",
+      "sourcePngCurrentSha256": "3fe61f9085ffb5f336a770c460b488c620ab9b4d406bb030ef517b0646cce125",
+      "receipt": "artifacts/exercise-images-review-20261012/integration_receipts.json",
+      "approvalDate": "2026-10-12",
+      "approvalEvidence": {
+        "manifest": "artifacts/exercise-images-review-20261012/integration_receipts.json",
+        "recordedHumanDecision": "EL RESTO INTÉGRALO",
+        "receiptManifest": "artifacts/exercise-images-review-20261012/integration_receipts.json",
+        "number": null,
+        "group": null,
+        "kind": "new_batch"
+      },
+      "webpSha256": "0cb35a3070373e2edebe03520f7a268aa9704040ed0d605dc8b03584f27f2d56",
+      "sourcePngRgbaEqualsWebp": true,
+      "sameWebpBytesAsAudit14": true,
+      "dimensions": [
+        1145,
+        1374
+      ],
+      "visualQaEvidence": [
+        {
+          "manifest": "artifacts\\exercise-images-batch-20261010\\batch.json",
+          "number": 30,
+          "approvedByUser": true,
+          "integratedIntoApp": true,
+          "status": "integrated_approved",
+          "qaReview": null
+        }
+      ],
+      "routingScope": "Existing HEAD configuration IDs only; preserve historical same-exercise/equipment illustration across laterality-only choices as already implemented in the historical lookup. Does not expand implement or support configuration."
+    },
+    {
+      "resourceName": "exercise_romanian_deadlift_bodyweight",
+      "file": "android-native/app/src/main/res/drawable-nodpi/exercise_romanian_deadlift_bodyweight.webp",
+      "definitionId": "romanian_deadlift",
+      "equipmentId": "bodyweight",
+      "implementationId": "bodyweight",
+      "configurationIds": [
+        "romanian_deadlift__unilateral__bodyweight"
+      ],
+      "configurationEvidence": [
+        {
+          "id": "romanian_deadlift__unilateral__bodyweight",
+          "equipmentId": "bodyweight",
+          "selectedOptions": {
+            "implement": "bodyweight",
+            "stance": "unilateral"
+          }
+        }
+      ],
+      "sourcePng": "assets/exercise_romanian_deadlift_bodyweight_batch_20261010_review.png",
+      "sourcePngCurrentSha256": "05149ebace8378b54f862899741ddf959b4d3d90bcc3983438f05609f52a5c98",
+      "receipt": "artifacts/exercise-images-review-20261012/integration_receipts.json",
+      "approvalDate": "2026-10-12",
+      "approvalEvidence": {
+        "manifest": "artifacts/exercise-images-review-20261012/integration_receipts.json",
+        "recordedHumanDecision": "EL RESTO INTÉGRALO",
+        "receiptManifest": "artifacts/exercise-images-review-20261012/integration_receipts.json",
+        "number": null,
+        "group": null,
+        "kind": "new_batch"
+      },
+      "webpSha256": "50ea810fbfdfa603b4da1e5435ea356c9f0d92923dca07394e46207bff6c622f",
+      "sourcePngRgbaEqualsWebp": true,
+      "sameWebpBytesAsAudit14": true,
+      "dimensions": [
+        1200,
+        1311
+      ],
+      "visualQaEvidence": [
+        {
+          "manifest": "artifacts\\exercise-images-batch-20261010\\batch.json",
+          "number": 10,
+          "approvedByUser": true,
+          "integratedIntoApp": true,
+          "status": "integrated_approved",
+          "qaReview": null
+        }
+      ],
+      "routingScope": "Existing HEAD configuration IDs only; preserve historical same-exercise/equipment illustration across laterality-only choices as already implemented in the historical lookup. Does not expand implement or support configuration."
+    },
+    {
+      "resourceName": "exercise_side_plank_bodyweight_batch20261008",
+      "file": "android-native/app/src/main/res/drawable-nodpi/exercise_side_plank_bodyweight_batch20261008.webp",
+      "definitionId": "side_plank",
+      "equipmentId": "bodyweight",
+      "implementationId": "bodyweight",
+      "configurationIds": [
+        "side_plank__default"
+      ],
+      "configurationEvidence": [
+        {
+          "id": "side_plank__default",
+          "equipmentId": "bodyweight",
+          "selectedOptions": {}
+        }
+      ],
+      "sourcePng": "assets/exercise_side_plank_bodyweight_batch_20261008_review.png",
+      "sourcePngCurrentSha256": "50acfeb62df05160c71d5f28e7a409756542107270a78388e9351b411838a41e",
+      "receipt": "artifacts/exercise-images-batch-20261008/integration_receipts.json",
+      "approvalDate": "2026-10-08",
+      "approvalEvidence": {
+        "manifest": "artifacts/exercise-images-batch-20261008/user_review.json",
+        "recordedHumanDecision": "Todos aprobados excepto 2, 5, 6, 12 y 19.",
+        "receiptManifest": "artifacts/exercise-images-batch-20261008/integration_receipts.json",
+        "number": 4,
+        "group": null,
+        "kind": null
+      },
+      "webpSha256": "dd4e4ac3df7d775f6c1a576a7ec45e8a0b20748743a17398c81a506e2d22662e",
+      "sourcePngRgbaEqualsWebp": false,
+      "sameWebpBytesAsAudit14": true,
+      "dimensions": [
+        1774,
+        887
+      ],
+      "visualQaEvidence": [
+        {
+          "manifest": "artifacts\\exercise-images-batch-20261008\\batch.json",
+          "number": 4,
+          "approvedByUser": true,
+          "integratedIntoApp": true,
+          "status": "integrated_approved",
+          "qaReview": {
+            "status": "independent_review_pass",
+            "note": "Pose, anatomy and visible contacts accepted after alpha cleanup."
+          }
+        }
+      ],
+      "routingScope": "Existing HEAD configuration IDs only; preserve historical same-exercise/equipment illustration across laterality-only choices as already implemented in the historical lookup. Does not expand implement or support configuration."
+    },
+    {
+      "resourceName": "exercise_sissy_squat_bodyweight",
+      "file": "android-native/app/src/main/res/drawable-nodpi/exercise_sissy_squat_bodyweight.webp",
+      "definitionId": "sissy_squat",
+      "equipmentId": "bodyweight",
+      "implementationId": "bodyweight",
+      "configurationIds": [
+        "sissy_squat__bodyweight"
+      ],
+      "configurationEvidence": [
+        {
+          "id": "sissy_squat__bodyweight",
+          "equipmentId": "bodyweight",
+          "selectedOptions": {
+            "implement": "bodyweight"
+          }
+        }
+      ],
+      "sourcePng": "assets/exercise_sissy_squat_bodyweight_batch_20261010_review.png",
+      "sourcePngCurrentSha256": "2c49668edad8a4e167fe0b1563d45ee517e64dc371f7d84efcfaa15d957a293a",
+      "receipt": "artifacts/exercise-images-review-20261012/integration_receipts.json",
+      "approvalDate": "2026-10-12",
+      "approvalEvidence": {
+        "manifest": "artifacts/exercise-images-review-20261012/integration_receipts.json",
+        "recordedHumanDecision": "EL RESTO INTÉGRALO",
+        "receiptManifest": "artifacts/exercise-images-review-20261012/integration_receipts.json",
+        "number": null,
+        "group": null,
+        "kind": "new_batch"
+      },
+      "webpSha256": "c6f93ba78bae4513d59406c5353ed8d2398616d70911f7c9244f29e31cc26f4a",
+      "sourcePngRgbaEqualsWebp": true,
+      "sameWebpBytesAsAudit14": true,
+      "dimensions": [
+        1024,
+        1536
+      ],
+      "visualQaEvidence": [
+        {
+          "manifest": "artifacts\\exercise-images-batch-20261010\\batch.json",
+          "number": 31,
+          "approvedByUser": true,
+          "integratedIntoApp": true,
+          "status": "integrated_approved",
+          "qaReview": null
+        }
+      ],
+      "routingScope": "Existing HEAD configuration IDs only; preserve historical same-exercise/equipment illustration across laterality-only choices as already implemented in the historical lookup. Does not expand implement or support configuration."
+    },
+    {
+      "resourceName": "exercise_snatch_pull_barbell_batch20261008",
+      "file": "android-native/app/src/main/res/drawable-nodpi/exercise_snatch_pull_barbell_batch20261008.webp",
+      "definitionId": "snatch_pull",
+      "equipmentId": "barbell",
+      "implementationId": "barbell",
+      "configurationIds": [
+        "snatch_pull__barbell"
+      ],
+      "configurationEvidence": [
+        {
+          "id": "snatch_pull__barbell",
+          "equipmentId": "barbell",
+          "selectedOptions": {}
+        }
+      ],
+      "sourcePng": "assets/exercise_snatch_pull_barbell_batch_20261008_review.png",
+      "sourcePngCurrentSha256": "b2ae8f15812e58e5e66ee97419df2b37a3aa7cc25e08a690277e81ed650141aa",
+      "receipt": "artifacts/exercise-images-batch-20261008/integration_receipts.json",
+      "approvalDate": "2026-10-08",
+      "approvalEvidence": {
+        "manifest": "artifacts/exercise-images-batch-20261008/user_review.json",
+        "recordedHumanDecision": "Todos aprobados excepto 2, 5, 6, 12 y 19.",
+        "receiptManifest": "artifacts/exercise-images-batch-20261008/integration_receipts.json",
+        "number": 28,
+        "group": null,
+        "kind": null
+      },
+      "webpSha256": "f4346080ea7c529152380325a0507188644c911b2048b05da38f1ae6be0e1545",
+      "sourcePngRgbaEqualsWebp": false,
+      "sameWebpBytesAsAudit14": true,
+      "dimensions": [
+        1024,
+        1536
+      ],
+      "visualQaEvidence": [
+        {
+          "manifest": "artifacts\\exercise-images-batch-20261008\\batch.json",
+          "number": 28,
+          "approvedByUser": true,
+          "integratedIntoApp": true,
+          "status": "integrated_approved",
+          "qaReview": {
+            "status": "independent_review_observable_contacts",
+            "note": "Latest clean image inspected independently; no visible anatomical fusion or halo. Framing and static exercise posture described; image remains pending human approval."
+          }
+        }
+      ],
+      "routingScope": "Existing HEAD configuration IDs only; preserve historical same-exercise/equipment illustration across laterality-only choices as already implemented in the historical lookup. Does not expand implement or support configuration."
+    },
+    {
+      "resourceName": "exercise_split_jerk_barbell_batch20261008",
+      "file": "android-native/app/src/main/res/drawable-nodpi/exercise_split_jerk_barbell_batch20261008.webp",
+      "definitionId": "split_jerk",
+      "equipmentId": "barbell",
+      "implementationId": "barbell",
+      "configurationIds": [
+        "split_jerk__barbell"
+      ],
+      "configurationEvidence": [
+        {
+          "id": "split_jerk__barbell",
+          "equipmentId": "barbell",
+          "selectedOptions": {}
+        }
+      ],
+      "sourcePng": "assets/exercise_split_jerk_barbell_batch_20261008_review.png",
+      "sourcePngCurrentSha256": "32a6b53564517c3c8cd5e3fbac735c3dd4fd205f9ac6c329d54e76a7bf616f8f",
+      "receipt": "artifacts/exercise-images-batch-20261008/integration_receipts.json",
+      "approvalDate": "2026-10-08",
+      "approvalEvidence": {
+        "manifest": "artifacts/exercise-images-batch-20261008/user_review.json",
+        "recordedHumanDecision": "Todos aprobados excepto 2, 5, 6, 12 y 19.",
+        "receiptManifest": "artifacts/exercise-images-batch-20261008/integration_receipts.json",
+        "number": 30,
+        "group": null,
+        "kind": null
+      },
+      "webpSha256": "2ac74b507297f98f0cc07b16780e730644f5ff98a43aaaa9d1c7b75e01ac4f14",
+      "sourcePngRgbaEqualsWebp": false,
+      "sameWebpBytesAsAudit14": true,
+      "dimensions": [
+        1024,
+        1536
+      ],
+      "visualQaEvidence": [
+        {
+          "manifest": "artifacts\\exercise-images-batch-20261008\\batch.json",
+          "number": 30,
+          "approvedByUser": true,
+          "integratedIntoApp": true,
+          "status": "integrated_approved",
+          "qaReview": {
+            "status": "independent_review_with_occlusion",
+            "note": "Split stance and visible locked-out arm confirmed; one hand/part of arm naturally occluded by near plate. No extra limb or anatomical fusion reported."
+          }
+        }
+      ],
+      "routingScope": "Existing HEAD configuration IDs only; preserve historical same-exercise/equipment illustration across laterality-only choices as already implemented in the historical lookup. Does not expand implement or support configuration."
+    },
+    {
+      "resourceName": "exercise_squat_clean_barbell_batch20261008",
+      "file": "android-native/app/src/main/res/drawable-nodpi/exercise_squat_clean_barbell_batch20261008.webp",
+      "definitionId": "squat_clean",
+      "equipmentId": "barbell",
+      "implementationId": "barbell",
+      "configurationIds": [
+        "squat_clean__barbell"
+      ],
+      "configurationEvidence": [
+        {
+          "id": "squat_clean__barbell",
+          "equipmentId": "barbell",
+          "selectedOptions": {}
+        }
+      ],
+      "sourcePng": "assets/exercise_squat_clean_barbell_batch_20261008_review.png",
+      "sourcePngCurrentSha256": "acd1dc5ce4a098560ecf25ebcdd2d26d590cdc7dc652801ae866eda4e1ce4d6d",
+      "receipt": "artifacts/exercise-images-batch-20261008/integration_receipts.json",
+      "approvalDate": "2026-10-08",
+      "approvalEvidence": {
+        "manifest": "artifacts/exercise-images-batch-20261008/user_review.json",
+        "recordedHumanDecision": "Todos aprobados excepto 2, 5, 6, 12 y 19.",
+        "receiptManifest": "artifacts/exercise-images-batch-20261008/integration_receipts.json",
+        "number": 23,
+        "group": null,
+        "kind": null
+      },
+      "webpSha256": "6770d191057dbb149ed5ff8f9c7a10788be0ce74565d73a837042d682ab9de08",
+      "sourcePngRgbaEqualsWebp": false,
+      "sameWebpBytesAsAudit14": true,
+      "dimensions": [
+        1310,
+        1200
+      ],
+      "visualQaEvidence": [
+        {
+          "manifest": "artifacts\\exercise-images-batch-20261008\\batch.json",
+          "number": 23,
+          "approvedByUser": true,
+          "integratedIntoApp": true,
+          "status": "integrated_approved",
+          "qaReview": {
+            "status": "independent_review_pass",
+            "note": "Pose, anatomy and visible contacts accepted after alpha cleanup."
+          }
+        }
+      ],
+      "routingScope": "Existing HEAD configuration IDs only; preserve historical same-exercise/equipment illustration across laterality-only choices as already implemented in the historical lookup. Does not expand implement or support configuration."
+    },
+    {
+      "resourceName": "exercise_squat_snatch_barbell_batch20261008",
+      "file": "android-native/app/src/main/res/drawable-nodpi/exercise_squat_snatch_barbell_batch20261008.webp",
+      "definitionId": "squat_snatch",
+      "equipmentId": "barbell",
+      "implementationId": "barbell",
+      "configurationIds": [
+        "squat_snatch__barbell"
+      ],
+      "configurationEvidence": [
+        {
+          "id": "squat_snatch__barbell",
+          "equipmentId": "barbell",
+          "selectedOptions": {}
+        }
+      ],
+      "sourcePng": "assets/exercise_squat_snatch_barbell_batch_20261008_review.png",
+      "sourcePngCurrentSha256": "0c98727ee42af3bcd547a89283b71107d404c5bdd19aacae2a2e0eb2673ad04a",
+      "receipt": "artifacts/exercise-images-batch-20261008/integration_receipts.json",
+      "approvalDate": "2026-10-08",
+      "approvalEvidence": {
+        "manifest": "artifacts/exercise-images-batch-20261008/user_review.json",
+        "recordedHumanDecision": "Todos aprobados excepto 2, 5, 6, 12 y 19.",
+        "receiptManifest": "artifacts/exercise-images-batch-20261008/integration_receipts.json",
+        "number": 27,
+        "group": null,
+        "kind": null
+      },
+      "webpSha256": "ca356026d03ba304d5fe0ba0d049a215719cc3daed8eae04016962cf118ad9fe",
+      "sourcePngRgbaEqualsWebp": false,
+      "sameWebpBytesAsAudit14": true,
+      "dimensions": [
+        1432,
+        1098
+      ],
+      "visualQaEvidence": [
+        {
+          "manifest": "artifacts\\exercise-images-batch-20261008\\batch.json",
+          "number": 27,
+          "approvedByUser": true,
+          "integratedIntoApp": true,
+          "status": "integrated_approved",
+          "qaReview": {
+            "status": "independent_review_observable_contacts",
+            "note": "Latest clean image inspected independently; no visible anatomical fusion or halo. Framing and static exercise posture described; image remains pending human approval."
+          }
+        }
+      ],
+      "routingScope": "Existing HEAD configuration IDs only; preserve historical same-exercise/equipment illustration across laterality-only choices as already implemented in the historical lookup. Does not expand implement or support configuration."
+    },
+    {
+      "resourceName": "exercise_step_up_bodyweight",
+      "file": "android-native/app/src/main/res/drawable-nodpi/exercise_step_up_bodyweight.webp",
+      "definitionId": "step_up",
+      "equipmentId": "bodyweight",
+      "implementationId": "bodyweight",
+      "configurationIds": [
+        "step_up__bodyweight"
+      ],
+      "configurationEvidence": [
+        {
+          "id": "step_up__bodyweight",
+          "equipmentId": "bodyweight",
+          "selectedOptions": {
+            "implement": "bodyweight"
+          }
+        }
+      ],
+      "sourcePng": "assets/exercise_step_up_bodyweight_batch_20261010_review.png",
+      "sourcePngCurrentSha256": "7e951f9938ec8ad12238e491d630cc85590c3267133457af43779d5cc2fb820b",
+      "receipt": "artifacts/exercise-images-review-20261012/integration_receipts.json",
+      "approvalDate": "2026-10-12",
+      "approvalEvidence": {
+        "manifest": "artifacts/exercise-images-review-20261012/integration_receipts.json",
+        "recordedHumanDecision": "EL RESTO INTÉGRALO",
+        "receiptManifest": "artifacts/exercise-images-review-20261012/integration_receipts.json",
+        "number": null,
+        "group": null,
+        "kind": "new_batch"
+      },
+      "webpSha256": "2558d3b91beab9a821115a40151f9f510c050afc90a78d24077b10005737333d",
+      "sourcePngRgbaEqualsWebp": true,
+      "sameWebpBytesAsAudit14": true,
+      "dimensions": [
+        1024,
+        1536
+      ],
+      "visualQaEvidence": [
+        {
+          "manifest": "artifacts\\exercise-images-batch-20261010\\batch.json",
+          "number": 32,
+          "approvedByUser": true,
+          "integratedIntoApp": true,
+          "status": "integrated_approved",
+          "qaReview": null
+        }
+      ],
+      "routingScope": "Existing HEAD configuration IDs only; preserve historical same-exercise/equipment illustration across laterality-only choices as already implemented in the historical lookup. Does not expand implement or support configuration."
+    },
+    {
+      "resourceName": "exercise_suitcase_carry_dumbbells_batch20261008",
+      "file": "android-native/app/src/main/res/drawable-nodpi/exercise_suitcase_carry_dumbbells_batch20261008.webp",
+      "definitionId": "suitcase_carry",
+      "equipmentId": "dumbbells",
+      "implementationId": "dumbbells",
+      "configurationIds": [
+        "suitcase_carry__dumbbells"
+      ],
+      "configurationEvidence": [
+        {
+          "id": "suitcase_carry__dumbbells",
+          "equipmentId": "dumbbells",
+          "selectedOptions": {
+            "implement": "dumbbells"
+          }
+        }
+      ],
+      "sourcePng": "assets/exercise_suitcase_carry_dumbbells_batch_20261008_review.png",
+      "sourcePngCurrentSha256": "dbea7540bf7d08b896244317dfe01de3789ca40d89bfa9d53e0b2929887be4fa",
+      "receipt": "artifacts/exercise-images-batch-20261008/integration_receipts.json",
+      "approvalDate": "2026-10-08",
+      "approvalEvidence": {
+        "manifest": "artifacts/exercise-images-batch-20261008/user_review.json",
+        "recordedHumanDecision": "Todos aprobados excepto 2, 5, 6, 12 y 19.",
+        "receiptManifest": "artifacts/exercise-images-batch-20261008/integration_receipts.json",
+        "number": 13,
+        "group": null,
+        "kind": null
+      },
+      "webpSha256": "77cda2ffd2059c4427747bc2d1085f83aba0db37ccbdf64ae45eaa7b5ab1775f",
+      "sourcePngRgbaEqualsWebp": false,
+      "sameWebpBytesAsAudit14": true,
+      "dimensions": [
+        1024,
+        1536
+      ],
+      "visualQaEvidence": [
+        {
+          "manifest": "artifacts\\exercise-images-batch-20261008\\batch.json",
+          "number": 13,
+          "approvedByUser": true,
+          "integratedIntoApp": true,
+          "status": "integrated_approved",
+          "qaReview": {
+            "status": "independent_review_pass",
+            "note": "Pose, anatomy and visible contacts accepted after alpha cleanup."
+          }
+        }
+      ],
+      "routingScope": "Existing HEAD configuration IDs only; preserve historical same-exercise/equipment illustration across laterality-only choices as already implemented in the historical lookup. Does not expand implement or support configuration."
+    },
+    {
+      "resourceName": "exercise_suitcase_carry_kettlebell_batch20261008",
+      "file": "android-native/app/src/main/res/drawable-nodpi/exercise_suitcase_carry_kettlebell_batch20261008.webp",
+      "definitionId": "suitcase_carry",
+      "equipmentId": "kettlebell",
+      "implementationId": "kettlebell",
+      "configurationIds": [
+        "suitcase_carry__kettlebell"
+      ],
+      "configurationEvidence": [
+        {
+          "id": "suitcase_carry__kettlebell",
+          "equipmentId": "kettlebell",
+          "selectedOptions": {
+            "implement": "kettlebell"
+          }
+        }
+      ],
+      "sourcePng": "assets/exercise_suitcase_carry_kettlebell_batch_20261008_review.png",
+      "sourcePngCurrentSha256": "dc7b85f01454cbc323594c33c445455bcd16e68d6b81dcba103fbed8ae1be5ae",
+      "receipt": "artifacts/exercise-images-batch-20261008/integration_receipts.json",
+      "approvalDate": "2026-10-08",
+      "approvalEvidence": {
+        "manifest": "artifacts/exercise-images-batch-20261008/user_review.json",
+        "recordedHumanDecision": "Todos aprobados excepto 2, 5, 6, 12 y 19.",
+        "receiptManifest": "artifacts/exercise-images-batch-20261008/integration_receipts.json",
+        "number": 14,
+        "group": null,
+        "kind": null
+      },
+      "webpSha256": "26129391d7c1d02f4ceb53b5f71b0e747e650a7a3cca11483093c477d614a147",
+      "sourcePngRgbaEqualsWebp": false,
+      "sameWebpBytesAsAudit14": true,
+      "dimensions": [
+        1024,
+        1536
+      ],
+      "visualQaEvidence": [
+        {
+          "manifest": "artifacts\\exercise-images-batch-20261008\\batch.json",
+          "number": 14,
+          "approvedByUser": true,
+          "integratedIntoApp": true,
+          "status": "integrated_approved",
+          "qaReview": {
+            "status": "independent_review_pass",
+            "note": "Pose, anatomy and visible contacts accepted after alpha cleanup."
+          }
+        }
+      ],
+      "routingScope": "Existing HEAD configuration IDs only; preserve historical same-exercise/equipment illustration across laterality-only choices as already implemented in the historical lookup. Does not expand implement or support configuration."
+    },
+    {
+      "resourceName": "exercise_sumo_squat_bodyweight",
+      "file": "android-native/app/src/main/res/drawable-nodpi/exercise_sumo_squat_bodyweight.webp",
+      "definitionId": "sumo_squat",
+      "equipmentId": "bodyweight",
+      "implementationId": "bodyweight",
+      "configurationIds": [
+        "sumo_squat__bodyweight"
+      ],
+      "configurationEvidence": [
+        {
+          "id": "sumo_squat__bodyweight",
+          "equipmentId": "bodyweight",
+          "selectedOptions": {
+            "implement": "bodyweight"
+          }
+        }
+      ],
+      "sourcePng": "assets/exercise_sumo_squat_bodyweight_batch_20261010_clean_review.png",
+      "sourcePngCurrentSha256": "b84a98365877e31193c62b2a42649d59627eac6910773c1a9197182ae9fb55af",
+      "receipt": "artifacts/exercise-images-review-20261012/integration_receipts.json",
+      "approvalDate": "2026-10-12",
+      "approvalEvidence": {
+        "manifest": "artifacts/exercise-images-review-20261012/integration_receipts.json",
+        "recordedHumanDecision": "EL RESTO INTÉGRALO",
+        "receiptManifest": "artifacts/exercise-images-review-20261012/integration_receipts.json",
+        "number": null,
+        "group": null,
+        "kind": "new_batch"
+      },
+      "webpSha256": "a187d435b70e969e94ab58cce8c1eb532a903558be7e0fd2e3e88915ace6cc7f",
+      "sourcePngRgbaEqualsWebp": true,
+      "sameWebpBytesAsAudit14": true,
+      "dimensions": [
+        1146,
+        1373
+      ],
+      "visualQaEvidence": [
+        {
+          "manifest": "artifacts\\exercise-images-batch-20261010\\batch.json",
+          "number": 25,
+          "approvedByUser": true,
+          "integratedIntoApp": true,
+          "status": "integrated_approved",
+          "qaReview": null
+        }
+      ],
+      "routingScope": "Existing HEAD configuration IDs only; preserve historical same-exercise/equipment illustration across laterality-only choices as already implemented in the historical lookup. Does not expand implement or support configuration."
+    },
+    {
+      "resourceName": "exercise_walking_lunge_barbell_batch20261008b",
+      "file": "android-native/app/src/main/res/drawable-nodpi/exercise_walking_lunge_barbell_batch20261008b.webp",
+      "definitionId": "walking_lunge",
+      "equipmentId": "barbell",
+      "implementationId": "barbell",
+      "configurationIds": [
+        "walking_lunge__barbell"
+      ],
+      "configurationEvidence": [
+        {
+          "id": "walking_lunge__barbell",
+          "equipmentId": "barbell",
+          "selectedOptions": {
+            "implement": "barbell"
+          }
+        }
+      ],
+      "sourcePng": "assets/exercise_walking_lunge_barbell_batch_20261008b_review.png",
+      "sourcePngCurrentSha256": "98320ccd51e06834164ebd758eb41a8cf84f28ac55a88d3f899c713bfd040199",
+      "receipt": "artifacts/exercise-images-review-20261009/integration_receipts.json",
+      "approvalDate": "2026-10-09",
+      "approvalEvidence": {
+        "manifest": "artifacts/exercise-images-review-20261009/decisions.json",
+        "recordedHumanDecision": "El resto está OK; las aprobadas desde ahora deben pasar a WebP.",
+        "receiptManifest": "artifacts/exercise-images-review-20261009/integration_receipts.json",
+        "number": 27,
+        "group": "B",
+        "kind": null
+      },
+      "webpSha256": "95fea50f4b4c0e7f4e70f97a9bc706415449e2d1322934dbad5d9bfe4bc7de6b",
+      "sourcePngRgbaEqualsWebp": true,
+      "sameWebpBytesAsAudit14": true,
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "visualQaEvidence": [
+        {
+          "manifest": "artifacts\\exercise-images-batch-20261008-b\\batch.json",
+          "number": 27,
+          "approvedByUser": true,
+          "integratedIntoApp": true,
+          "status": "integrated_approved",
+          "qaReview": {
+            "status": "independently_reviewed_candidate",
+            "humanApprovalRequired": true,
+            "cameraObservation": null
+          }
+        }
+      ],
+      "routingScope": "Existing HEAD configuration IDs only; preserve historical same-exercise/equipment illustration across laterality-only choices as already implemented in the historical lookup. Does not expand implement or support configuration."
+    },
+    {
+      "resourceName": "exercise_walking_lunge_bodyweight_batch20261008b",
+      "file": "android-native/app/src/main/res/drawable-nodpi/exercise_walking_lunge_bodyweight_batch20261008b.webp",
+      "definitionId": "walking_lunge",
+      "equipmentId": "bodyweight",
+      "implementationId": "bodyweight",
+      "configurationIds": [
+        "walking_lunge__bodyweight"
+      ],
+      "configurationEvidence": [
+        {
+          "id": "walking_lunge__bodyweight",
+          "equipmentId": "bodyweight",
+          "selectedOptions": {
+            "implement": "bodyweight"
+          }
+        }
+      ],
+      "sourcePng": "assets/exercise_walking_lunge_bodyweight_batch_20261008b_review.png",
+      "sourcePngCurrentSha256": "acac48575283218471204ab1805a7eba963329d49334c73e7e7d44dd11fe222b",
+      "receipt": "artifacts/exercise-images-review-20261009/integration_receipts.json",
+      "approvalDate": "2026-10-09",
+      "approvalEvidence": {
+        "manifest": "artifacts/exercise-images-review-20261009/decisions.json",
+        "recordedHumanDecision": "El resto está OK; las aprobadas desde ahora deben pasar a WebP.",
+        "receiptManifest": "artifacts/exercise-images-review-20261009/integration_receipts.json",
+        "number": 30,
+        "group": "B",
+        "kind": null
+      },
+      "webpSha256": "96665c00d8588e4cc96cf9e9ffa1cb1c2c67f6bfcb9fdb9dcbd2866c12c260bd",
+      "sourcePngRgbaEqualsWebp": true,
+      "sameWebpBytesAsAudit14": true,
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "visualQaEvidence": [
+        {
+          "manifest": "artifacts\\exercise-images-batch-20261008-b\\batch.json",
+          "number": 30,
+          "approvedByUser": true,
+          "integratedIntoApp": true,
+          "status": "integrated_approved",
+          "qaReview": {
+            "status": "independently_reviewed_candidate",
+            "humanApprovalRequired": true,
+            "cameraObservation": null
+          }
+        }
+      ],
+      "routingScope": "Existing HEAD configuration IDs only; preserve historical same-exercise/equipment illustration across laterality-only choices as already implemented in the historical lookup. Does not expand implement or support configuration."
+    },
+    {
+      "resourceName": "exercise_walking_lunge_dumbbells_batch20261008b",
+      "file": "android-native/app/src/main/res/drawable-nodpi/exercise_walking_lunge_dumbbells_batch20261008b.webp",
+      "definitionId": "walking_lunge",
+      "equipmentId": "dumbbells",
+      "implementationId": "dumbbells",
+      "configurationIds": [
+        "walking_lunge__dumbbells"
+      ],
+      "configurationEvidence": [
+        {
+          "id": "walking_lunge__dumbbells",
+          "equipmentId": "dumbbells",
+          "selectedOptions": {
+            "implement": "dumbbells"
+          }
+        }
+      ],
+      "sourcePng": "assets/exercise_walking_lunge_dumbbells_batch_20261008b_review.png",
+      "sourcePngCurrentSha256": "a64ba717a2ef8700e0c74e10226df621cd762b6164d0cd31ffcffb7578237505",
+      "receipt": "artifacts/exercise-images-review-20261009/integration_receipts.json",
+      "approvalDate": "2026-10-09",
+      "approvalEvidence": {
+        "manifest": "artifacts/exercise-images-review-20261009/decisions.json",
+        "recordedHumanDecision": "El resto está OK; las aprobadas desde ahora deben pasar a WebP.",
+        "receiptManifest": "artifacts/exercise-images-review-20261009/integration_receipts.json",
+        "number": 28,
+        "group": "B",
+        "kind": null
+      },
+      "webpSha256": "3d25d95c40e65fea7f70b28c6fc06bf2e5859fd30a8e71fd000c6d1eaaec3c02",
+      "sourcePngRgbaEqualsWebp": true,
+      "sameWebpBytesAsAudit14": true,
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "visualQaEvidence": [
+        {
+          "manifest": "artifacts\\exercise-images-batch-20261008-b\\batch.json",
+          "number": 28,
+          "approvedByUser": true,
+          "integratedIntoApp": true,
+          "status": "integrated_approved",
+          "qaReview": {
+            "status": "independently_reviewed_candidate",
+            "humanApprovalRequired": true,
+            "cameraObservation": null
+          }
+        }
+      ],
+      "routingScope": "Existing HEAD configuration IDs only; preserve historical same-exercise/equipment illustration across laterality-only choices as already implemented in the historical lookup. Does not expand implement or support configuration."
+    },
+    {
+      "resourceName": "exercise_walking_lunge_kettlebell_batch20261008b",
+      "file": "android-native/app/src/main/res/drawable-nodpi/exercise_walking_lunge_kettlebell_batch20261008b.webp",
+      "definitionId": "walking_lunge",
+      "equipmentId": "kettlebell",
+      "implementationId": "kettlebell",
+      "configurationIds": [
+        "walking_lunge__kettlebell"
+      ],
+      "configurationEvidence": [
+        {
+          "id": "walking_lunge__kettlebell",
+          "equipmentId": "kettlebell",
+          "selectedOptions": {
+            "implement": "kettlebell"
+          }
+        }
+      ],
+      "sourcePng": "assets/exercise_walking_lunge_kettlebell_batch_20261008b_review.png",
+      "sourcePngCurrentSha256": "945a5651b934b8b734fefdae673c80955f2b040b254fd05b34e4986269de0a49",
+      "receipt": "artifacts/exercise-images-review-20261009/integration_receipts.json",
+      "approvalDate": "2026-10-09",
+      "approvalEvidence": {
+        "manifest": "artifacts/exercise-images-review-20261009/decisions.json",
+        "recordedHumanDecision": "El resto está OK; las aprobadas desde ahora deben pasar a WebP.",
+        "receiptManifest": "artifacts/exercise-images-review-20261009/integration_receipts.json",
+        "number": 29,
+        "group": "B",
+        "kind": null
+      },
+      "webpSha256": "379f47243541ef2bf96188ad9c66efe5f4fe941130bfc403e681ea8e4234d026",
+      "sourcePngRgbaEqualsWebp": true,
+      "sameWebpBytesAsAudit14": true,
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "visualQaEvidence": [
+        {
+          "manifest": "artifacts\\exercise-images-batch-20261008-b\\batch.json",
+          "number": 29,
+          "approvedByUser": true,
+          "integratedIntoApp": true,
+          "status": "integrated_approved",
+          "qaReview": {
+            "status": "independently_reviewed_candidate",
+            "humanApprovalRequired": true,
+            "cameraObservation": null
+          }
+        }
+      ],
+      "routingScope": "Existing HEAD configuration IDs only; preserve historical same-exercise/equipment illustration across laterality-only choices as already implemented in the historical lookup. Does not expand implement or support configuration."
+    },
+    {
+      "resourceName": "exercise_zercher_carry_barbell_batch20261008b",
+      "file": "android-native/app/src/main/res/drawable-nodpi/exercise_zercher_carry_barbell_batch20261008b.webp",
+      "definitionId": "zercher_carry",
+      "equipmentId": "barbell",
+      "implementationId": "barbell",
+      "configurationIds": [
+        "zercher_carry__barbell"
+      ],
+      "configurationEvidence": [
+        {
+          "id": "zercher_carry__barbell",
+          "equipmentId": "barbell",
+          "selectedOptions": {}
+        }
+      ],
+      "sourcePng": "assets/exercise_zercher_carry_barbell_batch_20261008b_review.png",
+      "sourcePngCurrentSha256": "82a4c9abbafdbfa713dbc7520ac6a890d16bc24c57d28d03801a702acaad6e27",
+      "receipt": "artifacts/exercise-images-review-20261009/integration_receipts.json",
+      "approvalDate": "2026-10-09",
+      "approvalEvidence": {
+        "manifest": "artifacts/exercise-images-review-20261009/decisions.json",
+        "recordedHumanDecision": "El resto está OK; las aprobadas desde ahora deben pasar a WebP.",
+        "receiptManifest": "artifacts/exercise-images-review-20261009/integration_receipts.json",
+        "number": 14,
+        "group": "B",
+        "kind": null
+      },
+      "webpSha256": "42934661eb25a2e2d1bd873891b40bdd0d59439a6851bf36a1011a10435aaadd",
+      "sourcePngRgbaEqualsWebp": true,
+      "sameWebpBytesAsAudit14": true,
+      "dimensions": [
+        1024,
+        1536
+      ],
+      "visualQaEvidence": [
+        {
+          "manifest": "artifacts\\exercise-images-batch-20261008-b\\batch.json",
+          "number": 14,
+          "approvedByUser": true,
+          "integratedIntoApp": true,
+          "status": "integrated_approved",
+          "qaReview": {
+            "status": "independently_reviewed_candidate",
+            "humanApprovalRequired": true,
+            "cameraObservation": null
+          }
+        }
+      ],
+      "routingScope": "Existing HEAD configuration IDs only; preserve historical same-exercise/equipment illustration across laterality-only choices as already implemented in the historical lookup. Does not expand implement or support configuration."
+    }
+  ],
+  "superseded": [
+    {
+      "historicalBatchKey": "B13",
+      "resourceName": "exercise_back_hiperextension_45_zercher_espalda_baja_barbell_batch20261008b",
+      "definitionId": "back_hiperextension_45_zercher_espalda_baja",
+      "implementationId": "barbell",
+      "file": "android-native/app/src/main/res/drawable-nodpi/exercise_back_hiperextension_45_zercher_espalda_baja_barbell_batch20261008b.webp",
+      "sourcePng": "assets/exercise_back_hiperextension_45_zercher_espalda_baja_barbell_repair_20261009_review.png",
+      "approvalEvidence": {
+        "manifest": "artifacts/exercise-images-batch-20261010/approval.json",
+        "recordedHumanDecision": "El resto OK: aprobar A12, B6, B13, B25 y B26.",
+        "receiptManifest": "artifacts/exercise-images-batch-20261010/integration_receipts.json",
+        "number": 13,
+        "group": "B",
+        "kind": null
+      },
+      "replacedBy": {
+        "entryId": "R02",
+        "resource": "exercise_back_hiperextension_45_zercher_espalda_baja_default",
+        "configurationIds": [
+          "back_hiperextension_45_zercher_espalda_baja__default"
+        ],
+        "selectedSource": "assets/exercise_back_hiperextension_45_zercher_espalda_baja_barbell_correction_20261013_v2_clean_review.png",
+        "evidence": [
+          "artifacts/exercise-images-full-closure-20261013/mapped_pending_visual_audit.json: matching pair marked DEFECT_VISIBLE / ZERCHER_LOAD_CONTACT",
+          "artifacts/exercise-images-full-closure-20261013/corrective_generation_plan.json: R02",
+          "catalog/exercises/images/reviewed-technique-images.json: R02"
+        ]
+      },
+      "action": "Superseded by corrected R02. Historical WebP archived in artifacts/exercise-images-coverage-repair-20261017/superseded; original PNG source retained."
+    }
+  ],
+  "validation": {
+    "allConfigurationIdsExistInTargetHead": true,
+    "allConfigurationIdsUnique": true,
+    "allWebpHashesMatchCurrentWorkingFiles": true,
+    "all81WebpsMatchAudit14HistoricalHashes": true,
+    "pikeFlatIncludedFeetElevatedExcluded": true,
+    "supersededB13ExcludedB10SumoZercherRetained": true
+  },
+  "limits": [
+    "Read-only documentary/identity reconciliation; no new visual inspection or new human approval inferred.",
+    "Use the preserved historical WebP file/hash as the integration input. Twenty-five currently named source PNGs have different decoded pixels from their historical approved drawables, despite 82/82 drawables remaining byte-identical to audit14.",
+    "equipmentId is the canonical HEAD profile equipment; implementationId preserves subtype tokens such as leg_press_machine.",
+    "Only HEAD catalogue supplied configuration IDs. No working-tree catalogue edits, including the unrelated conventional_row__cable withdrawal, were absorbed."
+  ]
+}

@@ -1,8 +1,6 @@
 package com.example.kpkn.screens.sessioneditor
 
-import android.graphics.Color as AndroidColor
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.luminance
 import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.models.*
 import java.text.SimpleDateFormat
@@ -10,6 +8,7 @@ import java.util.Date
 import java.util.Locale
 import com.example.kpkn.domain.exercises.resolvedCanonicalExerciseId
 import com.example.kpkn.domain.calculations.resolveReferenceCapacity
+import com.example.kpkn.ui.design.KpknSetFormat
 
 internal fun String.safeIntOrNull(): Int? = toIntOrNull()
 
@@ -34,9 +33,6 @@ internal fun formatEditableNumber(value: Double?): String {
     return formatMax2Decimals(value)
 }
 
-internal fun String.toEditorColor(default: Color = Color(0xFF6E8A95)): Color =
-    resolvePartAccent(this).primary
-
 internal fun formatEditorOneDecimal(value: Double): String = "%.1f".format(value)
 
 internal fun dayInitial(dayOfWeek: Int?): String = when (dayOfWeek) {
@@ -50,12 +46,8 @@ internal fun dayInitial(dayOfWeek: Int?): String = when (dayOfWeek) {
     else -> "?"
 }
 
-internal fun formatRestSummary(restTime: Int?): String {
-    val total = restTime ?: 90
-    val minutes = total / 60
-    val seconds = total % 60
-    return "${minutes}:${seconds.toString().padStart(2, '0')}"
-}
+/** Descanso en texto corrido: «45 s» o «2:30», el mismo formato que la dosis de la tarjeta ([KpknSetFormat.doseTime]). */
+internal fun formatRestSummary(restTime: Int?): String = KpknSetFormat.doseTime(restTime ?: 90)
 
 internal fun formatExerciseCollapsedSummary(exercise: Exercise): String? {
     if (exercise.sets.isEmpty()) return null
@@ -65,9 +57,9 @@ internal fun formatExerciseCollapsedSummary(exercise: Exercise): String? {
     val loads = exercise.sets.mapNotNull { it.weight }.distinct()
     val repsPart = when {
         timeSets.size == exercise.sets.size && durations.size == 1 ->
-            "${exercise.sets.size}×${durations.first()}s"
+            "${exercise.sets.size} × ${KpknSetFormat.doseTime(durations.first())}"
         timeSets.size == exercise.sets.size -> "${exercise.sets.size} series"
-        reps.size == 1 -> "${exercise.sets.size}×${reps.first()}"
+        reps.size == 1 -> "${exercise.sets.size} × ${reps.first()}"
         else -> "${exercise.sets.size} series"
     }
     val loadPart = when {
@@ -95,7 +87,7 @@ internal fun formatExerciseConfigSummary(exercise: Exercise): String {
             }
         }
         if (!exercise.isInSuperset()) {
-            exercise.restTime?.let { add("Rest ${formatRestSummary(it)}") }
+            exercise.restTime?.let { add("Descanso ${formatRestSummary(it)}") }
         }
         if (exercise.isStarTarget) add("Meta")
         exercise.goal1RM?.takeIf { it > 0 }?.let { add("Meta ${formatEditableNumber(it)}kg") }
@@ -236,24 +228,8 @@ internal fun estimatedMetricLabel(mode: TrainingMode, customUnit: String?): Stri
 internal fun formatEstimatedMetric(value: Double?, mode: TrainingMode, customUnit: String?): String {
     if (value == null) return "-"
     return when (mode) {
-        TrainingMode.TIME -> "${value.toInt()}s"
+        TrainingMode.TIME -> KpknSetFormat.doseTime(value.toInt())
         TrainingMode.CUSTOM -> formatEditableNumber(value)
         else -> value.toInt().toString()
     }
 }
-
-internal data class SessionMuscleGroup(val label: String, val muscles: List<String>)
-
-internal enum class SessionAnalyticsScope(val label: String) {
-    CURRENT("Sesión actual"),
-    WEEK("Semana"),
-}
-
-internal val SESSION_MUSCLE_GROUPS = listOf(
-    SessionMuscleGroup("Pecho", listOf("Pectorales")),
-    SessionMuscleGroup("Espalda", listOf("Dorsales", "Trapecio", "Erectores Espinales")),
-    SessionMuscleGroup("Hombros", listOf("Deltoides")),
-    SessionMuscleGroup("Brazos", listOf("Bíceps", "Tríceps", "Antebrazo")),
-    SessionMuscleGroup("Core", listOf("Abdomen", "Core")),
-    SessionMuscleGroup("Piernas", listOf("Cuádriceps", "Isquiosurales", "Glúteos", "Aductores", "Pantorrillas")),
-)

@@ -30,6 +30,13 @@ class HeroCoverKindTest {
     }
 
     @Test
+    fun studioCoverIsTheEngineCoverNeverARemotePhoto() {
+        assertEquals(HeroCoverKind.STUDIO, heroCoverKind("kpkn-studio://PLATES/NOCHE", hasBundledCover = false))
+        assertEquals(HeroCoverKind.STUDIO, heroCoverKind("kpkn-studio://PLATES/NOCHE", hasBundledCover = true))
+        assertEquals(HeroCoverKind.STUDIO, heroCoverKind("kpkn-studio://FOO/BAR", hasBundledCover = false))
+    }
+
+    @Test
     fun otherValuesAreRemotePhotosLoadedByCoil() {
         assertEquals(HeroCoverKind.REMOTE, heroCoverKind("https://example.com/cover.jpg", hasBundledCover = false))
         assertEquals(

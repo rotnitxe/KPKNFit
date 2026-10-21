@@ -102,4 +102,125 @@ class ImportExerciseAliasesTest {
         assertNull(ImportExerciseAliases.lookup("Press con mancuernas"))
         assertEquals("military_press", ImportExerciseAliases.lookup("Press militar con mancuernas")?.definitionId)
     }
+
+    @Test
+    fun `cada familia de H5b apunta a su ejercicio`() {
+        val expected = listOf(
+            "Gemelos de pie" to "calf_raise",
+            "Gemelos sentado" to "calf_raise",
+            "Gemelos sentado en máquina" to "calf_raise",
+            "Zancada andando" to "walking_lunge",
+            "Remo con barra inclinado" to "conventional_row",
+            "Remo inclinado con barra" to "conventional_row",
+            "Barbell row" to "conventional_row",
+            "Remo sentado en polea" to "gironda_row",
+            "Remo en polea sentado" to "gironda_row",
+            "Seated cable row" to "gironda_row",
+            "Remo gironda" to "gironda_row",
+            "Remo sentado" to "gironda_row",
+            "Aperturas en polea" to "flat_chest_fly",
+            "Cable fly" to "flat_chest_fly",
+            "Cruce de poleas" to "tren_superior_cruce_poleas",
+            "Extensión de tríceps sobre la cabeza" to "overhead_triceps_extension",
+            "Peso muerto con barra hexagonal" to "conventional_deadlift",
+            "Aductores" to "hip_adduction",
+            "Aductores en máquina" to "hip_adduction",
+            "Abductores en máquina" to "hip_abduction",
+            "Close grip pulldown" to "close_grip_lat_pulldown",
+            "Jalón agarre cerrado" to "close_grip_lat_pulldown",
+            "Dominadas" to "pull_up",
+        )
+        for ((phrase, definitionId) in expected) {
+            assertEquals("«$phrase»", definitionId, ImportExerciseAliases.lookup(phrase)?.definitionId)
+        }
+    }
+
+    @Test
+    fun `las variantes y el material de las frases de H5b son los de su ejercicio`() {
+        assertEquals("calf_raise__bilateral__seated_machine", ImportExerciseAliases.lookup("Gemelos sentado")?.configurationId)
+        assertEquals("conventional_row__barbell", ImportExerciseAliases.lookup("Remo con barra inclinado")?.configurationId)
+        assertEquals("cable", ImportExerciseAliases.lookup("Cable fly")?.equipmentId)
+        assertEquals("cable", ImportExerciseAliases.lookup("Aperturas en polea")?.equipmentId)
+        assertEquals("hex_bar", ImportExerciseAliases.lookup("Peso muerto con barra hexagonal")?.equipmentId)
+    }
+
+    @Test
+    fun `cada alias de la propuesta v6 apunta a un id, una configuracion y un material del catalogo`() {
+        val definitions = catalog.families.flatMap { it.definitions }.associateBy { it.id }
+
+        assertEquals(29, ImportExerciseAliases.entriesV6.size)
+        for ((phrase, alias) in ImportExerciseAliases.entriesV6) {
+            val definition = requireNotNull(definitions[alias.definitionId]) {
+                "«$phrase» apunta a un id que no existe: ${alias.definitionId}"
+            }
+            alias.configurationId?.let { id ->
+                assertTrue("«$phrase»: no existe la configuración $id", definition.configurations.any { it.id == id })
+            }
+            alias.equipmentId?.let { equipment ->
+                assertTrue(
+                    "«$phrase»: ${definition.id} no tiene material $equipment",
+                    definition.configurations.any { it.profile.equipmentId == equipment },
+                )
+            }
+        }
+    }
+
+    @Test
+    fun `cada alias nuevo encuentra su ejercicio con la clave del importador`() {
+        val expected = listOf(
+            "Incline bench" to "incline_bench_press",
+            "Incline DB" to "incline_bench_press",
+            "Incline dumbbell fly" to "incline_chest_fly",
+            "Deadlift up to knees" to "deadlift_to_knees",
+            "Good morning sitting" to "good_morning_seated",
+            "Good morning standing" to "good_morning",
+            "Bicep curl" to "standing_biceps_curl",
+            "Barbell curl" to "standing_biceps_curl",
+            "Dip triceps version" to "triceps_fondos_entre_bancos",
+            "Triceps dip" to "triceps_fondos_entre_bancos",
+            "Bent over one arm row" to "conventional_row",
+            "SSB squat" to "high_bar_back_squat",
+            "Safety bar squat" to "high_bar_back_squat",
+            "Leg ext" to "quads_extension_cuadriceps",
+            "Back ext" to "back_extension_lumbar",
+            "Wide grip pull up" to "pull_up",
+            "Cable rope pushdown" to "triceps_pushdown",
+            "Band pressdown" to "triceps_pushdown",
+            "Flat bench" to "bench_press",
+            "Close grip bench" to "close_grip_bench_press",
+            "Calf press" to "calf_raise",
+            "Ab wheel rollout" to "core_rueda_abdominal",
+            "Bent over rear delt raise" to "rear_delt_raise",
+            "Pause bench" to "paused_bench_press",
+            "Bodyweight box squat" to "quads_sentadilla_cajon",
+            "Calf raise smith machine" to "calf_raise",
+            "Stiff legged deadlift" to "stiff_leg_deadlift",
+            "Pull down" to "lat_pulldown",
+            "Arm DB Row" to "conventional_row",
+        )
+        for ((phrase, definitionId) in expected) {
+            assertEquals("«$phrase»", definitionId, ImportExerciseAliases.lookupForImport(phrase)?.definitionId)
+        }
+    }
+
+    @Test
+    fun `los alias nuevos no entran en la primera pasada de siempre`() {
+        assertNull(ImportExerciseAliases.lookup("Flat bench"))
+        assertNull(ImportExerciseAliases.lookup("Bicep curl"))
+    }
+
+    @Test
+    fun `clean, cargada, snatch y arranque a secas son la cargada y el arranque completos, y Power Clean sigue de potencia`() {
+        val expected = listOf(
+            "Clean" to "squat_clean",
+            "Cargada" to "squat_clean",
+            "Snatch" to "squat_snatch",
+            "Arranque" to "squat_snatch",
+            "Power Clean" to "power_clean",
+        )
+        for ((phrase, definitionId) in expected) {
+            assertEquals("«$phrase»", definitionId, ImportExerciseAliases.lookup(phrase)?.definitionId)
+            assertEquals("«$phrase» (importador)", definitionId, ImportExerciseAliases.lookupForImport(phrase)?.definitionId)
+        }
+    }
 }

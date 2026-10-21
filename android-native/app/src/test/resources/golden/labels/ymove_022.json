@@ -1,0 +1,81 @@
+{
+  "id": "ymove_022",
+  "durationS": 13.16,
+  "width": 360,
+  "height": 640,
+  "rotation": 0,
+  "fpsNominal": 25.0,
+  "fpsMeasured": 25.0,
+  "usable": true,
+  "exercise": "Prensa de piernas inclinada",
+  "exerciseDetail": "Prensa de piernas en máquina inclinada de placas (45°), recostado con los pies en la plataforma, vista oblicua trasera-lateral con el encuadre algo inclinado",
+  "suggestedProfile": "MACHINE_SQUAT",
+  "view": "OBLIQUE",
+  "people": 1,
+  "fullBodyVisible": true,
+  "faceVisible": false,
+  "plateVisible": true,
+  "startPhase": "ECCENTRIC_FIRST",
+  "reps": {
+    "full": 3,
+    "partial": 0,
+    "failed": 0,
+    "uncertain": false,
+    "acceptableRange": [
+      3,
+      3
+    ]
+  },
+  "repTimesS": [
+    {
+      "index": 1,
+      "turnaroundS": 3.3,
+      "side": null,
+      "windowS": [
+        2.8,
+        3.8
+      ]
+    },
+    {
+      "index": 2,
+      "turnaroundS": 7.3,
+      "side": null,
+      "windowS": [
+        6.9,
+        7.7
+      ]
+    },
+    {
+      "index": 3,
+      "turnaroundS": 11.9,
+      "side": null,
+      "windowS": [
+        11.5,
+        12.3
+      ]
+    }
+  ],
+  "activeWindowS": [
+    0.8,
+    13.0
+  ],
+  "frameIntervalS": {
+    "min": 0.04,
+    "median": 0.04,
+    "max": 0.04
+  },
+  "turnaroundKind": "BOTTOM",
+  "edgeEvents": [
+    {
+      "timeS": 13.0,
+      "kind": "TRUNCATED_END",
+      "description": "tras la 3.ª repetición (fondo a 11,9 s) las piernas se extienden y el clip termina a los 13,16 s con ellas casi estiradas"
+    }
+  ],
+  "caveats": [],
+  "cameraMotion": {
+    "class": "STATIC",
+    "note": "cámara fija de estudio: ECC (traslación contra la mediana temporal sobre el fondo que el sujeto nunca cubre): desplazamiento máx. 0,10% en x y 0,04% en y del encuadre en toda la ventana"
+  },
+  "softWarnings": []
+}

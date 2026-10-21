@@ -22,6 +22,7 @@ import kotlinx.coroutines.withContext
 import com.example.kpkn.R
 import com.example.kpkn.data.diagnostics.KpknDiagnosticLogger
 import com.example.kpkn.navigation.KpknDeepLinks
+import com.example.kpkn.services.workout.currentWorkoutNotificationPath
 
 /**
  * Owns the foreground lifetime required for outdoor cardio location updates.
@@ -222,7 +223,7 @@ class CardioGpsForegroundService : Service() {
             KpknDeepLinks.pendingActivityIntent(
                 context = this,
                 requestCode = REQUEST_CODE_OPEN,
-                path = "training",
+                path = currentWorkoutNotificationPath(),
             ),
         )
         .setOngoing(true)

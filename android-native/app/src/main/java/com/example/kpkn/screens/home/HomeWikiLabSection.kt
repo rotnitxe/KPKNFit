@@ -1,20 +1,21 @@
 package com.example.kpkn.screens.home
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Search
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -22,23 +23,36 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.example.kpkn.data.wikilab.TRAINING_CONCEPTS_DATABASE
 import com.example.kpkn.domain.concepts.projectConceptoClave
 import com.example.kpkn.navigation.KpknRoute
-import com.example.kpkn.ui.components.CONCEPTS_LINK_COLOR
-import com.example.kpkn.ui.theme.HomeCardSurface
-import java.time.LocalDate
+import com.example.kpkn.screens.home.design.HomeModuleMargin
+import com.example.kpkn.screens.home.design.HomeTypography
+import com.example.kpkn.screens.onboarding.design.WizardColors
+import com.example.kpkn.screens.onboarding.design.entreno.SymbolPalette
+import com.example.kpkn.ui.components.icons.KpknLineIcons
+import com.example.kpkn.ui.design.KpknModule
+import com.example.kpkn.ui.design.KpknModuleHeader
+import com.example.kpkn.ui.design.KpknSurface
+import com.example.kpkn.ui.design.KpknTextAction
+import com.example.kpkn.ui.design.KpknType
 import kotlinx.coroutines.delay
+import java.time.LocalDate
 
+/**
+ * «Aprende»: un módulo con su cabecera y «Ver todos», y el concepto del día: un libro de línea en un círculo `inset`, el título en Syne Bold
+ * 18, dos líneas de resumen y «Leer». Toda la fila abre el concepto; «Ver todos» abre la biblioteca. El concepto cambia cada día.
+ * Etiquetas de prueba: `concept_daily_card_<id>` (la fila) y `concept_daily_read_more_<id>` («Leer»).
+ */
 @Composable
 fun HomeWikiLabSection(onNavigate: (String) -> Unit) {
     if (TRAINING_CONCEPTS_DATABASE.isEmpty()) return
 
     var today by remember { mutableStateOf(LocalDate.now()) }
-    androidx.compose.runtime.LaunchedEffect(Unit) {
+    LaunchedEffect(Unit) {
         while (true) {
             delay(60_000)
             today = LocalDate.now()
@@ -51,100 +65,59 @@ fun HomeWikiLabSection(onNavigate: (String) -> Unit) {
     }
     val conceptProjection = projectConceptoClave(concept)
     val openConcept = { onNavigate(KpknRoute.Concepts.create(concept.id)) }
+    // El resumen de dos líneas es el corto que Home ya enseñaba; si falta, la descripción del concepto.
+    val summary = concept.shortDescription.ifBlank { conceptProjection.description }
 
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 24.dp, vertical = 8.dp),
-        verticalArrangement = Arrangement.spacedBy(10.dp),
-    ) {
+    KpknModule(modifier = Modifier.fillMaxWidth().padding(horizontal = HomeModuleMargin)) {
+        KpknModuleHeader(
+            label = "Aprende",
+            action = { KpknTextAction(text = "Ver todos", onClick = { onNavigate(KpknRoute.Concepts.create()) }) },
+        )
         Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Column(
-                modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(2.dp),
-            ) {
-                Text(
-                    text = "CONCEPTOS CLAVE",
-                    style = MaterialTheme.typography.labelMedium,
-                    fontWeight = FontWeight.Bold,
-                    letterSpacing = 1.1.sp,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.72f),
-                )
-                Text(
-                    text = "Un concepto para entender mejor tu entrenamiento",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
-            IconButton(
-                onClick = { onNavigate(KpknRoute.Concepts.create()) },
-                modifier = Modifier,
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Search,
-                    contentDescription = "Buscar conceptos",
-                    tint = CONCEPTS_LINK_COLOR,
-                )
-            }
-        }
-
-        Surface(
             modifier = Modifier
                 .fillMaxWidth()
-                .clickable(onClick = openConcept)
-                .testTag("concept_daily_card_${concept.id}"),
-            shape = RoundedCornerShape(20.dp),
-            color = HomeCardSurface,
-            tonalElevation = 0.dp,
-            shadowElevation = 0.dp,
+                .padding(top = 12.dp)
+                .testTag("concept_daily_card_${concept.id}")
+                .clickable(role = Role.Button, onClick = openConcept),
+            verticalAlignment = Alignment.Top,
         ) {
-            Column(
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 15.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
+            Box(
+                modifier = Modifier
+                    .size(44.dp)
+                    .background(KpknSurface.inset, CircleShape),
+                contentAlignment = Alignment.Center,
             ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Text(
-                        text = "CONCEPTO DEL DÍA",
-                        style = MaterialTheme.typography.labelSmall,
-                        fontWeight = FontWeight.Bold,
-                        letterSpacing = 0.9.sp,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                    Text(
-                        text = conceptProjection.category,
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.72f),
-                        maxLines = 1,
-                    )
-                }
+                Icon(
+                    imageVector = KpknLineIcons.Book,
+                    contentDescription = null,
+                    modifier = Modifier.size(22.dp),
+                    tint = SymbolPalette.mente,
+                )
+            }
+            Spacer(Modifier.width(14.dp))
+            Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = conceptProjection.name,
-                    style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurface,
+                    style = HomeTypography.conceptTitle,
+                    color = WizardColors.text,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
                 )
-                Text(
-                    text = concept.shortDescription,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 3,
-                    overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
-                )
-                Text(
-                    text = "Leer más  ›",
-                    modifier = Modifier
-                        .testTag("concept_daily_read_more_${concept.id}")
-                        .clickable(onClick = openConcept),
-                    style = MaterialTheme.typography.labelMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = CONCEPTS_LINK_COLOR,
+                if (summary.isNotBlank()) {
+                    Spacer(Modifier.height(6.dp))
+                    Text(
+                        text = summary,
+                        style = KpknType.body,
+                        color = WizardColors.textMuted,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
+                KpknTextAction(
+                    text = "Leer",
+                    onClick = openConcept,
+                    icon = KpknLineIcons.ChevronRight,
+                    modifier = Modifier.padding(top = 2.dp).testTag("concept_daily_read_more_${concept.id}"),
                 )
             }
         }

@@ -1,0 +1,97 @@
+{
+  "id": "ymove_019",
+  "durationS": 15.28,
+  "width": 360,
+  "height": 640,
+  "rotation": 0,
+  "fpsNominal": 25.0,
+  "fpsMeasured": 25.0,
+  "usable": true,
+  "exercise": "Extensión de tríceps en polea (pushdown con barra)",
+  "exerciseDetail": "Extensión de tríceps en polea alta con barra recta (pushdown), de pie, ligeramente inclinada hacia delante, vista lateral exacta",
+  "suggestedProfile": "TRICEPS_FLEXED_REST",
+  "view": "SIDE",
+  "people": 1,
+  "fullBodyVisible": true,
+  "faceVisible": true,
+  "plateVisible": false,
+  "startPhase": "ECCENTRIC_FIRST",
+  "reps": {
+    "full": 4,
+    "partial": 0,
+    "failed": 0,
+    "uncertain": false,
+    "acceptableRange": [
+      4,
+      5
+    ]
+  },
+  "repTimesS": [
+    {
+      "index": 1,
+      "turnaroundS": 4.0,
+      "side": null,
+      "windowS": [
+        3.4,
+        4.5
+      ]
+    },
+    {
+      "index": 2,
+      "turnaroundS": 7.2,
+      "side": null,
+      "windowS": [
+        6.6,
+        7.7
+      ]
+    },
+    {
+      "index": 3,
+      "turnaroundS": 10.3,
+      "side": null,
+      "windowS": [
+        9.7,
+        10.8
+      ]
+    },
+    {
+      "index": 4,
+      "turnaroundS": 13.4,
+      "side": null,
+      "windowS": [
+        12.8,
+        14.0
+      ]
+    }
+  ],
+  "activeWindowS": [
+    2.0,
+    14.5
+  ],
+  "frameIntervalS": {
+    "min": 0.04,
+    "median": 0.04,
+    "max": 0.04
+  },
+  "turnaroundKind": "TOP",
+  "edgeEvents": [
+    {
+      "timeS": 0.3,
+      "kind": "TRUNCATED_START",
+      "description": "el clip empieza con los brazos casi extendidos (final de una repetición ya hecha: bloqueo a ~0,3 s) y flexiona primero: ese bloqueo inicial no cuenta como repetición completa (rango 4-5)"
+    },
+    {
+      "timeS": 15.2,
+      "kind": "TRUNCATED_END",
+      "description": "tras el 4.º bloqueo (13,4 s) los codos vuelven a flexionarse y el clip termina a los 15,3 s con los antebrazos casi horizontales"
+    }
+  ],
+  "caveats": [],
+  "cameraMotion": {
+    "class": "STATIC",
+    "note": "cámara fija de estudio: ECC (traslación contra la mediana temporal sobre el fondo que el sujeto nunca cubre): desplazamiento máx. 0,15% en x y 0,23% en y del encuadre en toda la ventana"
+  },
+  "softWarnings": [
+    "recuento ambiguo por medio ciclo en el borde del clip o por repeticiones dudosas: rango aceptable 4-5 (ver edgeEvents)"
+  ]
+}

@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Relator: momentos solo con animación</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Syne:wght@600;700;800&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#F2EEE6}a:hover{color:#ffffff}
+@keyframes wave{from{stroke-dashoffset:0}to{stroke-dashoffset:-120}}
+.wv{animation:wave 3.2s linear infinite}
+@keyframes breathe{0%,100%{transform:scale(1)}50%{transform:scale(1.06)}}
+.br{animation:breathe 4s ease-in-out infinite;transform-box:fill-box;transform-origin:center bottom}
+@keyframes lift{0%,30%{transform:translateY(0)}55%,80%{transform:translateY(-10px)}100%{transform:translateY(0)}}
+.lf{animation:lift 1.6s ease-in-out infinite}
+@keyframes conf{0%{transform:translateY(0) rotate(0);opacity:1}100%{transform:translateY(36px) rotate(200deg);opacity:0}}
+.cf{animation:conf 1.8s ease-in infinite;transform-box:fill-box;transform-origin:center}
+@keyframes sq{0%,100%{transform:translateY(0)}50%{transform:translateY(6px)}}
+.sq{animation:sq 1.1s ease-in-out infinite}
+@keyframes dot{0%,100%{opacity:.25}50%{opacity:1}}
+.d1{animation:dot 1.2s infinite}.d2{animation:dot 1.2s .2s infinite}.d3{animation:dot 1.2s .4s infinite}
+@keyframes shim{0%{background-position:390px 0}55%,100%{background-position:-390px 0}}
+.shim{background-image:linear-gradient(100deg,rgba(242,238,230,.58) 0px,rgba(242,238,230,.58) 300px,#FFFFFF 390px,rgba(242,238,230,.58) 480px,rgba(242,238,230,.58) 780px);background-size:780px 100%;background-attachment:fixed;-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-fill-color:transparent;animation:shim 5.4s ease-in-out infinite}
+@media (prefers-reduced-motion: reduce){.wv,.br,.lf,.cf,.sq,.d1,.d2,.d3,.shim{animation:none}}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: #000000; color: #F2EEE6; font-family: Inter, sans-serif; position: relative; overflow: hidden; padding: 28px 0; display: flex; flex-direction: column; gap: 30px;">
+
+  <div style="display: flex; flex-direction: column; gap: 10px;">
+    <div style="padding: 0 20px; display: flex; gap: 8px; opacity: 0.55;"><span style="height: 26px; padding: 0 10px; border-radius: 13px; background: #111111; font-size: 12px; display: flex; align-items: center;">Descanso 2:41</span></div>
+    <svg width="390" height="70" viewBox="0 0 390 70" role="img" aria-label="Descansando: respiración lenta">
+      <path class="wv" d="M0 44 Q 15 30 30 44 T 60 44 T 90 44 T 120 44 T 150 44 T 180 44 T 210 44 T 240 44 T 270 44 T 300 44 T 330 44 T 360 44 T 390 44" fill="none" stroke="rgba(143,178,255,0.55)" stroke-width="1.6" stroke-dasharray="60 0"></path>
+      <g transform="translate(195 58)" class="br">
+        <circle cx="0" cy="-30" r="4" fill="none" stroke="#F2EEE6" stroke-width="1.8"></circle>
+        <path d="M0 -26 L0 -14 L10 -14 L12 0" fill="none" stroke="#F2EEE6" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path>
+        <path d="M0 -22 L-7 -16" fill="none" stroke="#F2EEE6" stroke-width="1.8" stroke-linecap="round"></path>
+        <line x1="-14" y1="0" x2="18" y2="0" stroke="rgba(242,238,230,0.25)" stroke-width="1.4"></line>
+      </g>
+    </svg>
+    <div style="height: 34px; margin: 0 16px; border-radius: 22px 22px 0 0; background: #111111;"></div>
+  </div>
+
+  <div style="display: flex; flex-direction: column; gap: 10px;">
+    <div style="padding: 0 20px; display: flex; gap: 8px; opacity: 0.55;"><span style="height: 26px; padding: 0 10px; border-radius: 13px; background: #111111; font-size: 12px; display: flex; align-items: center;">Serie 3 registrada</span></div>
+    <div style="position: relative; height: 70px;">
+      <svg width="390" height="70" viewBox="0 0 390 70" role="img" aria-label="Marca personal: celebración">
+        <g transform="translate(195 64)">
+          <g class="lf">
+            <line x1="-24" y1="-44" x2="24" y2="-44" stroke="#F2EEE6" stroke-width="2.2" stroke-linecap="round"></line>
+            <circle cx="-24" cy="-44" r="5.5" fill="none" stroke="#F49A6E" stroke-width="2.2"></circle>
+            <circle cx="24" cy="-44" r="5.5" fill="none" stroke="#F49A6E" stroke-width="2.2"></circle>
+            <path d="M-9 -44 L-5 -30 M9 -44 L5 -30" stroke="#F2EEE6" stroke-width="1.8" stroke-linecap="round"></path>
+            <circle cx="0" cy="-34" r="4" fill="none" stroke="#F2EEE6" stroke-width="1.8"></circle>
+          </g>
+          <path d="M0 -26 L0 -12 M0 -12 L-6 0 M0 -12 L6 0" stroke="#F2EEE6" stroke-width="1.8" stroke-linecap="round" fill="none"></path>
+        </g>
+        <rect class="cf" x="120" y="4" width="5" height="5" fill="#F7CF73"></rect>
+        <rect class="cf" x="150" y="0" width="4" height="7" fill="#F49A6E" style="animation-delay:.3s"></rect>
+        <rect class="cf" x="240" y="2" width="5" height="5" fill="#8FB2FF" style="animation-delay:.6s"></rect>
+        <rect class="cf" x="268" y="6" width="4" height="6" fill="#43D18C" style="animation-delay:.9s"></rect>
+        <rect class="cf" x="98" y="8" width="4" height="4" fill="#C9B8FF" style="animation-delay:1.2s"></rect>
+        <rect class="cf" x="290" y="0" width="4" height="4" fill="#F7CF73" style="animation-delay:.45s"></rect>
+      </svg>
+    </div>
+    <div style="text-align: center; font-size: 15px; line-height: 22px;"><span class="shim">95 kg × 6: tu nueva marca.</span></div>
+    <div style="height: 34px; margin: 0 16px; border-radius: 22px 22px 0 0; background: #111111;"></div>
+  </div>
+
+  <div style="display: flex; flex-direction: column; gap: 10px;">
+    <div style="padding: 0 20px; display: flex; gap: 8px; opacity: 0.55;"><span style="height: 26px; padding: 0 10px; border-radius: 13px; background: #111111; font-size: 12px; display: flex; align-items: center;">Serie 2 lista</span></div>
+    <svg width="390" height="70" viewBox="0 0 390 70" role="img" aria-label="Preparándose para la serie">
+      <g transform="translate(180 64)" class="sq">
+        <circle cx="0" cy="-40" r="4" fill="none" stroke="#F2EEE6" stroke-width="1.8"></circle>
+        <line x1="-16" y1="-32" x2="16" y2="-32" stroke="#F2EEE6" stroke-width="2.2" stroke-linecap="round"></line>
+        <path d="M0 -36 L0 -20 M0 -20 L-7 -10 L-5 0 M0 -20 L7 -10 L5 0" stroke="#F2EEE6" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" fill="none"></path>
+      </g>
+      <circle class="d1" cx="214" cy="40" r="3" fill="#F2EEE6"></circle>
+      <circle class="d2" cx="226" cy="40" r="3" fill="#F2EEE6"></circle>
+      <circle class="d3" cx="238" cy="40" r="3" fill="#F2EEE6"></circle>
+    </svg>
+    <div style="height: 34px; margin: 0 16px; border-radius: 22px 22px 0 0; background: #111111;"></div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

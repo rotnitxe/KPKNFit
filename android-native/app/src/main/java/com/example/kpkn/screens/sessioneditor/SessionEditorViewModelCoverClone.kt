@@ -1,21 +1,7 @@
 package com.example.kpkn.screens.sessioneditor
 
 import com.example.kpkn.data.models.*
-import com.example.kpkn.data.repository.CompetitionRepository
-import com.example.kpkn.domain.auge.AugeClassifiers
-import com.example.kpkn.domain.exercises.ExerciseMuscleResolver
-import com.example.kpkn.domain.exercises.normalizedIdentityFields
-import com.example.kpkn.domain.exercises.resolvedCanonicalExerciseId
-import com.example.kpkn.domain.sessionassistant.SessionAssistantEngine
-import com.example.kpkn.domain.sessionassistant.SessionAssistantInput
 import com.example.kpkn.domain.training.PlanMaterializer
-import com.example.kpkn.domain.training.VolumeCalculator
-import com.example.kpkn.domain.workout.SupersetRules
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import java.time.LocalDate
-import java.util.UUID
 
 fun SessionEditorViewModel.updateBackgroundValue(value: String, type: SessionBackgroundType) = updateSession { session ->
     session.copy(
@@ -91,7 +77,7 @@ fun SessionEditorViewModel.cloneCurrentSessionToTargets(
     val targets = state.cloneDayOptions.filter { it.key in targetKeys && !it.isCurrentSessionDay }
     if (targets.isEmpty()) return SessionEditorSaveResult(false, "No se encontraron destinos válidos.")
 
-    // Stage only — applied when the user saves (unified draft semantics with import).
+    // Stage: el guardado la aplica. La pantalla la guarda en cuanto se confirma (ER1a: «Se copia ahora»).
     updateUi {
         it.copy(
             pendingTransferToDays = PendingTransferToDays(
@@ -104,7 +90,7 @@ fun SessionEditorViewModel.cloneCurrentSessionToTargets(
             ),
             hasUnsavedChanges = true,
             sheet = SessionEditorSheet.NONE,
-            snackbarMessage = "Transferencia pendiente a ${targets.size} día${if (targets.size > 1) "s" else ""}. Guarda para aplicarla.",
+            snackbarMessage = "Copiando a ${targets.size} día${if (targets.size > 1) "s" else ""}…",
         )
     }
     if (!persistDraft()) {
@@ -154,7 +140,7 @@ fun SessionEditorViewModel.importFromSourceSession(
     val modeLabel = if (selectedExerciseIds.isNullOrEmpty()) "completa" else "parcial"
     return SessionEditorSaveResult(
         success = true,
-        message = "Transferencia $modeLabel al borrador desde ${sourceOption.sessionName}. Revisa y guarda.",
+        message = "Transferencia $modeLabel desde ${sourceOption.sessionName}. Se guarda sola.",
     )
 }
 
@@ -189,16 +175,6 @@ internal fun PendingTransferToDays.withLatestSourceFrom(base: Session): PendingT
         sourceVariantKey = resolvedVariant,
         sourceMainSessionId = base.id,
     )
-}
-
-internal fun SessionEditorViewModel.applyCloneToTarget(
-    program: Program,
-    source: Session,
-    target: SessionCloneDayOption,
-    selectedExerciseIds: Set<String>?,
-    applyMode: SessionCloneApplyMode,
-): Program {
-    return applySessionTransferTarget(program, source, target, selectedExerciseIds, applyMode)
 }
 
 internal fun SessionTransferOutcome.freezeTransferredSessionOverrides(): Program {

@@ -7,6 +7,7 @@ import com.example.kpkn.data.repository.NutritionRepository
 import com.example.kpkn.data.repository.ProgramRepository
 import com.example.kpkn.domain.nutrition.*
 import com.example.kpkn.domain.training.AppClock
+import com.example.kpkn.testsupport.RoomTestRule
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -16,6 +17,7 @@ import kotlinx.coroutines.test.*
 import org.junit.After
 import org.junit.Assert.*
 import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
@@ -32,12 +34,21 @@ import kotlin.coroutines.CoroutineContext
 @Config(manifest = Config.NONE, sdk = [34])
 class NutritionViewModelTest {
 
+    @get:Rule
+    val roomRule = RoomTestRule()
+
     private val testDispatcher = UnconfinedTestDispatcher()
     private val testScope = TestScope(testDispatcher)
     private lateinit var nutritionRepo: NutritionRepository
     private lateinit var programRepo: ProgramRepository
     private lateinit var vm: NutritionViewModel
     private val collectors = mutableListOf<Job>()
+
+    /** Guarda el plan y lo activa, como hacía el antiguo `NutritionViewModel.createPlan` (las metas llegan con `activatePlan`). */
+    private fun createPlan(plan: NutritionPlan) {
+        nutritionRepo.addNutritionPlan(plan)
+        vm.activatePlan(plan.id)
+    }
 
     @Before
     fun setup() {
@@ -398,7 +409,7 @@ class NutritionViewModelTest {
                 dailyFatGoal = null,
             )
         }
-        vm.createPlan(
+        createPlan(
             NutritionPlan(
                 id = "zero-plan",
                 name = "Zero",
@@ -431,7 +442,7 @@ class NutritionViewModelTest {
             isActive = true,
             createdAt = java.time.Instant.now().toString(),
         )
-        vm.createPlan(plan)
+        createPlan(plan)
 
         val active = vm.activePlan.value
         assertNotNull(active)
@@ -443,7 +454,7 @@ class NutritionViewModelTest {
     fun `activate plan changes active`() {
         val plan1 = NutritionPlan(id = "p1", name = "Plan 1", isActive = true)
         val plan2 = NutritionPlan(id = "p2", name = "Plan 2")
-        vm.createPlan(plan1)
+        createPlan(plan1)
         nutritionRepo.addNutritionPlan(plan2)
 
         vm.activatePlan("p2")
@@ -464,11 +475,11 @@ class NutritionViewModelTest {
             createdAt = java.time.Instant.now().toString(),
         )
 
-        vm.createPlan(plan("goal-a", 2000))
+        createPlan(plan("goal-a", 2000))
         awaitStoredTodayGoal { goal -> goal != null && goal.planId == "goal-a" && goal.calorieTargetKcal == 2000 }
 
         // Un plan DISTINTO el mismo día: la meta de hoy en Room pasa a ser la suya.
-        vm.createPlan(plan("goal-b", 2600))
+        createPlan(plan("goal-b", 2600))
         awaitStoredTodayGoal { goal -> goal != null && goal.planId == "goal-b" && goal.calorieTargetKcal == 2600 }
     }
 
