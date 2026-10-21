@@ -2,6 +2,11 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
     <application>
+        <!-- SOLO DEPURACIÓN: check-in en memoria e historial determinista para la variante QA. -->
+        <activity android:name="com.example.kpkn.debug.NutritionCheckinHarnessActivity"
+            android:exported="true" android:theme="@style/Theme.KPKN" />
+        <activity android:name="com.example.kpkn.debug.NutritionHistorySeedActivity"
+            android:exported="true" android:theme="@style/Theme.KPKN" />
         <!-- SOLO DEPURACIÓN: estado del día con datos en memoria. -->
         <activity
             android:name="com.example.kpkn.debug.NutritionDayStateHarnessActivity"
