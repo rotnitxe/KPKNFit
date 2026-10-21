@@ -20,6 +20,7 @@ import com.example.kpkn.data.models.supersetGroupRefOrLegacyId
 import com.example.kpkn.data.sessions.SessionTemplate
 import com.example.kpkn.data.models.AugeMetrics
 import com.example.kpkn.domain.auge.AugeClassifiers
+import com.example.kpkn.domain.auge.AugeClock
 import com.example.kpkn.domain.auge.AugeFatigueEngine
 import com.example.kpkn.domain.auge.InterferenceEngine
 import com.example.kpkn.domain.calculations.calculateSessionTimeBreakdown
@@ -31,11 +32,21 @@ import kotlin.math.roundToInt
 /** Etiqueta del aviso «bajar el descanso» (SE9): la unidad va con espacio inseparable, como en el resto de textos. */
 internal fun reduceRestLabel(seconds: Int): String = "Bajar $seconds s de descanso entre series"
 
+/** Mensaje de solapamiento: distingue sesiones registradas de sesiones que siguen planificadas. */
+internal fun sessionOverlapMessage(isFromHistory: Boolean, sessionName: String, hoursApart: Int, muscles: String): String =
+    if (isFromHistory) {
+        val whenLabel = if (hoursApart < 20) "hace pocas horas" else "hace $hoursApart horas"
+        "Entrenaste $sessionName $whenLabel y esta sesión vuelve a pedir $muscles. Baja un poco el volumen o cambia el orden."
+    } else {
+        "La sesión $sessionName está planificada con $hoursApart h de separación respecto a esta; ambas piden $muscles. Baja un poco el volumen o cambia el orden."
+    }
+
 object SessionAssistantEngine {
 
     fun evaluate(
         input: SessionAssistantInput,
         allTemplates: List<SessionTemplate> = emptyList(),
+        nowMs: Long = AugeClock.nowMs(),
     ): SessionAssistantReport {
         val volumeResult = calcularVolumenPorMusculo(input)
         val drain = calcularDrenajeEstimado(input)
@@ -58,7 +69,7 @@ object SessionAssistantEngine {
         } else {
             emptyList()
         }
-        val overlapAjustes = generarSugerenciasSolapamiento(input)
+        val overlapAjustes = generarSugerenciasSolapamiento(input, nowMs)
 
         return SessionAssistantReport(
             veredicto = Verdict.OPTIMAL,
@@ -529,13 +540,13 @@ object SessionAssistantEngine {
         volume: VolumeCalculationResult,
     ): List<SessionRisk> {
         val riesgos = mutableListOf<SessionRisk>()
-        if (drain.cns >= 85 || volume.averageRpe >= 9.3) {
+        if (drain.cns >= 85) {
             riesgos += SessionRisk(
                 id = "cns-fatigue",
                 type = RiskType.CNS,
                 severity = if (drain.cns >= 90) RiskSeverity.BLOCKING else RiskSeverity.WARNING,
                 title = "Fatiga SNC elevada",
-                message = "Tu energía SNC va alta para esta sesión (${drain.cns}%). Bajar RPE, subir RIR o reducir %1RM deja margen sin romper el plan.",
+                message = "La sesión podría gastar ${drain.cns} % de Energía. Baja RPE o %1RM, o sube RIR.",
                 action = "Reducir intensidad global.",
             )
         }
@@ -783,6 +794,7 @@ object SessionAssistantEngine {
 
     internal fun generarSugerenciasSolapamiento(
         input: SessionAssistantInput,
+        nowMs: Long,
     ): List<AssistantSuggestion> {
         if (input.allExercisesInSession.isEmpty()) return emptyList()
         val weekHit = input.weekSessions.firstOrNull { it.id == input.currentSessionId }
@@ -796,7 +808,7 @@ object SessionAssistantEngine {
             history = input.workoutLogs,
             exerciseDb = input.exerciseIndex,
             settings = input.settings,
-            nowMs = com.example.kpkn.domain.auge.AugeClock.nowMs(),
+            nowMs = nowMs,
         ).filter { it.interferencePercent >= 10 }
             .take(2)
         return hits.map { hit ->
@@ -804,17 +816,11 @@ object SessionAssistantEngine {
             val muscles = hit.sharedMuscles.take(2).joinToString(" y ") { it.muscleName }
             val top = hit.sharedMuscles.maxByOrNull { it.recoveryDeficit }?.muscleName
             val from = hit.sessionAName.ifBlank { "otra sesión" }
-            val whenLabel = when {
-                hit.isFromHistory && hours < 20 -> "hace pocas horas"
-                hit.isFromHistory -> "hace $hours horas"
-                hours <= 24 -> "al día siguiente"
-                else -> "con $hours horas de separación"
-            }
             AssistantSuggestion(
                 id = "overlap-${hit.sessionAId}",
                 type = AssistantActionType.KEEP,
                 title = "Poco descanso para $muscles",
-                message = "Entrenaste $from $whenLabel y esta sesión vuelve a pedir $muscles. Baja un poco el volumen o cambia el orden.",
+                message = sessionOverlapMessage(hit.isFromHistory, from, hours, muscles),
                 muscle = top,
                 priority = 2,
                 details = if (top != null) listOf(

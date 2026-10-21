@@ -63,20 +63,20 @@ object LoadAdvisoryEngine {
             else -> "${top[0].name} y ${top[1].name}"
         }
         val replacement = top.firstNotNullOfOrNull { replacementVariant(it, catalog) }
-        val daysPrefix = Regex("""Llevas \d+ días axiales en 7\. """).find(advisory.body)?.value.orEmpty()
+        val evidencePrefix = Regex("""Carga axial reciente: \d+ de los últimos 7 días\. """).find(advisory.body)?.value.orEmpty()
         val body = when (advisory.level) {
             LoadAdvisoryLevel.ADJUST -> buildString {
-                append(daysPrefix)
-                append("Hoy baja 10–15 % en $names")
+                append(evidencePrefix)
+                append("Ajusta la carga axial de $names hoy")
                 if (replacement != null) {
-                    append(", o cambia ${top[0].name} por ${replacement.name}")
+                    append(" o sustituye ${top[0].name} por ${replacement.name}")
                 } else {
-                    append(", o cambia uno por una variante menos axial")
+                    append(" o sustituye un ejercicio por una variante menos axial")
                 }
                 append(".")
             }
             LoadAdvisoryLevel.UNLOAD -> buildString {
-                append("Semana ligera: recorta o sustituye $names")
+                append("Tendencia reciente de Columna: las lecturas al inicio reflejan una carga que conviene atender. Semana ligera: reduce o sustituye $names")
                 if (replacement != null) append(" (p. ej. ${replacement.name})")
                 append(".")
             }
@@ -90,14 +90,20 @@ object LoadAdvisoryEngine {
         upcoming: List<AxialSessionExercise> = emptyList(),
     ): String {
         val top = topAxialExercises(upcoming, limit = 1).firstOrNull()
-        return when {
-            advisory.channel == RecoveryChannelId.STRUCTURE &&
-                top != null &&
-                rank(advisory.level) >= rank(LoadAdvisoryLevel.ADJUST) ->
-                "Columna: hoy −10 % en ${top.name}"
-            advisory.channel == RecoveryChannelId.STRUCTURE -> "Columna: ${advisory.title}"
+        if (rank(advisory.level) < rank(LoadAdvisoryLevel.ADJUST)) {
+            return if (advisory.channel == RecoveryChannelId.STRUCTURE) "Columna: ${advisory.title}" else advisory.title
+        }
+        val action = when (advisory.level) {
+            LoadAdvisoryLevel.ADJUST -> when (advisory.channel) {
+                RecoveryChannelId.STRUCTURE -> "Ajusta la carga axial"
+                RecoveryChannelId.SYSTEM -> "Deja 1–2 repeticiones en reserva"
+                else -> advisory.title
+            }
+            LoadAdvisoryLevel.UNLOAD -> "Semana ligera"
             else -> advisory.title
         }
+        val focus = top?.takeIf { advisory.channel == RecoveryChannelId.STRUCTURE }?.let { " en ${it.name}" }.orEmpty()
+        return "${RecoveryBands.channelTitle(advisory.channel)}: $action$focus"
     }
 
     fun evaluate(
@@ -217,9 +223,9 @@ object LoadAdvisoryEngine {
         if (level == LoadAdvisoryLevel.NONE) return null
         if (level == LoadAdvisoryLevel.WATCH) {
             val body = if (channel == RecoveryChannelId.STRUCTURE) {
-                "Carga axial reciente un poco alta (${axial?.axialDaysIn7 ?: 0} días en 7). Vigílala en el detalle de Columna."
+                "Carga axial reciente algo alta (${axial?.axialDaysIn7 ?: 0} de 7 días). Vigílala en el detalle de Columna."
             } else {
-                "Energía acumulada esta semana. No hace falta cambiar el plan todavía."
+                "Señales recientes de carga de Energía elevadas. No hace falta cambiar el plan todavía."
             }
             return LoadAdvisory(
                 id = "${channel.name}|$weekKey|WATCH",
@@ -233,16 +239,16 @@ object LoadAdvisoryEngine {
         val (title, body) = when {
             channel == RecoveryChannelId.STRUCTURE && level == LoadAdvisoryLevel.ADJUST ->
                 "Columna pide un respiro" to
-                    "Llevas ${axial?.axialDaysIn7 ?: 0} días axiales en 7. Hoy baja 10–15 % en sentadilla o peso muerto, o cambia uno por una variante menos axial."
+                    "Carga axial reciente: ${axial?.axialDaysIn7 ?: 0} de los últimos 7 días. Ajusta la carga axial hoy: reduce o sustituye sentadilla o peso muerto por una variante menos axial."
             channel == RecoveryChannelId.STRUCTURE && level == LoadAdvisoryLevel.UNLOAD ->
                 "Descarga de columna" to
-                    "La carga axial lleva semanas al alza. Semana ligera o sustituye el ejercicio más axial."
+                    "Tendencia reciente de Columna: las lecturas al inicio reflejan una carga que conviene atender. Semana ligera: reduce o sustituye el ejercicio más axial."
             channel == RecoveryChannelId.SYSTEM && level == LoadAdvisoryLevel.ADJUST ->
                 "Energía acumulada" to
-                    "Deja 1–2 repeticiones en reserva y evita el fallo. ${systemic?.sessionsIn7 ?: 0} sesiones en 7 días."
+                    "Señales recientes de carga de Energía. Deja 1–2 repeticiones en reserva y evita el fallo. ${systemic?.sessionsIn7 ?: 0} sesiones en 7 días."
             else ->
                 "Descarga de energía" to
-                    "Tres semanas de carga neural alta. Semana ligera o recorta compuestos demandantes."
+                    "Tendencia reciente de Energía: las lecturas al inicio reflejan una carga que conviene atender. Semana ligera: reduce los compuestos demandantes."
         }
         return LoadAdvisory(
             id = "${channel.name}|$weekKey|${level.name}",

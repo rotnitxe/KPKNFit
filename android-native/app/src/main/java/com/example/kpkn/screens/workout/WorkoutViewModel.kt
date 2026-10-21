@@ -6703,12 +6703,6 @@ class WorkoutViewModel(
             unifiedEffort >= 6.4 -> 2
             else -> 1
         }
-        val averageTechnique = state.postExerciseFeedbackByExerciseId.values
-            .map { it.technicalQuality }
-            .average()
-            .takeIf { !it.isNaN() }
-            ?.coerceIn(1.0, 10.0)
-            ?: 8.0
         val additionalNote = state.voiceFinalAdditionalDiscomfortNote?.trim()?.takeIf { it.isNotBlank() }
         val closingFeedback = SessionClosingFeedback(
             overallFatigue = inferredFatigue,
