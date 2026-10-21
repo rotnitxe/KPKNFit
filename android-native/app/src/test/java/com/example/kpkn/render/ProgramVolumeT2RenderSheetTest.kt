@@ -19,11 +19,18 @@ import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.onNodeWithContentDescription
+import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.performSemanticsAction
+import androidx.compose.ui.semantics.SemanticsActions
+import androidx.compose.ui.text.TextLayoutResult
 import com.example.kpkn.data.models.MuscleRole
 import com.example.kpkn.screens.onboarding.design.LocalWizardReducedMotion
 import com.example.kpkn.screens.programdetail.design.*
 import com.example.kpkn.ui.design.KpknSurface
 import org.junit.Assume.assumeTrue
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.BeforeClass
 import org.junit.Rule
 import org.junit.Test
@@ -33,7 +40,7 @@ import org.robolectric.annotation.Config
 import org.robolectric.annotation.GraphicsMode
 import java.io.File
 
-/** Comprueba el rótulo de «Real», las porciones por rol y la nota sin fecha al 100 % y al 130 %. */
+/** Comprueba unidades iguales en plan y «Real», porciones por rol y nota sin fecha al 100 % y al 130 %. */
 @RunWith(RobolectricTestRunner::class)
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
 @Config(sdk = [34], qualifiers = "w360dp-h1500dp-xxhdpi", application = Application::class)
@@ -88,6 +95,14 @@ class ProgramVolumeT2RenderSheetTest {
         for ((scale, name) in listOf(1f to "t2-s100", 1.3f to "t2-s130")) {
             rule.runOnUiThread { fontScale = scale }
             rule.waitForIdle()
+            rule.onNodeWithContentDescription("6 series/sem", useUnmergedTree = true).assertExists()
+            for (text in listOf("series/sem", "Real 4 series/sem", "Deltoides Anterior · Directo", "Deltoides Lateral · Secundario")) {
+                val layouts = mutableListOf<TextLayoutResult>()
+                rule.onNodeWithText(text, useUnmergedTree = true)
+                    .performSemanticsAction(SemanticsActions.GetTextLayoutResult) { it(layouts) }
+                assertTrue(layouts.isNotEmpty())
+                assertFalse("sin recortes al $scale: $text", layouts.single().hasVisualOverflow)
+            }
             val view = host!!
             val bitmap = Bitmap.createBitmap(view.width, view.height, Bitmap.Config.ARGB_8888)
             rule.runOnUiThread { view.draw(Canvas(bitmap)) }

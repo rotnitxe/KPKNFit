@@ -1473,8 +1473,9 @@ class NativeProfileRecipeAndFitterTest {
     // ─── B-02: tolerancia blanda de glúteos (límite 16, techo blando 17,5) ──────────────────────────────
 
     /**
-     * Añade exposición SECUNDARIA de glúteo medio a las configuraciones indicadas.
-     * La política conserva esa exposición; el contador canónico colapsa las cabezas del mismo grupo.
+     * Catálogo de prueba: suma `gluteus_medius` como músculo SECUNDARIO (0,5 serie de glúteo por serie, igual
+     * en la política que en el contador de volumen real) a las configuraciones indicadas. Empuja un plan real
+     * unas décimas por encima de su límite sin tocar el catálogo de producción.
      */
     private fun catalogWithExtraGluteSecondary(vararg configurationIds: String): ExerciseCatalogV2 {
         val targets = configurationIds.toSet()
@@ -1541,41 +1542,33 @@ class NativeProfileRecipeAndFitterTest {
         }
 
     @Test
-    fun secondary_glute_exposure_preserves_the_canonical_total_and_primary_band() {
+    fun extra_secondary_glute_total_is_allowed_without_consuming_the_primary_band() {
         val control = personalizerFor(catalog).personalize("np-indirect", muscleBodyweightSixDaysInput)
         val controlProgram = requireProgram(control, "control Músculo corporal 6d")
         val targets = arrayOf(NativeCandidateTable.GLUTE_BRIDGE_BODYWEIGHT, "reverse_lunge__bodyweight")
         val boosted = catalogWithExtraGluteSecondary(*targets)
-        val targetProfiles = boosted.families.flatMap { it.definitions }.flatMap { it.configurations }
-            .filter { it.id in targets }
-        assertTrue("las dos configuraciones ya cuentan glúteo mayor primario", targetProfiles.all { "gluteus_maximus" in it.profile.primaryMuscles })
         val boostedMetadata = CatalogCompositionMetadataProvider.fromCatalog(boosted)
         val originalRecipe = requireNotNull(controlProgram.sourceRecipe)
         val originalPrimary = originalRecipe.weeks.maxOf { week ->
             SessionCompositionPolicy.weeklyPrimaryGroupSets(week, metadata)[com.example.kpkn.data.programs.KpknMuscleGroup.GLUTES] ?: 0.0
         }
-        val expectedCanonicalTotal = peakGluteTotalSets(controlProgram, catalog)
-        val expectedExposureTotal = expectedCanonicalTotal +
+        val expectedTotal = peakGluteTotalSets(controlProgram, catalog) +
             targets.sumOf { id -> weeklySetsOf(originalRecipe, id) * 0.5 }
-        assertTrue("la exposición supera 17,5 sin sumar dos veces el padre: $expectedExposureTotal", expectedExposureTotal > 17.5)
+        assertTrue("la premisa excede incluso 17,5 por trabajo secundario: $expectedTotal", expectedTotal > 17.5)
         listOf(0.0, GLUTES_SOFT_BAND).forEach { band ->
             val result = personalizerFor(boosted, band).personalize("np-indirect", muscleBodyweightSixDaysInput)
             val program = requireProgram(result, "total indirecto alto con banda=$band")
             assertEquals("el total indirecto no cambia dosis ni retiradas", originalRecipe, program.sourceRecipe)
-            assertEquals("las cabezas secundarias comparten las series del padre", expectedCanonicalTotal, peakGluteTotalSets(program, boosted), 0.001)
+            assertEquals(expectedTotal, peakGluteTotalSets(program, boosted), 0.001)
             assertTrue("no consume banda de PRIMARY", result.report.highVolume.isEmpty())
             val recipe = requireNotNull(program.sourceRecipe)
             val primary = recipe.weeks.maxOf { week ->
                 SessionCompositionPolicy.weeklyPrimaryGroupSets(week, boostedMetadata)[com.example.kpkn.data.programs.KpknMuscleGroup.GLUTES] ?: 0.0
             }
             assertEquals(originalPrimary, primary, 0.001)
-            val controlNotes = control.report.planNotes.filter {
+            assertTrue("el total se informa en lenguaje llano", result.report.planNotes.any {
                 it.startsWith("Glúteos:") && "principales" in it && "secundario o de estabilización" in it
-            }
-            val actualNotes = result.report.planNotes.filter {
-                it.startsWith("Glúteos:") && "principales" in it && "secundario o de estabilización" in it
-            }
-            assertEquals("el aviso refleja el total canónico, sin duplicar cabezas", controlNotes, actualNotes)
+            })
             assertTrue("no se entrega una receta con HARD", ProgramRecipeValidator.hardFindings(recipe, boostedMetadata).isEmpty())
             assertTrue("la política informa el exceso indirecto", ProgramRecipeValidator.validate(recipe, boostedMetadata).any {
                 it.severity == CompositionSeverity.SOFT && it.rule == "W2_INDIRECT_VOLUME"

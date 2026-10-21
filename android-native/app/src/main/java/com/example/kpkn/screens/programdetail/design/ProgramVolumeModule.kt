@@ -26,6 +26,7 @@ import com.example.kpkn.ui.design.kpknEntrance
  *
  * @param muscles las filas ya ordenadas: primero las prioridades del usuario y luego por series.
  * @param expandedMuscle el músculo desplegado, o null; [breakdown] es su desglose.
+ * @param totalVolume distingue un total acumulado de una semana o un promedio semanal.
  * @param controls los controles de cuenta (alcance indirecto y ajuste por fatiga).
  */
 @Composable
@@ -41,11 +42,12 @@ fun ProgramVolumeModule(
     onCalibrate: () -> Unit,
     modifier: Modifier = Modifier,
     unassignedCount: Int = 0,
+    totalVolume: Boolean = false,
     controls: @Composable () -> Unit = {},
 ) {
     KpknModule(modifier = modifier.kpknEntrance("programa-volumen", 0)) {
         KpknModuleHeader(
-            label = "Volumen de la semana",
+            label = if (totalVolume) "Volumen total" else "Volumen de la semana",
             action = { KpknTextAction(text = "Calibrar", onClick = onCalibrate) },
         )
         if (scope.kinds.size > 1) {
@@ -85,12 +87,13 @@ fun ProgramVolumeModule(
                 onToggle = { onToggleMuscle(muscle.name) },
                 breakdown = if (expanded) breakdown else null,
                 showStateLabel = !uncalibrated,
+                totalVolume = totalVolume,
             )
         }
         if (withoutSets.isNotEmpty()) {
             Spacer(Modifier.height(8.dp))
             Text(
-                text = "Sin series esta semana: ${spanishList(withoutSets.map { it.name })}",
+                text = "${if (totalVolume) "Sin series en total" else "Sin series esta semana"}: ${spanishList(withoutSets.map { it.name })}",
                 style = KpknType.caption,
                 color = WizardColors.textMuted,
             )

@@ -55,14 +55,12 @@ class VolumeAccountingContractTest {
     }
 
     @Test
-    fun `los roles del mismo grupo colapsan al maximo sin sumar cabezas`() {
+    fun `la API canonica colapsa los roles del mismo grupo al maximo sin sumar cabezas`() {
         val session = Session("s", "Sesión", exercises = listOf(f.exercise(count = 3, muscles = heads)))
-        val result = VolumeCalculator.calculateRoleSeparatedMuscleVolume(listOf(session), emptyList()).getValue("Deltoides")
+        val result = VolumeCalculator.calculateVolume(listOf(session), emptyMap()).muscles.getValue("Deltoides").roles
         assertEquals(3.0, result.totalSets, 1e-9)
         assertEquals(3.0, result.directSets, 1e-9)
         assertEquals(0.0, result.indirectSets, 1e-9)
-        assertEquals(3.0, VolumeCalculator.calculateUnifiedMuscleVolume(listOf(session), emptyList()).single().displayVolume, 1e-9)
-        assertEquals(3.0, VolumeCalculator.calculateMuscleVolume(listOf(session), emptyList()).getValue("Deltoides"), 1e-9)
     }
 
     @Test

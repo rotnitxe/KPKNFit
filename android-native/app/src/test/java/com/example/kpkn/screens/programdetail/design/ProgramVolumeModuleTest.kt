@@ -11,6 +11,7 @@ import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.test.assertHasClickAction
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
@@ -146,6 +147,57 @@ class ProgramVolumeModuleTest {
         composeRule.onNodeWithText("2 registros sin fecha no se cuentan").assertExists()
         composeRule.onNodeWithTag("volumen_fila_${muscle.name}").assertExists()
         composeRule.onNodeWithText("Real 2 series/sem", useUnmergedTree = true).assertExists()
+    }
+
+    private fun assertPlannedAndRealUnits(scope: ProgramVolumeScope, totalVolume: Boolean = false, fontScale: Float = 1f) {
+        val muscle = ProgramDetailSamples.volumeWeek.first().copy(sets = 6.0, real = 4.0)
+        setAtRest {
+            val density = LocalDensity.current
+            CompositionLocalProvider(LocalDensity provides Density(density.density, fontScale)) {
+                Box(Modifier.width(328.dp)) {
+                    ProgramVolumeModule(
+                        muscles = listOf(muscle), scope = scope,
+                        onSelectKind = {}, onPreviousScope = {}, onNextScope = {},
+                        expandedMuscle = null, onToggleMuscle = {}, breakdown = null, onCalibrate = {},
+                        totalVolume = totalVolume,
+                    )
+                }
+            }
+        }
+        val unit = if (totalVolume) "series" else "series/sem"
+        composeRule.onNodeWithContentDescription("6 $unit", useUnmergedTree = true).assertExists()
+        for (text in listOf(unit, "Real 4 $unit")) {
+            val layouts = mutableListOf<TextLayoutResult>()
+            composeRule.onNodeWithText(text, useUnmergedTree = true)
+                .performSemanticsAction(SemanticsActions.GetTextLayoutResult) { it(layouts) }
+            assertTrue(layouts.isNotEmpty())
+            assertFalse("la unidad debe quedar completa: $text", layouts.single().hasVisualOverflow)
+        }
+    }
+
+    @Test
+    fun laSemanaMuestraLaMismaUnidadEnPlanificadoYReal() {
+        assertPlannedAndRealUnits(ProgramDetailSamples.volumeScopeWeek)
+    }
+
+    @Test
+    fun elPromedioSemanalMuestraLaMismaUnidadSinRecortesAlCientoTreinta() {
+        assertPlannedAndRealUnits(
+            ProgramDetailSamples.volumeScopeWeek.copy(
+                label = "Programa completo", detail = "Promedio semanal de 3 semanas.",
+            ),
+            fontScale = 1.3f,
+        )
+    }
+
+    @Test
+    fun soloElTotalMuestraSeriesSinUnidadSemanal() {
+        assertPlannedAndRealUnits(
+            ProgramDetailSamples.volumeScopeWeek.copy(label = "Programa completo", detail = "Total acumulado."),
+            totalVolume = true,
+        )
+        composeRule.onNodeWithText("VOLUMEN TOTAL").assertExists()
+        composeRule.onNodeWithText("series/sem", useUnmergedTree = true).assertDoesNotExist()
     }
 
     @Test

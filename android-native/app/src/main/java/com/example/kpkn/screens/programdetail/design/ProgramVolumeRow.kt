@@ -56,12 +56,14 @@ fun ProgramVolumeRow(
     breakdown: ProgramVolumeBreakdown? = null,
     /** Falso cuando el estado lo dice el módulo una sola vez (todo el volumen sin calibrar); la semántica sigue leyéndolo. */
     showStateLabel: Boolean = true,
+    totalVolume: Boolean = false,
 ) {
     val reduced = wizardReducedMotion()
     val state = muscle.state
     val stateColor = programVolumeStateColor(state)
     val label = programVolumeStateLabel(state, muscle.sets, muscle.zones, muscle.overtrained)
     val seriesText = programVolumeSeries(muscle.sets)
+    val unit = if (totalVolume) "series" else "series/sem"
     val interaction = remember { MutableInteractionSource() }
     val chevronTurn by animateFloatAsState(
         targetValue = if (expanded) 180f else 0f,
@@ -80,7 +82,7 @@ fun ProgramVolumeRow(
                 .defaultMinSize(minHeight = 48.dp)
                 .testTag("volumen_fila_${muscle.name}")
                 .semantics(mergeDescendants = true) {
-                    contentDescription = "${muscle.name}, $seriesText series, $label"
+                    contentDescription = "${muscle.name}, $seriesText $unit, $label"
                     stateDescription = if (expanded) "Desplegado" else "Plegado"
                 }
                 .clickable(
@@ -101,7 +103,7 @@ fun ProgramVolumeRow(
                     overflow = TextOverflow.Ellipsis,
                     modifier = Modifier.weight(1f),
                 )
-                KpknMetric(value = seriesText, unit = "series", style = KpknType.metricM)
+                KpknMetric(value = seriesText, unit = unit, style = KpknType.metricM)
                 Spacer(Modifier.width(10.dp))
                 Icon(
                     imageVector = KpknLineIcons.ChevronDown,
@@ -134,7 +136,7 @@ fun ProgramVolumeRow(
                 }
                 muscle.real?.let { real ->
                     Text(
-                        text = "Real ${programVolumeSeries(real)} series/sem",
+                        text = "Real ${programVolumeSeries(real)} $unit",
                         style = KpknType.caption.copy(fontFeatureSettings = "'tnum' 1"),
                         color = WizardColors.textMuted,
                         maxLines = 1,
