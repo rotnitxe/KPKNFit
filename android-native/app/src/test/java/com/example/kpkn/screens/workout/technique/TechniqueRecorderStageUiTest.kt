@@ -11,8 +11,13 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.test.SemanticsMatcher
+import androidx.compose.ui.test.assert
+import androidx.compose.ui.test.assertIsEnabled
+import androidx.compose.ui.test.performTouchInput
+import androidx.compose.ui.test.click
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
@@ -29,6 +34,18 @@ import com.example.kpkn.domain.biomechanics.profiles.AnalysisProfileId
 import com.example.kpkn.screens.onboarding.design.LocalWizardReducedMotion
 import com.example.kpkn.screens.workout.components.ExpandedMediaOverlay
 import com.example.kpkn.ui.theme.KPKNTheme
+import com.example.kpkn.screens.workout.TechniqueRecordingResult
+import com.example.kpkn.screens.workout.awaitTechniqueRecordingResult
+import com.example.kpkn.screens.workout.technique.design.FramingGuideOverlay
+import com.example.kpkn.data.models.WorkoutMedia
+import com.example.kpkn.data.models.WorkoutMediaKind
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.launch
+import java.io.IOException
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -53,7 +70,7 @@ class TechniqueRecorderStageUiTest {
             CompositionLocalProvider(LocalDensity provides Density(3f, scale), LocalWizardReducedMotion provides true) {
                 KPKNTheme {
                     Box(Modifier.width(360.dp).height(880.dp)) {
-                        ExpandedMediaOverlay(Rect.Zero, "Modo visual · serie 3", "95\u00A0kg × 6 · RIR 2", {}) { modifier ->
+                        ExpandedMediaOverlay(Rect.Zero, "Modo visual · serie 3", "95\u00A0kg × 6 · RIR 2", {}, stage = { modifier ->
                             TechniqueRecorderStageContent(
                                 modifier = modifier, isRecording = recording, elapsedSeconds = 12L,
                                 is60FpsGranted = true, showsPlateBadge = true,
@@ -69,7 +86,7 @@ class TechniqueRecorderStageUiTest {
                                 onOpenAlbum = { actions += "album" },
                                 onOpenGallery = { actions += "gallery" },
                             )
-                        }
+                        })
                     }
                 }
             }
@@ -140,7 +157,8 @@ class TechniqueRecorderStageUiTest {
                         onFolded = { events += "fold"; open = false },
                         foldRequested = requested,
                         beforeFold = { stopTechniqueRecorderBeforeExit({ events += "stop" }, recording) },
-                    ) { modifier -> Box(modifier) }
+                        stage = { modifier -> Box(modifier) },
+                    )
                 }
             }
         }
@@ -161,6 +179,105 @@ class TechniqueRecorderStageUiTest {
         rule.onNodeWithText("35 cm").performClick()
         rule.onNodeWithText("Disco 35\u00A0cm").assertExists()
         rule.onNodeWithText("45 cm").assertDoesNotExist()
+    }
+
+
+    private class PersistenceScene {
+        val completion = TechniqueRecorderCompletion()
+        val write = CompletableDeferred<WorkoutMedia?>()
+        val scope = CoroutineScope(SupervisorJob() + Dispatchers.Unconfined)
+        var recording by mutableStateOf(false)
+        var foldRequested by mutableStateOf(false)
+        var open by mutableStateOf(true)
+        var starts = 0
+
+        fun start() = completion.start({}, { foldRequested = true }) { callback ->
+            starts++
+            recording = true
+            scope.launch { callback(awaitTechniqueRecordingResult { write.await() }) }
+        }
+    }
+
+    private fun showPersistenceScene(): PersistenceScene {
+        val scene = PersistenceScene()
+        rule.setContent {
+            CompositionLocalProvider(LocalDensity provides Density(3f, 1.3f), LocalWizardReducedMotion provides true) {
+                KPKNTheme {
+                    Box(Modifier.width(360.dp).height(880.dp)) {
+                        if (scene.open) ExpandedMediaOverlay(
+                            startBounds = Rect.Zero, title = "Modo visual · serie 3", subtitle = "95\u00A0kg × 6 · RIR 2",
+                            onFolded = { scene.open = false },
+                            stage = { modifier -> TechniqueRecorderStageContent(
+                                modifier = modifier,
+                                isRecording = scene.recording,
+                                isProcessing = scene.completion.pending && !scene.recording,
+                                canRecord = !scene.completion.pending,
+                                captureError = scene.completion.errorMessage,
+                                onRecord = scene::start,
+                            ) },
+                            foldRequested = scene.foldRequested,
+                        )
+                    }
+                }
+            }
+        }
+        return scene
+    }
+
+    @Test fun al_limite_rec_espera_el_guardado_demorado_y_lo_anuncia_a_talkback() {
+        val scene = showPersistenceScene()
+        try {
+            rule.onNodeWithTag("technique_record").performClick()
+            rule.runOnIdle { scene.recording = false } // Finalize por límite de duración.
+            rule.onNodeWithTag("technique_record").assertIsNotEnabled()
+                .assert(SemanticsMatcher.expectValue(SemanticsProperties.StateDescription, "Procesando vídeo"))
+                .performTouchInput { click() }
+            rule.runOnIdle { assertEquals(1, scene.starts); assertFalse(scene.foldRequested) }
+            rule.onNodeWithTag("media_expanded").assertExists()
+            rule.runOnIdle {
+                scene.write.complete(WorkoutMedia("saved", WorkoutMediaKind.VIDEO, "video.mp4", createdAtMs = 1L))
+            }
+            rule.waitForIdle()
+            rule.onNodeWithTag("media_expanded").assertDoesNotExist()
+        } finally { scene.scope.cancel() }
+    }
+
+    @Test fun descartado_deja_la_escena_abierta_con_aviso_y_rec_disponible() {
+        val scene = showPersistenceScene()
+        try {
+            rule.onNodeWithTag("technique_record").performClick()
+            rule.runOnIdle { scene.recording = false; scene.write.complete(null) }
+            rule.onNodeWithTag("media_expanded").assertExists()
+            rule.onNodeWithText("No se pudo guardar el vídeo. Puedes volver a grabar.").assertExists()
+            rule.onNodeWithTag("technique_record").assertIsEnabled()
+        } finally { scene.scope.cancel() }
+    }
+
+    @Test fun error_de_guardado_muestra_el_aviso_sin_plegar_y_permite_reintentar() {
+        val scene = showPersistenceScene()
+        try {
+            rule.onNodeWithTag("technique_record").performClick()
+            rule.runOnIdle { scene.recording = false; scene.write.completeExceptionally(IOException("Room")) }
+            rule.onNodeWithTag("media_expanded").assertExists()
+            rule.onNodeWithText("No se pudo guardar el vídeo. Puedes reintentar.").assertExists()
+            rule.onNodeWithTag("technique_record").assertIsEnabled().performClick()
+            rule.runOnIdle { assertEquals(2, scene.starts); assertFalse(scene.foldRequested) }
+        } finally { scene.scope.cancel() }
+    }
+
+    @Test fun guia_lateral_al_130_reserva_aire_bajo_los_pies() {
+        rule.setContent {
+            CompositionLocalProvider(LocalDensity provides Density(3f, 1.3f)) {
+                FramingGuideOverlay(
+                    preferredView = ViewKind.SIDE, hasBarbell = true, profileId = AnalysisProfileId.SQUAT,
+                    modifier = Modifier.width(360.dp).height(480.dp),
+                )
+            }
+        }
+        val silhouette = rule.onNodeWithTag("technique_silhouette", useUnmergedTree = true).fetchSemanticsNode().boundsInRoot
+        val guide = rule.onNodeWithTag("technique_guide_text", useUnmergedTree = true).fetchSemanticsNode().boundsInRoot
+        assertTrue("La silueta conserva altura", silhouette.height > 0f)
+        assertTrue("La guía roza la silueta", guide.top >= silhouette.bottom + 12f * 3f)
     }
 
 }

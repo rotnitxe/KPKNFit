@@ -351,6 +351,22 @@ class TechniqueRecorderRenderSheetTest {
         FullScreenRecorderPreview(isRecording = true, elapsedSeconds = 12L, is60FpsGranted = true, showsPlateBadge = true)
     }
 
+    @Test fun expandedSaving100() = renderFullScreen("modo_visual_grabador_guardando_100", 1f) {
+        FullScreenRecorderPreview(isProcessing = true)
+    }
+
+    @Test fun expandedSaving130() = renderFullScreen("modo_visual_grabador_guardando_130", 1.3f) {
+        FullScreenRecorderPreview(isProcessing = true)
+    }
+
+    @Test fun expandedSaveError100() = renderFullScreen("modo_visual_grabador_error_guardado_100", 1f) {
+        FullScreenRecorderPreview(captureError = "No se pudo guardar el vídeo. Puedes reintentar.")
+    }
+
+    @Test fun expandedSaveError130() = renderFullScreen("modo_visual_grabador_error_guardado_130", 1.3f) {
+        FullScreenRecorderPreview(captureError = "No se pudo guardar el vídeo. Puedes reintentar.")
+    }
+
     @Test fun expandedPlateSelector100() = renderFullScreen("modo_visual_grabador_selector_disco_100", 1f) {
         FullScreenRecorderPreview(is60FpsGranted = true, showsPlateBadge = true, plateBadgeExpanded = true)
     }
@@ -391,6 +407,8 @@ private fun FullScreenRecorderPreview(
     hasPermission: Boolean = true,
     isPermanentlyDenied: Boolean = false,
     plateBadgeExpanded: Boolean = false,
+    isProcessing: Boolean = false,
+    captureError: String? = null,
 ) {
     KPKNTheme {
         ExpandedMediaOverlay(
@@ -398,19 +416,21 @@ private fun FullScreenRecorderPreview(
             title = "Modo visual · serie 3",
             subtitle = "95\u00A0kg × 6 · RIR 2",
             onFolded = {},
-        ) { modifier ->
-            TechniqueRecorderStageContent(
-                modifier = modifier,
-                isRecording = isRecording, elapsedSeconds = elapsedSeconds,
-                is60FpsGranted = is60FpsGranted, showsPlateBadge = showsPlateBadge,
-                plateDiameterMm = plateDiameterMm, plateBadgeExpanded = plateBadgeExpanded,
-                preferredView = ViewKind.SIDE, profileId = AnalysisProfileId.SQUAT,
-                verdict = FramingVerdict(ok = true, issues = emptyList(), view = ViewKind.SIDE),
-                hasPermission = hasPermission, hasCamera = hasCamera,
-                isPermanentlyDenied = isPermanentlyDenied,
-                canRecord = hasCamera && hasPermission,
-                onOpenFicha = {}, onOpenAlbum = {}, onOpenGallery = {},
-            )
-        }
+            stage = { modifier ->
+                TechniqueRecorderStageContent(
+                    modifier = modifier,
+                    isRecording = isRecording, elapsedSeconds = elapsedSeconds,
+                    is60FpsGranted = is60FpsGranted, showsPlateBadge = showsPlateBadge,
+                    plateDiameterMm = plateDiameterMm, plateBadgeExpanded = plateBadgeExpanded,
+                    preferredView = ViewKind.SIDE, profileId = AnalysisProfileId.SQUAT,
+                    verdict = FramingVerdict(ok = true, issues = emptyList(), view = ViewKind.SIDE),
+                    hasPermission = hasPermission, hasCamera = hasCamera,
+                    isPermanentlyDenied = isPermanentlyDenied,
+                    canRecord = hasCamera && hasPermission,
+                    isProcessing = isProcessing, captureError = captureError,
+                    onOpenFicha = {}, onOpenAlbum = {}, onOpenGallery = {},
+                )
+            },
+        )
     }
 }

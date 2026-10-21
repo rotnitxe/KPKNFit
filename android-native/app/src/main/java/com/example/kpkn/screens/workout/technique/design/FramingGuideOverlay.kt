@@ -10,6 +10,9 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -44,15 +47,14 @@ fun FramingGuideOverlay(
 ) {
     val isFront = preferredView == ViewKind.FRONT
 
-    Box(
-        modifier = modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center,
+    Column(
+        modifier = modifier.fillMaxSize().padding(bottom = if (expandedScene) 0.dp else 128.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         if (showSilhouette) Canvas(
-            modifier = Modifier.fillMaxSize().padding(
+            modifier = Modifier.weight(1f).fillMaxWidth().padding(
                 top = if (expandedScene) 0.dp else 128.dp,
-                bottom = if (expandedScene) 128.dp else 232.dp,
-            ),
+            ).testTag("technique_silhouette"),
         ) {
             val w = size.width
             val h = size.height
@@ -190,13 +192,13 @@ fun FramingGuideOverlay(
                     drawLine(tintColor, Offset(plateCenter.x, plateCenter.y - plateRadius * 1.15f), Offset(plateCenter.x, plateCenter.y + plateRadius * 1.15f), stroke.width)
                 }
             }
-        }
+        } else Spacer(Modifier.weight(1f))
 
-        // Textos guía del perfil: separados del botón inferior REC (banda inferior propia sobre REC)
+        // El texto reserva su altura real: ni al 130 % puede rozar los pies.
+        Spacer(Modifier.height(12.dp))
         Column(
             modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .padding(bottom = if (expandedScene) 0.dp else 128.dp, start = 16.dp, end = 16.dp)
+                .padding(horizontal = 16.dp)
                 .testTag("technique_guide_text")
                 .background(Color.Black.copy(alpha = if (expandedScene) 0.55f else 0.70f), RoundedCornerShape(16.dp))
                 .padding(horizontal = 12.dp, vertical = 10.dp),

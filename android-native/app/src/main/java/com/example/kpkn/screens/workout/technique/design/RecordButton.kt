@@ -40,6 +40,7 @@ fun RecordButton(
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
     visualMode: Boolean = false,
+    recordColor: Color = WizardColors.danger,
 ) {
     val reduced = wizardReducedMotion()
     val outer = if (visualMode) 68.dp else 72.dp
@@ -91,7 +92,7 @@ fun RecordButton(
             val topLeft = Offset(center.x - innerPx / 2f, center.y - innerPx / 2f)
 
             drawRoundRect(
-                color = if (visualMode) Color(0xFFEF6F64) else WizardColors.danger,
+                color = recordColor,
                 topLeft = topLeft,
                 size = Size(innerPx, innerPx),
                 cornerRadius = CornerRadius(cornerPx, cornerPx),

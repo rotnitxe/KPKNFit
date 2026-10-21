@@ -137,7 +137,7 @@ internal const val MediaExpandedTag = "media_expanded"
 internal const val MediaShutterTag = "media_shutter"
 
 /** Rojo del botón de grabar del prototipo (A3). */
-private val RecordRed = Color(0xFFEF6F64)
+internal val RecordRed = Color(0xFFEF6F64)
 
 /** Duración de la expansión y del plegado de «Modo visual» (320 ms, curva estándar). */
 private const val ExpandMillis = 320
@@ -443,21 +443,22 @@ internal fun SetCardExerciseMediaBack(
                             stopTechniqueRecorderBeforeExit(it::stopIfRecording, it.isRecording)
                         }
                     },
-                ) { stageModifier ->
-                    if (techniqueOpen) TechniqueRecorderStage(
-                        request = TechniqueRecorderRequest(captureRequest, exercise, "Serie ${setIndex + 1}"),
-                        mediaCapture = mediaCapture,
-                        prefer60FpsSetting = techniqueVideoSettings.prefer60Fps,
-                        maxRecordSeconds = techniqueVideoSettings.maxRecordSeconds,
-                        defaultPlateDiameterMm = techniqueVideoSettings.plateDiameterMm,
-                        onFinished = { foldRequested = true },
-                        onSwitchToPhoto = { mode = MediaMode.PHOTO; foldRequested = true },
-                        onOpenFicha = { showFicha = true },
-                        modifier = stageModifier,
-                        onOpenAlbum = { showAlbum = true },
-                        onOpenGallery = { galleryLauncher.launch(arrayOf("image/*", "video/*")) },
-                    ) else Stage(stageModifier = stageModifier, compact = false, showPreview = true)
-                }
+                    stage = { stageModifier ->
+                        if (techniqueOpen) TechniqueRecorderStage(
+                            request = TechniqueRecorderRequest(captureRequest, exercise, "Serie ${setIndex + 1}"),
+                            mediaCapture = mediaCapture,
+                            prefer60FpsSetting = techniqueVideoSettings.prefer60Fps,
+                            maxRecordSeconds = techniqueVideoSettings.maxRecordSeconds,
+                            defaultPlateDiameterMm = techniqueVideoSettings.plateDiameterMm,
+                            onFinished = { foldRequested = true },
+                            onSwitchToPhoto = { mode = MediaMode.PHOTO; foldRequested = true },
+                            onOpenFicha = { showFicha = true },
+                            modifier = stageModifier,
+                            onOpenAlbum = { showAlbum = true },
+                            onOpenGallery = { galleryLauncher.launch(arrayOf("image/*", "video/*")) },
+                        ) else Stage(stageModifier = stageModifier, compact = false, showPreview = true)
+                    },
+                )
             }
         }
         if (showAlbum && mediaCapture != null) {
@@ -1124,9 +1125,9 @@ internal fun ExpandedMediaOverlay(
     title: String,
     subtitle: String,
     onFolded: () -> Unit,
+    stage: @Composable (Modifier) -> Unit,
     foldRequested: Boolean = false,
     beforeFold: suspend () -> Unit = {},
-    stage: @Composable (Modifier) -> Unit,
 ) {
     val reduced = wizardReducedMotion()
     val density = LocalDensity.current

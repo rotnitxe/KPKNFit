@@ -87,12 +87,15 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.SemanticsPropertyKey
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
 import com.example.kpkn.domain.biomechanics.framing.FramingVerdict
 import com.example.kpkn.domain.biomechanics.profiles.AnalysisProfileId
 import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.screens.workout.components.MediaAlbumPill
 import com.example.kpkn.screens.workout.components.MediaOverlayPill
 import com.example.kpkn.screens.workout.WorkoutMediaCaptureRequest
+import com.example.kpkn.screens.workout.TechniqueRecordingResult
+import com.example.kpkn.screens.workout.components.RecordRed
 import com.example.kpkn.screens.workout.technique.design.FpsBadge
 import com.example.kpkn.screens.workout.technique.design.PlateDiameterBadge
 import com.example.kpkn.ui.design.KpknModule
@@ -100,7 +103,6 @@ import com.example.kpkn.ui.design.KpknSegmentedControl
 import com.example.kpkn.ui.design.KpknSegmentedSize
 import com.example.kpkn.ui.design.KpknTextAction
 import com.example.kpkn.ui.design.KpknType
-import java.io.File
 import kotlinx.coroutines.flow.StateFlow
 
 /**
@@ -128,12 +130,40 @@ internal suspend fun stopTechniqueRecorderBeforeExit(stop: () -> Unit, recording
     recording.first { !it }
 }
 
-/** El callback nulo también llega con vídeos válidos al alcanzar el límite de duración. */
+/** Una toma ocupa la escena desde su inicio hasta el resultado real de persistencia. */
 internal class TechniqueRecorderCompletion {
     private var active = true
+    private var generation = 0
+    var pending by mutableStateOf(false)
+        private set
+    var errorMessage by mutableStateOf<String?>(null)
+        private set
 
-    fun callback(onFinished: () -> Unit): (File?) -> Unit = {
-        if (active) onFinished()
+    fun start(
+        onResult: (TechniqueRecordingResult) -> Unit,
+        onFinished: () -> Unit,
+        capture: ((TechniqueRecordingResult) -> Unit) -> Unit,
+    ) {
+        if (!active || pending) return
+        pending = true
+        errorMessage = null
+        val attempt = ++generation
+        val callback: (TechniqueRecordingResult) -> Unit = { result ->
+            if (active && pending && generation == attempt) {
+                pending = false
+                errorMessage = result.errorMessage
+                onResult(result)
+                if (result is TechniqueRecordingResult.Saved) onFinished()
+            }
+        }
+        try {
+            capture(callback)
+        } catch (cancelled: CancellationException) {
+            pending = false
+            throw cancelled
+        } catch (_: Exception) {
+            callback(TechniqueRecordingResult.Error())
+        }
     }
 
     /** Un Finalize tardío no puede cerrar la escena siguiente. */
@@ -335,29 +365,33 @@ internal fun TechniqueRecorderStage(
 
     fun startRecording() {
         if (!canRecord || isStopping || mediaCapture?.isRecording?.value == true) return
-        activity?.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LOCKED
-        framingController.isRecording = true
-
-        activeSession?.let { session ->
-            session.videoCapture.targetRotation = targetRotation
-            mediaCapture?.startTechniqueRecording(
-                requestProvider = { latestRequest.captureRequest },
-                audioGranted = audioPermissionGranted,
-                session = session,
-                exercise = request.exercise,
-                metadataRecorder = metadataRecorder,
-                onFinalized = completion.callback {
-                    activity?.requestedOrientation = originalOrientation
-                    framingController.isRecording = false
-                    isStopping = false
-                    latestOnFinished()
-                },
-                targetRotation = targetRotation,
-                maxRecordSeconds = maxRecordSeconds,
-                plateDiameterOverrideMm = plateDiameterMm,
-                defaultPlateDiameterMm = defaultPlateDiameterMm,
-            )
-        }
+        val capture = mediaCapture ?: return
+        val session = activeSession ?: return
+        completion.start(
+            onResult = {
+                activity?.requestedOrientation = originalOrientation
+                framingController.isRecording = false
+                isStopping = false
+            },
+            onFinished = { latestOnFinished() },
+            capture = { onFinalized ->
+                activity?.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LOCKED
+                framingController.isRecording = true
+                session.videoCapture.targetRotation = targetRotation
+                capture.startTechniqueRecording(
+                    requestProvider = { latestRequest.captureRequest },
+                    audioGranted = audioPermissionGranted,
+                    session = session,
+                    exercise = request.exercise,
+                    metadataRecorder = metadataRecorder,
+                    onFinalized = onFinalized,
+                    targetRotation = targetRotation,
+                    maxRecordSeconds = maxRecordSeconds,
+                    plateDiameterOverrideMm = plateDiameterMm,
+                    defaultPlateDiameterMm = defaultPlateDiameterMm,
+                )
+            },
+        )
     }
 
     fun stopRecording() {
@@ -485,7 +519,7 @@ internal fun TechniqueRecorderStage(
     val captureError by (mediaCapture?.captureError ?: remember { MutableStateFlow<String?>(null) })
         .collectAsStateWithLifecycle()
     LaunchedEffect(captureError) {
-        if (captureError != null && !isRecordingState) {
+        if (captureError != null && !isRecordingState && !completion.pending) {
             framingController.isRecording = false
             isStopping = false
             activity?.requestedOrientation = originalOrientation
@@ -508,8 +542,9 @@ internal fun TechniqueRecorderStage(
         hasPermission = cameraPermissionGranted,
         hasCamera = !isCameraUnavailable && mediaCapture != null,
         isPermanentlyDenied = isPermanentlyDenied,
-        captureError = captureError,
-        canRecord = canRecord && !isStopping,
+        captureError = completion.errorMessage ?: captureError,
+        canRecord = canRecord && !completion.pending,
+        isProcessing = completion.pending && (!isRecordingState || isStopping),
         onRecord = { if (isRecordingState) stopRecording() else startRecording() },
         onSwitchToPhoto = onSwitchToPhoto,
         onOpenFicha = onOpenFicha,
@@ -520,21 +555,22 @@ internal fun TechniqueRecorderStage(
             else cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
         },
         onRetryCamera = { cameraBindFailed = false; hasCheckedCameras = false; cameraRetryGeneration += 1 },
-    ) {
-        if (mediaCapture != null && cameraPermissionGranted) {
-            AndroidView(
-                modifier = Modifier.fillMaxSize(),
-                factory = { ctx ->
-                    PreviewView(ctx).apply {
-                        layoutParams = ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
-                        implementationMode = PreviewView.ImplementationMode.COMPATIBLE
-                        scaleType = PreviewView.ScaleType.FIT_CENTER
-                        previewView = this
-                    }
-                },
-            )
-        }
-    }
+        preview = {
+            if (mediaCapture != null && cameraPermissionGranted) {
+                AndroidView(
+                    modifier = Modifier.fillMaxSize(),
+                    factory = { ctx ->
+                        PreviewView(ctx).apply {
+                            layoutParams = ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
+                            implementationMode = PreviewView.ImplementationMode.COMPATIBLE
+                            scaleType = PreviewView.ScaleType.FIT_CENTER
+                            previewView = this
+                        }
+                    },
+                )
+            }
+        },
+    )
 }
 
 /** La misma escena real se dibuja en las hojas, sin abrir CameraX. */
@@ -565,6 +601,7 @@ internal fun TechniqueRecorderStageContent(
     onRequestPermission: () -> Unit = {},
     onRetryCamera: () -> Unit = {},
     preview: @Composable () -> Unit = {},
+    isProcessing: Boolean = false,
 ) {
     val available = hasPermission && hasCamera
     Box(
@@ -631,8 +668,11 @@ internal fun TechniqueRecorderStageContent(
                     if (isRecording) RecTimerPill(elapsedSeconds = elapsedSeconds, animate = false)
                     RecordButton(
                         isRecording = isRecording, onClick = onRecord,
-                        modifier = Modifier.testTag("technique_record"),
-                        enabled = available && (isRecording || canRecord), visualMode = true,
+                        modifier = Modifier.testTag("technique_record").semantics {
+                            if (isProcessing) stateDescription = "Procesando vídeo"
+                        },
+                        enabled = available && !isProcessing && (isRecording || canRecord), visualMode = true,
+                        recordColor = RecordRed,
                     )
                 }
             }
