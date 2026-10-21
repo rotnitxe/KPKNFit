@@ -20,7 +20,13 @@
 | D9 | El código huérfano (`diffSessionPlan`/`revertPlanAspect`, readiness sin consumidor) no se borra; se documenta. | «Refinar, no quitar». |
 | D10 | Diferidos al final y con permiso: vocabulario controlado de acciones articulares (S11) y gobernanza de `catalogRevision` (H-i). | Tocan el catálogo aprobado, que tiene su propio plan de re-curaduría. |
 | D11 | Un solo agente escribe/compila a la vez. Los paquetes de solo lectura pueden ir en paralelo. | Orden del usuario del 20-oct (RAM). |
-| D12 | QA visual: hojas de render PNG por paquete (Codex) + revisión del orquestador; el teléfono (`phone_run.py`, regla de 20 min) al cerrar cada ola de UI. | Práctica del proyecto: una compilación no cierra la aceptación. |
+| D12 | QA visual: hojas de render PNG por paquete (Codex) + revisión del orquestador en el Flip5 con una variante propia **`com.example.kpkn.mfp`** (init script `C:\kw\tools\mfp-suffix.init.gradle`, ejecutor `C:\kw\tools\mfp_phone.py`), al cerrar cada paquete de UI. | Orden del usuario del 20-oct (noche): puedo probar en el Flip siempre que no afecte a la prueba en segundo plano de otro agente; otra app = otros datos, sin roce. |
+
+### Protocolo de QA en el Flip5 (D12)
+- **Aislamiento:** solo `com.example.kpkn.mfp`. Nunca `.dbg` (el banco de vídeos corre como servicio en primer plano ahí), nunca `.vtqa`, ni la app de producción. No toco el candado `C:\kw\phone.lock` (lo tiene el banco), no hago `adb kill-server` ni `logcat -c`, y solo lanzo comandos sobre mi paquete y lecturas de `dumpsys`.
+- **Antes de cada sesión** `python C:\kw\tools\mfp_phone.py --check` (batería, temperatura, bloqueo, audio, actividad de la persona, dueño del candado). Regla de 20 min de la persona intacta. Si el foco deja de ser el mío, la sesión se corta sin enviar Inicio ni apagado.
+- **Datos:** la variante tiene su propia base (vacía). Se pueblan con las herramientas de depuración que ya existen (`WizardHarnessActivity persona=qa activate=1500`, `DemoSeedActivity`) y con las vistas previas que cada paquete de UI entrega (`<Nombre>HarnessActivity`, ver COMUN.md).
+- **Al terminar la ola:** desinstalo `com.example.kpkn.mfp` del teléfono y borro APK y capturas pesadas.
 
 ## Paquetes, orden y propiedad de archivos calientes
 

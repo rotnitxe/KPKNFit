@@ -31,7 +31,11 @@ Un control discreto del **estado del día** en la pantalla Nutrición, SIN redis
 - Los días con marca se distinguen en el selector de fecha si ya existe un lugar natural (no añadas UI de relleno).
 - Estilo KPKN v2 (`docs/design/KPKN_UI_V2.md`, `S_COMUN.md`), textos en español, objetivos ≥ 48 dp, accesibilidad real. Hoja de render (PNG a 360 dp, 100 % y 130 %): día sin marcar, completo, parcial, ayuno, y día con sugerencia. Critícala; máx. 3 rondas.
 
+### 5. Vista previa en dispositivo (ver COMUN.md)
+`NutritionDayStateHarnessActivity` en `app/src/debug/` con el extra `state` = `unmarked` | `complete` | `partial` | `fasting` | `suggested` (más `fontScale`, `reducedMotion`, `widthDp`): aloja la línea de estado y su hoja con datos en memoria. Commit aparte `debug(mfp): …`.
+
 ## Archivos permitidos
+- `app/src/debug/java/com/example/kpkn/debug/NutritionDayStateHarnessActivity.kt` y su bloque en `app/src/debug/AndroidManifest.xml`.
 - `data/db/Entities.kt` (entidades nuevas), `data/db/Daos.kt` (métodos nuevos en `NutritionDao`), `data/db/KpknDatabase.kt` (versión, entidades, registro de la migración), nuevo `data/db/NutritionDayStateMigration.kt`, `data/db/BackupTableManifest.kt`, `data/db/DatabaseBackupHelper.kt` y el(los) archivo(s) de backup JSON que correspondan.
 - `app/schemas/com.example.kpkn.data.db.KpknDatabase/30.json` (generado por KSP; commitéalo).
 - `data/models/NutritionModels.kt` (solo tipos nuevos si hacen falta).

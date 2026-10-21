@@ -38,7 +38,12 @@ La calibración actual (`NutritionCalibrationEngine`: `-cambioSemanal × 7700 / 
 - Ajuste del día del check-in dentro del flujo o en la pantalla de calibración.
 - Textos en español, tono sereno; accesibilidad real; no inventes cifras: todo sale del estimador. Hoja de render (PNG a 360 dp, 100 % y 130 %): tarjeta, cada módulo, propuesta con cambio, propuesta pausada (sin cambios), error al aplicar. Critícalas (máx. 3 rondas).
 
+### 5. Depuración para QA en dispositivo (ver COMUN.md; commit aparte `debug(mfp): …`)
+- `NutritionCheckinHarnessActivity` con el extra `state` = `ready` | `paused` | `partial_days` | `proposal_change` | `proposal_nochange` | `apply_error` (más `fontScale`, `reducedMotion`, `widthDp`): aloja el flujo real del check-in con un plan, un estimador y un repositorio de check-ins EN MEMORIA.
+- `NutritionHistorySeedActivity` (SOLO depuración; mismo estilo que `DemoSeedActivity`): siembra de forma determinista y idempotente, en la base de la variante de QA, un plan de nutrición activo y **84 días** de comidas consumidas y pesajes coherentes con un gasto verdadero conocido (reutiliza el generador del banco de simulación de N1 si encaja), con: unos pocos días parciales, un ayuno, un hueco de 8 días de registro y una semana de pesaje irregular. Acepta `--ei scenario` (1 = historial limpio, 2 = con parciales y hueco) y abre `MainActivity`. Requisito igual que `DemoSeedActivity`: persona QA activada por el arnés.
+
 ## Archivos permitidos
+- `app/src/debug/java/com/example/kpkn/debug/NutritionCheckinHarnessActivity.kt`, `NutritionHistorySeedActivity.kt` y sus bloques en `app/src/debug/AndroidManifest.xml`.
 - Nuevos: `domain/nutrition/checkin/*`, `data/repository/NutritionCheckinRepository.kt`, `screens/nutrition/checkin/*`.
 - Existentes: `data/db/Daos.kt` (solo métodos de `nutrition_checkins`), `data/repository/NutritionCalibrationRepository.kt`, `data/repository/NutritionPlanCommitCoordinator.kt` (solo si hace falta un parámetro nuevo sin romper llamadores), `screens/nutrition/NutritionCalibrationViewModel.kt`, `NutritionCalibrationScreen.kt`, `screens/nutrition/design/calibration/*`, `screens/nutrition/NutritionScreen.kt` (la tarjeta), `NutritionViewModel.kt` (solo el estado del check-in), `data/models/Settings.kt` (solo el campo con valor por defecto de preferencias del check-in), `domain/nutrition/NutritionCalibrationEngine.kt` (solo `@Deprecated`), rutas en `navigation/Navigation.kt` + `MainActivity.kt` (bloques nuevos).
 - Tests y hoja de render.

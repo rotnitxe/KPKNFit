@@ -36,7 +36,12 @@ La ola aplica el informe `artifacts/macrofactor-reverse-engineering-20261020/INF
 - **Refinar, no quitar:** ningún paquete elimina ni esconde una función existente. Lo que quede huérfano se conecta o se documenta en el informe; no se borra sin permiso.
 - **Datos del usuario:** nunca una migración destructiva, nunca reescribir registros históricos. Cualquier cambio de esquema Room lleva su migración, el JSON de esquema exportado por KSP (`app/schemas/…`, no se edita a mano), y un test de migración.
 - **Sin descargas ni librerías nuevas**, salvo que tu brief las nombre.
-- **Sin teléfono ni emulador:** la QA visual con dispositivo la hace el orquestador. Para pantallas nuevas, genera la hoja de render (PNG) como las existentes en `src/test/.../render/` (`KPKN_RENDER_DIR=C:/kw/shots/mfp/<ID>`) y critícala tú mismo contra el listón de `KPKN_UI_V2.md`.
+- **Tú no usas el teléfono ni el emulador** (prohibido `adb`): la QA con dispositivo la hace el orquestador con una variante propia (`com.example.kpkn.mfp`), sin rozar otras pruebas. Para pantallas nuevas, genera la hoja de render (PNG) como las existentes en `src/test/.../render/` (`KPKN_RENDER_DIR=C:/kw/shots/mfp/<ID>`) y critícala tú mismo contra el listón de `KPKN_UI_V2.md`.
+- **Vista previa en dispositivo (solo paquetes con pantallas nuevas):** además de la hoja de render, añade en `app/src/debug/` una actividad de vista previa que aloje las pantallas nuevas con DATOS DE PRUEBA EN MEMORIA (nada se escribe en la base real salvo que el brief lo diga):
+  - `app/src/debug/java/com/example/kpkn/debug/<Nombre>HarnessActivity.kt` + un bloque `<activity …/>` nuevo en `app/src/debug/AndroidManifest.xml` (solo añade; mira `WizardHarnessActivity` y las `Entreno*PreviewActivity` como patrón).
+  - Debe pedir `setShowWhenLocked(true)` y `setTurnScreenOn(true)` (el teléfono suele estar bloqueado) y aceptar extras: `state` (las variantes que tu brief enumera: vacío, con datos, error…), `fontScale`, `reducedMotion` y `widthDp`.
+  - Va en un commit aparte (`debug(mfp): …`) y su informe lista el nombre de la actividad y sus extras, para que el orquestador la lance con `--actions "launch:<Nombre>HarnessActivity|--es|state|full"`.
+  - Código solo de depuración: nada de esto entra en `main/`.
 - **Disco y procesos:** no borres nada fuera de tu worktree; si `C:` baja de 15 GB libres, para y dilo; no dejes procesos tuyos vivos.
 - **Tope de intentos:** si algo sigue fallando tras 3 intentos, PARA y descríbelo en el informe con el log. No des vueltas.
 
