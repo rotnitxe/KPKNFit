@@ -133,7 +133,10 @@ data class MuscleRecoveryStatus(
     val effectiveSets: Int,
     val status: RecoveryStatus,
     val hasEvidence: Boolean = hoursSinceLastSession >= 0,
-)
+) {
+    override fun toString(): String =
+        "MuscleRecoveryStatus(muscleName=$muscleName, recoveryScore=$recoveryScore, hoursToRecovery=$hoursToRecovery, hoursSinceLastSession=$hoursSinceLastSession, effectiveSets=$effectiveSets, status=$status)"
+}
 
 enum class RecoveryStatus { FRESH, OPTIMAL, RECOVERING, EXHAUSTED }
 
