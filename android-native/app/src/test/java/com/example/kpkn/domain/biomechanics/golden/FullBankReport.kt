@@ -188,7 +188,7 @@ internal object FullBankReport {
         val prepared = TrackPreparation.prepare(cropped)
         val built = CountSeriesBuilder.build(prepared, croppedBar, profile)
         val confidence: ConfidenceBreakdown? = if (built is CountSeriesResult.Ok) {
-            val segmented = RepSegmenter.segment(built.series, profile, emptySet())
+            val segmented = RepSegmenter.segment(built.series, profile, emptySet(), prepared = prepared)
             require(segmented.fullCount == report.repCount && segmented.partialCount == report.partialReps && segmented.failedCount == report.failedReps)
             RepConfidence.score(built.series, segmented, prepared.view, profile, RepFlags.of(prepared, built.series, segmented)).also {
                 require(it.level == report.confidence && abs(it.score - report.confidenceScore) <= .000501) { "Desglose distinto del motor: ${row.id}" }

@@ -17,6 +17,13 @@ internal fun fullBankSignalDiagnostics(prepared: PreparedTrack, built: CountSeri
     put("near", prepared.near?.near?.name?.let(::JsonPrimitive) ?: JsonNull)
     put("scaleFh", prepared.scale?.bodyHeightFh?.let(::JsonPrimitive) ?: JsonNull)
     put("viewReliable", prepared.view.reliable)
+    val footWindow = if (built is CountSeriesResult.Ok) captureWindowUs(built.series,
+        RepSegmenter.segment(built.series, profile, emptySet()), tuning) else null
+    val capture = captureCountEvidence(prepared, profile, tuning, footWindow)
+    put("capture", buildJsonObject {
+        put("clippedFraction", capture.clippedFraction); put("commonFootTravelBh", capture.commonFootTravelBh)
+        put("unsafe", capture.unsafe)
+    })
     put("landmarks", buildJsonObject {
         for (lm in PoseLandmark.KEPT_IMAGE) {
             put(lm.name, buildJsonObject {
@@ -33,12 +40,13 @@ internal fun fullBankSignalDiagnostics(prepared: PreparedTrack, built: CountSeri
         put("periodS", seg.periodS?.let(::JsonPrimitive) ?: JsonNull)
         val confidence = RepConfidence.score(series, seg, prepared.view, variantProfile, RepFlags.of(prepared, series, seg))
         put("level", confidence.level.name); put("score", confidence.score)
+        put("forcedLowReason", confidence.forcedLowReason?.let(::JsonPrimitive) ?: JsonNull)
         put("validFraction", series.validFraction)
     }
     fun array(v: DoubleArray) = JsonArray(v.map { if (it.isFinite()) JsonPrimitive(it) else JsonNull })
     if (built is CountSeriesResult.Ok) {
         val series = built.series
-        val seg = RepSegmenter.segment(series, profile, emptySet())
+        val seg = RepSegmenter.segment(series, profile, emptySet(), prepared = prepared)
         val cutoff = seg.periodS?.let { (tuning.countLowPassCycles / it).coerceIn(tuning.countLowPassMinHz, tuning.countLowPassMaxHz) } ?: tuning.acfLowPassHz
         put("series", buildJsonObject {
             put("t0Us", series.t0Us); put("fs", series.fs); put("unit", series.unit.name)
@@ -62,7 +70,7 @@ internal fun fullBankSignalDiagnostics(prepared: PreparedTrack, built: CountSeri
     if (shortBuilt is CountSeriesResult.Ok) put("durationCandidates", buildJsonObject {
         for (seconds in listOf(1.0, 1.5, 2.0, 2.5, 3.0)) {
             put(seconds.toString(), summary(shortBuilt.series,
-                RepSegmenter.segment(shortBuilt.series, profile, emptySet(), tuning.copy(minSeriesS = seconds)), profile))
+                RepSegmenter.segment(shortBuilt.series, profile, emptySet(), tuning.copy(minSeriesS = seconds), prepared), profile))
         }
     })
     if (profile.id == AnalysisProfileId.BENCH) put("benchAngleCandidates", buildJsonObject {
@@ -73,7 +81,7 @@ internal fun fullBankSignalDiagnostics(prepared: PreparedTrack, built: CountSeri
                 val angleProfile = profile.copy(poseSignal = CountSignal.ELBOW_FLEXION, minAmplitude = minimum)
                 val candidate = CountSeriesBuilder.build(sidePrepared, null, angleProfile)
                 if (candidate is CountSeriesResult.Ok) put("${side.name}/$minimum", summary(candidate.series,
-                    RepSegmenter.segment(candidate.series, angleProfile, emptySet()), angleProfile))
+                    RepSegmenter.segment(candidate.series, angleProfile, emptySet(), prepared = sidePrepared), angleProfile))
             }
         }
     })

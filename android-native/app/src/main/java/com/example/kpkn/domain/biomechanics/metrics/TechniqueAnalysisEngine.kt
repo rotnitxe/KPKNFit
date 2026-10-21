@@ -71,7 +71,7 @@ object TechniqueAnalysisEngine {
             is CountSeriesResult.NoSignal -> return noSignalReport(input, prepared, built.reason)
         }
         val series = ok.series
-        val seg = RepSegmenter.segment(series, profile, input.setHints, tuning)
+        val seg = RepSegmenter.segment(series, profile, input.setHints, tuning, prepared)
         val countFlags = RepFlags.of(prepared, series, seg)
         val confidence = RepConfidence.score(series, seg, prepared.view, profile, countFlags, tuning)
 

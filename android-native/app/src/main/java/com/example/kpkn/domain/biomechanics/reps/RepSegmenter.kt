@@ -473,6 +473,24 @@ object RepSegmenter {
         profile: AnalysisProfile,
         hints: Set<String>,
         tuning: AnalysisTuning = AnalysisTuning.DEFAULT,
+        prepared: PreparedTrack? = null,
+    ): SegmentationResult {
+        val result = segmentSignal(series, profile, hints, tuning)
+        if (result.activeWindow == null) return result
+        if (prepared == null) return result // Hand-built signal tests have no capture geometry.
+        // Walkout/setup before the first repetition does not establish camera motion during the set.
+        val capture = captureCountEvidence(prepared, profile, tuning, captureWindowUs(series, result, tuning))
+        if (!capture.unsafe) return result
+        return result.copy(cycles = emptyList(),
+            discarded = result.discarded + result.cycles.map { DiscardedCycle(it.peak, "poor_capture") },
+            activeWindow = null, miniSets = 0, perSideCounts = emptyMap(), noRepsReason = "poor_capture")
+    }
+
+    private fun segmentSignal(
+        series: CountSeries,
+        profile: AnalysisProfile,
+        hints: Set<String>,
+        tuning: AnalysisTuning,
     ): SegmentationResult {
         val sides = series.perSide
         val canSplit = profile.perSide && series.source == CountSeriesBuilder.SOURCE_POSE &&

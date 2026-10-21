@@ -356,6 +356,10 @@ data class CountReliabilityTuning(
     val boundaryWindowS: Double = 0.25,
     val shortRestFraction: Double = 0.10,
     val maxOfferedAmbiguousCycles: Int = 0,
+    /** A required body region outside the image for most frames cannot certify a complete set. */
+    val maxClippedFraction: Double = 0.50,
+    /** Coherent travel of both planted feet, P95–P5 in BH. LOFO candidates: 0.10–0.50 BH. */
+    val maxCommonFootTravelBh: Double = 0.10,
 )
 
 /**
