@@ -426,7 +426,7 @@ class BodyWeightTrendTest {
         assertEquals("nov – dic", etaRangeText(range(YearMonth.of(2026, 12), YearMonth.of(2026, 11), YearMonth.of(2026, 12)), today, compact = true))
         assertEquals("ene – mar 2027", etaRangeText(range(YearMonth.of(2027, 2), YearMonth.of(2027, 1), YearMonth.of(2027, 3)), today, compact = true))
         assertEquals(
-            "nov 2026 – ene 2027",
+            "nov – ene 2027",
             etaRangeText(range(YearMonth.of(2026, 12), YearMonth.of(2026, 11), YearMonth.of(2027, 1)), today, compact = true),
         )
         assertEquals("desde dic", etaRangeText(range(YearMonth.of(2027, 2), YearMonth.of(2026, 12), null), today, compact = true))

@@ -158,7 +158,7 @@ fun etaMonthText(month: YearMonth, today: LocalDate): String =
 /**
  * La fecha estimada como rango, o null si es un solo mes (entonces va «≈ mes»).
  * Completo: «entre abril y junio» (el año solo si no es el de [today]; «entre noviembre de 2026 y febrero de 2027» si cruza
- * de año) o «a partir de abril». Compacto, para el hueco de Inicio: «abr – jun», «nov 2026 – feb 2027», «desde abr».
+ * de año) o «a partir de abril». Compacto, para el hueco de Inicio: «abr – jun», «nov – feb 2027» (el año es el del final), «desde abr».
  */
 fun etaRangeText(range: EtaRange, today: LocalDate, compact: Boolean = false): String? {
     if (!range.isRange) return null
@@ -175,7 +175,7 @@ fun etaRangeText(range: EtaRange, today: LocalDate, compact: Boolean = false): S
     val endsThisYear = latest.year == today.year
     return if (compact) {
         when {
-            crossesYear -> "${earliest.shortEs()} ${earliest.year} – ${latest.shortEs()} ${latest.year}"
+            crossesYear -> "${earliest.shortEs()} – ${latest.shortEs()} ${latest.year}"
             endsThisYear -> "${earliest.shortEs()} – ${latest.shortEs()}"
             else -> "${earliest.shortEs()} – ${latest.shortEs()} ${latest.year}"
         }
