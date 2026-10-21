@@ -2233,7 +2233,9 @@ class WorkoutViewModel(
             completedExercises = completedExercises,
             exerciseDb = exerciseIndex,
             settings = repository.settings.value,
-            durationMinutes = ((System.currentTimeMillis() - s.startTimeMs) / 60_000L).toInt().coerceAtLeast(1),
+            durationMinutes = if (s.startTimeMs > 0L) {
+                ((System.currentTimeMillis() - s.startTimeMs) / 60_000L).toInt().coerceAtLeast(1)
+            } else 0,
         )
         return Triple(
             drain.cns.toInt(),

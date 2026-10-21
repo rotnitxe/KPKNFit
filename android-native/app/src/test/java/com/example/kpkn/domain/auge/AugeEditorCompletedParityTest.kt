@@ -2,10 +2,23 @@ package com.example.kpkn.domain.auge
 
 import com.example.kpkn.data.models.*
 import com.example.kpkn.screens.sessioneditor.computeSessionAugeComputation
+import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
+import org.junit.Before
 import org.junit.Test
+import java.util.TimeZone
 
 class AugeEditorCompletedParityTest {
+    private lateinit var previousZone: TimeZone
+
+    @Before fun fijarZona() {
+        previousZone = TimeZone.getDefault()
+        TimeZone.setDefault(TimeZone.getTimeZone("UTC"))
+    }
+
+    @After fun restaurarZona() { TimeZone.setDefault(previousZone) }
+
     @Test
     fun equivalentPlanAndCompletedExecution_matchGlobalAndLocalImpact() {
         val planned = Session(
@@ -62,7 +75,12 @@ class AugeEditorCompletedParityTest {
         sets = List(3) { CompletedSet("$id-$it", weight = 80.0, reps = reps, rpe = rpe) },
     )
 
-    private fun assertParity(completed: List<CompletedExercise>, minimumMinutes: Int? = null, missingPlannedRest: Boolean = false) {
+    private fun assertParity(
+        completed: List<CompletedExercise>,
+        minimumMinutes: Int? = null,
+        missingPlannedRest: Boolean = false,
+        materializeCardioPart: Boolean = false,
+    ) {
         val planned = Session("parity", "Paridad", exercises = completed.map { ex ->
             Exercise(
                 id = ex.exerciseId, name = ex.exerciseName, exerciseDbId = ex.exerciseDbId,
@@ -70,15 +88,25 @@ class AugeEditorCompletedParityTest {
                 supersetGroupRef = ex.supersetId, cardioDetails = ex.cardioDetails,
                 targetDurationMinutes = minimumMinutes,
                 sets = ex.sets.map { set ->
-                    ExerciseSet(set.id, weight = set.weight, targetReps = set.reps, targetRPE = set.rpe)
+                    ExerciseSet(
+                        set.id, weight = set.weight, targetReps = set.reps, targetRPE = set.rpe,
+                        targetRIR = set.rir, intensityMode = set.actualIntensityMode, isFailure = set.isFailure,
+                    )
                 },
             )
         })
-        val editor = computeSessionAugeComputation(planned, f.db, f.settings, emptyList(), "p", 0)
-        val predicted = AugeFatigueEngine.calculateAdjustedPredictedDrain(planned, f.db, f.settings)
+        val session = if (materializeCardioPart) planned.copy(
+            exercises = planned.exercises.filter { it.cardioDetails == null },
+            parts = listOf(SessionPart("cardio-part", "Cardio", isCardioGroup = true,
+                exercises = planned.exercises.filter { it.cardioDetails != null })),
+            cardioFirst = true,
+        ) else planned
+        val editor = computeSessionAugeComputation(session, f.db, f.settings, emptyList(), "p", 0)
+        val predicted = AugeFatigueEngine.calculateAdjustedPredictedDrain(session, f.db, f.settings)
         val finished = AugeFatigueEngine.calculateCompletedSessionDrain(completed, f.db, f.settings, durationMinutes = editor.durationMinutes)
         assertEquals("Editor y predictor", predicted, editor.drain)
         assertEquals("Predictor y cierre", finished, predicted)
+        if (minimumMinutes != null) assertTrue(editor.durationMinutes >= minimumMinutes)
     }
 
     @Test fun fuerzaConSnapshotCompartidoTieneParidadExacta() {
@@ -117,4 +145,19 @@ class AugeEditorCompletedParityTest {
 
     @Test fun descansoPredeterminadoDelUsuarioTieneParidadExacta() =
         assertParity(listOf(strength("bench", rest = f.settings.restTimerDefaultSeconds)), missingPlannedRest = true)
+
+    @Test fun minimoDeSesionDuraLeeElModoRirEfectivo() {
+        val ex = strength("row").copy(sets = List(6) {
+            CompletedSet("rir-$it", weight = 80.0, reps = 1, rpe = 7.0, rir = 0,
+                actualIntensityMode = IntensityMode.RIR, actualIntensityValue = 0.0)
+        })
+        assertParity(listOf(ex))
+    }
+
+    @Test fun cardioPrimeroEnUnaParteRespetaElMismoOrdenAlCerrar() {
+        val cardio = CardioDetails(CardioType.ROW_MACHINE, targetDurationSeconds = 900, intensityLevel = 8)
+        assertParity(listOf(CompletedExercise("cardio", "Remo cardio", cardioDetails = cardio,
+            sets = listOf(CompletedSet("cardio", timeSeconds = 900, rpe = 8.0))), strength("bench"), strength("squat")),
+            materializeCardioPart = true)
+    }
 }

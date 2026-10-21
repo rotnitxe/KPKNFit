@@ -3,10 +3,11 @@ package com.example.kpkn.domain.auge
 import com.example.kpkn.data.models.*
 import kotlin.math.roundToInt
 
-/** Decisiones que aún difieren entre consumidores; se revisan en 2.2b2. */
+/** Decisiones pendientes de 2.2b2, salvo el estado muscular zombi que se retira en 3.1. */
 internal data class RecipeOptions(
     val volumeCounting: VolumeCounting,
     val axialGatePosition: AxialGatePosition,
+    /** Se elimina en 3.1 junto con el campo zombi del caché; conserva sus tres variantes hasta entonces. */
     val muscleMultiplierSource: MuscleMultiplierSource,
     val cardioHandling: CardioHandling,
     val softCapUnits: SoftCapUnits,
@@ -130,7 +131,7 @@ internal class SessionDrainRecipe(
     private fun <E, S> walk(
         exercises: List<E>,
         hasCardio: (E) -> Boolean,
-        prepare: (E) -> RecipeExerciseContext?,
+        prepare: (E) -> RecipeExerciseContext,
         effectiveSets: (E) -> List<S>,
         complete: (E, S) -> CompletedSet,
         onCardio: (E) -> Unit,
@@ -141,7 +142,7 @@ internal class SessionDrainRecipe(
                 onCardio(exercise)
                 continue
             }
-            val context = prepare(exercise) ?: continue
+            val context = prepare(exercise)
             var integerCount = integerVolume[context.primaryMuscle] ?: 0
             var halfCount = halfVolume[context.primaryMuscle] ?: 0.0
             for (sourceSet in effectiveSets(exercise)) {
@@ -192,7 +193,7 @@ internal class SessionDrainRecipe(
         val supersetRestAfter: Int?,
     )
 
-    private fun contextFor(input: ExerciseInput): RecipeExerciseContext? {
+    private fun contextFor(input: ExerciseInput): RecipeExerciseContext {
         val info = resolveInfo(input.identity)
         val metrics = AugeFatigueEngine.getDynamicAugeMetrics(input.identity.exerciseName, info?.equipment, info) ?: AugeMetrics()
         val involved = AugeFatigueEngine.resolveInvolvedMuscles(input.identity.exerciseName, input.snapshot, info)

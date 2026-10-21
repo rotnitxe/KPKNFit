@@ -654,6 +654,7 @@ object AugeFatigueEngine {
         )
     }
 
+    /** [durationMinutes] usa el log; cero indica duración desconocida y no inventa un bono. */
     fun calculateCompletedSessionDrainBreakdown(
         completedExercises: List<CompletedExercise>,
         exerciseDb: Map<String, ExerciseMuscleInfo> = emptyMap(),
@@ -879,10 +880,7 @@ object AugeFatigueEngine {
         val acc = AggregateDrainAcc(totalMuscular = muscular, totalCns = cns, totalSpinal = spinal)
         val hardSets = exercises.sumOf { ex ->
             ex.sets.count { s ->
-                !s.isIneffective && (s.targetRPE ?: when {
-                    s.targetRIR != null -> (10.0 - s.targetRIR).coerceIn(1.0, 10.0)
-                    else -> 7.0
-                }) >= 8.0
+                !s.isIneffective && getEffectiveRPE(SessionDrainRecipe.plannedSet(ex, s)) >= 8.0
             }
         }
         val hasAxial = exercises.any { ex ->
