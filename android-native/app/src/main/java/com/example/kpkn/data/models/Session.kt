@@ -1,6 +1,8 @@
 package com.example.kpkn.data.models
 
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.KeepGeneratedSerializer
+import kotlinx.serialization.ExperimentalSerializationApi
 
 @Serializable
 data class SessionPersistedRuleDefaults(
@@ -272,7 +274,9 @@ data class TrainingBackup(
     /** 1 means legacy serialized backup; newly created backups explicitly use v2. */
     val catalogSchemaVersion: Int = 1,
 )
-@Serializable
+@OptIn(ExperimentalSerializationApi::class)
+@KeepGeneratedSerializer
+@Serializable(with = ExerciseSerializer::class)
 data class Exercise(
     val id: String,
     val name: String,
@@ -292,6 +296,8 @@ data class Exercise(
     val cardioDetails: CardioDetails? = null,
     val customUnit: String? = null,
     val reference1RM: Double? = null,
+    /** Training max in kg for PERCENT_TM prescriptions. Never a 1RM. */
+    val referenceTrainingMax: Double? = null,
     val targetSessionGoal: String? = null,
     val isStarTarget: Boolean = false,
     val trackHeartRate: Boolean = false,
@@ -316,7 +322,6 @@ data class Exercise(
     val unilateralSideOrder: UnilateralSideOrder = UnilateralSideOrder.LEFT_RIGHT,
     val unilateralIntensityMode: UnilateralIntensityMode = UnilateralIntensityMode.SHARED,
     val restBetweenSidesSeconds: Int? = null,
-    val isCalibratorAmrap: Boolean = false,
     val goal1RM: Double? = null,
     val goalPr: PrReference? = null,
     val calculated1RM: Double? = null,
@@ -577,7 +582,7 @@ fun ExerciseSet.effectiveRepRange(): RepRange? = targetRepsRange
     ?: targetReps?.takeIf { it > 0 }?.let { RepRange(it, it) }
 
 /** The single repetition anchor used by load/e1RM calculations. */
-fun ExerciseSet.plannedRepAnchor(): Int? = effectiveRepRange()?.max
+fun ExerciseSet.plannedRepAnchor(): Int? = if (purpose.isAmrap) amrapMinimumReps?.takeIf { it > 0 } else effectiveRepRange()?.max
 
 @Serializable
 data class UnilateralTarget(
@@ -593,6 +598,18 @@ data class UnilateralTarget(
 )
 
 @Serializable
+enum class SetPurpose {
+    NONE, AMRAP, CALIBRATOR;
+
+    val isAmrap: Boolean get() = this != NONE
+}
+
+@Serializable
+enum class CalibrationScope { SESSION, NEXT_SESSIONS }
+
+@OptIn(ExperimentalSerializationApi::class)
+@KeepGeneratedSerializer
+@Serializable(with = ExerciseSetSerializer::class)
 data class ExerciseSet(
     val id: String,
     /** Preserves a deleted superset round without reindexing later rounds. */
@@ -611,8 +628,10 @@ data class ExerciseSet(
     val completedRPE: Double? = null,
     val completedRIR: Int? = null,
     val isFailure: Boolean = false,
-    val isAmrap: Boolean = false,
-    val isCalibrator: Boolean = false,
+    val purpose: SetPurpose = SetPurpose.NONE,
+    /** The only AMRAP minimum. null explicitly means no minimum. */
+    val amrapMinimumReps: Int? = null,
+    val calibrationScope: CalibrationScope? = if (purpose == SetPurpose.CALIBRATOR) CalibrationScope.SESSION else null,
     val isIneffective: Boolean = false,
     val isPartial: Boolean = false,
     val partialReps: Int? = null,

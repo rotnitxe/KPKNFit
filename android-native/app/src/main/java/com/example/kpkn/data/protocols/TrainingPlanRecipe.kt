@@ -133,6 +133,10 @@ data class SetRecipe(
     val rpe: Double? = null,
     val rir: Int? = null,
     val amrap: Boolean = false,
+    /** Explicit contract for recipes authored from sessions; null reads legacy amrap/reps. */
+    val purpose: com.example.kpkn.data.models.SetPurpose? = null,
+    val amrapMinimumReps: Int? = null,
+    val calibrationScope: com.example.kpkn.data.models.CalibrationScope? = null,
     val isTopSet: Boolean = false,
     val loadBasis: LoadBasis = LoadBasis.PERCENT_TM,
     /** No cuenta como serie efectiva en H5b/H6/H8/W2. */
@@ -146,7 +150,12 @@ data class SetRecipe(
      * `reference1RM`. null = resolución legacy sin cambios.
      */
     val reference: PlanLoadReference? = null,
-)
+) {
+    val resolvedPurpose: com.example.kpkn.data.models.SetPurpose
+        get() = purpose ?: if (amrap) com.example.kpkn.data.models.SetPurpose.AMRAP else com.example.kpkn.data.models.SetPurpose.NONE
+    val effectiveAmrapMinimumReps: Int?
+        get() = if (purpose != null) amrapMinimumReps else (repsMin ?: reps)?.takeIf { it > 0 }
+}
 
 /**
  * Intención editorial de un slot según el vocabulario de §11.2.

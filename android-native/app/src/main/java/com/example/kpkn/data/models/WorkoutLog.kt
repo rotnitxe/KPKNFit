@@ -1,6 +1,8 @@
 package com.example.kpkn.data.models
 
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.KeepGeneratedSerializer
 
 @Serializable
 data class WorkoutLog(
@@ -133,7 +135,9 @@ data class CompletedExercise(
     val cardioDetails: CardioDetails? = null,
 )
 
-@Serializable
+@OptIn(ExperimentalSerializationApi::class)
+@KeepGeneratedSerializer
+@Serializable(with = CompletedSetSerializer::class)
 data class CompletedSet(
     val id: String,
     val weight: Double = 0.0,
@@ -160,6 +164,8 @@ data class CompletedSet(
     val actualIntensityMode: IntensityMode? = null,
     val actualIntensityValue: Double? = null,
     val amrapPerformed: Boolean = false,
+    /** null only in legacy logs without an explicit purpose; NONE records a live opt-out. */
+    val purpose: SetPurpose? = null,
     val amrapMinimumReps: Int? = null,
     val amrapBelowMinimum: Boolean = false,
     val debt: Double = 0.0,
@@ -183,7 +189,32 @@ data class CompletedSet(
     val kmSplitPaces: List<Int> = emptyList(),
     /** Original zero-based plan ordinal, independent of UUID and compacted history order. Null in legacy logs. */
     val setIndex: Int? = null,
+    /** Original input and normalized kg; weight already stores the normalized load. */
+    val loadMode: LoadModeV2? = null,
+    val originalLoad: Double? = null,
+    val contextKey: String? = null,
+    val estimatorVersion: Int = 1,
 )
+
+/** null means a legacy log without evidence: only those logs may use positional fallback. */
+fun CompletedSet.performedPurpose(): SetPurpose? = purpose ?: recordedPayloadV3?.purpose ?: when {
+    amrapPerformed || recordedPayloadV3?.amrapPerformed == true ||
+        setOutcomeV2?.amrapOverride == true || homologatedResultV3?.amrapOverride == true -> SetPurpose.AMRAP
+    recordedPayloadV3 != null || setOutcomeV2 != null || homologatedResultV3 != null ||
+        amrapMinimumReps != null || amrapBelowMinimum || setIndex != null -> SetPurpose.NONE
+    else -> null
+}
+
+/** Opaque, stable identity for calibration: configuration, equipment/setup, load convention and side. */
+fun buildRecordedSetContextKey(
+    configurationId: String,
+    performanceContextKey: String,
+    setupProfileId: String?,
+    side: String?,
+    loadQuantityConvention: LoadQuantityConvention = LoadQuantityConvention.UNSPECIFIED,
+): String = "set-v1|" + listOf(
+    configurationId, performanceContextKey, setupProfileId.orEmpty(), side ?: "bilateral", loadQuantityConvention.name,
+).joinToString("|") { "${it.length}:$it" }
 
 fun CompletedSet.effectiveRepEquivalent(): Double =
     reps.toDouble() + ((partialReps ?: 0).coerceAtLeast(0) * 0.5)

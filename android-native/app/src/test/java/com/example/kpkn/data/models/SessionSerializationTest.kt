@@ -242,7 +242,8 @@ class SessionSerializationTest {
                                     intensityMode = IntensityMode.LOAD,
                                     completedReps = 5,
                                     completedRPE = 8.5,
-                                    isCalibrator = true,
+                                    purpose = SetPurpose.CALIBRATOR,
+                                    amrapMinimumReps = 4,
                                     dropSets = listOf(DropSetData(120.0, 10)),
                                     restPauses = listOf(RestPauseData(15, 3)),
                                     attemptResult = AttemptResult.GOOD,
@@ -273,9 +274,9 @@ class SessionSerializationTest {
         assertEquals(PrReference(200.0, 6), decoded.parts.first().exercises.first().goalPr)
         assertEquals(UnilateralSideOrder.RIGHT_LEFT, decoded.parts.first().exercises.first().unilateralSideOrder)
         assertEquals(25, decoded.parts.first().exercises.first().restBetweenSidesSeconds)
-        assertEquals(true, decoded.parts.first().exercises.first().sets.first().isCalibrator)
+        assertEquals(true, decoded.parts.first().exercises.first().sets.first().purpose == SetPurpose.CALIBRATOR)
         assertEquals(RepRange(4, 6), decoded.parts.first().exercises.first().sets.first().targetRepsRange)
-        assertEquals(6, decoded.parts.first().exercises.first().sets.first().plannedRepAnchor())
+        assertEquals(4, decoded.parts.first().exercises.first().sets.first().plannedRepAnchor())
         assertEquals(AttemptResult.GOOD, decoded.parts.first().exercises.first().sets.first().attemptResult)
         assertEquals(9, decoded.parts.first().exercises.first().sets.first().technicalQuality)
         assertEquals("lumbar", decoded.parts.first().exercises.first().sets.first().discomfortIds.first())

@@ -191,6 +191,8 @@ data class RecordedSetPayload(
     val failedSet: Boolean = false,
     val reachedFailure: Boolean = false,
     val amrapPerformed: Boolean = false,
+    val purpose: SetPurpose? = null,
+    val amrapMinimumReps: Int? = null,
     val timerTargetSeconds: Int? = null,
     val timerElapsedSeconds: Int? = null,
     val failureReason: String? = null,
@@ -255,6 +257,8 @@ data class HomologatedPerformanceResult(
     val ermRangeMin: Double = 0.0,
     val ermRangeMax: Double = 0.0,
     val suggestedLoadMode: LoadModeV2? = null,
+    /** Missing in persisted results from the old estimator. */
+    val estimatorVersion: Int = 1,
 )
 
 @Serializable
@@ -285,6 +289,8 @@ data class SetEntryV2(
     val rom: Int? = null,
     val assistedReps: Int? = null,
     val isFirstEvaluationInSession: Boolean = false,
+    /** Full reps for capacity; actualValue may also credit partial work for fatigue. */
+    val completedReps: Int? = null,
 )
 
 @Serializable
