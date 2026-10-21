@@ -10,10 +10,13 @@ Lo mantiene el orquestador. Última actualización: **2026-10-21 12:50**. Detall
 | Carril | Paquete | Agente / modelo | Worktree · rama | Estado |
 |---|---|---|---|---|
 | A | 2.5 anclas como estado + evidencia multiplicativa | Codex Sol 6.1 · esfuerzo máximo | `v3c` · `r4/2-5` | etapa A en validación Android; etapa B pendiente |
-| B | 3.1 caché v4, migración, anillo de observaciones | Codex Sol 6.1 · medio | `sb` · `r4/3-1` | por lanzar |
-| C | 1.9v2 textos y umbrales | Codex Luna · máximo | `u1` · `r4/1-9v2` | por lanzar |
-| D | 1.11 creador sin Core por defecto | Antigravity · Gemini 3.8 Flash High | `r4s` · `r4/1-11` | por lanzar |
-| T | JVM1 arnés JVM para pruebas puras de AUGE (herramienta, fuera del repo) | Codex Sol 6.1 · máximo | `C:\kw\r4-jvm` | validando contra el oráculo Android |
+| B | 3.1 caché v4, migración, anillo de observaciones | Codex Sol 6.1 · medio | `sb` · `r4/3-1` | en curso desde 12:36 |
+| C | 1.9v2 textos y umbrales | Codex Luna · máximo | `u1` · `r4/1-9v2` | en curso desde 12:36 |
+| D | 1.11 creador sin Core por defecto | Antigravity · Gemini 3.8 Flash High | `r4s` · `r4/1-11` | en curso desde 12:39 (ya escribió la prueba nueva) |
+| E | DOC1 README de la auditoría y arquitectura (solo documentación) | OpenCode · DeepSeek v4.1 Flash (gratis) | `r4d` · `r4/5-3a` | en curso desde 12:50 |
+| T | JVM1 arnés JVM para pruebas puras de AUGE (herramienta, fuera del repo) | Codex Sol 6.1 · máximo | `C:\kw\r4-jvm` | segunda ronda (no compilaba por dependencias del cargador de CSV/voz); autorizados shims |
+
+Cola de lanzamiento (cuando se integre lo anterior): 3.2 (tras 3.1) → 3.3 → 3.4 → 3.5 en el carril del aprendiz; 2.6 y luego 2.4 (tras 2.5) en el carril del motor; 1.10v2 (tras 1.9v2) en el carril de interfaz; 5.1–5.3 al final.
 
 ## Grafo de lo que falta
 - 2.5 → **2.6** (cambios de forma; regenera el máster dorado) → 2.4 (proyección; mide sobre la forma final).
