@@ -1,5 +1,6 @@
 package com.example.kpkn.screens.workout
 
+import com.example.kpkn.screens.sessioneditor.withTrainingMode
 import android.content.Context
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -1638,7 +1639,7 @@ internal fun WorkoutEditSeriesSheet(
                             CompactModeSelector(
                                 currentMode = draftExercise.trainingMode,
                                 accentColor = sessionAccentColor,
-                            ) { mode -> draftExercise = draftExercise.copy(trainingMode = mode) }
+                            ) { mode -> draftExercise = draftExercise.withTrainingMode(mode) }
                         }
                         item {
                             UnilateralModeSelector(

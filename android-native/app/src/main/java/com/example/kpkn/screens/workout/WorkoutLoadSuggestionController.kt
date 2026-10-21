@@ -678,7 +678,7 @@ class WorkoutLoadSuggestionController(
         return LoadSuggestionEngine.fatigueFactorForPriorCompletedSets(priorCompletedCount)
     }
 
-    private fun computeSessionImprovementAdjustment(
+    internal fun computeSessionImprovementAdjustment(
         exercise: Exercise,
         activeTag: String?,
         side: String?,

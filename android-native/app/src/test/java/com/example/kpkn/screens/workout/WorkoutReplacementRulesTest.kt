@@ -1,5 +1,6 @@
 package com.example.kpkn.screens.workout
 
+import com.example.kpkn.data.models.SetPurpose
 import com.example.kpkn.data.models.CompletedExercise
 import com.example.kpkn.data.models.CompletedSet
 import com.example.kpkn.data.models.ConsolidatedWeight
@@ -82,7 +83,7 @@ class WorkoutReplacementRulesTest {
             ExerciseSet(
                 id = "s1",
                 targetReps = 6,
-                isAmrap = true,
+                purpose = SetPurpose.AMRAP, amrapMinimumReps = 6,
                 targetRPE = 9.0,
                 weight = 27.5,
                 loadModeV2 = LoadModeV2.LASTRE,
@@ -113,7 +114,6 @@ class WorkoutReplacementRulesTest {
         unilateralSideOrder = UnilateralSideOrder.RIGHT_LEFT,
         unilateralIntensityMode = UnilateralIntensityMode.INDEPENDENT,
         restBetweenSidesSeconds = 30,
-        isCalibratorAmrap = true,
         isCompetitionLift = true,
         loadQuantityConvention = LoadQuantityConvention.ADDITIONAL_BODYWEIGHT,
         loadReference = PlanLoadReference(
@@ -190,7 +190,7 @@ class WorkoutReplacementRulesTest {
             ),
             s0,
         )
-        assertTrue(b.sets[1].isAmrap)
+        assertTrue(b.sets[1].purpose.isAmrap)
         assertEquals(120, b.sets[1].restAfterSeconds)
         assertTrue(b.sets[2].isFailure)
         assertEquals(40, b.sets[2].targetDuration)
@@ -235,7 +235,7 @@ class WorkoutReplacementRulesTest {
         assertEquals(UnilateralSideOrder.LEFT_RIGHT, b.unilateralSideOrder)
         assertEquals(UnilateralIntensityMode.SHARED, b.unilateralIntensityMode)
         assertNull(b.restBetweenSidesSeconds)
-        assertFalse(b.isCalibratorAmrap)
+        assertTrue(b.sets.none { it.purpose == SetPurpose.CALIBRATOR })
         assertFalse(b.isCompetitionLift)
         // Calentamiento, preparación del puesto y variante.
         assertTrue(b.warmupSets.isEmpty())

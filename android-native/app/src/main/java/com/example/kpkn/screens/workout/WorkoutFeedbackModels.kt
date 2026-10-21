@@ -19,6 +19,7 @@ import com.example.kpkn.data.models.IntensityMode
 import com.example.kpkn.data.models.RepRange
 import com.example.kpkn.data.models.WorkoutLog
 import com.example.kpkn.data.models.effectiveRepRange
+import com.example.kpkn.data.models.performedPurpose
 import com.example.kpkn.domain.auge.AugeFatigueEngine
 import com.example.kpkn.domain.auge.getAugeMusclePillarId
 import com.example.kpkn.domain.training.VolumeCalculator
@@ -42,6 +43,8 @@ data class SetAdvancedFeedback(
     /** Nullable live override: null follows the planned set, false disables planned AMRAP. */
     val amrapOverride: Boolean? = null,
     val amrapMinimumReps: Int? = null,
+    /** Distinguishes an explicit live "no minimum" from following the prescription. */
+    val amrapMinimumOverridden: Boolean = false,
     /** False si el atleta no movió el selector de reserva (llegó relleno con lo planificado): no cuenta como «reserva cumplida». */
     val intensityAdjusted: Boolean = true,
     val timerElapsedSeconds: Int? = null,
@@ -55,9 +58,21 @@ internal fun resolveAmrapActive(
     plannedSet: ExerciseSet?,
     requestedOverride: Boolean,
     explicitOverride: Boolean? = null,
+    recordedSet: CompletedSet? = null,
 ): Boolean {
     val override = explicitOverride ?: requestedOverride.takeIf { it }
-    return override ?: (plannedSet?.isAmrap == true || plannedSet?.intensityMode == IntensityMode.AMRAP)
+    return override ?: recordedSet?.performedPurpose()?.isAmrap ?: (plannedSet?.purpose?.isAmrap == true)
+}
+
+internal fun resolveAmrapMinimumReps(
+    plannedSet: ExerciseSet?,
+    draft: WorkoutSetDraft? = null,
+    recordedSet: CompletedSet? = null,
+): Int? = when {
+    draft?.amrapMinimumOverridden == true || draft?.amrapMinimumReps != null -> draft?.amrapMinimumReps
+    recordedSet?.purpose?.isAmrap == true || recordedSet?.recordedPayloadV3?.purpose?.isAmrap == true -> recordedSet.amrapMinimumReps
+    recordedSet?.amrapMinimumReps != null -> recordedSet.amrapMinimumReps
+    else -> plannedSet?.amrapMinimumReps
 }
 
 internal data class RepRangeEvaluation(
@@ -77,9 +92,8 @@ internal fun evaluateRepRange(
     amrapActive: Boolean = false,
     amrapMinimum: Int? = null,
 ): RepRangeEvaluation? {
-    val target = range ?: return null
-    val minimum = if (amrapActive) (amrapMinimum ?: target.min) else target.min
     if (amrapActive) {
+        val minimum = amrapMinimum?.takeIf { it > 0 } ?: return null
         return if (actual < minimum) {
             RepRangeEvaluation(
                 delta = actual - minimum,
@@ -90,6 +104,7 @@ internal fun evaluateRepRange(
             RepRangeEvaluation(delta = 0.0, debt = 0.0, isInRange = true)
         }
     }
+    val target = range ?: return null
     return when {
         actual < target.min -> RepRangeEvaluation(actual - target.min, target.min - actual, false)
         actual > target.max -> RepRangeEvaluation(actual - target.max, 0.0, false)
@@ -212,7 +227,9 @@ object WorkoutPlanDeviationSupport {
         actualReps: Int,
         advanced: SetAdvancedFeedback,
         suggestedWeight: Double?,
-        amrapMinimumReps: Int? = advanced.amrapMinimumReps,
+        amrapMinimumReps: Int? = if (advanced.amrapMinimumOverridden || advanced.amrapMinimumReps != null) {
+            advanced.amrapMinimumReps
+        } else plannedSet.amrapMinimumReps,
     ): List<PlanDeviation> {
         val deviations = mutableListOf<PlanDeviation>()
 
@@ -229,10 +246,10 @@ object WorkoutPlanDeviationSupport {
             requestedOverride = false,
             explicitOverride = advanced.amrapOverride,
         )
-        if (targetRange != null && actualReps > 0) {
+        if (amrapActive || actualReps > 0) {
             if (amrapActive) {
-                val minimum = amrapMinimumReps ?: targetRange.min
-                if (actualReps < minimum) {
+                val minimum = amrapMinimumReps?.takeIf { it > 0 }
+                if (minimum != null && actualReps < minimum) {
                     deviations.add(
                         PlanDeviation(
                             exerciseId,
@@ -243,9 +260,9 @@ object WorkoutPlanDeviationSupport {
                         ),
                     )
                 }
-            } else if (actualReps > targetRange.max) {
+            } else if (targetRange != null && actualReps > targetRange.max) {
                 deviations.add(PlanDeviation(exerciseId, exerciseName, setIdx, PlanDeviationType.REPS_HIGH, "$actualReps vs ${targetRange.format()} objetivo"))
-            } else if (actualReps < targetRange.min) {
+            } else if (targetRange != null && actualReps < targetRange.min) {
                 deviations.add(PlanDeviation(exerciseId, exerciseName, setIdx, PlanDeviationType.REPS_LOW, "$actualReps vs ${targetRange.format()} objetivo"))
             }
         }

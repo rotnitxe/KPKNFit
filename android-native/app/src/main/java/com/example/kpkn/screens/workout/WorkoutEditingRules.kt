@@ -185,7 +185,6 @@ object WorkoutEditingRules {
                 targetRepsRange = null,
                 plannedTargetV2 = null,
                 targetPercentageRM = null,
-                isAmrap = false,
             )
             TrainingMode.DISTANCE,
             TrainingMode.CUSTOM,
@@ -196,7 +195,6 @@ object WorkoutEditingRules {
                 targetRepsRange = null,
                 targetDuration = null,
                 targetPercentageRM = null,
-                isAmrap = false,
             )
             TrainingMode.RM -> set.copy(
                 unitModeV2 = UnitModeV2.REPS,
@@ -206,7 +204,6 @@ object WorkoutEditingRules {
                 plannedTargetV2 = null,
                 targetPercentageRM = (set.targetPercentageRM ?: 75.0).coerceIn(40.0, 100.0)
                     .let { kotlin.math.round(it * 100.0) / 100.0 },
-                isAmrap = false,
             )
             TrainingMode.SOLO_RPE -> set.copy(
                 unitModeV2 = UnitModeV2.REPS,
@@ -215,7 +212,6 @@ object WorkoutEditingRules {
                 targetDuration = null,
                 plannedTargetV2 = null,
                 targetPercentageRM = null,
-                isAmrap = false,
             )
             TrainingMode.AMRAP -> set.copy(
                 unitModeV2 = UnitModeV2.REPS,
@@ -223,8 +219,8 @@ object WorkoutEditingRules {
                 targetDuration = null,
                 plannedTargetV2 = null,
                 targetPercentageRM = null,
-                isAmrap = true,
-                intensityMode = IntensityMode.AMRAP,
+                purpose = set.purpose,
+                intensityMode = set.intensityMode,
             )
             TrainingMode.REPS -> set.copy(
                 unitModeV2 = UnitModeV2.REPS,
@@ -232,11 +228,11 @@ object WorkoutEditingRules {
                 targetDuration = null,
                 plannedTargetV2 = null,
                 targetPercentageRM = null,
-                isAmrap = set.isAmrap || set.intensityMode == IntensityMode.AMRAP,
+                purpose = set.purpose,
             )
         }
 
-        val intensityNormalized = if (metricNormalized.isAmrap || metricNormalized.intensityMode == IntensityMode.AMRAP) {
+        val intensityNormalized = if (metricNormalized.purpose.isAmrap) {
             metricNormalized.copy(
                 intensityMode = IntensityMode.AMRAP,
                 targetRPE = null,

@@ -96,6 +96,8 @@ data class WorkoutSetDraft(
     /** Explicit live override; null means follow the planned set. */
     val amrapOverride: Boolean? = null,
     val amrapMinimumReps: Int? = null,
+    /** Explicit null means no minimum; false preserves legacy drafts that follow the plan. */
+    val amrapMinimumOverridden: Boolean = false,
     val amrapReachFailure: Boolean? = null,
     val amrapReserveReps: Int? = null,
     val notes: String? = null,

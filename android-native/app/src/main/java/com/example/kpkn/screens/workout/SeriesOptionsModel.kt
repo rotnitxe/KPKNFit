@@ -53,7 +53,7 @@ private fun completedParts(set: CompletedSet): List<String> {
 private fun plannedParts(set: ExerciseSet?): List<String> {
     if (set == null) return emptyList()
     val amount = when {
-        set.isAmrap -> "AMRAP"
+        set.purpose.isAmrap -> "AMRAP"
         set.targetRepsRange != null -> set.targetRepsRange.let { range ->
             if (range.min == range.max) "${range.min}" else "${range.min}–${range.max}"
         }

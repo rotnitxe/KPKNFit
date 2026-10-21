@@ -554,7 +554,7 @@ internal object RelatorContextBuilder {
             isTopSet = currentSet?.isTopSet == true,
             loadBasis = currentSet?.loadBasis,
             techniqueModifier = current?.techniqueModifier,
-            isAmrap = currentSet?.isAmrap == true,
+            isAmrap = currentSet?.purpose?.isAmrap == true,
             isCompetitionLift = current?.isCompetitionLift == true,
             targetPercentageRm = currentSet?.targetPercentageRM,
             prescribedWeightKg = currentSet?.weight,

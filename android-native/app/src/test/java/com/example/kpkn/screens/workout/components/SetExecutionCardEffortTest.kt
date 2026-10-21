@@ -1,5 +1,6 @@
 package com.example.kpkn.screens.workout.components
 
+import com.example.kpkn.data.models.SetPurpose
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.width
@@ -123,7 +124,7 @@ class SetExecutionCardEffortTest {
 
     private fun serieAFallo() = serieConRir().copy(id = "s-fallo", targetRIR = null, isFailure = true, intensityMode = IntensityMode.FAILURE)
 
-    private fun serieAmrap() = serieSinObjetivo().copy(id = "s-amrap", isAmrap = true)
+    private fun serieAmrap() = serieSinObjetivo().copy(id = "s-amrap", purpose = SetPurpose.AMRAP, amrapMinimumReps = 6)
 
     private fun serieSoloRm() = ExerciseSet(
         id = "s-rm",

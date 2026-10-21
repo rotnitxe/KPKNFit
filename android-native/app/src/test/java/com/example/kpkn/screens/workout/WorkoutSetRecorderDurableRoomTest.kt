@@ -32,6 +32,71 @@ import com.example.kpkn.screens.workout.components.toGuidedPhaseOrNull
 @Config(manifest = Config.NONE, sdk = [34])
 @OptIn(ExperimentalCoroutinesApi::class)
 class WorkoutSetRecorderDurableRoomTest {
+    @Test fun explicitLiveNoMinimumDoesNotFallBackToThePlannedMinimum() = runBlocking {
+        val planned = ExerciseSet("amrap", purpose = SetPurpose.AMRAP, amrapMinimumReps = 4)
+        state = state.copy(session = session.copy(exercises = listOf(session.exercises.single().copy(sets = listOf(planned)))))
+        assertTrue(record(value = 1.0, advanced = SetAdvancedFeedback(rir = 0, amrapMinimumOverridden = true)) is RecordSetResult.Created)
+        val done = room().completedSets.values.single()
+        assertNull(done.amrapMinimumReps)
+        assertEquals(0.0, done.debt, 0.0)
+        assertFalse(done.amrapBelowMinimum)
+    }
+    @Test fun partialRepetitionsCannotCompleteTheAmrapMinimum() = runBlocking {
+        val planned = ExerciseSet("cal", targetReps = 6, targetRepsRange = RepRange(4, 6),
+            purpose = SetPurpose.AMRAP, amrapMinimumReps = 4)
+        state = state.copy(session = session.copy(exercises = listOf(session.exercises.single().copy(sets = listOf(planned)))))
+        assertTrue(record(value = 3.0, advanced = SetAdvancedFeedback(rir = 0, partialReps = 4)) is RecordSetResult.Created)
+        val done = room().completedSets.values.single()
+        assertEquals(3, done.reps)
+        assertEquals(4, done.partialReps)
+        assertTrue(done.amrapBelowMinimum)
+        assertEquals(1.0, done.debt, 0.0)
+        assertTrue(state.planDeviations.any { it.type == PlanDeviationType.AMRAP_BELOW_MINIMUM })
+    }
+
+    @Test fun fiveRepsWithMinimumFourPersistWithoutDebtAndKeepCalibratorEvidence() = runBlocking {
+        val planned = ExerciseSet("cal", targetReps = 6, targetRepsRange = RepRange(4, 6),
+            purpose = SetPurpose.CALIBRATOR, amrapMinimumReps = 4)
+        state = state.copy(session = session.copy(exercises = listOf(session.exercises.single().copy(sets = listOf(planned)))))
+        assertTrue(record(value = 5.0, advanced = SetAdvancedFeedback(rir = 1, partialReps = 2)) is RecordSetResult.Created)
+        val done = room().completedSets.values.single()
+        assertEquals(SetPurpose.CALIBRATOR, done.purpose)
+        assertEquals(4, done.amrapMinimumReps)
+        assertFalse(done.amrapBelowMinimum)
+        assertEquals(0.0, done.debt, 0.0)
+        assertEquals(5, done.reps)
+        assertEquals(2, done.partialReps)
+        assertEquals(1, done.rir)
+        assertEquals(LoadModeV2.LOAD, done.loadMode)
+        assertEquals(20.0, done.originalLoad!!, 0.0)
+        assertEquals(20.0, done.weight, 0.0)
+        assertNotNull(done.contextKey)
+        assertEquals(SetPurpose.CALIBRATOR, done.recordedPayloadV3?.purpose)
+        assertEquals(com.example.kpkn.domain.calculations.CAPACITY_ESTIMATOR_VERSION, done.estimatorVersion)
+    }
+
+    @Test fun amrapWithNoMinimumDoesNotBorrowTheLegacyRange() = runBlocking {
+        val planned = ExerciseSet("amrap", targetReps = 6, targetRepsRange = RepRange(4, 6), purpose = SetPurpose.AMRAP)
+        state = state.copy(session = session.copy(exercises = listOf(session.exercises.single().copy(sets = listOf(planned)))))
+        assertTrue(record(value = 1.0, advanced = SetAdvancedFeedback(rir = 0)) is RecordSetResult.Created)
+        val done = room().completedSets.values.single()
+        assertNull(done.amrapMinimumReps)
+        assertFalse(done.amrapBelowMinimum)
+        assertEquals(0.0, done.debt, 0.0)
+    }
+
+    @Test fun disabledLiveAmrapPersistsExplicitNoneForProgression() = runBlocking {
+        val planned = ExerciseSet("amrap", targetReps = 6, purpose = SetPurpose.AMRAP, amrapMinimumReps = 4)
+        state = state.copy(session = session.copy(exercises = listOf(session.exercises.single().copy(sets = listOf(planned)))))
+        assertTrue(record(advanced = SetAdvancedFeedback(amrapOverride = false)) is RecordSetResult.Created)
+        val done = room().completedSets.values.single()
+        assertEquals(SetPurpose.NONE, done.purpose)
+        assertEquals(SetPurpose.NONE, done.performedPurpose())
+        assertFalse(done.amrapPerformed)
+        assertNull(done.amrapMinimumReps)
+        assertTrue(record(value = 8.0, index = 0) is RecordSetResult.Updated)
+        assertEquals(SetPurpose.NONE, room().completedSets.values.single().purpose)
+    }
 
     @get:Rule
     val roomRule = RoomTestRule()

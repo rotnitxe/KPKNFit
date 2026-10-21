@@ -5,6 +5,7 @@ import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.IntensityMode
 import com.example.kpkn.data.models.LoadModeV2
 import com.example.kpkn.data.models.UnitModeV2
+import com.example.kpkn.data.models.performedPurpose
 import com.example.kpkn.domain.workout.LoadSuggestionEngine
 import com.example.kpkn.services.workout.VoiceSetEditPatch
 import com.example.kpkn.services.workout.VoiceUndoPayload
@@ -86,7 +87,10 @@ internal fun applyVoiceEditPatch(current: CompletedSet, patch: VoiceSetEditPatch
             LoadModeV2.LASTRE -> bodyKg + requestedInput
             LoadModeV2.ASSISTED -> (bodyKg - requestedInput).coerceAtLeast(0.0)
         }.roundedLoad()
-        set = set.copy(weight = normalized)
+        set = set.copy(
+            weight = normalized,
+            originalLoad = requestedInput.takeIf { current.originalLoad != null },
+        )
         nextPayload = nextPayload?.let { recorded ->
             if (loadMode == LoadModeV2.ASSISTED) {
                 recorded.copy(assistedLoad = requestedInput.takeIf { it > 0.0 }, externalLoad = null)
@@ -160,7 +164,30 @@ internal fun applyVoiceEditPatch(current: CompletedSet, patch: VoiceSetEditPatch
             },
         )
     }
-    return if (nextPayload === payload) set else set.copy(recordedPayloadV3 = nextPayload)
+    val updated = if (nextPayload === payload) set else set.copy(recordedPayloadV3 = nextPayload)
+    return if (metric != null) updated.withUpdatedAmrapMinimumResult() else updated
+}
+
+/** A rep correction changes the minimum result, while the original RM/PR evaluation stays archived. */
+internal fun CompletedSet.withUpdatedAmrapMinimumResult(): CompletedSet {
+    val unit = recordedPayloadV3?.unitMode ?: when {
+        timeSeconds != null -> UnitModeV2.TIME
+        distanceKm != null -> UnitModeV2.DISTANCE
+        else -> UnitModeV2.REPS
+    }
+    if (unit != UnitModeV2.REPS || performedPurpose()?.isAmrap != true) return this
+    val minimum = amrapMinimumReps?.takeIf { it > 0 }
+    val below = minimum != null && reps < minimum
+    val nextDebt = (minimum?.minus(reps) ?: 0).coerceAtLeast(0).toDouble()
+    if (amrapBelowMinimum == below && debt == nextDebt &&
+        (setOutcomeV2?.debt ?: nextDebt) == nextDebt &&
+        (homologatedResultV3?.debt ?: nextDebt) == nextDebt) return this
+    return copy(
+        amrapBelowMinimum = below,
+        debt = nextDebt,
+        setOutcomeV2 = setOutcomeV2?.copy(debt = nextDebt),
+        homologatedResultV3 = homologatedResultV3?.copy(debt = nextDebt),
+    )
 }
 
 /**

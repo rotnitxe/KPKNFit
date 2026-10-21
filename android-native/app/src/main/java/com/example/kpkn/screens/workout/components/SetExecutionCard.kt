@@ -152,7 +152,7 @@ private fun AmrapConfigSheet(
             Text("Configurar serie AMRAP", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Black, color = Color.White)
             Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 Text("Repeticiones mínimas", style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold, color = Color.White.copy(alpha = 0.7f))
-                OutlinedTextField(value = minReps, onValueChange = { minReps = it.filter { c -> c.isDigit() } }, modifier = Modifier.fillMaxWidth(), singleLine = true, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number), placeholder = { Text(plannedMinReps?.toString() ?: "0") }, textStyle = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold, color = Color.White), colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = MaterialTheme.colorScheme.primary, unfocusedBorderColor = Color(0xFF555555), focusedLabelColor = Color.White.copy(alpha = 0.7f), unfocusedLabelColor = Color.White.copy(alpha = 0.5f), cursorColor = Color.White, focusedTextColor = Color.White, unfocusedTextColor = Color.White, focusedContainerColor = Color(0xFF2A2A2A), unfocusedContainerColor = Color(0xFF2A2A2A)))
+                OutlinedTextField(value = minReps, onValueChange = { minReps = it.filter { c -> c.isDigit() } }, modifier = Modifier.fillMaxWidth(), singleLine = true, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number), placeholder = { Text(plannedMinReps?.toString() ?: "Sin mínimo") }, textStyle = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold, color = Color.White), colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = MaterialTheme.colorScheme.primary, unfocusedBorderColor = Color(0xFF555555), focusedLabelColor = Color.White.copy(alpha = 0.7f), unfocusedLabelColor = Color.White.copy(alpha = 0.5f), cursorColor = Color.White, focusedTextColor = Color.White, unfocusedTextColor = Color.White, focusedContainerColor = Color(0xFF2A2A2A), unfocusedContainerColor = Color(0xFF2A2A2A)))
             }
             Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 Text("Objetivo de la serie", style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold, color = Color.White.copy(alpha = 0.7f))
@@ -164,7 +164,7 @@ private fun AmrapConfigSheet(
             if (!reachFailure) {
                 OutlinedTextField(value = reserveReps, onValueChange = { reserveReps = it.filter { c -> c.isDigit() } }, modifier = Modifier.fillMaxWidth(), singleLine = true, label = { Text("RIR (repeticiones en reserva)") }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number), textStyle = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold, color = Color.White), colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = MaterialTheme.colorScheme.primary, unfocusedBorderColor = Color(0xFF555555), focusedLabelColor = Color.White.copy(alpha = 0.7f), unfocusedLabelColor = Color.White.copy(alpha = 0.5f), cursorColor = Color.White, focusedTextColor = Color.White, unfocusedTextColor = Color.White, focusedContainerColor = Color(0xFF2A2A2A), unfocusedContainerColor = Color(0xFF2A2A2A)))
             }
-            Button(onClick = { onApply(minReps.toIntOrNull() ?: plannedMinReps, reachFailure, reserveReps.toIntOrNull()) }, modifier = Modifier.fillMaxWidth(), contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp)) { Text("Aplicar", style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold) }
+            Button(onClick = { onApply(minReps.toIntOrNull()?.takeIf { it > 0 }, reachFailure, reserveReps.toIntOrNull()) }, modifier = Modifier.fillMaxWidth(), contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp)) { Text("Aplicar", style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold) }
             Spacer(modifier = Modifier.height(8.dp))
         }
     }
@@ -929,9 +929,7 @@ internal fun SetInputCardV2(
         else -> UnitModeV2.REPS
     }
     val plannedRepRange = activeRepRange(currentSet, activeSide)
-    val plannedAmrap = exercise.trainingMode == TrainingMode.AMRAP ||
-        currentSet.isAmrap ||
-        currentSet.intensityMode == IntensityMode.AMRAP
+    val plannedAmrap = currentSet.purpose.isAmrap
     // AMRAP is not a failure report by default.  A failure is recorded only
     // after the athlete explicitly chooses "Llegar al fallo" in the sheet;
     // otherwise the result remains AMRAP with an optional RIR reserve.
@@ -953,7 +951,7 @@ internal fun SetInputCardV2(
         UnitModeV2.CUSTOM,
         -> currentSet.plannedTargetV2?.toTrimmedNumberString() ?: plannedRepRange?.max?.toString() ?: ghostSet?.reps?.toString()
         UnitModeV2.REPS -> (
-            if (plannedAmrap) plannedRepRange?.min else plannedRepRange?.max
+            if (plannedAmrap) currentSet.amrapMinimumReps else plannedRepRange?.max
                 ?: currentSet.plannedTargetV2?.toInt()
                 ?: ghostSet?.reps
         )?.toString()
@@ -964,7 +962,7 @@ internal fun SetInputCardV2(
         UnitModeV2.DISTANCE,
         UnitModeV2.CUSTOM,
         -> currentSet.plannedTargetV2?.toInt() ?: plannedRepRange?.max
-        UnitModeV2.REPS -> plannedRepRange?.max ?: currentSet.plannedTargetV2?.toInt()
+        UnitModeV2.REPS -> if (plannedAmrap) currentSet.amrapMinimumReps else plannedRepRange?.max ?: currentSet.plannedTargetV2?.toInt()
     }
     // Null means the author left the effort target unapplied.  The effort slider
     // still shows on every strength set (LV8): there the scale simply has no plan
@@ -1219,8 +1217,11 @@ internal fun SetInputCardV2(
             sessionCompletedSet?.failureReason?.takeIf { it != "execution_error" && it != "Serie marcada como fallida" } ?: ""
         )
     }
-    var isAmrap by remember(exercise.id, setIndex, sideKey, restoredDraft?.amrapOverride) {
-        mutableStateOf(restoredDraft?.amrapOverride ?: plannedAmrap)
+    val initialAmrapActive = resolveAmrapActive(currentSet, requestedOverride = false,
+        explicitOverride = restoredDraft?.amrapOverride, recordedSet = sessionCompletedSet)
+    val initialAmrapMinimumReps = resolveAmrapMinimumReps(currentSet, restoredDraft, sessionCompletedSet)
+    var isAmrap by remember(exercise.id, setIndex, sideKey, restoredDraft?.amrapOverride, sessionCompletedSet?.purpose) {
+        mutableStateOf(initialAmrapActive)
     }
     var showAmrapSheet by remember(exercise.id, setIndex, sideKey) { mutableStateOf(false) }
     var amrapReachFailure by remember(
@@ -1235,8 +1236,8 @@ internal fun SetInputCardV2(
     var amrapReserveReps by remember(exercise.id, setIndex, sideKey, restoredDraft?.amrapReserveReps) {
         mutableStateOf(restoredDraft?.amrapReserveReps)
     }
-    var amrapMinimumReps by remember(exercise.id, setIndex, sideKey, restoredDraft?.amrapMinimumReps) {
-        mutableStateOf(restoredDraft?.amrapMinimumReps ?: plannedRepRange?.min ?: currentSet.targetReps)
+    var amrapMinimumReps by remember(exercise.id, setIndex, sideKey, initialAmrapMinimumReps) {
+        mutableStateOf(initialAmrapMinimumReps)
     }
     var dropSetEnabled by remember(exercise.id, setIndex, sideKey) { mutableStateOf(false) }
     var restPauseEnabled by remember(exercise.id, setIndex, sideKey) { mutableStateOf(false) }
@@ -1365,11 +1366,11 @@ internal fun SetInputCardV2(
         dropSets = listOf(DropSetEntry(weight = 0.0, reps = 0))
         restPauseSets = listOf(RestPauseData(restTime = RestPausePlanDefaults.PauseSeconds, reps = RestPausePlanDefaults.Reps))
         partialSets = listOf(restoredPartialReps)
-        isAmrap = restoredDraft?.amrapOverride ?: plannedAmrap
+        isAmrap = initialAmrapActive
         showAmrapSheet = false
         amrapReachFailure = restoredDraft?.amrapReachFailure ?: defaultAmrapReachFailure
         amrapReserveReps = restoredDraft?.amrapReserveReps
-        amrapMinimumReps = restoredDraft?.amrapMinimumReps ?: plannedRepRange?.min ?: currentSet.targetReps
+        amrapMinimumReps = initialAmrapMinimumReps
         showPartialsMode = restoredPartialReps > 0
         showFeedbackExtrasPopup = false
         isFailedSet = false
@@ -1505,7 +1506,7 @@ internal fun SetInputCardV2(
         dropSets = listOf(DropSetEntry(weight = 0.0, reps = 0))
         restPauseSets = listOf(RestPauseData(restTime = RestPausePlanDefaults.PauseSeconds, reps = RestPausePlanDefaults.Reps))
         partialSets = listOf(0)
-        isAmrap = currentSet.isAmrap
+        isAmrap = currentSet.purpose.isAmrap
         showAmrapSheet = false
         amrapReachFailure = defaultAmrapReachFailure
         amrapReserveReps = null
@@ -1693,7 +1694,7 @@ internal fun SetInputCardV2(
         else -> "Igual"
     }
     val expectedIntensityLabel = when {
-        plannedAmrap || isAmrap -> "AMRAP"
+        isAmrap -> "AMRAP"
         plannedIntensityMode == IntensityMode.FAILURE -> "FALLO"
         plannedIntensityMode == IntensityMode.RIR -> "RIR"
         plannedIntensityMode == IntensityMode.RPE -> "RPE"
@@ -1701,7 +1702,7 @@ internal fun SetInputCardV2(
         else -> "RPE"
     }
     val expectedIntensityValue = when {
-        plannedAmrap || isAmrap -> "AMRAP"
+        isAmrap -> "AMRAP"
         plannedIntensityMode == IntensityMode.FAILURE -> "F"
         plannedIntensityMode == IntensityMode.RIR -> activePlannedRir?.toString() ?: "-"
         plannedIntensityMode == IntensityMode.RPE -> activePlannedRpe?.toTrimmedNumberString() ?: "-"
@@ -2441,6 +2442,7 @@ internal fun SetInputCardV2(
                         dropSetCount = liveDropCountForDraft.takeIf { it > 0 },
                         amrapOverride = isAmrap.takeIf { it != plannedAmrap },
                         amrapMinimumReps = amrapMinimumReps,
+                        amrapMinimumOverridden = true,
                         amrapReachFailure = amrapReachFailure,
                         amrapReserveReps = amrapReserveReps,
                         rom = romValue,
@@ -2500,8 +2502,8 @@ internal fun SetInputCardV2(
                     intensityText != initialIntensityForDraft ||
                     loadMode != initialLoadMode ||
                     reachedFailure != initialFailure ||
-                    isAmrap != (restoredDraft?.amrapOverride ?: plannedAmrap) ||
-                    amrapMinimumReps != restoredDraft?.amrapMinimumReps ||
+                    isAmrap != (initialAmrapActive) ||
+                    amrapMinimumReps != initialAmrapMinimumReps ||
                     amrapReachFailure != (restoredDraft?.amrapReachFailure ?: defaultAmrapReachFailure) ||
                     amrapReserveReps != restoredDraft?.amrapReserveReps ||
                     partialRepsTotal != (restoredDraft?.partialReps ?: 0) ||
@@ -2523,6 +2525,7 @@ internal fun SetInputCardV2(
                             dropSetCount = liveDropCountForDraft.takeIf { it > 0 },
                             amrapOverride = isAmrap.takeIf { it != plannedAmrap },
                             amrapMinimumReps = amrapMinimumReps,
+                        amrapMinimumOverridden = true,
                             amrapReachFailure = amrapReachFailure,
                             amrapReserveReps = amrapReserveReps,
                             isDirty = isDirty,
@@ -2572,6 +2575,7 @@ internal fun SetInputCardV2(
                 },
                 amrapOverride = isAmrap.takeIf { it != plannedAmrap },
                 amrapMinimumReps = amrapMinimumReps,
+                amrapMinimumOverridden = true,
                 intensityAdjusted = intensityTouched || reachedFailure || isAmrap,
                 timerElapsedSeconds = if (isTimeMode && timerElapsedSeconds > 0) timerElapsedSeconds else valueText.toIntOrNull(),
                 timerTargetSeconds = if (isTimeMode) plannedTarget else null,

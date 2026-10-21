@@ -82,5 +82,6 @@ internal fun applyCompletedSetPatch(current: CompletedSet, patch: CompletedSetPa
             },
         )
     }
-    return if (next == current) current else next
+    val updated = if (hasRepEdit) next.withUpdatedAmrapMinimumResult() else next
+    return if (updated == current) current else updated
 }

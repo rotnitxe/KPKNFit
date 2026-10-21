@@ -1,5 +1,6 @@
 package com.example.kpkn.screens.workout
 
+import com.example.kpkn.data.models.SetPurpose
 import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.ExerciseSet
 import com.example.kpkn.data.models.LoadModeV2
@@ -31,6 +32,6 @@ internal fun plannedSetAfterLast(
         targetPercentageRM = lastSet?.targetPercentageRM,
         leftTarget = lastSet?.leftTarget,
         rightTarget = lastSet?.rightTarget,
-        isAmrap = false,
+        purpose = SetPurpose.NONE, amrapMinimumReps = null, calibrationScope = null,
     )
 }

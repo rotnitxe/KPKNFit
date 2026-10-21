@@ -1,5 +1,6 @@
 package com.example.kpkn.screens.workout
 
+import com.example.kpkn.data.models.SetPurpose
 import com.example.kpkn.data.diagnostics.KpknDiagnosticLogger
 import com.example.kpkn.data.exercises.resolveCatalogExerciseInfo
 import com.example.kpkn.data.models.AugeMetrics
@@ -200,7 +201,16 @@ class WorkoutSetRecorder(
                 plannedSet = plannedSet,
                 requestedOverride = amrapOverride,
                 explicitOverride = report.amrapOverride,
+                recordedSet = state.completedSets[recordingKey],
             )
+            val performedPurpose = if (!amrapActive) SetPurpose.NONE else {
+                state.completedSets[recordingKey]?.purpose?.takeIf { it.isAmrap }
+                    ?: plannedSet?.purpose?.takeIf { it.isAmrap } ?: SetPurpose.AMRAP
+            }
+            val amrapMinimumReps = if (!amrapActive) null else {
+                if (report.amrapMinimumOverridden || report.amrapMinimumReps != null) report.amrapMinimumReps
+                else resolveAmrapMinimumReps(plannedSet, recordedSet = state.completedSets[recordingKey])
+            }?.takeIf { it > 0 }
             val activeProfile = ports.activeContextProfile(exercise.id)
 
             val resolvedUnitMode = unitMode ?: plannedSet?.let { ports.inferUnitMode(exercise, it) } ?: UnitModeV2.REPS
@@ -248,7 +258,8 @@ class WorkoutSetRecorder(
                 UnitModeV2.REPS -> actualValue + ((report.partialReps ?: 0).coerceAtLeast(0) * 0.5)
                 else -> actualValue
             }
-            val plannedTarget = plannedSet?.let { ports.inferPlannedTarget(it, resolvedUnitMode) }
+            val plannedTarget = if (amrapActive && resolvedUnitMode == UnitModeV2.REPS) amrapMinimumReps?.toDouble()
+                else plannedSet?.let { ports.inferPlannedTarget(it, resolvedUnitMode) }
             val sideRepRange = when (resolvedSide) {
                 "left" -> plannedSet?.leftTarget?.targetRepsRange
                     ?: plannedSet?.leftTarget?.targetReps?.takeIf { it > 0 }?.let { RepRange(it, it) }
@@ -260,10 +271,10 @@ class WorkoutSetRecorder(
                 ?: plannedTarget?.toInt()?.takeIf { resolvedUnitMode == UnitModeV2.REPS && it > 0 }?.let { RepRange(it, it) }
             val debt = if (resolvedUnitMode == UnitModeV2.REPS && logicalActualValue >= 0) {
                 evaluateRepRange(
-                    actual = logicalActualValue,
+                    actual = if (amrapActive) actualValue else logicalActualValue,
                     range = plannedRepRange,
                     amrapActive = amrapActive,
-                    amrapMinimum = report.amrapMinimumReps ?: plannedRepRange?.min,
+                    amrapMinimum = amrapMinimumReps,
                 )?.debt ?: 0.0
             } else if (plannedTarget != null && logicalActualValue >= 0) {
                 (plannedTarget - logicalActualValue).coerceAtLeast(0.0)
@@ -349,6 +360,8 @@ class WorkoutSetRecorder(
                 failedSet = report.isFailedSet || report.executionError,
                 reachedFailure = report.reachedFailure,
                 amrapPerformed = amrapActive,
+                purpose = performedPurpose,
+                amrapMinimumReps = amrapMinimumReps,
                 timerTargetSeconds = report.timerTargetSeconds ?: plannedSet?.targetDuration,
                 timerElapsedSeconds = report.timerElapsedSeconds,
                 failureReason = report.failureReason,
@@ -365,6 +378,7 @@ class WorkoutSetRecorder(
             }
 
             val entry = SetEntryV2(
+                completedReps = actualReps.takeIf { resolvedUnitMode == UnitModeV2.REPS },
                 exerciseId = exercise.id,
                 exerciseDbId = ports.canonicalExerciseKey(exercise),
                 canonicalExerciseId = ports.canonicalExerciseKey(exercise),
@@ -438,7 +452,6 @@ class WorkoutSetRecorder(
                     step.setIndex == targetSetIdx &&
                     (resolvedSide == null || step.side == resolvedSide)
             }
-            val amrapMinimumReps = report.amrapMinimumReps ?: plannedSet?.effectiveRepRange()?.min
             val amrapBelowMinimum = amrapActive &&
                 amrapMinimumReps != null &&
                 actualReps < amrapMinimumReps
@@ -473,8 +486,21 @@ class WorkoutSetRecorder(
                     homologatedResultV3 = evaluation?.homologated,
                     setOutcomeV2 = outcome,
                     amrapPerformed = amrapActive,
+                    purpose = performedPurpose,
                     amrapMinimumReps = amrapMinimumReps,
                     amrapBelowMinimum = amrapBelowMinimum,
+                    loadMode = resolvedLoadMode,
+                    originalLoad = weight,
+                    contextKey = com.example.kpkn.data.models.buildRecordedSetContextKey(
+                        configurationId = exercise.catalogConfigurationId ?: ports.canonicalExerciseKey(exercise),
+                        performanceContextKey = contextKey,
+                        setupProfileId = resolvedSetupId,
+                        side = resolvedSide,
+                        loadQuantityConvention = plannedSet?.loadQuantityConvention
+                            ?.takeUnless { it == com.example.kpkn.data.models.LoadQuantityConvention.UNSPECIFIED }
+                            ?: exercise.loadQuantityConvention,
+                    ),
+                    estimatorVersion = com.example.kpkn.domain.calculations.CAPACITY_ESTIMATOR_VERSION,
                 ),
                 advanced = report,
             )
@@ -536,12 +562,14 @@ class WorkoutSetRecorder(
                     setIdx = targetSetIdx,
                     plannedSet = it,
                     actualWeight = weight.coerceAtLeast(0.0),
-                    actualReps = if (resolvedUnitMode == UnitModeV2.TIME) {
+                    actualReps = if (amrapActive && resolvedUnitMode == UnitModeV2.REPS) {
+                        actualReps
+                    } else if (resolvedUnitMode == UnitModeV2.TIME) {
                         logicalActualValue.toInt().coerceAtLeast(0)
                     } else {
                         logicalActualValue.roundToInt().coerceAtLeast(0)
                     },
-                    advanced = report,
+                    advanced = report.copy(amrapOverride = amrapActive),
                     amrapMinimumReps = amrapMinimumReps,
                     suggestedWeight = outcome.suggestedNextLoad,
                 )
@@ -670,7 +698,7 @@ class WorkoutSetRecorder(
                         set.targetPercentageRM
                             ?: set.targetRPE
                             ?: set.targetRIR?.toDouble()
-                            ?: set.targetReps?.takeIf { set.isAmrap }?.toDouble()
+                            ?: set.amrapMinimumReps?.takeIf { set.purpose.isAmrap }?.toDouble()
                     },
                     "techniqueScope" to plannedSet?.techniqueScope()?.name,
                     "scheduledTechnique" to scheduledPlan?.kind?.name,
@@ -1063,6 +1091,10 @@ class WorkoutSetRecorder(
             existing.failureReason == next.failureReason &&
             existing.actualIntensityMode == next.actualIntensityMode &&
             existing.actualIntensityValue == next.actualIntensityValue &&
+            existing.purpose == next.purpose &&
+            existing.loadMode == next.loadMode &&
+            existing.originalLoad == next.originalLoad &&
+            existing.contextKey == next.contextKey &&
             existing.amrapPerformed == next.amrapPerformed &&
             existing.amrapMinimumReps == next.amrapMinimumReps &&
             existing.amrapBelowMinimum == next.amrapBelowMinimum &&
