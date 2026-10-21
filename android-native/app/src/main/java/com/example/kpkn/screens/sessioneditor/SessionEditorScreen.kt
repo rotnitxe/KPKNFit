@@ -97,6 +97,9 @@ import com.example.kpkn.screens.sessioneditor.frame.frameDayIndex
 import com.example.kpkn.screens.sessioneditor.frame.frameDayLabel
 import com.example.kpkn.screens.sessioneditor.frame.frameDayWeekLabel
 import com.example.kpkn.screens.sessioneditor.frame.frameWeekNumber
+import com.example.kpkn.screens.sessioneditor.frame.isRedundantWhileSaveBlocked
+import com.example.kpkn.screens.sessioneditor.frame.SessionEditorLoadErrorState
+import com.example.kpkn.screens.sessioneditor.frame.SessionEditorLoadingState
 import com.example.kpkn.screens.sessioneditor.frame.sessionFrameSummaryChips
 import com.example.kpkn.screens.sessioneditor.frame.frameVariantName
 import com.example.kpkn.screens.sessioneditor.frame.frameWeekOrder
@@ -231,6 +234,11 @@ fun SessionEditorScreen(
     // Snackbar for auto-save and navigation messages from ViewModel
     LaunchedEffect(uiState.snackbarMessage) {
         uiState.snackbarMessage?.let { msg ->
+            // ED-A · A6: un solo aviso por estado. Si el aviso fijo de «guardado bloqueado» ya cuenta lo mismo, la snackbar no lo repite.
+            if (isRedundantWhileSaveBlocked(msg, autoSaveBlock?.message)) {
+                viewModel.clearSnackbarMessage()
+                return@LaunchedEffect
+            }
             val draftFailure = msg.startsWith("No se pudo guardar el borrador") ||
                 msg.startsWith("No se pudo descartar el borrador")
             val action = snackbarHostState.showKpknSnackbar(
@@ -457,34 +465,16 @@ fun SessionEditorScreen(
     }
 
     if (session == null) {
-        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            val loadErrorMessage = uiState.loadErrorMessage
-            if (loadErrorMessage != null) {
-                Column(
-                    modifier = Modifier.padding(24.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(12.dp),
-                ) {
-                    Text(
-                        loadErrorMessage,
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Black,
-                        textAlign = TextAlign.Center,
-                    )
-                    Text(
-                        "Puedes reintentar la carga o volver al programa.",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        textAlign = TextAlign.Center,
-                    )
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        OutlinedButton(onClick = onBack) { Text("Volver") }
-                        Button(onClick = viewModel::retryLoadSession) { Text("Reintentar") }
-                    }
-                }
-            } else {
-                LinearProgressIndicator(modifier = Modifier.width(180.dp))
-            }
+        // ED-A · A6: una sola franja por estado (cargando, error), sin otro aviso encima.
+        val loadErrorMessage = uiState.loadErrorMessage
+        if (loadErrorMessage != null) {
+            SessionEditorLoadErrorState(
+                message = loadErrorMessage,
+                onBack = onBack,
+                onRetry = viewModel::retryLoadSession,
+            )
+        } else {
+            SessionEditorLoadingState()
         }
         return
     }

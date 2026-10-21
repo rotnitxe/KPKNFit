@@ -166,7 +166,9 @@ internal fun SessionEditorFrameWeekContent(
     val currentBlock = roadmapOptions.firstOrNull { it.weekId == currentWeekId }?.blockIndex
     val sessionsByDay = remember(sessions) { sessions.groupBy { it.dayOfWeek ?: 99 } }
     val currentDaySessions = sessions.filter { it.dayOfWeek == currentDayOfWeek }
-    val weekCaption = roadmapOptions.firstOrNull { it.weekId.isNotBlank() }
+    // ED-A · A5: el rótulo «Semana 3 · Acumulación» es el de la semana que está abierta (antes salía el de la primera de la lista).
+    val weekCaption = roadmapOptions.firstOrNull { it.weekId.isNotBlank() && it.weekId == currentWeekId }
+        ?: roadmapOptions.firstOrNull { it.weekId.isNotBlank() }
 
     Column(
         modifier = Modifier.fillMaxWidth(),
