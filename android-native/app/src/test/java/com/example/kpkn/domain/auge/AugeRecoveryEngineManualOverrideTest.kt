@@ -20,9 +20,12 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Test
 import java.time.Instant
-import java.time.LocalDate
 
 class AugeRecoveryEngineManualOverrideTest {
+    /** Reloj explícito (WP 1.7): lunes 2025-03-03 10:00 UTC, mucho antes de hoy. Ninguna prueba lee el reloj real. */
+    private val ahora = Instant.parse("2025-03-03T10:00:00Z").toEpochMilli()
+    private val fecha = "2025-03-03"
+
     private val json = Json { ignoreUnknownKeys = true }
     private val exerciseDb = mapOf(
         "bench" to ExerciseMuscleInfo(
@@ -38,10 +41,10 @@ class AugeRecoveryEngineManualOverrideTest {
 
     @Test
     fun manualAnchorAfterWorkoutDoesNotCountThatWorkoutAgain() {
-        val anchorMs = System.currentTimeMillis() - 60_000L
+        val anchorMs = ahora - 60_000L
         val wellbeing = DailyWellbeingLog(
             id = "today",
-            date = LocalDate.now().toString(),
+            date = fecha,
             manualNeuralBattery = 61,
             manualSpinalBattery = 58,
             manualMuscleBatteries = mapOf("Pectorales" to 54),
@@ -54,24 +57,28 @@ class AugeRecoveryEngineManualOverrideTest {
             wellbeing = wellbeing,
             settings = Settings(),
             exerciseDb = exerciseDb,
+            nowOverride = ahora,
         ).first
         val withPriorSystem = AugeRecoveryEngine.calculateSystemicFatigue(
             history = listOf(priorWorkout),
             wellbeing = wellbeing,
             settings = Settings(),
             exerciseDb = exerciseDb,
+            nowOverride = ahora,
         ).first
         val emptySpinal = AugeRecoveryEngine.calculateSpinalBattery(
             history = emptyList(),
             wellbeing = wellbeing,
             settings = Settings(),
             exerciseDb = exerciseDb,
+            nowOverride = ahora,
         )
         val withPriorSpinal = AugeRecoveryEngine.calculateSpinalBattery(
             history = listOf(priorWorkout),
             wellbeing = wellbeing,
             settings = Settings(),
             exerciseDb = exerciseDb,
+            nowOverride = ahora,
         )
         val emptyMuscle = AugeRecoveryEngine.calculateMuscleBattery(
             muscleName = "Pectorales",
@@ -79,6 +86,7 @@ class AugeRecoveryEngineManualOverrideTest {
             wellbeing = wellbeing,
             settings = Settings(),
             exerciseDb = exerciseDb,
+            nowOverride = ahora,
         ).recoveryScore
         val withPriorMuscle = AugeRecoveryEngine.calculateMuscleBattery(
             muscleName = "Pectorales",
@@ -86,6 +94,7 @@ class AugeRecoveryEngineManualOverrideTest {
             wellbeing = wellbeing,
             settings = Settings(),
             exerciseDb = exerciseDb,
+            nowOverride = ahora,
         ).recoveryScore
 
         assertEquals(emptySystem, withPriorSystem)
@@ -97,7 +106,7 @@ class AugeRecoveryEngineManualOverrideTest {
     fun manualDashboardValuesAreTheRingScoresUsedByHome() {
         val wellbeing = DailyWellbeingLog(
             id = "today",
-            date = LocalDate.now().toString(),
+            date = fecha,
             manualMuscularBattery = 62,
             manualNeuralBattery = 71,
             manualSpinalBattery = 49,

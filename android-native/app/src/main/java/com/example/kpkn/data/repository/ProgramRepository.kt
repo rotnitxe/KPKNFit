@@ -7,6 +7,7 @@ import com.example.kpkn.data.persistence.PersistenceWriteCoordinator
 import com.example.kpkn.domain.exercises.normalizedIdentityFields
 import com.example.kpkn.domain.exercises.ExerciseNicknameResolver
 import com.example.kpkn.data.exercises.exerciseCatalogSnapshot
+import com.example.kpkn.domain.auge.AugeClock
 import com.example.kpkn.domain.auge.AugeFatigueEngine
 import com.example.kpkn.domain.auge.AugeRecoveryEngine
 import com.example.kpkn.domain.auge.AugeTtcEngine
@@ -1162,6 +1163,8 @@ class ProgramRepository private constructor(
             val nutritionLogs = runCatching { NutritionRepository.getInstance().nutritionLogs.value }.getOrDefault(emptyList())
             val exerciseDb = exerciseCatalogSnapshot().associateBy { it.id.lowercase() }
             val settings = _settings.value
+            // Un solo corte para todo el cálculo: baterías, articular, conteo de sesiones y monitores lo comparten.
+            val evaluationNowMs = AugeClock.nowMs()
             val muscles = AugeRecoveryEngine.getPerMuscleBatteries(
                 history = history,
                 wellbeing = wellbeing,
@@ -1171,8 +1174,12 @@ class ProgramRepository private constructor(
                 nutritionLogs = nutritionLogs,
                 feedbacks = feedbacks,
                 adaptiveCache = adaptiveCache,
+                nowOverrideMs = evaluationNowMs,
             )
-            val articular = AugeTtcEngine.calculateArticularBatteries(history, exerciseDb, feedbacks, wellbeing)
+            val articular = AugeTtcEngine.calculateArticularBatteries(
+                history, exerciseDb, feedbacks, wellbeing,
+                nowMs = evaluationNowMs,
+            )
             val batteries = AugeRecoveryEngine.calculateGlobalBatteries(
                 history = history,
                 wellbeing = wellbeing,
@@ -1184,6 +1191,7 @@ class ProgramRepository private constructor(
                 adaptiveCache = adaptiveCache,
                 precomputedMuscles = muscles,
                 articularBatteries = articular,
+                nowOverrideMs = evaluationNowMs,
             )
             val dashboard = AugeRecoveryEngine.calculateRecoveryDashboard(
                 batteries = batteries,
@@ -1191,10 +1199,10 @@ class ProgramRepository private constructor(
                 articularBatteries = articular,
                 wellbeing = wellbeing,
                 sleepLogs = sleepLogs,
-                recentSessionCount = AugeRecoveryEngine.recentSessionCount(history),
+                recentSessionCount = AugeRecoveryEngine.recentSessionCount(history, evaluationNowMs),
             )
             val verdict = AugeRecoveryEngine.calculateDailyReadiness(dashboard, wellbeing)
-            val twoWeeksAgo = System.currentTimeMillis() - 14L * 24 * 3600_000
+            val twoWeeksAgo = evaluationNowMs - 14L * 24 * 3600_000
             val cumFatigue = history
                 .filter { com.example.kpkn.domain.auge.AugeUtils.logDateMs(it) >= twoWeeksAgo }
                 .sumOf { log ->
@@ -1205,9 +1213,9 @@ class ProgramRepository private constructor(
                         adaptiveCache = adaptiveCache,
                     )
                 }
-            val axial = AxialLoadMonitor.evaluate(history, exerciseDb)
-            val systemic = SystemicLoadMonitor.evaluate(history, exerciseDb, settings, adaptiveCache)
-            val advisory = LoadAdvisoryEngine.evaluate(axial, systemic, adaptiveCache)
+            val axial = AxialLoadMonitor.evaluate(history, exerciseDb, evaluationNowMs)
+            val systemic = SystemicLoadMonitor.evaluate(history, exerciseDb, settings, adaptiveCache, evaluationNowMs)
+            val advisory = LoadAdvisoryEngine.evaluate(axial, systemic, adaptiveCache, evaluationNowMs)
             val topLevel = advisory.advisories.maxByOrNull { LoadAdvisoryEngine.rank(it.level) }?.level
                 ?: LoadAdvisoryLevel.NONE
             AugeTransitionSnapshot(

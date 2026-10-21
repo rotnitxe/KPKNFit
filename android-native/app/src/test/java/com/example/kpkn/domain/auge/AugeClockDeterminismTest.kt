@@ -183,18 +183,17 @@ class AugeClockDeterminismTest {
         nowOverride = en,
     ).recoveryScore
 
-    // En rojo (WP 1.7): los motores de abajo aún no aceptan el instante; el commit del arreglo lo pasa en las tres.
     private fun articular(
         historial: List<WorkoutLog>,
         nowMs: Long,
     ): Map<ArticularBattery, ArticularBatteryState> =
-        AugeTtcEngine.calculateArticularBatteries(history = historial, exerciseDb = db)
+        AugeTtcEngine.calculateArticularBatteries(history = historial, exerciseDb = db, nowMs = nowMs)
 
     private fun multiplicadorNutricional(logs: List<NutritionLog>, metas: Map<LocalDate, DayGoalsResult>, nowMs: Long) =
-        NutritionRecoveryEngine.computeNutritionRecoveryMultiplier(nutritionLogs = logs, goalsByDate = metas)
+        NutritionRecoveryEngine.computeNutritionRecoveryMultiplier(nutritionLogs = logs, goalsByDate = metas, nowMs = nowMs)
 
     private fun interferencias(historial: List<WorkoutLog>, nowMs: Long) =
-        InterferenceEngine.calculateHistoricalInterferences(historial, db, settings)
+        InterferenceEngine.calculateHistoricalInterferences(historial, db, settings, nowMs = nowMs)
 
     // ─── (a) Invariancia al tiempo absoluto ──────────────────────────────────
 

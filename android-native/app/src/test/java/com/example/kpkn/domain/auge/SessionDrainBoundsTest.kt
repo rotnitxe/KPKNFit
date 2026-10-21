@@ -127,7 +127,8 @@ class SessionDrainBoundsTest {
     fun extremePowerlifterSessions_ringsStayAtOrAboveFloor() {
         val settings = Settings(athleteType = AthleteType.POWERLIFTER)
         val floor = AugeUtils.physiologicalFloor(settings)
-        val now = System.currentTimeMillis()
+        // Reloj explícito (WP 1.7): lunes 2025-03-03 10:00 UTC; ningún dato depende del reloj real.
+        val now = Instant.parse("2025-03-03T10:00:00Z").toEpochMilli()
         val history = (1..5).map { day ->
             WorkoutLog(
                 id = "grind-$day",
@@ -164,6 +165,7 @@ class SessionDrainBoundsTest {
             wellbeing = null,
             settings = settings,
             exerciseDb = exerciseDb,
+            nowOverrideMs = now,
         )
 
         assertTrue("SYSTEM >= CNS floor (${floor.cns}), got ${batteries.cnc}", batteries.cnc >= floor.cns)

@@ -13,9 +13,12 @@ import kotlin.math.ln
 
 class AugeTtcRecoveryHoursTest {
 
+    /** Reloj explícito (WP 1.7): lunes 2025-03-03 10:00 UTC, mucho antes de hoy. Ninguna prueba lee el reloj real. */
+    private val ahora = java.time.Instant.parse("2025-03-03T10:00:00Z").toEpochMilli()
+
     @Test
     fun hoursToRecovery_usesSameKAsDecay_whenAvgTtcAboveThree() {
-        val now = System.currentTimeMillis()
+        val now = ahora
         val logDate = java.time.Instant.ofEpochMilli(now - 6L * 3600_000L).toString()
         val snatchDb = mapOf(
             "snatch" to ExerciseMuscleInfo(
@@ -46,6 +49,7 @@ class AugeTtcRecoveryHoursTest {
         val batteries = AugeTtcEngine.calculateArticularBatteries(
             history = listOf(log),
             exerciseDb = snatchDb,
+            nowMs = now,
         )
         val shoulder = batteries[ArticularBattery.SHOULDER]!!
         assertTrue(shoulder.accumulatedStress > 0.0)
@@ -60,7 +64,7 @@ class AugeTtcRecoveryHoursTest {
 
     @Test
     fun hoursToRecovery_highTtcTakesLongerThanStandardK() {
-        val now = System.currentTimeMillis()
+        val now = ahora
         val logDate = java.time.Instant.ofEpochMilli(now - 6L * 3600_000L).toString()
         val snatchDb = mapOf(
             "snatch" to ExerciseMuscleInfo(
@@ -101,6 +105,7 @@ class AugeTtcRecoveryHoursTest {
                 ),
             ),
             exerciseDb = snatchDb,
+            nowMs = now,
         )[ArticularBattery.SHOULDER]!!
 
         val lowTtc = AugeTtcEngine.calculateArticularBatteries(
@@ -123,6 +128,7 @@ class AugeTtcRecoveryHoursTest {
                 ),
             ),
             exerciseDb = curlDb,
+            nowMs = now,
         )[ArticularBattery.SHOULDER]!!
 
         if (highTtc.estimatedHoursToRecovery > 0 && lowTtc.estimatedHoursToRecovery > 0) {

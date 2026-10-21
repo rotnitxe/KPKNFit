@@ -76,10 +76,11 @@ class AdaptiveCalibrationAppliesTest {
 
     @Test
     fun cnsAndSpinalLearningDeltas_moveGlobalBatteries() {
-        val now = System.currentTimeMillis()
+        // Reloj explícito (WP 1.7): lunes 2025-03-03 10:00 UTC; ningún dato depende del reloj real.
+        val now = java.time.Instant.parse("2025-03-03T10:00:00Z").toEpochMilli()
         val wellbeing = com.example.kpkn.data.models.DailyWellbeingLog(
             id = "wb",
-            date = java.time.LocalDate.now().toString(),
+            date = "2025-03-03",
             manualNeuralBattery = 55,
             manualSpinalBattery = 55,
             manualBatteryAnchorMs = now,
@@ -89,6 +90,7 @@ class AdaptiveCalibrationAppliesTest {
             wellbeing = wellbeing,
             settings = Settings(),
             adaptiveCache = AugeAdaptiveCache(),
+            nowOverrideMs = now,
         )
         val calibrated = AugeRecoveryEngine.calculateGlobalBatteries(
             history = emptyList(),
@@ -98,6 +100,7 @@ class AdaptiveCalibrationAppliesTest {
                 cnsLearningDelta = 12.0,
                 spinalLearningDelta = -10.0,
             ),
+            nowOverrideMs = now,
         )
         assertTrue(
             "Positive CNS delta should raise SYSTEM ring (${baseline.cnc} → ${calibrated.cnc})",

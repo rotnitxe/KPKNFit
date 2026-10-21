@@ -32,7 +32,6 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
-import java.time.LocalDate
 
 /**
  * Productor real del snapshot: `AugeViewModel.recompute` publica
@@ -45,7 +44,8 @@ import java.time.LocalDate
 @org.robolectric.annotation.Config(manifest = org.robolectric.annotation.Config.NONE, sdk = [34])
 class AugeSnapshotCoverageTest {
     private lateinit var db: KpknDatabase
-    private val date: String = LocalDate.now().toString()
+    // Fecha fija (WP 1.7): la prueba no depende del día en que corre.
+    private val date: String = "2025-03-03"
 
     @Before
     fun setUp() {

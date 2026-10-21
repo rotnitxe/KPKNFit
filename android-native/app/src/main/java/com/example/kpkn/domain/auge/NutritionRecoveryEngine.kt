@@ -22,17 +22,18 @@ object NutritionRecoveryEngine {
      * análisis (ver [com.example.kpkn.domain.nutrition.resolveDayGoalsByDate]).
      * Sin metas en la ventana no se infiere déficit ni insuficiencia de
      * proteína: se devuelve el multiplicador neutro y se explica «sin metas».
+     * @param nowMs instante de evaluación: la ventana de [hoursWindow] horas termina aquí (por defecto, el reloj).
      */
     fun computeNutritionRecoveryMultiplier(
         nutritionLogs: List<NutritionLog>,
         goalsByDate: Map<LocalDate, DayGoalsResult> = emptyMap(),
         stressLevel: Int = 3,
         hoursWindow: Int = 48,
+        nowMs: Long = AugeClock.nowMs(),
     ): NutritionRecoveryResult {
         val factors = mutableListOf<String>()
         var multiplier = 1.0
 
-        val nowMs = System.currentTimeMillis()
         val windowStartMs = nowMs - hoursWindow * 3600_000L
 
         val recentLogs = nutritionLogs.filter { log ->

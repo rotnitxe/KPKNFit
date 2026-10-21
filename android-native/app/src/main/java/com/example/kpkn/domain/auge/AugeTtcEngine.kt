@@ -202,14 +202,17 @@ object AugeTtcEngine {
      * Equivalente a calculateArticularBatteries() en tendonRecovery.ts.
      *
      * @param feedbacks  PostSessionFeedback — las unresolvedDiscomfortIds aplican estrés articular adicional (Fase 7)
+     * @param nowMs      instante de evaluación: la ventana de 10 días y la recuperación cuentan desde aquí. Quien tenga un
+     *                   corte explícito (recálculo, vista previa, pruebas) lo pasa; el reloj es solo el valor por defecto.
      */
     fun calculateArticularBatteries(
         history: List<WorkoutLog>,
         exerciseDb: Map<String, ExerciseMuscleInfo> = emptyMap(),
         feedbacks: List<PostSessionFeedback> = emptyList(),
         wellbeing: DailyWellbeingLog? = null,
+        nowMs: Long = AugeClock.nowMs(),
     ): Map<ArticularBattery, ArticularBatteryState> {
-        val now = System.currentTimeMillis()
+        val now = nowMs
         val tenDaysMs = 10L * 24 * 3600 * 1000
 
         val relevantLogs = history
