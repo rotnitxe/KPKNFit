@@ -31,3 +31,11 @@ Protocolo en `README.md` (D12). Aquí, el procedimiento paso a paso y qué se co
 - Solo `.mfp`; nada de `.dbg`, `.vtqa` ni producción; no se usa el candado del banco; sin `logcat -c`, sin `kill-server`.
 - Sesiones cortas y agrupadas; capturas en `C:\kw\shots\mfp\phone\`; las que muestren pantallas privadas de la persona se borran sin describirlas.
 - Al terminar la ola: `python C:\kw\tools\mfp_phone.py --uninstall`, borrar APK y capturas pesadas.
+
+## 5. Notas del primer ciclo (21-oct)
+- El teléfono puede tener el panel de ajustes rápidos desplegado desde hace horas: retiene el foco y tapa la app. `mfp_phone.py` lo pliega una sola vez al empezar (`cmd statusbar collapse`).
+- Mis propias órdenes cuentan como «actividad de la persona» para Android: `mfp_phone.py` guarda la marca `C:\kw\mfp-phone.last` al terminar y encadena sesiones propias sin esperar 20 min.
+- `uiautomator dump` NO funciona en este teléfono (devuelve 87 bytes): se navega con coordenadas leídas de las capturas (1080×2640; en las capturas mostradas a 818 px, multiplicar por 1,32).
+- Al primer arranque la app pide notificaciones y ubicación (dos diálogos del sistema) y su propio aviso «Activa tus avisos»: se elige «No permitir» / «Ahora no» (`tap:540,2327` y `tap:540,1828`).
+- Receta que funcionó: instalar con `--apk … --fresh`, `launch:WizardHarnessActivity|--es|scope|full|--es|persona|qa|--ei|autonext|600|--es|until|REVIEW_ACTIVATE|--ei|activate|1500|--ez|pro|true` (~2 min), luego `launch:DemoSeedActivity|--ez|pro|true`, y `deeplink:kpkn://settings` para Ajustes.
+- Coordenadas útiles (píxeles reales): pestañas inferiores Inicio 161·2408, Entreno 416·2408, Nutrición 667·2408, Cuerpo 920·2408; en el detalle del programa, pestaña Volumen 859·426 (con el encabezado fijo); en Ajustes, «Mi material → Editar» 891·957.
