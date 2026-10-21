@@ -155,3 +155,33 @@ por una abstención inferida de la etiqueta.
 
 El manifiesto de validación histórica es **otro archivo**, `full-20261020/validation-old/manifest.json`: solo los 59 clips de ajuste
 y los 416 externos, sin las 37 reservas antiguas ni x14. No cambia el manifiesto congelado ni ejecuta el examen nuevo.
+
+## Extracción y medición de partida (21-oct)
+- **Extracción en el Z Flip5, con GPU:** 1.076/1.076 clips completos, en segundo plano.
+  - Las trazas están en `C:\kw\vt-bench\full-20261020-flip\traces\`.
+  - Se usaron dos APK: 636 clips con `6698a485…` (M1) y 440 con `28e7b3d3…` (el mismo más el servicio `specialUse`, VT11c).
+- **Partida oficial** (motor 6, desarrollo, 895 clips; informe en `full-20261020-flip\report-dev\`):
+  - **G1 (431):** con salida el 62 %.
+    - ALTA: 44, con el 88,6 % exactas.
+    - MEDIA: 155, con el 80,6 % exactas.
+    - BAJA: 69.
+  - **Encuadre bueno (133):** ALTA 91 % y MEDIA 81 % exactas; el 26 % sale sin número.
+  - **G2:** ofrece número en el 27 %, y el 25 % de esos números está mal.
+
+## Rondas del motor: tres niveles de datos (D60, 21-oct)
+- **Ajuste: `C:\kw\vt-tune\`.**
+  - 720 clips de desarrollo, folds 0–3.
+  - Es lo único que ve el agente que ajusta el motor. Ajusta con validación cruzada dejando un fold fuera.
+- **Control ciego: `C:\kw\vt-bench\dev-check-20261021\`.**
+  - 175 clips de desarrollo, fold 4.
+  - Lo corre solo el orquestador tras cada ronda. Al agente solo le llegan cifras agregadas.
+- **Examen: el banco completo.**
+  - 181 clips, el 20 %.
+  - Se evalúa una vez, al final.
+- **Cómo están hechos los paquetes** (`C:\kw\vt-bench\make_dev_packages.py`):
+  - Cada uno trae el manifiesto congelado con lo ajeno sellado: `exam=true`, sin etiqueta, trazas ni ruta de vídeo.
+  - Lleva su propio hash y un `exam-evaluation.json` previo, que bloquea `EXAM=1`.
+  - Las cifras por fold salen con `fold_baseline.py`.
+- **Por qué:** con 1–3 rondas de ajuste sobre el mismo desarrollo, el fold ciego avisa del sobreajuste antes de gastar el examen, que
+  es de un solo uso.
+- **Ronda 1: M2** (brief `briefs/M2.md`).
