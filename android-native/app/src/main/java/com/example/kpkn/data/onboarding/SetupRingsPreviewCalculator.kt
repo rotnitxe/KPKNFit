@@ -181,7 +181,7 @@ class SetupRingsPreviewCalculator(private val context: Context) {
                     normalized = normalized,
                     muscles = AugeRecoveryEngine.getPerMuscleBatteries(history, normalized, candidateSettings,
                         catalog, sleep, nutrition, feedbacks, cache, nowOverrideMs = nowMs),
-                    articular = AugeTtcEngine.calculateArticularBatteries(history, catalog, feedbacks, normalized),
+                    articular = AugeTtcEngine.calculateArticularBatteries(history, catalog, feedbacks, normalized, nowMs = nowMs),
                 )
             }
             // Los 1–5 de borradores viejos solo entran donde no hay ajuste 0–100 del mismo canal o pilar. Las sensaciones

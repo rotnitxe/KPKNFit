@@ -796,6 +796,7 @@ object SessionAssistantEngine {
             history = input.workoutLogs,
             exerciseDb = input.exerciseIndex,
             settings = input.settings,
+            nowMs = com.example.kpkn.domain.auge.AugeClock.nowMs(),
         ).filter { it.interferencePercent >= 10 }
             .take(2)
         return hits.map { hit ->

@@ -34,7 +34,6 @@ import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import java.time.LocalDate
 
 /**
  * Productor real del snapshot: `AugeViewModel.recompute` publica
@@ -50,7 +49,8 @@ class AugeSnapshotCoverageTest {
     @get:Rule
     val roomRule = RoomTestRule()
     private lateinit var db: KpknDatabase
-    private val date: String = LocalDate.now().toString()
+    // Fecha fija (WP 1.7): la prueba no depende del día en que corre.
+    private val date: String = "2025-03-03"
 
     @Before
     fun setUp() {

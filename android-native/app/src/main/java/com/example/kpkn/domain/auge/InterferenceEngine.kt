@@ -47,15 +47,16 @@ object InterferenceEngine {
 
     /**
      * Calcula interferencias a partir del **historial real** de sesiones.
-     * Analiza pares consecutivos de WorkoutLogs en los últimos [days] días.
+     * Analiza pares consecutivos de WorkoutLogs en los últimos [days] días contados hasta [nowMs].
      */
     fun calculateHistoricalInterferences(
         history: List<WorkoutLog>,
         exerciseDb: Map<String, ExerciseMuscleInfo>,
         settings: Settings,
         days: Int = 30,
+        nowMs: Long = AugeClock.nowMs(),
     ): List<SessionInterference> {
-        val cutoff = System.currentTimeMillis() - days * 24L * 3600_000L
+        val cutoff = nowMs - days * 24L * 3600_000L
         val recent = history
             .filter { parseIsoMs(it.date) >= cutoff }
             .sortedBy { parseIsoMs(it.date) }
@@ -191,7 +192,7 @@ object InterferenceEngine {
         history: List<WorkoutLog>,
         exerciseDb: Map<String, ExerciseMuscleInfo>,
         settings: Settings,
-        nowMs: Long = System.currentTimeMillis(),
+        nowMs: Long = AugeClock.nowMs(),
     ): List<SessionInterference> {
         val usagesB = buildMuscleUsagesFromSession(current, exerciseDb)
         if (usagesB.isEmpty()) return emptyList()
