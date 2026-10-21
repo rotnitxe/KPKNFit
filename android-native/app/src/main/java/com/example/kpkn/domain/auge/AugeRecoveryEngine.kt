@@ -587,7 +587,6 @@ object AugeRecoveryEngine {
             }
 
             val recipe = sessionDrainRecipe(settings, tanks, adaptiveCache, exerciseDb, RecipeOptions(
-                restSource = RecipeOptions.RestSource.EXERCISE,
                 volumeCounting = RecipeOptions.VolumeCounting.EFFECTIVE_SET_COUNT,
                 axialGatePosition = RecipeOptions.AxialGatePosition.NOT_APPLIED,
                 muscleMultiplierSource = RecipeOptions.MuscleMultiplierSource.DIRECT_KEYS,
@@ -697,7 +696,6 @@ object AugeRecoveryEngine {
         var sessionMuscleStress = 0.0
 
         val recipe = sessionDrainRecipe(settings, tanks, adaptiveCache, exerciseDb, RecipeOptions(
-            restSource = RecipeOptions.RestSource.EXERCISE,
             volumeCounting = RecipeOptions.VolumeCounting.EFFECTIVE_SET_COUNT,
             axialGatePosition = RecipeOptions.AxialGatePosition.NOT_APPLIED,
             muscleMultiplierSource = RecipeOptions.MuscleMultiplierSource.REMAPPED_PILLARS,
@@ -766,7 +764,6 @@ object AugeRecoveryEngine {
             var sessionSoftAccum = 0.0
 
             val recipe = sessionDrainRecipe(settings, tanks, adaptiveCache, exerciseDb, RecipeOptions(
-                restSource = RecipeOptions.RestSource.EXERCISE,
                 volumeCounting = RecipeOptions.VolumeCounting.EFFECTIVE_SET_COUNT,
                 axialGatePosition = RecipeOptions.AxialGatePosition.NOT_APPLIED,
                 muscleMultiplierSource = RecipeOptions.MuscleMultiplierSource.DIRECT_KEYS,
@@ -952,7 +949,6 @@ object AugeRecoveryEngine {
             var sessionSoftAccum = 0.0
 
             val recipe = sessionDrainRecipe(settings, tanks, adaptiveCache, exerciseDb, RecipeOptions(
-                restSource = RecipeOptions.RestSource.EXERCISE,
                 volumeCounting = RecipeOptions.VolumeCounting.EFFECTIVE_SET_COUNT,
                 axialGatePosition = RecipeOptions.AxialGatePosition.AFTER_ACCUMULATION,
                 muscleMultiplierSource = RecipeOptions.MuscleMultiplierSource.DIRECT_KEYS,

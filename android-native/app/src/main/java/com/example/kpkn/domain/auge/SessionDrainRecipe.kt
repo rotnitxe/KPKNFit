@@ -5,14 +5,12 @@ import kotlin.math.roundToInt
 
 /** Decisiones que aún difieren entre consumidores; se revisan en 2.2b2. */
 internal data class RecipeOptions(
-    val restSource: RestSource,
     val volumeCounting: VolumeCounting,
     val axialGatePosition: AxialGatePosition,
     val muscleMultiplierSource: MuscleMultiplierSource,
     val cardioHandling: CardioHandling,
     val softCapUnits: SoftCapUnits,
 ) {
-    enum class RestSource { SUPERSET_OR_EXERCISE, EXERCISE, PLANNED_OR_90, PLANNED_OR_SETTINGS }
     enum class VolumeCounting { UNILATERAL_HALVES_ROUNDED, EFFECTIVE_SET_COUNT }
     enum class AxialGatePosition { BEFORE_ACCUMULATION, AFTER_ACCUMULATION, NOT_APPLIED }
     /** Se elimina en 3.1 junto con el campo zombi del caché; no activar calibraciones antiguas. */
@@ -201,12 +199,8 @@ internal class SessionDrainRecipe(
             ?.let { getAugeMusclePillarId(it.muscle, it.emphasis) }
             ?: involved.firstOrNull()?.let { getAugeMusclePillarId(it.muscle, it.emphasis) }
             ?: ""
-        val rest = when (options.restSource) {
-            RecipeOptions.RestSource.SUPERSET_OR_EXERCISE -> input.supersetRestBetween ?: requireNotNull(input.restTime)
-            RecipeOptions.RestSource.EXERCISE -> requireNotNull(input.restTime)
-            RecipeOptions.RestSource.PLANNED_OR_90 -> input.restTime ?: 90
-            RecipeOptions.RestSource.PLANNED_OR_SETTINGS -> input.restTime ?: settings.restTimerDefaultSeconds
-        }
+        // El descanso corto de la superserie solo interviene en la densidad.
+        val rest = input.restTime ?: settings.restTimerDefaultSeconds
         val density = if (input.isPlanned) {
             AugeFatigueEngine.getDensityMultiplierForExercise(input.supersetId, input.restTime ?: settings.restTimerDefaultSeconds)
         } else {

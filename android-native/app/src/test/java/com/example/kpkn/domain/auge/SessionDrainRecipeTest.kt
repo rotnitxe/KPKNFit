@@ -11,7 +11,6 @@ class SessionDrainRecipeTest {
     private val fixtures = SessionDrainCharacterizationFixtures
 
     private fun options() = RecipeOptions(
-        restSource = RecipeOptions.RestSource.EXERCISE,
         volumeCounting = RecipeOptions.VolumeCounting.EFFECTIVE_SET_COUNT,
         axialGatePosition = RecipeOptions.AxialGatePosition.NOT_APPLIED,
         muscleMultiplierSource = RecipeOptions.MuscleMultiplierSource.NONE,
@@ -88,23 +87,15 @@ class SessionDrainRecipeTest {
         assertEquals(110.3030303030303, result.accumulatedDrain, 1e-13)
     }
 
-    @Test fun descansoDistingueSuperserieEjercicioYLosDosDefaultsPlanificados() {
-        val ex = exercise().copy(supersetRestBetween = 20)
-        val regular = completed(options(), listOf(ex)).single()
-        val superset = completed(options().copy(restSource = RecipeOptions.RestSource.SUPERSET_OR_EXERCISE), listOf(ex)).single()
-        assertEquals(180, regular.context.restTime)
-        assertEquals(20, superset.context.restTime)
-        assertTrue(superset.raw.cnsDrainPct > regular.raw.cnsDrainPct)
-
-        val target = plannedExercise()
-        val predictorOptions = options().copy(
-            restSource = RecipeOptions.RestSource.PLANNED_OR_90,
-        )
-        val predictor = planned(predictorOptions, target)
-        val editor = planned(predictorOptions.copy(restSource = RecipeOptions.RestSource.PLANNED_OR_SETTINGS), target)
-        assertEquals(90, predictor.context.restTime)
-        assertEquals(45, editor.context.restTime)
-        assertTrue(editor.raw.cnsDrainPct > predictor.raw.cnsDrainPct)
+    @Test fun descansoCrudoEsDelEjercicioYElDefaultPlanificadoEsDelUsuario() {
+        val ex = exercise().copy(supersetId = "ss", supersetRestBetween = 20)
+        val actual = completed(options(), listOf(ex)).single()
+        assertEquals(180, actual.context.restTime)
+        assertEquals(1.3, actual.context.densityMultiplier, 0.0)
+        assertEquals(45, planned(options(), plannedExercise()).context.restTime)
+        assertEquals(180, planned(options(), plannedExercise().copy(restTime = 180)).context.restTime)
+        val target = planned(options(), plannedExercise().copy(supersetGroupRef = "group"))
+        assertEquals(1.3, target.context.densityMultiplier, 0.0)
     }
 
     @Test fun conteoUnilateralUsaMitadesRedondeadasOEnteros() {
@@ -169,11 +160,11 @@ class SessionDrainRecipeTest {
         val full = completed(options(), listOf(ex)).single()
         assertEquals(1.45, full.context.densityMultiplier, 0.0)
         val target = plannedExercise().copy(supersetGroupRef = "group", restTime = 20)
-        val group = planned(options().copy(restSource = RecipeOptions.RestSource.PLANNED_OR_SETTINGS), target)
-        val legacy = planned(options().copy(restSource = RecipeOptions.RestSource.PLANNED_OR_SETTINGS), target.copy(supersetGroupRef = null, supersetId = "ss"))
+        val group = planned(options(), target)
+        val legacy = planned(options(), target.copy(supersetGroupRef = null, supersetId = "ss"))
         assertEquals(1.3, group.context.densityMultiplier, 0.0)
         assertEquals(group.raw, legacy.raw)
-        assertEquals(1.0, planned(options().copy(restSource = RecipeOptions.RestSource.PLANNED_OR_SETTINGS), target.copy(supersetGroupRef = null)).context.densityMultiplier, 0.0)
+        assertEquals(1.0, planned(options(), target.copy(supersetGroupRef = null)).context.densityMultiplier, 0.0)
     }
 
     @Test fun pilarDelSnapshotSeparaLosContadoresAunqueCoincidaElCatalogo() {
