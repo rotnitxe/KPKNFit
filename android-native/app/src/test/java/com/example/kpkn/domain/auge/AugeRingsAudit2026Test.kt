@@ -155,23 +155,27 @@ class SpineRingSingleDefinitionTest {
         val now = Instant.parse("2026-09-12T18:00:00Z").toEpochMilli()
         val log = axialLog("sq", now)
         val settings = Settings()
+        val zone = java.time.ZoneId.of("UTC")
+        val articular = AugeTtcEngine.calculateArticularBatteries(
+            listOf(log), AxialFixtures.db, nowMs = now, zone = zone,
+        )
         val preview = AugeRecoveryEngine.previewPostSessionBatteries(
             baseHistory = emptyList(),
             previewLog = log,
             wellbeing = null,
             settings = settings,
             exerciseDb = AxialFixtures.db,
-            nowOverrideMs = now,
+            nowOverrideMs = now, zone = zone,
         )
         val muscles = AugeRecoveryEngine.getPerMuscleBatteries(
             history = listOf(log), wellbeing = null, settings = settings, exerciseDb = AxialFixtures.db,
-            nowOverrideMs = now,
+            nowOverrideMs = now, zone = zone,
         )
         val batteries = AugeRecoveryEngine.calculateGlobalBatteries(
             history = listOf(log), wellbeing = null, settings = settings, exerciseDb = AxialFixtures.db,
-            precomputedMuscles = muscles, nowOverrideMs = now,
+            precomputedMuscles = muscles, articularBatteries = articular, nowOverrideMs = now, zone = zone,
         )
-        val (art, guard) = AugeRecoveryEngine.structureInputs(muscles, emptyMap())
+        val (art, guard) = AugeRecoveryEngine.structureInputs(muscles, articular)
         val blended = AugeRecoveryEngine.structureRingScore(batteries.spinal, art, guard)
         assertTrue("preview=${preview.spinal} home=$blended", abs(preview.spinal - blended) <= 1)
     }

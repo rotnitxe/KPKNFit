@@ -1,20 +1,20 @@
 package com.example.kpkn.data.onboarding
 
 import android.content.Context
-import com.example.kpkn.data.exercises.exerciseCatalogSnapshot
-import com.example.kpkn.data.models.ArticularBattery
-import com.example.kpkn.data.models.ArticularBatteryState
+import com.example.kpkn.data.exercises.catalogExerciseIndex
 import com.example.kpkn.data.models.DailyWellbeingLog
 import com.example.kpkn.data.models.GlobalBatteries
 import com.example.kpkn.data.models.InitialRecoveryEvidence
 import com.example.kpkn.data.models.ManualMuscleBatteryOverride
-import com.example.kpkn.data.models.MuscleRecoveryStatus
 import com.example.kpkn.data.models.Settings
 import com.example.kpkn.data.repository.AugeRepository
 import com.example.kpkn.data.repository.NutritionRepository
 import com.example.kpkn.data.repository.ProgramRepository
+import com.example.kpkn.data.repository.augeRecoveryContext
 import com.example.kpkn.domain.auge.AugeRecoveryEngine
-import com.example.kpkn.domain.auge.AugeTtcEngine
+import com.example.kpkn.domain.auge.AugeSnapshotComputer
+import com.example.kpkn.domain.auge.AugeSnapshotCore
+import com.example.kpkn.domain.auge.AugeSnapshotInputs
 import com.example.kpkn.domain.auge.InitialRecoveryEvidencePolicy
 import com.example.kpkn.domain.auge.InitialRecoveryPolicyInput
 import com.example.kpkn.domain.auge.remapMuscleIntMapToPillars
@@ -100,9 +100,11 @@ internal fun stagePreviewWellbeing(
 private class RingsProposal(
     val incoming: DailyWellbeingLog?,
     val normalized: DailyWellbeingLog?,
-    val muscles: Map<String, MuscleRecoveryStatus>,
-    val articular: Map<ArticularBattery, ArticularBatteryState>,
-)
+    val core: AugeSnapshotCore,
+) {
+    val muscles get() = core.perMuscle
+    val articular get() = core.articular
+}
 
 /** Runs the same recovery engines and uses the same persisted inputs as Home,
  * without writing a check-in or teaching the adaptive cache while previewing. */
@@ -151,7 +153,7 @@ class SetupRingsPreviewCalculator(private val context: Context) {
         val sleep = auge.getLastNSleepLogs(7)
         val nutrition = NutritionRepository.getInstance().nutritionLogs.value
         val cache = auge.getAdaptiveCache().let { it.copy(muscleDrainMultipliers = remapMuscleMultiplierMapToPillars(it.muscleDrainMultipliers)) }
-        val catalog = exerciseCatalogSnapshot().associateBy { it.id.lowercase() }
+        val catalog = catalogExerciseIndex()
         val candidateSettings = when (evidenceInput) {
             is SetupRingsEvidenceInput.Available -> settings.copy(initialRecoveryEvidence = evidenceInput.evidence)
             // Conservada tal cual: no renueva su fecha ni prolonga su caducidad.
@@ -160,11 +162,14 @@ class SetupRingsPreviewCalculator(private val context: Context) {
         }
         val automaticWellbeing = existing?.copy(manualMuscularBattery = null,
             manualMuscleBatteries = emptyMap(), manualMuscleOverridesV2 = emptyMap())
+        val zone = ZoneId.systemDefault()
+        val inputs = AugeSnapshotInputs(
+            history, automaticWellbeing, candidateSettings, catalog, nowMs, zone,
+            sleep, nutrition, feedbacks, cache,
+            NutritionRepository.getInstance().augeRecoveryContext(candidateSettings, nowMs, zone),
+        )
         return withContext(Dispatchers.Default) {
-            val autoMuscles = AugeRecoveryEngine.getPerMuscleBatteries(
-                history, automaticWellbeing, candidateSettings, catalog, sleep, nutrition, feedbacks, cache,
-                nowOverrideMs = nowMs,
-            )
+            val autoMuscles = AugeSnapshotComputer.compute(inputs).perMuscle
             // Mismo merge por campos que el commit del alta, para que la vista previa no diverja del guardado.
             fun proposalFor(staged: StagedRingsCheckIn): RingsProposal {
                 val overrides = staged.manualMuscleBatteries.mapValues { (muscle, battery) ->
@@ -179,9 +184,7 @@ class SetupRingsPreviewCalculator(private val context: Context) {
                 return RingsProposal(
                     incoming = incoming,
                     normalized = normalized,
-                    muscles = AugeRecoveryEngine.getPerMuscleBatteries(history, normalized, candidateSettings,
-                        catalog, sleep, nutrition, feedbacks, cache, nowOverrideMs = nowMs),
-                    articular = AugeTtcEngine.calculateArticularBatteries(history, catalog, feedbacks, normalized, nowMs = nowMs),
+                    core = AugeSnapshotComputer.compute(inputs.copy(wellbeing = normalized)),
                 )
             }
             // Los 1–5 de borradores viejos solo entran donde no hay ajuste 0–100 del mismo canal o pilar. Las sensaciones
@@ -204,9 +207,7 @@ class SetupRingsPreviewCalculator(private val context: Context) {
             val settled = if (columnaBattery == null) first else proposalFor(
                 SetupRingsResponseMapping.withRingAdjustments(withoutColumna, null, columnaBattery, emptyMap()),
             )
-            val batteries = AugeRecoveryEngine.calculateGlobalBatteries(history, settled.normalized, candidateSettings,
-                catalog, sleep, nutrition, feedbacks, cache, precomputedMuscles = settled.muscles,
-                articularBatteries = settled.articular, nowOverrideMs = nowMs)
+            val batteries = settled.core.batteries
             // Columna de Inicio: el mismo blend (`structureRingScore`) sobre la batería cruda, no la cruda sola.
             val (artFloor, guardScores) = AugeRecoveryEngine.structureInputs(settled.muscles, settled.articular)
             val structure = AugeRecoveryEngine.structureRingScore(batteries.spinal, artFloor, guardScores)

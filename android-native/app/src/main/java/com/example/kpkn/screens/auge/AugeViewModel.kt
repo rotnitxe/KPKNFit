@@ -14,16 +14,18 @@ import com.example.kpkn.data.models.*
 import com.example.kpkn.data.repository.AugeRepository
 import com.example.kpkn.data.repository.NutritionRepository
 import com.example.kpkn.data.repository.ProgramRepository
+import com.example.kpkn.data.repository.loadAugeSnapshotInputs
+import com.example.kpkn.data.repository.augeRecoveryContext
 import com.example.kpkn.domain.auge.AugeAdaptiveEngine
 import com.example.kpkn.domain.auge.AugeFatigueEngine
 import com.example.kpkn.domain.auge.AugeMuscleCapacityEngine
 import com.example.kpkn.domain.auge.AugeParameters
 import com.example.kpkn.domain.auge.AugeRecoveryEngine
-import com.example.kpkn.domain.auge.AugeTtcEngine
+import com.example.kpkn.domain.auge.AugeSnapshotComputer
+import com.example.kpkn.domain.auge.AugeSnapshotCore
+import com.example.kpkn.domain.auge.AugeSnapshotInputs
 import com.example.kpkn.domain.auge.AugeUtils
 import com.example.kpkn.domain.auge.AxialLoadMonitor
-import com.example.kpkn.domain.auge.InitialRecoveryEvidencePolicy
-import com.example.kpkn.domain.auge.InitialRecoveryPolicyInput
 import com.example.kpkn.domain.auge.LoadAdvisoryEngine
 import com.example.kpkn.domain.auge.MuscularSessionImpactEngine
 import com.example.kpkn.domain.auge.PerformanceTauInput
@@ -37,7 +39,6 @@ import com.example.kpkn.domain.auge.remapMuscleIntMapToPillars
 import com.example.kpkn.domain.auge.remapMuscleMultiplierMapToPillars
 import com.example.kpkn.domain.auge.toAugeAdaptiveMuscleKey
 import com.example.kpkn.domain.onboarding.RingsCoverage
-import com.example.kpkn.domain.onboarding.declaredCheckInChannels
 import com.example.kpkn.domain.training.VolumeCalculator
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
@@ -50,6 +51,7 @@ import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import java.time.Instant
 import java.time.LocalDate
+import java.time.ZoneId
 import java.util.UUID
 import java.util.concurrent.atomic.AtomicLong
 
@@ -246,112 +248,29 @@ class AugeViewModel(application: Application) : AndroidViewModel(application) {
     ) {
         val computeStartedElapsed = SystemClock.elapsedRealtime()
         _snapshot.update { it.copy(isLoading = true) }
-        val todayWellbeing = augeRepo.getTodayWellbeing()
-        val overrideWellbeing = augeRepo.getActiveWellbeingWithManualOverrides()
-        val todayHasManualOverrides = todayWellbeing != null && (
-                todayWellbeing.manualNeuralBattery != null ||
-                todayWellbeing.manualSpinalBattery != null ||
-                todayWellbeing.manualMuscularBattery != null ||
-                todayWellbeing.manualMuscleBatteries.isNotEmpty() ||
-                todayWellbeing.manualMuscleOverridesV2.isNotEmpty()
-            )
-        val wellbeing = if (overrideWellbeing != null && !todayHasManualOverrides) {
-            overrideWellbeing
-        } else {
-            todayWellbeing
-        }
-        val feedbacks = augeRepo.getPostSessionFeedbacks()
-        val sleepLogs = augeRepo.getLastNSleepLogs(7)
-        val nutritionLogs = nutritionRepo.nutritionLogs.value
-        val adaptiveCacheRaw = augeRepo.getAdaptiveCache().let { raw ->
-            raw.copy(muscleDrainMultipliers = remapMuscleMultiplierMapToPillars(raw.muscleDrainMultipliers))
-        }
-        val wellbeingNormalized = wellbeing?.copy(
-            manualMuscleBatteries = remapMuscleIntMapToPillars(wellbeing.manualMuscleBatteries),
+        val loaded = loadAugeSnapshotInputs(
+            augeRepo, nutritionRepo, history, settings, System.currentTimeMillis(), ZoneId.systemDefault(),
         )
+        val wellbeingNormalized = loaded.wellbeing
         val adaptiveCache = learnFromLatestFinishedLog(
             history = history,
             settings = settings,
             wellbeing = wellbeingNormalized,
-            cache = adaptiveCacheRaw,
-            sleepLogs = sleepLogs,
-            nutritionLogs = nutritionLogs,
-            feedbacks = feedbacks,
+            cache = loaded.adaptiveCache,
+            sleepLogs = loaded.sleepLogs,
+            nutritionLogs = loaded.nutritionLogs,
+            feedbacks = loaded.feedbacks,
             lockHeld = lockHeld,
         )
-
         val evaluationNowMs = System.currentTimeMillis()
+        val inputs = loaded.copy(
+            adaptiveCache = adaptiveCache,
+            nowMs = evaluationNowMs,
+            nutritionContext = nutritionRepo.augeRecoveryContext(settings, evaluationNowMs, loaded.zone),
+        )
+        val exerciseDb = inputs.exerciseDb
         val (batteries, perMuscle, dashboard, readiness, articular, cumulativeFatigue, coverage) = withContext(Dispatchers.Default) {
-            val muscles = AugeRecoveryEngine.getPerMuscleBatteries(
-                history = history,
-                wellbeing = wellbeingNormalized,
-                settings = settings,
-                exerciseDb = exerciseDb,
-                sleepLogs = sleepLogs,
-                nutritionLogs = nutritionLogs,
-                feedbacks = feedbacks,
-                adaptiveCache = adaptiveCache,
-                // Mismo corte de evaluación que publica la cobertura: sin él cada
-                // motor usaría su propio reloj y podrían discrepar en el umbral
-                // de caducidad de la evidencia.
-                nowOverrideMs = evaluationNowMs,
-            )
-            val articular = AugeTtcEngine.calculateArticularBatteries(
-                history, exerciseDb, feedbacks, wellbeingNormalized,
-                nowMs = evaluationNowMs,
-            )
-            val bat = AugeRecoveryEngine.calculateGlobalBatteries(
-                history = history,
-                wellbeing = wellbeingNormalized,
-                settings = settings,
-                exerciseDb = exerciseDb,
-                sleepLogs = sleepLogs,
-                nutritionLogs = nutritionLogs,
-                feedbacks = feedbacks,
-                adaptiveCache = adaptiveCache,
-                precomputedMuscles = muscles,
-                articularBatteries = articular,
-                nowOverrideMs = evaluationNowMs,
-            )
-            val dashboard = AugeRecoveryEngine.calculateRecoveryDashboard(
-                batteries = bat,
-                perMuscle = muscles,
-                articularBatteries = articular,
-                wellbeing = wellbeingNormalized,
-                sleepLogs = sleepLogs,
-                recentSessionCount = AugeRecoveryEngine.recentSessionCount(history, evaluationNowMs),
-            )
-            val verdict = AugeRecoveryEngine.calculateDailyReadiness(dashboard, wellbeingNormalized)
-            
-            val twoWeeksAgo = evaluationNowMs - 14L * 24 * 3600_000
-            val cumFatigue = history
-                .filter { log ->
-                    com.example.kpkn.domain.auge.AugeUtils.logDateMs(log) >= twoWeeksAgo
-                }
-                .sumOf { log ->
-                    AugeFatigueEngine.calculateCompletedSessionStress(
-                        completedExercises = log.completedExercises,
-                        exerciseDb = exerciseDb,
-                        settings = settings,
-                        adaptiveCache = adaptiveCache,
-                        durationMinutes = log.durationMinutes,
-                    )
-                }
-            // Cobertura por canal con las MISMAS entradas y el MISMO corte temporal
-            // que las baterías recién calculadas (historial, evidencia inicial de
-            // settings, wellbeing normalizado, confianza y scores del dashboard):
-            // getPerMuscleBatteries/calculateGlobalBatteries y recentSessionCount
-            // reciben `evaluationNowMs`, igual que la articular (`nowMs`);
-            // calculateRecoveryDashboard y calculateDailyReadiness no leen el reloj.
-            val coverage = computeSnapshotCoverage(
-                history = history,
-                settings = settings,
-                wellbeing = wellbeingNormalized,
-                dashboard = dashboard,
-                batteries = bat,
-                nowMs = evaluationNowMs,
-            )
-            Septuple(bat, muscles, dashboard, verdict, articular, cumFatigue, coverage)
+            computeHomeAugeSnapshot(inputs)
         }
 
         // Mismo corte de evaluación para las entradas relacionadas del snapshot:
@@ -579,29 +498,12 @@ class AugeViewModel(application: Application) : AndroidViewModel(application) {
             durationMinutes = durationMinutes,
         )
 
-        val todayWellbeing = augeRepo.getTodayWellbeing()
-        val overrideWellbeing = augeRepo.getActiveWellbeingWithManualOverrides()
-        val todayHasManualOverrides = todayWellbeing != null && (
-            todayWellbeing.manualNeuralBattery != null ||
-                todayWellbeing.manualSpinalBattery != null ||
-                todayWellbeing.manualMuscularBattery != null ||
-            todayWellbeing.manualMuscleBatteries.isNotEmpty() ||
-                todayWellbeing.manualMuscleOverridesV2.isNotEmpty()
-            )
-        val wellbeing = if (overrideWellbeing != null && !todayHasManualOverrides) {
-            overrideWellbeing
-        } else {
-            todayWellbeing
-        }
-        val feedbacks = augeRepo.getPostSessionFeedbacks()
-        val sleepLogs = augeRepo.getLastNSleepLogs(7)
-        val nutritionLogs = nutritionRepo.nutritionLogs.value
-        val adaptiveCache = augeRepo.getAdaptiveCache().let { raw ->
-            raw.copy(muscleDrainMultipliers = remapMuscleMultiplierMapToPillars(raw.muscleDrainMultipliers))
-        }
-        val wellbeingNormalized = wellbeing?.copy(
-            manualMuscleBatteries = remapMuscleIntMapToPillars(wellbeing.manualMuscleBatteries),
+        val inputs = loadAugeSnapshotInputs(
+            augeRepo, nutritionRepo, baseHistory, settings, frozenCompletionMs, ZoneId.systemDefault(),
         )
+        val exerciseDb = inputs.exerciseDb
+        val adaptiveCache = inputs.adaptiveCache
+        val wellbeingNormalized = inputs.wellbeing
 
         val preview = withContext(Dispatchers.Default) {
             val canonicalInput = MuscularSessionImpactEngine.fromCompletedExercises(
@@ -632,27 +534,23 @@ class AugeViewModel(application: Application) : AndroidViewModel(application) {
                 adaptiveCache = adaptiveCache,
                 capacitiesAtCompletion = capacities,
             )
-            val articular = AugeTtcEngine.calculateArticularBatteries(
-                baseHistory, exerciseDb, feedbacks, wellbeingNormalized,
-                // El corte congelado del cierre: la articular de «ahora» de la vista previa se mide ahí, no en el reloj.
-                nowMs = frozenCompletionMs,
-            )
             AugeRecoveryEngine.previewPostSessionBatteries(
                 baseHistory = baseHistory,
                 previewLog = previewLog,
                 wellbeing = wellbeingNormalized,
                 settings = settings,
                 exerciseDb = exerciseDb,
-                sleepLogs = sleepLogs,
-                nutritionLogs = nutritionLogs,
-                feedbacks = feedbacks,
+                sleepLogs = inputs.sleepLogs,
+                nutritionLogs = inputs.nutritionLogs,
+                feedbacks = inputs.feedbacks,
                 adaptiveCache = adaptiveCache,
-                articularBatteries = articular,
                 nowOverrideMs = frozenCompletionMs,
                 finishOperationId = finishOperationId,
                 completionInstantIso = frozenCompletionIso,
                 inputHash = inputHash ?: automaticImpact.setInputHash,
                 automaticImpact = automaticImpact,
+                nutritionContext = inputs.nutritionContext,
+                zone = inputs.zone,
             )
         }
         KpknDiagnosticLogger.event(
@@ -1045,47 +943,27 @@ class AugeViewModel(application: Application) : AndroidViewModel(application) {
         feedbacks: List<PostSessionFeedback>,
         cache: AugeAdaptiveCache,
     ): StartPrediction {
-        val muscles = AugeRecoveryEngine.getPerMuscleBatteries(
-            history = historyWithout,
-            wellbeing = wellbeing,
-            settings = settings,
-            exerciseDb = exerciseDb,
-            sleepLogs = sleepLogs,
-            nutritionLogs = nutritionLogs,
-            feedbacks = feedbacks,
-            adaptiveCache = cache,
-        )
-        val articular = AugeTtcEngine.calculateArticularBatteries(
-            historyWithout,
-            exerciseDb,
-            feedbacks,
-            wellbeing,
-            nowMs = com.example.kpkn.domain.auge.AugeClock.nowMs(),
-        )
-        val batteries = AugeRecoveryEngine.calculateGlobalBatteries(
-            history = historyWithout,
-            wellbeing = wellbeing,
-            settings = settings,
-            exerciseDb = exerciseDb,
-            sleepLogs = sleepLogs,
-            nutritionLogs = nutritionLogs,
-            feedbacks = feedbacks,
-            adaptiveCache = cache,
-            precomputedMuscles = muscles,
-            articularBatteries = articular,
-        )
-        val dashboard = AugeRecoveryEngine.calculateRecoveryDashboard(
-            batteries = batteries,
-            perMuscle = muscles,
-            articularBatteries = articular,
-            wellbeing = wellbeing,
-            sleepLogs = sleepLogs,
-            recentSessionCount = AugeRecoveryEngine.recentSessionCount(historyWithout),
+        val nowMs = System.currentTimeMillis()
+        val zone = ZoneId.systemDefault()
+        val core = computeHomeAugeSnapshot(
+            AugeSnapshotInputs(
+                history = historyWithout,
+                wellbeing = wellbeing,
+                settings = settings,
+                exerciseDb = exerciseDb,
+                nowMs = nowMs,
+                zone = zone,
+                sleepLogs = sleepLogs,
+                nutritionLogs = nutritionLogs,
+                feedbacks = feedbacks,
+                adaptiveCache = cache,
+                nutritionContext = nutritionRepo.augeRecoveryContext(settings, nowMs, zone),
+            ),
         )
         return StartPrediction(
-            energy = dashboard.channelScore(RecoveryChannelId.SYSTEM, batteries.cnc),
-            structure = batteries.spinal,
-            muscles = muscles.mapValues { it.value.recoveryScore },
+            energy = core.dashboard.channelScore(RecoveryChannelId.SYSTEM, core.batteries.cnc),
+            structure = core.batteries.spinal,
+            muscles = core.perMuscle.mapValues { it.value.recoveryScore },
         )
     }
 
@@ -1268,30 +1146,12 @@ internal fun computeSnapshotCoverage(
     dashboard: RecoveryDashboard,
     batteries: GlobalBatteries,
     nowMs: Long,
-): RingsCoverage {
-    val contribution = InitialRecoveryEvidencePolicy.resolve(
-        InitialRecoveryPolicyInput(
-            evidence = settings.initialRecoveryEvidence,
-            nowMs = nowMs,
-            workoutLogs = history,
-        ),
-    )
-    val engineScores = mapOf(
-        RecoveryChannelId.MUSCULAR to batteries.muscular,
-        RecoveryChannelId.SYSTEM to batteries.cnc,
-        RecoveryChannelId.STRUCTURE to batteries.spinal,
-    )
-    return RingsCoverage.fromEngineInputs(
-        historyIsEmpty = history.isEmpty(),
-        wellbeing = wellbeing,
-        contribution = contribution,
-        declaredChannels = declaredCheckInChannels(wellbeing),
-        channelConfidence = dashboard.channels.associate { it.id to it.confidence },
-        score = { channel -> dashboard.channelScore(channel, engineScores.getValue(channel)) },
-    )
-}
+): RingsCoverage = com.example.kpkn.domain.auge.computeSnapshotCoverage(
+    history, settings, wellbeing, dashboard, batteries, nowMs, ZoneId.systemDefault(),
+)
 
-private data class Septuple<A, B, C, D, E, F, G>(val first: A, val second: B, val third: C, val fourth: D, val fifth: E, val sixth: F, val seventh: G)
+/** Entrada de cálculo de Home, separada de la carga, el aprendizaje y la publicación. */
+internal fun computeHomeAugeSnapshot(inputs: AugeSnapshotInputs): AugeSnapshotCore = AugeSnapshotComputer.compute(inputs)
 
 @Composable
 fun rememberAugeViewModel(): AugeViewModel {

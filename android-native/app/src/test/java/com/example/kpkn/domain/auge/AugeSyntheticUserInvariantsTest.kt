@@ -53,12 +53,8 @@ class AugeSyntheticUserInvariantsTest {
          */
         const val DRAIN_VIOLATION_BUDGET = 0
 
-        /**
-         * Divergencia máxima |vista previa − Home| medida hoy + 1 (F-23): 7 en el modo ligero (126 puntos; la sesión
-         * hipotética pesada, anillo muscular global) y 6 en el completo (1.500 puntos); sesiones reales ≤ 4. El paquete 2.3
-         * (cálculo único de la vista previa y de Home) la baja a ≤ 1.
-         */
-        const val PREVIEW_HOME_BUDGET = 8
+        /** F-23: vista previa y Home evalúan el mismo historial con V2 en el mismo instante. */
+        const val PREVIEW_HOME_BUDGET = 1
     }
 
     private fun hoursOf(tr: SyntheticTrajectory, s: SimSample): String = "+${(s.tMs - tr.startMs) / HOUR_MS}h"
@@ -338,8 +334,7 @@ class AugeSyntheticUserInvariantsTest {
                 "tiempo=${(System.nanoTime() - t0) / 1_000_000} ms",
         )
         assertTrue("No se midió ningún punto de paridad", all.isNotEmpty())
-        // BUG CONOCIDO F-23: la vista previa resta lineal por músculo, usa un log previo sin V2 y no coincide con Home.
-        // Presupuesto = máximo medido hoy + 1; el paquete 2.3 (AugeSnapshotComputer único) lo baja a ≤ 1.
+        // Mismo computador, incluidas las articulares con la sesión ya dentro.
         assertTrue(
             "Divergencia preview↔Home $overall > presupuesto $PREVIEW_HOME_BUDGET",
             overall <= PREVIEW_HOME_BUDGET,

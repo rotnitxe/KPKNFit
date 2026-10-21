@@ -30,6 +30,7 @@ object NutritionRecoveryEngine {
         stressLevel: Int = 3,
         hoursWindow: Int = 48,
         nowMs: Long = AugeClock.nowMs(),
+        zone: ZoneId = ZoneId.systemDefault(),
     ): NutritionRecoveryResult {
         val factors = mutableListOf<String>()
         var multiplier = 1.0
@@ -43,7 +44,7 @@ object NutritionRecoveryEngine {
                 // esas comidas se descartaban en silencio (WP-U4 / C4). Un formato roto
                 // sigue ignorándose sin lanzar.
                 val logMs = java.time.LocalDate.parse(log.date.take(10))
-                    .atStartOfDay(java.time.ZoneId.systemDefault())
+                    .atStartOfDay(zone)
                     .toInstant().toEpochMilli()
                 logMs > windowStartMs
             } catch (_: Exception) { false }
@@ -59,7 +60,6 @@ object NutritionRecoveryEngine {
 
         // Objetivos de la ventana de análisis. Un campo sin meta es ausencia;
         // nunca se sustituye por un default ni por el plan actual de otro día.
-        val zone: ZoneId = ZoneId.systemDefault()
         val windowStart: LocalDate = Instant.ofEpochMilli(windowStartMs).atZone(zone).toLocalDate()
         val windowEnd: LocalDate = Instant.ofEpochMilli(nowMs).atZone(zone).toLocalDate()
         val windowGoals = goalsByDate

@@ -727,7 +727,7 @@ object AugeSyntheticUserHarness {
     /**
      * Para la sesión `sessionIndex`: vista previa del cierre (`previewPostSessionBatteries`, con la misma entrada que
      * `AugeViewModel.computePostSessionPreview`: historial SIN la sesión, log previo SIN V2 y el V2 automático aparte)
-     * frente a Home tras añadir esa sesión (con su V2) y evaluar en su instante de cierre.
+     * frente al computador de Home, con la sesión y su V2 dentro, en el mismo instante y con articular real.
      */
     fun previewVsHome(
         history: SyntheticHistory,
@@ -782,11 +782,14 @@ object AugeSyntheticUserHarness {
             completionInstantIso = closed.date,
             inputHash = impact?.setInputHash,
             automaticImpact = impact,
+            zone = ZONE,
         )
-        val home = sample(user, prior + closed, session.completionMs)
+        val home = AugeSnapshotComputer.compute(
+            AugeSnapshotInputs(prior + closed, null, settings, exerciseDb, session.completionMs, ZONE),
+        )
         val muscleDiffs = LinkedHashMap<String, Int>()
         preview.perMuscle.toSortedMap().forEach { (muscle, status) ->
-            val homeScore = home.perMuscle[muscle] ?: return@forEach
+            val homeScore = home.perMuscle[muscle]?.recoveryScore ?: return@forEach
             muscleDiffs[muscle] = status.recoveryScore - homeScore
         }
         val tenDaysAgo = session.completionMs - 10L * DAY_MS
@@ -797,10 +800,10 @@ object AugeSyntheticUserHarness {
             variant = variant,
             sessionsIn10Days = prior.count { AugeUtils.logDateMs(it) > tenDaysAgo },
             muscleDiffs = muscleDiffs,
-            muscular = preview.muscular - home.muscular,
-            energy = preview.neural - home.energy,
-            spinalRaw = preview.spinalRaw - home.spinal,
-            structure = preview.spinal - home.dashStructure,
+            muscular = preview.muscular - home.batteries.muscular,
+            energy = preview.neural - home.batteries.cnc,
+            spinalRaw = preview.spinalRaw - home.batteries.spinal,
+            structure = preview.spinal - home.dashboard.channelScore(RecoveryChannelId.STRUCTURE, home.batteries.spinal),
         )
     }
 
